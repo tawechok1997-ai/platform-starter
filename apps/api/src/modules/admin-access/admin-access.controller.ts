@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AdminAccessSessionService } from './admin-access-session.service';
 import { AdminAccessService } from './admin-access.service';
+import { AdminAccountLifecycleService } from './admin-account-lifecycle.service';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 @Controller('admin/access')
@@ -11,6 +12,7 @@ export class AdminAccessController {
   constructor(
     private readonly service: AdminAccessService,
     private readonly accessSessions: AdminAccessSessionService,
+    private readonly accountLifecycle: AdminAccountLifecycleService,
   ) {}
 
   @RequirePermission('admin.access.view')
@@ -30,6 +32,21 @@ export class AdminAccessController {
       String(body.email ?? ''),
       String(body.roleId ?? ''),
       Number(body.expiresInHours ?? 24),
+    );
+  }
+
+  @RequirePermission('admin.access.manage')
+  @Patch('admin-users/:adminUserId/status')
+  changeStatus(
+    @Req() req: any,
+    @Param('adminUserId') adminUserId: string,
+    @Body() body: { status?: string; reason?: string },
+  ) {
+    return this.accountLifecycle.changeStatus(
+      req.user.id,
+      adminUserId,
+      String(body.status ?? ''),
+      String(body.reason ?? ''),
     );
   }
 
