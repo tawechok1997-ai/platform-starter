@@ -68,4 +68,4 @@ function SummaryCard({ label, value, tone }: { label: string; value: number; ton
 }
 function typeLabel(type: string) { const upper = type.toUpperCase(); if (upper.includes('DEPOSIT') || upper.includes('TOPUP')) return 'ฝาก'; if (upper.includes('WITHDRAW')) return 'ถอนเงิน'; if (upper.includes('ADJUST')) return 'ปรับยอด'; return 'รายการ'; }
 function directionLabel(direction: string) { return direction === 'CREDIT' ? 'เงินเข้า' : 'เงินออก'; }
-function formatMoney(value: string | number) { return `THB ${Number(value).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
+function formatMoney(value: string | number | null | undefined) { return `THB ${Number(value ?? 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }

@@ -73,7 +73,8 @@ export class AffiliatesService {
     const agent = await this.requireApprovedAgent(this.cleanText(input.agentProfileId));
     const agentMeta = this.profileMetadata(agent.metadata);
     const preview = this.calculateCommission(input, agentMeta.commissionRate || DEFAULT_COMMISSION_RATE_PERCENT);
-    const downlineCount = (await this.downlinesForProfile(agentMeta.referralCode || agent.refId)).length;
+    const referralCode = agentMeta.referralCode || agent.refId;
+    const downlineCount = referralCode ? (await this.downlinesForProfile(referralCode)).length : 0;
     return { agent: await this.formatProfile(agent), downlineCount, rule: preview.rule, amount: preview.amount, currency: 'THB', payoutEnabled: false, payoutStatus: 'PREVIEW_ONLY_NO_WALLET_SETTLEMENT' };
   }
 
