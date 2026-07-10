@@ -45,94 +45,42 @@ ALTER TABLE "withdrawal_requests"
   ADD COLUMN IF NOT EXISTS "completed_ledger_id" UUID;
 
 DO $$ BEGIN
-  ALTER TABLE "top_up_requests"
-    ADD CONSTRAINT "top_up_requests_duplicate_of_id_fkey"
-    FOREIGN KEY ("duplicate_of_id") REFERENCES "top_up_requests"("id")
-    ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
+  ALTER TABLE "top_up_requests" ADD CONSTRAINT "top_up_requests_duplicate_of_id_fkey" FOREIGN KEY ("duplicate_of_id") REFERENCES "top_up_requests"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN
-  ALTER TABLE "top_up_requests"
-    ADD CONSTRAINT "top_up_requests_slip_reviewed_by_fkey"
-    FOREIGN KEY ("slip_reviewed_by") REFERENCES "admin_users"("id")
-    ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
+  ALTER TABLE "top_up_requests" ADD CONSTRAINT "top_up_requests_slip_reviewed_by_fkey" FOREIGN KEY ("slip_reviewed_by") REFERENCES "admin_users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN
-  ALTER TABLE "top_up_requests"
-    ADD CONSTRAINT "top_up_requests_credit_confirmed_by_fkey"
-    FOREIGN KEY ("credit_confirmed_by") REFERENCES "admin_users"("id")
-    ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
+  ALTER TABLE "top_up_requests" ADD CONSTRAINT "top_up_requests_credit_confirmed_by_fkey" FOREIGN KEY ("credit_confirmed_by") REFERENCES "admin_users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN
-  ALTER TABLE "top_up_requests"
-    ADD CONSTRAINT "top_up_requests_credited_ledger_id_fkey"
-    FOREIGN KEY ("credited_ledger_id") REFERENCES "wallet_ledgers"("id")
-    ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
+  ALTER TABLE "top_up_requests" ADD CONSTRAINT "top_up_requests_credited_ledger_id_fkey" FOREIGN KEY ("credited_ledger_id") REFERENCES "wallet_ledgers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN
-  ALTER TABLE "withdrawal_requests"
-    ADD CONSTRAINT "withdrawal_requests_approved_for_payment_by_fkey"
-    FOREIGN KEY ("approved_for_payment_by") REFERENCES "admin_users"("id")
-    ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
+  ALTER TABLE "withdrawal_requests" ADD CONSTRAINT "withdrawal_requests_approved_for_payment_by_fkey" FOREIGN KEY ("approved_for_payment_by") REFERENCES "admin_users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN
-  ALTER TABLE "withdrawal_requests"
-    ADD CONSTRAINT "withdrawal_requests_payment_uploaded_by_fkey"
-    FOREIGN KEY ("payment_uploaded_by") REFERENCES "admin_users"("id")
-    ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
+  ALTER TABLE "withdrawal_requests" ADD CONSTRAINT "withdrawal_requests_payment_uploaded_by_fkey" FOREIGN KEY ("payment_uploaded_by") REFERENCES "admin_users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN
-  ALTER TABLE "withdrawal_requests"
-    ADD CONSTRAINT "withdrawal_requests_payment_verified_by_fkey"
-    FOREIGN KEY ("payment_verified_by") REFERENCES "admin_users"("id")
-    ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
+  ALTER TABLE "withdrawal_requests" ADD CONSTRAINT "withdrawal_requests_payment_verified_by_fkey" FOREIGN KEY ("payment_verified_by") REFERENCES "admin_users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN
-  ALTER TABLE "withdrawal_requests"
-    ADD CONSTRAINT "withdrawal_requests_completed_ledger_id_fkey"
-    FOREIGN KEY ("completed_ledger_id") REFERENCES "wallet_ledgers"("id")
-    ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
+  ALTER TABLE "withdrawal_requests" ADD CONSTRAINT "withdrawal_requests_completed_ledger_id_fkey" FOREIGN KEY ("completed_ledger_id") REFERENCES "wallet_ledgers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- Duplicate submissions must remain insertable so the system can preserve evidence,
--- show the member why the request was rejected, and count repeated abuse. Concurrency
--- is serialized in the application with PostgreSQL advisory transaction locks.
-CREATE INDEX IF NOT EXISTS "top_up_requests_slip_transaction_ref_idx"
+-- Preserve rejected duplicate evidence while allowing only one accepted use of an exact
+-- transaction reference or file hash. A concurrent loser hits this constraint and the API
+-- converts it into a DUPLICATE request linked to the accepted original.
+CREATE UNIQUE INDEX IF NOT EXISTS "top_up_requests_active_slip_transaction_ref_key"
   ON "top_up_requests"("slip_transaction_ref")
-  WHERE "slip_transaction_ref" IS NOT NULL;
-
-CREATE INDEX IF NOT EXISTS "top_up_requests_slip_file_hash_idx"
+  WHERE "slip_transaction_ref" IS NOT NULL AND "status" <> 'DUPLICATE';
+CREATE UNIQUE INDEX IF NOT EXISTS "top_up_requests_active_slip_file_hash_key"
   ON "top_up_requests"("slip_file_hash")
-  WHERE "slip_file_hash" IS NOT NULL;
+  WHERE "slip_file_hash" IS NOT NULL AND "status" <> 'DUPLICATE';
+CREATE INDEX IF NOT EXISTS "top_up_requests_slip_perceptual_hash_idx" ON "top_up_requests"("slip_perceptual_hash") WHERE "slip_perceptual_hash" IS NOT NULL;
+CREATE INDEX IF NOT EXISTS "top_up_requests_duplicate_of_id_idx" ON "top_up_requests"("duplicate_of_id");
+CREATE INDEX IF NOT EXISTS "top_up_requests_user_status_created_idx" ON "top_up_requests"("user_id", "status", "created_at" DESC);
 
-CREATE INDEX IF NOT EXISTS "top_up_requests_slip_perceptual_hash_idx"
-  ON "top_up_requests"("slip_perceptual_hash")
-  WHERE "slip_perceptual_hash" IS NOT NULL;
-
-CREATE INDEX IF NOT EXISTS "top_up_requests_duplicate_of_id_idx"
-  ON "top_up_requests"("duplicate_of_id");
-
-CREATE INDEX IF NOT EXISTS "top_up_requests_user_status_created_idx"
-  ON "top_up_requests"("user_id", "status", "created_at" DESC);
-
-CREATE INDEX IF NOT EXISTS "withdrawal_requests_payment_transaction_ref_idx"
-  ON "withdrawal_requests"("payment_transaction_ref")
-  WHERE "payment_transaction_ref" IS NOT NULL;
-
-CREATE INDEX IF NOT EXISTS "withdrawal_requests_payment_slip_file_hash_idx"
-  ON "withdrawal_requests"("payment_slip_file_hash")
-  WHERE "payment_slip_file_hash" IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS "withdrawal_requests_payment_transaction_ref_key" ON "withdrawal_requests"("payment_transaction_ref") WHERE "payment_transaction_ref" IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS "withdrawal_requests_payment_slip_file_hash_key" ON "withdrawal_requests"("payment_slip_file_hash") WHERE "payment_slip_file_hash" IS NOT NULL;
