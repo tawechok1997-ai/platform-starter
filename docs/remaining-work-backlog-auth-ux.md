@@ -50,16 +50,25 @@ Registration must be split into short, understandable steps instead of one long 
 - [ ] Add resend cooldown, expiry display, attempt limits, and change-contact action.
 - [ ] Apply CAPTCHA or anti-bot challenge according to Admin security settings.
 
-### Step 3: Personal and financial setup
+### Step 3: Personal identity and required bank account
 
-- [ ] Collect only required profile fields.
-- [ ] Collect bank-account details only when required at registration; otherwise defer to the bank-account flow after login.
-- [ ] Validate duplicate bank, name mismatch, and unsupported bank rules when backend support exists.
-- [ ] Clearly mark optional fields.
+- [ ] Collect the member's legal first name, legal last name, date of birth, and other profile fields required by policy.
+- [ ] Require one bank account during registration; registration cannot be completed without it.
+- [ ] Collect bank name, account number, and bank-account holder name.
+- [ ] Require the bank-account holder name to match the member's legal name.
+- [ ] Normalize Thai and English spacing, punctuation, title prefixes, and letter case before comparison without weakening the legal-name rule.
+- [ ] Do not silently accept a different person's bank account.
+- [ ] Validate the bank, account-number format, duplicate-bank use, duplicate-account ownership, and unsupported-bank rules on the backend.
+- [ ] Store a bank-name verification status such as Unverified, Matched, Mismatch, Manual Review, or Verified.
+- [ ] Stop registration when a confirmed mismatch exists and show a natural-language explanation in Thai or English.
+- [ ] Send uncertain matches to manual review only when policy explicitly permits it.
+- [ ] Protect bank-account details as sensitive personal data and mask them in logs, analytics, support tools, and normal Admin list views.
+- [ ] Record the source, verification method, timestamp, and reason for every manual override or review decision.
 
 ### Step 4: Review and consent
 
-- [ ] Show a concise review summary.
+- [ ] Show a concise review summary including the masked bank account and account-holder name.
+- [ ] Require the member to confirm that the bank account belongs to them and that the information is correct.
 - [ ] Require acceptance of the current Terms, Privacy Policy, and other mandatory legal documents.
 - [ ] Link to readable document pages without losing registration progress.
 - [ ] Show referral or promotion code only when enabled.
@@ -79,6 +88,8 @@ Registration must be split into short, understandable steps instead of one long 
 - [ ] Expire sensitive registration state after a configured period.
 - [ ] Prevent skipping required steps by editing the URL or client state.
 - [ ] Enforce every step and verification state on the API.
+- [ ] Do not create an Active member account until the required bank account passes the configured validation policy.
+- [ ] Make registration completion and bank-account creation atomic so a partial failure does not leave an activated account without the required bank account.
 
 ## Web Admin login
 
@@ -158,6 +169,7 @@ Admin accounts are created or invited only by the Owner or an explicitly delegat
 - [ ] Keep the primary action reachable above or alongside the on-screen keyboard.
 - [ ] Use full-screen step pages or a compact card without horizontal scrolling.
 - [ ] Preserve registration progress when the device rotates or the keyboard changes viewport height.
+- [ ] Use bank selection and account-number entry controls optimized for mobile keyboards without exposing full values after submission.
 
 ## Bilingual requirements
 
@@ -166,6 +178,7 @@ Admin accounts are created or invited only by the Owner or an explicitly delegat
 - [ ] English must be concise and operationally clear.
 - [ ] Switching language must not clear entered form data.
 - [ ] Long English labels must not break mobile layouts.
+- [ ] Bank-name mismatch messages must clearly explain that the bank account must belong to the registering member without exposing internal matching rules.
 
 ## Security and anti-bot requirements
 
@@ -174,16 +187,22 @@ Admin accounts are created or invited only by the Owner or an explicitly delegat
 - [ ] Add rate limiting by route, account, IP, and device signals where available.
 - [ ] Add progressive lockout, credential-stuffing detection, password-spraying detection, replay prevention, honeypots where appropriate, and suspicious-login alerts.
 - [ ] Keep Member and Admin authentication endpoints, cookies/tokens, sessions, and recovery flows strictly separated.
-- [ ] Never place secrets, tokens, invite contents, or raw security errors in client logs.
+- [ ] Never place secrets, tokens, invite contents, bank-account details, or raw security errors in client logs.
+- [ ] Encrypt or otherwise protect sensitive bank-account data at rest according to platform policy.
+- [ ] Rate-limit bank verification and duplicate-account checks to prevent enumeration and abuse.
 
 ## Acceptance criteria
 
 - [ ] Both Web Member and Web Admin login pages are visually minimal, centered, logo-led, and free from unrelated content.
 - [ ] Member registration uses a secure multi-step flow.
+- [ ] Member registration cannot complete without one valid bank account.
+- [ ] The required bank-account holder name matches the member's legal name under the configured normalization policy.
+- [ ] Confirmed bank-name mismatches are blocked by the API, not only by frontend validation.
+- [ ] Duplicate or suspicious bank-account use follows configured risk and review rules.
 - [ ] Admin has no public registration; account activation uses a secure invitation-based multi-step flow.
 - [ ] Thai and English are complete across all authentication states.
 - [ ] Desktop, Tablet, and Mobile pass visual regression and keyboard/accessibility checks.
-- [ ] Direct API calls cannot skip registration, invitation, verification, 2FA, CAPTCHA, or permission requirements.
+- [ ] Direct API calls cannot skip registration, bank-account, invitation, verification, 2FA, CAPTCHA, or permission requirements.
 - [ ] Existing auth, session, permission, and money-operation security behavior is not weakened by the redesign.
 
 ## Recommended delivery order
@@ -191,7 +210,7 @@ Admin accounts are created or invited only by the Owner or an explicitly delegat
 1. Shared clean authentication shell and bilingual copy foundation.
 2. Web Member login redesign.
 3. Web Admin login redesign with 2FA state handling.
-4. Member multi-step registration.
+4. Member multi-step registration with required bank-account and legal-name matching.
 5. Admin invitation and activation wizard.
 6. Password reset and recovery flows.
 7. CAPTCHA, rate-limit, security-state, responsive, accessibility, and visual-regression QA.
