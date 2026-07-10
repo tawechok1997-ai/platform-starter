@@ -10,6 +10,13 @@ function prismaWithSetting(valueJson: unknown = null) {
 }
 
 describe('AntiBotService safety defaults', () => {
+  const originalRuntimeFlag = process.env.ANTIBOT_RUNTIME_ENABLED;
+
+  afterEach(() => {
+    if (originalRuntimeFlag === undefined) delete process.env.ANTIBOT_RUNTIME_ENABLED;
+    else process.env.ANTIBOT_RUNTIME_ENABLED = originalRuntimeFlag;
+  });
+
   it('keeps protection disabled when no configuration exists', async () => {
     const service = new AntiBotService(prismaWithSetting());
 
@@ -23,7 +30,24 @@ describe('AntiBotService safety defaults', () => {
     await expect(service.assertValid('MEMBER_LOGIN', undefined)).resolves.toEqual({ required: false, success: true });
   });
 
-  it('requires a CAPTCHA token only for an enabled route', async () => {
+  it('keeps protection disabled until the runtime flag is explicitly enabled', async () => {
+    delete process.env.ANTIBOT_RUNTIME_ENABLED;
+    const service = new AntiBotService(prismaWithSetting({
+      enabled: true,
+      provider: 'TURNSTILE',
+      siteKey: 'site-key',
+      encryptedSecret: 'not-returned',
+      routes: { ADMIN_LOGIN: true, MEMBER_LOGIN: true, MEMBER_REGISTER: true },
+      adaptiveMode: true,
+      emergencyMode: false,
+    }));
+
+    await expect(service.getPublicConfig('ADMIN_LOGIN')).resolves.toEqual(expect.objectContaining({ enabled: false, provider: null, siteKey: '' }));
+    await expect(service.assertValid('ADMIN_LOGIN', undefined)).resolves.toEqual({ required: false, success: true });
+  });
+
+  it('requires a CAPTCHA token only for an enabled route when runtime protection is enabled', async () => {
+    process.env.ANTIBOT_RUNTIME_ENABLED = 'true';
     const prisma = prismaWithSetting({
       enabled: true,
       provider: 'TURNSTILE',
@@ -40,6 +64,7 @@ describe('AntiBotService safety defaults', () => {
   });
 
   it('never exposes the encrypted provider secret in admin or public configuration', async () => {
+    process.env.ANTIBOT_RUNTIME_ENABLED = 'true';
     const service = new AntiBotService(prismaWithSetting({
       enabled: true,
       provider: 'HCAPTCHA',
