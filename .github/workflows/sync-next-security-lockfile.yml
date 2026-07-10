@@ -1,0 +1,63 @@
+name: Sync Next security lockfile
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - apps/web-admin/package.json
+      - apps/web-member/package.json
+      - .github/workflows/sync-next-security-lockfile.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Refresh lockfile
+        run: pnpm install --lockfile-only
+
+      - name: Verify patched Next version
+        run: |
+          if grep -q "next@14.2.32" pnpm-lock.yaml; then
+            echo "Vulnerable Next.js version remains in lockfile" >&2
+            exit 1
+          fi
+          grep -q "next@14.2.35" pnpm-lock.yaml
+
+      - name: Verify frozen install
+        run: pnpm install --frozen-lockfile
+
+      - name: Commit lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          if git diff --cached --quiet; then
+            echo "Security lockfile is already current"
+            exit 0
+          fi
+          git commit -m "fix(deps): sync patched Next.js lockfile"
+          git push origin HEAD:main
