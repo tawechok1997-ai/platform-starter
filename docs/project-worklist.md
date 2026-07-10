@@ -16,7 +16,7 @@ Updated: 2026-07-11
 
 ## Emergency finance hardening
 
-### P0 completed in code
+### P0 completed
 
 - ✅ ปิด legacy Admin Top-up routes ที่เพิ่มเครดิตทันที
 - ✅ หน้า Admin Top-up ใช้ staged flow `approve-slip -> confirm-credit` เท่านั้น
@@ -25,21 +25,19 @@ Updated: 2026-07-11
 - ✅ บังคับ claim ownership ใน backend สำหรับ approve withdrawal, upload payment proof และ verify payment
 - ✅ เงื่อนไข update ของ finance workflow ตรวจทั้ง status และ `claimed_by`
 - ✅ Deposit credit และ withdrawal verification ใช้ wallet row lock ก่อนแก้ยอด
+- ✅ `prisma/schema.prisma` ตรงกับ enum และคอลัมน์จาก finance migrations
+- ✅ `pnpm prisma format`, `pnpm prisma validate` และ `pnpm prisma generate` ผ่าน
+- ✅ `pnpm build:api`, `pnpm build:web-admin` และ API tests ผ่าน checkpoint ล่าสุด
+- ⏳ ทดสอบ claim conflict ด้วยแอดมินสองบัญชีบนข้อมูลจริง
 
-### P0 still open
+### P1 in progress
 
-- 🚧 ทำ `prisma/schema.prisma` ให้ตรง enum และคอลัมน์จาก finance migrations
-- ⏳ รัน `pnpm prisma generate`
-- ⏳ รัน `pnpm build:api`
-- ⏳ รัน `pnpm build:web-admin`
-- ⏳ รัน `pnpm --filter @platform/api test`
-- ⏳ ทดสอบ claim conflict ด้วยแอดมินสองบัญชี
-
-### P1 queued after P0
-
-- ⏳ ลบไฟล์หลักฐานเมื่อ DB transaction ล้ม เพื่อป้องกัน orphan storage
-- ⏳ เพิ่ม API tests และ finance concurrency tests เป็น CI gate
-- ⏳ เพิ่มและบังคับใช้ `pnpm-lock.yaml` กับ `--frozen-lockfile`
+- ✅ เพิ่ม storage delete สำหรับ local และ S3
+- ✅ ลบ withdrawal payment proof เมื่อ DB transaction ล้มเหลว
+- ✅ เพิ่ม test ยืนยัน local storage delete และ retry
+- ✅ เพิ่ม Prisma validation และ API tests เป็น CI gate ก่อน build
+- 🚧 เพิ่ม compensation สำหรับ deposit slip upload เมื่อ DB state เปลี่ยนหลังอัปโหลด
+- 🚧 เพิ่มและบังคับใช้ `pnpm-lock.yaml` กับ `--frozen-lockfile`
 - ⏳ ทำ production smoke ให้ fail เมื่อ token ที่จำเป็นหาย
 
 ## Completed
@@ -66,8 +64,8 @@ Updated: 2026-07-11
 - ✅ Admin finance operations รองรับ mobile และ desktop
 - ✅ แก้ route ซ้ำ `/withdrawals` ระหว่าง route groups
 - ✅ `web-member` build ผ่านใน checkpoint ล่าสุด
-- 🧪 `web-admin` ต้อง build ใหม่หลัง finance hardening ล่าสุด
-- 🧪 API ต้อง build และ test ใหม่หลัง finance hardening ล่าสุด
+- ✅ `web-admin` build ผ่านใน checkpoint ล่าสุด
+- ✅ API build และ tests ผ่านใน checkpoint ล่าสุด
 
 ### Merged pull requests
 
@@ -78,7 +76,7 @@ Updated: 2026-07-11
 - ✅ PR #10 `fix(finance): serialize wallet mutations and retries`
 - ✅ PR #11 `docs: add current project worklist`
 
-## Current priority after P0
+## Current priority after P1
 
 ### 1. Admin Audit Log UI
 
