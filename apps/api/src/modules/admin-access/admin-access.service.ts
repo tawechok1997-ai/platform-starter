@@ -2,6 +2,9 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
+const SUPER_PERMISSION = '*';
+const PROTECTED_ROLE_CODES = new Set(['owner', 'super_admin']);
+
 const GROWTH_PERMISSIONS = [
   { code: 'promotions.claims.view', name: 'View promotion claims', module: 'promotions', description: 'ดูคำขอรับโปรโมชัน' },
   { code: 'promotions.claims.review', name: 'Review promotion claims', module: 'promotions', description: 'อนุมัติหรือปฏิเสธคำขอรับโปรโมชัน' },
@@ -47,7 +50,7 @@ export class AdminAccessService {
         roleCount: roles.length,
         permissionCount: permissions.length,
         adminUserCount: adminUsers.length,
-        wildcardRoleCount: roles.filter((role) => role.permissions.some((item) => item.permission.code === '*')).length,
+        wildcardRoleCount: roles.filter((role) => role.permissions.some((item) => item.permission.code === SUPER_PERMISSION)).length,
       },
       roles: roles.map((role) => ({
         id: role.id,
@@ -57,7 +60,7 @@ export class AdminAccessService {
         level: role.level,
         adminUserCount: role.adminUsers.length,
         permissionCount: role.permissions.length,
-        hasWildcard: role.permissions.some((item) => item.permission.code === '*'),
+        hasWildcard: role.permissions.some((item) => item.permission.code === SUPER_PERMISSION),
         permissions: role.permissions.map((item) => ({
           id: item.permission.id,
           code: item.permission.code,
@@ -81,18 +84,46 @@ export class AdminAccessService {
         twoFactorEnabled: user.twoFactorEnabled,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
+        protected: user.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code)),
         roles: user.roles.map((item) => ({ id: item.role.id, code: item.role.code, name: item.role.name, level: item.role.level })),
       })),
     };
   }
 
   async assignRole(actorAdminId: string, targetAdminId: string, roleId: string) {
-    const [target, role] = await Promise.all([
+    const [actor, target, role] = await Promise.all([
+      this.findAdminWithPermissions(actorAdminId),
       this.prisma.adminUser.findUnique({ where: { id: targetAdminId }, include: { roles: { include: { role: true } } } }),
       this.prisma.role.findUnique({ where: { id: roleId }, include: { permissions: { include: { permission: true } } } }),
     ]);
+    if (!actor) throw new ForbiddenException('Acting admin account not found');
     if (!target) throw new NotFoundException('Admin user not found');
     if (!role) throw new NotFoundException('Role not found');
+
+    const actorPermissions = this.permissionCodes(actor);
+    const actorHasWildcard = actorPermissions.has(SUPER_PERMISSION);
+    const actorProtected = actor.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code));
+    const targetProtected = target.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code));
+    const assigningProtectedRole = PROTECTED_ROLE_CODES.has(role.code) || role.permissions.some((item) => item.permission.code === SUPER_PERMISSION);
+
+    if (targetProtected) {
+      throw new ForbiddenException('Protected owner account cannot be modified through role assignment');
+    }
+    if (assigningProtectedRole && (!actorHasWildcard || !actorProtected)) {
+      throw new ForbiddenException('Only a protected owner-level admin can assign this role');
+    }
+    if (!actorHasWildcard) {
+      const missing = role.permissions
+        .map((item) => item.permission.code)
+        .filter((permission) => !actorPermissions.has(permission));
+      if (missing.length > 0) {
+        throw new ForbiddenException('Cannot grant permissions that the acting admin does not hold');
+      }
+      const actorBestLevel = Math.min(...actor.roles.map((item) => item.role.level));
+      if (role.level < actorBestLevel) {
+        throw new ForbiddenException('Cannot assign a role above the acting admin level');
+      }
+    }
 
     await this.prisma.adminUserRole.upsert({
       where: { adminUserId_roleId: { adminUserId: targetAdminId, roleId } },
@@ -105,22 +136,55 @@ export class AdminAccessService {
   }
 
   async removeRole(actorAdminId: string, targetAdminId: string, roleId: string) {
-    const target = await this.prisma.adminUser.findUnique({ where: { id: targetAdminId }, include: { roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } } } });
+    const [actor, target] = await Promise.all([
+      this.findAdminWithPermissions(actorAdminId),
+      this.prisma.adminUser.findUnique({ where: { id: targetAdminId }, include: { roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } } } }),
+    ]);
+    if (!actor) throw new ForbiddenException('Acting admin account not found');
     if (!target) throw new NotFoundException('Admin user not found');
+
     const assignment = target.roles.find((item) => item.roleId === roleId);
     if (!assignment) throw new BadRequestException('Role is not assigned to this admin user');
 
+    if (PROTECTED_ROLE_CODES.has(assignment.role.code) || assignment.role.permissions.some((item) => item.permission.code === SUPER_PERMISSION)) {
+      throw new ForbiddenException('Protected owner role cannot be removed through this endpoint');
+    }
+    if (target.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code))) {
+      throw new ForbiddenException('Protected owner account cannot be modified');
+    }
+
+    const actorPermissions = this.permissionCodes(actor);
+    const actorHasWildcard = actorPermissions.has(SUPER_PERMISSION);
+    if (!actorHasWildcard) {
+      const missing = assignment.role.permissions
+        .map((item) => item.permission.code)
+        .filter((permission) => !actorPermissions.has(permission));
+      if (missing.length > 0) {
+        throw new ForbiddenException('Cannot remove a role containing permissions above the acting admin');
+      }
+    }
+
     const isSelf = actorAdminId === targetAdminId;
     const isLastRole = target.roles.length <= 1;
-    const roleHasWildcard = assignment.role.permissions.some((item) => item.permission.code === '*');
     const roleHasAccessManage = assignment.role.permissions.some((item) => item.permission.code === 'admin.access.manage');
-    if (isSelf && (isLastRole || roleHasWildcard || roleHasAccessManage)) {
+    if (isSelf && (isLastRole || roleHasAccessManage)) {
       throw new ForbiddenException('Cannot remove your own critical access role');
     }
 
     await this.prisma.adminUserRole.delete({ where: { adminUserId_roleId: { adminUserId: targetAdminId, roleId } } });
     await this.audit(actorAdminId, 'REMOVE_ROLE', targetAdminId, { roleId, roleCode: assignment.role.code, target: target.username });
     return this.overview();
+  }
+
+  private findAdminWithPermissions(adminUserId: string) {
+    return this.prisma.adminUser.findUnique({
+      where: { id: adminUserId },
+      include: { roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } } },
+    });
+  }
+
+  private permissionCodes(admin: { roles: Array<{ role: { permissions: Array<{ permission: { code: string } }> } }> }) {
+    return new Set(admin.roles.flatMap((item) => item.role.permissions.map((permission) => permission.permission.code)));
   }
 
   private async ensureGrowthPermissions() {
