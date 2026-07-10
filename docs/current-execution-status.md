@@ -27,31 +27,50 @@ This file is the short operational worklist for the current implementation cycle
 - [x] Migration regression test updated to inspect both split migration files.
 - [x] Admin login-defense test doubles fixed for unknown-user IP throttling.
 - [x] Privileged-admin 2FA test configuration fixed without weakening production enforcement.
+- [x] GitHub Actions Build #270 completed successfully for commit `c7edec0`.
 
 ## CI checkpoint
 
-The latest API-test fixes are committed. Do not mark the build green until the newest GitHub Actions run confirms all of the following:
+Confirmed by GitHub Actions Build #270:
 
-- [ ] `pnpm install --frozen-lockfile`
-- [ ] `pnpm prisma validate`
-- [ ] `pnpm prisma generate`
-- [ ] `pnpm --filter @platform/api test -- --runInBand`
-- [ ] `pnpm build:api`
-- [ ] `pnpm build:web-admin`
-- [ ] `pnpm build:web-member`
-- [ ] Railway redeploy succeeds for API, Admin, and Member.
+- [x] `pnpm install --frozen-lockfile`
+- [x] `pnpm prisma validate`
+- [x] `pnpm prisma generate`
+- [x] `pnpm --filter @platform/api test -- --runInBand`
+- [x] `pnpm build:api`
+- [x] `pnpm build:web-admin`
+- [x] `pnpm build:web-member`
+
+Still requires direct deployment verification:
+
+- [ ] Railway redeploy succeeds for API, Admin, and Member on the latest commit.
 - [ ] Railway dependency/security scan no longer reports `next@14.2.32`.
+- [ ] `/health` responds successfully after the latest API deployment.
+- [ ] `/version` reports the expected commit/build.
 
-## Finance database-backed concurrency work
+## Immediate next milestone: PostgreSQL-backed finance concurrency tests
 
-### Completed
+### CI integration
+
+- [ ] Add a PostgreSQL 16 service to `.github/workflows/build.yml`.
+- [ ] Use a dedicated test database such as `platform_test`.
+- [ ] Set both `DATABASE_URL` and `FINANCE_TEST_DATABASE_URL` to the CI test database.
+- [ ] Wait for PostgreSQL health readiness before migrations/tests.
+- [ ] Run `pnpm prisma migrate deploy` against the CI test database.
+- [ ] Run `pnpm --filter @platform/api test:db:finance` after fast unit tests.
+- [ ] Keep database-backed finance tests separate from fast unit tests for clearer failures.
+
+### Database test harness
 
 - [x] Test harness guarded by `FINANCE_TEST_DATABASE_URL`.
 - [x] Production-like database names are rejected by the test safety guard.
 - [x] Concurrent deposit credit confirmation test added.
 - [x] Deposit test verifies one wallet mutation, one ledger row, one idempotency key, and terminal `COMPLETED` state.
+- [ ] Add deterministic fixture builders for user, wallet, deposit, withdrawal, and admin records.
+- [ ] Add cleanup helpers that remove only test-owned rows.
+- [ ] Ensure every test uses isolated identifiers and can run repeatedly.
 
-### Remaining
+### Remaining concurrency cases
 
 - [ ] Concurrent withdrawal reservation cannot over-lock or overspend the wallet.
 - [ ] Two admins cannot claim the same deposit request.
@@ -59,9 +78,7 @@ The latest API-test fixes are committed. Do not mark the build green until the n
 - [ ] Concurrent payout verification creates only one terminal ledger entry.
 - [ ] Retry after timeout preserves idempotency.
 - [ ] Wallet `balance` and `lockedBalance` invariants remain valid after concurrent failure paths.
-- [ ] Add deterministic database fixtures and cleanup helpers.
-- [ ] Add PostgreSQL service to CI for database-backed finance tests.
-- [ ] Run database-backed finance tests separately from fast unit tests.
+- [ ] Failed/losing concurrent operations leave no orphan ledger or stale lock state.
 
 ## Finance end-to-end flow still required
 
@@ -89,6 +106,7 @@ The latest API-test fixes are committed. Do not mark the build green until the n
 
 ## Deployment and monitoring remaining
 
+- [ ] Verify Railway deployment status for API, Admin, and Member on the latest commit.
 - [ ] Verify `/health` after the latest API deployment.
 - [ ] Verify `/version` reports the expected commit/build.
 - [ ] Run strict staged finance smoke tests with production-safe credentials.
@@ -99,8 +117,9 @@ The latest API-test fixes are committed. Do not mark the build green until the n
 
 The following groups can proceed in parallel because they should not modify the same core files:
 
-1. **Finance DB tests**
-   - test fixtures
+1. **Finance DB test harness**
+   - fixture builders
+   - cleanup helpers
    - withdrawal concurrency cases
    - claim-conflict cases
 
@@ -115,6 +134,17 @@ The following groups can proceed in parallel because they should not modify the 
    - failure alerts
 
 Avoid parallel edits to the same workflow, Prisma schema, lockfile, or finance service file.
+
+## Recommended execution order
+
+1. Add PostgreSQL service and migration step to CI.
+2. Make `test:db:finance` run reliably in CI.
+3. Add withdrawal reservation concurrency coverage.
+4. Add deposit and withdrawal claim-conflict coverage.
+5. Add payout verification and retry/idempotency coverage.
+6. Verify Railway deployment, security scan, `/health`, and `/version`.
+7. Complete the full finance E2E flow.
+8. Continue Risk/Audit workflow polish in parallel where files do not overlap.
 
 ## Safety rules
 
