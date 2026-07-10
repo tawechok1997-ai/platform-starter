@@ -23,6 +23,15 @@ type DuplicateRow = {
   slip_perceptual_hash: string | null;
 };
 
+type LockedWalletRow = {
+  id: string;
+  user_id: string;
+  currency: string;
+  status: string;
+  balance: Prisma.Decimal;
+  locked_balance: Prisma.Decimal;
+};
+
 @Injectable()
 export class DepositWorkflowService {
   constructor(private readonly prisma: PrismaService, private readonly storage: StorageService) {}
@@ -65,7 +74,7 @@ export class DepositWorkflowService {
     const transferredAt = input.transferredAt ? new Date(input.transferredAt) : null;
     if (transferredAt && Number.isNaN(transferredAt.getTime())) throw new BadRequestException('Invalid transferredAt');
 
-    await this.prisma.$executeRaw(Prisma.sql`
+    const changed = await this.prisma.$executeRaw(Prisma.sql`
       UPDATE "top_up_requests"
       SET "status" = 'PENDING_SLIP_REVIEW'::"TopUpRequestStatus",
           "slip_url" = ${key},
@@ -75,8 +84,11 @@ export class DepositWorkflowService {
           "slip_detected_amount" = ${detectedAmount},
           "slip_transferred_at" = ${transferredAt},
           "updated_at" = NOW()
-      WHERE "id" = ${requestId}::uuid AND "user_id" = ${userId}::uuid
+      WHERE "id" = ${requestId}::uuid
+        AND "user_id" = ${userId}::uuid
+        AND "status" = 'PENDING'::"TopUpRequestStatus"
     `);
+    if (changed !== 1) throw new ConflictException('Top up request state changed while submitting evidence');
 
     return { ok: true, duplicate: false, status: 'PENDING_SLIP_REVIEW', slipUrl: key, fileHash };
   }
@@ -102,22 +114,43 @@ export class DepositWorkflowService {
   async confirmCredit(requestId: string, adminUserId: string, note: string | undefined, meta: DepositWorkflowMeta = {}) {
     const idempotencyKey = `topup:${requestId}:credit-confirmed`;
     return this.prisma.$transaction(async (tx) => {
-      const request = await tx.topUpRequest.findUnique({ where: { id: requestId } });
+      const requestRows = await tx.$queryRaw<Array<{ status: string; user_id: string; amount: Prisma.Decimal; currency: string }>>(Prisma.sql`
+        SELECT "status"::text AS status, "user_id", "amount", "currency"
+        FROM "top_up_requests"
+        WHERE "id" = ${requestId}::uuid
+        FOR UPDATE
+      `);
+      const request = requestRows[0];
       if (!request) throw new NotFoundException('Top up request not found');
-      const statusRows = await tx.$queryRaw<Array<{ status: string }>>(Prisma.sql`SELECT "status"::text AS status FROM "top_up_requests" WHERE "id" = ${requestId}::uuid FOR UPDATE`);
-      if (statusRows[0]?.status === 'COMPLETED' || statusRows[0]?.status === 'CREDIT_CONFIRMED') {
+
+      if (request.status === 'COMPLETED' || request.status === 'CREDIT_CONFIRMED') {
         const existing = await tx.walletLedger.findUnique({ where: { idempotencyKey } });
         if (existing) return { ok: true, status: 'COMPLETED', ledgerId: existing.id, idempotent: true };
       }
-      if (statusRows[0]?.status !== 'PENDING_CREDIT') throw new ConflictException(`Deposit is not ready for credit: ${statusRows[0]?.status ?? 'UNKNOWN'}`);
+      if (request.status !== 'PENDING_CREDIT') throw new ConflictException(`Deposit is not ready for credit: ${request.status}`);
 
-      let wallet = await tx.wallet.findUnique({ where: { userId: request.userId } });
-      if (!wallet) wallet = await tx.wallet.create({ data: { userId: request.userId, currency: request.currency } });
+      await tx.wallet.upsert({
+        where: { userId: request.user_id },
+        create: { userId: request.user_id, currency: request.currency },
+        update: {},
+      });
+      const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
+        SELECT "id", "user_id", "currency", "status"::text AS status, "balance", "locked_balance"
+        FROM "wallets"
+        WHERE "user_id" = ${request.user_id}::uuid
+        FOR UPDATE
+      `);
+      const wallet = walletRows[0];
+      if (!wallet) throw new BadRequestException('Wallet not found');
       if (wallet.status !== 'ACTIVE') throw new BadRequestException('Wallet is not active');
+
+      const existing = await tx.walletLedger.findUnique({ where: { idempotencyKey } });
+      if (existing) return { ok: true, status: 'COMPLETED', ledgerId: existing.id, idempotent: true };
+
       const balanceBefore = wallet.balance;
       const balanceAfter = balanceBefore.plus(request.amount);
       await tx.wallet.update({ where: { id: wallet.id }, data: { balance: balanceAfter } });
-      const ledger = await tx.walletLedger.create({ data: { walletId: wallet.id, userId: request.userId, type: 'DEPOSIT', direction: 'CREDIT', amount: request.amount, balanceBefore, balanceAfter, referenceType: 'top_up_request', referenceId: request.id, idempotencyKey, metadata: { workflow: 'slip_review_then_credit', note }, createdByAdminId: adminUserId } });
+      const ledger = await tx.walletLedger.create({ data: { walletId: wallet.id, userId: request.user_id, type: 'DEPOSIT', direction: 'CREDIT', amount: request.amount, balanceBefore, balanceAfter, referenceType: 'top_up_request', referenceId: requestId, idempotencyKey, metadata: { workflow: 'slip_review_then_credit', note }, createdByAdminId: adminUserId } });
 
       const changed = await tx.$executeRaw(Prisma.sql`
         UPDATE "top_up_requests"
@@ -162,7 +195,7 @@ export class DepositWorkflowService {
 
   private async markDuplicate(requestId: string, userId: string, match: DuplicateSlipMatch, transactionRef: string | null, fileHash: string, perceptualHash: string | null) {
     await this.prisma.$transaction(async (tx) => {
-      await tx.$executeRaw(Prisma.sql`
+      const changed = await tx.$executeRaw(Prisma.sql`
         UPDATE "top_up_requests"
         SET "status" = 'DUPLICATE'::"TopUpRequestStatus",
             "slip_file_hash" = ${fileHash},
@@ -175,7 +208,10 @@ export class DepositWorkflowService {
             "reviewed_at" = NOW(),
             "updated_at" = NOW()
         WHERE "id" = ${requestId}::uuid
+          AND "user_id" = ${userId}::uuid
+          AND "status" = 'PENDING'::"TopUpRequestStatus"
       `);
+      if (changed !== 1) throw new ConflictException('Top up request state changed while marking duplicate');
       const attempts = await tx.$queryRaw<Array<{ in7: bigint; in30: bigint }>>(Prisma.sql`
         SELECT
           COUNT(*) FILTER (WHERE "created_at" >= NOW() - INTERVAL '7 days') AS in7,

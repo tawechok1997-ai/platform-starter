@@ -8,6 +8,15 @@ import { ReviewWithdrawalRequestDto } from './dto/review-withdrawal-request.dto'
 const CLAIM_TIMEOUT_MS = 15 * 60 * 1000;
 const BONUS_LEDGER_REF_TYPE = 'BONUS_LEDGER';
 
+type LockedWalletRow = {
+  id: string;
+  user_id: string;
+  currency: string;
+  status: string;
+  balance: Prisma.Decimal;
+  locked_balance: Prisma.Decimal;
+};
+
 @Injectable()
 export class WithdrawalsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -25,12 +34,21 @@ export class WithdrawalsService {
       }
       const approvedBank = await tx.memberBankAccount.findFirst({ where: { userId, status: 'ACTIVE', bankName: dto.bankName, accountName: dto.accountName, accountNumber: dto.accountNumber } });
       if (!approvedBank) throw new BadRequestException('กรุณาใช้บัญชีถอนเงินที่แอดมินอนุมัติแล้วเท่านั้น');
-      const wallet = await tx.wallet.findUnique({ where: { userId } });
+
+      const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
+        SELECT "id", "user_id", "currency", "status"::text AS status, "balance", "locked_balance"
+        FROM "wallets"
+        WHERE "user_id" = ${userId}::uuid
+        FOR UPDATE
+      `);
+      const wallet = walletRows[0];
       if (!wallet) throw new BadRequestException('Wallet not found');
       if (wallet.status !== 'ACTIVE') throw new BadRequestException('Wallet is not active');
-      const available = wallet.balance.minus(wallet.lockedBalance);
+      const available = wallet.balance.minus(wallet.locked_balance);
       if (available.lt(amount)) throw new BadRequestException('Insufficient available balance');
-      await tx.wallet.update({ where: { id: wallet.id }, data: { lockedBalance: wallet.lockedBalance.plus(amount) } });
+      const lockedAfter = wallet.locked_balance.plus(amount);
+      await tx.wallet.update({ where: { id: wallet.id }, data: { lockedBalance: lockedAfter } });
+
       const rows = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
         INSERT INTO "withdrawal_requests" (
           "id", "user_id", "amount", "currency", "status", "method",
@@ -97,11 +115,19 @@ export class WithdrawalsService {
       if (!request) throw new NotFoundException('Withdrawal request not found');
       if (request.claimed_by && request.claimed_by !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
       if (!['PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT'].includes(request.status)) throw new ConflictException(`Withdrawal cannot be rejected: ${request.status}`);
-      const wallet = await tx.wallet.findUnique({ where: { userId: request.user_id } });
+
+      const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
+        SELECT "id", "user_id", "currency", "status"::text AS status, "balance", "locked_balance"
+        FROM "wallets"
+        WHERE "user_id" = ${request.user_id}::uuid
+        FOR UPDATE
+      `);
+      const wallet = walletRows[0];
       if (!wallet) throw new BadRequestException('Wallet not found');
-      if (wallet.lockedBalance.lt(request.amount)) throw new BadRequestException('Locked balance is not enough');
-      const lockedAfter = wallet.lockedBalance.minus(request.amount);
+      if (wallet.locked_balance.lt(request.amount)) throw new BadRequestException('Locked balance is not enough');
+      const lockedAfter = wallet.locked_balance.minus(request.amount);
       await tx.wallet.update({ where: { id: wallet.id }, data: { lockedBalance: lockedAfter } });
+
       const changed = await tx.$executeRaw(Prisma.sql`
         UPDATE "withdrawal_requests"
         SET "status" = 'REJECTED'::"WithdrawalRequestStatus", "admin_note" = ${dto.adminNote ?? null},
