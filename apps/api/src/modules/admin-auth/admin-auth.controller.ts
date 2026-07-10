@@ -19,7 +19,7 @@ export class AdminAuthController {
   async signIn(@Body() dto: AdminSignInDto, @Req() req: any) {
     const meta = this.meta(req, dto.deviceId);
     await this.loginDefense.assertAllowed(dto.username, meta);
-    await this.antiBot.assertValid('ADMIN_LOGIN', dto.captchaToken, req.ip);
+    await this.antiBot.assertValid('ADMIN_LOGIN', dto.captchaToken, meta.ipAddress);
     return this.adminAuthService.signIn(dto, meta);
   }
 
@@ -95,9 +95,15 @@ export class AdminAuthController {
 
   private meta(req: any, deviceId?: string) {
     return {
-      ipAddress: req.ip,
+      ipAddress: this.clientIp(req),
       userAgent: req.headers['user-agent'],
       deviceId,
     };
+  }
+
+  private clientIp(req: any) {
+    const forwarded = req.headers?.['x-forwarded-for'];
+    if (typeof forwarded === 'string' && forwarded.trim()) return forwarded.split(',')[0].trim();
+    return String(req.ip ?? req.socket?.remoteAddress ?? 'unknown');
   }
 }
