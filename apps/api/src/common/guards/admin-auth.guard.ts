@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
 
+const SUPER_ACCESS_ROLE_CODES = new Set(['owner', 'super_admin']);
+
 const HIGH_RISK_ROLE_CODES = new Set([
   'owner',
   'super_admin',
@@ -90,14 +92,16 @@ export class AdminAuthGuard implements CanActivate {
       throw new UnauthorizedException('Admin session is not active');
     }
 
-    const permissions = Array.from(
-      new Set(
-        session.adminUser.roles.flatMap((adminRole) =>
-          adminRole.role.permissions.map((rolePermission) => rolePermission.permission.code),
-        ),
-      ),
-    );
     const roleCodes = session.adminUser.roles.map((adminRole) => adminRole.role.code);
+    const directPermissions = session.adminUser.roles.flatMap((adminRole) =>
+      adminRole.role.permissions.map((rolePermission) => rolePermission.permission.code),
+    );
+    const permissions = Array.from(
+      new Set([
+        ...directPermissions,
+        ...(roleCodes.some((code) => SUPER_ACCESS_ROLE_CODES.has(code)) ? ['*'] : []),
+      ]),
+    );
     const policyRequiresTwoFactor =
       roleCodes.some((code) => HIGH_RISK_ROLE_CODES.has(code)) ||
       permissions.some((code) => HIGH_RISK_PERMISSIONS.has(code));
