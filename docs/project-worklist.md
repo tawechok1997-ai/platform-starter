@@ -54,13 +54,15 @@ Updated: 2026-07-11
 
 ### 1. Admin Audit Log UI
 
-- ⏳ สร้างหน้ารวม audit logs
-- ⏳ Filter ตาม module, action, admin และช่วงเวลา
-- ⏳ แสดงเวลา, IP address และ user agent
-- ⏳ แสดง old data / new data แบบอ่านง่าย
-- ⏳ ลิงก์กลับไปยังรายการฝาก ถอน สมาชิก หรือ wallet ที่เกี่ยวข้อง
-- ⏳ รองรับ mobile card และ desktop table/detail layout
-- ⏳ จำกัดการเข้าถึงด้วย permission ที่เหมาะสม
+- 🧪 สร้างหน้ารวม audit logs
+- 🧪 Filter ตาม module, action, admin, target, keyword และช่วงเวลา
+- 🧪 แสดงเวลา, IP address และ user agent
+- 🧪 แสดง old data / new data แบบอ่านง่าย
+- 🧪 ลิงก์กลับไปยังรายการฝาก ถอน สมาชิก wallet ledger หรือ risk alert ที่เกี่ยวข้อง
+- 🧪 รองรับ mobile card และ desktop detail layout
+- ✅ จำกัดการเข้าถึงด้วย `admin.access.view`
+- ⏳ รัน `pnpm build:api` และ `pnpm build:web-admin`
+- ⏳ ทดสอบ filter, pagination, empty state และ target links บนข้อมูลจริง
 
 ### 2. Risk Alert Operations UI
 
