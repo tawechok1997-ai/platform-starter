@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { API_URL, adminApiFetch } from '../../admin-api';
+import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack } from '../_components/admin-ui';
 
 type Provider = { id: string; name: string; code: string; status: string };
@@ -24,7 +24,7 @@ export default function WebhookTestPage() {
     const timestamp = new Date().toISOString();
     const signature = invalidSignature ? 'invalid-signature' : 'mock-browser-signature';
     setLoading(true); setMessage('กำลังส่ง mock webhook...');
-    const res = await fetch(`${API_URL}/provider-webhooks/${providerCode}`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-timestamp': timestamp, 'x-signature': signature }, body: JSON.stringify(body) });
+    const res = await fetch(`/api/provider-webhooks/${encodeURIComponent(providerCode)}`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-timestamp': timestamp, 'x-signature': signature }, body: JSON.stringify(body) });
     const data = await res.json().catch(() => null);
     setLoading(false); setResult(data); setMessage(res.ok ? 'ส่ง mock webhook แล้ว' : data?.message ?? 'ส่ง mock webhook ไม่สำเร็จ');
   }
