@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -21,6 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile=false
@@ -28,8 +29,14 @@ jobs:
       - name: Validate shell scripts
         run: bash -n scripts/*.sh
 
+      - name: Validate Prisma schema
+        run: pnpm prisma validate
+
       - name: Generate Prisma client
         run: pnpm prisma generate
+
+      - name: Test API
+        run: pnpm --filter @platform/api test -- --runInBand
 
       - name: Build API
         run: pnpm build:api
