@@ -14,6 +14,32 @@ Updated: 2026-07-11
 - ⏳ รอทำ
 - ⛔ รอข้อมูลหรือการตัดสินใจภายนอก
 
+## Emergency finance hardening
+
+### P0 completed
+
+- ✅ ปิด legacy Admin Top-up routes ที่เพิ่มเครดิตทันที
+- ✅ หน้า Admin Top-up ใช้ staged flow `approve-slip -> confirm-credit` เท่านั้น
+- ✅ ถอด legacy `POST /admin/withdrawals/:id/complete`
+- ✅ บังคับ claim ownership ใน backend สำหรับ approve slip, confirm credit และ reject deposit
+- ✅ บังคับ claim ownership ใน backend สำหรับ approve withdrawal, upload payment proof และ verify payment
+- ✅ เงื่อนไข update ของ finance workflow ตรวจทั้ง status และ `claimed_by`
+- ✅ Deposit credit และ withdrawal verification ใช้ wallet row lock ก่อนแก้ยอด
+- ✅ `prisma/schema.prisma` ตรงกับ enum และคอลัมน์จาก finance migrations
+- ✅ `pnpm prisma format`, `pnpm prisma validate` และ `pnpm prisma generate` ผ่าน
+- ✅ `pnpm build:api`, `pnpm build:web-admin` และ API tests ผ่าน checkpoint ล่าสุด
+- ⏳ ทดสอบ claim conflict ด้วยแอดมินสองบัญชีบนข้อมูลจริง
+
+### P1 in progress
+
+- ✅ เพิ่ม storage delete สำหรับ local และ S3
+- ✅ ลบ withdrawal payment proof เมื่อ DB transaction ล้มเหลว
+- ✅ เพิ่ม test ยืนยัน local storage delete และ retry
+- ✅ เพิ่ม Prisma validation และ API tests เป็น CI gate ก่อน build
+- 🚧 เพิ่ม compensation สำหรับ deposit slip upload เมื่อ DB state เปลี่ยนหลังอัปโหลด
+- 🚧 เพิ่มและบังคับใช้ `pnpm-lock.yaml` กับ `--frozen-lockfile`
+- ⏳ ทำ production smoke ให้ fail เมื่อ token ที่จำเป็นหาย
+
 ## Completed
 
 ### Finance foundation
@@ -22,9 +48,9 @@ Updated: 2026-07-11
 - ✅ เพิ่มระบบตรวจจับสลิปฝากซ้ำด้วย transaction reference, SHA-256 และ perceptual hash
 - ✅ เพิ่ม risk alert สำหรับการใช้สลิปซ้ำหลายครั้ง
 - ✅ แยก Prisma enum migration และ object migration เพื่อแก้ PostgreSQL migration failure
-- ✅ Member Deposit เชื่อม staged slip review flow
-- ✅ Admin Deposit ใช้ `approve-slip -> confirm-credit`
-- ✅ Admin Withdrawal ใช้ `approve-for-payment -> payment-proof -> verify-payment`
+- 🧪 Member Deposit เชื่อม staged slip review flow
+- 🧪 Admin Deposit ใช้ `approve-slip -> confirm-credit`
+- 🧪 Admin Withdrawal ใช้ `approve-for-payment -> payment-proof -> verify-payment`
 - ✅ ปฏิเสธถอนพร้อมคืน `lockedBalance`
 - ✅ ซ่อน action ที่ไม่ตรงกับสถานะและป้องกัน terminal action ซ้ำ
 - ✅ เพิ่ม wallet row locking ด้วย `SELECT ... FOR UPDATE`
@@ -56,17 +82,18 @@ Updated: 2026-07-11
 - ✅ PR #10 `fix(finance): serialize wallet mutations and retries`
 - ✅ PR #11 `docs: add current project worklist`
 
-## Current priority
+## Current priority after P1
 
 ### 1. Admin Audit Log UI
 
-- ⏳ สร้างหน้ารวม audit logs
-- ⏳ Filter ตาม module, action, admin และช่วงเวลา
-- ⏳ แสดงเวลา, IP address และ user agent
-- ⏳ แสดง old data / new data แบบอ่านง่าย
-- ⏳ ลิงก์กลับไปยังรายการฝาก ถอน สมาชิก หรือ wallet ที่เกี่ยวข้อง
-- ⏳ รองรับ mobile card และ desktop table/detail layout
-- ⏳ จำกัดการเข้าถึงด้วย permission ที่เหมาะสม
+- 🧪 สร้างหน้ารวม audit logs
+- 🧪 Filter ตาม module, action, admin, target, keyword และช่วงเวลา
+- 🧪 แสดงเวลา, IP address และ user agent
+- 🧪 แสดง old data / new data แบบอ่านง่าย
+- 🧪 ลิงก์กลับไปยังรายการฝาก ถอน สมาชิก wallet ledger หรือ risk alert ที่เกี่ยวข้อง
+- 🧪 รองรับ mobile card และ desktop detail layout
+- ✅ จำกัดการเข้าถึงด้วย `admin.access.view`
+- ⏳ ทดสอบ filter, pagination, empty state และ target links บนข้อมูลจริง
 
 ### 2. Risk Alert Operations UI
 
@@ -88,7 +115,7 @@ Updated: 2026-07-11
 
 ### 4. Deployment monitoring
 
-- ⏳ ตรวจ Railway deployment หลัง merge
+- ⏳ ตรวจ Railway deployment หลัง direct commit
 - ⏳ ตรวจ `/health` และ `/version`
 - ⏳ เพิ่ม smoke test สำหรับ staged finance endpoints
 - ⏳ เพิ่ม alert เมื่อ migration หรือ finance smoke ล้มเหลว

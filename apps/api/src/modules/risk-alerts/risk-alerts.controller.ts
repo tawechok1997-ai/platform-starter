@@ -16,12 +16,13 @@ export class RiskAlertsController {
     @Query('status') status?: string,
     @Query('severity') severity?: string,
     @Query('type') type?: string,
+    @Query('memberId') memberId?: string,
     @Query('createdFrom') createdFrom?: string,
     @Query('createdTo') createdTo?: string,
     @Query('page') page?: string,
     @Query('take') take?: string,
   ) {
-    return this.riskAlertsService.list({ status, severity, type, createdFrom, createdTo, page, take });
+    return this.riskAlertsService.list({ status, severity, type, memberId, createdFrom, createdTo, page, take });
   }
 
   @RequirePermission('risk.view')

@@ -17,7 +17,7 @@ function createPrisma(options: {
 
   return {
     adminUser: {
-      findUnique: jest.fn().mockResolvedValue(options.adminId === null ? null : { id: options.adminId ?? 'admin-1' }),
+      findUnique: jest.fn().mockResolvedValue(adminId ? { id: adminId } : null),
     },
     loginHistory: {
       count: jest.fn().mockImplementation(({ where }: any) => Promise.resolve(
@@ -87,8 +87,8 @@ describe('AdminLoginDefenseService', () => {
 
     await service.assertAllowed('admin', { ipAddress: '203.0.113.10' });
 
-    expect(prisma.loginHistory.count).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      where: expect.objectContaining({ createdAt: { gt: lastSuccessAt } }),
+    expect(prisma.loginHistory.count).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ adminUserId: 'admin-1', createdAt: { gt: lastSuccessAt } }),
     }));
   });
 

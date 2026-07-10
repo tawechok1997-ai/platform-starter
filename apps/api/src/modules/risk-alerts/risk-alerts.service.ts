@@ -2,15 +2,16 @@ import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundExc
 import { Decimal } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../database/prisma.service';
 
-type RiskFilter = { status?: string; severity?: string; type?: string; createdFrom?: string; createdTo?: string; page?: string; take?: string };
+type RiskFilter = { status?: string; severity?: string; type?: string; memberId?: string; createdFrom?: string; createdTo?: string; page?: string; take?: string };
 type RiskStatus = 'OPEN' | 'REVIEWING' | 'RESOLVED' | 'DISMISSED';
 type RiskSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-type RiskType = 'REPEATED_TOPUPS' | 'RAPID_DEPOSIT_WITHDRAWAL' | 'HIGH_WITHDRAWAL' | 'BANK_CHANGE_WITHDRAWAL' | 'MULTIPLE_PENDING_TOPUPS' | 'WALLET_LEDGER_MISMATCH';
+type RiskType = 'REPEATED_TOPUPS' | 'RAPID_DEPOSIT_WITHDRAWAL' | 'HIGH_WITHDRAWAL' | 'BANK_CHANGE_WITHDRAWAL' | 'MULTIPLE_PENDING_TOPUPS' | 'WALLET_LEDGER_MISMATCH' | 'DUPLICATE_DEPOSIT_SLIP' | 'REPEATED_DUPLICATE_DEPOSIT_SLIP';
 
 const ACTIVE_ALERT_STATUSES: RiskStatus[] = ['OPEN', 'REVIEWING'];
 const VALID_STATUSES: RiskStatus[] = ['OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED'];
 const VALID_SEVERITIES: RiskSeverity[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-const VALID_TYPES: RiskType[] = ['REPEATED_TOPUPS', 'RAPID_DEPOSIT_WITHDRAWAL', 'HIGH_WITHDRAWAL', 'BANK_CHANGE_WITHDRAWAL', 'MULTIPLE_PENDING_TOPUPS', 'WALLET_LEDGER_MISMATCH'];
+const VALID_TYPES: RiskType[] = ['REPEATED_TOPUPS', 'RAPID_DEPOSIT_WITHDRAWAL', 'HIGH_WITHDRAWAL', 'BANK_CHANGE_WITHDRAWAL', 'MULTIPLE_PENDING_TOPUPS', 'WALLET_LEDGER_MISMATCH', 'DUPLICATE_DEPOSIT_SLIP', 'REPEATED_DUPLICATE_DEPOSIT_SLIP'];
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 @Injectable()
 export class RiskAlertsService {
@@ -22,9 +23,23 @@ export class RiskAlertsService {
     const page = Math.max(Number(filter.page ?? 1) || 1, 1);
     const take = Math.min(Math.max(Number(filter.take ?? 50) || 50, 1), 100);
     const where: any = {};
-    if (filter.status && VALID_STATUSES.includes(filter.status as RiskStatus)) where.status = filter.status;
-    if (filter.severity && VALID_SEVERITIES.includes(filter.severity as RiskSeverity)) where.severity = filter.severity;
-    if (filter.type && VALID_TYPES.includes(filter.type as RiskType)) where.type = filter.type;
+    if (filter.status) {
+      if (!VALID_STATUSES.includes(filter.status as RiskStatus)) throw new BadRequestException('Invalid risk alert status filter');
+      where.status = filter.status;
+    }
+    if (filter.severity) {
+      if (!VALID_SEVERITIES.includes(filter.severity as RiskSeverity)) throw new BadRequestException('Invalid risk alert severity filter');
+      where.severity = filter.severity;
+    }
+    if (filter.type) {
+      if (!VALID_TYPES.includes(filter.type as RiskType)) throw new BadRequestException('Invalid risk alert type filter');
+      where.type = filter.type;
+    }
+    if (filter.memberId) {
+      const memberId = filter.memberId.trim();
+      if (!UUID_PATTERN.test(memberId)) throw new BadRequestException('Invalid memberId filter');
+      where.memberId = memberId;
+    }
     const createdAt = this.buildDateRange(filter.createdFrom, filter.createdTo);
     if (createdAt) where.createdAt = createdAt;
 
@@ -89,13 +104,13 @@ export class RiskAlertsService {
 
   private async scanRepeatedTopUps(now: number) {
     const since = new Date(now - 10 * 60 * 1000);
-    const items = await this.prisma.topUpRequest.findMany({ where: { status: 'APPROVED', reviewedAt: { gte: since } }, orderBy: { reviewedAt: 'desc' }, take: 500 });
+    const items = await this.prisma.topUpRequest.findMany({ where: { status: 'COMPLETED', reviewedAt: { gte: since } }, orderBy: { reviewedAt: 'desc' }, take: 500 });
     const groups = this.groupByUser(items);
     const alerts: any[] = [];
     for (const [userId, rows] of groups.entries()) {
       if (rows.length < 3) continue;
       const total = rows.reduce((sum: Decimal, row: any) => sum.plus(row.amount), new Decimal(0));
-      const alert = await this.createAlertOnce({ type: 'REPEATED_TOPUPS', severity: rows.length >= 5 || total.gte(50000) ? 'HIGH' : 'MEDIUM', memberId: userId, refType: 'user', refId: userId, title: 'สมาชิกเติมเงินถี่ผิดปกติ', description: `พบ topup approved ${rows.length} รายการภายใน 10 นาที`, metadata: { count: rows.length, totalAmount: total.toString(), windowMinutes: 10, topUpIds: rows.map((row: any) => row.id) } });
+      const alert = await this.createAlertOnce({ type: 'REPEATED_TOPUPS', severity: rows.length >= 5 || total.gte(50000) ? 'HIGH' : 'MEDIUM', memberId: userId, refType: 'user', refId: userId, title: 'สมาชิกเติมเงินถี่ผิดปกติ', description: `พบ topup completed ${rows.length} รายการภายใน 10 นาที`, metadata: { count: rows.length, totalAmount: total.toString(), windowMinutes: 10, topUpIds: rows.map((row: any) => row.id) } });
       if (alert) alerts.push(alert);
     }
     return alerts;
@@ -103,12 +118,12 @@ export class RiskAlertsService {
 
   private async scanRapidDepositWithdrawals(now: number) {
     const since = new Date(now - 15 * 60 * 1000);
-    const withdrawals = await this.prisma.withdrawalRequest.findMany({ where: { createdAt: { gte: since }, status: { in: ['PENDING', 'COMPLETED'] as any } }, orderBy: { createdAt: 'desc' }, take: 300 });
+    const withdrawals = await this.prisma.withdrawalRequest.findMany({ where: { createdAt: { gte: since }, status: { in: ['PENDING', 'PENDING_REVIEW', 'COMPLETED'] as any } }, orderBy: { createdAt: 'desc' }, take: 300 });
     const alerts: any[] = [];
     for (const withdrawal of withdrawals) {
-      const topUp = await this.prisma.topUpRequest.findFirst({ where: { userId: withdrawal.userId, status: 'APPROVED', reviewedAt: { gte: new Date(withdrawal.createdAt.getTime() - 15 * 60 * 1000), lte: withdrawal.createdAt } }, orderBy: { reviewedAt: 'desc' } });
+      const topUp = await this.prisma.topUpRequest.findFirst({ where: { userId: withdrawal.userId, status: 'COMPLETED', reviewedAt: { gte: new Date(withdrawal.createdAt.getTime() - 15 * 60 * 1000), lte: withdrawal.createdAt } }, orderBy: { reviewedAt: 'desc' } });
       if (!topUp) continue;
-      const alert = await this.createAlertOnce({ type: 'RAPID_DEPOSIT_WITHDRAWAL', severity: 'HIGH', memberId: withdrawal.userId, refType: 'withdrawal_request', refId: withdrawal.id, title: 'สมาชิกฝากแล้วถอนทันที', description: 'พบการถอนหลังจาก topup approved ภายใน 15 นาที', metadata: { topUpId: topUp.id, withdrawalId: withdrawal.id, topUpAmount: topUp.amount.toString(), withdrawalAmount: withdrawal.amount.toString() } });
+      const alert = await this.createAlertOnce({ type: 'RAPID_DEPOSIT_WITHDRAWAL', severity: 'HIGH', memberId: withdrawal.userId, refType: 'withdrawal_request', refId: withdrawal.id, title: 'สมาชิกฝากแล้วถอนทันที', description: 'พบการถอนหลังจาก topup completed ภายใน 15 นาที', metadata: { topUpId: topUp.id, withdrawalId: withdrawal.id, topUpAmount: topUp.amount.toString(), withdrawalAmount: withdrawal.amount.toString() } });
       if (alert) alerts.push(alert);
     }
     return alerts;
@@ -117,7 +132,7 @@ export class RiskAlertsService {
   private async scanHighWithdrawals(now: number) {
     const threshold = new Decimal(process.env.RISK_HIGH_WITHDRAWAL_AMOUNT ?? '50000');
     const since = new Date(now - 24 * 60 * 60 * 1000);
-    const withdrawals = await this.prisma.withdrawalRequest.findMany({ where: { createdAt: { gte: since }, amount: { gte: threshold } as any, status: { in: ['PENDING', 'COMPLETED'] as any } }, orderBy: { createdAt: 'desc' }, take: 300 });
+    const withdrawals = await this.prisma.withdrawalRequest.findMany({ where: { createdAt: { gte: since }, amount: { gte: threshold } as any, status: { in: ['PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT', 'PAYMENT_PROOF_UPLOADED', 'COMPLETED'] as any } }, orderBy: { createdAt: 'desc' }, take: 300 });
     const alerts: any[] = [];
     for (const withdrawal of withdrawals) {
       const alert = await this.createAlertOnce({ type: 'HIGH_WITHDRAWAL', severity: withdrawal.amount.gte(threshold.mul(2)) ? 'CRITICAL' : 'HIGH', memberId: withdrawal.userId, refType: 'withdrawal_request', refId: withdrawal.id, title: 'รายการถอนยอดสูง', description: `ยอดถอนตั้งแต่ ${threshold.toString()} THB ขึ้นไป`, metadata: { withdrawalId: withdrawal.id, amount: withdrawal.amount.toString(), threshold: threshold.toString() } });
@@ -131,7 +146,7 @@ export class RiskAlertsService {
     const bankAccounts = await this.prisma.memberBankAccount.findMany({ where: { status: 'ACTIVE', updatedAt: { gte: since } }, orderBy: { updatedAt: 'desc' }, take: 200 });
     const alerts: any[] = [];
     for (const bank of bankAccounts) {
-      const withdrawal = await this.prisma.withdrawalRequest.findFirst({ where: { userId: bank.userId, createdAt: { gte: bank.updatedAt }, accountNumber: bank.accountNumber, status: { in: ['PENDING', 'COMPLETED'] as any } }, orderBy: { createdAt: 'desc' } });
+      const withdrawal = await this.prisma.withdrawalRequest.findFirst({ where: { userId: bank.userId, createdAt: { gte: bank.updatedAt }, accountNumber: bank.accountNumber, status: { in: ['PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT', 'PAYMENT_PROOF_UPLOADED', 'COMPLETED'] as any } }, orderBy: { createdAt: 'desc' } });
       if (!withdrawal) continue;
       const alert = await this.createAlertOnce({ type: 'BANK_CHANGE_WITHDRAWAL', severity: 'HIGH', memberId: bank.userId, refType: 'withdrawal_request', refId: withdrawal.id, title: 'อนุมัติบัญชีถอนแล้วมีการถอนเร็วผิดปกติ', description: 'บัญชีถอนถูกอนุมัติ/อัปเดตภายใน 24 ชั่วโมง แล้วมีรายการถอนตามมา', metadata: { bankAccountId: bank.id, withdrawalId: withdrawal.id, bankUpdatedAt: bank.updatedAt } });
       if (alert) alerts.push(alert);
@@ -162,12 +177,15 @@ export class RiskAlertsService {
     const range: any = {};
     if (createdFrom) {
       const from = new Date(`${createdFrom}T00:00:00.000Z`);
-      if (!Number.isNaN(from.getTime())) range.gte = from;
+      if (Number.isNaN(from.getTime())) throw new BadRequestException('Invalid createdFrom');
+      range.gte = from;
     }
     if (createdTo) {
       const to = new Date(`${createdTo}T23:59:59.999Z`);
-      if (!Number.isNaN(to.getTime())) range.lte = to;
+      if (Number.isNaN(to.getTime())) throw new BadRequestException('Invalid createdTo');
+      range.lte = to;
     }
+    if (range.gte && range.lte && range.gte > range.lte) throw new BadRequestException('createdFrom must be before createdTo');
     return Object.keys(range).length ? range : null;
   }
 

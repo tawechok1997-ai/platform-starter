@@ -8,7 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
 
     steps:
       - name: Checkout
@@ -30,8 +32,14 @@ jobs:
       - name: Validate shell scripts
         run: bash -n scripts/*.sh
 
+      - name: Validate Prisma schema
+        run: pnpm prisma validate
+
       - name: Generate Prisma client
         run: pnpm prisma generate
+
+      - name: Test API
+        run: pnpm --filter @platform/api test -- --runInBand
 
       - name: Build API
         run: pnpm build:api

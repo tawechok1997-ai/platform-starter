@@ -44,6 +44,11 @@ export class StorageService {
     }
   }
 
+  private async deleteLocal(key: string) {
+    await rm(this.localPath(key), { force: true });
+    return { key, deleted: true };
+  }
+
   private async putS3(key: string, data: Buffer, contentType: string) {
     await this.client().send(new PutObjectCommand({ Bucket: this.bucket(), Key: key, Body: data, ContentType: contentType }));
     return { key };
@@ -57,6 +62,11 @@ export class StorageService {
     } catch {
       throw new NotFoundException('Stored file not found');
     }
+  }
+
+  private async deleteS3(key: string) {
+    await this.client().send(new DeleteObjectCommand({ Bucket: this.bucket(), Key: key }));
+    return { key, deleted: true };
   }
 
   private client() {

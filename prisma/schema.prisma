@@ -128,6 +128,8 @@ enum RiskAlertType {
   BANK_CHANGE_WITHDRAWAL
   MULTIPLE_PENDING_TOPUPS
   WALLET_LEDGER_MISMATCH
+  DUPLICATE_DEPOSIT_SLIP
+  REPEATED_DUPLICATE_DEPOSIT_SLIP
 }
 
 enum GameProviderStatus {
@@ -227,18 +229,17 @@ enum WebhookLogStatus {
 }
 
 model User {
-  id              String     @id @default(uuid()) @db.Uuid
-  username        String     @unique @db.VarChar(50)
-  phone           String?    @unique @db.VarChar(30)
-  email           String?    @unique @db.VarChar(255)
-  passwordHash    String     @map("password_hash")
-  status          UserStatus @default(ACTIVE)
-  phoneVerifiedAt DateTime?  @map("phone_verified_at")
-  emailVerifiedAt DateTime?  @map("email_verified_at")
-  lastLoginAt     DateTime?  @map("last_login_at")
-  createdAt       DateTime   @default(now()) @map("created_at")
-  updatedAt       DateTime   @updatedAt @map("updated_at")
-
+  id                      String                   @id @default(uuid()) @db.Uuid
+  username                String                   @unique @db.VarChar(50)
+  phone                   String?                  @unique @db.VarChar(30)
+  email                   String?                  @unique @db.VarChar(255)
+  passwordHash            String                   @map("password_hash")
+  status                  UserStatus               @default(ACTIVE)
+  phoneVerifiedAt         DateTime?                @map("phone_verified_at")
+  emailVerifiedAt         DateTime?                @map("email_verified_at")
+  lastLoginAt             DateTime?                @map("last_login_at")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
   profile                 UserProfile?
   sessions                AuthSession[]
   loginHistory            LoginHistory[]
@@ -262,8 +263,7 @@ model UserProfile {
   birthday    DateTime?
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_profiles")
 }
@@ -303,8 +303,7 @@ model AdminRecoveryCode {
   codeHash    String    @map("code_hash")
   usedAt      DateTime? @map("used_at")
   createdAt   DateTime  @default(now()) @map("created_at")
-
-  adminUser AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
 
   @@index([adminUserId])
   @@index([usedAt])
@@ -312,14 +311,13 @@ model AdminRecoveryCode {
 }
 
 model Role {
-  id          String   @id @default(uuid()) @db.Uuid
-  code        String   @unique @db.VarChar(80)
-  name        String   @db.VarChar(100)
+  id          String           @id @default(uuid()) @db.Uuid
+  code        String           @unique @db.VarChar(80)
+  name        String           @db.VarChar(100)
   description String?
-  level       Int      @default(100)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
+  level       Int              @default(100)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
   adminUsers  AdminUserRole[]
   permissions RolePermission[]
 
@@ -327,38 +325,35 @@ model Role {
 }
 
 model Permission {
-  id          String   @id @default(uuid()) @db.Uuid
-  code        String   @unique @db.VarChar(120)
-  name        String   @db.VarChar(120)
-  module      String   @db.VarChar(80)
+  id          String           @id @default(uuid()) @db.Uuid
+  code        String           @unique @db.VarChar(120)
+  name        String           @db.VarChar(120)
+  module      String           @db.VarChar(80)
   description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  roles RolePermission[]
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  roles       RolePermission[]
 
   @@map("permissions")
 }
 
 model AdminUserRole {
-  adminUserId String   @map("admin_user_id") @db.Uuid
-  roleId      String   @map("role_id") @db.Uuid
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  adminUser AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
-  role      Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  adminUserId String    @map("admin_user_id") @db.Uuid
+  roleId      String    @map("role_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  role        Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([adminUserId, roleId])
   @@map("admin_user_roles")
 }
 
 model RolePermission {
-  roleId       String   @map("role_id") @db.Uuid
-  permissionId String   @map("permission_id") @db.Uuid
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  roleId       String     @map("role_id") @db.Uuid
+  permissionId String     @map("permission_id") @db.Uuid
+  createdAt    DateTime   @default(now()) @map("created_at")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
   @@map("role_permissions")
@@ -377,9 +372,8 @@ model AuthSession {
   revokedAt        DateTime?   @map("revoked_at")
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime    @updatedAt @map("updated_at")
-
-  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  user             User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adminUser        AdminUser?  @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([adminUserId])
@@ -396,9 +390,8 @@ model LoginHistory {
   userAgent   String?     @map("user_agent")
   reason      String?
   createdAt   DateTime    @default(now()) @map("created_at")
-
-  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
-  adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  adminUser   AdminUser?  @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([adminUserId])
@@ -419,18 +412,17 @@ model VerificationToken {
 }
 
 model AdminAuditLog {
-  id          String   @id @default(uuid()) @db.Uuid
-  adminUserId String?  @map("admin_user_id") @db.Uuid
-  action      String   @db.VarChar(120)
-  module      String   @db.VarChar(80)
-  targetId    String?  @map("target_id") @db.VarChar(120)
-  oldData     Json?    @map("old_data")
-  newData     Json?    @map("new_data")
-  ipAddress   String?  @map("ip_address") @db.VarChar(64)
-  userAgent   String?  @map("user_agent")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+  id          String     @id @default(uuid()) @db.Uuid
+  adminUserId String?    @map("admin_user_id") @db.Uuid
+  action      String     @db.VarChar(120)
+  module      String     @db.VarChar(80)
+  targetId    String?    @map("target_id") @db.VarChar(120)
+  oldData     Json?      @map("old_data")
+  newData     Json?      @map("new_data")
+  ipAddress   String?    @map("ip_address") @db.VarChar(64)
+  userAgent   String?    @map("user_agent")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  adminUser   AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
 
   @@index([adminUserId])
   @@index([module, action])
@@ -470,9 +462,8 @@ model Wallet {
   status        WalletStatus @default(ACTIVE)
   createdAt     DateTime     @default(now()) @map("created_at")
   updatedAt     DateTime     @updatedAt @map("updated_at")
-
-  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ledgers WalletLedger[]
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgers       WalletLedger[]
 
   @@index([status])
   @@map("wallets")
@@ -627,8 +618,7 @@ model MemberBankAccount {
   adminNote     String?           @map("admin_note")
   createdAt     DateTime          @default(now()) @map("created_at")
   updatedAt     DateTime          @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -636,16 +626,16 @@ model MemberBankAccount {
 }
 
 model SiteSetting {
-  id          String          @id @default(uuid()) @db.Uuid
-  key         String          @unique @db.VarChar(160)
-  valueJson   Json            @map("value_json")
+  id          String           @id @default(uuid()) @db.Uuid
+  key         String           @unique @db.VarChar(160)
+  valueJson   Json             @map("value_json")
   group       SiteSettingGroup
-  type        SiteSettingType @default(JSON)
-  isPublic    Boolean         @default(false) @map("is_public")
-  isSensitive Boolean         @default(false) @map("is_sensitive")
-  updatedBy   String?         @map("updated_by") @db.Uuid
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
+  type        SiteSettingType  @default(JSON)
+  isPublic    Boolean          @default(false) @map("is_public")
+  isSensitive Boolean          @default(false) @map("is_sensitive")
+  updatedBy   String?          @map("updated_by") @db.Uuid
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
 
   @@index([group])
   @@index([isPublic])
@@ -668,19 +658,18 @@ model SiteSettingHistory {
 }
 
 model GameProvider {
-  id         String                 @id @default(uuid()) @db.Uuid
-  name       String                 @db.VarChar(120)
-  code       String                 @unique @db.VarChar(80)
-  logoUrl    String?                @map("logo_url")
-  status     GameProviderStatus     @default(INACTIVE)
-  walletMode GameProviderWalletMode @default(TRANSFER) @map("wallet_mode")
-  currency   String                 @default("THB") @db.VarChar(10)
-  timezone   String                 @default("Asia/Bangkok") @db.VarChar(80)
-  sortOrder  Int                    @default(100) @map("sort_order")
-  metadata   Json?
-  createdAt  DateTime               @default(now()) @map("created_at")
-  updatedAt  DateTime               @updatedAt @map("updated_at")
-
+  id              String                    @id @default(uuid()) @db.Uuid
+  name            String                    @db.VarChar(120)
+  code            String                    @unique @db.VarChar(80)
+  logoUrl         String?                   @map("logo_url")
+  status          GameProviderStatus        @default(INACTIVE)
+  walletMode      GameProviderWalletMode    @default(TRANSFER) @map("wallet_mode")
+  currency        String                    @default("THB") @db.VarChar(10)
+  timezone        String                    @default("Asia/Bangkok") @db.VarChar(80)
+  sortOrder       Int                       @default(100) @map("sort_order")
+  metadata        Json?
+  createdAt       DateTime                  @default(now()) @map("created_at")
+  updatedAt       DateTime                  @updatedAt @map("updated_at")
   endpoints       GameProviderEndpoint[]
   credentials     GameProviderCredential[]
   games           Game[]
@@ -706,8 +695,7 @@ model GameProviderEndpoint {
   isEnabled  Boolean                  @default(true) @map("is_enabled")
   createdAt  DateTime                 @default(now()) @map("created_at")
   updatedAt  DateTime                 @updatedAt @map("updated_at")
-
-  provider GameProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider   GameProvider             @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, type])
   @@index([providerId])
@@ -725,8 +713,7 @@ model GameProviderCredential {
   rotatedAt      DateTime?                  @map("rotated_at")
   createdAt      DateTime                   @default(now()) @map("created_at")
   updatedAt      DateTime                   @updatedAt @map("updated_at")
-
-  provider GameProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider       GameProvider               @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, type])
   @@index([providerId])
@@ -735,23 +722,22 @@ model GameProviderCredential {
 }
 
 model Game {
-  id               String     @id @default(uuid()) @db.Uuid
-  providerId       String     @map("provider_id") @db.Uuid
-  providerGameCode String     @map("provider_game_code") @db.VarChar(120)
-  name             String     @db.VarChar(180)
-  category         String     @db.VarChar(80)
-  status           GameStatus @default(INACTIVE)
-  isFeatured       Boolean    @default(false) @map("is_featured")
-  isNew            Boolean    @default(false) @map("is_new")
-  isPopular        Boolean    @default(false) @map("is_popular")
-  sortOrder        Int        @default(100) @map("sort_order")
+  id               String       @id @default(uuid()) @db.Uuid
+  providerId       String       @map("provider_id") @db.Uuid
+  providerGameCode String       @map("provider_game_code") @db.VarChar(120)
+  name             String       @db.VarChar(180)
+  category         String       @db.VarChar(80)
+  status           GameStatus   @default(INACTIVE)
+  isFeatured       Boolean      @default(false) @map("is_featured")
+  isNew            Boolean      @default(false) @map("is_new")
+  isPopular        Boolean      @default(false) @map("is_popular")
+  sortOrder        Int          @default(100) @map("sort_order")
   metadata         Json?
-  createdAt        DateTime   @default(now()) @map("created_at")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
-
-  provider GameProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  media    GameMedia[]
-  sessions GameSession[]
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  provider         GameProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  media            GameMedia[]
+  sessions         GameSession[]
 
   @@unique([providerId, providerGameCode])
   @@index([providerId])
@@ -775,9 +761,8 @@ model GameMedia {
   metadata   Json?
   createdAt  DateTime        @default(now()) @map("created_at")
   updatedAt  DateTime        @updatedAt @map("updated_at")
-
-  game     Game?         @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  provider GameProvider? @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  game       Game?           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  provider   GameProvider?   @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
   @@index([gameId])
   @@index([providerId])
@@ -802,11 +787,10 @@ model GameSession {
   errorMessage      String?           @map("error_message")
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
-
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider  GameProvider   @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  game      Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  transfers GameTransfer[]
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          GameProvider      @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  game              Game              @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  transfers         GameTransfer[]
 
   @@index([userId, createdAt])
   @@index([providerId])
@@ -835,10 +819,9 @@ model GameTransfer {
   resolvedAt            DateTime?          @map("resolved_at")
   createdAt             DateTime           @default(now()) @map("created_at")
   updatedAt             DateTime           @updatedAt @map("updated_at")
-
-  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider GameProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  session  GameSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider              GameProvider       @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  session               GameSession?       @relation(fields: [sessionId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([providerId])
@@ -860,9 +843,8 @@ model ProviderWalletSnapshot {
   rawPayload      Json?                        @map("raw_payload")
   checkedAt       DateTime                     @default(now()) @map("checked_at")
   createdAt       DateTime                     @default(now()) @map("created_at")
-
-  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider GameProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  user            User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider        GameProvider                 @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
   @@index([userId, checkedAt])
   @@index([providerId])
@@ -886,8 +868,7 @@ model WebhookLog {
   errorMessage          String?          @map("error_message")
   createdAt             DateTime         @default(now()) @map("created_at")
   processedAt           DateTime?        @map("processed_at")
-
-  provider GameProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider              GameProvider     @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
   @@index([providerId, createdAt])
   @@index([eventType])

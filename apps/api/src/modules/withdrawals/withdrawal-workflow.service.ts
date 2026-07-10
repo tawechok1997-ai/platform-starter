@@ -48,9 +48,10 @@ export class WithdrawalWorkflowService {
             "reviewed_at" = NOW(),
             "updated_at" = NOW()
         WHERE "id" = ${requestId}::uuid
+          AND "claimed_by" = ${adminUserId}::uuid
           AND "status"::text IN ('PENDING', 'PENDING_REVIEW')
       `);
-      if (changed !== 1) throw new ConflictException('Withdrawal state changed during approval');
+      if (changed !== 1) throw new ConflictException('Withdrawal state or claim changed during approval');
       await tx.adminAuditLog.create({ data: { adminUserId, action: 'APPROVE_WITHDRAWAL_FOR_PAYMENT', module: 'withdrawals', targetId: requestId, oldData: { status: request.status }, newData: { status: 'APPROVED_FOR_PAYMENT', note }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
       return { ok: true, status: 'APPROVED_FOR_PAYMENT' };
     });
@@ -99,7 +100,7 @@ export class WithdrawalWorkflowService {
           `);
           if (existing[0]?.payment_slip_file_hash === fileHash) return { ok: true, status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: existing[0].payment_slip_url, fileHash, idempotent: true };
         }
-        if (rows[0].status !== 'APPROVED_FOR_PAYMENT') throw new ConflictException(`Withdrawal cannot accept proof: ${rows[0].status}`);
+        if (request.status !== 'APPROVED_FOR_PAYMENT') throw new ConflictException(`Withdrawal cannot accept proof: ${request.status}`);
 
         const changed = await tx.$executeRaw(Prisma.sql`
           UPDATE "withdrawal_requests"
@@ -112,9 +113,10 @@ export class WithdrawalWorkflowService {
               "admin_note" = ${input.note ?? null},
               "updated_at" = NOW()
           WHERE "id" = ${requestId}::uuid
+            AND "claimed_by" = ${adminUserId}::uuid
             AND "status" = 'APPROVED_FOR_PAYMENT'::"WithdrawalRequestStatus"
         `);
-        if (changed !== 1) throw new ConflictException('Withdrawal state changed during proof upload');
+        if (changed !== 1) throw new ConflictException('Withdrawal state or claim changed during proof upload');
         await tx.adminAuditLog.create({ data: { adminUserId, action: 'UPLOAD_WITHDRAWAL_PAYMENT_PROOF', module: 'withdrawals', targetId: requestId, oldData: { status: 'APPROVED_FOR_PAYMENT' }, newData: { status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: key, transactionRef, fileHash }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
         return { ok: true, status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: key, fileHash };
       });
@@ -142,6 +144,7 @@ export class WithdrawalWorkflowService {
         const existing = await tx.walletLedger.findUnique({ where: { idempotencyKey } });
         if (existing) return { ok: true, status: 'COMPLETED', ledgerId: existing.id, idempotent: true };
       }
+      this.assertClaimOwner(request.claimed_by, adminUserId);
       if (request.status !== 'PAYMENT_PROOF_UPLOADED') throw new ConflictException(`Withdrawal is not ready for verification: ${request.status}`);
       if (!request.payment_slip_url) throw new BadRequestException('Payment proof is required');
       if (!request.claimed_by) throw new ConflictException('ต้อง claim รายการก่อนยืนยันการจ่าย');
@@ -181,9 +184,10 @@ export class WithdrawalWorkflowService {
             "claimed_at" = NULL,
             "updated_at" = NOW()
         WHERE "id" = ${requestId}::uuid
+          AND "claimed_by" = ${adminUserId}::uuid
           AND "status" = 'PAYMENT_PROOF_UPLOADED'::"WithdrawalRequestStatus"
       `);
-      if (changed !== 1) throw new ConflictException('Withdrawal state changed during verification');
+      if (changed !== 1) throw new ConflictException('Withdrawal state or claim changed during verification');
       await tx.adminAuditLog.create({ data: { adminUserId, action: 'VERIFY_AND_COMPLETE_WITHDRAWAL', module: 'withdrawals', targetId: requestId, oldData: { status: 'PAYMENT_PROOF_UPLOADED', balanceBefore: balanceBefore.toString(), lockedBalance: wallet.locked_balance.toString() }, newData: { status: 'COMPLETED', balanceAfter: balanceAfter.toString(), lockedAfter: lockedAfter.toString(), ledgerId: ledger.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
       return { ok: true, status: 'COMPLETED', ledgerId: ledger.id, balanceAfter: balanceAfter.toString(), lockedAfter: lockedAfter.toString() };
     });
