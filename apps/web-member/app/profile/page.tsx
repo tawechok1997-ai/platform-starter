@@ -6,37 +6,44 @@ import { memberApiFetch } from '../member-api';
 import type { WalletResponse } from '../types/member-finance';
 import './member-profile.css';
 
-type TokenClaims = {
-  sub?: string;
-  username?: string;
-  phone?: string;
-  email?: string;
-  role?: string;
-  status?: string;
+type MemberProfile = {
+  id: string;
+  username: string;
+  phone?: string | null;
+  email?: string | null;
+  status: string;
+  createdAt: string;
+  lastLoginAt?: string | null;
+  phoneVerifiedAt?: string | null;
+  emailVerifiedAt?: string | null;
+  displayName?: string | null;
+  wallet?: WalletResponse | null;
 };
 
 export default function ProfilePage() {
+  const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [wallet, setWallet] = useState<WalletResponse | null>(null);
-  const [claims, setClaims] = useState<TokenClaims>({});
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    setClaims(readMemberClaims());
-    void loadWallet();
-  }, []);
+  useEffect(() => { void loadProfile(); }, []);
 
-  async function loadWallet() {
+  async function loadProfile() {
     setLoading(true);
     setMessage('');
     try {
-      const response = await memberApiFetch('/member/wallet');
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) {
-        setMessage(payload?.message ?? 'โหลดข้อมูลวอเลตไม่สำเร็จ');
+      const [profileResponse, walletResponse] = await Promise.all([
+        memberApiFetch('/member/auth/profile'),
+        memberApiFetch('/member/wallet'),
+      ]);
+      const profilePayload = await profileResponse.json().catch(() => null);
+      const walletPayload = await walletResponse.json().catch(() => null);
+      if (!profileResponse.ok || !walletResponse.ok) {
+        setMessage(profilePayload?.message ?? walletPayload?.message ?? 'โหลดข้อมูลสมาชิกไม่สำเร็จ');
         return;
       }
-      setWallet(payload as WalletResponse);
+      setProfile(profilePayload as MemberProfile);
+      setWallet((profilePayload?.wallet ?? walletPayload) as WalletResponse);
     } catch {
       setMessage('เชื่อมต่อระบบสมาชิกไม่สำเร็จ กรุณาลองใหม่');
     } finally {
@@ -45,33 +52,27 @@ export default function ProfilePage() {
   }
 
   const profileRows = useMemo(() => [
-    ['ชื่อผู้ใช้', claims.username ?? '-'],
-    ['เบอร์โทร', claims.phone ?? '-'],
-    ['อีเมล', claims.email ?? 'ยังไม่ได้ระบุ'],
-    ['สถานะบัญชี', claims.status ?? wallet?.status ?? '-'],
-    ['บทบาท', claims.role ?? 'สมาชิก'],
-    ['รหัสสมาชิก', claims.sub ?? '-'],
-  ] as const, [claims, wallet?.status]);
+    ['ชื่อที่แสดง', profile?.displayName ?? profile?.username ?? '-'],
+    ['ชื่อผู้ใช้', profile?.username ?? '-'],
+    ['เบอร์โทร', profile?.phone ?? 'ยังไม่ได้ระบุ'],
+    ['อีเมล', profile?.email ?? 'ยังไม่ได้ระบุ'],
+    ['สถานะบัญชี', profile?.status ?? '-'],
+    ['วันที่สมัคร', formatDate(profile?.createdAt)],
+    ['เข้าใช้ล่าสุด', formatDate(profile?.lastLoginAt)],
+  ] as const, [profile]);
 
   return <main className="member-feature-page member-profile-page">
     <div className="member-feature-container">
       <header className="member-feature-header">
-        <div>
-          <p>บัญชีของฉัน</p>
-          <h1>โปรไฟล์และความปลอดภัย</h1>
-          <span>ดูข้อมูลบัญชี จัดการรหัสผ่าน และตรวจสอบการเข้าสู่ระบบ</span>
-        </div>
-        <MemberButton onClick={() => void loadWallet()} disabled={loading}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</MemberButton>
+        <div><p>บัญชีของฉัน</p><h1>โปรไฟล์และความปลอดภัย</h1><span>ดูข้อมูลบัญชี จัดการรหัสผ่าน และตรวจสอบการเข้าสู่ระบบ</span></div>
+        <MemberButton onClick={() => void loadProfile()} disabled={loading}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</MemberButton>
       </header>
 
       {message && <MemberNotice tone="warning">{message}</MemberNotice>}
 
       <section className="member-profile-grid" aria-label="ข้อมูลบัญชี">
         <MemberCard className="member-profile-card">
-          <div className="member-feature-section-heading">
-            <div><p>ภาพรวม</p><h2>ข้อมูลสมาชิก</h2></div>
-            <MemberLinkButton href="/profile/edit">แก้ไขข้อมูล</MemberLinkButton>
-          </div>
+          <div className="member-feature-section-heading"><div><p>ภาพรวม</p><h2>ข้อมูลสมาชิก</h2></div><MemberLinkButton href="/profile/edit">แก้ไขข้อมูล</MemberLinkButton></div>
           <dl className="member-profile-list">
             {profileRows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
           </dl>
@@ -79,10 +80,7 @@ export default function ProfilePage() {
 
         <MemberCard className="member-profile-card">
           <div className="member-feature-section-heading"><div><p>ยอดคงเหลือ</p><h2>สรุปวอเลต</h2></div></div>
-          <div className="member-profile-wallet">
-            <strong>{loading ? 'กำลังโหลด...' : formatMoney(wallet?.availableBalance, wallet?.currency)}</strong>
-            <span>ยอดล็อก {formatMoney(wallet?.lockedBalance, wallet?.currency)}</span>
-          </div>
+          <div className="member-profile-wallet"><strong>{loading ? 'กำลังโหลด...' : formatMoney(wallet?.availableBalance, wallet?.currency)}</strong><span>ยอดล็อก {formatMoney(wallet?.lockedBalance, wallet?.currency)}</span></div>
           <MemberLinkButton href="/transactions" tone="default">ดูประวัติ</MemberLinkButton>
         </MemberCard>
       </section>
@@ -96,22 +94,13 @@ export default function ProfilePage() {
   </main>;
 }
 
-function readMemberClaims(): TokenClaims {
-  try {
-    const token = window.localStorage.getItem('member_access_token');
-    if (!token) return {};
-    const payload = token.split('.')[1];
-    if (!payload) return {};
-    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
-    const decoded = decodeURIComponent(atob(normalized).split('').map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`).join(''));
-    const value = JSON.parse(decoded);
-    return value && typeof value === 'object' ? value as TokenClaims : {};
-  } catch {
-    return {};
-  }
-}
-
 function formatMoney(value?: string, currency = 'THB') {
   const amount = Number(value ?? 0);
   return new Intl.NumberFormat('th-TH', { style: 'currency', currency }).format(Number.isFinite(amount) ? amount : 0);
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('th-TH');
 }
