@@ -1,10 +1,12 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { AuthService } from './auth.service';
-import { RefreshSessionDto } from './dto/refresh-session.dto';
+import { ChangeMemberPasswordDto } from './dto/change-member-password.dto';
 import { MemberSignInDto } from './dto/member-sign-in.dto';
+import { RefreshSessionDto } from './dto/refresh-session.dto';
 import { RegisterDto } from './dto/register.dto';
+import { UpdateMemberProfileDto } from './dto/update-member-profile.dto';
 
 @Controller('member/auth')
 export class AuthController {
@@ -29,6 +31,48 @@ export class AuthController {
   @Post('logout')
   signOut(@CurrentUser() user: any) {
     return this.authService.signOut(user.sessionId);
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Get('profile')
+  getProfile(@CurrentUser() user: any) {
+    return this.authService.getMemberProfile(user.id ?? user.sub);
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Patch('profile')
+  updateProfile(@CurrentUser() user: any, @Body() dto: UpdateMemberProfileDto) {
+    return this.authService.updateMemberProfile(user.id ?? user.sub, dto);
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Post('password')
+  changePassword(@CurrentUser() user: any, @Body() dto: ChangeMemberPasswordDto) {
+    return this.authService.changeMemberPassword(user.id ?? user.sub, user.sessionId, dto);
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Get('sessions')
+  listSessions(@CurrentUser() user: any) {
+    return this.authService.listMemberSessions(user.id ?? user.sub, user.sessionId);
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Delete('sessions/others')
+  revokeOtherSessions(@CurrentUser() user: any) {
+    return this.authService.revokeOtherMemberSessions(user.id ?? user.sub, user.sessionId);
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Delete('sessions/:sessionId')
+  revokeSession(@CurrentUser() user: any, @Param('sessionId') sessionId: string) {
+    return this.authService.revokeMemberSession(user.id ?? user.sub, user.sessionId, sessionId);
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Get('security')
+  getSecurity(@CurrentUser() user: any) {
+    return this.authService.getMemberSecurity(user.id ?? user.sub);
   }
 
   private meta(req: any, deviceId?: string) {
