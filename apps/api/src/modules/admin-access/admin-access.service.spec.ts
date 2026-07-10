@@ -73,4 +73,60 @@ describe('AdminAccessService privilege boundaries', () => {
     await expect(service.removeRole('actor', 'owner', 'owner-role')).rejects.toThrow(ForbiddenException);
     expect(prisma.adminUserRole.delete).not.toHaveBeenCalled();
   });
+
+  it('blocks delegated admins from inviting a role with permissions they do not hold', async () => {
+    const actorRole = role('actor-role', 'support_manager', 50, ['admin.create', 'support.view']);
+    const financeRole = role('finance-role', 'finance_operator', 40, ['wallet.view', 'withdraw.view']);
+    const prisma = {
+      adminUser: {
+        findUnique: jest
+          .fn()
+          .mockResolvedValueOnce({ id: 'actor', roles: [{ role: actorRole }] })
+          .mockResolvedValueOnce(null),
+      },
+      role: { findUnique: jest.fn().mockResolvedValue(financeRole) },
+      $transaction: jest.fn(),
+      adminAuditLog: { create: jest.fn() },
+    } as any;
+
+    const service = new AdminAccessService(prisma);
+    await expect(service.createInvitation('actor', 'finance@example.com', 'finance-role', 24)).rejects.toThrow(ForbiddenException);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.adminAuditLog.create).not.toHaveBeenCalled();
+  });
+
+  it('creates an invitation transaction and stores only a token hash', async () => {
+    const ownerRole = role('owner-role', 'owner', 1, ['*']);
+    const supportRole = role('support-role', 'support_agent', 60, ['support.view']);
+    const tx = {
+      adminUser: {
+        create: jest.fn().mockResolvedValue({ id: 'invited-admin', email: 'support@example.com', status: 'LOCKED', createdAt: new Date() }),
+      },
+      verificationToken: { create: jest.fn().mockResolvedValue({ id: 'token-id' }) },
+    };
+    const prisma = {
+      adminUser: {
+        findUnique: jest
+          .fn()
+          .mockResolvedValueOnce({ id: 'owner', roles: [{ role: ownerRole }] })
+          .mockResolvedValueOnce(null),
+      },
+      role: { findUnique: jest.fn().mockResolvedValue(supportRole) },
+      $transaction: jest.fn(async (callback: (client: typeof tx) => unknown) => callback(tx)),
+      adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit-id' }) },
+    } as any;
+
+    const service = new AdminAccessService(prisma);
+    const result = await service.createInvitation('owner', ' SUPPORT@example.com ', 'support-role', 24);
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(tx.adminUser.create).toHaveBeenCalledTimes(1);
+    expect(tx.verificationToken.create).toHaveBeenCalledTimes(1);
+    expect(prisma.adminAuditLog.create).toHaveBeenCalledTimes(1);
+    expect(result.invitation.email).toBe('support@example.com');
+    expect(result.tokenVisibleOnce).toBe(true);
+    const tokenData = tx.verificationToken.create.mock.calls[0][0].data;
+    expect(tokenData.tokenHash).not.toBe(result.token);
+    expect(tokenData.target).toContain('ADMIN_INVITE:invited-admin:support@example.com');
+  });
 });
