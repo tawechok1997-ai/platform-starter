@@ -3,16 +3,11 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { CreateTopUpRequestDto } from './dto/create-top-up-request.dto';
-import { ReviewTopUpRequestDto } from './dto/review-top-up-request.dto';
 import { TopUpsService } from './topups.service';
 
 @Controller()
 export class TopUpsController {
   constructor(private readonly topUpsService: TopUpsService) {}
-
-  @UseGuards(MemberAuthGuard)
-  @Post('member/topups/slip')
-  saveSlip(@CurrentUser() user: any, @Body() body: { slipImageData?: string; slipImageName?: string }) { return this.topUpsService.saveMemberSlip(user.id, body); }
 
   @UseGuards(MemberAuthGuard)
   @Post('member/topups')
@@ -31,10 +26,6 @@ export class TopUpsController {
   getAdminRequests(@Query('status') status?: string, @Query('page') page?: string, @Query('take') take?: string) { return this.topUpsService.getAdminRequests(status, { page, take }); }
 
   @UseGuards(AdminAuthGuard)
-  @Get('admin/topups/:id/slip')
-  getAdminSlip(@Param('id') id: string) { return this.topUpsService.getAdminSlip(id); }
-
-  @UseGuards(AdminAuthGuard)
   @Get('admin/topups/:id')
   getAdminRequest(@Param('id') id: string) { return this.topUpsService.getAdminRequest(id); }
 
@@ -45,14 +36,6 @@ export class TopUpsController {
   @UseGuards(AdminAuthGuard)
   @Post('admin/topups/:id/release')
   releaseRequest(@Param('id') id: string, @CurrentUser() user: any, @Req() req: any) { return this.topUpsService.releaseRequest(id, user, this.meta(req)); }
-
-  @UseGuards(AdminAuthGuard)
-  @Post('admin/topups/:id/confirm')
-  confirmRequest(@Param('id') id: string, @CurrentUser() user: any, @Body() body: ReviewTopUpRequestDto, @Req() req: any) { return this.topUpsService.approveRequest(id, user, body, this.meta(req)); }
-
-  @UseGuards(AdminAuthGuard)
-  @Post('admin/topups/:id/decline')
-  declineRequest(@Param('id') id: string, @CurrentUser() user: any, @Body() body: ReviewTopUpRequestDto, @Req() req: any) { return this.topUpsService.rejectRequest(id, user, body, this.meta(req)); }
 
   private meta(req: any) { return { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] }; }
 }

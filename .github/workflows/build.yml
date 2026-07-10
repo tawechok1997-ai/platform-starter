@@ -16,14 +16,16 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile=false
+        run: pnpm install --frozen-lockfile
 
       - name: Validate shell scripts
         run: bash -n scripts/*.sh
@@ -33,6 +35,9 @@ jobs:
 
       - name: Build API
         run: pnpm build:api
+
+      - name: Test API
+        run: pnpm --filter @platform/api test -- --runInBand
 
       - name: Build Admin Web
         run: pnpm build:web-admin

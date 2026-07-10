@@ -23,7 +23,7 @@ on:
         description: Run member-token checks when secret is available
         required: true
         type: boolean
-        default: false
+        default: true
 
 jobs:
   smoke-api:
@@ -69,20 +69,14 @@ jobs:
           API_URL: ${{ env.RESOLVED_API_URL }}
           ADMIN_TOKEN: ${{ secrets.PROD_ADMIN_TOKEN }}
         run: |
-          if [[ -z "$ADMIN_TOKEN" ]]; then
-            echo "Skipping admin smoke checks because PROD_ADMIN_TOKEN is not set."
-            exit 0
-          fi
+          if [[ -z "$ADMIN_TOKEN" ]]; then echo "PROD_ADMIN_TOKEN is required for admin smoke checks."; exit 1; fi
           ./scripts/smoke-api.sh
 
       - name: Run member smoke checks
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_member_checks }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_member_checks }}
         env:
           API_URL: ${{ env.RESOLVED_API_URL }}
           MEMBER_TOKEN: ${{ secrets.PROD_MEMBER_TOKEN }}
         run: |
-          if [[ -z "$MEMBER_TOKEN" ]]; then
-            echo "Skipping member smoke checks because PROD_MEMBER_TOKEN is not set."
-            exit 0
-          fi
+          if [[ -z "$MEMBER_TOKEN" ]]; then echo "PROD_MEMBER_TOKEN is required for member smoke checks."; exit 1; fi
           ./scripts/smoke-api.sh

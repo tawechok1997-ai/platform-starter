@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PaymentProofInput, WithdrawalWorkflowService } from './withdrawal-workflow.service';
@@ -7,6 +7,11 @@ import { PaymentProofInput, WithdrawalWorkflowService } from './withdrawal-workf
 @UseGuards(AdminAuthGuard)
 export class WithdrawalWorkflowController {
   constructor(private readonly workflow: WithdrawalWorkflowService) {}
+
+  @Get(':id/payment-proof')
+  getPaymentProof(@Param('id') id: string) {
+    return this.workflow.getPaymentProof(id);
+  }
 
   @Post(':id/approve-for-payment')
   approveForPayment(

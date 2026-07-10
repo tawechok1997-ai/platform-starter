@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { Readable } from 'stream';
 
@@ -18,6 +18,14 @@ export class StorageService {
   async get(key: string, contentType: string): Promise<StoredObject> {
     if (this.driver() === 's3') return this.getS3(key, contentType);
     return this.getLocal(key, contentType);
+  }
+
+  async remove(key: string) {
+    if (this.driver() === 's3') {
+      await this.client().send(new DeleteObjectCommand({ Bucket: this.bucket(), Key: key }));
+      return;
+    }
+    await rm(this.localPath(key), { force: true });
   }
 
   private async putLocal(key: string, data: Buffer) {
