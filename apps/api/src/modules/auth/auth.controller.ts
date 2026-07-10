@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
+import { AntiBotService } from '../anti-bot/anti-bot.service';
 import { AuthService } from './auth.service';
 import { ChangeMemberPasswordDto } from './dto/change-member-password.dto';
 import { MemberSignInDto } from './dto/member-sign-in.dto';
@@ -10,15 +11,20 @@ import { UpdateMemberProfileDto } from './dto/update-member-profile.dto';
 
 @Controller('member/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly antiBot: AntiBotService,
+  ) {}
 
   @Post('register')
-  register(@Body() dto: RegisterDto, @Req() req: any) {
-    return this.authService.register(dto, this.meta(req, (dto as any).deviceId));
+  async register(@Body() dto: RegisterDto, @Req() req: any) {
+    await this.antiBot.assertValid('MEMBER_REGISTER', dto.captchaToken, req.ip);
+    return this.authService.register(dto, this.meta(req, dto.deviceId));
   }
 
   @Post('login')
-  signIn(@Body() dto: MemberSignInDto, @Req() req: any) {
+  async signIn(@Body() dto: MemberSignInDto, @Req() req: any) {
+    await this.antiBot.assertValid('MEMBER_LOGIN', dto.captchaToken, req.ip);
     return this.authService.signIn(dto, this.meta(req, dto.deviceId));
   }
 
