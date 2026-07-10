@@ -73,10 +73,20 @@ export default function MemberSignInPage() {
   }
 
   return <main className="public-auth-page" style={cssVars}>
-    <section className="public-auth-shell" style={{ maxWidth: 440 }}>
+    <section className="public-auth-shell" style={{ maxWidth: 1120 }}>
+      <div className="public-auth-brand" aria-hidden="true">
+        <div className="public-auth-brand__mark">{logoUrl ? <img src={logoUrl} alt="" /> : brandMark}</div>
+        <h1>{siteName}</h1>
+        <p>{textSetting(settings, 'website', 'site_description', 'จัดการบัญชีและธุรกรรมของคุณได้อย่างปลอดภัย')}</p>
+        <div className="public-auth-brand__steps">
+          <span><b>01</b>{locale === 'th' ? 'ยืนยันตัวตนอย่างปลอดภัย' : 'Secure account access'}</span>
+          <span><b>02</b>{locale === 'th' ? 'ดูยอดเงินและรายการล่าสุด' : 'Track balances and activity'}</span>
+          <span><b>03</b>{locale === 'th' ? 'ใช้งานต่อได้ทุกอุปกรณ์' : 'Continue across devices'}</span>
+        </div>
+      </div>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
         <div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span></div>
-        <div className="public-auth-heading"><h1>{t.title}</h1></div>
+        <div className="public-auth-heading"><h1>{t.title}</h1><p>{locale === 'th' ? 'เข้าสู่พื้นที่จัดการบัญชีของคุณ' : 'Access your account workspace'}</p></div>
         <div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} className="public-auth-language__button">ไทย</button><button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} className="public-auth-language__button">EN</button></div>
         {!flags.login && <div className="public-auth-alert public-auth-alert--error" role="alert">{t.loginDisabled}</div>}
         {status === 'error' && message && <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>}
