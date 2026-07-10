@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MinLength } from 'class-validator';
+import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class AdminSignInDto {
   @IsString()
@@ -15,4 +15,9 @@ export class AdminSignInDto {
   @IsOptional()
   @IsString()
   deviceId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(4096)
+  captchaToken?: string;
 }
