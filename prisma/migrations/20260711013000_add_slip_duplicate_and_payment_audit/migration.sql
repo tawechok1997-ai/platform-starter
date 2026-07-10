@@ -108,18 +108,20 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
--- Exact identifiers are unique when present. Perceptual hashes are indexed but not
--- unique because visually similar legitimate slips must still be manually reviewed.
-CREATE UNIQUE INDEX IF NOT EXISTS "top_up_requests_slip_transaction_ref_key"
+-- Duplicate submissions must remain insertable so the system can preserve evidence,
+-- show the member why the request was rejected, and count repeated abuse. Concurrency
+-- is serialized in the application with PostgreSQL advisory transaction locks.
+CREATE INDEX IF NOT EXISTS "top_up_requests_slip_transaction_ref_idx"
   ON "top_up_requests"("slip_transaction_ref")
   WHERE "slip_transaction_ref" IS NOT NULL;
 
-CREATE UNIQUE INDEX IF NOT EXISTS "top_up_requests_slip_file_hash_key"
+CREATE INDEX IF NOT EXISTS "top_up_requests_slip_file_hash_idx"
   ON "top_up_requests"("slip_file_hash")
   WHERE "slip_file_hash" IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS "top_up_requests_slip_perceptual_hash_idx"
-  ON "top_up_requests"("slip_perceptual_hash");
+  ON "top_up_requests"("slip_perceptual_hash")
+  WHERE "slip_perceptual_hash" IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS "top_up_requests_duplicate_of_id_idx"
   ON "top_up_requests"("duplicate_of_id");
@@ -127,10 +129,10 @@ CREATE INDEX IF NOT EXISTS "top_up_requests_duplicate_of_id_idx"
 CREATE INDEX IF NOT EXISTS "top_up_requests_user_status_created_idx"
   ON "top_up_requests"("user_id", "status", "created_at" DESC);
 
-CREATE UNIQUE INDEX IF NOT EXISTS "withdrawal_requests_payment_transaction_ref_key"
+CREATE INDEX IF NOT EXISTS "withdrawal_requests_payment_transaction_ref_idx"
   ON "withdrawal_requests"("payment_transaction_ref")
   WHERE "payment_transaction_ref" IS NOT NULL;
 
-CREATE UNIQUE INDEX IF NOT EXISTS "withdrawal_requests_payment_slip_file_hash_key"
+CREATE INDEX IF NOT EXISTS "withdrawal_requests_payment_slip_file_hash_idx"
   ON "withdrawal_requests"("payment_slip_file_hash")
   WHERE "payment_slip_file_hash" IS NOT NULL;
