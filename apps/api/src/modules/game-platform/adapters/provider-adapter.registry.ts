@@ -9,10 +9,15 @@ export class ProviderAdapterRegistry {
   private readonly adapters = new Map<string, GameProviderAdapter>();
 
   constructor() {
-    this.register('demo-provider', new DemoProviderAdapter());
-    this.register('simulator-provider', new SimulatorProviderAdapter());
-    this.register('generic-transfer', new GenericTransferProviderAdapter());
-    this.register('real-provider', new GenericTransferProviderAdapter());
+    const demoAdapter = new DemoProviderAdapter();
+    const simulatorAdapter = new SimulatorProviderAdapter();
+    const genericTransferAdapter = new GenericTransferProviderAdapter();
+
+    this.register('demo-provider', demoAdapter);
+    this.register('demo-provider-uat', demoAdapter);
+    this.register('simulator-provider', simulatorAdapter);
+    this.register('generic-transfer', genericTransferAdapter);
+    this.register('real-provider', genericTransferAdapter);
   }
 
   register(providerCode: string, adapter: GameProviderAdapter) {
