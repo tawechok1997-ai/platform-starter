@@ -33,7 +33,13 @@ function session(options: { roleCode: string; permissions: string[]; twoFactorEn
 
 describe('AdminAuthGuard privileged 2FA enforcement', () => {
   const jwtService = { verifyAsync: jest.fn().mockResolvedValue({ type: 'ADMIN', sub: 'admin-1', sessionId: 'session-1' }) } as any;
-  const configService = { get: jest.fn().mockReturnValue('test-key') } as any;
+  const configService = {
+    get: jest.fn((key: string) => {
+      if (key === 'JWT_ACCESS_KEY') return 'test-key';
+      if (key === 'ADMIN_2FA_ENFORCEMENT_ENABLED') return 'true';
+      return undefined;
+    }),
+  } as any;
 
   beforeEach(() => jest.clearAllMocks());
 
