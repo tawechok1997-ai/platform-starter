@@ -7,25 +7,50 @@ import { API_URL, PublicSiteSettings, defaultSettings, loadPublicSiteSettings, m
 const REFERRAL_CODE_KEY = 'member_pending_referral_code';
 type Locale = 'th' | 'en';
 type Step = 1 | 2 | 3;
-type RegisterErrors = Partial<Record<'username' | 'phone' | 'email' | 'secret' | 'fullName' | 'bankName' | 'bankAccountNumber' | 'bankAccountName' | 'terms', string>>;
+type RegisterErrors = Partial<Record<'username' | 'phone' | 'email' | 'secret' | 'fullName' | 'bankName' | 'bankAccountNumber' | 'terms', string>>;
+
+const THAI_BANKS = [
+  ['BBL', 'ธนาคารกรุงเทพ', 'Bangkok Bank'],
+  ['KBANK', 'ธนาคารกสิกรไทย', 'Kasikornbank'],
+  ['KTB', 'ธนาคารกรุงไทย', 'Krung Thai Bank'],
+  ['SCB', 'ธนาคารไทยพาณิชย์', 'Siam Commercial Bank'],
+  ['BAY', 'ธนาคารกรุงศรีอยุธยา', 'Bank of Ayudhya'],
+  ['TTB', 'ธนาคารทหารไทยธนชาต', 'TMBThanachart Bank'],
+  ['GSB', 'ธนาคารออมสิน', 'Government Savings Bank'],
+  ['BAAC', 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร', 'Bank for Agriculture and Agricultural Cooperatives'],
+  ['GHB', 'ธนาคารอาคารสงเคราะห์', 'Government Housing Bank'],
+  ['CIMBT', 'ธนาคารซีไอเอ็มบี ไทย', 'CIMB Thai Bank'],
+  ['UOBT', 'ธนาคารยูโอบี', 'United Overseas Bank Thailand'],
+  ['KKP', 'ธนาคารเกียรตินาคินภัทร', 'Kiatnakin Phatra Bank'],
+  ['TISCO', 'ธนาคารทิสโก้', 'TISCO Bank'],
+  ['LHFG', 'ธนาคารแลนด์ แอนด์ เฮ้าส์', 'Land and Houses Bank'],
+  ['ICBCT', 'ธนาคารไอซีบีซี (ไทย)', 'ICBC Thailand'],
+  ['SME', 'ธนาคารพัฒนาวิสาหกิจขนาดกลางและขนาดย่อมแห่งประเทศไทย', 'SME Development Bank of Thailand'],
+  ['EXIM', 'ธนาคารเพื่อการส่งออกและนำเข้าแห่งประเทศไทย', 'Export-Import Bank of Thailand'],
+  ['ISBT', 'ธนาคารอิสลามแห่งประเทศไทย', 'Islamic Bank of Thailand'],
+  ['BOC', 'ธนาคารแห่งประเทศจีน (ไทย)', 'Bank of China Thailand'],
+  ['CITI', 'ธนาคารซิตี้แบงก์', 'Citibank'],
+  ['HSBC', 'ธนาคารเอชเอสบีซี', 'HSBC Thailand'],
+  ['SCBT', 'ธนาคารสแตนดาร์ดชาร์เตอร์ด (ไทย)', 'Standard Chartered Thailand'],
+] as const;
 
 const copy = {
   th: {
     title: 'สมัครสมาชิก', subtitle: 'กรอกข้อมูลให้ครบในไม่กี่ขั้นตอน', account: 'ข้อมูลบัญชี', identity: 'ข้อมูลส่วนตัวและธนาคาร', review: 'ตรวจสอบข้อมูล',
     username: 'ชื่อผู้ใช้', phone: 'เบอร์โทรศัพท์', email: 'อีเมล (ไม่บังคับ)', password: 'รหัสผ่าน', referral: 'รหัสแนะนำ (ไม่บังคับ)',
-    fullName: 'ชื่อ-นามสกุลจริง', bankName: 'ธนาคาร', bankAccountNumber: 'เลขบัญชี', bankAccountName: 'ชื่อบัญชีธนาคาร',
+    fullName: 'ชื่อ-นามสกุลจริง', bankName: 'ธนาคาร', bankPlaceholder: 'เลือกธนาคาร', bankAccountNumber: 'เลขบัญชี',
     next: 'ถัดไป', back: 'ย้อนกลับ', submit: 'สมัครสมาชิก', submitting: 'กำลังสมัคร...', show: 'แสดง', hide: 'ซ่อน',
     loginPrompt: 'มีบัญชีแล้ว?', login: 'เข้าสู่ระบบ', terms: 'ฉันยืนยันว่าข้อมูลถูกต้องและยอมรับเงื่อนไขการใช้งาน',
-    nameRule: 'ชื่อบัญชีธนาคารต้องตรงกับชื่อจริงที่ใช้สมัคร', checkFields: 'กรุณาตรวจสอบข้อมูลที่ระบุไว้', captchaRequired: 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ', success: 'สมัครสมาชิกสำเร็จ', failed: 'สมัครสมาชิกไม่สำเร็จ กรุณาลองอีกครั้ง', timeout: 'เชื่อมต่อระบบนานเกินไป กรุณาลองอีกครั้ง',
+    nameRule: 'ระบบจะใช้ชื่อจริงนี้เป็นชื่อบัญชีธนาคารสำหรับตรวจสอบความตรงกัน', checkFields: 'กรุณาตรวจสอบข้อมูลที่ระบุไว้', captchaRequired: 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ', success: 'สมัครสมาชิกสำเร็จ', failed: 'สมัครสมาชิกไม่สำเร็จ กรุณาลองอีกครั้ง', timeout: 'เชื่อมต่อระบบนานเกินไป กรุณาลองอีกครั้ง',
     registrationDisabled: 'ขณะนี้ปิดรับสมัครสมาชิก', maintenance: 'ระบบกำลังปรับปรุง กรุณาลองใหม่ภายหลัง', step: 'ขั้นตอน', invalidResponse: 'ระบบตอบกลับไม่สมบูรณ์ กรุณาลองใหม่อีกครั้ง',
   },
   en: {
     title: 'Create account', subtitle: 'Complete a few short steps', account: 'Account details', identity: 'Identity and bank', review: 'Review',
     username: 'Username', phone: 'Phone number', email: 'Email (optional)', password: 'Password', referral: 'Referral code (optional)',
-    fullName: 'Legal full name', bankName: 'Bank', bankAccountNumber: 'Account number', bankAccountName: 'Bank account name',
+    fullName: 'Legal full name', bankName: 'Bank', bankPlaceholder: 'Select a bank', bankAccountNumber: 'Account number',
     next: 'Continue', back: 'Back', submit: 'Create account', submitting: 'Creating account...', show: 'Show', hide: 'Hide',
     loginPrompt: 'Already have an account?', login: 'Sign in', terms: 'I confirm the information is correct and accept the terms of use',
-    nameRule: 'The bank account name must match the legal name used to register', checkFields: 'Check the highlighted fields', captchaRequired: 'Complete the security verification', success: 'Account created successfully', failed: 'Could not create the account. Please try again', timeout: 'The connection took too long. Please try again',
+    nameRule: 'This legal name will also be used as the bank account name for verification', checkFields: 'Check the highlighted fields', captchaRequired: 'Complete the security verification', success: 'Account created successfully', failed: 'Could not create the account. Please try again', timeout: 'The connection took too long. Please try again',
     registrationDisabled: 'Registration is temporarily unavailable', maintenance: 'The service is under maintenance. Please try again later', step: 'Step', invalidResponse: 'The server response was incomplete. Please try again.',
   },
 } as const;
@@ -42,7 +67,6 @@ export default function MemberRegisterPage() {
   const [fullName, setFullName] = useState('');
   const [bankName, setBankName] = useState('');
   const [bankAccountNumber, setBankAccountNumber] = useState('');
-  const [bankAccountName, setBankAccountName] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaRequired, setCaptchaRequired] = useState(false);
@@ -82,7 +106,7 @@ export default function MemberRegisterPage() {
 
   function changeLocale(next: Locale) { setLocale(next); window.localStorage.setItem('member_locale', next); }
   function clearError(name: keyof RegisterErrors) { if (errors[name]) setErrors((current) => ({ ...current, [name]: undefined })); }
-  function normalizeName(value: string) { return value.normalize('NFKC').toLocaleLowerCase('th-TH').replace(/^(นาย|นางสาว|นาง|mr\.?|mrs\.?|miss)\s*/i, '').replace(/[\s.\-_'’]+/g, ''); }
+  function selectedBankLabel(value: string) { const bank = THAI_BANKS.find(([code]) => code === value); return bank ? (locale === 'th' ? bank[1] : bank[2]) : value; }
 
   function validateStep(target: Step) {
     const next: RegisterErrors = {};
@@ -94,10 +118,8 @@ export default function MemberRegisterPage() {
     }
     if (target === 2) {
       if (fullName.trim().length < 2) next.fullName = locale === 'th' ? 'กรุณากรอกชื่อ-นามสกุลจริง' : 'Enter your legal full name';
-      if (bankName.trim().length < 2) next.bankName = locale === 'th' ? 'กรุณาระบุธนาคาร' : 'Enter the bank name';
+      if (!bankName) next.bankName = locale === 'th' ? 'กรุณาเลือกธนาคาร' : 'Select a bank';
       if (!/^\d{6,20}$/.test(bankAccountNumber.trim())) next.bankAccountNumber = locale === 'th' ? 'เลขบัญชีต้องเป็นตัวเลข 6-20 หลัก' : 'Account number must contain 6-20 digits';
-      if (bankAccountName.trim().length < 2) next.bankAccountName = locale === 'th' ? 'กรุณากรอกชื่อบัญชีธนาคาร' : 'Enter the bank account name';
-      if (fullName.trim() && bankAccountName.trim() && normalizeName(fullName) !== normalizeName(bankAccountName)) next.bankAccountName = t.nameRule;
     }
     if (target === 3 && !acceptedTerms) next.terms = locale === 'th' ? 'กรุณายอมรับเงื่อนไขก่อนสมัคร' : 'Accept the terms before continuing';
     setErrors(next);
@@ -120,11 +142,12 @@ export default function MemberRegisterPage() {
     const timeoutId = window.setTimeout(() => controller.abort(), 15000);
     setLoading(true); setStatus('info'); setMessage(t.submitting);
     const cleanRef = normalizeReferralCode(referralCode);
+    const legalName = fullName.trim();
 
     try {
       const res = await fetch(`${API_URL}/member/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
-        body: JSON.stringify({ username: username.trim(), phone: phone.trim(), email: email.trim() || undefined, secret, fullName: fullName.trim(), bankName: bankName.trim(), bankAccountNumber: bankAccountNumber.trim(), bankAccountName: bankAccountName.trim(), referralCode: cleanRef || undefined, captchaToken: captchaToken || undefined, deviceId: 'web-member' }),
+        body: JSON.stringify({ username: username.trim(), phone: phone.trim(), email: email.trim() || undefined, secret, fullName: legalName, bankName: selectedBankLabel(bankName), bankAccountNumber: bankAccountNumber.trim(), bankAccountName: legalName, referralCode: cleanRef || undefined, captchaToken: captchaToken || undefined, deviceId: 'web-member' }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) { setStatus('error'); setMessage(mapRegisterError(data?.message, locale, t.failed)); setCaptchaResetKey((value) => value + 1); return; }
@@ -169,15 +192,20 @@ export default function MemberRegisterPage() {
 
         {step === 2 && <>
           <Field label={t.fullName} id="register-full-name" value={fullName} onChange={(value) => { setFullName(value); clearError('fullName'); }} error={errors.fullName} disabled={disabled} autoComplete="name" />
-          <Field label={t.bankName} id="register-bank-name" value={bankName} onChange={(value) => { setBankName(value); clearError('bankName'); }} error={errors.bankName} disabled={disabled} autoComplete="organization" />
+          <label className="public-auth-field" htmlFor="register-bank-name">{t.bankName}
+            <select id="register-bank-name" className="public-auth-input" value={bankName} onChange={(event) => { setBankName(event.target.value); clearError('bankName'); }} disabled={disabled} aria-invalid={Boolean(errors.bankName)}>
+              <option value="">{t.bankPlaceholder}</option>
+              {THAI_BANKS.map(([code, thName, enName]) => <option key={code} value={code}>{locale === 'th' ? thName : enName}</option>)}
+            </select>
+          </label>
+          {errors.bankName && <span className="public-auth-field-error">{errors.bankName}</span>}
           <Field label={t.bankAccountNumber} id="register-bank-account-number" value={bankAccountNumber} onChange={(value) => { setBankAccountNumber(value.replace(/\D/g, '').slice(0, 20)); clearError('bankAccountNumber'); }} error={errors.bankAccountNumber} disabled={disabled} inputMode="numeric" autoComplete="off" />
-          <Field label={t.bankAccountName} id="register-bank-account-name" value={bankAccountName} onChange={(value) => { setBankAccountName(value); clearError('bankAccountName'); }} error={errors.bankAccountName} disabled={disabled} autoComplete="name" />
           <div className="public-auth-field-hint">{t.nameRule}</div>
         </>}
 
         {step === 3 && <>
           <div style={{ display: 'grid', gap: 10, padding: 14, borderRadius: 14, background: 'rgba(255,255,255,.05)' }}>
-            <ReviewRow label={t.username} value={username} /><ReviewRow label={t.phone} value={phone} /><ReviewRow label={t.fullName} value={fullName} /><ReviewRow label={t.bankName} value={bankName} /><ReviewRow label={t.bankAccountNumber} value={maskAccount(bankAccountNumber)} /><ReviewRow label={t.bankAccountName} value={bankAccountName} />
+            <ReviewRow label={t.username} value={username} /><ReviewRow label={t.phone} value={phone} /><ReviewRow label={t.fullName} value={fullName} /><ReviewRow label={t.bankName} value={selectedBankLabel(bankName)} /><ReviewRow label={t.bankAccountNumber} value={maskAccount(bankAccountNumber)} />
           </div>
           <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}><input type="checkbox" checked={acceptedTerms} onChange={(event) => { setAcceptedTerms(event.target.checked); clearError('terms'); }} disabled={disabled} style={{ marginTop: 4 }} /><span>{t.terms}</span></label>
           {errors.terms && <span className="public-auth-field-error">{errors.terms}</span>}
@@ -208,7 +236,6 @@ function mapRegisterError(raw: unknown, locale: Locale, fallback: string) {
   const joined = messages.join(' ').toLowerCase();
   const th = locale === 'th';
   if (joined.includes('captcha')) return th ? 'การยืนยันความปลอดภัยไม่สำเร็จ กรุณาลองใหม่' : 'Security verification failed. Please try again.';
-  if (joined.includes('ชื่อบัญชีธนาคารต้องตรง') || joined.includes('bank account name') && joined.includes('match')) return th ? 'ชื่อบัญชีธนาคารต้องตรงกับชื่อจริงที่ใช้สมัคร' : 'The bank account name must match your legal name.';
   if (joined.includes('บัญชีธนาคารนี้ถูกใช้') || joined.includes('bank') && joined.includes('already')) return th ? 'บัญชีธนาคารนี้ถูกใช้กับสมาชิกคนอื่นแล้ว' : 'This bank account is already linked to another member.';
   if (joined.includes('member already exists') || joined.includes('ถูกใช้แล้ว') || joined.includes('already exists')) return th ? 'ชื่อผู้ใช้ เบอร์โทร หรืออีเมลนี้ถูกใช้แล้ว' : 'The username, phone number, or email is already in use.';
   if (joined.includes('bankaccountnumber') || joined.includes('6 to 20 digits')) return th ? 'เลขบัญชีต้องเป็นตัวเลข 6-20 หลัก' : 'The account number must contain 6-20 digits.';
