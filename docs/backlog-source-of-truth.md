@@ -20,6 +20,14 @@ Authoritative source:
 
 This supersedes older generic Member Home, Game Lobby, navigation, promotions, wallet-card, profile-card, icon, and responsive-polish wording where they overlap.
 
+### Authentication UX for both websites
+
+Authoritative source:
+
+- `docs/remaining-work-backlog-auth-ux.md`
+
+This applies to `web-member` and `web-admin` and supersedes older login, register, invitation activation, password setup, password recovery, authentication layout, and onboarding presentation wording where they overlap. Member registration uses a secure multi-step flow. Admin has no public self-registration and uses an invitation-based multi-step activation flow controlled by the Owner or an explicitly delegated admin.
+
 ### Bilingual Thai and English
 
 Authoritative source:
@@ -66,6 +74,7 @@ When the same task appears in more than one file:
 
 - `docs/backlog-source-of-truth.md`
 - `docs/remaining-work-backlog.md`
+- `docs/remaining-work-backlog-auth-ux.md`
 - `docs/remaining-work-backlog-i18n.md`
 - `docs/remaining-work-backlog-admin-dashboard.md`
 - `docs/remaining-work-backlog-security-admin-access.md`
