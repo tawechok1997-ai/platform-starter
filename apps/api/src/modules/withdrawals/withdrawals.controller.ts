@@ -39,10 +39,6 @@ export class WithdrawalsController {
   releaseRequest(@Param('id') id: string, @CurrentUser() user: any, @Req() req: any) { return this.withdrawalsService.releaseRequest(id, user, this.meta(req)); }
 
   @UseGuards(AdminAuthGuard)
-  @Post('admin/withdrawals/:id/complete')
-  completeRequest(@Param('id') id: string, @CurrentUser() user: any, @Body() body: ReviewWithdrawalRequestDto, @Req() req: any) { return this.withdrawalsService.completeRequest(id, user, body, this.meta(req)); }
-
-  @UseGuards(AdminAuthGuard)
   @Post('admin/withdrawals/:id/reject')
   rejectRequest(@Param('id') id: string, @CurrentUser() user: any, @Body() body: ReviewWithdrawalRequestDto, @Req() req: any) { return this.withdrawalsService.rejectRequest(id, user, body, this.meta(req)); }
 
