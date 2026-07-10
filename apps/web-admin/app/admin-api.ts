@@ -9,6 +9,7 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   if (!options.skipAuth && token) headers.set('Authorization', `Bearer ${token}`);
 
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  if (await redirectToTwoFactorSetup(res, options)) return res;
   if (res.status !== 401 || options.skipAuth) return res;
 
   const refreshed = await refreshAdminToken();
@@ -21,12 +22,22 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
 
   headers.set('Authorization', `Bearer ${refreshed}`);
   const retry = await fetch(`${API_URL}${path}`, { ...options, headers });
+  if (await redirectToTwoFactorSetup(retry, options)) return retry;
   if (retry.status === 401) {
     clearAdminSession();
     const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
     window.location.replace(`/login?next=${next}`);
   }
   return retry;
+}
+
+async function redirectToTwoFactorSetup(response: Response, options: ApiOptions) {
+  if (options.skipAuth || response.status !== 403 || window.location.pathname === '/security/2fa') return false;
+  const payload = await response.clone().json().catch(() => null);
+  if (payload?.code !== 'ADMIN_2FA_REQUIRED') return false;
+  const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
+  window.location.replace(`/security/2fa?next=${next}`);
+  return true;
 }
 
 export async function refreshAdminToken() {
