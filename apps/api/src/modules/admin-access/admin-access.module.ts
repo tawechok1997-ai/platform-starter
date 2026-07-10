@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from '../../database/database.module';
 import { AdminAccessController } from './admin-access.controller';
+import { AdminAccessSessionService } from './admin-access-session.service';
 import { AdminAccessService } from './admin-access.service';
 import { AdminInvitationAdminController } from './admin-invitation-admin.controller';
 import { AdminInvitationAdminService } from './admin-invitation-admin.service';
@@ -11,6 +12,6 @@ import { AdminInvitationService } from './admin-invitation.service';
 @Module({
   imports: [DatabaseModule, JwtModule.register({})],
   controllers: [AdminAccessController, AdminInvitationController, AdminInvitationAdminController],
-  providers: [AdminAccessService, AdminInvitationService, AdminInvitationAdminService],
+  providers: [AdminAccessService, AdminAccessSessionService, AdminInvitationService, AdminInvitationAdminService],
 })
 export class AdminAccessModule {}
