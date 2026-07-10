@@ -55,6 +55,7 @@ export default function WalletLedgersPage() {
 
     <AdminStack>{visibleItems.map((item) => {
       const currency = item.wallet?.currency ?? 'THB';
+      const hasMetadata = item.metadata !== null && item.metadata !== undefined;
       return <AdminCard key={item.id}>
         <article className="admin-ledger-card-grid">
           <section className="admin-ledger-identity">
@@ -64,7 +65,7 @@ export default function WalletLedgersPage() {
           </section>
           <section className="admin-ledger-amount"><span>จำนวน</span><strong>{formatMoney(item.amount, currency)}</strong><AdminLinkButton href={`/wallet-ledgers/${item.id}`}>ดูรายละเอียด</AdminLinkButton></section>
           <section className="admin-ledger-balance-grid"><div><span>ยอดก่อน</span><strong>{formatMoney(item.balanceBefore, currency)}</strong></div><div><span>ยอดหลัง</span><strong>{formatMoney(item.balanceAfter, currency)}</strong></div><div><span>รหัสกันซ้ำ</span><strong>{item.idempotencyKey ?? '-'}</strong></div></section>
-          {item.metadata && <details className="admin-ledger-details"><summary>ข้อมูลเทคนิค</summary><pre>{JSON.stringify(item.metadata, null, 2)}</pre></details>}
+          {hasMetadata && <details className="admin-ledger-details"><summary>ข้อมูลเทคนิค</summary><pre>{JSON.stringify(item.metadata, null, 2)}</pre></details>}
         </article>
       </AdminCard>;
     })}{!loading && visibleItems.length === 0 && <AdminEmpty>ไม่พบประวัติเงินตามตัวกรอง</AdminEmpty>}</AdminStack>
