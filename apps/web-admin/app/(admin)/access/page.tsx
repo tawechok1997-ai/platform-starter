@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminGrid, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminSectionRow, AdminStack } from '../_components/admin-ui';
+import AdminInvitationList from './admin-invitation-list';
 import InviteAdminPanel from './invite-admin-panel';
 
 type Permission = { id: string; code: string; name: string; module: string; description?: string | null };
@@ -45,6 +46,7 @@ export default function AccessOverviewPage() {
   }
 
   const canManage = permissionsHeld.includes('*') || permissionsHeld.includes('admin.access.manage');
+  const canInvite = permissionsHeld.includes('*') || permissionsHeld.includes('admin.create');
 
   async function assignRole(adminUser: AdminUser) {
     if (!canManage || adminUser.protected) return;
@@ -88,6 +90,7 @@ export default function AccessOverviewPage() {
       </AdminMetricGrid>
 
       <InviteAdminPanel roles={data.roles} onCreated={load} />
+      <AdminInvitationList allowed={canInvite} />
 
       <AdminGrid>
         <AdminCard title="Roles" description="Role และ permission ที่ผูกอยู่">
