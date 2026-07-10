@@ -1,8 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminStack } from '../_components/admin-ui';
+import {
+  AdminBadge,
+  AdminButton,
+  AdminCard,
+  AdminEmpty,
+  AdminLinkButton,
+  AdminMetric,
+  AdminMetricGrid,
+  AdminNotice,
+  AdminPage,
+  AdminStack,
+} from '../_components/admin-ui';
 
 type AuditLog = {
   id: string;
@@ -17,87 +28,179 @@ type AuditLog = {
   adminUser?: { id: string; username: string; email: string } | null;
 };
 
+type AuditFilters = {
+  search: string;
+  module: string;
+  action: string;
+  admin: string;
+  targetId: string;
+  from: string;
+  to: string;
+};
+
 const PAGE_SIZE = 20;
+const emptyFilters: AuditFilters = { search: '', module: '', action: '', admin: '', targetId: '', from: '', to: '' };
 
 export default function AdminAuditPage() {
   const [items, setItems] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
-  const [moduleName, setModuleName] = useState('');
-  const [action, setAction] = useState('');
+  const [draft, setDraft] = useState<AuditFilters>(emptyFilters);
+  const [applied, setApplied] = useState<AuditFilters>(emptyFilters);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { loadAuditLogs(1); }, []);
-  useEffect(() => { loadAuditLogs(page); }, [page]);
+  useEffect(() => { void loadAuditLogs(page, applied); }, [page, applied]);
 
-  async function loadAuditLogs(nextPage = page) {
+  const moduleCount = useMemo(() => new Set(items.map((item) => item.module)).size, [items]);
+  const adminCount = useMemo(() => new Set(items.map((item) => item.adminUser?.id).filter(Boolean)).size, [items]);
+  const activeFilters = useMemo(() => Object.entries(applied).filter(([, value]) => value.trim()), [applied]);
+
+  async function loadAuditLogs(nextPage = page, filters = applied) {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (moduleName.trim()) params.set('module', moduleName.trim());
-    if (action.trim()) params.set('action', action.trim());
-    params.set('page', String(nextPage));
-    params.set('take', String(PAGE_SIZE));
+    setMessage('กำลังโหลด audit logs...');
+    const params = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
+    Object.entries(filters).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()); });
     const res = await adminApiFetch(`/admin/audit-logs?${params.toString()}`);
     const data = await res.json().catch(() => null);
     setLoading(false);
     if (!res.ok) { setMessage(data?.message ?? 'โหลด audit logs ไม่สำเร็จ'); return; }
     setItems(data.items ?? []);
-    setTotal(data.total ?? 0);
+    setTotal(Number(data.total ?? 0));
     setPageCount(Math.max(Number(data.pageCount ?? 1), 1));
     setMessage('');
   }
 
   function applyFilters() {
     setPage(1);
-    loadAuditLogs(1);
+    setApplied({ ...draft });
   }
 
   function clearFilters() {
-    setModuleName('');
-    setAction('');
+    setDraft(emptyFilters);
     setPage(1);
-    setTimeout(() => loadAuditLogs(1), 0);
+    setApplied({ ...emptyFilters });
   }
 
-  return <AdminPage eyebrow="Security" title="Audit Logs" description="ตรวจสอบเหตุการณ์สำคัญของระบบแอดมิน" actions={<AdminButton disabled={loading} onClick={() => loadAuditLogs()}>Reload</AdminButton>}>
+  return <AdminPage
+    eyebrow="Security & Operations"
+    title="Audit Logs"
+    description="ตรวจสอบว่าใครทำอะไร เมื่อไร จากอุปกรณ์ใด และข้อมูลเปลี่ยนจากอะไรเป็นอะไร"
+    actions={<AdminButton disabled={loading} onClick={() => void loadAuditLogs(page, applied)}>รีเฟรช</AdminButton>}
+  >
     {message && <AdminNotice>{message}</AdminNotice>}
 
     <AdminMetricGrid>
-      <AdminMetric title="Loaded" value={String(items.length)} helper={`${total} total`} />
-      <AdminMetric title="Page" value={`${page}/${pageCount}`} helper={`${PAGE_SIZE} per page`} />
-      <AdminMetric title="Mode" value="Read-only" helper="audit trail" />
+      <AdminMetric title="รายการหน้านี้" value={items.length.toLocaleString('th-TH')} helper={`${total.toLocaleString('th-TH')} รายการทั้งหมด`} />
+      <AdminMetric title="หน้า" value={`${page}/${pageCount}`} helper={`${PAGE_SIZE} รายการต่อหน้า`} />
+      <AdminMetric title="โมดูล" value={moduleCount.toLocaleString('th-TH')} helper="จากข้อมูลหน้านี้" />
+      <AdminMetric title="ผู้ดูแล" value={adminCount.toLocaleString('th-TH')} helper="จากข้อมูลหน้านี้" />
+      <AdminMetric title="โหมด" value="Read-only" helper="ไม่แก้ไขข้อมูลธุรกรรม" />
     </AdminMetricGrid>
 
-    <AdminCard title="Filters" description="ค้นหาเฉพาะ module หรือ action ที่ต้องการ">
-      <div style={filterStyle}>
-        <input value={moduleName} onChange={(event) => setModuleName(event.target.value)} placeholder="module เช่น auth, admin-access" style={inputStyle} />
-        <input value={action} onChange={(event) => setAction(event.target.value)} placeholder="action เช่น login, revoke" style={inputStyle} />
-        <AdminButton disabled={loading} onClick={applyFilters}>Apply</AdminButton>
-        <AdminButton disabled={loading} onClick={clearFilters}>Clear</AdminButton>
-        <div style={pagerStyle}><AdminButton disabled={loading || page <= 1} onClick={() => setPage((value) => Math.max(value - 1, 1))}>Prev</AdminButton><span>Page {page} / {pageCount}</span><AdminButton disabled={loading || page >= pageCount} onClick={() => setPage((value) => Math.min(value + 1, pageCount))}>Next</AdminButton></div>
+    <AdminCard title="ค้นหาและกรอง" description="กรองตามข้อความ โมดูล action ผู้ดูแล target และช่วงเวลา">
+      <div style={filterGridStyle}>
+        <label style={fieldStyle}><span>ค้นหารวม</span><input value={draft.search} onChange={(event) => setDraft((value) => ({ ...value, search: event.target.value }))} placeholder="action, module, target, IP..." style={inputStyle} /></label>
+        <label style={fieldStyle}><span>โมดูล</span><input value={draft.module} onChange={(event) => setDraft((value) => ({ ...value, module: event.target.value }))} placeholder="topups, withdrawals..." style={inputStyle} /></label>
+        <label style={fieldStyle}><span>Action</span><input value={draft.action} onChange={(event) => setDraft((value) => ({ ...value, action: event.target.value }))} placeholder="approve, reject, login..." style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ผู้ดูแล</span><input value={draft.admin} onChange={(event) => setDraft((value) => ({ ...value, admin: event.target.value }))} placeholder="ชื่อหรืออีเมล" style={inputStyle} /></label>
+        <label style={fieldStyle}><span>Target ID</span><input value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder="UUID ของรายการ" style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ตั้งแต่วันที่</span><input type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ถึงวันที่</span><input type="date" value={draft.to} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} style={inputStyle} /></label>
       </div>
+      <div style={filterActionStyle}>
+        <AdminButton disabled={loading} onClick={applyFilters}>ใช้ตัวกรอง</AdminButton>
+        <AdminButton disabled={loading} tone="secondary" onClick={clearFilters}>ล้างตัวกรอง</AdminButton>
+      </div>
+      {activeFilters.length > 0 && <div style={chipWrapStyle}>{activeFilters.map(([key, value]) => <AdminBadge key={key} tone="warning">{key}: {value}</AdminBadge>)}</div>}
     </AdminCard>
 
-    <AdminCard title="Events" description="รายการ audit ล่าสุด">
-      <AdminStack>{items.map((item) => <section key={item.id} style={logBoxStyle}>
-        <div style={logTopStyle}><div style={badgeWrapStyle}><AdminBadge tone="neutral">{item.module}</AdminBadge><AdminBadge tone="success">{item.action}</AdminBadge></div><span>{new Date(item.createdAt).toLocaleString('th-TH')}</span></div>
-        <strong>{item.adminUser?.username ?? 'Unknown admin'}</strong>
-        <p>Target: {item.targetId || '-'}</p>
-        <p>IP: {item.ipAddress || '-'}</p>
-        <p style={agentStyle}>UA: {item.userAgent || '-'}</p>
-        {item.newData ? <pre style={preStyle}>{JSON.stringify(item.newData, null, 2)}</pre> : null}
-      </section>)}{items.length === 0 && <AdminNotice>ยังไม่มี audit log ตามเงื่อนไขนี้</AdminNotice>}</AdminStack>
+    <AdminCard title="เหตุการณ์" description="คลิกดูข้อมูลก่อนและหลังเพื่อใช้ตรวจสอบการเปลี่ยนแปลง">
+      <AdminStack>
+        {items.map((item) => {
+          const href = targetHref(item.module, item.targetId);
+          return <article key={item.id} style={logBoxStyle}>
+            <header style={logTopStyle}>
+              <div style={badgeWrapStyle}>
+                <AdminBadge tone="neutral">{item.module || 'unknown'}</AdminBadge>
+                <AdminBadge tone={actionTone(item.action)}>{item.action}</AdminBadge>
+              </div>
+              <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString('th-TH')}</time>
+            </header>
+
+            <div style={summaryGridStyle}>
+              <div><span style={labelStyle}>ผู้ดูแล</span><strong>{item.adminUser?.username ?? item.adminUser?.email ?? 'Unknown admin'}</strong></div>
+              <div><span style={labelStyle}>อีเมล</span><strong>{item.adminUser?.email ?? '-'}</strong></div>
+              <div><span style={labelStyle}>Target</span><strong style={wrapStyle}>{item.targetId || '-'}</strong></div>
+              <div><span style={labelStyle}>IP address</span><strong>{item.ipAddress || '-'}</strong></div>
+            </div>
+
+            <div style={agentBoxStyle}><span style={labelStyle}>User agent</span><span style={wrapStyle}>{item.userAgent || '-'}</span></div>
+
+            <div style={detailGridStyle}>
+              <AuditData title="ข้อมูลก่อนเปลี่ยน" value={item.oldData} />
+              <AuditData title="ข้อมูลหลังเปลี่ยน" value={item.newData} />
+            </div>
+
+            {href && <div style={linkRowStyle}><AdminLinkButton href={href}>เปิดรายการที่เกี่ยวข้อง</AdminLinkButton></div>}
+          </article>;
+        })}
+        {!loading && items.length === 0 && <AdminEmpty>ยังไม่มี audit log ตามเงื่อนไขนี้</AdminEmpty>}
+      </AdminStack>
+
+      <div style={pagerStyle}>
+        <AdminButton disabled={loading || page <= 1} onClick={() => setPage((value) => Math.max(value - 1, 1))}>ก่อนหน้า</AdminButton>
+        <span>หน้า {page} / {pageCount}</span>
+        <AdminButton disabled={loading || page >= pageCount} onClick={() => setPage((value) => Math.min(value + 1, pageCount))}>ถัดไป</AdminButton>
+      </div>
     </AdminCard>
   </AdminPage>;
 }
 
-const filterStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, alignItems: 'center' } as const;
+function AuditData({ title, value }: { title: string; value: unknown }) {
+  const hasValue = value !== undefined && value !== null;
+  return <details style={detailsStyle}>
+    <summary>{title}</summary>
+    {hasValue ? <pre style={preStyle}>{JSON.stringify(value, null, 2)}</pre> : <p style={emptyDataStyle}>ไม่มีข้อมูล</p>}
+  </details>;
+}
+
+function targetHref(moduleName: string, targetId?: string | null) {
+  if (!targetId) return null;
+  const module = moduleName.toLowerCase();
+  if (module.includes('topup')) return `/topups?requestId=${encodeURIComponent(targetId)}`;
+  if (module.includes('withdraw')) return `/withdrawals?requestId=${encodeURIComponent(targetId)}`;
+  if (module.includes('member') || module.includes('user')) return `/members/${encodeURIComponent(targetId)}`;
+  if (module.includes('wallet') || module.includes('ledger') || module.includes('money')) return `/ledgers?referenceId=${encodeURIComponent(targetId)}`;
+  if (module.includes('risk')) return `/risk?alertId=${encodeURIComponent(targetId)}`;
+  if (module.includes('admin-access') || module.includes('auth')) return '/admin-access';
+  return null;
+}
+
+function actionTone(action: string) {
+  const value = action.toLowerCase();
+  if (value.includes('reject') || value.includes('revoke') || value.includes('fail') || value.includes('delete')) return 'danger';
+  if (value.includes('approve') || value.includes('complete') || value.includes('confirm') || value.includes('create')) return 'success';
+  if (value.includes('claim') || value.includes('review') || value.includes('update')) return 'warning';
+  return 'neutral';
+}
+
+const filterGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', gap: 12 } as const;
+const fieldStyle = { display: 'grid', gap: 6, minWidth: 0, color: '#cbd5e1', fontSize: 13 } as const;
 const inputStyle = { minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', minWidth: 0, width: '100%', boxSizing: 'border-box' as const };
-const pagerStyle = { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const };
-const logBoxStyle = { border: '1px solid rgba(148,163,184,.18)', borderRadius: 16, padding: 12, display: 'grid', gap: 6, minWidth: 0 } as const;
-const logTopStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' as const };
-const badgeWrapStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const };
-const agentStyle = { overflowWrap: 'anywhere' as const, color: '#94a3b8' };
-const preStyle = { margin: 0, padding: 10, borderRadius: 12, background: '#05070a', overflowX: 'auto' as const, fontSize: 12 };
+const filterActionStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: 10, marginTop: 12 } as const;
+const chipWrapStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 } as const;
+const logBoxStyle = { border: '1px solid rgba(148,163,184,.18)', borderRadius: 18, padding: 14, display: 'grid', gap: 14, minWidth: 0 } as const;
+const logTopStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' } as const;
+const badgeWrapStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' } as const;
+const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 12 } as const;
+const labelStyle = { display: 'block', color: '#94a3b8', fontSize: 12, marginBottom: 4 } as const;
+const wrapStyle = { overflowWrap: 'anywhere' } as const;
+const agentBoxStyle = { borderRadius: 12, background: 'rgba(15,23,42,.7)', padding: 10, minWidth: 0 } as const;
+const detailGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 10 } as const;
+const detailsStyle = { border: '1px solid rgba(148,163,184,.16)', borderRadius: 12, padding: 10, minWidth: 0 } as const;
+const preStyle = { margin: '10px 0 0', padding: 10, borderRadius: 10, background: '#05070a', overflowX: 'auto', fontSize: 12, maxHeight: 360 } as const;
+const emptyDataStyle = { margin: '10px 0 0', color: '#94a3b8' } as const;
+const linkRowStyle = { display: 'flex', justifyContent: 'flex-end' } as const;
+const pagerStyle = { display: 'grid', gridTemplateColumns: 'minmax(110px, 1fr) auto minmax(110px, 1fr)', gap: 10, alignItems: 'center', marginTop: 16, textAlign: 'center' } as const;
