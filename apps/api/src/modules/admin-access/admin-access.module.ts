@@ -4,6 +4,7 @@ import { DatabaseModule } from '../../database/database.module';
 import { AdminAccessController } from './admin-access.controller';
 import { AdminAccessSessionService } from './admin-access-session.service';
 import { AdminAccessService } from './admin-access.service';
+import { AdminAccountLifecycleService } from './admin-account-lifecycle.service';
 import { AdminInvitationAdminController } from './admin-invitation-admin.controller';
 import { AdminInvitationAdminService } from './admin-invitation-admin.service';
 import { AdminInvitationController } from './admin-invitation.controller';
@@ -12,6 +13,12 @@ import { AdminInvitationService } from './admin-invitation.service';
 @Module({
   imports: [DatabaseModule, JwtModule.register({})],
   controllers: [AdminAccessController, AdminInvitationController, AdminInvitationAdminController],
-  providers: [AdminAccessService, AdminAccessSessionService, AdminInvitationService, AdminInvitationAdminService],
+  providers: [
+    AdminAccessService,
+    AdminAccessSessionService,
+    AdminAccountLifecycleService,
+    AdminInvitationService,
+    AdminInvitationAdminService,
+  ],
 })
 export class AdminAccessModule {}
