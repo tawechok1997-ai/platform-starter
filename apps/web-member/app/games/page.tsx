@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import MemberBottomNav from '../member-bottom-nav';
 import { memberApiFetch } from '../member-api';
-import './games.css';
 
 type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null; status: string };
 type Game = { id: string; providerGameCode: string; name: string; category: string; status?: string; isFeatured: boolean; isNew: boolean; isPopular: boolean; provider?: { name: string; code: string; status?: string | null }; media?: GameMedia[] };
