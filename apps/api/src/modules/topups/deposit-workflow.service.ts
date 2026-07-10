@@ -3,7 +3,12 @@ import { Prisma } from '@prisma/client';
 import { createHash, randomUUID } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
 import { StorageService } from '../storage/storage.service';
-import { chooseStrongestDuplicateMatch, duplicateAttemptRisk, duplicateMemberMessage, DuplicateSlipMatch } from '../finance/deposit-slip-risk.policy';
+import {
+  chooseStrongestDuplicateMatch,
+  duplicateAttemptRisk,
+  duplicateMemberMessage,
+  DuplicateSlipMatch,
+} from '../finance/deposit-slip-risk.policy';
 
 export type DepositEvidenceInput = {
   slipImageData?: string;
@@ -65,35 +70,52 @@ export class DepositWorkflowService {
     const fileHash = createHash('sha256').update(buffer).digest('hex');
     const transactionRef = input.transactionRef?.trim() || null;
     const perceptualHash = input.perceptualHash?.trim() || null;
-    const strongest = chooseStrongestDuplicateMatch(await this.findDuplicateMatches(requestId, transactionRef, fileHash, perceptualHash));
+    const strongest = chooseStrongestDuplicateMatch(
+      await this.findDuplicateMatches(requestId, transactionRef, fileHash, perceptualHash),
+    );
     if (strongest) {
       await this.markDuplicate(requestId, userId, strongest, transactionRef, fileHash, perceptualHash);
-      return { ok: false, duplicate: true, status: 'DUPLICATE', message: duplicateMemberMessage(strongest), duplicateOfId: strongest.originalRequestId, reason: strongest.reason };
+      return {
+        ok: false,
+        duplicate: true,
+        status: 'DUPLICATE',
+        message: duplicateMemberMessage(strongest),
+        duplicateOfId: strongest.originalRequestId,
+        reason: strongest.reason,
+      };
     }
+
+    const detectedAmount = input.detectedAmount && Number.isFinite(Number(input.detectedAmount))
+      ? Number(input.detectedAmount)
+      : null;
+    const transferredAt = input.transferredAt ? new Date(input.transferredAt) : null;
+    if (transferredAt && Number.isNaN(transferredAt.getTime())) throw new BadRequestException('Invalid transferredAt');
 
     const ext = match[2] === 'jpeg' ? 'jpg' : match[2];
     const key = `slips/${new Date().toISOString().slice(0, 10)}/${randomUUID()}.${ext}`;
     await this.storage.put(key, buffer, match[1]);
-    const detectedAmount = input.detectedAmount && Number.isFinite(Number(input.detectedAmount)) ? Number(input.detectedAmount) : null;
-    const transferredAt = input.transferredAt ? new Date(input.transferredAt) : null;
-    if (transferredAt && Number.isNaN(transferredAt.getTime())) throw new BadRequestException('Invalid transferredAt');
 
-    const changed = await this.prisma.$executeRaw(Prisma.sql`
-      UPDATE "top_up_requests"
-      SET "status" = 'PENDING_SLIP_REVIEW'::"TopUpRequestStatus",
-          "slip_url" = ${key},
-          "slip_file_hash" = ${fileHash},
-          "slip_perceptual_hash" = ${perceptualHash},
-          "slip_transaction_ref" = ${transactionRef},
-          "slip_detected_amount" = ${detectedAmount},
-          "slip_transferred_at" = ${transferredAt},
-          "updated_at" = NOW()
-      WHERE "id" = ${requestId}::uuid
-        AND "user_id" = ${userId}::uuid
-        AND "status" = 'PENDING'::"TopUpRequestStatus"
-    `);
-    if (changed !== 1) throw new ConflictException('Top up request state changed while submitting evidence');
-    return { ok: true, duplicate: false, status: 'PENDING_SLIP_REVIEW', slipUrl: key, fileHash };
+    try {
+      const changed = await this.prisma.$executeRaw(Prisma.sql`
+        UPDATE "top_up_requests"
+        SET "status" = 'PENDING_SLIP_REVIEW'::"TopUpRequestStatus",
+            "slip_url" = ${key},
+            "slip_file_hash" = ${fileHash},
+            "slip_perceptual_hash" = ${perceptualHash},
+            "slip_transaction_ref" = ${transactionRef},
+            "slip_detected_amount" = ${detectedAmount},
+            "slip_transferred_at" = ${transferredAt},
+            "updated_at" = NOW()
+        WHERE "id" = ${requestId}::uuid
+          AND "user_id" = ${userId}::uuid
+          AND "status" = 'PENDING'::"TopUpRequestStatus"
+      `);
+      if (changed !== 1) throw new ConflictException('Top up request state changed while submitting evidence');
+      return { ok: true, duplicate: false, status: 'PENDING_SLIP_REVIEW', slipUrl: key, fileHash };
+    } catch (error) {
+      await this.storage.delete(key).catch(() => undefined);
+      throw error;
+    }
   }
 
   async getEvidence(requestId: string) {
