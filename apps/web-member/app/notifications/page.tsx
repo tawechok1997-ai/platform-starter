@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { MemberButton, MemberCard, MemberEmptyState } from '../components/member-ui';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { MemberButton, MemberCard, MemberEmptyState, MemberNotice } from '../components/member-ui';
+import { memberApiFetch } from '../member-api';
 import './member-notifications.css';
 
 type NotificationType = 'finance' | 'security' | 'promotion' | 'system';
@@ -13,11 +14,21 @@ type NotificationItem = {
   description: string;
   type: NotificationType;
   createdAt: string;
-  read: boolean;
   href?: string;
 };
 
-const STORAGE_KEY = 'member_notifications_cache_v1';
+type NotificationResponse = {
+  items?: NotificationItem[];
+};
+
+type NotificationState = {
+  readIds: string[];
+  archivedIds: string[];
+};
+
+type ViewItem = NotificationItem & { read: boolean };
+
+const STORAGE_KEY = 'member_notifications_state_v2';
 const filterOptions: Array<{ key: NotificationFilter; label: string }> = [
   { key: 'all', label: 'ทั้งหมด' },
   { key: 'finance', label: 'การเงิน' },
@@ -29,38 +40,67 @@ const filterOptions: Array<{ key: NotificationFilter; label: string }> = [
 export default function NotificationsPage() {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [filter, setFilter] = useState<NotificationFilter>('all');
-  const [ready, setReady] = useState(false);
+  const [state, setState] = useState<NotificationState>({ readIds: [], archivedIds: [] });
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
 
-  useEffect(() => {
+  const load = useCallback(async () => {
+    setLoading(true);
+    setMessage('');
     try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      const parsed = stored ? JSON.parse(stored) : [];
-      setItems(Array.isArray(parsed) ? parsed.filter(isNotificationItem) : []);
+      const response = await memberApiFetch('/member/notifications');
+      const payload = await response.json().catch(() => null) as NotificationResponse | { message?: string } | null;
+      if (!response.ok) {
+        setMessage(payload && 'message' in payload && typeof payload.message === 'string' ? payload.message : 'โหลดการแจ้งเตือนไม่สำเร็จ');
+        return;
+      }
+      const nextItems = payload && 'items' in payload && Array.isArray(payload.items)
+        ? payload.items.filter(isNotificationItem)
+        : [];
+      setItems(nextItems);
     } catch {
-      setItems([]);
+      setMessage('เชื่อมต่อระบบแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่');
     } finally {
-      setReady(true);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items, ready]);
+    try {
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      const parsed = stored ? JSON.parse(stored) : null;
+      if (parsed && typeof parsed === 'object') {
+        setState({
+          readIds: Array.isArray(parsed.readIds) ? parsed.readIds.filter((value: unknown): value is string => typeof value === 'string') : [],
+          archivedIds: Array.isArray(parsed.archivedIds) ? parsed.archivedIds.filter((value: unknown): value is string => typeof value === 'string') : [],
+        });
+      }
+    } catch {
+      setState({ readIds: [], archivedIds: [] });
+    }
+    void load();
+  }, [load]);
 
-  const unreadCount = useMemo(() => items.filter((item) => !item.read).length, [items]);
-  const visibleItems = useMemo(() => filter === 'all' ? items : items.filter((item) => item.type === filter), [filter, items]);
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [state]);
+
+  const viewItems = useMemo<ViewItem[]>(() => items
+    .filter((item) => !state.archivedIds.includes(item.id))
+    .map((item) => ({ ...item, read: state.readIds.includes(item.id) })), [items, state]);
+  const unreadCount = useMemo(() => viewItems.filter((item) => !item.read).length, [viewItems]);
+  const visibleItems = useMemo(() => filter === 'all' ? viewItems : viewItems.filter((item) => item.type === filter), [filter, viewItems]);
 
   function markAllRead() {
-    setItems((current) => current.map((item) => ({ ...item, read: true })));
+    setState((current) => ({ ...current, readIds: Array.from(new Set([...current.readIds, ...viewItems.map((item) => item.id)])) }));
   }
 
   function markRead(id: string) {
-    setItems((current) => current.map((item) => item.id === id ? { ...item, read: true } : item));
+    setState((current) => ({ ...current, readIds: current.readIds.includes(id) ? current.readIds : [...current.readIds, id] }));
   }
 
   function archive(id: string) {
-    setItems((current) => current.filter((item) => item.id !== id));
+    setState((current) => ({ ...current, archivedIds: current.archivedIds.includes(id) ? current.archivedIds : [...current.archivedIds, id] }));
   }
 
   return <main className="member-feature-page member-notifications-page">
@@ -69,15 +109,20 @@ export default function NotificationsPage() {
         <div>
           <p>ศูนย์ข้อความ</p>
           <h1>การแจ้งเตือน</h1>
-          <span>ติดตามรายการเงิน ความปลอดภัย โปรโมชั่น และประกาศระบบ</span>
+          <span>ติดตามรายการเงิน ความปลอดภัย และสถานะการช่วยเหลือจากข้อมูลจริงของบัญชี</span>
         </div>
-        <MemberButton onClick={markAllRead} disabled={!ready || unreadCount === 0}>อ่านทั้งหมดแล้ว</MemberButton>
+        <div className="member-notification-header-actions">
+          <MemberButton onClick={() => void load()} disabled={loading} tone="default">{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</MemberButton>
+          <MemberButton onClick={markAllRead} disabled={loading || unreadCount === 0}>อ่านทั้งหมดแล้ว</MemberButton>
+        </div>
       </header>
+
+      {message && <MemberNotice tone="warning">{message}</MemberNotice>}
 
       <section className="member-notification-summary" aria-label="สรุปการแจ้งเตือน">
         <MemberCard><span>ยังไม่อ่าน</span><strong>{unreadCount}</strong></MemberCard>
-        <MemberCard><span>ทั้งหมด</span><strong>{items.length}</strong></MemberCard>
-        <MemberCard><span>การเงิน</span><strong>{items.filter((item) => item.type === 'finance').length}</strong></MemberCard>
+        <MemberCard><span>ทั้งหมด</span><strong>{viewItems.length}</strong></MemberCard>
+        <MemberCard><span>การเงิน</span><strong>{viewItems.filter((item) => item.type === 'finance').length}</strong></MemberCard>
       </section>
 
       <section className="member-notification-filters" aria-label="ตัวกรองการแจ้งเตือน">
@@ -85,10 +130,10 @@ export default function NotificationsPage() {
       </section>
 
       <MemberCard className="member-notification-list">
-        {!ready
+        {loading && items.length === 0
           ? <p role="status">กำลังโหลดการแจ้งเตือน...</p>
           : visibleItems.length === 0
-            ? <MemberEmptyState title={items.length === 0 ? 'ยังไม่มีการแจ้งเตือน' : 'ไม่พบการแจ้งเตือนในหมวดนี้'} description={items.length === 0 ? 'เมื่อมีรายการเงิน ข่าวสาร หรือเหตุการณ์ด้านความปลอดภัย ระบบจะแสดงไว้ที่นี่' : 'ลองเลือกตัวกรองอื่นเพื่อดูข้อความที่มีอยู่'} />
+            ? <MemberEmptyState title={viewItems.length === 0 ? 'ยังไม่มีการแจ้งเตือน' : 'ไม่พบการแจ้งเตือนในหมวดนี้'} description={viewItems.length === 0 ? 'เมื่อรายการเงิน ความปลอดภัย หรือ ticket มีความเคลื่อนไหว ระบบจะแสดงไว้ที่นี่' : 'ลองเลือกตัวกรองอื่นเพื่อดูข้อความที่มีอยู่'} />
             : visibleItems.map((item) => <article key={item.id} className={item.read ? 'is-read' : 'is-unread'}>
               <div className={`member-notification-icon member-notification-icon--${item.type}`} aria-hidden="true">•</div>
               <div><strong>{item.title}</strong><p>{item.description}</p><time dateTime={item.createdAt}>{formatDate(item.createdAt)}</time></div>
@@ -110,7 +155,6 @@ function isNotificationItem(value: unknown): value is NotificationItem {
     && typeof item.title === 'string'
     && typeof item.description === 'string'
     && typeof item.createdAt === 'string'
-    && typeof item.read === 'boolean'
     && ['finance', 'security', 'promotion', 'system'].includes(item.type ?? '');
 }
 
