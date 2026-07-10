@@ -121,6 +121,7 @@ export class WithdrawalWorkflowService {
         return { ok: true, status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: key, fileHash };
       });
     } catch (error: any) {
+      await this.storage.delete(key).catch(() => undefined);
       if (String(error?.code ?? '').includes('P2002') || String(error?.message ?? '').includes('unique')) throw new ConflictException('หลักฐานหรือเลขอ้างอิงการโอนนี้ถูกใช้แล้ว');
       throw error;
     }
