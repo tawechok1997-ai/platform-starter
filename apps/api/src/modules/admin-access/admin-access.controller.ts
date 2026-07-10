@@ -15,6 +15,20 @@ export class AdminAccessController {
     return this.service.overview();
   }
 
+  @RequirePermission('admin.create')
+  @Post('invitations')
+  createInvitation(
+    @Req() req: any,
+    @Body() body: { email?: string; roleId?: string; expiresInHours?: number },
+  ) {
+    return this.service.createInvitation(
+      req.user.id,
+      String(body.email ?? ''),
+      String(body.roleId ?? ''),
+      Number(body.expiresInHours ?? 24),
+    );
+  }
+
   @RequirePermission('admin.access.manage')
   @Post('admin-users/:adminUserId/roles')
   assignRole(@Req() req: any, @Param('adminUserId') adminUserId: string, @Body() body: { roleId?: string }) {
