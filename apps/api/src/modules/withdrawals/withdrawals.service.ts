@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateWithdrawalRequestDto } from './dto/create-withdrawal-request.dto';
 import { ReviewWithdrawalRequestDto } from './dto/review-withdrawal-request.dto';
@@ -30,7 +31,18 @@ export class WithdrawalsService {
       const available = wallet.balance.minus(wallet.lockedBalance);
       if (available.lt(amount)) throw new BadRequestException('Insufficient available balance');
       await tx.wallet.update({ where: { id: wallet.id }, data: { lockedBalance: wallet.lockedBalance.plus(amount) } });
-      const request = await tx.withdrawalRequest.create({ data: { userId, amount, currency: wallet.currency, method: dto.method, accountName: dto.accountName, accountNumber: dto.accountNumber, bankName: dto.bankName, note: dto.note } });
+      const rows = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+        INSERT INTO "withdrawal_requests" (
+          "id", "user_id", "amount", "currency", "status", "method",
+          "account_name", "account_number", "bank_name", "note", "created_at", "updated_at"
+        ) VALUES (
+          gen_random_uuid(), ${userId}::uuid, ${amount.toString()}::decimal, ${wallet.currency},
+          'PENDING_REVIEW'::"WithdrawalRequestStatus", ${dto.method ?? null},
+          ${dto.accountName}, ${dto.accountNumber}, ${dto.bankName}, ${dto.note ?? null}, NOW(), NOW()
+        )
+        RETURNING "id"
+      `);
+      const request = await tx.withdrawalRequest.findUniqueOrThrow({ where: { id: rows[0].id } });
       return this.formatRequest(request);
     });
   }
@@ -55,7 +67,7 @@ export class WithdrawalsService {
   async claimRequest(id: string, adminUser: any, meta: RequestMeta = {}) {
     const request = await this.prisma.withdrawalRequest.findUnique({ where: { id } });
     if (!request) throw new NotFoundException('Withdrawal request not found');
-    if (request.status !== 'PENDING') throw new ConflictException('Withdrawal request is not pending');
+    if (!['PENDING', 'PENDING_REVIEW'].includes(String(request.status))) throw new ConflictException('Withdrawal request is not pending');
     if (request.claimedBy && request.claimedBy !== adminUser.id && request.claimedAt && Date.now() - request.claimedAt.getTime() < CLAIM_TIMEOUT_MS) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
     const updated = await this.prisma.withdrawalRequest.update({ where: { id }, data: { claimedBy: adminUser.id, claimedAt: new Date() } });
     await this.audit(adminUser.id, 'CLAIM_WITHDRAWAL', id, { claimedBy: request.claimedBy }, { claimedBy: adminUser.id }, meta);
@@ -71,53 +83,41 @@ export class WithdrawalsService {
     return this.formatRequest(updated);
   }
 
-  async completeRequest(id: string, adminUser: any, dto: ReviewWithdrawalRequestDto, meta: RequestMeta = {}) {
-    return this.prisma.$transaction(async (tx) => {
-      const request = await tx.withdrawalRequest.findUnique({ where: { id } });
-      if (!request) throw new NotFoundException('Withdrawal request not found');
-      if (!request.claimedBy) throw new ConflictException('ต้อง claim รายการก่อนดำเนินการ');
-      if (request.claimedBy !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
-      if (request.status !== 'PENDING') throw new ConflictException(`Withdrawal request already reviewed: ${request.status}`);
-      const ledgerKey = `withdrawal:${request.id}:complete`;
-      const existingLedger = await tx.walletLedger.findUnique({ where: { idempotencyKey: ledgerKey } });
-      if (existingLedger) throw new ConflictException('Withdrawal ledger already exists');
-      const claim = await tx.withdrawalRequest.updateMany({ where: { id, status: 'PENDING', claimedBy: adminUser.id }, data: { status: 'COMPLETED', adminNote: dto.adminNote, reviewedBy: adminUser.id, reviewedAt: new Date(), claimedBy: null, claimedAt: null } });
-      if (claim.count !== 1) throw new ConflictException('Withdrawal request already reviewed');
-      const wallet = await tx.wallet.findUnique({ where: { userId: request.userId } });
-      if (!wallet) throw new BadRequestException('Wallet not found');
-      if (wallet.lockedBalance.lt(request.amount)) throw new BadRequestException('Locked balance is not enough');
-      if (wallet.balance.lt(request.amount)) throw new BadRequestException('Balance is not enough');
-      const balanceBefore = wallet.balance; const balanceAfter = balanceBefore.minus(request.amount); const lockedAfter = wallet.lockedBalance.minus(request.amount);
-      await tx.wallet.update({ where: { id: wallet.id }, data: { balance: balanceAfter, lockedBalance: lockedAfter } });
-      await tx.walletLedger.create({ data: { walletId: wallet.id, userId: request.userId, type: 'WITHDRAWAL', direction: 'DEBIT', amount: request.amount, balanceBefore, balanceAfter, referenceType: 'withdrawal_request', referenceId: request.id, idempotencyKey: ledgerKey, metadata: { method: request.method, accountName: request.accountName, bankName: request.bankName }, createdByAdminId: adminUser.id } });
-      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'COMPLETE_WITHDRAWAL', module: 'withdrawals', targetId: request.id, oldData: { status: request.status, amount: request.amount.toString() } as any, newData: { status: 'COMPLETED', balanceBefore: balanceBefore.toString(), balanceAfter: balanceAfter.toString(), lockedAfter: lockedAfter.toString(), idempotencyKey: ledgerKey } as any, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
-      const updated = await tx.withdrawalRequest.findUniqueOrThrow({ where: { id } });
-      return this.formatRequest(updated);
-    });
+  async completeRequest(_id: string, _adminUser: any, _dto: ReviewWithdrawalRequestDto, _meta: RequestMeta = {}) {
+    throw new ConflictException('ใช้ขั้นตอนอนุมัติ แนบสลิป และตรวจสอบการจ่ายแทนการปิดรายการโดยตรง');
   }
 
   async rejectRequest(id: string, adminUser: any, dto: ReviewWithdrawalRequestDto, meta: RequestMeta = {}) {
     return this.prisma.$transaction(async (tx) => {
-      const request = await tx.withdrawalRequest.findUnique({ where: { id } });
+      const rows = await tx.$queryRaw<Array<{ status: string; user_id: string; amount: Prisma.Decimal; claimed_by: string | null }>>(Prisma.sql`
+        SELECT "status"::text AS status, "user_id", "amount", "claimed_by"
+        FROM "withdrawal_requests" WHERE "id" = ${id}::uuid FOR UPDATE
+      `);
+      const request = rows[0];
       if (!request) throw new NotFoundException('Withdrawal request not found');
-      if (!request.claimedBy) throw new ConflictException('ต้อง claim รายการก่อนปฏิเสธ');
-      if (request.claimedBy !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
-      if (request.status !== 'PENDING') throw new ConflictException(`Withdrawal request already reviewed: ${request.status}`);
-      const claim = await tx.withdrawalRequest.updateMany({ where: { id, status: 'PENDING', claimedBy: adminUser.id }, data: { status: 'REJECTED', adminNote: dto.adminNote, reviewedBy: adminUser.id, reviewedAt: new Date(), claimedBy: null, claimedAt: null } });
-      if (claim.count !== 1) throw new ConflictException('Withdrawal request already reviewed');
-      const wallet = await tx.wallet.findUnique({ where: { userId: request.userId } });
+      if (request.claimed_by && request.claimed_by !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+      if (!['PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT'].includes(request.status)) throw new ConflictException(`Withdrawal cannot be rejected: ${request.status}`);
+      const wallet = await tx.wallet.findUnique({ where: { userId: request.user_id } });
       if (!wallet) throw new BadRequestException('Wallet not found');
       if (wallet.lockedBalance.lt(request.amount)) throw new BadRequestException('Locked balance is not enough');
       const lockedAfter = wallet.lockedBalance.minus(request.amount);
       await tx.wallet.update({ where: { id: wallet.id }, data: { lockedBalance: lockedAfter } });
-      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'REJECT_WITHDRAWAL', module: 'withdrawals', targetId: request.id, oldData: { status: request.status, amount: request.amount.toString() } as any, newData: { status: 'REJECTED', adminNote: dto.adminNote, lockedAfter: lockedAfter.toString() } as any, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      const changed = await tx.$executeRaw(Prisma.sql`
+        UPDATE "withdrawal_requests"
+        SET "status" = 'REJECTED'::"WithdrawalRequestStatus", "admin_note" = ${dto.adminNote ?? null},
+            "reviewed_by" = ${adminUser.id}::uuid, "reviewed_at" = NOW(),
+            "claimed_by" = NULL, "claimed_at" = NULL, "updated_at" = NOW()
+        WHERE "id" = ${id}::uuid AND "status"::text IN ('PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT')
+      `);
+      if (changed !== 1) throw new ConflictException('Withdrawal state changed during rejection');
+      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'REJECT_WITHDRAWAL', module: 'withdrawals', targetId: id, oldData: { status: request.status, amount: request.amount.toString() } as any, newData: { status: 'REJECTED', adminNote: dto.adminNote, lockedAfter: lockedAfter.toString() } as any, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
       const updated = await tx.withdrawalRequest.findUniqueOrThrow({ where: { id } });
       return this.formatRequest(updated);
     });
   }
 
   private bonusMetadata(value: unknown) { const data = value && typeof value === 'object' && !Array.isArray(value) ? value as any : {}; return { turnoverRequired: Number(data.turnoverRequired ?? 0), turnoverProgress: Number(data.turnoverProgress ?? 0), turnoverCompleted: data.turnoverCompleted === true }; }
-  private async releaseExpiredClaims() { const staleSince = new Date(Date.now() - CLAIM_TIMEOUT_MS); await this.prisma.withdrawalRequest.updateMany({ where: { status: 'PENDING', claimedBy: { not: null }, claimedAt: { lt: staleSince } }, data: { claimedBy: null, claimedAt: null } }); }
+  private async releaseExpiredClaims() { const staleSince = new Date(Date.now() - CLAIM_TIMEOUT_MS); await this.prisma.$executeRaw(Prisma.sql`UPDATE "withdrawal_requests" SET "claimed_by" = NULL, "claimed_at" = NULL WHERE "status"::text IN ('PENDING', 'PENDING_REVIEW') AND "claimed_by" IS NOT NULL AND "claimed_at" < ${staleSince}`); }
   private audit(adminUserId: string, action: string, targetId: string, oldData: any, newData: any, meta: RequestMeta) { return this.prisma.adminAuditLog.create({ data: { adminUserId, action, module: 'withdrawals', targetId, oldData, newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent } }).catch(() => null); }
   private formatRequest(item: any) { return { id: item.id, userId: item.userId, amount: item.amount.toString(), currency: item.currency, status: item.status, method: item.method, accountName: item.accountName, accountNumber: item.accountNumber, bankName: item.bankName, note: item.note, adminNote: item.adminNote, reviewedBy: item.reviewedBy, reviewedAt: item.reviewedAt, claimedBy: item.claimedBy, claimedAt: item.claimedAt, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
 }
