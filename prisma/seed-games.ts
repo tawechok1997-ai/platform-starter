@@ -4,6 +4,7 @@ const prisma = new PrismaClient();
 
 const providerSeeds = [
   { code: 'demo-provider', name: 'Demo Provider', sortOrder: 900, baseUrl: 'https://demo-provider.local', apiKey: 'demo-api-key', webhookSecret: 'demo-webhook-secret' },
+  { code: 'demo-provider-uat', name: 'Demo UAT', sortOrder: 905, baseUrl: 'https://demo-provider-uat.local', apiKey: 'demo-uat-api-key', webhookSecret: 'demo-uat-webhook-secret' },
   { code: 'simulator-provider', name: 'Simulator Provider', sortOrder: 910, baseUrl: 'https://simulator-provider.local', apiKey: 'simulator-api-key', webhookSecret: 'simulator-webhook-secret' },
 ];
 
@@ -66,7 +67,7 @@ async function main() {
     }
   }
 
-  console.log('Demo and simulator game seed completed');
+  console.log('Demo, UAT, and simulator game seed completed');
 }
 
 main().catch((error) => { console.error(error); process.exit(1); }).finally(async () => { await prisma.$disconnect(); });
