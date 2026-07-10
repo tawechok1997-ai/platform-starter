@@ -98,9 +98,12 @@ export class AdminAuthGuard implements CanActivate {
       ),
     );
     const roleCodes = session.adminUser.roles.map((adminRole) => adminRole.role.code);
-    const requiresTwoFactor =
+    const policyRequiresTwoFactor =
       roleCodes.some((code) => HIGH_RISK_ROLE_CODES.has(code)) ||
       permissions.some((code) => HIGH_RISK_PERMISSIONS.has(code));
+    const twoFactorEnforcementEnabled =
+      String(this.configService.get<string>('ADMIN_2FA_ENFORCEMENT_ENABLED') ?? 'false').toLowerCase() === 'true';
+    const requiresTwoFactor = twoFactorEnforcementEnabled && policyRequiresTwoFactor;
 
     request.user = {
       id: session.adminUser.id,
@@ -111,6 +114,8 @@ export class AdminAuthGuard implements CanActivate {
       roleCodes,
       twoFactorEnabled: session.adminUser.twoFactorEnabled,
       requiresTwoFactor,
+      twoFactorPolicyApplies: policyRequiresTwoFactor,
+      twoFactorEnforcementEnabled,
     };
 
     if (requiresTwoFactor && !session.adminUser.twoFactorEnabled && !this.isTwoFactorBootstrapPath(request.url)) {
