@@ -1,30 +1,400 @@
-# Remaining Work Backlog
+# Current Project Status and Remaining Backlog
 
-This document lists the remaining work after the latest provider, money operation, and admin UX improvements.
+Last updated: 2026-07-10
 
-## Current implementation status
+This document is the current source of truth for what has been completed, what is partially complete, and what remains in `tawechok1997-ai/platform-starter`.
 
-The following work has already been implemented or scaffolded:
+## Safety rules
 
-- Adapter Test Harness UI.
-- Admin Operation Dashboard.
-- Member Game Session UX polish.
-- Wallet Ledger Detail page.
-- Admin Sidebar Navigation grouping.
-- Provider Setup Wizard v2 validation and preview.
-- Provider Preset Preview/Edit UI.
-- Provider Credential Management polish.
-- Provider Readiness Traffic-light view.
-- Game Transfer Recovery UI for review, retry, reverse, and force-fail actions.
-- Reconciliation Snapshot Detail workflow.
-- Webhook Settlement Test Mode panel.
-- Type fix for simple game settings badge tones.
+- Do not run `pnpm prisma db push --force-reset`.
+- Stop if Prisma warns about destructive data loss or asks for `--accept-data-loss`.
+- Money-changing operations must be idempotent and auditable.
+- Provider credentials and raw secrets must never be returned to the frontend or written to logs.
+- Real-money provider integration must remain gated until adapter, credential, webhook, reconciliation, and QA checks pass.
 
-## Immediate priority: Build, fix, and QA
+## Current architecture
 
-Before adding more product features, the current branch must pass builds and smoke tests.
+- `apps/api`: NestJS API
+- `apps/web-admin`: Next.js admin application
+- `apps/web-member`: Next.js member application
+- `prisma`: PostgreSQL schema and seed
+- Package manager: pnpm
+- Deployment: Railway
 
-### Commands to run
+## Completed foundations
+
+### Platform and responsive foundation
+
+- [x] Monorepo structure for API, Admin, and Member applications.
+- [x] PostgreSQL and Prisma integration.
+- [x] Shared responsive foundations for mobile, tablet, and desktop.
+- [x] Safe-area handling for iPhone-style mobile layouts.
+- [x] Shared Admin UI components and responsive shells.
+- [x] Shared Member finance types and reusable components.
+
+### Member UX completed or substantially refactored
+
+- [x] Member shell and bottom navigation.
+- [x] Member home polish and wallet summary.
+- [x] Transactions page refactor using the Thai label `ประวัติ`.
+- [x] Bank Accounts refactor using the label `การจัดการบัญชีธนาคาร`.
+- [x] Deposit flow full refactor.
+- [x] Withdraw responsive foundation.
+- [x] Public/Auth shell and mobile-first login/register structure.
+- [x] Member login language switcher simplified to underline tabs.
+- [x] Member password `แสดง / ซ่อน` action without button frame/background.
+- [x] Duplicate login heading/subtitle removed.
+
+### Admin operation and provider tooling completed or scaffolded
+
+- [x] Admin Operation Dashboard.
+- [x] Adapter Test Harness UI.
+- [x] Provider Setup Wizard validation and preview.
+- [x] Provider Preset preview/edit UI.
+- [x] Provider credential management polish.
+- [x] Provider readiness traffic-light view.
+- [x] Game Transfer Recovery UI for review, retry, reverse, and force-fail actions.
+- [x] Reconciliation Snapshot Detail workflow.
+- [x] Webhook Settlement Test Mode panel.
+- [x] Wallet Ledger Detail page.
+- [x] Admin sidebar grouping.
+
+## Admin authentication and access control completed
+
+### Login and 2FA
+
+- [x] Admin login with access and refresh sessions.
+- [x] Admin login UI simplified to one heading.
+- [x] Admin language switcher uses underline tabs without framed buttons.
+- [x] Admin password `แสดง / ซ่อน` action has no frame/background.
+- [x] TOTP setup and enable flow.
+- [x] Recovery codes generation and regeneration.
+- [x] Recovery code single-use behavior.
+- [x] Session listing and revoke controls.
+- [x] Forced 2FA for privileged roles and permissions.
+- [x] Backend route enforcement for privileged users without 2FA.
+- [x] Frontend redirect to `/security/2fa` when 2FA setup is required.
+- [x] Recovery codes are displayed once and not stored in localStorage.
+
+### Invitations
+
+- [x] Secure admin invitation creation.
+- [x] Raw invitation token displayed only once.
+- [x] Token stored as a hash.
+- [x] Invitation expiry enforcement.
+- [x] Public invitation inspection endpoint.
+- [x] Public invitation acceptance flow.
+- [x] Username and password setup during activation.
+- [x] Invitation token single-use protection.
+- [x] Invitation revoke.
+- [x] Invitation reissue.
+- [x] Reissue invalidates previous active token.
+- [x] Invitation lifecycle audit logs.
+- [x] Dedicated invitation management UI.
+
+### Roles and permissions
+
+- [x] Role assignment and removal.
+- [x] Privilege ceiling checks for delegated administrators.
+- [x] Protected Owner/Super Admin roles.
+- [x] Empty permission sets no longer become wildcard access.
+- [x] Duplicate permissions are normalized.
+- [x] Admin sessions are revoked after role assignment/removal.
+- [x] Privilege-change session revocation is audited.
+- [x] Permission-aware Admin sidebar.
+- [x] UI route gate for direct URL access.
+- [x] API guards remain the authoritative access boundary.
+- [x] Dedicated pages:
+  - `/admin-accounts`
+  - `/admin-roles`
+  - `/admin-invitations`
+
+### Tests added
+
+- [x] Invitation expiry and replay protection.
+- [x] Invitation transaction rollback safety.
+- [x] Invitation lifecycle revoke/reissue safety.
+- [x] Delegated privilege boundary tests.
+- [x] Protected Owner role tests.
+- [x] Empty permission wildcard regression test.
+- [x] Privileged 2FA enforcement tests.
+- [x] Session revocation after privilege changes.
+
+## Current deployment status note
+
+Recent connector checks showed:
+
+- API: successful on the previous completed deployment, with later API commits occasionally still pending at the moment of inspection.
+- Web Member: successful.
+- Web Admin: successful on previous completed deployments, with newer commits occasionally pending at the moment of inspection.
+
+Do not treat a pending Railway deployment as a successful build. Recheck the latest commit before release.
+
+## Immediate next work
+
+### P0: Owner and admin account protection
+
+- [ ] Prevent suspending the last active Owner/Super Admin.
+- [ ] Prevent downgrading or removing the last protected owner account.
+- [ ] Add explicit ownership transfer flow.
+- [ ] Require step-up authentication for ownership transfer.
+- [ ] Require current 2FA confirmation for critical owner actions.
+- [ ] Add full audit entries for ownership transfer.
+- [ ] Add recovery path for owner lockout.
+
+### P0: Admin account lifecycle
+
+- [ ] Add account suspend action.
+- [ ] Add account lock action.
+- [ ] Add account unlock action.
+- [ ] Add reason/note requirement for every lifecycle action.
+- [ ] Revoke all active sessions after suspend/lock.
+- [ ] Add account detail page with status timeline.
+- [ ] Add per-account session management for authorized administrators.
+- [ ] Add login-history view per admin account.
+
+### P0: Permission-aware coverage audit
+
+- [ ] Review every Admin route and map it to a permission.
+- [ ] Review every sidebar item and dashboard widget.
+- [ ] Review export actions.
+- [ ] Review direct API endpoints for missing `RequirePermission` decorators.
+- [ ] Add automated route/permission coverage tests where practical.
+- [ ] Confirm read-only users cannot see mutation controls.
+
+### P1: CAPTCHA and anti-bot settings
+
+- [ ] Add provider selection: Turnstile, reCAPTCHA, hCaptcha.
+- [ ] Add encrypted secret storage.
+- [ ] Mask secret values in Admin UI.
+- [ ] Add site key and secret validation.
+- [ ] Add connection/test action using sanitized responses.
+- [ ] Enable CAPTCHA per route: member login, register, password reset, admin login.
+- [ ] Add adaptive challenge settings.
+- [ ] Add emergency mode.
+- [ ] Add permissions for view/update/test/override.
+- [ ] Add audit logs for every anti-bot setting change.
+
+### P1: Admin login hardening
+
+- [ ] Add rate limits by IP and account.
+- [ ] Add failed-login counter.
+- [ ] Add progressive lockout.
+- [ ] Add suspicious login alerts.
+- [ ] Add new-device alerts.
+- [ ] Add IP and device history.
+- [ ] Add CAPTCHA only when risk threshold is met.
+- [ ] Add safe admin recovery flow.
+
+### P1: Admin localization
+
+- [ ] Move sidebar copy to shared Thai/English dictionaries.
+- [ ] Localize Admin Dashboard.
+- [ ] Localize Admin Accounts.
+- [ ] Localize Roles and Permissions.
+- [ ] Localize Invitations.
+- [ ] Localize Security and 2FA.
+- [ ] Localize errors, empty states, filters, and confirmations.
+- [ ] Persist locale consistently across all Admin pages.
+
+## Backend verification still required
+
+### Game Transfer Recovery
+
+- [ ] Verify `PATCH /admin/game-transfers/:id/actions/manual-reverse`.
+- [ ] Verify `PATCH /admin/game-transfers/:id/actions/force-fail`.
+- [ ] Manual reverse runs only on safe states.
+- [ ] Manual reverse cannot run twice.
+- [ ] Balance-changing reversal writes a WalletLedger entry.
+- [ ] Force-fail runs only on safe pending states.
+- [ ] Retry uses a new idempotency key.
+- [ ] Retry is blocked on unsafe provider/wallet state.
+- [ ] Every recovery action requires an admin note.
+- [ ] Every recovery action writes an AdminAuditLog.
+
+### Provider Preset Apply
+
+- [ ] Accept `enabledEndpoints` from the Admin UI.
+- [ ] Accept `endpointOverrides`.
+- [ ] Create only selected endpoints.
+- [ ] Apply overridden endpoint URLs.
+- [ ] Validate duplicate provider code.
+- [ ] Audit preset apply with preset and override summary.
+- [ ] Return created provider ID.
+
+### Provider credentials
+
+- [ ] Confirm raw secret is accepted only on create/rotate.
+- [ ] Confirm raw secret is never returned.
+- [ ] Confirm disabled credentials are never used.
+- [ ] Confirm rotation updates `rotatedAt`.
+- [ ] Add or verify `lastUsedAt` metadata.
+- [ ] Confirm all credential actions write AdminAuditLog.
+- [ ] Ensure health-check responses are sanitized.
+
+### Webhook test mode
+
+- [ ] Verify admin-safe simulator endpoint.
+- [ ] Verify duplicate idempotency behavior.
+- [ ] Verify invalid-signature logging.
+- [ ] Verify normalized parsing for rollback/win/bet-settled events.
+- [ ] Confirm test mode cannot settle real balances without explicit gates.
+- [ ] Confirm raw and normalized payloads are displayed safely.
+
+### Reconciliation workflow
+
+- [ ] Return related game session.
+- [ ] Return related game transfers.
+- [ ] Return related risk alert.
+- [ ] Require admin note on resolve.
+- [ ] Write AdminAuditLog on resolve.
+- [ ] Auto-close or link related RiskAlert when appropriate.
+- [ ] Add review status/timeline.
+
+## Remaining Member work
+
+### Member Home and game discovery
+
+- [ ] Finish market-style mobile home polish.
+- [ ] Add featured games and recently played games.
+- [ ] Add promotion/banner slots.
+- [ ] Add game categories.
+- [ ] Add provider filter.
+- [ ] Add game search.
+- [ ] Add favorites.
+- [ ] Add maintenance/disabled states.
+- [ ] Add fallback images/icons.
+
+### Deposit and withdrawal
+
+- [ ] Finish guided withdraw steps.
+- [ ] Add review step before withdrawal submission.
+- [ ] Confirm deposit expiration behavior.
+- [ ] Confirm private slip storage and access controls.
+- [ ] Add pending/rejected/approved status cards consistently.
+- [ ] Add responsive regression coverage.
+
+### Member profile and security
+
+- [ ] Profile polish.
+- [ ] Change-password flow.
+- [ ] Login history.
+- [ ] Logout all devices.
+- [ ] Account status display.
+
+### Unified history
+
+- [ ] Unified transaction detail page/drawer.
+- [ ] Filters by type, status, and date range.
+- [ ] Include deposit, withdrawal, game transfer, adjustment, bonus, and reversal.
+- [ ] Use Thai labels instead of raw enums.
+
+## Remaining Admin operations
+
+### Deposit and withdrawal queues
+
+- [ ] Fast review drawers.
+- [ ] Approve/reject with required note.
+- [ ] Queue claim/lock to prevent concurrent processing.
+- [ ] Member history and wallet summary inside review.
+- [ ] Audit timeline.
+
+### Risk workflow
+
+- [ ] Assign admin.
+- [ ] Note timeline.
+- [ ] Filters by severity/status/type/provider/date.
+- [ ] Links to transfer, ledger, webhook, snapshot, and member.
+- [ ] Safe bulk actions for low-risk alerts.
+- [ ] Auto-close suggestion when related records are resolved.
+
+### Webhook operations
+
+- [ ] Webhook detail page.
+- [ ] Dry-run replay.
+- [ ] Parse test.
+- [ ] Signature test.
+- [ ] Duplicate event view.
+- [ ] Invalid signature view.
+
+### Provider operations
+
+- [ ] Endpoint editor with simple UX.
+- [ ] Credential version/history view.
+- [ ] Callback and IP whitelist fields.
+- [ ] Provider outage banner.
+- [ ] Adapter documentation and sample cURL.
+
+## Product features still incomplete
+
+### Promotion and bonus
+
+- [ ] Campaign management completion.
+- [ ] Bonus lifecycle completion.
+- [ ] Turnover tracking QA.
+- [ ] Member claim flow completion.
+- [ ] Admin review completion.
+
+### Affiliate and commission
+
+- [ ] Referral link and agent code completion.
+- [ ] Commission calculation and settlement workflow.
+- [ ] Downline and reports.
+
+### CMS and content
+
+- [ ] Mobile banners.
+- [ ] Announcements.
+- [ ] Popups.
+- [ ] Maintenance notices.
+- [ ] Game category ordering.
+- [ ] Featured games management.
+
+### KYC and risk
+
+- [ ] Phone verification.
+- [ ] Bank verification.
+- [ ] Duplicate bank detection.
+- [ ] Risk status.
+- [ ] Blacklist.
+
+### Customer support
+
+- [ ] Ticket flow.
+- [ ] LINE/live chat configuration.
+- [ ] FAQ.
+- [ ] Deposit/withdrawal issue templates.
+- [ ] Link tickets to money and provider records.
+
+## Work requiring real provider documents
+
+Do not start provider-specific production integration until the provider supplies:
+
+- [ ] API documentation.
+- [ ] UAT endpoint.
+- [ ] Production endpoint.
+- [ ] API key, secret, merchant ID, or agent ID.
+- [ ] Signature algorithm.
+- [ ] Request/response examples.
+- [ ] Error code list.
+- [ ] Webhook format and signature rules.
+- [ ] Game list API or static catalog.
+- [ ] IP whitelist requirements.
+- [ ] Callback URL requirements.
+
+After documents arrive:
+
+- [ ] Create provider adapter.
+- [ ] Register provider code.
+- [ ] Map launch, balance, transfer-in, transfer-out, and game sync.
+- [ ] Map bet history when supported.
+- [ ] Validate webhook signatures.
+- [ ] Add provider-specific test payloads.
+- [ ] Run UAT with sandbox or small dry-run amounts before real money.
+
+## Build and QA commands
+
+Run after each isolated work batch:
 
 ```bash
 pnpm build:web-admin
@@ -33,441 +403,28 @@ pnpm build:web-member
 pnpm test:e2e:smoke
 ```
 
-### Known recent fix
-
-- Fixed `apps/web-admin/app/(admin)/simple-game-settings/page.tsx` where `AdminBadge tone` received a broad `string` type instead of a valid badge tone union.
-
-### Build watchlist
-
-- `apps/web-admin/app/(admin)/provider-presets/page.tsx`
-  - UI now sends `enabledEndpoints` and `endpointOverrides`.
-  - Backend must either accept them or ignore them safely.
-- `apps/web-admin/app/(admin)/webhook-settlement/page.tsx`
-  - Test mode calls simulator webhook endpoints.
-  - Verify auth and path behavior in production build/runtime.
-- `apps/web-admin/app/(admin)/game-transfers/[id]/page.tsx`
-  - UI references manual reverse and force-fail endpoints.
-  - Backend support must be verified.
-- `apps/api/src/modules/money-ops/wallet-ledger-detail.controller.ts`
-  - Verify Prisma model names and permission usage.
-
-## Backend actions to verify or finish
-
-### Game Transfer Recovery backend
-
-UI exists for transfer recovery, but backend support must be verified and completed.
-
-Required endpoints:
-
-- [ ] `PATCH /admin/game-transfers/:id/actions/manual-reverse`
-- [ ] `PATCH /admin/game-transfers/:id/actions/force-fail`
-
-Required behavior:
-
-- [ ] Manual reverse can only run on safe transfer states.
-- [ ] Manual reverse cannot run twice for the same transfer.
-- [ ] Manual reverse writes a WalletLedger reversal when it changes balance.
-- [ ] Force-fail can only run on safe pending states.
-- [ ] Retry creates a new idempotency key.
-- [ ] Retry is blocked when provider or wallet state is unsafe.
-- [ ] Every recovery action requires an admin note.
-- [ ] Every recovery action writes an AdminAuditLog.
-- [ ] Response payload clearly stores recovery metadata and related ledger IDs.
-
-### Provider Preset Apply backend
-
-UI now supports stronger preview/edit, but backend behavior must be confirmed.
-
-Required behavior:
-
-- [ ] Accept `enabledEndpoints` from preset UI.
-- [ ] Accept `endpointOverrides` from preset UI.
-- [ ] Create only selected endpoints when `enabledEndpoints` is provided.
-- [ ] Apply overridden endpoint URLs when provided.
-- [ ] Validate duplicate provider code before create.
-- [ ] Create placeholder/disabled credentials only when intended.
-- [ ] Audit preset apply with preset code and override summary.
-- [ ] Return created provider ID so UI can redirect to the correct provider detail/risk page later.
-
-### Credential Management backend
-
-Current UI supports rotate, enable/disable, and health-check. Backend should be hardened.
-
-Required behavior:
-
-- [ ] Raw secret accepted only on create/rotate.
-- [ ] Raw secret is never returned to frontend.
-- [ ] Disabled credentials are never used in adapter context.
-- [ ] Rotation updates `rotatedAt`.
-- [ ] Adapter credential usage optionally updates `lastUsedAt` or equivalent metadata.
-- [ ] Credential create/update/rotate/disable actions write AdminAuditLog.
-- [ ] Health-check/test action returns sanitized payload only.
-
-### Webhook Test Mode backend
-
-UI test panel exists, but simulator behavior must be verified.
-
-Required behavior:
-
-- [ ] Simulator webhook endpoint accepts test payload from admin UI or has an admin-safe wrapper endpoint.
-- [ ] Duplicate mode generates duplicate idempotency behavior.
-- [ ] Invalid signature mode logs failed webhook with clear error.
-- [ ] ROLLBACK/WIN/BET_SETTLED payloads parse into normalized events.
-- [ ] Test mode never settles real wallet balance unless explicit gates are enabled.
-- [ ] Webhook logs show raw and normalized payloads safely.
-
-### Reconciliation workflow backend
-
-Snapshot detail UI exists. Backend should support deeper investigation.
-
-Required behavior:
-
-- [ ] Snapshot detail returns related game session where available.
-- [ ] Snapshot detail returns related game transfers where available.
-- [ ] Snapshot detail returns related risk alert where available.
-- [ ] Resolve requires admin note.
-- [ ] Resolve writes AdminAuditLog.
-- [ ] Resolve can auto-close or link related RiskAlert.
-- [ ] Review status/timeline is visible in raw payload or a dedicated model.
-
-## QA flows to run after build passes
-
-### Admin QA
-
-- [ ] Create provider from Provider Setup Wizard.
-- [ ] Create provider from Provider Preset Preview/Edit.
-- [ ] Rotate provider credential.
-- [ ] Disable and re-enable provider credential.
-- [ ] Run provider health-check.
-- [ ] Run Adapter Test Harness healthCheck.
-- [ ] Run Adapter Test Harness launchGame.
-- [ ] Run Adapter Test Harness transferIn and transferOut against simulator/sandbox only.
-- [ ] Open Provider Risk and verify readiness traffic-light.
-- [ ] Run Preflight.
-- [ ] Open Operation Dashboard and verify queue counts render.
-- [ ] Open Wallet Ledger Detail from list or transfer detail.
-- [ ] Open Game Transfer Detail and verify recovery status/hints.
-- [ ] Run reconciliation by session ID.
-- [ ] Open Reconciliation Snapshot Detail.
-- [ ] Generate mock webhook from Webhook Settlement Test Mode.
-- [ ] Verify webhook appears in Webhook Logs.
-
-### Member QA
-
-- [ ] Member login works.
-- [ ] Game lobby opens.
-- [ ] Game launch creates/opens session.
-- [ ] Game session page shows wallet balance.
-- [ ] Transfer-in succeeds with simulator provider.
-- [ ] Transfer-out succeeds with simulator provider.
-- [ ] Transfer-in provider failure rolls back wallet and shows Thai copy.
-- [ ] Transfer-out provider failure leaves wallet unchanged and shows Thai copy.
-- [ ] Transfer history updates after each action.
-- [ ] Transaction history shows correct Thai labels.
-
-## Remaining Member UX work
-
-### Member Home
-
-- [ ] Build a true market-style mobile member home.
-- [ ] Show available balance, pending state, latest activity, quick actions, featured games, recently played games, and promotion slots.
-- [ ] Show pending cards only when relevant.
-- [ ] Add notification badge for pending/approved/rejected money actions.
-
-### Game Lobby
-
-- [ ] Add categories: slots, casino, sports, fishing, popular, new.
-- [ ] Add provider filter.
-- [ ] Add game search.
-- [ ] Add favorite games.
-- [ ] Add recently played games.
-- [ ] Add disabled/maintenance state.
-- [ ] Add image fallback for missing provider assets.
-
-### Deposit Flow
-
-- [ ] Convert deposit into guided step flow.
-- [ ] Add amount picker and quick amounts.
-- [ ] Add channel selection.
-- [ ] Add copy account number action.
-- [ ] Add QR/PromptPay display when available.
-- [ ] Add slip upload preview.
-- [ ] Add deposit pending status card.
-- [ ] Add clear Thai validation messages.
-
-### Withdraw Flow
-
-- [ ] Convert withdraw into guided step flow.
-- [ ] Add bank account selector.
-- [ ] Show available balance.
-- [ ] Show min/max and fee if any.
-- [ ] Add review step before submit.
-- [ ] Prevent submit when bank account is missing or inactive.
-- [ ] Show pending/rejected/approved status clearly.
-
-### Unified History
-
-- [ ] Add unified transaction detail drawer/page.
-- [ ] Include deposit, withdraw, transfer-in, transfer-out, adjustment, bonus, and reversal.
-- [ ] Add filters by type, status, and date range.
-- [ ] Use Thai labels only, not raw enum names.
-
-### Profile and Security
-
-- [ ] Add member profile page polish.
-- [ ] Add change password flow.
-- [ ] Add login history.
-- [ ] Add logout all devices.
-- [ ] Add account status display.
-
-## Remaining Admin Operation work
-
-### Deposit and Withdraw Queues
-
-- [ ] Add fast deposit detail/review drawer.
-- [ ] Add fast withdraw detail/review drawer.
-- [ ] Add approve/reject with note.
-- [ ] Add queue claim/lock to avoid two admins processing the same item.
-- [ ] Add member history and wallet summary inside review view.
-- [ ] Add audit timeline to deposit and withdraw detail.
-
-### Risk Alert Ticket Workflow
-
-- [ ] Add assign admin.
-- [ ] Add note timeline.
-- [ ] Add filters by severity/status/type/provider/date.
-- [ ] Add related links to transfer, ledger, webhook, snapshot, member.
-- [ ] Add safe bulk actions for low-risk alerts only.
-- [ ] Auto-close or suggest close when related reference is resolved.
-
-### Idempotency Dashboard
-
-- [ ] Add dashboard for transfer idempotency keys.
-- [ ] Add dashboard for webhook idempotency keys.
-- [ ] Add dashboard for ledger idempotency keys.
-- [ ] Show duplicate attempts and related records.
-
-### Webhook Operations
-
-- [ ] Add webhook log detail page.
-- [ ] Add dry-run replay action.
-- [ ] Add parse test action.
-- [ ] Add signature test action.
-- [ ] Add duplicate event view.
-- [ ] Add invalid signature view.
-- [ ] Keep settlement behind explicit gates.
-
-### Provider Operations
-
-- [ ] Add provider endpoint editor with simple UX.
-- [ ] Add credential version/history view.
-- [ ] Add provider callback/IP whitelist config fields.
-- [ ] Add provider outage status banner.
-- [ ] Add adapter docs/sample cURL per provider.
-
-## Market-like product features not started
-
-### Promotion and Bonus
-
-- [ ] Bonus wallet.
-- [ ] Promotion campaign management.
-- [ ] Turnover requirement tracking.
-- [ ] Member bonus claim flow.
-- [ ] Bonus history.
-- [ ] Admin bonus approve/reject flow.
-
-### Affiliate and Agent
-
-- [ ] Agent code.
-- [ ] Referral link.
-- [ ] Commission tracking.
-- [ ] Downline view.
-- [ ] Agent report.
-- [ ] Agent settlement workflow.
-
-### CMS and Content
-
-- [ ] Mobile banner management.
-- [ ] Announcement management.
-- [ ] Popup management.
-- [ ] Maintenance notice management.
-- [ ] Game category ordering.
-- [ ] Featured games management.
-
-### KYC and Risk
-
-- [ ] Phone verification.
-- [ ] Bank account verification.
-- [ ] Duplicate bank detection.
-- [ ] Account risk status.
-- [ ] User blacklist.
-
-### Customer Support
-
-- [ ] Support ticket flow.
-- [ ] LINE/live chat config.
-- [ ] FAQ page.
-- [ ] Deposit/withdraw issue templates.
-- [ ] Link ticket to deposit, withdraw, transfer, or ledger.
-
-## Work that requires real provider documents
-
-Do not start provider-specific integration until the provider gives the required material.
-
-Required from provider:
-
-- [ ] API documentation.
-- [ ] UAT endpoint.
-- [ ] Production endpoint.
-- [ ] API key / secret / merchant ID / agent ID.
-- [ ] Signature algorithm.
-- [ ] Request/response examples.
-- [ ] Error code list.
-- [ ] Webhook format.
-- [ ] Webhook signature rules.
-- [ ] Game list API or static game catalog.
-- [ ] IP whitelist requirement.
-- [ ] Callback URL requirement.
-
-Provider-specific work after docs arrive:
-
-- [ ] Create `<provider>.adapter.ts`.
-- [ ] Register provider code in adapter registry.
-- [ ] Map launchGame request/response.
-- [ ] Map getBalance request/response.
-- [ ] Map transferIn and transferOut request/response.
-- [ ] Map syncGames.
-- [ ] Map getBetHistory if supported.
-- [ ] Validate webhook signature.
-- [ ] Parse webhook events.
-- [ ] Add provider-specific test payloads.
-- [ ] Run UAT with small dry-run/sandbox amounts before real money.
-
-## Recommended next order
-
-1. Run `pnpm build:web-admin` again.
-2. Fix the next build error until web-admin passes.
-3. Run `pnpm build:api` and fix backend errors.
-4. Run `pnpm build:web-member` and fix member errors.
-5. Run smoke tests.
-6. Verify or implement transfer manual-reverse and force-fail backend.
-7. Verify Provider Preset Apply uses `enabledEndpoints` and `endpointOverrides`.
-8. Verify Webhook Test Mode simulator behavior.
-9. Build Member Home and Game Lobby.
-10. Build Deposit/Withdraw step flows.
-11. Start Promotion/Bonus.
-12. Start Affiliate/Agent.
-13. Start CMS Banner/Popup.
-14. Start KYC/Bank Verification.
-15. Start Support Ticket/LINE contact.
-
-## Main initiative: Web Member market-style redesign
-
-This initiative upgrades the entire Member experience to a production-grade market-style interface rather than polishing isolated pages. Shared navigation, layout, icons, wallet presentation, promotions, game discovery, and responsive behavior must be treated as one coherent system.
-
-### Priority 0: Shared member shell and navigation
-
-- [ ] Replace the current Member navigation with a new grouped navigation system.
-- [ ] Add desktop/tablet right sidebar layout while keeping mobile bottom navigation.
-- [ ] Add a square profile and wallet panel at the top of the right sidebar.
-- [ ] Show avatar, display name, username, short member ID, account status, and member tier placeholder.
-- [ ] Show available balance, locked balance, currency, last refresh time, and hide/show balance control.
-- [ ] Add deposit, withdraw, and refresh balance actions inside the wallet panel.
-- [ ] Group menu items into Main, Finance, Account, and Support sections.
-- [ ] Add notification, pending-money, and promotion badges to relevant menu items.
-- [ ] Add consistent active, hover, focus, disabled, and maintenance states.
-- [ ] Keep safe-area support and touch targets of at least 44px.
-
-### Priority 0: Icon system replacement
-
-- [ ] Replace all mixed emoji and inconsistent icons with one shared icon system.
-- [ ] Use consistent stroke weight, filled/outline rules, sizing, and alignment.
-- [ ] Replace icons for Home, Promotions, Games, Favorites, Recent, Deposit, Withdraw, History, Bank Accounts, Notifications, Profile, Security, Sessions, Support, FAQ, Refresh, Search, Filter, Favorite, Claim, and Logout.
-- [ ] Add consistent status icons for success, pending, rejected, maintenance, new, popular, featured, secure, and warning states.
-- [ ] Create shared icon wrappers so pages do not import or style icons independently.
-
-### Priority 0: Member Home redesign
-
-- [ ] Replace the current home structure with a market-style home layout.
-- [ ] Add a hero carousel supporting multiple promotional images.
-- [ ] Add desktop, tablet, and mobile aspect-ratio handling for promotional assets.
-- [ ] Add wallet summary strip and quick-action cards.
-- [ ] Add promotion highlight, game categories, featured games, popular games, new games, recent games, announcements, and support shortcuts.
-- [ ] Add countdown and campaign badge slots where campaign metadata exists.
-- [ ] Add skeleton, empty, error, and retry states for every remote section.
-- [ ] Ensure content order remains usable when promotions or games are unavailable.
-
-### Priority 0: Promotions experience
-
-- [ ] Support multiple promotion images and multiple card layouts.
-- [ ] Add hero banner, horizontal carousel, card grid, and compact promotion strip variants.
-- [ ] Add promotion badges such as New, Featured, Hot, and Members Only.
-- [ ] Show bonus value, minimum deposit, turnover requirement, eligibility, and CTA.
-- [ ] Add promotion detail page with hero image, conditions, calculation example, claim steps, and eligibility state.
-- [ ] Add claim, claimed, expired, disabled, and maintenance states.
-- [ ] Add responsive asset fallback and image loading placeholders.
-- [ ] Prepare the UI to consume CMS-managed banner and promotion assets.
-
-### Priority 1: Game lobby market polish
-
-- [ ] Redesign game cards with stronger cover imagery, overlay, provider label, category, and market badges.
-- [ ] Add Hot, New, Popular, Featured, Favorite, and Maintenance visuals.
-- [ ] Add provider logo rail and provider quick filters.
-- [ ] Improve search, category tabs, favorite, and recent filters.
-- [ ] Add featured, popular, new, recently played, favorites, and all-games sections.
-- [ ] Add game and provider image fallback hierarchy.
-- [ ] Add loading skeletons and partial-failure handling.
-- [ ] Keep launch and transfer business logic unchanged during visual refactor.
-
-### Priority 1: Wallet and profile presentation
-
-- [ ] Create reusable `MemberWalletCard` and `MemberProfileCard` components.
-- [ ] Add hide/show balance persistence per device.
-- [ ] Add wallet refresh timeout, retry, and stale-data indicator.
-- [ ] Add shortcuts to profile, security, sessions, and bank accounts.
-- [ ] Ensure wallet values use the same API contract and available-balance calculation everywhere.
-- [ ] Add verified phone/email states where data exists.
-
-### Priority 1: Quick actions and financial entry points
-
-- [ ] Standardize Deposit, Withdraw, Promotions, Bank Accounts, History, and Support quick-action cards.
-- [ ] Add large icons, clear Thai labels, accessible descriptions, and touch-friendly layout.
-- [ ] Add pending-state badges without changing money operation rules.
-- [ ] Ensure navigation from every quick action preserves the expected route and feature flag behavior.
-
-### Priority 2: Visual system and consistency pass
-
-- [ ] Define shared Member design tokens for surfaces, borders, radii, shadows, typography, spacing, and state colors.
-- [ ] Standardize card hierarchy across Home, Games, Promotions, Finance, Profile, Notifications, and Support.
-- [ ] Reduce page-level inline styles and move reusable patterns into shared components and CSS modules.
-- [ ] Improve text contrast, number hierarchy, secondary labels, and Thai line wrapping.
-- [ ] Add reduced-motion behavior for carousel, hover, and refresh animations.
-- [ ] Add keyboard focus states and semantic labels across all interactive controls.
-
-### Priority 2: Responsive and visual regression
-
-- [ ] Validate 360x800, 390x844, 430x932, 768x1024, 1024x768, and 1440x900 viewports.
-- [ ] Add authenticated screenshots for Home, Promotions, Games, Deposit, Withdraw, History, Bank Accounts, Profile, Notifications, and Support.
-- [ ] Add baseline snapshots and CI artifacts for visual diffs.
-- [ ] Verify sticky right sidebar behavior does not cover content or mobile safe areas.
-- [ ] Verify loading, empty, error, disabled, maintenance, and long-content states.
-
-### Acceptance criteria
-
-- [ ] Member Home, Promotions, Games, Finance, Profile, Notifications, and Support share one coherent visual system.
-- [ ] Desktop and tablet show the right sidebar with the profile and wallet cards at the top.
-- [ ] Mobile retains a redesigned bottom navigation with consistent icons and badges.
-- [ ] Promotions support multiple images and at least four display variants.
-- [ ] No shared navigation or wallet logic is duplicated across pages.
-- [ ] No money, auth, game launch, or feature-flag behavior changes during the visual refactor unless separately reviewed.
-- [ ] All affected Member routes pass build, authenticated smoke tests, accessibility checks, and visual regression.
-
-### Delivery order
-
-1. Shared icon system and design tokens.
-2. Right sidebar, profile card, wallet card, and navigation grouping.
-3. Member Home and multi-image promotion system.
-4. Promotion listing/detail experience.
-5. Game Lobby visual refactor.
-6. Quick actions and remaining Member page consistency pass.
-7. Authenticated responsive and visual regression QA.
+Additional focused tests should be run for:
+
+- Admin invitation creation/accept/revoke/reissue.
+- Privilege boundaries.
+- Forced 2FA.
+- Empty permission safety.
+- Session revocation after role changes.
+- Owner protection.
+- Admin account lifecycle.
+- CAPTCHA/anti-bot settings.
+- Deposit/withdrawal money safety.
+- Provider transfer idempotency and rollback.
+
+## Recommended execution order
+
+1. Owner protection and admin account lifecycle.
+2. Permission coverage audit.
+3. CAPTCHA and anti-bot settings.
+4. Admin login hardening.
+5. Admin localization.
+6. Verify provider recovery, preset, credential, webhook, and reconciliation backends.
+7. Complete Member profile, history, game discovery, and withdrawal polish.
+8. Complete queue operations and risk workflow.
+9. Complete promotion, affiliate, CMS, KYC, and support modules.
+10. Integrate real providers only after official provider documents and UAT access are available.
