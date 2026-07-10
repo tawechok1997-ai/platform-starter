@@ -93,7 +93,7 @@ export class AuthService {
       avatarUrl: user.profile?.avatarUrl ?? null,
       wallet: user.wallet ? {
         currency: user.wallet.currency,
-        availableBalance: user.wallet.availableBalance.toString(),
+        availableBalance: user.wallet.balance.minus(user.wallet.lockedBalance).toString(),
         lockedBalance: user.wallet.lockedBalance.toString(),
         status: user.wallet.status,
       } : null,
