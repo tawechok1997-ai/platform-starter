@@ -1,8 +1,96 @@
-export const navGroups = [
-  { title: 'งานหลัก', items: [['งานแอดมิน', '/operations'], ['ตรวจฝาก', '/topups'], ['ตรวจถอน', '/withdrawals'], ['สมาชิก', '/members'], ['บัญชีธนาคาร', '/bank-accounts']] },
-  { title: 'การเงิน', items: [['วอเลต', '/wallets'], ['ประวัติเงิน', '/wallet-ledgers'], ['ปัญหาที่ต้องดู', '/risk-alerts'], ['รายงาน', '/reports']] },
-  { title: 'ค่ายเกม', items: [['ตั้งค่าง่าย', '/simple-game-settings'], ['เพิ่มค่ายใหม่', '/provider-setup-wizard'], ['แบบตั้งค่าค่าย', '/provider-presets'], ['ดูการโยกเงิน', '/game-transfers'], ['ตรวจยอดค่าย', '/reconciliation-center']] },
-  { title: 'สินค้า/การตลาด', items: [['ศูนย์ฟีเจอร์สินค้า', '/growth-center'], ['โปรโมชัน/โบนัส', '/promotion-center'], ['คำขอรับโปร', '/promotion-claims'], ['Bonus Ledger', '/bonus-ledgers'], ['ตัวแทน/Affiliate', '/affiliate-center'], ['Commission Ledger', '/commission-ledgers'], ['CMS/คอนเทนต์', '/content-center'], ['KYC/ตรวจบัญชี', '/kyc-center'], ['Support', '/support-center']] },
-  { title: 'ขั้นสูง', items: [['เปลี่ยน API Key', '/provider-credentials'], ['ทดสอบ API ค่าย', '/adapter-test'], ['Webhook', '/webhook-logs'], ['ตรวจค่ายละเอียด', '/provider-risk'], ['ตั้งค่า API เดิม', '/game-api-settings'], ['ค่ายทั้งหมด', '/game-providers'], ['เกมทั้งหมด', '/games'], ['Session เกม', '/game-sessions'], ['Audit Risk', '/audit-risk'], ['Audit Logs', '/audit-logs']] },
-  { title: 'ตั้งค่า', items: [['ตั้งค่าเว็บไซต์', '/settings'], ['ผู้ดูแลระบบ', '/admin-users'], ['ความปลอดภัย', '/security']] },
+export type AdminNavItem = {
+  title: string;
+  href: string;
+  permissions?: readonly string[];
+};
+
+export type AdminNavGroup = {
+  title: string;
+  items: readonly AdminNavItem[];
+};
+
+export const navGroups: readonly AdminNavGroup[] = [
+  {
+    title: 'งานหลัก',
+    items: [
+      { title: 'งานแอดมิน', href: '/operations' },
+      { title: 'ตรวจฝาก', href: '/topups', permissions: ['topups.view', 'deposit.view'] },
+      { title: 'ตรวจถอน', href: '/withdrawals', permissions: ['withdraw.view'] },
+      { title: 'สมาชิก', href: '/members', permissions: ['users.view'] },
+      { title: 'บัญชีธนาคาร', href: '/bank-accounts', permissions: ['users.view', 'deposit.view'] },
+    ],
+  },
+  {
+    title: 'การเงิน',
+    items: [
+      { title: 'วอเลต', href: '/wallets', permissions: ['wallet.view'] },
+      { title: 'ประวัติเงิน', href: '/wallet-ledgers', permissions: ['wallet.view'] },
+      { title: 'ปัญหาที่ต้องดู', href: '/risk-alerts', permissions: ['risk.view'] },
+      { title: 'รายงาน', href: '/reports', permissions: ['reports.view'] },
+    ],
+  },
+  {
+    title: 'ค่ายเกม',
+    items: [
+      { title: 'ตั้งค่าง่าย', href: '/simple-game-settings', permissions: ['game.providers.manage', 'provider.update'] },
+      { title: 'เพิ่มค่ายใหม่', href: '/provider-setup-wizard', permissions: ['game.providers.manage', 'provider.update'] },
+      { title: 'แบบตั้งค่าค่าย', href: '/provider-presets', permissions: ['game.providers.manage', 'provider.update'] },
+      { title: 'ดูการโยกเงิน', href: '/game-transfers', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'ตรวจยอดค่าย', href: '/reconciliation-center', permissions: ['game.providers.view', 'provider.view'] },
+    ],
+  },
+  {
+    title: 'สินค้า/การตลาด',
+    items: [
+      { title: 'ศูนย์ฟีเจอร์สินค้า', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
+      { title: 'โปรโมชัน/โบนัส', href: '/promotion-center', permissions: ['promotion.view'] },
+      { title: 'คำขอรับโปร', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
+      { title: 'Bonus Ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
+      { title: 'ตัวแทน/Affiliate', href: '/affiliate-center', permissions: ['affiliate.view'] },
+      { title: 'Commission Ledger', href: '/commission-ledgers', permissions: ['commission.view'] },
+      { title: 'CMS/คอนเทนต์', href: '/content-center' },
+      { title: 'KYC/ตรวจบัญชี', href: '/kyc-center', permissions: ['users.view', 'risk.view'] },
+      { title: 'Support', href: '/support-center', permissions: ['users.view'] },
+    ],
+  },
+  {
+    title: 'ขั้นสูง',
+    items: [
+      { title: 'เปลี่ยน API Key', href: '/provider-credentials', permissions: ['provider.update', 'game.providers.manage'] },
+      { title: 'ทดสอบ API ค่าย', href: '/adapter-test', permissions: ['provider.update', 'game.providers.manage'] },
+      { title: 'Webhook', href: '/webhook-logs', permissions: ['provider.view', 'game.providers.view'] },
+      { title: 'ตรวจค่ายละเอียด', href: '/provider-risk', permissions: ['risk.view', 'provider.view'] },
+      { title: 'ตั้งค่า API เดิม', href: '/game-api-settings', permissions: ['provider.update'] },
+      { title: 'ค่ายทั้งหมด', href: '/game-providers', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'เกมทั้งหมด', href: '/games', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'Session เกม', href: '/game-sessions', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'Audit Risk', href: '/audit-risk', permissions: ['risk.view'] },
+      { title: 'Audit Logs', href: '/audit-logs', permissions: ['admin.view', 'admin.access.view'] },
+    ],
+  },
+  {
+    title: 'ตั้งค่า',
+    items: [
+      { title: 'ตั้งค่าเว็บไซต์', href: '/settings', permissions: ['settings.update', 'settings.website.view'] },
+      { title: 'บัญชีผู้ดูแล', href: '/admin-accounts', permissions: ['admin.view', 'admin.access.view'] },
+      { title: 'Roles & Permissions', href: '/admin-roles', permissions: ['admin.access.view'] },
+      { title: 'คำเชิญผู้ดูแล', href: '/admin-invitations', permissions: ['admin.create'] },
+      { title: 'ความปลอดภัย', href: '/security' },
+    ],
+  },
 ] as const;
+
+export function canAccessNavItem(item: AdminNavItem, permissions: readonly string[]) {
+  if (permissions.includes('*')) return true;
+  if (!item.permissions || item.permissions.length === 0) return true;
+  return item.permissions.some((permission) => permissions.includes(permission));
+}
+
+export function requiredPermissionsForPath(pathname: string) {
+  for (const group of navGroups) {
+    for (const item of group.items) {
+      if (pathname === item.href || pathname.startsWith(`${item.href}/`)) return item.permissions ?? [];
+    }
+  }
+  return [] as readonly string[];
+}
