@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import MemberBottomNav from '../member-bottom-nav';
 import { memberApiFetch } from '../member-api';
+import './games.css';
 
 type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null; status: string };
 type Game = { id: string; providerGameCode: string; name: string; category: string; status?: string; isFeatured: boolean; isNew: boolean; isPopular: boolean; provider?: { name: string; code: string; status?: string | null }; media?: GameMedia[] };
@@ -47,7 +48,6 @@ export default function MemberGamesPage() {
 
   const games = payload.items ?? [];
   const providers = useMemo(() => Array.from(new Map(games.map((game) => [game.provider?.code ?? 'unknown', game.provider?.name ?? game.provider?.code ?? 'ไม่ระบุค่าย'])).entries()).sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'th')), [games]);
-  const providerCounts = useMemo(() => countBy(games, (game) => game.provider?.code ?? 'unknown'), [games]);
   const categoryCounts = useMemo(() => countBy(games, (game) => game.category || 'other'), [games]);
   const favoriteGames = useMemo(() => favoriteIds.map((id) => games.find((game) => game.id === id)).filter(Boolean) as Game[], [favoriteIds, games]);
   const recentGames = useMemo(() => recentIds.map((id) => games.find((game) => game.id === id)).filter(Boolean) as Game[], [recentIds, games]);
@@ -85,26 +85,20 @@ export default function MemberGamesPage() {
   function resetFilters() { setCategory('all'); setProvider('all'); setQuery(''); }
 
   return <main className="game-lobby-page">
-    <section className="game-lobby-hero">
-      <span className="game-lobby-eyebrow">Game Lobby</span>
-      <h1>เลือกเกม</h1>
-      <p>ค้นหา เลือกค่าย กดหัวใจเก็บเกมโปรด แล้วเปิด session เพื่อโยกเงินเข้า/ออกเกมจากหน้าเดียว</p>
-      <div className="game-lobby-search-row">
-        <label><span>ค้นหาเกม</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหาเกมหรือค่าย" /></label>
-        <label><span>ค่ายเกม</span><select value={provider} onChange={(event) => setProvider(event.target.value)}><option value="all">ทุกค่าย ({games.length})</option>{providers.map(([code, name]) => <option key={code} value={code}>{name} ({providerCounts.get(code) ?? 0})</option>)}</select></label>
-      </div>
-      <div className="game-lobby-stats"><span>{games.length} เกมทั้งหมด</span><span>{filteredAvailable.length} พร้อมเล่น</span><span>{favoriteIds.length} เกมโปรด</span></div>
+    <nav className="game-lobby-tabs" aria-label="หมวดเกม">
+      <button className={category === 'all' ? 'is-active' : ''} aria-pressed={category === 'all'} onClick={() => setCategory('all')}>ทั้งหมด <span>{games.length}</span></button>
+      <button className={category === 'favorite' ? 'is-active' : ''} aria-pressed={category === 'favorite'} onClick={() => setCategory('favorite')}>โปรด <span>{favoriteGames.length}</span></button>
+      {(payload.categories ?? []).map((item) => <button key={item} className={category === item ? 'is-active' : ''} aria-pressed={category === item} onClick={() => setCategory(item)}>{categoryLabel(item)} <span>{categoryCounts.get(item) ?? 0}</span></button>)}
+    </nav>
+
+    <section className="game-lobby-toolbar" aria-label="ค้นหาและกรองเกม">
+      <label className="game-lobby-search"><span className="sr-only">ค้นหาเกม</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหาเกมหรือค่าย" /></label>
+      <label className="game-lobby-provider"><span className="sr-only">ค่ายเกม</span><select value={provider} onChange={(event) => setProvider(event.target.value)}><option value="all">ทุกค่าย</option>{providers.map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></label>
+      {(query || provider !== 'all' || category !== 'all') && <button type="button" className="game-lobby-clear" onClick={resetFilters}>ล้าง</button>}
     </section>
 
     {message && <div className="game-lobby-notice" role="status">{message}</div>}
     {launching.message && <div className="game-lobby-notice" role="status">{launching.message}</div>}
-
-    <nav className="game-lobby-tabs" aria-label="หมวดเกม">
-      <button className={category === 'all' ? 'is-active' : ''} aria-pressed={category === 'all'} onClick={() => setCategory('all')}>ทั้งหมด ({games.length})</button>
-      <button className={category === 'favorite' ? 'is-active' : ''} aria-pressed={category === 'favorite'} onClick={() => setCategory('favorite')}>โปรด ({favoriteGames.length})</button>
-      {(payload.categories ?? []).map((item) => <button key={item} className={category === item ? 'is-active' : ''} aria-pressed={category === item} onClick={() => setCategory(item)}>{categoryLabel(item)} ({categoryCounts.get(item) ?? 0})</button>)}
-      <button className="is-reset" onClick={resetFilters}>ล้างตัวกรอง</button>
-    </nav>
 
     <GameSection title="เล่นล่าสุด" items={recentGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
     <GameSection title="เกมโปรด" items={favoriteGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
