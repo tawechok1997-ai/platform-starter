@@ -20,17 +20,55 @@ export class AuthService {
 
   async register(dto: RegisterDto, meta: RequestMeta = {}) {
     const rawSecret = dto.secret ?? dto.password;
-    if (!rawSecret) throw new BadRequestException('secret is required');
+    if (!rawSecret) throw new BadRequestException('กรุณากำหนดรหัสผ่าน');
+
+    const fullName = this.cleanDisplayName(dto.fullName);
+    const bankAccountName = this.cleanDisplayName(dto.bankAccountName);
+    if (this.normalizePersonName(fullName) !== this.normalizePersonName(bankAccountName)) {
+      throw new BadRequestException('ชื่อบัญชีธนาคารต้องตรงกับชื่อจริงที่ใช้สมัคร');
+    }
 
     const exists = await this.prisma.user.findFirst({
       where: { OR: [{ username: dto.username }, dto.phone ? { phone: dto.phone } : undefined, dto.email ? { email: dto.email } : undefined].filter(Boolean) as any },
     });
-    if (exists) throw new ConflictException('Member already exists');
+    if (exists) throw new ConflictException('ชื่อผู้ใช้ เบอร์โทร หรืออีเมลนี้ถูกใช้แล้ว');
+
+    const bankExists = await this.prisma.memberBankAccount.findFirst({
+      where: { accountNumber: dto.bankAccountNumber },
+      select: { id: true },
+    });
+    if (bankExists) throw new ConflictException('บัญชีธนาคารนี้ถูกใช้กับสมาชิกคนอื่นแล้ว');
 
     const hash = await argon2.hash(rawSecret);
     const user = await this.prisma.$transaction(async (tx) => {
-      const createdUser = await tx.user.create({ data: { username: dto.username, phone: dto.phone, email: dto.email, passwordHash: hash, profile: { create: { displayName: dto.username } } } });
+      const duplicateBank = await tx.memberBankAccount.findFirst({
+        where: { accountNumber: dto.bankAccountNumber },
+        select: { id: true },
+      });
+      if (duplicateBank) throw new ConflictException('บัญชีธนาคารนี้ถูกใช้กับสมาชิกคนอื่นแล้ว');
+
+      const createdUser = await tx.user.create({
+        data: {
+          username: dto.username,
+          phone: dto.phone,
+          email: dto.email,
+          passwordHash: hash,
+          profile: { create: { displayName: fullName } },
+        },
+      });
+
       await tx.wallet.create({ data: { userId: createdUser.id, currency: 'THB' } });
+      await tx.memberBankAccount.create({
+        data: {
+          userId: createdUser.id,
+          bankName: dto.bankName,
+          accountName: bankAccountName,
+          accountNumber: dto.bankAccountNumber,
+          isPrimary: true,
+          status: 'PENDING_REVIEW',
+        },
+      });
+
       return createdUser;
     });
 
@@ -191,6 +229,16 @@ export class AuthService {
     const session = await this.prisma.authSession.create({ data: { type: 'MEMBER', userId, refreshTokenHash, ipAddress: meta.ipAddress, userAgent: meta.userAgent, deviceId: meta.deviceId, expiresAt } });
     const accessToken = await this.jwtService.signAsync({ sub: userId, type: 'MEMBER', sessionId: session.id }, { secret: this.configService.get<string>('JWT_ACCESS_KEY') ?? 'local_access_key', expiresIn: (this.configService.get<string>('JWT_ACCESS_TTL') ?? '15m') as any });
     return { accessToken, refreshToken: `${session.id}.${rawToken}`, expiresAt };
+  }
+
+  private cleanDisplayName(value: string) {
+    return value.normalize('NFKC').replace(/\s+/g, ' ').trim();
+  }
+
+  private normalizePersonName(value: string) {
+    return this.cleanDisplayName(value)
+      .toLocaleLowerCase('th-TH')
+      .replace(/[\s.\-_'’]/g, '');
   }
 
   private createRefreshToken() { return randomBytes(48).toString('base64url'); }
