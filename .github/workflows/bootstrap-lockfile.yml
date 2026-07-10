@@ -36,29 +36,16 @@ jobs:
       - name: Generate lockfile from registry
         run: pnpm install --lockfile-only
 
-      - name: Enable frozen lockfile in build CI
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('.github/workflows/build.yml')
-          text = path.read_text()
-          old = 'pnpm install --frozen-lockfile=false'
-          new = 'pnpm install --frozen-lockfile'
-          if old not in text and new not in text:
-              raise SystemExit('Build workflow install command was not recognized')
-          path.write_text(text.replace(old, new))
-          PY
-
-      - name: Verify frozen install
+      - name: Verify lockfile
         run: pnpm install --frozen-lockfile
 
-      - name: Commit lockfile and CI switch
+      - name: Commit lockfile
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pnpm-lock.yaml .github/workflows/build.yml
+          git add pnpm-lock.yaml
           if git diff --cached --quiet; then
-            echo "Lockfile and frozen CI are already current"
+            echo "Lockfile is already current"
             exit 0
           fi
           git commit -m "chore: add reproducible pnpm lockfile"
