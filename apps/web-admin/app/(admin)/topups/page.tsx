@@ -13,7 +13,6 @@ import {
   AdminMetricGrid,
   AdminNotice,
   AdminPage,
-  AdminRow,
   AdminSectionRow,
   AdminStack,
   AdminToolbar,
@@ -34,17 +33,8 @@ type TopUpItem = {
   user?: { id: string; username: string; phone?: string | null; email?: string | null };
 };
 
-type Evidence = {
-  dataUrl?: string | null;
-  fileHash?: string | null;
-  transactionRef?: string | null;
-  detectedAmount?: string | null;
-  transferredAt?: string | null;
-  duplicateOfId?: string | null;
-  duplicateReason?: string | null;
-};
-
-type ActionKind = 'approve-slip' | 'confirm-credit' | 'reject-staged';
+type SlipPreview = { dataUrl?: string | null; slipImageName?: string | null };
+type ActionKind = 'approve-slip' | 'confirm-credit';
 type PendingAction = { id: string; action: ActionKind } | null;
 
 const PAGE_SIZE = 20;
@@ -59,7 +49,7 @@ const STATUS_OPTIONS = [
 
 export default function AdminTopUpsPage() {
   const [items, setItems] = useState<TopUpItem[]>([]);
-  const [evidence, setEvidence] = useState<Record<string, Evidence>>({});
+  const [slips, setSlips] = useState<Record<string, SlipPreview>>({});
   const [status, setStatus] = useState('PENDING_SLIP_REVIEW');
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
@@ -70,7 +60,7 @@ export default function AdminTopUpsPage() {
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
 
   useEffect(() => { void loadItems(status, page); }, [status, page]);
-  useEffect(() => { void loadEvidence(items); }, [items]);
+  useEffect(() => { void loadSlips(items); }, [items]);
 
   const counts = useMemo(() => ({
     review: items.filter((item) => item.status === 'PENDING_SLIP_REVIEW').length,
@@ -80,7 +70,6 @@ export default function AdminTopUpsPage() {
   }), [items]);
 
   const currentItem = pendingAction ? items.find((item) => item.id === pendingAction.id) ?? null : null;
-  const currentEvidence = currentItem ? evidence[currentItem.id] : null;
 
   async function loadItems(nextStatus = status, nextPage = page) {
     setMessage('กำลังโหลดรายการฝาก...');
@@ -95,31 +84,13 @@ export default function AdminTopUpsPage() {
     setMessage('');
   }
 
-  async function loadEvidence(nextItems: TopUpItem[]) {
-    const targets = nextItems.filter((item) => !evidence[item.id]);
+  async function loadSlips(nextItems: TopUpItem[]) {
+    const targets = nextItems.filter((item) => !slips[item.id]);
     await Promise.all(targets.map(async (item) => {
-      const res = await adminApiFetch(`/admin/topups/${item.id}/slip-evidence`);
+      const res = await adminApiFetch(`/admin/topups/${item.id}/slip`);
       const data = await res.json().catch(() => null);
-      if (res.ok) setEvidence((current) => ({ ...current, [item.id]: data ?? {} }));
+      if (res.ok) setSlips((current) => ({ ...current, [item.id]: data ?? {} }));
     }));
-  }
-
-  function requestAction(item: TopUpItem, action: ActionKind) {
-    const actions = allowedDepositActions(item.status);
-    const required = action === 'approve-slip' ? 'APPROVE_SLIP' : action === 'confirm-credit' ? 'CONFIRM_CREDIT' : 'REJECT_DEPOSIT';
-    if (!actions.includes(required)) {
-      setMessage(`สถานะ ${financeStatusLabel(item.status)} ไม่อนุญาตให้ทำรายการนี้`);
-      return;
-    }
-    if (!item.claimedBy) {
-      setMessage('ต้อง claim รายการก่อนดำเนินการ');
-      return;
-    }
-    if (action === 'reject-staged' && !(notes[item.id] ?? '').trim()) {
-      setMessage('กรุณาใส่เหตุผลก่อนปฏิเสธรายการ');
-      return;
-    }
-    setPendingAction({ id: item.id, action });
   }
 
   async function queueAction(id: string, action: 'claim' | 'release') {
@@ -130,6 +101,20 @@ export default function AdminTopUpsPage() {
     if (!res.ok) { setMessage(data?.message ?? 'ทำรายการไม่สำเร็จ'); return; }
     setItems((current) => current.map((item) => item.id === id ? { ...item, ...data } : item));
     setMessage(action === 'claim' ? 'รับงานแล้ว' : 'ปล่อยงานแล้ว');
+  }
+
+  function requestAction(item: TopUpItem, action: ActionKind) {
+    const actions = allowedDepositActions(item.status);
+    const required = action === 'approve-slip' ? 'APPROVE_SLIP' : 'CONFIRM_CREDIT';
+    if (!actions.includes(required)) {
+      setMessage(`สถานะ ${financeStatusLabel(item.status)} ไม่อนุญาตให้ทำรายการนี้`);
+      return;
+    }
+    if (!item.claimedBy) {
+      setMessage('ต้อง claim รายการก่อนดำเนินการ');
+      return;
+    }
+    setPendingAction({ id: item.id, action });
   }
 
   async function executeAction() {
@@ -143,8 +128,9 @@ export default function AdminTopUpsPage() {
     const data = await res.json().catch(() => null);
     setBusyId('');
     if (!res.ok) { setMessage(data?.message ?? 'ทำรายการไม่สำเร็จ'); return; }
+    const action = pendingAction.action;
     setPendingAction(null);
-    setMessage(actionMessage(pendingAction.action));
+    setMessage(action === 'approve-slip' ? 'อนุมัติสลิปแล้ว รอเพิ่มเครดิต' : 'เพิ่มเครดิตสำเร็จ');
     void loadItems(status, page);
   }
 
@@ -166,35 +152,27 @@ export default function AdminTopUpsPage() {
 
     <AdminStack>
       {items.map((item) => {
-        const proof = evidence[item.id] ?? {};
         const actions = allowedDepositActions(item.status);
+        const slip = slips[item.id];
         return <AdminCard key={item.id} tone={cardTone(item.status)}>
           <AdminSectionRow>
             <div className="admin-topup-summary"><AdminBadge tone={cardTone(item.status)}>{financeStatusLabel(item.status)}</AdminBadge><h2>{formatMoney(item.amount)}</h2><p>สมาชิก: {item.user?.username ?? item.user?.phone ?? item.userId}</p><p>สร้างเมื่อ: {new Date(item.createdAt).toLocaleString('th-TH')}</p></div>
-            <div><strong>ข้อมูลสลิป</strong><p>Ref: {proof.transactionRef || '-'}</p><p>ยอดที่อ่านได้: {proof.detectedAmount ? formatMoney(proof.detectedAmount) : '-'}</p><p>เวลาโอน: {proof.transferredAt ? new Date(proof.transferredAt).toLocaleString('th-TH') : '-'}</p></div>
+            <div>{slip?.dataUrl ? <img src={slip.dataUrl} alt="หลักฐานการฝาก" className="admin-topup-modal-slip" /> : <AdminEmpty>ไม่มีรูปหลักฐาน</AdminEmpty>}</div>
           </AdminSectionRow>
-
-          <AdminCard title="หลักฐานและความเสี่ยง">
-            {proof.dataUrl ? <img src={proof.dataUrl} alt="หลักฐานการฝาก" className="admin-topup-modal-slip" /> : <AdminEmpty>ไม่มีรูปหลักฐาน</AdminEmpty>}
-            <AdminRow><strong>ไฟล์แฮช</strong><span>{proof.fileHash || '-'}</span></AdminRow>
-            {proof.duplicateOfId && <AdminRow><strong>ซ้ำกับรายการ</strong><span>{proof.duplicateOfId}</span></AdminRow>}
-            {proof.duplicateReason && <AdminRow><strong>เหตุผล</strong><span>{proof.duplicateReason}</span></AdminRow>}
-          </AdminCard>
 
           <label className="admin-topup-note-field"><span>หมายเหตุแอดมิน</span><textarea value={notes[item.id] ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [item.id]: event.target.value }))} /></label>
           <div className="admin-topup-action-grid admin-topup-action-grid--review">
             {!item.claimedBy && <AdminButton disabled={busyId === item.id} onClick={() => void queueAction(item.id, 'claim')}>รับงาน</AdminButton>}
             {item.claimedBy && <AdminButton disabled={busyId === item.id} onClick={() => void queueAction(item.id, 'release')}>ปล่อยงาน</AdminButton>}
-            {actions.includes('APPROVE_SLIP') && <AdminButton tone="success" disabled={busyId === item.id || !proof.dataUrl} onClick={() => requestAction(item, 'approve-slip')}>สลิปผ่าน</AdminButton>}
+            {actions.includes('APPROVE_SLIP') && <AdminButton tone="success" disabled={busyId === item.id || !slip?.dataUrl} onClick={() => requestAction(item, 'approve-slip')}>สลิปผ่าน</AdminButton>}
             {actions.includes('CONFIRM_CREDIT') && <AdminButton tone="success" disabled={busyId === item.id} onClick={() => requestAction(item, 'confirm-credit')}>ยืนยันเพิ่มเครดิต</AdminButton>}
-            {actions.includes('REJECT_DEPOSIT') && <AdminButton tone="danger" disabled={busyId === item.id} onClick={() => requestAction(item, 'reject-staged')}>ไม่อนุมัติ</AdminButton>}
           </div>
         </AdminCard>;
       })}
       {items.length === 0 && <AdminEmpty>ไม่มีรายการฝากในสถานะนี้</AdminEmpty>}
     </AdminStack>
 
-    <AdminConfirmDialog open={Boolean(pendingAction && currentItem)} tone={pendingAction?.action === 'reject-staged' ? 'danger' : 'success'} title="ยืนยันการดำเนินการ" description="ตรวจสอบข้อมูลก่อนยืนยัน" confirmLabel="ยืนยัน" loading={Boolean(busyId)} onCancel={() => setPendingAction(null)} onConfirm={() => void executeAction()} details={currentItem && <><ConfirmDetailRow label="สมาชิก" value={currentItem.user?.username ?? currentItem.userId} /><ConfirmDetailRow label="จำนวน" value={formatMoney(currentItem.amount)} /><ConfirmDetailRow label="สถานะ" value={financeStatusLabel(currentItem.status)} /></>} />
+    <AdminConfirmDialog open={Boolean(pendingAction && currentItem)} tone="success" title="ยืนยันการดำเนินการ" description="ตรวจสอบข้อมูลก่อนยืนยัน" confirmLabel="ยืนยัน" loading={Boolean(busyId)} onCancel={() => setPendingAction(null)} onConfirm={() => void executeAction()} details={currentItem && <><ConfirmDetailRow label="สมาชิก" value={currentItem.user?.username ?? currentItem.userId} /><ConfirmDetailRow label="จำนวน" value={formatMoney(currentItem.amount)} /><ConfirmDetailRow label="สถานะ" value={financeStatusLabel(currentItem.status)} /></>} />
   </AdminPage>;
 }
 
@@ -203,10 +181,4 @@ function cardTone(status: DepositWorkflowStatus): 'success' | 'danger' | 'warnin
   if (status === 'REJECTED' || status === 'DUPLICATE') return 'danger';
   if (status === 'PENDING_SLIP_REVIEW' || status === 'PENDING_CREDIT') return 'warning';
   return 'neutral';
-}
-
-function actionMessage(action: ActionKind) {
-  if (action === 'approve-slip') return 'อนุมัติสลิปแล้ว รอเพิ่มเครดิต';
-  if (action === 'confirm-credit') return 'เพิ่มเครดิตสำเร็จ';
-  return 'ปฏิเสธรายการแล้ว';
 }
