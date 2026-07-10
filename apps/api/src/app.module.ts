@@ -21,6 +21,7 @@ import { MoneyOpsModule } from './modules/money-ops/money-ops.module';
 import { SupportModule } from './modules/support/support.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { AffiliatesModule } from './modules/affiliates/affiliates.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { HealthModule } from './modules/health/health.module';
 
 @Module({
@@ -47,6 +48,7 @@ import { HealthModule } from './modules/health/health.module';
     SupportModule,
     PromotionsModule,
     AffiliatesModule,
+    NotificationsModule,
     HealthModule,
   ],
 })
