@@ -7,6 +7,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "test": "turbo test",
+    "audit:admin-permissions": "node tools/audit-admin-permissions.mjs",
     "db:generate": "prisma generate --schema prisma/schema.prisma",
     "db:migrate": "prisma migrate deploy --schema prisma/schema.prisma",
     "db:migrate:dev": "prisma migrate dev --schema prisma/schema.prisma",
