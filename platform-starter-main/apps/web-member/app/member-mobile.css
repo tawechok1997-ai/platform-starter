@@ -1,0 +1,27 @@
+@media (max-width: 767px) {
+  .member-shell { max-width: 100%; padding-inline: 14px; gap: 14px; }
+  .member-topbar { min-height: 64px; padding-inline: 14px; }
+  .member-brand-copy small { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .member-bottom-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .member-drawer { width: min(88vw, 360px); }
+  .member-quick-panel { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .member-home-game-rail { grid-auto-columns: minmax(150px, 68vw); }
+  .member-ui-button { min-height: 46px; }
+  .member-ui-card { border-radius: 22px; padding: 16px; }
+}
+
+@media (max-width: 430px) {
+  .member-quick-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .member-home-hero { align-items: stretch; }
+  .member-home-hero__image { width: 72px; height: 72px; }
+  .member-home-section-head { align-items: flex-start; }
+  .member-footer { margin-bottom: calc(116px + env(safe-area-inset-bottom)); }
+}
+
+@media (max-width: 374px) {
+  .member-shell { padding-inline: 10px; }
+  .member-topbar { padding-inline: 10px; }
+  .member-brand-mark { width: 38px; height: 38px; }
+  .member-quick-action { min-height: 74px; padding: 12px; }
+  .member-bottom-nav a { font-size: 11px; }
+}

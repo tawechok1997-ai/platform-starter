@@ -1,0 +1,48 @@
+/* Responsive operation pages: queues, members and transactions. */
+
+.admin-queue-filter{display:grid;gap:6px;min-width:min(260px,100%);font-weight:850}.admin-queue-filter span{color:#cbd5e1;font-size:13px}.admin-queue-filter select{width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(148,163,184,.22);background:#0b1220;color:#f8fafc;padding:0 12px}.admin-queue-pager{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;gap:10px;min-width:min(360px,100%)}.admin-queue-page-label{display:inline-flex;align-items:center;justify-content:center;color:#94a3b8;font-weight:850;min-height:44px}.admin-topup-summary,.admin-withdraw-summary{display:grid;gap:6px;min-width:0}.admin-topup-summary h2,.admin-withdraw-summary h2{margin:4px 0;font-size:clamp(28px,7vw,34px);line-height:1.05;overflow-wrap:anywhere}.admin-topup-summary p,.admin-withdraw-summary p{margin:0;color:#cbd5e1;overflow-wrap:anywhere}.admin-topup-badges,.admin-withdraw-badges{display:flex;gap:8px;flex-wrap:wrap}.admin-topup-bank-card,.admin-withdraw-bank-card{border:1px solid rgba(245,197,66,.28);border-radius:16px;padding:12px;display:grid;gap:5px;background:rgba(245,197,66,.08);overflow-wrap:anywhere;min-width:0}.admin-topup-account-number,.admin-withdraw-account-number{font-size:clamp(18px,5vw,22px);font-weight:950;letter-spacing:.02em;color:#f5c542;overflow-wrap:anywhere}.admin-topup-proof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:12px}.admin-topup-proof-panel{border:1px solid rgba(148,163,184,.18);border-radius:16px;padding:12px;background:rgba(255,255,255,.04);min-width:0;display:grid;place-items:center}.admin-topup-proof-panel img{width:100%;max-height:520px;object-fit:contain;border-radius:12px;background:#020617}.admin-topup-proof-panel p{margin:0;color:#94a3b8}.admin-topup-timeline,.admin-withdraw-timeline{display:grid;gap:8px;align-content:start}.admin-topup-operations,.admin-withdraw-operations{display:grid;gap:12px;margin-top:14px;min-width:0}.admin-topup-action-grid,.admin-withdraw-action-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));gap:10px;min-width:0}.admin-topup-note-field,.admin-withdraw-note-field{display:grid;gap:6px;font-weight:850;min-width:0}.admin-topup-note-field textarea,.admin-withdraw-note-field textarea{min-height:92px;border-radius:14px;border:1px solid rgba(148,163,184,.22);background:#0b1220;color:#f8fafc;padding:12px;resize:vertical;min-width:0;width:100%;box-sizing:border-box}.admin-topup-modal-details,.admin-withdraw-modal-details{display:grid;gap:10px;min-width:0}.admin-topup-modal-slip{width:100%;max-height:360px;object-fit:contain;border-radius:14px;border:1px solid rgba(148,163,184,.18);background:#020617}.admin-withdraw-review-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:12px}.admin-withdraw-risk-card{border:1px solid rgba(239,68,68,.22);border-radius:16px;padding:14px;background:rgba(239,68,68,.06);display:grid;gap:7px;align-content:start}.admin-withdraw-risk-card strong{color:#fecaca}.admin-withdraw-risk-card span{color:#cbd5e1;line-height:1.5;overflow-wrap:anywhere}
+
+.admin-members-filter-form{min-width:0}.admin-members-field,.admin-ledger-field{display:grid;gap:6px;min-width:min(260px,100%);font-weight:850}.admin-members-field span,.admin-ledger-field span{color:#cbd5e1;font-size:13px}.admin-members-field input,.admin-members-field select,.admin-ledger-field input,.admin-ledger-field select{width:100%;min-height:46px;border-radius:12px;border:1px solid rgba(148,163,184,.22);background:#0b1220;color:#f8fafc;padding:0 12px;box-sizing:border-box}.admin-members-filter-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.admin-member-card-grid{display:grid;gap:16px;min-width:0}.admin-member-identity{display:grid;gap:7px;min-width:0}.admin-member-identity p{margin:0;color:#cbd5e1;overflow-wrap:anywhere}.admin-member-badges{display:flex;gap:8px;flex-wrap:wrap}.admin-member-money-summary{display:grid;gap:10px;min-width:0}.admin-member-money-summary>div:first-child{display:grid;gap:4px}.admin-member-money-summary span{color:#94a3b8}.admin-member-money-summary strong{font-size:clamp(20px,5vw,28px);overflow-wrap:anywhere}.admin-member-balance-grid{display:grid;gap:4px;color:#94a3b8;font-size:13px}.admin-member-profile-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;width:fit-content;color:#f5c542;font-weight:900;text-decoration:none}.admin-member-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));gap:10px}
+
+.admin-ledger-guidance{color:#94a3b8;line-height:1.55;max-width:540px}.admin-ledger-card-grid{display:grid;gap:14px;min-width:0}.admin-ledger-identity{display:grid;gap:6px;min-width:0}.admin-ledger-identity p{margin:0;color:#94a3b8;overflow-wrap:anywhere}.admin-ledger-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.admin-ledger-amount{display:grid;gap:6px;align-content:start}.admin-ledger-amount span,.admin-ledger-balance-grid span{color:#94a3b8;font-size:13px}.admin-ledger-amount strong{font-size:clamp(22px,5vw,30px);overflow-wrap:anywhere}.admin-ledger-balance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:8px}.admin-ledger-balance-grid>div{display:grid;gap:4px;border:1px solid rgba(148,163,184,.14);border-radius:14px;padding:10px;background:rgba(255,255,255,.025);min-width:0}.admin-ledger-balance-grid strong{overflow-wrap:anywhere}.admin-ledger-details{color:#cbd5e1}.admin-ledger-details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:850}.admin-ledger-details pre{overflow:auto;white-space:pre-wrap;background:#020617;border-radius:12px;padding:12px;max-height:360px}
+
+@media (max-width: 767px) {
+  body { overflow-x: hidden; }
+  main { padding-inline: 12px !important; }
+  main > header { align-items: stretch !important; }
+  main > header > div:last-child { width: 100% !important; }
+  main > header button,
+  main > header a { width: 100%; }
+  main select,
+  main input,
+  main textarea,
+  main button { min-height: 46px; }
+  main textarea { min-height: 108px; resize: vertical; }
+  main [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  main [style*="justify-content: space-between"] { align-items: stretch !important; }
+  main [style*="justify-content: flex-end"] { justify-content: stretch !important; }
+  main [style*="justify-content: flex-end"] > * { flex: 1 1 140px; }
+  main img { max-width: 100%; height: auto; }
+  main table { min-width: 720px; }
+  .admin-queue-pager{grid-template-columns:1fr}.admin-queue-page-label{order:-1}.admin-topup-proof-grid,.admin-withdraw-review-grid{grid-template-columns:1fr}.admin-topup-action-grid,.admin-withdraw-action-grid{grid-template-columns:1fr}.admin-topup-action-grid--review,.admin-withdraw-action-grid--review{position:sticky;bottom:max(10px,env(safe-area-inset-bottom));z-index:6;padding:10px;border:1px solid rgba(148,163,184,.18);border-radius:16px;background:rgba(2,6,23,.94);backdrop-filter:blur(14px)}
+  .admin-members-filter-actions,.admin-member-actions{grid-template-columns:1fr}.admin-member-profile-link{width:100%}.admin-ledger-title-row{align-items:flex-start;flex-direction:column}.admin-ledger-balance-grid{grid-template-columns:1fr}
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  main { padding-inline: 18px !important; }
+  main [style*="grid-template-columns"] { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  .admin-topup-proof-grid,.admin-withdraw-review-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .admin-member-card-grid{grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr)}.admin-member-actions{grid-column:1/-1}.admin-ledger-card-grid{grid-template-columns:minmax(0,1fr) minmax(220px,.55fr)}.admin-ledger-balance-grid,.admin-ledger-details{grid-column:1/-1}
+}
+
+@media (min-width: 1024px) {
+  main { max-width: 1540px !important; }
+  main > header { position: sticky; top: 0; z-index: 8; padding-block: 18px; background: linear-gradient(180deg, rgba(8,8,8,.98), rgba(8,8,8,.88), transparent); backdrop-filter: blur(14px); }
+  main [style*="grid-template-columns"] { align-items: start; }
+  .admin-queue-filter{max-width:320px}.admin-queue-pager{margin-left:auto}.admin-topup-proof-grid{grid-template-columns:minmax(320px,.9fr) minmax(0,1.1fr)}.admin-topup-proof-panel{position:sticky;top:110px}.admin-topup-operations,.admin-withdraw-operations{grid-template-columns:minmax(220px,.7fr) minmax(320px,1.3fr);align-items:end}.admin-topup-action-grid--review,.admin-withdraw-action-grid--review{grid-column:1/-1}.admin-withdraw-review-grid{grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr)}
+  .admin-member-card-grid{grid-template-columns:minmax(0,1.2fr) minmax(260px,.7fr) minmax(180px,.5fr);align-items:start}.admin-member-money-summary{text-align:right}.admin-member-profile-link{margin-left:auto}.admin-member-actions{grid-template-columns:1fr}.admin-ledger-card-grid{grid-template-columns:minmax(0,1.2fr) minmax(260px,.55fr)}.admin-ledger-amount{text-align:right;justify-items:end}.admin-ledger-balance-grid,.admin-ledger-details{grid-column:1/-1}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main *,main *::before,main *::after { transition-duration:.01ms!important; animation-duration:.01ms!important; scroll-behavior:auto!important; }
+}

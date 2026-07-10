@@ -1,0 +1,16 @@
+@media (min-width: 1024px) {
+  .admin-shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100dvh; }
+  .admin-sidebar { position: sticky; top: 0; height: 100dvh; overflow-y: auto; }
+  .admin-main { min-width: 0; }
+  .admin-topbar { position: sticky; top: 0; z-index: 40; }
+  .admin-page { width: 100%; max-width: 1600px; margin: 0 auto; padding: 24px 28px 40px; }
+  .admin-grid,.admin-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .admin-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-table-wrap { overflow: auto; }
+}
+
+@media (min-width: 1440px) {
+  .admin-shell { grid-template-columns: 300px minmax(0, 1fr); }
+  .admin-page { padding-inline: 36px; }
+  .admin-grid,.admin-metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}

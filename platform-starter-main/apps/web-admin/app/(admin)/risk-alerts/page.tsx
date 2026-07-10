@@ -1,0 +1,60 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { adminApiFetch } from '../../admin-api';
+import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
+import { humanStatus, severityLabel, statusTone } from '../_components/human-labels';
+import { RiskMetadataRaw, RiskMetadataView } from './metadata';
+
+type RiskAlert = { id: string; type: string; severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'; status: 'OPEN' | 'REVIEWING' | 'RESOLVED' | 'DISMISSED'; memberId?: string | null; shortMemberId?: string | null; refType?: string | null; refId?: string | null; title: string; description?: string | null; metadata?: Record<string, unknown> | null; createdAt: string };
+type RiskResponse = { items?: RiskAlert[]; total?: number; page?: number; pageCount?: number; summary?: { openCount?: number; criticalCount?: number } };
+const PAGE_SIZE = 20;
+const statusOptions = ['', 'OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED'];
+const severityOptions = ['', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+const typeOptions = ['', 'REPEATED_TOPUPS', 'RAPID_DEPOSIT_WITHDRAWAL', 'HIGH_WITHDRAWAL', 'BANK_CHANGE_WITHDRAWAL', 'MULTIPLE_PENDING_TOPUPS', 'WALLET_LEDGER_MISMATCH'];
+
+export default function RiskAlertsPage() {
+  const [items, setItems] = useState<RiskAlert[]>([]);
+  const [summary, setSummary] = useState({ openCount: 0, criticalCount: 0 });
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
+  const [status, setStatus] = useState('OPEN');
+  const [severity, setSeverity] = useState('');
+  const [type, setType] = useState('');
+  const [createdFrom, setCreatedFrom] = useState('');
+  const [createdTo, setCreatedTo] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [scanning, setScanning] = useState(false);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const [message, setMessage] = useState('');
+  useEffect(() => { load(1); }, []);
+  useEffect(() => { load(page); }, [page]);
+  useEffect(() => { setPage(1); load(1); }, [status, severity, type]);
+  useEffect(() => { if (cooldownRemaining <= 0) return; const timer = window.setInterval(() => setCooldownRemaining((value) => Math.max(0, value - 1)), 1000); return () => window.clearInterval(timer); }, [cooldownRemaining]);
+  async function load(nextPage = page) { setLoading(true); const query = new URLSearchParams(); if (status) query.set('status', status); if (severity) query.set('severity', severity); if (type) query.set('type', type); if (createdFrom) query.set('createdFrom', createdFrom); if (createdTo) query.set('createdTo', createdTo); query.set('page', String(nextPage)); query.set('take', String(PAGE_SIZE)); const res = await adminApiFetch(`/admin/risk-alerts?${query.toString()}`); const data = (await res.json().catch(() => null)) as RiskResponse | { message?: string; retryAfter?: number } | null; if (res.ok && data) { const payload = data as RiskResponse; setItems(payload.items ?? []); setTotal(Number(payload.total ?? payload.items?.length ?? 0)); setPageCount(Math.max(Number(payload.pageCount ?? 1), 1)); setSummary({ openCount: Number(payload.summary?.openCount ?? 0), criticalCount: Number(payload.summary?.criticalCount ?? 0) }); setMessage(''); } else setMessage((data as { message?: string } | null)?.message ?? 'โหลดปัญหาไม่สำเร็จ'); setLoading(false); }
+  async function scan() { if (scanning || cooldownRemaining > 0) return; setScanning(true); setMessage('กำลังสแกนปัญหา...'); const res = await adminApiFetch('/admin/risk-alerts/scan', { method: 'POST' }); const data = await res.json().catch(() => null); if (res.ok) { setMessage(`สแกนเสร็จ เจอปัญหาใหม่ ${Number(data?.created ?? 0)} รายการ`); setCooldownRemaining(45); } else if (data?.retryAfter) { const retryAfter = Number(data.retryAfter); setCooldownRemaining(Number.isFinite(retryAfter) ? retryAfter : 45); setMessage(`สแกนถี่เกินไป ลองใหม่ใน ${data.retryAfter} วินาที`); } else setMessage(data?.message ?? 'สแกนปัญหาไม่สำเร็จ'); setScanning(false); await load(page); }
+  async function updateStatus(id: string, nextStatus: RiskAlert['status']) { const res = await adminApiFetch(`/admin/risk-alerts/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) }); const data = await res.json().catch(() => null); if (!res.ok) setMessage(data?.message ?? 'อัปเดตสถานะไม่สำเร็จ'); else setMessage('อัปเดตสถานะแล้ว'); await load(page); }
+  function applyDateFilters() { setPage(1); load(1); }
+  function clearFilters() { setStatus('OPEN'); setSeverity(''); setType(''); setCreatedFrom(''); setCreatedTo(''); setPage(1); setTimeout(() => load(1), 0); }
+  const scanDisabled = scanning || cooldownRemaining > 0;
+  return <AdminPage eyebrow="งานที่ต้องตรวจ" title="ปัญหาที่ต้องดู" description="รวมรายการผิดปกติ เช่น ฝาก/ถอนถี่ ยอดสูง ยอดเงินไม่ตรง ให้แอดมินตรวจและปิดเคส" actions={<AdminButton onClick={scan} disabled={scanDisabled}>{scanning ? 'กำลังสแกน...' : cooldownRemaining > 0 ? `รอ ${cooldownRemaining}s` : 'สแกนปัญหา'}</AdminButton>}>
+    <AdminMetricGrid><AdminMetric title="ยังเปิดอยู่" value={String(summary.openCount)} helper="ต้องตรวจ/กำลังตรวจ" /><AdminMetric title="เสี่ยงสูง" value={String(summary.criticalCount)} helper="ควรดูก่อน" /><AdminMetric title="แสดงอยู่" value={String(items.length)} helper={`${total} ทั้งหมด`} /><AdminMetric title="หน้า" value={`${page}/${pageCount}`} helper={`${PAGE_SIZE} รายการ/หน้า`} /></AdminMetricGrid>
+    {cooldownRemaining > 0 && <AdminNotice>สแกนใหม่ได้ใน {cooldownRemaining} วินาที</AdminNotice>}
+    <AdminToolbar><label style={fieldStyle}>สถานะ<select value={status} onChange={(event) => setStatus(event.target.value)} style={inputStyle}>{statusOptions.map((value) => <option key={value} value={value}>{value ? humanStatus(value) : 'ทั้งหมด'}</option>)}</select></label><label style={fieldStyle}>ความรุนแรง<select value={severity} onChange={(event) => setSeverity(event.target.value)} style={inputStyle}>{severityOptions.map((value) => <option key={value} value={value}>{value ? severityLabel(value) : 'ทั้งหมด'}</option>)}</select></label><label style={fieldStyle}>ประเภท<select value={type} onChange={(event) => setType(event.target.value)} style={inputStyle}>{typeOptions.map((value) => <option key={value} value={value}>{value ? riskTypeLabel(value) : 'ทั้งหมด'}</option>)}</select></label><label style={fieldStyle}>จาก<input type="date" value={createdFrom} onChange={(event) => setCreatedFrom(event.target.value)} style={inputStyle} /></label><label style={fieldStyle}>ถึง<input type="date" value={createdTo} onChange={(event) => setCreatedTo(event.target.value)} style={inputStyle} /></label><div style={filterActionStyle}><AdminButton tone="secondary" onClick={applyDateFilters}>ใช้ตัวกรอง</AdminButton><AdminButton tone="secondary" onClick={clearFilters}>ล้าง</AdminButton></div><div style={pagerStyle}><AdminButton disabled={loading || page <= 1} onClick={() => setPage((value) => Math.max(value - 1, 1))}>ก่อนหน้า</AdminButton><span>หน้า {page} / {pageCount}</span><AdminButton disabled={loading || page >= pageCount} onClick={() => setPage((value) => Math.min(value + 1, pageCount))}>ถัดไป</AdminButton></div></AdminToolbar>
+    {message && <AdminNotice>{message}</AdminNotice>}
+    <AdminCard title="รายการปัญหา" description="เปิดดูรายละเอียดก่อน Resolve/Dismiss โดยเฉพาะความเสี่ยงสูง"><AdminStack>{loading ? <AdminEmpty>กำลังโหลด...</AdminEmpty> : items.length === 0 ? <AdminEmpty>ไม่มีปัญหาตามตัวกรองนี้</AdminEmpty> : items.map((item) => <AdminRow key={item.id}><div style={alertBodyStyle}><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminBadge tone={severityTone(item.severity)}>{severityLabel(item.severity)}</AdminBadge><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminBadge>{riskTypeLabel(item.type)}</AdminBadge></div><strong>{item.title}</strong>{item.description && <span style={mutedStyle}>{item.description}</span>}<div style={detailGridStyle}><span>สมาชิก: {item.memberId ? <a href={`/members/${item.memberId}`} style={linkStyle}>{item.shortMemberId ?? item.memberId.slice(0, 8)}</a> : '-'}</span><span>อ้างอิง: {item.refType ?? '-'} / {item.refId ? item.refId.slice(0, 8) : '-'}</span><span>สร้างเมื่อ: {new Date(item.createdAt).toLocaleString('th-TH')}</span></div>{item.metadata && <details style={detailsStyle}><summary>ข้อมูลเทคนิค</summary><RiskMetadataView metadata={item.metadata} /><RiskMetadataRaw metadata={item.metadata} /></details>}</div><div style={actionStyle}><AdminLinkButton href={`/risk-alerts/${item.id}`}>ดู</AdminLinkButton><AdminButton tone="secondary" disabled={item.status === 'REVIEWING'} onClick={() => updateStatus(item.id, 'REVIEWING')}>กำลังตรวจ</AdminButton><AdminButton tone="success" disabled={item.status === 'RESOLVED'} onClick={() => updateStatus(item.id, 'RESOLVED')}>แก้แล้ว</AdminButton><AdminButton tone="danger" disabled={item.status === 'DISMISSED'} onClick={() => updateStatus(item.id, 'DISMISSED')}>ปิด</AdminButton></div></AdminRow>)}</AdminStack></AdminCard>
+  </AdminPage>;
+}
+function severityTone(value: RiskAlert['severity']) { if (value === 'CRITICAL' || value === 'HIGH') return 'danger'; if (value === 'MEDIUM') return 'warning'; return 'neutral'; }
+function riskTypeLabel(type: string) { const map: Record<string, string> = { REPEATED_TOPUPS: 'ฝากถี่ผิดปกติ', RAPID_DEPOSIT_WITHDRAWAL: 'ฝากแล้วถอนเร็ว', HIGH_WITHDRAWAL: 'ถอนยอดสูง', BANK_CHANGE_WITHDRAWAL: 'เปลี่ยนบัญชีแล้วถอน', MULTIPLE_PENDING_TOPUPS: 'ฝากค้างหลายรายการ', WALLET_LEDGER_MISMATCH: 'ยอดเงินไม่ตรง' }; return map[type] ?? type; }
+const fieldStyle = { display: 'grid', gap: 6, color: '#94a3b8', fontSize: 12, fontWeight: 900, minWidth: 0, width: '100%', maxWidth: '100%', overflow: 'hidden' as const } as const;
+const inputStyle = { minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' as const, fontSize: 16 };
+const filterActionStyle = { display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', alignItems: 'end', gap: 8, minWidth: 0, width: '100%' } as const;
+const pagerStyle = { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const };
+const alertBodyStyle = { display: 'grid', gap: 8, flex: '1 1 240px', minWidth: 0, maxWidth: '100%', overflow: 'hidden' as const };
+const mutedStyle = { color: '#94a3b8', fontSize: 13, lineHeight: 1.45 } as const;
+const actionStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const, alignItems: 'start', justifyContent: 'flex-end' as const, minWidth: 0, maxWidth: '100%' };
+const detailGridStyle = { display: 'grid', gap: 5, color: '#94a3b8', fontSize: 13, minWidth: 0 } as const;
+const linkStyle = { color: '#f5c542', fontWeight: 900 } as const;
+const detailsStyle = { border: '1px solid rgba(148,163,184,.18)', borderRadius: 12, padding: 10, background: 'rgba(15,23,42,.45)', minWidth: 0, maxWidth: '100%', overflow: 'hidden' as const };
