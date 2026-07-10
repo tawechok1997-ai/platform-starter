@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+const LOGIN_TIMEOUT_MS = 15000;
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
@@ -19,16 +20,65 @@ export default function AdminLoginPage() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!username.trim() || !secret.trim()) { setStatus('error'); setMessage('กรอก username และรหัสผ่าน'); return; }
-    setLoading(true); setStatus('info'); setMessage('กำลังเข้าสู่ระบบ...');
-    const res = await fetch(`${API_URL}/admin/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username.trim(), secret, twoFactorCode: twoFactorCode.trim() || undefined, deviceId: 'web-admin' }) });
-    const data = await res.json().catch(() => null); setLoading(false);
-    if (!res.ok) { setStatus('error'); setMessage(data?.message ?? 'เข้าสู่ระบบไม่สำเร็จ'); return; }
-    if (data.requiresTwoFactor) { setStatus('info'); setMessage('กรอก 2FA แล้วกด Login อีกครั้ง'); return; }
-    window.localStorage.setItem('admin_access_token', data.accessToken);
-    window.localStorage.setItem('admin_refresh_token', data.refreshToken);
-    setStatus('success'); setMessage('เข้าสู่ระบบสำเร็จ');
-    window.location.replace('/dashboard');
+    if (!username.trim() || !secret.trim()) {
+      setStatus('error');
+      setMessage('กรอก username และรหัสผ่าน');
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), LOGIN_TIMEOUT_MS);
+
+    setLoading(true);
+    setStatus('info');
+    setMessage('กำลังเข้าสู่ระบบ...');
+
+    try {
+      const res = await fetch(`${API_URL}/admin/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: username.trim(),
+          secret,
+          twoFactorCode: twoFactorCode.trim() || undefined,
+          deviceId: 'web-admin',
+        }),
+        signal: controller.signal,
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setStatus('error');
+        setMessage(data?.message ?? `เข้าสู่ระบบไม่สำเร็จ (${res.status})`);
+        return;
+      }
+
+      if (data?.requiresTwoFactor) {
+        setStatus('info');
+        setMessage('กรอก 2FA แล้วกด Login อีกครั้ง');
+        return;
+      }
+
+      if (!data?.accessToken || !data?.refreshToken) {
+        setStatus('error');
+        setMessage('ระบบตอบกลับไม่สมบูรณ์ กรุณาลองใหม่');
+        return;
+      }
+
+      window.localStorage.setItem('admin_access_token', data.accessToken);
+      window.localStorage.setItem('admin_refresh_token', data.refreshToken);
+      setStatus('success');
+      setMessage('เข้าสู่ระบบสำเร็จ');
+      window.location.replace('/dashboard');
+    } catch (error) {
+      const aborted = error instanceof DOMException && error.name === 'AbortError';
+      setStatus('error');
+      setMessage(aborted ? 'เชื่อมต่อ API เกิน 15 วินาที กรุณาตรวจสอบ API URL หรือสถานะเซิร์ฟเวอร์' : 'เชื่อมต่อระบบ Admin ไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      window.clearTimeout(timeoutId);
+      setLoading(false);
+    }
   }
 
   return <main style={pageStyle}>
