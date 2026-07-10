@@ -2,6 +2,8 @@
 
 Updated: 2026-07-11
 
+> Maintenance mode: อัปเดตไฟล์นี้ด้วย direct commit เข้า `main` โดยไม่เปิด PR เว้นแต่งานนั้นมีความเสี่ยงสูงหรือมีการเปลี่ยน schema/migration ขนาดใหญ่
+
 ไฟล์นี้เป็นรายการงานกลางของโปรเจกต์ ใช้ตรวจว่างานใดเสร็จแล้ว งานใดกำลังทำ งานใดรอข้อมูลภายนอก และงานใดควรทำต่อเป็นลำดับถัดไป
 
 ## Status legend
@@ -46,6 +48,7 @@ Updated: 2026-07-11
 - ✅ PR #7 `feat(member): connect deposit UX to staged slip review`
 - ✅ PR #8 `feat(admin): build guarded deposit and withdrawal operations`
 - ✅ PR #10 `fix(finance): serialize wallet mutations and retries`
+- ✅ PR #11 `docs: add current project worklist`
 
 ## Current priority
 
