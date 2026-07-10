@@ -12,6 +12,7 @@ import './member-finance-flow.css';
 import './member-deposit-flow.css';
 import './member-withdraw-flow.css';
 import './member-games.css';
+import './games/games.css';
 import './member-promotions.css';
 import './public-auth-shell.css';
 import './public-auth-polish.css';
