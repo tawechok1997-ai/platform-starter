@@ -1,6 +1,9 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-
 type ApiOptions = RequestInit & { skipAuth?: boolean };
+
+function proxiedPath(path: string) {
+  if (!path.startsWith('/admin/')) throw new Error(`Unsupported admin API path: ${path}`);
+  return `/api/admin/${path.slice('/admin/'.length)}`;
+}
 
 export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   const token = window.localStorage.getItem('admin_access_token');
@@ -8,7 +11,8 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
   if (!options.skipAuth && token) headers.set('Authorization', `Bearer ${token}`);
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const url = proxiedPath(path);
+  const res = await fetch(url, { ...options, headers });
   if (await redirectToTwoFactorSetup(res, options)) return res;
   if (res.status !== 401 || options.skipAuth) return res;
 
@@ -21,7 +25,7 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   }
 
   headers.set('Authorization', `Bearer ${refreshed}`);
-  const retry = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const retry = await fetch(url, { ...options, headers });
   if (await redirectToTwoFactorSetup(retry, options)) return retry;
   if (retry.status === 401) {
     clearAdminSession();
@@ -43,7 +47,11 @@ async function redirectToTwoFactorSetup(response: Response, options: ApiOptions)
 export async function refreshAdminToken() {
   const refreshToken = window.localStorage.getItem('admin_refresh_token');
   if (!refreshToken) return '';
-  const res = await fetch(`${API_URL}/admin/auth/refresh`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken }) });
+  const res = await fetch('/api/admin/auth/refresh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.accessToken) return '';
   window.localStorage.setItem('admin_access_token', data.accessToken);
