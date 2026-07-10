@@ -33,6 +33,8 @@ const permissions = [
   ['seo.update', 'SEO Update', 'seo'],
   ['admin.view', 'Admin View', 'admin'],
   ['admin.create', 'Admin Create', 'admin'],
+  ['admin.access.view', 'Admin Access View', 'admin'],
+  ['admin.access.manage', 'Admin Access Manage', 'admin'],
   ['roles.update', 'Roles Update', 'admin'],
   ['settings.update', 'Settings Update', 'settings'],
   ['settings.website.view', 'Website Settings View', 'settings'],
