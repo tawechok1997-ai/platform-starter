@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from '../admin-api';
 import { navGroups } from './admin-nav';
 
+const AUTH_TIMEOUT_MS = 12000;
+
 export default function AdminProtectedLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
@@ -25,17 +27,21 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
         window.location.replace(`/login?next=${next}`);
         return;
       }
-      await loadQueueCount();
+      void loadQueueCount();
     }
-    checkAuth();
-    const interval = window.setInterval(loadQueueCount, 60000);
+    void checkAuth();
+    const interval = window.setInterval(() => { void loadQueueCount(); }, 60000);
     return () => { cancelled = true; window.clearInterval(interval); };
   }, [pathname]);
 
   async function loadQueueCount() {
-    const res = await adminApiFetch('/admin/queues/summary');
-    const data = await res.json().catch(() => null);
-    if (res.ok && data) setQueueCount({ topups: Number(data.topUps?.count ?? 0), withdrawals: Number(data.withdrawals?.count ?? 0) });
+    try {
+      const res = await adminApiFetch('/admin/queues/summary');
+      const data = await res.json().catch(() => null);
+      if (res.ok && data) setQueueCount({ topups: Number(data.topUps?.count ?? 0), withdrawals: Number(data.withdrawals?.count ?? 0) });
+    } catch {
+      // Queue counters are supplementary and must never block the admin shell.
+    }
   }
 
   function logout() { clearAdminSession(); window.location.href = '/login'; }
@@ -47,8 +53,19 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
 
 async function verifyAdminSession() {
   if (!window.localStorage.getItem('admin_access_token') && !window.localStorage.getItem('admin_refresh_token')) return false;
-  const res = await adminApiFetch('/admin/queues/summary');
-  if (res.ok) return true;
-  clearAdminSession();
-  return false;
+
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), AUTH_TIMEOUT_MS);
+
+  try {
+    const res = await adminApiFetch('/admin/queues/summary', { signal: controller.signal });
+    if (res.ok) return true;
+    clearAdminSession();
+    return false;
+  } catch {
+    clearAdminSession();
+    return false;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 }
