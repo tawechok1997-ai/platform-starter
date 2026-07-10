@@ -52,13 +52,11 @@ export class RegisterDto {
   @Matches(/^\d{6,20}$/, { message: 'bankAccountNumber must contain 6 to 20 digits' })
   bankAccountNumber!: string;
 
-  @Transform(emptyToUndefined)
   @Transform(trim)
-  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(160)
-  bankAccountName?: string;
+  bankAccountName!: string;
 
   @IsOptional()
   @IsString()
