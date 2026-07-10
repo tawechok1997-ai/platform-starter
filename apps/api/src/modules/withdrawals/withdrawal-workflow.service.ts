@@ -12,6 +12,14 @@ export type PaymentProofInput = {
   note?: string;
 };
 
+type LockedWalletRow = {
+  id: string;
+  user_id: string;
+  status: string;
+  balance: Prisma.Decimal;
+  locked_balance: Prisma.Decimal;
+};
+
 @Injectable()
 export class WithdrawalWorkflowService {
   constructor(private readonly prisma: PrismaService, private readonly storage: StorageService) {}
@@ -80,6 +88,14 @@ export class WithdrawalWorkflowService {
           WHERE "id" = ${requestId}::uuid FOR UPDATE
         `);
         if (!rows[0]) throw new NotFoundException('Withdrawal request not found');
+        if (rows[0].status === 'PAYMENT_PROOF_UPLOADED') {
+          const existing = await tx.$queryRaw<Array<{ payment_slip_url: string | null; payment_slip_file_hash: string | null }>>(Prisma.sql`
+            SELECT "payment_slip_url", "payment_slip_file_hash"
+            FROM "withdrawal_requests"
+            WHERE "id" = ${requestId}::uuid
+          `);
+          if (existing[0]?.payment_slip_file_hash === fileHash) return { ok: true, status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: existing[0].payment_slip_url, fileHash, idempotent: true };
+        }
         if (rows[0].status !== 'APPROVED_FOR_PAYMENT') throw new ConflictException(`Withdrawal cannot accept proof: ${rows[0].status}`);
 
         const changed = await tx.$executeRaw(Prisma.sql`
@@ -123,10 +139,16 @@ export class WithdrawalWorkflowService {
       if (request.status !== 'PAYMENT_PROOF_UPLOADED') throw new ConflictException(`Withdrawal is not ready for verification: ${request.status}`);
       if (!request.payment_slip_url) throw new BadRequestException('Payment proof is required');
 
-      const wallet = await tx.wallet.findUnique({ where: { userId: request.user_id } });
+      const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
+        SELECT "id", "user_id", "status"::text AS status, "balance", "locked_balance"
+        FROM "wallets"
+        WHERE "user_id" = ${request.user_id}::uuid
+        FOR UPDATE
+      `);
+      const wallet = walletRows[0];
       if (!wallet) throw new BadRequestException('Wallet not found');
       if (wallet.status !== 'ACTIVE') throw new BadRequestException('Wallet is not active');
-      if (wallet.lockedBalance.lt(request.amount)) throw new BadRequestException('Locked balance is not enough');
+      if (wallet.locked_balance.lt(request.amount)) throw new BadRequestException('Locked balance is not enough');
       if (wallet.balance.lt(request.amount)) throw new BadRequestException('Balance is not enough');
 
       const existing = await tx.walletLedger.findUnique({ where: { idempotencyKey } });
@@ -134,7 +156,7 @@ export class WithdrawalWorkflowService {
 
       const balanceBefore = wallet.balance;
       const balanceAfter = balanceBefore.minus(request.amount);
-      const lockedAfter = wallet.lockedBalance.minus(request.amount);
+      const lockedAfter = wallet.locked_balance.minus(request.amount);
       await tx.wallet.update({ where: { id: wallet.id }, data: { balance: balanceAfter, lockedBalance: lockedAfter } });
       const ledger = await tx.walletLedger.create({ data: { walletId: wallet.id, userId: request.user_id, type: 'WITHDRAWAL', direction: 'DEBIT', amount: request.amount, balanceBefore, balanceAfter, referenceType: 'withdrawal_request', referenceId: requestId, idempotencyKey, metadata: { workflow: 'approve_upload_verify', paymentSlipUrl: request.payment_slip_url, note }, createdByAdminId: adminUserId } });
 
@@ -154,7 +176,7 @@ export class WithdrawalWorkflowService {
           AND "status" = 'PAYMENT_PROOF_UPLOADED'::"WithdrawalRequestStatus"
       `);
       if (changed !== 1) throw new ConflictException('Withdrawal state changed during verification');
-      await tx.adminAuditLog.create({ data: { adminUserId, action: 'VERIFY_AND_COMPLETE_WITHDRAWAL', module: 'withdrawals', targetId: requestId, oldData: { status: 'PAYMENT_PROOF_UPLOADED', balanceBefore: balanceBefore.toString(), lockedBalance: wallet.lockedBalance.toString() }, newData: { status: 'COMPLETED', balanceAfter: balanceAfter.toString(), lockedAfter: lockedAfter.toString(), ledgerId: ledger.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({ data: { adminUserId, action: 'VERIFY_AND_COMPLETE_WITHDRAWAL', module: 'withdrawals', targetId: requestId, oldData: { status: 'PAYMENT_PROOF_UPLOADED', balanceBefore: balanceBefore.toString(), lockedBalance: wallet.locked_balance.toString() }, newData: { status: 'COMPLETED', balanceAfter: balanceAfter.toString(), lockedAfter: lockedAfter.toString(), ledgerId: ledger.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
       return { ok: true, status: 'COMPLETED', ledgerId: ledger.id, balanceAfter: balanceAfter.toString(), lockedAfter: lockedAfter.toString() };
     });
   }
