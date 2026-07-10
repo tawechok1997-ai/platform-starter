@@ -9,22 +9,30 @@ function createPrisma(options: {
   latestAccountFailureAt?: Date | null;
   latestIpFailureAt?: Date | null;
 } = {}) {
-  const findFirst = jest
-    .fn()
-    .mockResolvedValueOnce(options.lastSuccessAt ? { createdAt: options.lastSuccessAt } : null)
-    .mockResolvedValueOnce(options.latestAccountFailureAt ? { createdAt: options.latestAccountFailureAt } : null)
-    .mockResolvedValueOnce(options.latestIpFailureAt ? { createdAt: options.latestIpFailureAt } : null);
+  const adminId = options.adminId === null ? null : options.adminId ?? 'admin-1';
 
   return {
     adminUser: {
-      findUnique: jest.fn().mockResolvedValue(options.adminId === null ? null : { id: options.adminId ?? 'admin-1' }),
+      findUnique: jest.fn().mockResolvedValue(adminId ? { id: adminId } : null),
     },
     loginHistory: {
-      count: jest
-        .fn()
-        .mockResolvedValueOnce(options.accountFailures ?? 0)
-        .mockResolvedValueOnce(options.ipFailures ?? 0),
-      findFirst,
+      count: jest.fn().mockImplementation(({ where }: any) => {
+        if (where?.adminUserId) return Promise.resolve(options.accountFailures ?? 0);
+        if (where?.ipAddress) return Promise.resolve(options.ipFailures ?? 0);
+        return Promise.resolve(0);
+      }),
+      findFirst: jest.fn().mockImplementation(({ where }: any) => {
+        if (where?.success === true) {
+          return Promise.resolve(options.lastSuccessAt ? { createdAt: options.lastSuccessAt } : null);
+        }
+        if (where?.adminUserId) {
+          return Promise.resolve(options.latestAccountFailureAt ? { createdAt: options.latestAccountFailureAt } : null);
+        }
+        if (where?.ipAddress) {
+          return Promise.resolve(options.latestIpFailureAt ? { createdAt: options.latestIpFailureAt } : null);
+        }
+        return Promise.resolve(null);
+      }),
       create: jest.fn().mockReturnValue(Promise.resolve({ id: 'history-1' })),
     },
     adminAuditLog: {
@@ -88,8 +96,8 @@ describe('AdminLoginDefenseService', () => {
 
     await service.assertAllowed('admin', { ipAddress: '203.0.113.10' });
 
-    expect(prisma.loginHistory.count).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      where: expect.objectContaining({ createdAt: { gt: lastSuccessAt } }),
+    expect(prisma.loginHistory.count).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ adminUserId: 'admin-1', createdAt: { gt: lastSuccessAt } }),
     }));
   });
 
