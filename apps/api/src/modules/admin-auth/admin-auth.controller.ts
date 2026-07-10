@@ -1,16 +1,21 @@
 import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
+import { AntiBotService } from '../anti-bot/anti-bot.service';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminSignInDto } from './dto/admin-sign-in.dto';
 import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
 
 @Controller('admin/auth')
 export class AdminAuthController {
-  constructor(private readonly adminAuthService: AdminAuthService) {}
+  constructor(
+    private readonly adminAuthService: AdminAuthService,
+    private readonly antiBot: AntiBotService,
+  ) {}
 
   @Post('login')
-  signIn(@Body() dto: AdminSignInDto, @Req() req: any) {
+  async signIn(@Body() dto: AdminSignInDto, @Req() req: any) {
+    await this.antiBot.assertValid('ADMIN_LOGIN', dto.captchaToken, req.ip);
     return this.adminAuthService.signIn(dto, this.meta(req, dto.deviceId));
   }
 
