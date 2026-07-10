@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
@@ -7,6 +7,8 @@ import { PrismaService } from '../../database/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { MemberSignInDto } from './dto/member-sign-in.dto';
 import { RefreshSessionDto } from './dto/refresh-session.dto';
+import { UpdateMemberProfileDto } from './dto/update-member-profile.dto';
+import { ChangeMemberPasswordDto } from './dto/change-member-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -69,6 +71,117 @@ export class AuthService {
   async signOut(sessionId: string) {
     await this.prisma.authSession.updateMany({ where: { id: sessionId, type: 'MEMBER', revokedAt: null }, data: { revokedAt: new Date() } });
     return { success: true };
+  }
+
+  async getMemberProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true, wallet: true },
+    });
+    if (!user) throw new NotFoundException('Member not found');
+    return {
+      id: user.id,
+      username: user.username,
+      phone: user.phone,
+      email: user.email,
+      status: user.status,
+      createdAt: user.createdAt,
+      lastLoginAt: user.lastLoginAt,
+      phoneVerifiedAt: user.phoneVerifiedAt,
+      emailVerifiedAt: user.emailVerifiedAt,
+      displayName: user.profile?.displayName ?? user.username,
+      avatarUrl: user.profile?.avatarUrl ?? null,
+      wallet: user.wallet ? {
+        currency: user.wallet.currency,
+        availableBalance: user.wallet.availableBalance.toString(),
+        lockedBalance: user.wallet.lockedBalance.toString(),
+        status: user.wallet.status,
+      } : null,
+    };
+  }
+
+  async updateMemberProfile(userId: string, dto: UpdateMemberProfileDto) {
+    const duplicate = await this.prisma.user.findFirst({
+      where: {
+        id: { not: userId },
+        OR: [dto.phone ? { phone: dto.phone } : undefined, dto.email ? { email: dto.email } : undefined].filter(Boolean) as any,
+      },
+      select: { id: true },
+    });
+    if (duplicate) throw new ConflictException('Phone or email already in use');
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({ where: { id: userId }, data: { phone: dto.phone, email: dto.email } });
+      await tx.userProfile.upsert({
+        where: { userId },
+        create: { userId, displayName: dto.displayName },
+        update: { displayName: dto.displayName },
+      });
+    });
+    return this.getMemberProfile(userId);
+  }
+
+  async changeMemberPassword(userId: string, currentSessionId: string, dto: ChangeMemberPasswordDto) {
+    if (dto.currentPassword === dto.newPassword) throw new BadRequestException('New password must be different');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Member not found');
+    const valid = await argon2.verify(user.passwordHash, dto.currentPassword);
+    if (!valid) throw new UnauthorizedException('Current password is incorrect');
+    const passwordHash = await argon2.hash(dto.newPassword);
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { passwordHash } }),
+      this.prisma.authSession.updateMany({
+        where: { userId, type: 'MEMBER', id: { not: currentSessionId }, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+    return { success: true, revokedOtherSessions: true };
+  }
+
+  async listMemberSessions(userId: string, currentSessionId: string) {
+    const items = await this.prisma.authSession.findMany({
+      where: { userId, type: 'MEMBER', revokedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, ipAddress: true, userAgent: true, deviceId: true, createdAt: true, updatedAt: true, expiresAt: true },
+    });
+    return { items: items.map((item) => ({ ...item, current: item.id === currentSessionId })) };
+  }
+
+  async revokeMemberSession(userId: string, currentSessionId: string, sessionId: string) {
+    if (sessionId === currentSessionId) throw new BadRequestException('Use logout to revoke the current session');
+    await this.prisma.authSession.updateMany({ where: { id: sessionId, userId, type: 'MEMBER', revokedAt: null }, data: { revokedAt: new Date() } });
+    return { success: true };
+  }
+
+  async revokeOtherMemberSessions(userId: string, currentSessionId: string) {
+    const result = await this.prisma.authSession.updateMany({
+      where: { userId, type: 'MEMBER', id: { not: currentSessionId }, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    return { success: true, revokedCount: result.count };
+  }
+
+  async getMemberSecurity(userId: string) {
+    const [user, sessions, history] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: userId }, select: { status: true, updatedAt: true, lastLoginAt: true } }),
+      this.prisma.authSession.count({ where: { userId, type: 'MEMBER', revokedAt: null, expiresAt: { gt: new Date() } } }),
+      this.prisma.loginHistory.findMany({
+        where: { userId, type: 'MEMBER' },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: { id: true, success: true, ipAddress: true, userAgent: true, reason: true, createdAt: true },
+      }),
+    ]);
+    if (!user) throw new NotFoundException('Member not found');
+    return {
+      accountStatus: user.status,
+      activeSessions: sessions,
+      passwordUpdatedAt: user.updatedAt,
+      lastLoginAt: user.lastLoginAt,
+      failedLoginCount: history.filter((item) => !item.success).length,
+      recentLogins: history,
+      twoFactorEnabled: false,
+    };
   }
 
   private async createMemberSession(userId: string, meta: RequestMeta = {}) {
