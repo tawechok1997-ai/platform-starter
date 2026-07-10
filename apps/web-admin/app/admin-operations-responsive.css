@@ -1,0 +1,35 @@
+/* Responsive operation pages: queues, members and transactions. */
+@media (max-width: 767px) {
+  body { overflow-x: hidden; }
+  main { padding-inline: 12px !important; }
+  main > header { align-items: stretch !important; }
+  main > header > div:last-child { width: 100% !important; }
+  main > header button,
+  main > header a { width: 100%; }
+  main select,
+  main input,
+  main textarea,
+  main button { min-height: 46px; }
+  main textarea { min-height: 108px; resize: vertical; }
+  main [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  main [style*="justify-content: space-between"] { align-items: stretch !important; }
+  main [style*="justify-content: flex-end"] { justify-content: stretch !important; }
+  main [style*="justify-content: flex-end"] > * { flex: 1 1 140px; }
+  main img { max-width: 100%; height: auto; }
+  main table { min-width: 720px; }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  main { padding-inline: 18px !important; }
+  main [style*="grid-template-columns"] { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+}
+
+@media (min-width: 1024px) {
+  main { max-width: 1540px !important; }
+  main > header { position: sticky; top: 0; z-index: 8; padding-block: 18px; background: linear-gradient(180deg, rgba(8,8,8,.98), rgba(8,8,8,.88), transparent); backdrop-filter: blur(14px); }
+  main [style*="grid-template-columns"] { align-items: start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main *,main *::before,main *::after { transition-duration:.01ms!important; animation-duration:.01ms!important; scroll-behavior:auto!important; }
+}

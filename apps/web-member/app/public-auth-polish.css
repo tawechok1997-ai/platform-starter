@@ -1,0 +1,28 @@
+/* Final polish for login/register/public auth surfaces. */
+.public-auth-page :is(input,select,textarea,button,a):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-brand) 72%, white);
+  outline-offset: 3px;
+}
+.public-auth-page input::placeholder { color: color-mix(in srgb, var(--color-text) 42%, transparent); }
+.public-auth-page input:disabled,
+.public-auth-page button:disabled { cursor: not-allowed; }
+.public-auth-alert[role="alert"] { scroll-margin-top: 16px; }
+.public-auth-card { isolation: isolate; }
+
+@media (max-width: 767px) {
+  .public-auth-page { min-height: 100dvh; padding: 12px 12px calc(24px + env(safe-area-inset-bottom)); }
+  .public-auth-shell { width: 100%; }
+  .public-auth-card { border-radius: 22px; padding: 18px; }
+  .public-auth-brand-panel { display: none; }
+  .public-auth-card button[type="submit"] { position: sticky; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 5; }
+}
+
+@media (min-width: 1024px) {
+  .public-auth-shell { width: min(1120px, 100%); grid-template-columns: minmax(0,1fr) minmax(420px,520px); gap: 44px; }
+  .public-auth-brand-panel { min-height: 560px; align-content: center; }
+  .public-auth-card { padding: 30px; border-radius: 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-auth-page *, .public-auth-page *::before, .public-auth-page *::after { transition-duration:.01ms!important; animation-duration:.01ms!important; }
+}

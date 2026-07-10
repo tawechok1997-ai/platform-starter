@@ -1,0 +1,21 @@
+@media (min-width: 1024px) {
+  .member-shell { max-width: 1240px; padding: 24px 28px 48px; gap: 20px; }
+  .member-topbar { position: sticky; top: 0; padding-inline: 28px; }
+  .member-bottom-nav { display: none !important; }
+  .member-menu-button { display: none; }
+  .member-drawer { position: static; width: auto; height: auto; transform: none; padding: 0; border: 0; box-shadow: none; background: transparent; display: block; overflow: visible; }
+  .member-drawer-head,.member-logout-button,.member-menu-backdrop { display: none !important; }
+  .member-drawer-nav { display: flex; flex-wrap: wrap; gap: 10px; overflow: visible; }
+  .member-drawer-nav a { min-height: 44px; padding: 0 14px; }
+  .member-home-shell { grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: start; }
+  .member-home-shell > * { grid-column: span 12; }
+  .member-home-hero { grid-column: span 8; min-height: 220px; }
+  .member-quick-panel { grid-column: span 4; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .member-home-game-rail { grid-auto-flow: unset; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: visible; }
+  .member-footer { max-width: 1240px; margin-bottom: 28px; }
+}
+
+@media (min-width: 1440px) {
+  .member-shell,.member-footer { max-width: 1360px; }
+  .member-home-game-rail { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}

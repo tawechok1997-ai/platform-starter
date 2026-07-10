@@ -1,0 +1,15 @@
+@media (max-width: 767px) {
+  .auth-mobile { width: 100%; max-width: 100%; padding: 12px; }
+  .auth-mobile form { display: grid; gap: 14px; }
+  .auth-mobile input,.auth-mobile select,.auth-mobile textarea,.auth-mobile button { min-height: 48px; width: 100%; }
+  .auth-mobile h1 { font-size: clamp(30px, 10vw, 42px); }
+  .member-ui-page { padding: 12px; }
+  .member-ui-container { padding-top: 18px; }
+  .member-ui-card { padding: 16px; }
+  .member-maintenance { min-height: 100dvh; }
+}
+
+@media (max-width: 430px) {
+  .auth-mobile { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+  .auth-mobile .member-ui-button { position: sticky; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 4; }
+}
