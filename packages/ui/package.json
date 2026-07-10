@@ -1,5 +1,0 @@
-{
-  "name": "@platform/ui",
-  "private": true,
-  "main": "src/index.ts"
-}

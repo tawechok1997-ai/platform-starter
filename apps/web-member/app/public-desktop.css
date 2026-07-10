@@ -1,8 +1,0 @@
-@media (min-width: 1024px) {
-  .auth-mobile { max-width: 1080px; min-height: 100dvh; grid-template-columns: minmax(0, 1fr) minmax(420px, 520px); align-items: center; padding: 40px; gap: 40px; }
-  .auth-mobile > section,.auth-mobile > form { width: 100%; }
-  .auth-mobile form { padding: 28px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-card); box-shadow: var(--shadow-card); }
-  .member-ui-page { padding: 32px; }
-  .member-ui-container { max-width: 960px; padding-top: 56px; }
-  .member-maintenance .member-ui-card { min-height: 320px; align-content: center; }
-}
