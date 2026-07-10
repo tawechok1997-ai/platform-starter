@@ -3,7 +3,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
-import { AntiBotConfig, AntiBotRoute, AntiBotService } from './anti-bot.service';
+import { AntiBotConfig, AntiBotService } from './anti-bot.service';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 @Controller('admin/security/anti-bot')
