@@ -23,6 +23,7 @@ import { PromotionsModule } from './modules/promotions/promotions.module';
 import { AffiliatesModule } from './modules/affiliates/affiliates.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { HealthModule } from './modules/health/health.module';
+import { AntiBotModule } from './modules/anti-bot/anti-bot.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { HealthModule } from './modules/health/health.module';
     DatabaseModule,
     AuthModule,
     AdminAuthModule,
+    AntiBotModule,
     UsersModule,
     SettingsModule,
     WalletModule,
