@@ -48,7 +48,7 @@ export class AdminAuthGuard implements CanActivate {
         type: 'ADMIN',
         sessionId: session.id,
         username: session.adminUser.username,
-        permissions: permissions.length > 0 ? permissions : ['*'],
+        permissions,
       };
 
       return true;
