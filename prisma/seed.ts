@@ -55,6 +55,10 @@ const permissions = [
   ['settings.features.update', 'Feature Settings Update', 'settings'],
   ['settings.legal.view', 'Legal Settings View', 'settings'],
   ['settings.legal.update', 'Legal Settings Update', 'settings'],
+  ['security.anti_bot.view', 'Anti-bot Settings View', 'security'],
+  ['security.anti_bot.update', 'Anti-bot Settings Update', 'security'],
+  ['security.anti_bot.test', 'Anti-bot Provider Test', 'security'],
+  ['security.anti_bot.override', 'Anti-bot Emergency Override', 'security'],
   ['reports.view', 'Reports View', 'reports'],
   ['reports.export', 'Reports Export', 'reports'],
 ] as const;
@@ -120,78 +124,13 @@ async function main() {
     });
   }
 
-  const firstAdminSecret = process.env.DEFAULT_ADMIN_SECRET ?? 'ChangeThisLocalOnly123!';
-  const firstAdmin = await prisma.adminUser.upsert({
-    where: { username: 'admin' },
-    update: {},
-    create: { username: 'admin', email: 'admin@example.local', passwordHash: await argon2.hash(firstAdminSecret), twoFactorEnabled: false },
-  });
-
-  await prisma.adminUserRole.upsert({
-    where: { adminUserId_roleId: { adminUserId: firstAdmin.id, roleId: superAdminRole.id } },
-    update: {},
-    create: { adminUserId: firstAdmin.id, roleId: superAdminRole.id },
-  });
-
   for (const [key, valueJson, group, type, isPublic, isSensitive] of defaultSettings) {
     await prisma.siteSetting.upsert({
       where: { key },
-      update: {},
-      create: { key, valueJson, group: group as any, type: type as any, isPublic, isSensitive, updatedBy: firstAdmin.id },
+      update: { valueJson, group, type, isPublic, isSensitive },
+      create: { key, valueJson, group, type, isPublic, isSensitive },
     });
   }
-
-  await seedSampleGameProvider();
-
-  console.log('Seed completed');
-}
-
-async function seedSampleGameProvider() {
-  const provider = await prisma.gameProvider.upsert({
-    where: { code: 'demo-provider' },
-    update: { name: 'Demo Provider', status: 'INACTIVE', walletMode: 'TRANSFER', currency: 'THB', timezone: 'Asia/Bangkok' },
-    create: { name: 'Demo Provider', code: 'demo-provider', status: 'INACTIVE', walletMode: 'TRANSFER', currency: 'THB', timezone: 'Asia/Bangkok', sortOrder: 900, metadata: { note: 'Local/demo provider only. Replace endpoints and credentials before production.' } },
-  });
-
-  const endpointBase = process.env.DEMO_PROVIDER_BASE_URL ?? 'https://provider.example.local/api';
-  const endpoints = [
-    ['LAUNCH', `${endpointBase}/launch`],
-    ['BALANCE', `${endpointBase}/balance`],
-    ['TRANSFER_IN', `${endpointBase}/transfer/in`],
-    ['TRANSFER_OUT', `${endpointBase}/transfer/out`],
-    ['GAME_LIST', `${endpointBase}/games`],
-    ['WEBHOOK', `${endpointBase}/webhook`],
-  ] as const;
-
-  for (const [type, url] of endpoints) {
-    await prisma.gameProviderEndpoint.upsert({
-      where: { providerId_type: { providerId: provider.id, type: type as any } },
-      update: { url, method: 'POST', timeoutMs: 10000, retryCount: 2, isEnabled: false },
-      create: { providerId: provider.id, type: type as any, url, method: 'POST', timeoutMs: 10000, retryCount: 2, isEnabled: false },
-    });
-  }
-
-  const secret = process.env.DEMO_PROVIDER_API_KEY ?? 'demo-provider-api-key-change-me';
-  await prisma.gameProviderCredential.upsert({
-    where: { providerId_type: { providerId: provider.id, type: 'API_KEY' as any } },
-    update: { encryptedValue: encryptSeedSecret(secret), maskedValue: maskSecret(secret), isEnabled: false, rotatedAt: new Date() },
-    create: { providerId: provider.id, type: 'API_KEY' as any, encryptedValue: encryptSeedSecret(secret), maskedValue: maskSecret(secret), isEnabled: false, rotatedAt: new Date() },
-  });
-}
-
-function encryptSeedSecret(value: string) {
-  const keySource = process.env.GAME_CREDENTIAL_SECRET ?? process.env.JWT_ACCESS_KEY ?? 'local_game_credential_key';
-  const key = createHash('sha256').update(keySource).digest();
-  const iv = randomBytes(12);
-  const cipher = createCipheriv('aes-256-gcm', key, iv);
-  const encrypted = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
-  const tag = cipher.getAuthTag();
-  return `aes-256-gcm:${iv.toString('base64')}:${tag.toString('base64')}:${encrypted.toString('base64')}`;
-}
-
-function maskSecret(value: string) {
-  if (value.length <= 8) return `${value.slice(0, 1)}••••${value.slice(-1)}`;
-  return `${value.slice(0, 4)}••••${value.slice(-4)}`;
 }
 
 main()
