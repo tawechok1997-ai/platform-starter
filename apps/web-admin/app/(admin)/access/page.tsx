@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminGrid, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminSectionRow, AdminStack } from '../_components/admin-ui';
+import InviteAdminPanel from './invite-admin-panel';
 
 type Permission = { id: string; code: string; name: string; module: string; description?: string | null };
 type Role = { id: string; code: string; name: string; description?: string | null; level: number; adminUserCount: number; permissionCount: number; hasWildcard: boolean; permissions: Permission[] };
-type AdminUser = { id: string; username: string; email: string; status: string; twoFactorEnabled: boolean; lastLoginAt?: string | null; createdAt: string; roles: { id: string; code: string; name: string; level: number }[] };
+type AdminUser = { id: string; username: string; email: string; status: string; twoFactorEnabled: boolean; lastLoginAt?: string | null; createdAt: string; protected?: boolean; roles: { id: string; code: string; name: string; level: number }[] };
 type AccessResponse = { summary: { roleCount: number; permissionCount: number; adminUserCount: number; wildcardRoleCount: number }; roles: Role[]; permissions: Permission[]; adminUsers: AdminUser[] };
+type CurrentAdmin = { permissions?: string[] };
 
 export default function AccessOverviewPage() {
   const [data, setData] = useState<AccessResponse | null>(null);
@@ -15,19 +17,37 @@ export default function AccessOverviewPage() {
   const [moduleFilter, setModuleFilter] = useState('ALL');
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState('');
+  const [permissionsHeld, setPermissionsHeld] = useState<string[]>([]);
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     setMessage('กำลังโหลดสิทธิ์แอดมิน...');
-    const res = await adminApiFetch('/admin/access/overview');
-    const payload = await res.json().catch(() => null);
-    if (!res.ok) { setMessage(payload?.message ?? 'โหลดข้อมูลสิทธิ์ไม่สำเร็จ'); return; }
-    setData(payload);
-    setMessage('');
+    try {
+      const [accessRes, meRes] = await Promise.all([
+        adminApiFetch('/admin/access/overview'),
+        adminApiFetch('/admin/auth/me'),
+      ]);
+      const [payload, mePayload] = await Promise.all([
+        accessRes.json().catch(() => null),
+        meRes.json().catch(() => null),
+      ]);
+      if (!accessRes.ok) {
+        setMessage(payload?.message ?? 'โหลดข้อมูลสิทธิ์ไม่สำเร็จ');
+        return;
+      }
+      setData(payload);
+      setPermissionsHeld(Array.isArray((mePayload as CurrentAdmin | null)?.permissions) ? (mePayload as CurrentAdmin).permissions ?? [] : []);
+      setMessage('');
+    } catch {
+      setMessage('เชื่อมต่อระบบสิทธิ์ไม่สำเร็จ');
+    }
   }
 
+  const canManage = permissionsHeld.includes('*') || permissionsHeld.includes('admin.access.manage');
+
   async function assignRole(adminUser: AdminUser) {
+    if (!canManage || adminUser.protected) return;
     const roleId = selectedRoles[adminUser.id];
     const role = data?.roles.find((item) => item.id === roleId);
     if (!roleId || !role) { setMessage('กรุณาเลือก role ก่อน'); return; }
@@ -44,6 +64,7 @@ export default function AccessOverviewPage() {
   }
 
   async function removeRole(adminUser: AdminUser, role: AdminUser['roles'][number]) {
+    if (!canManage || adminUser.protected) return;
     if (!window.confirm(`ยืนยันถอด role ${role.code} ออกจาก ${adminUser.username}?`)) return;
     setBusyKey(`${adminUser.id}:${role.id}`);
     const res = await adminApiFetch(`/admin/access/admin-users/${adminUser.id}/roles/${role.id}`, { method: 'DELETE' });
@@ -57,7 +78,7 @@ export default function AccessOverviewPage() {
   const modules = useMemo(() => ['ALL', ...Array.from(new Set((data?.permissions ?? []).map((item) => item.module))).sort()], [data]);
   const permissions = useMemo(() => moduleFilter === 'ALL' ? data?.permissions ?? [] : (data?.permissions ?? []).filter((item) => item.module === moduleFilter), [data, moduleFilter]);
 
-  return <AdminPage eyebrow="Security" title="Access Control" description="จัดการ roles, permissions และ admin users แบบมี confirm ก่อนเปลี่ยนสิทธิ์" actions={<AdminButton onClick={load}>Reload</AdminButton>}>
+  return <AdminPage eyebrow="Security" title="Access Control" description="จัดการ roles, permissions และ admin users ตามสิทธิ์ของผู้ดูแลแต่ละคน" actions={<AdminButton onClick={load}>Reload</AdminButton>}>
     {message && <AdminNotice>{message}</AdminNotice>}
     {data && <>
       <AdminMetricGrid>
@@ -66,13 +87,15 @@ export default function AccessOverviewPage() {
         <AdminMetric title="Admin users" value={String(data.summary.adminUserCount)} helper="accounts" />
       </AdminMetricGrid>
 
+      <InviteAdminPanel roles={data.roles} onCreated={load} />
+
       <AdminGrid>
         <AdminCard title="Roles" description="Role และ permission ที่ผูกอยู่">
           <AdminStack>{data.roles.map((role) => <AdminSectionRow key={role.id}><div style={roleBlockStyle}><div style={badgeRowStyle}><AdminBadge tone={role.hasWildcard ? 'danger' : 'neutral'}>{role.hasWildcard ? 'WILDCARD' : 'ROLE'}</AdminBadge><AdminBadge>Level {role.level}</AdminBadge></div><strong>{role.name}</strong><p>{role.code}</p>{role.description && <p>{role.description}</p>}</div><div style={roleMetaStyle}><span>{role.permissionCount} permissions</span><span>{role.adminUserCount} users</span></div></AdminSectionRow>)}{data.roles.length === 0 && <AdminEmpty>ยังไม่มี roles</AdminEmpty>}</AdminStack>
         </AdminCard>
 
-        <AdminCard title="Admin users" description="เพิ่ม/ถอด role จากบัญชีแอดมิน">
-          <AdminStack>{data.adminUsers.map((user) => <AdminSectionRow key={user.id}><div style={userBlockStyle}><div style={badgeRowStyle}><AdminBadge tone={user.status === 'ACTIVE' ? 'success' : 'danger'}>{user.status}</AdminBadge><AdminBadge tone={user.twoFactorEnabled ? 'success' : 'warning'}>{user.twoFactorEnabled ? '2FA ON' : '2FA OFF'}</AdminBadge></div><strong>{user.username}</strong><p>{user.email}</p><div style={rolePillWrapStyle}>{user.roles.map((role) => <span key={role.id} style={rolePillStyle}>{role.code}<button type="button" disabled={Boolean(busyKey)} onClick={() => removeRole(user, role)} style={removeRoleButtonStyle}>×</button></span>)}{user.roles.length === 0 && <span style={emptyRoleStyle}>no roles</span>}</div></div><div style={assignPanelStyle}><select value={selectedRoles[user.id] ?? ''} onChange={(event) => setSelectedRoles((current) => ({ ...current, [user.id]: event.target.value }))} style={selectStyle}><option value="">เลือก role</option>{data.roles.map((role) => <option key={role.id} value={role.id}>{role.code}</option>)}</select><AdminButton disabled={Boolean(busyKey)} onClick={() => assignRole(user)}>Add role</AdminButton></div></AdminSectionRow>)}{data.adminUsers.length === 0 && <AdminEmpty>ยังไม่มี admin users</AdminEmpty>}</AdminStack>
+        <AdminCard title="Admin users" description={canManage ? 'เพิ่มหรือถอด Role ตามสิทธิ์ของคุณ' : 'ดูบัญชีผู้ดูแลแบบอ่านอย่างเดียว'}>
+          <AdminStack>{data.adminUsers.map((user) => <AdminSectionRow key={user.id}><div style={userBlockStyle}><div style={badgeRowStyle}><AdminBadge tone={user.status === 'ACTIVE' ? 'success' : 'danger'}>{user.status}</AdminBadge><AdminBadge tone={user.twoFactorEnabled ? 'success' : 'warning'}>{user.twoFactorEnabled ? '2FA ON' : '2FA OFF'}</AdminBadge>{user.protected && <AdminBadge tone="danger">PROTECTED</AdminBadge>}</div><strong>{user.username}</strong><p>{user.email}</p><div style={rolePillWrapStyle}>{user.roles.map((role) => <span key={role.id} style={rolePillStyle}>{role.code}{canManage && !user.protected && <button type="button" disabled={Boolean(busyKey)} onClick={() => removeRole(user, role)} style={removeRoleButtonStyle} aria-label={`Remove ${role.code}`}>×</button>}</span>)}{user.roles.length === 0 && <span style={emptyRoleStyle}>no roles</span>}</div></div>{canManage && !user.protected && <div style={assignPanelStyle}><select value={selectedRoles[user.id] ?? ''} onChange={(event) => setSelectedRoles((current) => ({ ...current, [user.id]: event.target.value }))} style={selectStyle}><option value="">เลือก role</option>{data.roles.filter((role) => !role.hasWildcard && !['owner', 'super_admin'].includes(role.code)).map((role) => <option key={role.id} value={role.id}>{role.code}</option>)}</select><AdminButton disabled={Boolean(busyKey)} onClick={() => assignRole(user)}>Add role</AdminButton></div>}</AdminSectionRow>)}{data.adminUsers.length === 0 && <AdminEmpty>ยังไม่มี admin users</AdminEmpty>}</AdminStack>
         </AdminCard>
       </AdminGrid>
 
