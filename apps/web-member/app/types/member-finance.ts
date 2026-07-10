@@ -1,13 +1,41 @@
-export type FinanceStatus = 'PENDING' | 'APPROVED' | 'COMPLETED' | 'REJECTED' | 'ACTIVE' | 'REVIEWING' | string;
+export type LegacyFinanceStatus = 'PENDING' | 'APPROVED' | 'COMPLETED' | 'REJECTED' | 'ACTIVE' | 'REVIEWING';
+
+export type TopUpStatus =
+  | 'PENDING'
+  | 'PENDING_SLIP_REVIEW'
+  | 'SLIP_APPROVED'
+  | 'PENDING_CREDIT'
+  | 'CREDIT_CONFIRMED'
+  | 'DUPLICATE'
+  | 'APPROVED'
+  | 'COMPLETED'
+  | 'REJECTED'
+  | 'CANCELLED';
+
+export type WithdrawalStatus =
+  | 'PENDING'
+  | 'PENDING_REVIEW'
+  | 'APPROVED_FOR_PAYMENT'
+  | 'PAYMENT_PROOF_UPLOADED'
+  | 'PAYMENT_VERIFIED'
+  | 'COMPLETED'
+  | 'REJECTED'
+  | 'CANCELLED';
+
+export type FinanceStatus = LegacyFinanceStatus | TopUpStatus | WithdrawalStatus | string;
 
 export type TopUpItem = {
   id: string;
   amount: string;
   currency: string;
-  status: FinanceStatus;
+  status: TopUpStatus;
   method?: string | null;
+  referenceCode?: string | null;
   note?: string | null;
   adminNote?: string | null;
+  duplicateOfId?: string | null;
+  duplicateReason?: string | null;
+  duplicateMatchScore?: string | null;
   createdAt: string;
 };
 
@@ -37,13 +65,15 @@ export type WithdrawalItem = {
   id: string;
   amount: string;
   currency: string;
-  status: FinanceStatus;
+  status: WithdrawalStatus;
   method?: string | null;
   accountName?: string | null;
   accountNumber?: string | null;
   bankName?: string | null;
   note?: string | null;
   adminNote?: string | null;
+  paymentSlipUrl?: string | null;
+  paymentTransactionRef?: string | null;
   createdAt: string;
 };
 
@@ -71,3 +101,41 @@ export type BonusLedger = {
 };
 
 export type WithdrawStep = 'account' | 'amount' | 'confirm' | 'waiting';
+
+export function topUpStatusLabel(status: TopUpStatus): string {
+  const labels: Record<TopUpStatus, string> = {
+    PENDING: 'รอตรวจสอบ',
+    PENDING_SLIP_REVIEW: 'รอตรวจสลิป',
+    SLIP_APPROVED: 'ตรวจสลิปแล้ว',
+    PENDING_CREDIT: 'รอเพิ่มเครดิต',
+    CREDIT_CONFIRMED: 'เพิ่มเครดิตแล้ว',
+    DUPLICATE: 'สลิปซ้ำ',
+    APPROVED: 'อนุมัติแล้ว',
+    COMPLETED: 'สำเร็จ',
+    REJECTED: 'ไม่อนุมัติ',
+    CANCELLED: 'ยกเลิก',
+  };
+  return labels[status] ?? status;
+}
+
+export function withdrawalStatusLabel(status: WithdrawalStatus): string {
+  const labels: Record<WithdrawalStatus, string> = {
+    PENDING: 'รอตรวจสอบ',
+    PENDING_REVIEW: 'รอตรวจสอบ',
+    APPROVED_FOR_PAYMENT: 'รอดำเนินการโอน',
+    PAYMENT_PROOF_UPLOADED: 'รอตรวจหลักฐาน',
+    PAYMENT_VERIFIED: 'ตรวจหลักฐานแล้ว',
+    COMPLETED: 'จ่ายสำเร็จ',
+    REJECTED: 'ไม่อนุมัติ',
+    CANCELLED: 'ยกเลิก',
+  };
+  return labels[status] ?? status;
+}
+
+export function isTerminalTopUpStatus(status: TopUpStatus): boolean {
+  return ['DUPLICATE', 'COMPLETED', 'REJECTED', 'CANCELLED'].includes(status);
+}
+
+export function isTerminalWithdrawalStatus(status: WithdrawalStatus): boolean {
+  return ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(status);
+}
