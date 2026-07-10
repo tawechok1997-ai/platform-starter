@@ -3,7 +3,6 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { AntiBotWidget } from '../anti-bot-widget';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 const LOGIN_TIMEOUT_MS = 15000;
 
 type Locale = 'th' | 'en';
@@ -54,7 +53,7 @@ export default function AdminLoginPage() {
     setLoading(true); setStatus('info'); setMessage(t.submitting);
 
     try {
-      const res = await fetch(`${API_URL}/admin/auth/login`, {
+      const res = await fetch('/api/auth/login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username.trim(), secret, twoFactorCode: twoFactorCode.trim() || undefined, captchaToken: captchaToken || undefined, deviceId: 'web-admin' }),
         signal: controller.signal,
