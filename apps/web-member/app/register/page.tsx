@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { API_URL, defaultSettings, loadPublicSiteSettings, memberFeatureFlags, textSetting } from '../../site-settings';
 
 type Locale = 'th' | 'en';
@@ -38,7 +38,7 @@ export default function RegisterPage() {
   const logo = textSetting(settings, 'branding', 'logo_url', '');
   const siteName = textSetting(settings, 'website', 'site_name', 'Platform Starter');
   const brand = textSetting(settings, 'branding', 'brand_mark', siteName.slice(0, 1).toUpperCase() || 'P');
-  const cssVars = { '--color-brand': textSetting(settings, 'branding', 'primary_color', '#f5c542'), '--color-bg': textSetting(settings, 'branding', 'background_color', '#080808'), '--color-card': textSetting(settings, 'branding', 'card_color', '#181818'), '--color-text': textSetting(settings, 'branding', 'text_color', '#ffffff') } as React.CSSProperties;
+  const cssVars = { '--color-brand': textSetting(settings, 'branding', 'primary_color', '#f5c542'), '--color-bg': textSetting(settings, 'branding', 'background_color', '#080808'), '--color-card': textSetting(settings, 'branding', 'card_color', '#181818'), '--color-text': textSetting(settings, 'branding', 'text_color', '#ffffff') } as CSSProperties;
 
   function update(key: keyof typeof form, value: string) { setForm((v) => ({ ...v, [key]: value })); setMessage(''); }
   function toggleLocale() { const next = locale === 'th' ? 'en' : 'th'; setLocale(next); localStorage.setItem(LANG_KEY, next); }
@@ -115,7 +115,7 @@ export default function RegisterPage() {
   </form></section></main>;
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="public-auth-field"><span>{label}</span>{children}</label>; }
+function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="public-auth-field"><span>{label}</span>{children}</label>; }
 function Review({ label, value }: { label: string; value: string }) { return <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '9px 0', borderBottom: '1px solid rgba(255,255,255,.08)' }}><span style={{ opacity: .68 }}>{label}</span><strong style={{ textAlign: 'right' }}>{value || '-'}</strong></div>; }
 function cleanRef(value: string) { return value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 24); }
 function normalizeName(value: string) { return value.normalize('NFKC').toLocaleLowerCase('th-TH').replace(/[\s.\-_'’]/g, ''); }
