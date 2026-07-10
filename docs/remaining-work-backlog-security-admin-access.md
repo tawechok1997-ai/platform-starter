@@ -42,7 +42,7 @@ Security controls must be enforced in the API and database access layer, not onl
 - [ ] Support system roles and custom roles.
 - [ ] Suggested initial system roles: Owner, Super Admin, Operations Manager, Finance Reviewer, Finance Operator, Risk Analyst, Support Agent, Game/Provider Operator, Content Manager, Auditor, and Read-only Viewer.
 - [ ] Define permissions as stable semantic codes, not page names alone.
-- [ ] Suggested permission domains: dashboard, members, deposits, withdrawals, wallets, ledgers, game transfers, providers, games, sessions, webhooks, reconciliation, risk, promotions, CMS, support, reports, settings, security, admin accounts, roles, permissions, audit logs, exports, and maintenance.
+- [ ] Suggested permission domains: dashboard, members, deposits, withdrawals, wallets, ledgers, game transfers, providers, games, sessions, webhooks, reconciliation, risk, promotions, CMS, support, reports, settings, security, admin accounts, roles, permissions, audit logs, exports, maintenance, and anti-bot controls.
 - [ ] Define separate permissions for view, create, edit, approve, reject, assign, export, retry, reverse, force-fail, manage secrets, manage roles, and manage accounts where relevant.
 - [ ] Support permission scopes such as own queue, assigned records, team, provider, branch, region, or all records where the data model supports it.
 - [ ] Support explicit deny rules when a sensitive exception is needed.
@@ -76,14 +76,14 @@ Security controls must be enforced in the API and database access layer, not onl
 
 ## Priority 0: High-risk action controls
 
-- [ ] Require step-up authentication for sensitive actions such as role changes, admin creation, secret rotation, maintenance mode, manual wallet adjustment, transfer reversal, force-fail, and ownership transfer.
+- [ ] Require step-up authentication for sensitive actions such as role changes, admin creation, secret rotation, maintenance mode, manual wallet adjustment, transfer reversal, force-fail, ownership transfer, and anti-bot provider changes.
 - [ ] Support 2FA challenge or recent-password confirmation for step-up authentication.
 - [ ] Add confirmation screens showing exactly what will change.
 - [ ] Require a reason or note for all sensitive actions.
 - [ ] Add optional dual approval for configured high-risk operations.
 - [ ] Prevent the same admin from requesting and approving a dual-control action when separation of duties is enabled.
 - [ ] Make approval thresholds and sensitive-action policy configurable only by authorized security administrators or the Owner.
-- [ ] Never expose raw provider secrets, API keys, password hashes, session tokens, or recovery codes.
+- [ ] Never expose raw provider secrets, API keys, password hashes, session tokens, recovery codes, CAPTCHA secret keys, or bot-detection credentials.
 
 ## Priority 0: Authentication security
 
@@ -145,28 +145,96 @@ Security controls must be enforced in the API and database access layer, not onl
 
 ## Priority 1: Audit and security monitoring
 
-- [ ] Record login success/failure, logout, token refresh anomalies, password change, password reset, 2FA enrollment/reset, account creation, invite actions, role assignment, permission changes, delegation, session revocation, and sensitive operations.
+- [ ] Record login success/failure, logout, token refresh anomalies, password change, password reset, 2FA enrollment/reset, account creation, invite actions, role assignment, permission changes, delegation, session revocation, anti-bot configuration changes, and sensitive operations.
 - [ ] Record actor, target, action, timestamp, source IP summary, user agent, request ID, before/after diff, reason, approval chain, and result.
 - [ ] Make security audit logs append-only from normal application flows.
 - [ ] Protect audit access with a separate permission.
 - [ ] Add filters, export limits, retention policy, and tamper-evidence strategy.
-- [ ] Alert on privilege escalation, repeated failed logins, disabled-account access attempts, Owner changes, 2FA resets, unusual exports, and mass account changes.
-- [ ] Add a security dashboard with privileged accounts, accounts without 2FA, stale accounts, active sessions, recent privilege changes, and unresolved alerts.
+- [ ] Alert on privilege escalation, repeated failed logins, disabled-account access attempts, Owner changes, 2FA resets, unusual exports, mass account changes, CAPTCHA bypass spikes, and bot-score anomalies.
+- [ ] Add a security dashboard with privileged accounts, accounts without 2FA, stale accounts, active sessions, recent privilege changes, unresolved alerts, CAPTCHA challenges, and blocked automation attempts.
+
+## Priority 1: Anti-bot, CAPTCHA, and abuse protection settings
+
+- [ ] Add a dedicated Admin page under Security for anti-bot and abuse-protection controls.
+- [ ] Support pluggable providers instead of hard-coding one vendor.
+- [ ] Initial provider options should include Cloudflare Turnstile, Google reCAPTCHA, hCaptcha, and an internal no-provider mode for development only.
+- [ ] Store public site keys separately from secret keys and never return secret keys to the browser after saving.
+- [ ] Encrypt provider secrets at rest or store them in a managed secret store where available.
+- [ ] Add provider test/health-check before activation.
+- [ ] Add safe fallback behavior when the selected provider is unavailable.
+- [ ] Prevent disabling all protection on production without an authorized confirmation, reason, audit log, and optional step-up authentication.
+
+### Protection modes
+
+- [ ] Support `OFF`, `INVISIBLE_SCORE`, `CHALLENGE_ON_RISK`, and `ALWAYS_CHALLENGE` modes where supported.
+- [ ] Allow separate protection settings for Member login, Admin login, registration, password reset, admin invitation acceptance, deposit submission, withdrawal submission, support forms, promotion claims, and other high-abuse endpoints.
+- [ ] Allow separate rules for guests, members, admins, trusted devices, and internal service traffic.
+- [ ] Support configurable score thresholds, challenge thresholds, action names, token lifetime, and verification timeout.
+- [ ] Support temporary emergency mode that increases challenge strictness during attacks.
+- [ ] Add scheduled activation and expiry for temporary protection rules.
+
+### Layered bot protection
+
+- [ ] Add rate limits by IP, account, device, route, and action risk.
+- [ ] Add progressive throttling before hard blocking where appropriate.
+- [ ] Add honeypot fields and minimum-form-completion timing for public forms.
+- [ ] Add duplicate-submission and replay protection.
+- [ ] Add disposable-email and suspicious-domain rules for registration where policy allows.
+- [ ] Add IP allowlist, denylist, CIDR rules, trusted proxy handling, and country/region rules where legally and operationally appropriate.
+- [ ] Add device fingerprint or risk signals only with privacy review and clear retention limits.
+- [ ] Add credential-stuffing detection, password-spray detection, and abnormal login-velocity rules.
+- [ ] Add user-agent, headless-browser, automation-pattern, and request-signature signals as supporting indicators, never as the sole reason for a permanent block.
+- [ ] Add optional proof-of-work or email/phone verification escalation for repeated suspicious activity.
+- [ ] Add webhook/API abuse controls using API keys, signatures, timestamps, nonce/replay checks, and per-client rate limits rather than CAPTCHA.
+
+### Admin controls and visibility
+
+- [ ] Require explicit permissions such as `security.antibot.view`, `security.antibot.update`, `security.antibot.test`, and `security.antibot.override`.
+- [ ] Show only non-secret configuration values to admins with view-only permission.
+- [ ] Restrict secret rotation and provider switching to the Owner or explicitly delegated security admins.
+- [ ] Add configuration preview showing which routes and user groups will be affected before publish.
+- [ ] Add draft, publish, rollback, and version history for anti-bot rules.
+- [ ] Add a kill switch that can disable a broken provider integration while preserving rate limits and internal protections.
+- [ ] Add live metrics for challenge rate, pass rate, failure rate, provider errors, blocked requests, top attacked routes, top source networks, false-positive reports, and estimated bot score distribution.
+- [ ] Add filtered event logs with privacy-safe IP summaries, route, action, provider, score, decision, reason, and request ID.
+- [ ] Add alert thresholds for challenge spikes, verification failures, provider outage, attack bursts, and suspicious bypass patterns.
+
+### User experience and accessibility
+
+- [ ] Prefer invisible or risk-based challenges for normal users and show interactive challenges only when necessary.
+- [ ] Provide accessible alternatives for users who cannot complete visual or interactive challenges.
+- [ ] Preserve form input when a challenge expires or fails.
+- [ ] Show natural Thai and English messages that explain what happened and how to continue.
+- [ ] Do not accuse a user of being a bot in primary UI copy.
+- [ ] Do not trap legitimate users in an endless challenge loop.
+- [ ] Add retry, provider-fallback, and contact-support paths.
+- [ ] Ensure desktop, tablet, and mobile flows work for all supported challenge types.
+
+### Testing and acceptance
+
+- [ ] Add sandbox/test mode with clearly marked test keys and no production secrets.
+- [ ] Add automated tests for valid token, invalid token, expired token, replayed token, missing token, provider timeout, and provider outage.
+- [ ] Add load tests for rate limiting and attack bursts.
+- [ ] Verify protected server endpoints always validate tokens server-side.
+- [ ] Verify a forged or skipped frontend challenge cannot bypass backend protection.
+- [ ] Verify trusted bypass rules are scoped, expiring, and audited.
+- [ ] Verify anti-bot changes take effect without exposing secrets or breaking active sessions.
+- [ ] Verify false-positive handling and support escalation are documented.
 
 ## Priority 1: Data protection and platform hardening
 
 - [ ] Apply secure headers, strict CORS allowlists, CSRF protection where cookie-based flows exist, input validation, output encoding, and content security policy.
-- [ ] Redact secrets, tokens, passwords, recovery codes, personal data, and provider credentials from logs.
+- [ ] Redact secrets, tokens, passwords, recovery codes, personal data, provider credentials, and CAPTCHA secrets from logs.
 - [ ] Encrypt sensitive configuration and secrets at rest using a managed secret store where available.
 - [ ] Add secret rotation and expiration workflows.
-- [ ] Apply rate limits to authentication, password reset, invitation, export, and sensitive mutation endpoints.
+- [ ] Apply rate limits to authentication, password reset, invitation, export, anti-bot verification, and sensitive mutation endpoints.
 - [ ] Add dependency scanning, secret scanning, static analysis, and container/image scanning in CI.
 - [ ] Add backup, restore, incident response, and security-contact procedures.
 - [ ] Review file upload validation for slips, avatars, CMS assets, and attachments.
 
 ## Bilingual requirements
 
-- [ ] All Admin Accounts, Roles, Permissions, Security, Sessions, Login History, Invitations, Approval, and Audit pages must support Thai and English.
+- [ ] All Admin Accounts, Roles, Permissions, Security, Sessions, Login History, Invitations, Approval, Audit, CAPTCHA, Anti-bot, and Abuse Protection pages must support Thai and English.
 - [ ] Permission descriptions must remain precise in both languages.
 - [ ] Security warnings must use natural language and state the consequence clearly.
 - [ ] Technical identifiers may appear in an expandable detail section, but primary instructions must be written for humans.
@@ -174,9 +242,9 @@ Security controls must be enforced in the API and database access layer, not onl
 
 ## Desktop, Tablet, and Mobile
 
-- [ ] Desktop uses permission matrix, split view, dense account table, side detail drawer, and keyboard navigation.
-- [ ] Tablet uses responsive role grids, collapsible permission groups, and full-height account drawers.
-- [ ] Mobile uses card-based admin account lists, full-screen role/permission panels, sticky save or approval actions, and no mandatory horizontal scrolling.
+- [ ] Desktop uses permission matrix, split view, dense account table, side detail drawer, keyboard navigation, and full anti-bot analytics.
+- [ ] Tablet uses responsive role grids, collapsible permission groups, full-height account drawers, and adaptive security charts.
+- [ ] Mobile uses card-based admin account lists, full-screen role/permission panels, sticky save or approval actions, compact anti-bot controls, and no mandatory horizontal scrolling.
 - [ ] Sensitive actions must remain available only to authorized users on every supported device.
 - [ ] Security and permission behavior must be identical across device classes even when presentation differs.
 
@@ -192,7 +260,9 @@ Security controls must be enforced in the API and database access layer, not onl
 - [ ] Permission changes and account suspension take effect promptly and revoke access where required.
 - [ ] Thai and English are complete across all security and access-control pages.
 - [ ] Desktop, Tablet, and Mobile pass authenticated permission tests and visual regression.
-- [ ] Automated tests cover allowed, denied, scoped, delegated, expired, suspended, and revoked cases.
+- [ ] Automated tests cover allowed, denied, scoped, delegated, expired, suspended, revoked, challenged, throttled, and blocked cases.
+- [ ] Anti-bot protection is enforced server-side and remains effective even when frontend JavaScript is modified or bypassed.
+- [ ] Production cannot silently run with invalid CAPTCHA secrets or an unreachable selected provider without raising a visible alert.
 
 ## Recommended delivery order
 
@@ -202,6 +272,7 @@ Security controls must be enforced in the API and database access layer, not onl
 4. Implement session security and immediate revocation behavior.
 5. Build permission-aware navigation and route protection.
 6. Build Admin Accounts and Role/Permission management UI.
-7. Add high-risk step-up authentication and optional dual approval.
-8. Add security audit dashboard, alerts, and bilingual notifications.
-9. Run penetration-oriented authorization tests, bilingual QA, and responsive visual regression.
+7. Add configurable CAPTCHA, rate limiting, bot scoring, abuse rules, and anti-bot analytics.
+8. Add high-risk step-up authentication and optional dual approval.
+9. Add security audit dashboard, alerts, and bilingual notifications.
+10. Run penetration-oriented authorization tests, anti-bot bypass tests, bilingual QA, and responsive visual regression.
