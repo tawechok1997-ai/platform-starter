@@ -160,7 +160,7 @@ export default function AdminLoginPage() {
 
       <label style={labelStyle}>{t.password}
         <div style={passwordWrapStyle}>
-          <input value={secret} onChange={(event) => setSecret(event.target.value)} type={showSecret ? 'text' : 'password'} autoComplete="current-password" disabled={loading} placeholder={t.passwordPlaceholder} style={{ ...inputStyle, paddingRight: 72 }} />
+          <input value={secret} onChange={(event) => setSecret(event.target.value)} type={showSecret ? 'text' : 'password'} autoComplete="current-password" disabled={loading} placeholder={t.passwordPlaceholder} style={{ ...inputStyle, paddingRight: 66 }} />
           <button type="button" onClick={() => setShowSecret((value) => !value)} style={eyeButtonStyle} disabled={loading} aria-label={showSecret ? t.hidePassword : t.showPassword}>{showSecret ? (locale === 'th' ? 'ซ่อน' : 'Hide') : (locale === 'th' ? 'แสดง' : 'Show')}</button>
         </div>
       </label>
@@ -187,6 +187,6 @@ const labelStyle = { display: 'grid', gap: 7, fontWeight: 800, fontSize: 14 } as
 const hintStyle = { color: '#8493a7', fontSize: 12, fontWeight: 500 } as const;
 const inputStyle = { width: '100%', minHeight: 50, padding: '12px 14px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.16)', background: '#172231', color: '#fff', boxSizing: 'border-box', outline: 'none', fontSize: 16 } as const;
 const passwordWrapStyle = { position: 'relative' } as const;
-const eyeButtonStyle = { position: 'absolute', right: 7, top: 7, minWidth: 56, height: 36, borderRadius: 10, border: '1px solid rgba(255,255,255,.14)', background: 'rgba(255,255,255,.07)', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 800 } as const;
+const eyeButtonStyle = { position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', minWidth: 48, height: 32, padding: '0 10px', borderRadius: 9, border: '1px solid rgba(255,255,255,.12)', background: 'rgba(255,255,255,.045)', color: 'rgba(255,255,255,.88)', cursor: 'pointer', fontSize: 12, fontWeight: 700, lineHeight: 1 } as const;
 const submitStyle = { minHeight: 50, padding: 12, borderRadius: 14, border: 0, background: '#f5c542', color: '#111', fontWeight: 900, cursor: 'pointer', fontSize: 16 } as const;
 function alertStyle(type: 'idle' | 'success' | 'error' | 'info') { return { border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: 11, background: type === 'error' ? 'rgba(255,70,70,0.10)' : type === 'success' ? 'rgba(80,255,140,0.10)' : 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13 } as const; }
