@@ -1,7 +1,38 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
+
+const HIGH_RISK_ROLE_CODES = new Set([
+  'owner',
+  'super_admin',
+  'operations_manager',
+  'finance_reviewer',
+  'finance_operator',
+  'risk_analyst',
+  'security_admin',
+  'access_manager',
+]);
+
+const HIGH_RISK_PERMISSIONS = new Set([
+  '*',
+  'admin.create',
+  'admin.access.manage',
+  'roles.update',
+  'wallet.adjust',
+  'withdraw.approve',
+  'withdraw.success',
+  'settings.security.update',
+  'security.antibot.update',
+  'security.antibot.override',
+]);
+
+const TWO_FACTOR_BOOTSTRAP_PATHS = [
+  '/admin/auth/2fa/setup',
+  '/admin/auth/2fa/enable',
+  '/admin/auth/logout',
+  '/admin/auth/me',
+];
 
 @Injectable()
 export class AdminAuthGuard implements CanActivate {
@@ -16,46 +47,86 @@ export class AdminAuthGuard implements CanActivate {
     const token = this.getBearerToken(request.headers.authorization);
     if (!token) throw new UnauthorizedException('Missing admin authorization header');
 
+    let payload: { type?: string; sub?: string; sessionId?: string };
     try {
-      const payload = await this.jwtService.verifyAsync(token, { secret: this.configService.get<string>('JWT_ACCESS_KEY') ?? 'local_access_key' });
-      if (payload.type !== 'ADMIN' || !payload.sub || !payload.sessionId) throw new UnauthorizedException('Invalid admin token');
+      payload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get<string>('JWT_ACCESS_KEY') ?? 'local_access_key',
+      });
+    } catch (error) {
+      console.error('admin token verification failed', error);
+      throw new UnauthorizedException('Invalid or expired admin token');
+    }
 
-      const session = await this.prisma.authSession.findFirst({
-        where: { id: payload.sessionId, adminUserId: payload.sub, type: 'ADMIN', revokedAt: null, expiresAt: { gt: new Date() } },
-        include: {
-          adminUser: {
-            include: {
-              roles: {
-                include: {
-                  role: {
-                    include: {
-                      permissions: { include: { permission: true } },
-                    },
+    if (payload.type !== 'ADMIN' || !payload.sub || !payload.sessionId) {
+      throw new UnauthorizedException('Invalid admin token');
+    }
+
+    const session = await this.prisma.authSession.findFirst({
+      where: {
+        id: payload.sessionId,
+        adminUserId: payload.sub,
+        type: 'ADMIN',
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      include: {
+        adminUser: {
+          include: {
+            roles: {
+              include: {
+                role: {
+                  include: {
+                    permissions: { include: { permission: true } },
                   },
                 },
               },
             },
           },
         },
-      });
+      },
+    });
 
-      if (!session?.adminUser || session.adminUser.status !== 'ACTIVE') throw new UnauthorizedException('Admin session is not active');
-
-      const permissions = Array.from(new Set(session.adminUser.roles.flatMap((adminRole) => adminRole.role.permissions.map((rolePermission) => rolePermission.permission.code))));
-
-      request.user = {
-        id: session.adminUser.id,
-        type: 'ADMIN',
-        sessionId: session.id,
-        username: session.adminUser.username,
-        permissions,
-      };
-
-      return true;
-    } catch (error) {
-      console.error('admin auth guard failed', error);
-      throw new UnauthorizedException('Invalid or expired admin token');
+    if (!session?.adminUser || session.adminUser.status !== 'ACTIVE') {
+      throw new UnauthorizedException('Admin session is not active');
     }
+
+    const permissions = Array.from(
+      new Set(
+        session.adminUser.roles.flatMap((adminRole) =>
+          adminRole.role.permissions.map((rolePermission) => rolePermission.permission.code),
+        ),
+      ),
+    );
+    const roleCodes = session.adminUser.roles.map((adminRole) => adminRole.role.code);
+    const requiresTwoFactor =
+      roleCodes.some((code) => HIGH_RISK_ROLE_CODES.has(code)) ||
+      permissions.some((code) => HIGH_RISK_PERMISSIONS.has(code));
+
+    request.user = {
+      id: session.adminUser.id,
+      type: 'ADMIN',
+      sessionId: session.id,
+      username: session.adminUser.username,
+      permissions,
+      roleCodes,
+      twoFactorEnabled: session.adminUser.twoFactorEnabled,
+      requiresTwoFactor,
+    };
+
+    if (requiresTwoFactor && !session.adminUser.twoFactorEnabled && !this.isTwoFactorBootstrapPath(request.url)) {
+      throw new ForbiddenException({
+        statusCode: 403,
+        code: 'ADMIN_2FA_REQUIRED',
+        message: 'Two-factor authentication must be enabled before using privileged admin features',
+      });
+    }
+
+    return true;
+  }
+
+  private isTwoFactorBootstrapPath(value?: string) {
+    const path = String(value ?? '').split('?')[0];
+    return TWO_FACTOR_BOOTSTRAP_PATHS.some((allowed) => path === allowed || path.endsWith(allowed));
   }
 
   private getBearerToken(value?: string): string | null {
