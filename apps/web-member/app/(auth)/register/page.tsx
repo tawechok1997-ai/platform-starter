@@ -16,7 +16,7 @@ const copy = {
     next: 'ถัดไป', back: 'ย้อนกลับ', submit: 'สมัครสมาชิก', submitting: 'กำลังสมัคร...', show: 'แสดง', hide: 'ซ่อน',
     loginPrompt: 'มีบัญชีแล้ว?', login: 'เข้าสู่ระบบ', terms: 'ฉันยืนยันว่าข้อมูลถูกต้องและยอมรับเงื่อนไขการใช้งาน',
     nameRule: 'ชื่อบัญชีธนาคารต้องตรงกับชื่อจริงที่ใช้สมัคร', checkFields: 'กรุณาตรวจสอบข้อมูลที่ระบุไว้', success: 'สมัครสมาชิกสำเร็จ', failed: 'สมัครสมาชิกไม่สำเร็จ กรุณาลองอีกครั้ง', timeout: 'เชื่อมต่อระบบนานเกินไป กรุณาลองอีกครั้ง',
-    registrationDisabled: 'ขณะนี้ปิดรับสมัครสมาชิก', maintenance: 'ระบบกำลังปรับปรุง กรุณาลองใหม่ภายหลัง', step: 'ขั้นตอน',
+    registrationDisabled: 'ขณะนี้ปิดรับสมัครสมาชิก', maintenance: 'ระบบกำลังปรับปรุง กรุณาลองใหม่ภายหลัง', step: 'ขั้นตอน', invalidResponse: 'ระบบตอบกลับไม่สมบูรณ์ กรุณาลองใหม่อีกครั้ง',
   },
   en: {
     title: 'Create account', subtitle: 'Complete a few short steps', account: 'Account details', identity: 'Identity and bank', review: 'Review',
@@ -25,7 +25,7 @@ const copy = {
     next: 'Continue', back: 'Back', submit: 'Create account', submitting: 'Creating account...', show: 'Show', hide: 'Hide',
     loginPrompt: 'Already have an account?', login: 'Sign in', terms: 'I confirm the information is correct and accept the terms of use',
     nameRule: 'The bank account name must match the legal name used to register', checkFields: 'Check the highlighted fields', success: 'Account created successfully', failed: 'Could not create the account. Please try again', timeout: 'The connection took too long. Please try again',
-    registrationDisabled: 'Registration is temporarily unavailable', maintenance: 'The service is under maintenance. Please try again later', step: 'Step',
+    registrationDisabled: 'Registration is temporarily unavailable', maintenance: 'The service is under maintenance. Please try again later', step: 'Step', invalidResponse: 'The server response was incomplete. Please try again.',
   },
 } as const;
 
@@ -119,7 +119,8 @@ export default function MemberRegisterPage() {
         body: JSON.stringify({ username: username.trim(), phone: phone.trim(), email: email.trim() || undefined, secret, fullName: fullName.trim(), bankName: bankName.trim(), bankAccountNumber: bankAccountNumber.trim(), bankAccountName: bankAccountName.trim(), referralCode: cleanRef || undefined, deviceId: 'web-member' }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) { setStatus('error'); setMessage(typeof data?.message === 'string' ? data.message : t.failed); return; }
+      if (!res.ok) { setStatus('error'); setMessage(mapRegisterError(data?.message, locale, t.failed)); return; }
+      if (!data?.accessToken || !data?.refreshToken) { setStatus('error'); setMessage(t.invalidResponse); return; }
       window.localStorage.setItem('member_access_token', data.accessToken);
       window.localStorage.setItem('member_refresh_token', data.refreshToken);
       if (cleanRef) await linkReferralAfterRegister(cleanRef, data.accessToken);
@@ -192,3 +193,16 @@ function ReviewRow({ label, value }: { label: string; value: string }) { return 
 async function linkReferralAfterRegister(referralCode: string, token?: string) { const accessToken = token || window.localStorage.getItem('member_access_token'); if (!accessToken) return; const res = await fetch(`${API_URL}/member/affiliate/link`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ referralCode }) }); if (res.ok) window.localStorage.removeItem(REFERRAL_CODE_KEY); }
 function normalizeReferralCode(value: string) { return String(value ?? '').trim().toUpperCase().replace(/[^A-Z0-9_-]+/g, '').slice(0, 24); }
 function maskAccount(value: string) { return value.length > 4 ? `${'•'.repeat(Math.max(0, value.length - 4))}${value.slice(-4)}` : value; }
+
+function mapRegisterError(raw: unknown, locale: Locale, fallback: string) {
+  const messages = Array.isArray(raw) ? raw.map(String) : [String(raw ?? '')];
+  const joined = messages.join(' ').toLowerCase();
+  const th = locale === 'th';
+  if (joined.includes('ชื่อบัญชีธนาคารต้องตรง') || joined.includes('bank account name') && joined.includes('match')) return th ? 'ชื่อบัญชีธนาคารต้องตรงกับชื่อจริงที่ใช้สมัคร' : 'The bank account name must match your legal name.';
+  if (joined.includes('บัญชีธนาคารนี้ถูกใช้') || joined.includes('bank') && joined.includes('already')) return th ? 'บัญชีธนาคารนี้ถูกใช้กับสมาชิกคนอื่นแล้ว' : 'This bank account is already linked to another member.';
+  if (joined.includes('member already exists') || joined.includes('ถูกใช้แล้ว') || joined.includes('already exists')) return th ? 'ชื่อผู้ใช้ เบอร์โทร หรืออีเมลนี้ถูกใช้แล้ว' : 'The username, phone number, or email is already in use.';
+  if (joined.includes('bankaccountnumber') || joined.includes('6 to 20 digits')) return th ? 'เลขบัญชีต้องเป็นตัวเลข 6-20 หลัก' : 'The account number must contain 6-20 digits.';
+  if (joined.includes('secret is required') || joined.includes('password')) return th ? 'กรุณากำหนดรหัสผ่านให้ถูกต้อง' : 'Enter a valid password.';
+  if (joined.includes('full name') || joined.includes('fullname')) return th ? 'กรุณากรอกชื่อ-นามสกุลจริงให้ครบถ้วน' : 'Enter your full legal name.';
+  return fallback;
+}
