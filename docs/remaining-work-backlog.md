@@ -360,3 +360,114 @@ Provider-specific work after docs arrive:
 13. Start CMS Banner/Popup.
 14. Start KYC/Bank Verification.
 15. Start Support Ticket/LINE contact.
+
+## Main initiative: Web Member market-style redesign
+
+This initiative upgrades the entire Member experience to a production-grade market-style interface rather than polishing isolated pages. Shared navigation, layout, icons, wallet presentation, promotions, game discovery, and responsive behavior must be treated as one coherent system.
+
+### Priority 0: Shared member shell and navigation
+
+- [ ] Replace the current Member navigation with a new grouped navigation system.
+- [ ] Add desktop/tablet right sidebar layout while keeping mobile bottom navigation.
+- [ ] Add a square profile and wallet panel at the top of the right sidebar.
+- [ ] Show avatar, display name, username, short member ID, account status, and member tier placeholder.
+- [ ] Show available balance, locked balance, currency, last refresh time, and hide/show balance control.
+- [ ] Add deposit, withdraw, and refresh balance actions inside the wallet panel.
+- [ ] Group menu items into Main, Finance, Account, and Support sections.
+- [ ] Add notification, pending-money, and promotion badges to relevant menu items.
+- [ ] Add consistent active, hover, focus, disabled, and maintenance states.
+- [ ] Keep safe-area support and touch targets of at least 44px.
+
+### Priority 0: Icon system replacement
+
+- [ ] Replace all mixed emoji and inconsistent icons with one shared icon system.
+- [ ] Use consistent stroke weight, filled/outline rules, sizing, and alignment.
+- [ ] Replace icons for Home, Promotions, Games, Favorites, Recent, Deposit, Withdraw, History, Bank Accounts, Notifications, Profile, Security, Sessions, Support, FAQ, Refresh, Search, Filter, Favorite, Claim, and Logout.
+- [ ] Add consistent status icons for success, pending, rejected, maintenance, new, popular, featured, secure, and warning states.
+- [ ] Create shared icon wrappers so pages do not import or style icons independently.
+
+### Priority 0: Member Home redesign
+
+- [ ] Replace the current home structure with a market-style home layout.
+- [ ] Add a hero carousel supporting multiple promotional images.
+- [ ] Add desktop, tablet, and mobile aspect-ratio handling for promotional assets.
+- [ ] Add wallet summary strip and quick-action cards.
+- [ ] Add promotion highlight, game categories, featured games, popular games, new games, recent games, announcements, and support shortcuts.
+- [ ] Add countdown and campaign badge slots where campaign metadata exists.
+- [ ] Add skeleton, empty, error, and retry states for every remote section.
+- [ ] Ensure content order remains usable when promotions or games are unavailable.
+
+### Priority 0: Promotions experience
+
+- [ ] Support multiple promotion images and multiple card layouts.
+- [ ] Add hero banner, horizontal carousel, card grid, and compact promotion strip variants.
+- [ ] Add promotion badges such as New, Featured, Hot, and Members Only.
+- [ ] Show bonus value, minimum deposit, turnover requirement, eligibility, and CTA.
+- [ ] Add promotion detail page with hero image, conditions, calculation example, claim steps, and eligibility state.
+- [ ] Add claim, claimed, expired, disabled, and maintenance states.
+- [ ] Add responsive asset fallback and image loading placeholders.
+- [ ] Prepare the UI to consume CMS-managed banner and promotion assets.
+
+### Priority 1: Game lobby market polish
+
+- [ ] Redesign game cards with stronger cover imagery, overlay, provider label, category, and market badges.
+- [ ] Add Hot, New, Popular, Featured, Favorite, and Maintenance visuals.
+- [ ] Add provider logo rail and provider quick filters.
+- [ ] Improve search, category tabs, favorite, and recent filters.
+- [ ] Add featured, popular, new, recently played, favorites, and all-games sections.
+- [ ] Add game and provider image fallback hierarchy.
+- [ ] Add loading skeletons and partial-failure handling.
+- [ ] Keep launch and transfer business logic unchanged during visual refactor.
+
+### Priority 1: Wallet and profile presentation
+
+- [ ] Create reusable `MemberWalletCard` and `MemberProfileCard` components.
+- [ ] Add hide/show balance persistence per device.
+- [ ] Add wallet refresh timeout, retry, and stale-data indicator.
+- [ ] Add shortcuts to profile, security, sessions, and bank accounts.
+- [ ] Ensure wallet values use the same API contract and available-balance calculation everywhere.
+- [ ] Add verified phone/email states where data exists.
+
+### Priority 1: Quick actions and financial entry points
+
+- [ ] Standardize Deposit, Withdraw, Promotions, Bank Accounts, History, and Support quick-action cards.
+- [ ] Add large icons, clear Thai labels, accessible descriptions, and touch-friendly layout.
+- [ ] Add pending-state badges without changing money operation rules.
+- [ ] Ensure navigation from every quick action preserves the expected route and feature flag behavior.
+
+### Priority 2: Visual system and consistency pass
+
+- [ ] Define shared Member design tokens for surfaces, borders, radii, shadows, typography, spacing, and state colors.
+- [ ] Standardize card hierarchy across Home, Games, Promotions, Finance, Profile, Notifications, and Support.
+- [ ] Reduce page-level inline styles and move reusable patterns into shared components and CSS modules.
+- [ ] Improve text contrast, number hierarchy, secondary labels, and Thai line wrapping.
+- [ ] Add reduced-motion behavior for carousel, hover, and refresh animations.
+- [ ] Add keyboard focus states and semantic labels across all interactive controls.
+
+### Priority 2: Responsive and visual regression
+
+- [ ] Validate 360x800, 390x844, 430x932, 768x1024, 1024x768, and 1440x900 viewports.
+- [ ] Add authenticated screenshots for Home, Promotions, Games, Deposit, Withdraw, History, Bank Accounts, Profile, Notifications, and Support.
+- [ ] Add baseline snapshots and CI artifacts for visual diffs.
+- [ ] Verify sticky right sidebar behavior does not cover content or mobile safe areas.
+- [ ] Verify loading, empty, error, disabled, maintenance, and long-content states.
+
+### Acceptance criteria
+
+- [ ] Member Home, Promotions, Games, Finance, Profile, Notifications, and Support share one coherent visual system.
+- [ ] Desktop and tablet show the right sidebar with the profile and wallet cards at the top.
+- [ ] Mobile retains a redesigned bottom navigation with consistent icons and badges.
+- [ ] Promotions support multiple images and at least four display variants.
+- [ ] No shared navigation or wallet logic is duplicated across pages.
+- [ ] No money, auth, game launch, or feature-flag behavior changes during the visual refactor unless separately reviewed.
+- [ ] All affected Member routes pass build, authenticated smoke tests, accessibility checks, and visual regression.
+
+### Delivery order
+
+1. Shared icon system and design tokens.
+2. Right sidebar, profile card, wallet card, and navigation grouping.
+3. Member Home and multi-image promotion system.
+4. Promotion listing/detail experience.
+5. Game Lobby visual refactor.
+6. Quick actions and remaining Member page consistency pass.
+7. Authenticated responsive and visual regression QA.
