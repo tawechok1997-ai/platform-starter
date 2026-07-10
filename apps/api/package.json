@@ -6,7 +6,8 @@
     "prebuild": "prisma generate --schema ../../prisma/schema.prisma",
     "build": "nest build",
     "start:prod": "prisma generate --schema ../../prisma/schema.prisma && node dist/main.js",
-    "test": "jest"
+    "test": "jest",
+    "test:db:finance": "jest src/modules/finance/finance-concurrency.db.spec.ts --runInBand"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1085.0",
