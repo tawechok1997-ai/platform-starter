@@ -23,19 +23,6 @@ type DuplicateRow = {
   slip_perceptual_hash: string | null;
 };
 
-type EvidenceRow = {
-  id: string;
-  status: string;
-  slip_url: string | null;
-  slip_file_hash: string | null;
-  slip_transaction_ref: string | null;
-  slip_detected_amount: string | null;
-  slip_transferred_at: Date | null;
-  duplicate_of_id: string | null;
-  duplicate_reason: string | null;
-  duplicate_match_score: string | null;
-};
-
 @Injectable()
 export class DepositWorkflowService {
   constructor(private readonly prisma: PrismaService, private readonly storage: StorageService) {}
@@ -94,47 +81,6 @@ export class DepositWorkflowService {
     return { ok: true, duplicate: false, status: 'PENDING_SLIP_REVIEW', slipUrl: key, fileHash };
   }
 
-  async getEvidence(requestId: string) {
-    const rows = await this.prisma.$queryRaw<EvidenceRow[]>(Prisma.sql`
-      SELECT
-        "id",
-        "status"::text AS "status",
-        "slip_url",
-        "slip_file_hash",
-        "slip_transaction_ref",
-        "slip_detected_amount"::text,
-        "slip_transferred_at",
-        "duplicate_of_id",
-        "duplicate_reason",
-        "duplicate_match_score"::text
-      FROM "top_up_requests"
-      WHERE "id" = ${requestId}::uuid
-      LIMIT 1
-    `);
-    const row = rows[0];
-    if (!row) throw new NotFoundException('Top up request not found');
-
-    let dataUrl: string | null = null;
-    if (row.slip_url) {
-      const stored = await this.storage.get(row.slip_url, this.contentTypeFromKey(row.slip_url));
-      dataUrl = `data:${stored.contentType};base64,${stored.data.toString('base64')}`;
-    }
-
-    return {
-      id: row.id,
-      status: row.status,
-      dataUrl,
-      slipUrl: row.slip_url,
-      fileHash: row.slip_file_hash,
-      transactionRef: row.slip_transaction_ref,
-      detectedAmount: row.slip_detected_amount,
-      transferredAt: row.slip_transferred_at,
-      duplicateOfId: row.duplicate_of_id,
-      duplicateReason: row.duplicate_reason,
-      duplicateMatchScore: row.duplicate_match_score,
-    };
-  }
-
   async approveSlip(requestId: string, adminUserId: string, note: string | undefined, meta: DepositWorkflowMeta = {}) {
     return this.prisma.$transaction(async (tx) => {
       const changed = await tx.$executeRaw(Prisma.sql`
@@ -150,39 +96,6 @@ export class DepositWorkflowService {
       if (changed !== 1) throw new ConflictException('Slip is not waiting for review or was already processed');
       await tx.adminAuditLog.create({ data: { adminUserId, action: 'APPROVE_DEPOSIT_SLIP', module: 'topups', targetId: requestId, oldData: { status: 'PENDING_SLIP_REVIEW' }, newData: { status: 'PENDING_CREDIT', note }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
       return { ok: true, status: 'PENDING_CREDIT' };
-    });
-  }
-
-  async rejectDeposit(requestId: string, adminUserId: string, reason: string | undefined, meta: DepositWorkflowMeta = {}) {
-    const adminNote = reason?.trim();
-    if (!adminNote) throw new BadRequestException('Rejection reason is required');
-    return this.prisma.$transaction(async (tx) => {
-      const current = await tx.$queryRaw<Array<{ status: string }>>(Prisma.sql`
-        SELECT "status"::text AS "status"
-        FROM "top_up_requests"
-        WHERE "id" = ${requestId}::uuid
-        FOR UPDATE
-      `);
-      const status = current[0]?.status;
-      if (!status) throw new NotFoundException('Top up request not found');
-      if (!['PENDING_SLIP_REVIEW', 'PENDING_CREDIT'].includes(status)) {
-        throw new ConflictException(`Deposit cannot be rejected from status: ${status}`);
-      }
-      const changed = await tx.$executeRaw(Prisma.sql`
-        UPDATE "top_up_requests"
-        SET "status" = 'REJECTED'::"TopUpRequestStatus",
-            "admin_note" = ${adminNote},
-            "reviewed_by" = ${adminUserId}::uuid,
-            "reviewed_at" = NOW(),
-            "claimed_by" = NULL,
-            "claimed_at" = NULL,
-            "updated_at" = NOW()
-        WHERE "id" = ${requestId}::uuid
-          AND "status"::text IN ('PENDING_SLIP_REVIEW', 'PENDING_CREDIT')
-      `);
-      if (changed !== 1) throw new ConflictException('Deposit state changed during rejection');
-      await tx.adminAuditLog.create({ data: { adminUserId, action: 'REJECT_STAGED_DEPOSIT', module: 'topups', targetId: requestId, oldData: { status }, newData: { status: 'REJECTED', adminNote }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
-      return { ok: true, status: 'REJECTED', adminNote };
     });
   }
 
@@ -291,11 +204,5 @@ export class DepositWorkflowService {
         `);
       }
     });
-  }
-
-  private contentTypeFromKey(key: string) {
-    if (key.endsWith('.png')) return 'image/png';
-    if (key.endsWith('.webp')) return 'image/webp';
-    return 'image/jpeg';
   }
 }
