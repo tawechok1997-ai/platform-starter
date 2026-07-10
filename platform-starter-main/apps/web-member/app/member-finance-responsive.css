@@ -1,0 +1,113 @@
+/* Shared responsive composition for deposit, withdraw, transactions and bank accounts. */
+main:has(> a[href="/"]) {
+  width: min(1180px, 100%);
+  margin-inline: auto;
+  padding-inline: clamp(12px, 3vw, 28px) !important;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
+  box-sizing: border-box;
+}
+
+main:has(> a[href="/"]) > a[href="/"] {
+  display: inline-flex !important;
+  align-items: center;
+  min-height: 44px;
+  margin-bottom: 12px;
+  border-radius: 999px !important;
+  padding: 0 14px !important;
+  background: color-mix(in srgb, var(--color-card) 88%, transparent) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+main:has(> a[href="/"]) form,
+main:has(> a[href="/"]) > section {
+  min-width: 0;
+}
+
+main:has(> a[href="/"]) input,
+main:has(> a[href="/"]) select,
+main:has(> a[href="/"]) textarea,
+main:has(> a[href="/"]) button {
+  font: inherit;
+}
+
+main:has(> a[href="/"]) input,
+main:has(> a[href="/"]) select,
+main:has(> a[href="/"]) textarea {
+  min-height: 48px;
+}
+
+main:has(> a[href="/"]) textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+main:has(> a[href="/"]) button,
+main:has(> a[href="/"]) a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+main:has(> a[href="/"]) img {
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  main:has(> a[href="/"]) {
+    width: 100%;
+    padding-top: 14px !important;
+  }
+
+  main:has(> a[href="/"]) form,
+  main:has(> a[href="/"]) > section {
+    border-radius: 22px !important;
+    padding: 16px !important;
+  }
+
+  main:has(> a[href="/"]) form > div:last-child,
+  main:has(> a[href="/"]) section > div:last-child {
+    gap: 10px !important;
+  }
+
+  main:has(> a[href="/"]) button[type="submit"],
+  main:has(> a[href="/"]) button:not([type]),
+  main:has(> a[href="/"]) a[role="button"] {
+    min-height: 48px;
+  }
+
+  main:has(> a[href="/"]) form > button[type="submit"] {
+    position: sticky;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 6;
+    box-shadow: 0 16px 40px rgba(0,0,0,.34);
+  }
+}
+
+@media (min-width: 1024px) {
+  main:has(> a[href="/"]) {
+    padding-top: 28px !important;
+    padding-bottom: 64px !important;
+  }
+
+  main:has(> a[href="/"]) > form,
+  main:has(> a[href="/"]) > section {
+    max-width: 760px;
+  }
+
+  main:has(> a[href="/"]) > section:last-of-type {
+    max-width: none;
+  }
+
+  main:has(> a[href="/"]) form,
+  main:has(> a[href="/"]) > section {
+    border-radius: 28px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main:has(> a[href="/"]) *,
+  main:has(> a[href="/"]) *::before,
+  main:has(> a[href="/"]) *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
