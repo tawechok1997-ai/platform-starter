@@ -5,7 +5,55 @@ import { FormEvent, useEffect, useState } from 'react';
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 const LOGIN_TIMEOUT_MS = 15000;
 
+type Locale = 'th' | 'en';
+
+const copy = {
+  th: {
+    title: 'เข้าสู่ระบบผู้ดูแล',
+    subtitle: 'ใช้บัญชีผู้ดูแลที่ได้รับอนุญาต',
+    username: 'ชื่อผู้ใช้',
+    usernamePlaceholder: 'กรอกชื่อผู้ใช้',
+    password: 'รหัสผ่าน',
+    passwordPlaceholder: 'กรอกรหัสผ่าน',
+    twoFactor: 'รหัสยืนยัน 2FA',
+    twoFactorOptional: 'กรอกเมื่อระบบร้องขอ',
+    twoFactorPlaceholder: 'กรอกรหัส 6 หลัก',
+    submit: 'เข้าสู่ระบบ',
+    submitting: 'กำลังเข้าสู่ระบบ...',
+    required: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน',
+    requiresTwoFactor: 'กรอกรหัส 2FA แล้วเข้าสู่ระบบอีกครั้ง',
+    incomplete: 'ระบบตอบกลับไม่สมบูรณ์ กรุณาลองใหม่',
+    failed: 'เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่',
+    timeout: 'เชื่อมต่อระบบนานเกินไป กรุณาลองใหม่',
+    success: 'เข้าสู่ระบบสำเร็จ',
+    showPassword: 'แสดงรหัสผ่าน',
+    hidePassword: 'ซ่อนรหัสผ่าน',
+  },
+  en: {
+    title: 'Admin sign in',
+    subtitle: 'Use an authorized administrator account',
+    username: 'Username',
+    usernamePlaceholder: 'Enter your username',
+    password: 'Password',
+    passwordPlaceholder: 'Enter your password',
+    twoFactor: '2FA verification code',
+    twoFactorOptional: 'Enter only when requested',
+    twoFactorPlaceholder: 'Enter the 6-digit code',
+    submit: 'Sign in',
+    submitting: 'Signing in...',
+    required: 'Enter your username and password',
+    requiresTwoFactor: 'Enter your 2FA code and sign in again',
+    incomplete: 'The server response was incomplete. Please try again',
+    failed: 'Could not sign in. Please try again',
+    timeout: 'The connection took too long. Please try again',
+    success: 'Signed in successfully',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+  },
+} as const;
+
 export default function AdminLoginPage() {
+  const [locale, setLocale] = useState<Locale>('th');
   const [username, setUsername] = useState('');
   const [secret, setSecret] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
@@ -13,25 +61,37 @@ export default function AdminLoginPage() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'info'>('idle');
   const [loading, setLoading] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
+  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
 
   useEffect(() => {
-    if (window.localStorage.getItem('admin_access_token') || window.localStorage.getItem('admin_refresh_token')) window.location.replace('/dashboard');
+    if (window.localStorage.getItem('admin_access_token') || window.localStorage.getItem('admin_refresh_token')) {
+      window.location.replace('/dashboard');
+      return;
+    }
+    const savedLocale = window.localStorage.getItem('admin_locale');
+    if (savedLocale === 'th' || savedLocale === 'en') setLocale(savedLocale);
   }, []);
+
+  const t = copy[locale];
+
+  function changeLocale(next: Locale) {
+    setLocale(next);
+    window.localStorage.setItem('admin_locale', next);
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!username.trim() || !secret.trim()) {
       setStatus('error');
-      setMessage('กรอก username และรหัสผ่าน');
+      setMessage(t.required);
       return;
     }
 
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), LOGIN_TIMEOUT_MS);
-
     setLoading(true);
     setStatus('info');
-    setMessage('กำลังเข้าสู่ระบบ...');
+    setMessage(t.submitting);
 
     try {
       const res = await fetch(`${API_URL}/admin/auth/login`, {
@@ -45,36 +105,36 @@ export default function AdminLoginPage() {
         }),
         signal: controller.signal,
       });
-
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
         setStatus('error');
-        setMessage(data?.message ?? `เข้าสู่ระบบไม่สำเร็จ (${res.status})`);
+        setMessage(typeof data?.message === 'string' ? data.message : t.failed);
         return;
       }
 
       if (data?.requiresTwoFactor) {
+        setRequiresTwoFactor(true);
         setStatus('info');
-        setMessage('กรอก 2FA แล้วกด Login อีกครั้ง');
+        setMessage(t.requiresTwoFactor);
         return;
       }
 
       if (!data?.accessToken || !data?.refreshToken) {
         setStatus('error');
-        setMessage('ระบบตอบกลับไม่สมบูรณ์ กรุณาลองใหม่');
+        setMessage(t.incomplete);
         return;
       }
 
       window.localStorage.setItem('admin_access_token', data.accessToken);
       window.localStorage.setItem('admin_refresh_token', data.refreshToken);
       setStatus('success');
-      setMessage('เข้าสู่ระบบสำเร็จ');
+      setMessage(t.success);
       window.location.replace('/dashboard');
     } catch (error) {
       const aborted = error instanceof DOMException && error.name === 'AbortError';
       setStatus('error');
-      setMessage(aborted ? 'เชื่อมต่อ API เกิน 15 วินาที กรุณาตรวจสอบ API URL หรือสถานะเซิร์ฟเวอร์' : 'เชื่อมต่อระบบ Admin ไม่สำเร็จ กรุณาลองใหม่');
+      setMessage(aborted ? t.timeout : t.failed);
     } finally {
       window.clearTimeout(timeoutId);
       setLoading(false);
@@ -82,27 +142,49 @@ export default function AdminLoginPage() {
   }
 
   return <main style={pageStyle}>
-    <section style={shellStyle}>
-      <form onSubmit={onSubmit} style={cardStyle}>
-        <div style={logoOnlyRowStyle}><div style={logoStyle}>A</div></div>
-        <label style={labelStyle}>Username<input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" disabled={loading} placeholder="admin username" style={inputStyle} /></label>
-        <label style={labelStyle}>Password<div style={passwordWrapStyle}><input value={secret} onChange={(e) => setSecret(e.target.value)} type={showSecret ? 'text' : 'password'} autoComplete="current-password" disabled={loading} placeholder="admin password" style={{ ...inputStyle, paddingRight: 58 }} /><button type="button" onClick={() => setShowSecret((v) => !v)} style={eyeButtonStyle} disabled={loading} aria-label={showSecret ? 'Hide password' : 'Show password'} title={showSecret ? 'Hide password' : 'Show password'}>{showSecret ? '🙈' : '👁️'}</button></div></label>
-        <label style={labelStyle}>2FA <span style={{ opacity: 0.6, fontWeight: 500 }}>(ถ้ามี)</span><input value={twoFactorCode} onChange={(e) => setTwoFactorCode(e.target.value)} inputMode="numeric" autoComplete="one-time-code" disabled={loading} placeholder="รหัส 2FA" style={inputStyle} /></label>
-        <button type="submit" disabled={loading} style={submitStyle}>{loading ? 'กำลังเข้าสู่ระบบ...' : 'Login'}</button>
-        {message && <div style={alertStyle(status)}>{message}</div>}
-      </form>
-    </section>
+    <form onSubmit={onSubmit} style={cardStyle} noValidate>
+      <div style={logoStyle} aria-hidden="true">A</div>
+      <div style={{ textAlign: 'center' }}>
+        <h1 style={{ margin: 0, fontSize: 26 }}>{t.title}</h1>
+        <p style={{ margin: '8px 0 0', color: '#9fb0c3', fontSize: 14 }}>{t.subtitle}</p>
+      </div>
+
+      <div style={languageRowStyle} aria-label="Language">
+        <button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} style={languageButtonStyle(locale === 'th')}>ไทย</button>
+        <button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} style={languageButtonStyle(locale === 'en')}>EN</button>
+      </div>
+
+      <label style={labelStyle}>{t.username}
+        <input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" disabled={loading} placeholder={t.usernamePlaceholder} style={inputStyle} />
+      </label>
+
+      <label style={labelStyle}>{t.password}
+        <div style={passwordWrapStyle}>
+          <input value={secret} onChange={(event) => setSecret(event.target.value)} type={showSecret ? 'text' : 'password'} autoComplete="current-password" disabled={loading} placeholder={t.passwordPlaceholder} style={{ ...inputStyle, paddingRight: 76 }} />
+          <button type="button" onClick={() => setShowSecret((value) => !value)} style={eyeButtonStyle} disabled={loading} aria-label={showSecret ? t.hidePassword : t.showPassword}>{showSecret ? (locale === 'th' ? 'ซ่อน' : 'Hide') : (locale === 'th' ? 'แสดง' : 'Show')}</button>
+        </div>
+      </label>
+
+      {requiresTwoFactor && <label style={labelStyle}>{t.twoFactor}
+        <span style={hintStyle}>{t.twoFactorOptional}</span>
+        <input value={twoFactorCode} onChange={(event) => setTwoFactorCode(event.target.value.replace(/\D/g, '').slice(0, 8))} inputMode="numeric" autoComplete="one-time-code" disabled={loading} placeholder={t.twoFactorPlaceholder} style={inputStyle} />
+      </label>}
+
+      <button type="submit" disabled={loading} style={{ ...submitStyle, opacity: loading ? 0.7 : 1 }}>{loading ? t.submitting : t.submit}</button>
+      {message && <div style={alertStyle(status)} role={status === 'error' ? 'alert' : 'status'} aria-live={status === 'error' ? 'assertive' : 'polite'}>{message}</div>}
+    </form>
   </main>;
 }
 
-const pageStyle = { minHeight: '100dvh', padding: 16, display: 'grid', placeItems: 'center', background: '#080808', color: '#fff', boxSizing: 'border-box' } as const;
-const shellStyle = { width: '100%', maxWidth: 460, margin: '0 auto', display: 'grid', placeItems: 'center' } as const;
-const cardStyle = { width: '100%', display: 'grid', gap: 16, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 28, padding: 24, background: '#111a24', boxShadow: '0 28px 90px rgba(0,0,0,0.34)', boxSizing: 'border-box' } as const;
-const logoOnlyRowStyle = { display: 'flex', justifyContent: 'center', marginBottom: 4 } as const;
-const logoStyle = { width: 52, height: 52, borderRadius: 18, display: 'grid', placeItems: 'center', fontWeight: 950, fontSize: 22, background: '#f5c542', color: '#111', flex: '0 0 52px' } as const;
-const labelStyle = { display: 'grid', gap: 8, fontWeight: 800 } as const;
-const inputStyle = { width: '100%', padding: '13px 14px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.14)', background: '#172231', color: '#fff', boxSizing: 'border-box', outline: 'none' } as const;
+const pageStyle = { minHeight: '100dvh', padding: 16, display: 'grid', placeItems: 'center', background: '#080b10', color: '#fff', boxSizing: 'border-box' } as const;
+const cardStyle = { width: '100%', maxWidth: 420, display: 'grid', gap: 18, border: '1px solid rgba(255,255,255,0.10)', borderRadius: 24, padding: 24, background: '#101722', boxShadow: '0 24px 72px rgba(0,0,0,0.34)', boxSizing: 'border-box' } as const;
+const logoStyle = { width: 54, height: 54, borderRadius: 16, display: 'grid', placeItems: 'center', justifySelf: 'center', fontWeight: 950, fontSize: 22, background: '#f5c542', color: '#111' } as const;
+const languageRowStyle = { display: 'flex', justifyContent: 'center', gap: 8 } as const;
+const languageButtonStyle = (active: boolean) => ({ minWidth: 54, padding: '8px 12px', borderRadius: 999, border: `1px solid ${active ? '#f5c542' : 'rgba(255,255,255,0.12)'}`, background: active ? 'rgba(245,197,66,0.14)' : 'transparent', color: active ? '#f5c542' : '#c7d0dc', cursor: 'pointer', fontWeight: 800 } as const);
+const labelStyle = { display: 'grid', gap: 8, fontWeight: 800, fontSize: 14 } as const;
+const hintStyle = { color: '#8493a7', fontSize: 12, fontWeight: 500 } as const;
+const inputStyle = { width: '100%', minHeight: 46, padding: '12px 14px', borderRadius: 13, border: '1px solid rgba(255,255,255,0.12)', background: '#172231', color: '#fff', boxSizing: 'border-box', outline: 'none' } as const;
 const passwordWrapStyle = { position: 'relative' } as const;
-const eyeButtonStyle = { position: 'absolute', right: 8, top: 7, width: 38, height: 34, borderRadius: 12, border: '1px solid rgba(255,255,255,.14)', background: 'rgba(255,255,255,.10)', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: 16 } as const;
-const submitStyle = { padding: 14, borderRadius: 14, border: 0, background: '#f5c542', color: '#111', fontWeight: 900, cursor: 'pointer' } as const;
-function alertStyle(type: 'idle' | 'success' | 'error' | 'info') { return { border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, padding: 12, background: type === 'error' ? 'rgba(255,70,70,0.12)' : type === 'success' ? 'rgba(80,255,140,0.12)' : 'rgba(255,255,255,0.06)', color: '#fff' } as const; }
+const eyeButtonStyle = { position: 'absolute', right: 8, top: 6, minWidth: 60, height: 34, borderRadius: 10, border: '1px solid rgba(255,255,255,.12)', background: 'rgba(255,255,255,.07)', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 800 } as const;
+const submitStyle = { minHeight: 46, padding: 12, borderRadius: 13, border: 0, background: '#f5c542', color: '#111', fontWeight: 900, cursor: 'pointer' } as const;
+function alertStyle(type: 'idle' | 'success' | 'error' | 'info') { return { border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: 12, background: type === 'error' ? 'rgba(255,70,70,0.10)' : type === 'success' ? 'rgba(80,255,140,0.10)' : 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 } as const; }
