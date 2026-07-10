@@ -6,3 +6,45 @@
 @media(max-width:560px){.admin-content-shell [style*="justify-content: space-between"]{align-items:flex-start!important}.admin-content-shell a,.admin-content-shell button{min-height:44px}}
 @media(max-width:430px){.admin-content-shell>main{padding-left:12px!important;padding-right:12px!important}.admin-content-shell h1{font-size:clamp(29px,11vw,40px)!important}.admin-content-shell div[style*="minmax(min(180px"]{grid-template-columns:1fr!important}.admin-content-shell div[style*="minmax(170px"]{grid-template-columns:1fr!important}.admin-brand-text small{display:none}.admin-drawer{width:94vw}.admin-content-shell input,.admin-content-shell textarea,.admin-content-shell select{font-size:16px!important}.admin-content-shell input[type="checkbox"],.admin-content-shell input[type="radio"]{width:22px!important;min-width:22px!important;height:22px!important;min-height:22px!important}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}}
+
+.admin-nav-group{display:grid;gap:8px;background:transparent;border:0;padding:0}
+.admin-nav-group-title{margin:8px 4px 2px;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.46)}
+.admin-loading-screen{min-height:100dvh;display:grid;place-items:center;padding:24px}
+.admin-loading-card{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 18px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--text);font-weight:850;box-shadow:var(--shadow)}
+.admin-loading-spinner{width:18px;height:18px;border:2px solid rgba(245,197,66,.25);border-top-color:var(--brand);border-radius:50%;animation:adminSpinner .8s linear infinite}
+.admin-access-denied{min-height:60dvh;display:grid;place-items:center;padding:24px;text-align:center}
+.admin-access-denied>div{display:grid;gap:10px;max-width:520px}
+.admin-access-denied strong{font-size:24px}
+.admin-access-denied p{margin:0}
+.admin-access-denied a{color:var(--brand);font-weight:900}
+@keyframes adminSpinner{to{transform:rotate(360deg)}}
+
+@media(min-width:1024px){
+  .admin-shell-drawer-mode{display:grid;grid-template-columns:260px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .admin-shell-drawer-mode>.admin-topbar{grid-column:2;grid-row:1}
+  .admin-shell-drawer-mode>.admin-drawer{grid-column:1;grid-row:1 / span 2;position:sticky;right:auto;top:0;width:auto;height:100dvh;transform:none;border-left:0;border-right:1px solid var(--line);box-shadow:none}
+  .admin-shell-drawer-mode>.admin-drawer .admin-drawer-head button{display:none}
+  .admin-shell-drawer-mode>.admin-content-shell{grid-column:2;grid-row:2;max-width:none}
+  .admin-shell-drawer-mode .admin-menu-button{display:none}
+  .admin-shell-drawer-mode>.admin-drawer-backdrop{display:none}
+}
+
+:where(a,button,input,textarea,select):focus-visible{outline:3px solid color-mix(in srgb,var(--brand) 78%,white);outline-offset:3px}
+button:disabled,input:disabled,textarea:disabled,select:disabled{cursor:not-allowed;opacity:.58}
+.admin-content-shell>main{animation:adminPageIn .5s cubic-bezier(.2,.8,.2,1) both}
+.admin-content-shell>main section,.admin-content-shell>main form{animation:adminSurfaceIn .48s cubic-bezier(.2,.8,.2,1) both}
+.admin-page__header{position:relative}
+.admin-surface{transform-origin:center top;will-change:transform}
+.admin-surface:hover{transform:translateY(-2px);border-color:rgba(245,197,66,.28)!important;box-shadow:0 24px 60px rgba(0,0,0,.2)!important}
+.admin-metric:hover{transform:translateY(-3px) scale(1.01)}
+.admin-page__actions{display:flex;gap:10px;flex-wrap:wrap}
+.admin-content-shell>main button,.admin-content-shell>main a{transition:transform .18s ease,filter .18s ease,box-shadow .18s ease,border-color .18s ease}
+.admin-content-shell>main button:hover:not(:disabled),.admin-content-shell>main a[style*="background"]:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 12px 28px rgba(0,0,0,.22)}
+.admin-content-shell>main button:active:not(:disabled),.admin-content-shell>main a[style*="background"]:active{transform:translateY(0) scale(.985)}
+.admin-drawer-nav a{transition:transform .18s ease,background .18s ease,color .18s ease,border-color .18s ease}
+.admin-drawer-nav a:hover{transform:translateX(3px)}
+@keyframes adminPageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes adminSurfaceIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.admin-drawer{visibility:hidden}
+.admin-drawer.open{visibility:visible}
+@media(min-width:1024px){.admin-shell-drawer-mode>.admin-drawer{visibility:visible}}

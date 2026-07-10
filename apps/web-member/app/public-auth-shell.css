@@ -1,11 +1,17 @@
-.public-auth-page{min-height:100dvh;display:grid;place-items:center;padding:16px;background:radial-gradient(circle at top left,color-mix(in srgb,var(--color-brand) 16%,transparent),transparent 36%),var(--color-bg);color:var(--color-text)}
+.public-auth-page{min-height:100dvh;display:grid;place-items:center;padding:16px;position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(circle at 8% 12%,color-mix(in srgb,var(--color-brand) 20%,transparent),transparent 30%),radial-gradient(circle at 90% 86%,rgba(59,130,246,.11),transparent 28%),var(--color-bg);color:var(--color-text)}
+.public-auth-page::before,.public-auth-page::after{content:"";position:absolute;z-index:-1;border:1px solid color-mix(in srgb,var(--color-brand) 18%,transparent);border-radius:999px;pointer-events:none;animation:authOrbit 18s linear infinite}
+.public-auth-page::before{width:46vw;height:46vw;min-width:360px;min-height:360px;top:-28vw;right:-12vw}
+.public-auth-page::after{width:32vw;height:32vw;min-width:260px;min-height:260px;bottom:-20vw;left:-10vw;animation-direction:reverse;animation-duration:23s}
 .public-auth-shell{width:min(1120px,100%);display:grid;gap:22px;align-items:center}
 .public-auth-brand{display:none;min-width:0}
 .public-auth-brand__mark{width:64px;height:64px;border-radius:22px;display:grid;place-items:center;overflow:hidden;background:var(--color-brand);color:#111827;font-size:26px;font-weight:950;box-shadow:0 18px 50px color-mix(in srgb,var(--color-brand) 22%,transparent)}
 .public-auth-brand__mark img{width:100%;height:100%;object-fit:cover;display:block}
 .public-auth-brand h1{margin:18px 0 10px;font-size:clamp(40px,6vw,72px);line-height:.95;letter-spacing:-.04em}
 .public-auth-brand p{margin:0;max-width:560px;color:var(--color-text-muted);font-size:17px;line-height:1.65}
-.public-auth-card{width:100%;max-width:520px;justify-self:center;border:1px solid var(--color-border);border-radius:28px;padding:22px;background:color-mix(in srgb,var(--color-card) 94%,transparent);box-shadow:0 28px 90px rgba(0,0,0,.34);display:grid;gap:16px;backdrop-filter:blur(18px)}
+.public-auth-brand__steps{display:grid;gap:12px;margin-top:28px;max-width:360px}
+.public-auth-brand__steps span{display:flex;align-items:center;gap:12px;color:var(--color-text-muted);font-weight:800}
+.public-auth-brand__steps b{display:grid;place-items:center;width:34px;height:34px;border:1px solid color-mix(in srgb,var(--color-brand) 38%,transparent);border-radius:12px;color:var(--color-brand);font-size:12px;letter-spacing:.08em}
+.public-auth-card{width:100%;max-width:520px;justify-self:center;border:1px solid color-mix(in srgb,var(--color-text) 16%,transparent);border-radius:28px;padding:22px;background:linear-gradient(145deg,color-mix(in srgb,var(--color-card) 94%,transparent),color-mix(in srgb,var(--color-bg) 70%,transparent));box-shadow:0 28px 90px rgba(0,0,0,.34),0 0 0 1px rgba(255,255,255,.02) inset;display:grid;gap:16px;backdrop-filter:blur(22px);animation:authCardIn .7s cubic-bezier(.2,.8,.2,1) both}
 .public-auth-card__logo{display:flex;justify-content:center}
 .public-auth-card__logo>span{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;overflow:hidden;background:var(--color-brand);color:#111827;font-size:22px;font-weight:950}
 .public-auth-card__logo img{width:100%;height:100%;object-fit:cover;display:block}
@@ -31,7 +37,9 @@
 .public-auth-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);min-width:44px;height:36px;padding:0;border:0;border-radius:0;background:transparent;color:color-mix(in srgb,var(--color-text) 82%,transparent);display:grid;place-items:center;cursor:pointer;font-size:13px;font-weight:850;z-index:2}
 .public-auth-eye:hover:not(:disabled){color:var(--color-text);background:transparent}
 .public-auth-eye:focus-visible{outline:3px solid color-mix(in srgb,var(--color-brand) 72%,white);outline-offset:2px;border-radius:4px}
-.public-auth-submit{min-height:50px;border:0;border-radius:15px;padding:0 18px;background:var(--color-brand);color:#111827;font-weight:950;cursor:pointer;box-shadow:0 14px 34px color-mix(in srgb,var(--color-brand) 18%,transparent)}
+.public-auth-submit{min-height:50px;border:0;border-radius:15px;padding:0 18px;background:linear-gradient(135deg,color-mix(in srgb,var(--color-brand) 86%,white),var(--color-brand));color:#111827;font-weight:950;cursor:pointer;box-shadow:0 14px 34px color-mix(in srgb,var(--color-brand) 18%,transparent);transition:transform .2s ease,box-shadow .2s ease,filter .2s ease}
+.public-auth-submit:hover:not(:disabled){transform:translateY(-2px);filter:saturate(1.08);box-shadow:0 18px 42px color-mix(in srgb,var(--color-brand) 28%,transparent)}
+.public-auth-submit:active:not(:disabled){transform:translateY(0) scale(.985)}
 .public-auth-submit:disabled{opacity:.58;cursor:not-allowed}
 .public-auth-alert{border:1px solid var(--color-border);border-radius:14px;padding:12px;background:var(--color-surface-soft)}
 .public-auth-alert--error{border-color:color-mix(in srgb,var(--color-danger) 38%,transparent);background:color-mix(in srgb,var(--color-danger) 12%,transparent)}
@@ -55,3 +63,6 @@
   .public-auth-card__logo{display:none}
   .public-auth-heading{text-align:left}
 }
+
+@keyframes authCardIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes authOrbit{to{transform:rotate(360deg)}}

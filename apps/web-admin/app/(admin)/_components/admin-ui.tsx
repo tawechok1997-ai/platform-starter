@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import Link from 'next/link';
 
 type PageProps = { eyebrow?: string; title: string; description?: string; actions?: ReactNode; children: ReactNode };
 type CardProps = { title?: string; description?: string; action?: ReactNode; children: ReactNode; tone?: SurfaceTone };
@@ -8,15 +9,15 @@ type ButtonTone = 'primary' | 'secondary' | 'danger' | 'success';
 type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger';
 
 export function AdminPage({ eyebrow, title, description, actions, children }: PageProps) {
-  return <main style={pageStyle}><header style={pageHeadStyle}><div style={{ minWidth: 0 }}>{eyebrow && <p style={eyebrowStyle}>{eyebrow}</p>}<h1 style={titleStyle}>{title}</h1>{description && <p style={descriptionStyle}>{description}</p>}</div>{actions && <div style={actionsStyle}>{actions}</div>}</header>{children}</main>;
+  return <main className="admin-page" style={pageStyle}><header className="admin-page__header" style={pageHeadStyle}><div style={{ minWidth: 0 }}>{eyebrow && <p style={eyebrowStyle}>{eyebrow}</p>}<h1 style={titleStyle}>{title}</h1>{description && <p style={descriptionStyle}>{description}</p>}</div>{actions && <div className="admin-page__actions" style={actionsStyle}>{actions}</div>}</header>{children}</main>;
 }
 
 export function AdminCard({ title, description, action, children, tone = 'neutral' }: CardProps) {
-  return <div style={{ ...cardStyle, ...surfaceToneStyle[tone] }}>{(title || description || action) && <div style={cardHeadStyle}><div style={{ minWidth: 0 }}>{title && <h2 style={cardTitleStyle}>{title}</h2>}{description && <p style={mutedStyle}>{description}</p>}</div>{action && <div style={cardActionStyle}>{action}</div>}</div>}<div style={stackStyle}>{children}</div></div>;
+  return <div className={`admin-surface admin-surface--${tone}`} style={{ ...cardStyle, ...surfaceToneStyle[tone] }}>{(title || description || action) && <div className="admin-surface__header" style={cardHeadStyle}><div style={{ minWidth: 0 }}>{title && <h2 style={cardTitleStyle}>{title}</h2>}{description && <p style={mutedStyle}>{description}</p>}</div>{action && <div className="admin-surface__actions" style={cardActionStyle}>{action}</div>}</div>}<div style={stackStyle}>{children}</div></div>;
 }
 
 export function AdminMetric({ title, value, helper, tone = 'neutral', trend }: MetricProps) {
-  return <div style={{ ...metricStyle, ...surfaceToneStyle[tone] }}><p style={metricLabelStyle}>{title}</p><strong style={metricValueStyle}>{value}</strong>{helper && <span style={metricHelperStyle}>{helper}</span>}{trend && <span style={trendStyle}>{trend}</span>}</div>;
+  return <div className="admin-metric admin-surface" style={{ ...metricStyle, ...surfaceToneStyle[tone] }}><p style={metricLabelStyle}>{title}</p><strong style={metricValueStyle}>{value}</strong>{helper && <span style={metricHelperStyle}>{helper}</span>}{trend && <span style={trendStyle}>{trend}</span>}</div>;
 }
 
 export function AdminMetricGrid({ children }: { children: ReactNode }) { return <div style={metricGridStyle}>{children}</div>; }
@@ -29,11 +30,11 @@ export function AdminNotice({ children }: { children: ReactNode }) { return <div
 export function AdminEmpty({ children }: { children: ReactNode }) { return <div style={emptyStyle}>{children}</div>; }
 
 export function AdminButton({ children, onClick, type = 'button', disabled, tone = 'primary' }: { children: ReactNode; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; tone?: ButtonTone }) {
-  return <button type={type} onClick={onClick} disabled={disabled} style={{ ...buttonBaseStyle, ...buttonToneStyle[tone], opacity: disabled ? 0.62 : 1 }}>{children}</button>;
+  return <button className={`admin-action-button admin-action-button--${tone}`} type={type} onClick={onClick} disabled={disabled} style={{ ...buttonBaseStyle, ...buttonToneStyle[tone], opacity: disabled ? 0.62 : 1 }}>{children}</button>;
 }
 
 export function AdminLinkButton({ children, href, tone = 'secondary' }: { children: ReactNode; href: string; tone?: 'primary' | 'secondary' }) {
-  return <a href={href} style={{ ...buttonBaseStyle, ...buttonToneStyle[tone], textDecoration: 'none' }}>{children}</a>;
+  return <Link className={`admin-action-button admin-action-button--${tone}`} href={href} style={{ ...buttonBaseStyle, ...buttonToneStyle[tone], textDecoration: 'none' }}>{children}</Link>;
 }
 
 export function AdminBadge({ children, tone = 'neutral' }: { children: ReactNode; tone?: BadgeTone }) {

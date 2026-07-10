@@ -42,7 +42,7 @@ export default function Page() {
     '--color-danger': branding.danger_color,
   };
 
-  if (!ready) return <main className="member-loading-screen">กำลังโหลดการตั้งค่า...</main>;
+  if (!ready) return <main className="member-loading-screen"><div className="member-loading-card" role="status" aria-live="polite"><span className="member-loading-spinner" aria-hidden="true" />กำลังโหลดการตั้งค่า...</div></main>;
 
   if (maintenanceEnabled) {
     return <main className="member-ui-page member-maintenance"><div className="member-ui-container"><MemberCard tone="warning"><p className="member-maintenance__eyebrow">Maintenance</p><h1>{website.site_name}</h1><p>{maintenance.message}</p></MemberCard></div></main>;

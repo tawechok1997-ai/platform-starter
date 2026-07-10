@@ -21,6 +21,80 @@ This document is the current source of truth for what has been completed, what i
 - Package manager: pnpm
 - Deployment: Railway
 
+## Implementation audit update — 2026-07-10
+
+This section supersedes optimistic checkmarks that only meant "source code exists". Each item must now be classified by implementation and verification state.
+
+### Implemented and verified
+
+- [x] API, Admin Web, and Member Web production builds.
+- [x] API Jest suite: 50/50 tests passing.
+- [x] Admin permission audit: 25 controllers reviewed, 0 unguarded non-allowlisted controllers.
+- [x] Admin privileged 2FA guard behavior covered by tests.
+- [x] Admin login progressive lockout behavior covered by tests.
+- [x] Shared Member/Admin navigation focus and keyboard improvements in local working tree.
+
+### Implemented but not fully verified
+
+- [ ] Member Home across six target viewports and long Thai content.
+- [ ] Login/Register autofill, keyboard overlap, 200% zoom, and anti-bot failure states.
+- [ ] Deposit submit, retry, invalid-file, waiting, and duplicate-submit regression.
+- [ ] Withdraw bonus-block, insufficient-balance, waiting, and duplicate-submit regression.
+- [ ] Transactions and bank-account long-value, empty, error, and replacement-account states.
+- [ ] Admin dashboard, top-up queue, withdrawal queue, members, and wallet-ledger responsive regression.
+- [ ] Keyboard-only, screen-reader labels, dynamic brand contrast, landscape, and 200% zoom review.
+- [ ] Authenticated Playwright visual baselines and E2E flows with seeded test accounts.
+- [ ] Browser screenshot QA on 360, 390, 430, 768, 1024, and 1440 widths.
+
+### Scaffold or demo only — do not count as production complete
+
+- [ ] Real provider integrations beyond demo/simulator adapters.
+- [ ] Provider credential, endpoint, callback signature, retry, reconciliation, and outage verification.
+- [ ] Adapter Test and Webhook Test production-safety acceptance tests.
+- [ ] Game transfer retry, manual reverse, force-fail, rollback, and idempotency acceptance tests.
+- [ ] Game API Settings full endpoint mapping and connection-test workflow.
+- [ ] Dashboard charts for money flow, transaction status, provider health, and member growth.
+- [ ] Notification backend actions, preferences, optimistic updates, and rollback; current read/archive behavior is not a complete server workflow.
+- [ ] Support attachments, pagination, ticket detail lifecycle, reply refresh, and retry behavior.
+- [ ] Generic Settings forms with field validation, contrast warnings, versioning, approval, and rollback.
+- [ ] Anti-bot provider selection, encrypted secrets, route policies, adaptive challenge, metrics, and emergency mode.
+
+### Newly added work from code audit
+
+#### Owner and Admin security
+
+- [ ] Protect the last active Owner/Super Admin from suspension, deletion, downgrade, and role removal.
+- [ ] Add ownership transfer with step-up authentication, explicit confirmation, recovery path, and audit trail.
+- [ ] Add Admin suspend, lock, unlock, reactivate, and revoke flows with mandatory reason notes.
+- [ ] Add per-admin detail, session management, login history, suspicious-login alerts, and new-device alerts.
+- [ ] Add permission coverage tests for every route, dashboard widget, export, and mutation control.
+- [ ] Confirm `ADMIN_2FA_ENFORCEMENT_ENABLED=true` is present in every production environment.
+
+#### Member product
+
+- [ ] Complete Games lobby discovery: featured, recent, favorites, provider/category filters, and launch error states.
+- [ ] Complete Promotions and Bonus claim, progress, rejection, and expiry states.
+- [ ] Complete Profile overview, edit, security status, login history, and session/device UX.
+- [ ] Complete Notifications backend read/archive/preferences workflow.
+- [ ] Complete Support ticket creation, attachments, conversation, close/reopen, FAQ search, and empty/error states.
+
+#### Admin product and UX
+
+- [ ] Add persistent/collapsible sidebar, icon-only mode, pinned pages, recent pages, and command palette.
+- [ ] Add global search, system health, notifications, environment badge, and quick actions.
+- [ ] Add dashboard skeleton, partial-error, stale-data, retry, last-updated, and date-range states.
+- [ ] Run density and responsive pass on Reports, Activity, Risk, Security, Settings, Provider, and Webhook pages.
+- [ ] Replace remaining legacy inline styles with shared Admin/Member primitives where practical.
+- [ ] Complete Thai/English dictionaries for Admin navigation, errors, filters, empty states, and confirmations.
+
+#### Platform quality and release
+
+- [ ] Commit and enforce `pnpm-lock.yaml` in CI with a reproducible package-manager version.
+- [ ] Remove or update stale `platform-starter` names, badges, and documentation references in the `New-web` repository.
+- [ ] Add dependency, secret, static-analysis, container, and upload-security checks to CI.
+- [ ] Verify secure headers, CORS, CSP, CSRF strategy, rate limits, log redaction, backups, and restore procedure.
+- [ ] Recheck the latest Railway deployments against the exact commit before release.
+
 ## Completed foundations
 
 ### Platform and responsive foundation

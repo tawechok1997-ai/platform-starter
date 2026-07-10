@@ -1,6 +1,7 @@
 'use client';
 
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { MemberFeatureFlags } from './site-settings';
 import { defaultIconSettings, isIconUrl } from './site-settings';
@@ -15,6 +16,11 @@ import { MemberCard, MemberLinkButton } from './components/member-ui';
 export default function MemberChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isDesktopLayout, setIsDesktopLayout] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerCloseRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+  const wasMenuOpenRef = useRef(false);
   const { typedSettings } = useSiteSettings();
   const { ready, isLoggedIn, logout } = useMemberSession();
   const { website, branding, icons, features: typedFeatures } = typedSettings;
@@ -52,6 +58,14 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   }, [branding.primary_color]);
 
   useEffect(() => {
+    const media = window.matchMedia('(min-width: 1024px)');
+    const syncLayout = () => setIsDesktopLayout(media.matches);
+    syncLayout();
+    media.addEventListener('change', syncLayout);
+    return () => media.removeEventListener('change', syncLayout);
+  }, []);
+
+  useEffect(() => {
     if (!ready) return;
     if (currentRule?.authRedirectHome && isLoggedIn) {
       window.location.replace('/');
@@ -75,30 +89,52 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    const drawer = drawerRef.current;
+    if (!drawer) return;
+    if (isDesktopLayout || menuOpen) drawer.removeAttribute('inert');
+    else drawer.setAttribute('inert', '');
+  }, [isDesktopLayout, menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen || isDesktopLayout) return;
+    drawerCloseRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isDesktopLayout, menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen && wasMenuOpenRef.current && !isDesktopLayout) menuButtonRef.current?.focus();
+    wasMenuOpenRef.current = menuOpen;
+  }, [isDesktopLayout, menuOpen]);
+
   if (isPublicRoute) return <>{children}</>;
-  if (!ready || !isLoggedIn) return <main className="member-loading-screen">กำลังโหลด...</main>;
+  if (!ready || !isLoggedIn) return <main className="member-loading-screen"><div className="member-loading-card" role="status" aria-live="polite"><span className="member-loading-spinner" aria-hidden="true" />กำลังโหลด...</div></main>;
 
   const content = blockedRoute ? <FeatureDisabled label={blockedRoute.label} siteName={siteName} /> : children;
 
   return <>
     <header className="member-topbar global-member-topbar">
-      <a href="/" className="member-brand">
+      <Link href="/" className="member-brand">
         <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="" className="member-brand-logo" /> : brandMark}</span>
         <span className="member-brand-copy"><strong>{siteName}</strong><small>{siteDescription}</small></span>
-      </a>
-      <div className="member-actions"><button type="button" className="member-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนู">☰</button></div>
+      </Link>
+      <div className="member-actions"><button ref={menuButtonRef} type="button" className="member-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนู" aria-expanded={menuOpen} aria-controls="member-navigation-drawer">☰</button></div>
     </header>
 
     {menuOpen && <button type="button" className="member-menu-backdrop" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}
 
-    <aside className={menuOpen ? 'member-drawer open' : 'member-drawer'} aria-hidden={!menuOpen}>
-      <div className="member-drawer-head"><div><strong>{siteName}</strong><p>{siteDescription}</p></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู">×</button></div>
+    <aside ref={drawerRef} id="member-navigation-drawer" className={menuOpen ? 'member-drawer open' : 'member-drawer'} aria-hidden={!isDesktopLayout && !menuOpen ? true : undefined} aria-label="เมนูสมาชิก" role={!isDesktopLayout ? 'dialog' : undefined} aria-modal={!isDesktopLayout && menuOpen ? true : undefined}>
+      <div className="member-drawer-head"><div><strong>{siteName}</strong><p>{siteDescription}</p></div><button ref={drawerCloseRef} type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู">×</button></div>
       <nav className="member-drawer-nav">
-        {visibleDrawer.map((item) => <a key={item.key} href={item.href} onClick={() => setMenuOpen(false)} className={activeHref === item.href ? 'active' : ''}>
+        {visibleDrawer.map((item) => <Link key={item.key} href={item.href} onClick={() => setMenuOpen(false)} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}>
           <IconValue value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} />
           <span className="member-drawer-copy"><strong>{item.title}</strong><small>{item.badge === 'pending' && pendingCount > 0 ? `${pendingCount} รายการรอตรวจสอบ` : item.description}</small></span>
           {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
-        </a>)}
+        </Link>)}
       </nav>
       <button type="button" className="member-logout-button" onClick={logout}>ออกจากระบบ</button>
     </aside>
@@ -107,11 +143,11 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     <MemberFooter settings={typedSettings} />
 
     <nav className="member-bottom-nav" aria-label="เมนูหลัก">
-      {visibleBottomNav.map((item) => <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}>
+      {visibleBottomNav.map((item) => <Link key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}>
         <span className="member-bottom-icon"><IconValue value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} /></span>
         <span>{item.shortTitle ?? item.title}</span>
         {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
-      </a>)}
+      </Link>)}
     </nav>
   </>;
 }

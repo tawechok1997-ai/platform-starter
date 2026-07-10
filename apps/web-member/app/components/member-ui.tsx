@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import Link from 'next/link';
 
 type Tone = 'default' | 'brand' | 'success' | 'warning' | 'danger';
 
@@ -15,7 +16,7 @@ export function MemberButton({ children, className = '', tone = 'brand', ...prop
 }
 
 export function MemberLinkButton({ children, href, className = '', tone = 'brand' }: { children: ReactNode; href: string; className?: string; tone?: Tone }) {
-  return <a href={href} className={`member-ui-button member-ui-button--${tone} ${className}`.trim()}>{children}</a>;
+  return <Link href={href} className={`member-ui-button member-ui-button--${tone} ${className}`.trim()}>{children}</Link>;
 }
 
 export function MemberEmptyState({ title, description, actionHref, actionLabel, compact = false }: { title: string; description: string; actionHref?: string; actionLabel?: string; compact?: boolean }) {

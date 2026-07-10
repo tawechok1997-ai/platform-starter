@@ -1,6 +1,8 @@
 'use client';
 
 import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { useRef } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from '../admin-api';
 import { canAccessNavItem, navGroups, requiredPermissionsForPath } from './admin-nav';
@@ -16,6 +18,19 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const [menuOpen, setMenuOpen] = useState(false);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [queueCount, setQueueCount] = useState({ topups: 0, withdrawals: 0 });
+  const [isDesktopLayout, setIsDesktopLayout] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerCloseRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+  const wasMenuOpenRef = useRef(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 1024px)');
+    const syncLayout = () => setIsDesktopLayout(media.matches);
+    syncLayout();
+    media.addEventListener('change', syncLayout);
+    return () => media.removeEventListener('change', syncLayout);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,6 +53,28 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     return () => { cancelled = true; window.clearInterval(interval); };
   }, [pathname]);
 
+  useEffect(() => {
+    const drawer = drawerRef.current;
+    if (!drawer) return;
+    if (isDesktopLayout || menuOpen) drawer.removeAttribute('inert');
+    else drawer.setAttribute('inert', '');
+  }, [isDesktopLayout, menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen || isDesktopLayout) return;
+    drawerCloseRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isDesktopLayout, menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen && wasMenuOpenRef.current && !isDesktopLayout) menuButtonRef.current?.focus();
+    wasMenuOpenRef.current = menuOpen;
+  }, [isDesktopLayout, menuOpen]);
+
   async function loadQueueCount() {
     try {
       const res = await adminApiFetch('/admin/queues/summary');
@@ -57,13 +94,13 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
 
   function logout() { clearAdminSession(); window.location.href = '/login'; }
   function badgeFor(href: string) { if (href === '/topups' && queueCount.topups > 0) return queueCount.topups; if (href === '/withdrawals' && queueCount.withdrawals > 0) return queueCount.withdrawals; if (href === '/dashboard' && queueCount.topups + queueCount.withdrawals > 0) return queueCount.topups + queueCount.withdrawals; return 0; }
-  if (!ready || !isLoggedIn) return <main className="admin-shell" style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', color: '#fff' }}>กำลังตรวจสอบสิทธิ์...</main>;
+  if (!ready || !isLoggedIn) return <main className="admin-shell admin-loading-screen"><div className="admin-loading-card" role="status" aria-live="polite"><span className="admin-loading-spinner" aria-hidden="true" />กำลังตรวจสอบสิทธิ์...</div></main>;
 
-  return <main className="admin-shell admin-shell-drawer-mode"><header className="admin-topbar"><a href="/dashboard" className="admin-brand-row admin-brand-link"><span className="admin-brand-mark">A</span><span className="admin-brand-text"><strong>Admin Console</strong><small>{queueCount.topups + queueCount.withdrawals > 0 ? `${queueCount.topups + queueCount.withdrawals} pending` : 'Dashboard'}</small></span></a><button type="button" className="admin-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูแอดมิน">☰</button></header>{menuOpen && <button type="button" className="admin-drawer-backdrop" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}<aside className={menuOpen ? 'admin-drawer open' : 'admin-drawer'}><div className="admin-drawer-head"><div><strong>Admin Console</strong><p>{queueCount.topups} topups · {queueCount.withdrawals} withdrawals</p></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู">×</button></div><nav className="admin-drawer-nav" aria-label="Admin navigation">{visibleGroups.map((group) => <section key={group.title} style={{ display: 'grid', gap: 8, background: 'transparent', border: 0, padding: 0 }}><p style={{ margin: '8px 4px 2px', fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '.12em', color: 'rgba(255,255,255,.46)' }}>{group.title}</p>{group.items.map((item) => { const active = pathname === item.href || pathname.startsWith(`${item.href}/`); const badge = badgeFor(item.href); return <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={active ? 'active' : ''}><span>{item.title}</span>{badge > 0 && <em>{badge}</em>}</a>; })}</section>)}</nav><button type="button" className="admin-logout-button" onClick={logout}>ออกจากระบบ</button></aside><section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section></main>;
+  return <main className="admin-shell admin-shell-drawer-mode"><header className="admin-topbar"><Link href="/dashboard" className="admin-brand-row admin-brand-link"><span className="admin-brand-mark">A</span><span className="admin-brand-text"><strong>Admin Console</strong><small>{queueCount.topups + queueCount.withdrawals > 0 ? `${queueCount.topups + queueCount.withdrawals} pending` : 'Dashboard'}</small></span></Link><button ref={menuButtonRef} type="button" className="admin-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูแอดมิน" aria-expanded={menuOpen} aria-controls="admin-navigation-drawer">☰</button></header>{menuOpen && <button type="button" className="admin-drawer-backdrop" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}<aside ref={drawerRef} id="admin-navigation-drawer" className={menuOpen ? 'admin-drawer open' : 'admin-drawer'} aria-hidden={!isDesktopLayout && !menuOpen ? true : undefined} aria-label="เมนูแอดมิน" role={!isDesktopLayout ? 'dialog' : undefined} aria-modal={!isDesktopLayout && menuOpen ? true : undefined}><div className="admin-drawer-head"><div><strong>Admin Console</strong><p>{queueCount.topups} topups · {queueCount.withdrawals} withdrawals</p></div><button ref={drawerCloseRef} type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู">×</button></div><nav className="admin-drawer-nav" aria-label="Admin navigation">{visibleGroups.map((group) => <section key={group.title} className="admin-nav-group"><p className="admin-nav-group-title">{group.title}</p>{group.items.map((item) => { const active = pathname === item.href || pathname.startsWith(`${item.href}/`); const badge = badgeFor(item.href); return <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined}><span>{item.title}</span>{badge > 0 && <em>{badge}</em>}</Link>; })}</section>)}</nav><button type="button" className="admin-logout-button" onClick={logout}>ออกจากระบบ</button></aside><section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section></main>;
 }
 
 function AccessDenied() {
-  return <div style={{ minHeight: '60dvh', display: 'grid', placeItems: 'center', padding: 24 }}><div style={{ maxWidth: 520, textAlign: 'center', display: 'grid', gap: 10 }}><strong style={{ fontSize: 24 }}>ไม่มีสิทธิ์เข้าถึงหน้านี้</strong><p style={{ margin: 0, color: '#94a3b8' }}>เมนูนี้ถูกซ่อนและบล็อกตามสิทธิ์ของบัญชีผู้ดูแล กรุณาติดต่อผู้ดูแลสิทธิ์หากจำเป็นต้องใช้งาน</p><a href="/dashboard" style={{ color: '#f5c542', fontWeight: 900 }}>กลับไป Dashboard</a></div></div>;
+  return <div className="admin-access-denied"><div><strong>ไม่มีสิทธิ์เข้าถึงหน้านี้</strong><p>เมนูนี้ถูกซ่อนและบล็อกตามสิทธิ์ของบัญชีผู้ดูแล กรุณาติดต่อผู้ดูแลสิทธิ์หากจำเป็นต้องใช้งาน</p><Link href="/dashboard">กลับไป Dashboard</Link></div></div>;
 }
 
 async function verifyAdminSession(): Promise<{ permissions: string[] } | null> {

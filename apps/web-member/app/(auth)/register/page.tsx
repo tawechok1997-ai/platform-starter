@@ -166,7 +166,17 @@ export default function MemberRegisterPage() {
   }
 
   return <main className="public-auth-page" style={cssVars}>
-    <section className="public-auth-shell" style={{ maxWidth: 520 }}>
+    <section className="public-auth-shell" style={{ maxWidth: 1120 }}>
+      <div className="public-auth-brand" aria-hidden="true">
+        <div className="public-auth-brand__mark">{logoUrl ? <img src={logoUrl} alt="" /> : brandMark}</div>
+        <h1>{siteName}</h1>
+        <p>{textSetting(settings, 'website', 'site_description', 'เริ่มต้นใช้งานอย่างปลอดภัยและจัดการทุกอย่างได้จากที่เดียว')}</p>
+        <div className="public-auth-brand__steps">
+          <span><b>01</b>{t.account}</span>
+          <span><b>02</b>{t.identity}</span>
+          <span><b>03</b>{t.review}</span>
+        </div>
+      </div>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
         <div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span></div>
         <div className="public-auth-heading"><h1>{t.title}</h1><p>{t.subtitle}</p></div>

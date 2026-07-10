@@ -166,3 +166,18 @@ main[style*="place-items"] { width: 100% !important; min-height: 100dvh !importa
 @media (max-width: 560px) { .member-shell { padding-left: 12px; padding-right: 12px; } .member-topbar { margin: 0 -12px; padding-top: calc(10px + env(safe-area-inset-top)); padding-bottom: 10px; } .member-brand-copy small { display: none; } .member-brand-copy strong { max-width: 56vw; } .member-drawer { width: min(94vw, 340px); padding-left: 14px; padding-right: 14px; } .member-hero-card h1 { font-size: clamp(30px, 10vw, 44px); } .member-quick-action { min-height: 72px; padding: 12px; } }
 @media (max-width: 430px) { main[style*="place-items"] { padding: 12px !important; } main[style*="place-items"] > section { max-width: 100% !important; } main[style*="place-items"] form { padding: 20px !important; border-radius: 24px !important; } main[style*="place-items"] input, main[style*="place-items"] textarea, main[style*="place-items"] select { font-size: 16px !important; } .member-shell { gap: 12px; } .member-brand-mark { width: 38px; height: 38px; border-radius: 13px; } .member-menu-button { width: 42px; min-height: 40px; } .member-info-card, .member-hero-card { padding: 16px; } .member-quick-panel, .member-summary-grid { gap: 8px; } .member-quick-action strong, .member-summary-card strong { font-size: 15px; } .member-quick-action span { font-size: 11px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .001ms !important; } }
+
+:where(a, button, input, textarea, select):focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 78%, white); outline-offset: 3px; }
+button:disabled, input:disabled, textarea:disabled, select:disabled { cursor: not-allowed; opacity: .58; }
+.member-drawer { visibility: hidden; }
+.member-drawer.open { visibility: visible; }
+@media (min-width: 1024px) { .member-drawer { visibility: visible; } }
+.member-topbar{box-shadow:0 14px 34px rgba(0,0,0,.16);background:linear-gradient(180deg,rgba(8,8,8,.96),rgba(8,8,8,.82))}
+.member-shell>*,.member-ui-page>*,main:not(.public-auth-page):not(.member-loading-screen)>section,main:not(.public-auth-page):not(.member-loading-screen)>div{animation:memberSurfaceIn .48s cubic-bezier(.2,.8,.2,1) both}
+.member-shell input,.member-shell textarea,.member-shell select,main:not(.public-auth-page) input,main:not(.public-auth-page) textarea,main:not(.public-auth-page) select{transition:border-color .18s ease,box-shadow .18s ease,background .18s ease,transform .18s ease}
+.member-shell input:focus, .member-shell textarea:focus, .member-shell select:focus,main:not(.public-auth-page) input:focus,main:not(.public-auth-page) textarea:focus,main:not(.public-auth-page) select:focus{border-color:color-mix(in srgb,var(--brand) 68%,white);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 14%,transparent);outline:none}
+.member-brand-mark{box-shadow:0 10px 28px color-mix(in srgb,var(--brand) 22%,transparent);transition:transform .2s ease,box-shadow .2s ease}
+.member-brand:hover .member-brand-mark{transform:rotate(-4deg) scale(1.04);box-shadow:0 14px 34px color-mix(in srgb,var(--brand) 32%,transparent)}
+.member-drawer-nav a:hover{transform:translateX(-3px);border-color:color-mix(in srgb,var(--brand) 34%,var(--line));background:color-mix(in srgb,var(--brand) 8%,transparent)}
+.member-bottom-nav{animation:memberNavIn .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes memberNavIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}

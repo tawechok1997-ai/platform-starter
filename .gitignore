@@ -1,4 +1,7 @@
 node_modules
+.pnpm-store
+.pnpm-home
+.playwright-browsers
 .next
 dist
 .env

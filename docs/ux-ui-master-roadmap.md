@@ -2,6 +2,10 @@
 
 Updated: 2026-07-10
 
+## Audit status note
+
+The checkmarks below describe implementation presence, not production acceptance. Items marked `✅` still require the verification work listed under `🧪` and in `docs/remaining-work-backlog.md`. Provider, notification, support, anti-bot, settings, and chart surfaces that are currently scaffolded must not be treated as production-complete until their backend and acceptance checks pass.
+
 This document is the current source of truth for UX/UI modernization across Member Web, Admin Web and Public/Auth.
 
 ## Status legend
@@ -238,6 +242,9 @@ This document is the current source of truth for UX/UI modernization across Memb
 2. 🧪 Review diffs and fix any overflow or keyboard-accessibility failures.
 3. 🧪 Run safe route smoke against Railway deployments.
 4. 🧪 Record results in `docs/ux-regression-matrix-finance-operations.md`.
+5. 🚧 Verify the new Member/Admin shell navigation changes on mobile and desktop.
+6. ⏳ Add explicit loading, empty, error, retry, stale-data, and success states to every major route.
+7. ⏳ Complete the Games, Promotions, Profile, Notifications, and Support UX passes.
 
 ## Next
 
