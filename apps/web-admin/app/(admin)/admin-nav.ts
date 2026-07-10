@@ -72,6 +72,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     title: 'ตั้งค่า',
     items: [
       { title: 'ตั้งค่าเว็บไซต์', href: '/settings', permissions: ['settings.update', 'settings.website.view'] },
+      { title: 'CAPTCHA / Anti-bot', href: '/anti-bot', permissions: ['security.anti_bot.view'] },
       { title: 'บัญชีผู้ดูแล', href: '/admin-accounts', permissions: ['admin.view', 'admin.access.view'] },
       { title: 'Roles & Permissions', href: '/admin-roles', permissions: ['admin.access.view'] },
       { title: 'คำเชิญผู้ดูแล', href: '/admin-invitations', permissions: ['admin.create'] },
