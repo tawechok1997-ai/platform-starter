@@ -4,9 +4,9 @@
 
 ### แพลตฟอร์มปฏิบัติการสำหรับสมาชิก ระบบการเงิน Provider และทีมแอดมิน
 
-[![Build](https://github.com/tawechok1997-ai/New-web/actions/workflows/build.yml/badge.svg)](https://github.com/tawechok1997-ai/New-web/actions/workflows/build.yml)
-[![API Smoke](https://github.com/tawechok1997-ai/New-web/actions/workflows/smoke.yml/badge.svg)](https://github.com/tawechok1997-ai/New-web/actions/workflows/smoke.yml)
-[![E2E Smoke](https://github.com/tawechok1997-ai/New-web/actions/workflows/e2e-smoke.yml/badge.svg)](https://github.com/tawechok1997-ai/New-web/actions/workflows/e2e-smoke.yml)
+[![Build](https://github.com/tawechok1997-ai/platform-starter/actions/workflows/build.yml/badge.svg)](https://github.com/tawechok1997-ai/platform-starter/actions/workflows/build.yml)
+[![API Smoke](https://github.com/tawechok1997-ai/platform-starter/actions/workflows/smoke.yml/badge.svg)](https://github.com/tawechok1997-ai/platform-starter/actions/workflows/smoke.yml)
+[![E2E Smoke](https://github.com/tawechok1997-ai/platform-starter/actions/workflows/e2e-smoke.yml/badge.svg)](https://github.com/tawechok1997-ai/platform-starter/actions/workflows/e2e-smoke.yml)
 
 <img src="https://img.shields.io/badge/Next.js-14-black?logo=next.js" alt="Next.js 14" />
 <img src="https://img.shields.io/badge/NestJS-TypeScript-ea2845?logo=nestjs" alt="NestJS" />
