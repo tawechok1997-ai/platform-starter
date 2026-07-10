@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { Readable } from 'stream';
 
@@ -20,6 +20,11 @@ export class StorageService {
     return this.getLocal(key, contentType);
   }
 
+  async delete(key: string) {
+    if (this.driver() === 's3') return this.deleteS3(key);
+    return this.deleteLocal(key);
+  }
+
   private async putLocal(key: string, data: Buffer) {
     const filePath = this.localPath(key);
     await mkdir(dirname(filePath), { recursive: true });
@@ -36,6 +41,11 @@ export class StorageService {
     }
   }
 
+  private async deleteLocal(key: string) {
+    await rm(this.localPath(key), { force: true });
+    return { key, deleted: true };
+  }
+
   private async putS3(key: string, data: Buffer, contentType: string) {
     await this.client().send(new PutObjectCommand({ Bucket: this.bucket(), Key: key, Body: data, ContentType: contentType }));
     return { key };
@@ -49,6 +59,11 @@ export class StorageService {
     } catch {
       throw new NotFoundException('Stored file not found');
     }
+  }
+
+  private async deleteS3(key: string) {
+    await this.client().send(new DeleteObjectCommand({ Bucket: this.bucket(), Key: key }));
+    return { key, deleted: true };
   }
 
   private client() {
