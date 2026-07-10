@@ -3,7 +3,6 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { CreateWithdrawalRequestDto } from './dto/create-withdrawal-request.dto';
-import { ReviewWithdrawalRequestDto } from './dto/review-withdrawal-request.dto';
 import { WithdrawalsService } from './withdrawals.service';
 
 @Controller()
@@ -40,7 +39,7 @@ export class WithdrawalsController {
 
   @UseGuards(AdminAuthGuard)
   @Post('admin/withdrawals/:id/reject')
-  rejectRequest(@Param('id') id: string, @CurrentUser() user: any, @Body() body: ReviewWithdrawalRequestDto, @Req() req: any) { return this.withdrawalsService.rejectRequest(id, user, body, this.meta(req)); }
+  rejectRequest(@Param('id') id: string, @CurrentUser() user: any, @Body() body: { adminNote?: string }, @Req() req: any) { return this.withdrawalsService.rejectRequest(id, user, body, this.meta(req)); }
 
   private meta(req: any) { return { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] }; }
 }

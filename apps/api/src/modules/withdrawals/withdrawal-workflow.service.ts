@@ -34,7 +34,8 @@ export class WithdrawalWorkflowService {
       `);
       const request = rows[0];
       if (!request) throw new NotFoundException('Withdrawal request not found');
-      this.assertClaimOwner(request.claimed_by, adminUserId);
+      if (!request.claimed_by) throw new ConflictException('ต้อง claim รายการก่อนอนุมัติ');
+      if (request.claimed_by && request.claimed_by !== adminUserId) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
       if (!['PENDING', 'PENDING_REVIEW'].includes(request.status)) throw new ConflictException(`Withdrawal is not waiting for review: ${request.status}`);
 
       const changed = await tx.$executeRaw(Prisma.sql`
@@ -83,16 +84,15 @@ export class WithdrawalWorkflowService {
     await this.storage.put(key, buffer, match[1]);
 
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx) => {
         const rows = await tx.$queryRaw<Array<{ status: string; claimed_by: string | null }>>(Prisma.sql`
-          SELECT "status"::text AS status, "claimed_by"
-          FROM "withdrawal_requests"
+          SELECT "status"::text AS status, "claimed_by" FROM "withdrawal_requests"
           WHERE "id" = ${requestId}::uuid FOR UPDATE
         `);
-        const request = rows[0];
-        if (!request) throw new NotFoundException('Withdrawal request not found');
-        this.assertClaimOwner(request.claimed_by, adminUserId);
-        if (request.status === 'PAYMENT_PROOF_UPLOADED') {
+        if (!rows[0]) throw new NotFoundException('Withdrawal request not found');
+        if (!rows[0].claimed_by) throw new ConflictException('ต้อง claim รายการก่อนอัปโหลดหลักฐาน');
+        if (rows[0].claimed_by !== adminUserId) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+        if (rows[0].status === 'PAYMENT_PROOF_UPLOADED') {
           const existing = await tx.$queryRaw<Array<{ payment_slip_url: string | null; payment_slip_file_hash: string | null }>>(Prisma.sql`
             SELECT "payment_slip_url", "payment_slip_file_hash"
             FROM "withdrawal_requests"
@@ -120,8 +120,10 @@ export class WithdrawalWorkflowService {
         await tx.adminAuditLog.create({ data: { adminUserId, action: 'UPLOAD_WITHDRAWAL_PAYMENT_PROOF', module: 'withdrawals', targetId: requestId, oldData: { status: 'APPROVED_FOR_PAYMENT' }, newData: { status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: key, transactionRef, fileHash }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
         return { ok: true, status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: key, fileHash };
       });
+      if (result.idempotent) await this.storage.remove(key).catch(() => undefined);
+      return result;
     } catch (error: any) {
-      await this.storage.delete(key).catch(() => undefined);
+      await this.storage.remove(key).catch(() => undefined);
       if (String(error?.code ?? '').includes('P2002') || String(error?.message ?? '').includes('unique')) throw new ConflictException('หลักฐานหรือเลขอ้างอิงการโอนนี้ถูกใช้แล้ว');
       throw error;
     }
@@ -130,8 +132,8 @@ export class WithdrawalWorkflowService {
   async verifyAndComplete(requestId: string, adminUserId: string, note?: string, meta: WithdrawalWorkflowMeta = {}) {
     const idempotencyKey = `withdrawal:${requestId}:payment-verified`;
     return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<Array<{ status: string; claimed_by: string | null; payment_slip_url: string | null; user_id: string; amount: Prisma.Decimal; currency: string }>>(Prisma.sql`
-        SELECT "status"::text AS status, "claimed_by", "payment_slip_url", "user_id", "amount", "currency"
+      const rows = await tx.$queryRaw<Array<{ status: string; payment_slip_url: string | null; user_id: string; amount: Prisma.Decimal; currency: string; claimed_by: string | null }>>(Prisma.sql`
+        SELECT "status"::text AS status, "payment_slip_url", "user_id", "amount", "currency", "claimed_by"
         FROM "withdrawal_requests"
         WHERE "id" = ${requestId}::uuid
         FOR UPDATE
@@ -145,6 +147,8 @@ export class WithdrawalWorkflowService {
       this.assertClaimOwner(request.claimed_by, adminUserId);
       if (request.status !== 'PAYMENT_PROOF_UPLOADED') throw new ConflictException(`Withdrawal is not ready for verification: ${request.status}`);
       if (!request.payment_slip_url) throw new BadRequestException('Payment proof is required');
+      if (!request.claimed_by) throw new ConflictException('ต้อง claim รายการก่อนยืนยันการจ่าย');
+      if (request.claimed_by !== adminUserId) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
 
       const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
         SELECT "id", "user_id", "status"::text AS status, "balance", "locked_balance"
@@ -189,8 +193,17 @@ export class WithdrawalWorkflowService {
     });
   }
 
-  private assertClaimOwner(claimedBy: string | null, adminUserId: string) {
-    if (!claimedBy) throw new ConflictException('ต้อง claim รายการก่อนดำเนินการ');
-    if (claimedBy !== adminUserId) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+  async getPaymentProof(requestId: string) {
+    const request = await this.prisma.withdrawalRequest.findUnique({ where: { id: requestId }, select: { paymentSlipUrl: true, paymentTransactionRef: true } });
+    if (!request) throw new NotFoundException('Withdrawal request not found');
+    if (!request.paymentSlipUrl) throw new NotFoundException('Payment proof not found');
+    const stored = await this.storage.get(request.paymentSlipUrl, this.contentTypeFromKey(request.paymentSlipUrl));
+    return { dataUrl: `data:${stored.contentType};base64,${stored.data.toString('base64')}`, transactionRef: request.paymentTransactionRef };
+  }
+
+  private contentTypeFromKey(key: string) {
+    if (key.endsWith('.png')) return 'image/png';
+    if (key.endsWith('.webp')) return 'image/webp';
+    return 'image/jpeg';
   }
 }

@@ -38,7 +38,7 @@ describe('finance concurrency hardening', () => {
   });
 
   it('keeps rejection terminal and guarded by request state', () => {
-    expect(withdrawals).toContain("AND \"status\"::text IN ('PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT')");
+    expect(withdrawals).toContain("AND \"status\"::text IN ('PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT', 'PAYMENT_PROOF_UPLOADED')");
     expect(withdrawals).toContain("SET \"status\" = 'REJECTED'::\"WithdrawalRequestStatus\"");
   });
 });

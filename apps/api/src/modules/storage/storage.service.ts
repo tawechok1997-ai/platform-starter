@@ -20,9 +20,12 @@ export class StorageService {
     return this.getLocal(key, contentType);
   }
 
-  async delete(key: string) {
-    if (this.driver() === 's3') return this.deleteS3(key);
-    return this.deleteLocal(key);
+  async remove(key: string) {
+    if (this.driver() === 's3') {
+      await this.client().send(new DeleteObjectCommand({ Bucket: this.bucket(), Key: key }));
+      return;
+    }
+    await rm(this.localPath(key), { force: true });
   }
 
   private async putLocal(key: string, data: Buffer) {

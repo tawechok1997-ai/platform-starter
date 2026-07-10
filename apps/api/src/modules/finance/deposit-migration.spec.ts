@@ -1,16 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-function migration(name: string) {
-  return readFileSync(
-    join(process.cwd(), '../../prisma/migrations', name, 'migration.sql'),
-    'utf8',
-  );
-}
-
 describe('duplicate slip migration', () => {
-  const enumMigration = migration('20260711013000_add_slip_duplicate_and_payment_audit');
-  const objectMigration = migration('20260711013100_add_slip_duplicate_and_payment_audit_objects');
+  const migration = [
+    '20260711013000_add_slip_duplicate_and_payment_audit',
+    '20260711013100_add_slip_duplicate_and_payment_audit_objects',
+  ].map((directory) => readFileSync(join(process.cwd(), '../../prisma/migrations', directory, 'migration.sql'), 'utf8')).join('\n');
 
   it('allows duplicate evidence rows while protecting accepted slips', () => {
     expect(objectMigration).toContain('top_up_requests_active_slip_transaction_ref_key');

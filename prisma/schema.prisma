@@ -120,6 +120,8 @@ enum RiskAlertSeverity {
 }
 
 enum RiskAlertType {
+  DUPLICATE_DEPOSIT_SLIP
+  REPEATED_DUPLICATE_DEPOSIT_SLIP
   REPEATED_TOPUPS
   RAPID_DEPOSIT_WITHDRAWAL
   HIGH_WITHDRAWAL
@@ -267,29 +269,30 @@ model UserProfile {
 }
 
 model AdminUser {
-  id                           String               @id @default(uuid()) @db.Uuid
-  username                     String               @unique @db.VarChar(50)
-  email                        String               @unique @db.VarChar(255)
-  passwordHash                 String               @map("password_hash")
-  status                       AdminStatus          @default(ACTIVE)
-  twoFactorEnabled             Boolean              @default(false) @map("two_factor_enabled")
-  twoFactorSecret              String?              @map("two_factor_secret")
-  lastLoginAt                  DateTime?             @map("last_login_at")
-  createdAt                    DateTime              @default(now()) @map("created_at")
-  updatedAt                    DateTime              @updatedAt @map("updated_at")
-  roles                        AdminUserRole[]
-  sessions                     AuthSession[]
-  loginHistory                 LoginHistory[]
-  auditLogs                    AdminAuditLog[]
-  recoveryCodes                AdminRecoveryCode[]
-  walletLedgerEntries          WalletLedger[]
-  reviewedTopUps               TopUpRequest[]        @relation("TopUpReviewer")
-  reviewedWithdrawals          WithdrawalRequest[]   @relation("WithdrawalReviewer")
-  slipReviewedTopUps           TopUpRequest[]        @relation("TopUpSlipReviewer")
-  creditConfirmedTopUps        TopUpRequest[]        @relation("TopUpCreditConfirmer")
-  approvedPaymentWithdrawals   WithdrawalRequest[]   @relation("WithdrawalApprovedForPayment")
-  uploadedPaymentWithdrawals   WithdrawalRequest[]   @relation("WithdrawalPaymentUploader")
-  verifiedPaymentWithdrawals   WithdrawalRequest[]   @relation("WithdrawalPaymentVerifier")
+  id               String      @id @default(uuid()) @db.Uuid
+  username         String      @unique @db.VarChar(50)
+  email            String      @unique @db.VarChar(255)
+  passwordHash     String      @map("password_hash")
+  status           AdminStatus @default(ACTIVE)
+  twoFactorEnabled Boolean     @default(false) @map("two_factor_enabled")
+  twoFactorSecret  String?     @map("two_factor_secret")
+  lastLoginAt      DateTime?   @map("last_login_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  roles               AdminUserRole[]
+  sessions            AuthSession[]
+  loginHistory        LoginHistory[]
+  auditLogs           AdminAuditLog[]
+  recoveryCodes       AdminRecoveryCode[]
+  walletLedgerEntries WalletLedger[]
+  reviewedTopUps      TopUpRequest[]
+  reviewedWithdrawals WithdrawalRequest[]
+  slipReviewedTopUps  TopUpRequest[] @relation("TopUpSlipReviewer")
+  creditConfirmedTopUps TopUpRequest[] @relation("TopUpCreditConfirmer")
+  approvedForPaymentWithdrawals WithdrawalRequest[] @relation("WithdrawalPaymentApprover")
+  uploadedPaymentProofWithdrawals WithdrawalRequest[] @relation("WithdrawalProofUploader")
+  verifiedPaymentWithdrawals WithdrawalRequest[] @relation("WithdrawalPaymentVerifier")
 
   @@map("admin_users")
 }
@@ -467,25 +470,26 @@ model Wallet {
 }
 
 model WalletLedger {
-  id                   String                @id @default(uuid()) @db.Uuid
-  walletId             String                @map("wallet_id") @db.Uuid
-  userId               String                @map("user_id") @db.Uuid
-  type                 WalletLedgerType
-  direction            WalletLedgerDirection
-  amount               Decimal               @db.Decimal(18, 2)
-  balanceBefore        Decimal               @map("balance_before") @db.Decimal(18, 2)
-  balanceAfter         Decimal               @map("balance_after") @db.Decimal(18, 2)
-  referenceType        String?               @map("reference_type") @db.VarChar(80)
-  referenceId          String?               @map("reference_id") @db.VarChar(120)
-  idempotencyKey       String?               @unique @map("idempotency_key") @db.VarChar(160)
-  metadata             Json?
-  createdByAdminId     String?               @map("created_by_admin_id") @db.Uuid
-  createdAt            DateTime              @default(now()) @map("created_at")
-  wallet               Wallet                @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdByAdmin       AdminUser?            @relation(fields: [createdByAdminId], references: [id], onDelete: SetNull)
-  creditedTopUps       TopUpRequest[]         @relation("TopUpCreditedLedger")
-  completedWithdrawals WithdrawalRequest[]    @relation("WithdrawalCompletedLedger")
+  id               String                @id @default(uuid()) @db.Uuid
+  walletId         String                @map("wallet_id") @db.Uuid
+  userId           String                @map("user_id") @db.Uuid
+  type             WalletLedgerType
+  direction        WalletLedgerDirection
+  amount           Decimal               @db.Decimal(18, 2)
+  balanceBefore    Decimal               @map("balance_before") @db.Decimal(18, 2)
+  balanceAfter     Decimal               @map("balance_after") @db.Decimal(18, 2)
+  referenceType    String?               @map("reference_type") @db.VarChar(80)
+  referenceId      String?               @map("reference_id") @db.VarChar(120)
+  idempotencyKey   String?               @unique @map("idempotency_key") @db.VarChar(160)
+  metadata         Json?
+  createdByAdminId String?               @map("created_by_admin_id") @db.Uuid
+  createdAt        DateTime              @default(now()) @map("created_at")
+
+  wallet         Wallet     @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdByAdmin AdminUser? @relation(fields: [createdByAdminId], references: [id], onDelete: SetNull)
+  creditedTopUps TopUpRequest[] @relation("TopUpCreditLedger")
+  completedWithdrawals WithdrawalRequest[] @relation("WithdrawalCompletionLedger")
 
   @@index([walletId, createdAt])
   @@index([userId, createdAt])
@@ -495,42 +499,43 @@ model WalletLedger {
 }
 
 model TopUpRequest {
-  id                    String             @id @default(uuid()) @db.Uuid
-  userId                String             @map("user_id") @db.Uuid
-  amount                Decimal            @db.Decimal(18, 2)
-  currency              String             @default("THB") @db.VarChar(10)
-  status                TopUpRequestStatus @default(PENDING)
-  method                String?            @db.VarChar(80)
-  referenceCode         String?            @map("reference_code") @db.VarChar(120)
-  note                  String?
-  adminNote             String?            @map("admin_note")
-  reviewedBy            String?            @map("reviewed_by") @db.Uuid
-  reviewedAt            DateTime?          @map("reviewed_at")
-  claimedBy             String?            @map("claimed_by") @db.Uuid
-  claimedAt             DateTime?          @map("claimed_at")
-  slipUrl               String?            @map("slip_url")
-  slipFileHash          String?            @map("slip_file_hash") @db.VarChar(128)
-  slipPerceptualHash    String?            @map("slip_perceptual_hash") @db.VarChar(128)
-  slipTransactionRef    String?            @map("slip_transaction_ref") @db.VarChar(160)
-  slipDetectedAmount    Decimal?           @map("slip_detected_amount") @db.Decimal(18, 2)
-  slipTransferredAt     DateTime?          @map("slip_transferred_at")
-  duplicateOfId         String?            @map("duplicate_of_id") @db.Uuid
-  duplicateReason       String?            @map("duplicate_reason") @db.VarChar(160)
-  duplicateMatchScore   Decimal?           @map("duplicate_match_score") @db.Decimal(8, 5)
-  slipReviewedBy        String?            @map("slip_reviewed_by") @db.Uuid
-  slipReviewedAt        DateTime?          @map("slip_reviewed_at")
-  creditConfirmedBy     String?            @map("credit_confirmed_by") @db.Uuid
-  creditConfirmedAt     DateTime?          @map("credit_confirmed_at")
-  creditedLedgerId      String?            @map("credited_ledger_id") @db.Uuid
-  createdAt             DateTime           @default(now()) @map("created_at")
-  updatedAt             DateTime           @updatedAt @map("updated_at")
-  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewer              AdminUser?         @relation("TopUpReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
-  duplicateOf           TopUpRequest?       @relation("DuplicateTopUp", fields: [duplicateOfId], references: [id], onDelete: SetNull)
-  duplicates            TopUpRequest[]      @relation("DuplicateTopUp")
-  slipReviewer          AdminUser?         @relation("TopUpSlipReviewer", fields: [slipReviewedBy], references: [id], onDelete: SetNull)
-  creditConfirmer       AdminUser?         @relation("TopUpCreditConfirmer", fields: [creditConfirmedBy], references: [id], onDelete: SetNull)
-  creditedLedger        WalletLedger?      @relation("TopUpCreditedLedger", fields: [creditedLedgerId], references: [id], onDelete: SetNull)
+  id            String             @id @default(uuid()) @db.Uuid
+  userId        String             @map("user_id") @db.Uuid
+  amount        Decimal            @db.Decimal(18, 2)
+  currency      String             @default("THB") @db.VarChar(10)
+  status        TopUpRequestStatus @default(PENDING)
+  method        String?            @db.VarChar(80)
+  referenceCode String?            @map("reference_code") @db.VarChar(120)
+  note          String?
+  adminNote     String?            @map("admin_note")
+  reviewedBy    String?            @map("reviewed_by") @db.Uuid
+  reviewedAt    DateTime?          @map("reviewed_at")
+  claimedBy     String?            @map("claimed_by") @db.Uuid
+  claimedAt     DateTime?          @map("claimed_at")
+  slipUrl       String?            @map("slip_url")
+  slipFileHash  String?            @map("slip_file_hash") @db.VarChar(128)
+  slipPerceptualHash String?       @map("slip_perceptual_hash") @db.VarChar(128)
+  slipTransactionRef String?       @map("slip_transaction_ref") @db.VarChar(160)
+  slipDetectedAmount Decimal?      @map("slip_detected_amount") @db.Decimal(18, 2)
+  slipTransferredAt DateTime?      @map("slip_transferred_at")
+  duplicateOfId String?            @map("duplicate_of_id") @db.Uuid
+  duplicateReason String?          @map("duplicate_reason") @db.VarChar(160)
+  duplicateMatchScore Decimal?     @map("duplicate_match_score") @db.Decimal(8, 5)
+  slipReviewedBy String?           @map("slip_reviewed_by") @db.Uuid
+  slipReviewedAt DateTime?         @map("slip_reviewed_at")
+  creditConfirmedBy String?        @map("credit_confirmed_by") @db.Uuid
+  creditConfirmedAt DateTime?      @map("credit_confirmed_at")
+  creditedLedgerId String?         @map("credited_ledger_id") @db.Uuid
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer AdminUser? @relation(fields: [reviewedBy], references: [id], onDelete: SetNull)
+  slipReviewer AdminUser? @relation("TopUpSlipReviewer", fields: [slipReviewedBy], references: [id], onDelete: SetNull)
+  creditConfirmer AdminUser? @relation("TopUpCreditConfirmer", fields: [creditConfirmedBy], references: [id], onDelete: SetNull)
+  creditedLedger WalletLedger? @relation("TopUpCreditLedger", fields: [creditedLedgerId], references: [id], onDelete: SetNull)
+  duplicateOf TopUpRequest? @relation("TopUpDuplicate", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicateRequests TopUpRequest[] @relation("TopUpDuplicate")
 
   @@index([userId, createdAt])
   @@index([status])
@@ -542,39 +547,40 @@ model TopUpRequest {
 }
 
 model WithdrawalRequest {
-  id                       String                  @id @default(uuid()) @db.Uuid
-  userId                   String                  @map("user_id") @db.Uuid
-  amount                   Decimal                 @db.Decimal(18, 2)
-  currency                 String                  @default("THB") @db.VarChar(10)
-  status                   WithdrawalRequestStatus @default(PENDING)
-  method                   String?                 @db.VarChar(80)
-  accountName              String?                 @map("account_name") @db.VarChar(160)
-  accountNumber            String?                 @map("account_number") @db.VarChar(160)
-  bankName                 String?                 @map("bank_name") @db.VarChar(160)
-  note                     String?
-  adminNote                String?                 @map("admin_note")
-  reviewedBy               String?                 @map("reviewed_by") @db.Uuid
-  reviewedAt               DateTime?               @map("reviewed_at")
-  claimedBy                String?                 @map("claimed_by") @db.Uuid
-  claimedAt                DateTime?               @map("claimed_at")
-  paymentSlipUrl           String?                 @map("payment_slip_url")
-  paymentSlipFileHash      String?                 @map("payment_slip_file_hash") @db.VarChar(128)
-  paymentTransactionRef    String?                 @map("payment_transaction_ref") @db.VarChar(160)
-  approvedForPaymentBy     String?                 @map("approved_for_payment_by") @db.Uuid
-  approvedForPaymentAt     DateTime?               @map("approved_for_payment_at")
-  paymentUploadedBy        String?                 @map("payment_uploaded_by") @db.Uuid
-  paymentUploadedAt        DateTime?               @map("payment_uploaded_at")
-  paymentVerifiedBy        String?                 @map("payment_verified_by") @db.Uuid
-  paymentVerifiedAt        DateTime?               @map("payment_verified_at")
-  completedLedgerId        String?                 @map("completed_ledger_id") @db.Uuid
-  createdAt                DateTime                @default(now()) @map("created_at")
-  updatedAt                DateTime                @updatedAt @map("updated_at")
-  user                     User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewer                 AdminUser?              @relation("WithdrawalReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
-  approvedForPaymentAdmin  AdminUser?              @relation("WithdrawalApprovedForPayment", fields: [approvedForPaymentBy], references: [id], onDelete: SetNull)
-  paymentUploader          AdminUser?              @relation("WithdrawalPaymentUploader", fields: [paymentUploadedBy], references: [id], onDelete: SetNull)
-  paymentVerifier          AdminUser?              @relation("WithdrawalPaymentVerifier", fields: [paymentVerifiedBy], references: [id], onDelete: SetNull)
-  completedLedger          WalletLedger?           @relation("WithdrawalCompletedLedger", fields: [completedLedgerId], references: [id], onDelete: SetNull)
+  id            String                  @id @default(uuid()) @db.Uuid
+  userId        String                  @map("user_id") @db.Uuid
+  amount        Decimal                 @db.Decimal(18, 2)
+  currency      String                  @default("THB") @db.VarChar(10)
+  status        WithdrawalRequestStatus @default(PENDING)
+  method        String?                 @db.VarChar(80)
+  accountName   String?                 @map("account_name") @db.VarChar(160)
+  accountNumber String?                 @map("account_number") @db.VarChar(160)
+  bankName      String?                 @map("bank_name") @db.VarChar(160)
+  note          String?
+  adminNote     String?                 @map("admin_note")
+  reviewedBy    String?                 @map("reviewed_by") @db.Uuid
+  reviewedAt    DateTime?               @map("reviewed_at")
+  claimedBy     String?                 @map("claimed_by") @db.Uuid
+  claimedAt     DateTime?               @map("claimed_at")
+  paymentSlipUrl String?                @map("payment_slip_url")
+  paymentSlipFileHash String?           @map("payment_slip_file_hash") @db.VarChar(128)
+  paymentTransactionRef String?         @map("payment_transaction_ref") @db.VarChar(160)
+  approvedForPaymentBy String?          @map("approved_for_payment_by") @db.Uuid
+  approvedForPaymentAt DateTime?        @map("approved_for_payment_at")
+  paymentUploadedBy String?             @map("payment_uploaded_by") @db.Uuid
+  paymentUploadedAt DateTime?           @map("payment_uploaded_at")
+  paymentVerifiedBy String?             @map("payment_verified_by") @db.Uuid
+  paymentVerifiedAt DateTime?           @map("payment_verified_at")
+  completedLedgerId String?             @map("completed_ledger_id") @db.Uuid
+  createdAt     DateTime                @default(now()) @map("created_at")
+  updatedAt     DateTime                @updatedAt @map("updated_at")
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer AdminUser? @relation(fields: [reviewedBy], references: [id], onDelete: SetNull)
+  paymentApprover AdminUser? @relation("WithdrawalPaymentApprover", fields: [approvedForPaymentBy], references: [id], onDelete: SetNull)
+  proofUploader AdminUser? @relation("WithdrawalProofUploader", fields: [paymentUploadedBy], references: [id], onDelete: SetNull)
+  paymentVerifier AdminUser? @relation("WithdrawalPaymentVerifier", fields: [paymentVerifiedBy], references: [id], onDelete: SetNull)
+  completedLedger WalletLedger? @relation("WithdrawalCompletionLedger", fields: [completedLedgerId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([status])

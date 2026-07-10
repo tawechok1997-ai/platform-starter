@@ -9,30 +9,21 @@ function createPrisma(options: {
   latestAccountFailureAt?: Date | null;
   latestIpFailureAt?: Date | null;
 } = {}) {
-  const adminId = options.adminId === null ? null : options.adminId ?? 'admin-1';
+  const findFirst = jest.fn().mockImplementation(({ where }: any) => {
+    if (where?.success === true) return Promise.resolve(options.lastSuccessAt ? { createdAt: options.lastSuccessAt } : null);
+    if (where?.adminUserId) return Promise.resolve(options.latestAccountFailureAt ? { createdAt: options.latestAccountFailureAt } : null);
+    return Promise.resolve(options.latestIpFailureAt ? { createdAt: options.latestIpFailureAt } : null);
+  });
 
   return {
     adminUser: {
       findUnique: jest.fn().mockResolvedValue(adminId ? { id: adminId } : null),
     },
     loginHistory: {
-      count: jest.fn().mockImplementation(({ where }: any) => {
-        if (where?.adminUserId) return Promise.resolve(options.accountFailures ?? 0);
-        if (where?.ipAddress) return Promise.resolve(options.ipFailures ?? 0);
-        return Promise.resolve(0);
-      }),
-      findFirst: jest.fn().mockImplementation(({ where }: any) => {
-        if (where?.success === true) {
-          return Promise.resolve(options.lastSuccessAt ? { createdAt: options.lastSuccessAt } : null);
-        }
-        if (where?.adminUserId) {
-          return Promise.resolve(options.latestAccountFailureAt ? { createdAt: options.latestAccountFailureAt } : null);
-        }
-        if (where?.ipAddress) {
-          return Promise.resolve(options.latestIpFailureAt ? { createdAt: options.latestIpFailureAt } : null);
-        }
-        return Promise.resolve(null);
-      }),
+      count: jest.fn().mockImplementation(({ where }: any) => Promise.resolve(
+        where?.adminUserId ? options.accountFailures ?? 0 : options.ipFailures ?? 0,
+      )),
+      findFirst,
       create: jest.fn().mockReturnValue(Promise.resolve({ id: 'history-1' })),
     },
     adminAuditLog: {

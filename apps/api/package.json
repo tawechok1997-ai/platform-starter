@@ -10,7 +10,7 @@
     "test:db:finance": "jest src/modules/finance/finance-concurrency.db.spec.ts --runInBand"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1085.0",
+    "@aws-sdk/client-s3": "3.1084.0",
     "@nestjs/common": "11.1.28",
     "@nestjs/core": "11.1.28",
     "@nestjs/config": "4.0.4",
@@ -28,7 +28,7 @@
     "rxjs": "7.8.2"
   },
   "devDependencies": {
-    "@nestjs/cli": "11.0.24",
+    "@nestjs/cli": "11.0.23",
     "@nestjs/testing": "11.1.28",
     "@types/jest": "30.0.0",
     "@types/node": "26.1.1",

@@ -83,13 +83,21 @@ export class WithdrawalsService {
   async getAdminRequest(id: string) { const request = await this.prisma.withdrawalRequest.findUnique({ where: { id }, include: { user: { select: { id: true, username: true, phone: true, email: true } } } }); if (!request) throw new NotFoundException('Withdrawal request not found'); return { ...this.formatRequest(request), user: request.user }; }
 
   async claimRequest(id: string, adminUser: any, meta: RequestMeta = {}) {
-    const request = await this.prisma.withdrawalRequest.findUnique({ where: { id } });
-    if (!request) throw new NotFoundException('Withdrawal request not found');
-    if (!['PENDING', 'PENDING_REVIEW'].includes(String(request.status))) throw new ConflictException('Withdrawal request is not pending');
-    if (request.claimedBy && request.claimedBy !== adminUser.id && request.claimedAt && Date.now() - request.claimedAt.getTime() < CLAIM_TIMEOUT_MS) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
-    const updated = await this.prisma.withdrawalRequest.update({ where: { id }, data: { claimedBy: adminUser.id, claimedAt: new Date() } });
-    await this.audit(adminUser.id, 'CLAIM_WITHDRAWAL', id, { claimedBy: request.claimedBy }, { claimedBy: adminUser.id }, meta);
-    return this.formatRequest(updated);
+    return this.prisma.$transaction(async (tx) => {
+      const rows = await tx.$queryRaw<Array<{ status: string; claimed_by: string | null; claimed_at: Date | null }>>(Prisma.sql`
+        SELECT "status"::text AS status, "claimed_by", "claimed_at"
+        FROM "withdrawal_requests"
+        WHERE "id" = ${id}::uuid
+        FOR UPDATE
+      `);
+      const request = rows[0];
+      if (!request) throw new NotFoundException('Withdrawal request not found');
+      if (!['PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT', 'PAYMENT_PROOF_UPLOADED'].includes(request.status)) throw new ConflictException('Withdrawal request is not available for claim');
+      if (request.claimed_by && request.claimed_by !== adminUser.id && request.claimed_at && Date.now() - request.claimed_at.getTime() < CLAIM_TIMEOUT_MS) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+      const updated = await tx.withdrawalRequest.update({ where: { id }, data: { claimedBy: adminUser.id, claimedAt: new Date() } });
+      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'CLAIM_WITHDRAWAL', module: 'withdrawals', targetId: id, oldData: { claimedBy: request.claimed_by }, newData: { claimedBy: adminUser.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      return this.formatRequest(updated);
+    });
   }
 
   async releaseRequest(id: string, adminUser: any, meta: RequestMeta = {}) {
@@ -101,10 +109,6 @@ export class WithdrawalsService {
     return this.formatRequest(updated);
   }
 
-  async completeRequest(_id: string, _adminUser: any, _dto: ReviewWithdrawalRequestDto, _meta: RequestMeta = {}) {
-    throw new ConflictException('ใช้ขั้นตอนอนุมัติ แนบสลิป และตรวจสอบการจ่ายแทนการปิดรายการโดยตรง');
-  }
-
   async rejectRequest(id: string, adminUser: any, dto: ReviewWithdrawalRequestDto, meta: RequestMeta = {}) {
     return this.prisma.$transaction(async (tx) => {
       const rows = await tx.$queryRaw<Array<{ status: string; user_id: string; amount: Prisma.Decimal; claimed_by: string | null }>>(Prisma.sql`
@@ -114,7 +118,7 @@ export class WithdrawalsService {
       const request = rows[0];
       if (!request) throw new NotFoundException('Withdrawal request not found');
       if (request.claimed_by && request.claimed_by !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
-      if (!['PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT'].includes(request.status)) throw new ConflictException(`Withdrawal cannot be rejected: ${request.status}`);
+      if (!['PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT', 'PAYMENT_PROOF_UPLOADED'].includes(request.status)) throw new ConflictException(`Withdrawal cannot be rejected: ${request.status}`);
 
       const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
         SELECT "id", "user_id", "currency", "status"::text AS status, "balance", "locked_balance"
@@ -133,7 +137,7 @@ export class WithdrawalsService {
         SET "status" = 'REJECTED'::"WithdrawalRequestStatus", "admin_note" = ${dto.adminNote ?? null},
             "reviewed_by" = ${adminUser.id}::uuid, "reviewed_at" = NOW(),
             "claimed_by" = NULL, "claimed_at" = NULL, "updated_at" = NOW()
-        WHERE "id" = ${id}::uuid AND "status"::text IN ('PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT')
+        WHERE "id" = ${id}::uuid AND "status"::text IN ('PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT', 'PAYMENT_PROOF_UPLOADED')
       `);
       if (changed !== 1) throw new ConflictException('Withdrawal state changed during rejection');
       await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'REJECT_WITHDRAWAL', module: 'withdrawals', targetId: id, oldData: { status: request.status, amount: request.amount.toString() } as any, newData: { status: 'REJECTED', adminNote: dto.adminNote, lockedAfter: lockedAfter.toString() } as any, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
@@ -143,7 +147,7 @@ export class WithdrawalsService {
   }
 
   private bonusMetadata(value: unknown) { const data = value && typeof value === 'object' && !Array.isArray(value) ? value as any : {}; return { turnoverRequired: Number(data.turnoverRequired ?? 0), turnoverProgress: Number(data.turnoverProgress ?? 0), turnoverCompleted: data.turnoverCompleted === true }; }
-  private async releaseExpiredClaims() { const staleSince = new Date(Date.now() - CLAIM_TIMEOUT_MS); await this.prisma.$executeRaw(Prisma.sql`UPDATE "withdrawal_requests" SET "claimed_by" = NULL, "claimed_at" = NULL WHERE "status"::text IN ('PENDING', 'PENDING_REVIEW') AND "claimed_by" IS NOT NULL AND "claimed_at" < ${staleSince}`); }
+  private async releaseExpiredClaims() { const staleSince = new Date(Date.now() - CLAIM_TIMEOUT_MS); await this.prisma.$executeRaw(Prisma.sql`UPDATE "withdrawal_requests" SET "claimed_by" = NULL, "claimed_at" = NULL WHERE "status"::text IN ('PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT', 'PAYMENT_PROOF_UPLOADED') AND "claimed_by" IS NOT NULL AND "claimed_at" < ${staleSince}`); }
   private audit(adminUserId: string, action: string, targetId: string, oldData: any, newData: any, meta: RequestMeta) { return this.prisma.adminAuditLog.create({ data: { adminUserId, action, module: 'withdrawals', targetId, oldData, newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent } }).catch(() => null); }
   private formatRequest(item: any) { return { id: item.id, userId: item.userId, amount: item.amount.toString(), currency: item.currency, status: item.status, method: item.method, accountName: item.accountName, accountNumber: item.accountNumber, bankName: item.bankName, note: item.note, adminNote: item.adminNote, reviewedBy: item.reviewedBy, reviewedAt: item.reviewedAt, claimedBy: item.claimedBy, claimedAt: item.claimedAt, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
 }

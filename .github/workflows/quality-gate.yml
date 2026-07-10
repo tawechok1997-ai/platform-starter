@@ -38,11 +38,15 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build API
         if: matrix.target == 'api'
         run: pnpm build:api
+
+      - name: Test API
+        if: matrix.target == 'api'
+        run: pnpm --filter @platform/api test -- --runInBand
 
       - name: Build member web
         if: matrix.target == 'web-member'

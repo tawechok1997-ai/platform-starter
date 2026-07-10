@@ -93,8 +93,10 @@ export class DepositWorkflowService {
 
     const ext = match[2] === 'jpeg' ? 'jpg' : match[2];
     const key = `slips/${new Date().toISOString().slice(0, 10)}/${randomUUID()}.${ext}`;
+    const detectedAmount = input.detectedAmount && Number.isFinite(Number(input.detectedAmount)) ? Number(input.detectedAmount) : null;
+    const transferredAt = input.transferredAt ? new Date(input.transferredAt) : null;
+    if (transferredAt && Number.isNaN(transferredAt.getTime())) throw new BadRequestException('Invalid transferredAt');
     await this.storage.put(key, buffer, match[1]);
-
     try {
       const changed = await this.prisma.$executeRaw(Prisma.sql`
         UPDATE "top_up_requests"
@@ -111,43 +113,20 @@ export class DepositWorkflowService {
           AND "status" = 'PENDING'::"TopUpRequestStatus"
       `);
       if (changed !== 1) throw new ConflictException('Top up request state changed while submitting evidence');
-      return { ok: true, duplicate: false, status: 'PENDING_SLIP_REVIEW', slipUrl: key, fileHash };
     } catch (error) {
-      await this.storage.delete(key).catch(() => undefined);
+      await this.storage.remove(key).catch(() => undefined);
       throw error;
     }
+
+    return { ok: true, duplicate: false, status: 'PENDING_SLIP_REVIEW', slipUrl: key, fileHash };
   }
 
-  async getEvidence(requestId: string) {
-    const rows = await this.prisma.$queryRaw<EvidenceRow[]>(Prisma.sql`
-      SELECT "id", "status"::text AS "status", "slip_url", "slip_file_hash",
-             "slip_transaction_ref", "slip_detected_amount"::text,
-             "slip_transferred_at", "duplicate_of_id", "duplicate_reason",
-             "duplicate_match_score"::text
-      FROM "top_up_requests"
-      WHERE "id" = ${requestId}::uuid
-      LIMIT 1
-    `);
-    const row = rows[0];
-    if (!row) throw new NotFoundException('Top up request not found');
-    let dataUrl: string | null = null;
-    if (row.slip_url) {
-      const stored = await this.storage.get(row.slip_url, this.contentTypeFromKey(row.slip_url));
-      dataUrl = `data:${stored.contentType};base64,${stored.data.toString('base64')}`;
-    }
-    return {
-      id: row.id,
-      status: row.status,
-      dataUrl,
-      slipUrl: row.slip_url,
-      fileHash: row.slip_file_hash,
-      transactionRef: row.slip_transaction_ref,
-      detectedAmount: row.slip_detected_amount,
-      transferredAt: row.slip_transferred_at,
-      duplicateOfId: row.duplicate_of_id,
-      duplicateReason: row.duplicate_reason,
-      duplicateMatchScore: row.duplicate_match_score,
-    };
+  async getSlip(requestId: string) {
+    const request = await this.prisma.topUpRequest.findUnique({ where: { id: requestId }, select: { slipUrl: true } });
+    if (!request) throw new NotFoundException('Top up request not found');
+    if (!request.slipUrl) throw new NotFoundException('Slip file not found');
+    const stored = await this.storage.get(request.slipUrl, this.contentTypeFromKey(request.slipUrl));
+    return { dataUrl: `data:${stored.contentType};base64,${stored.data.toString('base64')}` };
   }
 
   async approveSlip(requestId: string, adminUserId: string, note: string | undefined, meta: DepositWorkflowMeta = {}) {
@@ -160,9 +139,9 @@ export class DepositWorkflowService {
       `);
       const request = rows[0];
       if (!request) throw new NotFoundException('Top up request not found');
-      this.assertClaimOwner(request.claimed_by, adminUserId);
+      if (!request.claimed_by) throw new ConflictException('ต้อง claim รายการก่อนตรวจสลิป');
+      if (request.claimed_by !== adminUserId) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
       if (request.status !== 'PENDING_SLIP_REVIEW') throw new ConflictException(`Slip is not waiting for review: ${request.status}`);
-
       const changed = await tx.$executeRaw(Prisma.sql`
         UPDATE "top_up_requests"
         SET "status" = 'PENDING_CREDIT'::"TopUpRequestStatus",
@@ -180,9 +159,8 @@ export class DepositWorkflowService {
     });
   }
 
-  async rejectDeposit(requestId: string, adminUserId: string, reason: string | undefined, meta: DepositWorkflowMeta = {}) {
-    const adminNote = reason?.trim();
-    if (!adminNote) throw new BadRequestException('Rejection reason is required');
+  async rejectDeposit(requestId: string, adminUserId: string, note: string | undefined, meta: DepositWorkflowMeta = {}) {
+    if (!note?.trim()) throw new BadRequestException('Rejection reason is required');
     return this.prisma.$transaction(async (tx) => {
       const rows = await tx.$queryRaw<Array<{ status: string; claimed_by: string | null }>>(Prisma.sql`
         SELECT "status"::text AS status, "claimed_by"
@@ -192,33 +170,32 @@ export class DepositWorkflowService {
       `);
       const request = rows[0];
       if (!request) throw new NotFoundException('Top up request not found');
-      this.assertClaimOwner(request.claimed_by, adminUserId);
-      if (!['PENDING_SLIP_REVIEW', 'PENDING_CREDIT'].includes(request.status)) throw new ConflictException(`Deposit cannot be rejected from status: ${request.status}`);
-
+      if (!request.claimed_by) throw new ConflictException('ต้อง claim รายการก่อนปฏิเสธ');
+      if (request.claimed_by !== adminUserId) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+      if (!['PENDING_SLIP_REVIEW', 'PENDING_CREDIT'].includes(request.status)) throw new ConflictException(`Deposit cannot be rejected: ${request.status}`);
       const changed = await tx.$executeRaw(Prisma.sql`
         UPDATE "top_up_requests"
         SET "status" = 'REJECTED'::"TopUpRequestStatus",
-            "admin_note" = ${adminNote},
+            "admin_note" = ${note.trim()},
             "reviewed_by" = ${adminUserId}::uuid,
             "reviewed_at" = NOW(),
             "claimed_by" = NULL,
             "claimed_at" = NULL,
             "updated_at" = NOW()
         WHERE "id" = ${requestId}::uuid
-          AND "claimed_by" = ${adminUserId}::uuid
           AND "status"::text IN ('PENDING_SLIP_REVIEW', 'PENDING_CREDIT')
       `);
-      if (changed !== 1) throw new ConflictException('Deposit state or claim changed during rejection');
-      await tx.adminAuditLog.create({ data: { adminUserId, action: 'REJECT_STAGED_DEPOSIT', module: 'topups', targetId: requestId, oldData: { status: request.status }, newData: { status: 'REJECTED', adminNote }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
-      return { ok: true, status: 'REJECTED', adminNote };
+      if (changed !== 1) throw new ConflictException('Deposit state changed during rejection');
+      await tx.adminAuditLog.create({ data: { adminUserId, action: 'REJECT_DEPOSIT', module: 'topups', targetId: requestId, oldData: { status: request.status }, newData: { status: 'REJECTED', note: note.trim() }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      return { ok: true, status: 'REJECTED' };
     });
   }
 
   async confirmCredit(requestId: string, adminUserId: string, note: string | undefined, meta: DepositWorkflowMeta = {}) {
     const idempotencyKey = `topup:${requestId}:credit-confirmed`;
     return this.prisma.$transaction(async (tx) => {
-      const requestRows = await tx.$queryRaw<Array<{ status: string; claimed_by: string | null; user_id: string; amount: Prisma.Decimal; currency: string }>>(Prisma.sql`
-        SELECT "status"::text AS status, "claimed_by", "user_id", "amount", "currency"
+      const requestRows = await tx.$queryRaw<Array<{ status: string; user_id: string; amount: Prisma.Decimal; currency: string; claimed_by: string | null }>>(Prisma.sql`
+        SELECT "status"::text AS status, "user_id", "amount", "currency", "claimed_by"
         FROM "top_up_requests"
         WHERE "id" = ${requestId}::uuid
         FOR UPDATE
@@ -231,6 +208,8 @@ export class DepositWorkflowService {
       }
       this.assertClaimOwner(request.claimed_by, adminUserId);
       if (request.status !== 'PENDING_CREDIT') throw new ConflictException(`Deposit is not ready for credit: ${request.status}`);
+      if (!request.claimed_by) throw new ConflictException('ต้อง claim รายการก่อนยืนยันเครดิต');
+      if (request.claimed_by !== adminUserId) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
 
       await tx.wallet.upsert({ where: { userId: request.user_id }, create: { userId: request.user_id, currency: request.currency }, update: {} });
       const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
@@ -319,11 +298,6 @@ export class DepositWorkflowService {
         `);
       }
     });
-  }
-
-  private assertClaimOwner(claimedBy: string | null, adminUserId: string) {
-    if (!claimedBy) throw new ConflictException('ต้อง claim รายการก่อนดำเนินการ');
-    if (claimedBy !== adminUserId) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
   }
 
   private contentTypeFromKey(key: string) {

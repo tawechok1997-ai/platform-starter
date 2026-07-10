@@ -57,6 +57,12 @@ Updated: 2026-07-11
 - ✅ เพิ่ม idempotency สำหรับยืนยันเครดิตฝากและยืนยันจ่ายถอน
 - ✅ ป้องกันคำขอถอนพร้อมกันใช้ยอดเกิน available balance
 - ✅ ป้องกันการแก้ balance และ locked balance เขียนทับกันระหว่าง concurrent requests
+- ✅ ตัด endpoint ฝากแบบเพิ่มเครดิตทันที เหลือ staged flow เดียว `submit slip -> approve slip -> confirm credit`
+- ✅ Admin Top-up และ Admin Withdrawal ใช้ staged finance workflow เดียวกับ API
+- ✅ Prisma schema ตรงกับ enum, evidence fields และ ledger relations ของ migration
+- ✅ บังคับ claim owner กับการตรวจสลิป, ยืนยันเครดิต, แนบหลักฐานจ่าย และยืนยันจ่าย
+- ✅ ลบไฟล์หลักฐานออกเมื่อ DB transaction ไม่สำเร็จ เพื่อลด orphan storage objects
+- ✅ เพิ่ม API tests เป็น CI gate และ lock dependency ด้วย `pnpm-lock.yaml`
 
 ### UX/UI and application structure
 
@@ -114,6 +120,12 @@ Updated: 2026-07-11
 - ⏳ เพิ่ม smoke test สำหรับ staged finance endpoints
 - ⏳ เพิ่ม alert เมื่อ migration หรือ finance smoke ล้มเหลว
 - ⏳ ตรวจ storage preview สำหรับ deposit slips และ withdrawal proofs
+
+### 5. Follow-up after workflow hardening
+
+- 🧪 รัน migration กับ staging database ก่อน production และตรวจ `prisma migrate status`
+- 🧪 ตั้งค่า `PROD_ADMIN_TOKEN` และ `PROD_MEMBER_TOKEN` เพื่อให้ scheduled smoke ตรวจ authenticated flow จริง
+- 🧪 รัน Playwright E2E บน staging สำหรับ staged deposit/withdrawal หลังมีบัญชีทดสอบ
 
 ## UX/UI backlog
 
