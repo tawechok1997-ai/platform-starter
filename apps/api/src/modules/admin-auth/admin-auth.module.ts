@@ -3,11 +3,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { AntiBotModule } from '../anti-bot/anti-bot.module';
 import { AdminAuthController } from './admin-auth.controller';
 import { AdminAuthService } from './admin-auth.service';
+import { AdminLoginDefenseService } from './admin-login-defense.service';
 
 @Module({
   imports: [JwtModule.register({}), AntiBotModule],
   controllers: [AdminAuthController],
-  providers: [AdminAuthService],
+  providers: [AdminAuthService, AdminLoginDefenseService],
   exports: [AdminAuthService],
 })
 export class AdminAuthModule {}
