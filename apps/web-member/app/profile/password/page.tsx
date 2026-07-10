@@ -28,7 +28,7 @@ export default function PasswordPage() {
     setNotice('');
     const response = await memberApiFetch('/member/auth/password', {
       method: 'POST',
-      body: JSON.stringify({ currentPassword, newPassword, revokeOtherSessions: true }),
+      body: JSON.stringify({ currentPassword, newPassword }),
     });
     const data = await response.json().catch(() => null);
     setBusy(false);
