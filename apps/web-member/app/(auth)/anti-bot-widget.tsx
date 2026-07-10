@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 type Provider = 'TURNSTILE' | 'RECAPTCHA' | 'HCAPTCHA';
 type Endpoint = 'member-login' | 'member-register';
 type PublicConfig = { enabled: boolean; provider: Provider | null; siteKey: string };
@@ -30,7 +29,7 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${API_URL}/public/anti-bot/${endpoint}`)
+    fetch(`/api/anti-bot/${endpoint}`, { cache: 'no-store' })
       .then((response) => response.ok ? response.json() : Promise.reject())
       .then((payload: PublicConfig) => {
         if (cancelled) return;
