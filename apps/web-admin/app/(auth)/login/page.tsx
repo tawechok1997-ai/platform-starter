@@ -145,8 +145,8 @@ export default function AdminLoginPage() {
     <form onSubmit={onSubmit} style={cardStyle} noValidate>
       <div style={logoStyle} aria-hidden="true">A</div>
       <div style={{ textAlign: 'center' }}>
-        <h1 style={{ margin: 0, fontSize: 26 }}>{t.title}</h1>
-        <p style={{ margin: '8px 0 0', color: '#9fb0c3', fontSize: 14 }}>{t.subtitle}</p>
+        <h1 style={titleStyle}>{t.title}</h1>
+        <p style={subtitleStyle}>{t.subtitle}</p>
       </div>
 
       <div style={languageRowStyle} aria-label="Language">
@@ -160,7 +160,7 @@ export default function AdminLoginPage() {
 
       <label style={labelStyle}>{t.password}
         <div style={passwordWrapStyle}>
-          <input value={secret} onChange={(event) => setSecret(event.target.value)} type={showSecret ? 'text' : 'password'} autoComplete="current-password" disabled={loading} placeholder={t.passwordPlaceholder} style={{ ...inputStyle, paddingRight: 76 }} />
+          <input value={secret} onChange={(event) => setSecret(event.target.value)} type={showSecret ? 'text' : 'password'} autoComplete="current-password" disabled={loading} placeholder={t.passwordPlaceholder} style={{ ...inputStyle, paddingRight: 72 }} />
           <button type="button" onClick={() => setShowSecret((value) => !value)} style={eyeButtonStyle} disabled={loading} aria-label={showSecret ? t.hidePassword : t.showPassword}>{showSecret ? (locale === 'th' ? 'ซ่อน' : 'Hide') : (locale === 'th' ? 'แสดง' : 'Show')}</button>
         </div>
       </label>
@@ -176,15 +176,17 @@ export default function AdminLoginPage() {
   </main>;
 }
 
-const pageStyle = { minHeight: '100dvh', padding: 16, display: 'grid', placeItems: 'center', background: '#080b10', color: '#fff', boxSizing: 'border-box' } as const;
-const cardStyle = { width: '100%', maxWidth: 420, display: 'grid', gap: 18, border: '1px solid rgba(255,255,255,0.10)', borderRadius: 24, padding: 24, background: '#101722', boxShadow: '0 24px 72px rgba(0,0,0,0.34)', boxSizing: 'border-box' } as const;
-const logoStyle = { width: 54, height: 54, borderRadius: 16, display: 'grid', placeItems: 'center', justifySelf: 'center', fontWeight: 950, fontSize: 22, background: '#f5c542', color: '#111' } as const;
+const pageStyle = { minHeight: '100dvh', padding: 'max(16px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom))', display: 'grid', placeItems: 'center', background: '#080b10', color: '#fff', boxSizing: 'border-box' } as const;
+const cardStyle = { width: '100%', maxWidth: 390, display: 'grid', gap: 14, border: '1px solid rgba(255,255,255,0.10)', borderRadius: 22, padding: 20, background: '#101722', boxShadow: '0 20px 56px rgba(0,0,0,0.30)', boxSizing: 'border-box' } as const;
+const logoStyle = { width: 52, height: 52, borderRadius: 16, display: 'grid', placeItems: 'center', justifySelf: 'center', fontWeight: 950, fontSize: 22, background: '#f5c542', color: '#111' } as const;
+const titleStyle = { margin: 0, fontSize: 24, lineHeight: 1.15 } as const;
+const subtitleStyle = { margin: '6px 0 0', color: '#9fb0c3', fontSize: 13, lineHeight: 1.45 } as const;
 const languageRowStyle = { display: 'flex', justifyContent: 'center', gap: 8 } as const;
-const languageButtonStyle = (active: boolean) => ({ minWidth: 54, padding: '8px 12px', borderRadius: 999, border: `1px solid ${active ? '#f5c542' : 'rgba(255,255,255,0.12)'}`, background: active ? 'rgba(245,197,66,0.14)' : 'transparent', color: active ? '#f5c542' : '#c7d0dc', cursor: 'pointer', fontWeight: 800 } as const);
-const labelStyle = { display: 'grid', gap: 8, fontWeight: 800, fontSize: 14 } as const;
+const languageButtonStyle = (active: boolean) => ({ minWidth: 52, minHeight: 38, padding: '7px 12px', borderRadius: 999, border: `1px solid ${active ? '#f5c542' : 'rgba(255,255,255,0.12)'}`, background: active ? 'rgba(245,197,66,0.14)' : 'transparent', color: active ? '#f5c542' : '#c7d0dc', cursor: 'pointer', fontWeight: 800 } as const);
+const labelStyle = { display: 'grid', gap: 7, fontWeight: 800, fontSize: 14 } as const;
 const hintStyle = { color: '#8493a7', fontSize: 12, fontWeight: 500 } as const;
-const inputStyle = { width: '100%', minHeight: 46, padding: '12px 14px', borderRadius: 13, border: '1px solid rgba(255,255,255,0.12)', background: '#172231', color: '#fff', boxSizing: 'border-box', outline: 'none' } as const;
+const inputStyle = { width: '100%', minHeight: 50, padding: '12px 14px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.16)', background: '#172231', color: '#fff', boxSizing: 'border-box', outline: 'none', fontSize: 16 } as const;
 const passwordWrapStyle = { position: 'relative' } as const;
-const eyeButtonStyle = { position: 'absolute', right: 8, top: 6, minWidth: 60, height: 34, borderRadius: 10, border: '1px solid rgba(255,255,255,.12)', background: 'rgba(255,255,255,.07)', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 800 } as const;
-const submitStyle = { minHeight: 46, padding: 12, borderRadius: 13, border: 0, background: '#f5c542', color: '#111', fontWeight: 900, cursor: 'pointer' } as const;
-function alertStyle(type: 'idle' | 'success' | 'error' | 'info') { return { border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: 12, background: type === 'error' ? 'rgba(255,70,70,0.10)' : type === 'success' ? 'rgba(80,255,140,0.10)' : 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 } as const; }
+const eyeButtonStyle = { position: 'absolute', right: 7, top: 7, minWidth: 56, height: 36, borderRadius: 10, border: '1px solid rgba(255,255,255,.14)', background: 'rgba(255,255,255,.07)', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 800 } as const;
+const submitStyle = { minHeight: 50, padding: 12, borderRadius: 14, border: 0, background: '#f5c542', color: '#111', fontWeight: 900, cursor: 'pointer', fontSize: 16 } as const;
+function alertStyle(type: 'idle' | 'success' | 'error' | 'info') { return { border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: 11, background: type === 'error' ? 'rgba(255,70,70,0.10)' : type === 'success' ? 'rgba(80,255,140,0.10)' : 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13 } as const; }
