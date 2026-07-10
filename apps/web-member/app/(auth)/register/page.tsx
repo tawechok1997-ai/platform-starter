@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { AntiBotWidget } from '../anti-bot-widget';
 import { API_URL, PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags, textSetting } from '../../site-settings';
 
 const REFERRAL_CODE_KEY = 'member_pending_referral_code';
@@ -15,7 +16,7 @@ const copy = {
     fullName: 'ชื่อ-นามสกุลจริง', bankName: 'ธนาคาร', bankAccountNumber: 'เลขบัญชี', bankAccountName: 'ชื่อบัญชีธนาคาร',
     next: 'ถัดไป', back: 'ย้อนกลับ', submit: 'สมัครสมาชิก', submitting: 'กำลังสมัคร...', show: 'แสดง', hide: 'ซ่อน',
     loginPrompt: 'มีบัญชีแล้ว?', login: 'เข้าสู่ระบบ', terms: 'ฉันยืนยันว่าข้อมูลถูกต้องและยอมรับเงื่อนไขการใช้งาน',
-    nameRule: 'ชื่อบัญชีธนาคารต้องตรงกับชื่อจริงที่ใช้สมัคร', checkFields: 'กรุณาตรวจสอบข้อมูลที่ระบุไว้', success: 'สมัครสมาชิกสำเร็จ', failed: 'สมัครสมาชิกไม่สำเร็จ กรุณาลองอีกครั้ง', timeout: 'เชื่อมต่อระบบนานเกินไป กรุณาลองอีกครั้ง',
+    nameRule: 'ชื่อบัญชีธนาคารต้องตรงกับชื่อจริงที่ใช้สมัคร', checkFields: 'กรุณาตรวจสอบข้อมูลที่ระบุไว้', captchaRequired: 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ', success: 'สมัครสมาชิกสำเร็จ', failed: 'สมัครสมาชิกไม่สำเร็จ กรุณาลองอีกครั้ง', timeout: 'เชื่อมต่อระบบนานเกินไป กรุณาลองอีกครั้ง',
     registrationDisabled: 'ขณะนี้ปิดรับสมัครสมาชิก', maintenance: 'ระบบกำลังปรับปรุง กรุณาลองใหม่ภายหลัง', step: 'ขั้นตอน', invalidResponse: 'ระบบตอบกลับไม่สมบูรณ์ กรุณาลองใหม่อีกครั้ง',
   },
   en: {
@@ -24,7 +25,7 @@ const copy = {
     fullName: 'Legal full name', bankName: 'Bank', bankAccountNumber: 'Account number', bankAccountName: 'Bank account name',
     next: 'Continue', back: 'Back', submit: 'Create account', submitting: 'Creating account...', show: 'Show', hide: 'Hide',
     loginPrompt: 'Already have an account?', login: 'Sign in', terms: 'I confirm the information is correct and accept the terms of use',
-    nameRule: 'The bank account name must match the legal name used to register', checkFields: 'Check the highlighted fields', success: 'Account created successfully', failed: 'Could not create the account. Please try again', timeout: 'The connection took too long. Please try again',
+    nameRule: 'The bank account name must match the legal name used to register', checkFields: 'Check the highlighted fields', captchaRequired: 'Complete the security verification', success: 'Account created successfully', failed: 'Could not create the account. Please try again', timeout: 'The connection took too long. Please try again',
     registrationDisabled: 'Registration is temporarily unavailable', maintenance: 'The service is under maintenance. Please try again later', step: 'Step', invalidResponse: 'The server response was incomplete. Please try again.',
   },
 } as const;
@@ -43,6 +44,10 @@ export default function MemberRegisterPage() {
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [bankAccountName, setBankAccountName] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaRequired, setCaptchaRequired] = useState(false);
+  const [captchaReady, setCaptchaReady] = useState(true);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'info'>('idle');
@@ -69,7 +74,9 @@ export default function MemberRegisterPage() {
   const brandMark = textSetting(settings, 'branding', 'brand_mark', siteName.slice(0, 1).toUpperCase() || 'P');
   const flags = memberFeatureFlags(settings);
   const maintenanceEnabled = Boolean(settings.maintenance?.enabled || settings.maintenance?.member_enabled || settings.website?.maintenance_mode);
-  const disabled = !flags.registration || maintenanceEnabled || loading;
+  const handleCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
+  const handleCaptchaState = useCallback((required: boolean, ready: boolean) => { setCaptchaRequired(required); setCaptchaReady(ready); }, []);
+  const disabled = !flags.registration || maintenanceEnabled || loading || (captchaRequired && !captchaReady);
   const cssVars = useMemo(() => ({ '--color-brand': primaryColor, '--color-bg': backgroundColor, '--color-card': cardColor, '--color-text': textColor }) as React.CSSProperties, [primaryColor, backgroundColor, cardColor, textColor]);
   const passwordProgress = useMemo(() => Math.min(secret.length / 8, 1), [secret]);
 
@@ -107,6 +114,7 @@ export default function MemberRegisterPage() {
     if (maintenanceEnabled) { setStatus('error'); setMessage(t.maintenance); return; }
     if (!flags.registration) { setStatus('error'); setMessage(t.registrationDisabled); return; }
     if (!validateStep(3)) return;
+    if (captchaRequired && (!captchaReady || !captchaToken)) { setStatus('error'); setMessage(t.captchaRequired); return; }
 
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 15000);
@@ -116,11 +124,11 @@ export default function MemberRegisterPage() {
     try {
       const res = await fetch(`${API_URL}/member/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
-        body: JSON.stringify({ username: username.trim(), phone: phone.trim(), email: email.trim() || undefined, secret, fullName: fullName.trim(), bankName: bankName.trim(), bankAccountNumber: bankAccountNumber.trim(), bankAccountName: bankAccountName.trim(), referralCode: cleanRef || undefined, deviceId: 'web-member' }),
+        body: JSON.stringify({ username: username.trim(), phone: phone.trim(), email: email.trim() || undefined, secret, fullName: fullName.trim(), bankName: bankName.trim(), bankAccountNumber: bankAccountNumber.trim(), bankAccountName: bankAccountName.trim(), referralCode: cleanRef || undefined, captchaToken: captchaToken || undefined, deviceId: 'web-member' }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) { setStatus('error'); setMessage(mapRegisterError(data?.message, locale, t.failed)); return; }
-      if (!data?.accessToken || !data?.refreshToken) { setStatus('error'); setMessage(t.invalidResponse); return; }
+      if (!res.ok) { setStatus('error'); setMessage(mapRegisterError(data?.message, locale, t.failed)); setCaptchaResetKey((value) => value + 1); return; }
+      if (!data?.accessToken || !data?.refreshToken) { setStatus('error'); setMessage(t.invalidResponse); setCaptchaResetKey((value) => value + 1); return; }
       window.localStorage.setItem('member_access_token', data.accessToken);
       window.localStorage.setItem('member_refresh_token', data.refreshToken);
       if (cleanRef) await linkReferralAfterRegister(cleanRef, data.accessToken);
@@ -128,7 +136,7 @@ export default function MemberRegisterPage() {
       window.location.replace('/');
     } catch (error) {
       const aborted = error instanceof DOMException && error.name === 'AbortError';
-      setStatus('error'); setMessage(aborted ? t.timeout : t.failed);
+      setStatus('error'); setMessage(aborted ? t.timeout : t.failed); setCaptchaResetKey((value) => value + 1);
     } finally {
       window.clearTimeout(timeoutId); setLoading(false);
     }
@@ -173,6 +181,7 @@ export default function MemberRegisterPage() {
           </div>
           <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}><input type="checkbox" checked={acceptedTerms} onChange={(event) => { setAcceptedTerms(event.target.checked); clearError('terms'); }} disabled={disabled} style={{ marginTop: 4 }} /><span>{t.terms}</span></label>
           {errors.terms && <span className="public-auth-field-error">{errors.terms}</span>}
+          <AntiBotWidget endpoint="member-register" locale={locale} resetKey={captchaResetKey} onToken={handleCaptchaToken} onRequiredChange={handleCaptchaState} />
         </>}
 
         <div style={{ display: 'grid', gridTemplateColumns: step > 1 ? '1fr 1fr' : '1fr', gap: 10 }}>
@@ -198,6 +207,7 @@ function mapRegisterError(raw: unknown, locale: Locale, fallback: string) {
   const messages = Array.isArray(raw) ? raw.map(String) : [String(raw ?? '')];
   const joined = messages.join(' ').toLowerCase();
   const th = locale === 'th';
+  if (joined.includes('captcha')) return th ? 'การยืนยันความปลอดภัยไม่สำเร็จ กรุณาลองใหม่' : 'Security verification failed. Please try again.';
   if (joined.includes('ชื่อบัญชีธนาคารต้องตรง') || joined.includes('bank account name') && joined.includes('match')) return th ? 'ชื่อบัญชีธนาคารต้องตรงกับชื่อจริงที่ใช้สมัคร' : 'The bank account name must match your legal name.';
   if (joined.includes('บัญชีธนาคารนี้ถูกใช้') || joined.includes('bank') && joined.includes('already')) return th ? 'บัญชีธนาคารนี้ถูกใช้กับสมาชิกคนอื่นแล้ว' : 'This bank account is already linked to another member.';
   if (joined.includes('member already exists') || joined.includes('ถูกใช้แล้ว') || joined.includes('already exists')) return th ? 'ชื่อผู้ใช้ เบอร์โทร หรืออีเมลนี้ถูกใช้แล้ว' : 'The username, phone number, or email is already in use.';
