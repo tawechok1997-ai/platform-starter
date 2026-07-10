@@ -23,6 +23,7 @@
     "build:web-admin": "pnpm --filter @platform/web-admin build",
     "start:web-admin": "pnpm --filter @platform/web-admin start",
     "test:e2e:smoke": "playwright test -c playwright.smoke.config.ts",
+    "test:e2e:smoke:strict": "bash scripts/require-prod-smoke-env.sh && playwright test -c playwright.smoke.config.ts",
     "test:e2e:visual": "playwright test -c playwright.visual.config.ts",
     "test:e2e:visual:update": "playwright test -c playwright.visual.config.ts --update-snapshots"
   },
