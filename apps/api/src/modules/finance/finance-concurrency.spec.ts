@@ -17,6 +17,13 @@ describe('finance concurrency hardening', () => {
     expect(deposit).toContain('topup:${requestId}:credit-confirmed');
   });
 
+  it('cleans up an uploaded deposit slip when the database transition fails', () => {
+    expect(deposit).toContain('await this.storage.put(key, buffer, match[1])');
+    expect(deposit).toContain('await this.storage.delete(key).catch(() => undefined)');
+    expect(deposit.indexOf('this.storage.put(key')).toBeLessThan(deposit.indexOf('this.prisma.$executeRaw'));
+    expect(deposit.indexOf('this.prisma.$executeRaw')).toBeLessThan(deposit.indexOf('this.storage.delete(key)'));
+  });
+
   it('serializes withdrawal reservation against the wallet row', () => {
     expect(withdrawals).toContain('FROM "wallets"');
     expect(withdrawals).toContain('FOR UPDATE');
