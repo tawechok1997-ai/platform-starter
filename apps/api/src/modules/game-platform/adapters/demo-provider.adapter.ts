@@ -15,8 +15,24 @@ import {
   WebhookValidationResult,
 } from '../provider-adapter.interface';
 
+const demoBalances = new Map<string, number>();
+
 function requestId(prefix: string) {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function balanceKey(context: ProviderAdapterContext, userId: string) {
+  return `${context.providerCode}:${userId}`;
+}
+
+function readBalance(context: ProviderAdapterContext, userId: string) {
+  return demoBalances.get(balanceKey(context, userId)) ?? 0;
+}
+
+function writeBalance(context: ProviderAdapterContext, userId: string, value: number) {
+  const normalized = Math.max(0, Number(value.toFixed(2)));
+  demoBalances.set(balanceKey(context, userId), normalized);
+  return normalized;
 }
 
 function ok<TPayload>(context: ProviderAdapterContext, prefix: string, payload: TPayload, rawRequest?: unknown): ProviderAdapterResult<TPayload> {
@@ -27,6 +43,18 @@ function ok<TPayload>(context: ProviderAdapterContext, prefix: string, payload: 
     payload,
     rawRequest,
     rawResponse: { adapter: 'demo-provider', mode: 'safe-mock' },
+  };
+}
+
+function fail<TPayload>(context: ProviderAdapterContext, prefix: string, errorCode: string, errorMessage: string, rawRequest?: unknown): ProviderAdapterResult<TPayload> {
+  return {
+    ok: false,
+    providerCode: context.providerCode,
+    requestId: requestId(prefix),
+    errorCode,
+    errorMessage,
+    rawRequest,
+    rawResponse: { adapter: 'demo-provider', mode: 'safe-mock', rejected: true },
   };
 }
 
@@ -46,15 +74,46 @@ export class DemoProviderAdapter implements GameProviderAdapter {
   }
 
   async getBalance(context: ProviderAdapterContext, input: BalanceInput): Promise<ProviderAdapterResult<BalanceOutput>> {
-    return ok(context, 'demo_balance', { balance: '0.00', currency: context.currency, providerUserId: input.providerUserId ?? input.userId }, input);
+    const userId = input.providerUserId ?? input.userId;
+    const balance = readBalance(context, userId);
+    return ok(context, 'demo_balance', { balance: balance.toFixed(2), currency: context.currency, providerUserId: userId }, input);
   }
 
   async transferIn(context: ProviderAdapterContext, input: TransferInput): Promise<ProviderAdapterResult<TransferOutput>> {
-    return ok(context, 'demo_transfer_in', { providerTransactionId: `demo_in_${input.idempotencyKey}`, beforeBalance: '0.00', afterBalance: input.amount }, input);
+    const amount = Number(input.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return fail(context, 'demo_transfer_in', 'INVALID_AMOUNT', 'Transfer amount must be greater than zero', input);
+    }
+    const beforeBalance = readBalance(context, input.userId);
+    const afterBalance = writeBalance(context, input.userId, beforeBalance + amount);
+    return ok(context, 'demo_transfer_in', {
+      providerTransactionId: `demo_in_${input.idempotencyKey}`,
+      beforeBalance: beforeBalance.toFixed(2),
+      afterBalance: afterBalance.toFixed(2),
+    }, input);
   }
 
   async transferOut(context: ProviderAdapterContext, input: TransferInput): Promise<ProviderAdapterResult<TransferOutput>> {
-    return ok(context, 'demo_transfer_out', { providerTransactionId: `demo_out_${input.idempotencyKey}`, beforeBalance: input.amount, afterBalance: '0.00' }, input);
+    const amount = Number(input.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return fail(context, 'demo_transfer_out', 'INVALID_AMOUNT', 'Transfer amount must be greater than zero', input);
+    }
+    const beforeBalance = readBalance(context, input.userId);
+    if (amount > beforeBalance) {
+      return fail(
+        context,
+        'demo_transfer_out',
+        'INSUFFICIENT_PROVIDER_BALANCE',
+        `ยอดในเกมไม่พอ ยอดที่ถอนได้ ${beforeBalance.toFixed(2)} ${context.currency}`,
+        input,
+      );
+    }
+    const afterBalance = writeBalance(context, input.userId, beforeBalance - amount);
+    return ok(context, 'demo_transfer_out', {
+      providerTransactionId: `demo_out_${input.idempotencyKey}`,
+      beforeBalance: beforeBalance.toFixed(2),
+      afterBalance: afterBalance.toFixed(2),
+    }, input);
   }
 
   async syncGames(context: ProviderAdapterContext): Promise<ProviderAdapterResult<ProviderGamePayload[]>> {
