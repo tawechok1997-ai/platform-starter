@@ -2,12 +2,16 @@ import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nes
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { AdminAccessSessionService } from './admin-access-session.service';
 import { AdminAccessService } from './admin-access.service';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 @Controller('admin/access')
 export class AdminAccessController {
-  constructor(private readonly service: AdminAccessService) {}
+  constructor(
+    private readonly service: AdminAccessService,
+    private readonly accessSessions: AdminAccessSessionService,
+  ) {}
 
   @RequirePermission('admin.access.view')
   @Get('overview')
@@ -31,13 +35,17 @@ export class AdminAccessController {
 
   @RequirePermission('admin.access.manage')
   @Post('admin-users/:adminUserId/roles')
-  assignRole(@Req() req: any, @Param('adminUserId') adminUserId: string, @Body() body: { roleId?: string }) {
-    return this.service.assignRole(req.user.id, adminUserId, String(body.roleId ?? ''));
+  async assignRole(@Req() req: any, @Param('adminUserId') adminUserId: string, @Body() body: { roleId?: string }) {
+    const result = await this.service.assignRole(req.user.id, adminUserId, String(body.roleId ?? ''));
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'ASSIGN_ROLE');
+    return result;
   }
 
   @RequirePermission('admin.access.manage')
   @Delete('admin-users/:adminUserId/roles/:roleId')
-  removeRole(@Req() req: any, @Param('adminUserId') adminUserId: string, @Param('roleId') roleId: string) {
-    return this.service.removeRole(req.user.id, adminUserId, roleId);
+  async removeRole(@Req() req: any, @Param('adminUserId') adminUserId: string, @Param('roleId') roleId: string) {
+    const result = await this.service.removeRole(req.user.id, adminUserId, roleId);
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'REMOVE_ROLE');
+    return result;
   }
 }
