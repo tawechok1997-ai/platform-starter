@@ -66,6 +66,9 @@ check_status "admin topups requires auth" "GET" "/admin/topups" "401"
 check_status "admin withdrawals requires auth" "GET" "/admin/withdrawals" "401"
 check_status "admin risk alerts requires auth" "GET" "/admin/risk-alerts" "401"
 check_status "admin access requires auth" "GET" "/admin/access/overview" "401"
+check_status "admin delegations requires auth" "GET" "/admin/access/delegations" "401"
+check_status "admin anti-bot settings requires auth" "GET" "/admin/security/anti-bot" "401"
+check_status "public anti-bot config" "GET" "/public/anti-bot/admin-login" "200"
 check_status "admin sessions requires auth" "GET" "/admin/auth/sessions" "401"
 check_status "admin 2fa setup requires auth" "POST" "/admin/auth/2fa/setup" "401"
 check_status "admin 2fa disable requires auth" "POST" "/admin/auth/2fa/disable" "401" "" '{"code":"000000"}'
@@ -93,6 +96,8 @@ if [[ -n "$ADMIN_TOKEN" ]]; then
   check_status "admin ledgers authorized" "GET" "/admin/ledgers?page=1&take=1" "200" "$ADMIN_TOKEN"
   check_status "admin risk alerts authorized" "GET" "/admin/risk-alerts?page=1&take=1" "200" "$ADMIN_TOKEN"
   check_status "admin finance summary authorized" "GET" "/admin/finance/summary" "200" "$ADMIN_TOKEN"
+  check_status "admin delegations authorized" "GET" "/admin/access/delegations" "200" "$ADMIN_TOKEN"
+  check_status "admin anti-bot settings authorized" "GET" "/admin/security/anti-bot" "200" "$ADMIN_TOKEN"
 fi
 
 if [[ -n "$MEMBER_TOKEN" ]]; then
