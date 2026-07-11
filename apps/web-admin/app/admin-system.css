@@ -300,8 +300,12 @@ body:has(.admin-auth-page){overflow-x:hidden}
 @media(max-width:430px){.admin-auth-invitation-page{padding:8px!important}.admin-auth-invitation-card{min-height:calc(100dvh - 16px);padding:24px 18px!important;border-radius:22px!important}.admin-auth-invitation-card>div:first-child{border-radius:16px!important}.admin-auth-invitation-card input{border-radius:16px!important}.admin-auth-invitation-card form>button,.admin-auth-invitation-card>a{border-radius:15px!important}}
 
 @media (max-width:1023px), (hover:none) and (pointer:coarse) {
-  .admin-auth-shell{background:transparent}
-  .admin-auth-card{background-image:none;background-color:rgba(8,12,18,.72);background:linear-gradient(to bottom,rgba(8,12,18,.68),rgba(8,12,18,.78));backdrop-filter:blur(7px)}
+  .admin-auth-invitation-card{width:92vw!important;max-width:600px!important;min-height:calc(100dvh - 28px);background:linear-gradient(to bottom,rgba(8,12,18,.46),rgba(8,12,18,.62))!important;backdrop-filter:blur(5px)!important}
+}
+
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .admin-auth-shell{width:92vw;max-width:600px!important;min-height:calc(100dvh - 28px);background:transparent}
+  .admin-auth-card{min-height:calc(100dvh - 28px);background-image:none;background-color:rgba(8,12,18,.48);background:linear-gradient(to bottom,rgba(8,12,18,.46),rgba(8,12,18,.62));backdrop-filter:blur(5px)}
 }
 
 .admin-auth-invitation-topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:48px;margin-bottom:clamp(64px,10vh,86px)}

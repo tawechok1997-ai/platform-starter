@@ -385,8 +385,8 @@
 
 /* The artwork belongs to the page background; the auth panel stays black glass. */
 @media (max-width:1023px), (hover:none) and (pointer:coarse) {
-  .public-auth-shell,.public-auth-shell.public-auth-shell--register{background:transparent}
-  .public-auth-card{background-image:none;background-color:rgba(7,10,15,.72);background:linear-gradient(to bottom,rgba(7,10,15,.68),rgba(7,10,15,.78));backdrop-filter:blur(7px)}
+  .public-auth-shell,.public-auth-shell.public-auth-shell--register{width:92vw;max-width:600px!important;min-height:calc(100dvh - 28px);background:transparent}
+  .public-auth-card{min-height:calc(100dvh - 28px);background-image:none;background-color:rgba(7,10,15,.48);background:linear-gradient(to bottom,rgba(7,10,15,.46),rgba(7,10,15,.62));backdrop-filter:blur(5px)}
 }
 
 @media (max-width:1023px), (hover:none) and (pointer:coarse) {
