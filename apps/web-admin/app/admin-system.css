@@ -299,6 +299,11 @@ body:has(.admin-auth-page){overflow-x:hidden}
 
 @media(max-width:430px){.admin-auth-invitation-page{padding:8px!important}.admin-auth-invitation-card{min-height:calc(100dvh - 16px);padding:24px 18px!important;border-radius:22px!important}.admin-auth-invitation-card>div:first-child{border-radius:16px!important}.admin-auth-invitation-card input{border-radius:16px!important}.admin-auth-invitation-card form>button,.admin-auth-invitation-card>a{border-radius:15px!important}}
 
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .admin-auth-shell{background:transparent}
+  .admin-auth-card{background-image:none;background-color:rgba(8,12,18,.72);background:linear-gradient(to bottom,rgba(8,12,18,.68),rgba(8,12,18,.78));backdrop-filter:blur(7px)}
+}
+
 .admin-auth-invitation-topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:48px;margin-bottom:clamp(64px,10vh,86px)}
 .admin-auth-invitation-lockup{display:flex;align-items:center;gap:10px;min-width:0}.admin-auth-invitation-lockup>div{flex:0 0 auto}.admin-auth-invitation-lockup>strong{font-size:13px;letter-spacing:.03em;white-space:nowrap}.admin-auth-invitation-language{display:flex;gap:12px}.admin-auth-invitation-language button{min-width:auto!important;min-height:32px!important;padding:0 3px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:1px!important;background:transparent!important;color:#718097!important}.admin-auth-invitation-language button[style*="245,197,66"]{color:var(--admin-text)!important;border-bottom-color:var(--admin-brand)!important}.admin-auth-invitation-heading{text-align:left!important}.admin-auth-invitation-heading h1{font-size:clamp(34px,6vw,46px)!important}.admin-auth-invitation-heading::before{content:'SECURE ADMIN ACCESS';display:block;margin-bottom:8px;color:var(--admin-brand);font-size:10px;font-weight:950;letter-spacing:.18em}
 .admin-auth-invitation-card>div:nth-child(2){margin:0!important}

@@ -383,6 +383,12 @@
   .public-auth-submit{border-radius:15px}
 }
 
+/* The artwork belongs to the page background; the auth panel stays black glass. */
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .public-auth-shell,.public-auth-shell.public-auth-shell--register{background:transparent}
+  .public-auth-card{background-image:none;background-color:rgba(7,10,15,.72);background:linear-gradient(to bottom,rgba(7,10,15,.68),rgba(7,10,15,.78));backdrop-filter:blur(7px)}
+}
+
 @media (max-width:1023px), (hover:none) and (pointer:coarse) {
   .public-auth-card-topbar{margin-bottom:clamp(64px,10vh,86px)}
 }
