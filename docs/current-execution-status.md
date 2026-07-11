@@ -36,6 +36,11 @@ This file is the short operational worklist for the current implementation cycle
 - [x] Private storage keys reject traversal/absolute paths and backup archives have a read-only verification script.
 - [x] Risk alert status transitions reject workflow jumps that bypass investigation.
 - [x] Audit Log target links cover admin access, anti-bot, finance, member, ledger, and risk routes with mobile-safe pagination.
+- [x] Risk Alert provider metadata filter added with input validation.
+- [x] Safe bulk dismiss added for active LOW/MEDIUM Risk Alerts with per-item audit trail.
+- [x] Auto-close suggestions added without automatic state mutation.
+- [x] Strict staged Finance E2E flow added behind `FINANCE_E2E_ENABLED=true`.
+- [x] Deployment/build/smoke failure alert workflow added with deduplicated GitHub issues.
 - [x] GitHub Actions Build #270 completed successfully for commit `c7edec0`.
 
 ## CI checkpoint
@@ -112,9 +117,9 @@ Still requires direct deployment verification:
 
 - [x] Assign a risk alert to an active admin.
 - [x] Add risk-alert investigation notes to the audit timeline.
-- [ ] Add provider filter where provider context exists.
-- [ ] Add safe bulk actions for low-risk alerts.
-- [ ] Add auto-close suggestions linked to resolved finance/provider records.
+- [x] Add provider filter where provider context exists.
+- [x] Add safe bulk actions for low-risk alerts.
+- [x] Add auto-close suggestions linked to resolved finance/provider records.
 - [x] Finish Audit Log target links for all supported modules.
 - [ ] Verify Audit Log pagination, long JSON diff rendering, empty state, and mobile regression.
 - [ ] Run delegated access staging regression with grant, expiry, revoke, and owner-boundary cases.
@@ -126,7 +131,9 @@ Still requires direct deployment verification:
 - [ ] Verify `/version` reports the expected commit/build.
 - [ ] Run strict staged finance smoke tests with production-safe credentials.
 - [ ] Verify private storage access for deposit slips and withdrawal proofs.
-- [ ] Add deployment alerts for migration, build, smoke-test, and health-check failures.
+- [x] Add deployment alerts for migration, build, smoke-test, and health-check failures.
+
+The staged Finance E2E test is implemented but intentionally skipped unless an isolated staging environment supplies `FINANCE_E2E_ENABLED=true`, member/admin tokens, a receiving account id, and an approved withdrawal account. It must not run against production.
 
 ## Safe parallel execution groups
 
