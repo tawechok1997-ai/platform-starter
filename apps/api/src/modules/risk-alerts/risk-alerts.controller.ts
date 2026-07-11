@@ -17,18 +17,31 @@ export class RiskAlertsController {
     @Query('severity') severity?: string,
     @Query('type') type?: string,
     @Query('memberId') memberId?: string,
+    @Query('provider') provider?: string,
     @Query('createdFrom') createdFrom?: string,
     @Query('createdTo') createdTo?: string,
     @Query('page') page?: string,
     @Query('take') take?: string,
   ) {
-    return this.riskAlertsService.list({ status, severity, type, memberId, createdFrom, createdTo, page, take });
+    return this.riskAlertsService.list({ status, severity, type, memberId, provider, createdFrom, createdTo, page, take });
   }
 
   @RequirePermission('risk.assign')
   @Get('assignees/list')
   assignees() {
     return this.riskAlertsService.listAssignees();
+  }
+
+  @RequirePermission('risk.resolve')
+  @Get('auto-close-suggestions')
+  autoCloseSuggestions(@Query('limit') limit?: string) {
+    return this.riskAlertsService.autoCloseSuggestions(Number(limit ?? 50));
+  }
+
+  @RequirePermission('risk.resolve')
+  @Post('bulk-dismiss')
+  bulkDismiss(@Body() body: { ids?: string[] }, @CurrentUser() admin: any) {
+    return this.riskAlertsService.bulkDismiss(body.ids ?? [], admin);
   }
 
   @RequirePermission('risk.view')
