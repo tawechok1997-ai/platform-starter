@@ -98,12 +98,24 @@ export class AuthService {
 
   async refreshSession(dto: RefreshSessionDto, meta: RequestMeta = {}) {
     const { sessionId, rawToken } = this.readRefreshTokenParts(dto.refreshToken);
-    const session = await this.prisma.authSession.findFirst({ where: { id: sessionId, type: 'MEMBER', revokedAt: null, expiresAt: { gt: new Date() } } });
+    const session = await this.prisma.authSession.findFirst({ where: { id: sessionId, type: 'MEMBER' } });
     if (!session?.userId) throw new UnauthorizedException('Invalid refresh session');
     const valid = await argon2.verify(session.refreshTokenHash, rawToken);
     if (!valid) throw new UnauthorizedException('Invalid refresh session');
-    await this.prisma.authSession.update({ where: { id: session.id }, data: { revokedAt: new Date() } });
+    if (session.revokedAt || session.expiresAt <= new Date()) {
+      if (session.revokedAt) await this.revokeRefreshFamily(session.userId);
+      throw new UnauthorizedException('Invalid refresh session');
+    }
+    const rotated = await this.prisma.authSession.updateMany({ where: { id: session.id, type: 'MEMBER', revokedAt: null }, data: { revokedAt: new Date() } });
+    if (rotated.count !== 1) {
+      await this.revokeRefreshFamily(session.userId);
+      throw new UnauthorizedException('Invalid refresh session');
+    }
     return this.createMemberSession(session.userId, meta);
+  }
+
+  private async revokeRefreshFamily(userId: string) {
+    await this.prisma.authSession.updateMany({ where: { userId, type: 'MEMBER', revokedAt: null }, data: { revokedAt: new Date() } });
   }
 
   async signOut(sessionId: string) {

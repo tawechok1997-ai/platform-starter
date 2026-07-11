@@ -104,12 +104,25 @@ export class AdminAuthService {
 
   async refreshSession(refreshToken: string, meta: RequestMeta = {}) {
     const { sessionId, rawToken } = this.readRefreshTokenParts(refreshToken);
-    const session = await this.prisma.authSession.findFirst({ where: { id: sessionId, type: 'ADMIN', revokedAt: null, expiresAt: { gt: new Date() } } });
+    const session = await this.prisma.authSession.findFirst({ where: { id: sessionId, type: 'ADMIN' } });
     if (!session?.adminUserId) throw new UnauthorizedException('Invalid admin refresh session');
     const valid = await argon2.verify(session.refreshTokenHash, rawToken);
     if (!valid) throw new UnauthorizedException('Invalid admin refresh session');
-    await this.prisma.authSession.update({ where: { id: session.id }, data: { revokedAt: new Date() } });
+    if (session.revokedAt || session.expiresAt <= new Date()) {
+      if (session.revokedAt) await this.revokeRefreshFamily('ADMIN', session.adminUserId, session.id, meta);
+      throw new UnauthorizedException('Invalid admin refresh session');
+    }
+    const rotated = await this.prisma.authSession.updateMany({ where: { id: session.id, type: 'ADMIN', revokedAt: null }, data: { revokedAt: new Date() } });
+    if (rotated.count !== 1) {
+      await this.revokeRefreshFamily('ADMIN', session.adminUserId, session.id, meta);
+      throw new UnauthorizedException('Invalid admin refresh session');
+    }
     return this.createAdminSession(session.adminUserId, meta);
+  }
+
+  private async revokeRefreshFamily(type: 'ADMIN' | 'MEMBER', ownerId: string, sessionId: string, meta: RequestMeta) {
+    await this.prisma.authSession.updateMany({ where: type === 'ADMIN' ? { adminUserId: ownerId, type, revokedAt: null } : { userId: ownerId, type, revokedAt: null }, data: { revokedAt: new Date() } });
+    if (type === 'ADMIN') await this.safeWriteAudit(ownerId, 'admin.refresh.reuse_detected', 'auth', sessionId, meta);
   }
 
   async signOut(sessionId: string, adminUserId: string, meta: RequestMeta = {}) {

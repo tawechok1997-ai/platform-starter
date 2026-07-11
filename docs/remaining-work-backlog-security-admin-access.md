@@ -102,7 +102,7 @@ Security controls must be enforced in the API and database access layer, not onl
 
 - [ ] Use short-lived admin access tokens and securely rotated refresh tokens.
 - [ ] Store refresh tokens hashed or otherwise protected server-side.
-- [ ] Detect refresh-token reuse and revoke the affected session family.
+- [x] Detect refresh-token reuse and revoke the affected account's remaining sessions.
 - [ ] Support session revocation by device and revoke all sessions.
 - [ ] Show device, browser, IP summary, approximate location where available, created time, last active time, and current-session marker.
 - [ ] Set an inactivity timeout and maximum session lifetime for admins.

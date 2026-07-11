@@ -17,6 +17,7 @@ This file is the short operational worklist for the current implementation cycle
 - [x] Risk Alert Operations UI expanded with member filtering, duplicate-slip types, and target links.
 - [x] Risk Alert backend aligned with staged finance statuses and strict filters.
 - [x] Audit Log regression coverage added.
+- [x] Admin and Member refresh tokens rotate atomically and detected token reuse revokes remaining sessions.
 - [x] Local-storage delete regression coverage added.
 - [x] Strict production smoke-test environment guard added.
 - [x] `pnpm-lock.yaml` generated and CI switched to `--frozen-lockfile`.
