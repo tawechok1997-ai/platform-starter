@@ -9,8 +9,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: platform_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d platform_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+      FINANCE_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
 
     steps:
       - name: Checkout
@@ -38,14 +53,17 @@ jobs:
       - name: Generate Prisma client
         run: pnpm prisma generate
 
+      - name: Apply migrations to CI PostgreSQL
+        run: pnpm prisma migrate deploy
+
       - name: Test API
         run: pnpm --filter @platform/api test -- --runInBand
+
+      - name: Test PostgreSQL finance concurrency
+        run: pnpm --filter @platform/api test:db:finance -- --runInBand
 
       - name: Build API
         run: pnpm build:api
-
-      - name: Test API
-        run: pnpm --filter @platform/api test -- --runInBand
 
       - name: Build Admin Web
         run: pnpm build:web-admin
