@@ -60,7 +60,12 @@ export type PublicSiteSettings = {
 
 export const defaultCmsContent: CmsContent = {
   assets: [],
-  banners: [{ title: 'พร้อมเล่นทุกเกม', subtitle: 'ฝาก ถอน เล่นเกม และดูประวัติได้ในมือถือเครื่องเดียว', imageUrl: '', href: '/games', enabled: true }],
+  banners: [
+    { title: 'FIFA World Cup 2026', subtitle: 'โปรโมชั่นแนะนำ', imageUrl: '/images/member-lobby/promotions/world-cup.jpeg', href: '/promotions', enabled: true },
+    { title: 'Daily Login', subtitle: 'กิจกรรมสมาชิก', imageUrl: '/images/member-lobby/promotions/daily-login.jpeg', href: '/promotions', enabled: true },
+    { title: 'กิจกรรมทายผล', subtitle: 'กิจกรรมโปรโมชั่น', imageUrl: '/images/member-lobby/promotions/lottery-event.jpeg', href: '/promotions', enabled: true },
+    { title: 'โปรโมชั่นสล็อต', subtitle: 'โปรโมชั่นแนะนำ', imageUrl: '/images/member-lobby/promotions/slot-promotion.jpeg', href: '/promotions', enabled: true },
+  ],
   popup: { title: 'ประกาศ', message: 'ยินดีต้อนรับ', ctaLabel: 'ดูเกม', href: '/games', enabled: false, version: 'v1' },
   announcements: [{ title: 'ระบบพร้อมใช้งาน', message: 'ฝาก ถอน และเกมเปิดให้บริการตามปกติ', enabled: true }],
   faqs: [{ question: 'ฝากใช้เวลานานไหม', answer: 'หลังแนบสลิป แอดมินจะตรวจและอนุมัติให้เร็วที่สุด', enabled: true }],

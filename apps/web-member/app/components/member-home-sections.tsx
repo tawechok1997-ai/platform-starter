@@ -1,16 +1,29 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { CmsContent, MemberFeatureFlags, SiteIconSettings, cmsAssetUrl, isIconUrl } from '../site-settings';
 import { navigationFor } from '../member-navigation';
 import type { Game, LedgerItem, MoneyRequest } from '../types/member-api';
 import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNotice } from './member-ui';
 
 export function HomeHero({ siteName, description, content }: { siteName: string; description: string; primaryColor: string; content: CmsContent }) {
-  const banner = content.banners.find((item) => item.enabled);
-  const imageUrl = banner ? cmsAssetUrl(content, banner.assetId) || banner.imageUrl : '';
-  return <section className="member-home-hero">{imageUrl ? <img src={imageUrl} alt="" className="member-home-hero__image" /> : <div className="member-home-hero__fallback" aria-hidden="true" />}<div className="member-home-hero__copy"><span className="member-home-hero__eyebrow">พร้อมเล่น</span><h1>{banner?.title || siteName}</h1><p>{banner?.subtitle || description || 'ฝาก ถอน เล่นเกม และดูประวัติได้ในมือถือเครื่องเดียว'}</p></div><MemberLinkButton href={banner?.href || '/games'} tone="brand">เข้าเล่นเกม</MemberLinkButton></section>;
+  const banners = content.banners.filter((item) => item.enabled && (cmsAssetUrl(content, item.assetId) || item.imageUrl));
+  const slides = banners.length ? banners : [{ title: siteName, subtitle: description, imageUrl: '/images/member-lobby/battle-arena.png', href: '/games', enabled: true }];
+  const [activeIndex, setActiveIndex] = useState(0);
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const timer = window.setInterval(() => setActiveIndex((current) => (current + 1) % slides.length), 5000);
+    return () => window.clearInterval(timer);
+  }, [slides.length]);
+  const slide = slides[activeIndex % slides.length];
+  const imageUrl = cmsAssetUrl(content, slide.assetId) || slide.imageUrl;
+  return <section className="member-home-hero" aria-label="โปรโมชั่น">
+    <a href={slide.href || '/promotions'} className="member-home-hero__slide-link" aria-label={slide.title}>
+      <img src={imageUrl} alt={slide.title} className="member-home-hero__image" />
+    </a>
+    {slides.length > 1 && <div className="member-home-hero__dots" aria-label="เลือกโปรโมชั่น">{slides.map((item, index) => <button key={item.imageUrl || item.title} type="button" className={index === activeIndex ? 'active' : ''} onClick={() => setActiveIndex(index)} aria-label={`แสดงโปรโมชั่นที่ ${index + 1}`} />)}</div>}
+  </section>;
 }
-
 export function LobbyTabs() {
   return <nav className="member-lobby-tabs" aria-label="เมนูหน้า Lobby"><a className="active" href="#highlights">✦ <span>ไฮไลท์</span></a><a href="/promotions">♔ <span>โปรโมชั่นแนะนำ</span></a><a href="#activities">♜ <span>กิจกรรม</span></a></nav>;
 }
