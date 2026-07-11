@@ -4,6 +4,9 @@ Last updated: 2026-07-10
 
 This document is the current source of truth for what has been completed, what is partially complete, and what remains in `tawechok1997-ai/platform-starter`.
 
+
+> UX/UI precedence: all duplicated presentation, responsive, visual-system, motion, accessibility, and screenshot-regression requirements are governed by `docs/ux-ui-master-roadmap.md`. Admin-specific visual requirements are governed by `docs/remaining-work-backlog-admin-dashboard.md`. This document remains authoritative for backend, product, provider, money-operation, and QA requirements.
+
 ## Safety rules
 
 - Do not run `pnpm prisma db push --force-reset`.
