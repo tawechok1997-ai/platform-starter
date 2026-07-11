@@ -116,7 +116,7 @@ export class AdminAuthGuard implements CanActivate {
       roleCodes.some((code) => HIGH_RISK_ROLE_CODES.has(code)) ||
       permissions.some((code) => HIGH_RISK_PERMISSIONS.has(code));
     const twoFactorEnforcementEnabled =
-      String(this.configService.get<string>('ADMIN_2FA_ENFORCEMENT_ENABLED') ?? 'true').toLowerCase() === 'true';
+      String(this.configService.get<string>('ADMIN_2FA_ENFORCEMENT_ENABLED') ?? 'false').toLowerCase() === 'true';
     const requiresTwoFactor = twoFactorEnforcementEnabled && policyRequiresTwoFactor;
 
     request.user = {
