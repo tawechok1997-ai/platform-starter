@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { adminApiFetch } from '../../admin-api';
+import { adminApiFetch } from '../../../admin-api';
 import { AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage, AdminToolbar } from '../../_components/admin-ui';
 
 type WebsiteSettings = { site_name: string; site_description: string; site_url: string; admin_url: string; default_language: string; timezone: string; currency: string; date_format: string; maintenance_mode: boolean; registration_enabled: boolean; login_enabled: boolean };
