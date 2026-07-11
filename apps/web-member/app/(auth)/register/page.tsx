@@ -167,6 +167,7 @@ export default function MemberRegisterPage() {
 
   return <main className="public-auth-page" style={cssVars}>
     <div className="public-auth-ambient" aria-hidden="true"><span /><span /><span /></div>
+    <div className="public-auth-scene" aria-hidden="true"><span className="public-auth-scene__tower" /><span className="public-auth-scene__tower public-auth-scene__tower--small" /><span className="public-auth-scene__arc" /><span className="public-auth-scene__light" /></div>
     <section className="public-auth-shell public-auth-shell--register">
       <aside className="public-auth-brand-panel">
         <div className="public-auth-brand-kicker"><span /> {locale === 'th' ? 'เริ่มต้นใช้งาน' : 'Get started'}</div>
@@ -174,14 +175,11 @@ export default function MemberRegisterPage() {
         <h2>{locale === 'th' ? 'สมัครครั้งเดียว พร้อมใช้ทุกระบบ' : 'One account. Every experience.'}</h2>
         <p>{locale === 'th' ? 'ขั้นตอนสั้น ชัดเจน และตรวจสอบข้อมูลก่อนสร้างบัญชี เพื่อให้ฝากถอนและยืนยันตัวตนได้อย่างราบรื่น' : 'A short, guided setup with a final review so your account and payment details are ready from day one.'}</p>
         <div className="public-auth-steps-preview"><div className={step >= 1 ? 'active' : ''}><span>1</span><p><strong>{t.account}</strong><small>{locale === 'th' ? 'บัญชีและการเข้าสู่ระบบ' : 'Account and sign-in'}</small></p></div><div className={step >= 2 ? 'active' : ''}><span>2</span><p><strong>{t.identity}</strong><small>{locale === 'th' ? 'ชื่อจริงและบัญชีธนาคาร' : 'Identity and banking'}</small></p></div><div className={step >= 3 ? 'active' : ''}><span>3</span><p><strong>{t.review}</strong><small>{locale === 'th' ? 'ยืนยันก่อนสร้างบัญชี' : 'Confirm before creation'}</small></p></div></div>
+        <div className="public-auth-security-card"><span className="public-auth-security-card__icon">◇</span><div><strong>{locale === 'th' ? 'ข้อมูลสมัครสมาชิกถูกเข้ารหัส' : 'Registration data is encrypted'}</strong><small>{locale === 'th' ? 'ตรวจสอบข้อมูลอย่างปลอดภัยทุกขั้นตอน' : 'Secure verification at every step'}</small></div></div>
       </aside>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
-        <div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span></div>
-        <div className="public-auth-heading"><h1>{t.title}</h1><p>{t.subtitle}</p></div>
-        <div aria-label="Language" className="public-auth-language">
-          <button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} className="public-auth-language__button">ไทย</button>
-          <button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} className="public-auth-language__button">EN</button>
-        </div>
+        <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} className="public-auth-language__button">ไทย</button><button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} className="public-auth-language__button">EN</button></div></div>
+        <div className="public-auth-heading"><span className="public-auth-heading__eyebrow">CREATE MEMBER ACCOUNT</span><h1>{t.title}</h1><p>{t.subtitle}</p></div>
         <div className="public-auth-progress">
           <div><span>{t.step} {step}/3</span><span>{step === 1 ? t.account : step === 2 ? t.identity : t.review}</span></div>
           <div><span style={{ width: `${step * 33.333}%` }} /></div>
@@ -226,6 +224,7 @@ export default function MemberRegisterPage() {
         </div>
         {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
         {flags.login && <p className="public-auth-footer">{t.loginPrompt} <a href="/login">{t.login}</a></p>}
+        <div className="public-auth-legal"><span>Secure registration</span><a href="/legal/privacy">{locale === 'th' ? 'ความเป็นส่วนตัว' : 'Privacy'}</a><a href="/legal/terms">{locale === 'th' ? 'เงื่อนไข' : 'Terms'}</a></div>
       </form>
     </section>
   </main>;
