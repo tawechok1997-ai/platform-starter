@@ -54,6 +54,9 @@ This document is the current source of truth for UX/UI modernization across Memb
 ## Login and Register
 
 - ✅ Mobile and desktop auth layouts
+- ✅ Market-grade desktop split composition with brand story and operational trust states
+- ✅ Premium mobile full-screen form treatment without duplicated business logic
+- ✅ Guided registration progress and review presentation
 - ✅ Safe-area handling
 - ✅ Password visibility controls
 - ✅ Feature-flag and maintenance states
@@ -121,6 +124,7 @@ This document is the current source of truth for UX/UI modernization across Memb
 - ✅ Professional SVG icon system for shell and navigation
 - ✅ Persistent collapsible desktop sidebar with permission-aware search
 - ✅ Responsive Admin topbar, mobile drawer scroll lock and Escape handling
+- ✅ Market-grade Admin sign-in composition for desktop and mobile
 - 🚧 Continue reducing inline styles in legacy pages
 
 ## Dashboard

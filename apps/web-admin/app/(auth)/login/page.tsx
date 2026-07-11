@@ -72,34 +72,24 @@ export default function AdminLoginPage() {
   }
 
   const submitDisabled = loading || (captchaRequired && !captchaReady);
-  return <main style={pageStyle}>
-    <form onSubmit={onSubmit} style={cardStyle} noValidate>
-      <div style={logoStyle} aria-hidden="true">A</div>
-      <div style={{ textAlign: 'center' }}><h1 style={titleStyle}>{t.title}</h1></div>
-      <div style={languageRowStyle} aria-label="Language">
-        <button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} style={languageButtonStyle(locale === 'th')}>ไทย</button>
-        <button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} style={languageButtonStyle(locale === 'en')}>EN</button>
+  return <main className="admin-auth-page">
+    <div className="admin-auth-ambient" aria-hidden="true"><span /><span /></div>
+    <section className="admin-auth-shell">
+      <aside className="admin-auth-brand"><div className="admin-auth-brand__mark">A</div><p>Operations workspace</p><h1>{locale === 'th' ? 'ควบคุมระบบอย่างชัดเจน ตัดสินใจได้อย่างมั่นใจ' : 'Clarity for every operation. Confidence in every decision.'}</h1><span>{locale === 'th' ? 'การเงิน ความเสี่ยง สมาชิก ค่ายเกม และความปลอดภัย รวมอยู่ในพื้นที่ทำงานเดียว' : 'Finance, risk, members, providers and security in one focused workspace.'}</span><div className="admin-auth-status"><i /> {locale === 'th' ? 'ช่องทางเข้าถึงสำหรับผู้ดูแลที่ได้รับอนุญาตเท่านั้น' : 'Authorized administrators only'}</div></aside>
+    <form onSubmit={onSubmit} className="admin-auth-card" noValidate>
+      <div className="admin-auth-mobile-mark" aria-hidden="true">A</div>
+      <div className="admin-auth-heading"><p>Admin Console</p><h2>{t.title}</h2><span>{locale === 'th' ? 'กรอกข้อมูลประจำตัวเพื่อเข้าสู่พื้นที่จัดการ' : 'Use your administrator credentials to continue.'}</span></div>
+      <div className="admin-auth-language" aria-label="Language">
+        <button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'}>ไทย</button>
+        <button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'}>EN</button>
       </div>
-      <label style={labelStyle}>{t.username}<input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" disabled={loading} placeholder={t.usernamePlaceholder} style={inputStyle} /></label>
-      <label style={labelStyle}>{t.password}<div style={passwordWrapStyle}><input value={secret} onChange={(event) => setSecret(event.target.value)} type={showSecret ? 'text' : 'password'} autoComplete="current-password" disabled={loading} placeholder={t.passwordPlaceholder} style={{ ...inputStyle, paddingRight: 66 }} /><button type="button" onClick={() => setShowSecret((value) => !value)} style={eyeButtonStyle} disabled={loading} aria-label={showSecret ? t.hidePassword : t.showPassword}>{showSecret ? (locale === 'th' ? 'ซ่อน' : 'Hide') : (locale === 'th' ? 'แสดง' : 'Show')}</button></div></label>
-      {requiresTwoFactor && <label style={labelStyle}>{t.twoFactor}<span style={hintStyle}>{t.twoFactorOptional}</span><input value={twoFactorCode} onChange={(event) => setTwoFactorCode(event.target.value.replace(/\D/g, '').slice(0, 8))} inputMode="numeric" autoComplete="one-time-code" disabled={loading} placeholder={t.twoFactorPlaceholder} style={inputStyle} /></label>}
+      <label className="admin-auth-field">{t.username}<input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" disabled={loading} placeholder={t.usernamePlaceholder} /></label>
+      <label className="admin-auth-field">{t.password}<div className="admin-auth-input-wrap"><input value={secret} onChange={(event) => setSecret(event.target.value)} type={showSecret ? 'text' : 'password'} autoComplete="current-password" disabled={loading} placeholder={t.passwordPlaceholder} /><button type="button" onClick={() => setShowSecret((value) => !value)} disabled={loading} aria-label={showSecret ? t.hidePassword : t.showPassword}>{showSecret ? (locale === 'th' ? 'ซ่อน' : 'Hide') : (locale === 'th' ? 'แสดง' : 'Show')}</button></div></label>
+      {requiresTwoFactor && <label className="admin-auth-field">{t.twoFactor}<span>{t.twoFactorOptional}</span><input value={twoFactorCode} onChange={(event) => setTwoFactorCode(event.target.value.replace(/\D/g, '').slice(0, 8))} inputMode="numeric" autoComplete="one-time-code" disabled={loading} placeholder={t.twoFactorPlaceholder} /></label>}
       <AntiBotWidget endpoint="admin-login" locale={locale} resetKey={captchaResetKey} onToken={handleCaptchaToken} onRequiredChange={handleCaptchaState} />
-      <button type="submit" disabled={submitDisabled} style={{ ...submitStyle, opacity: submitDisabled ? 0.7 : 1 }}>{loading ? t.submitting : t.submit}</button>
-      {message && <div style={alertStyle(status)} role={status === 'error' ? 'alert' : 'status'} aria-live={status === 'error' ? 'assertive' : 'polite'}>{message}</div>}
+      <button type="submit" disabled={submitDisabled} className="admin-auth-submit">{loading ? t.submitting : t.submit}</button>
+      {message && <div className={`admin-auth-alert admin-auth-alert--${status}`} role={status === 'error' ? 'alert' : 'status'} aria-live={status === 'error' ? 'assertive' : 'polite'}>{message}</div>}
     </form>
+    </section>
   </main>;
 }
-
-const pageStyle = { minHeight: '100dvh', padding: 'max(16px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom))', display: 'grid', placeItems: 'center', background: '#080b10', color: '#fff', boxSizing: 'border-box' } as const;
-const cardStyle = { width: '100%', maxWidth: 390, display: 'grid', gap: 14, border: '1px solid rgba(255,255,255,0.10)', borderRadius: 22, padding: 20, background: '#101722', boxShadow: '0 20px 56px rgba(0,0,0,0.30)', boxSizing: 'border-box' } as const;
-const logoStyle = { width: 52, height: 52, borderRadius: 16, display: 'grid', placeItems: 'center', justifySelf: 'center', fontWeight: 950, fontSize: 22, background: '#f5c542', color: '#111' } as const;
-const titleStyle = { margin: 0, fontSize: 24, lineHeight: 1.15 } as const;
-const languageRowStyle = { display: 'flex', justifyContent: 'center', gap: 18 } as const;
-const languageButtonStyle = (active: boolean) => ({ position: 'relative' as const, minWidth: 42, minHeight: 36, padding: '4px 2px', border: 0, borderBottom: `2px solid ${active ? '#f5c542' : 'transparent'}`, borderRadius: 0, background: 'transparent', color: active ? '#fff' : '#9fb0c3', cursor: 'pointer', fontWeight: 800 } as const);
-const labelStyle = { display: 'grid', gap: 7, fontWeight: 800, fontSize: 14 } as const;
-const hintStyle = { color: '#8493a7', fontSize: 12, fontWeight: 500 } as const;
-const inputStyle = { width: '100%', minHeight: 50, padding: '12px 14px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.16)', background: '#172231', color: '#fff', boxSizing: 'border-box', outline: 'none', fontSize: 16 } as const;
-const passwordWrapStyle = { position: 'relative' } as const;
-const eyeButtonStyle = { position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', minWidth: 44, height: 32, padding: 0, borderRadius: 0, border: 0, background: 'transparent', color: 'rgba(255,255,255,.82)', cursor: 'pointer', fontSize: 12, fontWeight: 700, lineHeight: 1 } as const;
-const submitStyle = { minHeight: 50, padding: 12, borderRadius: 14, border: 0, background: '#f5c542', color: '#111', fontWeight: 900, cursor: 'pointer', fontSize: 16 } as const;
-function alertStyle(type: 'idle' | 'success' | 'error' | 'info') { return { border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: 11, background: type === 'error' ? 'rgba(255,70,70,0.10)' : type === 'success' ? 'rgba(80,255,140,0.10)' : 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13 } as const; }

@@ -73,7 +73,16 @@ export default function MemberSignInPage() {
   }
 
   return <main className="public-auth-page" style={cssVars}>
-    <section className="public-auth-shell" style={{ maxWidth: 440 }}>
+    <div className="public-auth-ambient" aria-hidden="true"><span /><span /><span /></div>
+    <section className="public-auth-shell">
+      <aside className="public-auth-brand-panel">
+        <div className="public-auth-brand-kicker"><span /> Secure member access</div>
+        <div className="public-auth-brand-lockup"><span className="public-auth-brand__mark">{logoUrl ? <img src={logoUrl} alt="" /> : brandMark}</span><strong>{siteName}</strong></div>
+        <h2>{locale === 'th' ? 'ทุกอย่างที่คุณต้องใช้ อยู่ในที่เดียว' : 'Everything you need, in one place.'}</h2>
+        <p>{locale === 'th' ? 'จัดการบัญชี ฝาก ถอน เกม โปรโมชัน และความปลอดภัย ผ่านประสบการณ์ที่ออกแบบให้รวดเร็วและชัดเจน' : 'Manage your account, money, games, promotions and security through one focused experience.'}</p>
+        <div className="public-auth-benefits"><div><span>01</span><strong>{locale === 'th' ? 'ปลอดภัยทุกขั้นตอน' : 'Secure by design'}</strong></div><div><span>02</span><strong>{locale === 'th' ? 'ตรวจสอบสถานะได้ทันที' : 'Live status tracking'}</strong></div><div><span>03</span><strong>{locale === 'th' ? 'รองรับทุกอุปกรณ์' : 'Built for every screen'}</strong></div></div>
+        <div className="public-auth-trust"><span className="public-auth-trust__dot" /> {locale === 'th' ? 'ระบบพร้อมให้บริการ' : 'All systems operational'}</div>
+      </aside>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
         <div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span></div>
         <div className="public-auth-heading"><h1>{t.title}</h1></div>

@@ -166,17 +166,25 @@ export default function MemberRegisterPage() {
   }
 
   return <main className="public-auth-page" style={cssVars}>
-    <section className="public-auth-shell" style={{ maxWidth: 520 }}>
+    <div className="public-auth-ambient" aria-hidden="true"><span /><span /><span /></div>
+    <section className="public-auth-shell public-auth-shell--register">
+      <aside className="public-auth-brand-panel">
+        <div className="public-auth-brand-kicker"><span /> {locale === 'th' ? 'เริ่มต้นใช้งาน' : 'Get started'}</div>
+        <div className="public-auth-brand-lockup"><span className="public-auth-brand__mark">{logoUrl ? <img src={logoUrl} alt="" /> : brandMark}</span><strong>{siteName}</strong></div>
+        <h2>{locale === 'th' ? 'สมัครครั้งเดียว พร้อมใช้ทุกระบบ' : 'One account. Every experience.'}</h2>
+        <p>{locale === 'th' ? 'ขั้นตอนสั้น ชัดเจน และตรวจสอบข้อมูลก่อนสร้างบัญชี เพื่อให้ฝากถอนและยืนยันตัวตนได้อย่างราบรื่น' : 'A short, guided setup with a final review so your account and payment details are ready from day one.'}</p>
+        <div className="public-auth-steps-preview"><div className={step >= 1 ? 'active' : ''}><span>1</span><p><strong>{t.account}</strong><small>{locale === 'th' ? 'บัญชีและการเข้าสู่ระบบ' : 'Account and sign-in'}</small></p></div><div className={step >= 2 ? 'active' : ''}><span>2</span><p><strong>{t.identity}</strong><small>{locale === 'th' ? 'ชื่อจริงและบัญชีธนาคาร' : 'Identity and banking'}</small></p></div><div className={step >= 3 ? 'active' : ''}><span>3</span><p><strong>{t.review}</strong><small>{locale === 'th' ? 'ยืนยันก่อนสร้างบัญชี' : 'Confirm before creation'}</small></p></div></div>
+      </aside>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
         <div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span></div>
         <div className="public-auth-heading"><h1>{t.title}</h1><p>{t.subtitle}</p></div>
-        <div aria-label="Language" style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
-          <button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} className="public-auth-eye" style={{ position: 'static', width: 'auto', paddingInline: 12 }}>ไทย</button>
-          <button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} className="public-auth-eye" style={{ position: 'static', width: 'auto', paddingInline: 12 }}>EN</button>
+        <div aria-label="Language" className="public-auth-language">
+          <button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} className="public-auth-language__button">ไทย</button>
+          <button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} className="public-auth-language__button">EN</button>
         </div>
-        <div style={{ display: 'grid', gap: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, opacity: .8 }}><span>{t.step} {step}/3</span><span>{step === 1 ? t.account : step === 2 ? t.identity : t.review}</span></div>
-          <div style={{ height: 4, borderRadius: 999, background: 'rgba(255,255,255,.1)', overflow: 'hidden' }}><div style={{ width: `${step * 33.333}%`, height: '100%', background: 'var(--color-brand)', transition: 'width .2s ease' }} /></div>
+        <div className="public-auth-progress">
+          <div><span>{t.step} {step}/3</span><span>{step === 1 ? t.account : step === 2 ? t.identity : t.review}</span></div>
+          <div><span style={{ width: `${step * 33.333}%` }} /></div>
         </div>
         {(maintenanceEnabled || !flags.registration) && <div className="public-auth-alert public-auth-alert--error" role="alert">{maintenanceEnabled ? t.maintenance : t.registrationDisabled}</div>}
         {status === 'error' && message && <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>}
@@ -204,16 +212,16 @@ export default function MemberRegisterPage() {
         </>}
 
         {step === 3 && <>
-          <div style={{ display: 'grid', gap: 10, padding: 14, borderRadius: 14, background: 'rgba(255,255,255,.05)' }}>
+          <div className="public-auth-review">
             <ReviewRow label={t.username} value={username} /><ReviewRow label={t.phone} value={phone} /><ReviewRow label={t.fullName} value={fullName} /><ReviewRow label={t.bankName} value={selectedBankLabel(bankName)} /><ReviewRow label={t.bankAccountNumber} value={maskAccount(bankAccountNumber)} />
           </div>
-          <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}><input type="checkbox" checked={acceptedTerms} onChange={(event) => { setAcceptedTerms(event.target.checked); clearError('terms'); }} disabled={disabled} style={{ marginTop: 4 }} /><span>{t.terms}</span></label>
+          <label className="public-auth-terms"><input type="checkbox" checked={acceptedTerms} onChange={(event) => { setAcceptedTerms(event.target.checked); clearError('terms'); }} disabled={disabled} /><span>{t.terms}</span></label>
           {errors.terms && <span className="public-auth-field-error">{errors.terms}</span>}
           <AntiBotWidget endpoint="member-register" locale={locale} resetKey={captchaResetKey} onToken={handleCaptchaToken} onRequiredChange={handleCaptchaState} />
         </>}
 
-        <div style={{ display: 'grid', gridTemplateColumns: step > 1 ? '1fr 1fr' : '1fr', gap: 10 }}>
-          {step > 1 && <button type="button" onClick={goBack} disabled={disabled} className="public-auth-submit" style={{ background: 'rgba(255,255,255,.1)', color: 'var(--color-text)' }}>{t.back}</button>}
+        <div className={`public-auth-form-actions${step > 1 ? ' has-back' : ''}`}>
+          {step > 1 && <button type="button" onClick={goBack} disabled={disabled} className="public-auth-submit public-auth-submit--secondary">{t.back}</button>}
           <button type="submit" disabled={disabled} className="public-auth-submit">{loading ? t.submitting : step < 3 ? t.next : t.submit}</button>
         </div>
         {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
@@ -226,7 +234,7 @@ export default function MemberRegisterPage() {
 function Field({ label, id, value, onChange, error, disabled, type = 'text', autoComplete, inputMode }: { label: string; id: string; value: string; onChange: (value: string) => void; error?: string; disabled: boolean; type?: string; autoComplete?: string; inputMode?: 'text' | 'tel' | 'email' | 'numeric' | 'decimal' | 'search' | 'url' | 'none'; }) {
   return <><label className="public-auth-field" htmlFor={id}>{label}<input id={id} className="public-auth-input" value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled} type={type} autoComplete={autoComplete} inputMode={inputMode} aria-invalid={Boolean(error)} /></label>{error && <span className="public-auth-field-error">{error}</span>}</>;
 }
-function ReviewRow({ label, value }: { label: string; value: string }) { return <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}><span style={{ opacity: .68 }}>{label}</span><strong style={{ textAlign: 'right', overflowWrap: 'anywhere' }}>{value || '-'}</strong></div>; }
+function ReviewRow({ label, value }: { label: string; value: string }) { return <div><span>{label}</span><strong>{value || '-'}</strong></div>; }
 async function linkReferralAfterRegister(referralCode: string, token?: string) { const accessToken = token || window.localStorage.getItem('member_access_token'); if (!accessToken) return; const res = await fetch(`${API_URL}/member/affiliate/link`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ referralCode }) }); if (res.ok) window.localStorage.removeItem(REFERRAL_CODE_KEY); }
 function normalizeReferralCode(value: string) { return String(value ?? '').trim().toUpperCase().replace(/[^A-Z0-9_-]+/g, '').slice(0, 24); }
 function maskAccount(value: string) { return value.length > 4 ? `${'•'.repeat(Math.max(0, value.length - 4))}${value.slice(-4)}` : value; }
