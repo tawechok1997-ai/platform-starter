@@ -247,6 +247,6 @@ body:has(.admin-auth-page){overflow-x:hidden}
 .admin-auth-scene{display:none}
 
 @media (max-width:1023px), (hover:none) and (pointer:coarse) {
-  .admin-auth-page{background-image:linear-gradient(to bottom,rgba(4,7,11,.8),rgba(4,7,11,.9) 62%,rgba(4,7,11,.64)),url('/images/auth-luxury-architecture.webp');background-position:32% center;background-size:cover}
-  .admin-auth-card{background:linear-gradient(to bottom,rgba(8,12,18,.91) 0%,rgba(12,17,24,.86) 67%,rgba(8,12,18,.58) 100%);backdrop-filter:blur(4px)}
+  .admin-auth-page{background-color:#05080c;background-image:linear-gradient(to bottom,rgba(4,7,11,.5) 0%,rgba(4,7,11,.72) 48%,rgba(4,7,11,.26) 100%),url('/images/auth-luxury-architecture.webp');background-position:32% top;background-size:auto 100dvh;background-repeat:no-repeat}
+  .admin-auth-card{background:linear-gradient(to bottom,rgba(8,12,18,.58) 0%,rgba(8,12,18,.7) 62%,rgba(8,12,18,.18) 100%);backdrop-filter:none}
 }
