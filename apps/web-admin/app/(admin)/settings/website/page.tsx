@@ -1,33 +1,50 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { adminApiFetch } from '../../admin-api';
 import { AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage, AdminToolbar } from '../../_components/admin-ui';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 type WebsiteSettings = { site_name: string; site_description: string; site_url: string; admin_url: string; default_language: string; timezone: string; currency: string; date_format: string; maintenance_mode: boolean; registration_enabled: boolean; login_enabled: boolean };
 const defaults: WebsiteSettings = { site_name: '', site_description: '', site_url: '', admin_url: '', default_language: 'th', timezone: 'Asia/Bangkok', currency: 'THB', date_format: 'DD/MM/YYYY', maintenance_mode: false, registration_enabled: true, login_enabled: true };
 
 export default function WebsiteSettingsPage() {
   const [form, setForm] = useState<WebsiteSettings>(defaults);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState('กำลังโหลด...');
 
   useEffect(() => {
-    const token = window.localStorage.getItem('admin_access_token');
-    if (!token) { setMessage('กรุณา login admin ใหม่ก่อนแก้ settings'); return; }
-    fetch(`${API_URL}/admin/settings/website`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(async (res) => { const data = await res.json().catch(() => null); if (!res.ok) throw new Error(data?.message ?? 'โหลด settings ไม่สำเร็จ'); return data; })
-      .then((data) => setForm({ ...defaults, ...(data.settings ?? {}) }))
-      .catch((error) => setMessage(error.message));
+    let cancelled = false;
+
+    adminApiFetch('/admin/settings/website')
+      .then(async (res) => {
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.message ?? `โหลด settings ไม่สำเร็จ (${res.status})`);
+        return data;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setForm({ ...defaults, ...(data.settings ?? {}) });
+        setMessage('');
+      })
+      .catch((error) => {
+        if (!cancelled) setMessage(error instanceof Error ? error.message : 'โหลด settings ไม่สำเร็จ');
+      });
+
+    return () => { cancelled = true; };
   }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setMessage('กำลังบันทึก...');
-    const token = window.localStorage.getItem('admin_access_token');
-    if (!token) { setMessage('กรุณา login admin ใหม่ก่อนบันทึก settings'); return; }
-    const res = await fetch(`${API_URL}/admin/settings/website`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(form) });
+    event.preventDefault();
+    setMessage('กำลังบันทึก...');
+
+    const res = await adminApiFetch('/admin/settings/website', {
+      method: 'PUT',
+      body: JSON.stringify(form),
+    });
     const data = await res.json().catch(() => null);
-    if (!res.ok) { setMessage(data?.message ?? 'บันทึกไม่สำเร็จ'); return; }
+    if (!res.ok) {
+      setMessage(data?.message ?? `บันทึกไม่สำเร็จ (${res.status})`);
+      return;
+    }
     setMessage(data.requiresDualApproval ? 'บันทึกแล้ว แต่รายการเสี่ยงควรเข้าคิว Dual Approval' : 'บันทึกสำเร็จ');
   }
 
