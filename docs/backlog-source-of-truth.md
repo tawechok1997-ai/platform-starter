@@ -80,3 +80,29 @@ When the same task appears in more than one file:
 - `docs/remaining-work-backlog-security-admin-access.md`
 
 Any future backlog document must either extend one of these domains or explicitly declare which existing document it supersedes. Do not create another parallel master list.
+
+
+## UX/UI precedence and market-standard direction
+
+### Cross-product UX/UI
+
+Authoritative source:
+
+- `docs/ux-ui-master-roadmap.md`
+
+This is the canonical UX/UI direction for Web Member, Web Admin, Public/Auth, shared design tokens, typography, iconography, motion, accessibility, responsive behavior, and visual-regression acceptance. When older UX/UI wording conflicts with this roadmap, use the roadmap's newer, more complete requirement.
+
+### Admin UX/UI detail
+
+Authoritative source:
+
+- `docs/remaining-work-backlog-admin-dashboard.md`
+
+This is the detailed implementation backlog for Admin shell, dashboard, operations, tables, charts, alerts, themes, desktop, tablet, and mobile behavior. It must follow the visual direction and quality gates in `docs/ux-ui-master-roadmap.md`.
+
+### Duplicate UX/UI handling
+
+- Keep product, security, finance, provider, and business requirements from the domain backlogs.
+- Replace only duplicated presentation requirements with the newest authoritative UX/UI wording.
+- Do not implement separate desktop and mobile business logic for visual reasons.
+- Do not create another UX/UI master list without explicitly superseding one of these documents.
