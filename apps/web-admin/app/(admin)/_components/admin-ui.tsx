@@ -27,6 +27,7 @@ export function AdminSectionRow({ children }: { children: ReactNode }) { return 
 export function AdminToolbar({ children }: { children: ReactNode }) { return <div className="admin-ui-toolbar">{children}</div>; }
 export function AdminNotice({ children }: { children: ReactNode }) { return <div className="admin-ui-notice" role="status">{children}</div>; }
 export function AdminEmpty({ children }: { children: ReactNode }) { return <div className="admin-ui-empty">{children}</div>; }
+export function AdminSkeleton({ lines = 3 }: { lines?: number }) { return <div className="admin-ui-skeleton" aria-label="กำลังโหลด" role="status"><span className="admin-ui-skeleton__block" />{Array.from({ length: lines }, (_, index) => <span key={index} className="admin-ui-skeleton__line" />)}</div>; }
 
 export function AdminButton({ children, onClick, type = 'button', disabled, tone = 'primary' }: { children: ReactNode; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; tone?: ButtonTone }) {
   return <button type={type} onClick={onClick} disabled={disabled} className={`admin-ui-button admin-ui-button--${tone}`}>{children}</button>;

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, formatMoney } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminSkeleton, AdminStack, formatMoney } from '../_components/admin-ui';
 
 type FinanceSummary = {
   totals: { walletCount: number; totalBalance: string; totalLockedBalance: string; totalAvailableBalance: string; pendingTopUps: number; pendingWithdrawals: number };
@@ -20,24 +20,29 @@ export default function OperationDashboardPage() {
   const [riskItems, setRiskItems] = useState<RiskAlert[]>([]);
   const [riskSummary, setRiskSummary] = useState({ openCount: 0, criticalCount: 0 });
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => { loadSummary(); }, []);
 
   async function loadSummary() {
+    setLoading(true);
     setMessage('กำลังโหลด Operation Center...');
-    const [financeRes, riskRes] = await Promise.all([
-      adminApiFetch('/admin/finance/summary'),
-      adminApiFetch('/admin/risk-alerts?status=OPEN'),
-    ]);
-    const financeData = await financeRes.json().catch(() => null);
-    const riskData = await riskRes.json().catch(() => null) as RiskAlertsResponse | null;
-    if (!financeRes.ok) { setMessage(financeData?.message ?? 'โหลด dashboard ไม่สำเร็จ'); return; }
-    setSummary(financeData);
-    if (riskRes.ok && riskData) {
-      setRiskItems(riskData.items ?? []);
-      setRiskSummary({ openCount: Number(riskData.summary?.openCount ?? 0), criticalCount: Number(riskData.summary?.criticalCount ?? 0) });
+    try {
+      const [financeRes, riskRes] = await Promise.all([adminApiFetch('/admin/finance/summary'), adminApiFetch('/admin/risk-alerts?status=OPEN')]);
+      const financeData = await financeRes.json().catch(() => null);
+      const riskData = await riskRes.json().catch(() => null) as RiskAlertsResponse | null;
+      if (!financeRes.ok) { setMessage(financeData?.message ?? 'โหลด dashboard ไม่สำเร็จ'); return; }
+      setSummary(financeData);
+      if (riskRes.ok && riskData) {
+        setRiskItems(riskData.items ?? []);
+        setRiskSummary({ openCount: Number(riskData.summary?.openCount ?? 0), criticalCount: Number(riskData.summary?.criticalCount ?? 0) });
+      }
+      setMessage('');
+    } catch {
+      setMessage('เชื่อมต่อ Operation Center ไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
     }
-    setMessage('');
   }
 
   const pendingTotal = summary ? summary.totals.pendingTopUps + summary.totals.pendingWithdrawals : 0;
@@ -45,7 +50,9 @@ export default function OperationDashboardPage() {
   return (
     <div className="admin-dashboard">
       <AdminPage eyebrow="Operation Center" title="Dashboard" description="ศูนย์รวมคิวการเงิน ความเสี่ยง และรายการล่าสุด" actions={<AdminButton onClick={loadSummary}>รีเฟรชข้อมูล</AdminButton>}>
-        {message && <AdminNotice>{message}</AdminNotice>}
+        {message && !loading && <AdminNotice>{message}</AdminNotice>}
+
+        {loading && !summary && <div className="admin-dashboard__loading"><AdminSkeleton lines={4} /><AdminSkeleton lines={4} /><AdminSkeleton lines={3} /></div>}
 
         {summary && <div className="admin-dashboard__metrics"><AdminMetricGrid>
           <AdminMetric title="Pending queues" value={String(pendingTotal)} helper={`${summary.totals.pendingTopUps} ฝาก · ${summary.totals.pendingWithdrawals} ถอน`} />
