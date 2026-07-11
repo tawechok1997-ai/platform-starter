@@ -186,3 +186,21 @@ html:has(.admin-auth-page),body:has(.admin-auth-page){width:100%;min-width:100%;
 body:has(.admin-auth-page){overflow-x:hidden}
 .admin-auth-page{width:100vw!important;max-width:none!important;margin:0!important;inset-inline:0;justify-self:stretch}
 .admin-auth-shell{margin-inline:auto}
+
+/* Keep the admin sign-in usable on iOS, including desktop-site viewport mode. */
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  html:has(.admin-auth-page),body:has(.admin-auth-page){width:100%;min-width:0;max-width:100%;overflow-x:hidden}
+  .admin-auth-page{width:100%!important;min-width:0;max-width:100%!important;padding:0;overflow-x:hidden;place-items:stretch center}
+  .admin-auth-shell{width:100%;max-width:560px!important;min-width:0;min-height:100dvh;margin:0 auto;grid-template-columns:minmax(0,1fr);border:0;border-radius:0;overflow:visible}
+  .admin-auth-brand{display:none}
+  .admin-auth-card{grid-column:1;width:100%;max-width:100%;min-width:0;min-height:100dvh;margin:0;padding:max(24px,env(safe-area-inset-top)) clamp(20px,7vw,38px) calc(24px + env(safe-area-inset-bottom));border:0;border-radius:0}
+  .admin-auth-mobile-mark{display:grid}
+  .admin-auth-heading{text-align:center}
+  .admin-auth-language{justify-content:center}
+}
+
+@media (max-width:430px) {
+  .admin-auth-card{gap:14px;padding-inline:18px}
+  .admin-auth-heading h2{font-size:30px}
+  .admin-auth-field input{min-height:54px}
+}
