@@ -132,8 +132,8 @@ export default function AcceptInvitationPage() {
   }
 
   return (
-    <main style={pageStyle}>
-      <section style={cardStyle}>
+    <main className="admin-auth-invitation-page" style={pageStyle}>
+      <section className="admin-auth-invitation-card" style={cardStyle}>
         <div style={logoStyle}>A</div>
         <div style={{ textAlign: 'center' }}>
           <h1 style={titleStyle}>{t.title}</h1>
