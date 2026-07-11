@@ -173,7 +173,7 @@ function targetHref(moduleName: string, targetId?: string | null) {
   if (module.includes('withdraw')) return `/withdrawals?requestId=${encodeURIComponent(targetId)}`;
   if (module.includes('member') || module.includes('user')) return `/members/${encodeURIComponent(targetId)}`;
   if (module.includes('wallet') || module.includes('ledger') || module.includes('money')) return `/ledgers?referenceId=${encodeURIComponent(targetId)}`;
-  if (module.includes('risk')) return `/risk?alertId=${encodeURIComponent(targetId)}`;
+  if (module.includes('risk')) return `/risk-alerts/${encodeURIComponent(targetId)}`;
   if (module.includes('admin-access') || module.includes('auth')) return '/admin-access';
   return null;
 }

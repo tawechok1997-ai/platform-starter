@@ -23,6 +23,8 @@ const permissions = [
   ['withdraw.reject', 'Withdraw Reject', 'withdraw'],
   ['risk.view', 'Risk View', 'risk'],
   ['risk.resolve', 'Risk Resolve', 'risk'],
+  ['risk.assign', 'Risk Assign', 'risk'],
+  ['risk.note', 'Risk Notes', 'risk'],
   ['provider.view', 'Provider View', 'provider'],
   ['provider.update', 'Provider Update', 'provider'],
   ['game.providers.view', 'Game Providers View', 'game-platform'],

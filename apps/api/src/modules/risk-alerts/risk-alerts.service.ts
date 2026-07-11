@@ -54,9 +54,38 @@ export class RiskAlertsService {
   }
 
   async get(id: string) {
-    const item = await this.prisma.riskAlert.findUnique({ where: { id } });
+    const item = await this.prisma.riskAlert.findUnique({ where: { id }, include: { assignedToAdmin: { select: { id: true, username: true, email: true } }, notes: { orderBy: { createdAt: 'desc' }, include: { adminUser: { select: { id: true, username: true, email: true } } } } } });
     if (!item) throw new NotFoundException('Risk alert not found');
     return { item: this.formatAlert(item) };
+  }
+
+  async listAssignees() {
+    const items = await this.prisma.adminUser.findMany({ where: { status: 'ACTIVE' }, select: { id: true, username: true, email: true }, orderBy: { username: 'asc' } });
+    return { items };
+  }
+
+  async assign(id: string, adminUserId: string | null | undefined, actor: any) {
+    const existing = await this.prisma.riskAlert.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Risk alert not found');
+    const assigneeId = adminUserId?.trim() || null;
+    if (assigneeId) {
+      const assignee = await this.prisma.adminUser.findFirst({ where: { id: assigneeId, status: 'ACTIVE' }, select: { id: true } });
+      if (!assignee) throw new BadRequestException('Risk alert assignee must be an active admin');
+    }
+    const item = await this.prisma.riskAlert.update({ where: { id }, data: { assignedToAdminId: assigneeId, assignedAt: assigneeId ? new Date() : null }, include: { assignedToAdmin: { select: { id: true, username: true, email: true } } } });
+    await this.audit(actor?.id, 'ASSIGN_RISK_ALERT', id, { assignedToAdminId: existing.assignedToAdminId }, { assignedToAdminId: assigneeId });
+    return { item: this.formatAlert(item) };
+  }
+
+  async addNote(id: string, note: string | undefined, actor: any) {
+    const text = String(note ?? '').trim();
+    if (!text) throw new BadRequestException('Risk alert note is required');
+    if (text.length > 2000) throw new BadRequestException('Risk alert note is too long');
+    const alert = await this.prisma.riskAlert.findUnique({ where: { id }, select: { id: true } });
+    if (!alert) throw new NotFoundException('Risk alert not found');
+    const created = await this.prisma.riskAlertNote.create({ data: { riskAlertId: id, adminUserId: actor.id, note: text }, include: { adminUser: { select: { id: true, username: true, email: true } } } });
+    await this.audit(actor.id, 'ADD_RISK_ALERT_NOTE', id, null, { note: text });
+    return { item: created };
   }
 
   async updateStatus(id: string, status: string | undefined, admin: any) {
@@ -201,6 +230,6 @@ export class RiskAlertsService {
   }
 
   private formatAlert(item: any) {
-    return { id: item.id, type: item.type, severity: item.severity, status: item.status, memberId: item.memberId, refType: item.refType, refId: item.refId, title: item.title, description: item.description, metadata: item.metadata, resolvedBy: item.resolvedBy, resolvedAt: item.resolvedAt, createdAt: item.createdAt, updatedAt: item.updatedAt };
+    return { id: item.id, type: item.type, severity: item.severity, status: item.status, memberId: item.memberId, refType: item.refType, refId: item.refId, title: item.title, description: item.description, metadata: item.metadata, resolvedBy: item.resolvedBy, resolvedAt: item.resolvedAt, assignedToAdminId: item.assignedToAdminId, assignedAt: item.assignedAt, assignedToAdmin: item.assignedToAdmin ?? null, notes: item.notes ?? [], createdAt: item.createdAt, updatedAt: item.updatedAt };
   }
 }

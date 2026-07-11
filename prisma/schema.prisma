@@ -293,6 +293,8 @@ model AdminUser {
   approvedForPaymentWithdrawals WithdrawalRequest[] @relation("WithdrawalPaymentApprover")
   uploadedPaymentProofWithdrawals WithdrawalRequest[] @relation("WithdrawalProofUploader")
   verifiedPaymentWithdrawals WithdrawalRequest[] @relation("WithdrawalPaymentVerifier")
+  assignedRiskAlerts RiskAlert[] @relation("RiskAlertAssignee")
+  riskAlertNotes RiskAlertNote[]
 
   @@map("admin_users")
 }
@@ -444,13 +446,32 @@ model RiskAlert {
   updatedAt   DateTime          @updatedAt @map("updated_at")
   resolvedAt  DateTime?         @map("resolved_at")
   resolvedBy  String?           @map("resolved_by") @db.Uuid
+  assignedToAdminId String?     @map("assigned_to_admin_id") @db.Uuid
+  assignedAt DateTime?          @map("assigned_at")
+  assignedToAdmin AdminUser?    @relation("RiskAlertAssignee", fields: [assignedToAdminId], references: [id], onDelete: SetNull)
+  notes       RiskAlertNote[]
 
   @@index([type])
   @@index([severity])
   @@index([status])
   @@index([memberId])
   @@index([refType, refId])
+  @@index([assignedToAdminId, status])
   @@map("risk_alerts")
+}
+
+model RiskAlertNote {
+  id          String    @id @default(uuid()) @db.Uuid
+  riskAlertId String    @map("risk_alert_id") @db.Uuid
+  adminUserId String    @map("admin_user_id") @db.Uuid
+  note        String    @db.VarChar(2000)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  riskAlert   RiskAlert @relation(fields: [riskAlertId], references: [id], onDelete: Cascade)
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Restrict)
+
+  @@index([riskAlertId, createdAt])
+  @@index([adminUserId, createdAt])
+  @@map("risk_alert_notes")
 }
 
 model Wallet {

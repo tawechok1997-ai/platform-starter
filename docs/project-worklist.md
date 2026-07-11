@@ -94,12 +94,13 @@ Updated: 2026-07-11
 - 🧪 รองรับ mobile card และ desktop detail layout
 - ✅ จำกัดการเข้าถึงด้วย `admin.access.view`
 - ⏳ ทดสอบ filter, pagination, empty state และ target links บนข้อมูลจริง
+- 🧪 Risk Alert target link แก้ให้เปิดหน้า detail โดยตรงแล้ว รอทดสอบบนข้อมูลจริง
 
 ### 2. Risk Alert Operations UI
 
-- ⏳ แสดง risk alerts ที่เปิดอยู่
+- ✅ แสดง risk alerts ที่เปิดอยู่
 - ⏳ Filter ตาม severity, type, status และ member
-- ⏳ Assign ผู้รับผิดชอบ
+- 🧪 Assign ผู้รับผิดชอบและบันทึกหมายเหตุใน timeline แล้ว รอ regression test
 - ⏳ เปลี่ยนสถานะ `OPEN -> REVIEWING -> RESOLVED`
 - ⏳ แสดง metadata ของสลิปซ้ำและรายการต้นฉบับ
 - ⏳ ลิงก์ไปยังสมาชิกและ finance request ที่เกี่ยวข้อง

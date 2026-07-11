@@ -11,6 +11,8 @@ function createPrismaMock() {
       findFirst: jest.fn(),
       create: jest.fn(),
     },
+    riskAlertNote: { create: jest.fn() },
+    adminUser: { findMany: jest.fn().mockResolvedValue([]), findFirst: jest.fn() },
     topUpRequest: { findMany: jest.fn().mockResolvedValue([]), findFirst: jest.fn() },
     withdrawalRequest: { findMany: jest.fn().mockResolvedValue([]), findFirst: jest.fn() },
     memberBankAccount: { findMany: jest.fn().mockResolvedValue([]) },
@@ -63,5 +65,21 @@ describe('RiskAlertsService', () => {
     expect(prisma.withdrawalRequest.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ status: expect.objectContaining({ in: expect.arrayContaining(['PENDING_REVIEW', 'APPROVED_FOR_PAYMENT', 'PAYMENT_PROOF_UPLOADED']) }) }),
     }));
+  });
+
+  it('rejects assignment to an inactive or unknown admin', async () => {
+    const prisma = createPrismaMock();
+    prisma.riskAlert.findUnique.mockResolvedValue({ id: 'alert-1', assignedToAdminId: null });
+    prisma.adminUser.findFirst.mockResolvedValue(null);
+    const service = new RiskAlertsService(prisma as any);
+
+    await expect(service.assign('alert-1', 'admin-1', { id: 'actor-1' })).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects empty investigation notes', async () => {
+    const prisma = createPrismaMock();
+    const service = new RiskAlertsService(prisma as any);
+
+    await expect(service.addNote('alert-1', '   ', { id: 'actor-1' })).rejects.toBeInstanceOf(BadRequestException);
   });
 });

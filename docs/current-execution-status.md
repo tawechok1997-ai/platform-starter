@@ -27,6 +27,8 @@ This file is the short operational worklist for the current implementation cycle
 - [x] Migration regression test updated to inspect both split migration files.
 - [x] Admin login-defense test doubles fixed for unknown-user IP throttling.
 - [x] Privileged-admin 2FA test configuration fixed without weakening production enforcement.
+- [x] Risk Alert assignment, assignee permissions, and investigation notes/timeline added.
+- [x] Audit Log Risk target links corrected to the Risk Alert detail route.
 - [x] GitHub Actions Build #270 completed successfully for commit `c7edec0`.
 
 ## CI checkpoint
@@ -96,8 +98,8 @@ Still requires direct deployment verification:
 
 ## Risk and audit operations remaining
 
-- [ ] Assign a risk alert to an admin.
-- [ ] Add risk-alert note/timeline support.
+- [x] Assign a risk alert to an active admin.
+- [x] Add risk-alert investigation notes to the audit timeline.
 - [ ] Add provider filter where provider context exists.
 - [ ] Add safe bulk actions for low-risk alerts.
 - [ ] Add auto-close suggestions linked to resolved finance/provider records.

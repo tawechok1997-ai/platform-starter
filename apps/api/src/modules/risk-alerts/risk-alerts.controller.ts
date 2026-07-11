@@ -25,10 +25,28 @@ export class RiskAlertsController {
     return this.riskAlertsService.list({ status, severity, type, memberId, createdFrom, createdTo, page, take });
   }
 
+  @RequirePermission('risk.assign')
+  @Get('assignees/list')
+  assignees() {
+    return this.riskAlertsService.listAssignees();
+  }
+
   @RequirePermission('risk.view')
   @Get(':id')
   get(@Param('id') id: string) {
     return this.riskAlertsService.get(id);
+  }
+
+  @RequirePermission('risk.assign')
+  @Patch(':id/assignment')
+  assign(@Param('id') id: string, @Body() body: { adminUserId?: string | null }, @CurrentUser() admin: any) {
+    return this.riskAlertsService.assign(id, body.adminUserId, admin);
+  }
+
+  @RequirePermission('risk.note')
+  @Post(':id/notes')
+  addNote(@Param('id') id: string, @Body() body: { note?: string }, @CurrentUser() admin: any) {
+    return this.riskAlertsService.addNote(id, body.note, admin);
   }
 
   @RequirePermission('risk.resolve')
