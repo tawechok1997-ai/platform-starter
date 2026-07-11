@@ -338,3 +338,41 @@ This section is the newest cross-product UX/UI requirement. It applies to both P
 4. Member Home, Games Lobby, and finance flows.
 5. Reports, Risk, Security, Providers, Support, Settings, and content surfaces.
 6. Motion, accessibility, themes, density, and visual regression across all routes.
+
+
+## Real-system integration and Admin configurability
+
+These requirements are mandatory for every redesign and supersede any visual-only or mock-data implementation.
+
+### Real integration
+
+- [ ] Every page reads and writes through the existing real API, database, authentication, permission, finance, provider, storage, audit, notification, and settings flows.
+- [ ] Do not replace real data with hard-coded mock data, duplicate local state, static dashboard numbers, fake buttons, or visual-only workflows.
+- [ ] Do not create duplicate APIs, routes, database fields, permissions, finance logic, provider logic, or validation only to support a new layout.
+- [ ] Preserve current IDs, filters, pagination, deep links, audit targets, upload flows, idempotency, claims, locks, retries, and error semantics.
+- [ ] Every visible action must call a real supported operation and show its loading, success, error, permission, conflict, and retry state.
+- [ ] Charts, counters, badges, queue totals, risk summaries, provider health, and activity feeds must use real API data and disclose stale/partial data.
+- [ ] Member and Admin presentations may differ by device, but they must share the same business state and server-authoritative rules.
+
+### Admin-configurable presentation
+
+- [ ] Preserve existing Admin Settings behavior after the redesign.
+- [ ] Site name, description, logo, brand mark, primary color, theme, and supported visual tokens remain configurable.
+- [ ] Navigation icons, labels, visibility, badges, and feature availability continue to follow stored settings and permissions.
+- [ ] Member Home banners, announcements, popups, promotions, featured games, game categories, ordering, and fallback media remain manageable from Admin where backend support exists.
+- [ ] Login/Register presentation, contact information, support channels, legal content, SEO metadata, maintenance notices, and feature flags continue to use Admin-managed values.
+- [ ] Deposit, withdrawal, bank, provider, game, anti-bot, security, notification, and operational settings must continue to affect the real workflows they control.
+- [ ] Dark, dim, light, high-contrast, density, reduced-motion, and reduced-blur preferences should be stored per admin/account when supported, with safe defaults otherwise.
+- [ ] A missing or invalid setting must fall back safely without breaking navigation, authentication, finance, or critical operations.
+- [ ] Sensitive settings and provider secrets must remain masked, permission-protected, audited, and excluded from browser-visible payloads.
+
+### Configuration compatibility QA
+
+- [ ] Record the current setting keys and their consuming pages before replacing shared shells or components.
+- [ ] Test each configurable value before and after the redesign on Desktop, Tablet, and Mobile.
+- [ ] Verify settings changes propagate without a rebuild where the current system supports runtime updates.
+- [ ] Verify disabled features disappear from navigation and direct routes are still server-authorized.
+- [ ] Verify branding colors retain accessible contrast; unsafe dynamic colors must receive an accessible fallback.
+- [ ] Verify media with missing, slow, invalid, portrait, landscape, and oversized sources uses stable fallback sizing.
+- [ ] Verify maintenance, feature-disabled, permission-denied, provider-down, and partial-settings states.
+- [ ] No redesigned route is complete until its real integration and Admin-configurability checks pass.
