@@ -261,3 +261,80 @@ A route is complete only when all applicable items are true:
 - Keeps critical actions reachable above the mobile safe area.
 - Preserves API and business behavior.
 - Passes build and relevant smoke/regression checks.
+
+
+# Market-Standard UX/UI Direction
+
+This section is the newest cross-product UX/UI requirement. It applies to both PC and mobile and supersedes overlapping older presentation notes.
+
+## Product quality bar
+
+- [ ] Make the product feel like a credible market-ready gaming and fintech platform, not a collection of template pages.
+- [ ] Keep the interface professional, calm, readable, and operationally safe.
+- [ ] Use one coherent visual language across Member, Admin, Public, and Auth surfaces.
+- [ ] Prefer clear hierarchy and fast task completion over decorative density.
+- [ ] Use motion to explain state and hierarchy; never use motion that distracts from money, risk, or security actions.
+
+## Responsive product model
+
+- [ ] Design Desktop, Tablet, and Mobile as deliberate presentations of the same product, not a desktop layout that is merely compressed.
+- [ ] Preserve the same API, state, validation, permissions, and money logic across breakpoints.
+- [ ] Desktop: dense operations, sidebar navigation, tables, split panes, hover affordances, keyboard shortcuts, and detail drawers.
+- [ ] Tablet: collapsible navigation, two-column summaries, touch-safe controls, responsive charts, and full-height detail panels.
+- [ ] Mobile: prioritized single-column content, bottom/compact navigation, card lists, full-screen filters, action sheets, sticky safe-area actions, and no critical horizontal scrolling.
+- [ ] Verify 360×800, 390×844, 430×932, 768×1024, 1024×768, and 1440×900.
+
+## Shared design system
+
+- [ ] Create one shared token layer for color, typography, spacing, radius, border, shadow, blur, elevation, motion, and semantic status.
+- [ ] Use a deliberate Thai/English typography system with defined weights, line heights, control sizes, and long-text behavior.
+- [ ] Standardize iconography through one icon wrapper and remove emoji/glyphs as primary UI icons.
+- [ ] Consolidate duplicate Admin primitives and reduce unnecessary inline styles.
+- [ ] Define Button, Input, Select, Table, Card, Metric, Badge, Modal, Drawer, Toast, Tabs, Skeleton, Empty, Error, and Success variants.
+- [ ] Support dark, dim, light, and high-contrast themes where the product settings expose them.
+- [ ] Keep glass, gradient, glow, and blur restrained; never use them on dense tables or detailed audit content when they reduce readability.
+
+## Admin market-ready surfaces
+
+- [ ] Redesign the Admin shell with grouped sidebar, collapsible/icon mode, top command bar, global search, notifications, system health, environment badge, and profile menu.
+- [ ] Add permission-aware navigation, command palette, breadcrumbs, pinned/recent pages, and clear access-denied states.
+- [ ] Redesign Dashboard as an operations command center with KPIs, trends, money flow, queue aging, risk summary, and provider health.
+- [ ] Add shared production tables with filters, sorting, pagination, row density, saved views, expandable rows, and detail drawers.
+- [ ] Present desktop queue operations as tables/split panes and mobile queue operations as card lists/action sheets.
+- [ ] Give Reports, Activity, Risk, Security, Providers, Games, Members, Wallets, Ledgers, Support, and Settings a consistent information hierarchy.
+- [ ] Add loading skeleton, empty, partial-error, retry, stale-data, disabled, permission-hidden, and success states to every major surface.
+
+## Member market-ready surfaces
+
+- [ ] Redesign Member Home with clear wallet/pending state, featured content, recent activity, and focused primary actions.
+- [ ] Complete the Games Lobby with featured games, recently played, categories, provider filters, search, favorites, maintenance states, and stable image fallbacks.
+- [ ] Make Deposit and Withdraw flows feel like secure fintech workflows with progress, review, confirmation, evidence, waiting, retry, and failure states.
+- [ ] Complete Promotions/Bonus, Profile/Security, Notifications, Transactions, Bank Accounts, Support, and FAQ using the same design system.
+- [ ] Use premium but restrained visual media; avoid clutter, excessive badges, and competing calls to action.
+
+## Motion and interaction system
+
+- [ ] Define motion tokens for duration, easing, enter/exit, hover, press, drawer, modal, toast, skeleton, list update, and chart reveal.
+- [ ] Add page/section reveal only where it supports orientation.
+- [ ] Add tactile button hover/press/focus states with keyboard-visible focus.
+- [ ] Add drawer/modal transitions, toast feedback, skeleton shimmer, KPI count-up, chart reveal, and list insertion/removal transitions.
+- [ ] Add success/error feedback without blocking the user or causing layout shift.
+- [ ] Disable or reduce animation under `prefers-reduced-motion` and reduce blur on low-power/mobile contexts.
+
+## Quality gate
+
+- [ ] No route is complete until loading, empty, error, disabled, success, long-text, long-number, permission, and maintenance states are reviewed.
+- [ ] No page is complete until desktop, tablet, and mobile screenshots are reviewed.
+- [ ] No critical action requires horizontal scrolling or hover-only interaction.
+- [ ] No duplicated route, API, state, validation, permission, finance, or provider logic is introduced for responsive presentation.
+- [ ] Run authenticated visual regression for Dashboard, Reports, Activity, Risk, Deposits, Withdrawals, Wallets, Ledgers, Providers, Games, Support, Settings, Login, Register, Member Home, Games Lobby, Profile, and Finance flows.
+- [ ] Record intentional deviations and unresolved visual issues in the UX regression matrix.
+
+## Delivery order
+
+1. Shared tokens, typography, icon system, and component consolidation.
+2. Responsive Admin and Member shells.
+3. Admin Dashboard and operations table/detail system.
+4. Member Home, Games Lobby, and finance flows.
+5. Reports, Risk, Security, Providers, Support, Settings, and content surfaces.
+6. Motion, accessibility, themes, density, and visual regression across all routes.
