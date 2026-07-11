@@ -11,6 +11,7 @@ import './member-finance-pages.css';
 import './member-finance-flow.css';
 import './member-deposit-flow.css';
 import './member-withdraw-flow.css';
+import './member-finance-market.css';
 import './member-games.css';
 import './games/games.css';
 import './member-promotions.css';
