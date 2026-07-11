@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import type { MemberFeatureFlags } from './site-settings';
 import { defaultIconSettings, isIconUrl } from './site-settings';
-import { activeNavigationHref, navigationFor } from './member-navigation';
+import { activeNavigationHref, memberNavigationItems, navigationFor } from './member-navigation';
 import { disabledMemberRoute, isPublicMemberRoute, routeRuleFor } from './member-routes';
 import MemberFooter from './member-footer';
 import { useSiteSettings } from './site-settings-provider';
@@ -93,6 +93,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
       <div className="member-actions"><a href="/notifications" className="member-header-icon" aria-label="แจ้งเตือน"><MemberIcon name="notification" />{pendingCount > 0 && <em>{pendingCount}</em>}</a><button type="button" className="member-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูเพิ่มเติม" aria-expanded={menuOpen}><MenuIcon /></button></div>
     </div></header>
 
+    <MemberCategoryRail pathname={pathname} features={features} />
+
     {menuOpen && <button type="button" className="member-menu-backdrop" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}
 
     <aside className={menuOpen ? 'member-drawer open' : 'member-drawer'} aria-hidden={!menuOpen}>
@@ -111,13 +113,19 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     <MemberFooter settings={typedSettings} />
 
     <nav className="member-bottom-nav" aria-label="เมนูหลัก">
-      {visibleBottomNav.map((item) => <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}>
-        <span className="member-bottom-icon"><IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} /></span>
-        <span>{item.shortTitle ?? item.title}</span>
-        {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
-      </a>)}
+      <button type="button" onClick={() => setMenuOpen(true)}><span className="member-bottom-icon"><MenuIcon /></span><span>เมนู</span></button>
+      {(['deposit', 'withdraw', 'contact'] as const).map((key) => { const item = memberNavigationItems.find((candidate) => candidate.key === key) ?? (key === 'contact' ? { key, href: '/contact', title: 'ติดต่อเรา', iconKey: 'support' as const, shortTitle: 'ติดต่อ' } : null); if (!item) return null; return <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''}><span className="member-bottom-icon"><IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} /></span><span>{item.shortTitle ?? item.title}</span></a>; })}
     </nav>
   </>;
+}
+
+function MemberCategoryRail({ pathname, features }: { pathname: string; features: MemberFeatureFlags }) {
+  if (!features.games) return null;
+  const items = [
+    ['home', 'หน้าแรก', '/', '⌂'], ['casino', 'คาสิโน', '/games?category=casino', '♠'], ['slot', 'สล็อต', '/games?category=slot', '777'],
+    ['fishing', 'ยิงปลา', '/games?category=fishing', '🐟'], ['sport', 'กีฬา', '/games?category=sport', '⚽'], ['card', 'ไพ่', '/games?category=card', 'A♠'], ['lottery', 'หวย', '/games?category=lottery', '◉'],
+  ] as const;
+  return <aside className="member-category-rail" aria-label="หมวดหมู่ Member">{items.map(([key, label, href, icon]) => { const active = key === 'home' ? pathname === '/' : pathname.startsWith('/games') && new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('category') === key; return <a key={key} href={href} className={active ? 'active' : ''}><span>{icon}</span><strong>{label}</strong></a>; })}<span className="member-category-rail__handle" aria-hidden="true">›</span></aside>;
 }
 
 function FeatureDisabled({ label, siteName }: { label: string; siteName: string }) {

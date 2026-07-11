@@ -24,6 +24,7 @@ import './globals.css';
 import './member-system.css';
 import './public-auth-market.css';
 import './member-home-market.css';
+import './member-lobby-theme.css';
 import MemberChrome from './member-chrome';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
