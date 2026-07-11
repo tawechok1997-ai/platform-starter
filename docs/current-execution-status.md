@@ -75,6 +75,8 @@ Still requires direct deployment verification:
 - [x] Production-like database names are rejected by the test safety guard.
 - [x] Concurrent deposit credit confirmation test added.
 - [x] Deposit test verifies one wallet mutation, one ledger row, one idempotency key, and terminal `COMPLETED` state.
+- [x] Concurrent withdrawal claim conflict test added.
+- [x] Concurrent payout verification test verifies one ledger and wallet balance/locked-balance invariants.
 - [ ] Add deterministic fixture builders for user, wallet, deposit, withdrawal, and admin records.
 - [ ] Add cleanup helpers that remove only test-owned rows.
 - [ ] Ensure every test uses isolated identifiers and can run repeatedly.
@@ -83,8 +85,8 @@ Still requires direct deployment verification:
 
 - [ ] Concurrent withdrawal reservation cannot over-lock or overspend the wallet.
 - [ ] Two admins cannot claim the same deposit request.
-- [ ] Two admins cannot claim the same withdrawal request.
-- [ ] Concurrent payout verification creates only one terminal ledger entry.
+- [x] Two admins cannot claim the same withdrawal request.
+- [x] Concurrent payout verification creates only one terminal ledger entry.
 - [ ] Retry after timeout preserves idempotency.
 - [ ] Wallet `balance` and `lockedBalance` invariants remain valid after concurrent failure paths.
 - [ ] Failed/losing concurrent operations leave no orphan ledger or stale lock state.
