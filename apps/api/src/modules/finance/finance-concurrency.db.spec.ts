@@ -24,6 +24,7 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
   const secondAdminId = randomUUID();
   const requestId = randomUUID();
   const withdrawalUserId = randomUUID();
+  const withdrawalBankId = randomUUID();
   const claimRequestId = randomUUID();
   const payoutRequestId = randomUUID();
 
@@ -82,6 +83,16 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
     await prisma.wallet.create({
       data: { userId: withdrawalUserId, currency: 'THB', balance: 500, lockedBalance: 100 },
     });
+    await prisma.memberBankAccount.create({
+      data: {
+        id: withdrawalBankId,
+        userId: withdrawalUserId,
+        bankName: 'Test Bank',
+        accountName: 'Finance CI User',
+        accountNumber: `CI-${suffix}`,
+        status: 'ACTIVE',
+      },
+    });
     await prisma.withdrawalRequest.create({
       data: {
         id: claimRequestId,
@@ -110,6 +121,8 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
     await prisma.adminAuditLog.deleteMany({ where: { adminUserId: { in: [adminId, secondAdminId] } } });
     await prisma.topUpRequest.deleteMany({ where: { id: requestId } });
     await prisma.withdrawalRequest.deleteMany({ where: { id: { in: [claimRequestId, payoutRequestId] } } });
+    await prisma.withdrawalRequest.deleteMany({ where: { userId: withdrawalUserId } });
+    await prisma.memberBankAccount.deleteMany({ where: { id: withdrawalBankId } });
     await prisma.walletLedger.deleteMany({ where: { userId } });
     await prisma.walletLedger.deleteMany({ where: { userId: withdrawalUserId } });
     await prisma.wallet.deleteMany({ where: { userId } });
@@ -155,6 +168,21 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
     expect([adminId, secondAdminId]).toContain(request.claimedBy);
   }, 30_000);
 
+  it('does not over-lock a wallet when two withdrawal reservations race', async () => {
+    const service = new WithdrawalsService(prisma as any);
+    const results = await Promise.allSettled([
+      service.createMemberRequest(withdrawalUserId, { amount: 350, method: 'bank_transfer', accountName: 'Finance CI User', accountNumber: await getAccountNumber(), bankName: 'Test Bank' } as any),
+      service.createMemberRequest(withdrawalUserId, { amount: 350, method: 'bank_transfer', accountName: 'Finance CI User', accountNumber: await getAccountNumber(), bankName: 'Test Bank' } as any),
+    ]);
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+    const wallet = await prisma.wallet.findUniqueOrThrow({ where: { userId: withdrawalUserId } });
+    expect(wallet.lockedBalance.toString()).toBe('450');
+    await prisma.withdrawalRequest.deleteMany({ where: { userId: withdrawalUserId, id: { notIn: [claimRequestId, payoutRequestId] } } });
+    await prisma.wallet.update({ where: { userId: withdrawalUserId }, data: { lockedBalance: 100 } });
+  }, 30_000);
+
   it('creates one payout ledger and preserves wallet invariants when verification runs twice', async () => {
     const service = new WithdrawalWorkflowService(prisma as any, {} as any);
     const results = await Promise.all([
@@ -173,4 +201,15 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
     expect(request.status).toBe('COMPLETED');
     expect(request.completedLedgerId).toBe(ledgers[0].id);
   }, 30_000);
+
+  it('returns the existing payout result on a retry after the first attempt completed', async () => {
+    const service = new WithdrawalWorkflowService(prisma as any, {} as any);
+    const result = await service.verifyAndComplete(payoutRequestId, adminId, 'retry after timeout');
+    expect(result).toEqual(expect.objectContaining({ ok: true, status: 'COMPLETED', idempotent: true }));
+  }, 30_000);
+
+  async function getAccountNumber() {
+    const account = await prisma.memberBankAccount.findUniqueOrThrow({ where: { id: withdrawalBankId }, select: { accountNumber: true } });
+    return account.accountNumber;
+  }
 });
