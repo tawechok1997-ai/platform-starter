@@ -9,11 +9,13 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   const token = window.localStorage.getItem('admin_access_token');
   const headers = new Headers(options.headers ?? {});
   if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
+  if (!headers.has('Cache-Control')) headers.set('Cache-Control', 'no-store');
   if (!options.skipAuth && token) headers.set('Authorization', `Bearer ${token}`);
 
   const url = proxiedPath(path);
-  const res = await fetch(url, { ...options, headers });
+  const res = await fetch(url, { cache: 'no-store', ...options, headers });
   if (await redirectToTwoFactorSetup(res, options)) return res;
+  if (await redirectAfterPrivilegeReduction(res, options)) return res;
   if (res.status !== 401 || options.skipAuth) return res;
 
   const refreshed = await refreshAdminToken();
@@ -25,14 +27,24 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   }
 
   headers.set('Authorization', `Bearer ${refreshed}`);
-  const retry = await fetch(url, { ...options, headers });
+  const retry = await fetch(url, { cache: 'no-store', ...options, headers });
   if (await redirectToTwoFactorSetup(retry, options)) return retry;
+  if (await redirectAfterPrivilegeReduction(retry, options)) return retry;
   if (retry.status === 401) {
     clearAdminSession();
     const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
     window.location.replace(`/login?next=${next}`);
   }
   return retry;
+}
+
+async function redirectAfterPrivilegeReduction(response: Response, options: ApiOptions) {
+  if (options.skipAuth || response.status !== 403 || window.location.pathname === '/login') return false;
+  const payload = await response.clone().json().catch(() => null);
+  if (payload?.code === 'ADMIN_2FA_REQUIRED') return false;
+  clearAdminSession();
+  window.location.replace(`/login?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);
+  return true;
 }
 
 async function redirectToTwoFactorSetup(response: Response, options: ApiOptions) {

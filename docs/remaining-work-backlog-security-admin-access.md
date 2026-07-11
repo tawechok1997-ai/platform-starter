@@ -70,7 +70,7 @@ Security controls must be enforced in the API and database access layer, not onl
 - [ ] Hide unauthorized dashboard metrics that reveal sensitive financial or security data.
 - [ ] Show a clear access-denied page for bookmarked or manually entered routes.
 - [ ] Disable or remove actions immediately after permission changes without requiring a full sign-out where technically safe.
-- [ ] Prevent cached frontend data from remaining visible after privilege reduction.
+- [x] Prevent cached frontend data from remaining visible after privilege reduction.
 - [ ] Translate role names, permission labels, and access-denied explanations in Thai and English.
 - [ ] Provide human-readable permission descriptions, not raw codes as the primary UI.
 
