@@ -36,6 +36,13 @@ const TWO_FACTOR_BOOTSTRAP_PATHS = [
   '/admin/auth/me',
 ];
 
+type ActiveDelegation = {
+  id: string;
+  permissionCodes: string[];
+  grantorAdminId: string;
+  expiresAt: Date;
+};
+
 @Injectable()
 export class AdminAuthGuard implements CanActivate {
   constructor(
@@ -83,14 +90,6 @@ export class AdminAuthGuard implements CanActivate {
                 },
               },
             },
-            delegationsReceived: {
-              where: {
-                status: 'ACTIVE',
-                revokedAt: null,
-                expiresAt: { gt: new Date() },
-              },
-              select: { id: true, permissionCodes: true, grantorAdminId: true, expiresAt: true },
-            },
           },
         },
       },
@@ -104,7 +103,7 @@ export class AdminAuthGuard implements CanActivate {
     const directPermissions = session.adminUser.roles.flatMap((adminRole) =>
       adminRole.role.permissions.map((rolePermission) => rolePermission.permission.code),
     );
-    const delegationsReceived = session.adminUser.delegationsReceived ?? [];
+    const delegationsReceived = await this.loadActiveDelegations(session.adminUser.id);
     const delegatedPermissions = delegationsReceived.flatMap((delegation) => delegation.permissionCodes);
     const permissions = Array.from(
       new Set([
@@ -144,6 +143,30 @@ export class AdminAuthGuard implements CanActivate {
     }
 
     return true;
+  }
+
+  private async loadActiveDelegations(adminUserId: string): Promise<ActiveDelegation[]> {
+    try {
+      return await this.prisma.adminDelegation.findMany({
+        where: {
+          delegateAdminId: adminUserId,
+          status: 'ACTIVE',
+          revokedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        select: {
+          id: true,
+          permissionCodes: true,
+          grantorAdminId: true,
+          expiresAt: true,
+        },
+      });
+    } catch (error) {
+      // Delegated access is additive. A missing or not-yet-migrated delegation table
+      // must not invalidate an otherwise valid primary admin session.
+      console.error('admin delegation lookup failed; continuing without delegated permissions', error);
+      return [];
+    }
   }
 
   private isTwoFactorBootstrapPath(value?: string) {
