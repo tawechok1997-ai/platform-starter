@@ -266,3 +266,24 @@ body:has(.admin-auth-page){overflow-x:hidden}
   .admin-auth-shell{border-radius:0}
   .admin-auth-card{border-left:1px solid rgba(232,189,72,.12);border-right:1px solid rgba(232,189,72,.12)}
 }
+
+/* Rounded glass treatment shared with member login and registration. */
+.admin-auth-shell{border-radius:28px}
+.admin-auth-brand__mark,.admin-auth-mobile-mark,.admin-auth-card-brand .admin-auth-mobile-mark{border-radius:17px}
+.admin-auth-field input,.admin-auth-input-wrap{border-radius:18px}
+.admin-auth-submit{border-radius:17px}
+.admin-auth-alert{border-radius:17px}
+
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .admin-auth-page{padding:12px}
+  .admin-auth-shell{width:100%;max-width:600px!important;min-height:calc(100dvh - 24px);border:1px solid rgba(232,189,72,.24);border-radius:26px;overflow:hidden;box-shadow:0 28px 80px rgba(0,0,0,.45)}
+  .admin-auth-card{min-height:calc(100dvh - 24px);border:0;border-radius:25px;background:linear-gradient(to bottom,rgba(8,12,18,.52) 0%,rgba(8,12,18,.68) 62%,rgba(8,12,18,.2) 100%)}
+}
+
+@media (max-width:430px) {
+  .admin-auth-page{padding:8px}
+  .admin-auth-shell{min-height:calc(100dvh - 16px);border-radius:22px}
+  .admin-auth-card{min-height:calc(100dvh - 16px);border-radius:21px}
+  .admin-auth-field input,.admin-auth-input-wrap{border-radius:16px}
+  .admin-auth-submit{border-radius:15px}
+}
