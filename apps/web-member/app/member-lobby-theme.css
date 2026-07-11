@@ -69,6 +69,34 @@ main.game-lobby-page { gap: 12px; }
 .member-home-shell .member-hero-card, .member-home-shell .member-info-card, .member-home-shell .member-promo-strip, .member-home-shell .member-quick-card, .member-home-shell .member-quick-action { border-color: rgba(187,85,255,.3); background: linear-gradient(145deg,#2c2041,#161020); border-radius: 12px; }
 .member-home-shell .member-hero-card { min-height: 190px; background-image: linear-gradient(90deg,rgba(13,9,20,.25),rgba(13,9,20,.65)),url('/images/member-lobby/battle-arena.png'); background-size: cover; background-position: center; }
 .member-home-shell .member-promo-strip { background-image: linear-gradient(90deg,rgba(13,9,20,.34),rgba(13,9,20,.8)),url('/images/member-lobby/battle-arena.png'); background-size: cover; }
+.member-home-shell .member-home-zone--primary { display: grid; gap: 10px; }
+.member-home-hero { position: relative; min-height: 185px; padding: 0; border: 1px solid rgba(255,255,255,.14); border-radius: 12px; overflow: hidden; display: flex; align-items: flex-end; background: #171020; }
+.member-home-hero__image, .member-home-hero__fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.member-home-hero__fallback { background: linear-gradient(90deg,rgba(15,8,24,.2),rgba(15,8,24,.72)),url('/images/member-lobby/battle-arena.png') center/cover; }
+.member-home-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,rgba(10,5,18,.15),rgba(10,5,18,.68)); pointer-events: none; }
+.member-home-hero__copy { position: relative; z-index: 1; max-width: 72%; padding: 22px 20px; }
+.member-home-hero__copy h1 { margin: 4px 0; font-size: clamp(25px,6vw,38px); }
+.member-home-hero__copy p { margin: 0; font-size: 13px; color: rgba(255,255,255,.82); }
+.member-home-hero > a { position: absolute; z-index: 2; right: 18px; bottom: 18px; min-height: 42px; padding: 0 18px; border-radius: 10px; background: linear-gradient(135deg,#b745ff,#7613c0); color: white; }
+.member-lobby-tabs { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; padding: 0 2px; }
+.member-lobby-tabs a { min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 7px; color: #bbaed1; text-decoration: none; font-weight: 900; font-size: 13px; border-radius: 10px; }
+.member-lobby-tabs a.active { background: linear-gradient(90deg,#8d16de,#b633ff); color: white; box-shadow: 0 8px 22px rgba(146,27,222,.28); }
+.member-home-zone--content { display: grid; gap: 12px; }
+.member-home-zone--content > .member-card, .member-home-zone--content > section { min-width: 0; }
+.member-lobby-promo-card { position: relative; min-height: 130px; display: flex; align-items: center; overflow: hidden; border: 1px solid rgba(187,85,255,.35); border-radius: 11px; background: #171020; }
+.member-lobby-promo-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .72; }
+.member-lobby-promo-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,rgba(12,7,20,.2),rgba(12,7,20,.84)); }
+.member-lobby-promo-card > div { position: relative; z-index: 1; display: grid; gap: 4px; padding: 20px; }
+.member-lobby-promo-card strong { font-size: 24px; color: white; }
+.member-lobby-promo-card span { color: #e2d9f2; }
+.member-lobby-promo-arrow { position: absolute; z-index: 2; right: 16px; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: #8c1bdd; color: white !important; font-size: 28px; }
+.member-tournament-title { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 7px; background: linear-gradient(90deg,#54206a,#1c1226); color: white; }
+.member-tournament-title span { color: #ffd84d; }
+.member-tournament-empty { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border: 1px solid rgba(187,85,255,.55); border-radius: 10px; background: rgba(33,18,47,.82); }
+.member-tournament-empty div { display: grid; gap: 4px; }
+.member-tournament-empty span { color: rgba(255,255,255,.68); font-size: 12px; }
+.member-system-pending { flex: 0 0 auto; padding: 6px 9px; border-radius: 999px; background: rgba(255,195,56,.12); color: #ffd86a !important; font-size: 11px !important; }
+.member-home-finance-lower { display: grid; gap: 12px; }
 
 @media (min-width: 821px) { .member-category-rail { position: sticky; float: left; margin-left: 10px; top: 78px; height: calc(100dvh - 154px); } .member-bottom-nav { display: none !important; } main.game-lobby-page, .member-home-shell { padding-left: 116px; max-width: 1120px; margin: 0 auto; } }
 @media (max-width: 420px) { .global-member-topbar .member-topbar__inner { padding-inline: 8px; gap: 6px; } .global-member-topbar .member-brand-logo { width: 96px; } .global-member-topbar .member-actions::after { min-width: 70px; font-size: 12px; } .member-category-rail { left: 7px; width: 65px; gap: 8px; } .member-category-rail a { flex-basis: 70px; } main.game-lobby-page, .member-home-shell { padding-left: 84px; padding-right: 10px; } }

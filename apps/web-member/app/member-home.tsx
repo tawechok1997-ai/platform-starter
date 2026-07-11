@@ -9,7 +9,9 @@ import {
   CmsPopup,
   FaqList,
   GameRail,
+  LobbyTabs,
   HomeHero,
+  TournamentSection,
   PendingRequests,
   QuickActions,
   RecentActivity,
@@ -54,17 +56,19 @@ export default function MemberHome(props: MemberHomeProps) {
   return <section className="member-shell member-home-shell">
     <div className="member-home-zone member-home-zone--primary">
       {props.showPromotion && features.games && <HomeHero siteName={props.siteName} description={props.description} primaryColor={props.primaryColor} content={props.cmsContent} />}
-      <QuickActions icons={icons} features={features} />
-    </div>
-
-    <div className="member-home-zone member-home-zone--finance">
-      {props.showBalanceHeader && <WalletCard primaryColor={props.primaryColor} cardColor={props.cardColor} showButtons={props.showButtons && (features.deposit || features.withdraw)} />}
-      <PendingRequests pendingTopups={data.pendingTopups} pendingWithdrawals={data.pendingWithdrawals} primaryColor={props.primaryColor} features={features} />
+      <AnnouncementList content={props.cmsContent} />
+      <LobbyTabs />
     </div>
 
     <div className="member-home-zone member-home-zone--content">
-      <AnnouncementList content={props.cmsContent} />
+      {features.games && <TournamentSection />}
       {features.games && props.showCategories && <CategoryList categories={data.categories} primaryColor={props.primaryColor} />}
+    </div>
+
+    <div className="member-home-zone member-home-zone--finance member-home-finance-lower">
+      {props.showBalanceHeader && <WalletCard primaryColor={props.primaryColor} cardColor={props.cardColor} showButtons={props.showButtons && (features.deposit || features.withdraw)} />}
+      <PendingRequests pendingTopups={data.pendingTopups} pendingWithdrawals={data.pendingWithdrawals} primaryColor={props.primaryColor} features={features} />
+      <QuickActions icons={icons} features={features} />
     </div>
 
     <div className="member-home-zone">

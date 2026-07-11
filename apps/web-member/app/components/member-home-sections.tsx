@@ -8,7 +8,15 @@ import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNot
 export function HomeHero({ siteName, description, content }: { siteName: string; description: string; primaryColor: string; content: CmsContent }) {
   const banner = content.banners.find((item) => item.enabled);
   const imageUrl = banner ? cmsAssetUrl(content, banner.assetId) || banner.imageUrl : '';
-  return <section className="member-home-hero">{imageUrl && <img src={imageUrl} alt="" className="member-home-hero__image" />}<div><span className="member-home-hero__eyebrow">พร้อมเล่น</span><h1>{banner?.title || siteName}</h1><p>{banner?.subtitle || description || 'เลือกเกมที่ชอบ ฝาก ถอน และดูประวัติได้จากมือถือเครื่องเดียว'}</p></div><MemberLinkButton href={banner?.href || '/games'} tone="brand">เข้าเล่นเกม</MemberLinkButton></section>;
+  return <section className="member-home-hero">{imageUrl ? <img src={imageUrl} alt="" className="member-home-hero__image" /> : <div className="member-home-hero__fallback" aria-hidden="true" />}<div className="member-home-hero__copy"><span className="member-home-hero__eyebrow">พร้อมเล่น</span><h1>{banner?.title || siteName}</h1><p>{banner?.subtitle || description || 'ฝาก ถอน เล่นเกม และดูประวัติได้ในมือถือเครื่องเดียว'}</p></div><MemberLinkButton href={banner?.href || '/games'} tone="brand">เข้าเล่นเกม</MemberLinkButton></section>;
+}
+
+export function LobbyTabs() {
+  return <nav className="member-lobby-tabs" aria-label="เมนูหน้า Lobby"><a className="active" href="#highlights">✦ <span>ไฮไลท์</span></a><a href="/promotions">♔ <span>โปรโมชั่นแนะนำ</span></a><a href="#activities">♜ <span>กิจกรรม</span></a></nav>;
+}
+
+export function TournamentSection() {
+  return <section className="member-tournament-section" id="highlights"><div className="member-lobby-promo-card"><img src="/images/member-lobby/battle-arena.png" alt="" /><div><strong>TOURNAMENT</strong><span>เข้าร่วมชิงความเป็นที่ 1</span></div><span className="member-lobby-promo-arrow">›</span></div><div className="member-tournament-title"><span>♜</span><strong>ทัวร์นาเมนต์</strong></div><div className="member-tournament-empty"><div><strong>ระบบทัวร์นาเมนต์</strong><span>พื้นที่นี้เตรียมไว้สำหรับเชื่อมข้อมูลการแข่งขันจริง</span></div><span className="member-system-pending">รอเชื่อมต่อ</span></div></section>;
 }
 
 export function AnnouncementList({ content }: { content: CmsContent }) {
