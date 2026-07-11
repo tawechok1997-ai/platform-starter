@@ -61,8 +61,8 @@ Still requires direct deployment verification:
 
 ### CI integration
 
-- [ ] Add a PostgreSQL 16 service to `.github/workflows/build.yml`.
-- [ ] Use a dedicated test database such as `platform_test`.
+- [x] Add a PostgreSQL 16 service to `.github/workflows/build.yml`.
+- [x] Use a dedicated test database such as `platform_test`.
 - [x] Set both `DATABASE_URL` and `FINANCE_TEST_DATABASE_URL` to the CI PostgreSQL test database.
 - [x] Wait for PostgreSQL health readiness before migrations/tests.
 - [x] Run `pnpm prisma migrate deploy` against the CI test database.
@@ -87,7 +87,7 @@ Still requires direct deployment verification:
 ### Remaining concurrency cases
 
 - [x] Concurrent withdrawal reservation cannot over-lock or overspend the wallet.
-- [ ] Two admins cannot claim the same deposit request.
+- [x] Two admins cannot claim the same deposit request.
 - [x] Two admins cannot claim the same withdrawal request.
 - [x] Concurrent payout verification creates only one terminal ledger entry.
 - [x] Retry after timeout preserves idempotency.
