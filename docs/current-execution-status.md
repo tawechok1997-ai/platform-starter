@@ -77,17 +77,20 @@ Still requires direct deployment verification:
 - [x] Deposit test verifies one wallet mutation, one ledger row, one idempotency key, and terminal `COMPLETED` state.
 - [x] Concurrent withdrawal claim conflict test added.
 - [x] Concurrent payout verification test verifies one ledger and wallet balance/locked-balance invariants.
+- [x] Concurrent withdrawal reservation test prevents over-locking available wallet balance.
+- [x] Payout retry after completed execution returns the existing idempotent result.
+- [x] Production smoke checks cover delegated access and anti-bot authorization boundaries.
 - [ ] Add deterministic fixture builders for user, wallet, deposit, withdrawal, and admin records.
 - [ ] Add cleanup helpers that remove only test-owned rows.
 - [ ] Ensure every test uses isolated identifiers and can run repeatedly.
 
 ### Remaining concurrency cases
 
-- [ ] Concurrent withdrawal reservation cannot over-lock or overspend the wallet.
+- [x] Concurrent withdrawal reservation cannot over-lock or overspend the wallet.
 - [ ] Two admins cannot claim the same deposit request.
 - [x] Two admins cannot claim the same withdrawal request.
 - [x] Concurrent payout verification creates only one terminal ledger entry.
-- [ ] Retry after timeout preserves idempotency.
+- [x] Retry after timeout preserves idempotency.
 - [ ] Wallet `balance` and `lockedBalance` invariants remain valid after concurrent failure paths.
 - [ ] Failed/losing concurrent operations leave no orphan ledger or stale lock state.
 
