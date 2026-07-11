@@ -149,3 +149,7 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 .member-home-hero__dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; background: rgba(255,255,255,.55); cursor: pointer; }
 .member-home-hero__dots button.active { width: 22px; background: #a62df0; }
 @media (max-width:420px) { .member-home-hero { aspect-ratio: 2.42 / 1; } }
+
+.member-lobby-promo-card { min-height: 0; aspect-ratio: 550 / 150; border-color: rgba(255,255,255,.13); }
+.member-lobby-promo-card img { opacity: 1; object-fit: cover; }
+.member-lobby-promo-card::after, .member-lobby-promo-card > div, .member-lobby-promo-arrow { display: none; }

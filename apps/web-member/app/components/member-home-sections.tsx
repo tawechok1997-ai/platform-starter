@@ -29,7 +29,7 @@ export function LobbyTabs() {
 }
 
 export function TournamentSection() {
-  return <section className="member-tournament-section" id="highlights"><div className="member-lobby-promo-card"><img src="/images/member-lobby/battle-arena.png" alt="" /><div><strong>TOURNAMENT</strong><span>เข้าร่วมชิงความเป็นที่ 1</span></div><span className="member-lobby-promo-arrow">›</span></div><div className="member-tournament-title"><span>♜</span><strong>ทัวร์นาเมนต์</strong></div><div className="member-tournament-empty"><div><strong>ระบบทัวร์นาเมนต์</strong><span>พื้นที่นี้เตรียมไว้สำหรับเชื่อมข้อมูลการแข่งขันจริง</span></div><span className="member-system-pending">รอเชื่อมต่อ</span></div></section>;
+  return <section className="member-tournament-section" id="highlights"><a className="member-lobby-promo-card" href="/games"><img src="/images/member-lobby/promotions/tournament-reference.jpeg" alt="Tournament" /></a><div className="member-tournament-title"><span>♜</span><strong>ทัวร์นาเมนต์</strong></div><div className="member-tournament-empty"><div><strong>ระบบทัวร์นาเมนต์</strong><span>พื้นที่นี้เตรียมไว้สำหรับเชื่อมข้อมูลการแข่งขันจริง</span></div><span className="member-system-pending">รอเชื่อมต่อ</span></div></section>;
 }
 
 export function AnnouncementList({ content }: { content: CmsContent }) {
