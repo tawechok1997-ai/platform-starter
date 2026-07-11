@@ -35,6 +35,7 @@ This file is the short operational worklist for the current implementation cycle
 - [x] Anti-bot rejected-token and provider-outage security events audited without token/secret persistence.
 - [x] Private storage keys reject traversal/absolute paths and backup archives have a read-only verification script.
 - [x] Risk alert status transitions reject workflow jumps that bypass investigation.
+- [x] Audit Log target links cover admin access, anti-bot, finance, member, ledger, and risk routes with mobile-safe pagination.
 - [x] GitHub Actions Build #270 completed successfully for commit `c7edec0`.
 
 ## CI checkpoint
@@ -109,7 +110,7 @@ Still requires direct deployment verification:
 - [ ] Add provider filter where provider context exists.
 - [ ] Add safe bulk actions for low-risk alerts.
 - [ ] Add auto-close suggestions linked to resolved finance/provider records.
-- [ ] Finish Audit Log target links for all supported modules.
+- [x] Finish Audit Log target links for all supported modules.
 - [ ] Verify Audit Log pagination, long JSON diff rendering, empty state, and mobile regression.
 - [ ] Run delegated access staging regression with grant, expiry, revoke, and owner-boundary cases.
 

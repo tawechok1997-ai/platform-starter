@@ -174,7 +174,9 @@ function targetHref(moduleName: string, targetId?: string | null) {
   if (module.includes('member') || module.includes('user')) return `/members/${encodeURIComponent(targetId)}`;
   if (module.includes('wallet') || module.includes('ledger') || module.includes('money')) return `/ledgers?referenceId=${encodeURIComponent(targetId)}`;
   if (module.includes('risk')) return `/risk-alerts/${encodeURIComponent(targetId)}`;
-  if (module.includes('admin-access') || module.includes('auth')) return '/admin-access';
+  if (module.includes('admin-access') || module.includes('admin_access')) return '/access';
+  if (module.includes('anti-bot') || module.includes('anti_bot') || module.includes('security')) return '/anti-bot';
+  if (module.includes('auth')) return '/security';
   return null;
 }
 
@@ -203,4 +205,4 @@ const detailsStyle = { border: '1px solid rgba(148,163,184,.16)', borderRadius: 
 const preStyle = { margin: '10px 0 0', padding: 10, borderRadius: 10, background: '#05070a', overflowX: 'auto', fontSize: 12, maxHeight: 360 } as const;
 const emptyDataStyle = { margin: '10px 0 0', color: '#94a3b8' } as const;
 const linkRowStyle = { display: 'flex', justifyContent: 'flex-end' } as const;
-const pagerStyle = { display: 'grid', gridTemplateColumns: 'minmax(110px, 1fr) auto minmax(110px, 1fr)', gap: 10, alignItems: 'center', marginTop: 16, textAlign: 'center' } as const;
+const pagerStyle = { display: 'grid', gridTemplateColumns: 'minmax(88px, 1fr) auto minmax(88px, 1fr)', gap: 8, alignItems: 'center', marginTop: 16, textAlign: 'center', overflowWrap: 'anywhere' } as const;
