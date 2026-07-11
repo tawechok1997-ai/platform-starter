@@ -11,21 +11,29 @@ export class StorageService {
   private s3Client?: S3Client;
 
   async put(key: string, data: Buffer, contentType: string) {
+    this.assertSafeKey(key);
     if (this.driver() === 's3') return this.putS3(key, data, contentType);
     return this.putLocal(key, data);
   }
 
   async get(key: string, contentType: string): Promise<StoredObject> {
+    this.assertSafeKey(key);
     if (this.driver() === 's3') return this.getS3(key, contentType);
     return this.getLocal(key, contentType);
   }
 
   async remove(key: string) {
+    this.assertSafeKey(key);
     if (this.driver() === 's3') {
       await this.client().send(new DeleteObjectCommand({ Bucket: this.bucket(), Key: key }));
-      return;
+      return { key, deleted: true };
     }
     await rm(this.localPath(key), { force: true });
+    return { key, deleted: true };
+  }
+
+  async delete(key: string) {
+    return this.remove(key);
   }
 
   private async putLocal(key: string, data: Buffer) {
@@ -99,4 +107,10 @@ export class StorageService {
   private driver() { return (process.env.STORAGE_DRIVER || 'local').toLowerCase(); }
   private bucket() { const value = process.env.S3_BUCKET; if (!value) throw new Error('S3_BUCKET is required'); return value; }
   private localPath(key: string) { return join(process.env.PRIVATE_MEDIA_DIR || '/tmp/platform-private-media', key); }
+
+  private assertSafeKey(key: string) {
+    if (!key || key.length > 512 || key.startsWith('/') || key.startsWith('\\') || key.includes('..') || key.includes('\\') || !/^[a-zA-Z0-9/_-]+\.[a-zA-Z0-9]+$/.test(key)) {
+      throw new Error('Unsafe storage key');
+    }
+  }
 }

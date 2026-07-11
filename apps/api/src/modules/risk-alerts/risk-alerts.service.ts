@@ -11,6 +11,12 @@ const ACTIVE_ALERT_STATUSES: RiskStatus[] = ['OPEN', 'REVIEWING'];
 const VALID_STATUSES: RiskStatus[] = ['OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED'];
 const VALID_SEVERITIES: RiskSeverity[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const VALID_TYPES: RiskType[] = ['REPEATED_TOPUPS', 'RAPID_DEPOSIT_WITHDRAWAL', 'HIGH_WITHDRAWAL', 'BANK_CHANGE_WITHDRAWAL', 'MULTIPLE_PENDING_TOPUPS', 'WALLET_LEDGER_MISMATCH', 'DUPLICATE_DEPOSIT_SLIP', 'REPEATED_DUPLICATE_DEPOSIT_SLIP'];
+const ALLOWED_STATUS_TRANSITIONS: Record<RiskStatus, RiskStatus[]> = {
+  OPEN: ['REVIEWING', 'DISMISSED'],
+  REVIEWING: ['OPEN', 'RESOLVED', 'DISMISSED'],
+  RESOLVED: ['REVIEWING'],
+  DISMISSED: ['OPEN', 'REVIEWING'],
+};
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 @Injectable()
@@ -92,6 +98,9 @@ export class RiskAlertsService {
     if (!status || !VALID_STATUSES.includes(status as RiskStatus)) throw new BadRequestException('Invalid risk alert status');
     const existing = await this.prisma.riskAlert.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Risk alert not found');
+    if (existing.status !== status && !ALLOWED_STATUS_TRANSITIONS[existing.status as RiskStatus]?.includes(status as RiskStatus)) {
+      throw new BadRequestException(`Invalid risk alert status transition: ${existing.status} -> ${status}`);
+    }
     const isResolved = status === 'RESOLVED' || status === 'DISMISSED';
     const item = await this.prisma.riskAlert.update({ where: { id }, data: { status: status as any, resolvedAt: isResolved ? new Date() : null, resolvedBy: isResolved ? admin?.id : null } });
     await this.audit(admin?.id, 'UPDATE_RISK_ALERT_STATUS', id, { status: existing.status }, { status });

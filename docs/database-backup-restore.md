@@ -88,6 +88,16 @@ gzip backups/platform-YYYYMMDD-HHMMSS.sql
 
 ## Restore to a new/staging database first
 
+## Verify a backup without restoring
+
+ตรวจสอบไฟล์ dump และ checksum ได้โดยไม่เชื่อมต่อหรือเขียนฐานข้อมูล:
+
+```bash
+BACKUP_FILE='backups/platform/platform-latest.dump' ./scripts/verify-backup.sh
+```
+
+คำสั่งนี้ตรวจขนาดไฟล์, SHA-256 และ PostgreSQL archive object list เท่านั้น
+
 อย่า restore ลง production ทันทีเหมือนโยนของมีคมขึ้นฟ้าแล้วหวังว่าจะตกไม่โดนหัว
 
 ```bash

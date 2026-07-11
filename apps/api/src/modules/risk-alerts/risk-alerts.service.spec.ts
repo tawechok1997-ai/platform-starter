@@ -82,4 +82,13 @@ describe('RiskAlertsService', () => {
 
     await expect(service.addNote('alert-1', '   ', { id: 'actor-1' })).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it('rejects status jumps that bypass investigation', async () => {
+    const prisma = createPrismaMock();
+    prisma.riskAlert.findUnique.mockResolvedValue({ id: 'alert-1', status: 'OPEN' });
+    const service = new RiskAlertsService(prisma as any);
+
+    await expect(service.updateStatus('alert-1', 'RESOLVED', { id: 'actor-1' })).rejects.toBeInstanceOf(BadRequestException);
+    expect(prisma.riskAlert.update).not.toHaveBeenCalled();
+  });
 });

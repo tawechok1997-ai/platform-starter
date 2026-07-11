@@ -33,4 +33,11 @@ describe('StorageService', () => {
     await expect(storage.delete(key)).resolves.toEqual({ key, deleted: true });
     await expect(storage.get(key, 'text/plain')).rejects.toThrow('Stored file not found');
   });
+
+  it('rejects path traversal and absolute storage keys', async () => {
+    const storage = new StorageService();
+    await expect(storage.put('../outside.txt', Buffer.from('nope'), 'text/plain')).rejects.toThrow('Unsafe storage key');
+    await expect(storage.get('/etc/passwd', 'text/plain')).rejects.toThrow('Unsafe storage key');
+    await expect(storage.delete('nested/../../outside.txt')).rejects.toThrow('Unsafe storage key');
+  });
 });

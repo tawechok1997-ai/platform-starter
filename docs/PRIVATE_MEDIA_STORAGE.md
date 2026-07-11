@@ -58,3 +58,4 @@ Cleanup plan:
 - Do not put private media under any public asset directory.
 - Keep `GET /admin/topups/:id/slip` behind `AdminAuthGuard`.
 - Avoid logging the base64 content or full data URLs.
+- Storage keys are validated server-side and reject absolute paths, traversal segments, backslashes, and unsupported formats before local or S3 access.
