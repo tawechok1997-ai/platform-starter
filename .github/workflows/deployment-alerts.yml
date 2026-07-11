@@ -1,0 +1,43 @@
+name: Deployment and smoke alerts
+
+on:
+  workflow_run:
+    workflows: [Build, Smoke API, E2E Smoke]
+    types: [completed]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  alert:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'cancelled' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update failure issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const title = `[CI ALERT] ${run.name} failed on ${run.head_branch}`;
+            const body = [
+              `Workflow: ${run.name}`,
+              `Conclusion: ${run.conclusion}`,
+              `Commit: ${run.head_sha}`,
+              `Branch: ${run.head_branch}`,
+              `Run: ${run.html_url}`,
+              '',
+              'ตรวจ migration, build, smoke หรือ health/version ตาม job ที่ล้มเหลว ก่อน deploy ต่อ',
+            ].join('\n');
+            const open = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const existing = open.find((issue) => issue.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, body });
+            } else {
+              await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body });
+            }
