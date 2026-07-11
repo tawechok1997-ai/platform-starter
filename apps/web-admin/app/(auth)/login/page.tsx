@@ -74,21 +74,19 @@ export default function AdminLoginPage() {
   const submitDisabled = loading || (captchaRequired && !captchaReady);
   return <main className="admin-auth-page">
     <div className="admin-auth-ambient" aria-hidden="true"><span /><span /></div>
+    <div className="admin-auth-scene" aria-hidden="true"><span className="admin-auth-scene__tower" /><span className="admin-auth-scene__tower admin-auth-scene__tower--small" /><span className="admin-auth-scene__arc" /><span className="admin-auth-scene__light" /></div>
     <section className="admin-auth-shell">
       <aside className="admin-auth-brand"><div className="admin-auth-brand__mark">A</div><p>Operations workspace</p><h1>{locale === 'th' ? 'ควบคุมระบบชัดเจน ตัดสินใจอย่างมั่นใจ' : 'Clear operations. Confident decisions.'}</h1><span>{locale === 'th' ? 'จัดการการเงิน ความเสี่ยง สมาชิก ค่ายเกม และความปลอดภัย จากพื้นที่ทำงานเดียว' : 'Manage finance, risk, members, providers and security from one focused workspace.'}</span><div className="admin-auth-status"><i /> {locale === 'th' ? 'สำหรับผู้ดูแลที่ได้รับอนุญาตเท่านั้น' : 'Authorized administrators only'}</div></aside>
     <form onSubmit={onSubmit} className="admin-auth-card" noValidate>
-      <div className="admin-auth-mobile-mark" aria-hidden="true">A</div>
-      <div className="admin-auth-heading"><p>Admin Console</p><h2>{t.title}</h2><span>{locale === 'th' ? 'กรอกข้อมูลประจำตัวเพื่อเข้าสู่พื้นที่จัดการ' : 'Use your administrator credentials to continue.'}</span></div>
-      <div className="admin-auth-language" aria-label="Language">
-        <button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'}>ไทย</button>
-        <button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'}>EN</button>
-      </div>
+      <div className="admin-auth-card-topbar"><div className="admin-auth-card-brand"><div className="admin-auth-mobile-mark" aria-hidden="true">A</div><strong>Admin Console</strong></div><div className="admin-auth-language" aria-label="Language"><button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'}>ไทย</button><button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'}>EN</button></div></div>
+      <div className="admin-auth-heading"><p>SECURE ADMIN ACCESS</p><h2>{t.title}</h2><span>{locale === 'th' ? 'กรอกข้อมูลประจำตัวเพื่อเข้าสู่พื้นที่จัดการ' : 'Use your administrator credentials to continue.'}</span></div>
       <label className="admin-auth-field">{t.username}<input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" disabled={loading} placeholder={t.usernamePlaceholder} /></label>
       <label className="admin-auth-field">{t.password}<div className="admin-auth-input-wrap"><input value={secret} onChange={(event) => setSecret(event.target.value)} type={showSecret ? 'text' : 'password'} autoComplete="current-password" disabled={loading} placeholder={t.passwordPlaceholder} /><button type="button" onClick={() => setShowSecret((value) => !value)} disabled={loading} aria-label={showSecret ? t.hidePassword : t.showPassword}>{showSecret ? (locale === 'th' ? 'ซ่อน' : 'Hide') : (locale === 'th' ? 'แสดง' : 'Show')}</button></div></label>
       {requiresTwoFactor && <label className="admin-auth-field">{t.twoFactor}<span>{t.twoFactorOptional}</span><input value={twoFactorCode} onChange={(event) => setTwoFactorCode(event.target.value.replace(/\D/g, '').slice(0, 8))} inputMode="numeric" autoComplete="one-time-code" disabled={loading} placeholder={t.twoFactorPlaceholder} /></label>}
       <AntiBotWidget endpoint="admin-login" locale={locale} resetKey={captchaResetKey} onToken={handleCaptchaToken} onRequiredChange={handleCaptchaState} />
       <button type="submit" disabled={submitDisabled} className="admin-auth-submit">{loading ? t.submitting : t.submit}</button>
       {message && <div className={`admin-auth-alert admin-auth-alert--${status}`} role={status === 'error' ? 'alert' : 'status'} aria-live={status === 'error' ? 'assertive' : 'polite'}>{message}</div>}
+      <div className="admin-auth-legal"><span className="admin-auth-legal__dot" />{locale === 'th' ? 'การเชื่อมต่อผู้ดูแลที่ปลอดภัย' : 'Secure administrator connection'}</div>
     </form>
     </section>
   </main>;
