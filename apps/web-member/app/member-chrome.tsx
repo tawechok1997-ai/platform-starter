@@ -88,9 +88,10 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
   return <>
     <header className="member-topbar global-member-topbar"><div className="member-topbar__inner">
+      <div className="member-header-tools"><button type="button" className="member-header-tool" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนู"><MenuIcon /></button><a className="member-header-tool" href="/games" aria-label="ค้นหาเกม">⌕</a></div>
       <a href="/" className="member-brand"><span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="" className="member-brand-logo" /> : brandMark}</span><span className="member-brand-copy"><strong>{siteName}</strong><small>{siteDescription}</small></span></a>
       <nav className="member-desktop-nav" aria-label="เมนูหลักเดสก์ท็อป">{visibleBottomNav.map((item) => <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}><IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} /><span>{item.shortTitle ?? item.title}</span>{item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}</a>)}</nav>
-      <div className="member-actions"><a href="/notifications" className="member-header-icon" aria-label="แจ้งเตือน"><MemberIcon name="notification" />{pendingCount > 0 && <em>{pendingCount}</em>}</a><button type="button" className="member-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูเพิ่มเติม" aria-expanded={menuOpen}><MenuIcon /></button></div>
+      <div className="member-actions"><a href="/notifications" className="member-header-icon" aria-label="แจ้งเตือน"><MemberIcon name="notification" />{pendingCount > 0 && <em>{pendingCount}</em>}</a><span className="member-header-wallet">▣&nbsp; 0.00</span></div>
     </div></header>
 
     <MemberCategoryRail pathname={pathname} features={features} />

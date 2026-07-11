@@ -22,7 +22,7 @@ export function TournamentSection() {
 export function AnnouncementList({ content }: { content: CmsContent }) {
   const items = content.announcements.filter((item) => item.enabled).slice(0, 3);
   if (!items.length) return null;
-  return <MemberCard tone="brand"><div className="member-home-section-head"><h2>ประกาศ</h2><span className="member-home-muted">{items.length} รายการ</span></div><div className="member-home-list">{items.map((item, index) => <div key={`${item.title}-${index}`} className="member-home-announcement-row"><strong>{item.title}</strong><span>{item.message}</span></div>)}</div></MemberCard>;
+  return <div className="member-announcement-strip" role="status"><span className="member-announcement-strip__icon">⌁</span><span>{items[0].message || items[0].title}</span></div>;
 }
 
 export function QuickActions({ icons, features }: { icons: SiteIconSettings; features: MemberFeatureFlags }) {
