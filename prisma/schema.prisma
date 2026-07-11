@@ -20,6 +20,12 @@ enum AdminStatus {
   LOCKED
 }
 
+enum AdminDelegationStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
 enum SessionType {
   MEMBER
   ADMIN
@@ -128,8 +134,6 @@ enum RiskAlertType {
   BANK_CHANGE_WITHDRAWAL
   MULTIPLE_PENDING_TOPUPS
   WALLET_LEDGER_MISMATCH
-  DUPLICATE_DEPOSIT_SLIP
-  REPEATED_DUPLICATE_DEPOSIT_SLIP
 }
 
 enum GameProviderStatus {
@@ -280,23 +284,45 @@ model AdminUser {
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime    @updatedAt @map("updated_at")
 
-  roles               AdminUserRole[]
-  sessions            AuthSession[]
-  loginHistory        LoginHistory[]
-  auditLogs           AdminAuditLog[]
-  recoveryCodes       AdminRecoveryCode[]
-  walletLedgerEntries WalletLedger[]
-  reviewedTopUps      TopUpRequest[]
-  reviewedWithdrawals WithdrawalRequest[]
-  slipReviewedTopUps  TopUpRequest[] @relation("TopUpSlipReviewer")
-  creditConfirmedTopUps TopUpRequest[] @relation("TopUpCreditConfirmer")
-  approvedForPaymentWithdrawals WithdrawalRequest[] @relation("WithdrawalPaymentApprover")
+  roles                           AdminUserRole[]
+  sessions                        AuthSession[]
+  loginHistory                    LoginHistory[]
+  auditLogs                       AdminAuditLog[]
+  recoveryCodes                   AdminRecoveryCode[]
+  walletLedgerEntries             WalletLedger[]
+  reviewedTopUps                  TopUpRequest[]
+  reviewedWithdrawals             WithdrawalRequest[]
+  slipReviewedTopUps              TopUpRequest[]      @relation("TopUpSlipReviewer")
+  creditConfirmedTopUps           TopUpRequest[]      @relation("TopUpCreditConfirmer")
+  approvedForPaymentWithdrawals   WithdrawalRequest[] @relation("WithdrawalPaymentApprover")
   uploadedPaymentProofWithdrawals WithdrawalRequest[] @relation("WithdrawalProofUploader")
-  verifiedPaymentWithdrawals WithdrawalRequest[] @relation("WithdrawalPaymentVerifier")
-  assignedRiskAlerts RiskAlert[] @relation("RiskAlertAssignee")
-  riskAlertNotes RiskAlertNote[]
+  verifiedPaymentWithdrawals      WithdrawalRequest[] @relation("WithdrawalPaymentVerifier")
+  assignedRiskAlerts              RiskAlert[]         @relation("RiskAlertAssignee")
+  riskAlertNotes                  RiskAlertNote[]
+  delegationsGranted              AdminDelegation[]   @relation("DelegationGrantor")
+  delegationsReceived             AdminDelegation[]   @relation("DelegationDelegate")
 
   @@map("admin_users")
+}
+
+model AdminDelegation {
+  id               String                @id @default(uuid()) @db.Uuid
+  grantorAdminId   String                @map("grantor_admin_id") @db.Uuid
+  delegateAdminId  String                @map("delegate_admin_id") @db.Uuid
+  permissionCodes  String[]              @map("permission_codes")
+  status           AdminDelegationStatus @default(ACTIVE)
+  reason           String?               @db.VarChar(500)
+  expiresAt        DateTime              @map("expires_at")
+  revokedAt        DateTime?             @map("revoked_at")
+  revokedByAdminId String?               @map("revoked_by_admin_id") @db.Uuid
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+  grantor          AdminUser             @relation("DelegationGrantor", fields: [grantorAdminId], references: [id], onDelete: Cascade)
+  delegate         AdminUser             @relation("DelegationDelegate", fields: [delegateAdminId], references: [id], onDelete: Cascade)
+
+  @@index([delegateAdminId, status, expiresAt])
+  @@index([grantorAdminId, status])
+  @@map("admin_delegations")
 }
 
 model AdminRecoveryCode {
@@ -432,24 +458,24 @@ model AdminAuditLog {
 }
 
 model RiskAlert {
-  id          String            @id @default(uuid()) @db.Uuid
-  type        RiskAlertType
-  severity    RiskAlertSeverity
-  status      RiskAlertStatus   @default(OPEN)
-  memberId    String?           @map("member_id") @db.Uuid
-  refType     String?           @map("ref_type") @db.VarChar(80)
-  refId       String?           @map("ref_id") @db.VarChar(120)
-  title       String            @db.VarChar(180)
-  description String?
-  metadata    Json?
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
-  resolvedAt  DateTime?         @map("resolved_at")
-  resolvedBy  String?           @map("resolved_by") @db.Uuid
-  assignedToAdminId String?     @map("assigned_to_admin_id") @db.Uuid
-  assignedAt DateTime?          @map("assigned_at")
-  assignedToAdmin AdminUser?    @relation("RiskAlertAssignee", fields: [assignedToAdminId], references: [id], onDelete: SetNull)
-  notes       RiskAlertNote[]
+  id                String            @id @default(uuid()) @db.Uuid
+  type              RiskAlertType
+  severity          RiskAlertSeverity
+  status            RiskAlertStatus   @default(OPEN)
+  memberId          String?           @map("member_id") @db.Uuid
+  refType           String?           @map("ref_type") @db.VarChar(80)
+  refId             String?           @map("ref_id") @db.VarChar(120)
+  title             String            @db.VarChar(180)
+  description       String?
+  metadata          Json?
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  resolvedAt        DateTime?         @map("resolved_at")
+  resolvedBy        String?           @map("resolved_by") @db.Uuid
+  assignedToAdminId String?           @map("assigned_to_admin_id") @db.Uuid
+  assignedAt        DateTime?         @map("assigned_at")
+  assignedToAdmin   AdminUser?        @relation("RiskAlertAssignee", fields: [assignedToAdminId], references: [id], onDelete: SetNull)
+  notes             RiskAlertNote[]
 
   @@index([type])
   @@index([severity])
@@ -475,15 +501,15 @@ model RiskAlertNote {
 }
 
 model Wallet {
-  id            String       @id @default(uuid()) @db.Uuid
-  userId        String       @unique @map("user_id") @db.Uuid
-  currency      String       @default("THB") @db.VarChar(10)
-  balance       Decimal      @default(0) @db.Decimal(18, 2)
-  lockedBalance Decimal      @default(0) @map("locked_balance") @db.Decimal(18, 2)
-  status        WalletStatus @default(ACTIVE)
-  createdAt     DateTime     @default(now()) @map("created_at")
-  updatedAt     DateTime     @updatedAt @map("updated_at")
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String         @id @default(uuid()) @db.Uuid
+  userId        String         @unique @map("user_id") @db.Uuid
+  currency      String         @default("THB") @db.VarChar(10)
+  balance       Decimal        @default(0) @db.Decimal(18, 2)
+  lockedBalance Decimal        @default(0) @map("locked_balance") @db.Decimal(18, 2)
+  status        WalletStatus   @default(ACTIVE)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   ledgers       WalletLedger[]
 
   @@index([status])
@@ -506,10 +532,10 @@ model WalletLedger {
   createdByAdminId String?               @map("created_by_admin_id") @db.Uuid
   createdAt        DateTime              @default(now()) @map("created_at")
 
-  wallet         Wallet     @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdByAdmin AdminUser? @relation(fields: [createdByAdminId], references: [id], onDelete: SetNull)
-  creditedTopUps TopUpRequest[] @relation("TopUpCreditLedger")
+  wallet               Wallet              @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdByAdmin       AdminUser?          @relation(fields: [createdByAdminId], references: [id], onDelete: SetNull)
+  creditedTopUps       TopUpRequest[]      @relation("TopUpCreditLedger")
   completedWithdrawals WithdrawalRequest[] @relation("WithdrawalCompletionLedger")
 
   @@index([walletId, createdAt])
@@ -520,42 +546,42 @@ model WalletLedger {
 }
 
 model TopUpRequest {
-  id            String             @id @default(uuid()) @db.Uuid
-  userId        String             @map("user_id") @db.Uuid
-  amount        Decimal            @db.Decimal(18, 2)
-  currency      String             @default("THB") @db.VarChar(10)
-  status        TopUpRequestStatus @default(PENDING)
-  method        String?            @db.VarChar(80)
-  referenceCode String?            @map("reference_code") @db.VarChar(120)
-  note          String?
-  adminNote     String?            @map("admin_note")
-  reviewedBy    String?            @map("reviewed_by") @db.Uuid
-  reviewedAt    DateTime?          @map("reviewed_at")
-  claimedBy     String?            @map("claimed_by") @db.Uuid
-  claimedAt     DateTime?          @map("claimed_at")
-  slipUrl       String?            @map("slip_url")
-  slipFileHash  String?            @map("slip_file_hash") @db.VarChar(128)
-  slipPerceptualHash String?       @map("slip_perceptual_hash") @db.VarChar(128)
-  slipTransactionRef String?       @map("slip_transaction_ref") @db.VarChar(160)
-  slipDetectedAmount Decimal?      @map("slip_detected_amount") @db.Decimal(18, 2)
-  slipTransferredAt DateTime?      @map("slip_transferred_at")
-  duplicateOfId String?            @map("duplicate_of_id") @db.Uuid
-  duplicateReason String?          @map("duplicate_reason") @db.VarChar(160)
-  duplicateMatchScore Decimal?     @map("duplicate_match_score") @db.Decimal(8, 5)
-  slipReviewedBy String?           @map("slip_reviewed_by") @db.Uuid
-  slipReviewedAt DateTime?         @map("slip_reviewed_at")
-  creditConfirmedBy String?        @map("credit_confirmed_by") @db.Uuid
-  creditConfirmedAt DateTime?      @map("credit_confirmed_at")
-  creditedLedgerId String?         @map("credited_ledger_id") @db.Uuid
-  createdAt     DateTime           @default(now()) @map("created_at")
-  updatedAt     DateTime           @updatedAt @map("updated_at")
+  id                  String             @id @default(uuid()) @db.Uuid
+  userId              String             @map("user_id") @db.Uuid
+  amount              Decimal            @db.Decimal(18, 2)
+  currency            String             @default("THB") @db.VarChar(10)
+  status              TopUpRequestStatus @default(PENDING)
+  method              String?            @db.VarChar(80)
+  referenceCode       String?            @map("reference_code") @db.VarChar(120)
+  note                String?
+  adminNote           String?            @map("admin_note")
+  reviewedBy          String?            @map("reviewed_by") @db.Uuid
+  reviewedAt          DateTime?          @map("reviewed_at")
+  claimedBy           String?            @map("claimed_by") @db.Uuid
+  claimedAt           DateTime?          @map("claimed_at")
+  slipUrl             String?            @map("slip_url")
+  slipFileHash        String?            @map("slip_file_hash") @db.VarChar(128)
+  slipPerceptualHash  String?            @map("slip_perceptual_hash") @db.VarChar(128)
+  slipTransactionRef  String?            @map("slip_transaction_ref") @db.VarChar(160)
+  slipDetectedAmount  Decimal?           @map("slip_detected_amount") @db.Decimal(18, 2)
+  slipTransferredAt   DateTime?          @map("slip_transferred_at")
+  duplicateOfId       String?            @map("duplicate_of_id") @db.Uuid
+  duplicateReason     String?            @map("duplicate_reason") @db.VarChar(160)
+  duplicateMatchScore Decimal?           @map("duplicate_match_score") @db.Decimal(8, 5)
+  slipReviewedBy      String?            @map("slip_reviewed_by") @db.Uuid
+  slipReviewedAt      DateTime?          @map("slip_reviewed_at")
+  creditConfirmedBy   String?            @map("credit_confirmed_by") @db.Uuid
+  creditConfirmedAt   DateTime?          @map("credit_confirmed_at")
+  creditedLedgerId    String?            @map("credited_ledger_id") @db.Uuid
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
 
-  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewer AdminUser? @relation(fields: [reviewedBy], references: [id], onDelete: SetNull)
-  slipReviewer AdminUser? @relation("TopUpSlipReviewer", fields: [slipReviewedBy], references: [id], onDelete: SetNull)
-  creditConfirmer AdminUser? @relation("TopUpCreditConfirmer", fields: [creditConfirmedBy], references: [id], onDelete: SetNull)
-  creditedLedger WalletLedger? @relation("TopUpCreditLedger", fields: [creditedLedgerId], references: [id], onDelete: SetNull)
-  duplicateOf TopUpRequest? @relation("TopUpDuplicate", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer          AdminUser?     @relation(fields: [reviewedBy], references: [id], onDelete: SetNull)
+  slipReviewer      AdminUser?     @relation("TopUpSlipReviewer", fields: [slipReviewedBy], references: [id], onDelete: SetNull)
+  creditConfirmer   AdminUser?     @relation("TopUpCreditConfirmer", fields: [creditConfirmedBy], references: [id], onDelete: SetNull)
+  creditedLedger    WalletLedger?  @relation("TopUpCreditLedger", fields: [creditedLedgerId], references: [id], onDelete: SetNull)
+  duplicateOf       TopUpRequest?  @relation("TopUpDuplicate", fields: [duplicateOfId], references: [id], onDelete: SetNull)
   duplicateRequests TopUpRequest[] @relation("TopUpDuplicate")
 
   @@index([userId, createdAt])
@@ -568,39 +594,39 @@ model TopUpRequest {
 }
 
 model WithdrawalRequest {
-  id            String                  @id @default(uuid()) @db.Uuid
-  userId        String                  @map("user_id") @db.Uuid
-  amount        Decimal                 @db.Decimal(18, 2)
-  currency      String                  @default("THB") @db.VarChar(10)
-  status        WithdrawalRequestStatus @default(PENDING)
-  method        String?                 @db.VarChar(80)
-  accountName   String?                 @map("account_name") @db.VarChar(160)
-  accountNumber String?                 @map("account_number") @db.VarChar(160)
-  bankName      String?                 @map("bank_name") @db.VarChar(160)
-  note          String?
-  adminNote     String?                 @map("admin_note")
-  reviewedBy    String?                 @map("reviewed_by") @db.Uuid
-  reviewedAt    DateTime?               @map("reviewed_at")
-  claimedBy     String?                 @map("claimed_by") @db.Uuid
-  claimedAt     DateTime?               @map("claimed_at")
-  paymentSlipUrl String?                @map("payment_slip_url")
-  paymentSlipFileHash String?           @map("payment_slip_file_hash") @db.VarChar(128)
-  paymentTransactionRef String?         @map("payment_transaction_ref") @db.VarChar(160)
-  approvedForPaymentBy String?          @map("approved_for_payment_by") @db.Uuid
-  approvedForPaymentAt DateTime?        @map("approved_for_payment_at")
-  paymentUploadedBy String?             @map("payment_uploaded_by") @db.Uuid
-  paymentUploadedAt DateTime?           @map("payment_uploaded_at")
-  paymentVerifiedBy String?             @map("payment_verified_by") @db.Uuid
-  paymentVerifiedAt DateTime?           @map("payment_verified_at")
-  completedLedgerId String?             @map("completed_ledger_id") @db.Uuid
-  createdAt     DateTime                @default(now()) @map("created_at")
-  updatedAt     DateTime                @updatedAt @map("updated_at")
+  id                    String                  @id @default(uuid()) @db.Uuid
+  userId                String                  @map("user_id") @db.Uuid
+  amount                Decimal                 @db.Decimal(18, 2)
+  currency              String                  @default("THB") @db.VarChar(10)
+  status                WithdrawalRequestStatus @default(PENDING)
+  method                String?                 @db.VarChar(80)
+  accountName           String?                 @map("account_name") @db.VarChar(160)
+  accountNumber         String?                 @map("account_number") @db.VarChar(160)
+  bankName              String?                 @map("bank_name") @db.VarChar(160)
+  note                  String?
+  adminNote             String?                 @map("admin_note")
+  reviewedBy            String?                 @map("reviewed_by") @db.Uuid
+  reviewedAt            DateTime?               @map("reviewed_at")
+  claimedBy             String?                 @map("claimed_by") @db.Uuid
+  claimedAt             DateTime?               @map("claimed_at")
+  paymentSlipUrl        String?                 @map("payment_slip_url")
+  paymentSlipFileHash   String?                 @map("payment_slip_file_hash") @db.VarChar(128)
+  paymentTransactionRef String?                 @map("payment_transaction_ref") @db.VarChar(160)
+  approvedForPaymentBy  String?                 @map("approved_for_payment_by") @db.Uuid
+  approvedForPaymentAt  DateTime?               @map("approved_for_payment_at")
+  paymentUploadedBy     String?                 @map("payment_uploaded_by") @db.Uuid
+  paymentUploadedAt     DateTime?               @map("payment_uploaded_at")
+  paymentVerifiedBy     String?                 @map("payment_verified_by") @db.Uuid
+  paymentVerifiedAt     DateTime?               @map("payment_verified_at")
+  completedLedgerId     String?                 @map("completed_ledger_id") @db.Uuid
+  createdAt             DateTime                @default(now()) @map("created_at")
+  updatedAt             DateTime                @updatedAt @map("updated_at")
 
-  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewer AdminUser? @relation(fields: [reviewedBy], references: [id], onDelete: SetNull)
-  paymentApprover AdminUser? @relation("WithdrawalPaymentApprover", fields: [approvedForPaymentBy], references: [id], onDelete: SetNull)
-  proofUploader AdminUser? @relation("WithdrawalProofUploader", fields: [paymentUploadedBy], references: [id], onDelete: SetNull)
-  paymentVerifier AdminUser? @relation("WithdrawalPaymentVerifier", fields: [paymentVerifiedBy], references: [id], onDelete: SetNull)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer        AdminUser?    @relation(fields: [reviewedBy], references: [id], onDelete: SetNull)
+  paymentApprover AdminUser?    @relation("WithdrawalPaymentApprover", fields: [approvedForPaymentBy], references: [id], onDelete: SetNull)
+  proofUploader   AdminUser?    @relation("WithdrawalProofUploader", fields: [paymentUploadedBy], references: [id], onDelete: SetNull)
+  paymentVerifier AdminUser?    @relation("WithdrawalPaymentVerifier", fields: [paymentVerifiedBy], references: [id], onDelete: SetNull)
   completedLedger WalletLedger? @relation("WithdrawalCompletionLedger", fields: [completedLedgerId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
@@ -679,18 +705,18 @@ model SiteSettingHistory {
 }
 
 model GameProvider {
-  id              String                    @id @default(uuid()) @db.Uuid
-  name            String                    @db.VarChar(120)
-  code            String                    @unique @db.VarChar(80)
-  logoUrl         String?                   @map("logo_url")
-  status          GameProviderStatus        @default(INACTIVE)
-  walletMode      GameProviderWalletMode    @default(TRANSFER) @map("wallet_mode")
-  currency        String                    @default("THB") @db.VarChar(10)
-  timezone        String                    @default("Asia/Bangkok") @db.VarChar(80)
-  sortOrder       Int                       @default(100) @map("sort_order")
+  id              String                   @id @default(uuid()) @db.Uuid
+  name            String                   @db.VarChar(120)
+  code            String                   @unique @db.VarChar(80)
+  logoUrl         String?                  @map("logo_url")
+  status          GameProviderStatus       @default(INACTIVE)
+  walletMode      GameProviderWalletMode   @default(TRANSFER) @map("wallet_mode")
+  currency        String                   @default("THB") @db.VarChar(10)
+  timezone        String                   @default("Asia/Bangkok") @db.VarChar(80)
+  sortOrder       Int                      @default(100) @map("sort_order")
   metadata        Json?
-  createdAt       DateTime                  @default(now()) @map("created_at")
-  updatedAt       DateTime                  @updatedAt @map("updated_at")
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
   endpoints       GameProviderEndpoint[]
   credentials     GameProviderCredential[]
   games           Game[]
@@ -743,20 +769,20 @@ model GameProviderCredential {
 }
 
 model Game {
-  id               String       @id @default(uuid()) @db.Uuid
-  providerId       String       @map("provider_id") @db.Uuid
-  providerGameCode String       @map("provider_game_code") @db.VarChar(120)
-  name             String       @db.VarChar(180)
-  category         String       @db.VarChar(80)
-  status           GameStatus   @default(INACTIVE)
-  isFeatured       Boolean      @default(false) @map("is_featured")
-  isNew            Boolean      @default(false) @map("is_new")
-  isPopular        Boolean      @default(false) @map("is_popular")
-  sortOrder        Int          @default(100) @map("sort_order")
+  id               String        @id @default(uuid()) @db.Uuid
+  providerId       String        @map("provider_id") @db.Uuid
+  providerGameCode String        @map("provider_game_code") @db.VarChar(120)
+  name             String        @db.VarChar(180)
+  category         String        @db.VarChar(80)
+  status           GameStatus    @default(INACTIVE)
+  isFeatured       Boolean       @default(false) @map("is_featured")
+  isNew            Boolean       @default(false) @map("is_new")
+  isPopular        Boolean       @default(false) @map("is_popular")
+  sortOrder        Int           @default(100) @map("sort_order")
   metadata         Json?
-  createdAt        DateTime     @default(now()) @map("created_at")
-  updatedAt        DateTime     @updatedAt @map("updated_at")
-  provider         GameProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  provider         GameProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
   media            GameMedia[]
   sessions         GameSession[]
 

@@ -83,6 +83,14 @@ export class AdminAuthGuard implements CanActivate {
                 },
               },
             },
+            delegationsReceived: {
+              where: {
+                status: 'ACTIVE',
+                revokedAt: null,
+                expiresAt: { gt: new Date() },
+              },
+              select: { id: true, permissionCodes: true, grantorAdminId: true, expiresAt: true },
+            },
           },
         },
       },
@@ -96,9 +104,12 @@ export class AdminAuthGuard implements CanActivate {
     const directPermissions = session.adminUser.roles.flatMap((adminRole) =>
       adminRole.role.permissions.map((rolePermission) => rolePermission.permission.code),
     );
+    const delegationsReceived = session.adminUser.delegationsReceived ?? [];
+    const delegatedPermissions = delegationsReceived.flatMap((delegation) => delegation.permissionCodes);
     const permissions = Array.from(
       new Set([
         ...directPermissions,
+        ...delegatedPermissions,
         ...(roleCodes.some((code) => SUPER_ACCESS_ROLE_CODES.has(code)) ? ['*'] : []),
       ]),
     );
@@ -120,6 +131,8 @@ export class AdminAuthGuard implements CanActivate {
       requiresTwoFactor,
       twoFactorPolicyApplies: policyRequiresTwoFactor,
       twoFactorEnforcementEnabled,
+      delegated: delegationsReceived.length > 0,
+      delegationIds: delegationsReceived.map((delegation) => delegation.id),
     };
 
     if (requiresTwoFactor && !session.adminUser.twoFactorEnabled && !this.isTwoFactorBootstrapPath(request.url)) {

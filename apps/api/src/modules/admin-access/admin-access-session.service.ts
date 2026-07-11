@@ -8,7 +8,7 @@ export class AdminAccessSessionService {
   async revokeAfterPrivilegeChange(
     actorAdminId: string,
     targetAdminId: string,
-    change: 'ASSIGN_ROLE' | 'REMOVE_ROLE',
+    change: 'ASSIGN_ROLE' | 'REMOVE_ROLE' | 'REVOKE_DELEGATION',
   ) {
     const revokedAt = new Date();
     const result = await this.prisma.authSession.updateMany({

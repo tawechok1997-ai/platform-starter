@@ -21,6 +21,41 @@ export class AdminAccessController {
     return this.service.overview();
   }
 
+  @RequirePermission('admin.access.view')
+  @Get('delegations')
+  listDelegations(@Req() req: any) {
+    return this.service.listDelegations(req.user.id);
+  }
+
+  @RequirePermission('admin.access.delegate')
+  @Post('delegations')
+  createDelegation(
+    @Req() req: any,
+    @Body() body: { delegateAdminId?: string; permissionCodes?: string[]; expiresInHours?: number; reason?: string },
+  ) {
+    return this.service.createDelegation(
+      req.user.id,
+      String(body.delegateAdminId ?? ''),
+      Array.isArray(body.permissionCodes) ? body.permissionCodes : [],
+      Number(body.expiresInHours ?? 24),
+      String(body.reason ?? ''),
+    );
+  }
+
+  @RequirePermission('admin.access.delegate')
+  @Post('delegations/:delegationId/revoke')
+  async revokeDelegation(
+    @Req() req: any,
+    @Param('delegationId') delegationId: string,
+    @Body() body: { reason?: string },
+  ) {
+    const result = await this.service.revokeDelegation(req.user.id, delegationId, String(body.reason ?? ''));
+    if (result.changed) {
+      await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, result.delegation.delegateAdminId, 'REVOKE_DELEGATION');
+    }
+    return result;
+  }
+
   @RequirePermission('admin.create')
   @Post('invitations')
   createInvitation(

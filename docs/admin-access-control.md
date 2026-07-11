@@ -10,6 +10,7 @@ The following permissions must exist in the `permissions` table:
 | --- | --- | --- |
 | `admin.access.view` | `admin-access` | View roles, permissions, and admin user role assignments. Required for `GET /admin/access/overview`. |
 | `admin.access.manage` | `admin-access` | Assign and remove roles from admin users. Required for role mutation endpoints. |
+| `admin.access.delegate` | `admin-access` | Create and revoke time-limited permission delegations. |
 
 ## API endpoints
 
@@ -18,6 +19,19 @@ The following permissions must exist in the `permissions` table:
 | `GET` | `/admin/access/overview` | `admin.access.view` |
 | `POST` | `/admin/access/admin-users/:adminUserId/roles` | `admin.access.manage` |
 | `DELETE` | `/admin/access/admin-users/:adminUserId/roles/:roleId` | `admin.access.manage` |
+| `GET` | `/admin/access/delegations` | `admin.access.view` |
+| `POST` | `/admin/access/delegations` | `admin.access.delegate` |
+| `POST` | `/admin/access/delegations/:delegationId/revoke` | `admin.access.delegate` |
+
+## Delegated access safety
+
+Delegated access stores an explicit permission allow-list and expires after at most 168 hours. The following permissions can never be delegated:
+
+- `*`
+- `admin.create`, `admin.access.manage`, `admin.access.delegate`, `roles.update`
+- wallet adjustment, withdrawal approval/success, security settings, and anti-bot override permissions
+
+The Admin Auth Guard reads active delegations on every authenticated request. A revoked or expired delegation therefore stops granting access immediately. Delegated admins cannot create further delegations and protected owner accounts cannot receive them. Create and revoke actions are written to `admin_audit_logs`; revocation also invalidates the delegate's active sessions.
 
 ## Seed permissions
 
@@ -31,6 +45,7 @@ The seed script upserts these permissions:
 
 - `admin.access.view`
 - `admin.access.manage`
+- `admin.access.delegate`
 
 If a role with one of these codes exists, the script also attaches both permissions to it:
 

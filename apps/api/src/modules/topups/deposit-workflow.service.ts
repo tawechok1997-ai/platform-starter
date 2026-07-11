@@ -93,9 +93,6 @@ export class DepositWorkflowService {
 
     const ext = match[2] === 'jpeg' ? 'jpg' : match[2];
     const key = `slips/${new Date().toISOString().slice(0, 10)}/${randomUUID()}.${ext}`;
-    const detectedAmount = input.detectedAmount && Number.isFinite(Number(input.detectedAmount)) ? Number(input.detectedAmount) : null;
-    const transferredAt = input.transferredAt ? new Date(input.transferredAt) : null;
-    if (transferredAt && Number.isNaN(transferredAt.getTime())) throw new BadRequestException('Invalid transferredAt');
     await this.storage.put(key, buffer, match[1]);
     try {
       const changed = await this.prisma.$executeRaw(Prisma.sql`
@@ -304,5 +301,10 @@ export class DepositWorkflowService {
     if (key.endsWith('.png')) return 'image/png';
     if (key.endsWith('.webp')) return 'image/webp';
     return 'image/jpeg';
+  }
+
+  private assertClaimOwner(claimedBy: string | null, adminUserId: string) {
+    if (!claimedBy) throw new ConflictException('ต้อง claim รายการก่อนดำเนินการ');
+    if (claimedBy !== adminUserId) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
   }
 }

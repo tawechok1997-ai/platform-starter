@@ -7,6 +7,19 @@ import { PrismaService } from '../../database/prisma.service';
 const SUPER_PERMISSION = '*';
 const PROTECTED_ROLE_CODES = new Set(['owner', 'super_admin']);
 const ADMIN_INVITE_TARGET_PREFIX = 'ADMIN_INVITE:';
+const MAX_DELEGATION_HOURS = 168;
+const NON_DELEGABLE_PERMISSIONS = new Set([
+  SUPER_PERMISSION,
+  'admin.create',
+  'admin.access.manage',
+  'admin.access.delegate',
+  'roles.update',
+  'wallet.adjust',
+  'withdraw.approve',
+  'withdraw.success',
+  'settings.security.update',
+  'security.antibot.override',
+]);
 
 const GROWTH_PERMISSIONS = [
   { code: 'promotions.claims.view', name: 'View promotion claims', module: 'promotions', description: 'ดูคำขอรับโปรโมชัน' },
@@ -19,6 +32,7 @@ const GROWTH_PERMISSIONS = [
   { code: 'commission.view', name: 'View commission ledger', module: 'commission', description: 'ดู commission ledger' },
   { code: 'commission.create', name: 'Create commission ledger', module: 'commission', description: 'สร้าง commission ledger แบบ manual review' },
   { code: 'commission.review', name: 'Review commission ledger', module: 'commission', description: 'อนุมัติหรือปฏิเสธ commission ledger' },
+  { code: 'admin.access.delegate', name: 'Delegate limited admin access', module: 'admin-access', description: 'มอบสิทธิ์แอดมินแบบจำกัดและมีวันหมดอายุ' },
 ];
 
 @Injectable()
@@ -215,6 +229,129 @@ export class AdminAccessService {
     await this.prisma.adminUserRole.delete({ where: { adminUserId_roleId: { adminUserId: targetAdminId, roleId } } });
     await this.audit(actorAdminId, 'REMOVE_ROLE', targetAdminId, { roleId, roleCode: assignment.role.code, target: target.username });
     return this.overview();
+  }
+
+  async listDelegations(actorAdminId: string) {
+    await this.prisma.adminDelegation.updateMany({
+      where: { status: 'ACTIVE', revokedAt: null, expiresAt: { lte: new Date() } },
+      data: { status: 'EXPIRED' },
+    });
+
+    return this.prisma.adminDelegation.findMany({
+      where: { OR: [{ grantorAdminId: actorAdminId }, { delegateAdminId: actorAdminId }] },
+      include: {
+        grantor: { select: { id: true, username: true, email: true } },
+        delegate: { select: { id: true, username: true, email: true, status: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createDelegation(
+    actorAdminId: string,
+    delegateAdminId: string,
+    permissionCodesInput: string[],
+    expiresInHoursInput: number,
+    reasonInput: string,
+  ) {
+    const [actor, target] = await Promise.all([
+      this.findAdminWithPermissions(actorAdminId),
+      this.prisma.adminUser.findUnique({ where: { id: delegateAdminId }, include: { roles: { include: { role: true } } } }),
+    ]);
+    if (!actor) throw new ForbiddenException('Acting admin account not found');
+    if (!target) throw new NotFoundException('Delegate admin user not found');
+    if (target.status !== 'ACTIVE') throw new BadRequestException('Delegate admin must be active');
+    if (actorAdminId === delegateAdminId) throw new BadRequestException('An admin cannot delegate to themselves');
+    if (target.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code))) {
+      throw new ForbiddenException('Protected owner accounts cannot receive delegated access');
+    }
+
+    const existingDelegation = await this.prisma.adminDelegation.findFirst({
+      where: { delegateAdminId: actorAdminId, status: 'ACTIVE', revokedAt: null, expiresAt: { gt: new Date() } },
+      select: { id: true },
+    });
+    if (existingDelegation) throw new ForbiddenException('Delegated admins cannot create further delegations');
+
+    const actorPermissions = this.permissionCodes(actor);
+    if (!actorPermissions.has(SUPER_PERMISSION) && !actorPermissions.has('admin.access.delegate')) {
+      throw new ForbiddenException('Delegated access permission is required');
+    }
+
+    const permissionCodes = Array.from(new Set((permissionCodesInput ?? []).map((code) => String(code).trim()).filter(Boolean)));
+    if (permissionCodes.length === 0 || permissionCodes.length > 40) throw new BadRequestException('One to forty permissions are required');
+    if (permissionCodes.some((code) => NON_DELEGABLE_PERMISSIONS.has(code))) {
+      throw new ForbiddenException('One or more requested permissions cannot be delegated');
+    }
+    if (!actorPermissions.has(SUPER_PERMISSION)) {
+      const missing = permissionCodes.filter((code) => !actorPermissions.has(code));
+      if (missing.length > 0) throw new ForbiddenException(`Cannot delegate permissions not held by the acting admin: ${missing.join(', ')}`);
+    }
+
+    const hours = Number(expiresInHoursInput);
+    if (!Number.isFinite(hours) || hours < 1 || hours > MAX_DELEGATION_HOURS) {
+      throw new BadRequestException(`Delegation expiry must be between 1 and ${MAX_DELEGATION_HOURS} hours`);
+    }
+    const reason = String(reasonInput ?? '').trim();
+    if (reason.length < 5) throw new BadRequestException('A reason of at least 5 characters is required');
+    const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
+
+    const delegation = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.adminDelegation.create({
+        data: { grantorAdminId: actorAdminId, delegateAdminId, permissionCodes, expiresAt, reason },
+        include: {
+          grantor: { select: { id: true, username: true, email: true } },
+          delegate: { select: { id: true, username: true, email: true, status: true } },
+        },
+      });
+      await tx.adminAuditLog.create({
+        data: {
+          adminUserId: actorAdminId,
+          action: 'CREATE_ADMIN_DELEGATION',
+          module: 'admin-access',
+          targetId: delegateAdminId,
+          newData: { delegationId: created.id, permissionCodes, expiresAt: expiresAt.toISOString(), reason },
+        },
+      });
+      return created;
+    });
+
+    return { success: true, delegation };
+  }
+
+  async revokeDelegation(actorAdminId: string, delegationId: string, reasonInput: string) {
+    const [actor, delegation] = await Promise.all([
+      this.findAdminWithPermissions(actorAdminId),
+      this.prisma.adminDelegation.findUnique({ where: { id: delegationId }, include: { grantor: { include: { roles: { include: { role: true } } } }, delegate: true } }),
+    ]);
+    if (!actor) throw new ForbiddenException('Acting admin account not found');
+    if (!delegation) throw new NotFoundException('Delegation not found');
+    const actorPermissions = this.permissionCodes(actor);
+    const actorProtected = actor.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code));
+    if (delegation.grantorAdminId !== actorAdminId && (!actorProtected || !actorPermissions.has(SUPER_PERMISSION))) {
+      throw new ForbiddenException('Only the grantor or an owner-level admin can revoke this delegation');
+    }
+    if (delegation.status !== 'ACTIVE' || delegation.revokedAt) return { success: true, changed: false, delegation };
+    const reason = String(reasonInput ?? '').trim();
+    if (reason.length < 5) throw new BadRequestException('A reason of at least 5 characters is required');
+
+    const revoked = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.adminDelegation.update({
+        where: { id: delegationId },
+        data: { status: 'REVOKED', revokedAt: new Date(), revokedByAdminId: actorAdminId },
+      });
+      await tx.adminAuditLog.create({
+        data: {
+          adminUserId: actorAdminId,
+          action: 'REVOKE_ADMIN_DELEGATION',
+          module: 'admin-access',
+          targetId: delegation.delegateAdminId,
+          oldData: { delegationId, status: delegation.status, permissionCodes: delegation.permissionCodes },
+          newData: { status: 'REVOKED', reason },
+        },
+      });
+      return updated;
+    });
+    return { success: true, changed: true, delegation: revoked };
   }
 
   private assertCanGrantRole(

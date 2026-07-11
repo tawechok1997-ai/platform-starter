@@ -16,6 +16,12 @@ const PERMISSIONS = [
     description: 'Allow assigning and removing roles from admin users.',
   },
   {
+    code: 'admin.access.delegate',
+    name: 'Delegate limited admin access',
+    module: 'admin-access',
+    description: 'Allow creating and revoking time-limited permission delegations.',
+  },
+  {
     code: 'admin.reports.view',
     name: 'View admin reports',
     module: 'reports',

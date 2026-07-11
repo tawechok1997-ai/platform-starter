@@ -31,6 +31,7 @@ This file is the short operational worklist for the current implementation cycle
 - [x] Privileged-admin 2FA test configuration fixed without weakening production enforcement.
 - [x] Risk Alert assignment, assignee permissions, and investigation notes/timeline added.
 - [x] Audit Log Risk target links corrected to the Risk Alert detail route.
+- [x] Delegated Access allow-list, expiry, revocation, owner boundary, and audit trail added.
 - [x] GitHub Actions Build #270 completed successfully for commit `c7edec0`.
 
 ## CI checkpoint
@@ -107,6 +108,7 @@ Still requires direct deployment verification:
 - [ ] Add auto-close suggestions linked to resolved finance/provider records.
 - [ ] Finish Audit Log target links for all supported modules.
 - [ ] Verify Audit Log pagination, long JSON diff rendering, empty state, and mobile regression.
+- [ ] Run delegated access staging regression with grant, expiry, revoke, and owner-boundary cases.
 
 ## Deployment and monitoring remaining
 

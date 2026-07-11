@@ -100,7 +100,7 @@ export class WithdrawalWorkflowService {
           `);
           if (existing[0]?.payment_slip_file_hash === fileHash) return { ok: true, status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: existing[0].payment_slip_url, fileHash, idempotent: true };
         }
-        if (request.status !== 'APPROVED_FOR_PAYMENT') throw new ConflictException(`Withdrawal cannot accept proof: ${request.status}`);
+        if (rows[0].status !== 'APPROVED_FOR_PAYMENT') throw new ConflictException(`Withdrawal cannot accept proof: ${rows[0].status}`);
 
         const changed = await tx.$executeRaw(Prisma.sql`
           UPDATE "withdrawal_requests"
@@ -205,5 +205,10 @@ export class WithdrawalWorkflowService {
     if (key.endsWith('.png')) return 'image/png';
     if (key.endsWith('.webp')) return 'image/webp';
     return 'image/jpeg';
+  }
+
+  private assertClaimOwner(claimedBy: string | null, adminUserId: string) {
+    if (!claimedBy) throw new ConflictException('ต้อง claim รายการก่อนดำเนินการ');
+    if (claimedBy !== adminUserId) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
   }
 }

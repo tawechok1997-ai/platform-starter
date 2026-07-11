@@ -105,6 +105,15 @@ Updated: 2026-07-11
 - ⏳ แสดง metadata ของสลิปซ้ำและรายการต้นฉบับ
 - ⏳ ลิงก์ไปยังสมาชิกและ finance request ที่เกี่ยวข้อง
 
+### 2.5 Delegated Access
+
+- ✅ จำกัด permission ที่มอบหมายได้เป็น allow-list และห้าม wildcard/สิทธิ์ระดับ Owner
+- ✅ บังคับวันหมดอายุไม่เกิน 7 วัน และตรวจหมดอายุจาก Admin Auth Guard ทุก request
+- ✅ ยกเลิกสิทธิ์ได้ทันที พร้อม revoke session ของผู้รับสิทธิ์
+- ✅ บันทึก create/revoke ลง Admin Audit Log
+- ✅ เพิ่ม UI สำหรับสร้างและยกเลิก delegated access
+- 🧪 ทดสอบ delegated access บน staging กับบัญชีแอดมินจริง
+
 ### 3. Finance E2E coverage
 
 - ⏳ Member สร้างรายการฝากและส่งสลิป

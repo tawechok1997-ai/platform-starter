@@ -9,7 +9,8 @@ import InviteAdminPanel from './invite-admin-panel';
 type Permission = { id: string; code: string; name: string; module: string; description?: string | null };
 type Role = { id: string; code: string; name: string; description?: string | null; level: number; adminUserCount: number; permissionCount: number; hasWildcard: boolean; permissions: Permission[] };
 type AdminUser = { id: string; username: string; email: string; status: string; twoFactorEnabled: boolean; lastLoginAt?: string | null; createdAt: string; protected?: boolean; roles: { id: string; code: string; name: string; level: number }[] };
-type AccessResponse = { summary: { roleCount: number; permissionCount: number; adminUserCount: number; wildcardRoleCount: number }; roles: Role[]; permissions: Permission[]; adminUsers: AdminUser[] };
+type Delegation = { id: string; grantorAdminId: string; delegateAdminId: string; permissionCodes: string[]; status: string; reason?: string | null; expiresAt: string; revokedAt?: string | null; grantor: { username: string }; delegate: { username: string; email: string; status: string } };
+type AccessResponse = { summary: { roleCount: number; permissionCount: number; adminUserCount: number; wildcardRoleCount: number }; roles: Role[]; permissions: Permission[]; adminUsers: AdminUser[]; delegations: Delegation[] };
 type CurrentAdmin = { permissions?: string[] };
 
 export default function AccessOverviewPage() {
@@ -19,25 +20,33 @@ export default function AccessOverviewPage() {
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState('');
   const [permissionsHeld, setPermissionsHeld] = useState<string[]>([]);
+  const [delegations, setDelegations] = useState<Delegation[]>([]);
+  const [delegateAdminId, setDelegateAdminId] = useState('');
+  const [delegationPermissionCodes, setDelegationPermissionCodes] = useState('');
+  const [delegationHours, setDelegationHours] = useState('24');
+  const [delegationReason, setDelegationReason] = useState('');
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     setMessage('กำลังโหลดสิทธิ์แอดมิน...');
     try {
-      const [accessRes, meRes] = await Promise.all([
+      const [accessRes, meRes, delegationRes] = await Promise.all([
         adminApiFetch('/admin/access/overview'),
         adminApiFetch('/admin/auth/me'),
+        adminApiFetch('/admin/access/delegations'),
       ]);
-      const [payload, mePayload] = await Promise.all([
+      const [payload, mePayload, delegationPayload] = await Promise.all([
         accessRes.json().catch(() => null),
         meRes.json().catch(() => null),
+        delegationRes.json().catch(() => null),
       ]);
       if (!accessRes.ok) {
         setMessage(payload?.message ?? 'โหลดข้อมูลสิทธิ์ไม่สำเร็จ');
         return;
       }
       setData(payload);
+      setDelegations(Array.isArray(delegationPayload) ? delegationPayload : []);
       setPermissionsHeld(Array.isArray((mePayload as CurrentAdmin | null)?.permissions) ? (mePayload as CurrentAdmin).permissions ?? [] : []);
       setMessage('');
     } catch {
@@ -47,6 +56,32 @@ export default function AccessOverviewPage() {
 
   const canManage = permissionsHeld.includes('*') || permissionsHeld.includes('admin.access.manage');
   const canInvite = permissionsHeld.includes('*') || permissionsHeld.includes('admin.create');
+  const canDelegate = permissionsHeld.includes('*') || permissionsHeld.includes('admin.access.delegate');
+
+  async function createDelegation() {
+    if (!canDelegate || !delegateAdminId) { setMessage('กรุณาเลือกผู้รับสิทธิ์'); return; }
+    const permissionCodes = delegationPermissionCodes.split(/[,\n ]+/).map((item) => item.trim()).filter(Boolean);
+    if (permissionCodes.length === 0 || delegationReason.trim().length < 5) { setMessage('กรุณาระบุ permission และเหตุผลอย่างน้อย 5 ตัวอักษร'); return; }
+    setBusyKey('delegation:create');
+    const res = await adminApiFetch('/admin/access/delegations', { method: 'POST', body: JSON.stringify({ delegateAdminId, permissionCodes, expiresInHours: Number(delegationHours), reason: delegationReason }) });
+    const payload = await res.json().catch(() => null);
+    setBusyKey('');
+    if (!res.ok) { setMessage(payload?.message ?? 'สร้าง delegated access ไม่สำเร็จ'); return; }
+    setDelegations((current) => [payload.delegation, ...current]);
+    setDelegateAdminId(''); setDelegationPermissionCodes(''); setDelegationReason('');
+    setMessage('สร้าง delegated access แล้ว');
+  }
+
+  async function revokeDelegation(item: Delegation) {
+    if (!window.confirm(`ยืนยันยกเลิกสิทธิ์ชั่วคราวของ ${item.delegate.username}?`)) return;
+    setBusyKey(`delegation:${item.id}`);
+    const res = await adminApiFetch(`/admin/access/delegations/${item.id}/revoke`, { method: 'POST', body: JSON.stringify({ reason: 'สิ้นสุดการมอบหมายงาน' }) });
+    const payload = await res.json().catch(() => null);
+    setBusyKey('');
+    if (!res.ok) { setMessage(payload?.message ?? 'ยกเลิก delegated access ไม่สำเร็จ'); return; }
+    setDelegations((current) => current.map((entry) => entry.id === item.id ? payload.delegation : entry));
+    setMessage('ยกเลิก delegated access แล้ว');
+  }
 
   async function assignRole(adminUser: AdminUser) {
     if (!canManage || adminUser.protected) return;
@@ -102,6 +137,17 @@ export default function AccessOverviewPage() {
         </AdminCard>
       </AdminGrid>
 
+      <AdminCard title="Delegated Access" description="มอบ permission แบบจำกัดเวลาให้แอดมินที่ไม่ใช่ Owner พร้อม audit trail">
+        {canDelegate && <div style={delegationFormStyle}>
+          <select value={delegateAdminId} onChange={(event) => setDelegateAdminId(event.target.value)} style={selectStyle}><option value="">เลือกผู้รับสิทธิ์</option>{data.adminUsers.filter((user) => user.status === 'ACTIVE' && !user.protected).map((user) => <option key={user.id} value={user.id}>{user.username} · {user.email}</option>)}</select>
+          <input value={delegationPermissionCodes} onChange={(event) => setDelegationPermissionCodes(event.target.value)} placeholder="reports.view, risk.view" style={inputStyle} />
+          <input value={delegationHours} onChange={(event) => setDelegationHours(event.target.value)} type="number" min="1" max="168" placeholder="ชั่วโมง" style={inputStyle} />
+          <input value={delegationReason} onChange={(event) => setDelegationReason(event.target.value)} placeholder="เหตุผลการมอบหมาย" style={inputStyle} />
+          <AdminButton disabled={Boolean(busyKey)} onClick={createDelegation}>มอบสิทธิ์</AdminButton>
+        </div>}
+        <AdminStack>{delegations.map((item) => <AdminSectionRow key={item.id}><div style={userBlockStyle}><div style={badgeRowStyle}><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : 'neutral'}>{item.status}</AdminBadge><AdminBadge>{new Date(item.expiresAt).toLocaleString('th-TH')}</AdminBadge></div><strong>{item.delegate.username}</strong><p>ผู้มอบ: {item.grantor.username} · {item.reason ?? 'ไม่มีเหตุผล'}</p><div style={rolePillWrapStyle}>{item.permissionCodes.map((code) => <span key={code} style={rolePillStyle}>{code}</span>)}</div></div>{item.status === 'ACTIVE' && canDelegate && <AdminButton disabled={Boolean(busyKey)} onClick={() => revokeDelegation(item)}>ยกเลิก</AdminButton>}</AdminSectionRow>)}{delegations.length === 0 && <AdminEmpty>ยังไม่มี delegated access</AdminEmpty>}</AdminStack>
+      </AdminCard>
+
       <AdminCard title="Permissions" description="รายการ permission ทั้งหมดในระบบ">
         <div style={toolbarStyle}><select value={moduleFilter} onChange={(event) => setModuleFilter(event.target.value)} style={selectStyle}>{modules.map((item) => <option key={item} value={item}>{item}</option>)}</select></div>
         <AdminStack>{permissions.map((permission) => <AdminSectionRow key={permission.id}><div style={permissionBlockStyle}><AdminBadge>{permission.module}</AdminBadge><strong>{permission.code}</strong><p>{permission.name}</p>{permission.description && <p>{permission.description}</p>}</div></AdminSectionRow>)}{permissions.length === 0 && <AdminEmpty>ไม่มี permission ใน filter นี้</AdminEmpty>}</AdminStack>
@@ -122,3 +168,5 @@ const emptyRoleStyle = { color: '#94a3b8', fontWeight: 800 } as const;
 const assignPanelStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: 8, alignContent: 'start', minWidth: 0 } as const;
 const permissionBlockStyle = { display: 'grid', gap: 7, minWidth: 0 } as const;
 const selectStyle = { minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', minWidth: 0, width: '100%' } as const;
+const inputStyle = { ...selectStyle, padding: '0 12px' } as const;
+const delegationFormStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(190px, 100%), 1fr))', gap: 10, marginBottom: 16 } as const;
