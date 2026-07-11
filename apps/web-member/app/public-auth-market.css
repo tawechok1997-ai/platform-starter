@@ -231,20 +231,73 @@
 }
 
 @media (max-width: 1023px) {
+  html:has(.public-auth-page),
+  body:has(.public-auth-page) {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  .public-auth-page {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  .public-auth-shell,
+  .public-auth-shell.public-auth-shell--register {
+    width: 100%;
+    max-width: 600px !important;
+    min-width: 0;
+    min-height: 100dvh;
+    margin-inline: auto;
+    grid-template-columns: minmax(0, 1fr);
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+  }
+  .public-auth-brand-panel { display: none; }
   .public-auth-scene__tower { right: 6%; height: 48%; opacity: .38; }
   .public-auth-scene__tower--small { right: 21%; height: 32%; }
   .public-auth-scene__arc { width: 620px; left: -230px; bottom: -260px; opacity: .65; }
   .public-auth-scene__light { width: 110%; left: -35%; bottom: 18%; opacity: .42; }
   .public-auth-card {
-    width: min(600px, 100%);
+    grid-column: 1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     min-height: 100dvh;
+    margin: 0;
     padding: max(24px, env(safe-area-inset-top)) clamp(18px, 6vw, 42px) calc(24px + env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 0;
     background: linear-gradient(to bottom, rgba(7,10,15,.93) 0%, rgba(9,13,19,.91) 68%, rgba(7,10,15,.76) 100%);
   }
   .public-auth-card-topbar { margin-bottom: clamp(18px, 5vh, 42px); }
   .public-auth-heading { text-align: left; }
   .public-auth-card-topbar .public-auth-language { justify-content: flex-end; }
   .public-auth-legal { margin-top: 18px; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .public-auth-shell,
+  .public-auth-shell.public-auth-shell--register {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    max-width: 600px !important;
+    min-width: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .public-auth-brand-panel { display: none; }
+  .public-auth-card {
+    grid-column: 1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    border: 0;
+    border-radius: 0;
+  }
 }
 
 @media (max-width: 560px) {
