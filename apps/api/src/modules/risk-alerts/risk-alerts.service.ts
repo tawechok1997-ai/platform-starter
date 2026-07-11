@@ -2,7 +2,7 @@ import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundExc
 import { Decimal } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../database/prisma.service';
 
-type RiskFilter = { status?: string; severity?: string; type?: string; memberId?: string; createdFrom?: string; createdTo?: string; page?: string; take?: string };
+type RiskFilter = { status?: string; severity?: string; type?: string; memberId?: string; provider?: string; createdFrom?: string; createdTo?: string; page?: string; take?: string };
 type RiskStatus = 'OPEN' | 'REVIEWING' | 'RESOLVED' | 'DISMISSED';
 type RiskSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 type RiskType = 'REPEATED_TOPUPS' | 'RAPID_DEPOSIT_WITHDRAWAL' | 'HIGH_WITHDRAWAL' | 'BANK_CHANGE_WITHDRAWAL' | 'MULTIPLE_PENDING_TOPUPS' | 'WALLET_LEDGER_MISMATCH' | 'DUPLICATE_DEPOSIT_SLIP' | 'REPEATED_DUPLICATE_DEPOSIT_SLIP';
@@ -45,6 +45,11 @@ export class RiskAlertsService {
       const memberId = filter.memberId.trim();
       if (!UUID_PATTERN.test(memberId)) throw new BadRequestException('Invalid memberId filter');
       where.memberId = memberId;
+    }
+    if (filter.provider) {
+      const provider = filter.provider.trim();
+      if (!/^[a-z0-9._-]{1,64}$/i.test(provider)) throw new BadRequestException('Invalid provider filter');
+      where.metadata = { path: ['providerCode'], equals: provider };
     }
     const createdAt = this.buildDateRange(filter.createdFrom, filter.createdTo);
     if (createdAt) where.createdAt = createdAt;
@@ -105,6 +110,40 @@ export class RiskAlertsService {
     const item = await this.prisma.riskAlert.update({ where: { id }, data: { status: status as any, resolvedAt: isResolved ? new Date() : null, resolvedBy: isResolved ? admin?.id : null } });
     await this.audit(admin?.id, 'UPDATE_RISK_ALERT_STATUS', id, { status: existing.status }, { status });
     return { item: this.formatAlert(item) };
+  }
+
+  async bulkDismiss(ids: string[], admin: any) {
+    const uniqueIds = [...new Set((ids ?? []).map((id) => String(id).trim()).filter(Boolean))].slice(0, 50);
+    if (!uniqueIds.length) throw new BadRequestException('At least one risk alert id is required');
+    const items = await this.prisma.riskAlert.findMany({ where: { id: { in: uniqueIds } }, select: { id: true, severity: true, status: true } });
+    if (items.length !== uniqueIds.length) throw new NotFoundException('One or more risk alerts were not found');
+    const blocked = items.filter((item) => !['LOW', 'MEDIUM'].includes(item.severity) || !ACTIVE_ALERT_STATUSES.includes(item.status as RiskStatus));
+    if (blocked.length) throw new BadRequestException('Bulk dismiss is limited to active LOW/MEDIUM alerts');
+    const updated = [];
+    for (const item of items) {
+      updated.push(await this.updateStatus(item.id, 'DISMISSED', admin));
+    }
+    await this.audit(admin?.id, 'BULK_DISMISS_RISK_ALERTS', 'risk-alerts', { ids: uniqueIds }, { count: updated.length });
+    return { updated: updated.length, items: updated.map((result) => result.item) };
+  }
+
+  async autoCloseSuggestions(limit = 50) {
+    const items = await this.prisma.riskAlert.findMany({ where: { status: { in: ACTIVE_ALERT_STATUSES } as any, refId: { not: null } }, orderBy: { createdAt: 'asc' }, take: Math.min(Math.max(limit, 1), 100) });
+    const suggestions: any[] = [];
+    for (const alert of items) {
+      let resolved = false;
+      if (alert.refType === 'topup' || alert.refType === 'top_up_request' || alert.type === 'DUPLICATE_DEPOSIT_SLIP') {
+        const request = await this.prisma.topUpRequest.findUnique({ where: { id: alert.refId! }, select: { status: true } });
+        resolved = Boolean(request && ['COMPLETED', 'REJECTED'].includes(request.status));
+      } else if (alert.refType === 'withdrawal_request') {
+        const request = await this.prisma.withdrawalRequest.findUnique({ where: { id: alert.refId! }, select: { status: true } });
+        resolved = Boolean(request && ['COMPLETED', 'REJECTED'].includes(request.status));
+      } else if (alert.refType === 'provider' && (alert.metadata as any)?.providerStatus === 'RESOLVED') {
+        resolved = true;
+      }
+      if (resolved) suggestions.push({ id: alert.id, reason: 'related finance/provider record is terminal', status: alert.status, refType: alert.refType, refId: alert.refId });
+    }
+    return { items: suggestions };
   }
 
   async scan(admin?: any) {
