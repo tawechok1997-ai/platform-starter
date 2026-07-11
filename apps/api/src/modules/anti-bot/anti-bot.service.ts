@@ -147,7 +147,16 @@ export class AntiBotService {
   ) {
     const config = await this.getStoredConfig();
     if (!token?.trim()) throw new BadRequestException('A CAPTCHA response token is required for testing');
-    const result = await this.verifyWithProvider(config, token.trim(), remoteIp);
+    let result: { success: boolean; provider: AntiBotProvider; errorCodes: string[] };
+    try {
+      result = await this.verifyWithProvider(config, token.trim(), remoteIp);
+    } catch (error) {
+      await this.auditSecurityEvent('ANTI_BOT_PROVIDER_UNAVAILABLE', config.provider, {
+        route: 'ADMIN_TEST',
+        reason: error instanceof ServiceUnavailableException ? 'PROVIDER_UNAVAILABLE' : 'VERIFICATION_ERROR',
+      }, meta);
+      throw error;
+    }
     await this.prisma.adminAuditLog.create({
       data: {
         adminUserId: actorAdminId,
@@ -167,9 +176,47 @@ export class AntiBotService {
     const config = await this.getStoredConfig();
     if (!config.enabled || !config.routes[route]) return { required: false, success: true };
     if (!token?.trim()) throw new BadRequestException({ code: 'CAPTCHA_REQUIRED', message: 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ' });
-    const result = await this.verifyWithProvider(config, token.trim(), remoteIp);
-    if (!result.success) throw new BadRequestException({ code: 'CAPTCHA_INVALID', message: 'การยืนยันไม่สำเร็จ กรุณาลองใหม่' });
+    let result: { success: boolean; provider: AntiBotProvider; errorCodes: string[] };
+    try {
+      result = await this.verifyWithProvider(config, token.trim(), remoteIp);
+    } catch (error) {
+      await this.auditSecurityEvent('ANTI_BOT_PROVIDER_UNAVAILABLE', route, {
+        provider: config.provider,
+        reason: error instanceof ServiceUnavailableException ? 'PROVIDER_UNAVAILABLE' : 'VERIFICATION_ERROR',
+      }, { ipAddress: remoteIp });
+      throw error;
+    }
+    if (!result.success) {
+      await this.auditSecurityEvent('ANTI_BOT_TOKEN_REJECTED', route, {
+        provider: result.provider,
+        errorCodes: result.errorCodes,
+      }, { ipAddress: remoteIp });
+      throw new BadRequestException({ code: 'CAPTCHA_INVALID', message: 'การยืนยันไม่สำเร็จ กรุณาลองใหม่' });
+    }
     return { required: true, success: true };
+  }
+
+  private async auditSecurityEvent(
+    action: string,
+    targetId: string,
+    newData: Prisma.InputJsonObject,
+    meta: { ipAddress?: string; userAgent?: string },
+  ) {
+    try {
+      await this.prisma.adminAuditLog.create({
+        data: {
+          adminUserId: null,
+          action,
+          module: 'anti-bot',
+          targetId,
+          newData,
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        },
+      });
+    } catch (error) {
+      console.error('anti-bot security event audit failed', error);
+    }
   }
 
   private runtimeEnabled() {

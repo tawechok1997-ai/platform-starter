@@ -32,6 +32,7 @@ This file is the short operational worklist for the current implementation cycle
 - [x] Risk Alert assignment, assignee permissions, and investigation notes/timeline added.
 - [x] Audit Log Risk target links corrected to the Risk Alert detail route.
 - [x] Delegated Access allow-list, expiry, revocation, owner boundary, and audit trail added.
+- [x] Anti-bot rejected-token and provider-outage security events audited without token/secret persistence.
 - [x] GitHub Actions Build #270 completed successfully for commit `c7edec0`.
 
 ## CI checkpoint

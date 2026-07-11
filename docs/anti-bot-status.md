@@ -26,6 +26,7 @@ Last updated: 2026-07-10
 - Configuration changes and provider tests are audited.
 - Default configuration is disabled and therefore does not lock out existing users.
 - Unit coverage for default-off behavior, route enforcement, secret masking, and invalid enablement.
+- Security events for rejected tokens and provider verification outages are written to the admin audit stream without storing CAPTCHA tokens or secrets.
 
 ## Safe rollout procedure
 
@@ -43,7 +44,7 @@ Last updated: 2026-07-10
 
 - Password-reset CAPTCHA route when password reset is implemented.
 - Risk-score based adaptive challenge instead of the current configuration flag foundation.
-- Provider outage telemetry and alerting.
+- Alert routing/thresholds for provider outage and rejected-token spikes.
 - End-to-end browser tests using provider test keys.
 - Admin localization polish for the anti-bot settings page.
 

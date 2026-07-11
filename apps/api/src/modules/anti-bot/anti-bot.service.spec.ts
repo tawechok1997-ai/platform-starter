@@ -95,4 +95,25 @@ describe('AntiBotService safety defaults', () => {
     }, {})).rejects.toThrow(BadRequestException);
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
+
+  it('audits rejected provider responses without storing the CAPTCHA token', async () => {
+    process.env.ANTIBOT_RUNTIME_ENABLED = 'true';
+    process.env.ANTIBOT_ENCRYPTION_KEY = 'test-key';
+    const prisma = prismaWithSetting({
+      enabled: true,
+      provider: 'TURNSTILE',
+      siteKey: 'site-key',
+      encryptedSecret: 'v1.invalid.invalid.invalid',
+      routes: { ADMIN_LOGIN: true, MEMBER_LOGIN: false, MEMBER_REGISTER: false },
+      adaptiveMode: true,
+      emergencyMode: false,
+    });
+    const service = new AntiBotService(prisma);
+
+    await expect(service.assertValid('ADMIN_LOGIN', 'captcha-token', '203.0.113.10')).rejects.toThrow();
+    expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ action: 'ANTI_BOT_PROVIDER_UNAVAILABLE', module: 'anti-bot' }),
+    }));
+    expect(JSON.stringify(prisma.adminAuditLog.create.mock.calls)).not.toContain('captcha-token');
+  });
 });
