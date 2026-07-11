@@ -1,9 +1,8 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { adminApiFetch } from '../../admin-api';
 import { AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage, AdminStack, AdminToolbar } from '../_components/admin-ui';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 type FieldType = 'text' | 'textarea' | 'checkbox' | 'color';
 type FieldConfig = { key: string; label: string; type?: FieldType; placeholder?: string };
@@ -14,22 +13,45 @@ export default function SettingsSectionPage({ group, title, description, fields,
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const token = window.localStorage.getItem('admin_access_token');
-    if (!token) { setMessage('กรุณา login admin ใหม่ก่อนแก้ settings'); return; }
-    fetch(`${API_URL}/admin/settings/${group}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(async (res) => { const data = await res.json().catch(() => null); if (!res.ok) throw new Error(data?.message ?? 'โหลด settings ไม่สำเร็จ'); return data; })
-      .then((data) => setForm(data.settings ?? {}))
-      .catch((error) => setMessage(error.message));
+    let cancelled = false;
+
+    async function loadSettings() {
+      setMessage('กำลังโหลดการตั้งค่า...');
+      try {
+        const res = await adminApiFetch(`/admin/settings/${group}`);
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.message ?? `โหลด settings ไม่สำเร็จ (${res.status})`);
+        if (!cancelled) {
+          setForm(data?.settings ?? {});
+          setMessage('');
+        }
+      } catch (error) {
+        if (!cancelled) setMessage(error instanceof Error ? error.message : 'โหลด settings ไม่สำเร็จ');
+      }
+    }
+
+    void loadSettings();
+    return () => { cancelled = true; };
   }, [group]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setMessage('กำลังบันทึก...');
-    const token = window.localStorage.getItem('admin_access_token');
-    if (!token) { setMessage('กรุณา login admin ใหม่ก่อนบันทึก settings'); return; }
-    const res = await fetch(`${API_URL}/admin/settings/${group}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(form) });
-    const data = await res.json().catch(() => null);
-    if (!res.ok) { setMessage(data?.message ?? 'บันทึกไม่สำเร็จ'); return; }
-    setMessage(data.requiresDualApproval ? 'บันทึกแล้ว แต่รายการเสี่ยงควรเข้าคิว Dual Approval' : 'บันทึกสำเร็จ');
+    event.preventDefault();
+    setMessage('กำลังบันทึก...');
+
+    try {
+      const res = await adminApiFetch(`/admin/settings/${group}`, {
+        method: 'PUT',
+        body: JSON.stringify(form),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setMessage(data?.message ?? `บันทึกไม่สำเร็จ (${res.status})`);
+        return;
+      }
+      setMessage(data?.requiresDualApproval ? 'บันทึกแล้ว แต่รายการเสี่ยงควรเข้าคิว Dual Approval' : 'บันทึกสำเร็จ');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'บันทึกไม่สำเร็จ');
+    }
   }
 
   function update(key: string, value: string | boolean) { setForm((current) => ({ ...current, [key]: value })); }
