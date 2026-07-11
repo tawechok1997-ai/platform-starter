@@ -126,7 +126,7 @@ function MemberCategoryRail({ pathname, features }: { pathname: string; features
     ['home', 'หน้าแรก', '/', '⌂'], ['casino', 'คาสิโน', '/games?category=casino', '♠'], ['slot', 'สล็อต', '/games?category=slot', '777'],
     ['fishing', 'ยิงปลา', '/games?category=fishing', '🐟'], ['sport', 'กีฬา', '/games?category=sport', '⚽'], ['card', 'ไพ่', '/games?category=card', 'A♠'], ['lottery', 'หวย', '/games?category=lottery', '◉'],
   ] as const;
-  return <aside className="member-category-rail" aria-label="หมวดหมู่ Member">{items.map(([key, label, href, icon]) => { const active = key === 'home' ? pathname === '/' : pathname.startsWith('/games') && new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('category') === key; return <a key={key} href={href} className={active ? 'active' : ''}><span>{icon}</span><strong>{label}</strong></a>; })}<span className="member-category-rail__handle" aria-hidden="true">›</span></aside>;
+  return <aside className={`member-category-rail${pathname === '/' ? ' member-category-rail--home' : ''}`} aria-label="หมวดหมู่ Member">{items.map(([key, label, href, icon]) => { const active = key === 'home' ? pathname === '/' : pathname.startsWith('/games') && new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('category') === key; return <a key={key} href={href} className={active ? 'active' : ''}><span>{icon}</span><strong>{label}</strong></a>; })}<span className="member-category-rail__handle" aria-hidden="true">›</span></aside>;
 }
 
 function FeatureDisabled({ label, siteName }: { label: string; siteName: string }) {
