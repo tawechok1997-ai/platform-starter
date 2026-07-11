@@ -35,7 +35,7 @@ export function TournamentSection() {
 export function AnnouncementList({ content }: { content: CmsContent }) {
   const items = content.announcements.filter((item) => item.enabled).slice(0, 3);
   if (!items.length) return null;
-  return <div className="member-announcement-strip" role="status"><span className="member-announcement-strip__icon">⌁</span><span>{items[0].message || items[0].title}</span></div>;
+  return <div className="member-announcement-strip" role="status"><span className="member-announcement-strip__icon">⌁</span><div className="member-announcement-marquee"><span>{items[0].message || items[0].title}</span></div></div>;
 }
 
 export function QuickActions({ icons, features }: { icons: SiteIconSettings; features: MemberFeatureFlags }) {

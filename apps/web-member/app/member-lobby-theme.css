@@ -158,3 +158,18 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 .member-home-shell { padding-left: 18px !important; }
 .member-category-rail--home { top: 520px; }
 @media (max-width: 420px) { .member-category-rail--home { top: 520px; } .member-home-shell { padding-left: 10px !important; } }
+
+/* Final lobby polish: flat promotion frame, visible carousel dots, fixed rail, marquee announcement. */
+.member-home-hero { border: 0 !important; box-shadow: none !important; }
+.member-home-hero__dots { bottom: 9px !important; }
+.member-home-hero__dots button { opacity: .95; box-shadow: 0 0 0 1px rgba(0,0,0,.3); }
+.member-category-rail { position: fixed !important; left: 10px !important; z-index: 35 !important; }
+.member-category-rail--home { top: 520px !important; bottom: 76px !important; }
+.member-announcement-strip { position: relative; display: flex; min-height: 44px; }
+.member-announcement-marquee { min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; }
+.member-announcement-marquee span { display: inline-block; min-width: 100%; padding-left: 100%; animation: memberAnnouncementMarquee 15s linear infinite; }
+@keyframes memberAnnouncementMarquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+@media (max-width:420px) {
+  .member-category-rail--home { top: 520px !important; }
+  .member-announcement-marquee span { animation-duration: 13s; }
+}
