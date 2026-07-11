@@ -179,3 +179,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .admin-auth-field input:-webkit-autofill,.admin-auth-field input:-webkit-autofill:hover,.admin-auth-field input:-webkit-autofill:focus{-webkit-text-fill-color:var(--admin-text);caret-color:var(--admin-text);box-shadow:0 0 0 1000px #151d29 inset,0 0 0 4px transparent!important;transition:background-color 9999s ease-out 0s}
 .admin-auth-field input:-webkit-autofill:focus{border-color:var(--admin-brand);box-shadow:0 0 0 1000px #151d29 inset,0 0 0 4px rgba(232,189,72,.12)!important}
 @media(max-width:900px){.admin-auth-shell{width:100%;grid-template-columns:1fr}.admin-auth-card{padding-inline:clamp(20px,7vw,38px)}}
+
+html:has(.admin-auth-page),body:has(.admin-auth-page){width:100%;min-width:100%;max-width:none;margin:0}
+body:has(.admin-auth-page){overflow-x:hidden}
+.admin-auth-page{width:100vw!important;max-width:none!important;margin:0!important;inset-inline:0;justify-self:stretch}
+.admin-auth-shell{margin-inline:auto}
