@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { DepositWorkflowService } from '../topups/deposit-workflow.service';
+import { WithdrawalsService } from '../withdrawals/withdrawals.service';
+import { WithdrawalWorkflowService } from '../withdrawals/withdrawal-workflow.service';
 
 const databaseUrl = process.env.FINANCE_TEST_DATABASE_URL?.trim();
 const describeWithDatabase = databaseUrl ? describe : describe.skip;
@@ -19,7 +21,11 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
   let prisma: PrismaClient;
   const userId = randomUUID();
   const adminId = randomUUID();
+  const secondAdminId = randomUUID();
   const requestId = randomUUID();
+  const withdrawalUserId = randomUUID();
+  const claimRequestId = randomUUID();
+  const payoutRequestId = randomUUID();
 
   beforeAll(async () => {
     assertSafeTestDatabase(databaseUrl!);
@@ -43,6 +49,14 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
         passwordHash: 'not-used-in-concurrency-test',
       },
     });
+    await prisma.adminUser.create({
+      data: {
+        id: secondAdminId,
+        username: `finance-admin-two-${suffix}`,
+        email: `finance-admin-two-${suffix}@example.test`,
+        passwordHash: 'not-used-in-concurrency-test',
+      },
+    });
     await prisma.wallet.create({
       data: { userId, currency: 'THB', balance: 0, lockedBalance: 0 },
     });
@@ -57,16 +71,52 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
         claimedAt: new Date(),
       },
     });
+    await prisma.user.create({
+      data: {
+        id: withdrawalUserId,
+        username: `finance-withdrawal-${suffix}`,
+        email: `finance-withdrawal-${suffix}@example.test`,
+        passwordHash: 'not-used-in-concurrency-test',
+      },
+    });
+    await prisma.wallet.create({
+      data: { userId: withdrawalUserId, currency: 'THB', balance: 500, lockedBalance: 100 },
+    });
+    await prisma.withdrawalRequest.create({
+      data: {
+        id: claimRequestId,
+        userId: withdrawalUserId,
+        amount: 50,
+        currency: 'THB',
+        status: 'PENDING_REVIEW',
+      },
+    });
+    await prisma.withdrawalRequest.create({
+      data: {
+        id: payoutRequestId,
+        userId: withdrawalUserId,
+        amount: 100,
+        currency: 'THB',
+        status: 'PAYMENT_PROOF_UPLOADED',
+        claimedBy: adminId,
+        claimedAt: new Date(),
+        paymentSlipUrl: 'withdrawal-proofs/test/payout-proof.jpg',
+      },
+    });
   }, 30_000);
 
   afterAll(async () => {
     if (!prisma) return;
-    await prisma.adminAuditLog.deleteMany({ where: { adminUserId: adminId } });
+    await prisma.adminAuditLog.deleteMany({ where: { adminUserId: { in: [adminId, secondAdminId] } } });
     await prisma.topUpRequest.deleteMany({ where: { id: requestId } });
+    await prisma.withdrawalRequest.deleteMany({ where: { id: { in: [claimRequestId, payoutRequestId] } } });
     await prisma.walletLedger.deleteMany({ where: { userId } });
+    await prisma.walletLedger.deleteMany({ where: { userId: withdrawalUserId } });
     await prisma.wallet.deleteMany({ where: { userId } });
+    await prisma.wallet.deleteMany({ where: { userId: withdrawalUserId } });
     await prisma.user.deleteMany({ where: { id: userId } });
-    await prisma.adminUser.deleteMany({ where: { id: adminId } });
+    await prisma.user.deleteMany({ where: { id: withdrawalUserId } });
+    await prisma.adminUser.deleteMany({ where: { id: { in: [adminId, secondAdminId] } } });
     await prisma.$disconnect();
   }, 30_000);
 
@@ -90,5 +140,37 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
     expect(ledgers).toHaveLength(1);
     expect(request.status).toBe('COMPLETED');
     expect(request.creditedLedgerId).toBe(ledgers[0].id);
+  }, 30_000);
+
+  it('allows only one admin to claim the same withdrawal request', async () => {
+    const service = new WithdrawalsService(prisma as any);
+    const results = await Promise.allSettled([
+      service.claimRequest(claimRequestId, { id: adminId }),
+      service.claimRequest(claimRequestId, { id: secondAdminId }),
+    ]);
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+    const request = await prisma.withdrawalRequest.findUniqueOrThrow({ where: { id: claimRequestId } });
+    expect([adminId, secondAdminId]).toContain(request.claimedBy);
+  }, 30_000);
+
+  it('creates one payout ledger and preserves wallet invariants when verification runs twice', async () => {
+    const service = new WithdrawalWorkflowService(prisma as any, {} as any);
+    const results = await Promise.all([
+      service.verifyAndComplete(payoutRequestId, adminId, 'parallel payout A'),
+      service.verifyAndComplete(payoutRequestId, adminId, 'parallel payout B'),
+    ]);
+
+    const wallet = await prisma.wallet.findUniqueOrThrow({ where: { userId: withdrawalUserId } });
+    const ledgers = await prisma.walletLedger.findMany({ where: { idempotencyKey: `withdrawal:${payoutRequestId}:payment-verified` } });
+    const request = await prisma.withdrawalRequest.findUniqueOrThrow({ where: { id: payoutRequestId } });
+
+    expect(results).toHaveLength(2);
+    expect(ledgers).toHaveLength(1);
+    expect(wallet.balance.toString()).toBe('400');
+    expect(wallet.lockedBalance.toString()).toBe('0');
+    expect(request.status).toBe('COMPLETED');
+    expect(request.completedLedgerId).toBe(ledgers[0].id);
   }, 30_000);
 });
