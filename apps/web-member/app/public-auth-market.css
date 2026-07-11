@@ -382,3 +382,7 @@
   .public-auth-input,.public-auth-input-wrap{border-radius:16px}
   .public-auth-submit{border-radius:15px}
 }
+
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .public-auth-card-topbar{margin-bottom:clamp(64px,10vh,86px)}
+}

@@ -134,15 +134,16 @@ export default function AcceptInvitationPage() {
   return (
     <main className="admin-auth-invitation-page" style={pageStyle}>
       <section className="admin-auth-invitation-card" style={cardStyle}>
-        <div style={logoStyle}>A</div>
-        <div style={{ textAlign: 'center' }}>
+        <div className="admin-auth-invitation-topbar">
+          <div className="admin-auth-invitation-lockup"><div style={logoStyle}>A</div><strong>Admin Console</strong></div>
+          <div className="admin-auth-invitation-language" aria-label="Language">
+            <button type="button" onClick={() => changeLocale('th')} style={languageButtonStyle(locale === 'th')}>ไทย</button>
+            <button type="button" onClick={() => changeLocale('en')} style={languageButtonStyle(locale === 'en')}>EN</button>
+          </div>
+        </div>
+        <div className="admin-auth-invitation-heading">
           <h1 style={titleStyle}>{t.title}</h1>
           <p style={subtitleStyle}>{t.subtitle}</p>
-        </div>
-
-        <div style={languageRowStyle} aria-label="Language">
-          <button type="button" onClick={() => changeLocale('th')} style={languageButtonStyle(locale === 'th')}>ไทย</button>
-          <button type="button" onClick={() => changeLocale('en')} style={languageButtonStyle(locale === 'en')}>EN</button>
         </div>
 
         {step === 'checking' && <div style={infoStyle}>{t.checking}</div>}
