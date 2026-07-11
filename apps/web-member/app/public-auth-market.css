@@ -314,3 +314,27 @@
 @media (prefers-reduced-motion: reduce) {
   .public-auth-scene__light { animation: none; }
 }
+
+/* Project-owned architectural artwork replaces the synthetic CSS skyline. */
+.public-auth-brand-panel {
+  background-image: linear-gradient(90deg, rgba(4,7,10,.16), rgba(4,7,10,.48)),
+    linear-gradient(to top, rgba(4,7,10,.76), transparent 58%),
+    url('/images/auth-luxury-architecture.webp');
+  background-position: center;
+  background-size: cover;
+}
+.public-auth-brand-panel::before { background: linear-gradient(to top, rgba(3,6,9,.58), transparent 82%); }
+.public-auth-scene { display: none; }
+
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .public-auth-page::after {
+    background-image: linear-gradient(to bottom, rgba(4,7,11,.8), rgba(4,7,11,.9) 62%, rgba(4,7,11,.64)),
+      url('/images/auth-luxury-architecture.webp');
+    background-position: 32% center;
+    background-size: cover;
+  }
+  .public-auth-card {
+    background: linear-gradient(to bottom, rgba(7,10,15,.91) 0%, rgba(9,13,19,.86) 67%, rgba(7,10,15,.58) 100%);
+    backdrop-filter: blur(4px);
+  }
+}

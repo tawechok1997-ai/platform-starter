@@ -241,3 +241,12 @@ body:has(.admin-auth-page){overflow-x:hidden}
   .admin-auth-heading span{font-size:12px}
   .admin-auth-input-wrap input{padding-right:62px}
 }
+
+/* Project-owned architectural artwork shared with the member access experience. */
+.admin-auth-brand{background-image:linear-gradient(90deg,rgba(4,7,10,.18),rgba(4,7,10,.48)),linear-gradient(to top,rgba(4,7,10,.76),transparent 58%),url('/images/auth-luxury-architecture.webp');background-position:center;background-size:cover}
+.admin-auth-scene{display:none}
+
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .admin-auth-page{background-image:linear-gradient(to bottom,rgba(4,7,11,.8),rgba(4,7,11,.9) 62%,rgba(4,7,11,.64)),url('/images/auth-luxury-architecture.webp');background-position:32% center;background-size:cover}
+  .admin-auth-card{background:linear-gradient(to bottom,rgba(8,12,18,.91) 0%,rgba(12,17,24,.86) 67%,rgba(8,12,18,.58) 100%);backdrop-filter:blur(4px)}
+}
