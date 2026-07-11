@@ -63,11 +63,11 @@ Still requires direct deployment verification:
 
 - [ ] Add a PostgreSQL 16 service to `.github/workflows/build.yml`.
 - [ ] Use a dedicated test database such as `platform_test`.
-- [ ] Set both `DATABASE_URL` and `FINANCE_TEST_DATABASE_URL` to the CI test database.
-- [ ] Wait for PostgreSQL health readiness before migrations/tests.
-- [ ] Run `pnpm prisma migrate deploy` against the CI test database.
-- [ ] Run `pnpm --filter @platform/api test:db:finance` after fast unit tests.
-- [ ] Keep database-backed finance tests separate from fast unit tests for clearer failures.
+- [x] Set both `DATABASE_URL` and `FINANCE_TEST_DATABASE_URL` to the CI PostgreSQL test database.
+- [x] Wait for PostgreSQL health readiness before migrations/tests.
+- [x] Run `pnpm prisma migrate deploy` against the CI test database.
+- [x] Run `pnpm --filter @platform/api test:db:finance` after fast unit tests.
+- [x] Keep database-backed finance tests separate from fast unit tests for clearer failures.
 
 ### Database test harness
 
