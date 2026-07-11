@@ -118,6 +118,9 @@ This document is the current source of truth for UX/UI modernization across Memb
 - ✅ Shared admin UI primitives
 - ✅ Responsive operations stylesheet
 - ✅ Accessible shared confirm dialog
+- ✅ Professional SVG icon system for shell and navigation
+- ✅ Persistent collapsible desktop sidebar with permission-aware search
+- ✅ Responsive Admin topbar, mobile drawer scroll lock and Escape handling
 - 🚧 Continue reducing inline styles in legacy pages
 
 ## Dashboard
@@ -175,7 +178,8 @@ This document is the current source of truth for UX/UI modernization across Memb
 
 - ⏳ Reports, activity, risk and security density pass
 - ⏳ Admin settings migration
-- ⏳ Collapsible sidebar, command entry and keyboard shortcuts
+- ✅ Collapsible sidebar and navigation search
+- ⏳ Command palette and keyboard shortcuts
 
 # Group 3: Accessibility and Responsive Quality
 

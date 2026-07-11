@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from '../admin-api';
 import { canAccessNavItem, navGroups, requiredPermissionsForPath } from './admin-nav';
+import { AdminIcon, iconForAdminHref } from './_components/admin-icon';
 
 const AUTH_TIMEOUT_MS = 12000;
 
@@ -14,6 +15,8 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const [ready, setReady] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [navQuery, setNavQuery] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
   const [queueCount, setQueueCount] = useState({ topups: 0, withdrawals: 0 });
 
@@ -38,6 +41,23 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     return () => { cancelled = true; window.clearInterval(interval); };
   }, [pathname]);
 
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    setSidebarCollapsed(window.localStorage.getItem('admin_sidebar_collapsed') === 'true');
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => { document.body.style.overflow = previous; window.removeEventListener('keydown', closeOnEscape); };
+  }, [menuOpen]);
+
   async function loadQueueCount() {
     try {
       const res = await adminApiFetch('/admin/queues/summary');
@@ -49,21 +69,43 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   }
 
   const visibleGroups = useMemo(() => navGroups
-    .map((group) => ({ ...group, items: group.items.filter((item) => canAccessNavItem(item, permissions)) }))
-    .filter((group) => group.items.length > 0), [permissions]);
+    .map((group) => ({ ...group, items: group.items.filter((item) => canAccessNavItem(item, permissions) && (!navQuery.trim() || item.title.toLocaleLowerCase('th').includes(navQuery.trim().toLocaleLowerCase('th')))) }))
+    .filter((group) => group.items.length > 0), [permissions, navQuery]);
 
   const required = requiredPermissionsForPath(pathname);
   const canViewRoute = required.length === 0 || permissions.includes('*') || required.some((permission) => permissions.includes(permission));
 
   function logout() { clearAdminSession(); window.location.href = '/login'; }
   function badgeFor(href: string) { if (href === '/topups' && queueCount.topups > 0) return queueCount.topups; if (href === '/withdrawals' && queueCount.withdrawals > 0) return queueCount.withdrawals; if (href === '/dashboard' && queueCount.topups + queueCount.withdrawals > 0) return queueCount.topups + queueCount.withdrawals; return 0; }
-  if (!ready || !isLoggedIn) return <main className="admin-shell" style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', color: '#fff' }}>กำลังตรวจสอบสิทธิ์...</main>;
+  if (!ready || !isLoggedIn) return <main className="admin-loading-screen"><span className="admin-loading-mark">A</span><p>กำลังตรวจสอบสิทธิ์...</p></main>;
 
-  return <main className="admin-shell admin-shell-drawer-mode"><header className="admin-topbar"><a href="/dashboard" className="admin-brand-row admin-brand-link"><span className="admin-brand-mark">A</span><span className="admin-brand-text"><strong>Admin Console</strong><small>{queueCount.topups + queueCount.withdrawals > 0 ? `${queueCount.topups + queueCount.withdrawals} pending` : 'Dashboard'}</small></span></a><button type="button" className="admin-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูแอดมิน">☰</button></header>{menuOpen && <button type="button" className="admin-drawer-backdrop" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}<aside className={menuOpen ? 'admin-drawer open' : 'admin-drawer'}><div className="admin-drawer-head"><div><strong>Admin Console</strong><p>{queueCount.topups} topups · {queueCount.withdrawals} withdrawals</p></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู">×</button></div><nav className="admin-drawer-nav" aria-label="Admin navigation">{visibleGroups.map((group) => <section key={group.title} style={{ display: 'grid', gap: 8, background: 'transparent', border: 0, padding: 0 }}><p style={{ margin: '8px 4px 2px', fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '.12em', color: 'rgba(255,255,255,.46)' }}>{group.title}</p>{group.items.map((item) => { const active = pathname === item.href || pathname.startsWith(`${item.href}/`); const badge = badgeFor(item.href); return <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={active ? 'active' : ''}><span>{item.title}</span>{badge > 0 && <em>{badge}</em>}</a>; })}</section>)}</nav><button type="button" className="admin-logout-button" onClick={logout}>ออกจากระบบ</button></aside><section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section></main>;
+  const pendingTotal = queueCount.topups + queueCount.withdrawals;
+  const currentItem = navGroups.flatMap((group) => group.items).find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
+  const toggleCollapsed = () => setSidebarCollapsed((current) => { const next = !current; window.localStorage.setItem('admin_sidebar_collapsed', String(next)); return next; });
+
+  return <main className={`admin-shell${sidebarCollapsed ? ' admin-shell--collapsed' : ''}`}>
+    {menuOpen && <button type="button" className="admin-drawer-backdrop" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}
+    <aside className={menuOpen ? 'admin-drawer open' : 'admin-drawer'} aria-label="เมนูผู้ดูแล">
+      <div className="admin-drawer-head">
+        <a href="/dashboard" className="admin-brand-row admin-brand-link"><span className="admin-brand-mark">A</span><span className="admin-brand-text"><strong>Admin Console</strong><small>Operations workspace</small></span></a>
+        <button type="button" className="admin-drawer-close" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู"><AdminIcon name="close" /></button>
+      </div>
+      <div className="admin-nav-search"><AdminIcon name="search" /><input value={navQuery} onChange={(event) => setNavQuery(event.target.value)} placeholder="ค้นหาเมนู" aria-label="ค้นหาเมนู" /></div>
+      <nav className="admin-drawer-nav" aria-label="Admin navigation">
+        {visibleGroups.map((group) => <section className="admin-nav-group" key={group.title}><p>{group.title}</p>{group.items.map((item) => { const active = pathname === item.href || pathname.startsWith(`${item.href}/`); const badge = badgeFor(item.href); return <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={active ? 'active' : ''} title={sidebarCollapsed ? item.title : undefined} aria-current={active ? 'page' : undefined}><AdminIcon name={iconForAdminHref(item.href)} /><span>{item.title}</span>{badge > 0 && <em>{badge > 99 ? '99+' : badge}</em>}</a>; })}</section>)}
+        {visibleGroups.length === 0 && <p className="admin-nav-empty">ไม่พบเมนูที่ค้นหา</p>}
+      </nav>
+      <div className="admin-sidebar-footer"><button type="button" className="admin-collapse-button" onClick={toggleCollapsed} aria-label={sidebarCollapsed ? 'ขยายแถบเมนู' : 'ย่อแถบเมนู'}><AdminIcon name="chevron-left" /><span>{sidebarCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}</span></button><button type="button" className="admin-logout-button" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></button></div>
+    </aside>
+    <div className="admin-main-shell">
+      <header className="admin-topbar"><div className="admin-topbar-context"><button type="button" className="admin-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูแอดมิน"><AdminIcon name="menu" /></button><div><span>Workspace</span><strong>{currentItem?.title ?? 'Admin Console'}</strong></div></div><div className="admin-topbar-status"><span className="admin-system-dot" />ระบบพร้อมใช้งาน{pendingTotal > 0 && <a href="/operations">{pendingTotal} รายการรอดำเนินการ</a>}</div></header>
+      <section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section>
+    </div>
+  </main>;
 }
 
 function AccessDenied() {
-  return <div style={{ minHeight: '60dvh', display: 'grid', placeItems: 'center', padding: 24 }}><div style={{ maxWidth: 520, textAlign: 'center', display: 'grid', gap: 10 }}><strong style={{ fontSize: 24 }}>ไม่มีสิทธิ์เข้าถึงหน้านี้</strong><p style={{ margin: 0, color: '#94a3b8' }}>เมนูนี้ถูกซ่อนและบล็อกตามสิทธิ์ของบัญชีผู้ดูแล กรุณาติดต่อผู้ดูแลสิทธิ์หากจำเป็นต้องใช้งาน</p><a href="/dashboard" style={{ color: '#f5c542', fontWeight: 900 }}>กลับไป Dashboard</a></div></div>;
+  return <div className="admin-access-denied"><div><AdminIcon name="security" /><strong>ไม่มีสิทธิ์เข้าถึงหน้านี้</strong><p>เมนูนี้ถูกซ่อนและบล็อกตามสิทธิ์ของบัญชีผู้ดูแล กรุณาติดต่อผู้ดูแลสิทธิ์หากจำเป็นต้องใช้งาน</p><a href="/dashboard">กลับไป Dashboard</a></div></div>;
 }
 
 async function verifyAdminSession(): Promise<{ permissions: string[] } | null> {

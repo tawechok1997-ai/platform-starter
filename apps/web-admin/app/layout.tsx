@@ -4,6 +4,7 @@ import './admin-desktop.css';
 import './admin-dashboard-responsive.css';
 import './admin-operations-responsive.css';
 import './globals.css';
+import './admin-system.css';
 
 export const viewport: Viewport = {
   width: 'device-width',

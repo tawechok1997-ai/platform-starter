@@ -11,6 +11,7 @@ import { useSiteSettings } from './site-settings-provider';
 import { useMemberSession } from './member-session-provider';
 import { usePendingCount } from './hooks/use-pending-count';
 import { MemberCard, MemberLinkButton } from './components/member-ui';
+import { CloseIcon, MemberIcon, MenuIcon } from './components/member-icon';
 
 export default function MemberChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -69,11 +70,16 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     const htmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('keydown', closeOnEscape);
     return () => {
       document.body.style.overflow = bodyOverflow;
       document.documentElement.style.overflow = htmlOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
     };
   }, [menuOpen]);
+
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   if (isPublicRoute) return <>{children}</>;
   if (!ready || !isLoggedIn) return <main className="member-loading-screen">กำลังโหลด...</main>;
@@ -81,21 +87,19 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const content = blockedRoute ? <FeatureDisabled label={blockedRoute.label} siteName={siteName} /> : children;
 
   return <>
-    <header className="member-topbar global-member-topbar">
-      <a href="/" className="member-brand">
-        <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="" className="member-brand-logo" /> : brandMark}</span>
-        <span className="member-brand-copy"><strong>{siteName}</strong><small>{siteDescription}</small></span>
-      </a>
-      <div className="member-actions"><button type="button" className="member-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนู">☰</button></div>
-    </header>
+    <header className="member-topbar global-member-topbar"><div className="member-topbar__inner">
+      <a href="/" className="member-brand"><span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="" className="member-brand-logo" /> : brandMark}</span><span className="member-brand-copy"><strong>{siteName}</strong><small>{siteDescription}</small></span></a>
+      <nav className="member-desktop-nav" aria-label="เมนูหลักเดสก์ท็อป">{visibleBottomNav.map((item) => <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}><IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} /><span>{item.shortTitle ?? item.title}</span>{item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}</a>)}</nav>
+      <div className="member-actions"><a href="/notifications" className="member-header-icon" aria-label="แจ้งเตือน"><MemberIcon name="notification" />{pendingCount > 0 && <em>{pendingCount}</em>}</a><button type="button" className="member-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูเพิ่มเติม" aria-expanded={menuOpen}><MenuIcon /></button></div>
+    </div></header>
 
     {menuOpen && <button type="button" className="member-menu-backdrop" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}
 
     <aside className={menuOpen ? 'member-drawer open' : 'member-drawer'} aria-hidden={!menuOpen}>
-      <div className="member-drawer-head"><div><strong>{siteName}</strong><p>{siteDescription}</p></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู">×</button></div>
+      <div className="member-drawer-head"><div><strong>{siteName}</strong><p>{siteDescription}</p></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู"><CloseIcon /></button></div>
       <nav className="member-drawer-nav">
         {visibleDrawer.map((item) => <a key={item.key} href={item.href} onClick={() => setMenuOpen(false)} className={activeHref === item.href ? 'active' : ''}>
-          <IconValue value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} />
+          <IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} />
           <span className="member-drawer-copy"><strong>{item.title}</strong><small>{item.badge === 'pending' && pendingCount > 0 ? `${pendingCount} รายการรอตรวจสอบ` : item.description}</small></span>
           {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
         </a>)}
@@ -108,7 +112,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
     <nav className="member-bottom-nav" aria-label="เมนูหลัก">
       {visibleBottomNav.map((item) => <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}>
-        <span className="member-bottom-icon"><IconValue value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} /></span>
+        <span className="member-bottom-icon"><IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} /></span>
         <span>{item.shortTitle ?? item.title}</span>
         {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
       </a>)}
@@ -120,6 +124,8 @@ function FeatureDisabled({ label, siteName }: { label: string; siteName: string 
   return <main className="member-feature-disabled"><MemberCard tone="brand" className="member-feature-disabled__card"><span className="member-feature-disabled__badge">ปิดใช้งานชั่วคราว</span><h1>{label}</h1><p>{siteName} ปิดฟีเจอร์นี้จากการตั้งค่าระบบ กรุณากลับหน้าแรกหรือรอประกาศเปิดใช้งานอีกครั้ง</p><MemberLinkButton href="/">กลับหน้าแรก</MemberLinkButton></MemberCard></main>;
 }
 
-function IconValue({ value }: { value: string }) {
-  return isIconUrl(value) ? <img src={value} alt="" className="member-nav-icon-image" /> : <>{value}</>;
+function IconValue({ iconKey, value }: { iconKey: keyof typeof defaultIconSettings; value: string }) {
+  if (isIconUrl(value)) return <img src={value} alt="" className="member-nav-icon-image" />;
+  if (value !== defaultIconSettings[iconKey]) return <span className="member-custom-icon" aria-hidden="true">{value}</span>;
+  return <MemberIcon name={iconKey} />;
 }

@@ -20,6 +20,7 @@ import './public-status-page.css';
 import './public-mobile.css';
 import './public-desktop.css';
 import './globals.css';
+import './member-system.css';
 import MemberChrome from './member-chrome';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';

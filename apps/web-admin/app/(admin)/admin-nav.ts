@@ -13,6 +13,7 @@ export const navGroups: readonly AdminNavGroup[] = [
   {
     title: 'งานหลัก',
     items: [
+      { title: 'Dashboard', href: '/dashboard' },
       { title: 'งานแอดมิน', href: '/operations' },
       { title: 'ตรวจฝาก', href: '/topups', permissions: ['topups.view', 'deposit.view'] },
       { title: 'ตรวจถอน', href: '/withdrawals', permissions: ['withdraw.view'] },
@@ -65,7 +66,7 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'เกมทั้งหมด', href: '/games', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'Session เกม', href: '/game-sessions', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'Audit Risk', href: '/audit-risk', permissions: ['risk.view'] },
-      { title: 'Audit Logs', href: '/audit-logs', permissions: ['admin.view', 'admin.access.view'] },
+      { title: 'Audit Logs', href: '/audit', permissions: ['admin.view', 'admin.access.view'] },
     ],
   },
   {
