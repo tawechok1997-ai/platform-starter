@@ -1,9 +1,9 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 const PAGE_SIZE = 20;
 
 type WalletItem = { id: string; userId: string; shortUserId?: string | null; currency: string; balance: string; lockedBalance: string; availableBalance: string; status: string; updatedAt: string; user?: { id: string; username: string; shortId?: string | null; phone?: string | null; email?: string | null; status: string } };
@@ -21,48 +21,71 @@ export default function AdminWalletsPage() {
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => { loadItems(undefined, 1); }, []);
-  useEffect(() => { loadItems(undefined, page); }, [page]);
+  useEffect(() => { void loadItems(undefined, page); }, [page]);
 
   async function loadItems(event?: FormEvent<HTMLFormElement>, nextPage = page) {
     event?.preventDefault();
-    const token = window.localStorage.getItem('admin_access_token');
-    if (!token) { setMessage('กรุณา login admin ก่อน'); return; }
     const params = new URLSearchParams();
     if (search.trim()) params.set('search', search.trim());
     params.set('page', String(nextPage));
     params.set('take', String(PAGE_SIZE));
     setMessage('กำลังโหลด wallets...');
-    const res = await fetch(`${API_URL}/admin/wallets?${params.toString()}`, { headers: { Authorization: `Bearer ${token}` } });
-    const data = await res.json().catch(() => null);
-    if (!res.ok) { setMessage(data?.message ?? 'โหลด wallets ไม่สำเร็จ'); return; }
-    setItems(data.items ?? []);
-    setTotal(Number(data.total ?? data.items?.length ?? 0));
-    setPageCount(Math.max(Number(data.pageCount ?? 1), 1));
-    setMessage('');
+
+    try {
+      const res = await adminApiFetch(`/admin/wallets?${params.toString()}`);
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setMessage(data?.message ?? `โหลด wallets ไม่สำเร็จ (${res.status})`);
+        return;
+      }
+      setItems(Array.isArray(data?.items) ? data.items : []);
+      setTotal(Number(data?.total ?? data?.items?.length ?? 0));
+      setPageCount(Math.max(Number(data?.pageCount ?? 1), 1));
+      setMessage('');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'โหลด wallets ไม่สำเร็จ');
+    }
   }
 
   function searchWallets(event: FormEvent<HTMLFormElement>) {
-    setPage(1);
-    loadItems(event, 1);
+    if (page !== 1) {
+      setPage(1);
+      event.preventDefault();
+      return;
+    }
+    void loadItems(event, 1);
   }
 
   async function adjustWallet(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
-    const token = window.localStorage.getItem('admin_access_token');
-    if (!token) { setMessage('กรุณา login admin ก่อน'); return; }
     if (!adjustUserId) { setMessage('เลือก member ก่อน'); return; }
     const parsedAmount = Number(amount.replace(/,/g, '').trim());
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) { setMessage('จำนวนเงินต้องมากกว่า 0'); return; }
     if (!reason.trim()) { setMessage('ต้องใส่เหตุผล'); return; }
     const idempotencyKey = `wallet-adjust-${adjustUserId}-${direction}-${parsedAmount}-${Date.now()}`;
-    setBusy(true); setMessage('กำลังปรับยอด...');
-    const res = await fetch(`${API_URL}/admin/wallets/${adjustUserId}/adjust`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ direction, amount: parsedAmount, reason, idempotencyKey }) });
-    const data = await res.json().catch(() => null); setBusy(false);
-    if (!res.ok) { setMessage(data?.message ?? 'ปรับยอดไม่สำเร็จ'); return; }
-    setItems((current) => current.map((item) => (item.userId === adjustUserId ? { ...item, ...data.wallet } : item)));
-    setAmount(''); setReason(''); setMessage('ปรับยอดสำเร็จ และเขียน ledger แล้ว');
+    setBusy(true);
+    setMessage('กำลังปรับยอด...');
+
+    try {
+      const res = await adminApiFetch(`/admin/wallets/${adjustUserId}/adjust`, {
+        method: 'POST',
+        body: JSON.stringify({ direction, amount: parsedAmount, reason, idempotencyKey }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setMessage(data?.message ?? `ปรับยอดไม่สำเร็จ (${res.status})`);
+        return;
+      }
+      setItems((current) => current.map((item) => (item.userId === adjustUserId ? { ...item, ...data.wallet } : item)));
+      setAmount('');
+      setReason('');
+      setMessage('ปรับยอดสำเร็จ และเขียน ledger แล้ว');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'ปรับยอดไม่สำเร็จ');
+    } finally {
+      setBusy(false);
+    }
   }
 
   function startAdjust(item: WalletItem, nextDirection: 'CREDIT' | 'DEBIT') { setAdjustUserId(item.userId); setDirection(nextDirection); setMessage(`กำลังปรับยอดให้ ${item.user?.username ?? item.shortUserId}`); setTimeout(() => document.getElementById('adjust-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50); }
