@@ -371,13 +371,13 @@
 
 @media (max-width:1023px), (hover:none) and (pointer:coarse) {
   .public-auth-page{padding:12px}
-  .public-auth-shell,.public-auth-shell.public-auth-shell--register{width:100%;max-width:600px!important;min-height:calc(100dvh - 24px);border:1px solid rgba(238,199,120,.24);border-radius:26px;overflow:hidden;box-shadow:0 28px 80px rgba(0,0,0,.45)}
-  .public-auth-card{min-height:calc(100dvh - 24px);border:0;border-radius:25px;background:linear-gradient(to bottom,rgba(7,10,15,.52) 0%,rgba(7,10,15,.68) 62%,rgba(7,10,15,.2) 100%)}
+  .public-auth-shell,.public-auth-shell.public-auth-shell--register{width:100%;max-width:600px!important;min-height:calc(100dvh - 24px);border:1px solid rgba(238,199,120,.24);border-radius:26px;overflow:hidden;background:transparent;box-shadow:0 28px 80px rgba(0,0,0,.45)}
+  .public-auth-card{min-height:calc(100dvh - 24px);border:0;border-radius:25px;background-image:linear-gradient(to bottom,rgba(7,10,15,.34) 0%,rgba(7,10,15,.52) 62%,rgba(7,10,15,.2) 100%),url('/images/auth-luxury-architecture.webp');background-position:18% top;background-size:auto 100dvh;background-repeat:no-repeat}
 }
 
 @media (max-width:430px) {
   .public-auth-page{padding:8px}
-  .public-auth-shell,.public-auth-shell.public-auth-shell--register{min-height:calc(100dvh - 16px);border-radius:22px}
+  .public-auth-shell,.public-auth-shell.public-auth-shell--register{min-height:calc(100dvh - 16px);border-radius:22px;background:transparent}
   .public-auth-card{min-height:calc(100dvh - 16px);border-radius:21px}
   .public-auth-input,.public-auth-input-wrap{border-radius:16px}
   .public-auth-submit{border-radius:15px}
