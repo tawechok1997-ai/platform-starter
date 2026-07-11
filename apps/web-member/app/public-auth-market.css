@@ -341,3 +341,22 @@
     backdrop-filter: none;
   }
 }
+
+/* Sharper bordered auth controls across login and registration. */
+.public-auth-shell{border-color:rgba(238,199,120,.32);border-radius:18px}
+.public-auth-card{border-left-color:rgba(238,199,120,.2)}
+.public-auth-card__logo>span,.public-auth-brand__mark{border:1px solid rgba(255,224,148,.38);border-radius:9px}
+.public-auth-input,.public-auth-input-wrap{border-radius:8px}
+.public-auth-input{border-color:rgba(238,199,120,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.public-auth-input:hover:not(:disabled){border-color:rgba(238,199,120,.42)}
+.public-auth-submit{border:1px solid color-mix(in srgb,var(--color-brand) 78%,white);border-radius:8px}
+.public-auth-submit--secondary{border-color:rgba(238,199,120,.22)}
+.public-auth-alert,.public-auth-review,.public-auth-security-card,.public-auth-steps-preview>div,.public-auth-benefits>div{border-radius:9px}
+.public-auth-review{border-color:rgba(238,199,120,.2)}
+.public-auth-progress>div:last-child,.public-auth-password-meter{border:1px solid rgba(238,199,120,.16);border-radius:3px}
+.public-auth-language__button::after{border-radius:1px}
+
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .public-auth-shell,.public-auth-shell.public-auth-shell--register{border-radius:0}
+  .public-auth-card{border-left:1px solid rgba(238,199,120,.12);border-right:1px solid rgba(238,199,120,.12)}
+}

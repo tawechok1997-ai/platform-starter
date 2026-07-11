@@ -250,3 +250,19 @@ body:has(.admin-auth-page){overflow-x:hidden}
   .admin-auth-page{background-color:#05080c;background-image:linear-gradient(to bottom,rgba(4,7,11,.5) 0%,rgba(4,7,11,.72) 48%,rgba(4,7,11,.26) 100%),url('/images/auth-luxury-architecture.webp');background-position:32% top;background-size:auto 100dvh;background-repeat:no-repeat}
   .admin-auth-card{background:linear-gradient(to bottom,rgba(8,12,18,.58) 0%,rgba(8,12,18,.7) 62%,rgba(8,12,18,.18) 100%);backdrop-filter:none}
 }
+
+/* Sharper bordered controls shared with the member authentication pages. */
+.admin-auth-shell{border-color:rgba(232,189,72,.32);border-radius:18px}
+.admin-auth-card{border-left-color:rgba(232,189,72,.2)}
+.admin-auth-brand__mark,.admin-auth-mobile-mark,.admin-auth-card-brand .admin-auth-mobile-mark{border:1px solid rgba(255,224,148,.38);border-radius:9px}
+.admin-auth-field input,.admin-auth-input-wrap{border-radius:8px}
+.admin-auth-field input{border-color:rgba(232,189,72,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.admin-auth-field input:hover{border-color:rgba(232,189,72,.42)}
+.admin-auth-submit{border:1px solid rgba(255,224,148,.72);border-radius:8px}
+.admin-auth-alert{border-radius:9px}
+.admin-auth-language button{border-radius:1px}
+
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .admin-auth-shell{border-radius:0}
+  .admin-auth-card{border-left:1px solid rgba(232,189,72,.12);border-right:1px solid rgba(232,189,72,.12)}
+}
