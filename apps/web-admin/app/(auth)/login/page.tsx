@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
   return <main className="admin-auth-page">
     <div className="admin-auth-ambient" aria-hidden="true"><span /><span /></div>
     <section className="admin-auth-shell">
-      <aside className="admin-auth-brand"><div className="admin-auth-brand__mark">A</div><p>Operations workspace</p><h1>{locale === 'th' ? 'ควบคุมระบบอย่างชัดเจน ตัดสินใจได้อย่างมั่นใจ' : 'Clarity for every operation. Confidence in every decision.'}</h1><span>{locale === 'th' ? 'การเงิน ความเสี่ยง สมาชิก ค่ายเกม และความปลอดภัย รวมอยู่ในพื้นที่ทำงานเดียว' : 'Finance, risk, members, providers and security in one focused workspace.'}</span><div className="admin-auth-status"><i /> {locale === 'th' ? 'ช่องทางเข้าถึงสำหรับผู้ดูแลที่ได้รับอนุญาตเท่านั้น' : 'Authorized administrators only'}</div></aside>
+      <aside className="admin-auth-brand"><div className="admin-auth-brand__mark">A</div><p>Operations workspace</p><h1>{locale === 'th' ? 'ควบคุมระบบชัดเจน ตัดสินใจอย่างมั่นใจ' : 'Clear operations. Confident decisions.'}</h1><span>{locale === 'th' ? 'จัดการการเงิน ความเสี่ยง สมาชิก ค่ายเกม และความปลอดภัย จากพื้นที่ทำงานเดียว' : 'Manage finance, risk, members, providers and security from one focused workspace.'}</span><div className="admin-auth-status"><i /> {locale === 'th' ? 'สำหรับผู้ดูแลที่ได้รับอนุญาตเท่านั้น' : 'Authorized administrators only'}</div></aside>
     <form onSubmit={onSubmit} className="admin-auth-card" noValidate>
       <div className="admin-auth-mobile-mark" aria-hidden="true">A</div>
       <div className="admin-auth-heading"><p>Admin Console</p><h2>{t.title}</h2><span>{locale === 'th' ? 'กรอกข้อมูลประจำตัวเพื่อเข้าสู่พื้นที่จัดการ' : 'Use your administrator credentials to continue.'}</span></div>
