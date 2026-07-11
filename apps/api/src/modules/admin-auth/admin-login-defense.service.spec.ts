@@ -17,7 +17,7 @@ function createPrisma(options: {
 
   return {
     adminUser: {
-      findUnique: jest.fn().mockResolvedValue(adminId ? { id: adminId } : null),
+      findUnique: jest.fn().mockResolvedValue(options.adminId ? { id: options.adminId } : null),
     },
     loginHistory: {
       count: jest.fn().mockImplementation(({ where }: any) => Promise.resolve(
@@ -45,6 +45,7 @@ describe('AdminLoginDefenseService', () => {
   it('temporarily locks an account after five recent failures', async () => {
     const now = new Date();
     const prisma = createPrisma({
+      adminId: 'admin-1',
       accountFailures: 5,
       ipFailures: 5,
       latestAccountFailureAt: now,
@@ -82,7 +83,7 @@ describe('AdminLoginDefenseService', () => {
 
   it('counts account failures only after the latest successful login', async () => {
     const lastSuccessAt = new Date(Date.now() - 30_000);
-    const prisma = createPrisma({ lastSuccessAt, accountFailures: 0, ipFailures: 0 });
+    const prisma = createPrisma({ adminId: 'admin-1', lastSuccessAt, accountFailures: 0, ipFailures: 0 });
     const service = new AdminLoginDefenseService(prisma);
 
     await service.assertAllowed('admin', { ipAddress: '203.0.113.10' });
