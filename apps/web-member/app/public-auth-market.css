@@ -392,3 +392,16 @@
 @media (max-width:1023px), (hover:none) and (pointer:coarse) {
   .public-auth-card-topbar{margin-bottom:clamp(64px,10vh,86px)}
 }
+
+/* Match the working admin composition exactly on the member service. */
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .public-auth-page {
+    background-color:#05080c!important;
+    background-image:linear-gradient(to bottom,rgba(4,7,11,.28) 0%,rgba(4,7,11,.48) 52%,rgba(4,7,11,.12) 100%),url('/images/auth-luxury-architecture.webp?v=member-auth-v2')!important;
+    background-position:left top!important;
+    background-size:auto 100dvh!important;
+    background-repeat:no-repeat!important;
+  }
+  .public-auth-shell,.public-auth-shell.public-auth-shell--register{background:transparent!important}
+  .public-auth-card{background:linear-gradient(to bottom,rgba(7,10,15,.46),rgba(7,10,15,.62))!important;backdrop-filter:blur(5px)}
+}
