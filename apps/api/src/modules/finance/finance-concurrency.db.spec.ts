@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { DepositWorkflowService } from '../topups/deposit-workflow.service';
+import { TopUpsService } from '../topups/topups.service';
 import { WithdrawalsService } from '../withdrawals/withdrawals.service';
 import { WithdrawalWorkflowService } from '../withdrawals/withdrawal-workflow.service';
 
@@ -23,6 +24,7 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
   const adminId = randomUUID();
   const secondAdminId = randomUUID();
   const requestId = randomUUID();
+  const depositClaimRequestId = randomUUID();
   const withdrawalUserId = randomUUID();
   const withdrawalBankId = randomUUID();
   const claimRequestId = randomUUID();
@@ -72,6 +74,15 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
         claimedAt: new Date(),
       },
     });
+    await prisma.topUpRequest.create({
+      data: {
+        id: depositClaimRequestId,
+        userId,
+        amount: 25,
+        currency: 'THB',
+        status: 'PENDING_CREDIT',
+      },
+    });
     await prisma.user.create({
       data: {
         id: withdrawalUserId,
@@ -119,7 +130,7 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
   afterAll(async () => {
     if (!prisma) return;
     await prisma.adminAuditLog.deleteMany({ where: { adminUserId: { in: [adminId, secondAdminId] } } });
-    await prisma.topUpRequest.deleteMany({ where: { id: requestId } });
+    await prisma.topUpRequest.deleteMany({ where: { id: { in: [requestId, depositClaimRequestId] } } });
     await prisma.withdrawalRequest.deleteMany({ where: { id: { in: [claimRequestId, payoutRequestId] } } });
     await prisma.withdrawalRequest.deleteMany({ where: { userId: withdrawalUserId } });
     await prisma.memberBankAccount.deleteMany({ where: { id: withdrawalBankId } });
@@ -153,6 +164,19 @@ describeWithDatabase('finance concurrency with PostgreSQL', () => {
     expect(ledgers).toHaveLength(1);
     expect(request.status).toBe('COMPLETED');
     expect(request.creditedLedgerId).toBe(ledgers[0].id);
+  }, 30_000);
+
+  it('allows only one admin to claim the same deposit request', async () => {
+    const service = new TopUpsService(prisma as any);
+    const results = await Promise.allSettled([
+      service.claimRequest(depositClaimRequestId, { id: adminId }),
+      service.claimRequest(depositClaimRequestId, { id: secondAdminId }),
+    ]);
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+    const request = await prisma.topUpRequest.findUniqueOrThrow({ where: { id: depositClaimRequestId } });
+    expect([adminId, secondAdminId]).toContain(request.claimedBy);
   }, 30_000);
 
   it('allows only one admin to claim the same withdrawal request', async () => {
