@@ -198,3 +198,9 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 .member-home-hero{min-height:250px!important}
 .member-home-hero__image{object-fit:contain!important}
 @media(max-width:700px){.member-home-hero{min-height:250px!important}.member-home-hero__copy{padding:18px 16px!important}}
+
+/* Keep promotion artwork inside the viewport without cropping */
+.member-home-hero{width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:auto!important;overflow:hidden!important}
+.member-home-hero__slide-link{position:relative!important;display:block!important;width:100%!important;max-width:100%!important;height:auto!important;overflow:hidden!important}
+.member-home-hero__image{position:static!important;display:block!important;width:100%!important;max-width:100%!important;height:auto!important;min-width:0!important;aspect-ratio:auto!important;object-fit:contain!important;background:#0d0914!important}
+@media(max-width:700px){.member-home-hero__image{width:100%!important}}
