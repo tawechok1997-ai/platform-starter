@@ -94,6 +94,22 @@ export class AdminAccessController {
   }
 
   @RequirePermission('admin.access.manage')
+  @Delete('admin-users/:adminUserId/sessions/:sessionId')
+  revokeAdminSession(
+    @Req() req: any,
+    @Param('adminUserId') adminUserId: string,
+    @Param('sessionId') sessionId: string,
+    @Body() body: { reason?: string },
+  ) {
+    return this.service.revokeAdminSession(
+      req.user.id,
+      adminUserId,
+      sessionId,
+      String(body.reason ?? ''),
+    );
+  }
+
+  @RequirePermission('admin.access.manage')
   @Patch('admin-users/:adminUserId/status')
   changeStatus(
     @Req() req: any,
