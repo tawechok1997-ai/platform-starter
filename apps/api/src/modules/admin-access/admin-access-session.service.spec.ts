@@ -56,4 +56,19 @@ describe('AdminAccessSessionService', () => {
       }),
     });
   });
+  it('supports ownership transfer revoke reasons', async () => {
+    const updateMany = jest.fn().mockResolvedValue({ count: 1 });
+    const createAudit = jest.fn().mockResolvedValue({ id: 'audit-3' });
+    const prisma = { authSession: { updateMany }, adminAuditLog: { create: createAudit } } as any;
+
+    const service = new AdminAccessSessionService(prisma);
+    await service.revokeAfterPrivilegeChange('actor-3', 'target-3', 'TRANSFER_OWNERSHIP_IN');
+
+    expect(createAudit).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        newData: expect.objectContaining({ change: 'TRANSFER_OWNERSHIP_IN', revokedSessions: 1 }),
+      }),
+    });
+  });
+
 });
