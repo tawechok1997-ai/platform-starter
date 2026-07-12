@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Audit admin permission coverage
+        run: pnpm audit:admin-permissions
+
       - name: Build API
         if: matrix.target == 'api'
         run: pnpm build:api
