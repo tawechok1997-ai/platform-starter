@@ -21,6 +21,7 @@ const RATE_RULES: RateRule[] = [
   { method: 'POST', path: '/member/topups', max: 20, env: 'RATE_LIMIT_TOPUPS_PER_MINUTE' },
   { method: 'POST', path: '/member/topups/slip', max: 12, env: 'RATE_LIMIT_SLIP_UPLOAD_PER_MINUTE' },
   { method: 'POST', path: '/member/withdrawals', max: 12, env: 'RATE_LIMIT_WITHDRAWALS_PER_MINUTE' },
+  { method: 'POST', path: '/provider-webhooks/', max: 120, env: 'RATE_LIMIT_PROVIDER_WEBHOOK_PER_MINUTE' },
 ];
 
 let redis: Redis | null = null;
