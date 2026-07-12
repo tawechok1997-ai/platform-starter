@@ -216,3 +216,14 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 
 /* Additional promo artwork scale */
 .member-home-hero__slide-link{transform:scale(1.09)!important}
+
+/* Reference shell alignment */
+.global-member-topbar .member-brand-copy{display:grid!important;gap:1px;min-width:0;text-align:left}
+.global-member-topbar .member-brand-copy strong{font-size:14px;line-height:1;letter-spacing:.03em;white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis}
+.global-member-topbar .member-brand-copy small{font-size:8px;line-height:1;color:#bf55ff;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis}
+.member-home-shell{padding-left:18px!important;padding-right:18px!important}
+.member-home-shell .member-home-zone--content,.member-home-shell .member-home-finance-lower,.member-home-shell>.member-home-zone:not(.member-home-zone--primary):not(.member-home-zone--content){padding-left:96px!important}
+.member-home-shell .member-home-zone--primary{padding-left:0!important}
+.member-home-shell .member-lobby-tabs{padding-left:0!important}
+.member-category-rail--home{top:520px!important}
+@media(max-width:420px){.member-home-shell{padding-left:10px!important;padding-right:10px!important}.member-home-shell .member-home-zone--content,.member-home-shell .member-home-finance-lower,.member-home-shell>.member-home-zone:not(.member-home-zone--primary):not(.member-home-zone--content){padding-left:74px!important}.global-member-topbar .member-brand-copy strong{max-width:145px;font-size:12px}.global-member-topbar .member-brand-copy small{max-width:145px;font-size:7px}}
