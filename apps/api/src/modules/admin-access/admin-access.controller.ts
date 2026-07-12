@@ -87,6 +87,12 @@ export class AdminAccessController {
     );
   }
 
+  @RequirePermission('admin.access.view')
+  @Get('admin-users/:adminUserId/security')
+  securityOverview(@Param('adminUserId') adminUserId: string) {
+    return this.service.securityOverview(adminUserId);
+  }
+
   @RequirePermission('admin.access.manage')
   @Patch('admin-users/:adminUserId/status')
   changeStatus(
