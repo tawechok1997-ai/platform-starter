@@ -286,3 +286,8 @@ body{position:relative!important}
 .member-category-rail a{width:72px!important;flex-basis:68px!important}
 .member-home-shell .member-home-zone--content,.member-home-shell .member-home-finance-lower,.member-home-shell>.member-home-zone:not(.member-home-zone--primary):not(.member-home-zone--content){padding-left:72px!important}
 @media(max-width:420px){.member-category-rail{inset-inline-start:6px!important;width:66px!important}.member-category-rail a{width:66px!important;flex-basis:64px!important}.member-home-shell .member-home-zone--content,.member-home-shell .member-home-finance-lower,.member-home-shell>.member-home-zone:not(.member-home-zone--primary):not(.member-home-zone--content){padding-left:64px!important}}
+
+/* Align highlight tabs after the rail gutter */
+.member-home-shell .member-home-zone--primary .member-lobby-tabs{padding-left:72px!important;box-sizing:border-box!important}
+.member-home-shell .member-home-zone--primary .member-lobby-tabs a{min-width:0!important}
+@media(max-width:420px){.member-home-shell .member-home-zone--primary .member-lobby-tabs{padding-left:66px!important}}
