@@ -1,5 +1,7 @@
 # Current Project Status and Remaining Backlog
 
+> Master status and deduplicated checklist: [docs/master-project-worklist.md](./master-project-worklist.md). Update the master document first; this file is retained as legacy reference.
+
 Last updated: 2026-07-10
 
 This document is the current source of truth for what has been completed, what is partially complete, and what remains in `tawechok1997-ai/platform-starter`.
