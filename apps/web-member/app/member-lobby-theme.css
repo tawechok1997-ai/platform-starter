@@ -295,3 +295,12 @@ body{position:relative!important}
 /* Highlight tab shares the same left edge as the home rail card */
 .member-home-shell .member-home-zone--primary .member-lobby-tabs{padding-left:0!important;padding-right:0!important;margin-left:0!important;margin-right:0!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
 .member-home-shell .member-home-zone--primary .member-lobby-tabs a{width:100%!important;min-width:0!important;justify-content:center!important}
+
+/* Shared reference spacing for the remaining lobby sections */
+.member-home-shell .member-tournament-section{display:grid;gap:10px!important;min-width:0!important}
+.member-home-shell .member-lobby-promo-card{width:100%!important;min-height:0!important;border:0!important;border-radius:12px!important;overflow:hidden!important;background:transparent!important}
+.member-home-shell .member-lobby-promo-card img{display:block!important;width:100%!important;height:auto!important;aspect-ratio:2.42/1!important;object-fit:cover!important;border:0!important;border-radius:12px!important}
+.member-home-shell .member-tournament-title{min-height:42px!important;padding:8px 12px!important;border-radius:8px!important;font-size:18px!important}
+.member-home-shell .member-tournament-empty{min-height:100px!important;padding:16px!important;border-radius:12px!important}
+.member-home-shell .member-home-zone--finance{gap:12px!important}
+.member-home-shell .member-home-zone--finance>.member-card{border-radius:16px!important}
