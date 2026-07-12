@@ -173,3 +173,13 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
   .member-category-rail--home { top: 520px !important; }
   .member-announcement-marquee span { animation-duration: 13s; }
 }
+
+/* Exact requested adjustments: no promo frame, uncropped asset, four carousel dots, fixed game rail. */
+.member-home-hero,
+.member-home-hero__slide-link,
+.member-home-hero__image { border: 0 !important; outline: 0 !important; box-shadow: none !important; }
+.member-home-hero { background: #0d0914 !important; }
+.member-home-hero__image { object-fit: contain !important; object-position: center !important; background: #0d0914 !important; }
+.member-home-hero__dots { display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 20 !important; }
+.member-home-hero__dots button { display: block !important; visibility: visible !important; }
+.member-category-rail--home { position: fixed !important; top: 520px !important; left: 10px !important; z-index: 100 !important; overflow: visible !important; }
