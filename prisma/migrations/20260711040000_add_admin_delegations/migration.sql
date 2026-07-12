@@ -1,6 +1,13 @@
-CREATE TYPE "AdminDelegationStatus" AS ENUM ('ACTIVE', 'REVOKED', 'EXPIRED');
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type WHERE typname = 'AdminDelegationStatus'
+  ) THEN
+    CREATE TYPE "AdminDelegationStatus" AS ENUM ('ACTIVE', 'REVOKED', 'EXPIRED');
+  END IF;
+END $$;
 
-CREATE TABLE "admin_delegations" (
+CREATE TABLE IF NOT EXISTS "admin_delegations" (
     "id" UUID NOT NULL,
     "grantor_admin_id" UUID NOT NULL,
     "delegate_admin_id" UUID NOT NULL,
@@ -12,18 +19,31 @@ CREATE TABLE "admin_delegations" (
     "revoked_by_admin_id" UUID,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "admin_delegations_pkey" PRIMARY KEY ("id")
 );
 
-CREATE INDEX "admin_delegations_delegate_admin_id_status_expires_at_idx"
+CREATE INDEX IF NOT EXISTS "admin_delegations_delegate_admin_id_status_expires_at_idx"
   ON "admin_delegations"("delegate_admin_id", "status", "expires_at");
-CREATE INDEX "admin_delegations_grantor_admin_id_status_idx"
+CREATE INDEX IF NOT EXISTS "admin_delegations_grantor_admin_id_status_idx"
   ON "admin_delegations"("grantor_admin_id", "status");
 
-ALTER TABLE "admin_delegations"
-  ADD CONSTRAINT "admin_delegations_grantor_admin_id_fkey"
-  FOREIGN KEY ("grantor_admin_id") REFERENCES "admin_users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "admin_delegations"
-  ADD CONSTRAINT "admin_delegations_delegate_admin_id_fkey"
-  FOREIGN KEY ("delegate_admin_id") REFERENCES "admin_users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'admin_delegations_grantor_admin_id_fkey'
+  ) THEN
+    ALTER TABLE "admin_delegations"
+      ADD CONSTRAINT "admin_delegations_grantor_admin_id_fkey"
+      FOREIGN KEY ("grantor_admin_id") REFERENCES "admin_users"("id")
+      ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'admin_delegations_delegate_admin_id_fkey'
+  ) THEN
+    ALTER TABLE "admin_delegations"
+      ADD CONSTRAINT "admin_delegations_delegate_admin_id_fkey"
+      FOREIGN KEY ("delegate_admin_id") REFERENCES "admin_users"("id")
+      ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
