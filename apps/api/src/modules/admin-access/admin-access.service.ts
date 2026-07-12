@@ -108,6 +108,42 @@ export class AdminAccessService {
     };
   }
 
+  async ownerRecoveryStatus(adminUserId: string) {
+    const [actor, protectedAdmins, recoveryCodesRemaining] = await Promise.all([
+      this.findAdminWithPermissions(adminUserId),
+      this.prisma.adminUser.findMany({
+        where: { roles: { some: { role: { code: { in: Array.from(PROTECTED_ROLE_CODES) } } } } },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          status: true,
+          twoFactorEnabled: true,
+          roles: { select: { role: { select: { code: true } } } },
+        },
+        orderBy: { createdAt: 'asc' },
+      }),
+      this.prisma.adminRecoveryCode.count({ where: { adminUserId, usedAt: null } }),
+    ]);
+    if (!actor) throw new NotFoundException('Admin user not found');
+    if (!actor.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code))) {
+      throw new ForbiddenException('Only an owner-level admin can view owner recovery status');
+    }
+    const activeProtectedAdmins = protectedAdmins.filter((admin) => admin.status === 'ACTIVE');
+    return {
+      healthy: activeProtectedAdmins.length >= 1 && activeProtectedAdmins.every((admin) => admin.twoFactorEnabled) && recoveryCodesRemaining > 0,
+      recoveryCodesRemaining,
+      protectedAdmins: protectedAdmins.map((admin) => ({
+        id: admin.id,
+        username: admin.username,
+        email: admin.email,
+        status: admin.status,
+        twoFactorEnabled: admin.twoFactorEnabled,
+        roles: admin.roles.map((item) => item.role.code),
+      })),
+    };
+  }
+
   async securityOverview(adminUserId: string) {
     const [admin, sessions, loginHistory] = await Promise.all([
       this.prisma.adminUser.findUnique({
@@ -321,6 +357,7 @@ export class AdminAccessService {
       throw new ForbiddenException('Only an owner-level admin can transfer ownership');
     }
     if (target.status !== 'ACTIVE') throw new BadRequestException('Target admin account must be active');
+    if (!target.twoFactorEnabled) throw new BadRequestException('Target admin account must have 2FA enabled before ownership transfer');
     if (target.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code) || item.role.permissions.some((permission) => permission.permission.code === SUPER_PERMISSION))) {
       throw new ConflictException('Target admin already has protected access');
     }
