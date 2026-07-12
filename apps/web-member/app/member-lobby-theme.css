@@ -253,3 +253,8 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 .member-category-rail__handle{left:0!important;z-index:2!important}
 .member-home-shell,.game-lobby-page,.member-guide-page{position:relative!important;z-index:1}
 @media(max-width:420px){.member-category-rail{width:78px!important;padding:0 6px!important}.member-category-rail a{width:66px!important;flex-basis:70px!important}}
+
+/* Hard screen-fixed rail: never follows document scrolling */
+html,body{overflow-x:hidden!important}
+.member-category-rail,.member-category-rail--home{position:fixed!important;inset-inline-start:0!important;inset-inline-end:auto!important;inset-block-start:220px!important;inset-block-end:78px!important;height:auto!important;max-height:calc(100dvh - 298px)!important;margin:0!important;float:none!important;transform:none!important;contain:layout paint!important;overflow:hidden!important;z-index:999!important}
+@media(max-width:420px){.member-category-rail,.member-category-rail--home{inset-inline-start:0!important;inset-block-start:220px!important;inset-block-end:72px!important;max-height:calc(100dvh - 292px)!important}}
