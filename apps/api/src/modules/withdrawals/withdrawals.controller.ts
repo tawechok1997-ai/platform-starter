@@ -6,6 +6,7 @@ import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { CreateWithdrawalRequestDto } from './dto/create-withdrawal-request.dto';
 import { ReviewWithdrawalRequestDto } from './dto/review-withdrawal-request.dto';
+import { CompleteWithdrawalRequestDto } from './dto/complete-withdrawal-request.dto';
 import { WithdrawalsService } from './withdrawals.service';
 
 @Controller()
