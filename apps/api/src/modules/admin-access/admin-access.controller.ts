@@ -88,6 +88,12 @@ export class AdminAccessController {
   }
 
   @RequirePermission('admin.access.view')
+  @Get('owner-recovery-status')
+  ownerRecoveryStatus(@Req() req: any) {
+    return this.service.ownerRecoveryStatus(req.user.id);
+  }
+
+  @RequirePermission('admin.access.view')
   @Get('admin-users/:adminUserId/security')
   securityOverview(@Param('adminUserId') adminUserId: string) {
     return this.service.securityOverview(adminUserId);
