@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateWithdrawalRequestDto } from './dto/create-withdrawal-request.dto';
 import { ReviewWithdrawalRequestDto } from './dto/review-withdrawal-request.dto';
+import { CompleteWithdrawalRequestDto } from './dto/complete-withdrawal-request.dto';
 
 const CLAIM_TIMEOUT_MS = 15 * 60 * 1000;
 const BONUS_LEDGER_REF_TYPE = 'BONUS_LEDGER';
@@ -107,6 +108,75 @@ export class WithdrawalsService {
     const updated = await this.prisma.withdrawalRequest.update({ where: { id }, data: { claimedBy: null, claimedAt: null } });
     await this.audit(adminUser.id, 'RELEASE_WITHDRAWAL', id, { claimedBy: request.claimedBy }, { claimedBy: null }, meta);
     return this.formatRequest(updated);
+  }
+
+
+  async approveRequest(id: string, adminUser: any, dto: ReviewWithdrawalRequestDto, meta: RequestMeta = {}) {
+    return this.prisma.$transaction(async (tx) => {
+      const rows = await tx.$queryRaw<Array<{ status: string; claimed_by: string | null }>>(Prisma.sql`
+        SELECT "status"::text AS status, "claimed_by" FROM "withdrawal_requests" WHERE "id" = ${id}::uuid FOR UPDATE
+      `);
+      const request = rows[0];
+      if (!request) throw new NotFoundException('Withdrawal request not found');
+      if (request.claimed_by && request.claimed_by !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+      if (!['PENDING', 'PENDING_REVIEW'].includes(request.status)) throw new ConflictException(`Withdrawal cannot be approved: ${request.status}`);
+      const changed = await tx.$executeRaw(Prisma.sql`
+        UPDATE "withdrawal_requests"
+        SET "status" = 'APPROVED_FOR_PAYMENT'::"WithdrawalRequestStatus", "admin_note" = ${dto.adminNote ?? null},
+            "reviewed_by" = ${adminUser.id}::uuid, "reviewed_at" = NOW(),
+            "approved_for_payment_by" = ${adminUser.id}::uuid, "approved_for_payment_at" = NOW(),
+            "claimed_by" = NULL, "claimed_at" = NULL, "updated_at" = NOW()
+        WHERE "id" = ${id}::uuid AND "status"::text IN ('PENDING', 'PENDING_REVIEW')
+      `);
+      if (changed !== 1) throw new ConflictException('Withdrawal state changed during approval');
+      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'APPROVE_WITHDRAWAL', module: 'withdrawals', targetId: id, oldData: { status: request.status }, newData: { status: 'APPROVED_FOR_PAYMENT', adminNote: dto.adminNote }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      return this.formatRequest(await tx.withdrawalRequest.findUniqueOrThrow({ where: { id } }));
+    });
+  }
+
+  async completeRequest(id: string, adminUser: any, dto: CompleteWithdrawalRequestDto, meta: RequestMeta = {}) {
+    return this.prisma.$transaction(async (tx) => {
+      const rows = await tx.$queryRaw<Array<{ status: string; user_id: string; amount: Prisma.Decimal; claimed_by: string | null }>>(Prisma.sql`
+        SELECT "status"::text AS status, "user_id", "amount", "claimed_by"
+        FROM "withdrawal_requests" WHERE "id" = ${id}::uuid FOR UPDATE
+      `);
+      const request = rows[0];
+      if (!request) throw new NotFoundException('Withdrawal request not found');
+      if (request.claimed_by && request.claimed_by !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+      if (!['APPROVED_FOR_PAYMENT', 'PAYMENT_VERIFIED'].includes(request.status)) throw new ConflictException(`Withdrawal cannot be completed: ${request.status}`);
+      const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
+        SELECT "id", "user_id", "currency", "status"::text AS status, "balance", "locked_balance"
+        FROM "wallets" WHERE "user_id" = ${request.user_id}::uuid FOR UPDATE
+      `);
+      const wallet = walletRows[0];
+      if (!wallet) throw new BadRequestException('Wallet not found');
+      if (wallet.status !== 'ACTIVE') throw new BadRequestException('Wallet is not active');
+      if (wallet.locked_balance.lt(request.amount) || wallet.balance.lt(request.amount)) throw new BadRequestException('Wallet balance is not enough to complete withdrawal');
+      const balanceAfter = wallet.balance.minus(request.amount);
+      const lockedAfter = wallet.locked_balance.minus(request.amount);
+      const ledger = await tx.walletLedger.create({
+        data: {
+          walletId: wallet.id, userId: request.user_id, type: 'WITHDRAWAL', direction: 'DEBIT',
+          amount: request.amount, balanceBefore: wallet.balance, balanceAfter,
+          referenceType: 'WITHDRAWAL_REQUEST', referenceId: id,
+          idempotencyKey: `withdrawal:${id}:complete`,
+          metadata: { paymentTransactionRef: dto.paymentTransactionRef },
+          createdByAdminId: adminUser.id,
+        },
+      });
+      await tx.wallet.update({ where: { id: wallet.id }, data: { balance: balanceAfter, lockedBalance: lockedAfter } });
+      const changed = await tx.$executeRaw(Prisma.sql`
+        UPDATE "withdrawal_requests"
+        SET "status" = 'COMPLETED'::"WithdrawalRequestStatus", "admin_note" = ${dto.adminNote ?? null},
+            "payment_transaction_ref" = ${dto.paymentTransactionRef}, "payment_verified_by" = ${adminUser.id}::uuid,
+            "payment_verified_at" = NOW(), "reviewed_by" = ${adminUser.id}::uuid, "reviewed_at" = NOW(),
+            "completed_ledger_id" = ${ledger.id}::uuid, "claimed_by" = NULL, "claimed_at" = NULL, "updated_at" = NOW()
+        WHERE "id" = ${id}::uuid AND "status"::text IN ('APPROVED_FOR_PAYMENT', 'PAYMENT_VERIFIED')
+      `);
+      if (changed !== 1) throw new ConflictException('Withdrawal state changed during completion');
+      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'COMPLETE_WITHDRAWAL', module: 'withdrawals', targetId: id, oldData: { status: request.status, amount: request.amount.toString() }, newData: { status: 'COMPLETED', ledgerId: ledger.id, paymentTransactionRef: dto.paymentTransactionRef }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      return this.formatRequest(await tx.withdrawalRequest.findUniqueOrThrow({ where: { id } }));
+    });
   }
 
   async rejectRequest(id: string, adminUser: any, dto: ReviewWithdrawalRequestDto, meta: RequestMeta = {}) {
