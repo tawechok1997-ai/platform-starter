@@ -272,3 +272,7 @@ body{position:relative!important}
 .member-category-rail--home{inset-block-start:260px!important}
 .member-home-shell .member-home-zone--content,.member-home-shell .member-home-finance-lower,.member-home-shell>.member-home-zone:not(.member-home-zone--primary):not(.member-home-zone--content){padding-left:78px!important}
 @media(max-width:420px){.member-category-rail{width:70px!important;gap:7px!important}.member-category-rail a{width:70px!important;flex-basis:68px!important;border-radius:15px!important}.member-category-rail--home{inset-block-start:250px!important}.member-home-shell .member-home-zone--content,.member-home-shell .member-home-finance-lower,.member-home-shell>.member-home-zone:not(.member-home-zone--primary):not(.member-home-zone--content){padding-left:68px!important}}
+
+/* Home rail starts below the highlight tabs */
+.member-category-rail--home{inset-block-start:350px!important}
+@media(max-width:420px){.member-category-rail--home{inset-block-start:340px!important}}
