@@ -108,6 +108,49 @@ export class AdminAccessService {
     };
   }
 
+  async securityOverview(adminUserId: string) {
+    const [admin, sessions, loginHistory] = await Promise.all([
+      this.prisma.adminUser.findUnique({
+        where: { id: adminUserId },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          status: true,
+          twoFactorEnabled: true,
+          lastLoginAt: true,
+          createdAt: true,
+          roles: { select: { role: { select: { code: true, name: true } } } },
+        },
+      }),
+      this.prisma.authSession.findMany({
+        where: { adminUserId, type: 'ADMIN' },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        select: { id: true, deviceId: true, ipAddress: true, userAgent: true, createdAt: true, expiresAt: true, revokedAt: true },
+      }),
+      this.prisma.loginHistory.findMany({
+        where: { adminUserId, type: 'ADMIN' },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+        select: { id: true, success: true, reason: true, ipAddress: true, userAgent: true, createdAt: true },
+      }),
+    ]);
+    if (!admin) throw new NotFoundException('Admin user not found');
+    const now = new Date();
+    return {
+      admin: {
+        ...admin,
+        roles: admin.roles.map((item) => item.role),
+      },
+      sessions: sessions.map((session) => ({
+        ...session,
+        active: !session.revokedAt && session.expiresAt > now,
+      })),
+      loginHistory,
+    };
+  }
+
   async createInvitation(actorAdminId: string, emailInput: string, roleId: string, expiresInHours = 24) {
     const email = String(emailInput ?? '').trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(email)) throw new BadRequestException('A valid email is required');
