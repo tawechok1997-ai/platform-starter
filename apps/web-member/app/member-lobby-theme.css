@@ -291,3 +291,7 @@ body{position:relative!important}
 .member-home-shell .member-home-zone--primary .member-lobby-tabs{padding-left:72px!important;box-sizing:border-box!important}
 .member-home-shell .member-home-zone--primary .member-lobby-tabs a{min-width:0!important}
 @media(max-width:420px){.member-home-shell .member-home-zone--primary .member-lobby-tabs{padding-left:66px!important}}
+
+/* Highlight tab shares the same left edge as the home rail card */
+.member-home-shell .member-home-zone--primary .member-lobby-tabs{padding-left:0!important;padding-right:0!important;margin-left:0!important;margin-right:0!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.member-home-shell .member-home-zone--primary .member-lobby-tabs a{width:100%!important;min-width:0!important;justify-content:center!important}
