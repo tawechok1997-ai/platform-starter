@@ -27,7 +27,8 @@ export class TopUpsController {
     return this.topUpsService.getMemberRequest(user.id, id);
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.topups.view')
   @Get('admin/topups')
   getAdminRequests(
     @Query('status') status?: string,
@@ -37,19 +38,22 @@ export class TopUpsController {
     return this.topUpsService.getAdminRequests(status, { page, take });
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.topups.view')
   @Get('admin/topups/:id')
   getAdminRequest(@Param('id') id: string) {
     return this.topUpsService.getAdminRequest(id);
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.topups.review')
   @Post('admin/topups/:id/claim')
   claimRequest(@Param('id') id: string, @CurrentUser() user: any, @Req() req: any) {
     return this.topUpsService.claimRequest(id, user, this.meta(req));
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.topups.review')
   @Post('admin/topups/:id/release')
   releaseRequest(@Param('id') id: string, @CurrentUser() user: any, @Req() req: any) {
     return this.topUpsService.releaseRequest(id, user, this.meta(req));

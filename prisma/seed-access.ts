@@ -28,6 +28,30 @@ const PERMISSIONS = [
     description: 'Allow viewing finance reports, trends, and reconciliation pages.',
   },
   {
+    code: 'finance.topups.view',
+    name: 'View top-up requests',
+    module: 'topups',
+    description: 'Allow viewing member top-up requests and queue details.',
+  },
+  {
+    code: 'finance.topups.review',
+    name: 'Review top-up requests',
+    module: 'topups',
+    description: 'Allow claiming and releasing top-up review work.',
+  },
+  {
+    code: 'finance.withdrawals.view',
+    name: 'View withdrawal requests',
+    module: 'withdrawals',
+    description: 'Allow viewing member withdrawal requests and queue details.',
+  },
+  {
+    code: 'finance.withdrawals.review',
+    name: 'Review withdrawal requests',
+    module: 'withdrawals',
+    description: 'Allow claiming, approving, completing, and rejecting withdrawals.',
+  },
+  {
     code: 'admin.activity.view',
     name: 'View admin activity',
     module: 'activity',
