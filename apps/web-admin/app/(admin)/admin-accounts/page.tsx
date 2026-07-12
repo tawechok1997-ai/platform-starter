@@ -8,6 +8,11 @@ type AdminStatus = 'ACTIVE' | 'LOCKED' | 'SUSPENDED';
 type AdminUser = { id: string; username: string; email: string; status: AdminStatus; twoFactorEnabled: boolean; lastLoginAt?: string | null; protected?: boolean; roles: { id: string; code: string; name: string }[] };
 type AccessResponse = { adminUsers: AdminUser[] };
 type CurrentAdmin = { id?: string; permissions?: string[] };
+type SecurityOverview = {
+  admin: { id: string; username: string; email: string; status: AdminStatus; twoFactorEnabled: boolean; lastLoginAt?: string | null; createdAt: string; roles: { code: string; name: string }[] };
+  sessions: { id: string; deviceId?: string | null; ipAddress?: string | null; userAgent?: string | null; createdAt: string; expiresAt: string; revokedAt?: string | null; active: boolean }[];
+  loginHistory: { id: string; success: boolean; reason?: string | null; ipAddress?: string | null; userAgent?: string | null; createdAt: string }[];
+};
 
 export default function AdminAccountsPage() {
   const [data, setData] = useState<AccessResponse | null>(null);
@@ -18,6 +23,8 @@ export default function AdminAccountsPage() {
   const [permissions, setPermissions] = useState<string[]>([]);
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState('');
+  const [securityById, setSecurityById] = useState<Record<string, SecurityOverview>>({});
+  const [securityBusyId, setSecurityBusyId] = useState('');
 
   useEffect(() => { void load(); }, []);
 
@@ -82,6 +89,31 @@ export default function AdminAccountsPage() {
     }
   }
 
+  async function toggleSecurity(userId: string) {
+    if (securityById[userId]) {
+      setSecurityById((current) => {
+        const next = { ...current };
+        delete next[userId];
+        return next;
+      });
+      return;
+    }
+    setSecurityBusyId(userId);
+    try {
+      const response = await adminApiFetch(`/admin/access/admin-users/${userId}/security`);
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload?.admin) {
+        setMessage(payload?.message ?? 'โหลดประวัติความปลอดภัยไม่สำเร็จ');
+        return;
+      }
+      setSecurityById((current) => ({ ...current, [userId]: payload as SecurityOverview }));
+    } catch {
+      setMessage('เชื่อมต่อข้อมูลความปลอดภัยไม่สำเร็จ');
+    } finally {
+      setSecurityBusyId('');
+    }
+  }
+
   return <AdminPage eyebrow="Security" title="บัญชีผู้ดูแล" description="ค้นหา ตรวจสถานะ และควบคุมการเข้าใช้งานของบัญชีผู้ดูแลอย่างปลอดภัย">
     {message && <AdminNotice>{message}</AdminNotice>}
     <AdminCard title="ตัวกรอง" description="ค้นหาจากชื่อผู้ใช้ อีเมล หรือ Role">
@@ -103,6 +135,21 @@ export default function AdminAccountsPage() {
             <span>{user.email}</span>
             <div style={badgeStyle}>{user.roles.map((role) => <AdminBadge key={role.id}>{role.code}</AdminBadge>)}</div>
             <small>เข้าสู่ระบบล่าสุด: {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('th-TH') : 'ยังไม่มีข้อมูล'}</small>
+            <AdminButton tone="secondary" disabled={securityBusyId === user.id} onClick={() => toggleSecurity(user.id)}>{securityBusyId === user.id ? 'กำลังโหลด...' : securityById[user.id] ? 'ซ่อนข้อมูลความปลอดภัย' : 'ดู session / login history'}</AdminButton>
+            {securityById[user.id] && <div style={securityPanelStyle}>
+              <strong>Sessions ({securityById[user.id].sessions.length})</strong>
+              {securityById[user.id].sessions.map((session) => <div key={session.id} style={securityItemStyle}>
+                <div><AdminBadge tone={session.active ? 'success' : 'neutral'}>{session.active ? 'ACTIVE' : session.revokedAt ? 'REVOKED' : 'EXPIRED'}</AdminBadge> {session.deviceId ?? 'ไม่ระบุอุปกรณ์'}</div>
+                <small>{session.ipAddress ?? 'ไม่ทราบ IP'} · {session.createdAt ? new Date(session.createdAt).toLocaleString('th-TH') : '-'}{session.userAgent ? ` · ${session.userAgent.slice(0, 100)}` : ''}</small>
+              </div>)}
+              {securityById[user.id].sessions.length === 0 && <small>ยังไม่มี session</small>}
+              <strong>Login history ({securityById[user.id].loginHistory.length})</strong>
+              {securityById[user.id].loginHistory.slice(0, 10).map((item) => <div key={item.id} style={securityItemStyle}>
+                <div><AdminBadge tone={item.success ? 'success' : 'danger'}>{item.success ? 'SUCCESS' : 'FAILED'}</AdminBadge> {item.reason ?? 'เข้าสู่ระบบ'}</div>
+                <small>{item.ipAddress ?? 'ไม่ทราบ IP'} · {new Date(item.createdAt).toLocaleString('th-TH')}{item.userAgent ? ` · ${item.userAgent.slice(0, 100)}` : ''}</small>
+              </div>)}
+              {securityById[user.id].loginHistory.length === 0 && <small>ยังไม่มีประวัติ login</small>}
+            </div>}
             {canAct && <div style={actionPanelStyle}>
               <label style={reasonFieldStyle}>เหตุผลในการเปลี่ยนสถานะ
                 <textarea value={reasons[user.id] ?? ''} onChange={(event) => setReasons((current) => ({ ...current, [user.id]: event.target.value }))} rows={2} maxLength={500} placeholder="ระบุเหตุผลอย่างน้อย 5 ตัวอักษร" disabled={busyId === user.id} style={reasonInputStyle} />
@@ -130,3 +177,6 @@ const reasonFieldStyle = { display: 'grid', gap: 7, fontSize: 13, fontWeight: 80
 const reasonInputStyle = { width: '100%', resize: 'vertical' as const, minHeight: 68, borderRadius: 12, border: '1px solid rgba(148,163,184,.24)', background: '#0b1220', color: '#f8fafc', padding: 10, boxSizing: 'border-box' as const };
 const actionRowStyle = { display: 'flex', flexWrap: 'wrap' as const, gap: 8 };
 const protectedHintStyle = { color: '#fbbf24', fontWeight: 750 } as const;
+
+const securityPanelStyle = { display: 'grid', gap: 8, marginTop: 8, padding: 12, borderRadius: 12, background: 'rgba(15,23,42,.72)', border: '1px solid rgba(148,163,184,.18)' } as const;
+const securityItemStyle = { display: 'grid', gap: 4, padding: '8px 0', borderTop: '1px solid rgba(148,163,184,.12)' } as const;
