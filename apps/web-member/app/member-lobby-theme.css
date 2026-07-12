@@ -276,3 +276,7 @@ body{position:relative!important}
 /* Home rail starts below the highlight tabs */
 .member-category-rail--home{inset-block-start:350px!important}
 @media(max-width:420px){.member-category-rail--home{inset-block-start:340px!important}}
+
+/* Align first rail card with tournament artwork top */
+.member-category-rail--home{inset-block-start:355px!important}
+@media(max-width:420px){.member-category-rail--home{inset-block-start:352px!important}}
