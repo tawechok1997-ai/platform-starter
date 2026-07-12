@@ -1,5 +1,7 @@
 # Detailed Remaining Work Backlog
 
+> Master status and deduplicated checklist: [docs/master-project-worklist.md](./master-project-worklist.md). Update the master document first; this file is retained as legacy reference.
+
 Updated: 2026-07-10
 
 This document breaks the remaining product, UX, testing and operational work into trackable sub-tasks. Completed work remains summarized in `docs/ux-ui-master-roadmap.md`.
