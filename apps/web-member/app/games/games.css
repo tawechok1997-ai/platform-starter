@@ -9,11 +9,3 @@
 .game-lobby-page .game-lobby-card > img, .game-lobby-page .game-lobby-fallback { aspect-ratio: 1.42; }
 .game-lobby-page .game-lobby-card-body { display: none; }
 .game-lobby-page .game-lobby-favorite { display: grid; }
-
-/* Match the same rail gutter and section rhythm as the home lobby */
-.game-lobby-page{padding-left:106px!important;padding-right:18px!important;gap:12px!important}
-.game-lobby-page .game-lobby-section>header{min-height:40px!important;align-items:center!important;background:linear-gradient(90deg,#57216e,#1b1125)!important;border-radius:7px!important;padding:7px 12px!important}
-.game-lobby-page .game-lobby-section h2{font-size:17px!important}
-.game-lobby-page .game-lobby-card{border:0!important;border-radius:12px!important;background:#1d1428!important;overflow:hidden!important}
-.game-lobby-page .game-lobby-card>img,.game-lobby-page .game-lobby-fallback{border-radius:12px!important;aspect-ratio:1.42!important}
-@media(max-width:420px){.game-lobby-page{padding-left:78px!important;padding-right:10px!important}.game-lobby-page .game-lobby-grid{gap:8px!important}}

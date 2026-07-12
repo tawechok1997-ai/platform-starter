@@ -304,3 +304,11 @@ body{position:relative!important}
 .member-home-shell .member-tournament-empty{min-height:100px!important;padding:16px!important;border-radius:12px!important}
 .member-home-shell .member-home-zone--finance{gap:12px!important}
 .member-home-shell .member-home-zone--finance>.member-card{border-radius:16px!important}
+
+/* Final home lobby polish */
+.member-home-shell .member-announcement-strip{min-height:44px!important;border-color:rgba(255,255,255,.22)!important;background:rgba(15,10,24,.72)!important}
+.member-home-shell .member-announcement-marquee span{animation:memberAnnouncementMarquee 12s linear infinite!important}
+.member-home-shell .member-lobby-tabs{min-height:54px!important;align-items:stretch!important;gap:8px!important}
+.member-home-shell .member-lobby-tabs a{min-height:54px!important;font-size:clamp(12px,3.5vw,16px)!important;white-space:nowrap!important}
+.member-home-shell .member-lobby-tabs a.active{box-shadow:0 7px 18px rgba(146,27,222,.24)!important}
+.member-home-shell .member-tournament-title{font-weight:900!important}
