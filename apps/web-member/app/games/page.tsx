@@ -99,7 +99,7 @@ export default function MemberGamesPage() {
     {message && <div className="game-lobby-notice" role="status">{message}</div>}
     {launching.message && <div className="game-lobby-notice" role="status">{launching.message}</div>}
 
-    <GameSection title="Top 10 Popular Games" items={(payload.popular ?? []).slice(0, 10)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="Top 10 Popular Games" items={(payload.popular ?? []).slice(0, 10) favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
     <GameSection title="Most Online Now" items={(payload.featured ?? payload.popular ?? []).slice(0, 8)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
     <GameSection title="Classic Games" items={games.slice(0, 8)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
     <GameSection title="เกมใหม่" items={payload.newest ?? []} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />

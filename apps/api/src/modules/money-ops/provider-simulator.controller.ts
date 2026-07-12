@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { MoneyOpsService } from './money-ops.service';
+import { ProviderSimulatorEnabledGuard } from '../../common/guards/provider-simulator-enabled.guard';
 
+@UseGuards(ProviderSimulatorEnabledGuard)
 @Controller('provider-simulator')
 export class ProviderSimulatorController {
   constructor(private readonly moneyOps: MoneyOpsService) {}
