@@ -34,7 +34,80 @@ export class GamePlatformMoneyService {
   async getSnapshot(id: string) { const item = await this.prisma.providerWalletSnapshot.findUnique({ where: { id }, include: { user: { select: { id: true, username: true, phone: true } }, provider: { select: { id: true, name: true, code: true } } } }); if (!item) throw new NotFoundException('Provider wallet snapshot not found'); return item; }
   async listTransfers() { const items = await this.prisma.gameTransfer.findMany({ orderBy: { createdAt: 'desc' }, take: 100, include: this.transferInclude() }); return { items, summary: { total: items.length, success: items.filter((item) => item.status === 'SUCCESS').length, failed: items.filter((item) => item.status === 'FAILED').length, pending: items.filter((item) => item.status === 'PENDING').length } }; }
   async getTransfer(id: string) { const item = await this.prisma.gameTransfer.findUnique({ where: { id }, include: this.transferInclude() }); if (!item) throw new NotFoundException('Game transfer not found'); return item; }
-  async receiveWebhook(providerCode: string, headers: Record<string, string | string[] | undefined>, body: unknown) { const payload = this.objectJson(body); if (!payload.eventType || typeof payload.eventType !== 'string') throw new BadRequestException('eventType is required'); if (!payload.idempotencyKey || typeof payload.idempotencyKey !== 'string') throw new BadRequestException('idempotencyKey is required'); const provider = await this.prisma.gameProvider.findUnique({ where: { code: providerCode }, include: { endpoints: { where: { isEnabled: true }, orderBy: { type: 'asc' } }, credentials: { where: { isEnabled: true }, orderBy: { type: 'asc' }, select: this.credentialSelect() } } }); if (!provider) throw new NotFoundException('Provider not found'); const duplicate = await this.prisma.webhookLog.findFirst({ where: { providerId: provider.id, idempotencyKey: String(payload.idempotencyKey), status: { in: ['PROCESSED', 'DUPLICATE'] } } }); if (duplicate) { const log = await this.prisma.webhookLog.create({ data: { providerId: provider.id, eventType: String(payload.eventType), status: 'DUPLICATE', signatureValid: true, idempotencyKey: String(payload.idempotencyKey), providerTransactionId: typeof payload.providerTransactionId === 'string' ? payload.providerTransactionId : undefined, rawPayload: this.safeJson(payload), responseStatus: 208, processedAt: new Date() } }); return { ok: true, duplicate: true, logId: log.id, statusCode: 208 }; } const adapter = this.adapterRegistry.getAdapter(provider.code); const validation = await adapter.validateWebhook(this.buildAdapterContext(provider), headers, body); if (!validation.valid) { const log = await this.prisma.webhookLog.create({ data: { providerId: provider.id, eventType: String(payload.eventType), status: 'FAILED', signatureValid: false, idempotencyKey: String(payload.idempotencyKey), providerTransactionId: typeof payload.providerTransactionId === 'string' ? payload.providerTransactionId : undefined, rawPayload: this.safeJson(payload), responseStatus: 400, errorCode: 'INVALID_SIGNATURE', errorMessage: validation.reason ?? 'Invalid webhook signature', processedAt: new Date() } }); return { ok: false, logId: log.id, errorCode: 'INVALID_SIGNATURE' }; } const events = await adapter.parseWebhook(this.buildAdapterContext(provider), body); const log = await this.prisma.webhookLog.create({ data: { providerId: provider.id, eventType: String(payload.eventType), status: 'PROCESSED', signatureValid: true, idempotencyKey: validation.idempotencyKey ?? String(payload.idempotencyKey), providerTransactionId: typeof payload.providerTransactionId === 'string' ? payload.providerTransactionId : events[0]?.providerTransactionId, rawPayload: this.safeJson(payload), normalizedPayload: this.safeJson({ events, walletSettlementEnabled: this.extractGates(provider.metadata).webhookSettlementEnabled }), responseStatus: 200, processedAt: new Date() } }); return { ok: true, logId: log.id, events, walletSettlementEnabled: this.extractGates(provider.metadata).webhookSettlementEnabled }; }
+  async receiveWebhook(providerCode: string, headers: Record<string, string | string[] | undefined>, body: unknown) {
+    const payload = this.objectJson(body);
+    if (!payload.eventType || typeof payload.eventType !== 'string') throw new BadRequestException('eventType is required');
+    if (!payload.idempotencyKey || typeof payload.idempotencyKey !== 'string') throw new BadRequestException('idempotencyKey is required');
+
+    const provider = await this.prisma.gameProvider.findUnique({
+      where: { code: providerCode },
+      include: {
+        endpoints: { where: { isEnabled: true }, orderBy: { type: 'asc' } },
+        credentials: { where: { isEnabled: true }, orderBy: { type: 'asc' }, select: this.credentialSelect() },
+      },
+    });
+    if (!provider) throw new NotFoundException('Provider not found');
+
+    const adapter = this.adapterRegistry.getAdapter(provider.code);
+    const validation = await adapter.validateWebhook(this.buildAdapterContext(provider), headers, body);
+    const idempotencyKey = String(payload.idempotencyKey);
+
+    if (!validation.valid) {
+      const log = await this.prisma.webhookLog.create({
+        data: {
+          providerId: provider.id,
+          eventType: String(payload.eventType),
+          status: 'FAILED',
+          signatureValid: false,
+          idempotencyKey,
+          providerTransactionId: typeof payload.providerTransactionId === 'string' ? payload.providerTransactionId : undefined,
+          rawPayload: this.safeJson(payload),
+          responseStatus: 400,
+          errorCode: 'INVALID_SIGNATURE',
+          errorMessage: validation.reason ?? 'Invalid webhook signature',
+          processedAt: new Date(),
+        },
+      });
+      return { ok: false, logId: log.id, errorCode: 'INVALID_SIGNATURE' };
+    }
+
+    const duplicate = await this.prisma.webhookLog.findFirst({
+      where: { providerId: provider.id, idempotencyKey, status: { in: ['PROCESSED', 'DUPLICATE'] } },
+    });
+    if (duplicate) {
+      const log = await this.prisma.webhookLog.create({
+        data: {
+          providerId: provider.id,
+          eventType: String(payload.eventType),
+          status: 'DUPLICATE',
+          signatureValid: true,
+          idempotencyKey,
+          providerTransactionId: typeof payload.providerTransactionId === 'string' ? payload.providerTransactionId : undefined,
+          rawPayload: this.safeJson(payload),
+          responseStatus: 208,
+          processedAt: new Date(),
+        },
+      });
+      return { ok: true, duplicate: true, logId: log.id, statusCode: 208 };
+    }
+
+    const events = await adapter.parseWebhook(this.buildAdapterContext(provider), body);
+    const log = await this.prisma.webhookLog.create({
+      data: {
+        providerId: provider.id,
+        eventType: String(payload.eventType),
+        status: 'PROCESSED',
+        signatureValid: true,
+        idempotencyKey: validation.idempotencyKey ?? idempotencyKey,
+        providerTransactionId: typeof payload.providerTransactionId === 'string' ? payload.providerTransactionId : events[0]?.providerTransactionId,
+        rawPayload: this.safeJson(payload),
+        normalizedPayload: this.safeJson({ events, walletSettlementEnabled: this.extractGates(provider.metadata).webhookSettlementEnabled }),
+        responseStatus: 200,
+        processedAt: new Date(),
+      },
+    });
+    return { ok: true, logId: log.id, events, walletSettlementEnabled: this.extractGates(provider.metadata).webhookSettlementEnabled };
+  }
   async listWebhookLogs() { const items = await this.prisma.webhookLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100, include: { provider: { select: { id: true, name: true, code: true } } } }); return { items, summary: { total: items.length, processed: items.filter((item) => item.status === 'PROCESSED').length, failed: items.filter((item) => item.status === 'FAILED').length, duplicate: items.filter((item) => item.status === 'DUPLICATE').length } }; }
   async getWebhookLog(id: string) { const item = await this.prisma.webhookLog.findUnique({ where: { id }, include: { provider: { select: { id: true, name: true, code: true } } } }); if (!item) throw new NotFoundException('Webhook log not found'); return item; }
   private assertTransferSafetyGate(provider: ProviderWithAdapterData, type: TransferKind) { if (!this.adapterRegistry.hasAdapter(provider.code)) throw new ForbiddenException('Provider adapter is not registered'); if (provider.walletMode === 'SEAMLESS') throw new ForbiddenException('Transfer endpoints are for TRANSFER/HYBRID wallet mode only'); const flags = this.extractGates(provider.metadata); if (!flags.transferEnabled) throw new ForbiddenException('transferEnabled gate is not enabled'); if (!flags.walletSyncEnabled) throw new ForbiddenException('walletSyncEnabled gate is not enabled'); const endpointSet = new Set(provider.endpoints.map((item) => item.type)); const credentialSet = new Set(provider.credentials.map((item) => item.type)); const requiredEndpoint = type === 'TRANSFER_IN' ? 'TRANSFER_IN' : 'TRANSFER_OUT'; if (!endpointSet.has(requiredEndpoint)) throw new ForbiddenException(`${requiredEndpoint} endpoint is not enabled`); if (!credentialSet.has('API_KEY')) throw new ForbiddenException('API_KEY credential is not enabled'); }
