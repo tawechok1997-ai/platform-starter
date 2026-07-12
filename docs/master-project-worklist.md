@@ -95,7 +95,7 @@
 
 ## M-005 Admin owner/account protection
 
-สถานะ: 🔴 TODO
+สถานะ: 🟡 PARTIAL — status lifecycle, ownership transfer, account security overview และ login/session visibility มีแล้ว; ยังเหลือ per-account revoke/session detail และ recovery hardening
 
 - [ ] ป้องกัน suspend/downgrade/remove owner คนสุดท้าย
 - [ ] Ownership transfer flow
