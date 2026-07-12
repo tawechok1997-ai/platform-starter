@@ -129,4 +129,53 @@ describe('AdminAccessService privilege boundaries', () => {
     expect(tokenData.tokenHash).not.toBe(result.token);
     expect(tokenData.target).toContain('ADMIN_INVITE:invited-admin:support@example.com');
   });
+  it('returns sessions and login history without exposing refresh token hashes', async () => {
+    const prisma = {
+      adminUser: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'admin-1',
+          username: 'operator',
+          email: 'operator@example.com',
+          status: 'ACTIVE',
+          twoFactorEnabled: true,
+          lastLoginAt: new Date(),
+          createdAt: new Date(),
+          roles: [{ role: { code: 'support', name: 'Support' } }],
+        }),
+      },
+      authSession: {
+        findMany: jest.fn().mockResolvedValue([{
+          id: 'session-1',
+          deviceId: 'web',
+          ipAddress: '127.0.0.1',
+          userAgent: 'test-agent',
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + 60_000),
+          revokedAt: null,
+        }]),
+      },
+      loginHistory: {
+        findMany: jest.fn().mockResolvedValue([{
+          id: 'login-1',
+          success: true,
+          reason: null,
+          ipAddress: '127.0.0.1',
+          userAgent: 'test-agent',
+          createdAt: new Date(),
+        }]),
+      },
+    } as any;
+
+    const service = new AdminAccessService(prisma, undefined as any);
+    const result = await service.securityOverview('admin-1');
+
+    expect(result.admin.username).toBe('operator');
+    expect(result.sessions[0].active).toBe(true);
+    expect(result.loginHistory).toHaveLength(1);
+    expect(prisma.authSession.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { adminUserId: 'admin-1', type: 'ADMIN' },
+      take: 50,
+    }));
+  });
+
 });
