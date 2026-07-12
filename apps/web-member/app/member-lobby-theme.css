@@ -241,3 +241,8 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 /* Align the fixed category rail with the main promo/content artwork */
 .member-category-rail--home{top:220px!important;bottom:78px!important;position:fixed!important}
 @media(max-width:420px){.member-category-rail--home{top:220px!important;bottom:72px!important}}
+
+/* Category navigation stays fixed while page content scrolls */
+.member-category-rail{position:fixed!important;top:78px!important;bottom:78px!important;left:10px!important;height:auto!important;margin:0!important;float:none!important;z-index:100!important}
+.member-category-rail--home{top:220px!important;bottom:78px!important}
+@media(max-width:420px){.member-category-rail{top:76px!important;bottom:72px!important;left:7px!important}.member-category-rail--home{top:220px!important;bottom:72px!important}}
