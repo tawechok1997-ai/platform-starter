@@ -120,6 +120,16 @@ export class AdminAuthService {
     return this.createAdminSession(session.adminUserId, meta);
   }
 
+  async assertStepUp(adminUserId: string, code: string, meta: RequestMeta = {}) {
+    const admin = await this.prisma.adminUser.findUnique({ where: { id: adminUserId } });
+    if (!admin || admin.status !== 'ACTIVE' || !admin.twoFactorEnabled || !admin.twoFactorSecret) {
+      throw new UnauthorizedException('Two-factor confirmation is required for this action');
+    }
+    await this.assertTwoFactorOrRecovery(admin.id, admin.twoFactorSecret, code, meta);
+    await this.safeWriteAudit(admin.id, 'admin.step_up.verify', 'auth', admin.id, meta);
+    return { success: true };
+  }
+
   private async revokeRefreshFamily(type: 'ADMIN' | 'MEMBER', ownerId: string, sessionId: string, meta: RequestMeta) {
     await this.prisma.authSession.updateMany({ where: type === 'ADMIN' ? { adminUserId: ownerId, type, revokedAt: null } : { userId: ownerId, type, revokedAt: null }, data: { revokedAt: new Date() } });
     if (type === 'ADMIN') await this.safeWriteAudit(ownerId, 'admin.refresh.reuse_detected', 'auth', sessionId, meta);

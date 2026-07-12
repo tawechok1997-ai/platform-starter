@@ -21,6 +21,23 @@ export class AdminAccessController {
     return this.service.overview();
   }
 
+  @RequirePermission('admin.access.manage')
+  @Post('ownership-transfer')
+  async transferOwnership(
+    @Req() req: any,
+    @Body() body: { targetAdminId?: string; twoFactorCode?: string },
+  ) {
+    const result = await this.service.transferOwnership(
+      req.user.id,
+      String(body.targetAdminId ?? ''),
+      String(body.twoFactorCode ?? ''),
+      { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] },
+    );
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, req.user.id, 'TRANSFER_OWNERSHIP_OUT');
+    await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, result.newOwnerId, 'TRANSFER_OWNERSHIP_IN');
+    return result;
+  }
+
   @RequirePermission('admin.access.view')
   @Get('delegations')
   listDelegations(@Req() req: any) {

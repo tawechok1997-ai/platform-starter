@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
+import { AdminAuthService } from '../admin-auth/admin-auth.service';
 
 const SUPER_PERMISSION = '*';
 const PROTECTED_ROLE_CODES = new Set(['owner', 'super_admin']);
@@ -37,7 +38,7 @@ const GROWTH_PERMISSIONS = [
 
 @Injectable()
 export class AdminAccessService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly adminAuth: AdminAuthService) {}
 
   async overview() {
     await this.ensureGrowthPermissions();
@@ -229,6 +230,48 @@ export class AdminAccessService {
     await this.prisma.adminUserRole.delete({ where: { adminUserId_roleId: { adminUserId: targetAdminId, roleId } } });
     await this.audit(actorAdminId, 'REMOVE_ROLE', targetAdminId, { roleId, roleCode: assignment.role.code, target: target.username });
     return this.overview();
+  }
+
+  async transferOwnership(actorAdminId: string, targetAdminId: string, twoFactorCode: string, meta: { ipAddress?: string; userAgent?: string }) {
+    if (actorAdminId === targetAdminId) throw new BadRequestException('Ownership cannot be transferred to the same account');
+    await this.adminAuth.assertStepUp(actorAdminId, twoFactorCode, meta);
+
+    const [actor, target] = await Promise.all([
+      this.findAdminWithPermissions(actorAdminId),
+      this.prisma.adminUser.findUnique({ where: { id: targetAdminId }, include: { roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } } } }),
+    ]);
+    if (!actor) throw new ForbiddenException('Acting admin account not found');
+    if (!target) throw new NotFoundException('Target admin account not found');
+    if (actor.roles.every((item) => !PROTECTED_ROLE_CODES.has(item.role.code) && !item.role.permissions.some((permission) => permission.permission.code === SUPER_PERMISSION))) {
+      throw new ForbiddenException('Only an owner-level admin can transfer ownership');
+    }
+    if (target.status !== 'ACTIVE') throw new BadRequestException('Target admin account must be active');
+    if (target.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code) || item.role.permissions.some((permission) => permission.permission.code === SUPER_PERMISSION))) {
+      throw new ConflictException('Target admin already has protected access');
+    }
+
+    const ownershipAssignment = actor.roles.find((item) => PROTECTED_ROLE_CODES.has(item.role.code) || item.role.permissions.some((permission) => permission.permission.code === SUPER_PERMISSION));
+    if (!ownershipAssignment) throw new ForbiddenException('No transferable owner role found');
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      await tx.adminUserRole.delete({ where: { adminUserId_roleId: { adminUserId: actorAdminId, roleId: ownershipAssignment.role.id } } });
+      await tx.adminUserRole.create({ data: { adminUserId: targetAdminId, roleId: ownershipAssignment.role.id } });
+      await tx.adminAuditLog.create({
+        data: {
+          adminUserId: actorAdminId,
+          action: 'TRANSFER_ADMIN_OWNERSHIP',
+          module: 'admin-access',
+          targetId: targetAdminId,
+          oldData: { previousOwnerId: actorAdminId, roleId: ownershipAssignment.role.id, roleCode: ownershipAssignment.role.code },
+          newData: { newOwnerId: targetAdminId, stepUpVerified: true },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        },
+      });
+      return { roleId: ownershipAssignment.role.id, roleCode: ownershipAssignment.role.code };
+    });
+
+    return { success: true, previousOwnerId: actorAdminId, newOwnerId: targetAdminId, transferredRole: result };
   }
 
   async listDelegations(actorAdminId: string) {
