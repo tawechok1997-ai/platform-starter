@@ -27,6 +27,7 @@ export const memberNavigationItems: MemberNavigationItem[] = [
   { key: 'support', title: 'ช่วยเหลือ', href: '/support', description: 'เปิด ticket และดูคำตอบ', iconKey: 'support', placements: ['drawer', 'home'], feature: 'support' },
   { key: 'profile', title: 'โปรไฟล์', href: '/profile', description: 'ข้อมูลบัญชีและความปลอดภัย', iconKey: 'profile', placements: ['drawer'], feature: 'profile' },
   { key: 'notifications', title: 'แจ้งเตือน', href: '/notifications', description: 'ข้อความและสถานะสำคัญ', iconKey: 'notification', placements: ['drawer'], feature: 'notifications' },
+  { key: 'guide', title: 'คู่มือการใช้งาน', href: '/guide', description: 'วิธีฝากเงินและใช้งานระบบ', iconKey: 'history', placements: ['drawer', 'home'] },
   { key: 'contact', title: 'ติดต่อเรา', href: '/contact', description: 'ช่องทางช่วยเหลือและเวลาบริการ', iconKey: 'support', placements: ['drawer'] },
 ];
 
