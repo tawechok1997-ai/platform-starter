@@ -99,11 +99,11 @@ export default function MemberGamesPage() {
     {message && <div className="game-lobby-notice" role="status">{message}</div>}
     {launching.message && <div className="game-lobby-notice" role="status">{launching.message}</div>}
 
-    <GameSection title="เล่นล่าสุด" items={recentGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
-    <GameSection title="เกมโปรด" items={favoriteGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
-    <GameSection title="เกมแนะนำ" items={payload.featured ?? []} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
-    <GameSection title="มาใหม่" items={payload.newest ?? []} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
-    <GameSection title="ยอดนิยม" items={payload.popular ?? []} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="Top 10 Popular Games" items={(payload.popular ?? []).slice(0, 10) favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="Most Online Now" items={(payload.featured ?? payload.popular ?? []).slice(0, 8) favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="Classic Games" items={games.slice(0, 8) favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="เกมใหม่" items={payload.newest ?? []} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="เกมยอดนิยม" items={favoriteGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
 
     <section className="game-lobby-section">
       <header><h2>เกมทั้งหมด</h2><span>{filtered.length} เกม · พร้อมเล่น {filteredAvailable.length}</span></header>
