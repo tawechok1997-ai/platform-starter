@@ -25,6 +25,7 @@ export default function AdminAccountsPage() {
   const [busyId, setBusyId] = useState('');
   const [securityById, setSecurityById] = useState<Record<string, SecurityOverview>>({});
   const [securityBusyId, setSecurityBusyId] = useState('');
+  const [sessionBusyId, setSessionBusyId] = useState('');
 
   useEffect(() => { void load(); }, []);
 
@@ -114,6 +115,43 @@ export default function AdminAccountsPage() {
     }
   }
 
+  async function revokeSession(userId: string, sessionId: string) {
+    const reason = window.prompt('ระบุเหตุผลในการยกเลิก session อย่างน้อย 5 ตัวอักษร')?.trim() ?? '';
+    if (reason.length < 5) {
+      setMessage('ต้องระบุเหตุผลอย่างน้อย 5 ตัวอักษร');
+      return;
+    }
+    if (!window.confirm('ยืนยันยกเลิก session นี้?')) return;
+    setSessionBusyId(sessionId);
+    try {
+      const response = await adminApiFetch(`/admin/access/admin-users/${userId}/sessions/${sessionId}`, {
+        method: 'DELETE',
+        body: JSON.stringify({ reason }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        setMessage(payload?.message ?? 'ยกเลิก session ไม่สำเร็จ');
+        return;
+      }
+      setSecurityById((current) => {
+        const item = current[userId];
+        if (!item) return current;
+        return {
+          ...current,
+          [userId]: {
+            ...item,
+            sessions: item.sessions.map((session) => session.id === sessionId ? { ...session, active: false, revokedAt: new Date().toISOString() } : session),
+          },
+        };
+      });
+      setMessage('ยกเลิก session แล้วและบันทึก audit log เรียบร้อย');
+    } catch {
+      setMessage('เชื่อมต่อระบบยกเลิก session ไม่สำเร็จ');
+    } finally {
+      setSessionBusyId('');
+    }
+  }
+
   return <AdminPage eyebrow="Security" title="บัญชีผู้ดูแล" description="ค้นหา ตรวจสถานะ และควบคุมการเข้าใช้งานของบัญชีผู้ดูแลอย่างปลอดภัย">
     {message && <AdminNotice>{message}</AdminNotice>}
     <AdminCard title="ตัวกรอง" description="ค้นหาจากชื่อผู้ใช้ อีเมล หรือ Role">
@@ -141,6 +179,7 @@ export default function AdminAccountsPage() {
               {securityById[user.id].sessions.map((session) => <div key={session.id} style={securityItemStyle}>
                 <div><AdminBadge tone={session.active ? 'success' : 'neutral'}>{session.active ? 'ACTIVE' : session.revokedAt ? 'REVOKED' : 'EXPIRED'}</AdminBadge> {session.deviceId ?? 'ไม่ระบุอุปกรณ์'}</div>
                 <small>{session.ipAddress ?? 'ไม่ทราบ IP'} · {session.createdAt ? new Date(session.createdAt).toLocaleString('th-TH') : '-'}{session.userAgent ? ` · ${session.userAgent.slice(0, 100)}` : ''}</small>
+                {session.active && <AdminButton tone="secondary" disabled={sessionBusyId === session.id} onClick={() => revokeSession(user.id, session.id)}>{sessionBusyId === session.id ? 'กำลังยกเลิก...' : 'ยกเลิก session'}</AdminButton>}
               </div>)}
               {securityById[user.id].sessions.length === 0 && <small>ยังไม่มี session</small>}
               <strong>Login history ({securityById[user.id].loginHistory.length})</strong>
