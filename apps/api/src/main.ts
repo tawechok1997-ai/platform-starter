@@ -29,6 +29,8 @@ let redis: Redis | null = null;
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
   const config = app.get(ConfigService);
+  const trustedProxyHops = readTrustedProxyHops(config.get<string>('TRUSTED_PROXY_HOPS') ?? process.env.TRUSTED_PROXY_HOPS);
+  app.getHttpAdapter().getInstance().set('trust proxy', trustedProxyHops);
   redis = createRedisClient(config.get<string>('REDIS_URL') ?? process.env.REDIS_URL);
 
   app.enableCors({
@@ -163,9 +165,12 @@ function redactUrl(value: string) {
     .replace(/password=[^&]+/gi, 'password=[redacted]');
 }
 
+function readTrustedProxyHops(value?: string | number | null) {
+  const hops = Number(value ?? 0);
+  return Number.isInteger(hops) && hops >= 0 ? hops : 0;
+}
+
 function getClientIp(req: any) {
-  const forwarded = req.headers?.['x-forwarded-for'];
-  if (typeof forwarded === 'string' && forwarded.length > 0) return forwarded.split(',')[0].trim();
   return String(req.ip ?? req.socket?.remoteAddress ?? 'unknown');
 }
 
