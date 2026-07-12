@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { DepositEvidenceInput, DepositWorkflowService } from './deposit-workflow.service';
@@ -14,25 +16,29 @@ export class DepositWorkflowController {
     return this.workflow.submitEvidence(id, user.id, body);
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.topups.view')
   @Get('admin/topups/:id/slip')
   getSlip(@Param('id') id: string) {
     return this.workflow.getSlip(id);
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.topups.review')
   @Post('admin/topups/:id/approve-slip')
   approveSlip(@CurrentUser() user: any, @Param('id') id: string, @Body() body: { adminNote?: string }, @Req() req: any) {
     return this.workflow.approveSlip(id, user.id, body.adminNote, this.meta(req));
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.topups.review')
   @Post('admin/topups/:id/reject')
   rejectDeposit(@CurrentUser() user: any, @Param('id') id: string, @Body() body: { adminNote?: string }, @Req() req: any) {
     return this.workflow.rejectDeposit(id, user.id, body.adminNote, this.meta(req));
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.topups.review')
   @Post('admin/topups/:id/confirm-credit')
   confirmCredit(@CurrentUser() user: any, @Param('id') id: string, @Body() body: { adminNote?: string }, @Req() req: any) {
     return this.workflow.confirmCredit(id, user.id, body.adminNote, this.meta(req));
