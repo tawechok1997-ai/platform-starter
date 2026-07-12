@@ -246,3 +246,10 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 .member-category-rail{position:fixed!important;top:78px!important;bottom:78px!important;left:10px!important;height:auto!important;margin:0!important;float:none!important;z-index:100!important}
 .member-category-rail--home{top:220px!important;bottom:78px!important}
 @media(max-width:420px){.member-category-rail{top:76px!important;bottom:72px!important;left:7px!important}.member-category-rail--home{top:220px!important;bottom:72px!important}}
+
+/* Fixed left navigation gutter: attached to page background, not floating over content */
+.member-category-rail{position:fixed!important;left:0!important;width:92px!important;box-sizing:border-box!important;padding:0 7px!important;background:#0d0914!important;z-index:100!important;isolation:isolate!important}
+.member-category-rail a{width:78px!important;flex-basis:78px!important;position:relative!important;z-index:1!important}
+.member-category-rail__handle{left:0!important;z-index:2!important}
+.member-home-shell,.game-lobby-page,.member-guide-page{position:relative!important;z-index:1}
+@media(max-width:420px){.member-category-rail{width:78px!important;padding:0 6px!important}.member-category-rail a{width:66px!important;flex-basis:70px!important}}
