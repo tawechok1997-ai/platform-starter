@@ -178,4 +178,33 @@ describe('AdminAccessService privilege boundaries', () => {
     }));
   });
 
+  it('revokes a non-protected admin session with a reason and audit record', async () => {
+    const actorRole = role('owner-role', 'owner', 1, ['*']);
+    const prisma = {
+      adminUser: {
+        findUnique: jest
+          .fn()
+          .mockResolvedValueOnce({ id: 'actor', roles: [{ role: actorRole }] })
+          .mockResolvedValueOnce({ id: 'target', roles: [{ role: { code: 'support', name: 'Support' } }] }),
+      },
+      authSession: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'session-1', adminUserId: 'target', type: 'ADMIN', revokedAt: null }),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+      },
+      adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit-1' }) },
+    } as any;
+
+    const service = new AdminAccessService(prisma, undefined as any);
+    const result = await service.revokeAdminSession('actor', 'target', 'session-1', 'Security review');
+
+    expect(result).toEqual({ success: true, changed: true, revokedSessions: 1 });
+    expect(prisma.adminAuditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: 'REVOKE_ADMIN_SESSION',
+        targetId: 'target',
+        newData: expect.objectContaining({ sessionId: 'session-1', reason: 'Security review' }),
+      }),
+    });
+  });
+
 });
