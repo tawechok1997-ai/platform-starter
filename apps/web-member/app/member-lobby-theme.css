@@ -213,3 +213,6 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 
 /* Promo artwork +4% visual emphasis */
 .member-home-hero__slide-link{transform:scale(1.04)!important;transform-origin:center!important}
+
+/* Additional promo artwork scale */
+.member-home-hero__slide-link{transform:scale(1.09)!important}
