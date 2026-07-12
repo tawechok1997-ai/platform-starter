@@ -98,6 +98,6 @@ export interface GameProviderAdapter {
   transferOut(context: ProviderAdapterContext, input: TransferInput): Promise<ProviderAdapterResult<TransferOutput>>;
   syncGames(context: ProviderAdapterContext): Promise<ProviderAdapterResult<ProviderGamePayload[]>>;
   getBetHistory(context: ProviderAdapterContext, input: BetHistoryInput): Promise<ProviderAdapterResult<BetHistoryOutput>>;
-  validateWebhook(context: ProviderAdapterContext, headers: Record<string, string | string[] | undefined>, body: unknown): Promise<WebhookValidationResult>;
+  validateWebhook(context: ProviderAdapterContext, headers: Record<string, string | string[] | undefined>, body: unknown, rawBody?: Buffer): Promise<WebhookValidationResult>;
   parseWebhook(context: ProviderAdapterContext, body: unknown): Promise<ParsedWebhookEvent[]>;
 }

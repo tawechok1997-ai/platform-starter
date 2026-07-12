@@ -95,5 +95,5 @@ export class ProviderWebhookController {
   constructor(private readonly moneyService: GamePlatformMoneyService) {}
 
   @Post(':providerCode')
-  receive(@Param('providerCode') providerCode: string, @Headers() headers: Record<string, string | string[] | undefined>, @Body() body: unknown) { return this.moneyService.receiveWebhook(providerCode, headers, body); }
+  receive(@Param('providerCode') providerCode: string, @Headers() headers: Record<string, string | string[] | undefined>, @Body() body: unknown, @Req() req: any) { return this.moneyService.receiveWebhook(providerCode, headers, body, req.rawBody); }
 }

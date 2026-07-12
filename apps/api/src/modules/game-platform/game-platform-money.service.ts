@@ -60,7 +60,7 @@ export class GamePlatformMoneyService {
   async getSnapshot(id: string) { const item = await this.prisma.providerWalletSnapshot.findUnique({ where: { id }, include: { user: { select: { id: true, username: true, phone: true } }, provider: { select: { id: true, name: true, code: true } } } }); if (!item) throw new NotFoundException('Provider wallet snapshot not found'); return item; }
   async listTransfers() { const items = await this.prisma.gameTransfer.findMany({ orderBy: { createdAt: 'desc' }, take: 100, include: this.transferInclude() }); return { items, summary: { total: items.length, success: items.filter((item) => item.status === 'SUCCESS').length, failed: items.filter((item) => item.status === 'FAILED').length, pending: items.filter((item) => item.status === 'PENDING').length } }; }
   async getTransfer(id: string) { const item = await this.prisma.gameTransfer.findUnique({ where: { id }, include: this.transferInclude() }); if (!item) throw new NotFoundException('Game transfer not found'); return item; }
-  async receiveWebhook(providerCode: string, headers: Record<string, string | string[] | undefined>, body: unknown) {
+  async receiveWebhook(providerCode: string, headers: Record<string, string | string[] | undefined>, body: unknown, rawBody?: Buffer) {
     const payload = this.objectJson(body);
     if (!payload.eventType || typeof payload.eventType !== 'string') throw new BadRequestException('eventType is required');
     if (!payload.idempotencyKey || typeof payload.idempotencyKey !== 'string') throw new BadRequestException('idempotencyKey is required');
@@ -75,7 +75,7 @@ export class GamePlatformMoneyService {
     if (!provider) throw new NotFoundException('Provider not found');
 
     const adapter = this.adapterRegistry.getAdapter(provider.code);
-    const validation = await adapter.validateWebhook(this.buildAdapterContext(provider), headers, body);
+    const validation = await adapter.validateWebhook(this.buildAdapterContext(provider), headers, body, rawBody);
     const idempotencyKey = String(payload.idempotencyKey);
 
     if (!validation.valid) {

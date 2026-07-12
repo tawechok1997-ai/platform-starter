@@ -26,7 +26,7 @@ const RATE_RULES: RateRule[] = [
 let redis: Redis | null = null;
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   const config = app.get(ConfigService);
   redis = createRedisClient(config.get<string>('REDIS_URL') ?? process.env.REDIS_URL);
 
