@@ -151,6 +151,38 @@ export class AdminAccessService {
     };
   }
 
+  async revokeAdminSession(actorAdminId: string, targetAdminId: string, sessionId: string, reasonInput: string) {
+    const reason = String(reasonInput ?? '').trim();
+    if (reason.length < 5) throw new BadRequestException('A reason of at least 5 characters is required');
+
+    const [actor, target, session] = await Promise.all([
+      this.findAdminWithPermissions(actorAdminId),
+      this.prisma.adminUser.findUnique({ where: { id: targetAdminId }, include: { roles: { include: { role: true } } } }),
+      this.prisma.authSession.findFirst({ where: { id: sessionId, adminUserId: targetAdminId, type: 'ADMIN' } }),
+    ]);
+    if (!actor) throw new ForbiddenException('Acting admin account not found');
+    if (!target) throw new NotFoundException('Admin user not found');
+    if (!session) throw new NotFoundException('Admin session not found');
+
+    const targetProtected = target.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code));
+    const actorPermissions = this.permissionCodes(actor);
+    const actorProtected = actor.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code));
+    if (targetProtected && (!actorProtected || !actorPermissions.has(SUPER_PERMISSION))) {
+      throw new ForbiddenException('Only an owner-level admin can revoke sessions for protected accounts');
+    }
+
+    const revoked = await this.prisma.authSession.updateMany({
+      where: { id: sessionId, adminUserId: targetAdminId, type: 'ADMIN', revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    await this.audit(actorAdminId, 'REVOKE_ADMIN_SESSION', targetAdminId, {
+      sessionId,
+      reason,
+      changed: revoked.count === 1,
+    });
+    return { success: true, changed: revoked.count === 1, revokedSessions: revoked.count };
+  }
+
   async createInvitation(actorAdminId: string, emailInput: string, roleId: string, expiresInHours = 24) {
     const email = String(emailInput ?? '').trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(email)) throw new BadRequestException('A valid email is required');
