@@ -237,3 +237,7 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 .member-home-shell .member-home-zone--content,.member-home-shell .member-home-finance-lower,.member-home-shell>.member-home-zone:not(.member-home-zone--primary):not(.member-home-zone--content){padding-left:76px!important}
 .member-home-shell .member-home-zone--content>.member-card{display:none!important}
 @media(max-width:420px){.member-category-rail--home{top:76px!important;bottom:72px!important}.member-home-shell .member-home-zone--content,.member-home-shell .member-home-finance-lower,.member-home-shell>.member-home-zone:not(.member-home-zone--primary):not(.member-home-zone--content){padding-left:58px!important}}
+
+/* Align the fixed category rail with the main promo/content artwork */
+.member-category-rail--home{top:220px!important;bottom:78px!important;position:fixed!important}
+@media(max-width:420px){.member-category-rail--home{top:220px!important;bottom:72px!important}}
