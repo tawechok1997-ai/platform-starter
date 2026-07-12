@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
@@ -12,7 +12,7 @@ export class WithdrawalsController {
 
   @UseGuards(MemberAuthGuard)
   @Post('member/withdrawals')
-  createMemberRequest(@CurrentUser() user: any, @Body() body: CreateWithdrawalRequestDto) { return this.withdrawalsService.createMemberRequest(user.id, body); }
+  createMemberRequest(@CurrentUser() user: any, @Body() body: CreateWithdrawalRequestDto, @Headers('idempotency-key') idempotencyKey?: string) { return this.withdrawalsService.createMemberRequest(user.id, body, idempotencyKey); }
 
   @UseGuards(MemberAuthGuard)
   @Get('member/withdrawals')

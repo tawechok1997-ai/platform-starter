@@ -553,6 +553,7 @@ model TopUpRequest {
   status              TopUpRequestStatus @default(PENDING)
   method              String?            @db.VarChar(80)
   referenceCode       String?            @map("reference_code") @db.VarChar(120)
+  idempotencyKey      String?            @unique @map("idempotency_key") @db.VarChar(160)
   note                String?
   adminNote           String?            @map("admin_note")
   reviewedBy          String?            @map("reviewed_by") @db.Uuid
@@ -603,6 +604,7 @@ model WithdrawalRequest {
   accountName           String?                 @map("account_name") @db.VarChar(160)
   accountNumber         String?                 @map("account_number") @db.VarChar(160)
   bankName              String?                 @map("bank_name") @db.VarChar(160)
+  idempotencyKey        String?                 @unique @map("idempotency_key") @db.VarChar(160)
   note                  String?
   adminNote             String?                 @map("admin_note")
   reviewedBy            String?                 @map("reviewed_by") @db.Uuid

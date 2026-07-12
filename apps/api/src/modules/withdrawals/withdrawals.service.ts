@@ -22,11 +22,19 @@ type LockedWalletRow = {
 export class WithdrawalsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createMemberRequest(userId: string, dto: CreateWithdrawalRequestDto) {
+  async createMemberRequest(userId: string, dto: CreateWithdrawalRequestDto, idempotencyKey?: string) {
+    const requestKey = this.normalizeIdempotencyKey(userId, idempotencyKey);
     const amount = new Decimal(dto.amount ?? 0);
     if (amount.lte(0)) throw new BadRequestException('Amount must be greater than zero');
     if (!dto.accountName || !dto.accountNumber || !dto.bankName) throw new BadRequestException('Withdrawal bank account is required');
     return this.prisma.$transaction(async (tx) => {
+      if (requestKey) {
+        const existing = await tx.withdrawalRequest.findUnique({ where: { idempotencyKey: requestKey } });
+        if (existing) {
+          if (existing.amount.toString() !== amount.toString() || existing.method !== dto.method) throw new ConflictException('Idempotency key was already used with different request data');
+          return this.formatRequest(existing);
+        }
+      }
       const activeBonus = await tx.riskAlert.findFirst({ where: { refType: BONUS_LEDGER_REF_TYPE, memberId: userId, status: { in: ['OPEN', 'REVIEWING'] } }, orderBy: { createdAt: 'desc' } });
       if (activeBonus) {
         const metadata = this.bonusMetadata(activeBonus.metadata);
@@ -53,11 +61,11 @@ export class WithdrawalsService {
       const rows = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
         INSERT INTO "withdrawal_requests" (
           "id", "user_id", "amount", "currency", "status", "method",
-          "account_name", "account_number", "bank_name", "note", "created_at", "updated_at"
+          "account_name", "account_number", "bank_name", "note", "idempotency_key", "created_at", "updated_at"
         ) VALUES (
           gen_random_uuid(), ${userId}::uuid, ${amount.toString()}::decimal, ${wallet.currency},
           'PENDING_REVIEW'::"WithdrawalRequestStatus", ${dto.method ?? null},
-          ${dto.accountName}, ${dto.accountNumber}, ${dto.bankName}, ${dto.note ?? null}, NOW(), NOW()
+          ${dto.accountName}, ${dto.accountNumber}, ${dto.bankName}, ${dto.note ?? null}, ${requestKey}, NOW(), NOW()
         )
         RETURNING "id"
       `);
@@ -216,6 +224,7 @@ export class WithdrawalsService {
     });
   }
 
+  private normalizeIdempotencyKey(userId: string, value?: string | null) { const key = value?.trim(); if (!key) return null; if (key.length > 120) throw new BadRequestException('Idempotency-Key is too long'); return `${userId}:${key}`; }
   private bonusMetadata(value: unknown) { const data = value && typeof value === 'object' && !Array.isArray(value) ? value as any : {}; return { turnoverRequired: Number(data.turnoverRequired ?? 0), turnoverProgress: Number(data.turnoverProgress ?? 0), turnoverCompleted: data.turnoverCompleted === true }; }
   private async releaseExpiredClaims() { const staleSince = new Date(Date.now() - CLAIM_TIMEOUT_MS); await this.prisma.$executeRaw(Prisma.sql`UPDATE "withdrawal_requests" SET "claimed_by" = NULL, "claimed_at" = NULL WHERE "status"::text IN ('PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT', 'PAYMENT_PROOF_UPLOADED') AND "claimed_by" IS NOT NULL AND "claimed_at" < ${staleSince}`); }
   private audit(adminUserId: string, action: string, targetId: string, oldData: any, newData: any, meta: RequestMeta) { return this.prisma.adminAuditLog.create({ data: { adminUserId, action, module: 'withdrawals', targetId, oldData, newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent } }).catch(() => null); }

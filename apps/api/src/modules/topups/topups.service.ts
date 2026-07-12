@@ -10,12 +10,22 @@ const CLAIM_TIMEOUT_MS = 15 * 60 * 1000;
 export class TopUpsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createMemberRequest(userId: string, dto: CreateTopUpRequestDto) {
+  async createMemberRequest(userId: string, dto: CreateTopUpRequestDto, idempotencyKey?: string) {
+    const requestKey = this.normalizeIdempotencyKey(userId, idempotencyKey);
     const amount = new Decimal(dto.amount ?? 0);
     if (amount.lte(0)) throw new BadRequestException('Amount must be greater than zero');
     await this.validateReceivingAccount(dto.note, dto.method, amount);
 
-    const request = await this.prisma.topUpRequest.create({ data: { userId, amount, currency: 'THB', method: dto.method, referenceCode: dto.referenceCode, note: dto.note } });
+    const request = await this.prisma.$transaction(async (tx) => {
+      if (requestKey) {
+        const existing = await tx.topUpRequest.findUnique({ where: { idempotencyKey: requestKey } });
+        if (existing) {
+          if (existing.amount.toString() !== amount.toString() || existing.method !== dto.method) throw new ConflictException('Idempotency key was already used with different request data');
+          return existing;
+        }
+      }
+      return tx.topUpRequest.create({ data: { userId, amount, currency: 'THB', method: dto.method, referenceCode: dto.referenceCode, note: dto.note, idempotencyKey: requestKey } });
+    });
     return this.formatRequest(request);
   }
 
@@ -91,6 +101,7 @@ export class TopUpsService {
     await this.prisma.topUpRequest.updateMany({ where: { status: { in: ['PENDING', 'PENDING_SLIP_REVIEW', 'PENDING_CREDIT'] }, claimedBy: { not: null }, claimedAt: { lt: staleSince } }, data: { claimedBy: null, claimedAt: null } });
   }
 
+  private normalizeIdempotencyKey(userId: string, value?: string | null) { const key = value?.trim(); if (!key) return null; if (key.length > 120) throw new BadRequestException('Idempotency-Key is too long'); return `${userId}:${key}`; }
   private accountType(bankName: string) { if (bankName === 'พร้อมเพย์') return 'promptpay'; if (bankName === 'วอเลต') return 'wallet'; if (bankName === 'อื่น ๆ') return 'other'; return 'bank_transfer'; }
   private audit(adminUserId: string, action: string, targetId: string, oldData: any, newData: any, meta: RequestMeta) { return this.prisma.adminAuditLog.create({ data: { adminUserId, action, module: 'topups', targetId, oldData, newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent } }).catch(() => null); }
   private parseProof(value?: string | null) { if (!value) return {} as { receivingBankAccountId?: string }; try { return JSON.parse(value) as { receivingBankAccountId?: string }; } catch { return {}; } }

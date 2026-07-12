@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
@@ -11,8 +11,8 @@ export class TopUpsController {
 
   @UseGuards(MemberAuthGuard)
   @Post('member/topups')
-  createMemberRequest(@CurrentUser() user: any, @Body() body: CreateTopUpRequestDto) {
-    return this.topUpsService.createMemberRequest(user.id, body);
+  createMemberRequest(@CurrentUser() user: any, @Body() body: CreateTopUpRequestDto, @Headers('idempotency-key') idempotencyKey?: string) {
+    return this.topUpsService.createMemberRequest(user.id, body, idempotencyKey);
   }
 
   @UseGuards(MemberAuthGuard)
