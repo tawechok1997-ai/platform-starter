@@ -19,6 +19,16 @@ type ChallengeRow = {
   revoked_at: Date | null;
 };
 
+type VerifyOutcome =
+  | { kind: 'verified' }
+  | { kind: 'replay' }
+  | { kind: 'missing' }
+  | { kind: 'expired' }
+  | { kind: 'locked' }
+  | { kind: 'invalid' }
+  | { kind: 'phone_changed' }
+  | { kind: 'raced' };
+
 @Injectable()
 export class PhoneOtpService {
   constructor(
@@ -90,10 +100,10 @@ export class PhoneOtpService {
     const code = String(codeInput ?? '').trim();
     if (!/^\d{6}$/.test(code)) throw new BadRequestException('OTP ต้องเป็นตัวเลข 6 หลัก');
 
-    return this.prisma.$transaction(async (tx) => {
+    const outcome = await this.prisma.$transaction<VerifyOutcome>(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: userId }, select: { phone: true, phoneVerifiedAt: true } });
-      if (!user?.phone) throw new BadRequestException('Member phone not found');
-      if (user.phoneVerifiedAt) return { success: true, alreadyVerified: true };
+      if (!user?.phone) return { kind: 'missing' };
+      if (user.phoneVerifiedAt) return { kind: 'replay' };
 
       const rows = await tx.$queryRaw<ChallengeRow[]>(Prisma.sql`
         SELECT * FROM "phone_otp_challenges"
@@ -103,17 +113,15 @@ export class PhoneOtpService {
         FOR UPDATE
       `);
       const challenge = rows[0];
-      if (!challenge || challenge.status !== 'ACTIVE' || challenge.used_at || challenge.revoked_at) {
-        throw new BadRequestException('OTP ไม่ถูกต้องหรือถูกใช้แล้ว');
-      }
+      if (!challenge || challenge.status !== 'ACTIVE' || challenge.used_at || challenge.revoked_at) return { kind: 'replay' };
       if (new Date(challenge.expires_at).getTime() <= Date.now()) {
         await tx.$executeRaw(Prisma.sql`
           UPDATE "phone_otp_challenges" SET "status" = 'EXPIRED', "updated_at" = CURRENT_TIMESTAMP
           WHERE "id" = ${challenge.id}::uuid AND "status" = 'ACTIVE'
         `);
-        throw new BadRequestException('OTP หมดอายุแล้ว');
+        return { kind: 'expired' };
       }
-      if (challenge.attempt_count >= challenge.max_attempts) throw new TooManyRequestsException('OTP ถูกล็อกเนื่องจากลองผิดเกินกำหนด');
+      if (challenge.attempt_count >= challenge.max_attempts) return { kind: 'locked' };
 
       const currentPhoneHash = this.hash(`phone:${this.normalizePhone(user.phone)}`);
       if (!this.safeEqual(currentPhoneHash, challenge.phone_hash)) {
@@ -121,7 +129,7 @@ export class PhoneOtpService {
           UPDATE "phone_otp_challenges" SET "status" = 'REVOKED', "revoked_at" = CURRENT_TIMESTAMP, "updated_at" = CURRENT_TIMESTAMP
           WHERE "id" = ${challenge.id}::uuid
         `);
-        throw new ConflictException('เบอร์โทรมีการเปลี่ยนแปลง กรุณาขอ OTP ใหม่');
+        return { kind: 'phone_changed' };
       }
 
       const valid = this.safeEqual(this.hash(`otp:${code}`), challenge.otp_hash);
@@ -134,8 +142,7 @@ export class PhoneOtpService {
               "updated_at" = CURRENT_TIMESTAMP
           WHERE "id" = ${challenge.id}::uuid AND "status" = 'ACTIVE'
         `);
-        if (nextAttempts >= challenge.max_attempts) throw new TooManyRequestsException('OTP ถูกล็อกเนื่องจากลองผิดเกินกำหนด');
-        throw new BadRequestException('OTP ไม่ถูกต้อง');
+        return { kind: nextAttempts >= challenge.max_attempts ? 'locked' : 'invalid' };
       }
 
       const consumed = await tx.$executeRaw(Prisma.sql`
@@ -143,10 +150,19 @@ export class PhoneOtpService {
         SET "status" = 'VERIFIED', "used_at" = CURRENT_TIMESTAMP, "updated_at" = CURRENT_TIMESTAMP
         WHERE "id" = ${challenge.id}::uuid AND "status" = 'ACTIVE' AND "used_at" IS NULL
       `);
-      if (consumed !== 1) throw new ConflictException('OTP ถูกใช้โดยคำขออื่นแล้ว');
+      if (consumed !== 1) return { kind: 'raced' };
       await tx.user.update({ where: { id: userId }, data: { phoneVerifiedAt: new Date() } });
-      return { success: true, phoneVerified: true };
+      return { kind: 'verified' };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+
+    if (outcome.kind === 'verified') return { success: true, phoneVerified: true };
+    if (outcome.kind === 'expired') throw new BadRequestException('OTP หมดอายุแล้ว');
+    if (outcome.kind === 'locked') throw new TooManyRequestsException('OTP ถูกล็อกเนื่องจากลองผิดเกินกำหนด');
+    if (outcome.kind === 'invalid') throw new BadRequestException('OTP ไม่ถูกต้อง');
+    if (outcome.kind === 'phone_changed') throw new ConflictException('เบอร์โทรมีการเปลี่ยนแปลง กรุณาขอ OTP ใหม่');
+    if (outcome.kind === 'raced') throw new ConflictException('OTP ถูกใช้โดยคำขออื่นแล้ว');
+    if (outcome.kind === 'missing') throw new BadRequestException('Member phone not found');
+    throw new BadRequestException('OTP ไม่ถูกต้องหรือถูกใช้แล้ว');
   }
 
   private async enforceRateLimits(phoneHash: string, ipHash: string | null, deviceHash: string | null) {
