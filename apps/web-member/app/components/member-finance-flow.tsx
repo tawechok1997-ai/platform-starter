@@ -70,8 +70,27 @@ export function FinanceConfirmDialog({ open, title, description, children, onClo
 }
 
 export function FinanceStatusBadge({ status }: { status: string }) {
-  const normalized = status.toUpperCase();
-  const tone = normalized === 'APPROVED' || normalized === 'COMPLETED' || normalized === 'ACTIVE' ? 'success' : normalized === 'REJECTED' ? 'danger' : 'warning';
-  const label = normalized === 'PENDING' ? 'รอตรวจสอบ' : normalized === 'APPROVED' || normalized === 'COMPLETED' ? 'สำเร็จ' : normalized === 'REJECTED' ? 'ไม่อนุมัติ' : normalized === 'ACTIVE' ? 'ใช้งานได้' : status;
-  return <span className={`finance-status finance-status--${tone}`}>{label}</span>;
+  const normalized = String(status || '').toUpperCase();
+  const successStatuses = ['APPROVED', 'COMPLETED', 'ACTIVE', 'SLIP_APPROVED', 'CREDIT_CONFIRMED', 'PAYMENT_VERIFIED'];
+  const dangerStatuses = ['REJECTED', 'CANCELLED', 'DUPLICATE', 'FAILED', 'LOCKED', 'SUSPENDED'];
+  const tone = successStatuses.includes(normalized) ? 'success' : dangerStatuses.includes(normalized) ? 'danger' : 'warning';
+  const labels: Record<string, string> = {
+    PENDING: 'รอตรวจสอบ',
+    PENDING_SLIP_REVIEW: 'รอตรวจสลิป',
+    SLIP_APPROVED: 'ตรวจสลิปแล้ว',
+    PENDING_CREDIT: 'รอเพิ่มเครดิต',
+    CREDIT_CONFIRMED: 'เพิ่มเครดิตแล้ว',
+    PENDING_REVIEW: 'รอตรวจสอบ',
+    APPROVED_FOR_PAYMENT: 'รอโอนเงิน',
+    PAYMENT_PROOF_UPLOADED: 'รอตรวจหลักฐาน',
+    PAYMENT_VERIFIED: 'ตรวจหลักฐานแล้ว',
+    APPROVED: 'อนุมัติแล้ว',
+    COMPLETED: 'สำเร็จ',
+    REJECTED: 'ไม่อนุมัติ',
+    CANCELLED: 'ยกเลิก',
+    DUPLICATE: 'สลิปซ้ำ',
+    ACTIVE: 'ใช้งานได้',
+    REVIEWING: 'กำลังตรวจ',
+  };
+  return <span className={`finance-status finance-status--${tone}`}>{labels[normalized] ?? status}</span>;
 }

@@ -193,17 +193,21 @@ export class AuthService {
   }
 
   async updateMemberProfile(userId: string, dto: UpdateMemberProfileDto) {
+    const phone = dto.phone?.trim() || undefined;
+    const email = dto.email?.trim().toLowerCase() || undefined;
     const duplicate = await this.prisma.user.findFirst({
       where: {
         id: { not: userId },
-        OR: [dto.phone ? { phone: dto.phone } : undefined, dto.email ? { email: dto.email } : undefined].filter(Boolean) as any,
+        OR: [phone ? { phone } : undefined, email ? { email } : undefined].filter(Boolean) as any,
       },
-      select: { id: true },
+      select: { id: true, phone: true, email: true },
     });
+    if (duplicate?.phone && phone && duplicate.phone === phone) throw new ConflictException('เบอร์โทรนี้ถูกใช้กับสมาชิกอื่นแล้ว');
+    if (duplicate?.email && email && duplicate.email === email) throw new ConflictException('อีเมลนี้ถูกใช้กับสมาชิกอื่นแล้ว');
     if (duplicate) throw new ConflictException('Phone or email already in use');
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.user.update({ where: { id: userId }, data: { phone: dto.phone, email: dto.email } });
+      await tx.user.update({ where: { id: userId }, data: { phone, email } });
       await tx.userProfile.upsert({
         where: { userId },
         create: { userId, displayName: dto.displayName },

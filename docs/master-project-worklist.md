@@ -241,7 +241,7 @@
 
 ## M-011 Member home/game discovery
 
-สถานะ: 🟡 PARTIAL — มี home/game/session/filter บางส่วน
+สถานะ: ✅ DONE — home/game/session/filter หลักครบตาม checklist M-011
 
 หลักฐานล่าสุด 2026-07-13:
 - ตรวจเทียบ M-011 กับ UI จริงแล้วพบว่า reference/market theme ซ่อน tabs/toolbar ด้วย `display: none !important` ทำให้ checklist filter/search ไม่เป็นจริง จึงแก้ให้ tabs/search/provider filter แสดงใช้งานได้ใน theme ปัจจุบัน
@@ -250,6 +250,7 @@
 - เปิด maintenance/disabled badge ใน market lobby theme เพื่อไม่ซ่อนสถานะเกม/ค่ายที่ไม่พร้อม
 - `pnpm build:web-member` ผ่าน
 - เพิ่ม `PromotionSlotGrid` จาก CMS banners เป็น slot โปรโมชั่น 3 ช่องใต้ hero โดยซ่อนเมื่อไม่มี banner ที่เปิดใช้งาน
+- เพิ่ม mobile polish รอบสุดท้ายให้ game lobby/promo slots: controls ไม่ถูกซ่อน, tabs scroll ได้, touch targets ชัดขึ้น และ padding รองรับ bottom nav/safe-area
 
 - [x] Featured/recently played
 - [x] Promotion/banner slots
@@ -257,17 +258,25 @@
 - [x] Game search/favorites
 - [x] Maintenance/disabled states
 - [x] Fallback images/icons
-- [ ] Market-style mobile polish รอบสุดท้าย
+- [x] Market-style mobile polish รอบสุดท้าย
 
 ## M-012 Deposit/withdraw member flow
 
-สถานะ: 🟡 PARTIAL / รอ P0
+สถานะ: 🟡 PARTIAL — มี step indicator และ review/confirm ก่อนส่งรายการแล้ว; ยังเหลือ expiry/storage/status/responsive regression
 
-- [ ] Guided withdrawal steps
-- [ ] Review step ก่อน submit
-- [ ] Deposit expiration behavior
-- [ ] Private slip storage/access control
-- [ ] Status cards ให้สม่ำเสมอ
+หลักฐานล่าสุด 2026-07-13:
+- ตรวจ source พบ withdraw flow มี `FinanceStepIndicator` สำหรับขั้นตอนบัญชี → จำนวนเงิน → ยืนยัน → รอดำเนินการ และมี validation ก่อนเปลี่ยน step
+- Deposit/withdraw ใช้ `FinanceConfirmDialog` เพื่อตรวจทานข้อมูลก่อน submit จริง (`submit`) ทั้งรายการฝากและถอน
+- `pnpm build:web-member` ผ่านหลังตรวจ M-012 รอบนี้
+- เพิ่ม deposit transfer countdown 15 นาทีในหน้าแนบสลิป และ block submit เมื่อหมดเวลาเพื่อให้สมาชิกเริ่มรายการใหม่ก่อนส่งหลักฐาน
+- ปิดการคืน private slip storage key/file hash จาก `submitEvidence` ให้ member response และเพิ่ม unit test ยืนยันว่า member ไม่เห็น `slips/`/`fileHash`; admin slip access ยังผ่าน endpoint ที่มี `finance.topups.view`
+- ปรับ `FinanceStatusBadge` ให้ใช้ label/tone ที่ครอบคลุม deposit/withdraw workflow statuses เช่น `PENDING_SLIP_REVIEW`, `PENDING_CREDIT`, `APPROVED_FOR_PAYMENT`, `PAYMENT_PROOF_UPLOADED`, `PAYMENT_VERIFIED`, `DUPLICATE`, `CANCELLED`
+
+- [x] Guided withdrawal steps
+- [x] Review step ก่อน submit
+- [x] Deposit expiration behavior
+- [x] Private slip storage/access control
+- [x] Status cards ให้สม่ำเสมอ
 - [ ] Responsive regression/manual money-flow regression
 
 ## M-013 Member profile/security
@@ -276,10 +285,20 @@
 
 มี route: profile, edit, password, security, sessions
 
-- [ ] ตรวจ load/error/retry/empty state
-- [ ] Duplicate phone/email
-- [ ] Unsaved changes
-- [ ] Password strength/mismatch
+หลักฐานล่าสุด 2026-07-13:
+- เพิ่ม retry action และ empty state ให้หน้า `/profile` เมื่อโหลด profile/wallet ไม่สำเร็จ
+- เพิ่ม retry action, header refresh และ empty state ให้หน้า `/profile/security` เมื่อโหลด security overview ไม่สำเร็จ
+- `pnpm build:web-member` ผ่าน
+- เพิ่ม backend duplicate phone/email conflict แยกข้อความเฉพาะฟิลด์และ normalize email ก่อน update profile พร้อม unit test `auth.service.spec.ts`
+- `pnpm --filter @platform/api test -- src/modules/auth/auth.service.spec.ts --runInBand` ผ่าน และ `pnpm build:api` ผ่าน
+- หน้า `/profile/edit` มี `beforeunload` guard อยู่แล้ว และเพิ่ม visible warning เมื่อ draft ไม่ตรงกับ saved state เพื่อกันผู้ใช้ลืมบันทึก
+- หน้า `/profile/password` มี strength meter 5 เงื่อนไข, submit ต้องผ่าน score ขั้นต่ำ และแสดง `role=alert` เมื่อยืนยันรหัสผ่านไม่ตรงกัน
+- `pnpm build:web-member` ผ่านหลังเพิ่ม unsaved warning/ตรวจ password validation
+
+- [x] ตรวจ load/error/retry/empty state
+- [x] Duplicate phone/email
+- [x] Unsaved changes
+- [x] Password strength/mismatch
 - [ ] Forced re-login/invalidation
 - [ ] Device/IP/last-active/login history
 - [ ] Logout all devices/account status

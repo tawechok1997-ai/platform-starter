@@ -115,7 +115,7 @@ export class DepositWorkflowService {
       throw error;
     }
 
-    return { ok: true, duplicate: false, status: 'PENDING_SLIP_REVIEW', slipUrl: key, fileHash };
+    return { ok: true, duplicate: false, status: 'PENDING_SLIP_REVIEW' };
   }
 
   async getSlip(requestId: string) {

@@ -33,6 +33,26 @@ describe('DepositWorkflowService claim ownership', () => {
     expect(storage.remove).toHaveBeenCalledTimes(1);
   });
 
+
+  it('does not expose private slip storage keys to members after upload', async () => {
+    const storage = { put: jest.fn().mockResolvedValue(undefined), remove: jest.fn() };
+    const prisma = {
+      topUpRequest: { findFirst: jest.fn().mockResolvedValue({ id: 'request-1', userId: 'member-1', status: 'PENDING' }) },
+      $queryRaw: jest.fn().mockResolvedValue([]),
+      $executeRaw: jest.fn().mockResolvedValue(1),
+    };
+    const service = new DepositWorkflowService(prisma as any, storage as any);
+    const data = Buffer.from('slip').toString('base64');
+
+    const result = await service.submitEvidence('request-1', 'member-1', {
+      slipImageData: `data:image/png;base64,${data}`,
+    });
+
+    expect(result).toEqual({ ok: true, duplicate: false, status: 'PENDING_SLIP_REVIEW' });
+    expect(JSON.stringify(result)).not.toContain('slips/');
+    expect(JSON.stringify(result)).not.toContain('fileHash');
+  });
+
   it('returns idempotently when credit ledger already exists', async () => {
     const existing = { id: 'ledger-1' };
     const tx = {

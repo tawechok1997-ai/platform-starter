@@ -10,7 +10,8 @@ type PrismaMock = ReturnType<typeof createPrismaMock>;
 
 function createPrismaMock() {
   const tx = {
-    user: { create: jest.fn(async ({ data }: any) => ({ id: 'user-1', ...data })) },
+    user: { create: jest.fn(async ({ data }: any) => ({ id: 'user-1', ...data })), update: jest.fn(async ({ data }: any) => ({ id: 'user-1', ...data })) },
+    userProfile: { upsert: jest.fn(async ({ create, update }: any) => ({ ...(create ?? {}), ...(update ?? {}) })) },
     wallet: { create: jest.fn(async ({ data }: any) => ({ id: 'wallet-1', ...data })) },
     memberBankAccount: {
       findFirst: jest.fn(async () => null),
@@ -115,6 +116,29 @@ describe('AuthService member registration', () => {
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(prisma.authSession.create).not.toHaveBeenCalled();
     expect(prisma.loginHistory.create).not.toHaveBeenCalled();
+  });
+});
+
+
+describe('AuthService member profile update', () => {
+  it('returns a specific duplicate phone error before updating profile', async () => {
+    const prisma = createPrismaMock();
+    prisma.user.findFirst.mockResolvedValueOnce({ id: 'other-user', phone: '0812345678', email: 'other@example.com' } as any);
+    const service = createService(prisma);
+
+    await expect(service.updateMemberProfile('user-1', { phone: '0812345678', email: 'new@example.com' } as any))
+      .rejects.toThrow('เบอร์โทรนี้ถูกใช้กับสมาชิกอื่นแล้ว');
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('returns a specific duplicate email error before updating profile', async () => {
+    const prisma = createPrismaMock();
+    prisma.user.findFirst.mockResolvedValueOnce({ id: 'other-user', phone: '0899999999', email: 'used@example.com' } as any);
+    const service = createService(prisma);
+
+    await expect(service.updateMemberProfile('user-1', { phone: '0812345678', email: 'USED@example.com' } as any))
+      .rejects.toThrow('อีเมลนี้ถูกใช้กับสมาชิกอื่นแล้ว');
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });
 

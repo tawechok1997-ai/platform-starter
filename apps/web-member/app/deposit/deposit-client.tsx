@@ -28,6 +28,8 @@ const METHODS: Record<DepositMethodCode, { label: string; numberLabel: string }>
   wallet: { label: 'วอเลต', numberLabel: 'วอเลต' },
   other: { label: 'อื่น ๆ', numberLabel: 'รายละเอียด' },
 };
+const DEPOSIT_EXPIRES_IN_MS = 15 * 60 * 1000;
+
 const STEPS = [
   { key: 'select', label: 'เลือกยอด' },
   { key: 'transfer', label: 'โอนและแนบสลิป' },
@@ -50,12 +52,19 @@ export default function DepositClient() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [lastRequest, setLastRequest] = useState<TopUpItem | null>(null);
+  const [transferExpiresAt, setTransferExpiresAt] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   const parsedAmount = useMemo(() => Number(amount.replace(/,/g, '').trim()), [amount]);
   const usable = useMemo(() => accounts.filter((account) => matchAmount(account, parsedAmount)), [accounts, parsedAmount]);
   const availableMethods = useMemo(() => Array.from(new Set(usable.map(accountType))) as DepositMethodCode[], [usable]);
 
   useEffect(() => { void loadInitial(); }, []);
+  useEffect(() => {
+    if (step !== 'transfer' || !transferExpiresAt) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [step, transferExpiresAt]);
   useEffect(() => {
     if (availableMethods.length > 0 && !availableMethods.includes(method)) setMethod(availableMethods[0]);
   }, [availableMethods, method]);
@@ -94,6 +103,8 @@ export default function DepositClient() {
     setLoading(false);
     if (!res.ok || !data?.item) return setMessage(data?.message ?? 'ยังไม่มีบัญชีธนาคารสำหรับช่องทางนี้');
     setSelected(data.item);
+    setTransferExpiresAt(Date.now() + DEPOSIT_EXPIRES_IN_MS);
+    setNow(Date.now());
     setMessage('');
     setStep('transfer');
   }
@@ -115,6 +126,7 @@ export default function DepositClient() {
 
   async function submit() {
     if (!selected || !slipImageData) return setMessage('ข้อมูลไม่ครบ กรุณาเลือกบัญชีและแนบสลิป');
+    if (transferExpired) { setConfirmOpen(false); setMessage('รายการฝากหมดเวลาแล้ว กรุณาเริ่มรายการใหม่เพื่อรับบัญชีและยอดที่ถูกต้อง'); setStep('select'); setSelected(null); setTransferExpiresAt(null); return; }
     setConfirmOpen(false);
     setLoading(true);
     setMessage('กำลังสร้างรายการฝาก...');
@@ -171,11 +183,16 @@ export default function DepositClient() {
 
     setSlipImageData('');
     setSlipImageName('');
+    setTransferExpiresAt(null);
     setTransactionRef('');
     setNote('');
     setMessage(evidence?.duplicate ? 'สลิปนี้ถูกใช้แล้ว ระบบยกเลิกรายการนี้ทันที' : 'ส่งสลิปแล้ว รอแอดมินตรวจสอบ');
     setStep('waiting');
   }
+
+  const remainingMs = transferExpiresAt ? Math.max(0, transferExpiresAt - now) : 0;
+  const transferExpired = Boolean(transferExpiresAt && remainingMs <= 0);
+  const remainingLabel = transferExpiresAt ? formatDuration(remainingMs) : '';
 
   const aside = (
     <FinanceCard title="รายการล่าสุด" description="สถานะคำขอฝากล่าสุดของคุณ">
@@ -216,6 +233,8 @@ export default function DepositClient() {
       {step === 'transfer' && selected && (
         <FinanceCard title="โอนเงินและแนบสลิป" description="โอนยอดให้ตรงกับรายการ แล้วแนบสลิปก่อนส่งตรวจสอบ">
           <div className="finance-highlight"><span>ยอดฝาก</span><strong>฿{parsedAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</strong><em>{METHODS[method].label}</em></div>
+          {transferExpiresAt && <FinanceInfoRow label="หมดอายุใน" value={transferExpired ? 'หมดเวลาแล้ว' : remainingLabel} />}
+          {transferExpired && <FinanceEmptyState title="รายการฝากหมดเวลาแล้ว" description="เพื่อป้องกันยอด/บัญชีรับเงินคลาดเคลื่อน กรุณากลับไปเริ่มรายการใหม่" />}
           <FinanceInfoRow label="ชื่อบัญชี" value={selected.accountName} />
           <FinanceInfoRow label={METHODS[method].numberLabel} value={selected.accountNumber} action={<button type="button" onClick={() => copyText(selected.accountNumber, METHODS[method].numberLabel)} className="finance-copy-button">คัดลอก</button>} />
           {selected.promptPay && <FinanceInfoRow label="พร้อมเพย์" value={selected.promptPay} action={<button type="button" onClick={() => copyText(selected.promptPay ?? '', 'พร้อมเพย์')} className="finance-copy-button">คัดลอก</button>} />}
@@ -224,7 +243,7 @@ export default function DepositClient() {
           <label className="finance-field">แนบสลิป<input type="file" accept="image/*" onChange={uploadSlip} /></label>
           {slipImageData && <div className="finance-slip-preview"><strong>ตัวอย่างสลิป</strong><img src={slipImageData} alt="สลิปที่แนบ" /></div>}
           <label className="finance-field">หมายเหตุ<textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="รายละเอียดเพิ่มเติม ถ้ามี" /></label>
-          <FinanceActionBar><button type="button" onClick={() => setStep('select')} className="finance-button finance-button--secondary">ย้อนกลับ</button><button type="button" onClick={() => setConfirmOpen(true)} disabled={loading || !slipImageData} className="finance-button finance-button--primary">ตรวจสอบก่อนส่ง</button></FinanceActionBar>
+          <FinanceActionBar><button type="button" onClick={() => { setStep('select'); setTransferExpiresAt(null); }} className="finance-button finance-button--secondary">ย้อนกลับ</button><button type="button" onClick={() => setConfirmOpen(true)} disabled={loading || !slipImageData || transferExpired} className="finance-button finance-button--primary">ตรวจสอบก่อนส่ง</button></FinanceActionBar>
         </FinanceCard>
       )}
 
@@ -292,3 +311,5 @@ function resizeImage(file: File, maxSize: number, quality: number) {
     reader.readAsDataURL(file);
   });
 }
+
+function formatDuration(ms: number) { const totalSeconds = Math.max(0, Math.ceil(ms / 1000)); const minutes = Math.floor(totalSeconds / 60); const seconds = totalSeconds % 60; return `${minutes}:${String(seconds).padStart(2, '0')} นาที`; }
