@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminSectionRow, AdminStack, formatMoney } from '../_components/admin-ui';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-
 type DailyReport = { range: { from: string; to: string }; topUps: Group[]; withdrawals: Group[]; adjustments: { direction: string; count: number; amount: string }[]; wallets: { count: number; totalBalance: string; totalLockedBalance: string }; ledgers: { count: number; amount: string }; pendingQueues?: { topUps: { count: number; amount: string }; withdrawals: { count: number; amount: string } }; generatedAt: string };
 type Group = { status: string; count: number; amount: string };
 type Reconciliation = { checkedCount?: number; mismatchCount: number; items: { walletId: string; shortUserId: string; username?: string | null; actualBalance: string; latestLedgerBalance: string; lockedBalance: string; availableBalance?: string; status: string }[]; generatedAt: string };
@@ -52,10 +50,8 @@ export default function ReportsPage() {
   }
 
   async function downloadCsv(path: string, filename: string) {
-    const token = window.localStorage.getItem('admin_access_token');
-    if (!token) { setMessage('กรุณา login admin ก่อน'); return; }
     setMessage('กำลังดาวน์โหลด CSV...');
-    const res = await fetch(`${API_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await adminApiFetch(path);
     if (!res.ok) { setMessage((await res.json().catch(() => null))?.message ?? 'ดาวน์โหลด CSV ไม่สำเร็จ'); return; }
     const text = await res.text();
     const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
