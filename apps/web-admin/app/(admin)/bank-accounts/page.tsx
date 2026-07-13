@@ -19,6 +19,7 @@ export default function BankAccountsPage() {
   const [form, setForm] = useState(blankReceiving);
   const [message, setMessage] = useState('');
   const [busyId, setBusyId] = useState('');
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   const typeLabel = useMemo(() => PAYMENT_TYPES.find((item) => item.value === paymentType)?.label ?? 'บัญชีธนาคาร', [paymentType]);
   const accountNumberLabel = paymentType === 'bank' ? 'เลขบัญชี' : paymentType === 'promptpay' ? 'เบอร์พร้อมเพย์' : paymentType === 'wallet' ? 'วอเลต' : 'รายละเอียด';
@@ -28,10 +29,12 @@ export default function BankAccountsPage() {
 
   async function loadAll() {
     setMessage('กำลังโหลดบัญชีรับเงิน...');
-    const [receivingRes, memberRes] = await Promise.all([adminApiFetch('/admin/receiving-bank-accounts'), adminApiFetch('/admin/member-bank-accounts')]);
+    const [receivingRes, memberRes, meRes] = await Promise.all([adminApiFetch('/admin/receiving-bank-accounts'), adminApiFetch('/admin/member-bank-accounts'), adminApiFetch('/admin/auth/me')]);
     const receivingData = await receivingRes.json().catch(() => null);
     const memberData = await memberRes.json().catch(() => null);
+    const meData = await meRes.json().catch(() => null);
     if (!receivingRes.ok || !memberRes.ok) { setMessage(receivingData?.message ?? memberData?.message ?? 'โหลดข้อมูลไม่สำเร็จ'); return; }
+    setPermissions(Array.isArray(meData?.permissions) ? meData.permissions : []);
     setReceiving(receivingData.items ?? []);
     setMemberBanks(memberData.items ?? []);
     setMessage('');
@@ -39,6 +42,7 @@ export default function BankAccountsPage() {
 
   async function saveReceiving(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!canManage) { setMessage('คุณไม่มีสิทธิ์จัดการบัญชีรับเงิน'); return; }
     const payload = normalizeReceivingPayload();
     if (!payload.accountName.trim() || !payload.accountNumber.trim() || !payload.bankName.trim()) { setMessage('กรอกข้อมูลบัญชีรับเงินให้ครบก่อน'); return; }
     setMessage('กำลังบันทึกบัญชีรับเงิน...');
@@ -73,6 +77,7 @@ export default function BankAccountsPage() {
   }
 
   async function setReceivingStatus(item: ReceivingAccount, status: string) {
+    if (!canManage) { setMessage('คุณไม่มีสิทธิ์จัดการบัญชีรับเงิน'); return; }
     setBusyId(item.id);
     const res = await adminApiFetch(`/admin/receiving-bank-accounts/${item.id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
     const data = await res.json().catch(() => null);
@@ -82,6 +87,7 @@ export default function BankAccountsPage() {
   }
 
   async function reviewMemberBank(item: MemberBank, status: string) {
+    if (!canReview) { setMessage('คุณไม่มีสิทธิ์ตรวจสอบบัญชีธนาคารสมาชิก'); return; }
     setBusyId(item.id);
     const res = await adminApiFetch(`/admin/member-bank-accounts/${item.id}/review`, { method: 'PATCH', body: JSON.stringify({ status }) });
     const data = await res.json().catch(() => null);
@@ -90,11 +96,15 @@ export default function BankAccountsPage() {
     setMemberBanks((current) => current.map((row) => row.id === item.id ? { ...row, ...data.item } : row));
   }
 
+  const canView = permissions.includes('*') || permissions.includes('bank_accounts.view');
+  const canManage = permissions.includes('*') || permissions.includes('bank_accounts.manage');
+  const canReview = permissions.includes('*') || permissions.includes('bank_accounts.review');
+
   return (
     <AdminPage eyebrow="Bank Operations" title="Bank Accounts" description="เพิ่มบัญชีรับเงินหลายช่องทาง ระบบจะสลับบัญชีเองเมื่อมีหลายบัญชี" actions={<AdminButton onClick={loadAll}>Refresh</AdminButton>}>
       {message && <AdminNotice>{message}</AdminNotice>}
       <AdminGrid>
-        <AdminCard title={`เพิ่ม${typeLabel}`} description={paymentType === 'bank' ? 'กรอกบัญชีธนาคารรับเงิน' : paymentType === 'promptpay' ? 'กรอกเบอร์พร้อมเพย์หรือเลขพร้อมเพย์' : paymentType === 'wallet' ? 'กรอกข้อมูลวอเลต' : 'กรอกช่องทางรับเงินอื่น ๆ'}>
+        {canManage && <AdminCard title={`เพิ่ม${typeLabel}`} description={paymentType === 'bank' ? 'กรอกบัญชีธนาคารรับเงิน' : paymentType === 'promptpay' ? 'กรอกเบอร์พร้อมเพย์หรือเลขพร้อมเพย์' : paymentType === 'wallet' ? 'กรอกข้อมูลวอเลต' : 'กรอกช่องทางรับเงินอื่น ๆ'}>
           <form onSubmit={saveReceiving}><AdminToolbar>
             <label style={labelStyle}>ประเภทรับเงิน<select value={paymentType} onChange={(e) => changePaymentType(e.target.value as PaymentType)}>{PAYMENT_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
             {paymentType === 'bank' && <label style={labelStyle}>ธนาคาร<select value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })}>{THAI_BANKS.map((bank) => <option key={bank} value={bank}>{bank}</option>)}</select></label>}
@@ -106,10 +116,10 @@ export default function BankAccountsPage() {
             {form.qrImageUrl && <img src={form.qrImageUrl} alt="QR preview" style={qrPreviewStyle} />}
             <AdminButton type="submit">Add Account</AdminButton>
           </AdminToolbar></form>
-        </AdminCard>
-        <AdminCard title="Receiving Accounts"><AdminStack>{receiving.map((item) => <AdminRow key={item.id}><div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : 'danger'}>{item.status}</AdminBadge><h2 style={{ margin: '10px 0 4px' }}>{labelForAccount(item)}</h2><p>ชื่อบัญชี: {item.accountName}</p><p>{numberLabelForAccount(item)}: {item.accountNumber}</p>{item.promptPay && <p>PromptPay: {item.promptPay}</p>}<p>Limit: {item.minAmount ?? '-'} - {item.maxAmount ?? '-'}</p>{item.qrImageUrl && <img src={item.qrImageUrl} alt="QR" style={qrPreviewStyle} />}</div><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton tone="success" disabled={busyId === item.id} onClick={() => setReceivingStatus(item, 'ACTIVE')}>Enable</AdminButton><AdminButton tone="danger" disabled={busyId === item.id} onClick={() => setReceivingStatus(item, 'DISABLED')}>Disable</AdminButton></div></AdminRow>)}{receiving.length === 0 && <AdminEmpty>ยังไม่มีบัญชีรับเงิน</AdminEmpty>}</AdminStack></AdminCard>
+        </AdminCard>}
+        <AdminCard title="Receiving Accounts"><AdminStack>{receiving.map((item) => <AdminRow key={item.id}><div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : 'danger'}>{item.status}</AdminBadge><h2 style={{ margin: '10px 0 4px' }}>{labelForAccount(item)}</h2><p>ชื่อบัญชี: {item.accountName}</p><p>{numberLabelForAccount(item)}: {item.accountNumber}</p>{item.promptPay && <p>PromptPay: {item.promptPay}</p>}<p>Limit: {item.minAmount ?? '-'} - {item.maxAmount ?? '-'}</p>{item.qrImageUrl && <img src={item.qrImageUrl} alt="QR" style={qrPreviewStyle} />}</div>{canManage && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton tone="success" disabled={busyId === item.id} onClick={() => setReceivingStatus(item, 'ACTIVE')}>Enable</AdminButton><AdminButton tone="danger" disabled={busyId === item.id} onClick={() => setReceivingStatus(item, 'DISABLED')}>Disable</AdminButton></div>}{receiving.length === 0 && <AdminEmpty>ยังไม่มีบัญชีรับเงิน</AdminEmpty>}</AdminStack></AdminCard>
       </AdminGrid>
-      <AdminCard title="Member Withdrawal Bank Review" description="สมาชิก 1 คนเพิ่มบัญชีถอนได้ 1 บัญชี และชื่อบัญชีต้องตรงกับชื่อสมาชิก"><AdminStack>{memberBanks.map((item) => <AdminRow key={item.id}><div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : item.status === 'REJECTED' ? 'danger' : 'warning'}>{item.status}</AdminBadge><h2 style={{ margin: '10px 0 4px' }}>{item.bankName}</h2><p>{item.accountName} / {item.accountNumber}</p><p>Member: {item.user?.username ?? item.userId}</p><p>Primary: {item.isPrimary ? 'YES' : 'NO'}</p></div><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton tone="success" disabled={busyId === item.id} onClick={() => reviewMemberBank(item, 'ACTIVE')}>Approve</AdminButton><AdminButton tone="danger" disabled={busyId === item.id} onClick={() => reviewMemberBank(item, 'REJECTED')}>Reject</AdminButton></div></AdminRow>)}{memberBanks.length === 0 && <AdminEmpty>ยังไม่มีบัญชีถอนของสมาชิก</AdminEmpty>}</AdminStack></AdminCard>
+      <AdminCard title="Member Withdrawal Bank Review" description="สมาชิก 1 คนเพิ่มบัญชีถอนได้ 1 บัญชี และชื่อบัญชีต้องตรงกับชื่อสมาชิก"><AdminStack>{memberBanks.map((item) => <AdminRow key={item.id}><div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : item.status === 'REJECTED' ? 'danger' : 'warning'}>{item.status}</AdminBadge><h2 style={{ margin: '10px 0 4px' }}>{item.bankName}</h2><p>{item.accountName} / {item.accountNumber}</p><p>Member: {item.user?.username ?? item.userId}</p><p>Primary: {item.isPrimary ? 'YES' : 'NO'}</p></div>{canReview && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton tone="success" disabled={busyId === item.id} onClick={() => reviewMemberBank(item, 'ACTIVE')}>Approve</AdminButton><AdminButton tone="danger" disabled={busyId === item.id} onClick={() => reviewMemberBank(item, 'REJECTED')}>Reject</AdminButton></div>}{memberBanks.length === 0 && <AdminEmpty>ยังไม่มีบัญชีถอนของสมาชิก</AdminEmpty>}</AdminStack></AdminCard>
     </AdminPage>
   );
 }
