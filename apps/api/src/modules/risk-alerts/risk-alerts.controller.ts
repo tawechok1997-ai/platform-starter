@@ -1,8 +1,17 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import type { AuthenticatedAdminActor } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import {
+  AddRiskAlertNoteDto,
+  AssignRiskAlertDto,
+  BulkDismissRiskAlertsDto,
+  RiskAlertListQueryDto,
+  RiskAlertSuggestionQueryDto,
+  UpdateRiskAlertStatusDto,
+} from './dto/risk-alerts.dto';
 import { RiskAlertsService } from './risk-alerts.service';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -12,18 +21,8 @@ export class RiskAlertsController {
 
   @RequirePermission('risk.view')
   @Get()
-  list(
-    @Query('status') status?: string,
-    @Query('severity') severity?: string,
-    @Query('type') type?: string,
-    @Query('memberId') memberId?: string,
-    @Query('provider') provider?: string,
-    @Query('createdFrom') createdFrom?: string,
-    @Query('createdTo') createdTo?: string,
-    @Query('page') page?: string,
-    @Query('take') take?: string,
-  ) {
-    return this.riskAlertsService.list({ status, severity, type, memberId, provider, createdFrom, createdTo, page, take });
+  list(@Query() query: RiskAlertListQueryDto) {
+    return this.riskAlertsService.list(query);
   }
 
   @RequirePermission('risk.assign')
@@ -34,14 +33,14 @@ export class RiskAlertsController {
 
   @RequirePermission('risk.resolve')
   @Get('auto-close-suggestions')
-  autoCloseSuggestions(@Query('limit') limit?: string) {
-    return this.riskAlertsService.autoCloseSuggestions(Number(limit ?? 50));
+  autoCloseSuggestions(@Query() query: RiskAlertSuggestionQueryDto) {
+    return this.riskAlertsService.autoCloseSuggestions(query.limit ?? 50);
   }
 
   @RequirePermission('risk.resolve')
   @Post('bulk-dismiss')
-  bulkDismiss(@Body() body: { ids?: string[] }, @CurrentUser() admin: any) {
-    return this.riskAlertsService.bulkDismiss(body.ids ?? [], admin);
+  bulkDismiss(@Body() body: BulkDismissRiskAlertsDto, @CurrentUser() admin: AuthenticatedAdminActor) {
+    return this.riskAlertsService.bulkDismiss(body.ids, admin);
   }
 
   @RequirePermission('risk.view')
@@ -52,25 +51,25 @@ export class RiskAlertsController {
 
   @RequirePermission('risk.assign')
   @Patch(':id/assignment')
-  assign(@Param('id') id: string, @Body() body: { adminUserId?: string | null }, @CurrentUser() admin: any) {
+  assign(@Param('id') id: string, @Body() body: AssignRiskAlertDto, @CurrentUser() admin: AuthenticatedAdminActor) {
     return this.riskAlertsService.assign(id, body.adminUserId, admin);
   }
 
   @RequirePermission('risk.note')
   @Post(':id/notes')
-  addNote(@Param('id') id: string, @Body() body: { note?: string }, @CurrentUser() admin: any) {
+  addNote(@Param('id') id: string, @Body() body: AddRiskAlertNoteDto, @CurrentUser() admin: AuthenticatedAdminActor) {
     return this.riskAlertsService.addNote(id, body.note, admin);
   }
 
   @RequirePermission('risk.resolve')
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() body: { status?: string }, @CurrentUser() admin: any) {
+  updateStatus(@Param('id') id: string, @Body() body: UpdateRiskAlertStatusDto, @CurrentUser() admin: AuthenticatedAdminActor) {
     return this.riskAlertsService.updateStatus(id, body.status, admin);
   }
 
   @RequirePermission('risk.resolve')
   @Post('scan')
-  scan(@CurrentUser() admin: any) {
+  scan(@CurrentUser() admin: AuthenticatedAdminActor) {
     return this.riskAlertsService.scan(admin);
   }
 }
