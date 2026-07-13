@@ -141,7 +141,7 @@
 
 ## M-008 Token/session security
 
-สถานะ: 🟡 PARTIAL — HttpOnly refresh cookie และ kill switch สำหรับ legacy fallback มีแล้ว เหลือปิด fallback หลัง grace period
+สถานะ: 🟡 PARTIAL — HttpOnly refresh cookie ใช้งานแล้ว และลบ legacy fallback ออกจาก Admin API แล้ว; เหลือ production verification
 
 - [x] Refresh rotation/reuse revoke มี implementation บางส่วน
 - [x] HttpOnly refresh cookie groundwork ผ่าน admin API และ Next proxy
@@ -156,7 +156,7 @@
 - [x] เพิ่ม optional dynamic login-cookie smoke test (`ADMIN_WEB_URL` + `ADMIN_SMOKE_*`; ข้ามอย่างปลอดภัยเมื่อไม่มี credential)
 - [x] ย้าย access token ออกจาก localStorage ใน client/login/layout
 - [x] ลบ refresh-token storage หลัง migrate สำเร็จ
-- [ ] ลบ refresh-token read fallback หลัง grace period
+- [x] ลบ refresh-token read fallback หลัง grace period
 - [x] XSS/session theft regression boundary (static sink audit + optional login-cookie smoke)
 - [x] เพิ่ม static audit ห้ามหน้า Admin อ่าน access token จาก localStorage (`audit:admin-token-storage`)
 - [x] เพิ่ม static XSS sink audit ฝั่ง Admin UI (`audit:admin-xss`)
