@@ -82,8 +82,14 @@ export class NotificationsService {
 
     items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     const limited = items.slice(0, 50).map((item) => ({ ...item, createdAt: item.createdAt.toISOString() }));
+    const groups = limited.reduce<Record<string, typeof limited>>((acc, item) => {
+      const day = item.createdAt.slice(0, 10);
+      (acc[day] ??= []).push(item);
+      return acc;
+    }, {});
     return {
       items: limited,
+      groups,
       total: limited.length,
       counts: limited.reduce((acc, item) => {
         acc[item.type] = (acc[item.type] ?? 0) + 1;
