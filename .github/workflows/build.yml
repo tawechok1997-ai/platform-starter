@@ -88,6 +88,12 @@ jobs:
       - name: Test PostgreSQL phone OTP security
         run: pnpm --filter @platform/api test:db:phone-otp -- --runInBand
 
+      - name: Test PostgreSQL risk watchlist concurrency
+        run: pnpm --filter @platform/api test:db:risk-watchlist -- --runInBand
+
+      - name: Test PostgreSQL KYC concurrency
+        run: pnpm --filter @platform/api test:db:kyc -- --runInBand
+
       - name: Build API
         run: pnpm build:api
 
