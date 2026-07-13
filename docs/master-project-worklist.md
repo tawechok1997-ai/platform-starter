@@ -128,11 +128,15 @@
 
 หลักฐานล่าสุด 2026-07-13:
 - `pnpm audit:admin-permissions` ผ่าน: 26 controllers, 24 protected with permission metadata, 2 intentionally public, 0 auth-only/manual-review, 0 unguarded
+- `pnpm audit:admin-ui-permissions` ผ่าน: ตรวจ 67 admin page routes, protected/allowlisted 67, unprotected 0 และ sidebar item ที่ไม่มี permission metadata นอก allowlist 0
+- เพิ่ม route-permission fallback สำหรับหน้า admin ที่ไม่ได้อยู่ใน sidebar เช่น `/access`, `/activity`, `/exports`, `/finance`, `/ledgers`, `/member-detail`, `/money-ops`, `/provider-adapters`, `/provider-wallet-snapshots`, `/webhook-settlement`, `/webhook-test` และเพิ่ม permission metadata ให้ `/content-center`
+- `pnpm build:web-admin` ผ่านหลังแก้ route/sidebar permission coverage
 - `pnpm build:api` ผ่าน: Prisma generate และ Nest API build สำเร็จ
 - `API_URL=https://platformapi-production-3c91.up.railway.app bash scripts/smoke-api.sh` ยังรัน production smoke ไม่สำเร็จจาก environment นี้ เพราะทุก curl ถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403`
+- ยังยืนยัน read-only user ด้วย credentialed browser smoke ไม่ได้ใน environment นี้ เพราะไม่มี read-only admin credentials และ production smoke ถูก local proxy บล็อก จึงคง checklist นี้เป็น pending/blocker ไม่ติ๊กหลอก
 
 - [x] ตรวจทุก admin route/sidebar/widget/export รอบ finance routes; withdrawal workflow ถูกเพิ่ม permission guard
-- [ ] ตรวจทุก admin route/sidebar/widget/export ที่เหลือ
+- [x] ตรวจทุก admin route/sidebar/widget/export ที่เหลือ
 - [x] แก้ endpoint การเงินที่ขาด `RequirePermission` (withdrawal workflow)
 - [x] ป้องกัน wallet read/adjust endpoints และเพิ่ม `wallet.adjust` ใน seed
 - [x] เพิ่ม permission model และ guard ให้ bank accounts (`view/manage/review`)
@@ -149,7 +153,7 @@
 - ตรวจ source แล้วพบ `TRUSTED_PROXY_HOPS`, Express `trust proxy`, rate-limit key แยก IP/account และ log IP จาก `req.ip` ใน `apps/api/src/main.ts`
 - `pnpm --filter @platform/api test -- src/modules/auth/auth.service.spec.ts --runInBand` ผ่าน: 1 suite, 5 tests
 - `pnpm --filter @platform/api test -- --runInBand` ผ่านหลังแก้ Jest config: 25 suites passed, 2 skipped, 107 tests passed, 7 skipped
-- Reverse-proxy/API smoke กับ Railway ยังถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403` จึงยังยืนยันผ่าน proxy จริงไม่ได้
+- Reverse-proxy/API smoke กับ Railway ยังถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403` จึงยังยืนยันผ่าน proxy จริงไม่ได้ และคง checklist reverse proxy จริงเป็น pending/blocker
 
 - [x] กำหนด trusted proxy ตาม environment ด้วย `TRUSTED_PROXY_HOPS`
 - [x] รวม RequestContext เบื้องต้นสำหรับ IP/request ID/user agent
@@ -245,9 +249,10 @@
 - เพิ่มปุ่ม launch บนครอบรูปเกมเพื่อให้เปิดเกมได้แม้ market theme ซ่อน card body/ปุ่มเล่นแบบเดิม และยัง disable เมื่อเกมหรือค่ายอยู่สถานะไม่พร้อม
 - เปิด maintenance/disabled badge ใน market lobby theme เพื่อไม่ซ่อนสถานะเกม/ค่ายที่ไม่พร้อม
 - `pnpm build:web-member` ผ่าน
+- เพิ่ม `PromotionSlotGrid` จาก CMS banners เป็น slot โปรโมชั่น 3 ช่องใต้ hero โดยซ่อนเมื่อไม่มี banner ที่เปิดใช้งาน
 
 - [x] Featured/recently played
-- [ ] Promotion/banner slots
+- [x] Promotion/banner slots
 - [x] Configurable categories/provider filter
 - [x] Game search/favorites
 - [x] Maintenance/disabled states

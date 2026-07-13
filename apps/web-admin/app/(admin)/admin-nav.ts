@@ -49,7 +49,7 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'Bonus Ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
       { title: 'ตัวแทน/Affiliate', href: '/affiliate-center', permissions: ['affiliate.view'] },
       { title: 'Commission Ledger', href: '/commission-ledgers', permissions: ['commission.view'] },
-      { title: 'CMS/คอนเทนต์', href: '/content-center' },
+      { title: 'CMS/คอนเทนต์', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
       { title: 'KYC/ตรวจบัญชี', href: '/kyc-center', permissions: ['users.view', 'risk.view'] },
       { title: 'Support', href: '/support-center', permissions: ['users.view'] },
     ],
@@ -82,6 +82,21 @@ export const navGroups: readonly AdminNavGroup[] = [
   },
 ] as const;
 
+
+const additionalRoutePermissions: readonly AdminNavItem[] = [
+  { title: 'Access Control', href: '/access', permissions: ['admin.access.view'] },
+  { title: 'Activity', href: '/activity', permissions: ['admin.view', 'admin.access.view'] },
+  { title: 'Exports', href: '/exports', permissions: ['reports.export', 'reports.view'] },
+  { title: 'Finance', href: '/finance', permissions: ['wallet.view', 'reports.view'] },
+  { title: 'Ledgers', href: '/ledgers', permissions: ['wallet.view'] },
+  { title: 'Member Detail', href: '/member-detail', permissions: ['users.view'] },
+  { title: 'Money Ops', href: '/money-ops', permissions: ['wallet.view'] },
+  { title: 'Provider Adapters', href: '/provider-adapters', permissions: ['game.providers.view', 'provider.view'] },
+  { title: 'Provider Wallet Snapshots', href: '/provider-wallet-snapshots', permissions: ['game.providers.view', 'provider.view'] },
+  { title: 'Webhook Settlement', href: '/webhook-settlement', permissions: ['provider.view', 'game.providers.view'] },
+  { title: 'Webhook Test', href: '/webhook-test', permissions: ['provider.update', 'game.providers.manage'] },
+];
+
 export function canAccessNavItem(item: AdminNavItem, permissions: readonly string[]) {
   if (permissions.includes('*')) return true;
   if (!item.permissions || item.permissions.length === 0) return true;
@@ -89,10 +104,10 @@ export function canAccessNavItem(item: AdminNavItem, permissions: readonly strin
 }
 
 export function requiredPermissionsForPath(pathname: string) {
-  for (const group of navGroups) {
-    for (const item of group.items) {
-      if (pathname === item.href || pathname.startsWith(`${item.href}/`)) return item.permissions ?? [];
-    }
+  const routeItems = [...navGroups.flatMap((group) => group.items), ...additionalRoutePermissions]
+    .sort((a, b) => b.href.length - a.href.length);
+  for (const item of routeItems) {
+    if (pathname === item.href || pathname.startsWith(`${item.href}/`)) return item.permissions ?? [];
   }
   return [] as readonly string[];
 }

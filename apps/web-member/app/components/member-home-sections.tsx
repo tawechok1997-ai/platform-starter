@@ -24,6 +24,23 @@ export function HomeHero({ siteName, description, content }: { siteName: string;
     {slides.length > 1 && <div className="member-home-hero__dots" aria-label="เลือกโปรโมชั่น">{slides.map((item, index) => <button key={item.imageUrl || item.title} type="button" className={index === activeIndex ? 'active' : ''} onClick={() => setActiveIndex(index)} aria-label={`แสดงโปรโมชั่นที่ ${index + 1}`} />)}</div>}
   </section>;
 }
+
+export function PromotionSlotGrid({ content }: { content: CmsContent }) {
+  const slots = content.banners
+    .filter((item) => item.enabled && (cmsAssetUrl(content, item.assetId) || item.imageUrl))
+    .slice(0, 3);
+  if (!slots.length) return null;
+  return <section className="member-promo-slots" aria-label="โปรโมชั่นแนะนำ">
+    {slots.map((slot, index) => {
+      const imageUrl = cmsAssetUrl(content, slot.assetId) || slot.imageUrl || '';
+      return <a key={`${slot.title}-${index}`} href={slot.href || '/promotions'} className="member-promo-slot">
+        <img src={imageUrl} alt="" loading="lazy" />
+        <span>{slot.title}</span>
+      </a>;
+    })}
+  </section>;
+}
+
 export function LobbyTabs() {
   return <nav className="member-lobby-tabs" aria-label="เมนูหน้า Lobby"><a className="active" href="#highlights">✦ <span>ไฮไลท์</span></a><a href="/promotions">♔ <span>โปรโมชั่นแนะนำ</span></a><a href="#activities">♜ <span>กิจกรรม</span></a></nav>;
 }

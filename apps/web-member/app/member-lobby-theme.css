@@ -199,3 +199,9 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 .game-lobby-page .game-lobby-toolbar { display: grid !important; grid-template-columns: minmax(0,1fr) minmax(112px,.58fr) auto; gap: 8px; }
 .game-lobby-page .game-lobby-provider { display: block; }
 .game-lobby-page .game-lobby-cover-button > img, .game-lobby-page .game-lobby-cover-button .game-lobby-fallback { aspect-ratio: 1.42; border-radius: 11px; }
+.member-promo-slots { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.member-promo-slot { position: relative; min-height: 70px; overflow: hidden; border-radius: 11px; background: #171020; color: #fff; text-decoration: none; }
+.member-promo-slot img { width: 100%; height: 100%; min-height: 70px; object-fit: cover; display: block; }
+.member-promo-slot::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,transparent 35%,rgba(7,4,12,.72)); pointer-events: none; }
+.member-promo-slot span { position: absolute; z-index: 1; left: 9px; right: 9px; bottom: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 900; text-shadow: 0 1px 8px rgba(0,0,0,.75); }
+@media (max-width: 420px) { .member-promo-slots { grid-template-columns: repeat(2,minmax(0,1fr)); } .member-promo-slot:nth-child(n+3) { display: none; } }
