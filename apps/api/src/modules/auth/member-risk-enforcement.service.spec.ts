@@ -21,7 +21,6 @@ describe('MemberRiskEnforcementService', () => {
       context: 'MEMBER_REGISTRATION',
       referenceType: 'member_registration',
       referenceId: 'member01',
-      actorId: undefined,
       subjects: expect.arrayContaining([
         { subjectType: 'PHONE', subjectValue: '0812345678' },
         { subjectType: 'EMAIL', subjectValue: 'Member@Example.com' },
