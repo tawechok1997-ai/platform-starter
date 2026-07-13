@@ -2,6 +2,9 @@
 set -euo pipefail
 
 API_URL="${API_URL:-http://localhost:4000}"
+# Normalize the base URL once so paths such as /health never become //health
+# when deployment variables include a trailing slash.
+API_URL="${API_URL%/}"
 ADMIN_TOKEN="${ADMIN_TOKEN:-}"
 MEMBER_TOKEN="${MEMBER_TOKEN:-}"
 
