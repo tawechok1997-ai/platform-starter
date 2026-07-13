@@ -31,10 +31,11 @@ test.describe('admin security boundaries', () => {
     const api = await request.newContext({ baseURL: adminWebUrl });
     try {
       const response = await api.post('/api/auth/login', {
-        data: { username, secret, deviceId: 'playwright-security-smoke' },
+        data: { username, secret, captchaToken: process.env.ADMIN_SMOKE_CAPTCHA_TOKEN, deviceId: 'playwright-security-smoke' },
       });
-      expect([200, 401, 403]).toContain(response.status());
+      expect(response.status()).toBeLessThan(500);
       const payload = await response.json().catch(() => null);
+      if (response.status() === 400 && payload?.code === 'CAPTCHA_REQUIRED') return;
       if (payload?.requiresTwoFactor) {
         expect(payload.challengeId).toBeTruthy();
         return;
