@@ -172,7 +172,8 @@
 - [x] Sanitized connection test และไม่คืน secret
 - [x] Enable ต่อ route ที่มีอยู่ (`ADMIN_LOGIN`, `MEMBER_LOGIN`, `MEMBER_REGISTER`)
 - [x] เพิ่ม password-reset route และผูก Anti-bot (one-time hashed token, revoke member sessions หลัง reset)
-- [ ] Adaptive challenge/emergency mode ให้มีผลกับ runtime จริง
+- [ ] Adaptive challenge ให้มีผลกับ runtime จริง
+- [x] Emergency mode บังคับ challenge ทุก auth route เมื่อ runtime เปิด
 - [x] Permission view/update/test/override
 - [x] Audit log ทุก setting change และ security event
 
