@@ -19,12 +19,14 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   const accept = request.headers.get('accept');
   const userAgent = request.headers.get('user-agent');
   const forwardedFor = request.headers.get('x-forwarded-for');
+  const cookie = request.headers.get('cookie');
 
   if (authorization) headers.set('authorization', authorization);
   if (contentType) headers.set('content-type', contentType);
   if (accept) headers.set('accept', accept);
   if (userAgent) headers.set('user-agent', userAgent);
   if (forwardedFor) headers.set('x-forwarded-for', forwardedFor);
+  if (cookie) headers.set('cookie', cookie);
 
   const hasBody = method !== 'GET' && method !== 'DELETE';
   const body = hasBody ? await request.text() : undefined;
@@ -39,9 +41,15 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
     });
 
     const payload = await response.text();
+    const responseHeaders = new Headers({
+      'content-type': response.headers.get('content-type') ?? 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    const setCookie = response.headers.get('set-cookie');
+    if (setCookie) responseHeaders.set('set-cookie', setCookie);
     return new NextResponse(payload || null, {
       status: response.status,
-      headers: {
+      headers: responseHeaders,
         'content-type': response.headers.get('content-type') ?? 'application/json; charset=utf-8',
         'cache-control': 'no-store',
       },
