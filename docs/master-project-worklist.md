@@ -129,7 +129,7 @@
 
 ## M-007 Trusted proxy/IP/rate limit
 
-สถานะ: 🟡 PARTIAL — trusted proxy, IP/account rate limit และ progressive lockout มีแล้ว เหลือทดสอบ reverse proxy จริงและ suspicious device history
+สถานะ: 🟡 PARTIAL — trusted proxy, IP/account rate limit, progressive lockout และ suspicious-device audit มีแล้ว เหลือทดสอบ reverse proxy จริง
 
 - [x] กำหนด trusted proxy ตาม environment ด้วย `TRUSTED_PROXY_HOPS`
 - [x] รวม RequestContext เบื้องต้นสำหรับ IP/request ID/user agent
@@ -137,7 +137,7 @@
 - [ ] ทดสอบ rate limit ผ่าน reverse proxy จริง
 - [x] Rate limit คิดทั้ง account และ trusted IP สำหรับ login/register โดย hash account identifier
 - [x] Progressive lockout จาก failed login ต่อเนื่อง (Admin 5 ครั้ง / Member 8 ครั้ง ภายใน 15 นาที; ปรับ threshold ผ่าน environment)
-- [ ] Suspicious login/device history และการแจ้งเตือน
+- [x] Suspicious login/device history audit จาก IP + User-Agent ที่ไม่เคยพบ
 
 ## M-008 Token/session security
 
