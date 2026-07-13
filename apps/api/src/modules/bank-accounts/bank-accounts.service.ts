@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { RiskEnforcementService } from '../risk-alerts/risk-enforcement.service';
 
 type BankBody = {
   bankName?: string;
@@ -12,12 +13,16 @@ type BankBody = {
   status?: 'ACTIVE' | 'DISABLED' | 'PENDING_REVIEW' | 'REJECTED';
   sortOrder?: number;
   adminNote?: string;
+  riskOverrideReason?: string;
 };
 type PaymentType = 'bank_transfer' | 'promptpay' | 'wallet' | 'other';
 
 @Injectable()
 export class BankAccountsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly riskEnforcement: RiskEnforcementService,
+  ) {}
 
   async getActiveReceivingAccounts() {
     const items = await this.prisma.receivingBankAccount.findMany({ where: { status: 'ACTIVE' }, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] });
@@ -72,6 +77,19 @@ export class BankAccountsService {
     const allowedNames = [user.profile?.displayName, user.username].filter(Boolean).map((value) => this.normalizeName(String(value)));
     const submittedName = this.normalizeName(body.accountName!);
     if (!allowedNames.includes(submittedName)) throw new BadRequestException('ชื่อบัญชีต้องตรงกับชื่อบัญชีสมาชิก');
+
+    await this.riskEnforcement.enforce({
+      subjects: [
+        { subjectType: 'MEMBER', subjectValue: userId },
+        { subjectType: 'BANK_ACCOUNT', subjectValue: body.accountNumber!.trim() },
+        ...(user.phone ? [{ subjectType: 'PHONE' as const, subjectValue: user.phone }] : []),
+        ...(user.email ? [{ subjectType: 'EMAIL' as const, subjectValue: user.email }] : []),
+      ],
+      context: 'MEMBER_BANK_ACCOUNT_CREATE',
+      memberId: userId,
+      referenceType: 'member_bank_account',
+    });
+
     const item = await this.prisma.memberBankAccount.create({ data: { userId, bankName: body.bankName!.trim(), accountName: body.accountName!.trim(), accountNumber: body.accountNumber!.trim(), isPrimary: true, status: 'PENDING_REVIEW' } });
     return { item: this.mapMemberBank(item) };
   }
@@ -110,12 +128,27 @@ export class BankAccountsService {
   }
 
   async reviewMemberBankAccount(id: string, body: BankBody, admin: any, meta: any) {
-    const existing = await this.prisma.memberBankAccount.findUnique({ where: { id }, include: { user: { select: { id: true, username: true, status: true } } } });
+    const existing = await this.prisma.memberBankAccount.findUnique({ where: { id }, include: { user: { select: { id: true, username: true, status: true, phone: true, email: true } } } });
     if (!existing) throw new NotFoundException('Member bank account not found');
     if (body.status === 'ACTIVE') {
       const duplicate = await this.prisma.memberBankAccount.findFirst({ where: { id: { not: id }, accountNumber: existing.accountNumber, status: { in: ['ACTIVE', 'PENDING_REVIEW'] } } });
       if (duplicate) throw new BadRequestException('เลขบัญชีนี้ซ้ำกับสมาชิกอื่น ต้องตรวจสอบก่อนอนุมัติ');
       if (existing.user?.status !== 'ACTIVE') throw new BadRequestException('สมาชิกไม่ได้อยู่สถานะ ACTIVE ไม่ควรอนุมัติบัญชี');
+
+      await this.riskEnforcement.enforce({
+        subjects: [
+          { subjectType: 'MEMBER', subjectValue: existing.userId },
+          { subjectType: 'BANK_ACCOUNT', subjectValue: existing.accountNumber },
+          ...(existing.user?.phone ? [{ subjectType: 'PHONE' as const, subjectValue: existing.user.phone }] : []),
+          ...(existing.user?.email ? [{ subjectType: 'EMAIL' as const, subjectValue: existing.user.email }] : []),
+        ],
+        context: 'MEMBER_BANK_ACCOUNT_APPROVAL',
+        memberId: existing.userId,
+        referenceType: 'member_bank_account',
+        referenceId: id,
+        actorId: admin?.id,
+        overrideReason: body.riskOverrideReason,
+      });
     }
     const item = await this.prisma.memberBankAccount.update({ where: { id }, data: { status: body.status ?? 'ACTIVE', adminNote: body.adminNote ?? undefined } });
     await this.audit(admin?.id, 'REVIEW_MEMBER_BANK_ACCOUNT', id, this.mapMemberBank(existing), this.mapMemberBank(item), meta);
