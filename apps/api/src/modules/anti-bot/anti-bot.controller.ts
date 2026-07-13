@@ -42,17 +42,17 @@ export class AntiBotPublicController {
   constructor(private readonly antiBot: AntiBotService) {}
 
   @Get('admin-login')
-  adminLogin() {
-    return this.antiBot.getPublicConfig('ADMIN_LOGIN');
+  adminLogin(@Req() req: any) {
+    return this.antiBot.getPublicConfig('ADMIN_LOGIN', req.ip);
   }
 
   @Get('member-login')
-  memberLogin() {
-    return this.antiBot.getPublicConfig('MEMBER_LOGIN');
+  memberLogin(@Req() req: any) {
+    return this.antiBot.getPublicConfig('MEMBER_LOGIN', req.ip);
   }
 
   @Get('member-register')
-  memberRegister() {
-    return this.antiBot.getPublicConfig('MEMBER_REGISTER');
+  memberRegister(@Req() req: any) {
+    return this.antiBot.getPublicConfig('MEMBER_REGISTER', req.ip);
   }
 }
