@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+import { setAdminAccessToken } from '../../admin-api';
 
 export default function AdminTwoFactorPage() {
   const [challengeId, setChallengeId] = useState('');
@@ -13,8 +13,9 @@ export default function AdminTwoFactorPage() {
     event.preventDefault();
     setMessage('กำลังยืนยัน...');
 
-    const res = await fetch(`${API_URL}/admin/auth/2fa/verify`, {
+    const res = await fetch('/api/admin/auth/2fa/verify', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ challengeId, code }),
     });
@@ -25,8 +26,8 @@ export default function AdminTwoFactorPage() {
       return;
     }
 
-    window.localStorage.setItem('admin_access_token', data.accessToken);
-    window.localStorage.setItem('admin_refresh_token', data.refreshToken);
+    setAdminAccessToken(data.accessToken);
+    if (data.refreshToken) window.localStorage.setItem('admin_refresh_token', data.refreshToken);
     setMessage('ยืนยันสำเร็จ');
   }
 
