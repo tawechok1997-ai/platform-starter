@@ -164,7 +164,7 @@
 
 ## M-009 Anti-bot
 
-สถานะ: 🟡 PARTIAL — core Anti-bot backend และ password-reset flow ทำแล้ว เหลือ adaptive/emergency behavior กับ production verification
+สถานะ: 🟡 PARTIAL — core Anti-bot backend, password-reset flow และ adaptive/emergency runtime ทำแล้ว เหลือ production verification
 
 - [x] Provider selection ครบ (`TURNSTILE`, `RECAPTCHA`, `HCAPTCHA`)
 - [x] Encrypted secret storage (`AES-256-GCM`)
@@ -172,7 +172,7 @@
 - [x] Sanitized connection test และไม่คืน secret
 - [x] Enable ต่อ route ที่มีอยู่ (`ADMIN_LOGIN`, `MEMBER_LOGIN`, `MEMBER_REGISTER`)
 - [x] เพิ่ม password-reset route และผูก Anti-bot (one-time hashed token, revoke member sessions หลัง reset)
-- [ ] Adaptive challenge ให้มีผลกับ runtime จริง
+- [x] Adaptive challenge ให้มีผลกับ runtime จริง (บังคับหลัง failed login จาก IP เดิมอย่างน้อย 3 ครั้ง/15 นาที)
 - [x] Emergency mode บังคับ challenge ทุก auth route เมื่อ runtime เปิด
 - [x] Permission view/update/test/override
 - [x] Audit log ทุก setting change และ security event
