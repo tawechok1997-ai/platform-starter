@@ -8,12 +8,14 @@ import { AdminBadge, AdminButton, AdminCard, AdminMetric, AdminMetricGrid, Admin
 type AdminMe = { id: string; username: string; permissions?: string[] };
 type SetupResponse = { secret: string; otpAuthUrl: string };
 type SessionItem = { id: string; deviceId?: string | null; ipAddress?: string | null; userAgent?: string | null; createdAt: string; expiresAt: string; revokedAt?: string | null; current: boolean; active: boolean };
+type OwnerRecoveryStatus = { healthy: boolean; recoveryCodesRemaining: number; protectedAdmins: Array<{ id: string; username: string; email?: string | null; status: string; twoFactorEnabled: boolean; roles: string[] }> };
 
 export default function AdminSecurityPage() {
   const [me, setMe] = useState<AdminMe | null>(null);
   const [setup, setSetup] = useState<SetupResponse | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [ownerRecovery, setOwnerRecovery] = useState<OwnerRecoveryStatus | null>(null);
   const [code, setCode] = useState('');
   const [deactivateCode, setDeactivateCode] = useState('');
   const [regenerateCode, setRegenerateCode] = useState('');
@@ -28,7 +30,7 @@ export default function AdminSecurityPage() {
   }, [setup?.otpAuthUrl]);
 
   async function loadAll() {
-    await Promise.all([loadMe(), loadSessions()]);
+    await Promise.all([loadMe(), loadSessions(), loadOwnerRecoveryStatus()]);
   }
 
   async function loadMe() {
@@ -43,6 +45,14 @@ export default function AdminSecurityPage() {
     const data = await res.json().catch(() => null);
     if (!res.ok) { setMessage(data?.message ?? 'โหลด sessions ไม่สำเร็จ'); return; }
     setSessions(data.items ?? []);
+  }
+
+  async function loadOwnerRecoveryStatus() {
+    const res = await adminApiFetch('/admin/access/owner-recovery-status');
+    const data = await res.json().catch(() => null);
+    if (res.status === 403) return;
+    if (!res.ok) { setMessage(data?.message ?? 'โหลดสถานะ owner recovery ไม่สำเร็จ'); return; }
+    setOwnerRecovery(data);
   }
 
   async function startSetup() {
@@ -152,6 +162,23 @@ export default function AdminSecurityPage() {
       <AdminMetric title="Active sessions" value={String(activeCount)} helper={`${sessions.length} loaded`} />
     </AdminMetricGrid>
 
+    {ownerRecovery && <AdminCard title="Owner recovery readiness" description="ตรวจความพร้อมในการกู้คืนสิทธิ์ owner โดยไม่แสดง recovery code จริง">
+      <AdminStack>
+        <div style={ownerRecovery.healthStyle}>
+          <AdminBadge tone={ownerRecovery.healthy ? 'success' : 'warning'}>{ownerRecovery.healthy ? 'RECOVERY READY' : 'ACTION REQUIRED'}</AdminBadge>
+          <p>{ownerRecovery.healthy ? 'มี protected admin ที่เปิด 2FA และมี recovery code เหลืออยู่' : 'ต้องตรวจ 2FA ของ protected admin และ/หรือสร้าง recovery codes ชุดใหม่ก่อนเกิดเหตุ lockout'}</p>
+        </div>
+        <div style={recoverySummaryStyle}>
+          <span>Protected admins: {ownerRecovery.protectedAdmins.length}</span>
+          <span>Recovery codes remaining: {ownerRecovery.recoveryCodesRemaining}</span>
+        </div>
+        {ownerRecovery.protectedAdmins.map((admin) => <div key={admin.id} style={ownerRecoveryRowStyle}>
+          <span>{admin.username} · {admin.status}</span>
+          <AdminBadge tone={admin.twoFactorEnabled ? 'success' : 'warning'}>{admin.twoFactorEnabled ? '2FA ON' : '2FA REQUIRED'}</AdminBadge>
+        </div>)}
+      </AdminStack>
+    </AdminCard>}
+
     <AdminCard title="2FA Setup" description="สร้าง secret แล้วเปิดในแอป Authenticator เช่น Google Authenticator, 1Password หรือ Authy">
       <AdminStack>
         <div style={infoStyle}>
@@ -198,6 +225,9 @@ export default function AdminSecurityPage() {
   </AdminPage>;
 }
 
+const ownerRecovery = { healthStyle: { border: '1px solid rgba(245,197,66,.28)', borderRadius: 16, padding: 12, background: 'rgba(245,197,66,.08)', display: 'grid', gap: 8 }, healthy: false };
+const recoverySummaryStyle = { display: 'flex', gap: 16, flexWrap: 'wrap' as const, color: '#cbd5e1' };
+const ownerRecoveryRowStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' as const, borderTop: '1px solid rgba(148,163,184,.14)', paddingTop: 8 };
 const infoStyle = { border: '1px solid rgba(34,197,94,.28)', borderRadius: 16, padding: 12, background: 'rgba(34,197,94,.08)', display: 'grid', gap: 8 } as const;
 const setupBoxStyle = { display: 'grid', gap: 12, minWidth: 0 } as const;
 const labelStyle = { display: 'grid', gap: 7, fontWeight: 850, minWidth: 0 } as const;
