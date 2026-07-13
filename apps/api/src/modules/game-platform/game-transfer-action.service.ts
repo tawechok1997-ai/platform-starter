@@ -41,7 +41,9 @@ export class GameTransferActionService {
     if (transfer.status !== 'PENDING') throw new BadRequestException('Only PENDING transfers can be force failed');
     const now = new Date();
     const payload = this.mergeJson(transfer.responsePayload, { forceFail: { note: adminNote, failedBy: actor.id, failedAt: now.toISOString(), previousStatus: transfer.status } });
-    const item = await this.prisma.gameTransfer.update({ where: { id }, data: { status: 'FAILED', adminNote, errorCode: transfer.errorCode ?? 'FORCE_FAILED', errorMessage: adminNote, responsePayload: payload, resolvedAt: now }, include: { user: { select: { id: true, username: true, phone: true } }, provider: { select: { id: true, name: true, code: true } }, session: { select: { id: true, providerSessionId: true, game: { select: { id: true, name: true, providerGameCode: true } } } } } });
+    const changed = await this.prisma.gameTransfer.updateMany({ where: { id, status: 'PENDING' }, data: { status: 'FAILED', adminNote, errorCode: transfer.errorCode ?? 'FORCE_FAILED', errorMessage: adminNote, responsePayload: payload, resolvedAt: now } });
+    if (changed.count !== 1) throw new BadRequestException('Transfer is no longer PENDING');
+    const item = await this.prisma.gameTransfer.findUnique({ where: { id }, include: { user: { select: { id: true, username: true, phone: true } }, provider: { select: { id: true, name: true, code: true } }, session: { select: { id: true, providerSessionId: true, game: { select: { id: true, name: true, providerGameCode: true } } } } } });
     await this.prisma.adminAuditLog.create({ data: { adminUserId: actor.id, action: 'game.transfer.force_fail', module: 'game-platform', targetId: id, newData: this.safeJson({ note: adminNote, previousStatus: transfer.status, nextStatus: 'FAILED' }) } });
     return { ok: true, transfer: item };
   }
