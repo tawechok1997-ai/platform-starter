@@ -3,6 +3,11 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import {
+  LedgerMutationDto,
+  ResolveMoneyOpsRiskAlertDto,
+  WriteMoneyOpsAuditDto,
+} from './dto/money-ops.dto';
 import { MoneyOpsService } from './money-ops.service';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -20,15 +25,15 @@ export class MoneyOpsController {
 
   @RequirePermission('game.providers.manage')
   @Post('ledger/simulate')
-  simulateLedger(@Body() body: unknown) { return this.moneyOps.simulateLedgerMutation(body as any); }
+  simulateLedger(@Body() body: LedgerMutationDto) { return this.moneyOps.simulateLedgerMutation(body); }
 
   @RequirePermission('game.providers.manage')
   @Post('ledger/mutate')
-  mutateLedger(@Body() body: unknown, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.mutateLedger(user, this.meta(req), body as any); }
+  mutateLedger(@Body() body: LedgerMutationDto, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.mutateLedger(user, this.meta(req), body); }
 
   @RequirePermission('game.providers.manage')
   @Post('audit-events')
-  writeAudit(@Body() body: any, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.writeAudit(user, this.meta(req), body); }
+  writeAudit(@Body() body: WriteMoneyOpsAuditDto, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.writeAudit(user, this.meta(req), body); }
 
   @RequirePermission('game.providers.view')
   @Get('alert-rules')
@@ -40,11 +45,11 @@ export class MoneyOpsController {
 
   @RequirePermission('game.providers.manage')
   @Patch('risk-alerts/:id/resolve')
-  resolveRiskAlert(@Param('id') id: string, @Body() body: any, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.resolveRiskAlert(id, user, this.meta(req), body?.note); }
+  resolveRiskAlert(@Param('id') id: string, @Body() body: ResolveMoneyOpsRiskAlertDto, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.resolveRiskAlert(id, user, this.meta(req), body.note); }
 
   @RequirePermission('game.providers.manage')
   @Patch('risk-alerts/:id/dismiss')
-  dismissRiskAlert(@Param('id') id: string, @Body() body: any, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.dismissRiskAlert(id, user, this.meta(req), body?.note); }
+  dismissRiskAlert(@Param('id') id: string, @Body() body: ResolveMoneyOpsRiskAlertDto, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.dismissRiskAlert(id, user, this.meta(req), body.note); }
 
   @RequirePermission('game.providers.view')
   @Get('provider-simulator/scenarios')
