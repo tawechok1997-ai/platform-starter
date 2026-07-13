@@ -10,7 +10,9 @@ import { MemberSignInDto } from './dto/member-sign-in.dto';
 import { RefreshSessionDto } from './dto/refresh-session.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateMemberProfileDto } from './dto/update-member-profile.dto';
+import { RequestPhoneOtpDto, VerifyPhoneOtpDto } from './dto/phone-otp.dto';
 import { MemberRiskEnforcementService } from './member-risk-enforcement.service';
+import { PhoneOtpService } from './phone-otp.service';
 
 @Controller('member/auth')
 export class AuthController {
@@ -18,6 +20,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly antiBot: AntiBotService,
     private readonly memberRisk: MemberRiskEnforcementService,
+    private readonly phoneOtp: PhoneOtpService,
   ) {}
 
   @Post('register')
@@ -47,6 +50,18 @@ export class AuthController {
   @Post('refresh')
   refresh(@Body() dto: RefreshSessionDto, @Req() req: any) {
     return this.authService.refreshSession(dto, this.meta(req, dto.deviceId));
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Post('phone-otp/request')
+  requestPhoneOtp(@CurrentUser() user: any, @Body() dto: RequestPhoneOtpDto, @Req() req: any) {
+    return this.phoneOtp.request(user.id ?? user.sub, { ipAddress: req.ip, deviceId: dto.deviceId ?? user.deviceId });
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Post('phone-otp/verify')
+  verifyPhoneOtp(@CurrentUser() user: any, @Body() dto: VerifyPhoneOtpDto) {
+    return this.phoneOtp.verify(user.id ?? user.sub, dto.code);
   }
 
   @UseGuards(MemberAuthGuard)
