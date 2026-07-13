@@ -6,7 +6,7 @@ const PUBLIC_ADMIN_CONTROLLERS = new Set([
   'modules/admin-auth/admin-auth.controller.ts',
   'modules/admin-access/admin-invitation.controller.ts',
 ]);
-const MUTATION_LINE = /@(Post|Put|Patch|Delete)\s*\(/;
+const MUTATION_DECORATOR = /@(Post|Put|Patch|Delete)\s*\(/g;
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -35,35 +35,68 @@ function hasPermissionMetadata(source) {
   return /@RequirePermission\(/.test(source);
 }
 
-function classHasPermission(source) {
-  const classIndex = source.search(/export\s+class\s+/);
+function lineNumber(source, index) {
+  return source.slice(0, index).split('\n').length;
+}
+
+function matchingBrace(source, openIndex) {
+  let depth = 0;
+  for (let index = openIndex; index < source.length; index += 1) {
+    const char = source[index];
+    if (char === '{') depth += 1;
+    else if (char === '}') {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return source.length - 1;
+}
+
+function adminControllerClassBlocks(source) {
+  const blocks = [];
+  const controllerPattern = /@Controller\(\s*['"`]admin(?:\/[^'"`]*)?['"`]\s*\)/g;
+  let match;
+  while ((match = controllerPattern.exec(source))) {
+    const classIndex = source.indexOf('export class ', match.index);
+    if (classIndex < 0) continue;
+    const openBrace = source.indexOf('{', classIndex);
+    if (openBrace < 0) continue;
+    const closeBrace = matchingBrace(source, openBrace);
+    const decoratorStart = source.lastIndexOf('\n@', match.index);
+    const start = decoratorStart >= 0 ? decoratorStart + 1 : match.index;
+    blocks.push({ source: source.slice(start, closeBrace + 1), offset: start });
+    controllerPattern.lastIndex = closeBrace + 1;
+  }
+  return blocks;
+}
+
+function classHasPermission(classSource) {
+  const classIndex = classSource.search(/export\s+class\s+/);
   if (classIndex < 0) return false;
-  const controllerIndex = source.lastIndexOf('@Controller', classIndex);
-  if (controllerIndex < 0) return false;
-  return /@RequirePermission\(/.test(source.slice(controllerIndex, classIndex));
+  return /@RequirePermission\(/.test(classSource.slice(0, classIndex));
 }
 
 function mutationHandlersMissingPermission(source) {
-  if (classHasPermission(source)) return [];
-
-  const lines = source.split('\n');
   const missing = [];
 
-  for (let index = 0; index < lines.length; index += 1) {
-    const mutation = lines[index].match(MUTATION_LINE);
-    if (!mutation) continue;
+  for (const block of adminControllerClassBlocks(source)) {
+    if (classHasPermission(block.source)) continue;
 
-    // Handler decorators are grouped directly above the route decorator and are
-    // separated from the previous method by a blank line. Read that complete
-    // block, including the current @Post/@Put/@Patch/@Delete line. The previous
-    // implementation searched from a character offset that could match the
-    // current route decorator itself, producing an empty block and false positives.
-    let blockStart = index;
-    while (blockStart > 0 && lines[blockStart - 1].trim() !== '') blockStart -= 1;
-    const decoratorBlock = lines.slice(blockStart, index + 1).join('\n');
+    const lines = block.source.split('\n');
+    for (let index = 0; index < lines.length; index += 1) {
+      const mutation = lines[index].match(/@(Post|Put|Patch|Delete)\s*\(/);
+      if (!mutation) continue;
 
-    if (!/@RequirePermission\(/.test(decoratorBlock)) {
-      missing.push({ method: mutation[1].toUpperCase(), line: index + 1 });
+      let start = index;
+      while (start > 0 && /^\s*@/.test(lines[start - 1])) start -= 1;
+      const decoratorBlock = lines.slice(start, index + 1).join('\n');
+      if (!/@RequirePermission\(/.test(decoratorBlock)) {
+        const localOffset = lines.slice(0, index).join('\n').length + (index > 0 ? 1 : 0);
+        missing.push({
+          method: mutation[1].toUpperCase(),
+          line: lineNumber(source, block.offset + localOffset),
+        });
+      }
     }
   }
 
