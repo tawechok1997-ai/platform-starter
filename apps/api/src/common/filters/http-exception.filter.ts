@@ -1,4 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import { resolveApiErrorCode } from '../errors/error-code-resolver';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -11,6 +12,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
     const payload = exception instanceof HttpException ? exception.getResponse() : null;
     const message = this.resolveMessage(payload, exception);
+    const safePayload = this.safePayload(payload);
+    const code = typeof safePayload.code === 'string' ? safePayload.code : resolveApiErrorCode(message);
 
     if (status >= 500) {
       console.error(JSON.stringify({
@@ -20,12 +23,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
         method: request?.method,
         path: request?.originalUrl ?? request?.url,
         statusCode: status,
+        code: code ?? null,
         message,
       }));
     }
 
     response.status(status).json({
-      ...this.safePayload(payload),
+      ...safePayload,
+      ...(code ? { code } : {}),
       statusCode: status,
       message,
       error: status >= 500 ? 'Internal Server Error' : this.resolveError(payload),
