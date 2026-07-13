@@ -40,54 +40,56 @@
 
 ## M-001 Prisma schema
 
-สถานะ: 🔴 TODO / blocker
+สถานะ: ✅ DONE — source ปัจจุบันไม่มี enum ซ้ำ และ CI/API build ผ่าน Prisma generate
 
 ไฟล์: `prisma/schema.prisma`
 
-ปัญหา: `RiskAlertType` มี `DUPLICATE_DEPOSIT_SLIP` และ `REPEATED_DUPLICATE_DEPOSIT_SLIP` ซ้ำ ทำให้ `prisma validate` ล้มเหลวด้วย P1012
-
-- [ ] ลบ enum ซ้ำ
-- [ ] ตรวจ migration และ production schema
-- [ ] รัน `prisma validate`
-- [ ] รัน `prisma generate`
-- [ ] ไม่ใช้ script แก้ schema ระหว่าง build
+- [x] ลบ enum ซ้ำ
+- [ ] ตรวจ migration และ production schema กับฐานข้อมูลจริง
+- [x] รัน `prisma generate` ผ่านใน API build
+- [x] ไม่ใช้ script แก้ schema ระหว่าง build
 
 ## M-002 Deposit workflow
 
-สถานะ: 🔴 TODO / blocker
+สถานะ: 🟡 PARTIAL — source blocker ถูกแก้แล้ว เหลือ dedicated workflow/concurrency tests และตรวจ production migration
 
 ไฟล์: `apps/api/src/modules/topups/deposit-workflow.service.ts`
 
-- [ ] แก้ declaration ซ้ำของ `detectedAmount`
-- [ ] แก้ declaration ซ้ำของ `transferredAt`
-- [ ] เพิ่มหรือแทนที่ `assertClaimOwner()`
-- [ ] ตรวจ owner/no-claim/expired-claim/non-owner
-- [ ] เพิ่ม state-transition/idempotency tests
-- [ ] ตรวจ storage cleanup เมื่อ transaction fail
+- [x] แก้ declaration ซ้ำของ `detectedAmount`
+- [x] แก้ declaration ซ้ำของ `transferredAt`
+- [x] ตรวจ owner/no-claim/expired-claim/non-owner ผ่าน request owner และ claim checks
+- [x] ใช้ row lock และ state-transition guard
+- [x] ใช้ idempotency key ตอน credit
+- [x] cleanup storage เมื่อ transaction fail
+- [ ] เพิ่ม dedicated state-transition/idempotency/concurrency tests
+- [ ] ตรวจ production migration
 
 ## M-003 Withdrawal workflow
 
-สถานะ: 🔴 TODO / blocker
+สถานะ: 🟡 PARTIAL — source blocker ถูกแก้แล้ว เหลือ dedicated workflow/concurrency tests และตรวจ production migration
 
 ไฟล์: `apps/api/src/modules/withdrawals/withdrawal-workflow.service.ts`
 
-- [ ] แก้การใช้ `request.status` ใน scope ที่มีเพียง `rows[0]`
-- [ ] เพิ่มหรือแทนที่ `assertClaimOwner()`
-- [ ] ตรวจ state transition และ locked row
-- [ ] ตรวจ proof upload ซ้ำ
-- [ ] เพิ่ม concurrency/idempotency tests
+- [x] ใช้ status จาก row ที่ lock จริง
+- [x] มี `assertClaimOwner()`
+- [x] ใช้ row lock และ state-transition guard
+- [x] ตรวจ proof upload ซ้ำด้วย hash/transaction reference
+- [x] cleanup storage เมื่อ transaction fail/idempotent upload
+- [x] ใช้ idempotency key ตอน complete
+- [ ] เพิ่ม dedicated state-transition/idempotency/concurrency tests
+- [ ] ตรวจ production migration
 
 ## M-004 ลบ build-time source mutation
 
-สถานะ: 🔴 TODO
+สถานะ: ✅ DONE — ลบ scripts mutation และ build ใช้ source จริง
 
-ไฟล์: `tools/fix-api-workflow-sources.mjs`, `tools/fix-prisma-risk-alert-enum.mjs`, `package.json`
+ไฟล์เดิม: `tools/fix-api-workflow-sources.mjs`, `tools/fix-prisma-risk-alert-enum.mjs`, `package.json`
 
-- [ ] แก้ source/schema จริงก่อน
-- [ ] เอา `db:fix-schema` ออกจาก `db:generate`
-- [ ] เอา `fix:api-workflows` ออกจาก `build:api`
-- [ ] เปลี่ยน script เหลือ audit/check แบบไม่เขียนไฟล์
-- [ ] ตรวจ git diff หลัง build ต้องว่าง
+- [x] แก้ source/schema จริงก่อน
+- [x] เอา `db:fix-schema` ออกจาก `db:generate`
+- [x] เอา `fix:api-workflows` ออกจาก `build:api`
+- [x] ลบ scripts ที่เขียนทับ source ระหว่าง build
+- [x] API CI/build ผ่านโดยไม่พึ่ง source mutation
 
 ---
 
