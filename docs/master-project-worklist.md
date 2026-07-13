@@ -237,7 +237,7 @@
 
 สถานะ: 🟡 PARTIAL — มี route/service/controller
 
-- [ ] Group by date/deep link
+- [x] Group by date/deep link (API คืน `groups` ตามวันและ `href` สำหรับ deep link)
 - [ ] Mark one/all as read backend verification
 - [ ] Archive/delete/optimistic rollback
 - [ ] Notification preferences route
