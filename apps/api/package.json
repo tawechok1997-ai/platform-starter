@@ -5,6 +5,7 @@
     "dev": "nest start --watch",
     "prebuild": "prisma generate --schema ../../prisma/schema.prisma",
     "build": "nest build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "start:prod": "prisma generate --schema ../../prisma/schema.prisma && node dist/main.js",
     "test": "jest",
     "test:db:finance": "jest src/modules/finance/finance-concurrency.db.spec.ts --runInBand",
