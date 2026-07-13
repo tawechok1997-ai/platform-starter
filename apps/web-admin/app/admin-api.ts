@@ -1,3 +1,5 @@
+let inMemoryAccessToken = '';
+
 type ApiOptions = RequestInit & { skipAuth?: boolean };
 
 function proxiedPath(path: string) {
@@ -6,7 +8,7 @@ function proxiedPath(path: string) {
 }
 
 export async function adminApiFetch(path: string, options: ApiOptions = {}) {
-  const token = window.localStorage.getItem('admin_access_token');
+  const token = inMemoryAccessToken || window.localStorage.getItem('admin_access_token');
   const headers = new Headers(options.headers ?? {});
   if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
   if (!headers.has('Cache-Control')) headers.set('Cache-Control', 'no-store');
@@ -67,12 +69,18 @@ export async function refreshAdminToken() {
   });
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.accessToken) return '';
+  setAdminAccessToken(data.accessToken);
   window.localStorage.setItem('admin_access_token', data.accessToken);
   if (data.refreshToken) window.localStorage.setItem('admin_refresh_token', data.refreshToken);
   return data.accessToken as string;
 }
 
+export function setAdminAccessToken(token: string) {
+  inMemoryAccessToken = String(token ?? '');
+}
+
 export function clearAdminSession() {
+  inMemoryAccessToken = '';
   window.localStorage.removeItem('admin_access_token');
   window.localStorage.removeItem('admin_refresh_token');
 }
