@@ -51,6 +51,12 @@ jobs:
       - name: Validate shell scripts
         run: bash -n scripts/*.sh
 
+      - name: Audit admin API permissions
+        run: pnpm audit:admin-permissions
+
+      - name: Audit admin UI permissions
+        run: pnpm audit:admin-ui-permissions
+
       - name: Validate Prisma schema
         run: pnpm prisma validate
 
