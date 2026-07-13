@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { AntiBotWidget } from '../anti-bot-widget';
-import { setAdminAccessToken } from '../admin-api';
+import { setAdminAccessToken } from '../../admin-api';
 
 const LOGIN_TIMEOUT_MS = 15000;
 
