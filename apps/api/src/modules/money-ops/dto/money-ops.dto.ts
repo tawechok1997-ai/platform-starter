@@ -1,4 +1,28 @@
-import { IsDefined, IsIn, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsDefined, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+
+export class MoneyOpsLedgerQueryDto {
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  referenceType?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  referenceId?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  take?: number;
+}
 
 export class LedgerMutationDto {
   @IsUUID()
