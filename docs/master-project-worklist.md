@@ -99,7 +99,7 @@
 
 ## M-005 Admin owner/account protection
 
-สถานะ: 🟡 PARTIAL — owner protection, status lifecycle, session revoke, login history และ recovery status มีแล้ว; เหลือบังคับ reason ให้ role lifecycle ทุก action และ production verification
+สถานะ: 🟡 PARTIAL — owner protection, status lifecycle, ownership transfer, session revoke, login history และ recovery status มีแล้ว; เหลือ production verification
 
 - [x] ป้องกัน suspend/downgrade/remove owner คนสุดท้าย (protected owner role/account ถูกบล็อก และ ownership transfer เป็น transaction)
 - [x] Ownership transfer flow
@@ -107,7 +107,7 @@
 - [x] Audit ownership transfer
 - [x] Owner lockout recovery safeguards/status endpoint (target ต้องเปิด 2FA ก่อน transfer และ owner ตรวจ readiness ได้)
 - [x] Admin suspend/lock/unlock สำหรับบัญชี non-protected ผ่าน lifecycle endpoint
-- [ ] เหตุผล/หมายเหตุทุก lifecycle action
+- [x] เหตุผล/หมายเหตุทุก lifecycle action (status/role/delegation/session/ownership transfer บังคับ reason และ audit)
 - [x] Revoke session หลัง suspend/lock ใน transaction เดียวกัน
 - [x] Account status timeline (อ่านจาก AdminAuditLog ใน security overview)
 - [x] Per-account session management
