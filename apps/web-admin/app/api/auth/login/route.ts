@@ -19,9 +19,12 @@ export async function POST(request: NextRequest) {
     });
 
     const payload = await response.json().catch(() => null);
+    const headers = new Headers({ 'cache-control': 'no-store' });
+    const setCookie = response.headers.get('set-cookie');
+    if (setCookie) headers.set('set-cookie', setCookie);
     return NextResponse.json(payload ?? { message: 'Authentication service returned an invalid response' }, {
       status: response.status,
-      headers: { 'cache-control': 'no-store' },
+      headers,
     });
   } catch {
     return NextResponse.json(
