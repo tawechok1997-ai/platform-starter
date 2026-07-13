@@ -524,8 +524,12 @@
 
 ## R-005 ลด any/เพิ่ม DTO
 
+หลักฐานล่าสุด 2026-07-13:
+- เพิ่ม `apps/api/src/common/actors.ts` เป็น shared `AdminActor`/`MemberActor` type และย้าย service ที่ประกาศ actor type ซ้ำใน game-platform, money-ops และ settings มาใช้ type กลาง
+- รัน `pnpm build:api` ผ่านหลัง refactor actor types
+
 - [ ] DTO สำหรับทุก admin/member body
-- [ ] AdminActor/MemberActor
+- [x] AdminActor/MemberActor
 - [ ] ลบ `as any` ที่กลบ enum/status
 - [ ] เปิด strict checks เพิ่ม
 - [ ] CI ห้าม any เพิ่ม
@@ -534,10 +538,11 @@
 
 หลักฐานล่าสุด 2026-07-13:
 - ตรวจด้วย `rg` แล้วพบว่า admin pages ใช้ `apps/web-admin/app/(admin)/_components/admin-ui.tsx`; ไม่พบ import ไปที่ `apps/web-admin/app/components/admin-ui.tsx` และไฟล์ CSS คู่กันว่าง 0 bytes จึงลบไฟล์ legacy ที่ไม่ถูกใช้งาน
-- รัน `pnpm --filter @platform/web-admin build` ผ่านหลังลบไฟล์ legacy UI
+- ตรวจ `packages/ui` แล้วพบว่าไม่มี app ใด import `@platform/ui` และ package มีเพียง empty export จึงลบ package เพื่อลด duplicate design-system source
+- รัน `pnpm --filter @platform/web-admin build` และ `pnpm --filter @platform/web-member build` ผ่านหลังลบ unused UI package
 
 - [x] ตรวจ/ลบ `apps/web-admin/app/components/admin-ui.tsx` หากไม่ใช้
-- [ ] ตัดสินใจใช้หรือลบ `packages/ui`
+- [x] ตัดสินใจใช้หรือลบ `packages/ui`
 - [ ] รวม design tokens/responsive rules
 - [ ] ลด CSS mobile/desktop ที่ซ้ำ
 - [ ] Visual regression

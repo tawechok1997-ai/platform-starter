@@ -1,9 +1,9 @@
+import type { AdminActor } from '../../common/actors';
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RiskAlertSeverity, RiskAlertType, WalletLedgerDirection } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
 
-type AdminActor = { id?: string };
 type RequestMeta = { ipAddress?: string; userAgent?: string };
 type LedgerDryRunInput = { userId?: string; amount?: unknown; direction?: unknown; referenceType?: unknown; referenceId?: unknown; note?: unknown; idempotencyKey?: unknown };
 type AlertRule = { code: string; type: RiskAlertType; title: string; severity: RiskAlertSeverity; description: string; queryHint: string };

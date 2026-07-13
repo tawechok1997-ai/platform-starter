@@ -1,3 +1,4 @@
+import type { AdminActor, MemberActor } from '../../common/actors';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
@@ -14,8 +15,6 @@ import { ProviderAdapterRegistry } from './adapters/provider-adapter.registry';
 
 const DATA_MODELS = ['GameProvider', 'GameProviderEndpoint', 'GameProviderCredential', 'Game', 'GameMedia', 'GameSession', 'GameTransfer', 'ProviderWalletSnapshot', 'WebhookLog'] as const;
 const ADAPTER_METHODS = ['healthCheck', 'launchGame', 'getBalance', 'transferIn', 'transferOut', 'syncGames', 'getBetHistory', 'validateWebhook', 'parseWebhook'] as const;
-type AdminActor = { id: string };
-type MemberActor = { id: string };
 type RequestMeta = { ipAddress?: string; userAgent?: string };
 
 @Injectable()

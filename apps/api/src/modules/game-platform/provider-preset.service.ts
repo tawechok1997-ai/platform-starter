@@ -1,10 +1,10 @@
+import type { AdminActor } from '../../common/actors';
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import { createCipheriv, createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
 
-type AdminActor = { id: string };
 type RequestMeta = { ipAddress?: string; userAgent?: string };
 type EndpointOverrideInput = { type?: string; url?: string };
 type ApplyPresetInput = {

@@ -1,4 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import type { AdminActor } from '../../common/actors';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -11,7 +12,6 @@ import {
 } from './settings.constants';
 
 export type RequestMeta = { ipAddress?: string; userAgent?: string };
-export type AdminActor = { id: string; permissions?: string[] };
 
 @Injectable()
 export class SettingsService {
