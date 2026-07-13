@@ -50,4 +50,27 @@ test.describe('admin security boundaries', () => {
     }
   });
 
+  test('read-only admin does not receive mutation controls when credentials are configured', async ({ page }) => {
+    const username = process.env.ADMIN_READONLY_USERNAME;
+    const secret = process.env.ADMIN_READONLY_SECRET;
+    test.skip(!adminWebUrl || !username || !secret, 'Set ADMIN_WEB_URL, ADMIN_READONLY_USERNAME and ADMIN_READONLY_SECRET to run read-only UI smoke test');
+
+    const response = await page.request.post(`${adminWebUrl}/api/auth/login`, {
+      data: { username, secret, captchaToken: process.env.ADMIN_READONLY_CAPTCHA_TOKEN, deviceId: 'playwright-readonly-smoke' },
+    });
+    expect(response.status()).toBeLessThan(500);
+    const payload = await response.json().catch(() => null);
+    if (response.status() === 400 && payload?.code === 'CAPTCHA_REQUIRED') return;
+    if (payload?.requiresTwoFactor) return;
+    expect(response.ok()).toBeTruthy();
+
+    await page.goto(`${adminWebUrl}/access`, { waitUntil: 'domcontentloaded' });
+    expect(page.url()).toContain('/access');
+    await expect(page.getByText('ดูบัญชีผู้ดูแลแบบอ่านอย่างเดียว')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add role' })).toHaveCount(0);
+
+    await page.goto(`${adminWebUrl}/admin-accounts`, { waitUntil: 'domcontentloaded' });
+    expect(page.url()).toContain('/admin-accounts');
+    await expect(page.getByRole('button', { name: /เปลี่ยนสถานะ|Suspend|Lock|Unlock/i })).toHaveCount(0);
+  });
 });
