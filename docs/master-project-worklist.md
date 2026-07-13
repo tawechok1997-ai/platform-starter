@@ -607,120 +607,6 @@ Branch อ้างอิง: **`main`**
 
 **หลักฐานปิดงาน:** design system ใช้จริงทั้ง Admin/Member และ visual/accessibility regressions ผ่าน
 
-### R-013A UX/UI tooling standard ที่สอดคล้องกับโปรเจกต์จริง
-
-สถานะ: 🟡 PARTIAL
-
-#### UX-TOOL-001 Existing frontend tooling และ debt inventory
-
-- [x] ใช้ Next.js 14, React 18 และ TypeScript ใน Admin/Member
-- [x] มี custom Admin/Member UI primitives
-- [x] มี CSS Custom Properties, responsive CSS, CSS animation และ transitions
-- [x] มี `prefers-reduced-motion` ทั้ง Admin และ Member
-- [x] มี shared `packages/api-client`
-- [x] มี Playwright smoke และ visual regression commands
-- [x] มี `qrcode` สำหรับ Admin security/2FA flow
-- [ ] inventory custom UI components ทั้งหมดและระบุ owner
-- [ ] inventory inline-style debt โดยเฉพาะ KYC, finance, settings, risk และ reports
-- [ ] inventory selector ที่อิง substring ของ inline style เช่น `[style*="..."]`
-- [ ] กำหนดเกณฑ์ว่า style ใดอยู่ global CSS, component CSS หรือ shared token
-- [ ] ยืนยันว่าไม่ใช้ Tailwind, shadcn, Radix หรือ UI framework อื่นโดยไม่มี ADR/การอนุมัติ
-
-#### UX-TOOL-002 Form และ validation tooling
-
-- [ ] ประเมินและเพิ่ม `react-hook-form`
-- [ ] ประเมินและเพิ่ม `zod` สำหรับ frontend schema
-- [ ] สร้าง shared field/error/help/validation primitives
-- [ ] ย้าย Login/Register forms
-- [ ] ย้าย Deposit/Withdrawal forms
-- [ ] ย้าย Profile/Security forms
-- [ ] ย้าย Member KYC upload/submit form
-- [ ] ย้าย Admin Settings/Watchlist/KYC review forms
-- [ ] ทำ shared server-error mapping โดยใช้ stable error code
-- [ ] ทำ focus-first-error, dirty-state และ unsaved-change pattern กลาง
-- [ ] เพิ่ม form-level component tests และ browser regression
-
-#### UX-TOOL-003 Server-state tooling
-
-- [ ] ประเมินและเพิ่ม `@tanstack/react-query`
-- [ ] สร้าง QueryClient และ provider กลางแยก Admin/Member ตาม auth boundary
-- [ ] กำหนด query-key factory convention
-- [ ] กำหนด stale time, retry, cancellation และ invalidation policy
-- [ ] ย้าย KYC Admin/Member ออกจาก `useEffect + useState + fetch` orchestration
-- [ ] ย้าย Notifications และ preference optimistic update
-- [ ] ย้าย Support polling/reconnect flow
-- [ ] ย้าย Admin finance/risk/KYC/report queues
-- [ ] เพิ่ม optimistic rollback และ version-conflict recovery
-- [ ] เพิ่ม global query error boundary และ session-expiry handling
-- [ ] เพิ่ม regression สำหรับ retry, abort, offline และ stale data
-
-#### UX-TOOL-004 Motion tooling และ professional interaction system
-
-- [x] มี CSS animation/transition foundation
-- [x] มี reduced-motion CSS
-- [ ] สร้าง motion tokens กลางสำหรับ duration, easing, distance และ z-index
-- [ ] เปลี่ยน selector animation ที่อิง inline-style substring เป็น semantic classes
-- [ ] จำกัด pulse animation เฉพาะ active incident/high-risk/live status
-- [ ] ประเมินและเพิ่ม `motion` สำหรับ React-level enter/exit orchestration
-- [ ] สร้าง `MotionModal`, `MotionDrawer`, `MotionToast`, `MotionList` และ `MotionStep`
-- [ ] ใช้ CSS สำหรับ hover/focus/press/skeleton ต่อไป
-- [ ] ใช้ Motion สำหรับ modal, toast, list enter/exit, KYC steps และ finance steps
-- [ ] ทำ Admin queue/detail-panel transition โดยไม่ทำให้ layout shift
-- [ ] ทำ Member game rail/carousel interaction โดยรองรับ swipe และ reduced motion
-- [ ] เพิ่ม reduced-motion Playwright regression
-- [ ] ตรวจ focus หลัง modal/drawer transition
-- [ ] ตรวจ animation performance และ layout shift บน mobile/iPhone viewport
-- [ ] ห้ามเพิ่ม GSAP/Rive/Lottie จนกว่าจะมี use case, asset pipeline และ bundle review ที่ชัด
-
-#### UX-TOOL-005 Accessibility tooling
-
-- [ ] เพิ่ม `@axe-core/playwright`
-- [ ] เพิ่ม JSX accessibility lint rules
-- [ ] ตรวจ Login/Register
-- [ ] ตรวจ Deposit/Withdrawal
-- [ ] ตรวจ Profile/Security และ session controls
-- [ ] ตรวจ Member/Admin KYC
-- [ ] ตรวจ Admin queue/table/detail flows
-- [ ] ตรวจ modal/drawer focus trap, escape และ focus restore
-- [ ] ตรวจ keyboard navigation, aria-live และ field error association
-- [ ] ตรวจ contrast, zoom, text reflow และ reduced motion
-- [ ] fail CI เมื่อพบ critical accessibility violation
-
-#### UX-TOOL-006 Icon standard
-
-- [ ] ประเมินและเพิ่ม `lucide-react` เป็น icon library เดียว
-- [ ] สร้าง shared icon wrapper
-- [ ] กำหนดขนาด 16/20/24 และ stroke width มาตรฐาน
-- [ ] แทน emoji/text icon ที่ใช้เป็น control ใน Admin
-- [ ] แทน emoji/text icon ที่ใช้เป็น control ใน Member
-- [ ] ห้ามผสม icon library หลายชุดโดยไม่มีเหตุผล
-- [ ] เพิ่ม accessible name ให้ icon-only button ทุกตัว
-
-#### UX-TOOL-007 Admin data tooling
-
-- [ ] ประเมินและเพิ่ม `@tanstack/react-table`
-- [ ] สร้าง `AdminDataTable` กลาง
-- [ ] รองรับ sorting, filtering, pagination และ URL state
-- [ ] รองรับ row selection, bulk action และ sticky action bar
-- [ ] รองรับ column visibility และ column priority
-- [ ] มี loading, empty, error, partial และ stale states
-- [ ] ทำ mobile table→card fallback
-- [ ] ใช้กับ KYC, Risk, Deposit, Withdrawal, Members, Reports, Activity และ Support
-- [ ] เพิ่ม seeded data correctness และ visual regression
-
-#### UX-TOOL-008 Visual QA และ component evidence
-
-- [x] มี Playwright smoke/visual command ที่ root
-- [ ] เพิ่ม authenticated visual fixtures สำหรับ Admin/Member
-- [ ] เก็บ screenshot, trace, console และ network artifacts ใน CI
-- [ ] เพิ่ม six-viewport matrix: 375×812, 390×844, 430×932, 768×1024, 1024×768, 1440×900
-- [ ] เพิ่ม tests สำหรับ loading/empty/error/success/permission-denied/session-expired states
-- [ ] เพิ่ม tests สำหรับ reduced motion และ keyboard-only flow
-- [ ] เพิ่ม component/unit tests ให้ shared primitives ก่อนพิจารณา Storybook
-- [ ] พิจารณา Storybook หลัง primitives มี owner และ API นิ่งแล้วเท่านั้น
-
-**หลักฐานปิดงาน:** dependency ที่เพิ่มทุกตัวมี use case, migration plan, bundle/performance evidence และ regression coverage; ไม่มีการเพิ่ม library เพียงเพื่อแทน custom codeโดยไม่แก้ปัญหาจริง
-
 ### R-014 Observability, documentation และ cleanup
 
 สถานะ: 🔴 TODO
@@ -752,7 +638,7 @@ Branch อ้างอิง: **`main`**
 6. R-002 Dependency rules และ boundary enforcement
 7. R-007 ถึง R-011 ทำทีละ backend domain: finance → auth/admin → KYC/watchlist → support/notifications → CMS/reports
 8. R-012 Frontend feature/page decomposition ตาม domain ที่ backend contract นิ่งแล้ว
-9. R-013 UI system และ R-013A UX/UI tooling standard พร้อม visual/accessibility regression
+9. R-013 UI system และ visual/accessibility regression
 10. R-014 Observability, docs และ dead-code cleanup
 
 > ห้ามทำ structural refactor หลาย domain ใหญ่ใน commit เดียว และห้ามย้าย business logic โดยไม่มี regression test ก่อนหน้า
