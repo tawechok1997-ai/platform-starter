@@ -164,6 +164,15 @@ describe('AdminAccessService privilege boundaries', () => {
           createdAt: new Date(),
         }]),
       },
+      adminAuditLog: {
+        findMany: jest.fn().mockResolvedValue([{
+          id: 'audit-1',
+          adminUserId: 'actor',
+          oldData: { status: 'ACTIVE' },
+          newData: { status: 'SUSPENDED', reason: 'security review' },
+          createdAt: new Date(),
+        }]),
+      },
     } as any;
 
     const service = new AdminAccessService(prisma, undefined as any);
@@ -172,6 +181,8 @@ describe('AdminAccessService privilege boundaries', () => {
     expect(result.admin.username).toBe('operator');
     expect(result.sessions[0].active).toBe(true);
     expect(result.loginHistory).toHaveLength(1);
+    expect(result.statusTimeline[0]).toEqual(expect.objectContaining({ fromStatus: 'ACTIVE', toStatus: 'SUSPENDED', reason: 'security review' }));
+    expect(prisma.adminAuditLog.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { targetId: 'admin-1', module: 'admin-access', action: 'CHANGE_ADMIN_STATUS' } }));
     expect(prisma.authSession.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: { adminUserId: 'admin-1', type: 'ADMIN' },
       take: 50,
