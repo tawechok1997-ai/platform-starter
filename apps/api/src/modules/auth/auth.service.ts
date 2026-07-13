@@ -159,7 +159,7 @@ export class AuthService {
     await this.prisma.$transaction(async (tx) => {
       const consumed = await tx.verificationToken.updateMany({ where: { id: token.id, type: 'PASSWORD_RESET', usedAt: null, expiresAt: { gt: now } }, data: { usedAt: now } });
       if (consumed.count !== 1) throw new BadRequestException('Invalid or expired password reset token');
-      await tx.user.update({ where: { id: token.target }, data: { passwordHash, status: 'ACTIVE' } });
+      await tx.user.update({ where: { id: token.target }, data: { passwordHash } });
       await tx.authSession.updateMany({ where: { userId: token.target, type: 'MEMBER', revokedAt: null }, data: { revokedAt: now } });
     });
     return { success: true, revokedSessions: true };
