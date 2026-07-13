@@ -89,6 +89,7 @@ export class AuthService {
     const valid = await argon2.verify(user.passwordHash, rawSecret);
     if (!valid) {
       await this.safeWriteLoginHistory('MEMBER', user.id, false, meta, 'INVALID_SECRET');
+      await this.maybeLockMemberAfterFailures(user.id);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -234,6 +235,27 @@ export class AuthService {
     };
   }
 
+  private async maybeLockMemberAfterFailures(userId: string) {
+    const threshold = this.readPositiveInt('MEMBER_LOCKOUT_FAILURES', 8);
+    const windowMinutes = this.readPositiveInt('MEMBER_LOCKOUT_WINDOW_MINUTES', 15);
+    const recent = await this.prisma.loginHistory.findMany({
+      where: {
+        userId,
+        type: 'MEMBER',
+        createdAt: { gte: new Date(Date.now() - windowMinutes * 60_000) },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: threshold,
+      select: { success: true },
+    });
+    if (recent.length < threshold || recent.some((item) => item.success)) return;
+
+    await this.prisma.user.updateMany({
+      where: { id: userId, status: 'ACTIVE' },
+      data: { status: 'LOCKED' },
+    });
+  }
+
   private async createMemberSession(userId: string, meta: RequestMeta = {}) {
     const rawToken = this.createRefreshToken();
     const refreshTokenHash = await argon2.hash(rawToken);
@@ -259,6 +281,11 @@ export class AuthService {
     const [sessionId, rawToken] = value.split('.');
     if (!sessionId || !rawToken) throw new UnauthorizedException('Invalid refresh token');
     return { sessionId, rawToken };
+  }
+
+  private readPositiveInt(name: string, fallback: number) {
+    const value = Number(this.configService.get<string>(name) ?? process.env[name] ?? fallback);
+    return Number.isInteger(value) && value > 0 ? value : fallback;
   }
 
   private getRefreshTokenTtlMs() {
