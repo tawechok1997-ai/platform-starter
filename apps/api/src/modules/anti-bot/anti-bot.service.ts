@@ -45,9 +45,10 @@ export class AntiBotService {
     return this.sanitize(await this.getStoredConfig());
   }
 
-  async getPublicConfig(route: AntiBotRoute) {
+  async getPublicConfig(route: AntiBotRoute, remoteIp?: string) {
     const config = await this.getStoredConfig();
-    const required = Boolean(this.runtimeEnabled() && config.enabled && (config.routes[route] || config.emergencyMode));
+    const adaptiveRequired = config.adaptiveMode ? await this.isAdaptiveChallengeRequired(route, remoteIp) : false;
+    const required = Boolean(this.runtimeEnabled() && config.enabled && (config.routes[route] || config.emergencyMode || adaptiveRequired));
     return {
       enabled: required,
       provider: required ? config.provider : null,
@@ -174,7 +175,8 @@ export class AntiBotService {
   async assertValid(route: AntiBotRoute, token: string | undefined, remoteIp?: string) {
     if (!this.runtimeEnabled()) return { required: false, success: true };
     const config = await this.getStoredConfig();
-    if (!config.enabled || (!config.routes[route] && !config.emergencyMode)) return { required: false, success: true };
+    const adaptiveRequired = config.adaptiveMode ? await this.isAdaptiveChallengeRequired(route, remoteIp) : false;
+    if (!config.enabled || (!config.routes[route] && !config.emergencyMode && !adaptiveRequired)) return { required: false, success: true };
     if (!token?.trim()) throw new BadRequestException({ code: 'CAPTCHA_REQUIRED', message: 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ' });
     let result: { success: boolean; provider: AntiBotProvider; errorCodes: string[] };
     try {
@@ -194,6 +196,20 @@ export class AntiBotService {
       throw new BadRequestException({ code: 'CAPTCHA_INVALID', message: 'การยืนยันไม่สำเร็จ กรุณาลองใหม่' });
     }
     return { required: true, success: true };
+  }
+
+  private async isAdaptiveChallengeRequired(route: AntiBotRoute, remoteIp?: string) {
+    if (!remoteIp) return false;
+    const type = route === 'ADMIN_LOGIN' ? 'ADMIN' : 'MEMBER';
+    const failedCount = await this.prisma.loginHistory.count({
+      where: {
+        type,
+        success: false,
+        ipAddress: remoteIp,
+        createdAt: { gte: new Date(Date.now() - 15 * 60_000) },
+      },
+    });
+    return failedCount >= 3;
   }
 
   private async auditSecurityEvent(
