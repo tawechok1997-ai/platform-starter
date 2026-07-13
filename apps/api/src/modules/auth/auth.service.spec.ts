@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 jest.mock('argon2', () => ({
@@ -19,9 +19,9 @@ function createPrismaMock() {
   };
 
   const prisma = {
-    user: { findFirst: jest.fn(async () => null) },
+    user: { findFirst: jest.fn(async () => null), updateMany: jest.fn(async () => ({ count: 1 })) },
     memberBankAccount: { findFirst: jest.fn(async () => null) },
-    loginHistory: { create: jest.fn(async () => ({})) },
+    loginHistory: { create: jest.fn(async () => ({})), findMany: jest.fn(async () => []) },
     authSession: {
       create: jest.fn(async ({ data }: any) => ({ id: 'session-1', ...data })),
     },
@@ -115,5 +115,31 @@ describe('AuthService member registration', () => {
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(prisma.authSession.create).not.toHaveBeenCalled();
     expect(prisma.loginHistory.create).not.toHaveBeenCalled();
+  });
+});
+
+
+describe('AuthService progressive lockout', () => {
+  it('locks a member after consecutive failed sign-ins', async () => {
+    const prisma = createPrismaMock();
+    prisma.user.findFirst.mockResolvedValueOnce({
+      id: 'member-1',
+      status: 'ACTIVE',
+      passwordHash: 'stored-hash',
+    } as any);
+    prisma.loginHistory.findMany.mockResolvedValueOnce(
+      Array.from({ length: 8 }, () => ({ success: false })) as any,
+    );
+    const argon2 = await import('argon2');
+    (argon2.verify as jest.Mock).mockResolvedValueOnce(false);
+    const service = createService(prisma);
+
+    await expect(service.signIn({ identifier: 'member01', secret: 'wrong' } as any, { ipAddress: '127.0.0.1' }))
+      .rejects.toBeInstanceOf(UnauthorizedException);
+
+    expect(prisma.user.updateMany).toHaveBeenCalledWith({
+      where: { id: 'member-1', status: 'ACTIVE' },
+      data: { status: 'LOCKED' },
+    });
   });
 });
