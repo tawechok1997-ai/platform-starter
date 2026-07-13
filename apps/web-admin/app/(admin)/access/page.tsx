@@ -90,8 +90,10 @@ export default function AccessOverviewPage() {
     if (!roleId || !role) { setMessage('กรุณาเลือก role ก่อน'); return; }
     if (adminUser.roles.some((item) => item.id === roleId)) { setMessage('Admin คนนี้มี role นี้อยู่แล้ว'); return; }
     if (!window.confirm(`ยืนยันเพิ่ม role ${role.code} ให้ ${adminUser.username}?`)) return;
+    const reason = window.prompt('ระบุเหตุผลในการเพิ่ม role (อย่างน้อย 5 ตัวอักษร)')?.trim() ?? '';
+    if (reason.length < 5) { setMessage('ต้องระบุเหตุผลอย่างน้อย 5 ตัวอักษร'); return; }
     setBusyKey(`${adminUser.id}:assign`);
-    const res = await adminApiFetch(`/admin/access/admin-users/${adminUser.id}/roles`, { method: 'POST', body: JSON.stringify({ roleId }) });
+    const res = await adminApiFetch(`/admin/access/admin-users/${adminUser.id}/roles`, { method: 'POST', body: JSON.stringify({ roleId, reason }) });
     const payload = await res.json().catch(() => null);
     setBusyKey('');
     if (!res.ok) { setMessage(payload?.message ?? 'เพิ่ม role ไม่สำเร็จ'); return; }
@@ -103,8 +105,10 @@ export default function AccessOverviewPage() {
   async function removeRole(adminUser: AdminUser, role: AdminUser['roles'][number]) {
     if (!canManage || adminUser.protected) return;
     if (!window.confirm(`ยืนยันถอด role ${role.code} ออกจาก ${adminUser.username}?`)) return;
+    const reason = window.prompt('ระบุเหตุผลในการถอด role (อย่างน้อย 5 ตัวอักษร)')?.trim() ?? '';
+    if (reason.length < 5) { setMessage('ต้องระบุเหตุผลอย่างน้อย 5 ตัวอักษร'); return; }
     setBusyKey(`${adminUser.id}:${role.id}`);
-    const res = await adminApiFetch(`/admin/access/admin-users/${adminUser.id}/roles/${role.id}`, { method: 'DELETE' });
+    const res = await adminApiFetch(`/admin/access/admin-users/${adminUser.id}/roles/${role.id}`, { method: 'DELETE', body: JSON.stringify({ reason }) });
     const payload = await res.json().catch(() => null);
     setBusyKey('');
     if (!res.ok) { setMessage(payload?.message ?? 'ถอด role ไม่สำเร็จ'); return; }
