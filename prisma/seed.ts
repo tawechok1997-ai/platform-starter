@@ -9,6 +9,7 @@ const permissions = [
   ['users.update', 'Users Update', 'users'],
   ['users.suspend', 'Users Suspend', 'users'],
   ['wallet.view', 'Wallet View', 'wallet'],
+  ['wallet.adjust', 'Wallet Adjust', 'wallet'],
   ['topups.view', 'Top Ups View', 'topups'],
   ['topups.review', 'Top Ups Review', 'topups'],
   ['topups.approve', 'Top Ups Approve', 'topups'],
