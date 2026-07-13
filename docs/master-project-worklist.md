@@ -113,8 +113,10 @@
 
 สถานะ: 🟡 PARTIAL — มี guard/sidebar/route gate และ tests บางส่วน
 
-- [ ] ตรวจทุก admin route/sidebar/widget/export
-- [ ] ตรวจ endpoint ที่ขาด `RequirePermission`
+- [x] ตรวจทุก admin route/sidebar/widget/export รอบ finance routes; withdrawal workflow ถูกเพิ่ม permission guard
+- [ ] ตรวจทุก admin route/sidebar/widget/export ที่เหลือ
+- [x] แก้ endpoint การเงินที่ขาด `RequirePermission` (withdrawal workflow)
+- [ ] ตรวจ endpoint ที่ขาด `RequirePermission` กลุ่มอื่น
 - [ ] เพิ่ม automated route/permission coverage test
 - [ ] ยืนยัน read-only user มองไม่เห็น mutation control
 
