@@ -101,6 +101,10 @@
 
 สถานะ: 🟡 PARTIAL — owner protection, status lifecycle, ownership transfer, session revoke, login history และ recovery status มีแล้ว; เหลือ production verification
 
+หลักฐานล่าสุด 2026-07-13:
+- `pnpm build:api` ผ่านในรอบตรวจ P1 ล่าสุด จึงยืนยัน compile path ของ API ได้
+- Production verification ยังทำไม่ได้จาก environment นี้ เพราะไม่มี credentialed admin session และ Railway API smoke ถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403`
+
 - [x] ป้องกัน suspend/downgrade/remove owner คนสุดท้าย (protected owner role/account ถูกบล็อก และ ownership transfer เป็น transaction)
 - [x] Ownership transfer flow
 - [x] Step-up authentication และ current 2FA confirmation
@@ -117,6 +121,11 @@
 
 สถานะ: 🟡 PARTIAL — API controller audit ผ่านครบ และเพิ่ม optional read-only UI smoke แล้ว; ยังรอ credentialed run เพื่อยืนยันผลจริง
 
+หลักฐานล่าสุด 2026-07-13:
+- `pnpm audit:admin-permissions` ผ่าน: 26 controllers, 24 protected with permission metadata, 2 intentionally public, 0 auth-only/manual-review, 0 unguarded
+- `pnpm build:api` ผ่าน: Prisma generate และ Nest API build สำเร็จ
+- `API_URL=https://platformapi-production-3c91.up.railway.app bash scripts/smoke-api.sh` ยังรัน production smoke ไม่สำเร็จจาก environment นี้ เพราะทุก curl ถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403`
+
 - [x] ตรวจทุก admin route/sidebar/widget/export รอบ finance routes; withdrawal workflow ถูกเพิ่ม permission guard
 - [ ] ตรวจทุก admin route/sidebar/widget/export ที่เหลือ
 - [x] แก้ endpoint การเงินที่ขาด `RequirePermission` (withdrawal workflow)
@@ -131,6 +140,11 @@
 
 สถานะ: 🟡 PARTIAL — trusted proxy, IP/account rate limit, progressive lockout และ suspicious-device audit มีแล้ว เหลือทดสอบ reverse proxy จริง
 
+หลักฐานล่าสุด 2026-07-13:
+- ตรวจ source แล้วพบ `TRUSTED_PROXY_HOPS`, Express `trust proxy`, rate-limit key แยก IP/account และ log IP จาก `req.ip` ใน `apps/api/src/main.ts`
+- `pnpm --filter @platform/api test -- src/modules/auth/auth.service.spec.ts --runInBand` ยังรันไม่ได้ใน environment นี้ เพราะ Jest config ต้องใช้ `ts-node` แต่ dependency ไม่พร้อม (`Cannot find package 'ts-node'`)
+- Reverse-proxy/API smoke กับ Railway ยังถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403` จึงยังยืนยันผ่าน proxy จริงไม่ได้
+
 - [x] กำหนด trusted proxy ตาม environment ด้วย `TRUSTED_PROXY_HOPS`
 - [x] รวม RequestContext เบื้องต้นสำหรับ IP/request ID/user agent
 - [x] ป้องกัน spoofed `x-forwarded-for` ใน admin auth โดยใช้ `req.ip` จาก trusted proxy policy
@@ -142,6 +156,12 @@
 ## M-008 Token/session security
 
 สถานะ: 🟡 PARTIAL — HttpOnly refresh cookie ใช้งานแล้ว และลบ legacy fallback ออกจาก Admin API แล้ว; เหลือ production verification
+
+หลักฐานล่าสุด 2026-07-13:
+- `pnpm audit:admin-token-storage` ผ่าน: ไม่พบ direct admin access token storage นอก `admin-api.ts`
+- `pnpm audit:admin-xss` ผ่าน: ไม่พบ unsafe Admin UI HTML sinks
+- `pnpm build:web-admin` ผ่าน: Next Admin build/typecheck สำเร็จ
+- Production/login-cookie smoke ยังทำไม่ได้จาก environment นี้ เพราะ browser-backed smoke ต้องใช้ Playwright browser และ/หรือ credentialed deployed web URL
 
 - [x] Refresh rotation/reuse revoke มี implementation บางส่วน
 - [x] HttpOnly refresh cookie groundwork ผ่าน admin API และ Next proxy
@@ -166,6 +186,12 @@
 
 สถานะ: 🟡 PARTIAL — core Anti-bot backend, password-reset flow และ adaptive/emergency runtime ทำแล้ว เหลือ production verification
 
+หลักฐานล่าสุด 2026-07-13:
+- ตรวจ source พบ provider `TURNSTILE`/`RECAPTCHA`/`HCAPTCHA`, endpoint admin/public anti-bot, login/register/password-reset integration และ secret encryption ใน `apps/api/src/modules/anti-bot`
+- `pnpm build:api` ผ่านแล้วในรอบตรวจ P1 ล่าสุด
+- `pnpm --filter @platform/api test -- src/modules/anti-bot/anti-bot.service.spec.ts --runInBand` ยังรันไม่ได้ใน environment นี้ เพราะ Jest config ต้องใช้ `ts-node` แต่ dependency ไม่พร้อม (`Cannot find package 'ts-node'`)
+- Production provider/runtime verification ยังทำไม่ได้จาก environment นี้ เพราะ Railway API smoke ถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403`
+
 - [x] Provider selection ครบ (`TURNSTILE`, `RECAPTCHA`, `HCAPTCHA`)
 - [x] Encrypted secret storage (`AES-256-GCM`)
 - [x] Site key/secret validation ก่อน enable
@@ -180,6 +206,12 @@
 ## M-010 Finance/provider verification
 
 สถานะ: 🟡 PARTIAL — transfer/reconciliation/provider safety, credential usage tracking และ test-mode guard มี implementation; เหลือ production migration verification
+
+หลักฐานล่าสุด 2026-07-13:
+- `pnpm audit:finance-workflows` ผ่านครบ 8 checks: deposit/withdraw row lock, claim owner guard, credit/completion idempotency และ storage cleanup
+- `pnpm build:api` ผ่าน: Prisma generate และ Nest API build สำเร็จ
+- `pnpm --filter @platform/api test:db:finance -- --runInBand` ยังรันไม่ได้ใน environment นี้ เพราะ Jest config ต้องใช้ `ts-node` แต่ dependency ไม่พร้อม (`Cannot find package 'ts-node'`)
+- Production migration/provider verification ยังทำไม่ได้จาก environment นี้ เพราะ Railway API smoke ถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403`
 
 - [x] Game transfer reverse/force-fail/retry state safety (state guard, idempotent reversal, failed-only retry)
 - [x] Idempotency key และ WalletLedger ทุก mutation (wallet-synced transfer/reversal ใช้ unique key และ transaction)
