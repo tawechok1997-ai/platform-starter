@@ -26,7 +26,19 @@ const bonusLedger = {
 };
 
 function createService(prisma: any) {
-  return new PromotionsService(prisma);
+  const domain = {
+    createClaim: jest.fn(),
+    markClaimReviewed: jest.fn(),
+    createBonusLedger: jest.fn(),
+    addTurnover: jest.fn().mockResolvedValue({
+      turnover_progress: '300',
+      turnover_required: '300',
+      status: 'TURNOVER_COMPLETED',
+    }),
+    updateLifecycle: jest.fn(),
+    settleBonus: jest.fn(),
+  };
+  return { service: new PromotionsService(prisma, domain as never), domain };
 }
 
 describe('PromotionsService bonus lifecycle', () => {
@@ -38,10 +50,11 @@ describe('PromotionsService bonus lifecycle', () => {
       },
       adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit-1' }) },
     };
-    const service = createService(prisma);
+    const { service, domain } = createService(prisma);
 
     const result = await service.addTurnoverProgress({ id: 'admin-1' }, 'bonus-1', { amount: 50, note: 'turnover check' });
 
+    expect(domain.addTurnover).toHaveBeenCalledWith('bonus-1', 50);
     expect(prisma.riskAlert.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'bonus-1' },
       data: expect.objectContaining({ status: 'RESOLVED' }),
@@ -57,7 +70,7 @@ describe('PromotionsService bonus lifecycle', () => {
       riskAlert: { findFirst: jest.fn().mockResolvedValue(bonusLedger) },
       adminAuditLog: { create: jest.fn() },
     };
-    const service = createService(prisma);
+    const { service } = createService(prisma);
 
     await expect(service.updateBonusLifecycle({ id: 'admin-1' }, 'bonus-1', { action: 'RELEASE' })).rejects.toThrow(BadRequestException);
   });
