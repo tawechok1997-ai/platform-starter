@@ -32,7 +32,7 @@ describe('AdminAccessService privilege boundaries', () => {
     } as any;
 
     const service = new AdminAccessService(prisma);
-    await expect(service.assignRole('actor', 'target', 'target-role')).rejects.toThrow(ForbiddenException);
+    await expect(service.assignRole('actor', 'target', 'target-role', 'role coverage')).rejects.toThrow(ForbiddenException);
     expect(prisma.adminUserRole.upsert).not.toHaveBeenCalled();
   });
 
@@ -52,7 +52,7 @@ describe('AdminAccessService privilege boundaries', () => {
     } as any;
 
     const service = new AdminAccessService(prisma);
-    await expect(service.assignRole('actor', 'target', 'owner-role')).rejects.toThrow(ForbiddenException);
+    await expect(service.assignRole('actor', 'target', 'owner-role', 'protected role')).rejects.toThrow(ForbiddenException);
     expect(prisma.adminUserRole.upsert).not.toHaveBeenCalled();
   });
 
@@ -70,7 +70,7 @@ describe('AdminAccessService privilege boundaries', () => {
     } as any;
 
     const service = new AdminAccessService(prisma);
-    await expect(service.removeRole('actor', 'owner', 'owner-role')).rejects.toThrow(ForbiddenException);
+    await expect(service.removeRole('actor', 'owner', 'owner-role', 'protected role')).rejects.toThrow(ForbiddenException);
     expect(prisma.adminUserRole.delete).not.toHaveBeenCalled();
   });
 
