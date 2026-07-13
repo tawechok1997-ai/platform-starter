@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, TooManyRequestsException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 import { PrismaService } from '../../database/prisma.service';
@@ -157,7 +157,7 @@ export class PhoneOtpService {
 
     if (outcome.kind === 'verified') return { success: true, phoneVerified: true };
     if (outcome.kind === 'expired') throw new BadRequestException('OTP หมดอายุแล้ว');
-    if (outcome.kind === 'locked') throw new TooManyRequestsException('OTP ถูกล็อกเนื่องจากลองผิดเกินกำหนด');
+    if (outcome.kind === 'locked') throw this.tooManyRequests('OTP ถูกล็อกเนื่องจากลองผิดเกินกำหนด');
     if (outcome.kind === 'invalid') throw new BadRequestException('OTP ไม่ถูกต้อง');
     if (outcome.kind === 'phone_changed') throw new ConflictException('เบอร์โทรมีการเปลี่ยนแปลง กรุณาขอ OTP ใหม่');
     if (outcome.kind === 'raced') throw new ConflictException('OTP ถูกใช้โดยคำขออื่นแล้ว');
@@ -179,9 +179,13 @@ export class PhoneOtpService {
       WHERE "created_at" >= ${since}
     `);
     const counts = rows[0] ?? { phone_count: 0n, ip_count: 0n, device_count: 0n };
-    if (Number(counts.phone_count) >= phoneLimit) throw new TooManyRequestsException('ขอ OTP สำหรับเบอร์นี้ถี่เกินไป');
-    if (ipHash && Number(counts.ip_count) >= ipLimit) throw new TooManyRequestsException('ขอ OTP จาก IP นี้ถี่เกินไป');
-    if (deviceHash && Number(counts.device_count) >= deviceLimit) throw new TooManyRequestsException('ขอ OTP จากอุปกรณ์นี้ถี่เกินไป');
+    if (Number(counts.phone_count) >= phoneLimit) throw this.tooManyRequests('ขอ OTP สำหรับเบอร์นี้ถี่เกินไป');
+    if (ipHash && Number(counts.ip_count) >= ipLimit) throw this.tooManyRequests('ขอ OTP จาก IP นี้ถี่เกินไป');
+    if (deviceHash && Number(counts.device_count) >= deviceLimit) throw this.tooManyRequests('ขอ OTP จากอุปกรณ์นี้ถี่เกินไป');
+  }
+
+  private tooManyRequests(message: string) {
+    return new HttpException(message, HttpStatus.TOO_MANY_REQUESTS);
   }
 
   private normalizePhone(value: string) {
