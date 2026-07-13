@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Put, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { NotificationsService } from './notifications.service';
@@ -11,5 +11,20 @@ export class NotificationsController {
   @Get()
   list(@CurrentUser() user: { id: string }) {
     return this.notificationsService.listMemberNotifications(user.id);
+  }
+
+  @Patch(':notificationKey/read')
+  markRead(@CurrentUser() user: { id: string }, @Param('notificationKey') notificationKey: string) {
+    return this.notificationsService.markRead(user.id, notificationKey);
+  }
+
+  @Patch(':notificationKey/archive')
+  archive(@CurrentUser() user: { id: string }, @Param('notificationKey') notificationKey: string) {
+    return this.notificationsService.archive(user.id, notificationKey);
+  }
+
+  @Put('preferences')
+  updatePreferences(@CurrentUser() user: { id: string }, @Body() body: Record<string, boolean>) {
+    return this.notificationsService.updatePreferences(user.id, body);
   }
 }
