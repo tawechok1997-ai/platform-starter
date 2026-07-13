@@ -27,7 +27,6 @@ export default function AdminTwoFactorPage() {
     }
 
     setAdminAccessToken(data.accessToken);
-    if (data.refreshToken) window.localStorage.setItem('admin_refresh_token', data.refreshToken);
     setMessage('ยืนยันสำเร็จ');
   }
 
