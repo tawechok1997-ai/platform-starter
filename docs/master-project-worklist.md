@@ -68,7 +68,7 @@
 
 ## M-003 Withdrawal workflow
 
-สถานะ: 🟡 P0 source/CI ปิดแล้ว — เหลือยืนยัน production migration ตาม runbook
+สถานะ: ✅ DONE — workflow tests, CI migration และ Railway production migration status ผ่านแล้ว
 
 ไฟล์: `apps/api/src/modules/withdrawals/withdrawal-workflow.service.ts`
 
@@ -141,14 +141,14 @@
 
 ## M-008 Token/session security
 
-สถานะ: 🟡 PARTIAL — เพิ่ม HttpOnly refresh cookie groundwork แล้ว แต่ยังรองรับ body/localStorage เพื่อ migration แบบค่อยเป็นค่อยไป
+สถานะ: 🟡 PARTIAL — HttpOnly refresh cookie และ kill switch สำหรับ legacy fallback มีแล้ว เหลือปิด fallback หลัง grace period
 
 - [x] Refresh rotation/reuse revoke มี implementation บางส่วน
 - [x] HttpOnly refresh cookie groundwork ผ่าน admin API และ Next proxy
 - [x] Reports/Exports ย้ายมาใช้ shared API client ไม่อ่าน access token โดยตรง
 - [x] Login/layout/API client ย้าย access token ไป memory และใช้ refresh cookie หลัง reload
 - [x] Legacy refresh token ถูกใช้ migrate ครั้งเดียวแล้วลบหลัง refresh สำเร็จ
-- [ ] ลบ refresh-token body/localStorage read fallback หลัง grace period
+- [x] เพิ่ม `NEXT_PUBLIC_ADMIN_LEGACY_REFRESH_FALLBACK=false` เพื่อปิด legacy body/localStorage read หลัง grace period
 - [x] HttpOnly/Secure/SameSite cookie
 - [x] แยก admin/member cookie
 - [x] CSRF origin check ใน Next Admin proxy สำหรับ mutation + `SameSite=Lax` refresh cookie
