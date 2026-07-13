@@ -164,16 +164,17 @@
 
 ## M-009 Anti-bot
 
-สถานะ: 🟡 PARTIAL — มี module/route/widget
+สถานะ: 🟡 PARTIAL — core Anti-bot backend ทำแล้ว เหลือ adaptive/emergency behavior และ password-reset route
 
-- [ ] Provider selection ครบ
-- [ ] Encrypted secret storage
-- [ ] Site key/secret validation
-- [ ] Sanitized connection test
-- [ ] Enable ต่อ route รวม password reset
-- [ ] Adaptive challenge/emergency mode
-- [ ] Permission view/update/test/override
-- [ ] Audit log ทุก setting change
+- [x] Provider selection ครบ (`TURNSTILE`, `RECAPTCHA`, `HCAPTCHA`)
+- [x] Encrypted secret storage (`AES-256-GCM`)
+- [x] Site key/secret validation ก่อน enable
+- [x] Sanitized connection test และไม่คืน secret
+- [x] Enable ต่อ route ที่มีอยู่ (`ADMIN_LOGIN`, `MEMBER_LOGIN`, `MEMBER_REGISTER`)
+- [ ] เพิ่ม password-reset route และผูก Anti-bot
+- [ ] Adaptive challenge/emergency mode ให้มีผลกับ runtime จริง
+- [x] Permission view/update/test/override
+- [x] Audit log ทุก setting change และ security event
 
 ## M-010 Finance/provider verification
 
