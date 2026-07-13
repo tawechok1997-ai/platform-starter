@@ -132,16 +132,18 @@ export class AdminAccessController {
 
   @RequirePermission('admin.access.manage')
   @Post('admin-users/:adminUserId/roles')
-  async assignRole(@Req() req: any, @Param('adminUserId') adminUserId: string, @Body() body: { roleId?: string }) {
-    const result = await this.service.assignRole(req.user.id, adminUserId, String(body.roleId ?? ''));
+  async assignRole(@Req() req: any, @Param('adminUserId') adminUserId: string, @Body() body: { roleId?: string; reason?: string }) {
+    const result = await this.service.assignRole(req.user.id, adminUserId, String(body.roleId ?? ''), String(body.reason ?? ''));
     await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'ASSIGN_ROLE');
     return result;
   }
 
   @RequirePermission('admin.access.manage')
   @Delete('admin-users/:adminUserId/roles/:roleId')
-  async removeRole(@Req() req: any, @Param('adminUserId') adminUserId: string, @Param('roleId') roleId: string) {
-    const result = await this.service.removeRole(req.user.id, adminUserId, roleId);
+  async removeRole(@Req() req: any, @Param('adminUserId') adminUserId: string, @Param('roleId') roleId: string,
+    @Body() body: { reason?: string },
+  ) {
+    const result = await this.service.removeRole(req.user.id, adminUserId, roleId, String(body.reason ?? ''));
     await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'REMOVE_ROLE');
     return result;
   }
