@@ -1,6 +1,6 @@
 # UX/UI Master Worklist
 
-Updated: 2026-07-13  
+Updated: 2026-07-14  
 Source of truth: current repository state on `main`
 
 This document is the execution-ready source of truth for UX/UI modernization across Member Web, Admin Web, and Public/Auth. It replaces overlapping backlog language with one prioritized worklist. Completed capabilities remain documented below, but only items in the active queues should be picked up as new work.
@@ -352,6 +352,51 @@ A route or surface is complete only when all applicable checks pass:
   - visual regression
 - Evidence:
   - Commit/PR:
+
+### P2-UI-003: UX/UI tooling standard aligned with the current project
+
+- Status: ⏳
+- Scope: `apps/web-admin`, `apps/web-member`, shared frontend packages, and Playwright QA
+- Depends on: P2-UI-001 inventory and stable shared primitive ownership
+- Parallel safe: Partially; dependency installation and provider wiring must be serialized
+- Existing verified foundation:
+  - Next.js 14, React 18, and TypeScript
+  - custom Admin/Member UI primitives
+  - CSS Custom Properties, responsive CSS, animation, transitions, and `prefers-reduced-motion`
+  - shared `packages/api-client`
+  - Playwright smoke and visual commands
+  - `qrcode` for Admin security/2FA
+- Required outcomes:
+  - inventory custom components, inline-style debt, and selectors based on `[style*="..."]`
+  - define ownership for global CSS, component styles, and shared tokens
+  - evaluate and add `react-hook-form` plus `zod` for Login/Register, Finance, Profile/Security, KYC, Settings, Watchlist, and review forms
+  - create shared field, help, error, dirty-state, unsaved-change, and focus-first-error patterns
+  - evaluate and add `@tanstack/react-query` with query-key, stale-time, retry, cancellation, invalidation, optimistic rollback, version-conflict, and session-expiry policies
+  - migrate KYC, Notifications, Support polling, and Admin finance/risk/KYC/report queues away from page-level `useEffect + useState + fetch` orchestration
+  - keep CSS for hover, focus, press, skeleton, and simple drawer transitions
+  - evaluate and add `motion` only for React-level enter/exit, modal, toast, list, step, KYC, Finance, queue/detail, and carousel transitions
+  - create semantic motion classes and remove animation selectors coupled to inline-style substrings
+  - limit pulse animation to active incidents, high-risk alerts, and genuinely live status
+  - do not add GSAP, Rive, or Lottie without a documented use case, asset pipeline, bundle review, and ADR
+  - evaluate and add `@axe-core/playwright` plus JSX accessibility lint rules
+  - fail CI on critical accessibility violations and verify keyboard, focus trap, focus restore, ARIA live regions, contrast, zoom, text reflow, and reduced motion
+  - evaluate and add `lucide-react` as the single icon library, with a shared wrapper, 16/20/24 sizing, standard stroke width, and accessible names for icon-only buttons
+  - evaluate and add `@tanstack/react-table` for KYC, Risk, Deposits, Withdrawals, Members, Reports, Activity, and Support
+  - create shared AdminDataTable behavior for sorting, filtering, URL state, pagination, selection, bulk action, sticky action bar, column visibility, loading, empty, error, partial, stale, and mobile table-to-card states
+  - add authenticated visual fixtures and CI artifacts for screenshots, traces, console, and network failures
+  - test all six standard viewports plus loading, empty, error, success, permission-denied, session-expired, reduced-motion, and keyboard-only states
+  - add component/unit tests for shared primitives before considering Storybook
+  - require every added dependency to include a use case, migration plan, bundle/performance evidence, and regression coverage
+- Verification:
+  - Admin and Member builds
+  - dependency/bundle review
+  - Playwright visual, accessibility, reduced-motion, and interaction regression
+  - no duplicate UI framework, icon library, state layer, or form layer without an approved ADR
+- Evidence:
+  - Commit/PR:
+  - Dependency decisions:
+  - Bundle report:
+  - Test artifacts:
 
 ### P2-ADMIN-001: Command palette and keyboard shortcuts
 
