@@ -105,7 +105,7 @@
 - [ ] Admin suspend/lock/unlock
 - [ ] เหตุผล/หมายเหตุทุก lifecycle action
 - [ ] Revoke session หลัง suspend/lock
-- [ ] Account status timeline
+- [x] Account status timeline (อ่านจาก AdminAuditLog ใน security overview)
 - [ ] Per-account session management
 - [ ] Login history ต่อ admin account
 
