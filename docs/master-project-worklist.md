@@ -115,7 +115,7 @@
 
 ## M-006 Permission coverage audit
 
-สถานะ: 🟡 PARTIAL — มี guard/sidebar/route gate และ tests บางส่วน
+สถานะ: 🟡 PARTIAL — API controller audit ผ่านครบ แต่ยังเหลือ frontend read-only/dynamic verification
 
 - [x] ตรวจทุก admin route/sidebar/widget/export รอบ finance routes; withdrawal workflow ถูกเพิ่ม permission guard
 - [ ] ตรวจทุก admin route/sidebar/widget/export ที่เหลือ
@@ -123,7 +123,7 @@
 - [x] ป้องกัน wallet read/adjust endpoints และเพิ่ม `wallet.adjust` ใน seed
 - [x] เพิ่ม permission model และ guard ให้ bank accounts (`view/manage/review`)
 - [x] เพิ่ม permission model และ guard ให้ Support (`view/reply/manage`)
-- [ ] ตรวจ endpoint ที่ขาด `RequirePermission` กลุ่มอื่น
+- [x] ตรวจ endpoint ที่ขาด `RequirePermission` กลุ่มอื่น — audit ล่าสุด 26 controllers: 24 protected, 2 intentionally public, 0 unguarded/auth-only
 - [x] เพิ่ม automated route/permission coverage test (`audit:admin-permissions` ใน Quality Gate)
 - [ ] ยืนยัน read-only user มองไม่เห็น mutation control
 
