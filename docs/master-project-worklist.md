@@ -79,7 +79,7 @@
 - [x] cleanup storage เมื่อ transaction fail/idempotent upload
 - [x] ใช้ idempotency key ตอน complete
 - [x] มี dedicated state-transition/idempotency/concurrency tests ใน `finance-concurrency.db.spec.ts`
-- [ ] ตรวจ production migration
+- [x] ตรวจ production migration ตาม `docs/production-migration-verification-runbook.md`
 
 > สถานะ P0: ✅ ปิดครบ — source, CI migration, finance concurrency tests และ Railway production migration status ผ่านแล้ว\n\n## M-004 ลบ build-time source mutation
 
