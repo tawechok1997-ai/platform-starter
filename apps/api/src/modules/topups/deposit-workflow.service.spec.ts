@@ -18,6 +18,7 @@ describe('DepositWorkflowService claim ownership', () => {
   it('removes uploaded slip when the state update fails', async () => {
     const storage = { put: jest.fn().mockResolvedValue(undefined), remove: jest.fn().mockResolvedValue(undefined) };
     const prisma = {
+      topUpRequest: { findFirst: jest.fn().mockResolvedValue({ id: 'request-1', userId: 'member-1', status: 'PENDING' }) },
       $queryRaw: jest.fn().mockResolvedValue([]),
       $executeRaw: jest.fn().mockRejectedValue(new Error('state changed')),
     };
