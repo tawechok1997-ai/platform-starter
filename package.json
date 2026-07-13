@@ -9,6 +9,7 @@
     "test": "turbo test",
     "audit:architecture-inventory": "node tools/audit-architecture-inventory.mjs",
     "audit:architecture-boundaries": "node tools/audit-architecture-boundaries.mjs",
+    "audit:critical-test-safety": "node tools/audit-critical-test-safety.mjs",
     "audit:admin-permissions": "node tools/audit-admin-permissions.mjs",
     "audit:finance-workflows": "node tools/audit-finance-workflows.mjs",
     "audit:admin-token-storage": "node tools/audit-admin-token-storage.mjs",
