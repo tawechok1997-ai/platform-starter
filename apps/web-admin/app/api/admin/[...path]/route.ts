@@ -50,9 +50,6 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
     return new NextResponse(payload || null, {
       status: response.status,
       headers: responseHeaders,
-        'content-type': response.headers.get('content-type') ?? 'application/json; charset=utf-8',
-        'cache-control': 'no-store',
-      },
     });
   } catch {
     return NextResponse.json(
