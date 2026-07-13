@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+import { upstreamApiUrl } from '../../upstream';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
     const forwardedFor = request.headers.get('x-forwarded-for');
-    const response = await fetch(`${API_URL}/admin/auth/login`, {
+    const response = await fetch(upstreamApiUrl('/admin/auth/login'), {
       method: 'POST',
       cache: 'no-store',
       headers: {

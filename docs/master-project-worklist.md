@@ -514,13 +514,14 @@
 - เพิ่ม `packages/api-client` เป็น shared client package พร้อม `createApiClient`, `ApiClientError`, helper รวม URL/header, bearer token injection, response parsing, auth refresh เมื่อเจอ 401, response cache TTL และ retry สำหรับ network/5xx
 - เพิ่ม test ด้วย `tsx src/index.test.ts` ครอบคลุม URL joining, header merge, auth header, auth refresh, response cache, retry 5xx และ error payload mapping
 - ผูก `@platform/api-client` เข้ากับ `apps/web-member` และ `apps/web-admin` ผ่าน workspace dependency + Next `transpilePackages` + tsconfig path และย้ายตัวกลาง `memberApiFetch`/`adminApiFetch` ให้ใช้ shared header/url helpers ก่อน
-- ย้าย client auth flows (`member/login`, `member/register`, `admin/accept-invitation`) ออกจาก direct `fetch(API_URL)` มาใช้ `memberApiFetch`/`adminApiFetch`; ยังเหลือ API route proxy/server upstream fetch ที่ต้องจัดการแยก
-- รัน `pnpm --filter @platform/api-client test`, `pnpm --filter @platform/api-client build`, `pnpm --filter @platform/web-member build` และ `pnpm --filter @platform/web-admin build` ผ่าน; ยังไม่ย้ายทุกหน้า/ลบ direct fetch ทั้งหมดเพื่อหลีกเลี่ยง regression แบบ big-bang
+- ย้าย client auth flows (`member/login`, `member/register`, `admin/accept-invitation`) ออกจาก direct `fetch(API_URL)` มาใช้ `memberApiFetch`/`adminApiFetch`
+- เพิ่ม `upstreamApiUrl` helper ให้ API route proxy ของ web-admin/web-member และย้าย upstream calls ที่เคยต่อ `${API_URL}` เองให้ผ่าน `joinApiUrl`/`upstreamApiUrl`; `rg` ไม่พบ direct `fetch(`${API_URL}...`)` หรือ `fetch(`${process.env.NEXT_PUBLIC_API_URL}...`)` แล้ว
+- รัน `pnpm --filter @platform/api-client test`, `pnpm --filter @platform/api-client build`, `pnpm --filter @platform/web-member build` และ `pnpm --filter @platform/web-admin build` ผ่าน; ยังไม่ติ๊กย้ายทุกหน้าเพราะยังมี local `/api/...` fetch ที่ต้องพิจารณาแยก
 
 - [x] สร้าง `packages/api-client`
 - [x] รวม auth refresh/retry/error/cache
 - [ ] ย้ายทุกหน้าใช้ client กลาง
-- [ ] ลบ direct `fetch(API_URL)`
+- [x] ลบ direct `fetch(API_URL)`
 - [x] เพิ่ม client tests
 
 ## R-005 ลด any/เพิ่ม DTO
