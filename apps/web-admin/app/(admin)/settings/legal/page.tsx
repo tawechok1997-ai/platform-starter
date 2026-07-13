@@ -6,7 +6,10 @@ export default function LegalSettingsPage() {
       group="legal"
       title="Legal / Policy Settings"
       description="จัดการ Terms, Privacy, Cookie และนโยบายต่าง ๆ ที่แสดงในหน้า register, footer และ profile"
+      preview="legal"
       fields={[
+        { key: 'version', label: 'Legal Version', placeholder: 'เช่น v2026.07' },
+        { key: 'effective_date', label: 'Effective Date', type: 'date' },
         { key: 'terms', label: 'Terms and Conditions', type: 'textarea' },
         { key: 'privacy', label: 'Privacy Policy', type: 'textarea' },
         { key: 'cookie', label: 'Cookie Policy', type: 'textarea' },

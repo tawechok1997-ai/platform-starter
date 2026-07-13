@@ -117,7 +117,7 @@ export default function NotificationsPage() {
         </div>
       </header>
 
-      {message && <MemberNotice tone="warning">{message}</MemberNotice>}
+      {message && <MemberNotice tone="warning"><span role="status">{message}</span></MemberNotice>}
 
       <section className="member-notification-summary" aria-label="สรุปการแจ้งเตือน">
         <MemberCard><span>ยังไม่อ่าน</span><strong>{unreadCount}</strong></MemberCard>
@@ -131,18 +131,21 @@ export default function NotificationsPage() {
 
       <MemberCard className="member-notification-list">
         {loading && items.length === 0
-          ? <p role="status">กำลังโหลดการแจ้งเตือน...</p>
+          ? <p role="status" aria-live="polite">กำลังโหลดการแจ้งเตือน...</p>
           : visibleItems.length === 0
             ? <MemberEmptyState title={viewItems.length === 0 ? 'ยังไม่มีการแจ้งเตือน' : 'ไม่พบการแจ้งเตือนในหมวดนี้'} description={viewItems.length === 0 ? 'เมื่อรายการเงิน ความปลอดภัย หรือ ticket มีความเคลื่อนไหว ระบบจะแสดงไว้ที่นี่' : 'ลองเลือกตัวกรองอื่นเพื่อดูข้อความที่มีอยู่'} />
-            : visibleItems.map((item) => <article key={item.id} className={item.read ? 'is-read' : 'is-unread'}>
-              <div className={`member-notification-icon member-notification-icon--${item.type}`} aria-hidden="true">•</div>
-              <div><strong>{item.title}</strong><p>{item.description}</p><time dateTime={item.createdAt}>{formatDate(item.createdAt)}</time></div>
-              <div className="member-notification-actions">
-                {item.href && <a href={item.href}>เปิดดู</a>}
-                {!item.read && <button type="button" onClick={() => markRead(item.id)}>อ่านแล้ว</button>}
-                <button type="button" onClick={() => archive(item.id)}>เก็บถาวร</button>
-              </div>
-            </article>)}
+            : visibleItems.map((item) => {
+              const titleId = `notification-${item.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+              return <article key={item.id} className={item.read ? 'is-read' : 'is-unread'} aria-labelledby={titleId}>
+                <div className={`member-notification-icon member-notification-icon--${item.type}`} aria-hidden="true">•</div>
+                <div><strong id={titleId}>{item.title}</strong><p>{item.description}</p><time dateTime={item.createdAt}>{formatDate(item.createdAt)}</time></div>
+                <div className="member-notification-actions" aria-label={`การทำงานสำหรับ ${item.title}`}>
+                  {item.href && <a href={item.href} aria-label={`เปิดดู ${item.title}`}>เปิดดู</a>}
+                  {!item.read && <button type="button" onClick={() => markRead(item.id)} aria-label={`ทำเครื่องหมายว่าอ่านแล้ว: ${item.title}`}>อ่านแล้ว</button>}
+                  <button type="button" onClick={() => archive(item.id)} aria-label={`เก็บถาวร: ${item.title}`}>เก็บถาวร</button>
+                </div>
+              </article>;
+            })}
       </MemberCard>
     </div>
   </main>;

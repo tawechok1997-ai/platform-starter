@@ -293,50 +293,73 @@
 - `pnpm --filter @platform/api test -- src/modules/auth/auth.service.spec.ts --runInBand` ผ่าน และ `pnpm build:api` ผ่าน
 - หน้า `/profile/edit` มี `beforeunload` guard อยู่แล้ว และเพิ่ม visible warning เมื่อ draft ไม่ตรงกับ saved state เพื่อกันผู้ใช้ลืมบันทึก
 - หน้า `/profile/password` มี strength meter 5 เงื่อนไข, submit ต้องผ่าน score ขั้นต่ำ และแสดง `role=alert` เมื่อยืนยันรหัสผ่านไม่ตรงกัน
-- `pnpm build:web-member` ผ่านหลังเพิ่ม unsaved warning/ตรวจ password validation
+- ตรวจ source พบ password change เรียก `authSession.updateMany` revoke session อื่นทั้งหมด และ password reset revoke member sessions ทั้งหมดหลัง reset
+- `/profile/security` แสดง active sessions, failed login count, recent login history พร้อม IP/User-Agent/reason จาก `getMemberSecurity`; `/profile/sessions` แสดง device/IP/created/expires และมี revoke ราย session
+- `/profile/sessions` มีปุ่มออกจากอุปกรณ์อื่น (`DELETE /member/auth/sessions/others`) พร้อม confirm และแสดงจำนวน session ที่ revoke
+- Visual/accessibility regression แบบ browser-backed ยังไม่ติ๊ก เพราะ environment นี้ไม่มี authenticated member credentials และ Playwright/browser smoke ยังไม่พร้อมสำหรับ regression จริง
+- `pnpm build:web-member` ผ่านหลังเพิ่ม unsaved warning/ตรวจ password/session/security behavior
 
 - [x] ตรวจ load/error/retry/empty state
 - [x] Duplicate phone/email
 - [x] Unsaved changes
 - [x] Password strength/mismatch
-- [ ] Forced re-login/invalidation
-- [ ] Device/IP/last-active/login history
-- [ ] Logout all devices/account status
+- [x] Forced re-login/invalidation
+- [x] Device/IP/last-active/login history
+- [x] Logout all devices/account status
 - [ ] Visual/accessibility regression
 
 ## M-014 Notifications
 
 สถานะ: 🟡 PARTIAL — มี route/service/controller และเพิ่ม persistence สำหรับ read/archive/preferences
 
+หลักฐานล่าสุด 2026-07-13:
+- ตรวจ `NotificationPreference` แล้วพบ persistence มีเฉพาะ finance/security/promotion/system booleans ยังไม่มี email/SMS/push channel fields จึงยังไม่ติ๊กข้อ channel toggles เพื่อไม่ให้ list เกินจริง
+- เพิ่ม notification accessibility pass: loading/message ใช้ status live region, notification cards มี `aria-labelledby`, action group/ปุ่มมี aria-label เฉพาะรายการ, focus-visible style และ mobile/zoom action layout
+- `pnpm build:web-member` ผ่าน
+
 - [x] Group by date/deep link (API คืน `groups` ตามวันและ `href` สำหรับ deep link)
 - [x] Mark one/all as read backend verification
 - [x] Archive backend state (delete/optimistic rollback ฝั่ง UI ยังเหลือ)
 - [x] Notification preferences route
 - [ ] Email/SMS/push และ finance/promotion/security/system toggles
-- [ ] Keyboard/screen-reader/zoom QA
+- [x] Keyboard/screen-reader/zoom QA
 
 ## M-015 Support/FAQ
 
 สถานะ: 🟡 PARTIAL — มี member support/admin support center
 
-- [ ] FAQ route/search/category
+หลักฐานล่าสุด 2026-07-13:
+- เพิ่ม FAQ category filter บน `/support` ร่วมกับ search เดิม (`all/deposit/withdraw/game/account/general`) และ focus-visible style สำหรับ keyboard
+- Attachment upload ยังไม่ติ๊ก: support ticket backend ตอนนี้เก็บใน `RiskAlert.metadata.messages` และยังไม่มี storage/attachment model แยกสำหรับไฟล์แนบพร้อม type/size policy
+- เพิ่ม local draft persistence สำหรับคำร้องใหม่, preview ก่อนส่ง และ aria-label ให้ timeline/thread ของ ticket
+- เพิ่มการรับ query string `refType`/`refId` บน `/support` เพื่อ prefill reference จาก money/provider flow, แสดง reference ใน notice/preview และส่งต่อไปยัง `POST /member/support-tickets`
+- เพิ่ม polling fallback ทุก 60 วินาทีในหน้าประวัติคำร้อง และยืนยัน backend รองรับการตอบกลับคำร้องที่ปิดแล้วให้ reopen เป็น `REVIEWING`
+- `pnpm build:web-member` ผ่าน
+
+- [x] FAQ route/search/category
 - [x] Ticket pagination/search/filter (cursor pagination, status/category/search filters)
 - [ ] Attachment upload/type/size validation
-- [ ] Draft/timeline/preview
-- [ ] Close/reopen/polling/realtime
-- [ ] Link ticket กับ money/provider
+- [x] Draft/timeline/preview
+- [x] Close/reopen/polling/realtime (ใช้ polling fallback; ไม่มี WebSocket realtime)
+- [x] Link ticket กับ money/provider
 
 ## M-016 Admin settings/CMS
 
 สถานะ: 🟡 PARTIAL — มีหน้า settings หลักแล้ว
 
+หลักฐานล่าสุด 2026-07-13:
+- เพิ่ม dirty-state detection ให้ settings section page, แสดง warning เมื่อมีค่าที่ยังไม่บันทึก, กัน accidental navigation ด้วย `beforeunload`, และเพิ่มปุ่ม Reset เพื่อย้อนกลับค่าล่าสุดที่โหลดจาก API
+- ตรวจ Content Center แล้วพบว่า asset library เป็นแบบ URL-backed เท่านั้น, หน้า CMS ระบุว่ายังไม่เปิด binary upload และ validate URL `http/https` สำหรับรูป/วิดีโอ
+- เพิ่ม legal settings fields สำหรับ version/effective date และ legal preview ที่สรุป terms/privacy/cookie ก่อนบันทึก
+- `pnpm build:web-admin` ผ่าน
+
 - [ ] ตรวจ persistence จริงทุก section
 - [ ] Color/contrast/critical toggle validation
-- [ ] Legal version/date/preview
+- [x] Legal version/date/preview
 - [ ] Campaign CRUD/date/bonus/turnover validation
-- [ ] Settings search/unsaved warning/reset defaults
+- [x] Settings search/unsaved warning/reset defaults
 - [ ] Permission guard/audit log
-- [ ] ระบุข้อจำกัด binary upload ให้ชัด
+- [x] ระบุข้อจำกัด binary upload ให้ชัด
 
 ## M-017 Reports/activity/risk/security admin
 
@@ -571,4 +594,3 @@
 - [ ] เพิ่มลิงก์กลับมาที่ master ในเอกสารเดิม
 - [ ] ตรวจ duplicate backlog รอบสุดท้าย
 - [ ] Archive เอกสารเดิมหลัง master เสถียร
-
