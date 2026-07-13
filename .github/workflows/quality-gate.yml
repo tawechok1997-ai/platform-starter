@@ -49,6 +49,9 @@ jobs:
       - name: Audit admin token storage
         run: pnpm audit:admin-token-storage
 
+      - name: Audit Admin UI XSS boundaries
+        run: pnpm audit:admin-xss
+
       - name: Build API
         if: matrix.target == 'api'
         run: pnpm build:api
