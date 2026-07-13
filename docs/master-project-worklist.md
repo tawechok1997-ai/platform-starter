@@ -481,11 +481,15 @@
 
 กลุ่ม: activity/admin-activity/admin-audit, finance/money-ops, risk/risk-alerts, wallet/wallets
 
-- [ ] Endpoint ownership matrix
-- [ ] Source of truth
+หลักฐานล่าสุด 2026-07-13:
+- เพิ่ม `docs/architecture/endpoint-ownership-matrix.md` เพื่อระบุ owner module/current routes สำหรับ activity/audit, finance/reports/exports, money ops, risk/risk-alerts, wallet ledger, settings/CMS และ promotion/affiliate temporary ledgers
+- เพิ่ม `docs/architecture/route-migration-deprecation-plan.md` สำหรับ phase shadow/dual-read/deprecate/remove และกติกา backward-compatible route migration
+
+- [x] Endpoint ownership matrix
+- [x] Source of truth
 - [ ] รวม query ซ้ำ
-- [ ] Backward-compatible route migration
-- [ ] Deprecation plan
+- [x] Backward-compatible route migration
+- [x] Deprecation plan
 
 ## R-003 แยก RiskAlert domain
 
