@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { AntiBotWidget } from '../anti-bot-widget';
-import { setAdminAccessToken } from '../../admin-api';
+import { refreshAdminToken, setAdminAccessToken } from '../../admin-api';
 
 const LOGIN_TIMEOUT_MS = 15000;
 
@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
 
   useEffect(() => {
-    if (window.localStorage.getItem('admin_refresh_token')) { window.location.replace('/dashboard'); return; }
+    void refreshAdminToken().then((token) => { if (token) window.location.replace('/dashboard'); });
     const savedLocale = window.localStorage.getItem('admin_locale');
     if (savedLocale === 'th' || savedLocale === 'en') setLocale(savedLocale);
   }, []);
@@ -64,8 +64,7 @@ export default function AdminLoginPage() {
       if (data?.requiresTwoFactor) { setRequiresTwoFactor(true); setStatus('info'); setMessage(t.requiresTwoFactor); setCaptchaResetKey((value) => value + 1); return; }
       if (!data?.accessToken || !data?.refreshToken) { setStatus('error'); setMessage(t.incomplete); setCaptchaResetKey((value) => value + 1); return; }
       setAdminAccessToken(data.accessToken);
-      window.localStorage.setItem('admin_refresh_token', data.refreshToken);
-      setStatus('success'); setMessage(t.success); window.location.replace('/dashboard');
+            setStatus('success'); setMessage(t.success); window.location.replace('/dashboard');
     } catch (error) {
       const aborted = error instanceof DOMException && error.name === 'AbortError';
       setStatus('error'); setMessage(aborted ? t.timeout : t.failed); setCaptchaResetKey((value) => value + 1);
