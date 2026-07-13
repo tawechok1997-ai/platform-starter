@@ -1,0 +1,51 @@
+name: KYC Deployed Smoke
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+
+jobs:
+  smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check configured credentials
+        id: credentials
+        env:
+          PROD_MEMBER_TOKEN: ${{ secrets.PROD_MEMBER_TOKEN }}
+          PROD_ADMIN_TOKEN: ${{ secrets.PROD_ADMIN_TOKEN }}
+        run: |
+          if [[ -n "$PROD_MEMBER_TOKEN" && -n "$PROD_ADMIN_TOKEN" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Skipping authenticated KYC smoke because PROD_MEMBER_TOKEN or PROD_ADMIN_TOKEN is missing."
+          fi
+
+      - name: Run authenticated read-only KYC smoke
+        if: ${{ steps.credentials.outputs.ready == 'true' }}
+        env:
+          API_URL: ${{ vars.PROD_API_URL || 'https://platformapi-production-3c91.up.railway.app' }}
+          MEMBER_WEB_URL: ${{ vars.PROD_MEMBER_WEB_URL }}
+          ADMIN_WEB_URL: ${{ vars.PROD_ADMIN_WEB_URL }}
+          PROD_MEMBER_TOKEN: ${{ secrets.PROD_MEMBER_TOKEN }}
+          PROD_ADMIN_TOKEN: ${{ secrets.PROD_ADMIN_TOKEN }}
+        run: node tools/test-deployed-kyc.mjs
+
+      - name: Write summary
+        if: always()
+        run: |
+          {
+            echo "## KYC deployed smoke"
+            if [[ "${{ steps.credentials.outputs.ready }}" == "true" ]]; then
+              echo "Authenticated read-only KYC checks were executed."
+            else
+              echo "Skipped because required repository secrets are not configured."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
