@@ -25,12 +25,13 @@ export class AdminAccessController {
   @Post('ownership-transfer')
   async transferOwnership(
     @Req() req: any,
-    @Body() body: { targetAdminId?: string; twoFactorCode?: string },
+    @Body() body: { targetAdminId?: string; twoFactorCode?: string; reason?: string },
   ) {
     const result = await this.service.transferOwnership(
       req.user.id,
       String(body.targetAdminId ?? ''),
       String(body.twoFactorCode ?? ''),
+      String(body.reason ?? ''),
       { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] },
     );
     await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, req.user.id, 'TRANSFER_OWNERSHIP_OUT');
