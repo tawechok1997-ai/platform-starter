@@ -351,22 +351,30 @@
 - เพิ่ม dirty-state detection ให้ settings section page, แสดง warning เมื่อมีค่าที่ยังไม่บันทึก, กัน accidental navigation ด้วย `beforeunload`, และเพิ่มปุ่ม Reset เพื่อย้อนกลับค่าล่าสุดที่โหลดจาก API
 - ตรวจ Content Center แล้วพบว่า asset library เป็นแบบ URL-backed เท่านั้น, หน้า CMS ระบุว่ายังไม่เปิด binary upload และ validate URL `http/https` สำหรับรูป/วิดีโอ
 - เพิ่ม legal settings fields สำหรับ version/effective date และ legal preview ที่สรุป terms/privacy/cookie ก่อนบันทึก
+- เพิ่ม WCAG contrast warning ใน Branding preview สำหรับ text/background, text/card และ primary button contrast พร้อมเลือกสีตัวอักษรบนปุ่มให้อ่านง่าย
+- ตรวจ API settings แล้วทุก section (`website/branding/theme/seo/contact/maintenance/scripts/features/legal`) มี route เฉพาะที่ครอบด้วย `AdminAuthGuard`, `PermissionsGuard`, `RequirePermission` แยก view/update และ `updateAdminGroup` บันทึกทั้ง `siteSettingHistory` + `adminAuditLog`
+- ตรวจ persistence แล้วทุก section update ผ่าน `siteSetting.upsert` ใน `SettingsService.updateAdminGroup` และส่ง `updatedBy`/type/public/sensitive flags ครบ
+- เพิ่ม validation ให้ Promotion Center: disable save เมื่อมี warnings, ใช้ date input สำหรับ starts/ends, ตรวจ duplicate id, required title/detail เมื่อเปิดใช้งาน, bonus percent <= 100, ตัวเลขไม่ติดลบ, turnover > 0, และ startsAt <= endsAt
 - `pnpm build:web-admin` ผ่าน
 
-- [ ] ตรวจ persistence จริงทุก section
-- [ ] Color/contrast/critical toggle validation
+- [x] ตรวจ persistence จริงทุก section
+- [x] Color/contrast/critical toggle validation
 - [x] Legal version/date/preview
-- [ ] Campaign CRUD/date/bonus/turnover validation
+- [x] Campaign CRUD/date/bonus/turnover validation
 - [x] Settings search/unsaved warning/reset defaults
-- [ ] Permission guard/audit log
+- [x] Permission guard/audit log
 - [x] ระบุข้อจำกัด binary upload ให้ชัด
 
 ## M-017 Reports/activity/risk/security admin
 
 สถานะ: 🟡 PARTIAL — มีหน้าแล้ว แต่ backend/QA ยังไม่ครบ
 
+หลักฐานล่าสุด 2026-07-13:
+- เพิ่ม expandable `Detail JSON` ใน Activity Timeline เพื่อดู payload เต็มของแต่ละ event โดยจำกัดความสูง/scroll สำหรับ long JSON และยังคง pagination/filter เดิม
+- `pnpm build:web-admin` ผ่าน
+
 - [ ] Report aggregate/filter correctness และ CSV
-- [ ] Activity pagination/detail/long JSON
+- [x] Activity pagination/detail/long JSON
 - [ ] Risk filters/related links/bulk action
 - [ ] Auto-close suggestion
 - [ ] Security lifecycle actions

@@ -92,7 +92,8 @@ function FieldInput({ field, value, onChange }: { field: FieldConfig; value: str
 function Preview({ type, form, title }: { type: string; form: Record<string, string | boolean | number | null>; title: string }) {
   if (type === 'branding') {
     const primary = String(form.primary_color ?? '#f5c542'); const bg = String(form.background_color ?? '#080808'); const card = String(form.card_color ?? '#181818'); const text = String(form.text_color ?? '#ffffff');
-    return <div style={{ background: bg, color: text, borderRadius: 16, padding: 16, overflowWrap: 'anywhere' }}><strong>{form.logo_url ? 'Logo loaded' : 'Logo'}</strong><div style={{ background: card, borderRadius: 14, padding: 14, marginTop: 12 }}><p>Balance Card</p><button style={{ background: primary, border: 0, borderRadius: 10, padding: '8px 14px' }}>ฝากเงิน</button>{' '}<button style={{ borderRadius: 10, padding: '8px 14px' }}>ถอนเงิน</button></div></div>;
+    const contrastWarnings = buildContrastWarnings({ primary, bg, card, text });
+    return <div style={{ background: bg, color: text, borderRadius: 16, padding: 16, overflowWrap: 'anywhere' }}><strong>{form.logo_url ? 'Logo loaded' : 'Logo'}</strong>{contrastWarnings.length > 0 && <div style={contrastWarningStyle}>{contrastWarnings.join(' • ')}</div>}<div style={{ background: card, borderRadius: 14, padding: 14, marginTop: 12 }}><p>Balance Card</p><button style={{ background: primary, color: readableTextColor(primary), border: 0, borderRadius: 10, padding: '8px 14px' }}>ฝากเงิน</button>{' '}<button style={{ borderRadius: 10, padding: '8px 14px' }}>ถอนเงิน</button></div></div>;
   }
   if (type === 'maintenance') return <div style={previewBoxStyle}><p>Maintenance: {form.enabled ? 'ON' : 'OFF'}</p><p>Message: {form.message ?? 'ระบบกำลังปรับปรุง'}</p><p>Deposit: {form.deposit_enabled ? 'ปิดปรับปรุง' : 'เปิดใช้งาน'}</p><p>Withdraw: {form.withdraw_enabled ? 'ปิดปรับปรุง' : 'เปิดใช้งาน'}</p></div>;
   if (type === 'legal') return <div style={previewBoxStyle}><strong>{title}</strong><p>Version: {form.version || 'ยังไม่ระบุ'}</p><p>Effective date: {form.effective_date || 'ยังไม่ระบุ'}</p><AdminStack>{['terms', 'privacy', 'cookie'].map((key) => <section key={key} style={legalPreviewSectionStyle}><strong>{key}</strong><p>{String(form[key] || 'ยังไม่มีเนื้อหา').slice(0, 420)}</p></section>)}</AdminStack></div>;
@@ -103,3 +104,36 @@ const labelStyle = { display: 'grid', gap: 6, fontWeight: 800 } as const;
 const checkboxStyle = { display: 'flex', alignItems: 'center', gap: 8, minHeight: 46, fontWeight: 800 } as const;
 const previewBoxStyle = { border: '1px solid rgba(148,163,184,.18)', borderRadius: 14, padding: 16, background: 'rgba(148,163,184,.06)', overflowWrap: 'anywhere' as const } as const;
 const legalPreviewSectionStyle = { borderTop: '1px solid rgba(148,163,184,.16)', paddingTop: 12 } as const;
+const contrastWarningStyle = { marginTop: 10, padding: 10, border: '1px solid rgba(248,113,113,.45)', borderRadius: 12, background: 'rgba(127,29,29,.42)', color: '#fee2e2', fontWeight: 800 } as const;
+
+function buildContrastWarnings(colors: { primary: string; bg: string; card: string; text: string }) {
+  const warnings: string[] = [];
+  if (contrastRatio(colors.text, colors.bg) < 4.5) warnings.push('Text/Background contrast ต่ำกว่า WCAG AA 4.5:1');
+  if (contrastRatio(colors.text, colors.card) < 4.5) warnings.push('Text/Card contrast ต่ำกว่า WCAG AA 4.5:1');
+  if (contrastRatio(readableTextColor(colors.primary), colors.primary) < 4.5) warnings.push('Button color contrast ต่ำกว่า WCAG AA 4.5:1');
+  return warnings;
+}
+
+function readableTextColor(background: string) { return contrastRatio('#000000', background) >= contrastRatio('#ffffff', background) ? '#000000' : '#ffffff'; }
+function contrastRatio(foreground: string, background: string) {
+  const a = relativeLuminance(foreground);
+  const b = relativeLuminance(background);
+  const lighter = Math.max(a, b);
+  const darker = Math.min(a, b);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+function relativeLuminance(hex: string) {
+  const rgb = parseHexColor(hex);
+  if (!rgb) return 1;
+  const [r, g, b] = rgb.map((value) => {
+    const channel = value / 255;
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+function parseHexColor(value: string) {
+  const match = /^#?([0-9a-f]{6})$/i.exec(value.trim());
+  if (!match) return null;
+  const hex = match[1];
+  return [Number.parseInt(hex.slice(0, 2), 16), Number.parseInt(hex.slice(2, 4), 16), Number.parseInt(hex.slice(4, 6), 16)];
+}
