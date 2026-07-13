@@ -111,6 +111,19 @@ export class NotificationsService {
     };
   }
 
+  async markAllRead(userId: string) {
+    const current = await this.listMemberNotifications(userId);
+    const now = new Date();
+    await this.prisma.$transaction(
+      current.items.map((item) => this.prisma.notificationState.upsert({
+        where: { userId_notificationKey: { userId, notificationKey: item.id } },
+        update: { readAt: now },
+        create: { userId, notificationKey: item.id, readAt: now },
+      })),
+    );
+    return { success: true, marked: current.items.length };
+  }
+
   async markRead(userId: string, notificationKey: string) {
     await this.prisma.notificationState.upsert({
       where: { userId_notificationKey: { userId, notificationKey } },
