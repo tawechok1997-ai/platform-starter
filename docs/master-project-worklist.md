@@ -63,7 +63,7 @@
 - [x] cleanup storage เมื่อ transaction fail
 - [x] เพิ่ม static finance workflow safety audit (`pnpm audit:finance-workflows`)
 - [x] เพิ่ม static finance workflow safety audit (`pnpm audit:finance-workflows`)
-- [ ] เพิ่ม dedicated state-transition/idempotency/concurrency tests
+- [x] มี dedicated state-transition/idempotency/concurrency tests ใน `finance-concurrency.db.spec.ts`
 - [ ] ตรวจ production migration
 
 ## M-003 Withdrawal workflow
@@ -423,7 +423,8 @@
 ยังต้องตรวจ:
 - [x] ยืนยันกับ branch ล่าสุดผ่าน Quality Gate
 - [ ] ยืนยัน PostgreSQL/finance test กับ branch ล่าสุด ไม่ใช่เฉพาะ Build #270
-- [ ] PostgreSQL service/test database และ finance DB tests
+- [x] PostgreSQL service/test database และ finance DB tests รันใน Build workflow
+- [ ] ตรวจผลกับ production migration/rollback
 - [ ] Fixture builders/isolated cleanup
 - [ ] Test artifacts/failure summary
 - [ ] Node/pnpm version เดียวกันและแก้ config warning
