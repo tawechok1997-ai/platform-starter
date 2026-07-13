@@ -35,9 +35,12 @@ export class SupportService {
     return { ok: true, item: this.formatTicket(item) };
   }
 
-  async listMemberTickets(user: Actor) {
-    const items = await this.prisma.riskAlert.findMany({ where: { refType: SUPPORT_REF_TYPE, memberId: user.id }, orderBy: { createdAt: 'desc' }, take: 50 });
-    return { items: items.map((item) => this.formatTicket(item)) };
+  async listMemberTickets(user: Actor, cursor?: string, limitInput?: string) {
+    const limit = Math.min(Math.max(Number(limitInput) || 20, 1), 50);
+    const items = await this.prisma.riskAlert.findMany({ where: { refType: SUPPORT_REF_TYPE, memberId: user.id }, orderBy: { createdAt: 'desc' }, take: limit + 1, ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}) });
+    const hasMore = items.length > limit;
+    const page = hasMore ? items.slice(0, limit) : items;
+    return { items: page.map((item) => this.formatTicket(item)), nextCursor: hasMore ? page[page.length - 1]?.id ?? null : null };
   }
 
   async getMemberTicket(user: Actor, id: string) {
@@ -56,13 +59,17 @@ export class SupportService {
     return { ok: true, item: this.formatTicket(updated) };
   }
 
-  async listAdminTickets(query: { status?: string; category?: string }) {
+  async listAdminTickets(query: { status?: string; category?: string; search?: string; cursor?: string; limit?: string }) {
     const where: Prisma.RiskAlertWhereInput = { refType: SUPPORT_REF_TYPE };
     if (query.status && query.status !== 'ALL') where.status = query.status as RiskAlertStatus;
-    const items = await this.prisma.riskAlert.findMany({ where, orderBy: { createdAt: 'desc' }, take: 100 });
-    const memberMap = await this.memberMap(items.map((item) => item.memberId).filter(Boolean) as string[]);
-    const formatted = items.map((item) => this.formatTicket({ ...item, member: item.memberId ? memberMap.get(item.memberId) : undefined })).filter((item) => !query.category || query.category === 'ALL' || item.category === query.category);
-    return { items: formatted, total: formatted.length };
+    if (query.search?.trim()) where.title = { contains: query.search.trim(), mode: 'insensitive' };
+    const limit = Math.min(Math.max(Number(query.limit) || 25, 1), 100);
+    const items = await this.prisma.riskAlert.findMany({ where, orderBy: { createdAt: 'desc' }, take: limit + 1, ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}) });
+    const hasMore = items.length > limit;
+    const page = hasMore ? items.slice(0, limit) : items;
+    const memberMap = await this.memberMap(page.map((item) => item.memberId).filter(Boolean) as string[]);
+    const formatted = page.map((item) => this.formatTicket({ ...item, member: item.memberId ? memberMap.get(item.memberId) : undefined })).filter((item) => !query.category || query.category === 'ALL' || item.category === query.category);
+    return { items: formatted, total: formatted.length, nextCursor: hasMore ? page[page.length - 1]?.id ?? null : null };
   }
 
   async getAdminTicket(id: string) {
