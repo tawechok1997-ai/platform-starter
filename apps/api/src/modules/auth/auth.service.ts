@@ -9,6 +9,7 @@ import { MemberSignInDto } from './dto/member-sign-in.dto';
 import { RefreshSessionDto } from './dto/refresh-session.dto';
 import { UpdateMemberProfileDto } from './dto/update-member-profile.dto';
 import { ChangeMemberPasswordDto } from './dto/change-member-password.dto';
+import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
 
 @Injectable()
 export class AuthService {
@@ -122,6 +123,39 @@ export class AuthService {
   async signOut(sessionId: string) {
     await this.prisma.authSession.updateMany({ where: { id: sessionId, type: 'MEMBER', revokedAt: null }, data: { revokedAt: new Date() } });
     return { success: true };
+  }
+
+  async requestPasswordReset(identifierInput: string) {
+    const identifier = String(identifierInput ?? '').trim();
+    const user = identifier ? await this.prisma.user.findFirst({ where: { OR: [{ username: identifier }, { email: identifier.toLowerCase() }, { phone: identifier }] }, select: { id: true } }) : null;
+    const response: { success: true; deliveryQueued: boolean; resetToken?: string } = { success: true, deliveryQueued: false };
+    if (!user) return response;
+
+    const rawToken = randomBytes(32).toString('base64url');
+    const tokenHash = await argon2.hash(rawToken);
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.verificationToken.updateMany({ where: { type: 'PASSWORD_RESET', target: user.id, usedAt: null }, data: { usedAt: new Date() } });
+      await tx.verificationToken.create({ data: { type: 'PASSWORD_RESET', target: user.id, tokenHash, expiresAt } });
+    });
+    if (String(this.configService.get<string>('PASSWORD_RESET_EXPOSE_TOKEN') ?? process.env.PASSWORD_RESET_EXPOSE_TOKEN).toLowerCase() === 'true') {
+      response.resetToken = rawToken;
+    }
+    return response;
+  }
+
+  async confirmPasswordReset(dto: ConfirmPasswordResetDto) {
+    const token = await this.prisma.verificationToken.findFirst({ where: { type: 'PASSWORD_RESET', usedAt: null, expiresAt: { gt: new Date() } }, orderBy: { createdAt: 'desc' } });
+    if (!token || !(await argon2.verify(token.tokenHash, dto.token))) throw new BadRequestException('Invalid or expired password reset token');
+    const passwordHash = await argon2.hash(dto.newPassword);
+    const now = new Date();
+    await this.prisma.$transaction(async (tx) => {
+      const consumed = await tx.verificationToken.updateMany({ where: { id: token.id, type: 'PASSWORD_RESET', usedAt: null, expiresAt: { gt: now } }, data: { usedAt: now } });
+      if (consumed.count !== 1) throw new BadRequestException('Invalid or expired password reset token');
+      await tx.user.update({ where: { id: token.target }, data: { passwordHash, status: 'ACTIVE' } });
+      await tx.authSession.updateMany({ where: { userId: token.target, type: 'MEMBER', revokedAt: null }, data: { revokedAt: now } });
+    });
+    return { success: true, revokedSessions: true };
   }
 
   async getMemberProfile(userId: string) {
