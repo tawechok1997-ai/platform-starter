@@ -54,6 +54,9 @@ jobs:
       - name: Audit architecture inventory
         run: pnpm audit:architecture-inventory
 
+      - name: Audit architecture boundaries
+        run: pnpm audit:architecture-boundaries
+
       - name: Audit admin API permissions
         run: pnpm audit:admin-permissions
 
