@@ -47,7 +47,7 @@ export class AntiBotService {
 
   async getPublicConfig(route: AntiBotRoute) {
     const config = await this.getStoredConfig();
-    const required = Boolean(this.runtimeEnabled() && config.enabled && config.routes[route]);
+    const required = Boolean(this.runtimeEnabled() && config.enabled && (config.routes[route] || config.emergencyMode));
     return {
       enabled: required,
       provider: required ? config.provider : null,
@@ -174,7 +174,7 @@ export class AntiBotService {
   async assertValid(route: AntiBotRoute, token: string | undefined, remoteIp?: string) {
     if (!this.runtimeEnabled()) return { required: false, success: true };
     const config = await this.getStoredConfig();
-    if (!config.enabled || !config.routes[route]) return { required: false, success: true };
+    if (!config.enabled || (!config.routes[route] && !config.emergencyMode)) return { required: false, success: true };
     if (!token?.trim()) throw new BadRequestException({ code: 'CAPTCHA_REQUIRED', message: 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ' });
     let result: { success: boolean; provider: AntiBotProvider; errorCodes: string[] };
     try {
