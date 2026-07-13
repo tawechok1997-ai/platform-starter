@@ -164,7 +164,7 @@ export default function AdminSecurityPage() {
 
     {ownerRecovery && <AdminCard title="Owner recovery readiness" description="ตรวจความพร้อมในการกู้คืนสิทธิ์ owner โดยไม่แสดง recovery code จริง">
       <AdminStack>
-        <div style={ownerRecovery.healthStyle}>
+        <div style={ownerRecoveryInfoStyle}>
           <AdminBadge tone={ownerRecovery.healthy ? 'success' : 'warning'}>{ownerRecovery.healthy ? 'RECOVERY READY' : 'ACTION REQUIRED'}</AdminBadge>
           <p>{ownerRecovery.healthy ? 'มี protected admin ที่เปิด 2FA และมี recovery code เหลืออยู่' : 'ต้องตรวจ 2FA ของ protected admin และ/หรือสร้าง recovery codes ชุดใหม่ก่อนเกิดเหตุ lockout'}</p>
         </div>
@@ -225,7 +225,7 @@ export default function AdminSecurityPage() {
   </AdminPage>;
 }
 
-const ownerRecovery = { healthStyle: { border: '1px solid rgba(245,197,66,.28)', borderRadius: 16, padding: 12, background: 'rgba(245,197,66,.08)', display: 'grid', gap: 8 }, healthy: false };
+const ownerRecoveryInfoStyle = { { border: '1px solid rgba(245,197,66,.28)', borderRadius: 16, padding: 12, background: 'rgba(245,197,66,.08)', display: 'grid', gap: 8 };
 const recoverySummaryStyle = { display: 'flex', gap: 16, flexWrap: 'wrap' as const, color: '#cbd5e1' };
 const ownerRecoveryRowStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' as const, borderTop: '1px solid rgba(148,163,184,.14)', paddingTop: 8 };
 const infoStyle = { border: '1px solid rgba(34,197,94,.28)', borderRadius: 16, padding: 12, background: 'rgba(34,197,94,.08)', display: 'grid', gap: 8 } as const;
