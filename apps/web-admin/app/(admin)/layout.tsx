@@ -76,7 +76,11 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const required = requiredPermissionsForPath(pathname);
   const canViewRoute = required.length === 0 || permissions.includes('*') || required.some((permission) => permissions.includes(permission));
 
-  function logout() { clearAdminSession(); window.location.href = '/login'; }
+  async function logout() {
+    try { await adminApiFetch('/admin/auth/logout', { method: 'POST' }); } catch {}
+    clearAdminSession();
+    window.location.href = '/login';
+  }
   function badgeFor(href: string) { if (href === '/topups' && queueCount.topups > 0) return queueCount.topups; if (href === '/withdrawals' && queueCount.withdrawals > 0) return queueCount.withdrawals; if (href === '/dashboard' && queueCount.topups + queueCount.withdrawals > 0) return queueCount.topups + queueCount.withdrawals; return 0; }
   function navigate(href: string) {
     setMenuOpen(false);
