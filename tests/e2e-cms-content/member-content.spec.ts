@@ -121,7 +121,7 @@ test.describe('Member CMS content visual regression', () => {
 
     await expect(page).toHaveURL('http://127.0.0.1:3101/');
     await expect(page.getByText('Platform Visual Test').first()).toBeVisible();
-    await expect(page.getByText('ระบบพร้อมใช้งาน')).toBeVisible();
+    await expect(page.getByRole('status')).toContainText('ฝาก ถอน และเกมเปิดให้บริการตามปกติ');
     await expect(page.getByText('โบนัสต้อนรับสมาชิกใหม่').first()).toBeVisible();
     await expect(page.getByRole('region', { name: 'โปรโมชั่นแนะนำ' })).toBeVisible();
     await expectNoHorizontalOverflow(page);
