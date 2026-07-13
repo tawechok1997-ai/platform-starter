@@ -64,16 +64,47 @@ function settings(maintenance = false) {
 }
 
 async function mockMemberApi(page: import('@playwright/test').Page, maintenance = false) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem('member_access_token', 'e2e-member-token');
+    window.localStorage.setItem('member_refresh_token', 'e2e-member-refresh-token');
+  });
+
   await page.route('http://127.0.0.1:4000/**', async (route) => {
     const url = new URL(route.request().url());
+
     if (url.pathname === '/public/site-settings') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(settings(maintenance)) });
       return;
     }
+
+    if (url.pathname === '/member/auth/me' || url.pathname === '/member/profile') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: '22222222-2222-4222-8222-222222222222',
+          username: 'cms-visual-member',
+          phone: '0890000000',
+          email: 'cms@example.test',
+        }),
+      });
+      return;
+    }
+
+    if (url.pathname === '/member/auth/refresh') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ accessToken: 'e2e-member-token', refreshToken: 'e2e-member-refresh-token' }),
+      });
+      return;
+    }
+
     if (url.pathname.includes('games')) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], providers: [], categories: [] }) });
       return;
     }
+
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], total: 0 }) });
   });
 }
@@ -88,7 +119,8 @@ test.describe('Member CMS content visual regression', () => {
     await mockMemberApi(page, false);
     await page.goto('http://127.0.0.1:3101/');
 
-    await expect(page.getByText('Platform Visual Test')).toBeVisible();
+    await expect(page).toHaveURL('http://127.0.0.1:3101/');
+    await expect(page.getByText('Platform Visual Test').first()).toBeVisible();
     await expect(page.getByText('ระบบพร้อมใช้งาน')).toBeVisible();
     await expect(page.getByText('โบนัสต้อนรับสมาชิกใหม่').first()).toBeVisible();
     await expect(page.getByRole('region', { name: 'โปรโมชั่นแนะนำ' })).toBeVisible();
@@ -104,6 +136,7 @@ test.describe('Member CMS content visual regression', () => {
     await mockMemberApi(page, true);
     await page.goto('http://127.0.0.1:3101/');
 
+    await expect(page).toHaveURL('http://127.0.0.1:3101/');
     await expect(page.getByRole('heading', { name: 'Platform Visual Test' })).toBeVisible();
     await expect(page.getByText('ระบบกำลังปรับปรุงตามแผน กรุณากลับมาอีกครั้ง')).toBeVisible();
     await expect(page.getByText('โบนัสต้อนรับสมาชิกใหม่')).toHaveCount(0);
