@@ -37,6 +37,9 @@ const GROWTH_PERMISSIONS = [
   { code: 'bank_accounts.view', name: 'View bank accounts', module: 'bank-accounts', description: 'ดูบัญชีธนาคารและข้อมูล KYC ที่เกี่ยวข้อง' },
   { code: 'bank_accounts.manage', name: 'Manage bank accounts', module: 'bank-accounts', description: 'สร้างหรือแก้ไขบัญชีรับเงินของระบบ' },
   { code: 'bank_accounts.review', name: 'Review member bank accounts', module: 'bank-accounts', description: 'ตรวจสอบและอนุมัติบัญชีธนาคารสมาชิก' },
+  { code: 'support.view', name: 'View support tickets', module: 'support', description: 'ดู ticket และรายละเอียดการติดต่อ' },
+  { code: 'support.reply', name: 'Reply to support tickets', module: 'support', description: 'ตอบกลับ ticket ในฐานะแอดมิน' },
+  { code: 'support.manage', name: 'Manage support tickets', module: 'support', description: 'เปลี่ยนสถานะหรือจัดการ ticket' },
 ];
 
 @Injectable()
