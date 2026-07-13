@@ -308,7 +308,9 @@ export class AdminAccessService {
     };
   }
 
-  async assignRole(actorAdminId: string, targetAdminId: string, roleId: string) {
+  async assignRole(actorAdminId: string, targetAdminId: string, roleId: string, reasonInput: string) {
+    const reason = String(reasonInput ?? '').trim();
+    if (reason.length < 5) throw new BadRequestException('A reason of at least 5 characters is required');
     const [actor, target, role] = await Promise.all([
       this.findAdminWithPermissions(actorAdminId),
       this.prisma.adminUser.findUnique({ where: { id: targetAdminId }, include: { roles: { include: { role: true } } } }),
@@ -328,11 +330,13 @@ export class AdminAccessService {
       create: { adminUserId: targetAdminId, roleId },
     });
 
-    await this.audit(actorAdminId, 'ASSIGN_ROLE', targetAdminId, { roleId, roleCode: role.code, target: target.username });
+    await this.audit(actorAdminId, 'ASSIGN_ROLE', targetAdminId, { roleId, roleCode: role.code, target: target.username, reason });
     return this.overview();
   }
 
-  async removeRole(actorAdminId: string, targetAdminId: string, roleId: string) {
+  async removeRole(actorAdminId: string, targetAdminId: string, roleId: string, reasonInput: string) {
+    const reason = String(reasonInput ?? '').trim();
+    if (reason.length < 5) throw new BadRequestException('A reason of at least 5 characters is required');
     const [actor, target] = await Promise.all([
       this.findAdminWithPermissions(actorAdminId),
       this.prisma.adminUser.findUnique({ where: { id: targetAdminId }, include: { roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } } } }),
@@ -363,7 +367,7 @@ export class AdminAccessService {
     if (isSelf && (isLastRole || roleHasAccessManage)) throw new ForbiddenException('Cannot remove your own critical access role');
 
     await this.prisma.adminUserRole.delete({ where: { adminUserId_roleId: { adminUserId: targetAdminId, roleId } } });
-    await this.audit(actorAdminId, 'REMOVE_ROLE', targetAdminId, { roleId, roleCode: assignment.role.code, target: target.username });
+    await this.audit(actorAdminId, 'REMOVE_ROLE', targetAdminId, { roleId, roleCode: assignment.role.code, target: target.username, reason });
     return this.overview();
   }
 
