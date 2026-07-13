@@ -225,7 +225,7 @@ export default function AdminSecurityPage() {
   </AdminPage>;
 }
 
-const ownerRecoveryInfoStyle = { { border: '1px solid rgba(245,197,66,.28)', borderRadius: 16, padding: 12, background: 'rgba(245,197,66,.08)', display: 'grid', gap: 8 };
+const ownerRecoveryInfoStyle = { border: '1px solid rgba(245,197,66,.28)', borderRadius: 16, padding: 12, background: 'rgba(245,197,66,.08)', display: 'grid', gap: 8 };
 const recoverySummaryStyle = { display: 'flex', gap: 16, flexWrap: 'wrap' as const, color: '#cbd5e1' };
 const ownerRecoveryRowStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' as const, borderTop: '1px solid rgba(148,163,184,.14)', paddingTop: 8 };
 const infoStyle = { border: '1px solid rgba(34,197,94,.28)', borderRadius: 16, padding: 12, background: 'rgba(34,197,94,.08)', display: 'grid', gap: 8 } as const;
