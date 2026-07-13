@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { AntiBotService } from '../anti-bot/anti-bot.service';
@@ -16,16 +16,20 @@ export class AdminAuthController {
   ) {}
 
   @Post('login')
-  async signIn(@Body() dto: AdminSignInDto, @Req() req: any) {
+  async signIn(@Body() dto: AdminSignInDto, @Req() req: any, @Res({ passthrough: true }) res: any) {
     const meta = this.meta(req, dto.deviceId);
     await this.loginDefense.assertAllowed(dto.username, meta);
     await this.antiBot.assertValid('ADMIN_LOGIN', dto.captchaToken, meta.ipAddress);
-    return this.adminAuthService.signIn(dto, meta);
+    const result = await this.adminAuthService.signIn(dto, meta);
+    this.setRefreshCookie(res, result?.refreshToken);
+    return result;
   }
 
   @Post('2fa/verify')
-  verifyTwoFactor(@Body() dto: VerifyAdminTwoFactorDto, @Req() req: any) {
-    return this.adminAuthService.verifyTwoFactor(dto, this.meta(req));
+  async verifyTwoFactor(@Body() dto: VerifyAdminTwoFactorDto, @Req() req: any, @Res({ passthrough: true }) res: any) {
+    const result = await this.adminAuthService.verifyTwoFactor(dto, this.meta(req));
+    this.setRefreshCookie(res, result?.refreshToken);
+    return result;
   }
 
   @UseGuards(AdminAuthGuard)
@@ -53,13 +57,17 @@ export class AdminAuthController {
   }
 
   @Post('refresh')
-  refresh(@Body('refreshToken') refreshToken: string, @Req() req: any) {
-    return this.adminAuthService.refreshSession(refreshToken, this.meta(req));
+  async refresh(@Body('refreshToken') refreshToken: string, @Req() req: any, @Res({ passthrough: true }) res: any) {
+    const token = String(refreshToken ?? '').trim() || this.readRefreshCookie(req);
+    const result = await this.adminAuthService.refreshSession(token, this.meta(req));
+    this.setRefreshCookie(res, result?.refreshToken);
+    return result;
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('logout')
-  signOut(@CurrentUser() user: any, @Req() req: any) {
+  signOut(@CurrentUser() user: any, @Req() req: any, @Res({ passthrough: true }) res: any) {
+    this.clearRefreshCookie(res);
     return this.adminAuthService.signOut(user.sessionId, user.id, this.meta(req));
   }
 
@@ -91,6 +99,23 @@ export class AdminAuthController {
   @Get('me')
   me(@CurrentUser() user: any) {
     return user;
+  }
+
+  private setRefreshCookie(res: any, refreshToken?: string) {
+    if (!refreshToken || typeof res?.setHeader !== 'function') return;
+    const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+    res.setHeader('Set-Cookie', `platform_admin_refresh=${encodeURIComponent(refreshToken)}; Path=/api/admin/auth; HttpOnly; SameSite=Lax; Max-Age=2592000${secure}`);
+  }
+
+  private clearRefreshCookie(res: any) {
+    if (typeof res?.setHeader !== 'function') return;
+    res.setHeader('Set-Cookie', 'platform_admin_refresh=; Path=/api/admin/auth; HttpOnly; SameSite=Lax; Max-Age=0');
+  }
+
+  private readRefreshCookie(req: any) {
+    const header = String(req.headers?.cookie ?? '');
+    const match = header.match(/(?:^|;\\s*)platform_admin_refresh=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
   }
 
   private meta(req: any, deviceId?: string) {
