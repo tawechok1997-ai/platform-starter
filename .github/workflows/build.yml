@@ -67,7 +67,7 @@ jobs:
         run: |
           PSQL_DATABASE_URL="${DATABASE_URL%%\?*}"
           psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714190000_add_promotion_domain_models/migration.sql
-          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714193000_backfill_promotion_domain_models/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714191000_backfill_promotion_domain_models/migration.sql
 
       - name: Test API
         run: pnpm --filter @platform/api test -- --runInBand
