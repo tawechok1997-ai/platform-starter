@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Headers, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import type { AdminRequestContext, AuthenticatedAdminActor, MemberActor } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
@@ -14,45 +15,92 @@ export class WithdrawalsController {
 
   @UseGuards(MemberAuthGuard)
   @Post('member/withdrawals')
-  createMemberRequest(@CurrentUser() user: any, @Body() body: CreateWithdrawalRequestDto, @Headers('idempotency-key') idempotencyKey?: string) { return this.withdrawalsService.createMemberRequest(user.id, body, idempotencyKey); }
+  createMemberRequest(
+    @CurrentUser() user: MemberActor,
+    @Body() body: CreateWithdrawalRequestDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ) {
+    return this.withdrawalsService.createMemberRequest(user.id, body, idempotencyKey);
+  }
 
   @UseGuards(MemberAuthGuard)
   @Get('member/withdrawals')
-  getMemberRequests(@CurrentUser() user: any) { return this.withdrawalsService.getMemberRequests(user.id); }
+  getMemberRequests(@CurrentUser() user: MemberActor) {
+    return this.withdrawalsService.getMemberRequests(user.id);
+  }
 
   @UseGuards(MemberAuthGuard)
   @Get('member/withdrawals/:id')
-  getMemberRequest(@CurrentUser() user: any, @Param('id') id: string) { return this.withdrawalsService.getMemberRequest(user.id, id); }
+  getMemberRequest(@CurrentUser() user: MemberActor, @Param('id') id: string) {
+    return this.withdrawalsService.getMemberRequest(user.id, id);
+  }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('finance.withdrawals.view')
   @Get('admin/withdrawals')
-  getAdminRequests(@Query('status') status?: string, @Query('page') page?: string, @Query('take') take?: string) { return this.withdrawalsService.getAdminRequests(status, { page, take }); }
+  getAdminRequests(
+    @Query('status') status?: string,
+    @Query('page') page?: string,
+    @Query('take') take?: string,
+  ) {
+    return this.withdrawalsService.getAdminRequests(status, { page, take });
+  }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('finance.withdrawals.view')
   @Get('admin/withdrawals/:id')
-  getAdminRequest(@Param('id') id: string) { return this.withdrawalsService.getAdminRequest(id); }
+  getAdminRequest(@Param('id') id: string) {
+    return this.withdrawalsService.getAdminRequest(id);
+  }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('finance.withdrawals.review')
   @Post('admin/withdrawals/:id/claim')
-  claimRequest(@Param('id') id: string, @CurrentUser() user: any, @Req() req: any) { return this.withdrawalsService.claimRequest(id, user, this.meta(req)); }
+  claimRequest(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Req() req: AdminRequestContext,
+  ) {
+    return this.withdrawalsService.claimRequest(id, user, this.meta(req));
+  }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('finance.withdrawals.review')
   @Post('admin/withdrawals/:id/release')
-  releaseRequest(@Param('id') id: string, @CurrentUser() user: any, @Req() req: any) { return this.withdrawalsService.releaseRequest(id, user, this.meta(req)); }
+  releaseRequest(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Req() req: AdminRequestContext,
+  ) {
+    return this.withdrawalsService.releaseRequest(id, user, this.meta(req));
+  }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('finance.withdrawals.review')
   @Post('admin/withdrawals/:id/approve')
-  approveRequest(@Param('id') id: string, @CurrentUser() user: any, @Body() body: ReviewWithdrawalRequestDto, @Req() req: any) { return this.withdrawalsService.approveRequest(id, user, body, this.meta(req)); }
+  approveRequest(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Body() body: ReviewWithdrawalRequestDto,
+    @Req() req: AdminRequestContext,
+  ) {
+    return this.withdrawalsService.approveRequest(id, user, body, this.meta(req));
+  }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('finance.withdrawals.review')
   @Post('admin/withdrawals/:id/reject')
-  rejectRequest(@Param('id') id: string, @CurrentUser() user: any, @Body() body: ReviewWithdrawalRequestDto, @Req() req: any) { return this.withdrawalsService.rejectRequest(id, user, body, this.meta(req)); }
+  rejectRequest(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Body() body: ReviewWithdrawalRequestDto,
+    @Req() req: AdminRequestContext,
+  ) {
+    return this.withdrawalsService.rejectRequest(id, user, body, this.meta(req));
+  }
 
-  private meta(req: any) { return { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] }; }
+  private meta(req: AdminRequestContext) {
+    const userAgent = req.headers?.['user-agent'];
+    return { ipAddress: req.ip, userAgent: Array.isArray(userAgent) ? userAgent[0] : userAgent };
+  }
 }
