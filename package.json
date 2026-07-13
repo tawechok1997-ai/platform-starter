@@ -14,6 +14,7 @@
     "audit:mutation-dto-coverage": "node tools/audit-mutation-dto-coverage.mjs",
     "audit:critical-controller-types": "node tools/audit-critical-controller-types.mjs",
     "audit:error-code-catalog": "node tools/audit-error-code-catalog.mjs",
+    "audit:critical-error-contracts": "node tools/audit-critical-error-contracts.mjs",
     "audit:admin-permissions": "node tools/audit-admin-permissions.mjs",
     "audit:finance-workflows": "node tools/audit-finance-workflows.mjs",
     "audit:admin-token-storage": "node tools/audit-admin-token-storage.mjs",
