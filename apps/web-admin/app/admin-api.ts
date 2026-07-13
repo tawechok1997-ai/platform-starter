@@ -61,6 +61,7 @@ export async function refreshAdminToken() {
   if (!refreshToken) return '';
   const res = await fetch('/api/admin/auth/refresh', {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
   });
