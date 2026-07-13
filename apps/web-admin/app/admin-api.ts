@@ -69,7 +69,8 @@ export async function refreshAdminToken() {
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.accessToken) return '';
   setAdminAccessToken(data.accessToken);
-  if (data.refreshToken) window.localStorage.setItem('admin_refresh_token', data.refreshToken);
+  // Successful refresh rotates the HttpOnly cookie; remove the legacy body token after migration.
+  window.localStorage.removeItem('admin_refresh_token');
   return data.accessToken as string;
 }
 
