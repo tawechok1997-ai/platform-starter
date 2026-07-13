@@ -20,7 +20,7 @@ Branch อ้างอิง: **`main`**
 - `apps/api` มี Jest, finance concurrency, promotion settlement concurrency และ phone OTP PostgreSQL security test commands
 - `apps/web-admin` และ `apps/web-member` มี build script แต่ยังไม่มี app-level lint/test script
 - Build workflow ใช้ PostgreSQL 16, รัน Prisma validate/generate/migrate, API tests, finance concurrency tests, promotion settlement concurrency tests, phone OTP security tests และ build ทั้งสามแอป
-- Build #618 ผ่านครบทั้ง API tests, PostgreSQL finance concurrency, PostgreSQL promotion settlement concurrency และ build ทั้งสามแอป
+- Build #618 ผ่านครบทั้ง API tests, PostgreSQL finance concurrency, PostgreSQL promotion settlement concurrency และ buildทั้งสามแอป
 - Phone OTP CI รอบล่าสุดผ่านทั้ง API tests, PostgreSQL replay/brute-force/concurrent verify suite และ build ทั้งสามแอป
 - มี shared package `packages/api-client`
 - Playwright smoke/visual config มีอยู่ แต่ผล browser regression ไม่ถือว่าผ่านจนกว่าจะมี workflow หรือ artifact ยืนยัน
@@ -36,16 +36,16 @@ Branch อ้างอิง: **`main`**
 | Deposit / withdrawal workflow safety | 🟡 PARTIAL — DB concurrency ผ่านแล้ว เหลือ credentialed production flow |
 | Admin auth / owner / role / 2FA | 🟡 PARTIAL — implementation มีแล้ว เหลือ credentialed regression |
 | Permission coverage | 🟡 PARTIAL — static audits มีแล้ว เหลือ role-based browser regression |
-| Member home / game discovery | 🟡 PARTIAL — featureหลักมีแล้ว เหลือ authenticated visual regression |
+| Member home / game discovery | 🟡 PARTIAL — feature หลักมีแล้ว เหลือ authenticated visual regression |
 | Member profile / security | 🟡 PARTIAL |
 | Notifications | 🟡 PARTIAL — channel model/UI มีแล้ว เหลือ rollback/browser regression |
 | Support / FAQ | 🟡 PARTIAL — attachment backend policy มีแล้ว เหลือ binary upload และ browser regression |
 | Admin settings / CMS | 🟡 PARTIAL — URL-backed assets เท่านั้น และยังขาด browser regression |
-| Reports / Activity / Risk / Security Admin | 🟡 PARTIAL — featureหลักมีแล้ว แต่ยังขาด authenticated regression |
+| Reports / Activity / Risk / Security Admin | 🟡 PARTIAL — feature หลักมีแล้ว แต่ยังขาด authenticated regression |
 | Promotion / Bonus / Affiliate / Commission | ✅ DONE — ยังห้ามเปิดเงินจริงจนกว่า provider-specific UAT ผ่าน |
 | KYC / Blacklist / Document workflow | 🟡 PARTIAL — blacklist/watchlist, KYC document backend และ Phone OTP มีแล้ว เหลือ UI, watchlist/KYC DB evidence และ deployed regression |
 | Real provider integration | ⏸️ Code readiness มีแล้ว; vendor UAT blocked |
-| Code structure refactor | 🟡 PARTIAL |
+| Code structure refactor | 🟡 PARTIAL — ขยายเป็น execution-ready backlog ใน P4 |
 | Performance / Storage / CI hardening | 🟡 PARTIAL |
 
 ---
@@ -318,36 +318,98 @@ Branch อ้างอิง: **`main`**
 
 ---
 
-# P4 — Refactor
+# P4 — Professional Refactor และ Codebase Organization
 
-## R-001 Service decomposition
+> P4 เป็น execution backlog จริง ไม่ใช่หัวข้อกว้าง ๆ อีกต่อไป งานกลุ่ม **P4-A Safety Refactor** ให้ทำแทรกระหว่าง feature ได้ทันที ส่วน **P4-B Structural Refactor** ให้ทำเมื่อ regression coverage ของ domain นั้นพร้อมแล้ว
 
-สถานะ: 🔴 TODO
+## P4 Definition of Done
 
-- [ ] แยก query/command
-- [ ] แยก mapper/audit/formatter
-- [ ] แยก provider orchestration
-- [ ] เพิ่ม regression tests ก่อน refactor
+- [ ] ไม่มี controller เรียก Prisma โดยตรง
+- [ ] ไม่มี circular dependency ระหว่าง module สำคัญ
+- [ ] ทุก critical mutation มี DTO, authorization policy, transaction boundary และ audit
+- [ ] Critical path ไม่มี unsafe `any`, double cast หรือ non-null assertion โดยไม่มี guard
+- [ ] Frontend ใช้ API client กลางเพียงชุดเดียว
+- [ ] Module ownership และ public contract ถูกบันทึกครบ
+- [ ] Critical flow มี unit/integration/contract/browser regression ตามความเหมาะสม
+- [ ] CI มี architecture, lint, typecheck และ forbidden-import guard
+- [ ] Large page และ service ที่เกินเกณฑ์ถูกแยกเป็นส่วนที่ทดสอบได้
+- [ ] เอกสาร architecture, ADR และ module README ตรงกับ implementation ล่าสุด
 
-## R-002 Module ownership
+## P4-A — Safety Refactor ทำได้ทันที
+
+### R-001 Architecture inventory และ ownership
 
 สถานะ: 🟡 PARTIAL
 
 - [x] Endpoint ownership matrix
 - [x] Migration/deprecation plan
-- [ ] รวม query ซ้ำ
-- [ ] ย้าย route ตาม ownership plan
+- [ ] สร้าง `docs/architecture/module-map.md`
+- [ ] สร้าง `docs/architecture/dependency-map.md`
+- [ ] สร้าง `docs/architecture/route-ownership.md`
+- [ ] ระบุ owner ของทุก controller, route, cron และ background job
+- [ ] ระบุ database tables, side effects, permission และ audit event ของทุก critical route
+- [ ] ระบุ service ที่ถูกเรียกข้าม module พร้อมเหตุผล
+- [ ] ตรวจ circular dependency ระหว่าง Nest modules
+- [ ] ตรวจ deep import ข้าม module
+- [ ] กำหนด public entry point ของแต่ละ module
+- [ ] เพิ่ม architecture inventory check ใน CI
 
-## R-003 RiskAlert domain separation
+**หลักฐานปิดงาน:** เอกสารครบ, ไม่มี route ไม่ทราบ owner, CI ตรวจ boundary ได้
 
-สถานะ: ✅ DONE
+### R-002 Dependency rules และ module boundaries
 
-- [x] Promotion/bonus models
-- [x] Affiliate/commission models
-- [x] Constraints/indexes/backfill
-- [x] Service/frontend migration
+สถานะ: 🔴 TODO
 
-## R-004 Shared API client
+- [ ] กำหนด dependency direction: presentation → application → domain
+- [ ] แยก infrastructure adapter ออกจาก domain rule
+- [ ] ห้าม domain import NestJS, Prisma หรือ HTTP exception
+- [ ] ห้าม frontend import server-only package
+- [ ] ห้าม app import source ภายในของอีก app
+- [ ] เพิ่ม ESLint/import boundary rules
+- [ ] เพิ่ม forbidden-import script
+- [ ] เพิ่ม circular dependency scan
+- [ ] เพิ่ม CI gate สำหรับ architecture violation
+- [ ] บันทึกข้อยกเว้นชั่วคราวพร้อม owner และวันหมดอายุ
+
+**หลักฐานปิดงาน:** architecture checks ผ่านและไม่มี undocumented exception
+
+### R-003 Regression safety net ก่อนย้ายโค้ด
+
+สถานะ: 🔴 TODO
+
+- [ ] ทำ test inventory แยก unit/integration/contract/database/browser/visual/concurrency
+- [ ] ระบุ critical flows ที่ยังไม่มี regression test
+- [ ] เพิ่ม characterization tests ให้ service ที่กำลังจะแยก
+- [ ] เพิ่ม state-transition tests สำหรับ deposit/withdrawal/KYC/watchlist/support/admin lifecycle
+- [ ] เพิ่ม permission policy tests สำหรับ critical mutations
+- [ ] เพิ่ม error-contract snapshots
+- [ ] เพิ่ม database rollback tests สำหรับ transaction สำคัญ
+- [ ] เพิ่ม test ป้องกัน duplicate settlement/idempotency regression
+- [ ] ห้าม refactor domain ใดหาก critical behavior ของ domain นั้นยังไม่มี test
+- [ ] เพิ่ม test failure summary ใน CI
+
+**หลักฐานปิดงาน:** refactor PR ทุกชุดมี regression evidence ก่อนและหลัง
+
+### R-004 DTO, type strictness และ API contract
+
+สถานะ: 🟡 PARTIAL
+
+- [x] Shared `AdminActor`/`MemberActor`
+- [ ] ทำ inventory mutation routes ทั้งหมด
+- [ ] เพิ่ม DTO ครบทุก `POST`, `PUT`, `PATCH` และ `DELETE` ที่มี body
+- [ ] เพิ่ม validation, normalization, enum whitelist และ max length
+- [ ] แยก request DTO, command type, domain type และ response DTO
+- [ ] ห้ามส่ง Prisma model ออก API โดยตรง
+- [ ] ทำ sensitive-field denylist สำหรับ response
+- [ ] ลด `any`, `as unknown as` และ non-null assertion ใน critical path
+- [ ] เปิดหรือทยอยเปิด `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`
+- [ ] เพิ่ม error code catalog ที่ frontend ใช้ได้โดยไม่ parse message
+- [ ] เพิ่ม contract tests ระหว่าง API กับ Admin/Member
+- [ ] เพิ่ม strict/type regression guard ใน CI
+
+**หลักฐานปิดงาน:** critical mutations typed end-to-end และ generated/declared contract ตรงกัน
+
+### R-005 Shared API client consolidation
 
 สถานะ: 🟡 PARTIAL
 
@@ -355,34 +417,231 @@ Branch อ้างอิง: **`main`**
 - [x] Shared URL/header/error/retry/cache/auth-refresh behavior
 - [x] Admin/member workspace integration
 - [x] Auth flow migration บางส่วน
-- [ ] ตรวจ local `/api/*` calls ทุก route
-- [ ] ลบ duplicate API helpers ที่ยังเหลือ
+- [ ] inventory `fetch`, `axios`, local `/api/*`, `adminFetch`, `memberFetch`, `fetchJson` และ helper ซ้ำทั้งหมด
+- [ ] ย้าย Admin routes ทุก route ไป API client กลาง
+- [ ] ย้าย Member routes ทุก route ไป API client กลาง
+- [ ] ทำ typed request/response per domain
+- [ ] รวม timeout, abort, retry และ request ID behavior
+- [ ] รวม auth refresh/rotation behavior
+- [ ] รองรับ file upload และ private download แบบ typed
+- [ ] ทำ error normalization กลาง
+- [ ] ลบ duplicate API helpers
+- [ ] เพิ่ม static audit ป้องกัน helper ใหม่ที่ไม่ผ่าน client กลาง
+- [ ] เพิ่ม contract regression สำหรับ auth, finance, KYC, support และ notifications
 
-## R-005 DTO/type strictness
+**หลักฐานปิดงาน:** ไม่มี direct/local API call นอก allowlist และ helper ซ้ำเป็นศูนย์
+
+### R-006 CI quality baseline
+
+สถานะ: 🔴 TODO
+
+- [ ] เพิ่ม `lint:api`, `lint:admin`, `lint:member`, `lint:packages`
+- [ ] เพิ่ม `typecheck:api`, `typecheck:admin`, `typecheck:member`, `typecheck:packages`
+- [ ] เพิ่ม shared ESLint config
+- [ ] เพิ่ม shared formatter config
+- [ ] เพิ่ม unused import/export checks
+- [ ] เพิ่ม forbidden import และ circular dependency checks
+- [ ] เพิ่ม generated-client/schema drift check
+- [ ] เพิ่ม migration validation gate
+- [ ] เพิ่ม test-skip detection สำหรับ critical suites
+- [ ] เพิ่ม browser console/network error failure gate
+- [ ] เพิ่ม artifact/failure summary
+- [ ] ทำ changed-files optimization โดยไม่ตัด critical dependency tests
+
+**หลักฐานปิดงาน:** CI fail ได้จริงเมื่อโค้ดฝ่าฝืนกติกา ไม่ใช่มี script ไว้ประดับ repo
+
+## P4-B — Structural Refactor ทำเมื่อ regression coverage พร้อม
+
+### R-007 Backend service decomposition
+
+สถานะ: 🔴 TODO
+
+- [ ] inventory controller/service ที่เกินเกณฑ์บรรทัดหรือจำนวน dependency
+- [ ] กำหนดเกณฑ์ controller/service size และ public method count
+- [ ] แยก command กับ query สำหรับ finance
+- [ ] แยก command กับ query สำหรับ admin lifecycle/auth
+- [ ] แยก command กับ query สำหรับ KYC/watchlist
+- [ ] แยก command กับ query สำหรับ support/notifications
+- [ ] แยก command กับ query สำหรับ CMS/reports
+- [ ] แยก mapper Prisma ↔ domain ↔ response
+- [ ] แยก audit builder และ metadata formatter
+- [ ] แยก CSV/report serializer
+- [ ] แยก provider orchestration
+- [ ] แยก settlement orchestration
+- [ ] ลด constructor dependencies ที่มากเกินเกณฑ์
+- [ ] ทำ regression tests ต่อ handler/service ใหม่
+
+**หลักฐานปิดงาน:** service ใหญ่ถูกแยกตาม responsibility และทุกส่วนทดสอบแยกได้
+
+### R-008 Domain model และ policy separation
 
 สถานะ: 🟡 PARTIAL
 
-- [x] Shared `AdminActor`/`MemberActor`
-- [ ] DTO ครบทุก mutation body
-- [ ] ลด unsafe `any`/casts
-- [ ] Strict checks และ CI guard
+- [x] Promotion/bonus models แยกจาก `RiskAlert.metadata`
+- [x] Affiliate/commission models
+- [x] Constraints/indexes/backfill
+- [x] Service/frontend migration ของ promotion domain
+- [ ] แยก Deposit entity/state transition policy
+- [ ] แยก Withdrawal entity/state transition policy
+- [ ] แยก Wallet settlement policy
+- [ ] แยก Admin account/ownership policy
+- [ ] แยก KYC review policy
+- [ ] แยก Watchlist matching/override policy
+- [ ] แยก Support ticket lifecycle policy
+- [ ] แยก Notification preference policy
+- [ ] ทำ domain errors ที่ไม่ผูกกับ Nest HTTP exception
+- [ ] ทำ value objects สำหรับ Money, Phone, BankAccount และ identifiers ที่สำคัญ
+- [ ] เพิ่ม unit tests สำหรับ invariant และ policy ทุก domain สำคัญ
 
-## R-006 UI/CSS consolidation
+**หลักฐานปิดงาน:** business rule สำคัญอยู่ใน domain/policy ที่ทดสอบได้ ไม่กระจายใน controller/service
+
+### R-009 Repository, transaction และ persistence boundary
+
+สถานะ: 🔴 TODO
+
+- [ ] ตรวจ controller ที่เรียก Prisma โดยตรงทั้งหมด
+- [ ] ย้าย Prisma access ออกจาก controller
+- [ ] กำหนด repository ports สำหรับ critical domains
+- [ ] ทำ Prisma repository adapters
+- [ ] ห้าม Prisma type หลุดผ่าน repository interface
+- [ ] รวม transaction boundary ของ deposit approval
+- [ ] รวม transaction boundary ของ withdrawal completion
+- [ ] รวม transaction boundary ของ ownership transfer
+- [ ] รวม transaction boundary ของ KYC review/watchlist override
+- [ ] รวม transaction boundary ของ promotion settlement
+- [ ] กำหนด lock order มาตรฐานเพื่อลด deadlock
+- [ ] ทำ row-lock helpers ที่สื่อ intent
+- [ ] ตรวจ query ที่หลุดออกนอก transaction
+- [ ] เพิ่ม rollback/deadlock/concurrency tests
+- [ ] audit unique/foreign-key/cascade/idempotency constraints
+
+**หลักฐานปิดงาน:** critical write flow มี transaction owner เดียว, lock order ชัด และ rollback test ผ่าน
+
+### R-010 Query/read model และ projection cleanup
+
+สถานะ: 🔴 TODO
+
+- [ ] inventory query ซ้ำและ hard-coded `take`
+- [ ] รวม query ซ้ำตาม module ownership
+- [ ] แยก list/detail/summary projections
+- [ ] ลด `include` relation ที่ไม่จำเป็นใน list endpoint
+- [ ] ทำ cursor pagination pattern กลาง
+- [ ] ทำ filter parser และ sort whitelist กลาง
+- [ ] ป้องกัน arbitrary sort/filter
+- [ ] ทำ dashboard read model
+- [ ] ทำ report read model
+- [ ] ตรวจ sensitive fields ใน projection
+- [ ] เพิ่ม response snapshot/contract tests
+- [ ] เพิ่ม EXPLAIN ANALYZE evidence สำหรับ query หนัก
+- [ ] เพิ่ม N+1/slow-query metrics
+
+**หลักฐานปิดงาน:** list endpoints โหลดเฉพาะ field จำเป็น, pagination มาตรฐานเดียว และ query หนักมี evidence
+
+### R-011 Error, authorization และ security boundary
+
+สถานะ: 🔴 TODO
+
+- [ ] สร้าง domain error taxonomy
+- [ ] แยก domain error จาก HTTP exception
+- [ ] ทำ HTTP error mapper กลาง
+- [ ] ทำ stable error codes และ localization-ready message keys
+- [ ] รวม authorization policies ต่อ domain
+- [ ] เพิ่ม resource-level authorization
+- [ ] รวม step-up/2FA requirement checks
+- [ ] รวม mandatory reason/audit checks
+- [ ] แยก DTO validation, business validation และ persistence constraint
+- [ ] ทำ input normalization สำหรับ email/phone/bank account/Unicode
+- [ ] ทำ sensitive logging redact policy
+- [ ] เพิ่ม static audit ป้องกัน log token/password/OTP/secret/private URL
+- [ ] ตรวจ CSRF/replay/idempotency boundaries
+- [ ] เพิ่ม security policy tests
+
+**หลักฐานปิดงาน:** permission/error/security behavior อยู่ใน policy กลางและมี regression tests
+
+### R-012 Frontend feature architecture และ large-page decomposition
+
+สถานะ: 🔴 TODO
+
+- [ ] จัด Admin folders ตาม feature/domain
+- [ ] จัด Member folders ตาม feature/domain
+- [ ] กำหนด public exports ของแต่ละ feature
+- [ ] แยก page container ออกจาก presentation components
+- [ ] แยก register page
+- [ ] แยก deposit page
+- [ ] แยก withdrawal page
+- [ ] แยก provider page
+- [ ] แยก content/CMS page
+- [ ] แยก promotion page
+- [ ] แยก security/admin lifecycle page
+- [ ] แยก KYC admin/member pages
+- [ ] แยก support page/thread components
+- [ ] แยก form schemas/defaults/serialization/error mapping
+- [ ] แยก server state จาก UI state
+- [ ] ทำ query-key factories และ invalidation rules
+- [ ] เพิ่ม component/unit tests สำหรับส่วนที่แยก
+- [ ] เพิ่ม unsaved-change และ optimistic rollback regression
+
+**หลักฐานปิดงาน:** page files ไม่แบก business logic และ component สำคัญทดสอบแยกได้
+
+### R-013 UI system, design tokens และ accessibility
 
 สถานะ: 🟡 PARTIAL
 
 - [x] ลบ unused legacy admin UI files
 - [x] ลบ empty unused `packages/ui`
-- [ ] รวม design tokens
+- [ ] inventory hard-coded color/spacing/radius/shadow/breakpoint/z-index
+- [ ] รวม color tokens
+- [ ] รวม spacing/radius/shadow tokens
+- [ ] รวม typography/motion/breakpoint/z-index tokens
+- [ ] สร้างหรือรวม Button/Input/Select/TextArea primitives
+- [ ] สร้างหรือรวม Modal/Drawer/ConfirmDialog primitives
+- [ ] สร้างหรือรวม Table/Pagination/Tabs/Badge primitives
+- [ ] สร้างหรือรวม Toast/Alert/Skeleton/EmptyState/ErrorState primitives
 - [ ] ลด responsive CSS ซ้ำ
-- [ ] Visual regression
+- [ ] กำหนด mobile-first responsive strategy
+- [ ] กำหนด table→card, modal→bottom-sheet และ sidebar→drawer patterns
+- [ ] เพิ่ม keyboard/focus/ARIA baseline
+- [ ] เพิ่ม reduced-motion และ contrast checks
+- [ ] เพิ่ม six-viewport visual regression
+- [ ] เก็บ screenshot/trace/console/network artifacts ใน CI
 
-## R-007 Large-page decomposition
+**หลักฐานปิดงาน:** design system ใช้จริงทั้ง Admin/Member และ visual/accessibility regressions ผ่าน
+
+### R-014 Observability, documentation และ cleanup
 
 สถานะ: 🔴 TODO
 
-- [ ] แยก register/deposit/withdraw/provider/content/promotion/security pages
-- [ ] เพิ่ม component/unit tests
+- [ ] ทำ structured logging fields: requestId, actorId, actorType, module, action, duration, result
+- [ ] ทำ log redaction tests
+- [ ] เพิ่ม request latency/error-rate/DB-query metrics
+- [ ] เพิ่ม login/settlement/provider callback failure metrics
+- [ ] ทำ slow-query dashboard หรือ report
+- [ ] เขียน module README สำหรับ finance/auth/KYC/watchlist/support/notifications/CMS
+- [ ] เขียน state-machine docs สำหรับ deposit/withdrawal/KYC/support/admin lifecycle/promotion
+- [ ] เพิ่ม ADR สำหรับ module boundaries, transaction, API client, session, storage, audit, cache
+- [ ] เพิ่ม deployment/migration/rollback runbooks
+- [ ] เพิ่ม finance/security/provider outage runbooks
+- [ ] inventory unused exports/components/routes/feature flags/helpers/CSS
+- [ ] ลบ dead code ทีละ domain พร้อม regression evidence
+- [ ] archive legacy docs หลังเชื่อมกลับมาที่ master
+- [ ] ตรวจเอกสารกับ implementation รอบสุดท้าย
+
+**หลักฐานปิดงาน:** ทีมใหม่สามารถเข้าใจ module, deploy, rollback และแก้ incident ได้จาก repo โดยไม่ต้องเดา
+
+## ลำดับดำเนินงาน P4
+
+1. R-001 Architecture inventory
+2. R-003 Regression safety net
+3. R-004 DTO/type/API contract
+4. R-005 Shared API client
+5. R-006 CI quality baseline
+6. R-002 Dependency rules และ boundary enforcement
+7. R-007 ถึง R-011 ทำทีละ backend domain: finance → auth/admin → KYC/watchlist → support/notifications → CMS/reports
+8. R-012 Frontend feature/page decomposition ตาม domain ที่ backend contract นิ่งแล้ว
+9. R-013 UI system และ visual/accessibility regression
+10. R-014 Observability, docs และ dead-code cleanup
+
+> ห้ามทำ structural refactor หลาย domain ใหญ่ใน commit เดียว และห้ามย้าย business logic โดยไม่มี regression test ก่อนหน้า
 
 ---
 
@@ -463,15 +722,16 @@ Branch อ้างอิง: **`main`**
 
 # ลำดับทำงานถัดไป
 
-1. เพิ่ม PostgreSQL integration/concurrency tests สำหรับ watchlist/KYC document lifecycle
-2. ทำ Admin KYC UI และ Member KYC upload UI
-3. ทำ authenticated deployed KYC/risk regression
-4. ตั้ง seeded non-production Admin/Member accounts สำหรับ browser tests
-5. ปิด M-005 ถึง M-010 ด้วย credentialed regression
-6. ปิด M-011 ถึง M-017 และ M-019 ด้วย authenticated visual/functional regression
-7. ทำ refactor P4 หลัง regression coverage พร้อม
-8. ปิด performance/storage/CI P5 ก่อน production launch
-9. ทำ provider-specific UAT หลังได้รับ vendor docs/credentials
+1. เริ่ม P4-A R-001 Architecture inventory และ R-003 Regression safety net ควบคู่กับงาน feature
+2. เพิ่ม PostgreSQL integration/concurrency tests สำหรับ watchlist/KYC document lifecycle
+3. ทำ Admin KYC UI และ Member KYC upload UI
+4. ทำ authenticated deployed KYC/risk regression
+5. ตั้ง seeded non-production Admin/Member accounts สำหรับ browser tests
+6. ปิด M-005 ถึง M-010 ด้วย credentialed regression
+7. ปิด M-011 ถึง M-017 และ M-019 ด้วย authenticated visual/functional regression
+8. ทำ P4-B structural refactor ทีละ domain หลัง regression coverage พร้อม
+9. ปิด performance/storage/CI P5 ก่อน production launch
+10. ทำ provider-specific UAT หลังได้รับ vendor docs/credentials
 
 # Definition of Done ทั้งโปรเจกต์
 
@@ -487,6 +747,7 @@ Branch อ้างอิง: **`main`**
 - [ ] Query หนักมี pagination/index evidence
 - [ ] Provider-specific UAT ผ่านก่อนเปิดเงินจริง
 - [ ] Deployment health/version ตรง commit ที่อนุมัติ
+- [ ] P4 Professional Refactor Definition of Done ผ่านครบ
 
 # เอกสารเดิม
 
