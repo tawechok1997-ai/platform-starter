@@ -13,6 +13,7 @@
     "audit:admin-xss": "node tools/audit-admin-xss-boundary.mjs",
     "test:proxy-rate-limit": "node tools/test-reverse-proxy-rate-limit.mjs",
     "test:kyc:deployed": "node tools/test-deployed-kyc.mjs",
+    "test:e2e:kyc": "playwright test -c playwright.kyc.config.ts",
     "db:generate": "prisma generate --schema prisma/schema.prisma",
     "db:migrate": "prisma migrate deploy --schema prisma/schema.prisma",
     "db:migrate:status": "prisma migrate status --schema prisma/schema.prisma",
