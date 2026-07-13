@@ -40,18 +40,18 @@
 
 ## M-001 Prisma schema
 
-สถานะ: ✅ DONE — source ปัจจุบันไม่มี enum ซ้ำ และ CI/API build ผ่าน Prisma generate
+สถานะ: 🟡 P0 source/CI ปิดแล้ว — เหลือยืนยัน migration history กับ production database จริง
 
 ไฟล์: `prisma/schema.prisma`
 
 - [x] ลบ enum ซ้ำ
-- [ ] ตรวจ migration และ production schema กับฐานข้อมูลจริง
+- [ ] ตรวจ migration และ production schema กับฐานข้อมูลจริงตาม `docs/production-migration-verification-runbook.md`
 - [x] รัน `prisma generate` ผ่านใน API build
 - [x] ไม่ใช้ script แก้ schema ระหว่าง build
 
 ## M-002 Deposit workflow
 
-สถานะ: 🟡 PARTIAL — source blocker ถูกแก้แล้ว เหลือ dedicated workflow/concurrency tests และตรวจ production migration
+สถานะ: 🟡 P0 source/CI ปิดแล้ว — เหลือยืนยัน production migration ตาม runbook
 
 ไฟล์: `apps/api/src/modules/topups/deposit-workflow.service.ts`
 
@@ -64,11 +64,11 @@
 - [x] เพิ่ม static finance workflow safety audit (`pnpm audit:finance-workflows`)
 - [x] เพิ่ม static finance workflow safety audit (`pnpm audit:finance-workflows`)
 - [x] มี dedicated state-transition/idempotency/concurrency tests ใน `finance-concurrency.db.spec.ts`
-- [ ] ตรวจ production migration
+- [ ] ตรวจ production migration ตาม `docs/production-migration-verification-runbook.md`
 
 ## M-003 Withdrawal workflow
 
-สถานะ: 🟡 PARTIAL — source blocker ถูกแก้แล้ว เหลือ dedicated workflow/concurrency tests และตรวจ production migration
+สถานะ: 🟡 P0 source/CI ปิดแล้ว — เหลือยืนยัน production migration ตาม runbook
 
 ไฟล์: `apps/api/src/modules/withdrawals/withdrawal-workflow.service.ts`
 
@@ -81,7 +81,7 @@
 - [x] มี dedicated state-transition/idempotency/concurrency tests ใน `finance-concurrency.db.spec.ts`
 - [ ] ตรวจ production migration
 
-## M-004 ลบ build-time source mutation
+> สถานะ P0: source, CI migration และ finance concurrency tests ผ่านแล้ว เหลือเพียงผล `prisma migrate status` จาก Railway production database\n\n## M-004 ลบ build-time source mutation
 
 สถานะ: ✅ DONE — ลบ scripts mutation และ build ใช้ source จริง
 
