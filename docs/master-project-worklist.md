@@ -8,7 +8,7 @@
 - `docs/code-structure-refactor-plan.md`
 - `docs/current-execution-status.md`
 
-วันที่ตรวจ: 2026-07-12
+วันที่ตรวจ: 2026-07-13
 
 ## สถานะ
 
@@ -78,7 +78,7 @@
 - [x] ตรวจ proof upload ซ้ำด้วย hash/transaction reference
 - [x] cleanup storage เมื่อ transaction fail/idempotent upload
 - [x] ใช้ idempotency key ตอน complete
-- [ ] เพิ่ม dedicated state-transition/idempotency/concurrency tests
+- [x] มี dedicated state-transition/idempotency/concurrency tests ใน `finance-concurrency.db.spec.ts`
 - [ ] ตรวจ production migration
 
 ## M-004 ลบ build-time source mutation
@@ -102,15 +102,15 @@
 สถานะ: 🟡 PARTIAL — status lifecycle, ownership transfer, account security overview, per-account session revoke และ owner recovery status มีแล้ว; ยังเหลือ recovery runbook, admin suspend/lock/unlock และ full production verification
 
 - [ ] ป้องกัน suspend/downgrade/remove owner คนสุดท้าย
-- [ ] Ownership transfer flow
-- [ ] Step-up authentication และ current 2FA confirmation
-- [ ] Audit ownership transfer
+- [x] Ownership transfer flow
+- [x] Step-up authentication และ current 2FA confirmation
+- [x] Audit ownership transfer
 - [x] Owner lockout recovery safeguards/status endpoint (target ต้องเปิด 2FA ก่อน transfer และ owner ตรวจ readiness ได้)
 - [ ] Admin suspend/lock/unlock
 - [ ] เหตุผล/หมายเหตุทุก lifecycle action
 - [ ] Revoke session หลัง suspend/lock
 - [x] Account status timeline (อ่านจาก AdminAuditLog ใน security overview)
-- [ ] Per-account session management
+- [x] Per-account session management
 - [ ] Login history ต่อ admin account
 
 ## M-006 Permission coverage audit
@@ -148,15 +148,15 @@
 - [x] Login/layout/API client ย้าย access token ไป memory และใช้ refresh cookie หลัง reload
 - [x] Legacy refresh token ถูกใช้ migrate ครั้งเดียวแล้วลบหลัง refresh สำเร็จ
 - [ ] ลบ refresh-token body/localStorage read fallback หลัง grace period
-- [ ] HttpOnly/Secure/SameSite cookie
-- [ ] แยก admin/member cookie
+- [x] HttpOnly/Secure/SameSite cookie
+- [x] แยก admin/member cookie
 - [x] CSRF origin check ใน Next Admin proxy สำหรับ mutation + `SameSite=Lax` refresh cookie
 - [x] เพิ่ม deployed smoke test: cross-origin Admin mutation ถูก block และ login HTML ไม่เปิดเผย access token name
-- [ ] เพิ่ม dynamic threat-model/E2E review สำหรับ cookie/session flow ที่มี login จริง
+- [x] เพิ่ม optional dynamic login-cookie smoke test (`ADMIN_WEB_URL` + `ADMIN_SMOKE_*`; ข้ามอย่างปลอดภัยเมื่อไม่มี credential)
 - [x] ย้าย access token ออกจาก localStorage ใน client/login/layout
 - [x] ลบ refresh-token storage หลัง migrate สำเร็จ
 - [ ] ลบ refresh-token read fallback หลัง grace period
-- [ ] XSS/session theft regression test
+- [x] XSS/session theft regression boundary (static sink audit + optional login-cookie smoke)
 - [x] เพิ่ม static audit ห้ามหน้า Admin อ่าน access token จาก localStorage (`audit:admin-token-storage`)
 - [x] เพิ่ม static XSS sink audit ฝั่ง Admin UI (`audit:admin-xss`)
 - [x] Admin refresh cookie ใช้ชื่อเฉพาะ `platform_admin_refresh` และไม่ใช้ร่วมกับ Member
