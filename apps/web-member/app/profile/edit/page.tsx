@@ -71,6 +71,7 @@ export default function EditProfilePage() {
     <div className="member-feature-container">
       <header className="member-feature-header"><div><p>บัญชีของฉัน</p><h1>แก้ไขข้อมูลส่วนตัว</h1><span>จัดการชื่อที่แสดง เบอร์โทร และอีเมล</span></div><MemberLinkButton href="/profile" tone="default">กลับโปรไฟล์</MemberLinkButton></header>
       {notice && <MemberNotice tone={success ? 'success' : 'warning'}>{notice}</MemberNotice>}
+      {dirty && !saving && <MemberNotice tone="warning">คุณมีข้อมูลที่ยังไม่ได้บันทึก หากออกจากหน้านี้การแก้ไขอาจหายไป</MemberNotice>}
       <MemberCard className="member-profile-card">
         <form className="member-profile-form" onSubmit={submit} aria-busy={loading || saving}>
           <label><span>ชื่อที่แสดง</span><input value={draft.displayName} onChange={(event) => setDraft({ ...draft, displayName: event.target.value })} autoComplete="name" disabled={loading || saving} /></label>

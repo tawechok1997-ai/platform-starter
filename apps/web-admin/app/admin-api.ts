@@ -1,3 +1,5 @@
+import { mergeHeaders } from '@platform/api-client';
+
 let inMemoryAccessToken = '';
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
@@ -9,7 +11,7 @@ function proxiedPath(path: string) {
 
 export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   const token = inMemoryAccessToken;
-  const headers = new Headers(options.headers ?? {});
+  const headers = mergeHeaders(options.headers);
   if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
   if (!headers.has('Cache-Control')) headers.set('Cache-Control', 'no-store');
   if (!options.skipAuth && token) headers.set('Authorization', `Bearer ${token}`);

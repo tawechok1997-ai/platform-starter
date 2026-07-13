@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { MemberButton, MemberCard, MemberLinkButton, MemberNotice } from '../components/member-ui';
+import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNotice } from '../components/member-ui';
 import { memberApiFetch } from '../member-api';
 import type { WalletResponse } from '../types/member-finance';
 import './member-profile.css';
@@ -68,7 +68,9 @@ export default function ProfilePage() {
         <MemberButton onClick={() => void loadProfile()} disabled={loading}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</MemberButton>
       </header>
 
-      {message && <MemberNotice tone="warning">{message}</MemberNotice>}
+      {message && <MemberNotice tone="warning"><strong>{message}</strong>{!loading && <MemberButton tone="default" onClick={() => void loadProfile()}>ลองใหม่</MemberButton>}</MemberNotice>}
+
+      {!loading && !profile && message && <MemberEmptyState title="ยังโหลดโปรไฟล์ไม่ได้" description="กรุณาลองใหม่อีกครั้ง หรือกลับมาภายหลังหากระบบสมาชิกยังไม่พร้อม" actionHref="/support" actionLabel="ติดต่อทีมช่วยเหลือ" />}
 
       <section className="member-profile-grid" aria-label="ข้อมูลบัญชี">
         <MemberCard className="member-profile-card">

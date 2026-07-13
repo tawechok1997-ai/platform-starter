@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+import { upstreamApiUrl } from '../../upstream';
 const ALLOWED_ENDPOINTS = new Set(['admin-login']);
 
 export async function GET(
@@ -13,7 +12,7 @@ export async function GET(
   }
 
   try {
-    const response = await fetch(`${API_URL}/public/anti-bot/${endpoint}`, {
+    const response = await fetch(upstreamApiUrl(`/public/anti-bot/${endpoint}`), {
       method: 'GET',
       cache: 'no-store',
       headers: { accept: 'application/json' },

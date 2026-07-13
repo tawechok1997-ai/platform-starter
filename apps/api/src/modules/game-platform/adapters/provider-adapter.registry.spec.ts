@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { DemoProviderAdapter } from './demo-provider.adapter';
+import { GenericTransferProviderAdapter } from './generic-transfer-provider.adapter';
 import { ProviderAdapterRegistry } from './provider-adapter.registry';
 
 describe('ProviderAdapterRegistry', () => {
@@ -14,6 +15,13 @@ describe('ProviderAdapterRegistry', () => {
     const registry = new ProviderAdapterRegistry();
 
     expect(registry.getAdapter('  DEMO-PROVIDER-UAT  ')).toBeInstanceOf(DemoProviderAdapter);
+  });
+
+  it('keeps real-provider behind the generic transfer readiness adapter until vendor docs are available', () => {
+    const registry = new ProviderAdapterRegistry();
+
+    expect(registry.hasAdapter('real-provider')).toBe(true);
+    expect(registry.getAdapter('real-provider')).toBeInstanceOf(GenericTransferProviderAdapter);
   });
 
   it('still rejects unknown providers', () => {

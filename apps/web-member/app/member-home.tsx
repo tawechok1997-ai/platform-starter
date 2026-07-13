@@ -13,6 +13,7 @@ import {
   HomeHero,
   TournamentSection,
   PendingRequests,
+  PromotionSlotGrid,
   QuickActions,
   RecentActivity,
 } from './components/member-home-sections';
@@ -57,6 +58,7 @@ export default function MemberHome(props: MemberHomeProps) {
     <div className="member-home-zone member-home-zone--primary">
       {props.showPromotion && features.games && <HomeHero siteName={props.siteName} description={props.description} primaryColor={props.primaryColor} content={props.cmsContent} />}
       <AnnouncementList content={props.cmsContent} />
+      {props.showPromotion && <PromotionSlotGrid content={props.cmsContent} />}
       <LobbyTabs />
     </div>
 

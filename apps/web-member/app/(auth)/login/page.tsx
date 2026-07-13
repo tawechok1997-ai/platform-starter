@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { AntiBotWidget } from '../anti-bot-widget';
 import { PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags, textSetting } from '../../site-settings';
+import { memberApiFetch } from '../../member-api';
 
 type Locale = 'th' | 'en';
 type LoginErrors = { identifier?: string; secret?: string };
@@ -60,7 +61,7 @@ export default function MemberSignInPage() {
     const timeoutId = window.setTimeout(() => controller.abort(), 15000);
     setLoading(true); setStatus('info'); setMessage(t.submitting);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/member/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: identifier.trim(), secret, captchaToken: captchaToken || undefined, deviceId: 'web-member' }), signal: controller.signal });
+      const res = await memberApiFetch('/member/auth/login', { method: 'POST', skipAuth: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: identifier.trim(), secret, captchaToken: captchaToken || undefined, deviceId: 'web-member' }), signal: controller.signal });
       const data = await res.json().catch(() => null);
       if (!res.ok) { setStatus('error'); setMessage(typeof data?.message === 'string' ? data.message : t.failed); setCaptchaResetKey((value) => value + 1); return; }
       window.localStorage.setItem('member_access_token', data.accessToken);

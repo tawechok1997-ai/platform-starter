@@ -1,3 +1,4 @@
+import type { AdminActor, MemberActor } from '../../common/actors';
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
@@ -7,8 +8,6 @@ import { GameProviderEndpointType, GameProviderWalletMode } from './game-platfor
 import { ProviderAdapterContext } from './provider-adapter.interface';
 import { ProviderAdapterRegistry } from './adapters/provider-adapter.registry';
 
-type MemberActor = { id: string };
-type AdminActor = { id: string };
 type RequestMeta = { ipAddress?: string; userAgent?: string };
 type TransferKind = 'TRANSFER_IN' | 'TRANSFER_OUT';
 type ProviderGates = Partial<Record<'launchEnabled' | 'transferEnabled' | 'realMoneyEnabled' | 'webhookSettlementEnabled' | 'walletSyncEnabled', boolean>>;

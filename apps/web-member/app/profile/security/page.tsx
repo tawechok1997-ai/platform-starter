@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { requestJson } from '../../member-api';
-import { MemberCard, MemberLinkButton, MemberNotice } from '../../components/member-ui';
+import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNotice } from '../../components/member-ui';
 import '../member-profile.css';
 
 type LoginItem = { id: string; success: boolean; ipAddress?: string | null; userAgent?: string | null; reason?: string | null; createdAt: string };
@@ -36,8 +36,9 @@ export default function SecurityPage() {
   ];
 
   return <main className="member-feature-page member-profile-page"><div className="member-feature-container">
-    <header className="member-feature-header"><div><p>ความปลอดภัย</p><h1>ศูนย์ความปลอดภัย</h1><span>ดูสถานะบัญชี เหตุการณ์เสี่ยง และการป้องกันเพิ่มเติม</span></div><MemberLinkButton href="/profile" tone="default">กลับโปรไฟล์</MemberLinkButton></header>
-    {notice && <MemberNotice tone={loading ? 'default' : 'warning'}>{notice}</MemberNotice>}
+    <header className="member-feature-header"><div><p>ความปลอดภัย</p><h1>ศูนย์ความปลอดภัย</h1><span>ดูสถานะบัญชี เหตุการณ์เสี่ยง และการป้องกันเพิ่มเติม</span></div><div className="member-profile-header-actions"><MemberButton onClick={() => void load()} disabled={loading} tone="default">{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</MemberButton><MemberLinkButton href="/profile" tone="default">กลับโปรไฟล์</MemberLinkButton></div></header>
+    {notice && <MemberNotice tone={loading ? 'default' : 'warning'}><strong>{notice}</strong>{!loading && <MemberButton tone="default" onClick={() => void load()}>ลองใหม่</MemberButton>}</MemberNotice>}
+    {!loading && !data && notice && <MemberEmptyState title="ยังโหลดศูนย์ความปลอดภัยไม่ได้" description="กรุณาลองใหม่ หรือแจ้งทีมช่วยเหลือหากยังเห็นข้อความนี้" actionHref="/support" actionLabel="ติดต่อทีมช่วยเหลือ" />}
     <section className="member-security-grid">
       {items.map((item) => <MemberCard key={item.label} className="member-security-card"><span>{item.label}</span><strong>{item.value}</strong><small data-tone={item.tone}>{item.tone === 'warning' ? 'ควรตรวจสอบ' : item.tone === 'success' ? 'ปกติ' : 'ข้อมูลระบบ'}</small></MemberCard>)}
     </section>

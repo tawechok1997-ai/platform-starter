@@ -17,7 +17,13 @@
       "esnext"
     ],
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@platform/api-client": [
+        "../../packages/api-client/src/index.ts"
+      ]
+    }
   },
   "include": [
     "next-env.d.ts",

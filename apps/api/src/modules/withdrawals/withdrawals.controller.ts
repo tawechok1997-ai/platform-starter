@@ -6,7 +6,6 @@ import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { CreateWithdrawalRequestDto } from './dto/create-withdrawal-request.dto';
 import { ReviewWithdrawalRequestDto } from './dto/review-withdrawal-request.dto';
-import { CompleteWithdrawalRequestDto } from './dto/complete-withdrawal-request.dto';
 import { WithdrawalsService } from './withdrawals.service';
 
 @Controller()
@@ -49,11 +48,6 @@ export class WithdrawalsController {
   @RequirePermission('finance.withdrawals.review')
   @Post('admin/withdrawals/:id/approve')
   approveRequest(@Param('id') id: string, @CurrentUser() user: any, @Body() body: ReviewWithdrawalRequestDto, @Req() req: any) { return this.withdrawalsService.approveRequest(id, user, body, this.meta(req)); }
-
-  @UseGuards(AdminAuthGuard, PermissionsGuard)
-  @RequirePermission('finance.withdrawals.review')
-  @Post('admin/withdrawals/:id/complete')
-  completeRequest(@Param('id') id: string, @CurrentUser() user: any, @Body() body: CompleteWithdrawalRequestDto, @Req() req: any) { return this.withdrawalsService.completeRequest(id, user, body, this.meta(req)); }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('finance.withdrawals.review')

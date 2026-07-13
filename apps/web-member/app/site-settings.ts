@@ -1,3 +1,5 @@
+import { joinApiUrl } from '@platform/api-client';
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 export type CmsAsset = { id: string; name: string; url: string; type: 'image' | 'video' | 'link'; tag?: string; enabled: boolean };
@@ -120,7 +122,7 @@ export const defaultSettings: PublicSiteSettings = {
 
 export async function loadPublicSiteSettings(): Promise<PublicSiteSettings> {
   try {
-    const res = await fetch(`${API_URL}/public/site-settings`, { cache: 'no-store' });
+    const res = await fetch(joinApiUrl(API_URL, '/public/site-settings'), { cache: 'no-store' });
     if (!res.ok) return defaultSettings;
     const data = await res.json();
     return { ...defaultSettings, ...data, icons: { ...defaultIconSettings, ...(data.icons ?? {}) }, features: { ...defaultSettings.features, ...(data.features ?? {}) } };

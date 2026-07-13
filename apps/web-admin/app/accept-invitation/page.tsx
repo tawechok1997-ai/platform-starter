@@ -1,8 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+import { adminApiFetch } from '../admin-api';
 type Locale = 'th' | 'en';
 type Step = 'checking' | 'details' | 'success' | 'invalid';
 
@@ -90,7 +89,7 @@ export default function AcceptInvitationPage() {
 
   async function inspect(rawToken: string) {
     try {
-      const response = await fetch(`${API_URL}/admin/invitations/inspect?token=${encodeURIComponent(rawToken)}`);
+      const response = await adminApiFetch(`/admin/invitations/inspect?token=${encodeURIComponent(rawToken)}`, { skipAuth: true });
       const data = await response.json().catch(() => null);
       if (!response.ok || !data?.email) {
         setStep('invalid');
@@ -113,8 +112,9 @@ export default function AcceptInvitationPage() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/admin/invitations/accept`, {
+      const response = await adminApiFetch('/admin/invitations/accept', {
         method: 'POST',
+        skipAuth: true,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, username: username.trim(), secret }),
       });

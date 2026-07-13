@@ -2,7 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { AntiBotWidget } from '../anti-bot-widget';
-import { API_URL, PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags, textSetting } from '../../site-settings';
+import { PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags, textSetting } from '../../site-settings';
+import { memberApiFetch } from '../../member-api';
 
 const REFERRAL_CODE_KEY = 'member_pending_referral_code';
 type Locale = 'th' | 'en';
@@ -145,7 +146,7 @@ export default function MemberRegisterPage() {
     const legalName = fullName.trim();
 
     try {
-      const res = await fetch(`${API_URL}/member/auth/register`, {
+      const res = await memberApiFetch('/member/auth/register', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
         body: JSON.stringify({ username: username.trim(), phone: phone.trim(), email: email.trim() || undefined, secret, fullName: legalName, bankName: selectedBankLabel(bankName), bankAccountNumber: bankAccountNumber.trim(), bankAccountName: legalName, referralCode: cleanRef || undefined, captchaToken: captchaToken || undefined, deviceId: 'web-member' }),
       });
@@ -234,7 +235,7 @@ function Field({ label, id, value, onChange, error, disabled, type = 'text', aut
   return <><label className="public-auth-field" htmlFor={id}>{label}<input id={id} className="public-auth-input" value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled} type={type} autoComplete={autoComplete} inputMode={inputMode} aria-invalid={Boolean(error)} /></label>{error && <span className="public-auth-field-error">{error}</span>}</>;
 }
 function ReviewRow({ label, value }: { label: string; value: string }) { return <div><span>{label}</span><strong>{value || '-'}</strong></div>; }
-async function linkReferralAfterRegister(referralCode: string, token?: string) { const accessToken = token || window.localStorage.getItem('member_access_token'); if (!accessToken) return; const res = await fetch(`${API_URL}/member/affiliate/link`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ referralCode }) }); if (res.ok) window.localStorage.removeItem(REFERRAL_CODE_KEY); }
+async function linkReferralAfterRegister(referralCode: string, token?: string) { const accessToken = token || window.localStorage.getItem('member_access_token'); if (!accessToken) return; window.localStorage.setItem('member_access_token', accessToken); const res = await memberApiFetch('/member/affiliate/link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ referralCode }) }); if (res.ok) window.localStorage.removeItem(REFERRAL_CODE_KEY); }
 function normalizeReferralCode(value: string) { return String(value ?? '').trim().toUpperCase().replace(/[^A-Z0-9_-]+/g, '').slice(0, 24); }
 function maskAccount(value: string) { return value.length > 4 ? `${'•'.repeat(Math.max(0, value.length - 4))}${value.slice(-4)}` : value; }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { API_URL, clearMemberSession, refreshMemberToken } from './member-api';
+import { clearMemberSession, memberApiFetch } from './member-api';
 
 type MemberSessionContextValue = {
   ready: boolean;
@@ -53,33 +53,19 @@ async function verifyMemberSession() {
   const refreshToken = window.localStorage.getItem('member_refresh_token');
   if (!token && !refreshToken) return false;
 
-  if (token) {
-    const response = await fetchWithTimeout(`${API_URL}/member/wallet`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  if (token || refreshToken) {
+    const response = await fetchWithTimeout('/member/wallet');
     if (response.ok) return true;
-    if (response.status !== 401) return false;
   }
-
-  const refreshed = await refreshMemberToken();
-  if (!refreshed) {
-    clearMemberSession();
-    return false;
-  }
-
-  const retry = await fetchWithTimeout(`${API_URL}/member/wallet`, {
-    headers: { Authorization: `Bearer ${refreshed}` },
-  });
-  if (retry.ok) return true;
   clearMemberSession();
   return false;
 }
 
-async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}) {
+async function fetchWithTimeout(path: string, init: RequestInit = {}) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), SESSION_TIMEOUT_MS);
   try {
-    return await fetch(input, { ...init, signal: controller.signal });
+    return await memberApiFetch(path, { ...init, signal: controller.signal });
   } finally {
     window.clearTimeout(timeout);
   }

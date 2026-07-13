@@ -62,7 +62,7 @@ main.game-lobby-page { gap: 12px; }
 .game-lobby-page .game-lobby-card>img, .game-lobby-page .game-lobby-fallback { aspect-ratio: 1.42; border-radius: 11px; }
 .game-lobby-page .game-lobby-card-body { display: none; }
 .game-lobby-page .game-lobby-favorite { width: 30px; height: 30px; top: auto; right: 7px; bottom: 7px; background: rgba(12,10,17,.72); color: rgba(255,255,255,.72); }
-.game-lobby-page .game-lobby-maintenance { display: none; }
+.game-lobby-page .game-lobby-maintenance { display: inline-flex; align-items: center; max-width: calc(100% - 18px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: rgba(15,23,42,.9); color: #fde68a; }
 .game-lobby-page .game-lobby-notice { border-color: rgba(190,80,255,.42); background: rgba(116,30,155,.13); color: #dfb6ff; }
 
 .member-home-shell { gap: 12px; }
@@ -193,3 +193,31 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 .member-drawer-nav .member-drawer-copy small,.member-drawer-nav a>em{display:none!important}
 .member-drawer-nav a.active{box-shadow:0 0 0 1px rgba(190,83,255,.65),0 8px 18px rgba(0,0,0,.22)}
 .member-drawer-head{background:linear-gradient(135deg,#3b2054,#1b1126);border-radius:0 0 16px 16px}
+
+/* Keep the active market theme honest with the M-011 checklist: filters/search remain usable while card copy stays compact. */
+.game-lobby-page .game-lobby-tabs { display: flex !important; }
+.game-lobby-page .game-lobby-toolbar { display: grid !important; grid-template-columns: minmax(0,1fr) minmax(112px,.58fr) auto; gap: 8px; }
+.game-lobby-page .game-lobby-provider { display: block; }
+.game-lobby-page .game-lobby-cover-button > img, .game-lobby-page .game-lobby-cover-button .game-lobby-fallback { aspect-ratio: 1.42; border-radius: 11px; }
+.member-promo-slots { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.member-promo-slot { position: relative; min-height: 70px; overflow: hidden; border-radius: 11px; background: #171020; color: #fff; text-decoration: none; }
+.member-promo-slot img { width: 100%; height: 100%; min-height: 70px; object-fit: cover; display: block; }
+.member-promo-slot::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,transparent 35%,rgba(7,4,12,.72)); pointer-events: none; }
+.member-promo-slot span { position: absolute; z-index: 1; left: 9px; right: 9px; bottom: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 900; text-shadow: 0 1px 8px rgba(0,0,0,.75); }
+@media (max-width: 420px) { .member-promo-slots { grid-template-columns: repeat(2,minmax(0,1fr)); } .member-promo-slot:nth-child(n+3) { display: none; } }
+
+/* M-011 final mobile polish: keep the market-style lobby compact without hiding controls or tap targets. */
+@media (max-width: 640px) {
+  main.game-lobby-page, .member-home-shell { padding-top: 10px; padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+  .game-lobby-page .game-lobby-tabs { margin-inline: -4px; padding: 0 4px 2px; overflow-x: auto; scroll-snap-type: x proximity; }
+  .game-lobby-page .game-lobby-tabs button { min-height: 40px; padding-inline: 12px; scroll-snap-align: start; }
+  .game-lobby-page .game-lobby-toolbar { grid-template-columns: minmax(0,1fr) auto; align-items: center; }
+  .game-lobby-page .game-lobby-search { grid-column: 1 / -1; }
+  .game-lobby-page .game-lobby-provider { min-width: 0; }
+  .game-lobby-page .game-lobby-clear { min-height: 38px; padding-inline: 12px; }
+  .game-lobby-page .game-lobby-grid { gap: 8px; }
+  .game-lobby-page .game-lobby-favorite { width: 34px; height: 34px; }
+  .member-promo-slots { gap: 7px; }
+  .member-promo-slot { min-height: 62px; border-radius: 10px; }
+  .member-promo-slot img { min-height: 62px; }
+}

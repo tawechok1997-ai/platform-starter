@@ -17,6 +17,7 @@ export default function ReportsPage() {
   const [trends, setTrends] = useState<Trends | null>(null);
   const [aging, setAging] = useState<QueueAging | null>(null);
   const [trendDays, setTrendDays] = useState(7);
+  const [range, setRange] = useState({ from: '', to: '' });
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
@@ -25,8 +26,11 @@ export default function ReportsPage() {
   async function loadReports(nextTrendDays = trendDays) {
     setLoading(true);
     setMessage('กำลังโหลดรายงาน...');
+    const dailyParams = new URLSearchParams();
+    if (range.from) dailyParams.set('from', range.from);
+    if (range.to) dailyParams.set('to', range.to);
     const [dailyRes, reconRes, trendsRes, agingRes] = await Promise.all([
-      adminApiFetch('/admin/reports/daily'),
+      adminApiFetch(`/admin/reports/daily${dailyParams.size ? `?${dailyParams.toString()}` : ''}`),
       adminApiFetch('/admin/reports/reconciliation?limit=100'),
       adminApiFetch(`/admin/reports/trends?days=${nextTrendDays}`),
       adminApiFetch('/admin/reports/queue-aging'),
@@ -68,6 +72,7 @@ export default function ReportsPage() {
     <AdminPage eyebrow="Finance Reports" title="Reports" description="รายงานรายวัน ตรวจยอด wallet แนวโน้มเงินเข้าออก และคิวที่ค้างนาน" actions={<><AdminButton onClick={() => loadReports()}>Refresh</AdminButton><AdminLinkButton href="/exports">Exports</AdminLinkButton></>}>
       {message && <AdminNotice>{message}</AdminNotice>}
       {loading && !daily && !recon && !trends && !aging && <AdminEmpty>กำลังโหลดรายงาน...</AdminEmpty>}
+      <AdminCard title="Report Filters" description="เลือกช่วงวันที่สำหรับ daily aggregate และใช้ปุ่ม export ในแต่ละรายงานเพื่อดาวน์โหลด CSV"><div style={filterGridStyle}><label style={filterLabelStyle}><span>From</span><input type="date" value={range.from} onChange={(event) => setRange((current) => ({ ...current, from: event.target.value }))} style={inputStyle} /></label><label style={filterLabelStyle}><span>To</span><input type="date" value={range.to} onChange={(event) => setRange((current) => ({ ...current, to: event.target.value }))} style={inputStyle} /></label><div style={filterActionStyle}><AdminButton disabled={loading} onClick={() => loadReports()}>Apply</AdminButton><AdminButton tone="secondary" disabled={loading || (!range.from && !range.to)} onClick={() => { setRange({ from: '', to: '' }); setTimeout(() => loadReports(), 0); }}>Reset</AdminButton></div></div></AdminCard>
       {daily && <AdminMetricGrid><AdminMetric title="Wallets" value={daily.wallets.count.toLocaleString('th-TH')} /><AdminMetric title="Total Balance" value={formatMoney(daily.wallets.totalBalance)} /><AdminMetric title="Locked" value={formatMoney(daily.wallets.totalLockedBalance)} /><AdminMetric title="Ledger Items" value={daily.ledgers.count.toLocaleString('th-TH')} />{daily.pendingQueues && <AdminMetric title="Pending Top-ups" value={`${daily.pendingQueues.topUps.count}`} helper={formatMoney(daily.pendingQueues.topUps.amount)} />}{daily.pendingQueues && <AdminMetric title="Pending Withdrawals" value={`${daily.pendingQueues.withdrawals.count}`} helper={formatMoney(daily.pendingQueues.withdrawals.amount)} />}{recon && <AdminMetric title="Recon Checked" value={(recon.checkedCount ?? recon.items.length).toLocaleString('th-TH')} />}{recon && <AdminMetric title="Mismatch" value={recon.mismatchCount.toLocaleString('th-TH')} />}</AdminMetricGrid>}
 
       {aging && <AdminCard title="Pending Queue Aging" description={`Oldest pending: ${aging.summary.oldestAgeMinutes} minutes · Generated ${new Date(aging.generatedAt).toLocaleString('th-TH')}`}>
@@ -119,3 +124,8 @@ const trendRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', 
 const trendDateStyle = { display: 'grid', gap: 4, minWidth: 0 };
 const trendAmountStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: 10, textAlign: 'left' as const, minWidth: 0, width: '100%' };
 const trendAmountItemStyle = { display: 'grid', gap: 6, minWidth: 0 };
+
+const filterGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 10, alignItems: 'end' };
+const filterLabelStyle = { display: 'grid', gap: 6, fontWeight: 850 } as const;
+const inputStyle = { minHeight: 42, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', minWidth: 0 } as const;
+const filterActionStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const };

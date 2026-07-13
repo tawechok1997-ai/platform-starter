@@ -1,3 +1,5 @@
+import { joinApiUrl, mergeHeaders } from '@platform/api-client';
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
@@ -15,11 +17,11 @@ export class ApiRequestError extends Error {
 
 export async function memberApiFetch(path: string, options: ApiOptions = {}) {
   const token = window.localStorage.getItem('member_access_token');
-  const headers = new Headers(options.headers ?? {});
+  const headers = mergeHeaders(options.headers);
   if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
   if (!options.skipAuth && token) headers.set('Authorization', `Bearer ${token}`);
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const res = await fetch(joinApiUrl(API_URL, path), { ...options, headers });
   if (res.status !== 401 || options.skipAuth) return res;
 
   const refreshed = await refreshMemberToken();
@@ -31,7 +33,7 @@ export async function memberApiFetch(path: string, options: ApiOptions = {}) {
   }
 
   headers.set('Authorization', `Bearer ${refreshed}`);
-  const retry = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const retry = await fetch(joinApiUrl(API_URL, path), { ...options, headers });
   if (retry.status === 401) {
     clearMemberSession();
     const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
@@ -55,7 +57,7 @@ export async function requestJson<T>(path: string, options: ApiOptions = {}): Pr
 export async function refreshMemberToken() {
   const refreshToken = window.localStorage.getItem('member_refresh_token');
   if (!refreshToken) return '';
-  const res = await fetch(`${API_URL}/member/auth/refresh`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken, deviceId: 'web-member' }) });
+  const res = await fetch(joinApiUrl(API_URL, '/member/auth/refresh'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken, deviceId: 'web-member' }) });
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.accessToken) return '';
   window.localStorage.setItem('member_access_token', data.accessToken);

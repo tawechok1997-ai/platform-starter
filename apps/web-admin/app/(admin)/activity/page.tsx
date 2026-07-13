@@ -132,6 +132,7 @@ export default function ActivityPage() {
             <p style={mutedInlineStyle}>{item.description ?? '-'} · {new Date(item.createdAt).toLocaleString('th-TH')}</p>
             {item.actor && <p style={mutedInlineStyle}>Actor: {item.actor}</p>}
             {item.refType && <p style={mutedInlineStyle}>Ref: {item.refType} {item.refId ?? ''}</p>}
+            <details style={detailStyle}><summary>Detail JSON</summary><pre style={jsonStyle}>{JSON.stringify(item, null, 2)}</pre></details>
           </div>
           <div style={rightStyle}>
             {item.amount && <strong>{formatMoney(item.amount)}</strong>}
@@ -181,3 +182,5 @@ const filterGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit
 const filterActionStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: 10 };
 const inputStyle = { minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', minWidth: 0, width: '100%', boxSizing: 'border-box' as const };
 const mutedInlineStyle = { margin: 0, color: '#94a3b8', overflowWrap: 'anywhere' as const };
+const detailStyle = { maxWidth: '100%', overflow: 'hidden' as const };
+const jsonStyle = { maxHeight: 260, overflow: 'auto' as const, whiteSpace: 'pre-wrap' as const, wordBreak: 'break-word' as const, border: '1px solid rgba(148,163,184,.16)', borderRadius: 12, padding: 12, background: '#020617', color: '#cbd5e1' } as const;

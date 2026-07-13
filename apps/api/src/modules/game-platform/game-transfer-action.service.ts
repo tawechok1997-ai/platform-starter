@@ -1,8 +1,8 @@
+import type { AdminActor } from '../../common/actors';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
-type AdminActor = { id: string };
 
 @Injectable()
 export class GameTransferActionService {
