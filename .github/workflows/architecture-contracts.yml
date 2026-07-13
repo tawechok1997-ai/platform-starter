@@ -31,6 +31,9 @@ jobs:
       - name: Typecheck API
         run: pnpm typecheck:api
 
+      - name: Test stable API error contracts
+        run: pnpm --filter @platform/api test -- error-code-resolver.spec.ts --runInBand
+
       - name: Audit architecture inventory
         run: pnpm audit:architecture-inventory
 
@@ -48,6 +51,9 @@ jobs:
 
       - name: Audit error code catalog
         run: pnpm audit:error-code-catalog
+
+      - name: Audit critical error contracts
+        run: pnpm audit:critical-error-contracts
 
       - name: Audit admin API permissions
         run: pnpm audit:admin-permissions
