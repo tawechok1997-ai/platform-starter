@@ -61,11 +61,22 @@ jobs:
         # that partial history. Production deploys continue to use migrate deploy.
         run: pnpm prisma db push --skip-generate
 
+      - name: Apply promotion domain migrations to disposable CI PostgreSQL
+        # These SQL-first domain tables are not yet represented in schema.prisma.
+        # Apply only the additive promotion migrations after db push so PostgreSQL
+        # concurrency tests exercise the same tables used by production deploys.
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714190000_add_promotion_domain_models/migration.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714193000_backfill_promotion_domain_models/migration.sql
+
       - name: Test API
         run: pnpm --filter @platform/api test -- --runInBand
 
       - name: Test PostgreSQL finance concurrency
         run: pnpm --filter @platform/api test:db:finance -- --runInBand
+
+      - name: Test PostgreSQL promotion settlement concurrency
+        run: pnpm --filter @platform/api test:db:promotions -- --runInBand
 
       - name: Build API
         run: pnpm build:api
