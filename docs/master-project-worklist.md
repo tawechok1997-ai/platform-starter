@@ -40,18 +40,18 @@
 
 ## M-001 Prisma schema
 
-สถานะ: 🟡 P0 source/CI ปิดแล้ว — เหลือยืนยัน migration history กับ production database จริง
+สถานะ: ✅ DONE — Prisma schema, CI migration และ production migration status ผ่านแล้ว
 
 ไฟล์: `prisma/schema.prisma`
 
 - [x] ลบ enum ซ้ำ
-- [ ] ตรวจ migration และ production schema กับฐานข้อมูลจริงตาม `docs/production-migration-verification-runbook.md`
+- [x] ตรวจ migration และ production schema กับฐานข้อมูลจริงตาม `docs/production-migration-verification-runbook.md`
 - [x] รัน `prisma generate` ผ่านใน API build
 - [x] ไม่ใช้ script แก้ schema ระหว่าง build
 
 ## M-002 Deposit workflow
 
-สถานะ: 🟡 P0 source/CI ปิดแล้ว — เหลือยืนยัน production migration ตาม runbook
+สถานะ: ✅ DONE — workflow tests, CI migration และ production migration status ผ่านแล้ว
 
 ไฟล์: `apps/api/src/modules/topups/deposit-workflow.service.ts`
 
@@ -64,7 +64,7 @@
 - [x] เพิ่ม static finance workflow safety audit (`pnpm audit:finance-workflows`)
 - [x] เพิ่ม static finance workflow safety audit (`pnpm audit:finance-workflows`)
 - [x] มี dedicated state-transition/idempotency/concurrency tests ใน `finance-concurrency.db.spec.ts`
-- [ ] ตรวจ production migration ตาม `docs/production-migration-verification-runbook.md`
+- [x] ตรวจ production migration ตาม `docs/production-migration-verification-runbook.md`
 
 ## M-003 Withdrawal workflow
 
@@ -81,7 +81,7 @@
 - [x] มี dedicated state-transition/idempotency/concurrency tests ใน `finance-concurrency.db.spec.ts`
 - [ ] ตรวจ production migration
 
-> สถานะ P0: source, CI migration และ finance concurrency tests ผ่านแล้ว เหลือเพียงผล `prisma migrate status` จาก Railway production database\n\n## M-004 ลบ build-time source mutation
+> สถานะ P0: ✅ ปิดครบ — source, CI migration, finance concurrency tests และ Railway production migration status ผ่านแล้ว\n\n## M-004 ลบ build-time source mutation
 
 สถานะ: ✅ DONE — ลบ scripts mutation และ build ใช้ source จริง
 
@@ -450,9 +450,9 @@
 # ลำดับทำงานจริง
 
 ## Batch A — source ต้องตรวจผ่าน
-- [ ] M-001 ถึง M-004
-- [ ] เลือก branch ล่าสุด
-- [ ] Prisma validate/generate/typecheck
+- [x] M-001 ถึง M-004
+- [x] เลือก branch ล่าสุด
+- [x] Prisma validate/generate/typecheck
 
 ## Batch B — security/เงิน/production
 - [ ] M-005 ถึง M-010
@@ -473,7 +473,7 @@
 
 # Definition of Done
 
-- [ ] ไม่มี P0 blocker
+- [x] ไม่มี P0 blocker
 - [ ] Prisma validate/generate ผ่านโดยไม่แก้ source
 - [ ] Typecheck/lint/build ผ่านทุก package
 - [ ] Finance concurrency tests ผ่าน
