@@ -28,6 +28,7 @@ export class AdminAuthService {
     const valid = await argon2.verify(admin.passwordHash, dto.secret);
     if (!valid) {
       await this.safeWriteLoginHistory(admin.id, false, meta, 'INVALID_SECRET');
+      await this.maybeLockAdminAfterFailures(admin.id, meta);
       throw new UnauthorizedException('Invalid admin credentials');
     }
 
@@ -167,6 +168,29 @@ export class AdminAuthService {
     return { success: true, revoked: result.count };
   }
 
+  private async maybeLockAdminAfterFailures(adminUserId: string, meta: RequestMeta) {
+    const threshold = this.readPositiveInt('ADMIN_LOCKOUT_FAILURES', 5);
+    const windowMinutes = this.readPositiveInt('ADMIN_LOCKOUT_WINDOW_MINUTES', 15);
+    const recent = await this.prisma.loginHistory.findMany({
+      where: {
+        adminUserId,
+        type: 'ADMIN',
+        createdAt: { gte: new Date(Date.now() - windowMinutes * 60_000) },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: threshold,
+      select: { success: true },
+    });
+    if (recent.length < threshold || recent.some((item) => item.success)) return;
+
+    const locked = await this.prisma.adminUser.updateMany({
+      where: { id: adminUserId, status: 'ACTIVE' },
+      data: { status: 'LOCKED' },
+    });
+    if (locked.count !== 1) return;
+    await this.safeWriteAudit(adminUserId, 'admin.account.lockout', 'auth', adminUserId, meta);
+  }
+
   private async createAdminSession(adminUserId: string, meta: RequestMeta = {}) {
     const rawToken = randomBytes(48).toString('base64url');
     const refreshTokenHash = await argon2.hash(rawToken);
@@ -260,6 +284,11 @@ export class AdminAuthService {
     const [sessionId, rawToken] = value.split('.');
     if (!sessionId || !rawToken) throw new UnauthorizedException('Invalid refresh token');
     return { sessionId, rawToken };
+  }
+
+  private readPositiveInt(name: string, fallback: number) {
+    const value = Number(this.configService.get<string>(name) ?? process.env[name] ?? fallback);
+    return Number.isInteger(value) && value > 0 ? value : fallback;
   }
 
   private getRefreshTokenTtlMs() {
