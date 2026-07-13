@@ -1,0 +1,1 @@
+ALTER TABLE "game_provider_credentials" ADD COLUMN "last_used_at" TIMESTAMP(3);
