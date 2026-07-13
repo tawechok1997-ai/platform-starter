@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Put, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 import { NotificationsService } from './notifications.service';
 
 @Controller('member/notifications')
@@ -11,6 +12,11 @@ export class NotificationsController {
   @Get()
   list(@CurrentUser() user: { id: string }) {
     return this.notificationsService.listMemberNotifications(user.id);
+  }
+
+  @Get('preferences')
+  getPreferences(@CurrentUser() user: { id: string }) {
+    return this.notificationsService.getPreferences(user.id);
   }
 
   @Patch('read-all')
@@ -29,7 +35,7 @@ export class NotificationsController {
   }
 
   @Put('preferences')
-  updatePreferences(@CurrentUser() user: { id: string }, @Body() body: Record<string, boolean>) {
+  updatePreferences(@CurrentUser() user: { id: string }, @Body() body: UpdateNotificationPreferencesDto) {
     return this.notificationsService.updatePreferences(user.id, body);
   }
 }
