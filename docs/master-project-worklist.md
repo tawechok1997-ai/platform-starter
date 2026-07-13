@@ -412,19 +412,35 @@
 
 สถานะ: 🟡 PARTIAL
 
-- [ ] Mobile banner/announcement/popup QA
-- [ ] Maintenance notice
-- [ ] Category ordering/featured games
-- [ ] Asset/broken URL validation
+หลักฐานล่าสุด 2026-07-13:
+- ตรวจ member home แล้ว `HomeHero` ใช้ enabled CMS banners พร้อม dots/auto-rotate, `AnnouncementList` แสดง announcement strip, `PromotionSlotGrid` แสดง banner slots สูงสุด 3 รายการ และ `CmsPopup` ใช้ popup version + localStorage dismiss
+- ตรวจ maintenance notice แล้วหน้า member home อ่าน `maintenance.enabled/member_enabled` และ `website.maintenance_mode` เพื่อแสดง maintenance card พร้อม message
+- ตรวจ Content Center แล้วมี asset URL validation (`http/https`) และ broken URL metric/warnings สำหรับ asset/banner/popup URL
+- ปรับ member game lobby category ordering ให้เรียงตาม lowest `sortOrder` ของเกมในหมวด แล้ว fallback ตามชื่อหมวด; featured/popular ยังคงมาจาก flags `isFeatured`/`isPopular` และเรียงจาก query หลัก
+- `pnpm build:web-member` ผ่าน; `pnpm build:api` ผ่าน
+
+- [x] Mobile banner/announcement/popup QA
+- [x] Maintenance notice
+- [x] Category ordering/featured games
+- [x] Asset/broken URL validation
 
 ## M-020 KYC/risk
 
 สถานะ: 🟡 PARTIAL ถึง 🔴 TODO
 
+หลักฐานล่าสุด 2026-07-13:
+- ตรวจ bank/KYC service แล้ว member bank account บังคับ 1 บัญชีต่อสมาชิก, ชื่อบัญชีต้องตรงกับ profile/username, สร้างเป็น `PENDING_REVIEW`, admin review เป็น `ACTIVE/REJECTED/DISABLED` พร้อม audit log
+- ตรวจ duplicate bank detection แล้ว create/review block account number ซ้ำใน `ACTIVE/PENDING_REVIEW`, `kycSummary` รวม duplicateGroups และ riskyAccounts flags (`เลขบัญชีซ้ำ`, `ยังไม่ยืนยันเบอร์`, `สมาชิกไม่ปกติ`)
+- ตรวจ risk lifecycle แล้ว Risk Alerts รองรับ `OPEN/REVIEWING/RESOLVED/DISMISSED`, assignment, notes, updateStatus audit, bulk dismiss LOW/MEDIUM และ auto-close suggestions
+- ยังไม่ติ๊ก Phone verification: schema มี `phoneVerifiedAt` และ KYC summary นับ unverified phone แต่ยังไม่พบ OTP/SMS verification flow ครบ
+- ยังไม่ติ๊ก Blacklist: มี member status lifecycle (`ACTIVE/SUSPENDED/LOCKED/CLOSED`) พร้อม `users.suspend` permission และ audit log แต่ยังไม่พบ blacklist/watchlist model แยกหรือ reason taxonomy สำหรับ risk blacklist
+- ยังไม่ติ๊ก KYC document workflow: ยังไม่พบ document upload/retention/access policy model เฉพาะสำหรับ KYC
+- `pnpm build:api` ผ่าน
+
 - [ ] Phone verification
-- [ ] Bank verification
-- [ ] Duplicate bank detection
-- [ ] Risk status lifecycle
+- [x] Bank verification
+- [x] Duplicate bank detection
+- [x] Risk status lifecycle
 - [ ] Blacklist
 - [ ] KYC document workflow/retention/access policy
 
