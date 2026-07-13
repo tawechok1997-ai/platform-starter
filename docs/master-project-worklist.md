@@ -115,7 +115,7 @@
 
 ## M-006 Permission coverage audit
 
-สถานะ: 🟡 PARTIAL — API controller audit ผ่านครบ แต่ยังเหลือ frontend read-only/dynamic verification
+สถานะ: 🟡 PARTIAL — API controller audit ผ่านครบ และเพิ่ม optional read-only UI smoke แล้ว; ยังรอ credentialed run เพื่อยืนยันผลจริง
 
 - [x] ตรวจทุก admin route/sidebar/widget/export รอบ finance routes; withdrawal workflow ถูกเพิ่ม permission guard
 - [ ] ตรวจทุก admin route/sidebar/widget/export ที่เหลือ
