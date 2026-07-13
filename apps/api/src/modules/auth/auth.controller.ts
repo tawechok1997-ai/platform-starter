@@ -4,6 +4,8 @@ import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { AntiBotService } from '../anti-bot/anti-bot.service';
 import { AuthService } from './auth.service';
 import { ChangeMemberPasswordDto } from './dto/change-member-password.dto';
+import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { MemberSignInDto } from './dto/member-sign-in.dto';
 import { RefreshSessionDto } from './dto/refresh-session.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -26,6 +28,17 @@ export class AuthController {
   async signIn(@Body() dto: MemberSignInDto, @Req() req: any) {
     await this.antiBot.assertValid('MEMBER_LOGIN', dto.captchaToken, req.ip);
     return this.authService.signIn(dto, this.meta(req, dto.deviceId));
+  }
+
+  @Post('password-reset/request')
+  async requestPasswordReset(@Body() dto: RequestPasswordResetDto, @Req() req: any) {
+    await this.antiBot.assertValid('MEMBER_PASSWORD_RESET', dto.captchaToken, req.ip);
+    return this.authService.requestPasswordReset(dto.identifier);
+  }
+
+  @Post('password-reset/confirm')
+  confirmPasswordReset(@Body() dto: ConfirmPasswordResetDto) {
+    return this.authService.confirmPasswordReset(dto);
   }
 
   @Post('refresh')
