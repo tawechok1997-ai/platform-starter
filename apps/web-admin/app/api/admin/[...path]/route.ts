@@ -6,6 +6,11 @@ const ALLOWED_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
 async function proxy(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
   const { path } = await context.params;
   const method = request.method.toUpperCase();
+  const origin = request.headers.get('origin');
+
+  if (isCrossOriginMutation(method, origin, request.nextUrl.origin)) {
+    return NextResponse.json({ message: 'Cross-origin admin mutation blocked' }, { status: 403 });
+  }
 
   if (!ALLOWED_METHODS.has(method) || !Array.isArray(path) || path.length === 0) {
     return NextResponse.json({ message: 'Unsupported admin API request' }, { status: 405 });
@@ -57,6 +62,11 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
       { status: 503, headers: { 'cache-control': 'no-store' } },
     );
   }
+}
+
+function isCrossOriginMutation(method: string, origin: string | null, requestOrigin: string) {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) || !origin) return false;
+  return origin !== requestOrigin;
 }
 
 export const GET = proxy;
