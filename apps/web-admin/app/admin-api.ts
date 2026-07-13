@@ -1,4 +1,5 @@
 let inMemoryAccessToken = '';
+const legacyRefreshFallbackEnabled = process.env.NEXT_PUBLIC_ADMIN_LEGACY_REFRESH_FALLBACK !== 'false';
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
 
@@ -59,7 +60,7 @@ async function redirectToTwoFactorSetup(response: Response, options: ApiOptions)
 }
 
 export async function refreshAdminToken() {
-  const refreshToken = window.localStorage.getItem('admin_refresh_token');
+  const refreshToken = legacyRefreshFallbackEnabled ? window.localStorage.getItem('admin_refresh_token') : null;
   const res = await fetch('/api/admin/auth/refresh', {
     method: 'POST',
     credentials: 'include',
@@ -69,7 +70,7 @@ export async function refreshAdminToken() {
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.accessToken) return '';
   setAdminAccessToken(data.accessToken);
-  // Successful refresh rotates the HttpOnly cookie; remove the legacy body token after migration.
+  // Successful refresh rotates the HttpOnly cookie; remove any legacy token after migration.
   window.localStorage.removeItem('admin_refresh_token');
   return data.accessToken as string;
 }
