@@ -40,6 +40,9 @@ jobs:
       - name: Audit mutation DTO coverage
         run: pnpm audit:mutation-dto-coverage
 
+      - name: Audit critical controller types
+        run: pnpm audit:critical-controller-types
+
       - name: Audit admin API permissions
         run: pnpm audit:admin-permissions
 
