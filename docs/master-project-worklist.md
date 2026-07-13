@@ -178,17 +178,17 @@
 
 ## M-010 Finance/provider verification
 
-สถานะ: 🟡 PARTIAL — มี UI/service แต่ยังต้อง verify behavior จริง
+สถานะ: 🟡 PARTIAL — transfer/reconciliation/provider safety มี implementation และผ่าน API CI; เหลือ credential lastUsedAt และ test-mode settlement verification
 
-- [ ] Game transfer reverse/force-fail/retry state safety
-- [ ] Idempotency key และ WalletLedger ทุก mutation
-- [ ] Admin note/AdminAuditLog ทุก action
-- [ ] Provider preset enabled endpoints/overrides
-- [ ] Credential create/rotate/mask/disable/lastUsedAt
-- [ ] Health-check response sanitized
-- [ ] Webhook signature/duplicate/idempotency
-- [ ] Test mode ห้าม settle เงินจริง
-- [ ] Reconciliation relation/note/audit/timeline
+- [x] Game transfer reverse/force-fail/retry state safety (state guard, idempotent reversal, failed-only retry)
+- [x] Idempotency key และ WalletLedger ทุก mutation (wallet-synced transfer/reversal ใช้ unique key และ transaction)
+- [x] Admin note/AdminAuditLog ทุก action
+- [x] Provider preset enabled endpoints/overrides (preset apply ใช้ atomic transaction)
+- [ ] Credential create/rotate/mask/disable/lastUsedAt (ยังขาด `lastUsedAt` tracking)
+- [x] Health-check response sanitized
+- [x] Webhook signature/duplicate/idempotency
+- [ ] Test mode ห้าม settle เงินจริง (ต้องเพิ่ม/ยืนยัน explicit test-mode contract)
+- [x] Reconciliation relation/note/audit/timeline
 
 ---
 
