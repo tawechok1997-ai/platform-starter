@@ -145,7 +145,7 @@ export class AdminAccessService {
   }
 
   async securityOverview(adminUserId: string) {
-    const [admin, sessions, loginHistory] = await Promise.all([
+    const [admin, sessions, loginHistory, statusAudits] = await Promise.all([
       this.prisma.adminUser.findUnique({
         where: { id: adminUserId },
         select: {
@@ -171,6 +171,12 @@ export class AdminAccessService {
         take: 100,
         select: { id: true, success: true, reason: true, ipAddress: true, userAgent: true, createdAt: true },
       }),
+      this.prisma.adminAuditLog.findMany({
+        where: { targetId: adminUserId, module: 'admin-access', action: 'CHANGE_ADMIN_STATUS' },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        select: { id: true, adminUserId: true, oldData: true, newData: true, createdAt: true },
+      }),
     ]);
     if (!admin) throw new NotFoundException('Admin user not found');
     const now = new Date();
@@ -184,6 +190,18 @@ export class AdminAccessService {
         active: !session.revokedAt && session.expiresAt > now,
       })),
       loginHistory,
+      statusTimeline: statusAudits.map((audit) => {
+        const oldData = audit.oldData && typeof audit.oldData === 'object' ? audit.oldData as Record<string, unknown> : {};
+        const newData = audit.newData && typeof audit.newData === 'object' ? audit.newData as Record<string, unknown> : {};
+        return {
+          id: audit.id,
+          actorAdminId: audit.adminUserId,
+          fromStatus: typeof oldData.status === 'string' ? oldData.status : null,
+          toStatus: typeof newData.status === 'string' ? newData.status : null,
+          reason: typeof newData.reason === 'string' ? newData.reason : null,
+          createdAt: audit.createdAt,
+        };
+      }),
     };
   }
 
