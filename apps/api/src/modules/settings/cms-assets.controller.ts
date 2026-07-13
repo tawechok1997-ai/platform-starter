@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, Header, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
-import type { Response } from 'express';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
@@ -27,7 +26,7 @@ export class CmsAssetsController {
 
   @Get('public/cms-assets/:fileName')
   @Header('Cache-Control', 'public, max-age=31536000, immutable')
-  async read(@Param('fileName') fileName: string, @Res() response: Response) {
+  async read(@Param('fileName') fileName: string, @Res() response: any) {
     const stored = await this.cmsAssets.readPublic(fileName);
     response.type(stored.contentType).send(stored.data);
   }
