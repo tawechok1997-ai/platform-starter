@@ -61,6 +61,8 @@
 - [x] ใช้ row lock และ state-transition guard
 - [x] ใช้ idempotency key ตอน credit
 - [x] cleanup storage เมื่อ transaction fail
+- [x] เพิ่ม static finance workflow safety audit (`pnpm audit:finance-workflows`)
+- [x] เพิ่ม static finance workflow safety audit (`pnpm audit:finance-workflows`)
 - [ ] เพิ่ม dedicated state-transition/idempotency/concurrency tests
 - [ ] ตรวจ production migration
 
