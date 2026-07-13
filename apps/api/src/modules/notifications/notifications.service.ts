@@ -9,6 +9,8 @@ type NotificationItem = {
   type: NotificationType;
   createdAt: Date;
   href?: string;
+  isRead?: boolean;
+  readAt?: string | null;
 };
 
 @Injectable()
@@ -81,7 +83,17 @@ export class NotificationsService {
     ];
 
     items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    const limited = items.slice(0, 50).map((item) => ({ ...item, createdAt: item.createdAt.toISOString() }));
+    const [states, preference] = await Promise.all([
+      this.prisma.notificationState.findMany({ where: { userId, notificationKey: { in: items.map((item) => item.id) } }, select: { notificationKey: true, readAt: true, archivedAt: true } }),
+      this.prisma.notificationPreference.findUnique({ where: { userId }, select: { finance: true, security: true, promotion: true, system: true } }),
+    ]);
+    const stateByKey = new Map(states.map((state) => [state.notificationKey, state]));
+    const preferences = preference ?? { finance: true, security: true, promotion: true, system: true };
+    const visibleItems = items.filter((item) => preferences[item.type] !== false && !stateByKey.get(item.id)?.archivedAt);
+    const limited = visibleItems.slice(0, 50).map((item) => {
+      const state = stateByKey.get(item.id);
+      return { ...item, createdAt: item.createdAt.toISOString(), isRead: Boolean(state?.readAt), readAt: state?.readAt?.toISOString() ?? null };
+    });
     const groups = limited.reduce<Record<string, typeof limited>>((acc, item) => {
       const day = item.createdAt.slice(0, 10);
       (acc[day] ??= []).push(item);
@@ -95,7 +107,42 @@ export class NotificationsService {
         acc[item.type] = (acc[item.type] ?? 0) + 1;
         return acc;
       }, {} as Record<NotificationType, number>),
+      preferences,
     };
+  }
+
+  async markRead(userId: string, notificationKey: string) {
+    await this.prisma.notificationState.upsert({
+      where: { userId_notificationKey: { userId, notificationKey } },
+      update: { readAt: new Date() },
+      create: { userId, notificationKey, readAt: new Date() },
+    });
+    return { success: true, notificationKey, isRead: true };
+  }
+
+  async archive(userId: string, notificationKey: string) {
+    await this.prisma.notificationState.upsert({
+      where: { userId_notificationKey: { userId, notificationKey } },
+      update: { archivedAt: new Date() },
+      create: { userId, notificationKey, archivedAt: new Date() },
+    });
+    return { success: true, notificationKey, archived: true };
+  }
+
+  async updatePreferences(userId: string, input: Partial<Record<NotificationType, boolean>>) {
+    const data = {
+      finance: input.finance ?? true,
+      security: input.security ?? true,
+      promotion: input.promotion ?? true,
+      system: input.system ?? true,
+    };
+    const preference = await this.prisma.notificationPreference.upsert({
+      where: { userId },
+      update: data,
+      create: { userId, ...data },
+      select: data,
+    });
+    return { preferences: preference };
   }
 
   private money(amount: string, currency: string) {
