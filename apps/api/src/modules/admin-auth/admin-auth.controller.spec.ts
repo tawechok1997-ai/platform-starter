@@ -16,4 +16,15 @@ describe('AdminAuthController client IP handling', () => {
     const controller = new AdminAuthController({} as any, {} as any, {} as any);
     expect((controller as any).clientIp({ socket: { remoteAddress: '10.0.0.4' }, headers: {} })).toBe('10.0.0.4');
   });
+  it('sets and reads an HttpOnly refresh cookie', () => {
+    const controller = new AdminAuthController({} as any, {} as any, {} as any);
+    const response = { setHeader: jest.fn() };
+    (controller as any).setRefreshCookie(response, 'session.raw-token');
+
+    const cookie = response.setHeader.mock.calls[0][1];
+    expect(cookie).toContain('platform_admin_refresh=session.raw-token');
+    expect(cookie).toContain('HttpOnly');
+    expect(cookie).toContain('SameSite=Lax');
+    expect((controller as any).readRefreshCookie({ headers: { cookie } })).toBe('session.raw-token');
+  });
 });
