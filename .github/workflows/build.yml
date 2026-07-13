@@ -27,6 +27,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
       FINANCE_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
       RISK_MATCH_SECRET: ci-risk-match-secret-value-2026
+      KYC_ACCESS_SECRET: ci-kyc-access-secret-value-2026
 
     steps:
       - name: Checkout
@@ -71,6 +72,7 @@ jobs:
           psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714191000_backfill_promotion_domain_models/migration.sql
           psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714213000_add_risk_watchlist_domain/migration.sql
           psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714213000_add_watchlist_risk_alert_type/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714230000_add_kyc_document_domain/migration.sql
 
       - name: Test API
         run: pnpm --filter @platform/api test -- --runInBand
