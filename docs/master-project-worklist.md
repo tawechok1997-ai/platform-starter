@@ -149,7 +149,8 @@
 - [ ] ลบ refresh-token body/localStorage fallback หลัง migration ผู้ใช้เดิมครบ
 - [ ] HttpOnly/Secure/SameSite cookie
 - [ ] แยก admin/member cookie
-- [ ] CSRF protection หากใช้ cookie — ปัจจุบัน refresh cookie ใช้ `SameSite=Lax`; ต้องทำ dynamic threat-model/E2E review เพิ่ม
+- [x] CSRF origin check ใน Next Admin proxy สำหรับ mutation + `SameSite=Lax` refresh cookie
+- [ ] เพิ่ม dynamic threat-model/E2E review สำหรับ cookie/session flow
 - [x] ย้าย access token ออกจาก localStorage ใน client/login/layout
 - [ ] ย้าย refresh-token fallback ออกจาก localStorage
 - [ ] XSS/session theft regression test
