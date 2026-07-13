@@ -124,8 +124,6 @@ function AccessDenied() {
 }
 
 async function verifyAdminSession(): Promise<{ permissions: string[] } | null> {
-  if (!window.localStorage.getItem('admin_access_token') && !window.localStorage.getItem('admin_refresh_token')) return null;
-
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), AUTH_TIMEOUT_MS);
 
