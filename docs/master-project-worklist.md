@@ -235,12 +235,12 @@
 
 ## M-014 Notifications
 
-สถานะ: 🟡 PARTIAL — มี route/service/controller
+สถานะ: 🟡 PARTIAL — มี route/service/controller และเพิ่ม persistence สำหรับ read/archive/preferences
 
 - [x] Group by date/deep link (API คืน `groups` ตามวันและ `href` สำหรับ deep link)
-- [ ] Mark one/all as read backend verification
-- [ ] Archive/delete/optimistic rollback
-- [ ] Notification preferences route
+- [x] Mark one/all as read backend verification
+- [x] Archive backend state (delete/optimistic rollback ฝั่ง UI ยังเหลือ)
+- [x] Notification preferences route
 - [ ] Email/SMS/push และ finance/promotion/security/system toggles
 - [ ] Keyboard/screen-reader/zoom QA
 
