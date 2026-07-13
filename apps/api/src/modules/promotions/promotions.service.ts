@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RiskAlertStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { PromotionDomainRepository } from './promotion-domain.repository';
 
 type Actor = { id: string };
 type ClaimInput = { campaignId?: string; note?: string; topupId?: string; depositAmount?: number };
@@ -16,9 +17,12 @@ const BONUS_STATUSES = ['OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED'] as const;
 
 @Injectable()
 export class PromotionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly domain: PromotionDomainRepository,
+  ) {}
 
-  async listPublicCampaigns() { const campaigns = await this.activeCampaigns(); return { items: campaigns }; }
+  async listPublicCampaigns() { return { items: await this.activeCampaigns() }; }
 
   async createClaim(user: Actor, input: ClaimInput) {
     const campaignId = this.requireText(input.campaignId, 'campaignId');
@@ -27,11 +31,20 @@ export class PromotionsService {
     const linkedTopup = await this.resolveClaimTopup(user.id, campaign, input);
     const duplicateCampaign = await this.prisma.riskAlert.findFirst({ where: { refType: CLAIM_REF_TYPE, memberId: user.id, refId: campaignId, status: { in: ['OPEN', 'REVIEWING'] } } });
     if (duplicateCampaign) throw new BadRequestException('คุณมีคำขอรับโปรนี้ที่กำลังรอตรวจอยู่แล้ว');
-    if (linkedTopup) { const duplicateTopup = await this.findClaimUsingTopup(linkedTopup.id); if (duplicateTopup) throw new BadRequestException('รายการฝากนี้ถูกใช้รับโปรไปแล้ว'); }
+    if (linkedTopup && await this.findClaimUsingTopup(linkedTopup.id)) throw new BadRequestException('รายการฝากนี้ถูกใช้รับโปรไปแล้ว');
+
     const depositAmount = linkedTopup ? linkedTopup.amount : Number(input.depositAmount || campaign.minDeposit || 0);
     if (depositAmount < campaign.minDeposit) throw new BadRequestException(`ยอดฝากต้องไม่น้อยกว่า ${campaign.minDeposit.toLocaleString('th-TH', { minimumFractionDigits: 2 })} THB`);
-    const metadata = { campaign, campaignId, topupId: linkedTopup?.id ?? input.topupId ?? null, linkedTopup, depositAmount, memberNote: input.note ?? '', requestedAt: new Date().toISOString(), bonusPreview: this.bonusPreview(campaign, depositAmount), settlement: { enabled: false, reason: 'Bonus ledger pending approval' }, events: [{ by: 'member', action: 'CLAIM_CREATED', message: input.note ?? '', createdAt: new Date().toISOString() }] };
+    const preview = this.bonusPreview(campaign, depositAmount);
+    const metadata = { campaign, campaignId, topupId: linkedTopup?.id ?? input.topupId ?? null, linkedTopup, depositAmount, memberNote: input.note ?? '', requestedAt: new Date().toISOString(), bonusPreview: preview, settlement: { enabled: false, reason: 'Bonus ledger pending approval' }, events: [{ by: 'member', action: 'CLAIM_CREATED', message: input.note ?? '', createdAt: new Date().toISOString() }] };
+
     const item = await this.prisma.riskAlert.create({ data: { type: 'WALLET_LEDGER_MISMATCH', severity: 'LOW', status: 'OPEN', memberId: user.id, refType: CLAIM_REF_TYPE, refId: campaignId, title: `Promotion claim: ${campaign.title}`, description: input.note?.trim() || `ขอรับโปร ${campaign.title}`, metadata: this.safeJson(metadata) } });
+    try {
+      await this.domain.createClaim({ id: item.id, memberId: user.id, campaignId, topUpRequestId: linkedTopup?.id ?? null, sourceRiskAlertId: item.id, depositAmount, bonusAmount: preview.estimatedBonus, memberNote: input.note ?? null });
+    } catch (error) {
+      await this.prisma.riskAlert.delete({ where: { id: item.id } }).catch(() => null);
+      throw error;
+    }
     return { ok: true, item: this.formatClaim(item) };
   }
 
@@ -50,12 +63,13 @@ export class PromotionsService {
     if (!item) throw new NotFoundException('Promotion claim not found');
     const metadata = this.claimMetadata(item.metadata);
     const nextStatus = input.status === 'APPROVED' ? 'RESOLVED' : input.status === 'REJECTED' ? 'DISMISSED' : 'REVIEWING';
-    if ((input.status === 'REJECTED') && !input.adminNote?.trim()) throw new BadRequestException('adminNote is required when rejecting a promotion claim');
+    if (input.status === 'REJECTED' && !input.adminNote?.trim()) throw new BadRequestException('adminNote is required when rejecting a promotion claim');
     const events = [...metadata.events, { by: 'admin', adminUserId: admin.id, action: input.status ?? 'REVIEWING', message: input.adminNote ?? '', createdAt: new Date().toISOString() }];
-    const settlement = input.status === 'APPROVED' ? { enabled: true, mode: 'bonus_ledger_only', reason: 'Bonus ledger created, wallet credit disabled until turnover guard is enabled' } : { enabled: false, reason: 'Claim not approved' };
+    const settlement = input.status === 'APPROVED' ? { enabled: true, mode: 'bonus_ledger_only', reason: 'Bonus ledger created; wallet settlement requires completed turnover' } : { enabled: false, reason: 'Claim not approved' };
+
+    await this.domain.markClaimReviewed({ sourceRiskAlertId: id, status: input.status ?? 'REVIEWING', adminUserId: admin.id, adminNote: input.adminNote ?? null });
     const updated = await this.prisma.riskAlert.update({ where: { id }, data: { status: nextStatus, severity: nextStatus === 'RESOLVED' ? 'LOW' : item.severity, resolvedAt: nextStatus === 'RESOLVED' || nextStatus === 'DISMISSED' ? new Date() : undefined, metadata: this.safeJson({ ...metadata, adminNote: input.adminNote ?? metadata.adminNote ?? '', reviewResult: input.status ?? 'REVIEWING', settlement, events }) } });
-    let bonusLedger = null;
-    if (input.status === 'APPROVED') bonusLedger = await this.createBonusLedgerFromClaim(updated, admin.id);
+    const bonusLedger = input.status === 'APPROVED' ? await this.createBonusLedgerFromClaim(updated, admin.id) : null;
     await this.audit(admin.id, 'promotion.claim.review', id, item, { updated, bonusLedger });
     return { ok: true, item: this.formatClaim(updated), bonusLedger: bonusLedger ? this.formatBonusLedger(bonusLedger) : null };
   }
@@ -77,13 +91,16 @@ export class PromotionsService {
     if (!Number.isFinite(amount) || amount <= 0) throw new BadRequestException('amount must be positive');
     const metadata = this.bonusMetadata(item.metadata);
     if (metadata.lifecycleStatus === 'REVOKED' || metadata.lifecycleStatus === 'EXPIRED') throw new BadRequestException('Cannot update turnover for expired or revoked bonus');
-    const turnoverProgress = Number(metadata.turnoverProgress || 0) + amount;
-    const turnoverRequired = Number(metadata.turnoverRequired || 0);
-    const completed = turnoverRequired > 0 && turnoverProgress >= turnoverRequired;
+
+    const domainLedger = await this.domain.addTurnover(id, amount);
+    if (!domainLedger) throw new BadRequestException('Bonus domain ledger is not active');
+    const turnoverProgress = Number(domainLedger.turnover_progress ?? 0);
+    const turnoverRequired = Number(domainLedger.turnover_required ?? 0);
+    const completed = String(domainLedger.status) === 'TURNOVER_COMPLETED';
     const lifecycleStatus = completed ? 'TURNOVER_COMPLETED' : metadata.lifecycleStatus;
     const walletCreditStatus = completed ? 'READY_FOR_MANUAL_RELEASE' : metadata.walletCreditStatus;
     const events = [...metadata.events, { by: 'admin', adminUserId: admin.id, action: 'TURNOVER_PROGRESS', amount, message: input.note ?? '', createdAt: new Date().toISOString() }];
-    const updated = await this.prisma.riskAlert.update({ where: { id }, data: { status: completed ? 'RESOLVED' : item.status, resolvedAt: completed ? new Date() : item.resolvedAt, metadata: this.safeJson({ ...metadata, turnoverProgress, turnoverCompleted: completed, lifecycleStatus, walletCreditEnabled: false, walletCreditStatus, events }) } });
+    const updated = await this.prisma.riskAlert.update({ where: { id }, data: { status: completed ? 'RESOLVED' : item.status, resolvedAt: completed ? new Date() : item.resolvedAt, metadata: this.safeJson({ ...metadata, turnoverProgress, turnoverRequired, turnoverCompleted: completed, lifecycleStatus, walletCreditEnabled: false, walletCreditStatus, events }) } });
     await this.audit(admin.id, 'bonus.turnover.progress', id, item, updated);
     return { ok: true, item: this.formatBonusLedger(updated) };
   }
@@ -96,15 +113,20 @@ export class PromotionsService {
     const metadata = this.bonusMetadata(item.metadata);
     const note = this.cleanText(input.note);
     if ((action === 'EXPIRE' || action === 'REVOKE') && !note) throw new BadRequestException('note is required for expire or revoke');
-    if (metadata.lifecycleStatus === 'REVOKED') throw new BadRequestException('Bonus is already revoked');
-    if (metadata.lifecycleStatus === 'EXPIRED') throw new BadRequestException('Bonus is already expired');
+    if (['REVOKED', 'EXPIRED', 'SETTLED'].includes(metadata.lifecycleStatus)) throw new BadRequestException(`Bonus is already ${metadata.lifecycleStatus.toLowerCase()}`);
     if (action === 'RELEASE' && !metadata.turnoverCompleted) throw new BadRequestException('ต้องทำเทิร์นให้ครบก่อน release โบนัส');
-    const lifecycleStatus = action === 'RELEASE' ? 'RELEASE_READY' : action === 'EXPIRE' ? 'EXPIRED' : 'REVOKED';
-    const walletCreditStatus = action === 'RELEASE' ? 'READY_FOR_MANUAL_SETTLEMENT' : action === 'EXPIRE' ? 'EXPIRED_NO_WALLET_CREDIT' : 'REVOKED_NO_WALLET_CREDIT';
-    const nextStatus: RiskAlertStatus = action === 'REVOKE' || action === 'EXPIRE' ? 'DISMISSED' : 'RESOLVED';
+
+    const domainLifecycle = await this.domain.updateLifecycle(id, action!);
+    if (!domainLifecycle) throw new BadRequestException('Bonus lifecycle transition was rejected');
+    let settlement: Record<string, unknown> | null = null;
+    if (action === 'RELEASE') settlement = await this.domain.settleBonus({ sourceRiskAlertId: id, adminUserId: admin.id, idempotencyKey: `bonus:${id}:settlement` }) as Record<string, unknown>;
+
+    const lifecycleStatus = action === 'RELEASE' ? 'SETTLED' : action === 'EXPIRE' ? 'EXPIRED' : 'REVOKED';
+    const walletCreditStatus = action === 'RELEASE' ? 'CREDITED' : action === 'EXPIRE' ? 'EXPIRED_NO_WALLET_CREDIT' : 'REVOKED_NO_WALLET_CREDIT';
+    const nextStatus: RiskAlertStatus = action === 'RELEASE' ? 'RESOLVED' : 'DISMISSED';
     const events = [...metadata.events, { by: 'admin', adminUserId: admin.id, action: `BONUS_${action}`, message: note, createdAt: new Date().toISOString() }];
-    const updated = await this.prisma.riskAlert.update({ where: { id }, data: { status: nextStatus, resolvedAt: new Date(), metadata: this.safeJson({ ...metadata, lifecycleStatus, walletCreditEnabled: false, walletCreditStatus, lifecycleNote: note, lifecycleUpdatedAt: new Date().toISOString(), lifecycleUpdatedBy: admin.id, events }) } });
-    await this.audit(admin.id, `bonus.lifecycle.${String(action).toLowerCase()}`, id, item, updated);
+    const updated = await this.prisma.riskAlert.update({ where: { id }, data: { status: nextStatus, resolvedAt: new Date(), metadata: this.safeJson({ ...metadata, lifecycleStatus, walletCreditEnabled: action === 'RELEASE', walletCreditStatus, walletLedgerId: settlement?.wallet_ledger_id ?? null, lifecycleNote: note, lifecycleUpdatedAt: new Date().toISOString(), lifecycleUpdatedBy: admin.id, events }) } });
+    await this.audit(admin.id, `bonus.lifecycle.${String(action).toLowerCase()}`, id, item, { updated, settlement });
     return { ok: true, item: this.formatBonusLedger(updated) };
   }
 
@@ -129,7 +151,14 @@ export class PromotionsService {
     const preview = this.bonusPreview(campaign ?? claimMetadata.campaign, Number(claimMetadata.depositAmount || campaign?.minDeposit || 0));
     const turnoverCompleted = preview.turnoverRequired <= 0;
     const metadata = { claimId: claim.id, campaignId: claimMetadata.campaignId || claim.refId, topupId: claimMetadata.topupId, linkedTopup: claimMetadata.linkedTopup, depositAmount: claimMetadata.depositAmount, campaign, amount: preview.estimatedBonus, currency: 'THB', turnoverRequired: preview.turnoverRequired, turnoverProgress: 0, turnoverCompleted, lifecycleStatus: turnoverCompleted ? 'TURNOVER_COMPLETED' : 'ACTIVE', walletCreditEnabled: false, walletCreditStatus: turnoverCompleted ? 'READY_FOR_MANUAL_RELEASE' : 'BLOCKED_UNTIL_TURNOVER_GUARD', events: [{ by: 'system', adminUserId, action: 'BONUS_LEDGER_CREATED', message: 'Created from approved promotion claim', createdAt: new Date().toISOString() }] };
-    return this.prisma.riskAlert.create({ data: { type: 'WALLET_LEDGER_MISMATCH', severity: 'LOW', status: metadata.turnoverCompleted ? 'RESOLVED' : 'OPEN', memberId: claim.memberId, refType: BONUS_REF_TYPE, refId: claim.id, title: `Bonus ledger: ${campaign?.title ?? claimMetadata.campaignId}`, description: `โบนัส ${preview.estimatedBonus.toFixed(2)} THB · เทิร์น ${preview.turnoverRequired.toFixed(2)}`, metadata: this.safeJson(metadata) } });
+    const riskLedger = await this.prisma.riskAlert.create({ data: { type: 'WALLET_LEDGER_MISMATCH', severity: 'LOW', status: turnoverCompleted ? 'RESOLVED' : 'OPEN', memberId: claim.memberId, refType: BONUS_REF_TYPE, refId: claim.id, title: `Bonus ledger: ${campaign?.title ?? claimMetadata.campaignId}`, description: `โบนัส ${preview.estimatedBonus.toFixed(2)} THB · เทิร์น ${preview.turnoverRequired.toFixed(2)}`, metadata: this.safeJson(metadata) } });
+    try {
+      await this.domain.createBonusLedger({ id: riskLedger.id, promotionClaimId: claim.id, memberId: claim.memberId, sourceRiskAlertId: riskLedger.id, amount: preview.estimatedBonus, currency: 'THB', turnoverRequired: preview.turnoverRequired });
+    } catch (error) {
+      await this.prisma.riskAlert.delete({ where: { id: riskLedger.id } }).catch(() => null);
+      throw error;
+    }
+    return riskLedger;
   }
 
   private async activeCampaigns() { const settings = await this.prisma.siteSetting.findUnique({ where: { key: 'features.promotion_campaigns' } }); const campaigns = this.normalizeCampaigns(settings?.valueJson); const now = Date.now(); return campaigns.filter((item) => item.enabled && this.inWindow(item, now)); }
@@ -148,4 +177,4 @@ export class PromotionsService {
 }
 
 function claimStatusLabel(status: string) { const map: Record<string, string> = { OPEN: 'PENDING', REVIEWING: 'REVIEWING', RESOLVED: 'APPROVED', DISMISSED: 'REJECTED' }; return map[status] ?? status; }
-function bonusStatusLabel(status: string, metadata: any) { if (metadata.lifecycleStatus === 'RELEASE_READY') return 'RELEASE_READY'; if (metadata.lifecycleStatus === 'REVOKED') return 'REVOKED'; if (metadata.lifecycleStatus === 'EXPIRED') return 'EXPIRED'; if (metadata.turnoverCompleted) return 'TURNOVER_COMPLETED'; const map: Record<string, string> = { OPEN: 'ACTIVE', REVIEWING: 'REVIEWING', RESOLVED: 'COMPLETED', DISMISSED: 'EXPIRED' }; return map[status] ?? status; }
+function bonusStatusLabel(status: string, metadata: any) { if (metadata.lifecycleStatus === 'SETTLED') return 'SETTLED'; if (metadata.lifecycleStatus === 'RELEASE_READY') return 'RELEASE_READY'; if (metadata.lifecycleStatus === 'REVOKED') return 'REVOKED'; if (metadata.lifecycleStatus === 'EXPIRED') return 'EXPIRED'; if (metadata.turnoverCompleted) return 'TURNOVER_COMPLETED'; const map: Record<string, string> = { OPEN: 'ACTIVE', REVIEWING: 'REVIEWING', RESOLVED: 'COMPLETED', DISMISSED: 'EXPIRED' }; return map[status] ?? status; }
