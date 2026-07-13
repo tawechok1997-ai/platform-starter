@@ -116,6 +116,7 @@
 - [x] ตรวจทุก admin route/sidebar/widget/export รอบ finance routes; withdrawal workflow ถูกเพิ่ม permission guard
 - [ ] ตรวจทุก admin route/sidebar/widget/export ที่เหลือ
 - [x] แก้ endpoint การเงินที่ขาด `RequirePermission` (withdrawal workflow)
+- [x] ป้องกัน wallet read/adjust endpoints และเพิ่ม `wallet.adjust` ใน seed
 - [ ] ตรวจ endpoint ที่ขาด `RequirePermission` กลุ่มอื่น
 - [ ] เพิ่ม automated route/permission coverage test
 - [ ] ยืนยัน read-only user มองไม่เห็น mutation control
