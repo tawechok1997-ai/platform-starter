@@ -12,6 +12,7 @@ type SecurityOverview = {
   admin: { id: string; username: string; email: string; status: AdminStatus; twoFactorEnabled: boolean; lastLoginAt?: string | null; createdAt: string; roles: { code: string; name: string }[] };
   sessions: { id: string; deviceId?: string | null; ipAddress?: string | null; userAgent?: string | null; createdAt: string; expiresAt: string; revokedAt?: string | null; active: boolean }[];
   loginHistory: { id: string; success: boolean; reason?: string | null; ipAddress?: string | null; userAgent?: string | null; createdAt: string }[];
+  statusTimeline: { id: string; actorAdminId?: string | null; fromStatus?: string | null; toStatus?: string | null; reason?: string | null; createdAt: string }[];
 };
 
 export default function AdminAccountsPage() {
@@ -188,6 +189,12 @@ export default function AdminAccountsPage() {
                 <small>{item.ipAddress ?? 'ไม่ทราบ IP'} · {new Date(item.createdAt).toLocaleString('th-TH')}{item.userAgent ? ` · ${item.userAgent.slice(0, 100)}` : ''}</small>
               </div>)}
               {securityById[user.id].loginHistory.length === 0 && <small>ยังไม่มีประวัติ login</small>}
+              <strong>Status timeline ({securityById[user.id].statusTimeline.length})</strong>
+              {securityById[user.id].statusTimeline.slice(0, 10).map((item) => <div key={item.id} style={securityItemStyle}>
+                <div><AdminBadge tone={item.toStatus === 'ACTIVE' ? 'success' : 'warning'}>{item.fromStatus ?? '-'} → {item.toStatus ?? '-'}</AdminBadge></div>
+                <small>{item.reason ?? 'ไม่มีเหตุผลระบุ'} · {new Date(item.createdAt).toLocaleString('th-TH')}</small>
+              </div>)}
+              {securityById[user.id].statusTimeline.length === 0 && <small>ยังไม่มีประวัติเปลี่ยนสถานะ</small>}
             </div>}
             {canAct && <div style={actionPanelStyle}>
               <label style={reasonFieldStyle}>เหตุผลในการเปลี่ยนสถานะ
