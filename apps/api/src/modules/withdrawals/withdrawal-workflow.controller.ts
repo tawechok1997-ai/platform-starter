@@ -1,18 +1,22 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PaymentProofInput, WithdrawalWorkflowService } from './withdrawal-workflow.service';
 
 @Controller('admin/withdrawals')
-@UseGuards(AdminAuthGuard)
+@UseGuards(AdminAuthGuard, PermissionsGuard)
 export class WithdrawalWorkflowController {
   constructor(private readonly workflow: WithdrawalWorkflowService) {}
 
+  @RequirePermission('finance.withdrawals.view')
   @Get(':id/payment-proof')
   getPaymentProof(@Param('id') id: string) {
     return this.workflow.getPaymentProof(id);
   }
 
+  @RequirePermission('finance.withdrawals.review')
   @Post(':id/approve-for-payment')
   approveForPayment(
     @Param('id') id: string,
@@ -23,6 +27,7 @@ export class WithdrawalWorkflowController {
     return this.workflow.approveForPayment(id, user.id, body.note, this.meta(req));
   }
 
+  @RequirePermission('finance.withdrawals.review')
   @Post(':id/payment-proof')
   uploadPaymentProof(
     @Param('id') id: string,
@@ -33,6 +38,7 @@ export class WithdrawalWorkflowController {
     return this.workflow.uploadPaymentProof(id, user.id, body, this.meta(req));
   }
 
+  @RequirePermission('finance.withdrawals.review')
   @Post(':id/verify-payment')
   verifyPayment(
     @Param('id') id: string,
