@@ -249,7 +249,7 @@
 สถานะ: 🟡 PARTIAL — มี member support/admin support center
 
 - [ ] FAQ route/search/category
-- [ ] Ticket pagination/search/filter
+- [x] Ticket pagination/search/filter (cursor pagination, status/category/search filters)
 - [ ] Attachment upload/type/size validation
 - [ ] Draft/timeline/preview
 - [ ] Close/reopen/polling/realtime
