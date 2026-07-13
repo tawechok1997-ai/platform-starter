@@ -17,10 +17,11 @@ Branch อ้างอิง: **`main`**
 ## หลักฐานที่ตรวจพบใน repo
 
 - Root scripts มี build, test, lint, Prisma, permission audit, finance audit, token/XSS audit, Playwright smoke และ visual commands
-- `apps/api` มี Jest, finance concurrency และ promotion settlement concurrency test commands
+- `apps/api` มี Jest, finance concurrency, promotion settlement concurrency และ phone OTP PostgreSQL security test commands
 - `apps/web-admin` และ `apps/web-member` มี build script แต่ยังไม่มี app-level lint/test script
-- Build workflow ใช้ PostgreSQL 16, รัน Prisma validate/generate/migrate, API tests, finance concurrency tests, promotion settlement concurrency tests และ build ทั้งสามแอป
+- Build workflow ใช้ PostgreSQL 16, รัน Prisma validate/generate/migrate, API tests, finance concurrency tests, promotion settlement concurrency tests, phone OTP security tests และ build ทั้งสามแอป
 - Build #618 ผ่านครบทั้ง API tests, PostgreSQL finance concurrency, PostgreSQL promotion settlement concurrency และ build ทั้งสามแอป
+- Phone OTP CI รอบล่าสุดผ่านทั้ง API tests, PostgreSQL replay/brute-force/concurrent verify suite และ build ทั้งสามแอป
 - มี shared package `packages/api-client`
 - Playwright smoke/visual config มีอยู่ แต่ผล browser regression ไม่ถือว่าผ่านจนกว่าจะมี workflow หรือ artifact ยืนยัน
 
@@ -35,14 +36,14 @@ Branch อ้างอิง: **`main`**
 | Deposit / withdrawal workflow safety | 🟡 PARTIAL — DB concurrency ผ่านแล้ว เหลือ credentialed production flow |
 | Admin auth / owner / role / 2FA | 🟡 PARTIAL — implementation มีแล้ว เหลือ credentialed regression |
 | Permission coverage | 🟡 PARTIAL — static audits มีแล้ว เหลือ role-based browser regression |
-| Member home / game discovery | 🟡 PARTIAL — feature หลักมีแล้ว เหลือ authenticated visual regression |
+| Member home / game discovery | 🟡 PARTIAL — featureหลักมีแล้ว เหลือ authenticated visual regression |
 | Member profile / security | 🟡 PARTIAL |
 | Notifications | 🟡 PARTIAL — channel model/UI มีแล้ว เหลือ rollback/browser regression |
 | Support / FAQ | 🟡 PARTIAL — attachment backend policy มีแล้ว เหลือ binary upload และ browser regression |
 | Admin settings / CMS | 🟡 PARTIAL — URL-backed assets เท่านั้น และยังขาด browser regression |
 | Reports / Activity / Risk / Security Admin | 🟡 PARTIAL — featureหลักมีแล้ว แต่ยังขาด authenticated regression |
 | Promotion / Bonus / Affiliate / Commission | ✅ DONE — ยังห้ามเปิดเงินจริงจนกว่า provider-specific UAT ผ่าน |
-| KYC / Blacklist / Document workflow | 🟡 PARTIAL — blacklist/watchlist และ KYC document backend มีแล้ว เหลือ Phone OTP/SMS, UI และ PostgreSQL/deployed regression |
+| KYC / Blacklist / Document workflow | 🟡 PARTIAL — blacklist/watchlist, KYC document backend และ Phone OTP มีแล้ว เหลือ UI, watchlist/KYC DB evidence และ deployed regression |
 | Real provider integration | ⏸️ Code readiness มีแล้ว; vendor UAT blocked |
 | Code structure refactor | 🟡 PARTIAL |
 | Performance / Storage / CI hardening | 🟡 PARTIAL |
@@ -292,8 +293,9 @@ Branch อ้างอิง: **`main`**
 - [x] KYC document upload, private storage, MIME/size policy และ SHA-256 metadata
 - [x] KYC retention cleanup และ short-lived document access token policy
 - [x] Unit/regression tests สำหรับ watchlist enforcement และ KYC document lifecycle
-- [ ] Phone OTP/SMS verification
-- [ ] PostgreSQL integration/concurrency evidence สำหรับ watchlist/KYC
+- [x] Phone OTP/SMS verification lifecycle, hash, expiry, attempt limit, rate limit และ provider abstraction
+- [x] PostgreSQL phone OTP replay/brute-force/concurrent verify tests ผ่านจริง
+- [ ] PostgreSQL integration/concurrency evidence สำหรับ watchlist/KYC document lifecycle
 - [ ] Admin KYC UI และ Member KYC upload UI
 - [ ] Authenticated deployed KYC/risk regression
 
@@ -461,9 +463,9 @@ Branch อ้างอิง: **`main`**
 
 # ลำดับทำงานถัดไป
 
-1. ทำ M-020 Phone OTP/SMS verification
-2. เพิ่ม PostgreSQL integration/concurrency tests สำหรับ watchlist/KYC
-3. ทำ Admin KYC UI และ Member KYC upload UI
+1. เพิ่ม PostgreSQL integration/concurrency tests สำหรับ watchlist/KYC document lifecycle
+2. ทำ Admin KYC UI และ Member KYC upload UI
+3. ทำ authenticated deployed KYC/risk regression
 4. ตั้ง seeded non-production Admin/Member accounts สำหรับ browser tests
 5. ปิด M-005 ถึง M-010 ด้วย credentialed regression
 6. ปิด M-011 ถึง M-017 และ M-019 ด้วย authenticated visual/functional regression
