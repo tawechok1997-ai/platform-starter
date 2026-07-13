@@ -207,4 +207,29 @@ describe('AdminAccessService privilege boundaries', () => {
     });
   });
 
+  it('reports owner recovery health without exposing recovery code values', async () => {
+    const ownerRole = role('owner-role', 'owner', 1, ['*']);
+    const prisma = {
+      adminUser: {
+        findUnique: jest.fn().mockResolvedValue({ id: 'owner', roles: [{ role: ownerRole }] }),
+        findMany: jest.fn().mockResolvedValue([
+          { id: 'owner', username: 'owner', email: 'owner@example.com', status: 'ACTIVE', twoFactorEnabled: true, roles: [{ role: { code: 'owner' } }] },
+          { id: 'backup', username: 'backup', email: 'backup@example.com', status: 'ACTIVE', twoFactorEnabled: false, roles: [{ role: { code: 'super_admin' } }] },
+        ]),
+      },
+      adminRecoveryCode: { count: jest.fn().mockResolvedValue(3) },
+    } as any;
+
+    const service = new AdminAccessService(prisma);
+    const result = await service.ownerRecoveryStatus('owner');
+
+    expect(result.healthy).toBe(false);
+    expect(result.recoveryCodesRemaining).toBe(3);
+    expect(result.protectedAdmins).toEqual([
+      expect.objectContaining({ id: 'owner', twoFactorEnabled: true }),
+      expect.objectContaining({ id: 'backup', twoFactorEnabled: false }),
+    ]);
+    expect(JSON.stringify(result)).not.toContain('recoveryCode');
+  });
+
 });
