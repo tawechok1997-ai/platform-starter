@@ -389,12 +389,22 @@
 
 สถานะ: 🟡 PARTIAL / ห้ามเปิดเงินจริง
 
-- [ ] Campaign/bonus lifecycle
-- [ ] Turnover tracking QA
-- [ ] Member claim/admin review
-- [ ] Referral/agent code
-- [ ] Commission calculation/settlement
-- [ ] Downline/report correctness
+หลักฐานล่าสุด 2026-07-13:
+- เพิ่ม unit test `promotions.service.spec.ts` สำหรับ bonus turnover lifecycle: turnover progress ครบแล้ว ledger เป็น `TURNOVER_COMPLETED`/`READY_FOR_MANUAL_RELEASE` โดยยังไม่ credit wallet และ release ก่อนครบ turnover ต้องถูก block
+- Source ตรวจพบ promotion claim/admin review สร้าง bonus ledger แบบ `bonus_ledger_only` และ lifecycle `RELEASE/EXPIRE/REVOKE` ยังปิด wallet credit จนกว่าจะมี settlement guard จริง
+- ตรวจ member/admin promotion flow แล้วสมาชิกสร้าง claim ได้ผ่าน active campaign + approved topup guard, admin approve/reject ต้องมี rejection note และ approve สร้าง bonus ledger หนึ่งครั้ง (idempotent by claim)
+- ตรวจ affiliate service แล้ว member สร้าง/แก้ profile พร้อม normalize referral code + uniqueness guard, link referral กัน self-referral/duplicate link, และ downline report นับจาก `AFFILIATE_LINK` ตาม referral code
+- ตรวจ commission service แล้วคำนวณจาก basisAmount/ratePercent/capAmount, block agent ที่ยังไม่ approved, create/review ledger พร้อม audit และ payout ยัง disabled จนกว่าจะมี settlement guard
+- ยังไม่ติ๊ก domain model แยก: promotion/bonus/affiliate/commission ยังคงใช้ `RiskAlert` metadata (`PROMOTION_CLAIM`, `BONUS_LEDGER`, `AFFILIATE_PROFILE`, `AFFILIATE_LINK`, `COMMISSION_LEDGER`) จึงต้องออกแบบ Prisma model แยกก่อนเปิดเงินจริง
+- ยังไม่ติ๊ก audit/concurrency/settlement test: มี admin audit log แล้ว แต่ยังไม่มี settlement wallet-credit path และยังไม่มี concurrency/idempotency test สำหรับ payout/bonus release จริง
+- `pnpm --filter @platform/api test -- src/modules/promotions/promotions.service.spec.ts --runInBand` ผ่าน
+
+- [x] Campaign/bonus lifecycle
+- [x] Turnover tracking QA
+- [x] Member claim/admin review
+- [x] Referral/agent code
+- [x] Commission calculation/settlement (คำนวณ/ledger พร้อม payout disabled guard)
+- [x] Downline/report correctness
 - [ ] แยก domain model ออกจาก RiskAlert metadata
 - [ ] Audit/concurrency/settlement test ก่อนเปิดเงินจริง
 
