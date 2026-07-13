@@ -88,6 +88,7 @@ const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'Activity', href: '/activity', permissions: ['admin.view', 'admin.access.view'] },
   { title: 'Exports', href: '/exports', permissions: ['reports.export', 'reports.view'] },
   { title: 'Finance', href: '/finance', permissions: ['wallet.view', 'reports.view'] },
+  { title: 'KYC Review', href: '/kyc', permissions: ['users.view', 'risk.view'] },
   { title: 'Ledgers', href: '/ledgers', permissions: ['wallet.view'] },
   { title: 'Member Detail', href: '/member-detail', permissions: ['users.view'] },
   { title: 'Money Ops', href: '/money-ops', permissions: ['wallet.view'] },
