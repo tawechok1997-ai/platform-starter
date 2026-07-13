@@ -3,8 +3,13 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
+import {
+  ApproveWithdrawalForPaymentDto,
+  UploadWithdrawalPaymentProofDto,
+  VerifyWithdrawalPaymentDto,
+} from './dto/withdrawal-workflow.dto';
 import { WithdrawalRiskEnforcementService } from './withdrawal-risk-enforcement.service';
-import { PaymentProofInput, WithdrawalWorkflowService } from './withdrawal-workflow.service';
+import { WithdrawalWorkflowService } from './withdrawal-workflow.service';
 
 @Controller('admin/withdrawals')
 @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -25,7 +30,7 @@ export class WithdrawalWorkflowController {
   async approveForPayment(
     @Param('id') id: string,
     @CurrentUser() user: any,
-    @Body() body: { note?: string; riskOverrideReason?: string },
+    @Body() body: ApproveWithdrawalForPaymentDto,
     @Req() req: any,
   ) {
     await this.withdrawalRisk.enforceBeforeApproval(id, user.id, body.riskOverrideReason);
@@ -37,7 +42,7 @@ export class WithdrawalWorkflowController {
   uploadPaymentProof(
     @Param('id') id: string,
     @CurrentUser() user: any,
-    @Body() body: PaymentProofInput,
+    @Body() body: UploadWithdrawalPaymentProofDto,
     @Req() req: any,
   ) {
     return this.workflow.uploadPaymentProof(id, user.id, body, this.meta(req));
@@ -48,7 +53,7 @@ export class WithdrawalWorkflowController {
   verifyPayment(
     @Param('id') id: string,
     @CurrentUser() user: any,
-    @Body() body: { note?: string },
+    @Body() body: VerifyWithdrawalPaymentDto,
     @Req() req: any,
   ) {
     return this.workflow.verifyAndComplete(id, user.id, body.note, this.meta(req));
