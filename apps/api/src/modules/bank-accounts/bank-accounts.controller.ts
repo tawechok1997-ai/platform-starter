@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { BankAccountsService } from './bank-accounts.service';
@@ -38,37 +40,43 @@ export class BankAccountsController {
     return this.bankAccountsService.setPrimaryMemberBankAccount(user.id, id);
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('bank_accounts.view')
   @Get('admin/receiving-bank-accounts')
   listReceivingAccounts() {
     return this.bankAccountsService.listReceivingAccounts();
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('bank_accounts.manage')
   @Post('admin/receiving-bank-accounts')
   createReceivingAccount(@CurrentUser() user: any, @Body() body: any, @Req() req: any) {
     return this.bankAccountsService.createReceivingAccount(body, user, this.meta(req));
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('bank_accounts.manage')
   @Patch('admin/receiving-bank-accounts/:id')
   updateReceivingAccount(@Param('id') id: string, @CurrentUser() user: any, @Body() body: any, @Req() req: any) {
     return this.bankAccountsService.updateReceivingAccount(id, body, user, this.meta(req));
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('bank_accounts.view')
   @Get('admin/member-bank-accounts')
   listMemberBankAccounts(@Query('search') search?: string) {
     return this.bankAccountsService.listAllMemberBankAccounts(search);
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('bank_accounts.view')
   @Get('admin/member-bank-accounts/kyc-summary')
   kycSummary() {
     return this.bankAccountsService.kycSummary();
   }
 
-  @UseGuards(AdminAuthGuard)
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('bank_accounts.review')
   @Patch('admin/member-bank-accounts/:id/review')
   reviewMemberBankAccount(@Param('id') id: string, @CurrentUser() user: any, @Body() body: any, @Req() req: any) {
     return this.bankAccountsService.reviewMemberBankAccount(id, body, user, this.meta(req));
