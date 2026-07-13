@@ -10,17 +10,20 @@ import { MemberSignInDto } from './dto/member-sign-in.dto';
 import { RefreshSessionDto } from './dto/refresh-session.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateMemberProfileDto } from './dto/update-member-profile.dto';
+import { MemberRiskEnforcementService } from './member-risk-enforcement.service';
 
 @Controller('member/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly antiBot: AntiBotService,
+    private readonly memberRisk: MemberRiskEnforcementService,
   ) {}
 
   @Post('register')
   async register(@Body() dto: RegisterDto, @Req() req: any) {
     await this.antiBot.assertValid('MEMBER_REGISTER', dto.captchaToken, req.ip);
+    await this.memberRisk.enforceRegistration(dto, req.ip, dto.deviceId);
     return this.authService.register(dto, this.meta(req, dto.deviceId));
   }
 
@@ -60,8 +63,10 @@ export class AuthController {
 
   @UseGuards(MemberAuthGuard)
   @Patch('profile')
-  updateProfile(@CurrentUser() user: any, @Body() dto: UpdateMemberProfileDto) {
-    return this.authService.updateMemberProfile(user.id ?? user.sub, dto);
+  async updateProfile(@CurrentUser() user: any, @Body() dto: UpdateMemberProfileDto) {
+    const memberId = user.id ?? user.sub;
+    await this.memberRisk.enforceProfileUpdate(memberId, dto);
+    return this.authService.updateMemberProfile(memberId, dto);
   }
 
   @UseGuards(MemberAuthGuard)
