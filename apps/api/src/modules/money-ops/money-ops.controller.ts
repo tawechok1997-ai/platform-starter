@@ -1,10 +1,12 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import type { AdminRequestContext, AuthenticatedAdminActor } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import {
   LedgerMutationDto,
+  MoneyOpsLedgerQueryDto,
   ResolveMoneyOpsRiskAlertDto,
   WriteMoneyOpsAuditDto,
 } from './dto/money-ops.dto';
@@ -21,7 +23,7 @@ export class MoneyOpsController {
 
   @RequirePermission('game.providers.view')
   @Get('ledger')
-  ledger(@Query() query: { userId?: string; referenceType?: string; referenceId?: string; take?: string }) { return this.moneyOps.listLedger(query); }
+  ledger(@Query() query: MoneyOpsLedgerQueryDto) { return this.moneyOps.listLedger(query); }
 
   @RequirePermission('game.providers.manage')
   @Post('ledger/simulate')
@@ -29,11 +31,23 @@ export class MoneyOpsController {
 
   @RequirePermission('game.providers.manage')
   @Post('ledger/mutate')
-  mutateLedger(@Body() body: LedgerMutationDto, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.mutateLedger(user, this.meta(req), body); }
+  mutateLedger(
+    @Body() body: LedgerMutationDto,
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Req() req: AdminRequestContext,
+  ) {
+    return this.moneyOps.mutateLedger(user, this.meta(req), body);
+  }
 
   @RequirePermission('game.providers.manage')
   @Post('audit-events')
-  writeAudit(@Body() body: WriteMoneyOpsAuditDto, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.writeAudit(user, this.meta(req), body); }
+  writeAudit(
+    @Body() body: WriteMoneyOpsAuditDto,
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Req() req: AdminRequestContext,
+  ) {
+    return this.moneyOps.writeAudit(user, this.meta(req), body);
+  }
 
   @RequirePermission('game.providers.view')
   @Get('alert-rules')
@@ -41,15 +55,31 @@ export class MoneyOpsController {
 
   @RequirePermission('game.providers.manage')
   @Post('alert-rules/scan')
-  scanAlertRules(@CurrentUser() user: any, @Req() req: any) { return this.moneyOps.scanAlertRules(user, this.meta(req)); }
+  scanAlertRules(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
+    return this.moneyOps.scanAlertRules(user, this.meta(req));
+  }
 
   @RequirePermission('game.providers.manage')
   @Patch('risk-alerts/:id/resolve')
-  resolveRiskAlert(@Param('id') id: string, @Body() body: ResolveMoneyOpsRiskAlertDto, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.resolveRiskAlert(id, user, this.meta(req), body.note); }
+  resolveRiskAlert(
+    @Param('id') id: string,
+    @Body() body: ResolveMoneyOpsRiskAlertDto,
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Req() req: AdminRequestContext,
+  ) {
+    return this.moneyOps.resolveRiskAlert(id, user, this.meta(req), body.note);
+  }
 
   @RequirePermission('game.providers.manage')
   @Patch('risk-alerts/:id/dismiss')
-  dismissRiskAlert(@Param('id') id: string, @Body() body: ResolveMoneyOpsRiskAlertDto, @CurrentUser() user: any, @Req() req: any) { return this.moneyOps.dismissRiskAlert(id, user, this.meta(req), body.note); }
+  dismissRiskAlert(
+    @Param('id') id: string,
+    @Body() body: ResolveMoneyOpsRiskAlertDto,
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Req() req: AdminRequestContext,
+  ) {
+    return this.moneyOps.dismissRiskAlert(id, user, this.meta(req), body.note);
+  }
 
   @RequirePermission('game.providers.view')
   @Get('provider-simulator/scenarios')
@@ -59,5 +89,7 @@ export class MoneyOpsController {
   @Get('security-hardening')
   securityHardening() { return this.moneyOps.securityHardeningChecklist(); }
 
-  private meta(req: any) { return { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] }; }
+  private meta(req: AdminRequestContext) {
+    return { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] };
+  }
 }
