@@ -6,7 +6,7 @@ const PUBLIC_ADMIN_CONTROLLERS = new Set([
   'modules/admin-auth/admin-auth.controller.ts',
   'modules/admin-access/admin-invitation.controller.ts',
 ]);
-const MUTATION_DECORATOR = /@(Post|Put|Patch|Delete)\s*\(/g;
+const MUTATION_LINE = /@(Post|Put|Patch|Delete)\s*\(/;
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -43,32 +43,30 @@ function classHasPermission(source) {
   return /@RequirePermission\(/.test(source.slice(controllerIndex, classIndex));
 }
 
-function lineNumber(source, index) {
-  return source.slice(0, index).split('\n').length;
-}
-
 function mutationHandlersMissingPermission(source) {
   if (classHasPermission(source)) return [];
 
+  const lines = source.split('\n');
   const missing = [];
-  MUTATION_DECORATOR.lastIndex = 0;
-  let match;
-  while ((match = MUTATION_DECORATOR.exec(source))) {
-    const decoratorIndex = match.index;
-    const previousBoundary = Math.max(
-      source.lastIndexOf('\n  @Get(', decoratorIndex),
-      source.lastIndexOf('\n  @Post(', decoratorIndex - 1),
-      source.lastIndexOf('\n  @Put(', decoratorIndex - 1),
-      source.lastIndexOf('\n  @Patch(', decoratorIndex - 1),
-      source.lastIndexOf('\n  @Delete(', decoratorIndex - 1),
-      source.lastIndexOf('\n  async ', decoratorIndex),
-      source.lastIndexOf('\n  public ', decoratorIndex),
-    );
-    const decoratorBlock = source.slice(Math.max(0, previousBoundary), decoratorIndex);
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const mutation = lines[index].match(MUTATION_LINE);
+    if (!mutation) continue;
+
+    // Handler decorators are grouped directly above the route decorator and are
+    // separated from the previous method by a blank line. Read that complete
+    // block, including the current @Post/@Put/@Patch/@Delete line. The previous
+    // implementation searched from a character offset that could match the
+    // current route decorator itself, producing an empty block and false positives.
+    let blockStart = index;
+    while (blockStart > 0 && lines[blockStart - 1].trim() !== '') blockStart -= 1;
+    const decoratorBlock = lines.slice(blockStart, index + 1).join('\n');
+
     if (!/@RequirePermission\(/.test(decoratorBlock)) {
-      missing.push({ method: match[1].toUpperCase(), line: lineNumber(source, decoratorIndex) });
+      missing.push({ method: mutation[1].toUpperCase(), line: index + 1 });
     }
   }
+
   return missing;
 }
 
