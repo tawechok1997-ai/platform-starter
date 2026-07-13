@@ -150,7 +150,8 @@
 - [ ] HttpOnly/Secure/SameSite cookie
 - [ ] แยก admin/member cookie
 - [x] CSRF origin check ใน Next Admin proxy สำหรับ mutation + `SameSite=Lax` refresh cookie
-- [ ] เพิ่ม dynamic threat-model/E2E review สำหรับ cookie/session flow
+- [x] เพิ่ม deployed smoke test: cross-origin Admin mutation ถูก block และ login HTML ไม่เปิดเผย access token name
+- [ ] เพิ่ม dynamic threat-model/E2E review สำหรับ cookie/session flow ที่มี login จริง
 - [x] ย้าย access token ออกจาก localStorage ใน client/login/layout
 - [ ] ย้าย refresh-token fallback ออกจาก localStorage
 - [ ] XSS/session theft regression test
