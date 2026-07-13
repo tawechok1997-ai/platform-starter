@@ -34,6 +34,9 @@ const GROWTH_PERMISSIONS = [
   { code: 'commission.create', name: 'Create commission ledger', module: 'commission', description: 'สร้าง commission ledger แบบ manual review' },
   { code: 'commission.review', name: 'Review commission ledger', module: 'commission', description: 'อนุมัติหรือปฏิเสธ commission ledger' },
   { code: 'admin.access.delegate', name: 'Delegate limited admin access', module: 'admin-access', description: 'มอบสิทธิ์แอดมินแบบจำกัดและมีวันหมดอายุ' },
+  { code: 'bank_accounts.view', name: 'View bank accounts', module: 'bank-accounts', description: 'ดูบัญชีธนาคารและข้อมูล KYC ที่เกี่ยวข้อง' },
+  { code: 'bank_accounts.manage', name: 'Manage bank accounts', module: 'bank-accounts', description: 'สร้างหรือแก้ไขบัญชีรับเงินของระบบ' },
+  { code: 'bank_accounts.review', name: 'Review member bank accounts', module: 'bank-accounts', description: 'ตรวจสอบและอนุมัติบัญชีธนาคารสมาชิก' },
 ];
 
 @Injectable()
