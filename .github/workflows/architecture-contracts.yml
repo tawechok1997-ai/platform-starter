@@ -1,0 +1,47 @@
+name: Architecture Contracts
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  architecture-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Audit architecture inventory
+        run: pnpm audit:architecture-inventory
+
+      - name: Audit architecture boundaries
+        run: pnpm audit:architecture-boundaries
+
+      - name: Audit critical regression safety
+        run: pnpm audit:critical-test-safety
+
+      - name: Audit mutation DTO coverage
+        run: pnpm audit:mutation-dto-coverage
+
+      - name: Audit admin API permissions
+        run: pnpm audit:admin-permissions
+
+      - name: Audit admin UI permissions
+        run: pnpm audit:admin-ui-permissions
