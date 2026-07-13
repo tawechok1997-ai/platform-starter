@@ -40,9 +40,9 @@ Branch อ้างอิง: **`main`**
 | Notifications | 🟡 PARTIAL — channel model/UI มีแล้ว เหลือ rollback/browser regression |
 | Support / FAQ | 🟡 PARTIAL — attachment backend policy มีแล้ว เหลือ binary upload และ browser regression |
 | Admin settings / CMS | 🟡 PARTIAL — URL-backed assets เท่านั้น และยังขาด browser regression |
-| Reports / Activity / Risk / Security Admin | 🟡 PARTIAL — feature หลักมีแล้ว แต่ยังขาด authenticated regression |
+| Reports / Activity / Risk / Security Admin | 🟡 PARTIAL — featureหลักมีแล้ว แต่ยังขาด authenticated regression |
 | Promotion / Bonus / Affiliate / Commission | ✅ DONE — ยังห้ามเปิดเงินจริงจนกว่า provider-specific UAT ผ่าน |
-| KYC / Blacklist / Document workflow | 🟡 PARTIAL ถึง 🔴 TODO |
+| KYC / Blacklist / Document workflow | 🟡 PARTIAL — blacklist/watchlist และ KYC document backend มีแล้ว เหลือ Phone OTP/SMS, UI และ PostgreSQL/deployed regression |
 | Real provider integration | ⏸️ Code readiness มีแล้ว; vendor UAT blocked |
 | Code structure refactor | 🟡 PARTIAL |
 | Performance / Storage / CI hardening | 🟡 PARTIAL |
@@ -281,13 +281,21 @@ Branch อ้างอิง: **`main`**
 
 ## M-020 KYC/risk
 
-สถานะ: 🟡 PARTIAL ถึง 🔴 TODO
+สถานะ: 🟡 PARTIAL
 
 - [x] Bank review และ duplicate-bank detection
 - [x] Risk status lifecycle
+- [x] Blacklist/watchlist model และ reason taxonomy
+- [x] HMAC matching, duplicate protection, release lifecycle และ audit
+- [x] Enforcement ใน registration/profile/bank/withdrawal พร้อม override audit
+- [x] KYC case/document model และ review lifecycle
+- [x] KYC document upload, private storage, MIME/size policy และ SHA-256 metadata
+- [x] KYC retention cleanup และ short-lived document access token policy
+- [x] Unit/regression tests สำหรับ watchlist enforcement และ KYC document lifecycle
 - [ ] Phone OTP/SMS verification
-- [ ] Blacklist/watchlist model และ reason taxonomy
-- [ ] KYC document upload/retention/access policy
+- [ ] PostgreSQL integration/concurrency evidence สำหรับ watchlist/KYC
+- [ ] Admin KYC UI และ Member KYC upload UI
+- [ ] Authenticated deployed KYC/risk regression
 
 ---
 
@@ -447,20 +455,21 @@ Branch อ้างอิง: **`main`**
 | Deployed smoke/cookie/session test | ต้องมี deployed Admin/Member URLs และ credentials |
 | Real provider UAT | ต้องมี vendor docs, endpoint, credentials และ whitelist |
 | Production migration verification | ต้องมี production access/approved run |
-| Binary uploads/KYC/support attachments | ต้องตัดสินใจ storage, retention และ security policy |
+| Support attachment binary upload และ global storage hardening | ต้องยืนยัน object-storage, malware scan และ global retention policy |
 
 ---
 
 # ลำดับทำงานถัดไป
 
-1. ตั้ง seeded non-production Admin/Member accounts สำหรับ browser tests
-2. ปิด M-005 ถึง M-010 ด้วย credentialed regression
-3. ปิด M-011 ถึง M-017 และ M-019 ด้วย authenticated visual/functional regression
-4. ทำ M-020 Blacklist/watchlist model และ reason taxonomy
-5. ทำ M-020 Phone OTP/SMS และ KYC document policy หลังเลือก provider/storage policy
-6. ทำ refactor P4 หลัง regression coverage พร้อม
-7. ปิด performance/storage/CI P5 ก่อน production launch
-8. ทำ provider-specific UAT หลังได้รับ vendor docs/credentials
+1. ทำ M-020 Phone OTP/SMS verification
+2. เพิ่ม PostgreSQL integration/concurrency tests สำหรับ watchlist/KYC
+3. ทำ Admin KYC UI และ Member KYC upload UI
+4. ตั้ง seeded non-production Admin/Member accounts สำหรับ browser tests
+5. ปิด M-005 ถึง M-010 ด้วย credentialed regression
+6. ปิด M-011 ถึง M-017 และ M-019 ด้วย authenticated visual/functional regression
+7. ทำ refactor P4 หลัง regression coverage พร้อม
+8. ปิด performance/storage/CI P5 ก่อน production launch
+9. ทำ provider-specific UAT หลังได้รับ vendor docs/credentials
 
 # Definition of Done ทั้งโปรเจกต์
 
