@@ -23,7 +23,7 @@ export default function OperationDashboardPage() {
   const [financeError, setFinanceError] = useState('');
   const [riskError, setRiskError] = useState('');
   const [lastLoadedAt, setLastLoadedAt] = useState<string | null>(null);
-  const [permissions, setPermissions] = useState<string[]>([]);
+  const [permissions, setPermissions] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { loadSummary(); }, []);
@@ -37,7 +37,11 @@ export default function OperationDashboardPage() {
       const financeData = await financeRes.json().catch(() => null);
       const riskData = await riskRes.json().catch(() => null) as RiskAlertsResponse | null;
       const meData = await meRes.json().catch(() => null) as CurrentAdmin | null;
-      if (Array.isArray(meData?.permissions)) setPermissions(meData.permissions);
+      if (meRes.ok && Array.isArray(meData?.permissions)) {
+        setPermissions(meData.permissions);
+      } else {
+        setPermissions([]);
+      }
       if (financeRes.ok) {
         setSummary(financeData);
       } else {
@@ -47,25 +51,26 @@ export default function OperationDashboardPage() {
         setRiskItems(riskData.items ?? []);
         setRiskSummary({ openCount: Number(riskData.summary?.openCount ?? 0), criticalCount: Number(riskData.summary?.criticalCount ?? 0) });
       } else {
-        setRiskError('โหลดรายการความเสี่ยงไม่สำเร็จ');
+        setRiskError((riskData as { message?: string } | null)?.message ?? 'โหลดรายการความเสี่ยงไม่สำเร็จ');
       }
-      setLastLoadedAt(new Date().toISOString());
+      if (financeRes.ok || riskRes.ok) setLastLoadedAt(new Date().toISOString());
     } catch {
       setFinanceError('เชื่อมต่อ Operation Center ไม่สำเร็จ กรุณาลองใหม่');
       setRiskError('เชื่อมต่อคิวความเสี่ยงไม่สำเร็จ กรุณาลองใหม่');
+      setPermissions([]);
     } finally {
       setLoading(false);
     }
   }
 
   const pendingTotal = summary ? summary.totals.pendingTopUps + summary.totals.pendingWithdrawals : 0;
-  const hasPermission = (codes: string[]) => permissions.includes('*') || codes.some((code) => permissions.includes(code));
-  const canViewFinance = permissions.length === 0 || hasPermission(['reports.view', 'wallet.view', 'topups.view', 'deposit.view', 'withdraw.view']);
-  const canViewRisk = permissions.length === 0 || hasPermission(['risk.view']);
-  const canViewTopUps = permissions.length === 0 || hasPermission(['topups.view', 'deposit.view']);
-  const canViewWithdrawals = permissions.length === 0 || hasPermission(['withdraw.view']);
-  const canViewReports = permissions.length === 0 || hasPermission(['reports.view']);
-  const canViewWallet = permissions.length === 0 || hasPermission(['wallet.view']);
+  const hasPermission = (codes: string[]) => Boolean(permissions?.includes('*') || codes.some((code) => permissions?.includes(code)));
+  const canViewFinance = hasPermission(['reports.view', 'wallet.view', 'topups.view', 'deposit.view', 'withdraw.view']);
+  const canViewRisk = hasPermission(['risk.view']);
+  const canViewTopUps = hasPermission(['topups.view', 'deposit.view']);
+  const canViewWithdrawals = hasPermission(['withdraw.view']);
+  const canViewReports = hasPermission(['reports.view']);
+  const canViewWallet = hasPermission(['wallet.view']);
 
   return (
     <div className="admin-dashboard">
@@ -74,7 +79,7 @@ export default function OperationDashboardPage() {
         {financeError && !loading && <RetryNotice message={financeError} onRetry={loadSummary} />}
         {riskError && !loading && <RetryNotice message={riskError} onRetry={loadSummary} />}
 
-        {loading && !summary && <div className="admin-dashboard__loading"><AdminSkeleton lines={4} /><AdminSkeleton lines={4} /><AdminSkeleton lines={3} /></div>}
+        {(loading || permissions === null) && !summary && <div className="admin-dashboard__loading"><AdminSkeleton lines={4} /><AdminSkeleton lines={4} /><AdminSkeleton lines={3} /></div>}
 
         {summary && canViewFinance && <div className="admin-dashboard__metrics"><AdminMetricGrid>
           <AdminMetric title="Pending queues" value={String(pendingTotal)} helper={`${summary.totals.pendingTopUps} ฝาก · ${summary.totals.pendingWithdrawals} ถอน`} />
@@ -89,7 +94,7 @@ export default function OperationDashboardPage() {
           {canViewWithdrawals && <QuickCard title="ตรวจสอบรายการถอน" href="/withdrawals" count={summary?.totals.pendingWithdrawals ?? 0} tone="danger" />}
           {canViewRisk && <QuickCard title="ความเสี่ยง" href="/risk-alerts" count={riskSummary.openCount} tone="danger" />}
           {canViewFinance && <QuickCard title="ภาพรวมการเงิน" href="/finance" count={summary?.totals.walletCount ?? 0} tone="neutral" />}
-          {!loading && permissions.length > 0 && !canViewFinance && !canViewRisk && <AdminEmpty>บัญชีนี้ไม่มีสิทธิ์ดู widget การเงินหรือความเสี่ยงบน Dashboard</AdminEmpty>}
+          {!loading && permissions !== null && !canViewFinance && !canViewRisk && <AdminEmpty>บัญชีนี้ไม่มีสิทธิ์ดู widget การเงินหรือความเสี่ยงบน Dashboard</AdminEmpty>}
         </div>
 
         {summary?.today && canViewFinance && <AdminCard title="ปริมาณวันนี้" description={`วันที่ ${summary.today.date}`} action={canViewReports ? <AdminLinkButton href="/reports">ดูรายงาน</AdminLinkButton> : undefined}>

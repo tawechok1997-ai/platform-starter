@@ -105,9 +105,10 @@ A route or surface is complete only when all applicable checks pass:
   - API health and version checks
   - no destructive money or settings actions
 - Evidence:
-  - Environment: local automation shell on 2026-07-13; no deployed `ADMIN_WEB_URL`, `MEMBER_WEB_URL`, or smoke credentials were configured
+  - Environment: local automation shell on 2026-07-13; API URL supplied for follow-up checks: `https://platformapi-production-3c91.up.railway.app/`; no deployed Admin/Member web URLs or smoke credentials were configured
   - Run URL/artifact: none; generated failure traces were removed after recording the environment blocker
   - Result/date: `pnpm test:e2e:smoke` was attempted on 2026-07-13 and skipped credential-gated checks, but browser-backed checks failed before route verification because Chromium and WebKit Playwright executables are missing; `pnpm exec playwright install chromium` also failed with HTTP 403 from the Playwright CDN
+  - API check: `curl -i --max-time 20 https://platformapi-production-3c91.up.railway.app/`, `/health`, and `/version` were attempted on 2026-07-13, but the local network proxy returned `CONNECT tunnel failed, response 403` before reaching Railway
 
 ### P0-QA-001: Record regression results
 
@@ -172,7 +173,7 @@ A route or surface is complete only when all applicable checks pass:
   - `pnpm build:web-admin`
   - authenticated visual regression
 - Evidence:
-  - Commit: this commit (`feat(admin): improve dashboard retry states`)
+  - Commit: this commit (`fix(admin): harden dashboard permission fallback`) updates the dashboard follow-up from reviewer feedback by avoiding permissive unknown-permission fallbacks and preserving stale timestamps only after successful partial loads
   - Build/typecheck: `pnpm build:web-admin` passed on 2026-07-13
   - Screenshots: blocked; Playwright browser install is unavailable in this environment, so authenticated visual regression could not run
 
