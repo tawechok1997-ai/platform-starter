@@ -371,7 +371,9 @@ export class AdminAccessService {
     return this.overview();
   }
 
-  async transferOwnership(actorAdminId: string, targetAdminId: string, twoFactorCode: string, meta: { ipAddress?: string; userAgent?: string }) {
+  async transferOwnership(actorAdminId: string, targetAdminId: string, twoFactorCode: string, reasonInput: string, meta: { ipAddress?: string; userAgent?: string }) {
+    const reason = String(reasonInput ?? '').trim();
+    if (reason.length < 5) throw new BadRequestException('A reason of at least 5 characters is required');
     if (actorAdminId === targetAdminId) throw new BadRequestException('Ownership cannot be transferred to the same account');
     await this.adminAuth.assertStepUp(actorAdminId, twoFactorCode, meta);
 
@@ -403,7 +405,7 @@ export class AdminAccessService {
           module: 'admin-access',
           targetId: targetAdminId,
           oldData: { previousOwnerId: actorAdminId, roleId: ownershipAssignment.role.id, roleCode: ownershipAssignment.role.code },
-          newData: { newOwnerId: targetAdminId, stepUpVerified: true },
+          newData: { newOwnerId: targetAdminId, stepUpVerified: true, reason },
           ipAddress: meta.ipAddress,
           userAgent: meta.userAgent,
         },
