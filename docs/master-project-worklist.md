@@ -239,12 +239,17 @@
 
 สถานะ: 🟡 PARTIAL — มี home/game/session/filter บางส่วน
 
-- [ ] Featured/recently played
+หลักฐานล่าสุด 2026-07-13:
+- เพิ่ม rail `เล่นล่าสุด` จาก local recent game history และแก้ rail เกมโปรดให้ label ตรงกับ favorite list
+- เปิด maintenance/disabled badge ใน market lobby theme เพื่อไม่ซ่อนสถานะเกม/ค่ายที่ไม่พร้อม
+- `pnpm build:web-member` ผ่าน
+
+- [x] Featured/recently played
 - [ ] Promotion/banner slots
-- [ ] Configurable categories/provider filter
-- [ ] Game search/favorites
-- [ ] Maintenance/disabled states
-- [ ] Fallback images/icons
+- [x] Configurable categories/provider filter
+- [x] Game search/favorites
+- [x] Maintenance/disabled states
+- [x] Fallback images/icons
 - [ ] Market-style mobile polish รอบสุดท้าย
 
 ## M-012 Deposit/withdraw member flow

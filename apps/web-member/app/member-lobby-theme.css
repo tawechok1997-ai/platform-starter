@@ -62,7 +62,7 @@ main.game-lobby-page { gap: 12px; }
 .game-lobby-page .game-lobby-card>img, .game-lobby-page .game-lobby-fallback { aspect-ratio: 1.42; border-radius: 11px; }
 .game-lobby-page .game-lobby-card-body { display: none; }
 .game-lobby-page .game-lobby-favorite { width: 30px; height: 30px; top: auto; right: 7px; bottom: 7px; background: rgba(12,10,17,.72); color: rgba(255,255,255,.72); }
-.game-lobby-page .game-lobby-maintenance { display: none; }
+.game-lobby-page .game-lobby-maintenance { display: inline-flex; align-items: center; max-width: calc(100% - 18px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: rgba(15,23,42,.9); color: #fde68a; }
 .game-lobby-page .game-lobby-notice { border-color: rgba(190,80,255,.42); background: rgba(116,30,155,.13); color: #dfb6ff; }
 
 .member-home-shell { gap: 12px; }

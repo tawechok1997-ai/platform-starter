@@ -15,6 +15,10 @@ function role(id: string, code: string, level: number, permissions: string[]) {
   };
 }
 
+function createService(prisma: any) {
+  return new AdminAccessService(prisma, {} as any);
+}
+
 describe('AdminAccessService privilege boundaries', () => {
   it('blocks delegated admins from granting permissions they do not hold', async () => {
     const actorRole = role('actor-role', 'support_manager', 50, ['admin.access.manage', 'support.view']);
@@ -31,7 +35,7 @@ describe('AdminAccessService privilege boundaries', () => {
       adminAuditLog: { create: jest.fn() },
     } as any;
 
-    const service = new AdminAccessService(prisma, undefined as any);
+    const service = createService(prisma);
     await expect(service.assignRole('actor', 'target', 'target-role', 'role coverage')).rejects.toThrow(ForbiddenException);
     expect(prisma.adminUserRole.upsert).not.toHaveBeenCalled();
   });
@@ -51,7 +55,7 @@ describe('AdminAccessService privilege boundaries', () => {
       adminAuditLog: { create: jest.fn() },
     } as any;
 
-    const service = new AdminAccessService(prisma, undefined as any);
+    const service = createService(prisma);
     await expect(service.assignRole('actor', 'target', 'owner-role', 'protected role')).rejects.toThrow(ForbiddenException);
     expect(prisma.adminUserRole.upsert).not.toHaveBeenCalled();
   });
@@ -69,7 +73,7 @@ describe('AdminAccessService privilege boundaries', () => {
       adminAuditLog: { create: jest.fn() },
     } as any;
 
-    const service = new AdminAccessService(prisma, undefined as any);
+    const service = createService(prisma);
     await expect(service.removeRole('actor', 'owner', 'owner-role', 'protected role')).rejects.toThrow(ForbiddenException);
     expect(prisma.adminUserRole.delete).not.toHaveBeenCalled();
   });
@@ -89,7 +93,7 @@ describe('AdminAccessService privilege boundaries', () => {
       adminAuditLog: { create: jest.fn() },
     } as any;
 
-    const service = new AdminAccessService(prisma, undefined as any);
+    const service = createService(prisma);
     await expect(service.createInvitation('actor', 'finance@example.com', 'finance-role', 24)).rejects.toThrow(ForbiddenException);
     expect(prisma.$transaction).not.toHaveBeenCalled();
     expect(prisma.adminAuditLog.create).not.toHaveBeenCalled();
@@ -116,7 +120,7 @@ describe('AdminAccessService privilege boundaries', () => {
       adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit-id' }) },
     } as any;
 
-    const service = new AdminAccessService(prisma, undefined as any);
+    const service = createService(prisma);
     const result = await service.createInvitation('owner', ' SUPPORT@example.com ', 'support-role', 24);
 
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
@@ -175,7 +179,7 @@ describe('AdminAccessService privilege boundaries', () => {
       },
     } as any;
 
-    const service = new AdminAccessService(prisma, undefined as any);
+    const service = createService(prisma);
     const result = await service.securityOverview('admin-1');
 
     expect(result.admin.username).toBe('operator');
@@ -205,7 +209,7 @@ describe('AdminAccessService privilege boundaries', () => {
       adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit-1' }) },
     } as any;
 
-    const service = new AdminAccessService(prisma, undefined as any);
+    const service = createService(prisma);
     const result = await service.revokeAdminSession('actor', 'target', 'session-1', 'Security review');
 
     expect(result).toEqual({ success: true, changed: true, revokedSessions: 1 });
@@ -231,7 +235,7 @@ describe('AdminAccessService privilege boundaries', () => {
       adminRecoveryCode: { count: jest.fn().mockResolvedValue(3) },
     } as any;
 
-    const service = new AdminAccessService(prisma, undefined as any);
+    const service = createService(prisma);
     const result = await service.ownerRecoveryStatus('owner');
 
     expect(result.healthy).toBe(false);

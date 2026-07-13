@@ -101,9 +101,10 @@ export default function MemberGamesPage() {
 
     <GameSection title="Top 10 Popular Games" items={(payload.popular ?? []).slice(0, 10)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
     <GameSection title="Most Online Now" items={(payload.featured ?? payload.popular ?? []).slice(0, 8)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="เล่นล่าสุด" items={recentGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
     <GameSection title="Classic Games" items={games.slice(0, 8)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
     <GameSection title="เกมใหม่" items={payload.newest ?? []} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
-    <GameSection title="เกมยอดนิยม" items={favoriteGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="เกมโปรด" items={favoriteGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
 
     <section className="game-lobby-section">
       <header><h2>เกมทั้งหมด</h2><span>{filtered.length} เกม · พร้อมเล่น {filteredAvailable.length}</span></header>

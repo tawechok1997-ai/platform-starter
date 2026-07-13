@@ -5,6 +5,10 @@ function role(id: string, code: string, level: number, permissions: string[]) {
   return { id, code, name: code, level, permissions: permissions.map((code) => ({ permission: { code } })) };
 }
 
+function createService(prisma: any) {
+  return new AdminAccessService(prisma, {} as any);
+}
+
 describe('AdminAccessService delegated access', () => {
   it('allows a grantor to delegate only permissions they hold', async () => {
     const actorRole = role('actor-role', 'access_manager', 20, ['admin.access.delegate', 'reports.view']);
@@ -22,7 +26,7 @@ describe('AdminAccessService delegated access', () => {
       })),
     } as any;
 
-    const service = new AdminAccessService(prisma, undefined as any);
+    const service = createService(prisma);
     const result = await service.createDelegation('actor', 'delegate', ['reports.view'], 24, 'Cover report queue');
     expect(result.success).toBe(true);
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
@@ -38,7 +42,7 @@ describe('AdminAccessService delegated access', () => {
       },
       adminDelegation: { findFirst: jest.fn().mockResolvedValue(null) },
     } as any;
-    const service = new AdminAccessService(prisma, undefined as any);
+    const service = createService(prisma);
 
     await expect(service.createDelegation('owner', 'delegate', ['admin.access.manage'], 24, 'Temporary access')).rejects.toThrow(ForbiddenException);
     await expect(service.createDelegation('owner', 'delegate', ['reports.view'], 169, 'Temporary access')).rejects.toThrow(BadRequestException);
