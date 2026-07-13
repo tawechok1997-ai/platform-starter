@@ -35,6 +35,7 @@ export class AdminAuthService {
     if (admin.twoFactorEnabled && !dto.twoFactorCode) return { requiresTwoFactor: true, challengeId: admin.id };
     if (admin.twoFactorEnabled) await this.assertTwoFactorOrRecovery(admin.id, admin.twoFactorSecret, dto.twoFactorCode ?? '', meta);
 
+    await this.auditSuspiciousAdminLogin(admin.id, meta);
     await this.safeWriteLoginHistory(admin.id, true, meta);
     await this.safeWriteAudit(admin.id, 'admin.login', 'auth', admin.id, meta);
     return this.createAdminSession(admin.id, meta);
@@ -98,6 +99,7 @@ export class AdminAuthService {
     const admin = await this.prisma.adminUser.findUnique({ where: { id: dto.challengeId } });
     if (!admin || admin.status !== 'ACTIVE' || !admin.twoFactorEnabled) throw new UnauthorizedException('Invalid challenge');
     await this.assertTwoFactorOrRecovery(admin.id, admin.twoFactorSecret, dto.code, meta);
+    await this.auditSuspiciousAdminLogin(admin.id, meta);
     await this.safeWriteLoginHistory(admin.id, true, meta);
     await this.safeWriteAudit(admin.id, 'admin.otp.verify', 'auth', admin.id, meta);
     return this.createAdminSession(admin.id, meta);
@@ -166,6 +168,24 @@ export class AdminAuthService {
     const result = await this.prisma.authSession.updateMany({ where: { adminUserId, type: 'ADMIN', revokedAt: null }, data: { revokedAt: new Date() } });
     await this.safeWriteAudit(adminUserId, 'admin.session.revoke_all', 'auth', adminUserId, meta);
     return { success: true, revoked: result.count };
+  }
+
+  private async auditSuspiciousAdminLogin(adminUserId: string, meta: RequestMeta) {
+    const previousLogins = await this.prisma.loginHistory.findMany({
+      where: { adminUserId, type: 'ADMIN', success: true },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: { ipAddress: true, userAgent: true },
+    });
+    if (previousLogins.length === 0) return;
+
+    const knownDevice = previousLogins.some((login) =>
+      login.ipAddress === (meta.ipAddress ?? null) &&
+      login.userAgent === (meta.userAgent ?? null),
+    );
+    if (!knownDevice) {
+      await this.safeWriteAudit(adminUserId, 'admin.login.suspicious_device', 'auth', adminUserId, meta);
+    }
   }
 
   private async maybeLockAdminAfterFailures(adminUserId: string, meta: RequestMeta) {
