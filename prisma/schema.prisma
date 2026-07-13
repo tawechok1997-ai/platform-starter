@@ -247,6 +247,8 @@ model User {
   profile                 UserProfile?
   sessions                AuthSession[]
   loginHistory            LoginHistory[]
+  notificationStates      NotificationState[]
+  notificationPreference  NotificationPreference?
   wallet                  Wallet?
   walletLedgers           WalletLedger[]
   topUpRequests           TopUpRequest[]
@@ -926,4 +928,35 @@ model WebhookLog {
   @@index([idempotencyKey])
   @@index([providerTransactionId])
   @@map("webhook_logs")
+}
+
+
+model NotificationState {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  notificationKey String    @map("notification_key") @db.VarChar(220)
+  readAt          DateTime? @map("read_at")
+  archivedAt      DateTime? @map("archived_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationKey])
+  @@index([userId, readAt])
+  @@index([userId, archivedAt])
+  @@map("notification_states")
+}
+
+model NotificationPreference {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @unique @map("user_id") @db.Uuid
+  finance    Boolean  @default(true)
+  security   Boolean  @default(true)
+  promotion  Boolean  @default(true)
+  system     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
 }
