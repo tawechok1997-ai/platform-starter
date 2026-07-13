@@ -21,7 +21,7 @@ export class AdminAuthController {
     await this.loginDefense.assertAllowed(dto.username, meta);
     await this.antiBot.assertValid('ADMIN_LOGIN', dto.captchaToken, meta.ipAddress);
     const result = await this.adminAuthService.signIn(dto, meta);
-    this.setRefreshCookie(res, result?.refreshToken);
+    this.setRefreshCookie(res, this.sessionRefreshToken(result));
     return result;
   }
 
@@ -99,6 +99,10 @@ export class AdminAuthController {
   @Get('me')
   me(@CurrentUser() user: any) {
     return user;
+  }
+
+  private sessionRefreshToken(result: any) {
+    return typeof result?.refreshToken === 'string' ? result.refreshToken : undefined;
   }
 
   private setRefreshCookie(res: any, refreshToken?: string) {
