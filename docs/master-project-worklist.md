@@ -240,7 +240,9 @@
 สถานะ: 🟡 PARTIAL — มี home/game/session/filter บางส่วน
 
 หลักฐานล่าสุด 2026-07-13:
+- ตรวจเทียบ M-011 กับ UI จริงแล้วพบว่า reference/market theme ซ่อน tabs/toolbar ด้วย `display: none !important` ทำให้ checklist filter/search ไม่เป็นจริง จึงแก้ให้ tabs/search/provider filter แสดงใช้งานได้ใน theme ปัจจุบัน
 - เพิ่ม rail `เล่นล่าสุด` จาก local recent game history และแก้ rail เกมโปรดให้ label ตรงกับ favorite list
+- เพิ่มปุ่ม launch บนครอบรูปเกมเพื่อให้เปิดเกมได้แม้ market theme ซ่อน card body/ปุ่มเล่นแบบเดิม และยัง disable เมื่อเกมหรือค่ายอยู่สถานะไม่พร้อม
 - เปิด maintenance/disabled badge ใน market lobby theme เพื่อไม่ซ่อนสถานะเกม/ค่ายที่ไม่พร้อม
 - `pnpm build:web-member` ผ่าน
 

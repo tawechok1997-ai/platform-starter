@@ -124,7 +124,9 @@ function GameCard({ game, favorite, launching, onLaunch, onFavorite }: { game: G
   const image = pickImage(game);
   const available = isGameAvailable(game);
   return <article className={`game-lobby-card${available ? '' : ' is-unavailable'}`}>
-    {image ? <img src={image} alt={`ภาพปก ${game.name}`} loading="lazy" /> : <div className="game-lobby-fallback" aria-hidden="true">{game.name.slice(0, 2).toUpperCase()}</div>}
+    <button type="button" className="game-lobby-cover-button" onClick={() => onLaunch(game)} disabled={launching || !available} aria-label={available ? `เล่น ${game.name}` : `${game.name} ยังไม่พร้อมให้เล่น`}>
+      {image ? <img src={image} alt={`ภาพปก ${game.name}`} loading="lazy" /> : <div className="game-lobby-fallback" aria-hidden="true">{game.name.slice(0, 2).toUpperCase()}</div>}
+    </button>
     <button type="button" aria-label={favorite ? `นำ ${game.name} ออกจากเกมโปรด` : `เพิ่ม ${game.name} เป็นเกมโปรด`} aria-pressed={favorite} className={`game-lobby-favorite${favorite ? ' is-active' : ''}`} onClick={() => onFavorite(game)}>{favorite ? '★' : '☆'}</button>
     {!available && <span className="game-lobby-maintenance">ปิดปรับปรุง</span>}
     <div className="game-lobby-card-body"><strong>{game.name}</strong><span>{game.provider?.name ?? game.providerGameCode}</span><div className="game-lobby-badges">{game.isFeatured && <em>แนะนำ</em>}{game.isNew && <em>ใหม่</em>}{game.isPopular && <em>นิยม</em>}<em>{categoryLabel(game.category)}</em></div><button type="button" onClick={() => onLaunch(game)} disabled={launching || !available}>{launching ? 'กำลังเปิด...' : available ? 'เล่น' : 'ยังไม่พร้อม'}</button></div>

@@ -193,3 +193,9 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
 .member-drawer-nav .member-drawer-copy small,.member-drawer-nav a>em{display:none!important}
 .member-drawer-nav a.active{box-shadow:0 0 0 1px rgba(190,83,255,.65),0 8px 18px rgba(0,0,0,.22)}
 .member-drawer-head{background:linear-gradient(135deg,#3b2054,#1b1126);border-radius:0 0 16px 16px}
+
+/* Keep the active market theme honest with the M-011 checklist: filters/search remain usable while card copy stays compact. */
+.game-lobby-page .game-lobby-tabs { display: flex !important; }
+.game-lobby-page .game-lobby-toolbar { display: grid !important; grid-template-columns: minmax(0,1fr) minmax(112px,.58fr) auto; gap: 8px; }
+.game-lobby-page .game-lobby-provider { display: block; }
+.game-lobby-page .game-lobby-cover-button > img, .game-lobby-page .game-lobby-cover-button .game-lobby-fallback { aspect-ratio: 1.42; border-radius: 11px; }
