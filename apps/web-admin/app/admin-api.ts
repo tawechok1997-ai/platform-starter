@@ -1,5 +1,4 @@
 let inMemoryAccessToken = '';
-const legacyRefreshFallbackEnabled = process.env.NEXT_PUBLIC_ADMIN_LEGACY_REFRESH_FALLBACK !== 'false';
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
 
@@ -60,12 +59,11 @@ async function redirectToTwoFactorSetup(response: Response, options: ApiOptions)
 }
 
 export async function refreshAdminToken() {
-  const refreshToken = legacyRefreshFallbackEnabled ? window.localStorage.getItem('admin_refresh_token') : null;
+  const refreshToken = null;
   const res = await fetch('/api/admin/auth/refresh', {
     method: 'POST',
     credentials: 'include',
-    headers: refreshToken ? { 'Content-Type': 'application/json' } : {},
-    body: refreshToken ? JSON.stringify({ refreshToken }) : undefined,
+    headers: {},
   });
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.accessToken) return '';
