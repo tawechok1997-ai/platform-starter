@@ -145,8 +145,15 @@ export class AuthService {
   }
 
   async confirmPasswordReset(dto: ConfirmPasswordResetDto) {
-    const token = await this.prisma.verificationToken.findFirst({ where: { type: 'PASSWORD_RESET', usedAt: null, expiresAt: { gt: new Date() } }, orderBy: { createdAt: 'desc' } });
-    if (!token || !(await argon2.verify(token.tokenHash, dto.token))) throw new BadRequestException('Invalid or expired password reset token');
+    const candidates = await this.prisma.verificationToken.findMany({ where: { type: 'PASSWORD_RESET', usedAt: null, expiresAt: { gt: new Date() } }, orderBy: { createdAt: 'desc' }, take: 20 });
+    let token = null;
+    for (const candidate of candidates) {
+      if (await argon2.verify(candidate.tokenHash, dto.token)) {
+        token = candidate;
+        break;
+      }
+    }
+    if (!token) throw new BadRequestException('Invalid or expired password reset token');
     const passwordHash = await argon2.hash(dto.newPassword);
     const now = new Date();
     await this.prisma.$transaction(async (tx) => {
