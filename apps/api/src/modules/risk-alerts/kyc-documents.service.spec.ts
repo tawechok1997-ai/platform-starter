@@ -1,14 +1,24 @@
 import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { KycDocumentsService } from './kyc-documents.service';
 
+type PrismaMock = {
+  $queryRaw: jest.Mock;
+  $executeRaw: jest.Mock;
+  $transaction: jest.Mock;
+  adminAuditLog: { create: jest.Mock };
+  [key: string]: unknown;
+};
+
 function service(overrides: any = {}) {
-  const prisma = {
+  const prisma: PrismaMock = {
     $queryRaw: jest.fn(),
     $executeRaw: jest.fn(),
-    $transaction: jest.fn(async (callback: any) => callback(prisma)),
+    $transaction: jest.fn(),
     adminAuditLog: { create: jest.fn(async () => ({})) },
     ...overrides.prisma,
   };
+  prisma.$transaction.mockImplementation(async (callback: (client: PrismaMock) => unknown) => callback(prisma));
+
   const storage = {
     put: jest.fn(async (key: string) => ({ key })),
     get: jest.fn(async () => ({ data: Buffer.from('hello'), contentType: 'image/png' })),
