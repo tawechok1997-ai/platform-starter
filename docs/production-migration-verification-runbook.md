@@ -40,4 +40,4 @@ curl -fsS "$API_URL/health"
 
 ## เกณฑ์ปิด P0
 
-ปิดรายการ production migration ใน M-001, M-002 และ M-003 ได้เมื่อมีหลักฐานจากข้อ 1 และข้อ 4 ใน deployment เดียวกันเท่านั้น รายงานล่าสุดยืนยันแล้วว่า CI PostgreSQL migration/finance concurrency ผ่าน และ production `/health` เชื่อม database ได้ แต่ยังไม่มีผล `prisma migrate status` จาก Railway จึงยังไม่ติ๊ก production migration ผ่านจนกว่าจะรันคำสั่งนี้
+ปิดรายการ production migration ใน M-001, M-002 และ M-003 ได้เมื่อมีหลักฐานจากข้อ 1 และข้อ 4 ใน deployment เดียวกันเท่านั้น ผลตรวจล่าสุด: CI PostgreSQL migration/finance concurrency ผ่าน, production `/health` เชื่อม database ได้ และ Railway console รายงาน `Database schema is up to date` จึงปิด P0 production migration ได้แล้ว
