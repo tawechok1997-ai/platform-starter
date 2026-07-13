@@ -2,7 +2,8 @@ import { Type } from 'class-transformer';
 import { IsIn, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreatePromotionClaimDto {
-  @IsUUID()
+  @IsString()
+  @MaxLength(128)
   campaignId!: string;
 
   @IsOptional()
