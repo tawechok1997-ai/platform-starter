@@ -2,7 +2,6 @@
 
 import { ChangeEvent, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminButton, AdminNotice, AdminStack } from '../_components/admin-ui';
 
 export type UploadedCmsAsset = {
   id: string;
@@ -88,7 +87,7 @@ export default function CmsAssetUploader({ onUploaded }: Props) {
     }
   }
 
-  return <AdminStack>
+  return <div style={stackStyle}>
     <label style={fieldStyle}>
       <span>ไฟล์รูปหรือวิดีโอ</span>
       <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onChange={chooseFile} />
@@ -109,9 +108,11 @@ export default function CmsAssetUploader({ onUploaded }: Props) {
       <strong>{file.name}</strong>
       <span style={helperStyle}>{file.type} · {formatBytes(file.size)}</span>
     </div>}
-    {message && <AdminNotice>{message}</AdminNotice>}
-    <AdminButton onClick={upload} disabled={!file || uploading}>{uploading ? 'กำลังอัปโหลด...' : 'อัปโหลดเข้า Asset Library'}</AdminButton>
-  </AdminStack>;
+    {message && <div role="status" style={noticeStyle}>{message}</div>}
+    <button type="button" onClick={upload} disabled={!file || uploading} style={buttonStyle}>
+      {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลดเข้า Asset Library'}
+    </button>
+  </div>;
 }
 
 function readAsDataUrl(file: File) {
@@ -129,8 +130,11 @@ function formatBytes(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+const stackStyle = { display: 'grid', gap: 16 } as const;
 const fieldStyle = { display: 'grid', gap: 6, fontWeight: 800 } as const;
 const inputStyle = { minHeight: 42, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', minWidth: 0 } as const;
 const helperStyle = { color: '#94a3b8', fontSize: 12 } as const;
 const previewStyle = { display: 'grid', gap: 8, padding: 12, borderRadius: 14, border: '1px solid rgba(148,163,184,.18)', background: 'rgba(255,255,255,.03)' } as const;
 const mediaStyle = { width: '100%', maxHeight: 220, objectFit: 'contain' as const, borderRadius: 12, background: '#020617' };
+const noticeStyle = { padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: 'rgba(15,23,42,.75)', color: '#e2e8f0' } as const;
+const buttonStyle = { minHeight: 42, border: 0, borderRadius: 12, padding: '0 16px', background: '#2563eb', color: '#fff', fontWeight: 800, cursor: 'pointer' } as const;
