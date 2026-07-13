@@ -4,7 +4,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypt
 import { PrismaService } from '../../database/prisma.service';
 
 export type AntiBotProvider = 'TURNSTILE' | 'RECAPTCHA' | 'HCAPTCHA';
-export type AntiBotRoute = 'ADMIN_LOGIN' | 'MEMBER_LOGIN' | 'MEMBER_REGISTER';
+export type AntiBotRoute = 'ADMIN_LOGIN' | 'MEMBER_LOGIN' | 'MEMBER_REGISTER' | 'MEMBER_PASSWORD_RESET';
 
 export type AntiBotConfig = {
   enabled: boolean;
@@ -32,7 +32,7 @@ const DEFAULT_CONFIG: StoredAntiBotConfig = {
   enabled: false,
   provider: 'TURNSTILE',
   siteKey: '',
-  routes: { ADMIN_LOGIN: false, MEMBER_LOGIN: false, MEMBER_REGISTER: false },
+  routes: { ADMIN_LOGIN: false, MEMBER_LOGIN: false, MEMBER_REGISTER: false, MEMBER_PASSWORD_RESET: false },
   adaptiveMode: true,
   emergencyMode: false,
 };
