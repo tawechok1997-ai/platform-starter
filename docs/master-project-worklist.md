@@ -149,11 +149,13 @@
 - [ ] ลบ refresh-token body/localStorage fallback หลัง migration ผู้ใช้เดิมครบ
 - [ ] HttpOnly/Secure/SameSite cookie
 - [ ] แยก admin/member cookie
-- [ ] CSRF protection หากใช้ cookie
+- [ ] CSRF protection หากใช้ cookie — ปัจจุบัน refresh cookie ใช้ `SameSite=Lax`; ต้องทำ dynamic threat-model/E2E review เพิ่ม
 - [x] ย้าย access token ออกจาก localStorage ใน client/login/layout
 - [ ] ย้าย refresh-token fallback ออกจาก localStorage
 - [ ] XSS/session theft regression test
 - [x] เพิ่ม static audit ห้ามหน้า Admin อ่าน access token จาก localStorage (`audit:admin-token-storage`)
+- [x] เพิ่ม static XSS sink audit ฝั่ง Admin UI (`audit:admin-xss`)
+- [x] Admin refresh cookie ใช้ชื่อเฉพาะ `platform_admin_refresh` และไม่ใช้ร่วมกับ Member
 
 ## M-009 Anti-bot
 
