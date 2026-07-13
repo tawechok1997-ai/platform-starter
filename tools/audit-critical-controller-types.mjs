@@ -43,6 +43,9 @@ for (const file of files) {
     if (/@Req\(\)\s+\w+\s*:\s*any\b/.test(line)) {
       violations.push({ file, line: index + 1, kind: 'request-any' });
     }
+    if (/@Query\(\)\s+\w+\s*:\s*any\b/.test(line)) {
+      violations.push({ file, line: index + 1, kind: 'query-any' });
+    }
   });
 }
 
@@ -50,7 +53,7 @@ console.log(`Critical controller type audit: ${files.length} controller files sc
 console.log(`  violations: ${violations.length}`);
 
 if (violations.length) {
-  console.error('\nUntyped actors or requests in critical controllers:');
+  console.error('\nUntyped actors, requests, or queries in critical controllers:');
   for (const item of violations) {
     console.error(`  - ${relative(process.cwd(), item.file)}:${item.line} (${item.kind})`);
   }
