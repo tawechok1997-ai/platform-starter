@@ -1,418 +1,228 @@
-# Admin UX/UI Redesign Specification
-
-> เป้าหมาย: มืออาชีพ ใช้งานง่าย ข้อมูลครบ ไม่รก และรองรับ Desktop/Mobile
-
-## 1. หลักการกลาง
-
-- แสดงคิว, SLA, Risk และข้อผิดพลาดก่อนข้อมูลทั่วไป
-- สรุปก่อนรายละเอียด โดยเปิดรายละเอียดผ่าน Drawer หรือ Detail Page
-- หนึ่งหน้ามี Primary Action หลักเพียงหนึ่งรายการ
-- ห้ามแสดงตัวเลขเดียวกันซ้ำทั้ง KPI, Card และตาราง
-- ทอง = Primary action, เขียว = Success, เหลือง = Warning, แดง = Danger
-- Mobile ต้องเป็น Card List ไม่ใช่ตาราง Desktop ที่ย่อแล้วบังคับเลื่อนแนวนอน
-
-### Desktop
-
-- Sidebar 240px, Topbar 64px, Content max-width 1360px
-- Grid 12 columns, gap 16-24px, card radius 14-16px
-
-### Mobile
-
-- Topbar 56px, content padding 12-16px, touch target ขั้นต่ำ 44px
-- Bottom navigation: Dashboard, Operations, Risk, More
-- Filter และเมนูรองใช้ Bottom Sheet หรือ Drawer
-
-## 2. Design System
-
-- UI font: `Noto Sans Thai` หรือ `IBM Plex Sans Thai`
-- Number/API font: `IBM Plex Sans` / `IBM Plex Mono`
-- Page title: 30-32px Desktop, 23-25px Mobile
-- Section title: 18-20px Desktop, 17-18px Mobile
-- Body: 14px, line-height 1.5
-- KPI: 28-34px พร้อม `font-variant-numeric: tabular-nums`
-- Background: `#0B0F14`
-- Surface: `#101720`, raised `#151E29`
-- Brand: `#F5C542`
-- Border: `rgba(148,163,184,.14)`
-
-### Component กลาง
-
-`PageHeader`, `SummaryCard`, `FilterBar`, `DataTable`, `MobileCardList`, `Tabs`, `StatusBadge`, `DetailDrawer`, `Timeline`, `ConfirmDialog`, `EmptyState`, `ErrorState`, `Skeleton`, `StickyActionBar`, `Pagination`
-
-## 3. Tool Stack
-
-- UI: `shadcn/ui`
-- Icons: `lucide-react`
-- Tables: `@tanstack/react-table`
-- Server state: `@tanstack/react-query`
-- Forms: `react-hook-form`
-- Validation: `zod`
-- Charts: `recharts`
-- Date/time: `date-fns`
-- CSV: `papaparse`
-- XLSX: `xlsx` เฉพาะหน้าที่ต้องใช้
-
-### Icon standard
-
-- ใช้ Lucide React ชุดเดียว ห้ามใช้อีโมจิหรือผสม icon library
-- Sidebar 18px, Button 16px, KPI 20px, Mobile navigation 21px
-- Stroke width 1.8-2
-- ปุ่มสำคัญใช้ Icon + Text
-- Icon-only ต้องมี Tooltip และ `aria-label`
-
-## 4. งานหลัก
-
-### Dashboard `/dashboard`
-
-- Action Center: ฝากรอตรวจ, ถอนรอตรวจ, Risk Open, Critical
-- KPI: Available, Locked, Net Flow, Wallets
-- Today Summary: ฝาก, ถอน, จำนวนรายการ
-- Risk Alerts 3-5 รายการ
-- Queue ฝาก/ถอนแบบ Tabs
-- Recent Ledger แสดงเป็น Activity Feed
-- Tool: shadcn/ui, Recharts, TanStack Query
-- Mobile: Action cards เลื่อนแนวนอน, Hero Balance, Risk/Queue ก่อนข้อมูลรอง
-
-### Operations `/operations`
-
-- KPI: Unassigned, In Progress, Overdue, Critical
-- Filter: Type, Priority, SLA, Assignee, Member
-- Table: Priority, Type, Member, Amount, Status, Wait, Assignee
-- Detail Drawer: Timeline, Notes, Related Member/Transaction
-- Actions: Assign to me, Assign, Escalate, Resolve
-- Tool: TanStack Table, Sheet/Drawer, TanStack Query
-- Mobile: Card List, Filter Bottom Sheet, Sticky action
-
-### Topups `/topups`
-
-- KPI: Pending, Overdue, Pending Amount, Approved Today, Rejected Today
-- Table: Member, Bank, Amount, Submitted, Wait, Risk, Assignee
-- Detail: Slip Viewer, Duplicate Warning, Member Summary, Related Transactions
-- Actions: Approve, Reject, Request Info, Assign, Flag Risk
-- Tool: TanStack Table, Dialog, Image Viewer, RHF + Zod
-- Mobile: Slip full-screen, Sticky Approve/Reject
-
-### Withdrawals `/withdrawals`
-
-- KPI: Pending, Pending Amount, Overdue, High/Critical, Completed Today
-- Table: Member, Bank, Account Masked, Amount, Balance, Risk, Wait
-- Detail: KYC, Bank Verification, History, IP/Device, Related Risk
-- Actions: Approve, Reject, Hold, Escalate, Request Verification
-- Tool: TanStack Table, Alert Dialog, RHF + Zod
-- Mobile: Amount/Risk เด่น, Reject/Hold ต้องมีเหตุผล
-
-### Members `/members`
-
-- KPI: Total, Active, Suspended, New Today, KYC Pending
-- Search: Member ID, Username, Phone
-- Tabs: Overview, Wallet, Transactions, Bank, KYC, Risk, Sessions, Audit
-- Actions: Suspend, Force Logout, Lock Wallet, Reset Password, Add Note
-- Tool: TanStack Table, Tabs, Drawer
-- Mobile: Search Sticky, Member Cards, Tabs เลื่อนแนวนอน
-
-### Bank Accounts `/bank-accounts`
-
-- KPI: Total, Verified, Pending, Duplicate, Recently Changed
-- Table: Member, Bank, Account Masked, Account Name, Verification, Last Used
-- Detail: Linked Members, History, Verification Evidence, Risk Notes
-- Actions: Verify, Reject, Flag Duplicate
-- Tool: TanStack Table, Badge, Dialog
-- Mobile: Card แสดงบัญชี Masked และ Duplicate Warning
-
-## 5. การเงินและความเสี่ยง
-
-### Wallets `/wallets`
-
-- KPI: Total Balance, Available, Locked, Frozen, Negative Balance
-- Table: Member, Available, Locked, Total, Status, Last Movement
-- Detail: Ledger, Holds, Adjustments, Audit
-- Actions: Lock, Freeze, Adjust, Release Hold
-- ทุก action การเงินต้องมี Reason, Before/After, Permission และ Audit
-- Tool: TanStack Table, Alert Dialog, RHF + Zod
-
-### Wallet Ledgers `/wallet-ledgers`
-
-- Summary: Credits, Debits, Net, Adjustments, Reversals
-- Table: Ledger ID, Member, Type, Direction, Amount, Before, After, Reference
-- Filter: Member, Type, Direction, Date, Amount, Actor
-- Detail: Source Transaction, Reversal Chain, Audit
-- Tool: TanStack Table, date-fns, Export
-
-### Risk Alerts `/risk-alerts`
-
-- KPI: Open, Critical, High, Unassigned, Overdue, Resolved Today
-- Table: Severity, Type, Member, Amount, Status, Age, Assignee
-- Tabs: Overview, Evidence, Transactions, Member History, Timeline, Notes
-- Actions: Acknowledge, Assign, Escalate, Resolve, Reopen, False Positive
-- Tool: TanStack Table, Tabs, Drawer, Timeline
-- Mobile: Critical ก่อน, Sticky Resolve/Escalate
-
-### Reports `/reports`
-
-- Templates: Deposit, Withdrawal, Wallet, Member, Risk, Provider, Promotion, Affiliate, Audit
-- Builder: Date, Filters, Columns, Grouping, Sorting, Timezone, Format
-- History: Name, Type, Creator, Status, Size, Expiry, Download
-- Tool: RHF + Zod, Recharts, Papa Parse/SheetJS
-- Mobile: Template-first, Builder Full Screen
-
-## 6. ค่ายเกม
-
-### Simple Game Settings `/simple-game-settings`
-
-- Enable, Maintenance, Currency, Wallet Mode, Limits, Visibility, Launch Settings
-- Validation, Unsaved Changes, Preview, Reset, Save
-- Tool: RHF + Zod, Accordion, Sticky Action Bar
-
-### Provider Setup Wizard `/provider-setup-wizard`
-
-- Steps: Info, Credentials, Endpoint, Wallet, Webhook, Test, Review, Activate
-- Save Draft, Validation, Test Connection, Progress
-- Tool: Stepper, RHF + Zod, TanStack Query
-
-### Provider Presets `/provider-presets`
-
-- Table: Preset, Provider Type, Currency, Wallet Mode, Usage, Updated
-- Actions: Create, Clone, Apply, Compare, Archive
-- Detail: Config, Diff, Used By, Version History
-- Tool: TanStack Table, Diff Viewer, Dialog
-
-### Game Transfers `/game-transfers`
-
-- KPI: Transfer In, Transfer Out, Pending, Failed, Reversed, Net
-- Table: Transfer, Member, Provider, Direction, Amount, Status, Duration, Error
-- Detail: Request/Response, Wallet Impact, Retry History, Session
-- Actions: Retry, Reconcile, Review, Escalate
-- Tool: TanStack Table, Drawer, Query Mutation
-
-### Reconciliation `/reconciliation-center`
-
-- KPI: Matched, Mismatch, Missing Local, Missing Provider, Difference
-- Batch List + Batch Detail
-- Table: Provider, Local Amount, Provider Amount, Difference, Status
-- Actions: Re-run, Accept Difference, Adjust, Assign, Export
-- Tool: TanStack Table, Tabs, Recharts
-
-## 7. สินค้าและการตลาด
-
-### Growth Center `/growth-center`
-
-- KPI: Active Promotions, Claims, Bonus Issued, Affiliate Revenue, Conversion
-- Pending Work และ Performance Summary
-- Tool: Recharts, KPI Cards, TanStack Query
-
-### Promotion Center `/promotion-center`
-
-- Table: Promotion, Type, Eligibility, Schedule, Budget, Claims, Status
-- Editor: General, Eligibility, Reward, Limits, Schedule, Content, Terms, Review
-- Actions: Draft, Preview, Publish, Pause, Clone, Archive
-- Tool: RHF + Zod, Tabs, Preview Dialog
-
-### Promotion Claims `/promotion-claims`
-
-- KPI: Pending, Approved, Rejected, Fraud Flagged, Bonus Value
-- Table: Member, Promotion, Reward, Eligibility, Risk, Status
-- Detail: Deposit Condition, Wager, Existing Bonus, Evidence
-- Actions: Approve, Reject, Hold, Review
-- Tool: TanStack Table, Drawer, Alert Dialog
-
-### Bonus Ledgers `/bonus-ledgers`
-
-- Table: Member, Promotion, Type, Amount, Before/After, Status, Expiry
-- Detail: Source Claim, Wager Requirement, Usage, Adjustment, Audit
-- Tool: TanStack Table, date-fns
-
-### Affiliate Center `/affiliate-center`
-
-- KPI: Affiliates, Active, Referrals, Revenue, Pending Commission, Fraud Alerts
-- Table: Affiliate, Code, Referrals, Revenue, Commission, Status
-- Tabs: Overview, Referrals, Revenue, Commission, Payout, Links, Audit
-- Tool: TanStack Table, Recharts, Tabs
-
-### Commission Ledgers `/commission-ledgers`
-
-- Table: Affiliate, Period, Revenue, Rate, Commission, Adjustment, Status
-- Actions: Approve, Hold, Adjust, Mark Paid, Export
-- Adjustment ต้องมี Reason และ Audit
-- Tool: TanStack Table, Dialog, Export
-
-### Content Center `/content-center`
-
-- Types: Banner, Announcement, Page, FAQ, Terms, Popup, Footer
-- List: Title, Type, Locale, Status, Schedule, Updated
-- Editor: Rich Text, Media, Link, SEO, Preview, Version
-- Tool: Rich Text Editor, Media Picker, Tabs
-
-### KYC Center `/kyc-center`
-
-- KPI: Pending, Approved, Rejected, Expired, High Risk, Review Time
-- Queue: Member, Document, Submitted, Risk, Wait, Assignee
-- Detail: Document Viewer, Extracted Data, Comparison, Bank, Risk, History
-- Actions: Approve, Reject, Resubmit, Escalate, Assign
-- Tool: Document Viewer, TanStack Table, Drawer
-
-### Support Center `/support-center`
-
-- KPI: Open, Unassigned, Overdue, Waiting Member, Resolved Today
-- Table: Ticket, Member, Subject, Category, Priority, Status, Assignee
-- Detail: Conversation, Member Summary, Transactions, Notes, Attachments
-- Actions: Reply, Assign, Priority, Resolve, Reopen
-- Tool: Conversation Panel, TanStack Query, Drawer
-
-## 8. ขั้นสูง
-
-### Provider Credentials `/provider-credentials`
-
-- Table: Provider, Environment, Type, Last Rotated, Expires, Status
-- Actions: Add, Rotate, Disable, Test, History
-- Secret ห้ามแสดงเต็ม; Reveal/Copy ต้อง Re-auth และ Audit
-- Tool: Dialog, Re-auth Flow, Masked Fields
-
-### Adapter Test `/adapter-test`
-
-- Input: Provider, Endpoint, Operation, Parameters
-- Output: Request, Response, Timing, Error, Parsed Result
-- Redact Secret และ PII
-- Tool: RHF + Zod, Code/JSON Viewer, Tabs
-
-### Webhook Logs `/webhook-logs`
-
-- KPI: Received, Success, Failed, Retried, Invalid Signature
-- Table: Event, Provider, Reference, HTTP Status, Retry, Received
-- Detail: Sanitized Headers, Payload, Signature, Processing, Error, Retry History
-- Actions: Retry, Ignore, Copy Sanitized, Link Case
-- Tool: TanStack Table, JSON Viewer, Retry Mutation
-
-### Provider Risk `/provider-risk`
-
-- KPI: Providers at Risk, Error Rate, Latency, Mismatch, Webhook Failure
-- Table: Provider, Risk Score, Error Rate, Latency, Mismatch, Alerts
-- Detail: Failures, Reconciliation, Credentials Age, Webhook, Incidents
-- Tool: Recharts, TanStack Table, Status Cards
-
-### Legacy API Settings `/game-api-settings`
-
-- แสดง Legacy Banner และ Link ไป Simple Settings
-- Diff Before Save, Version History, Warning ก่อนแก้
-- Tool: RHF + Zod, Diff Viewer, Warning Banner
-
-### Game Providers `/game-providers`
-
-- Table: Provider, Environment, Currency, Wallet Mode, Games, Health, Status
-- Tabs: Overview, Credentials, Endpoints, Games, Transfers, Webhooks, Risk, Audit
-- Actions: Enable, Disable, Maintenance, Test, Sync
-- Tool: TanStack Table, Tabs, Drawer
-
-### Games `/games`
-
-- List/Grid Toggle
-- Filter: Provider, Category, Enabled, Visible, Featured
-- Bulk: Enable, Disable, Show, Hide, Feature, Category
-- Tool: TanStack Table, Grid/List Toggle, Bulk Actions
-
-### Game Sessions `/game-sessions`
-
-- KPI: Active, Sessions Today, Failed Launches, Abnormal Duration, Orphan
-- Table: Session, Member, Game, Provider, Duration, Bet, Win, Status
-- Detail: Launch, Wallet Events, IP/Device, Provider References, Errors
-- Tool: TanStack Table, Timeline, Drawer
-
-### Audit Risk `/audit-risk`
-
-- Table: Actor, Action, Alert, Member, Before, After, Reason, Time
-- Detail: Full Diff, Related Alert/Transaction, IP/Device, Permission
-- Read-only
-- Tool: TanStack Table, Diff Viewer
-
-### Audit Logs `/audit`
-
-- Table: Time, Admin, Action, Resource, Result, IP, Device
-- Detail: Before/After, Request Metadata, Permission, Correlation ID
-- Read-only ห้าม Edit/Delete
-- Tool: TanStack Table, JSON/Diff Viewer
-
-## 9. ตั้งค่าและความปลอดภัย
-
-### Website Settings `/settings`
-
-- Sections: General, Branding, Finance, Limits, Notifications, Maintenance, Legal, Integrations
-- Save per Section, Unsaved Warning, Validation, Diff, Version
-- Tool: RHF + Zod, Accordion, Sticky Save
-
-### Anti-bot `/anti-bot`
-
-- KPI: Challenged, Blocked, Passed, False Positive, Suspicious IP
-- Settings: Provider, Threshold, Routes, Rate Limit, Country/IP/Device Rules
-- Logs: Time, IP, Route, Score, Decision, User
-- Tool: RHF + Zod, Recharts, TanStack Table
-
-### Admin Accounts `/admin-accounts`
-
-- Table: Admin, Role, Status, MFA, Last Login, Created
-- Tabs: Profile, Roles, Permissions, Sessions, Devices, Activity, Audit
-- Actions: Suspend, Activate, Reset MFA, Revoke Sessions, Change Role
-- Tool: TanStack Table, Tabs, Alert Dialog
-
-### Roles & Permissions `/admin-roles`
-
-- Role List: Members, Permission Count, Updated, System/Custom
-- Permission Matrix แบ่งตาม Domain
-- Search, Select Group, Indeterminate Checkbox, Diff, Affected Admins
-- ป้องกัน Self-lockout และเตือน High-risk Permissions
-- Tool: Permission Matrix, Checkbox Groups, Diff Viewer
-
-### Admin Invitations `/admin-invitations`
-
-- Form: Email, Role, Expiry, Message, Require MFA, Environment
-- History: Email, Role, Inviter, Sent, Expiry, Status
-- Actions: Resend, Revoke, Copy Link, Extend
-- Tool: RHF + Zod, TanStack Table, Dialog
-
-### Security `/security`
-
-- KPI: Admins without MFA, Active Sessions, Failed Logins, Locked Accounts, New Devices
-- Sections: MFA, Session Policy, IP Allowlist, Device Trust, Events
-- Actions: Enforce MFA, Revoke Sessions, Lock Admin, Add IP Rule, Review Incident
-- Tool: Recharts, Status Cards, TanStack Table
-
-## 10. Loading, Empty, Error และ Accessibility
-
-ทุกหน้าต้องมี:
-
-- Skeleton ตามรูปทรงจริง
-- Empty State ที่บอกเหตุผลและสิ่งที่ทำต่อได้
-- Widget-level Error พร้อม Retry
-- เก็บข้อมูลเดิมไว้ระหว่าง Refresh
-- Focus State ชัดเจน
-- Keyboard Navigation
-- Contrast ผ่าน WCAG
-- ไม่ใช้สีอย่างเดียวบอกสถานะ
-- Icon-only button มี `aria-label`
-- รองรับ `prefers-reduced-motion`
-
-## 11. ลำดับการทำงาน
-
-### Phase 1
-
-Dashboard, Operations, Topups, Withdrawals, Members, Risk Alerts, Wallets, Wallet Ledgers, Bank Accounts
-
-### Phase 2
-
-Providers, Transfers, Reconciliation, Webhooks, Provider Risk, Sessions, Reports
-
-### Phase 3
-
-Promotions, Claims, Bonus, Affiliate, Commission, KYC, Support, Content
-
-### Phase 4
-
-Admin Accounts, Roles, Invitations, Security, Anti-bot, Settings, Audit, Credentials, Adapter Test
-
-## 12. เกณฑ์รับงาน
-
-- เปิดหน้าแล้วเข้าใจเป้าหมายภายใน 5 วินาที
-- Primary Action มีเพียงหนึ่งรายการ
-- ข้อมูลสำคัญอยู่เหนือ fold
-- Mobile ไม่มีตารางแนวนอน
-- ทุกหน้ามี Loading, Empty และ Error
-- Action เสี่ยงมี Confirm, Reason, Permission และ Audit
-- สี สถานะ ระยะห่าง และตัวอักษรใช้มาตรฐานเดียวกัน
+# Admin UX/UI Redesign Worklist
+
+Updated: 2026-07-14  
+Scope: `apps/web-admin` only  
+Source of truth for Admin UX/UI work: this file
+
+> This worklist is aligned with the current repository. Existing foundations are Next.js 14, React 18, TypeScript, custom Admin primitives, global CSS/custom properties, `packages/api-client`, Playwright, and `qrcode`. Tools not installed in the repository are planned decisions, not completed capabilities.
+
+## Status
+
+- ✅ Done and verified
+- 🧪 Implemented, regression evidence still required
+- 🚧 In progress
+- ⏳ Planned
+- ⛔ Blocked
+- 🧊 Deferred
+
+## Admin Definition of Done
+
+- Uses the real API, permissions, audit, finance, risk, KYC, provider, and settings behavior.
+- Supports loading, empty, error, partial, stale, conflict, permission-denied, success, and retry states.
+- Works at 360×800, 390×844, 430×932, 768×1024, 1024×768, and 1440×900.
+- Keyboard navigation, visible focus, 200% zoom, reduced motion, and screen-reader names work.
+- Long Thai text, IDs, money values, and masked sensitive values do not overflow.
+- Critical mutation actions include confirmation, reason, permission, audit, conflict handling, and partial-failure feedback.
+- Relevant Admin build, Playwright, accessibility, and visual checks pass.
+
+# A0: Current foundation and debt inventory
+
+## ADMIN-FOUNDATION-001 Current tooling
+
+- [x] Next.js 14, React 18, TypeScript
+- [x] Custom Admin UI primitives
+- [x] CSS custom properties, responsive CSS, animation, transitions
+- [x] `prefers-reduced-motion`
+- [x] Shared `packages/api-client`
+- [x] Playwright smoke and visual commands
+- [x] `qrcode` for 2FA/security flow
+- [ ] Inventory every Admin route and page owner
+- [ ] Inventory shared Admin components and duplicate variants
+- [ ] Inventory inline-style debt in KYC, finance, settings, risk, reports, and support
+- [ ] Replace selectors coupled to `[style*="..."]` with semantic classes
+- [ ] Define ownership for global CSS, component styles, tokens, and layout utilities
+
+## ADMIN-FOUNDATION-002 Tooling decisions
+
+- [ ] Evaluate and add `react-hook-form` plus `zod` for mutation forms
+- [ ] Evaluate and add `@tanstack/react-query` for server state
+- [ ] Evaluate and add `@tanstack/react-table` for dense Admin data views
+- [ ] Evaluate and add `motion` for mount/unmount and state transitions
+- [ ] Evaluate and add `@axe-core/playwright` and JSX accessibility lint rules
+- [ ] Evaluate and add `lucide-react` as the single icon library
+- [ ] Record an ADR for each accepted dependency
+- [ ] Record bundle impact, migration scope, owner, and rollback plan
+- [ ] Do not add shadcn, Radix, Tailwind, GSAP, Rive, Lottie, MUI, Ant Design, or another state/form layer without an approved ADR and demonstrated need
+
+# A1: Shared Admin systems
+
+## ADMIN-SYSTEM-001 Design tokens and primitives
+
+- [ ] Consolidate color, spacing, radius, shadow, typography, motion, breakpoint, and z-index tokens
+- [ ] Consolidate Button, Input, Select, TextArea, Checkbox, Radio, and Field primitives
+- [ ] Consolidate Card, Metric, Badge, Notice, Toast, Skeleton, Empty, Error, and Success states
+- [ ] Consolidate Modal, Drawer, ConfirmDialog, DetailPanel, Tabs, Pagination, Timeline, and StickyActionBar
+- [ ] Create responsive FilterBar and mobile filter drawer
+- [ ] Create FilePreview and secure-download feedback primitives
+- [ ] Remove duplicate Admin primitive implementations
+- [ ] Add component tests for critical primitives
+
+## ADMIN-SYSTEM-002 Motion and interaction
+
+- [ ] Create motion duration, easing, distance, and reduced-motion tokens
+- [ ] Keep CSS for hover, focus, press, skeleton, and simple transitions
+- [ ] Use `motion` only for modal, drawer, toast, list, step, and detail-panel enter/exit
+- [ ] Limit pulse animation to active incidents, genuinely live status, and high-risk alerts
+- [ ] Prevent layout shift during queue/detail transitions
+- [ ] Restore focus after modal/drawer close
+- [ ] Test reduced motion and keyboard-only interactions
+- [ ] Verify animation performance on iPhone-class mobile viewports
+
+## ADMIN-SYSTEM-003 Forms and validation
+
+- [ ] Create shared RHF/Zod field adapters if the tooling decision is approved
+- [ ] Create server-error-code mapping without parsing raw messages
+- [ ] Create focus-first-error and validation-summary behavior
+- [ ] Create dirty-state and unsaved-change behavior
+- [ ] Require reason fields for reject, hold, override, adjustment, and destructive actions
+- [ ] Prevent duplicate submit and show mutation progress
+- [ ] Add form component and browser regression tests
+
+## ADMIN-SYSTEM-004 Server state
+
+- [ ] Create an Admin QueryClient and auth-aware provider if TanStack Query is approved
+- [ ] Define query-key factories by domain
+- [ ] Define stale time, retry, cancellation, invalidation, and polling policies
+- [ ] Handle session expiry and permission changes centrally
+- [ ] Handle optimistic rollback and version conflicts centrally
+- [ ] Migrate page-level `useEffect + useState + fetch` orchestration by domain
+
+## ADMIN-SYSTEM-005 Data table
+
+- [ ] Create `AdminDataTable` if TanStack Table is approved
+- [ ] Support sorting, filtering, pagination, URL state, column visibility, and column priority
+- [ ] Support row selection, bulk actions, sticky action bar, and partial-failure feedback
+- [ ] Support loading, empty, error, partial, stale, and retry states
+- [ ] Provide mobile table-to-card fallback
+- [ ] Preserve permissions, masking, and audit semantics
+
+# A2: Admin route worklist
+
+## ADMIN-ROUTE-001 Authentication and security
+
+- [ ] Login loading, error, lockout, 2FA, recovery, and session-expired states
+- [ ] Password manager, autofill, Caps Lock, keyboard, and focus behavior
+- [ ] Owner transfer and last-owner protection UX
+- [ ] Session list, revoke one, revoke all, current-device marker, and login history
+- [ ] Responsive and accessibility regression
+
+## ADMIN-ROUTE-002 Dashboard
+
+- [ ] Loading skeleton and partial-widget failure
+- [ ] Retry per widget without full-page flash
+- [ ] Stale timestamp and metric definitions
+- [ ] Permission-hidden widgets
+- [ ] Accessible chart summaries
+- [ ] Six-viewport visual regression
+
+## ADMIN-ROUTE-003 Deposits and withdrawals
+
+- [ ] Queue filters, saved URL state, pagination, and claim ownership
+- [ ] Slip/proof preview with secure loading and failure handling
+- [ ] Approve, reject, release, complete, and retry confirmations
+- [ ] Mandatory reason and audit summary
+- [ ] Duplicate action and version-conflict recovery
+- [ ] Mobile card layout and sticky actions
+- [ ] Seeded data correctness and authenticated browser regression
+
+## ADMIN-ROUTE-004 Members, wallets, ledgers, and bank accounts
+
+- [ ] Member search, status filters, detail panel, and masked sensitive values
+- [ ] Wallet and ledger summaries with tabular numbers
+- [ ] Bank duplicate warning and verification evidence
+- [ ] Safe status, freeze, adjustment, and release actions
+- [ ] CSV/export progress and error states
+- [ ] Long-value, mobile, and permission regression
+
+## ADMIN-ROUTE-005 Risk and watchlist
+
+- [ ] Severity/status taxonomy and high-risk treatment
+- [ ] Queue filters, bulk actions, linked member/transaction navigation
+- [ ] Auto-close suggestion explanation
+- [ ] Watchlist create, release, override, and mandatory reason flows
+- [ ] Masked identifier policy and audit timeline
+- [ ] Conflict recovery and mobile card layout
+
+## ADMIN-ROUTE-006 KYC
+
+- [ ] Split queue, filter, case detail, document list, preview, and review actions
+- [ ] Search, risk, date, status, and sort filters
+- [ ] Secure document preview/download progress and errors
+- [ ] Separate case note from document note
+- [ ] Mandatory rejection reason and confirm dialog
+- [ ] Version-conflict recovery and permission-disabled states
+- [ ] Two-pane desktop to stacked/drawer mobile behavior
+- [ ] Keyboard focus management and authenticated regression
+
+## ADMIN-ROUTE-007 Reports and activity
+
+- [ ] Date-range, filter chips, clear-all, URL state, and saved views
+- [ ] Dense table hierarchy, sticky header, and row details
+- [ ] JSON expand/copy and invalid-JSON fallback
+- [ ] CSV export progress, errors, no-data, and large-result warning
+- [ ] Seeded correctness and mobile regression
+
+## ADMIN-ROUTE-008 Settings, CMS, promotions, and providers
+
+- [ ] Section navigation, dirty state, save/reset, validation summary
+- [ ] Asset upload, preview, broken-media fallback, and secure lifecycle feedback
+- [ ] Draft/published state, schedule timezone, preview, and version history
+- [ ] Provider setup, test-connection, credential masking, and re-auth
+- [ ] Permission-aware controls and compatibility matrix
+- [ ] Authenticated visual and functional regression
+
+## ADMIN-ROUTE-009 Support and operations
+
+- [ ] Ticket queue filters, priority, SLA, assignee, and search
+- [ ] Conversation timeline and attachment states
+- [ ] Reply pending/sent/failed feedback
+- [ ] Linked member, finance, provider, and risk context
+- [ ] Resolve/reopen confirmation and audit
+- [ ] Long-thread performance and mobile composer behavior
+
+# A3: Accessibility and QA
+
+## ADMIN-QA-001 Accessibility automation
+
+- [ ] Add `@axe-core/playwright` if approved
+- [ ] Fail CI on critical accessibility violations
+- [ ] Verify headings, labels, ARIA live regions, dialogs, drawers, tables, and icon-only buttons
+- [ ] Verify keyboard navigation, focus trap, focus restore, zoom, reflow, contrast, and reduced motion
+
+## ADMIN-QA-002 Visual and interaction evidence
+
+- [ ] Add authenticated Admin fixtures with non-production credentials
+- [ ] Cover all six standard viewports
+- [ ] Cover loading, empty, error, partial, stale, conflict, permission, success, and session-expired states
+- [ ] Store screenshot, trace, console, and network artifacts in CI
+- [ ] Fail on browser console and unexpected network errors
+
+# Execution order
+
+1. ADMIN-FOUNDATION-001 debt inventory
+2. ADMIN-SYSTEM-001 primitives and tokens
+3. ADMIN-SYSTEM-003 forms plus ADMIN-SYSTEM-004 server state
+4. ADMIN-SYSTEM-005 data table
+5. Finance, Members, Risk, and KYC routes
+6. Reports, Settings/CMS, Providers, Support, and Operations
+7. Motion polish after behavior and layout are stable
+8. Accessibility, visual regression, bundle review, and cleanup
+
+# Evidence log
+
+- Commit/PR:
+- Build:
+- Visual artifact:
+- Accessibility artifact:
+- Bundle report:
+- Remaining blockers:
