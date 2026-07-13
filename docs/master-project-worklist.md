@@ -178,7 +178,7 @@
 
 ## M-010 Finance/provider verification
 
-สถานะ: 🟡 PARTIAL — transfer/reconciliation/provider safety และ credential usage tracking มี implementation; เหลือ production migration verification กับ explicit test-mode settlement verification
+สถานะ: 🟡 PARTIAL — transfer/reconciliation/provider safety, credential usage tracking และ test-mode guard มี implementation; เหลือ production migration verification
 
 - [x] Game transfer reverse/force-fail/retry state safety (state guard, idempotent reversal, failed-only retry)
 - [x] Idempotency key และ WalletLedger ทุก mutation (wallet-synced transfer/reversal ใช้ unique key และ transaction)
@@ -187,7 +187,7 @@
 - [x] Credential create/rotate/mask/disable/lastUsedAt (มี field/migration และอัปเดตเมื่อเรียก provider)
 - [x] Health-check response sanitized
 - [x] Webhook signature/duplicate/idempotency
-- [ ] Test mode ห้าม settle เงินจริง (ต้องเพิ่ม/ยืนยัน explicit test-mode contract)
+- [x] Test mode ห้าม settle เงินจริง (adapter transfer tests จำกัด demo/simulator และ block real provider)
 - [x] Reconciliation relation/note/audit/timeline
 
 ---
