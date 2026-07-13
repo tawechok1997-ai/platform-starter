@@ -1,14 +1,11 @@
 'use client';
 
+import { adminApiFetch } from '../../admin-api';
 import { AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage } from '../_components/admin-ui';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 export default function ExportsPage() {
   function download(path: string) {
-    const token = window.localStorage.getItem('admin_access_token');
-    if (!token) { alert('กรุณา login admin ก่อน'); return; }
-    fetch(`${API_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } })
+    adminApiFetch(path)
       .then(async (res) => {
         if (!res.ok) throw new Error((await res.json().catch(() => null))?.message ?? 'Export ไม่สำเร็จ');
         return res.text();
