@@ -55,4 +55,9 @@ export class AntiBotPublicController {
   memberRegister(@Req() req: any) {
     return this.antiBot.getPublicConfig('MEMBER_REGISTER', req.ip);
   }
+
+  @Get('member-password-reset')
+  memberPasswordReset(@Req() req: any) {
+    return this.antiBot.getPublicConfig('MEMBER_PASSWORD_RESET', req.ip);
+  }
 }
