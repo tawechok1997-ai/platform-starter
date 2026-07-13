@@ -505,7 +505,8 @@
 หลักฐานล่าสุด 2026-07-13:
 - เพิ่ม `packages/api-client` เป็น shared client package พร้อม `createApiClient`, `ApiClientError`, helper รวม URL/header, bearer token injection, response parsing, auth refresh เมื่อเจอ 401, response cache TTL และ retry สำหรับ network/5xx
 - เพิ่ม test ด้วย `tsx src/index.test.ts` ครอบคลุม URL joining, header merge, auth header, auth refresh, response cache, retry 5xx และ error payload mapping
-- รัน `pnpm --filter @platform/api-client test` และ `pnpm --filter @platform/api-client build` ผ่าน; ยังไม่ย้ายหน้า admin/member ทั้งหมดเพื่อหลีกเลี่ยง regression แบบ big-bang
+- ผูก `@platform/api-client` เข้ากับ `apps/web-member` และ `apps/web-admin` ผ่าน workspace dependency + Next `transpilePackages` + tsconfig path และย้ายตัวกลาง `memberApiFetch`/`adminApiFetch` ให้ใช้ shared header/url helpers ก่อน
+- รัน `pnpm --filter @platform/api-client test`, `pnpm --filter @platform/api-client build`, `pnpm --filter @platform/web-member build` และ `pnpm --filter @platform/web-admin build` ผ่าน; ยังไม่ย้ายทุกหน้า/ลบ direct fetch ทั้งหมดเพื่อหลีกเลี่ยง regression แบบ big-bang
 
 - [x] สร้าง `packages/api-client`
 - [x] รวม auth refresh/retry/error/cache
@@ -523,7 +524,11 @@
 
 ## R-006 รวม UI/CSS
 
-- [ ] ตรวจ/ลบ `apps/web-admin/app/components/admin-ui.tsx` หากไม่ใช้
+หลักฐานล่าสุด 2026-07-13:
+- ตรวจด้วย `rg` แล้วพบว่า admin pages ใช้ `apps/web-admin/app/(admin)/_components/admin-ui.tsx`; ไม่พบ import ไปที่ `apps/web-admin/app/components/admin-ui.tsx` และไฟล์ CSS คู่กันว่าง 0 bytes จึงลบไฟล์ legacy ที่ไม่ถูกใช้งาน
+- รัน `pnpm --filter @platform/web-admin build` ผ่านหลังลบไฟล์ legacy UI
+
+- [x] ตรวจ/ลบ `apps/web-admin/app/components/admin-ui.tsx` หากไม่ใช้
 - [ ] ตัดสินใจใช้หรือลบ `packages/ui`
 - [ ] รวม design tokens/responsive rules
 - [ ] ลด CSS mobile/desktop ที่ซ้ำ

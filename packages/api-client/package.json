@@ -6,10 +6,5 @@
   "scripts": {
     "build": "tsc -p tsconfig.json --noEmit",
     "test": "tsx src/index.test.ts"
-  },
-  "devDependencies": {
-    "typescript": "5.7.3",
-    "tsx": "4.23.0",
-    "@types/node": "22.10.2"
   }
 }
