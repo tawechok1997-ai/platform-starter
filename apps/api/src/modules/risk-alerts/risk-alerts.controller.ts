@@ -34,7 +34,7 @@ export class RiskAlertsController {
   @RequirePermission('risk.resolve')
   @Get('auto-close-suggestions')
   autoCloseSuggestions(@Query() query: RiskAlertSuggestionQueryDto) {
-    return this.riskAlertsService.autoCloseSuggestions(query.limit ?? 50);
+    return this.riskAlertsService.autoCloseSuggestions(Number(query.limit ?? 50));
   }
 
   @RequirePermission('risk.resolve')
