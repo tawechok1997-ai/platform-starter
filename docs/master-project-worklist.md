@@ -502,11 +502,16 @@
 
 ## R-004 รวม API client
 
-- [ ] สร้าง `packages/api-client`
-- [ ] รวม auth refresh/retry/error/cache
+หลักฐานล่าสุด 2026-07-13:
+- เพิ่ม `packages/api-client` เป็น shared client package พร้อม `createApiClient`, `ApiClientError`, helper รวม URL/header, bearer token injection, response parsing, auth refresh เมื่อเจอ 401, response cache TTL และ retry สำหรับ network/5xx
+- เพิ่ม test ด้วย `tsx src/index.test.ts` ครอบคลุม URL joining, header merge, auth header, auth refresh, response cache, retry 5xx และ error payload mapping
+- รัน `pnpm --filter @platform/api-client test` และ `pnpm --filter @platform/api-client build` ผ่าน; ยังไม่ย้ายหน้า admin/member ทั้งหมดเพื่อหลีกเลี่ยง regression แบบ big-bang
+
+- [x] สร้าง `packages/api-client`
+- [x] รวม auth refresh/retry/error/cache
 - [ ] ย้ายทุกหน้าใช้ client กลาง
 - [ ] ลบ direct `fetch(API_URL)`
-- [ ] เพิ่ม client tests
+- [x] เพิ่ม client tests
 
 ## R-005 ลด any/เพิ่ม DTO
 
