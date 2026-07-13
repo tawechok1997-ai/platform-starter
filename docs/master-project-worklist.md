@@ -17,9 +17,10 @@ Branch อ้างอิง: **`main`**
 ## หลักฐานที่ตรวจพบใน repo
 
 - Root scripts มี build, test, lint, Prisma, permission audit, finance audit, token/XSS audit, Playwright smoke และ visual commands
-- `apps/api` มี Jest และ finance concurrency test command
+- `apps/api` มี Jest, finance concurrency และ promotion settlement concurrency test commands
 - `apps/web-admin` และ `apps/web-member` มี build script แต่ยังไม่มี app-level lint/test script
-- Build workflow ใช้ PostgreSQL 16, รัน Prisma validate/generate/migrate, API tests, finance concurrency tests และ build ทั้งสามแอป
+- Build workflow ใช้ PostgreSQL 16, รัน Prisma validate/generate/migrate, API tests, finance concurrency tests, promotion settlement concurrency tests และ build ทั้งสามแอป
+- Build #618 ผ่านครบทั้ง API tests, PostgreSQL finance concurrency, PostgreSQL promotion settlement concurrency และ build ทั้งสามแอป
 - มี shared package `packages/api-client`
 - Playwright smoke/visual config มีอยู่ แต่ผล browser regression ไม่ถือว่าผ่านจนกว่าจะมี workflow หรือ artifact ยืนยัน
 
@@ -31,16 +32,16 @@ Branch อ้างอิง: **`main`**
 |---|---|
 | Monorepo / API / Admin / Member foundation | ✅ DONE |
 | Prisma schema และ CI migration path | ✅ DONE ใน CI; production rollback/verification ยังไม่ครบ |
-| Deposit / withdrawal workflow safety | 🟡 PARTIAL — source/audit/tests มีแล้ว แต่ต้องยืนยัน DB test run ล่าสุดและ production flow |
+| Deposit / withdrawal workflow safety | 🟡 PARTIAL — DB concurrency ผ่านแล้ว เหลือ credentialed production flow |
 | Admin auth / owner / role / 2FA | 🟡 PARTIAL — implementation มีแล้ว เหลือ credentialed regression |
 | Permission coverage | 🟡 PARTIAL — static audits มีแล้ว เหลือ role-based browser regression |
 | Member home / game discovery | 🟡 PARTIAL — feature หลักมีแล้ว เหลือ authenticated visual regression |
 | Member profile / security | 🟡 PARTIAL |
-| Notifications | 🟡 PARTIAL |
-| Support / FAQ | 🟡 PARTIAL |
+| Notifications | 🟡 PARTIAL — channel model/UI มีแล้ว เหลือ rollback/browser regression |
+| Support / FAQ | 🟡 PARTIAL — attachment backend policy มีแล้ว เหลือ binary upload และ browser regression |
 | Admin settings / CMS | 🟡 PARTIAL — URL-backed assets เท่านั้น และยังขาด browser regression |
 | Reports / Activity / Risk / Security Admin | 🟡 PARTIAL — feature หลักมีแล้ว แต่ยังขาด authenticated regression |
-| Promotion / Bonus / Affiliate / Commission | 🟡 PARTIAL — ห้ามเปิดเงินจริง |
+| Promotion / Bonus / Affiliate / Commission | ✅ DONE — ยังห้ามเปิดเงินจริงจนกว่า provider-specific UAT ผ่าน |
 | KYC / Blacklist / Document workflow | 🟡 PARTIAL ถึง 🔴 TODO |
 | Real provider integration | ⏸️ Code readiness มีแล้ว; vendor UAT blocked |
 | Code structure refactor | 🟡 PARTIAL |
@@ -71,7 +72,7 @@ Branch อ้างอิง: **`main`**
 - [x] Storage cleanup path
 - [x] Static finance workflow audit
 - [x] Finance concurrency test file/command มีอยู่
-- [ ] ยืนยัน finance DB suite บน commit ล่าสุดว่า run จริงและไม่ skip
+- [x] ยืนยัน finance DB suite บน commit ล่าสุดว่า run จริงและไม่ skip
 - [ ] Credentialed end-to-end deposit regression
 
 ## M-003 Withdrawal workflow
@@ -84,7 +85,7 @@ Branch อ้างอิง: **`main`**
 - [x] Completion idempotency
 - [x] Legacy direct-complete endpoint ถูกถอดออก
 - [x] Finance concurrency test coverage มีอยู่
-- [ ] ยืนยัน finance DB suite บน commit ล่าสุดว่า run จริงและไม่ skip
+- [x] ยืนยัน finance DB suite บน commit ล่าสุดว่า run จริงและไม่ skip
 - [ ] Credentialed end-to-end withdrawal regression
 
 ## M-004 Build-time source mutation
@@ -95,7 +96,7 @@ Branch อ้างอิง: **`main`**
 - [x] ไม่มี `db:fix-schema` ใน `db:generate`
 - [x] ไม่มี `fix:api-workflows` ใน `build:api`
 
-> P0 จะถือว่าปิดทั้งหมดได้เมื่อ finance DB run ล่าสุด, staging migration และ money-flow regression มีหลักฐานครบ
+> P0 จะถือว่าปิดทั้งหมดได้เมื่อ staging migration และ credentialed money-flow regression มีหลักฐานครบ
 
 ---
 
@@ -168,7 +169,7 @@ Branch อ้างอิง: **`main`**
 - [x] Credential lifecycle และ sanitized health check
 - [x] Webhook signature/duplicate handling
 - [x] Real-money safe gates
-- [ ] DB concurrency run evidence บน commit ล่าสุด
+- [x] DB concurrency run evidence บน commit ล่าสุด
 - [ ] Provider reconciliation regression
 - [ ] Production migration/provider verification
 
@@ -217,7 +218,7 @@ Branch อ้างอิง: **`main`**
 - [x] Notification list/group/deep link
 - [x] Read/archive backend behavior
 - [x] Preference route
-- [ ] Email/SMS/push channel model และ UI
+- [x] Email/SMS/push channel model และ UI
 - [ ] Optimistic update rollback regression
 
 ## M-015 Support/FAQ
@@ -229,7 +230,8 @@ Branch อ้างอิง: **`main`**
 - [x] Draft/preview/timeline
 - [x] Close/reopen/polling fallback
 - [x] Money/provider reference linking
-- [ ] Attachment model/storage/MIME/size policy
+- [x] Attachment model/storage-key/MIME/size policy
+- [ ] Actual binary/object storage upload integration
 - [ ] Support thread browser regression
 
 ## M-016 Admin settings/CMS
@@ -257,15 +259,15 @@ Branch อ้างอิง: **`main`**
 
 ## M-018 Promotion/bonus/affiliate/commission
 
-สถานะ: 🟡 PARTIAL — **ห้ามเปิดเงินจริง**
+สถานะ: ✅ DONE — **ยังห้ามเปิดเงินจริงจนกว่า provider-specific UAT ผ่าน**
 
 - [x] Campaign/claim/review flow
 - [x] Turnover tracking logic
 - [x] Referral/downline/commission calculation
 - [x] Payout disabled guard
-- [ ] แยก domain model ออกจาก `RiskAlert.metadata`
-- [ ] Wallet settlement path
-- [ ] Concurrency/idempotency/settlement tests
+- [x] แยก domain model ออกจาก `RiskAlert.metadata`
+- [x] Wallet settlement path
+- [x] Concurrency/idempotency/settlement tests ผ่าน PostgreSQL จริง
 
 ## M-019 CMS/member content
 
@@ -328,12 +330,12 @@ Branch อ้างอิง: **`main`**
 
 ## R-003 RiskAlert domain separation
 
-สถานะ: 🔴 TODO
+สถานะ: ✅ DONE
 
-- [ ] Promotion/bonus models
-- [ ] Affiliate/commission models
-- [ ] Constraints/indexes/backfill
-- [ ] Service/frontend migration
+- [x] Promotion/bonus models
+- [x] Affiliate/commission models
+- [x] Constraints/indexes/backfill
+- [x] Service/frontend migration
 
 ## R-004 Shared API client
 
@@ -428,7 +430,7 @@ Branch อ้างอิง: **`main`**
 - [x] Prisma validate/generate/migrate
 - [x] API test และ finance DB test commands ใน workflow
 - [x] API/Admin/Member builds ใน workflow
-- [ ] ยืนยัน latest main workflow result และ finance DB test ไม่ skip
+- [x] ยืนยัน latest main workflow result และ finance DB test ไม่ skip
 - [ ] Cache/artifact/failure summary
 - [ ] Staging rollback job
 - [ ] Env schema/startup validation
@@ -451,21 +453,21 @@ Branch อ้างอิง: **`main`**
 
 # ลำดับทำงานถัดไป
 
-1. ตรวจ latest GitHub Actions run และบันทึก finance DB test evidence
-2. เพิ่ม seeded non-production Admin/Member accounts สำหรับ browser tests
-3. ปิด M-005 ถึง M-010 ด้วย credentialed regression
-4. ปิด M-011 ถึง M-017 และ M-019 ด้วย authenticated visual/functional regression
-5. ออกแบบ domain models และ settlement safety สำหรับ M-018
-6. ทำ M-020 เฉพาะหลังตัดสินใจ OTP/KYC storage policy
-7. ทำ refactor P4 หลัง regression coverage พร้อม
-8. ปิด performance/storage/CI P5 ก่อน production launch
+1. ตั้ง seeded non-production Admin/Member accounts สำหรับ browser tests
+2. ปิด M-005 ถึง M-010 ด้วย credentialed regression
+3. ปิด M-011 ถึง M-017 และ M-019 ด้วย authenticated visual/functional regression
+4. ทำ M-020 Blacklist/watchlist model และ reason taxonomy
+5. ทำ M-020 Phone OTP/SMS และ KYC document policy หลังเลือก provider/storage policy
+6. ทำ refactor P4 หลัง regression coverage พร้อม
+7. ปิด performance/storage/CI P5 ก่อน production launch
+8. ทำ provider-specific UAT หลังได้รับ vendor docs/credentials
 
 # Definition of Done ทั้งโปรเจกต์
 
 - [x] CI มี Prisma validate/generate/migrate และ build ทุก app
 - [x] Static finance/permission/token/XSS audit commands มีอยู่
-- [ ] Latest main CI ผ่านและเก็บหลักฐานครบ
-- [ ] Finance concurrency tests ผ่าน PostgreSQL จริงโดยไม่ skip
+- [x] Latest main CI ผ่านและเก็บหลักฐานครบ
+- [x] Finance concurrency tests ผ่าน PostgreSQL จริงโดยไม่ skip
 - [ ] Admin/Member authenticated regression ผ่าน
 - [ ] Production/staging migration และ rollback ผ่าน
 - [ ] ไม่มี financial settlement path ที่ขาด idempotency/concurrency/audit
