@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
       const data = await res.json().catch(() => null);
       if (!res.ok) { setStatus('error'); setMessage(typeof data?.message === 'string' ? data.message : t.failed); setCaptchaResetKey((value) => value + 1); return; }
       if (data?.requiresTwoFactor) { setRequiresTwoFactor(true); setStatus('info'); setMessage(t.requiresTwoFactor); setCaptchaResetKey((value) => value + 1); return; }
-      if (!data?.accessToken || !data?.refreshToken) { setStatus('error'); setMessage(t.incomplete); setCaptchaResetKey((value) => value + 1); return; }
+      if (!data?.accessToken) { setStatus('error'); setMessage(t.incomplete); setCaptchaResetKey((value) => value + 1); return; }
       setAdminAccessToken(data.accessToken);
             setStatus('success'); setMessage(t.success); window.location.replace('/dashboard');
     } catch (error) {
