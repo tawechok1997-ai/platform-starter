@@ -3,12 +3,16 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
+import { WithdrawalRiskEnforcementService } from './withdrawal-risk-enforcement.service';
 import { PaymentProofInput, WithdrawalWorkflowService } from './withdrawal-workflow.service';
 
 @Controller('admin/withdrawals')
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 export class WithdrawalWorkflowController {
-  constructor(private readonly workflow: WithdrawalWorkflowService) {}
+  constructor(
+    private readonly workflow: WithdrawalWorkflowService,
+    private readonly withdrawalRisk: WithdrawalRiskEnforcementService,
+  ) {}
 
   @RequirePermission('finance.withdrawals.view')
   @Get(':id/payment-proof')
@@ -18,12 +22,13 @@ export class WithdrawalWorkflowController {
 
   @RequirePermission('finance.withdrawals.review')
   @Post(':id/approve-for-payment')
-  approveForPayment(
+  async approveForPayment(
     @Param('id') id: string,
     @CurrentUser() user: any,
-    @Body() body: { note?: string },
+    @Body() body: { note?: string; riskOverrideReason?: string },
     @Req() req: any,
   ) {
+    await this.withdrawalRisk.enforceBeforeApproval(id, user.id, body.riskOverrideReason);
     return this.workflow.approveForPayment(id, user.id, body.note, this.meta(req));
   }
 
