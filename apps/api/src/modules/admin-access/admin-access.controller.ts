@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import type { AdminRequestContext } from '../../common/actors';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
@@ -31,13 +32,13 @@ export class AdminAccessController {
 
   @RequirePermission('admin.access.manage')
   @Post('ownership-transfer')
-  async transferOwnership(@Req() req: any, @Body() body: TransferOwnershipDto) {
+  async transferOwnership(@Req() req: AdminRequestContext, @Body() body: TransferOwnershipDto) {
     const result = await this.service.transferOwnership(
       req.user.id,
       body.targetAdminId,
       body.twoFactorCode,
       body.reason,
-      { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] },
+      { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] as string | undefined },
     );
     await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, req.user.id, 'TRANSFER_OWNERSHIP_OUT');
     await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, result.newOwnerId, 'TRANSFER_OWNERSHIP_IN');
@@ -46,13 +47,13 @@ export class AdminAccessController {
 
   @RequirePermission('admin.access.view')
   @Get('delegations')
-  listDelegations(@Req() req: any) {
+  listDelegations(@Req() req: AdminRequestContext) {
     return this.service.listDelegations(req.user.id);
   }
 
   @RequirePermission('admin.access.delegate')
   @Post('delegations')
-  createDelegation(@Req() req: any, @Body() body: CreateDelegationDto) {
+  createDelegation(@Req() req: AdminRequestContext, @Body() body: CreateDelegationDto) {
     return this.service.createDelegation(
       req.user.id,
       body.delegateAdminId,
@@ -65,7 +66,7 @@ export class AdminAccessController {
   @RequirePermission('admin.access.delegate')
   @Post('delegations/:delegationId/revoke')
   async revokeDelegation(
-    @Req() req: any,
+    @Req() req: AdminRequestContext,
     @Param('delegationId') delegationId: string,
     @Body() body: ReasonDto,
   ) {
@@ -78,18 +79,13 @@ export class AdminAccessController {
 
   @RequirePermission('admin.create')
   @Post('invitations')
-  createInvitation(@Req() req: any, @Body() body: CreateAdminInvitationDto) {
-    return this.service.createInvitation(
-      req.user.id,
-      body.email,
-      body.roleId,
-      body.expiresInHours,
-    );
+  createInvitation(@Req() req: AdminRequestContext, @Body() body: CreateAdminInvitationDto) {
+    return this.service.createInvitation(req.user.id, body.email, body.roleId, body.expiresInHours);
   }
 
   @RequirePermission('admin.access.view')
   @Get('owner-recovery-status')
-  ownerRecoveryStatus(@Req() req: any) {
+  ownerRecoveryStatus(@Req() req: AdminRequestContext) {
     return this.service.ownerRecoveryStatus(req.user.id);
   }
 
@@ -102,47 +98,32 @@ export class AdminAccessController {
   @RequirePermission('admin.access.manage')
   @Delete('admin-users/:adminUserId/sessions/:sessionId')
   revokeAdminSession(
-    @Req() req: any,
+    @Req() req: AdminRequestContext,
     @Param('adminUserId') adminUserId: string,
     @Param('sessionId') sessionId: string,
     @Body() body: ReasonDto,
   ) {
-    return this.service.revokeAdminSession(
-      req.user.id,
-      adminUserId,
-      sessionId,
-      body.reason,
-    );
+    return this.service.revokeAdminSession(req.user.id, adminUserId, sessionId, body.reason);
   }
 
   @RequirePermission('admin.access.manage')
   @Patch('admin-users/:adminUserId/status')
   changeStatus(
-    @Req() req: any,
+    @Req() req: AdminRequestContext,
     @Param('adminUserId') adminUserId: string,
     @Body() body: ChangeAdminStatusDto,
   ) {
-    return this.accountLifecycle.changeStatus(
-      req.user.id,
-      adminUserId,
-      body.status,
-      body.reason,
-    );
+    return this.accountLifecycle.changeStatus(req.user.id, adminUserId, body.status, body.reason);
   }
 
   @RequirePermission('admin.access.manage')
   @Post('admin-users/:adminUserId/roles')
   async assignRole(
-    @Req() req: any,
+    @Req() req: AdminRequestContext,
     @Param('adminUserId') adminUserId: string,
     @Body() body: AssignAdminRoleDto,
   ) {
-    const result = await this.service.assignRole(
-      req.user.id,
-      adminUserId,
-      body.roleId,
-      body.reason ?? '',
-    );
+    const result = await this.service.assignRole(req.user.id, adminUserId, body.roleId, body.reason);
     await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'ASSIGN_ROLE');
     return result;
   }
@@ -150,7 +131,7 @@ export class AdminAccessController {
   @RequirePermission('admin.access.manage')
   @Delete('admin-users/:adminUserId/roles/:roleId')
   async removeRole(
-    @Req() req: any,
+    @Req() req: AdminRequestContext,
     @Param('adminUserId') adminUserId: string,
     @Param('roleId') roleId: string,
     @Body() body: ReasonDto,
