@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { AntiBotWidget } from '../anti-bot-widget';
+import { setAdminAccessToken } from '../admin-api';
 
 const LOGIN_TIMEOUT_MS = 15000;
 
@@ -32,7 +33,7 @@ export default function AdminLoginPage() {
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
 
   useEffect(() => {
-    if (window.localStorage.getItem('admin_access_token') || window.localStorage.getItem('admin_refresh_token')) { window.location.replace('/dashboard'); return; }
+    if (window.localStorage.getItem('admin_refresh_token')) { window.location.replace('/dashboard'); return; }
     const savedLocale = window.localStorage.getItem('admin_locale');
     if (savedLocale === 'th' || savedLocale === 'en') setLocale(savedLocale);
   }, []);
@@ -54,7 +55,7 @@ export default function AdminLoginPage() {
 
     try {
       const res = await fetch('/api/auth/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username.trim(), secret, twoFactorCode: twoFactorCode.trim() || undefined, captchaToken: captchaToken || undefined, deviceId: 'web-admin' }),
         signal: controller.signal,
       });
@@ -62,7 +63,7 @@ export default function AdminLoginPage() {
       if (!res.ok) { setStatus('error'); setMessage(typeof data?.message === 'string' ? data.message : t.failed); setCaptchaResetKey((value) => value + 1); return; }
       if (data?.requiresTwoFactor) { setRequiresTwoFactor(true); setStatus('info'); setMessage(t.requiresTwoFactor); setCaptchaResetKey((value) => value + 1); return; }
       if (!data?.accessToken || !data?.refreshToken) { setStatus('error'); setMessage(t.incomplete); setCaptchaResetKey((value) => value + 1); return; }
-      window.localStorage.setItem('admin_access_token', data.accessToken);
+      setAdminAccessToken(data.accessToken);
       window.localStorage.setItem('admin_refresh_token', data.refreshToken);
       setStatus('success'); setMessage(t.success); window.location.replace('/dashboard');
     } catch (error) {
