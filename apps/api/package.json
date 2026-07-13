@@ -8,7 +8,8 @@
     "start:prod": "prisma generate --schema ../../prisma/schema.prisma && node dist/main.js",
     "test": "jest",
     "test:db:finance": "jest src/modules/finance/finance-concurrency.db.spec.ts --runInBand",
-    "test:db:promotions": "jest src/modules/promotions/promotion-settlement.db.spec.ts --runInBand"
+    "test:db:promotions": "jest src/modules/promotions/promotion-settlement.db.spec.ts --runInBand",
+    "test:db:phone-otp": "jest src/modules/auth/phone-otp.db.spec.ts --runInBand"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1084.0",
