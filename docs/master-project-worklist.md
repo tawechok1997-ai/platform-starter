@@ -70,6 +70,10 @@
 
 สถานะ: ✅ DONE — workflow tests, CI migration และ Railway production migration status ผ่านแล้ว
 
+หลักฐานล่าสุด 2026-07-13:
+- ลบ legacy direct-complete endpoint `POST admin/withdrawals/:id/complete` ออกจาก controller แล้ว ให้ใช้ workflow endpoint `verify-payment` แทน
+- `pnpm --filter @platform/api test -- src/modules/finance/finance-workflow-integrity.spec.ts --runInBand` ผ่านในชุด targeted regression
+
 ไฟล์: `apps/api/src/modules/withdrawals/withdrawal-workflow.service.ts`
 
 - [x] ใช้ status จาก row ที่ lock จริง
@@ -103,6 +107,7 @@
 
 หลักฐานล่าสุด 2026-07-13:
 - `pnpm build:api` ผ่านในรอบตรวจ P1 ล่าสุด จึงยืนยัน compile path ของ API ได้
+- `pnpm --filter @platform/api test -- --runInBand` ผ่าน: 25 suites passed, 2 skipped, 107 tests passed, 7 skipped
 - Production verification ยังทำไม่ได้จาก environment นี้ เพราะไม่มี credentialed admin session และ Railway API smoke ถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403`
 
 - [x] ป้องกัน suspend/downgrade/remove owner คนสุดท้าย (protected owner role/account ถูกบล็อก และ ownership transfer เป็น transaction)
@@ -142,7 +147,8 @@
 
 หลักฐานล่าสุด 2026-07-13:
 - ตรวจ source แล้วพบ `TRUSTED_PROXY_HOPS`, Express `trust proxy`, rate-limit key แยก IP/account และ log IP จาก `req.ip` ใน `apps/api/src/main.ts`
-- `pnpm --filter @platform/api test -- src/modules/auth/auth.service.spec.ts --runInBand` ยังรันไม่ได้ใน environment นี้ เพราะ Jest config ต้องใช้ `ts-node` แต่ dependency ไม่พร้อม (`Cannot find package 'ts-node'`)
+- `pnpm --filter @platform/api test -- src/modules/auth/auth.service.spec.ts --runInBand` ผ่าน: 1 suite, 5 tests
+- `pnpm --filter @platform/api test -- --runInBand` ผ่านหลังแก้ Jest config: 25 suites passed, 2 skipped, 107 tests passed, 7 skipped
 - Reverse-proxy/API smoke กับ Railway ยังถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403` จึงยังยืนยันผ่าน proxy จริงไม่ได้
 
 - [x] กำหนด trusted proxy ตาม environment ด้วย `TRUSTED_PROXY_HOPS`
@@ -189,7 +195,8 @@
 หลักฐานล่าสุด 2026-07-13:
 - ตรวจ source พบ provider `TURNSTILE`/`RECAPTCHA`/`HCAPTCHA`, endpoint admin/public anti-bot, login/register/password-reset integration และ secret encryption ใน `apps/api/src/modules/anti-bot`
 - `pnpm build:api` ผ่านแล้วในรอบตรวจ P1 ล่าสุด
-- `pnpm --filter @platform/api test -- src/modules/anti-bot/anti-bot.service.spec.ts --runInBand` ยังรันไม่ได้ใน environment นี้ เพราะ Jest config ต้องใช้ `ts-node` แต่ dependency ไม่พร้อม (`Cannot find package 'ts-node'`)
+- `pnpm --filter @platform/api test -- src/modules/anti-bot/anti-bot.service.spec.ts --runInBand` ผ่านหลังแก้ Jest config เป็น CommonJS และอัปเดต test route fixture: 1 suite, 6 tests
+- `pnpm --filter @platform/api test -- --runInBand` ผ่าน: 25 suites passed, 2 skipped, 107 tests passed, 7 skipped
 - Production provider/runtime verification ยังทำไม่ได้จาก environment นี้ เพราะ Railway API smoke ถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403`
 
 - [x] Provider selection ครบ (`TURNSTILE`, `RECAPTCHA`, `HCAPTCHA`)
@@ -210,7 +217,8 @@
 หลักฐานล่าสุด 2026-07-13:
 - `pnpm audit:finance-workflows` ผ่านครบ 8 checks: deposit/withdraw row lock, claim owner guard, credit/completion idempotency และ storage cleanup
 - `pnpm build:api` ผ่าน: Prisma generate และ Nest API build สำเร็จ
-- `pnpm --filter @platform/api test:db:finance -- --runInBand` ยังรันไม่ได้ใน environment นี้ เพราะ Jest config ต้องใช้ `ts-node` แต่ dependency ไม่พร้อม (`Cannot find package 'ts-node'`)
+- `pnpm --filter @platform/api test:db:finance -- --runInBand` รันได้แล้วแต่ skip อย่างปลอดภัย: 1 suite skipped, 6 tests skipped เพราะ environment นี้ไม่มี database test configuration
+- `pnpm --filter @platform/api test -- --runInBand` ผ่านหลังลบ legacy direct-complete endpoint: 25 suites passed, 2 skipped, 107 tests passed, 7 skipped
 - Production migration/provider verification ยังทำไม่ได้จาก environment นี้ เพราะ Railway API smoke ถูก local proxy บล็อกด้วย `CONNECT tunnel failed, response 403`
 
 - [x] Game transfer reverse/force-fail/retry state safety (state guard, idempotent reversal, failed-only retry)

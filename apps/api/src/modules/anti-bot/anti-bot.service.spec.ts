@@ -6,8 +6,17 @@ function prismaWithSetting(valueJson: unknown = null) {
     siteSetting: { findUnique: jest.fn().mockResolvedValue(valueJson ? { valueJson } : null) },
     $transaction: jest.fn(),
     adminAuditLog: { create: jest.fn() },
+    loginHistory: { count: jest.fn().mockResolvedValue(0) },
   } as any;
 }
+
+const routes = (overrides: Partial<Record<'ADMIN_LOGIN' | 'MEMBER_LOGIN' | 'MEMBER_REGISTER' | 'MEMBER_PASSWORD_RESET', boolean>> = {}) => ({
+  ADMIN_LOGIN: false,
+  MEMBER_LOGIN: false,
+  MEMBER_REGISTER: false,
+  MEMBER_PASSWORD_RESET: false,
+  ...overrides,
+});
 
 describe('AntiBotService safety defaults', () => {
   const originalRuntimeFlag = process.env.ANTIBOT_RUNTIME_ENABLED;
@@ -37,7 +46,7 @@ describe('AntiBotService safety defaults', () => {
       provider: 'TURNSTILE',
       siteKey: 'site-key',
       encryptedSecret: 'not-returned',
-      routes: { ADMIN_LOGIN: true, MEMBER_LOGIN: true, MEMBER_REGISTER: true },
+      routes: routes({ ADMIN_LOGIN: true, MEMBER_LOGIN: true, MEMBER_REGISTER: true }),
       adaptiveMode: true,
       emergencyMode: false,
     }));
@@ -53,7 +62,7 @@ describe('AntiBotService safety defaults', () => {
       provider: 'TURNSTILE',
       siteKey: 'site-key',
       encryptedSecret: 'not-returned',
-      routes: { ADMIN_LOGIN: false, MEMBER_LOGIN: true, MEMBER_REGISTER: false },
+      routes: routes({ MEMBER_LOGIN: true }),
       adaptiveMode: true,
       emergencyMode: false,
     });
@@ -70,7 +79,7 @@ describe('AntiBotService safety defaults', () => {
       provider: 'HCAPTCHA',
       siteKey: 'public-site-key',
       encryptedSecret: 'v1.private.secret.payload',
-      routes: { ADMIN_LOGIN: true, MEMBER_LOGIN: false, MEMBER_REGISTER: false },
+      routes: routes({ ADMIN_LOGIN: true }),
       adaptiveMode: false,
       emergencyMode: false,
     }));
@@ -91,7 +100,7 @@ describe('AntiBotService safety defaults', () => {
     await expect(service.updateConfig('admin-id', {
       enabled: true,
       provider: 'TURNSTILE',
-      routes: { ADMIN_LOGIN: true, MEMBER_LOGIN: false, MEMBER_REGISTER: false },
+      routes: routes({ ADMIN_LOGIN: true }),
     }, {})).rejects.toThrow(BadRequestException);
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
@@ -104,7 +113,7 @@ describe('AntiBotService safety defaults', () => {
       provider: 'TURNSTILE',
       siteKey: 'site-key',
       encryptedSecret: 'v1.invalid.invalid.invalid',
-      routes: { ADMIN_LOGIN: true, MEMBER_LOGIN: false, MEMBER_REGISTER: false },
+      routes: routes({ ADMIN_LOGIN: true }),
       adaptiveMode: true,
       emergencyMode: false,
     });

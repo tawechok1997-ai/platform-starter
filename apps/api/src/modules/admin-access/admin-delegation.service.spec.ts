@@ -22,7 +22,7 @@ describe('AdminAccessService delegated access', () => {
       })),
     } as any;
 
-    const service = new AdminAccessService(prisma);
+    const service = new AdminAccessService(prisma, undefined as any);
     const result = await service.createDelegation('actor', 'delegate', ['reports.view'], 24, 'Cover report queue');
     expect(result.success).toBe(true);
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
@@ -38,7 +38,7 @@ describe('AdminAccessService delegated access', () => {
       },
       adminDelegation: { findFirst: jest.fn().mockResolvedValue(null) },
     } as any;
-    const service = new AdminAccessService(prisma);
+    const service = new AdminAccessService(prisma, undefined as any);
 
     await expect(service.createDelegation('owner', 'delegate', ['admin.access.manage'], 24, 'Temporary access')).rejects.toThrow(ForbiddenException);
     await expect(service.createDelegation('owner', 'delegate', ['reports.view'], 169, 'Temporary access')).rejects.toThrow(BadRequestException);
