@@ -1,0 +1,52 @@
+name: CMS Content Visual Regression
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-member/**'
+      - 'tests/e2e-cms-content/**'
+      - 'playwright.cms-content.config.ts'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/cms-content-visual.yml'
+
+jobs:
+  cms-content-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run CMS content visual regression
+        run: pnpm test:e2e:cms-content
+
+      - name: Upload CMS content report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cms-content-visual-report
+          path: |
+            playwright-cms-content-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 14
