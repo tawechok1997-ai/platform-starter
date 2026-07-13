@@ -96,9 +96,11 @@ describe('NotificationsService preferences', () => {
       expect.objectContaining({
         where: { key: 'member.notification.channels.member-1' },
         update: {
-          email: false,
-          sms: true,
-          push: true,
+          valueJson: {
+            email: false,
+            sms: true,
+            push: true,
+          },
         },
       }),
     );
