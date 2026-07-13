@@ -144,6 +144,8 @@
 
 - [x] Refresh rotation/reuse revoke มี implementation บางส่วน
 - [x] HttpOnly refresh cookie groundwork ผ่าน admin API และ Next proxy
+- [x] Reports/Exports ย้ายมาใช้ shared API client ไม่อ่าน access token โดยตรง
+- [ ] ย้าย login/layout และ legacy direct token callers ออกจาก localStorage ให้ครบ
 - [ ] HttpOnly/Secure/SameSite cookie
 - [ ] แยก admin/member cookie
 - [ ] CSRF protection หากใช้ cookie
