@@ -146,14 +146,16 @@
 - [x] HttpOnly refresh cookie groundwork ผ่าน admin API และ Next proxy
 - [x] Reports/Exports ย้ายมาใช้ shared API client ไม่อ่าน access token โดยตรง
 - [x] Login/layout/API client ย้าย access token ไป memory และใช้ refresh cookie หลัง reload
-- [ ] ลบ refresh-token body/localStorage fallback หลัง migration ผู้ใช้เดิมครบ
+- [x] Legacy refresh token ถูกใช้ migrate ครั้งเดียวแล้วลบหลัง refresh สำเร็จ
+- [ ] ลบ refresh-token body/localStorage read fallback หลัง grace period
 - [ ] HttpOnly/Secure/SameSite cookie
 - [ ] แยก admin/member cookie
 - [x] CSRF origin check ใน Next Admin proxy สำหรับ mutation + `SameSite=Lax` refresh cookie
 - [x] เพิ่ม deployed smoke test: cross-origin Admin mutation ถูก block และ login HTML ไม่เปิดเผย access token name
 - [ ] เพิ่ม dynamic threat-model/E2E review สำหรับ cookie/session flow ที่มี login จริง
 - [x] ย้าย access token ออกจาก localStorage ใน client/login/layout
-- [ ] ย้าย refresh-token fallback ออกจาก localStorage
+- [x] ลบ refresh-token storage หลัง migrate สำเร็จ
+- [ ] ลบ refresh-token read fallback หลัง grace period
 - [ ] XSS/session theft regression test
 - [x] เพิ่ม static audit ห้ามหน้า Admin อ่าน access token จาก localStorage (`audit:admin-token-storage`)
 - [x] เพิ่ม static XSS sink audit ฝั่ง Admin UI (`audit:admin-xss`)
