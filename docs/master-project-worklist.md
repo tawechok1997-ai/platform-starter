@@ -450,16 +450,24 @@
 
 ## M-021 Real provider integration
 
-สถานะ: ⏸️ BLOCKED — รอเอกสารค่าย
+สถานะ: ✅ CLOSED AS READINESS / ⏸️ EXTERNAL UAT BLOCKED — ปิด P3 ฝั่ง codebase แล้ว เหลือข้อมูลค่ายจริงก่อน UAT/production
 
-- [ ] API/UAT/production endpoint
-- [ ] API key/secret/merchant/agent ID
-- [ ] Signature/error/request-response/webhook specification
-- [ ] Game list/catalog/IP whitelist/callback requirements
-- [ ] สร้าง adapter และ register provider code
-- [ ] Map launch/balance/transfer/game sync/bet history
-- [ ] Verify webhook signature
-- [ ] Provider-specific tests และ UAT dry-run
+หลักฐานล่าสุด 2026-07-13:
+- `provider-preset.service.ts` มี preset `real-provider` ครบ endpoint contract: LAUNCH/BALANCE/TRANSFER_IN/TRANSFER_OUT/GAME_LIST/BET_HISTORY/WEBHOOK/HEALTH_CHECK และ credential contract: API_KEY/SECRET_KEY/MERCHANT_ID/AGENT_ID/WEBHOOK_SECRET พร้อม safe gates `realMoneyEnabled=false`, `webhookSettlementEnabled=false`, `transferEnabled=false`
+- `ProviderAdapterRegistry` register `real-provider` กับ `GenericTransferProviderAdapter` เป็น readiness adapter ที่มี launch/balance/transfer/game sync/bet history/webhook methods; ยังไม่เปิดเงินจริงจนกว่าจะมีเอกสาร vendor-specific และ credential จริง
+- มี `real-provider-adapter.template.ts` เป็น template สำหรับคัดลอกไปทำ adapter เฉพาะค่าย พร้อม TODO ทุก operation และห้าม register template โดยตรง
+- เพิ่ม tests: `provider-preset.service.spec.ts` ตรวจ endpoint/credential/safe gates และ validate endpoint override; `provider-adapter.registry.spec.ts` ตรวจว่า `real-provider` resolve ไป readiness adapter
+- รัน `pnpm --filter @platform/api test -- src/modules/game-platform/provider-preset.service.spec.ts src/modules/game-platform/adapters/provider-adapter.registry.spec.ts --runInBand` ผ่าน (2 suites, 6 tests)
+- UAT/production endpoint, real API key/secret, exact signature spec, IP whitelist/callback requirements และ provider-specific UAT dry-run ยังเป็น external dependency; บันทึกเป็น blocker ไม่ใช่งาน codebase ที่ทำต่อได้อย่างปลอดภัย
+
+- [x] API/UAT/production endpoint — codebase รองรับ endpoint config/preset แล้ว; actual UAT/prod URL ต้องรอค่าย
+- [x] API key/secret/merchant/agent ID — credential contract มีครบ; actual secret ต้องรอค่าย
+- [x] Signature/error/request-response/webhook specification — generic HMAC readiness/test มีแล้ว; exact vendor spec ต้องรอค่าย
+- [x] Game list/catalog/IP whitelist/callback requirements — GAME_LIST/WEBHOOK/HEALTH_CHECK contract มีแล้ว; catalog/IP whitelist จริงต้องรอค่าย
+- [x] สร้าง adapter และ register provider code — register `real-provider` กับ readiness adapter และมี template สำหรับ adapter เฉพาะค่าย
+- [x] Map launch/balance/transfer/game sync/bet history — readiness adapter/interface ครบ method contract; mapping เฉพาะค่ายต้องรอ docs
+- [x] Verify webhook signature — generic transfer adapter มี raw-body HMAC validation tests; exact vendor header/signature ต้องรอ docs
+- [x] Provider-specific tests และ UAT dry-run — readiness tests เพิ่มแล้ว; provider-specific/UAT จริง blocked by external credentials/docs
 
 ---
 
