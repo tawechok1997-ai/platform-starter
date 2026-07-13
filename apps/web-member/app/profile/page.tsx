@@ -88,6 +88,7 @@ export default function ProfilePage() {
       </section>
 
       <section className="member-profile-actions" aria-label="การตั้งค่าความปลอดภัย">
+        <a href="/kyc"><strong>ยืนยันตัวตน KYC</strong><span>อัปโหลดเอกสาร ตรวจสถานะ และส่งคำขอตรวจยืนยันตัวตน</span></a>
         <a href="/profile/password"><strong>เปลี่ยนรหัสผ่าน</strong><span>อัปเดตรหัสผ่านและออกจากระบบอุปกรณ์อื่นอย่างปลอดภัย</span></a>
         <a href="/profile/sessions"><strong>อุปกรณ์ที่เข้าสู่ระบบ</strong><span>ดู session ปัจจุบันและเพิกถอนอุปกรณ์ที่ไม่รู้จัก</span></a>
         <a href="/profile/security"><strong>ศูนย์ความปลอดภัย</strong><span>ดูประวัติการเข้าสู่ระบบ ความเสี่ยง และสถานะ 2FA</span></a>
