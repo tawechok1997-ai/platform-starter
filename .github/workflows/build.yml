@@ -57,6 +57,9 @@ jobs:
       - name: Audit architecture boundaries
         run: pnpm audit:architecture-boundaries
 
+      - name: Audit critical regression safety
+        run: pnpm audit:critical-test-safety
+
       - name: Audit admin API permissions
         run: pnpm audit:admin-permissions
 
