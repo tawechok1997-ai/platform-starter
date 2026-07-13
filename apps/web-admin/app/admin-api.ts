@@ -8,7 +8,7 @@ function proxiedPath(path: string) {
 }
 
 export async function adminApiFetch(path: string, options: ApiOptions = {}) {
-  const token = inMemoryAccessToken || window.localStorage.getItem('admin_access_token');
+  const token = inMemoryAccessToken;
   const headers = new Headers(options.headers ?? {});
   if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
   if (!headers.has('Cache-Control')) headers.set('Cache-Control', 'no-store');
@@ -60,17 +60,15 @@ async function redirectToTwoFactorSetup(response: Response, options: ApiOptions)
 
 export async function refreshAdminToken() {
   const refreshToken = window.localStorage.getItem('admin_refresh_token');
-  if (!refreshToken) return '';
   const res = await fetch('/api/admin/auth/refresh', {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
+    headers: refreshToken ? { 'Content-Type': 'application/json' } : {},
+    body: refreshToken ? JSON.stringify({ refreshToken }) : undefined,
   });
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.accessToken) return '';
   setAdminAccessToken(data.accessToken);
-  window.localStorage.setItem('admin_access_token', data.accessToken);
   if (data.refreshToken) window.localStorage.setItem('admin_refresh_token', data.refreshToken);
   return data.accessToken as string;
 }
