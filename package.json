@@ -13,6 +13,7 @@
     "audit:admin-xss": "node tools/audit-admin-xss-boundary.mjs",
     "test:proxy-rate-limit": "node tools/test-reverse-proxy-rate-limit.mjs",
     "verify:p1:production": "bash scripts/verify-p1-production.sh",
+    "verify:p2": "bash scripts/verify-p2-product.sh",
     "test:kyc:deployed": "node tools/test-deployed-kyc.mjs",
     "test:e2e:kyc": "playwright test -c playwright.kyc.config.ts",
     "test:e2e:cms-content": "playwright test -c playwright.cms-content.config.ts",
