@@ -41,13 +41,16 @@ export class ProviderPresetService {
     const endpointTypes = this.selectedEndpointTypes(preset.endpoints, input.enabledEndpoints);
     const overrideMap = this.endpointOverrideMap(preset.endpoints, input.endpointOverrides);
     try {
-      const provider = await this.prisma.gameProvider.create({ data: { name: input.name.trim(), code: input.code.trim().toLowerCase(), status: input.status ?? 'INACTIVE', walletMode: preset.walletMode as any, currency: 'THB', timezone: 'Asia/Bangkok', sortOrder: 100, metadata: { presetCode: input.presetCode, ...preset.gates, enabledEndpointTypes: endpointTypes, endpointOverrideTypes: Array.from(overrideMap.keys()), appliedBy: actor.id, appliedAt: new Date().toISOString() } } });
-      await this.prisma.gameProviderEndpoint.createMany({ data: endpointTypes.map((type) => ({ providerId: provider.id, type: type as any, url: overrideMap.get(type) ?? this.endpointUrl(input.baseUrl, type), method: 'POST', timeoutMs: 10000, retryCount: 2, isEnabled: true })), skipDuplicates: true });
       const secretValues: Record<string, string | undefined> = { API_KEY: input.apiKey, SECRET_KEY: input.secretKey, MERCHANT_ID: input.merchantId, AGENT_ID: input.agentId, WEBHOOK_SECRET: input.webhookSecret };
-      const credentialRows = preset.credentials.map((type) => ({ providerId: provider.id, type: type as any, encryptedValue: this.encryptSecret(secretValues[type] || `TODO_${type}`), maskedValue: this.maskSecret(secretValues[type] || `TODO_${type}`), isEnabled: Boolean(secretValues[type]), rotatedAt: new Date() }));
-      await this.prisma.gameProviderCredential.createMany({ data: credentialRows, skipDuplicates: true });
-      await this.audit(actor, 'game_provider.preset.apply', provider.id, { presetCode: input.presetCode, providerCode: provider.code, enabledEndpointTypes: endpointTypes, endpointOverrideTypes: Array.from(overrideMap.keys()), credentialTypes: preset.credentials }, meta);
-      const detail = await this.prisma.gameProvider.findUnique({ where: { id: provider.id }, include: { endpoints: { orderBy: { type: 'asc' } }, credentials: { orderBy: { type: 'asc' }, select: { id: true, type: true, maskedValue: true, isEnabled: true, rotatedAt: true } } } });
+      const result = await this.prisma.$transaction(async (tx) => {
+        const provider = await tx.gameProvider.create({ data: { name: input.name.trim(), code: input.code.trim().toLowerCase(), status: input.status ?? 'INACTIVE', walletMode: preset.walletMode as any, currency: 'THB', timezone: 'Asia/Bangkok', sortOrder: 100, metadata: { presetCode: input.presetCode, ...preset.gates, enabledEndpointTypes: endpointTypes, endpointOverrideTypes: Array.from(overrideMap.keys()), appliedBy: actor.id, appliedAt: new Date().toISOString() } } });
+        await tx.gameProviderEndpoint.createMany({ data: endpointTypes.map((type) => ({ providerId: provider.id, type: type as any, url: overrideMap.get(type) ?? this.endpointUrl(input.baseUrl, type), method: 'POST', timeoutMs: 10000, retryCount: 2, isEnabled: true })), skipDuplicates: true });
+        const credentialRows = preset.credentials.map((type) => ({ providerId: provider.id, type: type as any, encryptedValue: this.encryptSecret(secretValues[type] || `TODO_${type}`), maskedValue: this.maskSecret(secretValues[type] || `TODO_${type}`), isEnabled: Boolean(secretValues[type]), rotatedAt: new Date() }));
+        await tx.gameProviderCredential.createMany({ data: credentialRows, skipDuplicates: true });
+        return provider;
+      });
+      await this.audit(actor, 'game_provider.preset.apply', result.id, { presetCode: input.presetCode, providerCode: result.code, enabledEndpointTypes: endpointTypes, endpointOverrideTypes: Array.from(overrideMap.keys()), credentialTypes: preset.credentials }, meta);
+      const detail = await this.prisma.gameProvider.findUnique({ where: { id: result.id }, include: { endpoints: { orderBy: { type: 'asc' } }, credentials: { orderBy: { type: 'asc' }, select: { id: true, type: true, maskedValue: true, isEnabled: true, rotatedAt: true } } } });
       return { ok: true, provider: detail };
     } catch (error) { if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') throw new ConflictException('Provider code already exists'); throw error; }
   }
