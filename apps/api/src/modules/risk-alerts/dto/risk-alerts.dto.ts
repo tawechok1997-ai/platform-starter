@@ -1,9 +1,8 @@
-import { Type } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsIn, IsNumberString, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class RiskAlertListQueryDto {
   @IsOptional()
-  @IsIn(['ALL', 'OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED'])
+  @IsIn(['OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED'])
   status?: string;
 
   @IsOptional()
@@ -35,26 +34,18 @@ export class RiskAlertListQueryDto {
   createdTo?: string;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number;
+  @IsNumberString()
+  page?: string;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  take?: number;
+  @IsNumberString()
+  take?: string;
 }
 
 export class RiskAlertSuggestionQueryDto {
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  limit?: number;
+  @IsNumberString()
+  limit?: string;
 }
 
 export class BulkDismissRiskAlertsDto {
