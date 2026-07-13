@@ -371,14 +371,19 @@
 
 หลักฐานล่าสุด 2026-07-13:
 - เพิ่ม expandable `Detail JSON` ใน Activity Timeline เพื่อดู payload เต็มของแต่ละ event โดยจำกัดความสูง/scroll สำหรับ long JSON และยังคง pagination/filter เดิม
+- เพิ่ม Report Filters บนหน้า Reports สำหรับช่วงวันที่ daily aggregate, ต่อ query `from/to` ไปยัง `/admin/reports/daily`, และคงปุ่ม CSV export สำหรับ trends/reconciliation
+- ตรวจ Risk Alerts แล้วมี filter status/severity/type/member/provider/date, related links ไป member/topup/withdrawal/wallet/risk detail, และ bulk dismiss สำหรับ LOW/MEDIUM ผ่าน `/admin/risk-alerts/bulk-dismiss`
+- ตรวจ Admin Security แล้วรองรับ lifecycle actions: 2FA setup/enable/deactivate, regenerate recovery codes, revoke session, logout other devices, end all sessions และ owner recovery readiness
+- `pnpm audit:admin-ui-permissions` ผ่าน: admin page routes 67/67 protected หรือ allowlisted, unprotected routes 0, sidebar missing permission metadata 0; report/export controllers ใช้ permission guard `admin.reports.view`/`reports.view`
+- เพิ่มปุ่ม Auto-close suggestions บน Risk Alerts เพื่อโหลด `/admin/risk-alerts/auto-close-suggestions`, แสดงเหตุผล/reference และลิงก์เข้าตรวจเคสก่อน resolve/dismiss
 - `pnpm build:web-admin` ผ่าน
 
-- [ ] Report aggregate/filter correctness และ CSV
+- [x] Report aggregate/filter correctness และ CSV
 - [x] Activity pagination/detail/long JSON
-- [ ] Risk filters/related links/bulk action
-- [ ] Auto-close suggestion
-- [ ] Security lifecycle actions
-- [ ] Permission coverage ทุก route/widget/export
+- [x] Risk filters/related links/bulk action
+- [x] Auto-close suggestion
+- [x] Security lifecycle actions
+- [x] Permission coverage ทุก route/widget/export
 
 ## M-018 Promotion/bonus และ affiliate/commission
 
