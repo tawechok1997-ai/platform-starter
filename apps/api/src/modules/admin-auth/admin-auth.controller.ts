@@ -102,8 +102,8 @@ export class AdminAuthController {
   }
 
   private clientIp(req: any) {
-    const forwarded = req.headers?.['x-forwarded-for'];
-    if (typeof forwarded === 'string' && forwarded.trim()) return forwarded.split(',')[0].trim();
+    // Express resolves req.ip using the configured trusted proxy hop count.
+    // Never parse x-forwarded-for directly here because clients can spoof it.
     return String(req.ip ?? req.socket?.remoteAddress ?? 'unknown');
   }
 }
