@@ -118,7 +118,7 @@ export class AdminAuthController {
 
   private readRefreshCookie(req: any) {
     const header = String(req.headers?.cookie ?? '');
-    const match = header.match(/(?:^|;\\s*)platform_admin_refresh=([^;]+)/);
+    const match = header.match(/(?:^|;\s*)platform_admin_refresh=([^;]+)/);
     return match ? decodeURIComponent(match[1]) : '';
   }
 
