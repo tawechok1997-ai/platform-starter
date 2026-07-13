@@ -18,8 +18,8 @@ export class SupportController {
 
   @UseGuards(MemberAuthGuard)
   @Get('member/support-tickets')
-  listMemberTickets(@CurrentUser() user: any) {
-    return this.support.listMemberTickets(user);
+  listMemberTickets(@CurrentUser() user: any, @Query('cursor') cursor?: string, @Query('limit') limit?: string) {
+    return this.support.listMemberTickets(user, cursor, limit);
   }
 
   @UseGuards(MemberAuthGuard)
@@ -37,8 +37,8 @@ export class SupportController {
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('support.view')
   @Get('admin/support-tickets')
-  listAdminTickets(@Query('status') status?: string, @Query('category') category?: string) {
-    return this.support.listAdminTickets({ status, category });
+  listAdminTickets(@Query('status') status?: string, @Query('category') category?: string, @Query('search') search?: string, @Query('cursor') cursor?: string, @Query('limit') limit?: string) {
+    return this.support.listAdminTickets({ status, category, search, cursor, limit });
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
