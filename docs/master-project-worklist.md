@@ -124,7 +124,7 @@
 - [x] เพิ่ม permission model และ guard ให้ bank accounts (`view/manage/review`)
 - [x] เพิ่ม permission model และ guard ให้ Support (`view/reply/manage`)
 - [ ] ตรวจ endpoint ที่ขาด `RequirePermission` กลุ่มอื่น
-- [ ] เพิ่ม automated route/permission coverage test
+- [x] เพิ่ม automated route/permission coverage test (`audit:admin-permissions` ใน Quality Gate)
 - [ ] ยืนยัน read-only user มองไม่เห็น mutation control
 
 ## M-007 Trusted proxy/IP/rate limit
@@ -153,6 +153,7 @@
 - [x] ย้าย access token ออกจาก localStorage ใน client/login/layout
 - [ ] ย้าย refresh-token fallback ออกจาก localStorage
 - [ ] XSS/session theft regression test
+- [x] เพิ่ม static audit ห้ามหน้า Admin อ่าน access token จาก localStorage (`audit:admin-token-storage`)
 
 ## M-009 Anti-bot
 
