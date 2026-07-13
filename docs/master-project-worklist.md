@@ -140,9 +140,10 @@
 
 ## M-008 Token/session security
 
-สถานะ: 🟡 PARTIAL
+สถานะ: 🟡 PARTIAL — เพิ่ม HttpOnly refresh cookie groundwork แล้ว แต่ยังรองรับ body/localStorage เพื่อ migration แบบค่อยเป็นค่อยไป
 
 - [x] Refresh rotation/reuse revoke มี implementation บางส่วน
+- [x] HttpOnly refresh cookie groundwork ผ่าน admin API และ Next proxy
 - [ ] HttpOnly/Secure/SameSite cookie
 - [ ] แยก admin/member cookie
 - [ ] CSRF protection หากใช้ cookie
