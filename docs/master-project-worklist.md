@@ -133,7 +133,7 @@
 
 - [ ] กำหนด trusted proxy ตาม environment
 - [ ] รวม RequestContext สำหรับ IP/request ID/user agent
-- [ ] ป้องกัน spoofed `x-forwarded-for`
+- [x] ป้องกัน spoofed `x-forwarded-for` ใน admin auth โดยใช้ `req.ip` จาก trusted proxy policy
 - [ ] ทดสอบ rate limit ผ่าน reverse proxy จริง
 - [ ] Rate limit คิดทั้ง account และ trusted IP
 - [ ] Progressive lockout/suspicious login/device history
@@ -421,7 +421,8 @@
 - [x] Prisma validate/generate/build steps
 
 ยังต้องตรวจ:
-- [ ] ยืนยันกับ branch ล่าสุด ไม่ใช่เฉพาะ Build #270
+- [x] ยืนยันกับ branch ล่าสุดผ่าน Quality Gate
+- [ ] ยืนยัน PostgreSQL/finance test กับ branch ล่าสุด ไม่ใช่เฉพาะ Build #270
 - [ ] PostgreSQL service/test database และ finance DB tests
 - [ ] Fixture builders/isolated cleanup
 - [ ] Test artifacts/failure summary
