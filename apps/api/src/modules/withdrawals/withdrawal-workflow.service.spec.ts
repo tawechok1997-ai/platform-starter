@@ -1,4 +1,5 @@
 import { ConflictException } from '@nestjs/common';
+import { createHash } from 'crypto';
 import { WithdrawalWorkflowService } from './withdrawal-workflow.service';
 
 describe('WithdrawalWorkflowService claim ownership', () => {
@@ -37,11 +38,7 @@ describe('WithdrawalWorkflowService claim ownership', () => {
   });
 
   it('returns idempotently when the same payment proof was already stored', async () => {
-    const tx = {
-      $queryRaw: jest.fn()
-        .mockResolvedValueOnce([{ status: 'PAYMENT_PROOF_UPLOADED', claimed_by: 'admin-1' }])
-        .mockResolvedValueOnce([{ payment_slip_url: 'withdrawal-proofs/existing.png', payment_slip_file_hash: 'hash' }]),
-    };
+    const tx = { $queryRaw: jest.fn() };
     const storage = { put: jest.fn().mockResolvedValue(undefined), remove: jest.fn().mockResolvedValue(undefined) };
     const prisma = {
       $queryRaw: jest.fn().mockResolvedValue([]),
@@ -49,7 +46,7 @@ describe('WithdrawalWorkflowService claim ownership', () => {
     };
     const service = new WithdrawalWorkflowService(prisma as any, storage as any);
     const data = Buffer.from('payment-proof').toString('base64');
-    const expectedHash = require('crypto').createHash('sha256').update(Buffer.from('payment-proof')).digest('hex');
+    const expectedHash = createHash('sha256').update(Buffer.from('payment-proof')).digest('hex');
     tx.$queryRaw.mockResolvedValueOnce([{ status: 'PAYMENT_PROOF_UPLOADED', claimed_by: 'admin-1' }])
       .mockResolvedValueOnce([{ payment_slip_url: 'withdrawal-proofs/existing.png', payment_slip_file_hash: expectedHash }]);
 
