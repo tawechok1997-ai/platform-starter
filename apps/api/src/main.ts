@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -64,12 +64,15 @@ async function bootstrap() {
 
     const ip = getClientIp(req);
     const path = String(req.path ?? req.url ?? '').split('?')[0];
-    const key = `${req.method}:${path}:${ip}`;
-    const decision = await checkRateLimit(key, limit.max, limit.windowMs);
-    if (decision.allowed) return next();
-
-    res.setHeader('Retry-After', String(decision.retryAfterSeconds ?? 60));
-    return res.status(429).json({ message: 'Too many requests', requestId: req.requestId });
+    const keys = getRateLimitKeys(req, ip, path);
+    for (const key of keys) {
+      const decision = await checkRateLimit(key, limit.max, limit.windowMs);
+      if (!decision.allowed) {
+        res.setHeader('Retry-After', String(decision.retryAfterSeconds ?? 60));
+        return res.status(429).json({ message: 'Too many requests', requestId: req.requestId });
+      }
+    }
+    return next();
   });
 
   app.use((req: any, res: any, next: any) => {
@@ -100,6 +103,23 @@ async function bootstrap() {
 
   const port = Number(process.env.PORT ?? config.get<string>('API_PORT') ?? 4000);
   await app.listen(port, '0.0.0.0');
+}
+
+function getRateLimitKeys(req: any, ip: string, path: string) {
+  const keys = [`ip:${ip}`];
+  if (!/\/(?:admin\/)?auth\/(?:login|register)$/.test(path)) return keys;
+
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const identity = [body.username, body.email, body.phone]
+    .find((value) => typeof value === 'string' && value.trim().length > 0);
+  if (!identity) return keys;
+
+  const accountHash = createHash('sha256')
+    .update(String(identity).trim().toLowerCase())
+    .digest('hex')
+    .slice(0, 32);
+  keys.push(`account:${accountHash}`);
+  return keys;
 }
 
 function getRateLimit(method: string, path: string): { max: number; windowMs: number } | null {
