@@ -40,13 +40,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        # The workspace manifests currently include packages added after the last
-        # committed lockfile refresh. Allow pnpm to reconcile the lockfile in CI
-        # so schema/tests/builds can run; restore frozen mode after committing the
-        # regenerated pnpm-lock.yaml.
-        run: pnpm install --frozen-lockfile=false
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Validate shell scripts
         run: bash -n scripts/*.sh
@@ -57,8 +54,12 @@ jobs:
       - name: Generate Prisma client
         run: pnpm prisma generate
 
-      - name: Apply migrations to CI PostgreSQL
-        run: pnpm prisma migrate deploy
+      - name: Bootstrap disposable CI PostgreSQL schema
+        # The committed migration history is a production baseline that assumes
+        # core tables such as users already exist. For a fresh, throwaway CI
+        # database, materialize the current schema directly instead of replaying
+        # that partial history. Production deploys continue to use migrate deploy.
+        run: pnpm prisma db push --skip-generate
 
       - name: Test API
         run: pnpm --filter @platform/api test -- --runInBand
