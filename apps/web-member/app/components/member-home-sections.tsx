@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CmsContent, MemberFeatureFlags, SiteIconSettings, cmsAssetUrl, isIconUrl } from '../site-settings';
+import { API_URL, CmsContent, MemberFeatureFlags, SiteIconSettings, cmsAssetUrl, isIconUrl } from '../site-settings';
 import { navigationFor } from '../member-navigation';
 import type { Game, LedgerItem, MoneyRequest } from '../types/member-api';
 import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNotice } from './member-ui';
@@ -16,7 +16,7 @@ export function HomeHero({ siteName, description, content }: { siteName: string;
     return () => window.clearInterval(timer);
   }, [slides.length]);
   const slide = slides[activeIndex % slides.length];
-  const imageUrl = cmsAssetUrl(content, slide.assetId) || slide.imageUrl;
+  const imageUrl = resolveCmsUrl(cmsAssetUrl(content, slide.assetId) || slide.imageUrl);
   return <section className="member-home-hero" aria-label="โปรโมชั่น">
     <a href={slide.href || '/promotions'} className="member-home-hero__slide-link" aria-label={slide.title}>
       <img src={imageUrl} alt={slide.title} className="member-home-hero__image" />
@@ -32,7 +32,7 @@ export function PromotionSlotGrid({ content }: { content: CmsContent }) {
   if (!slots.length) return null;
   return <section className="member-promo-slots" aria-label="โปรโมชั่นแนะนำ">
     {slots.map((slot, index) => {
-      const imageUrl = cmsAssetUrl(content, slot.assetId) || slot.imageUrl || '';
+      const imageUrl = resolveCmsUrl(cmsAssetUrl(content, slot.assetId) || slot.imageUrl || '');
       return <a key={`${slot.title}-${index}`} href={slot.href || '/promotions'} className="member-promo-slot">
         <img src={imageUrl} alt="" loading="lazy" />
         <span>{slot.title}</span>
@@ -87,10 +87,11 @@ export function RecentActivity({ ledgers, loading, message, onRetry, depositEnab
 
 export function CmsPopup({ content, onClose }: { content: CmsContent; primaryColor: string; onClose: () => void }) {
   const popup = content.popup;
-  const imageUrl = cmsAssetUrl(content, popup.assetId) || popup.imageUrl || '';
+  const imageUrl = resolveCmsUrl(cmsAssetUrl(content, popup.assetId) || popup.imageUrl || '');
   return <div className="member-home-popup"><MemberCard tone="brand" className="member-home-popup__card"><button type="button" onClick={onClose} className="member-home-popup__close">×</button>{imageUrl && <img src={imageUrl} alt="" className="member-home-popup__image" />}<h2>{popup.title}</h2><p className="member-home-muted">{popup.message}</p><MemberLinkButton href={popup.href} tone="brand">{popup.ctaLabel}</MemberLinkButton></MemberCard></div>;
 }
 
+function resolveCmsUrl(value: string) { return value.startsWith('/public/cms-assets/') ? `${API_URL.replace(/\/$/, '')}${value}` : value; }
 function ActivityRow({ title, href, item }: { title: string; href: string; item: MoneyRequest }) { return <a href={href} className="member-home-row member-home-row--link"><div><strong>{title}</strong><span>{new Date(item.createdAt).toLocaleString('th-TH')}</span></div><div className="member-home-row__right"><strong>{formatMoney(item.amount, item.currency)}</strong><span>{statusLabel(item.status)}</span></div></a>; }
 function LedgerRow({ item }: { item: LedgerItem }) { return <div className="member-home-row"><div><strong>{ledgerTypeLabel(item.type)}</strong><span>{new Date(item.createdAt).toLocaleString('th-TH')}</span></div><div className="member-home-row__right"><strong>{item.direction === 'CREDIT' ? '+' : '-'} {formatMoney(item.amount, 'THB')}</strong></div></div>; }
 function ledgerTypeLabel(type: string) { const upper = type.toUpperCase(); if (upper.includes('DEPOSIT') || upper.includes('TOPUP')) return 'ฝาก'; if (upper.includes('WITHDRAW')) return 'ถอนเงิน'; if (upper.includes('TRANSFER')) return 'โยกเงิน'; if (upper.includes('REVERSAL')) return 'คืนเงิน'; if (upper.includes('ADJUST')) return 'ปรับยอด'; return 'รายการ'; }
