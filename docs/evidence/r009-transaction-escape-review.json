@@ -2,8 +2,8 @@
   "version": 1,
   "findings": {
     "apps/api/src/modules/admin-access/admin-access.service.ts#createInvitation#adminAuditLog.create": {
-      "status": "confirmed",
-      "reason": "Admin invitation creation and verification token persistence commit inside one transaction, but the CREATE_ADMIN_INVITATION audit write currently executes after that transaction. An audit failure can therefore leave a durable invitation without its required audit record."
+      "status": "safe-direct-write",
+      "reason": "The production invitation route no longer calls the legacy AdminAccessService.createInvitation method. AdminAccessController delegates creation to AdminInvitationAdminService.create, where admin creation, verification token persistence, and CREATE_ADMIN_INVITATION audit persistence share one transaction owner. The dedicated closure guard verifies both controller routing and atomic create/reissue commands."
     }
   }
 }
