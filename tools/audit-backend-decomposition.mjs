@@ -97,7 +97,7 @@ candidates.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]
   || a.file.localeCompare(b.file));
 
 const report = {
-  audit: 'R-010 backend decomposition inventory',
+  audit: 'R-007 backend decomposition inventory',
   generatedAt: new Date().toISOString(),
   limits,
   scannedFiles: files.length,
@@ -110,10 +110,10 @@ const report = {
   candidates,
 };
 
-if (process.env.R010_JSON === '1' || process.env.R007_JSON === '1') {
+if (process.env.R007_JSON === '1') {
   console.log(JSON.stringify(report, null, 2));
 } else {
-  console.log(`R-010 backend decomposition inventory: ${files.length} TypeScript files scanned`);
+  console.log(`R-007 backend decomposition inventory: ${files.length} TypeScript files scanned`);
   console.log(`  oversized/high-coupling candidates: ${candidates.length}`);
   console.log(`  severity: ${report.severityCounts.critical} critical, ${report.severityCounts.high} high, ${report.severityCounts.moderate} moderate`);
   for (const item of candidates) {
@@ -122,6 +122,6 @@ if (process.env.R010_JSON === '1' || process.env.R007_JSON === '1') {
   }
 }
 
-// R-010 starts as an inventory. Enforcement is enabled only after the current
+// R-007 starts as an inventory. Enforcement is enabled only after the current
 // candidate set has been reviewed and recorded in a durable ratchet ledger.
-if (process.env.R010_ENFORCE === '1' && candidates.length) process.exitCode = 1;
+if (process.env.R007_ENFORCE === '1' && candidates.length) process.exitCode = 1;
