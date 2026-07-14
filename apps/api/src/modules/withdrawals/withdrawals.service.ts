@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { DomainError, InvalidStateTransitionError } from '../../common/domain/domain-error';
 import { Money } from '../../common/domain/value-objects';
 import { PrismaService } from '../../database/prisma.service';
@@ -138,7 +139,18 @@ export class WithdrawalsService {
         throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
       }
       const updated = await tx.withdrawalRequest.update({ where: { id }, data: { claimedBy: adminUser.id, claimedAt: new Date() } });
-      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'CLAIM_WITHDRAWAL', module: 'withdrawals', targetId: id, oldData: { claimedBy: request.claimed_by }, newData: { claimedBy: adminUser.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: adminUser.id,
+          action: 'CLAIM_WITHDRAWAL',
+          module: 'withdrawals',
+          targetId: id,
+          oldData: { claimedBy: request.claimed_by },
+          newData: { claimedBy: adminUser.id },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
       return this.formatRequest(updated);
     });
   }
@@ -170,7 +182,18 @@ export class WithdrawalsService {
         WHERE "id" = ${id}::uuid AND "status"::text IN ('PENDING', 'PENDING_REVIEW')
       `);
       if (changed !== 1) throw new ConflictException('Withdrawal state changed during approval');
-      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'APPROVE_WITHDRAWAL', module: 'withdrawals', targetId: id, oldData: { status: request.status }, newData: { status: 'APPROVED_FOR_PAYMENT', adminNote: dto.adminNote }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: adminUser.id,
+          action: 'APPROVE_WITHDRAWAL',
+          module: 'withdrawals',
+          targetId: id,
+          oldData: { status: request.status },
+          newData: { status: 'APPROVED_FOR_PAYMENT', adminNote: dto.adminNote },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
       return this.formatRequest(await tx.withdrawalRequest.findUniqueOrThrow({ where: { id } }));
     });
   }
@@ -221,7 +244,18 @@ export class WithdrawalsService {
         WHERE "id" = ${id}::uuid AND "status"::text IN ('APPROVED_FOR_PAYMENT', 'PAYMENT_VERIFIED')
       `);
       if (changed !== 1) throw new ConflictException('Withdrawal state changed during completion');
-      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'COMPLETE_WITHDRAWAL', module: 'withdrawals', targetId: id, oldData: { status: request.status, amount: request.amount.toString() }, newData: { status: 'COMPLETED', ledgerId: ledger.id, paymentTransactionRef: dto.paymentTransactionRef }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: adminUser.id,
+          action: 'COMPLETE_WITHDRAWAL',
+          module: 'withdrawals',
+          targetId: id,
+          oldData: { status: request.status, amount: request.amount.toString() },
+          newData: { status: 'COMPLETED', ledgerId: ledger.id, paymentTransactionRef: dto.paymentTransactionRef },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
       return this.formatRequest(await tx.withdrawalRequest.findUniqueOrThrow({ where: { id } }));
     });
   }
@@ -261,7 +295,18 @@ export class WithdrawalsService {
         WHERE "id" = ${id}::uuid AND "status"::text IN ('PENDING', 'PENDING_REVIEW', 'APPROVED_FOR_PAYMENT', 'PAYMENT_PROOF_UPLOADED')
       `);
       if (changed !== 1) throw new ConflictException('Withdrawal state changed during rejection');
-      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'REJECT_WITHDRAWAL', module: 'withdrawals', targetId: id, oldData: { status: request.status, amount: request.amount.toString() } as any, newData: { status: 'REJECTED', adminNote: dto.adminNote, lockedAfter: lockedAfter.toString() } as any, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: adminUser.id,
+          action: 'REJECT_WITHDRAWAL',
+          module: 'withdrawals',
+          targetId: id,
+          oldData: { status: request.status, amount: request.amount.toString() },
+          newData: { status: 'REJECTED', adminNote: dto.adminNote, lockedAfter: lockedAfter.toString() },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
       const updated = await tx.withdrawalRequest.findUniqueOrThrow({ where: { id } });
       return this.formatRequest(updated);
     });
@@ -300,8 +345,19 @@ export class WithdrawalsService {
     `);
   }
 
-  private audit(adminUserId: string, action: string, targetId: string, oldData: any, newData: any, meta: RequestMeta) {
-    return this.prisma.adminAuditLog.create({ data: { adminUserId, action, module: 'withdrawals', targetId, oldData, newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent } }).catch(() => null);
+  private audit(adminUserId: string, action: string, targetId: string, oldData: unknown, newData: unknown, meta: RequestMeta) {
+    return this.prisma.adminAuditLog.create({
+      data: buildAdminAuditData({
+        adminUserId,
+        action,
+        module: 'withdrawals',
+        targetId,
+        oldData,
+        newData,
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
+      }),
+    }).catch(() => null);
   }
 
   private formatRequest(item: any) {
