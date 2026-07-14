@@ -54,6 +54,20 @@ Closure evidence:
 - [x] Added boundary closure structure audit.
 - [ ] Confirm the latest GitHub quality workflow reports zero inversions and zero unclassified locked tables.
 
+### ทำ Prisma repository adapters
+
+- [x] Added transaction-scoped deposit and withdrawal adapters at `apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts`.
+- [x] Adapters implement persistence-agnostic ports.
+- [x] Transaction ownership remains with the caller through injected `Prisma.TransactionClient`.
+- [x] Adapters do not instantiate `PrismaClient` or call `$transaction`.
+- [x] Added explicit row locks for `top_up_requests` and `withdrawal_requests`.
+- [x] Added `tools/audit-r009-finance-prisma-adapters.mjs`.
+- [x] Added `.github/workflows/r009-finance-prisma-adapters.yml` with adapter audit, repository-boundary strict guard, and API typecheck.
+- [x] Added `docs/evidence/r009-finance-prisma-adapters.md`.
+- [ ] Add ownership, KYC/watchlist, and promotion settlement adapters.
+- [ ] Migrate critical services to use the adapters.
+- [ ] Confirm the dedicated workflow passes.
+
 ## Implemented baselines
 
 ### Transaction escape inventory
@@ -73,6 +87,7 @@ Closure evidence:
 ## Pending evidence
 
 - [ ] Confirm the dedicated critical repository ports workflow completes successfully.
+- [ ] Confirm the dedicated finance Prisma adapter workflow completes successfully.
 - [ ] Confirm the latest GitHub quality workflow completes successfully.
 - [ ] Confirm zero repository-boundary violations.
 - [ ] Confirm zero lock inversions and zero unclassified locked tables.
@@ -82,7 +97,7 @@ Closure evidence:
 ## Remaining R-009 work
 
 - [ ] Close critical repository ports after workflow verification.
-- [ ] Add Prisma repository adapters.
+- [ ] Complete ownership, KYC/watchlist, and promotion Prisma adapters and migrate services.
 - [ ] Close Prisma-type repository boundary after workflow evidence.
 - [ ] Consolidate transaction ownership for deposit approval.
 - [ ] Consolidate transaction ownership for withdrawal completion.
@@ -100,17 +115,17 @@ Closure evidence:
 - Total R-009 subtasks: 15
 - Closed with durable evidence: 2
 - Remaining not closed: 13
-- Enforced and awaiting workflow verification: 3
+- Enforced and awaiting workflow verification: 4
 - Other partial or under active review: 6
-- Not yet implemented: 4
+- Not yet implemented: 3
 
 ## Safety decision
 
-These slices do not modify Prisma schema, production data, transaction boundaries, finance behavior, permissions, secrets, provider gates, or deployment targets.
+This slice adds adapters but does not switch existing production services to them. It does not modify Prisma schema, production data, live transaction boundaries, finance behavior, permissions, secrets, provider gates, or deployment targets.
 
 ## Latest commits
 
-- `016a5052e3b83455534350148d141cdf437b1fa3` — define critical repository ports.
-- `bedc45976af73c0bca9d341a45993e1b2099ee1c` — add critical repository port closure audit.
-- `b96a9a6026f44e24a98ef3f01afb1a07fe2d952f` — add dedicated repository-port verification workflow.
-- `e6f246ebdece70432766678245388553c57db0bb` — record critical repository port evidence.
+- `40776104d1e899b11b0aae36b7bcc971557213f7` — add transaction-scoped deposit and withdrawal Prisma adapters.
+- `9c9fdc5a09efc811bf1d849eafb0908dc899ac99` — audit finance Prisma adapter structure.
+- `77381fb8f4cc12ae6b78e3ec6d9fb4533ab484ba` — verify finance adapters with dedicated workflow.
+- `811aba0fb1f767301dda4da457aeff3890c074a6` — record finance Prisma adapter evidence.
