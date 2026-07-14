@@ -8,6 +8,7 @@ on:
       - 'apps/api/src/modules/notifications/**'
       - 'apps/api/src/**/*.service.ts'
       - 'apps/api/src/**/*.repository.ts'
+      - 'apps/api/src/**/dto/**'
       - 'tools/audit-r010-*.mjs'
       - 'docs/evidence/r010-query-review.json'
       - '.github/workflows/r010-query-boundaries.yml'
@@ -17,6 +18,7 @@ on:
       - 'apps/api/src/modules/notifications/**'
       - 'apps/api/src/**/*.service.ts'
       - 'apps/api/src/**/*.repository.ts'
+      - 'apps/api/src/**/dto/**'
       - 'tools/audit-r010-*.mjs'
       - 'docs/evidence/r010-query-review.json'
       - '.github/workflows/r010-query-boundaries.yml'
@@ -45,5 +47,7 @@ jobs:
         run: node tools/audit-r010-admin-member-list-projection.mjs
       - name: Shared cursor pagination
         run: node tools/audit-r010-cursor-pagination.mjs
+      - name: Shared filter and sort boundaries
+        run: node tools/audit-r010-filter-sort-boundaries.mjs
       - name: API typecheck
         run: pnpm typecheck:api
