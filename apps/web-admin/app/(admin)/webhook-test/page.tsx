@@ -29,8 +29,7 @@ export default function WebhookTestPage() {
     const signature = invalidSignature ? 'invalid-signature' : 'mock-browser-signature';
     setLoading(true); setMessage('กำลังส่ง mock webhook...');
     try {
-      const data = await localApiClient.requestJson<WebhookResult, typeof body>(`/api/provider-webhooks/${encodeURIComponent(providerCode)}`, body, {
-        method: 'POST',
+      const data = await localApiClient.json<WebhookResult, typeof body>(`/api/provider-webhooks/${encodeURIComponent(providerCode)}`, body, {
         auth: false,
         headers: { 'x-timestamp': timestamp, 'x-signature': signature },
       });
