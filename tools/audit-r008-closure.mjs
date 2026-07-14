@@ -60,7 +60,7 @@ const integrations = [
     'WalletSettlementPolicy.completeDebit',
     'WalletSettlementPolicy.releaseReservation',
   ]],
-  ['apps/api/src/modules/admin-access/admin-access.service.ts', [
+  ['apps/api/src/modules/admin-access/admin-ownership-command.service.ts', [
     'AdminOwnershipPolicy.assertCanTransfer',
   ]],
   ['apps/api/src/modules/risk-alerts/kyc-review-command.service.ts', [
