@@ -4,57 +4,56 @@ Status: 🟡 ACTIVE
 
 Started: 2026-07-15
 
+Source of truth: `docs/master-project-worklist.md`
+
 ## Scope
 
-R-010 closes backend service decomposition and coupling boundaries after R-007 audit-writer standardization, R-008 domain-policy separation, and R-009 repository/transaction closure.
+R-010 covers query/read model and projection cleanup.
 
-The goal is to reduce oversized and high-coupling controllers/services without changing public routes, permissions, transaction semantics, idempotency, audit payloads, provider behavior, finance behavior, or error contracts.
+The goal is to standardize list/detail/summary reads, pagination, filters, sorting, projections, sensitive-field boundaries, and heavy-query evidence without changing mutation behavior, transaction ownership, permissions, or public response contracts unexpectedly.
 
 ## Definition of done
 
-- [ ] Produce a stable inventory of oversized/high-coupling controllers and services.
-- [ ] Classify every current candidate with a durable review decision.
-- [ ] Define a ratchet that rejects new or worsened decomposition debt.
-- [ ] Split critical candidates behind existing interfaces and routes.
-- [ ] Keep transaction owners and repository boundaries established by R-009 intact.
-- [ ] Preserve current DTO, response, permission, audit, and error contracts.
-- [ ] Add focused regression coverage for every extracted command/query component.
-- [ ] Enable strict R-010 enforcement in required CI.
-- [ ] Record successful API build/deployment after the final migration.
+- [ ] Inventory duplicate queries and hard-coded `take` values.
+- [ ] Consolidate duplicate queries by module ownership.
+- [ ] Separate list, detail, and summary projections.
+- [ ] Reduce unnecessary relation `include` usage in list endpoints.
+- [ ] Create a shared cursor pagination pattern.
+- [ ] Create shared filter parsing and sort whitelists.
+- [ ] Reject arbitrary sort and filter input.
+- [ ] Create a dashboard read model.
+- [ ] Create a report read model.
+- [ ] Audit sensitive fields in projections.
+- [ ] Add response snapshot and contract tests.
+- [ ] Add EXPLAIN ANALYZE evidence for heavy queries.
+- [ ] Add N+1 and slow-query metrics.
 
 ## Execution order
 
-1. Inventory foundation and stable candidate keys.
-2. Review ledger and severity prioritization.
-3. Critical candidates.
-4. High-severity candidates.
-5. Moderate candidates or documented exceptions.
-6. Strict ratchet and closure evidence.
+1. Query inventory and stable finding keys.
+2. Pagination/filter/sort foundations.
+3. List/detail/summary projection cleanup by domain.
+4. Dashboard and report read models.
+5. Sensitive-field and response-contract enforcement.
+6. Heavy-query evidence and N+1/slow-query metrics.
+7. Strict CI guard and closure evidence.
 
 ## Safety rules
 
-- Do not split a transaction across services.
-- Do not move Prisma writes outside the current transaction owner.
-- Do not duplicate API routes or business validation.
-- Do not change production schema, data, secrets, permissions, provider configuration, or money behavior.
-- Extract by use case or cohesive responsibility, not merely by line count.
+- Do not change mutation, transaction, wallet, settlement, or provider behavior.
+- Do not expose additional sensitive fields while reducing projections.
+- Preserve existing response contracts unless a versioned migration is documented.
+- Do not replace indexed pagination with an unbounded query.
+- Add characterization or contract coverage before changing critical list/detail responses.
 
 ## Current progress
 
-- [x] Renamed the decomposition inventory output to R-010 while retaining the legacy R007 JSON alias for compatibility.
-- [x] Added stable candidate keys using `<file>#<kind>`.
-- [x] Added critical/high/moderate severity classification.
-- [x] Added deterministic candidate ordering and severity totals.
-- [ ] Run the inventory and persist the current candidate review ledger.
-- [ ] Select the first critical candidate for decomposition.
-
-## Evidence
-
-- `tools/audit-backend-decomposition.mjs`
-- inventory foundation commit `c779ce60d87d3e2943b4903333017e58fbeb3065`
+- [x] Corrected R-010 scope to match `docs/master-project-worklist.md`.
+- [ ] Build the initial query/read-model inventory.
+- [ ] Persist the first reviewed baseline.
 
 ## Count
 
-- Total R-010 closure outcomes: 9
-- Closed: 1
-- Remaining: 8
+- Total R-010 outcomes: 13
+- Closed: 0
+- Remaining: 13
