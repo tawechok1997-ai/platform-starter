@@ -41,6 +41,8 @@ type BonusRow = {
   amount: Prisma.Decimal;
   currency: string;
   settlement_idempotency_key: string | null;
+  released_by_admin_id: string | null;
+  released_at: Date | null;
   updated_at: Date;
 };
 
@@ -152,6 +154,8 @@ export class PrismaPromotionSettlementRepositoryAdapter implements PromotionSett
       SET "status" = ${record.status},
           "wallet_ledger_id" = ${record.walletLedgerId ?? null}::uuid,
           "settlement_idempotency_key" = ${record.idempotencyKey ?? null},
+          "released_by_admin_id" = ${record.releasedBy ?? null}::uuid,
+          "released_at" = ${record.releasedAt ?? null},
           "updated_at" = CURRENT_TIMESTAMP
       WHERE "id" = ${record.id}::uuid
     `);
@@ -198,6 +202,8 @@ function mapBonus(row: BonusRow): PromotionSettlementRecord {
     status: row.status,
     amount: { amount: row.amount.toString(), currency: row.currency },
     idempotencyKey: row.settlement_idempotency_key,
+    releasedBy: row.released_by_admin_id,
+    releasedAt: row.released_at,
     updatedAt: row.updated_at,
   };
 }
