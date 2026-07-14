@@ -34,6 +34,17 @@ const criticalSuites = [
   },
 ];
 
+const characterizationSuites = [
+  {
+    path: 'apps/api/src/modules/support/support.service.spec.ts',
+    requiredMarkers: ['reopens a resolved ticket', 'sets resolvedAt'],
+  },
+  {
+    path: 'apps/api/src/modules/admin-access/admin-account-lifecycle.service.spec.ts',
+    requiredMarkers: ['idempotent no-op', 'rolls back status and session changes'],
+  },
+];
+
 const requiredTestClasses = [
   'Unit',
   'Integration',
@@ -83,6 +94,23 @@ for (const suite of criticalSuites) {
   if (!inventory.includes(`\`${suite.path}\``)) failures.push(`test-inventory.md: missing ${suite.path}`);
 }
 
+for (const suite of characterizationSuites) {
+  const absolutePath = join(root, suite.path);
+  try {
+    await access(absolutePath);
+  } catch {
+    failures.push(`${suite.path}: characterization suite file is missing`);
+    continue;
+  }
+
+  const source = await readFile(absolutePath, 'utf8');
+  if (skipPattern.test(source)) failures.push(`${suite.path}: skipped characterization test detected`);
+  if (!inventory.includes(`\`${suite.path}\``)) failures.push(`test-inventory.md: missing ${suite.path}`);
+  for (const marker of suite.requiredMarkers) {
+    if (!source.includes(marker)) failures.push(`${suite.path}: missing characterization test marker "${marker}"`);
+  }
+}
+
 const requiredRootAudits = [
   'audit:architecture-inventory',
   'audit:architecture-boundaries',
@@ -112,6 +140,7 @@ if (!inventory.includes('A gap in this table is a refactor blocker')) {
 }
 
 console.log(`Critical test safety audit: ${criticalSuites.length} database suites`);
+console.log(`  characterization suites: ${characterizationSuites.length}`);
 console.log(`  required root audits: ${requiredRootAudits.length}`);
 console.log(`  documented test classes: ${requiredTestClasses.length}`);
 console.log(`  critical-flow rows: ${requiredCriticalFlows.length}`);
