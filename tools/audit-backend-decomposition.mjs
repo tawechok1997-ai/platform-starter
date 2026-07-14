@@ -44,12 +44,30 @@ function countPublicMethods(source) {
   return [...withoutComments.matchAll(/^\s{2}(?!private\s|protected\s|static\s|constructor\b)(?:async\s+)?[A-Za-z_$][\w$]*\s*\([^)]*\)\s*(?::[^\{]+)?\{/gm)].length;
 }
 
+function candidateKey(file, kind) {
+  return `${file}#${kind}`;
+}
+
+function severity(kind, lines, dependencies, methods) {
+  const lineLimit = limits[kind === 'controller' ? 'controllerLines' : 'serviceLines'];
+  const ratios = [
+    lines / lineLimit,
+    dependencies / limits.constructorDependencies,
+    methods / limits.publicMethods,
+  ];
+  const peak = Math.max(...ratios);
+  if (peak >= 2) return 'critical';
+  if (peak >= 1.5) return 'high';
+  return 'moderate';
+}
+
 const files = await walk(sourceRoot);
 const candidates = [];
 for (const file of files) {
   const kind = file.endsWith('.controller.ts') ? 'controller' : file.endsWith('.service.ts') ? 'service' : null;
   if (!kind) continue;
   const source = await readFile(file, 'utf8');
+  const normalizedFile = normalize(file);
   const lines = source.split(/\r?\n/).length;
   const constructorDependencies = countConstructorDependencies(source);
   const publicMethods = countPublicMethods(source);
@@ -59,29 +77,51 @@ for (const file of files) {
     methods: publicMethods > limits.publicMethods,
   };
   if (over.lines || over.dependencies || over.methods) {
-    candidates.push({ file: normalize(file), kind, lines, constructorDependencies, publicMethods, over });
+    candidates.push({
+      key: candidateKey(normalizedFile, kind),
+      file: normalizedFile,
+      kind,
+      lines,
+      constructorDependencies,
+      publicMethods,
+      severity: severity(kind, lines, constructorDependencies, publicMethods),
+      over,
+    });
   }
 }
 
-candidates.sort((a, b) => b.lines - a.lines || b.constructorDependencies - a.constructorDependencies);
+const severityOrder = { critical: 0, high: 1, moderate: 2 };
+candidates.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]
+  || b.lines - a.lines
+  || b.constructorDependencies - a.constructorDependencies
+  || a.file.localeCompare(b.file));
+
 const report = {
+  audit: 'R-010 backend decomposition inventory',
   generatedAt: new Date().toISOString(),
   limits,
   scannedFiles: files.length,
+  candidateCount: candidates.length,
+  severityCounts: {
+    critical: candidates.filter((item) => item.severity === 'critical').length,
+    high: candidates.filter((item) => item.severity === 'high').length,
+    moderate: candidates.filter((item) => item.severity === 'moderate').length,
+  },
   candidates,
 };
 
-if (process.env.R007_JSON === '1') {
+if (process.env.R010_JSON === '1' || process.env.R007_JSON === '1') {
   console.log(JSON.stringify(report, null, 2));
 } else {
-  console.log(`R-007 backend decomposition inventory: ${files.length} TypeScript files scanned`);
+  console.log(`R-010 backend decomposition inventory: ${files.length} TypeScript files scanned`);
   console.log(`  oversized/high-coupling candidates: ${candidates.length}`);
+  console.log(`  severity: ${report.severityCounts.critical} critical, ${report.severityCounts.high} high, ${report.severityCounts.moderate} moderate`);
   for (const item of candidates) {
     const reasons = Object.entries(item.over).filter(([, value]) => value).map(([key]) => key).join(', ');
-    console.log(`  - ${item.file}: ${item.lines} lines, ${item.constructorDependencies} deps, ${item.publicMethods} public methods [${reasons}]`);
+    console.log(`  - [${item.severity.toUpperCase()}] ${item.key}: ${item.lines} lines, ${item.constructorDependencies} deps, ${item.publicMethods} public methods [${reasons}]`);
   }
 }
 
-// Inventory is informational at the start of R-007. Set R007_ENFORCE=1 only after
-// the current debt is documented and ratcheted down.
-if (process.env.R007_ENFORCE === '1' && candidates.length) process.exitCode = 1;
+// R-010 starts as an inventory. Enforcement is enabled only after the current
+// candidate set has been reviewed and recorded in a durable ratchet ledger.
+if (process.env.R010_ENFORCE === '1' && candidates.length) process.exitCode = 1;
