@@ -49,6 +49,9 @@ jobs:
       - name: Audit critical controller types
         run: pnpm audit:critical-controller-types
 
+      - name: Audit critical service type debt
+        run: pnpm audit:critical-service-types
+
       - name: Audit error code catalog
         run: pnpm audit:error-code-catalog
 
