@@ -4,10 +4,11 @@ import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { mapPromotionBonusLedger, promotionBonusMetadata } from './promotion.mapper';
 import { PromotionDomainRepository } from './promotion-domain.repository';
+import { SettlementCommandService } from './settlement-command.service';
 
 type Actor = { id: string };
 type TurnoverInput = { amount?: number | string; note?: string };
-type BonusLifecycleInput = { action?: 'RELEASE' | 'EXPIRE' | 'REVOKE'; note?: string };
+type BonusLifecycleInput = { action?: 'RELEASE' | 'RETRY' | 'REVERSE' | 'EXPIRE' | 'REVOKE'; note?: string };
 
 const BONUS_REF_TYPE = 'BONUS_LEDGER';
 
@@ -16,6 +17,7 @@ export class BonusLifecycleCommandService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly domain: PromotionDomainRepository,
+    private readonly settlementCommands: SettlementCommandService,
   ) {}
 
   async addTurnoverProgress(admin: Actor, id: string, input: TurnoverInput) {
@@ -25,8 +27,8 @@ export class BonusLifecycleCommandService {
     const amount = Number(input.amount ?? 0);
     if (!Number.isFinite(amount) || amount <= 0) throw new BadRequestException('amount must be positive');
     const metadata = promotionBonusMetadata(item.metadata);
-    if (metadata.lifecycleStatus === 'REVOKED' || metadata.lifecycleStatus === 'EXPIRED') {
-      throw new BadRequestException('Cannot update turnover for expired or revoked bonus');
+    if (['REVOKED', 'EXPIRED', 'REVERSED'].includes(metadata.lifecycleStatus)) {
+      throw new BadRequestException('Cannot update turnover for inactive bonus');
     }
 
     const domainLedger = await this.domain.addTurnover(id, amount);
@@ -65,8 +67,8 @@ export class BonusLifecycleCommandService {
           module: 'promotions',
           action: 'bonus.turnover.progress',
           targetId: id,
-          oldData: this.safeJson(item),
-          newData: this.safeJson(next),
+          oldData: item,
+          newData: next,
         }),
       });
       return next;
@@ -77,31 +79,27 @@ export class BonusLifecycleCommandService {
 
   async updateBonusLifecycle(admin: Actor, id: string, input: BonusLifecycleInput) {
     const action = String(input.action ?? '').toUpperCase() as BonusLifecycleInput['action'];
-    if (!['RELEASE', 'EXPIRE', 'REVOKE'].includes(action ?? '')) {
-      throw new BadRequestException('action must be RELEASE, EXPIRE, or REVOKE');
+    if (!['RELEASE', 'RETRY', 'REVERSE', 'EXPIRE', 'REVOKE'].includes(action ?? '')) {
+      throw new BadRequestException('action must be RELEASE, RETRY, REVERSE, EXPIRE, or REVOKE');
     }
+    if (action === 'RELEASE' || action === 'RETRY' || action === 'REVERSE') {
+      return this.settlementCommands.execute(admin, id, action, input.note);
+    }
+
     const item = await this.prisma.riskAlert.findFirst({ where: { id, refType: BONUS_REF_TYPE } });
     if (!item) throw new NotFoundException('Bonus ledger not found');
     const metadata = promotionBonusMetadata(item.metadata);
     const note = typeof input.note === 'string' ? input.note.trim() : '';
-    if ((action === 'EXPIRE' || action === 'REVOKE') && !note) {
-      throw new BadRequestException('note is required for expire or revoke');
-    }
-    if (['REVOKED', 'EXPIRED', 'SETTLED'].includes(metadata.lifecycleStatus)) {
+    if (!note) throw new BadRequestException('note is required for expire or revoke');
+    if (['REVOKED', 'EXPIRED', 'SETTLED', 'REVERSED'].includes(metadata.lifecycleStatus)) {
       throw new BadRequestException(`Bonus is already ${metadata.lifecycleStatus.toLowerCase()}`);
     }
-    if (action === 'RELEASE' && !metadata.turnoverCompleted) {
-      throw new BadRequestException('ต้องทำเทิร์นให้ครบก่อน release โบนัส');
-    }
 
-    const domainLifecycle = await this.domain.updateLifecycle(id, action!);
+    const domainLifecycle = await this.domain.updateLifecycle(id, action);
     if (!domainLifecycle) throw new BadRequestException('Bonus lifecycle transition was rejected');
-    const settlement = action === 'RELEASE'
-      ? await this.domain.settleBonus({ sourceRiskAlertId: id, adminUserId: admin.id, idempotencyKey: `bonus:${id}:settlement` }) as Record<string, unknown>
-      : null;
-    const lifecycleStatus = action === 'RELEASE' ? 'SETTLED' : action === 'EXPIRE' ? 'EXPIRED' : 'REVOKED';
-    const walletCreditStatus = action === 'RELEASE' ? 'CREDITED' : action === 'EXPIRE' ? 'EXPIRED_NO_WALLET_CREDIT' : 'REVOKED_NO_WALLET_CREDIT';
-    const nextStatus: RiskAlertStatus = action === 'RELEASE' ? 'RESOLVED' : 'DISMISSED';
+    const lifecycleStatus = action === 'EXPIRE' ? 'EXPIRED' : 'REVOKED';
+    const walletCreditStatus = action === 'EXPIRE' ? 'EXPIRED_NO_WALLET_CREDIT' : 'REVOKED_NO_WALLET_CREDIT';
+    const nextStatus: RiskAlertStatus = 'DISMISSED';
     const events = [
       ...metadata.events,
       { by: 'admin', adminUserId: admin.id, action: `BONUS_${action}`, message: note, createdAt: new Date().toISOString() },
@@ -116,9 +114,8 @@ export class BonusLifecycleCommandService {
           metadata: this.safeJson({
             ...metadata,
             lifecycleStatus,
-            walletCreditEnabled: action === 'RELEASE',
+            walletCreditEnabled: false,
             walletCreditStatus,
-            walletLedgerId: settlement?.wallet_ledger_id ?? null,
             lifecycleNote: note,
             lifecycleUpdatedAt: new Date().toISOString(),
             lifecycleUpdatedBy: admin.id,
@@ -132,8 +129,8 @@ export class BonusLifecycleCommandService {
           module: 'promotions',
           action: `bonus.lifecycle.${String(action).toLowerCase()}`,
           targetId: id,
-          oldData: this.safeJson(item),
-          newData: this.safeJson({ updated: next, settlement }),
+          oldData: item,
+          newData: next,
         }),
       });
       return next;
