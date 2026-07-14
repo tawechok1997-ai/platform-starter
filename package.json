@@ -17,6 +17,7 @@
     "typecheck:member": "pnpm --filter @platform/web-member typecheck",
     "typecheck:packages": "pnpm --filter './packages/**' --if-present typecheck",
     "typecheck": "pnpm typecheck:api && pnpm typecheck:admin && pnpm typecheck:member && pnpm typecheck:packages",
+    "ci:changed-scope": "node tools/ci-changed-scope.mjs",
     "audit:generated-drift": "node tools/audit-generated-drift.mjs",
     "audit:migration-validation": "node tools/audit-migration-validation.mjs",
     "audit:unused-exports": "node tools/audit-unused-exports.mjs",
