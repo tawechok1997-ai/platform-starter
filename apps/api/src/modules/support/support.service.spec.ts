@@ -79,7 +79,7 @@ describe('SupportService', () => {
       }));
     });
 
-    it('moves a ticket to reviewing and records an audit when an admin replies', async () => {
+    it('audits an admin reply while moving the ticket to reviewing', async () => {
       const { service, prisma } = createService(ticket({ status: 'OPEN' }));
 
       const result = await service.adminReply(admin, ticket().id, { message: 'We are checking this' });
