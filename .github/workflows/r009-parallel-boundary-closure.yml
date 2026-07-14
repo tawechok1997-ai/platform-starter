@@ -77,6 +77,10 @@ jobs:
         run: node tools/audit-r009-transaction-context.mjs
       - name: Transaction review ledger validation
         run: node tools/audit-r009-transaction-review-ledger.mjs
+      - name: Strict transaction escape inventory
+        env:
+          R009_TRANSACTION_STRICT: '1'
+        run: node tools/audit-r009-transaction-escapes.mjs
       - name: Admin invitation transaction closure
         run: node tools/audit-r009-admin-invitation-transaction.mjs
       - name: Ownership transfer transaction closure
