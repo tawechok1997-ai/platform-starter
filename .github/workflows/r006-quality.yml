@@ -54,6 +54,18 @@ jobs:
           pnpm audit:r9-lock-order
           pnpm audit:r9-lock-order:json > r009-lock-order-inventory.json
           pnpm audit:r9-lock-order:strict
+      - name: R-009 repository boundary inventory
+        run: |
+          pnpm audit:r9-repository-boundaries
+          pnpm audit:r9-repository-boundaries:json > r009-repository-boundaries.json
+      - name: R-009 transaction escape inventory
+        run: |
+          pnpm audit:r9-transaction-escapes
+          pnpm audit:r9-transaction-escapes:json > r009-transaction-escapes.json
+      - name: R-009 schema constraint inventory
+        run: |
+          pnpm audit:r9-schema-constraints
+          pnpm audit:r9-schema-constraints:json > r009-schema-constraints.json
       - name: Upload R-009 inventories
         uses: actions/upload-artifact@v4
         with:
@@ -61,6 +73,9 @@ jobs:
           path: |
             r009-controller-prisma-inventory.json
             r009-lock-order-inventory.json
+            r009-repository-boundaries.json
+            r009-transaction-escapes.json
+            r009-schema-constraints.json
           if-no-files-found: error
           retention-days: 30
       - name: Lint API
@@ -101,8 +116,8 @@ jobs:
             echo "- Member scope: ${{ steps.scope.outputs.member || 'unknown' }}"
             echo "- Packages scope: ${{ steps.scope.outputs.packages || 'unknown' }}"
             echo '- R-001 architecture inventory, R-002 boundaries, R-003 regression safety and R-006 quality closure gates execute unconditionally'
-            echo '- R-009 controller persistence and lock-order inventories are published as workflow artifacts'
-            echo '- Known lock-order inversions fail the workflow; controller strict mode remains disabled until its baseline is reviewed'
+            echo '- R-009 controller, lock-order, repository-boundary, transaction-escape and schema-constraint inventories are published as workflow artifacts'
+            echo '- Known lock-order inversions fail the workflow; remaining R-009 inventories stay review-only until their baselines are confirmed'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload quality failure evidence
         if: failure()
