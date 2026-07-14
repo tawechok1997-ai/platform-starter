@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { createHmac } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
+import { PrismaKycWatchlistRepositoryAdapter } from '../../common/infrastructure/prisma-risk-promotion-repository-adapters';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateRiskWatchlistEntryDto, MatchRiskWatchlistDto, ReleaseRiskWatchlistEntryDto } from './dto/risk-watchlist.dto';
 
@@ -72,23 +73,21 @@ export class RiskWatchlistService {
 
   async release(id: string, input: ReleaseRiskWatchlistEntryDto, actor: { id: string }) {
     return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<Array<Record<string, any>>>(Prisma.sql`
-        SELECT * FROM "risk_watchlist_entries" WHERE "id" = ${id}::uuid FOR UPDATE
-      `);
-      const existing = rows[0];
+      const repository = new PrismaKycWatchlistRepositoryAdapter(tx);
+      const existing = await repository.findWatchlistEntryForUpdate(id);
       if (!existing) throw new NotFoundException('Risk watchlist entry not found');
       if (existing.status !== 'ACTIVE') throw new BadRequestException('Only active entries can be released');
-      if (Number(existing.version) !== input.version) throw new ConflictException('Risk watchlist entry was modified by another request');
-      const updatedRows = await tx.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
-        UPDATE "risk_watchlist_entries"
-        SET "status" = 'RELEASED', "released_by_admin_id" = ${actor.id}::uuid,
-            "released_at" = CURRENT_TIMESTAMP, "release_reason" = ${input.reason},
-            "version" = "version" + 1, "updated_at" = CURRENT_TIMESTAMP
-        WHERE "id" = ${id}::uuid AND "version" = ${input.version}
-        RETURNING *
-      `);
-      const updated = updatedRows[0];
+      if (existing.version !== input.version) throw new ConflictException('Risk watchlist entry was modified by another request');
+
+      const updated = await repository.saveWatchlistEntry({
+        ...existing,
+        status: 'RELEASED',
+        releasedBy: actor.id,
+        releasedAt: new Date(),
+        releaseReason: input.reason,
+      });
       if (!updated) throw new ConflictException('Risk watchlist entry was modified by another request');
+
       await tx.adminAuditLog.create({
         data: buildAdminAuditData({
           adminUserId: actor.id,
@@ -96,10 +95,10 @@ export class RiskWatchlistService {
           action: 'RELEASE_RISK_WATCHLIST_ENTRY',
           targetId: id,
           oldData: { status: existing.status, version: existing.version },
-          newData: { status: 'RELEASED', version: Number(existing.version) + 1, reason: input.reason },
+          newData: { status: 'RELEASED', version: existing.version + 1, reason: input.reason },
         }),
       });
-      return { item: this.publicItem(updated) };
+      return { item: this.publicItem(updated.view) };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
