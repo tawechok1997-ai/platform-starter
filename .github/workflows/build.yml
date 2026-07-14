@@ -91,7 +91,16 @@ jobs:
         run: pnpm prisma generate
 
       - name: Typecheck API
+        id: typecheck_api
         run: pnpm --filter @platform/api typecheck
+
+      - name: Typecheck Admin Web
+        id: typecheck_admin
+        run: pnpm --filter @platform/web-admin typecheck
+
+      - name: Typecheck Member Web
+        id: typecheck_member
+        run: pnpm --filter @platform/web-member typecheck
 
       - name: Bootstrap disposable CI PostgreSQL schema
         run: pnpm prisma db push --skip-generate
@@ -138,6 +147,9 @@ jobs:
             echo ""
             echo "| Suite | Result |"
             echo "|---|---|"
+            echo "| API typecheck | ${{ steps.typecheck_api.outcome }} |"
+            echo "| Admin Web typecheck | ${{ steps.typecheck_admin.outcome }} |"
+            echo "| Member Web typecheck | ${{ steps.typecheck_member.outcome }} |"
             echo "| API unit/integration | ${{ steps.test_api.outcome }} |"
             echo "| Finance DB/concurrency | ${{ steps.test_finance.outcome }} |"
             echo "| Promotion settlement DB | ${{ steps.test_promotions.outcome }} |"
