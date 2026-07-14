@@ -4,11 +4,12 @@ import { AntiBotModule } from '../anti-bot/anti-bot.module';
 import { AdminAuthController } from './admin-auth.controller';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminLoginDefenseService } from './admin-login-defense.service';
+import { AdminSessionsQueryService } from './admin-sessions-query.service';
 
 @Module({
   imports: [JwtModule.register({}), AntiBotModule],
   controllers: [AdminAuthController],
-  providers: [AdminAuthService, AdminLoginDefenseService],
+  providers: [AdminAuthService, AdminLoginDefenseService, AdminSessionsQueryService],
   exports: [AdminAuthService],
 })
 export class AdminAuthModule {}
