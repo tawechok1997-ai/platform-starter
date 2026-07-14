@@ -12,6 +12,7 @@ R-009 establishes repository, transaction, and persistence boundaries without ch
 
 - [x] ตรวจ controller ที่เรียก Prisma โดยตรงทั้งหมด
 - [x] ย้าย Prisma access ออกจาก controller
+- [x] Consolidate transaction ownership for withdrawal completion
 
 Closure evidence:
 
@@ -20,6 +21,10 @@ Closure evidence:
 - `tools/audit-r009-controller-prisma.mjs`
 - `tools/audit-r009-controller-closure.mjs`
 - strict controller guard and closure audit in `.github/workflows/r006-quality.yml`
+- `tools/audit-r009-withdrawal-completion-transaction.mjs`
+- `tools/audit-r009-withdrawal-completion-rollback.mjs`
+- `docs/evidence/r009-withdrawal-completion-transaction.md`
+- successful Railway API build/deployment after the closure guards were committed
 
 ## Enforced and awaiting verification
 
@@ -76,18 +81,6 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [x] No schema or migration change was required in this slice.
 - [ ] Confirm `.github/workflows/r009-parallel-boundary-closure.yml` passes.
 
-### Consolidate withdrawal completion transaction ownership
-
-- [x] Verified `WithdrawalsService.completeRequest` owns one Prisma transaction.
-- [x] Verified lock order is withdrawal request before wallet.
-- [x] Verified ledger, wallet, request, and admin-audit writes use the same transaction client.
-- [x] Verified a failed guarded request update throws and rolls back prior ledger/wallet writes.
-- [x] Added `tools/audit-r009-withdrawal-completion-transaction.mjs`.
-- [x] Added `tools/audit-r009-withdrawal-completion-rollback.mjs`.
-- [x] Added `.github/workflows/r009-withdrawal-completion-closure.yml` with both audits and API typecheck.
-- [x] Added `docs/evidence/r009-withdrawal-completion-transaction.md`.
-- [ ] Confirm the dedicated workflow passes.
-
 ## Active partial work
 
 ### Deposit transaction ownership
@@ -96,6 +89,15 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [x] Moved release state mutation and admin audit into one transaction owner.
 - [x] Added top-up transaction boundary audit and workflow.
 - [ ] Locate and consolidate the actual approval/credit path. The current `TopUpsController` exposes only create, read, claim, and release routes.
+
+### Ownership transfer transaction ownership
+
+- [x] Located the production flow in `AdminAccessService.transferOwnership`.
+- [x] Confirmed role removal, role assignment, and audit writing share one transaction client.
+- [x] Added `tools/audit-r009-ownership-transfer-transaction.mjs`.
+- [x] Added `docs/evidence/r009-ownership-transfer-gap.md`.
+- [ ] Lock and revalidate actor and target rows inside the transaction in deterministic order.
+- [ ] Add rollback and concurrent-transfer regression coverage.
 
 ### Intent-revealing row-lock helpers
 
@@ -121,7 +123,6 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [ ] Confirm the dedicated critical repository ports workflow completes successfully.
 - [ ] Confirm the Prisma adapter workflows complete successfully.
 - [ ] Confirm the parallel boundary closure workflow completes successfully.
-- [ ] Confirm the withdrawal completion closure workflow completes successfully.
 - [ ] Confirm the latest GitHub quality workflow completes successfully.
 - [ ] Confirm zero repository-boundary violations.
 - [ ] Confirm zero lock inversions and zero unclassified locked tables.
@@ -133,7 +134,6 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [ ] Complete KYC/watchlist and promotion Prisma adapters and migrate services.
 - [ ] Close Prisma-type repository boundary after workflow evidence.
 - [ ] Consolidate transaction ownership for deposit approval/credit.
-- [ ] Close withdrawal completion ownership after workflow verification.
 - [ ] Consolidate transaction ownership for ownership transfer.
 - [ ] Consolidate transaction ownership for KYC review/watchlist override.
 - [ ] Consolidate transaction ownership for promotion settlement.
@@ -146,23 +146,21 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 ## Count
 
 - Total R-009 subtasks: 15
-- Closed with durable evidence: 2
-- Remaining not closed: 13
-- Enforced and awaiting workflow verification: 6
+- Closed with durable evidence: 3
+- Remaining not closed: 12
+- Enforced and awaiting workflow verification: 5
 - Other partial or under active review: 5
 - Not yet implemented: 2
 
 ## Safety decision
 
-This slice adds source-level transaction and rollback closure guards for withdrawal completion. It does not modify Prisma schema, production data, finance calculations, state-transition policy, permissions, secrets, provider gates, or deployment targets.
+Withdrawal completion is closed using source-level transaction and rollback guards plus a successful Railway API deployment. The ownership slice records a real concurrency gap but does not modify production behavior yet. No Prisma schema, production data, finance calculation, permission, secret, provider, or deployment-target change was made.
 
 ## Latest commits
 
-- `7920298176e05c1706ad1769179ed8a15b9c58b0` — add wallet row-lock helper.
-- `6de6d30cd346d98b2f9ad49b073fb0a50a072b07` — migrate top-up claim/release transaction boundaries.
-- `8d49511c86de4cf325132c2ec71ccc0baad05735` — add top-up transaction audit.
-- `a3df87af69580722a1298c61b5e6f2c67eac87de` — add top-up transaction workflow.
 - `6ea2b7f33270426f3e73c493b641c3a250220453` — guard withdrawal completion transaction ownership.
 - `e796c37fe0c0cfcc902b93c19f2bbfcd1bcc1e5b` — guard withdrawal completion rollback contract.
 - `798fd3a3ee2d336344a007b9e7a3dec2a401ed7c` — add withdrawal completion closure workflow.
 - `4cb15f0f6f789230168726a767a9971a328467a0` — record withdrawal completion evidence.
+- `79be0945524c6ff8e4ec98d4de11e592341bd219` — audit ownership transfer transaction boundary.
+- `8c7e3ee94cc474549077810a38bb11007c35a707` — record ownership transfer concurrency gap.
