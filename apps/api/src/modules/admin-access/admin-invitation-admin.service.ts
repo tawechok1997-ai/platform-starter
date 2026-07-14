@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { Prisma } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
+import { buildAdminAuditData } from '../../common/admin-audit';
 import { PrismaService } from '../../database/prisma.service';
 
 const SUPER_PERMISSION = '*';
@@ -173,7 +174,7 @@ export class AdminInvitationAdminService {
 
   private async audit(actorAdminId: string, action: string, targetId: string, newData: Prisma.InputJsonObject) {
     await this.prisma.adminAuditLog.create({
-      data: { adminUserId: actorAdminId, action, module: 'admin-access', targetId, newData },
+      data: buildAdminAuditData({ adminUserId: actorAdminId, action, module: 'admin-access', targetId, newData }),
     });
   }
 }
