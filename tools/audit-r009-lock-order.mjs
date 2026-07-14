@@ -117,13 +117,14 @@ for (const file of files) {
   }
 }
 
+const unknown = [...unknownTables].sort();
 const result = {
   audit: 'R-009 transaction lock order',
   policy: 'docs/architecture/transaction-lock-order.md',
   scannedTypeScriptFiles: files.length,
   transactionsWithRawRowLocks: transactions.length,
   inversions,
-  unknownTables: [...unknownTables].sort(),
+  unknownTables: unknown,
   transactions,
   strict: STRICT_MODE,
 };
@@ -136,12 +137,16 @@ if (JSON_MODE) {
   for (const inversion of inversions) {
     console.error(`- ${inversion.file}:${inversion.line} locks ${inversion.before} before ${inversion.after}`);
   }
-  if (unknownTables.size > 0) {
-    console.log(`Locked tables requiring policy classification: ${[...unknownTables].sort().join(', ')}`);
+  if (unknown.length > 0) {
+    console.log(`Locked tables requiring policy classification: ${unknown.join(', ')}`);
   }
 }
 
-if (STRICT_MODE && inversions.length > 0) {
-  console.error('R-009 strict lock-order guard failed.');
+if (STRICT_MODE && (inversions.length > 0 || unknown.length > 0)) {
+  if (unknown.length > 0) {
+    console.error(`R-009 strict lock-order guard failed: unclassified table(s): ${unknown.join(', ')}`);
+  } else {
+    console.error('R-009 strict lock-order guard failed.');
+  }
   process.exitCode = 1;
 }
