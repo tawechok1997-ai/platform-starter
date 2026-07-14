@@ -1,130 +1,41 @@
 import { NotificationsService } from './notifications.service';
 
-describe('NotificationsService preferences', () => {
-  function createService(options?: {
-    categoryPreference?: Record<string, boolean> | null;
-    channelPreference?: Record<string, boolean> | null;
-  }) {
-    const notificationPreference = {
-      findUnique: jest.fn().mockResolvedValue(options?.categoryPreference ?? null),
-      upsert: jest.fn().mockResolvedValue({}),
+describe('NotificationsService facade', () => {
+  function setup() {
+    const query = {
+      listMemberNotifications: jest.fn(),
+      getPreferences: jest.fn(),
     };
-    const siteSetting = {
-      findUnique: jest.fn().mockResolvedValue(
-        options?.channelPreference === undefined
-          ? null
-          : { valueJson: options.channelPreference },
-      ),
-      upsert: jest.fn().mockResolvedValue({}),
+    const command = {
+      markAllRead: jest.fn(),
+      markRead: jest.fn(),
+      archive: jest.fn(),
+      updatePreferences: jest.fn(),
     };
-    const prisma = {
-      notificationPreference,
-      siteSetting,
-      $transaction: jest.fn(async (operations: Array<Promise<unknown>>) => Promise.all(operations)),
-    };
-
-    return {
-      service: new NotificationsService(prisma as never),
-      prisma,
-    };
+    return { service: new NotificationsService(query as never, command as never), query, command };
   }
 
-  it('returns safe defaults when preferences do not exist', async () => {
-    const { service } = createService();
+  it('delegates preference reads to the query service', async () => {
+    const { service, query } = setup();
+    query.getPreferences.mockResolvedValue({ preferences: { categories: {}, channels: {} } });
 
-    await expect(service.getPreferences('member-1')).resolves.toEqual({
-      preferences: {
-        categories: {
-          finance: true,
-          security: true,
-          promotion: true,
-          system: true,
-        },
-        channels: {
-          email: true,
-          sms: false,
-          push: true,
-        },
-      },
-    });
+    await expect(service.getPreferences('member-1')).resolves.toEqual({ preferences: { categories: {}, channels: {} } });
+    expect(query.getPreferences).toHaveBeenCalledWith('member-1');
   });
 
-  it('preserves unspecified values during a partial update', async () => {
-    const { service, prisma } = createService({
-      categoryPreference: {
-        finance: false,
-        security: true,
-        promotion: false,
-        system: true,
-      },
-      channelPreference: {
-        email: false,
-        sms: true,
-        push: false,
-      },
-    });
+  it('delegates partial preference updates to the command service', async () => {
+    const { service, command } = setup();
+    command.updatePreferences.mockResolvedValue({ preferences: { channels: { push: true } } });
 
-    const result = await service.updatePreferences('member-1', { push: true });
-
-    expect(result).toEqual({
-      preferences: {
-        categories: {
-          finance: false,
-          security: true,
-          promotion: false,
-          system: true,
-        },
-        channels: {
-          email: false,
-          sms: true,
-          push: true,
-        },
-      },
-    });
-    expect(prisma.notificationPreference.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { userId: 'member-1' },
-        update: {
-          finance: false,
-          security: true,
-          promotion: false,
-          system: true,
-        },
-      }),
-    );
-    expect(prisma.siteSetting.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { key: 'member.notification.channels.member-1' },
-        update: {
-          valueJson: {
-            email: false,
-            sms: true,
-            push: true,
-          },
-        },
-      }),
-    );
+    await expect(service.updatePreferences('member-1', { push: true })).resolves.toEqual({ preferences: { channels: { push: true } } });
+    expect(command.updatePreferences).toHaveBeenCalledWith('member-1', { push: true });
   });
 
-  it('normalizes malformed channel values without changing valid booleans', async () => {
-    const { service } = createService({
-      channelPreference: {
-        email: false,
-        sms: 'yes' as unknown as boolean,
-        push: true,
-      },
-    });
+  it('delegates notification state mutations', async () => {
+    const { service, command } = setup();
+    command.markRead.mockResolvedValue({ ok: true });
 
-    await expect(service.getPreferences('member-1')).resolves.toEqual(
-      expect.objectContaining({
-        preferences: expect.objectContaining({
-          channels: {
-            email: false,
-            sms: false,
-            push: true,
-          },
-        }),
-      }),
-    );
+    await expect(service.markRead('member-1', 'notice-1')).resolves.toEqual({ ok: true });
+    expect(command.markRead).toHaveBeenCalledWith('member-1', 'notice-1');
   });
 });
