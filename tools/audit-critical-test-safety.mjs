@@ -37,7 +37,7 @@ const criticalSuites = [
 
 const requiredCharacterizationSuites = [
   {
-    path: 'apps/api/src/modules/support/support.service.spec.ts',
+    path: 'apps/api/src/modules/support/support-command.service.spec.ts',
     markers: ['reopens a resolved ticket', 'audits an admin reply'],
   },
   {
