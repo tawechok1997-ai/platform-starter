@@ -94,7 +94,7 @@ describe('PromotionClaimCommandService', () => {
     expect(domain.createBonusLedger).not.toHaveBeenCalled();
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        adminUserId: 'admin-1',
+        adminUser: { connect: { id: 'admin-1' } },
         module: 'promotions',
         action: 'promotion.claim.review',
         targetId: claim.id,
