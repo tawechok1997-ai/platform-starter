@@ -50,17 +50,18 @@ export class PrismaAdminOwnershipRepositoryAdapter implements AdminOwnershipRepo
   }
 
   async countActiveOwnersForUpdate(): Promise<number> {
-    const rows = await this.tx.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`
-      SELECT COUNT(DISTINCT au."id")::bigint AS "count"
+    const rows = await this.tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+      SELECT DISTINCT au."id"
       FROM "admin_users" au
       INNER JOIN "admin_user_roles" aur ON aur."admin_user_id" = au."id"
       INNER JOIN "roles" r ON r."id" = aur."role_id"
       WHERE r."code" = ${OWNER_ROLE_CODE}
         AND au."status"::text = 'ACTIVE'
+      ORDER BY au."id"
       FOR UPDATE OF au
     `);
 
-    return Number(rows[0]?.count ?? 0n);
+    return rows.length;
   }
 
   async transferOwnership(previousOwnerId: RepositoryId, nextOwnerId: RepositoryId): Promise<void> {
