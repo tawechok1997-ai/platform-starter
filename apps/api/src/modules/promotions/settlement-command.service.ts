@@ -23,6 +23,9 @@ export class SettlementCommandService {
     const item = await this.prisma.riskAlert.findFirst({ where: { id, refType: BONUS_REF_TYPE } });
     if (!item) throw new NotFoundException('Bonus ledger not found');
     const metadata = promotionBonusMetadata(item.metadata);
+    const rawMetadata = item.metadata && typeof item.metadata === 'object' && !Array.isArray(item.metadata)
+      ? item.metadata as Record<string, unknown>
+      : {};
     const normalizedNote = String(note ?? '').trim();
 
     if (action === 'RELEASE' && !metadata.turnoverCompleted) {
@@ -68,14 +71,14 @@ export class SettlementCommandService {
             status: nextStatus,
             resolvedAt: new Date(),
             metadata: this.safeJson({
-              ...metadata,
+              ...rawMetadata,
               lifecycleStatus,
               walletCreditEnabled: action !== 'REVERSE',
               walletCreditStatus,
-              walletLedgerId: (settlement as any)?.wallet_ledger_id ?? metadata.walletCreditStatus,
-              reversalWalletLedgerId: (settlement as any)?.reversal_wallet_ledger_id ?? null,
+              walletLedgerId: (settlement as any)?.wallet_ledger_id ?? rawMetadata.walletLedgerId ?? null,
+              reversalWalletLedgerId: (settlement as any)?.reversal_wallet_ledger_id ?? rawMetadata.reversalWalletLedgerId ?? null,
               settlementIdempotencyKey: idempotencyKey,
-              settlementAttemptCount: Number((item.metadata as any)?.settlementAttemptCount ?? 0) + 1,
+              settlementAttemptCount: Number(rawMetadata.settlementAttemptCount ?? 0) + 1,
               settlementLastError: null,
               lifecycleNote: normalizedNote,
               lifecycleUpdatedAt: new Date().toISOString(),
@@ -102,12 +105,12 @@ export class SettlementCommandService {
       const message = error instanceof Error ? error.message : 'Settlement failed';
       await this.prisma.$transaction(async (tx) => {
         const failedMetadata = {
-          ...metadata,
+          ...rawMetadata,
           lifecycleStatus: 'SETTLEMENT_FAILED',
           walletCreditEnabled: false,
           walletCreditStatus: 'FAILED',
           settlementIdempotencyKey: idempotencyKey,
-          settlementAttemptCount: Number((item.metadata as any)?.settlementAttemptCount ?? 0) + 1,
+          settlementAttemptCount: Number(rawMetadata.settlementAttemptCount ?? 0) + 1,
           settlementLastError: message,
           events: [
             ...metadata.events,
