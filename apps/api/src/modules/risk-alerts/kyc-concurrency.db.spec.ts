@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
-import { KycDocumentsService } from './kyc-documents.service';
+import { KycReviewCommandService } from './kyc-review-command.service';
 
 const databaseUrl = process.env.FINANCE_TEST_DATABASE_URL?.trim();
 const describeWithDatabase = databaseUrl ? describe : describe.skip;
@@ -15,7 +15,7 @@ function assertSafeTestDatabase(url: string) {
 
 describeWithDatabase('KYC review concurrency with PostgreSQL', () => {
   let prisma: PrismaClient;
-  let service: KycDocumentsService;
+  let service: KycReviewCommandService;
   const memberId = randomUUID();
   const adminA = randomUUID();
   const adminB = randomUUID();
@@ -23,14 +23,8 @@ describeWithDatabase('KYC review concurrency with PostgreSQL', () => {
 
   beforeAll(async () => {
     assertSafeTestDatabase(databaseUrl!);
-    process.env.KYC_ACCESS_SECRET = process.env.KYC_ACCESS_SECRET || 'kyc-db-test-secret-2026';
     prisma = new PrismaClient({ datasources: { db: { url: databaseUrl! } } });
-    const storage = {
-      put: jest.fn(),
-      get: jest.fn(),
-      remove: jest.fn(),
-    };
-    service = new KycDocumentsService(prisma as any, storage as any);
+    service = new KycReviewCommandService(prisma as any);
     await prisma.$connect();
 
     const suffix = randomUUID().slice(0, 12);
