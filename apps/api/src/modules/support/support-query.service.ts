@@ -1,9 +1,26 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RiskAlertStatus } from '@prisma/client';
+import { buildCursorPage, parseCursorPage } from '../../common/query/cursor-pagination';
 import { PrismaService } from '../../database/prisma.service';
 import { mapSupportTicket } from './support-ticket.mapper';
 
 const SUPPORT_REF_TYPE = 'SUPPORT_TICKET';
+const MEMBER_TICKET_PAGE = { defaultLimit: 20, maxLimit: 50 } as const;
+const ADMIN_TICKET_PAGE = { defaultLimit: 25, maxLimit: 100 } as const;
+
+const SUPPORT_TICKET_LIST_PROJECTION = {
+  id: true,
+  title: true,
+  description: true,
+  status: true,
+  severity: true,
+  refId: true,
+  metadata: true,
+  memberId: true,
+  createdAt: true,
+  updatedAt: true,
+  resolvedAt: true,
+} as const;
 
 type Actor = { id: string };
 export type AdminSupportQuery = { status?: string; category?: string; search?: string; cursor?: string; limit?: string };
@@ -13,18 +30,17 @@ export class SupportQueryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async listMemberTickets(user: Actor, cursor?: string, limitInput?: string) {
-    const limit = Math.min(Math.max(Number(limitInput) || 20, 1), 50);
-    const items = await this.prisma.riskAlert.findMany({
+    const pageInput = parseCursorPage({ cursor, limit: limitInput }, MEMBER_TICKET_PAGE);
+    const rows = await this.prisma.riskAlert.findMany({
       where: { refType: SUPPORT_REF_TYPE, memberId: user.id },
-      orderBy: { createdAt: 'desc' },
-      take: limit + 1,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      ...pageInput.query,
+      select: SUPPORT_TICKET_LIST_PROJECTION,
     });
-    const hasMore = items.length > limit;
-    const page = hasMore ? items.slice(0, limit) : items;
+    const page = buildCursorPage(rows, pageInput.limit);
     return {
-      items: page.map(mapSupportTicket),
-      nextCursor: hasMore ? page.at(-1)?.id ?? null : null,
+      items: page.items.map(mapSupportTicket),
+      nextCursor: page.nextCursor,
     };
   }
 
@@ -40,23 +56,22 @@ export class SupportQueryService {
     const where: Prisma.RiskAlertWhereInput = { refType: SUPPORT_REF_TYPE };
     if (query.status && query.status !== 'ALL') where.status = query.status as RiskAlertStatus;
     if (query.search?.trim()) where.title = { contains: query.search.trim(), mode: 'insensitive' };
-    const limit = Math.min(Math.max(Number(query.limit) || 25, 1), 100);
-    const items = await this.prisma.riskAlert.findMany({
+    const pageInput = parseCursorPage({ cursor: query.cursor, limit: query.limit }, ADMIN_TICKET_PAGE);
+    const rows = await this.prisma.riskAlert.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
-      take: limit + 1,
-      ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      ...pageInput.query,
+      select: SUPPORT_TICKET_LIST_PROJECTION,
     });
-    const hasMore = items.length > limit;
-    const page = hasMore ? items.slice(0, limit) : items;
-    const members = await this.loadMembers(page.flatMap((item) => (item.memberId ? [item.memberId] : [])));
-    const formatted = page
+    const page = buildCursorPage(rows, pageInput.limit);
+    const members = await this.loadMembers(page.items.flatMap((item) => (item.memberId ? [item.memberId] : [])));
+    const formatted = page.items
       .map((item) => mapSupportTicket({ ...item, member: item.memberId ? members.get(item.memberId) ?? null : null }))
       .filter((item) => !query.category || query.category === 'ALL' || item.category === query.category);
     return {
       items: formatted,
       total: formatted.length,
-      nextCursor: hasMore ? page.at(-1)?.id ?? null : null,
+      nextCursor: page.nextCursor,
     };
   }
 
