@@ -80,7 +80,9 @@ describe('SettlementCommandService', () => {
     );
 
     expect(ctx.prisma.$transaction).toHaveBeenCalledTimes(1);
-    expect(ctx.tx.$executeRaw).toHaveBeenCalledTimes(2);
+    const mutations = ctx.tx.$executeRaw.mock.calls.map(([query]: any[]) => sqlText(query));
+    expect(mutations.some((text: string) => text.includes('UPDATE "wallets"'))).toBe(true);
+    expect(mutations.some((text: string) => text.includes('INSERT INTO "wallet_ledgers"'))).toBe(true);
     expect(ctx.tx.riskAlert.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ status: 'RESOLVED' }),
     }));
@@ -98,7 +100,10 @@ describe('SettlementCommandService', () => {
 
     await ctx.service.execute(actor, 'bonus-1', 'RELEASE');
 
-    expect(ctx.tx.$executeRaw).not.toHaveBeenCalled();
+    const mutations = ctx.tx.$executeRaw.mock.calls.map(([query]: any[]) => sqlText(query));
+    expect(mutations.some((text: string) => text.includes('UPDATE "wallets"'))).toBe(false);
+    expect(mutations.some((text: string) => text.includes('INSERT INTO "wallet_ledgers"'))).toBe(false);
+    expect(mutations.some((text: string) => text.includes('UPDATE "bonus_ledgers"'))).toBe(true);
     expect(ctx.tx.riskAlert.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ status: 'RESOLVED' }),
     }));
