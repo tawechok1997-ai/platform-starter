@@ -14,6 +14,7 @@ import {
 } from './dto/support-ticket.dto';
 import { AdminSupportTicketListQueryDto, MemberSupportTicketListQueryDto } from './dto/support-query.dto';
 import { SupportAttachmentsService } from './support-attachments.service';
+import { SupportQueryService } from './support-query.service';
 import { SupportService } from './support.service';
 
 type BinaryResponse = {
@@ -25,6 +26,7 @@ type BinaryResponse = {
 export class SupportController {
   constructor(
     private readonly support: SupportService,
+    private readonly queries: SupportQueryService,
     private readonly attachments: SupportAttachmentsService,
   ) {}
 
@@ -37,13 +39,13 @@ export class SupportController {
   @UseGuards(MemberAuthGuard)
   @Get('member/support-tickets')
   listMemberTickets(@CurrentUser() user: MemberActor, @Query() query: MemberSupportTicketListQueryDto) {
-    return this.support.listMemberTickets(user, query.cursor, query.limit);
+    return this.queries.listMemberTickets(user, query.cursor, query.limit);
   }
 
   @UseGuards(MemberAuthGuard)
   @Get('member/support-tickets/:id')
   getMemberTicket(@CurrentUser() user: MemberActor, @Param('id') id: string) {
-    return this.support.getMemberTicket(user, id);
+    return this.queries.getMemberTicket(user, id);
   }
 
   @UseGuards(MemberAuthGuard)
@@ -86,14 +88,14 @@ export class SupportController {
   @RequirePermission('support.view')
   @Get('admin/support-tickets')
   listAdminTickets(@Query() query: AdminSupportTicketListQueryDto) {
-    return this.support.listAdminTickets(query);
+    return this.queries.listAdminTickets(query);
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('support.view')
   @Get('admin/support-tickets/:id')
   getAdminTicket(@Param('id') id: string) {
-    return this.support.getAdminTicket(id);
+    return this.queries.getAdminTicket(id);
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
