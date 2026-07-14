@@ -25,13 +25,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@9.0.0 --activate
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies for lockfile repair
         run: pnpm install --no-frozen-lockfile --prefer-offline
