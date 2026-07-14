@@ -7,6 +7,10 @@ import { mapPromotionBonusLedger, promotionBonusMetadata } from './promotion.map
 type Actor = { id: string };
 type SettlementAction = 'RELEASE' | 'RETRY' | 'REVERSE';
 type TransactionClient = Prisma.TransactionClient;
+type SettlementLedgerMetadata = {
+  wallet_ledger_id?: unknown;
+  reversal_wallet_ledger_id?: unknown;
+};
 
 const BONUS_REF_TYPE = 'BONUS_LEDGER';
 
@@ -57,6 +61,7 @@ export class SettlementCommandService {
         const settlement = action === 'REVERSE'
           ? await this.reverseInTransaction(tx, { sourceRiskAlertId: id, adminUserId: admin.id, idempotencyKey })
           : await this.settleInTransaction(tx, { sourceRiskAlertId: id, adminUserId: admin.id, idempotencyKey });
+        const settlementLedgerMetadata = settlement as SettlementLedgerMetadata;
 
         const lifecycleStatus = action === 'REVERSE' ? 'REVERSED' : 'SETTLED';
         const walletCreditStatus = action === 'REVERSE' ? 'REVERSED' : 'CREDITED';
@@ -86,8 +91,8 @@ export class SettlementCommandService {
               lifecycleStatus,
               walletCreditEnabled: action !== 'REVERSE',
               walletCreditStatus,
-              walletLedgerId: settlement.wallet_ledger_id ?? rawMetadata.walletLedgerId ?? null,
-              reversalWalletLedgerId: settlement.reversal_wallet_ledger_id ?? rawMetadata.reversalWalletLedgerId ?? null,
+              walletLedgerId: settlementLedgerMetadata.wallet_ledger_id ?? rawMetadata.walletLedgerId ?? null,
+              reversalWalletLedgerId: settlementLedgerMetadata.reversal_wallet_ledger_id ?? rawMetadata.reversalWalletLedgerId ?? null,
               settlementIdempotencyKey: idempotencyKey,
               settlementAttemptCount: Number(rawMetadata.settlementAttemptCount ?? 0) + 1,
               settlementLastError: null,
