@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { AcceptAdminInvitationDto } from './dto/admin-invitation.dto';
 import { AdminInvitationService } from './admin-invitation.service';
 
 @Controller('admin/invitations')
@@ -11,11 +12,7 @@ export class AdminInvitationController {
   }
 
   @Post('accept')
-  accept(@Body() body: { token?: string; username?: string; secret?: string }) {
-    return this.service.accept(
-      String(body.token ?? ''),
-      String(body.username ?? ''),
-      String(body.secret ?? ''),
-    );
+  accept(@Body() body: AcceptAdminInvitationDto) {
+    return this.service.accept(body.token.trim(), body.username.trim(), body.secret);
   }
 }
