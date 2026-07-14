@@ -54,9 +54,9 @@ export default function AdminLoginPage() {
 
     setLoading(true); setStatus('info'); setMessage(t.submitting);
     try {
-      const data = await loginClient.requestJson<LoginResponse, Record<string, unknown>>('/api/auth/login', {
-        method: 'POST', credentials: 'include', auth: false,
-        body: { username: username.trim(), secret, twoFactorCode: twoFactorCode.trim() || undefined, captchaToken: captchaToken || undefined, deviceId: 'web-admin' },
+      const body = { username: username.trim(), secret, twoFactorCode: twoFactorCode.trim() || undefined, captchaToken: captchaToken || undefined, deviceId: 'web-admin' };
+      const data = await loginClient.json<LoginResponse, typeof body>('/api/auth/login', body, {
+        credentials: 'include', auth: false,
       });
       if (data.requiresTwoFactor) { setRequiresTwoFactor(true); setStatus('info'); setMessage(t.requiresTwoFactor); setCaptchaResetKey((value) => value + 1); return; }
       if (!data.accessToken) { setStatus('error'); setMessage(t.incomplete); setCaptchaResetKey((value) => value + 1); return; }
