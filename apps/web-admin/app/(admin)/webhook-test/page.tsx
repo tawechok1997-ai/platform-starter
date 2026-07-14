@@ -1,11 +1,15 @@
 'use client';
 
+import { createApiClient } from '@platform/api-client';
 import { useEffect, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack } from '../_components/admin-ui';
 
 type Provider = { id: string; name: string; code: string; status: string };
+type WebhookResult = { ok?: boolean; message?: string; [key: string]: unknown };
+
 const events = ['BET_SETTLED', 'WIN', 'ROLLBACK', 'CANCEL', 'adapter.test'];
+const localApiClient = createApiClient({ baseUrl: '', retry: 0, cache: 'no-store' });
 
 export default function WebhookTestPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -13,7 +17,7 @@ export default function WebhookTestPage() {
   const [eventType, setEventType] = useState('adapter.test');
   const [idempotencyKey, setIdempotencyKey] = useState(`mock_webhook_${Date.now()}`);
   const [invalidSignature, setInvalidSignature] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<WebhookResult | null>(null);
   const [message, setMessage] = useState('กำลังโหลด provider...');
   const [loading, setLoading] = useState(false);
   useEffect(() => { loadProviders(); }, []);
@@ -24,9 +28,21 @@ export default function WebhookTestPage() {
     const timestamp = new Date().toISOString();
     const signature = invalidSignature ? 'invalid-signature' : 'mock-browser-signature';
     setLoading(true); setMessage('กำลังส่ง mock webhook...');
-    const res = await fetch(`/api/provider-webhooks/${encodeURIComponent(providerCode)}`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-timestamp': timestamp, 'x-signature': signature }, body: JSON.stringify(body) });
-    const data = await res.json().catch(() => null);
-    setLoading(false); setResult(data); setMessage(res.ok ? 'ส่ง mock webhook แล้ว' : data?.message ?? 'ส่ง mock webhook ไม่สำเร็จ');
+    try {
+      const data = await localApiClient.requestJson<WebhookResult, typeof body>(`/api/provider-webhooks/${encodeURIComponent(providerCode)}`, body, {
+        method: 'POST',
+        auth: false,
+        headers: { 'x-timestamp': timestamp, 'x-signature': signature },
+      });
+      setResult(data);
+      setMessage(data.ok === false ? data.message ?? 'ส่ง mock webhook ไม่สำเร็จ' : 'ส่ง mock webhook แล้ว');
+    } catch (error) {
+      const failed = error as { message?: string; payload?: WebhookResult };
+      setResult(failed.payload ?? null);
+      setMessage(failed.payload?.message ?? failed.message ?? 'ส่ง mock webhook ไม่สำเร็จ');
+    } finally {
+      setLoading(false);
+    }
   }
   return <AdminPage eyebrow="Game Platform" title="Mock Webhook Test" description="ยิง webhook จำลองเพื่อทดสอบ validate, duplicate, invalid signature และ log ก่อนเปิดรับ callback ค่ายจริง" actions={<AdminButton onClick={send} disabled={loading || !providerCode}>{loading ? 'กำลังส่ง...' : 'Send Mock Webhook'}</AdminButton>}>
     {message && <AdminNotice>{message}</AdminNotice>}
@@ -40,4 +56,4 @@ const formStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minma
 const labelStyle = { display: 'grid', gap: 6, color: '#94a3b8', fontSize: 12, fontWeight: 900 } as const;
 const checkStyle = { display: 'flex', gap: 8, alignItems: 'center', color: '#cbd5e1', fontWeight: 900 } as const;
 const inputStyle = { width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', boxSizing: 'border-box' as const, fontSize: 15 };
-const preStyle = { overflowX: 'auto' as const, whiteSpace: 'pre-wrap' as const, background: '#020617', borderRadius: 12, padding: 12, color: '#cbd5e1', maxHeight: 520 } as const;
+const preStyle = { overflowX: 'auto' as const, whiteSpace: 'pre-wrap' as const, background: '#020617', borderRadius: 12, padding: 12, color: '#cbd5e1', maxHeight: 520 };
