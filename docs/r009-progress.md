@@ -38,7 +38,7 @@ Closure evidence:
 
 - [x] Added `tools/audit-r009-repository-boundaries.mjs`.
 - [x] Scans domain/application and repository/port contracts for Prisma imports, `PrismaService`, and `Prisma.*` types.
-- [x] Enabled `pnpm audit:r9-repository-boundaries:strict` in required workflows.
+- [x] Enabled the strict repository boundary in required workflows.
 - [x] Added `docs/evidence/r009-repository-type-boundary.md`.
 - [x] Added boundary closure structure audit.
 - [ ] Confirm the latest GitHub workflow reports zero repository-boundary violations.
@@ -57,16 +57,20 @@ Closure evidence:
 ### ทำ Prisma repository adapters
 
 - [x] Added transaction-scoped deposit and withdrawal adapters at `apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts`.
-- [x] Adapters implement persistence-agnostic ports.
-- [x] Transaction ownership remains with the caller through injected `Prisma.TransactionClient`.
-- [x] Adapters do not instantiate `PrismaClient` or call `$transaction`.
-- [x] Added explicit row locks for `top_up_requests` and `withdrawal_requests`.
-- [x] Added `tools/audit-r009-finance-prisma-adapters.mjs`.
-- [x] Added `.github/workflows/r009-finance-prisma-adapters.yml` with adapter audit, repository-boundary strict guard, and API typecheck.
-- [x] Added `docs/evidence/r009-finance-prisma-adapters.md`.
-- [ ] Add ownership, KYC/watchlist, and promotion settlement adapters.
+- [x] Added `PrismaAdminOwnershipRepositoryAdapter` using the existing `AdminUser`, `AdminUserRole`, and `Role` schema models.
+- [x] Ownership adapter locks owner rows before counting and avoids invalid aggregate row locking.
+- [x] All implemented adapters receive `Prisma.TransactionClient` from the transaction owner.
+- [x] Implemented adapters do not instantiate `PrismaClient` or call `$transaction`.
+- [x] Added `tools/audit-r009-adapter-schema-compatibility.mjs`.
+- [x] Added `tools/audit-r009-prisma-adapter-coverage.mjs`.
+- [x] Added `.github/workflows/r009-parallel-safe-adapters.yml` with compatibility, coverage, repository-boundary, API typecheck, and evidence upload steps.
+- [x] Added `docs/evidence/r009-safe-parallel-adapters.md`.
+- [ ] Confirm the safe-parallel adapter workflow passes.
+- [ ] Resolve the real schema mappings for KYC/watchlist and promotion settlement.
+- [ ] Add KYC/watchlist and promotion settlement adapters.
 - [ ] Migrate critical services to use the adapters.
-- [ ] Confirm the dedicated workflow passes.
+
+Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, ownership).
 
 ## Implemented baselines
 
@@ -87,7 +91,7 @@ Closure evidence:
 ## Pending evidence
 
 - [ ] Confirm the dedicated critical repository ports workflow completes successfully.
-- [ ] Confirm the dedicated finance Prisma adapter workflow completes successfully.
+- [ ] Confirm the finance and safe-parallel Prisma adapter workflows complete successfully.
 - [ ] Confirm the latest GitHub quality workflow completes successfully.
 - [ ] Confirm zero repository-boundary violations.
 - [ ] Confirm zero lock inversions and zero unclassified locked tables.
@@ -97,7 +101,7 @@ Closure evidence:
 ## Remaining R-009 work
 
 - [ ] Close critical repository ports after workflow verification.
-- [ ] Complete ownership, KYC/watchlist, and promotion Prisma adapters and migrate services.
+- [ ] Complete KYC/watchlist and promotion Prisma adapters and migrate services.
 - [ ] Close Prisma-type repository boundary after workflow evidence.
 - [ ] Consolidate transaction ownership for deposit approval.
 - [ ] Consolidate transaction ownership for withdrawal completion.
@@ -116,16 +120,18 @@ Closure evidence:
 - Closed with durable evidence: 2
 - Remaining not closed: 13
 - Enforced and awaiting workflow verification: 4
-- Other partial or under active review: 6
-- Not yet implemented: 3
+- Other partial or under active review: 7
+- Not yet implemented: 2
 
 ## Safety decision
 
-This slice adds adapters but does not switch existing production services to them. It does not modify Prisma schema, production data, live transaction boundaries, finance behavior, permissions, secrets, provider gates, or deployment targets.
+This slice adds an ownership adapter and verification gates but does not switch existing production services to adapters. It does not modify Prisma schema, production data, live transaction boundaries, finance behavior, permissions, secrets, provider gates, or deployment targets.
 
 ## Latest commits
 
-- `40776104d1e899b11b0aae36b7bcc971557213f7` — add transaction-scoped deposit and withdrawal Prisma adapters.
-- `9c9fdc5a09efc811bf1d849eafb0908dc899ac99` — audit finance Prisma adapter structure.
-- `77381fb8f4cc12ae6b78e3ec6d9fb4533ab484ba` — verify finance adapters with dedicated workflow.
-- `811aba0fb1f767301dda4da457aeff3890c074a6` — record finance Prisma adapter evidence.
+- `9bb963cea883959acf82a3125d60fa2d11f5898f` — add transaction-scoped ownership Prisma adapter.
+- `f40bbb24e3bb3c4519fc63c5fc3f437f20f1c15c` — fix owner locking before counting.
+- `400f3fe27281914bd41af0f2c1e6bc65cb132677` — inventory adapter-to-schema compatibility.
+- `b01c55a63819e7c12b5b5771cbb295685c99ad14` — enforce implemented adapter coverage.
+- `c3c935397915614a7ed87223e3faea5127a45c6e` — add safe parallel adapter verification workflow.
+- `23c5345ce019e5ad9fb16c0918593d4f6f13b07c` — record safe parallel adapter evidence.
