@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res, UseGuards } from '@nestjs/common';
-import type { Response } from 'express';
 import type { AuthenticatedAdminActor, MemberActor } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
@@ -16,6 +15,11 @@ import {
 import { AdminSupportTicketListQueryDto, MemberSupportTicketListQueryDto } from './dto/support-query.dto';
 import { SupportAttachmentsService } from './support-attachments.service';
 import { SupportService } from './support.service';
+
+type BinaryResponse = {
+  type(contentType: string): BinaryResponse;
+  send(data: Buffer): unknown;
+};
 
 @Controller()
 export class SupportController {
@@ -66,7 +70,7 @@ export class SupportController {
     @CurrentUser() user: MemberActor,
     @Param('id') id: string,
     @Param('attachmentId') attachmentId: string,
-    @Res() response: Response,
+    @Res() response: BinaryResponse,
   ) {
     const stored = await this.attachments.readMember(user, id, attachmentId);
     response.type(stored.contentType).send(stored.data);
@@ -116,7 +120,7 @@ export class SupportController {
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('support.view')
   @Get('admin/support-tickets/:id/attachments/:attachmentId/content')
-  async readAdminAttachment(@Param('id') id: string, @Param('attachmentId') attachmentId: string, @Res() response: Response) {
+  async readAdminAttachment(@Param('id') id: string, @Param('attachmentId') attachmentId: string, @Res() response: BinaryResponse) {
     const stored = await this.attachments.readAdmin(id, attachmentId);
     response.type(stored.contentType).send(stored.data);
   }
