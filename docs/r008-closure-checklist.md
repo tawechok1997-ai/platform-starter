@@ -61,7 +61,7 @@ Current evidence: commit `490607cb25349bc63c5fe092249701ab246dfd7c` applies rese
 
 Remaining: 0 subtasks
 
-Current verification state: diagnostic commit `4fbd1bf03f13a64b74ceae32792e7d92a9c8478e` passed API typecheck, all 73 executed API test suites with 260 tests, and API build. Its only audit failures were stale entry-point markers. Commit `693ac8268ddd17e62025ae1404ab336e02a4883f` aligned those markers with the verified runtime calls `DepositPolicy.assertClaim` and `KycReviewPolicy.isReviewable`; all other audit requirements and the R-008 domain policy suite were already passing. Final trigger commit: `e2ebda71047e07e526623066a927e1371a0f343c`.
+Current verification state: closure audit, API typecheck, full API tests, API build, and Railway deployments passed for the final R-008 integration lineage. Verified closure commit: `e9850b22d033edd9f96eba178b1999699a0a5c96`.
 
 ## Totals
 

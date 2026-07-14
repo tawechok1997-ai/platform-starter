@@ -452,6 +452,15 @@ These are not active tasks. They are retained to prevent duplicate implementatio
 - ✅ Member search, status filters, pagination, mobile cards, desktop split layout, wallet summary, and quick status actions
 - ✅ Wallet ledger endpoint, search/direction filters, responsive cards, money summaries, and metadata details
 
+## Backend architecture and policy separation
+
+- ✅ R-008 Domain model and policy separation is DONE and verified.
+- ✅ Admin ownership transfer routes through `AdminOwnershipCommandService` and `AdminOwnershipPolicy`.
+- ✅ Withdrawal lifecycle routes through `WithdrawalPolicy`.
+- ✅ Wallet reservation, debit completion, release, and active-state checks route through `WalletSettlementPolicy` inside existing Prisma transactions.
+- ✅ Closure audit, API typecheck, full API tests, API build, and Railway deployments passed.
+- Evidence: `docs/r008-closure-checklist.md`; verified commit `e9850b22d033edd9f96eba178b1999699a0a5c96`.
+
 ## Accessibility and responsive foundations
 
 - ✅ Visible focus styles
