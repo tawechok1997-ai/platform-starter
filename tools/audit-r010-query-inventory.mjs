@@ -3,6 +3,7 @@ import path from 'node:path';
 
 const ROOT = process.cwd();
 const API_SRC = path.join(ROOT, 'apps', 'api', 'src');
+const REVIEW_PATH = path.join(ROOT, 'docs', 'evidence', 'r010-query-review.json');
 const JSON_MODE = process.env.R010_QUERY_JSON === '1';
 const STRICT_MODE = process.env.R010_QUERY_STRICT === '1';
 
@@ -17,6 +18,13 @@ function walk(dir) {
 
 function relative(file) {
   return path.relative(ROOT, file).split(path.sep).join('/');
+}
+
+function moduleOwner(fileName) {
+  const marker = '/modules/';
+  const index = fileName.indexOf(marker);
+  if (index < 0) return 'common';
+  return fileName.slice(index + marker.length).split('/')[0] || 'unknown';
 }
 
 function lineNumber(source, index) {
@@ -37,6 +45,16 @@ function normalizeWhitespace(value) {
   return value.replace(/\s+/g, ' ').trim();
 }
 
+function loadReviewLedger() {
+  if (!fs.existsSync(REVIEW_PATH)) return { version: 1, findings: {} };
+  const parsed = JSON.parse(fs.readFileSync(REVIEW_PATH, 'utf8'));
+  if (!parsed || parsed.version !== 1 || typeof parsed.findings !== 'object' || Array.isArray(parsed.findings)) {
+    throw new Error(`Invalid R-010 query review ledger: ${relative(REVIEW_PATH)}`);
+  }
+  return parsed;
+}
+
+const reviewLedger = loadReviewLedger();
 const files = walk(API_SRC).sort();
 const hardCodedTakes = [];
 const defaultTakes = [];
@@ -46,16 +64,20 @@ for (const file of files) {
   const source = fs.readFileSync(file, 'utf8');
   const ranges = methodRanges(source);
   const fileName = relative(file);
+  const owner = moduleOwner(fileName);
 
   for (const match of source.matchAll(/\btake\s*:\s*(\d+)\b/g)) {
     const value = Number(match[1]);
     const method = methodForIndex(ranges, match.index ?? 0);
+    const key = `${fileName}#${method}#take:${value}`;
     hardCodedTakes.push({
-      key: `${fileName}#${method}#take:${value}`,
+      key,
+      owner,
       file: fileName,
       method,
       line: lineNumber(source, match.index ?? 0),
       value,
+      review: reviewLedger.findings[key] ?? null,
     });
   }
 
@@ -63,12 +85,15 @@ for (const file of files) {
     const value = Number(match[1] ?? match[2]);
     if (!Number.isFinite(value)) continue;
     const method = methodForIndex(ranges, match.index ?? 0);
+    const key = `${fileName}#${method}#default-take:${value}`;
     defaultTakes.push({
-      key: `${fileName}#${method}#default-take:${value}`,
+      key,
+      owner,
       file: fileName,
       method,
       line: lineNumber(source, match.index ?? 0),
       value,
+      review: reviewLedger.findings[key] ?? null,
     });
   }
 
@@ -82,6 +107,7 @@ for (const file of files) {
     const method = methodForIndex(ranges, match.index ?? 0);
     const item = {
       key: `${fileName}#${method}#${model}.findMany:${lineNumber(source, match.index ?? 0)}`,
+      owner,
       file: fileName,
       method,
       line: lineNumber(source, match.index ?? 0),
@@ -96,15 +122,29 @@ for (const file of files) {
 
 const duplicateQueryGroups = [...queryShapes.entries()]
   .filter(([, items]) => items.length > 1)
-  .map(([shape, items]) => ({
-    key: `duplicate:${Buffer.from(shape).toString('base64url').slice(0, 24)}`,
-    shape,
-    occurrences: items,
-  }))
+  .map(([shape, items]) => {
+    const key = `duplicate:${Buffer.from(shape).toString('base64url').slice(0, 24)}`;
+    return {
+      key,
+      owners: [...new Set(items.map((item) => item.owner))].sort(),
+      shape,
+      occurrences: items,
+      review: reviewLedger.findings[key] ?? null,
+    };
+  })
   .sort((a, b) => b.occurrences.length - a.occurrences.length || a.key.localeCompare(b.key));
 
 hardCodedTakes.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
 defaultTakes.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
+
+const findings = [...hardCodedTakes, ...duplicateQueryGroups];
+const unreviewed = findings.filter((item) => !item.review);
+const staleReviewKeys = Object.keys(reviewLedger.findings).filter((key) => !findings.some((item) => item.key === key));
+const byOwner = {};
+for (const item of findings) {
+  const owners = 'owners' in item ? item.owners : [item.owner];
+  for (const owner of owners) byOwner[owner] = (byOwner[owner] ?? 0) + 1;
+}
 
 const result = {
   audit: 'R-010 query/read-model inventory',
@@ -112,9 +152,14 @@ const result = {
   hardCodedTakeCount: hardCodedTakes.length,
   defaultTakeCount: defaultTakes.length,
   duplicateQueryGroupCount: duplicateQueryGroups.length,
+  unreviewedCount: unreviewed.length,
+  staleReviewCount: staleReviewKeys.length,
+  findingsByOwner: Object.fromEntries(Object.entries(byOwner).sort(([a], [b]) => a.localeCompare(b))),
   hardCodedTakes,
   defaultTakes,
   duplicateQueryGroups,
+  unreviewed,
+  staleReviewKeys,
 };
 
 if (JSON_MODE) {
@@ -122,10 +167,12 @@ if (JSON_MODE) {
 } else {
   console.log(`R-010 query inventory: scanned ${files.length} TypeScript file(s).`);
   console.log(`Hard-coded takes: ${hardCodedTakes.length}; default takes: ${defaultTakes.length}; duplicate query groups: ${duplicateQueryGroups.length}.`);
-  for (const item of hardCodedTakes) console.log(`- TAKE ${item.file}:${item.line} ${item.method} -> ${item.value}`);
-  for (const group of duplicateQueryGroups) console.log(`- DUPLICATE ${group.key}: ${group.occurrences.length} occurrence(s)`);
+  console.log(`Unreviewed: ${unreviewed.length}; stale reviews: ${staleReviewKeys.length}.`);
+  for (const [owner, count] of Object.entries(result.findingsByOwner)) console.log(`- OWNER ${owner}: ${count} finding(s)`);
+  for (const item of hardCodedTakes) console.log(`- TAKE [${item.owner}] ${item.file}:${item.line} ${item.method} -> ${item.value}`);
+  for (const group of duplicateQueryGroups) console.log(`- DUPLICATE [${group.owners.join(',')}] ${group.key}: ${group.occurrences.length} occurrence(s)`);
 }
 
-if (STRICT_MODE && (hardCodedTakes.length > 0 || duplicateQueryGroups.length > 0)) {
+if (STRICT_MODE && (unreviewed.length > 0 || staleReviewKeys.length > 0)) {
   process.exitCode = 1;
 }
