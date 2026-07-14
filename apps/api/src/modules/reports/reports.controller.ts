@@ -2,31 +2,31 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
-import { ReportsService } from './reports.service';
+import { ReportsQueryService } from './reports-query.service';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 @RequirePermission('admin.reports.view')
 @Controller('admin/reports')
 export class ReportsController {
-  constructor(private readonly reportsService: ReportsService) {}
+  constructor(private readonly reportsQuery: ReportsQueryService) {}
 
   @Get('daily')
   getDaily(@Query() query: { from?: string; to?: string }) {
-    return this.reportsService.getDailySummary(query);
+    return this.reportsQuery.getDailySummary(query);
   }
 
   @Get('trends')
   getTrends(@Query() query: { days?: string }) {
-    return this.reportsService.getTrends(query);
+    return this.reportsQuery.getTrends(query);
   }
 
   @Get('queue-aging')
   getQueueAging() {
-    return this.reportsService.getQueueAging();
+    return this.reportsQuery.getQueueAging();
   }
 
   @Get('reconciliation')
   getReconciliation(@Query() query: { limit?: string }) {
-    return this.reportsService.getReconciliation(query);
+    return this.reportsQuery.getReconciliation(query);
   }
 }
