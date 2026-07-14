@@ -50,6 +50,7 @@ jobs:
           pnpm audit:r9-controller-prisma
           pnpm audit:r9-controller-prisma:json > r009-controller-prisma-inventory.json
           pnpm audit:r9-controller-prisma:strict
+          node tools/audit-r009-controller-closure.mjs
       - name: R-009 transaction lock-order inventory
         run: |
           pnpm audit:r9-lock-order
@@ -117,7 +118,8 @@ jobs:
             echo "- Member scope: ${{ steps.scope.outputs.member || 'unknown' }}"
             echo "- Packages scope: ${{ steps.scope.outputs.packages || 'unknown' }}"
             echo '- R-001 architecture inventory, R-002 boundaries, R-003 regression safety and R-006 quality closure gates execute unconditionally'
-            echo '- R-009 controller and lock-order boundaries are strict; repository, transaction-escape and schema inventories remain review-only'
+            echo '- R-009 controller persistence boundary is closed and protected by strict inventory plus closure audit'
+            echo '- R-009 lock-order boundary is strict; repository, transaction-escape and schema inventories remain review-only'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload quality failure evidence
         if: failure()
