@@ -10,6 +10,7 @@ import { ReviewDto, normalizeReviewNote, normalizeSnapshotReview } from './dto/g
 import { CreateGameTransferDto, normalizeTransferAmount } from './dto/game-transfer.dto';
 import { ProviderGatesDto, normalizeProviderGatesDto } from './dto/provider-gates.dto';
 import { GamePlatformMoneyService } from './game-platform-money.service';
+import { ProviderWebhookService } from './provider-webhook.service';
 
 @UseGuards(MemberAuthGuard)
 @Controller('member')
@@ -97,8 +98,8 @@ export class AdminGameMoneyController {
 
 @Controller('provider-webhooks')
 export class ProviderWebhookController {
-  constructor(private readonly moneyService: GamePlatformMoneyService) {}
+  constructor(private readonly webhooks: ProviderWebhookService) {}
 
   @Post(':providerCode')
-  receive(@Param('providerCode') providerCode: string, @Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderWebhookPayloadDto, @Req() req: HttpRequestContext) { return this.moneyService.receiveWebhook(providerCode, headers, body, req.rawBody); }
+  receive(@Param('providerCode') providerCode: string, @Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderWebhookPayloadDto, @Req() req: HttpRequestContext) { return this.webhooks.receive(providerCode, headers, body, req.rawBody); }
 }
