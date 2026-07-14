@@ -5,17 +5,27 @@ on:
     branches: [main]
     paths:
       - 'apps/api/src/common/infrastructure/**'
+      - 'apps/api/src/modules/admin-access/admin-access.service.ts'
       - 'prisma/schema.prisma'
+      - 'docs/evidence/r009-transaction-escape-review.json'
       - 'tools/audit-r009-row-lock-helpers.mjs'
       - 'tools/audit-r009-transaction-context.mjs'
+      - 'tools/audit-r009-transaction-escapes.mjs'
+      - 'tools/audit-r009-transaction-review-ledger.mjs'
+      - 'tools/audit-r009-admin-invitation-transaction.mjs'
       - 'tools/audit-r009-critical-constraint-closure.mjs'
       - '.github/workflows/r009-parallel-boundary-closure.yml'
   pull_request:
     paths:
       - 'apps/api/src/common/infrastructure/**'
+      - 'apps/api/src/modules/admin-access/admin-access.service.ts'
       - 'prisma/schema.prisma'
+      - 'docs/evidence/r009-transaction-escape-review.json'
       - 'tools/audit-r009-row-lock-helpers.mjs'
       - 'tools/audit-r009-transaction-context.mjs'
+      - 'tools/audit-r009-transaction-escapes.mjs'
+      - 'tools/audit-r009-transaction-review-ledger.mjs'
+      - 'tools/audit-r009-admin-invitation-transaction.mjs'
       - 'tools/audit-r009-critical-constraint-closure.mjs'
       - '.github/workflows/r009-parallel-boundary-closure.yml'
 
@@ -39,6 +49,10 @@ jobs:
         run: node tools/audit-r009-row-lock-helpers.mjs
       - name: Transaction-context guard
         run: node tools/audit-r009-transaction-context.mjs
+      - name: Transaction review ledger validation
+        run: node tools/audit-r009-transaction-review-ledger.mjs
+      - name: Admin invitation transaction closure
+        run: node tools/audit-r009-admin-invitation-transaction.mjs
       - name: Critical constraint closure
         run: node tools/audit-r009-critical-constraint-closure.mjs
       - name: Repository type boundary
