@@ -9,6 +9,7 @@ describe('finance concurrency hardening', () => {
   const deposit = source('src/modules/topups/deposit-workflow.service.ts');
   const withdrawals = source('src/modules/withdrawals/withdrawals.service.ts');
   const payout = source('src/modules/withdrawals/withdrawal-workflow.service.ts');
+  const rowLocks = source('src/common/infrastructure/prisma-row-locks.ts');
 
   it('locks the wallet before changing deposit balance', () => {
     expect(deposit).toContain('FROM "wallets"');
@@ -25,9 +26,11 @@ describe('finance concurrency hardening', () => {
   });
 
   it('serializes withdrawal reservation against the wallet row', () => {
-    expect(withdrawals).toContain('FROM "wallets"');
-    expect(withdrawals).toContain('FOR UPDATE');
-    expect(withdrawals.indexOf('FOR UPDATE')).toBeLessThan(withdrawals.indexOf('lockedBalance: lockedAfter'));
+    expect(rowLocks).toContain('FROM "wallets"');
+    expect(rowLocks).toContain('FOR UPDATE');
+    expect(withdrawals).toContain('lockWalletSnapshotForUpdateByUserId(tx, userId)');
+    expect(withdrawals.indexOf('lockWalletSnapshotForUpdateByUserId(tx, userId)'))
+      .toBeLessThan(withdrawals.indexOf('lockedBalance: lockedAfter'));
   });
 
   it('locks both request and wallet before final payout mutation', () => {
