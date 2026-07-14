@@ -7,7 +7,7 @@ import type {
   WatchlistEntryRecord,
 } from '../application/critical-repository-ports';
 
-type KycRow = {
+type KycRow = Record<string, unknown> & {
   id: string;
   member_id: string;
   status: string;
@@ -19,7 +19,7 @@ type KycRow = {
   updated_at: Date;
 };
 
-type WatchlistRow = {
+type WatchlistRow = Record<string, unknown> & {
   id: string;
   member_id: string | null;
   status: string;
@@ -169,6 +169,7 @@ function mapKyc(row: KycRow): KycReviewRecord {
     reviewedAt: row.reviewed_at,
     deletedAt: row.deleted_at ?? null,
     updatedAt: row.updated_at,
+    view: { ...row },
   };
 }
 
@@ -184,6 +185,7 @@ function mapWatchlist(row: WatchlistRow): WatchlistEntryRecord {
     releasedAt: row.released_at,
     releaseReason: row.release_reason,
     updatedAt: row.updated_at,
+    view: { ...row },
   };
 }
 
