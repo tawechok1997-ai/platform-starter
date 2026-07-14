@@ -1,0 +1,40 @@
+name: Close R-008 Master Worklist
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/r008-master-close.yml
+      - .github/r008-master-close-*.txt
+
+permissions:
+  contents: write
+
+jobs:
+  close:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Update R-008 master evidence
+        env:
+          R008_VERIFIED_COMMIT: e9850b22d033edd9f96eba178b1999699a0a5c96
+        run: node tools/close-r008-after-verification.mjs
+      - name: Commit master worklist closure
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/master-worklist.md docs/r008-closure-checklist.md
+          if git diff --cached --quiet; then
+            echo "R-008 master worklist already closed"
+            exit 0
+          fi
+          git commit -m "docs(r008): record completion in master worklist [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
