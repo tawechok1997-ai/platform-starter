@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RiskAlertStatus } from '@prisma/client';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
 type Actor = { id: string };
@@ -130,7 +131,7 @@ export class AffiliatesService {
   private normalizeCode(value: unknown) { return String(value ?? '').trim().toUpperCase().replace(/[^A-Z0-9_-]+/g, '').slice(0, 24); }
   private cleanText(value: unknown) { return typeof value === 'string' ? value.trim() : ''; }
   private safeJson(value: unknown) { return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue; }
-  private audit(adminUserId: string, action: string, targetId: string, oldData: unknown, newData: unknown) { return this.prisma.adminAuditLog.create({ data: { adminUserId, module: 'affiliates', action, targetId, oldData: this.safeJson(oldData ?? null), newData: this.safeJson(newData ?? null) } }).catch(() => null); }
+  private audit(adminUserId: string, action: string, targetId: string, oldData: unknown, newData: unknown) { return this.prisma.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId, module: 'affiliates', action, targetId, oldData, newData }) }).catch(() => null); }
 }
 
 function affiliateStatusLabel(status: string) { const map: Record<string, string> = { OPEN: 'PENDING', REVIEWING: 'REVIEWING', RESOLVED: 'APPROVED', DISMISSED: 'REJECTED' }; return map[status] ?? status; }
