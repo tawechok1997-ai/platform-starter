@@ -61,7 +61,7 @@ Current evidence: commit `490607cb25349bc63c5fe092249701ab246dfd7c` applies rese
 
 Remaining: 0 subtasks
 
-Current verification state: closure audit, API typecheck, full API tests, API build, and Railway deployments passed for the final R-008 integration lineage. Verified closure commit: `3d8ae8cdb82c9a58953026c8f3943ebcfe9d6d13`.
+Current verification state: closure audit, API typecheck, full API tests, API build, and Railway deployments passed for the final R-008 integration lineage. Verified closure commit: `0b65a7cf5925a10e4770b784c223756d2c1a1bfd`.
 
 ## Totals
 
