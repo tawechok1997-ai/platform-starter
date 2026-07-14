@@ -69,7 +69,7 @@ describe('AdminAccountLifecycleService', () => {
     expect(tx.adminAuditLog.create).toHaveBeenCalled();
   });
 
-  it('rolls back status and session changes when audit persistence fails', async () => {
+  it('rolls back account and session changes when audit persistence fails', async () => {
     const state = { status: 'ACTIVE', revokedSessions: 0 };
     const tx = {
       adminUser: {
