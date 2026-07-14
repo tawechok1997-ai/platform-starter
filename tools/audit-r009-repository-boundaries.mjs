@@ -22,12 +22,19 @@ function lineNumber(source, index) {
   return source.slice(0, index).split('\n').length;
 }
 
+function isPersistenceAgnosticContract(file) {
+  const normalized = relative(file);
+  if (normalized.includes('/domain/') || normalized.includes('/application/')) return true;
+
+  // Repository implementations are allowed to depend on Prisma. Only explicit
+  // port/interface/contract naming outside domain/application is treated as a
+  // persistence-agnostic boundary.
+  return /(?:\.port|\.repository-port|\.repository\.interface|\.repository\.contract)\.ts$/.test(normalized);
+}
+
 const candidateFiles = walk(API_SRC)
   .filter((file) => file.endsWith('.ts'))
-  .filter((file) => {
-    const normalized = relative(file);
-    return normalized.includes('/domain/') || normalized.includes('/application/') || /(?:repository|port)\.ts$/.test(normalized);
-  })
+  .filter(isPersistenceAgnosticContract)
   .sort();
 
 const patterns = [
