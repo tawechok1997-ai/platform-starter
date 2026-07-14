@@ -4,6 +4,10 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { DomainError, InvalidStateTransitionError } from '../../common/domain/domain-error';
 import { Money } from '../../common/domain/value-objects';
+import {
+  lockWalletSnapshotForUpdateByUserId,
+  lockWithdrawalSnapshotForUpdate,
+} from '../../common/infrastructure/prisma-row-locks';
 import { PrismaService } from '../../database/prisma.service';
 import { WalletSettlementPolicy } from '../wallet/domain/wallet-settlement.policy';
 import { CompleteWithdrawalRequestDto } from './dto/complete-withdrawal-request.dto';
@@ -13,15 +17,6 @@ import { WithdrawalPolicy, type WithdrawalStatus } from './domain/withdrawal.pol
 
 const CLAIM_TIMEOUT_MS = 15 * 60 * 1000;
 const BONUS_LEDGER_REF_TYPE = 'BONUS_LEDGER';
-
-type LockedWalletRow = {
-  id: string;
-  user_id: string;
-  currency: string;
-  status: string;
-  balance: Prisma.Decimal;
-  locked_balance: Prisma.Decimal;
-};
 
 @Injectable()
 export class WithdrawalsService {
@@ -61,19 +56,13 @@ export class WithdrawalsService {
       });
       if (!approvedBank) throw new BadRequestException('กรุณาใช้บัญชีถอนเงินที่แอดมินอนุมัติแล้วเท่านั้น');
 
-      const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
-        SELECT "id", "user_id", "currency", "status"::text AS status, "balance", "locked_balance"
-        FROM "wallets"
-        WHERE "user_id" = ${userId}::uuid
-        FOR UPDATE
-      `);
-      const wallet = walletRows[0];
+      const wallet = await lockWalletSnapshotForUpdateByUserId(tx, userId);
       if (!wallet) throw new BadRequestException('Wallet not found');
 
       this.applyDomainPolicy(() => WalletSettlementPolicy.assertActive(wallet.status));
       const lockedAfterMoney = this.applyDomainPolicy(() => WalletSettlementPolicy.reserve(
         Money.fromMajor(wallet.balance.toString(), wallet.currency),
-        Money.fromMajor(wallet.locked_balance.toString(), wallet.currency),
+        Money.fromMajor(wallet.lockedBalance.toString(), wallet.currency),
         Money.fromMajor(amount.toString(), wallet.currency),
       ));
       const lockedAfter = new Decimal(lockedAfterMoney.toMajorString());
@@ -126,16 +115,10 @@ export class WithdrawalsService {
 
   async claimRequest(id: string, adminUser: any, meta: RequestMeta = {}) {
     return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<Array<{ status: string; claimed_by: string | null; claimed_at: Date | null }>>(Prisma.sql`
-        SELECT "status"::text AS status, "claimed_by", "claimed_at"
-        FROM "withdrawal_requests"
-        WHERE "id" = ${id}::uuid
-        FOR UPDATE
-      `);
-      const request = rows[0];
+      const request = await lockWithdrawalSnapshotForUpdate(tx, id);
       if (!request) throw new NotFoundException('Withdrawal request not found');
       if (!WithdrawalPolicy.canBeClaimed(request.status as WithdrawalStatus)) throw new ConflictException('Withdrawal request is not available for claim');
-      if (request.claimed_by && request.claimed_by !== adminUser.id && request.claimed_at && Date.now() - request.claimed_at.getTime() < CLAIM_TIMEOUT_MS) {
+      if (request.claimedBy && request.claimedBy !== adminUser.id && request.claimedAt && Date.now() - request.claimedAt.getTime() < CLAIM_TIMEOUT_MS) {
         throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
       }
       const updated = await tx.withdrawalRequest.update({ where: { id }, data: { claimedBy: adminUser.id, claimedAt: new Date() } });
@@ -145,7 +128,7 @@ export class WithdrawalsService {
           action: 'CLAIM_WITHDRAWAL',
           module: 'withdrawals',
           targetId: id,
-          oldData: { claimedBy: request.claimed_by },
+          oldData: { claimedBy: request.claimedBy },
           newData: { claimedBy: adminUser.id },
           ipAddress: meta.ipAddress,
           userAgent: meta.userAgent,
@@ -156,22 +139,32 @@ export class WithdrawalsService {
   }
 
   async releaseRequest(id: string, adminUser: any, meta: RequestMeta = {}) {
-    const request = await this.prisma.withdrawalRequest.findUnique({ where: { id } });
-    if (!request) throw new NotFoundException('Withdrawal request not found');
-    if (request.claimedBy && request.claimedBy !== adminUser.id) throw new ConflictException('ปล่อยงานได้เฉพาะคนที่ claim เท่านั้น');
-    const updated = await this.prisma.withdrawalRequest.update({ where: { id }, data: { claimedBy: null, claimedAt: null } });
-    await this.audit(adminUser.id, 'RELEASE_WITHDRAWAL', id, { claimedBy: request.claimedBy }, { claimedBy: null }, meta);
-    return this.formatRequest(updated);
+    return this.prisma.$transaction(async (tx) => {
+      const request = await lockWithdrawalSnapshotForUpdate(tx, id);
+      if (!request) throw new NotFoundException('Withdrawal request not found');
+      if (request.claimedBy && request.claimedBy !== adminUser.id) throw new ConflictException('ปล่อยงานได้เฉพาะคนที่ claim เท่านั้น');
+      const updated = await tx.withdrawalRequest.update({ where: { id }, data: { claimedBy: null, claimedAt: null } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: adminUser.id,
+          action: 'RELEASE_WITHDRAWAL',
+          module: 'withdrawals',
+          targetId: id,
+          oldData: { claimedBy: request.claimedBy },
+          newData: { claimedBy: null },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
+      return this.formatRequest(updated);
+    });
   }
 
   async approveRequest(id: string, adminUser: any, dto: ReviewWithdrawalRequestDto, meta: RequestMeta = {}) {
     return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<Array<{ status: string; claimed_by: string | null }>>(Prisma.sql`
-        SELECT "status"::text AS status, "claimed_by" FROM "withdrawal_requests" WHERE "id" = ${id}::uuid FOR UPDATE
-      `);
-      const request = rows[0];
+      const request = await lockWithdrawalSnapshotForUpdate(tx, id);
       if (!request) throw new NotFoundException('Withdrawal request not found');
-      if (request.claimed_by && request.claimed_by !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+      if (request.claimedBy && request.claimedBy !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
       this.applyDomainPolicy(() => WithdrawalPolicy.assertTransition(request.status as WithdrawalStatus, 'APPROVED_FOR_PAYMENT'));
       const changed = await tx.$executeRaw(Prisma.sql`
         UPDATE "withdrawal_requests"
@@ -200,25 +193,17 @@ export class WithdrawalsService {
 
   async completeRequest(id: string, adminUser: any, dto: CompleteWithdrawalRequestDto, meta: RequestMeta = {}) {
     return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<Array<{ status: string; user_id: string; amount: Prisma.Decimal; claimed_by: string | null }>>(Prisma.sql`
-        SELECT "status"::text AS status, "user_id", "amount", "claimed_by"
-        FROM "withdrawal_requests" WHERE "id" = ${id}::uuid FOR UPDATE
-      `);
-      const request = rows[0];
+      const request = await lockWithdrawalSnapshotForUpdate(tx, id);
       if (!request) throw new NotFoundException('Withdrawal request not found');
-      if (request.claimed_by && request.claimed_by !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+      if (request.claimedBy && request.claimedBy !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
       this.applyDomainPolicy(() => WithdrawalPolicy.assertTransition(request.status as WithdrawalStatus, 'COMPLETED'));
 
-      const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
-        SELECT "id", "user_id", "currency", "status"::text AS status, "balance", "locked_balance"
-        FROM "wallets" WHERE "user_id" = ${request.user_id}::uuid FOR UPDATE
-      `);
-      const wallet = walletRows[0];
+      const wallet = await lockWalletSnapshotForUpdateByUserId(tx, request.userId);
       if (!wallet) throw new BadRequestException('Wallet not found');
       this.applyDomainPolicy(() => WalletSettlementPolicy.assertActive(wallet.status));
       const settlement = this.applyDomainPolicy(() => WalletSettlementPolicy.completeDebit(
         Money.fromMajor(wallet.balance.toString(), wallet.currency),
-        Money.fromMajor(wallet.locked_balance.toString(), wallet.currency),
+        Money.fromMajor(wallet.lockedBalance.toString(), wallet.currency),
         Money.fromMajor(request.amount.toString(), wallet.currency),
       ));
       const balanceAfter = new Decimal(settlement.balanceAfter.toMajorString());
@@ -226,7 +211,7 @@ export class WithdrawalsService {
 
       const ledger = await tx.walletLedger.create({
         data: {
-          walletId: wallet.id, userId: request.user_id, type: 'WITHDRAWAL', direction: 'DEBIT',
+          walletId: wallet.id, userId: request.userId, type: 'WITHDRAWAL', direction: 'DEBIT',
           amount: request.amount, balanceBefore: wallet.balance, balanceAfter,
           referenceType: 'WITHDRAWAL_REQUEST', referenceId: id,
           idempotencyKey: `withdrawal:${id}:complete`,
@@ -262,26 +247,16 @@ export class WithdrawalsService {
 
   async rejectRequest(id: string, adminUser: any, dto: ReviewWithdrawalRequestDto, meta: RequestMeta = {}) {
     return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<Array<{ status: string; user_id: string; amount: Prisma.Decimal; claimed_by: string | null }>>(Prisma.sql`
-        SELECT "status"::text AS status, "user_id", "amount", "claimed_by"
-        FROM "withdrawal_requests" WHERE "id" = ${id}::uuid FOR UPDATE
-      `);
-      const request = rows[0];
+      const request = await lockWithdrawalSnapshotForUpdate(tx, id);
       if (!request) throw new NotFoundException('Withdrawal request not found');
-      if (request.claimed_by && request.claimed_by !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+      if (request.claimedBy && request.claimedBy !== adminUser.id) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
       this.applyDomainPolicy(() => WithdrawalPolicy.assertTransition(request.status as WithdrawalStatus, 'REJECTED'));
 
-      const walletRows = await tx.$queryRaw<LockedWalletRow[]>(Prisma.sql`
-        SELECT "id", "user_id", "currency", "status"::text AS status, "balance", "locked_balance"
-        FROM "wallets"
-        WHERE "user_id" = ${request.user_id}::uuid
-        FOR UPDATE
-      `);
-      const wallet = walletRows[0];
+      const wallet = await lockWalletSnapshotForUpdateByUserId(tx, request.userId);
       if (!wallet) throw new BadRequestException('Wallet not found');
       this.applyDomainPolicy(() => WalletSettlementPolicy.assertActive(wallet.status));
       const lockedAfterMoney = this.applyDomainPolicy(() => WalletSettlementPolicy.releaseReservation(
-        Money.fromMajor(wallet.locked_balance.toString(), wallet.currency),
+        Money.fromMajor(wallet.lockedBalance.toString(), wallet.currency),
         Money.fromMajor(request.amount.toString(), wallet.currency),
       ));
       const lockedAfter = new Decimal(lockedAfterMoney.toMajorString());
@@ -343,21 +318,6 @@ export class WithdrawalsService {
         AND "claimed_by" IS NOT NULL
         AND "claimed_at" < ${staleSince}
     `);
-  }
-
-  private audit(adminUserId: string, action: string, targetId: string, oldData: unknown, newData: unknown, meta: RequestMeta) {
-    return this.prisma.adminAuditLog.create({
-      data: buildAdminAuditData({
-        adminUserId,
-        action,
-        module: 'withdrawals',
-        targetId,
-        oldData,
-        newData,
-        ipAddress: meta.ipAddress,
-        userAgent: meta.userAgent,
-      }),
-    }).catch(() => null);
   }
 
   private formatRequest(item: any) {
