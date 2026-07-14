@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
 import { NotificationFeedReadRepository } from './notification-feed-read.repository';
+import {
+  buildNotificationFeedSummary,
+  NOTIFICATION_FEED_RESULT_LIMIT,
+} from './notification-read.projections';
 import {
   DEFAULT_CATEGORIES,
   NotificationItem,
-  NotificationType,
   channelSettingKey,
   money,
   normalizeChannels,
@@ -15,10 +17,7 @@ import {
 
 @Injectable()
 export class NotificationsQueryService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly feedRepository: NotificationFeedReadRepository,
-  ) {}
+  constructor(private readonly feedRepository: NotificationFeedReadRepository) {}
 
   async listMemberNotifications(userId: string) {
     const [topUps, withdrawals, supportTickets, loginHistory] = await this.feedRepository.loadMemberFeedSources(userId);
@@ -62,10 +61,7 @@ export class NotificationsQueryService {
 
     items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     const [states, preferenceBundle] = await Promise.all([
-      this.prisma.notificationState.findMany({
-        where: { userId, notificationKey: { in: items.map((item) => item.id) } },
-        select: { notificationKey: true, readAt: true, archivedAt: true },
-      }),
+      this.feedRepository.loadMemberFeedState(userId, items.map((item) => item.id)),
       this.getPreferences(userId),
     ]);
 
@@ -73,7 +69,7 @@ export class NotificationsQueryService {
     const visibleItems = items.filter(
       (item) => preferenceBundle.preferences.categories[item.type] !== false && !stateByKey.get(item.id)?.archivedAt,
     );
-    const limited = visibleItems.slice(0, 50).map((item) => {
+    const limited = visibleItems.slice(0, NOTIFICATION_FEED_RESULT_LIMIT).map((item) => {
       const state = stateByKey.get(item.id);
       return {
         ...item,
@@ -87,30 +83,21 @@ export class NotificationsQueryService {
       (acc[day] ??= []).push(item);
       return acc;
     }, {});
+    const summary = buildNotificationFeedSummary(limited);
 
     return {
       items: limited,
       groups,
-      total: limited.length,
-      counts: limited.reduce((acc, item) => {
-        acc[item.type] = (acc[item.type] ?? 0) + 1;
-        return acc;
-      }, {} as Record<NotificationType, number>),
+      ...summary,
       preferences: preferenceBundle.preferences,
     };
   }
 
   async getPreferences(userId: string) {
-    const [categoryPreference, channelSetting] = await Promise.all([
-      this.prisma.notificationPreference.findUnique({
-        where: { userId },
-        select: { finance: true, security: true, promotion: true, system: true },
-      }),
-      this.prisma.siteSetting.findUnique({
-        where: { key: channelSettingKey(userId) },
-        select: { valueJson: true },
-      }),
-    ]);
+    const [categoryPreference, channelSetting] = await this.feedRepository.loadMemberPreferenceDetail(
+      userId,
+      channelSettingKey(userId),
+    );
 
     return {
       preferences: {
