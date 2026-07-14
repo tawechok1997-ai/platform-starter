@@ -11,6 +11,8 @@
     "typecheck:admin": "pnpm --filter @platform/web-admin typecheck",
     "typecheck:member": "pnpm --filter @platform/web-member typecheck",
     "typecheck": "pnpm typecheck:api && pnpm typecheck:admin && pnpm typecheck:member",
+    "audit:shared-api-client": "node tools/audit-shared-api-client.mjs",
+    "audit:r5-closure": "pnpm audit:shared-api-client && pnpm --filter @platform/api-client test && pnpm --filter @platform/api-client build && pnpm typecheck:admin && pnpm typecheck:member",
     "audit:p5-closure": "node tools/audit-p5-closure.mjs",
     "audit:p4-closure": "node tools/audit-p4-closure.mjs",
     "audit:r4-closure": "node tools/audit-r004-closure.mjs",
