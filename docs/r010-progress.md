@@ -14,7 +14,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ## Definition of done
 
-- [ ] Inventory duplicate queries and hard-coded `take` values.
+- [x] Inventory duplicate queries and hard-coded `take` values.
 - [ ] Consolidate duplicate queries by module ownership.
 - [ ] Separate list, detail, and summary projections.
 - [ ] Reduce unnecessary relation `include` usage in list endpoints.
@@ -46,14 +46,32 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - Do not replace indexed pagination with an unbounded query.
 - Add characterization or contract coverage before changing critical list/detail responses.
 
-## Current progress
+## Closed outcomes
 
-- [x] Corrected R-010 scope to match `docs/master-project-worklist.md`.
-- [ ] Build the initial query/read-model inventory.
-- [ ] Persist the first reviewed baseline.
+### Query/read-model inventory
+
+- [x] Added `tools/audit-r010-query-inventory.mjs`.
+- [x] Scans API TypeScript source for numeric `take` literals and embedded page-size defaults.
+- [x] Records Prisma `findMany` query shapes and duplicate groups.
+- [x] Uses stable file/method/value or file/method/query keys.
+- [x] Supports deterministic JSON output and future strict enforcement.
+- [x] Added `docs/evidence/r010-query-inventory-foundation.md`.
+
+## Active work
+
+### Reviewed baseline and module ownership
+
+- [ ] Run/classify current findings by module.
+- [ ] Persist a reviewed baseline ledger.
+- [ ] Select the first duplicate query family for consolidation.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 0
-- Remaining: 13
+- Closed: 1
+- Remaining: 12
+
+## Latest commits
+
+- `734560e31007b4258cf5c2b4025082c0273c81e1` — record query inventory foundation evidence.
+- `14049883c7e768a3e9dffc223b78615999871d7e` — add query/read-model inventory with stable findings.
