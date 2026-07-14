@@ -28,9 +28,13 @@ Updated: **2026-07-14**
 - Added `audit-admin-audit-writers.mjs` plus normal and strict package scripts to inventory legacy `adminAuditLog.create` writers that have not migrated to the shared builder.
 - Split member/Admin KYC reads into `KycDocumentsQueryService`; both KYC controllers now route read endpoints directly to the query service.
 - Extracted KYC case/document response shaping into `kyc.mapper.ts` and added focused mapping regression tests.
-- Split watchlist list/match reads into `RiskWatchlistQueryService`; `RiskWatchlistController` now routes read operations directly to the query service.
+- Split member KYC upload/submit mutations into `KycMemberCommandService` while preserving storage rollback and serializable submission boundaries.
+- Split Admin KYC case/document reviews into `KycReviewCommandService`; review mutation and audit now share one transaction and use the shared audit builder.
+- Added focused KYC command coverage for required-document submission, stale review versions, transaction usage, and audit shape.
+- Split watchlist list/match reads into `RiskWatchlistQueryService`; `RiskWatchlistController` routes reads directly to the query service.
 - Extracted watchlist response and match-result shaping into `risk-watchlist.mapper.ts` with blacklist/empty-result regression coverage.
-- Confirmed KYC/watchlist command ownership remains in `KycDocumentsService` and `RiskWatchlistService` pending a separate mutation-safe extraction.
+- Split watchlist create/release mutations into `RiskWatchlistCommandService`; both operations now write audit records through the shared builder inside their transaction boundaries.
+- Added focused watchlist command coverage for optimistic-version rejection, release transaction usage, and audit shape.
 - Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked on a real endpoint instead of adding unused infrastructure.
 
 ## Remaining closure scope
@@ -38,7 +42,7 @@ Updated: **2026-07-14**
 R-007 cannot be marked DONE until the following areas have implementation and regression evidence:
 
 - Remaining Admin auth/account lifecycle decomposition beyond Admin member management and session query/commands.
-- KYC/watchlist mutation decomposition beyond the completed query/mapper slices.
+- Remaining KYC access-token/download and retention-cleanup orchestration extraction.
 - CMS decomposition beyond existing report slices.
 - Shared Prisma-to-domain-to-response mappers for remaining critical domains.
 - Migrate remaining audit writers identified by `pnpm audit:admin-audit-writers` to the shared builder and extract metadata formatters.
@@ -56,14 +60,11 @@ pnpm audit:admin-audit-writers
 pnpm audit:admin-audit-writers:strict
 pnpm audit:r7-closure
 pnpm typecheck:api
+pnpm --filter @platform/api test -- kyc-member-command.service.spec.ts --runInBand
+pnpm --filter @platform/api test -- kyc-review-command.service.spec.ts --runInBand
+pnpm --filter @platform/api test -- risk-watchlist-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- kyc.mapper.spec.ts --runInBand
 pnpm --filter @platform/api test -- risk-watchlist.mapper.spec.ts --runInBand
-pnpm --filter @platform/api test -- admin-session-command.service.spec.ts --runInBand
-pnpm --filter @platform/api test -- admin-session.mapper.spec.ts --runInBand
-pnpm --filter @platform/api test -- support-command.service.spec.ts --runInBand
-pnpm --filter @platform/api test -- support-ticket.mapper.spec.ts --runInBand
-pnpm --filter @platform/api test -- admin-audit.builder.spec.ts --runInBand
-pnpm --filter @platform/api test -- report.mapper.spec.ts --runInBand
 pnpm --filter @platform/api test -- --runInBand
 pnpm build:api
 ```
