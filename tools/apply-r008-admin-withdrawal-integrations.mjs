@@ -23,8 +23,8 @@ await patch('apps/api/src/modules/admin-access/admin-access.service.ts', [
   },
   {
     label: 'ownership policy enforcement',
-    from: "    if (target.status !== 'ACTIVE') throw new BadRequestException('Target admin account must be active');\n    if (!target.twoFactorEnabled) throw new BadRequestException('Target admin account must have 2FA enabled before ownership transfer');\n",
-    to: "    try {\n      AdminOwnershipPolicy.assertCanTransfer({\n        actorIsOwner: true,\n        actorId: actorAdminId,\n        targetId: targetAdminId,\n        targetActive: target.status === 'ACTIVE',\n      });\n    } catch (error) {\n      if (error instanceof DomainError) throw new BadRequestException(error.message);\n      throw error;\n    }\n    if (!target.twoFactorEnabled) throw new BadRequestException('Target admin account must have 2FA enabled before ownership transfer');\n",
+    from: "    if (actor.roles.every((item) => !PROTECTED_ROLE_CODES.has(item.role.code) && !item.role.permissions.some((permission) => permission.permission.code === SUPER_PERMISSION))) {\n      throw new ForbiddenException('Only an owner-level admin can transfer ownership');\n    }\n    if (target.status !== 'ACTIVE') throw new BadRequestException('Target admin account must be active');\n",
+    to: "    const actorIsOwner = actor.roles.some((item) => PROTECTED_ROLE_CODES.has(item.role.code) || item.role.permissions.some((permission) => permission.permission.code === SUPER_PERMISSION));\n    try {\n      AdminOwnershipPolicy.assertCanTransfer({\n        actorIsOwner,\n        actorId: actorAdminId,\n        targetId: targetAdminId,\n        targetActive: target.status === 'ACTIVE',\n      });\n    } catch (error) {\n      if (error instanceof DomainError && error.message.includes('Only an owner')) throw new ForbiddenException(error.message);\n      if (error instanceof DomainError) throw new BadRequestException(error.message);\n      throw error;\n    }\n",
   },
 ]);
 
@@ -32,12 +32,12 @@ await patch('apps/api/src/modules/withdrawals/withdrawals.service.ts', [
   {
     label: 'withdrawal policy imports',
     from: "import { PrismaService } from '../../database/prisma.service';\n",
-    to: "import { PrismaService } from '../../database/prisma.service';\nimport { DomainError } from '../../common/domain/domain-error';\nimport { Money } from '../../common/domain/value-objects';\nimport { WithdrawalPolicy, type WithdrawalStatus } from './domain/withdrawal.policy';\nimport { WalletSettlementPolicy } from '../wallet/domain/wallet-settlement.policy';\n",
+    to: "import { PrismaService } from '../../database/prisma.service';\nimport { DomainError, InvalidStateTransitionError } from '../../common/domain/domain-error';\nimport { Money } from '../../common/domain/value-objects';\nimport { WithdrawalPolicy, type WithdrawalStatus } from './domain/withdrawal.policy';\nimport { WalletSettlementPolicy } from '../wallet/domain/wallet-settlement.policy';\n",
   },
   {
     label: 'amount policy',
     from: "    const amount = new Decimal(dto.amount ?? 0);\n    if (amount.lte(0)) throw new BadRequestException('Amount must be greater than zero');\n",
-    to: "    const amount = new Decimal(dto.amount ?? 0);\n    this.applyDomainPolicy(() => WithdrawalPolicy.assertAmount(Number(amount.toString())));\n",
+    to: "    const amount = new Decimal(dto.amount ?? 0);\n    this.applyDomainPolicy(() => WithdrawalPolicy.assertAmount(Money.fromMajor(amount.toString())));\n",
   },
   {
     label: 'wallet reservation policy',
@@ -55,7 +55,7 @@ await patch('apps/api/src/modules/withdrawals/withdrawals.service.ts', [
     to: "      this.applyDomainPolicy(() => WithdrawalPolicy.assertTransition(request.status as WithdrawalStatus, 'APPROVED_FOR_PAYMENT'));\n",
   },
   {
-    label: 'complete transition and settlement policy',
+    label: 'complete transition policy',
     from: "      if (!['APPROVED_FOR_PAYMENT', 'PAYMENT_VERIFIED'].includes(request.status)) throw new ConflictException(`Withdrawal cannot be completed: ${request.status}`);\n",
     to: "      this.applyDomainPolicy(() => WithdrawalPolicy.assertTransition(request.status as WithdrawalStatus, 'COMPLETED'));\n",
   },
@@ -77,7 +77,7 @@ await patch('apps/api/src/modules/withdrawals/withdrawals.service.ts', [
   {
     label: 'domain policy adapter',
     from: "  private normalizeIdempotencyKey(userId: string, value?: string | null) {",
-    to: "  private applyDomainPolicy<T>(operation: () => T): T {\n    try {\n      return operation();\n    } catch (error) {\n      if (error instanceof DomainError) throw new BadRequestException(error.message);\n      throw error;\n    }\n  }\n\n  private normalizeIdempotencyKey(userId: string, value?: string | null) {",
+    to: "  private applyDomainPolicy<T>(operation: () => T): T {\n    try {\n      return operation();\n    } catch (error) {\n      if (error instanceof InvalidStateTransitionError) throw new ConflictException(error.message);\n      if (error instanceof DomainError) throw new BadRequestException(error.message);\n      throw error;\n    }\n  }\n\n  private normalizeIdempotencyKey(userId: string, value?: string | null) {",
   },
 ]);
 
