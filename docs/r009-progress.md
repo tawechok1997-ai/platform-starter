@@ -93,14 +93,18 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [x] Added `docs/evidence/r009-transaction-escape-review.json` as the reviewed baseline ledger.
 - [x] Added `tools/audit-r009-transaction-review-ledger.mjs` to reject invalid statuses and undocumented safe findings.
 - [x] Added strict mode that fails on confirmed, unreviewed, or stale findings.
-- [ ] Populate the review ledger from the current method-level inventory.
-- [ ] Resolve all confirmed legacy service escapes.
+- [x] Classified `AdminAccessService.createInvitation` audit persistence as a confirmed transaction escape.
+- [x] Added `tools/audit-r009-admin-invitation-transaction.mjs` as a dedicated failing closure guard.
+- [ ] Move the `CREATE_ADMIN_INVITATION` audit write into the existing transaction owner.
+- [ ] Populate the review ledger from the remaining current method-level inventory.
+- [ ] Resolve all remaining confirmed legacy service escapes.
 - [ ] Enable strict mode in the required quality workflow after review reaches zero unreviewed findings.
 
 ## Pending evidence
 
 - [ ] Confirm Prisma adapter workflows through an observable verification channel.
-- [ ] Run the method-level transaction inventory and classify every same-method finding.
+- [ ] Run the method-level transaction inventory and classify every remaining same-method finding.
+- [ ] Resolve the confirmed admin invitation audit escape.
 
 ## Remaining R-009 work
 
@@ -127,12 +131,12 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-The transaction escape inventory now has stable finding identities, a reviewed baseline ledger, stale-review detection, and a strict mode. Strict enforcement is intentionally not enabled until the current findings are semantically classified, preventing legacy debt from being silently accepted or CI from failing on unreviewed false positives. No Prisma schema, production data, finance formula, permission, secret, provider, or deployment-target change was made.
+The transaction escape inventory now has stable finding identities, a reviewed baseline ledger, stale-review detection, and a strict mode. `AdminAccessService.createInvitation` is recorded as a confirmed escape because admin creation and verification-token persistence commit before the required audit write. A dedicated guard now fails until that audit moves into the same transaction. The runtime service was not replaced through the GitHub Contents API because the file is large and concurrent direct-main changes make whole-file replacement unsafe. No Prisma schema, production data, finance formula, permission, secret, provider, or deployment-target change was made.
 
 ## Latest commits
 
+- `097e003b3e90d35d41bf84339025bb034e8928d3` — classify the admin invitation audit escape.
+- `44c537dd1f35f7d83f833f1cb6168bc8f4e21ce7` — add the admin invitation transaction closure guard.
 - `69ad45073542267190e07ff3222f0bcab8cdae4c` — add reviewed baseline and strict mode to the transaction escape audit.
 - `a3a597349f7ad740350cc71fbe6b5be601b44415` — add transaction escape review ledger.
 - `8278df2d43fc74f642e941ee9fa0e0e4ccbf5334` — validate transaction escape review records.
-- `c8c0058f56de9d6966efe8093cab518a45317639` — close finance row-lock helper migration.
-- `b2f3b4541b9b2c0d3db464b6ccbfaa24abb5480f` — migrate withdrawal legacy flows to typed row-lock helpers.
