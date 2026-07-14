@@ -27,6 +27,7 @@
     "audit:backend-decomposition:json": "R007_JSON=1 node tools/audit-backend-decomposition.mjs",
     "audit:admin-audit-writers": "node tools/audit-admin-audit-writers.mjs",
     "audit:admin-audit-writers:strict": "ADMIN_AUDIT_WRITERS_STRICT=1 node tools/audit-admin-audit-writers.mjs",
+    "audit:r7-quality": "pnpm audit:backend-decomposition && pnpm audit:admin-audit-writers:strict && pnpm typecheck:api",
     "audit:r1-closure": "node tools/audit-r001-closure.mjs",
     "audit:r2-closure": "node tools/audit-r002-closure.mjs",
     "audit:r3-closure": "pnpm audit:critical-test-safety",
