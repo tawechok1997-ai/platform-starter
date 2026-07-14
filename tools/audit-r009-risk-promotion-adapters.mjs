@@ -13,11 +13,15 @@ const watchlist = fs.readFileSync(watchlistPath, 'utf8');
 const checks = [
   ['KYC/watchlist port exists', /interface KycWatchlistRepositoryPort/],
   ['promotion settlement port exists', /interface PromotionSettlementRepositoryPort/],
+  ['promotion record preserves release actor', /releasedBy\?: RepositoryId \| null/],
+  ['promotion record preserves release timestamp', /releasedAt\?: RepositoryTimestamp \| null/],
   ['KYC/watchlist adapter exists', /class PrismaKycWatchlistRepositoryAdapter/],
   ['promotion settlement adapter exists', /class PrismaPromotionSettlementRepositoryAdapter/],
   ['adapters receive transaction client', /constructor\(private readonly tx: Prisma\.TransactionClient\)/],
   ['adapters do not open transactions', !/\$transaction\(/.test(adapters)],
   ['adapters do not instantiate PrismaClient', !/new PrismaClient/.test(adapters)],
+  ['promotion adapter persists release actor', /released_by_admin_id" = \$\{record\.releasedBy \?\? null\}::uuid/],
+  ['promotion adapter persists release timestamp', /released_at" = \$\{record\.releasedAt \?\? null\}/],
   ['KYC service uses adapter inside transaction', /\$transaction\(async \(tx\)[\s\S]*new PrismaKycWatchlistRepositoryAdapter\(tx\)/.test(kyc)],
   ['watchlist release uses adapter inside transaction', /async release[\s\S]*\$transaction\(async \(tx\)[\s\S]*new PrismaKycWatchlistRepositoryAdapter\(tx\)/.test(watchlist)],
   ['KYC service has no inline FOR UPDATE', !/FOR UPDATE/.test(kyc)],
@@ -27,7 +31,11 @@ const checks = [
 const failed = checks.filter(([, result]) => result instanceof RegExp ? false : !result).map(([name]) => name);
 const regexChecks = checks.filter(([, result]) => result instanceof RegExp);
 for (const [name, pattern] of regexChecks) {
-  const source = name.startsWith('KYC/watchlist port') || name.startsWith('promotion settlement port') ? ports : adapters;
+  const source = name.startsWith('KYC/watchlist port')
+    || name.startsWith('promotion settlement port')
+    || name.startsWith('promotion record')
+    ? ports
+    : adapters;
   if (!pattern.test(source)) failed.push(name);
 }
 
