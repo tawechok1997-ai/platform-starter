@@ -5,9 +5,12 @@ import { StorageModule } from '../storage/storage.module';
 import { AdminKycController } from './admin-kyc.controller';
 import { KycDocumentsQueryService } from './kyc-documents-query.service';
 import { KycDocumentsService } from './kyc-documents.service';
+import { KycMemberCommandService } from './kyc-member-command.service';
+import { KycReviewCommandService } from './kyc-review-command.service';
 import { MemberKycController } from './member-kyc.controller';
 import { RiskAlertsController } from './risk-alerts.controller';
 import { RiskAlertsService } from './risk-alerts.service';
+import { RiskWatchlistCommandService } from './risk-watchlist-command.service';
 import { RiskWatchlistController } from './risk-watchlist.controller';
 import { RiskWatchlistQueryService } from './risk-watchlist-query.service';
 import { RiskWatchlistService } from './risk-watchlist.service';
@@ -20,17 +23,23 @@ import { RiskEnforcementService } from './risk-enforcement.service';
     RiskAlertsService,
     RiskWatchlistService,
     RiskWatchlistQueryService,
+    RiskWatchlistCommandService,
     RiskEnforcementService,
     KycDocumentsService,
     KycDocumentsQueryService,
+    KycMemberCommandService,
+    KycReviewCommandService,
   ],
   exports: [
     RiskAlertsService,
     RiskWatchlistService,
     RiskWatchlistQueryService,
+    RiskWatchlistCommandService,
     RiskEnforcementService,
     KycDocumentsService,
     KycDocumentsQueryService,
+    KycMemberCommandService,
+    KycReviewCommandService,
   ],
 })
 export class RiskAlertsModule {}
