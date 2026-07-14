@@ -1,0 +1,41 @@
+name: R-007 closure updater
+
+on:
+  push:
+    paths:
+      - '.github/workflows/r007-close-worklist.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  close-r007:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Update master worklist
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('docs/master-worklist.md')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('Updated: 2026-07-13  ', 'Updated: 2026-07-15  ', 1)
+          marker = '## Backend architecture and policy separation\n'
+          section = '''## Backend audit writer standardization\n\n- ✅ R-007 Admin audit writer standardization is DONE and verified.\n- ✅ All runtime Admin audit writers use `buildAdminAuditData(...)`.\n- ✅ The strict inventory legacy baseline is empty and new direct writers fail as `NEW_LEGACY`.\n- ✅ Existing transaction boundaries and audit payload semantics were preserved.\n- ✅ Final API deployment succeeded on Railway for commit `eee51f29b0ab10fa75ab30e09e97fc4d8cdb22a5`.\n- Evidence: `docs/r007-closure-checklist.md`; closure evidence commit `1a2f14dbabf6c615648ed2955c2d6bf67c7aca7f`.\n\n'''
+          if section not in text:
+              if marker not in text:
+                  raise SystemExit('backend architecture marker not found')
+              text = text.replace(marker, section + marker, 1)
+          path.write_text(text, encoding='utf-8')
+      - name: Commit closure
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/master-worklist.md
+          git commit -m "docs(r007): close audit writer standardization [skip ci]"
+          git rm .github/workflows/r007-close-worklist.yml
+          git commit -m "chore(r007): remove one-shot closure updater [skip ci]"
+          git push origin HEAD:main
