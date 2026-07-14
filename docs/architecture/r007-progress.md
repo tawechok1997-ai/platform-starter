@@ -10,7 +10,9 @@ Counting rule: main topics decrease only when every implementation item under th
 
 - Before provider-transfer batch: **5 main topics / 24 remaining subjobs**
 - Closed in provider-transfer batch: **1 main topic / 6 subjobs**
-- Current remaining: **4 main topics / 18 subjobs**
+- Before provider-reconciliation batch: **4 main topics / 18 remaining subjobs**
+- Closed in provider-reconciliation batch: **1 main topic / 4 subjobs**
+- Current remaining: **3 main topics / 14 subjobs**
 
 ## Remaining worklist
 
@@ -25,12 +27,14 @@ Counting rule: main topics decrease only when every implementation item under th
 
 Runtime member transfer and Admin retry endpoints now use the focused command service. Workspace verification remains under topic 5.
 
-### 2. Provider reconciliation — 4 subjobs remaining
+### 2. Provider reconciliation — COMPLETE IN CODE
 
-- [ ] 2.1 Extract reconciliation query service.
-- [ ] 2.2 Extract reconciliation command service.
-- [ ] 2.3 Extract mismatch-alert creation.
-- [ ] 2.4 Add single-session and batch reconciliation tests.
+- [x] 2.1 Extract `ProviderReconciliationQueryService`.
+- [x] 2.2 Extract `ProviderReconciliationCommandService`.
+- [x] 2.3 Extract `ProviderReconciliationAlertService`.
+- [x] 2.4 Add single-session and batch reconciliation tests.
+
+Admin snapshot reads now use the query service. Single-session reconciliation, active-session batches, and manual snapshot review use the command service. Mismatch alert construction is isolated from provider balance orchestration. Workspace verification remains under topic 5.
 
 ### 3. Settlement orchestration — 4 subjobs remaining
 
@@ -66,6 +70,10 @@ Runtime member transfer and Admin retry endpoints now use the focused command se
 - Transfer-in failures now execute an explicit wallet reversal path; failed transfer-out calls do not credit the wallet.
 - Member transfer and Admin retry endpoints now route directly through the focused transfer command service.
 - Added wallet idempotency, insufficient-balance, transfer-in rollback, transfer-out failure, and transfer-out success regression coverage.
+- Extracted provider snapshot reads into `ProviderReconciliationQueryService`.
+- Extracted single-session reconciliation, active-session batch execution, manual snapshot review, credential-use tracking, and shared Admin audit writing into `ProviderReconciliationCommandService`.
+- Extracted mismatch risk-alert severity and payload construction into `ProviderReconciliationAlertService`.
+- Added reconciliation coverage for matched snapshots, mismatch-alert creation, per-session batch failure isolation, batch summaries, and shared audit actions.
 - Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked and is not counted as active implementation work.
 
 ## Verification commands
@@ -77,6 +85,7 @@ pnpm audit:admin-audit-writers:strict
 pnpm audit:r7-quality
 pnpm audit:r7-closure
 pnpm typecheck:api
+pnpm --filter @platform/api test -- provider-reconciliation-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- wallet-mutation.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- provider-transfer-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- provider-webhook.service.spec.ts --runInBand
