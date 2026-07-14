@@ -40,7 +40,7 @@ export class KycReviewCommandService {
           newData: { status: input.status, note: input.note ?? null, version: input.version + 1 },
         }),
       });
-      return { item: mapKycDocument(toMapperRow(updated)) };
+      return { item: mapKycDocument(updated.view) };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
@@ -92,31 +92,7 @@ export class KycReviewCommandService {
           newData: { status: input.status, note: input.note ?? null, version: input.version + 1 },
         }),
       });
-      return { item: mapKycCase(toMapperRow(updated)) };
+      return { item: mapKycCase(updated.view) };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
-}
-
-function toMapperRow(record: {
-  id: string;
-  memberId: string;
-  status: string;
-  version: number;
-  reviewNote?: string | null;
-  reviewedBy?: string | null;
-  reviewedAt?: Date | null;
-  deletedAt?: Date | null;
-  updatedAt: Date;
-}) {
-  return {
-    id: record.id,
-    member_id: record.memberId,
-    status: record.status,
-    version: record.version,
-    review_note: record.reviewNote ?? null,
-    reviewed_by_admin_id: record.reviewedBy ?? null,
-    reviewed_at: record.reviewedAt ?? null,
-    deleted_at: record.deletedAt ?? null,
-    updated_at: record.updatedAt,
-  } as any;
 }
