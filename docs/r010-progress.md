@@ -16,7 +16,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 - [x] Inventory duplicate queries and hard-coded `take` values.
 - [x] Consolidate duplicate queries by module ownership.
-- [ ] Separate list, detail, and summary projections.
+- [x] Separate list, detail, and summary projections.
 - [ ] Reduce unnecessary relation `include` usage in list endpoints.
 - [ ] Create a shared cursor pagination pattern.
 - [ ] Create shared filter parsing and sort whitelists.
@@ -65,29 +65,35 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - Evidence: `docs/evidence/r010-notification-query-ownership.md` and `docs/evidence/r010-duplicate-query-consolidation-closure.md`.
 - Railway API, Admin, and Member deployments succeeded after the ownership and strict-guard commits.
 
-## Active work
-
 ### 3. Separate list, detail, and summary projections
 
-- [ ] Inventory list/detail/summary reads that currently share broad or inline projections.
-- [ ] Define owner-local projection constants/types without exposing Prisma types outside infrastructure/query layers.
-- [ ] Migrate the first low-risk read family and add a drift guard.
-- [ ] Preserve response contracts with focused regression evidence.
+- Added `notification-read.projections.ts` with owner-local list, detail, and summary projection contracts.
+- Moved notification-state and preference-detail Prisma reads into `NotificationFeedReadRepository`.
+- Removed direct Prisma access from `NotificationsQueryService`.
+- Centralized feed source/result limits and summary counting.
+- Added `tools/audit-r010-notification-projection-boundaries.mjs` and wired it into `.github/workflows/r010-query-boundaries.yml`.
+- Preserved the existing notification response shape: `items`, `groups`, `total`, `counts`, and `preferences`.
+- Evidence: `docs/evidence/r010-notification-projection-boundaries.md`.
+
+## Active work
+
+### 4. Reduce unnecessary relation `include` usage in list endpoints
+
+- [ ] Inventory broad `include` usage in list endpoints.
+- [ ] Replace the first low-risk broad include with a narrow projection.
+- [ ] Add a drift guard and preserve response behavior.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 2
-- Remaining: 11
+- Closed: 3
+- Remaining: 10
 
 ## Latest commits
 
-- `7298721e2fe2d53e4fa6c47b4231285e47c8efe9` — record duplicate-query consolidation closure evidence.
-- `2e3667ca4ea7a675f2c529d0c9cceddc66020301` — add repository-wide R-010 duplicate-query ownership workflow.
-- `96aa259ba7430a00e38847b056c64d30da534672` — add duplicate-query strict mode.
-- `f41edb78ff39b9450846d158e8fceecf4665ded2` — record notification query ownership evidence.
-- `f11e31280648643efe6871e720c7f5056b7067bb` — enforce R-010 query ownership guards in CI.
-- `128b6d8f8766f00b10339ebacf7ec8f9b9d3c83c` — guard notification feed query ownership.
-- `37a26d8ec4824ca0cd0c1680022ebb82683dc6d8` — register the notification feed read repository.
-- `292e540bf1d28ac963cdbb4abca3651178b8ff51` — route notification feed reads through the module owner.
-- `c797f8e91774afe0325dcfc3c2bceb63fbc517b9` — add the notification feed read repository.
+- `c86ce2aca283689952a357c440b57805b7bebd22` — record notification projection boundary evidence.
+- `e178bfb10865e31943415335e5f94a117c9d9aec` — enforce notification projection boundaries in CI.
+- `06aa07cf4dfc0c33ed42370b72134e7c29827d16` — guard notification list/detail/summary projection boundaries.
+- `b0d2ed5fe1be85b0d93a5076221b96dd14044118` — remove direct Prisma reads from the notification query service.
+- `3f4826b21b68bb65316d253d53e587fa7a1bce9e` — route notification state and preference detail reads through the repository.
+- `222f127f0acdb8d8a735a57500bbc7ca920e64ca` — add explicit notification list/detail/summary projection contracts.
