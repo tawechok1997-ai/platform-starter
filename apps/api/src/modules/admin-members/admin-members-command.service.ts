@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { AuthenticatedAdminActor } from '../../common/actors';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
 const MEMBER_STATUSES = ['ACTIVE', 'SUSPENDED', 'LOCKED', 'CLOSED'] as const;
@@ -30,7 +31,7 @@ export class AdminMembersCommandService {
     const updated = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.update({ where: { id }, data: { status: status as MemberStatus } });
       await tx.adminAuditLog.create({
-        data: {
+        data: buildAdminAuditData({
           adminUserId: admin.id,
           module: 'members',
           action: 'UPDATE_MEMBER_STATUS',
@@ -39,7 +40,7 @@ export class AdminMembersCommandService {
           newData: { status: user.status, reason: reason ?? null },
           ipAddress: meta.ipAddress,
           userAgent: meta.userAgent,
-        },
+        }),
       });
       return user;
     });
