@@ -15,6 +15,8 @@ R-009 establishes repository, transaction, and persistence boundaries without ch
 - [x] กำหนด repository ports สำหรับ critical domains
 - [x] ห้าม Prisma type หลุดผ่าน repository interface
 - [x] Consolidate transaction ownership for withdrawal completion
+- [x] กำหนด lock order มาตรฐานเพื่อลด deadlock
+- [x] Audit unique/foreign-key/cascade/index/idempotency constraints
 
 Closure evidence:
 
@@ -33,20 +35,15 @@ Closure evidence:
 - `tools/audit-r009-withdrawal-completion-transaction.mjs`
 - `tools/audit-r009-withdrawal-completion-rollback.mjs`
 - `docs/evidence/r009-withdrawal-completion-transaction.md`
+- `docs/architecture/transaction-lock-order.md`
+- `tools/audit-r009-lock-order.mjs`
+- `docs/evidence/r009-lock-order-boundary.md`
+- `tools/audit-r009-schema-constraints.mjs`
+- `tools/audit-r009-critical-constraint-closure.mjs`
+- `docs/evidence/r009-lock-and-constraint-closure.md`
 - successful Railway API build/deployment after the closure guards were committed
 
 ## Enforced and awaiting verification
-
-### กำหนด lock order มาตรฐานเพื่อลด deadlock
-
-- [x] Added `docs/architecture/transaction-lock-order.md`.
-- [x] Defined aggregate/actor/wallet/ledger/audit lock ordering.
-- [x] Added `tools/audit-r009-lock-order.mjs`.
-- [x] Strict mode fails on known inversions and unclassified row-locked tables.
-- [x] Enabled the strict lock-order command in the required quality workflow.
-- [x] Added `docs/evidence/r009-lock-order-boundary.md`.
-- [x] Added boundary closure structure audit.
-- [ ] Confirm zero inversions and zero unclassified locked tables through an observable verification channel.
 
 ### ทำ Prisma repository adapters
 
@@ -60,14 +57,6 @@ Closure evidence:
 - [ ] Migrate critical services to use the adapters.
 
 Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, ownership).
-
-### Audit unique/foreign-key/cascade/idempotency constraints
-
-- [x] Added broad schema inventory at `tools/audit-r009-schema-constraints.mjs`.
-- [x] Added semantic closure gate `tools/audit-r009-critical-constraint-closure.mjs`.
-- [x] The closure gate verifies 14 critical uniqueness and index contracts across wallet, ledger, deposit, withdrawal, ownership, provider transfer, and webhook persistence.
-- [x] No schema or migration change was required in this slice.
-- [ ] Confirm the semantic closure gate through an observable verification channel.
 
 ## Active partial work
 
@@ -108,8 +97,6 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 ## Pending evidence
 
 - [ ] Confirm Prisma adapter workflows through an observable verification channel.
-- [ ] Confirm lock-order strict audit through an observable verification channel.
-- [ ] Confirm constraint/idempotency semantic audit through an observable verification channel.
 - [ ] Review remaining mixed direct/transactional write services at method level.
 
 ## Remaining R-009 work
@@ -119,18 +106,16 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [ ] Consolidate transaction ownership for ownership transfer.
 - [ ] Consolidate transaction ownership for KYC review/watchlist override.
 - [ ] Consolidate transaction ownership for promotion settlement.
-- [ ] Close lock-order evidence.
 - [ ] Complete row-lock helper migration across legacy services.
 - [ ] Resolve confirmed legacy transaction escapes.
 - [ ] Add remaining deadlock and concurrency regression coverage.
-- [ ] Close constraint/idempotency audit.
 
 ## Count
 
 - Total R-009 subtasks: 15
-- Closed with durable evidence: 5
-- Remaining not closed: 10
-- Enforced and awaiting verification: 3
+- Closed with durable evidence: 7
+- Remaining not closed: 8
+- Enforced and awaiting verification: 1
 - Other partial or under active review: 5
 - Not yet implemented: 2
 
@@ -140,10 +125,11 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-Repository ports and Prisma type isolation are closed as contract-level tasks only. Runtime service migration remains separate. Ownership transfer still has a documented concurrency gap and is not closed. No Prisma schema, production data, finance calculation, permission, secret, provider, or deployment-target change was made.
+Lock-order standardization and the critical constraint/idempotency audit are closed as contract-level tasks. Runtime deadlock/concurrency regression coverage remains separate. Ownership transfer still has a documented concurrency gap and is not closed. No Prisma schema, production data, finance calculation, permission, secret, provider, or deployment-target change was made.
 
 ## Latest commits
 
+- `cd4c646ed14b2fcd4a09186a8df46b5c22dda16a` — close lock-order and constraint audit evidence.
 - `79be0945524c6ff8e4ec98d4de11e592341bd219` — audit ownership transfer transaction boundary.
 - `8c7e3ee94cc474549077810a38bb11007c35a707` — record ownership transfer concurrency gap.
 - `c5b82508470d2ee377a7c1841192ce77f8760e81` — close repository contract boundaries.
