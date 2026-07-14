@@ -22,22 +22,30 @@ Updated: **2026-07-14**
 - Extracted notification labels, currency formatting, preference defaults, channel normalization, and key construction into `notification.mapper.ts`.
 - Kept `NotificationsService` as a compatibility facade while `NotificationsController` injects query and command services directly.
 - Added regression coverage for notification mapping and preference normalization.
+- Split Admin member list/detail reads into `AdminMembersQueryService`.
+- Split Admin member status mutation and audit into `AdminMembersCommandService` with one transaction boundary.
+- Kept `AdminMembersService` as a compatibility facade while `AdminMembersController` injects query and command services directly.
+- Added regression coverage proving Admin member status update and audit execute in the same transaction.
+- Split risk summary reads into `RiskSummaryQueryService` and kept `RiskService` as a compatibility facade.
+- Added regression coverage for wallet/ledger mismatch classification.
+- Extracted report date-range, decimal aggregation, grouped response, and queue-aging mapping into `report.mapper.ts`.
+- Removed report helper `any` usage and added precision/aging regression tests.
 
 ## Remaining closure scope
 
 R-007 cannot be marked DONE until the following worklist areas have implementation and regression evidence:
 
-- Admin lifecycle/auth command-query decomposition.
-- KYC/watchlist command-query decomposition.
+- Remaining Admin auth/account lifecycle command-query decomposition beyond Admin member management.
+- KYC/watchlist command-query decomposition beyond the risk-summary slice.
 - Support command-query decomposition.
-- CMS/reports command-query decomposition beyond the finance report and activity history slices.
+- CMS/report query decomposition beyond the finance, activity, risk-summary, and report-mapper slices.
 - Shared Prisma-to-domain-to-response mappers for remaining critical domains.
 - Shared audit builder and metadata formatter extraction.
-- CSV/report serializer extraction.
+- CSV/report serializer extraction once concrete CSV consumers are identified.
 - Provider orchestration extraction.
 - Settlement orchestration extraction.
 - Constructor dependency reduction for every inventory violation.
-- Focused regression tests for each extracted handler/service.
+- Focused regression tests for each remaining extracted handler/service.
 
 ## Verification commands
 
@@ -45,7 +53,9 @@ R-007 cannot be marked DONE until the following worklist areas have implementati
 pnpm audit:backend-decomposition
 pnpm audit:r7-closure
 pnpm typecheck:api
-pnpm --filter @platform/api test -- notification.mapper.spec.ts --runInBand
+pnpm --filter @platform/api test -- admin-members-command.service.spec.ts --runInBand
+pnpm --filter @platform/api test -- risk-summary-query.service.spec.ts --runInBand
+pnpm --filter @platform/api test -- report.mapper.spec.ts --runInBand
 pnpm --filter @platform/api test -- --runInBand
 pnpm build:api
 ```
