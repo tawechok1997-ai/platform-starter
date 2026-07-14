@@ -5,6 +5,7 @@ import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { AntiBotService } from '../anti-bot/anti-bot.service';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminLoginDefenseService } from './admin-login-defense.service';
+import { AdminRefreshSessionService } from './admin-refresh-session.service';
 import { AdminSessionCommandService } from './admin-session-command.service';
 import { AdminSessionsQueryService } from './admin-sessions-query.service';
 import { AdminRefreshSessionDto, AdminTwoFactorCodeDto } from './dto/admin-auth-actions.dto';
@@ -15,6 +16,7 @@ import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
 export class AdminAuthController {
   constructor(
     private readonly adminAuthService: AdminAuthService,
+    private readonly refreshSessions: AdminRefreshSessionService,
     private readonly sessionQueries: AdminSessionsQueryService,
     private readonly sessionCommands: AdminSessionCommandService,
     private readonly antiBot: AntiBotService,
@@ -65,7 +67,7 @@ export class AdminAuthController {
   @Post('refresh')
   async refresh(@Body() body: AdminRefreshSessionDto, @Req() req: HttpRequestContext, @Res({ passthrough: true }) res: any) {
     const token = String(body.refreshToken ?? '').trim() || this.readRefreshCookie(req);
-    const result = await this.adminAuthService.refreshSession(token, this.meta(req));
+    const result = await this.refreshSessions.refresh(token, this.meta(req));
     this.setRefreshCookie(res, result?.refreshToken);
     return result;
   }
