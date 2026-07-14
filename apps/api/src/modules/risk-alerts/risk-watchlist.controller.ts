@@ -4,12 +4,16 @@ import { RequirePermission } from '../../common/decorators/require-permission.de
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { CreateRiskWatchlistEntryDto, MatchRiskWatchlistDto, ReleaseRiskWatchlistEntryDto } from './dto/risk-watchlist.dto';
+import { RiskWatchlistQueryService } from './risk-watchlist-query.service';
 import { RiskWatchlistService } from './risk-watchlist.service';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 @Controller('admin/risk-watchlist')
 export class RiskWatchlistController {
-  constructor(private readonly service: RiskWatchlistService) {}
+  constructor(
+    private readonly service: RiskWatchlistService,
+    private readonly queries: RiskWatchlistQueryService,
+  ) {}
 
   @RequirePermission('risk.view')
   @Get()
@@ -21,7 +25,7 @@ export class RiskWatchlistController {
     @Query('page') page?: string,
     @Query('take') take?: string,
   ) {
-    return this.service.list({ status, listType, subjectType, memberId, page, take });
+    return this.queries.list({ status, listType, subjectType, memberId, page, take });
   }
 
   @RequirePermission('risk.resolve')
@@ -39,6 +43,6 @@ export class RiskWatchlistController {
   @RequirePermission('risk.view')
   @Post('match')
   match(@Body() body: MatchRiskWatchlistDto) {
-    return this.service.match(body);
+    return this.queries.match(body);
   }
 }
