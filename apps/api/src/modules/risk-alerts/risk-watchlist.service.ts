@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { createHmac } from 'node:crypto';
 import { Prisma } from '@prisma/client';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateRiskWatchlistEntryDto, MatchRiskWatchlistDto, ReleaseRiskWatchlistEntryDto } from './dto/risk-watchlist.dto';
 
@@ -77,11 +78,16 @@ export class RiskWatchlistService {
       `);
       const updated = updatedRows[0];
       if (!updated) throw new ConflictException('Risk watchlist entry was modified by another request');
-      await tx.adminAuditLog.create({ data: {
-        adminUserId: actor.id, module: 'risk_watchlist', action: 'RELEASE_RISK_WATCHLIST_ENTRY', targetId: id,
-        oldData: { status: existing.status, version: existing.version },
-        newData: { status: 'RELEASED', version: Number(existing.version) + 1, reason: input.reason },
-      } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: actor.id,
+          module: 'risk_watchlist',
+          action: 'RELEASE_RISK_WATCHLIST_ENTRY',
+          targetId: id,
+          oldData: { status: existing.status, version: existing.version },
+          newData: { status: 'RELEASED', version: Number(existing.version) + 1, reason: input.reason },
+        }),
+      });
       return { item: this.publicItem(updated) };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
@@ -141,6 +147,8 @@ export class RiskWatchlistService {
   }
 
   private audit(adminUserId: string, action: string, targetId: string, oldData: any, newData: any) {
-    return this.prisma.adminAuditLog.create({ data: { adminUserId, module: 'risk_watchlist', action, targetId, oldData, newData } });
+    return this.prisma.adminAuditLog.create({
+      data: buildAdminAuditData({ adminUserId, module: 'risk_watchlist', action, targetId, oldData, newData }),
+    });
   }
 }
