@@ -13,9 +13,11 @@ const CRITICAL_MODULES = new Set([
   'game-platform',
 ]);
 const MUTATION = /@(Post|Put|Patch|Delete)\s*\(/g;
-const BODY_ANY = /@Body\(\)\s+\w+\s*:\s*any\b/;
-const BODY_INLINE = /@Body\(\)\s+\w+\s*:\s*\{/;
-const BODY_DTO = /@Body\(\)\s+\w+\s*:\s*([A-Z][A-Za-z0-9_]*(?:Dto|Request|Command|Input))\b/;
+const BODY_DECORATOR = /@Body\([^)]*\)/;
+const BODY_ANY = /@Body\([^)]*\)\s+\w+\s*:\s*(?:any|unknown)\b/;
+const BODY_INLINE = /@Body\([^)]*\)\s+\w+\s*:\s*\{/;
+const BODY_NAMED = /@Body\([^)]*\)\s+\w+\s*:\s*([A-Z][A-Za-z0-9_]*)\b/;
+const BODY_UNSAFE_GENERIC = /@Body\([^)]*\)\s+\w+\s*:\s*(?:Record|object|Object)\b/;
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -55,17 +57,17 @@ for (const file of files) {
   let match;
   while ((match = MUTATION.exec(source))) {
     const block = handlerSlice(source, match.index);
-    const hasBody = /@Body\(/.test(block);
-    const dtoMatch = block.match(BODY_DTO);
+    const namedMatch = block.match(BODY_NAMED);
     inventory.push({
       file: normalize(file),
       module: moduleSlug(file),
       method: match[1].toUpperCase(),
       line: lineNumber(source, match.index),
-      hasBody,
+      hasBody: BODY_DECORATOR.test(block),
       bodyAny: BODY_ANY.test(block),
       bodyInline: BODY_INLINE.test(block),
-      dto: dtoMatch?.[1] ?? null,
+      bodyUnsafeGeneric: BODY_UNSAFE_GENERIC.test(block),
+      namedType: namedMatch?.[1] ?? null,
     });
   }
 }
@@ -73,14 +75,14 @@ for (const file of files) {
 const criticalUntyped = inventory.filter((item) => (
   CRITICAL_MODULES.has(item.module)
   && item.hasBody
-  && (item.bodyAny || (!item.dto && !item.bodyInline))
+  && (item.bodyAny || item.bodyUnsafeGeneric || (!item.namedType && !item.bodyInline))
 ));
 const inlineBodies = inventory.filter((item) => item.bodyInline);
-const dtoBodies = inventory.filter((item) => item.dto);
+const namedBodies = inventory.filter((item) => item.namedType);
 const bodyless = inventory.filter((item) => !item.hasBody);
 
 console.log(`Mutation DTO audit: ${inventory.length} mutation handlers`);
-console.log(`  DTO-backed bodies: ${dtoBodies.length}`);
+console.log(`  named typed bodies: ${namedBodies.length}`);
 console.log(`  inline object bodies: ${inlineBodies.length}`);
 console.log(`  bodyless mutations: ${bodyless.length}`);
 console.log(`  critical untyped bodies: ${criticalUntyped.length}`);
@@ -91,7 +93,7 @@ if (inlineBodies.length) {
 }
 
 if (criticalUntyped.length) {
-  console.error('\nCritical mutation handlers using untyped request bodies:');
+  console.error('\nCritical mutation handlers using untyped or generic request bodies:');
   for (const item of criticalUntyped) console.error(`  - ${item.file}:${item.line} (@${item.method})`);
   process.exitCode = 1;
 }
