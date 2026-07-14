@@ -1,0 +1,3 @@
+R-008 corrected admin ownership and withdrawal/wallet integration trigger
+Triggered at 2026-07-14T22:30:00+07:00
+Patcher contract fix commit: 2483fd1ab642320085180d3b527b19f281d7d8ca
