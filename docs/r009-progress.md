@@ -71,6 +71,19 @@ Closure evidence:
 
 Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, ownership).
 
+### KYC review and risk-watchlist transaction ownership
+
+- [x] `KycReviewCommandService.reviewDocument` locks the document, validates version, mutates, and audits through one Serializable transaction owner.
+- [x] `KycReviewCommandService.reviewCase` locks the case, validates transition and documents, mutates, and audits through one Serializable transaction owner.
+- [x] `kyc-concurrency.db.spec.ts` verifies that only one reviewer can transition a case version and stale retries fail.
+- [x] `RiskWatchlistService.release` locks and revalidates the entry, performs the guarded update, and audits through one Serializable transaction owner.
+- [x] `risk-watchlist-concurrency.db.spec.ts` verifies one active duplicate and one successful release per version.
+- [x] Moved risk-watchlist creation and `CREATE_RISK_WATCHLIST_ENTRY` audit persistence into one Serializable transaction owner.
+- [x] Preserved the existing PostgreSQL unique-violation to `ConflictException` contract.
+- [x] Added `tools/audit-r009-kyc-watchlist-transactions.mjs` and required workflow enforcement.
+- [x] Added `docs/evidence/r009-kyc-watchlist-transaction-closure.md`.
+- [ ] Confirm successful Railway API deployment for watchlist runtime commit `e1dd8cf54ce3cb2a0ce62a9369556549d7ebdc6d`.
+
 ## Active partial work
 
 ### Deposit transaction ownership
@@ -104,13 +117,14 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 ## Pending evidence
 
 - [ ] Confirm Prisma adapter workflows through an observable verification channel.
+- [ ] Confirm Railway API deployment for risk-watchlist creation transaction ownership.
 - [ ] Run the method-level transaction inventory and classify every remaining same-method finding.
 
 ## Remaining R-009 work
 
 - [ ] Complete KYC/watchlist and promotion Prisma adapters and migrate services.
 - [ ] Consolidate transaction ownership for deposit approval/credit.
-- [ ] Consolidate transaction ownership for KYC review/watchlist override.
+- [ ] Close KYC review/watchlist override after deployment verification.
 - [ ] Consolidate transaction ownership for promotion settlement.
 - [ ] Resolve confirmed legacy transaction escapes.
 - [ ] Add remaining deadlock and concurrency regression coverage.
@@ -120,8 +134,8 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - Total R-009 subtasks: 15
 - Closed with durable evidence: 9
 - Remaining not closed: 6
-- Enforced and awaiting verification: 1
-- Other partial or under active review: 3
+- Enforced and awaiting verification: 2
+- Other partial or under active review: 2
 - Not yet implemented: 2
 
 ## Verification policy
@@ -130,12 +144,12 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-Ownership transfer now uses a focused production transaction owner with deterministic actor/target row locks, transaction-scoped revalidation, atomic role transfer and audit persistence, successful Railway API deployment, and explicit regression coverage proving that a competing transfer is rejected after ownership changes. Invitation create and reissue transaction ownership remain verified through successful Railway API deployment. No Prisma schema, production data, finance formula, permission model, secret, provider, or deployment-target change was made.
+KYC document and case reviews already use Serializable transaction owners with row locks, optimistic version checks, atomic audits, and isolated-database concurrency coverage. Risk-watchlist release already had equivalent transaction and concurrency protection. Risk-watchlist creation now persists the entry and audit atomically while preserving duplicate-conflict behavior. Railway API verification remains before closure. No Prisma schema, production data, permission model, secret, provider, or deployment-target change was made.
 
 ## Latest commits
 
+- `e1dd8cf54ce3cb2a0ce62a9369556549d7ebdc6d` — make risk-watchlist creation and audit persistence atomic.
+- `7fe2f1f9932e666c883e2de9d6e02ee2070cdacd` — guard KYC and watchlist transaction ownership.
+- `1c2b850da6fea5600a548425a6fb53683ea47fb8` — enforce KYC/watchlist transaction contracts in the required workflow.
+- `3573197b9b800af4af7c218227466bb0bc3ee319` — record KYC/watchlist transaction closure evidence.
 - `89685bf94a6f716515a4baa5bdbe1236bd2e2536` — run ownership transaction guard and concurrency regression in the required workflow.
-- `de3a400dd77bfe3c34045abc6f88ad397528490d` — align the ownership concurrency regression mock with Prisma SQL values.
-- `9cb60f07b3afe615f7094edd21f2d02336a91abb` — replace stale ownership tests with atomic, competing-transfer, and no-write-on-conflict coverage.
-- `f45090480be1f5b0aece9277fcf5ed8416899e18` — make ownership transfer atomic with deterministic locks and in-transaction revalidation.
-- `b719d7aecacaebec9c8adb93bfbaf9df892d7404` — guard the production ownership transaction contract.
