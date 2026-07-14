@@ -8,6 +8,7 @@ import { AdminRefreshSessionService } from './admin-refresh-session.service';
 import { AdminSessionCommandService } from './admin-session-command.service';
 import { AdminSessionTokenService } from './admin-session-token.service';
 import { AdminSessionsQueryService } from './admin-sessions-query.service';
+import { AdminTwoFactorCommandService } from './admin-two-factor-command.service';
 
 @Module({
   imports: [JwtModule.register({}), AntiBotModule],
@@ -19,6 +20,7 @@ import { AdminSessionsQueryService } from './admin-sessions-query.service';
     AdminSessionCommandService,
     AdminSessionTokenService,
     AdminRefreshSessionService,
+    AdminTwoFactorCommandService,
   ],
   exports: [AdminAuthService],
 })
