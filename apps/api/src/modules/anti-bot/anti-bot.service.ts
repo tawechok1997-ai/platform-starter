@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
 export type AntiBotProvider = 'TURNSTILE' | 'RECAPTCHA' | 'HCAPTCHA';
@@ -124,16 +125,16 @@ export class AntiBotService {
         },
       });
       await tx.adminAuditLog.create({
-        data: {
+        data: buildAdminAuditData({
           adminUserId: actorAdminId,
           action: 'UPDATE_ANTI_BOT_CONFIG',
           module: 'anti-bot',
           targetId: SETTING_KEY,
-          oldData: oldSanitized as unknown as Prisma.InputJsonObject,
-          newData: newSanitized as unknown as Prisma.InputJsonObject,
+          oldData: oldSanitized,
+          newData: newSanitized,
           ipAddress: meta.ipAddress,
           userAgent: meta.userAgent,
-        },
+        }),
       });
     });
 
@@ -159,15 +160,15 @@ export class AntiBotService {
       throw error;
     }
     await this.prisma.adminAuditLog.create({
-      data: {
+      data: buildAdminAuditData({
         adminUserId: actorAdminId,
         action: 'TEST_ANTI_BOT_PROVIDER',
         module: 'anti-bot',
         targetId: config.provider,
-        newData: { success: result.success, errorCodes: result.errorCodes } as Prisma.InputJsonObject,
+        newData: { success: result.success, errorCodes: result.errorCodes },
         ipAddress: meta.ipAddress,
         userAgent: meta.userAgent,
-      },
+      }),
     });
     return result;
   }
