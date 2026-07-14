@@ -4,6 +4,7 @@ import { RequirePermission } from '../../common/decorators/require-permission.de
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { ProviderWebhookPayloadDto } from './dto/game-platform-mutation.dto';
 import { ReviewDto, normalizeReviewNote, normalizeSnapshotReview } from './dto/game-review.dto';
 import { CreateGameTransferDto, normalizeTransferAmount } from './dto/game-transfer.dto';
 import { ProviderGatesDto, normalizeProviderGatesDto } from './dto/provider-gates.dto';
@@ -95,5 +96,5 @@ export class ProviderWebhookController {
   constructor(private readonly moneyService: GamePlatformMoneyService) {}
 
   @Post(':providerCode')
-  receive(@Param('providerCode') providerCode: string, @Headers() headers: Record<string, string | string[] | undefined>, @Body() body: unknown, @Req() req: any) { return this.moneyService.receiveWebhook(providerCode, headers, body, req.rawBody); }
+  receive(@Param('providerCode') providerCode: string, @Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderWebhookPayloadDto, @Req() req: any) { return this.moneyService.receiveWebhook(providerCode, headers, body, req.rawBody); }
 }
