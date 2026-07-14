@@ -18,6 +18,7 @@ R-009 establishes repository, transaction, and persistence boundaries without ch
 - [x] กำหนด lock order มาตรฐานเพื่อลด deadlock
 - [x] Audit unique/foreign-key/cascade/index/idempotency constraints
 - [x] Complete intent-revealing row-lock helper migration across finance legacy services
+- [x] Consolidate transaction ownership for ownership transfer
 
 Closure evidence:
 
@@ -48,6 +49,12 @@ Closure evidence:
 - `docs/evidence/r009-withdrawal-lock-snapshot-foundation.md`
 - `docs/evidence/r009-withdrawal-row-lock-migration.md`
 - successful Railway API build/deployment for runtime commit `b2f3b4541b9b2c0d3db464b6ccbfaa24abb5480f`
+- `apps/api/src/modules/admin-access/admin-ownership-command.service.ts`
+- `apps/api/src/modules/admin-access/admin-ownership-command.service.spec.ts`
+- `tools/audit-r009-ownership-transfer-transaction.mjs`
+- `docs/evidence/r009-ownership-transfer-closure.md`
+- ownership guard and concurrency regression in `.github/workflows/r009-parallel-boundary-closure.yml`
+- successful Railway API build/deployment for runtime commit `f45090480be1f5b0aece9277fcf5ed8416899e18`
 
 ## Enforced and awaiting verification
 
@@ -63,18 +70,6 @@ Closure evidence:
 - [ ] Migrate critical services to use the adapters.
 
 Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, ownership).
-
-### Ownership transfer transaction ownership
-
-- [x] Production route uses `AdminOwnershipCommandService.transferOwnership`.
-- [x] Step-up authentication runs before the transaction begins.
-- [x] Actor and target admin rows are locked in deterministic UUID order through `lockAdminUserForUpdate`.
-- [x] Actor authority, target active status, target 2FA, and protected-role state are revalidated through the transaction client.
-- [x] Owner role removal, assignment, and `TRANSFER_ADMIN_OWNERSHIP` audit persistence share one transaction owner.
-- [x] Updated `tools/audit-r009-ownership-transfer-transaction.mjs` with strict production-route and transaction checks.
-- [x] Added `docs/evidence/r009-ownership-transfer-closure.md`.
-- [ ] Confirm successful Railway API deployment for runtime commit `f45090480be1f5b0aece9277fcf5ed8416899e18`.
-- [ ] Add explicit concurrent-transfer regression coverage.
 
 ## Active partial work
 
@@ -109,14 +104,12 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 ## Pending evidence
 
 - [ ] Confirm Prisma adapter workflows through an observable verification channel.
-- [ ] Confirm Railway API deployment for ownership transfer transaction ownership.
 - [ ] Run the method-level transaction inventory and classify every remaining same-method finding.
 
 ## Remaining R-009 work
 
 - [ ] Complete KYC/watchlist and promotion Prisma adapters and migrate services.
 - [ ] Consolidate transaction ownership for deposit approval/credit.
-- [ ] Close ownership transfer after deployment and concurrency verification.
 - [ ] Consolidate transaction ownership for KYC review/watchlist override.
 - [ ] Consolidate transaction ownership for promotion settlement.
 - [ ] Resolve confirmed legacy transaction escapes.
@@ -125,9 +118,9 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 ## Count
 
 - Total R-009 subtasks: 15
-- Closed with durable evidence: 8
-- Remaining not closed: 7
-- Enforced and awaiting verification: 2
+- Closed with durable evidence: 9
+- Remaining not closed: 6
+- Enforced and awaiting verification: 1
 - Other partial or under active review: 3
 - Not yet implemented: 2
 
@@ -137,12 +130,12 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-Invitation create and reissue transaction ownership are verified through successful Railway API deployment. Ownership transfer now has a focused production transaction owner with deterministic row locks and in-transaction revalidation; deployment and explicit concurrency evidence remain before closure. No Prisma schema, production data, finance formula, permission model, secret, provider, or deployment-target change was made.
+Ownership transfer now uses a focused production transaction owner with deterministic actor/target row locks, transaction-scoped revalidation, atomic role transfer and audit persistence, successful Railway API deployment, and explicit regression coverage proving that a competing transfer is rejected after ownership changes. Invitation create and reissue transaction ownership remain verified through successful Railway API deployment. No Prisma schema, production data, finance formula, permission model, secret, provider, or deployment-target change was made.
 
 ## Latest commits
 
+- `89685bf94a6f716515a4baa5bdbe1236bd2e2536` — run ownership transaction guard and concurrency regression in the required workflow.
+- `de3a400dd77bfe3c34045abc6f88ad397528490d` — align the ownership concurrency regression mock with Prisma SQL values.
+- `9cb60f07b3afe615f7094edd21f2d02336a91abb` — replace stale ownership tests with atomic, competing-transfer, and no-write-on-conflict coverage.
 - `f45090480be1f5b0aece9277fcf5ed8416899e18` — make ownership transfer atomic with deterministic locks and in-transaction revalidation.
 - `b719d7aecacaebec9c8adb93bfbaf9df892d7404` — guard the production ownership transaction contract.
-- `20d227d713aa17d7f60d8239665f7452dec79dc3` — record ownership transfer closure evidence.
-- `629047983b08ca64035c35f50d5ca7f4cf539beb` — make invitation create and reissue commands atomic.
-- `f64be20c007a4910f69d603b9d075b9e475048c7` — route invitation creation through the atomic command service.
