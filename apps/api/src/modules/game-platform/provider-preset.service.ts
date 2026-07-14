@@ -3,6 +3,7 @@ import { BadRequestException, ConflictException, Injectable } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import { createCipheriv, createHash, randomBytes } from 'crypto';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
 type RequestMeta = { ipAddress?: string; userAgent?: string };
@@ -78,5 +79,5 @@ export class ProviderPresetService {
   private endpointUrl(baseUrl: string, type: string) { const clean = baseUrl.replace(/\/+$/, ''); const slug = type.toLowerCase().replaceAll('_', '-'); return `${clean}/${slug}`; }
   private encryptSecret(value: string) { const keySource = this.configService.get<string>('GAME_CREDENTIAL_SECRET') ?? this.configService.get<string>('JWT_ACCESS_KEY') ?? 'local_game_credential_key'; const key = createHash('sha256').update(keySource).digest(); const iv = randomBytes(12); const cipher = createCipheriv('aes-256-gcm', key, iv); const encrypted = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]); const tag = cipher.getAuthTag(); return `aes-256-gcm:${iv.toString('base64')}:${tag.toString('base64')}:${encrypted.toString('base64')}`; }
   private maskSecret(value: string) { if (value.length <= 8) return `${value.slice(0, 1)}••••${value.slice(-1)}`; return `${value.slice(0, 4)}••••${value.slice(-4)}`; }
-  private async audit(actor: AdminActor, action: string, targetId: string, data: unknown, meta: RequestMeta) { await this.prisma.adminAuditLog.create({ data: { adminUserId: actor.id, action, module: 'game-platform', targetId, newData: JSON.parse(JSON.stringify(data)), ipAddress: meta.ipAddress, userAgent: meta.userAgent } }); }
+  private async audit(actor: AdminActor, action: string, targetId: string, data: unknown, meta: RequestMeta) { await this.prisma.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: actor.id, action, module: 'game-platform', targetId, newData: data, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) }); }
 }
