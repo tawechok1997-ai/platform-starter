@@ -34,6 +34,27 @@ const criticalSuites = [
   },
 ];
 
+const requiredTestClasses = [
+  'Unit',
+  'Integration',
+  'Contract',
+  'Database',
+  'Browser',
+  'Visual',
+  'Concurrency',
+];
+
+const requiredCriticalFlows = [
+  'Deposit lifecycle',
+  'Withdrawal lifecycle',
+  'KYC lifecycle',
+  'Watchlist lifecycle',
+  'Support lifecycle',
+  'Admin account lifecycle',
+  'Promotion settlement',
+  'Provider webhook/settlement',
+];
+
 const skipPattern = /\b(?:describe|test|it)\.skip\s*\(|\b(?:xdescribe|xtest|xit)\s*\(/;
 const [rootPackageRaw, apiPackageRaw, workflow, inventory] = await Promise.all([
   readFile(packagePath, 'utf8'),
@@ -65,6 +86,11 @@ for (const suite of criticalSuites) {
 const requiredRootAudits = [
   'audit:architecture-inventory',
   'audit:architecture-boundaries',
+  'audit:critical-test-safety',
+  'audit:mutation-dto-coverage',
+  'audit:critical-controller-types',
+  'audit:critical-service-types',
+  'audit:critical-error-contracts',
   'audit:admin-permissions',
   'audit:admin-ui-permissions',
 ];
@@ -73,8 +99,22 @@ for (const script of requiredRootAudits) {
   if (!inventory.includes(`\`pnpm ${script}\``)) failures.push(`test-inventory.md: missing pnpm ${script}`);
 }
 
+for (const testClass of requiredTestClasses) {
+  if (!inventory.includes(`| ${testClass} |`)) failures.push(`test-inventory.md: missing ${testClass} test class`);
+}
+
+for (const flow of requiredCriticalFlows) {
+  if (!inventory.includes(`| ${flow} |`)) failures.push(`test-inventory.md: missing ${flow} coverage row`);
+}
+
+if (!inventory.includes('A gap in this table is a refactor blocker')) {
+  failures.push('test-inventory.md: missing explicit refactor-blocker rule');
+}
+
 console.log(`Critical test safety audit: ${criticalSuites.length} database suites`);
 console.log(`  required root audits: ${requiredRootAudits.length}`);
+console.log(`  documented test classes: ${requiredTestClasses.length}`);
+console.log(`  critical-flow rows: ${requiredCriticalFlows.length}`);
 console.log(`  failures: ${failures.length}`);
 
 if (failures.length) {
