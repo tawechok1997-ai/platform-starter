@@ -1,11 +1,25 @@
 # Critical Regression Test Inventory
 
-This document records the minimum automated safety net required before structural refactors are allowed in critical domains.
+This document records the automated safety net required before structural refactors are allowed in critical domains.
+
+## Test classes
+
+| Class | Purpose | Current evidence |
+|---|---|---|
+| Unit | Isolated service, guard, policy and adapter behavior | Jest suites under `apps/api/src/**/*.spec.ts` |
+| Integration | Multiple services/modules with mocked or local dependencies | API Jest suite and controller/service integration specs |
+| Contract | Stable request, response and error behavior | DTO/type audits and critical error-contract audit |
+| Database | Real PostgreSQL state, rollback, locking and persistence behavior | Dedicated `*.db.spec.ts` suites |
+| Browser | Authenticated route and user-flow behavior | Playwright smoke, KYC and CMS suites |
+| Visual | Responsive rendering and snapshot comparison | Playwright visual suite |
+| Concurrency | Duplicate requests, row locking, replay and idempotency | Finance, promotion, OTP, watchlist, KYC and webhook DB suites |
+
+## Required regression commands
 
 | Domain | Test type | Command / file | Refactor gate |
 |---|---|---|---|
-| API core | unit/regression | `pnpm --filter @platform/api test -- --runInBand` | Required |
-| Finance deposit/withdrawal | PostgreSQL concurrency | `pnpm --filter @platform/api test:db:finance -- --runInBand` | Required |
+| API core | unit/integration/regression | `pnpm --filter @platform/api test -- --runInBand` | Required |
+| Finance deposit/withdrawal | PostgreSQL state-transition/concurrency/rollback | `pnpm --filter @platform/api test:db:finance -- --runInBand` | Required |
 | Promotions settlement | PostgreSQL concurrency/idempotency | `pnpm --filter @platform/api test:db:promotions -- --runInBand` | Required |
 | Phone OTP | PostgreSQL replay/brute-force/concurrency | `pnpm --filter @platform/api test:db:phone-otp -- --runInBand` | Required |
 | Risk watchlist | PostgreSQL concurrency | `pnpm --filter @platform/api test:db:risk-watchlist -- --runInBand` | Required |
@@ -14,9 +28,29 @@ This document records the minimum automated safety net required before structura
 | Admin UI permissions | static route/navigation audit | `pnpm audit:admin-ui-permissions` | Required |
 | Architecture inventory | static ownership audit | `pnpm audit:architecture-inventory` | Required |
 | Architecture boundaries | dependency/circular audit | `pnpm audit:architecture-boundaries` | Required |
+| Mutation DTO coverage | contract/static audit | `pnpm audit:mutation-dto-coverage` | Required before controller refactor |
+| Critical controller types | type/static audit | `pnpm audit:critical-controller-types` | Required before controller refactor |
+| Critical service types | type/static audit | `pnpm audit:critical-service-types` | Required before service refactor |
+| Critical error contracts | contract/static audit | `pnpm audit:critical-error-contracts` | Required before API contract changes |
 | Member/Admin smoke | browser | `pnpm test:e2e:smoke` | Required before UI structural changes |
 | KYC UI | browser | `pnpm test:e2e:kyc` | Required before KYC UI structural changes |
 | CMS content | browser | `pnpm test:e2e:cms-content` | Required before CMS/member-content structural changes |
+| Responsive UI | visual | `pnpm test:e2e:visual` | Required before layout-wide refactors |
+
+## Critical-flow coverage matrix
+
+| Critical flow | Unit/integration | Database/concurrency | Browser | Current gap |
+|---|---:|---:|---:|---|
+| Deposit lifecycle | Yes | Yes | Partial | Credentialed deployed regression |
+| Withdrawal lifecycle | Yes | Yes | Partial | Credentialed deployed regression |
+| KYC lifecycle | Yes | Yes | Yes | Authenticated deployed regression |
+| Watchlist lifecycle | Yes | Yes | Partial | Authenticated UI regression |
+| Support lifecycle | Yes | No dedicated DB suite | Partial | Transaction rollback and browser evidence |
+| Admin account lifecycle | Yes | No dedicated DB suite | Partial | Ownership-transfer DB rollback and credentialed browser evidence |
+| Promotion settlement | Yes | Yes | Partial | Authenticated browser evidence |
+| Provider webhook/settlement | Yes | Yes | Partial | Vendor-specific contract/UAT |
+
+A gap in this table is a refactor blocker for the affected behavior. It is not permission to remove the row, rename the problem, or wait for production to provide an unusually expensive tutorial.
 
 ## Critical files protected from skipped tests
 
@@ -30,4 +64,9 @@ The following database suites may not contain `describe.skip`, `test.skip`, `it.
 
 ## Refactor rule
 
-A structural refactor may proceed only when the relevant required suites exist, are not skipped, and are executed by CI. Missing coverage must be added before the refactor, not documented after production explains the problem in its own charming way.
+A structural refactor may proceed only when the relevant required suites exist, are not skipped, and are executed by CI. Missing coverage must be added before the refactor. Every refactor change must identify:
+
+1. The protected domain and behavior.
+2. The commands run before and after the change.
+3. Any known regression gap that remains.
+4. The owner of follow-up coverage work.
