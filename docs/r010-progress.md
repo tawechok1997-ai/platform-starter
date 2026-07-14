@@ -17,7 +17,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Inventory duplicate queries and hard-coded `take` values.
 - [x] Consolidate duplicate queries by module ownership.
 - [x] Separate list, detail, and summary projections.
-- [ ] Reduce unnecessary relation `include` usage in list endpoints.
+- [x] Reduce unnecessary relation `include` usage in list endpoints.
 - [ ] Create a shared cursor pagination pattern.
 - [ ] Create shared filter parsing and sort whitelists.
 - [ ] Reject arbitrary sort and filter input.
@@ -75,25 +75,36 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - Preserved the existing notification response shape: `items`, `groups`, `total`, `counts`, and `preferences`.
 - Evidence: `docs/evidence/r010-notification-projection-boundaries.md`.
 
-## Active work
-
 ### 4. Reduce unnecessary relation `include` usage in list endpoints
 
-- [ ] Inventory broad `include` usage in list endpoints.
-- [ ] Replace the first low-risk broad include with a narrow projection.
-- [ ] Add a drift guard and preserve response behavior.
+- Replaced `AdminMembersQueryService.listMembers()` broad `profile` and `wallet` relation includes with `MEMBER_LIST_PROJECTION`.
+- Limited profile data to `displayName` and wallet data to `balance` and `lockedBalance`.
+- Preserved member-list response keys, search, status filtering, ordering, offset pagination, totals, and page counts.
+- Kept the broader detail query unchanged because the detail response legitimately requires it.
+- Added `tools/audit-r010-admin-member-list-projection.mjs` and wired it into `.github/workflows/r010-query-boundaries.yml`.
+- Evidence: `docs/evidence/r010-admin-member-list-projection.md`.
+
+## Active work
+
+### 5. Create a shared cursor pagination pattern
+
+- [ ] Define normalized cursor and bounded limit helpers.
+- [ ] Migrate the first existing cursor list without changing response semantics.
+- [ ] Add invalid-cursor and boundary regression guards.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 3
-- Remaining: 10
+- Closed: 4
+- Remaining: 9
 
 ## Latest commits
 
+- `104b0f4d454d46fe902a0aa8c2c083cff3ad5a36` — record admin member list projection evidence.
+- `777a22799fb86550042eab483ea84a160eea6ea4` — enforce narrow admin member list projection in CI.
+- `1596c0e07064f0082a47279ec901d5ef0c7024e7` — guard the admin member list projection contract.
+- `db230ed85538478c88d1b3c787e014cf2060d2b4` — replace broad admin member list includes with a narrow select projection.
 - `c86ce2aca283689952a357c440b57805b7bebd22` — record notification projection boundary evidence.
 - `e178bfb10865e31943415335e5f94a117c9d9aec` — enforce notification projection boundaries in CI.
 - `06aa07cf4dfc0c33ed42370b72134e7c29827d16` — guard notification list/detail/summary projection boundaries.
 - `b0d2ed5fe1be85b0d93a5076221b96dd14044118` — remove direct Prisma reads from the notification query service.
-- `3f4826b21b68bb65316d253d53e587fa7a1bce9e` — route notification state and preference detail reads through the repository.
-- `222f127f0acdb8d8a735a57500bbc7ca920e64ca` — add explicit notification list/detail/summary projection contracts.
