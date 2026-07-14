@@ -31,6 +31,17 @@ export function lockAdminUserForUpdate(tx: TransactionClient, id: string): Promi
   return lockSingleRowByUuid(tx, 'admin_users', id);
 }
 
+export async function lockWalletForUpdateByUserId(tx: TransactionClient, userId: string): Promise<string | null> {
+  const rows = await tx.$queryRaw<LockedIdRow[]>(Prisma.sql`
+    SELECT "id"
+    FROM "wallets"
+    WHERE "user_id" = ${userId}::uuid
+    FOR UPDATE
+  `);
+
+  return rows[0]?.id ?? null;
+}
+
 export async function lockActiveOwnerAdminIds(tx: TransactionClient, ownerRoleCode: string): Promise<string[]> {
   const rows = await tx.$queryRaw<LockedIdRow[]>(Prisma.sql`
     SELECT DISTINCT au."id"
