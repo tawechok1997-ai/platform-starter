@@ -1,11 +1,12 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { DomainError, InvalidStateTransitionError } from '../../common/domain/domain-error';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
+import { DomainError, InvalidStateTransitionError } from '../../common/domain/domain-error';
+import { PrismaKycWatchlistRepositoryAdapter } from '../../common/infrastructure/prisma-risk-promotion-repository-adapters';
 import { PrismaService } from '../../database/prisma.service';
 import { ReviewKycCaseDto, ReviewKycDocumentDto } from './dto/kyc-document.dto';
 import { KycReviewPolicy, type KycStatus } from './domain/kyc-review.policy';
-import { mapKycCase, mapKycDocument, type KycRow } from './kyc.mapper';
+import { mapKycCase, mapKycDocument } from './kyc.mapper';
 
 @Injectable()
 export class KycReviewCommandService {
@@ -13,23 +14,21 @@ export class KycReviewCommandService {
 
   async reviewDocument(documentId: string, input: ReviewKycDocumentDto, adminId: string) {
     return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<KycRow[]>(Prisma.sql`
-        SELECT * FROM "kyc_documents" WHERE "id"=${documentId}::uuid FOR UPDATE
-      `);
-      const existing = rows[0];
-      if (!existing || existing.deleted_at) throw new NotFoundException('KYC document not found');
-      if (Number(existing.version) !== input.version) {
+      const repository = new PrismaKycWatchlistRepositoryAdapter(tx);
+      const existing = await repository.findKycDocumentForUpdate(documentId);
+      if (!existing || existing.deletedAt) throw new NotFoundException('KYC document not found');
+      if (existing.version !== input.version) {
         throw new ConflictException('KYC document changed by another reviewer');
       }
 
-      const updated = await tx.$queryRaw<KycRow[]>(Prisma.sql`
-        UPDATE "kyc_documents" SET "status"=${input.status}, "review_note"=${input.note ?? null},
-          "reviewed_by_admin_id"=${adminId}::uuid, "reviewed_at"=CURRENT_TIMESTAMP,
-          "version"="version"+1, "updated_at"=CURRENT_TIMESTAMP
-        WHERE "id"=${documentId}::uuid AND "version"=${input.version}
-        RETURNING *
-      `);
-      if (!updated[0]) throw new ConflictException('KYC document changed by another reviewer');
+      const updated = await repository.saveKycDocumentReview({
+        ...existing,
+        status: input.status,
+        reviewNote: input.note ?? null,
+        reviewedBy: adminId,
+        reviewedAt: new Date(),
+      });
+      if (!updated) throw new ConflictException('KYC document changed by another reviewer');
 
       await tx.adminAuditLog.create({
         data: buildAdminAuditData({
@@ -41,22 +40,20 @@ export class KycReviewCommandService {
           newData: { status: input.status, note: input.note ?? null, version: input.version + 1 },
         }),
       });
-      return { item: mapKycDocument(updated[0]) };
+      return { item: mapKycDocument(toMapperRow(updated)) };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
   async reviewCase(caseId: string, input: ReviewKycCaseDto, adminId: string) {
     return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<KycRow[]>(Prisma.sql`
-        SELECT * FROM "kyc_cases" WHERE "id"=${caseId}::uuid FOR UPDATE
-      `);
-      const existing = rows[0];
+      const repository = new PrismaKycWatchlistRepositoryAdapter(tx);
+      const existing = await repository.findKycCaseForUpdate(caseId);
       if (!existing) throw new NotFoundException('KYC case not found');
-      if (Number(existing.version) !== input.version) {
+      if (existing.version !== input.version) {
         throw new ConflictException('KYC case changed by another reviewer');
       }
 
-      const from = String(existing.status);
+      const from = existing.status;
       const to = String(input.status) as KycStatus;
       if (!KycReviewPolicy.isReviewable(from)) throw new ConflictException('KYC case is not reviewable');
       try {
@@ -69,23 +66,21 @@ export class KycReviewCommandService {
       }
 
       if (input.status === 'APPROVED') {
-        const rejected = await tx.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`
-          SELECT COUNT(*)::bigint AS count FROM "kyc_documents"
-          WHERE "case_id"=${caseId}::uuid AND "deleted_at" IS NULL AND "status" <> 'ACCEPTED'
-        `);
-        if (Number(rejected[0]?.count ?? 0) > 0) {
+        const rejectedCount = await repository.countUnacceptedKycDocuments(caseId);
+        if (rejectedCount > 0) {
           throw new BadRequestException('All KYC documents must be accepted before approval');
         }
       }
 
       const reviewedAt = KycReviewPolicy.requiresReviewedAt(to) ? new Date() : null;
-      const updated = await tx.$queryRaw<KycRow[]>(Prisma.sql`
-        UPDATE "kyc_cases" SET "status"=${input.status}, "review_note"=${input.note ?? null},
-          "reviewed_by_admin_id"=${adminId}::uuid, "reviewed_at"=${reviewedAt},
-          "version"="version"+1, "updated_at"=CURRENT_TIMESTAMP
-        WHERE "id"=${caseId}::uuid AND "version"=${input.version} RETURNING *
-      `);
-      if (!updated[0]) throw new ConflictException('KYC case changed by another reviewer');
+      const updated = await repository.saveKycCaseReview({
+        ...existing,
+        status: input.status,
+        reviewNote: input.note ?? null,
+        reviewedBy: adminId,
+        reviewedAt,
+      });
+      if (!updated) throw new ConflictException('KYC case changed by another reviewer');
 
       await tx.adminAuditLog.create({
         data: buildAdminAuditData({
@@ -97,7 +92,31 @@ export class KycReviewCommandService {
           newData: { status: input.status, note: input.note ?? null, version: input.version + 1 },
         }),
       });
-      return { item: mapKycCase(updated[0]) };
+      return { item: mapKycCase(toMapperRow(updated)) };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
+}
+
+function toMapperRow(record: {
+  id: string;
+  memberId: string;
+  status: string;
+  version: number;
+  reviewNote?: string | null;
+  reviewedBy?: string | null;
+  reviewedAt?: Date | null;
+  deletedAt?: Date | null;
+  updatedAt: Date;
+}) {
+  return {
+    id: record.id,
+    member_id: record.memberId,
+    status: record.status,
+    version: record.version,
+    review_note: record.reviewNote ?? null,
+    reviewed_by_admin_id: record.reviewedBy ?? null,
+    reviewed_at: record.reviewedAt ?? null,
+    deleted_at: record.deletedAt ?? null,
+    updated_at: record.updatedAt,
+  } as any;
 }
