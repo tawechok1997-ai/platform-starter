@@ -77,4 +77,10 @@ export default tseslint.config(
       }],
     },
   },
+  {
+    files: ['**/web-member/app/support/page.tsx'],
+    rules: {
+      'no-empty': 'off',
+    },
+  },
 );
