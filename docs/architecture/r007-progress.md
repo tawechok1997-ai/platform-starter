@@ -26,7 +26,11 @@ Updated: **2026-07-14**
 - Admin session mutations now write the matching audit record inside the same transaction using the shared audit builder.
 - Added regression coverage for session ownership rejection, current/other-session action selection, transaction usage, and revoked-count audit metadata.
 - Added `audit-admin-audit-writers.mjs` plus normal and strict package scripts to inventory legacy `adminAuditLog.create` writers that have not migrated to the shared builder.
-- Confirmed KYC/watchlist ownership under `RiskAlertsModule`: KYC reads and mutations are owned by `KycDocumentsService`; watchlist list/match/create/release are owned by `RiskWatchlistService`.
+- Split member/Admin KYC reads into `KycDocumentsQueryService`; both KYC controllers now route read endpoints directly to the query service.
+- Extracted KYC case/document response shaping into `kyc.mapper.ts` and added focused mapping regression tests.
+- Split watchlist list/match reads into `RiskWatchlistQueryService`; `RiskWatchlistController` now routes read operations directly to the query service.
+- Extracted watchlist response and match-result shaping into `risk-watchlist.mapper.ts` with blacklist/empty-result regression coverage.
+- Confirmed KYC/watchlist command ownership remains in `KycDocumentsService` and `RiskWatchlistService` pending a separate mutation-safe extraction.
 - Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked on a real endpoint instead of adding unused infrastructure.
 
 ## Remaining closure scope
@@ -34,7 +38,7 @@ Updated: **2026-07-14**
 R-007 cannot be marked DONE until the following areas have implementation and regression evidence:
 
 - Remaining Admin auth/account lifecycle decomposition beyond Admin member management and session query/commands.
-- KYC/watchlist command-query decomposition beyond the risk-summary slice.
+- KYC/watchlist mutation decomposition beyond the completed query/mapper slices.
 - CMS decomposition beyond existing report slices.
 - Shared Prisma-to-domain-to-response mappers for remaining critical domains.
 - Migrate remaining audit writers identified by `pnpm audit:admin-audit-writers` to the shared builder and extract metadata formatters.
@@ -52,6 +56,8 @@ pnpm audit:admin-audit-writers
 pnpm audit:admin-audit-writers:strict
 pnpm audit:r7-closure
 pnpm typecheck:api
+pnpm --filter @platform/api test -- kyc.mapper.spec.ts --runInBand
+pnpm --filter @platform/api test -- risk-watchlist.mapper.spec.ts --runInBand
 pnpm --filter @platform/api test -- admin-session-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- admin-session.mapper.spec.ts --runInBand
 pnpm --filter @platform/api test -- support-command.service.spec.ts --runInBand
