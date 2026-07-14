@@ -10,6 +10,8 @@ import { ReviewDto, normalizeReviewNote, normalizeSnapshotReview } from './dto/g
 import { CreateGameTransferDto, normalizeTransferAmount } from './dto/game-transfer.dto';
 import { ProviderGatesDto, normalizeProviderGatesDto } from './dto/provider-gates.dto';
 import { GamePlatformMoneyService } from './game-platform-money.service';
+import { ProviderReconciliationCommandService } from './provider-reconciliation-command.service';
+import { ProviderReconciliationQueryService } from './provider-reconciliation-query.service';
 import { ProviderTransferCommandService } from './provider-transfer-command.service';
 import { ProviderWebhookService } from './provider-webhook.service';
 
@@ -42,6 +44,8 @@ export class AdminGameMoneyController {
   constructor(
     private readonly moneyService: GamePlatformMoneyService,
     private readonly transferCommands: ProviderTransferCommandService,
+    private readonly reconciliationQueries: ProviderReconciliationQueryService,
+    private readonly reconciliationCommands: ProviderReconciliationCommandService,
   ) {}
 
   @RequirePermission('game.providers.view')
@@ -74,23 +78,23 @@ export class AdminGameMoneyController {
 
   @RequirePermission('game.providers.manage')
   @Post('game-sessions/:sessionId/reconcile')
-  reconcileSession(@Param('sessionId') sessionId: string, @CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.reconcileSession(sessionId, user); }
+  reconcileSession(@Param('sessionId') sessionId: string, @CurrentUser() user: AuthenticatedAdminActor) { return this.reconciliationCommands.reconcileSession(sessionId, user); }
 
   @RequirePermission('game.providers.manage')
   @Post('game-sessions/reconcile-active')
-  reconcileActiveSessions(@CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.reconcileActiveSessions(user); }
+  reconcileActiveSessions(@CurrentUser() user: AuthenticatedAdminActor) { return this.reconciliationCommands.reconcileActiveSessions(user); }
 
   @RequirePermission('game.providers.view')
   @Get('provider-wallet-snapshots')
-  listSnapshots() { return this.moneyService.listSnapshots(); }
+  listSnapshots() { return this.reconciliationQueries.listSnapshots(); }
 
   @RequirePermission('game.providers.view')
   @Get('provider-wallet-snapshots/:id')
-  getSnapshot(@Param('id') id: string) { return this.moneyService.getSnapshot(id); }
+  getSnapshot(@Param('id') id: string) { return this.reconciliationQueries.getSnapshot(id); }
 
   @RequirePermission('game.providers.manage')
   @Patch('provider-wallet-snapshots/:id/review')
-  reviewSnapshot(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.reviewSnapshot(id, user, normalizeSnapshotReview(body)); }
+  reviewSnapshot(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.reconciliationCommands.reviewSnapshot(id, user, normalizeSnapshotReview(body)); }
 
   @RequirePermission('game.providers.view')
   @Get('webhook-logs')
