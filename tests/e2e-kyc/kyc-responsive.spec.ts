@@ -78,7 +78,7 @@ const adminDetail = {
 test.describe('KYC responsive regression', () => {
   test('member KYC renders draft upload state without horizontal overflow', async ({ page }, testInfo) => {
     await page.addInitScript(() => localStorage.setItem('member_access_token', 'e2e-member-token'));
-    await page.route('http://127.0.0.1:4000/member/kyc', async (route) => {
+    await page.route('**/member/kyc', async (route) => {
       if (route.request().method() === 'GET') {
         await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(memberCase) });
         return;
@@ -109,6 +109,11 @@ test.describe('KYC responsive regression', () => {
       }
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ accessToken: 'e2e-admin-token' }) });
     });
+    // Register the broad mutation guard first. Playwright resolves routes in reverse
+    // registration order, so the case-specific GET handler below must be registered last.
+    await page.route('**/api/admin/kyc/**', async (route) => {
+      await route.fulfill({ status: 405, contentType: 'application/json', body: JSON.stringify({ message: 'Mutation disabled in visual regression' }) });
+    });
     await page.route('**/api/admin/kyc/cases**', async (route) => {
       const path = new URL(route.request().url()).pathname;
       if (/\/cases\/[0-9a-f-]+$/i.test(path)) {
@@ -116,9 +121,6 @@ test.describe('KYC responsive regression', () => {
         return;
       }
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(adminList) });
-    });
-    await page.route('**/api/admin/kyc/**', async (route) => {
-      await route.fulfill({ status: 405, contentType: 'application/json', body: JSON.stringify({ message: 'Mutation disabled in visual regression' }) });
     });
 
     await page.goto('http://127.0.0.1:3102/kyc');
