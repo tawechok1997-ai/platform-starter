@@ -473,25 +473,25 @@ Branch อ้างอิง: **`main`**
 
 ### R-008 Domain model และ policy separation
 
-สถานะ: 🟡 PARTIAL
+สถานะ: ✅ DONE
 
 - [x] Promotion/bonus models แยกจาก `RiskAlert.metadata`
 - [x] Affiliate/commission models
 - [x] Constraints/indexes/backfill
 - [x] Service/frontend migration ของ promotion domain
-- [ ] แยก Deposit entity/state transition policy
-- [ ] แยก Withdrawal entity/state transition policy
-- [ ] แยก Wallet settlement policy
-- [ ] แยก Admin account/ownership policy
-- [ ] แยก KYC review policy
-- [ ] แยก Watchlist matching/override policy
-- [ ] แยก Support ticket lifecycle policy
-- [ ] แยก Notification preference policy
-- [ ] ทำ domain errors ที่ไม่ผูกกับ Nest HTTP exception
-- [ ] ทำ value objects สำหรับ Money, Phone, BankAccount และ identifiers ที่สำคัญ
-- [ ] เพิ่ม unit tests สำหรับ invariant และ policy ทุก domain สำคัญ
+- [x] แยก Deposit entity/state transition policy
+- [x] แยก Withdrawal entity/state transition policy
+- [x] แยก Wallet settlement policy
+- [x] แยก Admin account/ownership policy
+- [x] แยก KYC review policy
+- [x] แยก Watchlist matching/override policy
+- [x] แยก Support ticket lifecycle policy
+- [x] แยก Notification preference policy
+- [x] ทำ domain errors ที่ไม่ผูกกับ Nest HTTP exception
+- [x] ทำ value objects สำหรับ Money, Phone, BankAccount และ identifiers ที่สำคัญ
+- [x] เพิ่ม unit tests สำหรับ invariant และ policy ทุก domain สำคัญ
 
-**หลักฐานปิดงาน:** business rule สำคัญอยู่ใน domain/policy ที่ทดสอบได้ ไม่กระจายใน controller/service
+**หลักฐานปิดงาน:** `docs/r008-closure-checklist.md`, `docs/evidence/r008-final-verification.md`, `pnpm audit:r8-closure`, API typecheck, full API tests และ API build ผ่าน; closure commit `e9850b22d033edd9f96eba178b1999699a0a5c96`
 
 ### R-009 Repository, transaction และ persistence boundary
 
