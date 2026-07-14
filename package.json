@@ -23,6 +23,8 @@
     "audit:unused-exports": "node tools/audit-unused-exports.mjs",
     "audit:circular-dependencies": "node tools/audit-circular-dependencies.mjs",
     "audit:browser-quality": "node tools/audit-browser-quality-gate.mjs",
+    "audit:backend-decomposition": "node tools/audit-backend-decomposition.mjs",
+    "audit:backend-decomposition:json": "R007_JSON=1 node tools/audit-backend-decomposition.mjs",
     "audit:shared-api-client": "node tools/audit-shared-api-client.mjs",
     "audit:shared-api-client:json": "API_CLIENT_AUDIT_JSON=1 node tools/audit-shared-api-client.mjs",
     "audit:r5-closure": "pnpm audit:shared-api-client && pnpm --filter @platform/api-client test && pnpm --filter @platform/api-client build && pnpm typecheck:admin && pnpm typecheck:member",
