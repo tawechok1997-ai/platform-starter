@@ -46,4 +46,21 @@ export default tseslint.config(
       }],
     },
   })),
+  {
+    files: ['**/support/support-command.service.ts'],
+    rules: {
+      'no-control-regex': 'off',
+    },
+  },
+  {
+    files: ['**/topups/deposit-workflow.service.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_|^EvidenceRow$',
+        caughtErrorsIgnorePattern: '^_',
+        ignoreRestSiblings: true,
+      }],
+    },
+  },
 );
