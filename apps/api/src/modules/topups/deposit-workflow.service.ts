@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHash, randomUUID } from 'crypto';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import {
@@ -151,7 +152,18 @@ export class DepositWorkflowService {
           AND "status" = 'PENDING_SLIP_REVIEW'::"TopUpRequestStatus"
       `);
       if (changed !== 1) throw new ConflictException('Deposit state or claim changed during slip approval');
-      await tx.adminAuditLog.create({ data: { adminUserId, action: 'APPROVE_DEPOSIT_SLIP', module: 'topups', targetId: requestId, oldData: { status: 'PENDING_SLIP_REVIEW' }, newData: { status: 'PENDING_CREDIT', note }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId,
+          action: 'APPROVE_DEPOSIT_SLIP',
+          module: 'topups',
+          targetId: requestId,
+          oldData: { status: 'PENDING_SLIP_REVIEW' },
+          newData: { status: 'PENDING_CREDIT', note },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
       return { ok: true, status: 'PENDING_CREDIT' };
     });
   }
@@ -183,7 +195,18 @@ export class DepositWorkflowService {
           AND "status"::text IN ('PENDING_SLIP_REVIEW', 'PENDING_CREDIT')
       `);
       if (changed !== 1) throw new ConflictException('Deposit state changed during rejection');
-      await tx.adminAuditLog.create({ data: { adminUserId, action: 'REJECT_DEPOSIT', module: 'topups', targetId: requestId, oldData: { status: request.status }, newData: { status: 'REJECTED', note: note.trim() }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId,
+          action: 'REJECT_DEPOSIT',
+          module: 'topups',
+          targetId: requestId,
+          oldData: { status: request.status },
+          newData: { status: 'REJECTED', note: note.trim() },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
       return { ok: true, status: 'REJECTED' };
     });
   }
@@ -243,7 +266,18 @@ export class DepositWorkflowService {
           AND "status" = 'PENDING_CREDIT'::"TopUpRequestStatus"
       `);
       if (changed !== 1) throw new ConflictException('Deposit state or claim changed during credit confirmation');
-      await tx.adminAuditLog.create({ data: { adminUserId, action: 'CONFIRM_DEPOSIT_CREDIT', module: 'topups', targetId: requestId, oldData: { status: 'PENDING_CREDIT', balanceBefore: balanceBefore.toString() }, newData: { status: 'COMPLETED', balanceAfter: balanceAfter.toString(), ledgerId: ledger.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId,
+          action: 'CONFIRM_DEPOSIT_CREDIT',
+          module: 'topups',
+          targetId: requestId,
+          oldData: { status: 'PENDING_CREDIT', balanceBefore: balanceBefore.toString() },
+          newData: { status: 'COMPLETED', balanceAfter: balanceAfter.toString(), ledgerId: ledger.id },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
       return { ok: true, status: 'COMPLETED', ledgerId: ledger.id, balanceAfter: balanceAfter.toString() };
     });
   }
