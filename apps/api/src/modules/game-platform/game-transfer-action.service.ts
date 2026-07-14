@@ -1,6 +1,7 @@
 import type { AdminActor } from '../../common/actors';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
 
@@ -29,7 +30,7 @@ export class GameTransferActionService {
       const ledger = await tx.walletLedger.create({ data: { walletId: wallet.id, userId: transfer.userId, type: 'REVERSAL', direction, amount: amount.toFixed(2), balanceBefore: before.toFixed(2), balanceAfter: after.toFixed(2), referenceType: 'GAME_TRANSFER_MANUAL_REVERSE', referenceId: transfer.id, idempotencyKey, metadata: { transferId: transfer.id, providerId: transfer.providerId, note: adminNote, reversedBy: actor.id, reversedAt: now.toISOString() } } });
       const payload = this.mergeJson(transfer.responsePayload, { manualReverse: { note: adminNote, reversedBy: actor.id, reversedAt: now.toISOString(), ledgerId: ledger.id, direction, balanceAfter: updatedWallet.balance, previousStatus: transfer.status } });
       const updatedTransfer = await tx.gameTransfer.update({ where: { id: transfer.id }, data: { status: 'REVERSED', adminNote, responsePayload: payload, resolvedAt: now }, include: { user: { select: { id: true, username: true, phone: true } }, provider: { select: { id: true, name: true, code: true } }, session: { select: { id: true, providerSessionId: true, game: { select: { id: true, name: true, providerGameCode: true } } } } } });
-      await tx.adminAuditLog.create({ data: { adminUserId: actor.id, action: 'game.transfer.manual_reverse', module: 'game-platform', targetId: transfer.id, newData: this.safeJson({ note: adminNote, ledgerId: ledger.id, direction, previousStatus: transfer.status, nextStatus: 'REVERSED', balanceAfter: updatedWallet.balance }) } });
+      await tx.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: actor.id, action: 'game.transfer.manual_reverse', module: 'game-platform', targetId: transfer.id, newData: { note: adminNote, ledgerId: ledger.id, direction, previousStatus: transfer.status, nextStatus: 'REVERSED', balanceAfter: updatedWallet.balance } }) });
       return { transfer: updatedTransfer, ledger, wallet: updatedWallet };
     });
     return { ok: true, ...result };
@@ -44,7 +45,7 @@ export class GameTransferActionService {
     const changed = await this.prisma.gameTransfer.updateMany({ where: { id, status: 'PENDING' }, data: { status: 'FAILED', adminNote, errorCode: transfer.errorCode ?? 'FORCE_FAILED', errorMessage: adminNote, responsePayload: payload, resolvedAt: now } });
     if (changed.count !== 1) throw new BadRequestException('Transfer is no longer PENDING');
     const item = await this.prisma.gameTransfer.findUnique({ where: { id }, include: { user: { select: { id: true, username: true, phone: true } }, provider: { select: { id: true, name: true, code: true } }, session: { select: { id: true, providerSessionId: true, game: { select: { id: true, name: true, providerGameCode: true } } } } } });
-    await this.prisma.adminAuditLog.create({ data: { adminUserId: actor.id, action: 'game.transfer.force_fail', module: 'game-platform', targetId: id, newData: this.safeJson({ note: adminNote, previousStatus: transfer.status, nextStatus: 'FAILED' }) } });
+    await this.prisma.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: actor.id, action: 'game.transfer.force_fail', module: 'game-platform', targetId: id, newData: { note: adminNote, previousStatus: transfer.status, nextStatus: 'FAILED' } }) });
     return { ok: true, transfer: item };
   }
   private requireNote(note?: string) { const value = note?.trim(); if (!value) throw new BadRequestException('Admin note is required'); return value; }
