@@ -77,7 +77,11 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const canViewRoute = required.length === 0 || permissions.includes('*') || required.some((permission) => permissions.includes(permission));
 
   async function logout() {
-    try { await adminApiFetch('/admin/auth/logout', { method: 'POST' }); } catch {}
+    try {
+      await adminApiFetch('/admin/auth/logout', { method: 'POST' });
+    } catch {
+      // Clear the local session even when the remote logout request fails.
+    }
     clearAdminSession();
     window.location.href = '/login';
   }
