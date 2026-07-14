@@ -5,12 +5,18 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "lint": "turbo lint",
+    "lint": "pnpm lint:api && pnpm lint:admin && pnpm lint:member && pnpm lint:packages",
+    "lint:api": "pnpm --filter @platform/api lint",
+    "lint:admin": "pnpm --filter @platform/web-admin lint",
+    "lint:member": "pnpm --filter @platform/web-member lint",
+    "lint:packages": "pnpm --filter './packages/**' --if-present lint",
+    "format:check": "prettier --check .",
     "test": "turbo test",
     "typecheck:api": "pnpm db:generate && pnpm --filter @platform/api typecheck",
     "typecheck:admin": "pnpm --filter @platform/web-admin typecheck",
     "typecheck:member": "pnpm --filter @platform/web-member typecheck",
-    "typecheck": "pnpm typecheck:api && pnpm typecheck:admin && pnpm typecheck:member",
+    "typecheck:packages": "pnpm --filter './packages/**' --if-present typecheck",
+    "typecheck": "pnpm typecheck:api && pnpm typecheck:admin && pnpm typecheck:member && pnpm typecheck:packages",
     "audit:shared-api-client": "node tools/audit-shared-api-client.mjs",
     "audit:shared-api-client:json": "API_CLIENT_AUDIT_JSON=1 node tools/audit-shared-api-client.mjs",
     "audit:r5-closure": "pnpm audit:shared-api-client && pnpm --filter @platform/api-client test && pnpm --filter @platform/api-client build && pnpm typecheck:admin && pnpm typecheck:member",
@@ -63,11 +69,16 @@
     "@prisma/client": "6.14.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@playwright/test": "1.61.1",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.0.0",
+    "prisma": "6.14.0",
+    "tsx": "4.23.0",
     "turbo": "2.10.4",
     "typescript": "5.7.3",
-    "prisma": "6.14.0",
-    "tsx": "4.23.0"
+    "typescript-eslint": "^8.0.0"
   },
   "pnpm": {
     "overrides": {
