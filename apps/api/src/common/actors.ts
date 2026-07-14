@@ -1,5 +1,5 @@
 export type AdminActor = {
-  id?: string;
+  id: string;
   permissions?: string[];
 };
 
