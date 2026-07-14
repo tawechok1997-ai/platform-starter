@@ -1,0 +1,53 @@
+name: R-006 Quality Baseline
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+      - name: Prisma schema and generated-client drift
+        run: |
+          pnpm exec prisma validate --schema prisma/schema.prisma
+          pnpm audit:generated-drift
+      - name: Migration validation
+        run: pnpm audit:migration-validation
+      - name: Architecture and test-safety guards
+        run: |
+          pnpm audit:architecture-boundaries
+          pnpm audit:critical-test-safety
+      - name: Lint
+        run: pnpm lint
+      - name: Typecheck packages and web apps
+        run: |
+          pnpm typecheck:packages
+          pnpm typecheck:admin
+          pnpm typecheck:member
+      - name: Package export audit
+        run: pnpm audit:unused-exports
+      - name: R-006 closure structure audit
+        run: pnpm audit:r6-closure
+      - name: Quality summary
+        if: always()
+        run: |
+          {
+            echo '## R-006 Quality Baseline'
+            echo '- Shared ESLint and formatter configuration checked'
+            echo '- Migration and generated-client drift guards executed'
+            echo '- Architecture, critical-test safety, lint and typecheck gates executed'
+            echo '- Package export integrity checked'
+          } >> "$GITHUB_STEP_SUMMARY"
