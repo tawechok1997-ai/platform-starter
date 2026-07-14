@@ -6,6 +6,25 @@ const MEMBER_STATUSES = ['ACTIVE', 'SUSPENDED', 'LOCKED', 'CLOSED'] as const;
 type MemberStatus = (typeof MEMBER_STATUSES)[number];
 export type ListMembersQuery = { search?: string; status?: string; page?: string; take?: string };
 
+const MEMBER_LIST_PROJECTION = {
+  id: true,
+  username: true,
+  phone: true,
+  email: true,
+  status: true,
+  createdAt: true,
+  lastLoginAt: true,
+  profile: { select: { displayName: true } },
+  wallet: {
+    select: {
+      balance: true,
+      lockedBalance: true,
+    },
+  },
+} as const;
+
+type MemberListRecord = Prisma.UserGetPayload<{ select: typeof MEMBER_LIST_PROJECTION }>;
+
 @Injectable()
 export class AdminMembersQueryService {
   constructor(private readonly prisma: PrismaService) {}
@@ -31,7 +50,13 @@ export class AdminMembersQueryService {
     }
 
     const [items, total] = await this.prisma.$transaction([
-      this.prisma.user.findMany({ where, include: { profile: true, wallet: true }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * take, take }),
+      this.prisma.user.findMany({
+        where,
+        select: MEMBER_LIST_PROJECTION,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * take,
+        take,
+      }),
       this.prisma.user.count({ where }),
     ]);
 
@@ -61,6 +86,6 @@ export class AdminMembersQueryService {
 
 function isUuid(value: string) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value); }
 
-function mapMemberListItem(user: Prisma.UserGetPayload<{ include: { profile: true; wallet: true } }>) {
+function mapMemberListItem(user: MemberListRecord) {
   return { id: user.id, shortId: user.id.slice(0, 8), username: user.username, phone: user.phone, email: user.email, status: user.status, displayName: user.profile?.displayName ?? null, balance: user.wallet?.balance.toString() ?? '0', lockedBalance: user.wallet?.lockedBalance.toString() ?? '0', availableBalance: user.wallet ? user.wallet.balance.minus(user.wallet.lockedBalance).toString() : '0', createdAt: user.createdAt, lastLoginAt: user.lastLoginAt };
 }
