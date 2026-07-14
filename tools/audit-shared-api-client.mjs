@@ -1,4 +1,4 @@
-import { access, readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 
 const root = process.cwd();
@@ -7,14 +7,9 @@ const appRoots = [
   { name: 'member', path: join(root, 'apps', 'web-member') },
 ];
 
-// Temporary transport bridges must stay tiny and explicit. Remove entries as each
-// app is migrated. A listed file that does not exist is ignored rather than
-// pretending it protects anything.
-const allowedFiles = new Set([
-  'apps/web-admin/lib/api.ts',
-  'apps/web-admin/src/lib/api.ts',
-  'apps/web-member/lib/api.ts',
-  'apps/web-member/src/lib/api.ts',
+const allowedTransportBridges = new Set([
+  'apps/web-admin/app/admin-api.ts',
+  'apps/web-member/app/member-api.ts',
 ]);
 
 const forbidden = [
@@ -42,70 +37,78 @@ function normalize(path) {
   return relative(root, path).split(sep).join('/');
 }
 
-function appName(path) {
-  return path.startsWith('apps/web-admin/') ? 'admin' : 'member';
+function isServerProxyRoute(path) {
+  return /^apps\/web-(?:admin|member)\/app\/api\/.+\/route\.(?:ts|js)$/.test(path);
 }
 
-const files = (await Promise.all(appRoots.map(({ path }) => walk(path)))).flat();
-const violations = [];
-const appStats = {
-  admin: { files: 0, imports: 0, violations: 0 },
-  member: { files: 0, imports: 0, violations: 0 },
-};
-let apiClientImports = 0;
+function isAllowedTransportBoundary(path) {
+  return allowedTransportBridges.has(path) || isServerProxyRoute(path);
+}
 
-for (const file of files) {
-  const path = normalize(file);
-  const source = await readFile(file, 'utf8');
-  const app = appName(path);
-  appStats[app].files += 1;
-  if (source.includes('@platform/api-client')) {
-    apiClientImports += 1;
-    appStats[app].imports += 1;
-  }
-  if (allowedFiles.has(path)) continue;
-  for (const rule of forbidden) {
-    const matches = [...source.matchAll(rule.pattern)];
-    for (const match of matches) {
-      const line = source.slice(0, match.index).split('\n').length;
-      violations.push({ path, line, rule: rule.name, app });
-      appStats[app].violations += 1;
+const grouped = [];
+const allViolations = [];
+let totalFiles = 0;
+let totalImports = 0;
+let existingBridges = 0;
+
+for (const app of appRoots) {
+  const files = await walk(app.path);
+  const violations = [];
+  let apiClientImports = 0;
+
+  for (const file of files) {
+    const path = normalize(file);
+    const source = await readFile(file, 'utf8');
+    if (source.includes('@platform/api-client')) apiClientImports += 1;
+    if (isAllowedTransportBoundary(path)) {
+      if (allowedTransportBridges.has(path)) existingBridges += 1;
+      continue;
+    }
+    for (const rule of forbidden) {
+      for (const match of source.matchAll(rule.pattern)) {
+        const line = source.slice(0, match.index).split('\n').length;
+        violations.push({ app: app.name, path, line, rule: rule.name });
+      }
     }
   }
+
+  grouped.push({ app: app.name, files: files.length, apiClientImports, violations });
+  totalFiles += files.length;
+  totalImports += apiClientImports;
+  allViolations.push(...violations);
 }
 
-const existingAllowlist = [];
-for (const path of [...allowedFiles].sort()) {
-  try {
-    await access(join(root, path));
-    existingAllowlist.push(path);
-  } catch {
-    // Missing historical bridge paths are deliberately not counted as coverage.
+const result = {
+  totalFiles,
+  apiClientImports: totalImports,
+  existingAllowlistedTransportBridges: existingBridges,
+  groups: grouped,
+  violations: allViolations,
+};
+
+if (process.argv.includes('--json')) {
+  console.log(JSON.stringify(result, null, 2));
+} else {
+  console.log(`Shared API client audit: ${totalFiles} frontend source files`);
+  console.log(`  @platform/api-client imports: ${totalImports}`);
+  console.log(`  existing allowlisted transport bridges: ${existingBridges}`);
+  for (const group of grouped) {
+    console.log(`  ${group.app}: ${group.files} files, ${group.apiClientImports} imports, ${group.violations.length} violations`);
   }
+  console.log(`  violations: ${allViolations.length}`);
 }
 
-violations.sort((left, right) => left.path.localeCompare(right.path) || left.line - right.line || left.rule.localeCompare(right.rule));
-
-console.log(`Shared API client audit: ${files.length} frontend source files`);
-console.log(`  @platform/api-client imports: ${apiClientImports}`);
-console.log(`  existing allowlisted transport bridges: ${existingAllowlist.length}`);
-console.log(`  admin: ${appStats.admin.files} files, ${appStats.admin.imports} imports, ${appStats.admin.violations} violations`);
-console.log(`  member: ${appStats.member.files} files, ${appStats.member.imports} imports, ${appStats.member.violations} violations`);
-console.log(`  violations: ${violations.length}`);
-
-if (!apiClientImports) {
-  violations.push({ path: '(frontend)', line: 0, rule: 'No frontend file imports @platform/api-client', app: 'all' });
+if (!totalImports) allViolations.push({ app: 'all', path: '-', line: 0, rule: 'No frontend file imports @platform/api-client' });
+if (existingBridges !== allowedTransportBridges.size) {
+  allViolations.push({ app: 'all', path: '-', line: 0, rule: 'A documented transport bridge is missing' });
 }
 
-if (process.env.API_CLIENT_AUDIT_JSON === '1') {
-  console.log(JSON.stringify({ files: files.length, apiClientImports, existingAllowlist, appStats, violations }, null, 2));
-}
-
-if (violations.length) {
-  console.error('\nDirect or duplicate API transport usage:');
-  for (const violation of violations) {
-    const location = violation.line ? `${violation.path}:${violation.line}` : violation.path;
-    console.error(`  - ${location}: ${violation.rule}`);
+if (allViolations.length) {
+  if (!process.argv.includes('--json')) {
+    console.error('\nDirect or duplicate API transport usage:');
+    for (const violation of allViolations.sort((a, b) => `${a.path}:${a.line}`.localeCompare(`${b.path}:${b.line}`))) {
+      console.error(`  - ${violation.path}:${violation.line}: ${violation.rule}`);
+    }
   }
   process.exitCode = 1;
 }
