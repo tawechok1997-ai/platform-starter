@@ -27,6 +27,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
+      - name: Capture shared API client inventory
+        if: always()
+        run: |
+          mkdir -p artifacts/r005
+          pnpm audit:shared-api-client:json > artifacts/r005/shared-api-client-inventory.json || true
+
+      - name: Upload shared API client inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r005-shared-api-client-inventory
+          path: artifacts/r005/shared-api-client-inventory.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Audit shared API client usage
         id: audit
         run: pnpm audit:shared-api-client
@@ -60,4 +75,6 @@ jobs:
             echo "| Client typecheck | ${{ steps.typecheck_client.outcome }} |"
             echo "| Admin typecheck | ${{ steps.typecheck_admin.outcome }} |"
             echo "| Member typecheck | ${{ steps.typecheck_member.outcome }} |"
+            echo ""
+            echo "Inventory artifact: r005-shared-api-client-inventory"
           } >> "$GITHUB_STEP_SUMMARY"
