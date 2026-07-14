@@ -121,3 +121,24 @@ jobs:
         run: pnpm build:web-member
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
+
+      - name: Regression safety failure summary
+        if: failure()
+        run: |
+          {
+            echo "## Regression safety failure"
+            echo
+            echo "One or more required architecture, permission, unit, database, concurrency, rollback, idempotency, contract, or build gates failed."
+            echo
+            echo "### Required triage"
+            echo "- Open the first failed step above; later failures may be cascading."
+            echo "- Match the failed domain to docs/architecture/test-inventory.md."
+            echo "- Do not continue a structural refactor until the affected required gate passes."
+            echo "- Record before/after commands and results in the pull request."
+            echo
+            echo "### Local baseline"
+            echo '```bash'
+            echo "pnpm audit:critical-test-safety"
+            echo "pnpm --filter @platform/api test -- --runInBand"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
