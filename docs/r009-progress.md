@@ -23,8 +23,9 @@ R-009 establishes repository, transaction, and persistence boundaries without ch
 - [x] Consolidate transaction ownership for promotion settlement
 - [x] Complete critical Prisma repository adapters and production migration
 - [x] Close deposit approval/credit transaction ownership as N/A for the current production surface
+- [x] Resolve and strictly enforce the legacy transaction escape inventory
 
-Closure evidence:
+## Closure evidence
 
 - `docs/evidence/r009-controller-persistence-boundary.md`
 - `docs/evidence/r009-controller-persistence-closure.md`
@@ -80,43 +81,23 @@ Closure evidence:
 - `docs/evidence/r009-topup-approval-credit-scope.md`
 - `tools/audit-r009-topup-transaction-boundary.mjs` fails closed if a top-up approval/credit/completion path appears without an explicit transaction contract.
 - current `TopUpsController` exposes only create/read/claim/release and current `TopUpsService` performs no wallet or wallet-ledger mutation.
-
-## Active partial work
-
-### Query-outside-transaction boundary
-
-- [x] Added `tools/audit-r009-transaction-context.mjs` for Prisma infrastructure.
-- [x] The guard rejects nested `$transaction`, `new PrismaClient`, and unscoped `this.prisma` usage in repository infrastructure.
-- [x] Added the guard to `.github/workflows/r009-parallel-boundary-closure.yml`.
-- [x] Resolved top-up release read/write/audit transaction separation.
-- [x] Resolved withdrawal release read/write/audit transaction separation.
-- [x] Upgraded `tools/audit-r009-transaction-escapes.mjs` to method-level findings with stable review keys.
-- [x] Added `docs/evidence/r009-transaction-escape-review.json` as the reviewed baseline ledger.
-- [x] Added `tools/audit-r009-transaction-review-ledger.mjs` to reject invalid statuses and undocumented safe findings.
-- [x] Added strict mode that fails on confirmed, unreviewed, or stale findings.
-- [x] Routed production invitation creation through `AdminInvitationAdminService.create`.
-- [x] Moved invitation create and reissue persistence plus audit into atomic transaction owners.
-- [x] Railway API deployment succeeded for invitation runtime commit `f64be20c007a4910f69d603b9d075b9e475048c7`.
-- [ ] Populate the review ledger from the remaining current method-level inventory.
-- [ ] Resolve all remaining confirmed legacy service escapes.
-- [ ] Enable strict mode in the required quality workflow after review reaches zero unreviewed findings.
-
-## Pending evidence
-
-- [ ] Run the method-level transaction inventory and classify every remaining same-method finding.
+- `docs/evidence/r009-legacy-transaction-escape-closure.md`
+- `docs/evidence/r009-transaction-escape-review.json`
+- `tools/audit-r009-transaction-review-ledger.mjs`
+- strict method-level inventory enforcement in `.github/workflows/r009-parallel-boundary-closure.yml` with `R009_TRANSACTION_STRICT=1`
+- successful Railway API, admin, and member deployments for strict-enforcement commit `e4b244bc21a8941c14f8fbabc059a35e975b82ae`
 
 ## Remaining R-009 work
 
-- [ ] Resolve confirmed legacy transaction escapes.
 - [ ] Add remaining deadlock and concurrency regression coverage.
 
 ## Count
 
 - Total R-009 subtasks: 15
-- Closed with durable evidence: 13
-- Remaining not closed: 2
+- Closed with durable evidence: 14
+- Remaining not closed: 1
 - Enforced and awaiting verification: 0
-- Other partial or under active review: 2
+- Other partial or under active review: 1
 - Not yet implemented: 0
 
 ## Verification policy
@@ -125,12 +106,12 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-The current top-up module has no approval/credit production command. Claim and release are transaction-owned and guarded. R-009 therefore closes deposit approval/credit as N/A for the present production surface and fails closed if a future route, command, wallet mutation, or wallet-ledger mutation appears without an explicit atomic contract. No endpoint, business transition, wallet behavior, schema, production data, permission model, secret, provider, or deployment target was added or changed.
+The current method-level inventory contains one reviewed legacy invitation finding. It is safe because the production controller routes invitation create/reissue commands through atomic transaction owners, and dedicated guards reject routing regressions. The required R-009 workflow now runs strict inventory mode and fails on confirmed, unreviewed, or stale findings. No schema, production data, permission model, secret, provider, wallet behavior, or deployment target was changed.
 
 ## Latest commits
 
+- `50b6fdad3ed1388072c2210d59151a4c10890b7d` — record strict legacy transaction escape closure evidence.
+- `e4b244bc21a8941c14f8fbabc059a35e975b82ae` — enable strict method-level transaction escape inventory in the required workflow.
 - `41c69935671ac43af89bd778021a5924e44e6459` — document the absent top-up approval/credit production path and future atomic contract.
 - `edb5dc44aa4fae18f819a280d5e244c909402e22` — fail closed if an unguarded top-up approval/credit path is introduced.
 - `fcf379c4f371d639eb942bbf778367902c561a2d` — enforce promotion adapter production wiring and reject direct bonus-ledger locks in migrated helpers.
-- `8a04bf7ce165c620dae72bff538e1ebbd26c103e` — route promotion bonus-ledger lock/read/final persistence through the transaction-scoped adapter.
-- `4e5fd2d46a34aac3a801ddac26f70e2f51b789f6` — guard promotion release metadata compatibility.
