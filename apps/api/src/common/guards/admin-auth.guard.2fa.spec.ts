@@ -31,6 +31,13 @@ function session(options: { roleCode: string; permissions: string[]; twoFactorEn
   };
 }
 
+function prismaMock(value: unknown) {
+  return {
+    authSession: { findFirst: jest.fn().mockResolvedValue(value) },
+    adminDelegation: { findMany: jest.fn().mockResolvedValue([]) },
+  } as any;
+}
+
 describe('AdminAuthGuard privileged 2FA enforcement', () => {
   const jwtService = { verifyAsync: jest.fn().mockResolvedValue({ type: 'ADMIN', sub: 'admin-1', sessionId: 'session-1' }) } as any;
   const configService = { get: jest.fn((key: string) => key === 'ADMIN_2FA_ENFORCEMENT_ENABLED' ? 'true' : 'test-key') } as any;
@@ -38,11 +45,7 @@ describe('AdminAuthGuard privileged 2FA enforcement', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('blocks privileged admins from protected routes until 2FA is enabled', async () => {
-    const prisma = {
-      authSession: {
-        findFirst: jest.fn().mockResolvedValue(session({ roleCode: 'super_admin', permissions: ['*'], twoFactorEnabled: false })),
-      },
-    } as any;
+    const prisma = prismaMock(session({ roleCode: 'super_admin', permissions: ['*'], twoFactorEnabled: false }));
     const guard = new AdminAuthGuard(jwtService, configService, prisma);
     const { context } = executionContext('/admin/access/overview');
 
@@ -50,11 +53,7 @@ describe('AdminAuthGuard privileged 2FA enforcement', () => {
   });
 
   it('allows privileged admins to reach the 2FA setup flow', async () => {
-    const prisma = {
-      authSession: {
-        findFirst: jest.fn().mockResolvedValue(session({ roleCode: 'super_admin', permissions: ['*'], twoFactorEnabled: false })),
-      },
-    } as any;
+    const prisma = prismaMock(session({ roleCode: 'super_admin', permissions: ['*'], twoFactorEnabled: false }));
     const guard = new AdminAuthGuard(jwtService, configService, prisma);
     const { context, request } = executionContext('/admin/auth/2fa/setup');
 
@@ -64,11 +63,7 @@ describe('AdminAuthGuard privileged 2FA enforcement', () => {
   });
 
   it('allows privileged admins after 2FA is enabled', async () => {
-    const prisma = {
-      authSession: {
-        findFirst: jest.fn().mockResolvedValue(session({ roleCode: 'finance_reviewer', permissions: ['withdraw.approve'], twoFactorEnabled: true })),
-      },
-    } as any;
+    const prisma = prismaMock(session({ roleCode: 'finance_reviewer', permissions: ['withdraw.approve'], twoFactorEnabled: true }));
     const guard = new AdminAuthGuard(jwtService, configService, prisma);
     const { context } = executionContext('/admin/withdrawals');
 
@@ -76,11 +71,7 @@ describe('AdminAuthGuard privileged 2FA enforcement', () => {
   });
 
   it('does not force 2FA on a low-risk read-only admin', async () => {
-    const prisma = {
-      authSession: {
-        findFirst: jest.fn().mockResolvedValue(session({ roleCode: 'viewer', permissions: ['reports.view'], twoFactorEnabled: false })),
-      },
-    } as any;
+    const prisma = prismaMock(session({ roleCode: 'viewer', permissions: ['reports.view'], twoFactorEnabled: false }));
     const guard = new AdminAuthGuard(jwtService, configService, prisma);
     const { context } = executionContext('/admin/reports');
 
