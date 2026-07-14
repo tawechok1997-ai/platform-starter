@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
@@ -12,6 +12,73 @@ const ADMIN_INVITE_TARGET_PREFIX = 'ADMIN_INVITE:';
 @Injectable()
 export class AdminInvitationAdminService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async create(actorAdminId: string, emailInput: string, roleId: string, expiresInHours = 24) {
+    const email = String(emailInput ?? '').trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(email)) throw new BadRequestException('A valid email is required');
+    if (!roleId) throw new BadRequestException('Role is required');
+
+    const [actor, role, existing] = await Promise.all([
+      this.findAdminWithPermissions(actorAdminId),
+      this.prisma.role.findUnique({ where: { id: roleId }, include: { permissions: { include: { permission: true } } } }),
+      this.prisma.adminUser.findUnique({ where: { email } }),
+    ]);
+    if (!actor) throw new ForbiddenException('Acting admin account not found');
+    if (!role) throw new NotFoundException('Role not found');
+    if (existing) throw new ConflictException('An admin account with this email already exists');
+
+    this.assertCanGrantRole(actor, role);
+
+    const safeHours = Math.min(Math.max(Number(expiresInHours) || 24, 1), 168);
+    const expiresAt = new Date(Date.now() + safeHours * 60 * 60 * 1000);
+    const rawToken = randomBytes(48).toString('base64url');
+    const tokenHash = await argon2.hash(rawToken);
+    const placeholderUsername = `invite_${randomBytes(10).toString('hex')}`;
+    const unusablePasswordHash = await argon2.hash(randomBytes(48).toString('base64url'));
+
+    const created = await this.prisma.$transaction(async (tx) => {
+      const admin = await tx.adminUser.create({
+        data: {
+          username: placeholderUsername,
+          email,
+          passwordHash: unusablePasswordHash,
+          status: 'LOCKED',
+          roles: { create: { roleId } },
+        },
+        select: { id: true, email: true, status: true, createdAt: true },
+      });
+      await tx.verificationToken.create({
+        data: {
+          type: 'PASSWORD_RESET',
+          target: `${ADMIN_INVITE_TARGET_PREFIX}${admin.id}:${email}`,
+          tokenHash,
+          expiresAt,
+        },
+      });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: actorAdminId,
+          action: 'CREATE_ADMIN_INVITATION',
+          module: 'admin-access',
+          targetId: admin.id,
+          newData: { email, roleId, roleCode: role.code, expiresAt: expiresAt.toISOString() },
+        }),
+      });
+      return admin;
+    });
+
+    return {
+      invitation: {
+        adminUserId: created.id,
+        email: created.email,
+        status: created.status,
+        role: { id: role.id, code: role.code, name: role.name },
+        expiresAt,
+      },
+      token: rawToken,
+      tokenVisibleOnce: true,
+    };
+  }
 
   async list() {
     const tokens = await this.prisma.verificationToken.findMany({
@@ -126,11 +193,15 @@ export class AdminInvitationAdminService {
           expiresAt,
         },
       });
-    });
-
-    await this.audit(actorAdminId, 'REISSUE_ADMIN_INVITATION', adminUserId, {
-      email: target.email,
-      expiresAt: expiresAt.toISOString(),
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: actorAdminId,
+          action: 'REISSUE_ADMIN_INVITATION',
+          module: 'admin-access',
+          targetId: adminUserId,
+          newData: { email: target.email, expiresAt: expiresAt.toISOString() },
+        }),
+      });
     });
 
     return { adminUserId, email: target.email, expiresAt, token: rawToken, tokenVisibleOnce: true };
