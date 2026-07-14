@@ -1,6 +1,8 @@
 # R-001 Architecture Inventory Closure Evidence
 
-Status: implementation complete; final closure requires the architecture audits to pass on the latest commit in CI.
+Status: **DONE**
+
+Closed on: **2026-07-14**
 
 ## Deliverables
 
@@ -21,7 +23,7 @@ Status: implementation complete; final closure requires the architecture audits 
   - Verifies required architecture sections and approved Nest module dependencies.
 - `tools/audit-architecture-boundaries.mjs`
   - Detects circular Nest module dependencies.
-  - Detects frontend server-only imports and cross-app relative imports.
+  - Detects frontend server-only imports, cross-app relative imports, forbidden domain imports and private cross-module deep imports.
 - `.github/workflows/build.yml`
   - Runs both architecture audits before schema, tests and builds.
 
@@ -30,9 +32,10 @@ Status: implementation complete; final closure requires the architecture audits 
 ```bash
 pnpm audit:architecture-inventory
 pnpm audit:architecture-boundaries
+pnpm audit:r1-closure
 ```
 
-Both commands must exit with code 0 on the same commit. Deployment status alone is not architecture-audit evidence.
+All commands must exit with code 0 on the same commit. Deployment status alone is not architecture-audit evidence.
 
 ## Definition of done mapping
 
