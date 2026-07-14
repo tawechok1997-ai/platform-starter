@@ -34,7 +34,7 @@ export type TicketMetadata = {
 type TicketRecord = {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   status: string;
   severity: string;
   refId: string | null;
@@ -67,7 +67,7 @@ export function mapSupportTicket(item: TicketRecord) {
   return {
     id: item.id,
     subject: item.title,
-    message: item.description,
+    message: item.description ?? '',
     status: item.status,
     severity: item.severity,
     category: metadata.category,
