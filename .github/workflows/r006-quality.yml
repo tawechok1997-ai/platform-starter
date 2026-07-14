@@ -35,10 +35,14 @@ jobs:
         run: pnpm audit:migration-validation
       - name: Architecture and test-safety guards
         run: |
+          pnpm audit:architecture-inventory
           pnpm audit:architecture-boundaries
           pnpm audit:circular-dependencies
           pnpm audit:critical-test-safety
           pnpm audit:browser-quality
+          pnpm audit:r1-closure
+          pnpm audit:r2-closure
+          pnpm audit:r3-closure
       - name: Lint API
         if: steps.scope.outputs.api == 'true'
         run: pnpm lint:api
@@ -71,12 +75,12 @@ jobs:
         if: always()
         run: |
           {
-            echo '## R-006 Quality Baseline'
+            echo '## R-001–R-006 Quality Baseline'
             echo "- API scope: ${{ steps.scope.outputs.api || 'unknown' }}"
             echo "- Admin scope: ${{ steps.scope.outputs.admin || 'unknown' }}"
             echo "- Member scope: ${{ steps.scope.outputs.member || 'unknown' }}"
             echo "- Packages scope: ${{ steps.scope.outputs.packages || 'unknown' }}"
-            echo '- Architecture, circular dependency, browser quality, migration, generated-client and critical-test guards always execute'
+            echo '- R-001 architecture inventory, R-002 boundaries, R-003 regression safety and R-006 quality closure gates execute unconditionally'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload quality failure evidence
         if: failure()
