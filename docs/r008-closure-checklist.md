@@ -16,6 +16,8 @@ Status: PARTIAL
 
 Remaining: 7 subtasks
 
+Current evidence: `AdminAccessService.transferOwnership` still performs self-transfer, owner-role, and active-target validation inline. No verified R-008 implementation commit is present on `main`.
+
 ## 2. Withdrawal lifecycle integration
 
 - [ ] Implementation commit is present on `main`
@@ -30,6 +32,8 @@ Remaining: 7 subtasks
 
 Remaining: 9 subtasks
 
+Current evidence: the integration patcher has been aligned with the domain contracts, but no verified service implementation commit has been produced on `main`.
+
 ## 3. Wallet settlement integration
 
 - [ ] Reservation uses `WalletSettlementPolicy.reserve`
@@ -40,6 +44,8 @@ Remaining: 9 subtasks
 - [ ] Insufficient balance and locked-balance cases are covered
 
 Remaining: 6 subtasks
+
+Current evidence: policy contracts are present and closure-audit markers are defined, but the withdrawal service has not yet been verified to call the settlement policy on `main`.
 
 ## 4. Verification and closure
 
@@ -55,6 +61,8 @@ Remaining: 6 subtasks
 
 Remaining: 6 subtasks
 
+Verification blocker: the GitHub Actions integration workflow has not produced a run or implementation commit after repeated trigger commits. Until the service files are changed and verified, R-008 must remain PARTIAL.
+
 ## Totals
 
 - Main headings remaining: 4
@@ -62,3 +70,4 @@ Remaining: 6 subtasks
 - Verified subtasks: 5
 - Current verification workflow: `.github/workflows/apply-r008-admin-withdrawal-integrations.yml`
 - Current integration patcher: `tools/apply-r008-admin-withdrawal-integrations.mjs`
+- Latest checked repository head: `1c5818a85b575eb2108cc7ecd9b32bc24b4bdb6a`
