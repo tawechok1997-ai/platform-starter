@@ -10,13 +10,15 @@ R-009 establishes repository, transaction, and persistence boundaries without ch
 
 ## Implemented
 
-### Controller persistence inventory
+### Controller persistence boundary
 
 - [x] Added `tools/audit-r009-controller-prisma.mjs`.
 - [x] Added human-readable, JSON, and strict audit commands.
-- [x] Wired the non-strict controller persistence inventory into `.github/workflows/r006-quality.yml`.
+- [x] Wired the controller persistence inventory into `.github/workflows/r006-quality.yml`.
 - [x] Configured CI to upload the controller inventory for review.
-- [x] Kept controller strict enforcement disabled until the current baseline is reviewed and confirmed at zero.
+- [x] Enabled `audit:r9-controller-prisma:strict` in CI.
+- [x] Added `docs/evidence/r009-controller-persistence-boundary.md`.
+- [ ] Confirm the strict GitHub quality workflow passes on the enforcement commit.
 
 ### Transaction lock-order policy
 
@@ -54,17 +56,16 @@ R-009 establishes repository, transaction, and persistence boundaries without ch
 
 - [ ] Confirm the latest quality workflow completes successfully.
 - [ ] Download and review all five R-009 JSON artifacts.
-- [ ] Record every controller with direct Prisma imports, `PrismaService`, `$transaction`, or raw query usage.
-- [ ] Confirm controller-audit false positives before changing application code.
+- [ ] Confirm the strict controller baseline is zero and record the scanned controller count.
 - [ ] Classify any locked table reported as unknown by the lock-order audit.
 - [ ] Review repository-boundary findings and confirm current Prisma leakage baseline.
 - [ ] Review mixed direct/transactional write services at method level.
 - [ ] Review critical schema models, renamed models, missing indexes, cascade behavior, and idempotency coverage.
-- [ ] Enable strict guards only after each reviewed baseline is safe.
+- [ ] Enable remaining strict guards only after each reviewed baseline is safe.
 
 ## Remaining R-009 work
 
-- [ ] Move confirmed Prisma access out of controllers.
+- [ ] Close controller inventory and controller Prisma-removal checklist items after strict CI evidence is verified.
 - [ ] Define concrete repository ports for each critical domain.
 - [ ] Add Prisma repository adapters without leaking Prisma types.
 - [ ] Consolidate transaction ownership for deposit, withdrawal, ownership, KYC/watchlist, and promotion settlement.
@@ -92,3 +93,5 @@ These slices are read-only with respect to runtime persistence. They do not modi
 - `15dc4f5d082c4f522fa9fd2855aaf539e5f127ac` — expose parallel R-009 audit commands.
 - `5719b3fd002c6e7528ed7609f9c36561d110cf70` — publish five R-009 inventories in CI.
 - `5a43938a6bd37526cec944fa09639b4883ae87f2` — define repository and persistence boundaries.
+- `71ae3ff748aaa04d9c2fb05fffc2213284dd650a` — enforce zero direct Prisma usage in controllers.
+- `0e8b2fd9c45a54d7cc7610a74f71019aa3ca3aa9` — record controller-boundary evidence and closure rule.
