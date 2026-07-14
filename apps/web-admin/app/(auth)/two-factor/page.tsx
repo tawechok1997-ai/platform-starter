@@ -1,8 +1,11 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-
+import { ApiClientError, createApiClient } from '@platform/api-client';
 import { setAdminAccessToken } from '../../admin-api';
+
+const twoFactorClient = createApiClient({ baseUrl: '', timeoutMs: 15000 });
+type VerifyResponse = { accessToken?: string };
 
 export default function AdminTwoFactorPage() {
   const [challengeId, setChallengeId] = useState('');
@@ -12,22 +15,16 @@ export default function AdminTwoFactorPage() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage('กำลังยืนยัน...');
-
-    const res = await fetch('/api/admin/auth/2fa/verify', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ challengeId, code }),
-    });
-
-    const data = await res.json().catch(() => null);
-    if (!res.ok) {
-      setMessage(data?.message ?? 'ยืนยันไม่สำเร็จ');
-      return;
+    try {
+      const data = await twoFactorClient.requestJson<VerifyResponse, { challengeId: string; code: string }>('/api/admin/auth/2fa/verify', {
+        method: 'POST', credentials: 'include', auth: false, body: { challengeId, code },
+      });
+      if (!data.accessToken) { setMessage('ยืนยันไม่สำเร็จ'); return; }
+      setAdminAccessToken(data.accessToken);
+      setMessage('ยืนยันสำเร็จ');
+    } catch (error) {
+      setMessage(error instanceof ApiClientError ? error.message : 'ยืนยันไม่สำเร็จ');
     }
-
-    setAdminAccessToken(data.accessToken);
-    setMessage('ยืนยันสำเร็จ');
   }
 
   return (
