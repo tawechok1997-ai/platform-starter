@@ -9,13 +9,16 @@ on:
       - 'apps/api/src/modules/admin-access/admin-access.service.ts'
       - 'apps/api/src/modules/admin-access/admin-ownership-command.service.ts'
       - 'apps/api/src/modules/admin-access/admin-ownership-command.service.spec.ts'
+      - 'apps/api/src/modules/finance/finance-concurrency.db.spec.ts'
       - 'apps/api/src/modules/risk-alerts/kyc-review-command.service.ts'
       - 'apps/api/src/modules/risk-alerts/kyc-concurrency.db.spec.ts'
       - 'apps/api/src/modules/risk-alerts/risk-watchlist.service.ts'
       - 'apps/api/src/modules/risk-alerts/risk-watchlist-concurrency.db.spec.ts'
       - 'apps/api/src/modules/promotions/settlement-command.service.ts'
       - 'apps/api/src/modules/promotions/settlement-command.service.spec.ts'
+      - 'apps/api/src/modules/promotions/promotion-settlement.db.spec.ts'
       - 'prisma/schema.prisma'
+      - 'prisma/migrations/**'
       - 'docs/evidence/r009-transaction-escape-review.json'
       - 'tools/audit-r009-row-lock-helpers.mjs'
       - 'tools/audit-r009-transaction-context.mjs'
@@ -35,13 +38,16 @@ on:
       - 'apps/api/src/modules/admin-access/admin-access.service.ts'
       - 'apps/api/src/modules/admin-access/admin-ownership-command.service.ts'
       - 'apps/api/src/modules/admin-access/admin-ownership-command.service.spec.ts'
+      - 'apps/api/src/modules/finance/finance-concurrency.db.spec.ts'
       - 'apps/api/src/modules/risk-alerts/kyc-review-command.service.ts'
       - 'apps/api/src/modules/risk-alerts/kyc-concurrency.db.spec.ts'
       - 'apps/api/src/modules/risk-alerts/risk-watchlist.service.ts'
       - 'apps/api/src/modules/risk-alerts/risk-watchlist-concurrency.db.spec.ts'
       - 'apps/api/src/modules/promotions/settlement-command.service.ts'
       - 'apps/api/src/modules/promotions/settlement-command.service.spec.ts'
+      - 'apps/api/src/modules/promotions/promotion-settlement.db.spec.ts'
       - 'prisma/schema.prisma'
+      - 'prisma/migrations/**'
       - 'docs/evidence/r009-transaction-escape-review.json'
       - 'tools/audit-r009-row-lock-helpers.mjs'
       - 'tools/audit-r009-transaction-context.mjs'
@@ -58,9 +64,24 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: platform_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d platform_ci"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+      FINANCE_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -71,6 +92,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
+      - name: Prepare isolated PostgreSQL schema
+        run: pnpm db:migrate
       - name: Row-lock helper closure
         run: node tools/audit-r009-row-lock-helpers.mjs
       - name: Transaction-context guard
@@ -87,6 +110,14 @@ jobs:
         run: node tools/audit-r009-ownership-transfer-transaction.mjs
       - name: Ownership concurrency regression
         run: pnpm --filter @platform/api test -- admin-ownership-command.service.spec.ts --runInBand
+      - name: PostgreSQL finance concurrency regression
+        run: pnpm --filter @platform/api test:db:finance
+      - name: PostgreSQL promotion settlement concurrency regression
+        run: pnpm --filter @platform/api test:db:promotions
+      - name: PostgreSQL KYC concurrency regression
+        run: pnpm --filter @platform/api test:db:kyc
+      - name: PostgreSQL risk-watchlist concurrency regression
+        run: pnpm --filter @platform/api test:db:risk-watchlist
       - name: KYC and watchlist transaction closure
         run: node tools/audit-r009-kyc-watchlist-transactions.mjs
       - name: Risk and promotion repository adapters
