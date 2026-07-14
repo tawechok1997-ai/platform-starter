@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { buildAdminAuditData } from '../../common/audit/admin-audit-data';
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
@@ -21,7 +22,7 @@ export class AdminAccessSessionService {
     });
 
     await this.prisma.adminAuditLog.create({
-      data: {
+      data: buildAdminAuditData({
         adminUserId: actorAdminId,
         action: 'REVOKE_ADMIN_SESSIONS_AFTER_PRIVILEGE_CHANGE',
         module: 'admin-access',
@@ -31,7 +32,7 @@ export class AdminAccessSessionService {
           revokedSessions: result.count,
           revokedAt: revokedAt.toISOString(),
         },
-      },
+      }),
     });
 
     return { revokedSessions: result.count, revokedAt };
