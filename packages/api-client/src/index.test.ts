@@ -13,14 +13,29 @@ async function run() {
   const client = createApiClient({
     baseUrl: "https://api.example.com",
     getAuthToken: () => "token-1",
+    createRequestId: () => "request-1",
     fetchImpl: (async (url, init) => {
       calls.push(String(url));
-      assert.equal(new Headers(init?.headers).get("authorization"), "Bearer token-1");
+      const requestHeaders = new Headers(init?.headers);
+      assert.equal(requestHeaders.get("authorization"), "Bearer token-1");
+      assert.equal(requestHeaders.get("x-request-id"), "request-1");
       return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
     }) as typeof fetch,
   });
   assert.deepEqual(await client.request<{ ok: boolean }>("/health"), { ok: true });
   assert.deepEqual(calls, ["https://api.example.com/health"]);
+
+  let jsonBody = "";
+  const jsonClient = createApiClient({
+    baseUrl: "https://api.example.com",
+    fetchImpl: (async (_url, init) => {
+      jsonBody = String(init?.body ?? "");
+      assert.equal(new Headers(init?.headers).get("content-type"), "application/json");
+      return new Response(JSON.stringify({ id: "created" }), { headers: { "content-type": "application/json" } });
+    }) as typeof fetch,
+  });
+  assert.deepEqual(await jsonClient.json<{ id: string }, { name: string }>("/items", { name: "demo" }, { method: "POST" }), { id: "created" });
+  assert.equal(jsonBody, JSON.stringify({ name: "demo" }));
 
   let retries = 0;
   const retryClient = createApiClient({
@@ -69,11 +84,13 @@ async function run() {
   });
   assert.deepEqual(await cachedClient.request("/cached"), { cachedCalls: 1 });
   assert.deepEqual(await cachedClient.request("/cached"), { cachedCalls: 1 });
-  assert.equal(cachedCalls, 1);
+  cachedClient.invalidateCache();
+  assert.deepEqual(await cachedClient.request("/cached"), { cachedCalls: 2 });
 
   const errorClient = createApiClient({
     baseUrl: "https://api.example.com",
-    fetchImpl: (async () => new Response(JSON.stringify({ message: "forbidden" }), {
+    createRequestId: () => "client-request",
+    fetchImpl: (async () => new Response(JSON.stringify({ message: "forbidden", code: "ACCESS_DENIED", requestId: "server-request" }), {
       status: 403,
       headers: { "content-type": "application/json" },
     })) as typeof fetch,
@@ -81,8 +98,10 @@ async function run() {
   await assert.rejects(errorClient.request("/forbidden"), (error: unknown) => {
     assert.ok(error instanceof ApiClientError);
     const clientError = error as ApiClientError;
+    assert.equal(clientError.message, "forbidden");
     assert.equal(clientError.status, 403);
-    assert.deepEqual(clientError.payload, { message: "forbidden" });
+    assert.equal(clientError.code, "ACCESS_DENIED");
+    assert.equal(clientError.requestId, "server-request");
     return true;
   });
 }
