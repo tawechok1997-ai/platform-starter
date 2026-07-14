@@ -1,0 +1,56 @@
+name: R-009 Safe Parallel Adapters
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/src/common/application/critical-repository-ports.ts'
+      - 'apps/api/src/common/infrastructure/**'
+      - 'tools/audit-r009-*-adapter*.mjs'
+      - 'prisma/schema.prisma'
+      - '.github/workflows/r009-parallel-safe-adapters.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/common/application/critical-repository-ports.ts'
+      - 'apps/api/src/common/infrastructure/**'
+      - 'tools/audit-r009-*-adapter*.mjs'
+      - 'prisma/schema.prisma'
+      - '.github/workflows/r009-parallel-safe-adapters.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Adapter schema compatibility
+        run: |
+          R009_ADAPTER_SCHEMA_JSON=1 node tools/audit-r009-adapter-schema-compatibility.mjs > r009-adapter-schema-compatibility.json
+          R009_ADAPTER_SCHEMA_STRICT=1 node tools/audit-r009-adapter-schema-compatibility.mjs
+      - name: Prisma adapter coverage
+        run: |
+          R009_ADAPTER_COVERAGE_JSON=1 node tools/audit-r009-prisma-adapter-coverage.mjs > r009-prisma-adapter-coverage.json
+          node tools/audit-r009-prisma-adapter-coverage.mjs
+      - name: Repository type boundary
+        run: R009_REPOSITORY_STRICT=1 node tools/audit-r009-repository-boundaries.mjs
+      - name: API typecheck
+        run: pnpm typecheck:api
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: r009-safe-parallel-adapters-${{ github.run_id }}
+          path: |
+            r009-adapter-schema-compatibility.json
+            r009-prisma-adapter-coverage.json
+          if-no-files-found: error
+          retention-days: 30
