@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { Prisma } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { AdminAuthService } from '../admin-auth/admin-auth.service';
 
@@ -399,7 +400,7 @@ export class AdminAccessService {
       await tx.adminUserRole.delete({ where: { adminUserId_roleId: { adminUserId: actorAdminId, roleId: ownershipAssignment.role.id } } });
       await tx.adminUserRole.create({ data: { adminUserId: targetAdminId, roleId: ownershipAssignment.role.id } });
       await tx.adminAuditLog.create({
-        data: {
+        data: buildAdminAuditData({
           adminUserId: actorAdminId,
           action: 'TRANSFER_ADMIN_OWNERSHIP',
           module: 'admin-access',
@@ -408,7 +409,7 @@ export class AdminAccessService {
           newData: { newOwnerId: targetAdminId, stepUpVerified: true, reason },
           ipAddress: meta.ipAddress,
           userAgent: meta.userAgent,
-        },
+        }),
       });
       return { roleId: ownershipAssignment.role.id, roleCode: ownershipAssignment.role.code };
     });
@@ -489,13 +490,13 @@ export class AdminAccessService {
         },
       });
       await tx.adminAuditLog.create({
-        data: {
+        data: buildAdminAuditData({
           adminUserId: actorAdminId,
           action: 'CREATE_ADMIN_DELEGATION',
           module: 'admin-access',
           targetId: delegateAdminId,
           newData: { delegationId: created.id, permissionCodes, expiresAt: expiresAt.toISOString(), reason },
-        },
+        }),
       });
       return created;
     });
@@ -525,14 +526,14 @@ export class AdminAccessService {
         data: { status: 'REVOKED', revokedAt: new Date(), revokedByAdminId: actorAdminId },
       });
       await tx.adminAuditLog.create({
-        data: {
+        data: buildAdminAuditData({
           adminUserId: actorAdminId,
           action: 'REVOKE_ADMIN_DELEGATION',
           module: 'admin-access',
           targetId: delegation.delegateAdminId,
           oldData: { delegationId, status: delegation.status, permissionCodes: delegation.permissionCodes },
           newData: { status: 'REVOKED', reason },
-        },
+        }),
       });
       return updated;
     });
@@ -576,7 +577,13 @@ export class AdminAccessService {
 
   private async audit(actorAdminId: string, action: string, targetId: string, newData: Prisma.InputJsonObject) {
     await this.prisma.adminAuditLog.create({
-      data: { adminUserId: actorAdminId, action, module: 'admin-access', targetId, newData },
+      data: buildAdminAuditData({
+        adminUserId: actorAdminId,
+        action,
+        module: 'admin-access',
+        targetId,
+        newData,
+      }),
     });
   }
 }
