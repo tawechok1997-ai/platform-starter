@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { RiskEnforcementService } from '../risk-alerts/risk-enforcement.service';
 
@@ -171,5 +172,19 @@ export class BankAccountsService {
   private matchAmount(item: any, amount: number | null) { if (amount === null) return true; const min = item.minAmount ? Number(item.minAmount) : 0; const max = item.maxAmount ? Number(item.maxAmount) : Infinity; return amount >= min && amount <= max; }
   private mapReceiving(item: any) { return { id: item.id, bankName: item.bankName, accountName: item.accountName, accountNumber: item.accountNumber, promptPay: item.promptPay, qrImageUrl: item.qrImageUrl, minAmount: item.minAmount?.toString?.() ?? null, maxAmount: item.maxAmount?.toString?.() ?? null, status: item.status, sortOrder: item.sortOrder, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
   private mapMemberBank(item: any) { return { id: item.id, userId: item.userId, bankName: item.bankName, accountName: item.accountName, accountNumber: item.accountNumber, isPrimary: item.isPrimary, status: item.status, adminNote: item.adminNote, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
-  private audit(adminUserId: string | undefined, action: string, targetId: string, oldData: any, newData: any, meta: any) { return this.prisma.adminAuditLog.create({ data: { adminUserId, module: 'bank_accounts', action, targetId, oldData, newData, ipAddress: meta?.ipAddress, userAgent: meta?.userAgent } }); }
+  private audit(adminUserId: string | undefined, action: string, targetId: string, oldData: unknown, newData: unknown, meta: any) {
+    if (!adminUserId) throw new BadRequestException('Admin identity is required');
+    return this.prisma.adminAuditLog.create({
+      data: buildAdminAuditData({
+        adminUserId,
+        module: 'bank_accounts',
+        action,
+        targetId,
+        oldData,
+        newData,
+        ipAddress: meta?.ipAddress,
+        userAgent: meta?.userAgent,
+      }),
+    });
+  }
 }
