@@ -1,5 +1,8 @@
 # Critical Regression Test Inventory
 
+R-003 status: **DONE**  
+Closure evidence: `docs/architecture/r003-closure.md`
+
 This document records the automated safety net required before structural refactors are allowed in critical domains.
 
 ## Test classes
