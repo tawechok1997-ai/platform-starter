@@ -4,6 +4,7 @@ import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { AntiBotService } from '../anti-bot/anti-bot.service';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminLoginDefenseService } from './admin-login-defense.service';
+import { AdminRefreshSessionDto, AdminTwoFactorCodeDto } from './dto/admin-auth-actions.dto';
 import { AdminSignInDto } from './dto/admin-sign-in.dto';
 import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
 
@@ -40,25 +41,25 @@ export class AdminAuthController {
 
   @UseGuards(AdminAuthGuard)
   @Post('2fa/enable')
-  enableTwoFactor(@CurrentUser() user: any, @Body('code') code: string, @Req() req: any) {
-    return this.adminAuthService.enableTwoFactor(user.id, code, this.meta(req));
+  enableTwoFactor(@CurrentUser() user: any, @Body() body: AdminTwoFactorCodeDto, @Req() req: any) {
+    return this.adminAuthService.enableTwoFactor(user.id, body.code, this.meta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('2fa/disable')
-  disableTwoFactor(@CurrentUser() user: any, @Body('code') code: string, @Req() req: any) {
-    return this.adminAuthService.disableTwoFactor(user.id, code, this.meta(req));
+  disableTwoFactor(@CurrentUser() user: any, @Body() body: AdminTwoFactorCodeDto, @Req() req: any) {
+    return this.adminAuthService.disableTwoFactor(user.id, body.code, this.meta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('2fa/recovery-codes/regenerate')
-  regenerateRecoveryCodes(@CurrentUser() user: any, @Body('code') code: string, @Req() req: any) {
-    return this.adminAuthService.regenerateRecoveryCodes(user.id, code, this.meta(req));
+  regenerateRecoveryCodes(@CurrentUser() user: any, @Body() body: AdminTwoFactorCodeDto, @Req() req: any) {
+    return this.adminAuthService.regenerateRecoveryCodes(user.id, body.code, this.meta(req));
   }
 
   @Post('refresh')
-  async refresh(@Body('refreshToken') refreshToken: string, @Req() req: any, @Res({ passthrough: true }) res: any) {
-    const token = String(refreshToken ?? '').trim() || this.readRefreshCookie(req);
+  async refresh(@Body() body: AdminRefreshSessionDto, @Req() req: any, @Res({ passthrough: true }) res: any) {
+    const token = String(body.refreshToken ?? '').trim() || this.readRefreshCookie(req);
     const result = await this.adminAuthService.refreshSession(token, this.meta(req));
     this.setRefreshCookie(res, result?.refreshToken);
     return result;
