@@ -2,9 +2,19 @@ import * as argon2 from 'argon2';
 import { UnauthorizedException } from '@nestjs/common';
 import { AdminRefreshSessionService } from './admin-refresh-session.service';
 
+jest.mock('argon2', () => ({
+  verify: jest.fn(),
+  hash: jest.fn(),
+  argon2id: 2,
+}));
+
+const verifyMock = jest.mocked(argon2.verify);
+
 describe('AdminRefreshSessionService', () => {
+  afterEach(() => jest.clearAllMocks());
+
   it('rotates an active refresh session before issuing a replacement', async () => {
-    jest.spyOn(argon2, 'verify').mockResolvedValue(true as never);
+    verifyMock.mockResolvedValue(true);
     const prisma = {
       authSession: {
         findFirst: jest.fn().mockResolvedValue({
@@ -28,7 +38,7 @@ describe('AdminRefreshSessionService', () => {
   });
 
   it('revokes the refresh family and writes audit when a revoked token is reused', async () => {
-    jest.spyOn(argon2, 'verify').mockResolvedValue(true as never);
+    verifyMock.mockResolvedValue(true);
     const tx = {
       authSession: { updateMany: jest.fn().mockResolvedValue({ count: 2 }) },
       adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit-1' }) },
