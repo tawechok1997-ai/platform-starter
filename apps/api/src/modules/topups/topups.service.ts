@@ -1,10 +1,10 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { Money } from '../../common/domain/value-objects';
 import { DomainError } from '../../common/domain/domain-error';
+import { lockTopUpRequestForUpdate } from '../../common/infrastructure/prisma-row-locks';
 import { CreateTopUpRequestDto } from './dto/create-top-up-request.dto';
 import { DepositPolicy, type DepositStatus } from './domain/deposit.policy';
 
@@ -68,32 +68,30 @@ export class TopUpsService {
 
   async claimRequest(id: string, adminUser: any, meta: RequestMeta = {}) {
     return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<Array<{ status: string; claimed_by: string | null; claimed_at: Date | null }>>(Prisma.sql`
-        SELECT "status"::text AS status, "claimed_by", "claimed_at"
-        FROM "top_up_requests"
-        WHERE "id" = ${id}::uuid
-        FOR UPDATE
-      `);
-      const request = rows[0];
-      if (!request) throw new NotFoundException('Top up request not found');
+      const lockedId = await lockTopUpRequestForUpdate(tx, id);
+      if (!lockedId) throw new NotFoundException('Top up request not found');
+      const request = await tx.topUpRequest.findUniqueOrThrow({ where: { id: lockedId } });
       try {
-        DepositPolicy.assertClaim(request.status as DepositStatus, request.claimed_by, adminUser.id, request.claimed_at, CLAIM_TIMEOUT_MS);
+        DepositPolicy.assertClaim(request.status as DepositStatus, request.claimedBy, adminUser.id, request.claimedAt, CLAIM_TIMEOUT_MS);
       } catch (error) {
         this.rethrowDomainError(error, true);
       }
       const updated = await tx.topUpRequest.update({ where: { id }, data: { claimedBy: adminUser.id, claimedAt: new Date() } });
-      await tx.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: adminUser.id, action: 'CLAIM_TOP_UP', module: 'topups', targetId: id, oldData: { claimedBy: request.claimed_by }, newData: { claimedBy: adminUser.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) });
+      await tx.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: adminUser.id, action: 'CLAIM_TOP_UP', module: 'topups', targetId: id, oldData: { claimedBy: request.claimedBy }, newData: { claimedBy: adminUser.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) });
       return this.formatRequest(updated);
     });
   }
 
   async releaseRequest(id: string, adminUser: any, meta: RequestMeta = {}) {
-    const request = await this.prisma.topUpRequest.findUnique({ where: { id } });
-    if (!request) throw new NotFoundException('Top up request not found');
-    if (request.claimedBy && request.claimedBy !== adminUser.id) throw new ConflictException('ปล่อยงานได้เฉพาะคนที่ claim เท่านั้น');
-    const updated = await this.prisma.topUpRequest.update({ where: { id }, data: { claimedBy: null, claimedAt: null } });
-    await this.audit(adminUser.id, 'RELEASE_TOP_UP', id, { claimedBy: request.claimedBy }, { claimedBy: null }, meta);
-    return this.formatRequest(updated);
+    return this.prisma.$transaction(async (tx) => {
+      const lockedId = await lockTopUpRequestForUpdate(tx, id);
+      if (!lockedId) throw new NotFoundException('Top up request not found');
+      const request = await tx.topUpRequest.findUniqueOrThrow({ where: { id: lockedId } });
+      if (request.claimedBy && request.claimedBy !== adminUser.id) throw new ConflictException('ปล่อยงานได้เฉพาะคนที่ claim เท่านั้น');
+      const updated = await tx.topUpRequest.update({ where: { id }, data: { claimedBy: null, claimedAt: null } });
+      await tx.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: adminUser.id, action: 'RELEASE_TOP_UP', module: 'topups', targetId: id, oldData: { claimedBy: request.claimedBy }, newData: { claimedBy: null }, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) });
+      return this.formatRequest(updated);
+    });
   }
 
   private async validateReceivingAccount(note: string | undefined | null, method: string | undefined | null, amount: Decimal) {
@@ -122,7 +120,6 @@ export class TopUpsService {
 
   private normalizeIdempotencyKey(userId: string, value?: string | null) { const key = value?.trim(); if (!key) return null; if (key.length > 120) throw new BadRequestException('Idempotency-Key is too long'); return `${userId}:${key}`; }
   private accountType(bankName: string) { if (bankName === 'พร้อมเพย์') return 'promptpay'; if (bankName === 'วอเลต') return 'wallet'; if (bankName === 'อื่น ๆ') return 'other'; return 'bank_transfer'; }
-  private audit(adminUserId: string, action: string, targetId: string, oldData: any, newData: any, meta: RequestMeta) { return this.prisma.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId, action, module: 'topups', targetId, oldData, newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) }).catch(() => null); }
   private parseProof(value?: string | null) { if (!value) return {} as { receivingBankAccountId?: string }; try { return JSON.parse(value) as { receivingBankAccountId?: string }; } catch { return {}; } }
   private formatRequest(item: any) { return { id: item.id, userId: item.userId, amount: item.amount.toString(), currency: item.currency, status: item.status, method: item.method, referenceCode: item.referenceCode, note: item.note, adminNote: item.adminNote, reviewedBy: item.reviewedBy, reviewedAt: item.reviewedAt, claimedBy: item.claimedBy, claimedAt: item.claimedAt, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
 }
