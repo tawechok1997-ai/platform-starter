@@ -25,4 +25,12 @@ export class AdminSupportTicketListQueryDto extends MemberSupportTicketListQuery
   @IsString()
   @MaxLength(200)
   search?: string;
+
+  @IsOptional()
+  @IsIn(['createdAt', 'updatedAt', 'status'])
+  sortBy?: string;
+
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  sortDirection?: string;
 }
