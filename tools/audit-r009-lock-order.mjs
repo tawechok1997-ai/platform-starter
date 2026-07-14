@@ -8,14 +8,19 @@ const STRICT_MODE = process.env.R009_LOCK_STRICT === '1';
 
 const TABLE_RANK = new Map([
   ['deposit_requests', 10],
+  ['top_up_requests', 10],
   ['withdrawal_requests', 10],
   ['kyc_requests', 10],
+  ['kyc_cases', 10],
+  ['kyc_documents', 10],
   ['watchlist_entries', 10],
+  ['risk_watchlist_entries', 10],
   ['promotion_settlements', 10],
   ['admin_users', 20],
   ['users', 20],
   ['wallets', 30],
   ['wallet_ledgers', 40],
+  ['bonus_ledgers', 40],
   ['admin_audit_logs', 50],
 ]);
 
