@@ -4,11 +4,12 @@ import { DatabaseModule } from '../../database/database.module';
 import { StorageModule } from '../storage/storage.module';
 import { SupportAttachmentsService } from './support-attachments.service';
 import { SupportController } from './support.controller';
+import { SupportQueryService } from './support-query.service';
 import { SupportService } from './support.service';
 
 @Module({
   imports: [DatabaseModule, JwtModule.register({}), StorageModule],
   controllers: [SupportController],
-  providers: [SupportService, SupportAttachmentsService],
+  providers: [SupportService, SupportQueryService, SupportAttachmentsService],
 })
 export class SupportModule {}
