@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { DomainError } from '../../common/domain/domain-error';
 import { PrismaService } from '../../database/prisma.service';
+import { NotificationPreferencePolicy, type NotificationCategory, type NotificationChannel } from './domain/notification-preference.policy';
 import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 import {
   NotificationCategories,
@@ -64,6 +66,8 @@ export class NotificationsCommandService {
       push: input.push ?? current.preferences.channels.push,
     };
 
+    this.assertPreferencePolicy(categories, channels);
+
     await this.prisma.$transaction([
       this.prisma.notificationPreference.upsert({
         where: { userId },
@@ -85,5 +89,28 @@ export class NotificationsCommandService {
     ]);
 
     return { preferences: { categories, channels } };
+  }
+
+  private assertPreferencePolicy(categories: NotificationCategories, channels: NotificationChannels) {
+    const enabledChannels: NotificationChannel[] = ['IN_APP'];
+    if (channels.email) enabledChannels.push('EMAIL');
+    if (channels.sms) enabledChannels.push('SMS');
+    if (channels.push) enabledChannels.push('PUSH');
+
+    const enabledCategories: NotificationCategory[] = [];
+    if (categories.finance) enabledCategories.push('FINANCE');
+    if (categories.security) enabledCategories.push('SECURITY');
+    if (categories.promotion) enabledCategories.push('MARKETING');
+    if (categories.system) enabledCategories.push('SYSTEM');
+
+    try {
+      for (const category of enabledCategories) {
+        const normalized = NotificationPreferencePolicy.normalize({ category, channels: enabledChannels });
+        NotificationPreferencePolicy.assertMutable(normalized.category, normalized.channels);
+      }
+    } catch (error) {
+      if (error instanceof DomainError) throw new BadRequestException(error.message);
+      throw error;
+    }
   }
 }
