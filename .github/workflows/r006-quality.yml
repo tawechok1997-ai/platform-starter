@@ -11,6 +11,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: pnpm/action-setup@v4
         with:
           version: 9.0.0
@@ -20,6 +22,11 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile=false
+      - name: Detect changed scopes
+        id: scope
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+        run: pnpm ci:changed-scope
       - name: Prisma schema and generated-client drift
         run: |
           pnpm exec prisma validate --schema prisma/schema.prisma
@@ -30,13 +37,30 @@ jobs:
         run: |
           pnpm audit:architecture-boundaries
           pnpm audit:critical-test-safety
-      - name: Lint
-        run: pnpm lint
-      - name: Typecheck packages and web apps
-        run: |
-          pnpm typecheck:packages
-          pnpm typecheck:admin
-          pnpm typecheck:member
+      - name: Lint API
+        if: steps.scope.outputs.api == 'true'
+        run: pnpm lint:api
+      - name: Lint Admin
+        if: steps.scope.outputs.admin == 'true'
+        run: pnpm lint:admin
+      - name: Lint Member
+        if: steps.scope.outputs.member == 'true'
+        run: pnpm lint:member
+      - name: Lint packages
+        if: steps.scope.outputs.packages == 'true'
+        run: pnpm lint:packages
+      - name: Typecheck API
+        if: steps.scope.outputs.api == 'true'
+        run: pnpm typecheck:api
+      - name: Typecheck Admin
+        if: steps.scope.outputs.admin == 'true'
+        run: pnpm typecheck:admin
+      - name: Typecheck Member
+        if: steps.scope.outputs.member == 'true'
+        run: pnpm typecheck:member
+      - name: Typecheck packages
+        if: steps.scope.outputs.packages == 'true'
+        run: pnpm typecheck:packages
       - name: Package export audit
         run: pnpm audit:unused-exports
       - name: R-006 closure structure audit
@@ -46,8 +70,22 @@ jobs:
         run: |
           {
             echo '## R-006 Quality Baseline'
-            echo '- Shared ESLint and formatter configuration checked'
-            echo '- Migration and generated-client drift guards executed'
-            echo '- Architecture, critical-test safety, lint and typecheck gates executed'
-            echo '- Package export integrity checked'
+            echo "- API scope: ${{ steps.scope.outputs.api || 'unknown' }}"
+            echo "- Admin scope: ${{ steps.scope.outputs.admin || 'unknown' }}"
+            echo "- Member scope: ${{ steps.scope.outputs.member || 'unknown' }}"
+            echo "- Packages scope: ${{ steps.scope.outputs.packages || 'unknown' }}"
+            echo '- Architecture, migration, generated-client and critical-test guards always execute'
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload quality failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r006-quality-failure-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            playwright-report/
+            test-results/
+            coverage/
+            npm-debug.log
+            pnpm-debug.log
