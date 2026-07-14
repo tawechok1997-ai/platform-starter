@@ -4,52 +4,69 @@ Status: **PARTIAL — NOT CLOSABLE YET**
 
 Updated: **2026-07-14**
 
+## Progress accounting
+
+Counting rule: main topics decrease only when every implementation item under that topic is complete. Verification is tracked in topic 5 instead of reopening completed implementation topics.
+
+- Before provider-transfer batch: **5 main topics / 24 remaining subjobs**
+- Closed in provider-transfer batch: **1 main topic / 6 subjobs**
+- Current remaining: **4 main topics / 18 subjobs**
+
+## Remaining worklist
+
+### 1. Provider transfer and wallet mutation — COMPLETE IN CODE
+
+- [x] 1.1 Extract `ProviderTransferCommandService`.
+- [x] 1.2 Extract `WalletMutationService`.
+- [x] 1.3 Move transfer-in debit/provider/rollback orchestration.
+- [x] 1.4 Move transfer-out provider/credit orchestration.
+- [x] 1.5 Add wallet idempotency regression tests.
+- [x] 1.6 Add provider failure and rollback regression tests.
+
+Runtime member transfer and Admin retry endpoints now use the focused command service. Workspace verification remains under topic 5.
+
+### 2. Provider reconciliation — 4 subjobs remaining
+
+- [ ] 2.1 Extract reconciliation query service.
+- [ ] 2.2 Extract reconciliation command service.
+- [ ] 2.3 Extract mismatch-alert creation.
+- [ ] 2.4 Add single-session and batch reconciliation tests.
+
+### 3. Settlement orchestration — 4 subjobs remaining
+
+- [ ] 3.1 Extract settlement command orchestration.
+- [ ] 3.2 Add settlement idempotency guard.
+- [ ] 3.3 Cover failed, reversed, and retry transitions.
+- [ ] 3.4 Add settlement regression tests.
+
+### 4. Legacy cleanup — 4 subjobs remaining
+
+- [ ] 4.1 Reduce duplicated `AdminAuthService` compatibility logic after consumer verification.
+- [ ] 4.2 Reduce duplicated `PromotionsService` compatibility logic after consumer verification.
+- [ ] 4.3 Migrate remaining legacy Admin audit writers reported by the strict inventory.
+- [ ] 4.4 Resolve remaining constructor/decomposition inventory violations.
+
+### 5. Verification and R-007 closure — 6 subjobs remaining
+
+- [ ] 5.1 Run API typecheck.
+- [ ] 5.2 Run focused and full regression tests.
+- [ ] 5.3 Run strict Admin audit-writer inventory.
+- [ ] 5.4 Run API build.
+- [ ] 5.5 Fix every failure found by verification without creating replacement main topics.
+- [ ] 5.6 Update closure evidence and mark R-007 done.
+
 ## Completed evidence
 
 - Added automated inventories for oversized backend services and legacy Admin audit writers.
 - Defined controller/service decomposition thresholds and migration rules.
-- Split finance, reports, activity, notifications, Admin member lifecycle, risk summary, and support into focused query/command services with compatibility facades where needed.
-- Extracted shared finance, report, activity, notification, support, Admin session, KYC, watchlist, Admin two-factor, and promotion response utilities/mappers with focused regression coverage.
-- Added shared `admin-audit.builder.ts` and migrated Admin member, support, Admin session, KYC review/download, watchlist, refresh-reuse, Admin two-factor, Admin login/challenge, Admin step-up, promotion claim, and bonus lifecycle audit payloads to it.
-- Split Admin session listing and revocation/logout mutations into dedicated query/command services; session mutation and audit share transaction boundaries.
-- Split Admin refresh-token rotation and token/session creation into `AdminRefreshSessionService` and `AdminSessionTokenService` with reuse-detection regression coverage.
-- Split Admin two-factor setup, enable, disable, and recovery-code regeneration into `AdminTwoFactorCommandService`; controller mutation routes now use the focused command service.
-- Extracted TOTP validation, base32 secret generation, and recovery-code normalization/generation into `admin-two-factor.util.ts` with focused utility and transaction tests.
-- Split Admin sign-in, two-factor challenge verification, suspicious-device checks, recovery-code consumption, and lockout evaluation into `AdminLoginService`.
-- Extracted privileged-action TOTP verification into `AdminStepUpService`, exported it from `AdminAuthModule`, and added inactive/unconfigured plus audit-shape regression coverage.
-- `AdminAuthController` routes login/challenge through `AdminLoginService`, refresh through `AdminRefreshSessionService`, session reads/writes through focused query/command services, and 2FA mutations through `AdminTwoFactorCommandService`.
-- Added `audit:r7-quality` to combine backend decomposition, strict Admin audit-writer inventory, and API typechecking into one quality command.
-- Split KYC reads, member upload/submit commands, Admin review commands, secure access-token/download orchestration, and retention cleanup into dedicated services.
-- `KycDocumentsService` is now a compatibility facade; `AdminKycController` routes reads, reviews, secure access, and retention cleanup directly to their focused services.
-- KYC secure downloads bind tokens to the issuing Admin, validate HMAC signatures and expiry, and write download audits through the shared builder.
-- KYC retention cleanup updates database state only after storage deletion succeeds and reports storage failures without falsely marking documents deleted.
-- Split watchlist list/match and create/release operations into dedicated query/command services with optimistic locking, shared audit building, and regression coverage.
-- Identified promotions as a CMS/product-content owner and split public campaigns, member claim/bonus reads, and Admin claim/bonus reads into `PromotionsQueryService`.
-- Extracted promotion claim and bonus-ledger metadata/response shaping into `promotion.mapper.ts` with status, numeric conversion, lifecycle-priority, and private-field regression coverage.
-- Split member promotion-claim creation and Admin claim review into `PromotionClaimCommandService`; the controller now routes claim mutations directly to it.
-- Promotion claim creation preserves duplicate/top-up checks and deletes the provisional risk alert if domain claim persistence fails.
-- Promotion claim approval owns bonus-ledger creation with duplicate-ledger reuse and rollback of the provisional risk ledger if domain ledger persistence fails.
-- Split turnover and bonus release/expire/revoke mutations into `BonusLifecycleCommandService` with shared audit construction and focused lifecycle regression coverage.
-- Added promotion claim command coverage for duplicate prevention, domain rollback, rejection-note enforcement, approval behavior, existing-ledger reuse, and shared audit shape.
-- `PromotionsService` remains registered only as a compatibility surface until repository-wide consumers can be verified in a workspace.
-- Identified `GamePlatformMoneyService` as the current provider-money owner and extracted webhook verification, parsing, credential-use tracking, advisory-lock idempotency, and webhook-log persistence into `ProviderWebhookService`.
-- `ProviderWebhookController` now routes provider callbacks directly to `ProviderWebhookService`; invalid signatures never enter the processing transaction, while repeated idempotency keys produce explicit duplicate logs with HTTP-style status 208 metadata.
-- Added focused provider webhook regression coverage for required idempotency keys, invalid-signature failures, advisory-lock duplicate handling, normalized event persistence, and settlement-gate exposure.
-- Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked on a real endpoint instead of adding unused infrastructure.
-
-## Remaining closure scope
-
-R-007 cannot be marked DONE until the following areas have implementation and regression evidence:
-
-- Remove duplicated legacy login, 2FA, refresh, session, and step-up methods from `AdminAuthService` after all non-controller consumers are verified and migrated.
-- Remove duplicated legacy promotion query/claim/bonus methods from `PromotionsService` after non-controller consumers are verified.
-- Shared Prisma-to-domain-to-response mappers for remaining critical domains.
-- Migrate remaining audit writers identified by `pnpm audit:admin-audit-writers` to the shared builder and extract metadata formatters.
-- CSV/report serializer extraction when a concrete CSV endpoint or consumer exists.
-- Provider transfer/reconciliation orchestration extraction beyond the completed webhook slice.
-- Settlement orchestration extraction beyond the isolated bonus lifecycle command.
-- Constructor dependency reduction for every inventory violation.
-- Focused regression tests for each remaining extracted handler/service.
+- Split finance, reports, activity, notifications, Admin member lifecycle, risk summary, support, KYC, watchlist, Admin auth/session/2FA, promotions, bonus lifecycle, and provider webhooks into focused services.
+- Added shared response mappers and `admin-audit.builder.ts` across migrated critical paths.
+- Extracted provider webhook verification, parsing, credential-use tracking, advisory-lock idempotency, and webhook-log persistence into `ProviderWebhookService`.
+- Extracted provider transfer orchestration into `ProviderTransferCommandService` and idempotent wallet-ledger writes into `WalletMutationService`.
+- Transfer-in failures now execute an explicit wallet reversal path; failed transfer-out calls do not credit the wallet.
+- Member transfer and Admin retry endpoints now route directly through the focused transfer command service.
+- Added wallet idempotency, insufficient-balance, transfer-in rollback, transfer-out failure, and transfer-out success regression coverage.
+- Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked and is not counted as active implementation work.
 
 ## Verification commands
 
@@ -60,13 +77,11 @@ pnpm audit:admin-audit-writers:strict
 pnpm audit:r7-quality
 pnpm audit:r7-closure
 pnpm typecheck:api
+pnpm --filter @platform/api test -- wallet-mutation.service.spec.ts --runInBand
+pnpm --filter @platform/api test -- provider-transfer-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- provider-webhook.service.spec.ts --runInBand
-pnpm --filter @platform/api test -- promotion-claim-command.service.spec.ts --runInBand
-pnpm --filter @platform/api test -- bonus-lifecycle-command.service.spec.ts --runInBand
-pnpm --filter @platform/api test -- promotion.mapper.spec.ts --runInBand
-pnpm --filter @platform/api test -- admin-step-up.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- --runInBand
 pnpm build:api
 ```
 
-`pnpm audit:r7-closure` is intentionally expected to fail while unchecked R-007 worklist items remain. The strict audit-writer inventory and full typecheck still need to run in a workspace because GitHub code search cannot prove repository-wide absence of legacy writers.
+`pnpm audit:r7-closure` is intentionally expected to fail while unchecked worklist items remain. Build, typecheck, tests, and strict inventory still require a workspace run.
