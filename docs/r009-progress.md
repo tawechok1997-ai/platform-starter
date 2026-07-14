@@ -23,22 +23,32 @@ Closure evidence:
 
 ## Enforced and awaiting verification
 
+### กำหนด repository ports สำหรับ critical domains
+
+- [x] Added `apps/api/src/common/application/critical-repository-ports.ts`.
+- [x] Defined ports for deposit, withdrawal, ownership, KYC/watchlist, and promotion settlement.
+- [x] Added intent-revealing locked-read operations.
+- [x] Kept all contracts persistence-agnostic.
+- [x] Added `tools/audit-r009-critical-repository-ports.mjs`.
+- [x] Added dedicated workflow `.github/workflows/r009-critical-repository-ports.yml` with port audit, repository strict guard, and API typecheck.
+- [x] Added `docs/evidence/r009-critical-repository-ports.md`.
+- [ ] Confirm the dedicated workflow passes.
+
 ### ห้าม Prisma type หลุดผ่าน repository interface
 
 - [x] Added `tools/audit-r009-repository-boundaries.mjs`.
 - [x] Scans domain/application and repository/port contracts for Prisma imports, `PrismaService`, and `Prisma.*` types.
-- [x] Enabled `pnpm audit:r9-repository-boundaries:strict` in the required quality workflow.
+- [x] Enabled `pnpm audit:r9-repository-boundaries:strict` in required workflows.
 - [x] Added `docs/evidence/r009-repository-type-boundary.md`.
 - [x] Added boundary closure structure audit.
-- [ ] Confirm the latest GitHub quality workflow reports zero repository-boundary violations.
+- [ ] Confirm the latest GitHub workflow reports zero repository-boundary violations.
 
 ### กำหนด lock order มาตรฐานเพื่อลด deadlock
 
 - [x] Added `docs/architecture/transaction-lock-order.md`.
 - [x] Defined aggregate/actor/wallet/ledger/audit lock ordering.
 - [x] Added `tools/audit-r009-lock-order.mjs`.
-- [x] Strict mode fails on known inversions.
-- [x] Strict mode now also fails when a row-locked table is not classified.
+- [x] Strict mode fails on known inversions and unclassified row-locked tables.
 - [x] Enabled the strict lock-order command in the required quality workflow.
 - [x] Added `docs/evidence/r009-lock-order-boundary.md`.
 - [x] Added boundary closure structure audit.
@@ -62,8 +72,8 @@ Closure evidence:
 
 ## Pending evidence
 
+- [ ] Confirm the dedicated critical repository ports workflow completes successfully.
 - [ ] Confirm the latest GitHub quality workflow completes successfully.
-- [ ] Download and review all five R-009 JSON artifacts.
 - [ ] Confirm zero repository-boundary violations.
 - [ ] Confirm zero lock inversions and zero unclassified locked tables.
 - [ ] Review mixed direct/transactional write services at method level.
@@ -71,7 +81,7 @@ Closure evidence:
 
 ## Remaining R-009 work
 
-- [ ] Define concrete repository ports for each critical domain.
+- [ ] Close critical repository ports after workflow verification.
 - [ ] Add Prisma repository adapters.
 - [ ] Close Prisma-type repository boundary after workflow evidence.
 - [ ] Consolidate transaction ownership for deposit approval.
@@ -90,8 +100,8 @@ Closure evidence:
 - Total R-009 subtasks: 15
 - Closed with durable evidence: 2
 - Remaining not closed: 13
-- Enforced and awaiting workflow verification: 2
-- Other partial or under active review: 7
+- Enforced and awaiting workflow verification: 3
+- Other partial or under active review: 6
 - Not yet implemented: 4
 
 ## Safety decision
@@ -100,9 +110,7 @@ These slices do not modify Prisma schema, production data, transaction boundarie
 
 ## Latest commits
 
-- `162eebc5eb1717d9a0f512211767eadc9cd647ec` — fail strict lock-order audit on unknown tables.
-- `3a7dc7b050397fe90aef1047b3c0c0ca1c99d27d` — record repository type boundary evidence.
-- `d9988846be66425aecc41d978b1054288485e255` — record lock-order boundary evidence.
-- `97e8b4829fbd25ed95dcb1c48bec2bedad3e058d` — add combined boundary closure audit.
-- `f77d1f2f46645f9c4a4bbe40d6dd569afe1b3011` — expose boundary closure command.
-- `88fc4df678d463acc152ee0110dfd345d61656e1` — enforce repository, lock-order, and closure guards in CI.
+- `016a5052e3b83455534350148d141cdf437b1fa3` — define critical repository ports.
+- `bedc45976af73c0bca9d341a45993e1b2099ee1c` — add critical repository port closure audit.
+- `b96a9a6026f44e24a98ef3f01afb1a07fe2d952f` — add dedicated repository-port verification workflow.
+- `e6f246ebdece70432766678245388553c57db0bb` — record critical repository port evidence.
