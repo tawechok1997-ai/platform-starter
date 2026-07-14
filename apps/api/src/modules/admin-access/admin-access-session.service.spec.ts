@@ -23,7 +23,7 @@ describe('AdminAccessSessionService', () => {
     expect(result.revokedSessions).toBe(3);
     expect(createAudit).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        adminUserId: 'actor-1',
+        adminUser: { connect: { id: 'actor-1' } },
         action: 'REVOKE_ADMIN_SESSIONS_AFTER_PRIVILEGE_CHANGE',
         module: 'admin-access',
         targetId: 'target-1',
