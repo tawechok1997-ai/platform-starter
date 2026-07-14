@@ -3,7 +3,6 @@ import { AdminLoginService, type AdminLoginMeta } from './admin-login.service';
 import { AdminRefreshSessionService } from './admin-refresh-session.service';
 import { AdminSessionCommandService } from './admin-session-command.service';
 import { AdminSessionsQueryService } from './admin-sessions-query.service';
-import { AdminStepUpService } from './admin-step-up.service';
 import { AdminTwoFactorCommandService } from './admin-two-factor-command.service';
 import { AdminSignInDto } from './dto/admin-sign-in.dto';
 import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
@@ -20,7 +19,6 @@ export class AdminAuthService {
     private readonly refreshSessions: AdminRefreshSessionService,
     private readonly sessionQueries: AdminSessionsQueryService,
     private readonly sessionCommands: AdminSessionCommandService,
-    private readonly stepUp: AdminStepUpService,
     private readonly twoFactor: AdminTwoFactorCommandService,
   ) {}
 
@@ -37,7 +35,7 @@ export class AdminAuthService {
   }
 
   assertStepUp(adminUserId: string, code: string, meta: AdminLoginMeta = {}) {
-    return this.stepUp.assert(adminUserId, code, meta);
+    return this.login.assertStepUp(adminUserId, code, meta);
   }
 
   setupTwoFactor(adminUserId: string, meta: AdminLoginMeta = {}) {
