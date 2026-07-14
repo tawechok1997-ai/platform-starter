@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as argon2 from 'argon2';
+import { buildAdminAuditData } from '../../common/admin-audit';
 import { PrismaService } from '../../database/prisma.service';
 
 const ADMIN_INVITE_TARGET_PREFIX = 'ADMIN_INVITE:';
@@ -83,13 +84,13 @@ export class AdminInvitationService {
         });
 
         await tx.adminAuditLog.create({
-          data: {
+          data: buildAdminAuditData({
             adminUserId: updated.id,
             action: 'ACCEPT_ADMIN_INVITATION',
             module: 'admin-access',
             targetId: updated.id,
             newData: { username: updated.username, email: updated.email },
-          },
+          }),
         });
 
         return updated;
