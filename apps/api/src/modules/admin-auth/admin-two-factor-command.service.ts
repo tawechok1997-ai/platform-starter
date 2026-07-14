@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
-import type { RequestMeta } from './admin-auth.service';
+import type { RequestMeta } from './admin-auth.types';
 import {
   assertAdminTotp,
   generateAdminRecoveryCodes,
