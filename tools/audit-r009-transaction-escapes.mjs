@@ -3,7 +3,9 @@ import path from 'node:path';
 
 const ROOT = process.cwd();
 const API_SRC = path.join(ROOT, 'apps', 'api', 'src');
+const REVIEW_PATH = path.join(ROOT, 'docs', 'evidence', 'r009-transaction-escape-review.json');
 const JSON_MODE = process.env.R009_TRANSACTION_JSON === '1';
+const STRICT_MODE = process.env.R009_TRANSACTION_STRICT === '1';
 
 function walk(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -35,6 +37,23 @@ function methodForIndex(ranges, index) {
   return ranges.find((range) => index >= range.start && index < range.end)?.name ?? '<class-field-or-unknown>';
 }
 
+function findingKey(finding) {
+  return `${finding.file}#${finding.method}#${finding.model}.${finding.operation}`;
+}
+
+function loadReviewLedger() {
+  if (!fs.existsSync(REVIEW_PATH)) {
+    return { version: 1, findings: {} };
+  }
+
+  const parsed = JSON.parse(fs.readFileSync(REVIEW_PATH, 'utf8'));
+  if (!parsed || parsed.version !== 1 || typeof parsed.findings !== 'object' || Array.isArray(parsed.findings)) {
+    throw new Error(`Invalid R-009 transaction review ledger: ${relative(REVIEW_PATH)}`);
+  }
+  return parsed;
+}
+
+const reviewLedger = loadReviewLedger();
 const serviceFiles = walk(API_SRC)
   .filter((file) => file.endsWith('.service.ts'))
   .sort();
@@ -61,7 +80,19 @@ for (const file of serviceFiles) {
     model: match[1],
     operation: match[2],
   }));
-  const sameMethodEscapes = directWrites.filter((write) => transactionsByMethod.has(write.method));
+  const sameMethodEscapes = directWrites
+    .filter((write) => transactionsByMethod.has(write.method))
+    .map((write) => {
+      const finding = { file: relative(file), ...write };
+      const key = findingKey(finding);
+      const review = reviewLedger.findings[key] ?? null;
+      return {
+        ...write,
+        key,
+        reviewStatus: review?.status ?? 'needs-review',
+        reviewReason: review?.reason ?? null,
+      };
+    });
 
   if (transactionMatches.length || rawMatches.length || directWrites.length || transactionalWrites.length) {
     entries.push({
@@ -86,8 +117,13 @@ for (const file of serviceFiles) {
 }
 
 const sameMethodEscapes = entries.flatMap((entry) => entry.sameMethodEscapes.map((finding) => ({ file: entry.file, ...finding })));
+const reviewedSafe = sameMethodEscapes.filter((finding) => finding.reviewStatus === 'safe-direct-write');
+const confirmed = sameMethodEscapes.filter((finding) => finding.reviewStatus === 'confirmed');
+const needsReview = sameMethodEscapes.filter((finding) => finding.reviewStatus === 'needs-review');
 const mixed = entries.filter((entry) => entry.risk === 'mixed-service-method-review');
 const direct = entries.filter((entry) => entry.directWriteCount > 0);
+const staleReviewKeys = Object.keys(reviewLedger.findings).filter((key) => !sameMethodEscapes.some((finding) => finding.key === key));
+
 const result = {
   audit: 'R-009 transaction escape method-level inventory',
   scannedServices: serviceFiles.length,
@@ -95,7 +131,15 @@ const result = {
   servicesWithDirectWrites: direct.length,
   mixedBoundaryServices: mixed.length,
   sameMethodEscapeCount: sameMethodEscapes.length,
-  note: 'Method-level inventory. sameMethodEscapes identify direct Prisma writes in methods that also open a transaction; all findings still require semantic review before refactoring.',
+  reviewedSafeCount: reviewedSafe.length,
+  confirmedEscapeCount: confirmed.length,
+  needsReviewCount: needsReview.length,
+  staleReviewCount: staleReviewKeys.length,
+  note: 'Strict mode fails on confirmed escapes, unreviewed same-method findings, or stale review entries. Safe direct writes require a documented reason in the review ledger.',
+  confirmed,
+  needsReview,
+  reviewedSafe,
+  staleReviewKeys,
   sameMethodEscapes,
   entries,
 };
@@ -104,11 +148,19 @@ if (JSON_MODE) {
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 } else {
   console.log(`R-009 transaction inventory: scanned ${serviceFiles.length} service file(s).`);
-  console.log(`Persistence signals: ${entries.length}; direct-write services: ${direct.length}; mixed-service reviews: ${mixed.length}; same-method escapes: ${sameMethodEscapes.length}.`);
-  for (const finding of sameMethodEscapes) {
-    console.log(`- ESCAPE ${finding.file}:${finding.line} ${finding.method} -> this.prisma.${finding.model}.${finding.operation}`);
+  console.log(`Persistence signals: ${entries.length}; direct-write services: ${direct.length}; mixed-service reviews: ${mixed.length}; same-method findings: ${sameMethodEscapes.length}.`);
+  console.log(`Reviewed safe: ${reviewedSafe.length}; confirmed escapes: ${confirmed.length}; needs review: ${needsReview.length}; stale reviews: ${staleReviewKeys.length}.`);
+  for (const finding of confirmed) {
+    console.log(`- CONFIRMED ${finding.file}:${finding.line} ${finding.method} -> this.prisma.${finding.model}.${finding.operation}`);
   }
-  for (const entry of mixed) {
-    console.log(`- REVIEW ${entry.file}: transactions=${entry.transactionsByMethod.join(', ') || 'none'}; directWrites=${entry.directWriteCount}`);
+  for (const finding of needsReview) {
+    console.log(`- REVIEW ${finding.file}:${finding.line} ${finding.method} -> this.prisma.${finding.model}.${finding.operation}`);
   }
+  for (const key of staleReviewKeys) {
+    console.log(`- STALE ${key}`);
+  }
+}
+
+if (STRICT_MODE && (confirmed.length > 0 || needsReview.length > 0 || staleReviewKeys.length > 0)) {
+  process.exitCode = 1;
 }
