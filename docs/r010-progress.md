@@ -18,7 +18,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Consolidate duplicate queries by module ownership.
 - [x] Separate list, detail, and summary projections.
 - [x] Reduce unnecessary relation `include` usage in list endpoints.
-- [ ] Create a shared cursor pagination pattern.
+- [x] Create a shared cursor pagination pattern.
 - [ ] Create shared filter parsing and sort whitelists.
 - [ ] Reject arbitrary sort and filter input.
 - [ ] Create a dashboard read model.
@@ -59,52 +59,50 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 - Consolidated member notification-feed source queries under `NotificationFeedReadRepository` in the `notifications` module.
 - Centralized the source limit and narrow projections for top-ups, withdrawals, support-linked alerts, and login history.
-- Added `tools/audit-r010-notification-query-ownership.mjs`.
-- Added repository-wide duplicate-query strict enforcement with `R010_DUPLICATE_QUERY_STRICT=1`.
-- Added `.github/workflows/r010-query-ownership.yml` with duplicate-query strict mode, review-ledger validation, ownership enforcement, and API typecheck.
+- Added repository-wide duplicate-query strict enforcement and ownership guards.
 - Evidence: `docs/evidence/r010-notification-query-ownership.md` and `docs/evidence/r010-duplicate-query-consolidation-closure.md`.
-- Railway API, Admin, and Member deployments succeeded after the ownership and strict-guard commits.
 
 ### 3. Separate list, detail, and summary projections
 
-- Added `notification-read.projections.ts` with owner-local list, detail, and summary projection contracts.
-- Moved notification-state and preference-detail Prisma reads into `NotificationFeedReadRepository`.
+- Added owner-local notification list, detail, and summary projection contracts.
+- Moved notification-state and preference-detail reads into `NotificationFeedReadRepository`.
 - Removed direct Prisma access from `NotificationsQueryService`.
-- Centralized feed source/result limits and summary counting.
-- Added `tools/audit-r010-notification-projection-boundaries.mjs` and wired it into `.github/workflows/r010-query-boundaries.yml`.
-- Preserved the existing notification response shape: `items`, `groups`, `total`, `counts`, and `preferences`.
 - Evidence: `docs/evidence/r010-notification-projection-boundaries.md`.
 
 ### 4. Reduce unnecessary relation `include` usage in list endpoints
 
-- Replaced `AdminMembersQueryService.listMembers()` broad `profile` and `wallet` relation includes with `MEMBER_LIST_PROJECTION`.
-- Limited profile data to `displayName` and wallet data to `balance` and `lockedBalance`.
-- Preserved member-list response keys, search, status filtering, ordering, offset pagination, totals, and page counts.
-- Kept the broader detail query unchanged because the detail response legitimately requires it.
-- Added `tools/audit-r010-admin-member-list-projection.mjs` and wired it into `.github/workflows/r010-query-boundaries.yml`.
+- Replaced broad member-list profile/wallet includes with `MEMBER_LIST_PROJECTION`.
+- Preserved the member-list response contract and left the legitimate detail query unchanged.
 - Evidence: `docs/evidence/r010-admin-member-list-projection.md`.
-
-## Active work
 
 ### 5. Create a shared cursor pagination pattern
 
-- [ ] Define normalized cursor and bounded limit helpers.
-- [ ] Migrate the first existing cursor list without changing response semantics.
-- [ ] Add invalid-cursor and boundary regression guards.
+- Added `apps/api/src/common/query/cursor-pagination.ts`.
+- Centralized bounded limit parsing, cursor normalization, look-ahead fetch, `hasMore`, and `nextCursor` construction.
+- Migrated member and admin support-ticket lists to the shared pattern.
+- Added deterministic `createdAt DESC, id DESC` ordering.
+- Added `tools/audit-r010-cursor-pagination.mjs` and wired it into `.github/workflows/r010-query-boundaries.yml`.
+- Preserved the existing support-list response contracts and kept detail/mutation behavior unchanged.
+- Evidence: `docs/evidence/r010-shared-cursor-pagination.md`.
+
+## Active work
+
+### 6. Create shared filter parsing and sort whitelists
+
+- [ ] Define reusable enum/filter normalization helpers.
+- [ ] Define owner-controlled sort field/direction whitelists.
+- [ ] Migrate the first low-risk list endpoint and add a drift guard.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 4
-- Remaining: 9
+- Closed: 5
+- Remaining: 8
 
 ## Latest commits
 
-- `104b0f4d454d46fe902a0aa8c2c083cff3ad5a36` — record admin member list projection evidence.
-- `777a22799fb86550042eab483ea84a160eea6ea4` — enforce narrow admin member list projection in CI.
-- `1596c0e07064f0082a47279ec901d5ef0c7024e7` — guard the admin member list projection contract.
-- `db230ed85538478c88d1b3c787e014cf2060d2b4` — replace broad admin member list includes with a narrow select projection.
-- `c86ce2aca283689952a357c440b57805b7bebd22` — record notification projection boundary evidence.
-- `e178bfb10865e31943415335e5f94a117c9d9aec` — enforce notification projection boundaries in CI.
-- `06aa07cf4dfc0c33ed42370b72134e7c29827d16` — guard notification list/detail/summary projection boundaries.
-- `b0d2ed5fe1be85b0d93a5076221b96dd14044118` — remove direct Prisma reads from the notification query service.
+- `1fe12970ed7daa50a091f387b3eb150884ae5603` — record shared cursor pagination evidence.
+- `728552cbb1b75ef61f09e54b4ea97e20a13ff1d2` — enforce the shared cursor pagination guard in CI.
+- `d38adfd6d29f5005e7b8aa16857122a1c995f060` — guard the shared cursor pagination contract.
+- `64c0f29197704e972bd8f737d4952a07e44a0347` — migrate support list queries to the shared cursor pattern.
+- `233055412dc1bfa537309ded0f40937a719fd28f` — add the shared cursor pagination utility.
