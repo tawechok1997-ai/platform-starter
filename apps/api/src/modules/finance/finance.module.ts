@@ -3,6 +3,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from '../../database/database.module';
 import { FinanceController } from './finance.controller';
 import { FinanceService } from './finance.service';
+import { FinanceSummaryQueryService } from './finance-summary-query.service';
+import { FinanceReportsQueryService } from './finance-reports-query.service';
 import { QueuesController } from '../queues/queues.controller';
 import { QueuesService } from '../queues/queues.service';
 import { OperationsController } from '../activity/operations.controller';
@@ -15,6 +17,14 @@ import { AdminMembersService } from '../admin-members/admin-members.service';
 @Module({
   imports: [DatabaseModule, JwtModule.register({})],
   controllers: [FinanceController, QueuesController, OperationsController, RiskController, AdminMembersController],
-  providers: [FinanceService, QueuesService, ActivityService, RiskService, AdminMembersService],
+  providers: [
+    FinanceService,
+    FinanceSummaryQueryService,
+    FinanceReportsQueryService,
+    QueuesService,
+    ActivityService,
+    RiskService,
+    AdminMembersService,
+  ],
 })
 export class FinanceModule {}
