@@ -84,7 +84,7 @@ const undocumentedModules = registeredModules.filter((slug) => !documentedModule
 
 const controllers = [];
 const jobs = [];
-const moduleDependencies = [];
+const moduleDependenciesByPair = new Map();
 for (const file of files) {
   const source = await readFile(file, 'utf8');
   const owner = moduleSlug(file);
@@ -99,11 +99,17 @@ for (const file of files) {
   if (file.endsWith('.module.ts')) {
     for (const specifier of importsOf(source)) {
       const targetOwner = resolveImportedModule(file, specifier);
-      if (targetOwner && targetOwner !== owner) moduleDependencies.push({ from: owner, to: targetOwner, file: normalize(file), specifier });
+      if (targetOwner && targetOwner !== owner) {
+        const key = `${owner}->${targetOwner}`;
+        if (!moduleDependenciesByPair.has(key)) {
+          moduleDependenciesByPair.set(key, { from: owner, to: targetOwner, file: normalize(file), specifier });
+        }
+      }
     }
   }
 }
 
+const moduleDependencies = [...moduleDependenciesByPair.values()];
 const controllerOwnersMissingFromMap = [...new Set(controllers.map((item) => item.owner))].filter((slug) => !documentedModules.has(slug));
 const controllerOwnersMissingFromRoutes = [...new Set(controllers.map((item) => item.owner))].filter((slug) => !documentedRouteOwners.has(slug));
 const controllersMissingDecorator = controllers.filter((item) => item.prefixes.length === 0);
