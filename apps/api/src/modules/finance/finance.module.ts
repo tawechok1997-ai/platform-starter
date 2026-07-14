@@ -12,8 +12,11 @@ import { ActivityService } from '../activity/activity.service';
 import { AdminActivityQueryService } from '../activity/admin-activity-query.service';
 import { RiskController } from '../risk/risk.controller';
 import { RiskService } from '../risk/risk.service';
+import { RiskSummaryQueryService } from '../risk/risk-summary-query.service';
 import { AdminMembersController } from '../admin-members/admin-members.controller';
 import { AdminMembersService } from '../admin-members/admin-members.service';
+import { AdminMembersQueryService } from '../admin-members/admin-members-query.service';
+import { AdminMembersCommandService } from '../admin-members/admin-members-command.service';
 
 @Module({
   imports: [DatabaseModule, JwtModule.register({})],
@@ -26,7 +29,10 @@ import { AdminMembersService } from '../admin-members/admin-members.service';
     ActivityService,
     AdminActivityQueryService,
     RiskService,
+    RiskSummaryQueryService,
     AdminMembersService,
+    AdminMembersQueryService,
+    AdminMembersCommandService,
   ],
 })
 export class FinanceModule {}
