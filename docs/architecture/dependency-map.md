@@ -29,6 +29,7 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | auth | anti-bot | Registration and password-recovery challenge verification |
 | auth | risk-alerts | Registration phone/watchlist enforcement |
 | auth | notifications | Authentication/security notification delivery |
+| admin-auth | anti-bot | Admin-login challenge and adaptive anti-bot verification |
 | users | risk-alerts | Profile phone/watchlist enforcement |
 | users | admin-audit | Administrative member-change audit projection |
 | topups | wallet | Idempotent deposit credit and ledger write |
@@ -40,6 +41,10 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | withdrawals | risk-alerts | Withdrawal watchlist/risk enforcement and override audit |
 | withdrawals | storage | Private proof object lifecycle |
 | bank-accounts | risk-alerts | Duplicate-bank and watchlist enforcement |
+| finance | queues | Deposit/withdrawal work-queue controllers and projections |
+| finance | activity | Operational activity controllers and read models |
+| finance | risk | Finance risk summary and review projections |
+| finance | admin-members | Administrative member queries used by finance operations |
 | promotions | wallet | Bonus wallet settlement |
 | promotions | finance | Promotion settlement idempotency and transaction safety |
 | affiliates | wallet | Commission wallet settlement |
@@ -54,6 +59,7 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | support | storage | Private support attachment lifecycle |
 | notifications | users | Delivery target and preference resolution |
 | settings | storage | CMS binary asset lifecycle |
+| risk-alerts | storage | Private KYC document lifecycle |
 | reports | finance | Finance reporting projections |
 | reports | users | Member reporting projections |
 | exports | reports | Export generation from report projections |
@@ -82,6 +88,7 @@ A module not currently containing a scheduled handler may still reserve the fami
 - Controllers, DTO implementation files, Prisma repositories and internal helpers are private by default.
 - Cross-module request/response shapes should move to explicit contract files or shared packages rather than importing controller DTOs.
 - Frontends consume HTTP contracts through `packages/api-client`; they never import API source.
+- Internal controller families (`activity`, `admin-members`, `queues`, `risk`, `system`) are transitional boundaries and must be folded into their owning first-class modules or promoted with explicit module entry points during R-007/R-012.
 - Exceptions must be documented in this file with caller, callee, owner, reason and removal target.
 
 ## Prohibited relationships
