@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import type { MemberActor } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { UploadKycDocumentDto } from './dto/kyc-document.dto';
@@ -10,17 +11,17 @@ export class MemberKycController {
   constructor(private readonly kyc: KycDocumentsService) {}
 
   @Get()
-  getCase(@CurrentUser() user: any) {
-    return this.kyc.memberCase(user.id ?? user.sub);
+  getCase(@CurrentUser() user: MemberActor) {
+    return this.kyc.memberCase(user.id);
   }
 
   @Post('documents')
-  upload(@CurrentUser() user: any, @Body() body: UploadKycDocumentDto) {
-    return this.kyc.upload(user.id ?? user.sub, body);
+  upload(@CurrentUser() user: MemberActor, @Body() body: UploadKycDocumentDto) {
+    return this.kyc.upload(user.id, body);
   }
 
   @Post('submit')
-  submit(@CurrentUser() user: any) {
-    return this.kyc.submit(user.id ?? user.sub);
+  submit(@CurrentUser() user: MemberActor) {
+    return this.kyc.submit(user.id);
   }
 }
