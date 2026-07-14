@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createApiClient } from '@platform/api-client';
 
 type Provider = 'TURNSTILE' | 'RECAPTCHA' | 'HCAPTCHA';
 type Endpoint = 'member-login' | 'member-register';
@@ -14,6 +15,7 @@ type Props = {
   onRequiredChange: (required: boolean, ready: boolean) => void;
 };
 
+const client = createApiClient({ baseUrl: '', timeoutMs: 10000, retry: 1 });
 const scripts: Record<Provider, string> = {
   TURNSTILE: 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit',
   RECAPTCHA: 'https://www.google.com/recaptcha/api.js?render=explicit',
@@ -29,9 +31,8 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/anti-bot/${endpoint}`, { cache: 'no-store' })
-      .then((response) => response.ok ? response.json() : Promise.reject())
-      .then((payload: PublicConfig) => {
+    client.request<PublicConfig>(`/api/anti-bot/${endpoint}`, { auth: false, cache: 'no-store' })
+      .then((payload) => {
         if (cancelled) return;
         setConfig(payload);
         const ready = !payload.enabled || Boolean(payload.provider && payload.siteKey);
