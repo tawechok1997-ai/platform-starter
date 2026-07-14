@@ -55,6 +55,7 @@ export type KycReviewRecord = {
   reviewedAt?: RepositoryTimestamp | null;
   deletedAt?: RepositoryTimestamp | null;
   updatedAt: RepositoryTimestamp;
+  view: Record<string, unknown>;
 };
 
 export type WatchlistEntryRecord = {
@@ -68,6 +69,7 @@ export type WatchlistEntryRecord = {
   releasedAt?: RepositoryTimestamp | null;
   releaseReason?: string | null;
   updatedAt: RepositoryTimestamp;
+  view: Record<string, unknown>;
 };
 
 export interface KycWatchlistRepositoryPort {
