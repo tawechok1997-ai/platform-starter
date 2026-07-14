@@ -8,8 +8,6 @@ const findings = [];
 // without treating test fixtures or the entire historical backlog as new failures.
 const legacyBaseline = new Set([
   'apps/api/src/modules/admin-access/admin-access.service.ts',
-  'apps/api/src/modules/admin-access/admin-account-lifecycle.service.ts',
-  'apps/api/src/modules/admin-auth/admin-login-defense.service.ts',
   'apps/api/src/modules/game-platform/game-platform-money.service.ts',
   'apps/api/src/modules/game-platform/game-platform.service.ts',
   'apps/api/src/modules/game-platform/game-transfer-action.service.ts',
