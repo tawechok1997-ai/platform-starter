@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'apps/api/src/common/infrastructure/**'
+      - 'apps/api/src/common/application/critical-repository-ports.ts'
       - 'apps/api/src/modules/admin-access/admin-access.service.ts'
       - 'apps/api/src/modules/admin-access/admin-ownership-command.service.ts'
       - 'apps/api/src/modules/admin-access/admin-ownership-command.service.spec.ts'
@@ -24,11 +25,13 @@ on:
       - 'tools/audit-r009-ownership-transfer-transaction.mjs'
       - 'tools/audit-r009-kyc-watchlist-transactions.mjs'
       - 'tools/audit-r009-promotion-settlement-transaction.mjs'
+      - 'tools/audit-r009-risk-promotion-adapters.mjs'
       - 'tools/audit-r009-critical-constraint-closure.mjs'
       - '.github/workflows/r009-parallel-boundary-closure.yml'
   pull_request:
     paths:
       - 'apps/api/src/common/infrastructure/**'
+      - 'apps/api/src/common/application/critical-repository-ports.ts'
       - 'apps/api/src/modules/admin-access/admin-access.service.ts'
       - 'apps/api/src/modules/admin-access/admin-ownership-command.service.ts'
       - 'apps/api/src/modules/admin-access/admin-ownership-command.service.spec.ts'
@@ -48,6 +51,7 @@ on:
       - 'tools/audit-r009-ownership-transfer-transaction.mjs'
       - 'tools/audit-r009-kyc-watchlist-transactions.mjs'
       - 'tools/audit-r009-promotion-settlement-transaction.mjs'
+      - 'tools/audit-r009-risk-promotion-adapters.mjs'
       - 'tools/audit-r009-critical-constraint-closure.mjs'
       - '.github/workflows/r009-parallel-boundary-closure.yml'
 
@@ -81,6 +85,8 @@ jobs:
         run: pnpm --filter @platform/api test -- admin-ownership-command.service.spec.ts --runInBand
       - name: KYC and watchlist transaction closure
         run: node tools/audit-r009-kyc-watchlist-transactions.mjs
+      - name: Risk and promotion repository adapters
+        run: node tools/audit-r009-risk-promotion-adapters.mjs
       - name: Promotion settlement transaction closure
         run: node tools/audit-r009-promotion-settlement-transaction.mjs
       - name: Promotion settlement command regression
