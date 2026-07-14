@@ -1,12 +1,16 @@
-name: Apply R-008 Admin and Withdrawal Integrations
+name: Verify and Close R-008 Domain Policies
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - tools/apply-r008-admin-withdrawal-integrations.mjs
       - tools/audit-r008-closure.mjs
+      - tools/close-r008-after-verification.mjs
+      - apps/api/src/common/domain/**
+      - apps/api/src/modules/admin-access/**
+      - apps/api/src/modules/withdrawals/**
+      - apps/api/src/modules/wallet/domain/**
       - .github/r008-*.txt
       - .github/workflows/apply-r008-admin-withdrawal-integrations.yml
 
@@ -14,11 +18,11 @@ permissions:
   contents: write
 
 concurrency:
-  group: r008-admin-withdrawal-integrations
+  group: r008-final-closure
   cancel-in-progress: false
 
 jobs:
-  apply-and-verify:
+  verify-and-close:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -33,10 +37,9 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
-      - name: Apply domain policy integrations
-        run: node tools/apply-r008-admin-withdrawal-integrations.mjs
-      - name: Verify integration markers
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile --prefer-offline
+      - name: Verify R-008 integration markers
         run: pnpm audit:r8-closure
       - name: Typecheck API
         run: pnpm typecheck:api
@@ -44,15 +47,19 @@ jobs:
         run: pnpm --filter @platform/api test -- --runInBand
       - name: Build API
         run: pnpm build:api
-      - name: Commit verified integrations
+      - name: Update verified closure documents
+        env:
+          R008_VERIFIED_COMMIT: ${{ github.sha }}
+        run: node tools/close-r008-after-verification.mjs
+      - name: Commit R-008 closure
         run: |
-          if git diff --quiet -- apps/api/src/modules/admin-access/admin-access.service.ts apps/api/src/modules/withdrawals/withdrawals.service.ts; then
-            echo "No integration changes to commit"
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/api/src/modules/admin-access/admin-access.service.ts apps/api/src/modules/withdrawals/withdrawals.service.ts
-          git commit -m "refactor(r008): enforce admin and withdrawal domain policies [skip ci]"
+          git add docs/r008-closure-checklist.md docs/master-worklist.md
+          if git diff --cached --quiet; then
+            echo "R-008 closure documents already up to date"
+            exit 0
+          fi
+          git commit -m "docs(r008): mark domain policy separation done [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
