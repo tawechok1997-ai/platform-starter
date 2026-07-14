@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 import Redis from 'ioredis';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { SensitiveResponseInterceptor } from './common/interceptors/sensitive-response.interceptor';
 
 type RateBucket = { count: number; resetAt: number };
 type RateRule = { method: string; path: string; max: number; env?: string };
@@ -49,6 +50,7 @@ async function bootstrap() {
   });
 
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new SensitiveResponseInterceptor());
 
   app.use((req: any, res: any, next: any) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
