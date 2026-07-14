@@ -14,16 +14,18 @@ describe('RiskWatchlistService', () => {
   });
 
   function createService(overrides: Record<string, unknown> = {}) {
+    const tx: any = {
+      $queryRaw: jest.fn(),
+      $executeRaw: jest.fn(),
+      adminAuditLog: { create: jest.fn().mockResolvedValue({}) },
+    };
     const prisma: any = {
       $queryRaw: jest.fn(),
-      $transaction: jest.fn(async (callback: any) => callback({
-        $queryRaw: jest.fn(),
-        adminAuditLog: { create: jest.fn().mockResolvedValue({}) },
-      })),
+      $transaction: jest.fn(async (callback: any) => callback(tx)),
       adminAuditLog: { create: jest.fn().mockResolvedValue({}) },
       ...overrides,
     };
-    return { service: new RiskWatchlistService(prisma), prisma };
+    return { service: new RiskWatchlistService(prisma), prisma, tx };
   }
 
   it('normalizes phone values before matching', async () => {
@@ -56,8 +58,8 @@ describe('RiskWatchlistService', () => {
 
   it('converts active duplicate database conflicts into a domain conflict', async () => {
     const error = Object.assign(new Error('duplicate'), { code: '23505' });
-    const { service, prisma } = createService();
-    prisma.$queryRaw.mockRejectedValue(error);
+    const { service, tx } = createService();
+    tx.$queryRaw.mockRejectedValue(error);
 
     await expect(service.create({
       subjectType: 'MEMBER', subjectValue: 'member-1', listType: 'WATCHLIST',
@@ -70,6 +72,7 @@ describe('RiskWatchlistService', () => {
       $queryRaw: jest.fn().mockResolvedValueOnce([
         { id: '00000000-0000-4000-8000-000000000010', status: 'ACTIVE', version: 2 },
       ]),
+      $executeRaw: jest.fn(),
       adminAuditLog: { create: jest.fn() },
     };
     const prisma: any = {
