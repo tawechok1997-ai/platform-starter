@@ -24,6 +24,8 @@ This document records the automated safety net required before structural refact
 | Phone OTP | PostgreSQL replay/brute-force/concurrency | `pnpm --filter @platform/api test:db:phone-otp -- --runInBand` | Required |
 | Risk watchlist | PostgreSQL concurrency | `pnpm --filter @platform/api test:db:risk-watchlist -- --runInBand` | Required |
 | KYC | PostgreSQL lifecycle/concurrency | `pnpm --filter @platform/api test:db:kyc -- --runInBand` | Required |
+| Support lifecycle | state-transition characterization | `apps/api/src/modules/support/support.service.spec.ts` | Required before support refactor |
+| Admin account lifecycle | idempotency/transaction rollback characterization | `apps/api/src/modules/admin-access/admin-account-lifecycle.service.spec.ts` | Required before lifecycle refactor |
 | Regression safety inventory | static refactor gate | `pnpm audit:critical-test-safety` | Required |
 | Admin permissions | static policy audit | `pnpm audit:admin-permissions` | Required |
 | Admin UI permissions | static route/navigation audit | `pnpm audit:admin-ui-permissions` | Required |
@@ -46,8 +48,8 @@ This document records the automated safety net required before structural refact
 | Withdrawal lifecycle | Yes | Yes | Partial | Credentialed deployed regression |
 | KYC lifecycle | Yes | Yes | Yes | Authenticated deployed regression |
 | Watchlist lifecycle | Yes | Yes | Partial | Authenticated UI regression |
-| Support lifecycle | Yes | No dedicated DB suite | Partial | Transaction rollback and browser evidence |
-| Admin account lifecycle | Yes | No dedicated DB suite | Partial | Ownership-transfer DB rollback and credentialed browser evidence |
+| Support lifecycle | Yes, including reopen/review/resolve transitions | No dedicated DB suite | Partial | Real PostgreSQL rollback and browser evidence |
+| Admin account lifecycle | Yes, including no-op and rollback characterization | No dedicated DB suite | Partial | Ownership-transfer PostgreSQL rollback and credentialed browser evidence |
 | Promotion settlement | Yes | Yes | Partial | Authenticated browser evidence |
 | Provider webhook/settlement | Yes | Yes | Partial | Vendor-specific contract/UAT |
 
@@ -55,13 +57,15 @@ A gap in this table is a refactor blocker for the affected behavior. It is not p
 
 ## Critical files protected from skipped tests
 
-The following database suites may not contain `describe.skip`, `test.skip`, `it.skip`, `xdescribe`, `xtest`, or `xit`:
+The following database and characterization suites may not contain `describe.skip`, `test.skip`, `it.skip`, `xdescribe`, `xtest`, or `xit`:
 
 - `apps/api/src/modules/finance/finance-concurrency.db.spec.ts`
 - `apps/api/src/modules/promotions/promotion-settlement.db.spec.ts`
 - `apps/api/src/modules/auth/phone-otp.db.spec.ts`
 - `apps/api/src/modules/risk-alerts/risk-watchlist-concurrency.db.spec.ts`
 - `apps/api/src/modules/risk-alerts/kyc-concurrency.db.spec.ts`
+- `apps/api/src/modules/support/support.service.spec.ts`
+- `apps/api/src/modules/admin-access/admin-account-lifecycle.service.spec.ts`
 
 ## Refactor rule
 
