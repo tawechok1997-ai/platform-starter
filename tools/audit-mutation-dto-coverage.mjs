@@ -2,20 +2,11 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 
 const ROOT = join(process.cwd(), 'apps', 'api', 'src', 'modules');
-const CRITICAL_MODULES = new Set([
-  'admin-access',
-  'admin-auth',
-  'finance',
-  'withdrawals',
-  'risk-alerts',
-  'support',
-  'promotions',
-  'game-platform',
-]);
+const BASELINE_PATH = join(process.cwd(), 'docs', 'architecture', 'mutation-dto-debt.json');
 const MUTATION = /@(Post|Put|Patch|Delete)\s*\(/g;
-const BODY_ANY = /@Body\(\)\s+\w+\s*:\s*any\b/;
-const BODY_INLINE = /@Body\(\)\s+\w+\s*:\s*\{/;
-const BODY_DTO = /@Body\(\)\s+\w+\s*:\s*([A-Z][A-Za-z0-9_]*(?:Dto|Request|Command|Input))\b/;
+const BODY_ANY = /@Body\([^)]*\)\s+\w+\s*:\s*any\b/;
+const BODY_INLINE = /@Body\([^)]*\)\s+\w+\s*:\s*\{/;
+const BODY_CONTRACT = /@Body\([^)]*\)\s+\w+\s*:\s*([A-Z][A-Za-z0-9_]*)\b/;
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -32,10 +23,6 @@ function normalize(path) {
   return relative(ROOT, path).split(sep).join('/');
 }
 
-function moduleSlug(path) {
-  return normalize(path).split('/')[0];
-}
-
 function lineNumber(source, index) {
   return source.slice(0, index).split('\n').length;
 }
@@ -46,6 +33,18 @@ function handlerSlice(source, start) {
   return source.slice(start, end);
 }
 
+function violationReason(item) {
+  if (item.bodyAny) return 'any';
+  if (item.bodyInline) return 'inline';
+  return 'unrecognized';
+}
+
+function violationKey(item) {
+  return `${item.file}:${item.line}:${item.method}:${violationReason(item)}`;
+}
+
+const baselineDocument = JSON.parse(await readFile(BASELINE_PATH, 'utf8'));
+const baseline = new Set(Array.isArray(baselineDocument.violations) ? baselineDocument.violations : []);
 const files = await walk(ROOT);
 const inventory = [];
 
@@ -56,42 +55,43 @@ for (const file of files) {
   while ((match = MUTATION.exec(source))) {
     const block = handlerSlice(source, match.index);
     const hasBody = /@Body\(/.test(block);
-    const dtoMatch = block.match(BODY_DTO);
+    const contractMatch = block.match(BODY_CONTRACT);
     inventory.push({
       file: normalize(file),
-      module: moduleSlug(file),
       method: match[1].toUpperCase(),
       line: lineNumber(source, match.index),
       hasBody,
       bodyAny: BODY_ANY.test(block),
       bodyInline: BODY_INLINE.test(block),
-      dto: dtoMatch?.[1] ?? null,
+      contract: contractMatch?.[1] ?? null,
     });
   }
 }
 
-const criticalUntyped = inventory.filter((item) => (
-  CRITICAL_MODULES.has(item.module)
-  && item.hasBody
-  && (item.bodyAny || (!item.dto && !item.bodyInline))
-));
-const inlineBodies = inventory.filter((item) => item.bodyInline);
-const dtoBodies = inventory.filter((item) => item.dto);
+const violations = inventory.filter((item) => item.hasBody && (item.bodyAny || item.bodyInline || !item.contract));
+const currentKeys = new Set(violations.map(violationKey));
+const newViolations = violations.filter((item) => !baseline.has(violationKey(item)));
+const resolvedBaseline = [...baseline].filter((key) => !currentKeys.has(key));
+const typedBodies = inventory.filter((item) => item.contract && !item.bodyAny && !item.bodyInline);
 const bodyless = inventory.filter((item) => !item.hasBody);
 
 console.log(`Mutation DTO audit: ${inventory.length} mutation handlers`);
-console.log(`  DTO-backed bodies: ${dtoBodies.length}`);
-console.log(`  inline object bodies: ${inlineBodies.length}`);
+console.log(`  typed request bodies: ${typedBodies.length}`);
 console.log(`  bodyless mutations: ${bodyless.length}`);
-console.log(`  critical untyped bodies: ${criticalUntyped.length}`);
+console.log(`  baseline debt: ${baseline.size}`);
+console.log(`  current debt: ${violations.length}`);
+console.log(`  new violations: ${newViolations.length}`);
+console.log(`  resolved baseline entries: ${resolvedBaseline.length}`);
 
-if (inlineBodies.length) {
-  console.warn('\nInline object bodies scheduled for migration:');
-  for (const item of inlineBodies) console.warn(`  - ${item.file}:${item.line} (@${item.method})`);
+if (resolvedBaseline.length) {
+  console.warn('\nResolved baseline entries should be removed from mutation-dto-debt.json:');
+  for (const key of resolvedBaseline) console.warn(`  - ${key}`);
 }
 
-if (criticalUntyped.length) {
-  console.error('\nCritical mutation handlers using untyped request bodies:');
-  for (const item of criticalUntyped) console.error(`  - ${item.file}:${item.line} (@${item.method})`);
+if (newViolations.length) {
+  console.error('\nNew mutation handlers without declared request contracts:');
+  for (const item of newViolations) {
+    console.error(`  - ${violationKey(item)}`);
+  }
   process.exitCode = 1;
 }
