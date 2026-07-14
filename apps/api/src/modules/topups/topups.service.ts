@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { Money } from '../../common/domain/value-objects';
 import { DomainError } from '../../common/domain/domain-error';
@@ -81,7 +82,7 @@ export class TopUpsService {
         this.rethrowDomainError(error, true);
       }
       const updated = await tx.topUpRequest.update({ where: { id }, data: { claimedBy: adminUser.id, claimedAt: new Date() } });
-      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'CLAIM_TOP_UP', module: 'topups', targetId: id, oldData: { claimedBy: request.claimed_by }, newData: { claimedBy: adminUser.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: adminUser.id, action: 'CLAIM_TOP_UP', module: 'topups', targetId: id, oldData: { claimedBy: request.claimed_by }, newData: { claimedBy: adminUser.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) });
       return this.formatRequest(updated);
     });
   }
@@ -121,7 +122,7 @@ export class TopUpsService {
 
   private normalizeIdempotencyKey(userId: string, value?: string | null) { const key = value?.trim(); if (!key) return null; if (key.length > 120) throw new BadRequestException('Idempotency-Key is too long'); return `${userId}:${key}`; }
   private accountType(bankName: string) { if (bankName === 'พร้อมเพย์') return 'promptpay'; if (bankName === 'วอเลต') return 'wallet'; if (bankName === 'อื่น ๆ') return 'other'; return 'bank_transfer'; }
-  private audit(adminUserId: string, action: string, targetId: string, oldData: any, newData: any, meta: RequestMeta) { return this.prisma.adminAuditLog.create({ data: { adminUserId, action, module: 'topups', targetId, oldData, newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent } }).catch(() => null); }
+  private audit(adminUserId: string, action: string, targetId: string, oldData: any, newData: any, meta: RequestMeta) { return this.prisma.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId, action, module: 'topups', targetId, oldData, newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) }).catch(() => null); }
   private parseProof(value?: string | null) { if (!value) return {} as { receivingBankAccountId?: string }; try { return JSON.parse(value) as { receivingBankAccountId?: string }; } catch { return {}; } }
   private formatRequest(item: any) { return { id: item.id, userId: item.userId, amount: item.amount.toString(), currency: item.currency, status: item.status, method: item.method, referenceCode: item.referenceCode, note: item.note, adminNote: item.adminNote, reviewedBy: item.reviewedBy, reviewedAt: item.reviewedAt, claimedBy: item.claimedBy, claimedAt: item.claimedAt, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
 }
