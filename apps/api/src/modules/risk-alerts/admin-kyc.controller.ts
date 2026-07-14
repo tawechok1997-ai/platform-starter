@@ -5,17 +5,19 @@ import { RequirePermission } from '../../common/decorators/require-permission.de
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { KycAccessTokenDto, ReviewKycCaseDto, ReviewKycDocumentDto } from './dto/kyc-document.dto';
+import { KycAccessService } from './kyc-access.service';
 import { KycDocumentsQueryService } from './kyc-documents-query.service';
-import { KycDocumentsService } from './kyc-documents.service';
+import { KycRetentionService } from './kyc-retention.service';
 import { KycReviewCommandService } from './kyc-review-command.service';
 
 @Controller('admin/kyc')
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 export class AdminKycController {
   constructor(
-    private readonly kyc: KycDocumentsService,
     private readonly queries: KycDocumentsQueryService,
     private readonly reviews: KycReviewCommandService,
+    private readonly access: KycAccessService,
+    private readonly retention: KycRetentionService,
   ) {}
 
   @RequirePermission('risk.view')
@@ -45,18 +47,18 @@ export class AdminKycController {
   @RequirePermission('risk.view')
   @Post('documents/:id/access-token')
   accessToken(@Param('id') id: string, @CurrentUser() admin: AuthenticatedAdminActor) {
-    return this.kyc.issueAccessToken(id, admin.id);
+    return this.access.issueAccessToken(id, admin.id);
   }
 
   @RequirePermission('risk.view')
   @Post('documents/download')
   download(@Body() body: KycAccessTokenDto, @CurrentUser() admin: AuthenticatedAdminActor) {
-    return this.kyc.downloadWithToken(body.token, admin.id);
+    return this.access.downloadWithToken(body.token, admin.id);
   }
 
   @RequirePermission('risk.resolve')
   @Post('cleanup-expired')
   cleanup(@Query('limit') limit?: string) {
-    return this.kyc.cleanupExpired(Number(limit ?? 100));
+    return this.retention.cleanupExpired(Number(limit ?? 100));
   }
 }
