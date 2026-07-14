@@ -5,12 +5,15 @@ const ROOT = process.cwd();
 const API_SRC = join(ROOT, 'apps', 'api', 'src');
 const MODULE_ROOT = join(API_SRC, 'modules');
 const FRONTEND_ROOTS = [join(ROOT, 'apps', 'web-admin'), join(ROOT, 'apps', 'web-member')];
+const EXCEPTION_REGISTRY = join(ROOT, 'docs', 'architecture', 'boundary-exceptions.md');
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.mts', '.cts']);
 const SERVER_ONLY_IMPORTS = [
   /^@nestjs(?:\/|$)/,
   /^@prisma\/client(?:\/|$)/,
   /^node:(?:fs|child_process|cluster|net|tls|worker_threads)(?:\/|$)/,
 ];
+const DOMAIN_FORBIDDEN_IMPORTS = [/^@nestjs(?:\/|$)/, /^@prisma\/client(?:\/|$)/];
+const PRIVATE_CROSS_MODULE_SEGMENTS = /\/(?:controllers?|dto|repositories?|prisma|internal)(?:\/|$)|\.(?:controller|dto|repository)\b/;
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -49,6 +52,11 @@ function importedModuleSlug(fromFile, specifier) {
   return rel[0];
 }
 
+function isDomainOrPolicyFile(path) {
+  const normalized = normalize(path);
+  return normalized.includes('/domain/') || normalized.includes('/policies/') || /\.(?:policy|entity|value-object)\.ts$/.test(normalized);
+}
+
 function findCycles(graph) {
   const cycles = [];
   const visited = new Set();
@@ -74,7 +82,20 @@ function findCycles(graph) {
   return cycles;
 }
 
-const moduleFiles = (await walk(MODULE_ROOT)).filter((path) => path.endsWith('.module.ts'));
+function activeExceptions(markdown) {
+  const rows = [];
+  const today = new Date().toISOString().slice(0, 10);
+  for (const line of markdown.split('\n')) {
+    if (!line.startsWith('|') || line.includes('---') || line.includes('| ID |')) continue;
+    const cells = line.split('|').slice(1, -1).map((cell) => cell.trim());
+    if (cells.length !== 7 || !cells[0]) continue;
+    rows.push({ id: cells[0], caller: cells[1], callee: cells[2], owner: cells[3], reason: cells[4], target: cells[5], expires: cells[6], expired: cells[6] < today });
+  }
+  return rows;
+}
+
+const allApiFiles = await walk(API_SRC);
+const moduleFiles = allApiFiles.filter((path) => path.endsWith('.module.ts'));
 const graph = new Map();
 for (const file of moduleFiles) {
   const owner = moduleSlugFromPath(file);
@@ -117,10 +138,33 @@ for (const appName of ['api', 'web-admin', 'web-member']) {
   }
 }
 
+const domainViolations = [];
+const deepImportViolations = [];
+for (const file of allApiFiles) {
+  const source = await readFile(file, 'utf8');
+  const owner = moduleSlugFromPath(file);
+  for (const specifier of importsOf(source)) {
+    if (isDomainOrPolicyFile(file) && DOMAIN_FORBIDDEN_IMPORTS.some((pattern) => pattern.test(specifier))) {
+      domainViolations.push({ file: normalize(file), specifier });
+    }
+    const dependency = importedModuleSlug(file, specifier);
+    if (owner && dependency && dependency !== owner && PRIVATE_CROSS_MODULE_SEGMENTS.test(specifier.replaceAll('\\', '/'))) {
+      deepImportViolations.push({ file: normalize(file), specifier, owner, dependency });
+    }
+  }
+}
+
+const registry = await readFile(EXCEPTION_REGISTRY, 'utf8');
+const exceptions = activeExceptions(registry);
+const invalidExceptions = exceptions.filter((item) => item.expired || !item.owner || !item.reason || !item.target || !/^\d{4}-\d{2}-\d{2}$/.test(item.expires));
+
 console.log(`Architecture boundary audit: ${graph.size} API module nodes`);
 console.log(`  circular module dependencies: ${cycles.length}`);
 console.log(`  frontend server-only imports: ${frontendViolations.length}`);
 console.log(`  cross-app relative imports: ${appBoundaryViolations.length}`);
+console.log(`  domain/policy framework imports: ${domainViolations.length}`);
+console.log(`  private cross-module deep imports: ${deepImportViolations.length}`);
+console.log(`  invalid/expired exceptions: ${invalidExceptions.length}`);
 
 if (cycles.length) {
   console.error('\nCircular API module dependencies:');
@@ -134,5 +178,17 @@ if (appBoundaryViolations.length) {
   console.error('\nCross-app relative imports:');
   for (const item of appBoundaryViolations) console.error(`  - ${item.file}: ${item.specifier} -> ${item.targetApp}`);
 }
+if (domainViolations.length) {
+  console.error('\nDomain/policy files importing framework or Prisma implementation code:');
+  for (const item of domainViolations) console.error(`  - ${item.file}: ${item.specifier}`);
+}
+if (deepImportViolations.length) {
+  console.error('\nPrivate cross-module deep imports:');
+  for (const item of deepImportViolations) console.error(`  - ${item.file}: ${item.owner} -> ${item.dependency} via ${item.specifier}`);
+}
+if (invalidExceptions.length) {
+  console.error('\nInvalid or expired boundary exceptions:');
+  for (const item of invalidExceptions) console.error(`  - ${item.id}: owner=${item.owner || 'missing'} expires=${item.expires || 'missing'}`);
+}
 
-if (cycles.length || frontendViolations.length || appBoundaryViolations.length) process.exitCode = 1;
+if (cycles.length || frontendViolations.length || appBoundaryViolations.length || domainViolations.length || deepImportViolations.length || invalidExceptions.length) process.exitCode = 1;
