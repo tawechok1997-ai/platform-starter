@@ -40,6 +40,7 @@ function createService() {
 
 const actor = {
   id: '22222222-2222-4222-8222-222222222222',
+  sessionId: 'risk-alerts-test-session',
   permissions: ['risk.view', 'risk.assign', 'risk.note', 'risk.resolve'],
 };
 
