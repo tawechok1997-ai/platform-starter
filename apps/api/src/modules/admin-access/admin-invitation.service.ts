@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as argon2 from 'argon2';
-import { buildAdminAuditData } from '../../common/admin-audit';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
 const ADMIN_INVITE_TARGET_PREFIX = 'ADMIN_INVITE:';
