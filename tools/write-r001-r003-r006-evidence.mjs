@@ -5,6 +5,7 @@ const [directory, overallRaw] = process.argv.slice(2);
 if (!directory) throw new Error('evidence directory is required');
 const overall = Number(overallRaw ?? 1);
 const checks = [
+  'install',
   'architecture-inventory',
   'architecture-boundaries',
   'r1-closure',
