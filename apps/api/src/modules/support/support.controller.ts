@@ -14,8 +14,8 @@ import {
 } from './dto/support-ticket.dto';
 import { AdminSupportTicketListQueryDto, MemberSupportTicketListQueryDto } from './dto/support-query.dto';
 import { SupportAttachmentsService } from './support-attachments.service';
+import { SupportCommandService } from './support-command.service';
 import { SupportQueryService } from './support-query.service';
-import { SupportService } from './support.service';
 
 type BinaryResponse = {
   type(contentType: string): BinaryResponse;
@@ -25,15 +25,15 @@ type BinaryResponse = {
 @Controller()
 export class SupportController {
   constructor(
-    private readonly support: SupportService,
     private readonly queries: SupportQueryService,
+    private readonly commands: SupportCommandService,
     private readonly attachments: SupportAttachmentsService,
   ) {}
 
   @UseGuards(MemberAuthGuard)
   @Post('member/support-tickets')
   createMemberTicket(@CurrentUser() user: MemberActor, @Body() body: CreateSupportTicketDto) {
-    return this.support.createMemberTicket(user, body);
+    return this.commands.createMemberTicket(user, body);
   }
 
   @UseGuards(MemberAuthGuard)
@@ -51,13 +51,13 @@ export class SupportController {
   @UseGuards(MemberAuthGuard)
   @Post('member/support-tickets/:id/reply')
   memberReply(@CurrentUser() user: MemberActor, @Param('id') id: string, @Body() body: SupportReplyDto) {
-    return this.support.memberReply(user, id, body);
+    return this.commands.memberReply(user, id, body);
   }
 
   @UseGuards(MemberAuthGuard)
   @Post('member/support-tickets/:id/attachments')
   registerMemberAttachment(@CurrentUser() user: MemberActor, @Param('id') id: string, @Body() body: RegisterSupportAttachmentDto) {
-    return this.support.registerMemberAttachment(user, id, body);
+    return this.commands.registerMemberAttachment(user, id, body);
   }
 
   @UseGuards(MemberAuthGuard)
@@ -81,7 +81,7 @@ export class SupportController {
   @UseGuards(MemberAuthGuard)
   @Delete('member/support-tickets/:id/attachments/:attachmentId')
   removeMemberAttachment(@CurrentUser() user: MemberActor, @Param('id') id: string, @Param('attachmentId') attachmentId: string) {
-    return this.support.removeMemberAttachment(user, id, attachmentId);
+    return this.commands.removeMemberAttachment(user, id, attachmentId);
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -102,14 +102,14 @@ export class SupportController {
   @RequirePermission('support.reply')
   @Post('admin/support-tickets/:id/reply')
   adminReply(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: SupportReplyDto) {
-    return this.support.adminReply(user, id, body);
+    return this.commands.adminReply(user, id, body);
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('support.reply')
   @Post('admin/support-tickets/:id/attachments')
   registerAdminAttachment(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: RegisterSupportAttachmentDto) {
-    return this.support.registerAdminAttachment(user, id, body);
+    return this.commands.registerAdminAttachment(user, id, body);
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -131,13 +131,13 @@ export class SupportController {
   @RequirePermission('support.manage')
   @Delete('admin/support-tickets/:id/attachments/:attachmentId')
   removeAdminAttachment(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Param('attachmentId') attachmentId: string) {
-    return this.support.removeAdminAttachment(user, id, attachmentId);
+    return this.commands.removeAdminAttachment(user, id, attachmentId);
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('support.manage')
   @Patch('admin/support-tickets/:id')
   adminUpdate(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: AdminUpdateSupportTicketDto) {
-    return this.support.adminUpdate(user, id, body);
+    return this.commands.adminUpdate(user, id, body);
   }
 }
