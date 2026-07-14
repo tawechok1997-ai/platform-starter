@@ -71,7 +71,9 @@ export class AdminLoginService {
     try {
       assertAdminTotp(secret, code);
       return;
-    } catch {}
+    } catch {
+      // A failed TOTP may still be a valid one-time recovery code.
+    }
     const normalized = normalizeAdminRecoveryCode(code);
     if (!/^[A-Z0-9]{12}$/.test(normalized)) throw new UnauthorizedException('Invalid code');
     const rows = await this.prisma.adminRecoveryCode.findMany({ where: { adminUserId, usedAt: null }, orderBy: { createdAt: 'asc' } });
