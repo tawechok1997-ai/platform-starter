@@ -39,5 +39,7 @@ jobs:
         run: node tools/audit-r010-notification-query-ownership.mjs
       - name: Notification projection boundaries
         run: node tools/audit-r010-notification-projection-boundaries.mjs
+      - name: Admin member list projection
+        run: node tools/audit-r010-admin-member-list-projection.mjs
       - name: API typecheck
         run: pnpm typecheck:api
