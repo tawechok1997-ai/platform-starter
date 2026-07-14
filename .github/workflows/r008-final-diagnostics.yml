@@ -1,0 +1,97 @@
+name: R-008 Final Diagnostics
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/r008-final-diagnostics.yml
+      - .github/r008-final-*.txt
+
+permissions:
+  contents: write
+
+concurrency:
+  group: r008-final-diagnostics
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile --prefer-offline
+
+      - name: Closure audit
+        id: audit
+        continue-on-error: true
+        run: pnpm audit:r8-closure
+
+      - name: API typecheck
+        id: typecheck
+        continue-on-error: true
+        run: pnpm typecheck:api
+
+      - name: Full API tests
+        id: tests
+        continue-on-error: true
+        run: pnpm --filter @platform/api test -- --runInBand
+
+      - name: API build
+        id: build
+        continue-on-error: true
+        run: pnpm build:api
+
+      - name: Write verification evidence
+        run: |
+          mkdir -p docs/evidence
+          cat > docs/evidence/r008-final-verification.md <<EOF
+          # R-008 Final Verification
+
+          Verified commit: \`${GITHUB_SHA}\`
+
+          - Closure audit: ${{ steps.audit.outcome }}
+          - API typecheck: ${{ steps.typecheck.outcome }}
+          - Full API tests: ${{ steps.tests.outcome }}
+          - API build: ${{ steps.build.outcome }}
+          EOF
+
+      - name: Update closure documents
+        if: steps.audit.outcome == 'success' && steps.typecheck.outcome == 'success' && steps.tests.outcome == 'success' && steps.build.outcome == 'success'
+        env:
+          R008_VERIFIED_COMMIT: ${{ github.sha }}
+        run: node tools/close-r008-after-verification.mjs
+
+      - name: Commit evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/evidence/r008-final-verification.md docs/r008-closure-checklist.md docs/master-worklist.md
+          if git diff --cached --quiet; then
+            echo "No R-008 evidence changes"
+            exit 0
+          fi
+          if [ "${{ steps.audit.outcome }}" = "success" ] && [ "${{ steps.typecheck.outcome }}" = "success" ] && [ "${{ steps.tests.outcome }}" = "success" ] && [ "${{ steps.build.outcome }}" = "success" ]; then
+            git commit -m "docs(r008): mark domain policy separation done [skip ci]"
+          else
+            git commit -m "docs(r008): record final verification failure [skip ci]"
+          fi
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Fail when any gate failed
+        if: steps.audit.outcome != 'success' || steps.typecheck.outcome != 'success' || steps.tests.outcome != 'success' || steps.build.outcome != 'success'
+        run: exit 1
