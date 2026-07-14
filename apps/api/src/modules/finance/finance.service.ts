@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { addDecimal, mapFinanceRequest, subtractDecimal } from './finance-report.mapper';
 
 @Injectable()
 export class FinanceService {
@@ -57,7 +58,7 @@ export class FinanceService {
         walletCount,
         totalBalance: totalBalance.toString(),
         totalLockedBalance: totalLocked.toString(),
-        totalAvailableBalance: (totalBalance as any).minus ? (totalBalance as any).minus(totalLocked as any).toString() : '0',
+        totalAvailableBalance: subtractDecimal(totalBalance, totalLocked),
         pendingTopUps: topUpPending,
         pendingWithdrawals: withdrawalPending,
       },
@@ -67,11 +68,11 @@ export class FinanceService {
         topUpCount: todayTopUps._count._all,
         withdrawalAmount: todayWithdrawalAmount.toString(),
         withdrawalCount: todayWithdrawals._count._all,
-        netFlow: (todayTopUpAmount as any).minus ? (todayTopUpAmount as any).minus(todayWithdrawalAmount as any).toString() : '0',
+        netFlow: subtractDecimal(todayTopUpAmount, todayWithdrawalAmount),
       },
       queues: {
-        topUps: recentTopUps.map((item) => this.formatRequest(item)),
-        withdrawals: recentWithdrawals.map((item) => this.formatRequest(item)),
+        topUps: recentTopUps.map(mapFinanceRequest),
+        withdrawals: recentWithdrawals.map(mapFinanceRequest),
       },
       recentLedgers: recentLedgers.map((item) => ({
         id: item.id,
@@ -138,24 +139,24 @@ export class FinanceService {
       if (!date || !byDate.has(date)) continue;
       const row = byDate.get(date)!;
       row.topUpCount += 1;
-      row.topUpAmount = this.addDecimal(row.topUpAmount, item.amount);
-      row.netFlow = this.addDecimal(row.netFlow, item.amount);
+      row.topUpAmount = addDecimal(row.topUpAmount, item.amount);
+      row.netFlow = addDecimal(row.netFlow, item.amount);
     }
     for (const item of withdrawals) {
       const date = item.reviewedAt?.toISOString().slice(0, 10);
       if (!date || !byDate.has(date)) continue;
       const row = byDate.get(date)!;
       row.withdrawalCount += 1;
-      row.withdrawalAmount = this.addDecimal(row.withdrawalAmount, item.amount);
-      row.netFlow = this.subtractDecimal(row.netFlow, item.amount);
+      row.withdrawalAmount = addDecimal(row.withdrawalAmount, item.amount);
+      row.netFlow = subtractDecimal(row.netFlow, item.amount);
     }
 
     const totals = daily.reduce((acc, row) => ({
-      topUpAmount: this.addDecimal(acc.topUpAmount, row.topUpAmount),
+      topUpAmount: addDecimal(acc.topUpAmount, row.topUpAmount),
       topUpCount: acc.topUpCount + row.topUpCount,
-      withdrawalAmount: this.addDecimal(acc.withdrawalAmount, row.withdrawalAmount),
+      withdrawalAmount: addDecimal(acc.withdrawalAmount, row.withdrawalAmount),
       withdrawalCount: acc.withdrawalCount + row.withdrawalCount,
-      netFlow: this.addDecimal(acc.netFlow, row.netFlow),
+      netFlow: addDecimal(acc.netFlow, row.netFlow),
     }), { topUpAmount: '0', topUpCount: 0, withdrawalAmount: '0', withdrawalCount: 0, netFlow: '0' });
 
     return {
@@ -166,30 +167,5 @@ export class FinanceService {
       daily,
       generatedAt: new Date(),
     };
-  }
-
-  private formatRequest(item: any) {
-    return {
-      id: item.id,
-      userId: item.userId,
-      shortUserId: item.userId.slice(0, 8),
-      amount: item.amount.toString(),
-      currency: item.currency,
-      status: item.status,
-      method: item.method,
-      createdAt: item.createdAt,
-      user: item.user ? { ...item.user, shortId: item.user.id.slice(0, 8) } : null,
-    };
-  }
-
-  private addDecimal(a: any, b: any) {
-    if (a?.plus) return a.plus(b).toString();
-    if (b?.plus) return b.plus(a).toString();
-    return String(Number(a ?? 0) + Number(b ?? 0));
-  }
-
-  private subtractDecimal(a: any, b: any) {
-    if (a?.minus) return a.minus(b).toString();
-    return String(Number(a ?? 0) - Number(b ?? 0));
   }
 }
