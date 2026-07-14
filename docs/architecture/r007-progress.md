@@ -21,17 +21,20 @@ Updated: **2026-07-14**
 - Extracted support metadata, public attachment shaping, and ticket response mapping into `support-ticket.mapper.ts`.
 - Migrated Support Admin audit payloads to the shared audit builder.
 - Added regression coverage for member reply reopen behavior, attachment ownership enforcement, Admin reply audit shape, deleted attachments, and private storage-key suppression.
+- Split Admin session listing into `AdminSessionsQueryService` and extracted active/current response logic into `admin-session.mapper.ts`.
+- Added regression coverage for current, revoked, and expired Admin session mapping.
+- Added `audit-admin-audit-writers.mjs` plus normal and strict package scripts to inventory legacy `adminAuditLog.create` writers that have not migrated to the shared builder.
 - Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked on a real endpoint instead of adding unused infrastructure.
 
 ## Remaining closure scope
 
 R-007 cannot be marked DONE until the following areas have implementation and regression evidence:
 
-- Remaining Admin auth/account lifecycle command-query decomposition beyond Admin member management.
+- Remaining Admin auth/account lifecycle command-query decomposition beyond Admin member management and session reads.
 - KYC/watchlist command-query decomposition beyond the risk-summary slice.
 - CMS decomposition beyond existing report slices.
 - Shared Prisma-to-domain-to-response mappers for remaining critical domains.
-- Migrate remaining audit writers to the shared builder and extract metadata formatters.
+- Migrate remaining audit writers identified by `pnpm audit:admin-audit-writers` to the shared builder and extract metadata formatters.
 - CSV/report serializer extraction when a concrete CSV endpoint or consumer exists.
 - Provider orchestration extraction.
 - Settlement orchestration extraction.
@@ -42,8 +45,11 @@ R-007 cannot be marked DONE until the following areas have implementation and re
 
 ```bash
 pnpm audit:backend-decomposition
+pnpm audit:admin-audit-writers
+pnpm audit:admin-audit-writers:strict
 pnpm audit:r7-closure
 pnpm typecheck:api
+pnpm --filter @platform/api test -- admin-session.mapper.spec.ts --runInBand
 pnpm --filter @platform/api test -- support-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- support-ticket.mapper.spec.ts --runInBand
 pnpm --filter @platform/api test -- admin-audit.builder.spec.ts --runInBand
