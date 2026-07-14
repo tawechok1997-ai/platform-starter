@@ -1,9 +1,11 @@
 import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards } from '@nestjs/common';
+import type { AdminRequestContext, AuthenticatedAdminActor } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AdminMembersService } from './admin-members.service';
+import { UpdateAdminMemberStatusDto } from './dto/admin-member-status.dto';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 @Controller('admin/members')
@@ -24,7 +26,17 @@ export class AdminMembersController {
 
   @RequirePermission('users.suspend')
   @Patch(':id/status')
-  updateMemberStatus(@Param('id') id: string, @Body() body: { status?: string; reason?: string }, @CurrentUser() admin: any, @Req() req: any) {
-    return this.adminMembersService.updateMemberStatus(id, body.status, body.reason, admin, { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] });
+  updateMemberStatus(
+    @Param('id') id: string,
+    @Body() body: UpdateAdminMemberStatusDto,
+    @CurrentUser() admin: AuthenticatedAdminActor,
+    @Req() req: AdminRequestContext,
+  ) {
+    const header = req.headers?.['user-agent'];
+    const userAgent = Array.isArray(header) ? header[0] : header;
+    return this.adminMembersService.updateMemberStatus(id, body.status, body.reason, admin, {
+      ipAddress: req.ip,
+      userAgent,
+    });
   }
 }
