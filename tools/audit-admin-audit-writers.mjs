@@ -13,7 +13,6 @@ const legacyBaseline = new Set([
   'apps/api/src/modules/admin-access/admin-invitation-admin.service.ts',
   'apps/api/src/modules/admin-access/admin-invitation.service.ts',
   'apps/api/src/modules/admin-auth/admin-login-defense.service.ts',
-  'apps/api/src/modules/affiliates/affiliates.service.ts',
   'apps/api/src/modules/anti-bot/anti-bot.service.ts',
   'apps/api/src/modules/game-platform/game-platform-money.service.ts',
   'apps/api/src/modules/game-platform/game-platform.service.ts',
@@ -21,7 +20,6 @@ const legacyBaseline = new Set([
   'apps/api/src/modules/game-platform/provider-preset.service.ts',
   'apps/api/src/modules/money-ops/money-ops.service.ts',
   'apps/api/src/modules/topups/deposit-workflow.service.ts',
-  'apps/api/src/modules/topups/topups.service.ts',
   'apps/api/src/modules/withdrawals/withdrawal-workflow.service.ts',
   'apps/api/src/modules/withdrawals/withdrawals.service.ts',
 ]);
