@@ -36,7 +36,9 @@ jobs:
       - name: Architecture and test-safety guards
         run: |
           pnpm audit:architecture-boundaries
+          pnpm audit:circular-dependencies
           pnpm audit:critical-test-safety
+          pnpm audit:browser-quality
       - name: Lint API
         if: steps.scope.outputs.api == 'true'
         run: pnpm lint:api
@@ -74,7 +76,7 @@ jobs:
             echo "- Admin scope: ${{ steps.scope.outputs.admin || 'unknown' }}"
             echo "- Member scope: ${{ steps.scope.outputs.member || 'unknown' }}"
             echo "- Packages scope: ${{ steps.scope.outputs.packages || 'unknown' }}"
-            echo '- Architecture, migration, generated-client and critical-test guards always execute'
+            echo '- Architecture, circular dependency, browser quality, migration, generated-client and critical-test guards always execute'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload quality failure evidence
         if: failure()
