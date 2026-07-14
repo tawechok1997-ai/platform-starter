@@ -60,6 +60,24 @@ jobs:
       - name: Audit critical regression safety
         run: pnpm audit:critical-test-safety
 
+      - name: Audit mutation DTO coverage
+        run: pnpm audit:mutation-dto-coverage
+
+      - name: Audit critical controller types
+        run: pnpm audit:critical-controller-types
+
+      - name: Audit critical service types
+        run: pnpm audit:critical-service-types
+
+      - name: Audit API response safety
+        run: pnpm audit:api-response-safety
+
+      - name: Audit error code catalog
+        run: pnpm audit:error-code-catalog
+
+      - name: Audit critical error contracts
+        run: pnpm audit:critical-error-contracts
+
       - name: Audit admin API permissions
         run: pnpm audit:admin-permissions
 
@@ -72,16 +90,13 @@ jobs:
       - name: Generate Prisma client
         run: pnpm prisma generate
 
+      - name: Typecheck API
+        run: pnpm --filter @platform/api typecheck
+
       - name: Bootstrap disposable CI PostgreSQL schema
-        # The committed migration history is a production baseline that assumes
-        # core tables such as users already exist. For a fresh, throwaway CI
-        # database, materialize the current schema directly instead of replaying
-        # that partial history. Production deploys continue to use migrate deploy.
         run: pnpm prisma db push --skip-generate
 
       - name: Apply SQL-first domain migrations to disposable CI PostgreSQL
-        # Prisma accepts ?schema=public, while psql/libpq does not. Strip the query
-        # only for direct psql calls and preserve DATABASE_URL for Prisma commands.
         run: |
           PSQL_DATABASE_URL="${DATABASE_URL%%\?*}"
           psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714190000_add_promotion_domain_models/migration.sql
