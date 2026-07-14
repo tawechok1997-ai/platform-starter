@@ -3,8 +3,8 @@ import type { AdminRequestContext, AuthenticatedAdminActor, HttpRequestContext }
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { AntiBotService } from '../anti-bot/anti-bot.service';
-import { AdminAuthService } from './admin-auth.service';
 import { AdminLoginDefenseService } from './admin-login-defense.service';
+import { AdminLoginService } from './admin-login.service';
 import { AdminRefreshSessionService } from './admin-refresh-session.service';
 import { AdminSessionCommandService } from './admin-session-command.service';
 import { AdminSessionsQueryService } from './admin-sessions-query.service';
@@ -16,7 +16,7 @@ import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
 @Controller('admin/auth')
 export class AdminAuthController {
   constructor(
-    private readonly adminAuthService: AdminAuthService,
+    private readonly login: AdminLoginService,
     private readonly sessionQueries: AdminSessionsQueryService,
     private readonly sessionCommands: AdminSessionCommandService,
     private readonly refreshSessions: AdminRefreshSessionService,
@@ -30,15 +30,15 @@ export class AdminAuthController {
     const meta = this.meta(req, dto.deviceId);
     await this.loginDefense.assertAllowed(dto.username, meta);
     await this.antiBot.assertValid('ADMIN_LOGIN', dto.captchaToken, meta.ipAddress);
-    const result = await this.adminAuthService.signIn(dto, meta);
+    const result = await this.login.signIn(dto, meta);
     this.setRefreshCookie(res, this.sessionRefreshToken(result));
     return result;
   }
 
   @Post('2fa/verify')
   async verifyTwoFactor(@Body() dto: VerifyAdminTwoFactorDto, @Req() req: HttpRequestContext, @Res({ passthrough: true }) res: any) {
-    const result = await this.adminAuthService.verifyTwoFactor(dto, this.meta(req));
-    this.setRefreshCookie(res, result?.refreshToken);
+    const result = await this.login.verifyTwoFactor(dto, this.meta(req));
+    this.setRefreshCookie(res, result.refreshToken);
     return result;
   }
 
@@ -111,8 +111,10 @@ export class AdminAuthController {
     return user;
   }
 
-  private sessionRefreshToken(result: any) {
-    return typeof result?.refreshToken === 'string' ? result.refreshToken : undefined;
+  private sessionRefreshToken(result: unknown) {
+    return typeof result === 'object' && result !== null && 'refreshToken' in result && typeof result.refreshToken === 'string'
+      ? result.refreshToken
+      : undefined;
   }
 
   private setRefreshCookie(res: any, refreshToken?: string) {
