@@ -8,9 +8,9 @@ const ROOT = process.cwd();
 // docs/architecture/critical-service-type-debt.md.
 const TARGETS = {
   'apps/api/src/modules/risk-alerts/risk-alerts.service.ts': {
-    explicitAny: 40,
-    asAny: 18,
-    nonNull: 3,
+    explicitAny: 0,
+    asAny: 0,
+    nonNull: 0,
   },
   'apps/api/src/modules/promotions/promotions.service.ts': {
     explicitAny: 25,
