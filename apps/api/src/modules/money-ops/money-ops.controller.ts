@@ -90,6 +90,8 @@ export class MoneyOpsController {
   securityHardening() { return this.moneyOps.securityHardeningChecklist(); }
 
   private meta(req: AdminRequestContext) {
-    return { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] };
+    const rawUserAgent = req.headers?.['user-agent'];
+    const userAgent = Array.isArray(rawUserAgent) ? rawUserAgent[0] : rawUserAgent;
+    return { ipAddress: req.ip, userAgent };
   }
 }
