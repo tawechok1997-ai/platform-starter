@@ -1,5 +1,5 @@
 export class UsersService {
-  async findByIdentifier(identifier: string) {
+  async findByIdentifier(_identifier: string) {
     // TODO P1: find by username, phone, or email
     return null;
   }
