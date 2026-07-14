@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import type { AuthenticatedAdminActor } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
@@ -25,25 +26,25 @@ export class AdminKycController {
 
   @RequirePermission('risk.resolve')
   @Patch('documents/:id/review')
-  reviewDocument(@Param('id') id: string, @Body() body: ReviewKycDocumentDto, @CurrentUser() admin: any) {
+  reviewDocument(@Param('id') id: string, @Body() body: ReviewKycDocumentDto, @CurrentUser() admin: AuthenticatedAdminActor) {
     return this.kyc.reviewDocument(id, body, admin.id);
   }
 
   @RequirePermission('risk.resolve')
   @Patch('cases/:id/review')
-  reviewCase(@Param('id') id: string, @Body() body: ReviewKycCaseDto, @CurrentUser() admin: any) {
+  reviewCase(@Param('id') id: string, @Body() body: ReviewKycCaseDto, @CurrentUser() admin: AuthenticatedAdminActor) {
     return this.kyc.reviewCase(id, body, admin.id);
   }
 
   @RequirePermission('risk.view')
   @Post('documents/:id/access-token')
-  accessToken(@Param('id') id: string, @CurrentUser() admin: any) {
+  accessToken(@Param('id') id: string, @CurrentUser() admin: AuthenticatedAdminActor) {
     return this.kyc.issueAccessToken(id, admin.id);
   }
 
   @RequirePermission('risk.view')
   @Post('documents/download')
-  download(@Body() body: KycAccessTokenDto, @CurrentUser() admin: any) {
+  download(@Body() body: KycAccessTokenDto, @CurrentUser() admin: AuthenticatedAdminActor) {
     return this.kyc.downloadWithToken(body.token, admin.id);
   }
 
