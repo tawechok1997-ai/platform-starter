@@ -75,11 +75,6 @@ const adminDetail = {
   ],
 };
 
-function isApiPath(url: string, suffix: string) {
-  const pathname = new URL(url).pathname;
-  return pathname === suffix || pathname === `/api${suffix}`;
-}
-
 test.describe('KYC responsive regression', () => {
   test('member KYC renders draft upload state without horizontal overflow', async ({ page }, testInfo) => {
     await page.addInitScript(() => localStorage.setItem('member_access_token', 'e2e-member-token'));
@@ -123,7 +118,8 @@ test.describe('KYC responsive regression', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(adminList) });
     });
     await page.route('**/admin/kyc/**', async (route) => {
-      if (isApiPath(route.request().url(), '/admin/kyc/cases')) {
+      const path = new URL(route.request().url()).pathname;
+      if (route.request().method() === 'GET' && /\/admin\/kyc\/cases(?:\/[^/]+)?$/.test(path)) {
         await route.fallback();
         return;
       }
