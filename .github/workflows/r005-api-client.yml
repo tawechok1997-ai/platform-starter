@@ -3,7 +3,23 @@ name: R005 Shared API Client
 on:
   push:
     branches: [main]
+    paths:
+      - 'packages/api-client/**'
+      - 'apps/web-admin/**'
+      - 'apps/web-member/**'
+      - 'tools/audit-shared-api-client*.mjs'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/r005-api-client.yml'
   pull_request:
+    paths:
+      - 'packages/api-client/**'
+      - 'apps/web-admin/**'
+      - 'apps/web-member/**'
+      - 'tools/audit-shared-api-client*.mjs'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/r005-api-client.yml'
 
 jobs:
   shared-api-client:
