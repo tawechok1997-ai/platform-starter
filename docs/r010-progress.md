@@ -59,15 +59,19 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ## Active work
 
-### Reviewed baseline and module ownership
+### Duplicate query consolidation by module ownership
 
-- [x] Inventory findings now include module ownership derived from `apps/api/src/modules/<owner>`.
+- [x] Inventory findings include module ownership derived from `apps/api/src/modules/<owner>`.
 - [x] Inventory reports findings grouped by owner and detects unreviewed/stale ledger entries.
 - [x] Added `docs/evidence/r010-query-review.json` as the durable review ledger.
 - [x] Added `tools/audit-r010-query-review-ledger.mjs` to validate status, owner, and reason fields.
-- [ ] Populate the ledger with the current inventory output.
-- [ ] Select the first duplicate query family for consolidation.
-- [ ] Consolidate that family behind its owning module.
+- [x] Consolidated the member notification feed source-query family under `NotificationFeedReadRepository`.
+- [x] Centralized the source limit and narrow projections for top-ups, withdrawals, support-linked alerts, and login history.
+- [x] Added `tools/audit-r010-notification-query-ownership.mjs`.
+- [x] Added `.github/workflows/r010-query-boundaries.yml` with the ownership guard and API typecheck.
+- [x] Recorded `docs/evidence/r010-notification-query-ownership.md`.
+- [x] Railway API, Admin, and Member deployments succeeded for commit `f11e31280648643efe6871e720c7f5056b7067bb`.
+- [ ] Populate/classify the complete current inventory and consolidate or document every remaining duplicate family before closing outcome 2.
 
 ## Count
 
@@ -77,8 +81,9 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ## Latest commits
 
-- `36902b77fc3dff457bd30e62c1e2f098dfa5f24a` — validate the R-010 query review ledger.
-- `e38bae93c33c28162f37c2d1d7d53a17170b5b9a` — add the durable query review ledger foundation.
-- `0541cbc36130ef9ebd3fb364fb8a053ed4106749` — classify inventory findings by module ownership and review state.
-- `734560e31007b4258cf5c2b4025082c0273c81e1` — record query inventory foundation evidence.
-- `14049883c7e768a3e9dffc223b78615999871d7e` — add query/read-model inventory with stable findings.
+- `f41edb78ff39b9450846d158e8fceecf4665ded2` — record notification query ownership evidence.
+- `f11e31280648643efe6871e720c7f5056b7067bb` — enforce R-010 query ownership guards in CI.
+- `128b6d8f8766f00b10339ebacf7ec8f9b9d3c83c` — guard notification feed query ownership.
+- `37a26d8ec4824ca0cd0c1680022ebb82683dc6d8` — register the notification feed read repository.
+- `292e540bf1d28ac963cdbb4abca3651178b8ff51` — route notification feed reads through the module owner.
+- `c797f8e91774afe0325dcfc3c2bceb63fbc517b9` — add the notification feed read repository.
