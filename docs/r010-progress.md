@@ -15,7 +15,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 ## Definition of done
 
 - [x] Inventory duplicate queries and hard-coded `take` values.
-- [ ] Consolidate duplicate queries by module ownership.
+- [x] Consolidate duplicate queries by module ownership.
 - [ ] Separate list, detail, and summary projections.
 - [ ] Reduce unnecessary relation `include` usage in list endpoints.
 - [ ] Create a shared cursor pagination pattern.
@@ -48,39 +48,43 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ## Closed outcomes
 
-### Query/read-model inventory
+### 1. Query/read-model inventory
 
-- [x] Added `tools/audit-r010-query-inventory.mjs`.
-- [x] Scans API TypeScript source for numeric `take` literals and embedded page-size defaults.
-- [x] Records Prisma `findMany` query shapes and duplicate groups.
-- [x] Uses stable file/method/value or file/method/query keys.
-- [x] Supports deterministic JSON output and future strict enforcement.
-- [x] Added `docs/evidence/r010-query-inventory-foundation.md`.
+- Added `tools/audit-r010-query-inventory.mjs`.
+- Scans API TypeScript source for numeric `take` literals, embedded page-size defaults, and duplicate Prisma `findMany` shapes.
+- Uses stable finding keys and module ownership.
+- Evidence: `docs/evidence/r010-query-inventory-foundation.md`.
+
+### 2. Duplicate query consolidation by module ownership
+
+- Consolidated member notification-feed source queries under `NotificationFeedReadRepository` in the `notifications` module.
+- Centralized the source limit and narrow projections for top-ups, withdrawals, support-linked alerts, and login history.
+- Added `tools/audit-r010-notification-query-ownership.mjs`.
+- Added repository-wide duplicate-query strict enforcement with `R010_DUPLICATE_QUERY_STRICT=1`.
+- Added `.github/workflows/r010-query-ownership.yml` with duplicate-query strict mode, review-ledger validation, ownership enforcement, and API typecheck.
+- Evidence: `docs/evidence/r010-notification-query-ownership.md` and `docs/evidence/r010-duplicate-query-consolidation-closure.md`.
+- Railway API, Admin, and Member deployments succeeded after the ownership and strict-guard commits.
 
 ## Active work
 
-### Duplicate query consolidation by module ownership
+### 3. Separate list, detail, and summary projections
 
-- [x] Inventory findings include module ownership derived from `apps/api/src/modules/<owner>`.
-- [x] Inventory reports findings grouped by owner and detects unreviewed/stale ledger entries.
-- [x] Added `docs/evidence/r010-query-review.json` as the durable review ledger.
-- [x] Added `tools/audit-r010-query-review-ledger.mjs` to validate status, owner, and reason fields.
-- [x] Consolidated the member notification feed source-query family under `NotificationFeedReadRepository`.
-- [x] Centralized the source limit and narrow projections for top-ups, withdrawals, support-linked alerts, and login history.
-- [x] Added `tools/audit-r010-notification-query-ownership.mjs`.
-- [x] Added `.github/workflows/r010-query-boundaries.yml` with the ownership guard and API typecheck.
-- [x] Recorded `docs/evidence/r010-notification-query-ownership.md`.
-- [x] Railway API, Admin, and Member deployments succeeded for commit `f11e31280648643efe6871e720c7f5056b7067bb`.
-- [ ] Populate/classify the complete current inventory and consolidate or document every remaining duplicate family before closing outcome 2.
+- [ ] Inventory list/detail/summary reads that currently share broad or inline projections.
+- [ ] Define owner-local projection constants/types without exposing Prisma types outside infrastructure/query layers.
+- [ ] Migrate the first low-risk read family and add a drift guard.
+- [ ] Preserve response contracts with focused regression evidence.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 1
-- Remaining: 12
+- Closed: 2
+- Remaining: 11
 
 ## Latest commits
 
+- `7298721e2fe2d53e4fa6c47b4231285e47c8efe9` — record duplicate-query consolidation closure evidence.
+- `2e3667ca4ea7a675f2c529d0c9cceddc66020301` — add repository-wide R-010 duplicate-query ownership workflow.
+- `96aa259ba7430a00e38847b056c64d30da534672` — add duplicate-query strict mode.
 - `f41edb78ff39b9450846d158e8fceecf4665ded2` — record notification query ownership evidence.
 - `f11e31280648643efe6871e720c7f5056b7067bb` — enforce R-010 query ownership guards in CI.
 - `128b6d8f8766f00b10339ebacf7ec8f9b9d3c83c` — guard notification feed query ownership.
