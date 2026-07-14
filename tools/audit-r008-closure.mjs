@@ -49,7 +49,7 @@ for (const marker of [
 const integrations = [
   ['apps/api/src/modules/topups/topups.service.ts', [
     'DepositPolicy.assertAmount',
-    'DepositPolicy.canBeClaimed',
+    'DepositPolicy.assertClaim',
   ]],
   ['apps/api/src/modules/withdrawals/withdrawals.service.ts', [
     'WithdrawalPolicy.assertAmount',
@@ -64,7 +64,7 @@ const integrations = [
     'AdminOwnershipPolicy.assertCanTransfer',
   ]],
   ['apps/api/src/modules/risk-alerts/kyc-review-command.service.ts', [
-    'KycReviewPolicy.assertReviewable',
+    'KycReviewPolicy.isReviewable',
     'KycReviewPolicy.assertTransition',
   ]],
   ['apps/api/src/modules/risk-alerts/risk-watchlist-command.service.ts', [
