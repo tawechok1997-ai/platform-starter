@@ -5,6 +5,8 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { ProviderSimulatorEnabledGuard } from '../../common/guards/provider-simulator-enabled.guard';
 import { MoneyOpsService } from './money-ops.service';
 
+type ProviderSimulatorWebhookTestRequest = Record<string, unknown>;
+
 @UseGuards(ProviderSimulatorEnabledGuard, AdminAuthGuard, PermissionsGuard)
 @Controller('admin/money-ops/provider-simulator')
 export class ProviderSimulatorAdminController {
@@ -12,7 +14,7 @@ export class ProviderSimulatorAdminController {
 
   @RequirePermission('game.providers.manage')
   @Post('webhook-test')
-  webhookTest(@Body() body: unknown) {
-    return this.moneyOps.simulatorWebhookTest(body as any);
+  webhookTest(@Body() body: ProviderSimulatorWebhookTestRequest) {
+    return this.moneyOps.simulatorWebhookTest(body);
   }
 }
