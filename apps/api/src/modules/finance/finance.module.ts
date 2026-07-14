@@ -9,6 +9,7 @@ import { QueuesController } from '../queues/queues.controller';
 import { QueuesService } from '../queues/queues.service';
 import { OperationsController } from '../activity/operations.controller';
 import { ActivityService } from '../activity/activity.service';
+import { AdminActivityQueryService } from '../activity/admin-activity-query.service';
 import { RiskController } from '../risk/risk.controller';
 import { RiskService } from '../risk/risk.service';
 import { AdminMembersController } from '../admin-members/admin-members.controller';
@@ -23,6 +24,7 @@ import { AdminMembersService } from '../admin-members/admin-members.service';
     FinanceReportsQueryService,
     QueuesService,
     ActivityService,
+    AdminActivityQueryService,
     RiskService,
     AdminMembersService,
   ],
