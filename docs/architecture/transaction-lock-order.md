@@ -12,9 +12,13 @@ Every transaction that acquires more than one row lock must use one canonical or
 
 1. Workflow or aggregate row
    - `deposit_requests`
+   - `top_up_requests`
    - `withdrawal_requests`
    - `kyc_requests`
+   - `kyc_cases`
+   - `kyc_documents`
    - `watchlist_entries`
+   - `risk_watchlist_entries`
    - `promotion_settlements`
    - admin ownership/account lifecycle rows
 2. Member or actor row when the flow mutates actor state
@@ -24,6 +28,7 @@ Every transaction that acquires more than one row lock must use one canonical or
    - `wallets`
 4. Ledger or settlement rows
    - `wallet_ledgers`
+   - `bonus_ledgers`
    - promotion/commission settlement ledgers
 5. Audit/outbox rows
    - audit logs
