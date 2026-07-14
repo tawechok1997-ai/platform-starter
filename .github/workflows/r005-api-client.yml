@@ -1,0 +1,63 @@
+name: R005 Shared API Client
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  shared-api-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Audit shared API client usage
+        id: audit
+        run: pnpm audit:shared-api-client
+
+      - name: Test shared API client contracts
+        id: test
+        run: pnpm --filter @platform/api-client test
+
+      - name: Typecheck shared API client
+        id: typecheck_client
+        run: pnpm --filter @platform/api-client build
+
+      - name: Typecheck Admin Web
+        id: typecheck_admin
+        run: pnpm typecheck:admin
+
+      - name: Typecheck Member Web
+        id: typecheck_member
+        run: pnpm typecheck:member
+
+      - name: R005 summary
+        if: always()
+        run: |
+          {
+            echo "## R-005 Shared API client"
+            echo ""
+            echo "| Gate | Result |"
+            echo "|---|---|"
+            echo "| Direct-call audit | ${{ steps.audit.outcome }} |"
+            echo "| Client contracts | ${{ steps.test.outcome }} |"
+            echo "| Client typecheck | ${{ steps.typecheck_client.outcome }} |"
+            echo "| Admin typecheck | ${{ steps.typecheck_admin.outcome }} |"
+            echo "| Member typecheck | ${{ steps.typecheck_member.outcome }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
