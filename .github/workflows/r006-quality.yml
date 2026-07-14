@@ -51,15 +51,18 @@ jobs:
           pnpm audit:r9-controller-prisma:json > r009-controller-prisma-inventory.json
           pnpm audit:r9-controller-prisma:strict
           node tools/audit-r009-controller-closure.mjs
-      - name: R-009 transaction lock-order inventory
+      - name: R-009 transaction lock-order boundary
         run: |
           pnpm audit:r9-lock-order
           pnpm audit:r9-lock-order:json > r009-lock-order-inventory.json
           pnpm audit:r9-lock-order:strict
-      - name: R-009 repository boundary inventory
+      - name: R-009 repository type boundary
         run: |
           pnpm audit:r9-repository-boundaries
           pnpm audit:r9-repository-boundaries:json > r009-repository-boundaries.json
+          pnpm audit:r9-repository-boundaries:strict
+      - name: R-009 boundary closure structure
+        run: pnpm audit:r9-boundary-closure
       - name: R-009 transaction escape inventory
         run: |
           pnpm audit:r9-transaction-escapes
@@ -118,8 +121,8 @@ jobs:
             echo "- Member scope: ${{ steps.scope.outputs.member || 'unknown' }}"
             echo "- Packages scope: ${{ steps.scope.outputs.packages || 'unknown' }}"
             echo '- R-001 architecture inventory, R-002 boundaries, R-003 regression safety and R-006 quality closure gates execute unconditionally'
-            echo '- R-009 controller persistence boundary is closed and protected by strict inventory plus closure audit'
-            echo '- R-009 lock-order boundary is strict; repository, transaction-escape and schema inventories remain review-only'
+            echo '- R-009 controller, repository type and lock-order boundaries are strict and protected by closure audits'
+            echo '- R-009 transaction-escape and schema inventories remain review-only'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload quality failure evidence
         if: failure()
