@@ -7,7 +7,7 @@ on:
     paths:
       - tools/apply-r008-admin-withdrawal-integrations.mjs
       - tools/audit-r008-closure.mjs
-      - .github/r008-admin-withdrawal-trigger.txt
+      - .github/r008-*.txt
       - .github/workflows/apply-r008-admin-withdrawal-integrations.yml
 
 permissions:
