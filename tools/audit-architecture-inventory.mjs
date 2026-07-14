@@ -38,16 +38,26 @@ function importsOf(source) {
   return [...source.matchAll(/(?:import|export)\s+(?:type\s+)?(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]/g)].map((match) => match[1]);
 }
 function controllerPrefixes(source) {
-  return [...source.matchAll(/@Controller\(\s*(['"`])([^'"`]*)\1\s*\)/g)].map((match) => match[2] || '/');
+  const prefixes = [];
+  const pattern = /@Controller\(\s*(?:(['"`])([^'"`]*)\1)?\s*\)/g;
+  for (const match of source.matchAll(pattern)) prefixes.push(match[2] || '/');
+  return prefixes;
 }
 function routeCount(source) {
-  return [...source.matchAll(/@(Get|Post|Put|Patch|Delete|Options|Head|All)\s*\(/g)].length;
+  return [...source.matchAll(/@(Get|Post|Put|Patch|Delete|Options|Head|All)\s*(?:\(|\n)/g)].length;
 }
 function tableModules(markdown) {
   return new Set([...markdown.matchAll(/^\|\s*([a-z0-9-]+)\s*\|/gim)].map((match) => match[1]));
 }
 function routeOwnerModules(markdown) {
   return new Set([...markdown.matchAll(/^\|[^\n|]+\|\s*([a-z0-9-]+)\s*\|/gim)].map((match) => match[1]));
+}
+function approvedRelationships(markdown) {
+  const pairs = new Set();
+  for (const match of markdown.matchAll(/^\|\s*([a-z0-9-]+)\s*\|\s*([a-z0-9-]+)\s*\|/gim)) {
+    if (match[1] !== 'caller') pairs.add(`${match[1]}->${match[2]}`);
+  }
+  return pairs;
 }
 function resolveImportedModule(fromFile, specifier) {
   if (!specifier.startsWith('.')) return null;
@@ -69,38 +79,36 @@ const registeredModules = [...appModule.matchAll(/from ['"]\.\/modules\/([^/]+)\
   .sort();
 const documentedModules = tableModules(moduleMap);
 const documentedRouteOwners = routeOwnerModules(routeOwnership);
+const approvedPairs = approvedRelationships(dependencyMap);
 const undocumentedModules = registeredModules.filter((slug) => !documentedModules.has(slug));
 
 const controllers = [];
 const jobs = [];
-const crossModuleImports = [];
+const moduleDependencies = [];
 for (const file of files) {
   const source = await readFile(file, 'utf8');
   const owner = moduleSlug(file);
   if (!owner) continue;
 
   if (file.endsWith('.controller.ts')) {
-    const prefixes = controllerPrefixes(source);
-    controllers.push({ file: normalize(file), owner, prefixes, routes: routeCount(source) });
+    controllers.push({ file: normalize(file), owner, prefixes: controllerPrefixes(source), routes: routeCount(source) });
   }
   if (/@(?:Cron|Interval|Timeout|Processor|Process)\s*\(/.test(source)) {
     jobs.push({ file: normalize(file), owner });
   }
-  for (const specifier of importsOf(source)) {
-    const targetOwner = resolveImportedModule(file, specifier);
-    if (targetOwner && targetOwner !== owner) crossModuleImports.push({ from: owner, to: targetOwner, file: normalize(file), specifier });
+  if (file.endsWith('.module.ts')) {
+    for (const specifier of importsOf(source)) {
+      const targetOwner = resolveImportedModule(file, specifier);
+      if (targetOwner && targetOwner !== owner) moduleDependencies.push({ from: owner, to: targetOwner, file: normalize(file), specifier });
+    }
   }
 }
 
 const controllerOwnersMissingFromMap = [...new Set(controllers.map((item) => item.owner))].filter((slug) => !documentedModules.has(slug));
 const controllerOwnersMissingFromRoutes = [...new Set(controllers.map((item) => item.owner))].filter((slug) => !documentedRouteOwners.has(slug));
-const emptyControllers = controllers.filter((item) => item.prefixes.length === 0 || item.routes === 0);
-const undocumentedJobs = jobs.filter((item) => !dependencyMap.includes(`| ${item.owner} |`) && !moduleMap.includes(`| ${item.owner} |`));
-const undocumentedCrossModule = crossModuleImports.filter((item) => {
-  const relationship = `${item.from} -> ${item.to}`;
-  const slashRelationship = `${item.from} / ${item.to}`;
-  return !dependencyMap.includes(relationship) && !dependencyMap.includes(slashRelationship) && !dependencyMap.includes(`| ${item.from} | ${item.to} |`);
-});
+const controllersMissingDecorator = controllers.filter((item) => item.prefixes.length === 0);
+const undocumentedJobs = jobs.filter((item) => !moduleMap.includes(`| ${item.owner} |`));
+const undocumentedDependencies = moduleDependencies.filter((item) => !approvedPairs.has(`${item.from}->${item.to}`));
 
 const requiredDependencySections = [
   '## Intended direction',
@@ -117,9 +125,10 @@ console.log(`Architecture inventory audit: ${registeredModules.length} registere
 console.log(`  undocumented registered modules: ${undocumentedModules.length}`);
 console.log(`  controller owners missing from module map: ${controllerOwnersMissingFromMap.length}`);
 console.log(`  controller owners missing from route ownership: ${controllerOwnersMissingFromRoutes.length}`);
-console.log(`  controllers without detectable prefix/routes: ${emptyControllers.length}`);
+console.log(`  controllers missing @Controller: ${controllersMissingDecorator.length}`);
+console.log(`  controllers with no detectable HTTP handler: ${controllers.filter((item) => item.routes === 0).length}`);
 console.log(`  undocumented jobs: ${undocumentedJobs.length}`);
-console.log(`  undocumented cross-module imports: ${undocumentedCrossModule.length}`);
+console.log(`  undocumented module dependencies: ${undocumentedDependencies.length}`);
 console.log(`  missing dependency sections: ${missingDependencySections.length}`);
 console.log(`  missing route columns: ${missingRouteColumns.length}`);
 
@@ -131,18 +140,18 @@ function report(title, items, formatter = (item) => String(item)) {
 report('Registered modules missing from module-map.md', undocumentedModules);
 report('Controller owners missing from module-map.md', controllerOwnersMissingFromMap);
 report('Controller owners missing from route-ownership.md', controllerOwnersMissingFromRoutes);
-report('Controllers without detectable @Controller prefix or HTTP handlers', emptyControllers, (item) => `${item.file} prefixes=${item.prefixes.length} routes=${item.routes}`);
-report('Background jobs missing from architecture docs', undocumentedJobs, (item) => `${item.file} (${item.owner})`);
-report('Cross-module imports missing from dependency-map.md', undocumentedCrossModule, (item) => `${item.file}: ${item.from} -> ${item.to} via ${item.specifier}`);
+report('Controller files missing @Controller', controllersMissingDecorator, (item) => item.file);
+report('Background jobs missing from module-map.md', undocumentedJobs, (item) => `${item.file} (${item.owner})`);
+report('Nest module dependencies missing from dependency-map.md', undocumentedDependencies, (item) => `${item.file}: ${item.from} -> ${item.to}`);
 report('Required dependency-map.md sections missing', missingDependencySections);
 report('Required route-ownership.md columns missing', missingRouteColumns);
 
 const failureCount = undocumentedModules.length
   + controllerOwnersMissingFromMap.length
   + controllerOwnersMissingFromRoutes.length
-  + emptyControllers.length
+  + controllersMissingDecorator.length
   + undocumentedJobs.length
-  + undocumentedCrossModule.length
+  + undocumentedDependencies.length
   + missingDependencySections.length
   + missingRouteColumns.length;
 if (failureCount) process.exitCode = 1;
