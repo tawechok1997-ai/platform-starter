@@ -8,7 +8,7 @@ type FinanceRequestRecord = {
   amount: Prisma.Decimal;
   currency: string;
   status: string;
-  method: string;
+  method: string | null;
   createdAt: Date;
   user?: {
     id: string;
@@ -26,7 +26,7 @@ export function mapFinanceRequest(item: FinanceRequestRecord) {
     amount: item.amount.toString(),
     currency: item.currency,
     status: item.status,
-    method: item.method,
+    method: item.method ?? '',
     createdAt: item.createdAt,
     user: item.user ? { ...item.user, shortId: item.user.id.slice(0, 8) } : null,
   };
