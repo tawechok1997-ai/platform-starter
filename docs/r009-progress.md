@@ -21,6 +21,7 @@ R-009 establishes repository, transaction, and persistence boundaries without ch
 - [x] Consolidate transaction ownership for ownership transfer
 - [x] Consolidate transaction ownership for KYC review/watchlist override
 - [x] Consolidate transaction ownership for promotion settlement
+- [x] Complete critical Prisma repository adapters and production migration
 
 Closure evidence:
 
@@ -70,26 +71,11 @@ Closure evidence:
 - `docs/evidence/r009-promotion-settlement-transaction-closure.md`
 - promotion settlement guard and regression in `.github/workflows/r009-parallel-boundary-closure.yml`
 - successful Railway API build/deployment with runtime source from commit `de3a065b3c69c014a2baf6594cbcdc4893da1a9c`, verified on commit `c3e9f3971a283b554eae7c94499dba9c1f3f9754`
-
-## Enforced and awaiting verification
-
-### ทำ Prisma repository adapters
-
-- [x] Added transaction-scoped deposit and withdrawal adapters at `apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts`.
-- [x] Added `PrismaAdminOwnershipRepositoryAdapter` using the existing `AdminUser`, `AdminUserRole`, and `Role` schema models.
-- [x] Resolved real schema mappings for KYC documents, KYC cases, risk-watchlist entries, and bonus-ledger settlements.
-- [x] Added `PrismaKycWatchlistRepositoryAdapter` and `PrismaPromotionSettlementRepositoryAdapter`.
-- [x] All adapters receive `Prisma.TransactionClient` from the transaction owner.
-- [x] Adapters do not instantiate `PrismaClient` or call `$transaction`.
-- [x] Migrated KYC document review, KYC case review, and watchlist release production paths to transaction-scoped adapters.
-- [x] Preserved KYC/watchlist response snapshots and optimistic-version behavior.
-- [x] Added `tools/audit-r009-risk-promotion-adapters.mjs` and required-workflow enforcement.
-- [x] Successful Railway API build/deployment after KYC/watchlist adapter migration on commit `43680f8b0184726d7027f5f8fc51bfec1c5e5145`.
-- [ ] Migrate promotion settlement bonus-ledger lock/read/final persistence through `PrismaPromotionSettlementRepositoryAdapter`.
-- [ ] Tighten the adapter audit to reject direct promotion bonus-ledger locking after migration.
-
-Implemented adapter coverage: **5 of 5 critical domains**.
-Production service migration coverage: **4 of 5 critical domains** (deposit, withdrawal, ownership, KYC/watchlist).
+- `apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts`
+- `apps/api/src/common/infrastructure/prisma-risk-promotion-repository-adapters.ts`
+- KYC review, watchlist release, and promotion settlement production paths use transaction-scoped adapters.
+- `tools/audit-r009-risk-promotion-adapters.mjs` enforces adapter ownership, release metadata preservation, and rejects direct promotion bonus-ledger row locks in migrated helpers.
+- successful Railway API build/deployment for promotion adapter wiring and guard commit `fcf379c4f371d639eb942bbf778367902c561a2d`
 
 ## Active partial work
 
@@ -120,12 +106,10 @@ Production service migration coverage: **4 of 5 critical domains** (deposit, wit
 
 ## Pending evidence
 
-- [ ] Complete promotion settlement production wiring through its transaction-scoped adapter.
 - [ ] Run the method-level transaction inventory and classify every remaining same-method finding.
 
 ## Remaining R-009 work
 
-- [ ] Complete promotion settlement adapter migration.
 - [ ] Consolidate transaction ownership for deposit approval/credit.
 - [ ] Resolve confirmed legacy transaction escapes.
 - [ ] Add remaining deadlock and concurrency regression coverage.
@@ -133,9 +117,9 @@ Production service migration coverage: **4 of 5 critical domains** (deposit, wit
 ## Count
 
 - Total R-009 subtasks: 15
-- Closed with durable evidence: 11
-- Remaining not closed: 4
-- Enforced and awaiting verification: 1
+- Closed with durable evidence: 12
+- Remaining not closed: 3
+- Enforced and awaiting verification: 0
 - Other partial or under active review: 2
 - Not yet implemented: 1
 
@@ -145,12 +129,12 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-KYC review and watchlist override now use transaction-scoped repository adapters while preserving row locks, optimistic version checks, response fields, atomic audits, and PostgreSQL concurrency behavior. Promotion settlement has a schema-correct adapter, but its production command still owns bonus-ledger SQL directly and remains the final adapter-wiring gap. No Prisma schema, production data, permission model, secret, provider, or deployment-target change was made.
+All five critical domains now have schema-correct transaction-scoped repository adapters, and the KYC review, watchlist release, and promotion settlement production paths use those adapters without opening nested transactions. Promotion settlement preserves release actor/timestamp, stable idempotency behavior, wallet and ledger mutations, atomic risk metadata, and audit persistence. No Prisma schema, production data, permission model, secret, provider, or deployment-target change was made.
 
 ## Latest commits
 
-- `43680f8b0184726d7027f5f8fc51bfec1c5e5145` — enforce risk/promotion adapter guard in the required workflow and verify Railway deployment.
-- `ab4d442225b76b1e1918b61e2f5b6510eaf2d73a` — add risk/promotion adapter boundary audit.
-- `450694e0715f28488a178bb8bef82ac6900116aa` — migrate watchlist release through the transaction-scoped adapter.
-- `eb3080e54da9b56add4e5f00c007903bf382e993` — preserve full KYC response snapshots after adapter migration.
-- `66efe8b573e8518b20950946b545f23b06072cf4` — add KYC/watchlist and promotion settlement Prisma adapters.
+- `fcf379c4f371d639eb942bbf778367902c561a2d` — enforce promotion adapter production wiring and reject direct bonus-ledger locks in migrated helpers.
+- `8a04bf7ce165c620dae72bff538e1ebbd26c103e` — route promotion bonus-ledger lock/read/final persistence through the transaction-scoped adapter.
+- `4e5fd2d46a34aac3a801ddac26f70e2f51b789f6` — guard promotion release metadata compatibility.
+- `9d53142c3a9e795ec68868c6e7f56145f1bed39d` — persist promotion release actor and timestamp through the adapter.
+- `92251072b2d48160841e1e441a1635a88404c3de` — extend the promotion repository contract with release metadata.
