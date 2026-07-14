@@ -64,6 +64,18 @@ Closure evidence:
 
 Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, ownership).
 
+### Ownership transfer transaction ownership
+
+- [x] Production route uses `AdminOwnershipCommandService.transferOwnership`.
+- [x] Step-up authentication runs before the transaction begins.
+- [x] Actor and target admin rows are locked in deterministic UUID order through `lockAdminUserForUpdate`.
+- [x] Actor authority, target active status, target 2FA, and protected-role state are revalidated through the transaction client.
+- [x] Owner role removal, assignment, and `TRANSFER_ADMIN_OWNERSHIP` audit persistence share one transaction owner.
+- [x] Updated `tools/audit-r009-ownership-transfer-transaction.mjs` with strict production-route and transaction checks.
+- [x] Added `docs/evidence/r009-ownership-transfer-closure.md`.
+- [ ] Confirm successful Railway API deployment for runtime commit `f45090480be1f5b0aece9277fcf5ed8416899e18`.
+- [ ] Add explicit concurrent-transfer regression coverage.
+
 ## Active partial work
 
 ### Deposit transaction ownership
@@ -72,15 +84,6 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [x] Moved release state mutation and admin audit into one transaction owner.
 - [x] Added top-up transaction boundary audit and workflow.
 - [ ] Locate and consolidate the actual approval/credit path. The current `TopUpsController` exposes only create, read, claim, and release routes.
-
-### Ownership transfer transaction ownership
-
-- [x] Located the production flow in `AdminAccessService.transferOwnership`.
-- [x] Confirmed role removal, role assignment, and audit writing share one transaction client.
-- [x] Added `tools/audit-r009-ownership-transfer-transaction.mjs`.
-- [x] Added `docs/evidence/r009-ownership-transfer-gap.md`.
-- [ ] Lock and revalidate actor and target rows inside the transaction in deterministic order.
-- [ ] Add rollback and concurrent-transfer regression coverage.
 
 ### Query-outside-transaction boundary
 
@@ -93,13 +96,12 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [x] Added `docs/evidence/r009-transaction-escape-review.json` as the reviewed baseline ledger.
 - [x] Added `tools/audit-r009-transaction-review-ledger.mjs` to reject invalid statuses and undocumented safe findings.
 - [x] Added strict mode that fails on confirmed, unreviewed, or stale findings.
-- [x] Classified the legacy `AdminAccessService.createInvitation` audit persistence as a confirmed transaction escape.
 - [x] Routed production invitation creation through `AdminInvitationAdminService.create`.
 - [x] Moved invitation account creation, verification-token persistence, and `CREATE_ADMIN_INVITATION` audit persistence into one transaction owner.
 - [x] Moved invitation reissue token replacement and `REISSUE_ADMIN_INVITATION` audit persistence into one transaction owner.
 - [x] Updated `tools/audit-r009-admin-invitation-transaction.mjs` to guard controller routing and both atomic invitation commands.
 - [x] Reclassified the legacy finding as `safe-direct-write` because the production route no longer calls the legacy method.
-- [ ] Confirm successful Railway API deployment for the invitation command migration.
+- [x] Railway API deployment succeeded for invitation runtime commit `f64be20c007a4910f69d603b9d075b9e475048c7`.
 - [ ] Populate the review ledger from the remaining current method-level inventory.
 - [ ] Resolve all remaining confirmed legacy service escapes.
 - [ ] Enable strict mode in the required quality workflow after review reaches zero unreviewed findings.
@@ -107,14 +109,14 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 ## Pending evidence
 
 - [ ] Confirm Prisma adapter workflows through an observable verification channel.
-- [ ] Confirm Railway API deployment for invitation create/reissue transaction ownership.
+- [ ] Confirm Railway API deployment for ownership transfer transaction ownership.
 - [ ] Run the method-level transaction inventory and classify every remaining same-method finding.
 
 ## Remaining R-009 work
 
 - [ ] Complete KYC/watchlist and promotion Prisma adapters and migrate services.
 - [ ] Consolidate transaction ownership for deposit approval/credit.
-- [ ] Consolidate transaction ownership for ownership transfer.
+- [ ] Close ownership transfer after deployment and concurrency verification.
 - [ ] Consolidate transaction ownership for KYC review/watchlist override.
 - [ ] Consolidate transaction ownership for promotion settlement.
 - [ ] Resolve confirmed legacy transaction escapes.
@@ -125,8 +127,8 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - Total R-009 subtasks: 15
 - Closed with durable evidence: 8
 - Remaining not closed: 7
-- Enforced and awaiting verification: 1
-- Other partial or under active review: 4
+- Enforced and awaiting verification: 2
+- Other partial or under active review: 3
 - Not yet implemented: 2
 
 ## Verification policy
@@ -135,11 +137,12 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-The production invitation creation route now delegates to a focused command service. Invitation account creation, verification-token persistence, and audit persistence share one transaction owner; invitation reissue token replacement and audit persistence also share one transaction owner. The legacy method remains unreachable from the controller and is documented in the review ledger. The runtime migration is awaiting Railway API verification before the transaction-escape subtask can advance toward closure. No Prisma schema, production data, finance formula, permission, secret, provider, or deployment-target change was made.
+Invitation create and reissue transaction ownership are verified through successful Railway API deployment. Ownership transfer now has a focused production transaction owner with deterministic row locks and in-transaction revalidation; deployment and explicit concurrency evidence remain before closure. No Prisma schema, production data, finance formula, permission model, secret, provider, or deployment-target change was made.
 
 ## Latest commits
 
+- `f45090480be1f5b0aece9277fcf5ed8416899e18` — make ownership transfer atomic with deterministic locks and in-transaction revalidation.
+- `b719d7aecacaebec9c8adb93bfbaf9df892d7404` — guard the production ownership transaction contract.
+- `20d227d713aa17d7f60d8239665f7452dec79dc3` — record ownership transfer closure evidence.
 - `629047983b08ca64035c35f50d5ca7f4cf539beb` — make invitation create and reissue commands atomic.
 - `f64be20c007a4910f69d603b9d075b9e475048c7` — route invitation creation through the atomic command service.
-- `f56440ee346c36c0cd24d331302076030d86e749` — guard invitation command routing and transaction ownership.
-- `0b2eed814e220413169a80559d5d3191cc285823` — resolve the legacy invitation escape review finding.
