@@ -61,7 +61,6 @@ async function redirectToTwoFactorSetup(response: Response, options: ApiOptions)
 }
 
 export async function refreshAdminToken() {
-  const refreshToken = null;
   const res = await fetch('/api/admin/auth/refresh', {
     method: 'POST',
     credentials: 'include',
