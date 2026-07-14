@@ -16,8 +16,9 @@ export default function AdminTwoFactorPage() {
     event.preventDefault();
     setMessage('กำลังยืนยัน...');
     try {
-      const data = await twoFactorClient.requestJson<VerifyResponse, { challengeId: string; code: string }>('/api/admin/auth/2fa/verify', {
-        method: 'POST', credentials: 'include', auth: false, body: { challengeId, code },
+      const body = { challengeId, code };
+      const data = await twoFactorClient.json<VerifyResponse, typeof body>('/api/admin/auth/2fa/verify', body, {
+        credentials: 'include', auth: false,
       });
       if (!data.accessToken) { setMessage('ยืนยันไม่สำเร็จ'); return; }
       setAdminAccessToken(data.accessToken);
