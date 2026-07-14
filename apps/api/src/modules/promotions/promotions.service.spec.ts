@@ -1,77 +1,38 @@
-import { BadRequestException } from '@nestjs/common';
 import { PromotionsService } from './promotions.service';
 
-const bonusLedger = {
-  id: 'bonus-1',
-  refType: 'BONUS_LEDGER',
-  refId: 'claim-1',
-  memberId: 'member-1',
-  status: 'OPEN',
-  metadata: {
-    claimId: 'claim-1',
-    campaignId: 'welcome',
-    amount: 100,
-    currency: 'THB',
-    turnoverRequired: 300,
-    turnoverProgress: 250,
-    turnoverCompleted: false,
-    lifecycleStatus: 'ACTIVE',
-    walletCreditEnabled: false,
-    walletCreditStatus: 'BLOCKED_UNTIL_TURNOVER_GUARD',
-    events: [],
-  },
-  createdAt: new Date('2026-07-13T00:00:00.000Z'),
-  updatedAt: new Date('2026-07-13T00:00:00.000Z'),
-  resolvedAt: null,
-};
+describe('PromotionsService compatibility facade', () => {
+  it('delegates reads and mutations to focused services', async () => {
+    const queries = {
+      listPublicCampaigns: jest.fn().mockResolvedValue({ items: [] }),
+      listMemberClaims: jest.fn().mockResolvedValue({ items: [] }),
+      listAdminClaims: jest.fn().mockResolvedValue({ items: [], total: 0 }),
+      listMemberBonusLedgers: jest.fn().mockResolvedValue({ items: [] }),
+      listAdminBonusLedgers: jest.fn().mockResolvedValue({ items: [], total: 0 }),
+    } as any;
+    const claims = {
+      createClaim: jest.fn().mockResolvedValue({ ok: true }),
+      reviewClaim: jest.fn().mockResolvedValue({ ok: true }),
+    } as any;
+    const bonus = {
+      addTurnoverProgress: jest.fn().mockResolvedValue({ ok: true }),
+      updateBonusLifecycle: jest.fn().mockResolvedValue({ ok: true }),
+    } as any;
+    const service = new PromotionsService(queries, claims, bonus);
+    const member = { id: 'member-1' };
+    const admin = { id: 'admin-1' };
 
-function createService(prisma: any) {
-  const domain = {
-    createClaim: jest.fn(),
-    markClaimReviewed: jest.fn(),
-    createBonusLedger: jest.fn(),
-    addTurnover: jest.fn().mockResolvedValue({
-      turnover_progress: '300',
-      turnover_required: '300',
-      status: 'TURNOVER_COMPLETED',
-    }),
-    updateLifecycle: jest.fn(),
-    settleBonus: jest.fn(),
-  };
-  return { service: new PromotionsService(prisma, domain as never), domain };
-}
+    await service.listMemberClaims(member);
+    await service.listAdminBonusLedgers({ status: 'OPEN' });
+    await service.createClaim(member, { campaignId: 'campaign-1' });
+    await service.reviewClaim(admin, 'claim-1', { status: 'APPROVED' });
+    await service.addTurnoverProgress(admin, 'bonus-1', { amount: 100 });
+    await service.updateBonusLifecycle(admin, 'bonus-1', { action: 'RETRY', note: 'retry' });
 
-describe('PromotionsService bonus lifecycle', () => {
-  it('tracks turnover progress and marks ledger ready when requirement is met', async () => {
-    const prisma = {
-      riskAlert: {
-        findFirst: jest.fn().mockResolvedValue(bonusLedger),
-        update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...bonusLedger, ...data })),
-      },
-      adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit-1' }) },
-    };
-    const { service, domain } = createService(prisma);
-
-    const result = await service.addTurnoverProgress({ id: 'admin-1' }, 'bonus-1', { amount: 50, note: 'turnover check' });
-
-    expect(domain.addTurnover).toHaveBeenCalledWith('bonus-1', 50);
-    expect(prisma.riskAlert.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'bonus-1' },
-      data: expect.objectContaining({ status: 'RESOLVED' }),
-    }));
-    expect(result.item.turnoverCompleted).toBe(true);
-    expect(result.item.lifecycleStatus).toBe('TURNOVER_COMPLETED');
-    expect(result.item.walletCreditEnabled).toBe(false);
-    expect(result.item.walletCreditStatus).toBe('READY_FOR_MANUAL_RELEASE');
-  });
-
-  it('blocks release before turnover is completed', async () => {
-    const prisma = {
-      riskAlert: { findFirst: jest.fn().mockResolvedValue(bonusLedger) },
-      adminAuditLog: { create: jest.fn() },
-    };
-    const { service } = createService(prisma);
-
-    await expect(service.updateBonusLifecycle({ id: 'admin-1' }, 'bonus-1', { action: 'RELEASE' })).rejects.toThrow(BadRequestException);
+    expect(queries.listMemberClaims).toHaveBeenCalledWith('member-1');
+    expect(queries.listAdminBonusLedgers).toHaveBeenCalledWith('OPEN');
+    expect(claims.createClaim).toHaveBeenCalledWith(member, { campaignId: 'campaign-1' });
+    expect(claims.reviewClaim).toHaveBeenCalledWith(admin, 'claim-1', { status: 'APPROVED' });
+    expect(bonus.addTurnoverProgress).toHaveBeenCalledWith(admin, 'bonus-1', { amount: 100 });
+    expect(bonus.updateBonusLifecycle).toHaveBeenCalledWith(admin, 'bonus-1', { action: 'RETRY', note: 'retry' });
   });
 });
