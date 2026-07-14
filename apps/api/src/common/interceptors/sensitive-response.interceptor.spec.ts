@@ -6,6 +6,10 @@ describe('sanitizeApiResponse', () => {
       id: 'user-1',
       username: 'member',
       passwordHash: 'hash',
+      twoFactorSecret: '2fa-secret',
+      otpCode: '123456',
+      recoveryCodes: ['code-1', 'code-2'],
+      privateUrl: 'https://storage.example/private-object',
       profile: {
         email: 'member@example.com',
         refreshToken: 'secret-token',
