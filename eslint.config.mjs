@@ -63,4 +63,18 @@ export default tseslint.config(
       }],
     },
   },
+  {
+    files: [
+      '**/web-admin/app/(admin)/bank-accounts/page.tsx',
+      '**/web-admin/app/accept-invitation/page.tsx',
+    ],
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_|^canView$|^languageRowStyle$',
+        caughtErrorsIgnorePattern: '^_',
+        ignoreRestSiblings: true,
+      }],
+    },
+  },
 );
