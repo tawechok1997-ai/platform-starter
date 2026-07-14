@@ -40,19 +40,30 @@ export class RiskWatchlistService {
     if (expiresAt && Number.isNaN(expiresAt.getTime())) throw new BadRequestException('Invalid expiresAt');
     if (expiresAt && expiresAt <= new Date()) throw new BadRequestException('expiresAt must be in the future');
     try {
-      const rows = await this.prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
-        INSERT INTO "risk_watchlist_entries" (
-          "subject_type", "subject_value_hash", "display_masked", "list_type", "reason_code",
-          "severity", "member_id", "note", "evidence", "expires_at", "created_by_admin_id"
-        ) VALUES (
-          ${input.subjectType}, ${hash}, ${this.mask(input.subjectType, normalized)}, ${input.listType}, ${input.reasonCode},
-          ${input.severity ?? 'MEDIUM'}, ${input.memberId ?? null}::uuid, ${input.note ?? null},
-          ${input.evidence ? JSON.stringify(input.evidence) : null}::jsonb, ${expiresAt}, ${actor.id}::uuid
-        ) RETURNING *
-      `);
-      const item = rows[0];
-      await this.audit(actor.id, 'CREATE_RISK_WATCHLIST_ENTRY', String(item.id), null, this.publicItem(item));
-      return { item: this.publicItem(item) };
+      return await this.prisma.$transaction(async (tx) => {
+        const rows = await tx.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          INSERT INTO "risk_watchlist_entries" (
+            "subject_type", "subject_value_hash", "display_masked", "list_type", "reason_code",
+            "severity", "member_id", "note", "evidence", "expires_at", "created_by_admin_id"
+          ) VALUES (
+            ${input.subjectType}, ${hash}, ${this.mask(input.subjectType, normalized)}, ${input.listType}, ${input.reasonCode},
+            ${input.severity ?? 'MEDIUM'}, ${input.memberId ?? null}::uuid, ${input.note ?? null},
+            ${input.evidence ? JSON.stringify(input.evidence) : null}::jsonb, ${expiresAt}, ${actor.id}::uuid
+          ) RETURNING *
+        `);
+        const item = rows[0];
+        await tx.adminAuditLog.create({
+          data: buildAdminAuditData({
+            adminUserId: actor.id,
+            module: 'risk_watchlist',
+            action: 'CREATE_RISK_WATCHLIST_ENTRY',
+            targetId: String(item.id),
+            oldData: null,
+            newData: this.publicItem(item),
+          }),
+        });
+        return { item: this.publicItem(item) };
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
     } catch (error: any) {
       if (error?.code === '23505') throw new ConflictException('Active watchlist entry already exists');
       throw error;
@@ -144,11 +155,5 @@ export class RiskWatchlistService {
       expiresAt: item.expires_at, releasedAt: item.released_at, releaseReason: item.release_reason,
       version: Number(item.version ?? 1), createdAt: item.created_at, updatedAt: item.updated_at,
     };
-  }
-
-  private audit(adminUserId: string, action: string, targetId: string, oldData: any, newData: any) {
-    return this.prisma.adminAuditLog.create({
-      data: buildAdminAuditData({ adminUserId, module: 'risk_watchlist', action, targetId, oldData, newData }),
-    });
   }
 }
