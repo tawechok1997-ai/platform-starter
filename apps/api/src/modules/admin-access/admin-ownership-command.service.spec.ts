@@ -1,85 +1,160 @@
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { AdminOwnershipCommandService } from './admin-ownership-command.service';
 
-function ownerAssignment() {
-  return {
-    role: {
-      code: 'owner',
-      permissions: [],
-    },
-  };
+const ownerRole = {
+  id: 'role-owner',
+  code: 'owner',
+  permissions: [],
+};
+
+const supportRole = {
+  id: 'role-support',
+  code: 'support',
+  permissions: [],
+};
+
+function assignment(role = ownerRole) {
+  return { roleId: role.id, role };
 }
 
 describe('AdminOwnershipCommandService', () => {
-  function createService(input?: { actorOwner?: boolean; targetStatus?: string }) {
-    const actorOwner = input?.actorOwner ?? true;
-    const targetStatus = input?.targetStatus ?? 'ACTIVE';
-    const prisma = {
+  function createHarness() {
+    let ownerId = '00000000-0000-0000-0000-000000000001';
+    const actorId = ownerId;
+    const targetId = '00000000-0000-0000-0000-000000000002';
+    const competingTargetId = '00000000-0000-0000-0000-000000000003';
+    const lockOrder: string[] = [];
+
+    const users = new Map([
+      [actorId, { id: actorId, status: 'ACTIVE', twoFactorEnabled: true }],
+      [targetId, { id: targetId, status: 'ACTIVE', twoFactorEnabled: true }],
+      [competingTargetId, { id: competingTargetId, status: 'ACTIVE', twoFactorEnabled: true }],
+    ]);
+
+    const tx = {
+      $queryRaw: jest.fn(async (_query: unknown) => {
+        const id = [actorId, targetId, competingTargetId].find((value) =>
+          String(_query).includes(value),
+        );
+        if (id) lockOrder.push(id);
+        return id ? [{ id }] : [];
+      }),
       adminUser: {
-        findUnique: jest
-          .fn()
-          .mockResolvedValueOnce({
-            id: 'actor-1',
-            roles: actorOwner ? [ownerAssignment()] : [{ role: { code: 'support', permissions: [] } }],
-          })
-          .mockResolvedValueOnce({ id: 'target-1', status: targetStatus }),
+        findUnique: jest.fn(async ({ where }: any) => {
+          const user = users.get(where.id);
+          if (!user) return null;
+          const roles = where.id === ownerId ? [assignment()] : [assignment(supportRole)];
+          return { ...user, roles };
+        }),
+      },
+      adminUserRole: {
+        delete: jest.fn(async ({ where }: any) => {
+          const currentOwnerId = where.adminUserId_roleId.adminUserId;
+          if (currentOwnerId !== ownerId) throw new Error('owner role already transferred');
+          return { adminUserId: currentOwnerId, roleId: ownerRole.id };
+        }),
+        create: jest.fn(async ({ data }: any) => {
+          ownerId = data.adminUserId;
+          return data;
+        }),
+      },
+      adminAuditLog: {
+        create: jest.fn(async ({ data }: any) => data),
       },
     } as any;
-    const adminAccess = {
-      transferOwnership: jest.fn().mockResolvedValue({
-        success: true,
-        previousOwnerId: 'actor-1',
-        newOwnerId: 'target-1',
-      }),
+
+    const prisma = {
+      $transaction: jest.fn(async (callback: (client: typeof tx) => unknown) => callback(tx)),
     } as any;
+    const adminAuth = {
+      assertStepUp: jest.fn().mockResolvedValue(undefined),
+    } as any;
+
     return {
-      service: new AdminOwnershipCommandService(prisma, adminAccess),
-      adminAccess,
+      service: new AdminOwnershipCommandService(prisma, adminAuth),
+      prisma,
+      adminAuth,
+      tx,
+      actorId,
+      targetId,
+      competingTargetId,
+      lockOrder,
+      currentOwner: () => ownerId,
     };
   }
 
-  it('delegates a valid ownership transfer to the transactional access service', async () => {
-    const { service, adminAccess } = createService();
+  it('locks actor and target deterministically and commits role transfer with its audit', async () => {
+    const harness = createHarness();
 
     await expect(
-      service.transferOwnership(
-        'actor-1',
-        'target-1',
+      harness.service.transferOwnership(
+        harness.actorId,
+        harness.targetId,
         '123456',
         'planned ownership transfer',
         { ipAddress: '127.0.0.1' },
       ),
-    ).resolves.toEqual(expect.objectContaining({ newOwnerId: 'target-1' }));
+    ).resolves.toEqual(expect.objectContaining({ newOwnerId: harness.targetId }));
 
-    expect(adminAccess.transferOwnership).toHaveBeenCalledWith(
-      'actor-1',
-      'target-1',
+    expect(harness.adminAuth.assertStepUp).toHaveBeenCalled();
+    expect(harness.prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(harness.tx.adminUserRole.delete).toHaveBeenCalledTimes(1);
+    expect(harness.tx.adminUserRole.create).toHaveBeenCalledTimes(1);
+    expect(harness.tx.adminAuditLog.create).toHaveBeenCalledTimes(1);
+    expect(harness.currentOwner()).toBe(harness.targetId);
+    expect(harness.lockOrder).toEqual([harness.actorId, harness.targetId]);
+  });
+
+  it('rejects a competing transfer after the first transaction changes ownership', async () => {
+    const harness = createHarness();
+
+    await harness.service.transferOwnership(
+      harness.actorId,
+      harness.targetId,
       '123456',
-      'planned ownership transfer',
-      { ipAddress: '127.0.0.1' },
+      'first ownership transfer',
+      {},
     );
-  });
-
-  it('maps a non-owner policy violation to ForbiddenException', async () => {
-    const { service, adminAccess } = createService({ actorOwner: false });
 
     await expect(
-      service.transferOwnership('actor-1', 'target-1', '123456', 'not permitted', {}),
+      harness.service.transferOwnership(
+        harness.actorId,
+        harness.competingTargetId,
+        '123456',
+        'competing ownership transfer',
+        {},
+      ),
     ).rejects.toBeInstanceOf(ForbiddenException);
-    expect(adminAccess.transferOwnership).not.toHaveBeenCalled();
+
+    expect(harness.currentOwner()).toBe(harness.targetId);
+    expect(harness.tx.adminUserRole.create).toHaveBeenCalledTimes(1);
+    expect(harness.tx.adminAuditLog.create).toHaveBeenCalledTimes(1);
   });
 
-  it('maps self-transfer and inactive-target policy violations to BadRequestException', async () => {
-    const selfTransfer = createService();
-    await expect(
-      selfTransfer.service.transferOwnership('actor-1', 'actor-1', '123456', 'invalid target', {}),
-    ).rejects.toBeInstanceOf(BadRequestException);
-    expect(selfTransfer.adminAccess.transferOwnership).not.toHaveBeenCalled();
+  it('rolls the transaction back when the target already has protected access', async () => {
+    const harness = createHarness();
+    harness.tx.adminUser.findUnique.mockImplementation(async ({ where }: any) => {
+      const protectedTarget = where.id === harness.targetId;
+      return {
+        id: where.id,
+        status: 'ACTIVE',
+        twoFactorEnabled: true,
+        roles: protectedTarget ? [assignment()] : [assignment()],
+      };
+    });
 
-    const inactiveTarget = createService({ targetStatus: 'LOCKED' });
     await expect(
-      inactiveTarget.service.transferOwnership('actor-1', 'target-1', '123456', 'inactive target', {}),
-    ).rejects.toBeInstanceOf(BadRequestException);
-    expect(inactiveTarget.adminAccess.transferOwnership).not.toHaveBeenCalled();
+      harness.service.transferOwnership(
+        harness.actorId,
+        harness.targetId,
+        '123456',
+        'invalid ownership transfer',
+        {},
+      ),
+    ).rejects.toBeInstanceOf(ConflictException);
+
+    expect(harness.tx.adminUserRole.delete).not.toHaveBeenCalled();
+    expect(harness.tx.adminUserRole.create).not.toHaveBeenCalled();
+    expect(harness.tx.adminAuditLog.create).not.toHaveBeenCalled();
   });
 });
