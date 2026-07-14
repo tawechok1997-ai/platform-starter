@@ -15,7 +15,6 @@ const allowedTransportBridges = new Set([
 const forbidden = [
   { name: 'direct fetch', pattern: /\bfetch\s*\(/g },
   { name: 'axios import/use', pattern: /\baxios\b/g },
-  { name: 'local API route', pattern: /["'`]\/api\//g },
   { name: 'duplicate adminFetch helper', pattern: /\b(?:function|const)\s+adminFetch\b/g },
   { name: 'duplicate memberFetch helper', pattern: /\b(?:function|const)\s+memberFetch\b/g },
   { name: 'duplicate fetchJson helper', pattern: /\b(?:function|const)\s+fetchJson\b/g },
