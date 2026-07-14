@@ -27,7 +27,7 @@ This document records the automated safety net required before structural refact
 | Phone OTP | PostgreSQL replay/brute-force/concurrency | `pnpm --filter @platform/api test:db:phone-otp -- --runInBand` | Required |
 | Risk watchlist | PostgreSQL concurrency | `pnpm --filter @platform/api test:db:risk-watchlist -- --runInBand` | Required |
 | KYC | PostgreSQL lifecycle/concurrency | `pnpm --filter @platform/api test:db:kyc -- --runInBand` | Required |
-| Support lifecycle | state-transition characterization | `apps/api/src/modules/support/support.service.spec.ts` | Required before support refactor |
+| Support lifecycle | state-transition characterization | `apps/api/src/modules/support/support-command.service.spec.ts` | Required before support refactor |
 | Admin account lifecycle | idempotency/transaction rollback characterization | `apps/api/src/modules/admin-access/admin-account-lifecycle.service.spec.ts` | Required before lifecycle refactor |
 | Regression safety inventory | static refactor gate | `pnpm audit:critical-test-safety` | Required |
 | Admin permissions | static policy audit | `pnpm audit:admin-permissions` | Required |
@@ -67,7 +67,7 @@ The following database and characterization suites may not contain `describe.ski
 - `apps/api/src/modules/auth/phone-otp.db.spec.ts`
 - `apps/api/src/modules/risk-alerts/risk-watchlist-concurrency.db.spec.ts`
 - `apps/api/src/modules/risk-alerts/kyc-concurrency.db.spec.ts`
-- `apps/api/src/modules/support/support.service.spec.ts`
+- `apps/api/src/modules/support/support-command.service.spec.ts`
 - `apps/api/src/modules/admin-access/admin-account-lifecycle.service.spec.ts`
 
 ## Refactor rule
