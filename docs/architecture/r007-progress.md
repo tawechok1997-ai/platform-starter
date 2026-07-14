@@ -22,15 +22,18 @@ Updated: **2026-07-14**
 - Migrated Support Admin audit payloads to the shared audit builder.
 - Added regression coverage for member reply reopen behavior, attachment ownership enforcement, Admin reply audit shape, deleted attachments, and private storage-key suppression.
 - Split Admin session listing into `AdminSessionsQueryService` and extracted active/current response logic into `admin-session.mapper.ts`.
-- Added regression coverage for current, revoked, and expired Admin session mapping.
+- Split Admin logout, single-session revoke, revoke-others, and revoke-all mutations into `AdminSessionCommandService`.
+- Admin session mutations now write the matching audit record inside the same transaction using the shared audit builder.
+- Added regression coverage for session ownership rejection, current/other-session action selection, transaction usage, and revoked-count audit metadata.
 - Added `audit-admin-audit-writers.mjs` plus normal and strict package scripts to inventory legacy `adminAuditLog.create` writers that have not migrated to the shared builder.
+- Confirmed KYC/watchlist ownership under `RiskAlertsModule`: KYC reads and mutations are owned by `KycDocumentsService`; watchlist list/match/create/release are owned by `RiskWatchlistService`.
 - Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked on a real endpoint instead of adding unused infrastructure.
 
 ## Remaining closure scope
 
 R-007 cannot be marked DONE until the following areas have implementation and regression evidence:
 
-- Remaining Admin auth/account lifecycle command-query decomposition beyond Admin member management and session reads.
+- Remaining Admin auth/account lifecycle decomposition beyond Admin member management and session query/commands.
 - KYC/watchlist command-query decomposition beyond the risk-summary slice.
 - CMS decomposition beyond existing report slices.
 - Shared Prisma-to-domain-to-response mappers for remaining critical domains.
@@ -49,6 +52,7 @@ pnpm audit:admin-audit-writers
 pnpm audit:admin-audit-writers:strict
 pnpm audit:r7-closure
 pnpm typecheck:api
+pnpm --filter @platform/api test -- admin-session-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- admin-session.mapper.spec.ts --runInBand
 pnpm --filter @platform/api test -- support-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- support-ticket.mapper.spec.ts --runInBand
