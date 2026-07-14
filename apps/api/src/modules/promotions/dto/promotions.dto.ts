@@ -52,8 +52,8 @@ export class AddBonusTurnoverDto {
 }
 
 export class UpdateBonusLifecycleDto {
-  @IsIn(['RELEASE', 'EXPIRE', 'REVOKE'])
-  action!: 'RELEASE' | 'EXPIRE' | 'REVOKE';
+  @IsIn(['RELEASE', 'RETRY', 'REVERSE', 'EXPIRE', 'REVOKE'])
+  action!: 'RELEASE' | 'RETRY' | 'REVERSE' | 'EXPIRE' | 'REVOKE';
 
   @IsOptional()
   @IsString()
