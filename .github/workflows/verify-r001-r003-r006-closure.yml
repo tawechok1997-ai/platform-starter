@@ -24,16 +24,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile=false
+        id: install
+        continue-on-error: true
+        shell: bash
+        run: |
+          mkdir -p .closure-evidence
+          set +e
+          pnpm install --frozen-lockfile=false > .closure-evidence/install.log 2>&1
+          code=$?
+          echo "$code" > .closure-evidence/install.code
+          exit "$code"
       - name: Run closure verification and capture evidence
         id: verify
+        if: always()
         shell: bash
         run: |
           set +e
           mkdir -p .closure-evidence
           overall=0
+          install_code="$(cat .closure-evidence/install.code 2>/dev/null || echo 1)"
+          if [ "$install_code" -ne 0 ]; then overall=1; fi
           run_check() {
             name="$1"
             shift
@@ -54,6 +65,7 @@ jobs:
           echo "overall=$overall" >> "$GITHUB_OUTPUT"
           exit 0
       - name: Commit closure evidence
+        if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
