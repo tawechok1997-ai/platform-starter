@@ -6,6 +6,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AdminAccessSessionService } from './admin-access-session.service';
 import { AdminAccessService } from './admin-access.service';
 import { AdminAccountLifecycleService } from './admin-account-lifecycle.service';
+import { AdminOwnershipCommandService } from './admin-ownership-command.service';
 import {
   AssignAdminRoleDto,
   ChangeAdminStatusDto,
@@ -22,6 +23,7 @@ export class AdminAccessController {
     private readonly service: AdminAccessService,
     private readonly accessSessions: AdminAccessSessionService,
     private readonly accountLifecycle: AdminAccountLifecycleService,
+    private readonly ownershipCommands: AdminOwnershipCommandService,
   ) {}
 
   @RequirePermission('admin.access.view')
@@ -33,7 +35,7 @@ export class AdminAccessController {
   @RequirePermission('admin.access.manage')
   @Post('ownership-transfer')
   async transferOwnership(@Req() req: AdminRequestContext, @Body() body: TransferOwnershipDto) {
-    const result = await this.service.transferOwnership(
+    const result = await this.ownershipCommands.transferOwnership(
       req.user.id,
       body.targetAdminId,
       body.twoFactorCode,
