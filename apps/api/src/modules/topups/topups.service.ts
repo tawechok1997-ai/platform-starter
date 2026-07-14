@@ -2,7 +2,10 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../database/prisma.service';
+import { Money } from '../../common/domain/value-objects';
+import { DomainError } from '../../common/domain/domain-error';
 import { CreateTopUpRequestDto } from './dto/create-top-up-request.dto';
+import { DepositPolicy, type DepositStatus } from './domain/deposit.policy';
 
 const CLAIM_TIMEOUT_MS = 15 * 60 * 1000;
 
@@ -13,7 +16,11 @@ export class TopUpsService {
   async createMemberRequest(userId: string, dto: CreateTopUpRequestDto, idempotencyKey?: string) {
     const requestKey = this.normalizeIdempotencyKey(userId, idempotencyKey);
     const amount = new Decimal(dto.amount ?? 0);
-    if (amount.lte(0)) throw new BadRequestException('Amount must be greater than zero');
+    try {
+      DepositPolicy.assertAmount(Money.fromMajor(amount.toFixed(2)));
+    } catch (error) {
+      this.rethrowDomainError(error);
+    }
     await this.validateReceivingAccount(dto.note, dto.method, amount);
 
     const request = await this.prisma.$transaction(async (tx) => {
@@ -68,8 +75,11 @@ export class TopUpsService {
       `);
       const request = rows[0];
       if (!request) throw new NotFoundException('Top up request not found');
-      if (!['PENDING', 'PENDING_SLIP_REVIEW', 'PENDING_CREDIT'].includes(request.status)) throw new ConflictException('Top up request is not available for claim');
-      if (request.claimed_by && request.claimed_by !== adminUser.id && request.claimed_at && Date.now() - request.claimed_at.getTime() < CLAIM_TIMEOUT_MS) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+      try {
+        DepositPolicy.assertClaim(request.status as DepositStatus, request.claimed_by, adminUser.id, request.claimed_at, CLAIM_TIMEOUT_MS);
+      } catch (error) {
+        this.rethrowDomainError(error, true);
+      }
       const updated = await tx.topUpRequest.update({ where: { id }, data: { claimedBy: adminUser.id, claimedAt: new Date() } });
       await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'CLAIM_TOP_UP', module: 'topups', targetId: id, oldData: { claimedBy: request.claimed_by }, newData: { claimedBy: adminUser.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
       return this.formatRequest(updated);
@@ -99,6 +109,14 @@ export class TopUpsService {
   private async releaseExpiredClaims() {
     const staleSince = new Date(Date.now() - CLAIM_TIMEOUT_MS);
     await this.prisma.topUpRequest.updateMany({ where: { status: { in: ['PENDING', 'PENDING_SLIP_REVIEW', 'PENDING_CREDIT'] }, claimedBy: { not: null }, claimedAt: { lt: staleSince } }, data: { claimedBy: null, claimedAt: null } });
+  }
+
+  private rethrowDomainError(error: unknown, conflict = false): never {
+    if (error instanceof DomainError) {
+      if (conflict || error.code === 'RESOURCE_LOCKED' || error.code === 'INVALID_STATE_TRANSITION') throw new ConflictException(error.message);
+      throw new BadRequestException(error.message);
+    }
+    throw error;
   }
 
   private normalizeIdempotencyKey(userId: string, value?: string | null) { const key = value?.trim(); if (!key) return null; if (key.length > 120) throw new BadRequestException('Idempotency-Key is too long'); return `${userId}:${key}`; }
