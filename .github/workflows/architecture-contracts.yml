@@ -31,6 +31,9 @@ jobs:
       - name: Typecheck API
         run: pnpm typecheck:api
 
+      - name: Test shared API client
+        run: pnpm --filter @platform/api-client test
+
       - name: Test stable API error contracts
         run: pnpm --filter @platform/api test -- error-code-resolver.spec.ts --runInBand
 
@@ -57,6 +60,9 @@ jobs:
 
       - name: Audit critical error contracts
         run: pnpm audit:critical-error-contracts
+
+      - name: Audit shared API client ownership
+        run: pnpm audit:shared-api-client
 
       - name: Audit admin API permissions
         run: pnpm audit:admin-permissions
