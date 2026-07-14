@@ -3,9 +3,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from '../../database/database.module';
 import { StorageModule } from '../storage/storage.module';
 import { AdminKycController } from './admin-kyc.controller';
+import { KycAccessService } from './kyc-access.service';
 import { KycDocumentsQueryService } from './kyc-documents-query.service';
 import { KycDocumentsService } from './kyc-documents.service';
 import { KycMemberCommandService } from './kyc-member-command.service';
+import { KycRetentionService } from './kyc-retention.service';
 import { KycReviewCommandService } from './kyc-review-command.service';
 import { MemberKycController } from './member-kyc.controller';
 import { RiskAlertsController } from './risk-alerts.controller';
@@ -29,6 +31,8 @@ import { RiskEnforcementService } from './risk-enforcement.service';
     KycDocumentsQueryService,
     KycMemberCommandService,
     KycReviewCommandService,
+    KycAccessService,
+    KycRetentionService,
   ],
   exports: [
     RiskAlertsService,
@@ -40,6 +44,8 @@ import { RiskEnforcementService } from './risk-enforcement.service';
     KycDocumentsQueryService,
     KycMemberCommandService,
     KycReviewCommandService,
+    KycAccessService,
+    KycRetentionService,
   ],
 })
 export class RiskAlertsModule {}
