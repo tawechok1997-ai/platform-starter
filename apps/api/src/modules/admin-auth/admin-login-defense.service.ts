@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
 const COUNTED_FAILURE_REASONS = ['ADMIN_NOT_ACTIVE', 'INVALID_SECRET', 'INVALID_CODE'] as const;
@@ -133,6 +134,19 @@ export class AdminLoginDefenseService {
     details: { accountFailures: number; ipFailures: number; lockedUntil: Date },
   ) {
     try {
+      const auditData = {
+        action: 'admin.login.throttled',
+        module: 'auth',
+        targetId: adminUserId ?? 'unknown-admin',
+        newData: {
+          accountFailures: details.accountFailures,
+          ipFailures: details.ipFailures,
+          lockedUntil: details.lockedUntil.toISOString(),
+        },
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
+      };
+
       await this.prisma.$transaction([
         this.prisma.loginHistory.create({
           data: {
@@ -145,19 +159,9 @@ export class AdminLoginDefenseService {
           },
         }),
         this.prisma.adminAuditLog.create({
-          data: {
-            adminUserId,
-            action: 'admin.login.throttled',
-            module: 'auth',
-            targetId: adminUserId ?? 'unknown-admin',
-            newData: {
-              accountFailures: details.accountFailures,
-              ipFailures: details.ipFailures,
-              lockedUntil: details.lockedUntil.toISOString(),
-            },
-            ipAddress: meta.ipAddress,
-            userAgent: meta.userAgent,
-          },
+          data: adminUserId
+            ? buildAdminAuditData({ adminUserId, ...auditData })
+            : { adminUserId: null, ...auditData },
         }),
       ]);
     } catch (error) {
