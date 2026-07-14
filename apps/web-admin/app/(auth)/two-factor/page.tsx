@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 
-import { setAdminAccessToken } from '../../admin-api';
+import { adminApiFetch, setAdminAccessToken } from '../../admin-api';
 
 export default function AdminTwoFactorPage() {
   const [challengeId, setChallengeId] = useState('');
@@ -13,10 +13,10 @@ export default function AdminTwoFactorPage() {
     event.preventDefault();
     setMessage('กำลังยืนยัน...');
 
-    const res = await fetch('/api/admin/auth/2fa/verify', {
+    const res = await adminApiFetch('/admin/auth/2fa/verify', {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      skipAuth: true,
       body: JSON.stringify({ challengeId, code }),
     });
 
