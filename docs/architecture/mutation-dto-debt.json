@@ -1,0 +1,31 @@
+{
+  "violations": [
+    "affiliates/affiliates.controller.ts:20:POST:any",
+    "affiliates/affiliates.controller.ts:26:POST:any",
+    "affiliates/affiliates.controller.ts:46:PATCH:any",
+    "affiliates/affiliates.controller.ts:60:POST:any",
+    "affiliates/affiliates.controller.ts:67:POST:any",
+    "affiliates/affiliates.controller.ts:74:PATCH:any",
+    "anti-bot/anti-bot.controller.ts:20:PUT:unrecognized",
+    "anti-bot/anti-bot.controller.ts:30:POST:unrecognized",
+    "bank-accounts/bank-accounts.controller.ts:32:POST:any",
+    "bank-accounts/bank-accounts.controller.ts:52:POST:any",
+    "bank-accounts/bank-accounts.controller.ts:59:PATCH:any",
+    "bank-accounts/bank-accounts.controller.ts:80:PATCH:any",
+    "money-ops/provider-simulator-admin.controller.ts:14:POST:unrecognized",
+    "money-ops/provider-simulator.controller.ts:13:POST:unrecognized",
+    "money-ops/provider-simulator.controller.ts:16:POST:unrecognized",
+    "money-ops/provider-simulator.controller.ts:19:POST:unrecognized",
+    "money-ops/provider-simulator.controller.ts:22:POST:unrecognized",
+    "money-ops/provider-simulator.controller.ts:25:POST:unrecognized",
+    "settings/settings.controller.ts:43:PUT:unrecognized",
+    "settings/settings.controller.ts:57:PUT:unrecognized",
+    "settings/settings.controller.ts:71:PUT:unrecognized",
+    "settings/settings.controller.ts:85:PUT:unrecognized",
+    "settings/settings.controller.ts:99:PUT:unrecognized",
+    "settings/settings.controller.ts:113:PUT:unrecognized",
+    "settings/settings.controller.ts:127:PUT:unrecognized",
+    "settings/settings.controller.ts:141:PUT:unrecognized",
+    "settings/settings.controller.ts:155:PUT:unrecognized"
+  ]
+}
