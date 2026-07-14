@@ -14,7 +14,9 @@ Counting rule: main topics decrease only when every implementation item under th
 - Closed in provider-reconciliation batch: **1 main topic / 4 subjobs**
 - Before settlement batch: **3 main topics / 14 remaining subjobs**
 - Closed in settlement batch: **1 main topic / 4 subjobs**
-- Current remaining: **2 main topics / 10 subjobs**
+- Before legacy-cleanup batch: **2 main topics / 10 remaining subjobs**
+- Closed in this legacy-cleanup pass: **0 main topics / 2 subjobs**
+- Current remaining: **2 main topics / 8 subjobs**
 
 ## Remaining worklist
 
@@ -31,8 +33,8 @@ Runtime member transfer and Admin retry endpoints now use the focused command se
 
 ### 2. Provider reconciliation — COMPLETE IN CODE
 
-- [x] 2.1 Extract `ProviderReconciliationQueryService`.
-- [x] 2.2 Extract `ProviderReconciliationCommandService`.
+- [x] 2.1 Extract reconciliation query service.
+- [x] 2.2 Extract reconciliation command service.
 - [x] 2.3 Extract `ProviderReconciliationAlertService`.
 - [x] 2.4 Add single-session and batch reconciliation tests.
 
@@ -47,12 +49,14 @@ Admin snapshot reads now use the query service. Single-session reconciliation, a
 
 Release and retry share `bonus:<risk-alert-id>:settlement`, so a repeated request reuses the existing wallet ledger instead of crediting twice. Failed settlement attempts move the risk item to `SETTLEMENT_FAILED` with an audit record and retryable metadata. Reversal uses a separate stable key, debits the previously credited amount inside a serializable transaction, and requires an Admin note. Workspace verification remains under topic 5.
 
-### 4. Legacy cleanup — 4 subjobs remaining
+### 4. Legacy cleanup — 2 subjobs remaining
 
-- [ ] 4.1 Reduce duplicated `AdminAuthService` compatibility logic after consumer verification.
-- [ ] 4.2 Reduce duplicated `PromotionsService` compatibility logic after consumer verification.
+- [x] 4.1 Reduce duplicated `AdminAuthService` to a compatibility facade.
+- [x] 4.2 Reduce duplicated `PromotionsService` to a compatibility facade.
 - [ ] 4.3 Migrate remaining legacy Admin audit writers reported by the strict inventory.
 - [ ] 4.4 Resolve remaining constructor/decomposition inventory violations.
+
+`AdminAuthService` no longer contains password, TOTP, recovery-code, refresh-token, JWT, or session persistence logic. It delegates to focused services and stays at five constructor dependencies. `PromotionsService` now delegates reads, claims, turnover, and lifecycle changes to the focused query/command services. Facade regression tests protect the compatibility method surface. Strict inventory and repository-wide constructor evidence still require a workspace run before the final two cleanup items can be closed.
 
 ### 5. Verification and R-007 closure — 6 subjobs remaining
 
@@ -81,6 +85,7 @@ Release and retry share `bonus:<risk-alert-id>:settlement`, so a repeated reques
 - Extracted bonus settlement orchestration into `SettlementCommandService` and atomic wallet-credit/reversal persistence into `PromotionSettlementRepository`.
 - Added stable idempotency keys, failed-state persistence, retry guards, settlement reversal balance checks, and shared Admin audit writing.
 - Added settlement coverage for release/retry key reuse, failed-state recording, invalid retry rejection, and reversal requirements.
+- Reduced `AdminAuthService` and `PromotionsService` from duplicated implementations to compatibility-only delegation facades.
 - Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked and is not counted as active implementation work.
 
 ## Verification commands
@@ -92,6 +97,8 @@ pnpm audit:admin-audit-writers:strict
 pnpm audit:r7-quality
 pnpm audit:r7-closure
 pnpm typecheck:api
+pnpm --filter @platform/api test -- admin-auth.service.spec.ts --runInBand
+pnpm --filter @platform/api test -- promotions.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- settlement-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- provider-reconciliation-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- wallet-mutation.service.spec.ts --runInBand
