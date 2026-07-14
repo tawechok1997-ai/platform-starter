@@ -47,13 +47,37 @@ for (const marker of [
 }
 
 const integrations = [
-  ['apps/api/src/modules/topups/topups.service.ts', ['DepositPolicy.assertAmount', 'DepositPolicy.canBeClaimed']],
-  ['apps/api/src/modules/withdrawals/withdrawals.service.ts', ['WithdrawalPolicy.assertAmount', 'WithdrawalPolicy.assertTransition', 'WalletSettlementPolicy.reserve', 'WalletSettlementPolicy.completeDebit']],
-  ['apps/api/src/modules/admin-access/admin-access.service.ts', ['AdminOwnershipPolicy.assertCanTransfer']],
-  ['apps/api/src/modules/risk-alerts/kyc-review-command.service.ts', ['KycReviewPolicy.assertReviewable', 'KycReviewPolicy.assertTransition']],
-  ['apps/api/src/modules/risk-alerts/risk-watchlist-command.service.ts', ['WatchlistPolicy.assertRelease']],
-  ['apps/api/src/modules/support/support-command.service.ts', ['SupportTicketPolicy.nextStatusForReply', 'SupportTicketPolicy.assertTransition']],
-  ['apps/api/src/modules/notifications/notifications-command.service.ts', ['NotificationPreferencePolicy.normalize', 'NotificationPreferencePolicy.assertMutable']],
+  ['apps/api/src/modules/topups/topups.service.ts', [
+    'DepositPolicy.assertAmount',
+    'DepositPolicy.canBeClaimed',
+  ]],
+  ['apps/api/src/modules/withdrawals/withdrawals.service.ts', [
+    'WithdrawalPolicy.assertAmount',
+    'WithdrawalPolicy.canBeClaimed',
+    'WithdrawalPolicy.assertTransition',
+    'WalletSettlementPolicy.assertActive',
+    'WalletSettlementPolicy.reserve',
+    'WalletSettlementPolicy.completeDebit',
+    'WalletSettlementPolicy.releaseReservation',
+  ]],
+  ['apps/api/src/modules/admin-access/admin-access.service.ts', [
+    'AdminOwnershipPolicy.assertCanTransfer',
+  ]],
+  ['apps/api/src/modules/risk-alerts/kyc-review-command.service.ts', [
+    'KycReviewPolicy.assertReviewable',
+    'KycReviewPolicy.assertTransition',
+  ]],
+  ['apps/api/src/modules/risk-alerts/risk-watchlist-command.service.ts', [
+    'WatchlistPolicy.assertRelease',
+  ]],
+  ['apps/api/src/modules/support/support-command.service.ts', [
+    'SupportTicketPolicy.nextStatusForReply',
+    'SupportTicketPolicy.assertTransition',
+  ]],
+  ['apps/api/src/modules/notifications/notifications-command.service.ts', [
+    'NotificationPreferencePolicy.normalize',
+    'NotificationPreferencePolicy.assertMutable',
+  ]],
 ];
 for (const [path, markers] of integrations) {
   let source = '';
