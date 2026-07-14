@@ -32,9 +32,9 @@ describe('AdminOwnershipCommandService', () => {
     ]);
 
     const tx = {
-      $queryRaw: jest.fn(async (_query: unknown) => {
-        const id = [actorId, targetId, competingTargetId].find((value) =>
-          String(_query).includes(value),
+      $queryRaw: jest.fn(async (query: { values?: unknown[] }) => {
+        const id = query.values?.find(
+          (value): value is string => typeof value === 'string' && users.has(value),
         );
         if (id) lockOrder.push(id);
         return id ? [{ id }] : [];
@@ -131,17 +131,14 @@ describe('AdminOwnershipCommandService', () => {
     expect(harness.tx.adminAuditLog.create).toHaveBeenCalledTimes(1);
   });
 
-  it('rolls the transaction back when the target already has protected access', async () => {
+  it('does not write role or audit rows when the target already has protected access', async () => {
     const harness = createHarness();
-    harness.tx.adminUser.findUnique.mockImplementation(async ({ where }: any) => {
-      const protectedTarget = where.id === harness.targetId;
-      return {
-        id: where.id,
-        status: 'ACTIVE',
-        twoFactorEnabled: true,
-        roles: protectedTarget ? [assignment()] : [assignment()],
-      };
-    });
+    harness.tx.adminUser.findUnique.mockImplementation(async ({ where }: any) => ({
+      id: where.id,
+      status: 'ACTIVE',
+      twoFactorEnabled: true,
+      roles: [assignment()],
+    }));
 
     await expect(
       harness.service.transferOwnership(
