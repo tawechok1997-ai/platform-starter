@@ -24,6 +24,7 @@ This document records the automated safety net required before structural refact
 | Phone OTP | PostgreSQL replay/brute-force/concurrency | `pnpm --filter @platform/api test:db:phone-otp -- --runInBand` | Required |
 | Risk watchlist | PostgreSQL concurrency | `pnpm --filter @platform/api test:db:risk-watchlist -- --runInBand` | Required |
 | KYC | PostgreSQL lifecycle/concurrency | `pnpm --filter @platform/api test:db:kyc -- --runInBand` | Required |
+| Regression safety inventory | static refactor gate | `pnpm audit:critical-test-safety` | Required |
 | Admin permissions | static policy audit | `pnpm audit:admin-permissions` | Required |
 | Admin UI permissions | static route/navigation audit | `pnpm audit:admin-ui-permissions` | Required |
 | Architecture inventory | static ownership audit | `pnpm audit:architecture-inventory` | Required |
