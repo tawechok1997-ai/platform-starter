@@ -7,6 +7,7 @@ on:
     paths:
       - tools/apply-r008-admin-withdrawal-integrations.mjs
       - tools/audit-r008-closure.mjs
+      - .github/r008-admin-withdrawal-trigger.txt
       - .github/workflows/apply-r008-admin-withdrawal-integrations.yml
 
 permissions:
@@ -20,6 +21,7 @@ jobs:
   apply-and-verify:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,14 +34,19 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
-      - run: node tools/apply-r008-admin-withdrawal-integrations.mjs
-      - run: pnpm audit:r8-closure
-      - run: pnpm typecheck:api
-      - run: pnpm --filter @platform/api test -- r008-domain-policies.spec.ts --runInBand
-      - run: pnpm build:api
+      - name: Apply domain policy integrations
+        run: node tools/apply-r008-admin-withdrawal-integrations.mjs
+      - name: Verify integration markers
+        run: pnpm audit:r8-closure
+      - name: Typecheck API
+        run: pnpm typecheck:api
+      - name: Run full API regression
+        run: pnpm --filter @platform/api test -- --runInBand
+      - name: Build API
+        run: pnpm build:api
       - name: Commit verified integrations
         run: |
-          if git diff --quiet; then
+          if git diff --quiet -- apps/api/src/modules/admin-access/admin-access.service.ts apps/api/src/modules/withdrawals/withdrawals.service.ts; then
             echo "No integration changes to commit"
             exit 0
           fi
