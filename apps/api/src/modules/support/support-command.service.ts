@@ -2,7 +2,9 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { Prisma, RiskAlertSeverity, RiskAlertStatus } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { buildAdminAuditData, toAuditJson } from '../../common/audit/admin-audit.builder';
+import { DomainError } from '../../common/domain/domain-error';
 import { PrismaService } from '../../database/prisma.service';
+import { SupportTicketPolicy, type SupportTicketStatus } from './domain/support-ticket.policy';
 import {
   AdminUpdateSupportTicketDto,
   CreateSupportTicketDto,
@@ -70,10 +72,13 @@ export class SupportCommandService {
       ...metadata.messages,
       { by: 'member', userId: user.id, message, createdAt: new Date().toISOString() } satisfies TicketMessage,
     ];
+    const currentStatus = item.status as SupportTicketStatus;
+    const nextStatus = SupportTicketPolicy.nextStatusForReply('MEMBER', currentStatus);
+    this.assertSupportTransition(currentStatus, nextStatus);
     const updated = await this.prisma.riskAlert.update({
       where: { id },
       data: {
-        status: item.status === 'RESOLVED' || item.status === 'DISMISSED' ? 'REVIEWING' : item.status,
+        status: nextStatus,
         metadata: toAuditJson({ ...metadata, messages }),
       },
     });
@@ -104,9 +109,12 @@ export class SupportCommandService {
       ...metadata.messages,
       { by: 'admin', adminUserId: admin.id, message, createdAt: new Date().toISOString() } satisfies TicketMessage,
     ];
+    const currentStatus = item.status as SupportTicketStatus;
+    const nextStatus = SupportTicketPolicy.nextStatusForReply('ADMIN', currentStatus);
+    this.assertSupportTransition(currentStatus, nextStatus);
     const updated = await this.prisma.riskAlert.update({
       where: { id },
-      data: { status: 'REVIEWING', metadata: toAuditJson({ ...metadata, messages }) },
+      data: { status: nextStatus, metadata: toAuditJson({ ...metadata, messages }) },
     });
     await this.audit(admin.id, 'support.reply', id, null, { message });
     return { ok: true, item: mapSupportTicket(updated) };
@@ -136,7 +144,17 @@ export class SupportCommandService {
     const item = await this.findAdminTicket(id);
     const metadata = parseTicketMetadata(item.metadata);
     const patch: Prisma.RiskAlertUpdateInput = {};
-    if (input.status) patch.status = input.status as RiskAlertStatus;
+    if (input.status) {
+      const currentStatus = item.status as SupportTicketStatus;
+      const nextStatus = input.status as SupportTicketStatus;
+      this.assertSupportTransition(currentStatus, nextStatus);
+      try {
+        SupportTicketPolicy.assertResolutionReason(nextStatus, input.note);
+      } catch (error) {
+        this.rethrowPolicyError(error);
+      }
+      patch.status = nextStatus as RiskAlertStatus;
+    }
     if (input.severity) patch.severity = input.severity as RiskAlertSeverity;
     const messages = [...metadata.messages];
     if (input.note?.trim()) {
@@ -234,6 +252,19 @@ export class SupportCommandService {
     const item = await this.prisma.riskAlert.findFirst({ where: { id, refType: SUPPORT_REF_TYPE } });
     if (!item) throw new NotFoundException('Support ticket not found');
     return item;
+  }
+
+  private assertSupportTransition(from: SupportTicketStatus, to: SupportTicketStatus) {
+    try {
+      SupportTicketPolicy.assertTransition(from, to);
+    } catch (error) {
+      this.rethrowPolicyError(error);
+    }
+  }
+
+  private rethrowPolicyError(error: unknown): never {
+    if (error instanceof DomainError) throw new BadRequestException(error.message);
+    throw error;
   }
 
   private audit(adminUserId: string, action: string, targetId: string, oldData: unknown, newData: unknown) {
