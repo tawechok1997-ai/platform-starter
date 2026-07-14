@@ -37,5 +37,7 @@ jobs:
         run: node tools/audit-r010-query-review-ledger.mjs
       - name: Notification query ownership
         run: node tools/audit-r010-notification-query-ownership.mjs
+      - name: Notification projection boundaries
+        run: node tools/audit-r010-notification-projection-boundaries.mjs
       - name: API typecheck
         run: pnpm typecheck:api
