@@ -123,7 +123,8 @@ export class AdminAccessController {
     @Param('adminUserId') adminUserId: string,
     @Body() body: AssignAdminRoleDto,
   ) {
-    const result = await this.service.assignRole(req.user.id, adminUserId, body.roleId, body.reason);
+    const reason = body.reason ?? 'Role assigned by administrator';
+    const result = await this.service.assignRole(req.user.id, adminUserId, body.roleId, reason);
     await this.accessSessions.revokeAfterPrivilegeChange(req.user.id, adminUserId, 'ASSIGN_ROLE');
     return result;
   }
