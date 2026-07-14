@@ -29,6 +29,7 @@ on:
       - 'tools/audit-r009-kyc-watchlist-transactions.mjs'
       - 'tools/audit-r009-promotion-settlement-transaction.mjs'
       - 'tools/audit-r009-risk-promotion-adapters.mjs'
+      - 'tools/audit-r009-concurrency-ci-closure.mjs'
       - 'tools/audit-r009-critical-constraint-closure.mjs'
       - '.github/workflows/r009-parallel-boundary-closure.yml'
   pull_request:
@@ -58,6 +59,7 @@ on:
       - 'tools/audit-r009-kyc-watchlist-transactions.mjs'
       - 'tools/audit-r009-promotion-settlement-transaction.mjs'
       - 'tools/audit-r009-risk-promotion-adapters.mjs'
+      - 'tools/audit-r009-concurrency-ci-closure.mjs'
       - 'tools/audit-r009-critical-constraint-closure.mjs'
       - '.github/workflows/r009-parallel-boundary-closure.yml'
 
@@ -94,6 +96,8 @@ jobs:
       - run: pnpm install --frozen-lockfile=false
       - name: Prepare isolated PostgreSQL schema
         run: pnpm db:migrate
+      - name: PostgreSQL concurrency CI closure
+        run: node tools/audit-r009-concurrency-ci-closure.mjs
       - name: Row-lock helper closure
         run: node tools/audit-r009-row-lock-helpers.mjs
       - name: Transaction-context guard
