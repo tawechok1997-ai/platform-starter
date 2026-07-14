@@ -47,29 +47,44 @@ export interface AdminOwnershipRepositoryPort {
 
 export type KycReviewRecord = {
   id: RepositoryId;
-  userId: RepositoryId;
+  memberId: RepositoryId;
   status: string;
+  version: number;
+  reviewNote?: string | null;
   reviewedBy?: RepositoryId | null;
+  reviewedAt?: RepositoryTimestamp | null;
+  deletedAt?: RepositoryTimestamp | null;
   updatedAt: RepositoryTimestamp;
 };
 
-export type WatchlistMatchRecord = {
+export type WatchlistEntryRecord = {
   id: RepositoryId;
-  subjectId: RepositoryId;
+  memberId?: RepositoryId | null;
   status: string;
-  overriddenBy?: RepositoryId | null;
+  version: number;
+  listType: string;
+  subjectType: string;
+  releasedBy?: RepositoryId | null;
+  releasedAt?: RepositoryTimestamp | null;
+  releaseReason?: string | null;
+  updatedAt: RepositoryTimestamp;
 };
 
 export interface KycWatchlistRepositoryPort {
-  findKycReviewForUpdate(id: RepositoryId): Promise<KycReviewRecord | null>;
-  saveKycReview(record: KycReviewRecord): Promise<void>;
-  findWatchlistMatchForUpdate(id: RepositoryId): Promise<WatchlistMatchRecord | null>;
-  saveWatchlistMatch(record: WatchlistMatchRecord): Promise<void>;
+  findKycDocumentForUpdate(id: RepositoryId): Promise<KycReviewRecord | null>;
+  findKycCaseForUpdate(id: RepositoryId): Promise<KycReviewRecord | null>;
+  saveKycDocumentReview(record: KycReviewRecord): Promise<KycReviewRecord | null>;
+  saveKycCaseReview(record: KycReviewRecord): Promise<KycReviewRecord | null>;
+  countUnacceptedKycDocuments(caseId: RepositoryId): Promise<number>;
+  findWatchlistEntryForUpdate(id: RepositoryId): Promise<WatchlistEntryRecord | null>;
+  saveWatchlistEntry(record: WatchlistEntryRecord): Promise<WatchlistEntryRecord | null>;
 }
 
 export type PromotionSettlementRecord = {
   id: RepositoryId;
+  sourceRiskAlertId: RepositoryId;
   userId: RepositoryId;
+  walletLedgerId?: RepositoryId | null;
   status: string;
   amount: RepositoryMoney;
   idempotencyKey?: string | null;
@@ -77,7 +92,7 @@ export type PromotionSettlementRecord = {
 };
 
 export interface PromotionSettlementRepositoryPort {
-  findByIdForUpdate(id: RepositoryId): Promise<PromotionSettlementRecord | null>;
+  findBySourceRiskAlertIdForUpdate(id: RepositoryId): Promise<PromotionSettlementRecord | null>;
   findByIdempotencyKey(key: string): Promise<PromotionSettlementRecord | null>;
   save(record: PromotionSettlementRecord): Promise<void>;
 }
