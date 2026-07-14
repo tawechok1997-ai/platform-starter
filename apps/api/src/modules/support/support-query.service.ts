@@ -1,12 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RiskAlertStatus } from '@prisma/client';
 import { buildCursorPage, parseCursorPage } from '../../common/query/cursor-pagination';
+import { normalizeOptionalText, parseOptionalEnum, parseSort } from '../../common/query/query-filters';
 import { PrismaService } from '../../database/prisma.service';
 import { mapSupportTicket } from './support-ticket.mapper';
 
 const SUPPORT_REF_TYPE = 'SUPPORT_TICKET';
 const MEMBER_TICKET_PAGE = { defaultLimit: 20, maxLimit: 50 } as const;
 const ADMIN_TICKET_PAGE = { defaultLimit: 25, maxLimit: 100 } as const;
+const SUPPORT_STATUSES = ['OPEN', 'IN_PROGRESS', 'WAITING_MEMBER', 'CLOSED'] as const;
+const SUPPORT_SORT_FIELDS = ['createdAt', 'updatedAt', 'status'] as const;
 
 const SUPPORT_TICKET_LIST_PROJECTION = {
   id: true,
@@ -23,7 +26,15 @@ const SUPPORT_TICKET_LIST_PROJECTION = {
 } as const;
 
 type Actor = { id: string };
-export type AdminSupportQuery = { status?: string; category?: string; search?: string; cursor?: string; limit?: string };
+export type AdminSupportQuery = {
+  status?: string;
+  category?: string;
+  search?: string;
+  cursor?: string;
+  limit?: string;
+  sortBy?: string;
+  sortDirection?: string;
+};
 
 @Injectable()
 export class SupportQueryService {
@@ -53,13 +64,26 @@ export class SupportQueryService {
   }
 
   async listAdminTickets(query: AdminSupportQuery) {
-    const where: Prisma.RiskAlertWhereInput = { refType: SUPPORT_REF_TYPE };
-    if (query.status && query.status !== 'ALL') where.status = query.status as RiskAlertStatus;
-    if (query.search?.trim()) where.title = { contains: query.search.trim(), mode: 'insensitive' };
+    const status = parseOptionalEnum(query.status, SUPPORT_STATUSES, { allValue: 'ALL' });
+    const search = normalizeOptionalText(query.search, 200);
+    const category = normalizeOptionalText(query.category, 80);
+    const sort = parseSort(query.sortBy, query.sortDirection, SUPPORT_SORT_FIELDS, {
+      field: 'createdAt',
+      direction: 'desc',
+    });
+    const where: Prisma.RiskAlertWhereInput = {
+      refType: SUPPORT_REF_TYPE,
+      ...(status ? { status: status as RiskAlertStatus } : {}),
+      ...(search ? { title: { contains: search, mode: 'insensitive' } } : {}),
+    };
+    const orderBy = [
+      { [sort.field]: sort.direction },
+      { id: sort.direction },
+    ] as Prisma.RiskAlertOrderByWithRelationInput[];
     const pageInput = parseCursorPage({ cursor: query.cursor, limit: query.limit }, ADMIN_TICKET_PAGE);
     const rows = await this.prisma.riskAlert.findMany({
       where,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      orderBy,
       ...pageInput.query,
       select: SUPPORT_TICKET_LIST_PROJECTION,
     });
@@ -67,7 +91,7 @@ export class SupportQueryService {
     const members = await this.loadMembers(page.items.flatMap((item) => (item.memberId ? [item.memberId] : [])));
     const formatted = page.items
       .map((item) => mapSupportTicket({ ...item, member: item.memberId ? members.get(item.memberId) ?? null : null }))
-      .filter((item) => !query.category || query.category === 'ALL' || item.category === query.category);
+      .filter((item) => !category || category === 'ALL' || item.category === category);
     return {
       items: formatted,
       total: formatted.length,
