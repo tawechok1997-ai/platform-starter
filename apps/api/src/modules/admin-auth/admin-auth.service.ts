@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { AdminLoginService, type AdminLoginMeta } from './admin-login.service';
+import { AdminLoginService } from './admin-login.service';
 import { AdminRefreshSessionService } from './admin-refresh-session.service';
 import { AdminSessionCommandService } from './admin-session-command.service';
 import { AdminSessionsQueryService } from './admin-sessions-query.service';
 import { AdminTwoFactorCommandService } from './admin-two-factor-command.service';
+import type { RequestMeta } from './admin-auth.types';
 import { AdminSignInDto } from './dto/admin-sign-in.dto';
 import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
 
-export type RequestMeta = AdminLoginMeta;
+export type { RequestMeta } from './admin-auth.types';
 
 /**
  * Backwards-compatible facade for non-controller consumers.
