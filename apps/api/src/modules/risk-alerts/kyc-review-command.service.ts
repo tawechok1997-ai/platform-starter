@@ -1,8 +1,10 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { DomainError, InvalidStateTransitionError } from '../../common/domain/domain-error';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { ReviewKycCaseDto, ReviewKycDocumentDto } from './dto/kyc-document.dto';
+import { KycReviewPolicy, type KycStatus } from './domain/kyc-review.policy';
 import { mapKycCase, mapKycDocument, type KycRow } from './kyc.mapper';
 
 @Injectable()
@@ -53,8 +55,17 @@ export class KycReviewCommandService {
       if (Number(existing.version) !== input.version) {
         throw new ConflictException('KYC case changed by another reviewer');
       }
-      if (!['SUBMITTED', 'REVIEWING'].includes(String(existing.status))) {
-        throw new ConflictException('KYC case is not reviewable');
+
+      const from = String(existing.status);
+      const to = String(input.status) as KycStatus;
+      if (!KycReviewPolicy.isReviewable(from)) throw new ConflictException('KYC case is not reviewable');
+      try {
+        KycReviewPolicy.assertTransition(from, to);
+        KycReviewPolicy.assertReviewReason(to, input.note);
+      } catch (error: unknown) {
+        if (error instanceof InvalidStateTransitionError) throw new ConflictException(error.message);
+        if (error instanceof DomainError) throw new BadRequestException(error.message);
+        throw error;
       }
 
       if (input.status === 'APPROVED') {
@@ -67,7 +78,7 @@ export class KycReviewCommandService {
         }
       }
 
-      const reviewedAt = ['APPROVED', 'REJECTED'].includes(input.status) ? new Date() : null;
+      const reviewedAt = KycReviewPolicy.requiresReviewedAt(to) ? new Date() : null;
       const updated = await tx.$queryRaw<KycRow[]>(Prisma.sql`
         UPDATE "kyc_cases" SET "status"=${input.status}, "review_note"=${input.note ?? null},
           "reviewed_by_admin_id"=${adminId}::uuid, "reviewed_at"=${reviewedAt},
