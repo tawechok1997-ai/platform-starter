@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { AdminStatus, Prisma } from '@prisma/client';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
 const PROTECTED_ROLE_CODES = new Set(['owner', 'super_admin']);
@@ -41,7 +42,7 @@ export class AdminAccountLifecycleService {
       });
 
       await tx.adminAuditLog.create({
-        data: {
+        data: buildAdminAuditData({
           adminUserId: actorAdminId,
           action: 'CHANGE_ADMIN_STATUS',
           module: 'admin-access',
@@ -54,7 +55,7 @@ export class AdminAccountLifecycleService {
             username: target.username,
             email: target.email,
           } as Prisma.InputJsonObject,
-        },
+        }),
       });
 
       return { updated, revokedSessions: revoked.count };
