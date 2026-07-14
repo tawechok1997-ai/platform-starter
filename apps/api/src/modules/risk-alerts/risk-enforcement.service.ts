@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { RiskWatchlistService } from './risk-watchlist.service';
 
@@ -55,14 +56,14 @@ export class RiskEnforcementService {
 
     if (blocked) {
       await this.prisma.adminAuditLog.create({
-        data: {
+        data: buildAdminAuditData({
           adminUserId: input.actorId!,
           module: 'risk_watchlist',
           action: 'OVERRIDE_BLACKLIST_MATCH',
           targetId: input.referenceId ?? input.memberId ?? input.context,
           oldData: { blocked: true, matches: matches.map((item) => item.id) },
           newData: { overrideReason, context: input.context },
-        },
+        }),
       });
     }
 
