@@ -1,0 +1,67 @@
+name: R-007 Backend Verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'prisma/**'
+      - 'tools/audit-backend-decomposition.mjs'
+      - 'tools/audit-admin-audit-writers.mjs'
+      - 'tools/audit-r007-closure.mjs'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/r007-verification.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: r007-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Strict audit-writer inventory
+        run: pnpm audit:admin-audit-writers:strict
+
+      - name: Backend decomposition inventory
+        run: pnpm audit:backend-decomposition
+
+      - name: API typecheck
+        run: pnpm --filter @platform/api typecheck
+
+      - name: Focused R-007 regression tests
+        run: >-
+          pnpm --filter @platform/api test --
+          admin-auth.service.spec.ts
+          promotions.service.spec.ts
+          settlement-command.service.spec.ts
+          provider-reconciliation-command.service.spec.ts
+          wallet-mutation.service.spec.ts
+          provider-transfer-command.service.spec.ts
+          provider-webhook.service.spec.ts
+          --runInBand
+
+      - name: Full API tests
+        run: pnpm --filter @platform/api test -- --runInBand
+
+      - name: API build
+        run: pnpm --filter @platform/api build
