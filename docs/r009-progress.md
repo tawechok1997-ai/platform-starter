@@ -17,6 +17,7 @@ R-009 establishes repository, transaction, and persistence boundaries without ch
 - [x] Consolidate transaction ownership for withdrawal completion
 - [x] กำหนด lock order มาตรฐานเพื่อลด deadlock
 - [x] Audit unique/foreign-key/cascade/index/idempotency constraints
+- [x] Complete intent-revealing row-lock helper migration across finance legacy services
 
 Closure evidence:
 
@@ -41,7 +42,12 @@ Closure evidence:
 - `tools/audit-r009-schema-constraints.mjs`
 - `tools/audit-r009-critical-constraint-closure.mjs`
 - `docs/evidence/r009-lock-and-constraint-closure.md`
-- successful Railway API build/deployment after the closure guards were committed
+- `apps/api/src/common/infrastructure/prisma-row-locks.ts`
+- `tools/audit-r009-withdrawal-lock-snapshots.mjs`
+- `tools/audit-r009-withdrawal-row-lock-migration.mjs`
+- `docs/evidence/r009-withdrawal-lock-snapshot-foundation.md`
+- `docs/evidence/r009-withdrawal-row-lock-migration.md`
+- successful Railway API build/deployment for runtime commit `b2f3b4541b9b2c0d3db464b6ccbfaa24abb5480f`
 
 ## Enforced and awaiting verification
 
@@ -57,16 +63,6 @@ Closure evidence:
 - [ ] Migrate critical services to use the adapters.
 
 Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, ownership).
-
-### Complete intent-revealing row-lock helper migration across finance legacy services
-
-- [x] Added typed withdrawal and wallet lock snapshots.
-- [x] Migrated withdrawal create, claim, release, approve, complete, and reject flows to shared helpers.
-- [x] Removed inline `FOR UPDATE` SQL from `WithdrawalsService`.
-- [x] Moved withdrawal release read, validation, mutation, and audit into one transaction owner.
-- [x] Added `tools/audit-r009-withdrawal-row-lock-migration.mjs`.
-- [x] Added `docs/evidence/r009-withdrawal-row-lock-migration.md`.
-- [ ] Confirm successful Railway API deployment for the runtime migration commit.
 
 ## Active partial work
 
@@ -99,7 +95,6 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 ## Pending evidence
 
 - [ ] Confirm Prisma adapter workflows through an observable verification channel.
-- [ ] Confirm Railway API deployment for the withdrawal row-lock migration.
 - [ ] Review remaining mixed direct/transactional write services at method level.
 
 ## Remaining R-009 work
@@ -109,16 +104,15 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [ ] Consolidate transaction ownership for ownership transfer.
 - [ ] Consolidate transaction ownership for KYC review/watchlist override.
 - [ ] Consolidate transaction ownership for promotion settlement.
-- [ ] Close row-lock helper migration after deployment verification.
 - [ ] Resolve confirmed legacy transaction escapes.
 - [ ] Add remaining deadlock and concurrency regression coverage.
 
 ## Count
 
 - Total R-009 subtasks: 15
-- Closed with durable evidence: 7
-- Remaining not closed: 8
-- Enforced and awaiting verification: 2
+- Closed with durable evidence: 8
+- Remaining not closed: 7
+- Enforced and awaiting verification: 1
 - Other partial or under active review: 4
 - Not yet implemented: 2
 
@@ -128,7 +122,7 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-Withdrawal row-lock SQL is centralized in typed transaction-scoped helpers. The migration preserves lock order, wallet arithmetic, state-transition policy, idempotency, guarded updates, and audit payloads while also moving withdrawal release validation, mutation, and audit into one transaction. The API deployment for the runtime migration is still pending, so the subtask is not closed yet. No Prisma schema, production data, finance formula, permission, secret, provider, or deployment-target change was made.
+Withdrawal row-lock SQL is centralized in typed transaction-scoped helpers. The migration preserves lock order, wallet arithmetic, state-transition policy, idempotency, guarded updates, and audit payloads while also moving withdrawal release validation, mutation, and audit into one transaction. Railway API deployment succeeded for the runtime migration commit. No Prisma schema, production data, finance formula, permission, secret, provider, or deployment-target change was made.
 
 ## Latest commits
 
