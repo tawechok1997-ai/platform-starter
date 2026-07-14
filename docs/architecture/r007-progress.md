@@ -16,9 +16,11 @@ Updated: **2026-07-14**
 - Extracted report mapping/decimal/date-range helpers and added precision/aging regression tests.
 - Split the remaining reports read orchestration into `ReportsQueryService`; `ReportsController` now injects it directly while `ReportsService` remains a compatibility facade.
 - Added shared `admin-audit.builder.ts`, migrated Admin member lifecycle audit payload construction to it, and added focused regression coverage.
-- Split member/admin support reads into `SupportQueryService`; `SupportController` now routes read endpoints directly to the query service.
+- Split member/admin support reads into `SupportQueryService` and support mutations into `SupportCommandService`.
+- `SupportController` now injects query and command services directly; `SupportService` remains a compatibility facade only.
 - Extracted support metadata, public attachment shaping, and ticket response mapping into `support-ticket.mapper.ts`.
-- Added regression coverage proving deleted attachments and private storage keys do not leak through mapped support responses.
+- Migrated Support Admin audit payloads to the shared audit builder.
+- Added regression coverage for member reply reopen behavior, attachment ownership enforcement, Admin reply audit shape, deleted attachments, and private storage-key suppression.
 - Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked on a real endpoint instead of adding unused infrastructure.
 
 ## Remaining closure scope
@@ -27,7 +29,6 @@ R-007 cannot be marked DONE until the following areas have implementation and re
 
 - Remaining Admin auth/account lifecycle command-query decomposition beyond Admin member management.
 - KYC/watchlist command-query decomposition beyond the risk-summary slice.
-- Support command mutation decomposition and migration of the legacy facade to shared support mappers.
 - CMS decomposition beyond existing report slices.
 - Shared Prisma-to-domain-to-response mappers for remaining critical domains.
 - Migrate remaining audit writers to the shared builder and extract metadata formatters.
@@ -43,6 +44,7 @@ R-007 cannot be marked DONE until the following areas have implementation and re
 pnpm audit:backend-decomposition
 pnpm audit:r7-closure
 pnpm typecheck:api
+pnpm --filter @platform/api test -- support-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- support-ticket.mapper.spec.ts --runInBand
 pnpm --filter @platform/api test -- admin-audit.builder.spec.ts --runInBand
 pnpm --filter @platform/api test -- report.mapper.spec.ts --runInBand
