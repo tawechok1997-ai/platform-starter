@@ -1,0 +1,47 @@
+name: R-009 Parallel Boundary Closure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/common/infrastructure/**'
+      - 'prisma/schema.prisma'
+      - 'tools/audit-r009-row-lock-helpers.mjs'
+      - 'tools/audit-r009-transaction-context.mjs'
+      - 'tools/audit-r009-critical-constraint-closure.mjs'
+      - '.github/workflows/r009-parallel-boundary-closure.yml'
+  pull_request:
+    paths:
+      - 'apps/api/src/common/infrastructure/**'
+      - 'prisma/schema.prisma'
+      - 'tools/audit-r009-row-lock-helpers.mjs'
+      - 'tools/audit-r009-transaction-context.mjs'
+      - 'tools/audit-r009-critical-constraint-closure.mjs'
+      - '.github/workflows/r009-parallel-boundary-closure.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Row-lock helper closure
+        run: node tools/audit-r009-row-lock-helpers.mjs
+      - name: Transaction-context guard
+        run: node tools/audit-r009-transaction-context.mjs
+      - name: Critical constraint closure
+        run: node tools/audit-r009-critical-constraint-closure.mjs
+      - name: Repository type boundary
+        run: pnpm audit:r9-repository-boundaries:strict
+      - name: API typecheck
+        run: pnpm typecheck:api
