@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { createHash, randomUUID } from 'crypto';
 import type { AdminActor } from '../../common/actors';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import type { RequestMeta } from './settings.service';
@@ -41,7 +42,7 @@ export class CmsAssetsService {
     await this.storage.put(storageKey, parsed.data, parsed.mimeType);
 
     await this.prisma.adminAuditLog.create({
-      data: {
+      data: buildAdminAuditData({
         adminUserId: actor.id,
         action: 'cms.asset.upload',
         module: 'settings',
@@ -56,7 +57,7 @@ export class CmsAssetsService {
         },
         ipAddress: meta.ipAddress,
         userAgent: meta.userAgent,
-      },
+      }),
     });
 
     return {
@@ -79,7 +80,7 @@ export class CmsAssetsService {
     await this.storage.remove(storageKey);
 
     await this.prisma.adminAuditLog.create({
-      data: {
+      data: buildAdminAuditData({
         adminUserId: actor.id,
         action: 'cms.asset.delete',
         module: 'settings',
@@ -87,7 +88,7 @@ export class CmsAssetsService {
         oldData: { storageKey },
         ipAddress: meta.ipAddress,
         userAgent: meta.userAgent,
-      },
+      }),
     });
 
     return { success: true, storageKey };
