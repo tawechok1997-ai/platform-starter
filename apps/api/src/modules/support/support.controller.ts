@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import type { AuthenticatedAdminActor, MemberActor } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { UploadSupportAttachmentDto } from './dto/support-attachment-upload.dto';
 import {
   AdminUpdateSupportTicketDto,
   CreateSupportTicketDto,
@@ -12,11 +14,15 @@ import {
   SupportReplyDto,
 } from './dto/support-ticket.dto';
 import { AdminSupportTicketListQueryDto, MemberSupportTicketListQueryDto } from './dto/support-query.dto';
+import { SupportAttachmentsService } from './support-attachments.service';
 import { SupportService } from './support.service';
 
 @Controller()
 export class SupportController {
-  constructor(private readonly support: SupportService) {}
+  constructor(
+    private readonly support: SupportService,
+    private readonly attachments: SupportAttachmentsService,
+  ) {}
 
   @UseGuards(MemberAuthGuard)
   @Post('member/support-tickets')
@@ -46,6 +52,24 @@ export class SupportController {
   @Post('member/support-tickets/:id/attachments')
   registerMemberAttachment(@CurrentUser() user: MemberActor, @Param('id') id: string, @Body() body: RegisterSupportAttachmentDto) {
     return this.support.registerMemberAttachment(user, id, body);
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Post('member/support-tickets/:id/attachments/upload')
+  uploadMemberAttachment(@CurrentUser() user: MemberActor, @Param('id') id: string, @Body() body: UploadSupportAttachmentDto) {
+    return this.attachments.uploadMember(user, id, body);
+  }
+
+  @UseGuards(MemberAuthGuard)
+  @Get('member/support-tickets/:id/attachments/:attachmentId/content')
+  async readMemberAttachment(
+    @CurrentUser() user: MemberActor,
+    @Param('id') id: string,
+    @Param('attachmentId') attachmentId: string,
+    @Res() response: Response,
+  ) {
+    const stored = await this.attachments.readMember(user, id, attachmentId);
+    response.type(stored.contentType).send(stored.data);
   }
 
   @UseGuards(MemberAuthGuard)
@@ -80,6 +104,21 @@ export class SupportController {
   @Post('admin/support-tickets/:id/attachments')
   registerAdminAttachment(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: RegisterSupportAttachmentDto) {
     return this.support.registerAdminAttachment(user, id, body);
+  }
+
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('support.reply')
+  @Post('admin/support-tickets/:id/attachments/upload')
+  uploadAdminAttachment(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: UploadSupportAttachmentDto) {
+    return this.attachments.uploadAdmin(user, id, body);
+  }
+
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('support.view')
+  @Get('admin/support-tickets/:id/attachments/:attachmentId/content')
+  async readAdminAttachment(@Param('id') id: string, @Param('attachmentId') attachmentId: string, @Res() response: Response) {
+    const stored = await this.attachments.readAdmin(id, attachmentId);
+    response.type(stored.contentType).send(stored.data);
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
