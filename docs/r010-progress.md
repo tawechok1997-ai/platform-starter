@@ -19,7 +19,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Separate list, detail, and summary projections.
 - [x] Reduce unnecessary relation `include` usage in list endpoints.
 - [x] Create a shared cursor pagination pattern.
-- [ ] Create shared filter parsing and sort whitelists.
+- [x] Create shared filter parsing and sort whitelists.
 - [ ] Reject arbitrary sort and filter input.
 - [ ] Create a dashboard read model.
 - [ ] Create a report read model.
@@ -58,14 +58,13 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 ### 2. Duplicate query consolidation by module ownership
 
 - Consolidated member notification-feed source queries under `NotificationFeedReadRepository` in the `notifications` module.
-- Centralized the source limit and narrow projections for top-ups, withdrawals, support-linked alerts, and login history.
+- Centralized source limits and narrow projections.
 - Added repository-wide duplicate-query strict enforcement and ownership guards.
 - Evidence: `docs/evidence/r010-notification-query-ownership.md` and `docs/evidence/r010-duplicate-query-consolidation-closure.md`.
 
 ### 3. Separate list, detail, and summary projections
 
 - Added owner-local notification list, detail, and summary projection contracts.
-- Moved notification-state and preference-detail reads into `NotificationFeedReadRepository`.
 - Removed direct Prisma access from `NotificationsQueryService`.
 - Evidence: `docs/evidence/r010-notification-projection-boundaries.md`.
 
@@ -78,31 +77,40 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 ### 5. Create a shared cursor pagination pattern
 
 - Added `apps/api/src/common/query/cursor-pagination.ts`.
-- Centralized bounded limit parsing, cursor normalization, look-ahead fetch, `hasMore`, and `nextCursor` construction.
-- Migrated member and admin support-ticket lists to the shared pattern.
-- Added deterministic `createdAt DESC, id DESC` ordering.
-- Added `tools/audit-r010-cursor-pagination.mjs` and wired it into `.github/workflows/r010-query-boundaries.yml`.
-- Preserved the existing support-list response contracts and kept detail/mutation behavior unchanged.
+- Centralized bounded limit parsing, cursor normalization, look-ahead fetch, and next-cursor construction.
+- Migrated member and admin support-ticket lists.
 - Evidence: `docs/evidence/r010-shared-cursor-pagination.md`.
-
-## Active work
 
 ### 6. Create shared filter parsing and sort whitelists
 
-- [ ] Define reusable enum/filter normalization helpers.
-- [ ] Define owner-controlled sort field/direction whitelists.
-- [ ] Migrate the first low-risk list endpoint and add a drift guard.
+- Added `apps/api/src/common/query/query-filters.ts`.
+- Centralized optional text normalization, enum filtering, and sort parsing.
+- Migrated the admin support-ticket list.
+- Added validated `sortBy` and `sortDirection` query parameters.
+- Restricted sorting to `createdAt`, `updatedAt`, or `status`, with `asc` or `desc` only.
+- Preserved the prior default `createdAt desc` ordering and added an `id` tie-breaker.
+- Added `tools/audit-r010-filter-sort-boundaries.mjs` and wired it into `.github/workflows/r010-query-boundaries.yml`.
+- Evidence: `docs/evidence/r010-filter-sort-boundaries.md`.
+
+## Active work
+
+### 7. Reject arbitrary sort and filter input
+
+- [ ] Add strict rejection behavior rather than silent fallback for invalid filter/sort values.
+- [ ] Add focused contract coverage for rejected inputs.
+- [ ] Add a static guard preventing raw sort/filter values from reaching Prisma.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 5
-- Remaining: 8
+- Closed: 6
+- Remaining: 7
 
 ## Latest commits
 
-- `1fe12970ed7daa50a091f387b3eb150884ae5603` — record shared cursor pagination evidence.
-- `728552cbb1b75ef61f09e54b4ea97e20a13ff1d2` — enforce the shared cursor pagination guard in CI.
-- `d38adfd6d29f5005e7b8aa16857122a1c995f060` — guard the shared cursor pagination contract.
-- `64c0f29197704e972bd8f737d4952a07e44a0347` — migrate support list queries to the shared cursor pattern.
-- `233055412dc1bfa537309ded0f40937a719fd28f` — add the shared cursor pagination utility.
+- `0f0f715982d67b4f363b6c6df2b5aea02e8e8caa` — record shared filter/sort evidence.
+- `24cc8a22a09f26fffe2bb5d2ebba813bf7fc3ba6` — enforce filter/sort boundaries in CI.
+- `5866dc2505afff6b88f8dd726509c4678235f20e` — guard shared filter and sort boundaries.
+- `5e880a53dd2b5c785f8b5a592fa129396a3c2edb` — migrate support filters and sorting to shared parsers.
+- `eb249de28c8e51efd837e310c66467d21843c7ad` — whitelist support sort query parameters.
+- `5c443f853933abd63e33cd4a6b7e1cb43343f25a` — add shared query filter and sort parsing.
