@@ -90,6 +90,8 @@ export type PromotionSettlementRecord = {
   status: string;
   amount: RepositoryMoney;
   idempotencyKey?: string | null;
+  releasedBy?: RepositoryId | null;
+  releasedAt?: RepositoryTimestamp | null;
   updatedAt: RepositoryTimestamp;
 };
 
