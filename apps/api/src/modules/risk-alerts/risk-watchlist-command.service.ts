@@ -2,7 +2,9 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { Prisma } from '@prisma/client';
 import { createHmac } from 'node:crypto';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
+import { DomainError } from '../../common/domain/domain-error';
 import { PrismaService } from '../../database/prisma.service';
+import { WatchlistPolicy } from './domain/watchlist.policy';
 import { CreateRiskWatchlistEntryDto, ReleaseRiskWatchlistEntryDto } from './dto/risk-watchlist.dto';
 import { mapRiskWatchlistItem, type RiskWatchlistRow } from './risk-watchlist.mapper';
 
@@ -57,10 +59,10 @@ export class RiskWatchlistCommandService {
       `);
       const existing = rows[0];
       if (!existing) throw new NotFoundException('Risk watchlist entry not found');
-      if (existing.status !== 'ACTIVE') throw new BadRequestException('Only active entries can be released');
       if (Number(existing.version) !== input.version) {
         throw new ConflictException('Risk watchlist entry was modified by another request');
       }
+      this.assertReleasePolicy(String(existing.status), input.reason);
 
       const updatedRows = await tx.$queryRaw<RiskWatchlistRow[]>(Prisma.sql`
         UPDATE "risk_watchlist_entries"
@@ -85,6 +87,15 @@ export class RiskWatchlistCommandService {
       });
       return { item: mapRiskWatchlistItem(updated) };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }
+
+  private assertReleasePolicy(status: string, reason?: string | null) {
+    try {
+      WatchlistPolicy.assertRelease({ status, reason });
+    } catch (error: unknown) {
+      if (error instanceof DomainError) throw new BadRequestException(error.message);
+      throw error;
+    }
   }
 
   private normalize(subjectType: string, value: string) {
