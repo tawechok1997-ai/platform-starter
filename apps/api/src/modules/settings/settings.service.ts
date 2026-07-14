@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import type { AdminActor } from '../../common/actors';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -99,16 +100,16 @@ export class SettingsService {
       });
 
       await this.prisma.adminAuditLog.create({
-        data: {
+        data: buildAdminAuditData({
           adminUserId: actor.id,
           action: 'settings.update',
           module: 'settings',
           targetId: settingKey,
-          oldData: oldSetting?.valueJson ?? Prisma.JsonNull,
-          newData: setting.valueJson ?? Prisma.JsonNull,
+          oldData: oldSetting?.valueJson ?? null,
+          newData: setting.valueJson ?? null,
           ipAddress: meta.ipAddress,
           userAgent: meta.userAgent,
-        },
+        }),
       });
 
       updated.push(setting.key);
