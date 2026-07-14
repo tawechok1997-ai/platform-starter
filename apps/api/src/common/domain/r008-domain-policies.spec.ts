@@ -47,8 +47,10 @@ describe('R-008 domain policies', () => {
   });
 
   it('models support and notification policy independently from NestJS', () => {
-    expect(SupportTicketPolicy.nextStatusForReply('MEMBER')).toBe('WAITING_SUPPORT');
-    expect(SupportTicketPolicy.canReopen('CLOSED')).toBe(true);
+    expect(SupportTicketPolicy.nextStatusForReply('MEMBER', 'RESOLVED')).toBe('REVIEWING');
+    expect(SupportTicketPolicy.nextStatusForReply('MEMBER', 'OPEN')).toBe('OPEN');
+    expect(SupportTicketPolicy.canReopen('DISMISSED')).toBe(true);
+    expect(() => SupportTicketPolicy.assertResolutionReason('DISMISSED')).toThrow(DomainError);
     expect(NotificationPreferencePolicy.normalize({ category: 'SECURITY', channels: ['EMAIL'] }).channels).toEqual(['IN_APP', 'EMAIL']);
     expect(() => NotificationPreferencePolicy.assertMutable('FINANCE', [])).toThrow(DomainError);
   });
