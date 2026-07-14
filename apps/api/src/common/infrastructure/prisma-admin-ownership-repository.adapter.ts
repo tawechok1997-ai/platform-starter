@@ -4,14 +4,12 @@ import type {
   OwnershipRecord,
   RepositoryId,
 } from '../application/critical-repository-ports';
+import {
+  lockActiveOwnerAdminIds,
+  lockAdminUserForUpdate,
+} from './prisma-row-locks';
 
 const OWNER_ROLE_CODE = 'OWNER';
-
-type LockedAdminRow = {
-  id: string;
-  status: string;
-  is_owner: boolean;
-};
 
 /**
  * Transaction-scoped adapter for ownership transfer persistence.
@@ -23,45 +21,34 @@ export class PrismaAdminOwnershipRepositoryAdapter implements AdminOwnershipRepo
   constructor(private readonly tx: Prisma.TransactionClient) {}
 
   async findAdminForUpdate(adminUserId: RepositoryId): Promise<OwnershipRecord | null> {
-    const rows = await this.tx.$queryRaw<LockedAdminRow[]>(Prisma.sql`
-      SELECT
-        au."id",
-        au."status"::text AS "status",
-        EXISTS (
-          SELECT 1
-          FROM "admin_user_roles" aur
-          INNER JOIN "roles" r ON r."id" = aur."role_id"
-          WHERE aur."admin_user_id" = au."id"
-            AND r."code" = ${OWNER_ROLE_CODE}
-        ) AS "is_owner"
-      FROM "admin_users" au
-      WHERE au."id" = ${adminUserId}::uuid
-      FOR UPDATE
-    `);
+    const lockedId = await lockAdminUserForUpdate(this.tx, adminUserId);
+    if (!lockedId) return null;
 
-    const row = rows[0];
-    if (!row) return null;
+    const admin = await this.tx.adminUser.findUnique({
+      where: { id: lockedId },
+      select: {
+        id: true,
+        status: true,
+        roles: {
+          where: { role: { code: OWNER_ROLE_CODE } },
+          select: { roleId: true },
+          take: 1,
+        },
+      },
+    });
+
+    if (!admin) return null;
 
     return {
-      adminUserId: row.id,
-      isOwner: row.is_owner,
-      status: row.status,
+      adminUserId: admin.id,
+      isOwner: admin.roles.length > 0,
+      status: admin.status,
     };
   }
 
   async countActiveOwnersForUpdate(): Promise<number> {
-    const rows = await this.tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
-      SELECT DISTINCT au."id"
-      FROM "admin_users" au
-      INNER JOIN "admin_user_roles" aur ON aur."admin_user_id" = au."id"
-      INNER JOIN "roles" r ON r."id" = aur."role_id"
-      WHERE r."code" = ${OWNER_ROLE_CODE}
-        AND au."status"::text = 'ACTIVE'
-      ORDER BY au."id"
-      FOR UPDATE OF au
-    `);
-
-    return rows.length;
+    const ownerIds = await lockActiveOwnerAdminIds(this.tx, OWNER_ROLE_CODE);
+    return ownerIds.length;
   }
 
   async transferOwnership(previousOwnerId: RepositoryId, nextOwnerId: RepositoryId): Promise<void> {
