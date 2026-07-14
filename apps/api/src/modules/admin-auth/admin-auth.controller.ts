@@ -8,6 +8,7 @@ import { AdminLoginDefenseService } from './admin-login-defense.service';
 import { AdminRefreshSessionService } from './admin-refresh-session.service';
 import { AdminSessionCommandService } from './admin-session-command.service';
 import { AdminSessionsQueryService } from './admin-sessions-query.service';
+import { AdminTwoFactorCommandService } from './admin-two-factor-command.service';
 import { AdminRefreshSessionDto, AdminTwoFactorCodeDto } from './dto/admin-auth-actions.dto';
 import { AdminSignInDto } from './dto/admin-sign-in.dto';
 import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
@@ -16,9 +17,10 @@ import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
 export class AdminAuthController {
   constructor(
     private readonly adminAuthService: AdminAuthService,
-    private readonly refreshSessions: AdminRefreshSessionService,
     private readonly sessionQueries: AdminSessionsQueryService,
     private readonly sessionCommands: AdminSessionCommandService,
+    private readonly refreshSessions: AdminRefreshSessionService,
+    private readonly twoFactorCommands: AdminTwoFactorCommandService,
     private readonly antiBot: AntiBotService,
     private readonly loginDefense: AdminLoginDefenseService,
   ) {}
@@ -43,32 +45,32 @@ export class AdminAuthController {
   @UseGuards(AdminAuthGuard)
   @Post('2fa/setup')
   setupTwoFactor(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
-    return this.adminAuthService.setupTwoFactor(user.id, this.meta(req));
+    return this.twoFactorCommands.setup(user.id, this.meta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('2fa/enable')
   enableTwoFactor(@CurrentUser() user: AuthenticatedAdminActor, @Body() body: AdminTwoFactorCodeDto, @Req() req: AdminRequestContext) {
-    return this.adminAuthService.enableTwoFactor(user.id, body.code, this.meta(req));
+    return this.twoFactorCommands.enable(user.id, body.code, this.meta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('2fa/disable')
   disableTwoFactor(@CurrentUser() user: AuthenticatedAdminActor, @Body() body: AdminTwoFactorCodeDto, @Req() req: AdminRequestContext) {
-    return this.adminAuthService.disableTwoFactor(user.id, body.code, this.meta(req));
+    return this.twoFactorCommands.disable(user.id, body.code, this.meta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('2fa/recovery-codes/regenerate')
   regenerateRecoveryCodes(@CurrentUser() user: AuthenticatedAdminActor, @Body() body: AdminTwoFactorCodeDto, @Req() req: AdminRequestContext) {
-    return this.adminAuthService.regenerateRecoveryCodes(user.id, body.code, this.meta(req));
+    return this.twoFactorCommands.regenerateRecoveryCodes(user.id, body.code, this.meta(req));
   }
 
   @Post('refresh')
   async refresh(@Body() body: AdminRefreshSessionDto, @Req() req: HttpRequestContext, @Res({ passthrough: true }) res: any) {
     const token = String(body.refreshToken ?? '').trim() || this.readRefreshCookie(req);
     const result = await this.refreshSessions.refresh(token, this.meta(req));
-    this.setRefreshCookie(res, result?.refreshToken);
+    this.setRefreshCookie(res, result.refreshToken);
     return result;
   }
 
