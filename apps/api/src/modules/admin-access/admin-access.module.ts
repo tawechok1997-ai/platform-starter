@@ -10,6 +10,7 @@ import { AdminInvitationAdminController } from './admin-invitation-admin.control
 import { AdminInvitationAdminService } from './admin-invitation-admin.service';
 import { AdminInvitationController } from './admin-invitation.controller';
 import { AdminInvitationService } from './admin-invitation.service';
+import { AdminOwnershipCommandService } from './admin-ownership-command.service';
 
 @Module({
   imports: [DatabaseModule, JwtModule.register({}), AdminAuthModule],
@@ -18,6 +19,7 @@ import { AdminInvitationService } from './admin-invitation.service';
     AdminAccessService,
     AdminAccessSessionService,
     AdminAccountLifecycleService,
+    AdminOwnershipCommandService,
     AdminInvitationService,
     AdminInvitationAdminService,
   ],
