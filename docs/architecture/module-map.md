@@ -10,11 +10,15 @@ Every module owns its controllers, application services, DTOs, persistence orche
 | admin-auth | Admin login, 2FA, refresh and session lifecycle | Security | Admin session, login history, security audit | `admin-auth/admin-auth.module.ts` |
 | anti-bot | CAPTCHA provider configuration and verification | Security | Provider config, adaptive mode, audit | `anti-bot/anti-bot.module.ts` |
 | users | Member profile and member administration | Identity | User profile, contact data, status | `users/users.module.ts` |
+| admin-members | Legacy/admin member queries and mutations composed into finance/admin surfaces | Identity / Operations | User, request, ledger and audit projections | Internal module imported by `finance/finance.module.ts` |
 | settings | Website, legal, branding and CMS settings | Platform | Settings, CMS assets, storage and audit | `settings/settings.module.ts` |
 | wallet | Wallet balance and ledger operations | Finance | Wallet, ledger entries, audit | `wallet/wallet.module.ts` |
 | topups | Deposit request lifecycle | Finance | Top-up request, slip storage, wallet credit | `topups/topups.module.ts` |
 | withdrawals | Withdrawal lifecycle and proof handling | Finance | Withdrawal, ledger, bank/provider side effects | `withdrawals/withdrawals.module.ts` |
 | finance | Cross-domain finance orchestration and reconciliation | Finance | Transactions, locks, idempotency | `finance/finance.module.ts` |
+| queues | Finance queue/read-model endpoints composed into finance operations | Finance / Operations | Deposit and withdrawal queue projections | Internal module imported by `finance/finance.module.ts` |
+| activity | Operational activity projections composed into finance/admin surfaces | Operations | Audit and transaction activity projections | Internal module imported by `finance/finance.module.ts` |
+| risk | Legacy finance risk/read-model endpoints composed into finance operations | Risk / Operations | Wallet, deposit, withdrawal and risk projections | Internal module imported by `finance/finance.module.ts` |
 | reports | Operational and finance reporting | Operations | Read models and CSV output | `reports/reports.module.ts` |
 | exports | Export job and file generation | Operations | Export files and audit | `exports/exports.module.ts` |
 | bank-accounts | Member bank account review and duplicate detection | Risk / Finance | Bank account, review status, audit | `bank-accounts/bank-accounts.module.ts` |
@@ -28,6 +32,7 @@ Every module owns its controllers, application services, DTOs, persistence orche
 | promotions | Campaign, claim, bonus and settlement | Growth / Finance | Promotion, claim, turnover and bonus ledger | `promotions/promotions.module.ts` |
 | affiliates | Referral, downline and commission | Growth / Finance | Affiliate relation and commission ledger | `affiliates/affiliates.module.ts` |
 | notifications | Member notifications and preferences | Platform | Notification and channel preference | `notifications/notifications.module.ts` |
+| system | System/admin operational endpoints not owned by a product domain | Platform / Operations | System summaries and operational state | Internal controller family under `modules/system` |
 | health | Liveness/readiness endpoints | Platform | No durable data | `health/health.module.ts` |
 
 ## Cross-cutting foundations
@@ -46,4 +51,5 @@ Every module owns its controllers, application services, DTOs, persistence orche
 - Database access belongs in services or repositories, never controllers.
 - Critical mutations must declare actor, permission, data, external side effects and audit behavior in the route ownership inventory.
 - Controllers, cron handlers and background processors inherit the owner of their enclosing module folder.
+- Internal controller families that are composed into another registered module remain listed here until they are merged or promoted to first-class modules.
 - A new module is incomplete until it is registered in `AppModule`, listed here, represented in route ownership when it exposes HTTP routes, and accepted by the architecture inventory CI audit.
