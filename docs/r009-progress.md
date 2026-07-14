@@ -87,17 +87,30 @@ R-009 establishes repository, transaction, and persistence boundaries without ch
 - strict method-level inventory enforcement in `.github/workflows/r009-parallel-boundary-closure.yml` with `R009_TRANSACTION_STRICT=1`
 - successful Railway API, admin, and member deployments for strict-enforcement commit `e4b244bc21a8941c14f8fbabc059a35e975b82ae`
 
+## Enforced and awaiting verification
+
+### PostgreSQL deadlock and concurrency regression coverage
+
+- [x] Added an isolated PostgreSQL 16 service to `.github/workflows/r009-parallel-boundary-closure.yml`.
+- [x] Added schema migration before database regression execution.
+- [x] Set `FINANCE_TEST_DATABASE_URL` to the isolated `platform_ci` database so database suites run instead of skipping.
+- [x] Added serial execution for finance, promotion settlement, KYC, and risk-watchlist PostgreSQL concurrency suites.
+- [x] Added migration/spec path triggers so schema and concurrency changes rerun the workflow.
+- [x] Added `docs/evidence/r009-postgres-concurrency-ci.md`.
+- [x] Railway API, admin, and member deployments succeeded for workflow commit `2ab2688b278609e80f5c49d38cfa58adbb3b6945`.
+- [ ] Confirm the push-triggered GitHub Actions workflow result through an observable CI channel.
+
 ## Remaining R-009 work
 
-- [ ] Add remaining deadlock and concurrency regression coverage.
+- [ ] Close remaining deadlock and concurrency regression coverage after observable PostgreSQL workflow success.
 
 ## Count
 
 - Total R-009 subtasks: 15
 - Closed with durable evidence: 14
 - Remaining not closed: 1
-- Enforced and awaiting verification: 0
-- Other partial or under active review: 1
+- Enforced and awaiting verification: 1
+- Other partial or under active review: 0
 - Not yet implemented: 0
 
 ## Verification policy
@@ -106,12 +119,11 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-The current method-level inventory contains one reviewed legacy invitation finding. It is safe because the production controller routes invitation create/reissue commands through atomic transaction owners, and dedicated guards reject routing regressions. The required R-009 workflow now runs strict inventory mode and fails on confirmed, unreviewed, or stale findings. No schema, production data, permission model, secret, provider, wallet behavior, or deployment target was changed.
+The final concurrency gap is implemented but not yet claimed closed. The required workflow now provisions an isolated PostgreSQL database, applies migrations, and executes finance, promotion, KYC, and watchlist concurrency suites with database safety checks enabled. No production database, schema target, data, secret, provider, permission, wallet behavior, or deployment target was changed.
 
 ## Latest commits
 
+- `102d0c5cc826bae79cde19851f492e91cf998322` — record isolated PostgreSQL concurrency CI evidence and verification limitation.
+- `2ab2688b278609e80f5c49d38cfa58adbb3b6945` — provision PostgreSQL and execute required database concurrency suites in the R-009 workflow.
 - `50b6fdad3ed1388072c2210d59151a4c10890b7d` — record strict legacy transaction escape closure evidence.
 - `e4b244bc21a8941c14f8fbabc059a35e975b82ae` — enable strict method-level transaction escape inventory in the required workflow.
-- `41c69935671ac43af89bd778021a5924e44e6459` — document the absent top-up approval/credit production path and future atomic contract.
-- `edb5dc44aa4fae18f819a280d5e244c909402e22` — fail closed if an unguarded top-up approval/credit path is introduced.
-- `fcf379c4f371d639eb942bbf778367902c561a2d` — enforce promotion adapter production wiring and reject direct bonus-ledger locks in migrated helpers.
