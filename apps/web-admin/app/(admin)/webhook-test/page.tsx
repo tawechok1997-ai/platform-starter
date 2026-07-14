@@ -1,11 +1,15 @@
 'use client';
 
+import { ApiClientError, createApiClient } from '@platform/api-client';
 import { useEffect, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack } from '../_components/admin-ui';
 
 type Provider = { id: string; name: string; code: string; status: string };
+type WebhookResult = { ok?: boolean; message?: string; [key: string]: unknown };
+
 const events = ['BET_SETTLED', 'WIN', 'ROLLBACK', 'CANCEL', 'adapter.test'];
+const publicApi = createApiClient({ baseUrl: '', cache: 'no-store' });
 
 export default function WebhookTestPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -13,21 +17,69 @@ export default function WebhookTestPage() {
   const [eventType, setEventType] = useState('adapter.test');
   const [idempotencyKey, setIdempotencyKey] = useState(`mock_webhook_${Date.now()}`);
   const [invalidSignature, setInvalidSignature] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<WebhookResult | null>(null);
   const [message, setMessage] = useState('กำลังโหลด provider...');
   const [loading, setLoading] = useState(false);
+
   useEffect(() => { loadProviders(); }, []);
-  async function loadProviders() { const res = await adminApiFetch('/admin/game-providers'); const data = await res.json().catch(() => null); if (!res.ok) { setMessage(data?.message ?? 'โหลด provider ไม่สำเร็จ'); return; } const items = data.items ?? []; setProviders(items); setProviderCode(items[0]?.code ?? ''); setMessage(''); }
+
+  async function loadProviders() {
+    const res = await adminApiFetch('/admin/game-providers');
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      setMessage(data?.message ?? 'โหลด provider ไม่สำเร็จ');
+      return;
+    }
+    const items = data.items ?? [];
+    setProviders(items);
+    setProviderCode(items[0]?.code ?? '');
+    setMessage('');
+  }
+
   async function send() {
-    if (!providerCode) { setMessage('เลือก provider ก่อน'); return; }
-    const body = { eventType, idempotencyKey, providerTransactionId: `tx_${idempotencyKey}`, roundId: `round_${idempotencyKey}`, amount: '1.00', currency: 'THB', testMode: true };
+    if (!providerCode) {
+      setMessage('เลือก provider ก่อน');
+      return;
+    }
+
+    const body = {
+      eventType,
+      idempotencyKey,
+      providerTransactionId: `tx_${idempotencyKey}`,
+      roundId: `round_${idempotencyKey}`,
+      amount: '1.00',
+      currency: 'THB',
+      testMode: true,
+    };
     const timestamp = new Date().toISOString();
     const signature = invalidSignature ? 'invalid-signature' : 'mock-browser-signature';
-    setLoading(true); setMessage('กำลังส่ง mock webhook...');
-    const res = await fetch(`/api/provider-webhooks/${encodeURIComponent(providerCode)}`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-timestamp': timestamp, 'x-signature': signature }, body: JSON.stringify(body) });
-    const data = await res.json().catch(() => null);
-    setLoading(false); setResult(data); setMessage(res.ok ? 'ส่ง mock webhook แล้ว' : data?.message ?? 'ส่ง mock webhook ไม่สำเร็จ');
+
+    setLoading(true);
+    setMessage('กำลังส่ง mock webhook...');
+    try {
+      const data = await publicApi.request<WebhookResult>(`/api/provider-webhooks/${encodeURIComponent(providerCode)}`, {
+        method: 'POST',
+        auth: false,
+        headers: {
+          'content-type': 'application/json',
+          'x-timestamp': timestamp,
+          'x-signature': signature,
+        },
+        body: JSON.stringify(body),
+      });
+      setResult(data);
+      setMessage('ส่ง mock webhook แล้ว');
+    } catch (error) {
+      const payload = error instanceof ApiClientError && error.payload && typeof error.payload === 'object'
+        ? error.payload as WebhookResult
+        : null;
+      setResult(payload);
+      setMessage(payload?.message ?? 'ส่ง mock webhook ไม่สำเร็จ');
+    } finally {
+      setLoading(false);
+    }
   }
+
   return <AdminPage eyebrow="Game Platform" title="Mock Webhook Test" description="ยิง webhook จำลองเพื่อทดสอบ validate, duplicate, invalid signature และ log ก่อนเปิดรับ callback ค่ายจริง" actions={<AdminButton onClick={send} disabled={loading || !providerCode}>{loading ? 'กำลังส่ง...' : 'Send Mock Webhook'}</AdminButton>}>
     {message && <AdminNotice>{message}</AdminNotice>}
     <AdminMetricGrid><AdminMetric title="Provider" value={providerCode || '-'} helper="provider code" /><AdminMetric title="Event" value={eventType} helper="mock event" /><AdminMetric title="Signature" value={invalidSignature ? 'invalid' : 'mock'} helper="browser-safe header" /><AdminMetric title="Result" value={result?.ok === false ? 'FAILED' : result ? 'DONE' : '-'} helper="last send" /></AdminMetricGrid>
@@ -36,6 +88,7 @@ export default function WebhookTestPage() {
     {result ? <AdminStack><AdminCard title="Webhook response"><AdminRow><strong>Status</strong><AdminBadge tone={result?.ok === false ? 'danger' : 'success'}>{result?.ok === false ? 'FAILED' : 'OK'}</AdminBadge></AdminRow><pre style={preStyle}>{JSON.stringify(result, null, 2)}</pre></AdminCard></AdminStack> : <AdminEmpty>ยังไม่มีผล mock webhook</AdminEmpty>}
   </AdminPage>;
 }
+
 const formStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(240px,100%),1fr))', gap: 12 } as const;
 const labelStyle = { display: 'grid', gap: 6, color: '#94a3b8', fontSize: 12, fontWeight: 900 } as const;
 const checkStyle = { display: 'flex', gap: 8, alignItems: 'center', color: '#cbd5e1', fontWeight: 900 } as const;
