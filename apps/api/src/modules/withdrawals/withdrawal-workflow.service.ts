@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHash, randomUUID } from 'crypto';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { StorageService } from '../storage/storage.service';
 
@@ -52,7 +53,18 @@ export class WithdrawalWorkflowService {
           AND "status"::text IN ('PENDING', 'PENDING_REVIEW')
       `);
       if (changed !== 1) throw new ConflictException('Withdrawal state or claim changed during approval');
-      await tx.adminAuditLog.create({ data: { adminUserId, action: 'APPROVE_WITHDRAWAL_FOR_PAYMENT', module: 'withdrawals', targetId: requestId, oldData: { status: request.status }, newData: { status: 'APPROVED_FOR_PAYMENT', note }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId,
+          action: 'APPROVE_WITHDRAWAL_FOR_PAYMENT',
+          module: 'withdrawals',
+          targetId: requestId,
+          oldData: { status: request.status },
+          newData: { status: 'APPROVED_FOR_PAYMENT', note },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
       return { ok: true, status: 'APPROVED_FOR_PAYMENT' };
     });
   }
@@ -117,7 +129,18 @@ export class WithdrawalWorkflowService {
             AND "status" = 'APPROVED_FOR_PAYMENT'::"WithdrawalRequestStatus"
         `);
         if (changed !== 1) throw new ConflictException('Withdrawal state or claim changed during proof upload');
-        await tx.adminAuditLog.create({ data: { adminUserId, action: 'UPLOAD_WITHDRAWAL_PAYMENT_PROOF', module: 'withdrawals', targetId: requestId, oldData: { status: 'APPROVED_FOR_PAYMENT' }, newData: { status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: key, transactionRef, fileHash }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+        await tx.adminAuditLog.create({
+          data: buildAdminAuditData({
+            adminUserId,
+            action: 'UPLOAD_WITHDRAWAL_PAYMENT_PROOF',
+            module: 'withdrawals',
+            targetId: requestId,
+            oldData: { status: 'APPROVED_FOR_PAYMENT' },
+            newData: { status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: key, transactionRef, fileHash },
+            ipAddress: meta.ipAddress,
+            userAgent: meta.userAgent,
+          }),
+        });
         return { ok: true, status: 'PAYMENT_PROOF_UPLOADED', paymentSlipUrl: key, fileHash };
       });
       if (result.idempotent) await this.storage.remove(key).catch(() => undefined);
@@ -188,7 +211,18 @@ export class WithdrawalWorkflowService {
           AND "status" = 'PAYMENT_PROOF_UPLOADED'::"WithdrawalRequestStatus"
       `);
       if (changed !== 1) throw new ConflictException('Withdrawal state or claim changed during verification');
-      await tx.adminAuditLog.create({ data: { adminUserId, action: 'VERIFY_AND_COMPLETE_WITHDRAWAL', module: 'withdrawals', targetId: requestId, oldData: { status: 'PAYMENT_PROOF_UPLOADED', balanceBefore: balanceBefore.toString(), lockedBalance: wallet.locked_balance.toString() }, newData: { status: 'COMPLETED', balanceAfter: balanceAfter.toString(), lockedAfter: lockedAfter.toString(), ledgerId: ledger.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId,
+          action: 'VERIFY_AND_COMPLETE_WITHDRAWAL',
+          module: 'withdrawals',
+          targetId: requestId,
+          oldData: { status: 'PAYMENT_PROOF_UPLOADED', balanceBefore: balanceBefore.toString(), lockedBalance: wallet.locked_balance.toString() },
+          newData: { status: 'COMPLETED', balanceAfter: balanceAfter.toString(), lockedAfter: lockedAfter.toString(), ledgerId: ledger.id },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
       return { ok: true, status: 'COMPLETED', ledgerId: ledger.id, balanceAfter: balanceAfter.toString(), lockedAfter: lockedAfter.toString() };
     });
   }
