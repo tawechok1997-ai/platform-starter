@@ -1,0 +1,38 @@
+name: R-009 Finance Prisma Adapters
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/common/application/critical-repository-ports.ts'
+      - 'apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts'
+      - 'tools/audit-r009-finance-prisma-adapters.mjs'
+      - '.github/workflows/r009-finance-prisma-adapters.yml'
+  pull_request:
+    paths:
+      - 'apps/api/src/common/application/critical-repository-ports.ts'
+      - 'apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts'
+      - 'tools/audit-r009-finance-prisma-adapters.mjs'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Audit adapter structure
+        run: node tools/audit-r009-finance-prisma-adapters.mjs
+      - name: Verify repository type boundary
+        run: pnpm audit:r9-repository-boundaries:strict
+      - name: Typecheck API
+        run: pnpm typecheck:api
