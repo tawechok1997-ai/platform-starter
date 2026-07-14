@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/library';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { AdjustWalletDto } from './dto/adjust-wallet.dto';
 
@@ -94,7 +95,18 @@ export class WalletService {
       const updatedWallet = await tx.wallet.update({ where: { id: wallet.id }, data: { balance: balanceAfter } });
       const ledger = await tx.walletLedger.create({ data: { walletId: wallet.id, userId, type: 'ADJUSTMENT', direction: dto.direction, amount, balanceBefore, balanceAfter, referenceType: 'manual_adjustment', referenceId: wallet.id, idempotencyKey, metadata: { reason }, createdByAdminId: adminUser.id } });
 
-      await tx.adminAuditLog.create({ data: { adminUserId: adminUser.id, action: 'ADJUST_WALLET', module: 'wallets', targetId: wallet.id, oldData: { balance: balanceBefore.toString(), lockedBalance: wallet.lockedBalance.toString() } as any, newData: { direction: dto.direction, amount: amount.toString(), balanceAfter: balanceAfter.toString(), reason, idempotencyKey } as any, ipAddress: meta.ipAddress, userAgent: meta.userAgent } });
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: adminUser.id,
+          action: 'ADJUST_WALLET',
+          module: 'wallets',
+          targetId: wallet.id,
+          oldData: { balance: balanceBefore.toString(), lockedBalance: wallet.lockedBalance.toString() },
+          newData: { direction: dto.direction, amount: amount.toString(), balanceAfter: balanceAfter.toString(), reason, idempotencyKey },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
 
       return { wallet: this.formatWallet(updatedWallet), ledger: this.formatLedger(ledger) };
     });
