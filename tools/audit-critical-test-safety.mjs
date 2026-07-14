@@ -5,6 +5,7 @@ const root = process.cwd();
 const packagePath = join(root, 'package.json');
 const workflowPath = join(root, '.github', 'workflows', 'build.yml');
 const inventoryPath = join(root, 'docs', 'architecture', 'test-inventory.md');
+const closurePath = join(root, 'docs', 'architecture', 'r003-closure.md');
 
 const criticalSuites = [
   {
@@ -34,14 +35,14 @@ const criticalSuites = [
   },
 ];
 
-const characterizationSuites = [
+const requiredCharacterizationSuites = [
   {
     path: 'apps/api/src/modules/support/support.service.spec.ts',
-    requiredMarkers: ['reopens a resolved ticket', 'sets resolvedAt'],
+    markers: ['reopens a resolved ticket', 'audits an admin reply'],
   },
   {
     path: 'apps/api/src/modules/admin-access/admin-account-lifecycle.service.spec.ts',
-    requiredMarkers: ['idempotent no-op', 'rolls back status and session changes'],
+    markers: ['returns an idempotent no-op', 'rolls back account and session changes'],
   },
 ];
 
@@ -67,11 +68,12 @@ const requiredCriticalFlows = [
 ];
 
 const skipPattern = /\b(?:describe|test|it)\.skip\s*\(|\b(?:xdescribe|xtest|xit)\s*\(/;
-const [rootPackageRaw, apiPackageRaw, workflow, inventory] = await Promise.all([
+const [rootPackageRaw, apiPackageRaw, workflow, inventory, closure] = await Promise.all([
   readFile(packagePath, 'utf8'),
   readFile(join(root, 'apps', 'api', 'package.json'), 'utf8'),
   readFile(workflowPath, 'utf8'),
   readFile(inventoryPath, 'utf8'),
+  readFile(closurePath, 'utf8'),
 ]);
 
 const rootPackage = JSON.parse(rootPackageRaw);
@@ -94,21 +96,13 @@ for (const suite of criticalSuites) {
   if (!inventory.includes(`\`${suite.path}\``)) failures.push(`test-inventory.md: missing ${suite.path}`);
 }
 
-for (const suite of characterizationSuites) {
-  const absolutePath = join(root, suite.path);
-  try {
-    await access(absolutePath);
-  } catch {
-    failures.push(`${suite.path}: characterization suite file is missing`);
-    continue;
-  }
-
-  const source = await readFile(absolutePath, 'utf8');
+for (const suite of requiredCharacterizationSuites) {
+  const source = await readFile(join(root, suite.path), 'utf8');
   if (skipPattern.test(source)) failures.push(`${suite.path}: skipped characterization test detected`);
-  if (!inventory.includes(`\`${suite.path}\``)) failures.push(`test-inventory.md: missing ${suite.path}`);
-  for (const marker of suite.requiredMarkers) {
-    if (!source.includes(marker)) failures.push(`${suite.path}: missing characterization test marker "${marker}"`);
+  for (const marker of suite.markers) {
+    if (!source.includes(marker)) failures.push(`${suite.path}: missing characterization case "${marker}"`);
   }
+  if (!inventory.includes(`\`${suite.path}\``)) failures.push(`test-inventory.md: missing ${suite.path}`);
 }
 
 const requiredRootAudits = [
@@ -139,11 +133,31 @@ if (!inventory.includes('A gap in this table is a refactor blocker')) {
   failures.push('test-inventory.md: missing explicit refactor-blocker rule');
 }
 
+const workflowSummaryMarkers = [
+  'Regression test summary',
+  'if: always()',
+  'GITHUB_STEP_SUMMARY',
+  'steps.test_api.outcome',
+  'steps.test_finance.outcome',
+  'steps.test_promotions.outcome',
+  'steps.test_phone_otp.outcome',
+  'steps.test_risk_watchlist.outcome',
+  'steps.test_kyc.outcome',
+];
+for (const marker of workflowSummaryMarkers) {
+  if (!workflow.includes(marker)) failures.push(`build.yml: missing regression summary marker ${marker}`);
+}
+
+if (!closure.includes('Status: **DONE**')) failures.push('r003-closure.md: closure status is not DONE');
+if (!closure.includes('Structural refactors remain blocked')) failures.push('r003-closure.md: missing residual-gap rule');
+
 console.log(`Critical test safety audit: ${criticalSuites.length} database suites`);
-console.log(`  characterization suites: ${characterizationSuites.length}`);
+console.log(`  characterization suites: ${requiredCharacterizationSuites.length}`);
 console.log(`  required root audits: ${requiredRootAudits.length}`);
 console.log(`  documented test classes: ${requiredTestClasses.length}`);
 console.log(`  critical-flow rows: ${requiredCriticalFlows.length}`);
+console.log(`  CI summary markers: ${workflowSummaryMarkers.length}`);
+console.log(`  closure record: ${failures.some((item) => item.startsWith('r003-closure.md')) ? 'invalid' : 'valid'}`);
 console.log(`  failures: ${failures.length}`);
 
 if (failures.length) {
