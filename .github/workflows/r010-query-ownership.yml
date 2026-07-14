@@ -1,0 +1,41 @@
+name: R-010 Query Ownership
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/**/*.ts'
+      - 'tools/audit-r010-query-*.mjs'
+      - 'docs/evidence/r010-query-review.json'
+      - '.github/workflows/r010-query-ownership.yml'
+  pull_request:
+    paths:
+      - 'apps/api/src/**/*.ts'
+      - 'tools/audit-r010-query-*.mjs'
+      - 'docs/evidence/r010-query-review.json'
+      - '.github/workflows/r010-query-ownership.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Query review ledger
+        run: node tools/audit-r010-query-review-ledger.mjs
+      - name: No duplicate query shapes
+        env:
+          R010_DUPLICATE_QUERY_STRICT: '1'
+        run: node tools/audit-r010-query-inventory.mjs
+      - name: Notification feed query ownership
+        run: node tools/audit-r010-notification-query-ownership.mjs
+      - name: API typecheck
+        run: pnpm typecheck:api
