@@ -92,7 +92,11 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
     const id = widgetIdRef.current;
     if (!provider || id === null) return;
     const api = provider === 'TURNSTILE' ? (window as any).turnstile : provider === 'RECAPTCHA' ? (window as any).grecaptcha : (window as any).hcaptcha;
-    try { api?.reset?.(id); } catch { }
+    try {
+      api?.reset?.(id);
+    } catch {
+      // A stale provider widget can already be gone; clearing the local token is still sufficient.
+    }
     onToken('');
   }, [resetKey, onToken]);
 
