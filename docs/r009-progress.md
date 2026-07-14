@@ -58,45 +58,52 @@ Closure evidence:
 
 - [x] Added transaction-scoped deposit and withdrawal adapters at `apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts`.
 - [x] Added `PrismaAdminOwnershipRepositoryAdapter` using the existing `AdminUser`, `AdminUserRole`, and `Role` schema models.
-- [x] Ownership adapter locks owner rows before counting and avoids invalid aggregate row locking.
 - [x] All implemented adapters receive `Prisma.TransactionClient` from the transaction owner.
 - [x] Implemented adapters do not instantiate `PrismaClient` or call `$transaction`.
-- [x] Added `tools/audit-r009-adapter-schema-compatibility.mjs`.
-- [x] Added `tools/audit-r009-prisma-adapter-coverage.mjs`.
-- [x] Added `.github/workflows/r009-parallel-safe-adapters.yml` with compatibility, coverage, repository-boundary, API typecheck, and evidence upload steps.
-- [x] Added `docs/evidence/r009-safe-parallel-adapters.md`.
-- [ ] Confirm the safe-parallel adapter workflow passes.
+- [x] Added compatibility and adapter coverage audits.
+- [ ] Confirm adapter workflows pass.
 - [ ] Resolve the real schema mappings for KYC/watchlist and promotion settlement.
 - [ ] Add KYC/watchlist and promotion settlement adapters.
 - [ ] Migrate critical services to use the adapters.
 
 Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, ownership).
 
-## Implemented baselines
+### Audit unique/foreign-key/cascade/idempotency constraints
 
-### Transaction escape inventory
+- [x] Added broad schema inventory at `tools/audit-r009-schema-constraints.mjs`.
+- [x] Added semantic closure gate `tools/audit-r009-critical-constraint-closure.mjs`.
+- [x] The closure gate verifies 14 critical uniqueness and index contracts across wallet, ledger, deposit, withdrawal, ownership, provider transfer, and webhook persistence.
+- [x] No schema or migration change was required in this slice.
+- [ ] Confirm `.github/workflows/r009-parallel-boundary-closure.yml` passes.
 
-- [x] Added `tools/audit-r009-transaction-escapes.mjs`.
-- [x] Inventory direct writes, transaction-owned writes, raw queries, and mixed-boundary services.
-- [x] Added human-readable and JSON commands.
-- [x] Wired the transaction-escape inventory into CI without strict enforcement until method-level review is complete.
+## Active partial work
 
-### Schema constraint and idempotency inventory
+### Intent-revealing row-lock helpers
 
-- [x] Added `tools/audit-r009-schema-constraints.mjs`.
-- [x] Inventory uniqueness, indexes, relations, cascades, and idempotency fields for critical models.
-- [x] Added human-readable, JSON, and strict commands.
-- [x] Wired the schema inventory into CI; strict mode currently checks missing or renamed critical models only.
+- [x] Added `apps/api/src/common/infrastructure/prisma-row-locks.ts`.
+- [x] Added helpers for deposit, withdrawal, admin-user, and active-owner locks.
+- [x] Migrated finance and ownership adapters away from inline raw lock SQL.
+- [x] Added `tools/audit-r009-row-lock-helpers.mjs`.
+- [ ] Migrate remaining raw row locks in legacy services.
+- [ ] Confirm workflow and API typecheck pass.
+
+### Query-outside-transaction boundary
+
+- [x] Added `tools/audit-r009-transaction-context.mjs` for Prisma infrastructure.
+- [x] The guard rejects nested `$transaction`, `new PrismaClient`, and unscoped `this.prisma` usage in repository infrastructure.
+- [x] Added the guard to `.github/workflows/r009-parallel-boundary-closure.yml`.
+- [ ] Complete method-level review of legacy services from `tools/audit-r009-transaction-escapes.mjs`.
+- [ ] Resolve confirmed legacy service escapes.
 
 ## Pending evidence
 
 - [ ] Confirm the dedicated critical repository ports workflow completes successfully.
-- [ ] Confirm the finance and safe-parallel Prisma adapter workflows complete successfully.
+- [ ] Confirm the Prisma adapter workflows complete successfully.
+- [ ] Confirm the parallel boundary closure workflow completes successfully.
 - [ ] Confirm the latest GitHub quality workflow completes successfully.
 - [ ] Confirm zero repository-boundary violations.
 - [ ] Confirm zero lock inversions and zero unclassified locked tables.
 - [ ] Review mixed direct/transactional write services at method level.
-- [ ] Review critical schema models, missing indexes, cascade behavior, and idempotency coverage.
 
 ## Remaining R-009 work
 
@@ -109,29 +116,31 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [ ] Consolidate transaction ownership for KYC review/watchlist override.
 - [ ] Consolidate transaction ownership for promotion settlement.
 - [ ] Close lock-order evidence after workflow verification.
-- [ ] Add intent-revealing row-lock helpers and migrate raw locks safely.
-- [ ] Resolve confirmed queries that escape transaction boundaries.
+- [ ] Complete row-lock helper migration across legacy services.
+- [ ] Resolve confirmed legacy transaction escapes.
 - [ ] Add rollback, deadlock, and concurrency regression coverage.
-- [ ] Resolve confirmed unique, foreign-key, cascade, index, and idempotency gaps.
+- [ ] Close constraint/idempotency audit after workflow verification.
 
 ## Count
 
 - Total R-009 subtasks: 15
 - Closed with durable evidence: 2
 - Remaining not closed: 13
-- Enforced and awaiting workflow verification: 4
-- Other partial or under active review: 7
+- Enforced and awaiting workflow verification: 5
+- Other partial or under active review: 6
 - Not yet implemented: 2
 
 ## Safety decision
 
-This slice adds an ownership adapter and verification gates but does not switch existing production services to adapters. It does not modify Prisma schema, production data, live transaction boundaries, finance behavior, permissions, secrets, provider gates, or deployment targets.
+This slice adds shared lock helpers and static closure gates but does not switch existing production services to new transaction owners. It does not modify Prisma schema, production data, live finance behavior, permissions, secrets, provider gates, or deployment targets.
 
 ## Latest commits
 
-- `9bb963cea883959acf82a3125d60fa2d11f5898f` — add transaction-scoped ownership Prisma adapter.
-- `f40bbb24e3bb3c4519fc63c5fc3f437f20f1c15c` — fix owner locking before counting.
-- `400f3fe27281914bd41af0f2c1e6bc65cb132677` — inventory adapter-to-schema compatibility.
-- `b01c55a63819e7c12b5b5771cbb295685c99ad14` — enforce implemented adapter coverage.
-- `c3c935397915614a7ed87223e3faea5127a45c6e` — add safe parallel adapter verification workflow.
-- `23c5345ce019e5ad9fb16c0918593d4f6f13b07c` — record safe parallel adapter evidence.
+- `16164bf2d596a797bf7aea34cd77b70a3c2fb7ee` — add intent-revealing Prisma row-lock helpers.
+- `4df56109579ea0be82aa3bca9f1939ef663667c8` — migrate finance adapters to lock helpers.
+- `86f582814606102d737ccd0d27103a548902861f` — migrate ownership adapter to lock helpers.
+- `b8ef79988a31c733bf026f889617869b54af0f0f` — add row-lock helper closure audit.
+- `de6be17c7fcf7d063d1590812171d758a67d404a` — add transaction-context guard.
+- `5963cfeedd01f7d4fd8a66baa084bd34aa592d77` — add semantic constraint closure audit.
+- `2be107fefeaff6f637b80d372046ea1f6afc7bb4` — add parallel boundary closure workflow.
+- `27ddf1fc9723aa4594160fe1c328454ffe78ccf4` — record parallel boundary closure evidence.
