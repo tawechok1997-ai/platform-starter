@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'apps/api/src/common/query/**'
       - 'apps/api/src/modules/notifications/**'
       - 'apps/api/src/**/*.service.ts'
       - 'apps/api/src/**/*.repository.ts'
@@ -12,6 +13,7 @@ on:
       - '.github/workflows/r010-query-boundaries.yml'
   pull_request:
     paths:
+      - 'apps/api/src/common/query/**'
       - 'apps/api/src/modules/notifications/**'
       - 'apps/api/src/**/*.service.ts'
       - 'apps/api/src/**/*.repository.ts'
@@ -41,5 +43,7 @@ jobs:
         run: node tools/audit-r010-notification-projection-boundaries.mjs
       - name: Admin member list projection
         run: node tools/audit-r010-admin-member-list-projection.mjs
+      - name: Shared cursor pagination
+        run: node tools/audit-r010-cursor-pagination.mjs
       - name: API typecheck
         run: pnpm typecheck:api
