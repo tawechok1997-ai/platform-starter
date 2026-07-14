@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Headers, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import type { AdminRequestContext, AuthenticatedAdminActor, HttpRequestContext, MemberActor, MemberRequestContext } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
@@ -16,15 +17,18 @@ export class MemberGameTransferController {
   constructor(private readonly moneyService: GamePlatformMoneyService) {}
 
   @Get('game-sessions/:sessionId/transfers')
-  listSessionTransfers(@Param('sessionId') sessionId: string, @CurrentUser() user: any) { return this.moneyService.listMemberSessionTransfers(sessionId, user); }
+  listSessionTransfers(@Param('sessionId') sessionId: string, @CurrentUser() user: MemberActor) { return this.moneyService.listMemberSessionTransfers(sessionId, user); }
 
   @Post('game-sessions/:sessionId/transfer-in')
-  transferIn(@Param('sessionId') sessionId: string, @Body() body: CreateGameTransferDto, @CurrentUser() user: any, @Req() req: any) { return this.moneyService.transferDryRun(sessionId, user, 'TRANSFER_IN', normalizeTransferAmount(body), this.meta(req)); }
+  transferIn(@Param('sessionId') sessionId: string, @Body() body: CreateGameTransferDto, @CurrentUser() user: MemberActor, @Req() req: MemberRequestContext) { return this.moneyService.transferDryRun(sessionId, user, 'TRANSFER_IN', normalizeTransferAmount(body), this.meta(req)); }
 
   @Post('game-sessions/:sessionId/transfer-out')
-  transferOut(@Param('sessionId') sessionId: string, @Body() body: CreateGameTransferDto, @CurrentUser() user: any, @Req() req: any) { return this.moneyService.transferDryRun(sessionId, user, 'TRANSFER_OUT', normalizeTransferAmount(body), this.meta(req)); }
+  transferOut(@Param('sessionId') sessionId: string, @Body() body: CreateGameTransferDto, @CurrentUser() user: MemberActor, @Req() req: MemberRequestContext) { return this.moneyService.transferDryRun(sessionId, user, 'TRANSFER_OUT', normalizeTransferAmount(body), this.meta(req)); }
 
-  private meta(req: any) { return { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] }; }
+  private meta(req: MemberRequestContext) {
+    const userAgent = req.headers?.['user-agent'];
+    return { ipAddress: req.ip, userAgent: Array.isArray(userAgent) ? userAgent[0] : userAgent };
+  }
 }
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -42,7 +46,7 @@ export class AdminGameMoneyController {
 
   @RequirePermission('game.providers.manage')
   @Patch('game-providers/:providerId/gates')
-  updateProviderGates(@Param('providerId') providerId: string, @Body() body: ProviderGatesDto, @CurrentUser() user: any) { return this.moneyService.updateProviderGates(providerId, user, normalizeProviderGatesDto(body)); }
+  updateProviderGates(@Param('providerId') providerId: string, @Body() body: ProviderGatesDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.updateProviderGates(providerId, user, normalizeProviderGatesDto(body)); }
 
   @RequirePermission('game.providers.view')
   @Get('game-transfers')
@@ -54,19 +58,19 @@ export class AdminGameMoneyController {
 
   @RequirePermission('game.providers.manage')
   @Patch('game-transfers/:id/review')
-  reviewTransfer(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: any) { return this.moneyService.reviewTransfer(id, user, normalizeReviewNote(body)); }
+  reviewTransfer(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.reviewTransfer(id, user, normalizeReviewNote(body)); }
 
   @RequirePermission('game.providers.manage')
   @Post('game-transfers/:id/retry-dry-run')
-  retryDryRunTransfer(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: any) { return this.moneyService.retryDryRunTransfer(id, user, normalizeReviewNote(body)); }
+  retryDryRunTransfer(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.retryDryRunTransfer(id, user, normalizeReviewNote(body)); }
 
   @RequirePermission('game.providers.manage')
   @Post('game-sessions/:sessionId/reconcile')
-  reconcileSession(@Param('sessionId') sessionId: string, @CurrentUser() user: any) { return this.moneyService.reconcileSession(sessionId, user); }
+  reconcileSession(@Param('sessionId') sessionId: string, @CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.reconcileSession(sessionId, user); }
 
   @RequirePermission('game.providers.manage')
   @Post('game-sessions/reconcile-active')
-  reconcileActiveSessions(@CurrentUser() user: any) {
+  reconcileActiveSessions(@CurrentUser() user: AuthenticatedAdminActor) {
     return this.moneyService.reconcileActiveSessions(user);
   }
 
@@ -80,7 +84,7 @@ export class AdminGameMoneyController {
 
   @RequirePermission('game.providers.manage')
   @Patch('provider-wallet-snapshots/:id/review')
-  reviewSnapshot(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: any) { return this.moneyService.reviewSnapshot(id, user, normalizeSnapshotReview(body)); }
+  reviewSnapshot(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.reviewSnapshot(id, user, normalizeSnapshotReview(body)); }
 
   @RequirePermission('game.providers.view')
   @Get('webhook-logs')
@@ -96,5 +100,5 @@ export class ProviderWebhookController {
   constructor(private readonly moneyService: GamePlatformMoneyService) {}
 
   @Post(':providerCode')
-  receive(@Param('providerCode') providerCode: string, @Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderWebhookPayloadDto, @Req() req: any) { return this.moneyService.receiveWebhook(providerCode, headers, body, req.rawBody); }
+  receive(@Param('providerCode') providerCode: string, @Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderWebhookPayloadDto, @Req() req: HttpRequestContext) { return this.moneyService.receiveWebhook(providerCode, headers, body, req.rawBody); }
 }
