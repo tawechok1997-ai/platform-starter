@@ -2,16 +2,6 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 
 const ROOT = join(process.cwd(), 'apps', 'api', 'src', 'modules');
-const CRITICAL_MODULES = new Set([
-  'admin-access',
-  'admin-auth',
-  'finance',
-  'withdrawals',
-  'risk-alerts',
-  'support',
-  'promotions',
-  'game-platform',
-]);
 const MUTATION = /@(Post|Put|Patch|Delete)\s*\(/g;
 const BODY_ANY = /@Body\(\)\s+\w+\s*:\s*any\b/;
 const BODY_INLINE = /@Body\(\)\s+\w+\s*:\s*\{/;
@@ -30,10 +20,6 @@ async function walk(directory) {
 
 function normalize(path) {
   return relative(ROOT, path).split(sep).join('/');
-}
-
-function moduleSlug(path) {
-  return normalize(path).split('/')[0];
 }
 
 function lineNumber(source, index) {
@@ -59,7 +45,6 @@ for (const file of files) {
     const dtoMatch = block.match(BODY_DTO);
     inventory.push({
       file: normalize(file),
-      module: moduleSlug(file),
       method: match[1].toUpperCase(),
       line: lineNumber(source, match.index),
       hasBody,
@@ -70,10 +55,8 @@ for (const file of files) {
   }
 }
 
-const criticalUntyped = inventory.filter((item) => (
-  CRITICAL_MODULES.has(item.module)
-  && item.hasBody
-  && (item.bodyAny || (!item.dto && !item.bodyInline))
+const violations = inventory.filter((item) => (
+  item.hasBody && (item.bodyAny || item.bodyInline || !item.dto)
 ));
 const inlineBodies = inventory.filter((item) => item.bodyInline);
 const dtoBodies = inventory.filter((item) => item.dto);
@@ -83,15 +66,13 @@ console.log(`Mutation DTO audit: ${inventory.length} mutation handlers`);
 console.log(`  DTO-backed bodies: ${dtoBodies.length}`);
 console.log(`  inline object bodies: ${inlineBodies.length}`);
 console.log(`  bodyless mutations: ${bodyless.length}`);
-console.log(`  critical untyped bodies: ${criticalUntyped.length}`);
+console.log(`  untyped mutation bodies: ${violations.length}`);
 
-if (inlineBodies.length) {
-  console.warn('\nInline object bodies scheduled for migration:');
-  for (const item of inlineBodies) console.warn(`  - ${item.file}:${item.line} (@${item.method})`);
-}
-
-if (criticalUntyped.length) {
-  console.error('\nCritical mutation handlers using untyped request bodies:');
-  for (const item of criticalUntyped) console.error(`  - ${item.file}:${item.line} (@${item.method})`);
+if (violations.length) {
+  console.error('\nMutation handlers without declared DTO/request/command/input contracts:');
+  for (const item of violations) {
+    const reason = item.bodyAny ? 'any body' : item.bodyInline ? 'inline object body' : 'unrecognized body contract';
+    console.error(`  - ${item.file}:${item.line} (@${item.method}, ${reason})`);
+  }
   process.exitCode = 1;
 }
