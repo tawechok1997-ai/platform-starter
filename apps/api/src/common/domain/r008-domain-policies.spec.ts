@@ -22,6 +22,16 @@ describe('R-008 domain policies', () => {
   it('blocks invalid deposit and withdrawal transitions', () => {
     expect(() => DepositPolicy.assertTransition('COMPLETED', 'PENDING')).toThrow(InvalidStateTransitionError);
     expect(() => WithdrawalPolicy.assertTransition('COMPLETED', 'PENDING_REVIEW')).toThrow(InvalidStateTransitionError);
+    expect(() => WithdrawalPolicy.assertTransition('PAYMENT_PROOF_UPLOADED', 'COMPLETED')).toThrow(InvalidStateTransitionError);
+    expect(() => WithdrawalPolicy.assertTransition('REJECTED', 'APPROVED_FOR_PAYMENT')).toThrow(InvalidStateTransitionError);
+  });
+
+  it('validates withdrawal amounts and claim eligibility', () => {
+    expect(() => WithdrawalPolicy.assertAmount(Money.fromMajor('0.00'))).toThrow(DomainError);
+    expect(WithdrawalPolicy.canBeClaimed('PENDING')).toBe(true);
+    expect(WithdrawalPolicy.canBeClaimed('PAYMENT_PROOF_UPLOADED')).toBe(true);
+    expect(WithdrawalPolicy.canBeClaimed('COMPLETED')).toBe(false);
+    expect(WithdrawalPolicy.canBeClaimed('REJECTED')).toBe(false);
   });
 
   it('reserves and settles wallet balances consistently', () => {
@@ -33,11 +43,29 @@ describe('R-008 domain policies', () => {
       balanceAfter: Money.fromMajor('75.00'),
       lockedAfter: Money.fromMajor('0.00'),
     });
+    expect(WalletSettlementPolicy.releaseReservation(Money.fromMajor('25.00'), requested).toMajorString()).toBe('0.00');
+  });
+
+  it('rejects insufficient wallet balances and inactive wallets', () => {
+    expect(() => WalletSettlementPolicy.assertActive('SUSPENDED')).toThrow(DomainError);
+    expect(() => WalletSettlementPolicy.reserve(
+      Money.fromMajor('20.00'),
+      Money.fromMajor('10.00'),
+      Money.fromMajor('15.00'),
+    )).toThrow(DomainError);
+    expect(() => WalletSettlementPolicy.completeDebit(
+      Money.fromMajor('100.00'),
+      Money.fromMajor('5.00'),
+      Money.fromMajor('10.00'),
+    )).toThrow(DomainError);
   });
 
   it('protects last-owner and ownership transfer invariants', () => {
     expect(() => AdminOwnershipPolicy.assertCanDeactivate({ targetIsOwner: true, activeOwnerCount: 1, actorId: 'a', targetId: 'b' })).toThrow(DomainError);
     expect(() => AdminOwnershipPolicy.assertCanTransfer({ actorIsOwner: false, actorId: 'a', targetId: 'b', targetActive: true })).toThrow(DomainError);
+    expect(() => AdminOwnershipPolicy.assertCanTransfer({ actorIsOwner: true, actorId: 'a', targetId: 'a', targetActive: true })).toThrow(DomainError);
+    expect(() => AdminOwnershipPolicy.assertCanTransfer({ actorIsOwner: true, actorId: 'a', targetId: 'b', targetActive: false })).toThrow(DomainError);
+    expect(() => AdminOwnershipPolicy.assertCanTransfer({ actorIsOwner: true, actorId: 'a', targetId: 'b', targetActive: true })).not.toThrow();
   });
 
   it('requires KYC rejection reasons and classifies watchlist matches', () => {
