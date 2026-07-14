@@ -1,0 +1,41 @@
+name: R-010 Query Boundaries
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/modules/notifications/**'
+      - 'apps/api/src/**/*.service.ts'
+      - 'apps/api/src/**/*.repository.ts'
+      - 'tools/audit-r010-*.mjs'
+      - 'docs/evidence/r010-query-review.json'
+      - '.github/workflows/r010-query-boundaries.yml'
+  pull_request:
+    paths:
+      - 'apps/api/src/modules/notifications/**'
+      - 'apps/api/src/**/*.service.ts'
+      - 'apps/api/src/**/*.repository.ts'
+      - 'tools/audit-r010-*.mjs'
+      - 'docs/evidence/r010-query-review.json'
+      - '.github/workflows/r010-query-boundaries.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Query review ledger
+        run: node tools/audit-r010-query-review-ledger.mjs
+      - name: Notification query ownership
+        run: node tools/audit-r010-notification-query-ownership.mjs
+      - name: API typecheck
+        run: pnpm typecheck:api
