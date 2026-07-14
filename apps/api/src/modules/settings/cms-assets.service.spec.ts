@@ -38,7 +38,10 @@ describe('CmsAssetsService', () => {
     expect(result.sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(storage.put).toHaveBeenCalledWith(result.storageKey, expect.any(Buffer), 'image/png');
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ action: 'cms.asset.upload', adminUserId: actor.id }),
+      data: expect.objectContaining({
+        action: 'cms.asset.upload',
+        adminUser: { connect: { id: actor.id } },
+      }),
     }));
   });
 
