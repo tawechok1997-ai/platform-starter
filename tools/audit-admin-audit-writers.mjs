@@ -20,8 +20,6 @@ const legacyBaseline = new Set([
   'apps/api/src/modules/game-platform/game-transfer-action.service.ts',
   'apps/api/src/modules/game-platform/provider-preset.service.ts',
   'apps/api/src/modules/money-ops/money-ops.service.ts',
-  'apps/api/src/modules/risk-alerts/risk-enforcement.service.ts',
-  'apps/api/src/modules/risk-alerts/risk-watchlist.service.ts',
   'apps/api/src/modules/topups/deposit-workflow.service.ts',
   'apps/api/src/modules/topups/topups.service.ts',
   'apps/api/src/modules/withdrawals/withdrawal-workflow.service.ts',
