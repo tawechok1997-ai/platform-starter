@@ -7,14 +7,14 @@ import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { BonusLifecycleCommandService } from './bonus-lifecycle-command.service';
 import { AddBonusTurnoverDto, CreatePromotionClaimDto, PromotionStatusQueryDto, ReviewPromotionClaimDto, UpdateBonusLifecycleDto } from './dto/promotions.dto';
+import { PromotionClaimCommandService } from './promotion-claim-command.service';
 import { PromotionsQueryService } from './promotions-query.service';
-import { PromotionsService } from './promotions.service';
 
 @Controller()
 export class PromotionsController {
   constructor(
-    private readonly promotions: PromotionsService,
     private readonly queries: PromotionsQueryService,
+    private readonly claimCommands: PromotionClaimCommandService,
     private readonly bonusCommands: BonusLifecycleCommandService,
   ) {}
 
@@ -27,7 +27,7 @@ export class PromotionsController {
 
   @UseGuards(MemberAuthGuard)
   @Post('member/promotion-claims')
-  createClaim(@CurrentUser() user: MemberActor, @Body() body: CreatePromotionClaimDto) { return this.promotions.createClaim(user, body); }
+  createClaim(@CurrentUser() user: MemberActor, @Body() body: CreatePromotionClaimDto) { return this.claimCommands.createClaim(user, body); }
 
   @UseGuards(MemberAuthGuard)
   @Get('member/bonus-ledgers')
@@ -41,7 +41,7 @@ export class PromotionsController {
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('promotions.claims.review')
   @Patch('admin/promotion-claims/:id/review')
-  reviewClaim(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: ReviewPromotionClaimDto) { return this.promotions.reviewClaim(user, id, body); }
+  reviewClaim(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: ReviewPromotionClaimDto) { return this.claimCommands.reviewClaim(user, id, body); }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('bonus.ledger.view')
