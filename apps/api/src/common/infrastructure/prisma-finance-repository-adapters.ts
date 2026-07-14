@@ -5,6 +5,10 @@ import type {
   WithdrawalRecord,
   WithdrawalRepositoryPort,
 } from '../application/critical-repository-ports';
+import {
+  lockTopUpRequestForUpdate,
+  lockWithdrawalRequestForUpdate,
+} from './prisma-row-locks';
 
 /**
  * Transaction-scoped Prisma adapters for finance write flows.
@@ -16,12 +20,10 @@ export class PrismaDepositRepositoryAdapter implements DepositRepositoryPort {
   constructor(private readonly tx: Prisma.TransactionClient) {}
 
   async findByIdForUpdate(id: string): Promise<DepositRecord | null> {
-    const rows = await this.tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
-      SELECT "id" FROM "top_up_requests" WHERE "id" = ${id}::uuid FOR UPDATE
-    `);
-    if (!rows[0]) return null;
+    const lockedId = await lockTopUpRequestForUpdate(this.tx, id);
+    if (!lockedId) return null;
 
-    const record = await this.tx.topUpRequest.findUnique({ where: { id: rows[0].id } });
+    const record = await this.tx.topUpRequest.findUnique({ where: { id: lockedId } });
     return record ? mapDeposit(record) : null;
   }
 
@@ -47,12 +49,10 @@ export class PrismaWithdrawalRepositoryAdapter implements WithdrawalRepositoryPo
   constructor(private readonly tx: Prisma.TransactionClient) {}
 
   async findByIdForUpdate(id: string): Promise<WithdrawalRecord | null> {
-    const rows = await this.tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
-      SELECT "id" FROM "withdrawal_requests" WHERE "id" = ${id}::uuid FOR UPDATE
-    `);
-    if (!rows[0]) return null;
+    const lockedId = await lockWithdrawalRequestForUpdate(this.tx, id);
+    if (!lockedId) return null;
 
-    const record = await this.tx.withdrawalRequest.findUnique({ where: { id: rows[0].id } });
+    const record = await this.tx.withdrawalRequest.findUnique({ where: { id: lockedId } });
     return record ? mapWithdrawal(record) : null;
   }
 
