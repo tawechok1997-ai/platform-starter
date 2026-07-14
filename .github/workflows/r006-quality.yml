@@ -49,11 +49,18 @@ jobs:
         run: |
           pnpm audit:r9-controller-prisma
           pnpm audit:r9-controller-prisma:json > r009-controller-prisma-inventory.json
-      - name: Upload R-009 controller inventory
+      - name: R-009 transaction lock-order inventory
+        run: |
+          pnpm audit:r9-lock-order
+          pnpm audit:r9-lock-order:json > r009-lock-order-inventory.json
+          pnpm audit:r9-lock-order:strict
+      - name: Upload R-009 inventories
         uses: actions/upload-artifact@v4
         with:
-          name: r009-controller-prisma-inventory-${{ github.run_id }}
-          path: r009-controller-prisma-inventory.json
+          name: r009-persistence-inventories-${{ github.run_id }}
+          path: |
+            r009-controller-prisma-inventory.json
+            r009-lock-order-inventory.json
           if-no-files-found: error
           retention-days: 30
       - name: Lint API
@@ -94,7 +101,8 @@ jobs:
             echo "- Member scope: ${{ steps.scope.outputs.member || 'unknown' }}"
             echo "- Packages scope: ${{ steps.scope.outputs.packages || 'unknown' }}"
             echo '- R-001 architecture inventory, R-002 boundaries, R-003 regression safety and R-006 quality closure gates execute unconditionally'
-            echo '- R-009 controller persistence inventory is published as a workflow artifact; strict enforcement remains disabled until the baseline is reviewed'
+            echo '- R-009 controller persistence and lock-order inventories are published as workflow artifacts'
+            echo '- Known lock-order inversions fail the workflow; controller strict mode remains disabled until its baseline is reviewed'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload quality failure evidence
         if: failure()
