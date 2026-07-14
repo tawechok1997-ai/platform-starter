@@ -47,17 +47,25 @@ for (const marker of [
 }
 
 const integrations = [
-  ['apps/api/src/modules/topups/topups.service.ts', 'DepositPolicy'],
-  ['apps/api/src/modules/withdrawals/withdrawals.service.ts', 'WithdrawalPolicy'],
-  ['apps/api/src/modules/withdrawals/withdrawals.service.ts', 'WalletSettlementPolicy'],
-  ['apps/api/src/modules/risk-alerts/kyc-review-command.service.ts', 'KycReviewPolicy'],
-  ['apps/api/src/modules/risk-alerts/risk-watchlist-command.service.ts', 'WatchlistPolicy'],
-  ['apps/api/src/modules/support/support-command.service.ts', 'SupportTicketPolicy'],
-  ['apps/api/src/modules/notifications/notifications-command.service.ts', 'NotificationPreferencePolicy'],
+  ['apps/api/src/modules/topups/topups.service.ts', ['DepositPolicy.assertAmount', 'DepositPolicy.canBeClaimed']],
+  ['apps/api/src/modules/withdrawals/withdrawals.service.ts', ['WithdrawalPolicy.assertAmount', 'WithdrawalPolicy.assertTransition', 'WalletSettlementPolicy.reserve', 'WalletSettlementPolicy.completeDebit']],
+  ['apps/api/src/modules/admin-access/admin-access.service.ts', ['AdminOwnershipPolicy.assertCanTransfer']],
+  ['apps/api/src/modules/risk-alerts/kyc-review-command.service.ts', ['KycReviewPolicy.assertReviewable', 'KycReviewPolicy.assertTransition']],
+  ['apps/api/src/modules/risk-alerts/risk-watchlist-command.service.ts', ['WatchlistPolicy.assertRelease']],
+  ['apps/api/src/modules/support/support-command.service.ts', ['SupportTicketPolicy.nextStatusForReply', 'SupportTicketPolicy.assertTransition']],
+  ['apps/api/src/modules/notifications/notifications-command.service.ts', ['NotificationPreferencePolicy.normalize', 'NotificationPreferencePolicy.assertMutable']],
 ];
-for (const [path, marker] of integrations) {
-  const source = await readFile(join(root, path), 'utf8');
-  if (!source.includes(marker)) failures.push(`${path}: missing ${marker} integration`);
+for (const [path, markers] of integrations) {
+  let source = '';
+  try {
+    source = await readFile(join(root, path), 'utf8');
+  } catch {
+    failures.push(`${path}: missing integration target`);
+    continue;
+  }
+  for (const marker of markers) {
+    if (!source.includes(marker)) failures.push(`${path}: missing integration marker ${marker}`);
+  }
 }
 
 console.log(`R-008 domain policy audit: ${requiredFiles.length} required files`);
