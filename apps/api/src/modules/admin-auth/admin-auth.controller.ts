@@ -5,6 +5,7 @@ import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { AntiBotService } from '../anti-bot/anti-bot.service';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminLoginDefenseService } from './admin-login-defense.service';
+import { AdminSessionsQueryService } from './admin-sessions-query.service';
 import { AdminRefreshSessionDto, AdminTwoFactorCodeDto } from './dto/admin-auth-actions.dto';
 import { AdminSignInDto } from './dto/admin-sign-in.dto';
 import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
@@ -13,6 +14,7 @@ import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
 export class AdminAuthController {
   constructor(
     private readonly adminAuthService: AdminAuthService,
+    private readonly sessionQueries: AdminSessionsQueryService,
     private readonly antiBot: AntiBotService,
     private readonly loginDefense: AdminLoginDefenseService,
   ) {}
@@ -76,7 +78,7 @@ export class AdminAuthController {
   @UseGuards(AdminAuthGuard)
   @Get('sessions')
   sessions(@CurrentUser() user: AuthenticatedAdminActor) {
-    return this.adminAuthService.listSessions(user.id, user.sessionId);
+    return this.sessionQueries.listSessions(user.id, user.sessionId);
   }
 
   @UseGuards(AdminAuthGuard)
