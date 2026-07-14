@@ -1,0 +1,33 @@
+name: R-009 Withdrawal Completion Closure
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/modules/withdrawals/**'
+      - 'tools/audit-r009-withdrawal-completion-*.mjs'
+      - '.github/workflows/r009-withdrawal-completion-closure.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Transaction ownership and lock order
+        run: node tools/audit-r009-withdrawal-completion-transaction.mjs
+      - name: Rollback contract
+        run: node tools/audit-r009-withdrawal-completion-rollback.mjs
+      - name: API typecheck
+        run: pnpm typecheck:api
