@@ -20,6 +20,7 @@ const requiredScripts = [
   'audit:unused-exports',
   'audit:circular-dependencies',
   'audit:browser-quality',
+  'audit:architecture-inventory',
   'audit:architecture-boundaries',
   'audit:critical-test-safety',
 ];
@@ -36,6 +37,7 @@ const requiredFiles = [
   'tools/audit-browser-quality-gate.mjs',
   'tests/fixtures/quality-test.ts',
   '.github/workflows/r006-quality.yml',
+  'docs/architecture/r006-closure.md',
 ];
 
 for (const script of requiredScripts) {
@@ -63,6 +65,11 @@ for (const marker of [
   'actions/upload-artifact@v4',
   'pnpm audit:circular-dependencies',
   'pnpm audit:browser-quality',
+  'pnpm audit:architecture-inventory',
+  'pnpm audit:architecture-boundaries',
+  'pnpm audit:r1-closure',
+  'pnpm audit:r2-closure',
+  'pnpm audit:r3-closure',
 ]) {
   if (!workflow.includes(marker)) failures.push(`r006-quality.yml: missing ${marker}`);
 }
@@ -70,10 +77,13 @@ if (!workflow.includes('Architecture and test-safety guards')) {
   failures.push('r006-quality.yml: critical guards must remain unconditional');
 }
 
+const closure = await readFile(join(root, 'docs', 'architecture', 'r006-closure.md'), 'utf8');
+if (!closure.includes('Status: **DONE**')) failures.push('r006-closure.md: status is not DONE');
+
 console.log('R-006 CI quality baseline audit:');
 console.log(`  required scripts: ${requiredScripts.length}`);
 console.log(`  required files: ${requiredFiles.length}`);
-console.log('  scoped CI, unused-symbol enforcement, browser/circular guards and failure evidence: checked');
+console.log('  scoped CI, unused-symbol enforcement, browser/circular/architecture guards and failure evidence: checked');
 console.log(`  failures: ${failures.length}`);
 
 if (failures.length) {
