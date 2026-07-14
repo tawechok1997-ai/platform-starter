@@ -1,3 +1,0 @@
-R-008 parallel-safe verification trigger
-Groups: admin ownership, withdrawal lifecycle, wallet settlement, full API regression
-Triggered at 2026-07-14T23:05:00+07:00
