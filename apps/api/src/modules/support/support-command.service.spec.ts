@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { SupportCommandService } from './support-command.service';
 
 function ticket(overrides: Record<string, unknown> = {}) {
@@ -112,5 +112,23 @@ describe('SupportCommandService', () => {
         targetId: 'ticket-1',
       }),
     });
+  });
+
+  it('requires a reason before dismissing a ticket', async () => {
+    const existing = ticket({ status: 'OPEN' });
+    const prisma = {
+      riskAlert: {
+        findFirst: jest.fn().mockResolvedValue(existing),
+        update: jest.fn(),
+      },
+      adminAuditLog: { create: jest.fn() },
+    };
+    const service = new SupportCommandService(prisma as never);
+
+    await expect(
+      service.adminUpdate({ id: 'admin-1' }, 'ticket-1', { status: 'DISMISSED' } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(prisma.riskAlert.update).not.toHaveBeenCalled();
+    expect(prisma.adminAuditLog.create).not.toHaveBeenCalled();
   });
 });
