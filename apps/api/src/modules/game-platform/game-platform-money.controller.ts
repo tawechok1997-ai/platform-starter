@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Headers, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
-import type { AdminRequestContext, AuthenticatedAdminActor, HttpRequestContext, MemberActor, MemberRequestContext } from '../../common/actors';
+import type { AuthenticatedAdminActor, HttpRequestContext, MemberActor, MemberRequestContext } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
@@ -10,21 +10,25 @@ import { ReviewDto, normalizeReviewNote, normalizeSnapshotReview } from './dto/g
 import { CreateGameTransferDto, normalizeTransferAmount } from './dto/game-transfer.dto';
 import { ProviderGatesDto, normalizeProviderGatesDto } from './dto/provider-gates.dto';
 import { GamePlatformMoneyService } from './game-platform-money.service';
+import { ProviderTransferCommandService } from './provider-transfer-command.service';
 import { ProviderWebhookService } from './provider-webhook.service';
 
 @UseGuards(MemberAuthGuard)
 @Controller('member')
 export class MemberGameTransferController {
-  constructor(private readonly moneyService: GamePlatformMoneyService) {}
+  constructor(
+    private readonly moneyService: GamePlatformMoneyService,
+    private readonly transferCommands: ProviderTransferCommandService,
+  ) {}
 
   @Get('game-sessions/:sessionId/transfers')
   listSessionTransfers(@Param('sessionId') sessionId: string, @CurrentUser() user: MemberActor) { return this.moneyService.listMemberSessionTransfers(sessionId, user); }
 
   @Post('game-sessions/:sessionId/transfer-in')
-  transferIn(@Param('sessionId') sessionId: string, @Body() body: CreateGameTransferDto, @CurrentUser() user: MemberActor, @Req() req: MemberRequestContext) { return this.moneyService.transferDryRun(sessionId, user, 'TRANSFER_IN', normalizeTransferAmount(body), this.meta(req)); }
+  transferIn(@Param('sessionId') sessionId: string, @Body() body: CreateGameTransferDto, @CurrentUser() user: MemberActor, @Req() req: MemberRequestContext) { return this.transferCommands.transfer(sessionId, user, 'TRANSFER_IN', normalizeTransferAmount(body), this.meta(req)); }
 
   @Post('game-sessions/:sessionId/transfer-out')
-  transferOut(@Param('sessionId') sessionId: string, @Body() body: CreateGameTransferDto, @CurrentUser() user: MemberActor, @Req() req: MemberRequestContext) { return this.moneyService.transferDryRun(sessionId, user, 'TRANSFER_OUT', normalizeTransferAmount(body), this.meta(req)); }
+  transferOut(@Param('sessionId') sessionId: string, @Body() body: CreateGameTransferDto, @CurrentUser() user: MemberActor, @Req() req: MemberRequestContext) { return this.transferCommands.transfer(sessionId, user, 'TRANSFER_OUT', normalizeTransferAmount(body), this.meta(req)); }
 
   private meta(req: MemberRequestContext) {
     const userAgent = req.headers?.['user-agent'];
@@ -35,7 +39,10 @@ export class MemberGameTransferController {
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 @Controller('admin')
 export class AdminGameMoneyController {
-  constructor(private readonly moneyService: GamePlatformMoneyService) {}
+  constructor(
+    private readonly moneyService: GamePlatformMoneyService,
+    private readonly transferCommands: ProviderTransferCommandService,
+  ) {}
 
   @RequirePermission('game.providers.view')
   @Get('game-providers/:providerId/risk-panel')
@@ -63,7 +70,7 @@ export class AdminGameMoneyController {
 
   @RequirePermission('game.providers.manage')
   @Post('game-transfers/:id/retry-dry-run')
-  retryDryRunTransfer(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.retryDryRunTransfer(id, user, normalizeReviewNote(body)); }
+  retryDryRunTransfer(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.transferCommands.retry(id, user, normalizeReviewNote(body)); }
 
   @RequirePermission('game.providers.manage')
   @Post('game-sessions/:sessionId/reconcile')
@@ -71,9 +78,7 @@ export class AdminGameMoneyController {
 
   @RequirePermission('game.providers.manage')
   @Post('game-sessions/reconcile-active')
-  reconcileActiveSessions(@CurrentUser() user: AuthenticatedAdminActor) {
-    return this.moneyService.reconcileActiveSessions(user);
-  }
+  reconcileActiveSessions(@CurrentUser() user: AuthenticatedAdminActor) { return this.moneyService.reconcileActiveSessions(user); }
 
   @RequirePermission('game.providers.view')
   @Get('provider-wallet-snapshots')
