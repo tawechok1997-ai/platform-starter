@@ -34,7 +34,7 @@ describe('AdminMembersCommandService', () => {
     expect(update).toHaveBeenCalledWith({ where: { id: 'member-1' }, data: { status: 'SUSPENDED' } });
     expect(createAudit).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        adminUserId: 'admin-1',
+        adminUser: { connect: { id: 'admin-1' } },
         action: 'UPDATE_MEMBER_STATUS',
         targetId: 'member-1',
         oldData: { status: 'ACTIVE' },
