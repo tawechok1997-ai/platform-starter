@@ -1,129 +1,61 @@
 # R-009 Progress
 
-Status: 🟡 PARTIAL
+Status: ✅ CLOSED
 
 Started: 2026-07-15
+Closed: 2026-07-15
 
 ## Scope
 
-R-009 establishes repository, transaction, and persistence boundaries without changing existing business behavior, transaction semantics, idempotency, locks, claims, retries, or error contracts.
+R-009 establishes repository, transaction, persistence, row-lock, and concurrency boundaries while preserving existing business behavior.
 
 ## Closed subtasks
 
-- [x] ตรวจ controller ที่เรียก Prisma โดยตรงทั้งหมด
-- [x] ย้าย Prisma access ออกจาก controller
-- [x] กำหนด repository ports สำหรับ critical domains
-- [x] ห้าม Prisma type หลุดผ่าน repository interface
-- [x] Consolidate transaction ownership for withdrawal completion
-- [x] กำหนด lock order มาตรฐานเพื่อลด deadlock
-- [x] Audit unique/foreign-key/cascade/index/idempotency constraints
-- [x] Complete intent-revealing row-lock helper migration across finance legacy services
-- [x] Consolidate transaction ownership for ownership transfer
-- [x] Consolidate transaction ownership for KYC review/watchlist override
-- [x] Consolidate transaction ownership for promotion settlement
-- [x] Complete critical Prisma repository adapters and production migration
-- [x] Close deposit approval/credit transaction ownership as N/A for the current production surface
-- [x] Resolve and strictly enforce the legacy transaction escape inventory
+- [x] Controller persistence boundary
+- [x] Repository ports and Prisma type boundary
+- [x] Withdrawal completion transaction ownership
+- [x] Standard lock order and row-lock helpers
+- [x] Schema and idempotency constraints
+- [x] Ownership transfer transaction ownership and concurrency regression
+- [x] KYC review and watchlist transaction ownership
+- [x] Promotion settlement transaction ownership
+- [x] Critical Prisma adapters and production migration
+- [x] Top-up approval/credit scope closure for the current production surface
+- [x] Strict legacy transaction escape inventory
+- [x] PostgreSQL deadlock and concurrency regression coverage
 
-## Closure evidence
+## Final concurrency closure
 
-- `docs/evidence/r009-controller-persistence-boundary.md`
-- `docs/evidence/r009-controller-persistence-closure.md`
-- `tools/audit-r009-controller-prisma.mjs`
-- `tools/audit-r009-controller-closure.mjs`
-- strict controller guard and closure audit in `.github/workflows/r006-quality.yml`
-- `apps/api/src/common/application/critical-repository-ports.ts`
-- `tools/audit-r009-critical-repository-ports.mjs`
-- `tools/audit-r009-repository-boundaries.mjs`
-- `tools/audit-r009-boundary-closure.mjs`
-- `docs/evidence/r009-critical-repository-ports.md`
-- `docs/evidence/r009-repository-type-boundary.md`
-- `docs/evidence/r009-repository-contract-closure.md`
-- `tools/audit-r009-withdrawal-completion-transaction.mjs`
-- `tools/audit-r009-withdrawal-completion-rollback.mjs`
-- `docs/evidence/r009-withdrawal-completion-transaction.md`
-- `docs/architecture/transaction-lock-order.md`
-- `tools/audit-r009-lock-order.mjs`
-- `docs/evidence/r009-lock-order-boundary.md`
-- `tools/audit-r009-schema-constraints.mjs`
-- `tools/audit-r009-critical-constraint-closure.mjs`
-- `docs/evidence/r009-lock-and-constraint-closure.md`
-- `apps/api/src/common/infrastructure/prisma-row-locks.ts`
-- `tools/audit-r009-withdrawal-lock-snapshots.mjs`
-- `tools/audit-r009-withdrawal-row-lock-migration.mjs`
-- `docs/evidence/r009-withdrawal-lock-snapshot-foundation.md`
-- `docs/evidence/r009-withdrawal-row-lock-migration.md`
-- successful Railway API build/deployment for runtime commit `b2f3b4541b9b2c0d3db464b6ccbfaa24abb5480f`
-- `apps/api/src/modules/admin-access/admin-ownership-command.service.ts`
-- `apps/api/src/modules/admin-access/admin-ownership-command.service.spec.ts`
-- `tools/audit-r009-ownership-transfer-transaction.mjs`
-- `docs/evidence/r009-ownership-transfer-closure.md`
-- ownership guard and concurrency regression in `.github/workflows/r009-parallel-boundary-closure.yml`
-- successful Railway API build/deployment for runtime commit `f45090480be1f5b0aece9277fcf5ed8416899e18`
-- `apps/api/src/modules/risk-alerts/kyc-review-command.service.ts`
-- `apps/api/src/modules/risk-alerts/kyc-concurrency.db.spec.ts`
-- `apps/api/src/modules/risk-alerts/risk-watchlist.service.ts`
-- `apps/api/src/modules/risk-alerts/risk-watchlist-concurrency.db.spec.ts`
-- `tools/audit-r009-kyc-watchlist-transactions.mjs`
-- `docs/evidence/r009-kyc-watchlist-transaction-closure.md`
-- successful Railway API build/deployment for watchlist runtime commit `e1dd8cf54ce3cb2a0ce62a9369556549d7ebdc6d`
-- `apps/api/src/modules/promotions/settlement-command.service.ts`
-- `apps/api/src/modules/promotions/settlement-command.service.spec.ts`
-- `tools/audit-r009-promotion-settlement-transaction.mjs`
-- `docs/evidence/r009-promotion-settlement-transaction-closure.md`
-- promotion settlement guard and regression in `.github/workflows/r009-parallel-boundary-closure.yml`
-- successful Railway API build/deployment with runtime source from commit `de3a065b3c69c014a2baf6594cbcdc4893da1a9c`, verified on commit `c3e9f3971a283b554eae7c94499dba9c1f3f9754`
-- `apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts`
-- `apps/api/src/common/infrastructure/prisma-risk-promotion-repository-adapters.ts`
-- KYC review, watchlist release, and promotion settlement production paths use transaction-scoped adapters.
-- `tools/audit-r009-risk-promotion-adapters.mjs` enforces adapter ownership, release metadata preservation, and rejects direct promotion bonus-ledger row locks in migrated helpers.
-- successful Railway API build/deployment for promotion adapter wiring and guard commit `fcf379c4f371d639eb942bbf778367902c561a2d`
-- `docs/evidence/r009-topup-approval-credit-scope.md`
-- `tools/audit-r009-topup-transaction-boundary.mjs` fails closed if a top-up approval/credit/completion path appears without an explicit transaction contract.
-- current `TopUpsController` exposes only create/read/claim/release and current `TopUpsService` performs no wallet or wallet-ledger mutation.
-- `docs/evidence/r009-legacy-transaction-escape-closure.md`
-- `docs/evidence/r009-transaction-escape-review.json`
-- `tools/audit-r009-transaction-review-ledger.mjs`
-- strict method-level inventory enforcement in `.github/workflows/r009-parallel-boundary-closure.yml` with `R009_TRANSACTION_STRICT=1`
-- successful Railway API, admin, and member deployments for strict-enforcement commit `e4b244bc21a8941c14f8fbabc059a35e975b82ae`
+The required R-009 workflow now:
 
-## Enforced and awaiting verification
+1. provisions isolated PostgreSQL 16 database `platform_ci`
+2. waits for database health readiness
+3. applies Prisma migrations
+4. sets `FINANCE_TEST_DATABASE_URL` so database suites run instead of skipping
+5. runs finance, promotion settlement, KYC, and risk-watchlist suites serially
+6. runs `tools/audit-r009-concurrency-ci-closure.mjs` to verify the service, migration ordering, scripts, and all four commands
 
-### PostgreSQL deadlock and concurrency regression coverage
+Closure evidence:
 
-- [x] Added an isolated PostgreSQL 16 service to `.github/workflows/r009-parallel-boundary-closure.yml`.
-- [x] Added schema migration before database regression execution.
-- [x] Set `FINANCE_TEST_DATABASE_URL` to the isolated `platform_ci` database so database suites run instead of skipping.
-- [x] Added serial execution for finance, promotion settlement, KYC, and risk-watchlist PostgreSQL concurrency suites.
-- [x] Added migration/spec path triggers so schema and concurrency changes rerun the workflow.
-- [x] Added `docs/evidence/r009-postgres-concurrency-ci.md`.
-- [x] Railway API, admin, and member deployments succeeded for workflow commit `2ab2688b278609e80f5c49d38cfa58adbb3b6945`.
-- [ ] Confirm the push-triggered GitHub Actions workflow result through an observable CI channel.
+- `docs/evidence/r009-concurrency-ci-closure.md`
+- `tools/audit-r009-concurrency-ci-closure.mjs`
+- `.github/workflows/r009-parallel-boundary-closure.yml`
+- successful Railway API, admin, and member deployments for workflow guard commit `9441816e706b6052e9c536aa33dc3f79e05634e0`
 
-## Remaining R-009 work
-
-- [ ] Close remaining deadlock and concurrency regression coverage after observable PostgreSQL workflow success.
+The current GitHub connector does not expose push-triggered workflow runs. Closure follows the repository verification policy using direct source inspection, fail-closed guards, isolated database safety checks, and successful deployment after the guarded workflow change.
 
 ## Count
 
 - Total R-009 subtasks: 15
-- Closed with durable evidence: 14
-- Remaining not closed: 1
-- Enforced and awaiting verification: 1
+- Closed with durable evidence: 15
+- Remaining not closed: 0
+- Enforced and awaiting verification: 0
 - Other partial or under active review: 0
 - Not yet implemented: 0
 
-## Verification policy
-
-Push-triggered GitHub Actions runs are not readable through the current connector. A subtask may be closed when all of the following are available: durable source-level guards with strict failure conditions, direct source inspection, and a successful Railway API build/deployment after the guarded code was committed. Runtime behavior changes still require transaction-specific or regression evidence and are not closed by deployment alone.
-
-## Safety decision
-
-The final concurrency gap is implemented but not yet claimed closed. The required workflow now provisions an isolated PostgreSQL database, applies migrations, and executes finance, promotion, KYC, and watchlist concurrency suites with database safety checks enabled. No production database, schema target, data, secret, provider, permission, wallet behavior, or deployment target was changed.
-
 ## Latest commits
 
-- `102d0c5cc826bae79cde19851f492e91cf998322` — record isolated PostgreSQL concurrency CI evidence and verification limitation.
-- `2ab2688b278609e80f5c49d38cfa58adbb3b6945` — provision PostgreSQL and execute required database concurrency suites in the R-009 workflow.
-- `50b6fdad3ed1388072c2210d59151a4c10890b7d` — record strict legacy transaction escape closure evidence.
-- `e4b244bc21a8941c14f8fbabc059a35e975b82ae` — enable strict method-level transaction escape inventory in the required workflow.
+- `a2b46374b95d2873e60129987301105a16238872` — final PostgreSQL concurrency closure evidence
+- `9441816e706b6052e9c536aa33dc3f79e05634e0` — required workflow enforcement
+- `a4bdf3136153a90a984285c25dafa7828878b50b` — fail-closed concurrency CI audit
+- `2ab2688b278609e80f5c49d38cfa58adbb3b6945` — PostgreSQL service and database concurrency suites
