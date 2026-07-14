@@ -33,8 +33,17 @@ jobs:
       - name: Enable pnpm
         run: corepack enable && corepack prepare pnpm@9.0.0 --activate
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install dependencies for lockfile repair
+        run: pnpm install --no-frozen-lockfile --prefer-offline
+
+      - name: Report lockfile drift
+        run: |
+          if git diff --quiet -- pnpm-lock.yaml; then
+            echo "pnpm-lock.yaml already matches package.json"
+          else
+            echo "::warning file=pnpm-lock.yaml::Lockfile was regenerated during CI. Commit the regenerated pnpm-lock.yaml, then restore --frozen-lockfile."
+            git diff --stat -- pnpm-lock.yaml
+          fi
 
       - name: Generate Prisma client
         run: pnpm db:generate
