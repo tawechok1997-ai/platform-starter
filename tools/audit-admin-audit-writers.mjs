@@ -7,7 +7,6 @@ const findings = [];
 // Existing runtime debt is tracked explicitly so strict mode prevents regressions
 // without treating test fixtures or the entire historical backlog as new failures.
 const legacyBaseline = new Set([
-  'apps/api/src/modules/admin-access/admin-access-session.service.ts',
   'apps/api/src/modules/admin-access/admin-access.service.ts',
   'apps/api/src/modules/admin-access/admin-account-lifecycle.service.ts',
   'apps/api/src/modules/admin-access/admin-invitation-admin.service.ts',
