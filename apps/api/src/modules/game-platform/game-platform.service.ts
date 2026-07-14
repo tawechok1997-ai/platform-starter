@@ -1,4 +1,5 @@
 import type { AdminActor, MemberActor } from '../../common/actors';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
@@ -58,7 +59,7 @@ export class GamePlatformService {
   private credentialKey() { const keySource = this.configService.get<string>('GAME_CREDENTIAL_SECRET') ?? this.configService.get<string>('JWT_ACCESS_KEY') ?? 'local_game_credential_key'; return createHash('sha256').update(keySource).digest(); }
   private maskSecret(value: string) { if (value.length <= 8) return `${value.slice(0, 1)}••••${value.slice(-1)}`; return `${value.slice(0, 4)}••••${value.slice(-4)}`; }
   private async markCredentialUse(providerId: string) { await this.prisma.gameProviderCredential.updateMany({ where: { providerId, isEnabled: true }, data: { lastUsedAt: new Date() } }); }
-  private async audit(actor: AdminActor, action: string, targetId: string, oldData: Prisma.InputJsonValue | null, newData: Prisma.InputJsonValue | null, meta: RequestMeta) { await this.prisma.adminAuditLog.create({ data: { adminUserId: actor.id, action, module: 'game-platform', targetId, oldData: oldData ?? Prisma.JsonNull, newData: newData ?? Prisma.JsonNull, ipAddress: meta.ipAddress, userAgent: meta.userAgent } }); }
+  private async audit(actor: AdminActor, action: string, targetId: string, oldData: Prisma.InputJsonValue | null, newData: Prisma.InputJsonValue | null, meta: RequestMeta) { await this.prisma.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: actor.id, action, module: 'game-platform', targetId, oldData, newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) }); }
   private safeJson(value: unknown) { return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue; }
   private handleProviderWriteError(error: unknown, message: string): never { if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') throw new ConflictException(message); throw error; }
 }

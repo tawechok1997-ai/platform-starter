@@ -7,8 +7,6 @@ const findings = [];
 // Existing runtime debt is tracked explicitly so strict mode prevents regressions
 // without treating test fixtures or the entire historical backlog as new failures.
 const legacyBaseline = new Set([
-  'apps/api/src/modules/game-platform/game-platform-money.service.ts',
-  'apps/api/src/modules/game-platform/game-platform.service.ts',
 ]);
 
 function isRuntimeTypeScript(file) {

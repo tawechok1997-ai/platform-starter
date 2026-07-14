@@ -1,4 +1,5 @@
 import type { AdminActor, MemberActor } from '../../common/actors';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
@@ -154,7 +155,7 @@ export class GamePlatformMoneyService {
   private credentialKey() { const keySource = this.configService.get<string>('GAME_CREDENTIAL_SECRET') ?? this.configService.get<string>('JWT_ACCESS_KEY') ?? 'local_game_credential_key'; return createHash('sha256').update(keySource).digest(); }
   private decryptSecret(value: string) { const [, ivRaw, tagRaw, encryptedRaw] = value.split(':'); if (!ivRaw || !tagRaw || !encryptedRaw) return value; const decipher = createDecipheriv('aes-256-gcm', this.credentialKey(), Buffer.from(ivRaw, 'base64')); decipher.setAuthTag(Buffer.from(tagRaw, 'base64')); return Buffer.concat([decipher.update(Buffer.from(encryptedRaw, 'base64')), decipher.final()]).toString('utf8'); }
   private async markCredentialUse(providerId: string) { await this.prisma.gameProviderCredential.updateMany({ where: { providerId, isEnabled: true }, data: { lastUsedAt: new Date() } }); }
-  private async audit(actor: AdminActor, action: string, module: string, targetId: string | undefined, newData: unknown) { await this.prisma.adminAuditLog.create({ data: { adminUserId: actor.id, action, module, targetId, newData: this.safeJson(newData) } }); }
+  private async audit(actor: AdminActor, action: string, module: string, targetId: string | undefined, newData: unknown) { await this.prisma.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: actor.id, action, module, targetId, newData }) }); }
   private safeJson(value: unknown) { return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue; }
   private objectJson(value: unknown) { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
   private mergeJson(current: unknown, patch: Record<string, unknown>) { return this.safeJson({ ...this.objectJson(current), ...patch }); }
