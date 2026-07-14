@@ -13,6 +13,10 @@ Updated: **2026-07-14**
 - Split finance summary and report reads into dedicated query services.
 - Kept a temporary `FinanceService` compatibility facade so existing consumers can migrate without a flag day.
 - Registered the new query services in `FinanceModule` and injected them directly into `FinanceController`.
+- Extracted Admin activity history reads into `AdminActivityQueryService`.
+- Extracted activity response shaping into `activity.mapper.ts` and removed the untyped Prisma `where` object.
+- Kept `ActivityService` as a compatibility facade while `OperationsController` now injects the query service directly.
+- Added mapper regression coverage for audit metadata and missing admin identities.
 
 ## Remaining closure scope
 
@@ -21,7 +25,7 @@ R-007 cannot be marked DONE until the following worklist areas have implementati
 - Admin lifecycle/auth command-query decomposition.
 - KYC/watchlist command-query decomposition.
 - Support/notifications command-query decomposition.
-- CMS/reports command-query decomposition beyond the finance report slice.
+- CMS/reports command-query decomposition beyond the finance report and activity history slices.
 - Shared Prisma-to-domain-to-response mappers for remaining critical domains.
 - Shared audit builder and metadata formatter extraction.
 - CSV/report serializer extraction.
