@@ -5,6 +5,7 @@ import { RequirePermission } from '../../common/decorators/require-permission.de
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { BonusLifecycleCommandService } from './bonus-lifecycle-command.service';
 import { AddBonusTurnoverDto, CreatePromotionClaimDto, PromotionStatusQueryDto, ReviewPromotionClaimDto, UpdateBonusLifecycleDto } from './dto/promotions.dto';
 import { PromotionsQueryService } from './promotions-query.service';
 import { PromotionsService } from './promotions.service';
@@ -14,6 +15,7 @@ export class PromotionsController {
   constructor(
     private readonly promotions: PromotionsService,
     private readonly queries: PromotionsQueryService,
+    private readonly bonusCommands: BonusLifecycleCommandService,
   ) {}
 
   @Get('public/promotions')
@@ -49,10 +51,10 @@ export class PromotionsController {
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('bonus.turnover.update')
   @Patch('admin/bonus-ledgers/:id/turnover-progress')
-  addTurnoverProgress(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: AddBonusTurnoverDto) { return this.promotions.addTurnoverProgress(user, id, body); }
+  addTurnoverProgress(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: AddBonusTurnoverDto) { return this.bonusCommands.addTurnoverProgress(user, id, body); }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
   @RequirePermission('bonus.lifecycle.update')
   @Patch('admin/bonus-ledgers/:id/lifecycle')
-  updateBonusLifecycle(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: UpdateBonusLifecycleDto) { return this.promotions.updateBonusLifecycle(user, id, body); }
+  updateBonusLifecycle(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Body() body: UpdateBonusLifecycleDto) { return this.bonusCommands.updateBonusLifecycle(user, id, body); }
 }
