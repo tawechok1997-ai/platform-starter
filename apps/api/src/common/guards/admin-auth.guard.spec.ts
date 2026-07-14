@@ -22,13 +22,19 @@ function activeSession(permissionCodes: string[] = []) {
   };
 }
 
+function prismaMock(session: unknown) {
+  return {
+    authSession: { findFirst: jest.fn().mockResolvedValue(session) },
+    adminDelegation: { findMany: jest.fn().mockResolvedValue([]) },
+  } as any;
+}
+
 describe('AdminAuthGuard', () => {
   it('keeps empty permissions empty instead of granting wildcard access', async () => {
     const request = { headers: { authorization: 'Bearer access-token' } } as any;
     const jwtService = { verifyAsync: jest.fn().mockResolvedValue({ type: 'ADMIN', sub: 'admin-1', sessionId: 'session-1' }) } as any;
     const configService = { get: jest.fn().mockReturnValue('secret') } as any;
-    const prisma = { authSession: { findFirst: jest.fn().mockResolvedValue(activeSession()) } } as any;
-    const guard = new AdminAuthGuard(jwtService, configService, prisma);
+    const guard = new AdminAuthGuard(jwtService, configService, prismaMock(activeSession()));
 
     await expect(guard.canActivate(createContext(request))).resolves.toBe(true);
     expect(request.user.permissions).toEqual([]);
@@ -48,8 +54,7 @@ describe('AdminAuthGuard', () => {
         roles: [{ role: { code: roleCode, permissions: [] } }],
       },
     };
-    const prisma = { authSession: { findFirst: jest.fn().mockResolvedValue(session) } } as any;
-    const guard = new AdminAuthGuard(jwtService, configService, prisma);
+    const guard = new AdminAuthGuard(jwtService, configService, prismaMock(session));
 
     await expect(guard.canActivate(createContext(request))).resolves.toBe(true);
     expect(request.user.roleCodes).toEqual([roleCode]);
@@ -70,8 +75,7 @@ describe('AdminAuthGuard', () => {
         ],
       },
     };
-    const prisma = { authSession: { findFirst: jest.fn().mockResolvedValue(session) } } as any;
-    const guard = new AdminAuthGuard(jwtService, configService, prisma);
+    const guard = new AdminAuthGuard(jwtService, configService, prismaMock(session));
 
     await guard.canActivate(createContext(request));
     expect(request.user.permissions).toEqual(['users.view', 'reports.view']);
@@ -81,12 +85,8 @@ describe('AdminAuthGuard', () => {
     const request = { headers: { authorization: 'Bearer access-token' } } as any;
     const jwtService = { verifyAsync: jest.fn().mockResolvedValue({ type: 'ADMIN', sub: 'admin-1', sessionId: 'session-1' }) } as any;
     const configService = { get: jest.fn().mockReturnValue('secret') } as any;
-    const prisma = {
-      authSession: {
-        findFirst: jest.fn().mockResolvedValue({ ...activeSession(), adminUser: { ...activeSession().adminUser, status: 'LOCKED' } }),
-      },
-    } as any;
-    const guard = new AdminAuthGuard(jwtService, configService, prisma);
+    const session = { ...activeSession(), adminUser: { ...activeSession().adminUser, status: 'LOCKED' } };
+    const guard = new AdminAuthGuard(jwtService, configService, prismaMock(session));
 
     await expect(guard.canActivate(createContext(request))).rejects.toThrow(UnauthorizedException);
   });
