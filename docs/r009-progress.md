@@ -93,9 +93,13 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 - [x] Added `docs/evidence/r009-transaction-escape-review.json` as the reviewed baseline ledger.
 - [x] Added `tools/audit-r009-transaction-review-ledger.mjs` to reject invalid statuses and undocumented safe findings.
 - [x] Added strict mode that fails on confirmed, unreviewed, or stale findings.
-- [x] Classified `AdminAccessService.createInvitation` audit persistence as a confirmed transaction escape.
-- [x] Added `tools/audit-r009-admin-invitation-transaction.mjs` as a dedicated failing closure guard.
-- [ ] Move the `CREATE_ADMIN_INVITATION` audit write into the existing transaction owner.
+- [x] Classified the legacy `AdminAccessService.createInvitation` audit persistence as a confirmed transaction escape.
+- [x] Routed production invitation creation through `AdminInvitationAdminService.create`.
+- [x] Moved invitation account creation, verification-token persistence, and `CREATE_ADMIN_INVITATION` audit persistence into one transaction owner.
+- [x] Moved invitation reissue token replacement and `REISSUE_ADMIN_INVITATION` audit persistence into one transaction owner.
+- [x] Updated `tools/audit-r009-admin-invitation-transaction.mjs` to guard controller routing and both atomic invitation commands.
+- [x] Reclassified the legacy finding as `safe-direct-write` because the production route no longer calls the legacy method.
+- [ ] Confirm successful Railway API deployment for the invitation command migration.
 - [ ] Populate the review ledger from the remaining current method-level inventory.
 - [ ] Resolve all remaining confirmed legacy service escapes.
 - [ ] Enable strict mode in the required quality workflow after review reaches zero unreviewed findings.
@@ -103,8 +107,8 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 ## Pending evidence
 
 - [ ] Confirm Prisma adapter workflows through an observable verification channel.
+- [ ] Confirm Railway API deployment for invitation create/reissue transaction ownership.
 - [ ] Run the method-level transaction inventory and classify every remaining same-method finding.
-- [ ] Resolve the confirmed admin invitation audit escape.
 
 ## Remaining R-009 work
 
@@ -131,12 +135,11 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-The transaction escape inventory now has stable finding identities, a reviewed baseline ledger, stale-review detection, and a strict mode. `AdminAccessService.createInvitation` is recorded as a confirmed escape because admin creation and verification-token persistence commit before the required audit write. A dedicated guard now fails until that audit moves into the same transaction. The runtime service was not replaced through the GitHub Contents API because the file is large and concurrent direct-main changes make whole-file replacement unsafe. No Prisma schema, production data, finance formula, permission, secret, provider, or deployment-target change was made.
+The production invitation creation route now delegates to a focused command service. Invitation account creation, verification-token persistence, and audit persistence share one transaction owner; invitation reissue token replacement and audit persistence also share one transaction owner. The legacy method remains unreachable from the controller and is documented in the review ledger. The runtime migration is awaiting Railway API verification before the transaction-escape subtask can advance toward closure. No Prisma schema, production data, finance formula, permission, secret, provider, or deployment-target change was made.
 
 ## Latest commits
 
-- `097e003b3e90d35d41bf84339025bb034e8928d3` — classify the admin invitation audit escape.
-- `44c537dd1f35f7d83f833f1cb6168bc8f4e21ce7` — add the admin invitation transaction closure guard.
-- `69ad45073542267190e07ff3222f0bcab8cdae4c` — add reviewed baseline and strict mode to the transaction escape audit.
-- `a3a597349f7ad740350cc71fbe6b5be601b44415` — add transaction escape review ledger.
-- `8278df2d43fc74f642e941ee9fa0e0e4ccbf5334` — validate transaction escape review records.
+- `629047983b08ca64035c35f50d5ca7f4cf539beb` — make invitation create and reissue commands atomic.
+- `f64be20c007a4910f69d603b9d075b9e475048c7` — route invitation creation through the atomic command service.
+- `f56440ee346c36c0cd24d331302076030d86e749` — guard invitation command routing and transaction ownership.
+- `0b2eed814e220413169a80559d5d3191cc285823` — resolve the legacy invitation escape review finding.
