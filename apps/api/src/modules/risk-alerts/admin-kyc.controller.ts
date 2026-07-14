@@ -5,23 +5,27 @@ import { RequirePermission } from '../../common/decorators/require-permission.de
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { KycAccessTokenDto, ReviewKycCaseDto, ReviewKycDocumentDto } from './dto/kyc-document.dto';
+import { KycDocumentsQueryService } from './kyc-documents-query.service';
 import { KycDocumentsService } from './kyc-documents.service';
 
 @Controller('admin/kyc')
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 export class AdminKycController {
-  constructor(private readonly kyc: KycDocumentsService) {}
+  constructor(
+    private readonly kyc: KycDocumentsService,
+    private readonly queries: KycDocumentsQueryService,
+  ) {}
 
   @RequirePermission('risk.view')
   @Get('cases')
   list(@Query('status') status?: string, @Query('page') page?: string, @Query('take') take?: string) {
-    return this.kyc.adminList(status, page, take);
+    return this.queries.adminList(status, page, take);
   }
 
   @RequirePermission('risk.view')
   @Get('cases/:id')
   get(@Param('id') id: string) {
-    return this.kyc.adminGet(id);
+    return this.queries.adminGet(id);
   }
 
   @RequirePermission('risk.resolve')
