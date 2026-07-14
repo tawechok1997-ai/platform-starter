@@ -1,5 +1,6 @@
 'use client';
 
+import { createApiClient } from '@platform/api-client';
 import { useEffect, useRef, useState } from 'react';
 
 type Provider = 'TURNSTILE' | 'RECAPTCHA' | 'HCAPTCHA';
@@ -18,6 +19,7 @@ const scripts: Record<Provider, string> = {
   RECAPTCHA: 'https://www.google.com/recaptcha/api.js?render=explicit',
   HCAPTCHA: 'https://js.hcaptcha.com/1/api.js?render=explicit',
 };
+const localApiClient = createApiClient({ baseUrl: '', retry: 1, cache: 'no-store', timeoutMs: 10_000 });
 
 export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredChange }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -28,9 +30,8 @@ export function AntiBotWidget({ endpoint, locale, resetKey, onToken, onRequiredC
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/anti-bot/${endpoint}`, { cache: 'no-store' })
-      .then((response) => response.ok ? response.json() : Promise.reject())
-      .then((payload: PublicConfig) => {
+    localApiClient.request<PublicConfig>(`/api/anti-bot/${endpoint}`, { auth: false, cache: 'no-store' })
+      .then((payload) => {
         if (cancelled) return;
         setConfig(payload);
         const ready = !payload.enabled || Boolean(payload.provider && payload.siteKey);
