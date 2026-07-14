@@ -77,14 +77,19 @@ Closure evidence:
 
 - [x] Added transaction-scoped deposit and withdrawal adapters at `apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts`.
 - [x] Added `PrismaAdminOwnershipRepositoryAdapter` using the existing `AdminUser`, `AdminUserRole`, and `Role` schema models.
-- [x] All implemented adapters receive `Prisma.TransactionClient` from the transaction owner.
-- [x] Implemented adapters do not instantiate `PrismaClient` or call `$transaction`.
-- [x] Added compatibility and adapter coverage audits.
-- [ ] Resolve the real schema mappings for KYC/watchlist and promotion settlement.
-- [ ] Add KYC/watchlist and promotion settlement adapters.
-- [ ] Migrate critical services to use the adapters.
+- [x] Resolved real schema mappings for KYC documents, KYC cases, risk-watchlist entries, and bonus-ledger settlements.
+- [x] Added `PrismaKycWatchlistRepositoryAdapter` and `PrismaPromotionSettlementRepositoryAdapter`.
+- [x] All adapters receive `Prisma.TransactionClient` from the transaction owner.
+- [x] Adapters do not instantiate `PrismaClient` or call `$transaction`.
+- [x] Migrated KYC document review, KYC case review, and watchlist release production paths to transaction-scoped adapters.
+- [x] Preserved KYC/watchlist response snapshots and optimistic-version behavior.
+- [x] Added `tools/audit-r009-risk-promotion-adapters.mjs` and required-workflow enforcement.
+- [x] Successful Railway API build/deployment after KYC/watchlist adapter migration on commit `43680f8b0184726d7027f5f8fc51bfec1c5e5145`.
+- [ ] Migrate promotion settlement bonus-ledger lock/read/final persistence through `PrismaPromotionSettlementRepositoryAdapter`.
+- [ ] Tighten the adapter audit to reject direct promotion bonus-ledger locking after migration.
 
-Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, ownership).
+Implemented adapter coverage: **5 of 5 critical domains**.
+Production service migration coverage: **4 of 5 critical domains** (deposit, withdrawal, ownership, KYC/watchlist).
 
 ## Active partial work
 
@@ -115,12 +120,12 @@ Current adapter coverage: **3 of 5 critical domains** (deposit, withdrawal, owne
 
 ## Pending evidence
 
-- [ ] Confirm Prisma adapter workflows through an observable verification channel.
+- [ ] Complete promotion settlement production wiring through its transaction-scoped adapter.
 - [ ] Run the method-level transaction inventory and classify every remaining same-method finding.
 
 ## Remaining R-009 work
 
-- [ ] Complete KYC/watchlist and promotion Prisma adapters and migrate services.
+- [ ] Complete promotion settlement adapter migration.
 - [ ] Consolidate transaction ownership for deposit approval/credit.
 - [ ] Resolve confirmed legacy transaction escapes.
 - [ ] Add remaining deadlock and concurrency regression coverage.
@@ -140,12 +145,12 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-KYC review and watchlist override now have row locks, optimistic version checks, atomic audits, PostgreSQL concurrency evidence, and successful Railway API deployment. Promotion settlement now owns lifecycle transition, wallet and ledger mutation, bonus state, risk metadata, and admin audit under one Serializable transaction, with stable idempotency keys and rollback failure handling. No Prisma schema, production data, permission model, secret, provider, or deployment-target change was made.
+KYC review and watchlist override now use transaction-scoped repository adapters while preserving row locks, optimistic version checks, response fields, atomic audits, and PostgreSQL concurrency behavior. Promotion settlement has a schema-correct adapter, but its production command still owns bonus-ledger SQL directly and remains the final adapter-wiring gap. No Prisma schema, production data, permission model, secret, provider, or deployment-target change was made.
 
 ## Latest commits
 
-- `de3a065b3c69c014a2baf6594cbcdc4893da1a9c` — consolidate promotion settlement transaction ownership.
-- `3699cffce9c77363bddac1c08f911e2584e694e4` — replace stale settlement tests with atomic, idempotency, and rollback coverage.
-- `2e6cdfcc9993a81fed6e74bda5f1b76c9d55d333` — guard promotion settlement transaction ownership.
-- `204316f98c70c2af844f9125b1c122a8853497fe` — enforce promotion settlement guard and command regression.
-- `c3e9f3971a283b554eae7c94499dba9c1f3f9754` — record promotion settlement closure evidence and successful Railway deployment.
+- `43680f8b0184726d7027f5f8fc51bfec1c5e5145` — enforce risk/promotion adapter guard in the required workflow and verify Railway deployment.
+- `ab4d442225b76b1e1918b61e2f5b6510eaf2d73a` — add risk/promotion adapter boundary audit.
+- `450694e0715f28488a178bb8bef82ac6900116aa` — migrate watchlist release through the transaction-scoped adapter.
+- `eb3080e54da9b56add4e5f00c007903bf382e993` — preserve full KYC response snapshots after adapter migration.
+- `66efe8b573e8518b20950946b545f23b06072cf4` — add KYC/watchlist and promotion settlement Prisma adapters.
