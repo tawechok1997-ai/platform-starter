@@ -6,6 +6,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AdminAccessSessionService } from './admin-access-session.service';
 import { AdminAccessService } from './admin-access.service';
 import { AdminAccountLifecycleService } from './admin-account-lifecycle.service';
+import { AdminInvitationAdminService } from './admin-invitation-admin.service';
 import { AdminOwnershipCommandService } from './admin-ownership-command.service';
 import {
   AssignAdminRoleDto,
@@ -23,6 +24,7 @@ export class AdminAccessController {
     private readonly service: AdminAccessService,
     private readonly accessSessions: AdminAccessSessionService,
     private readonly accountLifecycle: AdminAccountLifecycleService,
+    private readonly invitationCommands: AdminInvitationAdminService,
     private readonly ownershipCommands: AdminOwnershipCommandService,
   ) {}
 
@@ -82,7 +84,7 @@ export class AdminAccessController {
   @RequirePermission('admin.create')
   @Post('invitations')
   createInvitation(@Req() req: AdminRequestContext, @Body() body: CreateAdminInvitationDto) {
-    return this.service.createInvitation(req.user.id, body.email, body.roleId, body.expiresInHours);
+    return this.invitationCommands.create(req.user.id, body.email, body.roleId, body.expiresInHours);
   }
 
   @RequirePermission('admin.access.view')
