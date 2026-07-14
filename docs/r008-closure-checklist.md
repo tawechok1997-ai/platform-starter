@@ -2,21 +2,21 @@
 
 Status: PARTIAL
 
-## 1. Admin ownership integration
+## 1. Admin ownership integration — COMPLETE IN CODE
 
-- [ ] Implementation commit is present on `main`
-- [ ] `AdminOwnershipPolicy.assertCanTransfer` is called by `AdminAccessService`
+- [x] Implementation commit is present on `main`
+- [x] `AdminOwnershipPolicy.assertCanTransfer` is called by `AdminOwnershipCommandService`
 - [x] Self-transfer is rejected by the policy
 - [x] Non-owner transfer is rejected
 - [x] Inactive target is rejected
 - [x] Target 2FA requirement remains enforced
-- [ ] Domain errors preserve the HTTP contract
+- [x] Domain errors preserve the HTTP contract
 - [x] Ownership audit and role transfer remain in one transaction
-- [ ] Service regression tests cover accepted and rejected transfers
+- [x] Service regression tests cover accepted and rejected transfers
 
-Remaining: 4 subtasks
+Remaining: 0 subtasks
 
-Current evidence: policy regression coverage now verifies self-transfer, non-owner, inactive-target, and accepted-transfer cases. `AdminAccessService.transferOwnership` still performs validation inline, so service integration remains open.
+Current evidence: `AdminAccessController` now routes ownership transfers through `AdminOwnershipCommandService`. The command service loads the actor and target, applies `AdminOwnershipPolicy.assertCanTransfer`, maps owner authorization failures to `ForbiddenException`, maps other policy violations to `BadRequestException`, and delegates accepted commands to the existing transactional ownership transfer implementation. Regression coverage verifies accepted, non-owner, self-transfer, and inactive-target paths.
 
 ## 2. Withdrawal lifecycle integration
 
@@ -61,13 +61,14 @@ Current evidence: policy regression coverage verifies inactive-wallet, insuffici
 
 Remaining: 6 subtasks
 
-Verification blocker: the GitHub Actions integration workflow has not produced a run or implementation commit after repeated trigger commits. Until the service files are changed and verified, R-008 must remain PARTIAL.
+Current verification state: Web Admin and Web Member deployment checks pass for the ownership-command regression commit. Railway API verification is still pending for that commit. Withdrawal and wallet service integration remains the active implementation blocker.
 
 ## Totals
 
-- Main headings remaining: 4
-- Subtasks remaining: 23
-- Verified subtasks: 10
+- Main headings remaining: 3
+- Subtasks remaining: 19
+- Verified subtasks: 14
 - Current verification workflow: `.github/workflows/apply-r008-admin-withdrawal-integrations.yml`
 - Current integration patcher: `tools/apply-r008-admin-withdrawal-integrations.mjs`
-- Latest policy regression commit: `3cb499c0b8f7cff19e72efba1aa38238a3d606ac`
+- Admin ownership implementation commits: `fcd49238c0f9517536a29f20c9f6404dd00f9f49`, `3302f03f260cad9f7115d479d9a745a9a64f19dc`, `f6647b95249882e9b20dcd14877d7717236490d7`
+- Admin ownership regression commit: `90b25f27b91a49d70becde5009559a47e06cc038`
