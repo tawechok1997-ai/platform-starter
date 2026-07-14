@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from '../../database/database.module';
 import { StorageModule } from '../storage/storage.module';
 import { SupportAttachmentsService } from './support-attachments.service';
+import { SupportCommandService } from './support-command.service';
 import { SupportController } from './support.controller';
 import { SupportQueryService } from './support-query.service';
 import { SupportService } from './support.service';
@@ -10,6 +11,6 @@ import { SupportService } from './support.service';
 @Module({
   imports: [DatabaseModule, JwtModule.register({}), StorageModule],
   controllers: [SupportController],
-  providers: [SupportService, SupportQueryService, SupportAttachmentsService],
+  providers: [SupportService, SupportQueryService, SupportCommandService, SupportAttachmentsService],
 })
 export class SupportModule {}
