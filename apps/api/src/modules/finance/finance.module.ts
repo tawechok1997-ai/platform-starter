@@ -5,34 +5,21 @@ import { FinanceController } from './finance.controller';
 import { FinanceService } from './finance.service';
 import { FinanceSummaryQueryService } from './finance-summary-query.service';
 import { FinanceReportsQueryService } from './finance-reports-query.service';
-import { QueuesController } from '../queues/queues.controller';
-import { QueuesService } from '../queues/queues.service';
-import { OperationsController } from '../activity/operations.controller';
-import { ActivityService } from '../activity/activity.service';
-import { AdminActivityQueryService } from '../activity/admin-activity-query.service';
-import { RiskController } from '../risk/risk.controller';
-import { RiskService } from '../risk/risk.service';
-import { RiskSummaryQueryService } from '../risk/risk-summary-query.service';
-import { AdminMembersController } from '../admin-members/admin-members.controller';
-import { AdminMembersService } from '../admin-members/admin-members.service';
-import { AdminMembersQueryService } from '../admin-members/admin-members-query.service';
-import { AdminMembersCommandService } from '../admin-members/admin-members-command.service';
+import { QueuesModule } from '../queues/queues.module';
+import { ActivityModule } from '../activity/activity.module';
+import { RiskModule } from '../risk/risk.module';
+import { AdminMembersModule } from '../admin-members/admin-members.module';
 
 @Module({
-  imports: [DatabaseModule, JwtModule.register({})],
-  controllers: [FinanceController, QueuesController, OperationsController, RiskController, AdminMembersController],
-  providers: [
-    FinanceService,
-    FinanceSummaryQueryService,
-    FinanceReportsQueryService,
-    QueuesService,
-    ActivityService,
-    AdminActivityQueryService,
-    RiskService,
-    RiskSummaryQueryService,
-    AdminMembersService,
-    AdminMembersQueryService,
-    AdminMembersCommandService,
+  imports: [
+    DatabaseModule,
+    JwtModule.register({}),
+    QueuesModule,
+    ActivityModule,
+    RiskModule,
+    AdminMembersModule,
   ],
+  controllers: [FinanceController],
+  providers: [FinanceService, FinanceSummaryQueryService, FinanceReportsQueryService],
 })
 export class FinanceModule {}
