@@ -16,6 +16,7 @@
     "audit:critical-service-types": "node tools/audit-critical-service-types.mjs",
     "audit:error-code-catalog": "node tools/audit-error-code-catalog.mjs",
     "audit:critical-error-contracts": "node tools/audit-critical-error-contracts.mjs",
+    "audit:shared-api-client": "node tools/audit-shared-api-client.mjs",
     "audit:admin-permissions": "node tools/audit-admin-permissions.mjs",
     "audit:finance-workflows": "node tools/audit-finance-workflows.mjs",
     "audit:admin-token-storage": "node tools/audit-admin-token-storage.mjs",
