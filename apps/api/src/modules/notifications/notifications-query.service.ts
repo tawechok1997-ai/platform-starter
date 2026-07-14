@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { NotificationFeedReadRepository } from './notification-feed-read.repository';
 import {
   DEFAULT_CATEGORIES,
   NotificationItem,
@@ -14,35 +15,13 @@ import {
 
 @Injectable()
 export class NotificationsQueryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly feedRepository: NotificationFeedReadRepository,
+  ) {}
 
   async listMemberNotifications(userId: string) {
-    const [topUps, withdrawals, supportTickets, loginHistory] = await Promise.all([
-      this.prisma.topUpRequest.findMany({
-        where: { userId },
-        orderBy: { updatedAt: 'desc' },
-        take: 20,
-        select: { id: true, amount: true, currency: true, status: true, updatedAt: true },
-      }),
-      this.prisma.withdrawalRequest.findMany({
-        where: { userId },
-        orderBy: { updatedAt: 'desc' },
-        take: 20,
-        select: { id: true, amount: true, currency: true, status: true, updatedAt: true },
-      }),
-      this.prisma.riskAlert.findMany({
-        where: { memberId: userId, refType: 'SUPPORT_TICKET' },
-        orderBy: { updatedAt: 'desc' },
-        take: 20,
-        select: { id: true, title: true, status: true, updatedAt: true },
-      }),
-      this.prisma.loginHistory.findMany({
-        where: { userId, type: 'MEMBER' },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-        select: { id: true, success: true, ipAddress: true, reason: true, createdAt: true },
-      }),
-    ]);
+    const [topUps, withdrawals, supportTickets, loginHistory] = await this.feedRepository.loadMemberFeedSources(userId);
 
     const items: NotificationItem[] = [
       ...topUps.map((item) => ({
