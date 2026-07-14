@@ -6,6 +6,7 @@ const API_SRC = path.join(ROOT, 'apps', 'api', 'src');
 const REVIEW_PATH = path.join(ROOT, 'docs', 'evidence', 'r010-query-review.json');
 const JSON_MODE = process.env.R010_QUERY_JSON === '1';
 const STRICT_MODE = process.env.R010_QUERY_STRICT === '1';
+const DUPLICATE_STRICT_MODE = process.env.R010_DUPLICATE_QUERY_STRICT === '1';
 
 function walk(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -174,5 +175,8 @@ if (JSON_MODE) {
 }
 
 if (STRICT_MODE && (unreviewed.length > 0 || staleReviewKeys.length > 0)) {
+  process.exitCode = 1;
+}
+if (DUPLICATE_STRICT_MODE && duplicateQueryGroups.length > 0) {
   process.exitCode = 1;
 }
