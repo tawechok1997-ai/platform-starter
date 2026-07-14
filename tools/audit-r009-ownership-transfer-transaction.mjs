@@ -1,38 +1,40 @@
 import fs from 'node:fs';
 
-const servicePath = 'apps/api/src/modules/admin-access/admin-access.service.ts';
-const source = fs.readFileSync(servicePath, 'utf8');
-const method = source.match(/async transferOwnership\([\s\S]*?\n  }\n\n  async listDelegations/);
+const servicePath = 'apps/api/src/modules/admin-access/admin-ownership-command.service.ts';
+const controllerPath = 'apps/api/src/modules/admin-access/admin-access.controller.ts';
+const service = fs.readFileSync(servicePath, 'utf8');
+const controller = fs.readFileSync(controllerPath, 'utf8');
 
-if (!method) {
+const start = service.indexOf('  async transferOwnership(');
+if (start < 0) {
   console.error('R-009 ownership audit failed: transferOwnership method was not found.');
   process.exit(1);
 }
+const body = service.slice(start);
 
-const body = method[0];
 const checks = [
-  ['step-up authentication', /assertStepUp\(/],
-  ['single Prisma transaction owner', /this\.prisma\.\$transaction\(async \(tx\)/],
-  ['owner role removal through transaction client', /tx\.adminUserRole\.delete/],
-  ['owner role assignment through transaction client', /tx\.adminUserRole\.(?:create|upsert)/],
-  ['audit write through transaction client', /tx\.adminAuditLog\.create/],
-  ['protected-role validation', /PROTECTED_ROLE_CODES/],
-  ['active target validation', /target\.status !== 'ACTIVE'/],
-  ['target 2FA validation', /target\.twoFactorEnabled/],
+  ['controller routes to ownership command service', controller.includes('this.ownershipCommands.transferOwnership(')],
+  ['step-up authentication happens before transaction', body.indexOf('this.adminAuth.assertStepUp(') >= 0 && body.indexOf('this.adminAuth.assertStepUp(') < body.indexOf('this.prisma.$transaction(async (tx) =>')],
+  ['single Prisma transaction owner', body.includes('this.prisma.$transaction(async (tx) =>')],
+  ['deterministic UUID lock order', body.includes('[actorAdminId, targetAdminId].sort()')],
+  ['actor and target lock through shared helper', body.includes('lockAdminUserForUpdate(tx, adminUserId)')],
+  ['actor reloaded through transaction client', body.includes('tx.adminUser.findUnique({')],
+  ['target active revalidation', body.includes("target.status === 'ACTIVE'")],
+  ['target 2FA revalidation', body.includes('target.twoFactorEnabled')],
+  ['target protected-role revalidation', body.includes('targetAlreadyProtected')],
+  ['owner role removal through transaction client', body.includes('tx.adminUserRole.delete({')],
+  ['owner role assignment through transaction client', body.includes('tx.adminUserRole.create({')],
+  ['audit write through transaction client', body.includes('tx.adminAuditLog.create({')],
+  ['role mutation occurs after locks', body.indexOf('lockAdminUserForUpdate(tx, adminUserId)') < body.indexOf('tx.adminUserRole.delete({')],
+  ['audit occurs after role assignment', body.indexOf('tx.adminUserRole.create({') < body.indexOf('tx.adminAuditLog.create({')],
+  ['legacy service delegation removed', !body.includes('this.adminAccess.transferOwnership(')],
 ];
 
-const failed = checks.filter(([, pattern]) => !pattern.test(body)).map(([name]) => name);
-const hasTransactionalLocks = /lockAdminUserForUpdate\(tx, actorAdminId\)[\s\S]*lockAdminUserForUpdate\(tx, targetAdminId\)/.test(body);
-
-console.log(`R-009 ownership transfer audit: ${checks.length - failed.length}/${checks.length} baseline checks passed.`);
-console.log(`Transactional actor/target lock order: ${hasTransactionalLocks ? 'present' : 'missing'}.`);
-
-if (failed.length) {
-  console.error(`Missing ownership transaction contracts: ${failed.join(', ')}`);
-  process.exitCode = 1;
+const failed = checks.filter(([, passed]) => !passed);
+if (failed.length > 0) {
+  console.error('R-009 ownership transfer transaction audit failed:');
+  for (const [name] of failed) console.error(`- ${name}`);
+  process.exit(1);
 }
 
-if (!hasTransactionalLocks) {
-  console.error('R-009 ownership transfer remains partial: actor and target must be re-locked and revalidated inside the transaction.');
-  process.exitCode = 1;
-}
+console.log(`R-009 ownership transfer transaction audit passed (${checks.length} checks).`);
