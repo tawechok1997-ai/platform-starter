@@ -32,6 +32,9 @@ Updated: **2026-07-14**
 - Split turnover and bonus release/expire/revoke mutations into `BonusLifecycleCommandService` with shared audit construction and focused lifecycle regression coverage.
 - Added promotion claim command coverage for duplicate prevention, domain rollback, rejection-note enforcement, approval behavior, existing-ledger reuse, and shared audit shape.
 - `PromotionsService` remains registered only as a compatibility surface until repository-wide consumers can be verified in a workspace.
+- Identified `GamePlatformMoneyService` as the current provider-money owner and extracted webhook verification, parsing, credential-use tracking, advisory-lock idempotency, and webhook-log persistence into `ProviderWebhookService`.
+- `ProviderWebhookController` now routes provider callbacks directly to `ProviderWebhookService`; invalid signatures never enter the processing transaction, while repeated idempotency keys produce explicit duplicate logs with HTTP-style status 208 metadata.
+- Added focused provider webhook regression coverage for required idempotency keys, invalid-signature failures, advisory-lock duplicate handling, normalized event persistence, and settlement-gate exposure.
 - Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked on a real endpoint instead of adding unused infrastructure.
 
 ## Remaining closure scope
@@ -43,7 +46,7 @@ R-007 cannot be marked DONE until the following areas have implementation and re
 - Shared Prisma-to-domain-to-response mappers for remaining critical domains.
 - Migrate remaining audit writers identified by `pnpm audit:admin-audit-writers` to the shared builder and extract metadata formatters.
 - CSV/report serializer extraction when a concrete CSV endpoint or consumer exists.
-- Provider orchestration extraction.
+- Provider transfer/reconciliation orchestration extraction beyond the completed webhook slice.
 - Settlement orchestration extraction beyond the isolated bonus lifecycle command.
 - Constructor dependency reduction for every inventory violation.
 - Focused regression tests for each remaining extracted handler/service.
@@ -57,6 +60,7 @@ pnpm audit:admin-audit-writers:strict
 pnpm audit:r7-quality
 pnpm audit:r7-closure
 pnpm typecheck:api
+pnpm --filter @platform/api test -- provider-webhook.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- promotion-claim-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- bonus-lifecycle-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- promotion.mapper.spec.ts --runInBand
