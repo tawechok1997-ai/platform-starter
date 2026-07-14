@@ -12,7 +12,9 @@ Counting rule: main topics decrease only when every implementation item under th
 - Closed in provider-transfer batch: **1 main topic / 6 subjobs**
 - Before provider-reconciliation batch: **4 main topics / 18 remaining subjobs**
 - Closed in provider-reconciliation batch: **1 main topic / 4 subjobs**
-- Current remaining: **3 main topics / 14 subjobs**
+- Before settlement batch: **3 main topics / 14 remaining subjobs**
+- Closed in settlement batch: **1 main topic / 4 subjobs**
+- Current remaining: **2 main topics / 10 subjobs**
 
 ## Remaining worklist
 
@@ -36,12 +38,14 @@ Runtime member transfer and Admin retry endpoints now use the focused command se
 
 Admin snapshot reads now use the query service. Single-session reconciliation, active-session batches, and manual snapshot review use the command service. Mismatch alert construction is isolated from provider balance orchestration. Workspace verification remains under topic 5.
 
-### 3. Settlement orchestration — 4 subjobs remaining
+### 3. Settlement orchestration — COMPLETE IN CODE
 
-- [ ] 3.1 Extract settlement command orchestration.
-- [ ] 3.2 Add settlement idempotency guard.
-- [ ] 3.3 Cover failed, reversed, and retry transitions.
-- [ ] 3.4 Add settlement regression tests.
+- [x] 3.1 Extract `SettlementCommandService` and `PromotionSettlementRepository`.
+- [x] 3.2 Use stable settlement and reversal idempotency keys.
+- [x] 3.3 Cover failed, reversed, and retry transitions.
+- [x] 3.4 Add settlement regression tests.
+
+Release and retry share `bonus:<risk-alert-id>:settlement`, so a repeated request reuses the existing wallet ledger instead of crediting twice. Failed settlement attempts move the risk item to `SETTLEMENT_FAILED` with an audit record and retryable metadata. Reversal uses a separate stable key, debits the previously credited amount inside a serializable transaction, and requires an Admin note. Workspace verification remains under topic 5.
 
 ### 4. Legacy cleanup — 4 subjobs remaining
 
@@ -74,6 +78,9 @@ Admin snapshot reads now use the query service. Single-session reconciliation, a
 - Extracted single-session reconciliation, active-session batch execution, manual snapshot review, credential-use tracking, and shared Admin audit writing into `ProviderReconciliationCommandService`.
 - Extracted mismatch risk-alert severity and payload construction into `ProviderReconciliationAlertService`.
 - Added reconciliation coverage for matched snapshots, mismatch-alert creation, per-session batch failure isolation, batch summaries, and shared audit actions.
+- Extracted bonus settlement orchestration into `SettlementCommandService` and atomic wallet-credit/reversal persistence into `PromotionSettlementRepository`.
+- Added stable idempotency keys, failed-state persistence, retry guards, settlement reversal balance checks, and shared Admin audit writing.
+- Added settlement coverage for release/retry key reuse, failed-state recording, invalid retry rejection, and reversal requirements.
 - Searched the repository for concrete CSV consumers; none are currently present, so serializer work remains blocked and is not counted as active implementation work.
 
 ## Verification commands
@@ -85,6 +92,7 @@ pnpm audit:admin-audit-writers:strict
 pnpm audit:r7-quality
 pnpm audit:r7-closure
 pnpm typecheck:api
+pnpm --filter @platform/api test -- settlement-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- provider-reconciliation-command.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- wallet-mutation.service.spec.ts --runInBand
 pnpm --filter @platform/api test -- provider-transfer-command.service.spec.ts --runInBand
