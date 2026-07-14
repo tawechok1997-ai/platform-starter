@@ -61,9 +61,13 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ### Reviewed baseline and module ownership
 
-- [ ] Run/classify current findings by module.
-- [ ] Persist a reviewed baseline ledger.
+- [x] Inventory findings now include module ownership derived from `apps/api/src/modules/<owner>`.
+- [x] Inventory reports findings grouped by owner and detects unreviewed/stale ledger entries.
+- [x] Added `docs/evidence/r010-query-review.json` as the durable review ledger.
+- [x] Added `tools/audit-r010-query-review-ledger.mjs` to validate status, owner, and reason fields.
+- [ ] Populate the ledger with the current inventory output.
 - [ ] Select the first duplicate query family for consolidation.
+- [ ] Consolidate that family behind its owning module.
 
 ## Count
 
@@ -73,5 +77,8 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ## Latest commits
 
+- `36902b77fc3dff457bd30e62c1e2f098dfa5f24a` — validate the R-010 query review ledger.
+- `e38bae93c33c28162f37c2d1d7d53a17170b5b9a` — add the durable query review ledger foundation.
+- `0541cbc36130ef9ebd3fb364fb8a053ed4106749` — classify inventory findings by module ownership and review state.
 - `734560e31007b4258cf5c2b4025082c0273c81e1` — record query inventory foundation evidence.
 - `14049883c7e768a3e9dffc223b78615999871d7e` — add query/read-model inventory with stable findings.
