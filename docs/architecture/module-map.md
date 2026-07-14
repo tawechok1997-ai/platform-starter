@@ -2,35 +2,48 @@
 
 Source of truth: `apps/api/src/app.module.ts` and module files under `apps/api/src/modules`.
 
-| Module | Primary responsibility | Primary owners | Data / side effects |
-|---|---|---|---|
-| auth | Member authentication, registration, password and phone verification | Identity | User, session, OTP, audit events |
-| admin-auth | Admin login, 2FA, refresh and session lifecycle | Security | Admin session, login history, security audit |
-| anti-bot | CAPTCHA provider configuration and verification | Security | Provider config, adaptive mode, audit |
-| users | Member profile and member administration | Identity | User profile, contact data, status |
-| settings | Website, legal, branding and CMS settings | Platform | Settings, CMS assets, audit |
-| wallet | Wallet balance and ledger operations | Finance | Wallet, ledger entries, audit |
-| topups | Deposit request lifecycle | Finance | Top-up request, slip/storage, wallet credit |
-| withdrawals | Withdrawal lifecycle and proof handling | Finance | Withdrawal, ledger, bank/provider side effects |
-| finance | Cross-domain finance orchestration and reconciliation | Finance | Transactions, locks, idempotency |
-| reports | Operational and finance reporting | Operations | Read models and CSV output |
-| exports | Export job and file generation | Operations | Export files and audit |
-| bank-accounts | Member bank account review and duplicate detection | Risk / Finance | Bank account, review status, audit |
-| risk-alerts | Risk alerts, watchlist and KYC lifecycle | Risk | RiskAlert, watchlist, KYC case/document |
-| admin-access | Roles, permissions, ownership and delegation | Security | Role assignment, sessions, audit |
-| admin-audit | Immutable admin audit log access | Security | AdminAuditLog |
-| admin-activity | Admin activity timeline and detail read models | Operations | Read-only audit projections |
-| game-platform | Provider, game session, transfer and webhook orchestration | Provider | Provider config, transfer, webhook, snapshot |
-| money-ops | Manual finance/provider operations | Finance / Provider | Reconcile, retry, fail/reverse actions |
-| support | FAQ and support ticket lifecycle | Support | Ticket, reply, attachment metadata |
-| promotions | Campaign, claim, bonus and settlement | Growth / Finance | Promotion, claim, turnover, bonus ledger |
-| affiliates | Referral, downline and commission | Growth / Finance | Affiliate relation, commission ledger |
-| notifications | Member notifications and preferences | Platform | Notification, channel preference |
-| health | Liveness/readiness endpoints | Platform | No durable data |
+Every module owns its controllers, application services, DTOs, persistence orchestration and audit behavior. The module file named in **Public entry point** is the supported NestJS import boundary. Files inside another module are private unless an exported service or adapter is explicitly recorded in `dependency-map.md`.
+
+| Module | Primary responsibility | Primary owners | Data / side effects | Public entry point |
+|---|---|---|---|---|
+| auth | Member authentication, registration, password and phone verification | Identity | User, session, OTP, audit events | `auth/auth.module.ts` |
+| admin-auth | Admin login, 2FA, refresh and session lifecycle | Security | Admin session, login history, security audit | `admin-auth/admin-auth.module.ts` |
+| anti-bot | CAPTCHA provider configuration and verification | Security | Provider config, adaptive mode, audit | `anti-bot/anti-bot.module.ts` |
+| users | Member profile and member administration | Identity | User profile, contact data, status | `users/users.module.ts` |
+| settings | Website, legal, branding and CMS settings | Platform | Settings, CMS assets, storage and audit | `settings/settings.module.ts` |
+| wallet | Wallet balance and ledger operations | Finance | Wallet, ledger entries, audit | `wallet/wallet.module.ts` |
+| topups | Deposit request lifecycle | Finance | Top-up request, slip storage, wallet credit | `topups/topups.module.ts` |
+| withdrawals | Withdrawal lifecycle and proof handling | Finance | Withdrawal, ledger, bank/provider side effects | `withdrawals/withdrawals.module.ts` |
+| finance | Cross-domain finance orchestration and reconciliation | Finance | Transactions, locks, idempotency | `finance/finance.module.ts` |
+| reports | Operational and finance reporting | Operations | Read models and CSV output | `reports/reports.module.ts` |
+| exports | Export job and file generation | Operations | Export files and audit | `exports/exports.module.ts` |
+| bank-accounts | Member bank account review and duplicate detection | Risk / Finance | Bank account, review status, audit | `bank-accounts/bank-accounts.module.ts` |
+| risk-alerts | Risk alerts, watchlist and KYC lifecycle | Risk | RiskAlert, watchlist, KYC case/document | `risk-alerts/risk-alerts.module.ts` |
+| admin-access | Roles, permissions, ownership and delegation | Security | Role assignment, sessions and audit | `admin-access/admin-access.module.ts` |
+| admin-audit | Immutable admin audit log access | Security | AdminAuditLog | `admin-audit/admin-audit.module.ts` |
+| admin-activity | Admin activity timeline and detail read models | Operations | Read-only audit projections | `admin-activity/admin-activity.module.ts` |
+| game-platform | Provider, game session, transfer and webhook orchestration | Provider | Provider config, transfer, webhook and snapshot | `game-platform/game-platform.module.ts` |
+| money-ops | Manual finance/provider operations | Finance / Provider | Reconcile, retry, fail and reverse actions | `money-ops/money-ops.module.ts` |
+| support | FAQ and support ticket lifecycle | Support | Ticket, reply and attachment metadata | `support/support.module.ts` |
+| promotions | Campaign, claim, bonus and settlement | Growth / Finance | Promotion, claim, turnover and bonus ledger | `promotions/promotions.module.ts` |
+| affiliates | Referral, downline and commission | Growth / Finance | Affiliate relation and commission ledger | `affiliates/affiliates.module.ts` |
+| notifications | Member notifications and preferences | Platform | Notification and channel preference | `notifications/notifications.module.ts` |
+| health | Liveness/readiness endpoints | Platform | No durable data | `health/health.module.ts` |
+
+## Cross-cutting foundations
+
+| Foundation | Owner | Contract |
+|---|---|---|
+| `database` | Platform | `database/database.module.ts`; infrastructure only, never imported by frontend |
+| `common/guards` and `common/decorators` | Security | Shared presentation-layer authorization and actor extraction |
+| `modules/storage` | Platform | Storage adapter consumed through `StorageModule` and `StorageService` |
+| `packages/api-client` | Platform | Shared frontend transport helpers; server implementation imports are forbidden |
 
 ## Ownership rules
 
-- Each module owns its controllers, services, DTOs and persistence orchestration.
-- Cross-module calls must use an exported public service or adapter, never a deep import into another module's private file.
-- Database access belongs in services/repositories, not controllers.
-- Critical mutations must declare authorization, transaction and audit behavior in the route ownership inventory.
+- Each module owns its controllers, services, DTOs, tables it mutates and audit events it emits.
+- Cross-module calls must use an exported public service or adapter declared in the dependency map. Deep imports into another module remain private and unsupported.
+- Database access belongs in services or repositories, never controllers.
+- Critical mutations must declare actor, permission, data, external side effects and audit behavior in the route ownership inventory.
+- Controllers, cron handlers and background processors inherit the owner of their enclosing module folder.
+- A new module is incomplete until it is registered in `AppModule`, listed here, represented in route ownership when it exposes HTTP routes, and accepted by the architecture inventory CI audit.
