@@ -35,7 +35,8 @@ describe('BonusLifecycleCommandService', () => {
     const domain = {
       addTurnover: jest.fn().mockResolvedValue({ turnover_progress: 500, turnover_required: 500, status: 'TURNOVER_COMPLETED' }),
     };
-    const service = new BonusLifecycleCommandService(prisma as never, domain as never);
+    const settlementCommands = { execute: jest.fn() };
+    const service = new BonusLifecycleCommandService(prisma as never, domain as never, settlementCommands as never);
 
     const result = await service.addTurnoverProgress({ id: 'admin-1' }, 'bonus-1', { amount: 400 });
 
@@ -43,7 +44,7 @@ describe('BonusLifecycleCommandService', () => {
     expect(tx.riskAlert.update).toHaveBeenCalledTimes(1);
     expect(tx.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        adminUserId: 'admin-1',
+        adminUser: { connect: { id: 'admin-1' } },
         module: 'promotions',
         action: 'bonus.turnover.progress',
         targetId: 'bonus-1',
@@ -52,21 +53,23 @@ describe('BonusLifecycleCommandService', () => {
     expect(result.item.turnoverCompleted).toBe(true);
   });
 
-  it('rejects release before turnover is complete without settlement', async () => {
+  it('delegates release settlement to the settlement command service', async () => {
     const prisma = { riskAlert: { findFirst: jest.fn().mockResolvedValue(baseItem) } };
-    const domain = { updateLifecycle: jest.fn(), settleBonus: jest.fn() };
-    const service = new BonusLifecycleCommandService(prisma as never, domain as never);
+    const domain = { updateLifecycle: jest.fn() };
+    const settlementCommands = { execute: jest.fn().mockRejectedValue(new BadRequestException('turnover incomplete')) };
+    const service = new BonusLifecycleCommandService(prisma as never, domain as never, settlementCommands as never);
 
     await expect(service.updateBonusLifecycle({ id: 'admin-1' }, 'bonus-1', { action: 'RELEASE' }))
       .rejects.toBeInstanceOf(BadRequestException);
+    expect(settlementCommands.execute).toHaveBeenCalledWith({ id: 'admin-1' }, 'bonus-1', 'RELEASE', undefined);
     expect(domain.updateLifecycle).not.toHaveBeenCalled();
-    expect(domain.settleBonus).not.toHaveBeenCalled();
   });
 
   it('requires a note when revoking a bonus', async () => {
     const prisma = { riskAlert: { findFirst: jest.fn().mockResolvedValue(baseItem) } };
     const domain = { updateLifecycle: jest.fn() };
-    const service = new BonusLifecycleCommandService(prisma as never, domain as never);
+    const settlementCommands = { execute: jest.fn() };
+    const service = new BonusLifecycleCommandService(prisma as never, domain as never, settlementCommands as never);
 
     await expect(service.updateBonusLifecycle({ id: 'admin-1' }, 'bonus-1', { action: 'REVOKE', note: '  ' }))
       .rejects.toBeInstanceOf(BadRequestException);
