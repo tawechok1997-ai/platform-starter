@@ -5,6 +5,7 @@ import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { AntiBotService } from '../anti-bot/anti-bot.service';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminLoginDefenseService } from './admin-login-defense.service';
+import { AdminSessionCommandService } from './admin-session-command.service';
 import { AdminSessionsQueryService } from './admin-sessions-query.service';
 import { AdminRefreshSessionDto, AdminTwoFactorCodeDto } from './dto/admin-auth-actions.dto';
 import { AdminSignInDto } from './dto/admin-sign-in.dto';
@@ -15,6 +16,7 @@ export class AdminAuthController {
   constructor(
     private readonly adminAuthService: AdminAuthService,
     private readonly sessionQueries: AdminSessionsQueryService,
+    private readonly sessionCommands: AdminSessionCommandService,
     private readonly antiBot: AntiBotService,
     private readonly loginDefense: AdminLoginDefenseService,
   ) {}
@@ -72,7 +74,7 @@ export class AdminAuthController {
   @Post('logout')
   signOut(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext, @Res({ passthrough: true }) res: any) {
     this.clearRefreshCookie(res);
-    return this.adminAuthService.signOut(user.sessionId, user.id, this.meta(req));
+    return this.sessionCommands.signOut(user.sessionId, user.id, this.meta(req));
   }
 
   @UseGuards(AdminAuthGuard)
@@ -84,19 +86,19 @@ export class AdminAuthController {
   @UseGuards(AdminAuthGuard)
   @Post('sessions/logout-others')
   logoutOtherSessions(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
-    return this.adminAuthService.revokeOtherSessions(user.id, user.sessionId, this.meta(req));
+    return this.sessionCommands.revokeOtherSessions(user.id, user.sessionId, this.meta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('sessions/logout-all')
   logoutAllSessions(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
-    return this.adminAuthService.revokeAllSessions(user.id, this.meta(req));
+    return this.sessionCommands.revokeAllSessions(user.id, this.meta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Delete('sessions/:sessionId')
   revokeSession(@CurrentUser() user: AuthenticatedAdminActor, @Param('sessionId') sessionId: string, @Req() req: AdminRequestContext) {
-    return this.adminAuthService.revokeSession(user.id, user.sessionId, sessionId, this.meta(req));
+    return this.sessionCommands.revokeSession(user.id, user.sessionId, sessionId, this.meta(req));
   }
 
   @UseGuards(AdminAuthGuard)
