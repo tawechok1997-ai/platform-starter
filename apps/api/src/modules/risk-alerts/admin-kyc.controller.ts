@@ -7,6 +7,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { KycAccessTokenDto, ReviewKycCaseDto, ReviewKycDocumentDto } from './dto/kyc-document.dto';
 import { KycDocumentsQueryService } from './kyc-documents-query.service';
 import { KycDocumentsService } from './kyc-documents.service';
+import { KycReviewCommandService } from './kyc-review-command.service';
 
 @Controller('admin/kyc')
 @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -14,6 +15,7 @@ export class AdminKycController {
   constructor(
     private readonly kyc: KycDocumentsService,
     private readonly queries: KycDocumentsQueryService,
+    private readonly reviews: KycReviewCommandService,
   ) {}
 
   @RequirePermission('risk.view')
@@ -31,13 +33,13 @@ export class AdminKycController {
   @RequirePermission('risk.resolve')
   @Patch('documents/:id/review')
   reviewDocument(@Param('id') id: string, @Body() body: ReviewKycDocumentDto, @CurrentUser() admin: AuthenticatedAdminActor) {
-    return this.kyc.reviewDocument(id, body, admin.id);
+    return this.reviews.reviewDocument(id, body, admin.id);
   }
 
   @RequirePermission('risk.resolve')
   @Patch('cases/:id/review')
   reviewCase(@Param('id') id: string, @Body() body: ReviewKycCaseDto, @CurrentUser() admin: AuthenticatedAdminActor) {
-    return this.kyc.reviewCase(id, body, admin.id);
+    return this.reviews.reviewCase(id, body, admin.id);
   }
 
   @RequirePermission('risk.view')
