@@ -67,6 +67,7 @@ describe('AdminInvitationAdminService', () => {
         updateMany: jest.fn().mockResolvedValue({ count: 1 }),
         create: jest.fn().mockResolvedValue({ id: 'new-token' }),
       },
+      adminAuditLog: { create: jest.fn().mockResolvedValue({}) },
     };
     const prisma = {
       adminUser: {
@@ -84,6 +85,7 @@ describe('AdminInvitationAdminService', () => {
 
     expect(tx.verificationToken.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ usedAt: null }) }));
     expect(tx.verificationToken.create).toHaveBeenCalled();
+    expect(tx.adminAuditLog.create).toHaveBeenCalled();
     expect(result.token).toBeTruthy();
     expect(result.tokenVisibleOnce).toBe(true);
   });
