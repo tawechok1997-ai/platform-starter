@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RiskAlertStatus } from '@prisma/client';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
+import { PrismaPromotionSettlementRepositoryAdapter } from '../../common/infrastructure/prisma-risk-promotion-repository-adapters';
 import { PrismaService } from '../../database/prisma.service';
 import { mapPromotionBonusLedger, promotionBonusMetadata } from './promotion.mapper';
 
@@ -44,6 +45,7 @@ export class SettlementCommandService {
 
         const metadata = promotionBonusMetadata(item.metadata);
         const rawMetadata = this.rawMetadata(item.metadata);
+        const settlements = new PrismaPromotionSettlementRepositoryAdapter(tx);
 
         if (action === 'RELEASE') {
           const lifecycleRows = await tx.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
@@ -59,8 +61,8 @@ export class SettlementCommandService {
 
         settlementStarted = true;
         const settlement = action === 'REVERSE'
-          ? await this.reverseInTransaction(tx, { sourceRiskAlertId: id, adminUserId: admin.id, idempotencyKey })
-          : await this.settleInTransaction(tx, { sourceRiskAlertId: id, adminUserId: admin.id, idempotencyKey });
+          ? await this.reverseInTransaction(tx, settlements, { sourceRiskAlertId: id, adminUserId: admin.id, idempotencyKey })
+          : await this.settleInTransaction(tx, settlements, { sourceRiskAlertId: id, adminUserId: admin.id, idempotencyKey });
         const settlementLedgerMetadata = settlement as SettlementLedgerMetadata;
 
         const lifecycleStatus = action === 'REVERSE' ? 'REVERSED' : 'SETTLED';
@@ -125,22 +127,20 @@ export class SettlementCommandService {
 
   private async settleInTransaction(
     tx: TransactionClient,
+    settlements: PrismaPromotionSettlementRepositoryAdapter,
     input: { sourceRiskAlertId: string; adminUserId: string; idempotencyKey: string },
   ) {
-    const bonusRows = await tx.$queryRaw<Array<Record<string, any>>>(Prisma.sql`
-      SELECT * FROM "bonus_ledgers"
-      WHERE "source_risk_alert_id" = ${input.sourceRiskAlertId}::uuid
-      FOR UPDATE
-    `);
-    const bonus = bonusRows[0];
+    const bonus = await settlements.findBySourceRiskAlertIdForUpdate(input.sourceRiskAlertId);
     if (!bonus) throw new NotFoundException('Bonus ledger not found');
-    if (bonus.status === 'SETTLED') return bonus;
+    if (bonus.status === 'SETTLED') {
+      return { ...bonus, wallet_ledger_id: bonus.walletLedgerId, duplicate: true };
+    }
     if (!['TURNOVER_COMPLETED', 'RELEASE_READY'].includes(bonus.status)) {
       throw new BadRequestException('Bonus is not ready for settlement');
     }
 
     const walletRows = await tx.$queryRaw<Array<Record<string, any>>>(Prisma.sql`
-      SELECT * FROM "wallets" WHERE "user_id" = ${bonus.member_id}::uuid FOR UPDATE
+      SELECT * FROM "wallets" WHERE "user_id" = ${bonus.userId}::uuid FOR UPDATE
     `);
     const wallet = walletRows[0];
     if (!wallet || wallet.status !== 'ACTIVE') throw new BadRequestException('Active wallet not found');
@@ -149,22 +149,30 @@ export class SettlementCommandService {
       SELECT * FROM "wallet_ledgers" WHERE "idempotency_key" = ${input.idempotencyKey} LIMIT 1
     `);
     if (existingRows[0]) {
-      const settledRows = await tx.$queryRaw<Array<Record<string, any>>>(Prisma.sql`
-        UPDATE "bonus_ledgers"
-        SET "status" = 'SETTLED', "wallet_ledger_id" = ${existingRows[0].id}::uuid,
-            "settlement_idempotency_key" = ${input.idempotencyKey},
-            "released_by_admin_id" = ${input.adminUserId}::uuid,
-            "released_at" = COALESCE("released_at", CURRENT_TIMESTAMP), "updated_at" = CURRENT_TIMESTAMP
-        WHERE "id" = ${bonus.id}::uuid
-        RETURNING *
-      `);
-      return { ...settledRows[0], duplicate: true };
+      const releasedAt = bonus.releasedAt ?? new Date();
+      await settlements.save({
+        ...bonus,
+        status: 'SETTLED',
+        walletLedgerId: String(existingRows[0].id),
+        idempotencyKey: input.idempotencyKey,
+        releasedBy: input.adminUserId,
+        releasedAt,
+      });
+      return {
+        ...bonus,
+        status: 'SETTLED',
+        wallet_ledger_id: existingRows[0].id,
+        settlement_idempotency_key: input.idempotencyKey,
+        released_by_admin_id: input.adminUserId,
+        released_at: releasedAt,
+        duplicate: true,
+      };
     }
 
     const ledgerIdRows = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`SELECT gen_random_uuid()::text AS id`);
     const ledgerId = ledgerIdRows[0].id;
     const before = new Prisma.Decimal(wallet.balance);
-    const amount = new Prisma.Decimal(bonus.amount);
+    const amount = new Prisma.Decimal(bonus.amount.amount);
     const after = before.add(amount);
 
     await tx.$executeRaw(Prisma.sql`
@@ -177,41 +185,45 @@ export class SettlementCommandService {
         "balance_before", "balance_after", "reference_type", "reference_id",
         "idempotency_key", "created_by_admin_id", "created_at"
       ) VALUES (
-        ${ledgerId}::uuid, ${wallet.id}::uuid, ${bonus.member_id}::uuid, 'BONUS', 'CREDIT',
+        ${ledgerId}::uuid, ${wallet.id}::uuid, ${bonus.userId}::uuid, 'BONUS', 'CREDIT',
         ${amount}::numeric, ${before}::numeric, ${after}::numeric, 'BONUS_LEDGER', ${bonus.id}::text,
         ${input.idempotencyKey}, ${input.adminUserId}::uuid, CURRENT_TIMESTAMP
       )
     `);
-    const settledRows = await tx.$queryRaw<Array<Record<string, any>>>(Prisma.sql`
-      UPDATE "bonus_ledgers"
-      SET "status" = 'SETTLED', "wallet_ledger_id" = ${ledgerId}::uuid,
-          "settlement_idempotency_key" = ${input.idempotencyKey},
-          "released_by_admin_id" = ${input.adminUserId}::uuid,
-          "released_at" = CURRENT_TIMESTAMP, "updated_at" = CURRENT_TIMESTAMP
-      WHERE "id" = ${bonus.id}::uuid
-      RETURNING *
-    `);
-    return { ...settledRows[0], duplicate: false };
+    const releasedAt = new Date();
+    await settlements.save({
+      ...bonus,
+      status: 'SETTLED',
+      walletLedgerId: ledgerId,
+      idempotencyKey: input.idempotencyKey,
+      releasedBy: input.adminUserId,
+      releasedAt,
+    });
+    return {
+      ...bonus,
+      status: 'SETTLED',
+      wallet_ledger_id: ledgerId,
+      settlement_idempotency_key: input.idempotencyKey,
+      released_by_admin_id: input.adminUserId,
+      released_at: releasedAt,
+      duplicate: false,
+    };
   }
 
   private async reverseInTransaction(
     tx: TransactionClient,
+    settlements: PrismaPromotionSettlementRepositoryAdapter,
     input: { sourceRiskAlertId: string; adminUserId: string; idempotencyKey: string },
   ) {
-    const bonusRows = await tx.$queryRaw<Array<Record<string, any>>>(Prisma.sql`
-      SELECT * FROM "bonus_ledgers"
-      WHERE "source_risk_alert_id" = ${input.sourceRiskAlertId}::uuid
-      FOR UPDATE
-    `);
-    const bonus = bonusRows[0];
+    const bonus = await settlements.findBySourceRiskAlertIdForUpdate(input.sourceRiskAlertId);
     if (!bonus) throw new NotFoundException('Bonus ledger not found');
     if (bonus.status === 'REVOKED') return { ...bonus, reversed: true, duplicate: true };
-    if (bonus.status !== 'SETTLED' || !bonus.wallet_ledger_id) {
+    if (bonus.status !== 'SETTLED' || !bonus.walletLedgerId) {
       throw new BadRequestException('Only settled bonuses can be reversed');
     }
 
     const originalRows = await tx.$queryRaw<Array<Record<string, any>>>(Prisma.sql`
-      SELECT * FROM "wallet_ledgers" WHERE "id" = ${bonus.wallet_ledger_id}::uuid LIMIT 1
+      SELECT * FROM "wallet_ledgers" WHERE "id" = ${bonus.walletLedgerId}::uuid LIMIT 1
     `);
     const original = originalRows[0];
     if (!original) throw new BadRequestException('Settlement wallet ledger not found');
@@ -220,14 +232,10 @@ export class SettlementCommandService {
       SELECT * FROM "wallet_ledgers" WHERE "idempotency_key" = ${input.idempotencyKey} LIMIT 1
     `);
     if (existingRows[0]) {
-      const reversedRows = await tx.$queryRaw<Array<Record<string, any>>>(Prisma.sql`
-        UPDATE "bonus_ledgers"
-        SET "status" = 'REVOKED', "updated_at" = CURRENT_TIMESTAMP
-        WHERE "id" = ${bonus.id}::uuid
-        RETURNING *
-      `);
+      await settlements.save({ ...bonus, status: 'REVOKED' });
       return {
-        ...reversedRows[0],
+        ...bonus,
+        status: 'REVOKED',
         reversal_wallet_ledger_id: existingRows[0].id,
         reversed: true,
         duplicate: true,
@@ -257,19 +265,15 @@ export class SettlementCommandService {
         "balance_before", "balance_after", "reference_type", "reference_id",
         "idempotency_key", "created_by_admin_id", "created_at"
       ) VALUES (
-        ${ledgerId}::uuid, ${wallet.id}::uuid, ${bonus.member_id}::uuid, 'REVERSAL', 'DEBIT',
+        ${ledgerId}::uuid, ${wallet.id}::uuid, ${bonus.userId}::uuid, 'REVERSAL', 'DEBIT',
         ${amount}::numeric, ${before}::numeric, ${after}::numeric, 'BONUS_SETTLEMENT_REVERSAL', ${bonus.id}::text,
         ${input.idempotencyKey}, ${input.adminUserId}::uuid, CURRENT_TIMESTAMP
       )
     `);
-    const reversedRows = await tx.$queryRaw<Array<Record<string, any>>>(Prisma.sql`
-      UPDATE "bonus_ledgers"
-      SET "status" = 'REVOKED', "updated_at" = CURRENT_TIMESTAMP
-      WHERE "id" = ${bonus.id}::uuid
-      RETURNING *
-    `);
+    await settlements.save({ ...bonus, status: 'REVOKED' });
     return {
-      ...reversedRows[0],
+      ...bonus,
+      status: 'REVOKED',
       reversal_wallet_ledger_id: ledgerId,
       reversed: true,
       duplicate: false,
