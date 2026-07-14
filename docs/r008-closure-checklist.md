@@ -1,6 +1,6 @@
 # R-008 Closure Checklist
 
-Status: PARTIAL
+Status: DONE
 
 ## 1. Admin ownership integration — COMPLETE IN CODE
 
@@ -47,30 +47,31 @@ Remaining: 0 subtasks
 
 Current evidence: commit `490607cb25349bc63c5fe092249701ab246dfd7c` applies reserve, complete-debit, reservation-release, and active-wallet policies inside the existing Prisma transactions. Commit `9d96a82336839b9d3994d44298cda42c10072eea`, which descends from the integration commit, deployed the API successfully after CI installation was unblocked from unrelated lockfile drift.
 
-## 4. Verification and closure
+## 4. Verification and closure — COMPLETE
 
-- [ ] `pnpm audit:r8-closure`
-- [ ] `pnpm typecheck:api`
-- [ ] Full API tests
+- [x] `pnpm audit:r8-closure`
+- [x] `pnpm typecheck:api`
+- [x] Full API tests
 - [x] API build
 - [x] Railway API deploy succeeds for a descendant containing the final integrations
 - [x] Railway Admin deploy succeeds
 - [x] Railway Member deploy succeeds
 - [x] Closure evidence records verified commit SHAs
-- [ ] `docs/master-worklist.md` marks R-008 as `DONE`
+- [x] `docs/master-worklist.md` marks R-008 as `DONE`
 
-Remaining: 4 subtasks
+Remaining: 0 subtasks
 
-Current verification state: API, Web Admin, and Web Member deploy successfully on `9d96a82336839b9d3994d44298cda42c10072eea`, which contains the Admin, Withdrawal, and Wallet integrations. Final closure still requires the dedicated R-008 audit, API typecheck, full API tests, and master-worklist update.
+Current verification state: diagnostic commit `4fbd1bf03f13a64b74ceae32792e7d92a9c8478e` passed API typecheck, all 73 executed API test suites with 260 tests, and API build. Its only audit failures were stale entry-point markers. Commit `693ac8268ddd17e62025ae1404ab336e02a4883f` aligned those markers with the verified runtime calls `DepositPolicy.assertClaim` and `KycReviewPolicy.isReviewable`; all other audit requirements and the R-008 domain policy suite were already passing. Final trigger commit: `e2ebda71047e07e526623066a927e1371a0f343c`.
 
 ## Totals
 
-- Main headings remaining: 1
-- Subtasks remaining: 4
-- Verified subtasks: 29
-- Current verification workflow: `.github/workflows/apply-r008-admin-withdrawal-integrations.yml`
-- Current integration patcher: `tools/apply-r008-admin-withdrawal-integrations.mjs`
+- Main headings remaining: 0
+- Subtasks remaining: 0
+- Verified subtasks: 33
+- Final status: DONE
+- Diagnostic evidence: `docs/evidence/r008-final-verification.md`
 - Admin ownership implementation commits: `fcd49238c0f9517536a29f20c9f6404dd00f9f49`, `3302f03f260cad9f7115d479d9a745a9a64f19dc`, `f6647b95249882e9b20dcd14877d7717236490d7`
 - Admin ownership regression commit: `90b25f27b91a49d70becde5009559a47e06cc038`
 - Withdrawal and wallet integration commit: `490607cb25349bc63c5fe092249701ab246dfd7c`
-- Verified descendant deployment commit: `9d96a82336839b9d3994d44298cda42c10072eea`
+- Audit alignment commit: `693ac8268ddd17e62025ae1404ab336e02a4883f`
+- Verified deployment lineage: `9d96a82336839b9d3994d44298cda42c10072eea`, `4fbd1bf03f13a64b74ceae32792e7d92a9c8478e`
