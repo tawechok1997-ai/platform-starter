@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
@@ -87,7 +88,7 @@ export class AdminSessionCommandService {
 
   private async revokeMany(
     adminUserId: string,
-    where: Parameters<PrismaService['authSession']['updateMany']>[0]['where'],
+    where: Prisma.AuthSessionWhereInput,
     action: string,
     meta: AdminSessionCommandMeta,
   ) {
