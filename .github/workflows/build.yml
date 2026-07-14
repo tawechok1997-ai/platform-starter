@@ -92,22 +92,46 @@ jobs:
           psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714230000_add_phone_otp_verification/migration.sql
 
       - name: Test API
+        id: test_api
         run: pnpm --filter @platform/api test -- --runInBand
 
       - name: Test PostgreSQL finance concurrency
+        id: test_finance
         run: pnpm --filter @platform/api test:db:finance -- --runInBand
 
       - name: Test PostgreSQL promotion settlement concurrency
+        id: test_promotions
         run: pnpm --filter @platform/api test:db:promotions -- --runInBand
 
       - name: Test PostgreSQL phone OTP security
+        id: test_phone_otp
         run: pnpm --filter @platform/api test:db:phone-otp -- --runInBand
 
       - name: Test PostgreSQL risk watchlist concurrency
+        id: test_risk_watchlist
         run: pnpm --filter @platform/api test:db:risk-watchlist -- --runInBand
 
       - name: Test PostgreSQL KYC concurrency
+        id: test_kyc
         run: pnpm --filter @platform/api test:db:kyc -- --runInBand
+
+      - name: Regression test summary
+        if: always()
+        run: |
+          {
+            echo "## Regression safety summary"
+            echo ""
+            echo "| Suite | Result |"
+            echo "|---|---|"
+            echo "| API unit/integration | ${{ steps.test_api.outcome }} |"
+            echo "| Finance DB/concurrency | ${{ steps.test_finance.outcome }} |"
+            echo "| Promotion settlement DB | ${{ steps.test_promotions.outcome }} |"
+            echo "| Phone OTP security DB | ${{ steps.test_phone_otp.outcome }} |"
+            echo "| Risk watchlist DB | ${{ steps.test_risk_watchlist.outcome }} |"
+            echo "| KYC lifecycle DB | ${{ steps.test_kyc.outcome }} |"
+            echo ""
+            echo "Failed or cancelled suites must be resolved before structural refactors merge."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build API
         run: pnpm build:api
