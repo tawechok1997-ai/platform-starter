@@ -46,7 +46,22 @@ for (const marker of [
   if (!spec.includes(marker)) failures.push(`r008-domain-policies.spec.ts: missing ${marker} coverage`);
 }
 
+const integrations = [
+  ['apps/api/src/modules/topups/topups.service.ts', 'DepositPolicy'],
+  ['apps/api/src/modules/withdrawals/withdrawals.service.ts', 'WithdrawalPolicy'],
+  ['apps/api/src/modules/withdrawals/withdrawals.service.ts', 'WalletSettlementPolicy'],
+  ['apps/api/src/modules/risk-alerts/kyc-review-command.service.ts', 'KycReviewPolicy'],
+  ['apps/api/src/modules/risk-alerts/risk-watchlist-command.service.ts', 'WatchlistPolicy'],
+  ['apps/api/src/modules/support/support-command.service.ts', 'SupportTicketPolicy'],
+  ['apps/api/src/modules/notifications/notifications-command.service.ts', 'NotificationPreferencePolicy'],
+];
+for (const [path, marker] of integrations) {
+  const source = await readFile(join(root, path), 'utf8');
+  if (!source.includes(marker)) failures.push(`${path}: missing ${marker} integration`);
+}
+
 console.log(`R-008 domain policy audit: ${requiredFiles.length} required files`);
+console.log(`  integrations: ${integrations.length}`);
 console.log(`  failures: ${failures.length}`);
 if (failures.length) {
   console.error('\nR-008 closure violations:');
