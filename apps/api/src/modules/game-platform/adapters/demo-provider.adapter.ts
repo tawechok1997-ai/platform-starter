@@ -153,11 +153,11 @@ export class DemoProviderAdapter implements GameProviderAdapter {
     return ok(context, 'demo_bet_history', { items: [], nextCursor: undefined }, input);
   }
 
-  async validateWebhook(context: ProviderAdapterContext, headers: Record<string, string | string[] | undefined>, body: unknown): Promise<WebhookValidationResult> {
+  async validateWebhook(_context: ProviderAdapterContext, _headers: Record<string, string | string[] | undefined>, _body: unknown): Promise<WebhookValidationResult> {
     return { valid: true, reason: 'Demo adapter accepts webhook payloads in safe-mock mode', idempotencyKey: `demo_webhook_${Date.now()}` };
   }
 
-  async parseWebhook(context: ProviderAdapterContext, body: unknown): Promise<ParsedWebhookEvent[]> {
+  async parseWebhook(_context: ProviderAdapterContext, body: unknown): Promise<ParsedWebhookEvent[]> {
     return [{ eventType: 'demo.webhook.received', idempotencyKey: `demo_webhook_${Date.now()}`, payload: body }];
   }
 }
