@@ -9,12 +9,12 @@ Status: PARTIAL
 - [ ] Self-transfer is rejected by the policy
 - [ ] Non-owner transfer is rejected
 - [ ] Inactive target is rejected
-- [ ] Target 2FA requirement remains enforced
+- [x] Target 2FA requirement remains enforced
 - [ ] Domain errors preserve the HTTP contract
-- [ ] Ownership audit and role transfer remain in one transaction
+- [x] Ownership audit and role transfer remain in one transaction
 - [ ] Service regression tests cover accepted and rejected transfers
 
-Remaining: 9 subtasks
+Remaining: 7 subtasks
 
 ## 2. Withdrawal lifecycle integration
 
@@ -47,17 +47,18 @@ Remaining: 6 subtasks
 - [ ] `pnpm typecheck:api`
 - [ ] Full API tests
 - [ ] API build
-- [ ] Railway API deploy succeeds
-- [ ] Railway Admin deploy succeeds
-- [ ] Railway Member deploy succeeds
+- [x] Railway API deploy succeeds
+- [x] Railway Admin deploy succeeds
+- [x] Railway Member deploy succeeds
 - [ ] Closure evidence records verified commit SHAs
 - [ ] `docs/master-worklist.md` marks R-008 as `DONE`
 
-Remaining: 9 subtasks
+Remaining: 6 subtasks
 
 ## Totals
 
 - Main headings remaining: 4
-- Subtasks remaining: 33
+- Subtasks remaining: 28
+- Verified subtasks: 5
 - Current verification workflow: `.github/workflows/apply-r008-admin-withdrawal-integrations.yml`
 - Current integration patcher: `tools/apply-r008-admin-withdrawal-integrations.mjs`
