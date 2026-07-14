@@ -90,7 +90,7 @@ describe('SupportCommandService', () => {
     expect(prisma.riskAlert.update).not.toHaveBeenCalled();
   });
 
-  it('writes admin reply audit data through the shared audit shape', async () => {
+  it('audits an admin reply through the shared audit shape', async () => {
     const existing = ticket({ status: 'OPEN' });
     const updated = ticket({ status: 'REVIEWING' });
     const prisma = {
