@@ -9,6 +9,7 @@ import { AdminRefreshSessionService } from './admin-refresh-session.service';
 import { AdminSessionCommandService } from './admin-session-command.service';
 import { AdminSessionTokenService } from './admin-session-token.service';
 import { AdminSessionsQueryService } from './admin-sessions-query.service';
+import { AdminStepUpService } from './admin-step-up.service';
 import { AdminTwoFactorCommandService } from './admin-two-factor-command.service';
 
 @Module({
@@ -22,8 +23,9 @@ import { AdminTwoFactorCommandService } from './admin-two-factor-command.service
     AdminSessionCommandService,
     AdminSessionTokenService,
     AdminRefreshSessionService,
+    AdminStepUpService,
     AdminTwoFactorCommandService,
   ],
-  exports: [AdminAuthService, AdminLoginService],
+  exports: [AdminAuthService, AdminLoginService, AdminStepUpService],
 })
 export class AdminAuthModule {}
