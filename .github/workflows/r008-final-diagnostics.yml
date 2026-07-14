@@ -35,42 +35,62 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile --prefer-offline
 
-      - name: Closure audit
-        id: audit
-        continue-on-error: true
-        run: pnpm audit:r8-closure
-
-      - name: API typecheck
-        id: typecheck
-        continue-on-error: true
-        run: pnpm typecheck:api
-
-      - name: Full API tests
-        id: tests
-        continue-on-error: true
-        run: pnpm --filter @platform/api test -- --runInBand
-
-      - name: API build
-        id: build
-        continue-on-error: true
-        run: pnpm build:api
-
-      - name: Write verification evidence
+      - name: Run and capture all final gates
+        id: gates
+        shell: bash
         run: |
+          set +e
           mkdir -p docs/evidence
+
+          pnpm audit:r8-closure > docs/evidence/r008-audit.log 2>&1
+          audit=$?
+          pnpm typecheck:api > docs/evidence/r008-typecheck.log 2>&1
+          typecheck=$?
+          pnpm --filter @platform/api test -- --runInBand > docs/evidence/r008-tests.log 2>&1
+          tests=$?
+          pnpm build:api > docs/evidence/r008-build.log 2>&1
+          build=$?
+
+          echo "audit=$audit" >> "$GITHUB_OUTPUT"
+          echo "typecheck=$typecheck" >> "$GITHUB_OUTPUT"
+          echo "tests=$tests" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+
           cat > docs/evidence/r008-final-verification.md <<EOF
           # R-008 Final Verification
 
           Verified commit: \`${GITHUB_SHA}\`
 
-          - Closure audit: ${{ steps.audit.outcome }}
-          - API typecheck: ${{ steps.typecheck.outcome }}
-          - Full API tests: ${{ steps.tests.outcome }}
-          - API build: ${{ steps.build.outcome }}
+          - Closure audit: $([ "$audit" -eq 0 ] && echo success || echo failure)
+          - API typecheck: $([ "$typecheck" -eq 0 ] && echo success || echo failure)
+          - Full API tests: $([ "$tests" -eq 0 ] && echo success || echo failure)
+          - API build: $([ "$build" -eq 0 ] && echo success || echo failure)
+
+          ## Failure tails
+
+          ### Closure audit
+          \`\`\`
+          $(tail -n 80 docs/evidence/r008-audit.log)
+          \`\`\`
+
+          ### API typecheck
+          \`\`\`
+          $(tail -n 80 docs/evidence/r008-typecheck.log)
+          \`\`\`
+
+          ### Full API tests
+          \`\`\`
+          $(tail -n 80 docs/evidence/r008-tests.log)
+          \`\`\`
+
+          ### API build
+          \`\`\`
+          $(tail -n 80 docs/evidence/r008-build.log)
+          \`\`\`
           EOF
 
       - name: Update closure documents
-        if: steps.audit.outcome == 'success' && steps.typecheck.outcome == 'success' && steps.tests.outcome == 'success' && steps.build.outcome == 'success'
+        if: steps.gates.outputs.audit == '0' && steps.gates.outputs.typecheck == '0' && steps.gates.outputs.tests == '0' && steps.gates.outputs.build == '0'
         env:
           R008_VERIFIED_COMMIT: ${{ github.sha }}
         run: node tools/close-r008-after-verification.mjs
@@ -84,14 +104,14 @@ jobs:
             echo "No R-008 evidence changes"
             exit 0
           fi
-          if [ "${{ steps.audit.outcome }}" = "success" ] && [ "${{ steps.typecheck.outcome }}" = "success" ] && [ "${{ steps.tests.outcome }}" = "success" ] && [ "${{ steps.build.outcome }}" = "success" ]; then
+          if [ "${{ steps.gates.outputs.audit }}" = "0" ] && [ "${{ steps.gates.outputs.typecheck }}" = "0" ] && [ "${{ steps.gates.outputs.tests }}" = "0" ] && [ "${{ steps.gates.outputs.build }}" = "0" ]; then
             git commit -m "docs(r008): mark domain policy separation done [skip ci]"
           else
-            git commit -m "docs(r008): record final verification failure [skip ci]"
+            git commit -m "docs(r008): persist final gate failure logs [skip ci]"
           fi
           git pull --rebase origin main
           git push origin HEAD:main
 
       - name: Fail when any gate failed
-        if: steps.audit.outcome != 'success' || steps.typecheck.outcome != 'success' || steps.tests.outcome != 'success' || steps.build.outcome != 'success'
+        if: steps.gates.outputs.audit != '0' || steps.gates.outputs.typecheck != '0' || steps.gates.outputs.tests != '0' || steps.gates.outputs.build != '0'
         run: exit 1
