@@ -1,6 +1,6 @@
 # UX/UI Master Worklist
 
-Updated: 2026-07-13  
+Updated: 2026-07-15  
 Source of truth: current repository state on `main`
 
 This document is the execution-ready source of truth for UX/UI modernization across Member Web, Admin Web, and Public/Auth. It replaces overlapping backlog language with one prioritized worklist. Completed capabilities remain documented below, but only items in the active queues should be picked up as new work.
@@ -451,6 +451,15 @@ These are not active tasks. They are retained to prevent duplicate implementatio
 - ✅ Withdrawal claim/release/complete/reject flow, responsive review layouts, sticky mobile actions, and risk/account summaries
 - ✅ Member search, status filters, pagination, mobile cards, desktop split layout, wallet summary, and quick status actions
 - ✅ Wallet ledger endpoint, search/direction filters, responsive cards, money summaries, and metadata details
+
+## Backend audit writer standardization
+
+- ✅ R-007 Admin audit writer standardization is DONE and verified.
+- ✅ All runtime Admin audit writers use `buildAdminAuditData(...)`.
+- ✅ The strict inventory legacy baseline is empty and new direct writers fail as `NEW_LEGACY`.
+- ✅ Existing transaction boundaries and audit payload semantics were preserved.
+- ✅ Final API deployment succeeded on Railway for commit `eee51f29b0ab10fa75ab30e09e97fc4d8cdb22a5`.
+- Evidence: `docs/r007-closure-checklist.md`; closure evidence commit `1a2f14dbabf6c615648ed2955c2d6bf67c7aca7f`.
 
 ## Backend architecture and policy separation
 
