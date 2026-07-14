@@ -22,6 +22,7 @@ R-009 establishes repository, transaction, and persistence boundaries without ch
 - [x] Consolidate transaction ownership for KYC review/watchlist override
 - [x] Consolidate transaction ownership for promotion settlement
 - [x] Complete critical Prisma repository adapters and production migration
+- [x] Close deposit approval/credit transaction ownership as N/A for the current production surface
 
 Closure evidence:
 
@@ -76,15 +77,11 @@ Closure evidence:
 - KYC review, watchlist release, and promotion settlement production paths use transaction-scoped adapters.
 - `tools/audit-r009-risk-promotion-adapters.mjs` enforces adapter ownership, release metadata preservation, and rejects direct promotion bonus-ledger row locks in migrated helpers.
 - successful Railway API build/deployment for promotion adapter wiring and guard commit `fcf379c4f371d639eb942bbf778367902c561a2d`
+- `docs/evidence/r009-topup-approval-credit-scope.md`
+- `tools/audit-r009-topup-transaction-boundary.mjs` fails closed if a top-up approval/credit/completion path appears without an explicit transaction contract.
+- current `TopUpsController` exposes only create/read/claim/release and current `TopUpsService` performs no wallet or wallet-ledger mutation.
 
 ## Active partial work
-
-### Deposit transaction ownership
-
-- [x] Migrated top-up claim and release paths to shared row-lock helpers.
-- [x] Moved release state mutation and admin audit into one transaction owner.
-- [x] Added top-up transaction boundary audit and workflow.
-- [ ] Locate and consolidate the actual approval/credit path. The current `TopUpsController` exposes only create, read, claim, and release routes.
 
 ### Query-outside-transaction boundary
 
@@ -110,18 +107,17 @@ Closure evidence:
 
 ## Remaining R-009 work
 
-- [ ] Consolidate transaction ownership for deposit approval/credit.
 - [ ] Resolve confirmed legacy transaction escapes.
 - [ ] Add remaining deadlock and concurrency regression coverage.
 
 ## Count
 
 - Total R-009 subtasks: 15
-- Closed with durable evidence: 12
-- Remaining not closed: 3
+- Closed with durable evidence: 13
+- Remaining not closed: 2
 - Enforced and awaiting verification: 0
 - Other partial or under active review: 2
-- Not yet implemented: 1
+- Not yet implemented: 0
 
 ## Verification policy
 
@@ -129,12 +125,12 @@ Push-triggered GitHub Actions runs are not readable through the current connecto
 
 ## Safety decision
 
-All five critical domains now have schema-correct transaction-scoped repository adapters, and the KYC review, watchlist release, and promotion settlement production paths use those adapters without opening nested transactions. Promotion settlement preserves release actor/timestamp, stable idempotency behavior, wallet and ledger mutations, atomic risk metadata, and audit persistence. No Prisma schema, production data, permission model, secret, provider, or deployment-target change was made.
+The current top-up module has no approval/credit production command. Claim and release are transaction-owned and guarded. R-009 therefore closes deposit approval/credit as N/A for the present production surface and fails closed if a future route, command, wallet mutation, or wallet-ledger mutation appears without an explicit atomic contract. No endpoint, business transition, wallet behavior, schema, production data, permission model, secret, provider, or deployment target was added or changed.
 
 ## Latest commits
 
+- `41c69935671ac43af89bd778021a5924e44e6459` — document the absent top-up approval/credit production path and future atomic contract.
+- `edb5dc44aa4fae18f819a280d5e244c909402e22` — fail closed if an unguarded top-up approval/credit path is introduced.
 - `fcf379c4f371d639eb942bbf778367902c561a2d` — enforce promotion adapter production wiring and reject direct bonus-ledger locks in migrated helpers.
 - `8a04bf7ce165c620dae72bff538e1ebbd26c103e` — route promotion bonus-ledger lock/read/final persistence through the transaction-scoped adapter.
 - `4e5fd2d46a34aac3a801ddac26f70e2f51b789f6` — guard promotion release metadata compatibility.
-- `9d53142c3a9e795ec68868c6e7f56145f1bed39d` — persist promotion release actor and timestamp through the adapter.
-- `92251072b2d48160841e1e441a1635a88404c3de` — extend the promotion repository contract with release metadata.
