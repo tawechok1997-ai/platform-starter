@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { buildAdminAuditData } from '../../common/audit/admin-audit-data';
+import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
