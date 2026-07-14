@@ -6,17 +6,17 @@ Status: PARTIAL
 
 - [ ] Implementation commit is present on `main`
 - [ ] `AdminOwnershipPolicy.assertCanTransfer` is called by `AdminAccessService`
-- [ ] Self-transfer is rejected by the policy
-- [ ] Non-owner transfer is rejected
-- [ ] Inactive target is rejected
+- [x] Self-transfer is rejected by the policy
+- [x] Non-owner transfer is rejected
+- [x] Inactive target is rejected
 - [x] Target 2FA requirement remains enforced
 - [ ] Domain errors preserve the HTTP contract
 - [x] Ownership audit and role transfer remain in one transaction
 - [ ] Service regression tests cover accepted and rejected transfers
 
-Remaining: 7 subtasks
+Remaining: 4 subtasks
 
-Current evidence: `AdminAccessService.transferOwnership` still performs self-transfer, owner-role, and active-target validation inline. No verified R-008 implementation commit is present on `main`.
+Current evidence: policy regression coverage now verifies self-transfer, non-owner, inactive-target, and accepted-transfer cases. `AdminAccessService.transferOwnership` still performs validation inline, so service integration remains open.
 
 ## 2. Withdrawal lifecycle integration
 
@@ -27,12 +27,12 @@ Current evidence: `AdminAccessService.transferOwnership` still performs self-tra
 - [ ] Complete transition uses `WithdrawalPolicy`
 - [ ] Reject transition uses `WithdrawalPolicy`
 - [ ] Domain errors preserve the HTTP contract
-- [ ] Service regression tests cover invalid transitions
+- [x] Policy regression tests cover invalid transitions
 - [ ] Idempotency behavior remains unchanged
 
-Remaining: 9 subtasks
+Remaining: 8 subtasks
 
-Current evidence: the integration patcher has been aligned with the domain contracts, but no verified service implementation commit has been produced on `main`.
+Current evidence: domain regression coverage verifies invalid terminal and payment-proof transitions, amount validation, and claim eligibility. No verified service implementation commit has been produced on `main`.
 
 ## 3. Wallet settlement integration
 
@@ -41,11 +41,11 @@ Current evidence: the integration patcher has been aligned with the domain contr
 - [ ] Rejection uses `WalletSettlementPolicy.releaseReservation`
 - [ ] Wallet active-state validation is centralized
 - [ ] Ledger and wallet updates remain atomic
-- [ ] Insufficient balance and locked-balance cases are covered
+- [x] Insufficient balance and locked-balance cases are covered
 
-Remaining: 6 subtasks
+Remaining: 5 subtasks
 
-Current evidence: policy contracts are present and closure-audit markers are defined, but the withdrawal service has not yet been verified to call the settlement policy on `main`.
+Current evidence: policy regression coverage verifies inactive-wallet, insufficient available-balance, and insufficient locked-balance failures. The withdrawal service has not yet been verified to call the settlement policy on `main`.
 
 ## 4. Verification and closure
 
@@ -66,8 +66,8 @@ Verification blocker: the GitHub Actions integration workflow has not produced a
 ## Totals
 
 - Main headings remaining: 4
-- Subtasks remaining: 28
-- Verified subtasks: 5
+- Subtasks remaining: 23
+- Verified subtasks: 10
 - Current verification workflow: `.github/workflows/apply-r008-admin-withdrawal-integrations.yml`
 - Current integration patcher: `tools/apply-r008-admin-withdrawal-integrations.mjs`
-- Latest checked repository head: `1c5818a85b575eb2108cc7ecd9b32bc24b4bdb6a`
+- Latest policy regression commit: `3cb499c0b8f7cff19e72efba1aa38238a3d606ac`
