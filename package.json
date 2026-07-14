@@ -7,7 +7,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "test": "turbo test",
-    "typecheck:api": "pnpm --filter @platform/api typecheck",
+    "typecheck:api": "pnpm db:generate && pnpm --filter @platform/api typecheck",
     "audit:architecture-inventory": "node tools/audit-architecture-inventory.mjs",
     "audit:architecture-boundaries": "node tools/audit-architecture-boundaries.mjs",
     "audit:critical-test-safety": "node tools/audit-critical-test-safety.mjs",
