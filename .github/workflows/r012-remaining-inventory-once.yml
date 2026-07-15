@@ -1,0 +1,36 @@
+name: R012 Remaining Inventory Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r012-remaining-inventory-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Inventory remaining R012 targets
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '# R-012 remaining target inventory'
+            for group in provider cms promotion security kyc support; do
+              echo
+              echo "## ${group}"
+              grep -RIl --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' -Ei "${group}|content|lifecycle|thread" apps/web-admin apps/web-member | sort | head -80 || true
+            done
+          } > docs/r012-remaining-target-inventory.md
+          rm .github/workflows/r012-remaining-inventory-once.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/r012-remaining-target-inventory.md .github/workflows/r012-remaining-inventory-once.yml
+          git commit -m 'docs(r012): inventory remaining frontend targets'
+          git push
