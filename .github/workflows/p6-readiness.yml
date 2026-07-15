@@ -1,0 +1,65 @@
+name: P6 External Readiness
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p6-readiness-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  readiness:
+    name: Validate external prerequisites
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      P6_API_URL: ${{ secrets.P6_API_URL }}
+      P6_ADMIN_URL: ${{ secrets.P6_ADMIN_URL }}
+      P6_MEMBER_URL: ${{ secrets.P6_MEMBER_URL }}
+      P6_ADMIN_EMAIL: ${{ secrets.P6_ADMIN_EMAIL }}
+      P6_ADMIN_PASSWORD: ${{ secrets.P6_ADMIN_PASSWORD }}
+      P6_READONLY_ADMIN_EMAIL: ${{ secrets.P6_READONLY_ADMIN_EMAIL }}
+      P6_READONLY_ADMIN_PASSWORD: ${{ secrets.P6_READONLY_ADMIN_PASSWORD }}
+      P6_MEMBER_EMAIL: ${{ secrets.P6_MEMBER_EMAIL }}
+      P6_MEMBER_PASSWORD: ${{ secrets.P6_MEMBER_PASSWORD }}
+      P6_PROVIDER_CODE: ${{ secrets.P6_PROVIDER_CODE }}
+      P6_PROVIDER_BASE_URL: ${{ secrets.P6_PROVIDER_BASE_URL }}
+      P6_PROVIDER_API_KEY: ${{ secrets.P6_PROVIDER_API_KEY }}
+      P6_PROVIDER_SECRET: ${{ secrets.P6_PROVIDER_SECRET }}
+      P6_PROVIDER_CALLBACK_URL: ${{ secrets.P6_PROVIDER_CALLBACK_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check P6 readiness
+        run: pnpm verify:p6:readiness:strict
+
+      - name: Write readiness summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## P6 External Readiness'
+            echo
+            echo 'This workflow validates presence only. It does not print secret values or mark P6 tasks complete.'
+            echo
+            pnpm verify:p6:readiness || true
+          } >> "$GITHUB_STEP_SUMMARY"
