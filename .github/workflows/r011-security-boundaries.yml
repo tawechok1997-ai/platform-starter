@@ -5,6 +5,7 @@ on:
     paths:
       - 'apps/api/src/common/errors/**'
       - 'apps/api/src/common/filters/**'
+      - 'apps/api/src/common/security/**'
       - 'tools/audit-r011-*.mjs'
       - '.github/workflows/r011-security-boundaries.yml'
   push:
@@ -12,11 +13,12 @@ on:
     paths:
       - 'apps/api/src/common/errors/**'
       - 'apps/api/src/common/filters/**'
+      - 'apps/api/src/common/security/**'
       - 'tools/audit-r011-*.mjs'
       - '.github/workflows/r011-security-boundaries.yml'
 
 jobs:
-  error-boundaries:
+  security-boundaries:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,5 +31,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: node tools/audit-r011-error-boundaries.mjs
-      - run: pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts
+      - run: node tools/audit-r011-authorization-policies.mjs
+      - run: pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts
       - run: pnpm --filter @platform/api typecheck
