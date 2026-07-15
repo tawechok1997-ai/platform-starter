@@ -45,6 +45,19 @@ jobs:
           path: docs/evidence/r013-design-token-inventory.json
           if-no-files-found: error
       - name: Admin typecheck
-        run: pnpm typecheck:admin
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          pnpm typecheck:admin 2>&1 | tee artifacts/r013-admin-typecheck.log
       - name: Member typecheck
-        run: pnpm typecheck:member
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          pnpm typecheck:member 2>&1 | tee artifacts/r013-member-typecheck.log
+      - name: Upload frontend typecheck logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r013-frontend-typecheck-logs
+          path: artifacts/r013-*-typecheck.log
+          if-no-files-found: warn
