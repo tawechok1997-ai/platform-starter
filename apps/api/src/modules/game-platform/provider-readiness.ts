@@ -1,4 +1,5 @@
 import type { ProviderAdapterContext } from './provider-adapter.interface';
+import type { GameProviderCredentialType, GameProviderEndpointType } from './game-platform.types';
 
 export type ProviderReadinessIssueCode =
   | 'PROVIDER_CODE_REQUIRED'
@@ -17,8 +18,8 @@ export type ProviderReadinessIssue = {
 };
 
 export type ProviderReadinessRequirement = {
-  endpoints?: readonly string[];
-  credentials?: readonly string[];
+  endpoints?: readonly GameProviderEndpointType[];
+  credentials?: readonly GameProviderCredentialType[];
 };
 
 export type ProviderReadinessResult = {
@@ -51,7 +52,7 @@ export function validateProviderReadiness(
   }
 
   for (const endpointType of requirement.endpoints ?? []) {
-    const endpoint = context.endpointMap?.[endpointType as keyof typeof context.endpointMap];
+    const endpoint = context.endpointMap?.[endpointType];
     if (!endpoint?.trim()) {
       issues.push(issue('ENDPOINT_REQUIRED', `endpointMap.${endpointType}`, `Required provider endpoint is missing: ${endpointType}`));
       continue;
