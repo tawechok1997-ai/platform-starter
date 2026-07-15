@@ -4,7 +4,7 @@ type AdminIdentity = {
   email: string | null;
 };
 
-export type AdminActivityRecord = {
+type AdminActivityRecord = {
   id: string;
   adminUserId: string | null;
   action: string;

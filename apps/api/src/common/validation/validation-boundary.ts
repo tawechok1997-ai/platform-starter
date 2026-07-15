@@ -1,6 +1,6 @@
 import { DomainError } from '../errors/domain-error';
 
-export type ValidationLayer = 'dto' | 'business' | 'persistence';
+type ValidationLayer = 'dto' | 'business' | 'persistence';
 
 const CODE_BY_LAYER: Record<ValidationLayer, string> = {
   dto: 'VALIDATION_DTO_INVALID',
@@ -8,7 +8,7 @@ const CODE_BY_LAYER: Record<ValidationLayer, string> = {
   persistence: 'VALIDATION_PERSISTENCE_CONSTRAINT',
 };
 
-export type ValidationFailureOptions = {
+type ValidationFailureOptions = {
   layer: ValidationLayer;
   message: string;
   field?: string;

@@ -1,6 +1,6 @@
 import { BadGatewayException, Injectable, Logger } from '@nestjs/common';
 
-export type SmsDeliveryResult = {
+type SmsDeliveryResult = {
   provider: string;
   messageId?: string;
 };

@@ -1,11 +1,11 @@
 import { DomainError } from '../errors/domain-error';
 
-export type StepUpContext = {
+type StepUpContext = {
   verifiedAt?: Date | string | null;
   method?: 'totp' | 'webauthn' | 'recovery_code' | 'password' | null;
 };
 
-export type StepUpRequirement = {
+type StepUpRequirement = {
   maxAgeMs: number;
   allowedMethods?: readonly StepUpContext['method'][];
 };

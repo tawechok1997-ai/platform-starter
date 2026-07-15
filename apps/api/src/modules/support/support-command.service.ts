@@ -20,7 +20,7 @@ import {
   type TicketMetadata,
 } from './support-ticket.mapper';
 
-export type SupportActor = { id: string };
+type SupportActor = { id: string };
 
 const SUPPORT_REF_TYPE = 'SUPPORT_TICKET';
 const MAX_ATTACHMENTS_PER_TICKET = 10;

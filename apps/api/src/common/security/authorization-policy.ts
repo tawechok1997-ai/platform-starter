@@ -7,7 +7,7 @@ export type AuthorizationActor = {
   roles?: readonly string[];
 };
 
-export type AuthorizationResource = {
+type AuthorizationResource = {
   ownerId?: string | null;
   tenantId?: string | null;
 };

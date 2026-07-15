@@ -9,7 +9,6 @@ Every module owns its controllers, application services, DTOs, persistence orche
 | auth | Member authentication, registration, password and phone verification | Identity | User, session, OTP, audit events | `auth/auth.module.ts` |
 | admin-auth | Admin login, 2FA, refresh and session lifecycle | Security | Admin session, login history, security audit | `admin-auth/admin-auth.module.ts` |
 | anti-bot | CAPTCHA provider configuration and verification | Security | Provider config, adaptive mode, audit | `anti-bot/anti-bot.module.ts` |
-| users | Member profile and member administration | Identity | User profile, contact data, status | `users/users.module.ts` |
 | admin-members | Legacy/admin member queries and mutations composed into finance/admin surfaces | Identity / Operations | User, request, ledger and audit projections | Internal module imported by `finance/finance.module.ts` |
 | settings | Website, legal, branding and CMS settings | Platform | Settings, CMS assets, storage and audit | `settings/settings.module.ts` |
 | wallet | Wallet balance and ledger operations | Finance | Wallet, ledger entries, audit | `wallet/wallet.module.ts` |
@@ -32,7 +31,6 @@ Every module owns its controllers, application services, DTOs, persistence orche
 | promotions | Campaign, claim, bonus and settlement | Growth / Finance | Promotion, claim, turnover and bonus ledger | `promotions/promotions.module.ts` |
 | affiliates | Referral, downline and commission | Growth / Finance | Affiliate relation and commission ledger | `affiliates/affiliates.module.ts` |
 | notifications | Member notifications and preferences | Platform | Notification and channel preference | `notifications/notifications.module.ts` |
-| system | System/admin operational endpoints not owned by a product domain | Platform / Operations | System summaries and operational state | Internal controller family under `modules/system` |
 | health | Liveness/readiness endpoints | Platform | No durable data | `health/health.module.ts` |
 
 ## Cross-cutting foundations

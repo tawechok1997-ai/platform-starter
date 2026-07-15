@@ -1,8 +1,8 @@
 import { IconKey, MemberFeatureFlags } from './site-settings';
 
-export type MemberNavigationPlacement = 'bottom' | 'drawer' | 'home';
+type MemberNavigationPlacement = 'bottom' | 'drawer' | 'home';
 
-export type MemberNavigationItem = {
+type MemberNavigationItem = {
   key: string;
   title: string;
   shortTitle?: string;

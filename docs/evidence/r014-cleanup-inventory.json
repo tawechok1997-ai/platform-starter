@@ -1,0 +1,365 @@
+{
+  "generatedAt": "2026-07-15T11:45:10.516Z",
+  "note": "Candidate inventory only. Do not delete files from this report without owner review and regression evidence.",
+  "scanned": {
+    "roots": [
+      "apps",
+      "packages",
+      "tools"
+    ],
+    "files": 654,
+    "sourceFiles": 617,
+    "cssFiles": 37
+  },
+  "counts": {
+    "potentialOrphanSources": 0,
+    "retainedOrphanSources": 3,
+    "potentiallyUnusedExports": 0,
+    "retainedPublicExports": 0,
+    "componentFiles": 5,
+    "potentiallyUnusedComponents": 0,
+    "routeFiles": 152,
+    "featureFlags": 3,
+    "helperFiles": 11,
+    "potentiallyUnusedHelpers": 0,
+    "cssFiles": 37,
+    "potentiallyUnreferencedCssFiles": 0
+  },
+  "potentialOrphanSources": [],
+  "retainedOrphanSources": [
+    {
+      "file": "apps/api/src/common/infrastructure/prisma-admin-ownership-repository.adapter.ts",
+      "reason": "R-009 transaction-scoped ownership adapter retained for repository-boundary evidence and audit coverage."
+    },
+    {
+      "file": "apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts",
+      "reason": "R-009 transaction-scoped finance adapters retained for repository-boundary evidence and audit coverage."
+    },
+    {
+      "file": "apps/api/src/modules/game-platform/adapters/real-provider-adapter.template.ts",
+      "reason": "Provider integration template retained as documentation for future concrete adapters; it must not be registered directly."
+    }
+  ],
+  "potentiallyUnusedExports": [],
+  "retainedPublicExports": [],
+  "potentiallyUnusedComponents": [],
+  "routes": [
+    "apps/api/src/modules/activity/operations.controller.ts",
+    "apps/api/src/modules/admin-access/admin-access.controller.ts",
+    "apps/api/src/modules/admin-access/admin-invitation-admin.controller.ts",
+    "apps/api/src/modules/admin-access/admin-invitation.controller.ts",
+    "apps/api/src/modules/admin-activity/admin-activity.controller.ts",
+    "apps/api/src/modules/admin-audit/admin-audit.controller.ts",
+    "apps/api/src/modules/admin-auth/admin-auth.controller.ts",
+    "apps/api/src/modules/admin-members/admin-members.controller.ts",
+    "apps/api/src/modules/affiliates/affiliates.controller.ts",
+    "apps/api/src/modules/anti-bot/anti-bot.controller.ts",
+    "apps/api/src/modules/auth/auth.controller.ts",
+    "apps/api/src/modules/bank-accounts/bank-accounts.controller.ts",
+    "apps/api/src/modules/exports/exports.controller.ts",
+    "apps/api/src/modules/finance/finance.controller.ts",
+    "apps/api/src/modules/game-platform/adapter-test.controller.ts",
+    "apps/api/src/modules/game-platform/game-platform-money.controller.ts",
+    "apps/api/src/modules/game-platform/game-platform.controller.ts",
+    "apps/api/src/modules/game-platform/game-transfer-action.controller.ts",
+    "apps/api/src/modules/game-platform/member-game-platform.controller.ts",
+    "apps/api/src/modules/game-platform/provider-preset.controller.ts",
+    "apps/api/src/modules/health/health.controller.ts",
+    "apps/api/src/modules/money-ops/money-ops.controller.ts",
+    "apps/api/src/modules/money-ops/provider-simulator-admin.controller.ts",
+    "apps/api/src/modules/money-ops/provider-simulator.controller.ts",
+    "apps/api/src/modules/money-ops/reconciliation-detail.controller.ts",
+    "apps/api/src/modules/money-ops/wallet-ledger-detail.controller.ts",
+    "apps/api/src/modules/notifications/notifications.controller.ts",
+    "apps/api/src/modules/promotions/promotions.controller.ts",
+    "apps/api/src/modules/queues/queues.controller.ts",
+    "apps/api/src/modules/reports/reports.controller.ts",
+    "apps/api/src/modules/risk-alerts/admin-kyc.controller.ts",
+    "apps/api/src/modules/risk-alerts/member-kyc.controller.ts",
+    "apps/api/src/modules/risk-alerts/risk-alerts.controller.ts",
+    "apps/api/src/modules/risk-alerts/risk-watchlist.controller.ts",
+    "apps/api/src/modules/risk/risk.controller.ts",
+    "apps/api/src/modules/settings/cms-assets.controller.ts",
+    "apps/api/src/modules/settings/settings.controller.ts",
+    "apps/api/src/modules/support/support.controller.ts",
+    "apps/api/src/modules/topups/deposit-workflow.controller.ts",
+    "apps/api/src/modules/topups/topups.controller.ts",
+    "apps/api/src/modules/wallet/admin-wallet-ledger.controller.ts",
+    "apps/api/src/modules/wallet/wallet.controller.ts",
+    "apps/api/src/modules/withdrawals/withdrawal-workflow.controller.ts",
+    "apps/api/src/modules/withdrawals/withdrawals.controller.ts",
+    "apps/web-admin/app/(admin)/access/page.tsx",
+    "apps/web-admin/app/(admin)/activity/page.tsx",
+    "apps/web-admin/app/(admin)/adapter-test/page.tsx",
+    "apps/web-admin/app/(admin)/admin-accounts/page.tsx",
+    "apps/web-admin/app/(admin)/admin-invitations/page.tsx",
+    "apps/web-admin/app/(admin)/admin-roles/page.tsx",
+    "apps/web-admin/app/(admin)/affiliate-center/page.tsx",
+    "apps/web-admin/app/(admin)/anti-bot/page.tsx",
+    "apps/web-admin/app/(admin)/audit-risk/page.tsx",
+    "apps/web-admin/app/(admin)/audit/page.tsx",
+    "apps/web-admin/app/(admin)/bank-accounts/page.tsx",
+    "apps/web-admin/app/(admin)/bonus-ledgers/page.tsx",
+    "apps/web-admin/app/(admin)/commission-ledgers/page.tsx",
+    "apps/web-admin/app/(admin)/content-center/page.tsx",
+    "apps/web-admin/app/(admin)/dashboard/page.tsx",
+    "apps/web-admin/app/(admin)/exports/page.tsx",
+    "apps/web-admin/app/(admin)/finance/page.tsx",
+    "apps/web-admin/app/(admin)/game-api-settings/page.tsx",
+    "apps/web-admin/app/(admin)/game-providers/page.tsx",
+    "apps/web-admin/app/(admin)/game-sessions/page.tsx",
+    "apps/web-admin/app/(admin)/game-transfers/[id]/page.tsx",
+    "apps/web-admin/app/(admin)/game-transfers/page.tsx",
+    "apps/web-admin/app/(admin)/games/page.tsx",
+    "apps/web-admin/app/(admin)/growth-center/page.tsx",
+    "apps/web-admin/app/(admin)/kyc-center/page.tsx",
+    "apps/web-admin/app/(admin)/kyc/page.tsx",
+    "apps/web-admin/app/(admin)/layout.tsx",
+    "apps/web-admin/app/(admin)/ledgers/page.tsx",
+    "apps/web-admin/app/(admin)/member-detail/page.tsx",
+    "apps/web-admin/app/(admin)/members/[id]/page.tsx",
+    "apps/web-admin/app/(admin)/members/page.tsx",
+    "apps/web-admin/app/(admin)/money-ops/page.tsx",
+    "apps/web-admin/app/(admin)/operations/page.tsx",
+    "apps/web-admin/app/(admin)/promotion-center/page.tsx",
+    "apps/web-admin/app/(admin)/promotion-claims/page.tsx",
+    "apps/web-admin/app/(admin)/provider-adapters/page.tsx",
+    "apps/web-admin/app/(admin)/provider-credentials/page.tsx",
+    "apps/web-admin/app/(admin)/provider-presets/page.tsx",
+    "apps/web-admin/app/(admin)/provider-risk/page.tsx",
+    "apps/web-admin/app/(admin)/provider-setup-wizard/page.tsx",
+    "apps/web-admin/app/(admin)/provider-wallet-snapshots/[id]/page.tsx",
+    "apps/web-admin/app/(admin)/provider-wallet-snapshots/page.tsx",
+    "apps/web-admin/app/(admin)/reconciliation-center/page.tsx",
+    "apps/web-admin/app/(admin)/reports/page.tsx",
+    "apps/web-admin/app/(admin)/risk-alerts/[id]/page.tsx",
+    "apps/web-admin/app/(admin)/risk-alerts/page.tsx",
+    "apps/web-admin/app/(admin)/security/2fa/page.tsx",
+    "apps/web-admin/app/(admin)/security/page.tsx",
+    "apps/web-admin/app/(admin)/settings/branding/page.tsx",
+    "apps/web-admin/app/(admin)/settings/contact/page.tsx",
+    "apps/web-admin/app/(admin)/settings/features/page.tsx",
+    "apps/web-admin/app/(admin)/settings/icons/page.tsx",
+    "apps/web-admin/app/(admin)/settings/legal/page.tsx",
+    "apps/web-admin/app/(admin)/settings/maintenance/page.tsx",
+    "apps/web-admin/app/(admin)/settings/page.tsx",
+    "apps/web-admin/app/(admin)/settings/scripts/page.tsx",
+    "apps/web-admin/app/(admin)/settings/seo/page.tsx",
+    "apps/web-admin/app/(admin)/settings/theme/page.tsx",
+    "apps/web-admin/app/(admin)/settings/website/page.tsx",
+    "apps/web-admin/app/(admin)/simple-game-settings/page.tsx",
+    "apps/web-admin/app/(admin)/support-center/page.tsx",
+    "apps/web-admin/app/(admin)/topups/page.tsx",
+    "apps/web-admin/app/(admin)/wallet-ledgers/[id]/page.tsx",
+    "apps/web-admin/app/(admin)/wallet-ledgers/page.tsx",
+    "apps/web-admin/app/(admin)/wallets/page.tsx",
+    "apps/web-admin/app/(admin)/webhook-logs/page.tsx",
+    "apps/web-admin/app/(admin)/webhook-settlement/page.tsx",
+    "apps/web-admin/app/(admin)/webhook-test/page.tsx",
+    "apps/web-admin/app/(admin)/withdrawals/page.tsx",
+    "apps/web-admin/app/(auth)/login/page.tsx",
+    "apps/web-admin/app/(auth)/two-factor/page.tsx",
+    "apps/web-admin/app/accept-invitation/page.tsx",
+    "apps/web-admin/app/api/admin/[...path]/route.ts",
+    "apps/web-admin/app/api/anti-bot/[endpoint]/route.ts",
+    "apps/web-admin/app/api/auth/login/route.ts",
+    "apps/web-admin/app/api/provider-webhooks/[providerCode]/route.ts",
+    "apps/web-admin/app/layout.tsx",
+    "apps/web-admin/app/page.tsx",
+    "apps/web-member/app/(auth)/login/page.tsx",
+    "apps/web-member/app/(auth)/register/page.tsx",
+    "apps/web-member/app/(member)/layout.tsx",
+    "apps/web-member/app/affiliate/page.tsx",
+    "apps/web-member/app/api/anti-bot/[endpoint]/route.ts",
+    "apps/web-member/app/bank-accounts/page.tsx",
+    "apps/web-member/app/bonus/page.tsx",
+    "apps/web-member/app/contact/page.tsx",
+    "apps/web-member/app/deposit/page.tsx",
+    "apps/web-member/app/games/demo-launch/page.tsx",
+    "apps/web-member/app/games/page.tsx",
+    "apps/web-member/app/games/session/page.tsx",
+    "apps/web-member/app/guide/page.tsx",
+    "apps/web-member/app/kyc/page.tsx",
+    "apps/web-member/app/layout.tsx",
+    "apps/web-member/app/legal/[slug]/page.tsx",
+    "apps/web-member/app/legal/page.tsx",
+    "apps/web-member/app/maintenance/page.tsx",
+    "apps/web-member/app/notifications/page.tsx",
+    "apps/web-member/app/page.tsx",
+    "apps/web-member/app/profile/edit/page.tsx",
+    "apps/web-member/app/profile/page.tsx",
+    "apps/web-member/app/profile/password/page.tsx",
+    "apps/web-member/app/profile/security/page.tsx",
+    "apps/web-member/app/profile/sessions/page.tsx",
+    "apps/web-member/app/promotions/page.tsx",
+    "apps/web-member/app/session-expired/page.tsx",
+    "apps/web-member/app/support/page.tsx",
+    "apps/web-member/app/transactions/page.tsx",
+    "apps/web-member/app/withdraw/page.tsx"
+  ],
+  "featureFlags": [
+    {
+      "file": "apps/api/src/modules/anti-bot/anti-bot.service.ts",
+      "name": "ANTIBOT_RUNTIME_ENABLED"
+    },
+    {
+      "file": "apps/api/src/database/prisma.service.ts",
+      "name": "PRISMA_QUERY_METRICS_ENABLED"
+    },
+    {
+      "file": "apps/api/src/modules/money-ops/money-ops.service.ts",
+      "name": "REAL_LEDGER_MUTATION_ENABLED"
+    }
+  ],
+  "potentiallyUnusedHelpers": [],
+  "cssInventory": [
+    {
+      "file": "apps/web-admin/app/admin-dashboard-responsive.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-admin/app/admin-desktop.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-admin/app/admin-drawer-left.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-admin/app/admin-mobile.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-admin/app/admin-operations-responsive.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-admin/app/admin-system.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-admin/app/globals.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/design-tokens.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/games/games.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/globals.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/guide/guide.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-deposit-flow.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-desktop.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-finance-flow.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-finance-market.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-finance-pages.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-finance-responsive.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-games.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-home-market.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-home-responsive.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-home-sections.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-lobby-theme.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-mobile.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-promotions.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-shell.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-system.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-ui.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/member-withdraw-flow.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/notifications/member-notifications.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/profile/member-profile.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/public-auth-market.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/public-auth-polish.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/public-auth-shell.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/public-desktop.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/public-mobile.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/public-status-page.css",
+      "referenced": true
+    },
+    {
+      "file": "apps/web-member/app/support/member-support.css",
+      "referenced": true
+    }
+  ]
+}

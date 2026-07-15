@@ -4,7 +4,7 @@ import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { Readable } from 'stream';
 
-export type StoredObject = { data: Buffer; contentType: string };
+type StoredObject = { data: Buffer; contentType: string };
 
 @Injectable()
 export class StorageService {

@@ -1,4 +1,4 @@
-export type DomainErrorCode =
+type DomainErrorCode =
   | 'INVALID_AMOUNT'
   | 'INVALID_STATE_TRANSITION'
   | 'INSUFFICIENT_BALANCE'
