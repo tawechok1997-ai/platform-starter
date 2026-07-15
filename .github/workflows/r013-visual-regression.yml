@@ -39,9 +39,9 @@ jobs:
       - name: Visual regression contract
         run: node tools/audit-r013-visual-regression.mjs
       - name: Generate six-viewport baselines
-        run: pnpm test:e2e:visual:update
+        run: pnpm exec playwright test tests/e2e-visual/r013-auth-surfaces.spec.ts -c playwright.visual.config.ts --update-snapshots
       - name: Compare against generated baselines
-        run: pnpm test:e2e:visual
+        run: pnpm exec playwright test tests/e2e-visual/r013-auth-surfaces.spec.ts -c playwright.visual.config.ts
       - name: Upload screenshots traces console network and report
         if: always()
         uses: actions/upload-artifact@v4
