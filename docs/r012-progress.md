@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 
 ## Status
 
-- DONE: 8/18
-- IN PROGRESS: register and withdrawal page decomposition
-- Remaining: 10
+- DONE: 9/18
+- IN PROGRESS: register page decomposition
+- Remaining: 9
 
 ## Checklist
 
@@ -16,7 +16,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - [x] แยก page container ออกจาก presentation components
 - [ ] แยก register page
 - [x] แยก deposit page
-- [ ] แยก withdrawal page
+- [x] แยก withdrawal page
 - [ ] แยก provider page
 - [ ] แยก content/CMS page
 - [ ] แยก promotion page
@@ -39,7 +39,8 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - Deposit defaults, validation, request serialization and API error extraction live in a dedicated finance form contract.
 - Finance query keys and mutation invalidation rules are declared centrally and used by the deposit workflow.
 - Remote accounts/history/loading/error state now lives in `useDepositServerState`; the container only owns transient workflow and form state.
-- Static audit prevents the deposit container from reclaiming remote server state or bypassing presentation, form and query contracts.
+- The withdrawal route keeps API orchestration, validation and transient state in `app/withdraw/page.tsx`; `WithdrawalView` owns rendering and interaction wiring.
+- `WithdrawalView` is exported through the finance public boundary, and static audit prevents direct presentation imports from the route.
 
 ## Verification
 
