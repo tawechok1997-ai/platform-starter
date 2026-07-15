@@ -43,6 +43,8 @@ jobs:
         run: node tools/audit-r013-type-motion-layout-contract.mjs
       - name: Shared Button Input Select and TextArea primitives
         run: node tools/audit-r013-form-control-primitives.mjs
+      - name: Shared Modal Drawer and ConfirmDialog primitives
+        run: node tools/audit-r013-overlay-primitives.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: r013-design-token-inventory
