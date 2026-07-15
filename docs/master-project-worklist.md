@@ -27,10 +27,10 @@ Branch อ้างอิง: **`main`**
 | Permission coverage | 🟡 PARTIAL — static/policy coverage พร้อม เหลือ role-based browser regression |
 | Member product flows | 🟡 PARTIAL — feature หลักพร้อม เหลือ authenticated functional/visual regression |
 | Promotion / Bonus / Affiliate / Commission | ✅ DONE — ห้ามเปิดเงินจริงจนกว่า provider-specific UAT ผ่าน |
-| KYC / Blacklist / Document workflow | 🟡 PARTIAL — backend พร้อม เหลือ UI, PostgreSQL evidence บางส่วน และ deployed regression |
+| KYC / Blacklist / Document workflow | 🟡 PARTIAL — Backend และ Admin/Member UI พร้อม เหลือ PostgreSQL evidence บางส่วนและ deployed regression |
 | Real provider integration | ⏸️ CODE READY / EXTERNAL UAT BLOCKED |
 | P4 Backend architecture R-001 ถึง R-011 | ✅ DONE |
-| P4 Frontend/UI/Observability R-012 ถึง R-014 | 🟡 IN PROGRESS |
+| P4 Frontend/UI/Observability R-012 ถึง R-014 | 🟡 IN PROGRESS — R-012 ✅ DONE; R-013/R-014 อยู่ระหว่างดำเนินการ |
 | Performance / Storage / Production hardening | 🟡 PARTIAL |
 
 ---
@@ -181,7 +181,7 @@ Branch อ้างอิง: **`main`**
 - [x] MIME/size/SHA-256 metadata และ retention cleanup
 - [x] Phone OTP lifecycle และ PostgreSQL replay/brute-force/concurrency suite
 - [ ] PostgreSQL integration/concurrency evidence สำหรับ watchlist/KYC document lifecycle
-- [ ] Admin KYC UI และ Member KYC upload UI
+- [x] Admin KYC UI และ Member KYC upload UI
 - [ ] Authenticated deployed KYC/risk regression
 
 ---
@@ -342,12 +342,15 @@ Branch อ้างอิง: **`main`**
 
 ## R-012 Frontend feature architecture และ large-page decomposition
 
-สถานะ: 🟡 IN PROGRESS
+สถานะ: ✅ DONE
 
-- [x] เริ่มแยก page container/presentation ใน critical Member flows
-- [ ] ปิด decomposition ของ Admin/Member ทุก feature/domain
-- [ ] แยก schemas/defaults/serialization/error mapping และ server/UI state ครบ
-- [ ] Component/unit และ optimistic/unsaved-change regression ครบ
+- [x] จัด Admin/Member folders ตาม feature/domain และกำหนด public exports
+- [x] แยก page container/presentation สำหรับ register, deposit, withdrawal, provider, CMS, promotion, security, KYC และ support
+- [x] แยก schemas/defaults/serialization/error mapping และ server/UI state
+- [x] เพิ่ม query-key/invalidation contracts, component/unit tests และ optimistic/unsaved-change regression
+- [x] เพิ่ม architecture audits, Member tests และ Admin/Member typecheck ใน CI
+
+**หลักฐาน:** `docs/r012-progress.md`, `tools/audit-r012-*.mjs`, `.github/workflows/r012-frontend-architecture.yml`; closure commits `bd1805c9e31d365ed4e737464d99dd2f9894004d`, `38ae8dc81417847ada56ab14816543a3e3e94a0f`
 
 ## R-013 UI system, design tokens และ accessibility
 
@@ -371,7 +374,7 @@ Branch อ้างอิง: **`main`**
 ## ลำดับดำเนินงาน P4 ที่ถูกต้อง
 
 1. R-001 ถึง R-011 — ✅ ปิดครบแล้ว
-2. ทำ R-012 Frontend feature/page decomposition ต่อ
+2. R-012 Frontend feature/page decomposition — ✅ ปิดครบแล้ว
 3. ทำ R-013 shared UI system และ visual/accessibility regression ต่อ
 4. ทำ R-014 observability, runbooks, documentation และ cleanup
 5. ห้ามย้าย business logic โดยไม่มี regression evidence และห้ามรวม structural refactor หลาย domain ใหญ่ใน commit เดียว
@@ -445,15 +448,13 @@ Branch อ้างอิง: **`main`**
 
 # ลำดับทำงานถัดไป
 
-1. ทำ R-012 Frontend feature/page decomposition ต่อจากงานที่เริ่มแล้ว
-2. ทำ R-013 shared components, responsive patterns, accessibility และ six-viewport visual regression
-3. เพิ่ม PostgreSQL integration/concurrency evidence สำหรับ watchlist/KYC document lifecycle
-4. ทำ Admin KYC UI และ Member KYC upload UI
-5. ตั้ง seeded non-production Admin/Member accounts และปิด authenticated regression
-6. ปิด production/staging migration, rollback และ deployed session/cookie checks
-7. ทำ R-014 observability, documentation, runbooks และ dead-code cleanup
-8. ปิด storage/performance/CI P5 ก่อน production launch
-9. ทำ provider-specific UAT หลังได้รับ vendor docs/credentials
+1. ทำ R-013 shared components, responsive patterns, accessibility และ six-viewport visual regression
+2. เพิ่ม PostgreSQL integration/concurrency evidence สำหรับ watchlist/KYC document lifecycle
+3. ตั้ง seeded non-production Admin/Member accounts และปิด authenticated regression รวม KYC/risk
+4. ปิด production/staging migration, rollback และ deployed session/cookie checks
+5. ทำ R-014 observability, documentation, runbooks และ dead-code cleanup
+6. ปิด storage/performance/CI P5 ก่อน production launch
+7. ทำ provider-specific UAT หลังได้รับ vendor docs/credentials
 
 # Definition of Done ทั้งโปรเจกต์
 
