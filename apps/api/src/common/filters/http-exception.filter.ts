@@ -2,6 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from
 import { isDomainError } from '../errors/domain-error';
 import { mapDomainErrorToHttp } from '../errors/domain-error-http.mapper';
 import { resolveApiErrorCode } from '../errors/error-code-resolver';
+import { redactSensitiveUrl, toSafeLogRecord } from '../security/sensitive-log-redactor';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -22,16 +23,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
       ?? (typeof safePayload.code === 'string' ? safePayload.code : resolveApiErrorCode(message));
 
     if (status >= 500) {
-      console.error(JSON.stringify({
+      console.error(JSON.stringify(toSafeLogRecord({
         level: 'error',
         event: 'http_exception',
         requestId,
         method: request?.method,
-        path: request?.originalUrl ?? request?.url,
+        path: redactSensitiveUrl(request?.originalUrl ?? request?.url),
         statusCode: status,
         code: code ?? null,
         message,
-      }));
+      })));
     }
 
     response.status(status).json({
