@@ -10,6 +10,11 @@ import {
   serializeDepositEvidenceRequest,
   validateDepositSelection,
 } from './deposit-form';
+import {
+  createOptimisticSnapshot,
+  hasUnsavedChanges,
+  rollbackOptimisticChange,
+} from './form-regression';
 import { financeInvalidationRules, financeQueryKeys } from './query-keys';
 
 const account = {
@@ -83,6 +88,23 @@ test('finance query keys and invalidation rules are deterministic', () => {
     ['finance', 'topups'],
     ['finance', 'topups', 'list', 'self'],
   ]);
+});
+
+test('unsaved-change detection only reports meaningful form divergence', () => {
+  const persisted = { amount: '500', note: '', metadata: { method: 'bank_transfer' } };
+  assert.equal(hasUnsavedChanges(persisted, persisted), false);
+  assert.equal(hasUnsavedChanges({ ...persisted, amount: '700' }, persisted), true);
+});
+
+test('optimistic rollback restores an isolated snapshot after mutation', () => {
+  const initial = [{ id: 'topup-1', status: 'PENDING', amount: 500 }];
+  const snapshot = createOptimisticSnapshot(initial);
+  const optimistic = initial.map((item) => ({ ...item, status: 'APPROVED' }));
+
+  assert.equal(optimistic[0]?.status, 'APPROVED');
+  assert.equal(snapshot[0]?.status, 'PENDING');
+  assert.deepEqual(rollbackOptimisticChange(snapshot), initial);
+  assert.notEqual(rollbackOptimisticChange(snapshot), snapshot);
 });
 
 test('extracted presentation components keep route orchestration out of views', () => {
