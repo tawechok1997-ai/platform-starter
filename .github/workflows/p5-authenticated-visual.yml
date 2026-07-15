@@ -1,4 +1,4 @@
-name: P5 Authenticated Visual Artifacts
+name: P6 Authenticated Deployed Regression
 
 on:
   workflow_dispatch:
@@ -11,12 +11,20 @@ on:
         description: Seeded Admin web URL
         required: false
         type: string
+      api_url:
+        description: Deployed API URL
+        required: false
+        type: string
+      approved_commit:
+        description: Expected deployed commit SHA (optional)
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: p5-authenticated-visual-${{ github.ref }}
+  group: p6-authenticated-regression-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -26,6 +34,8 @@ jobs:
     env:
       MEMBER_WEB_URL: ${{ inputs.member_url || secrets.SEED_MEMBER_WEB_URL }}
       ADMIN_WEB_URL: ${{ inputs.admin_url || secrets.SEED_ADMIN_WEB_URL }}
+      API_URL: ${{ inputs.api_url || secrets.SEED_API_URL }}
+      APPROVED_COMMIT: ${{ inputs.approved_commit || secrets.APPROVED_DEPLOY_COMMIT }}
       SEED_MEMBER_USERNAME: ${{ secrets.SEED_MEMBER_USERNAME }}
       SEED_MEMBER_EMAIL: ${{ secrets.SEED_MEMBER_EMAIL }}
       SEED_MEMBER_PHONE: ${{ secrets.SEED_MEMBER_PHONE }}
@@ -36,16 +46,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate seeded visual environment
+      - name: Validate P6 environment
         shell: bash
         run: |
           set -euo pipefail
           test -n "$MEMBER_WEB_URL"
           test -n "$ADMIN_WEB_URL"
+          test -n "$API_URL"
           test -n "$SEED_MEMBER_PASSWORD"
           test -n "$SEED_ADMIN_PASSWORD"
           test -n "${SEED_MEMBER_USERNAME:-${SEED_MEMBER_EMAIL:-${SEED_MEMBER_PHONE:-}}}"
           test -n "${SEED_ADMIN_USERNAME:-${SEED_ADMIN_EMAIL:-}}"
+          for url in "$MEMBER_WEB_URL" "$ADMIN_WEB_URL" "$API_URL"; do
+            case "$url" in
+              https://*) ;;
+              *) echo "P6 URLs must use HTTPS: $url" >&2; exit 1 ;;
+            esac
+          done
+
+      - name: Verify deployed endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --max-time 20 "$MEMBER_WEB_URL" >/dev/null
+          curl --fail --silent --show-error --location --max-time 20 "$ADMIN_WEB_URL" >/dev/null
+          curl --fail --silent --show-error --location --max-time 20 "$API_URL/health" >/tmp/p6-health.json
+          cat /tmp/p6-health.json
+          if [ -n "${APPROVED_COMMIT:-}" ]; then
+            if ! grep -Fqi "$APPROVED_COMMIT" /tmp/p6-health.json; then
+              echo "Health payload does not contain approved commit: $APPROVED_COMMIT" >&2
+              exit 1
+            fi
+          fi
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -66,17 +98,18 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Capture seeded authenticated visual artifacts
+      - name: Capture authenticated deployed artifacts
         run: pnpm exec playwright test -c playwright.authenticated-visual.config.ts --update-snapshots
 
-      - name: Upload authenticated screenshots and reports
+      - name: Upload P6 screenshots and reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: authenticated-visual-${{ github.run_id }}
+          name: p6-authenticated-regression-${{ github.run_id }}
           path: |
             tests/authenticated-visual/**/*-snapshots/**
             test-results/authenticated-visual/**
             playwright-report/authenticated-visual/**
+            /tmp/p6-health.json
           if-no-files-found: warn
           retention-days: 14
