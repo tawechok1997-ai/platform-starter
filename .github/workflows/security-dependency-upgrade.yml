@@ -61,7 +61,7 @@ jobs:
           const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
           pkg.pnpm ??= {};
           pkg.pnpm.overrides ??= {};
-          pkg.pnpm.overrides.next = '15.5.16';
+          pkg.pnpm.overrides.next = '15.5.18';
           pkg.pnpm.overrides.effect = '3.20.0';
           fs.writeFileSync(path, `${JSON.stringify(pkg, null, 2)}\n`);
           NODE
