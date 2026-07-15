@@ -48,7 +48,6 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - Added `apps/api/src/modules/reports/report-response-contracts.spec.ts`.
 - Added `apps/api/src/modules/notifications/notification-response-contracts.spec.ts`.
 - Dashboard, queue-aging, reconciliation, and notification public responses use deterministic inline snapshots.
-- Notification coverage includes items, date groups, total, counts, read state, and preferences.
 - Wired both suites into `.github/workflows/r010-query-boundaries.yml`, followed by API typecheck.
 - Evidence: `docs/evidence/r010-response-contract-snapshots.md`.
 
@@ -56,9 +55,13 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ### 12. Add EXPLAIN ANALYZE evidence for heavy queries
 
-- [ ] Identify heavy report/dashboard query families.
-- [ ] Add reproducible EXPLAIN ANALYZE scripts or captured evidence.
-- [ ] Document indexes and observed plan risks without changing production data.
+- [x] Identified dashboard aggregation, queue aging, wallet scan, and latest-ledger lookup as the first heavy read families.
+- [x] Added `tools/r010-explain-analyze.mjs` using `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` with fixed read-only SQL.
+- [x] Added `tools/audit-r010-explain-analyze-evidence.mjs` to require raw plans, planning time, execution time, and root node type for all four queries.
+- [x] Added `.github/workflows/r010-explain-analyze.yml` with PostgreSQL 16, real migrations, Prisma generation, evidence validation, and artifact upload.
+- [x] Added package commands `audit:r10:explain` and `audit:r10:explain:validate`.
+- [x] Documented the CI-baseline limitation in `docs/evidence/r010-explain-analyze-baseline.md`.
+- [ ] Observe a successful workflow artifact before closing this outcome. Connector visibility currently does not expose the push-triggered Actions run.
 
 ## Count
 
@@ -68,7 +71,9 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ## Latest commits
 
-- `2dbae01acdc425ad894da9b366af75558473c206` — record response contract snapshot evidence.
-- `07656fdbb30d17f291c90db9e1ed697882c2b381` — run response snapshots in CI.
-- `095d6a30e226c3e7b82bb6df89ef1f465cf4f99d` — snapshot notification response contract.
-- `472f01809586ea47c388cc73a569ca63b7daedea` — snapshot dashboard and report response contracts.
+- `86680c9f14a92a0b7f4e30b25aec4ab465eed781` — rerun EXPLAIN evidence workflow when scripts or commands change.
+- `6a6a2fc1d1c59284ea62a51f265236d2121e99a7` — document the EXPLAIN ANALYZE CI baseline and limitation.
+- `b055c00f31ad0aa1ebd9aa8fb0f1475c17cc9810` — add EXPLAIN evidence commands.
+- `f80978a6e61b0a63cb3fb8da5ee35df876c25fde` — validate machine-readable EXPLAIN evidence.
+- `e529067e8a20da3079f8c4e38a2793da93cfefa7` — add PostgreSQL EXPLAIN evidence workflow.
+- `bcfbc8713c65cd26ea7301a9e8af3951f3a0014d` — capture heavy-read EXPLAIN ANALYZE plans.
