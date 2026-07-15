@@ -183,8 +183,10 @@
 - [x] Playwright smoke/visual commands
 - [ ] Web unit/component coverage สำหรับ critical components
 - [ ] Authenticated visual artifact workflow รองรับ seeded environment
-- [ ] Env schema และ startup validation
+- [x] Env schema และ startup validation
 - [ ] Dependency/security audit และ production secret guard
+
+**หลักฐาน env/startup:** `apps/api/src/common/config/runtime-env.ts` ตรวจ URL, proxy hops, rate limits, production HTTPS, production-required URLs, weak secret placeholders และ storage config ก่อน bootstrap; มี `runtime-env.spec.ts` และ commit `bb665c18` ผ่าน deploy checks ของ API, Admin และ Member
 
 ---
 
@@ -242,11 +244,11 @@
 # ลำดับทำงานโค้ดถัดไป
 
 1. ปิด P5 aggregate และ storage security ส่วนกลาง
-2. เพิ่ม web unit/component coverage, seeded visual artifact workflow และ CI hardening
+2. เพิ่ม web unit/component coverage, seeded visual artifact workflow และ dependency/security CI hardening
 3. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
 
 # จำนวนงานคงค้าง
 
-- งานโค้ดใน P0 ถึง P5: **8 รายการ**
+- งานโค้ดใน P0 ถึง P5: **7 รายการ**
 - งาน external verification และ UAT ใน P6: **30 รายการ**
-- รวม checkbox ที่ยังไม่ปิด: **38 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **37 รายการ**
