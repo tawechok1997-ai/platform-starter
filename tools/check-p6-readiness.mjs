@@ -1,10 +1,12 @@
 const groups = [
   {
     name: 'deployed-environment',
+    blocking: true,
     required: ['P6_API_URL', 'P6_ADMIN_URL', 'P6_MEMBER_URL'],
   },
   {
     name: 'seeded-credentials',
+    blocking: true,
     required: [
       'P6_ADMIN_EMAIL',
       'P6_ADMIN_PASSWORD',
@@ -16,6 +18,7 @@ const groups = [
   },
   {
     name: 'vendor-uat',
+    blocking: false,
     required: ['P6_PROVIDER_CODE', 'P6_PROVIDER_BASE_URL'],
     optional: ['P6_PROVIDER_API_KEY', 'P6_PROVIDER_SECRET', 'P6_PROVIDER_CALLBACK_URL'],
   },
@@ -30,9 +33,12 @@ const groupReports = groups.map((group) => {
   const present = group.required.filter(hasValue);
   const optionalPresent = (group.optional ?? []).filter(hasValue);
   const validationErrors = validateGroup(group.name, environment);
+  const ready = missing.length === 0 && validationErrors.length === 0;
   return {
     name: group.name,
-    ready: missing.length === 0 && validationErrors.length === 0,
+    blocking: group.blocking !== false,
+    ready,
+    status: ready ? 'ready' : group.blocking === false ? 'skipped' : 'blocked',
     required: group.required,
     present,
     missing,
@@ -50,7 +56,10 @@ const report = {
 
 report.readyGroups = report.groups.filter((group) => group.ready).length;
 report.totalGroups = report.groups.length;
-report.ready = report.readyGroups === report.totalGroups;
+report.blockingGroups = report.groups.filter((group) => group.blocking).length;
+report.readyBlockingGroups = report.groups.filter((group) => group.blocking && group.ready).length;
+report.optionalGroups = report.groups.filter((group) => !group.blocking).length;
+report.ready = report.groups.filter((group) => group.blocking).every((group) => group.ready);
 
 if (json) {
   console.log(JSON.stringify(report, null, 2));
@@ -58,11 +67,13 @@ if (json) {
   console.log('P6 external readiness');
   console.log(`  environment: ${environment}`);
   for (const group of report.groups) {
-    console.log(`  ${group.ready ? 'READY' : 'BLOCKED'} ${group.name}`);
+    const label = group.ready ? 'READY' : group.blocking ? 'BLOCKED' : 'SKIPPED';
+    console.log(`  ${label} ${group.name}`);
     if (group.missing.length > 0) console.log(`    missing: ${group.missing.join(', ')}`);
     for (const error of group.validationErrors) console.log(`    invalid: ${error.field} (${error.reason})`);
   }
-  console.log(`  ready groups: ${report.readyGroups}/${report.totalGroups}`);
+  console.log(`  blocking groups: ${report.readyBlockingGroups}/${report.blockingGroups}`);
+  console.log(`  all groups ready: ${report.readyGroups}/${report.totalGroups}`);
 }
 
 if (strict && !report.ready) process.exitCode = 1;
