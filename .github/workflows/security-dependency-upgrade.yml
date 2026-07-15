@@ -73,6 +73,9 @@ jobs:
       - name: Validate Prisma and generate client
         run: pnpm prisma validate && pnpm prisma generate
 
+      - name: Apply CI database migrations
+        run: pnpm prisma migrate deploy --schema prisma/schema.prisma
+
       - name: Typecheck all applications
         run: pnpm typecheck:api && pnpm typecheck:admin && pnpm typecheck:member
 
