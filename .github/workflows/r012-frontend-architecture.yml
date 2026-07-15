@@ -5,6 +5,7 @@ on:
     paths:
       - 'apps/web-admin/src/features/**'
       - 'apps/web-member/src/features/**'
+      - 'apps/web-member/app/(auth)/register/**'
       - 'apps/web-member/app/deposit/**'
       - 'apps/web-member/app/withdraw/**'
       - 'apps/web-member/package.json'
@@ -15,6 +16,7 @@ on:
     paths:
       - 'apps/web-admin/src/features/**'
       - 'apps/web-member/src/features/**'
+      - 'apps/web-member/app/(auth)/register/**'
       - 'apps/web-member/app/deposit/**'
       - 'apps/web-member/app/withdraw/**'
       - 'apps/web-member/package.json'
