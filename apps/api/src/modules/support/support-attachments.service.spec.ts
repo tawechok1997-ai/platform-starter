@@ -9,6 +9,7 @@ describe('SupportAttachmentsService storage lifecycle', () => {
     const storage = {
       remove: jest.fn().mockResolvedValue(undefined),
     } as any;
+    const signedAccess = {} as any;
     const support = {
       removeMemberAttachment: jest.fn().mockResolvedValue({
         ok: true,
@@ -23,7 +24,11 @@ describe('SupportAttachmentsService storage lifecycle', () => {
         cleanup: { storageKey: 'support/ticket-1/admin.pdf' },
       }),
     } as any;
-    return { service: new SupportAttachmentsService(prisma, storage, support), storage, support };
+    return {
+      service: new SupportAttachmentsService(prisma, storage, signedAccess, support),
+      storage,
+      support,
+    };
   }
 
   it('removes the member attachment object after metadata deletion', async () => {
