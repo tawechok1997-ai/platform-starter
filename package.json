@@ -48,6 +48,8 @@
     "audit:r9-schema-constraints:json": "R009_SCHEMA_JSON=1 node tools/audit-r009-schema-constraints.mjs",
     "audit:r9-schema-constraints:strict": "R009_SCHEMA_STRICT=1 node tools/audit-r009-schema-constraints.mjs",
     "audit:r9-boundary-closure": "node tools/audit-r009-boundary-closure.mjs",
+    "audit:r10:explain": "node tools/r010-explain-analyze.mjs",
+    "audit:r10:explain:validate": "node tools/audit-r010-explain-analyze-evidence.mjs",
     "audit:shared-api-client": "node tools/audit-shared-api-client.mjs",
     "audit:shared-api-client:json": "API_CLIENT_AUDIT_JSON=1 node tools/audit-shared-api-client.mjs",
     "audit:r5-closure": "pnpm audit:shared-api-client && pnpm --filter @platform/api-client test && pnpm --filter @platform/api-client build && pnpm typecheck:admin && pnpm typecheck:member",
