@@ -1,156 +1,72 @@
 # Master Project Worklist
 
-เอกสารนี้เป็น source of truth หลักสำหรับสถานะงานของ `platform-starter` โดยอ้างอิงจาก source code, commit history, scripts, tests, workflows และ configuration บน branch `main`
+เอกสารนี้เป็น source of truth หลักสำหรับสถานะงานของ `platform-starter` บน branch `main`
 
-วันที่ตรวจล่าสุด: **2026-07-15**  
-Branch อ้างอิง: **`main`**
+วันที่จัดโครงสร้างล่าสุด: **2026-07-15**
 
-## หลักการให้สถานะ
+## หลักการจัดงาน
 
-- ✅ DONE — มี implementation และ automated/closure evidence ที่เหมาะสม
-- 🟡 PARTIAL — มี implementation แล้ว แต่ยังขาด regression, production verification หรือส่วนประกอบสำคัญ
-- 🔴 TODO — ยังไม่พบ implementation ที่ยืนยันได้
-- ⏸️ BLOCKED — ต้องรอ credentials, deployed environment, vendor document หรือ external decision
+- P0 ถึง P5 เก็บเฉพาะงานที่สามารถทำต่อใน repository ได้ เช่น implementation, automated tests, CI และ configuration
+- P6 เก็บงานที่ต้องใช้ deployed environment, credentials, production access, vendor document หรือ external approval
+- งานที่เสร็จแล้วอ้างอิงจาก implementation และ regression evidence ไม่ใช่ checkbox อย่างเดียว
+- เอกสาร backlog เก่าถูกยกเลิก ไม่ใช้เป็น source of truth อีกต่อไป
 
-> สถานะต้องอ้างอิงจากโค้ดและหลักฐานใน repo ไม่ใช่ checkbox เพียงอย่างเดียว
-
----
-
-# ภาพรวมสถานะจริง
+## สถานะรวม
 
 | กลุ่ม | สถานะ |
 |---|---|
-| Monorepo / API / Admin / Member foundation | ✅ DONE |
-| Prisma schema และ CI migration path | ✅ DONE ใน CI; production rollback/verification ยังไม่ครบ |
-| Deposit / withdrawal workflow safety | 🟡 PARTIAL — DB concurrency ผ่าน เหลือ credentialed production flow |
-| Admin auth / owner / role / 2FA | 🟡 PARTIAL — implementation พร้อม เหลือ credentialed regression |
-| Permission coverage | 🟡 PARTIAL — static/policy coverage พร้อม เหลือ role-based browser regression |
-| Member product flows | 🟡 PARTIAL — feature หลักพร้อม เหลือ authenticated functional/visual regression |
-| Promotion / Bonus / Affiliate / Commission | ✅ DONE — ห้ามเปิดเงินจริงจนกว่า provider-specific UAT ผ่าน |
-| KYC / Blacklist / Document workflow | 🟡 PARTIAL — Backend และ Admin/Member UI พร้อม เหลือ PostgreSQL evidence บางส่วนและ deployed regression |
-| Real provider integration | ⏸️ CODE READY / EXTERNAL UAT BLOCKED |
-| P4 Backend architecture R-001 ถึง R-011 | ✅ DONE |
-| P4 Frontend/UI/Observability R-012 ถึง R-014 | 🟡 IN PROGRESS — R-012 ✅ DONE; R-013/R-014 อยู่ระหว่างดำเนินการ |
-| Performance / Storage / Production hardening | 🟡 PARTIAL |
+| P0 Core / schema / finance safety | ✅ DONE ฝั่งโค้ด |
+| P1 Security / permissions | ✅ DONE ฝั่งโค้ด |
+| P2 Product completion | 🟡 IN PROGRESS |
+| P3 Provider foundation | ✅ CODE READY |
+| P4 Architecture / UI / observability | 🟡 IN PROGRESS |
+| P5 Performance / storage / CI | 🟡 IN PROGRESS |
+| P6 External verification / production / vendor UAT | ⏸️ BLOCKED / WAITING |
 
 ---
 
 # P0 — Core, schema และ financial safety
 
-## M-001 Prisma schema และ migration
-
-สถานะ: ✅ DONE สำหรับ repository/CI, 🟡 PARTIAL สำหรับ production
+สถานะ: ✅ DONE ฝั่งโค้ด
 
 - [x] Prisma schema และ migration path
 - [x] Prisma validate/generate/migrate deploy ใน CI
 - [x] ไม่มี build-time source mutation
-- [ ] Staging migration/rollback verification
-- [ ] Production migration status ตรงกับ approved commit
-
-## M-002 Deposit workflow
-
-สถานะ: 🟡 PARTIAL
-
-- [x] Row lock และ state-transition guard
-- [x] Claim-owner checks
-- [x] Credit idempotency
-- [x] Storage cleanup path
-- [x] Static workflow audit
-- [x] PostgreSQL finance concurrency suite ผ่านโดยไม่ skip
-- [ ] Credentialed end-to-end deposit regression
-
-## M-003 Withdrawal workflow
-
-สถานะ: 🟡 PARTIAL
-
-- [x] Row lock และ state-transition guard
-- [x] Claim-owner checks
+- [x] Deposit row lock และ state-transition guard
+- [x] Deposit claim-owner checks และ credit idempotency
+- [x] Withdrawal row lock และ state-transition guard
+- [x] Withdrawal claim-owner checks และ completion idempotency
 - [x] Proof duplicate protection
-- [x] Completion idempotency
-- [x] Legacy direct-complete endpoint ถูกถอดออก
 - [x] PostgreSQL finance concurrency suite ผ่านโดยไม่ skip
-- [ ] Credentialed end-to-end withdrawal regression
-
-## M-004 Build-time source mutation
-
-สถานะ: ✅ DONE
-
-- [x] `build:api` ใช้ Prisma generate และ Nest build โดยตรง
-- [x] ไม่มี schema/workflow source mutation ใน build path
 
 ---
 
-# P1 — Security, permissions และ production verification
+# P1 — Security, permissions และ session safety
 
-## M-005 Admin owner/account protection
-
-สถานะ: 🟡 PARTIAL
+สถานะ: ✅ DONE ฝั่งโค้ด
 
 - [x] Last-owner protection และ ownership transfer transaction
 - [x] Step-up/2FA confirmation
-- [x] Lifecycle reason/audit/session revocation
-- [x] Account timeline และ login history
-- [ ] Credentialed owner-transfer regression
-- [ ] Production account lifecycle regression
-
-## M-006 Permission coverage
-
-สถานะ: 🟡 PARTIAL
-
-- [x] API/UI permission audits
-- [x] Finance/wallet/bank/support permission metadata
-- [x] Domain authorization policies และ resource-level authorization
-- [ ] Read-only role browser regression
-- [ ] Mutation control hidden/blocked verification ทุก route สำคัญ
-
-## M-007 Trusted proxy, IP และ rate limit
-
-สถานะ: 🟡 PARTIAL
-
+- [x] Account lifecycle audit และ session revocation
+- [x] API/UI permission metadata และ resource authorization policies
 - [x] Trusted proxy configuration และ request context
 - [x] Account/IP rate limiting และ progressive lockout
-- [x] Suspicious-device audit
-- [ ] Reverse-proxy integration test ใน deployed environment
-
-## M-008 Token/session security
-
-สถานะ: 🟡 PARTIAL
-
-- [x] Shared API path และ memory access-token policy
+- [x] Shared API auth path และ memory access-token policy
 - [x] HttpOnly refresh cookies แยก Admin/Member
 - [x] CSRF origin check และ token/XSS static audits
-- [ ] Deployed login/refresh/logout/cookie regression
-- [ ] Session reuse/rotation regression ผ่าน browser/API จริง
-
-## M-009 Anti-bot
-
-สถานะ: 🟡 PARTIAL
-
-- [x] Turnstile/reCAPTCHA/hCaptcha support
-- [x] Encrypted secret storage และ adaptive/emergency modes
-- [x] Password-reset integration
-- [ ] Provider-specific production test
-- [ ] Failure/fallback regression ใน deployed environment
-
-## M-010 Finance/provider operations
-
-สถานะ: 🟡 PARTIAL
-
-- [x] Reverse/fail/retry guards
-- [x] Ledger/idempotency/audit paths
-- [x] Credential lifecycle และ sanitized health checks
-- [x] Webhook signature/duplicate handling
-- [x] Real-money safety gates และ DB concurrency evidence
-- [ ] Provider reconciliation regression
-- [ ] Production migration/provider verification
+- [x] Turnstile/reCAPTCHA/hCaptcha integration foundation
+- [x] Encrypted anti-bot secret storage และ adaptive/emergency modes
+- [x] Finance reverse/fail/retry guards
+- [x] Ledger, idempotency, webhook duplicate และ signature guards
+- [x] Real-money safety gates
 
 ---
 
 # P2 — Product completion
 
-## M-011 ถึง M-019
+สถานะ: 🟡 IN PROGRESS
 
-สถานะรวม: 🟡 PARTIAL ยกเว้น M-018 ✅ DONE
+## งานที่เสร็จแล้ว
 
 - [x] Member home/game discovery implementation
 - [x] Deposit/withdraw guided UI และ workflow status
@@ -159,198 +75,58 @@ Branch อ้างอิง: **`main`**
 - [x] Support/FAQ/ticket lifecycle และ attachment policy
 - [x] Admin settings/CMS URL-backed assets
 - [x] Reports/activity/risk/security Admin feature set
-- [x] Promotion/bonus/affiliate/commission settlement และ PostgreSQL concurrency tests
+- [x] Promotion/bonus/affiliate/commission settlement
 - [x] CMS/member content implementation
-- [ ] Authenticated six-viewport visual regression
+- [x] Bank review และ duplicate-bank detection
+- [x] Risk lifecycle และ blacklist/watchlist domain
+- [x] KYC case/document lifecycle และ private storage policy
+- [x] Phone OTP lifecycle และ PostgreSQL replay/brute-force/concurrency suite
+- [x] Admin KYC UI และ Member KYC upload UI
+
+## งานโค้ดที่เหลือ
+
 - [ ] Provider-down/game-launch regression
 - [ ] Responsive money-flow duplicate/retry/error regression
 - [ ] Notification optimistic rollback regression
 - [ ] Actual support binary/object-storage upload
-- [ ] Authenticated Support/CMS/Reports regression
-- [ ] Binary asset lifecycle หากรองรับ upload จริง
-
-## M-020 KYC/risk
-
-สถานะ: 🟡 PARTIAL
-
-- [x] Bank review และ duplicate-bank detection
-- [x] Risk lifecycle และ blacklist/watchlist domain
-- [x] HMAC matching, override/release lifecycle และ audit
-- [x] Enforcement ใน registration/profile/bank/withdrawal
-- [x] KYC case/document lifecycle และ private storage policy
-- [x] MIME/size/SHA-256 metadata และ retention cleanup
-- [x] Phone OTP lifecycle และ PostgreSQL replay/brute-force/concurrency suite
-- [ ] PostgreSQL integration/concurrency evidence สำหรับ watchlist/KYC document lifecycle
-- [x] Admin KYC UI และ Member KYC upload UI
-- [ ] Authenticated deployed KYC/risk regression
+- [ ] Binary asset lifecycle สำหรับ upload จริง
+- [ ] PostgreSQL integration/concurrency tests สำหรับ watchlist/KYC document lifecycle
 
 ---
 
-# P3 — Real provider
+# P3 — Provider integration foundation
 
-## M-021 Provider integration
+สถานะ: ✅ CODE READY
 
-สถานะ: ⏸️ CODE READY / EXTERNAL UAT BLOCKED
-
-- [x] Generic endpoint/credential contracts
+- [x] Generic endpoint และ credential contracts
 - [x] Safe gates ปิดเงินจริง
 - [x] Readiness adapter/registry/template
 - [x] Generic signature tests
-- [ ] Vendor endpoint และ credentials
-- [ ] Vendor signature/error contract
-- [ ] IP whitelist/callback requirements
-- [ ] Provider-specific UAT
+- [x] Credential lifecycle และ sanitized health checks
+- [x] Webhook signature/duplicate handling foundation
+
+> งานที่ต้องใช้ vendor จริงถูกย้ายไป P6 ทั้งหมด
 
 ---
 
-# P4 — Professional Refactor และ Codebase Organization
+# P4 — Professional refactor, UI system และ observability
 
-## P4 Backend Definition of Done: R-001 ถึง R-011
-
-สถานะ: ✅ DONE
-
-- [x] ไม่มี controller สำคัญเรียก Prisma โดยตรงนอก documented boundary
-- [x] ไม่มี circular dependency ระหว่าง module สำคัญ
-- [x] Critical mutations มี DTO, authorization policy, transaction boundary และ audit
-- [x] Critical paths มี strict/type/response guards ตาม closure scope
-- [x] Frontend API access ผ่าน shared API client และ enforced allowlist
-- [x] Module ownership และ public contracts ถูกบันทึก
-- [x] Critical flows มี regression coverage ตามประเภทที่เหมาะสม
-- [x] CI มี architecture, lint, typecheck, contract และ forbidden-import gates
-- [x] Backend services ถูกแยก responsibility ตาม R-007 closure scope
-- [x] Repository/transaction/query/security boundaries มี closure evidence
-
-## R-001 Architecture inventory และ ownership
+## R-001 ถึง R-012
 
 สถานะ: ✅ DONE
 
-- [x] Endpoint/module/dependency/route ownership inventories
-- [x] Critical-route database, side-effect, permission และ audit mapping
-- [x] Circular/deep-import checks และ public entry points
-- [x] Architecture inventory gate ใน CI
-
-**หลักฐาน:** `docs/architecture/r001-closure.md`, `pnpm audit:r1-closure`
-
-## R-002 Dependency rules และ module boundaries
-
-สถานะ: ✅ DONE
-
-- [x] Dependency direction และ domain/infrastructure boundaries
-- [x] ESLint/import rules, forbidden imports และ circular scan
-- [x] CI architecture gates และ documented exceptions
-
-**หลักฐาน:** `docs/architecture/r002-closure.md`, `pnpm audit:r2-closure`
-
-## R-003 Regression safety net
-
-สถานะ: ✅ DONE
-
-- [x] Test inventory และ characterization/state-transition/policy/error-contract coverage
-- [x] Rollback/idempotency/test-skip guards
-- [x] CI failure summary
-
-**หลักฐาน:** `docs/architecture/r003-closure.md`, `pnpm audit:r3-closure`
-
-## R-004 DTO, type strictness และ API contract
-
-สถานะ: ✅ DONE
-
-- [x] Mutation route inventory และ DTO coverage
-- [x] Validation/normalization/enum/max-length contracts
-- [x] Request/command/domain/response separation
-- [x] Prisma response-boundary และ sensitive-field guards
-- [x] Strict/type/error-code/contract regression gates
-
-**หลักฐาน:** closure commit `210e5989948d2f9d97ef49760af08836b8344e9a`; CI closure gates `5323dd4a`, `3370d1a2`, `f01d3546`
-
-## R-005 Shared API client consolidation
-
-สถานะ: ✅ DONE
-
-- [x] Shared URL/header/error/retry/cache/auth-refresh behavior
-- [x] Admin/Member routes migrated under central-client allowlist
-- [x] Typed domain requests, upload/private download และ error normalization
-- [x] Duplicate helper prevention และ contract regressions
-
-**หลักฐาน:** closure evidence commit `9de8c96c5d1b8d075ce121a61e66b83f2cb436b9`; workflow `080ccfeb`; closure gates `81b4fda2`
-
-## R-006 CI quality baseline
-
-สถานะ: ✅ DONE
-
-- [x] App/package lint และ typecheck scripts
-- [x] Shared ESLint/formatter config
-- [x] Unused/forbidden/circular/schema/migration/test-skip gates
-- [x] Browser console/network failure gate และ CI summaries
-
-**หลักฐาน:** `docs/architecture/r006-closure.md`, `pnpm audit:r6-closure`, `.github/workflows/r006-quality.yml`
-
-## R-007 Backend service decomposition
-
-สถานะ: ✅ DONE
-
-- [x] Large controller/service inventory และ size/ownership thresholds
-- [x] Command/query decomposition ตาม critical backend domains
-- [x] Mapper, audit writer, serializer และ orchestration separation
-- [x] Constructor dependency reduction และ regression coverage
-
-**หลักฐาน:** closure evidence commit `1a2f14dbabf6c615648ed2955c2d6bf67c7aca7f`; audit-writer closure `7633247e`; ownership correction `94e17b8d`
-
-## R-008 Domain model และ policy separation
-
-สถานะ: ✅ DONE
-
-- [x] Promotion/affiliate models และ constraints
-- [x] Deposit/withdrawal/wallet/admin/KYC/watchlist/support/notification policies
-- [x] Domain errors, value objects และ invariant tests
-
-**หลักฐาน:** `docs/r008-closure-checklist.md`, `docs/evidence/r008-final-verification.md`, `pnpm audit:r8-closure`; closure commit `e9850b22d033edd9f96eba178b1999699a0a5c96`
-
-## R-009 Repository, transaction และ persistence boundary
-
-สถานะ: ✅ DONE
-
-- [x] Prisma access removed from critical controllers
-- [x] Repository ports/adapters และ Prisma isolation
-- [x] Critical transaction ownership และ lock-order rules
-- [x] Transaction-escape, rollback/deadlock/concurrency guards
-- [x] PostgreSQL concurrency CI closure
-
-**หลักฐาน:** repository-adapter closure `6df22969`; transaction-escape closure `5a5cde71`; PostgreSQL CI closure `4b0f5066`, `a2b46374`, `9441816e`
-
-## R-010 Query/read model และ projection cleanup
-
-สถานะ: ✅ DONE
-
-- [x] Query inventory, projections, pagination และ filter/sort contracts
-- [x] Dashboard/report read models
-- [x] Sensitive-field response snapshots/contracts
-- [x] EXPLAIN ANALYZE evidence และ query-performance instrumentation
-
-**หลักฐาน:** closure commit `961975c1fc2a9fd9cd658babb5818f19b5e0883f`; performance CI `4e7fbe83`; EXPLAIN evidence workflow `e529067e`
-
-## R-011 Error, authorization และ security boundary
-
-สถานะ: ✅ DONE
-
-- [x] Domain/HTTP error taxonomy และ stable error codes
-- [x] Domain/resource authorization และ step-up/reason/audit policies
-- [x] Input normalization, sensitive logging redaction และ security audits
-- [x] CSRF/replay/idempotency boundaries และ policy tests
-
-**หลักฐาน:** `docs/r011-progress.md`, `docs/evidence/r011-final-verification.md`, `.github/workflows/r011-security-boundaries.yml`; closure commit `203c5ee9b51db85639bfd39f4e8b31ce5d0fe420`
-
-## R-012 Frontend feature architecture และ large-page decomposition
-
-สถานะ: ✅ DONE
-
-- [x] จัด Admin/Member folders ตาม feature/domain และกำหนด public exports
-- [x] แยก page container/presentation สำหรับ register, deposit, withdrawal, provider, CMS, promotion, security, KYC และ support
-- [x] แยก schemas/defaults/serialization/error mapping และ server/UI state
-- [x] เพิ่ม query-key/invalidation contracts, component/unit tests และ optimistic/unsaved-change regression
-- [x] เพิ่ม architecture audits, Member tests และ Admin/Member typecheck ใน CI
-
-**หลักฐาน:** `docs/r012-progress.md`, `tools/audit-r012-*.mjs`, `.github/workflows/r012-frontend-architecture.yml`; closure commits `bd1805c9e31d365ed4e737464d99dd2f9894004d`, `38ae8dc81417847ada56ab14816543a3e3e94a0f`
+- [x] Architecture inventory และ ownership
+- [x] Dependency rules และ module boundaries
+- [x] Regression safety net
+- [x] DTO, type strictness และ API contracts
+- [x] Shared API client consolidation
+- [x] CI quality baseline
+- [x] Backend service decomposition
+- [x] Domain model และ policy separation
+- [x] Repository, transaction และ persistence boundaries
+- [x] Query/read model และ projection cleanup
+- [x] Error, authorization และ security boundaries
+- [x] Frontend feature architecture และ large-page decomposition
 
 ## R-013 UI system, design tokens และ accessibility
 
@@ -358,128 +134,122 @@ Branch อ้างอิง: **`main`**
 
 - [x] ลบ unused legacy UI/package files
 - [x] เริ่ม shared semantic design tokens และ Admin/Member adoption
-- [ ] รวม primitives และ responsive patterns ครบ
-- [ ] Keyboard/focus/ARIA/reduced-motion/contrast baseline
-- [ ] Six-viewport visual regression และ CI artifacts
+- [ ] รวม shared UI primitives และ responsive patterns ให้ครบ
+- [ ] เพิ่ม keyboard, focus, ARIA, reduced-motion และ contrast baseline
+- [ ] เพิ่ม six-viewport visual regression และ CI artifacts
 
-## R-014 Observability, documentation และ cleanup
+## R-014 Observability และ cleanup
 
-สถานะ: 🔴 TODO เป็นส่วนใหญ่
+สถานะ: 🟡 IN PROGRESS
 
 - [ ] Structured logging และ redaction tests
 - [ ] Request/DB/auth/settlement/provider metrics
-- [ ] Module README, state-machine docs, ADR และ runbooks
-- [ ] Dead-code inventory/removal และ legacy-doc archive
-
-## ลำดับดำเนินงาน P4 ที่ถูกต้อง
-
-1. R-001 ถึง R-011 — ✅ ปิดครบแล้ว
-2. R-012 Frontend feature/page decomposition — ✅ ปิดครบแล้ว
-3. ทำ R-013 shared UI system และ visual/accessibility regression ต่อ
-4. ทำ R-014 observability, runbooks, documentation และ cleanup
-5. ห้ามย้าย business logic โดยไม่มี regression evidence และห้ามรวม structural refactor หลาย domain ใหญ่ใน commit เดียว
+- [ ] Dead-code inventory และ removal
 
 ---
 
-# P5 — Performance, storage และ CI
+# P5 — Performance, storage และ CI hardening
 
-## M-022 Query/pagination
+สถานะ: 🟡 IN PROGRESS
 
-สถานะ: 🟡 PARTIAL — backend architecture/query cleanup ครอบคลุมส่วนสำคัญแล้ว
+## Query และ cache
 
-- [x] Query inventory และ hard-coded `take` audit ตาม R-010 scope
-- [x] Shared pagination/projection/filter/sort patterns ตาม R-010 scope
-- [x] EXPLAIN ANALYZE และ query-performance instrumentation ตาม R-010 scope
-- [ ] Production-scale index evidence และ tuning รอบสุดท้าย
+- [x] Query inventory และ hard-coded `take` audit
+- [x] Shared pagination/projection/filter/sort patterns
+- [x] EXPLAIN ANALYZE และ query-performance instrumentation foundation
+- [x] Dashboard/report read-model foundation
+- [ ] Implement production aggregate strategy
+- [ ] Implement cache TTL และ invalidation contracts
 
-## M-023 Dashboard read model/cache
-
-สถานะ: 🟡 PARTIAL
-
-- [x] Dashboard/report read-model foundation ตาม R-010 scope
-- [ ] Production aggregate strategy
-- [ ] Cache TTL/invalidation verification
-
-## M-024 Storage security
-
-สถานะ: 🟡 PARTIAL
+## Storage security
 
 - [x] Finance/KYC cleanup และ private-storage policies
-- [ ] Global file-size limits และ MIME/content validation policy
-- [ ] Malware/content scan policy
+- [ ] Global file-size limits และ MIME/content validation
+- [ ] Malware/content scan integration boundary
 - [ ] Signed URL policy และ Data URL reduction
 
-## M-025 Lint/typecheck/tests
-
-สถานะ: 🟡 PARTIAL
+## Tests และ CI
 
 - [x] Root และ app/package lint/typecheck scripts
 - [x] Shared ESLint/format config
-- [x] Test taxonomy, failure summary และ browser console/network gate
+- [x] Test taxonomy และ browser console/network failure gate
 - [x] Playwright smoke/visual commands
-- [ ] Web unit/component coverage ครบทุก critical component
-- [ ] Authenticated six-viewport visual artifacts ใน CI
-
-## M-026 CI/config/dependency
-
-สถานะ: 🟡 PARTIAL
-
-- [x] Frozen lockfile, Node 22, pnpm 9 และ PostgreSQL CI
-- [x] Prisma validate/generate/migrate
-- [x] API/DB tests และทุก app build
-- [x] Architecture/lint/typecheck/contract/artifact/failure-summary gates
-- [ ] Staging rollback job
-- [ ] Env schema/startup validation รอบ production
+- [ ] Web unit/component coverage สำหรับ critical components
+- [ ] Authenticated visual artifact workflow รองรับ seeded environment
+- [ ] Env schema และ startup validation
 - [ ] Dependency/security audit และ production secret guard
 
 ---
 
-# External blockers
+# P6 — External verification, production access และ vendor UAT
 
-| งาน | Blocker |
-|---|---|
-| Authenticated Admin/Member regression | ต้องมี seeded test credentials |
-| Deployed smoke/cookie/session test | ต้องมี deployed Admin/Member URLs และ credentials |
-| Real provider UAT | ต้องมี vendor docs, endpoint, credentials และ whitelist |
-| Production migration verification | ต้องมี production access/approved run |
-| Binary upload/global storage hardening | ต้องยืนยัน object storage, malware scan และ retention policy |
+สถานะ: ⏸️ BLOCKED / WAITING
+
+รายการใน P6 ไม่ถือเป็นงานโค้ดคงค้าง จนกว่าจะได้รับ environment หรือข้อมูลภายนอกที่จำเป็น
+
+## Credentials และ authenticated regression
+
+- [ ] จัดเตรียม seeded non-production Admin/Member credentials
+- [ ] Credentialed end-to-end deposit regression
+- [ ] Credentialed end-to-end withdrawal regression
+- [ ] Credentialed owner-transfer regression
+- [ ] Production account lifecycle regression
+- [ ] Read-only role browser regression
+- [ ] Mutation control hidden/blocked verification บน route สำคัญ
+- [ ] Authenticated six-viewport visual regression
+- [ ] Authenticated Support/CMS/Reports regression
+- [ ] Authenticated deployed KYC/risk regression
+
+## Deployed environment verification
+
+- [ ] จัดเตรียม deployed Admin/Member URLs
+- [ ] Reverse-proxy integration test
+- [ ] Deployed login/refresh/logout/cookie regression
+- [ ] Session reuse/rotation regression ผ่าน browser/API จริง
+- [ ] Anti-bot failure/fallback regression ใน deployed environment
+- [ ] Deployment health/version ตรง approved commit
+
+## Staging และ production verification
+
+- [ ] Staging migration/rollback verification
+- [ ] Production migration status ตรง approved commit
+- [ ] Production account/provider verification
+- [ ] Production-scale index evidence และ tuning รอบสุดท้าย
+- [ ] Production aggregate/cache verification ด้วย workload จริง
+- [ ] Production storage retention และ malware-scan policy approval
+
+## Vendor/provider UAT
+
+- [ ] Vendor endpoint และ credentials
+- [ ] Vendor signature/error contract
+- [ ] IP whitelist และ callback requirements
+- [ ] Provider reconciliation regression
+- [ ] Provider-specific anti-bot production test
+- [ ] Provider-specific UAT ก่อนเปิดเงินจริง
 
 ---
 
-# ลำดับทำงานถัดไป
+# ลำดับทำงานโค้ดถัดไป
 
-1. ทำ R-013 shared components, responsive patterns, accessibility และ six-viewport visual regression
-2. เพิ่ม PostgreSQL integration/concurrency evidence สำหรับ watchlist/KYC document lifecycle
-3. ตั้ง seeded non-production Admin/Member accounts และปิด authenticated regression รวม KYC/risk
-4. ปิด production/staging migration, rollback และ deployed session/cookie checks
-5. ทำ R-014 observability, documentation, runbooks และ dead-code cleanup
-6. ปิด storage/performance/CI P5 ก่อน production launch
-7. ทำ provider-specific UAT หลังได้รับ vendor docs/credentials
+1. ปิด R-013 shared UI primitives, responsive และ accessibility
+2. เพิ่ม watchlist/KYC PostgreSQL integration และ concurrency tests
+3. ทำ support binary/object-storage upload และ binary lifecycle
+4. ปิด R-014 structured logging, metrics และ dead-code cleanup
+5. ปิด P5 cache, storage security, test coverage และ CI hardening
+6. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
 
-# Definition of Done ทั้งโปรเจกต์
+# จำนวนงานคงค้าง
 
-- [x] CI มี Prisma validate/generate/migrate และ build ทุก app
-- [x] Static finance/permission/token/XSS/architecture/API-contract audits มีอยู่
-- [x] Latest verified CI และ PostgreSQL critical concurrency suites ผ่านโดยไม่ skip
-- [x] P4 Backend R-001 ถึง R-011 ปิดครบพร้อม closure evidence
-- [ ] Admin/Member authenticated regression ผ่าน
-- [ ] Production/staging migration และ rollback ผ่าน
-- [ ] Storage/upload policy ครบ
-- [ ] Production-scale query/index evidence ครบ
-- [ ] Provider-specific UAT ผ่านก่อนเปิดเงินจริง
-- [ ] Deployment health/version ตรง approved commit
-- [ ] R-012 ถึง R-014 ปิดครบ
+- งานโค้ดใน P0 ถึง P5: **20 รายการ**
+- งาน external verification และ UAT ใน P6: **27 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **47 รายการ**
 
-# เอกสารเดิม
+# เอกสารที่ยกเลิก
 
-ไฟล์ต่อไปนี้เป็น reference เท่านั้น ห้ามใช้เป็น source of truth ใหม่:
+ไฟล์ต่อไปนี้ไม่ใช่ source of truth และควรลบหรือ archive แยกจาก master นี้:
 
 - `docs/remaining-work-backlog.md`
 - `docs/detailed-remaining-work-backlog.md`
 - `docs/code-structure-refactor-plan.md`
 - `docs/current-execution-status.md`
 - `docs/master-worklist.md`
-
-- [ ] เพิ่มลิงก์กลับมาที่ไฟล์นี้ในเอกสารเดิม
-- [ ] ตรวจ duplicate backlog รอบสุดท้าย
-- [ ] Archive เอกสารเดิมหลังทีมยืนยัน master นี้
