@@ -20,7 +20,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Reduce unnecessary relation `include` usage in list endpoints.
 - [x] Create a shared cursor pagination pattern.
 - [x] Create shared filter parsing and sort whitelists.
-- [ ] Reject arbitrary sort and filter input.
+- [x] Reject arbitrary sort and filter input.
 - [ ] Create a dashboard read model.
 - [ ] Create a report read model.
 - [ ] Audit sensitive fields in projections.
@@ -57,8 +57,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ### 2. Duplicate query consolidation by module ownership
 
-- Consolidated member notification-feed source queries under `NotificationFeedReadRepository` in the `notifications` module.
-- Centralized source limits and narrow projections.
+- Consolidated member notification-feed source queries under `NotificationFeedReadRepository`.
 - Added repository-wide duplicate-query strict enforcement and ownership guards.
 - Evidence: `docs/evidence/r010-notification-query-ownership.md` and `docs/evidence/r010-duplicate-query-consolidation-closure.md`.
 
@@ -77,40 +76,46 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 ### 5. Create a shared cursor pagination pattern
 
 - Added `apps/api/src/common/query/cursor-pagination.ts`.
-- Centralized bounded limit parsing, cursor normalization, look-ahead fetch, and next-cursor construction.
 - Migrated member and admin support-ticket lists.
 - Evidence: `docs/evidence/r010-shared-cursor-pagination.md`.
 
 ### 6. Create shared filter parsing and sort whitelists
 
 - Added `apps/api/src/common/query/query-filters.ts`.
-- Centralized optional text normalization, enum filtering, and sort parsing.
 - Migrated the admin support-ticket list.
-- Added validated `sortBy` and `sortDirection` query parameters.
-- Restricted sorting to `createdAt`, `updatedAt`, or `status`, with `asc` or `desc` only.
-- Preserved the prior default `createdAt desc` ordering and added an `id` tie-breaker.
-- Added `tools/audit-r010-filter-sort-boundaries.mjs` and wired it into `.github/workflows/r010-query-boundaries.yml`.
+- Restricted sorting to owner-controlled fields and directions.
 - Evidence: `docs/evidence/r010-filter-sort-boundaries.md`.
-
-## Active work
 
 ### 7. Reject arbitrary sort and filter input
 
-- [ ] Add strict rejection behavior rather than silent fallback for invalid filter/sort values.
-- [ ] Add focused contract coverage for rejected inputs.
-- [ ] Add a static guard preventing raw sort/filter values from reaching Prisma.
+- Query helpers now throw `BadRequestException` for invalid enum filters, sort fields, sort directions, and oversized text.
+- Invalid values no longer silently fall back or truncate.
+- Added explicit support category allowlists at both DTO and service boundaries.
+- Added `apps/api/src/common/query/query-filters.spec.ts` covering defaults, valid input, invalid sort fields/directions, invalid enums, `ALL`, and oversized text.
+- Expanded `tools/audit-r010-filter-sort-boundaries.mjs` to prevent silent fallback or raw input drift.
+- Wired the executable contract test into `.github/workflows/r010-query-boundaries.yml`.
+- Evidence: `docs/evidence/r010-arbitrary-query-rejection.md`.
+
+## Active work
+
+### 8. Create a dashboard read model
+
+- [ ] Identify the first dashboard endpoint assembled from multiple owner queries.
+- [ ] Create an owner-local dashboard read model with narrow projections.
+- [ ] Preserve response contracts and add a drift guard.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 6
-- Remaining: 7
+- Closed: 7
+- Remaining: 6
 
 ## Latest commits
 
-- `0f0f715982d67b4f363b6c6df2b5aea02e8e8caa` — record shared filter/sort evidence.
-- `24cc8a22a09f26fffe2bb5d2ebba813bf7fc3ba6` — enforce filter/sort boundaries in CI.
-- `5866dc2505afff6b88f8dd726509c4678235f20e` — guard shared filter and sort boundaries.
-- `5e880a53dd2b5c785f8b5a592fa129396a3c2edb` — migrate support filters and sorting to shared parsers.
-- `eb249de28c8e51efd837e310c66467d21843c7ad` — whitelist support sort query parameters.
-- `5c443f853933abd63e33cd4a6b7e1cb43343f25a` — add shared query filter and sort parsing.
+- `6752ebbbef79d271020d78540998d0543dc52c6c` — run strict query rejection contracts in CI.
+- `33db6d3290c2a6f19586a03bd2a112bf91321207` — add executable strict query rejection contracts.
+- `04209229bbd83922dafd550e6e05015006200773` — record arbitrary query rejection evidence.
+- `832ead7aee5ee59d6a17ce2929ae4bc045bcd14c` — guard strict query rejection behavior.
+- `e4802d113e274ba7c37588025a77dee2fb640d27` — enforce strict support query filters.
+- `45fbe39d888986127a8a254293f5aed4915d69c1` — whitelist support category filters.
+- `e952d3b5b9ae04ae85d8b190b11ada8c07a069fd` — reject invalid shared query input.
