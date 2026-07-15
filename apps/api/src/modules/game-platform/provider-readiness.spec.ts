@@ -9,7 +9,7 @@ function context(overrides: Partial<ProviderAdapterContext> = {}): ProviderAdapt
     currency: 'THB',
     timeoutMs: 5000,
     endpointMap: {
-      HEALTH: '/health',
+      HEALTH_CHECK: '/health',
       LAUNCH: '/launch',
       BALANCE: '/balance',
       TRANSFER_IN: '/transfer/in',
@@ -27,7 +27,7 @@ function context(overrides: Partial<ProviderAdapterContext> = {}): ProviderAdapt
 describe('validateProviderReadiness', () => {
   it('accepts a complete generic provider configuration', () => {
     const result = validateProviderReadiness(context(), {
-      endpoints: ['HEALTH', 'LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'WEBHOOK'],
+      endpoints: ['HEALTH_CHECK', 'LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'WEBHOOK'],
       credentials: ['API_KEY', 'SECRET_KEY'],
     });
 
