@@ -1,19 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { adminApiFetch } from '../../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminLinkButton, AdminNotice, AdminPage, AdminRow, AdminStack } from '../../_components/admin-ui';
 
-type Props = { params: { id: string } };
+type Props = { params: Promise<{ id: string }> };
 type Transfer = { id: string; type: string; status: string; amount: string; currency: string; idempotencyKey: string; providerTransactionId?: string | null; errorCode?: string | null; errorMessage?: string | null; requestPayload?: any; responsePayload?: any; createdAt: string; resolvedAt?: string | null; user?: { username?: string | null; phone?: string | null } | null; provider?: { name?: string | null; code?: string | null } | null; session?: { id: string; providerSessionId?: string | null; game?: { name?: string | null; providerGameCode?: string | null } | null } | null };
 
 export default function GameTransferDetailPage({ params }: Props) {
+  const { id } = use(params);
   const [item, setItem] = useState<Transfer | null>(null);
   const [message, setMessage] = useState('กำลังโหลด transfer...');
   const [loading, setLoading] = useState(false);
-  useEffect(() => { load(); }, [params.id]);
-  async function load() { setLoading(true); const res = await adminApiFetch(`/admin/game-transfers/${params.id}`); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'โหลด transfer ไม่สำเร็จ'); return; } setItem(data); setMessage(''); }
-  async function action(kind: 'review' | 'retry' | 'reverse' | 'forceFail') { const warning = recoveryWarning(kind, item); if (warning && !window.confirm(warning)) return; const note = window.prompt(kind === 'reverse' ? 'Manual reverse note' : kind === 'forceFail' ? 'Force fail note' : kind === 'retry' ? 'Retry note' : 'Review note') ?? ''; if (!note) return; setLoading(true); const path = kind === 'review' ? `/admin/game-transfers/${params.id}/review` : kind === 'retry' ? `/admin/game-transfers/${params.id}/retry-dry-run` : kind === 'reverse' ? `/admin/game-transfers/${params.id}/actions/manual-reverse` : `/admin/game-transfers/${params.id}/actions/force-fail`; const method = kind === 'review' ? 'PATCH' : kind === 'retry' ? 'POST' : 'PATCH'; const res = await adminApiFetch(path, { method, body: JSON.stringify({ note }) }); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok || data?.ok === false) { setMessage(data?.message ?? 'ทำ action ไม่สำเร็จ'); return; } setMessage('บันทึก action แล้ว'); await load(); }
+  useEffect(() => { load(); }, [id]);
+  async function load() { setLoading(true); const res = await adminApiFetch(`/admin/game-transfers/${id}`); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'โหลด transfer ไม่สำเร็จ'); return; } setItem(data); setMessage(''); }
+  async function action(kind: 'review' | 'retry' | 'reverse' | 'forceFail') { const warning = recoveryWarning(kind, item); if (warning && !window.confirm(warning)) return; const note = window.prompt(kind === 'reverse' ? 'Manual reverse note' : kind === 'forceFail' ? 'Force fail note' : kind === 'retry' ? 'Retry note' : 'Review note') ?? ''; if (!note) return; setLoading(true); const path = kind === 'review' ? `/admin/game-transfers/${id}/review` : kind === 'retry' ? `/admin/game-transfers/${id}/retry-dry-run` : kind === 'reverse' ? `/admin/game-transfers/${id}/actions/manual-reverse` : `/admin/game-transfers/${id}/actions/force-fail`; const method = kind === 'review' ? 'PATCH' : kind === 'retry' ? 'POST' : 'PATCH'; const res = await adminApiFetch(path, { method, body: JSON.stringify({ note }) }); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok || data?.ok === false) { setMessage(data?.message ?? 'ทำ action ไม่สำเร็จ'); return; } setMessage('บันทึก action แล้ว'); await load(); }
   if (!item && !message) return <AdminPage eyebrow="Game" title="Transfer Detail"><AdminEmpty>ไม่พบ transfer</AdminEmpty></AdminPage>;
   return <AdminPage eyebrow="Game" title="Transfer Detail" description="ดูรายละเอียด transfer, provider response, wallet ledger, retry และ manual reverse" actions={<><AdminButton onClick={load} disabled={loading}>Refresh</AdminButton><AdminLinkButton href="/game-transfers">กลับรายการ</AdminLinkButton></>}>
     {message && <AdminNotice>{message}</AdminNotice>}
