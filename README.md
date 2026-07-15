@@ -1,143 +1,129 @@
 # Platform Starter
 
-> Production-ready web platform monorepo for member operations, admin operations, wallet workflows, finance reporting, security controls, and deployment verification.
+> Production-oriented monorepo for Member operations, Admin operations, wallet and finance workflows, provider integration, security controls, auditability and deployment verification.
 
 ![Build](https://github.com/tawechok1997-ai/platform-starter/actions/workflows/build.yml/badge.svg)
 ![Smoke API](https://github.com/tawechok1997-ai/platform-starter/actions/workflows/smoke.yml/badge.svg)
 ![E2E Smoke](https://github.com/tawechok1997-ai/platform-starter/actions/workflows/e2e-smoke.yml/badge.svg)
 
-## Overview
+## Current status
 
-`platform-starter` is a full-stack platform foundation with separated member/admin applications and a NestJS API. It is designed around secure money operations, auditability, role-based admin access, production smoke testing, and operational visibility.
+Updated: **2026-07-15**
+
+| Area | Status |
+|---|---|
+| Monorepo, API, Admin and Member foundations | ✅ Done |
+| Backend architecture R-001 through R-011 | ✅ Done |
+| Finance concurrency and promotion settlement safeguards | ✅ Repository/CI evidence complete |
+| Frontend feature architecture R-012 | 🚧 In progress |
+| Shared UI system and accessibility R-013 | 🚧 In progress |
+| Observability, runbooks and cleanup R-014 | ⏳ Mostly remaining |
+| Authenticated browser regression | ⏸️ Requires safe credentials/deployed environment |
+| Production migration/rollback verification | ⏸️ Requires approved production access |
+| Real provider enablement | ⏸️ Code ready; vendor-specific UAT blocked |
+
+The project-wide source of truth is [`docs/master-project-worklist.md`](docs/master-project-worklist.md). The UX/UI execution tracker is [`docs/master-worklist.md`](docs/master-worklist.md).
 
 ## Applications
 
-| App | Path | Description |
+| Application | Path | Responsibility |
 |---|---|---|
-| Member Web | `apps/web-member` | Member dashboard, wallet, deposits, withdrawals, bank accounts, transactions |
-| Admin Web | `apps/web-admin` | Operations dashboard, topups, withdrawals, wallets, ledgers, reports, activity, security |
-| API | `apps/api` | NestJS backend API, auth, wallet, finance, reports, storage, security |
-| Database | `prisma/schema.prisma` | PostgreSQL schema managed with Prisma |
+| Member Web | `apps/web-member` | Member home, wallet, deposit/withdrawal, games, profile, notifications, support and KYC surfaces |
+| Admin Web | `apps/web-admin` | Operations, finance, members, risk, reports, providers, games, CMS/settings, security and KYC administration |
+| API | `apps/api` | NestJS application, authentication, finance, provider, content, support, KYC, security and audit domains |
+| Database | `prisma/schema.prisma` | PostgreSQL schema and migrations managed with Prisma |
+| Shared API client | `packages/api-client` | Central Admin/Member transport, auth refresh, errors, retries, uploads and private downloads |
 
-## Tech Stack
+## Architecture status
+
+R-001 through R-011 are closed with implementation and automated/closure evidence:
+
+1. Architecture inventory and ownership
+2. Dependency rules and module boundaries
+3. Regression safety net
+4. DTO, type strictness and API contracts
+5. Shared API client consolidation
+6. CI quality baseline
+7. Backend service decomposition
+8. Domain model and policy separation
+9. Repository, transaction and persistence boundaries
+10. Query/read models and projection cleanup
+11. Error, authorization and security boundaries
+
+Active structural work continues under R-012 through R-014. Closure and evidence documents are kept under `docs/architecture`, `docs/evidence` and the individual `docs/r0xx-*.md` files.
+
+## Technology
 
 | Layer | Stack |
 |---|---|
 | Frontend | Next.js, React, TypeScript |
 | Backend | NestJS, TypeScript |
 | Database | PostgreSQL, Prisma |
-| Auth | JWT access/refresh, admin sessions, TOTP 2FA, recovery codes |
-| Storage | Local private storage or S3/R2 compatible object storage |
-| Rate Limit | Memory fallback with Redis support |
-| CI/CD | GitHub Actions build, API smoke, E2E smoke |
-| Runtime | Railway-ready services |
+| Authentication | JWT access/refresh, separated Admin/Member sessions, TOTP 2FA and recovery codes |
+| Storage | Private local or S3/R2-compatible object storage |
+| Rate limiting | In-memory fallback with Redis support |
+| Testing | Jest, PostgreSQL integration/concurrency suites and Playwright smoke/visual workflows |
+| CI/CD | GitHub Actions and Railway-ready deployment workflows |
 
-## Core Features
+## Core capabilities
 
-### Member Experience
+### Member
 
-- Member authentication
-- Wallet balance view
-- Deposit/top-up request flow
-- Slip upload flow
-- Withdrawal request flow
-- Bank account management
-- Transaction history
-- Mobile-first member pages
+- Authentication and session controls
+- Wallet, deposits, withdrawals and transaction history
+- Bank-account management
+- Game discovery and launch states
+- Promotions, profile and security
+- Notifications, support/FAQ and KYC foundations
+- Mobile-first responsive surfaces
 
-### Admin Operations
+### Admin
 
-- Admin login and protected operations area
-- Top-up and withdrawal review queues
-- Claim/release/approve/reject/complete workflows
-- Wallet and ledger visibility
-- Member management
-- Risk alerts
-- Finance operations dashboard
+- Protected operations workspace with RBAC and resource-level authorization
+- Deposit/withdrawal claims, review and settlement workflows
+- Wallet, ledger, reconciliation and finance reports
+- Member, risk, activity and security administration
+- Provider readiness, credentials, webhook and recovery tooling
+- CMS/settings, promotion, affiliate/commission and KYC workflows
+- Audit timelines and stable error/security boundaries
 
-### Finance, Activity, and Security
+### Safety and operations
 
-- Daily finance summary and trend reports
-- Wallet reconciliation and queue aging
-- CSV exports
-- Admin audit logs and activity timeline
-- Admin sessions, TOTP 2FA, and recovery codes
-- RBAC and permission management
+- Transactional and idempotent money-changing paths
+- PostgreSQL concurrency regression suites
+- Domain policies and repository/transaction boundaries
+- CSRF, token, XSS, anti-bot and sensitive-log guards
+- Health/version checks, smoke workflows and CI quality gates
+- Backup/restore verification foundations
 
-### Production Operations
-
-- Health and version endpoints
-- API and E2E smoke tests
-- Production environment verification
-- Database backup/restore scripts
-- Redis-backed rate limiting
-- Private slip storage with local or S3/R2 drivers
-
-## Repository Structure
-
-```txt
-apps/
-  api/                 NestJS API
-  web-admin/           Next.js admin app
-  web-member/          Next.js member app
-prisma/
-  schema.prisma
-  seed.ts
-  seed-access.ts
-scripts/
-  smoke-api.sh
-  verify-production-env.sh
-  check-health.sh
-  backup-db.sh
-  restore-db.sh
-docs/
-  master-worklist.md
-  mobile-visual-regression-checklist.md
-  responsive-surface-guardrails.md
-  ux-regression-matrix-finance-operations.md
-  final-qa-checklist.md
-  member-ux-qa.md
-  reports-analytics.md
-  activity-timeline.md
-  github-actions-smoke.md
-  playwright-smoke.md
-  production-verification.md
-```
-
-## Quick Start
+## Quick start
 
 ```bash
-pnpm install --frozen-lockfile=false
+corepack enable
+corepack prepare pnpm@9.0.0 --activate
+pnpm install --frozen-lockfile
 pnpm prisma generate
 pnpm build:api
 pnpm build:web-admin
 pnpm build:web-member
 ```
 
-Run database sync only when appropriate:
+Run migrations only against an approved environment:
 
 ```bash
-pnpm prisma db push
-pnpm prisma generate
-```
-
-Seed access permissions:
-
-```bash
+pnpm db:migrate
 pnpm db:seed:access
 ```
 
-> Do not use `pnpm prisma db push --force-reset` on production.
+> Never use `prisma db push --force-reset`, destructive reset commands or database concurrency suites against production.
 
-## Development Ports
+## Development services
 
-| Service | URL |
+| Service | Default URL |
 |---|---|
 | Member Web | `http://localhost:3000` |
 | Admin Web | `http://localhost:3001` |
 | API | `http://localhost:4000` |
-
-## Start Commands
 
 ```bash
 pnpm --filter @platform/api start:prod
@@ -145,9 +131,26 @@ pnpm start:web-admin
 pnpm start:web-member
 ```
 
-## Environment Variables
+## Verification commands
 
-### API
+Use the commands relevant to the affected scope:
+
+```bash
+pnpm lint
+pnpm test
+pnpm build
+pnpm typecheck:api
+pnpm typecheck:admin
+pnpm typecheck:member
+pnpm test:e2e:smoke
+pnpm test:e2e:visual
+```
+
+Architecture closure commands are documented in the corresponding closure files. Browser and deployed checks must not be reported as passed unless an actual run produced evidence.
+
+## Environment overview
+
+Typical API configuration includes:
 
 ```env
 DATABASE_URL=postgresql://...
@@ -155,21 +158,14 @@ JWT_ACCESS_KEY=change-me
 ADMIN_JWT_ACCESS_TTL=10m
 ADMIN_REFRESH_TTL_HOURS=12
 JWT_REFRESH_TTL_DAYS=30
-PRIVATE_MEDIA_DIR=/app/private-media/topup-slips
 MEMBER_WEB_URL=https://member.example.com
 ADMIN_WEB_URL=https://admin.example.com
-ADMIN_OTP_ISSUER=Platform Admin
 ```
 
-### Optional Redis
+Optional infrastructure:
 
 ```env
 REDIS_URL=redis://...
-```
-
-### Optional S3/R2 Slip Storage
-
-```env
 STORAGE_DRIVER=s3
 S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
 S3_REGION=auto
@@ -179,59 +175,41 @@ S3_SECRET_ACCESS_KEY=<secret-access-key>
 S3_FORCE_PATH_STYLE=true
 ```
 
-### Web Apps
+Web applications use the approved API base URL through the shared API client:
 
 ```env
-NEXT_PUBLIC_API_URL=https://api-service.up.railway.app
+NEXT_PUBLIC_API_URL=https://api-service.example.com
 ```
 
-## Smoke Testing
+Never commit real credentials, OTP values, access/refresh tokens or private-media URLs.
 
-```bash
-API_URL="https://api-service.up.railway.app" \
-ADMIN_TOKEN="<admin-access-token>" \
-./scripts/smoke-api.sh
-```
-
-```bash
-ADMIN_WEB_URL="https://admin-service.up.railway.app" \
-MEMBER_WEB_URL="https://member-service.up.railway.app" \
-pnpm test:e2e:smoke
-```
-
-## Key Documentation
+## Documentation map
 
 | Document | Purpose |
 |---|---|
-| [`docs/master-worklist.md`](docs/master-worklist.md) | Single source of truth for UX/UI status, priorities, dependencies, execution order, verification, and evidence |
-| [`docs/mobile-visual-regression-checklist.md`](docs/mobile-visual-regression-checklist.md) | Mobile visual verification checklist |
-| [`docs/responsive-surface-guardrails.md`](docs/responsive-surface-guardrails.md) | Mobile/desktop ownership and responsive safety rules |
-| [`docs/ux-regression-matrix-finance-operations.md`](docs/ux-regression-matrix-finance-operations.md) | Finance and operations route/state/viewport regression evidence |
-| [`docs/final-qa-checklist.md`](docs/final-qa-checklist.md) | Final QA and production verification checklist |
-| [`docs/member-ux-qa.md`](docs/member-ux-qa.md) | Member finance-flow UX and production integration QA |
-| [`docs/reports-analytics.md`](docs/reports-analytics.md) | Reports, queue aging, and CSV export guide |
-| [`docs/activity-timeline.md`](docs/activity-timeline.md) | Activity timeline filters, permissions, and QA |
-| [`docs/github-actions-smoke.md`](docs/github-actions-smoke.md) | Smoke API workflow guide |
-| [`docs/playwright-smoke.md`](docs/playwright-smoke.md) | Playwright UI smoke guide |
-| [`docs/production-verification.md`](docs/production-verification.md) | Production environment verification guide |
-| [`docs/storage.md`](docs/storage.md) | Local/S3/R2 private slip storage guide |
-| [`docs/rate-limits.md`](docs/rate-limits.md) | Redis-backed rate limit guide |
-| [`docs/admin-access-control.md`](docs/admin-access-control.md) | Admin RBAC and permission management |
+| [`docs/master-project-worklist.md`](docs/master-project-worklist.md) | Canonical project status, evidence and execution order |
+| [`docs/current-execution-status.md`](docs/current-execution-status.md) | Concise operational checkpoint |
+| [`docs/master-worklist.md`](docs/master-worklist.md) | Active UX/UI execution tracker |
+| [`docs/code-structure-refactor-plan.md`](docs/code-structure-refactor-plan.md) | Backend refactor closure summary and active R-012–R-014 direction |
+| [`docs/production-verification.md`](docs/production-verification.md) | Production verification procedures |
+| [`docs/playwright-smoke.md`](docs/playwright-smoke.md) | Browser smoke guidance |
+| [`docs/storage.md`](docs/storage.md) | Private storage guidance |
+| [`docs/rate-limits.md`](docs/rate-limits.md) | Rate-limit and Redis guidance |
+| [`docs/admin-access-control.md`](docs/admin-access-control.md) | Admin RBAC and permission behavior |
 
-## Current Status
+Legacy backlog filenames remain as archived pointers so old links keep working. They are not active sources of truth.
 
-| Area | Status |
-|---|---|
-| Core apps | Ready |
-| Wallet flows | Ready |
-| Admin operations | Ready |
-| Reports/activity | Ready |
-| Security/2FA | Ready |
-| Member UX/UI modernization | In progress |
-| Admin UX/UI modernization | In progress |
-| Public/Auth UX/UI modernization | In progress |
-| Master tracking | [`docs/master-worklist.md`](docs/master-worklist.md) |
+## Release boundaries
+
+Do not enable real-money provider traffic until all of the following are complete:
+
+- vendor endpoint and credentials
+- signature and error contract
+- callback/IP whitelist requirements
+- reconciliation and failure-path regression
+- provider-specific UAT
+- approved migration/deployment version checks
 
 ## License
 
-Private/internal platform starter unless a license is added.
+Private/internal platform unless a license is added.
