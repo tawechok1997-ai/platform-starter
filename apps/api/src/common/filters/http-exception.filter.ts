@@ -1,4 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import { isDomainError } from '../errors/domain-error';
+import { mapDomainErrorToHttp } from '../errors/domain-error-http.mapper';
 import { resolveApiErrorCode } from '../errors/error-code-resolver';
 
 @Catch()
@@ -9,11 +11,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest();
     const requestId = request?.requestId ?? response?.getHeader?.('X-Request-Id') ?? null;
 
-    const status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
-    const payload = exception instanceof HttpException ? exception.getResponse() : null;
-    const message = this.resolveMessage(payload, exception);
+    const domainPayload = isDomainError(exception) ? mapDomainErrorToHttp(exception) : null;
+    const status = domainPayload?.status
+      ?? (exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR);
+    const payload = domainPayload
+      ?? (exception instanceof HttpException ? exception.getResponse() : null);
+    const message = domainPayload?.message ?? this.resolveMessage(payload, exception);
     const safePayload = this.safePayload(payload);
-    const code = typeof safePayload.code === 'string' ? safePayload.code : resolveApiErrorCode(message);
+    const code = domainPayload?.code
+      ?? (typeof safePayload.code === 'string' ? safePayload.code : resolveApiErrorCode(message));
 
     if (status >= 500) {
       console.error(JSON.stringify({
