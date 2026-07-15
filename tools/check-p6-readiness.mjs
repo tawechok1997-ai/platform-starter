@@ -23,23 +23,29 @@ const groups = [
 
 const strict = process.argv.includes('--strict');
 const json = process.argv.includes('--json');
+const environment = normalizeEnvironment(process.env.P6_ENVIRONMENT);
+
+const groupReports = groups.map((group) => {
+  const missing = group.required.filter((name) => !hasValue(name));
+  const present = group.required.filter(hasValue);
+  const optionalPresent = (group.optional ?? []).filter(hasValue);
+  const validationErrors = validateGroup(group.name, environment);
+  return {
+    name: group.name,
+    ready: missing.length === 0 && validationErrors.length === 0,
+    required: group.required,
+    present,
+    missing,
+    optionalPresent,
+    validationErrors,
+  };
+});
 
 const report = {
   generatedAt: new Date().toISOString(),
   strict,
-  groups: groups.map((group) => {
-    const missing = group.required.filter((name) => !hasValue(name));
-    const present = group.required.filter(hasValue);
-    const optionalPresent = (group.optional ?? []).filter(hasValue);
-    return {
-      name: group.name,
-      ready: missing.length === 0,
-      required: group.required,
-      present,
-      missing,
-      optionalPresent,
-    };
-  }),
+  environment,
+  groups: groupReports,
 };
 
 report.readyGroups = report.groups.filter((group) => group.ready).length;
@@ -50,9 +56,11 @@ if (json) {
   console.log(JSON.stringify(report, null, 2));
 } else {
   console.log('P6 external readiness');
+  console.log(`  environment: ${environment}`);
   for (const group of report.groups) {
     console.log(`  ${group.ready ? 'READY' : 'BLOCKED'} ${group.name}`);
     if (group.missing.length > 0) console.log(`    missing: ${group.missing.join(', ')}`);
+    for (const error of group.validationErrors) console.log(`    invalid: ${error.field} (${error.reason})`);
   }
   console.log(`  ready groups: ${report.readyGroups}/${report.totalGroups}`);
 }
@@ -61,4 +69,62 @@ if (strict && !report.ready) process.exitCode = 1;
 
 function hasValue(name) {
   return typeof process.env[name] === 'string' && process.env[name].trim().length > 0;
+}
+
+function normalizeEnvironment(value) {
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  if (['production', 'staging', 'non-production'].includes(normalized)) return normalized;
+  return 'non-production';
+}
+
+function validateGroup(groupName, targetEnvironment) {
+  if (groupName === 'deployed-environment') return validateDeployedUrls(targetEnvironment);
+  if (groupName === 'vendor-uat') return validateVendorUrls(targetEnvironment);
+  return [];
+}
+
+function validateDeployedUrls(targetEnvironment) {
+  const fields = ['P6_API_URL', 'P6_ADMIN_URL', 'P6_MEMBER_URL'];
+  const errors = fields.flatMap((field) => validateHttpUrl(field, { requireHttps: targetEnvironment === 'production' }));
+  const parsed = fields
+    .filter(hasValue)
+    .map((field) => ({ field, url: safeParseHttpUrl(process.env[field]) }))
+    .filter((entry) => entry.url);
+
+  const origins = new Map();
+  for (const { field, url } of parsed) {
+    const owner = origins.get(url.origin);
+    if (owner) {
+      errors.push({ field, reason: `same origin as ${owner}` });
+    } else {
+      origins.set(url.origin, field);
+    }
+  }
+  return errors;
+}
+
+function validateVendorUrls(targetEnvironment) {
+  const errors = validateHttpUrl('P6_PROVIDER_BASE_URL', { requireHttps: targetEnvironment === 'production' });
+  if (hasValue('P6_PROVIDER_CALLBACK_URL')) {
+    errors.push(...validateHttpUrl('P6_PROVIDER_CALLBACK_URL', { requireHttps: targetEnvironment === 'production' }));
+  }
+  return errors;
+}
+
+function validateHttpUrl(field, { requireHttps }) {
+  if (!hasValue(field)) return [];
+  const url = safeParseHttpUrl(process.env[field]);
+  if (!url) return [{ field, reason: 'must be a valid http or https URL' }];
+  if (url.username || url.password) return [{ field, reason: 'must not contain embedded credentials' }];
+  if (requireHttps && url.protocol !== 'https:') return [{ field, reason: 'must use HTTPS for production' }];
+  return [];
+}
+
+function safeParseHttpUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url : null;
+  } catch {
+    return null;
+  }
 }
