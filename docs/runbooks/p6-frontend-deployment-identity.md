@@ -21,17 +21,52 @@ The frontend endpoints are server-side Next.js route handlers with `Cache-Contro
 
 They must not expose credentials, environment dumps, provider configuration, database details, or user data.
 
-## Required deployment variables
+## Automatic metadata injection
 
-Set the following on the API, Admin, and Member deployments:
+The root build and start commands run through `tools/run-with-deployment-metadata.mjs`. The wrapper injects the same metadata contract into the API, Admin, and Member child processes:
 
 ```text
-GIT_COMMIT_SHA=<deployed commit>
-BUILT_AT=<ISO-8601 build timestamp>
-NODE_ENV=<target environment>
+GIT_COMMIT_SHA
+BUILT_AT
+NODE_ENV
 ```
 
-`RAILWAY_GIT_COMMIT_SHA` is accepted as a fallback for `GIT_COMMIT_SHA`.
+Commit resolution order:
+
+1. `GIT_COMMIT_SHA`
+2. `RAILWAY_GIT_COMMIT_SHA`
+3. `VERCEL_GIT_COMMIT_SHA`
+4. `GITHUB_SHA`
+5. local `git rev-parse HEAD`
+6. `unknown` when no valid Git SHA is available
+
+`BUILT_AT` preserves a valid externally supplied timestamp. Otherwise, it is generated when the wrapped build or start command begins. `NODE_ENV` preserves the configured value and defaults to `production` for wrapped deployment commands.
+
+The wrapper exposes only the three metadata fields in `--print-json` mode. It never dumps the full process environment.
+
+## Wrapped deployment commands
+
+Use these root commands in Railway or another deployment platform:
+
+```bash
+pnpm build:api
+pnpm start:api
+pnpm build:web-admin
+pnpm start:web-admin
+pnpm build:web-member
+pnpm start:web-member
+```
+
+Each command automatically launches its service with deployment metadata. Platforms may still set `GIT_COMMIT_SHA`, `BUILT_AT`, or `NODE_ENV` explicitly; explicit valid values take priority.
+
+Verify the injector independently with:
+
+```bash
+pnpm verify:deployment-metadata
+node tools/run-with-deployment-metadata.mjs --print-json
+```
+
+## Approved deployment
 
 Set the approved commit in the workflow environment:
 
@@ -61,8 +96,8 @@ Short and full Git SHAs may match by prefix. Output contains only service names,
 
 ## Safe rollout order
 
-1. Deploy API, Admin, and Member from the same approved commit.
-2. Confirm each service has `GIT_COMMIT_SHA`, `BUILT_AT`, and the correct `NODE_ENV`.
-3. Run the P6 readiness workflow.
+1. Deploy API, Admin, and Member from the same approved commit using the wrapped root commands.
+2. Confirm the identity endpoints no longer report `commit: unknown` or `builtAt: unknown`.
+3. Run `pnpm verify:deployment-metadata` and the manual P6 readiness workflow.
 4. Do not start authenticated, mutation, settlement, or provider regression unless all three deployment identities pass.
 5. A passing identity gate is evidence that deployments align, but it does not close a P6 regression checkbox by itself.
