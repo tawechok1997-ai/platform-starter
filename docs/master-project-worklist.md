@@ -18,7 +18,7 @@
 | P0 Core / schema / finance safety | ✅ DONE ฝั่งโค้ด |
 | P1 Security / permissions | ✅ DONE ฝั่งโค้ด |
 | P2 Product completion | 🟡 IN PROGRESS |
-| P3 Provider foundation | ✅ CODE READY |
+| P3 Provider foundation | ✅ DONE ฝั่งโค้ด |
 | P4 Architecture / UI / observability | 🟡 IN PROGRESS |
 | P5 Performance / storage / CI | 🟡 IN PROGRESS |
 | P6 External verification / production / vendor UAT | ⏸️ BLOCKED / WAITING |
@@ -96,7 +96,7 @@
 
 # P3 — Provider integration foundation
 
-สถานะ: ✅ CODE READY
+สถานะ: ✅ DONE ฝั่งโค้ด
 
 - [x] Generic endpoint และ credential contracts
 - [x] Safe gates ปิดเงินจริง
@@ -104,8 +104,10 @@
 - [x] Generic signature tests
 - [x] Credential lifecycle และ sanitized health checks
 - [x] Webhook signature/duplicate handling foundation
+- [x] Provider readiness validation สำหรับ URL, timeout, currency, endpoint และ credential requirements
+- [x] Provider readiness unit tests และ repository verification command
 
-> งานที่ต้องใช้ vendor จริงถูกย้ายไป P6 ทั้งหมด
+> P3 ไม่มีงานโค้ดคงค้างใน repository แล้ว งานที่ต้องใช้ vendor endpoint, credentials, signature/error contract, IP whitelist, callback registration และ provider-specific UAT ถูกย้ายไป P6 ทั้งหมด
 
 ---
 
