@@ -1,0 +1,48 @@
+name: R012 Provider Extract Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r012-provider-extract-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Move provider implementation behind feature boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          source='apps/web-admin/app/(admin)/game-providers/page.tsx'
+          target='apps/web-admin/src/features/finance/game-providers-page.tsx'
+          mkdir -p "$(dirname "$target")"
+          cp "$source" "$target"
+          sed -i "s#from '../../admin-api'#from '../../../app/admin-api'#" "$target"
+          sed -i "s#from '../_components/admin-ui'#from '../../../app/(admin)/_components/admin-ui'#" "$target"
+          cat > "$source" <<'EOF'
+          'use client';
+
+          export { default } from '../../../src/features/finance/game-providers-page';
+          EOF
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web-admin/src/features/finance/index.ts')
+          text = path.read_text()
+          export = "export { default as GameProvidersPage } from './game-providers-page';\n"
+          if export not in text:
+              text += export
+          path.write_text(text)
+          PY
+          rm .github/workflows/r012-provider-extract-once.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add "$source" "$target" apps/web-admin/src/features/finance/index.ts .github/workflows/r012-provider-extract-once.yml
+          git commit -m 'refactor(r012): move provider page behind finance feature boundary'
+          git push
