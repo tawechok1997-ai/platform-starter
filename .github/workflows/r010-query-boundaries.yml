@@ -57,5 +57,7 @@ jobs:
         run: node tools/audit-r010-dashboard-read-model.mjs
       - name: Report read model
         run: node tools/audit-r010-report-read-model.mjs
+      - name: Sensitive report projections
+        run: node tools/audit-r010-sensitive-report-projections.mjs
       - name: API typecheck
         run: pnpm typecheck:api
