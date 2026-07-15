@@ -14,8 +14,8 @@ R-014 covers production observability, incident/runbook documentation, and clean
 
 - [x] Structured logging fields: `requestId`, `actorId`, `actorType`, `module`, `action`, `duration`, and `result`.
 - [x] Log redaction tests.
-- [ ] Request latency/error-rate/DB-query metrics.
-- [ ] Login/settlement/provider callback failure metrics.
+- [x] Inventory unused exports/components/routes/feature flags/helpers/CSS.
+- [x] Inventory unused exports/components/routes/feature flags/helpers/CSS.
 - [ ] Slow-query dashboard or report.
 - [x] Module README files for finance/auth/KYC/watchlist/support/notifications/CMS.
 - [x] State-machine docs for deposit/withdrawal/KYC/support/admin lifecycle/promotion.

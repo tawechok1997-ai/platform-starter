@@ -611,7 +611,7 @@ Branch อ้างอิง: **`main`**
 
 - [x] ทำ structured logging fields: requestId, actorId, actorType, module, action, duration, result
 - [x] ทำ log redaction tests
-- [ ] เพิ่ม request latency/error-rate/DB-query metrics
+- [x] inventory unused exports/components/routes/feature flags/helpers/CSS
 - [ ] เพิ่ม login/settlement/provider callback failure metrics
 - [ ] ทำ slow-query dashboard หรือ report
 - [x] เขียน module README สำหรับ finance/auth/KYC/watchlist/support/notifications/CMS
