@@ -7,6 +7,7 @@ import Redis from 'ioredis';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SensitiveResponseInterceptor } from './common/interceptors/sensitive-response.interceptor';
+import { redactSensitiveUrl, toSafeLogRecord } from './common/security/sensitive-log-redactor';
 
 type RateBucket = { count: number; resetAt: number };
 type RateRule = { method: string; path: string; max: number; env?: string };
@@ -81,17 +82,17 @@ async function bootstrap() {
     const startedAt = Date.now();
     res.on('finish', () => {
       const duration = Date.now() - startedAt;
-      console.log(JSON.stringify({
+      console.log(JSON.stringify(toSafeLogRecord({
         level: res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info',
         event: 'http_request',
         requestId: req.requestId,
         method: req.method,
-        path: redactUrl(req.originalUrl ?? req.url ?? ''),
+        path: redactSensitiveUrl(req.originalUrl ?? req.url ?? ''),
         statusCode: res.statusCode,
         durationMs: duration,
         ip: getClientIp(req),
         userAgent: req.headers?.['user-agent'] ?? null,
-      }));
+      })));
     });
     next();
   });
@@ -144,7 +145,11 @@ async function checkRateLimit(key: string, max: number, windowMs: number): Promi
       const ttl = await redis.pttl(redisKey);
       return { allowed: false, retryAfterSeconds: Math.max(Math.ceil(ttl / 1000), 1) };
     } catch (error) {
-      console.error('redis rate limit failed, falling back to memory', error);
+      console.error(JSON.stringify(toSafeLogRecord({
+        level: 'error',
+        event: 'redis_rate_limit_failed',
+        error,
+      })));
     }
   }
   return checkMemoryRateLimit(key, max, windowMs);
@@ -166,8 +171,16 @@ function checkMemoryRateLimit(key: string, max: number, windowMs: number): RateD
 function createRedisClient(url?: string | null) {
   if (!url) return null;
   const client = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 1, enableReadyCheck: false });
-  client.on('error', (error) => console.error('redis client error', error));
-  client.connect().catch((error) => console.error('redis connect failed, memory rate limit will be used', error));
+  client.on('error', (error) => console.error(JSON.stringify(toSafeLogRecord({
+    level: 'error',
+    event: 'redis_client_error',
+    error,
+  }))));
+  client.connect().catch((error) => console.error(JSON.stringify(toSafeLogRecord({
+    level: 'error',
+    event: 'redis_connect_failed',
+    error,
+  }))));
   return client;
 }
 
@@ -176,15 +189,6 @@ function cleanupExpiredBuckets(now: number) {
   for (const [key, bucket] of rateBuckets.entries()) {
     if (bucket.resetAt <= now) rateBuckets.delete(key);
   }
-}
-
-function redactUrl(value: string) {
-  return String(value)
-    .replace(/token=[^&]+/gi, 'token=[redacted]')
-    .replace(/refreshToken=[^&]+/gi, 'refreshToken=[redacted]')
-    .replace(/accessToken=[^&]+/gi, 'accessToken=[redacted]')
-    .replace(/secret=[^&]+/gi, 'secret=[redacted]')
-    .replace(/password=[^&]+/gi, 'password=[redacted]');
 }
 
 function readTrustedProxyHops(value?: string | number | null) {
