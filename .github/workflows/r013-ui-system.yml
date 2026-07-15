@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps/web-admin/**'
       - 'apps/web-member/**'
+      - 'packages/design-tokens/**'
       - 'tools/audit-r013-*.mjs'
       - 'docs/r013-progress.md'
       - '.github/workflows/r013-ui-system.yml'
@@ -13,6 +14,7 @@ on:
     paths:
       - 'apps/web-admin/**'
       - 'apps/web-member/**'
+      - 'packages/design-tokens/**'
       - 'tools/audit-r013-*.mjs'
       - 'docs/r013-progress.md'
       - '.github/workflows/r013-ui-system.yml'
@@ -33,6 +35,8 @@ jobs:
       - run: pnpm install --frozen-lockfile=false
       - name: Design-token inventory
         run: node tools/audit-r013-design-token-inventory.mjs
+      - name: Shared color token contract
+        run: node tools/audit-r013-color-token-contract.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: r013-design-token-inventory
