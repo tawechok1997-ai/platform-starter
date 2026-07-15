@@ -57,6 +57,7 @@
     "audit:r6-closure": "node tools/audit-r006-closure.mjs",
     "audit:p5-closure": "node tools/audit-p5-closure.mjs",
     "audit:p4-closure": "node tools/audit-p4-closure.mjs",
+    "audit:master-worklist": "node tools/audit-master-worklist.mjs",
     "audit:r4-closure": "node tools/audit-r004-closure.mjs",
     "audit:architecture-inventory": "node tools/audit-architecture-inventory.mjs",
     "audit:architecture-boundaries": "node tools/audit-architecture-boundaries.mjs",
