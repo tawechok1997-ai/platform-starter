@@ -112,3 +112,5 @@ jobs:
           git add apps/web-admin apps/web-member tools/audit-r012-kyc-boundary.mjs docs/r012-progress.md .github/workflows
           git commit -m 'refactor(r012): move KYC routes behind feature boundaries'
           git push
+
+# Triggered after workflow existed on main.
