@@ -73,6 +73,8 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - [ ] Define shared breakpoint and z-index contracts.
 - [ ] Add drift guards and frontend verification.
 
+Verification trigger for the shared type, motion, breakpoint, and z-index contract.
+
 ## Initial findings
 
 - Shared color, spacing, radius, and shadow ownership is now centralized, while feature CSS migration remains incremental.
