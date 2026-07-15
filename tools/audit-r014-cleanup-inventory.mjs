@@ -135,12 +135,18 @@ function isReferencedByOtherSource(file) {
   const base = file.replace(/\.(tsx?|mts|cts|css|scss|sass)$/, '');
   const basename = base.split('/').at(-1);
   const importSpec = base.startsWith('apps/') || base.startsWith('packages/') || base.startsWith('tools/') ? base : `./${base}`;
+  const importSpecs = [importSpec];
+  if (cssExtensions.has(extname(file))) importSpecs.push(file, `./${file}`);
   for (const [otherFile, text] of textByFile.entries()) {
     if (otherFile === file || !sourceExtensions.has(extname(otherFile))) continue;
     const relativeSpec = relativeImportSpecifier(otherFile, base);
-    if (text.includes(`'${relativeSpec}'`) || text.includes(`"${relativeSpec}"`)) return true;
-    if (text.includes(`'${importSpec}'`) || text.includes(`"${importSpec}"`)) return true;
+    const relativeSpecs = [relativeSpec];
+    if (cssExtensions.has(extname(file))) relativeSpecs.push(`${relativeSpec}${extname(file)}`);
+    if (relativeSpecs.some((spec) => text.includes(`'${spec}'`) || text.includes(`"${spec}"`))) return true;
+    if (importSpecs.some((spec) => text.includes(`'${spec}'`) || text.includes(`"${spec}"`))) return true;
     if (basename && text.includes(`from './${basename}'`)) return true;
+    if (cssExtensions.has(extname(file)) && text.includes(`'./${basename}${extname(file)}'`)) return true;
+    if (cssExtensions.has(extname(file)) && text.includes(`"./${basename}${extname(file)}"`)) return true;
   }
   return false;
 }

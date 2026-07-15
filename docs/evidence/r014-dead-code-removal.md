@@ -65,3 +65,23 @@ After pass 2, `pnpm audit:r14-cleanup-inventory` reported:
 ## Remaining cleanup policy
 
 The broader R-014 dead-code task remains open. Future removals must be reviewed domain-by-domain with regression evidence; do not delete files solely because the static inventory marks them as candidates.
+
+## Pass 3 — CSS inventory correction and one unreferenced stylesheet
+
+Date: 2026-07-15
+
+Removed:
+
+- `apps/web-member/app/casino-auth.css`
+
+Why this is low risk:
+
+- The cleanup inventory detector was corrected to recognize explicit `.css` import specifiers before using CSS results for removal decisions.
+- After the detector fix, this was the only stylesheet still marked unreferenced.
+- Exact searches for `casino-auth`, `casinoAuth`, `auth-actions`, and non-CSS source references found no source owner for the stylesheet.
+
+Regression evidence:
+
+- `pnpm audit:r14-cleanup-inventory`
+- `pnpm typecheck:member`
+

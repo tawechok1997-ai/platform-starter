@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-15T07:46:17.454Z",
+  "generatedAt": "2026-07-15T07:53:54.010Z",
   "note": "Candidate inventory only. Do not delete files from this report without owner review and regression evidence.",
   "scanned": {
     "roots": [
@@ -7,9 +7,9 @@
       "packages",
       "tools"
     ],
-    "files": 573,
+    "files": 572,
     "sourceFiles": 535,
-    "cssFiles": 38
+    "cssFiles": 37
   },
   "counts": {
     "potentialOrphanSources": 116,
@@ -20,8 +20,8 @@
     "featureFlags": 3,
     "helperFiles": 11,
     "potentiallyUnusedHelpers": 0,
-    "cssFiles": 38,
-    "potentiallyUnreferencedCssFiles": 37
+    "cssFiles": 37,
+    "potentiallyUnreferencedCssFiles": 0
   },
   "potentialOrphanSources": [
     "apps/api/src/common/infrastructure/prisma-admin-ownership-repository.adapter.ts",
@@ -783,111 +783,107 @@
   "cssInventory": [
     {
       "file": "apps/web-admin/app/admin-dashboard-responsive.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-admin/app/admin-desktop.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-admin/app/admin-drawer-left.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-admin/app/admin-mobile.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-admin/app/admin-operations-responsive.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-admin/app/admin-system.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-admin/app/globals.css",
-      "referenced": false
-    },
-    {
-      "file": "apps/web-member/app/casino-auth.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/design-tokens.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/games/games.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/globals.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/guide/guide.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-deposit-flow.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-desktop.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-finance-flow.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-finance-market.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-finance-pages.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-finance-responsive.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-games.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-home-market.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-home-responsive.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-home-sections.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-lobby-theme.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-mobile.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-promotions.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-shell.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-system.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/member-ui.css",
@@ -895,43 +891,43 @@
     },
     {
       "file": "apps/web-member/app/member-withdraw-flow.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/notifications/member-notifications.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/profile/member-profile.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/public-auth-market.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/public-auth-polish.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/public-auth-shell.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/public-desktop.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/public-mobile.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/public-status-page.css",
-      "referenced": false
+      "referenced": true
     },
     {
       "file": "apps/web-member/app/support/member-support.css",
-      "referenced": false
+      "referenced": true
     }
   ]
 }
