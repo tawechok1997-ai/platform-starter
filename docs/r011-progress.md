@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 
 ## Status
 
-- DONE: 13/14
-- IN PROGRESS: authorization policies per domain
-- Remaining: 1
+- DONE: 14/14
+- IN PROGRESS: none
+- Remaining: 0
 
 ## Checklist
 
@@ -14,7 +14,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 - [x] แยก domain error จาก HTTP exception
 - [x] ทำ HTTP error mapper กลาง
 - [x] ทำ stable error codes และ localization-ready message keys
-- [ ] รวม authorization policies ต่อ domain
+- [x] รวม authorization policies ต่อ domain
 - [x] เพิ่ม resource-level authorization
 - [x] รวม step-up/2FA requirement checks
 - [x] รวม mandatory reason/audit checks
@@ -44,14 +44,14 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 - The global error response preserves `code`, `messageKey`, `message` and safe `details`.
 - Mapper contract tests cover default and explicitly supplied message keys.
 
-### 5–6. Resource authorization and step-up policy foundations
+### 5–6. Domain/resource authorization and step-up policy
 
 - Shared permission and resource-owner decisions are framework/persistence independent.
+- A central domain registry owns finance, admin lifecycle, KYC/risk, support/notifications and CMS/reports permission prefixes.
+- Routed `@RequirePermission(...)` metadata is audited against the registry.
+- Cross-domain permission reuse is denied by the shared policy.
 - Resource owners may access their own resource; explicit bypass permissions are supported.
-- Denials produce stable authorization domain errors.
 - Step-up freshness validates timestamp, maximum age, future timestamps and allowed methods.
-- Missing or stale verification produces a stable step-up-required domain error.
-- Domain-specific route migration remains open and is not counted as complete.
 
 ### 7–9. Mandatory reason/audit, input normalization and security policy tests
 
@@ -74,14 +74,23 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 - Critical top-up, withdrawal, ledger and transfer idempotency constraints are audited from the Prisma schema.
 - Existing R-009 critical constraint closure evidence is required to remain present.
 
+### 14. Domain authorization closure
+
+- `domain-authorization-policy.ts` is the source of truth for domain ownership of permission prefixes.
+- Controller permission metadata is scanned from real routed handlers.
+- Every routed permission must resolve to one declared domain.
+- Policy decisions still flow through the shared `requirePermission` implementation.
+- CI runs registry audit, contract tests and API typecheck.
+
 ## Verification commands
 
 ```bash
 node tools/audit-r011-error-boundaries.mjs
 node tools/audit-r011-authorization-policies.mjs
+node tools/audit-r011-domain-authorization.mjs
 node tools/audit-r011-security-policy-foundations.mjs
 node tools/audit-r011-sensitive-logging.mjs
 node tools/audit-r011-request-safety-boundaries.mjs
-pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts sensitive-log-redactor.spec.ts validation-boundary.spec.ts
+pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts domain-authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts sensitive-log-redactor.spec.ts validation-boundary.spec.ts
 pnpm --filter @platform/api typecheck
 ```
