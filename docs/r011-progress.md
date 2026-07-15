@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 
 ## Status
 
-- DONE: 11/14
+- DONE: 13/14
 - IN PROGRESS: authorization policies per domain
-- Remaining: 3
+- Remaining: 1
 
 ## Checklist
 
@@ -18,11 +18,11 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 - [x] เพิ่ม resource-level authorization
 - [x] รวม step-up/2FA requirement checks
 - [x] รวม mandatory reason/audit checks
-- [ ] แยก DTO validation, business validation และ persistence constraint
+- [x] แยก DTO validation, business validation และ persistence constraint
 - [x] ทำ input normalization สำหรับ email/phone/bank account/Unicode
 - [x] ทำ sensitive logging redact policy
 - [x] เพิ่ม static audit ป้องกัน log token/password/OTP/secret/private URL
-- [ ] ตรวจ CSRF/replay/idempotency boundaries
+- [x] ตรวจ CSRF/replay/idempotency boundaries
 - [x] เพิ่ม security policy tests
 
 ## Closed outcomes
@@ -48,28 +48,31 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 
 - Shared permission and resource-owner decisions are framework/persistence independent.
 - Resource owners may access their own resource; explicit bypass permissions are supported.
-- Denials produce stable `AUTH_PERMISSION_REQUIRED` or `AUTH_RESOURCE_FORBIDDEN` domain errors.
+- Denials produce stable authorization domain errors.
 - Step-up freshness validates timestamp, maximum age, future timestamps and allowed methods.
-- Missing or stale verification produces stable `AUTH_STEP_UP_REQUIRED` domain errors.
-- Unit tests and static CI guards protect both policy boundaries.
+- Missing or stale verification produces a stable step-up-required domain error.
 - Domain-specific route migration remains open and is not counted as complete.
 
 ### 7–9. Mandatory reason/audit, input normalization and security policy tests
 
-- Mandatory reason policy normalizes Unicode and whitespace before validating required, minimum and maximum lengths.
+- Mandatory reason policy normalizes Unicode and whitespace before validation.
 - Audit events use a constrained machine-readable identifier format.
-- Stable domain error codes cover missing/invalid reason and audit-event contracts.
-- Shared normalization covers Unicode text, email, phone and bank-account inputs without persistence or framework dependencies.
-- Unit tests cover authorization, ownership, step-up freshness, reason/audit requirements and normalization edge cases.
-- Static CI guards prevent NestJS or Prisma dependencies from entering the shared policy layer.
+- Shared normalization covers Unicode text, email, phone and bank-account inputs.
+- Unit tests cover authorization, ownership, step-up, reason/audit and normalization edge cases.
 
 ### 10–11. Sensitive logging policy and static audit
 
 - Shared redaction handles nested records, arrays, Error values, circular references and sensitive query parameters.
 - HTTP access logs, global exception logs and Redis failure logs use the shared policy.
-- Raw error objects are not written directly by the API bootstrap logger.
-- Static CI audit prevents drift back to local URL redactors or unredacted runtime error logging.
-- Unit tests cover sensitive keys, URLs, nested values, Error messages and circular objects.
+- Static CI audit prevents drift back to unredacted runtime error logging.
+
+### 12–13. Validation and request-safety boundaries
+
+- DTO, business and persistence failures have explicit layers and stable error codes.
+- Persistence constraints map to conflict semantics while DTO/business failures map to validation semantics.
+- CSRF origin protection remains recorded in the security worklist.
+- Critical top-up, withdrawal, ledger and transfer idempotency constraints are audited from the Prisma schema.
+- Existing R-009 critical constraint closure evidence is required to remain present.
 
 ## Verification commands
 
@@ -78,6 +81,7 @@ node tools/audit-r011-error-boundaries.mjs
 node tools/audit-r011-authorization-policies.mjs
 node tools/audit-r011-security-policy-foundations.mjs
 node tools/audit-r011-sensitive-logging.mjs
-pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts sensitive-log-redactor.spec.ts
+node tools/audit-r011-request-safety-boundaries.mjs
+pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts sensitive-log-redactor.spec.ts validation-boundary.spec.ts
 pnpm --filter @platform/api typecheck
 ```
