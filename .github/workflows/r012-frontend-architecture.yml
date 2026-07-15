@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'apps/web-admin/src/features/**'
+      - 'apps/web-admin/app/(admin)/game-providers/**'
       - 'apps/web-member/src/features/**'
       - 'apps/web-member/app/(auth)/register/**'
       - 'apps/web-member/app/deposit/**'
@@ -15,6 +16,7 @@ on:
     branches: [main]
     paths:
       - 'apps/web-admin/src/features/**'
+      - 'apps/web-admin/app/(admin)/game-providers/**'
       - 'apps/web-member/src/features/**'
       - 'apps/web-member/app/(auth)/register/**'
       - 'apps/web-member/app/deposit/**'
@@ -37,3 +39,4 @@ jobs:
       - run: node tools/audit-r012-feature-boundaries.mjs
       - run: pnpm --filter @platform/web-member test
       - run: pnpm --filter @platform/web-member typecheck
+      - run: pnpm --filter @platform/web-admin typecheck
