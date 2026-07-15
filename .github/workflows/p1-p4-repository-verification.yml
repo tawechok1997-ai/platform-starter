@@ -1,0 +1,92 @@
+name: P1-P4 Repository Verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'prisma/**'
+      - 'scripts/verify-p1-p4-repository.sh'
+      - 'tools/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/p1-p4-repository-verification.yml'
+  pull_request:
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'prisma/**'
+      - 'scripts/verify-p1-p4-repository.sh'
+      - 'tools/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/p1-p4-repository-verification.yml'
+
+concurrency:
+  group: p1-p4-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: platform_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d platform_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/platform_test?schema=public
+      JWT_ACCESS_SECRET: ci-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: ci-refresh-secret-at-least-32-characters
+      ADMIN_JWT_ACCESS_SECRET: ci-admin-access-secret-at-least-32-characters
+      ADMIN_JWT_REFRESH_SECRET: ci-admin-refresh-secret-at-least-32-characters
+      PRIVATE_MEDIA_DIR: /tmp/platform-private-media
+      REAL_LEDGER_MUTATION_ENABLED: 'false'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Apply test migrations
+        run: pnpm db:migrate
+
+      - name: Verify P1-P4 repository scope
+        run: bash scripts/verify-p1-p4-repository.sh
+
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-p4-failure-evidence
+          path: |
+            docs/evidence/**
+            coverage/**
+          if-no-files-found: ignore
+          retention-days: 7
