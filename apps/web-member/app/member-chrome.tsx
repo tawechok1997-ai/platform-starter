@@ -96,18 +96,18 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
     <MemberCategoryRail pathname={pathname} features={features} />
 
-    {menuOpen && <button type="button" className="member-menu-backdrop" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}
+    {menuOpen && <button type="button" className="member-menu-backdrop ui-overlay" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}
 
-    <aside className={menuOpen ? 'member-drawer open' : 'member-drawer'} aria-hidden={!menuOpen}>
-      <div className="member-drawer-head"><div><strong>{siteName}</strong><p>{siteDescription}</p></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู"><CloseIcon /></button></div>
-      <nav className="member-drawer-nav">
+    <aside className={menuOpen ? 'member-drawer ui-drawer open' : 'member-drawer ui-drawer'} role="dialog" aria-modal="true" aria-label="เมนูสมาชิก" aria-hidden={!menuOpen} tabIndex={-1}>
+      <div className="member-drawer-head ui-overlay-surface__header"><div><strong>{siteName}</strong><p>{siteDescription}</p></div><button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู"><CloseIcon /></button></div>
+      <nav className="member-drawer-nav ui-overlay-surface__body">
         {visibleDrawer.map((item) => <a key={item.key} href={item.href} onClick={() => setMenuOpen(false)} className={activeHref === item.href ? 'active' : ''}>
           <IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} />
           <span className="member-drawer-copy"><strong>{item.title}</strong><small>{item.badge === 'pending' && pendingCount > 0 ? `${pendingCount} รายการรอตรวจสอบ` : item.description}</small></span>
           {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
         </a>)}
       </nav>
-      <button type="button" className="member-logout-button" onClick={logout}>ออกจากระบบ</button>
+      <div className="ui-overlay-surface__actions"><button type="button" className="member-logout-button" onClick={logout}>ออกจากระบบ</button></div>
     </aside>
 
     {content}
@@ -124,7 +124,7 @@ function MemberCategoryRail({ pathname, features }: { pathname: string; features
   if (!features.games) return null;
   const items = [
     ['home', 'หน้าแรก', '/', '⌂'], ['casino', 'คาสิโน', '/games?category=casino', '♠'], ['slot', 'สล็อต', '/games?category=slot', '777'],
-    ['fishing', 'ยิงปลา', '/games?category=fishing', '🐟'], ['sport', 'กีฬา', '/games?category=sport', '⚽'], ['card', 'ไพ่', '/games?category=card', 'A♠'], ['lottery', 'หวย', '/games?category=lottery', '◉'],
+    ['fishing', 'ตกปลา', '/games?category=fishing', '🐟'], ['sport', 'กีฬา', '/games?category=sport', '⚽'], ['card', 'ไพ่', '/games?category=card', 'A♠'], ['lottery', 'หวย', '/games?category=lottery', '◉'],
   ] as const;
   return <aside className={`member-category-rail${pathname === '/' ? ' member-category-rail--home' : ''}`} aria-label="หมวดหมู่ Member">{items.map(([key, label, href, icon]) => { const active = key === 'home' ? pathname === '/' : pathname.startsWith('/games') && new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('category') === key; return <a key={key} href={href} className={active ? 'active' : ''}><span>{icon}</span><strong>{label}</strong></a>; })}<span className="member-category-rail__handle" aria-hidden="true">›</span></aside>;
 }
