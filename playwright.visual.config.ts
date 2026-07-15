@@ -11,11 +11,13 @@ const viewports = [
 
 export default defineConfig({
   testDir: './tests/e2e-visual',
+  outputDir: 'artifacts/r013-visual/test-results',
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}-{projectName}{ext}',
   timeout: 45_000,
   expect: { timeout: 10_000, toHaveScreenshot: { animations: 'disabled', maxDiffPixelRatio: 0.02 } },
   retries: process.env.CI ? 1 : 0,
   workers: 1,
-  reporter: process.env.CI ? [['list'], ['html', { open: 'never', outputFolder: 'playwright-visual-report' }]] : 'list',
+  reporter: process.env.CI ? [['list'], ['html', { open: 'never', outputFolder: 'artifacts/r013-visual/html-report' }]] : 'list',
   use: {
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -28,4 +30,20 @@ export default defineConfig({
     name,
     use: { viewport: { width, height }, deviceScaleFactor: 1 },
   })),
+  webServer: [
+    {
+      command: 'pnpm --filter @platform/web-admin dev --port 3100',
+      url: 'http://127.0.0.1:3100/login',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: { NEXT_PUBLIC_API_URL: 'http://127.0.0.1:4000' },
+    },
+    {
+      command: 'pnpm --filter @platform/web-member dev --port 3101',
+      url: 'http://127.0.0.1:3101/login',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: { NEXT_PUBLIC_API_URL: 'http://127.0.0.1:4000' },
+    },
+  ],
 });
