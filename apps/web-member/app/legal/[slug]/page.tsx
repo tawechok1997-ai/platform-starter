@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { defaultSettings, loadPublicSiteSettings, PublicSiteSettings, textSetting } from '../../site-settings';
 
 const legalMap: Record<string, { key: string; title: string }> = {
@@ -12,11 +12,12 @@ const legalMap: Record<string, { key: string; title: string }> = {
   contact: { key: 'contact_policy', title: 'นโยบายการติดต่อ' },
 };
 
-export default function LegalPage({ params }: { params: { slug: string } }) {
+export default function LegalPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [settings, setSettings] = useState<PublicSiteSettings>(defaultSettings);
   const [ready, setReady] = useState(false);
   useEffect(() => { loadPublicSiteSettings().then(setSettings).finally(() => setReady(true)); }, []);
-  const item = legalMap[params.slug] ?? legalMap.terms;
+  const item = legalMap[slug] ?? legalMap.terms;
   const siteName = textSetting(settings, 'website', 'site_name', 'Platform Starter');
   const primaryColor = textSetting(settings, 'branding', 'primary_color', '#f5c542');
   const backgroundColor = textSetting(settings, 'branding', 'background_color', '#080808');
