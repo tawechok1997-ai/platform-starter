@@ -9,6 +9,7 @@ const SUPPORT_REF_TYPE = 'SUPPORT_TICKET';
 const MEMBER_TICKET_PAGE = { defaultLimit: 20, maxLimit: 50 } as const;
 const ADMIN_TICKET_PAGE = { defaultLimit: 25, maxLimit: 100 } as const;
 const SUPPORT_STATUSES = ['OPEN', 'IN_PROGRESS', 'WAITING_MEMBER', 'CLOSED'] as const;
+const SUPPORT_CATEGORIES = ['general', 'finance', 'account', 'game', 'technical'] as const;
 const SUPPORT_SORT_FIELDS = ['createdAt', 'updatedAt', 'status'] as const;
 
 const SUPPORT_TICKET_LIST_PROJECTION = {
@@ -64,9 +65,15 @@ export class SupportQueryService {
   }
 
   async listAdminTickets(query: AdminSupportQuery) {
-    const status = parseOptionalEnum(query.status, SUPPORT_STATUSES, { allValue: 'ALL' });
-    const search = normalizeOptionalText(query.search, 200);
-    const category = normalizeOptionalText(query.category, 80);
+    const status = parseOptionalEnum(query.status, SUPPORT_STATUSES, {
+      allValue: 'ALL',
+      fieldName: 'status',
+    });
+    const category = parseOptionalEnum(query.category, SUPPORT_CATEGORIES, {
+      allValue: 'ALL',
+      fieldName: 'category',
+    });
+    const search = normalizeOptionalText(query.search, 200, { fieldName: 'search' });
     const sort = parseSort(query.sortBy, query.sortDirection, SUPPORT_SORT_FIELDS, {
       field: 'createdAt',
       direction: 'desc',
@@ -91,7 +98,7 @@ export class SupportQueryService {
     const members = await this.loadMembers(page.items.flatMap((item) => (item.memberId ? [item.memberId] : [])));
     const formatted = page.items
       .map((item) => mapSupportTicket({ ...item, member: item.memberId ? members.get(item.memberId) ?? null : null }))
-      .filter((item) => !category || category === 'ALL' || item.category === category);
+      .filter((item) => !category || item.category === category);
     return {
       items: formatted,
       total: formatted.length,
