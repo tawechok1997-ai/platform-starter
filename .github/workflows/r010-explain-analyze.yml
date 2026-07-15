@@ -6,13 +6,17 @@ on:
     paths:
       - 'apps/api/src/modules/reports/**'
       - 'prisma/**'
+      - 'package.json'
       - 'tools/r010-explain-analyze.mjs'
+      - 'tools/audit-r010-explain-analyze-evidence.mjs'
       - '.github/workflows/r010-explain-analyze.yml'
   pull_request:
     paths:
       - 'apps/api/src/modules/reports/**'
       - 'prisma/**'
+      - 'package.json'
       - 'tools/r010-explain-analyze.mjs'
+      - 'tools/audit-r010-explain-analyze-evidence.mjs'
       - '.github/workflows/r010-explain-analyze.yml'
 
 jobs:
@@ -51,9 +55,9 @@ jobs:
       - name: Generate Prisma client
         run: pnpm db:generate
       - name: Capture EXPLAIN ANALYZE evidence
-        run: node tools/r010-explain-analyze.mjs
+        run: pnpm audit:r10:explain
       - name: Validate evidence payload
-        run: node tools/audit-r010-explain-analyze-evidence.mjs artifacts/r010-explain-analyze.json
+        run: pnpm audit:r10:explain:validate -- artifacts/r010-explain-analyze.json
       - uses: actions/upload-artifact@v4
         with:
           name: r010-explain-analyze
