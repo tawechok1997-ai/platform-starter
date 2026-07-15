@@ -8,8 +8,8 @@
 
 - P0 ถึง P5 เก็บเฉพาะงานที่สามารถทำต่อใน repository ได้ เช่น implementation, automated tests, CI และ configuration
 - P6 เก็บงานที่ต้องใช้ deployed environment, credentials, production access, vendor document หรือ external approval
-- งานที่เสร็จแล้วอ้างอิงจาก implementation และ regression evidence ไม่ใช่ checkbox อย่างเดียว
-- เอกสาร backlog เก่าถูกยกเลิก ไม่ใช้เป็น source of truth อีกต่อไป
+- งานที่เสร็จแล้วต้องมี implementation และ regression evidence ที่เหมาะสม ไม่อ้างอิง checkbox เพียงอย่างเดียว
+- ไฟล์นี้เป็น worklist หลักเพียงไฟล์เดียว ไม่ใช้ backlog เก่าเป็น source of truth
 
 ## สถานะรวม
 
@@ -243,13 +243,3 @@
 - งานโค้ดใน P0 ถึง P5: **20 รายการ**
 - งาน external verification และ UAT ใน P6: **27 รายการ**
 - รวม checkbox ที่ยังไม่ปิด: **47 รายการ**
-
-# เอกสารที่ยกเลิก
-
-ไฟล์ต่อไปนี้ไม่ใช่ source of truth และควรลบหรือ archive แยกจาก master นี้:
-
-- `docs/remaining-work-backlog.md`
-- `docs/detailed-remaining-work-backlog.md`
-- `docs/code-structure-refactor-plan.md`
-- `docs/current-execution-status.md`
-- `docs/master-worklist.md`
