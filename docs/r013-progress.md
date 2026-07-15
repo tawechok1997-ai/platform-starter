@@ -14,7 +14,7 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 
 - [x] Remove unused legacy Admin UI files.
 - [x] Remove the empty unused `packages/ui` workspace.
-- [ ] Inventory hard-coded color, spacing, radius, shadow, breakpoint, and z-index values.
+- [x] Inventory hard-coded color, spacing, radius, shadow, breakpoint, and z-index values.
 - [ ] Consolidate color tokens.
 - [ ] Consolidate spacing, radius, and shadow tokens.
 - [ ] Consolidate typography, motion, breakpoint, and z-index tokens.
@@ -30,16 +30,26 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - [ ] Add six-viewport visual regression.
 - [ ] Store screenshot, trace, console, and network artifacts in CI.
 
-## Active work
+## Closed outcomes
 
 ### 3. Inventory hard-coded design values
 
-- [x] Added `tools/audit-r013-design-token-inventory.mjs`.
-- [x] Scan Admin and Member CSS/TS/TSX source.
-- [x] Classify colors, spacing/dimensions, radius, shadow, breakpoints, and z-index.
-- [x] Emit machine-readable JSON evidence.
-- [x] Added `.github/workflows/r013-ui-system.yml` with artifact upload and both frontend typechecks.
-- [ ] Observe a successful workflow artifact before closing the outcome.
+- Added `tools/audit-r013-design-token-inventory.mjs`.
+- Scans Admin and Member CSS/TS/TSX source.
+- Classifies colors, spacing/dimensions, radius, shadow, breakpoints, and z-index.
+- Emits machine-readable JSON evidence.
+- Added `.github/workflows/r013-ui-system.yml` with artifact upload and both frontend typechecks.
+- Verification-only PR #32 ran workflow `R-013 UI System`, run `29395337259`, job `87287462809`.
+- Inventory generation, artifact upload, Admin typecheck, and Member typecheck completed successfully.
+
+## Active work
+
+### 4. Consolidate color tokens
+
+- [ ] Define shared semantic surface, text, border, brand, success, warning, and danger tokens.
+- [ ] Preserve compatibility aliases for existing Admin and Member CSS.
+- [ ] Wire both applications to one token source.
+- [ ] Add a drift guard preventing duplicate root color contracts.
 
 ## Initial findings
 
@@ -50,10 +60,11 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 ## Count
 
 - Total R-013 outcomes: 17
-- Closed: 2
-- Remaining: 15
+- Closed: 3
+- Remaining: 14
 
 ## Latest commits
 
+- `3857d2f82869d8d34f5d0027a5b77b9f76ed15c4` — start the R-013 workstream.
 - `df3805928a71969fa2a5d28e2bde86de18a0fedd` — add the R-013 inventory workflow.
 - `2f9055fbd7dd824c6dd9a7abf7383ba1300f353a` — add machine-readable design-token inventory.
