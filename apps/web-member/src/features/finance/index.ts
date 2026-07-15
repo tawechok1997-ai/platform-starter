@@ -11,3 +11,4 @@ export {
   type DepositFormValues,
 } from './deposit-form';
 export { financeInvalidationRules, financeQueryKeys } from './query-keys';
+export { useDepositServerState } from './use-deposit-server-state';
