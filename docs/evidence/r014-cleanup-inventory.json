@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-15T07:23:06.788Z",
+  "generatedAt": "2026-07-15T07:35:38.322Z",
   "note": "Candidate inventory only. Do not delete files from this report without owner review and regression evidence.",
   "scanned": {
     "roots": [
@@ -7,13 +7,13 @@
       "packages",
       "tools"
     ],
-    "files": 587,
-    "sourceFiles": 549,
+    "files": 583,
+    "sourceFiles": 545,
     "cssFiles": 38
   },
   "counts": {
-    "potentialOrphanSources": 121,
-    "potentiallyUnusedExports": 130,
+    "potentialOrphanSources": 119,
+    "potentiallyUnusedExports": 127,
     "componentFiles": 6,
     "potentiallyUnusedComponents": 1,
     "routeFiles": 149,
@@ -30,8 +30,6 @@
     "apps/api/src/modules/callbacks/guards/provider-signature.guard.ts",
     "apps/api/src/modules/game-platform/adapters/real-provider-adapter.template.ts",
     "apps/api/src/modules/topups/dto/review-top-up-request.dto.ts",
-    "apps/api/src/modules/users/users.service.ts",
-    "apps/api/src/modules/wallets/wallets.service.ts",
     "apps/web-admin/app/(admin)/_components/admin-confirm-dialog.tsx",
     "apps/web-admin/app/(admin)/access/page.tsx",
     "apps/web-admin/app/(admin)/activity/page.tsx",
@@ -488,20 +486,8 @@
       "symbol": "ReviewTopUpRequestDto"
     },
     {
-      "file": "apps/api/src/modules/users/users.service.ts",
-      "symbol": "UsersService"
-    },
-    {
       "file": "apps/api/src/modules/wallet-ledger/wallet-ledger.module.ts",
       "symbol": "WalletLedgerModule"
-    },
-    {
-      "file": "apps/api/src/modules/wallets/wallets.module.ts",
-      "symbol": "WalletsModule"
-    },
-    {
-      "file": "apps/api/src/modules/wallets/wallets.service.ts",
-      "symbol": "WalletsService"
     },
     {
       "file": "apps/api/src/modules/withdrawals/withdrawal-workflow.service.ts",

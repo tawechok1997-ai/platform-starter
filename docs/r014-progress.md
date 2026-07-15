@@ -61,6 +61,12 @@ R-014 covers production observability, incident/runbook documentation, and clean
 
 ### 4. State-machine documentation
 
+
+## Partial dead-code removal evidence
+
+- Removed only empty placeholder `users` and unreferenced `wallets` modules.
+- Recorded evidence in `docs/evidence/r014-dead-code-removal.md`.
+- The overall dead-code removal task remains open until the broader cleanup inventory is reviewed domain-by-domain.
 - Added `docs/architecture/state-machines.md` for deposit, withdrawal, KYC, support, admin lifecycle, and promotion lifecycles.
 - The document intentionally references command/workflow services rather than inventing new lifecycle states.
 
