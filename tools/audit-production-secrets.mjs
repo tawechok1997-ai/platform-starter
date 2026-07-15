@@ -17,6 +17,7 @@ const allowedFixtureContentFiles = new Set([
   'apps/web-admin/app/(auth)/login/page.tsx',
   'apps/web-member/app/(auth)/login/page.tsx',
   'prisma/seed-games.ts',
+  'tools/check-p6-readiness.test.mjs',
 ]);
 
 function trackedFiles() {
