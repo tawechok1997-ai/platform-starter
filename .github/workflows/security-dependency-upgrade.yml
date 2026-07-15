@@ -1,0 +1,99 @@
+name: Security Dependency Upgrade
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: security-dependency-upgrade
+  cancel-in-progress: false
+
+jobs:
+  upgrade-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: platform_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d platform_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+      FINANCE_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+      RISK_MATCH_SECRET: ci-risk-match-secret-value-2026
+      KYC_ACCESS_SECRET: ci-kyc-access-secret-value-2026
+      PHONE_OTP_SECRET: ci-phone-otp-secret-value-2026
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Upgrade patched runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'package.json';
+          const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+          pkg.pnpm ??= {};
+          pkg.pnpm.overrides ??= {};
+          pkg.pnpm.overrides.next = '15.5.16';
+          pkg.pnpm.overrides.effect = '3.20.0';
+          fs.writeFileSync(path, `${JSON.stringify(pkg, null, 2)}\n`);
+          NODE
+          pnpm install --no-frozen-lockfile
+
+      - name: Validate dependency security
+        run: pnpm audit:dependency-security
+
+      - name: Validate Prisma and generate client
+        run: pnpm prisma validate && pnpm prisma generate
+
+      - name: Typecheck all applications
+        run: pnpm typecheck:api && pnpm typecheck:admin && pnpm typecheck:member
+
+      - name: Run API tests
+        run: pnpm --filter @platform/api test -- --runInBand
+
+      - name: Build applications
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+        run: pnpm build:api && pnpm build:web-admin && pnpm build:web-member
+
+      - name: Commit verified dependency upgrade
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- package.json pnpm-lock.yaml; then
+            echo 'Dependency files are already up to date.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json pnpm-lock.yaml
+          git commit -m 'fix(security): upgrade Next and Effect past high advisories'
+          git push
