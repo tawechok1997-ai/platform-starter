@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps/api/src/common/query/**'
       - 'apps/api/src/modules/notifications/**'
+      - 'apps/api/src/modules/reports/**'
       - 'apps/api/src/**/*.service.ts'
       - 'apps/api/src/**/*.repository.ts'
       - 'apps/api/src/**/dto/**'
@@ -16,6 +17,7 @@ on:
     paths:
       - 'apps/api/src/common/query/**'
       - 'apps/api/src/modules/notifications/**'
+      - 'apps/api/src/modules/reports/**'
       - 'apps/api/src/**/*.service.ts'
       - 'apps/api/src/**/*.repository.ts'
       - 'apps/api/src/**/dto/**'
@@ -51,5 +53,7 @@ jobs:
         run: node tools/audit-r010-filter-sort-boundaries.mjs
       - name: Strict query rejection contracts
         run: pnpm --filter @platform/api test -- src/common/query/query-filters.spec.ts --runInBand
+      - name: Dashboard read model
+        run: node tools/audit-r010-dashboard-read-model.mjs
       - name: API typecheck
         run: pnpm typecheck:api
