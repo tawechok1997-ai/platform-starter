@@ -13,3 +13,9 @@ export {
 } from './deposit-form';
 export { financeInvalidationRules, financeQueryKeys } from './query-keys';
 export { useDepositServerState } from './use-deposit-server-state';
+export {
+  createOptimisticSnapshot,
+  hasUnsavedChanges,
+  rollbackOptimisticChange,
+  type Snapshot,
+} from './form-regression';
