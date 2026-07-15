@@ -19,6 +19,9 @@ on:
       - 'tools/audit-r010-explain-analyze-evidence.mjs'
       - '.github/workflows/r010-explain-analyze.yml'
 
+permissions:
+  contents: write
+
 jobs:
   explain-analyze:
     runs-on: ubuntu-latest
@@ -63,3 +66,17 @@ jobs:
           name: r010-explain-analyze
           path: artifacts/r010-explain-analyze.json
           if-no-files-found: error
+      - name: Persist validated evidence on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p docs/evidence/generated
+          cp artifacts/r010-explain-analyze.json docs/evidence/generated/r010-explain-analyze.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/evidence/generated/r010-explain-analyze.json
+          if git diff --cached --quiet; then
+            echo "Validated evidence is unchanged."
+          else
+            git commit -m "chore: persist R-010 EXPLAIN evidence"
+            git push
+          fi
