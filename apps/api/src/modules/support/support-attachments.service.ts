@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { Prisma } from '@prisma/client';
 import type { AuthenticatedAdminActor, MemberActor } from '../../common/actors';
 import { PrismaService } from '../../database/prisma.service';
+import { StorageSignedAccessService } from '../storage/storage-signed-access.service';
 import { StorageService } from '../storage/storage.service';
 import type { UploadSupportAttachmentDto } from './dto/support-attachment-upload.dto';
 import { SupportService } from './support.service';
@@ -40,6 +41,7 @@ const MIME_RULES: Record<string, { ext: string; magic: (buffer: Buffer) => boole
 
 type StoredAttachment = {
   id: string;
+  originalName?: string;
   mimeType: string;
   storageKey: string;
   deletedAt?: string | null;
@@ -57,6 +59,7 @@ export class SupportAttachmentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
+    private readonly signedAccess: StorageSignedAccessService,
     private readonly support: SupportService,
   ) {}
 
@@ -102,14 +105,23 @@ export class SupportAttachmentsService {
     return this.read(ticket.metadata, attachmentId);
   }
 
+  async createMemberDownload(user: MemberActor, ticketId: string, attachmentId: string) {
+    const ticket = await this.requireMemberTicket(user.id, ticketId);
+    return this.createSignedDownload(ticket.metadata, attachmentId);
+  }
+
+  async createAdminDownload(ticketId: string, attachmentId: string) {
+    const ticket = await this.requireAdminTicket(ticketId);
+    return this.createSignedDownload(ticket.metadata, attachmentId);
+  }
+
   private async removeStoredObject(result: AttachmentRemovalResult) {
     await this.storage.remove(result.cleanup.storageKey);
     return { ...result, cleanup: { ...result.cleanup, removed: true } };
   }
 
   private async store(ticketId: string, dto: UploadSupportAttachmentDto) {
-    const parsed = this.parseDataUrl(dto.dataUrl);
-    if (parsed.mimeType !== dto.mimeType) throw new BadRequestException('Attachment MIME type does not match data URL');
+    const parsed = this.parsePayload(dto);
     const rule = MIME_RULES[parsed.mimeType];
     if (!rule) throw new BadRequestException('Attachment MIME type is not allowed');
     if (parsed.data.length === 0) throw new BadRequestException('Attachment file is empty');
@@ -132,6 +144,25 @@ export class SupportAttachmentsService {
   }
 
   private async read(metadataValue: Prisma.JsonValue | null, attachmentId: string) {
+    const attachment = this.findAttachment(metadataValue, attachmentId);
+    return this.storage.get(attachment.storageKey, attachment.mimeType);
+  }
+
+  private createSignedDownload(metadataValue: Prisma.JsonValue | null, attachmentId: string) {
+    const attachment = this.findAttachment(metadataValue, attachmentId);
+    const signed = this.signedAccess.issue({
+      key: attachment.storageKey,
+      contentType: attachment.mimeType,
+      fileName: attachment.originalName,
+    });
+    return {
+      url: `/storage/signed/${signed.token}`,
+      expiresAt: signed.expiresAt,
+      ttlSeconds: signed.ttlSeconds,
+    };
+  }
+
+  private findAttachment(metadataValue: Prisma.JsonValue | null, attachmentId: string) {
     const metadata = this.asRecord(metadataValue);
     const attachments = Array.isArray(metadata.attachments) ? metadata.attachments : [];
     const attachment = attachments.find((entry): entry is StoredAttachment => {
@@ -140,7 +171,7 @@ export class SupportAttachmentsService {
       return value.id === attachmentId && typeof value.storageKey === 'string' && typeof value.mimeType === 'string' && !value.deletedAt;
     });
     if (!attachment) throw new NotFoundException('Support attachment not found');
-    return this.storage.get(attachment.storageKey, attachment.mimeType);
+    return attachment;
   }
 
   private async requireMemberTicket(memberId: string, ticketId: string) {
@@ -161,11 +192,25 @@ export class SupportAttachmentsService {
     return ticket;
   }
 
-  private parseDataUrl(value: string) {
-    const match = /^data:([a-z0-9.+-]+\/[a-z0-9.+-]+);base64,([a-z0-9+/=\r\n]+)$/i.exec(value.trim());
+  private parsePayload(dto: UploadSupportAttachmentDto) {
+    if (dto.contentBase64?.trim()) {
+      return { mimeType: dto.mimeType, data: this.decodeBase64(dto.contentBase64) };
+    }
+    if (!dto.dataUrl?.trim()) throw new BadRequestException('Attachment content is required');
+    const match = /^data:([a-z0-9.+-]+\/[a-z0-9.+-]+);base64,([a-z0-9+/=\r\n]+)$/i.exec(dto.dataUrl.trim());
     if (!match) throw new BadRequestException('Attachment must be a valid base64 data URL');
-    const data = Buffer.from(match[2].replace(/\s/g, ''), 'base64');
-    return { mimeType: match[1].toLowerCase(), data };
+    const mimeType = match[1].toLowerCase();
+    if (mimeType !== dto.mimeType) throw new BadRequestException('Attachment MIME type does not match data URL');
+    return { mimeType, data: this.decodeBase64(match[2]) };
+  }
+
+  private decodeBase64(value: string) {
+    const normalized = value.replace(/\s/g, '');
+    const data = Buffer.from(normalized, 'base64');
+    if (data.toString('base64').replace(/=+$/, '') !== normalized.replace(/=+$/, '')) {
+      throw new BadRequestException('Attachment base64 content is invalid');
+    }
+    return data;
   }
 
   private asRecord(value: unknown): Record<string, unknown> {
