@@ -7,7 +7,10 @@ const DEFAULT_BURST_WINDOW_MS = 1000;
 const DEFAULT_BURST_THRESHOLD = 8;
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient<Prisma.PrismaClientOptions, 'query'>
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger('PrismaQueryPerformance');
   private readonly queryMonitor = new QueryPerformanceMonitor({
     slowQueryMs: positiveNumber(process.env.PRISMA_SLOW_QUERY_MS, DEFAULT_SLOW_QUERY_MS),
