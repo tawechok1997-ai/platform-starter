@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 
 ## Status
 
-- DONE: 9/18
+- DONE: 10/18
 - IN PROGRESS: register page decomposition
-- Remaining: 9
+- Remaining: 8
 
 ## Checklist
 
@@ -26,7 +26,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - [x] แยก form schemas/defaults/serialization/error mapping
 - [x] แยก server state จาก UI state
 - [x] ทำ query-key factories และ invalidation rules
-- [ ] เพิ่ม component/unit tests สำหรับส่วนที่แยก
+- [x] เพิ่ม component/unit tests สำหรับส่วนที่แยก
 - [ ] เพิ่ม unsaved-change และ optimistic rollback regression
 
 ## Closed outcomes
@@ -41,11 +41,16 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - Remote accounts/history/loading/error state now lives in `useDepositServerState`; the container only owns transient workflow and form state.
 - The withdrawal route keeps API orchestration, validation and transient state in `app/withdraw/page.tsx`; `WithdrawalView` owns rendering and interaction wiring.
 - `WithdrawalView` is exported through the finance public boundary, and static audit prevents direct presentation imports from the route.
+- Unit tests cover deposit defaults, amount parsing, validation, request serialization, API error mapping and deterministic finance query/invalidation keys.
+- Presentation contract tests prevent `DepositView` and `WithdrawalView` from owning API fetches or route-level effects.
+- R-012 CI now installs dependencies and runs the static audit, Member feature tests and Member typecheck.
 
 ## Verification
 
 ```bash
 node tools/audit-r012-feature-boundaries.mjs
+pnpm --filter @platform/web-member test
+pnpm --filter @platform/web-member typecheck
 pnpm --filter @platform/web-admin build
 pnpm --filter @platform/web-member build
 ```
