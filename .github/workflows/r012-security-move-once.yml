@@ -1,0 +1,42 @@
+name: R012 Security Move Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r012-security-move-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  move:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Move security implementation into auth feature
+        shell: bash
+        run: |
+          set -euo pipefail
+          source='apps/web-admin/app/(admin)/security/page.tsx'
+          target='apps/web-admin/src/features/auth/admin-security-page.tsx'
+          mkdir -p "$(dirname "$target")"
+          cp "$source" "$target"
+          sed -i "s#from '../../admin-api'#from '../../../app/admin-api'#" "$target"
+          sed -i "s#from '../_components/admin-ui'#from '../../../app/(admin)/_components/admin-ui'#" "$target"
+          cat > "$source" <<'EOF'
+          'use client';
+
+          export { default } from '../../../src/features/auth/admin-security-page';
+          EOF
+          if ! grep -q "AdminSecurityPage" apps/web-admin/src/features/auth/index.ts; then
+            printf "\nexport { default as AdminSecurityPage } from './admin-security-page';\n" >> apps/web-admin/src/features/auth/index.ts
+          fi
+          rm .github/workflows/r012-security-move-once.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add "$source" "$target" apps/web-admin/src/features/auth/index.ts .github/workflows/r012-security-move-once.yml
+          git commit -m 'refactor(r012): move admin security page into auth feature'
+          git push
