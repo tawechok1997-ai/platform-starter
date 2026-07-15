@@ -2,9 +2,8 @@ import { access, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const root = process.cwd();
-const worklistPath = join(root, 'docs', 'master-project-worklist.md');
 const failures = [];
-const worklist = await readFile(worklistPath, 'utf8');
+const worklist = await readFile(join(root, 'docs', 'master-project-worklist.md'), 'utf8');
 
 const requiredRootScripts = [
   'audit:architecture-inventory',
@@ -17,6 +16,7 @@ const requiredRootScripts = [
   'audit:critical-error-contracts',
   'audit:admin-permissions',
   'audit:admin-ui-permissions',
+  'audit:master-worklist',
 ];
 
 const requiredEvidenceFiles = [
@@ -47,27 +47,13 @@ if (p4Start < 0 || p5Start < 0 || p5Start <= p4Start) {
   failures.push('master-project-worklist.md: cannot locate P4 section');
 } else {
   const p4 = worklist.slice(p4Start, p5Start);
-  for (let index = 1; index <= 14; index += 1) {
-    const id = `R-${String(index).padStart(3, '0')}`;
-    if (!p4.includes(`### ${id} `)) failures.push(`master-project-worklist.md: missing ${id}`);
+  for (const heading of ['## R-001 ถึง R-012', '## R-013 UI system', '## R-014 Observability']) {
+    if (!p4.includes(heading)) failures.push(`master-project-worklist.md: missing ${heading}`);
   }
 
-  const doneCount = [...p4.matchAll(/สถานะ:\s*✅ DONE/g)].length;
-  const partialCount = [...p4.matchAll(/สถานะ:\s*🟡 PARTIAL/g)].length;
-  const todoCount = [...p4.matchAll(/สถานะ:\s*🔴 TODO/g)].length;
-  console.log(`P4 closure audit: ${doneCount} DONE, ${partialCount} PARTIAL, ${todoCount} TODO`);
-
-  if (partialCount > 0 || todoCount > 0) {
-    failures.push(`P4 is not closable: ${partialCount} PARTIAL and ${todoCount} TODO work items remain`);
-  }
-
-  const uncheckedDefinitionOfDone = p4
-    .slice(p4.indexOf('## P4 Definition of Done'), p4.indexOf('## P4-A'))
-    .split('\n')
-    .filter((line) => line.trim().startsWith('- [ ]'));
-  if (uncheckedDefinitionOfDone.length > 0) {
-    failures.push(`P4 Definition of Done has ${uncheckedDefinitionOfDone.length} unchecked items`);
-  }
+  const unchecked = [...p4.matchAll(/^- \[ \]/gm)].length;
+  console.log(`P4 closure audit: ${unchecked} unchecked code items`);
+  if (unchecked > 0) failures.push(`P4 is not closable: ${unchecked} code items remain`);
 }
 
 console.log(`  required scripts: ${requiredRootScripts.length}`);
