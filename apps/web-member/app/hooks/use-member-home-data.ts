@@ -19,8 +19,12 @@ export function useMemberHomeData(gamesEnabled: boolean) {
 
   const loadGames = useCallback(async () => {
     if (!gamesEnabled) { setLobby({}); return; }
-    try { setLobby(await requestJson<GameLobbyPayload>('/member/games')); }
-    catch { setLobby({}); }
+    try {
+      const payload = await requestJson<GameLobbyPayload>('/member/games');
+      setLobby(payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {});
+    } catch {
+      setLobby({});
+    }
   }, [gamesEnabled]);
 
   const loadActivity = useCallback(async () => {
@@ -32,9 +36,9 @@ export function useMemberHomeData(gamesEnabled: boolean) {
         requestJson<PaginatedItems<MoneyRequest>>('/member/withdrawals'),
         requestJson<PaginatedItems<LedgerItem>>('/member/wallet/ledger?limit=5'),
       ]);
-      setTopups(Array.isArray(topupData.items) ? topupData.items : []);
-      setWithdrawals(Array.isArray(withdrawalData.items) ? withdrawalData.items : []);
-      setLedgers(Array.isArray(ledgerData.items) ? ledgerData.items : []);
+      setTopups(Array.isArray(topupData?.items) ? topupData.items : []);
+      setWithdrawals(Array.isArray(withdrawalData?.items) ? withdrawalData.items : []);
+      setLedgers(Array.isArray(ledgerData?.items) ? ledgerData.items : []);
     } catch (error) {
       setActivityMessage(error instanceof Error ? error.message : 'โหลดข้อมูลไม่สำเร็จ');
     } finally {
@@ -45,22 +49,33 @@ export function useMemberHomeData(gamesEnabled: boolean) {
   useEffect(() => {
     setFavoriteIds(readIds(FAVORITES_KEY));
     setRecentIds(readIds(RECENT_KEY));
-    loadGames();
-    loadActivity();
+    void loadGames();
+    void loadActivity();
   }, [loadGames, loadActivity]);
 
-  const pendingTopups = useMemo(() => topups.filter((item) => item.status === 'PENDING').slice(0, 3), [topups]);
-  const pendingWithdrawals = useMemo(() => withdrawals.filter((item) => item.status === 'PENDING').slice(0, 3), [withdrawals]);
-  const games = lobby.items ?? [];
-  const featured = (lobby.featured?.length ? lobby.featured : games.filter((game) => game.isFeatured)).slice(0, 8);
-  const popular = (lobby.popular?.length ? lobby.popular : games.filter((game) => game.isPopular)).slice(0, 8);
-  const recentGames = recentIds.map((id) => games.find((game) => game.id === id)).filter(Boolean) as Game[];
-  const favoriteGames = favoriteIds.map((id) => games.find((game) => game.id === id)).filter(Boolean) as Game[];
+  const pendingTopups = useMemo(() => topups.filter((item) => item?.status === 'PENDING').slice(0, 3), [topups]);
+  const pendingWithdrawals = useMemo(() => withdrawals.filter((item) => item?.status === 'PENDING').slice(0, 3), [withdrawals]);
+  const games = Array.isArray(lobby.items) ? lobby.items : [];
+  const featuredSource = Array.isArray(lobby.featured) && lobby.featured.length
+    ? lobby.featured
+    : games.filter((game) => game?.isFeatured);
+  const popularSource = Array.isArray(lobby.popular) && lobby.popular.length
+    ? lobby.popular
+    : games.filter((game) => game?.isPopular);
+  const featured = featuredSource.slice(0, 8);
+  const popular = popularSource.slice(0, 8);
+  const recentGames = recentIds.map((id) => games.find((game) => game?.id === id)).filter(Boolean) as Game[];
+  const favoriteGames = favoriteIds.map((id) => games.find((game) => game?.id === id)).filter(Boolean) as Game[];
+  const categories = Array.isArray(lobby.categories) ? lobby.categories : [];
 
-  return { pendingTopups, pendingWithdrawals, ledgers, categories: lobby.categories ?? [], featured, popular, recentGames, favoriteGames, activityMessage, isActivityLoading, reloadActivity: loadActivity };
+  return { pendingTopups, pendingWithdrawals, ledgers, categories, featured, popular, recentGames, favoriteGames, activityMessage, isActivityLoading, reloadActivity: loadActivity };
 }
 
 function readIds(key: string) {
-  try { return JSON.parse(window.localStorage.getItem(key) ?? '[]') as string[]; }
-  catch { return []; }
+  try {
+    const value = JSON.parse(window.localStorage.getItem(key) ?? '[]');
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+  } catch {
+    return [];
+  }
 }
