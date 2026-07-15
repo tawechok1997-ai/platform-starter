@@ -1,0 +1,33 @@
+name: R011 Security Boundaries
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/src/common/errors/**'
+      - 'apps/api/src/common/filters/**'
+      - 'tools/audit-r011-*.mjs'
+      - '.github/workflows/r011-security-boundaries.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/common/errors/**'
+      - 'apps/api/src/common/filters/**'
+      - 'tools/audit-r011-*.mjs'
+      - '.github/workflows/r011-security-boundaries.yml'
+
+jobs:
+  error-boundaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node tools/audit-r011-error-boundaries.mjs
+      - run: pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts
+      - run: pnpm --filter @platform/api typecheck
