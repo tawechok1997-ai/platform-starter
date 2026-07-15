@@ -36,6 +36,7 @@ jobs:
       ADMIN_WEB_URL: ${{ inputs.admin_url || secrets.SEED_ADMIN_WEB_URL }}
       API_URL: ${{ inputs.api_url || secrets.SEED_API_URL }}
       APPROVED_COMMIT: ${{ inputs.approved_commit || secrets.APPROVED_DEPLOY_COMMIT }}
+      P6_EVIDENCE_DIR: p6-evidence
       SEED_MEMBER_USERNAME: ${{ secrets.SEED_MEMBER_USERNAME }}
       SEED_MEMBER_EMAIL: ${{ secrets.SEED_MEMBER_EMAIL }}
       SEED_MEMBER_PHONE: ${{ secrets.SEED_MEMBER_PHONE }}
@@ -46,7 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate P6 environment
+      - name: Validate P6 credentials
         shell: bash
         run: |
           set -euo pipefail
@@ -57,33 +58,6 @@ jobs:
           test -n "$SEED_ADMIN_PASSWORD"
           test -n "${SEED_MEMBER_USERNAME:-${SEED_MEMBER_EMAIL:-${SEED_MEMBER_PHONE:-}}}"
           test -n "${SEED_ADMIN_USERNAME:-${SEED_ADMIN_EMAIL:-}}"
-          for url in "$MEMBER_WEB_URL" "$ADMIN_WEB_URL" "$API_URL"; do
-            case "$url" in
-              https://*) ;;
-              *) echo "P6 URLs must use HTTPS: $url" >&2; exit 1 ;;
-            esac
-          done
-
-      - name: Verify deployed endpoints
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --fail --silent --show-error --location --max-time 20 "$MEMBER_WEB_URL" >/dev/null
-          curl --fail --silent --show-error --location --max-time 20 "$ADMIN_WEB_URL" >/dev/null
-          curl --fail --silent --show-error --location --max-time 20 "$API_URL/health" >/tmp/p6-health.json
-          cat /tmp/p6-health.json
-          if [ -n "${APPROVED_COMMIT:-}" ]; then
-            if ! grep -Fqi "$APPROVED_COMMIT" /tmp/p6-health.json; then
-              echo "Health payload does not contain approved commit: $APPROVED_COMMIT" >&2
-              exit 1
-            fi
-          fi
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.0.0
-          run_install: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -91,6 +65,15 @@ jobs:
           node-version: 22
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
+
+      - name: Capture deployment preflight evidence
+        run: node tools/p6-deployment-preflight.mjs
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+          run_install: false
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -101,15 +84,15 @@ jobs:
       - name: Capture authenticated deployed artifacts
         run: pnpm exec playwright test -c playwright.authenticated-visual.config.ts --update-snapshots
 
-      - name: Upload P6 screenshots and reports
+      - name: Upload P6 evidence and browser artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: p6-authenticated-regression-${{ github.run_id }}
           path: |
+            p6-evidence/**
             tests/authenticated-visual/**/*-snapshots/**
             test-results/authenticated-visual/**
             playwright-report/authenticated-visual/**
-            /tmp/p6-health.json
           if-no-files-found: warn
           retention-days: 14
