@@ -1,0 +1,61 @@
+name: R-010 EXPLAIN ANALYZE
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/modules/reports/**'
+      - 'prisma/**'
+      - 'tools/r010-explain-analyze.mjs'
+      - '.github/workflows/r010-explain-analyze.yml'
+  pull_request:
+    paths:
+      - 'apps/api/src/modules/reports/**'
+      - 'prisma/**'
+      - 'tools/r010-explain-analyze.mjs'
+      - '.github/workflows/r010-explain-analyze.yml'
+
+jobs:
+  explain-analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: platform_r010
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d platform_r010"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_r010?schema=public
+      R010_EXPLAIN_OUTPUT: artifacts/r010-explain-analyze.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Apply database migrations
+        run: pnpm db:migrate
+      - name: Generate Prisma client
+        run: pnpm db:generate
+      - name: Capture EXPLAIN ANALYZE evidence
+        run: node tools/r010-explain-analyze.mjs
+      - name: Validate evidence payload
+        run: node tools/audit-r010-explain-analyze-evidence.mjs artifacts/r010-explain-analyze.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r010-explain-analyze
+          path: artifacts/r010-explain-analyze.json
+          if-no-files-found: error
