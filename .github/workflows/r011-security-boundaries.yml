@@ -32,5 +32,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: node tools/audit-r011-error-boundaries.mjs
       - run: node tools/audit-r011-authorization-policies.mjs
-      - run: pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts
+      - run: node tools/audit-r011-security-policy-foundations.mjs
+      - run: pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts
       - run: pnpm --filter @platform/api typecheck
