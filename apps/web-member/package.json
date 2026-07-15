@@ -6,7 +6,7 @@
     "analyze": "ANALYZE=true next build",
     "build": "next build",
     "lint": "eslint app src --ext .ts,.tsx",
-    "test": "node --import tsx --test src/features/auth/auth-redirect.spec.ts src/features/finance/finance-feature.spec.ts src/features/wallet/member-wallet.spec.ts",
+    "test": "node --import tsx --test src/features/auth/auth-redirect.spec.ts src/features/auth/member-api-session.spec.ts src/features/auth/session-navigation.spec.ts src/features/finance/finance-feature.spec.ts src/features/wallet/member-wallet.spec.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "start": "next start -p 3000"
   },

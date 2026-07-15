@@ -6,7 +6,7 @@ import {
   normalizeMemberWallet,
   type MemberWalletSummary,
 } from '../src/features/wallet/member-wallet';
-import { clearMemberSession, memberApiFetch } from './member-api';
+import { clearMemberSession, hasMemberSessionTokens, memberApiFetch } from './member-api';
 
 type MemberSessionContextValue = {
   ready: boolean;
@@ -29,14 +29,15 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
 
   const verify = useCallback(async () => {
     let ok = false;
+    const hadSession = hasMemberSessionTokens();
     setWalletLoading(true);
     try {
       const result = await fetchMemberWallet();
-      ok = result.ok;
+      ok = result.authenticated;
       setWallet(result.wallet);
     } catch {
-      clearMemberSession();
-      setWallet(null);
+      // Network and server failures do not prove that the session expired.
+      ok = hadSession;
     } finally {
       setIsLoggedIn(ok);
       setReady(true);
@@ -49,7 +50,12 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
     setWalletLoading(true);
     try {
       const result = await fetchMemberWallet();
-      if (result.ok && result.wallet) setWallet(result.wallet);
+      if (!result.authenticated) {
+        setIsLoggedIn(false);
+        setWallet(null);
+      } else if (result.wallet) {
+        setWallet(result.wallet);
+      }
     } catch {
       // Keep the last known balance during transient network failures.
     } finally {
@@ -64,11 +70,15 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
     window.location.href = '/login';
   }, []);
 
-  useEffect(() => { void verify(); }, [verify]);
+  useEffect(() => {
+    void verify();
+  }, [verify]);
 
   useEffect(() => {
     if (!isLoggedIn) return;
-    const refresh = () => { void refreshWallet(); };
+    const refresh = () => {
+      void refreshWallet();
+    };
     window.addEventListener('focus', refresh);
     window.addEventListener(MEMBER_WALLET_REFRESH_EVENT, refresh);
     return () => {
@@ -101,15 +111,14 @@ function getStoredToken(key: string) {
 async function fetchMemberWallet() {
   const token = getStoredToken('member_access_token');
   const refreshToken = getStoredToken('member_refresh_token');
-  if (!token && !refreshToken) return { ok: false, wallet: null };
+  if (!token && !refreshToken) return { authenticated: false, wallet: null };
 
   const response = await fetchWithTimeout('/member/wallet');
   if (response.ok) {
     const payload = await response.json().catch(() => null);
-    return { ok: true, wallet: normalizeMemberWallet(payload) };
+    return { authenticated: true, wallet: normalizeMemberWallet(payload) };
   }
-  clearMemberSession();
-  return { ok: false, wallet: null };
+  return { authenticated: response.status !== 401, wallet: null };
 }
 
 async function fetchWithTimeout(path: string, init: RequestInit = {}) {

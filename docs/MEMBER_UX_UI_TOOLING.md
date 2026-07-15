@@ -19,7 +19,7 @@ Source of truth for Member UX/UI work: this file
 
 - [x] `@platform/web-member` lint passes
 - [x] `@platform/web-member` TypeScript check passes
-- [x] Member unit suite passes: 13/13 tests across auth redirect and finance/wallet helpers
+- [x] Member unit suite passes: 20/20 tests across auth/session redirect, public-route guards, refresh concurrency, and finance/wallet helpers
 - [x] Member production build passes: 29 App Router routes generated
 - [x] R-013 token, primitive, responsive, accessibility-baseline, and visual-contract audits pass
 - [x] Six named public visual viewport projects exist: 360×800, 390×844, 430×932, 768×1024, 1024×768, and 1440×900
@@ -120,7 +120,9 @@ Source of truth for Member UX/UI work: this file
 - [x] Support implements 60-second ticket refresh and reply states
 - [x] Restore and validate the intended internal `?next=` destination after Login, with unsafe/external destinations rejected
 - [ ] Define shared stale-time, retry, cancellation, invalidation, and polling policies
-- [ ] Handle offline state, token refresh, and session expiry centrally
+- [x] Serialize concurrent refresh-token requests and route invalid sessions through `/session-expired` with a validated return destination
+- [x] Preserve stored sessions and the last known wallet during transient network or 5xx failures instead of logging the Member out
+- [ ] Present a shared offline/reconnected state and retry policy across Member routes
 - [ ] Standardize optimistic rollback and version-conflict handling across domains
 - [ ] Migrate page-level `useEffect + useState + fetch` orchestration by domain if TanStack Query is approved
 
@@ -377,7 +379,7 @@ Source of truth for Member UX/UI work: this file
 - Repository commit audited: `f1a80270094123eb51620c8537d980c4501c057c`
 - Member lint: passed with Next.js/Core Web Vitals and JSX accessibility rules on 2026-07-16; 38 existing migration warnings are now visible
 - Member typecheck: passed on 2026-07-16
-- Member unit tests: 13/13 passed on 2026-07-16
+- Member unit tests: 20/20 passed on 2026-07-16
 - Member production build: passed; 29 routes generated on 2026-07-16
 - Member route matrix audit: 27/27 `page.tsx` routes classified with 22 P0/P1 routes and 24 routes carrying explicit state gaps on 2026-07-16
 - R-013 static contracts: token, primitive, responsive, accessibility baseline, and visual contract passed on 2026-07-16

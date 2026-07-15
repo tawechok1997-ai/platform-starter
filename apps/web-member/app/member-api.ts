@@ -1,8 +1,11 @@
 import { joinApiUrl, mergeHeaders } from '@platform/api-client';
+import { buildMemberSessionExpiredHref } from '../src/features/auth/session-navigation';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
+let refreshRequest: Promise<string> | null = null;
+let sessionExpiryRedirected = false;
 
 class ApiRequestError extends Error {
   constructor(
@@ -50,46 +53,69 @@ export async function memberApiFetch(path: string, options: ApiOptions = {}) {
 
   const refreshed = await refreshMemberToken();
   if (!refreshed) {
-    clearMemberSession();
-    const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
-    window.location.replace(`/login?next=${next}`);
+    expireMemberSession();
     return res;
   }
 
   headers.set('Authorization', `Bearer ${refreshed}`);
   const retry = await fetch(joinApiUrl(API_URL, path), { ...options, headers });
-  if (retry.status === 401) {
-    clearMemberSession();
-    const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
-    window.location.replace(`/login?next=${next}`);
-  }
+  if (retry.status === 401) expireMemberSession();
   return retry;
 }
 
 export async function requestJson<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const response = await memberApiFetch(path, options);
-  const payload = await response.json().catch(() => null) as T | { message?: string } | null;
+  const payload = (await response.json().catch(() => null)) as T | { message?: string } | null;
   if (!response.ok) {
-    const message = payload && typeof payload === 'object' && 'message' in payload && typeof payload.message === 'string'
-      ? payload.message
-      : `คำขอล้มเหลว (${response.status})`;
+    const message =
+      payload && typeof payload === 'object' && 'message' in payload && typeof payload.message === 'string'
+        ? payload.message
+        : `คำขอล้มเหลว (${response.status})`;
     throw new ApiRequestError(message, response.status, payload);
   }
   return payload as T;
 }
 
 export async function refreshMemberToken() {
+  if (refreshRequest) return refreshRequest;
+  refreshRequest = performMemberTokenRefresh();
+  try {
+    return await refreshRequest;
+  } finally {
+    refreshRequest = null;
+  }
+}
+
+async function performMemberTokenRefresh() {
   const refreshToken = readStorage('member_refresh_token');
   if (!refreshToken) return '';
-  const res = await fetch(joinApiUrl(API_URL, '/member/auth/refresh'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken, deviceId: 'web-member' }) });
+  const res = await fetch(joinApiUrl(API_URL, '/member/auth/refresh'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken, deviceId: 'web-member' }),
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.accessToken) return '';
   writeStorage('member_access_token', data.accessToken);
   if (data.refreshToken) writeStorage('member_refresh_token', data.refreshToken);
+  sessionExpiryRedirected = false;
   return data.accessToken as string;
+}
+
+export function hasMemberSessionTokens() {
+  return Boolean(readStorage('member_access_token') || readStorage('member_refresh_token'));
 }
 
 export function clearMemberSession() {
   removeStorage('member_access_token');
   removeStorage('member_refresh_token');
+}
+
+function expireMemberSession() {
+  clearMemberSession();
+  if (typeof window === 'undefined' || sessionExpiryRedirected) return;
+  sessionExpiryRedirected = true;
+  window.location.replace(
+    buildMemberSessionExpiredHref(window.location.pathname, window.location.search, window.location.hash),
+  );
 }
