@@ -1,4 +1,4 @@
-export type AdminSessionRecord = {
+type AdminSessionRecord = {
   id: string;
   deviceId: string | null;
   ipAddress: string | null;

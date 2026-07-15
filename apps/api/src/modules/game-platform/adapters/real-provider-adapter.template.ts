@@ -25,7 +25,7 @@ function providerOk<T>(context: ProviderAdapterContext, payload: T, rawRequest?:
 
 // Copy this template into a concrete adapter file, then register it in ProviderAdapterRegistry.
 // Keep this file as documentation/template only. Do not register it directly.
-export class RealProviderAdapterTemplate implements GameProviderAdapter {
+class RealProviderAdapterTemplate implements GameProviderAdapter {
   async healthCheck(context: ProviderAdapterContext): Promise<ProviderAdapterResult<{ status: 'ONLINE' | 'OFFLINE' | 'DEGRADED'; latencyMs?: number }>> {
     try {
       // TODO: call provider health endpoint with timeout and safe error mapping.

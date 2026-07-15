@@ -3,7 +3,7 @@ import { DomainError } from '../../../common/domain/domain-error';
 export type NotificationChannel = 'IN_APP' | 'EMAIL' | 'SMS' | 'PUSH';
 export type NotificationCategory = 'SECURITY' | 'FINANCE' | 'SUPPORT' | 'MARKETING' | 'SYSTEM';
 
-export type NotificationPreference = Readonly<{
+type NotificationPreference = Readonly<{
   category: NotificationCategory;
   channels: readonly NotificationChannel[];
 }>;

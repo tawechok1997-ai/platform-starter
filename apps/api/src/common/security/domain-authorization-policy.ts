@@ -12,14 +12,14 @@ export const AUTHORIZATION_DOMAINS = [
   'cms_reports',
 ] as const;
 
-export type AuthorizationDomain = (typeof AUTHORIZATION_DOMAINS)[number];
+type AuthorizationDomain = (typeof AUTHORIZATION_DOMAINS)[number];
 
-export type DomainAuthorizationRule = {
+type DomainAuthorizationRule = {
   domain: AuthorizationDomain;
   permissionPrefixes: readonly string[];
 };
 
-export const DOMAIN_AUTHORIZATION_RULES: readonly DomainAuthorizationRule[] = [
+const DOMAIN_AUTHORIZATION_RULES: readonly DomainAuthorizationRule[] = [
   {
     domain: 'finance',
     permissionPrefixes: ['finance.', 'wallet.', 'bank.', 'deposit.', 'withdrawal.', 'topup.'],

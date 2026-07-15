@@ -4,7 +4,7 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
 
-export class ApiRequestError extends Error {
+class ApiRequestError extends Error {
   constructor(
     message: string,
     public readonly status: number,

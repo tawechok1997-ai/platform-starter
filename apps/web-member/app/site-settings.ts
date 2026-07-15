@@ -41,7 +41,7 @@ export const defaultCmsContent: CmsContent = {
 
 export const defaultIconSettings: SiteIconSettings = { home: '⌂', deposit: '＋', withdraw: '↗', games: '🎮', bonus: '★', affiliate: '↔', support: '✉', history: '≡', bank: '◈', profile: '👤', notification: '🔔', promotion: '🎁', vip: '♛', wallet: '฿' };
 export const defaultFeatureFlags: MemberFeatureFlags = { registration: true, login: true, deposit: true, withdraw: true, promotion: true, bonus: true, affiliate: true, support: true, kyc: true, games: true, profile: true, notifications: true };
-export const defaultPromotionCampaigns: PromotionCampaign[] = [{ id: 'welcome-bonus', title: 'โบนัสต้อนรับ', description: 'รับโบนัสสำหรับรายการฝากแรกตามเงื่อนไขที่กำหนด', enabled: false, bonusType: 'percent', bonusValue: 10, minDeposit: 100, maxBonus: 500, turnoverMultiplier: 3, claimMode: 'manual_review', badgeText: 'WELCOME', accentColor: '#f5c542', priority: 10 }];
+const defaultPromotionCampaigns: PromotionCampaign[] = [{ id: 'welcome-bonus', title: 'โบนัสต้อนรับ', description: 'รับโบนัสสำหรับรายการฝากแรกตามเงื่อนไขที่กำหนด', enabled: false, bonusType: 'percent', bonusValue: 10, minDeposit: 100, maxBonus: 500, turnoverMultiplier: 3, claimMode: 'manual_review', badgeText: 'WELCOME', accentColor: '#f5c542', priority: 10 }];
 
 export const defaultSettings: PublicSiteSettings = {
   website: { site_name: 'Platform Starter', site_description: 'Member platform starter', registration_enabled: true, login_enabled: true, maintenance_mode: false },
@@ -60,7 +60,7 @@ export async function loadPublicSiteSettings(): Promise<PublicSiteSettings> {
 }
 
 export function textSetting(settings: PublicSiteSettings, group: keyof PublicSiteSettings, key: string, fallback: string) { const value = settings[group]?.[key]; return typeof value === 'string' ? value : fallback; }
-export function boolSetting(settings: PublicSiteSettings, group: keyof PublicSiteSettings, key: string, fallback: boolean) { const value = settings[group]?.[key]; return typeof value === 'boolean' ? value : fallback; }
+function boolSetting(settings: PublicSiteSettings, group: keyof PublicSiteSettings, key: string, fallback: boolean) { const value = settings[group]?.[key]; return typeof value === 'boolean' ? value : fallback; }
 export function memberFeatureFlags(settings: PublicSiteSettings): MemberFeatureFlags {
   const feature = (key: string, fallback: boolean) => boolSetting(settings, 'features', key, fallback);
   return { registration: feature('registration_enabled', true), login: feature('login_enabled', true), deposit: feature('deposit_enabled', true), withdraw: feature('withdraw_enabled', true), promotion: feature('promotion_enabled', true), bonus: feature('bonus_enabled', true), affiliate: feature('affiliate_enabled', true), support: feature('support_enabled', true), kyc: feature('kyc_enabled', true), games: feature('game_lobby_enabled', feature('provider_enabled', true)), profile: feature('profile_enabled', true), notifications: feature('notification_enabled', true) };
@@ -78,8 +78,8 @@ export function cmsContentSetting(settings: PublicSiteSettings): CmsContent {
   };
 }
 export function cmsAssetUrl(content: CmsContent, assetId?: string) { if (!assetId) return ''; return content.assets.find((asset) => asset.id === assetId && asset.enabled)?.url ?? ''; }
-export function iconSettings(settings: PublicSiteSettings): SiteIconSettings { return { ...defaultIconSettings, ...(settings.icons ?? {}) } as SiteIconSettings; }
-export function iconSetting(settings: PublicSiteSettings, key: IconKey) { const value = settings.icons?.[key]; return typeof value === 'string' && value.trim() ? value.trim() : defaultIconSettings[key]; }
+function iconSettings(settings: PublicSiteSettings): SiteIconSettings { return { ...defaultIconSettings, ...(settings.icons ?? {}) } as SiteIconSettings; }
+function iconSetting(settings: PublicSiteSettings, key: IconKey) { const value = settings.icons?.[key]; return typeof value === 'string' && value.trim() ? value.trim() : defaultIconSettings[key]; }
 export function isIconUrl(value: string) { try { const url = new URL(value); return url.protocol === 'http:' || url.protocol === 'https:'; } catch { return false; } }
 export function promotionCampaignsSetting(settings: PublicSiteSettings): PromotionCampaign[] {
   const value = settings.features?.promotion_campaigns;

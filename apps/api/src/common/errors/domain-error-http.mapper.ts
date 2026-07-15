@@ -12,7 +12,7 @@ const STATUS_BY_CATEGORY: Record<DomainErrorCategory, number> = {
   internal: HttpStatus.INTERNAL_SERVER_ERROR,
 };
 
-export type DomainErrorHttpPayload = {
+type DomainErrorHttpPayload = {
   status: number;
   code: string;
   messageKey: string;

@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { recordDbPerformanceSignal } from '../common/observability/runtime-metrics';
 import { QueryPerformanceMonitor } from './query-performance.monitor';
 
 const DEFAULT_SLOW_QUERY_MS = 250;
@@ -24,6 +25,7 @@ export class PrismaService
     if (process.env.PRISMA_QUERY_METRICS_ENABLED !== 'false') {
       this.$on('query', (event: Prisma.QueryEvent) => {
         for (const signal of this.queryMonitor.observe(event)) {
+          recordDbPerformanceSignal(signal);
           this.logger.warn(JSON.stringify({ event: 'prisma-query-performance', ...signal }));
         }
       });

@@ -61,7 +61,7 @@ export class BankAccountNumber {
   }
 }
 
-export class EntityId {
+class EntityId {
   private constructor(public readonly value: string) {}
 
   static create(input: string): EntityId {

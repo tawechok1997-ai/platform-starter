@@ -5,8 +5,8 @@ import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import { StorageService } from '../storage/storage.service';
 
-export type WithdrawalWorkflowMeta = { ipAddress?: string; userAgent?: string };
-export type PaymentProofInput = {
+type WithdrawalWorkflowMeta = { ipAddress?: string; userAgent?: string };
+type PaymentProofInput = {
   slipImageData?: string;
   slipImageName?: string;
   transactionRef?: string;

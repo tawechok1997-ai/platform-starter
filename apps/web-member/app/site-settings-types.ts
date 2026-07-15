@@ -9,7 +9,7 @@ export type WebsiteSettings = {
   [key: string]: unknown;
 };
 
-export type BrandingSettings = {
+type BrandingSettings = {
   logo_url?: string;
   favicon_url?: string;
   brand_mark?: string;
@@ -22,7 +22,7 @@ export type BrandingSettings = {
   [key: string]: unknown;
 };
 
-export type ThemeSettings = {
+type ThemeSettings = {
   animation_level?: 'off' | 'subtle' | 'lively';
   show_balance_header: boolean;
   show_deposit_withdraw_buttons: boolean;
@@ -33,7 +33,7 @@ export type ThemeSettings = {
   [key: string]: unknown;
 };
 
-export type FeatureSettings = {
+type FeatureSettings = {
   registration_enabled: boolean;
   login_enabled: boolean;
   deposit_enabled: boolean;
@@ -51,7 +51,7 @@ export type FeatureSettings = {
   [key: string]: unknown;
 };
 
-export type ContactSettings = {
+type ContactSettings = {
   line_oa?: string;
   telegram?: string;
   facebook?: string;
@@ -64,7 +64,7 @@ export type ContactSettings = {
   [key: string]: unknown;
 };
 
-export type LegalSettings = {
+type LegalSettings = {
   terms?: string;
   privacy?: string;
   cookie?: string;
@@ -74,7 +74,7 @@ export type LegalSettings = {
   [key: string]: unknown;
 };
 
-export type MaintenanceSettings = {
+type MaintenanceSettings = {
   enabled: boolean;
   member_enabled: boolean;
   message: string;

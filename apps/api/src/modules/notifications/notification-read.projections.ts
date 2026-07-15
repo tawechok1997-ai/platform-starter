@@ -51,7 +51,7 @@ export const NOTIFICATION_CHANNEL_DETAIL_PROJECTION = {
   valueJson: true,
 } as const;
 
-export type NotificationSummaryItem = {
+type NotificationSummaryItem = {
   type: NotificationType;
 };
 

@@ -1,4 +1,4 @@
-export const SETTING_GROUPS = [
+const SETTING_GROUPS = [
   'website',
   'branding',
   'theme',
