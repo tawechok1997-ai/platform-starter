@@ -25,9 +25,21 @@ describe('mapDomainErrorToHttp', () => {
     expect(mapDomainErrorToHttp(error)).toEqual({
       status,
       code: 'TEST_ERROR',
+      messageKey: 'errors.test_error',
       message: 'test message',
       details: { field: 'value' },
     });
+  });
+
+  it('uses an explicit localization key when supplied', () => {
+    const error = new DomainError({
+      code: 'TEST_ERROR',
+      category: 'conflict',
+      message: 'test message',
+      messageKey: 'errors.custom.test',
+    });
+
+    expect(mapDomainErrorToHttp(error).messageKey).toBe('errors.custom.test');
   });
 
   it('omits details when none are supplied', () => {
@@ -40,6 +52,7 @@ describe('mapDomainErrorToHttp', () => {
     expect(mapDomainErrorToHttp(error)).toEqual({
       status: HttpStatus.CONFLICT,
       code: 'TEST_ERROR',
+      messageKey: 'errors.test_error',
       message: 'test message',
     });
   });
