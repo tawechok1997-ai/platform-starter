@@ -40,7 +40,6 @@ R-014 covers production observability, incident/runbook documentation, and clean
 - Existing `sensitive-log-redactor` tests cover sensitive query parameters, nested sensitive fields, Error messages, and circular objects.
 - Added `structured-log` tests covering R-014 required fields, anonymous client errors, route module/action inference, and sensitive URL redaction inside structured request logs.
 
-
 ### 3. Module README set
 
 - Added module READMEs for finance, auth, KYC, watchlist, support, notifications, and CMS under `docs/modules/*/README.md`.
@@ -56,7 +55,6 @@ R-014 covers production observability, incident/runbook documentation, and clean
 - Added `docs/adr/0001-r014-operational-boundaries.md` for module boundaries, transaction ownership, API client, session, storage, audit, and cache decisions.
 - Added `docs/runbooks/deployment-migration-rollback.md`.
 - Added `docs/runbooks/finance-security-provider-outages.md`.
-
 
 ### 6. Metrics baseline and slow-query report
 
@@ -93,11 +91,12 @@ R-014 covers production observability, incident/runbook documentation, and clean
 - Pass 3 tightened the cleanup inventory CSS import detector and removed unreferenced `apps/web-member/app/casino-auth.css` after exact source searches found no references.
 - Pass 4 refined cleanup inventory precision without deleting code: framework route files, root tools, and common config files are now treated as entrypoints instead of orphan candidates.
 - Pass 5 removed three unreferenced web-admin orphan files after exact source searches and `pnpm typecheck:admin`.
-- Pass 6 reviewed the three remaining API/template orphan candidates and moved them to an explicit retained list with reasons; actionable orphan-source candidates are now zero.
+- Pass 6 reviewed the three remaining API/template orphan candidates and moved them to an explicit retained list with reasons; actionable orphan-source candidates were zero at that point.
 - Pass 7 reduced observability unused-export noise by making four file-local types internal while keeping public runtime functions exported.
 - Pass 8 reduced common query/security unused-export noise by making thirteen file-local types/constants internal while keeping public helper functions exported.
 - Pass 9 reduced API unused-export noise in a broad safe batch, making 23 file-local types/classes/constants internal and lowering potentially unused exports to 63.
 - Pass 10 completed the actionable cleanup inventory: removed dead system module leftovers, made remaining file-local exports internal across API and frontend surfaces, and regenerated evidence with `potentialOrphanSources: 0`, `potentiallyUnusedExports: 0`, `potentiallyUnusedComponents: 0`, and `potentiallyUnreferencedCssFiles: 0`.
+- Pass 11 removed the unregistered `real-provider-adapter.template.ts` documentation-only source file and removed its stale cleanup-audit allowlist entry. Two R-009 repository-boundary adapters remain intentionally retained.
 - Recorded evidence in `docs/evidence/r014-dead-code-removal.md`.
 - The overall dead-code removal task is closed; final R-014 documentation-to-implementation audit is complete.
 
