@@ -37,7 +37,8 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - Added `tools/audit-r013-design-token-inventory.mjs`.
 - Scans Admin and Member CSS/TS/TSX source.
 - Classifies colors, spacing/dimensions, radius, shadow, breakpoints, and z-index.
-- Emits machine-readable JSON evidence.
+- Emits machine-readable JSON evidence at `docs/evidence/r013-design-token-inventory.json`.
+- Latest local inventory scan covered 200 Admin/Member source files and found 874 hex colors, 955 RGB/RGBA colors, 1,823 spacing/dimension declarations, 362 border-radius declarations, 104 box-shadow declarations, 106 breakpoints, and 53 z-index declarations.
 - Added `.github/workflows/r013-ui-system.yml` with artifact upload and both frontend typechecks.
 - Verification-only PR #32 ran workflow `R-013 UI System`, run `29395337259`, job `87287462809`.
 - Inventory generation, artifact upload, Admin typecheck, and Member typecheck completed successfully.

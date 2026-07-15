@@ -1,5 +1,7 @@
 # UX/UI Master Worklist
 
+> Project-wide master status and deduplicated checklist: [docs/master-project-worklist.md](./master-project-worklist.md). This UX/UI worklist remains the domain-specific reference for presentation, responsive, accessibility, and visual-regression work.
+
 Updated: 2026-07-15  
 Source of truth: current repository state on `main`
 

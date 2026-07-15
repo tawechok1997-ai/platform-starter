@@ -587,7 +587,7 @@ Branch อ้างอิง: **`main`**
 
 - [x] ลบ unused legacy admin UI files
 - [x] ลบ empty unused `packages/ui`
-- [ ] inventory hard-coded color/spacing/radius/shadow/breakpoint/z-index
+- [x] inventory hard-coded color/spacing/radius/shadow/breakpoint/z-index
 - [ ] รวม color tokens
 - [ ] รวม spacing/radius/shadow tokens
 - [ ] รวม typography/motion/breakpoint/z-index tokens
@@ -607,10 +607,10 @@ Branch อ้างอิง: **`main`**
 
 ### R-014 Observability, documentation และ cleanup
 
-สถานะ: 🔴 TODO
+สถานะ: 🟡 PARTIAL
 
-- [ ] ทำ structured logging fields: requestId, actorId, actorType, module, action, duration, result
-- [ ] ทำ log redaction tests
+- [x] ทำ structured logging fields: requestId, actorId, actorType, module, action, duration, result
+- [x] ทำ log redaction tests
 - [ ] เพิ่ม request latency/error-rate/DB-query metrics
 - [ ] เพิ่ม login/settlement/provider callback failure metrics
 - [ ] ทำ slow-query dashboard หรือ report
@@ -757,6 +757,6 @@ Branch อ้างอิง: **`main`**
 - `docs/current-execution-status.md`
 - `docs/master-worklist.md`
 
-- [ ] เพิ่มลิงก์กลับมาที่ไฟล์นี้ในเอกสารเดิม
+- [x] เพิ่มลิงก์กลับมาที่ไฟล์นี้ในเอกสารเดิม
 - [ ] ตรวจ duplicate backlog รอบสุดท้าย
 - [ ] Archive เอกสารเดิมหลังทีมยืนยัน master นี้
