@@ -173,11 +173,13 @@
 - [x] Binary asset lifecycle สำหรับ support upload จริง
 - [x] Global file-size limits และ MIME/content validation
 - [x] Malware/content scan integration boundary
-- [ ] Signed URL policy และ Data URL reduction
+- [x] Signed URL policy และ Data URL reduction
 
 **หลักฐาน support storage:** `SupportAttachmentsService` รองรับ binary write/read, SHA-256, MIME allowlist, magic-byte validation, compensating deletion และ object cleanup เมื่อ Member/Admin ลบ attachment; commit `54803381` ผ่าน deploy checks ของ API, Admin และ Member
 
 **หลักฐาน storage hardening:** `StorageService.put()` เรียก shared upload policy เพื่อตรวจ size, MIME, magic bytes, plain text และ SVG active content ก่อนเขียน object และเรียก malware scanner boundary แบบ configurable/fail-closed; commits `b0d22773`, `ccc66cb2` และ runtime HTTPS fix `37673f0e` ผ่าน deploy
+
+**หลักฐาน signed access:** support attachment download ใช้ short-lived HMAC-signed token, TTL cap, timing-safe verification, private/no-store response และ authorization ก่อนออก URL; upload รองรับ raw `contentBase64` โดยคง legacy `dataUrl` ชั่วคราว; commits `0f23a7af`, `e27ed338`, `105719d1`, `595cfc47` ผ่าน deploy
 
 ## Tests และ CI
 
@@ -247,12 +249,12 @@
 
 # ลำดับทำงานโค้ดถัดไป
 
-1. ปิด Signed URL policy และ Data URL reduction
-2. เพิ่ม web unit/component coverage, seeded visual artifact workflow และ dependency/security CI hardening
-3. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
+1. เพิ่ม web unit/component coverage
+2. เพิ่ม authenticated visual artifact workflow รองรับ seeded environment
+3. ปิด dependency/security CI hardening แล้วเริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
 
 # จำนวนงานคงค้าง
 
-- งานโค้ดใน P0 ถึง P5: **4 รายการ**
+- งานโค้ดใน P0 ถึง P5: **3 รายการ**
 - งาน external verification และ UAT ใน P6: **30 รายการ**
-- รวม checkbox ที่ยังไม่ปิด: **34 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **33 รายการ**
