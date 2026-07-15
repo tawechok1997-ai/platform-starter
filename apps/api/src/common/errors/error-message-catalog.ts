@@ -1,4 +1,4 @@
-export const ERROR_MESSAGE_KEYS = {
+const ERROR_MESSAGE_KEYS = {
   INVALID_AMOUNT: 'errors.validation.invalid_amount',
   INVALID_STATE_TRANSITION: 'errors.conflict.invalid_state_transition',
   INSUFFICIENT_BALANCE: 'errors.conflict.insufficient_balance',

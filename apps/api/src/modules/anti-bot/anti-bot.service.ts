@@ -4,10 +4,10 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypt
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
-export type AntiBotProvider = 'TURNSTILE' | 'RECAPTCHA' | 'HCAPTCHA';
-export type AntiBotRoute = 'ADMIN_LOGIN' | 'MEMBER_LOGIN' | 'MEMBER_REGISTER' | 'MEMBER_PASSWORD_RESET';
+type AntiBotProvider = 'TURNSTILE' | 'RECAPTCHA' | 'HCAPTCHA';
+type AntiBotRoute = 'ADMIN_LOGIN' | 'MEMBER_LOGIN' | 'MEMBER_REGISTER' | 'MEMBER_PASSWORD_RESET';
 
-export type AntiBotConfig = {
+type AntiBotConfig = {
   enabled: boolean;
   provider: AntiBotProvider;
   siteKey: string;

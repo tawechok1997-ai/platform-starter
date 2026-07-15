@@ -1,4 +1,4 @@
-export type MoneyRequestStatus = 'PENDING' | 'APPROVED' | 'COMPLETED' | 'REJECTED' | string;
+type MoneyRequestStatus = 'PENDING' | 'APPROVED' | 'COMPLETED' | 'REJECTED' | string;
 
 export type MoneyRequest = {
   id: string;
@@ -27,7 +27,7 @@ export type GameMedia = {
   cachedUrl?: string | null;
 };
 
-export type GameProviderSummary = {
+type GameProviderSummary = {
   name?: string | null;
   code?: string | null;
 };

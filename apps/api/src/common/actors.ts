@@ -18,7 +18,7 @@ export type MemberActor = {
   sessionId?: string;
 };
 
-export type RequestHeaders = Record<string, string | string[] | undefined>;
+type RequestHeaders = Record<string, string | string[] | undefined>;
 
 export type HttpRequestContext = {
   ip?: string;

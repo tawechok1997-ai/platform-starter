@@ -7,7 +7,9 @@ import Redis from 'ioredis';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SensitiveResponseInterceptor } from './common/interceptors/sensitive-response.interceptor';
-import { redactSensitiveUrl, toSafeLogRecord } from './common/security/sensitive-log-redactor';
+import { recordHttpMetric } from './common/observability/runtime-metrics';
+import { buildStructuredLogRecord } from './common/observability/structured-log';
+import { toSafeLogRecord } from './common/security/sensitive-log-redactor';
 
 type RateBucket = { count: number; resetAt: number };
 type RateRule = { method: string; path: string; max: number; env?: string };
@@ -82,17 +84,19 @@ async function bootstrap() {
     const startedAt = Date.now();
     res.on('finish', () => {
       const duration = Date.now() - startedAt;
-      console.log(JSON.stringify(toSafeLogRecord({
-        level: res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info',
+      const record = buildStructuredLogRecord({
         event: 'http_request',
         requestId: req.requestId,
         method: req.method,
-        path: redactSensitiveUrl(req.originalUrl ?? req.url ?? ''),
+        path: req.originalUrl ?? req.url ?? '',
         statusCode: res.statusCode,
         durationMs: duration,
         ip: getClientIp(req),
         userAgent: req.headers?.['user-agent'] ?? null,
-      })));
+        actor: req.user,
+      });
+      recordHttpMetric(record);
+      console.log(JSON.stringify(record));
     });
     next();
   });

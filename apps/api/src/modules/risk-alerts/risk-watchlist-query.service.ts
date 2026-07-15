@@ -9,7 +9,7 @@ import {
   type RiskWatchlistRow,
 } from './risk-watchlist.mapper';
 
-export type RiskWatchlistListFilter = {
+type RiskWatchlistListFilter = {
   status?: string;
   listType?: string;
   subjectType?: string;

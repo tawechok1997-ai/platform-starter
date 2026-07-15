@@ -1,6 +1,6 @@
 export type RepositoryId = string;
 export type RepositoryTimestamp = Date;
-export type RepositoryMoney = { amount: string; currency: string };
+type RepositoryMoney = { amount: string; currency: string };
 
 export type DepositRecord = {
   id: RepositoryId;

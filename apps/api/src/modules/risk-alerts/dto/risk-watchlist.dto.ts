@@ -1,13 +1,13 @@
 import { IsIn, IsInt, IsObject, IsOptional, IsString, IsUUID, Length, Max, Min } from 'class-validator';
 
-export const WATCHLIST_SUBJECT_TYPES = ['MEMBER', 'PHONE', 'EMAIL', 'BANK_ACCOUNT', 'DEVICE', 'IP'] as const;
-export const WATCHLIST_TYPES = ['WATCHLIST', 'BLACKLIST'] as const;
-export const WATCHLIST_REASONS = [
+const WATCHLIST_SUBJECT_TYPES = ['MEMBER', 'PHONE', 'EMAIL', 'BANK_ACCOUNT', 'DEVICE', 'IP'] as const;
+const WATCHLIST_TYPES = ['WATCHLIST', 'BLACKLIST'] as const;
+const WATCHLIST_REASONS = [
   'FRAUD_CONFIRMED', 'FRAUD_SUSPECTED', 'CHARGEBACK', 'IDENTITY_MISMATCH',
   'DUPLICATE_IDENTITY', 'MONEY_LAUNDERING_RISK', 'ABUSE', 'SECURITY_COMPROMISE',
   'REGULATORY_REQUEST', 'MANUAL_REVIEW', 'OTHER',
 ] as const;
-export const WATCHLIST_SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const;
+const WATCHLIST_SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const;
 
 export class CreateRiskWatchlistEntryDto {
   @IsIn(WATCHLIST_SUBJECT_TYPES)

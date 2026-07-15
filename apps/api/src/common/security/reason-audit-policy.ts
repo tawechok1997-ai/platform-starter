@@ -1,6 +1,6 @@
 import { DomainError } from '../errors/domain-error';
 
-export type AuditRequirement = {
+type AuditRequirement = {
   action: string;
   reasonRequired?: boolean;
   minimumReasonLength?: number;
@@ -8,12 +8,12 @@ export type AuditRequirement = {
   auditEventRequired?: boolean;
 };
 
-export type AuditDecisionInput = {
+type AuditDecisionInput = {
   reason?: string | null;
   auditEvent?: string | null;
 };
 
-export type AuditDecision = {
+type AuditDecision = {
   reason: string | null;
   auditEvent: string | null;
 };

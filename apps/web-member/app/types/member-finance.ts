@@ -1,6 +1,6 @@
-export type LegacyFinanceStatus = 'PENDING' | 'APPROVED' | 'COMPLETED' | 'REJECTED' | 'ACTIVE' | 'REVIEWING';
+type LegacyFinanceStatus = 'PENDING' | 'APPROVED' | 'COMPLETED' | 'REJECTED' | 'ACTIVE' | 'REVIEWING';
 
-export type TopUpStatus =
+type TopUpStatus =
   | 'PENDING'
   | 'PENDING_SLIP_REVIEW'
   | 'SLIP_APPROVED'
@@ -22,7 +22,7 @@ export type WithdrawalStatus =
   | 'REJECTED'
   | 'CANCELLED';
 
-export type FinanceStatus = LegacyFinanceStatus | TopUpStatus | WithdrawalStatus | string;
+type FinanceStatus = LegacyFinanceStatus | TopUpStatus | WithdrawalStatus | string;
 
 export type TopUpItem = {
   id: string;
@@ -118,7 +118,7 @@ export function topUpStatusLabel(status: TopUpStatus): string {
   return labels[status] ?? status;
 }
 
-export function withdrawalStatusLabel(status: WithdrawalStatus): string {
+function withdrawalStatusLabel(status: WithdrawalStatus): string {
   const labels: Record<WithdrawalStatus, string> = {
     PENDING: 'รอตรวจสอบ',
     PENDING_REVIEW: 'รอตรวจสอบ',
@@ -132,10 +132,10 @@ export function withdrawalStatusLabel(status: WithdrawalStatus): string {
   return labels[status] ?? status;
 }
 
-export function isTerminalTopUpStatus(status: TopUpStatus): boolean {
+function isTerminalTopUpStatus(status: TopUpStatus): boolean {
   return ['DUPLICATE', 'COMPLETED', 'REJECTED', 'CANCELLED'].includes(status);
 }
 
-export function isTerminalWithdrawalStatus(status: WithdrawalStatus): boolean {
+function isTerminalWithdrawalStatus(status: WithdrawalStatus): boolean {
   return ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(status);
 }

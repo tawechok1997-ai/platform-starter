@@ -4,7 +4,7 @@ import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 import { PrismaService } from '../../database/prisma.service';
 import { SmsProviderService } from './sms-provider.service';
 
-export type PhoneOtpRequestMeta = { ipAddress?: string; deviceId?: string };
+type PhoneOtpRequestMeta = { ipAddress?: string; deviceId?: string };
 
 type ChallengeRow = {
   id: string;

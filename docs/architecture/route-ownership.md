@@ -8,7 +8,8 @@ This inventory records route families instead of duplicating every handler signa
 | `/admin/auth/*` | admin-auth | Admin authentication and 2FA policy | AdminUser, admin sessions, login history | Create/rotate/revoke admin sessions, enforce 2FA | Admin login, refresh, logout and 2FA events |
 | `/admin/anti-bot*` | anti-bot | Security anti-bot permission | Anti-bot provider/settings records | Encrypt provider secrets, change adaptive/emergency mode | Anti-bot configuration events |
 | `/admin/access/*` | admin-access | `admin.access.*`, owner and step-up rules | AdminUser, Role, Permission, assignments, delegation | Role/ownership change and session revocation | Ownership, role, delegation and lifecycle events |
-| `/member/profile*`, `/admin/members*` | users | Member self or `users.*` | User/member profile and session references | Profile/status/security mutation | Member profile and administrative lifecycle events |
+| `/member/profile*` | auth | Member self | User/member profile and session references | Profile mutation | Member profile events |
+| `/admin/members*` | admin-members | `users.*` / administrative member permissions | User/member profile and operational projections | Member status and operational support mutations where exposed | Administrative member-operation events |
 | `/admin/member-operations*` | admin-members | Administrative member permissions | User, top-up, withdrawal, ledger and audit projections | Member status and operational support mutations where exposed | Administrative member-operation events |
 | `/admin/settings*`, `/public/site-settings`, `/public/cms-assets*` | settings | Settings permissions or public read | Setting groups, AdminAuditLog, storage objects | Persist site configuration, upload/read/delete CMS objects | Settings and CMS asset events |
 | `/member/wallet*`, `/admin/wallet*` | wallet | Member or `wallet.*` | Wallet, LedgerEntry, idempotency records | Balance and ledger mutation | Wallet adjustment/settlement events |
@@ -30,7 +31,6 @@ This inventory records route families instead of duplicating every handler signa
 | `/member/promotions*`, `/admin/promotions*` | promotions | Member or promotion permissions | PromotionCampaign, Claim, Turnover, Settlement | Claim/review/settlement and wallet-affecting bonus | Campaign, claim, review and settlement events |
 | `/member/affiliate*`, `/admin/affiliate*` | affiliates | Member or affiliate permissions | Affiliate relation, referral and commission ledger | Referral binding and commission settlement | Affiliate and commission events |
 | `/member/notifications*`, `/admin/notifications*` | notifications | Member ownership or notification policy | Notification and preference records | Read/archive/preference mutation and delivery request | Notification preference/delivery events where applicable |
-| `/admin/system*`, `/system*` | system | Platform/operations permissions or internal actor | System summaries and operational state | Operational inspection or maintenance action where exposed | System maintenance/inspection events where applicable |
 | `/health*` | health | Public | No durable business data | Liveness/readiness checks only | None |
 
 ## Controller and route ownership rule

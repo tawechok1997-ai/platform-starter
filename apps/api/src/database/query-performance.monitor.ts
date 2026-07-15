@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-export type QueryPerformanceEvent = {
+type QueryPerformanceEvent = {
   query: string;
   duration: number;
   target?: string;

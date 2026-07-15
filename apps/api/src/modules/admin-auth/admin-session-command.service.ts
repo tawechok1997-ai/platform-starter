@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 
-export type AdminSessionCommandMeta = {
+type AdminSessionCommandMeta = {
   ipAddress?: string;
   userAgent?: string;
 };
