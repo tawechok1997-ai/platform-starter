@@ -45,6 +45,13 @@ type StoredAttachment = {
   deletedAt?: string | null;
 };
 
+type AttachmentRemovalResult = {
+  ok: true;
+  attachmentId: string;
+  deletedAt: string;
+  cleanup: { storageKey: string };
+};
+
 @Injectable()
 export class SupportAttachmentsService {
   constructor(
@@ -75,6 +82,16 @@ export class SupportAttachmentsService {
     }
   }
 
+  async removeMember(user: MemberActor, ticketId: string, attachmentId: string) {
+    const result = (await this.support.removeMemberAttachment(user, ticketId, attachmentId)) as AttachmentRemovalResult;
+    return this.removeStoredObject(result);
+  }
+
+  async removeAdmin(admin: AuthenticatedAdminActor, ticketId: string, attachmentId: string) {
+    const result = (await this.support.removeAdminAttachment(admin, ticketId, attachmentId)) as AttachmentRemovalResult;
+    return this.removeStoredObject(result);
+  }
+
   async readMember(user: MemberActor, ticketId: string, attachmentId: string) {
     const ticket = await this.requireMemberTicket(user.id, ticketId);
     return this.read(ticket.metadata, attachmentId);
@@ -83,6 +100,11 @@ export class SupportAttachmentsService {
   async readAdmin(ticketId: string, attachmentId: string) {
     const ticket = await this.requireAdminTicket(ticketId);
     return this.read(ticket.metadata, attachmentId);
+  }
+
+  private async removeStoredObject(result: AttachmentRemovalResult) {
+    await this.storage.remove(result.cleanup.storageKey);
+    return { ...result, cleanup: { ...result.cleanup, removed: true } };
   }
 
   private async store(ticketId: string, dto: UploadSupportAttachmentDto) {
