@@ -8,6 +8,7 @@ import '../../../packages/design-tokens/overlays.css';
 import '../../../packages/design-tokens/data-display.css';
 import '../../../packages/design-tokens/feedback.css';
 import '../../../packages/design-tokens/responsive-layout.css';
+import '../../../packages/design-tokens/accessibility.css';
 import './member-ui.css';
 import './member-home-sections.css';
 import './member-home-responsive.css';
