@@ -9,17 +9,17 @@ const commit = 'abcdef1234567890';
 const builtAt = '2026-07-15T10:00:00.000Z';
 
 await test('fails when approved commit is missing', async () => {
-  await withIdentityServer({}, (origin) => {
-    const result = runChecker(['--strict', '--json'], urls(origin));
+  await withIdentityServers({}, (env) => {
+    const result = runChecker(['--strict', '--json'], env);
     assert.equal(result.status, 1);
     assert.equal(JSON.parse(result.stdout).services[0].reason, 'missing_approved_commit');
   });
 });
 
 await test('passes when API, Admin and Member identities match', async () => {
-  await withIdentityServer({}, (origin) => {
+  await withIdentityServers({}, (env) => {
     const result = runChecker(['--strict', '--json'], {
-      ...urls(origin),
+      ...env,
       P6_APPROVED_COMMIT_SHA: 'abcdef1',
       P6_ENVIRONMENT: 'staging',
     });
@@ -35,9 +35,9 @@ await test('passes when API, Admin and Member identities match', async () => {
 });
 
 await test('fails when one frontend deploys a different commit without leaking values', async () => {
-  await withIdentityServer({ member: { commit: '1111111111111111' } }, (origin) => {
+  await withIdentityServers({ member: { commit: '1111111111111111' } }, (env) => {
     const result = runChecker(['--strict', '--json'], {
-      ...urls(origin),
+      ...env,
       P6_APPROVED_COMMIT_SHA: 'abcdef1',
       P6_ENVIRONMENT: 'staging',
     });
@@ -49,13 +49,10 @@ await test('fails when one frontend deploys a different commit without leaking v
   });
 });
 
-await test('fails on frontend service, environment and build metadata mismatches', async () => {
-  await withIdentityServer({
-    admin: { service: 'wrong-admin' },
-    member: { environment: 'development', builtAt: 'unknown' },
-  }, (origin) => {
+await test('fails on frontend service and environment mismatches', async () => {
+  await withIdentityServers({ admin: { service: 'wrong-admin' }, member: { environment: 'development' } }, (env) => {
     const result = runChecker(['--strict', '--json'], {
-      ...urls(origin),
+      ...env,
       P6_APPROVED_COMMIT_SHA: 'abcdef1',
       P6_ENVIRONMENT: 'production',
     });
@@ -66,28 +63,14 @@ await test('fails on frontend service, environment and build metadata mismatches
   });
 });
 
-await test('blocks redirects for frontend identity endpoints', async () => {
-  const source = createServer((_request, response) => {
-    response.writeHead(302, { location: 'https://example.invalid/api/version' });
-    response.end();
-  });
-  await listen(source);
-  const origin = `http://127.0.0.1:${source.address().port}`;
-  try {
-    const result = runChecker(['--strict', '--json'], {
-      ...urls(origin),
-      P6_APPROVED_COMMIT_SHA: 'abcdef1',
-    });
+await test('blocks redirects for every identity endpoint', async () => {
+  await withIdentityServers({ api: { redirect: true }, admin: { redirect: true }, member: { redirect: true } }, (env) => {
+    const result = runChecker(['--strict', '--json'], { ...env, P6_APPROVED_COMMIT_SHA: 'abcdef1' });
+    const report = JSON.parse(result.stdout);
     assert.equal(result.status, 1);
-    assert.equal(JSON.parse(result.stdout).services.every((service) => service.reason === 'redirect_blocked'), true);
-  } finally {
-    source.close();
-  }
+    assert.equal(report.services.every((service) => service.reason === 'redirect_blocked'), true);
+  });
 });
-
-function urls(origin) {
-  return { P6_API_URL: origin, P6_ADMIN_URL: origin, P6_MEMBER_URL: origin };
-}
 
 function runChecker(args, overrides = {}) {
   const env = { ...process.env };
@@ -99,28 +82,36 @@ function runChecker(args, overrides = {}) {
   return result;
 }
 
-async function withIdentityServer(overrides, callback) {
-  const payloads = {
+async function withIdentityServers(overrides, callback) {
+  const defaults = {
     api: { service: 'api', commit, environment: 'staging', builtAt },
     admin: { service: 'web-admin', commit, environment: 'staging', builtAt },
     member: { service: 'web-member', commit, environment: 'staging', builtAt },
   };
-  for (const [name, value] of Object.entries(overrides)) payloads[name] = { ...payloads[name], ...value };
+  const servers = {};
+  const urls = {};
 
-  const server = createServer((request, response) => {
-    const key = request.url === '/version' ? 'api' : request.url === '/api/version' ? request.headers['x-test-service'] : null;
-    const fallbackKey = request.url === '/api/version' ? (request.headers.host?.includes('admin') ? 'admin' : 'member') : key;
-    const payload = payloads[fallbackKey] ?? payloads.api;
-    response.setHeader('content-type', 'application/json');
-    response.end(JSON.stringify(payload));
-  });
-  await listen(server);
-  const origin = `http://127.0.0.1:${server.address().port}`;
   try {
-    // Use path-specific origins through lightweight URL prefixes; checker resolves fixed endpoints.
-    await callback(origin);
+    for (const name of Object.keys(defaults)) {
+      const config = { ...defaults[name], ...(overrides[name] ?? {}) };
+      const expectedPath = name === 'api' ? '/version' : '/api/version';
+      const server = createServer((request, response) => {
+        if (request.url !== expectedPath) return response.writeHead(404).end();
+        if (config.redirect) {
+          response.writeHead(302, { location: 'https://example.invalid/version' });
+          return response.end();
+        }
+        response.setHeader('content-type', 'application/json');
+        response.end(JSON.stringify(config));
+      });
+      await listen(server);
+      servers[name] = server;
+      urls[name] = `http://127.0.0.1:${server.address().port}`;
+    }
+
+    await callback({ P6_API_URL: urls.api, P6_ADMIN_URL: urls.admin, P6_MEMBER_URL: urls.member });
   } finally {
-    server.close();
+    for (const server of Object.values(servers)) server.close();
   }
 }
 
