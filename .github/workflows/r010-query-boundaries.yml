@@ -59,5 +59,7 @@ jobs:
         run: node tools/audit-r010-report-read-model.mjs
       - name: Sensitive report projections
         run: node tools/audit-r010-sensitive-report-projections.mjs
+      - name: Response contract snapshots
+        run: pnpm --filter @platform/api test -- src/modules/reports/report-response-contracts.spec.ts src/modules/notifications/notification-response-contracts.spec.ts --runInBand
       - name: API typecheck
         run: pnpm typecheck:api
