@@ -1,5 +1,7 @@
 # UX/UI Master Worklist
 
+
+> Archive status: UX/UI domain reference retained in place. Use [docs/master-project-worklist.md](./master-project-worklist.md) for project-wide source of truth; archive index: [docs/archive/legacy-worklists/README.md](./archive/legacy-worklists/README.md).
 > Project-wide master status and deduplicated checklist: [docs/master-project-worklist.md](./master-project-worklist.md). This UX/UI worklist remains the domain-specific reference for presentation, responsive, accessibility, and visual-regression work.
 
 Updated: 2026-07-15  

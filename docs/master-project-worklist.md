@@ -612,7 +612,7 @@ Branch อ้างอิง: **`main`**
 - [x] ทำ structured logging fields: requestId, actorId, actorType, module, action, duration, result
 - [x] ทำ log redaction tests
 - [x] inventory unused exports/components/routes/feature flags/helpers/CSS
-- [ ] เพิ่ม login/settlement/provider callback failure metrics
+- [x] archive legacy docs หลังเชื่อมกลับมาที่ master
 - [ ] ทำ slow-query dashboard หรือ report
 - [x] เขียน module README สำหรับ finance/auth/KYC/watchlist/support/notifications/CMS
 - [x] เขียน state-machine docs สำหรับ deposit/withdrawal/KYC/support/admin lifecycle/promotion

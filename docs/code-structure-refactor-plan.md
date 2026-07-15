@@ -1,5 +1,7 @@
 # Code & Project Structure Refactor Plan
 
+
+> Archive status: legacy reference retained in place. Use [docs/master-project-worklist.md](./master-project-worklist.md) as the source of truth; archive index: [docs/archive/legacy-worklists/README.md](./archive/legacy-worklists/README.md).
 > Master status and deduplicated checklist: [docs/master-project-worklist.md](./master-project-worklist.md). Update the master document first; this file is retained as legacy reference.
 
 เอกสารนี้เป็นรายการงานสำหรับปรับโครงสร้างโค้ดของ `platform-starter` ให้เป็นระบบมากขึ้น ดูแลต่อได้ง่าย ลดโค้ดซ้ำ ลด technical debt และเตรียมให้เหมาะกับ production

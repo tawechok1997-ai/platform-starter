@@ -1,5 +1,7 @@
 # Current Project Status and Remaining Backlog
 
+
+> Archive status: legacy reference retained in place. Use [docs/master-project-worklist.md](./master-project-worklist.md) as the source of truth; archive index: [docs/archive/legacy-worklists/README.md](./archive/legacy-worklists/README.md).
 > Master status and deduplicated checklist: [docs/master-project-worklist.md](./master-project-worklist.md). Update the master document first; this file is retained as legacy reference.
 
 Last updated: 2026-07-10

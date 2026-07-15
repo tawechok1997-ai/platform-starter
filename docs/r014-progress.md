@@ -15,10 +15,23 @@ R-014 covers production observability, incident/runbook documentation, and clean
 - [x] Structured logging fields: `requestId`, `actorId`, `actorType`, `module`, `action`, `duration`, and `result`.
 - [x] Log redaction tests.
 - [x] Inventory unused exports/components/routes/feature flags/helpers/CSS.
-- [x] Inventory unused exports/components/routes/feature flags/helpers/CSS.
-- [ ] Slow-query dashboard or report.
-- [x] Module README files for finance/auth/KYC/watchlist/support/notifications/CMS.
-- [x] State-machine docs for deposit/withdrawal/KYC/support/admin lifecycle/promotion.
+- [x] Archive legacy docs after they are linked back to the master worklist.
+### 7. Cleanup inventory
+
+- Added `tools/audit-r014-cleanup-inventory.mjs` and root script `pnpm audit:r14-cleanup-inventory`.
+- Generated `docs/evidence/r014-cleanup-inventory.json` as candidate-only evidence for orphan sources, exports, components, routes, feature flags, helpers, and CSS files.
+- The report explicitly forbids deletion without owner review and regression evidence because the inventory uses static heuristics and can include false positives.
+
+### 8. Legacy worklist archive
+
+- Added `docs/archive/legacy-worklists/README.md` as the archive index.
+- Kept legacy files in place for link stability and added archive banners pointing back to the master worklist.
+- Did not move or delete historical docs because that would break older PR links and references.
+
+### 9. Dead-code removal planning
+- [ ] Review cleanup inventory with module owners.
+- [ ] Remove dead code one domain at a time only after regression evidence.
+- [ ] Final documentation-to-implementation audit after cleanup decisions.
 - [x] ADRs for module boundaries, transaction, API client, session, storage, audit, and cache.
 - [x] Deployment/migration/rollback runbooks.
 - [x] Finance/security/provider outage runbooks.
