@@ -1,4 +1,5 @@
 import type { ApiErrorCode } from './error-codes';
+import { resolveErrorMessageKey, type ErrorMessageKey } from './error-message-catalog';
 
 export type DomainErrorCategory =
   | 'validation'
@@ -14,6 +15,7 @@ export type DomainErrorOptions = {
   code: ApiErrorCode | string;
   category: DomainErrorCategory;
   message: string;
+  messageKey?: ErrorMessageKey | `errors.${string}`;
   details?: Record<string, unknown>;
   cause?: unknown;
 };
@@ -21,6 +23,7 @@ export type DomainErrorOptions = {
 export class DomainError extends Error {
   readonly code: ApiErrorCode | string;
   readonly category: DomainErrorCategory;
+  readonly messageKey: ErrorMessageKey | `errors.${string}`;
   readonly details?: Record<string, unknown>;
 
   constructor(options: DomainErrorOptions) {
@@ -28,6 +31,7 @@ export class DomainError extends Error {
     this.name = 'DomainError';
     this.code = options.code;
     this.category = options.category;
+    this.messageKey = options.messageKey ?? resolveErrorMessageKey(options.code);
     this.details = options.details;
   }
 }
