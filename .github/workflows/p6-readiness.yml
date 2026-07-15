@@ -49,6 +49,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Test P6 readiness checker
+        run: node --test tools/check-p6-readiness.test.mjs
+
       - name: Check P6 readiness
         run: pnpm verify:p6:readiness:strict
 
