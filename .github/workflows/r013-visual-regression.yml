@@ -1,0 +1,54 @@
+name: R-013 Visual Regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-admin/**'
+      - 'apps/web-member/**'
+      - 'packages/design-tokens/**'
+      - 'tests/e2e-visual/**'
+      - 'playwright.visual.config.ts'
+      - 'tools/audit-r013-visual-regression.mjs'
+      - '.github/workflows/r013-visual-regression.yml'
+  pull_request:
+    paths:
+      - 'apps/web-admin/**'
+      - 'apps/web-member/**'
+      - 'packages/design-tokens/**'
+      - 'tests/e2e-visual/**'
+      - 'playwright.visual.config.ts'
+      - 'tools/audit-r013-visual-regression.mjs'
+      - '.github/workflows/r013-visual-regression.yml'
+
+jobs:
+  visual-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Visual regression contract
+        run: node tools/audit-r013-visual-regression.mjs
+      - name: Generate six-viewport baselines
+        run: pnpm test:e2e:visual:update
+      - name: Compare against generated baselines
+        run: pnpm test:e2e:visual
+      - name: Upload screenshots traces console network and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r013-visual-regression-evidence
+          path: |
+            artifacts/r013-visual/**
+            tests/e2e-visual/__screenshots__/**
+          if-no-files-found: error
+          retention-days: 14
