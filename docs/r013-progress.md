@@ -1,8 +1,9 @@
 # R-013 Progress
 
-Status: 🟡 ACTIVE
+Status: ✅ DONE
 
 Started: 2026-07-15
+Closed: 2026-07-15
 
 Source of truth: `docs/master-project-worklist.md`
 
@@ -27,8 +28,8 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - [x] Define table-to-card, modal-to-bottom-sheet, and sidebar-to-drawer patterns.
 - [x] Add keyboard, focus, and ARIA baselines.
 - [x] Add reduced-motion and contrast checks.
-- [ ] Add six-viewport visual regression.
-- [ ] Store screenshot, trace, console, and network artifacts in CI.
+- [x] Add six-viewport visual regression.
+- [x] Store screenshot, trace, console, and network artifacts in CI.
 
 ## Closed outcomes
 
@@ -52,26 +53,24 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - Verification-only PR #48 ran workflow `R-013 UI System`, run `29404594856`, job `87316876420`.
 - Accessibility guard, artifact upload, Admin typecheck, and Member typecheck completed successfully.
 
-## Active work
-
 ### 16-17. Visual regression and browser evidence
 
-- [ ] Validate Admin and Member public surfaces across six viewports.
-- [ ] Compare screenshots against generated baselines.
-- [ ] Store runtime screenshots and Playwright traces.
-- [ ] Store console and network JSON evidence.
-- [ ] Verify CI artifact upload before closure.
+- Validated Admin and Member public authentication surfaces across six viewports: 360x800, 390x844, 430x932, 768x1024, 1024x768, and 1440x900.
+- Generated and compared visual baselines successfully.
+- Stored runtime screenshots, Playwright traces, console JSON, network JSON, layout evidence, and the HTML report.
+- Fixed the legacy public visual suite to target the Member dev server at `http://127.0.0.1:3101` instead of the unused port 3000.
+- Verification-only PR #53 ran workflow `R-013 Visual Regression`, run `29410964202`, job `87337677191`.
+- Contract validation, Chromium setup, baseline generation, screenshot comparison, and artifact upload completed successfully.
 
 ## Count
 
 - Total R-013 outcomes: 17
-- Closed: 15
-- Remaining: 2
+- Closed: 17
+- Remaining: 0
 
 ## Latest commits
 
+- `e3e01c043778299159cec2b5cbb076df42da1617` — target the Member visual suite at port 3101.
+- `d475046d2668f76a73fcbf6650839554533d0b0c` — require retained trace evidence in the visual contract.
+- `f8e15792e3a53da41e82c0c30ad6cd218825e519` — fix visual contract syntax and checks.
 - `34b0fbe5748047fce22e73e85e29e694fb882bd8` — verify accessibility baseline in CI.
-- `cd7999083febc7341abb36234b57a436aaf40d46` — guard accessibility, motion, and contrast behavior.
-- `7d296aa256b20b18fc96547ca9ce86baad27f665` — load accessibility baseline in Member.
-- `8fffe815e7f4034fce591ba2c9a0fef23a466b19` — load accessibility baseline in Admin.
-- `aee98a980e01218ef8c345ad9f0387b304dcabd9` — define shared accessibility baseline.
