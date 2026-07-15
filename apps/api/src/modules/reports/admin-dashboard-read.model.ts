@@ -1,13 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { AdminDashboardAggregateCache } from './admin-dashboard-aggregate-cache';
 import { mapReportGroup, resolveReportDateRange, type ReportQuery } from './report.mapper';
 
 @Injectable()
 export class AdminDashboardReadModel {
+  private readonly aggregateCache = new AdminDashboardAggregateCache();
+
   constructor(private readonly prisma: PrismaService) {}
 
   async load(query: ReportQuery = {}) {
     const { from, to } = resolveReportDateRange(query);
+    const cacheKey = `${from.toISOString()}:${to.toISOString()}`;
+    return this.aggregateCache.getOrLoad(cacheKey, () => this.loadLive(from, to));
+  }
+
+  private async loadLive(from: Date, to: Date) {
     const [topUps, withdrawals, adjustments, walletAgg, ledgerAgg, pendingTopUps, pendingWithdrawals] = await Promise.all([
       this.prisma.topUpRequest.groupBy({
         by: ['status'],
