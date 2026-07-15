@@ -12,4 +12,6 @@
   --brand2: var(--color-brand-strong);
   --good: var(--color-success);
   --bad: var(--color-danger);
+  --radius: var(--radius-card);
+  --shadow: var(--shadow-card);
 }
