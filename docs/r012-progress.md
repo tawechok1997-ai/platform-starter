@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 
 ## Status
 
-- DONE: 12/18
-- IN PROGRESS: CMS and promotion page decomposition
-- Remaining: 6
+- DONE: 13/18
+- IN PROGRESS: promotion and security page decomposition
+- Remaining: 5
 
 ## Checklist
 
@@ -18,7 +18,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - [x] แยก deposit page
 - [x] แยก withdrawal page
 - [x] แยก provider page
-- [ ] แยก content/CMS page
+- [x] แยก content/CMS page
 - [ ] แยก promotion page
 - [ ] แยก security/admin lifecycle page
 - [ ] แยก KYC admin/member pages
@@ -45,9 +45,11 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - `RegisterView` is exported through the Member auth public boundary; static audit prevents API calls, route effects and auth form markup from leaking across the boundary.
 - The Admin game-provider implementation now lives in `src/features/finance/game-providers-page.tsx`; the App Router page is a thin feature entry point.
 - The Admin finance public boundary exports `GameProvidersPage`, and static audit prevents provider API/state logic from returning to the route file.
+- The Admin CMS implementation now lives in `src/features/cms/content-center-page.tsx`; the App Router page delegates through a thin entry point.
+- The Admin CMS public boundary exports `ContentCenterPage`; static audit prevents CMS API/state logic from returning to the route file.
 - Unit tests cover deposit defaults, amount parsing, validation, request serialization, API error mapping and deterministic finance query/invalidation keys.
 - Presentation contract tests prevent `DepositView` and `WithdrawalView` from owning API fetches or route-level effects.
-- R-012 CI installs dependencies and runs the static audit, Member feature tests, Member typecheck and Admin typecheck.
+- R-012 CI installs dependencies and runs the static audit, Member feature tests, Member typecheck and Admin typecheck, including CMS route changes.
 
 ## Verification
 
