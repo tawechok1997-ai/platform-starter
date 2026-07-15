@@ -167,11 +167,13 @@
 ## Storage security
 
 - [x] Finance/KYC cleanup และ private-storage policies
-- [ ] Actual support binary/object-storage upload ผ่าน storage contract กลาง
-- [ ] Binary asset lifecycle สำหรับ support upload จริง
+- [x] Actual support binary/object-storage upload ผ่าน storage contract กลาง
+- [x] Binary asset lifecycle สำหรับ support upload จริง
 - [ ] Global file-size limits และ MIME/content validation
 - [ ] Malware/content scan integration boundary
 - [ ] Signed URL policy และ Data URL reduction
+
+**หลักฐาน support storage:** `SupportAttachmentsService` รองรับ binary write/read, SHA-256, MIME allowlist, magic-byte validation, compensating deletion และ object cleanup เมื่อ Member/Admin ลบ attachment; commit `54803381` ผ่าน deploy checks ของ API, Admin และ Member
 
 ## Tests และ CI
 
@@ -239,13 +241,12 @@
 
 # ลำดับทำงานโค้ดถัดไป
 
-1. ทำ support binary/object-storage upload ผ่าน storage contract กลางและ binary lifecycle
-2. ปิด P5 aggregate และ storage security
-3. เพิ่ม web unit/component coverage, seeded visual artifact workflow และ CI hardening
-4. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
+1. ปิด P5 aggregate และ storage security ส่วนกลาง
+2. เพิ่ม web unit/component coverage, seeded visual artifact workflow และ CI hardening
+3. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
 
 # จำนวนงานคงค้าง
 
-- งานโค้ดใน P0 ถึง P5: **10 รายการ**
+- งานโค้ดใน P0 ถึง P5: **8 รายการ**
 - งาน external verification และ UAT ใน P6: **30 รายการ**
-- รวม checkbox ที่ยังไม่ปิด: **40 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **38 รายการ**
