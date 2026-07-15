@@ -59,6 +59,12 @@ jobs:
           test -n "${SEED_MEMBER_USERNAME:-${SEED_MEMBER_EMAIL:-${SEED_MEMBER_PHONE:-}}}"
           test -n "${SEED_ADMIN_USERNAME:-${SEED_ADMIN_EMAIL:-}}"
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+          run_install: false
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -68,12 +74,6 @@ jobs:
 
       - name: Capture deployment preflight evidence
         run: node tools/p6-deployment-preflight.mjs
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.0.0
-          run_install: false
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
