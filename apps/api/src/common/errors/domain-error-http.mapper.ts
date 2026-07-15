@@ -15,6 +15,7 @@ const STATUS_BY_CATEGORY: Record<DomainErrorCategory, number> = {
 export type DomainErrorHttpPayload = {
   status: number;
   code: string;
+  messageKey: string;
   message: string;
   details?: Record<string, unknown>;
 };
@@ -23,6 +24,7 @@ export function mapDomainErrorToHttp(error: DomainError): DomainErrorHttpPayload
   return {
     status: STATUS_BY_CATEGORY[error.category],
     code: error.code,
+    messageKey: error.messageKey,
     message: error.message,
     ...(error.details ? { details: error.details } : {}),
   };
