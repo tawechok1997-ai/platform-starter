@@ -25,7 +25,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.0.0
+          version: 11.13.0
           run_install: false
 
       - name: Set up Node.js
@@ -42,4 +42,4 @@ jobs:
         run: pnpm audit:dependency-security
 
       - name: Validate environment schema tests
-        run: pnpm --filter @platform/api test -- environment.validation.spec.ts --runInBand
+        run: pnpm --filter @platform/api exec jest environment.validation.spec.ts --runInBand

@@ -13,6 +13,7 @@ const contentPatterns = [
 
 const allowedSecretFiles = new Set(['.env.example', '.env.test.example']);
 const allowedFixtureContentFiles = new Set([
+  'apps/api/src/modules/auth/auth.service.spec.ts',
   'apps/api/src/modules/game-platform/adapters/generic-transfer-provider.adapter.spec.ts',
   'apps/web-admin/app/(auth)/login/page.tsx',
   'apps/web-member/app/(auth)/login/page.tsx',

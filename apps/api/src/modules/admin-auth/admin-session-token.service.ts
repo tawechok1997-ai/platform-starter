@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../../database/prisma.service';
+import { resolveJwtAccessKey } from '../../common/security/jwt-access-key';
 import type { RequestMeta } from './admin-auth.types';
 
 @Injectable()
@@ -33,7 +34,7 @@ export class AdminSessionTokenService {
     const accessToken = await this.jwt.signAsync(
       { sub: adminUserId, type: 'ADMIN', sessionId: session.id },
       {
-        secret: this.config.get<string>('JWT_ACCESS_KEY') ?? 'local_access_key',
+        secret: resolveJwtAccessKey(this.config),
         expiresIn: (this.config.get<string>('ADMIN_JWT_ACCESS_TTL') ?? '10m') as never,
       },
     );

@@ -117,25 +117,3 @@ export function topUpStatusLabel(status: TopUpStatus): string {
   };
   return labels[status] ?? status;
 }
-
-function withdrawalStatusLabel(status: WithdrawalStatus): string {
-  const labels: Record<WithdrawalStatus, string> = {
-    PENDING: 'รอตรวจสอบ',
-    PENDING_REVIEW: 'รอตรวจสอบ',
-    APPROVED_FOR_PAYMENT: 'รอดำเนินการโอน',
-    PAYMENT_PROOF_UPLOADED: 'รอตรวจหลักฐาน',
-    PAYMENT_VERIFIED: 'ตรวจหลักฐานแล้ว',
-    COMPLETED: 'จ่ายสำเร็จ',
-    REJECTED: 'ไม่อนุมัติ',
-    CANCELLED: 'ยกเลิก',
-  };
-  return labels[status] ?? status;
-}
-
-function isTerminalTopUpStatus(status: TopUpStatus): boolean {
-  return ['DUPLICATE', 'COMPLETED', 'REJECTED', 'CANCELLED'].includes(status);
-}
-
-function isTerminalWithdrawalStatus(status: WithdrawalStatus): boolean {
-  return ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(status);
-}

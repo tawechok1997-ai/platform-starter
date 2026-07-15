@@ -1,9 +1,16 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
+import { resolveJwtAccessKey } from '../../common/security/jwt-access-key';
 import { RegisterDto } from './dto/register.dto';
 import { MemberSignInDto } from './dto/member-sign-in.dto';
 import { RefreshSessionDto } from './dto/refresh-session.dto';
@@ -30,7 +37,13 @@ export class AuthService {
     }
 
     const exists = await this.prisma.user.findFirst({
-      where: { OR: [{ username: dto.username }, dto.phone ? { phone: dto.phone } : undefined, dto.email ? { email: dto.email } : undefined].filter(Boolean) as any },
+      where: {
+        OR: [
+          { username: dto.username },
+          dto.phone ? { phone: dto.phone } : undefined,
+          dto.email ? { email: dto.email } : undefined,
+        ].filter(Boolean) as any,
+      },
     });
     if (exists) throw new ConflictException('ชื่อผู้ใช้ เบอร์โทร หรืออีเมลนี้ถูกใช้แล้ว');
 
@@ -41,37 +54,44 @@ export class AuthService {
     if (bankExists) throw new ConflictException('บัญชีธนาคารนี้ถูกใช้กับสมาชิกคนอื่นแล้ว');
 
     const hash = await argon2.hash(rawSecret);
-    const user = await this.prisma.$transaction(async (tx) => {
-      const duplicateBank = await tx.memberBankAccount.findFirst({
-        where: { accountNumber: dto.bankAccountNumber },
-        select: { id: true },
-      });
-      if (duplicateBank) throw new ConflictException('บัญชีธนาคารนี้ถูกใช้กับสมาชิกคนอื่นแล้ว');
+    const user = await this.prisma
+      .$transaction(async (tx) => {
+        const duplicateBank = await tx.memberBankAccount.findFirst({
+          where: { accountNumber: dto.bankAccountNumber },
+          select: { id: true },
+        });
+        if (duplicateBank) throw new ConflictException('บัญชีธนาคารนี้ถูกใช้กับสมาชิกคนอื่นแล้ว');
 
-      const createdUser = await tx.user.create({
-        data: {
-          username: dto.username,
-          phone: dto.phone,
-          email: dto.email,
-          passwordHash: hash,
-          profile: { create: { displayName: fullName } },
-        },
-      });
+        const createdUser = await tx.user.create({
+          data: {
+            username: dto.username,
+            phone: dto.phone,
+            email: dto.email,
+            passwordHash: hash,
+            profile: { create: { displayName: fullName } },
+          },
+        });
 
-      await tx.wallet.create({ data: { userId: createdUser.id, currency: 'THB' } });
-      await tx.memberBankAccount.create({
-        data: {
-          userId: createdUser.id,
-          bankName: dto.bankName,
-          accountName: bankAccountName,
-          accountNumber: dto.bankAccountNumber,
-          isPrimary: true,
-          status: 'PENDING_REVIEW',
-        },
-      });
+        await tx.wallet.create({ data: { userId: createdUser.id, currency: 'THB' } });
+        await tx.memberBankAccount.create({
+          data: {
+            userId: createdUser.id,
+            bankName: dto.bankName,
+            accountName: bankAccountName,
+            accountNumber: dto.bankAccountNumber,
+            isPrimary: true,
+            status: 'PENDING_REVIEW',
+          },
+        });
 
-      return createdUser;
-    });
+        return createdUser;
+      })
+      .catch((error: unknown) => {
+        if (String((error as { code?: string })?.code ?? '') === 'P2002') {
+          throw new ConflictException('ชื่อผู้ใช้ เบอร์โทร อีเมล หรือบัญชีธนาคารนี้ถูกใช้แล้ว');
+        }
+        throw error;
+      });
 
     await this.safeWriteLoginHistory('MEMBER', user.id, true, meta);
     return this.createMemberSession(user.id, meta);
@@ -81,7 +101,9 @@ export class AuthService {
     const rawSecret = dto.secret ?? dto.password;
     if (!rawSecret) throw new BadRequestException('secret is required');
 
-    const user = await this.prisma.user.findFirst({ where: { OR: [{ username: dto.identifier }, { phone: dto.identifier }, { email: dto.identifier }] } });
+    const user = await this.prisma.user.findFirst({
+      where: { OR: [{ username: dto.identifier }, { phone: dto.identifier }, { email: dto.identifier }] },
+    });
     if (!user || user.status !== 'ACTIVE') {
       await this.safeWriteLoginHistory('MEMBER', null, false, meta, 'MEMBER_NOT_FOUND_OR_INACTIVE');
       throw new UnauthorizedException('Invalid credentials');
@@ -108,7 +130,10 @@ export class AuthService {
       if (session.revokedAt) await this.revokeRefreshFamily(session.userId);
       throw new UnauthorizedException('Invalid refresh session');
     }
-    const rotated = await this.prisma.authSession.updateMany({ where: { id: session.id, type: 'MEMBER', revokedAt: null }, data: { revokedAt: new Date() } });
+    const rotated = await this.prisma.authSession.updateMany({
+      where: { id: session.id, type: 'MEMBER', revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
     if (rotated.count !== 1) {
       await this.revokeRefreshFamily(session.userId);
       throw new UnauthorizedException('Invalid refresh session');
@@ -117,52 +142,105 @@ export class AuthService {
   }
 
   private async revokeRefreshFamily(userId: string) {
-    await this.prisma.authSession.updateMany({ where: { userId, type: 'MEMBER', revokedAt: null }, data: { revokedAt: new Date() } });
+    await this.prisma.authSession.updateMany({
+      where: { userId, type: 'MEMBER', revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
   }
 
   async signOut(sessionId: string) {
-    await this.prisma.authSession.updateMany({ where: { id: sessionId, type: 'MEMBER', revokedAt: null }, data: { revokedAt: new Date() } });
+    await this.prisma.authSession.updateMany({
+      where: { id: sessionId, type: 'MEMBER', revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
     return { success: true };
   }
 
   async requestPasswordReset(identifierInput: string) {
     const identifier = String(identifierInput ?? '').trim();
-    const user = identifier ? await this.prisma.user.findFirst({ where: { OR: [{ username: identifier }, { email: identifier.toLowerCase() }, { phone: identifier }] }, select: { id: true } }) : null;
-    const response: { success: true; deliveryQueued: boolean; resetToken?: string } = { success: true, deliveryQueued: false };
+    const user = identifier
+      ? await this.prisma.user.findFirst({
+          where: { OR: [{ username: identifier }, { email: identifier.toLowerCase() }, { phone: identifier }] },
+          select: { id: true },
+        })
+      : null;
+    const response: { success: true; deliveryQueued: boolean; resetToken?: string } = {
+      success: true,
+      deliveryQueued: false,
+    };
     if (!user) return response;
 
     const rawToken = randomBytes(32).toString('base64url');
     const tokenHash = await argon2.hash(rawToken);
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
-    await this.prisma.$transaction(async (tx) => {
-      await tx.verificationToken.updateMany({ where: { type: 'PASSWORD_RESET', target: user.id, usedAt: null }, data: { usedAt: new Date() } });
-      await tx.verificationToken.create({ data: { type: 'PASSWORD_RESET', target: user.id, tokenHash, expiresAt } });
+    const created = await this.prisma.$transaction(async (tx) => {
+      await tx.verificationToken.updateMany({
+        where: { type: 'PASSWORD_RESET', target: user.id, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+      return tx.verificationToken.create({
+        data: { type: 'PASSWORD_RESET', target: user.id, tokenHash, expiresAt },
+        select: { id: true },
+      });
     });
-    if (String(this.configService.get<string>('PASSWORD_RESET_EXPOSE_TOKEN') ?? process.env.PASSWORD_RESET_EXPOSE_TOKEN).toLowerCase() === 'true') {
-      response.resetToken = rawToken;
+    const resetToken = `${created.id}.${rawToken}`;
+    response.deliveryQueued = await this.queuePasswordResetDelivery(user.id, resetToken, expiresAt);
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      String(
+        this.configService.get<string>('PASSWORD_RESET_EXPOSE_TOKEN') ?? process.env.PASSWORD_RESET_EXPOSE_TOKEN,
+      ).toLowerCase() === 'true'
+    ) {
+      response.resetToken = resetToken;
     }
     return response;
   }
 
   async confirmPasswordReset(dto: ConfirmPasswordResetDto) {
-    const candidates = await this.prisma.verificationToken.findMany({ where: { type: 'PASSWORD_RESET', usedAt: null, expiresAt: { gt: new Date() } }, orderBy: { createdAt: 'desc' }, take: 20 });
-    let token = null;
-    for (const candidate of candidates) {
-      if (await argon2.verify(candidate.tokenHash, dto.token)) {
-        token = candidate;
-        break;
-      }
+    const [tokenId, rawToken] = dto.token.split('.');
+    if (!tokenId || !rawToken) throw new BadRequestException('Invalid or expired password reset token');
+    const token = await this.prisma.verificationToken.findFirst({
+      where: { id: tokenId, type: 'PASSWORD_RESET', usedAt: null, expiresAt: { gt: new Date() } },
+    });
+    if (!token || !(await argon2.verify(token.tokenHash, rawToken))) {
+      throw new BadRequestException('Invalid or expired password reset token');
     }
-    if (!token) throw new BadRequestException('Invalid or expired password reset token');
     const passwordHash = await argon2.hash(dto.newPassword);
     const now = new Date();
     await this.prisma.$transaction(async (tx) => {
-      const consumed = await tx.verificationToken.updateMany({ where: { id: token.id, type: 'PASSWORD_RESET', usedAt: null, expiresAt: { gt: now } }, data: { usedAt: now } });
+      const consumed = await tx.verificationToken.updateMany({
+        where: { id: token.id, type: 'PASSWORD_RESET', usedAt: null, expiresAt: { gt: now } },
+        data: { usedAt: now },
+      });
       if (consumed.count !== 1) throw new BadRequestException('Invalid or expired password reset token');
       await tx.user.update({ where: { id: token.target }, data: { passwordHash } });
-      await tx.authSession.updateMany({ where: { userId: token.target, type: 'MEMBER', revokedAt: null }, data: { revokedAt: now } });
+      await tx.authSession.updateMany({
+        where: { userId: token.target, type: 'MEMBER', revokedAt: null },
+        data: { revokedAt: now },
+      });
     });
     return { success: true, revokedSessions: true };
+  }
+
+  private async queuePasswordResetDelivery(userId: string, resetToken: string, expiresAt: Date) {
+    const endpoint = this.configService.get<string>('PASSWORD_RESET_DELIVERY_WEBHOOK_URL')?.trim();
+    const secret = this.configService.get<string>('PASSWORD_RESET_DELIVERY_WEBHOOK_SECRET')?.trim();
+    if (!endpoint || !secret) return false;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8_000);
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${secret}` },
+        body: JSON.stringify({ userId, resetToken, expiresAt: expiresAt.toISOString() }),
+        signal: controller.signal,
+      });
+      return response.ok;
+    } catch {
+      return false;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   async getMemberProfile(userId: string) {
@@ -183,12 +261,14 @@ export class AuthService {
       emailVerifiedAt: user.emailVerifiedAt,
       displayName: user.profile?.displayName ?? user.username,
       avatarUrl: user.profile?.avatarUrl ?? null,
-      wallet: user.wallet ? {
-        currency: user.wallet.currency,
-        availableBalance: user.wallet.balance.minus(user.wallet.lockedBalance).toString(),
-        lockedBalance: user.wallet.lockedBalance.toString(),
-        status: user.wallet.status,
-      } : null,
+      wallet: user.wallet
+        ? {
+            currency: user.wallet.currency,
+            availableBalance: user.wallet.balance.minus(user.wallet.lockedBalance).toString(),
+            lockedBalance: user.wallet.lockedBalance.toString(),
+            status: user.wallet.status,
+          }
+        : null,
     };
   }
 
@@ -202,8 +282,10 @@ export class AuthService {
       },
       select: { id: true, phone: true, email: true },
     });
-    if (duplicate?.phone && phone && duplicate.phone === phone) throw new ConflictException('เบอร์โทรนี้ถูกใช้กับสมาชิกอื่นแล้ว');
-    if (duplicate?.email && email && duplicate.email === email) throw new ConflictException('อีเมลนี้ถูกใช้กับสมาชิกอื่นแล้ว');
+    if (duplicate?.phone && phone && duplicate.phone === phone)
+      throw new ConflictException('เบอร์โทรนี้ถูกใช้กับสมาชิกอื่นแล้ว');
+    if (duplicate?.email && email && duplicate.email === email)
+      throw new ConflictException('อีเมลนี้ถูกใช้กับสมาชิกอื่นแล้ว');
     if (duplicate) throw new ConflictException('Phone or email already in use');
 
     await this.prisma.$transaction(async (tx) => {
@@ -238,14 +320,25 @@ export class AuthService {
     const items = await this.prisma.authSession.findMany({
       where: { userId, type: 'MEMBER', revokedAt: null, expiresAt: { gt: new Date() } },
       orderBy: { createdAt: 'desc' },
-      select: { id: true, ipAddress: true, userAgent: true, deviceId: true, createdAt: true, updatedAt: true, expiresAt: true },
+      select: {
+        id: true,
+        ipAddress: true,
+        userAgent: true,
+        deviceId: true,
+        createdAt: true,
+        updatedAt: true,
+        expiresAt: true,
+      },
     });
     return { items: items.map((item) => ({ ...item, current: item.id === currentSessionId })) };
   }
 
   async revokeMemberSession(userId: string, currentSessionId: string, sessionId: string) {
     if (sessionId === currentSessionId) throw new BadRequestException('Use logout to revoke the current session');
-    await this.prisma.authSession.updateMany({ where: { id: sessionId, userId, type: 'MEMBER', revokedAt: null }, data: { revokedAt: new Date() } });
+    await this.prisma.authSession.updateMany({
+      where: { id: sessionId, userId, type: 'MEMBER', revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
     return { success: true };
   }
 
@@ -259,8 +352,13 @@ export class AuthService {
 
   async getMemberSecurity(userId: string) {
     const [user, sessions, history] = await Promise.all([
-      this.prisma.user.findUnique({ where: { id: userId }, select: { status: true, updatedAt: true, lastLoginAt: true } }),
-      this.prisma.authSession.count({ where: { userId, type: 'MEMBER', revokedAt: null, expiresAt: { gt: new Date() } } }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { status: true, updatedAt: true, lastLoginAt: true },
+      }),
+      this.prisma.authSession.count({
+        where: { userId, type: 'MEMBER', revokedAt: null, expiresAt: { gt: new Date() } },
+      }),
       this.prisma.loginHistory.findMany({
         where: { userId, type: 'MEMBER' },
         orderBy: { createdAt: 'desc' },
@@ -305,8 +403,24 @@ export class AuthService {
     const rawToken = this.createRefreshToken();
     const refreshTokenHash = await argon2.hash(rawToken);
     const expiresAt = new Date(Date.now() + this.getRefreshTokenTtlMs());
-    const session = await this.prisma.authSession.create({ data: { type: 'MEMBER', userId, refreshTokenHash, ipAddress: meta.ipAddress, userAgent: meta.userAgent, deviceId: meta.deviceId, expiresAt } });
-    const accessToken = await this.jwtService.signAsync({ sub: userId, type: 'MEMBER', sessionId: session.id }, { secret: this.configService.get<string>('JWT_ACCESS_KEY') ?? 'local_access_key', expiresIn: (this.configService.get<string>('JWT_ACCESS_TTL') ?? '15m') as any });
+    const session = await this.prisma.authSession.create({
+      data: {
+        type: 'MEMBER',
+        userId,
+        refreshTokenHash,
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
+        deviceId: meta.deviceId,
+        expiresAt,
+      },
+    });
+    const accessToken = await this.jwtService.signAsync(
+      { sub: userId, type: 'MEMBER', sessionId: session.id },
+      {
+        secret: resolveJwtAccessKey(this.configService),
+        expiresIn: (this.configService.get<string>('JWT_ACCESS_TTL') ?? '15m') as any,
+      },
+    );
     return { accessToken, refreshToken: `${session.id}.${rawToken}`, expiresAt };
   }
 
@@ -320,7 +434,9 @@ export class AuthService {
       .replace(/[\s.\-_'’]/g, '');
   }
 
-  private createRefreshToken() { return randomBytes(48).toString('base64url'); }
+  private createRefreshToken() {
+    return randomBytes(48).toString('base64url');
+  }
 
   private readRefreshTokenParts(value: string) {
     const [sessionId, rawToken] = value.split('.');
@@ -338,9 +454,17 @@ export class AuthService {
     return days * 24 * 60 * 60 * 1000;
   }
 
-  private async safeWriteLoginHistory(type: 'MEMBER', userId: string | null, success: boolean, meta: RequestMeta, reason?: string) {
+  private async safeWriteLoginHistory(
+    type: 'MEMBER',
+    userId: string | null,
+    success: boolean,
+    meta: RequestMeta,
+    reason?: string,
+  ) {
     try {
-      await this.prisma.loginHistory.create({ data: { type, userId, success, ipAddress: meta.ipAddress, userAgent: meta.userAgent, reason } });
+      await this.prisma.loginHistory.create({
+        data: { type, userId, success, ipAddress: meta.ipAddress, userAgent: meta.userAgent, reason },
+      });
     } catch (error) {
       console.error('member login history write failed', error);
     }

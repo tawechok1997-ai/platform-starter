@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RiskAlertStatus } from '@prisma/client';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaPromotionSettlementRepositoryAdapter } from '../../common/infrastructure/prisma-risk-promotion-repository-adapters';
@@ -25,30 +25,29 @@ export class SettlementCommandService {
     this.assertActionAllowed(initial.metadata, action, note);
 
     const normalizedNote = String(note ?? '').trim();
-    const idempotencyKey = action === 'REVERSE'
-      ? `bonus:${id}:settlement:reversal`
-      : `bonus:${id}:settlement`;
+    const idempotencyKey = action === 'REVERSE' ? `bonus:${id}:settlement:reversal` : `bonus:${id}:settlement`;
     let settlementStarted = false;
 
     try {
-      return await this.prisma.$transaction(async (tx) => {
-        const lockedRows = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+      return await this.prisma.$transaction(
+        async (tx) => {
+          const lockedRows = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
           SELECT "id" FROM "risk_alerts"
           WHERE "id" = ${id}::uuid AND "ref_type" = ${BONUS_REF_TYPE}
           FOR UPDATE
         `);
-        if (!lockedRows[0]) throw new NotFoundException('Bonus ledger not found');
+          if (!lockedRows[0]) throw new NotFoundException('Bonus ledger not found');
 
-        const item = await tx.riskAlert.findFirst({ where: { id, refType: BONUS_REF_TYPE } });
-        if (!item) throw new NotFoundException('Bonus ledger not found');
-        this.assertActionAllowed(item.metadata, action, normalizedNote);
+          const item = await tx.riskAlert.findFirst({ where: { id, refType: BONUS_REF_TYPE } });
+          if (!item) throw new NotFoundException('Bonus ledger not found');
+          this.assertActionAllowed(item.metadata, action, normalizedNote);
 
-        const metadata = promotionBonusMetadata(item.metadata);
-        const rawMetadata = this.rawMetadata(item.metadata);
-        const settlements = new PrismaPromotionSettlementRepositoryAdapter(tx);
+          const metadata = promotionBonusMetadata(item.metadata);
+          const rawMetadata = this.rawMetadata(item.metadata);
+          const settlements = new PrismaPromotionSettlementRepositoryAdapter(tx);
 
-        if (action === 'RELEASE') {
-          const lifecycleRows = await tx.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          if (action === 'RELEASE') {
+            const lifecycleRows = await tx.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
             UPDATE "bonus_ledgers"
             SET "status" = 'RELEASE_READY', "updated_at" = CURRENT_TIMESTAMP
             WHERE "source_risk_alert_id" = ${id}::uuid
@@ -56,68 +55,81 @@ export class SettlementCommandService {
               AND "turnover_progress" >= "turnover_required"
             RETURNING *
           `);
-          if (!lifecycleRows[0]) throw new BadRequestException('Bonus lifecycle transition was rejected');
-        }
+            if (!lifecycleRows[0]) throw new BadRequestException('Bonus lifecycle transition was rejected');
+          }
 
-        settlementStarted = true;
-        const settlement = action === 'REVERSE'
-          ? await this.reverseInTransaction(tx, settlements, { sourceRiskAlertId: id, adminUserId: admin.id, idempotencyKey })
-          : await this.settleInTransaction(tx, settlements, { sourceRiskAlertId: id, adminUserId: admin.id, idempotencyKey });
-        const settlementLedgerMetadata = settlement as SettlementLedgerMetadata;
+          settlementStarted = true;
+          const settlement =
+            action === 'REVERSE'
+              ? await this.reverseInTransaction(tx, settlements, {
+                  sourceRiskAlertId: id,
+                  adminUserId: admin.id,
+                  idempotencyKey,
+                })
+              : await this.settleInTransaction(tx, settlements, {
+                  sourceRiskAlertId: id,
+                  adminUserId: admin.id,
+                  idempotencyKey,
+                });
+          const settlementLedgerMetadata = settlement as SettlementLedgerMetadata;
 
-        const lifecycleStatus = action === 'REVERSE' ? 'REVERSED' : 'SETTLED';
-        const walletCreditStatus = action === 'REVERSE' ? 'REVERSED' : 'CREDITED';
-        const eventAction = action === 'RETRY'
-          ? 'BONUS_SETTLEMENT_RETRIED'
-          : action === 'REVERSE'
-            ? 'BONUS_SETTLEMENT_REVERSED'
-            : 'BONUS_SETTLED';
-        const events = [
-          ...metadata.events,
-          {
-            by: 'admin',
-            adminUserId: admin.id,
-            action: eventAction,
-            message: normalizedNote,
-            createdAt: new Date().toISOString(),
-          },
-        ];
-        const nextStatus: RiskAlertStatus = action === 'REVERSE' ? 'DISMISSED' : 'RESOLVED';
-        const next = await tx.riskAlert.update({
-          where: { id },
-          data: {
-            status: nextStatus,
-            resolvedAt: new Date(),
-            metadata: this.safeJson({
-              ...rawMetadata,
-              lifecycleStatus,
-              walletCreditEnabled: action !== 'REVERSE',
-              walletCreditStatus,
-              walletLedgerId: settlementLedgerMetadata.wallet_ledger_id ?? rawMetadata.walletLedgerId ?? null,
-              reversalWalletLedgerId: settlementLedgerMetadata.reversal_wallet_ledger_id ?? rawMetadata.reversalWalletLedgerId ?? null,
-              settlementIdempotencyKey: idempotencyKey,
-              settlementAttemptCount: Number(rawMetadata.settlementAttemptCount ?? 0) + 1,
-              settlementLastError: null,
-              lifecycleNote: normalizedNote,
-              lifecycleUpdatedAt: new Date().toISOString(),
-              lifecycleUpdatedBy: admin.id,
-              events,
+          const lifecycleStatus = action === 'REVERSE' ? 'REVERSED' : 'SETTLED';
+          const walletCreditStatus = action === 'REVERSE' ? 'REVERSED' : 'CREDITED';
+          const eventAction =
+            action === 'RETRY'
+              ? 'BONUS_SETTLEMENT_RETRIED'
+              : action === 'REVERSE'
+                ? 'BONUS_SETTLEMENT_REVERSED'
+                : 'BONUS_SETTLED';
+          const events = [
+            ...metadata.events,
+            {
+              by: 'admin',
+              adminUserId: admin.id,
+              action: eventAction,
+              message: normalizedNote,
+              createdAt: new Date().toISOString(),
+            },
+          ];
+          const nextStatus: RiskAlertStatus = action === 'REVERSE' ? 'DISMISSED' : 'RESOLVED';
+          const next = await tx.riskAlert.update({
+            where: { id },
+            data: {
+              status: nextStatus,
+              resolvedAt: new Date(),
+              metadata: this.safeJson({
+                ...rawMetadata,
+                lifecycleStatus,
+                walletCreditEnabled: action !== 'REVERSE',
+                walletCreditStatus,
+                walletLedgerId: settlementLedgerMetadata.wallet_ledger_id ?? rawMetadata.walletLedgerId ?? null,
+                reversalWalletLedgerId:
+                  settlementLedgerMetadata.reversal_wallet_ledger_id ?? rawMetadata.reversalWalletLedgerId ?? null,
+                settlementIdempotencyKey: idempotencyKey,
+                settlementAttemptCount: Number(rawMetadata.settlementAttemptCount ?? 0) + 1,
+                settlementLastError: null,
+                lifecycleNote: normalizedNote,
+                lifecycleUpdatedAt: new Date().toISOString(),
+                lifecycleUpdatedBy: admin.id,
+                events,
+              }),
+            },
+          });
+          await tx.adminAuditLog.create({
+            data: buildAdminAuditData({
+              adminUserId: admin.id,
+              module: 'promotions',
+              action: `bonus.settlement.${action.toLowerCase()}`,
+              targetId: id,
+              oldData: item,
+              newData: { updated: next, settlement },
             }),
-          },
-        });
-        await tx.adminAuditLog.create({
-          data: buildAdminAuditData({
-            adminUserId: admin.id,
-            module: 'promotions',
-            action: `bonus.settlement.${action.toLowerCase()}`,
-            targetId: id,
-            oldData: item,
-            newData: { updated: next, settlement },
-          }),
-        });
+          });
 
-        return { ok: true, item: mapPromotionBonusLedger(next), settlement };
-      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+          return { ok: true, item: mapPromotionBonusLedger(next), settlement };
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
     } catch (error) {
       if (action === 'REVERSE' || !settlementStarted) throw error;
       await this.recordSettlementFailure(admin, id, idempotencyKey, error);
@@ -280,56 +292,54 @@ export class SettlementCommandService {
     };
   }
 
-  private async recordSettlementFailure(
-    admin: Actor,
-    id: string,
-    idempotencyKey: string,
-    error: unknown,
-  ) {
+  private async recordSettlementFailure(admin: Actor, id: string, idempotencyKey: string, error: unknown) {
     const message = error instanceof Error ? error.message : 'Settlement failed';
-    await this.prisma.$transaction(async (tx) => {
-      const lockedRows = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+    await this.prisma.$transaction(
+      async (tx) => {
+        const lockedRows = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
         SELECT "id" FROM "risk_alerts" WHERE "id" = ${id}::uuid FOR UPDATE
       `);
-      if (!lockedRows[0]) return;
-      const item = await tx.riskAlert.findUnique({ where: { id } });
-      if (!item) return;
-      const metadata = promotionBonusMetadata(item.metadata);
-      const rawMetadata = this.rawMetadata(item.metadata);
-      const failedMetadata = {
-        ...rawMetadata,
-        lifecycleStatus: 'SETTLEMENT_FAILED',
-        walletCreditEnabled: false,
-        walletCreditStatus: 'FAILED',
-        settlementIdempotencyKey: idempotencyKey,
-        settlementAttemptCount: Number(rawMetadata.settlementAttemptCount ?? 0) + 1,
-        settlementLastError: message,
-        events: [
-          ...metadata.events,
-          {
-            by: 'system',
+        if (!lockedRows[0]) return;
+        const item = await tx.riskAlert.findUnique({ where: { id } });
+        if (!item) return;
+        const metadata = promotionBonusMetadata(item.metadata);
+        const rawMetadata = this.rawMetadata(item.metadata);
+        const failedMetadata = {
+          ...rawMetadata,
+          lifecycleStatus: 'SETTLEMENT_FAILED',
+          walletCreditEnabled: false,
+          walletCreditStatus: 'FAILED',
+          settlementIdempotencyKey: idempotencyKey,
+          settlementAttemptCount: Number(rawMetadata.settlementAttemptCount ?? 0) + 1,
+          settlementLastError: message,
+          events: [
+            ...metadata.events,
+            {
+              by: 'system',
+              adminUserId: admin.id,
+              action: 'BONUS_SETTLEMENT_FAILED',
+              message,
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        };
+        const next = await tx.riskAlert.update({
+          where: { id },
+          data: { status: 'REVIEWING', resolvedAt: null, metadata: this.safeJson(failedMetadata) },
+        });
+        await tx.adminAuditLog.create({
+          data: buildAdminAuditData({
             adminUserId: admin.id,
-            action: 'BONUS_SETTLEMENT_FAILED',
-            message,
-            createdAt: new Date().toISOString(),
-          },
-        ],
-      };
-      const next = await tx.riskAlert.update({
-        where: { id },
-        data: { status: 'REVIEWING', resolvedAt: null, metadata: this.safeJson(failedMetadata) },
-      });
-      await tx.adminAuditLog.create({
-        data: buildAdminAuditData({
-          adminUserId: admin.id,
-          module: 'promotions',
-          action: 'bonus.settlement.failed',
-          targetId: id,
-          oldData: item,
-          newData: { updated: next, error: message },
-        }),
-      });
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+            module: 'promotions',
+            action: 'bonus.settlement.failed',
+            targetId: id,
+            oldData: item,
+            newData: { updated: next, error: message },
+          }),
+        });
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
   }
 
   private assertActionAllowed(metadataInput: unknown, action: SettlementAction, note: string) {
@@ -350,9 +360,7 @@ export class SettlementCommandService {
   }
 
   private rawMetadata(value: unknown): Record<string, unknown> {
-    return value && typeof value === 'object' && !Array.isArray(value)
-      ? value as Record<string, unknown>
-      : {};
+    return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
   }
 
   private safeJson(value: unknown) {

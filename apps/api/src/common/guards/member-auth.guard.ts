@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
+import { resolveJwtAccessKey } from '../security/jwt-access-key';
 
 @Injectable()
 export class MemberAuthGuard implements CanActivate {
@@ -21,7 +22,7 @@ export class MemberAuthGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get<string>('JWT_ACCESS_KEY') ?? 'local_access_key',
+        secret: resolveJwtAccessKey(this.configService),
       });
 
       if (payload.type !== 'MEMBER' || !payload.sub || !payload.sessionId) {

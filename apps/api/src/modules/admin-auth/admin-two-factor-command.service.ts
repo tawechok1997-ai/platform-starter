@@ -4,6 +4,7 @@ import * as argon2 from 'argon2';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
 import type { RequestMeta } from './admin-auth.types';
+import { protectTwoFactorSecret, revealTwoFactorSecret } from '../../common/security/two-factor-secret';
 import {
   assertAdminTotp,
   generateAdminRecoveryCodes,
@@ -28,7 +29,7 @@ export class AdminTwoFactorCommandService {
     await this.prisma.$transaction(async (tx) => {
       await tx.adminUser.update({
         where: { id: admin.id },
-        data: { twoFactorSecret: secret, twoFactorEnabled: false },
+        data: { twoFactorSecret: protectTwoFactorSecret(secret, this.config), twoFactorEnabled: false },
       });
       await tx.adminAuditLog.create({
         data: buildAdminAuditData({
@@ -47,7 +48,7 @@ export class AdminTwoFactorCommandService {
   async enable(adminUserId: string, code: string, meta: RequestMeta = {}) {
     const admin = await this.activeAdmin(adminUserId);
     if (!admin.twoFactorSecret) throw new UnauthorizedException('Two factor setup is not ready');
-    assertAdminTotp(admin.twoFactorSecret, code);
+    assertAdminTotp(revealTwoFactorSecret(admin.twoFactorSecret, this.config), code);
     const recoveryCodes = generateAdminRecoveryCodes();
     const hashes = await Promise.all(recoveryCodes.map((value) => argon2.hash(normalizeAdminRecoveryCode(value))));
 
@@ -76,7 +77,7 @@ export class AdminTwoFactorCommandService {
   async disable(adminUserId: string, code: string, meta: RequestMeta = {}) {
     const admin = await this.activeAdmin(adminUserId);
     if (!admin.twoFactorEnabled || !admin.twoFactorSecret) throw new UnauthorizedException('Two factor is not enabled');
-    assertAdminTotp(admin.twoFactorSecret, code);
+    assertAdminTotp(revealTwoFactorSecret(admin.twoFactorSecret, this.config), code);
     await this.prisma.$transaction(async (tx) => {
       await tx.adminUser.update({
         where: { id: admin.id },
@@ -100,7 +101,7 @@ export class AdminTwoFactorCommandService {
   async regenerateRecoveryCodes(adminUserId: string, code: string, meta: RequestMeta = {}) {
     const admin = await this.activeAdmin(adminUserId);
     if (!admin.twoFactorEnabled || !admin.twoFactorSecret) throw new UnauthorizedException('Two factor is not enabled');
-    assertAdminTotp(admin.twoFactorSecret, code);
+    assertAdminTotp(revealTwoFactorSecret(admin.twoFactorSecret, this.config), code);
     const recoveryCodes = generateAdminRecoveryCodes();
     const hashes = await Promise.all(recoveryCodes.map((value) => argon2.hash(normalizeAdminRecoveryCode(value))));
     await this.prisma.$transaction(async (tx) => {

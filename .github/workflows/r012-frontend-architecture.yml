@@ -44,7 +44,7 @@ jobs:
         with:
           node-version: 22
       - run: corepack enable
-      - run: corepack prepare pnpm@9.0.0 --activate
+      - run: corepack prepare pnpm@11.13.0 --activate
       - run: pnpm install --frozen-lockfile
       - run: node tools/audit-r012-feature-boundaries.mjs
       - run: node tools/audit-r012-promotion-boundary.mjs

@@ -28,7 +28,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.0.0
+          version: 11.13.0
           run_install: false
 
       - name: Set up Node.js
@@ -64,7 +64,7 @@ jobs:
 
       - name: Focused R-007 regression tests
         run: >-
-          pnpm --filter @platform/api test --
+          pnpm --filter @platform/api exec jest
           admin-auth.service.spec.ts
           promotions.service.spec.ts
           settlement-command.service.spec.ts
@@ -75,7 +75,7 @@ jobs:
           --runInBand
 
       - name: Full API tests
-        run: pnpm --filter @platform/api test -- --runInBand
+        run: pnpm --filter @platform/api exec jest --runInBand
 
       - name: API build
         run: pnpm --filter @platform/api build

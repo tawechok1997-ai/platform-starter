@@ -13,20 +13,38 @@ import { buildStructuredLogRecord } from './common/observability/structured-log'
 import { toSafeLogRecord } from './common/security/sensitive-log-redactor';
 
 type RateBucket = { count: number; resetAt: number };
-type RateRule = { method: string; path: string; max: number; env?: string };
+type RateRule = { method: string; path: string; max: number; env?: string; prefix?: boolean };
 type RateDecision = { allowed: boolean; retryAfterSeconds?: number };
 
 const rateBuckets = new Map<string, RateBucket>();
 const RATE_RULES: RateRule[] = [
-  { method: 'POST', path: '/auth/login', max: 10, env: 'RATE_LIMIT_MEMBER_LOGIN_PER_MINUTE' },
-  { method: 'POST', path: '/auth/register', max: 8, env: 'RATE_LIMIT_MEMBER_REGISTER_PER_MINUTE' },
+  { method: 'POST', path: '/member/auth/login', max: 10, env: 'RATE_LIMIT_MEMBER_LOGIN_PER_MINUTE' },
+  { method: 'POST', path: '/member/auth/register', max: 8, env: 'RATE_LIMIT_MEMBER_REGISTER_PER_MINUTE' },
+  {
+    method: 'POST',
+    path: '/member/auth/password-reset/request',
+    max: 5,
+    env: 'RATE_LIMIT_PASSWORD_RESET_REQUEST_PER_MINUTE',
+  },
+  {
+    method: 'POST',
+    path: '/member/auth/password-reset/confirm',
+    max: 5,
+    env: 'RATE_LIMIT_PASSWORD_RESET_CONFIRM_PER_MINUTE',
+  },
   { method: 'POST', path: '/admin/auth/login', max: 10, env: 'RATE_LIMIT_ADMIN_LOGIN_PER_MINUTE' },
   { method: 'POST', path: '/admin/auth/2fa/verify', max: 10, env: 'RATE_LIMIT_ADMIN_2FA_PER_MINUTE' },
   { method: 'POST', path: '/admin/auth/refresh', max: 30, env: 'RATE_LIMIT_ADMIN_REFRESH_PER_MINUTE' },
   { method: 'POST', path: '/member/topups', max: 20, env: 'RATE_LIMIT_TOPUPS_PER_MINUTE' },
   { method: 'POST', path: '/member/topups/slip', max: 12, env: 'RATE_LIMIT_SLIP_UPLOAD_PER_MINUTE' },
   { method: 'POST', path: '/member/withdrawals', max: 12, env: 'RATE_LIMIT_WITHDRAWALS_PER_MINUTE' },
-  { method: 'POST', path: '/provider-webhooks/', max: 120, env: 'RATE_LIMIT_PROVIDER_WEBHOOK_PER_MINUTE' },
+  {
+    method: 'POST',
+    path: '/provider-webhooks/',
+    max: 120,
+    env: 'RATE_LIMIT_PROVIDER_WEBHOOK_PER_MINUTE',
+    prefix: true,
+  },
 ];
 
 let redis: Redis | null = null;
@@ -35,7 +53,9 @@ async function bootstrap() {
   validateRuntimeEnvironment();
   const app = await NestFactory.create(AppModule, { rawBody: true });
   const config = app.get(ConfigService);
-  const trustedProxyHops = readTrustedProxyHops(config.get<string>('TRUSTED_PROXY_HOPS') ?? process.env.TRUSTED_PROXY_HOPS);
+  const trustedProxyHops = readTrustedProxyHops(
+    config.get<string>('TRUSTED_PROXY_HOPS') ?? process.env.TRUSTED_PROXY_HOPS,
+  );
   app.getHttpAdapter().getInstance().set('trust proxy', trustedProxyHops);
   redis = createRedisClient(config.get<string>('REDIS_URL') ?? process.env.REDIS_URL);
 
@@ -115,26 +135,28 @@ async function bootstrap() {
 }
 
 function getRateLimitKeys(req: any, ip: string, path: string) {
-  const keys = [`ip:${ip}`];
+  const routeKey = createHash('sha256').update(`${req.method}:${path}`).digest('hex').slice(0, 16);
+  const keys = [`route:${routeKey}:ip:${ip}`];
   if (!/\/(?:admin\/)?auth\/(?:login|register)$/.test(path)) return keys;
 
   const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const identity = [body.username, body.email, body.phone]
-    .find((value) => typeof value === 'string' && value.trim().length > 0);
+  const identity = [body.identifier, body.username, body.email, body.phone].find(
+    (value) => typeof value === 'string' && value.trim().length > 0,
+  );
   if (!identity) return keys;
 
-  const accountHash = createHash('sha256')
-    .update(String(identity).trim().toLowerCase())
-    .digest('hex')
-    .slice(0, 32);
-  keys.push(`account:${accountHash}`);
+  const accountHash = createHash('sha256').update(String(identity).trim().toLowerCase()).digest('hex').slice(0, 32);
+  keys.push(`route:${routeKey}:account:${accountHash}`);
   return keys;
 }
 
 function getRateLimit(method: string, path: string): { max: number; windowMs: number } | null {
   const verb = String(method).toUpperCase();
   const normalizedPath = String(path).split('?')[0];
-  const matched = RATE_RULES.find((rule) => verb === rule.method && normalizedPath.startsWith(rule.path));
+  const matched = RATE_RULES.find(
+    (rule) =>
+      verb === rule.method && (rule.prefix ? normalizedPath.startsWith(rule.path) : normalizedPath === rule.path),
+  );
   if (!matched) return null;
   const envValue = matched.env ? process.env[matched.env] : undefined;
   const max = Number(envValue ?? process.env.RATE_LIMIT_PER_MINUTE ?? matched.max);
@@ -151,11 +173,15 @@ async function checkRateLimit(key: string, max: number, windowMs: number): Promi
       const ttl = await redis.pttl(redisKey);
       return { allowed: false, retryAfterSeconds: Math.max(Math.ceil(ttl / 1000), 1) };
     } catch (error) {
-      console.error(JSON.stringify(toSafeLogRecord({
-        level: 'error',
-        event: 'redis_rate_limit_failed',
-        error,
-      })));
+      console.error(
+        JSON.stringify(
+          toSafeLogRecord({
+            level: 'error',
+            event: 'redis_rate_limit_failed',
+            error,
+          }),
+        ),
+      );
     }
   }
   return checkMemoryRateLimit(key, max, windowMs);
@@ -177,16 +203,28 @@ function checkMemoryRateLimit(key: string, max: number, windowMs: number): RateD
 function createRedisClient(url?: string | null) {
   if (!url) return null;
   const client = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 1, enableReadyCheck: false });
-  client.on('error', (error) => console.error(JSON.stringify(toSafeLogRecord({
-    level: 'error',
-    event: 'redis_client_error',
-    error,
-  }))));
-  client.connect().catch((error) => console.error(JSON.stringify(toSafeLogRecord({
-    level: 'error',
-    event: 'redis_connect_failed',
-    error,
-  }))));
+  client.on('error', (error) =>
+    console.error(
+      JSON.stringify(
+        toSafeLogRecord({
+          level: 'error',
+          event: 'redis_client_error',
+          error,
+        }),
+      ),
+    ),
+  );
+  client.connect().catch((error) =>
+    console.error(
+      JSON.stringify(
+        toSafeLogRecord({
+          level: 'error',
+          event: 'redis_connect_failed',
+          error,
+        }),
+      ),
+    ),
+  );
   return client;
 }
 

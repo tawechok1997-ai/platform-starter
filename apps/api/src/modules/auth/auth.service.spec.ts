@@ -10,13 +10,21 @@ type PrismaMock = ReturnType<typeof createPrismaMock>;
 
 function createPrismaMock() {
   const tx = {
-    user: { create: jest.fn(async ({ data }: any) => ({ id: 'user-1', ...data })), update: jest.fn(async ({ data }: any) => ({ id: 'user-1', ...data })) },
+    user: {
+      create: jest.fn(async ({ data }: any) => ({ id: 'user-1', ...data })),
+      update: jest.fn(async ({ data }: any) => ({ id: 'user-1', ...data })),
+    },
     userProfile: { upsert: jest.fn(async ({ create, update }: any) => ({ ...(create ?? {}), ...(update ?? {}) })) },
     wallet: { create: jest.fn(async ({ data }: any) => ({ id: 'wallet-1', ...data })) },
     memberBankAccount: {
       findFirst: jest.fn(async () => null),
       create: jest.fn(async ({ data }: any) => ({ id: 'bank-1', ...data })),
     },
+    verificationToken: {
+      updateMany: jest.fn(async () => ({ count: 1 })),
+      create: jest.fn(async ({ data }: any) => ({ id: 'reset-token-1', ...data })),
+    },
+    authSession: { updateMany: jest.fn(async () => ({ count: 1 })) },
   };
 
   const prisma = {
@@ -26,6 +34,7 @@ function createPrismaMock() {
     authSession: {
       create: jest.fn(async ({ data }: any) => ({ id: 'session-1', ...data })),
     },
+    verificationToken: { findFirst: jest.fn(async () => null) },
     $transaction: jest.fn(async (callback: (client: typeof tx) => unknown) => callback(tx)),
     __tx: tx,
   };
@@ -33,9 +42,9 @@ function createPrismaMock() {
   return prisma;
 }
 
-function createService(prisma: PrismaMock) {
+function createService(prisma: PrismaMock, config: Record<string, string> = {}) {
   const jwtService = { signAsync: jest.fn(async () => 'access-token') };
-  const configService = { get: jest.fn(() => undefined) };
+  const configService = { get: jest.fn((key: string) => config[key]) };
   return new AuthService(prisma as any, jwtService as any, configService as any);
 }
 
@@ -56,9 +65,9 @@ describe('AuthService member registration', () => {
     const prisma = createPrismaMock();
     const service = createService(prisma);
 
-    await expect(
-      service.register({ ...validDto, bankAccountName: 'บุคคล อื่น' }, {}),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.register({ ...validDto, bankAccountName: 'บุคคล อื่น' }, {})).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
 
     expect(prisma.$transaction).not.toHaveBeenCalled();
     expect(prisma.authSession.create).not.toHaveBeenCalled();
@@ -119,29 +128,37 @@ describe('AuthService member registration', () => {
   });
 });
 
-
 describe('AuthService member profile update', () => {
   it('returns a specific duplicate phone error before updating profile', async () => {
     const prisma = createPrismaMock();
-    prisma.user.findFirst.mockResolvedValueOnce({ id: 'other-user', phone: '0812345678', email: 'other@example.com' } as any);
+    prisma.user.findFirst.mockResolvedValueOnce({
+      id: 'other-user',
+      phone: '0812345678',
+      email: 'other@example.com',
+    } as any);
     const service = createService(prisma);
 
-    await expect(service.updateMemberProfile('user-1', { phone: '0812345678', email: 'new@example.com' } as any))
-      .rejects.toThrow('เบอร์โทรนี้ถูกใช้กับสมาชิกอื่นแล้ว');
+    await expect(
+      service.updateMemberProfile('user-1', { phone: '0812345678', email: 'new@example.com' } as any),
+    ).rejects.toThrow('เบอร์โทรนี้ถูกใช้กับสมาชิกอื่นแล้ว');
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
   it('returns a specific duplicate email error before updating profile', async () => {
     const prisma = createPrismaMock();
-    prisma.user.findFirst.mockResolvedValueOnce({ id: 'other-user', phone: '0899999999', email: 'used@example.com' } as any);
+    prisma.user.findFirst.mockResolvedValueOnce({
+      id: 'other-user',
+      phone: '0899999999',
+      email: 'used@example.com',
+    } as any);
     const service = createService(prisma);
 
-    await expect(service.updateMemberProfile('user-1', { phone: '0812345678', email: 'USED@example.com' } as any))
-      .rejects.toThrow('อีเมลนี้ถูกใช้กับสมาชิกอื่นแล้ว');
+    await expect(
+      service.updateMemberProfile('user-1', { phone: '0812345678', email: 'USED@example.com' } as any),
+    ).rejects.toThrow('อีเมลนี้ถูกใช้กับสมาชิกอื่นแล้ว');
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });
-
 
 describe('AuthService progressive lockout', () => {
   it('locks a member after consecutive failed sign-ins', async () => {
@@ -151,19 +168,79 @@ describe('AuthService progressive lockout', () => {
       status: 'ACTIVE',
       passwordHash: 'stored-hash',
     } as any);
-    prisma.loginHistory.findMany.mockResolvedValueOnce(
-      Array.from({ length: 8 }, () => ({ success: false })) as any,
-    );
+    prisma.loginHistory.findMany.mockResolvedValueOnce(Array.from({ length: 8 }, () => ({ success: false })) as any);
     const argon2 = await import('argon2');
     (argon2.verify as jest.Mock).mockResolvedValueOnce(false);
     const service = createService(prisma);
 
-    await expect(service.signIn({ identifier: 'member01', secret: 'wrong' } as any, { ipAddress: '127.0.0.1' }))
-      .rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(
+      service.signIn({ identifier: 'member01', secret: 'wrong' } as any, { ipAddress: '127.0.0.1' }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
 
     expect(prisma.user.updateMany).toHaveBeenCalledWith({
       where: { id: 'member-1', status: 'ACTIVE' },
       data: { status: 'LOCKED' },
     });
+  });
+});
+
+describe('AuthService password reset', () => {
+  it('uses a database selector and only exposes the composite token in development', async () => {
+    const prisma = createPrismaMock();
+    prisma.user.findFirst.mockResolvedValueOnce({ id: 'member-1' } as any);
+    const service = createService(prisma, { PASSWORD_RESET_EXPOSE_TOKEN: 'true' });
+
+    const result = await service.requestPasswordReset('member01');
+
+    expect(result).toEqual({
+      success: true,
+      deliveryQueued: false,
+      resetToken: expect.stringMatching(/^reset-token-1\./),
+    });
+    expect(prisma.__tx.verificationToken.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ type: 'PASSWORD_RESET', target: 'member-1' }),
+      select: { id: true },
+    });
+  });
+
+  it('looks up one reset-token row by selector before verifying the secret', async () => {
+    const prisma = createPrismaMock();
+    prisma.verificationToken.findFirst.mockResolvedValueOnce({
+      id: 'reset-token-1',
+      target: 'member-1',
+      tokenHash: 'hashed-secret',
+    } as any);
+    const service = createService(prisma);
+
+    await expect(
+      service.confirmPasswordReset({ token: 'reset-token-1.raw-secret', newPassword: 'new-secret-123' }),
+    ).resolves.toEqual({ success: true, revokedSessions: true });
+
+    expect(prisma.verificationToken.findFirst).toHaveBeenCalledWith({
+      where: {
+        id: 'reset-token-1',
+        type: 'PASSWORD_RESET',
+        usedAt: null,
+        expiresAt: { gt: expect.any(Date) },
+      },
+    });
+    expect(prisma.__tx.verificationToken.updateMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({ id: 'reset-token-1', usedAt: null }),
+      data: { usedAt: expect.any(Date) },
+    });
+    expect(prisma.__tx.authSession.updateMany).toHaveBeenCalledWith({
+      where: { userId: 'member-1', type: 'MEMBER', revokedAt: null },
+      data: { revokedAt: expect.any(Date) },
+    });
+  });
+
+  it('rejects malformed reset tokens without scanning token rows', async () => {
+    const prisma = createPrismaMock();
+    const service = createService(prisma);
+
+    await expect(
+      service.confirmPasswordReset({ token: 'malformed', newPassword: 'new-secret-123' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(prisma.verificationToken.findFirst).not.toHaveBeenCalled();
   });
 });
