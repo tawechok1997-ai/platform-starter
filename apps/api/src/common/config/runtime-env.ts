@@ -29,8 +29,13 @@ export function validateRuntimeEnvironment(env: NodeJS.ProcessEnv = process.env)
     try {
       const parsed = new URL(value);
       if (!parsed.protocol || !parsed.hostname) failures.push(`${key} must be an absolute URL`);
-      if (production && (key === 'MEMBER_WEB_URL' || key === 'ADMIN_WEB_URL') && parsed.protocol !== 'https:') {
-        failures.push(`${key} must use https in production`);
+      if (
+        production &&
+        (key === 'MEMBER_WEB_URL' || key === 'ADMIN_WEB_URL') &&
+        parsed.protocol !== 'https:' &&
+        !isTrustedInternalHttpUrl(parsed)
+      ) {
+        failures.push(`${key} must use https in production unless it targets a trusted internal service`);
       }
     } catch {
       failures.push(`${key} must be a valid absolute URL`);
@@ -68,4 +73,18 @@ export function validateRuntimeEnvironment(env: NodeJS.ProcessEnv = process.env)
   if (failures.length > 0) {
     throw new Error(`Runtime environment validation failed:\n- ${failures.join('\n- ')}`);
   }
+}
+
+function isTrustedInternalHttpUrl(url: URL): boolean {
+  if (url.protocol !== 'http:') return false;
+
+  const hostname = url.hostname.toLowerCase();
+  if (hostname === 'localhost' || hostname === '::1' || hostname.endsWith('.localhost')) return true;
+  if (hostname.endsWith('.internal') || hostname.endsWith('.local')) return true;
+  if (/^127(?:\.\d{1,3}){3}$/.test(hostname)) return true;
+  if (/^10(?:\.\d{1,3}){3}$/.test(hostname)) return true;
+  if (/^192\.168(?:\.\d{1,3}){2}$/.test(hostname)) return true;
+
+  const private172 = /^172\.(\d{1,3})(?:\.\d{1,3}){2}$/.exec(hostname);
+  return private172 ? Number(private172[1]) >= 16 && Number(private172[1]) <= 31 : false;
 }
