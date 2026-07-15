@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'apps/api/src/common/query/**'
+      - 'apps/api/src/database/**'
       - 'apps/api/src/modules/notifications/**'
       - 'apps/api/src/modules/reports/**'
       - 'apps/api/src/**/*.service.ts'
@@ -16,6 +17,7 @@ on:
   pull_request:
     paths:
       - 'apps/api/src/common/query/**'
+      - 'apps/api/src/database/**'
       - 'apps/api/src/modules/notifications/**'
       - 'apps/api/src/modules/reports/**'
       - 'apps/api/src/**/*.service.ts'
@@ -61,5 +63,9 @@ jobs:
         run: node tools/audit-r010-sensitive-report-projections.mjs
       - name: Response contract snapshots
         run: pnpm --filter @platform/api test -- src/modules/reports/report-response-contracts.spec.ts src/modules/notifications/notification-response-contracts.spec.ts --runInBand
+      - name: Query performance instrumentation guard
+        run: node tools/audit-r010-query-performance-metrics.mjs
+      - name: Query performance monitor contracts
+        run: pnpm --filter @platform/api test -- src/database/query-performance.monitor.spec.ts --runInBand
       - name: API typecheck
         run: pnpm typecheck:api
