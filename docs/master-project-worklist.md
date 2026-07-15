@@ -20,7 +20,7 @@
 | P2 Product completion | ✅ DONE ฝั่งโค้ด |
 | P3 Provider foundation | ✅ DONE ฝั่งโค้ด |
 | P4 Architecture / UI / observability | ✅ DONE ฝั่งโค้ด |
-| P5 Performance / storage / CI | 🟡 IN PROGRESS |
+| P5 Performance / storage / CI | ✅ DONE ฝั่งโค้ด |
 | P6 External verification / production / vendor UAT | ⏸️ BLOCKED / WAITING |
 
 ---
@@ -151,7 +151,7 @@
 
 # P5 — Performance, storage และ CI hardening
 
-สถานะ: 🟡 IN PROGRESS
+สถานะ: ✅ DONE ฝั่งโค้ด
 
 ## Query และ cache
 
@@ -187,12 +187,20 @@
 - [x] Shared ESLint/format config
 - [x] Test taxonomy และ browser console/network failure gate
 - [x] Playwright smoke/visual commands
-- [ ] Web unit/component coverage สำหรับ critical components
-- [ ] Authenticated visual artifact workflow รองรับ seeded environment
+- [x] Web unit/component coverage สำหรับ critical components
+- [x] Authenticated visual artifact workflow รองรับ seeded environment
 - [x] Env schema และ startup validation
-- [ ] Dependency/security audit และ production secret guard
+- [x] Dependency/security audit และ production secret guard
+
+**หลักฐาน web coverage:** Member finance component tests และ Admin security critical-component contract tests มี package-level `test` scripts และ workflow `P5 Web Unit Coverage`; commits `f616ecb0`, `6d30c733`, `77ab2dc0` ผ่าน deploy checks
+
+**หลักฐาน authenticated visual workflow:** Playwright config/spec รองรับ seeded Member/Admin credentials ผ่าน environment, desktop/mobile projects, screenshots, trace, video และ HTML report พร้อม workflow-dispatch artifact retention 14 วัน; commits `9391ab09`, `26d2caae`, `d780e114` การรันด้วย credentials จริงอยู่ใน P6
 
 **หลักฐาน env/startup:** `apps/api/src/common/config/runtime-env.ts` ตรวจ URL, proxy hops, rate limits, production HTTPS, production-required URLs, weak secret placeholders และ storage config ก่อน bootstrap; มี `runtime-env.spec.ts` และรองรับ HTTP เฉพาะ localhost/private/internal production URLs โดยยังบล็อก public HTTP
+
+**หลักฐาน dependency/security:** root commands `audit:dependency-security` และ `audit:production-secrets` ตรวจ production dependencies, private keys, `.env`, certificate/key files และ secret patterns; workflow `P5 Security Audit` รัน lockfile install, dependency audit, secret scan และ env regression โดยใช้สิทธิ์ `contents: read`; commits `ceb80eab`, `bb665c18`, `ccfbab67`
+
+> การรัน authenticated visual workflow ด้วยบัญชีจริง, production workload verification, storage retention approval และ vendor UAT อยู่ใน P6 เพราะต้องใช้ credentials หรือ environment ภายนอก ไม่ใช่งาน implementation คงค้างใน repository
 
 ---
 
@@ -247,14 +255,14 @@
 
 ---
 
-# ลำดับทำงานโค้ดถัดไป
+# ลำดับทำงานถัดไป
 
-1. เพิ่ม web unit/component coverage
-2. เพิ่ม authenticated visual artifact workflow รองรับ seeded environment
-3. ปิด dependency/security CI hardening แล้วเริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
+1. จัดเตรียม seeded credentials และ deployed URLs สำหรับ P6
+2. รัน authenticated/deployed regressions และเก็บ visual artifacts
+3. ทำ staging/production verification และ vendor-specific UAT ก่อนเปิดเงินจริง
 
 # จำนวนงานคงค้าง
 
-- งานโค้ดใน P0 ถึง P5: **3 รายการ**
+- งานโค้ดใน P0 ถึง P5: **0 รายการ**
 - งาน external verification และ UAT ใน P6: **30 รายการ**
-- รวม checkbox ที่ยังไม่ปิด: **33 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **30 รายการ**
