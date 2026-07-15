@@ -12,12 +12,13 @@ import { useMemberSession } from './member-session-provider';
 import { usePendingCount } from './hooks/use-pending-count';
 import { MemberCard, MemberLinkButton } from './components/member-ui';
 import { CloseIcon, MemberIcon, MenuIcon } from './components/member-icon';
+import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
 
 export default function MemberChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const { typedSettings } = useSiteSettings();
-  const { ready, isLoggedIn, logout } = useMemberSession();
+  const { ready, isLoggedIn, wallet, walletLoading, logout } = useMemberSession();
   const { website, branding, icons, features: typedFeatures } = typedSettings;
 
   const features: MemberFeatureFlags = {
@@ -91,7 +92,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
       <div className="member-header-tools"><button type="button" className="member-header-tool" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนู"><MenuIcon /></button><a className="member-header-tool" href="/games" aria-label="ค้นหาเกม">⌕</a></div>
       <a href="/" className="member-brand"><span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="" className="member-brand-logo" /> : brandMark}</span><span className="member-brand-copy"><strong>{siteName}</strong><small>{siteDescription}</small></span></a>
       <nav className="member-desktop-nav" aria-label="เมนูหลักเดสก์ท็อป">{visibleBottomNav.map((item) => <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}><IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} /><span>{item.shortTitle ?? item.title}</span>{item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}</a>)}</nav>
-      <div className="member-actions"><a href="/notifications" className="member-header-icon" aria-label="แจ้งเตือน"><MemberIcon name="notification" />{pendingCount > 0 && <em>{pendingCount}</em>}</a><span className="member-header-wallet">▣&nbsp; 0.00</span></div>
+      <div className="member-actions"><a href="/notifications" className="member-header-icon" aria-label="แจ้งเตือน"><MemberIcon name="notification" />{pendingCount > 0 && <em>{pendingCount}</em>}</a><span className="member-header-wallet" aria-label={walletLoading ? 'กำลังโหลดยอดเงิน' : `ยอดใช้ได้ ${formatMemberWalletBalance(wallet)}`} aria-live="polite">▣&nbsp; {walletLoading ? '…' : formatMemberWalletBalance(wallet)}</span></div>
     </div></header>
 
     <MemberCategoryRail pathname={pathname} features={features} />

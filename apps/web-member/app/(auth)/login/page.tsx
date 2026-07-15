@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { AntiBotWidget } from '../anti-bot-widget';
 import { PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags, textSetting } from '../../site-settings';
 import { memberApiFetch } from '../../member-api';
+import { resolveMemberLoginDestination } from '../../../src/features/auth/auth-redirect';
 
 type Locale = 'th' | 'en';
 type LoginErrors = { identifier?: string; secret?: string };
@@ -29,7 +30,10 @@ export default function MemberSignInPage() {
   const [showSecret, setShowSecret] = useState(false);
 
   useEffect(() => {
-    if (window.localStorage.getItem('member_access_token') || window.localStorage.getItem('member_refresh_token')) { window.location.replace('/'); return; }
+    if (window.localStorage.getItem('member_access_token') || window.localStorage.getItem('member_refresh_token')) {
+      window.location.replace(resolveMemberLoginDestination(window.location.search));
+      return;
+    }
     const savedLocale = window.localStorage.getItem('member_locale');
     if (savedLocale === 'th' || savedLocale === 'en') setLocale(savedLocale);
     loadPublicSiteSettings().then(setSettings).catch(() => setSettings(defaultSettings));
@@ -66,7 +70,7 @@ export default function MemberSignInPage() {
       if (!res.ok) { setStatus('error'); setMessage(typeof data?.message === 'string' ? data.message : t.failed); setCaptchaResetKey((value) => value + 1); return; }
       window.localStorage.setItem('member_access_token', data.accessToken);
       window.localStorage.setItem('member_refresh_token', data.refreshToken);
-      setStatus('success'); setMessage(t.success); window.location.replace('/');
+      setStatus('success'); setMessage(t.success); window.location.replace(resolveMemberLoginDestination(window.location.search));
     } catch (error) {
       const aborted = error instanceof DOMException && error.name === 'AbortError';
       setStatus('error'); setMessage(aborted ? t.timeout : t.failed); setCaptchaResetKey((value) => value + 1);

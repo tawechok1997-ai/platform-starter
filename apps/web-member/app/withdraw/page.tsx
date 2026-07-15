@@ -10,6 +10,7 @@ import type {
   WithdrawalItem,
   WithdrawStep,
 } from '../types/member-finance';
+import { MEMBER_WALLET_REFRESH_EVENT } from '../../src/features/wallet/member-wallet';
 
 export default function WithdrawPage() {
   const [step, setStep] = useState<WithdrawStep>('account');
@@ -115,6 +116,7 @@ export default function WithdrawPage() {
     setItems((current) => [data, ...current]);
     setMessage('ส่งคำขอถอนสำเร็จ');
     setStep('waiting');
+    window.dispatchEvent(new Event(MEMBER_WALLET_REFRESH_EVENT));
     await loadAll();
   }
 

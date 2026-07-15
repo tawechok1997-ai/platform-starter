@@ -19,7 +19,7 @@ Source of truth for Member UX/UI work: this file
 
 - [x] `@platform/web-member` lint passes
 - [x] `@platform/web-member` TypeScript check passes
-- [x] Member finance unit suite passes: 8/8 tests
+- [x] Member unit suite passes: 13/13 tests across auth redirect and finance/wallet helpers
 - [x] Member production build passes: 29 App Router routes generated
 - [x] R-013 token, primitive, responsive, accessibility-baseline, and visual-contract audits pass
 - [x] Six named public visual viewport projects exist: 360×800, 390×844, 430×932, 768×1024, 1024×768, and 1440×900
@@ -82,7 +82,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Create FileUpload, FilePreview, Progress, cancel/retry, and secure-download feedback components
 - [ ] Create reusable carousel/rail behavior with swipe and keyboard support
 - [ ] Remove duplicate Member/Finance control and state implementations
-- [ ] Add component tests for critical primitives; only one Member unit spec currently exists
+- [ ] Add component tests for critical primitives; the current Member suite covers auth redirect and finance/wallet helpers only
 
 ## MEMBER-SYSTEM-002 Motion and interaction
 
@@ -117,7 +117,7 @@ Source of truth for Member UX/UI work: this file
 - [x] Finance query-key and invalidation contracts exist
 - [x] Notifications implement optimistic read/archive/preference updates with rollback
 - [x] Support implements 60-second ticket refresh and reply states
-- [ ] Restore the intended `?next=` destination after Login; MemberChrome creates it but Login currently redirects to `/`
+- [x] Restore and validate the intended internal `?next=` destination after Login, with unsafe/external destinations rejected
 - [ ] Define shared stale-time, retry, cancellation, invalidation, and polling policies
 - [ ] Handle offline state, token refresh, and session expiry centrally
 - [ ] Standardize optimistic rollback and version-conflict handling across domains
@@ -132,7 +132,7 @@ Source of truth for Member UX/UI work: this file
 - [x] Multi-step Registration with legal name, bank selection, referral, terms, review, and success handling
 - [x] Login/Register visual specs are configured for the six standard public viewports
 - [ ] Add Caps Lock warning, remember-me decision, lockout messaging, and focus-first-error
-- [ ] Restore intended destination after successful Login
+- [x] Restore a validated internal destination after successful Login
 - [ ] Add contact verification/OTP and expired/exhausted verification states
 - [ ] Add confirm-password and password-strength behavior
 - [ ] Verify 200% zoom, long Thai text, keyboard, screen reader, and accessibility in browsers
@@ -154,7 +154,7 @@ Source of truth for Member UX/UI work: this file
 - [x] Home promotion hero, announcements, quick actions, pending requests, game rails, categories, FAQ, and recent activity
 - [x] Home recent activity supports loading, empty, error, and retry states
 - [x] Safe-area rules and pending notification/transaction badge behavior
-- [ ] Replace the hard-coded topbar wallet value `0.00` with real wallet data
+- [x] Replace the hard-coded topbar wallet value with session wallet data, including loading, focus refresh, and post-withdraw refresh
 - [ ] Add scroll restoration, route loading, stale timestamp, complete partial-failure handling, and skeletons
 - [ ] Complete six-viewport authenticated Home/navigation evidence
 
@@ -375,7 +375,7 @@ Source of truth for Member UX/UI work: this file
 - Repository commit audited: `f1a80270094123eb51620c8537d980c4501c057c`
 - Member lint: passed on 2026-07-16
 - Member typecheck: passed on 2026-07-16
-- Member unit tests: 8/8 passed on 2026-07-16
+- Member unit tests: 13/13 passed on 2026-07-16
 - Member production build: passed; 29 routes generated on 2026-07-16
 - R-013 static contracts: token, primitive, responsive, accessibility baseline, and visual contract passed on 2026-07-16
 - Railway commit statuses: Member, API, and Admin succeeded for the audited commit

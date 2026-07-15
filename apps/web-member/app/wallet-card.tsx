@@ -1,30 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { memberApiFetch } from './member-api';
-
-type WalletResponse = {
-  currency: string;
-  balance: string;
-  lockedBalance: string;
-  availableBalance: string;
-  status: string;
-};
+import { useMemberSession } from './member-session-provider';
 
 export default function WalletCard({ primaryColor, cardColor, showButtons }: { primaryColor: string; cardColor: string; showButtons: boolean }) {
-  const [wallet, setWallet] = useState<WalletResponse | null>(null);
-  const [message, setMessage] = useState('กำลังโหลด...');
-
-  useEffect(() => {
-    memberApiFetch('/member/wallet')
-      .then(async (res) => {
-        const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(data?.message ?? 'โหลดข้อมูลไม่สำเร็จ');
-        return data;
-      })
-      .then((data) => { setWallet(data); setMessage(''); })
-      .catch((error) => setMessage(error.message));
-  }, []);
+  const { wallet, walletLoading } = useMemberSession();
 
   const currency = wallet?.currency ?? 'THB';
   const available = wallet ? Number(wallet.availableBalance) : 0;
@@ -46,7 +25,7 @@ export default function WalletCard({ primaryColor, cardColor, showButtons }: { p
         <div style={miniBoxStyle}><span>รอดำเนินการ</span><strong>{locked.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</strong></div>
       </div>
 
-      {message && <div style={noticeStyle}>{message}</div>}
+      {(walletLoading || !wallet) && <div style={noticeStyle}>{walletLoading ? 'กำลังโหลด...' : 'ไม่พบข้อมูลวอเลต'}</div>}
 
       {showButtons && (
         <div style={actionRowStyle}>
