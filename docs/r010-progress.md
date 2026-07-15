@@ -1,8 +1,9 @@
 # R-010 Progress
 
-Status: 🟡 ACTIVE
+Status: ✅ DONE
 
 Started: 2026-07-15
+Closed: 2026-07-15
 
 Source of truth: `docs/master-project-worklist.md`
 
@@ -25,7 +26,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Create a report read model.
 - [x] Audit sensitive fields in projections.
 - [x] Add response snapshot and contract tests.
-- [ ] Add EXPLAIN ANALYZE evidence for heavy queries.
+- [x] Add EXPLAIN ANALYZE evidence for heavy queries.
 - [x] Add N+1 and slow-query metrics.
 
 ## Safety rules
@@ -43,7 +44,17 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - Query inventory, ownership, projections, pagination, filter/sort validation, dashboard/report read models, sensitive-field guards, and deterministic response snapshots are closed.
 - Evidence is recorded under `docs/evidence/r010-*.md`.
 
-### 13. Add N+1 and slow-query metrics
+### 12. EXPLAIN ANALYZE evidence
+
+- Added `tools/r010-explain-analyze.mjs` using PostgreSQL `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)`.
+- Covered dashboard aggregation, pending queue aging, wallet reconciliation scan, and latest-ledger lookup.
+- Added `tools/audit-r010-explain-analyze-evidence.mjs` requiring raw plans, planning time, execution time, and root node type.
+- Verification-only PR #30 ran `R-010 EXPLAIN ANALYZE` workflow run `29380355683` (run #7).
+- Job `87242466884` completed successfully, including schema creation, Prisma generation, plan capture, artifact upload, and validator success.
+- Artifact `8329415192` from the preceding inspection run was downloaded and inspected; it contained all four PostgreSQL plans and measured timing/buffer fields.
+- The CI baseline is an empty-schema PostgreSQL 16 verification, not a production-volume benchmark.
+
+### 13. N+1 and slow-query metrics
 
 - Added `QueryPerformanceMonitor` with normalized SHA-256 query fingerprints.
 - Added slow-query signals controlled by `PRISMA_SLOW_QUERY_MS` (default 250 ms).
@@ -53,30 +64,14 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - Added focused unit tests and `tools/audit-r010-query-performance-metrics.mjs`.
 - Wired the guard, tests, and API typecheck into `.github/workflows/r010-query-boundaries.yml`.
 
-## Active work
-
-### 12. Add EXPLAIN ANALYZE evidence for heavy queries
-
-- [x] Identified dashboard aggregation, queue aging, wallet scan, and latest-ledger lookup as the first heavy read families.
-- [x] Added `tools/r010-explain-analyze.mjs` using `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` with fixed read-only SQL.
-- [x] Added `tools/audit-r010-explain-analyze-evidence.mjs` to require raw plans, planning time, execution time, and root node type for all four queries.
-- [x] Added `.github/workflows/r010-explain-analyze.yml` with PostgreSQL 16, real migrations, Prisma generation, evidence validation, and artifact upload.
-- [x] Added package commands `audit:r10:explain` and `audit:r10:explain:validate`.
-- [x] Documented the CI-baseline limitation in `docs/evidence/r010-explain-analyze-baseline.md`.
-- [x] Updated the workflow to persist validated output to `docs/evidence/generated/r010-explain-analyze.json` on `main`, outside its trigger paths.
-- [ ] Close only after the generated evidence file appears and passes the existing validator.
-
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 12
-- Remaining: 1
+- Closed: 13
+- Remaining: 0
 
-## Latest commits
+## Closure commits
 
-- `f5557656ccbe7d02ba2fe7a760a3a573e5542e9e` — persist validated EXPLAIN evidence back to the repository.
-- `4e7fbe83fd3766557055ddb3b9c0e26f6f514bc3` — verify query performance metrics in CI.
-- `9a071d8be40d42c5ce05877a55d1dd132c504835` — guard query performance instrumentation and log safety.
-- `3e11af5a1729fb42b8b981a859e2e37eb4e2d7f0` — instrument Prisma query timing and burst signals.
-- `4b630a58dc9a8748634eb6dea0877fc1822027a6` — test slow-query and N+1 burst contracts.
-- `0f50d33fbbfdca9c2dac4188073c127c26fcc5d5` — add the query performance monitor.
+- `a21deacb46f4cb78d1937cda0e3ce048a15fbfad` — build EXPLAIN verification schema from the Prisma model.
+- `c3069188c1c50500dffbc6fdd509dadda8aeddbe` — accept pnpm argument separators in the evidence validator.
+- `1c7c0f6b7d100a73a8e712de31de5fb15e293a3e` — close N+1 and slow-query metrics.
