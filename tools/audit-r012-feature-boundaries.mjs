@@ -31,6 +31,9 @@ const authEntryPath = 'apps/web-member/src/features/auth/index.ts';
 const providerRoutePath = 'apps/web-admin/app/(admin)/game-providers/page.tsx';
 const providerFeaturePath = 'apps/web-admin/src/features/finance/game-providers-page.tsx';
 const adminFinanceEntryPath = 'apps/web-admin/src/features/finance/index.ts';
+const cmsRoutePath = 'apps/web-admin/app/(admin)/content-center/page.tsx';
+const cmsFeaturePath = 'apps/web-admin/src/features/cms/content-center-page.tsx';
+const adminCmsEntryPath = 'apps/web-admin/src/features/cms/index.ts';
 const depositContainer = read(depositContainerPath);
 const withdrawalContainer = read(withdrawalContainerPath);
 const financeEntry = read(financeEntryPath);
@@ -40,6 +43,9 @@ const authEntry = read(authEntryPath);
 const providerRoute = read(providerRoutePath);
 const providerFeature = read(providerFeaturePath);
 const adminFinanceEntry = read(adminFinanceEntryPath);
+const cmsRoute = read(cmsRoutePath);
+const cmsFeature = read(cmsFeaturePath);
+const adminCmsEntry = read(adminCmsEntryPath);
 
 if (!fs.existsSync(depositViewPath)) failures.push('web-member: missing DepositView presentation component');
 if (!fs.existsSync(depositFormPath)) failures.push('web-member: missing deposit form contract');
@@ -69,7 +75,13 @@ if (!fs.existsSync(providerFeaturePath)) failures.push('web-admin: missing game 
 if (!providerRoute.includes("from '../../../src/features/finance/game-providers-page'")) failures.push('web-admin: provider route must delegate to finance feature implementation');
 if (providerRoute.includes('adminApiFetch(') || providerRoute.includes('useState(')) failures.push('web-admin: provider route must remain a thin entry point');
 if (!providerFeature.includes("from '../../../app/admin-api'")) failures.push('web-admin: provider feature must own provider API orchestration');
-if (!adminFinanceEntry.includes("GameProvidersPage") || !adminFinanceEntry.includes("from './game-providers-page'")) failures.push('web-admin: finance public boundary must export GameProvidersPage');
+if (!adminFinanceEntry.includes('GameProvidersPage') || !adminFinanceEntry.includes("from './game-providers-page'")) failures.push('web-admin: finance public boundary must export GameProvidersPage');
+
+if (!fs.existsSync(cmsFeaturePath)) failures.push('web-admin: missing CMS feature implementation');
+if (!cmsRoute.includes("from '../../../src/features/cms/content-center-page'")) failures.push('web-admin: CMS route must delegate to CMS feature implementation');
+if (cmsRoute.includes('adminApiFetch(') || cmsRoute.includes('useState(')) failures.push('web-admin: CMS route must remain a thin entry point');
+if (!cmsFeature.includes("from '../../../app/admin-api'")) failures.push('web-admin: CMS feature must own CMS API orchestration');
+if (!adminCmsEntry.includes('ContentCenterPage') || !adminCmsEntry.includes("from './content-center-page'")) failures.push('web-admin: CMS public boundary must export ContentCenterPage');
 
 if (!financeEntry.includes("export { DepositView } from './deposit-view'")) failures.push('web-member: finance public boundary must export DepositView');
 if (!financeEntry.includes('export { WithdrawalView')) failures.push('web-member: finance public boundary must export WithdrawalView');
