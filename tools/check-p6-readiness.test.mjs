@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const checker = fileURLToPath(new URL('./check-p6-readiness.mjs', import.meta.url));
 const p6Names = [
+  'P6_ENVIRONMENT',
   'P6_API_URL',
   'P6_ADMIN_URL',
   'P6_MEMBER_URL',
@@ -43,11 +44,7 @@ test('reports every group blocked when no P6 variables exist', () => {
   assert.equal(report.ready, false);
   assert.equal(report.readyGroups, 0);
   assert.equal(report.totalGroups, 3);
-  assert.deepEqual(report.groups.map(({ name, ready }) => ({ name, ready })), [
-    { name: 'deployed-environment', ready: false },
-    { name: 'seeded-credentials', ready: false },
-    { name: 'vendor-uat', ready: false },
-  ]);
+  assert.equal(report.environment, 'non-production');
 });
 
 test('marks only deployed environment ready when URL variables are complete', () => {
@@ -58,11 +55,10 @@ test('marks only deployed environment ready when URL variables are complete', ()
   });
   const report = JSON.parse(result.stdout);
 
-  assert.equal(report.ready, false);
   assert.equal(report.readyGroups, 1);
-  assert.equal(report.groups.find((group) => group.name === 'deployed-environment').ready, true);
-  assert.equal(report.groups.find((group) => group.name === 'seeded-credentials').ready, false);
-  assert.equal(report.groups.find((group) => group.name === 'vendor-uat').ready, false);
+  assert.equal(group(report, 'deployed-environment').ready, true);
+  assert.equal(group(report, 'seeded-credentials').ready, false);
+  assert.equal(group(report, 'vendor-uat').ready, false);
 });
 
 test('strict mode fails when required variables are incomplete', () => {
@@ -82,8 +78,69 @@ test('optional provider secrets do not affect strict readiness', () => {
   const report = JSON.parse(result.stdout);
 
   assert.equal(result.status, 0);
-  assert.equal(report.ready, true);
-  assert.deepEqual(report.groups.find((group) => group.name === 'vendor-uat').optionalPresent, []);
+  assert.deepEqual(group(report, 'vendor-uat').optionalPresent, []);
+});
+
+test('rejects malformed and non-http URLs without echoing values', () => {
+  const secretUrl = 'ftp://hidden-user:hidden-pass@example.test/private';
+  const result = runChecker(['--json'], {
+    ...completeEnv,
+    P6_API_URL: 'not a url',
+    P6_PROVIDER_BASE_URL: secretUrl,
+  });
+  const report = JSON.parse(result.stdout);
+
+  assert.equal(group(report, 'deployed-environment').ready, false);
+  assert.equal(group(report, 'vendor-uat').ready, false);
+  assert.equal(result.stdout.includes('not a url'), false);
+  assert.equal(result.stdout.includes(secretUrl), false);
+  assert.deepEqual(group(report, 'deployed-environment').validationErrors, [
+    { field: 'P6_API_URL', reason: 'must be a valid http or https URL' },
+  ]);
+});
+
+test('production readiness requires HTTPS for every configured URL', () => {
+  const result = runChecker(['--strict', '--json'], {
+    ...completeEnv,
+    P6_ENVIRONMENT: 'production',
+    P6_API_URL: 'http://api.example.test',
+    P6_PROVIDER_CALLBACK_URL: 'http://callback.example.test/provider',
+  });
+  const report = JSON.parse(result.stdout);
+
+  assert.equal(result.status, 1);
+  assert.equal(report.environment, 'production');
+  assert.deepEqual(group(report, 'deployed-environment').validationErrors, [
+    { field: 'P6_API_URL', reason: 'must use HTTPS for production' },
+  ]);
+  assert.deepEqual(group(report, 'vendor-uat').validationErrors, [
+    { field: 'P6_PROVIDER_CALLBACK_URL', reason: 'must use HTTPS for production' },
+  ]);
+});
+
+test('rejects duplicated API, Admin, or Member origins', () => {
+  const result = runChecker(['--json'], {
+    ...completeEnv,
+    P6_ADMIN_URL: completeEnv.P6_API_URL,
+  });
+  const report = JSON.parse(result.stdout);
+
+  assert.equal(group(report, 'deployed-environment').ready, false);
+  assert.deepEqual(group(report, 'deployed-environment').validationErrors, [
+    { field: 'P6_ADMIN_URL', reason: 'same origin as P6_API_URL' },
+  ]);
+});
+
+test('rejects URLs containing embedded credentials', () => {
+  const sensitive = 'https://secret-user:secret-pass@api.example.test';
+  const result = runChecker(['--json'], { ...completeEnv, P6_API_URL: sensitive });
+  const report = JSON.parse(result.stdout);
+
+  assert.equal(group(report, 'deployed-environment').ready, false);
+  assert.equal(result.stdout.includes(sensitive), false);
+  assert.deepEqual(group(report, 'deployed-environment').validationErrors, [
+    { field: 'P6_API_URL', reason: 'must not contain embedded credentials' },
+  ]);
 });
 
 test('JSON output never contains credential or secret values', () => {
@@ -100,14 +157,16 @@ test('JSON output never contains credential or secret values', () => {
     assert.equal(result.stdout.includes(value), false, `output leaked value: ${value}`);
   }
 
-  const report = JSON.parse(result.stdout);
-  const vendor = report.groups.find((group) => group.name === 'vendor-uat');
-  assert.deepEqual(vendor.optionalPresent, [
+  assert.deepEqual(group(JSON.parse(result.stdout), 'vendor-uat').optionalPresent, [
     'P6_PROVIDER_API_KEY',
     'P6_PROVIDER_SECRET',
     'P6_PROVIDER_CALLBACK_URL',
   ]);
 });
+
+function group(report, name) {
+  return report.groups.find((item) => item.name === name);
+}
 
 function runChecker(args, overrides = {}) {
   const env = { ...process.env };
