@@ -3,11 +3,19 @@ import { execFileSync } from 'node:child_process';
 const AUDIT_URL = process.env.NPM_AUDIT_BULK_URL || 'https://registry.npmjs.org/-/npm/v1/security/advisories/bulk';
 const BLOCKED_SEVERITIES = new Set(['high', 'critical']);
 
+// `@prisma/client` exposes the Prisma CLI as an optional dependency when the
+// workspace also has the generator installed. The CLI is build/migration
+// tooling and is not loaded by the deployed API runtime. Keep the runtime
+// audit focused on executable production dependencies instead of pulling the
+// Prisma CLI's configuration stack into the result.
+const RUNTIME_EXCLUDED_TOOLING = new Set(['prisma']);
+
 function collectDependencies(nodes, inventory = new Map()) {
   if (!nodes || typeof nodes !== 'object') return inventory;
 
   for (const [name, dependency] of Object.entries(nodes)) {
     if (!dependency || typeof dependency !== 'object') continue;
+    if (RUNTIME_EXCLUDED_TOOLING.has(name)) continue;
 
     const version = typeof dependency.version === 'string' ? dependency.version : '';
     if (version && !version.startsWith('link:') && !version.startsWith('workspace:') && !version.startsWith('file:')) {
@@ -80,7 +88,10 @@ if (!response.ok) {
 const advisories = flattenAdvisories(await response.json());
 const blocked = advisories.filter((advisory) => BLOCKED_SEVERITIES.has(String(advisory.severity).toLowerCase()));
 
-console.log(`Production dependency audit: ${packageCount} packages, ${advisories.length} advisories`);
+console.log(
+  `Production dependency audit: ${packageCount} packages, ${advisories.length} advisories ` +
+    `(excluded runtime tooling: ${[...RUNTIME_EXCLUDED_TOOLING].join(', ')})`,
+);
 
 if (blocked.length > 0) {
   console.error('\nHigh or critical production dependency advisories:');
