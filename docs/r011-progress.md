@@ -1,0 +1,45 @@
+# R-011 Progress — Error, Authorization and Security Boundary
+
+Source of truth: `docs/master-project-worklist.md` → P4 → R-011
+
+## Status
+
+- DONE: 3/14
+- IN PROGRESS: stable error codes and localization-ready message keys
+- Remaining: 11
+
+## Checklist
+
+- [x] สร้าง domain error taxonomy
+- [x] แยก domain error จาก HTTP exception
+- [x] ทำ HTTP error mapper กลาง
+- [ ] ทำ stable error codes และ localization-ready message keys
+- [ ] รวม authorization policies ต่อ domain
+- [ ] เพิ่ม resource-level authorization
+- [ ] รวม step-up/2FA requirement checks
+- [ ] รวม mandatory reason/audit checks
+- [ ] แยก DTO validation, business validation และ persistence constraint
+- [ ] ทำ input normalization สำหรับ email/phone/bank account/Unicode
+- [ ] ทำ sensitive logging redact policy
+- [ ] เพิ่ม static audit ป้องกัน log token/password/OTP/secret/private URL
+- [ ] ตรวจ CSRF/replay/idempotency boundaries
+- [ ] เพิ่ม security policy tests
+
+## Closed outcomes
+
+### 1–3. Domain error taxonomy, HTTP separation and mapper
+
+- `DomainError` has no NestJS/HTTP dependency.
+- Categories map deterministically to HTTP statuses through one mapper.
+- The global exception filter handles domain errors before legacy message-based fallback.
+- Existing `HttpException` response behavior remains intact during migration.
+- Unit contract tests cover every category.
+- Static CI guard prevents boundary drift.
+
+## Verification commands
+
+```bash
+node tools/audit-r011-error-boundaries.mjs
+pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts
+pnpm --filter @platform/api typecheck
+```
