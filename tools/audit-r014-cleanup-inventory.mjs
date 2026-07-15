@@ -7,7 +7,6 @@ const sourceExtensions = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', 
 const cssExtensions = new Set(['.css', '.scss', '.sass']);
 const skipDirs = new Set(['node_modules', '.next', 'dist', 'coverage', '.turbo']);
 
-
 const retainedExportSymbols = new Map([
   [
     'packages/api-client/src/index.ts:ApiAuthTokenProvider',
@@ -35,10 +34,6 @@ const retainedOrphanSources = new Map([
   [
     'apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts',
     'R-009 transaction-scoped finance adapters retained for repository-boundary evidence and audit coverage.',
-  ],
-  [
-    'apps/api/src/modules/game-platform/adapters/real-provider-adapter.template.ts',
-    'Provider integration template retained as documentation for future concrete adapters; it must not be registered directly.',
   ],
 ]);
 
