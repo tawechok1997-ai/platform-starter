@@ -1,246 +1,387 @@
 # Member UX/UI Tooling Worklist
 
-Updated: 2026-07-14  
-Scope: `apps/web-member` only  
+Updated: 2026-07-16
+Scope: `apps/web-member` and shared frontend contracts consumed by Member
 Source of truth for Member UX/UI work: this file
 
-> This worklist is aligned with the current repository. Existing foundations are Next.js 14, React 18, TypeScript, custom Member primitives, global CSS/custom properties, `packages/api-client`, and Playwright. Tools not installed in the repository are planned decisions, not completed capabilities.
+> Current repository baseline: Next.js 15.5.18, React 19.2.7, TypeScript 5.7.3, custom Member components, shared CSS contracts under `packages/design-tokens`, `packages/api-client`, and Playwright. A checked item means the current implementation and repository-level verification exist. Partial work is split into checked implementation facts and unchecked remaining acceptance criteria.
 
 ## Status
 
 - ✅ Done and verified
-- 🧪 Implemented, regression evidence still required
+- 🧪 Implemented partially; acceptance criteria or regression evidence remains
 - 🚧 In progress
 - ⏳ Planned
 - ⛔ Blocked
 - 🧊 Deferred
 
+## Verified repository snapshot
+
+- [x] `@platform/web-member` lint passes
+- [x] `@platform/web-member` TypeScript check passes
+- [x] Member finance unit suite passes: 8/8 tests
+- [x] Member production build passes: 29 App Router routes generated
+- [x] R-013 token, primitive, responsive, accessibility-baseline, and visual-contract audits pass
+- [x] Six named public visual viewport projects exist: 360×800, 390×844, 430×932, 768×1024, 1024×768, and 1440×900
+- [ ] Run and retain current Playwright browser evidence for every Member route and required state
+- [ ] Add real automated accessibility scanning; current accessibility audit is a static contract audit, not an axe browser scan
+- [ ] Fix the build warning that the Next.js ESLint plugin is not detected
+
 ## Member Definition of Done
 
-- Mobile-first and usable at 360×800, 390×844, 430×932, 768×1024, 1024×768, and 1440×900.
-- Uses the real API, authentication, settings, finance, KYC, notifications, support, and provider behavior.
+- Mobile-first and usable at all six standard viewports.
+- Uses real API, authentication, settings, finance, KYC, notifications, support, and provider behavior.
 - Handles loading, empty, error, offline, stale, permission, maintenance, success, retry, and session-expired states.
-- Primary action remains reachable above the safe area and mobile keyboard.
+- Primary actions remain reachable above safe areas and the mobile keyboard.
 - Keyboard, visible focus, 200% zoom, screen-reader labels, and reduced motion work.
 - Long Thai text, money, IDs, filenames, and missing media do not overflow.
-- Mutations prevent double submit and preserve idempotency/error semantics.
-- Relevant Member build, Playwright, accessibility, and visual checks pass.
+- Mutations prevent duplicate submit and preserve idempotency and API error semantics.
+- Relevant build, unit/component, Playwright, accessibility, and visual checks pass with retained evidence.
 
 # M0: Current foundation and debt inventory
 
 ## MEMBER-FOUNDATION-001 Current tooling
 
-- [x] Next.js 14, React 18, TypeScript
-- [x] Custom Member UI primitives
-- [x] CSS custom properties, responsive CSS, animation, transitions
-- [x] `prefers-reduced-motion`
+- [x] Next.js 15.5.18, React 19.2.7, TypeScript 5.7.3
+- [x] Custom Member React components and feature views
+- [x] Shared CSS token and primitive contracts imported by the Member root layout
+- [x] Responsive CSS, safe-area rules, animations, transitions, and `prefers-reduced-motion`
 - [x] Shared `packages/api-client`
-- [x] Playwright smoke and visual commands
-- [ ] Inventory every Member/Public/Auth route and page owner
-- [ ] Inventory shared components and duplicate variants
-- [ ] Inventory inline-style debt in auth, finance, KYC, games, profile, notifications, and support
-- [ ] Replace selectors coupled to `[style*="..."]` with semantic classes
-- [ ] Define ownership for global CSS, component styles, tokens, and layout utilities
+- [x] Playwright smoke, visual, authenticated-visual, KYC, and CMS configurations
+- [x] Route build inventory: 29 generated routes, including 27 Member `page.tsx` files
+- [ ] Inventory every Member/Public/Auth route, feature flag, API dependency, and page owner in one maintained table
+- [ ] Inventory shared React components and duplicate variants
+- [ ] Inventory and migrate 180 inline-style occurrences in Member TSX
+- [ ] Replace 17 selectors coupled to `[style*="..."]` with semantic classes
+- [ ] Define ownership for shared tokens, global CSS, component CSS, layout utilities, and route-specific styles
 
 ## MEMBER-FOUNDATION-002 Tooling decisions
 
-- [ ] Evaluate and add `react-hook-form` plus `zod` for forms
-- [ ] Evaluate and add `@tanstack/react-query` for server state
-- [ ] Evaluate and add `motion` for mount/unmount and state transitions
-- [ ] Evaluate and add `@axe-core/playwright` and JSX accessibility lint rules
-- [ ] Evaluate and add `lucide-react` as the single icon library
-- [ ] Evaluate carousel, upload, image-compression, drawer, virtualization, and table libraries only for routes that require them
-- [ ] Record an ADR for each accepted dependency
-- [ ] Record bundle impact, migration scope, owner, and rollback plan
-- [ ] Do not add shadcn, Radix, Tailwind, GSAP, Rive, Lottie, MUI, Ant Design, or another state/form layer without an approved ADR and demonstrated need
+- [x] Shared CSS contracts retained as the current design-system foundation
+- [ ] Evaluate `react-hook-form` plus `zod`; current forms use local React state and manual validation
+- [ ] Evaluate `@tanstack/react-query`; current server state primarily uses `useEffect`, `useState`, and `memberApiFetch`
+- [ ] Evaluate `motion` only where CSS cannot handle mount/unmount transitions
+- [ ] Add `@axe-core/playwright` and JSX accessibility lint rules
+- [ ] Evaluate `lucide-react`; current Member icons use the custom `MemberIcon` implementation
+- [ ] Evaluate carousel, upload, image-compression, drawer, virtualization, and table libraries only where measured need exists
+- [ ] Record an ADR, bundle impact, migration scope, owner, and rollback plan for every accepted dependency
+- [ ] Do not add another design system or state/form layer without an approved ADR and demonstrated need
 
 # M1: Shared Member systems
 
 ## MEMBER-SYSTEM-001 Design tokens and primitives
 
-- [ ] Consolidate color, spacing, radius, shadow, typography, motion, breakpoint, and z-index tokens
-- [ ] Consolidate Button, Input, Select, TextArea, Checkbox, Radio, OTP, and Field primitives
-- [ ] Consolidate Card, BalanceCard, StatusBadge, Notice, Toast, Skeleton, Empty, Error, and Success states
-- [ ] Consolidate Modal, Drawer, BottomSheet, ConfirmDialog, Tabs, Stepper, Timeline, Pagination, and StickyActionBar
-- [ ] Create FileUpload, FilePreview, Progress, and secure-download feedback primitives
-- [ ] Create responsive carousel/rail primitives with swipe and keyboard support
-- [ ] Remove duplicate Member primitive implementations
-- [ ] Add component tests for critical primitives
+- [x] Shared color, spacing, radius, shadow, typography, motion, breakpoint, content-width, and z-index contracts
+- [x] Shared CSS contracts for Button, Input, Select, TextArea, Modal, Drawer, ConfirmDialog, Table, Pagination, Tabs, Badge, Toast, Alert, Skeleton, Empty, Error, and responsive layout
+- [x] Shared focus-visible, invalid-field, screen-reader-only, skip-link, reduced-motion, and forced-colors baselines
+- [x] Member-level `MemberButton`, `MemberCard`, `MemberNotice`, `MemberEmptyState`, and link-button components
+- [x] Finance step indicator, cards, action bar, confirm dialog, empty state, info rows, and status badge
+- [ ] Migrate remaining route CSS and hard-coded values to shared semantic tokens
+- [ ] Consolidate React Input, Select, TextArea, Checkbox, Radio, OTP, Field, BalanceCard, Toast, Skeleton, Error, and Success components
+- [ ] Consolidate BottomSheet, Tabs, Timeline, Pagination, FilterBar, and StickyActionBar React components
+- [ ] Create FileUpload, FilePreview, Progress, cancel/retry, and secure-download feedback components
+- [ ] Create reusable carousel/rail behavior with swipe and keyboard support
+- [ ] Remove duplicate Member/Finance control and state implementations
+- [ ] Add component tests for critical primitives; only one Member unit spec currently exists
 
 ## MEMBER-SYSTEM-002 Motion and interaction
 
-- [ ] Create motion duration, easing, distance, and reduced-motion tokens
-- [ ] Keep CSS for hover, focus, press, skeleton, shimmer, and simple drawer transitions
-- [ ] Use `motion` only for modal, toast, list, step, upload, KYC, finance, and carousel enter/exit
-- [ ] Avoid bounce/pulse on money, security, KYC rejection, or destructive actions
-- [ ] Prevent layout shift during content and status transitions
-- [ ] Restore focus after modal/drawer close
-- [ ] Test reduced motion and keyboard-only interactions
-- [ ] Verify animation performance on iPhone-class mobile viewports
+- [x] Shared duration, easing, breakpoint, and reduced-motion tokens
+- [x] CSS handles hover, focus, press, skeleton, shimmer, drawer, and simple state transitions
+- [x] Finance confirm dialog traps focus, closes with Escape, and restores focus
+- [x] Member drawer closes with Escape and locks document scrolling
+- [ ] Add drawer focus trap, initial focus, and focus restoration
+- [ ] Prevent remaining layout shifts during content, media, and status transitions
+- [ ] Verify reduced motion and keyboard-only interaction in browser tests
+- [ ] Verify animation performance on iPhone-class viewports
+- [ ] Add a motion library only if measured interaction requirements cannot be met with CSS
 
 ## MEMBER-SYSTEM-003 Forms and validation
 
-- [ ] Create shared RHF/Zod field adapters if the tooling decision is approved
-- [ ] Create server-error-code mapping without parsing raw messages
-- [ ] Create focus-first-error and validation-summary behavior
-- [ ] Create dirty-state and unsaved-change behavior
-- [ ] Create password strength and OTP countdown patterns
-- [ ] Create upload validation, preview, progress, cancel, and retry patterns
-- [ ] Prevent duplicate submit and show mutation progress
+- [x] Deposit form parsing, selection validation, serialization, API-message fallback, and unit coverage
+- [x] Unsaved-change detection and optimistic snapshot/rollback helpers
+- [x] Login/Register use autocomplete, show/hide password, manual inline validation, anti-bot, loading, timeout, and server feedback
+- [x] Critical mutations generally disable controls and show progress text
+- [ ] Create shared field adapters after the RHF/Zod decision
+- [ ] Map server error codes without parsing raw error text; Register still parses message content
+- [ ] Add focus-first-error and validation-summary behavior
+- [ ] Apply dirty-state and unsaved-change behavior to actual editable routes
+- [ ] Add Caps Lock, password-strength, OTP countdown/resend, and attempt-exhaustion patterns
+- [ ] Standardize upload type/size/content validation, preview, progress, cancel, and retry
+- [ ] Add idempotency-aware duplicate-submit protection for all financial and account mutations
 - [ ] Add form component and browser regression tests
 
 ## MEMBER-SYSTEM-004 Server state
 
-- [ ] Create a Member QueryClient and auth-aware provider if TanStack Query is approved
-- [ ] Define query-key factories by domain
-- [ ] Define stale time, retry, cancellation, invalidation, and polling policies
-- [ ] Handle offline, session expiry, and auth refresh centrally
-- [ ] Handle optimistic rollback and version conflicts centrally
-- [ ] Migrate page-level `useEffect + useState + fetch` orchestration by domain
+- [x] Auth-aware `MemberSessionProvider` and centralized `memberApiFetch`
+- [x] Finance query-key and invalidation contracts exist
+- [x] Notifications implement optimistic read/archive/preference updates with rollback
+- [x] Support implements 60-second ticket refresh and reply states
+- [ ] Restore the intended `?next=` destination after Login; MemberChrome creates it but Login currently redirects to `/`
+- [ ] Define shared stale-time, retry, cancellation, invalidation, and polling policies
+- [ ] Handle offline state, token refresh, and session expiry centrally
+- [ ] Standardize optimistic rollback and version-conflict handling across domains
+- [ ] Migrate page-level `useEffect + useState + fetch` orchestration by domain if TanStack Query is approved
 
-# M2: Public/Auth worklist
+# M2: Public and authentication
 
-## MEMBER-AUTH-001 Login, register, and password recovery
+## MEMBER-AUTH-001 Login and registration
 
-- [ ] Autofill, password manager, show/hide password, Caps Lock, and keyboard behavior
-- [ ] Inline validation, focus-first-error, loading, lockout, anti-bot, and server-error states
-- [ ] Registration step progress, contact verification, terms, and success states
-- [ ] Forgot/reset password expired-token, used-token, retry, and session-revoke behavior
-- [ ] Restore intended destination after login
-- [ ] Six-viewport, 200% zoom, long Thai text, and accessibility regression
+- [x] Responsive Login with desktop split layout and mobile single-column layout
+- [x] Username/phone/email identifier, password-manager autocomplete, show/hide password, anti-bot, timeout, loading, and server feedback
+- [x] Multi-step Registration with legal name, bank selection, referral, terms, review, and success handling
+- [x] Login/Register visual specs are configured for the six standard public viewports
+- [ ] Add Caps Lock warning, remember-me decision, lockout messaging, and focus-first-error
+- [ ] Restore intended destination after successful Login
+- [ ] Add contact verification/OTP and expired/exhausted verification states
+- [ ] Add confirm-password and password-strength behavior
+- [ ] Verify 200% zoom, long Thai text, keyboard, screen reader, and accessibility in browsers
 
-## MEMBER-AUTH-002 Public content and maintenance
+## MEMBER-AUTH-002 Password recovery and public states
 
-- [ ] Legal, privacy, contact, maintenance, and session-expired layouts
-- [ ] CMS content, broken media, long content, and fallback states
-- [ ] Safe-area and mobile keyboard behavior
-- [ ] Visual and accessibility regression
+- [x] Legal index/detail, Contact, Maintenance, and Session-expired routes
+- [x] Public responsive and safe-area CSS
+- [x] CMS-backed public content and fallback layouts exist
+- [ ] Implement Forgot password and Reset password routes
+- [ ] Handle expired, already-used, invalid, retry, and session-revoke reset states
+- [ ] Verify broken media, long CMS content, mobile keyboard, visual, and accessibility regressions
 
 # M3: Member route worklist
 
 ## MEMBER-ROUTE-001 Home and navigation
 
-- [ ] Bottom navigation, drawer, active route, deep link, and scroll restoration
-- [ ] Wallet summary, quick actions, promotions, announcements, and recent activity hierarchy
-- [ ] Loading skeleton, partial failure, stale timestamp, and retry
-- [ ] Safe-area, landscape, and notification badge behavior
-- [ ] Six-viewport visual regression
+- [x] Active navigation, desktop navigation, Member drawer, mobile bottom navigation, feature-flag blocking, and auth redirect
+- [x] Home promotion hero, announcements, quick actions, pending requests, game rails, categories, FAQ, and recent activity
+- [x] Home recent activity supports loading, empty, error, and retry states
+- [x] Safe-area rules and pending notification/transaction badge behavior
+- [ ] Replace the hard-coded topbar wallet value `0.00` with real wallet data
+- [ ] Add scroll restoration, route loading, stale timestamp, complete partial-failure handling, and skeletons
+- [ ] Complete six-viewport authenticated Home/navigation evidence
 
 ## MEMBER-ROUTE-002 Games lobby and launch
 
-- [ ] Search debounce, provider/category filters, favorites, recent, and featured sections
-- [ ] Stable media ratio, lazy loading, fallback, and no layout shift
-- [ ] Swipe and keyboard carousel/rail behavior
-- [ ] Empty, no-result, provider-down, maintenance, unavailable, and popup-blocked states
-- [ ] Favorite optimistic rollback and duplicate-launch guard
-- [ ] Large-catalog virtualization only if measured need is proven
-- [ ] Authenticated browser and performance regression
+- [x] Search, provider/category filters, local favorites, recent games, featured/new/popular sections
+- [x] Lazy media, fallback media, unavailable state, maintenance label, no-result state, and duplicate-launch disabling
+- [ ] Add search debounce and URL/deep-link filter state
+- [ ] Add swipe and keyboard carousel/rail behavior
+- [ ] Add provider-down, popup-blocked, session-expired, and retry states
+- [ ] Persist favorites through the real API with optimistic rollback if supported
+- [ ] Measure large-catalog performance before adding virtualization
+- [ ] Add authenticated browser and performance regression
 
 ## MEMBER-ROUTE-003 Deposit
 
-- [ ] Amount min/max and currency formatting
-- [ ] Destination account, copy feedback, expiry, and staged flow
-- [ ] Slip upload type/size validation, preview, progress, cancel, and retry
-- [ ] Review before submit and idempotent submit feedback
-- [ ] Pending, approved, rejected, expired, retry, and duplicate states
-- [ ] Mobile sticky action and keyboard overlap handling
-- [ ] Responsive finance regression
+- [x] Staged select, transfer, review, submit, waiting, and create-another flow
+- [x] Real receiving-account selection, min/max account matching, copy feedback, and 15-minute expiry
+- [x] Image-only slip validation, resize/compression, preview, confirm dialog, duplicate result, and history
+- [x] Loading controls and mobile sticky-action CSS
+- [ ] Add explicit file-size and content validation
+- [ ] Add upload progress, cancel, and retry
+- [ ] Add currency-formatting input and clearer min/max feedback
+- [ ] Add request idempotency and recovery when top-up creation succeeds but evidence upload fails
+- [ ] Complete pending, approved, rejected, expired, retry, duplicate, and timeline browser evidence
 
 ## MEMBER-ROUTE-004 Withdrawal
 
-- [ ] Available/locked balance, bank account, fee, net amount, and min/max validation
-- [ ] Review, confirmation, duplicate-submit protection, and step-up/OTP states
-- [ ] KYC-required, watchlist-blocked, session-expired, and insufficient-balance states
-- [ ] Pending, processing, completed, rejected, cancel, and retry states
-- [ ] Mobile sticky action and responsive regression
+- [x] Available/locked wallet, active bank selection, insufficient-balance validation, review dialog, and history
+- [x] Bonus-turnover blocking and mutation progress
+- [ ] Add configured min/max, presets, fee, and net-amount calculation
+- [ ] Add step-up/OTP, KYC-required, watchlist-blocked, and explicit session-expired states
+- [ ] Add cancel/retry actions and complete status timeline
+- [ ] Add idempotency-aware duplicate-submit protection
+- [ ] Complete responsive withdrawal regression
 
 ## MEMBER-ROUTE-005 Transactions, wallet, and bank accounts
 
-- [ ] Transaction filters, URL/deep-link state, pagination, and detail view
-- [ ] Mobile card list and optional desktop table only if product value is proven
-- [ ] Before/after balance, fee, reference, status, and masked account details
-- [ ] Wallet available, locked, bonus, total, and movement summaries
-- [ ] Add/verify/default/disable bank account flows with re-auth/cooling policy
-- [ ] Long-value, empty, error, and accessibility regression
+- [x] Transaction list with credit/debit summaries and before/after balances
+- [x] Bank-account list/add flow, primary/status display, loading, empty, and error feedback
+- [x] Profile and Home expose wallet information from real API responses
+- [ ] Add transaction type/status/date filters with URL state
+- [ ] Add pagination and transaction detail/timeline
+- [ ] Add fee, reference, masked account, and long-value handling
+- [ ] Add wallet available/locked/bonus/total movement summary screen
+- [ ] Add bank verify, edit, set-default, disable, duplicate detection, re-authentication, and cooling-policy flows
+- [ ] Add accessibility and responsive regression
 
 ## MEMBER-ROUTE-006 Profile and security
 
-- [ ] Profile sections with independent save and dirty-state handling
-- [ ] Phone/email verification, OTP resend, attempt exhaustion, and duplicate-value errors
-- [ ] Password requirements, current-password errors, and success feedback
-- [ ] Session list, current-device marker, revoke one, revoke all, and login history
-- [ ] KYC status card and privacy-safe blocked states
-- [ ] Keyboard, zoom, and authenticated regression
+- [x] Profile summary, edit profile, password, security center, session list, current-device marker, revoke-one, revoke-others, and login history routes
+- [x] KYC status is exposed from Profile
+- [ ] Add independent section saves and actual dirty-state protection
+- [ ] Add phone/email verification, OTP resend, exhaustion, and duplicate-value states
+- [ ] Complete password requirements, current-password errors, success feedback, and optional 2FA decision
+- [ ] Add privacy-safe blocked states and authenticated keyboard/zoom regression
 
 ## MEMBER-ROUTE-007 KYC
 
-- [ ] Split status summary, requirement checklist, upload form, document list, and submission panel
-- [ ] File type/size validation, image/PDF preview, progress, cancel, and retry
-- [ ] Prevent navigation during upload
-- [ ] Submit confirmation and lock state after submit
-- [ ] Pending, approved, rejected, expired, and resubmit flows
-- [ ] Highlight rejected documents and review notes clearly
+- [x] Status summary, requirement checklist, document upload, document list, and submission panel
+- [x] Identity/selfie completeness check, submit lock, loading, empty, and API error states
+- [x] Four-viewport KYC regression exists for 390, 768, 1024, and 1440 widths
+- [ ] Add explicit file type/size/content validation and image/PDF preview
+- [ ] Add upload progress, cancel, retry, and navigation blocking during upload
+- [ ] Complete pending, approved, rejected, expired, and resubmit presentation
+- [ ] Highlight rejected documents and review notes consistently
 - [ ] Explain privacy, retention, and secure access
-- [ ] Accessible file input and authenticated browser regression
+- [ ] Extend KYC regression to all six standard viewports and accessibility scanning
 
 ## MEMBER-ROUTE-008 Promotions and bonus
 
-- [ ] Available, claimed, active, expired, and ineligible states
-- [ ] Eligibility, progress, expiry, terms summary, and claim confirmation
-- [ ] Bonus balance, wager progress, expiry, and history
-- [ ] Optimistic claim feedback and rollback
-- [ ] Responsive and authenticated regression
+- [x] Promotion campaign list, eligibility from approved deposits, claim flow, claim status, bonus ledger, turnover progress, and history
+- [x] Loading/error fallback and responsive promotion grid
+- [ ] Add explicit available, claimed, active, expired, and ineligible filtering/presentation
+- [ ] Add terms summary, expiry countdown, and claim confirmation
+- [ ] Add optimistic claim feedback with rollback
+- [ ] Remove remaining inline styles from Bonus
+- [ ] Add responsive authenticated regression
 
 ## MEMBER-ROUTE-009 Notifications
 
-- [ ] Grouped-by-date hierarchy and unread state
-- [ ] Mark one/read all/archive feedback and rollback
-- [ ] Deep-link target missing or expired state
-- [ ] Preference update, channel unavailable, and session-expired states
-- [ ] Pagination/infinite loading only if API behavior supports it
-- [ ] Badge consistency and screen-reader announcements
+- [x] Unread state, type filters, mark-one, mark-all, archive, preferences, loading, empty, optimistic feedback, and rollback
+- [x] Accessible labels and status announcements exist for primary notification actions
+- [ ] Group notifications by date
+- [ ] Add missing/expired deep-link state
+- [ ] Add channel-unavailable and explicit session-expired states
+- [ ] Add API-backed pagination or infinite loading when required
+- [ ] Verify badge consistency and screen-reader announcements in browser tests
 
 ## MEMBER-ROUTE-010 Support and FAQ
 
-- [ ] FAQ search, category, no-result, and fallback behavior
-- [ ] Ticket create validation, draft restore, preview, and submit feedback
-- [ ] Attachment type/size/progress/cancel/retry states
-- [ ] Conversation timeline, reply pending/sent/failed, polling reconnect, and closed/reopened states
-- [ ] Linked finance/provider context
-- [ ] Long-thread performance, mobile composer, and keyboard overlap
+- [x] FAQ search/category/no-result states
+- [x] Ticket create validation, preview, linked finance context, list filtering, reply states, polling, and automatic reopen behavior
+- [x] Mobile composer and responsive Support CSS exist
+- [ ] Add ticket draft restoration
+- [ ] Add attachment type/size/progress/cancel/retry flows
+- [ ] Add explicit polling disconnect/reconnect feedback
+- [ ] Measure long-thread performance and add regression coverage
+- [ ] Complete keyboard-overlap and accessibility browser testing
 
 # M4: Accessibility and QA
 
 ## MEMBER-QA-001 Accessibility automation
 
-- [ ] Add `@axe-core/playwright` if approved
-- [ ] Fail CI on critical accessibility violations
-- [ ] Verify headings, labels, ARIA live regions, dialogs, drawers, bottom sheets, file inputs, and icon-only buttons
-- [ ] Verify keyboard navigation, focus trap, focus restore, zoom, reflow, contrast, and reduced motion
+- [x] Shared focus, invalid-field, reduced-motion, forced-colors, skip-link, dialog semantics, contrast, and static audit contracts
+- [ ] Add `@axe-core/playwright`
+- [ ] Fail CI on critical and serious accessibility violations
+- [ ] Verify headings, labels, ARIA live regions, dialogs, drawers, bottom sheets, file inputs, and icon-only buttons in rendered pages
+- [ ] Verify keyboard navigation, focus trap/restore, 200% zoom, reflow, contrast, and reduced motion in rendered pages
 
 ## MEMBER-QA-002 Visual and interaction evidence
 
-- [ ] Add authenticated Member fixtures with non-production credentials
-- [ ] Cover all six standard viewports
-- [ ] Cover loading, empty, error, offline, stale, permission, maintenance, success, and session-expired states
-- [ ] Store screenshot, trace, console, and network artifacts in CI
-- [ ] Fail on browser console and unexpected network errors
+- [x] Public visual configuration covers all six standard viewports
+- [x] Authenticated visual fixture and KYC responsive fixtures exist
+- [x] Browser-quality fixture can fail on console errors, page errors, failed requests, and HTTP 5xx responses
+- [x] CI workflows can upload screenshots, traces, console, network, and HTML reports
+- [ ] Persist approved visual baselines; the R-013 workflow currently generates and compares baselines in the same run
+- [ ] Expand authenticated Member visual coverage from two projects to all six standard viewports
+- [ ] Cover every Member route and loading, empty, error, offline, stale, permission, maintenance, success, and session-expired states
+- [ ] Ensure all relevant suites use the browser-quality failure fixture
+- [ ] Retain final evidence links in this document
+
+# M5: Product and operational contracts
+
+## MEMBER-CONTRACT-001 Work-item metadata and closure
+
+- [ ] Assign every remaining item a priority: P0 correctness/security/money, P1 core flow, P2 quality/accessibility, or P3 polish
+- [ ] Record owner, dependency, target milestone, API readiness, and evidence link for every P0/P1 item
+- [ ] Separate current implementation facts, known defects, remaining work, and verification gates in progress summaries
+- [ ] Do not close a parent item when only one sub-state or viewport is implemented
+- [ ] Require code, automated check, retained artifact, and rollback note where the change affects money, identity, or session behavior
+
+## MEMBER-CONTRACT-002 Route, API, feature-flag, and state matrix
+
+- [ ] Maintain one table covering every Member route, page owner, primary APIs, feature flags, permissions, CMS/settings dependencies, and deep links
+- [ ] Record loading, empty, partial-failure, error, offline, stale, maintenance, success, retry, and session-expired behavior per route
+- [ ] Verify navigation, direct URL access, and server behavior remain consistent when each Member feature flag is disabled
+- [ ] Verify branding, long CMS content, missing settings, broken media, and runtime setting changes do not break layout or expose disabled actions
+- [ ] Generate or audit the route matrix in CI so new `page.tsx` files cannot bypass ownership and state requirements
+
+## MEMBER-CONTRACT-003 Security and privacy UX
+
+- [ ] Mask bank accounts, phone numbers, email addresses, references, and identity values according to one shared display policy
+- [ ] Require re-authentication or step-up verification before sensitive profile, bank, session, and withdrawal actions
+- [ ] Clear sensitive cached UI state after logout, session expiry, account switching, and permission/feature reduction
+- [ ] Never persist slips, KYC documents, OTP values, passwords, or raw sensitive payloads in local storage or browser logs
+- [ ] Map safe public error codes and prevent raw backend, risk, watchlist, or provider details from reaching Member UI
+- [ ] Define secure-download, expired-link, revoked-file, privacy, and retention feedback for KYC and financial evidence
+- [ ] Add browser checks for token leakage, sensitive console output, unsafe URLs, and post-logout back-navigation
+
+## MEMBER-CONTRACT-004 Finance state contract
+
+- [ ] Maintain one typed UI mapping for Deposit, Withdrawal, Bonus, Wallet, and reconciliation states
+- [ ] Define Thai label, tone, icon, description, available actions, polling policy, retry/cancel policy, and destination route for every state
+- [ ] Distinguish pending, reviewing, approved, processing, completed, rejected, expired, cancelled, duplicate, failed, reversed, and reconciliation-required states
+- [ ] Use the same state mapping in Home, detail, history, notification, support context, and finance flows
+- [ ] Add contract tests that fail when the API introduces an unmapped finance status
+
+## MEMBER-CONTRACT-005 Performance budget
+
+- [ ] Establish an approved baseline from the current 102 kB shared first-load JS build output
+- [ ] Set route-level JavaScript, CSS, image, request-count, LCP, CLS, and interaction budgets for Login, Home, Games, Deposit, and Withdrawal
+- [ ] Measure dependency and bundle impact before accepting a new Member runtime package
+- [ ] Enforce stable media dimensions, image compression limits, lazy loading, and missing-media fallbacks
+- [ ] Measure Games catalog and Support long-thread performance before adding virtualization
+- [ ] Store bundle and performance reports as CI artifacts and fail only on agreed regression thresholds
+
+## MEMBER-CONTRACT-006 Browser, test-data, release, and rollback matrix
+
+- [ ] Define supported iOS Safari, Android Chrome, desktop Chrome, Safari, and Edge versions
+- [ ] Cover portrait, landscape, mobile keyboard, 200% zoom, reduced motion, slow network, offline, and session-expiry behavior
+- [ ] Create deterministic fixtures for new Member, active Member, empty history, KYC states, bonus blocking, insufficient balance, duplicate slip, provider maintenance, long notifications, and long support threads
+- [ ] Keep production-like credentials outside the repository and scope them to isolated staging data
+- [ ] Define feature-flag rollout, smoke checks, monitoring window, rollback trigger, and rollback procedure for every P0/P1 release
+- [ ] Record the deployed commit identity and verify Member/API compatibility before accepting production evidence
+
+# M6: Tool adoption plan
+
+## MEMBER-TOOLING-001 Add now
+
+- [ ] Add `eslint-config-next` to the existing ESLint flat configuration to enable Next.js, React, and React Hooks rules and remove the current build warning
+- [ ] Add `eslint-plugin-jsx-a11y` with an explicit flat-config ruleset for fast JSX accessibility feedback
+- [ ] Add `@axe-core/playwright` to the existing Playwright stack and fail on agreed critical/serious violations
+- [ ] Add `@next/bundle-analyzer` plus a reproducible `analyze:member` command and retained bundle artifact
+- [ ] Reuse the existing Playwright browser-quality fixture, six-viewport projects, traces, screenshots, and network evidence instead of introducing another E2E runner
+
+## MEMBER-TOOLING-002 Pilot behind an ADR
+
+- [ ] Pilot `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/user-event`, and `@testing-library/jest-dom` on shared Client Components before replacing or expanding the current Node test runner
+- [ ] Pilot `msw` only if reusable API-state fixtures reduce duplicated `page.route` and component-test mocks
+- [ ] Pilot `@lhci/cli` after stable staging data exists, then enforce agreed performance budgets rather than default Lighthouse scores
+- [ ] Evaluate Storybook only after shared React primitives are consolidated and a maintained component-state catalog has an owner
+- [ ] Evaluate client error monitoring only after confirming existing production observability cannot capture Member route, release, and session context
+
+## MEMBER-TOOLING-003 Do not add yet
+
+- [ ] Do not add Cypress while Playwright remains the repository E2E and visual standard
+- [ ] Do not add React Hook Form/Zod until form inventory proves shared adapters will replace, rather than duplicate, current validation
+- [ ] Do not add TanStack Query until query ownership, cache policy, auth refresh, and migration boundaries are approved
+- [ ] Do not add Motion until CSS transitions fail a measured interaction requirement
+- [ ] Do not add Lucide until icon inventory, CMS icon behavior, and migration cost are recorded
+- [ ] Do not add Tailwind, shadcn, Radix, MUI, Ant Design, or another design system while the shared CSS contracts remain authoritative
 
 # Execution order
 
-1. MEMBER-FOUNDATION-001 debt inventory
-2. MEMBER-SYSTEM-001 primitives and tokens
-3. MEMBER-SYSTEM-003 forms plus MEMBER-SYSTEM-004 server state
-4. Auth, Deposit, Withdrawal, Profile/Security, and KYC
-5. Home/Games, Transactions/Wallet/Bank, Promotions, Notifications, Support
-6. Motion polish after behavior and layout are stable
-7. Accessibility, visual regression, bundle review, and cleanup
+1. Add priority/owner/dependency metadata and create the route/API/feature/state matrix
+2. Fix P0/P1 correctness gaps: wallet header, Login destination, finance idempotency/recovery, session handling, and password recovery
+3. Add Next.js ESLint rules, JSX accessibility linting, axe Playwright, persistent visual baselines, and bundle analysis
+4. Complete MEMBER-FOUNDATION-001 inventory and removal of brittle style selectors
+5. Consolidate React primitives, finance state mapping, privacy/masking rules, and inline-style migration
+6. Approve forms and server-state ADRs only after inventory and pilot evidence
+7. Close Deposit, Withdrawal, Transactions/Wallet/Bank, Profile/Security, and KYC gaps
+8. Close Games, Promotions/Bonus, Notifications, and Support gaps
+9. Enforce browser/test-data/performance matrices, six-viewport authenticated regression, release, rollback, and final cleanup
 
 # Evidence log
 
-- Commit/PR:
-- Build:
-- Visual artifact:
-- Accessibility artifact:
-- Bundle report:
-- Remaining blockers:
+- Repository commit audited: `f1a80270094123eb51620c8537d980c4501c057c`
+- Member lint: passed on 2026-07-16
+- Member typecheck: passed on 2026-07-16
+- Member unit tests: 8/8 passed on 2026-07-16
+- Member production build: passed; 29 routes generated on 2026-07-16
+- R-013 static contracts: token, primitive, responsive, accessibility baseline, and visual contract passed on 2026-07-16
+- Railway commit statuses: Member, API, and Admin succeeded for the audited commit
+- Visual artifact: current full browser run not attached
+- Accessibility artifact: static contract only; axe browser artifact not available
+- Bundle report: Next.js build reports 102 kB shared first-load JS; route-specific output recorded in build log
+- Recommended immediate dev tools: `eslint-config-next`, `eslint-plugin-jsx-a11y`, `@axe-core/playwright`, and `@next/bundle-analyzer`
+- Recommended pilot tools: Vitest + Testing Library + jsdom, MSW, and Lighthouse CI; adoption requires ADR and measured value
+- Remaining blockers: priority/ownership metadata, route/API/state matrix, persistent approved visual baselines, full authenticated six-viewport/state coverage, axe automation, and production-like credentials for full browser flows
