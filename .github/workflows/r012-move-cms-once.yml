@@ -1,0 +1,42 @@
+name: R012 Move CMS Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r012-move-cms-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  move:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Move CMS implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          source='apps/web-admin/app/(admin)/content-center/page.tsx'
+          target='apps/web-admin/src/features/cms/content-center-page.tsx'
+          mkdir -p "$(dirname "$target")"
+          cp "$source" "$target"
+          sed -i "s#from '../../admin-api'#from '../../../app/admin-api'#" "$target"
+          sed -i "s#from '../_components/admin-ui'#from '../../../app/(admin)/_components/admin-ui'#" "$target"
+          cat > "$source" <<'EOF'
+          'use client';
+
+          export { default } from '../../../src/features/cms/content-center-page';
+          EOF
+          if ! grep -q "content-center-page" apps/web-admin/src/features/cms/index.ts; then
+            printf "\nexport { default as ContentCenterPage } from './content-center-page';\n" >> apps/web-admin/src/features/cms/index.ts
+          fi
+          rm .github/workflows/r012-move-cms-once.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add "$source" "$target" apps/web-admin/src/features/cms/index.ts .github/workflows/r012-move-cms-once.yml
+          git commit -m 'refactor(r012): move CMS page behind feature boundary'
+          git push
