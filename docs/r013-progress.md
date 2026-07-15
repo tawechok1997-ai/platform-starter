@@ -62,6 +62,8 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - [ ] Wire compatibility aliases for both applications.
 - [ ] Add drift guards and frontend verification.
 
+Final verification trigger for PR #36 after restoring deposit endpoints.
+
 ## Initial findings
 
 - Shared color ownership is now centralized, but literal colors remain in feature CSS and will be migrated incrementally.
