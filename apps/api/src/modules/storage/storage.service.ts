@@ -3,6 +3,7 @@ import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } fro
 import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { Readable } from 'stream';
+import { scanStoredUpload } from './storage-malware-scanner';
 import { validateStoredUpload } from './storage-upload-policy';
 
 type StoredObject = { data: Buffer; contentType: string };
@@ -14,6 +15,7 @@ export class StorageService {
   async put(key: string, data: Buffer, contentType: string) {
     this.assertSafeKey(key);
     validateStoredUpload(data, contentType);
+    await scanStoredUpload(data, contentType);
     if (this.driver() === 's3') return this.putS3(key, data, contentType);
     return this.putLocal(key, data);
   }
