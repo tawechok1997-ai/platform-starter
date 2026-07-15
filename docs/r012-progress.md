@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 
 ## Status
 
-- DONE: 13/18
-- IN PROGRESS: promotion and security page decomposition
-- Remaining: 5
+- DONE: 14/18
+- IN PROGRESS: security, KYC and support page decomposition
+- Remaining: 4
 
 ## Checklist
 
@@ -19,7 +19,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - [x] แยก withdrawal page
 - [x] แยก provider page
 - [x] แยก content/CMS page
-- [ ] แยก promotion page
+- [x] แยก promotion page
 - [ ] แยก security/admin lifecycle page
 - [ ] แยก KYC admin/member pages
 - [ ] แยก support page/thread components
@@ -47,14 +47,17 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - The Admin finance public boundary exports `GameProvidersPage`, and static audit prevents provider API/state logic from returning to the route file.
 - The Admin CMS implementation now lives in `src/features/cms/content-center-page.tsx`; the App Router page delegates through a thin entry point.
 - The Admin CMS public boundary exports `ContentCenterPage`; static audit prevents CMS API/state logic from returning to the route file.
+- The Admin promotion implementation now lives in `src/features/cms/promotion-center-page.tsx`; the App Router route is a thin CMS feature entry point.
+- The Admin CMS public boundary exports `PromotionCenterPage`; dedicated static audit prevents promotion API/state logic from returning to the route file.
 - Unit tests cover deposit defaults, amount parsing, validation, request serialization, API error mapping and deterministic finance query/invalidation keys.
 - Presentation contract tests prevent `DepositView` and `WithdrawalView` from owning API fetches or route-level effects.
-- R-012 CI installs dependencies and runs the static audit, Member feature tests, Member typecheck and Admin typecheck, including CMS route changes.
+- R-012 CI installs dependencies and runs feature-boundary audits, Member feature tests, Member typecheck and Admin typecheck, including CMS and promotion route changes.
 
 ## Verification
 
 ```bash
 node tools/audit-r012-feature-boundaries.mjs
+node tools/audit-r012-promotion-boundary.mjs
 pnpm --filter @platform/web-member test
 pnpm --filter @platform/web-member typecheck
 pnpm --filter @platform/web-admin typecheck
