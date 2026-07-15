@@ -41,4 +41,4 @@ jobs:
         run: pnpm audit:dependency-security
 
       - name: Validate environment schema tests
-        run: pnpm --filter @platform/api exec jest environment.validation.spec.ts --runInBand
+        run: pnpm --filter @platform/api exec jest src/common/config/runtime-env.spec.ts --runInBand
