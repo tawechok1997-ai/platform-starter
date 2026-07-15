@@ -22,21 +22,11 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Create shared filter parsing and sort whitelists.
 - [x] Reject arbitrary sort and filter input.
 - [x] Create a dashboard read model.
-- [ ] Create a report read model.
+- [x] Create a report read model.
 - [ ] Audit sensitive fields in projections.
 - [ ] Add response snapshot and contract tests.
 - [ ] Add EXPLAIN ANALYZE evidence for heavy queries.
 - [ ] Add N+1 and slow-query metrics.
-
-## Execution order
-
-1. Query inventory and stable finding keys.
-2. Pagination/filter/sort foundations.
-3. List/detail/summary projection cleanup by domain.
-4. Dashboard and report read models.
-5. Sensitive-field and response-contract enforcement.
-6. Heavy-query evidence and N+1/slow-query metrics.
-7. Strict CI guard and closure evidence.
 
 ## Safety rules
 
@@ -51,8 +41,6 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 ### 1. Query/read-model inventory
 
 - Added `tools/audit-r010-query-inventory.mjs`.
-- Scans API TypeScript source for numeric `take` literals, embedded page-size defaults, and duplicate Prisma `findMany` shapes.
-- Uses stable finding keys and module ownership.
 - Evidence: `docs/evidence/r010-query-inventory-foundation.md`.
 
 ### 2. Duplicate query consolidation by module ownership
@@ -70,7 +58,6 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 ### 4. Reduce unnecessary relation `include` usage in list endpoints
 
 - Replaced broad member-list profile/wallet includes with `MEMBER_LIST_PROJECTION`.
-- Preserved the member-list response contract and left the legitimate detail query unchanged.
 - Evidence: `docs/evidence/r010-admin-member-list-projection.md`.
 
 ### 5. Create a shared cursor pagination pattern
@@ -83,44 +70,48 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 - Added `apps/api/src/common/query/query-filters.ts`.
 - Migrated the admin support-ticket list.
-- Restricted sorting to owner-controlled fields and directions.
 - Evidence: `docs/evidence/r010-filter-sort-boundaries.md`.
 
 ### 7. Reject arbitrary sort and filter input
 
-- Query helpers now throw `BadRequestException` for invalid enum filters, sort fields, sort directions, and oversized text.
-- Invalid values no longer silently fall back or truncate.
-- Added explicit support category allowlists at both DTO and service boundaries.
+- Invalid enum filters, sort fields, sort directions, and oversized text now return `BadRequestException`.
 - Added executable contract tests and CI enforcement.
 - Evidence: `docs/evidence/r010-arbitrary-query-rejection.md`.
 
 ### 8. Create a dashboard read model
 
 - Added `AdminDashboardReadModel` under the `reports` module.
-- Moved daily dashboard aggregates for top-ups, withdrawals, adjustments, wallets, ledgers, and pending queues out of `ReportsQueryService`.
 - Kept `GET /admin/reports/daily` and its response contract unchanged.
-- Added `tools/audit-r010-dashboard-read-model.mjs` and wired it into `.github/workflows/r010-query-boundaries.yml`.
 - Evidence: `docs/evidence/r010-dashboard-read-model.md`.
-
-## Active work
 
 ### 9. Create a report read model
 
-- [ ] Select the first report family with mixed query and mapping responsibilities.
-- [ ] Move report-specific reads and projections behind an owner-local read model.
-- [ ] Preserve endpoint contracts and add a drift guard.
+- Added `AdminReportReadModel` under the `reports` module.
+- Moved trends, queue-aging, and reconciliation reads out of `ReportsQueryService`.
+- Removed direct Prisma access from `ReportsQueryService`.
+- Preserved all existing report routes and response keys.
+- Added `tools/audit-r010-report-read-model.mjs` and CI enforcement.
+- Evidence: `docs/evidence/r010-report-read-model.md`.
+
+## Active work
+
+### 10. Audit sensitive fields in projections
+
+- [ ] Inventory projection fields that can expose credentials, tokens, storage keys, bank details, contact data, or internal notes.
+- [ ] Tighten one high-value read family without changing intended response behavior.
+- [ ] Add a static sensitive-field drift guard.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 8
-- Remaining: 5
+- Closed: 9
+- Remaining: 4
 
 ## Latest commits
 
-- `3cc42e26aeed176a194f61ce9acc787b8e9b46f4` — record dashboard read-model evidence.
-- `c4a4fc49edc870fa97cf4ba6624dee6b3c29f9bd` — enforce the dashboard read-model boundary in CI.
-- `f98ef3d23e8fd80ddb87f63606dc3980115f69f3` — guard dashboard read-model ownership and response keys.
-- `77c326165e8a839621fe517911444aca721612ca` — register the dashboard read model.
-- `1be68174318288982e45035965185c38d1964bb6` — route daily dashboard reads through the read model.
-- `d2bbb21a135e818e38e66fef59296e197e2be90f` — add the admin dashboard read model.
+- `7c0fcb3386f633021bc3c6b72d96e5ba6420e6e4` — record report read-model evidence.
+- `d9084673d254670b0f8a2501856d393f1aed9fbd` — enforce report read-model boundaries in CI.
+- `44b319bac39ee389fca431b832f0b740175ccb1d` — guard report read-model ownership and response keys.
+- `278ad9be7d3d511857e9e1e64f1775a2ee578fcc` — register the report read model.
+- `dafec6deaac7b0a7603798b86b65b820401011e0` — route report reads through the read model.
+- `3d44cca24503845f20abacc545890b6db5d1d51a` — add the admin report read model.
