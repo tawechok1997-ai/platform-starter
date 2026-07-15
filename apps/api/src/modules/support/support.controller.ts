@@ -81,7 +81,7 @@ export class SupportController {
   @UseGuards(MemberAuthGuard)
   @Delete('member/support-tickets/:id/attachments/:attachmentId')
   removeMemberAttachment(@CurrentUser() user: MemberActor, @Param('id') id: string, @Param('attachmentId') attachmentId: string) {
-    return this.commands.removeMemberAttachment(user, id, attachmentId);
+    return this.attachments.removeMember(user, id, attachmentId);
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -131,7 +131,7 @@ export class SupportController {
   @RequirePermission('support.manage')
   @Delete('admin/support-tickets/:id/attachments/:attachmentId')
   removeAdminAttachment(@CurrentUser() user: AuthenticatedAdminActor, @Param('id') id: string, @Param('attachmentId') attachmentId: string) {
-    return this.commands.removeAdminAttachment(user, id, attachmentId);
+    return this.attachments.removeAdmin(user, id, attachmentId);
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
