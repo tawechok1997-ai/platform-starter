@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Use this runbook before authenticated, deployed, production, or vendor-specific regression. The readiness checker reports only whether required environment variables are present and structurally valid. The connectivity checker performs unauthenticated reachability probes. The deployment identity checker verifies that the API version endpoint matches the approved deployment. None of these tools prints credential or secret values.
+Use this runbook before authenticated, deployed, production, or vendor-specific regression. The readiness checker reports only whether required environment variables are present and structurally valid. The connectivity checker performs unauthenticated reachability probes and validates the API health payload. The deployment identity checker verifies that the API version endpoint matches the approved deployment. None of these tools prints credential or secret values.
 
 ## Commands
 
@@ -20,7 +20,7 @@ pnpm verify:p6:deployment:json
 
 - Normal mode prints READY/BLOCKED per group, service, or identity check and exits successfully so developers can inspect partial readiness.
 - Strict mode exits with code 1 until every required check is ready. Use strict mode as a workflow gate before P6 regression.
-- JSON mode emits machine-readable status without credential values, configured URLs, or commit values.
+- JSON mode emits machine-readable status without credential values, configured URLs, commit values, or response bodies.
 
 ## Manual GitHub Actions gate
 
@@ -37,7 +37,7 @@ The workflow:
 - runs `pnpm verify:p6:readiness:strict` before connectivity;
 - runs `pnpm verify:p6:connectivity:strict` before deployment identity;
 - runs `pnpm verify:p6:deployment:strict` before any authenticated regression;
-- stops with a failed status while any required prerequisite, service, or deployment identity check is unavailable;
+- stops with a failed status while any required prerequisite, service, API health dependency, or deployment identity check is unavailable;
 - writes only READY/BLOCKED names, status codes, and sanitized reason codes to the job summary;
 - does not start authenticated, mutation, settlement, or provider tests.
 
@@ -74,7 +74,7 @@ URL policy:
 - API, Admin, and Member URLs must use distinct origins;
 - validation errors expose only the environment-variable name and a sanitized reason code.
 
-## Connectivity policy
+## Connectivity and health policy
 
 The connectivity checker probes:
 
@@ -82,18 +82,39 @@ The connectivity checker probes:
 - the root path of `P6_ADMIN_URL`;
 - the root path of `P6_MEMBER_URL`.
 
+The API probe requires all of the following even when the HTTP status is 200:
+
+```json
+{
+  "status": "ok",
+  "service": "api",
+  "database": "ok",
+  "privateMedia": "ok"
+}
+```
+
+The checker blocks API readiness when:
+
+- the health response is not JSON or contains malformed JSON;
+- `service` is not `api`;
+- `status` is not `ok`;
+- `database` is not `ok`;
+- `privateMedia` is not `ok`.
+
+Sanitized reason codes include `health-not-json`, `health-invalid-json`, `health-service-mismatch`, `health-degraded`, `health-database-unhealthy`, and `health-private-media-unhealthy`.
+
 Safety boundaries:
 
 - requests are unauthenticated and do not send cookies, bearer tokens, seeded account credentials, provider keys, or callback secrets;
 - redirects are not followed automatically;
 - cross-origin redirects are blocked;
 - same-origin redirects are reported as blocked instead of followed, so the operator can review the route explicitly;
-- response bodies are not logged;
+- response bodies are parsed only for the API health contract and are never logged or included in reports;
 - output contains only service name, status code, and sanitized reason;
 - default timeout is 8 seconds per target;
 - `P6_CONNECTIVITY_TIMEOUT_MS` may be set between 1,000 and 30,000 milliseconds.
 
-Successful status codes are 200 through 399, excluding redirects because redirects are handled manually and reported for review.
+Successful UI status codes are 200 through 399, excluding redirects because redirects are handled manually and reported for review. API health additionally requires the payload contract above.
 
 ## Deployment identity policy
 
@@ -152,7 +173,7 @@ P6_PROVIDER_CALLBACK_URL
 ## Safe execution order
 
 1. Run `pnpm verify:p6:readiness` and resolve missing or invalid variables by group.
-2. Run `pnpm verify:p6:connectivity` and resolve unavailable services or redirect policy failures.
+2. Run `pnpm verify:p6:connectivity` and resolve unavailable services, API health dependency failures, or redirect policy failures.
 3. Run `pnpm verify:p6:deployment` and resolve commit, environment, service, or build timestamp mismatches.
 4. Run the manual `P6 External Readiness` workflow or all three strict commands before starting authenticated regression.
 5. Run read-only and permission regressions before mutation or settlement scenarios.
