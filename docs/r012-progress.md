@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 
 ## Status
 
-- DONE: 10/18
-- IN PROGRESS: register page decomposition
-- Remaining: 8
+- DONE: 11/18
+- IN PROGRESS: provider and CMS page decomposition
+- Remaining: 7
 
 ## Checklist
 
@@ -14,7 +14,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - [x] จัด Member folders ตาม feature/domain
 - [x] กำหนด public exports ของแต่ละ feature
 - [x] แยก page container ออกจาก presentation components
-- [ ] แยก register page
+- [x] แยก register page
 - [x] แยก deposit page
 - [x] แยก withdrawal page
 - [ ] แยก provider page
@@ -41,9 +41,11 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - Remote accounts/history/loading/error state now lives in `useDepositServerState`; the container only owns transient workflow and form state.
 - The withdrawal route keeps API orchestration, validation and transient state in `app/withdraw/page.tsx`; `WithdrawalView` owns rendering and interaction wiring.
 - `WithdrawalView` is exported through the finance public boundary, and static audit prevents direct presentation imports from the route.
+- The registration route keeps settings, validation, captcha state, API submission, token storage and referral linking in `app/(auth)/register/page.tsx`; `RegisterView` owns all public-auth rendering and field interaction wiring.
+- `RegisterView` is exported through the Member auth public boundary; static audit prevents API calls, route effects and auth form markup from leaking across the boundary.
 - Unit tests cover deposit defaults, amount parsing, validation, request serialization, API error mapping and deterministic finance query/invalidation keys.
 - Presentation contract tests prevent `DepositView` and `WithdrawalView` from owning API fetches or route-level effects.
-- R-012 CI now installs dependencies and runs the static audit, Member feature tests and Member typecheck.
+- R-012 CI installs dependencies and runs the static audit, Member feature tests and Member typecheck, including register route changes.
 
 ## Verification
 
