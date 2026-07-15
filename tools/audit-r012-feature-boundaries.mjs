@@ -28,12 +28,18 @@ const financeEntryPath = 'apps/web-member/src/features/finance/index.ts';
 const registerContainerPath = 'apps/web-member/app/(auth)/register/page.tsx';
 const registerViewPath = 'apps/web-member/src/features/auth/register-view.tsx';
 const authEntryPath = 'apps/web-member/src/features/auth/index.ts';
+const providerRoutePath = 'apps/web-admin/app/(admin)/game-providers/page.tsx';
+const providerFeaturePath = 'apps/web-admin/src/features/finance/game-providers-page.tsx';
+const adminFinanceEntryPath = 'apps/web-admin/src/features/finance/index.ts';
 const depositContainer = read(depositContainerPath);
 const withdrawalContainer = read(withdrawalContainerPath);
 const financeEntry = read(financeEntryPath);
 const registerContainer = read(registerContainerPath);
 const registerView = read(registerViewPath);
 const authEntry = read(authEntryPath);
+const providerRoute = read(providerRoutePath);
+const providerFeature = read(providerFeaturePath);
+const adminFinanceEntry = read(adminFinanceEntryPath);
 
 if (!fs.existsSync(depositViewPath)) failures.push('web-member: missing DepositView presentation component');
 if (!fs.existsSync(depositFormPath)) failures.push('web-member: missing deposit form contract');
@@ -58,6 +64,12 @@ if (registerContainer.includes('AntiBotWidget')) failures.push('web-member: regi
 if (registerView.includes('memberApiFetch(')) failures.push('web-member: RegisterView must not own API requests');
 if (registerView.includes('useEffect(')) failures.push('web-member: RegisterView must not own route effects');
 if (!authEntry.includes("from './register-view'")) failures.push('web-member: auth public boundary must export RegisterView');
+
+if (!fs.existsSync(providerFeaturePath)) failures.push('web-admin: missing game provider feature implementation');
+if (!providerRoute.includes("from '../../../src/features/finance/game-providers-page'")) failures.push('web-admin: provider route must delegate to finance feature implementation');
+if (providerRoute.includes('adminApiFetch(') || providerRoute.includes('useState(')) failures.push('web-admin: provider route must remain a thin entry point');
+if (!providerFeature.includes("from '../../../app/admin-api'")) failures.push('web-admin: provider feature must own provider API orchestration');
+if (!adminFinanceEntry.includes("GameProvidersPage") || !adminFinanceEntry.includes("from './game-providers-page'")) failures.push('web-admin: finance public boundary must export GameProvidersPage');
 
 if (!financeEntry.includes("export { DepositView } from './deposit-view'")) failures.push('web-member: finance public boundary must export DepositView');
 if (!financeEntry.includes('export { WithdrawalView')) failures.push('web-member: finance public boundary must export WithdrawalView');
