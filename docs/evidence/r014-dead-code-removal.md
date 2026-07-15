@@ -108,3 +108,26 @@ Regression evidence:
 - `pnpm typecheck:api`
 - `pnpm typecheck:member`
 
+
+## Pass 5 — admin UI orphan cleanup
+
+Date: 2026-07-15
+
+Removed:
+
+- `apps/web-admin/app/(admin)/_components/admin-confirm-dialog.tsx`
+- `apps/web-admin/app/(dashboard)/content/cms-asset-uploader.tsx`
+- `apps/web-admin/app/lib/finance-workflow.ts`
+
+Why this is low risk:
+
+- Exact source searches found references only inside the removed files themselves.
+- The files were not App Router entrypoints, Nest providers/controllers, config files, or package exports.
+- The cleanup inventory had already been refined to avoid route/component false positives before this deletion pass.
+
+Regression evidence:
+
+- `rg -n "AdminConfirmDialog|ConfirmDetailRow|CmsAssetUploader|UploadedCmsAsset|financeStatusLabel|allowedDepositActions|DepositWorkflowStatus|DepositWorkflowAction" apps/web-admin apps/api packages tools -g '!docs/evidence/r014-cleanup-inventory.json'`
+- `pnpm audit:r14-cleanup-inventory`
+- `pnpm typecheck:admin`
+

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-15T08:10:52.773Z",
+  "generatedAt": "2026-07-15T08:24:30.064Z",
   "note": "Candidate inventory only. Do not delete files from this report without owner review and regression evidence.",
   "scanned": {
     "roots": [
@@ -7,13 +7,13 @@
       "packages",
       "tools"
     ],
-    "files": 661,
-    "sourceFiles": 624,
+    "files": 658,
+    "sourceFiles": 621,
     "cssFiles": 37
   },
   "counts": {
-    "potentialOrphanSources": 6,
-    "potentiallyUnusedExports": 110,
+    "potentialOrphanSources": 3,
+    "potentiallyUnusedExports": 103,
     "componentFiles": 5,
     "potentiallyUnusedComponents": 0,
     "routeFiles": 153,
@@ -26,10 +26,7 @@
   "potentialOrphanSources": [
     "apps/api/src/common/infrastructure/prisma-admin-ownership-repository.adapter.ts",
     "apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts",
-    "apps/api/src/modules/game-platform/adapters/real-provider-adapter.template.ts",
-    "apps/web-admin/app/(admin)/_components/admin-confirm-dialog.tsx",
-    "apps/web-admin/app/(dashboard)/content/cms-asset-uploader.tsx",
-    "apps/web-admin/app/lib/finance-workflow.ts"
+    "apps/api/src/modules/game-platform/adapters/real-provider-adapter.template.ts"
   ],
   "potentiallyUnusedExports": [
     {
@@ -317,14 +314,6 @@
       "symbol": "WithdrawalWorkflowMeta"
     },
     {
-      "file": "apps/web-admin/app/(admin)/_components/admin-confirm-dialog.tsx",
-      "symbol": "AdminConfirmDialog"
-    },
-    {
-      "file": "apps/web-admin/app/(admin)/_components/admin-confirm-dialog.tsx",
-      "symbol": "ConfirmDetailRow"
-    },
-    {
       "file": "apps/web-admin/app/(admin)/_components/admin-icon.tsx",
       "symbol": "AdminIconName"
     },
@@ -337,28 +326,8 @@
       "symbol": "AdminNavItem"
     },
     {
-      "file": "apps/web-admin/app/(dashboard)/content/cms-asset-uploader.tsx",
-      "symbol": "UploadedCmsAsset"
-    },
-    {
       "file": "apps/web-admin/app/api/upstream.ts",
       "symbol": "ADMIN_UPSTREAM_API_URL"
-    },
-    {
-      "file": "apps/web-admin/app/lib/finance-workflow.ts",
-      "symbol": "allowedDepositActions"
-    },
-    {
-      "file": "apps/web-admin/app/lib/finance-workflow.ts",
-      "symbol": "DepositWorkflowAction"
-    },
-    {
-      "file": "apps/web-admin/app/lib/finance-workflow.ts",
-      "symbol": "DepositWorkflowStatus"
-    },
-    {
-      "file": "apps/web-admin/app/lib/finance-workflow.ts",
-      "symbol": "financeStatusLabel"
     },
     {
       "file": "apps/web-member/app/api/upstream.ts",
