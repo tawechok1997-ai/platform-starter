@@ -50,7 +50,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return {};
     const source = payload as Record<string, unknown>;
     const allowed: Record<string, unknown> = {};
-    for (const key of ['retryAfter', 'code', 'details']) {
+    for (const key of ['retryAfter', 'code', 'messageKey', 'details']) {
       if (source[key] !== undefined) allowed[key] = source[key];
     }
     return allowed;
