@@ -45,6 +45,8 @@ jobs:
         run: node tools/audit-r013-form-control-primitives.mjs
       - name: Shared Modal Drawer and ConfirmDialog primitives
         run: node tools/audit-r013-overlay-primitives.mjs
+      - name: Shared Table Pagination Tabs and Badge primitives
+        run: node tools/audit-r013-data-display-primitives.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: r013-design-token-inventory
