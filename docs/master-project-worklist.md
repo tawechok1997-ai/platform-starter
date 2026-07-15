@@ -19,7 +19,7 @@
 | P1 Security / permissions | ✅ DONE ฝั่งโค้ด |
 | P2 Product completion | ✅ DONE ฝั่งโค้ด |
 | P3 Provider foundation | ✅ DONE ฝั่งโค้ด |
-| P4 Architecture / UI / observability | 🟡 IN PROGRESS |
+| P4 Architecture / UI / observability | ✅ DONE ฝั่งโค้ด |
 | P5 Performance / storage / CI | 🟡 IN PROGRESS |
 | P6 External verification / production / vendor UAT | ⏸️ BLOCKED / WAITING |
 
@@ -106,6 +106,8 @@
 
 # P4 — Professional refactor, UI system และ observability
 
+สถานะ: ✅ DONE ฝั่งโค้ด
+
 ## R-001 ถึง R-012
 
 สถานะ: ✅ DONE
@@ -125,21 +127,25 @@
 
 ## R-013 UI system, design tokens และ accessibility
 
-สถานะ: 🟡 IN PROGRESS
+สถานะ: ✅ DONE
 
 - [x] ลบ unused legacy UI/package files
-- [x] เริ่ม shared semantic design tokens และ Admin/Member adoption
-- [ ] รวม shared UI primitives และ responsive patterns ให้ครบ
-- [ ] เพิ่ม keyboard, focus, ARIA, reduced-motion และ contrast baseline
-- [ ] เพิ่ม six-viewport visual regression และ CI artifacts
+- [x] Shared semantic design tokens และ Admin/Member adoption
+- [x] Shared UI primitives และ responsive patterns
+- [x] Keyboard, focus, ARIA, reduced-motion และ contrast baseline
+- [x] Six-viewport visual regression และ CI artifacts
+
+**หลักฐาน:** `docs/r013-progress.md`, `docs/evidence/r013-final-verification.md`, workflow `R-013 UI System` และ `R-013 Visual Regression`
 
 ## R-014 Observability และ cleanup
 
-สถานะ: 🟡 IN PROGRESS
+สถานะ: ✅ DONE
 
-- [ ] Structured logging และ redaction tests
-- [ ] Request/DB/auth/settlement/provider metrics
-- [ ] Dead-code inventory และ removal
+- [x] Structured logging และ redaction tests
+- [x] Request/DB/auth/settlement/provider metrics
+- [x] Dead-code inventory และ removal
+
+**หลักฐาน:** `docs/r014-progress.md`, `docs/evidence/r014-dead-code-removal.md`, `docs/evidence/r014-final-documentation-audit.md`
 
 ---
 
@@ -231,14 +237,13 @@
 
 # ลำดับทำงานโค้ดถัดไป
 
-1. ปิด R-013 shared UI primitives, responsive และ accessibility
-2. ทำ support binary/object-storage upload ผ่าน storage contract กลางและ binary lifecycle
-3. ปิด R-014 structured logging, metrics และ dead-code cleanup
-4. ปิด P5 aggregate/cache, storage security, test coverage และ CI hardening
-5. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
+1. ทำ support binary/object-storage upload ผ่าน storage contract กลางและ binary lifecycle
+2. ปิด P5 aggregate/cache และ storage security
+3. เพิ่ม web unit/component coverage, seeded visual artifact workflow และ CI hardening
+4. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
 
 # จำนวนงานคงค้าง
 
-- งานโค้ดใน P0 ถึง P5: **17 รายการ**
+- งานโค้ดใน P0 ถึง P5: **11 รายการ**
 - งาน external verification และ UAT ใน P6: **30 รายการ**
-- รวม checkbox ที่ยังไม่ปิด: **47 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **41 รายการ**
