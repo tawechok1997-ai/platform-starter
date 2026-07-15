@@ -17,8 +17,7 @@ export class AdminSupportTicketListQueryDto extends MemberSupportTicketListQuery
   status?: string;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(80)
+  @IsIn(['ALL', 'general', 'finance', 'account', 'game', 'technical'])
   category?: string;
 
   @IsOptional()
