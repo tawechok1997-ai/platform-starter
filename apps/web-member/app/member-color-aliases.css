@@ -1,6 +1,5 @@
 :root {
   --color-bg: var(--color-canvas);
-  --color-surface: var(--color-surface);
   --color-card: var(--color-surface-raised);
   --color-card-raised: var(--color-surface-overlay);
   --color-text: var(--color-text-primary);
