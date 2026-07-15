@@ -53,19 +53,19 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
-      - name: Apply database migrations
-        run: pnpm db:migrate
+      - name: Apply database schema
+        run: pnpm prisma db push --schema prisma/schema.prisma --skip-generate
       - name: Generate Prisma client
         run: pnpm db:generate
       - name: Capture EXPLAIN ANALYZE evidence
         run: pnpm audit:r10:explain
-      - name: Validate evidence payload
-        run: pnpm audit:r10:explain:validate -- artifacts/r010-explain-analyze.json
       - uses: actions/upload-artifact@v4
         with:
           name: r010-explain-analyze
           path: artifacts/r010-explain-analyze.json
           if-no-files-found: error
+      - name: Validate evidence payload
+        run: pnpm audit:r10:explain:validate -- artifacts/r010-explain-analyze.json
       - name: Persist validated evidence on main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
