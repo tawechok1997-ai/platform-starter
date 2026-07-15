@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Use this runbook before authenticated, deployed, production, or vendor-specific regression. The readiness checker reports only whether required environment variables are present and structurally valid. The connectivity checker performs unauthenticated reachability probes and validates the API health payload. The deployment identity checker verifies that the API version endpoint matches the approved deployment. None of these tools prints credential or secret values.
+Use this runbook before authenticated, deployed, production, or vendor-specific regression. The readiness checker reports whether core environment variables are present and structurally valid, while vendor UAT readiness is reported separately as an optional group. The connectivity checker performs unauthenticated reachability probes and validates the API health payload. The deployment identity checker verifies that the API, Admin UI, and Member UI match the approved deployment. None of these tools prints credential or secret values.
 
 ## Commands
 
@@ -18,8 +18,9 @@ pnpm verify:p6:deployment:strict
 pnpm verify:p6:deployment:json
 ```
 
-- Normal mode prints READY/BLOCKED per group, service, or identity check and exits successfully so developers can inspect partial readiness.
-- Strict mode exits with code 1 until every required check is ready. Use strict mode as a workflow gate before P6 regression.
+- Normal mode prints READY, BLOCKED, or SKIPPED per group, service, or identity check and exits successfully so developers can inspect partial readiness.
+- Strict readiness mode exits with code 1 only when a blocking core group is unavailable or invalid. Missing vendor UAT variables are reported as `SKIPPED vendor-uat` and do not fail the core gate.
+- Connectivity and deployment identity strict modes remain blocking.
 - JSON mode emits machine-readable status without credential values, configured URLs, commit values, or response bodies.
 
 ## Manual GitHub Actions gate
@@ -35,10 +36,11 @@ The workflow:
 - grants only `contents: read` permission;
 - installs from the lockfile and runs readiness, connectivity, and deployment-identity regression tests;
 - runs `pnpm verify:p6:readiness:strict` before connectivity;
+- allows readiness to continue when only vendor UAT configuration is absent;
 - runs `pnpm verify:p6:connectivity:strict` before deployment identity;
 - runs `pnpm verify:p6:deployment:strict` before any authenticated regression;
-- stops with a failed status while any required prerequisite, service, API health dependency, or deployment identity check is unavailable;
-- writes only READY/BLOCKED names, status codes, and sanitized reason codes to the job summary;
+- stops with a failed status while any blocking prerequisite, service, API health dependency, or deployment identity check is unavailable;
+- writes only READY, BLOCKED, or SKIPPED names, status codes, and sanitized reason codes to the job summary;
 - does not start authenticated, mutation, settlement, or provider tests.
 
 Use environment-scoped secrets with required reviewers for production-only values. Repository secrets are acceptable for non-production seeded regression accounts when access is appropriately restricted.
@@ -64,7 +66,7 @@ P6_APPROVED_COMMIT_SHA
 
 Use non-production URLs for authenticated browser regression unless a worklist item explicitly requires production verification.
 
-`P6_APPROVED_COMMIT_SHA` must contain a 7-to-40-character Git commit SHA approved for the target deployment. Store it as a GitHub secret or protected environment variable. The checker supports comparing a short SHA with the matching full SHA returned by the API.
+`P6_APPROVED_COMMIT_SHA` must contain a 7-to-40-character Git commit SHA approved for the target deployment. Store it as a GitHub secret or protected environment variable. The checker supports comparing a short SHA with the matching full SHA returned by the services.
 
 URL policy:
 
@@ -118,15 +120,21 @@ Successful UI status codes are 200 through 399, excluding redirects because redi
 
 ## Deployment identity policy
 
-The deployment identity checker calls `P6_API_URL/version` and verifies:
+The deployment identity checker calls:
 
-- `service` is `api`;
+- `P6_API_URL/version`;
+- `P6_ADMIN_URL/api/version`;
+- `P6_MEMBER_URL/api/version`.
+
+It verifies:
+
+- the expected service identity;
 - `commit` matches `P6_APPROVED_COMMIT_SHA`, including short-SHA/full-SHA comparison;
 - `environment` matches `P6_ENVIRONMENT`; `non-production` accepts any environment except `production`;
 - `builtAt` is present and parses as a timestamp;
 - redirects are blocked and no credentials are sent.
 
-The API currently returns `service`, `version`, `commit`, `environment`, `builtAt`, and request `time`. The checker does not print the returned commit, approved commit, endpoint URL, or response body. It reports only check name, status code, and sanitized reason codes such as `commit_mismatch`, `environment_mismatch`, or `invalid_built_at`.
+The checker does not print the returned commit, approved commit, endpoint URL, or response body. It reports only check name, status code, and sanitized reason codes such as `commit_mismatch`, `environment_mismatch`, or `invalid_built_at`.
 
 Deployment configuration must set:
 
@@ -153,7 +161,9 @@ Store these in the CI secret manager or local untracked environment. Do not add 
 
 ## Vendor UAT variables
 
-Required for vendor readiness:
+Vendor UAT is an optional readiness group until a provider-specific scenario is being executed. Missing provider variables produce `SKIPPED vendor-uat` and do not block core readiness, connectivity, or deployment identity verification.
+
+Required when vendor UAT is actually being run:
 
 ```text
 P6_PROVIDER_CODE
@@ -168,16 +178,17 @@ P6_PROVIDER_SECRET
 P6_PROVIDER_CALLBACK_URL
 ```
 
-`P6_PROVIDER_BASE_URL` and `P6_PROVIDER_CALLBACK_URL`, when present, use the same URL policy. Production callback URLs must use HTTPS.
+`P6_PROVIDER_BASE_URL` and `P6_PROVIDER_CALLBACK_URL`, when present, use the same URL policy. Invalid configured vendor values are reported, but vendor readiness remains non-blocking until vendor UAT is explicitly started. Do not enter placeholder provider values merely to obtain a green workflow.
 
 ## Safe execution order
 
-1. Run `pnpm verify:p6:readiness` and resolve missing or invalid variables by group.
-2. Run `pnpm verify:p6:connectivity` and resolve unavailable services, API health dependency failures, or redirect policy failures.
-3. Run `pnpm verify:p6:deployment` and resolve commit, environment, service, or build timestamp mismatches.
-4. Run the manual `P6 External Readiness` workflow or all three strict commands before starting authenticated regression.
-5. Run read-only and permission regressions before mutation or settlement scenarios.
-6. Keep real-money gates disabled until provider-specific reconciliation and UAT are approved.
+1. Run `pnpm verify:p6:readiness` and resolve missing or invalid blocking variables.
+2. Treat `SKIPPED vendor-uat` as expected until real vendor configuration exists.
+3. Run `pnpm verify:p6:connectivity` and resolve unavailable services, API health dependency failures, or redirect policy failures.
+4. Run `pnpm verify:p6:deployment` and resolve commit, environment, service, or build timestamp mismatches.
+5. Run the manual `P6 External Readiness` workflow or all three strict commands before starting authenticated regression.
+6. Run read-only and permission regressions before mutation or settlement scenarios.
+7. Keep real-money gates disabled until provider-specific reconciliation and UAT are approved.
 
 ## Worklist accounting
 
