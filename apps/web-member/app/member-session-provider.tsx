@@ -48,15 +48,21 @@ export function useMemberSession() {
   return value;
 }
 
+function getStoredToken(key: string) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
 async function verifyMemberSession() {
-  const token = window.localStorage.getItem('member_access_token');
-  const refreshToken = window.localStorage.getItem('member_refresh_token');
+  const token = getStoredToken('member_access_token');
+  const refreshToken = getStoredToken('member_refresh_token');
   if (!token && !refreshToken) return false;
 
-  if (token || refreshToken) {
-    const response = await fetchWithTimeout('/member/wallet');
-    if (response.ok) return true;
-  }
+  const response = await fetchWithTimeout('/member/wallet');
+  if (response.ok) return true;
   clearMemberSession();
   return false;
 }
