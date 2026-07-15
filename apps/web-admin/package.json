@@ -10,7 +10,7 @@
     "start": "next start -p 3001"
   },
   "dependencies": {
-    "next": "16.2.10",
+    "next": "15.5.18",
     "qrcode": "1.5.4",
     "react": "19.2.7",
     "react-dom": "19.2.7",
