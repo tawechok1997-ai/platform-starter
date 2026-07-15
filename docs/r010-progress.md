@@ -26,7 +26,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Audit sensitive fields in projections.
 - [x] Add response snapshot and contract tests.
 - [ ] Add EXPLAIN ANALYZE evidence for heavy queries.
-- [ ] Add N+1 and slow-query metrics.
+- [x] Add N+1 and slow-query metrics.
 
 ## Safety rules
 
@@ -38,18 +38,20 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ## Closed outcomes
 
-### 1-10. Query foundations and read-model boundaries
+### 1-11. Query foundations, read models, and response contracts
 
-- Query inventory, ownership, projections, pagination, filter/sort validation, dashboard/report read models, and sensitive-field guards are closed.
+- Query inventory, ownership, projections, pagination, filter/sort validation, dashboard/report read models, sensitive-field guards, and deterministic response snapshots are closed.
 - Evidence is recorded under `docs/evidence/r010-*.md`.
 
-### 11. Add response snapshot and contract tests
+### 13. Add N+1 and slow-query metrics
 
-- Added `apps/api/src/modules/reports/report-response-contracts.spec.ts`.
-- Added `apps/api/src/modules/notifications/notification-response-contracts.spec.ts`.
-- Dashboard, queue-aging, reconciliation, and notification public responses use deterministic inline snapshots.
-- Wired both suites into `.github/workflows/r010-query-boundaries.yml`, followed by API typecheck.
-- Evidence: `docs/evidence/r010-response-contract-snapshots.md`.
+- Added `QueryPerformanceMonitor` with normalized SHA-256 query fingerprints.
+- Added slow-query signals controlled by `PRISMA_SLOW_QUERY_MS` (default 250 ms).
+- Added N+1 burst signals controlled by `PRISMA_N1_BURST_THRESHOLD` and `PRISMA_N1_WINDOW_MS` (defaults 8 queries in 1000 ms).
+- Integrated Prisma query events centrally in `PrismaService`.
+- Runtime logs exclude raw SQL and query parameters.
+- Added focused unit tests and `tools/audit-r010-query-performance-metrics.mjs`.
+- Wired the guard, tests, and API typecheck into `.github/workflows/r010-query-boundaries.yml`.
 
 ## Active work
 
@@ -66,14 +68,14 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 11
-- Remaining: 2
+- Closed: 12
+- Remaining: 1
 
 ## Latest commits
 
+- `4e7fbe83fd3766557055ddb3b9c0e26f6f514bc3` — verify query performance metrics in CI.
+- `9a071d8be40d42c5ce05877a55d1dd132c504835` — guard query performance instrumentation and log safety.
+- `3e11af5a1729fb42b8b981a859e2e37eb4e2d7f0` — instrument Prisma query timing and burst signals.
+- `4b630a58dc9a8748634eb6dea0877fc1822027a6` — test slow-query and N+1 burst contracts.
+- `0f50d33fbbfdca9c2dac4188073c127c26fcc5d5` — add the query performance monitor.
 - `86680c9f14a92a0b7f4e30b25aec4ab465eed781` — rerun EXPLAIN evidence workflow when scripts or commands change.
-- `6a6a2fc1d1c59284ea62a51f265236d2121e99a7` — document the EXPLAIN ANALYZE CI baseline and limitation.
-- `b055c00f31ad0aa1ebd9aa8fb0f1475c17cc9810` — add EXPLAIN evidence commands.
-- `f80978a6e61b0a63cb3fb8da5ee35df876c25fde` — validate machine-readable EXPLAIN evidence.
-- `e529067e8a20da3079f8c4e38a2793da93cfefa7` — add PostgreSQL EXPLAIN evidence workflow.
-- `bcfbc8713c65cd26ea7301a9e8af3951f3a0014d` — capture heavy-read EXPLAIN ANALYZE plans.
