@@ -17,7 +17,7 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - [x] Inventory hard-coded color, spacing, radius, shadow, breakpoint, and z-index values.
 - [x] Consolidate color tokens.
 - [x] Consolidate spacing, radius, and shadow tokens.
-- [ ] Consolidate typography, motion, breakpoint, and z-index tokens.
+- [x] Consolidate typography, motion, breakpoint, and z-index tokens.
 - [ ] Create or consolidate Button, Input, Select, and TextArea primitives.
 - [ ] Create or consolidate Modal, Drawer, and ConfirmDialog primitives.
 - [ ] Create or consolidate Table, Pagination, Tabs, and Badge primitives.
@@ -64,31 +64,40 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - Verification-only PR #36 ran workflow `R-013 UI System`, run `29397572019`, job `87294445965`.
 - Inventory, color guard, shape/space/shadow guard, artifact upload, Admin typecheck, and Member typecheck completed successfully.
 
-## Active work
-
 ### 6. Consolidate typography, motion, breakpoint, and z-index tokens
 
-- [ ] Define one shared typography scale and font-weight contract.
-- [ ] Define shared motion duration/easing tokens.
-- [ ] Define shared breakpoint and z-index contracts.
-- [ ] Add drift guards and frontend verification.
+- Added `packages/design-tokens/type-motion-layout.css`.
+- Defined shared font families, type scale, line heights, font weights, motion durations, easing curves, breakpoint values, and ordered z-index layers.
+- Admin and Member layouts load the same shared source.
+- Added `tools/audit-r013-type-motion-layout-contract.mjs` to verify required tokens, imports, self-reference safety, and z-index ordering.
+- Verification-only PR #38 ran workflow `R-013 UI System`, run `29398823758`, job `87298416792`.
+- All token guards, artifact upload, Admin typecheck, and Member typecheck completed successfully.
+
+## Active work
+
+### 7. Consolidate Button, Input, Select, and TextArea primitives
+
+- [ ] Inventory existing shared and duplicated form controls.
+- [ ] Define accessible shared primitive contracts.
+- [ ] Migrate representative Admin and Member forms.
+- [ ] Add contract guards and frontend verification.
 
 ## Initial findings
 
-- Shared color, spacing, radius, and shadow ownership is now centralized, while feature CSS migration remains incremental.
-- Typography, motion, breakpoint, and z-index values still vary between Admin and Member.
+- Shared design-token ownership is centralized, while feature-level literal migration remains incremental.
+- Form control implementations remain distributed across Admin and Member.
 - Existing reduced-motion CSS is present, but contrast, focus, keyboard, and ARIA evidence are not yet centralized.
 
 ## Count
 
 - Total R-013 outcomes: 17
-- Closed: 5
-- Remaining: 12
+- Closed: 6
+- Remaining: 11
 
 ## Latest commits
 
-- `d47ac178ce2402b8af6a09b7560032d7b5e30743` — restore deposit server-state endpoints and unblock Member typecheck.
-- `9e4b90c7c39d2af20a8e600ad9ff9132d968b80b` — retain frontend typecheck logs in CI.
-- `73a43dd2a6075f514fb84cb3b55dc233925634a4` — verify shared spacing, radius, and shadow tokens.
-- `366629c756a1aa7116c4280ba4266c7bf1f8c5e1` — add the shared token contract guard.
-- `ca9740b012d537b6f7e96e919715d515f876ac76` — define the shared spacing, radius, and shadow scale.
+- `b07a67bfbae0ab4792ff75279546b86823855a38` — verify shared typography, motion, breakpoint, and z-index tokens.
+- `a058f6bc7d1c8615143223bf473829ea583cf5fb` — guard the shared type/motion/layout contract.
+- `f4c31590a7da8002d7830c917acd9ccf03d01c2d` — load the shared type/motion/layout contract in Member.
+- `b650b39cfcf3a1113493a726fc38934a8b4a7efe` — load the shared type/motion/layout contract in Admin.
+- `c2f26827114d1da3a4c6062a31958f393c0d4b4b` — define shared typography, motion, breakpoint, and z-index tokens.
