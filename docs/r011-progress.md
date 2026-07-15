@@ -4,16 +4,16 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 
 ## Status
 
-- DONE: 3/14
-- IN PROGRESS: stable error codes and localization-ready message keys
-- Remaining: 11
+- DONE: 4/14
+- IN PROGRESS: authorization policies per domain
+- Remaining: 10
 
 ## Checklist
 
 - [x] สร้าง domain error taxonomy
 - [x] แยก domain error จาก HTTP exception
 - [x] ทำ HTTP error mapper กลาง
-- [ ] ทำ stable error codes และ localization-ready message keys
+- [x] ทำ stable error codes และ localization-ready message keys
 - [ ] รวม authorization policies ต่อ domain
 - [ ] เพิ่ม resource-level authorization
 - [ ] รวม step-up/2FA requirement checks
@@ -35,6 +35,14 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 - Existing `HttpException` response behavior remains intact during migration.
 - Unit contract tests cover every category.
 - Static CI guard prevents boundary drift.
+
+### 4. Stable error codes and localization-ready message keys
+
+- Stable message keys are resolved from a central catalog.
+- Every `DomainError` carries a deterministic `messageKey`.
+- Unknown codes fall back to normalized `errors.<code>` keys.
+- The global error response preserves `code`, `messageKey`, `message` and safe `details`.
+- Mapper contract tests cover default and explicitly supplied message keys.
 
 ## Verification commands
 
