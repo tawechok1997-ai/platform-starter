@@ -79,6 +79,16 @@ export class SupportController {
   }
 
   @UseGuards(MemberAuthGuard)
+  @Get('member/support-tickets/:id/attachments/:attachmentId/download-url')
+  createMemberAttachmentDownload(
+    @CurrentUser() user: MemberActor,
+    @Param('id') id: string,
+    @Param('attachmentId') attachmentId: string,
+  ) {
+    return this.attachments.createMemberDownload(user, id, attachmentId);
+  }
+
+  @UseGuards(MemberAuthGuard)
   @Delete('member/support-tickets/:id/attachments/:attachmentId')
   removeMemberAttachment(@CurrentUser() user: MemberActor, @Param('id') id: string, @Param('attachmentId') attachmentId: string) {
     return this.attachments.removeMember(user, id, attachmentId);
@@ -125,6 +135,13 @@ export class SupportController {
   async readAdminAttachment(@Param('id') id: string, @Param('attachmentId') attachmentId: string, @Res() response: BinaryResponse) {
     const stored = await this.attachments.readAdmin(id, attachmentId);
     response.type(stored.contentType).send(stored.data);
+  }
+
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('support.view')
+  @Get('admin/support-tickets/:id/attachments/:attachmentId/download-url')
+  createAdminAttachmentDownload(@Param('id') id: string, @Param('attachmentId') attachmentId: string) {
+    return this.attachments.createAdminDownload(id, attachmentId);
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
