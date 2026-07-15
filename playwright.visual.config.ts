@@ -19,7 +19,7 @@ export default defineConfig({
   workers: 1,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never', outputFolder: 'artifacts/r013-visual/html-report' }]] : 'list',
   use: {
-    trace: 'retain-on-failure',
+    trace: 'on',
     screenshot: 'only-on-failure',
     video: 'off',
     colorScheme: 'dark',
