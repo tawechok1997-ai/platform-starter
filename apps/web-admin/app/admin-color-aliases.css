@@ -1,0 +1,15 @@
+:root {
+  --bg: var(--color-canvas);
+  --surface: var(--color-surface);
+  --surface2: var(--color-surface-raised);
+  --card: var(--color-surface-raised);
+  --card2: var(--color-surface-overlay);
+  --line: var(--color-border-subtle);
+  --line2: var(--color-border-strong);
+  --text: var(--color-text-primary);
+  --muted: var(--color-text-secondary);
+  --brand: var(--color-brand-primary);
+  --brand2: var(--color-brand-strong);
+  --good: var(--color-success);
+  --bad: var(--color-danger);
+}
