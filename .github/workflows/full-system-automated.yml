@@ -1,6 +1,8 @@
 name: Full-System Automated Tests
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       profile:
