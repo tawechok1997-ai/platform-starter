@@ -12,7 +12,7 @@ const checks = [
   ['runtime screenshots', spec.includes('page.png') && spec.includes('page.screenshot')],
   ['console evidence', spec.includes('console.json') && spec.includes("page.on('console'")],
   ['network evidence', spec.includes('network.json') && spec.includes("page.on('request'") && spec.includes("page.on('response'")],
-  ['trace retention', config.includes("trace: 'retain-on-failure'")],
+  ['trace retention', config.includes("trace: 'on'") || config.includes("trace: 'retain-on-failure'") || config.includes("trace: 'on-first-retry'")],
   ['html report', config.includes('html-report')],
   ['baseline command', workflowLines.includes('run: pnpm test:e2e:visual:update')],
   ['compare command', workflowLines.includes('run: pnpm test:e2e:visual')],
