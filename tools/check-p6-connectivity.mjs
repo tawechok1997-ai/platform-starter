@@ -3,7 +3,7 @@ const json = process.argv.includes('--json');
 const strict = process.argv.includes('--strict');
 
 const targets = [
-  { name: 'api', env: 'P6_API_URL', path: '/health' },
+  { name: 'api', env: 'P6_API_URL', path: '/health', validateBody: validateApiHealth },
   { name: 'admin', env: 'P6_ADMIN_URL', path: '/' },
   { name: 'member', env: 'P6_MEMBER_URL', path: '/' },
 ];
@@ -68,13 +68,28 @@ async function probe(target) {
       return { name: target.name, ok: false, statusCode: response.status, reason: 'redirect-not-followed' };
     }
 
-    const ok = response.status >= 200 && response.status < 400;
-    return {
-      name: target.name,
-      ok,
-      statusCode: response.status,
-      ...(ok ? {} : { reason: 'unhealthy-status' }),
-    };
+    if (response.status < 200 || response.status >= 400) {
+      return { name: target.name, ok: false, statusCode: response.status, reason: 'unhealthy-status' };
+    }
+
+    if (target.validateBody) {
+      const contentType = response.headers.get('content-type') ?? '';
+      if (!contentType.toLowerCase().includes('application/json')) {
+        return { name: target.name, ok: false, statusCode: response.status, reason: 'health-not-json' };
+      }
+
+      let payload;
+      try {
+        payload = await response.json();
+      } catch {
+        return { name: target.name, ok: false, statusCode: response.status, reason: 'health-invalid-json' };
+      }
+
+      const reason = target.validateBody(payload);
+      if (reason) return { name: target.name, ok: false, statusCode: response.status, reason };
+    }
+
+    return { name: target.name, ok: true, statusCode: response.status };
   } catch (error) {
     return {
       name: target.name,
@@ -84,6 +99,15 @@ async function probe(target) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+function validateApiHealth(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return 'health-invalid-payload';
+  if (payload.service !== 'api') return 'health-service-mismatch';
+  if (payload.status !== 'ok') return 'health-degraded';
+  if (payload.database !== 'ok') return 'health-database-unhealthy';
+  if (payload.privateMedia !== 'ok') return 'health-private-media-unhealthy';
+  return null;
 }
 
 function ensureTrailingSlash(url) {
