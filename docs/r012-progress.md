@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 
 ## Status
 
-- DONE: 16/18
-- IN PROGRESS: KYC and support page decomposition
-- Remaining: 2
+- DONE: 17/18
+- IN PROGRESS: KYC admin/member decomposition
+- Remaining: 1
 
 ## Checklist
 
@@ -22,7 +22,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - [x] แยก promotion page
 - [x] แยก security/admin lifecycle page
 - [ ] แยก KYC admin/member pages
-- [ ] แยก support page/thread components
+- [x] แยก support page/thread components
 - [x] แยก form schemas/defaults/serialization/error mapping
 - [x] แยก server state จาก UI state
 - [x] ทำ query-key factories และ invalidation rules
@@ -53,6 +53,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - The Admin auth public boundary exports `AdminSecurityPage`; dedicated static audit prevents 2FA, session and QR orchestration from returning to the route file.
 - Finance now exposes deterministic unsaved-change detection plus isolated optimistic snapshots and rollback helpers through its public boundary.
 - Regression tests verify unchanged forms remain clean, changed drafts are detected, optimistic mutation does not alter the snapshot, and rollback restores the original value.
+- Member support API orchestration, polling and draft persistence now live in `app/support/support-page-client.tsx`; the App Router page is a thin entry point.
+- Support ticket and message-thread rendering now lives in `SupportTicketCard`, exported through the Member support public boundary.
+- Dedicated support audit prevents API/effect logic from leaking into the presentation component or returning to the route.
 - Unit tests cover deposit defaults, amount parsing, validation, request serialization, API error mapping and deterministic finance query/invalidation keys.
 - Presentation contract tests prevent `DepositView` and `WithdrawalView` from owning API fetches or route-level effects.
 - R-012 CI installs dependencies and runs feature-boundary audits, Member feature tests, Member typecheck and Admin typecheck, including CMS, promotion and security route changes.
@@ -63,6 +66,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 node tools/audit-r012-feature-boundaries.mjs
 node tools/audit-r012-promotion-boundary.mjs
 node tools/audit-r012-security-boundary.mjs
+node tools/audit-r012-support-boundary.mjs
 pnpm --filter @platform/web-member test
 pnpm --filter @platform/web-member typecheck
 pnpm --filter @platform/web-admin typecheck
