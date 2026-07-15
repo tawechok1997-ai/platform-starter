@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 
 ## Status
 
-- DONE: 15/18
+- DONE: 16/18
 - IN PROGRESS: KYC and support page decomposition
-- Remaining: 3
+- Remaining: 2
 
 ## Checklist
 
@@ -27,7 +27,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - [x] แยก server state จาก UI state
 - [x] ทำ query-key factories และ invalidation rules
 - [x] เพิ่ม component/unit tests สำหรับส่วนที่แยก
-- [ ] เพิ่ม unsaved-change และ optimistic rollback regression
+- [x] เพิ่ม unsaved-change และ optimistic rollback regression
 
 ## Closed outcomes
 
@@ -51,6 +51,8 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - The Admin CMS public boundary exports `PromotionCenterPage`; dedicated static audit prevents promotion API/state logic from returning to the route file.
 - The Admin security implementation now lives in `src/features/auth/admin-security-page.tsx`; the App Router route is a thin auth feature entry point.
 - The Admin auth public boundary exports `AdminSecurityPage`; dedicated static audit prevents 2FA, session and QR orchestration from returning to the route file.
+- Finance now exposes deterministic unsaved-change detection plus isolated optimistic snapshots and rollback helpers through its public boundary.
+- Regression tests verify unchanged forms remain clean, changed drafts are detected, optimistic mutation does not alter the snapshot, and rollback restores the original value.
 - Unit tests cover deposit defaults, amount parsing, validation, request serialization, API error mapping and deterministic finance query/invalidation keys.
 - Presentation contract tests prevent `DepositView` and `WithdrawalView` from owning API fetches or route-level effects.
 - R-012 CI installs dependencies and runs feature-boundary audits, Member feature tests, Member typecheck and Admin typecheck, including CMS, promotion and security route changes.
