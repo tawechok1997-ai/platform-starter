@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { adminApiFetch } from '../../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack } from '../../_components/admin-ui';
 
-type Props = { params: { id: string } };
+type Props = { params: Promise<{ id: string }> };
 
 type LedgerDetail = {
   item?: any;
@@ -18,16 +18,17 @@ type LedgerDetail = {
 };
 
 export default function WalletLedgerDetailPage({ params }: Props) {
+  const { id } = use(params);
   const [payload, setPayload] = useState<LedgerDetail | null>(null);
   const [message, setMessage] = useState('กำลังโหลด ledger...');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { load(); }, [params.id]);
+  useEffect(() => { load(); }, [id]);
 
   async function load() {
     setLoading(true);
     setMessage('กำลังโหลด ledger...');
-    const res = await adminApiFetch(`/admin/money-ops/ledger/${params.id}`);
+    const res = await adminApiFetch(`/admin/money-ops/ledger/${id}`);
     const data = await res.json().catch(() => null);
     setLoading(false);
     if (!res.ok) {
