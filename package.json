@@ -100,6 +100,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:access": "tsx prisma/seed-access.ts",
     "db:seed:games": "tsx prisma/seed-games.ts",
+    "db:seed:p6": "tsx prisma/seed-p6-accounts.ts",
+    "db:seed:p6:check": "tsx prisma/seed-p6-accounts.ts --check",
     "db:studio": "prisma studio --schema prisma/schema.prisma",
     "build:api": "node tools/run-with-deployment-metadata.mjs -- pnpm db:generate && node tools/run-with-deployment-metadata.mjs -- pnpm --filter @platform/api build",
     "start:api": "node tools/run-with-deployment-metadata.mjs -- pnpm db:generate && node tools/run-with-deployment-metadata.mjs -- pnpm --filter @platform/api start:prod",
