@@ -28,6 +28,7 @@ Every module owns its controllers, application services, DTOs, persistence orche
 | game-platform | Provider, game session, transfer and webhook orchestration | Provider | Provider config, transfer, webhook and snapshot | `game-platform/game-platform.module.ts` |
 | money-ops | Manual finance/provider operations | Finance / Provider | Reconcile, retry, fail and reverse actions | `money-ops/money-ops.module.ts` |
 | support | FAQ and support ticket lifecycle | Support | Ticket, reply and attachment metadata | `support/support.module.ts` |
+| storage | Private object storage, upload policy, malware scanning and signed object delivery | Platform / Security | Object writes/reads/deletes, signed token verification and response headers | `storage/storage.module.ts` |
 | promotions | Campaign, claim, bonus and settlement | Growth / Finance | Promotion, claim, turnover and bonus ledger | `promotions/promotions.module.ts` |
 | affiliates | Referral, downline and commission | Growth / Finance | Affiliate relation and commission ledger | `affiliates/affiliates.module.ts` |
 | notifications | Member notifications and preferences | Platform | Notification and channel preference | `notifications/notifications.module.ts` |
