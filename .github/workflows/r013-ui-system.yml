@@ -51,6 +51,8 @@ jobs:
         run: node tools/audit-r013-feedback-primitives.mjs
       - name: Shared responsive strategy and transformations
         run: node tools/audit-r013-responsive-contract.mjs
+      - name: Accessibility motion and contrast baseline
+        run: node tools/audit-r013-accessibility-baseline.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: r013-design-token-inventory
