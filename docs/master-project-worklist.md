@@ -17,7 +17,7 @@
 |---|---|
 | P0 Core / schema / finance safety | ✅ DONE ฝั่งโค้ด |
 | P1 Security / permissions | ✅ DONE ฝั่งโค้ด |
-| P2 Product completion | 🟡 IN PROGRESS |
+| P2 Product completion | ✅ DONE ฝั่งโค้ด |
 | P3 Provider foundation | ✅ DONE ฝั่งโค้ด |
 | P4 Architecture / UI / observability | 🟡 IN PROGRESS |
 | P5 Performance / storage / CI | 🟡 IN PROGRESS |
@@ -64,15 +64,13 @@
 
 # P2 — Product completion
 
-สถานะ: 🟡 IN PROGRESS
-
-## งานที่เสร็จแล้ว
+สถานะ: ✅ DONE ฝั่งโค้ด
 
 - [x] Member home/game discovery implementation
 - [x] Deposit/withdraw guided UI และ workflow status
 - [x] Member profile/security/session controls
 - [x] Notifications model/list/preferences
-- [x] Support/FAQ/ticket lifecycle และ attachment policy
+- [x] Support/FAQ/ticket lifecycle และ attachment metadata policy
 - [x] Admin settings/CMS URL-backed assets
 - [x] Reports/activity/risk/security Admin feature set
 - [x] Promotion/bonus/affiliate/commission settlement
@@ -81,16 +79,11 @@
 - [x] Risk lifecycle และ blacklist/watchlist domain
 - [x] KYC case/document lifecycle และ private storage policy
 - [x] Phone OTP lifecycle และ PostgreSQL replay/brute-force/concurrency suite
+- [x] PostgreSQL risk-watchlist และ KYC concurrency suites
 - [x] Admin KYC UI และ Member KYC upload UI
+- [x] Repository verification command `pnpm verify:p2`
 
-## งานโค้ดที่เหลือ
-
-- [ ] Provider-down/game-launch regression
-- [ ] Responsive money-flow duplicate/retry/error regression
-- [ ] Notification optimistic rollback regression
-- [ ] Actual support binary/object-storage upload
-- [ ] Binary asset lifecycle สำหรับ upload จริง
-- [ ] PostgreSQL integration/concurrency tests สำหรับ watchlist/KYC document lifecycle
+> งาน browser regression ที่ต้องใช้ credentials/deployed environment ย้ายไป P6 และงาน binary/object-storage hardening ใช้ storage contract กลางใน P5 เพื่อไม่สร้างระบบไฟล์ซ้ำ
 
 ---
 
@@ -166,6 +159,8 @@
 ## Storage security
 
 - [x] Finance/KYC cleanup และ private-storage policies
+- [ ] Actual support binary/object-storage upload ผ่าน storage contract กลาง
+- [ ] Binary asset lifecycle สำหรับ support upload จริง
 - [ ] Global file-size limits และ MIME/content validation
 - [ ] Malware/content scan integration boundary
 - [ ] Signed URL policy และ Data URL reduction
@@ -194,6 +189,8 @@
 - [ ] จัดเตรียม seeded non-production Admin/Member credentials
 - [ ] Credentialed end-to-end deposit regression
 - [ ] Credentialed end-to-end withdrawal regression
+- [ ] Responsive money-flow duplicate/retry/error browser regression
+- [ ] Notification optimistic rollback browser regression
 - [ ] Credentialed owner-transfer regression
 - [ ] Production account lifecycle regression
 - [ ] Read-only role browser regression
@@ -205,6 +202,7 @@
 ## Deployed environment verification
 
 - [ ] จัดเตรียม deployed Admin/Member URLs
+- [ ] Provider-down/game-launch regression
 - [ ] Reverse-proxy integration test
 - [ ] Deployed login/refresh/logout/cookie regression
 - [ ] Session reuse/rotation regression ผ่าน browser/API จริง
@@ -234,14 +232,13 @@
 # ลำดับทำงานโค้ดถัดไป
 
 1. ปิด R-013 shared UI primitives, responsive และ accessibility
-2. เพิ่ม watchlist/KYC PostgreSQL integration และ concurrency tests
-3. ทำ support binary/object-storage upload และ binary lifecycle
-4. ปิด R-014 structured logging, metrics และ dead-code cleanup
-5. ปิด P5 cache, storage security, test coverage และ CI hardening
-6. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
+2. ทำ support binary/object-storage upload ผ่าน storage contract กลางและ binary lifecycle
+3. ปิด R-014 structured logging, metrics และ dead-code cleanup
+4. ปิด P5 aggregate/cache, storage security, test coverage และ CI hardening
+5. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
 
 # จำนวนงานคงค้าง
 
-- งานโค้ดใน P0 ถึง P5: **21 รายการ**
-- งาน external verification และ UAT ใน P6: **27 รายการ**
-- รวม checkbox ที่ยังไม่ปิด: **48 รายการ**
+- งานโค้ดใน P0 ถึง P5: **17 รายการ**
+- งาน external verification และ UAT ใน P6: **30 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **47 รายการ**
