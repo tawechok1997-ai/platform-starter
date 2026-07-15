@@ -1,0 +1,39 @@
+name: R012 Locate Register Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r012-register-locate-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  locate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Locate registration route
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '# R-012 register component inventory'
+            echo
+            echo '## Registration API usage'
+            grep -RIl --include='*.ts' --include='*.tsx' -E "(/register|/auth/register|สมัครสมาชิก|สร้างบัญชี)" apps/web-admin apps/web-member || true
+            echo
+            echo '## Likely route pages'
+            find apps/web-admin apps/web-member -type f -path '*/app/*/page.tsx' | sort | while read -r file; do
+              if grep -Eq "(password|confirmPassword|referral|username|phone|email)" "$file"; then echo "$file"; fi
+            done
+          } > docs/r012-register-component-inventory.md
+          rm .github/workflows/r012-register-locate-once.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/r012-register-component-inventory.md .github/workflows/r012-register-locate-once.yml
+          git commit -m 'docs(r012): locate register component'
+          git push
