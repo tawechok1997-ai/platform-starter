@@ -1,0 +1,62 @@
+name: P5 Web Unit Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-admin/**'
+      - 'apps/web-member/**'
+      - 'packages/api-client/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/p5-web-unit-tests.yml'
+  pull_request:
+    paths:
+      - 'apps/web-admin/**'
+      - 'apps/web-member/**'
+      - 'packages/api-client/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/p5-web-unit-tests.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p5-web-unit-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  critical-web-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test shared API client
+        run: pnpm --filter @platform/api-client test
+
+      - name: Test Admin critical components
+        run: pnpm --filter @platform/web-admin test
+
+      - name: Test Member critical components
+        run: pnpm --filter @platform/web-member test
+
+      - name: Typecheck web applications
+        run: pnpm typecheck:admin && pnpm typecheck:member
