@@ -21,7 +21,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Create a shared cursor pagination pattern.
 - [x] Create shared filter parsing and sort whitelists.
 - [x] Reject arbitrary sort and filter input.
-- [ ] Create a dashboard read model.
+- [x] Create a dashboard read model.
 - [ ] Create a report read model.
 - [ ] Audit sensitive fields in projections.
 - [ ] Add response snapshot and contract tests.
@@ -91,31 +91,36 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - Query helpers now throw `BadRequestException` for invalid enum filters, sort fields, sort directions, and oversized text.
 - Invalid values no longer silently fall back or truncate.
 - Added explicit support category allowlists at both DTO and service boundaries.
-- Added `apps/api/src/common/query/query-filters.spec.ts` covering defaults, valid input, invalid sort fields/directions, invalid enums, `ALL`, and oversized text.
-- Expanded `tools/audit-r010-filter-sort-boundaries.mjs` to prevent silent fallback or raw input drift.
-- Wired the executable contract test into `.github/workflows/r010-query-boundaries.yml`.
+- Added executable contract tests and CI enforcement.
 - Evidence: `docs/evidence/r010-arbitrary-query-rejection.md`.
-
-## Active work
 
 ### 8. Create a dashboard read model
 
-- [ ] Identify the first dashboard endpoint assembled from multiple owner queries.
-- [ ] Create an owner-local dashboard read model with narrow projections.
-- [ ] Preserve response contracts and add a drift guard.
+- Added `AdminDashboardReadModel` under the `reports` module.
+- Moved daily dashboard aggregates for top-ups, withdrawals, adjustments, wallets, ledgers, and pending queues out of `ReportsQueryService`.
+- Kept `GET /admin/reports/daily` and its response contract unchanged.
+- Added `tools/audit-r010-dashboard-read-model.mjs` and wired it into `.github/workflows/r010-query-boundaries.yml`.
+- Evidence: `docs/evidence/r010-dashboard-read-model.md`.
+
+## Active work
+
+### 9. Create a report read model
+
+- [ ] Select the first report family with mixed query and mapping responsibilities.
+- [ ] Move report-specific reads and projections behind an owner-local read model.
+- [ ] Preserve endpoint contracts and add a drift guard.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 7
-- Remaining: 6
+- Closed: 8
+- Remaining: 5
 
 ## Latest commits
 
-- `6752ebbbef79d271020d78540998d0543dc52c6c` — run strict query rejection contracts in CI.
-- `33db6d3290c2a6f19586a03bd2a112bf91321207` — add executable strict query rejection contracts.
-- `04209229bbd83922dafd550e6e05015006200773` — record arbitrary query rejection evidence.
-- `832ead7aee5ee59d6a17ce2929ae4bc045bcd14c` — guard strict query rejection behavior.
-- `e4802d113e274ba7c37588025a77dee2fb640d27` — enforce strict support query filters.
-- `45fbe39d888986127a8a254293f5aed4915d69c1` — whitelist support category filters.
-- `e952d3b5b9ae04ae85d8b190b11ada8c07a069fd` — reject invalid shared query input.
+- `3cc42e26aeed176a194f61ce9acc787b8e9b46f4` — record dashboard read-model evidence.
+- `c4a4fc49edc870fa97cf4ba6624dee6b3c29f9bd` — enforce the dashboard read-model boundary in CI.
+- `f98ef3d23e8fd80ddb87f63606dc3980115f69f3` — guard dashboard read-model ownership and response keys.
+- `77c326165e8a839621fe517911444aca721612ca` — register the dashboard read model.
+- `1be68174318288982e45035965185c38d1964bb6` — route daily dashboard reads through the read model.
+- `d2bbb21a135e818e38e66fef59296e197e2be90f` — add the admin dashboard read model.
