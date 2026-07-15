@@ -15,7 +15,7 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - [x] Remove unused legacy Admin UI files.
 - [x] Remove the empty unused `packages/ui` workspace.
 - [x] Inventory hard-coded color, spacing, radius, shadow, breakpoint, and z-index values.
-- [ ] Consolidate color tokens.
+- [x] Consolidate color tokens.
 - [ ] Consolidate spacing, radius, and shadow tokens.
 - [ ] Consolidate typography, motion, breakpoint, and z-index tokens.
 - [ ] Create or consolidate Button, Input, Select, and TextArea primitives.
@@ -42,29 +42,41 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - Verification-only PR #32 ran workflow `R-013 UI System`, run `29395337259`, job `87287462809`.
 - Inventory generation, artifact upload, Admin typecheck, and Member typecheck completed successfully.
 
-## Active work
-
 ### 4. Consolidate color tokens
 
-- [ ] Define shared semantic surface, text, border, brand, success, warning, and danger tokens.
-- [ ] Preserve compatibility aliases for existing Admin and Member CSS.
-- [ ] Wire both applications to one token source.
-- [ ] Add a drift guard preventing duplicate root color contracts.
+- Added the shared semantic contract at `packages/design-tokens/colors.css`.
+- Covered canvas, surfaces, text, brand, status, border, and backdrop colors.
+- Admin and Member layouts load the same shared source.
+- Added local compatibility aliases so existing screens keep their public CSS contract while migrating.
+- Added `tools/audit-r013-color-token-contract.mjs` to reject missing imports, missing semantic tokens, and self-referencing aliases.
+- Added the shared token path and contract guard to `.github/workflows/r013-ui-system.yml`.
+- Verification-only PR #34 ran workflow `R-013 UI System`, run `29396310025`, job `87290494428`.
+- Inventory, shared-color guard, artifact upload, Admin typecheck, and Member typecheck completed successfully.
+
+## Active work
+
+### 5. Consolidate spacing, radius, and shadow tokens
+
+- [ ] Define one shared spacing scale.
+- [ ] Define semantic radius and shadow scales.
+- [ ] Wire compatibility aliases for both applications.
+- [ ] Add drift guards and frontend verification.
 
 ## Initial findings
 
-- Admin and Member each define partial root tokens, but token names and values are not yet a single shared contract.
-- Both apps still contain many literal color, radius, shadow, breakpoint, and z-index values.
+- Shared color ownership is now centralized, but literal colors remain in feature CSS and will be migrated incrementally.
+- Spacing, radius, shadow, typography, motion, breakpoint, and z-index values still vary between Admin and Member.
 - Existing reduced-motion CSS is present, but contrast, focus, keyboard, and ARIA evidence are not yet centralized.
 
 ## Count
 
 - Total R-013 outcomes: 17
-- Closed: 3
-- Remaining: 14
+- Closed: 4
+- Remaining: 13
 
 ## Latest commits
 
-- `3857d2f82869d8d34f5d0027a5b77b9f76ed15c4` — start the R-013 workstream.
-- `df3805928a71969fa2a5d28e2bde86de18a0fedd` — add the R-013 inventory workflow.
-- `2f9055fbd7dd824c6dd9a7abf7383ba1300f353a` — add machine-readable design-token inventory.
+- `eb264820174db23c10d3d6e19d80315e642cb067` — document the shared color contract.
+- `b9f047ea9b70d2947a28155cee8002c105c0c344` — verify shared colors in the R-013 workflow.
+- `0dce01c7cbe1fda4aaeb5513232eaf4e354a367f` — guard shared color ownership and aliases.
+- `3c6ea6124dbcaa71f5690c65059afa7eba06ac5d` — define shared semantic colors.
