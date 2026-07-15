@@ -46,11 +46,11 @@ export default function MemberHome(props: MemberHomeProps) {
   const data = useMemberHomeData(features.games);
 
   useEffect(() => {
-    setPopupClosed(window.localStorage.getItem(POPUP_CLOSED_VERSION_KEY) === popupVersion);
+    setPopupClosed(readClosedPopupVersion() === popupVersion);
   }, [popupVersion]);
 
   function closePopup() {
-    window.localStorage.setItem(POPUP_CLOSED_VERSION_KEY, popupVersion);
+    writeClosedPopupVersion(popupVersion);
     setPopupClosed(true);
   }
 
@@ -87,4 +87,20 @@ export default function MemberHome(props: MemberHomeProps) {
 
     {props.cmsContent.popup.enabled && !popupClosed && <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />}
   </section>;
+}
+
+function readClosedPopupVersion() {
+  try {
+    return window.localStorage.getItem(POPUP_CLOSED_VERSION_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeClosedPopupVersion(version: string) {
+  try {
+    window.localStorage.setItem(POPUP_CLOSED_VERSION_KEY, version);
+  } catch {
+    // The popup still closes for this session when storage is unavailable.
+  }
 }
