@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import Redis from 'ioredis';
 import { AppModule } from './app.module';
+import { validateRuntimeEnvironment } from './common/config/runtime-env';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SensitiveResponseInterceptor } from './common/interceptors/sensitive-response.interceptor';
 import { recordHttpMetric } from './common/observability/runtime-metrics';
@@ -31,6 +32,7 @@ const RATE_RULES: RateRule[] = [
 let redis: Redis | null = null;
 
 async function bootstrap() {
+  validateRuntimeEnvironment();
   const app = await NestFactory.create(AppModule, { rawBody: true });
   const config = app.get(ConfigService);
   const trustedProxyHops = readTrustedProxyHops(config.get<string>('TRUSTED_PROXY_HOPS') ?? process.env.TRUSTED_PROXY_HOPS);
