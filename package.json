@@ -72,6 +72,8 @@
     "audit:finance-workflows": "node tools/audit-finance-workflows.mjs",
     "audit:admin-token-storage": "node tools/audit-admin-token-storage.mjs",
     "audit:admin-xss": "node tools/audit-admin-xss-boundary.mjs",
+    "audit:production-secrets": "node tools/audit-production-secrets.mjs",
+    "audit:dependency-security": "pnpm audit --prod --audit-level high && pnpm audit:production-secrets",
     "test:proxy-rate-limit": "node tools/test-reverse-proxy-rate-limit.mjs",
     "verify:p1:production": "bash scripts/verify-p1-production.sh",
     "verify:p2": "bash scripts/verify-p2-product.sh",
