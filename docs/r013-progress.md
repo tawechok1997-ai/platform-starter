@@ -25,68 +25,53 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - [x] Reduce duplicate responsive CSS.
 - [x] Define a mobile-first responsive strategy.
 - [x] Define table-to-card, modal-to-bottom-sheet, and sidebar-to-drawer patterns.
-- [ ] Add keyboard, focus, and ARIA baselines.
-- [ ] Add reduced-motion and contrast checks.
+- [x] Add keyboard, focus, and ARIA baselines.
+- [x] Add reduced-motion and contrast checks.
 - [ ] Add six-viewport visual regression.
 - [ ] Store screenshot, trace, console, and network artifacts in CI.
 
 ## Closed outcomes
 
-### 3-10. Shared tokens and primitives
+### 3-13. Shared tokens, primitives, and responsive system
 
-- Centralized color, spacing, radius, shadow, typography, motion, breakpoint, and z-index ownership in `packages/design-tokens`.
-- Added shared form-control, overlay, data-display, and feedback primitives.
-- Migrated representative Admin and Member usages while retaining compatibility classes.
-- Added machine-readable guards and frontend typechecks to `.github/workflows/r013-ui-system.yml`.
-- Verification PRs #32, #34, #36, #38, #40, #42, and #44 completed successfully.
+- Centralized design tokens and shared UI contracts in `packages/design-tokens`.
+- Added guarded form, overlay, data-display, feedback, and responsive transformation patterns.
+- Verification PRs #32, #34, #36, #38, #40, #42, #44, and #46 completed successfully.
 
-### 11. Reduce duplicate responsive CSS
+### 14. Keyboard, focus, and ARIA baseline
 
-- Added `packages/design-tokens/responsive-layout.css`.
-- Centralized container, readable width, stack, cluster, grid, safe-area, and visibility rules.
-- Admin and Member load the same responsive source.
+- Added `packages/design-tokens/accessibility.css`.
+- Centralized `focus-visible`, invalid-field, screen-reader-only, skip-link, disabled-control, and forced-colors behavior.
+- Guarded Member drawer dialog semantics, Escape handling, finance focus trap/restore, labelled confirmation dialogs, and invalid login fields.
 
-### 12. Define a mobile-first responsive strategy
+### 15. Reduced-motion and contrast checks
 
-- Mobile behavior is the unqualified default.
-- Tablet and desktop enhancements use `@media (min-width: 768px)` and `@media (min-width: 1024px)`.
-- Shared gutters, grid columns, visibility, modal placement, and sidebar widths are owned centrally.
-
-### 13. Define responsive transformation patterns
-
-- Table-to-card remains enforced through `.ui-table[data-mobile="cards"]` and `data-label`.
-- Modal-to-bottom-sheet remains enforced below 768px.
-- Sidebar-to-drawer remains enforced through the Member drawer dialog contract.
-- Added `tools/audit-r013-responsive-contract.mjs`.
-- Verification-only PR #46 ran workflow `R-013 UI System`, run `29404205335`, job `87315624708`.
-- All responsive guards, artifact upload, Admin typecheck, and Member typecheck completed successfully.
+- Enforced a shared `prefers-reduced-motion` fallback across animations, transitions, and smooth scrolling.
+- Added automated WCAG contrast calculations for primary text/canvas and inverse text/brand token pairs.
+- Added `tools/audit-r013-accessibility-baseline.mjs` and wired it into `.github/workflows/r013-ui-system.yml`.
+- Verification-only PR #48 ran workflow `R-013 UI System`, run `29404594856`, job `87316876420`.
+- Accessibility guard, artifact upload, Admin typecheck, and Member typecheck completed successfully.
 
 ## Active work
 
-### 14-15. Accessibility baselines
+### 16-17. Visual regression and browser evidence
 
-- [ ] Centralize keyboard and focus-visible behavior.
-- [ ] Guard dialog, navigation, tabs, status, and invalid-field ARIA contracts.
-- [ ] Enforce reduced-motion behavior across shared primitives.
-- [ ] Add automated contrast-token checks.
-- [ ] Run frontend verification.
-
-## Initial findings
-
-- Shared token, primitive, and responsive ownership is centralized through outcome 13.
-- Accessibility behavior exists in several components but needs one guarded baseline.
-- Visual-regression and browser artifact outcomes remain open.
+- [ ] Validate Admin and Member public surfaces across six viewports.
+- [ ] Compare screenshots against generated baselines.
+- [ ] Store runtime screenshots and Playwright traces.
+- [ ] Store console and network JSON evidence.
+- [ ] Verify CI artifact upload before closure.
 
 ## Count
 
 - Total R-013 outcomes: 17
-- Closed: 13
-- Remaining: 4
+- Closed: 15
+- Remaining: 2
 
 ## Latest commits
 
-- `e0e9020a8538ce191734c722f097ab00f40b81f3` — verify responsive contracts in CI.
-- `bf4756c6f38abc243bcc40f8152d7d9332eeda99` — guard mobile-first strategy and transformations.
-- `4b6f274900fb567a2adf74a8a4381344f5ef0cfb` — load shared responsive source in Member.
-- `7db6a1ecfd637f706ad2c49f3658f3e283cc62a1` — load shared responsive source in Admin.
-- `86ad0e914b95a80e702dcf5d571683b1872c6933` — define shared responsive layout contract.
+- `34b0fbe5748047fce22e73e85e29e694fb882bd8` — verify accessibility baseline in CI.
+- `cd7999083febc7341abb36234b57a436aaf40d46` — guard accessibility, motion, and contrast behavior.
+- `7d296aa256b20b18fc96547ca9ce86baad27f665` — load accessibility baseline in Member.
+- `8fffe815e7f4034fce591ba2c9a0fef23a466b19` — load accessibility baseline in Admin.
+- `aee98a980e01218ef8c345ad9f0387b304dcabd9` — define shared accessibility baseline.
