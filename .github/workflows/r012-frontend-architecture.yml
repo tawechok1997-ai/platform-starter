@@ -5,6 +5,7 @@ on:
     paths:
       - 'apps/web-admin/src/features/**'
       - 'apps/web-admin/app/(admin)/game-providers/**'
+      - 'apps/web-admin/app/(admin)/content-center/**'
       - 'apps/web-member/src/features/**'
       - 'apps/web-member/app/(auth)/register/**'
       - 'apps/web-member/app/deposit/**'
@@ -17,6 +18,7 @@ on:
     paths:
       - 'apps/web-admin/src/features/**'
       - 'apps/web-admin/app/(admin)/game-providers/**'
+      - 'apps/web-admin/app/(admin)/content-center/**'
       - 'apps/web-member/src/features/**'
       - 'apps/web-member/app/(auth)/register/**'
       - 'apps/web-member/app/deposit/**'
