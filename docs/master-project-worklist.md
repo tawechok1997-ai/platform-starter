@@ -614,11 +614,11 @@ Branch อ้างอิง: **`main`**
 - [ ] เพิ่ม request latency/error-rate/DB-query metrics
 - [ ] เพิ่ม login/settlement/provider callback failure metrics
 - [ ] ทำ slow-query dashboard หรือ report
-- [ ] เขียน module README สำหรับ finance/auth/KYC/watchlist/support/notifications/CMS
-- [ ] เขียน state-machine docs สำหรับ deposit/withdrawal/KYC/support/admin lifecycle/promotion
-- [ ] เพิ่ม ADR สำหรับ module boundaries, transaction, API client, session, storage, audit, cache
-- [ ] เพิ่ม deployment/migration/rollback runbooks
-- [ ] เพิ่ม finance/security/provider outage runbooks
+- [x] เขียน module README สำหรับ finance/auth/KYC/watchlist/support/notifications/CMS
+- [x] เขียน state-machine docs สำหรับ deposit/withdrawal/KYC/support/admin lifecycle/promotion
+- [x] เพิ่ม ADR สำหรับ module boundaries, transaction, API client, session, storage, audit, cache
+- [x] เพิ่ม deployment/migration/rollback runbooks
+- [x] เพิ่ม finance/security/provider outage runbooks
 - [ ] inventory unused exports/components/routes/feature flags/helpers/CSS
 - [ ] ลบ dead code ทีละ domain พร้อม regression evidence
 - [ ] archive legacy docs หลังเชื่อมกลับมาที่ master
