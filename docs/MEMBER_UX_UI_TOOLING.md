@@ -1,10 +1,10 @@
 # Member UX/UI Tooling Worklist
 
-Updated: **2026-07-16**  
+Updated: 2026-07-14  
 Scope: `apps/web-member` only  
 Source of truth for Member UX/UI work: this file
 
-> Approved direction: premium dark navy/black Member experience with restrained gold accents, compact desktop information density, mobile-first navigation, clear finance states, and consistent responsive behavior. Reference boards supplied on 2026-07-16 define the target composition and visual hierarchy, but repository branding, content, permissions, API behavior, and accessibility requirements remain authoritative.
+> This worklist is aligned with the current repository. Existing foundations are Next.js 14, React 18, TypeScript, custom Member primitives, global CSS/custom properties, `packages/api-client`, and Playwright. Tools not installed in the repository are planned decisions, not completed capabilities.
 
 ## Status
 
@@ -15,51 +15,24 @@ Source of truth for Member UX/UI work: this file
 - ⛔ Blocked
 - 🧊 Deferred
 
-## Visual direction
-
-### Theme
-
-- [ ] Near-black/navy application background with layered dark surfaces
-- [ ] Restrained gold accent for primary actions, active navigation, highlights, and key values
-- [ ] Green for success, amber for pending/warning, red for failure/destructive actions
-- [ ] Thin borders, subtle elevation, controlled gradients, and limited glow
-- [ ] Compact desktop density without sacrificing readability
-- [ ] Mobile layouts use full-width cards, bottom navigation, safe-area spacing, and reachable primary actions
-- [ ] Use project branding and CMS assets; do not copy reference brand names or logos
-
-### Typography and icons
-
-- [ ] Define Thai/Latin typography scale for display, heading, body, label, caption, and numeric values
-- [ ] Use tabular numerals for money, balances, references, and transaction values
-- [ ] Evaluate `lucide-react` as the single icon library and record the decision in an ADR
-- [ ] Icon-only controls require accessible labels and visible focus states
-
-### Layout patterns
-
-- [ ] Desktop application shell with sidebar, top bar, content grid, and optional contextual panel
-- [ ] Mobile shell with compact header, bottom navigation, drawer/secondary navigation, and safe areas
-- [ ] Auth desktop uses split promotional panel plus form; mobile uses a focused single-column form
-- [ ] Finance flows use staged steps, review before submit, status timeline, and persistent action placement
-- [ ] Cards, tables, filters, and rails must preserve hierarchy under long Thai content and narrow viewports
-
 ## Member Definition of Done
 
-- [ ] Mobile-first and usable at 360×800, 390×844, 430×932, 768×1024, 1024×768, and 1440×900
-- [ ] Uses real API, authentication, settings, finance, KYC, notifications, support, and provider behavior
-- [ ] Handles loading, empty, error, offline, stale, permission, maintenance, success, retry, and session-expired states
-- [ ] Primary action remains reachable above safe area and mobile keyboard
-- [ ] Keyboard, visible focus, 200% zoom, screen-reader labels, and reduced motion work
-- [ ] Long Thai text, money, IDs, filenames, and missing media do not overflow
-- [ ] Mutations prevent double submit and preserve idempotency/error semantics
-- [ ] Relevant Member build, unit/component tests, Playwright, accessibility, and visual checks pass
+- Mobile-first and usable at 360×800, 390×844, 430×932, 768×1024, 1024×768, and 1440×900.
+- Uses the real API, authentication, settings, finance, KYC, notifications, support, and provider behavior.
+- Handles loading, empty, error, offline, stale, permission, maintenance, success, retry, and session-expired states.
+- Primary action remains reachable above the safe area and mobile keyboard.
+- Keyboard, visible focus, 200% zoom, screen-reader labels, and reduced motion work.
+- Long Thai text, money, IDs, filenames, and missing media do not overflow.
+- Mutations prevent double submit and preserve idempotency/error semantics.
+- Relevant Member build, Playwright, accessibility, and visual checks pass.
 
-# M0: Foundation and debt inventory
+# M0: Current foundation and debt inventory
 
-## MEMBER-FOUNDATION-001 Current tooling and ownership
+## MEMBER-FOUNDATION-001 Current tooling
 
-- [x] Next.js, React, TypeScript application foundation
+- [x] Next.js 14, React 18, TypeScript
 - [x] Custom Member UI primitives
-- [x] CSS custom properties, responsive CSS, animation, and transitions
+- [x] CSS custom properties, responsive CSS, animation, transitions
 - [x] `prefers-reduced-motion`
 - [x] Shared `packages/api-client`
 - [x] Playwright smoke and visual commands
@@ -68,32 +41,29 @@ Source of truth for Member UX/UI work: this file
 - [ ] Inventory inline-style debt in auth, finance, KYC, games, profile, notifications, and support
 - [ ] Replace selectors coupled to `[style*="..."]` with semantic classes
 - [ ] Define ownership for global CSS, component styles, tokens, and layout utilities
-- [ ] Record route-to-reference-board mapping and acceptance criteria
 
 ## MEMBER-FOUNDATION-002 Tooling decisions
 
-- [ ] Evaluate `react-hook-form` plus `zod` for forms
-- [ ] Evaluate `@tanstack/react-query` for server state
-- [ ] Evaluate `motion` only for state transitions requiring mount/unmount coordination
-- [ ] Evaluate `@axe-core/playwright` and JSX accessibility lint rules
-- [ ] Evaluate `lucide-react` as the single icon library
-- [ ] Evaluate carousel, upload, image-compression, drawer, virtualization, and table libraries only where measured need exists
-- [ ] Record an ADR for every accepted dependency
+- [ ] Evaluate and add `react-hook-form` plus `zod` for forms
+- [ ] Evaluate and add `@tanstack/react-query` for server state
+- [ ] Evaluate and add `motion` for mount/unmount and state transitions
+- [ ] Evaluate and add `@axe-core/playwright` and JSX accessibility lint rules
+- [ ] Evaluate and add `lucide-react` as the single icon library
+- [ ] Evaluate carousel, upload, image-compression, drawer, virtualization, and table libraries only for routes that require them
+- [ ] Record an ADR for each accepted dependency
 - [ ] Record bundle impact, migration scope, owner, and rollback plan
-- [ ] Do not add another design system or state/form layer without approved ADR and demonstrated need
+- [ ] Do not add shadcn, Radix, Tailwind, GSAP, Rive, Lottie, MUI, Ant Design, or another state/form layer without an approved ADR and demonstrated need
 
 # M1: Shared Member systems
 
-## MEMBER-SYSTEM-001 Tokens and primitives
+## MEMBER-SYSTEM-001 Design tokens and primitives
 
-- [ ] Consolidate semantic color tokens for background, surface, elevated surface, border, text, muted text, gold accent, success, warning, danger, and focus
-- [ ] Consolidate spacing, radius, shadow, typography, motion, breakpoint, content width, and z-index tokens
-- [ ] Consolidate Button, IconButton, Input, Select, TextArea, Checkbox, Radio, OTP, Field, and CurrencyInput
-- [ ] Consolidate Card, BalanceCard, MetricCard, StatusBadge, Notice, Toast, Skeleton, Empty, Error, and Success states
-- [ ] Consolidate Modal, Drawer, BottomSheet, ConfirmDialog, Tabs, Stepper, Timeline, Pagination, FilterBar, and StickyActionBar
+- [ ] Consolidate color, spacing, radius, shadow, typography, motion, breakpoint, and z-index tokens
+- [ ] Consolidate Button, Input, Select, TextArea, Checkbox, Radio, OTP, and Field primitives
+- [ ] Consolidate Card, BalanceCard, StatusBadge, Notice, Toast, Skeleton, Empty, Error, and Success states
+- [ ] Consolidate Modal, Drawer, BottomSheet, ConfirmDialog, Tabs, Stepper, Timeline, Pagination, and StickyActionBar
 - [ ] Create FileUpload, FilePreview, Progress, and secure-download feedback primitives
 - [ ] Create responsive carousel/rail primitives with swipe and keyboard support
-- [ ] Create desktop Sidebar, Topbar, mobile Header, and BottomNavigation primitives
 - [ ] Remove duplicate Member primitive implementations
 - [ ] Add component tests for critical primitives
 
@@ -101,7 +71,7 @@ Source of truth for Member UX/UI work: this file
 
 - [ ] Create motion duration, easing, distance, and reduced-motion tokens
 - [ ] Keep CSS for hover, focus, press, skeleton, shimmer, and simple drawer transitions
-- [ ] Use motion library only for modal, toast, list, step, upload, KYC, finance, and carousel enter/exit where CSS is insufficient
+- [ ] Use `motion` only for modal, toast, list, step, upload, KYC, finance, and carousel enter/exit
 - [ ] Avoid bounce/pulse on money, security, KYC rejection, or destructive actions
 - [ ] Prevent layout shift during content and status transitions
 - [ ] Restore focus after modal/drawer close
@@ -110,117 +80,55 @@ Source of truth for Member UX/UI work: this file
 
 ## MEMBER-SYSTEM-003 Forms and validation
 
-- [ ] Create shared field adapters if RHF/Zod is approved
+- [ ] Create shared RHF/Zod field adapters if the tooling decision is approved
 - [ ] Create server-error-code mapping without parsing raw messages
 - [ ] Create focus-first-error and validation-summary behavior
 - [ ] Create dirty-state and unsaved-change behavior
-- [ ] Create password strength, Caps Lock, show/hide password, and OTP countdown patterns
+- [ ] Create password strength and OTP countdown patterns
 - [ ] Create upload validation, preview, progress, cancel, and retry patterns
 - [ ] Prevent duplicate submit and show mutation progress
 - [ ] Add form component and browser regression tests
 
 ## MEMBER-SYSTEM-004 Server state
 
-- [ ] Create Member QueryClient and auth-aware provider if TanStack Query is approved
+- [ ] Create a Member QueryClient and auth-aware provider if TanStack Query is approved
 - [ ] Define query-key factories by domain
 - [ ] Define stale time, retry, cancellation, invalidation, and polling policies
 - [ ] Handle offline, session expiry, and auth refresh centrally
 - [ ] Handle optimistic rollback and version conflicts centrally
 - [ ] Migrate page-level `useEffect + useState + fetch` orchestration by domain
 
-# M2: Public and authentication
+# M2: Public/Auth worklist
 
-## MEMBER-AUTH-001 Login
+## MEMBER-AUTH-001 Login, register, and password recovery
 
-- [ ] Desktop split layout with promotional panel and focused login card
-- [ ] Mobile single-column layout with compact branding and safe-area spacing
-- [ ] Phone/username input, password manager support, show/hide password, Caps Lock warning, remember-me, and forgot-password entry
+- [ ] Autofill, password manager, show/hide password, Caps Lock, and keyboard behavior
 - [ ] Inline validation, focus-first-error, loading, lockout, anti-bot, and server-error states
-- [ ] Restore intended destination after login
-- [ ] Six-viewport, keyboard, 200% zoom, long Thai text, and accessibility regression
-
-## MEMBER-AUTH-002 Registration
-
-- [ ] Desktop split layout and mobile single-column layout matching Login
-- [ ] Registration step progress, phone/contact verification, password strength, confirm password, terms, and success states
-- [ ] Duplicate phone/username, OTP exhaustion, expired verification, retry, and server-error states
-- [ ] Prevent duplicate registration submit
-- [ ] Six-viewport and accessibility regression
-
-## MEMBER-AUTH-003 Password recovery and public states
-
+- [ ] Registration step progress, contact verification, terms, and success states
 - [ ] Forgot/reset password expired-token, used-token, retry, and session-revoke behavior
+- [ ] Restore intended destination after login
+- [ ] Six-viewport, 200% zoom, long Thai text, and accessibility regression
+
+## MEMBER-AUTH-002 Public content and maintenance
+
 - [ ] Legal, privacy, contact, maintenance, and session-expired layouts
 - [ ] CMS content, broken media, long content, and fallback states
 - [ ] Safe-area and mobile keyboard behavior
 - [ ] Visual and accessibility regression
 
-# M3: Application shell, Home, and Wallet
+# M3: Member route worklist
 
-## MEMBER-ROUTE-001 Global shell and navigation
+## MEMBER-ROUTE-001 Home and navigation
 
-- [ ] Desktop sidebar with active route, grouped navigation, account summary, support entry, and logout
-- [ ] Desktop top bar with balance visibility, notifications, locale, and account menu
-- [ ] Mobile header, bottom navigation, drawer, notification badge, and account shortcuts
-- [ ] Deep links, scroll restoration, route loading, permission state, and session expiry
-- [ ] Safe-area and landscape behavior
+- [ ] Bottom navigation, drawer, active route, deep link, and scroll restoration
+- [ ] Wallet summary, quick actions, promotions, announcements, and recent activity hierarchy
+- [ ] Loading skeleton, partial failure, stale timestamp, and retry
+- [ ] Safe-area, landscape, and notification badge behavior
 - [ ] Six-viewport visual regression
 
-## MEMBER-ROUTE-002 Home dashboard
+## MEMBER-ROUTE-002 Games lobby and launch
 
-- [ ] Wallet overview with available, locked, and bonus balances
-- [ ] Quick actions for deposit, withdrawal, transfer/history, and bank accounts according to enabled features
-- [ ] Promotion/bonus panel, announcements, recent transactions, and game recommendations
-- [ ] Desktop dashboard grid and mobile stacked hierarchy matching approved reference direction
-- [ ] Loading skeleton, partial failure, stale timestamp, retry, and missing-media fallback
-- [ ] Six-viewport visual regression
-
-## MEMBER-ROUTE-003 Wallet and transactions
-
-- [ ] Wallet overview screen with totals, balance categories, limits, and latest movement
-- [ ] Transaction filters for deposit, withdrawal, transfer, bonus, date range, and status
-- [ ] URL/deep-link state, pagination, and transaction detail view
-- [ ] Mobile card list and desktop table where useful
-- [ ] Before/after balance, fee, reference, status, timeline, and masked account details
-- [ ] Long-value, empty, error, loading, and accessibility regression
-
-# M4: Finance flows
-
-## MEMBER-ROUTE-004 Deposit
-
-- [ ] Staged flow: select destination, enter amount, upload slip, review, submit, and status
-- [ ] Destination account/QR details, copy feedback, reference, and expiry
-- [ ] Amount min/max, presets, and currency formatting
-- [ ] Slip type/size/content validation, preview, progress, cancel, and retry
-- [ ] Review before submit and idempotent submit feedback
-- [ ] Pending, reviewing, approved, rejected, expired, retry, and duplicate states
-- [ ] Deposit history and status timeline
-- [ ] Mobile sticky action and keyboard overlap handling
-- [ ] Responsive finance regression
-
-## MEMBER-ROUTE-005 Withdrawal
-
-- [ ] Available/locked balance, bank account selection, presets, fee, net amount, and min/max validation
-- [ ] Review, confirmation, duplicate-submit protection, and step-up/OTP states
-- [ ] KYC-required, bonus-turnover-blocked, watchlist-blocked, session-expired, and insufficient-balance states
-- [ ] Pending, processing, completed, rejected, cancelled, and retry states
-- [ ] Withdrawal history and status timeline
-- [ ] Mobile sticky action and responsive regression
-
-## MEMBER-ROUTE-006 Bank accounts
-
-- [ ] Desktop management list and mobile account cards
-- [ ] Add, verify, edit, set default, and disable account flows
-- [ ] Duplicate-bank detection, re-authentication, cooling policy, and verification states
-- [ ] Mask sensitive values and clearly distinguish primary/verified/pending accounts
-- [ ] Empty, error, long-value, and accessibility regression
-
-# M5: Games, promotions, and bonus
-
-## MEMBER-ROUTE-007 Games lobby and launch
-
-- [ ] Desktop catalog and mobile lobby layouts matching approved reference hierarchy
-- [ ] Search debounce, provider/category filters, favorites, recent, featured, and recommendation sections
+- [ ] Search debounce, provider/category filters, favorites, recent, and featured sections
 - [ ] Stable media ratio, lazy loading, fallback, and no layout shift
 - [ ] Swipe and keyboard carousel/rail behavior
 - [ ] Empty, no-result, provider-down, maintenance, unavailable, and popup-blocked states
@@ -228,30 +136,45 @@ Source of truth for Member UX/UI work: this file
 - [ ] Large-catalog virtualization only if measured need is proven
 - [ ] Authenticated browser and performance regression
 
-## MEMBER-ROUTE-008 Promotions and bonus
+## MEMBER-ROUTE-003 Deposit
 
-- [ ] Promotion list, categories, details, and claim flow
-- [ ] Available, claimed, active, expired, and ineligible states
-- [ ] Eligibility, progress, expiry, terms summary, and claim confirmation
-- [ ] Bonus balance, wager progress, expiry, and history
-- [ ] Optimistic claim feedback and rollback
-- [ ] Responsive and authenticated regression
+- [ ] Amount min/max and currency formatting
+- [ ] Destination account, copy feedback, expiry, and staged flow
+- [ ] Slip upload type/size validation, preview, progress, cancel, and retry
+- [ ] Review before submit and idempotent submit feedback
+- [ ] Pending, approved, rejected, expired, retry, and duplicate states
+- [ ] Mobile sticky action and keyboard overlap handling
+- [ ] Responsive finance regression
 
-# M6: Account, security, KYC, notifications, and support
+## MEMBER-ROUTE-004 Withdrawal
 
-## MEMBER-ROUTE-009 Profile and security
+- [ ] Available/locked balance, bank account, fee, net amount, and min/max validation
+- [ ] Review, confirmation, duplicate-submit protection, and step-up/OTP states
+- [ ] KYC-required, watchlist-blocked, session-expired, and insufficient-balance states
+- [ ] Pending, processing, completed, rejected, cancel, and retry states
+- [ ] Mobile sticky action and responsive regression
+
+## MEMBER-ROUTE-005 Transactions, wallet, and bank accounts
+
+- [ ] Transaction filters, URL/deep-link state, pagination, and detail view
+- [ ] Mobile card list and optional desktop table only if product value is proven
+- [ ] Before/after balance, fee, reference, status, and masked account details
+- [ ] Wallet available, locked, bonus, total, and movement summaries
+- [ ] Add/verify/default/disable bank account flows with re-auth/cooling policy
+- [ ] Long-value, empty, error, and accessibility regression
+
+## MEMBER-ROUTE-006 Profile and security
 
 - [ ] Profile sections with independent save and dirty-state handling
 - [ ] Phone/email verification, OTP resend, attempt exhaustion, and duplicate-value errors
 - [ ] Password requirements, current-password errors, and success feedback
-- [ ] 2FA setup/manage states
 - [ ] Session list, current-device marker, revoke one, revoke all, and login history
 - [ ] KYC status card and privacy-safe blocked states
 - [ ] Keyboard, zoom, and authenticated regression
 
-## MEMBER-ROUTE-010 KYC
+## MEMBER-ROUTE-007 KYC
 
-- [ ] Status summary, requirement checklist, upload form, document list, and submission panel
+- [ ] Split status summary, requirement checklist, upload form, document list, and submission panel
 - [ ] File type/size validation, image/PDF preview, progress, cancel, and retry
 - [ ] Prevent navigation during upload
 - [ ] Submit confirmation and lock state after submit
@@ -260,7 +183,15 @@ Source of truth for Member UX/UI work: this file
 - [ ] Explain privacy, retention, and secure access
 - [ ] Accessible file input and authenticated browser regression
 
-## MEMBER-ROUTE-011 Notifications
+## MEMBER-ROUTE-008 Promotions and bonus
+
+- [ ] Available, claimed, active, expired, and ineligible states
+- [ ] Eligibility, progress, expiry, terms summary, and claim confirmation
+- [ ] Bonus balance, wager progress, expiry, and history
+- [ ] Optimistic claim feedback and rollback
+- [ ] Responsive and authenticated regression
+
+## MEMBER-ROUTE-009 Notifications
 
 - [ ] Grouped-by-date hierarchy and unread state
 - [ ] Mark one/read all/archive feedback and rollback
@@ -269,7 +200,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Pagination/infinite loading only if API behavior supports it
 - [ ] Badge consistency and screen-reader announcements
 
-## MEMBER-ROUTE-012 Support and FAQ
+## MEMBER-ROUTE-010 Support and FAQ
 
 - [ ] FAQ search, category, no-result, and fallback behavior
 - [ ] Ticket create validation, draft restore, preview, and submit feedback
@@ -278,7 +209,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Linked finance/provider context
 - [ ] Long-thread performance, mobile composer, and keyboard overlap
 
-# M7: Accessibility, evidence, and cleanup
+# M4: Accessibility and QA
 
 ## MEMBER-QA-001 Accessibility automation
 
@@ -292,34 +223,18 @@ Source of truth for Member UX/UI work: this file
 - [ ] Add authenticated Member fixtures with non-production credentials
 - [ ] Cover all six standard viewports
 - [ ] Cover loading, empty, error, offline, stale, permission, maintenance, success, and session-expired states
-- [ ] Store screenshot, trace, console, network, and bundle artifacts in CI
+- [ ] Store screenshot, trace, console, and network artifacts in CI
 - [ ] Fail on browser console and unexpected network errors
-- [ ] Compare implemented pages against approved visual-direction boards without copying external branding
 
 # Execution order
 
-1. `MEMBER-FOUNDATION-001` route/component/style inventory
-2. `MEMBER-SYSTEM-001` visual tokens, shell primitives, fields, cards, status, modal/drawer, and navigation
-3. Login, Registration, Password Recovery
-4. Global Member shell and navigation
-5. Home dashboard, Wallet, and Transactions
-6. Deposit
-7. Withdrawal and Bank Accounts
-8. Profile, Security, and KYC
-9. Games
-10. Promotions and Bonus
-11. Notifications
-12. Support and FAQ
-13. Motion polish after behavior and layout are stable
-14. Accessibility, six-viewport visual regression, bundle review, and cleanup
-
-# Current next actions
-
-- [ ] Complete route/component/inline-style inventory
-- [ ] Remove remaining `[style*="..."]` selector coupling
-- [ ] Create approved dark/gold semantic token set
-- [ ] Create shared desktop/mobile application shell primitives
-- [ ] Rebuild Login first, then Registration, against the approved reference direction
+1. MEMBER-FOUNDATION-001 debt inventory
+2. MEMBER-SYSTEM-001 primitives and tokens
+3. MEMBER-SYSTEM-003 forms plus MEMBER-SYSTEM-004 server state
+4. Auth, Deposit, Withdrawal, Profile/Security, and KYC
+5. Home/Games, Transactions/Wallet/Bank, Promotions, Notifications, Support
+6. Motion polish after behavior and layout are stable
+7. Accessibility, visual regression, bundle review, and cleanup
 
 # Evidence log
 
