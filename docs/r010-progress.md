@@ -24,7 +24,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Create a dashboard read model.
 - [x] Create a report read model.
 - [x] Audit sensitive fields in projections.
-- [ ] Add response snapshot and contract tests.
+- [x] Add response snapshot and contract tests.
 - [ ] Add EXPLAIN ANALYZE evidence for heavy queries.
 - [ ] Add N+1 and slow-query metrics.
 
@@ -38,89 +38,37 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ## Closed outcomes
 
-### 1. Query/read-model inventory
+### 1-10. Query foundations and read-model boundaries
 
-- Added `tools/audit-r010-query-inventory.mjs`.
-- Evidence: `docs/evidence/r010-query-inventory-foundation.md`.
-
-### 2. Duplicate query consolidation by module ownership
-
-- Consolidated member notification-feed source queries under `NotificationFeedReadRepository`.
-- Added repository-wide duplicate-query strict enforcement and ownership guards.
-- Evidence: `docs/evidence/r010-notification-query-ownership.md` and `docs/evidence/r010-duplicate-query-consolidation-closure.md`.
-
-### 3. Separate list, detail, and summary projections
-
-- Added owner-local notification list, detail, and summary projection contracts.
-- Removed direct Prisma access from `NotificationsQueryService`.
-- Evidence: `docs/evidence/r010-notification-projection-boundaries.md`.
-
-### 4. Reduce unnecessary relation `include` usage in list endpoints
-
-- Replaced broad member-list profile/wallet includes with `MEMBER_LIST_PROJECTION`.
-- Evidence: `docs/evidence/r010-admin-member-list-projection.md`.
-
-### 5. Create a shared cursor pagination pattern
-
-- Added `apps/api/src/common/query/cursor-pagination.ts`.
-- Migrated member and admin support-ticket lists.
-- Evidence: `docs/evidence/r010-shared-cursor-pagination.md`.
-
-### 6. Create shared filter parsing and sort whitelists
-
-- Added `apps/api/src/common/query/query-filters.ts`.
-- Migrated the admin support-ticket list.
-- Evidence: `docs/evidence/r010-filter-sort-boundaries.md`.
-
-### 7. Reject arbitrary sort and filter input
-
-- Invalid enum filters, sort fields, sort directions, and oversized text now return `BadRequestException`.
-- Added executable contract tests and CI enforcement.
-- Evidence: `docs/evidence/r010-arbitrary-query-rejection.md`.
-
-### 8. Create a dashboard read model
-
-- Added `AdminDashboardReadModel` under the `reports` module.
-- Kept `GET /admin/reports/daily` and its response contract unchanged.
-- Evidence: `docs/evidence/r010-dashboard-read-model.md`.
-
-### 9. Create a report read model
-
-- Added `AdminReportReadModel` under the `reports` module.
-- Moved trends, queue-aging, and reconciliation reads out of `ReportsQueryService`.
-- Removed direct Prisma access from `ReportsQueryService`.
-- Preserved all existing report routes and response keys.
-- Added `tools/audit-r010-report-read-model.mjs` and CI enforcement.
-- Evidence: `docs/evidence/r010-report-read-model.md`.
-
-### 10. Audit sensitive fields in projections
-
-- Added owner-local report projection contracts in `report-read.projections.ts`.
-- Queue-aging reads no longer project phone or nested user id.
-- Reconciliation reads no longer project email or phone.
-- Latest-ledger reads now select only `balanceAfter` and `createdAt`.
-- Replaced broad report relation includes with narrow selects.
-- Added `tools/audit-r010-sensitive-report-projections.mjs` and CI enforcement.
-- Evidence: `docs/evidence/r010-sensitive-report-projections.md`.
-
-## Active work
+- Query inventory, ownership, projections, pagination, filter/sort validation, dashboard/report read models, and sensitive-field guards are closed.
+- Evidence is recorded under `docs/evidence/r010-*.md`.
 
 ### 11. Add response snapshot and contract tests
 
-- [ ] Add executable response-contract fixtures for dashboard and report read models.
-- [ ] Cover stable top-level and nested response keys.
-- [ ] Wire focused tests into the R-010 CI workflow.
+- Added `apps/api/src/modules/reports/report-response-contracts.spec.ts`.
+- Added `apps/api/src/modules/notifications/notification-response-contracts.spec.ts`.
+- Dashboard, queue-aging, reconciliation, and notification public responses use deterministic inline snapshots.
+- Notification coverage includes items, date groups, total, counts, read state, and preferences.
+- Wired both suites into `.github/workflows/r010-query-boundaries.yml`, followed by API typecheck.
+- Evidence: `docs/evidence/r010-response-contract-snapshots.md`.
+
+## Active work
+
+### 12. Add EXPLAIN ANALYZE evidence for heavy queries
+
+- [ ] Identify heavy report/dashboard query families.
+- [ ] Add reproducible EXPLAIN ANALYZE scripts or captured evidence.
+- [ ] Document indexes and observed plan risks without changing production data.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 10
-- Remaining: 3
+- Closed: 11
+- Remaining: 2
 
 ## Latest commits
 
-- `fa909c694b1ca70d2ceafcb86ee007dde3eac2bd` — record sensitive report projection evidence.
-- `ace0a8048953ba481525013b9c7b56df95923578` — enforce sensitive report projections in CI.
-- `459640c4dee83fcbf1bc01bc6f58b9950e6b6374` — guard sensitive report projections.
-- `5a4bb83d7d53973f953f803452e8b86a23f24b31` — use narrow report projections.
-- `28cb1b0afb645e64c5bba6f2a1cb05ec45f13dff` — add report read projection contracts.
+- `2dbae01acdc425ad894da9b366af75558473c206` — record response contract snapshot evidence.
+- `07656fdbb30d17f291c90db9e1ed697882c2b381` — run response snapshots in CI.
+- `095d6a30e226c3e7b82bb6df89ef1f465cf4f99d` — snapshot notification response contract.
+- `472f01809586ea47c388cc73a569ca63b7daedea` — snapshot dashboard and report response contracts.
