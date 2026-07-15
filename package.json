@@ -134,10 +134,11 @@
     "overrides": {
       "prisma": "6.19.3",
       "@prisma/client": "6.19.3",
-      "next": "16.2.10",
+      "next": "15.5.18",
       "react": "19.2.7",
       "react-dom": "19.2.7",
-      "postcss": "8.5.10"
+      "postcss": "8.5.10",
+      "effect": "3.20.0"
     }
   }
 }
