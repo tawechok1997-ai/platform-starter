@@ -92,6 +92,8 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - [ ] Migrate representative Drawer and ConfirmDialog usages.
 - [ ] Add keyboard/ARIA contract guards and frontend verification.
 
+Verification trigger for PR #42.
+
 ## Initial findings
 
 - Shared design-token and form-control ownership is centralized, while feature-level migration remains incremental.
