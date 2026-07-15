@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 
 ## Status
 
-- DONE: 14/18
-- IN PROGRESS: security, KYC and support page decomposition
-- Remaining: 4
+- DONE: 15/18
+- IN PROGRESS: KYC and support page decomposition
+- Remaining: 3
 
 ## Checklist
 
@@ -20,7 +20,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - [x] แยก provider page
 - [x] แยก content/CMS page
 - [x] แยก promotion page
-- [ ] แยก security/admin lifecycle page
+- [x] แยก security/admin lifecycle page
 - [ ] แยก KYC admin/member pages
 - [ ] แยก support page/thread components
 - [x] แยก form schemas/defaults/serialization/error mapping
@@ -49,15 +49,18 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - The Admin CMS public boundary exports `ContentCenterPage`; static audit prevents CMS API/state logic from returning to the route file.
 - The Admin promotion implementation now lives in `src/features/cms/promotion-center-page.tsx`; the App Router route is a thin CMS feature entry point.
 - The Admin CMS public boundary exports `PromotionCenterPage`; dedicated static audit prevents promotion API/state logic from returning to the route file.
+- The Admin security implementation now lives in `src/features/auth/admin-security-page.tsx`; the App Router route is a thin auth feature entry point.
+- The Admin auth public boundary exports `AdminSecurityPage`; dedicated static audit prevents 2FA, session and QR orchestration from returning to the route file.
 - Unit tests cover deposit defaults, amount parsing, validation, request serialization, API error mapping and deterministic finance query/invalidation keys.
 - Presentation contract tests prevent `DepositView` and `WithdrawalView` from owning API fetches or route-level effects.
-- R-012 CI installs dependencies and runs feature-boundary audits, Member feature tests, Member typecheck and Admin typecheck, including CMS and promotion route changes.
+- R-012 CI installs dependencies and runs feature-boundary audits, Member feature tests, Member typecheck and Admin typecheck, including CMS, promotion and security route changes.
 
 ## Verification
 
 ```bash
 node tools/audit-r012-feature-boundaries.mjs
 node tools/audit-r012-promotion-boundary.mjs
+node tools/audit-r012-security-boundary.mjs
 pnpm --filter @platform/web-member test
 pnpm --filter @platform/web-member typecheck
 pnpm --filter @platform/web-admin typecheck
