@@ -1,4 +1,5 @@
 import type { Viewport } from 'next';
+import '../../../packages/design-tokens/colors.css';
 import './admin-mobile.css';
 import './admin-desktop.css';
 import './admin-dashboard-responsive.css';
@@ -6,6 +7,7 @@ import './admin-operations-responsive.css';
 import './globals.css';
 import './admin-system.css';
 import './admin-drawer-left.css';
+import './admin-color-aliases.css';
 
 export const viewport: Viewport = {
   width: 'device-width',
