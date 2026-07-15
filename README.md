@@ -171,7 +171,7 @@ S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
 S3_REGION=auto
 S3_BUCKET=<bucket-name>
 S3_ACCESS_KEY_ID=<access-key-id>
-S3_SECRET_ACCESS_KEY=<secret-access-key>
+S3_SECRET_ACCESS_KEY=<secret-key>
 S3_FORCE_PATH_STYLE=true
 ```
 
@@ -190,14 +190,11 @@ Never commit real credentials, OTP values, access/refresh tokens or private-medi
 | [`docs/master-project-worklist.md`](docs/master-project-worklist.md) | Canonical project status, evidence and execution order |
 | [`docs/current-execution-status.md`](docs/current-execution-status.md) | Concise operational checkpoint |
 | [`docs/master-worklist.md`](docs/master-worklist.md) | Active UX/UI execution tracker |
-| [`docs/code-structure-refactor-plan.md`](docs/code-structure-refactor-plan.md) | Backend refactor closure summary and active R-012–R-014 direction |
 | [`docs/production-verification.md`](docs/production-verification.md) | Production verification procedures |
 | [`docs/playwright-smoke.md`](docs/playwright-smoke.md) | Browser smoke guidance |
 | [`docs/storage.md`](docs/storage.md) | Private storage guidance |
 | [`docs/rate-limits.md`](docs/rate-limits.md) | Rate-limit and Redis guidance |
 | [`docs/admin-access-control.md`](docs/admin-access-control.md) | Admin RBAC and permission behavior |
-
-Legacy backlog filenames remain as archived pointers so old links keep working. They are not active sources of truth.
 
 ## Release boundaries
 
