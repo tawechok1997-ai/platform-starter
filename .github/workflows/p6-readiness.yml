@@ -3,8 +3,8 @@ name: P6 External Readiness
 on:
   workflow_dispatch:
     inputs:
-      target_environment:
-        description: Environment policy for URL validation
+      environment:
+        description: Target environment classification
         required: true
         type: choice
         default: non-production
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: p6-readiness-${{ github.ref }}-${{ inputs.target_environment }}
+  group: p6-readiness-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -26,7 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      P6_ENVIRONMENT: ${{ inputs.target_environment }}
+      P6_ENVIRONMENT: ${{ inputs.environment }}
+      P6_CONNECTIVITY_TIMEOUT_MS: '8000'
       P6_API_URL: ${{ secrets.P6_API_URL }}
       P6_ADMIN_URL: ${{ secrets.P6_ADMIN_URL }}
       P6_MEMBER_URL: ${{ secrets.P6_MEMBER_URL }}
@@ -63,8 +64,14 @@ jobs:
       - name: Test P6 readiness checker
         run: node --test tools/check-p6-readiness.test.mjs
 
+      - name: Test P6 connectivity checker
+        run: node --test tools/check-p6-connectivity.test.mjs
+
       - name: Check P6 readiness
         run: pnpm verify:p6:readiness:strict
+
+      - name: Check P6 connectivity
+        run: pnpm verify:p6:connectivity:strict
 
       - name: Write readiness summary
         if: always()
@@ -73,9 +80,9 @@ jobs:
           {
             echo '## P6 External Readiness'
             echo
-            echo "Target environment: ${P6_ENVIRONMENT}"
-            echo
-            echo 'This workflow validates presence and safe URL policy only. It does not print secret values or mark P6 tasks complete.'
+            echo 'This workflow validates configuration and unauthenticated connectivity only. It does not print secret values or mark P6 tasks complete.'
             echo
             pnpm verify:p6:readiness || true
+            echo
+            pnpm verify:p6:connectivity || true
           } >> "$GITHUB_STEP_SUMMARY"
