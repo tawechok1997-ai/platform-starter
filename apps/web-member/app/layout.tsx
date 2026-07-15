@@ -2,6 +2,7 @@ import type { Viewport } from 'next';
 import './design-tokens.css';
 import '../../../packages/design-tokens/colors.css';
 import '../../../packages/design-tokens/shape-space-shadow.css';
+import '../../../packages/design-tokens/type-motion-layout.css';
 import './member-ui.css';
 import './member-home-sections.css';
 import './member-home-responsive.css';
