@@ -76,6 +76,18 @@ jobs:
       - name: Materialize current schema for CI tests
         run: pnpm prisma db push --schema prisma/schema.prisma --skip-generate
 
+      - name: Apply SQL-first domain migrations to disposable CI PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          PSQL_DATABASE_URL="${DATABASE_URL%%\?*}"
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714190000_add_promotion_domain_models/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714191000_backfill_promotion_domain_models/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714213000_add_risk_watchlist_domain/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714213100_add_watchlist_risk_alert_type/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714230000_add_kyc_document_domain/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714230100_add_phone_otp_verification/migration.sql
+
       - name: Typecheck all applications
         run: pnpm typecheck:api && pnpm typecheck:admin && pnpm typecheck:member
 
