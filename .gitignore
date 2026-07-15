@@ -6,3 +6,7 @@ dist
 .DS_Store
 coverage
 *.log
+.turbo
+playwright-report
+test-results
+blob-report
