@@ -1,30 +1,17 @@
-# UX/UI Master Worklist
+# UX/UI Execution Worklist
 
-Updated: 2026-07-15  
-Source of truth: current repository state on `main`
+Updated: **2026-07-15**  
+Project-wide source of truth: [`docs/master-project-worklist.md`](./master-project-worklist.md)
 
-This document is the execution-ready source of truth for UX/UI modernization across Member Web, Admin Web, and Public/Auth. It replaces overlapping backlog language with one prioritized worklist. Completed capabilities remain documented below, but only items in the active queues should be picked up as new work.
+This file is the active **UX/UI-only execution tracker** for Member Web, Admin Web and Public/Auth. It is subordinate to the project master and must not redefine backend, security, finance, provider or architecture completion.
 
-## Status legend
+## Current context
 
-- ✅ Done and verified at the latest confirmed checkpoint
-- 🧪 Implemented; regression evidence still required
-- 🚧 In progress
-- ⏳ Planned
-- ⛔ Blocked by an external decision
-- 🧊 Deferred; not part of the active queue
-
-## Execution rules
-
-1. Work in priority order: P0 → P1 → P2.
-2. Pick only tasks whose dependencies are complete.
-3. Run related build, smoke, and regression checks before marking a task done.
-4. Record evidence in the task: commit, PR, test command, screenshot/artifact, or deployment URL.
-5. Do not create duplicate responsive routes, API calls, validation, permissions, finance logic, provider logic, or settings state.
-6. Do not use `pnpm prisma db push --force-reset`.
-7. Do not deploy, migrate production data, rotate secrets, or enable paid services without an explicit decision.
-8. Parallel work is allowed only when tasks do not touch the same shared shell, token layer, schema, or finance workflow.
-9. A task may move from 🧪 to ✅ only after its verification checklist passes.
+- ✅ Backend architecture R-001 through R-011 is complete.
+- 🚧 R-012 frontend feature/page decomposition is in progress.
+- 🚧 R-013 shared UI system, accessibility and visual regression is in progress.
+- ⏳ R-014 observability/documentation/cleanup remains mostly open.
+- ⏸️ Authenticated browser evidence requires safe seeded credentials and approved deployed environments.
 
 ## Standard viewports
 
@@ -35,493 +22,107 @@ This document is the execution-ready source of truth for UX/UI modernization acr
 - 1024×768
 - 1440×900
 
-## Definition of done
+## UX/UI definition of done
 
 A route or surface is complete only when all applicable checks pass:
 
-- Uses the existing real API, authentication, permissions, settings, storage, audit, finance, and provider behavior.
-- Uses shared types and UI primitives, or documents a justified exception.
-- Handles loading, empty, error, disabled, success, permission, conflict, maintenance, stale-data, and retry states where applicable.
-- Works at all six standard viewport sizes.
-- Supports keyboard navigation, visible focus, reduced motion, and 200% zoom.
-- Does not overflow with long Thai text, long IDs, long money values, or missing/oversized media.
-- Keeps critical actions reachable above the mobile safe area.
-- Does not require hover-only interaction or critical horizontal scrolling.
-- Preserves idempotency, claims, locks, retries, deep links, pagination, filters, and error semantics.
-- Passes the relevant build, smoke, and regression checks.
-- Records evidence in this worklist or the UX regression matrix.
-
-# Active execution queue
-
-## P0: Verification, CI, and production safety
-
-### P0-UX-001: Generate first six-viewport Public/Auth baseline
-
-- Status: ⛔
-- Scope: `apps/web-member`, Public/Auth routes
-- Routes: Login, Register, Maintenance, Session Expired, Legal, Contact
-- Depends on: existing Playwright visual configuration ✅
-- Parallel safe: No; establishes the visual baseline used by later fixes
-- Verification:
-  - `pnpm test:e2e:visual:update`
-  - review all generated screenshots at six standard viewports
-  - confirm no secret or production account is captured
-- Evidence:
-  - Commit: pending — task blocked before baseline artifact generation
-  - Artifact: none; `pnpm test:e2e:visual:update` could not launch Chromium because `/root/.cache/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-linux64/chrome-headless-shell` is missing
-  - Reviewed by/date: automation attempt on 2026-07-13; `pnpm exec playwright install chromium` retried the required browser download but the Playwright CDN returned HTTP 403 Forbidden for Chrome for Testing 149.0.7827.55
-  - Safe check: `pnpm build:web-member` passed on 2026-07-13, confirming the Public/Auth routes still compile while visual evidence is blocked by the browser install environment
-
-### P0-UX-002: Review visual diffs and fix blocking regressions
-
-- Status: ⏳
-- Scope: Public/Auth layouts and shared styles touched by P0-UX-001
-- Depends on: P0-UX-001
-- Parallel safe: No
-- Required checks:
-  - overflow
-  - keyboard focus and tab order
-  - autofill
-  - mobile keyboard overlap
-  - safe-area controls
-  - 200% zoom
-  - long Thai text
-- Verification:
-  - `pnpm test:e2e:visual`
-  - relevant web build
-- Evidence:
-  - Commit:
-  - Test result:
-  - Remaining intentional diffs:
-
-### P0-OPS-001: Run safe Railway route smoke
-
-- Status: ⛔
-- Scope: deployed API, Admin Web, and Member Web
-- Depends on: valid non-production or approved test credentials
-- Parallel safe: Yes, unless another deployment is in progress
-- Verification:
-  - `pnpm test:e2e:smoke`
-  - API health and version checks
-  - no destructive money or settings actions
-- Evidence:
-  - Environment: local automation shell on 2026-07-13; API URL supplied for follow-up checks: `https://platformapi-production-3c91.up.railway.app/`; no deployed Admin/Member web URLs or smoke credentials were configured
-  - Run URL/artifact: none; generated failure traces were removed after recording the environment blocker
-  - Result/date: `pnpm test:e2e:smoke` was attempted on 2026-07-13 and skipped credential-gated checks, but browser-backed checks failed before route verification because Chromium and WebKit Playwright executables are missing; `pnpm exec playwright install chromium` also failed with HTTP 403 from the Playwright CDN
-  - API check: `curl -i --max-time 20 https://platformapi-production-3c91.up.railway.app/`, `/health`, and `/version` were attempted on 2026-07-13, but the local network proxy returned `CONNECT tunnel failed, response 403` before reaching Railway
-
-### P0-QA-001: Record regression results
-
-- Status: ⏳
-- Scope: `docs/ux-regression-matrix-finance-operations.md`
-- Depends on: P0-UX-001, P0-UX-002, P0-OPS-001
-- Parallel safe: No
-- Verification:
-  - every tested route/state/viewport has a result
-  - unresolved issues link to a task, issue, or commit
-- Evidence:
-  - Commit:
-
-### P0-CI-001: Reconcile open CI alert issues
-
-- Status: ⛔
-- Scope: GitHub Issues #14, #15, #17, #19
-- Depends on: latest workflow status for each referenced branch/commit
-- Parallel safe: Yes
-- Actions:
-  - confirm whether each alert still reproduces
-  - close stale alerts with evidence
-  - create or link a repair task for active failures
-- Verification:
-  - latest build/smoke status recorded on each issue
-- Evidence:
-  - Issue comments/closures: blocked locally on 2026-07-13 because the repository has no configured git remote and the `gh` CLI is not installed, so Issues #14, #15, #17, and #19 could not be reconciled from this environment
-
-## P1: Active product completion
-
-### P1-QA-001: Add authenticated visual coverage
-
-- Status: ⏳
-- Scope: Member and Admin authenticated routes
-- Depends on: safe seeded non-production accounts, P0 baseline complete
-- Parallel safe: No; touches shared visual test fixtures
-- Minimum routes:
-  - Admin Dashboard, Reports, Activity, Risk, Deposits, Withdrawals, Wallets, Ledgers, Providers, Games, Support, Settings
-  - Member Home, Deposit, Withdraw, Transactions, Bank Accounts, Games Lobby, Profile
-- Verification:
-  - `pnpm test:e2e:visual:update`
-  - `pnpm test:e2e:visual`
-  - seeded credentials excluded from artifacts and logs
-- Evidence:
-  - Commit:
-  - Artifact:
-
-### P1-ADMIN-001: Dashboard loading and retry states
-
-- Status: 🧪
-- Scope: `apps/web-admin`
-- Routes: Admin Dashboard
-- Depends on: existing responsive dashboard ✅
-- Parallel safe: Yes, unless shared skeleton primitives are being changed
-- Required states:
-  - loading skeleton
-  - partial error
-  - retry
-  - stale data
-  - permission-hidden widgets
-- Verification:
-  - `pnpm build:web-admin`
-  - authenticated visual regression
-- Evidence:
-  - Commit: this commit (`fix(admin): harden dashboard permission fallback`) updates the dashboard follow-up from reviewer feedback by avoiding permissive unknown-permission fallbacks and preserving stale timestamps only after successful partial loads
-  - Build/typecheck: `pnpm build:web-admin` passed on 2026-07-13
-  - Screenshots: blocked; Playwright browser install is unavailable in this environment, so authenticated visual regression could not run
-
-### P1-ADMIN-002: Reports, Activity, Risk, and Security density pass
-
-- Status: ⏳
-- Scope: `apps/web-admin`
-- Depends on: shared Admin shell ✅
-- Parallel safe: Partially; split by route only when shared primitives are unchanged
-- Required outcomes:
-  - consistent hierarchy
-  - responsive filters
-  - readable dense data
-  - no critical horizontal scrolling on mobile
-  - long ID and Thai text handling
-- Verification:
-  - `pnpm build:web-admin`
-  - authenticated visual regression
-- Evidence:
-  - Commit/PR:
-
-### P1-ADMIN-003: Admin Settings migration and compatibility audit
-
-- Status: ⏳
-- Scope: Admin Settings and every consuming surface
-- Depends on: record current setting keys and consumers first
-- Parallel safe: No
-- Required outcomes:
-  - preserve branding, navigation, content, feature flags, maintenance, finance, provider, security, and notification settings
-  - mask and permission-protect secrets
-  - safe fallback for missing/invalid settings
-  - runtime updates continue working where currently supported
-- Verification:
-  - before/after setting compatibility matrix
-  - `pnpm build:web-admin`
-  - `pnpm build:web-member`
-  - relevant smoke and visual tests
-- Evidence:
-  - Commit/PR:
-  - Compatibility matrix:
-
-### P1-MEMBER-001: Games Lobby full pass
-
-- Status: ⏳
-- Scope: `apps/web-member`
-- Depends on: existing settings/provider/game APIs
-- Parallel safe: Yes, unless shared Member shell or tokens are changed
-- Required outcomes:
-  - featured and recently played
-  - categories, provider filters, search, favorites
-  - maintenance/provider-down states
-  - stable image fallbacks
-  - Admin-managed ordering/content where backend support exists
-- Verification:
-  - `pnpm build:web-member`
-  - authenticated visual regression
-- Evidence:
-  - Commit/PR:
-
-### P1-MEMBER-002: Promotions and Bonus surfaces
-
-- Status: ⏳
-- Scope: `apps/web-member`
-- Depends on: real promotion/bonus APIs and settings
-- Parallel safe: Yes
-- Verification:
-  - loading, empty, active, expired, ineligible, error states
-  - `pnpm build:web-member`
-- Evidence:
-  - Commit/PR:
-
-### P1-MEMBER-003: Profile and Security surfaces
-
-- Status: ⏳
-- Scope: `apps/web-member`
-- Depends on: existing auth/security APIs
-- Parallel safe: No when auth/session primitives are touched
-- Verification:
-  - session, validation, permission, retry, and success states
-  - keyboard-only and 200% zoom
-  - `pnpm build:web-member`
-- Evidence:
-  - Commit/PR:
-
-### P1-MEMBER-004: Notifications, Support, and FAQ search
-
-- Status: ⏳
-- Scope: `apps/web-member`
-- Depends on: backend support for each visible action
-- Parallel safe: Yes by feature area
-- Verification:
-  - real API integration
-  - empty/error/retry states
-  - long Thai text
-  - `pnpm build:web-member`
-- Evidence:
-  - Commit/PR:
-
-### P1-ADMIN-004: Member detail panel and safe bulk actions
-
-- Status: ⏳
-- Scope: Admin Members
-- Depends on: existing member management ✅
-- Parallel safe: No when member state/actions are shared
-- Notes:
-  - detail side panel is required
-  - bulk actions remain optional until each action has explicit permission, confirmation, audit, partial-failure, and retry behavior
-- Verification:
-  - `pnpm build:web-admin`
-  - long-value and status-update regression
-- Evidence:
-  - Commit/PR:
-
-### P1-ADMIN-005: Ledger export actions
-
-- Status: ⏳
-- Scope: Admin Wallet Ledgers / Transactions
-- Depends on: supported export endpoint
-- Parallel safe: Yes
-- Block rule: do not create a duplicate export API only for the UI
-- Verification:
-  - permission, loading, empty, error, large-result, and CSV content checks
-- Evidence:
-  - Commit/PR:
-
-## P2: Polish, performance, and optional enhancements
-
-### P2-PERF-001: Performance UX pass
-
-- Status: ⏳
-- Scope: Member, Admin, Public/Auth
-- Depends on: P1 route ownership stabilized
-- Parallel safe: Partially
-- Required outcomes:
-  - shared skeleton variants
-  - stale-request cancellation
-  - stable media sizing
-  - no layout shift from feedback
-  - reduced blur for low-power/mobile contexts
-- Verification:
-  - relevant builds
-  - visual regression
-  - route-level performance notes
-- Evidence:
-  - Commit/PR:
-
-### P2-UI-001: Complete shared component consolidation
-
-- Status: 🚧
-- Scope: shared Admin and Member primitives
-- Depends on: active P1 work must not be editing the same primitives
-- Parallel safe: No
-- Remaining outcomes:
-  - reduce legacy inline styles
-  - consolidate duplicate Admin primitives
-  - complete variants for Button, Input, Select, Table, Card, Metric, Badge, Modal, Drawer, Toast, Tabs, Skeleton, Empty, Error, and Success
-- Verification:
-  - no behavior regression
-  - Admin and Member builds
-- Evidence:
-  - Commit/PR:
-
-### P2-UI-002: Motion and interaction system
-
-- Status: ⏳
-- Scope: shared tokens and UI primitives
-- Depends on: P2-UI-001
-- Parallel safe: No
-- Required outcomes:
-  - motion duration/easing tokens
-  - hover, press, focus, drawer, modal, toast, skeleton, list, and chart transitions
-  - `prefers-reduced-motion` support
-  - no distracting motion on money, risk, or security actions
-- Verification:
-  - keyboard and reduced-motion review
-  - visual regression
-- Evidence:
-  - Commit/PR:
-
-### P2-ADMIN-001: Command palette and keyboard shortcuts
-
-- Status: ⏳
-- Scope: Admin shell
-- Depends on: permission-aware navigation ✅
-- Parallel safe: No when shell/navigation are being edited
-- Verification:
-  - permission filtering
-  - keyboard conflict audit
-  - accessible open/close/focus behavior
-- Evidence:
-  - Commit/PR:
-
-### P2-MEMBER-001: Optional desktop transaction table mode
-
-- Status: 🧊
-- Scope: Member Transactions
-- Depends on: product decision that table mode improves the desktop workflow
-- Parallel safe: Yes
-- Verification:
-  - preserves the same ledger data and filters
-  - no duplicated transaction state
-- Evidence:
-  - Decision/commit:
-
-### P2-MEMBER-002: Bank account edit/replace workflow
-
-- Status: ⛔
-- Scope: Member Bank Accounts
-- Depends on: confirmed backend support and security rules
-- Parallel safe: No
-- Block rule: do not simulate edit/replace with local-only state
-- Evidence:
-  - Backend decision:
-
-### P2-THEME-001: Additional themes and density preferences
-
-- Status: 🧊
-- Scope: Admin and Member settings
-- Depends on: confirmed product support and storage model
-- Required options only where exposed by product settings:
-  - dark
-  - dim
-  - light
-  - high contrast
-  - density
-  - reduced motion
-  - reduced blur
-- Evidence:
-  - Product decision:
-
-## Blocked external decisions
-
-### BLOCK-DEPLOY-001: Select Vercel target app
-
-- Status: ⛔
-- Decision required: choose `web-member` or `web-admin`
-- Rule: do not guess or configure Vercel before the target is explicit
-- Evidence:
-  - Decision/date:
-
-# Verified current capabilities
-
-These are not active tasks. They are retained to prevent duplicate implementation.
-
-## Member Web
-
-- ✅ Shared design tokens and Member primitives
-- ✅ Mobile and desktop stylesheets
-- ✅ Shared navigation and route access configuration
-- ✅ Typed site settings provider
-- ✅ Member session provider
-- ✅ Shared Member API helper and response types
-- ✅ Shared finance flow components
-- ✅ Responsive Member Home compositions
-- ✅ Wallet, pending, announcements, categories, game rails, FAQ, and activity zones
-- ✅ Mobile and desktop Login/Register layouts
-- ✅ Guided registration, referral, validation, password feedback, and legal/contact/maintenance states
-- ✅ Deposit flow, slip preview, confirmation, responsive composition, step indicator, and accessible dialog
-- ✅ Withdraw flow, turnover blocking, wallet/bank loading, responsive composition, step indicator, and accessible dialog
-- ✅ Responsive Transactions and Bank Accounts
-- ✅ Ledger summaries, before/after balance, account masking, and Thai status labels
-
-## Admin Web
-
-- ✅ Mobile and desktop stylesheets
-- ✅ Shared Admin UI primitives
-- ✅ Responsive operations stylesheet
-- ✅ Accessible shared confirmation dialog
-- ✅ SVG icon system
-- ✅ Permission-aware collapsible sidebar and navigation search
-- ✅ Responsive topbar and mobile drawer behavior
-- ✅ Responsive Admin sign-in
-- ✅ Responsive Dashboard with KPIs, queues, risk alerts, recent ledger, and quick actions
-- ✅ Top-up claim/release/approve/reject flow, private slip loading, responsive review layouts, sticky mobile actions, and audit timeline
-- ✅ Withdrawal claim/release/complete/reject flow, responsive review layouts, sticky mobile actions, and risk/account summaries
-- ✅ Member search, status filters, pagination, mobile cards, desktop split layout, wallet summary, and quick status actions
-- ✅ Wallet ledger endpoint, search/direction filters, responsive cards, money summaries, and metadata details
-
-## Backend audit writer standardization
-
-- ✅ R-007 Admin audit writer standardization is DONE and verified.
-- ✅ All runtime Admin audit writers use `buildAdminAuditData(...)`.
-- ✅ The strict inventory legacy baseline is empty and new direct writers fail as `NEW_LEGACY`.
-- ✅ Existing transaction boundaries and audit payload semantics were preserved.
-- ✅ Final API deployment succeeded on Railway for commit `eee51f29b0ab10fa75ab30e09e97fc4d8cdb22a5`.
-- Evidence: `docs/r007-closure-checklist.md`; closure evidence commit `1a2f14dbabf6c615648ed2955c2d6bf67c7aca7f`.
-
-## Backend architecture and policy separation
-
-- ✅ R-008 Domain model and policy separation is DONE and verified.
-- ✅ Admin ownership transfer routes through `AdminOwnershipCommandService` and `AdminOwnershipPolicy`.
-- ✅ Withdrawal lifecycle routes through `WithdrawalPolicy`.
-- ✅ Wallet reservation, debit completion, release, and active-state checks route through `WalletSettlementPolicy` inside existing Prisma transactions.
-- ✅ Closure audit, API typecheck, full API tests, API build, and Railway deployments passed.
-- Evidence: `docs/r008-closure-checklist.md`; verified commit `e9850b22d033edd9f96eba178b1999699a0a5c96`.
-
-## Accessibility and responsive foundations
-
-- ✅ Visible focus styles
-- ✅ Minimum 44px touch targets
-- ✅ Reduced-motion handling
-- ✅ Auth field error association
-- ✅ Dialog focus trap, focus return, Escape handling, scroll lock, and loading dismissal protection
-- ✅ Six-viewport Playwright visual configuration
-- ✅ Public/Auth route coverage exists
-- ✅ Playwright smoke suite exists
-
-## Latest confirmed build/deployment checkpoint
-
-- ✅ API build passing on Railway
-- ✅ Admin build passing on Railway
-- ✅ Member build passing on Railway
-- 🧪 API smoke previously reported passing; rerun evidence is required in P0-OPS-001
-- 🧪 E2E smoke previously reported passing; rerun evidence is required in P0-OPS-001
-
-# Verification backlog by capability
-
-Use this section as test coverage, not as duplicate feature work.
-
-## Member verification
-
-- 🧪 Home at six viewports and authenticated states
-- 🧪 Login/Register autofill, keyboard overlap, safe area, and 200% zoom
-- 🧪 Deposit submit, retry, invalid file, waiting, and confirmation behavior
-- 🧪 Withdraw turnover block, insufficient balance, waiting, and confirmation behavior
-- 🧪 Transactions and Bank Accounts long values and empty states
-
-## Admin verification
-
-- 🧪 Dashboard mobile density and wide desktop
-- 🧪 Top-up claim conflict, missing slip, approve, and reject
-- 🧪 Withdrawal claim, release, complete, and reject
-- 🧪 Members long values and status updates
-- 🧪 Wallet Ledgers long references, idempotency values, and 100-item rendering
-
-## Cross-product verification
-
-- 🧪 Semantic heading audit
-- 🧪 ARIA labels outside shared dialogs/auth
-- 🧪 Dynamic brand-color contrast
-- 🧪 Long Thai text
-- 🧪 Landscape
-- 🧪 200% zoom
-- 🧪 Keyboard-only operation
-- 🧪 Post-deploy route verification
-- 🧪 Admin-configurable values before/after redesign
-- 🧪 Feature-disabled, permission-denied, provider-down, maintenance, partial-settings, and invalid-media states
-
-# Suggested automation prompt
-
-Use this worklist as the only UX/UI execution source. Start with the first unblocked P0 task. Verify repository state before editing. After each task, run the listed checks, record evidence, update the task status, commit the change, and continue to the next unblocked task. Skip blocked tasks and report the missing decision. Do not duplicate existing routes, APIs, state, validation, permissions, finance logic, provider logic, or settings behavior.
+- Uses the real shared API client, authentication, permissions and domain behavior.
+- Uses shared types, design tokens and UI primitives or documents an approved exception.
+- Covers loading, empty, error, disabled, success, conflict, maintenance, stale-data and retry states where relevant.
+- Works at all six standard viewport sizes without critical horizontal scrolling.
+- Supports keyboard navigation, visible focus, reduced motion, 200% zoom and useful ARIA semantics.
+- Handles long Thai text, long identifiers, large money values and missing/oversized media.
+- Preserves idempotency, locks, retries, deep links, pagination, filters and normalized errors.
+- Passes the relevant build, component, browser and visual checks.
+- Records commit, test, screenshot/trace or deployment evidence.
+
+# Active queue
+
+## R-012 — Frontend feature architecture
+
+Status: **🚧 IN PROGRESS**
+
+- [x] Begin container/presentation separation in critical Member finance flows.
+- [ ] Complete Admin feature/domain folder organization and public exports.
+- [ ] Complete Member feature/domain folder organization and public exports.
+- [ ] Finish register, deposit, withdrawal, provider, CMS, promotion, security, KYC and support page decomposition.
+- [ ] Separate schemas, defaults, serialization and error mapping from page components.
+- [ ] Separate server state from UI state and standardize query keys/invalidation.
+- [ ] Add component/unit regression for extracted boundaries.
+- [ ] Verify unsaved-change and optimistic rollback behavior.
+
+## R-013 — UI system and accessibility
+
+Status: **🚧 IN PROGRESS**
+
+- [x] Remove unused legacy UI files and the empty unused UI package.
+- [x] Establish shared semantic design-token foundation and begin Admin/Member adoption.
+- [ ] Finish color, spacing, radius, shadow, typography, motion, breakpoint and z-index token adoption.
+- [ ] Consolidate Button/Input/Select/TextArea primitives.
+- [ ] Consolidate Modal/Drawer/ConfirmDialog primitives.
+- [ ] Consolidate Table/Pagination/Tabs/Badge primitives.
+- [ ] Consolidate Toast/Alert/Skeleton/Empty/Error state primitives.
+- [ ] Standardize mobile-first table→card, modal→bottom-sheet and sidebar→drawer patterns.
+- [ ] Complete keyboard/focus/ARIA, reduced-motion and contrast baseline.
+- [ ] Complete authenticated six-viewport visual regression.
+- [ ] Store screenshot, trace, console and network artifacts in CI.
+
+## Authenticated regression queue
+
+Status: **⏸️ EXTERNALLY BLOCKED until safe credentials/environment are available**
+
+Minimum Admin coverage:
+
+- Dashboard, Reports, Activity, Risk, Deposits, Withdrawals, Wallets, Ledgers, Providers, Games, Support, Settings and KYC.
+
+Minimum Member coverage:
+
+- Home, Deposit, Withdrawal, Transactions, Bank Accounts, Games, Promotions, Profile, Security, Notifications, Support and KYC.
+
+Required checks:
+
+- six standard viewports
+- keyboard-only operation and visible focus
+- 200% zoom and long Thai text
+- permission-hidden/blocked mutations
+- loading/empty/error/retry/conflict states
+- browser console and failed-network gates
+- no credentials, tokens or private media in artifacts
+
+## Public/Auth baseline
+
+Status: **⏸️ BLOCKED in environments where Playwright browsers cannot be installed**
+
+Routes:
+
+- Login
+- Register
+- Maintenance
+- Session expired
+- Legal
+- Contact
+
+Commands:
+
+```bash
+pnpm test:e2e:visual:update
+pnpm test:e2e:visual
+pnpm build:web-admin
+pnpm build:web-member
+```
+
+## UX priorities after R-012/R-013
+
+1. Finish authenticated Admin/Member regression with seeded non-production accounts.
+2. Close responsive money-flow duplicate/retry/error-state coverage.
+3. Verify provider-down and game-launch failure states.
+4. Verify Support threads, Notifications rollback and CMS/settings flows.
+5. Record the final six-viewport matrix in the project evidence documents.
+
+## Execution rules
+
+- Do not create duplicate API transports, responsive routes, validation, permission or finance logic.
+- Do not change shared shells, tokens or primitives in parallel without explicit ownership.
+- Do not mark visual/browser work complete without artifacts from an actual run.
+- Do not run destructive database commands or real-money flows for UI verification.
+- Update [`docs/master-project-worklist.md`](./master-project-worklist.md) whenever an item changes project-wide status.
