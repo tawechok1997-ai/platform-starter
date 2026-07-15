@@ -5,11 +5,11 @@ import {
   DEPOSIT_FORM_DEFAULTS,
   DepositView,
   financeInvalidationRules,
-  financeQueryKeys,
   parseDepositAmount,
   resolveDepositError,
   serializeDepositCreateRequest,
   serializeDepositEvidenceRequest,
+  useDepositServerState,
   validateDepositSelection,
 } from '../../src/features/finance';
 import { memberApiFetch } from '../member-api';
@@ -21,27 +21,33 @@ export default function DepositClient() {
   const [step, setStep] = useState<DepositStep>('select');
   const [amount, setAmount] = useState(DEPOSIT_FORM_DEFAULTS.amount);
   const [method, setMethod] = useState<DepositMethodCode>(DEPOSIT_FORM_DEFAULTS.method);
-  const [accounts, setAccounts] = useState<ReceivingAccount[]>([]);
-  const [history, setHistory] = useState<TopUpItem[]>([]);
   const [selected, setSelected] = useState<ReceivingAccount | null>(null);
   const [slipImageData, setSlipImageData] = useState('');
   const [slipImageName, setSlipImageName] = useState('');
   const [transactionRef, setTransactionRef] = useState(DEPOSIT_FORM_DEFAULTS.transactionRef);
   const [note, setNote] = useState(DEPOSIT_FORM_DEFAULTS.note);
-  const [message, setMessage] = useState('กำลังโหลด...');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [lastRequest, setLastRequest] = useState<TopUpItem | null>(null);
   const [transferExpiresAt, setTransferExpiresAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const {
+    accounts,
+    history,
+    loading: initialLoading,
+    error: serverError,
+    prependHistory,
+  } = useDepositServerState(memberApiFetch);
 
   const parsedAmount = useMemo(() => parseDepositAmount(amount), [amount]);
   const usable = useMemo(() => accounts.filter((account) => matchAmount(account, parsedAmount)), [accounts, parsedAmount]);
   const availableMethods = useMemo(() => Array.from(new Set(usable.map(accountType))) as DepositMethodCode[], [usable]);
   const formValues = useMemo(() => ({ amount, method, transactionRef, note }), [amount, method, transactionRef, note]);
 
-  useEffect(() => { void loadInitial(); }, []);
+  useEffect(() => {
+    if (serverError) setMessage(serverError);
+  }, [serverError]);
   useEffect(() => {
     if (step !== 'transfer' || !transferExpiresAt) return;
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
@@ -50,24 +56,6 @@ export default function DepositClient() {
   useEffect(() => {
     if (availableMethods.length > 0 && !availableMethods.includes(method)) setMethod(availableMethods[0]);
   }, [availableMethods, method]);
-
-  async function loadInitial() {
-    setInitialLoading(true);
-    const [historyQuery, accountQuery] = await Promise.all([
-      fetchFinanceQuery(financeQueryKeys.topUpList(), '/member/topups'),
-      fetchFinanceQuery(financeQueryKeys.receivingAccounts(), '/member/receiving-bank-accounts'),
-    ]);
-    const historyData = await historyQuery.response.json().catch(() => null);
-    const accountData = await accountQuery.response.json().catch(() => null);
-    if (historyQuery.response.ok) setHistory(historyData.items ?? []);
-    if (accountQuery.response.ok) setAccounts(accountData.items ?? []);
-    setMessage(
-      !historyQuery.response.ok || !accountQuery.response.ok
-        ? resolveDepositError(historyData, resolveDepositError(accountData, 'โหลดข้อมูลไม่สำเร็จ'))
-        : '',
-    );
-    setInitialLoading(false);
-  }
 
   async function copyText(value: string, label: string) {
     try {
@@ -149,7 +137,7 @@ export default function DepositClient() {
       duplicateReason: evidence?.reason ?? null,
       adminNote: evidence?.message ?? created.adminNote,
     };
-    setHistory((current) => [item, ...current.filter((entry) => entry.id !== item.id)]);
+    prependHistory(item);
     setLastRequest(item);
     invalidateFinanceQueries(financeInvalidationRules.afterDepositCreated);
 
@@ -221,10 +209,6 @@ function matchAmount(account: ReceivingAccount, amount: number) {
   const max = account.maxAmount ? Number(account.maxAmount) : Infinity;
   if (!Number.isFinite(amount) || amount <= 0) return true;
   return amount >= min && amount <= max;
-}
-
-async function fetchFinanceQuery<T extends readonly unknown[]>(key: T, path: string) {
-  return { key, response: await memberApiFetch(path) };
 }
 
 function invalidateFinanceQueries(keys: readonly (readonly unknown[])[]) {
