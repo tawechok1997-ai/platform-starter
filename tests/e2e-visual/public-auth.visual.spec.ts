@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const memberUrl = process.env.MEMBER_WEB_URL || process.env.PLAYWRIGHT_MEMBER_URL || 'http://localhost:3000';
+const memberUrl = process.env.MEMBER_WEB_URL || process.env.PLAYWRIGHT_MEMBER_URL || 'http://127.0.0.1:3101';
 
 const publicPages = [
   { name: 'login', path: '/login' },
