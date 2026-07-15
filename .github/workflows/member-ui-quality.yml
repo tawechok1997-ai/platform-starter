@@ -5,7 +5,9 @@ on:
     branches: [main]
     paths:
       - 'apps/web-member/**'
+      - 'docs/MEMBER_ROUTE_MATRIX.md'
       - 'tests/e2e-a11y/**'
+      - 'tools/audit-member-route-matrix.mjs'
       - 'eslint.config.mjs'
       - 'playwright.a11y.config.ts'
       - 'package.json'
@@ -15,7 +17,9 @@ on:
     branches: [main]
     paths:
       - 'apps/web-member/**'
+      - 'docs/MEMBER_ROUTE_MATRIX.md'
       - 'tests/e2e-a11y/**'
+      - 'tools/audit-member-route-matrix.mjs'
       - 'eslint.config.mjs'
       - 'playwright.a11y.config.ts'
       - 'package.json'
@@ -42,6 +46,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Audit Member route ownership and state matrix
+        run: node tools/audit-member-route-matrix.mjs
       - uses: pnpm/action-setup@v4
         with:
           version: 11.13.0

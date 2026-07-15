@@ -50,7 +50,7 @@ Source of truth for Member UX/UI work: this file
 - [x] Shared `packages/api-client`
 - [x] Playwright smoke, visual, authenticated-visual, KYC, and CMS configurations
 - [x] Route build inventory: 29 generated routes, including 27 Member `page.tsx` files
-- [ ] Inventory every Member/Public/Auth route, feature flag, API dependency, and page owner in one maintained table
+- [x] Inventory every Member/Public/Auth route, feature flag, API dependency, page owner, deep link, and state gap in `docs/MEMBER_ROUTE_MATRIX.md`
 - [ ] Inventory shared React components and duplicate variants
 - [ ] Inventory and migrate 180 inline-style occurrences in Member TSX
 - [ ] Replace 17 selectors coupled to `[style*="..."]` with semantic classes
@@ -284,17 +284,18 @@ Source of truth for Member UX/UI work: this file
 
 - [ ] Assign every remaining item a priority: P0 correctness/security/money, P1 core flow, P2 quality/accessibility, or P3 polish
 - [ ] Record owner, dependency, target milestone, API readiness, and evidence link for every P0/P1 item
+- [x] Record priority, frontend/API owner, milestone, API readiness, and evidence for all 27 current Member routes
 - [ ] Separate current implementation facts, known defects, remaining work, and verification gates in progress summaries
 - [ ] Do not close a parent item when only one sub-state or viewport is implemented
 - [ ] Require code, automated check, retained artifact, and rollback note where the change affects money, identity, or session behavior
 
 ## MEMBER-CONTRACT-002 Route, API, feature-flag, and state matrix
 
-- [ ] Maintain one table covering every Member route, page owner, primary APIs, feature flags, permissions, CMS/settings dependencies, and deep links
-- [ ] Record loading, empty, partial-failure, error, offline, stale, maintenance, success, retry, and session-expired behavior per route
+- [x] Maintain one table covering every Member route, page owner, primary APIs, feature flags, permissions, CMS/settings dependencies, and deep links
+- [x] Record loading, empty, partial-failure, error, offline, stale, maintenance, success, retry, and session-expired behavior per route
 - [ ] Verify navigation, direct URL access, and server behavior remain consistent when each Member feature flag is disabled
 - [ ] Verify branding, long CMS content, missing settings, broken media, and runtime setting changes do not break layout or expose disabled actions
-- [ ] Generate or audit the route matrix in CI so new `page.tsx` files cannot bypass ownership and state requirements
+- [x] Audit the route matrix in Member UI CI so new `page.tsx` files cannot bypass ownership and state requirements
 
 ## MEMBER-CONTRACT-003 Security and privacy UX
 
@@ -378,6 +379,7 @@ Source of truth for Member UX/UI work: this file
 - Member typecheck: passed on 2026-07-16
 - Member unit tests: 13/13 passed on 2026-07-16
 - Member production build: passed; 29 routes generated on 2026-07-16
+- Member route matrix audit: 27/27 `page.tsx` routes classified with 22 P0/P1 routes and 24 routes carrying explicit state gaps on 2026-07-16
 - R-013 static contracts: token, primitive, responsive, accessibility baseline, and visual contract passed on 2026-07-16
 - Railway commit statuses: Member, API, and Admin succeeded for the audited commit
 - Visual artifact: current full browser run not attached

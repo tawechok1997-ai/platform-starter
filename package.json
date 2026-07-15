@@ -33,6 +33,7 @@
     "audit:unused-exports": "node tools/audit-unused-exports.mjs",
     "audit:circular-dependencies": "node tools/audit-circular-dependencies.mjs",
     "audit:browser-quality": "node tools/audit-browser-quality-gate.mjs",
+    "audit:member-route-matrix": "node tools/audit-member-route-matrix.mjs",
     "audit:backend-decomposition": "node tools/audit-backend-decomposition.mjs",
     "audit:backend-decomposition:json": "R007_JSON=1 node tools/audit-backend-decomposition.mjs",
     "audit:admin-audit-writers": "node tools/audit-admin-audit-writers.mjs",
