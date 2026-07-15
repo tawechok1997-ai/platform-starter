@@ -1,0 +1,104 @@
+name: Full-System Automated Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Automated test profile
+        required: true
+        type: choice
+        default: ci
+        options:
+          - repository
+          - unit
+          - ci
+          - database
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-system-${{ github.workflow }}-${{ github.ref }}-${{ inputs.profile || 'ci' }}
+  cancel-in-progress: true
+
+jobs:
+  automated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: platform_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d platform_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+      FINANCE_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+      FULL_SYSTEM_ALLOW_DATABASE_TESTS: 'true'
+      FULL_SYSTEM_REPORT_DIR: artifacts/full-system/latest
+      PHONE_OTP_SECRET: ci-phone-otp-secret-value-2026
+      RISK_MATCH_SECRET: ci-risk-match-secret-value-2026
+      KYC_ACCESS_SECRET: ci-kyc-access-secret-value-2026
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Prepare disposable PostgreSQL
+        if: ${{ inputs.profile == 'database' }}
+        run: |
+          pnpm prisma db push --skip-generate
+          PSQL_DATABASE_URL="${DATABASE_URL%%\?*}"
+          for migration in \
+            prisma/migrations/20260714190000_add_promotion_domain_models/migration.sql \
+            prisma/migrations/20260714191000_backfill_promotion_domain_models/migration.sql \
+            prisma/migrations/20260714213000_add_risk_watchlist_domain/migration.sql \
+            prisma/migrations/20260714213100_add_watchlist_risk_alert_type/migration.sql \
+            prisma/migrations/20260714230000_add_kyc_document_domain/migration.sql \
+            prisma/migrations/20260714230100_add_phone_otp_verification/migration.sql; do
+            psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration"
+          done
+
+      - name: Run automated profile
+        run: node tools/run-full-system-tests.mjs --profile="${{ inputs.profile || 'ci' }}" --fail-on-blocked
+
+      - name: Publish test summary
+        if: always()
+        run: |
+          if [[ -f artifacts/full-system/latest/report.md ]]; then
+            cat artifacts/full-system/latest/report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload full-system report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-system-${{ inputs.profile || 'ci' }}-${{ github.run_id }}
+          path: artifacts/full-system/latest
+          if-no-files-found: warn
+          retention-days: 14

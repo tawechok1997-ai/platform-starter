@@ -13,4 +13,5 @@ coverage
 playwright-report
 test-results
 blob-report
+artifacts/full-system
 docs/evidence/r014-cleanup-inventory.json

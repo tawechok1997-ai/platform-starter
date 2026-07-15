@@ -1,7 +1,7 @@
 {
   "name": "platform-starter",
   "private": true,
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@11.13.0",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
@@ -12,6 +12,16 @@
     "lint:packages": "pnpm --filter './packages/**' --if-present lint",
     "format:check": "node tools/check-format-changed.mjs",
     "test": "turbo test",
+    "test:full-system": "node tools/run-full-system-tests.mjs --profile=all",
+    "test:full-system:auto": "node tools/run-full-system-tests.mjs --profile=auto",
+    "test:full-system:ci": "node tools/run-full-system-tests.mjs --profile=ci --fail-on-blocked",
+    "test:full-system:repository": "node tools/run-full-system-tests.mjs --profile=repository --fail-on-blocked",
+    "test:full-system:unit": "node tools/run-full-system-tests.mjs --profile=unit --fail-on-blocked",
+    "test:full-system:database": "node tools/run-full-system-tests.mjs --profile=database --fail-on-blocked",
+    "test:full-system:browser": "node tools/run-full-system-tests.mjs --profile=browser --fail-on-blocked",
+    "test:full-system:p6": "node tools/run-full-system-tests.mjs --profile=p6 --fail-on-blocked",
+    "test:full-system:runner": "node --test tools/run-full-system-tests.test.mjs",
+    "test:full-system:list": "node tools/run-full-system-tests.mjs --profile=all --list",
     "typecheck:api": "pnpm db:generate && pnpm --filter @platform/api typecheck",
     "typecheck:admin": "pnpm --filter @platform/web-admin typecheck",
     "typecheck:member": "pnpm --filter @platform/web-member typecheck",
@@ -129,16 +139,5 @@
     "turbo": "2.10.4",
     "typescript": "5.7.3",
     "typescript-eslint": "8.46.1"
-  },
-  "pnpm": {
-    "overrides": {
-      "prisma": "6.19.3",
-      "@prisma/client": "6.19.3",
-      "next": "15.5.18",
-      "react": "19.2.7",
-      "react-dom": "19.2.7",
-      "postcss": "8.5.10",
-      "effect": "3.20.0"
-    }
   }
 }
