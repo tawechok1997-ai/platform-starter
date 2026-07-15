@@ -159,10 +159,12 @@
 - [x] Shared pagination/projection/filter/sort patterns
 - [x] EXPLAIN ANALYZE และ query-performance instrumentation foundation
 - [x] Dashboard/report read-model foundation
-- [ ] Implement production aggregate strategy
+- [x] Implement production aggregate strategy
 - [x] Implement cache TTL และ invalidation contracts
 
 **หลักฐาน cache:** `packages/api-client/src/index.ts` รองรับ `responseCacheTtlMs`, custom cache key และ `invalidateCache(prefix)` พร้อม cache clear ทั้งชุด
+
+**หลักฐาน aggregate:** Admin dashboard read model ใช้ Redis TTL cache พร้อม bounded in-memory fallback, cache key แยกตามช่วงเวลา, configurable TTL/max entries และ regression tests สำหรับ cache hit, expiry, eviction และ Redis fallback; commits `565c2d0d`, `87f4337c`, `6f46c8ee` ผ่าน deploy
 
 ## Storage security
 
@@ -245,12 +247,12 @@
 
 # ลำดับทำงานโค้ดถัดไป
 
-1. ปิด Signed URL policy/Data URL reduction และ production aggregate strategy
+1. ปิด Signed URL policy และ Data URL reduction
 2. เพิ่ม web unit/component coverage, seeded visual artifact workflow และ dependency/security CI hardening
 3. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
 
 # จำนวนงานคงค้าง
 
-- งานโค้ดใน P0 ถึง P5: **5 รายการ**
+- งานโค้ดใน P0 ถึง P5: **4 รายการ**
 - งาน external verification และ UAT ใน P6: **30 รายการ**
-- รวม checkbox ที่ยังไม่ปิด: **35 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **34 รายการ**
