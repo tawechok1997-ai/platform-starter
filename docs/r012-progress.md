@@ -4,18 +4,18 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 
 ## Status
 
-- DONE: 3/18
-- IN PROGRESS: page container and presentation decomposition
-- Remaining: 15
+- DONE: 5/18
+- IN PROGRESS: register and withdrawal page decomposition
+- Remaining: 13
 
 ## Checklist
 
 - [x] จัด Admin folders ตาม feature/domain
 - [x] จัด Member folders ตาม feature/domain
 - [x] กำหนด public exports ของแต่ละ feature
-- [ ] แยก page container ออกจาก presentation components
+- [x] แยก page container ออกจาก presentation components
 - [ ] แยก register page
-- [ ] แยก deposit page
+- [x] แยก deposit page
 - [ ] แยก withdrawal page
 - [ ] แยก provider page
 - [ ] แยก content/CMS page
@@ -34,6 +34,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - Admin and Member expose matching feature domains: auth, finance, KYC, support and CMS.
 - Every feature has a public `index.ts`; private implementation files remain behind that boundary.
 - Static audit prevents accidental deletion or omission of a feature public entry.
+- The member deposit route now keeps API calls, state and derived workflow data in `deposit-client.tsx` while `DepositView` owns rendering and interaction wiring.
+- `DepositView` is exported through the Member finance public boundary instead of being imported through a private deep path.
+- Static audit prevents the deposit container from importing finance presentation primitives directly.
 
 ## Verification
 
