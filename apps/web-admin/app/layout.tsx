@@ -1,5 +1,6 @@
 import type { Viewport } from 'next';
 import '../../../packages/design-tokens/colors.css';
+import '../../../packages/design-tokens/shape-space-shadow.css';
 import './admin-mobile.css';
 import './admin-desktop.css';
 import './admin-dashboard-responsive.css';
