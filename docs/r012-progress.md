@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 
 ## Status
 
-- DONE: 17/18
-- IN PROGRESS: KYC admin/member decomposition
-- Remaining: 1
+- DONE: 18/18
+- COMPLETE
+- Remaining: 0
 
 ## Checklist
 
@@ -21,7 +21,7 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - [x] แยก content/CMS page
 - [x] แยก promotion page
 - [x] แยก security/admin lifecycle page
-- [ ] แยก KYC admin/member pages
+- [x] แยก KYC admin/member pages
 - [x] แยก support page/thread components
 - [x] แยก form schemas/defaults/serialization/error mapping
 - [x] แยก server state จาก UI state
@@ -56,9 +56,12 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-012
 - Member support API orchestration, polling and draft persistence now live in `app/support/support-page-client.tsx`; the App Router page is a thin entry point.
 - Support ticket and message-thread rendering now lives in `SupportTicketCard`, exported through the Member support public boundary.
 - Dedicated support audit prevents API/effect logic from leaking into the presentation component or returning to the route.
+- Admin KYC now delegates from its App Router page through `src/features/kyc/kyc-center-page.tsx` to `kyc-center-client.tsx`.
+- Member KYC now delegates from its App Router page through `src/features/kyc/member-kyc-page.tsx` to `kyc-client.tsx`.
+- Both KYC public boundaries export their page components, and the dedicated audit prevents API/state orchestration from returning to either route.
 - Unit tests cover deposit defaults, amount parsing, validation, request serialization, API error mapping and deterministic finance query/invalidation keys.
 - Presentation contract tests prevent `DepositView` and `WithdrawalView` from owning API fetches or route-level effects.
-- R-012 CI installs dependencies and runs feature-boundary audits, Member feature tests, Member typecheck and Admin typecheck, including CMS, promotion and security route changes.
+- R-012 CI installs dependencies and runs all feature-boundary audits, Member feature tests, Member typecheck and Admin typecheck.
 
 ## Verification
 
@@ -67,6 +70,7 @@ node tools/audit-r012-feature-boundaries.mjs
 node tools/audit-r012-promotion-boundary.mjs
 node tools/audit-r012-security-boundary.mjs
 node tools/audit-r012-support-boundary.mjs
+node tools/audit-r012-kyc-boundary.mjs
 pnpm --filter @platform/web-member test
 pnpm --filter @platform/web-member typecheck
 pnpm --filter @platform/web-admin typecheck
