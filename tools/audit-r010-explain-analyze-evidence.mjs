@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-const evidencePath = process.argv[2] ?? 'artifacts/r010-explain-analyze.json';
+const evidencePath = process.argv.slice(2).find((value) => value !== '--') ?? 'artifacts/r010-explain-analyze.json';
 const requiredQueries = [
   'dashboard-topups-by-status',
   'queue-aging-pending-topups',
