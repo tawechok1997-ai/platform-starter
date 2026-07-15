@@ -7,6 +7,8 @@ Closed: 2026-07-15
 
 Source of truth: `docs/master-project-worklist.md`
 
+Final evidence: `docs/evidence/r013-final-verification.md`
+
 ## Scope
 
 R-013 covers the shared UI system, design tokens, responsive patterns, accessibility baselines, and visual-regression evidence across Admin and Member.
@@ -72,8 +74,8 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 
 ## Latest commits
 
+- `d37eca4de7e112907cd349fad5c192d3029f66a2` — add final R-013 verification evidence.
+- `ec18f5a83d30d87c5a5b5aab9287516436931985` — update current execution status after R-013 closure.
+- `4b30df882cfa010c3bc900f95a2d8f2f7179abce` — close the R-013 tracker with final workflow evidence.
 - `95299a5399c6b782f485eaf98f26ed75cb951db5` — guard the scoped 12-case visual commands.
 - `07d3c211b11ff3528ed57ca6cc2eed9799c7b716` — scope visual regression to R-013 authentication surfaces.
-- `e3e01c043778299159cec2b5cbb076df42da1617` — target the Member visual suite at port 3101.
-- `d475046d2668f76a73fcbf6650839554533d0b0c` — require retained trace evidence in the visual contract.
-- `34b0fbe5748047fce22e73e85e29e694fb882bd8` — verify accessibility baseline in CI.
