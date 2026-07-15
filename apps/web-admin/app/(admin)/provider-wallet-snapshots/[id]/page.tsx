@@ -1,27 +1,28 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { use, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack } from '../../_components/admin-ui';
 
-type Props = { params: { id: string } };
+type Props = { params: Promise<{ id: string }> };
 
 type Snapshot = { id: string; status: string; systemBalance: string; providerBalance: string; difference: string; checkedAt: string; rawPayload?: any; user?: { id?: string; username?: string | null; phone?: string | null } | null; provider?: { id?: string; name?: string | null; code?: string | null } | null };
 type TimelineItem = { type: string; at: string; label: string; refId?: string };
 type Investigation = { snapshot: Snapshot; related?: { session?: any; transfers?: any[]; riskAlerts?: any[]; auditLogs?: any[] }; timeline?: TimelineItem[] };
 
 export default function ProviderWalletSnapshotDetailPage({ params }: Props) {
+  const { id } = use(params);
   const [item, setItem] = useState<Snapshot | null>(null);
   const [investigation, setInvestigation] = useState<Investigation | null>(null);
   const [message, setMessage] = useState('กำลังโหลด snapshot...');
   const [loading, setLoading] = useState(false);
-  useEffect(() => { load(); }, [params.id]);
+  useEffect(() => { load(); }, [id]);
   const meta = useMemo(() => item?.rawPayload ?? {}, [item]);
   async function load() {
     setLoading(true);
     const [snapshotRes, investigationRes] = await Promise.all([
-      adminApiFetch(`/admin/provider-wallet-snapshots/${params.id}`),
-      adminApiFetch(`/admin/money-ops/provider-wallet-snapshots/${params.id}/investigation`),
+      adminApiFetch(`/admin/provider-wallet-snapshots/${id}`),
+      adminApiFetch(`/admin/money-ops/provider-wallet-snapshots/${id}/investigation`),
     ]);
     const snapshotData = await snapshotRes.json().catch(() => null);
     const investigationData = await investigationRes.json().catch(() => null);
@@ -31,7 +32,7 @@ export default function ProviderWalletSnapshotDetailPage({ params }: Props) {
     setInvestigation(investigationRes.ok ? investigationData : null);
     setMessage(investigationRes.ok ? '' : investigationData?.message ?? 'โหลด investigation ไม่สำเร็จ แต่ snapshot ยังเปิดได้');
   }
-  async function review(status: 'REVIEWING' | 'RESOLVED') { const note = window.prompt(status === 'RESOLVED' ? 'Resolve note' : 'Review note') ?? ''; if (!note) return; setLoading(true); const res = await adminApiFetch(`/admin/provider-wallet-snapshots/${params.id}/review`, { method: 'PATCH', body: JSON.stringify({ note, status }) }); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'อัปเดต snapshot ไม่สำเร็จ'); return; } setMessage(status === 'RESOLVED' ? 'resolve snapshot แล้ว' : 'บันทึก review แล้ว'); setItem(data.item ?? data); load(); }
+  async function review(status: 'REVIEWING' | 'RESOLVED') { const note = window.prompt(status === 'RESOLVED' ? 'Resolve note' : 'Review note') ?? ''; if (!note) return; setLoading(true); const res = await adminApiFetch(`/admin/provider-wallet-snapshots/${id}/review`, { method: 'PATCH', body: JSON.stringify({ note, status }) }); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'อัปเดต snapshot ไม่สำเร็จ'); return; } setMessage(status === 'RESOLVED' ? 'resolve snapshot แล้ว' : 'บันทึก review แล้ว'); setItem(data.item ?? data); load(); }
   if (!item && !message) return <AdminPage eyebrow="Reconciliation" title="Snapshot Detail"><AdminEmpty>ไม่พบ snapshot</AdminEmpty></AdminPage>;
   return <AdminPage eyebrow="Reconciliation" title="Snapshot Detail" description="ตรวจยอด system/provider, raw payload, related session และปิดเคส reconciliation" actions={<><AdminButton onClick={load} disabled={loading}>Refresh</AdminButton><AdminLinkButton href="/reconciliation-center">กลับศูนย์ reconcile</AdminLinkButton></>}>
     {message && <AdminNotice>{message}</AdminNotice>}
