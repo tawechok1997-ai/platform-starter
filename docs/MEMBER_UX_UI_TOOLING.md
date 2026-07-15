@@ -24,8 +24,9 @@ Source of truth for Member UX/UI work: this file
 - [x] R-013 token, primitive, responsive, accessibility-baseline, and visual-contract audits pass
 - [x] Six named public visual viewport projects exist: 360×800, 390×844, 430×932, 768×1024, 1024×768, and 1440×900
 - [ ] Run and retain current Playwright browser evidence for every Member route and required state
-- [ ] Add real automated accessibility scanning; current accessibility audit is a static contract audit, not an axe browser scan
-- [ ] Fix the build warning that the Next.js ESLint plugin is not detected
+- [x] Add automated axe WCAG A/AA scanning for six public/auth routes with retained CI reports
+- [ ] Retain a current passing axe browser artifact; local execution is blocked until a Playwright Chromium binary is available
+- [x] Fix the build warning that the Next.js ESLint plugin is not detected
 
 ## Member Definition of Done
 
@@ -61,7 +62,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Evaluate `react-hook-form` plus `zod`; current forms use local React state and manual validation
 - [ ] Evaluate `@tanstack/react-query`; current server state primarily uses `useEffect`, `useState`, and `memberApiFetch`
 - [ ] Evaluate `motion` only where CSS cannot handle mount/unmount transitions
-- [ ] Add `@axe-core/playwright` and JSX accessibility lint rules
+- [x] Add `@axe-core/playwright` and JSX accessibility lint rules
 - [ ] Evaluate `lucide-react`; current Member icons use the custom `MemberIcon` implementation
 - [ ] Evaluate carousel, upload, image-compression, drawer, virtualization, and table libraries only where measured need exists
 - [ ] Record an ADR, bundle impact, migration scope, owner, and rollback plan for every accepted dependency
@@ -260,8 +261,8 @@ Source of truth for Member UX/UI work: this file
 ## MEMBER-QA-001 Accessibility automation
 
 - [x] Shared focus, invalid-field, reduced-motion, forced-colors, skip-link, dialog semantics, contrast, and static audit contracts
-- [ ] Add `@axe-core/playwright`
-- [ ] Fail CI on critical and serious accessibility violations
+- [x] Add `@axe-core/playwright` for the public/auth accessibility gate; authenticated route coverage remains
+- [x] Fail the Member UI quality workflow on WCAG A/AA axe violations for the initial public/auth route set
 - [ ] Verify headings, labels, ARIA live regions, dialogs, drawers, bottom sheets, file inputs, and icon-only buttons in rendered pages
 - [ ] Verify keyboard navigation, focus trap/restore, 200% zoom, reflow, contrast, and reduced motion in rendered pages
 
@@ -335,10 +336,10 @@ Source of truth for Member UX/UI work: this file
 
 ## MEMBER-TOOLING-001 Add now
 
-- [ ] Add `eslint-config-next` to the existing ESLint flat configuration to enable Next.js, React, and React Hooks rules and remove the current build warning
-- [ ] Add `eslint-plugin-jsx-a11y` with an explicit flat-config ruleset for fast JSX accessibility feedback
-- [ ] Add `@axe-core/playwright` to the existing Playwright stack and fail on agreed critical/serious violations
-- [ ] Add `@next/bundle-analyzer` plus a reproducible `analyze:member` command and retained bundle artifact
+- [x] Add `eslint-config-next` to the existing ESLint flat configuration to enable Next.js, React, and React Hooks rules and remove the current build warning
+- [x] Add `eslint-plugin-jsx-a11y` with an explicit flat-config ruleset for fast JSX accessibility feedback
+- [x] Add `@axe-core/playwright` to the existing Playwright stack and fail on WCAG A/AA violations across the initial public/auth route set
+- [x] Add `@next/bundle-analyzer` plus reproducible `analyze:web-member` / Member `analyze` commands and a manually triggered retained CI artifact
 - [ ] Reuse the existing Playwright browser-quality fixture, six-viewport projects, traces, screenshots, and network evidence instead of introducing another E2E runner
 
 ## MEMBER-TOOLING-002 Pilot behind an ADR
@@ -373,15 +374,15 @@ Source of truth for Member UX/UI work: this file
 # Evidence log
 
 - Repository commit audited: `f1a80270094123eb51620c8537d980c4501c057c`
-- Member lint: passed on 2026-07-16
+- Member lint: passed with Next.js/Core Web Vitals and JSX accessibility rules on 2026-07-16; 38 existing migration warnings are now visible
 - Member typecheck: passed on 2026-07-16
 - Member unit tests: 13/13 passed on 2026-07-16
 - Member production build: passed; 29 routes generated on 2026-07-16
 - R-013 static contracts: token, primitive, responsive, accessibility baseline, and visual contract passed on 2026-07-16
 - Railway commit statuses: Member, API, and Admin succeeded for the audited commit
 - Visual artifact: current full browser run not attached
-- Accessibility artifact: static contract only; axe browser artifact not available
+- Accessibility artifact: static contract passed; axe CI gate covers six public/auth routes, while a current passing browser artifact remains pending
 - Bundle report: Next.js build reports 102 kB shared first-load JS; route-specific output recorded in build log
-- Recommended immediate dev tools: `eslint-config-next`, `eslint-plugin-jsx-a11y`, `@axe-core/playwright`, and `@next/bundle-analyzer`
+- Installed immediate dev tools: `eslint-config-next`, `eslint-plugin-jsx-a11y`, `@axe-core/playwright`, and `@next/bundle-analyzer`
 - Recommended pilot tools: Vitest + Testing Library + jsdom, MSW, and Lighthouse CI; adoption requires ADR and measured value
-- Remaining blockers: priority/ownership metadata, route/API/state matrix, persistent approved visual baselines, full authenticated six-viewport/state coverage, axe automation, and production-like credentials for full browser flows
+- Remaining blockers: priority/ownership metadata, route/API/state matrix, persistent approved visual baselines, full authenticated six-viewport/state coverage, current passing axe browser evidence, and production-like credentials for full browser flows

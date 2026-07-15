@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "analyze": "ANALYZE=true next build",
     "build": "next build",
     "lint": "eslint app src --ext .ts,.tsx",
     "test": "node --import tsx --test src/features/auth/auth-redirect.spec.ts src/features/finance/finance-feature.spec.ts src/features/wallet/member-wallet.spec.ts",

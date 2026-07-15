@@ -1,0 +1,87 @@
+name: Member UI Quality
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-member/**'
+      - 'tests/e2e-a11y/**'
+      - 'eslint.config.mjs'
+      - 'playwright.a11y.config.ts'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/member-ui-quality.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/web-member/**'
+      - 'tests/e2e-a11y/**'
+      - 'eslint.config.mjs'
+      - 'playwright.a11y.config.ts'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/member-ui-quality.yml'
+  workflow_dispatch:
+    inputs:
+      run_bundle_analysis:
+        description: Generate and retain the Member bundle analyzer report
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: member-ui-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-accessibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint Member with Next.js and JSX accessibility rules
+        run: pnpm lint:member
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run Member accessibility scans
+        run: pnpm test:e2e:a11y
+      - name: Upload accessibility evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: member-a11y-report
+          path: artifacts/member-a11y
+          if-no-files-found: warn
+
+  bundle-analysis:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_bundle_analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate Member bundle report
+        run: pnpm analyze:web-member
+      - uses: actions/upload-artifact@v4
+        with:
+          name: member-bundle-analysis
+          path: apps/web-member/.next/analyze
+          if-no-files-found: error

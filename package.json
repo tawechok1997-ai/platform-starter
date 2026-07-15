@@ -121,17 +121,25 @@
     "start:web-admin": "node tools/run-with-deployment-metadata.mjs -- pnpm --filter @platform/web-admin start",
     "test:e2e:smoke": "playwright test -c playwright.smoke.config.ts",
     "test:e2e:smoke:strict": "bash scripts/require-prod-smoke-env.sh && playwright test -c playwright.smoke.config.ts",
+    "test:e2e:a11y": "playwright test -c playwright.a11y.config.ts",
     "test:e2e:visual": "playwright test -c playwright.visual.config.ts",
     "test:e2e:visual:update": "playwright test -c playwright.visual.config.ts --update-snapshots",
-    "audit:admin-ui-permissions": "node tools/audit-admin-ui-permissions.mjs"
+    "audit:admin-ui-permissions": "node tools/audit-admin-ui-permissions.mjs",
+    "analyze:web-member": "pnpm --filter @platform/web-member analyze"
   },
   "dependencies": {
     "@prisma/client": "6.19.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@eslint/eslintrc": "3.3.6",
     "@eslint/js": "9.39.1",
+    "@next/bundle-analyzer": "15.5.18",
+    "@next/eslint-plugin-next": "15.5.18",
     "@playwright/test": "1.61.1",
     "eslint": "9.39.1",
+    "eslint-config-next": "15.5.18",
+    "eslint-plugin-jsx-a11y": "6.10.2",
     "globals": "16.5.0",
     "prettier": "3.9.5",
     "prisma": "6.19.3",
