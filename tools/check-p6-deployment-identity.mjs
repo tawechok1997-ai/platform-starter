@@ -1,67 +1,80 @@
 const strict = process.argv.includes('--strict');
 const json = process.argv.includes('--json');
 const timeoutMs = boundedInteger(process.env.P6_CONNECTIVITY_TIMEOUT_MS, 8_000, 1_000, 30_000);
-const apiUrl = process.env.P6_API_URL?.trim();
 const approvedCommit = normalizeCommit(process.env.P6_APPROVED_COMMIT_SHA);
 const expectedEnvironment = process.env.P6_ENVIRONMENT?.trim() || 'non-production';
+const targets = [
+  { name: 'api', env: 'P6_API_URL', path: '/version', expectedService: 'api' },
+  { name: 'admin', env: 'P6_ADMIN_URL', path: '/api/version', expectedService: 'web-admin' },
+  { name: 'member', env: 'P6_MEMBER_URL', path: '/api/version', expectedService: 'web-member' },
+];
 
-const report = {
-  generatedAt: new Date().toISOString(),
-  ready: false,
-  checks: [],
-};
+const report = { generatedAt: new Date().toISOString(), ready: false, services: [] };
 
-if (!apiUrl) {
-  report.checks.push({ name: 'api-version', ready: false, reason: 'missing_url' });
-} else if (!approvedCommit) {
-  report.checks.push({ name: 'approved-commit', ready: false, reason: 'missing_approved_commit' });
+if (!approvedCommit) {
+  report.services.push({ name: 'approved-commit', ready: false, reason: 'missing_approved_commit' });
 } else {
-  const endpoint = new URL('/version', apiUrl);
-  try {
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      redirect: 'manual',
-      signal: AbortSignal.timeout(timeoutMs),
-      headers: { accept: 'application/json', 'user-agent': 'platform-p6-deployment-identity/1.0' },
-    });
-
-    if (response.status >= 300 && response.status < 400) {
-      report.checks.push({ name: 'api-version', ready: false, status: response.status, reason: 'redirect_blocked' });
-    } else if (!response.ok) {
-      report.checks.push({ name: 'api-version', ready: false, status: response.status, reason: 'http_error' });
-    } else {
-      const payload = await response.json();
-      const deployedCommit = normalizeCommit(payload?.commit);
-      const deployedEnvironment = typeof payload?.environment === 'string' ? payload.environment.trim() : '';
-      const builtAt = typeof payload?.builtAt === 'string' ? payload.builtAt.trim() : '';
-      const service = typeof payload?.service === 'string' ? payload.service.trim() : '';
-
-      const identityChecks = [
-        { name: 'service', ready: service === 'api', reason: service === 'api' ? undefined : 'unexpected_service' },
-        { name: 'commit', ready: commitsMatch(deployedCommit, approvedCommit), reason: commitsMatch(deployedCommit, approvedCommit) ? undefined : 'commit_mismatch' },
-        { name: 'environment', ready: environmentMatches(deployedEnvironment, expectedEnvironment), reason: environmentMatches(deployedEnvironment, expectedEnvironment) ? undefined : 'environment_mismatch' },
-        { name: 'built-at', ready: isValidTimestamp(builtAt), reason: isValidTimestamp(builtAt) ? undefined : 'invalid_built_at' },
-      ];
-      report.checks.push(...identityChecks);
-    }
-  } catch (error) {
-    report.checks.push({ name: 'api-version', ready: false, reason: error?.name === 'TimeoutError' ? 'timeout' : 'request_failed' });
-  }
+  for (const target of targets) report.services.push(await verifyTarget(target));
 }
 
-report.ready = report.checks.length > 0 && report.checks.every((check) => check.ready);
+report.ready = report.services.length > 0 && report.services.every((service) => service.ready);
 
 if (json) {
   console.log(JSON.stringify(report, null, 2));
 } else {
   console.log('P6 deployment identity');
-  for (const check of report.checks) {
-    const suffix = [check.status ? `status=${check.status}` : null, check.reason ? `reason=${check.reason}` : null].filter(Boolean).join(' ');
-    console.log(`  ${check.ready ? 'READY' : 'BLOCKED'} ${check.name}${suffix ? ` ${suffix}` : ''}`);
+  for (const service of report.services) {
+    const suffix = [service.status ? `status=${service.status}` : null, service.reason ? `reason=${service.reason}` : null].filter(Boolean).join(' ');
+    console.log(`  ${service.ready ? 'READY' : 'BLOCKED'} ${service.name}${suffix ? ` ${suffix}` : ''}`);
   }
 }
 
 if (strict && !report.ready) process.exitCode = 1;
+
+async function verifyTarget(target) {
+  const rawUrl = process.env[target.env]?.trim();
+  if (!rawUrl) return { name: target.name, ready: false, reason: 'missing_url' };
+
+  let endpoint;
+  try {
+    endpoint = new URL(target.path, rawUrl);
+  } catch {
+    return { name: target.name, ready: false, reason: 'invalid_url' };
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      redirect: 'manual',
+      signal: AbortSignal.timeout(timeoutMs),
+      headers: { accept: 'application/json', 'user-agent': 'platform-p6-deployment-identity/2.0' },
+    });
+
+    if (response.status >= 300 && response.status < 400) return { name: target.name, ready: false, status: response.status, reason: 'redirect_blocked' };
+    if (!response.ok) return { name: target.name, ready: false, status: response.status, reason: 'http_error' };
+
+    let payload;
+    try {
+      payload = await response.json();
+    } catch {
+      return { name: target.name, ready: false, status: response.status, reason: 'invalid_json' };
+    }
+
+    const deployedCommit = normalizeCommit(payload?.commit);
+    const deployedEnvironment = typeof payload?.environment === 'string' ? payload.environment.trim() : '';
+    const builtAt = typeof payload?.builtAt === 'string' ? payload.builtAt.trim() : '';
+    const service = typeof payload?.service === 'string' ? payload.service.trim() : '';
+
+    if (service !== target.expectedService) return { name: target.name, ready: false, status: response.status, reason: 'unexpected_service' };
+    if (!commitsMatch(deployedCommit, approvedCommit)) return { name: target.name, ready: false, status: response.status, reason: 'commit_mismatch' };
+    if (!environmentMatches(deployedEnvironment, expectedEnvironment)) return { name: target.name, ready: false, status: response.status, reason: 'environment_mismatch' };
+    if (!isValidTimestamp(builtAt)) return { name: target.name, ready: false, status: response.status, reason: 'invalid_built_at' };
+
+    return { name: target.name, ready: true, status: response.status };
+  } catch (error) {
+    return { name: target.name, ready: false, reason: error?.name === 'TimeoutError' ? 'timeout' : 'request_failed' };
+  }
+}
 
 function normalizeCommit(value) {
   if (typeof value !== 'string') return '';
