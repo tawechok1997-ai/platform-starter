@@ -33,6 +33,8 @@ const providerFeaturePath = 'apps/web-admin/src/features/finance/game-providers-
 const adminFinanceEntryPath = 'apps/web-admin/src/features/finance/index.ts';
 const cmsRoutePath = 'apps/web-admin/app/(admin)/content-center/page.tsx';
 const cmsFeaturePath = 'apps/web-admin/src/features/cms/content-center-page.tsx';
+const promotionRoutePath = 'apps/web-admin/app/(admin)/promotion-center/page.tsx';
+const promotionFeaturePath = 'apps/web-admin/src/features/cms/promotion-center-page.tsx';
 const adminCmsEntryPath = 'apps/web-admin/src/features/cms/index.ts';
 const depositContainer = read(depositContainerPath);
 const withdrawalContainer = read(withdrawalContainerPath);
@@ -45,6 +47,8 @@ const providerFeature = read(providerFeaturePath);
 const adminFinanceEntry = read(adminFinanceEntryPath);
 const cmsRoute = read(cmsRoutePath);
 const cmsFeature = read(cmsFeaturePath);
+const promotionRoute = read(promotionRoutePath);
+const promotionFeature = read(promotionFeaturePath);
 const adminCmsEntry = read(adminCmsEntryPath);
 
 if (!fs.existsSync(depositViewPath)) failures.push('web-member: missing DepositView presentation component');
@@ -82,6 +86,12 @@ if (!cmsRoute.includes("from '../../../src/features/cms/content-center-page'")) 
 if (cmsRoute.includes('adminApiFetch(') || cmsRoute.includes('useState(')) failures.push('web-admin: CMS route must remain a thin entry point');
 if (!cmsFeature.includes("from '../../../app/admin-api'")) failures.push('web-admin: CMS feature must own CMS API orchestration');
 if (!adminCmsEntry.includes('ContentCenterPage') || !adminCmsEntry.includes("from './content-center-page'")) failures.push('web-admin: CMS public boundary must export ContentCenterPage');
+
+if (!fs.existsSync(promotionFeaturePath)) failures.push('web-admin: missing promotion feature implementation');
+if (!promotionRoute.includes("from '../../../src/features/cms/promotion-center-page'")) failures.push('web-admin: promotion route must delegate to CMS feature implementation');
+if (promotionRoute.includes('adminApiFetch(') || promotionRoute.includes('useState(')) failures.push('web-admin: promotion route must remain a thin entry point');
+if (!promotionFeature.includes("from '../../../app/admin-api'")) failures.push('web-admin: promotion feature must own promotion API orchestration');
+if (!adminCmsEntry.includes('PromotionCenterPage') || !adminCmsEntry.includes("from './promotion-center-page'")) failures.push('web-admin: CMS public boundary must export PromotionCenterPage');
 
 if (!financeEntry.includes("export { DepositView } from './deposit-view'")) failures.push('web-member: finance public boundary must export DepositView');
 if (!financeEntry.includes('export { WithdrawalView')) failures.push('web-member: finance public boundary must export WithdrawalView');
