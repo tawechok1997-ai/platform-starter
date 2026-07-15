@@ -14,6 +14,7 @@ const SERVER_ONLY_IMPORTS = [
 ];
 const DOMAIN_FORBIDDEN_IMPORTS = [/^@nestjs(?:\/|$)/, /^@prisma\/client(?:\/|$)/];
 const PRIVATE_CROSS_MODULE_SEGMENTS = /\/(?:controllers?|dto|repositories?|prisma|internal)(?:\/|$)|\.(?:controller|dto|repository)\b/;
+const TEST_FILE_PATTERN = /(?:^|\/)[^/]+\.(?:spec|test)\.(?:ts|tsx|mts|cts)$/;
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -29,6 +30,10 @@ async function walk(directory) {
 
 function normalize(path) {
   return relative(ROOT, path).split(sep).join('/');
+}
+
+function isTestFile(path) {
+  return TEST_FILE_PATTERN.test(normalize(path));
 }
 
 function importsOf(source) {
@@ -112,6 +117,7 @@ const cycles = findCycles(graph);
 const frontendViolations = [];
 for (const frontendRoot of FRONTEND_ROOTS) {
   for (const file of await walk(frontendRoot)) {
+    if (isTestFile(file)) continue;
     const source = await readFile(file, 'utf8');
     for (const specifier of importsOf(source)) {
       const serverOnly = SERVER_ONLY_IMPORTS.some((pattern) => pattern.test(specifier));
