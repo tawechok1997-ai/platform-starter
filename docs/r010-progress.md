@@ -63,7 +63,8 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Added `.github/workflows/r010-explain-analyze.yml` with PostgreSQL 16, real migrations, Prisma generation, evidence validation, and artifact upload.
 - [x] Added package commands `audit:r10:explain` and `audit:r10:explain:validate`.
 - [x] Documented the CI-baseline limitation in `docs/evidence/r010-explain-analyze-baseline.md`.
-- [ ] Observe a successful workflow artifact before closing this outcome. Connector visibility currently does not expose the push-triggered Actions run.
+- [x] Updated the workflow to persist validated output to `docs/evidence/generated/r010-explain-analyze.json` on `main`, outside its trigger paths.
+- [ ] Close only after the generated evidence file appears and passes the existing validator.
 
 ## Count
 
@@ -73,9 +74,9 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 
 ## Latest commits
 
+- `f5557656ccbe7d02ba2fe7a760a3a573e5542e9e` — persist validated EXPLAIN evidence back to the repository.
 - `4e7fbe83fd3766557055ddb3b9c0e26f6f514bc3` — verify query performance metrics in CI.
 - `9a071d8be40d42c5ce05877a55d1dd132c504835` — guard query performance instrumentation and log safety.
 - `3e11af5a1729fb42b8b981a859e2e37eb4e2d7f0` — instrument Prisma query timing and burst signals.
 - `4b630a58dc9a8748634eb6dea0877fc1822027a6` — test slow-query and N+1 burst contracts.
 - `0f50d33fbbfdca9c2dac4188073c127c26fcc5d5` — add the query performance monitor.
-- `86680c9f14a92a0b7f4e30b25aec4ab465eed781` — rerun EXPLAIN evidence workflow when scripts or commands change.
