@@ -30,8 +30,8 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | auth | risk-alerts | Registration phone/watchlist enforcement |
 | auth | notifications | Authentication/security notification delivery |
 | admin-auth | anti-bot | Admin-login challenge and adaptive anti-bot verification |
-| users | risk-alerts | Profile phone/watchlist enforcement |
-| users | admin-audit | Administrative member-change audit projection |
+| auth | risk-alerts | Registration/profile phone/watchlist enforcement |
+| admin-members | admin-audit | Administrative member-change audit projection |
 | topups | wallet | Idempotent deposit credit and ledger write |
 | topups | finance | Financial workflow locking and reconciliation |
 | topups | storage | Private slip object lifecycle |
@@ -54,14 +54,14 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | money-ops | game-platform | Provider retry, fail, reverse and reconcile operations |
 | money-ops | finance | Financial operation safety and audit |
 | admin-access | admin-auth | Session revocation after privilege or ownership changes |
-| support | users | Ticket ownership and member identity lookup |
+| support | auth/admin-members | Ticket ownership and member identity lookup through user records |
 | support | finance | Deposit/withdrawal/provider reference correlation |
 | support | storage | Private support attachment lifecycle |
-| notifications | users | Delivery target and preference resolution |
+| notifications | auth | Delivery target and preference resolution through user records |
 | settings | storage | CMS binary asset lifecycle |
 | risk-alerts | storage | Private KYC document lifecycle |
 | reports | finance | Finance reporting projections |
-| reports | users | Member reporting projections |
+| reports | admin-members | Member reporting projections |
 | exports | reports | Export generation from report projections |
 
 Relationships through `DatabaseModule`, shared guards/decorators and actor types are cross-cutting infrastructure and are not repeated for every module.

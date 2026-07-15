@@ -20,7 +20,7 @@ export type DepositEvidenceInput = {
   transferredAt?: string;
 };
 
-export type DepositWorkflowMeta = { ipAddress?: string; userAgent?: string };
+type DepositWorkflowMeta = { ipAddress?: string; userAgent?: string };
 
 type DuplicateRow = {
   id: string;

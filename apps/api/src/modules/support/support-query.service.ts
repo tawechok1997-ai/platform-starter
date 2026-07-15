@@ -27,7 +27,7 @@ const SUPPORT_TICKET_LIST_PROJECTION = {
 } as const;
 
 type Actor = { id: string };
-export type AdminSupportQuery = {
+type AdminSupportQuery = {
   status?: string;
   category?: string;
   search?: string;

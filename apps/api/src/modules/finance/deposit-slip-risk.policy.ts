@@ -1,4 +1,4 @@
-export type DuplicateSlipReason =
+type DuplicateSlipReason =
   | 'TRANSACTION_REFERENCE'
   | 'FILE_HASH'
   | 'PERCEPTUAL_HASH'
@@ -10,7 +10,7 @@ export type DuplicateSlipMatch = {
   score: number;
 };
 
-export type DuplicateAttemptRisk = {
+type DuplicateAttemptRisk = {
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   shouldAlert: boolean;
   shouldTemporarilyBlockDeposits: boolean;

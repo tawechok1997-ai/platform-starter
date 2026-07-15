@@ -4,7 +4,6 @@ import { DatabaseModule } from './database/database.module';
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SettingsModule } from './modules/settings/settings.module';
-import { UsersModule } from './modules/users/users.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { TopUpsModule } from './modules/topups/topups.module';
 import { WithdrawalsModule } from './modules/withdrawals/withdrawals.module';
@@ -32,7 +31,6 @@ import { AntiBotModule } from './modules/anti-bot/anti-bot.module';
     AuthModule,
     AdminAuthModule,
     AntiBotModule,
-    UsersModule,
     SettingsModule,
     WalletModule,
     TopUpsModule,

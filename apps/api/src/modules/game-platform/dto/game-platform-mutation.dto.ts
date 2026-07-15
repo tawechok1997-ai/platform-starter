@@ -16,7 +16,7 @@ export class RecoveryActionDto {
   note?: string;
 }
 
-export class EndpointOverrideDto {
+class EndpointOverrideDto {
   @IsOptional()
   @IsString()
   @MaxLength(64)

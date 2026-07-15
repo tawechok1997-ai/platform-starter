@@ -1,21 +1,21 @@
-export type CursorPageInput = {
+type CursorPageInput = {
   cursor?: string | null;
   limit?: string | number | null;
 };
 
-export type CursorPageOptions = {
+type CursorPageOptions = {
   defaultLimit: number;
   maxLimit: number;
   minLimit?: number;
 };
 
-export type CursorQueryArgs = {
+type CursorQueryArgs = {
   take: number;
   cursor?: { id: string };
   skip?: number;
 };
 
-export type CursorPage<T extends { id: string }> = {
+type CursorPage<T extends { id: string }> = {
   items: T[];
   nextCursor: string | null;
   hasMore: boolean;

@@ -11,7 +11,7 @@ export type DomainErrorCategory =
   | 'unavailable'
   | 'internal';
 
-export type DomainErrorOptions = {
+type DomainErrorOptions = {
   code: ApiErrorCode | string;
   category: DomainErrorCategory;
   message: string;

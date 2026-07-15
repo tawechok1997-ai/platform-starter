@@ -8,7 +8,7 @@ import { assertAdminTotp, normalizeAdminRecoveryCode } from './admin-two-factor.
 import { AdminSignInDto } from './dto/admin-sign-in.dto';
 import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
 
-export type AdminLoginMeta = { ipAddress?: string; userAgent?: string; deviceId?: string };
+type AdminLoginMeta = { ipAddress?: string; userAgent?: string; deviceId?: string };
 
 @Injectable()
 export class AdminLoginService {

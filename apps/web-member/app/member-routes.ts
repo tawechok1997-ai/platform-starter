@@ -1,6 +1,6 @@
 import type { MemberFeatureFlags } from './site-settings';
 
-export type MemberRouteRule = {
+type MemberRouteRule = {
   prefix: string;
   label: string;
   feature?: keyof MemberFeatureFlags;
@@ -8,7 +8,7 @@ export type MemberRouteRule = {
   authRedirectHome?: boolean;
 };
 
-export const memberRouteRules: MemberRouteRule[] = [
+const memberRouteRules: MemberRouteRule[] = [
   { prefix: '/login', label: 'เข้าสู่ระบบ', public: true, authRedirectHome: true },
   { prefix: '/register', label: 'สมัครสมาชิก', public: true, authRedirectHome: true },
   { prefix: '/contact', label: 'ติดต่อเรา', public: true },

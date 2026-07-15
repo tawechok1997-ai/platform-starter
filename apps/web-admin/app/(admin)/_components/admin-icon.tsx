@@ -1,6 +1,6 @@
 import type { ReactNode, SVGProps } from 'react';
 
-export type AdminIconName =
+type AdminIconName =
   | 'activity' | 'bank' | 'chevron-left' | 'close' | 'dashboard' | 'game'
   | 'logout' | 'menu' | 'money' | 'report' | 'risk' | 'search'
   | 'security' | 'settings' | 'support' | 'user' | 'wallet';

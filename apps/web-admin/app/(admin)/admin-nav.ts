@@ -1,10 +1,10 @@
-export type AdminNavItem = {
+type AdminNavItem = {
   title: string;
   href: string;
   permissions?: readonly string[];
 };
 
-export type AdminNavGroup = {
+type AdminNavGroup = {
   title: string;
   items: readonly AdminNavItem[];
 };

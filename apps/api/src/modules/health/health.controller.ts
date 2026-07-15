@@ -14,4 +14,9 @@ export class HealthController {
   version() {
     return this.healthService.version();
   }
+
+  @Get('metrics')
+  metrics() {
+    return this.healthService.metrics();
+  }
 }

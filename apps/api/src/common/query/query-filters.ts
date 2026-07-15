@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 
-export type SortDirection = 'asc' | 'desc';
+type SortDirection = 'asc' | 'desc';
 
 type QueryFieldOptions = {
   fieldName?: string;
