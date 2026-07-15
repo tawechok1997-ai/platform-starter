@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { ReceivingAccount, TopUpItem } from '../../../app/types/member-finance';
-import { financeQueryKeys } from './query-keys';
 
 type Fetcher = (path: string, init?: RequestInit) => Promise<Response>;
+
+const TOP_UP_HISTORY_ENDPOINT = '/member/topups';
+const RECEIVING_ACCOUNTS_ENDPOINT = '/member/receiving-bank-accounts';
 
 type DepositServerState = {
   accounts: ReceivingAccount[];
@@ -24,8 +26,8 @@ export function useDepositServerState(fetcher: Fetcher): DepositServerState {
   const reload = useCallback(async () => {
     setLoading(true);
     const [historyRes, accountRes] = await Promise.all([
-      fetcher(financeQueryKeys.topUpList().endpoint),
-      fetcher(financeQueryKeys.receivingAccounts().endpoint),
+      fetcher(TOP_UP_HISTORY_ENDPOINT),
+      fetcher(RECEIVING_ACCOUNTS_ENDPOINT),
     ]);
     const historyData = await historyRes.json().catch(() => null);
     const accountData = await accountRes.json().catch(() => null);
