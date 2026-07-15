@@ -1,177 +1,56 @@
 # Current Execution Status
 
-Last updated: 2026-07-11
-
-This file is the short operational worklist for the current implementation cycle. The broader product backlog remains in `docs/remaining-work-backlog.md`.
+Last updated: **2026-07-15**  
+Canonical project status: [`docs/master-project-worklist.md`](./master-project-worklist.md)
 
 ## Current checkpoint
 
-- [x] Prisma finance schema aligned with staged deposit and withdrawal migrations.
-- [x] Duplicate-slip and payment-audit migrations split into safe enum/object phases.
-- [x] Deposit credit path uses wallet row locking and an idempotent ledger key.
-- [x] Withdrawal reservation and payout paths use request/wallet locking.
-- [x] Deposit-slip and withdrawal-proof storage compensation added.
-- [x] Legacy money-changing endpoints disabled or removed.
-- [x] Deposit and withdrawal claim ownership added.
-- [x] Finance worklist foundation added.
-- [x] Risk Alert Operations UI expanded with member filtering, duplicate-slip types, and target links.
-- [x] Risk Alert backend aligned with staged finance statuses and strict filters.
-- [x] Audit Log regression coverage added.
-- [x] Admin and Member refresh tokens rotate atomically and detected token reuse revokes remaining sessions.
-- [x] Admin API requests disable browser caching and clear the frontend session after privilege-denied responses.
-- [x] Local-storage delete regression coverage added.
-- [x] Strict production smoke-test environment guard added.
-- [x] `pnpm-lock.yaml` generated and CI switched to `--frozen-lockfile`.
-- [x] Manifest dependencies pinned instead of using `latest`.
-- [x] Next.js upgraded from vulnerable `14.2.32` to patched `14.2.35` in both web apps and the root override.
-- [x] Railway security scan blocker for Next.js addressed in the committed lockfile.
-- [x] CI now supplies a non-production `DATABASE_URL` for Prisma validate/generate/build steps.
-- [x] Migration regression test updated to inspect both split migration files.
-- [x] Admin login-defense test doubles fixed for unknown-user IP throttling.
-- [x] Privileged-admin 2FA test configuration fixed without weakening production enforcement.
-- [x] Risk Alert assignment, assignee permissions, and investigation notes/timeline added.
-- [x] Audit Log Risk target links corrected to the Risk Alert detail route.
-- [x] Delegated Access allow-list, expiry, revocation, owner boundary, and audit trail added.
-- [x] Anti-bot rejected-token and provider-outage security events audited without token/secret persistence.
-- [x] Private storage keys reject traversal/absolute paths and backup archives have a read-only verification script.
-- [x] Risk alert status transitions reject workflow jumps that bypass investigation.
-- [x] Audit Log target links cover admin access, anti-bot, finance, member, ledger, and risk routes with mobile-safe pagination.
-- [x] Risk Alert provider metadata filter added with input validation.
-- [x] Safe bulk dismiss added for active LOW/MEDIUM Risk Alerts with per-item audit trail.
-- [x] Auto-close suggestions added without automatic state mutation.
-- [x] Strict staged Finance E2E flow added behind `FINANCE_E2E_ENABLED=true`.
-- [x] Deployment/build/smoke failure alert workflow added with deduplicated GitHub issues.
-- [x] GitHub Actions Build #270 completed successfully for commit `c7edec0`.
+- ✅ P4 backend architecture work **R-001 through R-011 is closed** with implementation and closure/CI evidence.
+- 🚧 **R-012 Frontend feature architecture and large-page decomposition** is in progress.
+- 🚧 **R-013 UI system, shared design tokens, responsive patterns and accessibility** is in progress.
+- ⏳ **R-014 Observability, operational documentation and cleanup** remains mostly open.
+- 🟡 Product and finance implementations are substantially complete, but authenticated browser regression, staging/production verification, storage hardening and vendor-specific UAT remain.
+- ⏸️ Real-money provider enablement remains blocked until vendor documents, credentials, callback/IP requirements and provider-specific UAT are complete.
 
-## CI checkpoint
+## Completed architecture milestones
 
-Confirmed by GitHub Actions Build #270:
+| Work item | Status | Primary evidence |
+|---|---:|---|
+| R-001 Architecture inventory | ✅ | `docs/architecture/r001-closure.md`, `pnpm audit:r1-closure` |
+| R-002 Dependency boundaries | ✅ | `docs/architecture/r002-closure.md`, `pnpm audit:r2-closure` |
+| R-003 Regression safety net | ✅ | `docs/architecture/r003-closure.md`, `pnpm audit:r3-closure` |
+| R-004 DTO/type/API contracts | ✅ | closure commit `210e5989`, CI closure gates |
+| R-005 Shared API client | ✅ | `docs/architecture/r005-closure.md`, `pnpm audit:r5-closure` |
+| R-006 CI quality baseline | ✅ | `docs/architecture/r006-closure.md`, `.github/workflows/r006-quality.yml` |
+| R-007 Backend decomposition | ✅ | `docs/r007-closure-checklist.md` and related ownership/audit gates |
+| R-008 Domain policies | ✅ | `docs/r008-closure-checklist.md`, `pnpm audit:r8-closure` |
+| R-009 Persistence/transactions | ✅ | repository, transaction-escape and PostgreSQL concurrency closure evidence |
+| R-010 Query/read models | ✅ | `docs/r010-progress.md`, EXPLAIN/query-performance evidence |
+| R-011 Security boundaries | ✅ | `docs/r011-progress.md`, `docs/evidence/r011-final-verification.md` |
 
-- [x] `pnpm install --frozen-lockfile`
-- [x] `pnpm prisma validate`
-- [x] `pnpm prisma generate`
-- [x] `pnpm --filter @platform/api test -- --runInBand`
-- [x] `pnpm build:api`
-- [x] `pnpm build:web-admin`
-- [x] `pnpm build:web-member`
+## Active work order
 
-Still requires direct deployment verification:
+1. Finish R-012 feature/page decomposition across Admin and Member.
+2. Finish R-013 shared primitives, responsive patterns, accessibility and six-viewport visual evidence.
+3. Complete R-014 structured logging, metrics, module documentation, ADRs, runbooks and dead-code cleanup.
+4. Close authenticated Admin/Member functional and visual regression.
+5. Finish production-scale query/index evidence, storage policy and production configuration guards.
+6. Run provider-specific UAT only after the external provider package is available.
 
-- [ ] Railway redeploy succeeds for API, Admin, and Member on the latest commit.
-- [ ] Railway dependency/security scan no longer reports `next@14.2.32`.
-- [ ] `/health` responds successfully after the latest API deployment.
-- [ ] `/version` reports the expected commit/build.
+## External blockers
 
-## Immediate next milestone: PostgreSQL-backed finance concurrency tests
-
-### CI integration
-
-- [x] Add a PostgreSQL 16 service to `.github/workflows/build.yml`.
-- [x] Use a dedicated test database such as `platform_test`.
-- [x] Set both `DATABASE_URL` and `FINANCE_TEST_DATABASE_URL` to the CI PostgreSQL test database.
-- [x] Wait for PostgreSQL health readiness before migrations/tests.
-- [x] Run `pnpm prisma migrate deploy` against the CI test database.
-- [x] Run `pnpm --filter @platform/api test:db:finance` after fast unit tests.
-- [x] Keep database-backed finance tests separate from fast unit tests for clearer failures.
-
-### Database test harness
-
-- [x] Test harness guarded by `FINANCE_TEST_DATABASE_URL`.
-- [x] Production-like database names are rejected by the test safety guard.
-- [x] Concurrent deposit credit confirmation test added.
-- [x] Deposit test verifies one wallet mutation, one ledger row, one idempotency key, and terminal `COMPLETED` state.
-- [x] Concurrent withdrawal claim conflict test added.
-- [x] Concurrent payout verification test verifies one ledger and wallet balance/locked-balance invariants.
-- [x] Concurrent withdrawal reservation test prevents over-locking available wallet balance.
-- [x] Payout retry after completed execution returns the existing idempotent result.
-- [x] Production smoke checks cover delegated access and anti-bot authorization boundaries.
-- [ ] Add deterministic fixture builders for user, wallet, deposit, withdrawal, and admin records.
-- [ ] Add cleanup helpers that remove only test-owned rows.
-- [ ] Ensure every test uses isolated identifiers and can run repeatedly.
-
-### Remaining concurrency cases
-
-- [x] Concurrent withdrawal reservation cannot over-lock or overspend the wallet.
-- [x] Two admins cannot claim the same deposit request.
-- [x] Two admins cannot claim the same withdrawal request.
-- [x] Concurrent payout verification creates only one terminal ledger entry.
-- [x] Retry after timeout preserves idempotency.
-- [ ] Wallet `balance` and `lockedBalance` invariants remain valid after concurrent failure paths.
-- [ ] Failed/losing concurrent operations leave no orphan ledger or stale lock state.
-
-## Finance end-to-end flow still required
-
-- [ ] Member creates a deposit request.
-- [ ] Member uploads a deposit slip.
-- [ ] Admin claims the deposit request.
-- [ ] Admin reviews the slip.
-- [ ] Admin confirms credit.
-- [ ] Wallet and ledger balances are verified.
-- [ ] Member creates a withdrawal request.
-- [ ] Admin claims and approves it for payment.
-- [ ] Admin uploads payment proof.
-- [ ] Admin verifies payment.
-- [ ] Final wallet, locked balance, request state, and ledger are verified.
-
-## Risk and audit operations remaining
-
-- [x] Assign a risk alert to an active admin.
-- [x] Add risk-alert investigation notes to the audit timeline.
-- [x] Add provider filter where provider context exists.
-- [x] Add safe bulk actions for low-risk alerts.
-- [x] Add auto-close suggestions linked to resolved finance/provider records.
-- [x] Finish Audit Log target links for all supported modules.
-- [ ] Verify Audit Log pagination, long JSON diff rendering, empty state, and mobile regression.
-- [ ] Run delegated access staging regression with grant, expiry, revoke, and owner-boundary cases.
-
-## Deployment and monitoring remaining
-
-- [ ] Verify Railway deployment status for API, Admin, and Member on the latest commit.
-- [ ] Verify `/health` after the latest API deployment.
-- [ ] Verify `/version` reports the expected commit/build.
-- [ ] Run strict staged finance smoke tests with production-safe credentials.
-- [ ] Verify private storage access for deposit slips and withdrawal proofs.
-- [x] Add deployment alerts for migration, build, smoke-test, and health-check failures.
-
-The staged Finance E2E test is implemented but intentionally skipped unless an isolated staging environment supplies `FINANCE_E2E_ENABLED=true`, member/admin tokens, a receiving account id, and an approved withdrawal account. It must not run against production.
-
-## Safe parallel execution groups
-
-The following groups can proceed in parallel because they should not modify the same core files:
-
-1. **Finance DB test harness**
-   - fixture builders
-   - cleanup helpers
-   - withdrawal concurrency cases
-   - claim-conflict cases
-
-2. **Risk and Audit UI**
-   - assignment/timeline UI
-   - target links
-   - responsive and empty-state regression
-
-3. **Deployment hardening**
-   - health/version verification
-   - strict smoke-test wiring
-   - failure alerts
-
-Avoid parallel edits to the same workflow, Prisma schema, lockfile, or finance service file.
-
-## Recommended execution order
-
-1. Add PostgreSQL service and migration step to CI.
-2. Make `test:db:finance` run reliably in CI.
-3. Add withdrawal reservation concurrency coverage.
-4. Add deposit and withdrawal claim-conflict coverage.
-5. Add payout verification and retry/idempotency coverage.
-6. Verify Railway deployment, security scan, `/health`, and `/version`.
-7. Complete the full finance E2E flow.
-8. Continue Risk/Audit workflow polish in parallel where files do not overlap.
+- Seeded non-production Admin and Member credentials for authenticated browser tests.
+- Approved deployed Admin/Member URLs and production-safe test access.
+- Staging/production migration and rollback access.
+- Object-storage, malware-scanning and retention-policy decisions.
+- Vendor endpoint, signature/error contract, credentials, callback/IP whitelist and UAT approval.
 
 ## Safety rules
 
-- Never run `pnpm prisma db push --force-reset`.
-- Stop on destructive Prisma warnings or `--accept-data-loss` prompts.
-- Never run database-backed concurrency tests against production.
-- Every money-changing operation must be idempotent and auditable.
-- Never claim CI, Railway, or database tests passed without actual run evidence.
+- Never run destructive Prisma reset commands against production.
+- Never run database concurrency suites against production data.
+- Every money-changing operation must remain transactional, idempotent and auditable.
+- Never expose provider credentials, OTP values, tokens or private URLs in logs or browser artifacts.
+- Do not mark deployed, browser, provider or production verification as passed without actual evidence.
+
+This file is a concise operational summary. Detailed status, evidence references and remaining work are maintained in [`docs/master-project-worklist.md`](./master-project-worklist.md).
