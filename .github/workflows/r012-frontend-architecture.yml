@@ -6,6 +6,7 @@ on:
       - 'apps/web-admin/src/features/**'
       - 'apps/web-admin/app/(admin)/game-providers/**'
       - 'apps/web-admin/app/(admin)/content-center/**'
+      - 'apps/web-admin/app/(admin)/promotion-center/**'
       - 'apps/web-member/src/features/**'
       - 'apps/web-member/app/(auth)/register/**'
       - 'apps/web-member/app/deposit/**'
@@ -19,6 +20,7 @@ on:
       - 'apps/web-admin/src/features/**'
       - 'apps/web-admin/app/(admin)/game-providers/**'
       - 'apps/web-admin/app/(admin)/content-center/**'
+      - 'apps/web-admin/app/(admin)/promotion-center/**'
       - 'apps/web-member/src/features/**'
       - 'apps/web-member/app/(auth)/register/**'
       - 'apps/web-member/app/deposit/**'
@@ -39,6 +41,7 @@ jobs:
       - run: corepack prepare pnpm@9.0.0 --activate
       - run: pnpm install --frozen-lockfile
       - run: node tools/audit-r012-feature-boundaries.mjs
+      - run: node tools/audit-r012-promotion-boundary.mjs
       - run: pnpm --filter @platform/web-member test
       - run: pnpm --filter @platform/web-member typecheck
       - run: pnpm --filter @platform/web-admin typecheck
