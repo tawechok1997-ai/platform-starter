@@ -49,5 +49,7 @@ jobs:
         run: node tools/audit-r010-cursor-pagination.mjs
       - name: Shared filter and sort boundaries
         run: node tools/audit-r010-filter-sort-boundaries.mjs
+      - name: Strict query rejection contracts
+        run: pnpm --filter @platform/api test -- src/common/query/query-filters.spec.ts --runInBand
       - name: API typecheck
         run: pnpm typecheck:api
