@@ -39,6 +39,8 @@ jobs:
         run: node tools/audit-r013-color-token-contract.mjs
       - name: Shared spacing radius and shadow contract
         run: node tools/audit-r013-shape-space-shadow-contract.mjs
+      - name: Shared typography motion breakpoint and z-index contract
+        run: node tools/audit-r013-type-motion-layout-contract.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: r013-design-token-inventory
