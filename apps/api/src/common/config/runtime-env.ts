@@ -27,7 +27,6 @@ const REQUIRED_PRODUCTION_SECRETS = [
   'GAME_CREDENTIAL_SECRET',
   'ANTIBOT_ENCRYPTION_KEY',
   'STORAGE_SIGNING_SECRET',
-  'PASSWORD_RESET_DELIVERY_WEBHOOK_SECRET',
 ] as const;
 
 const WEAK_SECRET_PATTERNS = [
@@ -43,6 +42,16 @@ const WEAK_SECRET_PATTERNS = [
 export function validateRuntimeEnvironment(env: NodeJS.ProcessEnv = process.env): void {
   const failures: string[] = [];
   const production = env.NODE_ENV === 'production';
+  const passwordResetDeliveryFlag = env.PASSWORD_RESET_DELIVERY_ENABLED?.trim().toLowerCase();
+  const passwordResetDeliveryEnabled = passwordResetDeliveryFlag !== 'false';
+
+  if (
+    passwordResetDeliveryFlag &&
+    passwordResetDeliveryFlag !== 'true' &&
+    passwordResetDeliveryFlag !== 'false'
+  ) {
+    failures.push('PASSWORD_RESET_DELIVERY_ENABLED must be true or false');
+  }
 
   for (const key of URL_KEYS) {
     const value = env[key]?.trim();
@@ -78,8 +87,13 @@ export function validateRuntimeEnvironment(env: NodeJS.ProcessEnv = process.env)
     if (!env.DATABASE_URL?.trim()) failures.push('DATABASE_URL is required in production');
     if (!env.MEMBER_WEB_URL?.trim()) failures.push('MEMBER_WEB_URL is required in production');
     if (!env.ADMIN_WEB_URL?.trim()) failures.push('ADMIN_WEB_URL is required in production');
-    if (!env.PASSWORD_RESET_DELIVERY_WEBHOOK_URL?.trim())
-      failures.push('PASSWORD_RESET_DELIVERY_WEBHOOK_URL is required in production');
+
+    if (passwordResetDeliveryEnabled) {
+      if (!env.PASSWORD_RESET_DELIVERY_WEBHOOK_URL?.trim())
+        failures.push('PASSWORD_RESET_DELIVERY_WEBHOOK_URL is required when password reset delivery is enabled');
+      if (!env.PASSWORD_RESET_DELIVERY_WEBHOOK_SECRET?.trim())
+        failures.push('PASSWORD_RESET_DELIVERY_WEBHOOK_SECRET is required when password reset delivery is enabled');
+    }
 
     for (const key of REQUIRED_PRODUCTION_SECRETS) {
       if (!env[key]?.trim()) failures.push(`${key} is required in production`);
