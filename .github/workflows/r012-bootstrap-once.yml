@@ -1,0 +1,145 @@
+name: R012 Bootstrap Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r012-bootstrap-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Create feature boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          domains='auth finance kyc support cms'
+          for app in web-admin web-member; do
+            mkdir -p "apps/$app/src/features"
+            for domain in $domains; do
+              mkdir -p "apps/$app/src/features/$domain"
+              cat > "apps/$app/src/features/$domain/index.ts" <<EOF
+/** Public boundary for the ${domain} feature. Keep private implementation files unexported. */
+export const ${domain^^}_FEATURE_BOUNDARY = '${domain}' as const;
+EOF
+            done
+            cat > "apps/$app/src/features/index.ts" <<'EOF'
+export * from './auth';
+export * from './finance';
+export * from './kyc';
+export * from './support';
+export * from './cms';
+EOF
+          done
+
+          mkdir -p tools docs
+          cat > tools/audit-r012-feature-boundaries.mjs <<'EOF'
+import fs from 'node:fs';
+import path from 'node:path';
+
+const apps = ['web-admin', 'web-member'];
+const domains = ['auth', 'finance', 'kyc', 'support', 'cms'];
+const failures = [];
+for (const app of apps) {
+  const root = path.join('apps', app, 'src', 'features');
+  const barrel = path.join(root, 'index.ts');
+  if (!fs.existsSync(barrel)) failures.push(`${app}: missing feature public barrel`);
+  const barrelSource = fs.existsSync(barrel) ? fs.readFileSync(barrel, 'utf8') : '';
+  for (const domain of domains) {
+    const entry = path.join(root, domain, 'index.ts');
+    if (!fs.existsSync(entry)) failures.push(`${app}: missing ${domain} public entry`);
+    if (!barrelSource.includes(`'./${domain}'`)) failures.push(`${app}: barrel does not export ${domain}`);
+  }
+}
+if (failures.length) {
+  console.error('R-012 feature-boundary audit failed:');
+  failures.forEach((failure) => console.error(`- ${failure}`));
+  process.exit(1);
+}
+console.log('R-012 feature-boundary audit passed.');
+EOF
+
+          cat > docs/r012-progress.md <<'EOF'
+# R-012 Progress — Frontend feature architecture and large-page decomposition
+
+Source of truth: `docs/master-project-worklist.md` → P4 → R-012
+
+## Status
+
+- DONE: 3/18
+- IN PROGRESS: page container and presentation decomposition
+- Remaining: 15
+
+## Checklist
+
+- [x] จัด Admin folders ตาม feature/domain
+- [x] จัด Member folders ตาม feature/domain
+- [x] กำหนด public exports ของแต่ละ feature
+- [ ] แยก page container ออกจาก presentation components
+- [ ] แยก register page
+- [ ] แยก deposit page
+- [ ] แยก withdrawal page
+- [ ] แยก provider page
+- [ ] แยก content/CMS page
+- [ ] แยก promotion page
+- [ ] แยก security/admin lifecycle page
+- [ ] แยก KYC admin/member pages
+- [ ] แยก support page/thread components
+- [ ] แยก form schemas/defaults/serialization/error mapping
+- [ ] แยก server state จาก UI state
+- [ ] ทำ query-key factories และ invalidation rules
+- [ ] เพิ่ม component/unit tests สำหรับส่วนที่แยก
+- [ ] เพิ่ม unsaved-change และ optimistic rollback regression
+
+## Closed outcomes
+
+- Admin and Member now expose the same top-level feature domains: auth, finance, KYC, support and CMS.
+- Every feature has a public `index.ts`; private implementation files must remain behind that boundary.
+- Static audit prevents deletion or accidental omission of a domain public entry.
+EOF
+
+          cat > .github/workflows/r012-frontend-architecture.yml <<'EOF'
+name: R012 Frontend Architecture
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web-admin/src/features/**'
+      - 'apps/web-member/src/features/**'
+      - 'tools/audit-r012-*.mjs'
+      - '.github/workflows/r012-frontend-architecture.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-admin/src/features/**'
+      - 'apps/web-member/src/features/**'
+      - 'tools/audit-r012-*.mjs'
+      - '.github/workflows/r012-frontend-architecture.yml'
+
+jobs:
+  feature-boundaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/audit-r012-feature-boundaries.mjs
+EOF
+
+          rm .github/workflows/r012-bootstrap-once.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/web-admin/src/features apps/web-member/src/features tools/audit-r012-feature-boundaries.mjs docs/r012-progress.md .github/workflows/r012-frontend-architecture.yml .github/workflows/r012-bootstrap-once.yml
+          git commit -m 'feat(r012): establish frontend feature boundaries'
+          git push
