@@ -18,4 +18,6 @@
   --muted: var(--color-text-secondary);
   --brand: var(--color-brand-primary);
   --brandSoft: var(--color-brand-soft);
+  --radius: var(--radius-card-lg);
+  --shadow: var(--shadow-card-raised);
 }
