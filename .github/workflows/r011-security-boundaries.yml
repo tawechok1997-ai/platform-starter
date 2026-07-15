@@ -3,6 +3,7 @@ name: R011 Security Boundaries
 on:
   pull_request:
     paths:
+      - 'apps/api/src/main.ts'
       - 'apps/api/src/common/errors/**'
       - 'apps/api/src/common/filters/**'
       - 'apps/api/src/common/security/**'
@@ -11,6 +12,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'apps/api/src/main.ts'
       - 'apps/api/src/common/errors/**'
       - 'apps/api/src/common/filters/**'
       - 'apps/api/src/common/security/**'
@@ -33,5 +35,6 @@ jobs:
       - run: node tools/audit-r011-error-boundaries.mjs
       - run: node tools/audit-r011-authorization-policies.mjs
       - run: node tools/audit-r011-security-policy-foundations.mjs
-      - run: pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts
+      - run: node tools/audit-r011-sensitive-logging.mjs
+      - run: pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts sensitive-log-redactor.spec.ts
       - run: pnpm --filter @platform/api typecheck
