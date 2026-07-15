@@ -2,12 +2,22 @@ name: P6 External Readiness
 
 on:
   workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Environment policy for URL validation
+        required: true
+        type: choice
+        default: non-production
+        options:
+          - non-production
+          - staging
+          - production
 
 permissions:
   contents: read
 
 concurrency:
-  group: p6-readiness-${{ github.ref }}
+  group: p6-readiness-${{ github.ref }}-${{ inputs.target_environment }}
   cancel-in-progress: true
 
 jobs:
@@ -16,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
+      P6_ENVIRONMENT: ${{ inputs.target_environment }}
       P6_API_URL: ${{ secrets.P6_API_URL }}
       P6_ADMIN_URL: ${{ secrets.P6_ADMIN_URL }}
       P6_MEMBER_URL: ${{ secrets.P6_MEMBER_URL }}
@@ -62,7 +73,9 @@ jobs:
           {
             echo '## P6 External Readiness'
             echo
-            echo 'This workflow validates presence only. It does not print secret values or mark P6 tasks complete.'
+            echo "Target environment: ${P6_ENVIRONMENT}"
+            echo
+            echo 'This workflow validates presence and safe URL policy only. It does not print secret values or mark P6 tasks complete.'
             echo
             pnpm verify:p6:readiness || true
           } >> "$GITHUB_STEP_SUMMARY"
