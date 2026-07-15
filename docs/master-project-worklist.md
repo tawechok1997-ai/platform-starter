@@ -169,11 +169,13 @@
 - [x] Finance/KYC cleanup และ private-storage policies
 - [x] Actual support binary/object-storage upload ผ่าน storage contract กลาง
 - [x] Binary asset lifecycle สำหรับ support upload จริง
-- [ ] Global file-size limits และ MIME/content validation
-- [ ] Malware/content scan integration boundary
+- [x] Global file-size limits และ MIME/content validation
+- [x] Malware/content scan integration boundary
 - [ ] Signed URL policy และ Data URL reduction
 
 **หลักฐาน support storage:** `SupportAttachmentsService` รองรับ binary write/read, SHA-256, MIME allowlist, magic-byte validation, compensating deletion และ object cleanup เมื่อ Member/Admin ลบ attachment; commit `54803381` ผ่าน deploy checks ของ API, Admin และ Member
+
+**หลักฐาน storage hardening:** `StorageService.put()` เรียก shared upload policy เพื่อตรวจ size, MIME, magic bytes, plain text และ SVG active content ก่อนเขียน object และเรียก malware scanner boundary แบบ configurable/fail-closed; commits `b0d22773`, `ccc66cb2` และ runtime HTTPS fix `37673f0e` ผ่าน deploy
 
 ## Tests และ CI
 
@@ -186,7 +188,7 @@
 - [x] Env schema และ startup validation
 - [ ] Dependency/security audit และ production secret guard
 
-**หลักฐาน env/startup:** `apps/api/src/common/config/runtime-env.ts` ตรวจ URL, proxy hops, rate limits, production HTTPS, production-required URLs, weak secret placeholders และ storage config ก่อน bootstrap; มี `runtime-env.spec.ts` และ commit `bb665c18` ผ่าน deploy checks ของ API, Admin และ Member
+**หลักฐาน env/startup:** `apps/api/src/common/config/runtime-env.ts` ตรวจ URL, proxy hops, rate limits, production HTTPS, production-required URLs, weak secret placeholders และ storage config ก่อน bootstrap; มี `runtime-env.spec.ts` และรองรับ HTTP เฉพาะ localhost/private/internal production URLs โดยยังบล็อก public HTTP
 
 ---
 
@@ -243,12 +245,12 @@
 
 # ลำดับทำงานโค้ดถัดไป
 
-1. ปิด P5 aggregate และ storage security ส่วนกลาง
+1. ปิด Signed URL policy/Data URL reduction และ production aggregate strategy
 2. เพิ่ม web unit/component coverage, seeded visual artifact workflow และ dependency/security CI hardening
 3. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
 
 # จำนวนงานคงค้าง
 
-- งานโค้ดใน P0 ถึง P5: **7 รายการ**
+- งานโค้ดใน P0 ถึง P5: **5 รายการ**
 - งาน external verification และ UAT ใน P6: **30 รายการ**
-- รวม checkbox ที่ยังไม่ปิด: **37 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **35 รายการ**
