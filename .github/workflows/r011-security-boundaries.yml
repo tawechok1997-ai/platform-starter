@@ -7,6 +7,9 @@ on:
       - 'apps/api/src/common/errors/**'
       - 'apps/api/src/common/filters/**'
       - 'apps/api/src/common/security/**'
+      - 'apps/api/src/common/validation/**'
+      - 'prisma/schema.prisma'
+      - 'docs/master-project-worklist.md'
       - 'tools/audit-r011-*.mjs'
       - '.github/workflows/r011-security-boundaries.yml'
   push:
@@ -16,6 +19,9 @@ on:
       - 'apps/api/src/common/errors/**'
       - 'apps/api/src/common/filters/**'
       - 'apps/api/src/common/security/**'
+      - 'apps/api/src/common/validation/**'
+      - 'prisma/schema.prisma'
+      - 'docs/master-project-worklist.md'
       - 'tools/audit-r011-*.mjs'
       - '.github/workflows/r011-security-boundaries.yml'
 
@@ -36,5 +42,6 @@ jobs:
       - run: node tools/audit-r011-authorization-policies.mjs
       - run: node tools/audit-r011-security-policy-foundations.mjs
       - run: node tools/audit-r011-sensitive-logging.mjs
-      - run: pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts sensitive-log-redactor.spec.ts
+      - run: node tools/audit-r011-request-safety-boundaries.mjs
+      - run: pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts sensitive-log-redactor.spec.ts validation-boundary.spec.ts
       - run: pnpm --filter @platform/api typecheck
