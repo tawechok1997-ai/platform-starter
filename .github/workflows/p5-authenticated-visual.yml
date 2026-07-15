@@ -1,0 +1,82 @@
+name: P5 Authenticated Visual Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      member_url:
+        description: Seeded Member web URL
+        required: false
+        type: string
+      admin_url:
+        description: Seeded Admin web URL
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p5-authenticated-visual-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  seeded-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MEMBER_WEB_URL: ${{ inputs.member_url || secrets.SEED_MEMBER_WEB_URL }}
+      ADMIN_WEB_URL: ${{ inputs.admin_url || secrets.SEED_ADMIN_WEB_URL }}
+      SEED_MEMBER_USERNAME: ${{ secrets.SEED_MEMBER_USERNAME }}
+      SEED_MEMBER_EMAIL: ${{ secrets.SEED_MEMBER_EMAIL }}
+      SEED_MEMBER_PHONE: ${{ secrets.SEED_MEMBER_PHONE }}
+      SEED_MEMBER_PASSWORD: ${{ secrets.SEED_MEMBER_PASSWORD }}
+      SEED_ADMIN_USERNAME: ${{ secrets.SEED_ADMIN_USERNAME }}
+      SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL }}
+      SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate seeded visual environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$MEMBER_WEB_URL"
+          test -n "$ADMIN_WEB_URL"
+          test -n "$SEED_MEMBER_PASSWORD"
+          test -n "$SEED_ADMIN_PASSWORD"
+          test -n "${SEED_MEMBER_USERNAME:-${SEED_MEMBER_EMAIL:-${SEED_MEMBER_PHONE:-}}}"
+          test -n "${SEED_ADMIN_USERNAME:-${SEED_ADMIN_EMAIL:-}}"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Capture seeded authenticated visual artifacts
+        run: pnpm exec playwright test -c playwright.authenticated-visual.config.ts --update-snapshots
+
+      - name: Upload authenticated screenshots and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authenticated-visual-${{ github.run_id }}
+          path: |
+            tests/authenticated-visual/**/*-snapshots/**
+            test-results/authenticated-visual/**
+            playwright-report/authenticated-visual/**
+          if-no-files-found: warn
+          retention-days: 14
