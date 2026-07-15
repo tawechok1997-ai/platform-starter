@@ -1,0 +1,44 @@
+name: R-013 UI System
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-admin/**'
+      - 'apps/web-member/**'
+      - 'tools/audit-r013-*.mjs'
+      - 'docs/r013-progress.md'
+      - '.github/workflows/r013-ui-system.yml'
+  pull_request:
+    paths:
+      - 'apps/web-admin/**'
+      - 'apps/web-member/**'
+      - 'tools/audit-r013-*.mjs'
+      - 'docs/r013-progress.md'
+      - '.github/workflows/r013-ui-system.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Design-token inventory
+        run: node tools/audit-r013-design-token-inventory.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r013-design-token-inventory
+          path: docs/evidence/r013-design-token-inventory.json
+          if-no-files-found: error
+      - name: Admin typecheck
+        run: pnpm typecheck:admin
+      - name: Member typecheck
+        run: pnpm typecheck:member
