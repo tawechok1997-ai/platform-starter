@@ -131,3 +131,25 @@ Regression evidence:
 - `pnpm audit:r14-cleanup-inventory`
 - `pnpm typecheck:admin`
 
+
+## Pass 6 — retained API/template orphan review
+
+Date: 2026-07-15
+
+Reviewed and retained:
+
+- `apps/api/src/common/infrastructure/prisma-admin-ownership-repository.adapter.ts` — retained as R-009 transaction-scoped ownership adapter evidence and audit coverage.
+- `apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts` — retained as R-009 transaction-scoped finance adapter evidence and audit coverage.
+- `apps/api/src/modules/game-platform/adapters/real-provider-adapter.template.ts` — retained as a provider integration template and documentation artifact; it is explicitly not registered directly.
+
+Why this is low risk:
+
+- No runtime code was deleted in this pass.
+- The remaining orphan-source candidates were reviewed and moved into an explicit retained list with reasons.
+- The regenerated inventory now reports `potentialOrphanSources: 0` and `retainedOrphanSources: 3`; future cleanup should continue with export-level review instead of deleting these retained artifacts.
+
+Regression evidence:
+
+- `pnpm audit:r14-cleanup-inventory`
+- `pnpm typecheck:api`
+

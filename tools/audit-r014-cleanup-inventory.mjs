@@ -7,6 +7,21 @@ const sourceExtensions = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', 
 const cssExtensions = new Set(['.css', '.scss', '.sass']);
 const skipDirs = new Set(['node_modules', '.next', 'dist', 'coverage', '.turbo']);
 
+const retainedOrphanSources = new Map([
+  [
+    'apps/api/src/common/infrastructure/prisma-admin-ownership-repository.adapter.ts',
+    'R-009 transaction-scoped ownership adapter retained for repository-boundary evidence and audit coverage.',
+  ],
+  [
+    'apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts',
+    'R-009 transaction-scoped finance adapters retained for repository-boundary evidence and audit coverage.',
+  ],
+  [
+    'apps/api/src/modules/game-platform/adapters/real-provider-adapter.template.ts',
+    'Provider integration template retained as documentation for future concrete adapters; it must not be registered directly.',
+  ],
+]);
+
 const files = [];
 for (const scanRoot of scanRoots) files.push(...await walk(join(root, scanRoot)));
 
@@ -18,8 +33,15 @@ const sourceFiles = files.filter((file) => sourceExtensions.has(extname(file)));
 const cssFiles = files.filter((file) => cssExtensions.has(extname(file)));
 const tsxFiles = sourceFiles.filter((file) => file.endsWith('.tsx') || file.endsWith('.jsx'));
 
-const potentialOrphanSources = sourceFiles
+const orphanSourceCandidates = sourceFiles
   .filter((file) => !isEntrypoint(file) && !isFrameworkRouteFile(file) && !isTest(file) && !isReferencedByOtherSource(file))
+  .sort();
+const retainedOrphanSourceFindings = orphanSourceCandidates
+  .filter((file) => retainedOrphanSources.has(file))
+  .map((file) => ({ file, reason: retainedOrphanSources.get(file) }))
+  .sort((a, b) => a.file.localeCompare(b.file));
+const potentialOrphanSources = orphanSourceCandidates
+  .filter((file) => !retainedOrphanSources.has(file))
   .sort();
 
 const exportedSymbols = [];
@@ -74,6 +96,7 @@ const report = {
   },
   counts: {
     potentialOrphanSources: potentialOrphanSources.length,
+    retainedOrphanSources: retainedOrphanSourceFindings.length,
     potentiallyUnusedExports: potentiallyUnusedExports.length,
     componentFiles: componentFiles.length,
     potentiallyUnusedComponents: potentiallyUnusedComponents.length,
@@ -85,6 +108,7 @@ const report = {
     potentiallyUnreferencedCssFiles: cssInventory.filter((item) => !item.referenced).length,
   },
   potentialOrphanSources: potentialOrphanSources.slice(0, 200),
+  retainedOrphanSources: retainedOrphanSourceFindings,
   potentiallyUnusedExports: potentiallyUnusedExports.slice(0, 300),
   potentiallyUnusedComponents: potentiallyUnusedComponents.slice(0, 200),
   routes: routeFiles,

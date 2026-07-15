@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-15T08:24:30.064Z",
+  "generatedAt": "2026-07-15T08:32:30.345Z",
   "note": "Candidate inventory only. Do not delete files from this report without owner review and regression evidence.",
   "scanned": {
     "roots": [
@@ -12,7 +12,8 @@
     "cssFiles": 37
   },
   "counts": {
-    "potentialOrphanSources": 3,
+    "potentialOrphanSources": 0,
+    "retainedOrphanSources": 3,
     "potentiallyUnusedExports": 103,
     "componentFiles": 5,
     "potentiallyUnusedComponents": 0,
@@ -23,10 +24,20 @@
     "cssFiles": 37,
     "potentiallyUnreferencedCssFiles": 0
   },
-  "potentialOrphanSources": [
-    "apps/api/src/common/infrastructure/prisma-admin-ownership-repository.adapter.ts",
-    "apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts",
-    "apps/api/src/modules/game-platform/adapters/real-provider-adapter.template.ts"
+  "potentialOrphanSources": [],
+  "retainedOrphanSources": [
+    {
+      "file": "apps/api/src/common/infrastructure/prisma-admin-ownership-repository.adapter.ts",
+      "reason": "R-009 transaction-scoped ownership adapter retained for repository-boundary evidence and audit coverage."
+    },
+    {
+      "file": "apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts",
+      "reason": "R-009 transaction-scoped finance adapters retained for repository-boundary evidence and audit coverage."
+    },
+    {
+      "file": "apps/api/src/modules/game-platform/adapters/real-provider-adapter.template.ts",
+      "reason": "Provider integration template retained as documentation for future concrete adapters; it must not be registered directly."
+    }
   ],
   "potentiallyUnusedExports": [
     {

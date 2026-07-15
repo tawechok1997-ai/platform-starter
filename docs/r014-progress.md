@@ -69,6 +69,7 @@ R-014 covers production observability, incident/runbook documentation, and clean
 - Pass 3 tightened the cleanup inventory CSS import detector and removed unreferenced `apps/web-member/app/casino-auth.css` after exact source searches found no references.
 - Pass 4 refined cleanup inventory precision without deleting code: framework route files, root tools, and common config files are now treated as entrypoints instead of orphan candidates.
 - Pass 5 removed three unreferenced web-admin orphan files after exact source searches and `pnpm typecheck:admin`.
+- Pass 6 reviewed the three remaining API/template orphan candidates and moved them to an explicit retained list with reasons; actionable orphan-source candidates are now zero.
 - Recorded evidence in `docs/evidence/r014-dead-code-removal.md`.
 - The overall dead-code removal task remains open until the broader cleanup inventory is reviewed domain-by-domain.
 - Added `docs/architecture/state-machines.md` for deposit, withdrawal, KYC, support, admin lifecycle, and promotion lifecycles.
