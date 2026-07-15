@@ -1,0 +1,26 @@
+name: R012 Frontend Architecture
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web-admin/src/features/**'
+      - 'apps/web-member/src/features/**'
+      - 'tools/audit-r012-*.mjs'
+      - '.github/workflows/r012-frontend-architecture.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-admin/src/features/**'
+      - 'apps/web-member/src/features/**'
+      - 'tools/audit-r012-*.mjs'
+      - '.github/workflows/r012-frontend-architecture.yml'
+
+jobs:
+  feature-boundaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/audit-r012-feature-boundaries.mjs
