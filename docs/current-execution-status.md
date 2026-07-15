@@ -6,9 +6,9 @@ Canonical project status: [`docs/master-project-worklist.md`](./master-project-w
 ## Current checkpoint
 
 - ✅ P4 backend architecture work **R-001 through R-011 is closed** with implementation and closure/CI evidence.
-- 🚧 **R-012 Frontend feature architecture and large-page decomposition** is in progress.
-- 🚧 **R-013 UI system, shared design tokens, responsive patterns and accessibility** is in progress.
-- ⏳ **R-014 Observability, operational documentation and cleanup** remains mostly open.
+- ✅ **R-012 Frontend feature architecture and large-page decomposition is closed** with architecture audits, frontend tests and Admin/Member typechecks.
+- ✅ **R-013 UI system, shared design tokens, responsive patterns, accessibility and visual regression is closed 17/17**.
+- ⏳ **R-014 Observability, operational documentation and cleanup** remains the active P4 work item.
 - 🟡 Product and finance implementations are substantially complete, but authenticated browser regression, staging/production verification, storage hardening and vendor-specific UAT remain.
 - ⏸️ Real-money provider enablement remains blocked until vendor documents, credentials, callback/IP requirements and provider-specific UAT are complete.
 
@@ -27,13 +27,24 @@ Canonical project status: [`docs/master-project-worklist.md`](./master-project-w
 | R-009 Persistence/transactions | ✅ | repository, transaction-escape and PostgreSQL concurrency closure evidence |
 | R-010 Query/read models | ✅ | `docs/r010-progress.md`, EXPLAIN/query-performance evidence |
 | R-011 Security boundaries | ✅ | `docs/r011-progress.md`, `docs/evidence/r011-final-verification.md` |
+| R-012 Frontend feature architecture | ✅ | `docs/r012-progress.md`, `.github/workflows/r012-frontend-architecture.yml` |
+| R-013 UI system and accessibility | ✅ | `docs/r013-progress.md`, `docs/evidence/r013-final-verification.md` |
+
+## R-013 closure snapshot
+
+- Shared semantic color, spacing, radius, shadow, typography, motion, breakpoint and z-index tokens are centralized in `packages/design-tokens`.
+- Shared form, overlay, data-display, feedback, responsive and accessibility contracts are guarded in CI.
+- Admin and Member public authentication surfaces were generated and compared across six viewport projects, for 12 scoped visual cases total.
+- Final verification workflow: `R-013 Visual Regression`, run `29412247169`, job `87341838770`.
+- Evidence artifact: `r013-visual-regression-evidence`, artifact ID `8341637379`.
+- Railway status for the R-013 closure documentation commit was successful for API, Web Admin and Web Member.
 
 ## Active work order
 
-1. Finish R-012 feature/page decomposition across Admin and Member.
-2. Finish R-013 shared primitives, responsive patterns, accessibility and six-viewport visual evidence.
-3. Complete R-014 structured logging, metrics, module documentation, ADRs, runbooks and dead-code cleanup.
-4. Close authenticated Admin/Member functional and visual regression.
+1. Complete R-014 structured logging, metrics, module documentation, ADRs, runbooks and dead-code cleanup.
+2. Add PostgreSQL integration/concurrency evidence for watchlist and KYC document lifecycle.
+3. Close authenticated Admin/Member functional and visual regression with seeded non-production accounts.
+4. Finish staging/production migration, rollback and deployed session/cookie verification.
 5. Finish production-scale query/index evidence, storage policy and production configuration guards.
 6. Run provider-specific UAT only after the external provider package is available.
 
