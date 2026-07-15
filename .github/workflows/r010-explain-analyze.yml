@@ -53,8 +53,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
-      - name: Apply database migrations
-        run: pnpm db:migrate
+      - name: Apply database schema
+        run: pnpm prisma db push --schema prisma/schema.prisma --skip-generate
       - name: Generate Prisma client
         run: pnpm db:generate
       - name: Capture EXPLAIN ANALYZE evidence
