@@ -3,7 +3,7 @@ import { dirname, extname, join, relative, sep } from 'node:path';
 
 const root = process.cwd();
 const scanRoots = ['apps', 'packages', 'tools'];
-const sourceExtensions = new Set(['.ts', '.tsx', '.mts', '.cts']);
+const sourceExtensions = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs']);
 const cssExtensions = new Set(['.css', '.scss', '.sass']);
 const skipDirs = new Set(['node_modules', '.next', 'dist', 'coverage', '.turbo']);
 
@@ -16,10 +16,10 @@ const allText = [...textByFile.entries()].map(([file, text]) => `${file}\n${text
 
 const sourceFiles = files.filter((file) => sourceExtensions.has(extname(file)));
 const cssFiles = files.filter((file) => cssExtensions.has(extname(file)));
-const tsxFiles = sourceFiles.filter((file) => file.endsWith('.tsx'));
+const tsxFiles = sourceFiles.filter((file) => file.endsWith('.tsx') || file.endsWith('.jsx'));
 
 const potentialOrphanSources = sourceFiles
-  .filter((file) => !isEntrypoint(file) && !isTest(file) && !isReferencedByOtherSource(file))
+  .filter((file) => !isEntrypoint(file) && !isFrameworkRouteFile(file) && !isTest(file) && !isReferencedByOtherSource(file))
   .sort();
 
 const exportedSymbols = [];
@@ -35,6 +35,7 @@ const potentiallyUnusedExports = exportedSymbols
   .sort((a, b) => `${a.file}:${a.symbol}`.localeCompare(`${b.file}:${b.symbol}`));
 
 const componentFiles = tsxFiles
+  .filter((file) => !isFrameworkRouteFile(file))
   .filter((file) => /(?:^|\/)(components?|ui|features?)\//.test(file) || /[A-Z][A-Za-z0-9]+\.tsx$/.test(file))
   .sort();
 const potentiallyUnusedComponents = componentFiles
@@ -42,7 +43,7 @@ const potentiallyUnusedComponents = componentFiles
   .sort();
 
 const routeFiles = sourceFiles
-  .filter((file) => /\/(?:app|pages)\/.+(?:page|route)\.tsx?$/.test(file) || /controller\.ts$/.test(file))
+  .filter((file) => isFrameworkRouteFile(file) || /controller\.ts$/.test(file))
   .sort();
 
 const featureFlags = [];
@@ -124,15 +125,24 @@ function normalize(path) {
 }
 
 function isTest(file) {
-  return /\.(spec|test)\.tsx?$/.test(file) || file.includes('/__tests__/');
+  return /\.(spec|test)\.(?:tsx?|jsx?|mts|cts|mjs|cjs)$/.test(file) || file.includes('/__tests__/');
 }
 
 function isEntrypoint(file) {
-  return /(?:^|\/)(main|index|app|module)\.tsx?$/.test(file) || file.endsWith('.module.ts');
+  return /(?:^|\/)(main|index|app|module)\.(?:tsx?|jsx?|mts|cts|mjs|cjs)$/.test(file)
+    || file.endsWith('.module.ts')
+    || file.endsWith('.d.ts')
+    || /^tools\/[^/]+\.(?:mjs|cjs|js|ts)$/.test(file)
+    || /(?:^|\/)(?:next|jest|playwright|vitest|tailwind|postcss|eslint)\.config\.(?:mjs|cjs|js|ts)$/.test(file);
+}
+
+function isFrameworkRouteFile(file) {
+  return /\/(?:app|pages)\/(?:.+\/)?(?:page|route|layout|loading|error|not-found|template)\.tsx?$/.test(file)
+    || /\/pages\/.+\.tsx?$/.test(file);
 }
 
 function isReferencedByOtherSource(file) {
-  const base = file.replace(/\.(tsx?|mts|cts|css|scss|sass)$/, '');
+  const base = file.replace(/\.(tsx?|jsx?|mts|cts|mjs|cjs|css|scss|sass)$/, '');
   const basename = base.split('/').at(-1);
   const importSpec = base.startsWith('apps/') || base.startsWith('packages/') || base.startsWith('tools/') ? base : `./${base}`;
   const importSpecs = [importSpec];

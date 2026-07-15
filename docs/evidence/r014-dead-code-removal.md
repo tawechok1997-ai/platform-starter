@@ -85,3 +85,26 @@ Regression evidence:
 - `pnpm audit:r14-cleanup-inventory`
 - `pnpm typecheck:member`
 
+
+## Pass 4 — cleanup inventory precision pass (no deletion)
+
+Date: 2026-07-15
+
+Changed:
+
+- Updated `tools/audit-r014-cleanup-inventory.mjs` to treat Next.js App Router files (`page`, `route`, `layout`, `loading`, `error`, `not-found`, and `template`) as framework entrypoints instead of orphan-source candidates.
+- Excluded route files from component-unused detection so app/page conventions are not misclassified as components.
+- Included JavaScript tool/config files in the scan corpus for reference matching while treating root tools and common config files as entrypoints.
+
+Why this is low risk:
+
+- This pass does not delete runtime code.
+- It reduces false-positive cleanup candidates before any future domain-by-domain removal.
+- The regenerated inventory now reports `potentialOrphanSources: 6`, `potentiallyUnusedComponents: 0`, and `potentiallyUnreferencedCssFiles: 0`.
+
+Regression evidence:
+
+- `pnpm audit:r14-cleanup-inventory`
+- `pnpm typecheck:api`
+- `pnpm typecheck:member`
+
