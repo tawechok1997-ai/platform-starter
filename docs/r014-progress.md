@@ -105,3 +105,7 @@ R-014 covers production observability, incident/runbook documentation, and clean
 
 - Completed final documentation-to-implementation audit in `docs/evidence/r014-final-documentation-audit.md`.
 - R-014 is closed in `docs/master-project-worklist.md`.
+
+## Merge readiness follow-up
+
+- Added `docs/evidence/r014-merge-readiness.md` after the hosted PR was reported as not mergeable; local verification found no conflict markers and the merge-gate checks pass in this checkout.
