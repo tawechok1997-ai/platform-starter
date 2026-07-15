@@ -160,7 +160,9 @@
 - [x] EXPLAIN ANALYZE และ query-performance instrumentation foundation
 - [x] Dashboard/report read-model foundation
 - [ ] Implement production aggregate strategy
-- [ ] Implement cache TTL และ invalidation contracts
+- [x] Implement cache TTL และ invalidation contracts
+
+**หลักฐาน cache:** `packages/api-client/src/index.ts` รองรับ `responseCacheTtlMs`, custom cache key และ `invalidateCache(prefix)` พร้อม cache clear ทั้งชุด
 
 ## Storage security
 
@@ -238,12 +240,12 @@
 # ลำดับทำงานโค้ดถัดไป
 
 1. ทำ support binary/object-storage upload ผ่าน storage contract กลางและ binary lifecycle
-2. ปิด P5 aggregate/cache และ storage security
+2. ปิด P5 aggregate และ storage security
 3. เพิ่ม web unit/component coverage, seeded visual artifact workflow และ CI hardening
 4. เริ่ม P6 เมื่อ credentials, deployed URLs, production access หรือ vendor docs พร้อม
 
 # จำนวนงานคงค้าง
 
-- งานโค้ดใน P0 ถึง P5: **11 รายการ**
+- งานโค้ดใน P0 ถึง P5: **10 รายการ**
 - งาน external verification และ UAT ใน P6: **30 รายการ**
-- รวม checkbox ที่ยังไม่ปิด: **41 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **40 รายการ**
