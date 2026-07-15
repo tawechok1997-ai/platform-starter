@@ -2,7 +2,7 @@
 
 เอกสารนี้เป็น source of truth หลักสำหรับสถานะงานของ `platform-starter` โดยอ้างอิงจาก source code, scripts, tests, workflow และไฟล์ configuration ที่อยู่บน branch `main`
 
-วันที่ตรวจล่าสุด: **2026-07-14**  
+วันที่ตรวจล่าสุด: **2026-07-15**  
 Branch อ้างอิง: **`main`**
 
 ## หลักการให้สถานะ
@@ -537,24 +537,24 @@ Branch อ้างอิง: **`main`**
 
 ### R-011 Error, authorization และ security boundary
 
-สถานะ: 🔴 TODO
+สถานะ: ✅ DONE
 
-- [ ] สร้าง domain error taxonomy
-- [ ] แยก domain error จาก HTTP exception
-- [ ] ทำ HTTP error mapper กลาง
-- [ ] ทำ stable error codes และ localization-ready message keys
-- [ ] รวม authorization policies ต่อ domain
-- [ ] เพิ่ม resource-level authorization
-- [ ] รวม step-up/2FA requirement checks
-- [ ] รวม mandatory reason/audit checks
-- [ ] แยก DTO validation, business validation และ persistence constraint
-- [ ] ทำ input normalization สำหรับ email/phone/bank account/Unicode
-- [ ] ทำ sensitive logging redact policy
-- [ ] เพิ่ม static audit ป้องกัน log token/password/OTP/secret/private URL
-- [ ] ตรวจ CSRF/replay/idempotency boundaries
-- [ ] เพิ่ม security policy tests
+- [x] สร้าง domain error taxonomy
+- [x] แยก domain error จาก HTTP exception
+- [x] ทำ HTTP error mapper กลาง
+- [x] ทำ stable error codes และ localization-ready message keys
+- [x] รวม authorization policies ต่อ domain
+- [x] เพิ่ม resource-level authorization
+- [x] รวม step-up/2FA requirement checks
+- [x] รวม mandatory reason/audit checks
+- [x] แยก DTO validation, business validation และ persistence constraint
+- [x] ทำ input normalization สำหรับ email/phone/bank account/Unicode
+- [x] ทำ sensitive logging redact policy
+- [x] เพิ่ม static audit ป้องกัน log token/password/OTP/secret/private URL
+- [x] ตรวจ CSRF/replay/idempotency boundaries
+- [x] เพิ่ม security policy tests
 
-**หลักฐานปิดงาน:** permission/error/security behavior อยู่ใน policy กลางและมี regression tests
+**หลักฐานปิดงาน:** `docs/r011-progress.md`, `docs/evidence/r011-final-verification.md`, `.github/workflows/r011-security-boundaries.yml`, domain authorization registry/audit, security policy tests, API typecheck และ Railway API/Admin/Member deployment checks ผ่าน; closure evidence commit `203c5ee9b51db85639bfd39f4e8b31ce5d0fe420`
 
 ### R-012 Frontend feature architecture และ large-page decomposition
 
