@@ -3,6 +3,7 @@ import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } fro
 import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { Readable } from 'stream';
+import { validateStoredUpload } from './storage-upload-policy';
 
 type StoredObject = { data: Buffer; contentType: string };
 
@@ -12,6 +13,7 @@ export class StorageService {
 
   async put(key: string, data: Buffer, contentType: string) {
     this.assertSafeKey(key);
+    validateStoredUpload(data, contentType);
     if (this.driver() === 's3') return this.putS3(key, data, contentType);
     return this.putLocal(key, data);
   }
@@ -52,11 +54,6 @@ export class StorageService {
     }
   }
 
-  private async deleteLocal(key: string) {
-    await rm(this.localPath(key), { force: true });
-    return { key, deleted: true };
-  }
-
   private async putS3(key: string, data: Buffer, contentType: string) {
     await this.client().send(new PutObjectCommand({ Bucket: this.bucket(), Key: key, Body: data, ContentType: contentType }));
     return { key };
@@ -70,11 +67,6 @@ export class StorageService {
     } catch {
       throw new NotFoundException('Stored file not found');
     }
-  }
-
-  private async deleteS3(key: string) {
-    await this.client().send(new DeleteObjectCommand({ Bucket: this.bucket(), Key: key }));
-    return { key, deleted: true };
   }
 
   private client() {
