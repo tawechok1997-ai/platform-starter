@@ -64,7 +64,8 @@ R-014 covers production observability, incident/runbook documentation, and clean
 
 ## Partial dead-code removal evidence
 
-- Removed only empty placeholder `users` and unreferenced `wallets` modules.
+- Pass 1 removed empty placeholder `users` and unreferenced `wallets` modules.
+- Pass 2 removed empty callback/admin-queue/deposits/idempotency/locks/providers placeholders and an unreferenced top-up review DTO.
 - Recorded evidence in `docs/evidence/r014-dead-code-removal.md`.
 - The overall dead-code removal task remains open until the broader cleanup inventory is reviewed domain-by-domain.
 - Added `docs/architecture/state-machines.md` for deposit, withdrawal, KYC, support, admin lifecycle, and promotion lifecycles.

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-15T07:35:38.322Z",
+  "generatedAt": "2026-07-15T07:46:17.454Z",
   "note": "Candidate inventory only. Do not delete files from this report without owner review and regression evidence.",
   "scanned": {
     "roots": [
@@ -7,13 +7,13 @@
       "packages",
       "tools"
     ],
-    "files": 583,
-    "sourceFiles": 545,
+    "files": 573,
+    "sourceFiles": 535,
     "cssFiles": 38
   },
   "counts": {
-    "potentialOrphanSources": 119,
-    "potentiallyUnusedExports": 127,
+    "potentialOrphanSources": 116,
+    "potentiallyUnusedExports": 117,
     "componentFiles": 6,
     "potentiallyUnusedComponents": 1,
     "routeFiles": 149,
@@ -26,10 +26,7 @@
   "potentialOrphanSources": [
     "apps/api/src/common/infrastructure/prisma-admin-ownership-repository.adapter.ts",
     "apps/api/src/common/infrastructure/prisma-finance-repository-adapters.ts",
-    "apps/api/src/modules/callbacks/guards/provider-ip.guard.ts",
-    "apps/api/src/modules/callbacks/guards/provider-signature.guard.ts",
     "apps/api/src/modules/game-platform/adapters/real-provider-adapter.template.ts",
-    "apps/api/src/modules/topups/dto/review-top-up-request.dto.ts",
     "apps/web-admin/app/(admin)/_components/admin-confirm-dialog.tsx",
     "apps/web-admin/app/(admin)/access/page.tsx",
     "apps/web-admin/app/(admin)/activity/page.tsx",
@@ -302,10 +299,6 @@
       "symbol": "AdminSessionRecord"
     },
     {
-      "file": "apps/api/src/modules/admin-queue/admin-queue.module.ts",
-      "symbol": "AdminQueueModule"
-    },
-    {
       "file": "apps/api/src/modules/anti-bot/anti-bot.service.ts",
       "symbol": "AntiBotConfig"
     },
@@ -324,22 +317,6 @@
     {
       "file": "apps/api/src/modules/auth/sms-provider.service.ts",
       "symbol": "SmsDeliveryResult"
-    },
-    {
-      "file": "apps/api/src/modules/callbacks/callbacks.module.ts",
-      "symbol": "CallbacksModule"
-    },
-    {
-      "file": "apps/api/src/modules/callbacks/guards/provider-ip.guard.ts",
-      "symbol": "ProviderIpGuard"
-    },
-    {
-      "file": "apps/api/src/modules/callbacks/guards/provider-signature.guard.ts",
-      "symbol": "ProviderSignatureGuard"
-    },
-    {
-      "file": "apps/api/src/modules/deposits/deposits.module.ts",
-      "symbol": "DepositsModule"
     },
     {
       "file": "apps/api/src/modules/finance/deposit-slip-risk.policy.ts",
@@ -410,28 +387,12 @@
       "symbol": "WebhookLogStatus"
     },
     {
-      "file": "apps/api/src/modules/idempotency/idempotency.module.ts",
-      "symbol": "IdempotencyModule"
-    },
-    {
-      "file": "apps/api/src/modules/locks/locks.module.ts",
-      "symbol": "LocksModule"
-    },
-    {
       "file": "apps/api/src/modules/notifications/domain/notification-preference.policy.ts",
       "symbol": "NotificationPreference"
     },
     {
       "file": "apps/api/src/modules/notifications/notification-read.projections.ts",
       "symbol": "NotificationSummaryItem"
-    },
-    {
-      "file": "apps/api/src/modules/providers/adapters/provider-adapter.interface.ts",
-      "symbol": "ProviderAdapter"
-    },
-    {
-      "file": "apps/api/src/modules/providers/providers.module.ts",
-      "symbol": "ProvidersModule"
     },
     {
       "file": "apps/api/src/modules/risk-alerts/domain/watchlist.policy.ts",
@@ -480,10 +441,6 @@
     {
       "file": "apps/api/src/modules/topups/deposit-workflow.service.ts",
       "symbol": "DepositWorkflowMeta"
-    },
-    {
-      "file": "apps/api/src/modules/topups/dto/review-top-up-request.dto.ts",
-      "symbol": "ReviewTopUpRequestDto"
     },
     {
       "file": "apps/api/src/modules/wallet-ledger/wallet-ledger.module.ts",
