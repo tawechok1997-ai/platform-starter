@@ -13,11 +13,20 @@ const checks = [
   ['network evidence', spec.includes("'network.json'") && spec.includes("page.on('request'")) && spec.includes("page.on('response'"))],
   ['trace retention', config.includes("trace: 'retain-on-failure'")],
   ['html report', config.includes('html-report')],
-  ['baseline then compare', workflow.includes('test:e2e:visual:update') && workflow.includes('test:e2e:visual\n')],
+  ['baseline then compare', /run:\s+pnpm test:e2e:visual:update\s*(?:\n|$)/.test(workflow) && /run:\s+pnpm test:e2e:visual\s*(?:\n|$)/.test(workflow)],
   ['artifact upload always', workflow.includes('if: always()') && workflow.includes('r013-visual-regression-evidence')],
   ['artifact includes screenshots', workflow.includes('tests/e2e-visual/__screenshots__/**')],
   ['artifact includes runtime evidence', workflow.includes('artifacts/r013-visual/**')],
 ];
+
+const result = {
+  schemaVersion: 1,
+  generatedAt: new Date().toISOString(),
+  passed: checks.every(([, passed]) => passed),
+  checks: checks.map(([name, passed]) => ({ name, passed })),
+};
+fs.mkdirSync('artifacts/r013-visual', { recursive: true });
+fs.writeFileSync('artifacts/r013-visual/contract.json', `${JSON.stringify(result, null, 2)}\n`);
 
 const failed = checks.filter(([, passed]) => !passed);
 for (const [name, passed] of checks) console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);
