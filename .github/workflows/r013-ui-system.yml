@@ -47,6 +47,8 @@ jobs:
         run: node tools/audit-r013-overlay-primitives.mjs
       - name: Shared Table Pagination Tabs and Badge primitives
         run: node tools/audit-r013-data-display-primitives.mjs
+      - name: Shared Toast Alert Skeleton EmptyState and ErrorState primitives
+        run: node tools/audit-r013-feedback-primitives.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: r013-design-token-inventory
