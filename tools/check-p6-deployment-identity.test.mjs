@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -9,16 +9,16 @@ const commit = 'abcdef1234567890';
 const builtAt = '2026-07-15T10:00:00.000Z';
 
 await test('fails when approved commit is missing', async () => {
-  await withIdentityServers({}, (env) => {
-    const result = runChecker(['--strict', '--json'], env);
+  await withIdentityServers({}, async (env) => {
+    const result = await runChecker(['--strict', '--json'], env);
     assert.equal(result.status, 1);
     assert.equal(JSON.parse(result.stdout).services[0].reason, 'missing_approved_commit');
   });
 });
 
 await test('passes when API, Admin and Member identities match', async () => {
-  await withIdentityServers({}, (env) => {
-    const result = runChecker(['--strict', '--json'], {
+  await withIdentityServers({}, async (env) => {
+    const result = await runChecker(['--strict', '--json'], {
       ...env,
       P6_APPROVED_COMMIT_SHA: 'abcdef1',
       P6_ENVIRONMENT: 'staging',
@@ -35,8 +35,8 @@ await test('passes when API, Admin and Member identities match', async () => {
 });
 
 await test('fails when one frontend deploys a different commit without leaking values', async () => {
-  await withIdentityServers({ member: { commit: '1111111111111111' } }, (env) => {
-    const result = runChecker(['--strict', '--json'], {
+  await withIdentityServers({ member: { commit: '1111111111111111' } }, async (env) => {
+    const result = await runChecker(['--strict', '--json'], {
       ...env,
       P6_APPROVED_COMMIT_SHA: 'abcdef1',
       P6_ENVIRONMENT: 'staging',
@@ -50,8 +50,8 @@ await test('fails when one frontend deploys a different commit without leaking v
 });
 
 await test('fails on frontend service and environment mismatches', async () => {
-  await withIdentityServers({ admin: { service: 'wrong-admin' }, member: { environment: 'development' } }, (env) => {
-    const result = runChecker(['--strict', '--json'], {
+  await withIdentityServers({ admin: { service: 'wrong-admin' }, member: { environment: 'development' } }, async (env) => {
+    const result = await runChecker(['--strict', '--json'], {
       ...env,
       P6_APPROVED_COMMIT_SHA: 'abcdef1',
       P6_ENVIRONMENT: 'production',
@@ -64,8 +64,8 @@ await test('fails on frontend service and environment mismatches', async () => {
 });
 
 await test('blocks redirects for every identity endpoint', async () => {
-  await withIdentityServers({ api: { redirect: true }, admin: { redirect: true }, member: { redirect: true } }, (env) => {
-    const result = runChecker(['--strict', '--json'], { ...env, P6_APPROVED_COMMIT_SHA: 'abcdef1' });
+  await withIdentityServers({ api: { redirect: true }, admin: { redirect: true }, member: { redirect: true } }, async (env) => {
+    const result = await runChecker(['--strict', '--json'], { ...env, P6_APPROVED_COMMIT_SHA: 'abcdef1' });
     const report = JSON.parse(result.stdout);
     assert.equal(result.status, 1);
     assert.equal(report.services.every((service) => service.reason === 'redirect_blocked'), true);
@@ -76,10 +76,28 @@ function runChecker(args, overrides = {}) {
   const env = { ...process.env };
   for (const name of ['P6_API_URL', 'P6_ADMIN_URL', 'P6_MEMBER_URL', 'P6_APPROVED_COMMIT_SHA', 'P6_ENVIRONMENT', 'P6_CONNECTIVITY_TIMEOUT_MS']) delete env[name];
   Object.assign(env, overrides);
-  const result = spawnSync(process.execPath, [checker, ...args], { cwd: process.cwd(), env, encoding: 'utf8' });
-  assert.equal(result.error, undefined);
-  assert.equal(result.stderr, '');
-  return result;
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [checker, ...args], {
+      cwd: process.cwd(),
+      env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.once('error', reject);
+    child.once('close', (status, signal) => {
+      if (signal) return reject(new Error(`checker terminated by signal ${signal}`));
+      resolve({ status, stdout, stderr });
+    });
+  }).then((result) => {
+    assert.equal(result.stderr, '');
+    return result;
+  });
 }
 
 async function withIdentityServers(overrides, callback) {
@@ -111,10 +129,20 @@ async function withIdentityServers(overrides, callback) {
 
     await callback({ P6_API_URL: urls.api, P6_ADMIN_URL: urls.admin, P6_MEMBER_URL: urls.member });
   } finally {
-    for (const server of Object.values(servers)) server.close();
+    await Promise.all(Object.values(servers).map(close));
   }
 }
 
 function listen(server) {
-  return new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  return new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      server.off('error', reject);
+      resolve();
+    });
+  });
+}
+
+function close(server) {
+  return new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 }
