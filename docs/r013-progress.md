@@ -20,8 +20,8 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - [x] Consolidate typography, motion, breakpoint, and z-index tokens.
 - [x] Create or consolidate Button, Input, Select, and TextArea primitives.
 - [x] Create or consolidate Modal, Drawer, and ConfirmDialog primitives.
-- [ ] Create or consolidate Table, Pagination, Tabs, and Badge primitives.
-- [ ] Create or consolidate Toast, Alert, Skeleton, EmptyState, and ErrorState primitives.
+- [x] Create or consolidate Table, Pagination, Tabs, and Badge primitives.
+- [x] Create or consolidate Toast, Alert, Skeleton, EmptyState, and ErrorState primitives.
 - [ ] Reduce duplicate responsive CSS.
 - [ ] Define a mobile-first responsive strategy.
 - [ ] Define table-to-card, modal-to-bottom-sheet, and sidebar-to-drawer patterns.
@@ -49,75 +49,79 @@ R-013 covers the shared UI system, design tokens, responsive patterns, accessibi
 - Admin and Member layouts load the same shared source.
 - Added local compatibility aliases so existing screens keep their public CSS contract while migrating.
 - Added `tools/audit-r013-color-token-contract.mjs` to reject missing imports, missing semantic tokens, and self-referencing aliases.
-- Added the shared token path and contract guard to `.github/workflows/r013-ui-system.yml`.
-- Verification-only PR #34 ran workflow `R-013 UI System`, run `29396310025`, job `87290494428`.
-- Inventory, shared-color guard, artifact upload, Admin typecheck, and Member typecheck completed successfully.
+- Verification-only PR #34 ran workflow `R-013 UI System`, run `29396310025`, job `87290494428` successfully.
 
 ### 5. Consolidate spacing, radius, and shadow tokens
 
 - Added `packages/design-tokens/shape-space-shadow.css` with shared spacing, radius, and shadow scales.
-- Admin and Member layouts load the same shared source.
-- Existing `--radius` and `--shadow` variables remain compatibility aliases.
-- Added `tools/audit-r013-shape-space-shadow-contract.mjs` and wired it into the R-013 workflow.
-- Added retained frontend typecheck logs for failed CI investigations.
+- Admin and Member layouts load the same shared source and retain legacy aliases.
+- Added `tools/audit-r013-shape-space-shadow-contract.mjs` and retained frontend typecheck logs.
 - Fixed the R-012 deposit server-state regression by restoring `/member/topups` and `/member/receiving-bank-accounts` endpoints.
-- Verification-only PR #36 ran workflow `R-013 UI System`, run `29397572019`, job `87294445965`.
-- Inventory, color guard, shape/space/shadow guard, artifact upload, Admin typecheck, and Member typecheck completed successfully.
+- Verification-only PR #36 ran workflow `R-013 UI System`, run `29397572019`, job `87294445965` successfully.
 
 ### 6. Consolidate typography, motion, breakpoint, and z-index tokens
 
 - Added `packages/design-tokens/type-motion-layout.css`.
 - Defined shared font families, type scale, line heights, font weights, motion durations, easing curves, breakpoint values, and ordered z-index layers.
-- Admin and Member layouts load the same shared source.
-- Added `tools/audit-r013-type-motion-layout-contract.mjs` to verify required tokens, imports, self-reference safety, and z-index ordering.
-- Verification-only PR #38 ran workflow `R-013 UI System`, run `29398823758`, job `87298416792`.
-- All token guards, artifact upload, Admin typecheck, and Member typecheck completed successfully.
+- Added `tools/audit-r013-type-motion-layout-contract.mjs`.
+- Verification-only PR #38 ran workflow `R-013 UI System`, run `29398823758`, job `87298416792` successfully.
 
 ### 7. Consolidate Button, Input, Select, and TextArea primitives
 
-- Added `packages/design-tokens/form-controls.css` with shared Button, Input, Select, and TextArea classes.
-- Added primary, secondary, and danger button variants plus disabled, focus-visible, invalid, placeholder, and reduced-motion contracts.
-- Admin and Member layouts load the same shared source.
+- Added `packages/design-tokens/form-controls.css` with shared control classes and state contracts.
 - Migrated Admin and Member login forms while retaining page-specific classes for visual compatibility.
 - Added `tools/audit-r013-form-control-primitives.mjs`.
-- Verification-only PR #40 ran workflow `R-013 UI System`, run `29399593281`, job `87300852584`.
-- All primitive guards, artifact upload, Admin typecheck, and Member typecheck completed successfully.
+- Verification-only PR #40 ran workflow `R-013 UI System`, run `29399593281`, job `87300852584` successfully.
 
 ### 8. Consolidate Modal, Drawer, and ConfirmDialog primitives
 
 - Added `packages/design-tokens/overlays.css` with shared backdrop, modal, confirm-dialog, drawer, header, body, and action contracts.
-- Admin and Member layouts load the shared source.
-- Migrated the Member navigation drawer and finance confirmation dialog while preserving existing visual classes.
+- Migrated the Member navigation drawer and finance confirmation dialog.
 - Retained Escape handling, body scroll lock, focus trap, focus restoration, backdrop dismissal, and ARIA dialog semantics.
-- Added `tools/audit-r013-overlay-primitives.mjs` and wired it into the R-013 workflow.
-- Verification-only PR #42 ran workflow `R-013 UI System`, run `29400995313`, job `87305269010`.
+- Added `tools/audit-r013-overlay-primitives.mjs`.
+- Verification-only PR #42 ran workflow `R-013 UI System`, run `29400995313`, job `87305269010` successfully.
+
+### 9. Consolidate Table, Pagination, Tabs, and Badge primitives
+
+- Added `packages/design-tokens/data-display.css` with shared table, pagination, tabs, and badge contracts.
+- Added responsive table-to-card behavior through `data-mobile="cards"` and `data-label`.
+- Existing Admin `.admin-ui-badge` and Member `.finance-status` usages are compatibility targets of the shared source.
+- Added `tools/audit-r013-data-display-primitives.mjs`.
+
+### 10. Consolidate Toast, Alert, Skeleton, EmptyState, and ErrorState primitives
+
+- Added `packages/design-tokens/feedback.css` with shared feedback and async-state primitives.
+- Existing Admin notices, empty states, skeletons, Member notices, and finance empty states are compatibility targets.
+- Added mobile toast placement, shared toast z-index ownership, and reduced-motion skeleton behavior.
+- Added `tools/audit-r013-feedback-primitives.mjs`.
+- Verification-only PR #44 ran workflow `R-013 UI System`, run `29402044366`, job `87308629588`.
 - All primitive guards, artifact upload, Admin typecheck, and Member typecheck completed successfully.
 
 ## Active work
 
-### 9. Consolidate Table, Pagination, Tabs, and Badge primitives
+### 11-13. Responsive consolidation and transformation patterns
 
-- [ ] Inventory repeated data-display and navigation patterns.
-- [ ] Define shared table, pagination, tabs, and badge contracts.
-- [ ] Migrate representative Admin and Member usages.
-- [ ] Add semantic and frontend verification guards.
+- [ ] Centralize repeated container, stack, grid, safe-area, and visibility rules.
+- [ ] Document and enforce a mobile-first responsive strategy.
+- [ ] Verify table-to-card, modal-to-bottom-sheet, and sidebar-to-drawer patterns.
+- [ ] Add responsive contract guards and frontend verification.
 
 ## Initial findings
 
-- Shared design tokens, form controls, and overlay primitives are centralized, while feature-level migration remains incremental.
-- Data-display patterns remain distributed across Admin and Member.
+- Shared primitive ownership is centralized through outcome 10, while feature-level migration remains incremental.
+- Responsive rules are still distributed across application-specific CSS files.
 - Existing reduced-motion CSS is present, but contrast, focus, keyboard, and ARIA evidence are not yet centralized.
 
 ## Count
 
 - Total R-013 outcomes: 17
-- Closed: 8
-- Remaining: 9
+- Closed: 10
+- Remaining: 7
 
 ## Latest commits
 
-- `bbd97e0c5d6ba3cd4c0d1f47a8b25e20dcccc54c` — verify overlay primitives in CI.
-- `cca8a1a3e4af1aa1a27ca43dad15035608f7546a` — guard overlay primitive semantics and behavior.
-- `8511dd86ac07f10d9b8ad77179fffc8bf2993e81` — migrate finance confirmation dialog.
-- `c0cb88351fb3fb01629c3c716ee11e10a96e2164` — restore the Member fishing category label after overlay migration.
-- `4d19d73c47a78c59141e9c7b6d4c7b086ac7f462` — define shared overlay primitives.
+- `8c12dffff5e707476de1945ab278bc39a23039fc` — verify shared feedback primitives in CI.
+- `865431fe2883023caef103e75f31106daab2c91c` — guard shared feedback primitives.
+- `37aebc1e2bec0bbea6f872a8be12ecbe09916fd5` — define shared feedback primitives.
+- `9df37d0955b9b34faf753b82bbba73e530ee7ff4` — verify shared data-display primitives in CI.
+- `0ce0d118a646b18165eac08e182da458112e7cb6` — define shared data-display primitives.
