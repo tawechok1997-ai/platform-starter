@@ -22,7 +22,7 @@ const p6Names = [
   'P6_PROVIDER_CALLBACK_URL',
 ];
 
-const completeEnv = {
+const coreEnv = {
   P6_API_URL: 'https://api.example.test',
   P6_ADMIN_URL: 'https://admin.example.test',
   P6_MEMBER_URL: 'https://member.example.test',
@@ -32,11 +32,15 @@ const completeEnv = {
   P6_READONLY_ADMIN_PASSWORD: 'readonly-secret-value',
   P6_MEMBER_EMAIL: 'member@example.test',
   P6_MEMBER_PASSWORD: 'member-secret-value',
+};
+
+const completeEnv = {
+  ...coreEnv,
   P6_PROVIDER_CODE: 'demo-provider',
   P6_PROVIDER_BASE_URL: 'https://provider.example.test',
 };
 
-test('reports every group blocked when no P6 variables exist', () => {
+test('reports blocking groups blocked and vendor skipped when no P6 variables exist', () => {
   const result = runChecker(['--json']);
   assert.equal(result.status, 0);
 
@@ -44,33 +48,45 @@ test('reports every group blocked when no P6 variables exist', () => {
   assert.equal(report.ready, false);
   assert.equal(report.readyGroups, 0);
   assert.equal(report.totalGroups, 3);
+  assert.equal(report.blockingGroups, 2);
+  assert.equal(report.readyBlockingGroups, 0);
   assert.equal(report.environment, 'non-production');
+  assert.equal(group(report, 'vendor-uat').status, 'skipped');
+  assert.equal(group(report, 'vendor-uat').blocking, false);
 });
 
 test('marks only deployed environment ready when URL variables are complete', () => {
   const result = runChecker(['--json'], {
-    P6_API_URL: completeEnv.P6_API_URL,
-    P6_ADMIN_URL: completeEnv.P6_ADMIN_URL,
-    P6_MEMBER_URL: completeEnv.P6_MEMBER_URL,
+    P6_API_URL: coreEnv.P6_API_URL,
+    P6_ADMIN_URL: coreEnv.P6_ADMIN_URL,
+    P6_MEMBER_URL: coreEnv.P6_MEMBER_URL,
   });
   const report = JSON.parse(result.stdout);
 
   assert.equal(report.readyGroups, 1);
   assert.equal(group(report, 'deployed-environment').ready, true);
   assert.equal(group(report, 'seeded-credentials').ready, false);
-  assert.equal(group(report, 'vendor-uat').ready, false);
+  assert.equal(group(report, 'vendor-uat').status, 'skipped');
 });
 
-test('strict mode fails when required variables are incomplete', () => {
+test('strict mode fails when blocking variables are incomplete', () => {
   const result = runChecker(['--strict']);
   assert.equal(result.status, 1);
   assert.match(result.stdout, /BLOCKED deployed-environment/);
+  assert.match(result.stdout, /SKIPPED vendor-uat/);
 });
 
-test('strict mode succeeds when every required variable is present', () => {
+test('strict mode succeeds when blocking groups are ready without vendor variables', () => {
+  const result = runChecker(['--strict'], coreEnv);
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /blocking groups: 2\/2/);
+  assert.match(result.stdout, /SKIPPED vendor-uat/);
+});
+
+test('strict mode succeeds when every group is ready', () => {
   const result = runChecker(['--strict'], completeEnv);
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /ready groups: 3\/3/);
+  assert.match(result.stdout, /all groups ready: 3\/3/);
 });
 
 test('optional provider secrets do not affect strict readiness', () => {
@@ -81,30 +97,45 @@ test('optional provider secrets do not affect strict readiness', () => {
   assert.deepEqual(group(report, 'vendor-uat').optionalPresent, []);
 });
 
-test('rejects malformed and non-http URLs without echoing values', () => {
+test('malformed vendor configuration is reported but does not block core readiness', () => {
   const secretUrl = 'ftp://hidden-user:hidden-pass@example.test/private';
-  const result = runChecker(['--json'], {
-    ...completeEnv,
-    P6_API_URL: 'not a url',
+  const result = runChecker(['--strict', '--json'], {
+    ...coreEnv,
+    P6_PROVIDER_CODE: 'demo-provider',
     P6_PROVIDER_BASE_URL: secretUrl,
   });
   const report = JSON.parse(result.stdout);
 
-  assert.equal(group(report, 'deployed-environment').ready, false);
+  assert.equal(result.status, 0);
+  assert.equal(report.ready, true);
   assert.equal(group(report, 'vendor-uat').ready, false);
-  assert.equal(result.stdout.includes('not a url'), false);
+  assert.equal(group(report, 'vendor-uat').status, 'skipped');
   assert.equal(result.stdout.includes(secretUrl), false);
+  assert.deepEqual(group(report, 'vendor-uat').validationErrors, [
+    { field: 'P6_PROVIDER_BASE_URL', reason: 'must be a valid http or https URL' },
+  ]);
+});
+
+test('malformed deployed URL still blocks strict readiness without echoing values', () => {
+  const result = runChecker(['--strict', '--json'], {
+    ...coreEnv,
+    P6_API_URL: 'not a url',
+  });
+  const report = JSON.parse(result.stdout);
+
+  assert.equal(result.status, 1);
+  assert.equal(group(report, 'deployed-environment').ready, false);
+  assert.equal(result.stdout.includes('not a url'), false);
   assert.deepEqual(group(report, 'deployed-environment').validationErrors, [
     { field: 'P6_API_URL', reason: 'must be a valid http or https URL' },
   ]);
 });
 
-test('production readiness requires HTTPS for every configured URL', () => {
+test('production readiness requires HTTPS for blocking deployment URLs', () => {
   const result = runChecker(['--strict', '--json'], {
-    ...completeEnv,
+    ...coreEnv,
     P6_ENVIRONMENT: 'production',
     P6_API_URL: 'http://api.example.test',
-    P6_PROVIDER_CALLBACK_URL: 'http://callback.example.test/provider',
   });
   const report = JSON.parse(result.stdout);
 
@@ -112,9 +143,6 @@ test('production readiness requires HTTPS for every configured URL', () => {
   assert.equal(report.environment, 'production');
   assert.deepEqual(group(report, 'deployed-environment').validationErrors, [
     { field: 'P6_API_URL', reason: 'must use HTTPS for production' },
-  ]);
-  assert.deepEqual(group(report, 'vendor-uat').validationErrors, [
-    { field: 'P6_PROVIDER_CALLBACK_URL', reason: 'must use HTTPS for production' },
   ]);
 });
 
