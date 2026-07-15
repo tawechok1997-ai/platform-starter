@@ -22,8 +22,11 @@ const depositViewPath = 'apps/web-member/src/features/finance/deposit-view.tsx';
 const depositFormPath = 'apps/web-member/src/features/finance/deposit-form.ts';
 const queryKeysPath = 'apps/web-member/src/features/finance/query-keys.ts';
 const serverStatePath = 'apps/web-member/src/features/finance/use-deposit-server-state.ts';
+const withdrawalContainerPath = 'apps/web-member/app/withdraw/page.tsx';
+const withdrawalViewPath = 'apps/web-member/src/features/finance/withdrawal-view.tsx';
 const financeEntryPath = 'apps/web-member/src/features/finance/index.ts';
 const depositContainer = fs.existsSync(depositContainerPath) ? fs.readFileSync(depositContainerPath, 'utf8') : '';
+const withdrawalContainer = fs.existsSync(withdrawalContainerPath) ? fs.readFileSync(withdrawalContainerPath, 'utf8') : '';
 const financeEntry = fs.existsSync(financeEntryPath) ? fs.readFileSync(financeEntryPath, 'utf8') : '';
 
 if (!fs.existsSync(depositViewPath)) failures.push('web-member: missing DepositView presentation component');
@@ -39,7 +42,14 @@ for (const symbol of ['DEPOSIT_FORM_DEFAULTS', 'validateDepositSelection', 'seri
 for (const localServerState of ['setAccounts(', 'setHistory(', 'useState<ReceivingAccount[]>', 'useState<TopUpItem[]>']) {
   if (depositContainer.includes(localServerState)) failures.push(`web-member: deposit container must not own server state (${localServerState})`);
 }
+
+if (!fs.existsSync(withdrawalViewPath)) failures.push('web-member: missing WithdrawalView presentation component');
+if (!withdrawalContainer.includes("import { WithdrawalView } from '../../src/features/finance'")) failures.push('web-member: withdrawal container must import WithdrawalView through finance public boundary');
+if (!withdrawalContainer.includes('<WithdrawalView')) failures.push('web-member: withdrawal container must render WithdrawalView');
+if (withdrawalContainer.includes('member-finance-flow')) failures.push('web-member: withdrawal container must not import presentation primitives directly');
+
 if (!financeEntry.includes("export { DepositView } from './deposit-view'")) failures.push('web-member: finance public boundary must export DepositView');
+if (!financeEntry.includes("export { WithdrawalView")) failures.push('web-member: finance public boundary must export WithdrawalView');
 if (!financeEntry.includes("from './deposit-form'")) failures.push('web-member: finance public boundary must export deposit form contracts');
 if (!financeEntry.includes("from './query-keys'")) failures.push('web-member: finance public boundary must export query-key contracts');
 if (!financeEntry.includes("export { useDepositServerState } from './use-deposit-server-state'")) failures.push('web-member: finance public boundary must export deposit server-state hook');
