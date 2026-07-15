@@ -23,7 +23,7 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - [x] Reject arbitrary sort and filter input.
 - [x] Create a dashboard read model.
 - [x] Create a report read model.
-- [ ] Audit sensitive fields in projections.
+- [x] Audit sensitive fields in projections.
 - [ ] Add response snapshot and contract tests.
 - [ ] Add EXPLAIN ANALYZE evidence for heavy queries.
 - [ ] Add N+1 and slow-query metrics.
@@ -93,25 +93,34 @@ The goal is to standardize list/detail/summary reads, pagination, filters, sorti
 - Added `tools/audit-r010-report-read-model.mjs` and CI enforcement.
 - Evidence: `docs/evidence/r010-report-read-model.md`.
 
-## Active work
-
 ### 10. Audit sensitive fields in projections
 
-- [ ] Inventory projection fields that can expose credentials, tokens, storage keys, bank details, contact data, or internal notes.
-- [ ] Tighten one high-value read family without changing intended response behavior.
-- [ ] Add a static sensitive-field drift guard.
+- Added owner-local report projection contracts in `report-read.projections.ts`.
+- Queue-aging reads no longer project phone or nested user id.
+- Reconciliation reads no longer project email or phone.
+- Latest-ledger reads now select only `balanceAfter` and `createdAt`.
+- Replaced broad report relation includes with narrow selects.
+- Added `tools/audit-r010-sensitive-report-projections.mjs` and CI enforcement.
+- Evidence: `docs/evidence/r010-sensitive-report-projections.md`.
+
+## Active work
+
+### 11. Add response snapshot and contract tests
+
+- [ ] Add executable response-contract fixtures for dashboard and report read models.
+- [ ] Cover stable top-level and nested response keys.
+- [ ] Wire focused tests into the R-010 CI workflow.
 
 ## Count
 
 - Total R-010 outcomes: 13
-- Closed: 9
-- Remaining: 4
+- Closed: 10
+- Remaining: 3
 
 ## Latest commits
 
-- `7c0fcb3386f633021bc3c6b72d96e5ba6420e6e4` — record report read-model evidence.
-- `d9084673d254670b0f8a2501856d393f1aed9fbd` — enforce report read-model boundaries in CI.
-- `44b319bac39ee389fca431b832f0b740175ccb1d` — guard report read-model ownership and response keys.
-- `278ad9be7d3d511857e9e1e64f1775a2ee578fcc` — register the report read model.
-- `dafec6deaac7b0a7603798b86b65b820401011e0` — route report reads through the read model.
-- `3d44cca24503845f20abacc545890b6db5d1d51a` — add the admin report read model.
+- `fa909c694b1ca70d2ceafcb86ee007dde3eac2bd` — record sensitive report projection evidence.
+- `ace0a8048953ba481525013b9c7b56df95923578` — enforce sensitive report projections in CI.
+- `459640c4dee83fcbf1bc01bc6f58b9950e6b6374` — guard sensitive report projections.
+- `5a4bb83d7d53973f953f803452e8b86a23f24b31` — use narrow report projections.
+- `28cb1b0afb645e64c5bba6f2a1cb05ec45f13dff` — add report read projection contracts.
