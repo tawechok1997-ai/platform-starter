@@ -3,6 +3,7 @@ import '../../../packages/design-tokens/colors.css';
 import '../../../packages/design-tokens/shape-space-shadow.css';
 import '../../../packages/design-tokens/type-motion-layout.css';
 import '../../../packages/design-tokens/form-controls.css';
+import '../../../packages/design-tokens/overlays.css';
 import './admin-mobile.css';
 import './admin-desktop.css';
 import './admin-dashboard-responsive.css';
