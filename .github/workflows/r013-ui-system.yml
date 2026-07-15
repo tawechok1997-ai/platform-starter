@@ -49,6 +49,8 @@ jobs:
         run: node tools/audit-r013-data-display-primitives.mjs
       - name: Shared Toast Alert Skeleton EmptyState and ErrorState primitives
         run: node tools/audit-r013-feedback-primitives.mjs
+      - name: Shared responsive strategy and transformations
+        run: node tools/audit-r013-responsive-contract.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: r013-design-token-inventory
