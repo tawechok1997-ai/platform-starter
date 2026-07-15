@@ -1,7 +1,17 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
-import { DepositView } from '../../src/features/finance';
+import {
+  DEPOSIT_FORM_DEFAULTS,
+  DepositView,
+  financeInvalidationRules,
+  financeQueryKeys,
+  parseDepositAmount,
+  resolveDepositError,
+  serializeDepositCreateRequest,
+  serializeDepositEvidenceRequest,
+  validateDepositSelection,
+} from '../../src/features/finance';
 import { memberApiFetch } from '../member-api';
 import type { DepositMethodCode, DepositStep, ReceivingAccount, TopUpItem } from '../types/member-finance';
 
@@ -9,15 +19,15 @@ const DEPOSIT_EXPIRES_IN_MS = 15 * 60 * 1000;
 
 export default function DepositClient() {
   const [step, setStep] = useState<DepositStep>('select');
-  const [amount, setAmount] = useState('500');
-  const [method, setMethod] = useState<DepositMethodCode>('bank_transfer');
+  const [amount, setAmount] = useState(DEPOSIT_FORM_DEFAULTS.amount);
+  const [method, setMethod] = useState<DepositMethodCode>(DEPOSIT_FORM_DEFAULTS.method);
   const [accounts, setAccounts] = useState<ReceivingAccount[]>([]);
   const [history, setHistory] = useState<TopUpItem[]>([]);
   const [selected, setSelected] = useState<ReceivingAccount | null>(null);
   const [slipImageData, setSlipImageData] = useState('');
   const [slipImageName, setSlipImageName] = useState('');
-  const [transactionRef, setTransactionRef] = useState('');
-  const [note, setNote] = useState('');
+  const [transactionRef, setTransactionRef] = useState(DEPOSIT_FORM_DEFAULTS.transactionRef);
+  const [note, setNote] = useState(DEPOSIT_FORM_DEFAULTS.note);
   const [message, setMessage] = useState('กำลังโหลด...');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -26,9 +36,10 @@ export default function DepositClient() {
   const [transferExpiresAt, setTransferExpiresAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
-  const parsedAmount = useMemo(() => Number(amount.replace(/,/g, '').trim()), [amount]);
+  const parsedAmount = useMemo(() => parseDepositAmount(amount), [amount]);
   const usable = useMemo(() => accounts.filter((account) => matchAmount(account, parsedAmount)), [accounts, parsedAmount]);
   const availableMethods = useMemo(() => Array.from(new Set(usable.map(accountType))) as DepositMethodCode[], [usable]);
+  const formValues = useMemo(() => ({ amount, method, transactionRef, note }), [amount, method, transactionRef, note]);
 
   useEffect(() => { void loadInitial(); }, []);
   useEffect(() => {
@@ -42,15 +53,19 @@ export default function DepositClient() {
 
   async function loadInitial() {
     setInitialLoading(true);
-    const [historyRes, accountRes] = await Promise.all([
-      memberApiFetch('/member/topups'),
-      memberApiFetch('/member/receiving-bank-accounts'),
+    const [historyQuery, accountQuery] = await Promise.all([
+      fetchFinanceQuery(financeQueryKeys.topUpList(), '/member/topups'),
+      fetchFinanceQuery(financeQueryKeys.receivingAccounts(), '/member/receiving-bank-accounts'),
     ]);
-    const historyData = await historyRes.json().catch(() => null);
-    const accountData = await accountRes.json().catch(() => null);
-    if (historyRes.ok) setHistory(historyData.items ?? []);
-    if (accountRes.ok) setAccounts(accountData.items ?? []);
-    setMessage(!historyRes.ok || !accountRes.ok ? historyData?.message ?? accountData?.message ?? 'โหลดข้อมูลไม่สำเร็จ' : '');
+    const historyData = await historyQuery.response.json().catch(() => null);
+    const accountData = await accountQuery.response.json().catch(() => null);
+    if (historyQuery.response.ok) setHistory(historyData.items ?? []);
+    if (accountQuery.response.ok) setAccounts(accountData.items ?? []);
+    setMessage(
+      !historyQuery.response.ok || !accountQuery.response.ok
+        ? resolveDepositError(historyData, resolveDepositError(accountData, 'โหลดข้อมูลไม่สำเร็จ'))
+        : '',
+    );
     setInitialLoading(false);
   }
 
@@ -65,14 +80,14 @@ export default function DepositClient() {
 
   async function nextStep(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return setMessage('กรุณาใส่จำนวนเงินมากกว่า 0');
-    if (availableMethods.length === 0) return setMessage('ยังไม่มีบัญชีธนาคารสำหรับยอดหรือช่องทางนี้');
+    const validationMessage = validateDepositSelection(formValues, availableMethods);
+    if (validationMessage) return setMessage(validationMessage);
     setLoading(true);
     setMessage('กำลังเตรียมข้อมูล...');
     const res = await memberApiFetch(`/member/receiving-bank-account?paymentType=${encodeURIComponent(method)}&amount=${encodeURIComponent(String(parsedAmount))}`);
     const data = await res.json().catch(() => null);
     setLoading(false);
-    if (!res.ok || !data?.item) return setMessage(data?.message ?? 'ยังไม่มีบัญชีธนาคารสำหรับช่องทางนี้');
+    if (!res.ok || !data?.item) return setMessage(resolveDepositError(data, 'ยังไม่มีบัญชีธนาคารสำหรับช่องทางนี้'));
     setSelected(data.item);
     setTransferExpiresAt(Date.now() + DEPOSIT_EXPIRES_IN_MS);
     setNow(Date.now());
@@ -109,37 +124,20 @@ export default function DepositClient() {
     setLoading(true);
     setMessage('กำลังสร้างรายการฝาก...');
 
-    const proofNote = JSON.stringify({
-      userNote: note,
-      paymentType: method,
-      receivingBankAccountId: selected.id,
-      receivingBank: selected,
-    });
     const createRes = await memberApiFetch('/member/topups', {
       method: 'POST',
-      body: JSON.stringify({
-        amount: parsedAmount,
-        method,
-        referenceCode: transactionRef.trim() || undefined,
-        note: proofNote,
-      }),
+      body: JSON.stringify(serializeDepositCreateRequest(formValues, selected)),
     });
     const created = await createRes.json().catch(() => null);
     if (!createRes.ok || !created?.id) {
       setLoading(false);
-      return setMessage(created?.message ?? 'สร้างรายการฝากไม่สำเร็จ');
+      return setMessage(resolveDepositError(created, 'สร้างรายการฝากไม่สำเร็จ'));
     }
 
     setMessage('กำลังส่งสลิปเพื่อตรวจสอบ...');
     const evidenceRes = await memberApiFetch(`/member/topups/${created.id}/slip-evidence`, {
       method: 'POST',
-      body: JSON.stringify({
-        slipImageData,
-        slipImageName,
-        transactionRef: transactionRef.trim() || undefined,
-        detectedAmount: String(parsedAmount),
-        transferredAt: new Date().toISOString(),
-      }),
+      body: JSON.stringify(serializeDepositEvidenceRequest(formValues, slipImageData, slipImageName)),
     });
     const evidence = await evidenceRes.json().catch(() => null);
     setLoading(false);
@@ -153,17 +151,18 @@ export default function DepositClient() {
     };
     setHistory((current) => [item, ...current.filter((entry) => entry.id !== item.id)]);
     setLastRequest(item);
+    invalidateFinanceQueries(financeInvalidationRules.afterDepositCreated);
 
     if (!evidenceRes.ok && !evidence?.duplicate) {
-      setMessage(evidence?.message ?? 'ส่งสลิปไม่สำเร็จ รายการถูกสร้างแล้ว กรุณาติดต่อฝ่ายบริการ');
+      setMessage(resolveDepositError(evidence, 'ส่งสลิปไม่สำเร็จ รายการถูกสร้างแล้ว กรุณาติดต่อฝ่ายบริการ'));
       return;
     }
 
     setSlipImageData('');
     setSlipImageName('');
     setTransferExpiresAt(null);
-    setTransactionRef('');
-    setNote('');
+    setTransactionRef(DEPOSIT_FORM_DEFAULTS.transactionRef);
+    setNote(DEPOSIT_FORM_DEFAULTS.note);
     setMessage(evidence?.duplicate ? 'สลิปนี้ถูกใช้แล้ว ระบบยกเลิกรายการนี้ทันที' : 'ส่งสลิปแล้ว รอแอดมินตรวจสอบ');
     setStep('waiting');
   }
@@ -222,6 +221,14 @@ function matchAmount(account: ReceivingAccount, amount: number) {
   const max = account.maxAmount ? Number(account.maxAmount) : Infinity;
   if (!Number.isFinite(amount) || amount <= 0) return true;
   return amount >= min && amount <= max;
+}
+
+async function fetchFinanceQuery<T extends readonly unknown[]>(key: T, path: string) {
+  return { key, response: await memberApiFetch(path) };
+}
+
+function invalidateFinanceQueries(keys: readonly (readonly unknown[])[]) {
+  window.dispatchEvent(new CustomEvent('platform:query-invalidate', { detail: { keys } }));
 }
 
 function resizeImage(file: File, maxSize: number, quality: number) {
