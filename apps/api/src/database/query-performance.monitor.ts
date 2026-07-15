@@ -4,7 +4,7 @@ export type QueryPerformanceEvent = {
   query: string;
   duration: number;
   target?: string;
-  timestamp?: number;
+  timestamp?: Date | number;
 };
 
 export type QueryPerformanceSignal =
@@ -37,7 +37,7 @@ export class QueryPerformanceMonitor {
   ) {}
 
   observe(event: QueryPerformanceEvent): QueryPerformanceSignal[] {
-    const now = event.timestamp ?? Date.now();
+    const now = normalizeTimestamp(event.timestamp);
     const fingerprint = fingerprintQuery(event.query);
     const signals: QueryPerformanceSignal[] = [];
 
@@ -52,9 +52,10 @@ export class QueryPerformanceMonitor {
     }
 
     const current = this.bursts.get(fingerprint);
-    const burst = !current || now - current.startedAt > this.options.burstWindowMs
-      ? { startedAt: now, count: 1, lastReportedCount: 0 }
-      : { ...current, count: current.count + 1 };
+    const burst =
+      !current || now - current.startedAt > this.options.burstWindowMs
+        ? { startedAt: now, count: 1, lastReportedCount: 0 }
+        : { ...current, count: current.count + 1 };
 
     if (burst.count >= this.options.burstThreshold && burst.count > burst.lastReportedCount) {
       signals.push({
@@ -87,4 +88,9 @@ export function fingerprintQuery(query: string): string {
     .trim()
     .toLowerCase();
   return createHash('sha256').update(normalized).digest('hex').slice(0, 16);
+}
+
+function normalizeTimestamp(timestamp: Date | number | undefined): number {
+  if (timestamp instanceof Date) return timestamp.getTime();
+  return timestamp ?? Date.now();
 }
