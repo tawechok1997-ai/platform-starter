@@ -1,0 +1,145 @@
+name: R012 Decompose Support Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r012-support-decompose-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  decompose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract member support ticket thread component
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p apps/web-member/src/features/support
+          cat > apps/web-member/src/features/support/support-ticket-card.tsx <<'EOF'
+          'use client';
+
+          import { MemberButton, MemberCard } from '../../../app/components/member-ui';
+
+          export type SupportTicket = {
+            id: string;
+            subject: string;
+            message: string;
+            status: string;
+            severity: string;
+            category: string;
+            messages?: Array<{ by: string; message: string; createdAt: string }>;
+            createdAt: string;
+          };
+
+          export function SupportTicketCard({
+            item,
+            replyText,
+            replying,
+            replyingLocked,
+            onReplyTextChange,
+            onReply,
+            categoryLabel,
+            statusLabel,
+          }: {
+            item: SupportTicket;
+            replyText: string;
+            replying: boolean;
+            replyingLocked: boolean;
+            onReplyTextChange: (value: string) => void;
+            onReply: () => void;
+            categoryLabel: (value: string) => string;
+            statusLabel: (value: string) => string;
+          }) {
+            return <MemberCard className="member-support-ticket">
+              <div className="member-support-ticket-head">
+                <div><strong>{item.subject}</strong><p>{categoryLabel(item.category)} · {new Date(item.createdAt).toLocaleString('th-TH')}</p></div>
+                <span>{statusLabel(item.status)}</span>
+              </div>
+              <p>{item.message}</p>
+              <div className="member-support-thread" aria-label={`Timeline ${item.subject}`}>
+                {(item.messages ?? []).slice(-5).map((message, index) => <div key={`${item.id}-${index}`}>
+                  <strong>{message.by === 'admin' ? 'แอดมิน' : message.by === 'member' ? 'คุณ' : 'ระบบ'}</strong>
+                  <span>{message.message}</span>
+                  <small>{new Date(message.createdAt).toLocaleString('th-TH')}</small>
+                </div>)}
+              </div>
+              <label>
+                <span>ตอบกลับ</span>
+                <textarea disabled={replying} maxLength={2000} value={replyText} onChange={(event) => onReplyTextChange(event.target.value)} placeholder="พิมพ์ข้อความเพิ่มเติม" />
+              </label>
+              <MemberButton disabled={replyingLocked || !replyText.trim()} tone="default" onClick={onReply}>{replying ? 'กำลังส่ง...' : 'ตอบกลับ'}</MemberButton>
+            </MemberCard>;
+          }
+          EOF
+
+          python - <<'PY'
+          from pathlib import Path
+          page = Path('apps/web-member/app/support/page.tsx')
+          text = page.read_text()
+          text = text.replace("import { MemberButton, MemberCard, MemberEmptyState, MemberNotice } from '../components/member-ui';", "import { MemberButton, MemberCard, MemberEmptyState, MemberNotice } from '../components/member-ui';\nimport { SupportTicketCard, type SupportTicket } from '../../src/features/support';")
+          text = text.replace("type Ticket = { id: string; subject: string; message: string; status: string; severity: string; category: string; messages?: Array<{ by: string; message: string; createdAt: string }>; createdAt: string };", "type Ticket = SupportTicket;")
+          old = "{visibleTickets.map((item) => <MemberCard key={item.id} className=\"member-support-ticket\"><div className=\"member-support-ticket-head\"><div><strong>{item.subject}</strong><p>{categoryLabel(item.category)} · {new Date(item.createdAt).toLocaleString('th-TH')}</p></div><span>{statusLabel(item.status)}</span></div><p>{item.message}</p><div className=\"member-support-thread\" aria-label={`Timeline ${item.subject}`}>{(item.messages ?? []).slice(-5).map((msg, index) => <div key={`${item.id}-${index}`}><strong>{msg.by === 'admin' ? 'แอดมิน' : msg.by === 'member' ? 'คุณ' : 'ระบบ'}</strong><span>{msg.message}</span><small>{new Date(msg.createdAt).toLocaleString('th-TH')}</small></div>)}</div><label><span>ตอบกลับ</span><textarea disabled={replyingId === item.id} maxLength={2000} value={replyText[item.id] ?? ''} onChange={(event) => setReplyText((current) => ({ ...current, [item.id]: event.target.value }))} placeholder=\"พิมพ์ข้อความเพิ่มเติม\" /></label><MemberButton disabled={Boolean(replyingId) || !(replyText[item.id] ?? '').trim()} tone=\"default\" onClick={() => void reply(item.id)}>{replyingId === item.id ? 'กำลังส่ง...' : 'ตอบกลับ'}</MemberButton></MemberCard>)}"
+          new = "{visibleTickets.map((item) => <SupportTicketCard key={item.id} item={item} replyText={replyText[item.id] ?? ''} replying={replyingId === item.id} replyingLocked={Boolean(replyingId)} onReplyTextChange={(value) => setReplyText((current) => ({ ...current, [item.id]: value }))} onReply={() => void reply(item.id)} categoryLabel={categoryLabel} statusLabel={statusLabel} />)}"
+          if old not in text:
+              raise SystemExit('support ticket card source block not found')
+          page.write_text(text.replace(old, new))
+
+          entry = Path('apps/web-member/src/features/support/index.ts')
+          entry_text = entry.read_text()
+          export = "export { SupportTicketCard, type SupportTicket } from './support-ticket-card';"
+          if export not in entry_text:
+              entry.write_text(entry_text.rstrip() + '\n' + export + '\n')
+
+          audit = Path('tools/audit-r012-support-boundary.mjs')
+          audit.write_text("""import fs from 'node:fs';
+          const page = fs.readFileSync('apps/web-member/app/support/page.tsx', 'utf8');
+          const component = fs.readFileSync('apps/web-member/src/features/support/support-ticket-card.tsx', 'utf8');
+          const entry = fs.readFileSync('apps/web-member/src/features/support/index.ts', 'utf8');
+          const failures = [];
+          if (!page.includes("from '../../src/features/support'")) failures.push('support page must import through public boundary');
+          if (!page.includes('<SupportTicketCard')) failures.push('support page must delegate ticket thread rendering');
+          if (page.includes('member-support-thread\" aria-label')) failures.push('support thread markup must not remain inline in page');
+          if (component.includes('memberApiFetch(') || component.includes('useEffect(')) failures.push('support ticket card must remain presentation-only');
+          if (!entry.includes('SupportTicketCard')) failures.push('support public boundary must export SupportTicketCard');
+          if (failures.length) { console.error('R-012 support boundary audit failed:'); failures.forEach((failure) => console.error(`- ${failure}`)); process.exit(1); }
+          console.log('R-012 support boundary audit passed.');
+          """)
+
+          workflow = Path('.github/workflows/r012-frontend-architecture.yml')
+          workflow_text = workflow.read_text()
+          marker = "      - 'apps/web-member/app/kyc/**'"
+          if "apps/web-member/app/support/**" not in workflow_text:
+              workflow_text = workflow_text.replace(marker, marker + "\n      - 'apps/web-member/app/support/**'")
+          run_marker = '      - run: node tools/audit-r012-kyc-boundary.mjs'
+          if 'audit-r012-support-boundary.mjs' not in workflow_text:
+              if run_marker in workflow_text:
+                  workflow_text = workflow_text.replace(run_marker, run_marker + '\n      - run: node tools/audit-r012-support-boundary.mjs')
+              else:
+                  workflow_text = workflow_text.replace('      - run: node tools/audit-r012-security-boundary.mjs', '      - run: node tools/audit-r012-security-boundary.mjs\n      - run: node tools/audit-r012-support-boundary.mjs')
+          workflow.write_text(workflow_text)
+
+          progress = Path('docs/r012-progress.md')
+          p = progress.read_text()
+          p = p.replace('DONE: 16/18', 'DONE: 17/18').replace('Remaining: 2', 'Remaining: 1')
+          p = p.replace('IN PROGRESS: KYC and support page decomposition', 'IN PROGRESS: KYC admin/member decomposition')
+          p = p.replace('- [ ] แยก support page/thread components', '- [x] แยก support page/thread components')
+          anchor = '- Presentation contract tests prevent `DepositView` and `WithdrawalView` from owning API fetches or route-level effects.'
+          addition = anchor + '\n- Member support ticket and thread rendering now lives in `SupportTicketCard`; the route retains API orchestration, polling and draft state.\n- Dedicated support audit prevents API/effect logic from leaking into the presentation component.'
+          p = p.replace(anchor, addition)
+          if 'node tools/audit-r012-support-boundary.mjs' not in p:
+              p = p.replace('node tools/audit-r012-security-boundary.mjs', 'node tools/audit-r012-security-boundary.mjs\nnode tools/audit-r012-support-boundary.mjs')
+          progress.write_text(p)
+          PY
+
+          rm .github/workflows/r012-support-decompose-once.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/web-member tools/audit-r012-support-boundary.mjs docs/r012-progress.md .github/workflows
+          git commit -m 'refactor(r012): extract support ticket thread component'
+          git push
