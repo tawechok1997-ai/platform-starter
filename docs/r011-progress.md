@@ -4,9 +4,9 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 
 ## Status
 
-- DONE: 9/14
+- DONE: 11/14
 - IN PROGRESS: authorization policies per domain
-- Remaining: 5
+- Remaining: 3
 
 ## Checklist
 
@@ -20,8 +20,8 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 - [x] รวม mandatory reason/audit checks
 - [ ] แยก DTO validation, business validation และ persistence constraint
 - [x] ทำ input normalization สำหรับ email/phone/bank account/Unicode
-- [ ] ทำ sensitive logging redact policy
-- [ ] เพิ่ม static audit ป้องกัน log token/password/OTP/secret/private URL
+- [x] ทำ sensitive logging redact policy
+- [x] เพิ่ม static audit ป้องกัน log token/password/OTP/secret/private URL
 - [ ] ตรวจ CSRF/replay/idempotency boundaries
 - [x] เพิ่ม security policy tests
 
@@ -63,12 +63,21 @@ Source of truth: `docs/master-project-worklist.md` → P4 → R-011
 - Unit tests cover authorization, ownership, step-up freshness, reason/audit requirements and normalization edge cases.
 - Static CI guards prevent NestJS or Prisma dependencies from entering the shared policy layer.
 
+### 10–11. Sensitive logging policy and static audit
+
+- Shared redaction handles nested records, arrays, Error values, circular references and sensitive query parameters.
+- HTTP access logs, global exception logs and Redis failure logs use the shared policy.
+- Raw error objects are not written directly by the API bootstrap logger.
+- Static CI audit prevents drift back to local URL redactors or unredacted runtime error logging.
+- Unit tests cover sensitive keys, URLs, nested values, Error messages and circular objects.
+
 ## Verification commands
 
 ```bash
 node tools/audit-r011-error-boundaries.mjs
 node tools/audit-r011-authorization-policies.mjs
 node tools/audit-r011-security-policy-foundations.mjs
-pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts
+node tools/audit-r011-sensitive-logging.mjs
+pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts sensitive-log-redactor.spec.ts
 pnpm --filter @platform/api typecheck
 ```
