@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Unauthor
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
+import { resolveJwtAccessKey } from '../security/jwt-access-key';
 
 const SUPER_ACCESS_ROLE_CODES = new Set(['owner', 'super_admin']);
 
@@ -59,7 +60,7 @@ export class AdminAuthGuard implements CanActivate {
     let payload: { type?: string; sub?: string; sessionId?: string };
     try {
       payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get<string>('JWT_ACCESS_KEY') ?? 'local_access_key',
+        secret: resolveJwtAccessKey(this.configService),
       });
     } catch (error) {
       console.error('admin token verification failed', error);

@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 11.13.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -44,5 +44,5 @@ jobs:
       - run: node tools/audit-r011-security-policy-foundations.mjs
       - run: node tools/audit-r011-sensitive-logging.mjs
       - run: node tools/audit-r011-request-safety-boundaries.mjs
-      - run: pnpm --filter @platform/api test -- --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts domain-authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts sensitive-log-redactor.spec.ts validation-boundary.spec.ts
+      - run: pnpm --filter @platform/api exec jest --runInBand domain-error-http.mapper.spec.ts authorization-policy.spec.ts domain-authorization-policy.spec.ts step-up-policy.spec.ts reason-audit-policy.spec.ts input-normalization.spec.ts sensitive-log-redactor.spec.ts validation-boundary.spec.ts
       - run: pnpm --filter @platform/api typecheck

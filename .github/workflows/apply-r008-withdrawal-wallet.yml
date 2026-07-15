@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
-          version: 9.0.0
+          version: 11.13.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -37,7 +37,7 @@ jobs:
         run: |
           pnpm audit:r8-closure
           pnpm typecheck:api
-          pnpm --filter @platform/api test -- --runInBand
+          pnpm --filter @platform/api exec jest --runInBand
           pnpm build:api
       - name: Commit verified integration
         run: |

@@ -1,4 +1,7 @@
 node_modules
+.pnpm-store
+.turbo
+*.tsbuildinfo
 .next
 dist
 .env

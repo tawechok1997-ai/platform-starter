@@ -660,10 +660,10 @@ model ReceivingBankAccount {
 
 model MemberBankAccount {
   id            String            @id @default(uuid()) @db.Uuid
-  userId        String            @map("user_id") @db.Uuid
+  userId        String            @unique @map("user_id") @db.Uuid
   bankName      String            @map("bank_name") @db.VarChar(120)
   accountName   String            @map("account_name") @db.VarChar(160)
-  accountNumber String            @map("account_number") @db.VarChar(160)
+  accountNumber String            @unique @map("account_number") @db.VarChar(160)
   isPrimary     Boolean           @default(false) @map("is_primary")
   status        BankAccountStatus @default(PENDING_REVIEW)
   adminNote     String?           @map("admin_note")
@@ -671,7 +671,6 @@ model MemberBankAccount {
   updatedAt     DateTime          @updatedAt @map("updated_at")
   user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@index([status])
   @@map("member_bank_accounts")
 }

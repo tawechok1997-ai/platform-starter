@@ -1,5 +1,12 @@
-const URL_KEYS = ['DATABASE_URL', 'REDIS_URL', 'MEMBER_WEB_URL', 'ADMIN_WEB_URL'] as const;
+const URL_KEYS = [
+  'DATABASE_URL',
+  'REDIS_URL',
+  'MEMBER_WEB_URL',
+  'ADMIN_WEB_URL',
+  'PASSWORD_RESET_DELIVERY_WEBHOOK_URL',
+] as const;
 const SECRET_KEYS = [
+  'JWT_ACCESS_KEY',
   'JWT_SECRET',
   'ADMIN_JWT_SECRET',
   'MEMBER_JWT_SECRET',
@@ -7,6 +14,20 @@ const SECRET_KEYS = [
   'ADMIN_REFRESH_TOKEN_SECRET',
   'MEMBER_REFRESH_TOKEN_SECRET',
   'ENCRYPTION_KEY',
+  'TWO_FACTOR_ENCRYPTION_KEY',
+  'GAME_CREDENTIAL_SECRET',
+  'ANTIBOT_ENCRYPTION_KEY',
+  'STORAGE_SIGNING_SECRET',
+  'PASSWORD_RESET_DELIVERY_WEBHOOK_SECRET',
+] as const;
+
+const REQUIRED_PRODUCTION_SECRETS = [
+  'JWT_ACCESS_KEY',
+  'TWO_FACTOR_ENCRYPTION_KEY',
+  'GAME_CREDENTIAL_SECRET',
+  'ANTIBOT_ENCRYPTION_KEY',
+  'STORAGE_SIGNING_SECRET',
+  'PASSWORD_RESET_DELIVERY_WEBHOOK_SECRET',
 ] as const;
 
 const WEAK_SECRET_PATTERNS = [
@@ -57,17 +78,25 @@ export function validateRuntimeEnvironment(env: NodeJS.ProcessEnv = process.env)
     if (!env.DATABASE_URL?.trim()) failures.push('DATABASE_URL is required in production');
     if (!env.MEMBER_WEB_URL?.trim()) failures.push('MEMBER_WEB_URL is required in production');
     if (!env.ADMIN_WEB_URL?.trim()) failures.push('ADMIN_WEB_URL is required in production');
+    if (!env.PASSWORD_RESET_DELIVERY_WEBHOOK_URL?.trim())
+      failures.push('PASSWORD_RESET_DELIVERY_WEBHOOK_URL is required in production');
+
+    for (const key of REQUIRED_PRODUCTION_SECRETS) {
+      if (!env[key]?.trim()) failures.push(`${key} is required in production`);
+    }
 
     for (const key of SECRET_KEYS) {
       const value = env[key]?.trim();
       if (!value) continue;
       if (value.length < 32) failures.push(`${key} must contain at least 32 characters in production`);
-      if (WEAK_SECRET_PATTERNS.some((pattern) => pattern.test(value))) failures.push(`${key} uses a known weak placeholder`);
+      if (WEAK_SECRET_PATTERNS.some((pattern) => pattern.test(value)))
+        failures.push(`${key} uses a known weak placeholder`);
     }
 
     const localStorageRoot = env.STORAGE_LOCAL_ROOT?.trim();
     const storageDriver = env.STORAGE_DRIVER?.trim().toLowerCase();
-    if (storageDriver === 'local' && !localStorageRoot) failures.push('STORAGE_LOCAL_ROOT is required when STORAGE_DRIVER=local');
+    if (storageDriver === 'local' && !localStorageRoot)
+      failures.push('STORAGE_LOCAL_ROOT is required when STORAGE_DRIVER=local');
   }
 
   if (failures.length > 0) {

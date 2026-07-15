@@ -88,7 +88,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 9.0.0
+          version: 11.13.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -113,7 +113,7 @@ jobs:
       - name: Ownership transfer transaction closure
         run: node tools/audit-r009-ownership-transfer-transaction.mjs
       - name: Ownership concurrency regression
-        run: pnpm --filter @platform/api test -- admin-ownership-command.service.spec.ts --runInBand
+        run: pnpm --filter @platform/api exec jest admin-ownership-command.service.spec.ts --runInBand
       - name: PostgreSQL finance concurrency regression
         run: pnpm --filter @platform/api test:db:finance
       - name: PostgreSQL promotion settlement concurrency regression
@@ -129,7 +129,7 @@ jobs:
       - name: Promotion settlement transaction closure
         run: node tools/audit-r009-promotion-settlement-transaction.mjs
       - name: Promotion settlement command regression
-        run: pnpm --filter @platform/api test -- settlement-command.service.spec.ts --runInBand
+        run: pnpm --filter @platform/api exec jest settlement-command.service.spec.ts --runInBand
       - name: Critical constraint closure
         run: node tools/audit-r009-critical-constraint-closure.mjs
       - name: Repository type boundary

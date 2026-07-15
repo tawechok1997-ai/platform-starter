@@ -37,7 +37,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.0.0
+          version: 11.13.0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -117,27 +117,27 @@ jobs:
 
       - name: Test API
         id: test_api
-        run: pnpm --filter @platform/api test -- --runInBand
+        run: pnpm --filter @platform/api exec jest --runInBand
 
       - name: Test PostgreSQL finance concurrency
         id: test_finance
-        run: pnpm --filter @platform/api test:db:finance -- --runInBand
+        run: pnpm --filter @platform/api test:db:finance
 
       - name: Test PostgreSQL promotion settlement concurrency
         id: test_promotions
-        run: pnpm --filter @platform/api test:db:promotions -- --runInBand
+        run: pnpm --filter @platform/api test:db:promotions
 
       - name: Test PostgreSQL phone OTP security
         id: test_phone_otp
-        run: pnpm --filter @platform/api test:db:phone-otp -- --runInBand
+        run: pnpm --filter @platform/api test:db:phone-otp
 
       - name: Test PostgreSQL risk watchlist concurrency
         id: test_risk_watchlist
-        run: pnpm --filter @platform/api test:db:risk-watchlist -- --runInBand
+        run: pnpm --filter @platform/api test:db:risk-watchlist
 
       - name: Test PostgreSQL KYC concurrency
         id: test_kyc
-        run: pnpm --filter @platform/api test:db:kyc -- --runInBand
+        run: pnpm --filter @platform/api test:db:kyc
 
       - name: Regression test summary
         if: always()

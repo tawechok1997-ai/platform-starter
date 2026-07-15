@@ -5,10 +5,10 @@ printf 'Running P2 repository verification...\n'
 
 pnpm audit:admin-permissions
 pnpm audit:admin-ui-permissions
-pnpm --filter @platform/api test -- --runInBand
-pnpm --filter @platform/api test:db:promotions -- --runInBand
-pnpm --filter @platform/api test:db:risk-watchlist -- --runInBand
-pnpm --filter @platform/api test:db:kyc -- --runInBand
+pnpm --filter @platform/api exec jest --runInBand
+pnpm --filter @platform/api test:db:promotions
+pnpm --filter @platform/api test:db:risk-watchlist
+pnpm --filter @platform/api test:db:kyc
 pnpm build:api
 pnpm build:web-admin
 pnpm build:web-member

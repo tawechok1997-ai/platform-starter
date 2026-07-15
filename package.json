@@ -1,7 +1,7 @@
 {
   "name": "platform-starter",
   "private": true,
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@11.13.0",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
@@ -10,7 +10,7 @@
     "lint:admin": "pnpm --filter @platform/web-admin lint",
     "lint:member": "pnpm --filter @platform/web-member lint",
     "lint:packages": "pnpm --filter './packages/**' --if-present lint",
-    "format:check": "prettier --check .",
+    "format:check": "node tools/check-format-changed.mjs",
     "test": "turbo test",
     "typecheck:api": "pnpm db:generate && pnpm --filter @platform/api typecheck",
     "typecheck:admin": "pnpm --filter @platform/web-admin typecheck",
@@ -32,7 +32,7 @@
     "audit:r2-closure": "node tools/audit-r002-closure.mjs",
     "audit:r3-closure": "pnpm audit:critical-test-safety",
     "audit:r7-closure": "node tools/audit-r007-closure.mjs",
-    "audit:r8-closure": "node tools/audit-r008-closure.mjs && pnpm --filter @platform/api test -- r008-domain-policies.spec.ts --runInBand",
+    "audit:r8-closure": "node tools/audit-r008-closure.mjs && pnpm --filter @platform/api exec jest r008-domain-policies.spec.ts --runInBand",
     "audit:r14-cleanup-inventory": "node tools/audit-r014-cleanup-inventory.mjs",
     "audit:r9-controller-prisma": "node tools/audit-r009-controller-prisma.mjs",
     "audit:r9-controller-prisma:json": "R009_JSON=1 node tools/audit-r009-controller-prisma.mjs",
@@ -113,26 +113,18 @@
     "audit:admin-ui-permissions": "node tools/audit-admin-ui-permissions.mjs"
   },
   "dependencies": {
-    "@prisma/client": "6.14.0"
+    "@prisma/client": "6.19.3"
   },
   "devDependencies": {
     "@eslint/js": "9.39.1",
     "@playwright/test": "1.61.1",
     "eslint": "9.39.1",
     "globals": "16.5.0",
-    "prisma": "6.14.0",
+    "prettier": "3.9.5",
+    "prisma": "6.19.3",
     "tsx": "4.23.0",
     "turbo": "2.10.4",
     "typescript": "5.7.3",
     "typescript-eslint": "8.46.1"
-  },
-  "pnpm": {
-    "overrides": {
-      "prisma": "6.14.0",
-      "@prisma/client": "6.14.0",
-      "next": "14.2.35",
-      "react": "18.2.0",
-      "react-dom": "18.2.0"
-    }
   }
 }

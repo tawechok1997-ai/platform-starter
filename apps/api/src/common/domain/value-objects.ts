@@ -26,7 +26,8 @@ export class Money {
 
   subtract(other: Money): Money {
     this.assertSameCurrency(other);
-    if (this.minorUnits < other.minorUnits) throw new DomainError('INSUFFICIENT_BALANCE', 'Money cannot become negative');
+    if (this.minorUnits < other.minorUnits)
+      throw new DomainError('INSUFFICIENT_BALANCE', 'Money cannot become negative');
     return new Money(this.minorUnits - other.minorUnits, this.currency);
   }
 
@@ -61,7 +62,7 @@ export class BankAccountNumber {
   }
 }
 
-class EntityId {
+export class EntityId {
   private constructor(public readonly value: string) {}
 
   static create(input: string): EntityId {

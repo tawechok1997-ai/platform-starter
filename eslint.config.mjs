@@ -6,14 +6,7 @@ const sourceFiles = ['**/*.{js,mjs,cjs,ts,tsx,mts,cts}'];
 
 export default tseslint.config(
   {
-    ignores: [
-      '**/node_modules/**',
-      '**/.next/**',
-      '**/dist/**',
-      '**/coverage/**',
-      '**/generated/**',
-      '**/*.d.ts',
-    ],
+    ignores: ['**/node_modules/**', '**/.next/**', '**/dist/**', '**/coverage/**', '**/generated/**', '**/*.d.ts'],
   },
   {
     ...eslint.configs.recommended,
@@ -38,16 +31,19 @@ export default tseslint.config(
     rules: {
       ...config.rules,
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_',
-        ignoreRestSiblings: true,
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
     },
   })),
   {
-    files: ['**/support/support-command.service.ts'],
+    files: ['**/support/support-command.service.ts', '**/common/security/input-normalization.ts'],
     rules: {
       'no-control-regex': 'off',
     },
@@ -55,26 +51,29 @@ export default tseslint.config(
   {
     files: ['**/topups/deposit-workflow.service.ts'],
     rules: {
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_|^EvidenceRow$',
-        caughtErrorsIgnorePattern: '^_',
-        ignoreRestSiblings: true,
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_|^EvidenceRow$',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
     },
   },
   {
-    files: [
-      '**/web-admin/app/(admin)/bank-accounts/page.tsx',
-      '**/web-admin/app/accept-invitation/page.tsx',
-    ],
+    files: ['**/web-admin/app/(admin)/bank-accounts/page.tsx', '**/web-admin/app/accept-invitation/page.tsx'],
     rules: {
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_|^canView$|^languageRowStyle$',
-        caughtErrorsIgnorePattern: '^_',
-        ignoreRestSiblings: true,
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_|^canView$|^languageRowStyle$',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
     },
   },
   {

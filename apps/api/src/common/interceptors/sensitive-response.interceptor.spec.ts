@@ -32,4 +32,12 @@ describe('sanitizeApiResponse', () => {
 
     expect(sanitizeApiResponse(input)).toEqual({ id: 'item-1', self: '[Circular]' });
   });
+
+  it('allows only explicitly approved sensitive fields for an endpoint', () => {
+    const value = { accessToken: 'access', refreshToken: 'refresh', passwordHash: 'hash' };
+    expect(sanitizeApiResponse(value, new Set(['accessToken', 'refreshToken']))).toEqual({
+      accessToken: 'access',
+      refreshToken: 'refresh',
+    });
+  });
 });
