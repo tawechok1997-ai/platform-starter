@@ -7,10 +7,18 @@ import { fileURLToPath } from 'node:url';
 const checker = fileURLToPath(new URL('./check-p6-connectivity.mjs', import.meta.url));
 const p6Names = ['P6_API_URL', 'P6_ADMIN_URL', 'P6_MEMBER_URL', 'P6_CONNECTIVITY_TIMEOUT_MS'];
 
+const healthyPayload = {
+  status: 'ok',
+  service: 'api',
+  database: 'ok',
+  privateMedia: 'ok',
+  time: '2026-07-15T00:00:00.000Z',
+};
+
 test('reports all services ready for successful local endpoints', async () => {
   await withServer((req, res) => {
     res.writeHead(200, { 'content-type': req.url === '/health' ? 'application/json' : 'text/html' });
-    res.end(req.url === '/health' ? '{"ok":true}' : '<html></html>');
+    res.end(req.url === '/health' ? JSON.stringify(healthyPayload) : '<html></html>');
   }, async (origin) => {
     const result = await runChecker(['--strict', '--json'], completeEnv(origin));
     assert.equal(result.status, 0);
@@ -35,6 +43,55 @@ test('strict mode fails on unhealthy status without leaking URLs', async () => {
     assert.equal(result.stdout.includes(origin), false);
     const report = JSON.parse(result.stdout);
     assert.equal(report.services.every((service) => service.reason === 'unhealthy-status'), true);
+  });
+});
+
+test('blocks HTTP 200 when API health status is degraded', async () => {
+  const report = await runHealthScenario({ ...healthyPayload, status: 'degraded' });
+  assertApiReason(report, 'health-degraded');
+});
+
+test('blocks HTTP 200 when API database health is not ok', async () => {
+  const report = await runHealthScenario({ ...healthyPayload, database: 'error' });
+  assertApiReason(report, 'health-database-unhealthy');
+});
+
+test('blocks HTTP 200 when API private media health is not ok', async () => {
+  const report = await runHealthScenario({ ...healthyPayload, privateMedia: 'error' });
+  assertApiReason(report, 'health-private-media-unhealthy');
+});
+
+test('blocks API health payload with unexpected service identity', async () => {
+  const report = await runHealthScenario({ ...healthyPayload, service: 'worker' });
+  assertApiReason(report, 'health-service-mismatch');
+});
+
+test('blocks API health response when content type is not JSON', async () => {
+  await withServer((req, res) => {
+    if (req.url === '/health') {
+      res.writeHead(200, { 'content-type': 'text/plain' });
+      res.end(JSON.stringify(healthyPayload));
+      return;
+    }
+    res.writeHead(200, { 'content-type': 'text/html' });
+    res.end('<html></html>');
+  }, async (origin) => {
+    const result = await runChecker(['--strict', '--json'], completeEnv(origin));
+    assert.equal(result.status, 1);
+    assertApiReason(JSON.parse(result.stdout), 'health-not-json');
+  });
+});
+
+test('blocks malformed API health JSON without exposing response body', async () => {
+  const secretBody = '{"secret":"do-not-log"';
+  await withServer((req, res) => {
+    res.writeHead(200, { 'content-type': req.url === '/health' ? 'application/json' : 'text/html' });
+    res.end(req.url === '/health' ? secretBody : '<html></html>');
+  }, async (origin) => {
+    const result = await runChecker(['--strict', '--json'], completeEnv(origin));
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout.includes('do-not-log'), false);
+    assertApiReason(JSON.parse(result.stdout), 'health-invalid-json');
   });
 });
 
@@ -82,6 +139,28 @@ test('reports missing URLs without making network requests', async () => {
   const report = JSON.parse(result.stdout);
   assert.equal(report.services.every((service) => service.reason === 'missing-url'), true);
 });
+
+async function runHealthScenario(payload) {
+  let report;
+  await withServer((req, res) => {
+    res.writeHead(200, { 'content-type': req.url === '/health' ? 'application/json' : 'text/html' });
+    res.end(req.url === '/health' ? JSON.stringify(payload) : '<html></html>');
+  }, async (origin) => {
+    const result = await runChecker(['--strict', '--json'], completeEnv(origin));
+    assert.equal(result.status, 1);
+    report = JSON.parse(result.stdout);
+  });
+  return report;
+}
+
+function assertApiReason(report, reason) {
+  const api = report.services.find((service) => service.name === 'api');
+  assert.equal(api.ok, false);
+  assert.equal(api.statusCode, 200);
+  assert.equal(api.reason, reason);
+  assert.equal(report.services.find((service) => service.name === 'admin').ok, true);
+  assert.equal(report.services.find((service) => service.name === 'member').ok, true);
+}
 
 function completeEnv(origin) {
   return {
