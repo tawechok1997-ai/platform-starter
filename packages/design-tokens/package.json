@@ -1,8 +1,0 @@
-{
-  "name": "@platform/design-tokens",
-  "private": true,
-  "version": "0.0.0",
-  "exports": {
-    "./colors.css": "./colors.css"
-  }
-}
