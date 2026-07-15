@@ -1,0 +1,183 @@
+.ui-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-raised);
+}
+
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.ui-table th,
+.ui-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.ui-table th {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: .04em;
+}
+
+.ui-table tbody tr:last-child td { border-bottom: 0; }
+.ui-table tbody tr:hover { background: color-mix(in srgb, var(--color-brand) 5%, transparent); }
+
+.ui-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.ui-pagination__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ui-pagination button,
+.ui-pagination a {
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.ui-pagination [aria-current="page"] {
+  border-color: var(--color-brand);
+  background: color-mix(in srgb, var(--color-brand) 14%, var(--color-surface-raised));
+  color: var(--color-brand-strong);
+}
+
+.ui-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.ui-tab {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding-inline: var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.ui-tab[aria-selected="true"],
+.ui-tab[aria-current="page"],
+.ui-tab.is-active {
+  border-color: color-mix(in srgb, var(--color-brand) 34%, transparent);
+  background: color-mix(in srgb, var(--color-brand) 12%, transparent);
+  color: var(--color-brand-strong);
+}
+
+.ui-badge,
+.admin-ui-badge,
+.finance-status {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-soft);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ui-badge--success,
+.admin-ui-badge--success,
+.finance-status--success {
+  border-color: color-mix(in srgb, var(--color-success) 32%, transparent);
+  background: color-mix(in srgb, var(--color-success) 11%, transparent);
+  color: var(--color-success-strong);
+}
+
+.ui-badge--warning,
+.admin-ui-badge--warning,
+.finance-status--warning {
+  border-color: color-mix(in srgb, var(--color-warning) 32%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 11%, transparent);
+  color: var(--color-warning-strong);
+}
+
+.ui-badge--danger,
+.admin-ui-badge--danger,
+.finance-status--danger {
+  border-color: color-mix(in srgb, var(--color-danger) 32%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 11%, transparent);
+  color: var(--color-danger-strong);
+}
+
+.ui-tab:focus-visible,
+.ui-pagination button:focus-visible,
+.ui-pagination a:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-brand);
+}
+
+@media (max-width: 767px) {
+  .ui-table[data-mobile="cards"] thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .ui-table[data-mobile="cards"],
+  .ui-table[data-mobile="cards"] tbody,
+  .ui-table[data-mobile="cards"] tr,
+  .ui-table[data-mobile="cards"] td {
+    display: block;
+    width: 100%;
+  }
+
+  .ui-table[data-mobile="cards"] tr {
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .ui-table[data-mobile="cards"] td {
+    display: grid;
+    grid-template-columns: minmax(100px, 42%) minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    border: 0;
+  }
+
+  .ui-table[data-mobile="cards"] td::before {
+    content: attr(data-label);
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-semibold);
+  }
+}
