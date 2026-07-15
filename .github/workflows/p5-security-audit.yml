@@ -1,0 +1,45 @@
+name: P5 Security Audit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p5-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-and-secret-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies and committed secrets
+        run: pnpm audit:dependency-security
+
+      - name: Validate environment schema tests
+        run: pnpm --filter @platform/api test -- environment.validation.spec.ts --runInBand
