@@ -1,4 +1,4 @@
-@import '@platform/design-tokens/css';
+@import '../../design-tokens/src/tokens.css';
 
 .ui-button {
   display: inline-flex;
