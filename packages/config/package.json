@@ -1,0 +1,16 @@
+{
+  "name": "@platform/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./typescript/base": "./typescript/base.json",
+    "./typescript/next": "./typescript/next.json",
+    "./typescript/nest": "./typescript/nest.json",
+    "./prettier": "./prettier/index.mjs"
+  },
+  "scripts": {
+    "lint": "node --check prettier/index.mjs",
+    "typecheck": "node -e \"JSON.parse(require('node:fs').readFileSync('typescript/base.json','utf8')); JSON.parse(require('node:fs').readFileSync('typescript/next.json','utf8')); JSON.parse(require('node:fs').readFileSync('typescript/nest.json','utf8'))\""
+  }
+}
