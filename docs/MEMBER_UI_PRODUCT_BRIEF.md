@@ -6,6 +6,10 @@ Scope: Member only. Admin is out of scope for the current implementation phase.
 Typography source of truth: [`MEMBER_TYPOGRAPHY_CONTRACT.md`](./MEMBER_TYPOGRAPHY_CONTRACT.md).
 Color and icon source of truth: [`MEMBER_COLOR_ICON_CONTRACT.md`](./MEMBER_COLOR_ICON_CONTRACT.md).
 
+## Implementation status
+
+Member shell, canonical navigation, Home hierarchy, wallet/finance surfaces, Games, Promotions, Profile/Security, Notifications, Support, responsive behavior, reduced-motion states, and legacy visual normalization are implemented. The final gate is automated and browser evidence on the required project toolchain; this document must not be used to reopen Admin work during the Member phase.
+
 This brief is the practical product target for the Member redesign. It combines the supplied reference boards with the current product requirements: entertainment quality with financial clarity, premium without clutter, useful motion without visual noise.
 
 ## Product feeling
