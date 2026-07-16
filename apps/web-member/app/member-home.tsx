@@ -1,7 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CmsContent, MemberFeatureFlags, SiteIconSettings, defaultFeatureFlags, defaultIconSettings } from './site-settings';
+import {
+  CmsContent,
+  MemberFeatureFlags,
+  SiteIconSettings,
+  defaultFeatureFlags,
+  defaultIconSettings,
+} from './site-settings';
 import WalletCard from './wallet-card';
 import {
   AnnouncementList,
@@ -54,39 +60,78 @@ export default function MemberHome(props: MemberHomeProps) {
     setPopupClosed(true);
   }
 
-  return <section className="member-shell member-home-shell">
-    <div className="member-home-zone member-home-zone--primary">
-      {props.showPromotion && features.games && <HomeHero siteName={props.siteName} description={props.description} primaryColor={props.primaryColor} content={props.cmsContent} />}
-      <AnnouncementList content={props.cmsContent} />
-      {props.showPromotion && <PromotionSlotGrid content={props.cmsContent} />}
-      <LobbyTabs />
-    </div>
+  return (
+    <section className="member-shell member-home-shell">
+      <div className="member-home-zone member-home-zone--primary">
+        <AnnouncementList content={props.cmsContent} />
+        {props.showPromotion && features.games && (
+          <HomeHero
+            siteName={props.siteName}
+            description={props.description}
+            primaryColor={props.primaryColor}
+            content={props.cmsContent}
+          />
+        )}
+      </div>
 
-    <div className="member-home-zone member-home-zone--content">
-      {features.games && <TournamentSection />}
-      {features.games && props.showCategories && <CategoryList categories={data.categories} primaryColor={props.primaryColor} />}
-    </div>
+      <div className="member-home-zone member-home-zone--finance member-home-finance-lower">
+        {props.showBalanceHeader && (
+          <WalletCard
+            primaryColor={props.primaryColor}
+            cardColor={props.cardColor}
+            showButtons={props.showButtons && (features.deposit || features.withdraw)}
+          />
+        )}
+        <QuickActions icons={icons} features={features} />
+        <PendingRequests
+          pendingTopups={data.pendingTopups}
+          pendingWithdrawals={data.pendingWithdrawals}
+          primaryColor={props.primaryColor}
+          features={features}
+        />
+      </div>
 
-    <div className="member-home-zone member-home-zone--finance member-home-finance-lower">
-      {props.showBalanceHeader && <WalletCard primaryColor={props.primaryColor} cardColor={props.cardColor} showButtons={props.showButtons && (features.deposit || features.withdraw)} />}
-      <PendingRequests pendingTopups={data.pendingTopups} pendingWithdrawals={data.pendingWithdrawals} primaryColor={props.primaryColor} features={features} />
-      <QuickActions icons={icons} features={features} />
-    </div>
+      <div className="member-home-zone">
+        {features.games && data.recentGames.length > 0 && (
+          <GameRail title="เล่นล่าสุด" href="/games" items={data.recentGames} primaryColor={props.primaryColor} />
+        )}
+        {features.games && props.showCategories && (
+          <CategoryList categories={data.categories} primaryColor={props.primaryColor} />
+        )}
+        {features.games && props.showRecommended && (
+          <GameRail title="เกมแนะนำ" href="/games" items={data.featured} primaryColor={props.primaryColor} />
+        )}
+        {features.games && data.favoriteGames.length > 0 && (
+          <GameRail title="เกมโปรด" href="/games" items={data.favoriteGames} primaryColor={props.primaryColor} />
+        )}
+        {features.games && data.popular.length > 0 && (
+          <GameRail title="ยอดนิยม" href="/games" items={data.popular} primaryColor={props.primaryColor} />
+        )}
+      </div>
 
-    <div className="member-home-zone">
-      {features.games && props.showRecommended && <GameRail title="เกมแนะนำ" href="/games" items={data.featured} primaryColor={props.primaryColor} />}
-      {features.games && data.recentGames.length > 0 && <GameRail title="เล่นล่าสุด" href="/games" items={data.recentGames} primaryColor={props.primaryColor} />}
-      {features.games && data.favoriteGames.length > 0 && <GameRail title="เกมโปรด" href="/games" items={data.favoriteGames} primaryColor={props.primaryColor} />}
-      {features.games && data.popular.length > 0 && <GameRail title="ยอดนิยม" href="/games" items={data.popular} primaryColor={props.primaryColor} />}
-    </div>
+      <div className="member-home-zone member-home-zone--content">
+        {features.games && <TournamentSection />}
+        {props.showPromotion && <PromotionSlotGrid content={props.cmsContent} />}
+        <LobbyTabs />
+      </div>
 
-    <div className="member-home-zone member-home-zone--support">
-      <RecentActivity ledgers={data.ledgers} loading={data.isActivityLoading} message={data.activityMessage} onRetry={data.reloadActivity} primaryColor={props.primaryColor} depositEnabled={features.deposit} />
-      <FaqList content={props.cmsContent} />
-    </div>
+      <div className="member-home-zone member-home-zone--support">
+        <RecentActivity
+          ledgers={data.ledgers}
+          loading={data.isActivityLoading}
+          message={data.activityMessage}
+          onRetry={data.reloadActivity}
+          primaryColor={props.primaryColor}
+          depositEnabled={features.deposit}
+        />
+        <FaqList content={props.cmsContent} />
+      </div>
 
-    {props.cmsContent.popup.enabled && !popupClosed && <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />}
-  </section>;
+      {props.cmsContent.popup.enabled && !popupClosed && (
+        <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
+      )}
+    </section>
+  );
 }
 
 function readClosedPopupVersion() {
