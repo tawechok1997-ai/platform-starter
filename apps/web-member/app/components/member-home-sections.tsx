@@ -297,6 +297,22 @@ export function FaqList({ content }: { content: CmsContent }) {
   );
 }
 
+export function SupportCard() {
+  return (
+    <MemberCard className="member-home-support-card">
+      <div className="member-home-support-card__icon"><MemberIcon name="support" /></div>
+      <div className="member-home-support-card__copy">
+        <h2>ต้องการความช่วยเหลือ?</h2>
+        <p>ติดต่อทีมงานหรือดูคู่มือการใช้งานได้จากที่นี่</p>
+      </div>
+      <div className="member-home-support-card__actions">
+        <a href="/support">เปิด Ticket</a>
+        <a href="/guide">ดูคู่มือ</a>
+      </div>
+    </MemberCard>
+  );
+}
+
 export function RecentActivity({
   ledgers,
   loading,
