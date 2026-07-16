@@ -1,0 +1,61 @@
+/* Shared Member responsive and accessibility contract. Admin styles must not import this file. */
+html { overflow-x: hidden; }
+body { overflow-x: hidden; }
+.member-shell, .member-feature-page, .member-feature-container { min-width: 0; }
+.member-bottom-nav {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  background: rgba(13, 16, 23, .92) !important;
+  border: 1px solid var(--member-border-subtle, rgba(255,255,255,.055)) !important;
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+}
+.member-bottom-nav a {
+  position: relative;
+  min-width: 0;
+  min-height: 48px;
+  color: var(--member-text-tertiary, #818a99);
+  transition: background-color 180ms ease, color 150ms ease, transform 180ms ease;
+}
+.member-bottom-nav a:hover { color: var(--member-text-primary, #f4f6fa); }
+.member-bottom-nav a.active {
+  color: var(--member-accent-hover, #9278ff);
+  background: var(--member-accent-soft, rgba(124,92,255,.13));
+}
+.member-bottom-nav a:focus-visible,
+.member-menu-button:focus-visible,
+.member-header-icon:focus-visible,
+.member-drawer-nav a:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--member-page, #0d1017), 0 0 0 4px var(--member-accent-hover, #9278ff);
+}
+.member-bottom-nav a em {
+  position: absolute;
+  top: 2px;
+  right: 12%;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--member-danger, #ef6473);
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 16px;
+}
+.member-ui-button, .member-notification-actions a, .member-notification-actions button { touch-action: manipulation; }
+@media (max-width: 767px) {
+  .member-shell { padding-bottom: calc(124px + env(safe-area-inset-bottom)) !important; }
+  .member-bottom-nav { left: 10px !important; right: 10px !important; bottom: max(10px, env(safe-area-inset-bottom)) !important; }
+  .member-topbar__inner { gap: 12px; }
+  .member-feature-header { min-width: 0; }
+  .member-feature-header > div:first-child { min-width: 0; }
+  .member-feature-header h1 { overflow-wrap: anywhere; }
+}
+@media (max-width: 420px) {
+  .member-bottom-nav { left: 6px !important; right: 6px !important; }
+  .member-bottom-nav a { padding-inline: 2px; font-size: 11px; }
+  .member-bottom-nav a em { right: 5%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .member-bottom-nav a { transition: none; }
+}
