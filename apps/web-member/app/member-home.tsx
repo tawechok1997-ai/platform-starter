@@ -22,6 +22,8 @@ import {
   PromotionSlotGrid,
   QuickActions,
   RecentActivity,
+  GameRailSkeleton,
+  GameLobbyState,
 } from './components/member-home-sections';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
@@ -92,6 +94,9 @@ export default function MemberHome(props: MemberHomeProps) {
       </div>
 
       <div className="member-home-zone">
+        {features.games && data.isGamesLoading && <GameRailSkeleton />}
+        {features.games && !data.isGamesLoading && data.gamesMessage && <GameLobbyState tone="error" message={data.gamesMessage} onRetry={data.reloadGames} />}
+        {features.games && !data.isGamesLoading && !data.gamesMessage && data.featured.length === 0 && data.popular.length === 0 && <GameLobbyState tone="empty" />}
         {features.games && data.recentGames.length > 0 && (
           <GameRail title="เล่นล่าสุด" href="/games" items={data.recentGames} primaryColor={props.primaryColor} />
         )}
