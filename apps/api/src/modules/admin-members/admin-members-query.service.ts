@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { normalizeOptionalText, parseOptionalEnum, parsePagination } from '../../common/query/query-filters';
 import { PrismaService } from '../../database/prisma.service';
+import type { AdminMembersQueryDto } from './dto/admin-members-query.dto';
 
 const MEMBER_STATUSES = ['ACTIVE', 'SUSPENDED', 'LOCKED', 'CLOSED'] as const;
 type MemberStatus = (typeof MEMBER_STATUSES)[number];
-export type ListMembersQuery = { search?: string; status?: string; page?: string; take?: string };
 
 const MEMBER_LIST_PROJECTION = {
   id: true,
@@ -29,23 +30,26 @@ type MemberListRecord = Prisma.UserGetPayload<{ select: typeof MEMBER_LIST_PROJE
 export class AdminMembersQueryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listMembers(query: ListMembersQuery) {
-    const q = query.search?.trim();
-    const page = Math.max(Number(query.page ?? 1) || 1, 1);
-    const take = Math.min(Math.max(Number(query.take ?? 50) || 50, 1), 100);
+  async listMembers(query: AdminMembersQueryDto) {
+    const search = normalizeOptionalText(query.search, 120, { fieldName: 'search' });
+    const status = parseOptionalEnum(query.status, MEMBER_STATUSES, {
+      allValue: 'ALL',
+      fieldName: 'status',
+    });
+    const { page, take } = parsePagination(query.page, query.take, {
+      defaultTake: 50,
+      maxTake: 100,
+    });
     const where: Prisma.UserWhereInput = {};
 
-    if (query.status && query.status !== 'ALL') {
-      if (!MEMBER_STATUSES.includes(query.status as MemberStatus)) throw new BadRequestException('Invalid member status');
-      where.status = query.status as MemberStatus;
-    }
+    if (status) where.status = status;
 
-    if (q) {
+    if (search) {
       where.OR = [
-        { username: { contains: q, mode: 'insensitive' } },
-        { phone: { contains: q, mode: 'insensitive' } },
-        { email: { contains: q, mode: 'insensitive' } },
-        ...(isUuid(q) ? [{ id: q }] : []),
+        { username: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        ...(isUuid(search) ? [{ id: search }] : []),
       ];
     }
 
@@ -60,7 +64,13 @@ export class AdminMembersQueryService {
       this.prisma.user.count({ where }),
     ]);
 
-    return { items: items.map(mapMemberListItem), page, take, total, pageCount: Math.max(Math.ceil(total / take), 1) };
+    return {
+      items: items.map(mapMemberListItem),
+      page,
+      take,
+      total,
+      pageCount: Math.max(Math.ceil(total / take), 1),
+    };
   }
 
   async getMemberDetail(id: string) {
