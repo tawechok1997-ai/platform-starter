@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { memberApiFetch } from '../member-api';
 import { MemberEmptyState, MemberNotice } from '../components/member-ui';
 import type { LedgerItem } from '../types/member-api';
+import './member-finance-contract.css';
 
 export default function TransactionsPage() {
   const [items, setItems] = useState<LedgerItem[]>([]);
@@ -29,7 +30,7 @@ export default function TransactionsPage() {
   return <main className="member-finance-page">
     <header className="member-finance-page__header">
       <a href="/" className="member-finance-page__back">← หน้าแรก</a>
-      <h1 className="member-finance-page__title">ประวัติ</h1>
+      <h1 className="member-finance-page__title">ประวัติรายการ</h1>
       <p className="member-finance-page__subtitle">ตรวจสอบรายการเข้า ออก และยอดคงเหลือหลังทำรายการแต่ละครั้ง</p>
     </header>
 
