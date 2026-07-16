@@ -82,7 +82,8 @@ export function HomeHero({
 export function PromotionSlotGrid({ content }: { content: CmsContent }) {
   const slots = safeArray(content?.banners)
     .filter((item) => item?.enabled && (cmsAssetUrl(content, item.assetId) || item.imageUrl))
-    .slice(0, 3);
+    // The first banner already occupies the hero; secondary cards should not repeat it.
+    .slice(1, 4);
   if (!slots.length) return null;
   return (
     <section className="member-promo-slots" aria-label="โปรโมชั่นแนะนำ">
@@ -94,7 +95,7 @@ export function PromotionSlotGrid({ content }: { content: CmsContent }) {
             href={slot.href || '/promotions'}
             className="member-promo-slot"
           >
-            <img src={imageUrl} alt="" loading="lazy" />
+            <img src={imageUrl} alt="" loading="lazy" decoding="async" />
             <span>{slot.title || 'โปรโมชั่น'}</span>
           </a>
         );
