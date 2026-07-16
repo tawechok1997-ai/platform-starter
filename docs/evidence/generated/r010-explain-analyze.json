@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-15T22:10:24.629Z",
+  "generatedAt": "2026-07-16T03:22:11.708Z",
   "database": "ephemeral-postgresql-ci",
   "caveat": "This is a repeatable empty-schema CI baseline, not a production-volume benchmark.",
   "queries": [
     {
       "name": "dashboard-topups-by-status",
       "summary": {
-        "planningTimeMs": 0.488,
-        "executionTimeMs": 0.063,
+        "planningTimeMs": 0.471,
+        "executionTimeMs": 0.064,
         "nodeType": "Aggregate",
         "relationName": null,
         "indexName": null,
@@ -27,7 +27,7 @@
             "Total Cost": 8.48,
             "Plan Rows": 1,
             "Plan Width": 44,
-            "Actual Startup Time": 0.022,
+            "Actual Startup Time": 0.021,
             "Actual Total Time": 0.022,
             "Actual Rows": 0,
             "Actual Loops": 1,
@@ -121,17 +121,17 @@
             "Temp Read Blocks": 0,
             "Temp Written Blocks": 0
           },
-          "Planning Time": 0.488,
+          "Planning Time": 0.471,
           "Triggers": [],
-          "Execution Time": 0.063
+          "Execution Time": 0.064
         }
       ]
     },
     {
       "name": "queue-aging-pending-topups",
       "summary": {
-        "planningTimeMs": 0.065,
-        "executionTimeMs": 0.021,
+        "planningTimeMs": 0.064,
+        "executionTimeMs": 0.02,
         "nodeType": "Limit",
         "relationName": null,
         "indexName": null,
@@ -149,8 +149,8 @@
             "Total Cost": 8.17,
             "Plan Rows": 1,
             "Plan Width": 98,
-            "Actual Startup Time": 0.013,
-            "Actual Total Time": 0.013,
+            "Actual Startup Time": 0.012,
+            "Actual Total Time": 0.012,
             "Actual Rows": 0,
             "Actual Loops": 1,
             "Shared Hit Blocks": 5,
@@ -173,7 +173,7 @@
                 "Total Cost": 8.17,
                 "Plan Rows": 1,
                 "Plan Width": 98,
-                "Actual Startup Time": 0.012,
+                "Actual Startup Time": 0.011,
                 "Actual Total Time": 0.012,
                 "Actual Rows": 0,
                 "Actual Loops": 1,
@@ -240,16 +240,16 @@
             "Temp Read Blocks": 0,
             "Temp Written Blocks": 0
           },
-          "Planning Time": 0.065,
+          "Planning Time": 0.064,
           "Triggers": [],
-          "Execution Time": 0.021
+          "Execution Time": 0.02
         }
       ]
     },
     {
       "name": "reconciliation-wallet-scan",
       "summary": {
-        "planningTimeMs": 0.124,
+        "planningTimeMs": 0.122,
         "executionTimeMs": 0.011,
         "nodeType": "Limit",
         "relationName": null,
@@ -355,7 +355,7 @@
             "Temp Read Blocks": 0,
             "Temp Written Blocks": 0
           },
-          "Planning Time": 0.124,
+          "Planning Time": 0.122,
           "Triggers": [],
           "Execution Time": 0.011
         }
@@ -364,7 +364,7 @@
     {
       "name": "reconciliation-latest-ledger-lookup",
       "summary": {
-        "planningTimeMs": 0.195,
+        "planningTimeMs": 0.184,
         "executionTimeMs": 0.009,
         "nodeType": "Limit",
         "relationName": null,
@@ -442,7 +442,7 @@
             "Temp Read Blocks": 0,
             "Temp Written Blocks": 0
           },
-          "Planning Time": 0.195,
+          "Planning Time": 0.184,
           "Triggers": [],
           "Execution Time": 0.009
         }
