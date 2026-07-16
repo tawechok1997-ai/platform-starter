@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { buildDateRange, parseDateBoundary } from '../../common/query/date-range';
 import { PrismaService } from '../../database/prisma.service';
 
 const RISK_MODULES = ['promotions', 'affiliates', 'withdrawals', 'topups', 'money-ops', 'game-platform', 'bank-accounts', 'support'];
@@ -52,10 +53,11 @@ export class AdminAuditService {
 
     if (and.length) where.AND = and;
 
-    const from = parseAuditDate(query.from, false);
-    const to = parseAuditDate(query.to, true);
-    if (from && to && from > to) throw new BadRequestException('from must be before to');
-    if (from || to) where.createdAt = { gte: from, lte: to };
+    const createdAt = buildDateRange(
+      parseDateBoundary(query.from, false, 'audit date'),
+      parseDateBoundary(query.to, true, 'audit date'),
+    );
+    if (createdAt) where.createdAt = createdAt;
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.adminAuditLog.findMany({
@@ -72,10 +74,12 @@ export class AdminAuditService {
   }
 
   async riskSummary(query: AuditLogQuery) {
-    const since = parseAuditDate(query.from, false) ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const until = parseAuditDate(query.to, true) ?? new Date();
-    if (since > until) throw new BadRequestException('from must be before to');
-    const where: Prisma.AdminAuditLogWhereInput = { createdAt: { gte: since, lte: until } };
+    const since = parseDateBoundary(query.from, false, 'audit date') ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const until = parseDateBoundary(query.to, true, 'audit date') ?? new Date();
+    const createdAt = buildDateRange(since, until);
+    if (!createdAt) throw new BadRequestException('Audit date range is required');
+
+    const where: Prisma.AdminAuditLogWhereInput = { createdAt };
     const items = await this.prisma.adminAuditLog.findMany({ where, orderBy: { createdAt: 'desc' }, take: 300, include: { adminUser: { select: { id: true, username: true, email: true } } } });
     const risky = items.filter((item) => isRiskyAudit(item.module, item.action));
     const byModule = bucket(risky.map((item) => item.module || 'unknown'));
@@ -90,17 +94,6 @@ export class AdminAuditService {
       recent: risky.slice(0, 50),
     };
   }
-}
-
-function parseAuditDate(value: string | undefined, endOfDay: boolean) {
-  const text = String(value ?? '').trim();
-  if (!text) return undefined;
-  const normalized = /^\d{4}-\d{2}-\d{2}$/.test(text)
-    ? `${text}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}Z`
-    : text;
-  const date = new Date(normalized);
-  if (Number.isNaN(date.getTime())) throw new BadRequestException(`Invalid audit date: ${text}`);
-  return date;
 }
 
 function isRiskyAudit(module: string | null, action: string) {
