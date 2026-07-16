@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from '../admin-api';
+import { AdminButton } from '../components/admin-ui';
 import { canAccessNavItem, navGroups, requiredPermissionsForPath } from './admin-nav';
 import { AdminIcon, iconForAdminHref } from './_components/admin-icon';
 
@@ -105,23 +106,23 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   >
     <div className="admin-drawer-head">
       <a href="/dashboard" onClick={(event) => { event.preventDefault(); navigate('/dashboard'); }} className="admin-brand-row admin-brand-link"><span className="admin-brand-mark">A</span><span className="admin-brand-text"><strong>Admin Console</strong><small>Operations workspace</small></span></a>
-      <button type="button" className="admin-drawer-close" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู"><AdminIcon name="close" /></button>
+      <AdminButton type="button" tone="default" className="admin-drawer-close" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู"><AdminIcon name="close" /></AdminButton>
     </div>
     <div className="admin-nav-search"><AdminIcon name="search" /><input value={navQuery} onChange={(event) => setNavQuery(event.target.value)} placeholder="ค้นหาเมนู" aria-label="ค้นหาเมนู" /></div>
     <nav className="admin-drawer-nav" aria-label="Admin navigation">
       {visibleGroups.map((group) => <section className="admin-nav-group" key={group.title}><p>{group.title}</p>{group.items.map((item) => { const active = pathname === item.href || pathname.startsWith(`${item.href}/`); const badge = badgeFor(item.href); return <a key={item.href} href={item.href} onClick={(event) => { event.preventDefault(); navigate(item.href); }} className={active ? 'active' : ''} title={sidebarCollapsed ? item.title : undefined} aria-current={active ? 'page' : undefined}><AdminIcon name={iconForAdminHref(item.href)} /><span>{item.title}</span>{badge > 0 && <em>{badge > 99 ? '99+' : badge}</em>}</a>; })}</section>)}
       {visibleGroups.length === 0 && <p className="admin-nav-empty">ไม่พบเมนูที่ค้นหา</p>}
     </nav>
-    <div className="admin-sidebar-footer"><button type="button" className="admin-collapse-button" onClick={toggleCollapsed} aria-label={sidebarCollapsed ? 'ขยายแถบเมนู' : 'ย่อแถบเมนู'}><AdminIcon name="chevron-left" /><span>{sidebarCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}</span></button><button type="button" className="admin-logout-button" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></button></div>
+    <div className="admin-sidebar-footer"><AdminButton type="button" tone="default" className="admin-collapse-button" onClick={toggleCollapsed} aria-label={sidebarCollapsed ? 'ขยายแถบเมนู' : 'ย่อแถบเมนู'}><AdminIcon name="chevron-left" /><span>{sidebarCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}</span></AdminButton><AdminButton type="button" tone="danger" className="admin-logout-button" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></AdminButton></div>
   </aside>;
 
   return <main className={`admin-shell${sidebarCollapsed ? ' admin-shell--collapsed' : ''}`}>
     {menuOpen ? <div style={{ position: 'fixed', inset: 0, zIndex: 1000, isolation: 'isolate' }}>
-      <button type="button" className="admin-drawer-backdrop" style={{ zIndex: 0 }} onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />
+      <AdminButton type="button" tone="default" className="admin-drawer-backdrop" style={{ zIndex: 0 }} onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />
       {drawer}
     </div> : drawer}
     <div className="admin-main-shell">
-      <header className="admin-topbar"><div className="admin-topbar-context"><button type="button" className="admin-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูแอดมิน"><AdminIcon name="menu" /></button><div><span>Workspace</span><strong>{currentItem?.title ?? 'Admin Console'}</strong></div></div><div className="admin-topbar-status"><span className="admin-system-dot" />ระบบพร้อมใช้งาน{pendingTotal > 0 && <a href="/operations" onClick={(event) => { event.preventDefault(); navigate('/operations'); }}>{pendingTotal} รายการรอดำเนินการ</a>}</div></header>
+      <header className="admin-topbar"><div className="admin-topbar-context"><AdminButton type="button" tone="default" className="admin-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูแอดมิน"><AdminIcon name="menu" /></AdminButton><div><span>Workspace</span><strong>{currentItem?.title ?? 'Admin Console'}</strong></div></div><div className="admin-topbar-status"><span className="admin-system-dot" />ระบบพร้อมใช้งาน{pendingTotal > 0 && <a href="/operations" onClick={(event) => { event.preventDefault(); navigate('/operations'); }}>{pendingTotal} รายการรอดำเนินการ</a>}</div></header>
       <section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section>
     </div>
   </main>;
