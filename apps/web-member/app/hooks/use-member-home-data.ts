@@ -16,14 +16,21 @@ export function useMemberHomeData(gamesEnabled: boolean) {
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [activityMessage, setActivityMessage] = useState('');
   const [isActivityLoading, setIsActivityLoading] = useState(false);
+  const [gamesMessage, setGamesMessage] = useState('');
+  const [isGamesLoading, setIsGamesLoading] = useState(false);
 
   const loadGames = useCallback(async () => {
     if (!gamesEnabled) { setLobby({}); return; }
+    setIsGamesLoading(true);
+    setGamesMessage('');
     try {
       const payload = await requestJson<GameLobbyPayload>('/member/games');
       setLobby(payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {});
-    } catch {
+    } catch (error) {
       setLobby({});
+      setGamesMessage(error instanceof Error ? error.message : 'โหลดเกมไม่สำเร็จ');
+    } finally {
+      setIsGamesLoading(false);
     }
   }, [gamesEnabled]);
 
@@ -68,7 +75,7 @@ export function useMemberHomeData(gamesEnabled: boolean) {
   const favoriteGames = favoriteIds.map((id) => games.find((game) => game?.id === id)).filter(Boolean) as Game[];
   const categories = Array.isArray(lobby.categories) ? lobby.categories : [];
 
-  return { pendingTopups, pendingWithdrawals, ledgers, categories, featured, popular, recentGames, favoriteGames, activityMessage, isActivityLoading, reloadActivity: loadActivity };
+  return { pendingTopups, pendingWithdrawals, ledgers, categories, featured, popular, recentGames, favoriteGames, activityMessage, isActivityLoading, reloadActivity: loadActivity, gamesMessage, isGamesLoading, reloadGames: loadGames };
 }
 
 function readIds(key: string) {
