@@ -1,0 +1,67 @@
+/* Member reference direction: dark gaming surface with restrained gold emphasis. */
+body:has(.member-shell),
+body:has(.game-lobby-page),
+body:has(.member-feature-page) {
+  --color-bg: #080d14;
+  --color-surface: #0d141e;
+  --color-card: #121b27;
+  --color-card-raised: #192534;
+  --color-surface-soft: rgba(255,255,255,.045);
+  --color-border: rgba(231,180,73,.18);
+  --color-brand: #e7b84f;
+  --color-text: #f4f6fa;
+  --color-text-muted: #aeb8c7;
+  --member-page: #0d141e;
+  --member-surface-1: #121b27;
+  --member-surface-2: #172333;
+  --member-surface-3: #1d2a3b;
+  --member-accent: #e7b84f;
+  --member-accent-hover: #f3cf70;
+  --member-accent-active: #bd8b2e;
+  --member-accent-soft: rgba(231,184,79,.13);
+}
+.member-topbar {
+  background: rgba(8,13,20,.9) !important;
+  border-bottom-color: rgba(231,180,73,.16) !important;
+}
+.member-brand-mark { box-shadow: 0 10px 28px rgba(231,184,79,.18) !important; }
+.member-desktop-nav a.active,
+.member-drawer-nav a.active { color: var(--member-accent-hover) !important; border-color: rgba(231,184,79,.3) !important; background: var(--member-accent-soft) !important; }
+.member-home-shell,
+.game-lobby-page { background: var(--member-page) !important; }
+.member-home-hero {
+  min-height: 320px;
+  border-color: rgba(231,180,73,.28) !important;
+  background: radial-gradient(circle at 8% 0, rgba(231,184,79,.24), transparent 38%), linear-gradient(135deg, #172333, #0f1722 58%, #0a111b) !important;
+}
+.member-home-hero__eyebrow,
+.member-home-hero h1,
+.member-home-section-head h2,
+.game-lobby-eyebrow { color: var(--member-accent-hover) !important; }
+.member-home-hero__eyebrow::before { background: var(--member-accent) !important; box-shadow: 0 0 0 5px rgba(231,184,79,.12) !important; }
+.member-home-hero > a,
+.member-wallet-card__action.is-primary,
+.game-lobby-card-body > button { background: linear-gradient(135deg, #f1c55e, #bd8b2e) !important; border-color: #e7b84f !important; color: #15120a !important; }
+.member-quick-action,
+.member-home-game-tile,
+.member-wallet-card,
+.game-lobby-card,
+.member-promo-slot { border-color: rgba(231,180,73,.16) !important; background: linear-gradient(145deg, #172333, #101923) !important; }
+.member-quick-action:hover,
+.member-home-game-tile:hover { border-color: rgba(231,180,73,.42) !important; }
+.member-home-quick-icon,
+.member-home-category-pill:hover,
+.member-lobby-tabs button.is-active { background: var(--member-accent-soft) !important; color: var(--member-accent-hover) !important; }
+.member-home-hero__dots button.active { background: var(--member-accent-hover) !important; }
+.member-bottom-nav a.active { color: var(--member-accent-hover) !important; background: var(--member-accent-soft) !important; }
+.member-bottom-nav a:nth-child(3) { color: #15120a; background: linear-gradient(135deg, #f1c55e, #bd8b2e); }
+.member-feature-page .member-feature-header p,
+.member-feature-page .member-notification-preference-heading span { color: var(--member-accent-hover) !important; }
+.member-ui-button--brand { background: linear-gradient(135deg, #f1c55e, #bd8b2e) !important; border-color: #e7b84f !important; color: #15120a !important; }
+@media (max-width: 767px) {
+  .member-home-hero { min-height: 270px; }
+  .member-home-hero > a { box-shadow: 0 8px 24px rgba(231,184,79,.18); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .member-home-hero > a, .member-wallet-card__action.is-primary, .game-lobby-card-body > button { transition: none !important; }
+}
