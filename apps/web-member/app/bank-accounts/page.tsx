@@ -1,16 +1,18 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { memberApiFetch } from '../member-api';
 import { MemberButton, MemberCard, MemberEmptyState, MemberNotice } from '../components/member-ui';
 
 type BankItem = { id: string; bankName: string; accountName: string; accountNumber: string; isPrimary: boolean; status: string; adminNote?: string | null };
 
-const THAI_BANKS = ['ธนาคารกสิกรไทย', 'ธนาคารไทยพาณิชย์', 'ธนาคารกรุงเทพ', 'ธนาคารกรุงไทย', 'ธนาคารกรุงศรีอยุธยา', 'ธนาคารทหารไทยธนชาต', 'ธนาคารออมสิน', 'ธนาคารอาคารสงเคราะห์', 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร', 'ธนาคารยูโอบี', 'ธนาคารซีไอเอ็มบีไทย', 'ธนาคารเกียรตินาคินภัทร', 'ธนาคารแลนด์ แอนด์ เฮ้าส์', 'ธนาคารไอซีบีซี ไทย', 'ธนาคารไทยเครดิต'];
+const DEFAULT_BANK_NAME = 'ธนาคารกสิกรไทย';
+const THAI_BANKS = [DEFAULT_BANK_NAME, 'ธนาคารไทยพาณิชย์', 'ธนาคารกรุงเทพ', 'ธนาคารกรุงไทย', 'ธนาคารกรุงศรีอยุธยา', 'ธนาคารทหารไทยธนชาต', 'ธนาคารออมสิน', 'ธนาคารอาคารสงเคราะห์', 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร', 'ธนาคารยูโอบี', 'ธนาคารซีไอเอ็มบีไทย', 'ธนาคารเกียรตินาคินภัทร', 'ธนาคารแลนด์ แอนด์ เฮ้าส์', 'ธนาคารไอซีบีซี ไทย', 'ธนาคารไทยเครดิต'];
 
 export default function MemberBankAccountsPage() {
   const [items, setItems] = useState<BankItem[]>([]);
-  const [bankName, setBankName] = useState(THAI_BANKS[0]);
+  const [bankName, setBankName] = useState(DEFAULT_BANK_NAME);
   const [accountName, setAccountName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [message, setMessage] = useState('');
@@ -31,12 +33,24 @@ export default function MemberBankAccountsPage() {
   async function addBank(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (items.length > 0) { setMessage('เพิ่มได้ 1 บัญชีเท่านั้น'); return; }
-    if (!bankName.trim() || !accountName.trim() || !accountNumber.trim()) { setMessage('กรอกข้อมูลบัญชีให้ครบก่อน'); return; }
+
+    const normalizedBankName = bankName.trim();
+    const normalizedAccountName = accountName.trim();
+    const normalizedAccountNumber = accountNumber.trim();
+    if (!normalizedBankName || !normalizedAccountName || !normalizedAccountNumber) { setMessage('กรอกข้อมูลบัญชีให้ครบก่อน'); return; }
+
     setBusy(true); setMessage('กำลังเพิ่มบัญชี...');
-    const res = await memberApiFetch('/member/bank-accounts', { method: 'POST', body: JSON.stringify({ bankName, accountName, accountNumber }) });
+    const res = await memberApiFetch('/member/bank-accounts', {
+      method: 'POST',
+      body: JSON.stringify({
+        bankName: normalizedBankName,
+        accountName: normalizedAccountName,
+        accountNumber: normalizedAccountNumber,
+      }),
+    });
     const data = await res.json().catch(() => null); setBusy(false);
     if (!res.ok) { setMessage(data?.message ?? 'เพิ่มบัญชีไม่สำเร็จ'); return; }
-    setItems((current) => [data.item, ...current]); setBankName(THAI_BANKS[0]); setAccountName(''); setAccountNumber(''); setMessage('เพิ่มบัญชีแล้ว รอตรวจสอบ');
+    setItems((current) => [data.item, ...current]); setBankName(DEFAULT_BANK_NAME); setAccountName(''); setAccountNumber(''); setMessage('เพิ่มบัญชีแล้ว รอตรวจสอบ');
   }
 
   async function setPrimary(id: string) {
@@ -50,7 +64,7 @@ export default function MemberBankAccountsPage() {
 
   return <main className="member-finance-page">
     <header className="member-finance-page__header">
-      <a href="/" className="member-finance-page__back">← หน้าแรก</a>
+      <Link href="/" className="member-finance-page__back">← หน้าแรก</Link>
       <h1 className="member-finance-page__title">การจัดการบัญชีธนาคาร</h1>
       <p className="member-finance-page__subtitle">เพิ่มบัญชีสำหรับรับเงินถอนและติดตามสถานะการตรวจสอบจากแอดมิน</p>
     </header>
