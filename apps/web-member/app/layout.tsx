@@ -43,6 +43,7 @@ import './member-home-market.css';
 import './member-lobby-theme.css';
 import './member-color-aliases.css';
 import './member-final-contract.css';
+import './member-noah-reference-contract.css';
 import MemberChrome from './member-chrome';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
