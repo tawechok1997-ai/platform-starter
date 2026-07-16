@@ -1,10 +1,12 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import {
   DEPOSIT_FORM_DEFAULTS,
   DepositView,
+  createFinanceIdempotencyKey,
   financeInvalidationRules,
+  hasAcceptedDepositEvidence,
   parseDepositAmount,
   resolveDepositError,
   serializeDepositCreateRequest,
@@ -30,8 +32,11 @@ export default function DepositClient() {
   const [loading, setLoading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [lastRequest, setLastRequest] = useState<TopUpItem | null>(null);
+  const [pendingRequest, setPendingRequest] = useState<TopUpItem | null>(null);
   const [transferExpiresAt, setTransferExpiresAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const idempotencyKeyRef = useRef('');
+  const submissionInFlightRef = useRef(false);
   const {
     accounts,
     history,
@@ -41,7 +46,10 @@ export default function DepositClient() {
   } = useDepositServerState(memberApiFetch);
 
   const parsedAmount = useMemo(() => parseDepositAmount(amount), [amount]);
-  const usable = useMemo(() => accounts.filter((account) => matchAmount(account, parsedAmount)), [accounts, parsedAmount]);
+  const usable = useMemo(
+    () => accounts.filter((account) => matchAmount(account, parsedAmount)),
+    [accounts, parsedAmount],
+  );
   const availableMethods = useMemo(() => Array.from(new Set(usable.map(accountType))) as DepositMethodCode[], [usable]);
   const formValues = useMemo(() => ({ amount, method, transactionRef, note }), [amount, method, transactionRef, note]);
 
@@ -72,11 +80,15 @@ export default function DepositClient() {
     if (validationMessage) return setMessage(validationMessage);
     setLoading(true);
     setMessage('กำลังเตรียมข้อมูล...');
-    const res = await memberApiFetch(`/member/receiving-bank-account?paymentType=${encodeURIComponent(method)}&amount=${encodeURIComponent(String(parsedAmount))}`);
+    const res = await memberApiFetch(
+      `/member/receiving-bank-account?paymentType=${encodeURIComponent(method)}&amount=${encodeURIComponent(String(parsedAmount))}`,
+    );
     const data = await res.json().catch(() => null);
     setLoading(false);
     if (!res.ok || !data?.item) return setMessage(resolveDepositError(data, 'ยังไม่มีบัญชีธนาคารสำหรับช่องทางนี้'));
     setSelected(data.item);
+    setPendingRequest(null);
+    idempotencyKeyRef.current = '';
     setTransferExpiresAt(Date.now() + DEPOSIT_EXPIRES_IN_MS);
     setNow(Date.now());
     setMessage('');
@@ -99,8 +111,9 @@ export default function DepositClient() {
   }
 
   async function submit() {
+    if (submissionInFlightRef.current) return;
     if (!selected || !slipImageData) return setMessage('ข้อมูลไม่ครบ กรุณาเลือกบัญชีและแนบสลิป');
-    if (transferExpired) {
+    if (transferExpired && !pendingRequest) {
       setConfirmOpen(false);
       setMessage('รายการฝากหมดเวลาแล้ว กรุณาเริ่มรายการใหม่เพื่อรับบัญชีและยอดที่ถูกต้อง');
       setStep('select');
@@ -110,49 +123,73 @@ export default function DepositClient() {
     }
     setConfirmOpen(false);
     setLoading(true);
-    setMessage('กำลังสร้างรายการฝาก...');
+    submissionInFlightRef.current = true;
+    try {
+      let created = pendingRequest;
+      if (!created) {
+        setMessage('กำลังสร้างรายการฝาก...');
+        idempotencyKeyRef.current ||= createFinanceIdempotencyKey('deposit');
+        const createRes = await memberApiFetch('/member/topups', {
+          method: 'POST',
+          headers: { 'Idempotency-Key': idempotencyKeyRef.current },
+          body: JSON.stringify(serializeDepositCreateRequest(formValues, selected)),
+        });
+        created = await createRes.json().catch(() => null);
+        if (!createRes.ok || !created?.id) {
+          setMessage(resolveDepositError(created, 'สร้างรายการฝากไม่สำเร็จ'));
+          return;
+        }
+        setPendingRequest(created);
+        prependHistory(created);
+        invalidateFinanceQueries(financeInvalidationRules.afterDepositCreated);
+      }
 
-    const createRes = await memberApiFetch('/member/topups', {
-      method: 'POST',
-      body: JSON.stringify(serializeDepositCreateRequest(formValues, selected)),
-    });
-    const created = await createRes.json().catch(() => null);
-    if (!createRes.ok || !created?.id) {
+      setMessage('กำลังส่งสลิปเพื่อตรวจสอบ...');
+      const evidenceRes = await memberApiFetch(`/member/topups/${created.id}/slip-evidence`, {
+        method: 'POST',
+        body: JSON.stringify(serializeDepositEvidenceRequest(formValues, slipImageData, slipImageName)),
+      });
+      let evidence = await evidenceRes.json().catch(() => null);
+      if (!evidenceRes.ok && !evidence?.duplicate) {
+        const recoveryRes = await memberApiFetch(`/member/topups/${created.id}`);
+        const recovered = await recoveryRes.json().catch(() => null);
+        if (!recoveryRes.ok || !hasAcceptedDepositEvidence(recovered?.status)) {
+          setMessage(
+            `${resolveDepositError(evidence, 'ส่งสลิปไม่สำเร็จ')} รายการถูกสร้างแล้ว กดลองส่งสลิปอีกครั้งได้โดยไม่สร้างรายการซ้ำ`,
+          );
+          return;
+        }
+        evidence = recovered;
+      }
+
+      const item: TopUpItem = {
+        ...created,
+        status: evidence?.status ?? created.status,
+        duplicateOfId: evidence?.duplicateOfId ?? null,
+        duplicateReason: evidence?.reason ?? null,
+        adminNote: evidence?.message ?? created.adminNote,
+      };
+      prependHistory(item);
+      setLastRequest(item);
+      setPendingRequest(null);
+      idempotencyKeyRef.current = '';
+      setSlipImageData('');
+      setSlipImageName('');
+      setTransferExpiresAt(null);
+      setTransactionRef(DEPOSIT_FORM_DEFAULTS.transactionRef);
+      setNote(DEPOSIT_FORM_DEFAULTS.note);
+      setMessage(evidence?.duplicate ? 'สลิปนี้ถูกใช้แล้ว ระบบยกเลิกรายการนี้ทันที' : 'ส่งสลิปแล้ว รอแอดมินตรวจสอบ');
+      setStep('waiting');
+    } catch {
+      setMessage(
+        pendingRequest
+          ? 'เชื่อมต่อระบบไม่สำเร็จ รายการเดิมยังอยู่ กดลองส่งสลิปอีกครั้งได้โดยไม่สร้างรายการซ้ำ'
+          : 'เชื่อมต่อระบบไม่สำเร็จ กรุณาลองส่งอีกครั้ง ระบบจะใช้รหัสคำขอเดิมเพื่อป้องกันรายการซ้ำ',
+      );
+    } finally {
+      submissionInFlightRef.current = false;
       setLoading(false);
-      return setMessage(resolveDepositError(created, 'สร้างรายการฝากไม่สำเร็จ'));
     }
-
-    setMessage('กำลังส่งสลิปเพื่อตรวจสอบ...');
-    const evidenceRes = await memberApiFetch(`/member/topups/${created.id}/slip-evidence`, {
-      method: 'POST',
-      body: JSON.stringify(serializeDepositEvidenceRequest(formValues, slipImageData, slipImageName)),
-    });
-    const evidence = await evidenceRes.json().catch(() => null);
-    setLoading(false);
-
-    const item: TopUpItem = {
-      ...created,
-      status: evidence?.status ?? created.status,
-      duplicateOfId: evidence?.duplicateOfId ?? null,
-      duplicateReason: evidence?.reason ?? null,
-      adminNote: evidence?.message ?? created.adminNote,
-    };
-    prependHistory(item);
-    setLastRequest(item);
-    invalidateFinanceQueries(financeInvalidationRules.afterDepositCreated);
-
-    if (!evidenceRes.ok && !evidence?.duplicate) {
-      setMessage(resolveDepositError(evidence, 'ส่งสลิปไม่สำเร็จ รายการถูกสร้างแล้ว กรุณาติดต่อฝ่ายบริการ'));
-      return;
-    }
-
-    setSlipImageData('');
-    setSlipImageName('');
-    setTransferExpiresAt(null);
-    setTransactionRef(DEPOSIT_FORM_DEFAULTS.transactionRef);
-    setNote(DEPOSIT_FORM_DEFAULTS.note);
-    setMessage(evidence?.duplicate ? 'สลิปนี้ถูกใช้แล้ว ระบบยกเลิกรายการนี้ทันที' : 'ส่งสลิปแล้ว รอแอดมินตรวจสอบ');
-    setStep('waiting');
   }
 
   const remainingMs = transferExpiresAt ? Math.max(0, transferExpiresAt - now) : 0;
@@ -176,6 +213,7 @@ export default function DepositClient() {
       initialLoading={initialLoading}
       confirmOpen={confirmOpen}
       lastRequest={lastRequest}
+      hasPendingRequest={Boolean(pendingRequest)}
       parsedAmount={parsedAmount}
       availableMethods={availableMethods}
       transferExpiresAt={transferExpiresAt}
@@ -187,12 +225,26 @@ export default function DepositClient() {
       onNoteChange={setNote}
       onNextStep={nextStep}
       onUploadSlip={uploadSlip}
-      onCopyText={(value, label) => { void copyText(value, label); }}
+      onCopyText={(value, label) => {
+        void copyText(value, label);
+      }}
       onOpenConfirm={() => setConfirmOpen(true)}
       onCloseConfirm={() => setConfirmOpen(false)}
-      onSubmit={() => { void submit(); }}
-      onBackToSelect={() => { setStep('select'); setTransferExpiresAt(null); }}
-      onCreateAnother={() => { setLastRequest(null); setStep('select'); }}
+      onSubmit={() => {
+        void submit();
+      }}
+      onBackToSelect={() => {
+        setStep('select');
+        setTransferExpiresAt(null);
+        setPendingRequest(null);
+        idempotencyKeyRef.current = '';
+      }}
+      onCreateAnother={() => {
+        setLastRequest(null);
+        setPendingRequest(null);
+        idempotencyKeyRef.current = '';
+        setStep('select');
+      }}
     />
   );
 }

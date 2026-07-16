@@ -1,7 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { WithdrawalView } from '../../src/features/finance';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { createFinanceIdempotencyKey, WithdrawalView } from '../../src/features/finance';
 import { memberApiFetch } from '../member-api';
 import type {
   BonusLedger,
@@ -26,8 +26,12 @@ export default function WithdrawPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const idempotencyKeyRef = useRef('');
+  const submissionInFlightRef = useRef(false);
 
-  useEffect(() => { void loadAll(); }, []);
+  useEffect(() => {
+    void loadAll();
+  }, []);
 
   async function loadAll() {
     setIsLoading(true);
@@ -48,8 +52,9 @@ export default function WithdrawPage() {
     if (bankRes.ok) {
       const nextBanks: MemberBankAccount[] = bankData.items ?? [];
       setBanks(nextBanks);
-      const primary = nextBanks.find((item) => item.isPrimary && item.status === 'ACTIVE')
-        ?? nextBanks.find((item) => item.status === 'ACTIVE');
+      const primary =
+        nextBanks.find((item) => item.isPrimary && item.status === 'ACTIVE') ??
+        nextBanks.find((item) => item.status === 'ACTIVE');
       if (primary && !bankAccountId) setBankAccountId(primary.id);
     }
     if (!walletRes.ok || !listRes.ok || !bankRes.ok) {
@@ -82,6 +87,7 @@ export default function WithdrawPage() {
   }
 
   async function submit() {
+    if (submissionInFlightRef.current) return;
     if (bonusBlock.blocked) {
       setConfirmOpen(false);
       setMessage(bonusBlock.message);
@@ -93,36 +99,51 @@ export default function WithdrawPage() {
     setConfirmOpen(false);
     setIsSubmitting(true);
     setMessage('กำลังส่งคำขอถอน...');
-    const res = await memberApiFetch('/member/withdrawals', {
-      method: 'POST',
-      body: JSON.stringify({
-        amount: parsedAmount,
-        method,
-        accountName: selectedBank.accountName,
-        accountNumber: selectedBank.accountNumber,
-        bankName: selectedBank.bankName,
-        note,
-      }),
-    });
-    const data = await res.json().catch(() => null);
-    setIsSubmitting(false);
-    if (!res.ok) {
-      setMessage(data?.message ?? 'ส่งคำขอถอนไม่สำเร็จ');
+    submissionInFlightRef.current = true;
+    idempotencyKeyRef.current ||= createFinanceIdempotencyKey('withdrawal');
+    try {
+      const res = await memberApiFetch('/member/withdrawals', {
+        method: 'POST',
+        headers: { 'Idempotency-Key': idempotencyKeyRef.current },
+        body: JSON.stringify({
+          amount: parsedAmount,
+          method,
+          accountName: selectedBank.accountName,
+          accountNumber: selectedBank.accountNumber,
+          bankName: selectedBank.bankName,
+          note,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setMessage(
+          `${data?.message ?? 'ส่งคำขอถอนไม่สำเร็จ'} หากเป็นปัญหาเครือข่ายสามารถลองส่งอีกครั้งได้โดยไม่สร้างรายการซ้ำ`,
+        );
+        await loadAll();
+        return;
+      }
+      idempotencyKeyRef.current = '';
+      setAmount('');
+      setNote('');
+      setItems((current) => [data, ...current.filter((item) => item.id !== data.id)]);
+      setMessage('ส่งคำขอถอนสำเร็จ');
+      setStep('waiting');
+      window.dispatchEvent(new Event(MEMBER_WALLET_REFRESH_EVENT));
       await loadAll();
-      return;
+    } catch {
+      setMessage('เชื่อมต่อระบบไม่สำเร็จ กรุณาลองส่งอีกครั้ง ระบบจะใช้รหัสคำขอเดิมเพื่อป้องกันการล็อกยอดซ้ำ');
+    } finally {
+      submissionInFlightRef.current = false;
+      setIsSubmitting(false);
     }
-    setAmount('');
-    setNote('');
-    setItems((current) => [data, ...current]);
-    setMessage('ส่งคำขอถอนสำเร็จ');
-    setStep('waiting');
-    window.dispatchEvent(new Event(MEMBER_WALLET_REFRESH_EVENT));
-    await loadAll();
   }
 
   const activeBanks = useMemo(() => banks.filter((item) => item.status === 'ACTIVE'), [banks]);
   const activeBonusLedgers = useMemo(
-    () => bonusLedgers.filter((item) => !item.turnoverCompleted && ['ACTIVE', 'REVIEWING', 'PENDING'].includes(item.status)),
+    () =>
+      bonusLedgers.filter(
+        (item) => !item.turnoverCompleted && ['ACTIVE', 'REVIEWING', 'PENDING'].includes(item.status),
+      ),
     [bonusLedgers],
   );
   const bonusBlock = useMemo(() => buildBonusBlock(activeBonusLedgers), [activeBonusLedgers]);
@@ -151,16 +172,33 @@ export default function WithdrawPage() {
       parsedAmount={parsedAmount}
       selectedBank={selectedBank}
       currency={currency}
-      onMethodChange={setMethod}
-      onBankChange={setBankAccountId}
-      onAmountChange={setAmount}
-      onNoteChange={setNote}
+      onMethodChange={(value) => {
+        idempotencyKeyRef.current = '';
+        setMethod(value);
+      }}
+      onBankChange={(value) => {
+        idempotencyKeyRef.current = '';
+        setBankAccountId(value);
+      }}
+      onAmountChange={(value) => {
+        idempotencyKeyRef.current = '';
+        setAmount(value);
+      }}
+      onNoteChange={(value) => {
+        idempotencyKeyRef.current = '';
+        setNote(value);
+      }}
       onGoAmount={goAmount}
       onGoConfirm={goConfirm}
-      onStepChange={setStep}
+      onStepChange={(value) => {
+        if (value === 'account' && step === 'waiting') idempotencyKeyRef.current = '';
+        setStep(value);
+      }}
       onOpenConfirm={openConfirmModal}
       onCloseConfirm={() => setConfirmOpen(false)}
-      onSubmit={() => { void submit(); }}
+      onSubmit={() => {
+        void submit();
+      }}
     />
   );
 }

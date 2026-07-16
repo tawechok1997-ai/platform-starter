@@ -12,6 +12,7 @@ export {
   type DepositFormValues,
 } from './deposit-form';
 export { financeInvalidationRules, financeQueryKeys } from './query-keys';
+export { createFinanceIdempotencyKey, hasAcceptedDepositEvidence } from './mutation-idempotency';
 export { useDepositServerState } from './use-deposit-server-state';
 export {
   createOptimisticSnapshot,

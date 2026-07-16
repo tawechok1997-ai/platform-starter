@@ -109,7 +109,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Apply dirty-state and unsaved-change behavior to actual editable routes
 - [ ] Add Caps Lock, password-strength, OTP countdown/resend, and attempt-exhaustion patterns
 - [ ] Standardize upload type/size/content validation, preview, progress, cancel, and retry
-- [ ] Add idempotency-aware duplicate-submit protection for all financial and account mutations
+- [ ] Add idempotency-aware duplicate-submit protection for all financial and account mutations; Deposit and Withdrawal are covered
 - [ ] Add form component and browser regression tests
 
 ## MEMBER-SYSTEM-004 Server state
@@ -181,7 +181,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Add explicit file-size and content validation
 - [ ] Add upload progress, cancel, and retry
 - [ ] Add currency-formatting input and clearer min/max feedback
-- [ ] Add request idempotency and recovery when top-up creation succeeds but evidence upload fails
+- [x] Add request idempotency and recovery when top-up creation succeeds but evidence upload fails
 - [ ] Complete pending, approved, rejected, expired, retry, duplicate, and timeline browser evidence
 
 ## MEMBER-ROUTE-004 Withdrawal
@@ -191,7 +191,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Add configured min/max, presets, fee, and net-amount calculation
 - [ ] Add step-up/OTP, KYC-required, watchlist-blocked, and explicit session-expired states
 - [ ] Add cancel/retry actions and complete status timeline
-- [ ] Add idempotency-aware duplicate-submit protection
+- [x] Add idempotency-aware duplicate-submit protection
 - [ ] Complete responsive withdrawal regression
 
 ## MEMBER-ROUTE-005 Transactions, wallet, and bank accounts

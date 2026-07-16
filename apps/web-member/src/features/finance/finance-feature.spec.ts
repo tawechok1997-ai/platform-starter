@@ -10,12 +10,9 @@ import {
   serializeDepositEvidenceRequest,
   validateDepositSelection,
 } from './deposit-form';
-import {
-  createOptimisticSnapshot,
-  hasUnsavedChanges,
-  rollbackOptimisticChange,
-} from './form-regression';
+import { createOptimisticSnapshot, hasUnsavedChanges, rollbackOptimisticChange } from './form-regression';
 import { financeInvalidationRules, financeQueryKeys } from './query-keys';
+import { createFinanceIdempotencyKey, hasAcceptedDepositEvidence } from './mutation-idempotency';
 
 const account = {
   id: 'bank-1',
@@ -90,6 +87,26 @@ test('finance query keys and invalidation rules are deterministic', () => {
   ]);
 });
 
+test('financial mutation keys are stable protocol-safe values', () => {
+  assert.equal(
+    createFinanceIdempotencyKey('deposit', () => '00000000-0000-4000-8000-000000000001'),
+    'member-deposit-00000000-0000-4000-8000-000000000001',
+  );
+  assert.equal(
+    createFinanceIdempotencyKey('withdrawal', () => '00000000-0000-4000-8000-000000000002'),
+    'member-withdrawal-00000000-0000-4000-8000-000000000002',
+  );
+});
+
+test('deposit recovery only accepts statuses that prove evidence was recorded', () => {
+  for (const status of ['PENDING_SLIP_REVIEW', 'PENDING_CREDIT', 'CREDIT_CONFIRMED', 'COMPLETED', 'DUPLICATE']) {
+    assert.equal(hasAcceptedDepositEvidence(status), true);
+  }
+  assert.equal(hasAcceptedDepositEvidence('PENDING'), false);
+  assert.equal(hasAcceptedDepositEvidence('REJECTED'), false);
+  assert.equal(hasAcceptedDepositEvidence(null), false);
+});
+
 test('unsaved-change detection only reports meaningful form divergence', () => {
   const persisted = { amount: '500', note: '', metadata: { method: 'bank_transfer' } };
   assert.equal(hasUnsavedChanges(persisted, persisted), false);
@@ -116,4 +133,14 @@ test('extracted presentation components keep route orchestration out of views', 
   }
   assert.match(depositView, /export function DepositView/);
   assert.match(withdrawalView, /export function WithdrawalView/);
+});
+
+test('deposit and withdrawal route mutations send idempotency keys and block concurrent handlers', () => {
+  const depositRoute = fs.readFileSync(new URL('../../../app/deposit/deposit-client.tsx', import.meta.url), 'utf8');
+  const withdrawalRoute = fs.readFileSync(new URL('../../../app/withdraw/page.tsx', import.meta.url), 'utf8');
+  for (const source of [depositRoute, withdrawalRoute]) {
+    assert.match(source, /'Idempotency-Key'/);
+    assert.match(source, /submissionInFlightRef\.current/);
+  }
+  assert.match(depositRoute, /hasAcceptedDepositEvidence/);
 });
