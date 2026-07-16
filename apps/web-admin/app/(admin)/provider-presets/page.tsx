@@ -4,24 +4,26 @@ import { useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage, AdminRow, AdminStack } from '../_components/admin-ui';
 
-const presets = [
+type Preset = { name: string; code: string; mode: string; risk: string; endpoints: string[]; credentials: string[]; gates: string[] };
+
+const defaultPreset: Preset = { name: 'โยกเงินทั่วไป', code: 'generic-transfer', mode: 'TRANSFER', risk: 'Market', endpoints: ['LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'GAME_LIST', 'WEBHOOK', 'HEALTH_CHECK'], credentials: ['API_KEY', 'SECRET_KEY', 'MERCHANT_ID', 'WEBHOOK_SECRET'], gates: ['launchEnabled', 'walletSyncEnabled'] };
+const presets: Preset[] = [
   { name: 'เดโม', code: 'demo-provider', mode: 'TRANSFER', risk: 'Safe', endpoints: ['LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'WEBHOOK', 'HEALTH_CHECK'], credentials: ['API_KEY', 'WEBHOOK_SECRET'], gates: ['launchEnabled', 'transferEnabled', 'walletSyncEnabled'] },
   { name: 'จำลองระบบค่าย', code: 'simulator-provider', mode: 'TRANSFER', risk: 'Safe', endpoints: ['LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'WEBHOOK', 'HEALTH_CHECK'], credentials: ['API_KEY', 'WEBHOOK_SECRET'], gates: ['launchEnabled', 'transferEnabled', 'walletSyncEnabled'] },
-  { name: 'โยกเงินทั่วไป', code: 'generic-transfer', mode: 'TRANSFER', risk: 'Market', endpoints: ['LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'GAME_LIST', 'WEBHOOK', 'HEALTH_CHECK'], credentials: ['API_KEY', 'SECRET_KEY', 'MERCHANT_ID', 'WEBHOOK_SECRET'], gates: ['launchEnabled', 'walletSyncEnabled'] },
+  defaultPreset,
   { name: 'Seamless ขั้นสูง', code: 'generic-seamless', mode: 'SEAMLESS', risk: 'Advanced', endpoints: ['LAUNCH', 'BALANCE', 'BET_HISTORY', 'WEBHOOK', 'HEALTH_CHECK'], credentials: ['API_KEY', 'SECRET_KEY', 'AGENT_ID', 'WEBHOOK_SECRET'], gates: ['launchEnabled', 'webhookSettlementEnabled'] },
   { name: 'ค่ายจริงแบบปรับเอง', code: 'real-provider', mode: 'HYBRID', risk: 'Danger', endpoints: ['LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'GAME_LIST', 'BET_HISTORY', 'WEBHOOK', 'HEALTH_CHECK'], credentials: ['API_KEY', 'SECRET_KEY', 'MERCHANT_ID', 'AGENT_ID', 'WEBHOOK_SECRET'], gates: ['launchEnabled'] },
 ];
-type Preset = typeof presets[number];
 
 export default function ProviderPresetsPage() {
   const [message, setMessage] = useState('');
   const [working, setWorking] = useState(false);
-  const [selected, setSelected] = useState<Preset>(presets[2]);
-  const [form, setForm] = useState({ name: 'Generic Transfer UAT', code: 'generic-transfer-uat', baseUrl: 'https://provider.example.test/api', apiKey: '', secretKey: '', merchantId: '', agentId: '', webhookSecret: '', enabledEndpoints: presets[2].endpoints });
+  const [selected, setSelected] = useState<Preset>(defaultPreset);
+  const [form, setForm] = useState({ name: 'Generic Transfer UAT', code: 'generic-transfer-uat', baseUrl: 'https://provider.example.test/api', apiKey: '', secretKey: '', merchantId: '', agentId: '', webhookSecret: '', enabledEndpoints: [...defaultPreset.endpoints] });
   const endpointPreview = useMemo(() => form.enabledEndpoints.map((type) => ({ type, url: `${form.baseUrl.replace(/\/+$/, '')}/${type.toLowerCase().replaceAll('_', '-')}` })), [form.baseUrl, form.enabledEndpoints]);
   const filledCredentials = useMemo(() => selected.credentials.filter((credential) => Boolean(credentialValue(credential, form))), [selected, form]);
   const missingCredentials = selected.credentials.filter((credential) => !filledCredentials.includes(credential));
-  function choosePreset(preset: Preset) { setSelected(preset); setForm((current) => ({ ...current, name: `${preset.name} UAT`, code: `${preset.code}-uat`, enabledEndpoints: preset.endpoints })); setMessage(''); }
+  function choosePreset(preset: Preset) { setSelected(preset); setForm((current) => ({ ...current, name: `${preset.name} UAT`, code: `${preset.code}-uat`, enabledEndpoints: [...preset.endpoints] })); setMessage(''); }
   function update(key: keyof typeof form, value: string | string[]) { setForm((current) => ({ ...current, [key]: value })); }
   function toggleEndpoint(endpoint: string) { setForm((current) => ({ ...current, enabledEndpoints: current.enabledEndpoints.includes(endpoint) ? current.enabledEndpoints.filter((item) => item !== endpoint) : [...current.enabledEndpoints, endpoint] })); }
   async function applyPreset() { if (!form.name.trim() || !form.code.trim() || !form.baseUrl.trim()) { setMessage('กรอกชื่อค่าย / รหัสค่าย / Base URL ให้ครบก่อน'); return; } if (form.enabledEndpoints.length === 0) { setMessage('ต้องเลือก URL API อย่างน้อย 1 รายการ'); return; } if (missingCredentials.length > 0 && !window.confirm(`ยังไม่ได้กรอก: ${missingCredentials.map(credentialLabel).join(', ')} ยืนยันสร้างไว้ก่อนใช่ไหม?`)) return; setWorking(true); setMessage('กำลังสร้างค่าย...'); const res = await adminApiFetch('/admin/provider-presets/apply', { method: 'POST', body: JSON.stringify({ presetCode: selected.code, name: form.name, code: form.code, baseUrl: form.baseUrl, enabledEndpoints: form.enabledEndpoints, endpointOverrides: endpointPreview, apiKey: form.apiKey, secretKey: form.secretKey, merchantId: form.merchantId, agentId: form.agentId, webhookSecret: form.webhookSecret, status: 'INACTIVE' }) }); const data = await res.json().catch(() => null); setWorking(false); if (!res.ok || !data?.ok) { setMessage(data?.message ?? 'สร้างค่ายไม่สำเร็จ'); return; } setMessage(`สร้างค่ายแล้ว: ${data.provider?.name ?? form.name}`); window.location.href = '/simple-game-settings'; }
