@@ -246,6 +246,15 @@ export function GameRail({ title, href, items }: { title: string; href: string; 
   );
 }
 
+export function GameRailSkeleton() {
+  return <section className="member-home-game-skeleton" aria-label="กำลังโหลดเกม" aria-busy="true">{Array.from({ length: 4 }, (_, index) => <div key={index} className="member-home-game-skeleton__card"><span /><strong /><small /></div>)}</section>;
+}
+
+export function GameLobbyState({ tone, message, onRetry }: { tone: 'empty' | 'error'; message?: string; onRetry?: () => void }) {
+  if (tone === 'error') return <MemberNotice tone="danger"><strong>โหลดเกมไม่สำเร็จ</strong><span>{message || 'กรุณาลองใหม่อีกครั้ง'}</span>{onRetry && <MemberButton onClick={onRetry}>ลองใหม่</MemberButton>}</MemberNotice>;
+  return <MemberEmptyState compact title="ยังไม่มีเกมให้แสดง" description="เกมที่เปิดให้บริการจะแสดงในหน้านี้" actionHref="/games" actionLabel="ไปหน้าเกม" />;
+}
+
 export function CategoryList({ categories }: { categories: string[]; primaryColor: string }) {
   const safeCategories = safeArray(categories).filter((item): item is string => typeof item === 'string');
   return (
