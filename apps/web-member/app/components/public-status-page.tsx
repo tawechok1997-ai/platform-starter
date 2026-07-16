@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 export function PublicStatusPage({ eyebrow, title, description, children, primaryHref = '/login', primaryLabel = 'เข้าสู่ระบบ' }: { eyebrow: string; title: string; description: string; children?: ReactNode; primaryHref?: string; primaryLabel?: string }) {
@@ -8,8 +9,8 @@ export function PublicStatusPage({ eyebrow, title, description, children, primar
       <p>{description}</p>
       {children && <div className="public-status-content">{children}</div>}
       <div className="public-status-actions">
-        <a className="public-status-primary" href={primaryHref}>{primaryLabel}</a>
-        <a className="public-status-secondary" href="/">หน้าแรก</a>
+        <Link className="public-status-primary" href={primaryHref}>{primaryLabel}</Link>
+        <Link className="public-status-secondary" href="/">หน้าแรก</Link>
       </div>
     </section>
   </main>;
