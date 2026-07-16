@@ -1,7 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { defaultSettings, loadPublicSiteSettings, PublicSiteSettings, textSetting } from '../site-settings';
+
+type ContactChannel = readonly [label: string, value: string, href: string];
 
 export default function ContactPage() {
   const [settings, setSettings] = useState<PublicSiteSettings>(defaultSettings);
@@ -11,17 +14,17 @@ export default function ContactPage() {
   const backgroundColor = textSetting(settings, 'branding', 'background_color', '#080808');
   const cardColor = textSetting(settings, 'branding', 'card_color', '#181818');
   const textColor = textSetting(settings, 'branding', 'text_color', '#ffffff');
-  const channels = [
+  const channels: ContactChannel[] = [
     ['LINE', textSetting(settings, 'contact', 'line_oa', ''), textSetting(settings, 'contact', 'line_url', '')],
     ['Telegram', textSetting(settings, 'contact', 'telegram', ''), textSetting(settings, 'contact', 'telegram_url', '')],
     ['Facebook', textSetting(settings, 'contact', 'facebook', ''), textSetting(settings, 'contact', 'facebook_url', '')],
     ['Live Chat', 'ติดต่อทีมช่วยเหลือ', textSetting(settings, 'contact', 'live_chat_url', '')],
     ['โทรศัพท์', textSetting(settings, 'contact', 'phone', ''), ''],
     ['อีเมล', textSetting(settings, 'contact', 'email', ''), ''],
-  ].filter(([, value, href]) => value || href);
+  ].filter(([, value, href]) => Boolean(value || href));
   const hours = textSetting(settings, 'contact', 'support_hours', 'ให้บริการทุกวัน');
   const address = textSetting(settings, 'contact', 'address', '');
-  return <main style={{ ...pageStyle, background: backgroundColor, color: textColor }}><section style={{ ...cardStyle, background: cardColor }}><a href="/" style={{ ...backStyle, color: primaryColor }}>← {siteName}</a><span style={{ ...eyebrowStyle, color: primaryColor }}>Contact</span><h1 style={titleStyle}>ติดต่อเรา</h1><p style={mutedStyle}>{hours}</p><div style={gridStyle}>{channels.map(([label, value, href]) => <ContactCard key={label} label={label} value={value} href={href} primaryColor={primaryColor} />)}</div>{address && <div style={addressStyle}><strong>ที่อยู่</strong><span>{address}</span></div>}</section></main>;
+  return <main style={{ ...pageStyle, background: backgroundColor, color: textColor }}><section style={{ ...cardStyle, background: cardColor }}><Link href="/" style={{ ...backStyle, color: primaryColor }}>← {siteName}</Link><span style={{ ...eyebrowStyle, color: primaryColor }}>Contact</span><h1 style={titleStyle}>ติดต่อเรา</h1><p style={mutedStyle}>{hours}</p><div style={gridStyle}>{channels.map(([label, value, href]) => <ContactCard key={label} label={label} value={value} href={href} primaryColor={primaryColor} />)}</div>{address && <div style={addressStyle}><strong>ที่อยู่</strong><span>{address}</span></div>}</section></main>;
 }
 
 function ContactCard({ label, value, href, primaryColor }: { label: string; value: string; href: string; primaryColor: string }) {
