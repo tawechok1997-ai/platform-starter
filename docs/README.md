@@ -18,6 +18,7 @@ This index connects the repository documentation so implementation work starts f
 - [`UI_MOTION_ANIMATION_CONTRACT.md`](UI_MOTION_ANIMATION_CONTRACT.md) — motion tokens, approved animations, reduced motion, and performance gates.
 - [`MEMBER_UI_PRODUCT_BRIEF.md`](MEMBER_UI_PRODUCT_BRIEF.md) — active Member-only product hierarchy, page order, card density, copy, responsive layout, and motion brief.
 - [`MEMBER_TYPOGRAPHY_CONTRACT.md`](MEMBER_TYPOGRAPHY_CONTRACT.md) — Member Thai/English font roles, numeric treatment, loading, wrapping, and typography QA.
+- [`MEMBER_COLOR_ICON_CONTRACT.md`](MEMBER_COLOR_ICON_CONTRACT.md) — Member dark palette, surface depth, semantic states, borders, shadows, glow, and Lucide icon rules.
 - [`MEMBER_UX_UI_TOOLING.md`](MEMBER_UX_UI_TOOLING.md) — Member route/tooling worklist.
 - [`ADMIN_UX_UI_REDESIGN.md`](ADMIN_UX_UI_REDESIGN.md) — Admin route/redesign worklist.
 - [`MEMBER_ROUTE_MATRIX.md`](MEMBER_ROUTE_MATRIX.md) — Member route ownership, APIs, flags, deep links, and state gaps.

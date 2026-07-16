@@ -18,8 +18,9 @@ Full documentation map: [`docs/README.md`](docs/README.md).
 6. [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](docs/UI_MOTION_ANIMATION_CONTRACT.md) — motion tokens, approved patterns, reduced-motion, and performance rules.
 7. [`docs/MEMBER_UI_PRODUCT_BRIEF.md`](docs/MEMBER_UI_PRODUCT_BRIEF.md) — current Member-only hierarchy, page order, card rules, copy, responsive layout, and motion brief.
 8. [`docs/MEMBER_TYPOGRAPHY_CONTRACT.md`](docs/MEMBER_TYPOGRAPHY_CONTRACT.md) — Thai/English font roles, numeric treatment, loading, and typography QA.
-9. [`docs/MEMBER_UX_UI_TOOLING.md`](docs/MEMBER_UX_UI_TOOLING.md) — current route-specific acceptance criteria.
-10. [`docs/MEMBER_ROUTE_MATRIX.md`](docs/MEMBER_ROUTE_MATRIX.md) and [`docs/ux-regression-matrix-finance-operations.md`](docs/ux-regression-matrix-finance-operations.md) — route ownership and regression states.
+9. [`docs/MEMBER_COLOR_ICON_CONTRACT.md`](docs/MEMBER_COLOR_ICON_CONTRACT.md) — dark palette, semantic color states, depth, borders, shadows, glow, and Lucide icon rules.
+10. [`docs/MEMBER_UX_UI_TOOLING.md`](docs/MEMBER_UX_UI_TOOLING.md) — current route-specific acceptance criteria.
+11. [`docs/MEMBER_ROUTE_MATRIX.md`](docs/MEMBER_ROUTE_MATRIX.md) and [`docs/ux-regression-matrix-finance-operations.md`](docs/ux-regression-matrix-finance-operations.md) — route ownership and regression states.
 
 When documents conflict, preserve financial/security/architecture rules first, then the canonical menu and consistency contracts, then route-specific polish. Update the source-of-truth document when resolving a conflict; do not silently create a third rule.
 

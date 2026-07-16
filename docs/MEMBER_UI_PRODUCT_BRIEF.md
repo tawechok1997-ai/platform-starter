@@ -4,6 +4,7 @@ Updated: 2026-07-16
 Scope: Member only. Admin is out of scope for the current implementation phase.
 
 Typography source of truth: [`MEMBER_TYPOGRAPHY_CONTRACT.md`](./MEMBER_TYPOGRAPHY_CONTRACT.md).
+Color and icon source of truth: [`MEMBER_COLOR_ICON_CONTRACT.md`](./MEMBER_COLOR_ICON_CONTRACT.md).
 
 This brief is the practical product target for the Member redesign. It combines the supplied reference boards with the current product requirements: entertainment quality with financial clarity, premium without clutter, useful motion without visual noise.
 
@@ -130,7 +131,7 @@ The Home page is not an Admin KPI dashboard. It should prioritize the member’s
 
 ## Member visual system
 
-- [ ] Use one approved Member accent token from branding/site settings. The LUX88 reference uses gold; do not mix gold and purple accent systems on the same surface.
+- [ ] Use the canonical Member purple-blue accent token from `MEMBER_COLOR_ICON_CONTRACT.md`; gold is reserved for meaningful prize/reward emphasis, not as a second global accent.
 - [ ] Keep background/surface/text/border/status tokens centralized under the existing design-token contract.
 - [ ] Use one Thai/Latin font hierarchy: hero 32–44px, page 28–32px, section 20–24px, card 16–18px, body 14–16px, label 13–14px, caption 12px.
 - [ ] Apply the Member typography contract by role: LINE Seed Sans TH for Thai/UI, Inter for numeric and English-first data, and Mono only for references.
