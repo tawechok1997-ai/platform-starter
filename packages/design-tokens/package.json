@@ -1,0 +1,17 @@
+{
+  "name": "@platform/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "./src/tokens.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./css": "./src/tokens.css"
+  },
+  "scripts": {
+    "lint": "eslint src --max-warnings=0",
+    "typecheck": "tsc --noEmit --allowImportingTsExtensions false --moduleResolution Bundler --module ESNext --target ES2022 --strict src/index.ts"
+  }
+}
