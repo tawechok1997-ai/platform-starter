@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "build": "prisma generate --schema ../../prisma/schema.prisma && nest build && node ../../tools/check-api-build-artifact.mjs",
+    "build": "node ../../tools/audit-typescript-config-boundaries.mjs && prisma generate --schema ../../prisma/schema.prisma && nest build && node ../../tools/check-api-build-artifact.mjs",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "start:prod": "node dist/main.js",
