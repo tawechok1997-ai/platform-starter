@@ -1,9 +1,19 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { API_URL, CmsContent, MemberFeatureFlags, SiteIconSettings, cmsAssetUrl, defaultIconSettings, isIconUrl } from '../site-settings';
+import {
+  API_URL,
+  type CmsContent,
+  type MemberFeatureFlags,
+  type SiteIconSettings,
+  cmsAssetUrl,
+  defaultIconSettings,
+  isIconUrl,
+} from '../site-settings';
 import { navigationFor } from '../member-navigation';
 import { MemberIcon } from './member-icon';
+import { MemberRuntimeImage } from './member-runtime-image';
 import type { Game, LedgerItem, MoneyRequest } from '../types/member-api';
 import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNotice } from './member-ui';
 
@@ -34,6 +44,7 @@ export function HomeHero({
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
+
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => setReduceMotion(mediaQuery.matches);
@@ -41,26 +52,49 @@ export function HomeHero({
     mediaQuery.addEventListener?.('change', update);
     return () => mediaQuery.removeEventListener?.('change', update);
   }, []);
+
   useEffect(() => {
     if (slides.length < 2 || isPaused || reduceMotion) return;
-    const timer = window.setInterval(() => setActiveIndex((current) => (current + 1) % slides.length), 5000);
+    const timer = window.setInterval(
+      () => setActiveIndex((current) => (current + 1) % slides.length),
+      5000,
+    );
     return () => window.clearInterval(timer);
   }, [isPaused, reduceMotion, slides.length]);
+
   const slide = slides[activeIndex % slides.length] ?? slides[0];
   if (!slide) return null;
   const imageUrl = resolveCmsUrl(cmsAssetUrl(content, slide.assetId) || slide.imageUrl || '');
   const nextSlide = slides[(activeIndex + 1) % slides.length];
-  const nextImageUrl = nextSlide ? resolveCmsUrl(cmsAssetUrl(content, nextSlide.assetId) || nextSlide.imageUrl || '') : '';
+  const nextImageUrl = nextSlide
+    ? resolveCmsUrl(cmsAssetUrl(content, nextSlide.assetId) || nextSlide.imageUrl || '')
+    : '';
+
   return (
-    <section className="member-home-hero" aria-label="โปรโมชั่น" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} onFocus={() => setIsPaused(true)} onBlur={() => setIsPaused(false)}>
+    <section
+      className="member-home-hero"
+      aria-label="โปรโมชั่น"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
+    >
       {nextImageUrl && <link rel="preload" as="image" href={nextImageUrl} />}
-      <a
+      <RuntimeNavigationLink
         href={slide.href || '/promotions'}
         className="member-home-hero__slide-link"
-        aria-label={slide.title || siteName}
+        ariaLabel={slide.title || siteName}
       >
-        <img src={imageUrl} alt={slide.title || siteName} className="member-home-hero__image" />
-      </a>
+        <MemberRuntimeImage
+          src={imageUrl}
+          alt={slide.title || siteName}
+          className="member-home-hero__image"
+          width={1600}
+          height={600}
+          priority
+          sizes="100vw"
+        />
+      </RuntimeNavigationLink>
       {slides.length > 1 && (
         <div className="member-home-hero__dots" aria-label="เลือกโปรโมชั่น">
           {slides.map((item, index) => (
@@ -82,22 +116,28 @@ export function HomeHero({
 export function PromotionSlotGrid({ content }: { content: CmsContent }) {
   const slots = safeArray(content?.banners)
     .filter((item) => item?.enabled && (cmsAssetUrl(content, item.assetId) || item.imageUrl))
-    // The first banner already occupies the hero; secondary cards should not repeat it.
     .slice(1, 4);
   if (!slots.length) return null;
+
   return (
     <section className="member-promo-slots" aria-label="โปรโมชั่นแนะนำ">
       {slots.map((slot, index) => {
         const imageUrl = resolveCmsUrl(cmsAssetUrl(content, slot.assetId) || slot.imageUrl || '');
         return (
-          <a
+          <RuntimeNavigationLink
             key={`${slot.title || 'promotion'}-${index}`}
             href={slot.href || '/promotions'}
             className="member-promo-slot"
           >
-            <img src={imageUrl} alt="" loading="lazy" decoding="async" />
+            <MemberRuntimeImage
+              src={imageUrl}
+              alt={slot.title || 'โปรโมชั่น'}
+              width={800}
+              height={450}
+              sizes="(max-width: 720px) 92vw, 33vw"
+            />
             <span>{slot.title || 'โปรโมชั่น'}</span>
-          </a>
+          </RuntimeNavigationLink>
         );
       })}
     </section>
@@ -110,9 +150,9 @@ export function LobbyTabs() {
       <a className="active" href="#highlights">
         <MemberIcon name="games" /> <span>ไฮไลท์</span>
       </a>
-      <a href="/promotions">
+      <Link href="/promotions">
         <MemberIcon name="promotion" /> <span>โปรโมชั่นแนะนำ</span>
-      </a>
+      </Link>
       <a href="#activities">
         <MemberIcon name="bonus" /> <span>กิจกรรม</span>
       </a>
@@ -123,9 +163,15 @@ export function LobbyTabs() {
 export function TournamentSection() {
   return (
     <section className="member-tournament-section" id="highlights">
-      <a className="member-lobby-promo-card" href="/games">
-        <img src="/images/member-lobby/promotions/tournament-reference.jpeg" alt="Tournament" />
-      </a>
+      <Link className="member-lobby-promo-card" href="/games">
+        <MemberRuntimeImage
+          src="/images/member-lobby/promotions/tournament-reference.jpeg"
+          alt="Tournament"
+          width={1600}
+          height={600}
+          sizes="100vw"
+        />
+      </Link>
       <div className="member-tournament-title">
         <MemberIcon name="bonus" />
         <strong>ทัวร์นาเมนต์</strong>
@@ -147,9 +193,12 @@ export function AnnouncementList({ content }: { content: CmsContent }) {
     .slice(0, 3);
   if (!items.length) return null;
   const first = items[0];
+
   return (
     <div className="member-announcement-strip" role="status">
-      <span className="member-announcement-strip__icon"><MemberIcon name="notification" /></span>
+      <span className="member-announcement-strip__icon">
+        <MemberIcon name="notification" />
+      </span>
       <div className="member-announcement-marquee">
         <span>{first?.message || first?.title || ''}</span>
       </div>
@@ -162,18 +211,25 @@ export function QuickActions({ icons, features }: { icons: SiteIconSettings; fea
   const items = navigationFor('home', features)
     .filter((item) => quickActionKeys.has(item.key))
     .slice(0, 4);
+
   return (
     <section className="member-quick-panel">
       {items.map((item) => {
         const icon = typeof icons?.[item.iconKey] === 'string' ? icons[item.iconKey] : '';
         return (
-          <a key={item.key} href={item.href} className="member-quick-action">
+          <Link key={item.key} href={item.href} className="member-quick-action">
             <span className="member-home-quick-icon">
-              {isIconUrl(icon) ? <img src={icon} alt="" /> : icon === defaultIconSettings[item.iconKey] ? <MemberIcon name={item.iconKey} /> : icon}
+              {isIconUrl(icon) ? (
+                <MemberRuntimeImage src={icon} alt="" width={32} height={32} sizes="32px" />
+              ) : icon === defaultIconSettings[item.iconKey] ? (
+                <MemberIcon name={item.iconKey} />
+              ) : (
+                icon
+              )}
             </span>
             <strong>{item.shortTitle ?? item.title}</strong>
             <span>{item.description}</span>
-          </a>
+          </Link>
         );
       })}
     </section>
@@ -194,6 +250,7 @@ export function PendingRequests({
   const withdrawals = safeArray(pendingWithdrawals);
   const count = topups.length + withdrawals.length;
   if (!count) return null;
+
   return (
     <MemberCard tone="warning" className="member-home-panel--brand">
       <div className="member-home-section-head">
@@ -201,7 +258,7 @@ export function PendingRequests({
           <p>รอดำเนินการ</p>
           <h2>{count} รายการ</h2>
         </div>
-        <a href="/transactions">ดูทั้งหมด</a>
+        <Link href="/transactions">ดูทั้งหมด</Link>
       </div>
       <div className="member-home-list">
         {features.deposit &&
@@ -210,7 +267,12 @@ export function PendingRequests({
           ))}
         {features.withdraw &&
           withdrawals.map((item, index) => (
-            <ActivityRow key={item?.id || `withdrawal-${index}`} title="ถอนเงิน" href="/withdraw" item={item} />
+            <ActivityRow
+              key={item?.id || `withdrawal-${index}`}
+              title="ถอนเงิน"
+              href="/withdraw"
+              item={item}
+            />
           ))}
       </div>
     </MemberCard>
@@ -220,26 +282,33 @@ export function PendingRequests({
 export function GameRail({ title, href, items }: { title: string; href: string; items: Game[]; primaryColor: string }) {
   const games = safeArray(items).filter((game) => game && typeof game === 'object');
   if (!games.length) return null;
+
   return (
     <MemberCard>
       <div className="member-home-section-head">
         <h2>{title}</h2>
-        <a href={href}>ดูทั้งหมด</a>
+        <Link href={href}>ดูทั้งหมด</Link>
       </div>
       <div className="member-home-game-rail">
         {games.slice(0, 8).map((game, index) => {
           const name = typeof game.name === 'string' && game.name.trim() ? game.name : 'เกม';
           const image = pickImage(game);
           return (
-            <a key={game.id || `${name}-${index}`} href="/games" className="member-home-game-tile">
+            <Link key={game.id || `${name}-${index}`} href="/games" className="member-home-game-tile">
               {image ? (
-                <img src={image} alt="" />
+                <MemberRuntimeImage
+                  src={image}
+                  alt={name}
+                  width={240}
+                  height={240}
+                  sizes="(max-width: 720px) 42vw, 180px"
+                />
               ) : (
                 <div className="member-home-game-fallback">{name.slice(0, 2).toUpperCase()}</div>
               )}
               <strong>{name}</strong>
               <span>{game.provider?.name ?? game.providerGameCode ?? ''}</span>
-            </a>
+            </Link>
           );
         })}
       </div>
@@ -248,12 +317,46 @@ export function GameRail({ title, href, items }: { title: string; href: string; 
 }
 
 export function GameRailSkeleton() {
-  return <section className="member-home-game-skeleton" aria-label="กำลังโหลดเกม" aria-busy="true">{Array.from({ length: 4 }, (_, index) => <div key={index} className="member-home-game-skeleton__card"><span /><strong /><small /></div>)}</section>;
+  return (
+    <section className="member-home-game-skeleton" aria-label="กำลังโหลดเกม" aria-busy="true">
+      {Array.from({ length: 4 }, (_, index) => (
+        <div key={index} className="member-home-game-skeleton__card">
+          <span />
+          <strong />
+          <small />
+        </div>
+      ))}
+    </section>
+  );
 }
 
-export function GameLobbyState({ tone, message, onRetry }: { tone: 'empty' | 'error'; message?: string; onRetry?: () => void }) {
-  if (tone === 'error') return <MemberNotice tone="danger"><strong>โหลดเกมไม่สำเร็จ</strong><span>{message || 'กรุณาลองใหม่อีกครั้ง'}</span>{onRetry && <MemberButton onClick={onRetry}>ลองใหม่</MemberButton>}</MemberNotice>;
-  return <MemberEmptyState compact title="ยังไม่มีเกมให้แสดง" description="เกมที่เปิดให้บริการจะแสดงในหน้านี้" actionHref="/games" actionLabel="ไปหน้าเกม" />;
+export function GameLobbyState({
+  tone,
+  message,
+  onRetry,
+}: {
+  tone: 'empty' | 'error';
+  message?: string | undefined;
+  onRetry?: (() => void) | undefined;
+}) {
+  if (tone === 'error') {
+    return (
+      <MemberNotice tone="danger">
+        <strong>โหลดเกมไม่สำเร็จ</strong>
+        <span>{message || 'กรุณาลองใหม่อีกครั้ง'}</span>
+        {onRetry && <MemberButton onClick={onRetry}>ลองใหม่</MemberButton>}
+      </MemberNotice>
+    );
+  }
+  return (
+    <MemberEmptyState
+      compact
+      title="ยังไม่มีเกมให้แสดง"
+      description="เกมที่เปิดให้บริการจะแสดงในหน้านี้"
+      actionHref="/games"
+      actionLabel="ไปหน้าเกม"
+    />
+  );
 }
 
 export function CategoryList({ categories }: { categories: string[]; primaryColor: string }) {
@@ -262,13 +365,17 @@ export function CategoryList({ categories }: { categories: string[]; primaryColo
     <MemberCard>
       <div className="member-home-section-head">
         <h2>หมวดเกม</h2>
-        <a href="/games">ดูทั้งหมด</a>
+        <Link href="/games">ดูทั้งหมด</Link>
       </div>
       <div className="member-home-categories">
         {safeCategories.slice(0, 8).map((item) => (
-          <a key={item} href={`/games?category=${encodeURIComponent(item)}`} className="member-home-category-pill">
+          <Link
+            key={item}
+            href={`/games?category=${encodeURIComponent(item)}`}
+            className="member-home-category-pill"
+          >
             {categoryLabel(item)}
-          </a>
+          </Link>
         ))}
         {safeCategories.length === 0 && <span className="member-home-muted">ยังไม่มีหมวดเกม</span>}
       </div>
@@ -281,6 +388,7 @@ export function FaqList({ content }: { content: CmsContent }) {
     .filter((item) => item?.enabled)
     .slice(0, 4);
   if (!items.length) return null;
+
   return (
     <MemberCard>
       <div className="member-home-section-head">
@@ -301,14 +409,16 @@ export function FaqList({ content }: { content: CmsContent }) {
 export function SupportCard() {
   return (
     <MemberCard className="member-home-support-card">
-      <div className="member-home-support-card__icon"><MemberIcon name="support" /></div>
+      <div className="member-home-support-card__icon">
+        <MemberIcon name="support" />
+      </div>
       <div className="member-home-support-card__copy">
         <h2>ต้องการความช่วยเหลือ?</h2>
         <p>ติดต่อทีมงานหรือดูคู่มือการใช้งานได้จากที่นี่</p>
       </div>
       <div className="member-home-support-card__actions">
-        <a href="/support">เปิด Ticket</a>
-        <a href="/guide">ดูคู่มือ</a>
+        <Link href="/support">เปิด Ticket</Link>
+        <Link href="/guide">ดูคู่มือ</Link>
       </div>
     </MemberCard>
   );
@@ -333,7 +443,7 @@ export function RecentActivity({
     <MemberCard>
       <div className="member-home-section-head">
         <h2>ล่าสุด</h2>
-        <a href="/transactions">ทั้งหมด</a>
+        <Link href="/transactions">ทั้งหมด</Link>
       </div>
       {loading && <MemberNotice>กำลังโหลด...</MemberNotice>}
       {message && (
@@ -361,17 +471,34 @@ export function RecentActivity({
   );
 }
 
-export function CmsPopup({ content, onClose }: { content: CmsContent; primaryColor: string; onClose: () => void }) {
+export function CmsPopup({
+  content,
+  onClose,
+}: {
+  content: CmsContent;
+  primaryColor: string;
+  onClose: () => void;
+}) {
   const popup = content?.popup;
   if (!popup || typeof popup !== 'object') return null;
   const imageUrl = resolveCmsUrl(cmsAssetUrl(content, popup.assetId) || popup.imageUrl || '');
+
   return (
     <div className="member-home-popup">
       <MemberCard tone="brand" className="member-home-popup__card">
         <button type="button" onClick={onClose} className="member-home-popup__close">
           ×
         </button>
-        {imageUrl && <img src={imageUrl} alt="" className="member-home-popup__image" />}
+        {imageUrl && (
+          <MemberRuntimeImage
+            src={imageUrl}
+            alt={popup.title || 'ประกาศ'}
+            className="member-home-popup__image"
+            width={720}
+            height={720}
+            sizes="(max-width: 720px) 86vw, 520px"
+          />
+        )}
         <h2>{popup.title || 'ประกาศ'}</h2>
         <p className="member-home-muted">{popup.message || ''}</p>
         <MemberLinkButton href={popup.href || '/'} tone="brand">
@@ -385,6 +512,7 @@ export function CmsPopup({ content, onClose }: { content: CmsContent; primaryCol
 function safeArray<T>(value: T[] | null | undefined): T[] {
   return Array.isArray(value) ? value : [];
 }
+
 function resolveCmsUrl(value: string) {
   return typeof value === 'string' && value.startsWith('/public/cms-assets/')
     ? `${API_URL.replace(/\/$/, '')}${value}`
@@ -392,9 +520,35 @@ function resolveCmsUrl(value: string) {
       ? value
       : '';
 }
+
+function RuntimeNavigationLink({
+  href,
+  className,
+  ariaLabel,
+  children,
+}: {
+  href: string;
+  className?: string | undefined;
+  ariaLabel?: string | undefined;
+  children: React.ReactNode;
+}) {
+  if (href.startsWith('/') || href.startsWith('#')) {
+    return (
+      <Link href={href} className={className} aria-label={ariaLabel}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <a href={href} className={className} aria-label={ariaLabel} rel="noopener noreferrer">
+      {children}
+    </a>
+  );
+}
+
 function ActivityRow({ title, href, item }: { title: string; href: string; item: MoneyRequest }) {
   return (
-    <a href={href} className="member-home-row member-home-row--link">
+    <Link href={href} className="member-home-row member-home-row--link">
       <div>
         <strong>{title}</strong>
         <span>{formatDate(item?.createdAt)}</span>
@@ -403,9 +557,10 @@ function ActivityRow({ title, href, item }: { title: string; href: string; item:
         <strong>{formatMoney(item?.amount, item?.currency)}</strong>
         <span>{statusLabel(item?.status)}</span>
       </div>
-    </a>
+    </Link>
   );
 }
+
 function LedgerRow({ item }: { item: LedgerItem }) {
   const isCredit = item?.direction === 'CREDIT';
   return (
@@ -423,10 +578,12 @@ function LedgerRow({ item }: { item: LedgerItem }) {
     </div>
   );
 }
+
 function formatDate(value: unknown) {
   const date = new Date(typeof value === 'string' || typeof value === 'number' ? value : 0);
   return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('th-TH');
 }
+
 function ledgerTypeLabel(type: unknown) {
   const upper = typeof type === 'string' ? type.toUpperCase() : '';
   if (upper.includes('DEPOSIT') || upper.includes('TOPUP')) return 'ฝาก';
@@ -436,6 +593,7 @@ function ledgerTypeLabel(type: unknown) {
   if (upper.includes('ADJUST')) return 'ปรับยอด';
   return 'รายการ';
 }
+
 function statusLabel(status: unknown) {
   const value = typeof status === 'string' ? status : '';
   const upper = value.toUpperCase();
@@ -444,6 +602,7 @@ function statusLabel(status: unknown) {
   if (upper === 'REJECTED') return 'ไม่อนุมัติ';
   return value || '-';
 }
+
 function pickImage(game: Game) {
   const media = Array.isArray(game?.media) ? game.media : [];
   return (
@@ -454,6 +613,7 @@ function pickImage(game: Game) {
     null
   );
 }
+
 function categoryLabel(value: string) {
   const map: Record<string, string> = {
     slot: 'สล็อต',
@@ -465,7 +625,10 @@ function categoryLabel(value: string) {
   };
   return map[value.toLowerCase()] ?? value;
 }
+
 function formatMoney(value: unknown, currency: unknown) {
   const amount = Number(value);
-  return `${typeof currency === 'string' && currency ? currency : 'THB'} ${Number.isFinite(amount) ? amount.toLocaleString('th-TH', { minimumFractionDigits: 2 }) : '0.00'}`;
+  return `${typeof currency === 'string' && currency ? currency : 'THB'} ${
+    Number.isFinite(amount) ? amount.toLocaleString('th-TH', { minimumFractionDigits: 2 }) : '0.00'
+  }`;
 }
