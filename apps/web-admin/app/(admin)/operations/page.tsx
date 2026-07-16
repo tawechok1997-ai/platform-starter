@@ -4,13 +4,16 @@ import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminActionStrip, AdminBadge, AdminButton, AdminCard, AdminCommandPanel, AdminEmpty, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
 
+type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger';
+type QuickLink = readonly [title: string, href: string];
+type QuickGroup = { title: string; tone: BadgeTone; items: readonly QuickLink[] };
 type ControlCenter = { summary?: Record<string, number>; queues?: Record<string, number>; recent?: { ledgers?: any[]; transfers?: any[]; snapshots?: any[]; alerts?: any[] }; realLedgerMutationEnabled?: boolean };
 type QueueSummary = { topUps?: { count?: number }; withdrawals?: { count?: number } };
 
-const quickGroups = [
-  { title: 'งานประจำวัน', tone: 'warning' as const, items: [['ตรวจฝาก', '/topups'], ['ตรวจถอน', '/withdrawals'], ['ปัญหาที่ต้องดู', '/risk-alerts'], ['ประวัติเงิน', '/wallet-ledgers']] },
-  { title: 'ตั้งค่าค่ายเกม', tone: 'success' as const, items: [['ตั้งค่าง่าย', '/simple-game-settings'], ['เพิ่มค่ายใหม่', '/provider-setup-wizard'], ['ดูการโยกเงิน', '/game-transfers'], ['ตรวจยอดค่าย', '/reconciliation-center']] },
-  { title: 'ขั้นสูง / ใช้ตอน debug', tone: 'neutral' as const, items: [['ทดสอบ API ทีละจุด', '/adapter-test'], ['เปลี่ยน API Key', '/provider-credentials'], ['Webhook', '/webhook-logs'], ['Audit Logs', '/audit-logs']] },
+const quickGroups: readonly QuickGroup[] = [
+  { title: 'งานประจำวัน', tone: 'warning', items: [['ตรวจฝาก', '/topups'], ['ตรวจถอน', '/withdrawals'], ['ปัญหาที่ต้องดู', '/risk-alerts'], ['ประวัติเงิน', '/wallet-ledgers']] },
+  { title: 'ตั้งค่าค่ายเกม', tone: 'success', items: [['ตั้งค่าง่าย', '/simple-game-settings'], ['เพิ่มค่ายใหม่', '/provider-setup-wizard'], ['ดูการโยกเงิน', '/game-transfers'], ['ตรวจยอดค่าย', '/reconciliation-center']] },
+  { title: 'ขั้นสูง / ใช้ตอน debug', tone: 'neutral', items: [['ทดสอบ API ทีละจุด', '/adapter-test'], ['เปลี่ยน API Key', '/provider-credentials'], ['Webhook', '/webhook-logs'], ['Audit Logs', '/audit-logs']] },
 ];
 
 export default function OperationsPage() {
@@ -44,7 +47,7 @@ export default function OperationsPage() {
     <AdminGrid>{quickGroups.map((group) => <AdminCard key={group.title} title={group.title}><AdminStack>{group.items.map(([title, href]) => <AdminRow key={href}><strong>{title}</strong><div style={rightStyle}><AdminBadge tone={group.tone}>{group.title}</AdminBadge><AdminLinkButton href={href}>เปิด</AdminLinkButton></div></AdminRow>)}</AdminStack></AdminCard>)}</AdminGrid>
   </AdminPage>;
 }
-function QueueRow({ title, count, href, tone }: { title: string; count: number; href: string; tone: 'warning' | 'danger' | 'success' | 'neutral' }) { return <AdminRow><div><strong>{title}</strong><p style={mutedStyle}>{count > 0 ? 'ต้องจัดการ' : 'ยังไม่มีงานค้าง'}</p></div><div style={rightStyle}><AdminBadge tone={count > 0 ? tone : 'success'}>{count}</AdminBadge><AdminLinkButton href={href} tone={count > 0 ? 'primary' : 'secondary'}>เปิด</AdminLinkButton></div></AdminRow>; }
+function QueueRow({ title, count, href, tone }: { title: string; count: number; href: string; tone: BadgeTone }) { return <AdminRow><div><strong>{title}</strong><p style={mutedStyle}>{count > 0 ? 'ต้องจัดการ' : 'ยังไม่มีงานค้าง'}</p></div><div style={rightStyle}><AdminBadge tone={count > 0 ? tone : 'success'}>{count}</AdminBadge><AdminLinkButton href={href} tone={count > 0 ? 'primary' : 'secondary'}>เปิด</AdminLinkButton></div></AdminRow>; }
 function ToolRow({ title, description, href }: { title: string; description: string; href: string }) { return <AdminRow><div><strong>{title}</strong><p style={mutedStyle}>{description}</p></div><AdminLinkButton href={href}>เปิด</AdminLinkButton></AdminRow>; }
 function RecentCard({ title, items, render }: { title: string; items: any[]; render: (item: any) => ReactNode }) { return <AdminCard title={title}>{items.length ? <AdminStack>{items.map(render)}</AdminStack> : <AdminEmpty>ยังไม่มีข้อมูลล่าสุด</AdminEmpty>}</AdminCard>; }
 function topAction(input: { pendingTopUps: number; pendingWithdrawals: number; failedTransfers: number; openRiskAlerts: number; mismatchSnapshots: number; webhookFailed: number }) { if (input.failedTransfers > 0) return { title: 'ตรวจโยกเงินมีปัญหาก่อน', description: 'เกี่ยวกับยอดสมาชิกและค่ายเกมโดยตรง ควรจัดการก่อนงานแต่งหน้าใด ๆ', href: '/game-transfers' }; if (input.mismatchSnapshots > 0) return { title: 'ตรวจยอดค่ายไม่ตรง', description: 'เปิด reconciliation เพื่อดู snapshot, transfer และ risk alert ที่เกี่ยวข้อง', href: '/reconciliation-center' }; if (input.openRiskAlerts > 0) return { title: 'เปิดเคสความเสี่ยง', description: 'เคลียร์ risk alert ก่อนจะมีรายการสะสมเหมือนกล่องจดหมายที่ไม่มีใครรัก', href: '/risk-alerts' }; if (input.pendingWithdrawals > 0) return { title: 'ตรวจถอนรอดำเนินการ', description: 'งานถอนควรเร็วและตรวจหลักฐานให้ชัด', href: '/withdrawals' }; if (input.pendingTopUps > 0) return { title: 'ตรวจฝากรอตรวจ', description: 'เคลียร์ฝากเพื่อให้สมาชิกใช้งานต่อได้', href: '/topups' }; if (input.webhookFailed > 0) return { title: 'ตรวจ webhook failed', description: 'callback จากค่ายมีปัญหา ควรดู log ก่อนเกิดเรื่องแปลก ๆ', href: '/webhook-logs' }; return { title: 'ไม่มีงานด่วนตอนนี้', description: 'ระบบดูสงบผิดธรรมชาติ แต่ก็เป็นข่าวดีในโลกซอฟต์แวร์', href: '/simple-game-settings' }; }
