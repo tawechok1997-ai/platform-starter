@@ -10,7 +10,7 @@ import {
   FinanceInfoRow,
   FinanceStatusBadge,
   FinanceStepIndicator,
-} from '../../../app/components/member-finance-flow';
+} from './finance-components';
 import type {
   BonusLedger,
   MemberBankAccount,
