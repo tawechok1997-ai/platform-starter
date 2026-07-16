@@ -3,9 +3,10 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "build": "node ../../tools/audit-typescript-config-boundaries.mjs && prisma generate --schema ../../prisma/schema.prisma && nest build && node ../../tools/check-api-build-artifact.mjs",
+    "build": "node ../../tools/audit-typescript-config-boundaries.mjs && node ../../tools/audit-refactor-regressions.mjs && prisma generate --schema ../../prisma/schema.prisma && nest build && node ../../tools/check-api-build-artifact.mjs",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck:strict-next": "tsc -p tsconfig.strict-next.json",
     "start:prod": "node dist/main.js",
     "test": "jest",
     "test:db:finance": "jest src/modules/finance/finance-concurrency.db.spec.ts --runInBand",
