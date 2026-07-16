@@ -6,12 +6,11 @@ import { MemberButton, MemberCard, MemberEmptyState, MemberNotice } from '../com
 
 type BankItem = { id: string; bankName: string; accountName: string; accountNumber: string; isPrimary: boolean; status: string; adminNote?: string | null };
 
-const THAI_BANKS = ['ธนาคารกสิกรไทย', 'ธนาคารไทยพาณิชย์', 'ธนาคารกรุงเทพ', 'ธนาคารกรุงไทย', 'ธนาคารกรุงศรีอยุธยา', 'ธนาคารทหารไทยธนชาต', 'ธนาคารออมสิน', 'ธนาคารอาคารสงเคราะห์', 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร', 'ธนาคารยูโอบี', 'ธนาคารซีไอเอ็มบีไทย', 'ธนาคารเกียรตินาคินภัทร', 'ธนาคารแลนด์ แอนด์ เฮ้าส์', 'ธนาคารไอซีบีซี ไทย', 'ธนาคารไทยเครดิต'] as const;
-const DEFAULT_THAI_BANK: string = THAI_BANKS[0];
+const THAI_BANKS = ['ธนาคารกสิกรไทย', 'ธนาคารไทยพาณิชย์', 'ธนาคารกรุงเทพ', 'ธนาคารกรุงไทย', 'ธนาคารกรุงศรีอยุธยา', 'ธนาคารทหารไทยธนชาต', 'ธนาคารออมสิน', 'ธนาคารอาคารสงเคราะห์', 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร', 'ธนาคารยูโอบี', 'ธนาคารซีไอเอ็มบีไทย', 'ธนาคารเกียรตินาคินภัทร', 'ธนาคารแลนด์ แอนด์ เฮ้าส์', 'ธนาคารไอซีบีซี ไทย', 'ธนาคารไทยเครดิต'];
 
 export default function MemberBankAccountsPage() {
   const [items, setItems] = useState<BankItem[]>([]);
-  const [bankName, setBankName] = useState<string>(DEFAULT_THAI_BANK);
+  const [bankName, setBankName] = useState(THAI_BANKS[0]);
   const [accountName, setAccountName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [message, setMessage] = useState('');
@@ -37,7 +36,7 @@ export default function MemberBankAccountsPage() {
     const res = await memberApiFetch('/member/bank-accounts', { method: 'POST', body: JSON.stringify({ bankName, accountName, accountNumber }) });
     const data = await res.json().catch(() => null); setBusy(false);
     if (!res.ok) { setMessage(data?.message ?? 'เพิ่มบัญชีไม่สำเร็จ'); return; }
-    setItems((current) => [data.item, ...current]); setBankName(DEFAULT_THAI_BANK); setAccountName(''); setAccountNumber(''); setMessage('เพิ่มบัญชีแล้ว รอตรวจสอบ');
+    setItems((current) => [data.item, ...current]); setBankName(THAI_BANKS[0]); setAccountName(''); setAccountNumber(''); setMessage('เพิ่มบัญชีแล้ว รอตรวจสอบ');
   }
 
   async function setPrimary(id: string) {
