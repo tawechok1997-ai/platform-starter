@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MemberButton, MemberCard, MemberEmptyState, MemberNotice } from '../components/member-ui';
+import { MemberIcon } from '../components/member-icon';
 import { memberApiFetch } from '../member-api';
 import './member-notifications.css';
 
@@ -218,7 +219,7 @@ export default function NotificationsPage() {
             : visibleItems.map((item) => {
               const titleId = `notification-${item.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
               return <article key={item.id} className={item.isRead ? 'is-read' : 'is-unread'} aria-labelledby={titleId}>
-                <div className={`member-notification-icon member-notification-icon--${item.type}`} aria-hidden="true">•</div>
+                <div className={`member-notification-icon member-notification-icon--${item.type}`} aria-hidden="true"><MemberIcon name={notificationIconByType[item.type]} /></div>
                 <div><strong id={titleId}>{item.title}</strong><p>{item.description}</p><time dateTime={item.createdAt}>{formatDate(item.createdAt)}</time></div>
                 <div className="member-notification-actions" aria-label={`การทำงานสำหรับ ${item.title}`}>
                   {item.href && <a href={item.href} aria-label={`เปิดดู ${item.title}`}>เปิดดู</a>}
@@ -231,6 +232,13 @@ export default function NotificationsPage() {
     </div>
   </main>;
 }
+
+const notificationIconByType: Record<NotificationType, 'wallet' | 'profile' | 'promotion' | 'notification'> = {
+  finance: 'wallet',
+  security: 'profile',
+  promotion: 'promotion',
+  system: 'notification',
+};
 
 function PreferenceToggle({ title, description, checked, disabled, onChange }: {
   title: string;
