@@ -4,6 +4,8 @@ Updated: 2026-07-16
 Scope: `apps/web-member` and shared frontend contracts consumed by Member
 Source of truth for Member UX/UI work: this file
 
+Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). The supplied LUX88 Member boards are the acceptance reference for exact visual parity across Desktop and Mobile. Existing checked implementation items do not imply reference parity until visual evidence is retained.
+
 > Current repository baseline: Next.js 15.5.18, React 19.2.7, TypeScript 5.7.3, custom Member components, shared CSS contracts under `packages/design-tokens`, `packages/api-client`, and Playwright. A checked item means the current implementation and repository-level verification exist. Partial work is split into checked implementation facts and unchecked remaining acceptance criteria.
 
 ## Status
@@ -19,7 +21,7 @@ Source of truth for Member UX/UI work: this file
 
 - [x] `@platform/web-member` lint passes
 - [x] `@platform/web-member` TypeScript check passes
-- [x] Member unit suite passes: 20/20 tests across auth/session redirect, public-route guards, refresh concurrency, and finance/wallet helpers
+- [x] Member unit suite passes: 23/23 tests across auth/session redirect, public-route guards, refresh concurrency, finance/wallet helpers, and mutation idempotency contracts
 - [x] Member production build passes: 29 App Router routes generated
 - [x] R-013 token, primitive, responsive, accessibility-baseline, and visual-contract audits pass
 - [x] Six named public visual viewport projects exist: 360×800, 390×844, 430×932, 768×1024, 1024×768, and 1440×900
@@ -69,6 +71,14 @@ Source of truth for Member UX/UI work: this file
 - [ ] Do not add another design system or state/form layer without an approved ADR and demonstrated need
 
 # M1: Shared Member systems
+
+## MEMBER-FOUNDATION-003 Reference-driven visual redesign
+
+- [ ] Adopt the shared LUX88 visual language: deep navy shell, elevated navy panels, gold primary accent, white/muted text, thin borders, restrained radii, and outline icons.
+- [ ] Map the shared brand header, desktop sidebar, mobile bottom navigation, topbar, metric tile, card, badge, tab, filter, timeline, modal, and sticky-action patterns to reusable Member components.
+- [ ] Match typography, Thai/Latin hierarchy, money figures, icon stroke, spacing, control heights, card density, image ratios, and decoration against `docs/UI_DESIGN_REFERENCE.md`.
+- [ ] Produce approved Desktop and Mobile visual baselines for every Member reference route at all six standard viewports.
+- [ ] Require visual-diff review for any change to tokens, shared CSS, imagery, fonts, layout primitives, or route shell.
 
 ## MEMBER-SYSTEM-001 Design tokens and primitives
 
@@ -160,6 +170,7 @@ Source of truth for Member UX/UI work: this file
 - [x] Replace the hard-coded topbar wallet value with session wallet data, including loading, focus refresh, and post-withdraw refresh
 - [ ] Add scroll restoration, route loading, stale timestamp, complete partial-failure handling, and skeletons
 - [ ] Complete six-viewport authenticated Home/navigation evidence
+- [ ] Match the Member Home & Wallet reference: desktop sidebar/topbar/dashboard, balance tiles, quick actions, promotion/game rails, activity list, mobile wallet summary, and fixed bottom navigation
 
 ## MEMBER-ROUTE-002 Games lobby and launch
 
@@ -171,6 +182,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Persist favorites through the real API with optimistic rollback if supported
 - [ ] Measure large-catalog performance before adding virtualization
 - [ ] Add authenticated browser and performance regression
+- [ ] Match the Games, Promotions & Bonus reference composition across desktop and mobile, including hero, provider chips, category rails, card density, and bottom navigation
 
 ## MEMBER-ROUTE-003 Deposit
 
@@ -183,6 +195,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Add currency-formatting input and clearer min/max feedback
 - [x] Add request idempotency and recovery when top-up creation succeeds but evidence upload fails
 - [ ] Complete pending, approved, rejected, expired, retry, duplicate, and timeline browser evidence
+- [ ] Match the Deposit Flow reference: four-step indicator, account/QR/instructions layout, upload/review panels, sticky mobile actions, and status timeline
 
 ## MEMBER-ROUTE-004 Withdrawal
 
@@ -193,6 +206,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Add cancel/retry actions and complete status timeline
 - [x] Add idempotency-aware duplicate-submit protection
 - [ ] Complete responsive withdrawal regression
+- [ ] Match the Withdraw & Bank Accounts reference: wallet summary, selected/verified bank cards, presets, fee/net calculation, confirmation CTA, and mobile flow
 
 ## MEMBER-ROUTE-005 Transactions, wallet, and bank accounts
 
@@ -205,6 +219,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Add wallet available/locked/bonus/total movement summary screen
 - [ ] Add bank verify, edit, set-default, disable, duplicate detection, re-authentication, and cooling-policy flows
 - [ ] Add accessibility and responsive regression
+- [ ] Match the Wallet Overview and Transaction History reference: balance tiles, masking affordance, segmented filters, date control, signed amounts, and mobile list layout
 
 ## MEMBER-ROUTE-006 Profile and security
 
@@ -214,6 +229,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Add phone/email verification, OTP resend, exhaustion, and duplicate-value states
 - [ ] Complete password requirements, current-password errors, success feedback, and optional 2FA decision
 - [ ] Add privacy-safe blocked states and authenticated keyboard/zoom regression
+- [ ] Match the Account, Security & Support reference across profile, security, notifications, support, and mobile navigation compositions
 
 ## MEMBER-ROUTE-007 KYC
 
@@ -279,6 +295,7 @@ Source of truth for Member UX/UI work: this file
 - [ ] Cover every Member route and loading, empty, error, offline, stale, permission, maintenance, success, and session-expired states
 - [ ] Ensure all relevant suites use the browser-quality failure fixture
 - [ ] Retain final evidence links in this document
+- [ ] Use `docs/UI_DESIGN_REFERENCE.md` as the visual parity gate and retain approved baselines for every Member reference board
 
 # M5: Product and operational contracts
 
@@ -364,22 +381,24 @@ Source of truth for Member UX/UI work: this file
 
 # Execution order
 
-1. Add priority/owner/dependency metadata and create the route/API/feature/state matrix
-2. Fix P0/P1 correctness gaps: wallet header, Login destination, finance idempotency/recovery, session handling, and password recovery
-3. Add Next.js ESLint rules, JSX accessibility linting, axe Playwright, persistent visual baselines, and bundle analysis
-4. Complete MEMBER-FOUNDATION-001 inventory and removal of brittle style selectors
-5. Consolidate React primitives, finance state mapping, privacy/masking rules, and inline-style migration
-6. Approve forms and server-state ADRs only after inventory and pilot evidence
-7. Close Deposit, Withdrawal, Transactions/Wallet/Bank, Profile/Security, and KYC gaps
-8. Close Games, Promotions/Bonus, Notifications, and Support gaps
-9. Enforce browser/test-data/performance matrices, six-viewport authenticated regression, release, rollback, and final cleanup
+1. Adopt `docs/UI_DESIGN_REFERENCE.md` and record route/board ownership, visual tokens, and six-viewport evidence requirements
+2. Add priority/owner/dependency metadata and create the route/API/feature/state matrix
+3. Fix P0/P1 correctness gaps: wallet header, Login destination, finance idempotency/recovery, session handling, and password recovery
+4. Add Next.js ESLint rules, JSX accessibility linting, axe Playwright, persistent visual baselines, and bundle analysis
+5. Complete MEMBER-FOUNDATION-001 inventory and removal of brittle style selectors
+6. Consolidate React primitives, finance state mapping, privacy/masking rules, and inline-style migration
+7. Implement Member reference parity route by route, starting with Authentication, Home/Wallet, and Finance
+8. Approve forms and server-state ADRs only after inventory and pilot evidence
+9. Close Deposit, Withdrawal, Transactions/Wallet/Bank, Profile/Security, and KYC gaps
+10. Close Games, Promotions/Bonus, Notifications, and Support gaps
+11. Enforce browser/test-data/performance matrices, six-viewport authenticated regression, release, rollback, and final visual parity review
 
 # Evidence log
 
-- Repository commit audited: `f1a80270094123eb51620c8537d980c4501c057c`
+- Repository commit audited: `eff5bf8622d9492f845bfe98e2c514c0e3682bac`
 - Member lint: passed with Next.js/Core Web Vitals and JSX accessibility rules on 2026-07-16; 38 existing migration warnings are now visible
 - Member typecheck: passed on 2026-07-16
-- Member unit tests: 20/20 passed on 2026-07-16
+- Member unit tests: 23/23 passed on 2026-07-16
 - Member production build: passed; 29 routes generated on 2026-07-16
 - Member route matrix audit: 27/27 `page.tsx` routes classified with 22 P0/P1 routes and 24 routes carrying explicit state gaps on 2026-07-16
 - R-013 static contracts: token, primitive, responsive, accessibility baseline, and visual contract passed on 2026-07-16
@@ -390,3 +409,4 @@ Source of truth for Member UX/UI work: this file
 - Installed immediate dev tools: `eslint-config-next`, `eslint-plugin-jsx-a11y`, `@axe-core/playwright`, and `@next/bundle-analyzer`
 - Recommended pilot tools: Vitest + Testing Library + jsdom, MSW, and Lighthouse CI; adoption requires ADR and measured value
 - Remaining blockers: priority/ownership metadata, route/API/state matrix, persistent approved visual baselines, full authenticated six-viewport/state coverage, current passing axe browser evidence, and production-like credentials for full browser flows
+- Visual redesign blocker: supplied reference parity is specified in `docs/UI_DESIGN_REFERENCE.md`, but approved route-by-route screenshots have not yet been retained

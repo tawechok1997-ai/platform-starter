@@ -1,5 +1,7 @@
 # Admin UX/UI Redesign Worklist
 
+Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). The supplied Gaming Fintech Admin boards are the acceptance reference for exact visual parity across Dashboard, Operations, Review, Finance/Risk/Reports, Providers/Marketing/Settings, Desktop, and Mobile.
+
 Updated: 2026-07-14  
 Scope: `apps/web-admin` only  
 Source of truth for Admin UX/UI work: this file
@@ -57,6 +59,11 @@ Source of truth for Admin UX/UI work: this file
 # A1: Shared Admin systems
 
 ## ADMIN-SYSTEM-001 Design tokens and primitives
+
+- [ ] Adopt the shared Gaming Fintech visual language: deep navy shell, gold accent, elevated panels, thin borders, restrained radii, white/muted text, semantic green/amber/red statuses, and one outline icon family.
+- [ ] Match reference typography, Thai/Latin hierarchy, tabular financial figures, spacing scale, control heights, card density, chart treatment, and responsive table/card behavior.
+- [ ] Map sidebar, topbar, KPI tile, table, filter bar, case detail, evidence panel, timeline, badge, modal, drawer, and sticky action patterns to reusable Admin components.
+- [ ] Produce approved Desktop and Mobile visual baselines for every Admin reference route at all six standard viewports.
 
 - [ ] Consolidate color, spacing, radius, shadow, typography, motion, breakpoint, and z-index tokens
 - [ ] Consolidate Button, Input, Select, TextArea, Checkbox, Radio, and Field primitives
@@ -124,6 +131,7 @@ Source of truth for Admin UX/UI work: this file
 - [ ] Permission-hidden widgets
 - [ ] Accessible chart summaries
 - [ ] Six-viewport visual regression
+- [ ] Match the Admin Dashboard & Operations reference: KPI tiles, business trend chart, risk/alert panel, action center, system health, queue, case detail, and mobile summary ordering
 
 ## ADMIN-ROUTE-003 Deposits and withdrawals
 
@@ -134,6 +142,7 @@ Source of truth for Admin UX/UI work: this file
 - [ ] Duplicate action and version-conflict recovery
 - [ ] Mobile card layout and sticky actions
 - [ ] Seeded data correctness and authenticated browser regression
+- [ ] Match the Admin Review Flow reference for top-up and withdrawal review, including evidence panel, risk signals, mandatory reason, conflict state, audit summary, and sticky actions
 
 ## ADMIN-ROUTE-004 Members, wallets, ledgers, and bank accounts
 
@@ -143,6 +152,7 @@ Source of truth for Admin UX/UI work: this file
 - [ ] Safe status, freeze, adjustment, and release actions
 - [ ] CSV/export progress and error states
 - [ ] Long-value, mobile, and permission regression
+- [ ] Match the Admin Review Flow reference for member detail and bank-account review, including masked values, status treatment, tabs, risk signals, and responsive fallback
 
 ## ADMIN-ROUTE-005 Risk and watchlist
 
@@ -152,6 +162,7 @@ Source of truth for Admin UX/UI work: this file
 - [ ] Watchlist create, release, override, and mandatory reason flows
 - [ ] Masked identifier policy and audit timeline
 - [ ] Conflict recovery and mobile card layout
+- [ ] Match risk severity colors, alert timeline, linked member/transaction context, and high-risk action treatment from the Admin Finance, Risk & Reports reference
 
 ## ADMIN-ROUTE-006 KYC
 
@@ -171,6 +182,7 @@ Source of truth for Admin UX/UI work: this file
 - [ ] JSON expand/copy and invalid-JSON fallback
 - [ ] CSV export progress, errors, no-data, and large-result warning
 - [ ] Seeded correctness and mobile regression
+- [ ] Match the Admin Finance, Risk & Reports reference for wallet overview, ledger, report builder, analytics charts, exports, and mobile card fallback
 
 ## ADMIN-ROUTE-008 Settings, CMS, promotions, and providers
 
@@ -180,6 +192,7 @@ Source of truth for Admin UX/UI work: this file
 - [ ] Provider setup, test-connection, credential masking, and re-auth
 - [ ] Permission-aware controls and compatibility matrix
 - [ ] Authenticated visual and functional regression
+- [ ] Match the Admin Providers, Marketing & Settings reference for provider tables, transfers/reconciliation, promotions, KYC, support, settings, security, roles, and audit log
 
 ## ADMIN-ROUTE-009 Support and operations
 
@@ -206,6 +219,7 @@ Source of truth for Admin UX/UI work: this file
 - [ ] Cover loading, empty, error, partial, stale, conflict, permission, success, and session-expired states
 - [ ] Store screenshot, trace, console, and network artifacts in CI
 - [ ] Fail on browser console and unexpected network errors
+- [ ] Use `docs/UI_DESIGN_REFERENCE.md` as the visual parity gate and retain approved baselines for every Admin reference board
 
 # Execution order
 
