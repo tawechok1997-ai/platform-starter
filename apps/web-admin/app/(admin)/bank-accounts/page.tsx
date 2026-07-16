@@ -7,16 +7,18 @@ import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminGrid, AdminNotice,
 type ReceivingAccount = { id: string; bankName: string; accountName: string; accountNumber: string; promptPay?: string | null; qrImageUrl?: string | null; minAmount?: string | null; maxAmount?: string | null; status: string; sortOrder: number };
 type MemberBank = { id: string; userId: string; bankName: string; accountName: string; accountNumber: string; isPrimary: boolean; status: string; adminNote?: string | null; user?: { username: string; phone?: string | null; email?: string | null; status: string } };
 type PaymentType = 'bank' | 'promptpay' | 'wallet' | 'other';
+type ReceivingForm = { bankName: string; accountName: string; accountNumber: string; promptPay: string; qrImageUrl: string; minAmount: string; maxAmount: string; status: string; sortOrder: number };
 
-const THAI_BANKS = ['ธนาคารกสิกรไทย', 'ธนาคารไทยพาณิชย์', 'ธนาคารกรุงเทพ', 'ธนาคารกรุงไทย', 'ธนาคารกรุงศรีอยุธยา', 'ธนาคารทหารไทยธนชาต', 'ธนาคารออมสิน', 'ธนาคารอาคารสงเคราะห์', 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร', 'ธนาคารยูโอบี', 'ธนาคารซีไอเอ็มบีไทย', 'ธนาคารเกียรตินาคินภัทร', 'ธนาคารแลนด์ แอนด์ เฮ้าส์', 'ธนาคารไอซีบีซี ไทย', 'ธนาคารไทยเครดิต'];
+const THAI_BANKS = ['ธนาคารกสิกรไทย', 'ธนาคารไทยพาณิชย์', 'ธนาคารกรุงเทพ', 'ธนาคารกรุงไทย', 'ธนาคารกรุงศรีอยุธยา', 'ธนาคารทหารไทยธนชาต', 'ธนาคารออมสิน', 'ธนาคารอาคารสงเคราะห์', 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร', 'ธนาคารยูโอบี', 'ธนาคารซีไอเอ็มบีไทย', 'ธนาคารเกียรตินาคินภัทร', 'ธนาคารแลนด์ แอนด์ เฮ้าส์', 'ธนาคารไอซีบีซี ไทย', 'ธนาคารไทยเครดิต'] as const;
+const DEFAULT_THAI_BANK = THAI_BANKS[0];
 const PAYMENT_TYPES = [{ value: 'bank', label: 'บัญชีธนาคาร' }, { value: 'promptpay', label: 'พร้อมเพย์' }, { value: 'wallet', label: 'วอเลต' }, { value: 'other', label: 'อื่น ๆ' }] as const;
-const blankReceiving = { bankName: THAI_BANKS[0], accountName: '', accountNumber: '', promptPay: '', qrImageUrl: '', minAmount: '', maxAmount: '', status: 'ACTIVE', sortOrder: 100 };
+const blankReceiving: ReceivingForm = { bankName: DEFAULT_THAI_BANK, accountName: '', accountNumber: '', promptPay: '', qrImageUrl: '', minAmount: '', maxAmount: '', status: 'ACTIVE', sortOrder: 100 };
 
 export default function BankAccountsPage() {
   const [receiving, setReceiving] = useState<ReceivingAccount[]>([]);
   const [memberBanks, setMemberBanks] = useState<MemberBank[]>([]);
   const [paymentType, setPaymentType] = useState<PaymentType>('bank');
-  const [form, setForm] = useState(blankReceiving);
+  const [form, setForm] = useState<ReceivingForm>(blankReceiving);
   const [message, setMessage] = useState('');
   const [busyId, setBusyId] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
@@ -64,7 +66,7 @@ export default function BankAccountsPage() {
 
   function changePaymentType(value: PaymentType) {
     setPaymentType(value);
-    setForm((current) => ({ ...current, bankName: value === 'bank' ? THAI_BANKS[0] : value === 'promptpay' ? 'พร้อมเพย์' : value === 'wallet' ? 'วอเลต' : 'อื่น ๆ', accountNumber: '', promptPay: '' }));
+    setForm((current) => ({ ...current, bankName: value === 'bank' ? DEFAULT_THAI_BANK : value === 'promptpay' ? 'พร้อมเพย์' : value === 'wallet' ? 'วอเลต' : 'อื่น ๆ', accountNumber: '', promptPay: '' }));
   }
 
   async function handleQrUpload(event: ChangeEvent<HTMLInputElement>) {
