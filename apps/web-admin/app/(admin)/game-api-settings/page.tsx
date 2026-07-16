@@ -1,6 +1,6 @@
 import { AdminBadge, AdminCard, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
 
-type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
+type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger';
 type QuickStep = readonly [step: string, title: string, description: string, href: string];
 type MarketPreset = readonly [title: string, description: string, badge: string, tone: BadgeTone];
 
