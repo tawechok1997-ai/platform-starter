@@ -3,6 +3,28 @@ export const FINANCE_FEATURE_BOUNDARY = 'finance' as const;
 export { DepositView } from './deposit-view';
 export { WithdrawalView, type WithdrawalViewProps } from './withdrawal-view';
 export {
+  FinanceActionBar,
+  FinanceCard,
+  FinanceConfirmDialog,
+  FinanceEmptyState,
+  FinanceFlowShell,
+  FinanceInfoRow,
+  FinanceStatusBadge,
+  FinanceStepIndicator,
+} from './finance-components';
+export type {
+  FinanceActionBarProps,
+  FinanceCardProps,
+  FinanceCardTone,
+  FinanceConfirmDialogProps,
+  FinanceEmptyStateProps,
+  FinanceFlowShellProps,
+  FinanceInfoRowProps,
+  FinanceStatusBadgeProps,
+  FinanceStep,
+  FinanceStepIndicatorProps,
+} from './finance-component-contracts';
+export {
   DEPOSIT_FORM_DEFAULTS,
   parseDepositAmount,
   resolveDepositError,
