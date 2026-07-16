@@ -24,12 +24,28 @@ export function parseOptionalEnum<T extends string>(
   allowed: readonly T[],
   options: { allValue?: string; fieldName?: string } = {},
 ): T | undefined {
-  const normalized = normalizeOptionalText(value, 80, { fieldName: options.fieldName });
+  const normalized = normalizeOptionalText(
+    value,
+    80,
+    options.fieldName ? { fieldName: options.fieldName } : {},
+  );
   if (!normalized || normalized === options.allValue) return undefined;
   if (!allowed.includes(normalized as T)) {
     throw new BadRequestException(`Invalid ${options.fieldName ?? 'filter'} value`);
   }
   return normalized as T;
+}
+
+export function parsePagination(
+  pageInput: unknown,
+  takeInput: unknown,
+  options: { defaultTake?: number; maxTake?: number } = {},
+): { page: number; take: number } {
+  const defaultTake = options.defaultTake ?? 50;
+  const maxTake = options.maxTake ?? 100;
+  const page = Math.max(Number(pageInput ?? 1) || 1, 1);
+  const take = Math.min(Math.max(Number(takeInput ?? defaultTake) || defaultTake, 1), maxTake);
+  return { page, take };
 }
 
 export function parseSort<TField extends string>(
