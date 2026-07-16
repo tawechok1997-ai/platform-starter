@@ -8,6 +8,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": false,
+    "noEmit": false,
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false
   }
