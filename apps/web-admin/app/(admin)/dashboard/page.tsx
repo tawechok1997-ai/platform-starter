@@ -75,7 +75,7 @@ export default function OperationDashboardPage() {
   return (
     <div className="admin-dashboard">
       <AdminPage eyebrow="Operation Center" title="Dashboard" description="ศูนย์รวมคิวการเงิน ความเสี่ยง และรายการล่าสุด" actions={<AdminButton onClick={loadSummary} disabled={loading}>{loading ? 'กำลังโหลด...' : 'รีเฟรชข้อมูล'}</AdminButton>}>
-        {lastLoadedAt && <AdminNotice>ข้อมูลล่าสุดเมื่อ {new Date(lastLoadedAt).toLocaleString('th-TH')} — หาก API บางส่วนล้มเหลว ระบบจะแสดงข้อมูลล่าสุดที่ยังมีอยู่</AdminNotice>}
+        {lastLoadedAt && <AdminNotice tone="neutral">ข้อมูลล่าสุดเมื่อ {new Date(lastLoadedAt).toLocaleString('th-TH')} — หาก API บางส่วนล้มเหลว ระบบจะแสดงข้อมูลล่าสุดที่ยังมีอยู่</AdminNotice>}
         {financeError && !loading && <RetryNotice message={financeError} onRetry={loadSummary} />}
         {riskError && !loading && <RetryNotice message={riskError} onRetry={loadSummary} />}
 
@@ -120,7 +120,7 @@ export default function OperationDashboardPage() {
 }
 
 function RetryNotice({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return <AdminNotice><span>{message}</span><AdminButton tone="secondary" onClick={onRetry}>ลองใหม่</AdminButton></AdminNotice>;
+  return <AdminNotice tone="danger"><span>{message}</span><AdminButton tone="secondary" onClick={onRetry}>ลองใหม่</AdminButton></AdminNotice>;
 }
 
 function QuickCard({ title, href, count, tone }: { title: string; href: string; count: number; tone: 'neutral' | 'warning' | 'danger' }) {
