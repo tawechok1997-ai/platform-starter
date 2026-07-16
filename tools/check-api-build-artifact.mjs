@@ -1,9 +1,12 @@
 import { access } from 'node:fs/promises';
 import { constants } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 
-const artifactPath = resolve(process.cwd(), 'apps/api/dist/main.js');
+const toolDirectory = dirname(fileURLToPath(import.meta.url));
+const repositoryRoot = resolve(toolDirectory, '..');
+const artifactPath = resolve(repositoryRoot, 'apps/api/dist/main.js');
 
 try {
   await access(artifactPath, constants.R_OK);
