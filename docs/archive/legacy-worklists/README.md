@@ -6,13 +6,14 @@ Canonical source of truth: [`docs/master-project-worklist.md`](../../master-proj
 
 ## Archived in place
 
-The following documents remain at their original paths so old links and PR discussions continue to resolve:
+The following filenames are historical references. Their contents were consolidated into the
+current documentation set and the old files are no longer present:
 
-- [`docs/remaining-work-backlog.md`](../../remaining-work-backlog.md)
-- [`docs/detailed-remaining-work-backlog.md`](../../detailed-remaining-work-backlog.md)
-- [`docs/code-structure-refactor-plan.md`](../../code-structure-refactor-plan.md)
-- [`docs/current-execution-status.md`](../../current-execution-status.md)
-- [`docs/master-worklist.md`](../../master-worklist.md)
+- `docs/remaining-work-backlog.md` and `docs/detailed-remaining-work-backlog.md` → [`docs/master-project-worklist.md`](../../master-project-worklist.md)
+- `docs/code-structure-refactor-plan.md` → [`docs/ARCHITECTURE.md`](../../ARCHITECTURE.md)
+- `docs/current-execution-status.md` and `docs/master-worklist.md` → [`docs/README.md`](../../README.md)
+
+Use the replacement links above instead of restoring the removed legacy files.
 
 ## Rules
 
