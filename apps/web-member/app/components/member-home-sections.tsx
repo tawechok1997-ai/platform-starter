@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { API_URL, CmsContent, MemberFeatureFlags, SiteIconSettings, cmsAssetUrl, isIconUrl } from '../site-settings';
+import { API_URL, CmsContent, MemberFeatureFlags, SiteIconSettings, cmsAssetUrl, defaultIconSettings, isIconUrl } from '../site-settings';
 import { navigationFor } from '../member-navigation';
+import { MemberIcon } from './member-icon';
 import type { Game, LedgerItem, MoneyRequest } from '../types/member-api';
 import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNotice } from './member-ui';
 
@@ -93,13 +94,13 @@ export function LobbyTabs() {
   return (
     <nav className="member-lobby-tabs" aria-label="เมนูหน้า Lobby">
       <a className="active" href="#highlights">
-        ✦ <span>ไฮไลท์</span>
+        <MemberIcon name="games" /> <span>ไฮไลท์</span>
       </a>
       <a href="/promotions">
-        ♔ <span>โปรโมชั่นแนะนำ</span>
+        <MemberIcon name="promotion" /> <span>โปรโมชั่นแนะนำ</span>
       </a>
       <a href="#activities">
-        ♜ <span>กิจกรรม</span>
+        <MemberIcon name="bonus" /> <span>กิจกรรม</span>
       </a>
     </nav>
   );
@@ -112,7 +113,7 @@ export function TournamentSection() {
         <img src="/images/member-lobby/promotions/tournament-reference.jpeg" alt="Tournament" />
       </a>
       <div className="member-tournament-title">
-        <span>♜</span>
+        <MemberIcon name="bonus" />
         <strong>ทัวร์นาเมนต์</strong>
       </div>
       <div className="member-tournament-empty">
@@ -134,7 +135,7 @@ export function AnnouncementList({ content }: { content: CmsContent }) {
   const first = items[0];
   return (
     <div className="member-announcement-strip" role="status">
-      <span className="member-announcement-strip__icon">⌁</span>
+      <span className="member-announcement-strip__icon"><MemberIcon name="notification" /></span>
       <div className="member-announcement-marquee">
         <span>{first?.message || first?.title || ''}</span>
       </div>
@@ -153,7 +154,9 @@ export function QuickActions({ icons, features }: { icons: SiteIconSettings; fea
         const icon = typeof icons?.[item.iconKey] === 'string' ? icons[item.iconKey] : '';
         return (
           <a key={item.key} href={item.href} className="member-quick-action">
-            <span className="member-home-quick-icon">{isIconUrl(icon) ? <img src={icon} alt="" /> : icon}</span>
+            <span className="member-home-quick-icon">
+              {isIconUrl(icon) ? <img src={icon} alt="" /> : icon === defaultIconSettings[item.iconKey] ? <MemberIcon name={item.iconKey} /> : icon}
+            </span>
             <strong>{item.shortTitle ?? item.title}</strong>
             <span>{item.description}</span>
           </a>
