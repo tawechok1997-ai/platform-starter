@@ -8,35 +8,37 @@
 
 ## Current status
 
-Updated: **2026-07-15**
+Updated: **2026-07-16**
 
-| Area                                                    | Status                                            |
-| ------------------------------------------------------- | ------------------------------------------------- |
-| Monorepo, API, Admin and Member foundations             | ✅ Done                                           |
-| Backend architecture R-001 through R-011                | ✅ Done                                           |
-| Finance concurrency and promotion settlement safeguards | ✅ Repository/CI evidence complete                |
-| Frontend feature architecture R-012                     | 🚧 In progress                                    |
-| Shared UI system and accessibility R-013                | 🚧 In progress                                    |
-| Observability, runbooks and cleanup R-014               | ⏳ Mostly remaining                               |
-| Authenticated browser regression                        | ⏸️ Requires safe credentials/deployed environment |
-| Production migration/rollback verification              | ⏸️ Requires approved production access            |
-| Real provider enablement                                | ⏸️ Code ready; vendor-specific UAT blocked        |
+| Area | Status |
+| --- | --- |
+| Monorepo, API, Admin and Member foundations | ✅ Done |
+| Backend architecture R-001 through R-011 | ✅ Done |
+| Frontend feature architecture R-012 | ✅ Done in repository |
+| Shared UI system and accessibility R-013 | ✅ Done in repository |
+| Observability and cleanup R-014 | ✅ Done in repository |
+| Performance, storage and CI hardening P5 | ✅ Done in repository |
+| Authenticated browser regression | ⏸️ Requires safe credentials and a deployed environment |
+| Production migration/rollback verification | ⏸️ Requires approved production access |
+| Real provider enablement | ⏸️ Code ready; vendor-specific UAT blocked |
 
-The project-wide source of truth is [`docs/master-project-worklist.md`](docs/master-project-worklist.md). The UX/UI execution tracker is [`docs/master-worklist.md`](docs/master-worklist.md). See the complete [`docs/README.md`](docs/README.md) map. UI implementation is governed by [`AGENTS.md`](AGENTS.md), [`docs/UI_DESIGN_REFERENCE.md`](docs/UI_DESIGN_REFERENCE.md), [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](docs/UI_MENU_INFORMATION_ARCHITECTURE.md), [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](docs/UI_CONSISTENCY_COMPLETION_PLAN.md), and [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](docs/UI_MOTION_ANIMATION_CONTRACT.md).
+The project-wide source of truth is [`docs/master-project-worklist.md`](docs/master-project-worklist.md). The complete documentation map is [`docs/README.md`](docs/README.md). Historical worklists such as `docs/master-worklist.md` and `docs/current-execution-status.md` were consolidated and must not be restored as competing sources of truth.
+
+UI implementation is governed by [`AGENTS.md`](AGENTS.md), [`docs/UI_DESIGN_REFERENCE.md`](docs/UI_DESIGN_REFERENCE.md), [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](docs/UI_MENU_INFORMATION_ARCHITECTURE.md), [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](docs/UI_CONSISTENCY_COMPLETION_PLAN.md), and [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](docs/UI_MOTION_ANIMATION_CONTRACT.md).
 
 ## Applications
 
-| Application       | Path                   | Responsibility                                                                                               |
-| ----------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Member Web        | `apps/web-member`      | Member home, wallet, deposit/withdrawal, games, profile, notifications, support and KYC surfaces             |
-| Admin Web         | `apps/web-admin`       | Operations, finance, members, risk, reports, providers, games, CMS/settings, security and KYC administration |
-| API               | `apps/api`             | NestJS application, authentication, finance, provider, content, support, KYC, security and audit domains     |
-| Database          | `prisma/schema.prisma` | PostgreSQL schema and migrations managed with Prisma                                                         |
-| Shared API client | `packages/api-client`  | Central Admin/Member transport, auth refresh, errors, retries, uploads and private downloads                 |
+| Application | Path | Responsibility |
+| --- | --- | --- |
+| Member Web | `apps/web-member` | Member home, wallet, deposit/withdrawal, games, profile, notifications, support and KYC surfaces |
+| Admin Web | `apps/web-admin` | Operations, finance, members, risk, reports, providers, games, CMS/settings, security and KYC administration |
+| API | `apps/api` | NestJS application, authentication, finance, provider, content, support, KYC, security and audit domains |
+| Database | `prisma/schema.prisma` | PostgreSQL schema and migrations managed with Prisma |
+| Shared API client | `packages/api-client` | Central Admin/Member transport, auth refresh, errors, retries, uploads and private downloads |
 
 ## Architecture status
 
-R-001 through R-011 are closed with implementation and automated/closure evidence:
+R-001 through R-014 are closed in the repository with implementation and automated or documented evidence:
 
 1. Architecture inventory and ownership
 2. Dependency rules and module boundaries
@@ -49,21 +51,24 @@ R-001 through R-011 are closed with implementation and automated/closure evidenc
 9. Repository, transaction and persistence boundaries
 10. Query/read models and projection cleanup
 11. Error, authorization and security boundaries
+12. Frontend feature architecture and large-page decomposition
+13. Shared UI system, design tokens and accessibility
+14. Observability and cleanup
 
-Active structural work continues under R-012 through R-014. Closure and evidence documents are kept under `docs/architecture`, `docs/evidence` and the individual `docs/r0xx-*.md` files.
+External verification remains under P6. Evidence documents are kept under `docs/architecture`, `docs/evidence` and the individual `docs/r0xx-*.md` files.
 
 ## Technology
 
-| Layer          | Stack                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------- |
-| Frontend       | Next.js, React, TypeScript                                                            |
-| Backend        | NestJS, TypeScript                                                                    |
-| Database       | PostgreSQL, Prisma                                                                    |
-| Authentication | JWT access/refresh, separated Admin/Member sessions, TOTP 2FA and recovery codes      |
-| Storage        | Private local or S3/R2-compatible object storage                                      |
-| Rate limiting  | In-memory fallback with Redis support                                                 |
-| Testing        | Jest, PostgreSQL integration/concurrency suites and Playwright smoke/visual workflows |
-| CI/CD          | GitHub Actions and Railway-ready deployment workflows                                 |
+| Layer | Stack |
+| --- | --- |
+| Frontend | Next.js, React, TypeScript |
+| Backend | NestJS, TypeScript |
+| Database | PostgreSQL, Prisma |
+| Authentication | JWT access/refresh, separated Admin/Member sessions, TOTP 2FA and recovery codes |
+| Storage | Private local or S3/R2-compatible object storage |
+| Rate limiting | In-memory fallback with Redis support |
+| Testing | Jest, PostgreSQL integration/concurrency suites and Playwright smoke/visual workflows |
+| CI/CD | GitHub Actions and Railway-ready deployment workflows |
 
 ## Core capabilities
 
@@ -96,13 +101,19 @@ Active structural work continues under R-012 through R-014. Closure and evidence
 - Health/version checks, smoke workflows and CI quality gates
 - Backup/restore verification foundations
 
+## Requirements
+
+- Node.js 22 or newer
+- Corepack enabled
+- pnpm `11.13.0`, matching the root `packageManager` field
+
 ## Quick start
 
 ```bash
 corepack enable
-corepack prepare pnpm@9.0.0 --activate
+corepack prepare pnpm@11.13.0 --activate
 pnpm install --frozen-lockfile
-pnpm prisma generate
+pnpm db:generate
 pnpm build:api
 pnpm build:web-admin
 pnpm build:web-member
@@ -119,11 +130,11 @@ pnpm db:seed:access
 
 ## Development services
 
-| Service    | Default URL             |
-| ---------- | ----------------------- |
+| Service | Default URL |
+| --- | --- |
 | Member Web | `http://localhost:3000` |
-| Admin Web  | `http://localhost:3001` |
-| API        | `http://localhost:4000` |
+| Admin Web | `http://localhost:3001` |
+| API | `http://localhost:4000` |
 
 ```bash
 pnpm --filter @platform/api start:prod
@@ -139,11 +150,11 @@ Use the commands relevant to the affected scope:
 pnpm lint
 pnpm test
 pnpm build
-pnpm typecheck:api
-pnpm typecheck:admin
-pnpm typecheck:member
+pnpm typecheck
+pnpm test:full-system:auto
 pnpm test:e2e:smoke
 pnpm test:e2e:visual
+pnpm audit:master-worklist
 ```
 
 Architecture closure commands are documented in the corresponding closure files. Browser and deployed checks must not be reported as passed unless an actual run produced evidence.
@@ -171,7 +182,7 @@ S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
 S3_REGION=auto
 S3_BUCKET=<bucket-name>
 S3_ACCESS_KEY_ID=<access-key-id>
-S3_SECRET_ACCESS_KEY=<secret-key>
+S3_SECRET_ACCESS_KEY=<secret-access-key>
 S3_FORCE_PATH_STYLE=true
 ```
 
@@ -185,16 +196,15 @@ Never commit real credentials, OTP values, access/refresh tokens or private-medi
 
 ## Documentation map
 
-| Document                                                               | Purpose                                                |
-| ---------------------------------------------------------------------- | ------------------------------------------------------ |
-| [`docs/master-project-worklist.md`](docs/master-project-worklist.md)   | Canonical project status, evidence and execution order |
-| [`docs/current-execution-status.md`](docs/current-execution-status.md) | Concise operational checkpoint                         |
-| [`docs/master-worklist.md`](docs/master-worklist.md)                   | Active UX/UI execution tracker                         |
-| [`docs/production-verification.md`](docs/production-verification.md)   | Production verification procedures                     |
-| [`docs/playwright-smoke.md`](docs/playwright-smoke.md)                 | Browser smoke guidance                                 |
-| [`docs/storage.md`](docs/storage.md)                                   | Private storage guidance                               |
-| [`docs/rate-limits.md`](docs/rate-limits.md)                           | Rate-limit and Redis guidance                          |
-| [`docs/admin-access-control.md`](docs/admin-access-control.md)         | Admin RBAC and permission behavior                     |
+| Document | Purpose |
+| --- | --- |
+| [`docs/master-project-worklist.md`](docs/master-project-worklist.md) | Canonical project status, evidence and execution order |
+| [`docs/README.md`](docs/README.md) | Documentation index and current replacement links |
+| [`docs/production-verification.md`](docs/production-verification.md) | Production verification procedures |
+| [`docs/playwright-smoke.md`](docs/playwright-smoke.md) | Browser smoke guidance |
+| [`docs/storage.md`](docs/storage.md) | Private storage guidance |
+| [`docs/rate-limits.md`](docs/rate-limits.md) | Rate-limit and Redis guidance |
+| [`docs/admin-access-control.md`](docs/admin-access-control.md) | Admin RBAC and permission behavior |
 
 ## Release boundaries
 
