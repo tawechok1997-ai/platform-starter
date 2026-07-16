@@ -167,6 +167,7 @@ export default function AdminAccountsPage() {
       <AdminStack>{users.map((user) => {
         const isSelf = user.id === currentAdminId;
         const canAct = canManage && !user.protected && !isSelf;
+        const security = securityById[user.id];
         return <AdminSectionRow key={user.id}>
           <div style={userStyle}>
             <div style={badgeStyle}><AdminBadge tone={user.status === 'ACTIVE' ? 'success' : 'danger'}>{user.status}</AdminBadge><AdminBadge tone={user.twoFactorEnabled ? 'success' : 'warning'}>{user.twoFactorEnabled ? '2FA ON' : '2FA OFF'}</AdminBadge>{user.protected && <AdminBadge tone="danger">PROTECTED</AdminBadge>}{isSelf && <AdminBadge>บัญชีของคุณ</AdminBadge>}</div>
@@ -174,27 +175,27 @@ export default function AdminAccountsPage() {
             <span>{user.email}</span>
             <div style={badgeStyle}>{user.roles.map((role) => <AdminBadge key={role.id}>{role.code}</AdminBadge>)}</div>
             <small>เข้าสู่ระบบล่าสุด: {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('th-TH') : 'ยังไม่มีข้อมูล'}</small>
-            <AdminButton tone="secondary" disabled={securityBusyId === user.id} onClick={() => toggleSecurity(user.id)}>{securityBusyId === user.id ? 'กำลังโหลด...' : securityById[user.id] ? 'ซ่อนข้อมูลความปลอดภัย' : 'ดู session / login history'}</AdminButton>
-            {securityById[user.id] && <div style={securityPanelStyle}>
-              <strong>Sessions ({securityById[user.id].sessions.length})</strong>
-              {securityById[user.id].sessions.map((session) => <div key={session.id} style={securityItemStyle}>
+            <AdminButton tone="secondary" disabled={securityBusyId === user.id} onClick={() => toggleSecurity(user.id)}>{securityBusyId === user.id ? 'กำลังโหลด...' : security ? 'ซ่อนข้อมูลความปลอดภัย' : 'ดู session / login history'}</AdminButton>
+            {security && <div style={securityPanelStyle}>
+              <strong>Sessions ({security.sessions.length})</strong>
+              {security.sessions.map((session) => <div key={session.id} style={securityItemStyle}>
                 <div><AdminBadge tone={session.active ? 'success' : 'neutral'}>{session.active ? 'ACTIVE' : session.revokedAt ? 'REVOKED' : 'EXPIRED'}</AdminBadge> {session.deviceId ?? 'ไม่ระบุอุปกรณ์'}</div>
                 <small>{session.ipAddress ?? 'ไม่ทราบ IP'} · {session.createdAt ? new Date(session.createdAt).toLocaleString('th-TH') : '-'}{session.userAgent ? ` · ${session.userAgent.slice(0, 100)}` : ''}</small>
                 {session.active && <AdminButton tone="secondary" disabled={sessionBusyId === session.id} onClick={() => revokeSession(user.id, session.id)}>{sessionBusyId === session.id ? 'กำลังยกเลิก...' : 'ยกเลิก session'}</AdminButton>}
               </div>)}
-              {securityById[user.id].sessions.length === 0 && <small>ยังไม่มี session</small>}
-              <strong>Login history ({securityById[user.id].loginHistory.length})</strong>
-              {securityById[user.id].loginHistory.slice(0, 10).map((item) => <div key={item.id} style={securityItemStyle}>
+              {security.sessions.length === 0 && <small>ยังไม่มี session</small>}
+              <strong>Login history ({security.loginHistory.length})</strong>
+              {security.loginHistory.slice(0, 10).map((item) => <div key={item.id} style={securityItemStyle}>
                 <div><AdminBadge tone={item.success ? 'success' : 'danger'}>{item.success ? 'SUCCESS' : 'FAILED'}</AdminBadge> {item.reason ?? 'เข้าสู่ระบบ'}</div>
                 <small>{item.ipAddress ?? 'ไม่ทราบ IP'} · {new Date(item.createdAt).toLocaleString('th-TH')}{item.userAgent ? ` · ${item.userAgent.slice(0, 100)}` : ''}</small>
               </div>)}
-              {securityById[user.id].loginHistory.length === 0 && <small>ยังไม่มีประวัติ login</small>}
-              <strong>Status timeline ({securityById[user.id].statusTimeline.length})</strong>
-              {securityById[user.id].statusTimeline.slice(0, 10).map((item) => <div key={item.id} style={securityItemStyle}>
+              {security.loginHistory.length === 0 && <small>ยังไม่มีประวัติ login</small>}
+              <strong>Status timeline ({security.statusTimeline.length})</strong>
+              {security.statusTimeline.slice(0, 10).map((item) => <div key={item.id} style={securityItemStyle}>
                 <div><AdminBadge tone={item.toStatus === 'ACTIVE' ? 'success' : 'warning'}>{item.fromStatus ?? '-'} → {item.toStatus ?? '-'}</AdminBadge></div>
                 <small>{item.reason ?? 'ไม่มีเหตุผลระบุ'} · {new Date(item.createdAt).toLocaleString('th-TH')}</small>
               </div>)}
-              {securityById[user.id].statusTimeline.length === 0 && <small>ยังไม่มีประวัติเปลี่ยนสถานะ</small>}
+              {security.statusTimeline.length === 0 && <small>ยังไม่มีประวัติเปลี่ยนสถานะ</small>}
             </div>}
             {canAct && <div style={actionPanelStyle}>
               <label style={reasonFieldStyle}>เหตุผลในการเปลี่ยนสถานะ
