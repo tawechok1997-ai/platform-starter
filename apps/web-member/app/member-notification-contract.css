@@ -1,0 +1,53 @@
+/* Member notification contract: semantic color, calm surfaces, and mobile-first states. */
+.member-notifications-page {
+  background: var(--member-page, #0d1017);
+  color: var(--member-text-primary, #f4f6fa);
+}
+.member-notifications-page .member-feature-container { gap: 24px; }
+.member-notifications-page .member-feature-header span,
+.member-notification-summary span,
+.member-notification-preference-heading small,
+.member-notification-toggle small,
+.member-notification-list time { color: var(--member-text-tertiary, #818a99); opacity: 1; }
+.member-notifications-page .member-feature-header p,
+.member-notification-preference-heading span { color: var(--member-accent-hover, #9278ff); opacity: 1; }
+.member-notification-summary > .member-card,
+.member-notification-preferences,
+.member-notification-list {
+  background: var(--member-surface-1, #121620);
+  border: 1px solid var(--member-border-subtle, rgba(255,255,255,.055));
+  box-shadow: var(--member-shadow-card, 0 8px 24px rgba(0,0,0,.1));
+}
+.member-notification-summary > .member-card { gap: 8px; }
+.member-notification-summary strong { color: var(--member-text-primary, #f4f6fa); font-variant-numeric: tabular-nums; }
+.member-notification-preference-grid fieldset { padding: 16px; border: 1px solid var(--member-border-subtle, rgba(255,255,255,.055)); border-radius: var(--member-radius-card, 16px); }
+.member-notification-preference-grid legend { color: var(--member-text-secondary, #b1b8c5); }
+.member-notification-toggle { border-bottom-color: var(--member-border-subtle, rgba(255,255,255,.055)); }
+.member-notification-toggle i { background: var(--member-surface-3, #1d2330); }
+.member-notification-toggle input:checked+i { background: var(--member-accent, #7c5cff); }
+.member-notification-filters button {
+  border-color: var(--member-border-default, rgba(255,255,255,.095));
+  background: transparent;
+  color: var(--member-text-secondary, #b1b8c5);
+  transition: background-color 180ms ease, border-color 180ms ease, color 150ms ease;
+}
+.member-notification-filters button:hover { background: var(--member-surface-hover, #202736); color: var(--member-text-primary, #f4f6fa); }
+.member-notification-filters button[aria-pressed=true] { background: var(--member-accent-soft, rgba(124,92,255,.13)); border-color: var(--member-accent, #7c5cff); color: var(--member-accent-hover, #9278ff); }
+.member-notification-list article { border-bottom-color: var(--member-border-subtle, rgba(255,255,255,.055)); transition: background-color 180ms ease; }
+.member-notification-list article.is-unread { background: var(--member-accent-soft, rgba(124,92,255,.07)); }
+.member-notification-list article.is-read { opacity: 1; }
+.member-notification-list article.is-read > div:nth-child(2) { color: var(--member-text-secondary, #b1b8c5); }
+.member-notification-list article.is-unread > div:nth-child(2)::before { content: ''; display: inline-block; width: 7px; height: 7px; margin: 0 7px 2px 0; border-radius: 50%; background: var(--member-accent-hover, #9278ff); }
+.member-notification-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--member-surface-3, #1d2330); color: var(--member-text-secondary, #b1b8c5); }
+.member-notification-icon svg { width: 20px; height: 20px; }
+.member-notification-icon--finance { background: var(--member-success-soft, rgba(56,201,139,.13)); color: var(--member-success, #38c98b); }
+.member-notification-icon--security { background: var(--member-warning-soft, rgba(240,182,79,.14)); color: var(--member-warning, #f0b64f); }
+.member-notification-icon--promotion { background: var(--member-accent-soft, rgba(124,92,255,.13)); color: var(--member-accent-hover, #9278ff); }
+.member-notification-icon--system { background: var(--member-info-soft, rgba(90,169,255,.13)); color: var(--member-info, #5aa9ff); }
+.member-notification-actions a,
+.member-notification-actions button { border-color: var(--member-border-default, rgba(255,255,255,.095)); background: var(--member-surface-2, #171c27); color: var(--member-accent-hover, #9278ff); }
+.member-notification-actions a:hover,
+.member-notification-actions button:hover { background: var(--member-surface-hover, #202736); }
+@media (prefers-reduced-motion: reduce) {
+  .member-notification-filters button, .member-notification-list article { transition: none; }
+}
