@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { memberApiFetch } from '../../member-api';
 
@@ -17,10 +17,28 @@ export default function GameSessionPage() {
   const [busy, setBusy] = useState('');
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [wallet, setWallet] = useState<WalletPayload>({});
-  useEffect(() => { loadAll(); }, [session]);
-  async function loadAll() { await Promise.all([loadWallet(), loadTransfers()]); }
-  async function loadWallet() { const res = await memberApiFetch('/member/wallet'); const data = await res.json().catch(() => null); if (res.ok) setWallet(data?.wallet ?? data ?? {}); }
-  async function loadTransfers() { if (!session) return; const res = await memberApiFetch(`/member/game-sessions/${session}/transfers`); const data = await res.json().catch(() => null); if (res.ok) setTransfers(data?.items ?? []); }
+
+  const loadWallet = useCallback(async () => {
+    const res = await memberApiFetch('/member/wallet');
+    const data = await res.json().catch(() => null);
+    if (res.ok) setWallet(data?.wallet ?? data ?? {});
+  }, []);
+
+  const loadTransfers = useCallback(async () => {
+    if (!session) return;
+    const res = await memberApiFetch(`/member/game-sessions/${session}/transfers`);
+    const data = await res.json().catch(() => null);
+    if (res.ok) setTransfers(data?.items ?? []);
+  }, [session]);
+
+  const loadAll = useCallback(async () => {
+    await Promise.all([loadWallet(), loadTransfers()]);
+  }, [loadTransfers, loadWallet]);
+
+  useEffect(() => {
+    void loadAll();
+  }, [loadAll]);
+
   async function transfer(type: 'transfer-in' | 'transfer-out') { if (!session) { setMessage('ไม่พบ session สำหรับโยกเงิน'); return; } setBusy(type); setMessage(type === 'transfer-in' ? 'กำลังโยกเงินเข้าเกม...' : 'กำลังโยกเงินกลับวอเลต...'); const res = await memberApiFetch(`/member/game-sessions/${session}/${type}`, { method: 'POST', body: JSON.stringify({ amount }) }); const data = await res.json().catch(() => null); setBusy(''); if (!res.ok || !data?.ok) { setMessage(data?.transfer?.errorMessage ?? data?.message ?? data?.errorMessage ?? 'โยกเงินไม่สำเร็จ'); await loadAll(); return; } const label = type === 'transfer-in' ? 'โยกเข้าเกม' : 'โยกกลับวอเลต'; const balanceAfter = data.walletSync?.balanceAfter ? ` · ยอดคงเหลือ ${formatMoney(data.walletSync.balanceAfter, data.transfer.currency)}` : ''; setMessage(`${label} สำเร็จ ${formatMoney(data.transfer.amount, data.transfer.currency)}${balanceAfter}`); await loadAll(); }
   return <main style={pageStyle}><section style={cardStyle}><span style={eyebrowStyle}>Game Session</span><h1 style={titleStyle}>{game}</h1><p style={mutedStyle}>จัดการ session, กลับเข้าเกม และโยกเงินเข้าออกเกมจากหน้าเดียว</p><section style={screenStyle}><strong>Session พร้อมใช้งาน</strong><code style={codeStyle}>{session || '-'}</code><div style={actionRowStyle}>{launchUrl && <a href={launchUrl} style={buttonStyle}>กลับเข้าเกม</a>}<a href="/games" style={secondaryButtonStyle}>เลือกเกมอื่น</a></div></section><section style={walletCardStyle}><span>ยอดวอเลต</span><strong>{formatMoney(wallet.balance ?? '0.00', wallet.currency ?? 'THB')}</strong><small>ยอดที่ถูกพัก: {formatMoney(wallet.lockedBalance ?? '0.00', wallet.currency ?? 'THB')}</small></section><section style={panelStyle}><strong>โยกเงิน</strong><p style={mutedStyle}>ถ้าโยกเข้าเกมไม่สำเร็จ ระบบจะ rollback คืนวอเลตและแสดงในประวัติ</p><input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" style={inputStyle} placeholder="จำนวนเงิน" /><div style={actionRowStyle}><button type="button" style={buttonStyle} disabled={Boolean(busy)} onClick={() => transfer('transfer-in')}>{busy === 'transfer-in' ? 'กำลังโยก...' : 'โยกเข้าเกม'}</button><button type="button" style={secondaryButtonStyle} disabled={Boolean(busy)} onClick={() => transfer('transfer-out')}>{busy === 'transfer-out' ? 'กำลังโยก...' : 'โยกกลับวอเลต'}</button></div>{message && <div style={noticeStyle}>{message}</div>}</section><section style={panelStyle}><strong>ประวัติ session นี้</strong>{transfers.map((item) => <div key={item.id} style={historyRowStyle}><div><strong>{transferLabel(item.type)}</strong><p style={mutedStyle}>{formatMoney(item.amount, item.currency)} · {item.providerTransactionId ?? item.errorMessage ?? '-'}</p><small style={smallStyle}>{new Date(item.createdAt).toLocaleString('th-TH')}</small></div><em style={statusStyle}>{statusLabel(item.status, item.responsePayload)}</em></div>)}{transfers.length === 0 && <p style={mutedStyle}>ยังไม่มีรายการโยกเงินใน session นี้</p>}</section></section></main>;
 }
