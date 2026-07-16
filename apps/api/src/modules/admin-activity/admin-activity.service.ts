@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { buildDateRange } from '../../common/query/date-range';
 import { PrismaService } from '../../database/prisma.service';
 
 type TimelineQuery = {
@@ -28,6 +30,25 @@ type ActivityItem = {
   createdAt: Date;
 };
 
+const adminAuditInclude = {
+  adminUser: { select: { id: true, username: true, email: true } },
+} satisfies Prisma.AdminAuditLogInclude;
+
+const walletLedgerInclude = {
+  user: { select: { id: true, username: true, email: true, phone: true } },
+  createdByAdmin: { select: { id: true, username: true, email: true } },
+} satisfies Prisma.WalletLedgerInclude;
+
+const financeRequestInclude = {
+  user: { select: { id: true, username: true, email: true, phone: true } },
+  reviewer: { select: { id: true, username: true, email: true } },
+} satisfies Prisma.TopUpRequestInclude & Prisma.WithdrawalRequestInclude;
+
+type AdminAuditPayload = Prisma.AdminAuditLogGetPayload<{ include: typeof adminAuditInclude }>;
+type WalletLedgerPayload = Prisma.WalletLedgerGetPayload<{ include: typeof walletLedgerInclude }>;
+type TopUpPayload = Prisma.TopUpRequestGetPayload<{ include: typeof financeRequestInclude }>;
+type WithdrawalPayload = Prisma.WithdrawalRequestGetPayload<{ include: typeof financeRequestInclude }>;
+
 @Injectable()
 export class AdminActivityService {
   constructor(private readonly prisma: PrismaService) {}
@@ -38,33 +59,54 @@ export class AdminActivityService {
     const type = String(query.type ?? 'ALL').toUpperCase();
     const wanted = type === 'ALL' ? new Set(['AUDIT', 'LEDGER', 'TOPUP', 'WITHDRAWAL']) : new Set([type]);
     const fetchSize = Math.min(Math.max(page * take * 3, take), 500);
-    const dateWhere = this.dateWhere(query.from, query.to);
+    const dateWhere = buildDateRange(query.from, query.to, { fieldName: 'activity date' });
 
     const [audits, ledgers, topUps, withdrawals] = await Promise.all([
-      wanted.has('AUDIT') ? this.prisma.adminAuditLog.findMany({
-        where: { ...(dateWhere ? { createdAt: dateWhere } : {}) },
-        orderBy: { createdAt: 'desc' },
-        take: fetchSize,
-        include: { adminUser: { select: { id: true, username: true, email: true } } },
-      }) : [],
-      wanted.has('LEDGER') ? this.prisma.walletLedger.findMany({
-        where: { ...(dateWhere ? { createdAt: dateWhere } : {}), ...(query.memberId ? { userId: query.memberId } : {}), ...(query.refType ? { referenceType: query.refType } : {}), ...(query.refId ? { referenceId: query.refId } : {}) },
-        orderBy: { createdAt: 'desc' },
-        take: fetchSize,
-        include: { user: { select: { id: true, username: true, email: true, phone: true } }, createdByAdmin: { select: { id: true, username: true, email: true } } },
-      }) : [],
-      wanted.has('TOPUP') ? this.prisma.topUpRequest.findMany({
-        where: { ...(dateWhere ? { updatedAt: dateWhere } : {}), ...(query.memberId ? { userId: query.memberId } : {}), ...(query.refId ? { id: query.refId } : {}) },
-        orderBy: { updatedAt: 'desc' },
-        take: fetchSize,
-        include: { user: { select: { id: true, username: true, email: true, phone: true } }, reviewer: { select: { id: true, username: true, email: true } } },
-      }) : [],
-      wanted.has('WITHDRAWAL') ? this.prisma.withdrawalRequest.findMany({
-        where: { ...(dateWhere ? { updatedAt: dateWhere } : {}), ...(query.memberId ? { userId: query.memberId } : {}), ...(query.refId ? { id: query.refId } : {}) },
-        orderBy: { updatedAt: 'desc' },
-        take: fetchSize,
-        include: { user: { select: { id: true, username: true, email: true, phone: true } }, reviewer: { select: { id: true, username: true, email: true } } },
-      }) : [],
+      wanted.has('AUDIT')
+        ? this.prisma.adminAuditLog.findMany({
+            where: { ...(dateWhere ? { createdAt: dateWhere } : {}) },
+            orderBy: { createdAt: 'desc' },
+            take: fetchSize,
+            include: adminAuditInclude,
+          })
+        : Promise.resolve<AdminAuditPayload[]>([]),
+      wanted.has('LEDGER')
+        ? this.prisma.walletLedger.findMany({
+            where: {
+              ...(dateWhere ? { createdAt: dateWhere } : {}),
+              ...(query.memberId ? { userId: query.memberId } : {}),
+              ...(query.refType ? { referenceType: query.refType } : {}),
+              ...(query.refId ? { referenceId: query.refId } : {}),
+            },
+            orderBy: { createdAt: 'desc' },
+            take: fetchSize,
+            include: walletLedgerInclude,
+          })
+        : Promise.resolve<WalletLedgerPayload[]>([]),
+      wanted.has('TOPUP')
+        ? this.prisma.topUpRequest.findMany({
+            where: {
+              ...(dateWhere ? { updatedAt: dateWhere } : {}),
+              ...(query.memberId ? { userId: query.memberId } : {}),
+              ...(query.refId ? { id: query.refId } : {}),
+            },
+            orderBy: { updatedAt: 'desc' },
+            take: fetchSize,
+            include: financeRequestInclude,
+          })
+        : Promise.resolve<TopUpPayload[]>([]),
+      wanted.has('WITHDRAWAL')
+        ? this.prisma.withdrawalRequest.findMany({
+            where: {
+              ...(dateWhere ? { updatedAt: dateWhere } : {}),
+              ...(query.memberId ? { userId: query.memberId } : {}),
+              ...(query.refId ? { id: query.refId } : {}),
+            },
+            orderBy: { updatedAt: 'desc' },
+            take: fetchSize,
+            include: financeRequestInclude,
+          })
+        : Promise.resolve<WithdrawalPayload[]>([]),
     ]);
 
     const items: ActivityItem[] = [
@@ -148,14 +190,6 @@ export class AdminActivityService {
         refId: query.refId ?? null,
       },
       generatedAt: new Date().toISOString(),
-    };
-  }
-
-  private dateWhere(from?: string, to?: string) {
-    if (!from && !to) return null;
-    return {
-      gte: from ? new Date(from) : undefined,
-      lte: to ? new Date(to) : undefined,
     };
   }
 
