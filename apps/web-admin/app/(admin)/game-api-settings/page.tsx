@@ -1,6 +1,10 @@
 import { AdminBadge, AdminCard, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
 
-const quickSteps = [
+type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
+type QuickStep = readonly [step: string, title: string, description: string, href: string];
+type MarketPreset = readonly [title: string, description: string, badge: string, tone: BadgeTone];
+
+const quickSteps: readonly QuickStep[] = [
   ['1', 'เลือก Preset', 'เลือก template ค่ายเกมก่อนเริ่มตั้งค่า ไม่ต้องจำ endpoint เองทั้งหมด', '/provider-presets'],
   ['2', 'Setup Wizard', 'ทำตาม wizard เพื่อสร้าง provider, credential, endpoint และ gate', '/provider-setup-wizard'],
   ['3', 'ตรวจพร้อมใช้งาน', 'เปิดหน้า Risk/Preflight เพื่อเช็ก endpoint, credential, transfer gate และเงินจริง', '/provider-risk'],
@@ -13,9 +17,9 @@ const simpleFields = [
   ['API Key / Secret', 'ข้อมูลลับจากค่ายเกม เก็บแบบ masked', 'ต้องมี'],
   ['Agent / Merchant ID', 'รหัสร้านหรือ agent ที่ค่ายเกมออกให้', 'แล้วแต่ค่าย'],
   ['Webhook Secret', 'ใช้ตรวจ callback/signature จากค่าย', 'แนะนำ'],
-];
+] as const;
 
-const marketPresets = [
+const marketPresets: readonly MarketPreset[] = [
   ['Demo / Dry-run', 'ใช้ทดสอบ flow launch, transfer, webhook โดยไม่แตะเงินจริง', 'ปลอดภัยสุด', 'success'],
   ['Transfer Wallet', 'สมาชิกโยกเงินเข้าออกเกม ระบบควบคุมยอดก่อนส่ง provider', 'ตลาดนิยม', 'warning'],
   ['Seamless Wallet', 'Provider เรียกเช็กยอดกับระบบตลอด ต้องแข็งก่อนเปิดจริง', 'ขั้นสูง', 'danger'],
@@ -29,7 +33,7 @@ const advancedItems = [
   ['Game List', 'ดึงรายการเกม'],
   ['Bet History', 'ดึงประวัติเดิมพัน'],
   ['Webhook', 'รับ callback'],
-];
+] as const;
 
 const safetyChecklist = [
   ['Provider ACTIVE', 'ค่ายเกมเปิดใช้งานแล้ว'],
@@ -37,7 +41,7 @@ const safetyChecklist = [
   ['Endpoint ครบ', 'launch, balance, transfer-in/out, webhook มี mapping'],
   ['Risk Preflight ผ่าน', 'ไม่มี blocker ก่อนเปิดใช้งาน'],
   ['Real money gate ปิดไว้ก่อน', 'เปิดเฉพาะตอนพร้อม production จริง'],
-];
+] as const;
 
 export default function GameApiSettingsPage() {
   return (
@@ -62,7 +66,7 @@ export default function GameApiSettingsPage() {
       <AdminGrid>{quickSteps.map(([step, title, description, href]) => <AdminCard key={step} title={`${step}. ${title}`} action={<AdminLinkButton href={href}>เปิด</AdminLinkButton>}><p style={mutedStyle}>{description}</p></AdminCard>)}</AdminGrid>
 
       <h2 style={sectionTitleStyle}>Preset ที่ใช้ในตลาดจริง</h2>
-      <AdminGrid>{marketPresets.map(([title, description, badge, tone]) => <AdminCard key={title}><AdminRow><div><strong>{title}</strong><p style={mutedStyle}>{description}</p></div><AdminBadge tone={tone as any}>{badge}</AdminBadge></AdminRow></AdminCard>)}</AdminGrid>
+      <AdminGrid>{marketPresets.map(([title, description, badge, tone]) => <AdminCard key={title}><AdminRow><div><strong>{title}</strong><p style={mutedStyle}>{description}</p></div><AdminBadge tone={tone}>{badge}</AdminBadge></AdminRow></AdminCard>)}</AdminGrid>
 
       <h2 style={sectionTitleStyle}>ข้อมูลที่แอดมินควรเห็นก่อน</h2>
       <AdminCard title="Basic connection" description="ช่องหลักที่ต้องใช้ต่อค่ายเกมจริง ส่วน endpoint ลึก ๆ ให้ไปหน้า Advanced Mapping">
