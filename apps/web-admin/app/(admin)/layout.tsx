@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from '../admin-api';
-import { AdminButton } from '../components/admin-ui';
+import { AdminButton, AdminEmptyState } from '../components/admin-ui';
 import { canAccessNavItem, navGroups, requiredPermissionsForPath } from './admin-nav';
 import { AdminIcon, iconForAdminHref } from './_components/admin-icon';
 
@@ -129,7 +129,18 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
 }
 
 function AccessDenied() {
-  return <div className="admin-access-denied"><div><AdminIcon name="security" /><strong>ไม่มีสิทธิ์เข้าถึงหน้านี้</strong><p>เมนูนี้ถูกซ่อนและบล็อกตามสิทธิ์ของบัญชีผู้ดูแล กรุณาติดต่อผู้ดูแลสิทธิ์หากจำเป็นต้องใช้งาน</p><a href="/dashboard">กลับไป Dashboard</a></div></div>;
+  return (
+    <div className="admin-access-denied">
+      <AdminEmptyState
+        className="admin-access-denied__state"
+        icon={<AdminIcon name="security" />}
+        title="ไม่มีสิทธิ์เข้าถึงหน้านี้"
+        description="เมนูนี้ถูกซ่อนและบล็อกตามสิทธิ์ของบัญชีผู้ดูแล กรุณาติดต่อผู้ดูแลสิทธิ์หากจำเป็นต้องใช้งาน"
+        actionHref="/dashboard"
+        actionLabel="กลับไป Dashboard"
+      />
+    </div>
+  );
 }
 
 async function verifyAdminSession(): Promise<{ permissions: string[] } | null> {
