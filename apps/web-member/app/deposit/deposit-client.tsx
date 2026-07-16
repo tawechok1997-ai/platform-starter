@@ -62,7 +62,9 @@ export default function DepositClient() {
     return () => window.clearInterval(timer);
   }, [step, transferExpiresAt]);
   useEffect(() => {
-    if (availableMethods.length > 0 && !availableMethods.includes(method)) setMethod(availableMethods[0]);
+    if (availableMethods.includes(method)) return;
+    const firstAvailableMethod = availableMethods[0];
+    if (firstAvailableMethod) setMethod(firstAvailableMethod);
   }, [availableMethods, method]);
 
   async function copyText(value: string, label: string) {
