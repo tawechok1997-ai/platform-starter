@@ -4,7 +4,7 @@ Updated: 2026-07-16
 Scope: `apps/web-member` and shared frontend contracts consumed by Member
 Source of truth for Member UX/UI work: this file
 
-Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). The supplied LUX88 Member boards are the acceptance reference for exact visual parity across Desktop and Mobile. Existing checked implementation items do not imply reference parity until visual evidence is retained.
+Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). Navigation source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). The supplied LUX88 Member boards are the acceptance reference for exact visual parity across Desktop and Mobile. Existing checked implementation items do not imply reference parity until visual evidence is retained.
 
 > Current repository baseline: Next.js 15.5.18, React 19.2.7, TypeScript 5.7.3, custom Member components, shared CSS contracts under `packages/design-tokens`, `packages/api-client`, and Playwright. A checked item means the current implementation and repository-level verification exist. Partial work is split into checked implementation facts and unchecked remaining acceptance criteria.
 
@@ -79,6 +79,14 @@ Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md
 - [ ] Match typography, Thai/Latin hierarchy, money figures, icon stroke, spacing, control heights, card density, image ratios, and decoration against `docs/UI_DESIGN_REFERENCE.md`.
 - [ ] Produce approved Desktop and Mobile visual baselines for every Member reference route at all six standard viewports.
 - [ ] Require visual-diff review for any change to tokens, shared CSS, imagery, fonts, layout primitives, or route shell.
+
+## MEMBER-FOUNDATION-004 Menu and information architecture consistency
+
+- [ ] Replace separate Desktop, Mobile, Drawer, Home quick-action, and category-rail definitions with the canonical menu model in `docs/UI_MENU_INFORMATION_ARCHITECTURE.md`.
+- [ ] Normalize labels (`ฝากเงิน`, `ถอนเงิน`, `กระเป๋าเงิน/รายการ`, `โปรโมชัน`, `โปรไฟล์`) and icon semantics across all surfaces.
+- [ ] Move Mobile to the reference order: หน้าแรก, กระเป๋าเงิน/รายการ, ฝากเงิน, โปรโมชัน, โปรไฟล์; expose secondary actions through More/Drawer.
+- [ ] Resolve the bank-account feature-flag mismatch and document the dedicated capability contract.
+- [ ] Add menu route, active-state, feature-flag, permission, deep-link, and alias tests before visual approval.
 
 ## MEMBER-SYSTEM-001 Design tokens and primitives
 
@@ -382,16 +390,17 @@ Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md
 # Execution order
 
 1. Adopt `docs/UI_DESIGN_REFERENCE.md` and record route/board ownership, visual tokens, and six-viewport evidence requirements
-2. Add priority/owner/dependency metadata and create the route/API/feature/state matrix
-3. Fix P0/P1 correctness gaps: wallet header, Login destination, finance idempotency/recovery, session handling, and password recovery
-4. Add Next.js ESLint rules, JSX accessibility linting, axe Playwright, persistent visual baselines, and bundle analysis
-5. Complete MEMBER-FOUNDATION-001 inventory and removal of brittle style selectors
-6. Consolidate React primitives, finance state mapping, privacy/masking rules, and inline-style migration
-7. Implement Member reference parity route by route, starting with Authentication, Home/Wallet, and Finance
-8. Approve forms and server-state ADRs only after inventory and pilot evidence
-9. Close Deposit, Withdrawal, Transactions/Wallet/Bank, Profile/Security, and KYC gaps
-10. Close Games, Promotions/Bonus, Notifications, and Support gaps
-11. Enforce browser/test-data/performance matrices, six-viewport authenticated regression, release, rollback, and final visual parity review
+2. Normalize the canonical Member menu and route aliases before styling each route
+3. Add priority/owner/dependency metadata and create the route/API/feature/state matrix
+4. Fix P0/P1 correctness gaps: wallet header, Login destination, finance idempotency/recovery, session handling, and password recovery
+5. Add Next.js ESLint rules, JSX accessibility linting, axe Playwright, persistent visual baselines, and bundle analysis
+6. Complete MEMBER-FOUNDATION-001 inventory and removal of brittle style selectors
+7. Consolidate React primitives, finance state mapping, privacy/masking rules, and inline-style migration
+8. Implement Member reference parity route by route, starting with Authentication, Home/Wallet, and Finance
+9. Approve forms and server-state ADRs only after inventory and pilot evidence
+10. Close Deposit, Withdrawal, Transactions/Wallet/Bank, Profile/Security, and KYC gaps
+11. Close Games, Promotions/Bonus, Notifications, and Support gaps
+12. Enforce browser/test-data/performance matrices, six-viewport authenticated regression, release, rollback, and final visual parity review
 
 # Evidence log
 

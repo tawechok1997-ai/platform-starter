@@ -1,6 +1,6 @@
 # Admin UX/UI Redesign Worklist
 
-Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). The supplied Gaming Fintech Admin boards are the acceptance reference for exact visual parity across Dashboard, Operations, Review, Finance/Risk/Reports, Providers/Marketing/Settings, Desktop, and Mobile.
+Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). Navigation source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). The supplied Gaming Fintech Admin boards are the acceptance reference for exact visual parity across Dashboard, Operations, Review, Finance/Risk/Reports, Providers/Marketing/Settings, Desktop, and Mobile.
 
 Updated: 2026-07-14  
 Scope: `apps/web-admin` only  

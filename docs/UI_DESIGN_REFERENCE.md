@@ -5,6 +5,8 @@ Status: Required acceptance reference for Member and Admin UI redesign
 
 This document turns the supplied LUX88 / Gaming Fintech reference boards into an implementation and QA contract. The reference is the visual target for layout, hierarchy, colors, spacing, component composition, responsive behavior, and interaction states. A route is not visually complete until its desktop and mobile evidence can be compared against the matching board.
 
+Navigation and menu source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). Visual parity must not preserve contradictory Desktop, Mobile, Drawer, Home, or Admin menu definitions.
+
 ## Reference boards
 
 | Board                                 | Product area                                             | Required route groups                                              |
