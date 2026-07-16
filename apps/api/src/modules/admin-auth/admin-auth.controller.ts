@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from 
 import type { AdminRequestContext, AuthenticatedAdminActor, HttpRequestContext } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
+import { getRequestMeta } from '../../common/http/request-meta';
 import { AntiBotService } from '../anti-bot/anti-bot.service';
 import { AdminLoginDefenseService } from './admin-login-defense.service';
 import { AdminLoginService } from './admin-login.service';
@@ -27,7 +28,7 @@ export class AdminAuthController {
 
   @Post('login')
   async signIn(@Body() dto: AdminSignInDto, @Req() req: HttpRequestContext, @Res({ passthrough: true }) res: any) {
-    const meta = this.meta(req, dto.deviceId);
+    const meta = getRequestMeta(req, dto.deviceId);
     await this.loginDefense.assertAllowed(dto.username, meta);
     await this.antiBot.assertValid('ADMIN_LOGIN', dto.captchaToken, meta.ipAddress);
     const result = await this.login.signIn(dto, meta);
@@ -37,7 +38,7 @@ export class AdminAuthController {
 
   @Post('2fa/verify')
   async verifyTwoFactor(@Body() dto: VerifyAdminTwoFactorDto, @Req() req: HttpRequestContext, @Res({ passthrough: true }) res: any) {
-    const result = await this.login.verifyTwoFactor(dto, this.meta(req));
+    const result = await this.login.verifyTwoFactor(dto, getRequestMeta(req));
     this.setRefreshCookie(res, result.refreshToken);
     return result;
   }
@@ -45,31 +46,31 @@ export class AdminAuthController {
   @UseGuards(AdminAuthGuard)
   @Post('2fa/setup')
   setupTwoFactor(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
-    return this.twoFactorCommands.setup(user.id, this.meta(req));
+    return this.twoFactorCommands.setup(user.id, getRequestMeta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('2fa/enable')
   enableTwoFactor(@CurrentUser() user: AuthenticatedAdminActor, @Body() body: AdminTwoFactorCodeDto, @Req() req: AdminRequestContext) {
-    return this.twoFactorCommands.enable(user.id, body.code, this.meta(req));
+    return this.twoFactorCommands.enable(user.id, body.code, getRequestMeta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('2fa/disable')
   disableTwoFactor(@CurrentUser() user: AuthenticatedAdminActor, @Body() body: AdminTwoFactorCodeDto, @Req() req: AdminRequestContext) {
-    return this.twoFactorCommands.disable(user.id, body.code, this.meta(req));
+    return this.twoFactorCommands.disable(user.id, body.code, getRequestMeta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('2fa/recovery-codes/regenerate')
   regenerateRecoveryCodes(@CurrentUser() user: AuthenticatedAdminActor, @Body() body: AdminTwoFactorCodeDto, @Req() req: AdminRequestContext) {
-    return this.twoFactorCommands.regenerateRecoveryCodes(user.id, body.code, this.meta(req));
+    return this.twoFactorCommands.regenerateRecoveryCodes(user.id, body.code, getRequestMeta(req));
   }
 
   @Post('refresh')
   async refresh(@Body() body: AdminRefreshSessionDto, @Req() req: HttpRequestContext, @Res({ passthrough: true }) res: any) {
     const token = String(body.refreshToken ?? '').trim() || this.readRefreshCookie(req);
-    const result = await this.refreshSessions.refresh(token, this.meta(req));
+    const result = await this.refreshSessions.refresh(token, getRequestMeta(req));
     this.setRefreshCookie(res, result.refreshToken);
     return result;
   }
@@ -78,7 +79,7 @@ export class AdminAuthController {
   @Post('logout')
   signOut(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext, @Res({ passthrough: true }) res: any) {
     this.clearRefreshCookie(res);
-    return this.sessionCommands.signOut(user.sessionId, user.id, this.meta(req));
+    return this.sessionCommands.signOut(user.sessionId, user.id, getRequestMeta(req));
   }
 
   @UseGuards(AdminAuthGuard)
@@ -90,19 +91,19 @@ export class AdminAuthController {
   @UseGuards(AdminAuthGuard)
   @Post('sessions/logout-others')
   logoutOtherSessions(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
-    return this.sessionCommands.revokeOtherSessions(user.id, user.sessionId, this.meta(req));
+    return this.sessionCommands.revokeOtherSessions(user.id, user.sessionId, getRequestMeta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Post('sessions/logout-all')
   logoutAllSessions(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
-    return this.sessionCommands.revokeAllSessions(user.id, this.meta(req));
+    return this.sessionCommands.revokeAllSessions(user.id, getRequestMeta(req));
   }
 
   @UseGuards(AdminAuthGuard)
   @Delete('sessions/:sessionId')
   revokeSession(@CurrentUser() user: AuthenticatedAdminActor, @Param('sessionId') sessionId: string, @Req() req: AdminRequestContext) {
-    return this.sessionCommands.revokeSession(user.id, user.sessionId, sessionId, this.meta(req));
+    return this.sessionCommands.revokeSession(user.id, user.sessionId, sessionId, getRequestMeta(req));
   }
 
   @UseGuards(AdminAuthGuard)
@@ -131,19 +132,6 @@ export class AdminAuthController {
   private readRefreshCookie(req: HttpRequestContext) {
     const header = String(req.headers?.cookie ?? '');
     const match = header.match(/(?:^|;\s*)platform_admin_refresh=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : '';
-  }
-
-  private meta(req: HttpRequestContext, deviceId?: string) {
-    const userAgent = req.headers?.['user-agent'];
-    return {
-      ipAddress: this.clientIp(req),
-      userAgent: Array.isArray(userAgent) ? userAgent[0] : userAgent,
-      deviceId,
-    };
-  }
-
-  private clientIp(req: HttpRequestContext) {
-    return String(req.ip ?? req.socket?.remoteAddress ?? 'unknown');
+    return match?.[1] ? decodeURIComponent(match[1]) : '';
   }
 }
