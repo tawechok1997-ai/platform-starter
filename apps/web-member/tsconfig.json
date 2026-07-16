@@ -1,23 +1,6 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../packages/config/typescript/next.json",
   "compilerOptions": {
-    "jsx": "preserve",
-    "module": "ESNext",
-    "allowJs": true,
-    "noEmit": true,
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "resolveJsonModule": true,
-    "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
       "@platform/api-client": [
