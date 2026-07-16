@@ -11,7 +11,7 @@ type MethodMeta = { value: MethodName; label: string; description: string; risk:
 type TestResult = { ok?: boolean; provider?: { id: string; code: string }; method?: string; latencyMs?: number; checkedAt?: string; input?: unknown; result?: any; message?: string };
 type NoticeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
 
-const methodOptions = [
+const methodOptions: MethodMeta[] = [
   { value: 'healthCheck', label: 'ทดสอบว่าค่ายตอบไหม', description: 'เช็กว่า API ค่ายหรือ adapter พร้อมใช้งานไหม', risk: 'safe' },
   { value: 'launchGame', label: 'ทดสอบเปิดเกม', description: 'เช็กว่าเปิดเกมแล้วได้ลิงก์กลับมาหรือไม่', risk: 'safe' },
   { value: 'getBalance', label: 'ทดสอบเช็กยอด', description: 'เช็กยอดฝั่งค่าย ถ้าค่ายรองรับ', risk: 'safe' },
@@ -21,7 +21,7 @@ const methodOptions = [
   { value: 'getBetHistory', label: 'ทดสอบประวัติเกม', description: 'เช็กว่าดึงประวัติจากค่ายได้ไหม', risk: 'safe' },
   { value: 'validateWebhook', label: 'ทดสอบลายเซ็น Webhook', description: 'เช็ก header/signature ของ callback', risk: 'webhook' },
   { value: 'parseWebhook', label: 'ทดสอบอ่าน Webhook', description: 'แปลงข้อมูล callback เป็น event กลาง', risk: 'webhook' },
-] as const satisfies readonly MethodMeta[];
+];
 
 const defaultPayload: Record<MethodName, string> = { healthCheck: '{}', launchGame: JSON.stringify({ userId: 'adapter-test-user', gameCode: 'demo-slot-001', returnUrl: 'https://example.com/member/games' }, null, 2), getBalance: JSON.stringify({ userId: 'adapter-test-user' }, null, 2), transferIn: JSON.stringify({ userId: 'adapter-test-user', amount: '1.00', currency: 'THB', sessionId: 'adapter-test-session' }, null, 2), transferOut: JSON.stringify({ userId: 'adapter-test-user', amount: '1.00', currency: 'THB', sessionId: 'adapter-test-session' }, null, 2), syncGames: '{}', getBetHistory: JSON.stringify({ from: new Date(Date.now() - 86400000).toISOString(), to: new Date().toISOString() }, null, 2), validateWebhook: JSON.stringify({ body: { eventType: 'adapter.test', idempotencyKey: 'adapter-test-key', providerTransactionId: 'adapter-test-tx' } }, null, 2), parseWebhook: JSON.stringify({ body: { eventType: 'adapter.test', idempotencyKey: 'adapter-test-key', providerTransactionId: 'adapter-test-tx' } }, null, 2) };
 
