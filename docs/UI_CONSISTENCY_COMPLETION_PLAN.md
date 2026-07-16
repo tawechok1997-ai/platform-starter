@@ -3,6 +3,16 @@
 Updated: 2026-07-16  
 Related contracts: [`MEMBER_UI_PRODUCT_BRIEF.md`](./MEMBER_UI_PRODUCT_BRIEF.md), [`MEMBER_MENU_INFORMATION_ARCHITECTURE.md`](./MEMBER_MENU_INFORMATION_ARCHITECTURE.md), [`ADMIN_MENU_INFORMATION_ARCHITECTURE.md`](./ADMIN_MENU_INFORMATION_ARCHITECTURE.md), [`UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md), [`UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md), and repository [`AGENTS.md`](../AGENTS.md). Current implementation scope is Member only; Admin sections are future reference and must remain separate work items.
 
+## Current implementation status (Member phase)
+
+The Member visual implementation is complete for the current scope. The following contracts are now connected in `apps/web-member/app/layout.tsx`: finance form, bank accounts, account/security, notifications, responsive/accessibility, and final legacy-surface normalization. Home, Games, Promotions, Transactions, Deposit, Withdraw, Bank Accounts, Profile/Security, Notifications, and Support use the same Member token and state direction. Admin remains intentionally untouched.
+
+Remaining work is verification evidence rather than another UI concept:
+
+- Run Member lint, typecheck, build, and browser/axe checks with the repository-required Node `>=22 <23` and pnpm `11.13.0` toolchain.
+- Capture desktop/mobile screenshots and record any measured visual mismatch before release.
+- Keep any future Admin redesign in the Admin documents and Admin app only.
+
 This is the execution plan for making Member and Admin UI coherent, easy to use, and visually consistent with the supplied reference boards. The goal is not to make every page look identical; the goal is to make equivalent concepts behave and read identically while each page keeps its correct density.
 
 ## 1. Non-negotiable consistency rules
