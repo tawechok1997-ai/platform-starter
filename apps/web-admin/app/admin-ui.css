@@ -1,0 +1,60 @@
+.admin-ui-card {
+  min-width: 0;
+  color: var(--text);
+}
+
+.admin-ui-card--elevated {
+  box-shadow: var(--shadow);
+}
+
+.admin-ui-button {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.admin-ui-button--success {
+  border-color: color-mix(in srgb, var(--good) 42%, transparent);
+}
+
+.admin-ui-button--warning {
+  border-color: color-mix(in srgb, var(--brand) 42%, transparent);
+}
+
+.admin-ui-notice {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.admin-ui-notice--brand,
+.admin-ui-notice--warning {
+  border-color: color-mix(in srgb, var(--brand) 38%, transparent);
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface2));
+}
+
+.admin-ui-notice--success {
+  border-color: color-mix(in srgb, var(--good) 38%, transparent);
+  background: color-mix(in srgb, var(--good) 10%, var(--surface2));
+}
+
+.admin-ui-notice--danger {
+  border-color: color-mix(in srgb, var(--bad) 38%, transparent);
+  background: color-mix(in srgb, var(--bad) 10%, var(--surface2));
+}
+
+.admin-ui-empty {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+  padding: 20px;
+}
+
+.admin-ui-empty--compact {
+  padding: 14px;
+}
+
+.admin-ui-empty p {
+  margin: 6px 0 0;
+}
