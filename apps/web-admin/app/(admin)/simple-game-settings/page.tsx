@@ -7,6 +7,7 @@ import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminGrid, AdminLinkBut
 type Provider = { id: string; name: string; code: string; status: string; walletMode?: string; metadata?: any };
 type Panel = { provider?: Provider; status?: string; checks?: Array<{ key: string; ok: boolean }>; flags?: Record<string, boolean> };
 type BadgeTone = 'success' | 'warning' | 'danger' | 'neutral';
+type NoticeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
 type HumanStatus = { label: string; tone: BadgeTone; helper: string };
 type NextAction = { title: string; description: string; label: string; tone: BadgeTone };
 
@@ -15,17 +16,19 @@ export default function SimpleGameSettingsPage() {
   const [providerId, setProviderId] = useState('');
   const [panel, setPanel] = useState<Panel | null>(null);
   const [message, setMessage] = useState('กำลังโหลดค่ายเกม...');
+  const [messageTone, setMessageTone] = useState<NoticeTone>('neutral');
   const [loading, setLoading] = useState(false);
   useEffect(() => { loadProviders(); }, []);
   useEffect(() => { if (providerId) loadPanel(providerId); }, [providerId]);
   const selected = useMemo(() => providers.find((item) => item.id === providerId), [providers, providerId]);
   const human = humanProviderStatus(selected, panel);
-  async function loadProviders() { setLoading(true); const res = await adminApiFetch('/admin/game-providers'); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'โหลดค่ายเกมไม่สำเร็จ'); return; } const rows = data.items ?? []; setProviders(rows); setProviderId(rows[0]?.id ?? ''); setMessage(rows.length ? '' : 'ยังไม่มีค่ายเกม'); }
-  async function loadPanel(id = providerId) { if (!id) return; const res = await adminApiFetch(`/admin/game-providers/${id}/risk-panel`); const data = await res.json().catch(() => null); if (res.ok) setPanel(data); }
-  async function testHealth() { if (!providerId) return; setLoading(true); setMessage('กำลังทดสอบค่าย...'); const res = await adminApiFetch(`/admin/game-providers/${providerId}/health-check`, { method: 'POST' }); const data = await res.json().catch(() => null); setLoading(false); setMessage(res.ok && data?.ok !== false ? 'ทดสอบค่ายสำเร็จ' : data?.message ?? data?.errorMessage ?? 'ทดสอบค่ายไม่สำเร็จ'); await loadPanel(); }
-  async function openSafeGates() { if (!providerId) return; setLoading(true); setMessage('กำลังเปิดโหมดใช้งานพื้นฐาน...'); const res = await adminApiFetch(`/admin/game-providers/${providerId}/gates`, { method: 'PATCH', body: JSON.stringify({ launchEnabled: true, transferEnabled: true, walletSyncEnabled: true, realMoneyEnabled: false, webhookSettlementEnabled: false }) }); const data = await res.json().catch(() => null); setLoading(false); setMessage(res.ok ? 'เปิดโหมดใช้งานพื้นฐานแล้ว ยังไม่เปิดเงินจริง/เว็บฮุคเงินจริง' : data?.message ?? 'เปิดโหมดไม่สำเร็จ'); await loadPanel(); }
+  function showMessage(nextMessage: string, tone: NoticeTone = 'neutral') { setMessage(nextMessage); setMessageTone(tone); }
+  async function loadProviders() { setLoading(true); showMessage('กำลังโหลดค่ายเกม...'); const res = await adminApiFetch('/admin/game-providers'); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { showMessage(data?.message ?? 'โหลดค่ายเกมไม่สำเร็จ', 'danger'); return; } const rows = data.items ?? []; setProviders(rows); setProviderId(rows[0]?.id ?? ''); showMessage(rows.length ? '' : 'ยังไม่มีค่ายเกม', rows.length ? 'neutral' : 'warning'); }
+  async function loadPanel(id = providerId) { if (!id) return; const res = await adminApiFetch(`/admin/game-providers/${id}/risk-panel`); const data = await res.json().catch(() => null); if (res.ok) { setPanel(data); return; } showMessage(data?.message ?? 'โหลดสถานะค่ายไม่สำเร็จ', 'danger'); }
+  async function testHealth() { if (!providerId) { showMessage('เลือกค่ายก่อนทดสอบ', 'warning'); return; } setLoading(true); showMessage('กำลังทดสอบค่าย...'); const res = await adminApiFetch(`/admin/game-providers/${providerId}/health-check`, { method: 'POST' }); const data = await res.json().catch(() => null); setLoading(false); showMessage(res.ok && data?.ok !== false ? 'ทดสอบค่ายสำเร็จ' : data?.message ?? data?.errorMessage ?? 'ทดสอบค่ายไม่สำเร็จ', res.ok && data?.ok !== false ? 'success' : 'danger'); await loadPanel(); }
+  async function openSafeGates() { if (!providerId) { showMessage('เลือกค่ายก่อนเปิดใช้งานพื้นฐาน', 'warning'); return; } setLoading(true); showMessage('กำลังเปิดโหมดใช้งานพื้นฐาน...'); const res = await adminApiFetch(`/admin/game-providers/${providerId}/gates`, { method: 'PATCH', body: JSON.stringify({ launchEnabled: true, transferEnabled: true, walletSyncEnabled: true, realMoneyEnabled: false, webhookSettlementEnabled: false }) }); const data = await res.json().catch(() => null); setLoading(false); showMessage(res.ok ? 'เปิดโหมดใช้งานพื้นฐานแล้ว ยังไม่เปิดเงินจริง/เว็บฮุคเงินจริง' : data?.message ?? 'เปิดโหมดไม่สำเร็จ', res.ok ? 'success' : 'danger'); await loadPanel(); }
   return <AdminPage eyebrow="ตั้งค่าง่าย" title="ตั้งค่าค่ายเกม" description="หน้าเดียวสำหรับดูว่าค่ายพร้อมไหม ต้องทำอะไรต่อ และไปหน้าขั้นสูงเฉพาะตอนจำเป็น" actions={<><AdminButton onClick={testHealth} disabled={loading || !providerId}>ทดสอบค่าย</AdminButton><AdminButton tone="secondary" onClick={openSafeGates} disabled={loading || !providerId}>เปิดใช้งานพื้นฐาน</AdminButton></>}>
-    {message && <AdminNotice>{message}</AdminNotice>}
+    {message && <AdminNotice tone={messageTone}>{message}</AdminNotice>}
     <AdminMetricGrid><AdminMetric title="สถานะค่าย" value={human.label} helper={human.helper} /><AdminMetric title="ค่ายที่เลือก" value={selected?.name ?? '-'} helper={selected?.code ?? 'ยังไม่ได้เลือก'} /><AdminMetric title="เปิดเกม" value={yesNo(panel?.flags?.launchEnabled)} helper="ให้สมาชิกเข้าเกม" /><AdminMetric title="โยกเงิน" value={yesNo(panel?.flags?.walletSyncEnabled)} helper="เชื่อมวอเลตกับเกม" /></AdminMetricGrid>
     <AdminCard title="เลือกค่าย"><select value={providerId} onChange={(event) => setProviderId(event.target.value)} style={inputStyle}>{providers.map((provider) => <option key={provider.id} value={provider.id}>{provider.name} ({provider.code})</option>)}</select></AdminCard>
     <AdminGrid>
