@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { MemberRuntimeImage } from '../../components/member-runtime-image';
 import { AntiBotWidget } from '../anti-bot-widget';
 import { PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags, textSetting } from '../../site-settings';
 import { memberApiFetch } from '../../member-api';
@@ -91,14 +93,14 @@ export default function MemberSignInPage() {
     <section className="public-auth-shell">
       <aside className="public-auth-brand-panel">
         <div className="public-auth-brand-kicker"><span /> {locale === 'th' ? 'ประสบการณ์สมาชิกระดับพรีเมียม' : 'Premium member experience'}</div>
-        <div className="public-auth-brand-lockup"><span className="public-auth-brand__mark">{logoUrl ? <img src={logoUrl} alt="" /> : brandMark}</span><strong>{siteName}</strong></div>
+        <div className="public-auth-brand-lockup"><span className="public-auth-brand__mark">{logoUrl ? <MemberRuntimeImage src={logoUrl} alt="" /> : brandMark}</span><strong>{siteName}</strong></div>
         <h2>{locale === 'th' ? 'ความปลอดภัย คือสิ่งสำคัญที่สุด' : 'Your security comes first.'}</h2>
         <p>{locale === 'th' ? 'การปกป้องระดับระบบ ตรวจสอบความเสี่ยง และดูแลเซสชัน เพื่อให้ทุกการใช้งานมั่นใจได้' : 'System-level protection, risk monitoring and secure sessions for complete peace of mind.'}</p>
         <div className="public-auth-benefits"><div><span>01</span><strong>{locale === 'th' ? 'ปลอดภัยทุกขั้นตอน' : 'Secure by design'}</strong></div><div><span>02</span><strong>{locale === 'th' ? 'ตรวจสอบสถานะได้ทันที' : 'Live status tracking'}</strong></div><div><span>03</span><strong>{locale === 'th' ? 'รองรับทุกอุปกรณ์' : 'Built for every screen'}</strong></div></div>
         <div className="public-auth-security-card"><span className="public-auth-security-card__icon">◇</span><div><strong>{locale === 'th' ? 'ข้อมูลของคุณได้รับการปกป้อง' : 'Your data stays protected'}</strong><small>{locale === 'th' ? 'การเชื่อมต่อเข้ารหัสและตรวจสอบเซสชัน' : 'Encrypted connection and session monitoring'}</small></div></div>
       </aside>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
-        <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} className="public-auth-language__button ui-button ui-button--secondary">ไทย</button><button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} className="public-auth-language__button ui-button ui-button--secondary">EN</button></div></div>
+        <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <MemberRuntimeImage src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} className="public-auth-language__button ui-button ui-button--secondary">ไทย</button><button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} className="public-auth-language__button ui-button ui-button--secondary">EN</button></div></div>
         <div className="public-auth-heading"><span className="public-auth-heading__eyebrow">MEMBER ACCESS</span><h1>{t.title}</h1><p>{t.subtitle}</p></div>
         {!flags.login && <div className="public-auth-alert public-auth-alert--error" role="alert">{t.loginDisabled}</div>}
         {status === 'error' && message && <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>}
@@ -109,8 +111,8 @@ export default function MemberSignInPage() {
         <AntiBotWidget endpoint="member-login" locale={locale} resetKey={captchaResetKey} onToken={handleCaptchaToken} onRequiredChange={handleCaptchaState} />
         <button type="submit" disabled={disabled} className="public-auth-submit ui-button ui-button--primary">{loading ? t.submitting : t.submit}</button>
         {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
-        {flags.registration && <p className="public-auth-footer">{t.registerPrompt} <a href="/register">{t.register}</a></p>}
-        <div className="public-auth-legal"><span>Secure connection</span><a href="/legal/privacy">{locale === 'th' ? 'ความเป็นส่วนตัว' : 'Privacy'}</a><a href="/legal/terms">{locale === 'th' ? 'เงื่อนไข' : 'Terms'}</a></div>
+        {flags.registration && <p className="public-auth-footer">{t.registerPrompt} <Link href="/register">{t.register}</Link></p>}
+        <div className="public-auth-legal"><span>Secure connection</span><Link href="/legal/privacy">{locale === 'th' ? 'ความเป็นส่วนตัว' : 'Privacy'}</Link><Link href="/legal/terms">{locale === 'th' ? 'เงื่อนไข' : 'Terms'}</Link></div>
       </form>
     </section>
   </main>;
