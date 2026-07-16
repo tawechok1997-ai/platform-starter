@@ -11,7 +11,7 @@ export type DomainErrorCategory =
   | 'unavailable'
   | 'internal';
 
-type DomainErrorOptions = {
+export type DomainErrorOptions = {
   code: ApiErrorCode | string;
   category: DomainErrorCategory;
   message: string;
@@ -32,7 +32,7 @@ export class DomainError extends Error {
     this.code = options.code;
     this.category = options.category;
     this.messageKey = options.messageKey ?? resolveErrorMessageKey(options.code);
-    this.details = options.details;
+    if (options.details !== undefined) this.details = options.details;
   }
 }
 
