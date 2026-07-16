@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createFinanceIdempotencyKey, WithdrawalView } from '../../src/features/finance';
 import { memberApiFetch } from '../member-api';
 import type {
@@ -29,11 +29,7 @@ export default function WithdrawPage() {
   const idempotencyKeyRef = useRef('');
   const submissionInFlightRef = useRef(false);
 
-  useEffect(() => {
-    void loadAll();
-  }, []);
-
-  async function loadAll() {
+  const loadAll = useCallback(async () => {
     setIsLoading(true);
     const [walletRes, listRes, bankRes, bonusRes] = await Promise.all([
       memberApiFetch('/member/wallet'),
@@ -55,13 +51,17 @@ export default function WithdrawPage() {
       const primary =
         nextBanks.find((item) => item.isPrimary && item.status === 'ACTIVE') ??
         nextBanks.find((item) => item.status === 'ACTIVE');
-      if (primary && !bankAccountId) setBankAccountId(primary.id);
+      if (primary) setBankAccountId((current) => current || primary.id);
     }
     if (!walletRes.ok || !listRes.ok || !bankRes.ok) {
       setMessage(walletData?.message ?? listData?.message ?? bankData?.message ?? 'โหลดข้อมูลไม่สำเร็จ');
     }
     setIsLoading(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    void loadAll();
+  }, [loadAll]);
 
   function goAmount(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
