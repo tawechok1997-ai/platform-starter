@@ -4,7 +4,7 @@ Updated: 2026-07-16
 Scope: `apps/web-member` and shared frontend contracts consumed by Member
 Source of truth for Member UX/UI work: this file
 
-Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). Navigation source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). The supplied LUX88 Member boards are the acceptance reference for exact visual parity across Desktop and Mobile. Existing checked implementation items do not imply reference parity until visual evidence is retained.
+Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). Navigation source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). Component, copy, state, duplicate-work, and execution source of truth: [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](./UI_CONSISTENCY_COMPLETION_PLAN.md). The supplied LUX88 Member boards are the acceptance reference for exact visual parity across Desktop and Mobile. Existing checked implementation items do not imply reference parity until visual evidence is retained.
 
 > Current repository baseline: Next.js 15.5.18, React 19.2.7, TypeScript 5.7.3, custom Member components, shared CSS contracts under `packages/design-tokens`, `packages/api-client`, and Playwright. A checked item means the current implementation and repository-level verification exist. Partial work is split into checked implementation facts and unchecked remaining acceptance criteria.
 
@@ -389,18 +389,19 @@ Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md
 
 # Execution order
 
-1. Adopt `docs/UI_DESIGN_REFERENCE.md` and record route/board ownership, visual tokens, and six-viewport evidence requirements
+1. Adopt `docs/UI_DESIGN_REFERENCE.md`, `docs/UI_MENU_INFORMATION_ARCHITECTURE.md`, and `docs/UI_CONSISTENCY_COMPLETION_PLAN.md`
 2. Normalize the canonical Member menu and route aliases before styling each route
-3. Add priority/owner/dependency metadata and create the route/API/feature/state matrix
-4. Fix P0/P1 correctness gaps: wallet header, Login destination, finance idempotency/recovery, session handling, and password recovery
-5. Add Next.js ESLint rules, JSX accessibility linting, axe Playwright, persistent visual baselines, and bundle analysis
-6. Complete MEMBER-FOUNDATION-001 inventory and removal of brittle style selectors
-7. Consolidate React primitives, finance state mapping, privacy/masking rules, and inline-style migration
-8. Implement Member reference parity route by route, starting with Authentication, Home/Wallet, and Finance
-9. Approve forms and server-state ADRs only after inventory and pilot evidence
-10. Close Deposit, Withdrawal, Transactions/Wallet/Bank, Profile/Security, and KYC gaps
-11. Close Games, Promotions/Bonus, Notifications, and Support gaps
-12. Enforce browser/test-data/performance matrices, six-viewport authenticated regression, release, rollback, and final visual parity review
+3. Inventory shared cards, buttons, badges, formatters, state mappings, copy, and duplicate implementations
+4. Add priority/owner/dependency metadata and create the route/API/feature/state matrix
+5. Fix P0/P1 correctness gaps: wallet header, Login destination, finance idempotency/recovery, session handling, and password recovery
+6. Add Next.js ESLint rules, JSX accessibility linting, axe Playwright, persistent visual baselines, and bundle analysis
+7. Complete MEMBER-FOUNDATION-001 inventory and removal of brittle style selectors
+8. Consolidate React primitives, finance state mapping, privacy/masking rules, copy budgets, and inline-style migration
+9. Implement Member reference parity route by route, starting with Authentication, Home/Wallet, and Finance
+10. Approve forms and server-state ADRs only after inventory and pilot evidence
+11. Close Deposit, Withdrawal, Transactions/Wallet/Bank, Profile/Security, and KYC gaps
+12. Close Games, Promotions/Bonus, Notifications, and Support gaps
+13. Enforce browser/test-data/performance matrices, six-viewport authenticated regression, release, rollback, and final visual parity review
 
 # Evidence log
 
