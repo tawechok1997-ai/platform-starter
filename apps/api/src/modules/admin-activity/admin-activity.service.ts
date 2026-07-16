@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { buildDateRange } from '../../common/query/date-range';
+import { buildDateRange, parseDateBoundary } from '../../common/query/date-range';
 import { PrismaService } from '../../database/prisma.service';
 
 type TimelineQuery = {
@@ -59,7 +59,9 @@ export class AdminActivityService {
     const type = String(query.type ?? 'ALL').toUpperCase();
     const wanted = type === 'ALL' ? new Set(['AUDIT', 'LEDGER', 'TOPUP', 'WITHDRAWAL']) : new Set([type]);
     const fetchSize = Math.min(Math.max(page * take * 3, take), 500);
-    const dateWhere = buildDateRange(query.from, query.to, { fieldName: 'activity date' });
+    const from = parseDateBoundary(query.from, false, 'activity date from');
+    const to = parseDateBoundary(query.to, true, 'activity date to');
+    const dateWhere = buildDateRange(from, to);
 
     const [audits, ledgers, topUps, withdrawals] = await Promise.all([
       wanted.has('AUDIT')
