@@ -7,6 +7,7 @@ import { AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage, AdminStack, 
 type FieldType = 'text' | 'textarea' | 'checkbox' | 'color' | 'date';
 type FieldConfig = { key: string; label: string; type?: FieldType; placeholder?: string };
 type Props = { group: string; title: string; description: string; fields: FieldConfig[]; preview?: 'branding' | 'theme' | 'maintenance' | 'legal' | 'default' };
+type RgbColor = readonly [red: number, green: number, blue: number];
 
 export default function SettingsSectionPage({ group, title, description, fields, preview = 'default' }: Props) {
   const [form, setForm] = useState<Record<string, string | boolean | number | null>>({});
@@ -125,15 +126,16 @@ function contrastRatio(foreground: string, background: string) {
 function relativeLuminance(hex: string) {
   const rgb = parseHexColor(hex);
   if (!rgb) return 1;
-  const [r, g, b] = rgb.map((value) => {
+  const linearize = (value: number) => {
     const channel = value / 255;
     return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const [red, green, blue] = rgb;
+  return 0.2126 * linearize(red) + 0.7152 * linearize(green) + 0.0722 * linearize(blue);
 }
-function parseHexColor(value: string) {
+function parseHexColor(value: string): RgbColor | null {
   const match = /^#?([0-9a-f]{6})$/i.exec(value.trim());
-  if (!match) return null;
-  const hex = match[1];
+  const hex = match?.[1];
+  if (!hex) return null;
   return [Number.parseInt(hex.slice(0, 2), 16), Number.parseInt(hex.slice(2, 4), 16), Number.parseInt(hex.slice(4, 6), 16)];
 }
