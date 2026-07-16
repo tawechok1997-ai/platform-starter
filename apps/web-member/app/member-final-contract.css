@@ -1,0 +1,87 @@
+/* Final Member-only visual normalization for legacy feature surfaces. */
+.member-support-page,
+.game-lobby-page,
+.member-finance-page {
+  background: var(--member-page, #0d1017) !important;
+  color: var(--member-text-primary, #f4f6fa) !important;
+}
+.member-support-hero,
+.member-support-form,
+.member-support-faq,
+.member-support-tickets,
+.game-lobby-hero,
+.game-lobby-card,
+.game-lobby-notice,
+.game-lobby-empty,
+.member-transaction-card,
+.member-finance-summary__card {
+  border-color: var(--member-border-subtle, rgba(255,255,255,.055)) !important;
+  background: var(--member-surface-1, #121620) !important;
+  box-shadow: var(--member-shadow-card, 0 8px 24px rgba(0,0,0,.1));
+}
+.member-support-hero p,
+.member-support-heading p,
+.game-lobby-eyebrow { color: var(--member-accent-hover, #9278ff) !important; }
+.member-support-hero span,
+.member-support-page label > span,
+.member-support-ticket-head p,
+.member-support-accordion p,
+.game-lobby-hero p,
+.member-finance-page__subtitle,
+.member-finance-summary__card span { color: var(--member-text-secondary, #b1b8c5) !important; }
+.member-support-page input,
+.member-support-page select,
+.member-support-page textarea,
+.game-lobby-search-row input,
+.game-lobby-search-row select {
+  border-color: var(--member-border-default, rgba(255,255,255,.095)) !important;
+  background: var(--member-surface-1, #121620) !important;
+  color: var(--member-text-primary, #f4f6fa) !important;
+}
+.member-support-page input:focus-visible,
+.member-support-page select:focus-visible,
+.member-support-page textarea:focus-visible,
+.game-lobby-search-row :is(input,select):focus-visible {
+  outline: none !important;
+  border-color: var(--member-accent-hover, #9278ff) !important;
+  box-shadow: 0 0 0 3px var(--member-accent-soft, rgba(124,92,255,.13)) !important;
+}
+.member-support-ticket-filters button[aria-pressed=true],
+.member-support-faq-categories button[aria-pressed=true],
+.game-lobby-tabs button.is-active,
+.game-lobby-card-body > button {
+  border-color: var(--member-accent, #7c5cff) !important;
+  background: var(--member-accent, #7c5cff) !important;
+  color: #fff !important;
+}
+.game-lobby-tabs button,
+.member-support-ticket-filters button,
+.member-support-faq-categories button {
+  border-color: var(--member-border-default, rgba(255,255,255,.095)) !important;
+  background: transparent !important;
+  color: var(--member-text-secondary, #b1b8c5) !important;
+}
+.game-lobby-cover-button:focus-visible,
+.game-lobby-favorite:focus-visible,
+.game-lobby-tabs button:focus-visible,
+.member-support-page button:focus-visible,
+.member-support-page a:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--member-page, #0d1017), 0 0 0 4px var(--member-accent-hover, #9278ff) !important;
+}
+.member-finance-summary__card--credit strong,
+.member-transaction-card__amount--credit { color: var(--member-success, #38c98b) !important; }
+.member-finance-summary__card--debit strong,
+.member-transaction-card__amount--debit { color: var(--member-text-primary, #f4f6fa) !important; }
+.member-status-badge--credit,
+.member-status-badge--active { background: var(--member-success-soft, rgba(56,201,139,.13)) !important; color: var(--member-success, #38c98b) !important; }
+.member-status-badge--pending,
+.member-status-badge--primary { background: var(--member-warning-soft, rgba(240,182,79,.14)) !important; color: var(--member-warning, #f0b64f) !important; }
+.member-status-badge--debit,
+.member-status-badge--rejected { background: var(--member-danger-soft, rgba(239,100,115,.13)) !important; color: var(--member-danger, #ef6473) !important; }
+@media (max-width: 767px) {
+  .member-support-page, .game-lobby-page, .member-finance-page { padding-inline: 16px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .member-support-page *, .game-lobby-page *, .member-finance-page * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
