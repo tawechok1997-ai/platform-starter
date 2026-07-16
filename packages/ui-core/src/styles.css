@@ -5,20 +5,20 @@
   min-height: 2.75rem;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  gap: var(--platform-space-2);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  padding: 0 var(--space-4);
+  border-radius: var(--platform-radius-md);
+  padding: 0 var(--platform-space-4);
   font: inherit;
   font-weight: 700;
   transition:
-    transform var(--motion-fast) var(--ease-standard),
-    background-color var(--motion-fast) var(--ease-standard),
-    border-color var(--motion-fast) var(--ease-standard);
+    transform var(--platform-motion-fast) var(--platform-motion-easing),
+    background-color var(--platform-motion-fast) var(--platform-motion-easing),
+    border-color var(--platform-motion-fast) var(--platform-motion-easing);
 }
 
 .ui-button:focus-visible {
-  outline: 2px solid var(--color-brand);
+  outline: 2px solid var(--platform-color-brand);
   outline-offset: 2px;
 }
 
@@ -27,29 +27,29 @@
 }
 
 .ui-button--primary {
-  background: var(--color-brand);
-  color: var(--color-text-on-brand);
+  background: var(--platform-color-brand);
+  color: #fff;
 }
 
 .ui-button--secondary {
-  border-color: var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--platform-color-text-muted) 28%, transparent);
+  background: var(--platform-color-surface);
+  color: var(--platform-color-text);
 }
 
 .ui-button--danger {
-  background: var(--color-danger);
-  color: var(--color-text-on-brand);
+  background: var(--platform-color-danger);
+  color: #fff;
 }
 
 .ui-surface {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--platform-color-text-muted) 22%, transparent);
+  border-radius: var(--platform-radius-lg);
+  background: var(--platform-color-surface);
 }
 
 .ui-surface--elevated {
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--platform-shadow-surface);
 }
 
 .ui-visually-hidden {
