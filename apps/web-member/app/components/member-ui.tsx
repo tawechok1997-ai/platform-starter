@@ -1,4 +1,4 @@
-import { uiClasses } from '@platform/ui-core';
+import { uiClasses } from '../../../../packages/ui-core/src/index';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 type Tone = 'default' | 'brand' | 'success' | 'warning' | 'danger';
