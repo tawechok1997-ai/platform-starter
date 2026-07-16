@@ -1,0 +1,65 @@
+@import '@platform/design-tokens/css';
+
+.ui-button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-4);
+  font: inherit;
+  font-weight: 700;
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
+}
+
+.ui-button:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+.ui-button:active {
+  transform: translateY(1px);
+}
+
+.ui-button--primary {
+  background: var(--color-brand);
+  color: var(--color-text-on-brand);
+}
+
+.ui-button--secondary {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.ui-button--danger {
+  background: var(--color-danger);
+  color: var(--color-text-on-brand);
+}
+
+.ui-surface {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.ui-surface--elevated {
+  box-shadow: var(--shadow-card);
+}
+
+.ui-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
