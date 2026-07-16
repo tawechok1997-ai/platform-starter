@@ -19,6 +19,7 @@ import {
 } from '../_components/admin-ui';
 
 type DepositStatus = 'PENDING' | 'PENDING_SLIP_REVIEW' | 'PENDING_CREDIT' | 'COMPLETED' | 'DUPLICATE' | 'REJECTED' | 'CANCELLED' | 'APPROVED';
+type NoticeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
 type TopUpItem = {
   id: string;
   userId: string;
@@ -44,6 +45,7 @@ export default function AdminTopUpsPage() {
   const [pageCount, setPageCount] = useState(1);
   const [total, setTotal] = useState(0);
   const [message, setMessage] = useState('');
+  const [messageTone, setMessageTone] = useState<NoticeTone>('neutral');
   const [busyId, setBusyId] = useState('');
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [slips, setSlips] = useState<Record<string, string>>({});
@@ -58,17 +60,22 @@ export default function AdminTopUpsPage() {
     rejected: items.filter((item) => ['REJECTED', 'DUPLICATE'].includes(item.status)).length,
   }), [items]);
 
+  function showMessage(nextMessage: string, tone: NoticeTone = 'neutral') {
+    setMessage(nextMessage);
+    setMessageTone(tone);
+  }
+
   async function loadItems(nextStatus = status, nextPage = page) {
-    setMessage('กำลังโหลดรายการฝาก...');
+    showMessage('กำลังโหลดรายการฝาก...', 'neutral');
     const query = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
     if (nextStatus !== 'ALL') query.set('status', nextStatus);
     const res = await adminApiFetch(`/admin/topups?${query}`);
     const data = await res.json().catch(() => null);
-    if (!res.ok) return setMessage(data?.message ?? 'โหลดรายการฝากไม่สำเร็จ');
+    if (!res.ok) return showMessage(data?.message ?? 'โหลดรายการฝากไม่สำเร็จ', 'danger');
     setItems(data.items ?? []);
     setTotal(Number(data.total ?? 0));
     setPageCount(Math.max(Number(data.pageCount ?? 1), 1));
-    setMessage('');
+    showMessage('');
   }
 
   async function loadSlips(nextItems: TopUpItem[]) {
@@ -85,14 +92,14 @@ export default function AdminTopUpsPage() {
     const res = await adminApiFetch(`/admin/topups/${id}/${action}`, { method: 'POST' });
     const data = await res.json().catch(() => null);
     setBusyId('');
-    if (!res.ok) return setMessage(data?.message ?? 'ทำรายการไม่สำเร็จ');
+    if (!res.ok) return showMessage(data?.message ?? 'ทำรายการไม่สำเร็จ', 'danger');
     setItems((current) => current.map((item) => item.id === id ? { ...item, ...data } : item));
-    setMessage(action === 'claim' ? 'รับงานตรวจฝากแล้ว' : 'ปล่อยงานแล้ว');
+    showMessage(action === 'claim' ? 'รับงานตรวจฝากแล้ว' : 'ปล่อยงานแล้ว', 'success');
   }
 
   async function runAction(item: TopUpItem, action: 'approve-slip' | 'confirm-credit' | 'reject') {
     const adminNote = (notes[item.id] ?? '').trim();
-    if (action === 'reject' && !adminNote) return setMessage('กรุณาระบุเหตุผลก่อนปฏิเสธรายการฝาก');
+    if (action === 'reject' && !adminNote) return showMessage('กรุณาระบุเหตุผลก่อนปฏิเสธรายการฝาก', 'warning');
     const prompt = action === 'approve-slip'
       ? 'ยืนยันว่าตรวจสลิปผ่าน และส่งต่อให้ยืนยันเครดิต?'
       : action === 'confirm-credit'
@@ -103,8 +110,8 @@ export default function AdminTopUpsPage() {
     const res = await adminApiFetch(`/admin/topups/${item.id}/${action}`, { method: 'POST', body: JSON.stringify({ adminNote }) });
     const data = await res.json().catch(() => null);
     setBusyId('');
-    if (!res.ok) return setMessage(data?.message ?? 'ทำรายการไม่สำเร็จ');
-    setMessage(action === 'approve-slip' ? 'ตรวจสลิปผ่านแล้ว รอยืนยันเครดิต' : action === 'confirm-credit' ? 'เพิ่มเครดิตสำเร็จ' : 'ปฏิเสธรายการฝากแล้ว');
+    if (!res.ok) return showMessage(data?.message ?? 'ทำรายการไม่สำเร็จ', 'danger');
+    showMessage(action === 'approve-slip' ? 'ตรวจสลิปผ่านแล้ว รอยืนยันเครดิต' : action === 'confirm-credit' ? 'เพิ่มเครดิตสำเร็จ' : 'ปฏิเสธรายการฝากแล้ว', 'success');
     void loadItems(status, page);
   }
 
@@ -124,7 +131,7 @@ export default function AdminTopUpsPage() {
         </select></label>
         <div className="admin-queue-pager"><AdminButton disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>ก่อนหน้า</AdminButton><span>หน้า {page} / {pageCount}</span><AdminButton disabled={page >= pageCount} onClick={() => setPage((value) => value + 1)}>ถัดไป</AdminButton></div>
       </AdminToolbar>
-      {message && <AdminNotice>{message}</AdminNotice>}
+      {message && <AdminNotice tone={messageTone}>{message}</AdminNotice>}
       <AdminStack>
         {items.map((item) => {
           const actionable = ['PENDING_SLIP_REVIEW', 'PENDING_CREDIT'].includes(item.status);
@@ -144,7 +151,7 @@ export default function AdminTopUpsPage() {
               {item.status === 'PENDING_SLIP_REVIEW' && <AdminButton tone="success" disabled={busyId === item.id || !item.claimedBy} onClick={() => void runAction(item, 'approve-slip')}>สลิปถูกต้อง → รอยืนยันเครดิต</AdminButton>}
               {item.status === 'PENDING_CREDIT' && <AdminButton tone="success" disabled={busyId === item.id || !item.claimedBy} onClick={() => void runAction(item, 'confirm-credit')}>ยืนยันเพิ่มเครดิต</AdminButton>}
               <AdminButton tone="danger" disabled={busyId === item.id || !item.claimedBy} onClick={() => void runAction(item, 'reject')}>ปฏิเสธรายการ</AdminButton>
-            </div> : <AdminNotice>รายการนี้ไม่สามารถเปลี่ยนสถานะต่อได้</AdminNotice>}
+            </div> : <AdminNotice tone="warning">รายการนี้ไม่สามารถเปลี่ยนสถานะต่อได้</AdminNotice>}
           </AdminCard>;
         })}
         {items.length === 0 && <AdminEmpty>ไม่มีรายการในสถานะนี้</AdminEmpty>}
