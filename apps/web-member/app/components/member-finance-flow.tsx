@@ -51,8 +51,9 @@ export function FinanceConfirmDialog({ open, title, description, children, onClo
       if (event.key !== 'Tab') return;
       const focusable = dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
       if (!focusable?.length) { event.preventDefault(); dialogRef.current?.focus(); return; }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
+      const first = focusable.item(0);
+      const last = focusable.item(focusable.length - 1);
+      if (!first || !last) { event.preventDefault(); dialogRef.current?.focus(); return; }
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     }
