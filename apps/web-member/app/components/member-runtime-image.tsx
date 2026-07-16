@@ -7,6 +7,7 @@ type MemberRuntimeImageProps = {
   className?: string | undefined;
   width?: number | undefined;
   height?: number | undefined;
+  fill?: boolean | undefined;
   priority?: boolean | undefined;
   sizes?: string | undefined;
   style?: CSSProperties | undefined;
@@ -14,8 +15,9 @@ type MemberRuntimeImageProps = {
 
 /**
  * Runtime-managed images may come from CMS or provider URLs that are not known
- * at build time. Keep them on Next's image component for consistent sizing and
- * accessibility, but disable optimization until the host is explicitly allowed.
+ * at build time. Local assets remain optimized. Remote/runtime URLs keep the
+ * Next image sizing and accessibility contract while bypassing host-bound
+ * optimization until their origin is explicitly allow-listed.
  */
 export function MemberRuntimeImage({
   src,
@@ -23,21 +25,25 @@ export function MemberRuntimeImage({
   className,
   width = 64,
   height = 64,
+  fill = false,
   priority = false,
   sizes,
   style,
 }: MemberRuntimeImageProps) {
+  const isLocalAsset = src.startsWith('/');
+  const dimensions = fill ? {} : { width, height };
+
   return (
     <Image
       src={src}
       alt={alt}
       className={className}
-      width={width}
-      height={height}
+      {...dimensions}
+      fill={fill}
       priority={priority}
       sizes={sizes}
       style={style}
-      unoptimized
+      unoptimized={!isLocalAsset}
     />
   );
 }
