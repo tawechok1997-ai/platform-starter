@@ -116,6 +116,12 @@ export default function AdminLoginPage() {
     setStatus('info');
     setMessage(t.submitting);
     try {
+      const loginPayload: { username: string; secret: string; captchaToken?: string; deviceId: string } = {
+        username: username.trim(),
+        secret,
+        deviceId: 'web-admin',
+        ...(captchaToken ? { captchaToken } : {}),
+      };
       const data =
         requiresTwoFactor && challengeId
           ? await loginClient.json<LoginResponse, { challengeId: string; code: string }>(
@@ -123,12 +129,9 @@ export default function AdminLoginPage() {
               { challengeId, code: twoFactorCode.trim() },
               { credentials: 'include', auth: false },
             )
-          : await loginClient.json<
-              LoginResponse,
-              { username: string; secret: string; captchaToken?: string; deviceId: string }
-            >(
+          : await loginClient.json<LoginResponse, typeof loginPayload>(
               '/api/auth/login',
-              { username: username.trim(), secret, captchaToken: captchaToken || undefined, deviceId: 'web-admin' },
+              loginPayload,
               { credentials: 'include', auth: false },
             );
       if (data.requiresTwoFactor && data.challengeId) {
