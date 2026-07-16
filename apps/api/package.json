@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "build": "node ../../tools/audit-typescript-config-boundaries.mjs && node ../../tools/audit-refactor-regressions.mjs && prisma generate --schema ../../prisma/schema.prisma && nest build && node ../../tools/check-api-build-artifact.mjs",
+    "build": "node ../../tools/audit-typescript-config-boundaries.mjs && node ../../tools/audit-refactor-regressions.mjs && prisma generate --schema ../../prisma/schema.prisma && pnpm typecheck:strict-next && nest build && node ../../tools/check-api-build-artifact.mjs",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "typecheck:strict-next": "tsc -p tsconfig.strict-next.json",
