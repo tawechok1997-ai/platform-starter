@@ -23,6 +23,7 @@ import './member-finance-form-contract.css';
 import './member-bank-contract.css';
 import './member-account-contract.css';
 import './member-notification-contract.css';
+import './member-responsive-contract.css';
 import './member-withdraw-flow.css';
 import './member-withdraw-contract.css';
 import './member-finance-market.css';
