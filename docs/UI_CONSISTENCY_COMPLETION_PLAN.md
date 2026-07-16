@@ -1,7 +1,7 @@
 # UI Consistency and Completion Plan
 
 Updated: 2026-07-16  
-Related contracts: [`UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md), [`UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md), [`UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md), and repository [`AGENTS.md`](../AGENTS.md)
+Related contracts: [`MEMBER_UI_PRODUCT_BRIEF.md`](./MEMBER_UI_PRODUCT_BRIEF.md), [`UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md), [`UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md), [`UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md), and repository [`AGENTS.md`](../AGENTS.md). Current implementation scope is Member only; Admin sections are future reference.
 
 This is the execution plan for making Member and Admin UI coherent, easy to use, and visually consistent with the supplied reference boards. The goal is not to make every page look identical; the goal is to make equivalent concepts behave and read identically while each page keeps its correct density.
 

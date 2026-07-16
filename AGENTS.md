@@ -2,6 +2,10 @@
 
 This file governs implementation work in this repository. It is the short operational entry point; the linked documents are the detailed source of truth.
 
+## Current execution scope
+
+The active implementation scope is **Member only** (`apps/web-member`). Do not change `apps/web-admin`, Admin components, Admin CSS, Admin routes, or Admin behavior while executing the current UI phase. Admin documents remain linked for future reference, but Member and Admin work must be separate commits/phases.
+
 Full documentation map: [`docs/README.md`](docs/README.md).
 
 ## Read before changing UI
@@ -12,8 +16,9 @@ Full documentation map: [`docs/README.md`](docs/README.md).
 4. [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](docs/UI_MENU_INFORMATION_ARCHITECTURE.md) — canonical route/menu/permission/feature map.
 5. [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](docs/UI_CONSISTENCY_COMPLETION_PLAN.md) — component, card, copy, state, duplicate-work, priority, and tool plan.
 6. [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](docs/UI_MOTION_ANIMATION_CONTRACT.md) — motion tokens, approved patterns, reduced-motion, and performance rules.
-7. [`docs/MEMBER_UX_UI_TOOLING.md`](docs/MEMBER_UX_UI_TOOLING.md) or [`docs/ADMIN_UX_UI_REDESIGN.md`](docs/ADMIN_UX_UI_REDESIGN.md) — route-specific acceptance criteria.
-8. [`docs/MEMBER_ROUTE_MATRIX.md`](docs/MEMBER_ROUTE_MATRIX.md) and [`docs/ux-regression-matrix-finance-operations.md`](docs/ux-regression-matrix-finance-operations.md) — route ownership and regression states.
+7. [`docs/MEMBER_UI_PRODUCT_BRIEF.md`](docs/MEMBER_UI_PRODUCT_BRIEF.md) — current Member-only hierarchy, page order, card rules, copy, responsive layout, and motion brief.
+8. [`docs/MEMBER_UX_UI_TOOLING.md`](docs/MEMBER_UX_UI_TOOLING.md) — current route-specific acceptance criteria.
+9. [`docs/MEMBER_ROUTE_MATRIX.md`](docs/MEMBER_ROUTE_MATRIX.md) and [`docs/ux-regression-matrix-finance-operations.md`](docs/ux-regression-matrix-finance-operations.md) — route ownership and regression states.
 
 When documents conflict, preserve financial/security/architecture rules first, then the canonical menu and consistency contracts, then route-specific polish. Update the source-of-truth document when resolving a conflict; do not silently create a third rule.
 
@@ -25,7 +30,7 @@ When documents conflict, preserve financial/security/architecture rules first, t
 - Never duplicate route definitions, API mappings, status labels, query ownership, or feature-flag logic across pages.
 - Keep copy short and action-oriented. Follow the copy budgets in `UI_CONSISTENCY_COMPLETION_PLAN.md`.
 - Use `apply_patch` for source edits. Preserve unrelated user changes. Do not use destructive reset/checkout commands.
-- Keep Member and Admin visual languages aligned at the system level, but preserve their separate brand shell and information density.
+- Keep Member and Admin completely separated during this phase; do not “share” a visual change by editing Admin files. Shared API/design-token changes require explicit scope review.
 - Financial, identity, session, permission, storage, and audit changes require explicit tests and rollback/evidence notes.
 
 ## UI implementation loop

@@ -16,6 +16,7 @@ This index connects the repository documentation so implementation work starts f
 - [`UI_MENU_INFORMATION_ARCHITECTURE.md`](UI_MENU_INFORMATION_ARCHITECTURE.md) — canonical Member/Admin routes, menu groups, labels, feature flags, permissions, and aliases.
 - [`UI_CONSISTENCY_COMPLETION_PLAN.md`](UI_CONSISTENCY_COMPLETION_PLAN.md) — cards, components, copy budgets, state consistency, duplicate cleanup, priorities, and tool routing.
 - [`UI_MOTION_ANIMATION_CONTRACT.md`](UI_MOTION_ANIMATION_CONTRACT.md) — motion tokens, approved animations, reduced motion, and performance gates.
+- [`MEMBER_UI_PRODUCT_BRIEF.md`](MEMBER_UI_PRODUCT_BRIEF.md) — active Member-only product hierarchy, page order, card density, copy, responsive layout, and motion brief.
 - [`MEMBER_UX_UI_TOOLING.md`](MEMBER_UX_UI_TOOLING.md) — Member route/tooling worklist.
 - [`ADMIN_UX_UI_REDESIGN.md`](ADMIN_UX_UI_REDESIGN.md) — Admin route/redesign worklist.
 - [`MEMBER_ROUTE_MATRIX.md`](MEMBER_ROUTE_MATRIX.md) — Member route ownership, APIs, flags, deep links, and state gaps.

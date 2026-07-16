@@ -1,7 +1,7 @@
 # UI Motion and Animation Contract
 
 Updated: 2026-07-16  
-Scope: Member and Admin UI motion, transitions, feedback, performance, and accessibility
+Scope: Member UI motion, transitions, feedback, performance, and accessibility. Admin motion is documented for a future phase and must not be changed during the current Member phase.
 
 Motion should clarify change, hierarchy, and feedback. It must never delay a money, identity, security, or navigation action, hide content, or make the interface feel like a game advertisement.
 
