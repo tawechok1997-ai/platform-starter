@@ -32,16 +32,28 @@ export function HomeHero({
         },
       ];
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
   useEffect(() => {
-    if (slides.length < 2) return;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReduceMotion(mediaQuery.matches);
+    update();
+    mediaQuery.addEventListener?.('change', update);
+    return () => mediaQuery.removeEventListener?.('change', update);
+  }, []);
+  useEffect(() => {
+    if (slides.length < 2 || isPaused || reduceMotion) return;
     const timer = window.setInterval(() => setActiveIndex((current) => (current + 1) % slides.length), 5000);
     return () => window.clearInterval(timer);
-  }, [slides.length]);
+  }, [isPaused, reduceMotion, slides.length]);
   const slide = slides[activeIndex % slides.length] ?? slides[0];
   if (!slide) return null;
   const imageUrl = resolveCmsUrl(cmsAssetUrl(content, slide.assetId) || slide.imageUrl || '');
+  const nextSlide = slides[(activeIndex + 1) % slides.length];
+  const nextImageUrl = nextSlide ? resolveCmsUrl(cmsAssetUrl(content, nextSlide.assetId) || nextSlide.imageUrl || '') : '';
   return (
-    <section className="member-home-hero" aria-label="โปรโมชั่น">
+    <section className="member-home-hero" aria-label="โปรโมชั่น" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} onFocus={() => setIsPaused(true)} onBlur={() => setIsPaused(false)}>
+      {nextImageUrl && <link rel="preload" as="image" href={nextImageUrl} />}
       <a
         href={slide.href || '/promotions'}
         className="member-home-hero__slide-link"
@@ -58,6 +70,7 @@ export function HomeHero({
               className={index === activeIndex ? 'active' : ''}
               onClick={() => setActiveIndex(index)}
               aria-label={`แสดงโปรโมชั่นที่ ${index + 1}`}
+              aria-current={index === activeIndex ? 'true' : undefined}
             />
           ))}
         </div>
