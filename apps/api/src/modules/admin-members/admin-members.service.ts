@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { AuthenticatedAdminActor } from '../../common/actors';
 import { AdminMembersCommandService } from './admin-members-command.service';
-import { AdminMembersQueryService, type ListMembersQuery } from './admin-members-query.service';
+import { AdminMembersQueryService } from './admin-members-query.service';
+import type { AdminMembersQueryDto } from './dto/admin-members-query.dto';
 
 @Injectable()
 export class AdminMembersService {
@@ -10,7 +11,7 @@ export class AdminMembersService {
     private readonly commands: AdminMembersCommandService,
   ) {}
 
-  listMembers(query: ListMembersQuery) {
+  listMembers(query: AdminMembersQueryDto) {
     return this.queries.listMembers(query);
   }
 
