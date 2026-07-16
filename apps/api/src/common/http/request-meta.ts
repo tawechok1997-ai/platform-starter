@@ -1,4 +1,4 @@
-import type { HttpRequestContext } from '../../actors';
+import type { HttpRequestContext } from '../actors';
 
 export type RequestMeta = {
   ipAddress?: string;
