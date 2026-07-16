@@ -32,17 +32,17 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   if (forwardedFor) headers.set('x-forwarded-for', forwardedFor);
   if (cookie) headers.set('cookie', cookie);
 
-  const hasBody = method !== 'GET' && method !== 'DELETE';
-  const body = hasBody ? await request.text() : undefined;
+  const body = method === 'GET' ? '' : await request.text();
+  const requestInit: RequestInit = {
+    method,
+    headers,
+    cache: 'no-store',
+    redirect: 'manual',
+    ...(body ? { body } : {}),
+  };
 
   try {
-    const response = await fetch(upstreamApiUrl(`${upstreamPath}${search}`), {
-      method,
-      headers,
-      body,
-      cache: 'no-store',
-      redirect: 'manual',
-    });
+    const response = await fetch(upstreamApiUrl(`${upstreamPath}${search}`), requestInit);
 
     const payload = await response.text();
     const responseHeaders = new Headers({
