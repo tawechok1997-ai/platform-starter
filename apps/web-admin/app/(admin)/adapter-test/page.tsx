@@ -11,8 +11,15 @@ type MethodMeta = { value: MethodName; label: string; description: string; risk:
 type TestResult = { ok?: boolean; provider?: { id: string; code: string }; method?: string; latencyMs?: number; checkedAt?: string; input?: unknown; result?: any; message?: string };
 type NoticeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
 
+const defaultMethod: MethodMeta = {
+  value: 'healthCheck',
+  label: 'ทดสอบว่าค่ายตอบไหม',
+  description: 'เช็กว่า API ค่ายหรือ adapter พร้อมใช้งานไหม',
+  risk: 'safe',
+};
+
 const methodOptions: MethodMeta[] = [
-  { value: 'healthCheck', label: 'ทดสอบว่าค่ายตอบไหม', description: 'เช็กว่า API ค่ายหรือ adapter พร้อมใช้งานไหม', risk: 'safe' },
+  defaultMethod,
   { value: 'launchGame', label: 'ทดสอบเปิดเกม', description: 'เช็กว่าเปิดเกมแล้วได้ลิงก์กลับมาหรือไม่', risk: 'safe' },
   { value: 'getBalance', label: 'ทดสอบเช็กยอด', description: 'เช็กยอดฝั่งค่าย ถ้าค่ายรองรับ', risk: 'safe' },
   { value: 'transferIn', label: 'ทดสอบโยกเข้าเกม', description: 'ใช้ sandbox/simulator เท่านั้น', risk: 'money' },
@@ -37,7 +44,7 @@ export default function AdapterTestPage() {
   const [running, setRunning] = useState(false);
   useEffect(() => { loadProviders(); }, []);
   const selectedProvider = useMemo(() => providers.find((item) => item.id === providerId), [providers, providerId]);
-  const selectedMethod = methodOptions.find((item) => item.value === method) ?? methodOptions[0];
+  const selectedMethod = methodOptions.find((item) => item.value === method) ?? defaultMethod;
   function showMessage(nextMessage: string, tone: NoticeTone = 'neutral') { setMessage(nextMessage); setMessageTone(tone); }
   async function loadProviders() { setLoading(true); showMessage('กำลังโหลดค่าย...'); const res = await adminApiFetch('/admin/game-providers'); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { showMessage(data?.message ?? 'โหลดค่ายไม่สำเร็จ', 'danger'); return; } const items = data?.items ?? []; setProviders(items); setProviderId((current) => current || items[0]?.id || ''); showMessage(items.length ? '' : 'ยังไม่มีค่ายสำหรับทดสอบ', items.length ? 'neutral' : 'warning'); }
   function changeMethod(next: MethodName) { setMethod(next); setPayloadText(defaultPayload[next]); setResult(null); }
