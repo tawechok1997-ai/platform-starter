@@ -7,10 +7,8 @@
   },
   "include": [
     "src/common/errors/domain-error.ts",
-    "src/common/http/request-meta.ts",
     "src/common/query/date-range.ts",
-    "src/common/query/query-parsing.ts",
-    "src/common/audit/admin-audit-data.ts"
+    "src/common/query/query-parsing.ts"
   ],
   "exclude": ["src/**/*.spec.ts", "test/**/*.ts", "node_modules", "dist"]
 }
