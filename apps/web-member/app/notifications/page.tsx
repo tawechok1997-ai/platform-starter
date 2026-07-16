@@ -5,6 +5,7 @@ import { MemberButton, MemberCard, MemberEmptyState, MemberNotice } from '../com
 import { MemberIcon } from '../components/member-icon';
 import { memberApiFetch } from '../member-api';
 import './member-notifications.css';
+import '../member-notification-contract.css';
 
 type NotificationType = 'finance' | 'security' | 'promotion' | 'system';
 type NotificationFilter = 'all' | NotificationType;
