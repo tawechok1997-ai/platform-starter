@@ -1,7 +1,7 @@
 # UI Consistency and Completion Plan
 
 Updated: 2026-07-16  
-Related contracts: [`UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md), [`UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md)
+Related contracts: [`UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md), [`UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md), [`UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md), and repository [`AGENTS.md`](../AGENTS.md)
 
 This is the execution plan for making Member and Admin UI coherent, easy to use, and visually consistent with the supplied reference boards. The goal is not to make every page look identical; the goal is to make equivalent concepts behave and read identically while each page keeps its correct density.
 
@@ -143,3 +143,4 @@ This is the execution plan for making Member and Admin UI coherent, easy to use,
 - [ ] Desktop and Mobile preserve information priority while using the reference composition.
 - [ ] All required state, accessibility, visual, browser, performance, and release evidence is retained.
 - [ ] The worklist records intentional deviations, owner, reason, and follow-up instead of silently accepting inconsistency.
+- [ ] Motion follows [`UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md) with reduced-motion and performance evidence.

@@ -4,7 +4,7 @@ Updated: 2026-07-16
 Scope: `apps/web-member` and shared frontend contracts consumed by Member
 Source of truth for Member UX/UI work: this file
 
-Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). Navigation source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). Component, copy, state, duplicate-work, and execution source of truth: [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](./UI_CONSISTENCY_COMPLETION_PLAN.md). The supplied LUX88 Member boards are the acceptance reference for exact visual parity across Desktop and Mobile. Existing checked implementation items do not imply reference parity until visual evidence is retained.
+Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). Navigation source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). Component, copy, state, duplicate-work, and execution source of truth: [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](./UI_CONSISTENCY_COMPLETION_PLAN.md). Motion source of truth: [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md). The supplied LUX88 Member boards are the acceptance reference for exact visual parity across Desktop and Mobile. Existing checked implementation items do not imply reference parity until visual evidence is retained.
 
 > Current repository baseline: Next.js 15.5.18, React 19.2.7, TypeScript 5.7.3, custom Member components, shared CSS contracts under `packages/design-tokens`, `packages/api-client`, and Playwright. A checked item means the current implementation and repository-level verification exist. Partial work is split into checked implementation facts and unchecked remaining acceptance criteria.
 
@@ -114,6 +114,9 @@ Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md
 - [ ] Verify reduced motion and keyboard-only interaction in browser tests
 - [ ] Verify animation performance on iPhone-class viewports
 - [ ] Add a motion library only if measured interaction requirements cannot be met with CSS
+- [ ] Apply the approved motion map from `docs/UI_MOTION_ANIMATION_CONTRACT.md` to auth focus/validation, Home hero/cards, drawers, finance steps, upload progress, timelines, and carousel controls
+- [ ] Add explicit reduced-motion browser evidence for Member shell, finance flow, promotions, and support interactions
+- [ ] Verify motion does not cause layout shift, duplicate fetches, focus loss, touch-target movement, or delayed financial/security actions
 
 ## MEMBER-SYSTEM-003 Forms and validation
 

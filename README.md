@@ -10,29 +10,29 @@
 
 Updated: **2026-07-15**
 
-| Area | Status |
-|---|---|
-| Monorepo, API, Admin and Member foundations | ✅ Done |
-| Backend architecture R-001 through R-011 | ✅ Done |
-| Finance concurrency and promotion settlement safeguards | ✅ Repository/CI evidence complete |
-| Frontend feature architecture R-012 | 🚧 In progress |
-| Shared UI system and accessibility R-013 | 🚧 In progress |
-| Observability, runbooks and cleanup R-014 | ⏳ Mostly remaining |
-| Authenticated browser regression | ⏸️ Requires safe credentials/deployed environment |
-| Production migration/rollback verification | ⏸️ Requires approved production access |
-| Real provider enablement | ⏸️ Code ready; vendor-specific UAT blocked |
+| Area                                                    | Status                                            |
+| ------------------------------------------------------- | ------------------------------------------------- |
+| Monorepo, API, Admin and Member foundations             | ✅ Done                                           |
+| Backend architecture R-001 through R-011                | ✅ Done                                           |
+| Finance concurrency and promotion settlement safeguards | ✅ Repository/CI evidence complete                |
+| Frontend feature architecture R-012                     | 🚧 In progress                                    |
+| Shared UI system and accessibility R-013                | 🚧 In progress                                    |
+| Observability, runbooks and cleanup R-014               | ⏳ Mostly remaining                               |
+| Authenticated browser regression                        | ⏸️ Requires safe credentials/deployed environment |
+| Production migration/rollback verification              | ⏸️ Requires approved production access            |
+| Real provider enablement                                | ⏸️ Code ready; vendor-specific UAT blocked        |
 
-The project-wide source of truth is [`docs/master-project-worklist.md`](docs/master-project-worklist.md). The UX/UI execution tracker is [`docs/master-worklist.md`](docs/master-worklist.md).
+The project-wide source of truth is [`docs/master-project-worklist.md`](docs/master-project-worklist.md). The UX/UI execution tracker is [`docs/master-worklist.md`](docs/master-worklist.md). See the complete [`docs/README.md`](docs/README.md) map. UI implementation is governed by [`AGENTS.md`](AGENTS.md), [`docs/UI_DESIGN_REFERENCE.md`](docs/UI_DESIGN_REFERENCE.md), [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](docs/UI_MENU_INFORMATION_ARCHITECTURE.md), [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](docs/UI_CONSISTENCY_COMPLETION_PLAN.md), and [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](docs/UI_MOTION_ANIMATION_CONTRACT.md).
 
 ## Applications
 
-| Application | Path | Responsibility |
-|---|---|---|
-| Member Web | `apps/web-member` | Member home, wallet, deposit/withdrawal, games, profile, notifications, support and KYC surfaces |
-| Admin Web | `apps/web-admin` | Operations, finance, members, risk, reports, providers, games, CMS/settings, security and KYC administration |
-| API | `apps/api` | NestJS application, authentication, finance, provider, content, support, KYC, security and audit domains |
-| Database | `prisma/schema.prisma` | PostgreSQL schema and migrations managed with Prisma |
-| Shared API client | `packages/api-client` | Central Admin/Member transport, auth refresh, errors, retries, uploads and private downloads |
+| Application       | Path                   | Responsibility                                                                                               |
+| ----------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Member Web        | `apps/web-member`      | Member home, wallet, deposit/withdrawal, games, profile, notifications, support and KYC surfaces             |
+| Admin Web         | `apps/web-admin`       | Operations, finance, members, risk, reports, providers, games, CMS/settings, security and KYC administration |
+| API               | `apps/api`             | NestJS application, authentication, finance, provider, content, support, KYC, security and audit domains     |
+| Database          | `prisma/schema.prisma` | PostgreSQL schema and migrations managed with Prisma                                                         |
+| Shared API client | `packages/api-client`  | Central Admin/Member transport, auth refresh, errors, retries, uploads and private downloads                 |
 
 ## Architecture status
 
@@ -54,16 +54,16 @@ Active structural work continues under R-012 through R-014. Closure and evidence
 
 ## Technology
 
-| Layer | Stack |
-|---|---|
-| Frontend | Next.js, React, TypeScript |
-| Backend | NestJS, TypeScript |
-| Database | PostgreSQL, Prisma |
-| Authentication | JWT access/refresh, separated Admin/Member sessions, TOTP 2FA and recovery codes |
-| Storage | Private local or S3/R2-compatible object storage |
-| Rate limiting | In-memory fallback with Redis support |
-| Testing | Jest, PostgreSQL integration/concurrency suites and Playwright smoke/visual workflows |
-| CI/CD | GitHub Actions and Railway-ready deployment workflows |
+| Layer          | Stack                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------- |
+| Frontend       | Next.js, React, TypeScript                                                            |
+| Backend        | NestJS, TypeScript                                                                    |
+| Database       | PostgreSQL, Prisma                                                                    |
+| Authentication | JWT access/refresh, separated Admin/Member sessions, TOTP 2FA and recovery codes      |
+| Storage        | Private local or S3/R2-compatible object storage                                      |
+| Rate limiting  | In-memory fallback with Redis support                                                 |
+| Testing        | Jest, PostgreSQL integration/concurrency suites and Playwright smoke/visual workflows |
+| CI/CD          | GitHub Actions and Railway-ready deployment workflows                                 |
 
 ## Core capabilities
 
@@ -119,11 +119,11 @@ pnpm db:seed:access
 
 ## Development services
 
-| Service | Default URL |
-|---|---|
+| Service    | Default URL             |
+| ---------- | ----------------------- |
 | Member Web | `http://localhost:3000` |
-| Admin Web | `http://localhost:3001` |
-| API | `http://localhost:4000` |
+| Admin Web  | `http://localhost:3001` |
+| API        | `http://localhost:4000` |
 
 ```bash
 pnpm --filter @platform/api start:prod
@@ -185,16 +185,16 @@ Never commit real credentials, OTP values, access/refresh tokens or private-medi
 
 ## Documentation map
 
-| Document | Purpose |
-|---|---|
-| [`docs/master-project-worklist.md`](docs/master-project-worklist.md) | Canonical project status, evidence and execution order |
-| [`docs/current-execution-status.md`](docs/current-execution-status.md) | Concise operational checkpoint |
-| [`docs/master-worklist.md`](docs/master-worklist.md) | Active UX/UI execution tracker |
-| [`docs/production-verification.md`](docs/production-verification.md) | Production verification procedures |
-| [`docs/playwright-smoke.md`](docs/playwright-smoke.md) | Browser smoke guidance |
-| [`docs/storage.md`](docs/storage.md) | Private storage guidance |
-| [`docs/rate-limits.md`](docs/rate-limits.md) | Rate-limit and Redis guidance |
-| [`docs/admin-access-control.md`](docs/admin-access-control.md) | Admin RBAC and permission behavior |
+| Document                                                               | Purpose                                                |
+| ---------------------------------------------------------------------- | ------------------------------------------------------ |
+| [`docs/master-project-worklist.md`](docs/master-project-worklist.md)   | Canonical project status, evidence and execution order |
+| [`docs/current-execution-status.md`](docs/current-execution-status.md) | Concise operational checkpoint                         |
+| [`docs/master-worklist.md`](docs/master-worklist.md)                   | Active UX/UI execution tracker                         |
+| [`docs/production-verification.md`](docs/production-verification.md)   | Production verification procedures                     |
+| [`docs/playwright-smoke.md`](docs/playwright-smoke.md)                 | Browser smoke guidance                                 |
+| [`docs/storage.md`](docs/storage.md)                                   | Private storage guidance                               |
+| [`docs/rate-limits.md`](docs/rate-limits.md)                           | Rate-limit and Redis guidance                          |
+| [`docs/admin-access-control.md`](docs/admin-access-control.md)         | Admin RBAC and permission behavior                     |
 
 ## Release boundaries
 

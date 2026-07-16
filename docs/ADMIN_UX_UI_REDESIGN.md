@@ -1,6 +1,6 @@
 # Admin UX/UI Redesign Worklist
 
-Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). Navigation source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). Component, copy, state, duplicate-work, and execution source of truth: [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](./UI_CONSISTENCY_COMPLETION_PLAN.md). The supplied Gaming Fintech Admin boards are the acceptance reference for exact visual parity across Dashboard, Operations, Review, Finance/Risk/Reports, Providers/Marketing/Settings, Desktop, and Mobile.
+Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). Navigation source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). Component, copy, state, duplicate-work, and execution source of truth: [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](./UI_CONSISTENCY_COMPLETION_PLAN.md). Motion source of truth: [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md). The supplied Gaming Fintech Admin boards are the acceptance reference for exact visual parity across Dashboard, Operations, Review, Finance/Risk/Reports, Providers/Marketing/Settings, Desktop, and Mobile.
 
 Updated: 2026-07-14  
 Scope: `apps/web-admin` only  
@@ -84,6 +84,9 @@ Source of truth for Admin UX/UI work: this file
 - [ ] Restore focus after modal/drawer close
 - [ ] Test reduced motion and keyboard-only interactions
 - [ ] Verify animation performance on iPhone-class mobile viewports
+- [ ] Apply `docs/UI_MOTION_ANIMATION_CONTRACT.md` to sidebar/drawer, queue/detail, review actions, risk alerts, charts, notices, and table-to-card transitions
+- [ ] Restrict infinite pulse to explicitly live high-risk alerts; use one-time highlight for normal updates
+- [ ] Retain reduced-motion, focus, CLS, slow-device, and duplicate-request evidence for animated Admin surfaces
 
 ## ADMIN-SYSTEM-003 Forms and validation
 
