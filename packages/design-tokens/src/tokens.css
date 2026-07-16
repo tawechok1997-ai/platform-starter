@@ -1,0 +1,38 @@
+:root {
+  --platform-color-background: #090b10;
+  --platform-color-surface: #121620;
+  --platform-color-card: #171c27;
+  --platform-color-card-raised: #242b3a;
+  --platform-color-text: #f4f6fa;
+  --platform-color-text-muted: #b1b8c5;
+  --platform-color-brand: #7c5cff;
+  --platform-color-success: #38c98b;
+  --platform-color-warning: #f0b64f;
+  --platform-color-danger: #ef6473;
+
+  --platform-radius-sm: 12px;
+  --platform-radius-md: 16px;
+  --platform-radius-lg: 24px;
+  --platform-radius-pill: 999px;
+
+  --platform-space-1: 4px;
+  --platform-space-2: 8px;
+  --platform-space-3: 12px;
+  --platform-space-4: 16px;
+  --platform-space-5: 20px;
+  --platform-space-6: 24px;
+  --platform-space-8: 32px;
+
+  --platform-shadow-surface: 0 18px 60px rgba(0, 0, 0, 0.32);
+  --platform-shadow-overlay: 0 24px 90px rgba(0, 0, 0, 0.48);
+
+  --platform-motion-fast: 160ms;
+  --platform-motion-normal: 220ms;
+  --platform-motion-slow: 340ms;
+  --platform-motion-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --platform-font-sans: Inter, 'Noto Sans Thai', ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --platform-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', monospace;
+}
