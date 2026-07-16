@@ -390,6 +390,7 @@ function ActivityRow({ title, href, item }: { title: string; href: string; item:
   );
 }
 function LedgerRow({ item }: { item: LedgerItem }) {
+  const isCredit = item?.direction === 'CREDIT';
   return (
     <div className="member-home-row">
       <div>
@@ -397,9 +398,10 @@ function LedgerRow({ item }: { item: LedgerItem }) {
         <span>{formatDate(item?.createdAt)}</span>
       </div>
       <div className="member-home-row__right">
-        <strong>
-          {item?.direction === 'CREDIT' ? '+' : '-'} {formatMoney(item?.amount, 'THB')}
+        <strong className={`member-transaction-amount ${isCredit ? 'is-credit' : 'is-debit'}`}>
+          {isCredit ? '+' : '−'} {formatMoney(item?.amount, 'THB')}
         </strong>
+        <span className="member-transaction-status is-success">สำเร็จ</span>
       </div>
     </div>
   );
