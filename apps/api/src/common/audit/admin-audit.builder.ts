@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 
-type AdminAuditContext = {
+export type AdminAuditContext = {
   adminUserId: string;
   module: string;
   action: string;
@@ -23,7 +23,7 @@ export function buildAdminAuditData(context: AdminAuditContext): Prisma.AdminAud
     targetId: context.targetId ?? null,
     oldData: toAuditJson(context.oldData),
     newData: toAuditJson(context.newData),
-    ipAddress: context.ipAddress,
-    userAgent: context.userAgent,
+    ipAddress: context.ipAddress ?? null,
+    userAgent: context.userAgent ?? null,
   };
 }
