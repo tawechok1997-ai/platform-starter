@@ -9,6 +9,7 @@ import '../../../packages/design-tokens/data-display.css';
 import '../../../packages/design-tokens/feedback.css';
 import '../../../packages/design-tokens/responsive-layout.css';
 import '../../../packages/design-tokens/accessibility.css';
+import '../../../packages/ui-core/src/styles.css';
 import './member-ui.css';
 import './member-home-sections.css';
 import './member-home-responsive.css';
