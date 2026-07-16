@@ -38,7 +38,7 @@ This brief is the practical product target for the Member redesign. It combines 
 
 ## Canonical Member navigation
 
-The source of truth is `UI_MENU_INFORMATION_ARCHITECTURE.md`; this is the visual priority for the current phase.
+The source of truth is [`MEMBER_MENU_INFORMATION_ARCHITECTURE.md`](./MEMBER_MENU_INFORMATION_ARCHITECTURE.md); this is the visual priority for the current phase.
 
 1. หน้าแรก — `/`
 2. เกม — `/games`

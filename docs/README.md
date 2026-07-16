@@ -8,12 +8,14 @@ This index connects the repository documentation so implementation work starts f
 2. [`AI_RULES.md`](AI_RULES.md) — rules for generated/assisted code.
 3. [`PROJECT_RULES.md`](PROJECT_RULES.md) — architecture, finance, audit, and separation rules.
 4. [`master-project-worklist.md`](master-project-worklist.md) — project-wide backlog.
-5. [`master-worklist.md`](master-worklist.md) — UX/UI execution tracker.
+5. [`MEMBER_UX_UI_TOOLING.md`](MEMBER_UX_UI_TOOLING.md) and [`ADMIN_UX_UI_REDESIGN.md`](ADMIN_UX_UI_REDESIGN.md) — separate Member/Admin UX/UI execution trackers.
 
 ## UI/UX source of truth
 
 - [`UI_DESIGN_REFERENCE.md`](UI_DESIGN_REFERENCE.md) — LUX88/Gaming Fintech visual reference and parity gate.
-- [`UI_MENU_INFORMATION_ARCHITECTURE.md`](UI_MENU_INFORMATION_ARCHITECTURE.md) — canonical Member/Admin routes, menu groups, labels, feature flags, permissions, and aliases.
+- [`MEMBER_MENU_INFORMATION_ARCHITECTURE.md`](MEMBER_MENU_INFORMATION_ARCHITECTURE.md) — Member-only routes, menu groups, labels, feature flags, active states, and shortcuts.
+- [`ADMIN_MENU_INFORMATION_ARCHITECTURE.md`](ADMIN_MENU_INFORMATION_ARCHITECTURE.md) — Admin-only route groups, permissions, queue ownership, aliases, and operational navigation.
+- [`UI_MENU_INFORMATION_ARCHITECTURE.md`](UI_MENU_INFORMATION_ARCHITECTURE.md) — legacy cross-surface contract and separation policy; use the Member/Admin documents above for implementation.
 - [`UI_CONSISTENCY_COMPLETION_PLAN.md`](UI_CONSISTENCY_COMPLETION_PLAN.md) — cards, components, copy budgets, state consistency, duplicate cleanup, priorities, and tool routing.
 - [`UI_MOTION_ANIMATION_CONTRACT.md`](UI_MOTION_ANIMATION_CONTRACT.md) — motion tokens, approved animations, reduced motion, and performance gates.
 - [`MEMBER_UI_PRODUCT_BRIEF.md`](MEMBER_UI_PRODUCT_BRIEF.md) — active Member-only product hierarchy, page order, card density, copy, responsive layout, and motion brief.

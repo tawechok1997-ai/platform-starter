@@ -5,7 +5,7 @@ Status: Required acceptance reference for Member and Admin UI redesign
 
 This document turns the supplied LUX88 / Gaming Fintech reference boards into an implementation and QA contract. The reference is the visual target for layout, hierarchy, colors, spacing, component composition, responsive behavior, and interaction states. A route is not visually complete until its desktop and mobile evidence can be compared against the matching board.
 
-Active Member product brief: [`docs/MEMBER_UI_PRODUCT_BRIEF.md`](./MEMBER_UI_PRODUCT_BRIEF.md). Navigation and menu source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). Component, copy, state, duplicate-work, and execution source of truth: [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](./UI_CONSISTENCY_COMPLETION_PLAN.md). Motion source of truth: [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md). Visual parity must not preserve contradictory Desktop, Mobile, Drawer, Home, or Admin menu definitions.
+Active Member product brief: [`docs/MEMBER_UI_PRODUCT_BRIEF.md`](./MEMBER_UI_PRODUCT_BRIEF.md). Member navigation source of truth: [`docs/MEMBER_MENU_INFORMATION_ARCHITECTURE.md`](./MEMBER_MENU_INFORMATION_ARCHITECTURE.md). Admin navigation source of truth: [`docs/ADMIN_MENU_INFORMATION_ARCHITECTURE.md`](./ADMIN_MENU_INFORMATION_ARCHITECTURE.md). Component, copy, state, duplicate-work, and execution source of truth: [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](./UI_CONSISTENCY_COMPLETION_PLAN.md). Motion source of truth: [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md). Visual parity must not preserve contradictory Desktop, Mobile, Drawer, Home, or Admin menu definitions.
 
 ## Reference boards
 

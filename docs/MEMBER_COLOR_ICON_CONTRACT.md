@@ -106,7 +106,7 @@ Use borders only at subtle/default/strong levels. Use card shadow lightly, dropd
 
 ## Icon system
 
-Use Lucide as the single Member icon family, with consistent outline style and approximately 1.75–2px stroke.
+The target is one Lucide-style outline family with consistent 1.75–2px stroke. The current repository still renders through `apps/web-member/app/components/member-icon.tsx`; keep that adapter as the canonical integration point and do not add `lucide-react` until the icon inventory, CMS icon behavior, bundle impact, and migration ADR are approved. Never mix a second icon family directly into route components.
 
 | Context     |    Size |
 | ----------- | ------: |

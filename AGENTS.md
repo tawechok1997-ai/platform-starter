@@ -11,9 +11,9 @@ Full documentation map: [`docs/README.md`](docs/README.md).
 ## Read before changing UI
 
 1. [`docs/AI_RULES.md`](docs/AI_RULES.md) and [`docs/PROJECT_RULES.md`](docs/PROJECT_RULES.md) — project-wide safety and architecture rules.
-2. [`docs/master-project-worklist.md`](docs/master-project-worklist.md) and [`docs/master-worklist.md`](docs/master-worklist.md) — current project and UX/UI backlog.
+2. [`docs/master-project-worklist.md`](docs/master-project-worklist.md), [`docs/MEMBER_UX_UI_TOOLING.md`](docs/MEMBER_UX_UI_TOOLING.md), and [`docs/ADMIN_UX_UI_REDESIGN.md`](docs/ADMIN_UX_UI_REDESIGN.md) — separate project and UI backlogs.
 3. [`docs/UI_DESIGN_REFERENCE.md`](docs/UI_DESIGN_REFERENCE.md) — supplied LUX88/Gaming Fintech visual target.
-4. [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](docs/UI_MENU_INFORMATION_ARCHITECTURE.md) — canonical route/menu/permission/feature map.
+4. [`docs/MEMBER_MENU_INFORMATION_ARCHITECTURE.md`](docs/MEMBER_MENU_INFORMATION_ARCHITECTURE.md) — current Member route/menu/feature map. Read [`docs/ADMIN_MENU_INFORMATION_ARCHITECTURE.md`](docs/ADMIN_MENU_INFORMATION_ARCHITECTURE.md) only for future Admin work.
 5. [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](docs/UI_CONSISTENCY_COMPLETION_PLAN.md) — component, card, copy, state, duplicate-work, priority, and tool plan.
 6. [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](docs/UI_MOTION_ANIMATION_CONTRACT.md) — motion tokens, approved patterns, reduced-motion, and performance rules.
 7. [`docs/MEMBER_UI_PRODUCT_BRIEF.md`](docs/MEMBER_UI_PRODUCT_BRIEF.md) — current Member-only hierarchy, page order, card rules, copy, responsive layout, and motion brief.

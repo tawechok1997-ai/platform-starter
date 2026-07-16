@@ -4,7 +4,7 @@ Updated: 2026-07-16
 Scope: `apps/web-member` and shared frontend contracts consumed by Member
 Source of truth for Member UX/UI work: this file
 
-Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). Active product brief: [`docs/MEMBER_UI_PRODUCT_BRIEF.md`](./MEMBER_UI_PRODUCT_BRIEF.md). Typography source of truth: [`docs/MEMBER_TYPOGRAPHY_CONTRACT.md`](./MEMBER_TYPOGRAPHY_CONTRACT.md). Color/icon source of truth: [`docs/MEMBER_COLOR_ICON_CONTRACT.md`](./MEMBER_COLOR_ICON_CONTRACT.md). Navigation source of truth: [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](./UI_MENU_INFORMATION_ARCHITECTURE.md). Component, copy, state, duplicate-work, and execution source of truth: [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](./UI_CONSISTENCY_COMPLETION_PLAN.md). Motion source of truth: [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md). The supplied LUX88 Member boards are the acceptance reference for exact visual parity across Desktop and Mobile. Existing checked implementation items do not imply reference parity until visual evidence is retained.
+Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md). Active product brief: [`docs/MEMBER_UI_PRODUCT_BRIEF.md`](./MEMBER_UI_PRODUCT_BRIEF.md). Typography source of truth: [`docs/MEMBER_TYPOGRAPHY_CONTRACT.md`](./MEMBER_TYPOGRAPHY_CONTRACT.md). Color/icon source of truth: [`docs/MEMBER_COLOR_ICON_CONTRACT.md`](./MEMBER_COLOR_ICON_CONTRACT.md). Navigation source of truth: [`docs/MEMBER_MENU_INFORMATION_ARCHITECTURE.md`](./MEMBER_MENU_INFORMATION_ARCHITECTURE.md). Component, copy, state, duplicate-work, and execution source of truth: [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](./UI_CONSISTENCY_COMPLETION_PLAN.md). Motion source of truth: [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](./UI_MOTION_ANIMATION_CONTRACT.md). The supplied LUX88 Member boards are the acceptance reference for exact visual parity across Desktop and Mobile. Existing checked implementation items do not imply reference parity until visual evidence is retained.
 
 > Current repository baseline: Next.js 15.5.18, React 19.2.7, TypeScript 5.7.3, custom Member components, shared CSS contracts under `packages/design-tokens`, `packages/api-client`, and Playwright. A checked item means the current implementation and repository-level verification exist. Partial work is split into checked implementation facts and unchecked remaining acceptance criteria.
 
@@ -74,7 +74,7 @@ Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md
 
 ## MEMBER-FOUNDATION-003 Reference-driven visual redesign
 
-- [ ] Adopt the shared LUX88 visual language: deep navy shell, elevated navy panels, gold primary accent, white/muted text, thin borders, restrained radii, and outline icons.
+- [ ] Adopt the Member visual language: deep navy shell, elevated navy panels, purple-blue primary accent, white/muted text, thin borders, restrained radii, and one outline icon family. Gold is reserved for meaningful prize/reward emphasis.
 - [ ] Map the shared brand header, desktop sidebar, mobile bottom navigation, topbar, metric tile, card, badge, tab, filter, timeline, modal, and sticky-action patterns to reusable Member components.
 - [ ] Match typography, Thai/Latin hierarchy, money figures, icon stroke, spacing, control heights, card density, image ratios, and decoration against `docs/UI_DESIGN_REFERENCE.md`.
 - [ ] Produce approved Desktop and Mobile visual baselines for every Member reference route at all six standard viewports.
@@ -82,7 +82,7 @@ Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md
 
 ## MEMBER-FOUNDATION-004 Menu and information architecture consistency
 
-- [ ] Replace separate Desktop, Mobile, Drawer, Home quick-action, and category-rail definitions with the canonical menu model in `docs/UI_MENU_INFORMATION_ARCHITECTURE.md`.
+- [ ] Replace separate Desktop, Mobile, Drawer, Home quick-action, and category-rail definitions with the canonical Member model in `docs/MEMBER_MENU_INFORMATION_ARCHITECTURE.md`.
 - [ ] Normalize labels (`ฝากเงิน`, `ถอนเงิน`, `กระเป๋าเงิน/รายการ`, `โปรโมชัน`, `โปรไฟล์`) and icon semantics across all surfaces.
 - [ ] Move Mobile to the reference order: หน้าแรก, กระเป๋าเงิน/รายการ, ฝากเงิน, โปรโมชัน, โปรไฟล์; expose secondary actions through More/Drawer.
 - [ ] Resolve the bank-account feature-flag mismatch and document the dedicated capability contract.
@@ -392,7 +392,7 @@ Visual redesign target: [`docs/UI_DESIGN_REFERENCE.md`](./UI_DESIGN_REFERENCE.md
 
 # Execution order
 
-1. Adopt `docs/UI_DESIGN_REFERENCE.md`, `docs/UI_MENU_INFORMATION_ARCHITECTURE.md`, and `docs/UI_CONSISTENCY_COMPLETION_PLAN.md`
+1. Adopt `docs/UI_DESIGN_REFERENCE.md`, `docs/MEMBER_MENU_INFORMATION_ARCHITECTURE.md`, and `docs/UI_CONSISTENCY_COMPLETION_PLAN.md`
 2. Normalize the canonical Member menu and route aliases before styling each route
 3. Inventory shared cards, buttons, badges, formatters, state mappings, copy, and duplicate implementations
 4. Add priority/owner/dependency metadata and create the route/API/feature/state matrix
