@@ -9,8 +9,9 @@ type MemberBank = { id: string; userId: string; bankName: string; accountName: s
 type PaymentType = 'bank' | 'promptpay' | 'wallet' | 'other';
 
 const THAI_BANKS = ['ธนาคารกสิกรไทย', 'ธนาคารไทยพาณิชย์', 'ธนาคารกรุงเทพ', 'ธนาคารกรุงไทย', 'ธนาคารกรุงศรีอยุธยา', 'ธนาคารทหารไทยธนชาต', 'ธนาคารออมสิน', 'ธนาคารอาคารสงเคราะห์', 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร', 'ธนาคารยูโอบี', 'ธนาคารซีไอเอ็มบีไทย', 'ธนาคารเกียรตินาคินภัทร', 'ธนาคารแลนด์ แอนด์ เฮ้าส์', 'ธนาคารไอซีบีซี ไทย', 'ธนาคารไทยเครดิต'];
+const DEFAULT_THAI_BANK = THAI_BANKS[0] ?? 'ธนาคารกสิกรไทย';
 const PAYMENT_TYPES = [{ value: 'bank', label: 'บัญชีธนาคาร' }, { value: 'promptpay', label: 'พร้อมเพย์' }, { value: 'wallet', label: 'วอเลต' }, { value: 'other', label: 'อื่น ๆ' }] as const;
-const blankReceiving = { bankName: THAI_BANKS[0], accountName: '', accountNumber: '', promptPay: '', qrImageUrl: '', minAmount: '', maxAmount: '', status: 'ACTIVE', sortOrder: 100 };
+const blankReceiving = { bankName: DEFAULT_THAI_BANK, accountName: '', accountNumber: '', promptPay: '', qrImageUrl: '', minAmount: '', maxAmount: '', status: 'ACTIVE', sortOrder: 100 };
 
 export default function BankAccountsPage() {
   const [receiving, setReceiving] = useState<ReceivingAccount[]>([]);
@@ -64,7 +65,7 @@ export default function BankAccountsPage() {
 
   function changePaymentType(value: PaymentType) {
     setPaymentType(value);
-    setForm((current) => ({ ...current, bankName: value === 'bank' ? THAI_BANKS[0] : value === 'promptpay' ? 'พร้อมเพย์' : value === 'wallet' ? 'วอเลต' : 'อื่น ๆ', accountNumber: '', promptPay: '' }));
+    setForm((current) => ({ ...current, bankName: value === 'bank' ? DEFAULT_THAI_BANK : value === 'promptpay' ? 'พร้อมเพย์' : value === 'wallet' ? 'วอเลต' : 'อื่น ๆ', accountNumber: '', promptPay: '' }));
   }
 
   async function handleQrUpload(event: ChangeEvent<HTMLInputElement>) {
