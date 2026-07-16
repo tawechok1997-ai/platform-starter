@@ -44,7 +44,7 @@ export type WithdrawalViewProps = {
   bonusBlocked: boolean;
   bonusMessage: string;
   parsedAmount: number;
-  selectedBank?: MemberBankAccount;
+  selectedBank?: MemberBankAccount | undefined;
   currency: string;
   onMethodChange: (value: string) => void;
   onBankChange: (value: string) => void;
