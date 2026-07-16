@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { cmsContentSetting, defaultCmsContent, loadPublicSiteSettings } from '../site-settings';
 
@@ -16,14 +17,14 @@ export default function GuidePage() {
   }, []);
 
   return <main className="member-guide-page">
-    <header className="member-guide-heading"><a href="/" aria-label="กลับหน้าแรก">‹</a><h1>คู่มือ / Guide</h1></header>
+    <header className="member-guide-heading"><Link href="/" aria-label="กลับหน้าแรก">‹</Link><h1>คู่มือ / Guide</h1></header>
     <section className="member-guide-section">
       <div className="member-guide-section__title"><span>❔</span><h2>Guide</h2></div>
       <div className="member-guide-faqs">
         {(faqs.length ? faqs : defaultCmsContent.faqs).map((item, index) => <details key={`${item.question}-${index}`} open={index === 0}><summary>{item.question}<span>⌄</span></summary><p>{item.answer}</p></details>)}
         {faqs.length === 0 && <details><summary>ฝากเงินแบบ โอนผ่านธนาคาร<span>⌄</span></summary><p>ระบบยังไม่มีรายละเอียดจากผู้ดูแล กรุณาติดต่อทีมงานเพื่อเชื่อมต่อข้อมูลจริง</p></details>}
       </div>
-      <a className="member-guide-more" href="/support">ดูทั้งหมด</a>
+      <Link className="member-guide-more" href="/support">ดูทั้งหมด</Link>
     </section>
     <section className="member-guide-section member-guide-payments">
       <div className="member-guide-section__title"><span>🏦</span><h2>ช่องทางการชำระเงิน</h2></div>
@@ -31,7 +32,7 @@ export default function GuidePage() {
       <p>ช่องทางที่แสดงจะถูกเชื่อมจากระบบรับชำระเงินจริงเมื่อเปิดใช้งาน</p>
     </section>
     <section className="member-guide-section member-guide-contact">
-      <div><h2>ติดต่อเรา</h2><p>ต้องการความช่วยเหลือเกี่ยวกับการฝาก ถอน หรือเกม</p></div><a href="/contact">ติดต่อทีมงาน</a>
+      <div><h2>ติดต่อเรา</h2><p>ต้องการความช่วยเหลือเกี่ยวกับการฝาก ถอน หรือเกม</p></div><Link href="/contact">ติดต่อทีมงาน</Link>
     </section>
     <footer className="member-guide-footer"><span>การเชื่อมต่อปลอดภัย</span><span>18+</span><span>เล่นอย่างรับผิดชอบ</span></footer>
   </main>;
