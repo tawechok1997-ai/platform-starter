@@ -3,11 +3,10 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "prebuild": "prisma generate --schema ../../prisma/schema.prisma",
-    "build": "nest build",
+    "build": "prisma generate --schema ../../prisma/schema.prisma && nest build && node ../../tools/check-api-build-artifact.mjs",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "start:prod": "prisma generate --schema ../../prisma/schema.prisma && node dist/main.js",
+    "start:prod": "node dist/main.js",
     "test": "jest",
     "test:db:finance": "jest src/modules/finance/finance-concurrency.db.spec.ts --runInBand",
     "test:db:promotions": "jest src/modules/promotions/promotion-settlement.db.spec.ts --runInBand",
