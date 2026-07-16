@@ -24,6 +24,7 @@ import {
   RecentActivity,
   GameRailSkeleton,
   GameLobbyState,
+  SupportCard,
 } from './components/member-home-sections';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
@@ -130,6 +131,7 @@ export default function MemberHome(props: MemberHomeProps) {
           depositEnabled={features.deposit}
         />
         <FaqList content={props.cmsContent} />
+        {features.support && <SupportCard />}
       </div>
 
       {props.cmsContent.popup.enabled && !popupClosed && (
