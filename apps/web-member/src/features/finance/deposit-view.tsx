@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import type { ChangeEvent, FormEvent } from 'react';
+import { MemberRuntimeImage } from '../../../app/components/member-runtime-image';
 import {
   FinanceActionBar,
   FinanceCard,
@@ -10,7 +12,7 @@ import {
   FinanceInfoRow,
   FinanceStatusBadge,
   FinanceStepIndicator,
-} from '../../../app/components/member-finance-flow';
+} from './finance-components';
 import {
   topUpStatusLabel,
   type DepositMethodCode,
@@ -33,7 +35,7 @@ const STEPS = [
   { key: 'waiting', label: 'รอตรวจสอบ' },
 ];
 
-type DepositViewProps = {
+export type DepositViewProps = {
   step: DepositStep;
   amount: string;
   method: DepositMethodCode;
@@ -200,7 +202,14 @@ export function DepositView(props: DepositViewProps) {
             />
           )}
           {props.selected.qrImageUrl && (
-            <img src={props.selected.qrImageUrl} alt="QR สำหรับชำระเงิน" className="finance-qr" />
+            <MemberRuntimeImage
+              src={props.selected.qrImageUrl}
+              alt="QR สำหรับชำระเงิน"
+              className="finance-qr"
+              width={320}
+              height={320}
+              sizes="(max-width: 640px) 80vw, 320px"
+            />
           )}
           <label className="finance-field">
             เลขอ้างอิงธุรกรรม
@@ -217,7 +226,13 @@ export function DepositView(props: DepositViewProps) {
           {props.slipImageData && (
             <div className="finance-slip-preview">
               <strong>ตัวอย่างสลิป</strong>
-              <img src={props.slipImageData} alt="สลิปที่แนบ" />
+              <MemberRuntimeImage
+                src={props.slipImageData}
+                alt="สลิปที่แนบ"
+                width={720}
+                height={960}
+                sizes="(max-width: 720px) 100vw, 720px"
+              />
             </div>
           )}
           <label className="finance-field">
@@ -269,9 +284,9 @@ export function DepositView(props: DepositViewProps) {
           )}
           {props.lastRequest?.adminNote && <FinanceInfoRow label="รายละเอียด" value={props.lastRequest.adminNote} />}
           <FinanceActionBar>
-            <a href="/transactions" className="finance-button finance-button--secondary">
+            <Link href="/transactions" className="finance-button finance-button--secondary">
               ดูประวัติ
-            </a>
+            </Link>
             <button type="button" onClick={props.onCreateAnother} className="finance-button finance-button--primary">
               สร้างรายการใหม่
             </button>
