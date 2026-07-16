@@ -8,6 +8,7 @@ import '../../../packages/design-tokens/data-display.css';
 import '../../../packages/design-tokens/feedback.css';
 import '../../../packages/design-tokens/responsive-layout.css';
 import '../../../packages/design-tokens/accessibility.css';
+import '../../../packages/ui-core/src/styles.css';
 import './admin-mobile.css';
 import './admin-desktop.css';
 import './admin-dashboard-responsive.css';
