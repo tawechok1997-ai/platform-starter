@@ -80,11 +80,11 @@ export default function SettingsPage() {
   );
 }
 
-function SettingsSection({ title, items, accent }: { title: string; items: SettingsItem[]; accent?: boolean }) {
+function SettingsSection({ title, items, accent = false }: { title: string; items: SettingsItem[]; accent?: boolean }) {
   return <><h2 style={sectionTitleStyle}>{title}</h2><AdminGrid>{items.map(([cardTitle, href, description, badge]) => <HubCard key={href} title={cardTitle} href={href} description={description} badge={badge} accent={accent} />)}</AdminGrid></>;
 }
 
-function HubCard({ title, href, description, badge, accent }: { title: string; href: string; description: string; badge: string; accent?: boolean }) {
+function HubCard({ title, href, description, badge, accent = false }: { title: string; href: string; description: string; badge: string; accent?: boolean }) {
   return <AdminCard><div style={cardStackStyle}><div style={cardTopStyle}><AdminBadge tone={accent ? 'warning' : 'neutral'}>{badge}</AdminBadge><span style={smallMutedStyle}>{accent ? 'Operation' : 'Config'}</span></div><h2 style={{ margin: 0, fontSize: 24 }}>{title}</h2><p style={mutedStyle}>{description}</p><AdminLinkButton href={href}>Open</AdminLinkButton></div></AdminCard>;
 }
 
