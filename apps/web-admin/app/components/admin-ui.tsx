@@ -88,16 +88,21 @@ export function AdminEmptyState({
   actionHref,
   actionLabel,
   compact = false,
+  className,
+  icon,
 }: {
   title: string;
   description: string;
   actionHref?: string;
   actionLabel?: string;
   compact?: boolean;
+  className?: string;
+  icon?: ReactNode;
 }) {
   return (
-    <AdminCard className={classes('admin-ui-empty', compact && 'admin-ui-empty--compact')}>
+    <AdminCard className={classes('admin-ui-empty', compact && 'admin-ui-empty--compact', className)}>
       <div>
+        {icon}
         <strong>{title}</strong>
         <p>{description}</p>
       </div>
