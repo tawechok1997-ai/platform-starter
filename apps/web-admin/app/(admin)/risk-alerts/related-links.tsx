@@ -8,6 +8,8 @@ type RiskReference = {
   metadata?: Record<string, unknown> | null;
 };
 
+type RelatedLink = { label: string; href: string; helper?: string };
+
 export function RiskRelatedLinks({ item }: { item: RiskReference }) {
   const links = buildRelatedLinks(item);
   if (links.length === 0) return <AdminEmpty>ไม่มี reference เพิ่มเติม</AdminEmpty>;
@@ -15,11 +17,15 @@ export function RiskRelatedLinks({ item }: { item: RiskReference }) {
 }
 
 function buildRelatedLinks(item: RiskReference) {
-  const links: { label: string; href: string; helper?: string }[] = [];
+  const links: RelatedLink[] = [];
   if (item.memberId) links.push({ label: 'Member detail', href: `/members/${item.memberId}`, helper: item.shortMemberId ?? item.memberId.slice(0, 8) });
 
   const refHref = hrefForRef(item.refType, item.refId);
-  if (refHref) links.push({ label: labelForRef(item.refType), href: refHref, helper: item.refId ? shortId(item.refId) : undefined });
+  if (refHref) {
+    const link: RelatedLink = { label: labelForRef(item.refType), href: refHref };
+    if (item.refId) link.helper = shortId(item.refId);
+    links.push(link);
+  }
 
   const metadata = item.metadata ?? {};
   addMetadataLink(links, 'topUpId', metadata.topUpId, '/topups', 'Top-up queue');
@@ -49,11 +55,11 @@ function labelForRef(refType?: string | null) {
   return 'Reference';
 }
 
-function addMetadataLink(links: { label: string; href: string; helper?: string }[], key: string, value: unknown, href: string, label: string) {
+function addMetadataLink(links: RelatedLink[], key: string, value: unknown, href: string, label: string) {
   if (typeof value === 'string' && value) links.push({ label, href, helper: `${key}: ${shortId(value)}` });
 }
 
-function addMetadataListLink(links: { label: string; href: string; helper?: string }[], key: string, value: unknown, href: string, label: string) {
+function addMetadataListLink(links: RelatedLink[], key: string, value: unknown, href: string, label: string) {
   if (!Array.isArray(value) || value.length === 0) return;
   links.push({ label, href, helper: `${key}: ${value.slice(0, 3).map((item) => shortId(String(item))).join(', ')}${value.length > 3 ? ` +${value.length - 3}` : ''}` });
 }
@@ -62,7 +68,7 @@ function shortId(value: string) {
   return value.length > 14 ? `${value.slice(0, 8)}…${value.slice(-4)}` : value;
 }
 
-function dedupe(links: { label: string; href: string; helper?: string }[]) {
+function dedupe(links: RelatedLink[]) {
   const seen = new Set<string>();
   return links.filter((link) => { const key = `${link.label}:${link.href}:${link.helper ?? ''}`; if (seen.has(key)) return false; seen.add(key); return true; });
 }
