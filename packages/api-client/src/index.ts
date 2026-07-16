@@ -123,6 +123,7 @@ export function createApiClient(options: ApiClientOptions) {
       cacheKey,
       timeoutMs = defaultTimeoutMs,
       requestId = options.createRequestId?.() ?? randomRequestId(),
+      cache: requestCache,
       ...init
     } = requestOptions;
     const ttlMs = responseCacheTtlMs ?? options.responseCacheTtlMs ?? 0;
@@ -146,12 +147,14 @@ export function createApiClient(options: ApiClientOptions) {
           if (token) headers.set("authorization", `Bearer ${token}`);
         }
 
-        const response = await fetchImpl(joinApiUrl(options.baseUrl, path), {
+        const cache = requestCache ?? options.cache;
+        const fetchInit: RequestInit = {
           ...init,
           signal: combined.signal,
-          cache: requestOptions.cache ?? options.cache,
           headers,
-        });
+          ...(cache ? { cache } : {}),
+        };
+        const response = await fetchImpl(joinApiUrl(options.baseUrl, path), fetchInit);
         const body = await readResponseBody(response);
 
         if (response.status === 401 && auth && options.refreshAuthToken && !refreshedAuth) {
