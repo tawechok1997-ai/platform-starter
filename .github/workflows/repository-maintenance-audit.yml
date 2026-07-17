@@ -28,17 +28,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 11.13.0
           run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -112,4 +112,19 @@ jobs:
             gh issue comment "${issue_number}" --body-file artifacts/repository-maintenance/issue-summary.md
           else
             gh issue create --title "${ISSUE_TITLE}" --body-file artifacts/repository-maintenance/issue-summary.md
+          fi
+
+      - name: Publish failure summary
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_TITLE: '[MAINTENANCE AUDIT] Workflow failed'
+        run: |
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          body="Maintenance audit failed for commit ${GITHUB_SHA}. Inspect: ${run_url}"
+          issue_number="$(gh issue list --state open --search "${ISSUE_TITLE} in:title" --json number,title --jq '.[] | select(.title == env.ISSUE_TITLE) | .number' | head -n 1)"
+          if [ -n "${issue_number}" ]; then
+            gh issue comment "${issue_number}" --body "${body}"
+          else
+            gh issue create --title "${ISSUE_TITLE}" --body "${body}"
           fi
