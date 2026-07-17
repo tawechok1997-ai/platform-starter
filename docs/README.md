@@ -32,6 +32,7 @@ This index connects the repository documentation so implementation work starts f
 - [`ARCHITECTURE.md`](ARCHITECTURE.md), [`architecture/module-map.md`](architecture/module-map.md), [`architecture/dependency-map.md`](architecture/dependency-map.md) — module boundaries and dependencies.
 - [`architecture/route-ownership.md`](architecture/route-ownership.md), [`architecture/endpoint-ownership-matrix.md`](architecture/endpoint-ownership-matrix.md), [`architecture/mutation-contract-inventory.md`](architecture/mutation-contract-inventory.md) — route/API ownership.
 - [`architecture/state-machines.md`](architecture/state-machines.md), [`architecture/error-code-catalog.md`](architecture/error-code-catalog.md), [`architecture/test-inventory.md`](architecture/test-inventory.md) — state, error, and test contracts.
+- [`architecture/backend-decomposition-policy.md`](architecture/backend-decomposition-policy.md) and [`architecture/backend-decomposition-baseline.json`](architecture/backend-decomposition-baseline.json) — backend size/coupling policy and ratchet baseline.
 
 ## Security, identity, storage, and finance
 
@@ -45,11 +46,12 @@ This index connects the repository documentation so implementation work starts f
 - [`full-system-test-checklist.md`](full-system-test-checklist.md), [`playwright-smoke.md`](playwright-smoke.md), [`smoke-test.md`](smoke-test.md), [`final-qa-checklist.md`](final-qa-checklist.md) — test entry points.
 - [`ci-build-checks.md`](ci-build-checks.md), [`github-actions-smoke.md`](github-actions-smoke.md), [`deploy-checklist.md`](deploy-checklist.md) — CI/release checks.
 - [`operations/ci-alert-response.md`](operations/ci-alert-response.md) — triage, deduplication, evidence, and closure procedure for `[CI ALERT]` issues.
-- [`operations/support-runbook.md`](operations/support-runbook.md) and [`operations/verification-commands.md`](operations/verification-commands.md) — support handoff and command selection.
+- [`operations/support-runbook.md`](operations/support-runbook.md), [`operations/verification-commands.md`](operations/verification-commands.md), and [`operations/engineering-handoff.md`](operations/engineering-handoff.md) — support, command selection, and engineering handoff.
 - [`operations/p6-external-verification-checklist.md`](operations/p6-external-verification-checklist.md) — canonical execution order, preflight, stop conditions, and closure rules for the 30 external P6 checks.
 - [`evidence/p6-verification-run-template.md`](evidence/p6-verification-run-template.md) — sanitized evidence template for each deployed, production, or vendor verification run.
 - [`production-verification.md`](production-verification.md), [`production-runbook.md`](production-runbook.md), [`production-migration-verification-runbook.md`](production-migration-verification-runbook.md) — production verification.
 - [`backup-automation.md`](backup-automation.md), [`database-backup-restore.md`](database-backup-restore.md), [`monitoring.md`](monitoring.md), [`observability/`](observability/) — recovery and monitoring.
+- [`maintenance/repository-cleanup-policy.md`](maintenance/repository-cleanup-policy.md) and [`maintenance/repository-cleanup-baseline.json`](maintenance/repository-cleanup-baseline.json) — cleanup classification, approval, and deletion safeguards.
 - [`evidence/`](evidence/) and [`adr/`](adr/) — retained proof and architectural decisions; link new evidence from the owning worklist.
 
 ## Documentation maintenance rules
