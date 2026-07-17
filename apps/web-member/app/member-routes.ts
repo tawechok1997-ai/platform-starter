@@ -28,17 +28,18 @@ const memberRouteRules: MemberRouteRule[] = [
   { prefix: '/notifications', label: 'แจ้งเตือน', feature: 'notifications' },
 ];
 
-export function routeRuleFor(pathname: string) {
+export function routeRuleFor(pathname: string | null | undefined) {
+  const safePathname = pathname ?? '/';
   return memberRouteRules
-    .filter((rule) => pathname.startsWith(rule.prefix))
+    .filter((rule) => safePathname.startsWith(rule.prefix))
     .sort((a, b) => b.prefix.length - a.prefix.length)[0];
 }
 
-export function isPublicMemberRoute(pathname: string) {
+export function isPublicMemberRoute(pathname: string | null | undefined) {
   return Boolean(routeRuleFor(pathname)?.public);
 }
 
-export function disabledMemberRoute(pathname: string, features: MemberFeatureFlags) {
+export function disabledMemberRoute(pathname: string | null | undefined, features: MemberFeatureFlags) {
   const rule = routeRuleFor(pathname);
   if (!rule?.feature || features[rule.feature]) return undefined;
   return rule;
