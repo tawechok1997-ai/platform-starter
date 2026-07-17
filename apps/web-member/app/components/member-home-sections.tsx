@@ -17,9 +17,21 @@ import { MemberRuntimeImage } from './member-runtime-image';
 import type { Game, LedgerItem, MoneyRequest } from '../types/member-api';
 import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNotice } from './member-ui';
 
+const NOAH345_FALLBACK_BANNERS = [
+  '0018_1783665647358-f637b660-a3e9-46e3-989d-a62654566985_2945931932.jpg',
+  '0014_1782990586367-b41e5c36-0d4d-4e7c-80ed-bb145a2e3a77_0728e0b61b.jpg',
+  '0015_1782630857612-4098241f-e70d-4a32-b41b-623d74b974b6_b58847238e.jpg',
+  '0016_1780250534847-0b47bd80-15a3-4117-bdd3-f383308509bc_c438ce1b3e.jpg',
+].map((fileName, index) => ({
+  title: `โปรโมชั่น ${index + 1}`,
+  subtitle: 'โปรโมชั่นและกิจกรรมสำหรับสมาชิก',
+  imageUrl: `/images/member-lobby/noah345-reference/${fileName}`,
+  href: '/promotions',
+  enabled: true,
+}));
+
 export function HomeHero({
   siteName,
-  description,
   content,
 }: {
   siteName: string;
@@ -32,15 +44,7 @@ export function HomeHero({
   );
   const slides = banners.length
     ? banners
-    : [
-        {
-          title: siteName,
-          subtitle: description,
-          imageUrl: '/images/member-lobby/battle-arena.png',
-          href: '/games',
-          enabled: true,
-        },
-      ];
+    : NOAH345_FALLBACK_BANNERS;
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -64,10 +68,13 @@ export function HomeHero({
 
   const slide = slides[activeIndex % slides.length] ?? slides[0];
   if (!slide) return null;
-  const imageUrl = resolveCmsUrl(cmsAssetUrl(content, slide.assetId) || slide.imageUrl || '');
+  const slideAssetId = 'assetId' in slide && typeof slide.assetId === 'string' ? slide.assetId : undefined;
+  const imageUrl = resolveCmsUrl(cmsAssetUrl(content, slideAssetId) || slide.imageUrl || '');
   const nextSlide = slides[(activeIndex + 1) % slides.length];
+  const nextSlideAssetId =
+    nextSlide && 'assetId' in nextSlide && typeof nextSlide.assetId === 'string' ? nextSlide.assetId : undefined;
   const nextImageUrl = nextSlide
-    ? resolveCmsUrl(cmsAssetUrl(content, nextSlide.assetId) || nextSlide.imageUrl || '')
+    ? resolveCmsUrl(cmsAssetUrl(content, nextSlideAssetId) || nextSlide.imageUrl || '')
     : '';
 
   return (

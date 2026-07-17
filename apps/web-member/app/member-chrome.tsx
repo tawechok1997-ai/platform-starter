@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useMemo, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { MemberFeatureFlags } from './site-settings';
 import { defaultIconSettings, isIconUrl } from './site-settings';
 import { activeNavigationHref, navigationFor } from './member-navigation';
@@ -18,6 +18,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   // Next can briefly return null during the first client transition. Keep the
   // shared chrome renderable so every Member route does not fail together.
   const pathname = usePathname() ?? '/';
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const { typedSettings } = useSiteSettings();
   const { ready, isLoggedIn, wallet, walletLoading, logout } = useMemberSession();
@@ -173,9 +174,24 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
             <strong>{siteName}</strong>
             <p>{siteDescription}</p>
           </div>
-          <button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู">
-            <CloseIcon />
-          </button>
+          <div className="member-drawer-head__actions">
+            {pathname !== '/' && (
+              <button
+                type="button"
+                className="member-drawer-back-button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  if (window.history.length > 1) router.back();
+                  else router.push('/');
+                }}
+              >
+                ← ย้อนกลับ
+              </button>
+            )}
+            <button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู">
+              <CloseIcon />
+            </button>
+          </div>
         </div>
         <nav className="member-drawer-nav ui-overlay-surface__body">
           {visibleDrawer.map((item) => (

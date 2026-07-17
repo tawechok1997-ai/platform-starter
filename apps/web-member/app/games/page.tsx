@@ -118,7 +118,7 @@ export default function MemberGamesPage() {
   </main>;
 }
 
-function GameSection({ title, items, favoriteIds, launchingGameId, onLaunch, onFavorite }: { title: string; items: Game[]; favoriteIds: string[]; launchingGameId: string | undefined; onLaunch: (game: Game) => void; onFavorite: (game: Game) => void }) {
+function GameSection({ title, items, favoriteIds, launchingGameId, onLaunch, onFavorite }: { title: string; items: Game[]; favoriteIds: string[]; launchingGameId?: string | undefined; onLaunch: (game: Game) => void; onFavorite: (game: Game) => void }) {
   const visible = items.slice(0, 8);
   if (visible.length === 0) return null;
   return <section className="game-lobby-section"><header><h2>{title}</h2><span>{items.length} เกม</span></header><div className="game-lobby-grid">{visible.map((game) => <GameCard key={game.id} game={game} favorite={favoriteIds.includes(game.id)} launching={launchingGameId === game.id} onLaunch={onLaunch} onFavorite={onFavorite} />)}</div></section>;

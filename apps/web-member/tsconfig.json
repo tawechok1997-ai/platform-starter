@@ -6,7 +6,9 @@
       "@platform/api-client": [
         "../../packages/api-client/src/index.ts"
       ]
-    }
+    },
+    "target": "ES2017",
+    "esModuleInterop": true
   },
   "include": [
     "next-env.d.ts",
