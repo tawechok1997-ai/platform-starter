@@ -1,0 +1,68 @@
+/* Converted from the supplied Noah345 Home bundles into project-owned selectors. */
+.member-source-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.member-source-tab {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #c27bed;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease, color .18s ease;
+}
+.member-source-tab:hover { transform: translateY(-1px); color: #efd9ff; }
+.member-source-tab.is-active {
+  color: #fff;
+  background: linear-gradient(100deg, #7810cd 0%, #c51dff 100%);
+  box-shadow: 0 7px 22px rgba(157, 24, 235, .38), inset 0 1px 0 rgba(255,255,255,.18);
+}
+.member-source-tab svg { width: 24px; height: 24px; }
+.member-source-panel { display: grid; gap: 12px; min-width: 0; animation: memberSourcePanelIn .22s ease both; }
+.member-source-panel[hidden] { display: none !important; }
+.member-source-panel--highlights { grid-template-columns: minmax(0, 1fr); }
+.member-source-panel--promotions,
+.member-source-panel--activities { align-content: start; }
+.member-source-games { display: grid; gap: 12px; min-width: 0; }
+.member-source-state {
+  min-height: 110px;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  border: 1px solid rgba(191, 77, 255, .32);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(43,28,61,.78), rgba(17,10,27,.92));
+  color: #d9c7e7;
+  text-align: center;
+}
+.member-source-panel .member-promo-slots { margin-top: 0; }
+.member-source-panel--activities > * { min-width: 0; }
+.member-source-finance { display: grid; gap: 10px; }
+@keyframes memberSourcePanelIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .member-source-panel { animation: none; }
+  .member-source-tab { transition: none; }
+}
+@media (max-width: 640px) {
+  .member-source-tabs { gap: 5px; }
+  .member-source-tab { min-height: 48px; padding: 5px 7px; font-size: 12px; line-height: 1.18; }
+  .member-source-tab svg { width: 22px; height: 22px; }
+  .member-source-panel { gap: 10px; }
+}
+@media (max-width: 390px) {
+  .member-source-tab { font-size: 11px; }
+}
