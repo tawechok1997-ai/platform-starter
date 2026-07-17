@@ -1,0 +1,79 @@
+name: Repository Maintenance Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/src/**'
+      - 'tools/audit-backend-decomposition.mjs'
+      - 'tools/audit-backend-decomposition-baseline.mjs'
+      - 'tools/audit-repository-cleanup-inventory.mjs'
+      - 'tools/audit-repository-cleanup-baseline.mjs'
+      - 'docs/architecture/backend-decomposition-baseline.json'
+      - 'docs/maintenance/repository-cleanup-baseline.json'
+      - '.github/workflows/repository-maintenance-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  capture-maintenance-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate committed baselines
+        run: |
+          node tools/audit-backend-decomposition-baseline.mjs
+          node tools/audit-repository-cleanup-baseline.mjs
+
+      - name: Capture backend decomposition inventory
+        run: |
+          mkdir -p artifacts/repository-maintenance
+          R007_JSON=1 node tools/audit-backend-decomposition.mjs \
+            > artifacts/repository-maintenance/backend-decomposition.json
+
+      - name: Capture repository cleanup inventory
+        run: |
+          node tools/audit-repository-cleanup-inventory.mjs --json \
+            > artifacts/repository-maintenance/repository-cleanup.txt
+
+      - name: Record workflow context
+        run: |
+          cat > artifacts/repository-maintenance/context.json <<EOF
+          {
+            "repository": "${GITHUB_REPOSITORY}",
+            "commit": "${GITHUB_SHA}",
+            "ref": "${GITHUB_REF}",
+            "runId": "${GITHUB_RUN_ID}",
+            "runAttempt": "${GITHUB_RUN_ATTEMPT}"
+          }
+          EOF
+
+      - name: Upload maintenance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-maintenance-${{ github.sha }}
+          path: artifacts/repository-maintenance
+          if-no-files-found: error
+          retention-days: 30
