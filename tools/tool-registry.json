@@ -8,6 +8,7 @@
         "ci-changed-scope.mjs",
         "run-full-system-tests.mjs",
         "run-with-deployment-metadata.mjs",
+        "audit-tool-registry.mjs",
         "audit-architecture-boundaries.mjs",
         "audit-admin-permissions.mjs",
         "audit-production-secrets.mjs",
