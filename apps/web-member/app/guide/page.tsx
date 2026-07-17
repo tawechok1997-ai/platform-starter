@@ -1,39 +1,52 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { cmsContentSetting, defaultCmsContent, loadPublicSiteSettings } from '../site-settings';
 
 type GuideFaq = { question: string; answer: string; enabled: boolean };
 
+const REFERENCE_FAQS: GuideFaq[] = [
+  { question: 'ฝากเงินแบบ โอนผ่านธนาคาร', answer: 'เลือกเมนูฝาก เลือกธนาคารที่ต้องการ จากนั้นกรอกยอดและทำรายการตามขั้นตอนที่ระบบแสดง', enabled: true },
+  { question: 'ฝากเงินแบบ โอนผ่าน QR Payment', answer: 'เลือกฝากผ่าน QR ระบุยอดเงิน แล้วสแกน QR ที่ระบบสร้างให้ภายในเวลาที่กำหนด', enabled: true },
+  { question: 'ฝากเงินแบบ ฝากจุดทศนิยม', answer: 'กรอกยอดตามที่ระบบกำหนดและโอนยอดรวมจุดทศนิยมให้ตรง เพื่อให้ระบบตรวจสอบรายการอัตโนมัติ', enabled: true },
+  { question: 'วิธีการฝากแบบ TrueWallet', answer: 'เลือกช่องทาง TrueWallet กรอกข้อมูลให้ครบและทำรายการตามคำแนะนำบนหน้าจอ', enabled: true },
+  { question: 'ยอดไม่เข้าทันที ทำยังไงดี?', answer: 'ตรวจสอบสถานะรายการและหลักฐานการโอน หากเกินเวลาที่แจ้งให้ติดต่อทีมงานพร้อมเลขรายการ', enabled: true },
+];
+
 export default function GuidePage() {
-  const [faqs, setFaqs] = useState<GuideFaq[]>(defaultCmsContent.faqs);
+  const [faqs, setFaqs] = useState<GuideFaq[]>([]);
+
   useEffect(() => {
     let active = true;
     loadPublicSiteSettings().then((settings) => {
-      if (active) setFaqs(cmsContentSetting(settings).faqs.filter((item) => item.enabled));
+      if (!active) return;
+      setFaqs(cmsContentSetting(settings).faqs.filter((item) => item.enabled));
     });
     return () => { active = false; };
   }, []);
 
-  return <main className="member-guide-page">
-    <header className="member-guide-heading"><Link href="/" aria-label="กลับหน้าแรก">‹</Link><h1>คู่มือ / Guide</h1></header>
-    <section className="member-guide-section">
-      <div className="member-guide-section__title"><span>❔</span><h2>Guide</h2></div>
-      <div className="member-guide-faqs">
-        {(faqs.length ? faqs : defaultCmsContent.faqs).map((item, index) => <details key={`${item.question}-${index}`} open={index === 0}><summary>{item.question}<span>⌄</span></summary><p>{item.answer}</p></details>)}
-        {faqs.length === 0 && <details><summary>ฝากเงินแบบ โอนผ่านธนาคาร<span>⌄</span></summary><p>ระบบยังไม่มีรายละเอียดจากผู้ดูแล กรุณาติดต่อทีมงานเพื่อเชื่อมต่อข้อมูลจริง</p></details>}
-      </div>
-      <Link className="member-guide-more" href="/support">ดูทั้งหมด</Link>
-    </section>
-    <section className="member-guide-section member-guide-payments">
-      <div className="member-guide-section__title"><span>🏦</span><h2>ช่องทางการชำระเงิน</h2></div>
-      <div className="member-guide-payment-row"><span>ธนาคาร</span><span>QR Payment</span><span>วอลเล็ท</span></div>
-      <p>ช่องทางที่แสดงจะถูกเชื่อมจากระบบรับชำระเงินจริงเมื่อเปิดใช้งาน</p>
-    </section>
-    <section className="member-guide-section member-guide-contact">
-      <div><h2>ติดต่อเรา</h2><p>ต้องการความช่วยเหลือเกี่ยวกับการฝาก ถอน หรือเกม</p></div><Link href="/contact">ติดต่อทีมงาน</Link>
-    </section>
-    <footer className="member-guide-footer"><span>การเชื่อมต่อปลอดภัย</span><span>18+</span><span>เล่นอย่างรับผิดชอบ</span></footer>
-  </main>;
+  const visibleFaqs = useMemo(() => faqs.length ? faqs : REFERENCE_FAQS, [faqs]);
+
+  return (
+    <main className="member-guide-page">
+      <section className="member-guide-live-actions" aria-label="ทางลัดเกมสด">
+        <Link href="/games?category=casino" className="member-guide-live">◉ ดูถ่ายทอดสด</Link>
+        <Link href="/games" className="member-guide-bet">เดิมพันทันที</Link>
+      </section>
+
+      <section className="member-guide-section">
+        <div className="member-guide-section__title"><span>❔</span><h2>Guide</h2></div>
+        <div className="member-guide-faqs">
+          {visibleFaqs.slice(0, 5).map((item, index) => (
+            <details key={`${item.question}-${index}`}>
+              <summary>{item.question}<span>⌃</span></summary>
+              <p>{item.answer}</p>
+            </details>
+          ))}
+        </div>
+        <Link className="member-guide-more" href="/support">ดูทั้งหมด</Link>
+      </section>
+    </main>
+  );
 }
