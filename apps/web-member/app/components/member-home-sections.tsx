@@ -25,7 +25,7 @@ const NOAH345_FALLBACK_BANNERS = [
 ].map((fileName, index) => ({
   title: `โปรโมชั่น ${index + 1}`,
   subtitle: 'โปรโมชั่นและกิจกรรมสำหรับสมาชิก',
-  imageUrl: `/images/member-lobby/noah345-reference/assets/${fileName}`,
+  imageUrl: `/images/member-lobby/noah345-reference/${fileName}`,
   href: '/promotions',
   enabled: true,
 }));
@@ -178,7 +178,7 @@ export function TournamentSection() {
     <section className="member-tournament-section" id="highlights">
       <Link className="member-lobby-promo-card" href="/games">
         <MemberRuntimeImage
-          src="/images/member-lobby/noah345-reference/assets/0028_4a7df032-03f5-4999-ba59-f38d12c13761_0ff5658475.png"
+          src="/images/member-lobby/noah345-reference/0028_4a7df032-03f5-4999-ba59-f38d12c13761_0ff5658475.png"
           alt="Tournament"
           width={1600}
           height={600}
@@ -187,7 +187,7 @@ export function TournamentSection() {
       </Link>
       <div className="member-tournament-title">
         <MemberRuntimeImage
-          src="/images/member-lobby/noah345-reference/assets/0029_tournament_45e06f0b11.svg"
+          src="/images/member-lobby/noah345-reference/0029_tournament_45e06f0b11.svg"
           alt=""
           width={24}
           height={24}
@@ -208,7 +208,7 @@ export function TournamentSection() {
           {leaderboard.map((item) => (
             <article key={item.rank} className={`member-tournament-rank member-tournament-rank--${item.accent}`}>
               <MemberRuntimeImage
-                src={`/images/member-lobby/noah345-reference/assets/${item.badge}`}
+                src={`/images/member-lobby/noah345-reference/${item.badge}`}
                 alt={`อันดับ ${item.rank}`}
                 width={34}
                 height={34}
