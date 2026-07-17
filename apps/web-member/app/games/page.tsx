@@ -32,12 +32,16 @@ export default function MemberGamesPage() {
     setRecentIds(readIds(RECENT_KEY));
     let cancelled = false;
     async function loadGames() {
-      const res = await memberApiFetch('/member/games');
-      const data = await res.json().catch(() => null);
-      if (cancelled) return;
-      if (!res.ok) { setMessage(data?.message ?? 'โหลดเกมไม่สำเร็จ'); return; }
-      setPayload(data ?? {});
-      setMessage('');
+      try {
+        const res = await memberApiFetch('/member/games');
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+        if (!res.ok) { setMessage(readApiMessage(data, 'โหลดเกมไม่สำเร็จ')); return; }
+        setPayload(normalizeLobbyPayload(data));
+        setMessage('');
+      } catch {
+        if (!cancelled) setMessage('ไม่สามารถเชื่อมต่อบริการเกมได้ กรุณาลองใหม่');
+      }
     }
     loadGames();
     return () => { cancelled = true; };
@@ -45,7 +49,7 @@ export default function MemberGamesPage() {
 
   useEffect(() => { writeFilters({ category, provider, query }); }, [category, provider, query]);
 
-  const games = useMemo(() => payload.items ?? [], [payload.items]);
+  const games = Array.isArray(payload.items) ? payload.items : [];
   const providers = useMemo(() => Array.from(new Map(games.map((game) => [game.provider?.code ?? 'unknown', game.provider?.name ?? game.provider?.code ?? 'ไม่ระบุค่าย'])).entries()).sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'th')), [games]);
   const categoryCounts = useMemo(() => countBy(games, (game) => game.category || 'other'), [games]);
   const favoriteGames = useMemo(() => favoriteIds.map((id) => games.find((game) => game.id === id)).filter(Boolean) as Game[], [favoriteIds, games]);
@@ -87,7 +91,7 @@ export default function MemberGamesPage() {
     <nav className="game-lobby-tabs" aria-label="หมวดเกม">
       <button className={category === 'all' ? 'is-active' : ''} aria-pressed={category === 'all'} onClick={() => setCategory('all')}>ทั้งหมด <span>{games.length}</span></button>
       <button className={category === 'favorite' ? 'is-active' : ''} aria-pressed={category === 'favorite'} onClick={() => setCategory('favorite')}>โปรด <span>{favoriteGames.length}</span></button>
-      {(payload.categories ?? []).map((item) => <button key={item} className={category === item ? 'is-active' : ''} aria-pressed={category === item} onClick={() => setCategory(item)}>{categoryLabel(item)} <span>{categoryCounts.get(item) ?? 0}</span></button>)}
+      {(Array.isArray(payload.categories) ? payload.categories : []).map((item) => <button key={item} className={category === item ? 'is-active' : ''} aria-pressed={category === item} onClick={() => setCategory(item)}>{categoryLabel(item)} <span>{categoryCounts.get(item) ?? 0}</span></button>)}
     </nav>
 
     <section className="game-lobby-toolbar" aria-label="ค้นหาและกรองเกม">
@@ -99,11 +103,11 @@ export default function MemberGamesPage() {
     {message && <div className="game-lobby-notice" role="status">{message}</div>}
     {launching.message && <div className="game-lobby-notice" role="status">{launching.message}</div>}
 
-    <GameSection title="Top 10 Popular Games" items={(payload.popular ?? []).slice(0, 10)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
-    <GameSection title="Most Online Now" items={(payload.featured ?? payload.popular ?? []).slice(0, 8)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="Top 10 Popular Games" items={(Array.isArray(payload.popular) ? payload.popular : []).slice(0, 10)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="Most Online Now" items={(Array.isArray(payload.featured) ? payload.featured : Array.isArray(payload.popular) ? payload.popular : []).slice(0, 8)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
     <GameSection title="เล่นล่าสุด" items={recentGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
     <GameSection title="Classic Games" items={games.slice(0, 8)} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
-    <GameSection title="เกมใหม่" items={payload.newest ?? []} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+    <GameSection title="เกมใหม่" items={Array.isArray(payload.newest) ? payload.newest : []} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
     <GameSection title="เกมโปรด" items={favoriteGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
 
     <section className="game-lobby-section">
@@ -114,7 +118,7 @@ export default function MemberGamesPage() {
   </main>;
 }
 
-function GameSection({ title, items, favoriteIds, launchingGameId, onLaunch, onFavorite }: { title: string; items: Game[]; favoriteIds: string[]; launchingGameId?: string | undefined; onLaunch: (game: Game) => void; onFavorite: (game: Game) => void }) {
+function GameSection({ title, items, favoriteIds, launchingGameId, onLaunch, onFavorite }: { title: string; items: Game[]; favoriteIds: string[]; launchingGameId?: string; onLaunch: (game: Game) => void; onFavorite: (game: Game) => void }) {
   const visible = items.slice(0, 8);
   if (visible.length === 0) return null;
   return <section className="game-lobby-section"><header><h2>{title}</h2><span>{items.length} เกม</span></header><div className="game-lobby-grid">{visible.map((game) => <GameCard key={game.id} game={game} favorite={favoriteIds.includes(game.id)} launching={launchingGameId === game.id} onLaunch={onLaunch} onFavorite={onFavorite} />)}</div></section>;
@@ -134,9 +138,27 @@ function GameCard({ game, favorite, launching, onLaunch, onFavorite }: { game: G
 }
 
 function EmptyLobby({ onReset }: { onReset: () => void }) { return <div className="game-lobby-empty"><strong>ไม่เจอเกมในเงื่อนไขนี้</strong><span>ลองล้างตัวกรองหรือค้นหาด้วยชื่อค่ายหรือชื่อเกมอื่น</span><button type="button" onClick={onReset}>ล้างตัวกรอง</button></div>; }
-function pickImage(game: Game) { const media = game.media ?? []; return media.find((item) => item.type === 'COVER')?.cachedUrl ?? media.find((item) => item.type === 'COVER')?.sourceUrl ?? media.find((item) => item.type === 'ICON')?.cachedUrl ?? media.find((item) => item.type === 'ICON')?.sourceUrl ?? null; }
+function pickImage(game: Game) { const media = Array.isArray(game.media) ? game.media : []; return media.find((item) => item && item.type === 'COVER')?.cachedUrl ?? media.find((item) => item && item.type === 'COVER')?.sourceUrl ?? media.find((item) => item && item.type === 'ICON')?.cachedUrl ?? media.find((item) => item && item.type === 'ICON')?.sourceUrl ?? null; }
 function isGameAvailable(game: Game) { const gameStatus = String(game.status ?? 'ACTIVE').toUpperCase(); const providerStatus = String(game.provider?.status ?? 'ACTIVE').toUpperCase(); return gameStatus === 'ACTIVE' && providerStatus === 'ACTIVE'; }
 function categoryLabel(value: string) { const map: Record<string, string> = { slot: 'สล็อต', casino: 'คาสิโน', sport: 'กีฬา', fishing: 'ตกปลา', popular: 'ยอดนิยม', new: 'ใหม่' }; return map[value?.toLowerCase?.()] ?? value; }
+function readApiMessage(value: unknown, fallback: string) { if (value && typeof value === 'object' && 'message' in value && typeof value.message === 'string') return value.message; return fallback; }
+function normalizeLobbyPayload(value: unknown): LobbyPayload {
+  const source = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+  const nested = source.data && typeof source.data === 'object' ? source.data as Record<string, unknown> : source;
+  const games = Array.isArray(nested.items) ? nested.items.map(normalizeGame).filter(Boolean) as Game[] : [];
+  const normalizeList = (key: string) => Array.isArray(nested[key]) ? nested[key].map(normalizeGame).filter(Boolean) as Game[] : [];
+  const categories = Array.isArray(nested.categories) ? nested.categories.filter((item): item is string => typeof item === 'string' && item.length > 0) : [];
+  return { items: games, categories, featured: normalizeList('featured'), newest: normalizeList('newest'), popular: normalizeList('popular') };
+}
+function normalizeGame(value: unknown): Game | null {
+  if (!value || typeof value !== 'object') return null;
+  const source = value as Record<string, unknown>;
+  const provider = source.provider && typeof source.provider === 'object' ? source.provider as Record<string, unknown> : undefined;
+  const media = Array.isArray(source.media) ? source.media.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object')).map((item) => ({ type: String(item.type ?? ''), sourceUrl: typeof item.sourceUrl === 'string' ? item.sourceUrl : null, cachedUrl: typeof item.cachedUrl === 'string' ? item.cachedUrl : null, status: String(item.status ?? '') })) : [];
+  const id = String(source.id ?? source.providerGameCode ?? '');
+  if (!id) return null;
+  return { id, providerGameCode: String(source.providerGameCode ?? id), name: String(source.name ?? 'เกมไม่มีชื่อ'), category: String(source.category ?? 'other'), status: typeof source.status === 'string' ? source.status : undefined, isFeatured: source.isFeatured === true, isNew: source.isNew === true, isPopular: source.isPopular === true, provider: provider ? { name: String(provider.name ?? provider.code ?? 'ไม่ระบุค่าย'), code: String(provider.code ?? 'unknown'), status: typeof provider.status === 'string' ? provider.status : null } : undefined, media };
+}
 function readIds(key: string) { try { return JSON.parse(window.localStorage.getItem(key) ?? '[]') as string[]; } catch { return []; } }
 function writeIds(key: string, ids: string[]) { window.localStorage.setItem(key, JSON.stringify(ids)); }
 function readFilters() { try { return JSON.parse(window.localStorage.getItem(LOBBY_FILTER_KEY) ?? '{}') as { category?: string; provider?: string; query?: string }; } catch { return {}; } }
