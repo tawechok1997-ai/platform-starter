@@ -1,0 +1,13 @@
+:root {
+  --reference-bg: #080808;
+  --reference-surface: #111111;
+  --reference-card: #181818;
+  --reference-card-alt: #202020;
+  --reference-line: rgba(255, 255, 255, 0.12);
+  --reference-text: #ffffff;
+  --reference-muted: rgba(255, 255, 255, 0.7);
+  --reference-brand: #f5c542;
+  --reference-brand-soft: rgba(245, 197, 66, 0.16);
+  --reference-radius: 24px;
+  --reference-shadow: 0 18px 60px rgba(0, 0, 0, 0.32);
+}
