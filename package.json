@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "help:commands": "node tools/print-command-guide.mjs",
     "check:runtime": "node tools/check-runtime.mjs",
     "check:architecture": "pnpm audit:architecture-boundaries && pnpm audit:r9-controller-prisma:strict && pnpm audit:r9-repository-boundaries:strict && pnpm audit:r9-transaction-escapes && pnpm audit:admin-permissions",
     "check:quick": "pnpm check:runtime && pnpm lint && pnpm typecheck",
