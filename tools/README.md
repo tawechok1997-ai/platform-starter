@@ -2,6 +2,16 @@
 
 โฟลเดอร์ `tools/` เก็บสคริปต์ที่ใช้ตรวจคุณภาพ สถาปัตยกรรม การทดสอบ และการ deploy ของทั้ง monorepo
 
+## Quick audit
+
+```bash
+node tools/audit-tool-registry.mjs
+```
+
+คำสั่งนี้ตรวจว่าไฟล์ `tools/*.mjs` ที่ถูกอ้างจาก root `package.json` มีอยู่จริง และรายงานเครื่องมือที่ไม่มี root script โดยไม่ลบทิ้งอัตโนมัติ ใช้ `--strict` เฉพาะตอนต้องการให้ unreferenced tools ทำให้คำสั่งล้มเหลว
+
+การจัดประเภทแบบ machine-readable อยู่ที่ [`tool-registry.json`](tool-registry.json)
+
 ## Tool categories
 
 ### Active quality gates
