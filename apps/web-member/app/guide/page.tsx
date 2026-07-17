@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { cmsContentSetting, defaultCmsContent, loadPublicSiteSettings } from '../site-settings';
+import { cmsContentSetting, loadPublicSiteSettings } from '../site-settings';
 
 type GuideFaq = { question: string; answer: string; enabled: boolean };
 
