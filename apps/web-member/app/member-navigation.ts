@@ -147,9 +147,10 @@ export function navigationFor(placement: MemberNavigationPlacement, features: Me
   );
 }
 
-export function activeNavigationHref(pathname: string) {
+export function activeNavigationHref(pathname: string | null | undefined) {
+  const safePathname = pathname ?? '/';
   const matches = memberNavigationItems
-    .filter((item) => item.href !== '/' && pathname.startsWith(item.href))
+    .filter((item) => item.href !== '/' && safePathname.startsWith(item.href))
     .sort((a, b) => b.href.length - a.href.length);
   return matches[0]?.href ?? '/';
 }
