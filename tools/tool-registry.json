@@ -26,7 +26,8 @@
         "*browser*",
         "*p6*",
         "*backend-decomposition*",
-        "audit-repository-cleanup-inventory.mjs"
+        "audit-repository-cleanup-inventory.mjs",
+        "audit-repository-cleanup-baseline.mjs"
       ]
     },
     "historical": {
