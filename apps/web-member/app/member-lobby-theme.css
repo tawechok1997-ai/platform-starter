@@ -296,3 +296,29 @@ html:has(.public-auth-page), body:has(.public-auth-page) { --color-brand: #a62df
   .member-bottom-nav { min-height: 70px !important; border-radius: 17px 17px 0 0 !important; padding-inline: 12px !important; }
   .member-bottom-nav a { font-size: 11px; }
 }
+
+/* Hotfix: keep the home category rail below the banner, announcement and tabs on mobile. */
+@media (max-width: 640px) {
+  .member-category-rail--home {
+    top: clamp(410px, 52dvh, 455px) !important;
+    bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+    width: 55px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: none;
+  }
+  .member-category-rail--home::-webkit-scrollbar { display: none; }
+  .member-category-rail--home a {
+    flex: 0 0 66px !important;
+  }
+  .member-category-rail__handle {
+    top: clamp(560px, 72dvh, 650px) !important;
+    z-index: 101 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .member-category-rail--home {
+    top: clamp(390px, 51dvh, 430px) !important;
+  }
+}
