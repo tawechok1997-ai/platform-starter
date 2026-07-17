@@ -1,0 +1,26 @@
+/* Final reference pass: source icons, guide shortcuts and duplicate-navigation cleanup. */
+.member-category-rail a:nth-of-type(2)>span{background:url('/images/member-lobby/source-icons/casino.png') center/contain no-repeat!important;font-size:0!important}
+.member-category-rail a:nth-of-type(2)>span svg{display:none!important}
+.game-lobby-page>.member-bottom-nav{display:none!important}
+.member-guide-live-actions{display:grid;grid-template-columns:1fr 1fr;width:min(760px,100%);margin:0 auto 34px;padding:0 32px 30px;border-radius:0 0 18px 18px;background:linear-gradient(180deg,#8c43b8,#6d3298);overflow:hidden}
+.member-guide-live-actions a{min-height:58px;display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;font-size:20px;font-weight:900}
+.member-guide-live{background:#f20c16;border-radius:0 0 0 12px}
+.member-guide-bet{background:linear-gradient(180deg,#a72be4,#7f18c1);border-radius:0 0 12px 0}
+.member-guide-section:first-of-type{margin-top:0!important}
+.member-footer__bank:nth-child(1){background:#1b4d9b!important;color:#fff!important}
+.member-footer__bank:nth-child(2){background:#159447!important;color:#fff!important}
+.member-footer__bank:nth-child(3){background:#149fd0!important;color:#fff!important}
+.member-footer__bank:nth-child(4){background:#fff!important;color:#3b62aa!important}
+.member-footer__bank:nth-child(5){background:#573392!important;color:#fff!important}
+.member-footer__bank:nth-child(6){background:#f2b52d!important;color:#fff!important}
+.member-footer__bank:nth-child(7){background:#1293aa!important;color:#fff!important}
+.member-footer__bank:nth-child(8){background:#9b3f3d!important;color:#fff!important}
+.member-footer__bank:nth-child(9){background:#1657a1!important;color:#fff!important}
+.member-footer__bank:nth-child(10){background:#2b429d!important;color:#fff!important}
+.member-footer__bank:nth-child(11){background:#fff!important;color:#555!important}
+.member-footer__bank:nth-child(12){background:#4a9e25!important;color:#fff!important}
+.member-footer__bank:nth-child(13){background:#fff!important;color:#dc2635!important}
+.member-footer__bank:nth-child(14){background:#e01c80!important;color:#fff!important}
+.member-footer__bank:nth-child(15){background:#ef7621!important;color:#fff!important}
+.member-footer__bank:nth-child(16){background:#be2730!important;color:#fff!important}
+@media(max-width:520px){.member-guide-live-actions{margin-bottom:26px;padding:0 15px 24px}.member-guide-live-actions a{min-height:50px;font-size:16px}.member-category-rail a:nth-of-type(2)>span{width:44px!important;height:44px!important}}
