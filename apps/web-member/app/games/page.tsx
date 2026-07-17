@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import MemberBottomNav from '../member-bottom-nav';
 import { memberApiFetch } from '../member-api';
 
-type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null; status: string };
-type Game = { id: string; providerGameCode: string; name: string; category: string; status?: string; isFeatured: boolean; isNew: boolean; isPopular: boolean; provider?: { name: string; code: string; status?: string | null }; media?: GameMedia[] };
+type GameMedia = { type: string; sourceUrl?: string | null | undefined; cachedUrl?: string | null | undefined; status: string };
+type Game = { id: string; providerGameCode: string; name: string; category: string; status?: string | undefined; isFeatured: boolean; isNew: boolean; isPopular: boolean; provider?: { name: string; code: string; status?: string | null | undefined } | undefined; media?: GameMedia[] | undefined };
 type LobbyPayload = { items?: Game[]; categories?: string[]; featured?: Game[]; newest?: Game[]; popular?: Game[] };
 type LaunchState = { gameId?: string; message?: string };
 
@@ -49,7 +49,7 @@ export default function MemberGamesPage() {
 
   useEffect(() => { writeFilters({ category, provider, query }); }, [category, provider, query]);
 
-  const games = Array.isArray(payload.items) ? payload.items : [];
+  const games = useMemo(() => Array.isArray(payload.items) ? payload.items : [], [payload.items]);
   const providers = useMemo(() => Array.from(new Map(games.map((game) => [game.provider?.code ?? 'unknown', game.provider?.name ?? game.provider?.code ?? 'ไม่ระบุค่าย'])).entries()).sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'th')), [games]);
   const categoryCounts = useMemo(() => countBy(games, (game) => game.category || 'other'), [games]);
   const favoriteGames = useMemo(() => favoriteIds.map((id) => games.find((game) => game.id === id)).filter(Boolean) as Game[], [favoriteIds, games]);
@@ -118,7 +118,7 @@ export default function MemberGamesPage() {
   </main>;
 }
 
-function GameSection({ title, items, favoriteIds, launchingGameId, onLaunch, onFavorite }: { title: string; items: Game[]; favoriteIds: string[]; launchingGameId?: string; onLaunch: (game: Game) => void; onFavorite: (game: Game) => void }) {
+function GameSection({ title, items, favoriteIds, launchingGameId, onLaunch, onFavorite }: { title: string; items: Game[]; favoriteIds: string[]; launchingGameId: string | undefined; onLaunch: (game: Game) => void; onFavorite: (game: Game) => void }) {
   const visible = items.slice(0, 8);
   if (visible.length === 0) return null;
   return <section className="game-lobby-section"><header><h2>{title}</h2><span>{items.length} เกม</span></header><div className="game-lobby-grid">{visible.map((game) => <GameCard key={game.id} game={game} favorite={favoriteIds.includes(game.id)} launching={launchingGameId === game.id} onLaunch={onLaunch} onFavorite={onFavorite} />)}</div></section>;
