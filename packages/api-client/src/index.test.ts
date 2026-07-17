@@ -82,10 +82,33 @@ async function run() {
       return new Response(JSON.stringify({ cachedCalls }), { headers: { "content-type": "application/json" } });
     }) as typeof fetch,
   });
-  assert.deepEqual(await cachedClient.request("/cached"), { cachedCalls: 1 });
-  assert.deepEqual(await cachedClient.request("/cached"), { cachedCalls: 1 });
-  cachedClient.invalidateCache();
-  assert.deepEqual(await cachedClient.request("/cached"), { cachedCalls: 2 });
+  assert.deepEqual(await cachedClient.request("/cached/a"), { cachedCalls: 1 });
+  assert.deepEqual(await cachedClient.request("/cached/a"), { cachedCalls: 1 });
+  assert.deepEqual(await cachedClient.request("/other"), { cachedCalls: 2 });
+  cachedClient.invalidateCache("GET:/cached");
+  assert.deepEqual(await cachedClient.request("/cached/a"), { cachedCalls: 3 });
+  assert.deepEqual(await cachedClient.request("/other"), { cachedCalls: 2 });
+
+  const textClient = createApiClient({
+    baseUrl: "https://api.example.com",
+    fetchImpl: (async () => new Response("ready", { headers: { "content-type": "text/plain" } })) as typeof fetch,
+  });
+  assert.equal(await textClient.request("/ready"), "ready");
+
+  const emptyClient = createApiClient({
+    baseUrl: "https://api.example.com",
+    fetchImpl: (async () => new Response(null, { status: 204 })) as typeof fetch,
+  });
+  assert.equal(await emptyClient.request("/empty"), null);
+
+  const timeoutClient = createApiClient({
+    baseUrl: "https://api.example.com",
+    timeoutMs: 5,
+    fetchImpl: (async (_url, init) => await new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(init.signal?.reason ?? new Error("aborted")), { once: true });
+    })) as typeof fetch,
+  });
+  await assert.rejects(timeoutClient.request("/slow"), /timeout|abort/i);
 
   const errorClient = createApiClient({
     baseUrl: "https://api.example.com",
