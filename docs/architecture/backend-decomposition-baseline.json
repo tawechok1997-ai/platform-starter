@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "status": "pending-inventory-capture",
+  "policy": "docs/architecture/backend-decomposition-policy.md",
+  "auditCommand": "pnpm audit:backend-decomposition:json",
+  "capturedAt": null,
+  "approvedCandidates": [],
+  "rules": {
+    "newCandidatesForbiddenAfterApproval": true,
+    "severityMayNotIncrease": true,
+    "candidateMayOnlyBeRemovedAfterRegressionEvidence": true
+  },
+  "notes": "Populate approvedCandidates from a reviewed audit result before enabling R007_ENFORCE. An empty pending baseline is intentionally non-enforcing."
+}
