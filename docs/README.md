@@ -8,7 +8,8 @@ This index connects the repository documentation so implementation work starts f
 2. [`AI_RULES.md`](AI_RULES.md) — rules for generated/assisted code.
 3. [`PROJECT_RULES.md`](PROJECT_RULES.md) — architecture, finance, audit, and separation rules.
 4. [`master-project-worklist.md`](master-project-worklist.md) — project-wide backlog and the only source of truth for remaining checkbox counts.
-5. [`MEMBER_UX_UI_TOOLING.md`](MEMBER_UX_UI_TOOLING.md) and [`ADMIN_UX_UI_REDESIGN.md`](ADMIN_UX_UI_REDESIGN.md) — separate Member/Admin UX/UI execution trackers.
+5. [`operations/work-status-reporting.md`](operations/work-status-reporting.md) — canonical rules and commands for reporting remaining work without inventing parallel backlog counts.
+6. [`MEMBER_UX_UI_TOOLING.md`](MEMBER_UX_UI_TOOLING.md) and [`ADMIN_UX_UI_REDESIGN.md`](ADMIN_UX_UI_REDESIGN.md) — separate Member/Admin UX/UI execution trackers.
 
 ## UI/UX source of truth
 
