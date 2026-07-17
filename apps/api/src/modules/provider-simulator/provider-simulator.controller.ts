@@ -1,6 +1,15 @@
 import { Body, Controller, Get, Headers, NotFoundException, Param, Post, Req, Res } from '@nestjs/common';
-import type { Request, Response } from 'express';
 import { ProviderSimulatorService } from './provider-simulator.service';
+
+type ProviderSimulatorRequest = {
+  headers: Record<string, string | string[] | undefined>;
+  protocol?: string | undefined;
+};
+
+type SvgResponse = {
+  setHeader(name: string, value: string): void;
+  send(body: string): unknown;
+};
 
 @Controller('provider-simulator')
 export class ProviderSimulatorController {
@@ -40,7 +49,7 @@ export class ProviderSimulatorController {
   games(
     @Headers() headers: Record<string, string | string[] | undefined>,
     @Body() body: Record<string, unknown>,
-    @Req() request: Request,
+    @Req() request: ProviderSimulatorRequest,
   ) {
     this.authenticate(headers, body);
     const forwardedProto = String(request.headers['x-forwarded-proto'] ?? request.protocol ?? 'http').split(',')[0].trim();
@@ -62,7 +71,7 @@ export class ProviderSimulatorController {
   }
 
   @Get('icons/:gameCode')
-  icon(@Param('gameCode') gameCode: string, @Res() response: Response) {
+  icon(@Param('gameCode') gameCode: string, @Res() response: SvgResponse) {
     this.ensureEnabled();
     response.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
     response.setHeader('Cache-Control', 'public, max-age=86400, immutable');
