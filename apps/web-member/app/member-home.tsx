@@ -6,9 +6,7 @@ import {
   MemberFeatureFlags,
   SiteIconSettings,
   defaultFeatureFlags,
-  defaultIconSettings,
 } from './site-settings';
-import WalletCard from './wallet-card';
 import {
   AnnouncementList,
   CategoryList,
@@ -20,7 +18,6 @@ import {
   TournamentSection,
   PendingRequests,
   PromotionSlotGrid,
-  QuickActions,
   RecentActivity,
   GameRailSkeleton,
   GameLobbyState,
@@ -48,7 +45,6 @@ type MemberHomeProps = {
 const POPUP_CLOSED_VERSION_KEY = 'member_cms_popup_closed_version';
 
 export default function MemberHome(props: MemberHomeProps) {
-  const icons = props.icons ?? defaultIconSettings;
   const features = props.features ?? defaultFeatureFlags;
   const [popupClosed, setPopupClosed] = useState(false);
   const popupVersion = props.cmsContent.popup.version ?? 'v1';
@@ -66,7 +62,6 @@ export default function MemberHome(props: MemberHomeProps) {
   return (
     <section className="member-shell member-home-shell">
       <div className="member-home-zone member-home-zone--primary">
-        <AnnouncementList content={props.cmsContent} />
         {props.showPromotion && features.games && (
           <HomeHero
             siteName={props.siteName}
@@ -75,17 +70,11 @@ export default function MemberHome(props: MemberHomeProps) {
             content={props.cmsContent}
           />
         )}
+        <AnnouncementList content={props.cmsContent} />
+        {features.games && <LobbyTabs />}
       </div>
 
       <div className="member-home-zone member-home-zone--finance member-home-finance-lower">
-        {props.showBalanceHeader && (
-          <WalletCard
-            primaryColor={props.primaryColor}
-            cardColor={props.cardColor}
-            showButtons={props.showButtons && (features.deposit || features.withdraw)}
-          />
-        )}
-        <QuickActions icons={icons} features={features} />
         <PendingRequests
           pendingTopups={data.pendingTopups}
           pendingWithdrawals={data.pendingWithdrawals}
@@ -94,7 +83,7 @@ export default function MemberHome(props: MemberHomeProps) {
         />
       </div>
 
-      <div className="member-home-zone">
+      <div className="member-home-zone member-home-zone--games">
         {features.games && data.isGamesLoading && <GameRailSkeleton />}
         {features.games && !data.isGamesLoading && data.gamesMessage && <GameLobbyState tone="error" message={data.gamesMessage} onRetry={data.reloadGames} />}
         {features.games && !data.isGamesLoading && !data.gamesMessage && data.featured.length === 0 && data.popular.length === 0 && <GameLobbyState tone="empty" />}
@@ -118,7 +107,6 @@ export default function MemberHome(props: MemberHomeProps) {
       <div className="member-home-zone member-home-zone--content">
         {features.games && <TournamentSection />}
         {props.showPromotion && <PromotionSlotGrid content={props.cmsContent} />}
-        <LobbyTabs />
       </div>
 
       <div className="member-home-zone member-home-zone--support">

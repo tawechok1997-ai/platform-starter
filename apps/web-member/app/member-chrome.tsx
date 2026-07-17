@@ -49,7 +49,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
   const siteName = website.site_name;
   const siteDescription = website.site_description;
-  const logoUrl = branding.logo_url ?? '';
+  const logoUrl = branding.logo_url || '/images/member-lobby/noah345-reference/assets/0010_ba66cd74-2429-42dd-858e-aaae9fb3b688_48d3df600e.png';
   const brandMark = branding.brand_mark || siteName.slice(0, 1).toUpperCase() || 'P';
 
   useEffect(() => {
@@ -144,7 +144,12 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
               aria-label={walletLoading ? 'กำลังโหลดยอดเงิน' : `ยอดใช้ได้ ${formatMemberWalletBalance(wallet)}`}
               aria-live="polite"
             >
-              ▣&nbsp; {walletLoading ? '…' : formatMemberWalletBalance(wallet)}
+              <img
+                src="/images/member-lobby/noah345-reference/assets/0012_wallet_a4fadd0a57.webp"
+                alt=""
+                aria-hidden="true"
+              />
+              {walletLoading ? '…' : formatMemberWalletBalance(wallet)}
             </span>
           </div>
         </div>

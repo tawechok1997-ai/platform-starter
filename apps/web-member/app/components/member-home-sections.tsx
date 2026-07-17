@@ -18,14 +18,14 @@ import type { Game, LedgerItem, MoneyRequest } from '../types/member-api';
 import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNotice } from './member-ui';
 
 const NOAH345_FALLBACK_BANNERS = [
-  '0018_1783665647358-f637b660-a3e9-46e3-989d-a62654566985_2945931932.jpg',
-  '0014_1782990586367-b41e5c36-0d4d-4e7c-80ed-bb145a2e3a77_0728e0b61b.jpg',
   '0015_1782630857612-4098241f-e70d-4a32-b41b-623d74b974b6_b58847238e.jpg',
+  '0014_1782990586367-b41e5c36-0d4d-4e7c-80ed-bb145a2e3a77_0728e0b61b.jpg',
   '0016_1780250534847-0b47bd80-15a3-4117-bdd3-f383308509bc_c438ce1b3e.jpg',
+  '0018_1783665647358-f637b660-a3e9-46e3-989d-a62654566985_2945931932.jpg',
 ].map((fileName, index) => ({
   title: `โปรโมชั่น ${index + 1}`,
   subtitle: 'โปรโมชั่นและกิจกรรมสำหรับสมาชิก',
-  imageUrl: `/images/member-lobby/noah345-reference/${fileName}`,
+  imageUrl: `/images/member-lobby/noah345-reference/assets/${fileName}`,
   href: '/promotions',
   enabled: true,
 }));
@@ -42,9 +42,9 @@ export function HomeHero({
   const banners = safeArray(content?.banners).filter(
     (item) => item?.enabled && (cmsAssetUrl(content, item.assetId) || item.imageUrl),
   );
-  const slides = banners.length
-    ? banners
-    : NOAH345_FALLBACK_BANNERS;
+  // Keep the supplied reference assets first so the lobby always opens with
+  // the same visual language as the approved Noah345 mobile reference.
+  const slides = [...NOAH345_FALLBACK_BANNERS, ...banners];
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -168,11 +168,17 @@ export function LobbyTabs() {
 }
 
 export function TournamentSection() {
+  const leaderboard = [
+    { rank: 1, user: 'ZAXXXU709740', score: '20', accent: 'gold', badge: '0145_rank1_42eae97af3.webp' },
+    { rank: 2, user: 'ZAXXXM664100', score: '17', accent: 'silver', badge: '0147_rank2_5017371e0a.webp' },
+    { rank: 3, user: 'ZAXXXR440174', score: '13', accent: 'bronze', badge: '0148_rank3_ced2c3d123.webp' },
+  ];
+
   return (
     <section className="member-tournament-section" id="highlights">
       <Link className="member-lobby-promo-card" href="/games">
         <MemberRuntimeImage
-          src="/images/member-lobby/promotions/tournament-reference.jpeg"
+          src="/images/member-lobby/noah345-reference/assets/0028_4a7df032-03f5-4999-ba59-f38d12c13761_0ff5658475.png"
           alt="Tournament"
           width={1600}
           height={600}
@@ -180,15 +186,41 @@ export function TournamentSection() {
         />
       </Link>
       <div className="member-tournament-title">
-        <MemberIcon name="bonus" />
+        <MemberRuntimeImage
+          src="/images/member-lobby/noah345-reference/assets/0029_tournament_45e06f0b11.svg"
+          alt=""
+          width={24}
+          height={24}
+          sizes="24px"
+        />
         <strong>ทัวร์นาเมนต์</strong>
       </div>
-      <div className="member-tournament-empty">
-        <div>
-          <strong>ระบบทัวร์นาเมนต์</strong>
-          <span>พื้นที่นี้เตรียมไว้สำหรับเชื่อมข้อมูลการแข่งขันจริง</span>
+      <div className="member-tournament-board">
+        <div className="member-tournament-board__head">
+          <div>
+            <strong>No1. Tournament Football Royale ครั้งที่ 2</strong>
+            <span>สิ้นสุดแล้ว</span>
+          </div>
+          <Link href="/games" className="member-tournament-board__all">ดูทั้งหมด <b>›</b></Link>
         </div>
-        <span className="member-system-pending">รอเชื่อมต่อ</span>
+        <div className="member-tournament-board__info" aria-label="สถานะการแข่งขัน">ⓘ</div>
+        <div className="member-tournament-ranking">
+          {leaderboard.map((item) => (
+            <article key={item.rank} className={`member-tournament-rank member-tournament-rank--${item.accent}`}>
+              <MemberRuntimeImage
+                src={`/images/member-lobby/noah345-reference/assets/${item.badge}`}
+                alt={`อันดับ ${item.rank}`}
+                width={34}
+                height={34}
+                sizes="34px"
+                className="member-tournament-rank__medal"
+              />
+              <strong>{item.user}</strong>
+              <b>{item.score}</b>
+              <div className="member-tournament-rank__dots"><i /><i /><i /><i /><i /><i /></div>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
