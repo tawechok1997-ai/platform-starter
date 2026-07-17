@@ -1,0 +1,31 @@
+/* Exact user-supplied game category icons, packed into one transparent sprite. */
+.member-category-rail a > span {
+  background-image: url('/images/member-lobby/source-icons/category-icons.png') !important;
+  background-repeat: no-repeat !important;
+  background-size: 128px 96px !important;
+  background-color: transparent !important;
+}
+.member-category-rail a > span > svg,
+.member-category-rail a > span > img { display: none !important; }
+.member-category-rail a:nth-of-type(1) > span { background-position: 0 -32px !important; }
+.member-category-rail a:nth-of-type(2) > span { background-position: -32px -32px !important; }
+.member-category-rail a:nth-of-type(3) > span { background-position: -64px -32px !important; }
+.member-category-rail a:nth-of-type(4) > span { background-position: -96px -32px !important; }
+.member-category-rail a:nth-of-type(5) > span { background-position: 0 -64px !important; }
+.member-category-rail a:nth-of-type(6) > span { background-position: -32px -64px !important; }
+.member-category-rail a:nth-of-type(7) > span { background-position: -64px -64px !important; }
+
+@media (min-width: 521px) {
+  .member-category-rail a > span {
+    width: 56px !important;
+    height: 56px !important;
+    background-size: 224px 168px !important;
+  }
+  .member-category-rail a:nth-of-type(1) > span { background-position: 0 -56px !important; }
+  .member-category-rail a:nth-of-type(2) > span { background-position: -56px -56px !important; }
+  .member-category-rail a:nth-of-type(3) > span { background-position: -112px -56px !important; }
+  .member-category-rail a:nth-of-type(4) > span { background-position: -168px -56px !important; }
+  .member-category-rail a:nth-of-type(5) > span { background-position: 0 -112px !important; }
+  .member-category-rail a:nth-of-type(6) > span { background-position: -56px -112px !important; }
+  .member-category-rail a:nth-of-type(7) > span { background-position: -112px -112px !important; }
+}

@@ -1,1 +1,0 @@
-Uploaded menu icons are stored as user-provided PNG assets and mapped by category name.
