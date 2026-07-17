@@ -1,0 +1,58 @@
+name: CI Alert Reconcile
+
+on:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  reconcile:
+    if: github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ALERT_TITLE: "[CI ALERT] Build failed on main"
+      RUN_URL: ${{ github.event.workflow_run.html_url }}
+      RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+      RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+    steps:
+      - name: Reconcile alert issue
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          issue_number="$(gh issue list --state open --search "${ALERT_TITLE} in:title" --json number,title --jq ".[] | select(.title == env.ALERT_TITLE) | .number" | head -n 1)"
+
+          if [[ "${RUN_CONCLUSION}" == "success" ]]; then
+            if [[ -n "${issue_number}" ]]; then
+              gh issue comment "${issue_number}" --body "Build recovered on main.\n\nCommit: ${RUN_SHA}\nRun: ${RUN_URL}"
+              gh issue close "${issue_number}" --reason completed
+            fi
+            exit 0
+          fi
+
+          body="Workflow: Build
+Conclusion: ${RUN_CONCLUSION}
+Commit: ${RUN_SHA}
+Branch: main
+Run: ${RUN_URL}
+
+ตรวจ migration, build, smoke หรือ health/version ตาม job ที่ล้มเหลว ก่อน deploy ต่อ"
+
+          if [[ -z "${issue_number}" ]]; then
+            gh issue create --title "${ALERT_TITLE}" --body "${body}"
+            exit 0
+          fi
+
+          if gh issue view "${issue_number}" --comments --json comments --jq '.comments[].body' | grep -Fq "${RUN_URL}"; then
+            echo "Run already recorded in issue #${issue_number}; skipping duplicate comment."
+            exit 0
+          fi
+
+          gh issue comment "${issue_number}" --body "${body}"
