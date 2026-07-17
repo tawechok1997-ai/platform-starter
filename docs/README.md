@@ -7,10 +7,8 @@ This index connects the repository documentation so implementation work starts f
 1. [`../AGENTS.md`](../AGENTS.md) — operating contract for implementation, verification, animation, evidence, and release.
 2. [`AI_RULES.md`](AI_RULES.md) — rules for generated/assisted code.
 3. [`PROJECT_RULES.md`](PROJECT_RULES.md) — architecture, finance, audit, and separation rules.
-4. [`master-project-worklist.md`](master-project-worklist.md) — project-wide backlog and canonical status.
-5. [`operations/support-runbook.md`](operations/support-runbook.md) — daily support, deployment triage, incident handling, and handover.
-6. [`operations/verification-commands.md`](operations/verification-commands.md) — active commands, scope-specific gates, historical closure audits, and environment-only checks.
-7. [`MEMBER_UX_UI_TOOLING.md`](MEMBER_UX_UI_TOOLING.md) and [`ADMIN_UX_UI_REDESIGN.md`](ADMIN_UX_UI_REDESIGN.md) — separate Member/Admin UX/UI execution trackers.
+4. [`master-project-worklist.md`](master-project-worklist.md) — project-wide backlog.
+5. [`MEMBER_UX_UI_TOOLING.md`](MEMBER_UX_UI_TOOLING.md) and [`ADMIN_UX_UI_REDESIGN.md`](ADMIN_UX_UI_REDESIGN.md) — separate Member/Admin UX/UI execution trackers.
 
 ## UI/UX source of truth
 
@@ -44,10 +42,10 @@ This index connects the repository documentation so implementation work starts f
 
 ## QA, CI, deployment, and operations
 
-- [`operations/support-runbook.md`](operations/support-runbook.md) — routine support, deployment triage, incident safety, and handover.
-- [`operations/verification-commands.md`](operations/verification-commands.md) — command selection without mixing daily gates and historical evidence scripts.
 - [`full-system-test-checklist.md`](full-system-test-checklist.md), [`playwright-smoke.md`](playwright-smoke.md), [`smoke-test.md`](smoke-test.md), [`final-qa-checklist.md`](final-qa-checklist.md) — test entry points.
 - [`ci-build-checks.md`](ci-build-checks.md), [`github-actions-smoke.md`](github-actions-smoke.md), [`deploy-checklist.md`](deploy-checklist.md) — CI/release checks.
+- [`operations/ci-alert-response.md`](operations/ci-alert-response.md) — triage, deduplication, evidence, and closure procedure for `[CI ALERT]` issues.
+- [`operations/support-runbook.md`](operations/support-runbook.md) and [`operations/verification-commands.md`](operations/verification-commands.md) — support handoff and command selection.
 - [`production-verification.md`](production-verification.md), [`production-runbook.md`](production-runbook.md), [`production-migration-verification-runbook.md`](production-migration-verification-runbook.md) — production verification.
 - [`backup-automation.md`](backup-automation.md), [`database-backup-restore.md`](database-backup-restore.md), [`monitoring.md`](monitoring.md), [`observability/`](observability/) — recovery and monitoring.
 - [`evidence/`](evidence/) and [`adr/`](adr/) — retained proof and architectural decisions; link new evidence from the owning worklist.
