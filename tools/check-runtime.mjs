@@ -30,3 +30,12 @@ if (failures.length > 0) {
 }
 
 console.log(`Runtime contract OK: Node ${actualNode}, pnpm ${actualPnpm}`);
+
+try {
+  execFileSync(process.execPath, ['tools/audit-root-command-policy.mjs'], {
+    cwd: new URL('..', import.meta.url),
+    stdio: 'inherit',
+  });
+} catch (error) {
+  process.exit(typeof error?.status === 'number' ? error.status : 1);
+}
