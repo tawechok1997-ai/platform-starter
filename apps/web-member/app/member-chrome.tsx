@@ -15,7 +15,9 @@ import { CloseIcon, MemberIcon, MenuIcon } from './components/member-icon';
 import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
 
 export default function MemberChrome({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  // Next can briefly return null during the first client transition. Keep the
+  // shared chrome renderable so every Member route does not fail together.
+  const pathname = usePathname() ?? '/';
   const [menuOpen, setMenuOpen] = useState(false);
   const { typedSettings } = useSiteSettings();
   const { ready, isLoggedIn, wallet, walletLoading, logout } = useMemberSession();
