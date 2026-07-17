@@ -1,12 +1,14 @@
 import { joinApiUrl } from '@platform/api-client';
 
 const LOCAL_API_URL = 'http://localhost:4000';
+const PRODUCTION_API_FALLBACK_URL = 'https://platformapi-production-3c91.up.railway.app';
 
 function configuredApiUrl() {
-  const explicit = process.env.API_URL?.trim() || process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (explicit) return explicit;
-  if (process.env.NODE_ENV !== 'production') return LOCAL_API_URL;
-  throw new Error('Missing API_URL for web-admin production runtime');
+  return (
+    process.env.API_URL?.trim() ||
+    process.env.NEXT_PUBLIC_API_URL?.trim() ||
+    (process.env.NODE_ENV === 'production' ? PRODUCTION_API_FALLBACK_URL : LOCAL_API_URL)
+  );
 }
 
 export function upstreamApiUrl(path: string) {
@@ -17,6 +19,6 @@ export function upstreamApiOrigin() {
   try {
     return new URL(configuredApiUrl()).origin;
   } catch {
-    return 'unconfigured-upstream';
+    return 'invalid-upstream-url';
   }
 }
