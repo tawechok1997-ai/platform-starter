@@ -9,6 +9,7 @@
         "run-full-system-tests.mjs",
         "run-with-deployment-metadata.mjs",
         "audit-tool-registry.mjs",
+        "audit-root-command-policy.mjs",
         "audit-architecture-boundaries.mjs",
         "audit-admin-permissions.mjs",
         "audit-production-secrets.mjs",
@@ -23,7 +24,8 @@
         "*provider*",
         "*shared-api-client*",
         "*browser*",
-        "*p6*"
+        "*p6*",
+        "*backend-decomposition*"
       ]
     },
     "historical": {
