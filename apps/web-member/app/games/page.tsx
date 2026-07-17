@@ -160,8 +160,8 @@ function normalizeGame(value: unknown): Game | null {
   return { id, providerGameCode: String(source.providerGameCode ?? id), name: String(source.name ?? 'เกมไม่มีชื่อ'), category: String(source.category ?? 'other'), status: typeof source.status === 'string' ? source.status : undefined, isFeatured: source.isFeatured === true, isNew: source.isNew === true, isPopular: source.isPopular === true, provider: provider ? { name: String(provider.name ?? provider.code ?? 'ไม่ระบุค่าย'), code: String(provider.code ?? 'unknown'), status: typeof provider.status === 'string' ? provider.status : null } : undefined, media };
 }
 function readIds(key: string) { try { return JSON.parse(window.localStorage.getItem(key) ?? '[]') as string[]; } catch { return []; } }
-function writeIds(key: string, ids: string[]) { window.localStorage.setItem(key, JSON.stringify(ids)); }
+function writeIds(key: string, ids: string[]) { try { window.localStorage.setItem(key, JSON.stringify(ids)); } catch { /* storage may be blocked by Safari/private mode */ } }
 function readFilters() { try { return JSON.parse(window.localStorage.getItem(LOBBY_FILTER_KEY) ?? '{}') as { category?: string; provider?: string; query?: string }; } catch { return {}; } }
-function writeFilters(value: { category: string; provider: string; query: string }) { window.localStorage.setItem(LOBBY_FILTER_KEY, JSON.stringify(value)); }
+function writeFilters(value: { category: string; provider: string; query: string }) { try { window.localStorage.setItem(LOBBY_FILTER_KEY, JSON.stringify(value)); } catch { /* storage may be blocked by Safari/private mode */ } }
 function rememberRecent(id: string, setRecentIds: (updater: (current: string[]) => string[]) => void) { setRecentIds((current) => { const next = [id, ...current.filter((item) => item !== id)].slice(0, 12); writeIds(RECENT_KEY, next); return next; }); }
 function countBy<T>(items: T[], pick: (item: T) => string) { const map = new Map<string, number>(); for (const item of items) { const key = pick(item); map.set(key, (map.get(key) ?? 0) + 1); } return map; }
