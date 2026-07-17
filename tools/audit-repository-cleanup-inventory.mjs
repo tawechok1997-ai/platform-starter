@@ -5,6 +5,7 @@ const root = process.cwd();
 const ignoredDirectories = new Set(['.git', '.next', 'node_modules', 'dist', 'coverage', '.turbo']);
 const generatedExtensions = new Set(['.log', '.tmp', '.cache']);
 const candidates = [];
+const jsonMode = process.argv.includes('--json');
 
 async function exists(path) {
   try { await stat(path); return true; } catch { return false; }
@@ -59,15 +60,22 @@ for (const file of files) {
   candidates.push({ path, reasons, references });
 }
 
-console.log(`Repository files scanned: ${files.length}`);
-console.log(`Cleanup review candidates: ${candidates.length}`);
-for (const candidate of candidates) {
-  console.log(`- ${candidate.path}: ${candidate.reasons.join(', ')}`);
-  if (candidate.references.length) console.log(`  references: ${candidate.references.join(', ')}`);
-}
+const report = {
+  generatedAt: new Date().toISOString(),
+  scannedFiles: files.length,
+  candidateCount: candidates.length,
+  candidates,
+};
 
-if (process.argv.includes('--json')) {
-  console.log(JSON.stringify({ scannedFiles: files.length, candidateCount: candidates.length, candidates }, null, 2));
+if (jsonMode) {
+  console.log(JSON.stringify(report, null, 2));
+} else {
+  console.log(`Repository files scanned: ${files.length}`);
+  console.log(`Cleanup review candidates: ${candidates.length}`);
+  for (const candidate of candidates) {
+    console.log(`- ${candidate.path}: ${candidate.reasons.join(', ')}`);
+    if (candidate.references.length) console.log(`  references: ${candidate.references.join(', ')}`);
+  }
 }
 
 // Inventory only. Deletion requires human review and the cleanup policy evidence gate.
