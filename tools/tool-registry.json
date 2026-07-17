@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "categories": {
+    "active": {
+      "description": "Required by daily development, default CI, build, deployment or operations.",
+      "patterns": [
+        "check-runtime.mjs",
+        "ci-changed-scope.mjs",
+        "run-full-system-tests.mjs",
+        "run-with-deployment-metadata.mjs",
+        "audit-architecture-boundaries.mjs",
+        "audit-admin-permissions.mjs",
+        "audit-production-secrets.mjs",
+        "audit-production-dependencies.mjs"
+      ]
+    },
+    "scoped": {
+      "description": "Run only when the related domain or verification scope changes.",
+      "patterns": [
+        "*finance*",
+        "*kyc*",
+        "*provider*",
+        "*shared-api-client*",
+        "*browser*",
+        "*p6*"
+      ]
+    },
+    "historical": {
+      "description": "Retained closure evidence. Do not add to default CI without a new requirement.",
+      "patterns": [
+        "audit-r0*-closure.mjs",
+        "audit-r1*-closure.mjs",
+        "audit-p4-closure.mjs",
+        "audit-p5-closure.mjs",
+        "audit-r014-cleanup-inventory.mjs"
+      ]
+    }
+  },
+  "rules": {
+    "requirePackageScriptOrReference": true,
+    "allowUnreferencedTests": true,
+    "strictModeFailsOnMissingReferencedTool": true,
+    "strictModeFailsOnUnclassifiedTool": false
+  }
+}
