@@ -7,7 +7,7 @@ This index connects the repository documentation so implementation work starts f
 1. [`../AGENTS.md`](../AGENTS.md) — operating contract for implementation, verification, animation, evidence, and release.
 2. [`AI_RULES.md`](AI_RULES.md) — rules for generated/assisted code.
 3. [`PROJECT_RULES.md`](PROJECT_RULES.md) — architecture, finance, audit, and separation rules.
-4. [`master-project-worklist.md`](master-project-worklist.md) — project-wide backlog.
+4. [`master-project-worklist.md`](master-project-worklist.md) — project-wide backlog and the only source of truth for remaining checkbox counts.
 5. [`MEMBER_UX_UI_TOOLING.md`](MEMBER_UX_UI_TOOLING.md) and [`ADMIN_UX_UI_REDESIGN.md`](ADMIN_UX_UI_REDESIGN.md) — separate Member/Admin UX/UI execution trackers.
 
 ## UI/UX source of truth
@@ -46,6 +46,8 @@ This index connects the repository documentation so implementation work starts f
 - [`ci-build-checks.md`](ci-build-checks.md), [`github-actions-smoke.md`](github-actions-smoke.md), [`deploy-checklist.md`](deploy-checklist.md) — CI/release checks.
 - [`operations/ci-alert-response.md`](operations/ci-alert-response.md) — triage, deduplication, evidence, and closure procedure for `[CI ALERT]` issues.
 - [`operations/support-runbook.md`](operations/support-runbook.md) and [`operations/verification-commands.md`](operations/verification-commands.md) — support handoff and command selection.
+- [`operations/p6-external-verification-checklist.md`](operations/p6-external-verification-checklist.md) — canonical execution order, preflight, stop conditions, and closure rules for the 30 external P6 checks.
+- [`evidence/p6-verification-run-template.md`](evidence/p6-verification-run-template.md) — sanitized evidence template for each deployed, production, or vendor verification run.
 - [`production-verification.md`](production-verification.md), [`production-runbook.md`](production-runbook.md), [`production-migration-verification-runbook.md`](production-migration-verification-runbook.md) — production verification.
 - [`backup-automation.md`](backup-automation.md), [`database-backup-restore.md`](database-backup-restore.md), [`monitoring.md`](monitoring.md), [`observability/`](observability/) — recovery and monitoring.
 - [`evidence/`](evidence/) and [`adr/`](adr/) — retained proof and architectural decisions; link new evidence from the owning worklist.
@@ -55,5 +57,6 @@ This index connects the repository documentation so implementation work starts f
 - Update the owning source-of-truth document in the same commit as a behavior or UI contract change.
 - Link new documents from this index and from `AGENTS.md` when they govern implementation.
 - Do not copy the same checklist into multiple files; link to the canonical section instead.
+- Do not derive remaining-work counts from ad-hoc P groups; use unchecked boxes in `master-project-worklist.md` only.
 - Mark implementation, evidence, and acceptance separately. A code change without retained verification is not a closed item.
 - Record commit SHA, date, owner, remaining risk, and rollback/evidence path for P0/P1 changes.
