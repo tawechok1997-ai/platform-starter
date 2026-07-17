@@ -6,6 +6,7 @@ const appRoots = [
   { name: 'admin', path: join(root, 'apps', 'web-admin') },
   { name: 'member', path: join(root, 'apps', 'web-member') },
 ];
+const packageRoot = join(root, 'packages', 'api-client');
 
 const allowedTransportBridges = new Set([
   'apps/web-admin/app/admin-api.ts',
@@ -18,6 +19,13 @@ const forbidden = [
   { name: 'duplicate adminFetch helper', pattern: /\b(?:function|const)\s+adminFetch\b/g },
   { name: 'duplicate memberFetch helper', pattern: /\b(?:function|const)\s+memberFetch\b/g },
   { name: 'duplicate fetchJson helper', pattern: /\b(?:function|const)\s+fetchJson\b/g },
+];
+
+const forbiddenPackageBoundaries = [
+  { name: 'shared package imports application code', pattern: /(?:from\s+|import\s*\()\s*['"][^'"]*(?:apps\/|web-admin|web-member)/g },
+  { name: 'shared package reads process.env', pattern: /\bprocess\.env\b/g },
+  { name: 'shared package imports Prisma', pattern: /@prisma\/client|\bPrismaClient\b/g },
+  { name: 'shared package imports Node filesystem', pattern: /node:fs|['"]fs['"]/g },
 ];
 
 async function walk(directory) {
@@ -44,6 +52,17 @@ function isAllowedTransportBoundary(path) {
   return allowedTransportBridges.has(path) || isServerProxyRoute(path);
 }
 
+function findViolations(source, path, rules, extra = {}) {
+  const violations = [];
+  for (const rule of rules) {
+    for (const match of source.matchAll(rule.pattern)) {
+      const line = source.slice(0, match.index).split('\n').length;
+      violations.push({ path, line, rule: rule.name, ...extra });
+    }
+  }
+  return violations;
+}
+
 const grouped = [];
 const allViolations = [];
 let totalFiles = 0;
@@ -63,12 +82,7 @@ for (const app of appRoots) {
       if (allowedTransportBridges.has(path)) existingBridges += 1;
       continue;
     }
-    for (const rule of forbidden) {
-      for (const match of source.matchAll(rule.pattern)) {
-        const line = source.slice(0, match.index).split('\n').length;
-        violations.push({ app: app.name, path, line, rule: rule.name });
-      }
-    }
+    violations.push(...findViolations(source, path, forbidden, { app: app.name }));
   }
 
   grouped.push({ app: app.name, files: files.length, apiClientImports, violations });
@@ -77,10 +91,22 @@ for (const app of appRoots) {
   allViolations.push(...violations);
 }
 
+const packageFiles = await walk(packageRoot);
+const packageViolations = [];
+for (const file of packageFiles) {
+  const path = normalize(file);
+  if (path.endsWith('.test.ts') || path.endsWith('.test.tsx')) continue;
+  const source = await readFile(file, 'utf8');
+  packageViolations.push(...findViolations(source, path, forbiddenPackageBoundaries, { app: 'api-client' }));
+}
+allViolations.push(...packageViolations);
+
 const result = {
   totalFiles,
   apiClientImports: totalImports,
   existingAllowlistedTransportBridges: existingBridges,
+  sharedPackageFiles: packageFiles.length,
+  sharedPackageBoundaryViolations: packageViolations,
   groups: grouped,
   violations: allViolations,
 };
@@ -91,6 +117,8 @@ if (process.argv.includes('--json')) {
   console.log(`Shared API client audit: ${totalFiles} frontend source files`);
   console.log(`  @platform/api-client imports: ${totalImports}`);
   console.log(`  existing allowlisted transport bridges: ${existingBridges}`);
+  console.log(`  shared package source files: ${packageFiles.length}`);
+  console.log(`  shared package boundary violations: ${packageViolations.length}`);
   for (const group of grouped) {
     console.log(`  ${group.app}: ${group.files} files, ${group.apiClientImports} imports, ${group.violations.length} violations`);
   }
@@ -104,7 +132,7 @@ if (existingBridges !== allowedTransportBridges.size) {
 
 if (allViolations.length) {
   if (!process.argv.includes('--json')) {
-    console.error('\nDirect or duplicate API transport usage:');
+    console.error('\nShared API client boundary violations:');
     for (const violation of allViolations.sort((a, b) => `${a.path}:${a.line}`.localeCompare(`${b.path}:${b.line}`))) {
       console.error(`  - ${violation.path}:${violation.line}: ${violation.rule}`);
     }
