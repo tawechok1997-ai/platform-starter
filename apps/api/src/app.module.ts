@@ -23,6 +23,7 @@ import { AffiliatesModule } from './modules/affiliates/affiliates.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { HealthModule } from './modules/health/health.module';
 import { AntiBotModule } from './modules/anti-bot/anti-bot.module';
+import { ProviderSimulatorModule } from './modules/provider-simulator/provider-simulator.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { AntiBotModule } from './modules/anti-bot/anti-bot.module';
     AdminAuditModule,
     AdminActivityModule,
     GamePlatformModule,
+    ProviderSimulatorModule,
     MoneyOpsModule,
     SupportModule,
     PromotionsModule,
