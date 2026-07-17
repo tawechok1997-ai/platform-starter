@@ -18,6 +18,7 @@ export const memberNavigationItems: MemberNavigationItem[] = [
   {
     key: 'home',
     title: 'หน้าแรก',
+    shortTitle: 'เมนู',
     href: '/',
     description: 'ภาพรวมบัญชีและทางลัด',
     iconKey: 'home',
@@ -29,12 +30,13 @@ export const memberNavigationItems: MemberNavigationItem[] = [
     href: '/games',
     description: 'เลือกเกม แนะนำ มาใหม่ และยอดนิยม',
     iconKey: 'games',
-    placements: ['bottom', 'drawer', 'home'],
+    placements: ['drawer', 'home'],
     feature: 'games',
   },
   {
     key: 'deposit',
     title: 'ฝากเงิน',
+    shortTitle: 'ฝาก',
     href: '/deposit',
     description: 'เพิ่มยอดเข้าสู่บัญชี',
     iconKey: 'deposit',
@@ -44,10 +46,11 @@ export const memberNavigationItems: MemberNavigationItem[] = [
   {
     key: 'withdraw',
     title: 'ถอนเงิน',
+    shortTitle: 'ถอน',
     href: '/withdraw',
     description: 'ส่งคำขอถอนเงิน',
     iconKey: 'withdraw',
-    placements: ['drawer', 'home'],
+    placements: ['bottom', 'drawer', 'home'],
     feature: 'withdraw',
   },
   {
@@ -65,7 +68,7 @@ export const memberNavigationItems: MemberNavigationItem[] = [
     href: '/promotions',
     description: 'ดูโปรที่เปิดให้รับสิทธิ์',
     iconKey: 'promotion',
-    placements: ['bottom', 'drawer', 'home'],
+    placements: ['drawer', 'home'],
     feature: 'promotion',
   },
   {
@@ -111,7 +114,7 @@ export const memberNavigationItems: MemberNavigationItem[] = [
     href: '/profile',
     description: 'ข้อมูลบัญชีและความปลอดภัย',
     iconKey: 'profile',
-    placements: ['bottom', 'drawer'],
+    placements: ['drawer'],
     feature: 'profile',
   },
   {
@@ -134,10 +137,12 @@ export const memberNavigationItems: MemberNavigationItem[] = [
   {
     key: 'contact',
     title: 'ติดต่อเรา',
+    shortTitle: 'ติดต่อ',
     href: '/contact',
     description: 'ช่องทางช่วยเหลือและเวลาบริการ',
     iconKey: 'support',
-    placements: ['drawer'],
+    placements: ['bottom', 'drawer'],
+    feature: 'support',
   },
 ];
 
