@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   capture-maintenance-evidence:
@@ -56,7 +57,7 @@ jobs:
       - name: Capture repository cleanup inventory
         run: |
           node tools/audit-repository-cleanup-inventory.mjs --json \
-            > artifacts/repository-maintenance/repository-cleanup.txt
+            > artifacts/repository-maintenance/repository-cleanup.json
 
       - name: Record workflow context
         run: |
@@ -70,6 +71,29 @@ jobs:
           }
           EOF
 
+      - name: Build issue summary
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const backend = JSON.parse(fs.readFileSync('artifacts/repository-maintenance/backend-decomposition.json', 'utf8'));
+          const cleanup = JSON.parse(fs.readFileSync('artifacts/repository-maintenance/repository-cleanup.json', 'utf8'));
+          const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+          const lines = [
+            `## Repository maintenance audit`,
+            ``,
+            `- Commit: \`${process.env.GITHUB_SHA}\``,
+            `- Workflow run: ${runUrl}`,
+            `- Backend files scanned: **${backend.scannedFiles}**`,
+            `- Backend decomposition candidates: **${backend.candidateCount}**`,
+            `- Critical / high / moderate: **${backend.severityCounts.critical} / ${backend.severityCounts.high} / ${backend.severityCounts.moderate}**`,
+            `- Repository files scanned: **${cleanup.scannedFiles}**`,
+            `- Cleanup review candidates: **${cleanup.candidateCount}**`,
+            ``,
+            `Download the \`repository-maintenance-${process.env.GITHUB_SHA}\` artifact from the workflow run before approving either baseline.`,
+          ];
+          fs.writeFileSync('artifacts/repository-maintenance/issue-summary.md', `${lines.join('\n')}\n`);
+          NODE
+
       - name: Upload maintenance evidence
         uses: actions/upload-artifact@v4
         with:
@@ -77,3 +101,15 @@ jobs:
           path: artifacts/repository-maintenance
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish deduplicated audit issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_TITLE: '[MAINTENANCE AUDIT] Repository baselines require review'
+        run: |
+          issue_number="$(gh issue list --state open --search "${ISSUE_TITLE} in:title" --json number,title --jq '.[] | select(.title == env.ISSUE_TITLE) | .number' | head -n 1)"
+          if [ -n "${issue_number}" ]; then
+            gh issue comment "${issue_number}" --body-file artifacts/repository-maintenance/issue-summary.md
+          else
+            gh issue create --title "${ISSUE_TITLE}" --body-file artifacts/repository-maintenance/issue-summary.md
+          fi
