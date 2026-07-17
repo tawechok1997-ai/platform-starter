@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "status": "review-required",
+  "policy": "docs/maintenance/repository-cleanup-policy.md",
+  "auditCommand": "pnpm audit:repository-cleanup",
+  "capturedAt": null,
+  "approvedCandidates": [],
+  "rules": {
+    "automaticDeletionForbidden": true,
+    "referencedCandidatesCannotBeDeleted": true,
+    "newGeneratedArtifactsForbidden": true,
+    "candidateRemovalRequiresVerificationEvidence": true
+  },
+  "notes": "Populate approvedCandidates from a reviewed cleanup inventory. Keep this baseline non-enforcing until every candidate has an owner and disposition."
+}
