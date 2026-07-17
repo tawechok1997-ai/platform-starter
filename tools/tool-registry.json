@@ -25,7 +25,8 @@
         "*shared-api-client*",
         "*browser*",
         "*p6*",
-        "*backend-decomposition*"
+        "*backend-decomposition*",
+        "audit-repository-cleanup-inventory.mjs"
       ]
     },
     "historical": {
