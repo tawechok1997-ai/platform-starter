@@ -127,12 +127,12 @@ export default function AdminLoginPage() {
           ? await loginClient.json<LoginResponse, { challengeId: string; code: string }>(
               '/api/admin/auth/2fa/verify',
               { challengeId, code: twoFactorCode.trim() },
-              { credentials: 'include', auth: false },
+              { method: 'POST', credentials: 'include', auth: false },
             )
           : await loginClient.json<LoginResponse, typeof loginPayload>(
               '/api/auth/login',
               loginPayload,
-              { credentials: 'include', auth: false },
+              { method: 'POST', credentials: 'include', auth: false },
             );
       if (data.requiresTwoFactor && data.challengeId) {
         setRequiresTwoFactor(true);
