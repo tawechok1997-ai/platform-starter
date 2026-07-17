@@ -50,6 +50,7 @@ import './member-reference-icon-layout.css';
 import './member-noah-fullpage.css';
 import './member-noah-final-pass.css';
 import './member-home-order-fix.css';
+import './member-reference-assets-final.css';
 import MemberChrome from './member-chrome';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
