@@ -18,6 +18,7 @@ export class ProviderAdapterRegistry {
     this.register('simulator-provider', simulatorAdapter);
     this.register('generic-transfer', genericTransferAdapter);
     this.register('real-provider', genericTransferAdapter);
+    this.register('provider-simulator', genericTransferAdapter);
   }
 
   register(providerCode: string, adapter: GameProviderAdapter) {
