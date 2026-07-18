@@ -50,7 +50,7 @@
 
 ## P2 — Operations Command Center และ Professional UI completion
 
-สถานะ: **10 / 20 เสร็จ | เหลือ 10**
+สถานะ: **14 / 20 เสร็จ | เหลือ 6**
 
 ### Design foundation
 
@@ -66,16 +66,14 @@
 - [x] เพิ่มกราฟ Deposit/Withdrawal, transaction volume และ net revenue
 - [x] เพิ่มกราฟ Member growth, active members และ usage trend
 - [x] เพิ่มกราฟ Risk alerts แยก severity, status และแนวโน้ม
-- [ ] เพิ่ม Provider health, latency, error rate, webhook failure และ wallet mismatch visualization
-  - ความคืบหน้า: มีหน้า `/provider-health` แสดงสถานะ, readiness, on-demand latency และปริมาณ webhook logs แล้ว
-  - คงเหลือ: API aggregation สำหรับ error rate, webhook failure และ wallet mismatch ก่อนปิดงาน
+- [x] เพิ่ม Provider health, latency, error rate, webhook failure และ wallet mismatch visualization
 - [x] เพิ่ม Recent activity, audit timeline และ critical events panel
 
 ### Data table และ workflow standardization
 
-- [ ] สร้างมาตรฐานตาราง Admin กลางสำหรับ sticky header, density, loading, empty และ error states
-- [ ] ทำ filter, sort, pagination และ search ให้ใช้พฤติกรรมสอดคล้องกันทุกหน้าหลัก
-- [ ] เพิ่ม column visibility, saved views และการจำค่าตาม Admin
+- [x] สร้างมาตรฐานตาราง Admin กลางสำหรับ sticky header, density, loading, empty และ error states
+- [x] ทำ filter, sort, pagination และ search ให้ใช้พฤติกรรมสอดคล้องกันทุกหน้าหลัก
+- [x] เพิ่ม column visibility, saved views และการจำค่าตาม Admin
 - [ ] เพิ่ม bulk action พร้อม confirm dialog, reason field, step-up และผลลัพธ์รายแถว
 - [ ] ปรับ Export Center ให้ติดตามสถานะไฟล์ ประวัติการส่งออก และสิทธิ์ข้อมูล
 
@@ -99,13 +97,12 @@
 |---|---:|---:|---:|
 | P0 | 6 | 7 | 1 |
 | P1 | 13 | 13 | 0 |
-| P2 | 10 | 20 | 10 |
-| **รวม** | **29** | **40** | **11** |
+| P2 | 14 | 20 | 6 |
+| **รวม** | **33** | **40** | **7** |
 
 ## ลำดับดำเนินงานต่อ
 
 1. ปิด P0 โดย sync Prisma schema และเลิกใช้ raw SQL
-2. ทำ Provider health aggregation ให้ครบ
-3. ทำ table/workflow standardization
-4. ไล่ visual completion รายโมดูล
-5. ปิด automated tests และ regression evidence
+2. ทำ bulk action และ Export Center
+3. ไล่ visual completion รายโมดูล
+4. ปิด automated tests และ regression evidence
