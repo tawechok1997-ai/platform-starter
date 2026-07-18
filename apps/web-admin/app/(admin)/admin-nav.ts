@@ -14,9 +14,7 @@ export type AdminNavGroup = {
 
 export const navGroups: readonly AdminNavGroup[] = [
   {
-    id: 'overview',
-    title: 'ภาพรวม',
-    description: 'สถานะและงานเร่งด่วน',
+    id: 'overview', title: 'ภาพรวม', description: 'สถานะและงานเร่งด่วน',
     items: [
       { title: 'Dashboard', href: '/dashboard', badgeKey: 'pending' },
       { title: 'ศูนย์งานแอดมิน', href: '/operations', badgeKey: 'pending' },
@@ -24,22 +22,20 @@ export const navGroups: readonly AdminNavGroup[] = [
     ],
   },
   {
-    id: 'finance',
-    title: 'การเงิน',
-    description: 'ฝาก ถอน วอเลต และการกระทบยอด',
+    id: 'finance', title: 'การเงิน', description: 'ฝาก ถอน วอเลต และการกระทบยอด',
     items: [
       { title: 'ตรวจรายการฝาก', href: '/topups', permissions: ['topups.view', 'deposit.view'], badgeKey: 'topups' },
       { title: 'ตรวจรายการถอน', href: '/withdrawals', permissions: ['withdraw.view'], badgeKey: 'withdrawals' },
+      { title: 'Bulk Queue Operations', href: '/bulk-queue-operations', permissions: ['topups.view', 'deposit.view', 'withdraw.view'] },
       { title: 'วอเลตสมาชิก', href: '/wallets', permissions: ['wallet.view'] },
       { title: 'ประวัติเงิน', href: '/wallet-ledgers', permissions: ['wallet.view'] },
       { title: 'ศูนย์กระทบยอด', href: '/reconciliation-center', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'รายงานการเงิน', href: '/reports', permissions: ['reports.view'] },
+      { title: 'Export Center', href: '/exports', permissions: ['reports.export', 'reports.view'] },
     ],
   },
   {
-    id: 'members',
-    title: 'สมาชิก',
-    description: 'บัญชี ข้อมูล และการตรวจสอบสมาชิก',
+    id: 'members', title: 'สมาชิก', description: 'บัญชี ข้อมูล และการตรวจสอบสมาชิก',
     items: [
       { title: 'รายชื่อสมาชิก', href: '/members', permissions: ['users.view'] },
       { title: 'Member Intelligence', href: '/member-insights', permissions: ['users.view'] },
@@ -49,9 +45,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     ],
   },
   {
-    id: 'risk',
-    title: 'ความเสี่ยง',
-    description: 'Alert การตรวจสอบ และ Audit',
+    id: 'risk', title: 'ความเสี่ยง', description: 'Alert การตรวจสอบ และ Audit',
     items: [
       { title: 'Risk Alerts', href: '/risk-alerts', permissions: ['risk.view'] },
       { title: 'ตรวจค่ายละเอียด', href: '/provider-risk', permissions: ['risk.view', 'provider.view'] },
@@ -59,9 +53,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     ],
   },
   {
-    id: 'providers',
-    title: 'เกมและผู้ให้บริการ',
-    description: 'เกม ค่าย API และสถานะการเชื่อมต่อ',
+    id: 'providers', title: 'เกมและผู้ให้บริการ', description: 'เกม ค่าย API และสถานะการเชื่อมต่อ',
     items: [
       { title: 'Provider Health', href: '/provider-health', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'ตั้งค่าค่ายแบบง่าย', href: '/simple-game-settings', permissions: ['game.providers.manage', 'provider.update'] },
@@ -75,9 +67,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     ],
   },
   {
-    id: 'growth',
-    title: 'โปรโมชั่นและเนื้อหา',
-    description: 'การตลาด โบนัส Affiliate และ CMS',
+    id: 'growth', title: 'โปรโมชั่นและเนื้อหา', description: 'การตลาด โบนัส Affiliate และ CMS',
     items: [
       { title: 'ศูนย์การเติบโต', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
       { title: 'โปรโมชันและโบนัส', href: '/promotion-center', permissions: ['promotion.view'] },
@@ -89,9 +79,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     ],
   },
   {
-    id: 'administration',
-    title: 'ผู้ดูแลและสิทธิ์',
-    description: 'บัญชี ตำแหน่ง Role และ Permission',
+    id: 'administration', title: 'ผู้ดูแลและสิทธิ์', description: 'บัญชี ตำแหน่ง Role และ Permission',
     items: [
       { title: 'บัญชีผู้ดูแล', href: '/admin-accounts', permissions: ['admin.view', 'admin.access.view'] },
       { title: 'Roles และ Permissions', href: '/admin-roles', permissions: ['admin.access.view'] },
@@ -100,9 +88,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     ],
   },
   {
-    id: 'system',
-    title: 'ระบบและการตั้งค่า',
-    description: 'บริการ ความปลอดภัย และ Integration',
+    id: 'system', title: 'ระบบและการตั้งค่า', description: 'บริการ ความปลอดภัย และ Integration',
     items: [
       { title: 'ตั้งค่าเว็บไซต์', href: '/settings', permissions: ['settings.update', 'settings.website.view'] },
       { title: 'CAPTCHA และ Anti-bot', href: '/anti-bot', permissions: ['security.anti_bot.view'] },
@@ -117,7 +103,6 @@ export const navGroups: readonly AdminNavGroup[] = [
 const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'Access Control', href: '/access', permissions: ['admin.access.view'] },
   { title: 'Activity', href: '/activity', permissions: ['admin.view', 'admin.access.view'] },
-  { title: 'Exports', href: '/exports', permissions: ['reports.export', 'reports.view'] },
   { title: 'Finance', href: '/finance', permissions: ['wallet.view', 'reports.view'] },
   { title: 'KYC Review', href: '/kyc', permissions: ['users.view', 'risk.view'] },
   { title: 'Ledgers', href: '/ledgers', permissions: ['wallet.view'] },
@@ -136,10 +121,7 @@ export function canAccessNavItem(item: AdminNavItem, permissions: readonly strin
 }
 
 export function requiredPermissionsForPath(pathname: string) {
-  const routeItems = [...navGroups.flatMap((group) => group.items), ...additionalRoutePermissions]
-    .sort((a, b) => b.href.length - a.href.length);
-  for (const item of routeItems) {
-    if (pathname === item.href || pathname.startsWith(`${item.href}/`)) return item.permissions ?? [];
-  }
+  const routeItems = [...navGroups.flatMap((group) => group.items), ...additionalRoutePermissions].sort((a, b) => b.href.length - a.href.length);
+  for (const item of routeItems) if (pathname === item.href || pathname.startsWith(`${item.href}/`)) return item.permissions ?? [];
   return [] as readonly string[];
 }
