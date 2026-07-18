@@ -8,7 +8,7 @@
   height: 56px !important;
   padding: 4px 0 !important;
   display: grid !important;
-  grid-template-columns: 70px minmax(0, 1fr) 122px !important;
+  grid-template-columns: 70px minmax(0, 1fr) 112px !important;
   align-items: center !important;
   column-gap: 4px !important;
   box-sizing: border-box !important;
@@ -85,14 +85,14 @@
 .global-member-topbar .member-header-wallet {
   position: relative !important;
   display: grid !important;
-  grid-template-columns: 24px minmax(0, 1fr) !important;
+  grid-template-columns: 30px minmax(0, 1fr) !important;
   align-items: center !important;
-  width: 122px !important;
-  min-width: 122px !important;
-  max-width: 122px !important;
+  width: 112px !important;
+  min-width: 112px !important;
+  max-width: 112px !important;
   height: 34px !important;
-  padding: 0 8px !important;
-  gap: 6px !important;
+  padding: 0 6px !important;
+  gap: 4px !important;
   margin-left: auto !important;
   margin-right: 0 !important;
   border: 0 !important;
@@ -100,7 +100,7 @@
   background: rgba(66, 60, 91, 0.95) !important;
   box-shadow: none !important;
   outline: 0 !important;
-  font-size: 10px !important;
+  font-size: 9.5px !important;
   font-weight: 600 !important;
   line-height: 1 !important;
   letter-spacing: 0 !important;
@@ -112,9 +112,9 @@
 .global-member-topbar .member-header-wallet img {
   position: static !important;
   transform: none !important;
-  width: 20px !important;
-  height: 20px !important;
-  max-width: 20px !important;
+  width: 26px !important;
+  height: 26px !important;
+  max-width: 26px !important;
   object-fit: contain !important;
   justify-self: start !important;
 }
@@ -127,10 +127,10 @@
   text-overflow: clip !important;
   white-space: nowrap !important;
   text-align: center !important;
-  font-size: 10px !important;
+  font-size: 9.5px !important;
   font-weight: 600 !important;
   line-height: 1 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: -0.02em !important;
   font-variant-numeric: tabular-nums !important;
 }
 
@@ -138,7 +138,7 @@
   .global-member-topbar .member-topbar__inner {
     min-height: 54px !important;
     height: 54px !important;
-    grid-template-columns: 66px minmax(0, 1fr) 116px !important;
+    grid-template-columns: 66px minmax(0, 1fr) 106px !important;
     column-gap: 3px !important;
   }
 
@@ -164,22 +164,23 @@
   }
 
   .global-member-topbar .member-header-wallet {
-    width: 116px !important;
-    min-width: 116px !important;
-    max-width: 116px !important;
+    width: 106px !important;
+    min-width: 106px !important;
+    max-width: 106px !important;
     height: 32px !important;
-    grid-template-columns: 22px minmax(0, 1fr) !important;
-    gap: 5px !important;
-    font-size: 9.5px !important;
+    grid-template-columns: 27px minmax(0, 1fr) !important;
+    padding-inline: 5px !important;
+    gap: 3px !important;
+    font-size: 9px !important;
   }
 
   .global-member-topbar .member-header-wallet img {
-    width: 18px !important;
-    height: 18px !important;
-    max-width: 18px !important;
+    width: 24px !important;
+    height: 24px !important;
+    max-width: 24px !important;
   }
 
   .global-member-topbar .member-header-wallet__amount {
-    font-size: 9.5px !important;
+    font-size: 9px !important;
   }
 }
