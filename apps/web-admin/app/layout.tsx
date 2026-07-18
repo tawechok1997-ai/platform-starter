@@ -26,6 +26,7 @@ import './admin-accounts.css';
 import './admin-member-insights.css';
 import './admin-data-table.css';
 import './admin-bulk-action.css';
+import './admin-shell-overlay-fix.css';
 
 export const viewport: Viewport = {
   width: 'device-width',
