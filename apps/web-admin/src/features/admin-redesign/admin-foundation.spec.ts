@@ -90,3 +90,24 @@ test('desktop drawer guard hides the backdrop without disabling the sidebar', ()
   assert.match(overlayCss, /\.admin-drawer-backdrop\s*\{[^}]*display:\s*none\s*!important/s);
   assert.match(overlayCss, /\.admin-drawer\s*\{[^}]*pointer-events:\s*auto/s);
 });
+
+test('finance pages use the shared admin surface system', () => {
+  const paths = [
+    '../../../app/(admin)/topups/page.tsx',
+    '../../../app/(admin)/withdrawals/page.tsx',
+    '../../../app/(admin)/wallets/page.tsx',
+    '../../../app/(admin)/wallet-ledgers/page.tsx',
+    '../../../app/(admin)/reconciliation-center/page.tsx',
+  ];
+
+  for (const path of paths) {
+    const source = readFileSync(new URL(path, import.meta.url), 'utf8');
+    assert.match(source, /AdminPage/);
+    assert.match(source, /AdminMetricGrid/);
+    assert.match(source, /AdminNotice/);
+  }
+
+  const reconciliation = readFileSync(new URL('../../../app/(admin)/reconciliation-center/page.tsx', import.meta.url), 'utf8');
+  assert.match(reconciliation, /AdminConfirmDialog/);
+  assert.doesNotMatch(reconciliation, /window\.prompt/);
+});
