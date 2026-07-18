@@ -50,7 +50,7 @@
 
 ## P2 — Operations Command Center และ Professional UI completion
 
-สถานะ: **4 / 20 เสร็จ | เหลือ 16**
+สถานะ: **6 / 20 เสร็จ | เหลือ 14**
 
 ### Design foundation
 
@@ -61,8 +61,8 @@
 ### Dashboard และ operational intelligence
 
 - [x] ปรับ Dashboard เป็น Operations Command Center ที่อ่านสถานะระบบได้ในหน้าจอเดียว
-- [ ] เพิ่ม KPI การเงิน ได้แก่ยอดฝาก ยอดถอน รายได้สุทธิ รายการค้าง และ Wallet variance
-- [ ] เพิ่ม KPI Operations ได้แก่ queue, SLA, งานเกินเวลา และรายการที่ต้องอนุมัติ
+- [x] เพิ่ม KPI การเงิน ได้แก่ยอดฝาก ยอดถอน Net flow รายการค้าง ยอด Wallet รวม และ Wallet variance
+- [x] เพิ่ม KPI Operations ได้แก่ queue, เป้าหมายเวลา, งานเกินเป้าหมาย, คิววิกฤต และอายุคิวเก่าสุด
 - [ ] เพิ่มกราฟ Deposit/Withdrawal, transaction volume และ net revenue
 - [ ] เพิ่มกราฟ Member growth, active members และ usage trend
 - [ ] เพิ่มกราฟ Risk alerts แยก severity, status และแนวโน้ม
@@ -97,14 +97,14 @@
 |---|---:|---:|---:|
 | P0 | 6 | 7 | 1 |
 | P1 | 13 | 13 | 0 |
-| P2 | 4 | 20 | 16 |
-| **รวม** | **23** | **40** | **17** |
+| P2 | 6 | 20 | 14 |
+| **รวม** | **25** | **40** | **15** |
 
 ## ลำดับดำเนินงานต่อ
 
 1. ปิด P0 โดย sync Prisma schema และเลิกใช้ raw SQL
-2. ทำ KPI Finance และ Operations ให้ครบ
-3. ทำกราฟ Finance, Risk และ Provider health
+2. ทำกราฟ Finance, Risk และ Provider health
+3. เพิ่ม Recent activity, audit timeline และ critical events
 4. ทำ table/workflow standardization
 5. ไล่ visual completion รายโมดูล
 6. ปิด automated tests และ regression evidence
