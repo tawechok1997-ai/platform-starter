@@ -56,6 +56,7 @@ import './member-promotion-frame-fix.css';
 import './member-hero-carousel-controls.css';
 import './member-category-handle-remove.css';
 import './member-bottom-nav-balance.css';
+import './member-category-rail-balance.css';
 import MemberChrome from './member-chrome';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import { MemberSessionProvider } from './member-session-provider';
