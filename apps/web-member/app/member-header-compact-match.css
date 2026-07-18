@@ -1,16 +1,16 @@
-/* Compact mobile header with independent left, centre, and right regions. */
+/* Compact mobile header sized to the supplied Noah345 reference. */
 .global-member-topbar {
   min-height: 0 !important;
 }
 
 .global-member-topbar .member-topbar__inner {
-  min-height: 60px !important;
-  height: 60px !important;
-  padding: 5px 0 !important;
+  min-height: 56px !important;
+  height: 56px !important;
+  padding: 4px 0 !important;
   display: grid !important;
-  grid-template-columns: 74px minmax(0, 1fr) 110px !important;
+  grid-template-columns: 70px minmax(0, 1fr) 122px !important;
   align-items: center !important;
-  column-gap: 5px !important;
+  column-gap: 4px !important;
   box-sizing: border-box !important;
 }
 
@@ -19,26 +19,26 @@
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
-  gap: 3px !important;
+  gap: 4px !important;
   min-width: 0 !important;
   margin: 0 !important;
   padding-left: 0 !important;
 }
 
 .global-member-topbar .member-header-tool {
-  width: 35px !important;
-  height: 35px !important;
-  min-width: 35px !important;
-  min-height: 35px !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
   padding: 0 !important;
-  border-radius: 8px !important;
-  font-size: 20px !important;
+  border-radius: 10px !important;
+  font-size: 18px !important;
   line-height: 1 !important;
 }
 
 .global-member-topbar .member-header-tool svg {
-  width: 20px !important;
-  height: 20px !important;
+  width: 18px !important;
+  height: 18px !important;
 }
 
 .global-member-topbar .member-brand {
@@ -47,14 +47,14 @@
   transform: none !important;
   min-width: 0 !important;
   width: 100% !important;
-  max-width: 108px !important;
+  max-width: 104px !important;
   justify-self: center !important;
   overflow: hidden !important;
 }
 
 .global-member-topbar .member-brand-mark {
   width: 100% !important;
-  height: 34px !important;
+  height: 30px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -62,8 +62,8 @@
 
 .global-member-topbar .member-brand-logo {
   width: 100% !important;
-  max-width: 108px !important;
-  height: 25px !important;
+  max-width: 104px !important;
+  height: 22px !important;
   object-fit: contain !important;
 }
 
@@ -82,26 +82,25 @@
   padding: 0 !important;
 }
 
-/* Match the compact reference wallet: small, flat, and balanced. */
 .global-member-topbar .member-header-wallet {
   position: relative !important;
   display: grid !important;
   grid-template-columns: 24px minmax(0, 1fr) !important;
   align-items: center !important;
-  width: 110px !important;
-  min-width: 110px !important;
-  max-width: 110px !important;
+  width: 122px !important;
+  min-width: 122px !important;
+  max-width: 122px !important;
   height: 34px !important;
   padding: 0 8px !important;
-  gap: 4px !important;
+  gap: 6px !important;
   margin-left: auto !important;
   margin-right: 0 !important;
   border: 0 !important;
-  border-radius: 9px !important;
+  border-radius: 10px !important;
   background: rgba(66, 60, 91, 0.95) !important;
   box-shadow: none !important;
   outline: 0 !important;
-  font-size: 11px !important;
+  font-size: 10px !important;
   font-weight: 600 !important;
   line-height: 1 !important;
   letter-spacing: 0 !important;
@@ -113,11 +112,11 @@
 .global-member-topbar .member-header-wallet img {
   position: static !important;
   transform: none !important;
-  width: 22px !important;
-  height: 22px !important;
-  max-width: 22px !important;
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
   object-fit: contain !important;
-  justify-self: center !important;
+  justify-self: start !important;
 }
 
 .global-member-topbar .member-header-wallet__amount {
@@ -128,19 +127,19 @@
   text-overflow: clip !important;
   white-space: nowrap !important;
   text-align: center !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.01em !important;
   font-variant-numeric: tabular-nums !important;
 }
 
 @media (max-width: 390px) {
   .global-member-topbar .member-topbar__inner {
-    min-height: 57px !important;
-    height: 57px !important;
-    grid-template-columns: 70px minmax(0, 1fr) 104px !important;
+    min-height: 54px !important;
+    height: 54px !important;
+    grid-template-columns: 66px minmax(0, 1fr) 116px !important;
     column-gap: 3px !important;
-  }
-
-  .global-member-topbar .member-header-tools {
-    gap: 2px !important;
   }
 
   .global-member-topbar .member-header-tool {
@@ -150,29 +149,37 @@
     min-height: 34px !important;
   }
 
+  .global-member-topbar .member-header-tool svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+
   .global-member-topbar .member-brand,
   .global-member-topbar .member-brand-logo {
-    max-width: 100px !important;
+    max-width: 98px !important;
   }
 
   .global-member-topbar .member-brand-logo {
-    height: 23px !important;
+    height: 21px !important;
   }
 
   .global-member-topbar .member-header-wallet {
-    width: 104px !important;
-    min-width: 104px !important;
-    max-width: 104px !important;
+    width: 116px !important;
+    min-width: 116px !important;
+    max-width: 116px !important;
     height: 32px !important;
     grid-template-columns: 22px minmax(0, 1fr) !important;
-    padding-inline: 7px !important;
-    gap: 3px !important;
-    font-size: 10px !important;
+    gap: 5px !important;
+    font-size: 9.5px !important;
   }
 
   .global-member-topbar .member-header-wallet img {
-    width: 20px !important;
-    height: 20px !important;
-    max-width: 20px !important;
+    width: 18px !important;
+    height: 18px !important;
+    max-width: 18px !important;
+  }
+
+  .global-member-topbar .member-header-wallet__amount {
+    font-size: 9.5px !important;
   }
 }
