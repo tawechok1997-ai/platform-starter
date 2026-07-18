@@ -18,7 +18,6 @@ export class AdminProfileQueryService {
         createdAt: true,
         updatedAt: true,
         roles: {
-          orderBy: { role: { level: 'asc' } },
           select: {
             role: {
               select: {
@@ -38,14 +37,15 @@ export class AdminProfileQueryService {
 
     if (!admin) throw new NotFoundException('Admin account not found');
 
-    const roles = admin.roles.map(({ role }) => ({
+    const sortedAdminRoles = [...admin.roles].sort((left, right) => left.role.level - right.role.level);
+    const roles = sortedAdminRoles.map(({ role }) => ({
       code: role.code,
       name: role.name,
       description: role.description,
       level: role.level,
     }));
 
-    const rolePermissions = admin.roles.flatMap(({ role }) =>
+    const rolePermissions = sortedAdminRoles.flatMap(({ role }) =>
       role.permissions.map(({ permission }) => permission.code),
     );
     const permissions = [...new Set([...sessionPermissions, ...rolePermissions])].sort();
