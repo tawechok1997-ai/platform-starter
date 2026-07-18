@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminDataTable, AdminGrid, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminGrid, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage } from '../_components/admin-ui';
 
 type ExportStatus = 'RUNNING' | 'COMPLETED' | 'FAILED';
 type ExportJob = { id: string; title: string; path: string; status: ExportStatus; createdAt: string; completedAt?: string; error?: string; rows?: number };
@@ -17,7 +17,6 @@ export default function ExportsPage() {
   const [jobs, setJobs] = useState<ExportJob[]>([]);
   useEffect(() => { try { const value = localStorage.getItem(STORAGE_KEY); if (value) setJobs(JSON.parse(value)); } catch {} }, []);
   useEffect(() => { if (jobs.length) localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs.slice(0, 30))); }, [jobs]);
-
   const metrics = useMemo(() => ({ total: jobs.length, completed: jobs.filter((job) => job.status === 'COMPLETED').length, failed: jobs.filter((job) => job.status === 'FAILED').length, running: jobs.filter((job) => job.status === 'RUNNING').length }), [jobs]);
 
   async function download(item: typeof exports[number]) {
