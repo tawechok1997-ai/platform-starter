@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { AdminRequestContext, AuthenticatedAdminActor, HttpRequestContext } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
@@ -6,6 +6,7 @@ import { getRequestMeta } from '../../common/http/request-meta';
 import { AntiBotService } from '../anti-bot/anti-bot.service';
 import { AdminLoginDefenseService } from './admin-login-defense.service';
 import { AdminLoginService } from './admin-login.service';
+import { AdminProfileCommandService } from './admin-profile-command.service';
 import { AdminProfileQueryService } from './admin-profile-query.service';
 import { AdminRefreshSessionService } from './admin-refresh-session.service';
 import { AdminSessionCommandService } from './admin-session-command.service';
@@ -13,6 +14,7 @@ import { AdminSessionsQueryService } from './admin-sessions-query.service';
 import { AdminTwoFactorCommandService } from './admin-two-factor-command.service';
 import { AdminRefreshSessionDto, AdminTwoFactorCodeDto } from './dto/admin-auth-actions.dto';
 import { AdminSignInDto } from './dto/admin-sign-in.dto';
+import { UpdateAdminProfileDto } from './dto/update-admin-profile.dto';
 import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
 
 @Controller('admin/auth')
@@ -20,6 +22,7 @@ export class AdminAuthController {
   constructor(
     private readonly login: AdminLoginService,
     private readonly profileQueries: AdminProfileQueryService,
+    private readonly profileCommands: AdminProfileCommandService,
     private readonly sessionQueries: AdminSessionsQueryService,
     private readonly sessionCommands: AdminSessionCommandService,
     private readonly refreshSessions: AdminRefreshSessionService,
@@ -111,6 +114,13 @@ export class AdminAuthController {
   @UseGuards(AdminAuthGuard)
   @Get('me')
   me(@CurrentUser() user: AuthenticatedAdminActor) {
+    return this.profileQueries.getProfile(user.id, user.permissions ?? []);
+  }
+
+  @UseGuards(AdminAuthGuard)
+  @Patch('me')
+  async updateMe(@CurrentUser() user: AuthenticatedAdminActor, @Body() dto: UpdateAdminProfileDto, @Req() req: AdminRequestContext) {
+    await this.profileCommands.updateProfile(user.id, dto, getRequestMeta(req));
     return this.profileQueries.getProfile(user.id, user.permissions ?? []);
   }
 
