@@ -1,11 +1,12 @@
 import { mergeHeaders } from '@platform/api-client';
+import { adminNextPath, sessionDecision } from './admin-session-policy';
 
 let inMemoryAccessToken = '';
 const ADMIN_SESSION_HINT = 'admin_session_hint';
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
 
-function proxiedPath(path: string) {
+export function proxiedAdminPath(path: string) {
   if (!path.startsWith('/admin/')) throw new Error(`Unsupported admin API path: ${path}`);
   return `/api/admin/${path.slice('/admin/'.length)}`;
 }
@@ -17,48 +18,49 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   if (!headers.has('Cache-Control')) headers.set('Cache-Control', 'no-store');
   if (!options.skipAuth && token) headers.set('Authorization', `Bearer ${token}`);
 
-  const url = proxiedPath(path);
+  const url = proxiedAdminPath(path);
   const res = await fetch(url, { cache: 'no-store', ...options, headers });
-  if (await redirectToTwoFactorSetup(res, options)) return res;
-  if (await redirectAfterPrivilegeReduction(res, options)) return res;
-  if (res.status !== 401 || options.skipAuth) return res;
+  const handled = await handleAdminResponse(res, options, false);
+  if (handled !== 'refresh') return res;
 
   const refreshed = await refreshAdminToken(true);
   if (!refreshed) {
-    clearAdminSession();
-    const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
-    window.location.replace(`/login?next=${next}`);
+    redirectToLogin();
     return res;
   }
 
   headers.set('Authorization', `Bearer ${refreshed}`);
   const retry = await fetch(url, { cache: 'no-store', ...options, headers });
-  if (await redirectToTwoFactorSetup(retry, options)) return retry;
-  if (await redirectAfterPrivilegeReduction(retry, options)) return retry;
-  if (retry.status === 401) {
-    clearAdminSession();
-    const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
-    window.location.replace(`/login?next=${next}`);
-  }
+  await handleAdminResponse(retry, options, true);
   return retry;
 }
 
-async function redirectAfterPrivilegeReduction(response: Response, options: ApiOptions) {
-  if (options.skipAuth || response.status !== 403 || window.location.pathname === '/login') return false;
-  const payload = await response.clone().json().catch(() => null);
-  if (payload?.code === 'ADMIN_2FA_REQUIRED') return false;
-  clearAdminSession();
-  window.location.replace(`/login?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);
-  return true;
+async function handleAdminResponse(response: Response, options: ApiOptions, hasRetried: boolean) {
+  let responseCode: string | null = null;
+  if (response.status === 403) {
+    const payload = await response.clone().json().catch(() => null);
+    responseCode = typeof payload?.code === 'string' ? payload.code : null;
+  }
+  const decision = sessionDecision({
+    status: response.status,
+    skipAuth: options.skipAuth,
+    responseCode,
+    pathname: window.location.pathname,
+    hasRetried,
+  });
+  if (decision === 'setup-2fa') {
+    const next = adminNextPath(window.location.pathname, window.location.search);
+    window.location.replace(`/security/2fa?next=${next}`);
+  } else if (decision === 'login') {
+    redirectToLogin();
+  }
+  return decision;
 }
 
-async function redirectToTwoFactorSetup(response: Response, options: ApiOptions) {
-  if (options.skipAuth || response.status !== 403 || window.location.pathname === '/security/2fa') return false;
-  const payload = await response.clone().json().catch(() => null);
-  if (payload?.code !== 'ADMIN_2FA_REQUIRED') return false;
-  const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
-  window.location.replace(`/security/2fa?next=${next}`);
-  return true;
+function redirectToLogin() {
+  clearAdminSession();
+  const next = adminNextPath(window.location.pathname, window.location.search);
+  window.location.replace(`/login?next=${next}`);
 }
 
 export async function refreshAdminToken(force = false) {
@@ -75,7 +77,6 @@ export async function refreshAdminToken(force = false) {
     return '';
   }
   setAdminAccessToken(data.accessToken);
-  // Successful refresh rotates the HttpOnly cookie; remove any legacy token after migration.
   window.localStorage.removeItem('admin_refresh_token');
   return data.accessToken as string;
 }
