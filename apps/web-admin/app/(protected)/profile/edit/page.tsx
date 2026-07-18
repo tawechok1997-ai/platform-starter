@@ -3,27 +3,15 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { adminApiFetch } from '../../../admin-api';
 import { AdminButton, AdminCard, AdminLinkButton, AdminNotice } from '../../../components/admin-ui';
-
-type AdminProfile = {
-  displayName?: string;
-  firstName?: string;
-  lastName?: string;
-  position?: string;
-  department?: string;
-  avatarUrl?: string;
-};
-
-const emptyProfile: AdminProfile = {
-  displayName: '',
-  firstName: '',
-  lastName: '',
-  position: '',
-  department: '',
-  avatarUrl: '',
-};
+import {
+  adminProfileUpdatePayload,
+  emptyAdminProfileForm,
+  normalizeAdminProfileForm,
+  type AdminProfileForm,
+} from '../../../src/features/admin-redesign/admin-profile-form';
 
 export default function EditAdminProfilePage() {
-  const [form, setForm] = useState<AdminProfile>(emptyProfile);
+  const [form, setForm] = useState<AdminProfileForm>(emptyAdminProfileForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -34,9 +22,9 @@ export default function EditAdminProfilePage() {
     async function load() {
       try {
         const response = await adminApiFetch('/admin/auth/me', { cache: 'no-store' });
-        const data = (await response.json().catch(() => null)) as AdminProfile | null;
+        const data = (await response.json().catch(() => null)) as Partial<AdminProfileForm> | null;
         if (!response.ok || !data) throw new Error('โหลดข้อมูลโปรไฟล์ไม่สำเร็จ');
-        if (!cancelled) setForm({ ...emptyProfile, ...data });
+        if (!cancelled) setForm(normalizeAdminProfileForm(data));
       } catch (cause) {
         if (!cancelled) setError(cause instanceof Error ? cause.message : 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ');
       } finally {
@@ -58,13 +46,13 @@ export default function EditAdminProfilePage() {
       const response = await adminApiFetch('/admin/auth/me', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(adminProfileUpdatePayload(form)),
       });
-      const data = (await response.json().catch(() => null)) as AdminProfile | { message?: string } | null;
+      const data = (await response.json().catch(() => null)) as Partial<AdminProfileForm> | { message?: string } | null;
       if (!response.ok) {
         throw new Error(data && 'message' in data && data.message ? data.message : 'บันทึกโปรไฟล์ไม่สำเร็จ');
       }
-      if (data && !('message' in data)) setForm({ ...emptyProfile, ...data });
+      if (data && !('message' in data)) setForm(normalizeAdminProfileForm(data));
       setSaved(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'บันทึกโปรไฟล์ไม่สำเร็จ');
@@ -104,7 +92,7 @@ export default function EditAdminProfilePage() {
           <label>
             <span>ชื่อที่แสดง</span>
             <input
-              value={form.displayName ?? ''}
+              value={form.displayName}
               onChange={(event) => setForm({ ...form, displayName: event.target.value })}
               maxLength={100}
             />
@@ -113,7 +101,7 @@ export default function EditAdminProfilePage() {
             <label>
               <span>ชื่อจริง</span>
               <input
-                value={form.firstName ?? ''}
+                value={form.firstName}
                 onChange={(event) => setForm({ ...form, firstName: event.target.value })}
                 maxLength={80}
               />
@@ -121,7 +109,7 @@ export default function EditAdminProfilePage() {
             <label>
               <span>นามสกุล</span>
               <input
-                value={form.lastName ?? ''}
+                value={form.lastName}
                 onChange={(event) => setForm({ ...form, lastName: event.target.value })}
                 maxLength={80}
               />
@@ -131,7 +119,7 @@ export default function EditAdminProfilePage() {
             <span>URL รูปโปรไฟล์แบบ HTTPS</span>
             <input
               type="url"
-              value={form.avatarUrl ?? ''}
+              value={form.avatarUrl}
               onChange={(event) => setForm({ ...form, avatarUrl: event.target.value })}
               placeholder="https://..."
               maxLength={2048}
@@ -150,7 +138,7 @@ export default function EditAdminProfilePage() {
           <label>
             <span>ตำแหน่ง</span>
             <input
-              value={form.position ?? ''}
+              value={form.position}
               onChange={(event) => setForm({ ...form, position: event.target.value })}
               maxLength={120}
             />
@@ -158,7 +146,7 @@ export default function EditAdminProfilePage() {
           <label>
             <span>แผนก</span>
             <input
-              value={form.department ?? ''}
+              value={form.department}
               onChange={(event) => setForm({ ...form, department: event.target.value })}
               maxLength={120}
             />
