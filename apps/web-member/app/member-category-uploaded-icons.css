@@ -1,24 +1,24 @@
-/* Exact user-supplied game category icons in one horizontal strip. */
+/* Exact user-supplied game category icons in one verified horizontal strip. */
 .member-category-rail a > span {
   width: 56px !important;
   height: 56px !important;
   flex: 0 0 56px !important;
-  background-image: url('/images/member-lobby/source-icons/category-icons.png?v=992cb4c3') !important;
+  background-image: url('/images/member-lobby/source-icons/category-icons-final-v4.png') !important;
   background-repeat: no-repeat !important;
-  background-size: 392px 56px !important;
+  background-size: 448px 64px !important;
   background-color: transparent !important;
   border: 0 !important;
   border-radius: 0 !important;
 }
 .member-category-rail a > span > svg,
 .member-category-rail a > span > img { display: none !important; }
-.member-category-rail a:nth-of-type(1) > span { background-position: 0 0 !important; }
-.member-category-rail a:nth-of-type(2) > span { background-position: -56px 0 !important; }
-.member-category-rail a:nth-of-type(3) > span { background-position: -112px 0 !important; }
-.member-category-rail a:nth-of-type(4) > span { background-position: -168px 0 !important; }
-.member-category-rail a:nth-of-type(5) > span { background-position: -224px 0 !important; }
-.member-category-rail a:nth-of-type(6) > span { background-position: -280px 0 !important; }
-.member-category-rail a:nth-of-type(7) > span { background-position: -336px 0 !important; }
+.member-category-rail a:nth-of-type(1) > span { background-position: 0 -4px !important; }
+.member-category-rail a:nth-of-type(2) > span { background-position: -64px -4px !important; }
+.member-category-rail a:nth-of-type(3) > span { background-position: -128px -4px !important; }
+.member-category-rail a:nth-of-type(4) > span { background-position: -192px -4px !important; }
+.member-category-rail a:nth-of-type(5) > span { background-position: -256px -4px !important; }
+.member-category-rail a:nth-of-type(6) > span { background-position: -320px -4px !important; }
+.member-category-rail a:nth-of-type(7) > span { background-position: -384px -4px !important; }
 
 @media (max-width: 520px) {
   .member-category-rail a > span {
