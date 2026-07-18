@@ -8,7 +8,7 @@ import {
   emptyAdminProfileForm,
   normalizeAdminProfileForm,
   type AdminProfileForm,
-} from '../../../src/features/admin-redesign/admin-profile-form';
+} from '../../../../src/features/admin-redesign/admin-profile-form';
 
 export default function EditAdminProfilePage() {
   const [form, setForm] = useState<AdminProfileForm>(emptyAdminProfileForm);
