@@ -1,0 +1,32 @@
+/* Remove decorative frames around promotion artwork while preserving the artwork itself. */
+.member-home-hero,
+.member-home-hero__slide-link,
+.member-home-hero__image,
+.member-promo-slots,
+.member-promo-slot,
+.member-promo-slot img,
+.member-lobby-promo-card,
+.member-lobby-promo-card img {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.member-home-hero,
+.member-home-hero__slide-link,
+.member-promo-slot,
+.member-lobby-promo-card {
+  background: transparent !important;
+}
+
+.member-home-hero::before,
+.member-home-hero::after,
+.member-home-hero__slide-link::before,
+.member-home-hero__slide-link::after,
+.member-promo-slot::before,
+.member-promo-slot::after,
+.member-lobby-promo-card::before,
+.member-lobby-promo-card::after {
+  content: none !important;
+  display: none !important;
+}
