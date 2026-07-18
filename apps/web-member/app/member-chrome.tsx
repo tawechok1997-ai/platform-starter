@@ -15,8 +15,6 @@ import { CloseIcon, MemberIcon, MenuIcon } from './components/member-icon';
 import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
 
 export default function MemberChrome({ children }: { children: ReactNode }) {
-  // Next can briefly return null during the first client transition. Keep the
-  // shared chrome renderable so every Member route does not fail together.
   const pathname = usePathname() ?? '/';
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -51,6 +49,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const siteDescription = website.site_description;
   const logoUrl = branding.logo_url || '/images/member-lobby/noah345-reference/0010_ba66cd74-2429-42dd-858e-aaae9fb3b688_48d3df600e.png';
   const brandMark = branding.brand_mark || siteName.slice(0, 1).toUpperCase() || 'P';
+  const formattedWalletBalance = formatMemberWalletBalance(wallet);
+  const compactWalletBalance = formattedWalletBalance.replace(/^[A-Z]{3}\s+/, '');
 
   useEffect(() => {
     document.documentElement.style.setProperty('--color-brand', branding.primary_color);
@@ -99,17 +99,10 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
       <header className="member-topbar global-member-topbar">
         <div className="member-topbar__inner">
           <div className="member-header-tools">
-            <button
-              type="button"
-              className="member-header-tool"
-              onClick={() => setMenuOpen(true)}
-              aria-label="เปิดเมนู"
-            >
+            <button type="button" className="member-header-tool" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนู">
               <MenuIcon />
             </button>
-            <a className="member-header-tool" href="/games" aria-label="ค้นหาเกม">
-              ⌕
-            </a>
+            <a className="member-header-tool" href="/games" aria-label="ค้นหาเกม">⌕</a>
           </div>
           <a href="/" className="member-brand">
             <span className="member-brand-mark">
@@ -122,12 +115,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           </a>
           <nav className="member-desktop-nav" aria-label="เมนูหลักเดสก์ท็อป">
             {visibleBottomNav.map((item) => (
-              <a
-                key={item.key}
-                href={item.href}
-                className={activeHref === item.href ? 'active' : ''}
-                aria-current={activeHref === item.href ? 'page' : undefined}
-              >
+              <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}>
                 <IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} />
                 <span>{item.shortTitle ?? item.title}</span>
                 {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
@@ -139,17 +127,9 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
               <MemberIcon name="notification" />
               {pendingCount > 0 && <em>{pendingCount}</em>}
             </a>
-            <span
-              className="member-header-wallet"
-              aria-label={walletLoading ? 'กำลังโหลดยอดเงิน' : `ยอดใช้ได้ ${formatMemberWalletBalance(wallet)}`}
-              aria-live="polite"
-            >
-              <img
-                src="/images/member-lobby/noah345-reference/0012_wallet_a4fadd0a57.webp"
-                alt=""
-                aria-hidden="true"
-              />
-              {walletLoading ? '…' : formatMemberWalletBalance(wallet)}
+            <span className="member-header-wallet" aria-label={walletLoading ? 'กำลังโหลดยอดเงิน' : `ยอดใช้ได้ ${formattedWalletBalance}`} aria-live="polite">
+              <img src="/images/member-lobby/noah345-reference/0012_wallet_a4fadd0a57.webp" alt="" aria-hidden="true" />
+              <span className="member-header-wallet__amount">{walletLoading ? '…' : compactWalletBalance}</span>
             </span>
           </div>
         </div>
@@ -157,71 +137,30 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
       <MemberCategoryRail pathname={pathname} features={features} />
 
-      {menuOpen && (
-        <button
-          type="button"
-          className="member-menu-backdrop ui-overlay"
-          onClick={() => setMenuOpen(false)}
-          aria-label="ปิดเมนู"
-        />
-      )}
+      {menuOpen && <button type="button" className="member-menu-backdrop ui-overlay" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}
 
-      <aside
-        className={menuOpen ? 'member-drawer ui-drawer open' : 'member-drawer ui-drawer'}
-        role="dialog"
-        aria-modal="true"
-        aria-label="เมนูสมาชิก"
-        aria-hidden={!menuOpen}
-        tabIndex={-1}
-      >
+      <aside className={menuOpen ? 'member-drawer ui-drawer open' : 'member-drawer ui-drawer'} role="dialog" aria-modal="true" aria-label="เมนูสมาชิก" aria-hidden={!menuOpen} tabIndex={-1}>
         <div className="member-drawer-head ui-overlay-surface__header">
-          <div>
-            <strong>{siteName}</strong>
-            <p>{siteDescription}</p>
-          </div>
+          <div><strong>{siteName}</strong><p>{siteDescription}</p></div>
           <div className="member-drawer-head__actions">
             {pathname !== '/' && (
-              <button
-                type="button"
-                className="member-drawer-back-button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  if (window.history.length > 1) router.back();
-                  else router.push('/');
-                }}
-              >
+              <button type="button" className="member-drawer-back-button" onClick={() => { setMenuOpen(false); if (window.history.length > 1) router.back(); else router.push('/'); }}>
                 ← ย้อนกลับ
               </button>
             )}
-            <button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู">
-              <CloseIcon />
-            </button>
+            <button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู"><CloseIcon /></button>
           </div>
         </div>
         <nav className="member-drawer-nav ui-overlay-surface__body">
           {visibleDrawer.map((item) => (
-            <a
-              key={item.key}
-              href={item.href}
-              onClick={() => setMenuOpen(false)}
-              className={activeHref === item.href ? 'active' : ''}
-            >
+            <a key={item.key} href={item.href} onClick={() => setMenuOpen(false)} className={activeHref === item.href ? 'active' : ''}>
               <IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} />
-              <span className="member-drawer-copy">
-                <strong>{item.title}</strong>
-                <small>
-                  {item.badge === 'pending' && pendingCount > 0 ? `${pendingCount} รายการรอตรวจสอบ` : item.description}
-                </small>
-              </span>
+              <span className="member-drawer-copy"><strong>{item.title}</strong><small>{item.badge === 'pending' && pendingCount > 0 ? `${pendingCount} รายการรอตรวจสอบ` : item.description}</small></span>
               {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
             </a>
           ))}
         </nav>
-        <div className="ui-overlay-surface__actions">
-          <button type="button" className="member-logout-button" onClick={logout}>
-            ออกจากระบบ
-          </button>
-        </div>
+        <div className="ui-overlay-surface__actions"><button type="button" className="member-logout-button" onClick={logout}>ออกจากระบบ</button></div>
       </aside>
 
       {content}
@@ -229,15 +168,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
       <nav className="member-bottom-nav" aria-label="เมนูหลัก">
         {visibleBottomNav.map((item) => (
-          <a
-            key={item.key}
-            href={item.href}
-            className={activeHref === item.href ? 'active' : ''}
-            aria-current={activeHref === item.href ? 'page' : undefined}
-          >
-            <span className="member-bottom-icon">
-              <IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} />
-            </span>
+          <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}>
+            <span className="member-bottom-icon"><IconValue iconKey={item.iconKey} value={icons[item.iconKey] ?? defaultIconSettings[item.iconKey]} /></span>
             <span>{item.shortTitle ?? item.title}</span>
             {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
           </a>
@@ -253,34 +185,23 @@ function MemberCategoryRail({ pathname, features }: { pathname: string; features
     ['home', 'หน้าแรก', '/', 'home'],
     ['casino', 'คาสิโน', '/games?category=casino', 'games'],
     ['slot', 'สล็อต', '/games?category=slot', 'bonus'],
-    ['fishing', 'ยิงปลา', '/games?category=fishing', 'games'],
+    ['fishing', 'waswoปลา', '/games?category=fishing', 'games'],
     ['sport', 'กีฬา', '/games?category=sport', 'vip'],
     ['card', 'ไพ่', '/games?category=card', 'bonus'],
     ['lottery', 'หวย', '/games?category=lottery', 'promotion'],
   ] as const;
   return (
-    <aside
-      className={`member-category-rail${pathname === '/' ? ' member-category-rail--home' : ''}`}
-      aria-label="หมวดหมู่เกม"
-    >
+    <aside className={`member-category-rail${pathname === '/' ? ' member-category-rail--home' : ''}`} aria-label="หมวดหมู่เกม">
       {items.map(([key, label, href, iconKey]) => {
-        const active =
-          key === 'home'
-            ? pathname === '/'
-            : pathname.startsWith('/games') &&
-              new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('category') === key;
+        const active = key === 'home' ? pathname === '/' : pathname.startsWith('/games') && new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('category') === key;
         return (
           <a key={key} href={href} className={active ? 'active' : ''}>
-            <span>
-              <MemberIcon name={iconKey} />
-            </span>
+            <span><MemberIcon name={iconKey} /></span>
             <strong>{label}</strong>
           </a>
         );
       })}
-      <span className="member-category-rail__handle" aria-hidden="true">
-        ›
-      </span>
+      <span className="member-category-rail__handle" aria-hidden="true">›</span>
     </aside>
   );
 }
@@ -300,11 +221,6 @@ function FeatureDisabled({ label, siteName }: { label: string; siteName: string 
 
 function IconValue({ iconKey, value }: { iconKey: keyof typeof defaultIconSettings; value: string }) {
   if (isIconUrl(value)) return <img src={value} alt="" className="member-nav-icon-image" />;
-  if (value !== defaultIconSettings[iconKey])
-    return (
-      <span className="member-custom-icon" aria-hidden="true">
-        {value}
-      </span>
-    );
+  if (value !== defaultIconSettings[iconKey]) return <span className="member-custom-icon" aria-hidden="true">{value}</span>;
   return <MemberIcon name={iconKey} />;
 }
