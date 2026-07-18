@@ -1,20 +1,25 @@
-/* Reduce the fixed bottom navigation by roughly 7% without affecting other layout areas. */
+/* Keep the fixed bottom navigation compact and reduce its total height by about 20%. */
 .member-bottom-nav {
   min-height: 0 !important;
-  padding-top: calc(0.93 * 12px) !important;
-  padding-bottom: calc(0.93 * 12px + env(safe-area-inset-bottom)) !important;
+  height: calc(78px + env(safe-area-inset-bottom)) !important;
+  max-height: calc(78px + env(safe-area-inset-bottom)) !important;
+  padding-top: 6px !important;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom)) !important;
+  align-items: center !important;
 }
 
 .member-bottom-nav > a {
-  gap: 4px !important;
-  padding-top: 6px !important;
-  padding-bottom: 5px !important;
+  min-height: 0 !important;
+  height: 62px !important;
+  gap: 3px !important;
+  padding: 4px 0 3px !important;
   font-size: 0.93em !important;
+  align-self: center !important;
 }
 
 .member-bottom-nav .member-bottom-icon {
   width: 39px !important;
-  height: 35px !important;
+  height: 34px !important;
 }
 
 .member-bottom-nav a:nth-child(1) .member-bottom-icon::before {
@@ -36,19 +41,21 @@
 
 @media (max-width: 520px) {
   .member-bottom-nav {
-    padding-top: 8px !important;
-    padding-bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+    height: calc(72px + env(safe-area-inset-bottom)) !important;
+    max-height: calc(72px + env(safe-area-inset-bottom)) !important;
+    padding-top: 5px !important;
+    padding-bottom: calc(5px + env(safe-area-inset-bottom)) !important;
   }
 
   .member-bottom-nav > a {
-    gap: 3px !important;
-    padding-top: 5px !important;
-    padding-bottom: 4px !important;
+    height: 58px !important;
+    gap: 2px !important;
+    padding: 3px 0 2px !important;
   }
 
   .member-bottom-nav .member-bottom-icon {
     width: 35px !important;
-    height: 33px !important;
+    height: 32px !important;
   }
 
   .member-bottom-nav a:nth-child(1) .member-bottom-icon::before {
