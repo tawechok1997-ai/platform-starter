@@ -1,77 +1,80 @@
-/* Keep the fixed bottom navigation compact and reduce its total height by about 20%. */
+/* Keep the fixed bottom navigation compact while preserving tap targets and icon clarity. */
 .member-bottom-nav {
   min-height: 0 !important;
-  height: calc(78px + env(safe-area-inset-bottom)) !important;
-  max-height: calc(78px + env(safe-area-inset-bottom)) !important;
-  padding-top: 6px !important;
-  padding-bottom: calc(6px + env(safe-area-inset-bottom)) !important;
+  height: calc(70px + env(safe-area-inset-bottom)) !important;
+  max-height: calc(70px + env(safe-area-inset-bottom)) !important;
+  padding-top: 4px !important;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom)) !important;
   align-items: center !important;
 }
 
 .member-bottom-nav > a {
   min-height: 0 !important;
-  height: 62px !important;
-  gap: 3px !important;
-  padding: 4px 0 3px !important;
-  font-size: 0.93em !important;
+  height: 54px !important;
+  gap: 2px !important;
+  padding: 2px 0 1px !important;
+  font-size: 0.9em !important;
   align-self: center !important;
+  border-radius: 18px !important;
 }
 
 .member-bottom-nav .member-bottom-icon {
-  width: 39px !important;
-  height: 34px !important;
+  width: 37px !important;
+  height: 31px !important;
 }
 
 .member-bottom-nav a:nth-child(1) .member-bottom-icon::before {
-  font-size: 17px !important;
+  font-size: 16px !important;
 }
 
 .member-bottom-nav a:nth-child(1) .member-bottom-icon::after {
-  font-size: 36px !important;
+  font-size: 34px !important;
 }
 
 .member-bottom-nav a:nth-child(2) .member-bottom-icon::before,
 .member-bottom-nav a:nth-child(3) .member-bottom-icon::before {
-  font-size: 34px !important;
+  font-size: 32px !important;
 }
 
 .member-bottom-nav a:nth-child(4) .member-bottom-icon::before {
-  font-size: 35px !important;
+  font-size: 33px !important;
 }
 
 @media (max-width: 520px) {
   .member-bottom-nav {
-    height: calc(72px + env(safe-area-inset-bottom)) !important;
-    max-height: calc(72px + env(safe-area-inset-bottom)) !important;
-    padding-top: 5px !important;
-    padding-bottom: calc(5px + env(safe-area-inset-bottom)) !important;
+    height: calc(64px + env(safe-area-inset-bottom)) !important;
+    max-height: calc(64px + env(safe-area-inset-bottom)) !important;
+    padding-top: 3px !important;
+    padding-bottom: calc(3px + env(safe-area-inset-bottom)) !important;
   }
 
   .member-bottom-nav > a {
-    height: 58px !important;
-    gap: 2px !important;
-    padding: 3px 0 2px !important;
+    height: 50px !important;
+    gap: 1px !important;
+    padding: 1px 0 !important;
+    font-size: 0.88em !important;
+    border-radius: 16px !important;
   }
 
   .member-bottom-nav .member-bottom-icon {
-    width: 35px !important;
-    height: 32px !important;
+    width: 34px !important;
+    height: 29px !important;
   }
 
   .member-bottom-nav a:nth-child(1) .member-bottom-icon::before {
-    font-size: 16px !important;
+    font-size: 15px !important;
   }
 
   .member-bottom-nav a:nth-child(1) .member-bottom-icon::after {
-    font-size: 33px !important;
+    font-size: 31px !important;
   }
 
   .member-bottom-nav a:nth-child(2) .member-bottom-icon::before,
   .member-bottom-nav a:nth-child(3) .member-bottom-icon::before {
-    font-size: 32px !important;
+    font-size: 30px !important;
   }
 
   .member-bottom-nav a:nth-child(4) .member-bottom-icon::before {
-    font-size: 33px !important;
+    font-size: 31px !important;
   }
 }
