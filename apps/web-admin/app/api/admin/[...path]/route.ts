@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { upstreamApiUrl } from '../../upstream';
 
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
+const ADMIN_ACCESS_COOKIE = 'platform_admin_access';
+const ADMIN_ACCESS_MAX_AGE_SECONDS = 10 * 60;
 
 async function proxy(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
   const { path } = await context.params;
@@ -20,6 +22,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   const search = request.nextUrl.search;
   const headers = new Headers();
   const authorization = request.headers.get('authorization');
+  const cookieAccessToken = request.cookies.get(ADMIN_ACCESS_COOKIE)?.value;
   const contentType = request.headers.get('content-type');
   const accept = request.headers.get('accept');
   const userAgent = request.headers.get('user-agent');
@@ -27,6 +30,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   const cookie = request.headers.get('cookie');
 
   if (authorization) headers.set('authorization', authorization);
+  else if (cookieAccessToken) headers.set('authorization', `Bearer ${cookieAccessToken}`);
   if (contentType) headers.set('content-type', contentType);
   if (accept) headers.set('accept', accept);
   if (userAgent) headers.set('user-agent', userAgent);
@@ -44,24 +48,72 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
 
   try {
     const response = await fetch(upstreamApiUrl(`${upstreamPath}${search}`), requestInit);
-
     const payload = await response.text();
     const responseHeaders = new Headers({
       'content-type': response.headers.get('content-type') ?? 'application/json; charset=utf-8',
       'cache-control': 'no-store',
     });
     const setCookie = response.headers.get('set-cookie');
-    if (setCookie) responseHeaders.set('set-cookie', setCookie);
-    return new NextResponse(payload || null, {
+    if (setCookie) responseHeaders.append('set-cookie', setCookie);
+
+    const nextResponse = new NextResponse(payload || null, {
       status: response.status,
       headers: responseHeaders,
     });
+
+    const accessToken = response.ok && isTokenIssuingPath(path) ? readAccessToken(payload) : '';
+    if (accessToken) setAccessCookie(nextResponse, accessToken);
+    if (isLogoutPath(path)) clearAccessCookie(nextResponse);
+
+    return nextResponse;
   } catch {
     return NextResponse.json(
       { message: 'Admin API service is unavailable' },
       { status: 503, headers: { 'cache-control': 'no-store' } },
     );
   }
+}
+
+function readAccessToken(payload: string) {
+  try {
+    const parsed = JSON.parse(payload) as { accessToken?: unknown };
+    return typeof parsed.accessToken === 'string' ? parsed.accessToken : '';
+  } catch {
+    return '';
+  }
+}
+
+function isTokenIssuingPath(path: string[]) {
+  const value = path.join('/');
+  return value === 'auth/refresh' || value === 'auth/2fa/verify';
+}
+
+function isLogoutPath(path: string[]) {
+  return path.join('/') === 'auth/logout';
+}
+
+function setAccessCookie(response: NextResponse, accessToken: string) {
+  response.cookies.set({
+    name: ADMIN_ACCESS_COOKIE,
+    value: accessToken,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/api/admin',
+    maxAge: ADMIN_ACCESS_MAX_AGE_SECONDS,
+  });
+}
+
+function clearAccessCookie(response: NextResponse) {
+  response.cookies.set({
+    name: ADMIN_ACCESS_COOKIE,
+    value: '',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/api/admin',
+    maxAge: 0,
+  });
 }
 
 function publicRequestOrigin(request: NextRequest) {
