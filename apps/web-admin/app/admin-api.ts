@@ -1,6 +1,7 @@
 import { mergeHeaders } from '@platform/api-client';
 
 let inMemoryAccessToken = '';
+const ADMIN_SESSION_HINT = 'admin_session_hint';
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
 
@@ -22,7 +23,7 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   if (await redirectAfterPrivilegeReduction(res, options)) return res;
   if (res.status !== 401 || options.skipAuth) return res;
 
-  const refreshed = await refreshAdminToken();
+  const refreshed = await refreshAdminToken(true);
   if (!refreshed) {
     clearAdminSession();
     const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
@@ -60,14 +61,19 @@ async function redirectToTwoFactorSetup(response: Response, options: ApiOptions)
   return true;
 }
 
-export async function refreshAdminToken() {
+export async function refreshAdminToken(force = false) {
+  if (!force && window.localStorage.getItem(ADMIN_SESSION_HINT) !== '1') return '';
+
   const res = await fetch('/api/admin/auth/refresh', {
     method: 'POST',
     credentials: 'include',
     headers: {},
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok || !data?.accessToken) return '';
+  if (!res.ok || !data?.accessToken) {
+    window.localStorage.removeItem(ADMIN_SESSION_HINT);
+    return '';
+  }
   setAdminAccessToken(data.accessToken);
   // Successful refresh rotates the HttpOnly cookie; remove any legacy token after migration.
   window.localStorage.removeItem('admin_refresh_token');
@@ -76,10 +82,13 @@ export async function refreshAdminToken() {
 
 export function setAdminAccessToken(token: string) {
   inMemoryAccessToken = String(token ?? '');
+  if (inMemoryAccessToken) window.localStorage.setItem(ADMIN_SESSION_HINT, '1');
+  else window.localStorage.removeItem(ADMIN_SESSION_HINT);
 }
 
 export function clearAdminSession() {
   inMemoryAccessToken = '';
+  window.localStorage.removeItem(ADMIN_SESSION_HINT);
   window.localStorage.removeItem('admin_access_token');
   window.localStorage.removeItem('admin_refresh_token');
 }
