@@ -1,0 +1,257 @@
+:root {
+  --admin-app-bg: #060912;
+  --admin-sidebar-bg: #090e1a;
+  --admin-surface: #0e1625;
+  --admin-surface-raised: #141f32;
+  --admin-border: rgba(148, 163, 184, 0.12);
+  --admin-text: #f5f7fc;
+  --admin-text-secondary: #9aa8be;
+  --admin-text-muted: #66758d;
+  --admin-accent: #6d7cff;
+  --admin-accent-hover: #8290ff;
+  --admin-accent-soft: rgba(109, 124, 255, 0.14);
+  --admin-success: #22c55e;
+  --admin-warning: #f59e0b;
+  --admin-danger: #ef4444;
+  --admin-motion-fast: 120ms;
+  --admin-motion-standard: 180ms;
+  --admin-motion-page: 240ms;
+  --admin-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.admin-shell {
+  background:
+    radial-gradient(circle at 80% -12%, rgba(109, 124, 255, 0.12), transparent 34%),
+    radial-gradient(circle at 14% 88%, rgba(34, 211, 238, 0.05), transparent 28%),
+    var(--admin-app-bg);
+  color: var(--admin-text);
+}
+
+.admin-drawer {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 20%), var(--admin-sidebar-bg);
+  border-right: 1px solid var(--admin-border);
+  box-shadow: 18px 0 50px rgba(0, 0, 0, 0.2);
+}
+
+.admin-nav-group {
+  border-radius: 12px;
+}
+
+.admin-nav-group__trigger {
+  width: 100%;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 11px;
+  color: var(--admin-text-secondary);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--admin-motion-fast), background var(--admin-motion-fast), transform var(--admin-motion-fast);
+}
+
+.admin-nav-group__trigger:hover,
+.admin-nav-group__trigger[aria-expanded='true'] {
+  color: var(--admin-text);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.admin-nav-group__label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-nav-group__label strong {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.admin-nav-group__label small {
+  overflow: hidden;
+  color: var(--admin-text-muted);
+  font-size: 10.5px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-nav-group__chevron {
+  width: 16px;
+  height: 16px;
+  transition: transform var(--admin-motion-standard) var(--admin-ease);
+}
+
+.admin-nav-group__trigger[aria-expanded='true'] .admin-nav-group__chevron {
+  transform: rotate(-90deg);
+}
+
+.admin-nav-submenu {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 210ms var(--admin-ease), opacity 150ms ease;
+}
+
+.admin-nav-submenu[data-open='true'] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.admin-nav-submenu__inner {
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  padding-left: 18px;
+}
+
+.admin-nav-submenu__inner::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 4px;
+  bottom: 8px;
+  width: 1px;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.admin-nav-submenu a {
+  position: relative;
+  min-height: 38px;
+  margin: 2px 0 2px 8px;
+  padding: 8px 10px 8px 18px;
+  border-radius: 9px;
+  color: var(--admin-text-secondary);
+  transition: color var(--admin-motion-fast), background var(--admin-motion-fast), transform var(--admin-motion-fast);
+}
+
+.admin-nav-submenu a::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: transparent;
+  transform: translateY(-50%);
+}
+
+.admin-nav-submenu a:hover {
+  color: var(--admin-text);
+  background: rgba(255, 255, 255, 0.035);
+  transform: translateX(2px);
+}
+
+.admin-nav-submenu a.active {
+  color: #eef0ff;
+  background: linear-gradient(90deg, rgba(109, 124, 255, 0.17), rgba(109, 124, 255, 0.055));
+  box-shadow: inset 2px 0 0 var(--admin-accent);
+}
+
+.admin-nav-submenu a.active::before {
+  background: var(--admin-accent);
+  box-shadow: 0 0 12px rgba(109, 124, 255, 0.56);
+}
+
+.admin-profile-card {
+  margin: 10px 10px 8px;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(109, 124, 255, 0.1), rgba(255, 255, 255, 0.018));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.admin-profile-avatar {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(129, 140, 248, 0.42);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #29376e, #172041);
+  color: #f5f7ff;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 0 0 3px rgba(109, 124, 255, 0.08), 0 8px 18px rgba(0, 0, 0, 0.26);
+}
+
+.admin-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-profile-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-profile-meta strong,
+.admin-profile-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-profile-meta strong {
+  color: var(--admin-text);
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.admin-profile-meta span {
+  color: var(--admin-text-muted);
+  font-size: 10.5px;
+}
+
+.admin-profile-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--admin-success);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
+}
+
+.admin-topbar {
+  background: rgba(6, 9, 18, 0.78);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.admin-content-shell {
+  animation: admin-page-enter var(--admin-motion-page) var(--admin-ease) both;
+}
+
+@keyframes admin-page-enter {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  .admin-nav-group__label small { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-content-shell,
+  .admin-nav-submenu,
+  .admin-nav-group__chevron,
+  .admin-nav-submenu a {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
