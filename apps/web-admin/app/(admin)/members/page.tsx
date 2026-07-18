@@ -116,6 +116,6 @@ export default function MembersPage() {
 
 function hasAnyPermission(permissions: readonly string[], required: readonly string[]) { return permissions.includes('*') || required.some((permission) => permissions.includes(permission)); }
 function maskPhone(value: string | null | undefined, visible: boolean) { if (!value) return '-'; if (visible) return value; const digits = value.replace(/\D/g, ''); return digits.length >= 4 ? `xxx-xxx-${digits.slice(-4)}` : '••••••'; }
-function maskEmail(value: string | null | undefined, visible: boolean) { if (!value) return '-'; if (visible) return value; const [local, domain] = value.split('@'); if (!domain) return '••••••'; return `${local.slice(0, 2)}***@${domain}`; }
+function maskEmail(value: string | null | undefined, visible: boolean) { if (!value) return '-'; if (visible) return value; const [local = '', domain] = value.split('@'); if (!local || !domain) return '••••••'; return `${local.slice(0, 2)}***@${domain}`; }
 function statusTone(status: string) { if (status === 'ACTIVE') return 'success'; if (status === 'SUSPENDED' || status === 'LOCKED') return 'danger'; return 'neutral'; }
 function statusLabel(status: string) { const labels: Record<string, string> = { ALL: 'ทุกสถานะ', ACTIVE: 'ใช้งานได้', SUSPENDED: 'ระงับ', LOCKED: 'ล็อก', CLOSED: 'ปิดบัญชี' }; return labels[status] ?? status; }
