@@ -4,13 +4,13 @@
 }
 
 .global-member-topbar .member-topbar__inner {
-  min-height: 64px !important;
-  height: 64px !important;
-  padding: 7px 10px !important;
+  min-height: 62px !important;
+  height: 62px !important;
+  padding: 6px 8px 6px 4px !important;
   display: grid !important;
-  grid-template-columns: 92px minmax(0, 1fr) 102px !important;
+  grid-template-columns: 78px minmax(0, 1fr) 102px !important;
   align-items: center !important;
-  column-gap: 8px !important;
+  column-gap: 6px !important;
   box-sizing: border-box !important;
 }
 
@@ -19,24 +19,25 @@
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
-  gap: 6px !important;
+  gap: 4px !important;
   min-width: 0 !important;
+  margin-left: 0 !important;
 }
 
 .global-member-topbar .member-header-tool {
-  width: 40px !important;
-  height: 40px !important;
-  min-width: 40px !important;
-  min-height: 40px !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
   padding: 0 !important;
-  border-radius: 10px !important;
-  font-size: 24px !important;
+  border-radius: 9px !important;
+  font-size: 21px !important;
   line-height: 1 !important;
 }
 
 .global-member-topbar .member-header-tool svg {
-  width: 23px !important;
-  height: 23px !important;
+  width: 21px !important;
+  height: 21px !important;
 }
 
 .global-member-topbar .member-brand {
@@ -81,7 +82,7 @@
   width: 102px !important;
   min-width: 102px !important;
   max-width: 102px !important;
-  height: 40px !important;
+  height: 38px !important;
   padding: 0 7px !important;
   gap: 4px !important;
   border-radius: 8px !important;
@@ -108,23 +109,29 @@
 
 @media (max-width: 390px) {
   .global-member-topbar .member-topbar__inner {
-    min-height: 60px !important;
-    height: 60px !important;
-    padding-inline: 8px !important;
-    grid-template-columns: 84px minmax(0, 1fr) 94px !important;
-    column-gap: 6px !important;
+    min-height: 58px !important;
+    height: 58px !important;
+    padding: 5px 6px 5px 2px !important;
+    grid-template-columns: 70px minmax(0, 1fr) 94px !important;
+    column-gap: 5px !important;
   }
 
   .global-member-topbar .member-header-tools {
-    gap: 5px !important;
+    gap: 3px !important;
   }
 
   .global-member-topbar .member-header-tool {
-    width: 38px !important;
-    height: 38px !important;
-    min-width: 38px !important;
-    min-height: 38px !important;
-    border-radius: 9px !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    border-radius: 8px !important;
+    font-size: 20px !important;
+  }
+
+  .global-member-topbar .member-header-tool svg {
+    width: 20px !important;
+    height: 20px !important;
   }
 
   .global-member-topbar .member-brand {
@@ -140,7 +147,7 @@
     width: 94px !important;
     min-width: 94px !important;
     max-width: 94px !important;
-    height: 38px !important;
+    height: 36px !important;
     padding-inline: 6px !important;
     font-size: 11px !important;
   }
