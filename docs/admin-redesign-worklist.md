@@ -50,7 +50,7 @@
 
 ## P2 — Operations Command Center และ Professional UI completion
 
-สถานะ: **7 / 20 เสร็จ | เหลือ 13**
+สถานะ: **8 / 20 เสร็จ | เหลือ 12**
 
 ### Design foundation
 
@@ -65,7 +65,7 @@
 - [x] เพิ่ม KPI Operations ได้แก่ queue, SLA, งานเกินเวลา และรายการที่ต้องอนุมัติ
 - [x] เพิ่มกราฟ Deposit/Withdrawal, transaction volume และ net revenue
 - [ ] เพิ่มกราฟ Member growth, active members และ usage trend
-- [ ] เพิ่มกราฟ Risk alerts แยก severity, status และแนวโน้ม
+- [x] เพิ่มกราฟ Risk alerts แยก severity, status และแนวโน้ม
 - [ ] เพิ่ม Provider health, latency, error rate, webhook failure และ wallet mismatch visualization
 - [ ] เพิ่ม Recent activity, audit timeline และ critical events panel
 
@@ -97,13 +97,13 @@
 |---|---:|---:|---:|
 | P0 | 6 | 7 | 1 |
 | P1 | 13 | 13 | 0 |
-| P2 | 7 | 20 | 13 |
-| **รวม** | **26** | **40** | **14** |
+| P2 | 8 | 20 | 12 |
+| **รวม** | **27** | **40** | **13** |
 
 ## ลำดับดำเนินงานต่อ
 
 1. ปิด P0 โดย sync Prisma schema และเลิกใช้ raw SQL
-2. ทำกราฟ Member, Risk และ Provider health
+2. ทำกราฟ Member และ Provider health
 3. ทำ Recent activity และ critical events
 4. ทำ table/workflow standardization
 5. ไล่ visual completion รายโมดูล
