@@ -1,0 +1,6 @@
+.admin-bulk-action{display:grid;gap:12px;padding:16px;border:1px solid rgba(148,163,184,.18);border-radius:16px;background:rgba(8,15,28,.78)}
+.admin-bulk-action__summary{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.admin-bulk-action label{display:grid;gap:6px;color:#cbd5e1;font-size:13px}
+.admin-bulk-action input,.admin-bulk-action textarea{width:100%;box-sizing:border-box;border-radius:12px;border:1px solid rgba(148,163,184,.22);background:#0b1220;color:#f8fafc;padding:10px 12px}
+.admin-bulk-action textarea{min-height:88px;resize:vertical}
+.admin-bulk-action__results{display:grid;gap:8px;max-height:260px;overflow:auto}
