@@ -9,7 +9,24 @@ import { AdminIcon, iconForAdminHref } from './_components/admin-icon';
 
 const AUTH_TIMEOUT_MS = 12000;
 
-type CurrentAdmin = { permissions?: string[] };
+type CurrentAdmin = {
+  id?: string;
+  username?: string;
+  email?: string;
+  displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  position?: string;
+  department?: string;
+  avatarUrl?: string;
+  roles?: Array<string | { name?: string; code?: string }>;
+  permissions?: string[];
+};
+
+type AdminSession = {
+  permissions: string[];
+  admin: CurrentAdmin;
+};
 
 export default function AdminProtectedLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -20,6 +37,8 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [navQuery, setNavQuery] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [admin, setAdmin] = useState<CurrentAdmin>({});
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(['overview']));
   const [queueCount, setQueueCount] = useState({ topups: 0, withdrawals: 0 });
 
   useEffect(() => {
@@ -30,6 +49,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
       if (cancelled) return;
       setIsLoggedIn(Boolean(session));
       setPermissions(session?.permissions ?? []);
+      setAdmin(session?.admin ?? {});
       setReady(true);
       if (!session) {
         const next = encodeURIComponent(`${pathname}${window.location.search}`);
@@ -45,10 +65,21 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
 
   useEffect(() => {
     setMenuOpen(false);
+    const activeGroup = navGroups.find((group) => group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`)));
+    if (activeGroup) setOpenGroups((current) => new Set(current).add(activeGroup.id));
   }, [pathname]);
 
   useEffect(() => {
     setSidebarCollapsed(window.localStorage.getItem('admin_sidebar_collapsed') === 'true');
+    const storedGroups = window.localStorage.getItem('admin_nav_open_groups');
+    if (storedGroups) {
+      try {
+        const parsed = JSON.parse(storedGroups);
+        if (Array.isArray(parsed)) setOpenGroups(new Set(parsed.filter((value): value is string => typeof value === 'string')));
+      } catch {
+        // Ignore malformed local preferences and use the safe default.
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -70,9 +101,14 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     }
   }
 
+  const normalizedQuery = navQuery.trim().toLocaleLowerCase('th');
   const visibleGroups = useMemo(() => navGroups
-    .map((group) => ({ ...group, items: group.items.filter((item) => canAccessNavItem(item, permissions) && (!navQuery.trim() || item.title.toLocaleLowerCase('th').includes(navQuery.trim().toLocaleLowerCase('th')))) }))
-    .filter((group) => group.items.length > 0), [permissions, navQuery]);
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => canAccessNavItem(item, permissions)
+        && (!normalizedQuery || `${group.title} ${item.title}`.toLocaleLowerCase('th').includes(normalizedQuery))),
+    }))
+    .filter((group) => group.items.length > 0), [permissions, normalizedQuery]);
 
   const required = requiredPermissionsForPath(pathname);
   const canViewRoute = required.length === 0 || permissions.includes('*') || required.some((permission) => permissions.includes(permission));
@@ -86,11 +122,27 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     clearAdminSession();
     window.location.href = '/login';
   }
-  function badgeFor(href: string) { if (href === '/topups' && queueCount.topups > 0) return queueCount.topups; if (href === '/withdrawals' && queueCount.withdrawals > 0) return queueCount.withdrawals; if (href === '/dashboard' && queueCount.topups + queueCount.withdrawals > 0) return queueCount.topups + queueCount.withdrawals; return 0; }
+
+  function badgeFor(href: string) {
+    if (href === '/topups' && queueCount.topups > 0) return queueCount.topups;
+    if (href === '/withdrawals' && queueCount.withdrawals > 0) return queueCount.withdrawals;
+    if ((href === '/dashboard' || href === '/operations') && queueCount.topups + queueCount.withdrawals > 0) return queueCount.topups + queueCount.withdrawals;
+    return 0;
+  }
+
   function navigate(href: string) {
     setMenuOpen(false);
     if (href === pathname) return;
     router.push(href);
+  }
+
+  function toggleGroup(groupId: string) {
+    setOpenGroups((current) => {
+      const next = new Set(current);
+      if (next.has(groupId)) next.delete(groupId); else next.add(groupId);
+      window.localStorage.setItem('admin_nav_open_groups', JSON.stringify([...next]));
+      return next;
+    });
   }
 
   if (!ready || !isLoggedIn) return <main className="admin-loading-screen"><span className="admin-loading-mark">A</span><p>กำลังตรวจสอบสิทธิ์...</p></main>;
@@ -98,6 +150,9 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const pendingTotal = queueCount.topups + queueCount.withdrawals;
   const currentItem = navGroups.flatMap((group) => group.items).find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
   const toggleCollapsed = () => setSidebarCollapsed((current) => { const next = !current; window.localStorage.setItem('admin_sidebar_collapsed', String(next)); return next; });
+  const displayName = admin.displayName || [admin.firstName, admin.lastName].filter(Boolean).join(' ') || admin.username || 'ผู้ดูแลระบบ';
+  const roleName = admin.position || roleLabel(admin.roles) || admin.department || 'Admin';
+  const initials = getInitials(displayName);
 
   const drawer = <aside
     className={menuOpen ? 'admin-drawer open' : 'admin-drawer'}
@@ -110,9 +165,34 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     </div>
     <div className="admin-nav-search"><AdminIcon name="search" /><input value={navQuery} onChange={(event) => setNavQuery(event.target.value)} placeholder="ค้นหาเมนู" aria-label="ค้นหาเมนู" /></div>
     <nav className="admin-drawer-nav" aria-label="Admin navigation">
-      {visibleGroups.map((group) => <section className="admin-nav-group" key={group.title}><p>{group.title}</p>{group.items.map((item) => { const active = pathname === item.href || pathname.startsWith(`${item.href}/`); const badge = badgeFor(item.href); return <a key={item.href} href={item.href} onClick={(event) => { event.preventDefault(); navigate(item.href); }} className={active ? 'active' : ''} title={sidebarCollapsed ? item.title : undefined} aria-current={active ? 'page' : undefined}><AdminIcon name={iconForAdminHref(item.href)} /><span>{item.title}</span>{badge > 0 && <em>{badge > 99 ? '99+' : badge}</em>}</a>; })}</section>)}
+      {visibleGroups.map((group) => {
+        const containsActiveRoute = group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
+        const expanded = Boolean(normalizedQuery) || openGroups.has(group.id) || containsActiveRoute;
+        const groupIcon = iconForAdminHref(group.items[0]?.href ?? '/dashboard');
+        return <section className="admin-nav-group" key={group.id}>
+          <button type="button" className="admin-nav-group__trigger" onClick={() => toggleGroup(group.id)} aria-expanded={expanded} aria-controls={`admin-nav-${group.id}`}>
+            <AdminIcon name={groupIcon} />
+            <span className="admin-nav-group__label"><strong>{group.title}</strong>{group.description && <small>{group.description}</small>}</span>
+            <span className="admin-nav-group__chevron" aria-hidden="true"><AdminIcon name="chevron-left" /></span>
+          </button>
+          <div className="admin-nav-submenu" data-open={expanded} id={`admin-nav-${group.id}`}>
+            <div className="admin-nav-submenu__inner">
+              {group.items.map((item) => {
+                const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                const badge = badgeFor(item.href);
+                return <a key={item.href} href={item.href} onClick={(event) => { event.preventDefault(); navigate(item.href); }} className={active ? 'active' : ''} title={sidebarCollapsed ? item.title : undefined} aria-current={active ? 'page' : undefined}><AdminIcon name={iconForAdminHref(item.href)} /><span>{item.title}</span>{badge > 0 && <em>{badge > 99 ? '99+' : badge}</em>}</a>;
+              })}
+            </div>
+          </div>
+        </section>;
+      })}
       {visibleGroups.length === 0 && <p className="admin-nav-empty">ไม่พบเมนูที่ค้นหา</p>}
     </nav>
+    <button type="button" className="admin-profile-card" onClick={() => navigate('/admin-accounts')} aria-label={`เปิดโปรไฟล์ ${displayName}`}>
+      <span className="admin-profile-avatar">{admin.avatarUrl ? <img src={admin.avatarUrl} alt="" /> : initials}</span>
+      <span className="admin-profile-meta"><strong>{displayName}</strong><span>{roleName}</span></span>
+      <span className="admin-profile-status" title="ออนไลน์" />
+    </button>
     <div className="admin-sidebar-footer"><AdminButton type="button" tone="default" className="admin-collapse-button" onClick={toggleCollapsed} aria-label={sidebarCollapsed ? 'ขยายแถบเมนู' : 'ย่อแถบเมนู'}><AdminIcon name="chevron-left" /><span>{sidebarCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}</span></AdminButton><AdminButton type="button" tone="danger" className="admin-logout-button" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></AdminButton></div>
   </aside>;
 
@@ -143,14 +223,26 @@ function AccessDenied() {
   );
 }
 
-async function verifyAdminSession(): Promise<{ permissions: string[] } | null> {
+function getInitials(value: string) {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'AD';
+  return parts.slice(0, 2).map((part) => part.slice(0, 1).toLocaleUpperCase('th')).join('');
+}
+
+function roleLabel(roles: CurrentAdmin['roles']) {
+  const first = roles?.[0];
+  if (typeof first === 'string') return first;
+  return first?.name || first?.code || '';
+}
+
+async function verifyAdminSession(): Promise<AdminSession | null> {
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), AUTH_TIMEOUT_MS);
 
   try {
     const res = await adminApiFetch('/admin/auth/me', { signal: controller.signal });
     const data = await res.json().catch(() => null) as CurrentAdmin | null;
-    if (res.ok) return { permissions: Array.isArray(data?.permissions) ? data.permissions : [] };
+    if (res.ok && data) return { permissions: Array.isArray(data.permissions) ? data.permissions : [], admin: data };
     clearAdminSession();
     return null;
   } catch {
