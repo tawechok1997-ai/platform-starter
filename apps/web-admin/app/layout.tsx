@@ -24,6 +24,7 @@ import './admin-profile.css';
 import './admin-profile-edit.css';
 import './admin-accounts.css';
 import './admin-member-insights.css';
+import './admin-data-table.css';
 
 export const viewport: Viewport = {
   width: 'device-width',
