@@ -23,6 +23,7 @@ import './admin-topbar-profile.css';
 import './admin-profile.css';
 import './admin-profile-edit.css';
 import './admin-accounts.css';
+import './admin-member-insights.css';
 
 export const viewport: Viewport = {
   width: 'device-width',
