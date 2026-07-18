@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { canAccessNavItem, requiredPermissionsForPath } from '../../../app/(admin)/admin-nav';
 import { adminNextPath, sessionDecision } from '../../../app/admin-session-policy';
@@ -78,4 +79,14 @@ test('profile API error parser only accepts non-empty string messages', () => {
   assert.equal(adminProfileErrorMessage({ message: 'Profile rejected' }, 'fallback'), 'Profile rejected');
   assert.equal(adminProfileErrorMessage({ message: 42 }, 'fallback'), 'fallback');
   assert.equal(adminProfileErrorMessage(null, 'fallback'), 'fallback');
+});
+
+test('desktop drawer guard hides the backdrop without disabling the sidebar', () => {
+  const layoutSource = readFileSync(new URL('../../../app/layout.tsx', import.meta.url), 'utf8');
+  const overlayCss = readFileSync(new URL('../../../app/admin-shell-overlay-fix.css', import.meta.url), 'utf8');
+
+  assert.match(layoutSource, /import ['"]\.\/admin-shell-overlay-fix\.css['"]/);
+  assert.match(overlayCss, /@media\s*\(min-width:\s*1024px\)/);
+  assert.match(overlayCss, /\.admin-drawer-backdrop\s*\{[^}]*display:\s*none\s*!important/s);
+  assert.match(overlayCss, /\.admin-drawer\s*\{[^}]*pointer-events:\s*auto/s);
 });
