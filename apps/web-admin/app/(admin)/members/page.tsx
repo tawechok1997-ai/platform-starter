@@ -5,6 +5,7 @@ import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
 
 type MemberItem = { id: string; shortId: string; username: string; phone?: string | null; email?: string | null; status: string; displayName?: string | null; balance: string; lockedBalance: string; availableBalance: string; createdAt: string; lastLoginAt?: string | null };
+type AdminIdentity = { permissions?: string[] };
 const STATUSES = ['ALL', 'ACTIVE', 'SUSPENDED', 'LOCKED', 'CLOSED'];
 const PAGE_SIZE = 20;
 
@@ -18,9 +19,16 @@ export default function MembersPage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState('');
+  const [permissions, setPermissions] = useState<string[]>([]);
 
-  useEffect(() => { void loadItems(undefined, 1); }, []);
+  useEffect(() => { void loadAccess(); void loadItems(undefined, 1); }, []);
   useEffect(() => { if (page > 1) void loadItems(undefined, page); }, [page]);
+
+  async function loadAccess() {
+    const response = await adminApiFetch('/admin/auth/me', { cache: 'no-store' });
+    const data = await response.json().catch(() => null) as AdminIdentity | null;
+    if (response.ok && data) setPermissions(Array.isArray(data.permissions) ? data.permissions : []);
+  }
 
   async function loadItems(event?: FormEvent<HTMLFormElement>, nextPage = page) {
     event?.preventDefault();
@@ -55,6 +63,8 @@ export default function MembersPage() {
     setMessage('อัปเดตสถานะแล้ว');
   }
 
+  const canViewPii = hasAnyPermission(permissions, ['users.pii.view', 'users.sensitive.view', 'admin.access.view']);
+  const canViewBalances = hasAnyPermission(permissions, ['wallet.view']);
   const totals = useMemo(() => ({
     activeCount: items.filter((item) => item.status === 'ACTIVE').length,
     restrictedCount: items.filter((item) => item.status !== 'ACTIVE').length,
@@ -72,25 +82,26 @@ export default function MembersPage() {
     </form>
 
     {message && <AdminNotice>{message}</AdminNotice>}
+    {(!canViewPii || !canViewBalances) && <AdminNotice tone="warning">ข้อมูลอ่อนไหวบางส่วนถูกปิดบังตามสิทธิ์ของบัญชีผู้ดูแล</AdminNotice>}
 
     <AdminMetricGrid>
       <AdminMetric title="โหลดแล้ว" value={`${items.length}`} helper={`${total} รายการทั้งหมด`} />
       <AdminMetric title="ใช้งานได้" value={`${totals.activeCount}`} helper="เฉพาะหน้าปัจจุบัน" tone="success" />
       <AdminMetric title="ถูกจำกัด" value={`${totals.restrictedCount}`} helper="ระงับ ล็อก หรือปิด" tone={totals.restrictedCount ? 'warning' : 'neutral'} />
-      <AdminMetric title="ยอดใช้ได้รวม" value={formatMoney(String(totals.available))} helper="เฉพาะรายการที่โหลด" />
+      <AdminMetric title="ยอดใช้ได้รวม" value={canViewBalances ? formatMoney(String(totals.available)) : '••••••'} helper={canViewBalances ? 'เฉพาะรายการที่โหลด' : 'ต้องมีสิทธิ์ wallet.view'} />
     </AdminMetricGrid>
 
     {loading && items.length === 0 ? <AdminEmpty>กำลังโหลดสมาชิก...</AdminEmpty> : <AdminStack>{items.map((item) => <AdminCard key={item.id} title={item.username} description={`${item.displayName || 'ยังไม่มีชื่อแสดง'} · ${item.shortId}`}>
       <article className="admin-member-card-grid">
         <section className="admin-member-identity">
           <div className="admin-member-badges"><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge><AdminBadge>{item.shortId}</AdminBadge></div>
-          <p>{item.phone || '-'} · {item.email || '-'}</p>
+          <p>{maskPhone(item.phone, canViewPii)} · {maskEmail(item.email, canViewPii)}</p>
           <p>สมัคร {new Date(item.createdAt).toLocaleDateString('th-TH')}</p>
           <p>เข้าใช้ล่าสุด {item.lastLoginAt ? new Date(item.lastLoginAt).toLocaleString('th-TH') : '-'}</p>
         </section>
         <section className="admin-member-money-summary">
-          <div><span>ยอดใช้ได้</span><strong>{formatMoney(item.availableBalance)}</strong></div>
-          <div className="admin-member-balance-grid"><span>ยอดรวม {formatMoney(item.balance)}</span><span>ยอดล็อก {formatMoney(item.lockedBalance)}</span></div>
+          <div><span>ยอดใช้ได้</span><strong>{canViewBalances ? formatMoney(item.availableBalance) : '••••••'}</strong></div>
+          <div className="admin-member-balance-grid"><span>ยอดรวม {canViewBalances ? formatMoney(item.balance) : '••••••'}</span><span>ยอดล็อก {canViewBalances ? formatMoney(item.lockedBalance) : '••••••'}</span></div>
           <a href={`/members/${item.id}`} className="admin-member-profile-link">ดูโปรไฟล์</a>
         </section>
         <section className="admin-member-actions" aria-label={`จัดการสถานะ ${item.username}`}>
@@ -103,5 +114,8 @@ export default function MembersPage() {
   </AdminPage>;
 }
 
+function hasAnyPermission(permissions: readonly string[], required: readonly string[]) { return permissions.includes('*') || required.some((permission) => permissions.includes(permission)); }
+function maskPhone(value: string | null | undefined, visible: boolean) { if (!value) return '-'; if (visible) return value; const digits = value.replace(/\D/g, ''); return digits.length >= 4 ? `xxx-xxx-${digits.slice(-4)}` : '••••••'; }
+function maskEmail(value: string | null | undefined, visible: boolean) { if (!value) return '-'; if (visible) return value; const [local, domain] = value.split('@'); if (!domain) return '••••••'; return `${local.slice(0, 2)}***@${domain}`; }
 function statusTone(status: string) { if (status === 'ACTIVE') return 'success'; if (status === 'SUSPENDED' || status === 'LOCKED') return 'danger'; return 'neutral'; }
 function statusLabel(status: string) { const labels: Record<string, string> = { ALL: 'ทุกสถานะ', ACTIVE: 'ใช้งานได้', SUSPENDED: 'ระงับ', LOCKED: 'ล็อก', CLOSED: 'ปิดบัญชี' }; return labels[status] ?? status; }
