@@ -9,6 +9,7 @@
 - ติ๊ก `[x]` เฉพาะเมื่อมี implementation ใน repository และมีหลักฐาน build/deploy หรือ regression ที่เหมาะสม
 - งานแก้ defect ที่ไม่เพิ่มขอบเขตใหม่ให้นับเป็นงานแก้ไข แต่ไม่เพิ่มจำนวน checkbox
 - ห้ามสร้าง worklist Admin ชุดอื่นซ้ำ เพราะมนุษย์มีพรสวรรค์ในการทำตัวเลขสองชุดให้ไม่ตรงกันอย่างน่าทึ่ง
+- จำนวนงานต้องนับจาก checkbox จริงทุกครั้ง ไม่ใช้ยอดเดิมที่พิมพ์ค้างไว้
 
 อัปเดตล่าสุด: **2026-07-18**
 
@@ -50,7 +51,7 @@
 
 ## P2 — Operations Command Center และ Professional UI completion
 
-สถานะ: **15 / 20 เสร็จ | เหลือ 5**
+สถานะ: **15 / 22 เสร็จ | เหลือ 7**
 
 ### Design foundation
 
@@ -90,6 +91,9 @@
 ### Verification
 
 - [ ] เพิ่ม automated tests สำหรับ navigation, profile update, data masking, permission rendering และ session refresh flow
+  - ความคืบหน้า: เพิ่ม tests สำหรับ navigation permission, route guard, data masking และ session refresh/2FA/privilege reduction แล้ว
+  - ผูก `pnpm test` เข้ากับ `web-admin build`; รอ Railway build ผ่านก่อนปิด checkbox
+  - คงเหลือ: profile update regression coverage
 - [ ] เพิ่ม visual/browser regression evidence, build evidence และเอกสารสรุป Admin redesign ขั้นสุดท้าย
 
 ---
@@ -100,12 +104,13 @@
 |---|---:|---:|---:|
 | P0 | 6 | 7 | 1 |
 | P1 | 13 | 13 | 0 |
-| P2 | 15 | 20 | 5 |
-| **รวม** | **34** | **40** | **6** |
+| P2 | 15 | 22 | 7 |
+| **รวม** | **34** | **42** | **8** |
 
 ## ลำดับดำเนินงานต่อ
 
-1. ปิด P0 โดย sync Prisma schema และเลิกใช้ raw SQL
-2. เพิ่ม batch API และ step-up สำหรับ bulk financial actions
-3. ไล่ visual completion รายโมดูล
-4. ปิด automated tests และ regression evidence
+1. รอและตรวจ Railway build ที่รัน automated tests ก่อน Next build
+2. ปิด P0 โดย sync Prisma schema และเลิกใช้ raw SQL
+3. เพิ่ม batch API และ step-up สำหรับ bulk financial actions
+4. ไล่ visual completion รายโมดูล
+5. ปิด visual/browser regression evidence และเอกสารสรุปขั้นสุดท้าย
