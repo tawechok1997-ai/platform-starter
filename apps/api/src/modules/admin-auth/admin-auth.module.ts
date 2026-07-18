@@ -5,6 +5,7 @@ import { AdminAuthController } from './admin-auth.controller';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminLoginDefenseService } from './admin-login-defense.service';
 import { AdminLoginService } from './admin-login.service';
+import { AdminProfileQueryService } from './admin-profile-query.service';
 import { AdminRefreshSessionService } from './admin-refresh-session.service';
 import { AdminSessionCommandService } from './admin-session-command.service';
 import { AdminSessionTokenService } from './admin-session-token.service';
@@ -19,6 +20,7 @@ import { AdminTwoFactorCommandService } from './admin-two-factor-command.service
     AdminAuthService,
     AdminLoginDefenseService,
     AdminLoginService,
+    AdminProfileQueryService,
     AdminSessionsQueryService,
     AdminSessionCommandService,
     AdminSessionTokenService,
