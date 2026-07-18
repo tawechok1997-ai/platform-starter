@@ -2,11 +2,12 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
 import { hasAnyPermission, maskEmail, maskPhone } from '../_components/member-mask';
 
 type MemberItem = { id: string; shortId: string; username: string; phone?: string | null; email?: string | null; status: string; displayName?: string | null; balance: string; lockedBalance: string; availableBalance: string; createdAt: string; lastLoginAt?: string | null };
 type AdminIdentity = { permissions?: string[] };
+type PendingStatusChange = { item: MemberItem; nextStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED' };
 const STATUSES = ['ALL', 'ACTIVE', 'SUSPENDED', 'LOCKED', 'CLOSED'];
 const PAGE_SIZE = 20;
 
@@ -21,6 +22,8 @@ export default function MembersPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [pendingStatusChange, setPendingStatusChange] = useState<PendingStatusChange | null>(null);
+  const [statusReason, setStatusReason] = useState('');
 
   useEffect(() => { void loadAccess(); void loadItems(undefined, 1); }, []);
   useEffect(() => { if (page > 1) void loadItems(undefined, page); }, [page]);
@@ -53,14 +56,28 @@ export default function MembersPage() {
   function searchMembers(event: FormEvent<HTMLFormElement>) { setPage(1); void loadItems(event, 1); }
   function resetFilters() { setSearch(''); setStatus('ALL'); setPage(1); window.setTimeout(() => void loadItems(undefined, 1), 0); }
 
-  async function updateStatus(id: string, nextStatus: string) {
-    setBusyId(id);
+  function requestStatusChange(item: MemberItem, nextStatus: PendingStatusChange['nextStatus']) {
+    setStatusReason('');
+    setPendingStatusChange({ item, nextStatus });
+  }
+
+  async function confirmStatusChange() {
+    if (!pendingStatusChange) return;
+    const reason = statusReason.trim();
+    if (!reason) {
+      setMessage('กรุณาระบุเหตุผลก่อนเปลี่ยนสถานะสมาชิก');
+      return;
+    }
+    const { item, nextStatus } = pendingStatusChange;
+    setBusyId(item.id);
     setMessage('กำลังอัปเดตสถานะ...');
-    const res = await adminApiFetch(`/admin/members/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus, reason: 'quick action from members page' }) });
+    const res = await adminApiFetch(`/admin/members/${item.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus, reason }) });
     const data = await res.json().catch(() => null);
     setBusyId('');
     if (!res.ok) { setMessage(data?.message ?? 'อัปเดตสถานะไม่สำเร็จ'); return; }
-    setItems((current) => current.map((item) => item.id === id ? { ...item, status: data.user.status } : item));
+    setItems((current) => current.map((entry) => entry.id === item.id ? { ...entry, status: data.user.status } : entry));
+    setPendingStatusChange(null);
+    setStatusReason('');
     setMessage('อัปเดตสถานะแล้ว');
   }
 
@@ -106,14 +123,29 @@ export default function MembersPage() {
           <a href={`/members/${item.id}`} className="admin-member-profile-link">ดูโปรไฟล์</a>
         </section>
         <section className="admin-member-actions" aria-label={`จัดการสถานะ ${item.username}`}>
-          <AdminButton disabled={busyId === item.id || item.status === 'ACTIVE'} tone="success" onClick={() => void updateStatus(item.id, 'ACTIVE')}>เปิดใช้งาน</AdminButton>
-          <AdminButton disabled={busyId === item.id || item.status === 'SUSPENDED'} tone="danger" onClick={() => void updateStatus(item.id, 'SUSPENDED')}>ระงับ</AdminButton>
-          <AdminButton disabled={busyId === item.id || item.status === 'LOCKED'} tone="danger" onClick={() => void updateStatus(item.id, 'LOCKED')}>ล็อก</AdminButton>
+          <AdminButton disabled={busyId === item.id || item.status === 'ACTIVE'} tone="success" onClick={() => requestStatusChange(item, 'ACTIVE')}>เปิดใช้งาน</AdminButton>
+          <AdminButton disabled={busyId === item.id || item.status === 'SUSPENDED'} tone="danger" onClick={() => requestStatusChange(item, 'SUSPENDED')}>ระงับ</AdminButton>
+          <AdminButton disabled={busyId === item.id || item.status === 'LOCKED'} tone="danger" onClick={() => requestStatusChange(item, 'LOCKED')}>ล็อก</AdminButton>
         </section>
       </article>
     </AdminCard>)}{items.length === 0 && <AdminEmpty>ไม่พบสมาชิก</AdminEmpty>}</AdminStack>}
+
+    <AdminConfirmDialog
+      open={Boolean(pendingStatusChange)}
+      title={pendingStatusChange ? statusChangeTitle(pendingStatusChange.nextStatus) : 'ยืนยันการเปลี่ยนสถานะ'}
+      description={pendingStatusChange ? statusChangeDescription(pendingStatusChange.nextStatus) : ''}
+      confirmLabel={pendingStatusChange ? statusChangeConfirmLabel(pendingStatusChange.nextStatus) : 'ยืนยัน'}
+      tone={pendingStatusChange?.nextStatus === 'ACTIVE' ? 'success' : 'danger'}
+      busy={Boolean(pendingStatusChange && busyId === pendingStatusChange.item.id)}
+      details={pendingStatusChange ? <label className="admin-ledger-field"><span>เหตุผลการเปลี่ยนสถานะ</span><textarea value={statusReason} onChange={(event) => setStatusReason(event.target.value)} placeholder="ระบุเหตุผลสำหรับ audit log และการตรวจสอบย้อนหลัง" /></label> : null}
+      onCancel={() => { if (!busyId) { setPendingStatusChange(null); setStatusReason(''); } }}
+      onConfirm={() => void confirmStatusChange()}
+    />
   </AdminPage>;
 }
 
 function statusTone(status: string) { if (status === 'ACTIVE') return 'success'; if (status === 'SUSPENDED' || status === 'LOCKED') return 'danger'; return 'neutral'; }
 function statusLabel(status: string) { const labels: Record<string, string> = { ALL: 'ทุกสถานะ', ACTIVE: 'ใช้งานได้', SUSPENDED: 'ระงับ', LOCKED: 'ล็อก', CLOSED: 'ปิดบัญชี' }; return labels[status] ?? status; }
+function statusChangeTitle(status: PendingStatusChange['nextStatus']) { return status === 'ACTIVE' ? 'เปิดใช้งานสมาชิก' : status === 'SUSPENDED' ? 'ระงับสมาชิก' : 'ล็อกบัญชีสมาชิก'; }
+function statusChangeDescription(status: PendingStatusChange['nextStatus']) { return status === 'ACTIVE' ? 'สมาชิกจะกลับเข้าสู่ระบบและใช้งานบัญชีได้ตามสิทธิ์ปัจจุบัน' : status === 'SUSPENDED' ? 'สมาชิกจะถูกระงับการใช้งานจนกว่าผู้ดูแลจะเปิดใช้งานอีกครั้ง' : 'บัญชีจะถูกล็อกเพื่อหยุดการเข้าถึงทันที ควรใช้เมื่อมีเหตุด้านความปลอดภัย'; }
+function statusChangeConfirmLabel(status: PendingStatusChange['nextStatus']) { return status === 'ACTIVE' ? 'เปิดใช้งาน' : status === 'SUSPENDED' ? 'ยืนยันการระงับ' : 'ยืนยันการล็อก'; }
