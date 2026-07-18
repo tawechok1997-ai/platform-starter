@@ -28,7 +28,7 @@
 - [ ] ทำให้ `prisma/schema.prisma` ตรงกับคอลัมน์โปรไฟล์ใน migration และเปลี่ยน Profile query/update จาก raw SQL เป็น Prisma Client พร้อม regression test
   - แก้ defect Login loop และ `/admin/auth/me` 500 แล้ว โดยใช้ HttpOnly access cookie ผ่าน Next.js proxy และเปลี่ยน Profile query ฝั่งอ่านเป็น Prisma Client
   - ยืนยันใช้งาน Login → Dashboard ได้จริง และ Railway build ของ API, Web Admin และ Web Member ผ่านทั้งหมดที่ commit `f8e6cbd8`
-  - คงเหลือ: sync profile fields เข้า Prisma schema, ปรับ Profile update ให้ใช้ Prisma Client และเพิ่ม regression test ครบเส้นทาง
+  - คงเหลือ: sync profile fields เข้า Prisma schema และปรับ Profile update ให้ใช้ Prisma Client
 
 ---
 
@@ -54,7 +54,7 @@
 
 ## P2 — Operations Command Center และ Professional UI completion
 
-สถานะ: **15 / 22 เสร็จ | เหลือ 7**
+สถานะ: **16 / 22 เสร็จ | เหลือ 6**
 
 ### Design foundation
 
@@ -93,10 +93,9 @@
 
 ### Verification
 
-- [ ] เพิ่ม automated tests สำหรับ navigation, profile update, data masking, permission rendering และ session refresh flow
-  - ความคืบหน้า: เพิ่ม tests สำหรับ navigation permission, route guard, data masking และ session refresh/2FA/privilege reduction แล้ว
-  - ผูก `pnpm test` เข้ากับ `web-admin build`; Railway build ผ่านแล้ว
-  - คงเหลือ: profile update regression coverage
+- [x] เพิ่ม automated tests สำหรับ navigation, profile update, data masking, permission rendering และ session refresh flow
+  - ครอบคลุม navigation permission, route guard, data masking, session refresh/2FA/privilege reduction, profile normalization, payload trimming และ API error parsing
+  - ผูก regression tests เข้ากับ `web-admin build` และ Railway build ของ API, Web Admin และ Web Member ผ่านครบที่ commit `f43c0ad4`
 - [ ] เพิ่ม visual/browser regression evidence, build evidence และเอกสารสรุป Admin redesign ขั้นสุดท้าย
 
 ---
@@ -107,13 +106,12 @@
 |---|---:|---:|---:|
 | P0 | 6 | 7 | 1 |
 | P1 | 13 | 13 | 0 |
-| P2 | 15 | 22 | 7 |
-| **รวม** | **34** | **42** | **8** |
+| P2 | 16 | 22 | 6 |
+| **รวม** | **35** | **42** | **7** |
 
 ## ลำดับดำเนินงานต่อ
 
-1. ปิด P0 โดย sync Prisma schema และเปลี่ยน Profile update เป็น Prisma Client พร้อม regression test
+1. ปิด P0 โดย sync Prisma schema และเปลี่ยน Profile update เป็น Prisma Client
 2. เพิ่ม batch API และ step-up สำหรับ bulk financial actions
 3. ไล่ visual completion รายโมดูล
-4. เพิ่ม profile update regression coverage
-5. ปิด visual/browser regression evidence และเอกสารสรุปขั้นสุดท้าย
+4. ปิด visual/browser regression evidence และเอกสารสรุปขั้นสุดท้าย
