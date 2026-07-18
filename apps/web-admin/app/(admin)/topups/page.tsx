@@ -6,6 +6,7 @@ import {
   AdminBadge,
   AdminButton,
   AdminCard,
+  AdminConfirmDialog,
   AdminEmpty,
   AdminMetric,
   AdminMetricGrid,
@@ -20,6 +21,7 @@ import {
 
 type DepositStatus = 'PENDING' | 'PENDING_SLIP_REVIEW' | 'PENDING_CREDIT' | 'COMPLETED' | 'DUPLICATE' | 'REJECTED' | 'CANCELLED' | 'APPROVED';
 type NoticeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
+type DepositAction = 'approve-slip' | 'confirm-credit' | 'reject';
 type TopUpItem = {
   id: string;
   userId: string;
@@ -35,6 +37,8 @@ type TopUpItem = {
   user?: { username?: string; phone?: string | null; email?: string | null };
 };
 
+type PendingAction = { item: TopUpItem; action: DepositAction };
+
 const PAGE_SIZE = 20;
 const FILTERS: DepositStatus[] = ['PENDING', 'PENDING_SLIP_REVIEW', 'PENDING_CREDIT', 'COMPLETED', 'DUPLICATE', 'REJECTED', 'CANCELLED', 'APPROVED'];
 
@@ -49,9 +53,16 @@ export default function AdminTopUpsPage() {
   const [busyId, setBusyId] = useState('');
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [slips, setSlips] = useState<Record<string, string>>({});
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
   useEffect(() => { void loadItems(status, page); }, [status, page]);
   useEffect(() => { void loadSlips(items); }, [items]);
+  useEffect(() => {
+    if (!pendingAction) return;
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape' && !busyId) setPendingAction(null); };
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
+  }, [pendingAction, busyId]);
 
   const counts = useMemo(() => ({
     waitingSlip: items.filter((item) => item.status === 'PENDING_SLIP_REVIEW').length,
@@ -97,20 +108,26 @@ export default function AdminTopUpsPage() {
     showMessage(action === 'claim' ? 'รับงานตรวจฝากแล้ว' : 'ปล่อยงานแล้ว', 'success');
   }
 
-  async function runAction(item: TopUpItem, action: 'approve-slip' | 'confirm-credit' | 'reject') {
+  function requestAction(item: TopUpItem, action: DepositAction) {
     const adminNote = (notes[item.id] ?? '').trim();
     if (action === 'reject' && !adminNote) return showMessage('กรุณาระบุเหตุผลก่อนปฏิเสธรายการฝาก', 'warning');
-    const prompt = action === 'approve-slip'
-      ? 'ยืนยันว่าตรวจสลิปผ่าน และส่งต่อให้ยืนยันเครดิต?'
-      : action === 'confirm-credit'
-        ? 'ยืนยันเพิ่มเครดิตเข้าบัญชีสมาชิก? การกระทำนี้ย้อนกลับไม่ได้'
-        : 'ยืนยันปฏิเสธรายการฝาก?';
-    if (!window.confirm(prompt)) return;
+    setPendingAction({ item, action });
+  }
+
+  async function confirmPendingAction() {
+    if (!pendingAction) return;
+    const { item, action } = pendingAction;
+    const adminNote = (notes[item.id] ?? '').trim();
     setBusyId(item.id);
-    const res = await adminApiFetch(`/admin/topups/${item.id}/${action}`, { method: 'POST', body: JSON.stringify({ adminNote }) });
+    const res = await adminApiFetch(`/admin/topups/${item.id}/${action}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminNote }),
+    });
     const data = await res.json().catch(() => null);
     setBusyId('');
     if (!res.ok) return showMessage(data?.message ?? 'ทำรายการไม่สำเร็จ', 'danger');
+    setPendingAction(null);
     showMessage(action === 'approve-slip' ? 'ตรวจสลิปผ่านแล้ว รอยืนยันเครดิต' : action === 'confirm-credit' ? 'เพิ่มเครดิตสำเร็จ' : 'ปฏิเสธรายการฝากแล้ว', 'success');
     void loadItems(status, page);
   }
@@ -148,14 +165,25 @@ export default function AdminTopUpsPage() {
             {actionable ? <div className="admin-topup-operations">
               <div className="admin-topup-action-grid"><AdminButton disabled={busyId === item.id} onClick={() => void claim(item.id, 'claim')}>รับงาน</AdminButton><AdminButton tone="secondary" disabled={busyId === item.id || !item.claimedBy} onClick={() => void claim(item.id, 'release')}>ปล่อยงาน</AdminButton></div>
               <label className="admin-topup-note-field"><span>หมายเหตุแอดมิน</span><textarea value={notes[item.id] ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [item.id]: event.target.value }))} placeholder="จำเป็นเมื่อปฏิเสธ" /></label>
-              {item.status === 'PENDING_SLIP_REVIEW' && <AdminButton tone="success" disabled={busyId === item.id || !item.claimedBy} onClick={() => void runAction(item, 'approve-slip')}>สลิปถูกต้อง → รอยืนยันเครดิต</AdminButton>}
-              {item.status === 'PENDING_CREDIT' && <AdminButton tone="success" disabled={busyId === item.id || !item.claimedBy} onClick={() => void runAction(item, 'confirm-credit')}>ยืนยันเพิ่มเครดิต</AdminButton>}
-              <AdminButton tone="danger" disabled={busyId === item.id || !item.claimedBy} onClick={() => void runAction(item, 'reject')}>ปฏิเสธรายการ</AdminButton>
+              {item.status === 'PENDING_SLIP_REVIEW' && <AdminButton tone="success" disabled={busyId === item.id || !item.claimedBy} onClick={() => requestAction(item, 'approve-slip')}>สลิปถูกต้อง → รอยืนยันเครดิต</AdminButton>}
+              {item.status === 'PENDING_CREDIT' && <AdminButton tone="success" disabled={busyId === item.id || !item.claimedBy} onClick={() => requestAction(item, 'confirm-credit')}>ยืนยันเพิ่มเครดิต</AdminButton>}
+              <AdminButton tone="danger" disabled={busyId === item.id || !item.claimedBy} onClick={() => requestAction(item, 'reject')}>ปฏิเสธรายการ</AdminButton>
             </div> : <AdminNotice tone="warning">รายการนี้ไม่สามารถเปลี่ยนสถานะต่อได้</AdminNotice>}
           </AdminCard>;
         })}
         {items.length === 0 && <AdminEmpty>ไม่มีรายการในสถานะนี้</AdminEmpty>}
       </AdminStack>
+      <AdminConfirmDialog
+        open={Boolean(pendingAction)}
+        title={pendingAction ? actionTitle(pendingAction.action) : ''}
+        description={pendingAction ? actionDescription(pendingAction.action) : ''}
+        confirmLabel={pendingAction ? actionConfirmLabel(pendingAction.action) : 'ยืนยัน'}
+        tone={pendingAction?.action === 'reject' ? 'danger' : 'success'}
+        busy={Boolean(pendingAction && busyId === pendingAction.item.id)}
+        onCancel={() => setPendingAction(null)}
+        onConfirm={() => void confirmPendingAction()}
+        details={pendingAction ? <><p><strong>สมาชิก:</strong> {pendingAction.item.user?.username ?? pendingAction.item.userId}</p><p><strong>ยอดเงิน:</strong> {formatMoney(pendingAction.item.amount)}</p><p><strong>เหตุผล:</strong> {(notes[pendingAction.item.id] ?? '').trim() || '-'}</p></> : null}
+      />
     </AdminPage>
   );
 }
@@ -163,3 +191,6 @@ export default function AdminTopUpsPage() {
 function memberNote(value?: string | null) { if (!value) return '-'; try { const parsed = JSON.parse(value); return parsed.userNote || '-'; } catch { return value; } }
 function statusLabel(status: DepositStatus) { return ({ PENDING: 'รอส่งสลิป', PENDING_SLIP_REVIEW: 'รอตรวจสลิป', PENDING_CREDIT: 'รอยืนยันเครดิต', COMPLETED: 'สำเร็จ', DUPLICATE: 'สลิปซ้ำ', REJECTED: 'ไม่อนุมัติ', CANCELLED: 'ยกเลิก', APPROVED: 'รายการเก่า: อนุมัติแล้ว' } as Record<DepositStatus, string>)[status]; }
 function badgeTone(status: DepositStatus): 'success' | 'danger' | 'warning' | 'neutral' { if (status === 'COMPLETED') return 'success'; if (['REJECTED', 'DUPLICATE'].includes(status)) return 'danger'; if (['PENDING_SLIP_REVIEW', 'PENDING_CREDIT'].includes(status)) return 'warning'; return 'neutral'; }
+function actionTitle(action: DepositAction) { return action === 'approve-slip' ? 'ยืนยันผลตรวจสลิป' : action === 'confirm-credit' ? 'ยืนยันเพิ่มเครดิต' : 'ยืนยันปฏิเสธรายการ'; }
+function actionDescription(action: DepositAction) { return action === 'approve-slip' ? 'รายการจะถูกส่งต่อไปยังขั้นยืนยันเครดิต' : action === 'confirm-credit' ? 'ระบบจะเพิ่มยอดเข้ากระเป๋าสมาชิก การกระทำนี้ย้อนกลับไม่ได้' : 'รายการจะถูกปฏิเสธพร้อมบันทึกเหตุผลลง Audit log'; }
+function actionConfirmLabel(action: DepositAction) { return action === 'approve-slip' ? 'อนุมัติสลิป' : action === 'confirm-credit' ? 'เพิ่มเครดิต' : 'ปฏิเสธรายการ'; }
