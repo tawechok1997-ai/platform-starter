@@ -1,0 +1,34 @@
+/* Restore the supplied Tournament artwork above the tournament heading. */
+.member-tournament-section > .member-lobby-promo-card {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 1600 / 600 !important;
+  min-height: 0 !important;
+  margin: 0 0 12px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.member-tournament-section > .member-lobby-promo-card > img,
+.member-tournament-section > .member-lobby-promo-card img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
+
+@media (max-width: 520px) {
+  .member-tournament-section > .member-lobby-promo-card {
+    margin-bottom: 10px !important;
+    border-radius: 9px !important;
+  }
+}
