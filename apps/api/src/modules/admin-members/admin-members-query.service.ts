@@ -89,7 +89,11 @@ export class AdminMembersQueryService {
       this.prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
       this.prisma.user.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
       this.prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
-      this.prisma.user.groupBy({ by: ['status'], _count: { _all: true } }),
+      this.prisma.user.groupBy({
+        by: ['status'],
+        orderBy: { status: 'asc' },
+        _count: { _all: true },
+      }),
       this.prisma.user.findMany({
         where: {
           OR: [
@@ -103,7 +107,8 @@ export class AdminMembersQueryService {
 
     const status = Object.fromEntries(MEMBER_STATUSES.map((value) => [value, 0])) as Record<MemberStatus, number>;
     for (const group of statusGroups) {
-      if (group.status in status) status[group.status as MemberStatus] = group._count._all;
+      const count = typeof group._count === 'object' ? Number(group._count._all ?? 0) : 0;
+      if (group.status in status) status[group.status as MemberStatus] = count;
     }
 
     const trend = Array.from({ length: 14 }, (_, index) => {
