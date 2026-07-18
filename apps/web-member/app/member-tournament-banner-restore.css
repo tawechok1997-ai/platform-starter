@@ -1,4 +1,4 @@
-/* Restore the supplied Tournament artwork above the tournament heading. */
+/* Render the supplied Tournament artwork as a stable background so legacy img rules cannot collapse it. */
 .member-tournament-section > .member-lobby-promo-card {
   display: block !important;
   position: relative !important;
@@ -12,27 +12,18 @@
   overflow: hidden !important;
   border: 0 !important;
   border-radius: 10px !important;
-  background: #0d1320 !important;
+  background-color: #0d1320 !important;
+  background-image: url('/images/member-lobby/noah345-reference/0028_4a7df032-03f5-4999-ba59-f38d12c13761_0ff5658475.png') !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: cover !important;
   box-shadow: none !important;
   line-height: 0 !important;
 }
 
 .member-tournament-section > .member-lobby-promo-card > img,
 .member-tournament-section > .member-lobby-promo-card img {
-  display: block !important;
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  min-width: 100% !important;
-  min-height: 100% !important;
-  max-width: none !important;
-  max-height: none !important;
-  object-fit: cover !important;
-  object-position: center !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  transform: none !important;
+  display: none !important;
 }
 
 @media (max-width: 520px) {
