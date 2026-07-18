@@ -60,6 +60,21 @@
 .admin-finance-chart__net[data-tone="negative"]{border-color:rgba(239,68,68,.28);background:radial-gradient(circle at top right,rgba(239,68,68,.14),transparent 58%),rgba(6,9,18,.5)}
 .admin-finance-chart__net span,.admin-finance-chart__net small{color:#9aa8be}
 .admin-finance-chart__net strong{font-size:clamp(24px,4vw,38px);font-variant-numeric:tabular-nums}
+.admin-risk-chart{display:grid;grid-template-columns:minmax(190px,.32fr) minmax(0,1fr);gap:18px;align-items:stretch}
+.admin-risk-chart__pressure{display:grid;align-content:center;gap:8px;padding:20px;border-radius:16px;border:1px solid rgba(34,197,94,.2);background:radial-gradient(circle at top right,rgba(34,197,94,.12),transparent 58%),rgba(6,9,18,.5)}
+.admin-risk-chart__pressure[data-tone="warning"]{border-color:rgba(245,158,11,.26);background:radial-gradient(circle at top right,rgba(245,158,11,.13),transparent 58%),rgba(6,9,18,.5)}
+.admin-risk-chart__pressure[data-tone="danger"]{border-color:rgba(239,68,68,.3);background:radial-gradient(circle at top right,rgba(239,68,68,.15),transparent 58%),rgba(6,9,18,.5)}
+.admin-risk-chart__pressure span,.admin-risk-chart__pressure small{color:#9aa8be}
+.admin-risk-chart__pressure strong{font-size:clamp(30px,5vw,48px);line-height:1;font-variant-numeric:tabular-nums}
+.admin-risk-chart__plot{display:grid;gap:14px;padding:18px;border-radius:16px;background:linear-gradient(180deg,rgba(6,9,18,.35),rgba(6,9,18,.7));border:1px solid rgba(148,163,184,.12)}
+.admin-risk-chart__row{display:grid;grid-template-columns:84px minmax(0,1fr) 38px;gap:12px;align-items:center}
+.admin-risk-chart__row>span{font-size:12px;font-weight:850;letter-spacing:.04em;color:#cbd5e1}
+.admin-risk-chart__row>div{height:14px;border-radius:999px;background:rgba(148,163,184,.12);overflow:hidden}
+.admin-risk-chart__row i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#ef4444,#fb7185);transition:width 260ms ease}
+.admin-risk-chart__row[data-severity="high"] i{background:linear-gradient(90deg,#f97316,#f59e0b)}
+.admin-risk-chart__row[data-severity="medium"] i{background:linear-gradient(90deg,#eab308,#facc15)}
+.admin-risk-chart__row[data-severity="low"] i{background:linear-gradient(90deg,#22c55e,#22d3ee)}
+.admin-risk-chart__row>strong{text-align:right;font-variant-numeric:tabular-nums}
 
 @media (max-width:767px){
   .admin-dashboard{gap:14px}
@@ -74,7 +89,7 @@
   .admin-command-status__meta{grid-column:1/-1;justify-items:start;padding-top:12px;border-top:1px solid rgba(148,163,184,.12)}
   .admin-command-priority{grid-template-columns:1fr}
   .admin-finance-flow__summary{grid-template-columns:1fr}
-  .admin-finance-chart{grid-template-columns:1fr}
+  .admin-finance-chart,.admin-risk-chart{grid-template-columns:1fr}
   .admin-finance-chart__plot{min-height:250px;padding:14px;gap:12px}
 }
 
@@ -84,6 +99,7 @@
   .admin-command-status{padding:15px}
   .admin-command-status__signal span{display:none}
   .admin-finance-chart__bar{width:min(42px,42%)}
+  .admin-risk-chart__row{grid-template-columns:70px minmax(0,1fr) 30px;gap:8px}
 }
 
 @media (min-width:1024px){
@@ -95,6 +111,6 @@
 }
 
 @media (prefers-reduced-motion:reduce){
-  .admin-priority-lane,.admin-finance-flow__bar span,.admin-finance-chart__bar>span{transition:none}
+  .admin-priority-lane,.admin-finance-flow__bar span,.admin-finance-chart__bar>span,.admin-risk-chart__row i{transition:none}
   .admin-priority-lane:hover{transform:none}
 }
