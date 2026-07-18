@@ -2,6 +2,9 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { upstreamApiOrigin, upstreamApiUrl } from '../../upstream';
 
+const ADMIN_ACCESS_COOKIE = 'platform_admin_access';
+const ADMIN_ACCESS_MAX_AGE_SECONDS = 10 * 60;
+
 export async function POST(request: NextRequest) {
   const requestId = request.headers.get('x-request-id') ?? randomUUID();
 
@@ -21,14 +24,29 @@ export async function POST(request: NextRequest) {
       body,
     });
 
-    const payload = await response.json().catch(() => null);
+    const payload = await response.json().catch(() => null) as { accessToken?: unknown } | null;
     const headers = new Headers({ 'cache-control': 'no-store', 'x-request-id': requestId });
     const setCookie = response.headers.get('set-cookie');
-    if (setCookie) headers.set('set-cookie', setCookie);
-    return NextResponse.json(payload ?? { message: 'Authentication service returned an invalid response', requestId }, {
-      status: response.status,
-      headers,
-    });
+    if (setCookie) headers.append('set-cookie', setCookie);
+
+    const nextResponse = NextResponse.json(
+      payload ?? { message: 'Authentication service returned an invalid response', requestId },
+      { status: response.status, headers },
+    );
+
+    if (response.ok && typeof payload?.accessToken === 'string') {
+      nextResponse.cookies.set({
+        name: ADMIN_ACCESS_COOKIE,
+        value: payload.accessToken,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/api/admin',
+        maxAge: ADMIN_ACCESS_MAX_AGE_SECONDS,
+      });
+    }
+
+    return nextResponse;
   } catch (error) {
     const detail = error instanceof Error
       ? { name: error.name, message: error.message, cause: error.cause instanceof Error ? error.cause.message : String(error.cause ?? '') }
