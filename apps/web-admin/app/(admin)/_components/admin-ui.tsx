@@ -7,6 +7,19 @@ type SurfaceTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
 type ButtonTone = 'primary' | 'secondary' | 'danger' | 'success';
 type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger';
 
+type ConfirmDialogProps = {
+  open: boolean;
+  title: string;
+  description: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  tone?: 'primary' | 'danger' | 'success';
+  busy?: boolean;
+  details?: ReactNode;
+  onConfirm: () => void;
+  onCancel: () => void;
+};
+
 export function AdminPage({ eyebrow, title, description, actions, children }: PageProps) {
   return <main className="admin-ui-page"><header className="admin-ui-page__head"><div>{eyebrow && <p className="admin-ui-eyebrow">{eyebrow}</p>}<h1>{title}</h1>{description && <p className="admin-ui-page__description">{description}</p>}</div>{actions && <div className="admin-ui-page__actions">{actions}</div>}</header>{children}</main>;
 }
@@ -39,6 +52,18 @@ export function AdminLinkButton({ children, href, tone = 'secondary' }: { childr
 
 export function AdminBadge({ children, tone = 'neutral' }: { children: ReactNode; tone?: BadgeTone }) {
   return <span className={`admin-ui-badge admin-ui-badge--${tone}`}>{children}</span>;
+}
+
+export function AdminConfirmDialog({ open, title, description, confirmLabel, cancelLabel = 'ยกเลิก', tone = 'primary', busy = false, details, onConfirm, onCancel }: ConfirmDialogProps) {
+  if (!open) return null;
+  return <div className="admin-confirm-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
+    <section className="admin-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="admin-confirm-title" aria-describedby="admin-confirm-description">
+      <div className={`admin-confirm-dialog__mark admin-confirm-dialog__mark--${tone}`} aria-hidden="true">!</div>
+      <div className="admin-confirm-dialog__copy"><h2 id="admin-confirm-title">{title}</h2><p id="admin-confirm-description">{description}</p></div>
+      {details ? <div className="admin-confirm-dialog__details">{details}</div> : null}
+      <div className="admin-confirm-dialog__actions"><AdminButton tone="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</AdminButton><AdminButton tone={tone} disabled={busy} onClick={onConfirm}>{busy ? 'กำลังดำเนินการ...' : confirmLabel}</AdminButton></div>
+    </section>
+  </div>;
 }
 
 export function AdminCommandPanel({ children }: { children: ReactNode }) { return <section className="admin-ui-command-panel">{children}</section>; }
