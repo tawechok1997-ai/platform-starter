@@ -3,6 +3,7 @@ import test from 'node:test';
 import { canAccessNavItem, requiredPermissionsForPath } from '../../../app/(admin)/admin-nav';
 import { adminNextPath, sessionDecision } from '../../../app/admin-session-policy';
 import { hasAnyPermission, maskAccount, maskEmail, maskPhone } from '../../../app/(admin)/_components/member-mask';
+import { adminProfileUpdatePayload, normalizeAdminProfileForm } from './admin-profile-form';
 
 test('navigation only exposes protected items to matching permissions', () => {
   const item = { title: 'สมาชิก', href: '/members', permissions: ['users.view'] } as const;
@@ -44,4 +45,31 @@ test('permission helper supports explicit permission and super admin', () => {
   assert.equal(hasAnyPermission(['wallet.view'], ['wallet.view']), true);
   assert.equal(hasAnyPermission(['users.view'], ['wallet.view']), false);
   assert.equal(hasAnyPermission(['*'], ['wallet.view']), true);
+});
+
+test('profile update normalizes missing API values and trims the submitted payload', () => {
+  const normalized = normalizeAdminProfileForm({
+    displayName: ' Admin ',
+    firstName: null,
+    department: 42,
+    avatarUrl: ' https://example.com/avatar.png ',
+  });
+
+  assert.deepEqual(normalized, {
+    displayName: ' Admin ',
+    firstName: '',
+    lastName: '',
+    position: '',
+    department: '',
+    avatarUrl: ' https://example.com/avatar.png ',
+  });
+
+  assert.deepEqual(adminProfileUpdatePayload(normalized), {
+    displayName: 'Admin',
+    firstName: '',
+    lastName: '',
+    position: '',
+    department: '',
+    avatarUrl: 'https://example.com/avatar.png',
+  });
 });
