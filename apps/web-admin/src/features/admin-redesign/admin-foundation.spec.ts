@@ -17,11 +17,12 @@ test('route permission matching prefers the most specific route', () => {
   assert.deepEqual(requiredPermissionsForPath('/exports'), ['reports.export', 'reports.view']);
 });
 
-test('session policy handles refresh, privilege reduction and 2FA', () => {
+test('session policy handles refresh, forbidden responses and 2FA without login loops', () => {
   assert.equal(sessionDecision({ status: 401, pathname: '/dashboard' }), 'refresh');
   assert.equal(sessionDecision({ status: 401, pathname: '/dashboard', hasRetried: true }), 'login');
   assert.equal(sessionDecision({ status: 403, pathname: '/dashboard', responseCode: 'ADMIN_2FA_REQUIRED' }), 'setup-2fa');
-  assert.equal(sessionDecision({ status: 403, pathname: '/dashboard', responseCode: 'FORBIDDEN' }), 'login');
+  assert.equal(sessionDecision({ status: 403, pathname: '/dashboard', responseCode: 'FORBIDDEN' }), 'continue');
+  assert.equal(sessionDecision({ status: 403, pathname: '/dashboard' }), 'continue');
   assert.equal(sessionDecision({ status: 200, pathname: '/dashboard' }), 'continue');
   assert.equal(sessionDecision({ status: 401, pathname: '/login', skipAuth: true }), 'continue');
 });
