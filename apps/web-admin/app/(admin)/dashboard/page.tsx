@@ -22,6 +22,9 @@ type OperationalState = {
   message: string;
 };
 
+const QUEUE_TARGET_MINUTES = 30;
+const QUEUE_CRITICAL_MINUTES = 60;
+
 export default function OperationDashboardPage() {
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
   const [riskItems, setRiskItems] = useState<RiskAlert[]>([]);
@@ -74,13 +77,39 @@ export default function OperationDashboardPage() {
   const canViewReports = hasPermission(['reports.view']);
   const canViewWallet = hasPermission(['wallet.view']);
 
+  const queueMetrics = useMemo(() => {
+    const items = [...(summary?.queues.topUps ?? []), ...(summary?.queues.withdrawals ?? [])];
+    const now = Date.now();
+    const ages = items.map((item) => Math.max(0, Math.floor((now - new Date(item.createdAt).getTime()) / 60000))).filter(Number.isFinite);
+    const oldestMinutes = ages.length > 0 ? Math.max(...ages) : 0;
+    const overdueCount = ages.filter((minutes) => minutes >= QUEUE_TARGET_MINUTES).length;
+    const criticalCount = ages.filter((minutes) => minutes >= QUEUE_CRITICAL_MINUTES).length;
+    return { loadedCount: items.length, oldestMinutes, overdueCount, criticalCount };
+  }, [summary]);
+
+  const financialKpis = useMemo(() => {
+    const total = Number(summary?.totals.totalBalance ?? 0);
+    const available = Number(summary?.totals.totalAvailableBalance ?? 0);
+    const locked = Number(summary?.totals.totalLockedBalance ?? 0);
+    const variance = total - available - locked;
+    return {
+      total,
+      available,
+      locked,
+      variance: Math.abs(variance) < 0.005 ? 0 : variance,
+      deposits: Number(summary?.today?.topUpAmount ?? 0),
+      withdrawals: Number(summary?.today?.withdrawalAmount ?? 0),
+      netFlow: Number(summary?.today?.netFlow ?? 0),
+    };
+  }, [summary]);
+
   const operationalState = useMemo<OperationalState>(() => {
     if (financeError && riskError) return { tone: 'danger', label: 'DEGRADED', message: 'ข้อมูลการเงินและความเสี่ยงไม่พร้อมใช้งานพร้อมกัน' };
-    if (riskSummary.criticalCount > 0) return { tone: 'danger', label: 'ACTION REQUIRED', message: `มี Risk Alert วิกฤต ${riskSummary.criticalCount} รายการที่ต้องตรวจทันที` };
-    if (pendingTotal >= 20) return { tone: 'warning', label: 'QUEUE PRESSURE', message: `มีงานค้าง ${pendingTotal} รายการ ควรจัดลำดับเจ้าหน้าที่ดำเนินการ` };
+    if (riskSummary.criticalCount > 0 || queueMetrics.criticalCount > 0) return { tone: 'danger', label: 'ACTION REQUIRED', message: `มีงานวิกฤต ${riskSummary.criticalCount + queueMetrics.criticalCount} รายการที่ต้องตรวจทันที` };
+    if (pendingTotal >= 20 || queueMetrics.overdueCount > 0) return { tone: 'warning', label: 'QUEUE PRESSURE', message: `มีงานค้าง ${pendingTotal} รายการ และเกินเป้าหมาย ${queueMetrics.overdueCount} รายการ` };
     if (financeError || riskError) return { tone: 'warning', label: 'PARTIAL DATA', message: 'ข้อมูลบางส่วนยังไม่พร้อม ระบบคงข้อมูลที่โหลดสำเร็จไว้' };
     return { tone: 'success', label: 'OPERATIONAL', message: 'คิวหลักและข้อมูลความเสี่ยงอยู่ในระดับควบคุมได้' };
-  }, [financeError, pendingTotal, riskError, riskSummary.criticalCount]);
+  }, [financeError, pendingTotal, queueMetrics.criticalCount, queueMetrics.overdueCount, riskError, riskSummary.criticalCount]);
 
   const financeFlow = useMemo(() => {
     const deposits = Math.max(Number(summary?.today?.topUpAmount ?? 0), 0);
@@ -109,13 +138,27 @@ export default function OperationDashboardPage() {
 
         {(loading || permissions === null) && !summary && <div className="admin-dashboard__loading"><AdminSkeleton lines={4} /><AdminSkeleton lines={4} /><AdminSkeleton lines={3} /></div>}
 
-        {summary && canViewFinance && <div className="admin-dashboard__metrics"><AdminMetricGrid>
-          <AdminMetric title="Pending queues" value={String(pendingTotal)} helper={`${summary.totals.pendingTopUps} ฝาก · ${summary.totals.pendingWithdrawals} ถอน`} tone={pendingTotal > 0 ? 'warning' : 'success'} />
-          <AdminMetric title="Available" value={formatMoney(summary.totals.totalAvailableBalance)} helper="ยอดที่สมาชิกใช้ได้รวม" />
-          <AdminMetric title="Locked" value={formatMoney(summary.totals.totalLockedBalance)} helper="ยอดถูกล็อกระหว่างรอดำเนินการ" tone={Number(summary.totals.totalLockedBalance) > 0 ? 'warning' : 'neutral'} />
-          <AdminMetric title="Wallets" value={summary.totals.walletCount.toLocaleString('th-TH')} helper="จำนวนบัญชีทั้งหมด" />
-          {canViewRisk && <AdminMetric title="Risk Alerts" value={`${riskSummary.openCount}`} helper={`${riskSummary.criticalCount} ระดับสูง/วิกฤต`} tone={riskSummary.criticalCount > 0 ? 'danger' : riskSummary.openCount > 0 ? 'warning' : 'success'} />}
-        </AdminMetricGrid></div>}
+        {summary && canViewFinance && <section className="admin-kpi-groups" aria-label="ตัวชี้วัดการเงินและการดำเนินงาน">
+          <AdminCard title="Finance KPI" description="ยอดรวม กระแสเงินวันนี้ และความสอดคล้องของ Wallet">
+            <AdminMetricGrid>
+              <AdminMetric title="ยอดฝากวันนี้" value={formatMoney(String(financialKpis.deposits))} helper={`${summary.today?.topUpCount ?? 0} รายการ`} />
+              <AdminMetric title="ยอดถอนวันนี้" value={formatMoney(String(financialKpis.withdrawals))} helper={`${summary.today?.withdrawalCount ?? 0} รายการ`} />
+              <AdminMetric title="Net flow" value={formatMoney(String(financialKpis.netFlow))} helper="ฝากลบถอน" tone={financialKpis.netFlow < 0 ? 'warning' : 'success'} />
+              <AdminMetric title="ยอด Wallet รวม" value={formatMoney(String(financialKpis.total))} helper={`${summary.totals.walletCount.toLocaleString('th-TH')} Wallet`} />
+              <AdminMetric title="Wallet variance" value={formatMoney(String(financialKpis.variance))} helper="ยอดรวม - ยอดใช้ได้ - ยอดล็อก" tone={financialKpis.variance === 0 ? 'success' : 'danger'} />
+            </AdminMetricGrid>
+          </AdminCard>
+
+          <AdminCard title="Operations KPI" description={`เป้าหมายคิวภายใน ${QUEUE_TARGET_MINUTES} นาที · วิกฤตเมื่อเกิน ${QUEUE_CRITICAL_MINUTES} นาที`}>
+            <AdminMetricGrid>
+              <AdminMetric title="Pending queues" value={String(pendingTotal)} helper={`${summary.totals.pendingTopUps} ฝาก · ${summary.totals.pendingWithdrawals} ถอน`} tone={pendingTotal > 0 ? 'warning' : 'success'} />
+              <AdminMetric title="เกินเป้าหมาย" value={queueMetrics.overdueCount.toLocaleString('th-TH')} helper={`จาก ${queueMetrics.loadedCount} รายการที่โหลด`} tone={queueMetrics.overdueCount > 0 ? 'warning' : 'success'} />
+              <AdminMetric title="คิววิกฤต" value={queueMetrics.criticalCount.toLocaleString('th-TH')} helper={`เกิน ${QUEUE_CRITICAL_MINUTES} นาที`} tone={queueMetrics.criticalCount > 0 ? 'danger' : 'success'} />
+              <AdminMetric title="คิวเก่าสุด" value={formatDuration(queueMetrics.oldestMinutes)} helper="อายุรายการที่เก่าสุดในชุดข้อมูล" tone={queueMetrics.oldestMinutes >= QUEUE_CRITICAL_MINUTES ? 'danger' : queueMetrics.oldestMinutes >= QUEUE_TARGET_MINUTES ? 'warning' : 'success'} />
+              {canViewRisk && <AdminMetric title="Risk Alerts" value={`${riskSummary.openCount}`} helper={`${riskSummary.criticalCount} ระดับวิกฤต`} tone={riskSummary.criticalCount > 0 ? 'danger' : riskSummary.openCount > 0 ? 'warning' : 'success'} />}
+            </AdminMetricGrid>
+          </AdminCard>
+        </section>}
 
         <section className="admin-command-priority" aria-label="ลำดับงานสำคัญ">
           {canViewRisk && <PriorityLane label="Critical risk" value={riskSummary.criticalCount} href="/risk-alerts" tone="danger" helper="ตรวจสอบก่อนงานปกติ" />}
@@ -174,6 +217,13 @@ function QuickCard({ title, href, count, tone }: { title: string; href: string; 
 
 function QueueCard({ title, href, count, items }: { title: string; href: string; count: number; items: QueueItem[] }) {
   return <AdminCard title={title} description={`${count} รายการรอตรวจ`} action={<AdminLinkButton href={href}>เปิดคิว</AdminLinkButton>}><AdminStack>{items.slice(0, 5).map((item) => <AdminRow key={item.id}><div><strong>{item.user?.username ?? item.shortUserId}</strong><p>{item.method ?? '-'} · {new Date(item.createdAt).toLocaleString('th-TH')}</p></div><strong>{formatMoney(item.amount)}</strong></AdminRow>)}{items.length === 0 && <AdminEmpty>ไม่มีรายการรอตรวจ</AdminEmpty>}</AdminStack></AdminCard>;
+}
+
+function formatDuration(minutes: number) {
+  if (minutes < 60) return `${minutes} นาที`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder > 0 ? `${hours} ชม. ${remainder} นาที` : `${hours} ชม.`;
 }
 
 function riskTone(severity: RiskAlert['severity']) {
