@@ -20,6 +20,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     items: [
       { title: 'Dashboard', href: '/dashboard', badgeKey: 'pending' },
       { title: 'ศูนย์งานแอดมิน', href: '/operations', badgeKey: 'pending' },
+      { title: 'กิจกรรมและเหตุการณ์สำคัญ', href: '/activity-center', permissions: ['admin.view', 'admin.access.view', 'risk.view', 'reports.view'] },
     ],
   },
   {
@@ -41,6 +42,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     description: 'บัญชี ข้อมูล และการตรวจสอบสมาชิก',
     items: [
       { title: 'รายชื่อสมาชิก', href: '/members', permissions: ['users.view'] },
+      { title: 'Member Intelligence', href: '/member-insights', permissions: ['users.view'] },
       { title: 'บัญชีธนาคาร', href: '/bank-accounts', permissions: ['users.view', 'deposit.view'] },
       { title: 'KYC และตรวจบัญชี', href: '/kyc-center', permissions: ['users.view', 'risk.view'] },
       { title: 'ฝ่ายสนับสนุน', href: '/support-center', permissions: ['users.view'] },
@@ -61,6 +63,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     title: 'เกมและผู้ให้บริการ',
     description: 'เกม ค่าย API และสถานะการเชื่อมต่อ',
     items: [
+      { title: 'Provider Health', href: '/provider-health', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'ตั้งค่าค่ายแบบง่าย', href: '/simple-game-settings', permissions: ['game.providers.manage', 'provider.update'] },
       { title: 'เพิ่มค่ายใหม่', href: '/provider-setup-wizard', permissions: ['game.providers.manage', 'provider.update'] },
       { title: 'แบบตั้งค่าค่าย', href: '/provider-presets', permissions: ['game.providers.manage', 'provider.update'] },
