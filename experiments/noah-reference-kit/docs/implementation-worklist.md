@@ -14,20 +14,20 @@ Branch: `experiment/noah-reference-kit`
 
 | กลุ่ม | ทั้งหมด | เสร็จ | เหลือ |
 |---|---:|---:|---:|
-| A. Audit และ mapping | 5 | 2 | 3 |
+| A. Audit และ mapping | 5 | 4 | 1 |
 | B. Asset normalization | 5 | 0 | 5 |
 | C. Component contracts | 8 | 1 | 7 |
 | D. Isolated showcase | 6 | 0 | 6 |
 | E. Verification | 6 | 0 | 6 |
-| **รวม** | **30** | **3** | **27** |
+| **รวม** | **30** | **5** | **25** |
 
 ## A. Audit และ mapping
 
 - [x] A01 ตรวจ inventory ของ archive และแยก JS/CSS/image/SVG/HAR
 - [x] A02 สร้าง catalog component จาก production chunks
-- [ ] A03 ทำ dependency map ของ chunk ที่ขาดและ external libraries
+- [x] A03 ทำ dependency map ของ chunk ที่ขาดและ external libraries
 - [ ] A04 ทำ mapping จาก component ต้นทางไปยัง feature ของ Member
-- [ ] A05 ทำรายการสิ่งต้องห้ามนำมาใช้ตรง ๆ เช่น endpoint, credential, domain และ tracking code
+- [x] A05 ทำรายการสิ่งต้องห้ามนำมาใช้ตรง ๆ เช่น endpoint, credential, domain และ tracking code
 
 ## B. Asset normalization
 
@@ -68,4 +68,4 @@ Branch: `experiment/noah-reference-kit`
 
 ## ชุดที่กำลังทำ
 
-Batch 1: A03-A05 และ C02-C03
+Batch 1: A04 และ C02-C03
