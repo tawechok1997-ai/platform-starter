@@ -8,7 +8,7 @@
   height: 60px !important;
   padding: 5px 0 !important;
   display: grid !important;
-  grid-template-columns: 74px minmax(0, 1fr) 116px !important;
+  grid-template-columns: 74px minmax(0, 1fr) 110px !important;
   align-items: center !important;
   column-gap: 5px !important;
   box-sizing: border-box !important;
@@ -82,23 +82,29 @@
   padding: 0 !important;
 }
 
+/* Match the compact reference wallet: small, flat, and balanced. */
 .global-member-topbar .member-header-wallet {
   position: relative !important;
   display: grid !important;
-  grid-template-columns: 30px minmax(0, 1fr) !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
   align-items: center !important;
-  width: 116px !important;
-  min-width: 116px !important;
-  max-width: 116px !important;
-  height: 39px !important;
-  padding: 0 5px 0 4px !important;
-  gap: 2px !important;
+  width: 110px !important;
+  min-width: 110px !important;
+  max-width: 110px !important;
+  height: 34px !important;
+  padding: 0 8px !important;
+  gap: 4px !important;
   margin-left: auto !important;
   margin-right: 0 !important;
-  border-radius: 8px !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: rgba(66, 60, 91, 0.95) !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
   line-height: 1 !important;
+  letter-spacing: 0 !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
@@ -107,11 +113,11 @@
 .global-member-topbar .member-header-wallet img {
   position: static !important;
   transform: none !important;
-  width: 28px !important;
-  height: 28px !important;
-  max-width: 28px !important;
+  width: 22px !important;
+  height: 22px !important;
+  max-width: 22px !important;
   object-fit: contain !important;
-  justify-self: start !important;
+  justify-self: center !important;
 }
 
 .global-member-topbar .member-header-wallet__amount {
@@ -119,6 +125,7 @@
   width: 100% !important;
   min-width: 0 !important;
   overflow: hidden !important;
+  text-overflow: clip !important;
   white-space: nowrap !important;
   text-align: center !important;
   font-variant-numeric: tabular-nums !important;
@@ -128,7 +135,7 @@
   .global-member-topbar .member-topbar__inner {
     min-height: 57px !important;
     height: 57px !important;
-    grid-template-columns: 70px minmax(0, 1fr) 112px !important;
+    grid-template-columns: 70px minmax(0, 1fr) 104px !important;
     column-gap: 3px !important;
   }
 
@@ -153,17 +160,19 @@
   }
 
   .global-member-topbar .member-header-wallet {
-    width: 112px !important;
-    min-width: 112px !important;
-    max-width: 112px !important;
-    height: 37px !important;
-    grid-template-columns: 28px minmax(0, 1fr) !important;
-    font-size: 11px !important;
+    width: 104px !important;
+    min-width: 104px !important;
+    max-width: 104px !important;
+    height: 32px !important;
+    grid-template-columns: 22px minmax(0, 1fr) !important;
+    padding-inline: 7px !important;
+    gap: 3px !important;
+    font-size: 10px !important;
   }
 
   .global-member-topbar .member-header-wallet img {
-    width: 26px !important;
-    height: 26px !important;
-    max-width: 26px !important;
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
   }
 }
