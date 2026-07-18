@@ -1,40 +1,56 @@
-/* Exact user-supplied category icons. Hide every legacy icon child so only one icon renders. */
+/* Exact user-supplied category icons. One file per category, with all legacy layers removed. */
 .member-category-rail a > span {
   width: 56px !important;
   height: 56px !important;
   flex: 0 0 56px !important;
+  position: relative !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   background-size: contain !important;
   background-color: transparent !important;
   border: 0 !important;
   border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
 }
 
-.member-category-rail a > span > * {
+/* Remove the old MemberIcon and any legacy decorative layers. */
+.member-category-rail a > span > *,
+.member-category-rail a > span::before,
+.member-category-rail a > span::after,
+.member-category-rail a::before,
+.member-category-rail a::after {
+  content: none !important;
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  background: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
 }
 
 .member-category-rail a:nth-of-type(1) > span {
-  background-image: url('/images/member-lobby/source-icons/category-home.svg?v=2') !important;
+  background-image: url('/images/member-lobby/source-icons/category-home.svg?v=3') !important;
 }
+/* คาสิโน = ลูกเต๋า */
 .member-category-rail a:nth-of-type(2) > span {
-  background-image: url('/images/member-lobby/source-icons/category-casino.svg?v=2') !important;
+  background-image: url('/images/member-lobby/source-icons/category-lottery.svg?v=3') !important;
 }
 .member-category-rail a:nth-of-type(3) > span {
-  background-image: url('/images/member-lobby/source-icons/category-slot.svg?v=2') !important;
+  background-image: url('/images/member-lobby/source-icons/category-slot.svg?v=3') !important;
 }
 .member-category-rail a:nth-of-type(4) > span {
-  background-image: url('/images/member-lobby/source-icons/category-fishing.svg?v=2') !important;
+  background-image: url('/images/member-lobby/source-icons/category-fishing.svg?v=3') !important;
 }
 .member-category-rail a:nth-of-type(5) > span {
-  background-image: url('/images/member-lobby/source-icons/category-sport.svg?v=2') !important;
+  background-image: url('/images/member-lobby/source-icons/category-sport.svg?v=3') !important;
 }
 .member-category-rail a:nth-of-type(6) > span {
-  background-image: url('/images/member-lobby/source-icons/category-card.svg?v=2') !important;
+  background-image: url('/images/member-lobby/source-icons/category-card.svg?v=3') !important;
 }
+/* หวย = วงล้อ */
 .member-category-rail a:nth-of-type(7) > span {
-  background-image: url('/images/member-lobby/source-icons/category-lottery.svg?v=2') !important;
+  background-image: url('/images/member-lobby/source-icons/category-casino.svg?v=3') !important;
 }
 
 @media (max-width: 520px) {
