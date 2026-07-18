@@ -3,6 +3,7 @@ import { adminNextPath, sessionDecision } from './admin-session-policy';
 
 let inMemoryAccessToken = '';
 const ADMIN_SESSION_HINT = 'admin_session_hint';
+const ADMIN_ACCESS_TOKEN = 'admin_access_token';
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
 
@@ -12,7 +13,7 @@ export function proxiedAdminPath(path: string) {
 }
 
 export async function adminApiFetch(path: string, options: ApiOptions = {}) {
-  const token = inMemoryAccessToken;
+  const token = getAdminAccessToken();
   const headers = mergeHeaders(options.headers);
   if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
   if (!headers.has('Cache-Control')) headers.set('Cache-Control', 'no-store');
@@ -74,6 +75,8 @@ export async function refreshAdminToken(force = false) {
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.accessToken) {
     window.localStorage.removeItem(ADMIN_SESSION_HINT);
+    window.sessionStorage.removeItem(ADMIN_ACCESS_TOKEN);
+    inMemoryAccessToken = '';
     return '';
   }
   setAdminAccessToken(data.accessToken);
@@ -81,15 +84,29 @@ export async function refreshAdminToken(force = false) {
   return data.accessToken as string;
 }
 
+function getAdminAccessToken() {
+  if (inMemoryAccessToken) return inMemoryAccessToken;
+  if (typeof window === 'undefined') return '';
+  const stored = window.sessionStorage.getItem(ADMIN_ACCESS_TOKEN) ?? '';
+  if (stored) inMemoryAccessToken = stored;
+  return inMemoryAccessToken;
+}
+
 export function setAdminAccessToken(token: string) {
   inMemoryAccessToken = String(token ?? '');
-  if (inMemoryAccessToken) window.localStorage.setItem(ADMIN_SESSION_HINT, '1');
-  else window.localStorage.removeItem(ADMIN_SESSION_HINT);
+  if (inMemoryAccessToken) {
+    window.sessionStorage.setItem(ADMIN_ACCESS_TOKEN, inMemoryAccessToken);
+    window.localStorage.setItem(ADMIN_SESSION_HINT, '1');
+  } else {
+    window.sessionStorage.removeItem(ADMIN_ACCESS_TOKEN);
+    window.localStorage.removeItem(ADMIN_SESSION_HINT);
+  }
 }
 
 export function clearAdminSession() {
   inMemoryAccessToken = '';
+  window.sessionStorage.removeItem(ADMIN_ACCESS_TOKEN);
   window.localStorage.removeItem(ADMIN_SESSION_HINT);
-  window.localStorage.removeItem('admin_access_token');
+  window.localStorage.removeItem(ADMIN_ACCESS_TOKEN);
   window.localStorage.removeItem('admin_refresh_token');
 }
