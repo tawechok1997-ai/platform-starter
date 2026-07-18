@@ -181,6 +181,10 @@ export default function OperationDashboardPage() {
           </div>
         </AdminCard>}
 
+        {summary?.today && canViewFinance && <AdminCard title="Finance comparison" description="เปรียบเทียบมูลค่า ปริมาณรายการ และ Net flow ของวันนี้">
+          <FinanceComparisonChart today={summary.today} />
+        </AdminCard>}
+
         <div className="admin-dashboard__quick">
           {canViewTopUps && <QuickCard title="ตรวจสอบรายการฝาก" href="/topups" count={summary?.totals.pendingTopUps ?? 0} tone="warning" />}
           {canViewWithdrawals && <QuickCard title="ตรวจสอบรายการถอน" href="/withdrawals" count={summary?.totals.pendingWithdrawals ?? 0} tone="danger" />}
@@ -209,6 +213,31 @@ function RetryNotice({ message, onRetry }: { message: string; onRetry: () => voi
 
 function PriorityLane({ label, value, href, tone, helper }: { label: string; value: number; href: string; tone: 'neutral' | 'warning' | 'danger'; helper: string }) {
   return <a className="admin-priority-lane" data-tone={tone} href={href}><span><strong>{label}</strong><small>{helper}</small></span><b>{value.toLocaleString('th-TH')}</b></a>;
+}
+
+function FinanceComparisonChart({ today }: { today: NonNullable<FinanceSummary['today']> }) {
+  const depositAmount = Math.max(Number(today.topUpAmount), 0);
+  const withdrawalAmount = Math.max(Number(today.withdrawalAmount), 0);
+  const amountMax = Math.max(depositAmount, withdrawalAmount, 1);
+  const countMax = Math.max(today.topUpCount, today.withdrawalCount, 1);
+  const netFlow = Number(today.netFlow);
+  return <div className="admin-finance-chart">
+    <div className="admin-finance-chart__plot" aria-label={`ยอดฝาก ${formatMoney(today.topUpAmount)} ยอดถอน ${formatMoney(today.withdrawalAmount)}`}>
+      <ChartColumn label="ฝาก" amount={depositAmount} count={today.topUpCount} amountPercent={(depositAmount / amountMax) * 100} countPercent={(today.topUpCount / countMax) * 100} kind="deposit" />
+      <ChartColumn label="ถอน" amount={withdrawalAmount} count={today.withdrawalCount} amountPercent={(withdrawalAmount / amountMax) * 100} countPercent={(today.withdrawalCount / countMax) * 100} kind="withdrawal" />
+    </div>
+    <div className="admin-finance-chart__net" data-tone={netFlow < 0 ? 'negative' : 'positive'}><span>Net flow</span><strong>{formatMoney(today.netFlow)}</strong><small>{netFlow < 0 ? 'เงินไหลออกมากกว่าไหลเข้า' : 'เงินไหลเข้ามากกว่าหรือเท่ากับไหลออก'}</small></div>
+  </div>;
+}
+
+function ChartColumn({ label, amount, count, amountPercent, countPercent, kind }: { label: string; amount: number; count: number; amountPercent: number; countPercent: number; kind: 'deposit' | 'withdrawal' }) {
+  return <div className="admin-finance-chart__column" data-kind={kind}>
+    <div className="admin-finance-chart__bars">
+      <div className="admin-finance-chart__bar"><span style={{ height: `${Math.max(amountPercent, amount > 0 ? 4 : 0)}%` }} /><small>มูลค่า</small></div>
+      <div className="admin-finance-chart__bar admin-finance-chart__bar--count"><span style={{ height: `${Math.max(countPercent, count > 0 ? 4 : 0)}%` }} /><small>จำนวน</small></div>
+    </div>
+    <strong>{label}</strong><span>{formatMoney(String(amount))}</span><small>{count.toLocaleString('th-TH')} รายการ</small>
+  </div>;
 }
 
 function QuickCard({ title, href, count, tone }: { title: string; href: string; count: number; tone: 'neutral' | 'warning' | 'danger' }) {
