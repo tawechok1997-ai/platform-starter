@@ -15,7 +15,7 @@
 
 ## P1 — Admin navigation, identity และ access UX
 
-สถานะ: 6 / 8 เสร็จ | เหลือ 2
+สถานะ: 7 / 8 เสร็จ | เหลือ 1
 
 - [x] แยก Sidebar เป็นหมวดหมู่
 - [x] เพิ่ม Submenu แบบ accordion พร้อม active state และ animation
@@ -23,7 +23,7 @@
 - [x] เพิ่ม Profile dropdown และลิงก์ไปหน้าโปรไฟล์ส่วนตัว
 - [x] เพิ่มหน้า Profile และหน้าแก้ไข Profile
 - [x] กรองเมนูและ route ตาม permission
-- [ ] เพิ่ม data masking ระดับ field ตามตำแหน่งและ permission
+- [x] เพิ่ม data masking ระดับ field ตามตำแหน่งและ permission
 - [ ] ปรับหน้ารายชื่อ Admin ให้แสดงรูป ชื่อ ตำแหน่ง แผนก Role และสถานะอย่างครบถ้วน
 
 ## P2 — Professional dashboard และ UI completion
@@ -44,6 +44,6 @@
 | Priority | เสร็จ | ทั้งหมด | เหลือ |
 |---|---:|---:|---:|
 | P0 | 3 | 4 | 1 |
-| P1 | 6 | 8 | 2 |
+| P1 | 7 | 8 | 1 |
 | P2 | 3 | 8 | 5 |
-| **รวม** | **12** | **20** | **8** |
+| **รวม** | **13** | **20** | **7** |
