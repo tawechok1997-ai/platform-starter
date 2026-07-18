@@ -1,4 +1,5 @@
-/* Compact mobile header sized to the supplied Noah345 reference. */
+/* Compact mobile header sized to the supplied Noah345 reference.
+   Keep this as the single final header override imported last by layout.tsx. */
 .global-member-topbar {
   min-height: 0 !important;
 }
@@ -8,7 +9,7 @@
   height: 56px !important;
   padding: 4px 0 !important;
   display: grid !important;
-  grid-template-columns: 70px minmax(0, 1fr) 102px !important;
+  grid-template-columns: 70px minmax(0, 1fr) 94px !important;
   align-items: center !important;
   column-gap: 4px !important;
   box-sizing: border-box !important;
@@ -41,10 +42,14 @@
   height: 18px !important;
 }
 
-/* Keep the menu icon compact, but make search visually clearer. */
-.global-member-topbar .member-header-tools .member-header-tool:nth-child(2) svg {
-  width: 22px !important;
-  height: 22px !important;
+/* Search is the literal `⌕` character in member-chrome.tsx, not an SVG. */
+.global-member-topbar .member-header-tools .member-header-tool:nth-child(2) {
+  display: grid !important;
+  place-items: center !important;
+  font-size: 29px !important;
+  font-weight: 400 !important;
+  line-height: 0.8 !important;
+  padding-bottom: 3px !important;
 }
 
 .global-member-topbar .member-brand {
@@ -91,14 +96,14 @@
 .global-member-topbar .member-header-wallet {
   position: relative !important;
   display: grid !important;
-  grid-template-columns: 32px minmax(0, 1fr) !important;
+  grid-template-columns: 34px minmax(0, 1fr) !important;
   align-items: center !important;
-  width: 102px !important;
-  min-width: 102px !important;
-  max-width: 102px !important;
+  width: 94px !important;
+  min-width: 94px !important;
+  max-width: 94px !important;
   height: 34px !important;
-  padding: 0 5px !important;
-  gap: 2px !important;
+  padding: 0 4px !important;
+  gap: 1px !important;
   margin-left: auto !important;
   margin-right: 0 !important;
   border: 0 !important;
@@ -106,23 +111,24 @@
   background: rgba(66, 60, 91, 0.95) !important;
   box-shadow: none !important;
   outline: 0 !important;
-  font-size: 8.8px !important;
+  font-size: 8.2px !important;
   font-weight: 600 !important;
   line-height: 1 !important;
-  letter-spacing: 0 !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
 }
 
+/* The source image contains transparent padding, so scale the artwork itself. */
 .global-member-topbar .member-header-wallet img {
   position: static !important;
-  transform: none !important;
-  width: 29px !important;
-  height: 29px !important;
-  max-width: 29px !important;
+  width: 30px !important;
+  height: 30px !important;
+  max-width: 30px !important;
   object-fit: contain !important;
-  justify-self: start !important;
+  justify-self: center !important;
+  transform: scale(1.24) !important;
+  transform-origin: center !important;
 }
 
 .global-member-topbar .member-header-wallet__amount {
@@ -133,10 +139,10 @@
   text-overflow: clip !important;
   white-space: nowrap !important;
   text-align: center !important;
-  font-size: 8.8px !important;
+  font-size: 8.2px !important;
   font-weight: 600 !important;
   line-height: 1 !important;
-  letter-spacing: -0.03em !important;
+  letter-spacing: -0.04em !important;
   font-variant-numeric: tabular-nums !important;
 }
 
@@ -144,7 +150,7 @@
   .global-member-topbar .member-topbar__inner {
     min-height: 54px !important;
     height: 54px !important;
-    grid-template-columns: 66px minmax(0, 1fr) 98px !important;
+    grid-template-columns: 66px minmax(0, 1fr) 90px !important;
     column-gap: 3px !important;
   }
 
@@ -160,9 +166,9 @@
     height: 17px !important;
   }
 
-  .global-member-topbar .member-header-tools .member-header-tool:nth-child(2) svg {
-    width: 21px !important;
-    height: 21px !important;
+  .global-member-topbar .member-header-tools .member-header-tool:nth-child(2) {
+    font-size: 27px !important;
+    padding-bottom: 3px !important;
   }
 
   .global-member-topbar .member-brand,
@@ -175,23 +181,24 @@
   }
 
   .global-member-topbar .member-header-wallet {
-    width: 98px !important;
-    min-width: 98px !important;
-    max-width: 98px !important;
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
     height: 32px !important;
-    grid-template-columns: 30px minmax(0, 1fr) !important;
-    padding-inline: 4px !important;
-    gap: 2px !important;
-    font-size: 8.3px !important;
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+    padding-inline: 3px !important;
+    gap: 1px !important;
+    font-size: 7.8px !important;
   }
 
   .global-member-topbar .member-header-wallet img {
-    width: 27px !important;
-    height: 27px !important;
-    max-width: 27px !important;
+    width: 28px !important;
+    height: 28px !important;
+    max-width: 28px !important;
+    transform: scale(1.24) !important;
   }
 
   .global-member-topbar .member-header-wallet__amount {
-    font-size: 8.3px !important;
+    font-size: 7.8px !important;
   }
 }
