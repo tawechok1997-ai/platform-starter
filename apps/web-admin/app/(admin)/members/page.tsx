@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
+import { hasAnyPermission, maskEmail, maskPhone } from '../_components/member-mask';
 
 type MemberItem = { id: string; shortId: string; username: string; phone?: string | null; email?: string | null; status: string; displayName?: string | null; balance: string; lockedBalance: string; availableBalance: string; createdAt: string; lastLoginAt?: string | null };
 type AdminIdentity = { permissions?: string[] };
@@ -114,8 +115,5 @@ export default function MembersPage() {
   </AdminPage>;
 }
 
-function hasAnyPermission(permissions: readonly string[], required: readonly string[]) { return permissions.includes('*') || required.some((permission) => permissions.includes(permission)); }
-function maskPhone(value: string | null | undefined, visible: boolean) { if (!value) return '-'; if (visible) return value; const digits = value.replace(/\D/g, ''); return digits.length >= 4 ? `xxx-xxx-${digits.slice(-4)}` : '••••••'; }
-function maskEmail(value: string | null | undefined, visible: boolean) { if (!value) return '-'; if (visible) return value; const [local = '', domain] = value.split('@'); if (!local || !domain) return '••••••'; return `${local.slice(0, 2)}***@${domain}`; }
 function statusTone(status: string) { if (status === 'ACTIVE') return 'success'; if (status === 'SUSPENDED' || status === 'LOCKED') return 'danger'; return 'neutral'; }
 function statusLabel(status: string) { const labels: Record<string, string> = { ALL: 'ทุกสถานะ', ACTIVE: 'ใช้งานได้', SUSPENDED: 'ระงับ', LOCKED: 'ล็อก', CLOSED: 'ปิดบัญชี' }; return labels[status] ?? status; }
