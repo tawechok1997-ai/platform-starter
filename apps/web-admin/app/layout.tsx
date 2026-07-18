@@ -28,6 +28,7 @@ import './admin-data-table.css';
 import './admin-bulk-action.css';
 import './admin-shell-overlay-fix.css';
 import './admin-confirm-dialog.css';
+import './admin-professional-polish.css';
 
 export const viewport: Viewport = {
   width: 'device-width',
