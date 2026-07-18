@@ -1,0 +1,19 @@
+/* Prevent the mobile drawer overlay wrapper from covering desktop content. */
+@media (min-width: 1024px) {
+  .admin-shell > div[style*="position: fixed"] {
+    display: contents;
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    isolation: auto !important;
+    pointer-events: none;
+  }
+
+  .admin-shell > div[style*="position: fixed"] .admin-drawer-backdrop {
+    display: none !important;
+  }
+
+  .admin-shell > div[style*="position: fixed"] .admin-drawer {
+    pointer-events: auto;
+  }
+}
