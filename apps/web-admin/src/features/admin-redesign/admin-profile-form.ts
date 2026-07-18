@@ -38,6 +38,12 @@ export function adminProfileUpdatePayload(form: AdminProfileForm): AdminProfileF
   };
 }
 
+export function adminProfileErrorMessage(value: unknown, fallback: string) {
+  if (typeof value !== 'object' || value === null || !('message' in value)) return fallback;
+  const message = (value as { message?: unknown }).message;
+  return typeof message === 'string' && message.trim() ? message : fallback;
+}
+
 function text(value: unknown) {
   return typeof value === 'string' ? value : '';
 }
