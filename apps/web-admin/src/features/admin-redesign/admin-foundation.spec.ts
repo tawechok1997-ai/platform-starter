@@ -3,7 +3,7 @@ import test from 'node:test';
 import { canAccessNavItem, requiredPermissionsForPath } from '../../../app/(admin)/admin-nav';
 import { adminNextPath, sessionDecision } from '../../../app/admin-session-policy';
 import { hasAnyPermission, maskAccount, maskEmail, maskPhone } from '../../../app/(admin)/_components/member-mask';
-import { adminProfileUpdatePayload, normalizeAdminProfileForm } from './admin-profile-form';
+import { adminProfileErrorMessage, adminProfileUpdatePayload, normalizeAdminProfileForm } from './admin-profile-form';
 
 test('navigation only exposes protected items to matching permissions', () => {
   const item = { title: 'สมาชิก', href: '/members', permissions: ['users.view'] } as const;
@@ -72,4 +72,10 @@ test('profile update normalizes missing API values and trims the submitted paylo
     department: '',
     avatarUrl: 'https://example.com/avatar.png',
   });
+});
+
+test('profile API error parser only accepts non-empty string messages', () => {
+  assert.equal(adminProfileErrorMessage({ message: 'Profile rejected' }, 'fallback'), 'Profile rejected');
+  assert.equal(adminProfileErrorMessage({ message: 42 }, 'fallback'), 'fallback');
+  assert.equal(adminProfileErrorMessage(null, 'fallback'), 'fallback');
 });
