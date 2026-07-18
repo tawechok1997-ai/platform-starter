@@ -54,6 +54,7 @@ import './member-reference-assets-final.css';
 import './member-category-uploaded-icons.css';
 import './member-promotion-frame-fix.css';
 import './member-hero-carousel-controls.css';
+import './member-category-handle-remove.css';
 import MemberChrome from './member-chrome';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import { MemberSessionProvider } from './member-session-provider';
