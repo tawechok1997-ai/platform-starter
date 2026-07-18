@@ -6,6 +6,7 @@ import { getRequestMeta } from '../../common/http/request-meta';
 import { AntiBotService } from '../anti-bot/anti-bot.service';
 import { AdminLoginDefenseService } from './admin-login-defense.service';
 import { AdminLoginService } from './admin-login.service';
+import { AdminProfileQueryService } from './admin-profile-query.service';
 import { AdminRefreshSessionService } from './admin-refresh-session.service';
 import { AdminSessionCommandService } from './admin-session-command.service';
 import { AdminSessionsQueryService } from './admin-sessions-query.service';
@@ -18,6 +19,7 @@ import { VerifyAdminTwoFactorDto } from './dto/verify-admin-2fa.dto';
 export class AdminAuthController {
   constructor(
     private readonly login: AdminLoginService,
+    private readonly profileQueries: AdminProfileQueryService,
     private readonly sessionQueries: AdminSessionsQueryService,
     private readonly sessionCommands: AdminSessionCommandService,
     private readonly refreshSessions: AdminRefreshSessionService,
@@ -109,7 +111,7 @@ export class AdminAuthController {
   @UseGuards(AdminAuthGuard)
   @Get('me')
   me(@CurrentUser() user: AuthenticatedAdminActor) {
-    return user;
+    return this.profileQueries.getProfile(user.id, user.permissions ?? []);
   }
 
   private sessionRefreshToken(result: unknown) {
