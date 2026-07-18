@@ -15,7 +15,15 @@ const exports = [
 
 export default function ExportsPage() {
   const [jobs, setJobs] = useState<ExportJob[]>([]);
-  useEffect(() => { try { const value = localStorage.getItem(STORAGE_KEY); if (value) setJobs(JSON.parse(value)); } catch {} }, []);
+  useEffect(() => {
+    try {
+      const value = localStorage.getItem(STORAGE_KEY);
+      if (value) setJobs(JSON.parse(value));
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+      setJobs([]);
+    }
+  }, []);
   useEffect(() => { if (jobs.length) localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs.slice(0, 30))); }, [jobs]);
   const metrics = useMemo(() => ({ total: jobs.length, completed: jobs.filter((job) => job.status === 'COMPLETED').length, failed: jobs.filter((job) => job.status === 'FAILED').length, running: jobs.filter((job) => job.status === 'RUNNING').length }), [jobs]);
 
