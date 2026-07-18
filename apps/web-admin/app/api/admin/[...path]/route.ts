@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { upstreamApiUrl } from '../../upstream';
+
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
 
 async function proxy(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
@@ -7,7 +8,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   const method = request.method.toUpperCase();
   const origin = request.headers.get('origin');
 
-  if (isCrossOriginMutation(method, origin, request.nextUrl.origin)) {
+  if (isCrossOriginMutation(method, origin, publicRequestOrigin(request))) {
     return NextResponse.json({ message: 'Cross-origin admin mutation blocked' }, { status: 403 });
   }
 
@@ -63,9 +64,23 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   }
 }
 
+function publicRequestOrigin(request: NextRequest) {
+  const forwardedProto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
+  const host = forwardedHost || request.headers.get('host')?.trim();
+  const protocol = forwardedProto || request.nextUrl.protocol.replace(':', '');
+
+  return host ? `${protocol}://${host}` : request.nextUrl.origin;
+}
+
 function isCrossOriginMutation(method: string, origin: string | null, requestOrigin: string) {
   if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) || !origin) return false;
-  return origin !== requestOrigin;
+
+  try {
+    return new URL(origin).origin !== new URL(requestOrigin).origin;
+  } catch {
+    return true;
+  }
 }
 
 export const GET = proxy;
