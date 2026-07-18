@@ -1,4 +1,4 @@
-/* Remove decorative frames around promotion artwork while preserving the artwork itself. */
+/* Remove CSS decoration and crop artwork borders that are baked into the banner files. */
 .member-home-hero,
 .member-home-hero__slide-link,
 .member-home-hero__image,
@@ -29,4 +29,27 @@
 .member-lobby-promo-card::after {
   content: none !important;
   display: none !important;
+}
+
+/* The purple rounded frame is part of the source artwork, not a CSS border.
+   Crop the outer edge inside the existing banner viewport so it disappears. */
+.member-home-hero,
+.member-home-hero__slide-link {
+  overflow: hidden !important;
+}
+
+.member-home-hero__image {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  transform: scale(1.075) !important;
+  transform-origin: center center !important;
+}
+
+@media (max-width: 520px) {
+  .member-home-hero__image {
+    transform: scale(1.085) !important;
+  }
 }
