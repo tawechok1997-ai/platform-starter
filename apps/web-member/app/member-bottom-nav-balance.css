@@ -1,13 +1,24 @@
-/* Keep the fixed bottom navigation at one visual height on iOS Safari.
-   Do not add safe-area inset to the bar itself because Safari changes its
-   browser chrome while scrolling and that made the menu visibly grow/shrink. */
+/* Lock the member bottom navigation to the viewport at one stable height. */
 .member-bottom-nav {
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1000 !important;
+  width: 100% !important;
   min-height: 0 !important;
   height: 64px !important;
   max-height: 64px !important;
   padding: 3px 0 !important;
+  margin: 0 !important;
   align-items: center !important;
   box-sizing: border-box !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+}
+
+body:has(.member-bottom-nav) {
+  padding-bottom: 64px !important;
 }
 
 .member-bottom-nav > a {
@@ -47,6 +58,10 @@
     height: 70px !important;
     max-height: 70px !important;
     padding: 4px 0 !important;
+  }
+
+  body:has(.member-bottom-nav) {
+    padding-bottom: 70px !important;
   }
 
   .member-bottom-nav > a {
