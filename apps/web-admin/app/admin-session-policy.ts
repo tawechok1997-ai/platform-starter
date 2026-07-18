@@ -2,10 +2,10 @@ export type AdminSessionDecision = 'continue' | 'refresh' | 'login' | 'setup-2fa
 
 export function sessionDecision(input: {
   status: number;
-  skipAuth?: boolean;
-  responseCode?: string | null;
+  skipAuth?: boolean | undefined;
+  responseCode?: string | null | undefined;
   pathname: string;
-  hasRetried?: boolean;
+  hasRetried?: boolean | undefined;
 }) : AdminSessionDecision {
   if (input.skipAuth) return 'continue';
   if (input.status === 403 && input.responseCode === 'ADMIN_2FA_REQUIRED' && input.pathname !== '/security/2fa') return 'setup-2fa';
