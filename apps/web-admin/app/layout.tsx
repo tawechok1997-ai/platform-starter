@@ -19,6 +19,7 @@ import './admin-drawer-left.css';
 import './admin-color-aliases.css';
 import './admin-ui.css';
 import './admin-enterprise-shell.css';
+import './admin-topbar-profile.css';
 
 export const viewport: Viewport = {
   width: 'device-width',
