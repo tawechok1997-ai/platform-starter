@@ -52,6 +52,7 @@ import './member-noah-final-pass.css';
 import './member-home-order-fix.css';
 import './member-reference-assets-final.css';
 import './member-category-uploaded-icons.css';
+import './member-promotion-frame-fix.css';
 import MemberChrome from './member-chrome';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
