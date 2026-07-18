@@ -1,0 +1,70 @@
+/* Reduce the fixed bottom navigation by roughly 7% without affecting other layout areas. */
+.member-bottom-nav {
+  min-height: 0 !important;
+  padding-top: calc(0.93 * 12px) !important;
+  padding-bottom: calc(0.93 * 12px + env(safe-area-inset-bottom)) !important;
+}
+
+.member-bottom-nav > a {
+  gap: 4px !important;
+  padding-top: 6px !important;
+  padding-bottom: 5px !important;
+  font-size: 0.93em !important;
+}
+
+.member-bottom-nav .member-bottom-icon {
+  width: 39px !important;
+  height: 35px !important;
+}
+
+.member-bottom-nav a:nth-child(1) .member-bottom-icon::before {
+  font-size: 17px !important;
+}
+
+.member-bottom-nav a:nth-child(1) .member-bottom-icon::after {
+  font-size: 36px !important;
+}
+
+.member-bottom-nav a:nth-child(2) .member-bottom-icon::before,
+.member-bottom-nav a:nth-child(3) .member-bottom-icon::before {
+  font-size: 34px !important;
+}
+
+.member-bottom-nav a:nth-child(4) .member-bottom-icon::before {
+  font-size: 35px !important;
+}
+
+@media (max-width: 520px) {
+  .member-bottom-nav {
+    padding-top: 8px !important;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .member-bottom-nav > a {
+    gap: 3px !important;
+    padding-top: 5px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .member-bottom-nav .member-bottom-icon {
+    width: 35px !important;
+    height: 33px !important;
+  }
+
+  .member-bottom-nav a:nth-child(1) .member-bottom-icon::before {
+    font-size: 16px !important;
+  }
+
+  .member-bottom-nav a:nth-child(1) .member-bottom-icon::after {
+    font-size: 33px !important;
+  }
+
+  .member-bottom-nav a:nth-child(2) .member-bottom-icon::before,
+  .member-bottom-nav a:nth-child(3) .member-bottom-icon::before {
+    font-size: 32px !important;
+  }
+
+  .member-bottom-nav a:nth-child(4) .member-bottom-icon::before {
+    font-size: 33px !important;
+  }
+}
