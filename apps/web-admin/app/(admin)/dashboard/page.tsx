@@ -24,6 +24,7 @@ type OperationalState = {
 
 const QUEUE_TARGET_MINUTES = 30;
 const QUEUE_CRITICAL_MINUTES = 60;
+const RISK_SEVERITIES: RiskAlert['severity'][] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
 
 export default function OperationDashboardPage() {
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
@@ -102,6 +103,18 @@ export default function OperationDashboardPage() {
       netFlow: Number(summary?.today?.netFlow ?? 0),
     };
   }, [summary]);
+
+  const riskMetrics = useMemo(() => {
+    const counts = RISK_SEVERITIES.reduce<Record<RiskAlert['severity'], number>>((result, severity) => {
+      result[severity] = riskItems.filter((item) => item.severity === severity).length;
+      return result;
+    }, { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 });
+    const loadedTotal = RISK_SEVERITIES.reduce((sum, severity) => sum + counts[severity], 0);
+    const weightedScore = counts.CRITICAL * 4 + counts.HIGH * 3 + counts.MEDIUM * 2 + counts.LOW;
+    const maxScore = Math.max(loadedTotal * 4, 1);
+    const pressurePercent = Math.round((weightedScore / maxScore) * 100);
+    return { counts, loadedTotal, pressurePercent };
+  }, [riskItems]);
 
   const operationalState = useMemo<OperationalState>(() => {
     if (financeError && riskError) return { tone: 'danger', label: 'DEGRADED', message: 'ข้อมูลการเงินและความเสี่ยงไม่พร้อมใช้งานพร้อมกัน' };
@@ -185,6 +198,10 @@ export default function OperationDashboardPage() {
           <FinanceComparisonChart today={summary.today} />
         </AdminCard>}
 
+        {canViewRisk && !riskError && <AdminCard title="Risk pressure" description={`${riskSummary.openCount} alerts เปิดอยู่ · แสดง ${riskMetrics.loadedTotal} รายการที่โหลด`} action={<AdminLinkButton href="/risk-alerts">เปิด Risk Center</AdminLinkButton>}>
+          <RiskSeverityChart metrics={riskMetrics} />
+        </AdminCard>}
+
         <div className="admin-dashboard__quick">
           {canViewTopUps && <QuickCard title="ตรวจสอบรายการฝาก" href="/topups" count={summary?.totals.pendingTopUps ?? 0} tone="warning" />}
           {canViewWithdrawals && <QuickCard title="ตรวจสอบรายการถอน" href="/withdrawals" count={summary?.totals.pendingWithdrawals ?? 0} tone="danger" />}
@@ -237,6 +254,27 @@ function ChartColumn({ label, amount, count, amountPercent, countPercent, kind }
       <div className="admin-finance-chart__bar admin-finance-chart__bar--count"><span style={{ height: `${Math.max(countPercent, count > 0 ? 4 : 0)}%` }} /><small>จำนวน</small></div>
     </div>
     <strong>{label}</strong><span>{formatMoney(String(amount))}</span><small>{count.toLocaleString('th-TH')} รายการ</small>
+  </div>;
+}
+
+function RiskSeverityChart({ metrics }: { metrics: { counts: Record<RiskAlert['severity'], number>; loadedTotal: number; pressurePercent: number } }) {
+  const maxCount = Math.max(...RISK_SEVERITIES.map((severity) => metrics.counts[severity]), 1);
+  if (metrics.loadedTotal === 0) return <AdminEmpty>ไม่มี Risk Alert ในชุดข้อมูลปัจจุบัน</AdminEmpty>;
+  return <div className="admin-risk-chart">
+    <div className="admin-risk-chart__pressure" data-tone={metrics.pressurePercent >= 60 ? 'danger' : metrics.pressurePercent >= 30 ? 'warning' : 'normal'}>
+      <span>Risk pressure</span><strong>{metrics.pressurePercent}%</strong><small>ถ่วงน้ำหนักตามระดับความรุนแรงของรายการที่โหลด</small>
+    </div>
+    <div className="admin-risk-chart__plot" aria-label="จำนวน Risk Alert แยกตามระดับความรุนแรง">
+      {RISK_SEVERITIES.map((severity) => {
+        const count = metrics.counts[severity];
+        const percent = (count / maxCount) * 100;
+        return <div className="admin-risk-chart__row" data-severity={severity.toLowerCase()} key={severity}>
+          <span>{severity}</span>
+          <div><i style={{ width: `${Math.max(percent, count > 0 ? 3 : 0)}%` }} /></div>
+          <strong>{count.toLocaleString('th-TH')}</strong>
+        </div>;
+      })}
+    </div>
   </div>;
 }
 
