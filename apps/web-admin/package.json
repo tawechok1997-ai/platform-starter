@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "next build",
+    "build": "pnpm test && next build",
     "lint": "eslint app src --ext .ts,.tsx",
     "test": "node --import tsx --test src/features/**/*.spec.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
