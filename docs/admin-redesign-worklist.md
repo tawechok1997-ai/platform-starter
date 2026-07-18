@@ -50,7 +50,7 @@
 
 ## P2 — Operations Command Center และ Professional UI completion
 
-สถานะ: **14 / 20 เสร็จ | เหลือ 6**
+สถานะ: **15 / 20 เสร็จ | เหลือ 5**
 
 ### Design foundation
 
@@ -75,7 +75,10 @@
 - [x] ทำ filter, sort, pagination และ search ให้ใช้พฤติกรรมสอดคล้องกันทุกหน้าหลัก
 - [x] เพิ่ม column visibility, saved views และการจำค่าตาม Admin
 - [ ] เพิ่ม bulk action พร้อม confirm dialog, reason field, step-up และผลลัพธ์รายแถว
-- [ ] ปรับ Export Center ให้ติดตามสถานะไฟล์ ประวัติการส่งออก และสิทธิ์ข้อมูล
+  - ความคืบหน้า: มี reusable component, เลือกหลายรายการ, reason, confirmation phrase, retry และผลลัพธ์รายแถวแล้ว
+  - ใช้งานจริงที่ `/bulk-queue-operations` สำหรับ Claim/Release ซึ่งไม่เปลี่ยนยอดเงินจริง
+  - คงเหลือ: batch API และ step-up authentication สำหรับ Approve, Reject, Confirm credit/payment ก่อนปิดงาน
+- [x] ปรับ Export Center ให้ติดตามสถานะไฟล์ ประวัติการส่งออก และสิทธิ์ข้อมูล
 
 ### Module visual completion
 
@@ -97,12 +100,12 @@
 |---|---:|---:|---:|
 | P0 | 6 | 7 | 1 |
 | P1 | 13 | 13 | 0 |
-| P2 | 14 | 20 | 6 |
-| **รวม** | **33** | **40** | **7** |
+| P2 | 15 | 20 | 5 |
+| **รวม** | **34** | **40** | **6** |
 
 ## ลำดับดำเนินงานต่อ
 
 1. ปิด P0 โดย sync Prisma schema และเลิกใช้ raw SQL
-2. ทำ bulk action และ Export Center
+2. เพิ่ม batch API และ step-up สำหรับ bulk financial actions
 3. ไล่ visual completion รายโมดูล
 4. ปิด automated tests และ regression evidence
