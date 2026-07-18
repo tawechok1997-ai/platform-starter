@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { adminApiFetch } from '../../../admin-api';
 import { AdminButton, AdminCard, AdminLinkButton, AdminNotice } from '../../../components/admin-ui';
 import {
+  adminProfileErrorMessage,
   adminProfileUpdatePayload,
   emptyAdminProfileForm,
   normalizeAdminProfileForm,
@@ -22,9 +23,9 @@ export default function EditAdminProfilePage() {
     async function load() {
       try {
         const response = await adminApiFetch('/admin/auth/me', { cache: 'no-store' });
-        const data = (await response.json().catch(() => null)) as Partial<AdminProfileForm> | null;
-        if (!response.ok || !data) throw new Error('โหลดข้อมูลโปรไฟล์ไม่สำเร็จ');
-        if (!cancelled) setForm(normalizeAdminProfileForm(data));
+        const data = (await response.json().catch(() => null)) as unknown;
+        if (!response.ok || !data) throw new Error(adminProfileErrorMessage(data, 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ'));
+        if (!cancelled) setForm(normalizeAdminProfileForm(data as Partial<AdminProfileForm>));
       } catch (cause) {
         if (!cancelled) setError(cause instanceof Error ? cause.message : 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ');
       } finally {
@@ -48,11 +49,9 @@ export default function EditAdminProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(adminProfileUpdatePayload(form)),
       });
-      const data = (await response.json().catch(() => null)) as Partial<AdminProfileForm> | { message?: string } | null;
-      if (!response.ok) {
-        throw new Error(data && 'message' in data && data.message ? data.message : 'บันทึกโปรไฟล์ไม่สำเร็จ');
-      }
-      if (data && !('message' in data)) setForm(normalizeAdminProfileForm(data));
+      const data = (await response.json().catch(() => null)) as unknown;
+      if (!response.ok) throw new Error(adminProfileErrorMessage(data, 'บันทึกโปรไฟล์ไม่สำเร็จ'));
+      setForm(normalizeAdminProfileForm(data as Partial<AdminProfileForm>));
       setSaved(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'บันทึกโปรไฟล์ไม่สำเร็จ');
@@ -91,39 +90,21 @@ export default function EditAdminProfilePage() {
           </div>
           <label>
             <span>ชื่อที่แสดง</span>
-            <input
-              value={form.displayName}
-              onChange={(event) => setForm({ ...form, displayName: event.target.value })}
-              maxLength={100}
-            />
+            <input value={form.displayName} onChange={(event) => setForm({ ...form, displayName: event.target.value })} maxLength={100} />
           </label>
           <div className="admin-profile-edit-pair">
             <label>
               <span>ชื่อจริง</span>
-              <input
-                value={form.firstName}
-                onChange={(event) => setForm({ ...form, firstName: event.target.value })}
-                maxLength={80}
-              />
+              <input value={form.firstName} onChange={(event) => setForm({ ...form, firstName: event.target.value })} maxLength={80} />
             </label>
             <label>
               <span>นามสกุล</span>
-              <input
-                value={form.lastName}
-                onChange={(event) => setForm({ ...form, lastName: event.target.value })}
-                maxLength={80}
-              />
+              <input value={form.lastName} onChange={(event) => setForm({ ...form, lastName: event.target.value })} maxLength={80} />
             </label>
           </div>
           <label>
             <span>URL รูปโปรไฟล์แบบ HTTPS</span>
-            <input
-              type="url"
-              value={form.avatarUrl}
-              onChange={(event) => setForm({ ...form, avatarUrl: event.target.value })}
-              placeholder="https://..."
-              maxLength={2048}
-            />
+            <input type="url" value={form.avatarUrl} onChange={(event) => setForm({ ...form, avatarUrl: event.target.value })} placeholder="https://..." maxLength={2048} />
           </label>
         </AdminCard>
 
@@ -137,32 +118,18 @@ export default function EditAdminProfilePage() {
           </div>
           <label>
             <span>ตำแหน่ง</span>
-            <input
-              value={form.position}
-              onChange={(event) => setForm({ ...form, position: event.target.value })}
-              maxLength={120}
-            />
+            <input value={form.position} onChange={(event) => setForm({ ...form, position: event.target.value })} maxLength={120} />
           </label>
           <label>
             <span>แผนก</span>
-            <input
-              value={form.department}
-              onChange={(event) => setForm({ ...form, department: event.target.value })}
-              maxLength={120}
-            />
+            <input value={form.department} onChange={(event) => setForm({ ...form, department: event.target.value })} maxLength={120} />
           </label>
-          <p className="admin-profile-edit-help">
-            Role และ Permission เปลี่ยนไม่ได้จากหน้านี้ เพื่อไม่ให้คนแก้ชื่อตำแหน่งแล้วบังเอิญกลายเป็นพระเจ้าแห่งระบบ
-          </p>
+          <p className="admin-profile-edit-help">Role และ Permission เปลี่ยนไม่ได้จากหน้านี้ เพื่อไม่ให้คนแก้ชื่อตำแหน่งแล้วบังเอิญกลายเป็นพระเจ้าแห่งระบบ</p>
         </AdminCard>
 
         <div className="admin-profile-edit-actions">
-          <AdminLinkButton href="/profile" tone="default">
-            ยกเลิก
-          </AdminLinkButton>
-          <AdminButton type="submit" tone="brand" disabled={saving}>
-            {saving ? 'กำลังบันทึก...' : 'บันทึกโปรไฟล์'}
-          </AdminButton>
+          <AdminLinkButton href="/profile" tone="default">ยกเลิก</AdminLinkButton>
+          <AdminButton type="submit" tone="brand" disabled={saving}>{saving ? 'กำลังบันทึก...' : 'บันทึกโปรไฟล์'}</AdminButton>
         </div>
       </form>
     </div>
