@@ -6,9 +6,9 @@
 .global-member-topbar .member-topbar__inner {
   min-height: 62px !important;
   height: 62px !important;
-  padding: 6px 8px 6px 4px !important;
+  padding: 6px 2px 6px 4px !important;
   display: grid !important;
-  grid-template-columns: 78px minmax(0, 1fr) 102px !important;
+  grid-template-columns: 78px minmax(0, 1fr) 104px !important;
   align-items: center !important;
   column-gap: 6px !important;
   box-sizing: border-box !important;
@@ -76,15 +76,20 @@
   min-width: 0 !important;
   display: flex !important;
   justify-content: flex-end !important;
+  justify-self: end !important;
+  margin-right: 0 !important;
 }
 
 .global-member-topbar .member-header-wallet {
-  width: 102px !important;
-  min-width: 102px !important;
-  max-width: 102px !important;
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 104px !important;
+  min-width: 104px !important;
+  max-width: 104px !important;
   height: 38px !important;
-  padding: 0 7px !important;
-  gap: 4px !important;
+  padding: 0 5px !important;
+  gap: 0 !important;
   border-radius: 8px !important;
   font-size: 12px !important;
   font-weight: 700 !important;
@@ -95,15 +100,23 @@
 }
 
 .global-member-topbar .member-header-wallet img {
-  width: 20px !important;
-  height: 20px !important;
-  flex: 0 0 20px !important;
+  position: absolute !important;
+  left: 5px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 24px !important;
+  height: 24px !important;
+  flex: 0 0 24px !important;
+  object-fit: contain !important;
 }
 
 .global-member-topbar .member-header-wallet__amount {
+  display: block !important;
+  width: 100% !important;
   min-width: 0 !important;
   overflow: hidden !important;
   white-space: nowrap !important;
+  text-align: center !important;
   font-variant-numeric: tabular-nums !important;
 }
 
@@ -111,8 +124,8 @@
   .global-member-topbar .member-topbar__inner {
     min-height: 58px !important;
     height: 58px !important;
-    padding: 5px 6px 5px 2px !important;
-    grid-template-columns: 70px minmax(0, 1fr) 94px !important;
+    padding: 5px 1px 5px 2px !important;
+    grid-template-columns: 70px minmax(0, 1fr) 96px !important;
     column-gap: 5px !important;
   }
 
@@ -144,17 +157,18 @@
   }
 
   .global-member-topbar .member-header-wallet {
-    width: 94px !important;
-    min-width: 94px !important;
-    max-width: 94px !important;
+    width: 96px !important;
+    min-width: 96px !important;
+    max-width: 96px !important;
     height: 36px !important;
-    padding-inline: 6px !important;
+    padding-inline: 4px !important;
     font-size: 11px !important;
   }
 
   .global-member-topbar .member-header-wallet img {
-    width: 18px !important;
-    height: 18px !important;
-    flex-basis: 18px !important;
+    left: 4px !important;
+    width: 22px !important;
+    height: 22px !important;
+    flex-basis: 22px !important;
   }
 }
