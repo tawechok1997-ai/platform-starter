@@ -102,7 +102,7 @@ export default function ReconciliationCenterPage() {
       title={reviewRequest?.status === 'RESOLVED' ? 'ปิดเคสยอดไม่ตรง' : 'เริ่มตรวจสอบยอดไม่ตรง'}
       description={reviewRequest?.status === 'RESOLVED' ? 'ยืนยันว่าตรวจสอบและแก้ไขสาเหตุเรียบร้อยแล้ว' : 'บันทึกว่าเคสนี้อยู่ระหว่างการตรวจสอบ'}
       confirmLabel={reviewRequest?.status === 'RESOLVED' ? 'ปิดเคส' : 'เริ่มตรวจ'}
-      tone={reviewRequest?.status === 'RESOLVED' ? 'success' : 'brand'}
+      tone={reviewRequest?.status === 'RESOLVED' ? 'success' : 'primary'}
       busy={loading}
       onCancel={() => { setReviewRequest(null); setReviewNote(''); }}
       onConfirm={() => void confirmReview()}
