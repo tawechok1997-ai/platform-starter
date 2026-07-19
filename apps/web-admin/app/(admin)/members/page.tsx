@@ -14,6 +14,7 @@ const PAGE_SIZE = 20;
 export default function MembersPage() {
   const [items, setItems] = useState<MemberItem[]>([]);
   const [search, setSearch] = useState('');
+  const [submittedSearch, setSubmittedSearch] = useState('');
   const [status, setStatus] = useState('ALL');
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
@@ -25,8 +26,8 @@ export default function MembersPage() {
   const [pendingStatus, setPendingStatus] = useState<PendingStatus | null>(null);
   const [statusReason, setStatusReason] = useState('');
 
-  useEffect(() => { void loadAccess(); void loadItems(undefined, 1); }, []);
-  useEffect(() => { if (page > 1) void loadItems(undefined, page); }, [page]);
+  useEffect(() => { void loadAccess(); }, []);
+  useEffect(() => { void loadItems(page, submittedSearch, status); }, [page, submittedSearch, status]);
 
   async function loadAccess() {
     const response = await adminApiFetch('/admin/auth/me', { cache: 'no-store' });
@@ -34,13 +35,12 @@ export default function MembersPage() {
     if (response.ok && data) setPermissions(Array.isArray(data.permissions) ? data.permissions : []);
   }
 
-  async function loadItems(event?: FormEvent<HTMLFormElement>, nextPage = page) {
-    event?.preventDefault();
+  async function loadItems(nextPage: number, nextSearch: string, nextStatus: string) {
     setLoading(true);
     setMessage('กำลังโหลดสมาชิก...');
     const params = new URLSearchParams();
-    if (search.trim()) params.set('search', search.trim());
-    if (status !== 'ALL') params.set('status', status);
+    if (nextSearch) params.set('search', nextSearch);
+    if (nextStatus !== 'ALL') params.set('status', nextStatus);
     params.set('page', String(nextPage));
     params.set('take', String(PAGE_SIZE));
     const res = await adminApiFetch(`/admin/members?${params.toString()}`);
@@ -53,8 +53,24 @@ export default function MembersPage() {
     setLoading(false);
   }
 
-  function searchMembers(event: FormEvent<HTMLFormElement>) { setPage(1); void loadItems(event, 1); }
-  function resetFilters() { setSearch(''); setStatus('ALL'); setPage(1); window.setTimeout(() => void loadItems(undefined, 1), 0); }
+  function searchMembers(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPage(1);
+    setSubmittedSearch(search.trim());
+  }
+
+  function resetFilters() {
+    setSearch('');
+    setSubmittedSearch('');
+    setStatus('ALL');
+    setPage(1);
+  }
+
+  function changeStatus(nextStatus: string) {
+    setStatus(nextStatus);
+    setPage(1);
+  }
+
   function requestStatus(member: MemberItem, nextStatus: PendingStatus['status']) { setPendingStatus({ member, status: nextStatus }); setStatusReason(''); }
 
   async function updateStatus() {
@@ -86,13 +102,13 @@ export default function MembersPage() {
     available: items.reduce((sum, item) => sum + Number(item.availableBalance ?? 0), 0),
   }), [items]);
 
-  return <AdminPage eyebrow="สมาชิก" title="รายชื่อสมาชิก" description="ค้นหา ดูข้อมูลสำคัญ และเปลี่ยนสถานะสมาชิกจากหน้าเดียว" actions={<AdminButton onClick={() => void loadItems()}>รีเฟรช</AdminButton>}>
+  return <AdminPage eyebrow="สมาชิก" title="รายชื่อสมาชิก" description="ค้นหา ดูข้อมูลสำคัญ และเปลี่ยนสถานะสมาชิกจากหน้าเดียว" actions={<AdminButton onClick={() => void loadItems(page, submittedSearch, status)}>รีเฟรช</AdminButton>}>
     <form onSubmit={searchMembers} className="admin-members-filter-form">
       <AdminToolbar>
         <label className="admin-members-field"><span>ค้นหา</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ชื่อผู้ใช้ เบอร์โทร อีเมล หรือรหัสสมาชิก" /></label>
-        <label className="admin-members-field"><span>สถานะ</span><select value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>{STATUSES.map((item) => <option key={item} value={item}>{statusLabel(item)}</option>)}</select></label>
+        <label className="admin-members-field"><span>สถานะ</span><select value={status} onChange={(event) => changeStatus(event.target.value)}>{STATUSES.map((item) => <option key={item} value={item}>{statusLabel(item)}</option>)}</select></label>
         <div className="admin-members-filter-actions"><AdminButton type="submit">ค้นหา</AdminButton><AdminButton type="button" tone="secondary" onClick={resetFilters}>ล้าง</AdminButton></div>
-        <div className="admin-queue-pager"><AdminButton type="button" disabled={page <= 1} onClick={() => setPage((value) => Math.max(value - 1, 1))}>ก่อนหน้า</AdminButton><span className="admin-queue-page-label">หน้า {page} จาก {pageCount}</span><AdminButton type="button" disabled={page >= pageCount} onClick={() => setPage((value) => Math.min(value + 1, pageCount))}>ถัดไป</AdminButton></div>
+        <div className="admin-queue-pager"><AdminButton type="button" disabled={page <= 1 || loading} onClick={() => setPage((value) => Math.max(value - 1, 1))}>ก่อนหน้า</AdminButton><span className="admin-queue-page-label">หน้า {page} จาก {pageCount}</span><AdminButton type="button" disabled={page >= pageCount || loading} onClick={() => setPage((value) => Math.min(value + 1, pageCount))}>ถัดไป</AdminButton></div>
       </AdminToolbar>
     </form>
 
