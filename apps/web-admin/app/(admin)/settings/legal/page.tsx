@@ -4,18 +4,18 @@ export default function LegalSettingsPage() {
   return (
     <SettingsSectionPage
       group="legal"
-      title="Legal / Policy Settings"
-      description="จัดการ Terms, Privacy, Cookie และนโยบายต่าง ๆ ที่แสดงในหน้า register, footer และ profile"
+      title="ข้อกำหนดและนโยบาย"
+      description="จัดการข้อกำหนดการใช้งาน นโยบายความเป็นส่วนตัว คุกกี้ และข้อมูลที่แสดงในหน้าสมัครสมาชิก ส่วนท้ายเว็บไซต์ และหน้าโปรไฟล์"
       preview="legal"
       fields={[
-        { key: 'version', label: 'Legal Version', placeholder: 'เช่น v2026.07' },
-        { key: 'effective_date', label: 'Effective Date', type: 'date' },
-        { key: 'terms', label: 'Terms and Conditions', type: 'textarea' },
-        { key: 'privacy', label: 'Privacy Policy', type: 'textarea' },
-        { key: 'cookie', label: 'Cookie Policy', type: 'textarea' },
-        { key: 'responsible_use', label: 'Responsible Use Policy', type: 'textarea' },
-        { key: 'about_us', label: 'About Us', type: 'textarea' },
-        { key: 'contact_policy', label: 'Contact Policy', type: 'textarea' },
+        { key: 'version', label: 'เวอร์ชันเอกสาร', placeholder: 'เช่น v2026.07' },
+        { key: 'effective_date', label: 'วันที่เริ่มมีผล', type: 'date' },
+        { key: 'terms', label: 'ข้อกำหนดและเงื่อนไขการใช้งาน', type: 'textarea' },
+        { key: 'privacy', label: 'นโยบายความเป็นส่วนตัว', type: 'textarea' },
+        { key: 'cookie', label: 'นโยบายคุกกี้', type: 'textarea' },
+        { key: 'responsible_use', label: 'นโยบายการใช้งานอย่างรับผิดชอบ', type: 'textarea' },
+        { key: 'about_us', label: 'เกี่ยวกับเรา', type: 'textarea' },
+        { key: 'contact_policy', label: 'นโยบายการติดต่อและช่วยเหลือ', type: 'textarea' },
       ]}
     />
   );
