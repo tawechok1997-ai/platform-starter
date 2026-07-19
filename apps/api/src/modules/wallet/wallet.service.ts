@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { buildAdminAuditData } from '../../common/audit/admin-audit.builder';
 import { PrismaService } from '../../database/prisma.service';
@@ -112,10 +113,66 @@ export class WalletService {
     });
   }
 
+  async mutateGameBalance(input: GameWalletMutationInput) {
+    const userId = input.userId.trim();
+    const idempotencyKey = `game:${input.idempotencyKey.trim()}`;
+    const amount = new Decimal(input.amount);
+    if (!userId) throw new BadRequestException('userId is required');
+    if (!input.idempotencyKey.trim()) throw new BadRequestException('idempotencyKey is required');
+    if (!input.referenceId.trim()) throw new BadRequestException('referenceId is required');
+    if (amount.lte(0)) throw new BadRequestException('Amount must be greater than zero');
+
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.walletLedger.findUnique({ where: { idempotencyKey } });
+      if (existing) {
+        const sameRequest = existing.userId === userId && existing.direction === input.direction && existing.amount.equals(amount) && existing.referenceType === input.referenceType && existing.referenceId === input.referenceId;
+        if (!sameRequest) throw new ConflictException('Idempotency key was already used with different game transaction data');
+        return { wallet: await this.currentWalletInTransaction(tx, userId), ledger: this.formatLedger(existing), replayed: true };
+      }
+
+      const user = await tx.user.findUnique({ where: { id: userId }, select: { id: true } });
+      if (!user) throw new NotFoundException('User not found');
+
+      const wallet = await tx.wallet.upsert({ where: { userId }, update: {}, create: { userId, currency: input.currency || 'THB' } });
+      if (wallet.status !== 'ACTIVE') throw new BadRequestException('Wallet is not active');
+      if (input.currency && wallet.currency !== input.currency) throw new BadRequestException('Wallet currency does not match game transaction currency');
+
+      const balanceBefore = wallet.balance;
+      const balanceAfter = input.direction === 'CREDIT' ? balanceBefore.plus(amount) : balanceBefore.minus(amount);
+      if (balanceAfter.lt(0)) throw new BadRequestException('Insufficient wallet balance');
+      if (input.direction === 'DEBIT' && balanceAfter.lt(wallet.lockedBalance)) throw new BadRequestException('Insufficient available wallet balance');
+
+      const updatedWallet = await tx.wallet.update({ where: { id: wallet.id }, data: { balance: balanceAfter } });
+      const ledger = await tx.walletLedger.create({
+        data: {
+          walletId: wallet.id,
+          userId,
+          type: input.isReversal ? 'REVERSAL' : 'TRANSFER',
+          direction: input.direction,
+          amount,
+          balanceBefore,
+          balanceAfter,
+          referenceType: input.referenceType,
+          referenceId: input.referenceId,
+          idempotencyKey,
+          metadata: input.metadata ?? Prisma.JsonNull,
+        },
+      });
+
+      return { wallet: this.formatWallet(updatedWallet), ledger: this.formatLedger(ledger), replayed: false };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }
+
   async ensureWallet(userId: string) {
     const existing = await this.prisma.wallet.findUnique({ where: { userId } });
     if (existing) return existing;
     return this.prisma.wallet.create({ data: { userId, currency: 'THB' } });
+  }
+
+  private async currentWalletInTransaction(tx: Prisma.TransactionClient, userId: string) {
+    const wallet = await tx.wallet.findUnique({ where: { userId } });
+    if (!wallet) throw new NotFoundException('Wallet not found');
+    return this.formatWallet(wallet);
   }
 
   private matchesIdentifier(identifier: string, user: any, userId: string) { const q = identifier.toLowerCase(); return userId.toLowerCase() === q || userId.toLowerCase().startsWith(q) || user?.username?.toLowerCase().includes(q) || user?.phone?.toLowerCase().includes(q) || user?.email?.toLowerCase().includes(q); }
@@ -128,3 +185,14 @@ export class WalletService {
 type AdminLedgerQuery = { userId?: string; identifier?: string; type?: string; direction?: string; limit?: string; page?: string; take?: string };
 type AdminWalletQuery = { search?: string; limit?: string; page?: string; take?: string };
 type RequestMeta = { ipAddress?: string; userAgent?: string };
+export type GameWalletMutationInput = {
+  userId: string;
+  amount: string | number | Decimal;
+  direction: 'CREDIT' | 'DEBIT';
+  idempotencyKey: string;
+  referenceType: string;
+  referenceId: string;
+  currency?: string;
+  isReversal?: boolean;
+  metadata?: Prisma.InputJsonValue;
+};
