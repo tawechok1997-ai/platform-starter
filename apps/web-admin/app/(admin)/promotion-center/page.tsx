@@ -1,3 +1,3 @@
 'use client';
 
-export { default } from '../../../src/features/cms/promotion-center-page-v2';
+export { default } from '../../../src/features/cms/promotion-center-page';
