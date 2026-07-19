@@ -2,44 +2,160 @@
 
 import { use, useEffect, useState } from 'react';
 import { adminApiFetch } from '../../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminLinkButton, AdminNotice, AdminPage, AdminRow, AdminStack } from '../../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminLinkButton, AdminNotice, AdminPage, AdminRow, AdminStack } from '../../_components/admin-ui';
 
 type Props = { params: Promise<{ id: string }> };
-type Transfer = { id: string; type: string; status: string; amount: string; currency: string; idempotencyKey: string; providerTransactionId?: string | null; errorCode?: string | null; errorMessage?: string | null; requestPayload?: any; responsePayload?: any; createdAt: string; resolvedAt?: string | null; user?: { username?: string | null; phone?: string | null } | null; provider?: { name?: string | null; code?: string | null } | null; session?: { id: string; providerSessionId?: string | null; game?: { name?: string | null; providerGameCode?: string | null } | null } | null };
+type ActionKind = 'review' | 'retry' | 'reverse' | 'forceFail';
+type Transfer = { id: string; type: string; status: string; amount: string; currency: string; idempotencyKey: string; providerTransactionId?: string | null; errorCode?: string | null; errorMessage?: string | null; requestPayload?: unknown; responsePayload?: any; createdAt: string; resolvedAt?: string | null; user?: { username?: string | null; phone?: string | null } | null; provider?: { name?: string | null; code?: string | null } | null; session?: { id: string; providerSessionId?: string | null; game?: { name?: string | null; providerGameCode?: string | null } | null } | null };
+
+type PendingAction = { kind: ActionKind; item: Transfer };
 
 export default function GameTransferDetailPage({ params }: Props) {
   const { id } = use(params);
   const [item, setItem] = useState<Transfer | null>(null);
-  const [message, setMessage] = useState('กำลังโหลด transfer...');
+  const [message, setMessage] = useState('กำลังโหลดรายการ...');
   const [loading, setLoading] = useState(false);
-  useEffect(() => { load(); }, [id]);
-  async function load() { setLoading(true); const res = await adminApiFetch(`/admin/game-transfers/${id}`); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'โหลด transfer ไม่สำเร็จ'); return; } setItem(data); setMessage(''); }
-  async function action(kind: 'review' | 'retry' | 'reverse' | 'forceFail') { const warning = recoveryWarning(kind, item); if (warning && !window.confirm(warning)) return; const note = window.prompt(kind === 'reverse' ? 'Manual reverse note' : kind === 'forceFail' ? 'Force fail note' : kind === 'retry' ? 'Retry note' : 'Review note') ?? ''; if (!note) return; setLoading(true); const path = kind === 'review' ? `/admin/game-transfers/${id}/review` : kind === 'retry' ? `/admin/game-transfers/${id}/retry-dry-run` : kind === 'reverse' ? `/admin/game-transfers/${id}/actions/manual-reverse` : `/admin/game-transfers/${id}/actions/force-fail`; const method = kind === 'review' ? 'PATCH' : kind === 'retry' ? 'POST' : 'PATCH'; const res = await adminApiFetch(path, { method, body: JSON.stringify({ note }) }); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok || data?.ok === false) { setMessage(data?.message ?? 'ทำ action ไม่สำเร็จ'); return; } setMessage('บันทึก action แล้ว'); await load(); }
-  if (!item && !message) return <AdminPage eyebrow="Game" title="Transfer Detail"><AdminEmpty>ไม่พบ transfer</AdminEmpty></AdminPage>;
-  return <AdminPage eyebrow="Game" title="Transfer Detail" description="ดูรายละเอียด transfer, provider response, wallet ledger, retry และ manual reverse" actions={<><AdminButton onClick={load} disabled={loading}>Refresh</AdminButton><AdminLinkButton href="/game-transfers">กลับรายการ</AdminLinkButton></>}>
-    {message && <AdminNotice>{message}</AdminNotice>}
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [note, setNote] = useState('');
+
+  useEffect(() => { void load(); }, [id]);
+
+  async function load() {
+    setLoading(true);
+    const res = await adminApiFetch(`/admin/game-transfers/${id}`);
+    const data = await res.json().catch(() => null);
+    setLoading(false);
+    if (!res.ok) { setMessage(data?.message ?? 'โหลดรายการไม่สำเร็จ'); return; }
+    setItem(data);
+    setMessage('');
+  }
+
+  function requestAction(kind: ActionKind) {
+    if (!item) return;
+    setNote('');
+    setPendingAction({ kind, item });
+  }
+
+  async function confirmAction() {
+    if (!pendingAction) return;
+    const reason = note.trim();
+    if (!reason) { setMessage('กรุณาระบุเหตุผลหรือหมายเหตุก่อนดำเนินการ'); return; }
+
+    const { kind } = pendingAction;
+    const path = kind === 'review'
+      ? `/admin/game-transfers/${id}/review`
+      : kind === 'retry'
+        ? `/admin/game-transfers/${id}/retry-dry-run`
+        : kind === 'reverse'
+          ? `/admin/game-transfers/${id}/actions/manual-reverse`
+          : `/admin/game-transfers/${id}/actions/force-fail`;
+    const method = kind === 'review' ? 'PATCH' : kind === 'retry' ? 'POST' : 'PATCH';
+
+    setLoading(true);
+    const res = await adminApiFetch(path, { method, body: JSON.stringify({ note: reason }) });
+    const data = await res.json().catch(() => null);
+    setLoading(false);
+    if (!res.ok || data?.ok === false) { setMessage(data?.message ?? 'ดำเนินการไม่สำเร็จ'); return; }
+
+    setPendingAction(null);
+    setNote('');
+    setMessage(actionSuccess(kind));
+    await load();
+  }
+
+  if (!item && !message) return <AdminPage eyebrow="แพลตฟอร์มเกม" title="รายละเอียดรายการ"><AdminEmpty>ไม่พบรายการ</AdminEmpty></AdminPage>;
+
+  return <AdminPage
+    eyebrow="แพลตฟอร์มเกม"
+    title="รายละเอียดการโยกเงิน"
+    description="ตรวจสถานะ ยอดเงิน และประวัติการทำงานของรายการ"
+    actions={<div style={pageActionsStyle}><AdminLinkButton href="/game-transfers">← กลับ</AdminLinkButton><AdminButton onClick={() => void load()} disabled={loading}>↻ รีเฟรช</AdminButton></div>}
+  >
+    {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') || message.includes('กรุณา') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
     {item && <AdminStack>
-      <AdminCard title="Recovery status" description="บอกว่ารายการนี้ควรทำอะไรต่อ ไม่ใช่ให้แอดมินเดาแล้วภาวนาให้ wallet ไม่งอก"><div style={trafficStyle(item)}><strong>{recoveryState(item)}</strong><p style={mutedStyle}>{recoveryDescription(item)}</p></div></AdminCard>
-      <AdminCard title="Summary" description="ข้อมูลหลักของรายการโยกเงิน"><AdminRow><div><strong>{transferLabel(item.type)} · {formatMoney(item.amount, item.currency)}</strong><p style={mutedStyle}>{item.user?.username ?? item.user?.phone ?? '-'} · {item.provider?.name ?? item.provider?.code ?? '-'}</p></div><AdminBadge tone={statusTone(item.status)}>{item.status}</AdminBadge></AdminRow><AdminRow><strong>Game</strong><span>{item.session?.game?.name ?? item.session?.game?.providerGameCode ?? '-'}</span></AdminRow><AdminRow><strong>Session</strong><span style={monoStyle}>{item.session?.providerSessionId ?? item.session?.id ?? '-'}</span></AdminRow><AdminRow><strong>Provider TX</strong><span style={monoStyle}>{item.providerTransactionId ?? '-'}</span></AdminRow><AdminRow><strong>Idempotency</strong><span style={monoStyle}>{item.idempotencyKey}</span></AdminRow></AdminCard>
-      <AdminCard title="Workflow Actions" description="ทุก action ต้องมี note โดยเฉพาะ reverse/retry เพราะมันเกี่ยวกับ WalletLedger จริง ไม่ใช่ปุ่มล้างจาน"><div style={actionRowStyle}><AdminButton tone="secondary" onClick={() => action('review')} disabled={loading}>Review Note</AdminButton>{item.status === 'FAILED' && <AdminButton onClick={() => action('retry')} disabled={loading}>Retry with new key</AdminButton>}{item.status === 'SUCCESS' && <AdminButton tone="danger" onClick={() => action('reverse')} disabled={loading}>Manual Reverse</AdminButton>}{item.status === 'PENDING' && <AdminButton tone="danger" onClick={() => action('forceFail')} disabled={loading}>Force Fail</AdminButton>}</div><AdminNotice>{actionHint(item)}</AdminNotice></AdminCard>
-      {(item.errorCode || item.errorMessage) && <AdminCard title="Error"><AdminNotice>{item.errorCode ?? '-'} · {item.errorMessage ?? '-'}</AdminNotice></AdminCard>}
-      <AdminCard title="Wallet Sync" description="ledger id จะอยู่ใน responsePayload หลัง sync wallet สำเร็จหรือ rollback"><LedgerRow label="Wallet ledger" id={item.responsePayload?.walletLedgerId} /><LedgerRow label="Debit ledger" id={item.responsePayload?.walletDebitLedgerId} /><LedgerRow label="Rollback ledger" id={item.responsePayload?.walletRollbackLedgerId} /><LedgerRow label="Manual reverse" id={item.responsePayload?.manualReverse?.ledgerId} /><AdminRow><strong>Balance after</strong><span>{item.responsePayload?.walletBalanceAfter ?? item.responsePayload?.walletBalanceAfterRollback ?? item.responsePayload?.manualReverse?.balanceAfter ?? '-'}</span></AdminRow></AdminCard>
-      <JsonCard title="Request Payload" payload={item.requestPayload} />
-      <JsonCard title="Response Payload" payload={item.responsePayload} />
+      <AdminCard title="สถานะการกู้คืน" description={recoveryDescription(item)} tone={recoveryTone(item)}>
+        <AdminRow><strong>{recoveryLabel(item)}</strong><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge></AdminRow>
+      </AdminCard>
+
+      <AdminCard title="ข้อมูลรายการ" description="ข้อมูลหลักที่ใช้ตรวจสอบกับสมาชิกและค่ายเกม">
+        <AdminRow><div><strong>{transferLabel(item.type)}</strong><p style={mutedStyle}>{item.user?.username ?? item.user?.phone ?? '-'} · {item.provider?.name ?? item.provider?.code ?? '-'}</p></div><strong style={amountStyle}>{formatMoney(item.amount, item.currency)}</strong></AdminRow>
+        <DataRow label="เกม" value={item.session?.game?.name ?? item.session?.game?.providerGameCode ?? '-'} />
+        <DataRow label="เซสชันค่าย" value={item.session?.providerSessionId ?? item.session?.id ?? '-'} mono />
+        <DataRow label="เลขอ้างอิงค่าย" value={item.providerTransactionId ?? '-'} mono />
+        <DataRow label="รหัสกันรายการซ้ำ" value={item.idempotencyKey} mono />
+        <DataRow label="สร้างเมื่อ" value={new Date(item.createdAt).toLocaleString('th-TH')} />
+      </AdminCard>
+
+      <AdminCard title="การดำเนินการ" description={actionHint(item)}>
+        <div style={actionRowStyle}>
+          <AdminButton tone="secondary" onClick={() => requestAction('review')} disabled={loading}>บันทึกผลตรวจ</AdminButton>
+          {item.status === 'FAILED' && <AdminButton onClick={() => requestAction('retry')} disabled={loading}>ทดสอบใหม่</AdminButton>}
+          {item.status === 'SUCCESS' && <AdminButton tone="danger" onClick={() => requestAction('reverse')} disabled={loading}>ย้อนรายการ</AdminButton>}
+          {item.status === 'PENDING' && <AdminButton tone="danger" onClick={() => requestAction('forceFail')} disabled={loading}>ปิดเป็นล้มเหลว</AdminButton>}
+        </div>
+      </AdminCard>
+
+      {(item.errorCode || item.errorMessage) && <AdminCard title="ข้อผิดพลาด" tone="danger"><AdminNotice tone="danger">{item.errorCode ?? '-'} · {item.errorMessage ?? '-'}</AdminNotice></AdminCard>}
+
+      <AdminCard title="ประวัติกระเป๋าเงิน" description="เลขบัญชีแยกประเภทที่สร้างจากรายการนี้">
+        <LedgerRow label="รายการหลัก" id={item.responsePayload?.walletLedgerId} />
+        <LedgerRow label="รายการตัดยอด" id={item.responsePayload?.walletDebitLedgerId} />
+        <LedgerRow label="รายการคืนยอด" id={item.responsePayload?.walletRollbackLedgerId} />
+        <LedgerRow label="รายการย้อนด้วยมือ" id={item.responsePayload?.manualReverse?.ledgerId} />
+        <DataRow label="ยอดคงเหลือหลังทำรายการ" value={item.responsePayload?.walletBalanceAfter ?? item.responsePayload?.walletBalanceAfterRollback ?? item.responsePayload?.manualReverse?.balanceAfter ?? '-'} />
+      </AdminCard>
+
+      <JsonCard title="ข้อมูลที่ส่งไปยังค่าย" payload={item.requestPayload} />
+      <JsonCard title="ข้อมูลที่ค่ายตอบกลับ" payload={item.responsePayload} />
     </AdminStack>}
+
+    <AdminConfirmDialog
+      open={Boolean(pendingAction)}
+      title={pendingAction ? actionTitle(pendingAction.kind) : ''}
+      description={pendingAction ? actionDescription(pendingAction.kind) : ''}
+      confirmLabel={pendingAction ? actionConfirmLabel(pendingAction.kind) : 'ยืนยัน'}
+      tone={pendingAction?.kind === 'reverse' || pendingAction?.kind === 'forceFail' ? 'danger' : pendingAction?.kind === 'retry' ? 'primary' : 'success'}
+      busy={loading}
+      onCancel={() => { setPendingAction(null); setNote(''); }}
+      onConfirm={() => void confirmAction()}
+      details={<label style={noteStyle}><span>เหตุผล / หมายเหตุ</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="ระบุข้อมูลให้ผู้ตรวจคนถัดไปเข้าใจ" style={textareaStyle} /></label>}
+    />
   </AdminPage>;
 }
-function LedgerRow({ label, id }: { label: string; id?: string | null }) { return <AdminRow><strong>{label}</strong>{id ? <AdminLinkButton href={`/wallet-ledgers/${id}`}>{id}</AdminLinkButton> : <span style={monoStyle}>-</span>}</AdminRow>; }
-function JsonCard({ title, payload }: { title: string; payload: unknown }) { return <AdminCard title={title}><pre style={preStyle}>{JSON.stringify(payload ?? {}, null, 2)}</pre></AdminCard>; }
-function transferLabel(type: string) { return type === 'TRANSFER_IN' ? 'โยกเข้าเกม' : type === 'TRANSFER_OUT' ? 'โยกกลับวอเลต' : type; }
-function statusTone(status: string) { if (status === 'SUCCESS') return 'success'; if (status === 'FAILED') return 'danger'; if (status === 'PENDING') return 'warning'; if (status === 'REVERSED') return 'neutral'; return 'neutral'; }
-function recoveryState(item: Transfer) { if (item.status === 'SUCCESS') return item.responsePayload?.manualReverse ? 'REVERSED_OR_ADJUSTED' : 'SUCCESS_MONITOR'; if (item.status === 'FAILED' && item.responsePayload?.walletRollbackLedgerId) return 'FAILED_ROLLED_BACK'; if (item.status === 'FAILED') return 'FAILED_RETRYABLE'; if (item.status === 'PENDING') return 'PENDING_REVIEW'; return item.status; }
-function recoveryDescription(item: Transfer) { if (item.status === 'SUCCESS') return 'รายการสำเร็จแล้ว ถ้าต้อง reverse ต้องตรวจ ledger และ provider ก่อน'; if (item.status === 'FAILED' && item.responsePayload?.walletRollbackLedgerId) return 'รายการล้มเหลวแต่มี rollback ledger แล้ว ยอดสมาชิกควรถูกคืน'; if (item.status === 'FAILED') return 'รายการล้มเหลว สามารถ retry ได้ถ้า provider/session ยังปลอดภัย'; if (item.status === 'PENDING') return 'รายการค้าง ต้องตรวจ provider ก่อน force fail'; return 'ตรวจ payload และ audit เพิ่มเติม'; }
-function actionHint(item: Transfer) { if (item.status === 'FAILED') return 'Retry จะสร้างรายการใหม่พร้อม idempotency key ใหม่ ควรใช้เมื่อแน่ใจว่า provider ไม่ได้ทำรายการเดิมสำเร็จไปแล้ว'; if (item.status === 'SUCCESS') return 'Manual reverse เป็น action อันตราย ต้องมี note และควรตรวจ WalletLedger/Provider TX ก่อนเสมอ'; if (item.status === 'PENDING') return 'Force fail ใช้เมื่อยืนยันแล้วว่า provider ไม่รับรายการนี้ หรือ timeout จบแล้ว'; return 'เพิ่ม review note เพื่อให้คนถัดไปไม่ต้องสาปแช่งคนก่อนหน้า'; }
-function recoveryWarning(kind: string, item: Transfer | null) { if (kind === 'reverse') return `Manual reverse ${item?.id ?? ''}? ตรวจ provider TX และ ledger ก่อน ยืนยันไหม?`; if (kind === 'retry') return `Retry ${item?.id ?? ''}? ต้องแน่ใจว่าค่ายไม่ได้ process รายการเดิมแล้ว ยืนยันไหม?`; if (kind === 'forceFail') return `Force fail ${item?.id ?? ''}? ใช้เฉพาะกรณีตรวจแล้วว่าค้างจริง ยืนยันไหม?`; return ''; }
+
+function DataRow({ label, value, mono = false }: { label: string; value: string | number; mono?: boolean }) {
+  return <AdminRow><strong style={labelStyle}>{label}</strong><span style={mono ? monoStyle : valueStyle}>{value}</span></AdminRow>;
+}
+
+function LedgerRow({ label, id }: { label: string; id?: string | null }) {
+  return <AdminRow><div style={{ minWidth: 0 }}><strong style={labelStyle}>{label}</strong><p style={monoStyle}>{id ?? '-'}</p></div>{id ? <AdminLinkButton href={`/wallet-ledgers/${id}`}>เปิดรายการ</AdminLinkButton> : null}</AdminRow>;
+}
+
+function JsonCard({ title, payload }: { title: string; payload: unknown }) {
+  return <AdminCard title={title}><details><summary style={summaryStyle}>ดูข้อมูลเทคนิค</summary><pre style={preStyle}>{JSON.stringify(payload ?? {}, null, 2)}</pre></details></AdminCard>;
+}
+
+function transferLabel(type: string) { return type === 'TRANSFER_IN' ? 'โยกเข้าเกม' : type === 'TRANSFER_OUT' ? 'โยกกลับกระเป๋า' : type === 'ROLLBACK' ? 'คืนรายการ' : type; }
+function statusLabel(status: string) { return ({ SUCCESS: 'สำเร็จ', FAILED: 'ล้มเหลว', PENDING: 'กำลังดำเนินการ', REVERSED: 'ย้อนรายการแล้ว' } as Record<string, string>)[status] ?? status; }
+function statusTone(status: string) { if (status === 'SUCCESS') return 'success'; if (status === 'FAILED') return 'danger'; if (status === 'PENDING') return 'warning'; return 'neutral'; }
+function recoveryTone(item: Transfer) { if (item.status === 'FAILED') return 'danger'; if (item.status === 'PENDING') return 'warning'; return 'success'; }
+function recoveryLabel(item: Transfer) { if (item.status === 'SUCCESS') return item.responsePayload?.manualReverse ? 'มีการย้อนหรือปรับยอดแล้ว' : 'สำเร็จและพร้อมติดตาม'; if (item.status === 'FAILED' && item.responsePayload?.walletRollbackLedgerId) return 'ล้มเหลวและคืนยอดแล้ว'; if (item.status === 'FAILED') return 'ล้มเหลวและอาจทดสอบใหม่ได้'; if (item.status === 'PENDING') return 'รายการค้างรอตรวจ'; return statusLabel(item.status); }
+function recoveryDescription(item: Transfer) { if (item.status === 'SUCCESS') return 'ตรวจเลขอ้างอิงและบัญชีแยกประเภทก่อนย้อนรายการ'; if (item.status === 'FAILED' && item.responsePayload?.walletRollbackLedgerId) return 'ระบบสร้างรายการคืนยอดแล้ว ควรตรวจยอดสมาชิกอีกครั้ง'; if (item.status === 'FAILED') return 'ตรวจฝั่งค่ายก่อนทดสอบใหม่ เพื่อป้องกันรายการซ้ำ'; if (item.status === 'PENDING') return 'ตรวจสถานะจากค่ายก่อนปิดรายการเป็นล้มเหลว'; return 'ตรวจข้อมูลเทคนิคและประวัติการทำงานเพิ่มเติม'; }
+function actionHint(item: Transfer) { if (item.status === 'FAILED') return 'ทดสอบใหม่เฉพาะเมื่อยืนยันว่าค่ายไม่ได้ทำรายการเดิมสำเร็จ'; if (item.status === 'SUCCESS') return 'การย้อนรายการมีผลต่อยอดเงินจริง ต้องตรวจเลขอ้างอิงและบัญชีแยกประเภทก่อน'; if (item.status === 'PENDING') return 'ปิดเป็นล้มเหลวเมื่อยืนยันแล้วว่าค่ายไม่รับรายการหรือหมดเวลารอ'; return 'บันทึกผลตรวจเพื่อให้ติดตามย้อนหลังได้'; }
+function actionTitle(kind: ActionKind) { return ({ review: 'บันทึกผลตรวจ', retry: 'ทดสอบรายการใหม่', reverse: 'ย้อนรายการด้วยมือ', forceFail: 'ปิดรายการเป็นล้มเหลว' } as Record<ActionKind, string>)[kind]; }
+function actionDescription(kind: ActionKind) { return ({ review: 'หมายเหตุจะถูกบันทึกไว้กับรายการเพื่อใช้ติดตามย้อนหลัง', retry: 'ระบบจะสร้างการทดสอบใหม่ ต้องมั่นใจว่าค่ายไม่ได้ทำรายการเดิมสำเร็จ', reverse: 'การย้อนรายการมีผลต่อยอดเงินจริง โปรดตรวจเลขอ้างอิงและบัญชีแยกประเภทก่อน', forceFail: 'ใช้เฉพาะเมื่อยืนยันแล้วว่ารายการค้างจริงและค่ายไม่รับรายการ' } as Record<ActionKind, string>)[kind]; }
+function actionConfirmLabel(kind: ActionKind) { return ({ review: 'บันทึกผลตรวจ', retry: 'ทดสอบใหม่', reverse: 'ยืนยันย้อนรายการ', forceFail: 'ยืนยันปิดรายการ' } as Record<ActionKind, string>)[kind]; }
+function actionSuccess(kind: ActionKind) { return ({ review: 'บันทึกผลตรวจแล้ว', retry: 'ทดสอบรายการใหม่แล้ว', reverse: 'ย้อนรายการแล้ว', forceFail: 'ปิดรายการเป็นล้มเหลวแล้ว' } as Record<ActionKind, string>)[kind]; }
 function formatMoney(value: string | number, currency: string) { return `${currency} ${Number(value).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
-function trafficStyle(item: Transfer) { const tone = item.status === 'SUCCESS' ? 'rgba(34,197,94,.14)' : item.status === 'FAILED' ? 'rgba(239,68,68,.14)' : 'rgba(245,197,66,.14)'; return { border: '1px solid rgba(148,163,184,.18)', borderRadius: 18, padding: 16, background: tone, display: 'grid', gap: 6 } as const; }
-const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.55 } as const;
-const monoStyle = { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', overflowWrap: 'anywhere' as const, color: '#cbd5e1' } as const;
-const actionRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' as const };
-const preStyle = { overflowX: 'auto' as const, whiteSpace: 'pre-wrap' as const, background: '#020617', borderRadius: 12, padding: 12, color: '#cbd5e1', maxHeight: 460 } as const;
+
+const pageActionsStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const, alignItems: 'center' };
+const actionRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const };
+const mutedStyle = { margin: '4px 0 0', color: '#94a3b8', lineHeight: 1.5 } as const;
+const labelStyle = { color: '#cbd5e1', fontSize: 13, lineHeight: 1.4 } as const;
+const valueStyle = { color: '#f8fafc', textAlign: 'right' as const, overflowWrap: 'anywhere' as const, minWidth: 0, maxWidth: '100%' };
+const monoStyle = { margin: '4px 0 0', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12, lineHeight: 1.55, overflowWrap: 'anywhere' as const, wordBreak: 'break-word' as const, color: '#cbd5e1', minWidth: 0, maxWidth: '100%' };
+const amountStyle = { fontSize: 'clamp(20px, 6vw, 30px)', textAlign: 'right' as const, whiteSpace: 'nowrap' as const };
+const summaryStyle = { cursor: 'pointer', color: '#cbd5e1', fontWeight: 800, padding: '4px 0' } as const;
+const preStyle = { overflowX: 'auto' as const, whiteSpace: 'pre-wrap' as const, overflowWrap: 'anywhere' as const, wordBreak: 'break-word' as const, background: '#020617', borderRadius: 12, padding: 12, color: '#cbd5e1', maxHeight: 420, fontSize: 12, lineHeight: 1.5 } as const;
+const noteStyle = { display: 'grid', gap: 8, minWidth: 0 } as const;
+const textareaStyle = { minHeight: 120, width: '100%', borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: 12, boxSizing: 'border-box' as const };
