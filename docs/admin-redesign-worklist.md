@@ -55,7 +55,7 @@
 
 ## P2 — Operations Command Center และ Professional UI completion
 
-สถานะ: **21 / 39 เสร็จ | เหลือ 18**
+สถานะ: **25 / 39 เสร็จ | เหลือ 14**
 
 ### Design foundation
 
@@ -97,10 +97,16 @@
 
 #### Members และ Risk
 
-- [ ] ตรวจและปรับหน้า Members ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Bank review ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า KYC ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Risk ให้ใช้ระบบใหม่ครบ
+- [x] ตรวจและปรับหน้า Members ให้ใช้ระบบใหม่ครบ
+  - ใช้ permission-aware PII/wallet masking, confirm dialog พร้อมเหตุผล, search/filter/pagination และแก้ stale filter state แล้ว
+  - Railway build ของ API, Web Admin และ Web Member ผ่านครบที่ commit `f61766f8`
+- [x] ตรวจและปรับหน้า Bank review ให้ใช้ระบบใหม่ครบ
+  - ใช้ summary, duplicate-account detection, risky queue, confirm dialog และบังคับเหตุผลสำหรับ reject/disable
+- [x] ตรวจและปรับหน้า KYC ให้ใช้ระบบใหม่ครบ
+  - รวม KYC summary และ bank verification workflow ใน surface เดียว พร้อมสถานะและภาษาแบบผู้ใช้จริง
+- [x] ตรวจและปรับหน้า Risk ให้ใช้ระบบใหม่ครบ
+  - รองรับ severity/status/type/provider/date filters, pagination, scan cooldown, metadata view, detail links และ bulk selection
+  - Implementation ทั้งชุดรวมอยู่ใน `main` และ Railway build ล่าสุดผ่านครบที่ commit `f61766f8`
 
 #### Games และ Providers
 
@@ -138,12 +144,12 @@
 |---|---:|---:|---:|
 | P0 | 6 | 7 | 1 |
 | P1 | 13 | 13 | 0 |
-| P2 | 21 | 39 | 18 |
-| **รวม** | **40** | **59** | **19** |
+| P2 | 25 | 39 | 14 |
+| **รวม** | **44** | **59** | **15** |
 
 ## ลำดับดำเนินงานต่อ
 
 1. ปิด P0 โดย sync Prisma schema และเปลี่ยน Profile update เป็น Prisma Client
 2. เพิ่ม batch API และ step-up สำหรับ bulk financial actions
-3. ไล่ visual completion 16 โมดูลที่ยังไม่ปิด
+3. ไล่ visual completion 12 โมดูลที่ยังไม่ปิด
 4. ปิด visual/browser regression evidence และเอกสารสรุปขั้นสุดท้าย
