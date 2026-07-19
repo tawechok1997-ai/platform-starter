@@ -1,0 +1,116 @@
+/* Thai-first UI language and typography. Loaded after responsive polish. */
+:root {
+  --admin-font-thai: "LINE Seed Sans TH", "Noto Sans Thai", "Leelawadee UI", Tahoma, sans-serif;
+  --admin-font-latin: Inter, "SF Pro Text", "Segoe UI", Arial, sans-serif;
+  --admin-font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+html[lang="th"] body,
+html[lang="th"] button,
+html[lang="th"] input,
+html[lang="th"] select,
+html[lang="th"] textarea {
+  font-family: var(--admin-font-thai);
+  font-synthesis: none;
+}
+
+/* Numbers, money, dates, IDs, API terms and code stay optically stable. */
+.admin-ui-metric strong,
+.admin-member-money-summary strong,
+.admin-data-table td[data-type="number"],
+.admin-data-table td[data-type="money"],
+.admin-data-table td[data-type="date"],
+.admin-queue-page-label,
+.admin-ui-badge,
+.admin-system-dot + span,
+code,
+pre,
+kbd,
+samp,
+[data-numeric],
+[data-id],
+[lang="en"] {
+  font-family: var(--admin-font-latin);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--admin-font-mono);
+}
+
+.admin-ui-page h1,
+.admin-ui-card h2,
+.admin-confirm-dialog h2,
+.admin-topbar-context strong,
+.admin-nav-group__label strong {
+  text-wrap: balance;
+}
+
+.admin-ui-page__description,
+.admin-ui-card__head p,
+.admin-confirm-dialog p,
+.admin-ui-notice,
+.admin-empty-state p {
+  text-wrap: pretty;
+  max-width: 68ch;
+}
+
+.admin-nav-group__label strong,
+.admin-nav-submenu a span,
+.admin-topbar-context strong,
+.admin-ui-button,
+.admin-ui-badge {
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+.admin-nav-submenu a span,
+.admin-topbar-context strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-ui-card h2,
+.admin-ui-row strong,
+.admin-ui-section-row strong {
+  overflow-wrap: anywhere;
+}
+
+/* Keep helper copy subordinate instead of letting it compete with the task. */
+.admin-ui-page__description,
+.admin-ui-card__head p,
+.admin-nav-group__label small {
+  color: var(--admin-text-secondary);
+  line-height: 1.55;
+}
+
+.admin-ui-card__head p {
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+/* English technical terms inside Thai labels should not look like a second heading. */
+.admin-ui-page :where(abbr, acronym),
+.admin-drawer :where(abbr, acronym) {
+  font-family: var(--admin-font-latin);
+  font-size: .94em;
+  letter-spacing: .01em;
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  .admin-ui-page__description,
+  .admin-ui-card__head p {
+    max-width: none;
+    line-height: 1.5;
+  }
+
+  .admin-nav-group__label strong,
+  .admin-nav-submenu a span {
+    font-size: 13.5px;
+  }
+}
