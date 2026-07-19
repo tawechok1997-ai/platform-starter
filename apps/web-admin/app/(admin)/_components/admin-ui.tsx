@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react';
+'use client';
+
+import { useEffect, type ReactNode } from 'react';
 
 type PageProps = { eyebrow?: string; title: string; description?: string; actions?: ReactNode; children: ReactNode };
 type CardProps = { title?: string; description?: string; action?: ReactNode; children: ReactNode; tone?: SurfaceTone };
@@ -55,9 +57,28 @@ export function AdminBadge({ children, tone = 'neutral' }: { children: ReactNode
 }
 
 export function AdminConfirmDialog({ open, title, description, confirmLabel, cancelLabel = 'ยกเลิก', tone = 'primary', busy = false, details, onConfirm, onCancel }: ConfirmDialogProps) {
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [open]);
+
   if (!open) return null;
-  return <div className="admin-confirm-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
-    <section className="admin-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="admin-confirm-title" aria-describedby="admin-confirm-description">
+  return <div
+    className="admin-confirm-layer"
+    role="presentation"
+    style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'grid', placeItems: 'center', padding: 'max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom))', overflowY: 'auto', overscrollBehavior: 'contain' }}
+    onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}
+  >
+    <section
+      className="admin-confirm-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="admin-confirm-title"
+      aria-describedby="admin-confirm-description"
+      style={{ width: 'min(100%, 560px)', maxHeight: 'calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom))', overflowY: 'auto', margin: 'auto', flex: '0 0 auto' }}
+    >
       <div className={`admin-confirm-dialog__mark admin-confirm-dialog__mark--${tone}`} aria-hidden="true">!</div>
       <div className="admin-confirm-dialog__copy"><h2 id="admin-confirm-title">{title}</h2><p id="admin-confirm-description">{description}</p></div>
       {details ? <div className="admin-confirm-dialog__details">{details}</div> : null}
