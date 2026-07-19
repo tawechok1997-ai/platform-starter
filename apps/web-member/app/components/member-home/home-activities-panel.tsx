@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReturnType } from 'react';
 import type { CmsContent } from '../../site-settings';
 import { useMemberHomeData } from '../../hooks/use-member-home-data';
 import { FaqList, RecentActivity, SupportCard } from '../member-home-sections';
