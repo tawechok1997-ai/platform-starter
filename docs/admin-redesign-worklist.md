@@ -2,7 +2,7 @@
 
 เอกสารนี้เป็น **source of truth เพียงไฟล์เดียวสำหรับงาน Admin redesign** ของ `apps/web-admin` และส่วน Backend/Database ที่รองรับตัวตน สิทธิ์ และความปลอดภัยของ Admin
 
-ลิสเดิมแบบย่อ 20 งานถูกยกเลิกและแทนที่ด้วยลิสเต็มด้านล่าง ซึ่งรวบรวมขอบเขตที่ตกลงกันรอบแรก ได้แก่ Navigation, Profile, Role/Permission, Dashboard, Operations, Finance, Member, Risk, Provider, Promotion, Support, Reports, Settings, Audit, Responsive, Animation, Testing และ Regression evidence
+ลิสเดิมแบบย่อถูกยกเลิกและแทนที่ด้วยลิสเต็มด้านล่าง ซึ่งรวบรวมขอบเขตที่ตกลงกัน ได้แก่ Navigation, Profile, Role/Permission, Dashboard, Operations, Finance, Member, Risk, Provider, Promotion, Support, Reports, Settings, Audit, Responsive, Animation, Testing และ Regression evidence
 
 กติกาการนับ:
 
@@ -10,8 +10,9 @@
 - งานแก้ defect ที่ไม่เพิ่มขอบเขตใหม่ให้นับเป็นงานแก้ไข แต่ไม่เพิ่มจำนวน checkbox
 - ห้ามสร้าง worklist Admin ชุดอื่นซ้ำ เพราะมนุษย์มีพรสวรรค์ในการทำตัวเลขสองชุดให้ไม่ตรงกันอย่างน่าทึ่ง
 - จำนวนงานต้องนับจาก checkbox จริงทุกครั้ง ไม่ใช้ยอดเดิมที่พิมพ์ค้างไว้
+- งาน visual completion ต้องแยกตามโมดูลจริง ห้ามรวมหลายระบบไว้ใน checkbox เดียว
 
-อัปเดตล่าสุด: **2026-07-18**
+อัปเดตล่าสุด: **2026-07-20**
 
 ---
 
@@ -54,7 +55,7 @@
 
 ## P2 — Operations Command Center และ Professional UI completion
 
-สถานะ: **16 / 22 เสร็จ | เหลือ 6**
+สถานะ: **21 / 39 เสร็จ | เหลือ 18**
 
 ### Design foundation
 
@@ -86,10 +87,41 @@
 
 ### Module visual completion
 
-- [ ] ตรวจและปรับหน้า Finance ทั้ง Deposit, Withdrawal, Wallet, Ledger และ Reconciliation ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Members, Bank review, KYC และ Risk ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Games, Providers, Sessions, Transfers และ Webhook ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Promotions, Bonus, Content, Support, Reports, Settings และ Audit ให้ใช้ระบบใหม่ครบ
+#### Finance
+
+- [ ] ตรวจและปรับหน้า Deposit ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า Withdrawal ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า Wallet ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า Ledger ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า Reconciliation ให้ใช้ระบบใหม่ครบ
+
+#### Members และ Risk
+
+- [ ] ตรวจและปรับหน้า Members ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า Bank review ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า KYC ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า Risk ให้ใช้ระบบใหม่ครบ
+
+#### Games และ Providers
+
+- [ ] ตรวจและปรับหน้า Games ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า Providers ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า Sessions ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า Transfers ให้ใช้ระบบใหม่ครบ
+- [ ] ตรวจและปรับหน้า Webhook ให้ใช้ระบบใหม่ครบ
+
+#### Growth, Content และ Governance
+
+- [ ] ตรวจและปรับหน้า Promotions ให้ใช้ระบบใหม่ครบ
+- [x] ตรวจและปรับหน้า Bonus ให้ใช้ระบบใหม่ครบ
+  - Promotion Claims และ Bonus Ledgers ปรับ workflow, confirmation, ภาษา และสถานะตาม Backend ปัจจุบันแล้ว
+  - Railway build ของ API, Web Admin และ Web Member ผ่านครบที่ commit `0548637f`
+- [ ] ตรวจและปรับหน้า Content ให้ใช้ระบบใหม่ครบ
+  - Legal และ Contact/Social settings ปรับแล้ว แต่ยังต้องตรวจ content surface ที่เหลือ
+- [x] ตรวจและปรับหน้า Support ให้ใช้ระบบใหม่ครบ
+- [x] ตรวจและปรับหน้า Reports ให้ใช้ระบบใหม่ครบ
+- [x] ตรวจและปรับหน้า Settings ให้ใช้ระบบใหม่ครบ
+- [x] ตรวจและปรับหน้า Audit ให้ใช้ระบบใหม่ครบ
 
 ### Verification
 
@@ -106,12 +138,12 @@
 |---|---:|---:|---:|
 | P0 | 6 | 7 | 1 |
 | P1 | 13 | 13 | 0 |
-| P2 | 16 | 22 | 6 |
-| **รวม** | **35** | **42** | **7** |
+| P2 | 21 | 39 | 18 |
+| **รวม** | **40** | **59** | **19** |
 
 ## ลำดับดำเนินงานต่อ
 
 1. ปิด P0 โดย sync Prisma schema และเปลี่ยน Profile update เป็น Prisma Client
 2. เพิ่ม batch API และ step-up สำหรับ bulk financial actions
-3. ไล่ visual completion รายโมดูล
+3. ไล่ visual completion 16 โมดูลที่ยังไม่ปิด
 4. ปิด visual/browser regression evidence และเอกสารสรุปขั้นสุดท้าย
