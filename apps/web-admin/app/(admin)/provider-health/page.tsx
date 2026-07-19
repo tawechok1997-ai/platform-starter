@@ -32,7 +32,7 @@ export default function ProviderHealthPage() {
       providerRes.json().catch(() => null), webhookRes.json().catch(() => null), walletRes.json().catch(() => null),
     ]);
     setLoading(false);
-    if (providerRes.ok) setItems(providerData?.items ?? []); else setMessage(providerData?.message ?? 'โหลด Provider ไม่สำเร็จ');
+    if (providerRes.ok) setItems(providerData?.items ?? []); else setMessage(providerData?.message ?? 'โหลดข้อมูลค่ายเกมไม่สำเร็จ');
     if (webhookRes.ok) setWebhook(webhookData?.summary ?? {});
     if (walletRes.ok) setWallet(walletData?.summary ?? {});
   }
@@ -44,7 +44,10 @@ export default function ProviderHealthPage() {
     const data = await res.json().catch(() => null);
     const measuredLatency = Math.max(0, Math.round(performance.now() - started));
     setCheckingId('');
-    if (!res.ok) { setHealth((current) => ({ ...current, [provider.id]: { ok: false, payload: { status: 'OFFLINE', latencyMs: measuredLatency }, checkedAt: new Date().toISOString() } })); return; }
+    if (!res.ok) {
+      setHealth((current) => ({ ...current, [provider.id]: { ok: false, payload: { status: 'OFFLINE', latencyMs: measuredLatency }, checkedAt: new Date().toISOString() } }));
+      return;
+    }
     setHealth((current) => ({ ...current, [provider.id]: { ...data, payload: { ...data?.payload, latencyMs: Number(data?.payload?.latencyMs ?? measuredLatency) } } }));
   }
 
@@ -68,25 +71,25 @@ export default function ProviderHealthPage() {
   }, [health, items, wallet.mismatch, webhook.failed, webhook.total]);
 
   const columns: AdminDataColumn<Provider>[] = [
-    { key: 'provider', title: 'Provider', render: (provider) => <div><strong>{provider.name}</strong><small style={{ display: 'block', color: '#94a3b8' }}>{provider.code}</small></div>, sortValue: (provider) => provider.name, searchValue: (provider) => `${provider.name} ${provider.code}` },
-    { key: 'status', title: 'Status', render: (provider) => { const result = health[provider.id]; return <AdminBadge tone={providerTone(provider, result)}>{result?.payload?.status ?? provider.status}</AdminBadge>; }, sortValue: (provider) => health[provider.id]?.payload?.status ?? provider.status },
-    { key: 'latency', title: 'Latency', render: (provider) => { const latencyMs = health[provider.id]?.payload?.latencyMs; return latencyMs != null ? `${latencyMs} ms` : '-'; }, sortValue: (provider) => Number(health[provider.id]?.payload?.latencyMs ?? 0), align: 'right' },
-    { key: 'readiness', title: 'Readiness', render: (provider) => { const readiness = health[provider.id]?.readiness; return readiness ? `${readiness.passed ?? 0}/${readiness.total ?? 0}` : '-'; }, sortValue: (provider) => Number(health[provider.id]?.readiness?.passed ?? 0), align: 'center' },
-    { key: 'games', title: 'Games', render: (provider) => Number(provider._count?.games ?? 0).toLocaleString('th-TH'), sortValue: (provider) => Number(provider._count?.games ?? 0), align: 'right' },
-    { key: 'webhooks', title: 'Webhook logs', render: (provider) => Number(provider._count?.webhookLogs ?? 0).toLocaleString('th-TH'), sortValue: (provider) => Number(provider._count?.webhookLogs ?? 0), align: 'right' },
-    { key: 'actions', title: 'Actions', render: (provider) => <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton disabled={checkingId === provider.id} onClick={() => void check(provider)}>{checkingId === provider.id ? 'กำลังตรวจ...' : 'Health Check'}</AdminButton><AdminLinkButton href="/game-providers">ตั้งค่าค่าย</AdminLinkButton></div>, defaultVisible: true },
+    { key: 'provider', title: 'ค่ายเกม', render: (provider) => <div><strong>{provider.name}</strong><small style={{ display: 'block', color: '#94a3b8' }}>{provider.code}</small></div>, sortValue: (provider) => provider.name, searchValue: (provider) => `${provider.name} ${provider.code}` },
+    { key: 'status', title: 'สถานะ', render: (provider) => { const result = health[provider.id]; return <AdminBadge tone={providerTone(provider, result)}>{providerStatusLabel(result?.payload?.status ?? provider.status)}</AdminBadge>; }, sortValue: (provider) => health[provider.id]?.payload?.status ?? provider.status },
+    { key: 'latency', title: 'เวลาตอบสนอง', render: (provider) => { const latencyMs = health[provider.id]?.payload?.latencyMs; return latencyMs != null ? `${latencyMs} ms` : '-'; }, sortValue: (provider) => Number(health[provider.id]?.payload?.latencyMs ?? 0), align: 'right' },
+    { key: 'readiness', title: 'ความพร้อม', render: (provider) => { const readiness = health[provider.id]?.readiness; return readiness ? `${readiness.passed ?? 0}/${readiness.total ?? 0}` : '-'; }, sortValue: (provider) => Number(health[provider.id]?.readiness?.passed ?? 0), align: 'center' },
+    { key: 'games', title: 'เกม', render: (provider) => Number(provider._count?.games ?? 0).toLocaleString('th-TH'), sortValue: (provider) => Number(provider._count?.games ?? 0), align: 'right' },
+    { key: 'webhooks', title: 'Webhook', render: (provider) => Number(provider._count?.webhookLogs ?? 0).toLocaleString('th-TH'), sortValue: (provider) => Number(provider._count?.webhookLogs ?? 0), align: 'right' },
+    { key: 'actions', title: 'จัดการ', render: (provider) => <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton disabled={checkingId === provider.id} onClick={() => void check(provider)}>{checkingId === provider.id ? 'กำลังตรวจ...' : 'ตรวจการเชื่อมต่อ'}</AdminButton><AdminLinkButton href="/game-providers">ตั้งค่าค่าย</AdminLinkButton></div>, defaultVisible: true },
   ];
 
-  return <AdminPage eyebrow="Provider Operations" title="Provider Health" description="สถานะ Latency Error rate Webhook failure และ Wallet mismatch จากข้อมูลระบบจริง" actions={<AdminButton disabled={loading} onClick={() => void load()}>{loading ? 'กำลังโหลด...' : 'รีเฟรชข้อมูล'}</AdminButton>}>
+  return <AdminPage eyebrow="ค่ายเกม" title="สถานะค่ายเกม" description="ดูการเชื่อมต่อ เวลาตอบสนอง Webhook และยอดเงินที่ไม่ตรงกันในหน้าเดียว" actions={<AdminButton disabled={loading} onClick={() => void load()}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}>
     {message && <AdminNotice tone="warning">{message}</AdminNotice>}
     <AdminMetricGrid>
-      <AdminMetric title="Providers" value={metrics.total.toLocaleString('th-TH')} helper={`${metrics.degraded} ต้องเฝ้าระวัง`} tone={metrics.degraded ? 'warning' : 'success'} />
-      <AdminMetric title="Avg latency" value={metrics.averageLatency ? `${metrics.averageLatency} ms` : '-'} helper={`${metrics.checked} ค่ายที่ตรวจรอบนี้`} tone={metrics.averageLatency > 1500 ? 'warning' : 'success'} />
-      <AdminMetric title="Health error rate" value={`${metrics.errorRate}%`} helper={`${metrics.failures}/${metrics.checked || 0} checks`} tone={metrics.errorRate ? 'danger' : 'success'} />
-      <AdminMetric title="Webhook failure" value={`${metrics.webhookFailureRate}%`} helper={`${webhook.failed ?? 0}/${webhook.total ?? 0} logs`} tone={metrics.webhookFailureRate ? 'warning' : 'success'} />
-      <AdminMetric title="Wallet mismatch" value={metrics.mismatch.toLocaleString('th-TH')} helper={`${wallet.total ?? 0} snapshots`} tone={metrics.mismatch ? 'danger' : 'success'} />
+      <AdminMetric title="ค่ายทั้งหมด" value={metrics.total.toLocaleString('th-TH')} helper={`${metrics.degraded} ค่ายต้องตรวจ`} tone={metrics.degraded ? 'warning' : 'success'} />
+      <AdminMetric title="เวลาตอบสนองเฉลี่ย" value={metrics.averageLatency ? `${metrics.averageLatency} ms` : '-'} helper={`ตรวจแล้ว ${metrics.checked} ค่าย`} tone={metrics.averageLatency > 1500 ? 'warning' : 'success'} />
+      <AdminMetric title="ตรวจไม่ผ่าน" value={`${metrics.errorRate}%`} helper={`${metrics.failures} จาก ${metrics.checked || 0} ครั้ง`} tone={metrics.errorRate ? 'danger' : 'success'} />
+      <AdminMetric title="Webhook ผิดพลาด" value={`${metrics.webhookFailureRate}%`} helper={`${webhook.failed ?? 0} จาก ${webhook.total ?? 0} รายการ`} tone={metrics.webhookFailureRate ? 'warning' : 'success'} />
+      <AdminMetric title="ยอดเงินไม่ตรง" value={metrics.mismatch.toLocaleString('th-TH')} helper={`ตรวจ ${wallet.total ?? 0} รายการ`} tone={metrics.mismatch ? 'danger' : 'success'} />
     </AdminMetricGrid>
-    <AdminDataTable id="provider-health" rows={items} columns={columns} rowKey={(provider) => provider.id} loading={loading} error={message} emptyText="ยังไม่มี Provider" searchPlaceholder="ค้นหาชื่อหรือรหัส Provider" />
+    <AdminDataTable id="provider-health" rows={items} columns={columns} rowKey={(provider) => provider.id} loading={loading} error={message} emptyText="ยังไม่มีข้อมูลค่ายเกม" searchPlaceholder="ค้นหาชื่อหรือรหัสค่าย" />
   </AdminPage>;
 }
 
@@ -96,4 +99,9 @@ function providerTone(provider: Provider, result?: HealthResult) {
   if (observed === 'DEGRADED' || provider.status === 'DEGRADED' || provider.status === 'MAINTENANCE') return 'warning';
   if (provider.status === 'ACTIVE') return 'success';
   return 'neutral';
+}
+
+function providerStatusLabel(status: string) {
+  const labels: Record<string, string> = { ONLINE: 'ออนไลน์', OFFLINE: 'ออฟไลน์', DEGRADED: 'ทำงานไม่เต็มที่', ACTIVE: 'พร้อมใช้งาน', INACTIVE: 'ปิดใช้งาน', MAINTENANCE: 'ปิดปรับปรุง' };
+  return labels[status] ?? status;
 }
