@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReturnType } from 'react';
 import {
   CategoryList,
   GameLobbyState,
