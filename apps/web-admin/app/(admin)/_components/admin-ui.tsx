@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 type PageProps = { eyebrow?: string; title: string; description?: string; actions?: ReactNode; children: ReactNode };
 type CardProps = { title?: string; description?: string; action?: ReactNode; children: ReactNode; tone?: SurfaceTone };
@@ -75,34 +76,70 @@ export function AdminBadge({ children, tone = 'neutral' }: { children: ReactNode
 }
 
 export function AdminConfirmDialog({ open, title, description, confirmLabel, cancelLabel = 'ยกเลิก', tone = 'primary', busy = false, details, onConfirm, onCancel }: ConfirmDialogProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = previousOverflow; };
-  }, [open]);
 
-  if (!open) return null;
-  return <div
-    className="admin-confirm-layer"
-    role="presentation"
-    style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'grid', placeItems: 'center', padding: 'max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom))', overflowY: 'auto', overscrollBehavior: 'contain' }}
-    onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}
-  >
-    <section
-      className="admin-confirm-dialog"
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="admin-confirm-title"
-      aria-describedby="admin-confirm-description"
-      style={{ width: 'min(100%, 560px)', maxHeight: 'calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom))', overflowY: 'auto', margin: 'auto', flex: '0 0 auto' }}
+    const scrollY = window.scrollY;
+    const previous = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !busy) onCancel();
+    };
+    window.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape);
+      document.body.style.overflow = previous.overflow;
+      document.body.style.position = previous.position;
+      document.body.style.top = previous.top;
+      document.body.style.width = previous.width;
+      window.scrollTo(0, scrollY);
+    };
+  }, [open, busy, onCancel]);
+
+  if (!open || !mounted) return null;
+
+  return createPortal(
+    <div
+      className="admin-confirm-layer"
+      role="presentation"
+      style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'grid', placeItems: 'center', padding: 'max(14px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom))', overflow: 'hidden', overscrollBehavior: 'contain' }}
+      onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}
     >
-      <div className={`admin-confirm-dialog__mark admin-confirm-dialog__mark--${tone}`} aria-hidden="true">!</div>
-      <div className="admin-confirm-dialog__copy"><h2 id="admin-confirm-title">{title}</h2><p id="admin-confirm-description">{description}</p></div>
-      {details ? <div className="admin-confirm-dialog__details">{details}</div> : null}
-      <div className="admin-confirm-dialog__actions"><AdminButton tone="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</AdminButton><AdminButton tone={tone} disabled={busy} onClick={onConfirm}>{busy ? 'กำลังดำเนินการ...' : confirmLabel}</AdminButton></div>
-    </section>
-  </div>;
+      <section
+        className="admin-confirm-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="admin-confirm-title"
+        aria-describedby="admin-confirm-description"
+        style={{ width: 'min(100%, 560px)', maxHeight: 'calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom))', margin: 'auto', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', overflow: 'hidden' }}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', gap: 14, alignItems: 'start', padding: '20px 20px 12px', background: 'inherit', position: 'sticky', top: 0, zIndex: 2 }}>
+          <div className={`admin-confirm-dialog__mark admin-confirm-dialog__mark--${tone}`} aria-hidden="true">!</div>
+          <div className="admin-confirm-dialog__copy" style={safeTextContainerStyle}><h2 id="admin-confirm-title">{title}</h2><p id="admin-confirm-description">{description}</p></div>
+        </div>
+        <div style={{ minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', padding: '0 20px 16px' }}>
+          {details ? <div className="admin-confirm-dialog__details" style={safeTextContainerStyle}>{details}</div> : null}
+        </div>
+        <div className="admin-confirm-dialog__actions" style={{ position: 'sticky', bottom: 0, zIndex: 2, padding: '12px 20px max(16px, env(safe-area-inset-bottom))', background: 'inherit', borderTop: '1px solid rgba(148,163,184,.16)' }}><AdminButton tone="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</AdminButton><AdminButton tone={tone} disabled={busy} onClick={onConfirm}>{busy ? 'กำลังดำเนินการ...' : confirmLabel}</AdminButton></div>
+      </section>
+    </div>,
+    document.body,
+  );
 }
 
 export function AdminCommandPanel({ children }: { children: ReactNode }) { return <section className="admin-ui-command-panel" style={safeTextContainerStyle}>{children}</section>; }
