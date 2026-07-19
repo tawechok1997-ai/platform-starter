@@ -55,7 +55,7 @@
 
 ## P2 — Operations Command Center และ Professional UI completion
 
-สถานะ: **25 / 39 เสร็จ | เหลือ 14**
+สถานะ: **36 / 39 เสร็จ | เหลือ 3**
 
 ### Design foundation
 
@@ -89,11 +89,15 @@
 
 #### Finance
 
-- [ ] ตรวจและปรับหน้า Deposit ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Withdrawal ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Wallet ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Ledger ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Reconciliation ให้ใช้ระบบใหม่ครบ
+- [x] ตรวจและปรับหน้า Deposit ให้ใช้ระบบใหม่ครบ
+  - ใช้ system confirmation dialog และ workflow ที่เชื่อมสถานะจริงแล้วที่ commit `f1b38339`
+- [x] ตรวจและปรับหน้า Withdrawal ให้ใช้ระบบใหม่ครบ
+  - แทน browser confirm, ใช้ semantic notices และจำกัด proof records อย่างปลอดภัยที่ commits `d0def481`, `a279c448`, `d6224621`
+- [x] ตรวจและปรับหน้า Wallet ให้ใช้ระบบใหม่ครบ
+- [x] ตรวจและปรับหน้า Ledger ให้ใช้ระบบใหม่ครบ
+  - Wallet และ Ledger ใช้ experience ชุดใหม่ร่วมกันที่ commit `883684a1`
+- [x] ตรวจและปรับหน้า Reconciliation ให้ใช้ระบบใหม่ครบ
+  - ใช้ managed review dialog และ semantic notices ที่ commits `5b903ad2`, `4274bfc`
 
 #### Members และ Risk
 
@@ -110,15 +114,21 @@
 
 #### Games และ Providers
 
-- [ ] ตรวจและปรับหน้า Games ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Providers ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Sessions ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Transfers ให้ใช้ระบบใหม่ครบ
-- [ ] ตรวจและปรับหน้า Webhook ให้ใช้ระบบใหม่ครบ
+- [x] ตรวจและปรับหน้า Games ให้ใช้ระบบใหม่ครบ
+  - Game catalog และ transfer review workflow เสร็จที่ commits `24609209`, `dc69bac9`
+- [x] ตรวจและปรับหน้า Providers ให้ใช้ระบบใหม่ครบ
+  - Provider management workflow เสร็จที่ commit `71ac14bf`
+- [x] ตรวจและปรับหน้า Sessions ให้ใช้ระบบใหม่ครบ
+  - Game session operations และ confirmation flow เสร็จที่ commits `ee815af8`, `b57fefdb`
+- [x] ตรวจและปรับหน้า Transfers ให้ใช้ระบบใหม่ครบ
+  - Transfer detail และ review flow เสร็จที่ commits `0e2c509d`, `dc69bac9`
+- [x] ตรวจและปรับหน้า Webhook ให้ใช้ระบบใหม่ครบ
+  - Monitoring layout และ same-origin test flow เสร็จที่ commits `d4b266a0`, `bfbe4410`
 
 #### Growth, Content และ Governance
 
-- [ ] ตรวจและปรับหน้า Promotions ให้ใช้ระบบใหม่ครบ
+- [x] ตรวจและปรับหน้า Promotions ให้ใช้ระบบใหม่ครบ
+  - Promotion center และ secure claim review flow เสร็จที่ commits `2f23c18f`, `3b40fef1`
 - [x] ตรวจและปรับหน้า Bonus ให้ใช้ระบบใหม่ครบ
   - Promotion Claims และ Bonus Ledgers ปรับ workflow, confirmation, ภาษา และสถานะตาม Backend ปัจจุบันแล้ว
   - Railway build ของ API, Web Admin และ Web Member ผ่านครบที่ commit `0548637f`
@@ -144,12 +154,12 @@
 |---|---:|---:|---:|
 | P0 | 6 | 7 | 1 |
 | P1 | 13 | 13 | 0 |
-| P2 | 25 | 39 | 14 |
-| **รวม** | **44** | **59** | **15** |
+| P2 | 36 | 39 | 3 |
+| **รวม** | **55** | **59** | **4** |
 
 ## ลำดับดำเนินงานต่อ
 
 1. ปิด P0 โดย sync Prisma schema และเปลี่ยน Profile update เป็น Prisma Client
 2. เพิ่ม batch API และ step-up สำหรับ bulk financial actions
-3. ไล่ visual completion 12 โมดูลที่ยังไม่ปิด
+3. ปิด Content surface ที่เหลือ
 4. ปิด visual/browser regression evidence และเอกสารสรุปขั้นสุดท้าย
