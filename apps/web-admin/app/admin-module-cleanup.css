@@ -1,0 +1,135 @@
+/* Module-level cleanup for dense operational screens. */
+.admin-topup-operations,
+.admin-topup-action-grid,
+.admin-member-actions,
+.admin-queue-pager {
+  min-width: 0;
+}
+
+.admin-topup-operations {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-topup-action-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-topup-action-grid > input[type='file'] {
+  flex: 1 1 240px;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px dashed var(--admin-border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.025);
+}
+
+.admin-topup-action-grid > input:not([type='file']) {
+  flex: 1 1 220px;
+}
+
+.admin-topup-modal-slip {
+  width: min(100%, 260px);
+  max-height: 320px;
+  object-fit: contain;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  background: rgba(0,0,0,.16);
+}
+
+.admin-topup-note-field {
+  display: grid;
+  gap: 7px;
+}
+
+.admin-queue-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-queue-pager > span {
+  min-width: 92px;
+  color: var(--admin-text-secondary);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-content-shell details {
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.02);
+}
+
+.admin-content-shell details > summary {
+  min-height: 42px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--admin-text-secondary);
+  font-weight: 650;
+}
+
+.admin-content-shell details[open] > summary {
+  border-bottom: 1px solid var(--admin-border);
+  color: var(--admin-text);
+}
+
+.admin-content-shell pre {
+  margin: 0;
+  padding: 14px;
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  background: rgba(3,7,18,.72);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .admin-topup-action-grid,
+  .admin-queue-pager {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .admin-topup-action-grid > *,
+  .admin-queue-pager > * {
+    width: 100%;
+  }
+
+  .admin-queue-pager > span {
+    order: -1;
+    min-width: 0;
+    padding-block: 4px;
+  }
+
+  .admin-topup-modal-slip {
+    width: 100%;
+    max-height: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-content-shell details > summary {
+    font-size: 13px;
+  }
+
+  .admin-content-shell pre {
+    padding: 12px;
+    font-size: 11px;
+  }
+}
