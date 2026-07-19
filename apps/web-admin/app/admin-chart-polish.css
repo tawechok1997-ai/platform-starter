@@ -1,0 +1,104 @@
+/* Calm, legible chart defaults for admin dashboards. */
+.admin-content-shell :where(.recharts-responsive-container, .admin-chart, [class*='chart-shell']) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-content-shell :where(.recharts-wrapper, .recharts-surface) {
+  max-width: 100%;
+  overflow: visible;
+}
+
+.admin-content-shell .recharts-cartesian-grid line {
+  stroke: rgba(148, 163, 184, 0.12);
+}
+
+.admin-content-shell :where(.recharts-cartesian-axis-tick-value, .recharts-legend-item-text) {
+  fill: var(--admin-text-muted, #7f8da3);
+  font-family: var(--font-numeric, Inter, ui-sans-serif, system-ui, sans-serif);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-content-shell .recharts-tooltip-wrapper {
+  outline: none;
+  filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.32));
+}
+
+.admin-content-shell :where(.recharts-default-tooltip, .admin-chart-tooltip) {
+  padding: 10px 12px !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  border-radius: 12px !important;
+  background: rgba(10, 16, 28, 0.96) !important;
+  color: var(--admin-text, #f5f7fc) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(14px);
+}
+
+.admin-content-shell .recharts-tooltip-label {
+  margin-bottom: 6px !important;
+  color: var(--admin-text-secondary, #9aa8be) !important;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-content-shell .recharts-tooltip-item {
+  padding: 2px 0 !important;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-content-shell :where(.recharts-line-curve, .recharts-area-curve) {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin-content-shell .recharts-bar-rectangle path {
+  shape-rendering: geometricPrecision;
+}
+
+.admin-content-shell .recharts-active-dot circle {
+  stroke-width: 3px;
+}
+
+.admin-content-shell :where(.admin-chart-card, [class*='chart-card']) {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.admin-content-shell :where(.admin-chart-title, [class*='chart-title']) {
+  margin: 0;
+  color: var(--admin-text, #f5f7fc);
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.admin-content-shell :where(.admin-chart-description, [class*='chart-description']) {
+  max-width: 64ch;
+  margin: 4px 0 0;
+  color: var(--admin-text-muted, #7f8da3);
+  font-size: 12px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+@media (max-width: 720px) {
+  .admin-content-shell :where(.recharts-cartesian-axis-tick-value, .recharts-legend-item-text) {
+    font-size: 10px;
+  }
+
+  .admin-content-shell :where(.admin-chart, [class*='chart-shell']) {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-content-shell .recharts-wrapper * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
