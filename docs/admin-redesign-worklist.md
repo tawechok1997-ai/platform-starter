@@ -55,7 +55,7 @@
 
 ## P2 — Operations Command Center และ Professional UI completion
 
-สถานะ: **36 / 39 เสร็จ | เหลือ 3**
+สถานะ: **38 / 39 เสร็จ | เหลือ 1**
 
 ### Design foundation
 
@@ -132,8 +132,9 @@
 - [x] ตรวจและปรับหน้า Bonus ให้ใช้ระบบใหม่ครบ
   - Promotion Claims และ Bonus Ledgers ปรับ workflow, confirmation, ภาษา และสถานะตาม Backend ปัจจุบันแล้ว
   - Railway build ของ API, Web Admin และ Web Member ผ่านครบที่ commit `0548637f`
-- [ ] ตรวจและปรับหน้า Content ให้ใช้ระบบใหม่ครบ
-  - Legal และ Contact/Social settings ปรับแล้ว แต่ยังต้องตรวจ content surface ที่เหลือ
+- [x] ตรวจและปรับหน้า Content ให้ใช้ระบบใหม่ครบ
+  - Legal content settings ปรับภาษาและโครงสร้างที่ commit `1ee16f71`
+  - Member content และ maintenance surfaces มี visual regression หลาย viewport ที่ commits `54d19a98`, `55d62b33`, `c9c8c5d4`, `a03b50e1`
 - [x] ตรวจและปรับหน้า Support ให้ใช้ระบบใหม่ครบ
 - [x] ตรวจและปรับหน้า Reports ให้ใช้ระบบใหม่ครบ
 - [x] ตรวจและปรับหน้า Settings ให้ใช้ระบบใหม่ครบ
@@ -144,7 +145,10 @@
 - [x] เพิ่ม automated tests สำหรับ navigation, profile update, data masking, permission rendering และ session refresh flow
   - ครอบคลุม navigation permission, route guard, data masking, session refresh/2FA/privilege reduction, profile normalization, payload trimming และ API error parsing
   - ผูก regression tests เข้ากับ `web-admin build` และ Railway build ของ API, Web Admin และ Web Member ผ่านครบที่ commit `f43c0ad4`
-- [ ] เพิ่ม visual/browser regression evidence, build evidence และเอกสารสรุป Admin redesign ขั้นสุดท้าย
+- [x] เพิ่ม visual/browser regression evidence, build evidence และเอกสารสรุป Admin redesign ขั้นสุดท้าย
+  - R-013 visual regression ผ่าน baseline 12 cases และเก็บ artifact ใน PR #59
+  - Responsive professional polish รวมเข้า `main` แล้วผ่าน PR #68
+  - Railway build ล่าสุดของ API, Web Admin และ Web Member ผ่านครบหลังอัปเดต worklist
 
 ---
 
@@ -154,12 +158,10 @@
 |---|---:|---:|---:|
 | P0 | 6 | 7 | 1 |
 | P1 | 13 | 13 | 0 |
-| P2 | 36 | 39 | 3 |
-| **รวม** | **55** | **59** | **4** |
+| P2 | 38 | 39 | 1 |
+| **รวม** | **57** | **59** | **2** |
 
 ## ลำดับดำเนินงานต่อ
 
 1. ปิด P0 โดย sync Prisma schema และเปลี่ยน Profile update เป็น Prisma Client
 2. เพิ่ม batch API และ step-up สำหรับ bulk financial actions
-3. ปิด Content surface ที่เหลือ
-4. ปิด visual/browser regression evidence และเอกสารสรุปขั้นสุดท้าย
