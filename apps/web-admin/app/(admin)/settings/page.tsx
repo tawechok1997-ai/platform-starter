@@ -6,39 +6,39 @@ import { AdminBadge, AdminCard, AdminGrid, AdminLinkButton, AdminMetric, AdminMe
 type SettingsItem = [title: string, href: string, description: string, badge: string];
 
 const websiteItems: SettingsItem[] = [
-  ['Website', '/settings/website', 'ข้อมูลเว็บหลัก ภาษา โดเมน และสถานะ login/register', 'Core'],
-  ['Branding', '/settings/branding', 'โลโก้ สีหลัก ไอคอน และตัวอย่างหน้าตาแบรนด์', 'Brand'],
-  ['Icons', '/settings/icons', 'ตั้งค่าไอคอนเมนู shortcut และ bottom nav ฝั่งสมาชิก', 'Icon'],
-  ['Theme', '/settings/theme', 'Layout ผู้เล่น มือถือ เดสก์ท็อป และเกม', 'UI'],
-  ['SEO', '/settings/seo', 'Meta, sitemap, robots และ social preview', 'Growth'],
-  ['Contact', '/settings/contact', 'Line, Telegram, Facebook, email และช่องทางช่วยเหลือ', 'Support'],
-  ['Maintenance', '/settings/maintenance', 'เปิด/ปิดปรับปรุงเว็บ ฝาก ถอน และ Provider', 'Ops'],
-  ['Scripts', '/settings/scripts', 'Analytics, pixels และ custom scripts', 'Tracking'],
-  ['Feature Flags', '/settings/features', 'เปิด/ปิดฟีเจอร์โดยไม่ต้อง deploy ใหม่', 'Release'],
-  ['Legal Pages', '/settings/legal', 'Terms, Privacy, Cookie และนโยบายต่าง ๆ', 'Legal'],
+  ['ข้อมูลเว็บไซต์', '/settings/website', 'ข้อมูลเว็บหลัก ภาษา โดเมน และสถานะเข้าสู่ระบบหรือสมัครสมาชิก', 'เว็บไซต์'],
+  ['แบรนด์', '/settings/branding', 'โลโก้ สีหลัก ไอคอน และตัวอย่างหน้าตาของแบรนด์', 'แบรนด์'],
+  ['ไอคอน', '/settings/icons', 'ไอคอนเมนู ทางลัด และแถบนำทางด้านล่างของสมาชิก', 'ไอคอน'],
+  ['ธีมและหน้าจอ', '/settings/theme', 'รูปแบบหน้าสมาชิกบนมือถือ เดสก์ท็อป และหน้าเกม', 'หน้าจอ'],
+  ['การค้นหาและแชร์', '/settings/seo', 'ข้อมูลสำหรับเครื่องมือค้นหา แผนผังเว็บไซต์ robots และตัวอย่างเวลาแชร์', 'การตลาด'],
+  ['ช่องทางติดต่อ', '/settings/contact', 'LINE, Telegram, Facebook, อีเมล และช่องทางช่วยเหลือ', 'ช่วยเหลือ'],
+  ['โหมดปิดปรับปรุง', '/settings/maintenance', 'เปิดหรือปิดเว็บ ฝากเงิน ถอนเงิน และค่ายเกมชั่วคราว', 'ปฏิบัติการ'],
+  ['สคริปต์ติดตามผล', '/settings/scripts', 'ระบบวิเคราะห์ พิกเซล และสคริปต์เพิ่มเติม', 'ติดตามผล'],
+  ['การเปิดปิดฟีเจอร์', '/settings/features', 'เปิดหรือปิดฟีเจอร์โดยไม่ต้องนำระบบขึ้นใหม่', 'การเผยแพร่'],
+  ['เอกสารทางกฎหมาย', '/settings/legal', 'ข้อกำหนด ความเป็นส่วนตัว คุกกี้ และนโยบายต่าง ๆ', 'กฎหมาย'],
 ];
 
 const moneyItems: SettingsItem[] = [
-  ['Finance Summary', '/finance', 'ภาพรวมยอดเงินรวม คิว pending และรายการล่าสุด', 'Money'],
-  ['Top Up Review', '/topups', 'ตรวจสลิปและอนุมัติรายการฝาก', 'Queue'],
-  ['Withdrawal Review', '/withdrawals', 'ตรวจและปิดรายการถอนเงิน', 'Queue'],
-  ['Wallet Ledgers', '/ledgers', 'ดูประวัติเงินทั้งหมด ฝาก ถอน และยอดก่อน/หลัง', 'Audit'],
-  ['Member Wallets', '/wallets', 'ค้นหา wallet สมาชิกและดูยอดคงเหลือ', 'Wallet'],
-  ['Risk Alerts', '/risk-alerts', 'ตรวจพฤติกรรมเสี่ยงและรายการผิดปกติจากระบบเงิน', 'Risk'],
+  ['ภาพรวมการเงิน', '/finance', 'ยอดเงินรวม คิวที่รอดำเนินการ และรายการล่าสุด', 'การเงิน'],
+  ['ตรวจรายการฝากเงิน', '/topups', 'ตรวจหลักฐานและอนุมัติรายการฝากเงิน', 'คิวงาน'],
+  ['ตรวจรายการถอนเงิน', '/withdrawals', 'ตรวจ อนุมัติ และปิดรายการถอนเงิน', 'คิวงาน'],
+  ['บัญชีแยกประเภท', '/ledgers', 'ประวัติเงินฝาก ถอน โอน ปรับยอด และยอดก่อนหรือหลัง', 'ตรวจสอบ'],
+  ['กระเป๋าเงินสมาชิก', '/wallets', 'ค้นหากระเป๋าเงินสมาชิกและดูยอดคงเหลือ', 'กระเป๋าเงิน'],
+  ['รายการความเสี่ยง', '/risk-alerts', 'ตรวจพฤติกรรมเสี่ยงและรายการผิดปกติจากระบบการเงิน', 'ความเสี่ยง'],
 ];
 
 const gameItems: SettingsItem[] = [
-  ['Game Providers', '/game-providers', 'จัดการค่ายเกม สถานะ โลโก้ ประเภทเกม และ maintenance mode', 'Provider'],
-  ['Game API Settings', '/game-api-settings', 'ตั้งค่า endpoint, credential, webhook, timeout, retry และ health check', 'API'],
-  ['Game Catalog', '/games', 'sync รายชื่อเกม รูปเกม หมวดหมู่ tag และ member visibility', 'Catalog'],
-  ['Provider Adapters', '/provider-adapters', 'สัญญากลางของ adapter: launch, balance, transfer, sync, webhook', 'Adapter'],
+  ['ค่ายเกม', '/game-providers', 'จัดการค่ายเกม สถานะ โลโก้ ประเภทเกม และโหมดปิดปรับปรุง', 'ค่ายเกม'],
+  ['การเชื่อมต่อ API เกม', '/game-api-settings', 'ปลายทาง API ข้อมูลลับ Webhook ระยะรอ การลองใหม่ และการตรวจสถานะ', 'API'],
+  ['รายการเกม', '/games', 'ซิงก์รายชื่อเกม รูป หมวดหมู่ ป้ายกำกับ และการแสดงผลแก่สมาชิก', 'คลังเกม'],
+  ['ตัวเชื่อมค่ายเกม', '/provider-adapters', 'การเปิดเกม ตรวจยอด โอนเงิน ซิงก์ยอด และรับ Webhook', 'ตัวเชื่อม'],
 ];
 
 const safetyItems: SettingsItem[] = [
-  ['Access Control', '/access', 'จัด role/permission สำหรับ finance, support, game operator และ auditor', 'Access'],
-  ['Admin 2FA', '/security', 'ความปลอดภัยแอดมิน session และ 2FA', 'Security'],
-  ['Audit Logs', '/audit', 'ตรวจประวัติ action สำคัญ การเงิน config และ permission', 'Audit'],
-  ['Activity', '/activity', 'timeline การกระทำในระบบและ filter สำหรับตรวจสอบย้อนหลัง', 'Activity'],
+  ['สิทธิ์การเข้าถึง', '/access', 'จัดบทบาทและสิทธิ์สำหรับการเงิน ฝ่ายช่วยเหลือ ผู้ดูแลเกม และผู้ตรวจสอบ', 'สิทธิ์'],
+  ['ความปลอดภัยผู้ดูแล', '/security', 'เซสชัน การยืนยันสองขั้นตอน และความปลอดภัยของบัญชีผู้ดูแล', 'ความปลอดภัย'],
+  ['บันทึกกิจกรรมผู้ดูแล', '/audit', 'ตรวจประวัติการทำรายการ การเงิน การตั้งค่า และการแก้ไขสิทธิ์', 'ตรวจสอบ'],
+  ['ลำดับเหตุการณ์', '/activity', 'ดูเหตุการณ์ในระบบและกรองข้อมูลเพื่อตรวจสอบย้อนหลัง', 'กิจกรรม'],
 ];
 
 export default function SettingsPage() {
@@ -47,46 +47,39 @@ export default function SettingsPage() {
     const needle = query.trim().toLowerCase();
     const filter = (items: SettingsItem[]) => !needle ? items : items.filter(([title, href, description, badge]) => `${title} ${href} ${description} ${badge}`.toLowerCase().includes(needle));
     return [
-      { title: 'Website Settings', items: filter(websiteItems), accent: false },
-      { title: 'Money Operations', items: filter(moneyItems), accent: true },
-      { title: 'Game Platform Settings', items: filter(gameItems), accent: true },
-      { title: 'Security / Governance', items: filter(safetyItems), accent: false },
+      { title: 'เว็บไซต์และแบรนด์', items: filter(websiteItems), accent: false },
+      { title: 'การเงินและคิวงาน', items: filter(moneyItems), accent: true },
+      { title: 'เกมและการเชื่อมต่อ', items: filter(gameItems), accent: true },
+      { title: 'ความปลอดภัยและการกำกับดูแล', items: filter(safetyItems), accent: false },
     ];
   }, [query]);
   const visibleCount = sections.reduce((sum, section) => sum + section.items.length, 0);
 
-  return (
-    <AdminPage eyebrow="Admin Console" title="Settings" description="ศูนย์รวมโครงตั้งค่าเว็บ ระบบเงิน เกม API ค่ายเกม ความปลอดภัย และ operation">
-      <AdminMetricGrid>
-        <AdminMetric title="Website modules" value={String(websiteItems.length)} helper="แบรนด์, icons, SEO, contact, feature flags" />
-        <AdminMetric title="Money modules" value={String(moneyItems.length)} helper="คิวเงิน, wallet, ledger, risk" />
-        <AdminMetric title="Game modules" value={String(gameItems.length)} helper="providers, API, catalog, adapters" />
-        <AdminMetric title="Safety modules" value={String(safetyItems.length)} helper="access, audit, activity" />
-      </AdminMetricGrid>
+  return <AdminPage eyebrow="ศูนย์ควบคุมผู้ดูแล" title="การตั้งค่า" description="รวมการตั้งค่าเว็บไซต์ การเงิน เกม การเชื่อมต่อ และความปลอดภัยไว้ในหน้าเดียว">
+    <AdminMetricGrid>
+      <AdminMetric title="เว็บไซต์และแบรนด์" value={String(websiteItems.length)} helper="เว็บไซต์ ไอคอน SEO ช่องทางติดต่อ และฟีเจอร์" />
+      <AdminMetric title="การเงิน" value={String(moneyItems.length)} helper="คิวงาน กระเป๋าเงิน บัญชีแยกประเภท และความเสี่ยง" />
+      <AdminMetric title="เกมและ API" value={String(gameItems.length)} helper="ค่ายเกม API รายการเกม และตัวเชื่อม" />
+      <AdminMetric title="ความปลอดภัย" value={String(safetyItems.length)} helper="สิทธิ์ บันทึกกิจกรรม และลำดับเหตุการณ์" />
+    </AdminMetricGrid>
 
-      <section style={quickPanelStyle}>
-        <div><h2 style={{ margin: 0 }}>ค้นหาการตั้งค่า</h2><p style={mutedStyle}>พิมพ์ชื่อโมดูล หมวด หรือคำอธิบาย เพื่อกรองรายการโดยไม่ต้องไล่เปิดทีละหน้า</p></div>
-        <div style={searchWrapStyle}><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="เช่น maintenance, risk, game API" aria-label="ค้นหาการตั้งค่า" style={searchInputStyle} />{query && <button type="button" onClick={() => setQuery('')} style={clearButtonStyle}>ล้าง</button>}</div>
-      </section>
+    <section style={quickPanelStyle}>
+      <div><h2 style={{ margin: 0 }}>ค้นหาการตั้งค่า</h2><p style={mutedStyle}>ค้นหาจากชื่อหมวด ชื่อหน้า หรือคำอธิบาย โดยไม่ต้องเปิดทุกหน้าแบบสำรวจเขาวงกต</p></div>
+      <div style={searchWrapStyle}><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="เช่น ปิดปรับปรุง ความเสี่ยง API เกม" aria-label="ค้นหาการตั้งค่า" style={searchInputStyle} />{query && <button type="button" onClick={() => setQuery('')} style={clearButtonStyle}>ล้าง</button>}</div>
+    </section>
 
-      <section style={quickPanelStyle}>
-        <div><h2 style={{ margin: 0 }}>Quick actions</h2><p style={mutedStyle}>ทางลัดสำหรับ setting ที่แตะ production, เงิน, provider และ API key โดยตรง</p></div>
-        <div style={quickActionsStyle}><AdminLinkButton href="/settings/icons">Icons</AdminLinkButton><AdminLinkButton href="/game-providers">Game Providers</AdminLinkButton><AdminLinkButton href="/game-api-settings">Game API</AdminLinkButton><AdminLinkButton href="/games">Game Catalog</AdminLinkButton><AdminLinkButton href="/settings/maintenance">Maintenance</AdminLinkButton></div>
-      </section>
+    <section style={quickPanelStyle}>
+      <div><h2 style={{ margin: 0 }}>ทางลัดสำคัญ</h2><p style={mutedStyle}>หน้าที่มีผลต่อระบบจริง การเงิน ค่ายเกม และข้อมูลลับของ API</p></div>
+      <div style={quickActionsStyle}><AdminLinkButton href="/settings/icons">ไอคอน</AdminLinkButton><AdminLinkButton href="/game-providers">ค่ายเกม</AdminLinkButton><AdminLinkButton href="/game-api-settings">API เกม</AdminLinkButton><AdminLinkButton href="/games">รายการเกม</AdminLinkButton><AdminLinkButton href="/settings/maintenance">ปิดปรับปรุง</AdminLinkButton></div>
+    </section>
 
-      {sections.map((section) => section.items.length > 0 && <SettingsSection key={section.title} title={section.title} items={section.items} accent={section.accent} />)}
-      {visibleCount === 0 && <AdminCard><div style={emptyStyle}><strong>ไม่พบการตั้งค่า</strong><span>ลองใช้คำค้นที่กว้างขึ้น เช่น “game”, “money” หรือ “security”</span></div></AdminCard>}
-    </AdminPage>
-  );
+    {sections.map((section) => section.items.length > 0 && <SettingsSection key={section.title} title={section.title} items={section.items} accent={section.accent} />)}
+    {visibleCount === 0 && <AdminCard><div style={emptyStyle}><strong>ไม่พบการตั้งค่า</strong><span>ลองใช้คำค้นที่กว้างขึ้น เช่น “เกม” “เงิน” หรือ “ความปลอดภัย”</span></div></AdminCard>}
+  </AdminPage>;
 }
 
-function SettingsSection({ title, items, accent = false }: { title: string; items: SettingsItem[]; accent?: boolean }) {
-  return <><h2 style={sectionTitleStyle}>{title}</h2><AdminGrid>{items.map(([cardTitle, href, description, badge]) => <HubCard key={href} title={cardTitle} href={href} description={description} badge={badge} accent={accent} />)}</AdminGrid></>;
-}
-
-function HubCard({ title, href, description, badge, accent = false }: { title: string; href: string; description: string; badge: string; accent?: boolean }) {
-  return <AdminCard><div style={cardStackStyle}><div style={cardTopStyle}><AdminBadge tone={accent ? 'warning' : 'neutral'}>{badge}</AdminBadge><span style={smallMutedStyle}>{accent ? 'Operation' : 'Config'}</span></div><h2 style={{ margin: 0, fontSize: 24 }}>{title}</h2><p style={mutedStyle}>{description}</p><AdminLinkButton href={href}>Open</AdminLinkButton></div></AdminCard>;
-}
+function SettingsSection({ title, items, accent = false }: { title: string; items: SettingsItem[]; accent?: boolean }) { return <><h2 style={sectionTitleStyle}>{title}</h2><AdminGrid>{items.map(([cardTitle, href, description, badge]) => <HubCard key={href} title={cardTitle} href={href} description={description} badge={badge} accent={accent} />)}</AdminGrid></>; }
+function HubCard({ title, href, description, badge, accent = false }: { title: string; href: string; description: string; badge: string; accent?: boolean }) { return <AdminCard><div style={cardStackStyle}><div style={cardTopStyle}><AdminBadge tone={accent ? 'warning' : 'neutral'}>{badge}</AdminBadge><span style={smallMutedStyle}>{accent ? 'งานปฏิบัติการ' : 'การตั้งค่า'}</span></div><h2 style={{ margin: 0, fontSize: 24 }}>{title}</h2><p style={mutedStyle}>{description}</p><AdminLinkButton href={href}>เปิดหน้า</AdminLinkButton></div></AdminCard>; }
 
 const sectionTitleStyle = { margin: '24px 0 12px', fontSize: 'clamp(24px, 7vw, 34px)', lineHeight: 1 } as const;
 const quickPanelStyle = { border: '1px solid rgba(148,163,184,.18)', background: 'rgba(15,23,42,.58)', borderRadius: 22, padding: 18, display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' as const, alignItems: 'center' };
