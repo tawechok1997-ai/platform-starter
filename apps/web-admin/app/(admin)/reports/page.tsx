@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminSectionRow, AdminStack, formatMoney } from '../_components/admin-ui';
+import { humanStatus } from '../_components/human-labels';
 
 type DailyReport = { range: { from: string; to: string }; topUps: Group[]; withdrawals: Group[]; adjustments: { direction: string; count: number; amount: string }[]; wallets: { count: number; totalBalance: string; totalLockedBalance: string }; ledgers: { count: number; amount: string }; pendingQueues?: { topUps: { count: number; amount: string }; withdrawals: { count: number; amount: string } }; generatedAt: string };
 type Group = { status: string; count: number; amount: string };
@@ -21,7 +22,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
-  useEffect(() => { loadReports(); }, []);
+  useEffect(() => { void loadReports(); }, []);
 
   async function loadReports(nextTrendDays = trendDays) {
     setLoading(true);
@@ -39,7 +40,11 @@ export default function ReportsPage() {
     const reconData = await reconRes.json().catch(() => null);
     const trendsData = await trendsRes.json().catch(() => null);
     const agingData = await agingRes.json().catch(() => null);
-    if (!dailyRes.ok || !reconRes.ok || !trendsRes.ok || !agingRes.ok) { setMessage(dailyData?.message ?? reconData?.message ?? trendsData?.message ?? agingData?.message ?? 'โหลดรายงานไม่สำเร็จ'); setLoading(false); return; }
+    if (!dailyRes.ok || !reconRes.ok || !trendsRes.ok || !agingRes.ok) {
+      setMessage(dailyData?.message ?? reconData?.message ?? trendsData?.message ?? agingData?.message ?? 'โหลดรายงานไม่สำเร็จ');
+      setLoading(false);
+      return;
+    }
     setDaily(dailyData);
     setRecon(reconData);
     setTrends(trendsData);
@@ -50,68 +55,75 @@ export default function ReportsPage() {
 
   function changeTrendDays(nextDays: number) {
     setTrendDays(nextDays);
-    loadReports(nextDays);
+    void loadReports(nextDays);
   }
 
   async function downloadCsv(path: string, filename: string) {
-    setMessage('กำลังดาวน์โหลด CSV...');
-    const res = await adminApiFetch(path);
-    if (!res.ok) { setMessage((await res.json().catch(() => null))?.message ?? 'ดาวน์โหลด CSV ไม่สำเร็จ'); return; }
-    const text = await res.text();
+    setMessage('กำลังเตรียมไฟล์ CSV...');
+    const response = await adminApiFetch(path);
+    if (!response.ok) {
+      setMessage((await response.json().catch(() => null))?.message ?? 'ดาวน์โหลดไฟล์ไม่สำเร็จ');
+      return;
+    }
+    const text = await response.text();
     const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
     URL.revokeObjectURL(url);
-    setMessage('ดาวน์โหลด CSV แล้ว');
+    setMessage('ดาวน์โหลดไฟล์เรียบร้อยแล้ว');
   }
 
-  return (
-    <AdminPage eyebrow="Finance Reports" title="Reports" description="รายงานรายวัน ตรวจยอด wallet แนวโน้มเงินเข้าออก และคิวที่ค้างนาน" actions={<><AdminButton onClick={() => loadReports()}>Refresh</AdminButton><AdminLinkButton href="/exports">Exports</AdminLinkButton></>}>
-      {message && <AdminNotice>{message}</AdminNotice>}
-      {loading && !daily && !recon && !trends && !aging && <AdminEmpty>กำลังโหลดรายงาน...</AdminEmpty>}
-      <AdminCard title="Report Filters" description="เลือกช่วงวันที่สำหรับ daily aggregate และใช้ปุ่ม export ในแต่ละรายงานเพื่อดาวน์โหลด CSV"><div style={filterGridStyle}><label style={filterLabelStyle}><span>From</span><input type="date" value={range.from} onChange={(event) => setRange((current) => ({ ...current, from: event.target.value }))} style={inputStyle} /></label><label style={filterLabelStyle}><span>To</span><input type="date" value={range.to} onChange={(event) => setRange((current) => ({ ...current, to: event.target.value }))} style={inputStyle} /></label><div style={filterActionStyle}><AdminButton disabled={loading} onClick={() => loadReports()}>Apply</AdminButton><AdminButton tone="secondary" disabled={loading || (!range.from && !range.to)} onClick={() => { setRange({ from: '', to: '' }); setTimeout(() => loadReports(), 0); }}>Reset</AdminButton></div></div></AdminCard>
-      {daily && <AdminMetricGrid><AdminMetric title="Wallets" value={daily.wallets.count.toLocaleString('th-TH')} /><AdminMetric title="Total Balance" value={formatMoney(daily.wallets.totalBalance)} /><AdminMetric title="Locked" value={formatMoney(daily.wallets.totalLockedBalance)} /><AdminMetric title="Ledger Items" value={daily.ledgers.count.toLocaleString('th-TH')} />{daily.pendingQueues && <AdminMetric title="Pending Top-ups" value={`${daily.pendingQueues.topUps.count}`} helper={formatMoney(daily.pendingQueues.topUps.amount)} />}{daily.pendingQueues && <AdminMetric title="Pending Withdrawals" value={`${daily.pendingQueues.withdrawals.count}`} helper={formatMoney(daily.pendingQueues.withdrawals.amount)} />}{recon && <AdminMetric title="Recon Checked" value={(recon.checkedCount ?? recon.items.length).toLocaleString('th-TH')} />}{recon && <AdminMetric title="Mismatch" value={recon.mismatchCount.toLocaleString('th-TH')} />}</AdminMetricGrid>}
+  return <AdminPage eyebrow="การเงินและการตรวจสอบ" title="รายงานระบบ" description="ดูภาพรวมเงินเข้าออก ยอดกระเป๋าเงิน รายการค้าง และผลตรวจสอบยอดในหน้าเดียว" actions={<><AdminButton disabled={loading} onClick={() => void loadReports()}>รีเฟรช</AdminButton><AdminLinkButton href="/exports">ศูนย์ส่งออกข้อมูล</AdminLinkButton></>}>
+    {message && <AdminNotice>{message}</AdminNotice>}
+    {loading && !daily && !recon && !trends && !aging && <AdminEmpty>กำลังโหลดรายงาน...</AdminEmpty>}
 
-      {aging && <AdminCard title="Pending Queue Aging" description={`Oldest pending: ${aging.summary.oldestAgeMinutes} minutes · Generated ${new Date(aging.generatedAt).toLocaleString('th-TH')}`}>
-        <AdminMetricGrid>
-          <AdminMetric title="Pending Top-ups" value={aging.summary.pendingTopUps.toLocaleString('th-TH')} />
-          <AdminMetric title="Pending Withdrawals" value={aging.summary.pendingWithdrawals.toLocaleString('th-TH')} />
-          <AdminMetric title="Over 15m" value={aging.summary.over15Minutes.toLocaleString('th-TH')} />
-          <AdminMetric title="Over 60m" value={aging.summary.over60Minutes.toLocaleString('th-TH')} />
-          <AdminMetric title="Over 24h" value={aging.summary.over24Hours.toLocaleString('th-TH')} />
-        </AdminMetricGrid>
-        <AdminStack>{aging.oldest.map((item) => <AdminSectionRow key={`${item.type}-${item.id}`}><div style={queueInfoStyle}><div style={badgeRowStyle}><AdminBadge tone={item.type === 'TOPUP' ? 'warning' : 'danger'}>{item.type}</AdminBadge><AdminBadge>{item.ageLabel}</AdminBadge></div><strong>{item.username}</strong><p>{new Date(item.createdAt).toLocaleString('th-TH')} · User {item.userId}</p></div><div style={queueActionStyle}><strong>{formatMoney(item.amount)}</strong><p>{item.currency}</p><AdminLinkButton href={item.type === 'TOPUP' ? '/topups' : '/withdrawals'}>Open queue</AdminLinkButton></div></AdminSectionRow>)}{aging.oldest.length === 0 && <AdminEmpty>ไม่มีคิว pending</AdminEmpty>}</AdminStack>
-      </AdminCard>}
+    <AdminCard title="ช่วงวันที่" description="ใช้กับรายงานสรุปรายวัน ส่วนรายงานแนวโน้มเลือกช่วงเวลาแยกด้านล่าง">
+      <div style={filterGridStyle}>
+        <label style={filterLabelStyle}><span>ตั้งแต่วันที่</span><input type="date" value={range.from} onChange={(event) => setRange((current) => ({ ...current, from: event.target.value }))} style={inputStyle} /></label>
+        <label style={filterLabelStyle}><span>ถึงวันที่</span><input type="date" value={range.to} onChange={(event) => setRange((current) => ({ ...current, to: event.target.value }))} style={inputStyle} /></label>
+        <div style={filterActionStyle}><AdminButton disabled={loading} onClick={() => void loadReports()}>ใช้ช่วงวันที่</AdminButton><AdminButton tone="secondary" disabled={loading || (!range.from && !range.to)} onClick={() => { setRange({ from: '', to: '' }); window.setTimeout(() => void loadReports(), 0); }}>ล้างช่วงวันที่</AdminButton></div>
+      </div>
+    </AdminCard>
 
-      {trends && <AdminCard title="Finance Trend" description={`${trends.range.days} days · ${new Date(trends.range.from).toLocaleDateString('th-TH')} - ${new Date(trends.range.to).toLocaleDateString('th-TH')}`} action={<div style={toolbarStyle}>{[7, 14, 30].map((item) => <AdminButton key={item} tone={trendDays === item ? 'primary' : 'secondary'} disabled={loading} onClick={() => changeTrendDays(item)}>{item}d</AdminButton>)}<AdminButton tone="secondary" onClick={() => downloadCsv(`/admin/exports/report-trends.csv?days=${trendDays}`, `report-trends-${trendDays}d.csv`)}>Export CSV</AdminButton></div>}>
-        <AdminMetricGrid>
-          <AdminMetric title="Top-up volume" value={formatMoney(trends.totals.topUpAmount)} helper={`${trends.totals.topUpCount} approved`} />
-          <AdminMetric title="Withdrawal volume" value={formatMoney(trends.totals.withdrawalAmount)} helper={`${trends.totals.withdrawalCount} completed`} />
-          <AdminMetric title="Net flow" value={formatMoney(trends.totals.netFlow)} helper="topup - withdrawal" />
-        </AdminMetricGrid>
-        <AdminStack>{trends.daily.map((item) => <div key={item.date} style={trendRowStyle}><div style={trendDateStyle}><strong>{item.date}</strong><p>{item.topUpCount} topups · {item.withdrawalCount} withdrawals</p></div><div style={trendAmountStyle}><TrendAmount label="Top-up" value={item.topUpAmount} tone="success" /><TrendAmount label="Withdraw" value={item.withdrawalAmount} tone="warning" /><TrendAmount label="Net" value={item.netFlow} tone={Number(item.netFlow) >= 0 ? 'success' : 'danger'} /></div></div>)}</AdminStack>
-      </AdminCard>}
+    {daily && <AdminMetricGrid>
+      <AdminMetric title="กระเป๋าเงิน" value={daily.wallets.count.toLocaleString('th-TH')} />
+      <AdminMetric title="ยอดเงินรวม" value={formatMoney(daily.wallets.totalBalance)} />
+      <AdminMetric title="ยอดที่ถูกล็อก" value={formatMoney(daily.wallets.totalLockedBalance)} />
+      <AdminMetric title="รายการบัญชีแยกประเภท" value={daily.ledgers.count.toLocaleString('th-TH')} />
+      {daily.pendingQueues && <AdminMetric title="ฝากเงินรอดำเนินการ" value={String(daily.pendingQueues.topUps.count)} helper={formatMoney(daily.pendingQueues.topUps.amount)} tone={daily.pendingQueues.topUps.count ? 'warning' : 'success'} />}
+      {daily.pendingQueues && <AdminMetric title="ถอนเงินรอดำเนินการ" value={String(daily.pendingQueues.withdrawals.count)} helper={formatMoney(daily.pendingQueues.withdrawals.amount)} tone={daily.pendingQueues.withdrawals.count ? 'warning' : 'success'} />}
+      {recon && <AdminMetric title="กระเป๋าที่ตรวจแล้ว" value={(recon.checkedCount ?? recon.items.length).toLocaleString('th-TH')} />}
+      {recon && <AdminMetric title="ยอดไม่ตรงกัน" value={recon.mismatchCount.toLocaleString('th-TH')} tone={recon.mismatchCount ? 'danger' : 'success'} />}
+    </AdminMetricGrid>}
 
-      {daily && <AdminCard title="Daily Summary" description={`${new Date(daily.range.from).toLocaleDateString('th-TH')} - ${new Date(daily.range.to).toLocaleDateString('th-TH')}`}><AdminGrid><GroupCard title="Top-ups" items={daily.topUps} /><GroupCard title="Withdrawals" items={daily.withdrawals} /><GroupCard title="Adjustments" items={daily.adjustments.map((item) => ({ status: item.direction, count: item.count, amount: item.amount }))} /></AdminGrid></AdminCard>}
-      {recon && <AdminCard title="Reconciliation" description={`Mismatch: ${recon.mismatchCount} · Generated ${new Date(recon.generatedAt).toLocaleString('th-TH')}`} action={<AdminButton tone="secondary" onClick={() => downloadCsv('/admin/exports/reconciliation.csv?limit=1000', 'reconciliation.csv')}>Export CSV</AdminButton>}><AdminStack>{recon.items.slice(0, 20).map((item) => <AdminSectionRow key={item.walletId}><div style={reconInfoStyle}><AdminBadge tone={item.status === 'MATCHED' ? 'success' : 'danger'}>{item.status}</AdminBadge><strong>{item.username ?? item.shortUserId}</strong><p>Wallet: {item.shortUserId}</p></div><div style={reconAmountGridStyle}><ReconAmount label="Actual" value={item.actualBalance} /><ReconAmount label="Ledger" value={item.latestLedgerBalance} /><ReconAmount label="Locked" value={item.lockedBalance} />{item.availableBalance && <ReconAmount label="Available" value={item.availableBalance} />}</div></AdminSectionRow>)}{recon.items.length === 0 && <AdminEmpty>ไม่มี mismatch</AdminEmpty>}</AdminStack></AdminCard>}
-    </AdminPage>
-  );
+    {aging && <AdminCard title="อายุรายการที่ยังค้าง" description={`รายการเก่าสุด ${aging.summary.oldestAgeMinutes.toLocaleString('th-TH')} นาที · อัปเดต ${new Date(aging.generatedAt).toLocaleString('th-TH')}`}>
+      <AdminMetricGrid>
+        <AdminMetric title="ฝากเงินค้าง" value={aging.summary.pendingTopUps.toLocaleString('th-TH')} />
+        <AdminMetric title="ถอนเงินค้าง" value={aging.summary.pendingWithdrawals.toLocaleString('th-TH')} />
+        <AdminMetric title="เกิน 15 นาที" value={aging.summary.over15Minutes.toLocaleString('th-TH')} tone={aging.summary.over15Minutes ? 'warning' : 'success'} />
+        <AdminMetric title="เกิน 60 นาที" value={aging.summary.over60Minutes.toLocaleString('th-TH')} tone={aging.summary.over60Minutes ? 'danger' : 'success'} />
+        <AdminMetric title="เกิน 24 ชั่วโมง" value={aging.summary.over24Hours.toLocaleString('th-TH')} tone={aging.summary.over24Hours ? 'danger' : 'success'} />
+      </AdminMetricGrid>
+      <AdminStack>{aging.oldest.map((item) => <AdminSectionRow key={`${item.type}-${item.id}`}><div style={queueInfoStyle}><div style={badgeRowStyle}><AdminBadge tone={item.type === 'TOPUP' ? 'warning' : 'danger'}>{item.type === 'TOPUP' ? 'ฝากเงิน' : 'ถอนเงิน'}</AdminBadge><AdminBadge>{item.ageLabel}</AdminBadge></div><strong>{item.username}</strong><p>{new Date(item.createdAt).toLocaleString('th-TH')} · สมาชิก {item.userId}</p></div><div style={queueActionStyle}><strong>{formatMoney(item.amount)}</strong><p>{item.currency}</p><AdminLinkButton href={item.type === 'TOPUP' ? '/topups' : '/withdrawals'}>เปิดคิวงาน</AdminLinkButton></div></AdminSectionRow>)}{aging.oldest.length === 0 && <AdminEmpty>ไม่มีรายการค้าง</AdminEmpty>}</AdminStack>
+    </AdminCard>}
+
+    {trends && <AdminCard title="แนวโน้มการเงิน" description={`${trends.range.days} วัน · ${new Date(trends.range.from).toLocaleDateString('th-TH')} ถึง ${new Date(trends.range.to).toLocaleDateString('th-TH')}`} action={<div style={toolbarStyle}>{[7, 14, 30].map((days) => <AdminButton key={days} tone={trendDays === days ? 'primary' : 'secondary'} disabled={loading} onClick={() => changeTrendDays(days)}>{days} วัน</AdminButton>)}<AdminButton tone="secondary" onClick={() => void downloadCsv(`/admin/exports/report-trends.csv?days=${trendDays}`, `report-trends-${trendDays}d.csv`)}>ดาวน์โหลด CSV</AdminButton></div>}>
+      <AdminMetricGrid><AdminMetric title="ยอดฝากรวม" value={formatMoney(trends.totals.topUpAmount)} helper={`${trends.totals.topUpCount.toLocaleString('th-TH')} รายการอนุมัติแล้ว`} /><AdminMetric title="ยอดถอนรวม" value={formatMoney(trends.totals.withdrawalAmount)} helper={`${trends.totals.withdrawalCount.toLocaleString('th-TH')} รายการเสร็จแล้ว`} /><AdminMetric title="เงินเข้าสุทธิ" value={formatMoney(trends.totals.netFlow)} helper="ยอดฝากหักยอดถอน" tone={Number(trends.totals.netFlow) >= 0 ? 'success' : 'danger'} /></AdminMetricGrid>
+      <AdminStack>{trends.daily.map((item) => <div key={item.date} style={trendRowStyle}><div style={trendDateStyle}><strong>{new Date(item.date).toLocaleDateString('th-TH')}</strong><p>ฝาก {item.topUpCount.toLocaleString('th-TH')} รายการ · ถอน {item.withdrawalCount.toLocaleString('th-TH')} รายการ</p></div><div style={trendAmountStyle}><TrendAmount label="ฝาก" value={item.topUpAmount} tone="success" /><TrendAmount label="ถอน" value={item.withdrawalAmount} tone="warning" /><TrendAmount label="สุทธิ" value={item.netFlow} tone={Number(item.netFlow) >= 0 ? 'success' : 'danger'} /></div></div>)}</AdminStack>
+    </AdminCard>}
+
+    {daily && <AdminCard title="สรุปรายวัน" description={`${new Date(daily.range.from).toLocaleDateString('th-TH')} ถึง ${new Date(daily.range.to).toLocaleDateString('th-TH')}`}><AdminGrid><GroupCard title="รายการฝากเงิน" items={daily.topUps} /><GroupCard title="รายการถอนเงิน" items={daily.withdrawals} /><GroupCard title="การปรับยอด" items={daily.adjustments.map((item) => ({ status: item.direction, count: item.count, amount: item.amount }))} /></AdminGrid></AdminCard>}
+
+    {recon && <AdminCard title="ตรวจสอบยอดกระเป๋าเงิน" description={`พบยอดไม่ตรงกัน ${recon.mismatchCount.toLocaleString('th-TH')} รายการ · อัปเดต ${new Date(recon.generatedAt).toLocaleString('th-TH')}`} action={<AdminButton tone="secondary" onClick={() => void downloadCsv('/admin/exports/reconciliation.csv?limit=1000', 'reconciliation.csv')}>ดาวน์โหลด CSV</AdminButton>}><AdminStack>{recon.items.slice(0, 20).map((item) => <AdminSectionRow key={item.walletId}><div style={reconInfoStyle}><AdminBadge tone={item.status === 'MATCHED' ? 'success' : 'danger'}>{humanStatus(item.status)}</AdminBadge><strong>{item.username ?? item.shortUserId}</strong><p>กระเป๋า {item.shortUserId}</p></div><div style={reconAmountGridStyle}><ReconAmount label="ยอดจริง" value={item.actualBalance} /><ReconAmount label="ยอดในบัญชีแยกประเภท" value={item.latestLedgerBalance} /><ReconAmount label="ยอดที่ล็อก" value={item.lockedBalance} />{item.availableBalance && <ReconAmount label="ยอดพร้อมใช้" value={item.availableBalance} />}</div></AdminSectionRow>)}{recon.items.length === 0 && <AdminEmpty>ไม่พบยอดที่ไม่ตรงกัน</AdminEmpty>}</AdminStack></AdminCard>}
+  </AdminPage>;
 }
 
-function GroupCard({ title, items }: { title: string; items: Group[] }) {
-  return <AdminCard title={title}><AdminStack>{items.map((item) => <AdminRow key={item.status}><strong>{item.status}</strong><span>{item.count} / {formatMoney(item.amount)}</span></AdminRow>)}{items.length === 0 && <AdminEmpty>ไม่มีข้อมูล</AdminEmpty>}</AdminStack></AdminCard>;
-}
-
-function TrendAmount({ label, value, tone }: { label: string; value: string; tone: 'success' | 'warning' | 'danger' }) {
-  return <div style={trendAmountItemStyle}><AdminBadge tone={tone}>{label}</AdminBadge><strong>{formatMoney(value)}</strong></div>;
-}
-
-function ReconAmount({ label, value }: { label: string; value: string }) {
-  return <div style={reconAmountStyle}><span>{label}</span><strong>{formatMoney(value)}</strong></div>;
-}
+function GroupCard({ title, items }: { title: string; items: Group[] }) { return <AdminCard title={title}><AdminStack>{items.map((item) => <AdminRow key={item.status}><strong>{humanStatus(item.status)}</strong><span>{item.count.toLocaleString('th-TH')} รายการ · {formatMoney(item.amount)}</span></AdminRow>)}{items.length === 0 && <AdminEmpty>ไม่มีข้อมูล</AdminEmpty>}</AdminStack></AdminCard>; }
+function TrendAmount({ label, value, tone }: { label: string; value: string; tone: 'success' | 'warning' | 'danger' }) { return <div style={trendAmountItemStyle}><AdminBadge tone={tone}>{label}</AdminBadge><strong>{formatMoney(value)}</strong></div>; }
+function ReconAmount({ label, value }: { label: string; value: string }) { return <div style={reconAmountStyle}><span>{label}</span><strong>{formatMoney(value)}</strong></div>; }
 
 const toolbarStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const };
 const badgeRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const };
@@ -124,8 +136,7 @@ const trendRowStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', 
 const trendDateStyle = { display: 'grid', gap: 4, minWidth: 0 };
 const trendAmountStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: 10, textAlign: 'left' as const, minWidth: 0, width: '100%' };
 const trendAmountItemStyle = { display: 'grid', gap: 6, minWidth: 0 };
-
 const filterGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 10, alignItems: 'end' };
 const filterLabelStyle = { display: 'grid', gap: 6, fontWeight: 850 } as const;
-const inputStyle = { minHeight: 42, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', minWidth: 0 } as const;
+const inputStyle = { minHeight: 42, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', minWidth: 0, width: '100%', boxSizing: 'border-box' as const };
 const filterActionStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const };
