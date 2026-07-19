@@ -31,6 +31,7 @@ import './admin-confirm-dialog.css';
 import './admin-professional-polish.css';
 import './admin-language-system.css';
 import './admin-chart-polish.css';
+import './admin-module-cleanup.css';
 
 export const viewport: Viewport = {
   width: 'device-width',
