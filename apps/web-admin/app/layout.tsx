@@ -30,6 +30,7 @@ import './admin-shell-overlay-fix.css';
 import './admin-confirm-dialog.css';
 import './admin-professional-polish.css';
 import './admin-language-system.css';
+import './admin-chart-polish.css';
 
 export const viewport: Viewport = {
   width: 'device-width',
