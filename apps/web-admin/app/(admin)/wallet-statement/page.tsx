@@ -2,21 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminDataValue, AdminEmpty, AdminNotice, AdminPage, formatMoney } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminDataValue, AdminEmpty, AdminNotice, AdminPage, AdminSkeleton, formatMoney } from '../_components/admin-ui';
 
-type LedgerItem = {
-  id: string;
-  type: string;
-  direction: string;
-  amount: string;
-  balanceBefore: string;
-  balanceAfter: string;
-  referenceType?: string | null;
-  referenceId?: string | null;
-  createdAt: string;
-  user?: { username?: string; shortId?: string | null };
-};
-
+type LedgerItem = { id: string; type: string; direction: string; amount: string; balanceBefore: string; balanceAfter: string; referenceType?: string | null; referenceId?: string | null; createdAt: string; user?: { username?: string; shortId?: string | null } };
 type Filters = { identifier: string; from: string; to: string };
 const PAGE_SIZE = 50;
 
@@ -39,8 +27,7 @@ export default function WalletStatementPage() {
   }, { credit: 0, debit: 0 }), [items]);
 
   async function loadStatement(nextPage = page) {
-    setLoading(true);
-    setMessage('');
+    setLoading(true); setMessage('');
     try {
       const params = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
       if (filters.identifier.trim()) params.set('identifier', filters.identifier.trim());
@@ -50,85 +37,35 @@ export default function WalletStatementPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.message ?? 'โหลด Statement ไม่สำเร็จ');
       const nextItems = Array.isArray(data?.items) ? data.items : [];
-      setItems(nextItems);
-      setTotal(Number(data?.total ?? nextItems.length));
-      setPageCount(Math.max(Number(data?.pageCount ?? 1), 1));
-      setPage(nextPage);
+      setItems(nextItems); setTotal(Number(data?.total ?? nextItems.length)); setPageCount(Math.max(Number(data?.pageCount ?? 1), 1)); setPage(nextPage);
     } catch (error) {
-      setItems([]);
-      setTotal(0);
-      setPageCount(1);
-      setMessage(error instanceof Error ? error.message : 'โหลด Statement ไม่สำเร็จ');
-    } finally {
-      setLoading(false);
-    }
+      setItems([]); setTotal(0); setPageCount(1); setMessage(error instanceof Error ? error.message : 'โหลด Statement ไม่สำเร็จ');
+    } finally { setLoading(false); }
   }
 
-  function clearFilters() {
-    setFilters({ identifier: '', from: '', to: '' });
-    window.setTimeout(() => void loadStatement(1), 0);
-  }
+  function clearFilters() { setFilters({ identifier: '', from: '', to: '' }); window.setTimeout(() => void loadStatement(1), 0); }
 
   function exportCsv() {
-    const rows = [
-      ['วันที่', 'สมาชิก', 'ประเภท', 'ทิศทาง', 'จำนวน', 'ยอดก่อน', 'ยอดหลัง', 'อ้างอิง'],
-      ...items.map((item) => [
-        new Date(item.createdAt).toLocaleString('th-TH'),
-        item.user?.username ?? '-',
-        item.type,
-        item.direction,
-        item.amount,
-        item.balanceBefore,
-        item.balanceAfter,
-        [item.referenceType, item.referenceId].filter(Boolean).join(':') || '-',
-      ]),
-    ];
+    const rows = [['วันที่','สมาชิก','ประเภท','ทิศทาง','จำนวน','ยอดก่อน','ยอดหลัง','อ้างอิง'], ...items.map((item) => [new Date(item.createdAt).toLocaleString('th-TH'), item.user?.username ?? '-', item.type, item.direction, item.amount, item.balanceBefore, item.balanceAfter, [item.referenceType, item.referenceId].filter(Boolean).join(':') || '-'])];
     const csv = rows.map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(',')).join('\n');
     const url = URL.createObjectURL(new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `wallet-statement-${new Date().toISOString().slice(0, 10)}.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = `wallet-statement-${new Date().toISOString().slice(0,10)}.csv`; anchor.click(); URL.revokeObjectURL(url);
   }
 
-  return <AdminPage eyebrow="การเงิน" title="Wallet Statement" description="ตรวจรายการเดินบัญชีของสมาชิก พร้อมยอดก่อนและหลังรายการในรูปแบบที่อ่านและส่งออกได้ง่าย" actions={<><AdminButton tone="secondary" disabled={loading || items.length === 0} onClick={exportCsv}>ส่งออก CSV</AdminButton><AdminButton disabled={loading} onClick={() => void loadStatement(page)}>รีเฟรช</AdminButton></>}>
-    {message && <AdminNotice tone="danger">{message}</AdminNotice>}
-
+  return <AdminPage eyebrow="การเงิน" title="Wallet Statement" description="ตรวจรายการเดินบัญชี พร้อมยอดก่อนและหลัง และส่งออกได้ทันที" actions={<><AdminButton size="compact" tone="secondary" disabled={loading || items.length === 0} onClick={exportCsv}>ส่งออก CSV</AdminButton><AdminButton size="compact" disabled={loading} onClick={() => void loadStatement(page)}>รีเฟรช</AdminButton></>}>
     <section className="admin-wallet-statement" aria-busy={loading}>
-      <div className="admin-wallet-statement__summary">
-        <StatementMetric label="รายการทั้งหมด" value={total.toLocaleString('th-TH')} />
-        <StatementMetric label="เงินเข้าหน้านี้" value={formatMoney(totals.credit)} />
-        <StatementMetric label="เงินออกหน้านี้" value={formatMoney(totals.debit)} />
-        <StatementMetric label="หน้าปัจจุบัน" value={`${page}/${pageCount}`} />
-      </div>
-
-      <form className="admin-wallet-statement__filters" onSubmit={(event) => { event.preventDefault(); void loadStatement(1); }}>
+      <div className="admin-wallet-statement__stats"><Metric label="รายการทั้งหมด" value={total.toLocaleString('th-TH')} /><Metric label="เงินเข้าหน้านี้" value={formatMoney(totals.credit)} /><Metric label="เงินออกหน้านี้" value={formatMoney(totals.debit)} /><Metric label="หน้าปัจจุบัน" value={`${page}/${pageCount}`} /></div>
+      <form className="admin-wallet-statement__toolbar" onSubmit={(event) => { event.preventDefault(); void loadStatement(1); }}>
         <label><span>สมาชิก</span><input value={filters.identifier} onChange={(event) => setFilters((current) => ({ ...current, identifier: event.target.value }))} placeholder="ชื่อผู้ใช้ รหัสสมาชิก หรือ User ID" /></label>
         <label><span>ตั้งแต่วันที่</span><input type="date" value={filters.from} onChange={(event) => setFilters((current) => ({ ...current, from: event.target.value }))} /></label>
         <label><span>ถึงวันที่</span><input type="date" value={filters.to} onChange={(event) => setFilters((current) => ({ ...current, to: event.target.value }))} /></label>
-        <div><AdminButton type="submit" disabled={loading}>ค้นหา</AdminButton><AdminButton type="button" tone="secondary" disabled={loading} onClick={clearFilters}>ล้าง</AdminButton></div>
+        <AdminButton type="submit" size="compact" disabled={loading}>ค้นหา</AdminButton><AdminButton size="compact" tone="secondary" disabled={loading} onClick={clearFilters}>ล้าง</AdminButton>
       </form>
-
-      <div className="admin-wallet-statement__table-wrap">
-        <table className="admin-wallet-statement__table">
-          <thead><tr><th>วันที่</th><th>สมาชิก</th><th>รายการ</th><th>จำนวน</th><th>ยอดก่อน</th><th>ยอดหลัง</th><th>อ้างอิง</th></tr></thead>
-          <tbody>{items.map((item) => <tr key={item.id}>
-            <td>{new Date(item.createdAt).toLocaleString('th-TH')}</td>
-            <td><strong>{item.user?.username ?? '-'}</strong><small>{item.user?.shortId ?? '-'}</small></td>
-            <td><AdminBadge tone={item.direction === 'CREDIT' ? 'success' : 'danger'}>{item.direction === 'CREDIT' ? 'เงินเข้า' : 'เงินออก'}</AdminBadge><small>{item.type}</small></td>
-            <td className={item.direction === 'CREDIT' ? 'is-credit' : 'is-debit'}>{item.direction === 'CREDIT' ? '+' : '-'} {formatMoney(item.amount)}</td>
-            <td>{formatMoney(item.balanceBefore)}</td>
-            <td>{formatMoney(item.balanceAfter)}</td>
-            <td><AdminDataValue label={item.referenceType ?? 'Reference'} mono>{item.referenceId ?? '-'}</AdminDataValue></td>
-          </tr>)}</tbody>
-        </table>
-        {!loading && items.length === 0 && <AdminEmpty>ไม่พบรายการตามเงื่อนไข</AdminEmpty>}
-      </div>
-
-      <div className="admin-wallet-statement__pager"><AdminButton tone="secondary" disabled={loading || page <= 1} onClick={() => void loadStatement(page - 1)}>ก่อนหน้า</AdminButton><span>หน้า {page} จาก {pageCount}</span><AdminButton tone="secondary" disabled={loading || page >= pageCount} onClick={() => void loadStatement(page + 1)}>ถัดไป</AdminButton></div>
+      {message && <AdminNotice tone="danger">{message}</AdminNotice>}
+      {loading && items.length === 0 ? <AdminSkeleton lines={6} /> : <div className="admin-wallet-statement__table-shell"><table className="admin-wallet-statement__table"><thead><tr><th>วันที่</th><th>สมาชิก</th><th>รายการ</th><th>จำนวน</th><th>ยอดก่อน</th><th>ยอดหลัง</th><th>อ้างอิง</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td>{new Date(item.createdAt).toLocaleString('th-TH')}</td><td><strong>{item.user?.username ?? '-'}</strong><br /><small>{item.user?.shortId ?? '-'}</small></td><td><AdminBadge tone={item.direction === 'CREDIT' ? 'success' : 'danger'}>{item.direction === 'CREDIT' ? 'เงินเข้า' : 'เงินออก'}</AdminBadge><br /><small>{item.type}</small></td><td className="admin-wallet-statement__amount">{item.direction === 'CREDIT' ? '+' : '-'} {formatMoney(item.amount)}</td><td>{formatMoney(item.balanceBefore)}</td><td>{formatMoney(item.balanceAfter)}</td><td><AdminDataValue label={item.referenceType ?? 'Reference'} mono>{item.referenceId ?? '-'}</AdminDataValue></td></tr>)}</tbody></table>{!loading && items.length === 0 && <div className="admin-wallet-statement__state"><AdminEmpty>ไม่พบรายการตามเงื่อนไข</AdminEmpty></div>}</div>}
+      <div className="admin-wallet-statement__toolbar"><AdminButton size="compact" tone="secondary" disabled={loading || page <= 1} onClick={() => void loadStatement(page - 1)}>ก่อนหน้า</AdminButton><span>หน้า {page} จาก {pageCount}</span><AdminButton size="compact" tone="secondary" disabled={loading || page >= pageCount} onClick={() => void loadStatement(page + 1)}>ถัดไป</AdminButton></div>
     </section>
   </AdminPage>;
 }
 
-function StatementMetric({ label, value }: { label: string; value: string }) { return <article><span>{label}</span><strong>{value}</strong></article>; }
+function Metric({ label, value }: { label: string; value: string }) { return <article className="admin-wallet-statement__stat"><span>{label}</span><strong>{value}</strong></article>; }
