@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, NotFoundException, Param, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Headers, NotFoundException, Param, Post, Req, Res, ServiceUnavailableException } from '@nestjs/common';
 import { ProviderSimulatorGameTransactionDto } from './dto/provider-simulator-game-transaction.dto';
 import {
   ProviderSimulatorBalanceRequestDto,
@@ -124,6 +124,15 @@ export class ProviderSimulatorController {
   private ensureEnabled() {
     if (process.env.ENABLE_PROVIDER_SIMULATOR !== 'true') {
       throw new NotFoundException('Provider simulator is disabled');
+    }
+
+    const providerMode = (process.env.GAME_PROVIDER_MODE ?? 'SIMULATOR').trim().toUpperCase();
+    if (providerMode !== 'SIMULATOR') {
+      throw new ServiceUnavailableException('Provider simulator is unavailable outside simulator mode');
+    }
+
+    if (process.env.REAL_MONEY_PROVIDER_ENABLED === 'true' || process.env.EXTERNAL_PROVIDER_CALLBACK_ENABLED === 'true') {
+      throw new ServiceUnavailableException('Provider simulator cannot run while external provider mode is enabled');
     }
   }
 }
