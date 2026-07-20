@@ -29,7 +29,7 @@
 - [ ] กวาดคำอังกฤษที่ไม่จำเป็นในหน้า Admin หลัก
 - [ ] ทำ action labels ให้สั้นและใช้คำเดียวกันทั้งระบบ
 - [x] ทำ status wording ให้ใช้ mapping กลางในโมดูลหลักที่รีแฟกเตอร์แล้ว
-- [x] ลดคำอธิบายที่ยาวเกินใน Webhook, Audit Logs, Reports และ Settings
+- [x] ลดคำอธิบายที่ยาวเกินใน Webhook, Audit Logs, Reports และ Support Center
 - [x] เปลี่ยนข้อความเชิงเทคนิคให้ผู้ดูแลเข้าใจง่าย โดยยังเปิดดูค่าจริงได้ในโมดูลที่รีแฟกเตอร์แล้ว
 
 ## P2 — Unified layout
@@ -39,8 +39,8 @@
 - [x] ทำ action area ให้ใช้ตำแหน่งและ wrapping contract เดียวกันใน shared primitives
 - [x] เพิ่ม shared filter bar
 - [x] เพิ่ม shared pagination
-- [ ] ย้ายหน้าหลักที่มี filter/search/pager มาใช้ shared components
-- [ ] ลด layout inline styles ที่ซ้ำกัน
+- [x] ย้ายหน้าหลักที่มี filter/search/pager ในรายการ migration มาใช้ shared components
+- [ ] ลด layout inline styles ที่ซ้ำกันทั้งระบบ
 
 ## P3 — Mobile polish
 
@@ -49,7 +49,6 @@
 - [x] ทำ data-value stack บนจอแคบ
 - [x] ทำ filter controls stack บนจอแคบ
 - [x] ทำ pagination stack บนจอแคบ
-- [x] ทำ action groups stack บนจอแคบ
 - [x] ทำ modal safe area และ sticky actions
 - [ ] ตรวจตารางและการ์ดที่ยังต้อง horizontal scroll
 
@@ -69,7 +68,6 @@
 - [ ] ใช้ loading skeleton ครบทุกหน้าหลัก
 - [x] Button hover, focus, pressed และ disabled baseline
 - [x] เพิ่ม button border และ surface contrast ทุก tone
-- [x] ทำ form surface, hover และ focus contract กลางใน Admin cards
 - [ ] Dialog transition
 - [ ] Expand/collapse animation
 - [ ] Success/error feedback consistency audit
@@ -101,7 +99,7 @@
 - [x] Audit logs
 - [x] Reports
 - [x] Settings
-- [ ] Support
+- [x] Support Center
 - [x] Risk detail surfaces
 
 ## รอบปัจจุบัน
@@ -114,4 +112,5 @@
 - เพิ่ม action group และ form surface contract กลางที่ commits `b611548c`, `4ead3f99`, `62fb4721`
 - ย้าย Settings มาใช้ action strip และ section heading กลางที่ commit `3676b42e`
 - Risk detail ได้รับ action/form/mobile contract กลางโดยไม่รื้อ logic เดิม
-- ขั้นถัดไป: ระบุตำแหน่ง Support surface ที่ใช้งานจริง จากนั้นกวาด inline styles, helper ซ้ำ และ mobile viewport ที่เหลือ
+- ย้าย Support Center มาใช้ filter bar, action strip, data values, code display และ loading skeleton ที่ commit `de7fb235`
+- ขั้นถัดไป: กวาด inline styles, helper ซ้ำ, dead imports และ mobile viewport ที่ยังเหลือ
