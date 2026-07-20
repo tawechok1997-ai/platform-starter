@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 type PageProps = { eyebrow?: string; title: string; description?: string; actions?: ReactNode; children: ReactNode };
@@ -31,9 +31,10 @@ const safeTextContainerStyle: CSSProperties = {
   wordBreak: 'break-word',
 };
 
-const cardBodyStyle: CSSProperties = {
+const monoStyle: CSSProperties = {
   ...safeTextContainerStyle,
-  paddingInline: 'clamp(2px, 1vw, 6px)',
+  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+  fontVariantNumeric: 'tabular-nums',
 };
 
 const rowStyle: CSSProperties = {
@@ -42,29 +43,22 @@ const rowStyle: CSSProperties = {
   columnGap: 'clamp(12px, 3vw, 20px)',
 };
 
-const pageHeaderStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) auto',
-  alignItems: 'start',
-  gap: 16,
-  marginBottom: 20,
-};
-
-const pageActionStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: 8,
-  flexWrap: 'wrap',
-  minWidth: 0,
-};
-
 export function AdminPage({ eyebrow, title, description, actions, children }: PageProps) {
-  return <main className="admin-ui-page"><header className="admin-ui-page__head" style={pageHeaderStyle}><div style={safeTextContainerStyle}>{eyebrow && <p className="admin-ui-eyebrow" style={{ marginBottom: 6, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase' }}>{eyebrow}</p>}<h1>{title}</h1>{description && <p className="admin-ui-page__description" style={{ maxWidth: 760, marginBottom: 0 }}>{description}</p>}</div>{actions && <div className="admin-ui-page__actions" style={pageActionStyle}>{actions}</div>}</header>{children}</main>;
+  return <main className="admin-ui-page">
+    <style jsx global>{adminSystemCss}</style>
+    <header className="admin-ui-page__head">
+      <div className="admin-ui-page__copy">{eyebrow && <p className="admin-ui-eyebrow">{eyebrow}</p>}<h1>{title}</h1>{description && <p className="admin-ui-page__description">{description}</p>}</div>
+      {actions && <div className="admin-ui-page__actions">{actions}</div>}
+    </header>
+    {children}
+  </main>;
 }
 
 export function AdminCard({ title, description, action, children, tone = 'neutral', compact = false }: CardProps) {
-  return <section className={`admin-ui-card admin-ui-surface--${tone}${compact ? ' admin-ui-card--compact' : ''}`} style={{ ...safeTextContainerStyle, padding: compact ? 14 : undefined }}>{(title || description || action) && <header className="admin-ui-card__head" style={{ ...safeTextContainerStyle, marginBottom: compact ? 10 : undefined }}><div style={safeTextContainerStyle}>{title && <h2 style={{ marginBottom: description ? 5 : 0 }}>{title}</h2>}{description && <p style={{ marginBottom: 0, lineHeight: 1.45 }}>{description}</p>}</div>{action && <div className="admin-ui-card__action" style={safeTextContainerStyle}>{action}</div>}</header>}<div className="admin-ui-stack" style={cardBodyStyle}>{children}</div></section>;
+  return <section className={`admin-ui-card admin-ui-surface--${tone}${compact ? ' admin-ui-card--compact' : ''}`} style={safeTextContainerStyle}>
+    {(title || description || action) && <header className="admin-ui-card__head"><div className="admin-ui-card__copy">{title && <h2>{title}</h2>}{description && <p>{description}</p>}</div>{action && <div className="admin-ui-card__action">{action}</div>}</header>}
+    <div className="admin-ui-stack">{children}</div>
+  </section>;
 }
 
 export function AdminMetric({ title, value, helper, tone = 'neutral', trend }: MetricProps) {
@@ -76,29 +70,33 @@ export function AdminGrid({ children }: { children: ReactNode }) { return <div c
 export function AdminStack({ children }: { children: ReactNode }) { return <div className="admin-ui-stack" style={safeTextContainerStyle}>{children}</div>; }
 export function AdminRow({ children }: { children: ReactNode }) { return <div className="admin-ui-row" style={rowStyle}>{children}</div>; }
 export function AdminSectionRow({ children }: { children: ReactNode }) { return <div className="admin-ui-section-row" style={rowStyle}>{children}</div>; }
-export function AdminToolbar({ children }: { children: ReactNode }) { return <div className="admin-ui-toolbar" style={{ ...safeTextContainerStyle, gap: 10, alignItems: 'center' }}>{children}</div>; }
+export function AdminToolbar({ children }: { children: ReactNode }) { return <div className="admin-ui-toolbar" style={safeTextContainerStyle}>{children}</div>; }
 export function AdminNotice({ children, tone = 'neutral' }: { children: ReactNode; tone?: SurfaceTone }) { return <div className={`admin-ui-notice admin-ui-surface--${tone}`} role={tone === 'danger' ? 'alert' : 'status'} style={safeTextContainerStyle}>{children}</div>; }
 export function AdminEmpty({ children }: { children: ReactNode }) { return <div className="admin-ui-empty" style={safeTextContainerStyle}>{children}</div>; }
 export function AdminSkeleton({ lines = 3 }: { lines?: number }) { return <div className="admin-ui-skeleton" aria-label="กำลังโหลด" role="status"><span className="admin-ui-skeleton__block" />{Array.from({ length: lines }, (_, index) => <span key={index} className="admin-ui-skeleton__line" />)}</div>; }
 
 export function AdminButton({ children, onClick, type = 'button', disabled, tone = 'primary', size = 'regular', ariaLabel }: { children: ReactNode; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; tone?: ButtonTone; size?: ButtonSize; ariaLabel?: string }) {
-  return <button type={type} onClick={onClick} disabled={disabled} aria-label={ariaLabel} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--${size}`} style={size === 'compact' ? { minHeight: 38, padding: '7px 12px', borderRadius: 10, fontSize: 13, lineHeight: 1.15 } : undefined}>{children}</button>;
+  return <button type={type} onClick={onClick} disabled={disabled} aria-label={ariaLabel} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--${size}`}>{children}</button>;
 }
 
 export function AdminIconButton({ children, onClick, disabled, tone = 'ghost', label }: { children: ReactNode; onClick?: () => void; disabled?: boolean; tone?: ButtonTone; label: string }) {
-  return <button type="button" onClick={onClick} disabled={disabled} aria-label={label} title={label} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--compact`} style={{ width: 40, minWidth: 40, height: 40, minHeight: 40, padding: 0, borderRadius: 11, display: 'grid', placeItems: 'center', fontSize: 18 }}>{children}</button>;
+  return <button type="button" onClick={onClick} disabled={disabled} aria-label={label} title={label} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--compact admin-ui-icon-button`}>{children}</button>;
 }
 
 export function AdminLinkButton({ children, href, tone = 'secondary', size = 'regular' }: { children: ReactNode; href: string; tone?: 'primary' | 'secondary' | 'ghost'; size?: ButtonSize }) {
-  return <a href={href} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--${size}`} style={size === 'compact' ? { minHeight: 38, padding: '7px 12px', borderRadius: 10, fontSize: 13, lineHeight: 1.15 } : undefined}>{children}</a>;
+  return <a href={href} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--${size}`}>{children}</a>;
 }
 
-export function AdminBadge({ children, tone = 'neutral' }: { children: ReactNode; tone?: BadgeTone }) {
-  return <span className={`admin-ui-badge admin-ui-badge--${tone}`}>{children}</span>;
-}
+export function AdminBadge({ children, tone = 'neutral' }: { children: ReactNode; tone?: BadgeTone }) { return <span className={`admin-ui-badge admin-ui-badge--${tone}`}>{children}</span>; }
+export function AdminCode({ children, title }: { children: ReactNode; title?: string }) { return <code className="admin-ui-code" title={title} style={monoStyle}>{children}</code>; }
+export function AdminDataValue({ label, children, mono = false }: { label: string; children: ReactNode; mono?: boolean }) { return <div className="admin-ui-data-value"><span>{label}</span><strong style={mono ? monoStyle : safeTextContainerStyle}>{children}</strong></div>; }
 
 export function AdminConfirmDialog({ open, title, description, confirmLabel, cancelLabel = 'ยกเลิก', tone = 'primary', busy = false, details, onConfirm, onCancel }: ConfirmDialogProps) {
   const [mounted, setMounted] = useState(false);
+  const titleId = useId();
+  const descriptionId = useId();
+  const confirmRef = useRef<HTMLButtonElement | null>(null);
+
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
     if (!open) return;
@@ -108,9 +106,11 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
     document.body.style.position = 'fixed';
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
+    const focusTimer = window.setTimeout(() => confirmRef.current?.focus(), 30);
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape' && !busy) onCancel(); };
     window.addEventListener('keydown', closeOnEscape);
     return () => {
+      window.clearTimeout(focusTimer);
       window.removeEventListener('keydown', closeOnEscape);
       document.body.style.overflow = previous.overflow;
       document.body.style.position = previous.position;
@@ -120,12 +120,13 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
     };
   }, [open, busy, onCancel]);
   if (!open || !mounted) return null;
+
   return createPortal(
-    <div className="admin-confirm-layer" role="presentation" style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'grid', placeItems: 'center', padding: 'max(14px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom))', overflow: 'hidden', overscrollBehavior: 'contain' }} onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
-      <section className="admin-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="admin-confirm-title" aria-describedby="admin-confirm-description" style={{ width: 'min(100%, 560px)', maxHeight: 'calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom))', margin: 'auto', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', gap: 14, alignItems: 'start', padding: '20px 20px 12px', background: 'inherit', position: 'sticky', top: 0, zIndex: 2 }}><div className={`admin-confirm-dialog__mark admin-confirm-dialog__mark--${tone}`} aria-hidden="true">!</div><div className="admin-confirm-dialog__copy" style={safeTextContainerStyle}><h2 id="admin-confirm-title">{title}</h2><p id="admin-confirm-description">{description}</p></div></div>
-        <div style={{ minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', padding: '0 20px 16px' }}>{details ? <div className="admin-confirm-dialog__details" style={safeTextContainerStyle}>{details}</div> : null}</div>
-        <div className="admin-confirm-dialog__actions" style={{ position: 'sticky', bottom: 0, zIndex: 2, padding: '12px 20px max(16px, env(safe-area-inset-bottom))', background: 'inherit', borderTop: '1px solid rgba(148,163,184,.16)' }}><AdminButton tone="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</AdminButton><AdminButton tone={tone} disabled={busy} onClick={onConfirm}>{busy ? 'กำลังดำเนินการ...' : confirmLabel}</AdminButton></div>
+    <div className="admin-confirm-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
+      <section className="admin-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descriptionId}>
+        <div className="admin-confirm-dialog__head"><div className={`admin-confirm-dialog__mark admin-confirm-dialog__mark--${tone}`} aria-hidden="true">!</div><div className="admin-confirm-dialog__copy"><h2 id={titleId}>{title}</h2><p id={descriptionId}>{description}</p></div></div>
+        <div className="admin-confirm-dialog__body">{details ? <div className="admin-confirm-dialog__details">{details}</div> : null}</div>
+        <div className="admin-confirm-dialog__actions"><AdminButton tone="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</AdminButton><button ref={confirmRef} type="button" disabled={busy} onClick={onConfirm} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--regular`}>{busy ? 'กำลังดำเนินการ...' : confirmLabel}</button></div>
       </section>
     </div>, document.body,
   );
@@ -134,3 +135,57 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
 export function AdminCommandPanel({ children }: { children: ReactNode }) { return <section className="admin-ui-command-panel" style={safeTextContainerStyle}>{children}</section>; }
 export function AdminActionStrip({ children }: { children: ReactNode }) { return <div className="admin-ui-action-strip" style={safeTextContainerStyle}>{children}</div>; }
 export function formatMoney(value: string | number) { return `THB ${Number(value).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
+
+const adminSystemCss = `
+.admin-ui-page{min-width:0;width:100%;display:grid;gap:18px}
+.admin-ui-page__head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:18px;margin-bottom:2px}
+.admin-ui-page__copy,.admin-ui-card__copy,.admin-ui-card__action,.admin-confirm-dialog__copy{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.admin-ui-eyebrow{margin:0 0 6px!important;font-size:12px!important;line-height:1.2!important;letter-spacing:.09em;text-transform:uppercase;color:var(--brand)!important;font-weight:900}
+.admin-ui-page__head h1{margin:0 0 8px!important;font-size:clamp(28px,4vw,44px)!important;line-height:1.05!important;letter-spacing:-.035em!important}
+.admin-ui-page__description{max-width:760px;margin:0!important;font-size:14px!important;line-height:1.55!important}
+.admin-ui-page__actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:0}
+.admin-ui-card{padding:18px!important;border-radius:18px!important;overflow:hidden!important}
+.admin-ui-card--compact{padding:14px!important}
+.admin-ui-card__head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:14px;margin-bottom:14px}
+.admin-ui-card--compact .admin-ui-card__head{margin-bottom:10px}
+.admin-ui-card__head h2{margin:0!important;font-size:clamp(18px,2.4vw,22px)!important;line-height:1.2!important}
+.admin-ui-card__head p{margin:5px 0 0!important;font-size:13px!important;line-height:1.45!important}
+.admin-ui-stack{display:grid;gap:12px;min-width:0;max-width:100%}
+.admin-ui-row,.admin-ui-section-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0}
+.admin-ui-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0;padding:12px!important;border:1px solid var(--line);border-radius:14px;background:rgba(148,163,184,.045)}
+.admin-ui-toolbar>input,.admin-ui-toolbar>select{flex:1 1 190px!important}
+.admin-ui-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;white-space:normal;text-align:center;border:1px solid transparent;transition:transform .16s ease,background .16s ease,border-color .16s ease,opacity .16s ease}
+.admin-ui-button--regular{min-height:42px;padding:9px 15px;border-radius:11px;font-size:14px;line-height:1.2}
+.admin-ui-button--compact{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;line-height:1.15}
+.admin-ui-icon-button{width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;padding:0!important;font-size:17px}
+.admin-ui-button--ghost{background:transparent;color:#cbd5e1;border-color:var(--line)}
+.admin-ui-button:disabled{cursor:not-allowed;opacity:.55;transform:none!important}
+.admin-ui-button:focus-visible,.admin-ui-toolbar input:focus-visible,.admin-ui-toolbar select:focus-visible{outline:3px solid rgba(245,197,66,.24);outline-offset:2px}
+.admin-ui-metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.admin-ui-metric{padding:15px!important;min-height:112px;display:grid;align-content:start;gap:5px}
+.admin-ui-metric p,.admin-ui-metric span,.admin-ui-metric em{margin:0!important;font-size:12px!important;line-height:1.35!important}
+.admin-ui-metric strong{font-size:clamp(22px,4vw,31px);line-height:1.05;font-variant-numeric:tabular-nums}
+.admin-ui-badge{display:inline-flex;align-items:center;max-width:100%;overflow-wrap:anywhere}
+.admin-ui-code{display:inline-block;max-width:100%;font-size:12px;line-height:1.45;overflow-wrap:anywhere;word-break:break-word}
+.admin-ui-data-value{display:grid;grid-template-columns:minmax(110px,.45fr) minmax(0,1fr);gap:10px;align-items:start;min-width:0}
+.admin-ui-data-value>span{color:var(--muted);font-size:13px}
+.admin-ui-data-value>strong{font-size:14px;font-weight:800;text-align:right}
+.admin-confirm-layer{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:max(14px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom));overflow:hidden;overscroll-behavior:contain;background:rgba(2,6,23,.72);backdrop-filter:blur(8px)}
+.admin-confirm-dialog{width:min(100%,560px);max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));margin:auto;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;border:1px solid var(--line2);border-radius:20px;background:var(--card);box-shadow:0 28px 90px rgba(0,0,0,.55)}
+.admin-confirm-dialog__head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start;padding:20px 20px 12px;background:inherit;position:sticky;top:0;z-index:2}
+.admin-confirm-dialog__copy h2{margin:0 0 6px!important;font-size:21px!important}
+.admin-confirm-dialog__copy p{margin:0!important;font-size:14px!important}
+.admin-confirm-dialog__body{min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 20px 16px}
+.admin-confirm-dialog__actions{position:sticky;bottom:0;z-index:2;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:12px 20px max(16px,env(safe-area-inset-bottom));background:inherit;border-top:1px solid var(--line)}
+@media(max-width:720px){
+ .admin-ui-page{gap:14px}.admin-ui-page__head{grid-template-columns:1fr;gap:12px}.admin-ui-page__actions{justify-content:flex-start}.admin-ui-page__description{font-size:13px!important}
+ .admin-ui-card{padding:14px!important;border-radius:16px!important}.admin-ui-card__head{grid-template-columns:1fr;gap:9px}.admin-ui-card__action{display:flex;justify-content:flex-start;flex-wrap:wrap;gap:8px}
+ .admin-ui-row,.admin-ui-section-row{flex-direction:column;align-items:stretch}.admin-ui-row>[style*="text-align: right"],.admin-ui-section-row>[style*="text-align: right"]{text-align:left!important}
+ .admin-ui-toolbar{display:grid;grid-template-columns:minmax(0,1fr);padding:10px!important}.admin-ui-toolbar>*{width:100%;max-width:100%}
+ .admin-ui-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.admin-ui-metric{min-height:98px;padding:12px!important}
+ .admin-ui-data-value{grid-template-columns:1fr;gap:3px}.admin-ui-data-value>strong{text-align:left}
+ .admin-confirm-dialog__head{padding:17px 16px 10px}.admin-confirm-dialog__body{padding:0 16px 12px}.admin-confirm-dialog__actions{padding:11px 16px max(14px,env(safe-area-inset-bottom))}.admin-confirm-dialog__actions>*{flex:1 1 140px}
+}
+@media(max-width:420px){.admin-ui-metric-grid{grid-template-columns:1fr}.admin-ui-page__actions .admin-ui-button:not(.admin-ui-icon-button){flex:1 1 auto}.admin-ui-button--regular{min-height:40px;padding:8px 12px}}
+@media(prefers-reduced-motion:reduce){.admin-ui-button{transition:none!important}.admin-confirm-layer{backdrop-filter:none}}
+`;
