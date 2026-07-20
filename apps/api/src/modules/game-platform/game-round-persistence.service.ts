@@ -9,7 +9,9 @@ type PersistedGameRound = {
   state: GameRoundState;
   betTransactionId: string | null;
   settleTransactionId: string | null;
+  refundTransactionId: string | null;
   rollbackTransactionId: string | null;
+  cancelTransactionId: string | null;
 };
 
 type PersistableRoundTransaction = {
@@ -17,7 +19,7 @@ type PersistableRoundTransaction = {
   currency: string;
   originalProviderTransactionId: string | null;
   direction: 'CREDIT' | 'DEBIT';
-  operation: 'BET' | 'WIN' | 'REFUND' | 'ROLLBACK';
+  operation: 'BET' | 'WIN' | 'REFUND' | 'ROLLBACK' | 'CANCEL';
 };
 
 export type PersistedRoundTransition = {
@@ -56,7 +58,9 @@ export class GameRoundPersistenceService {
           SET "state" = ${next.state},
               "bet_transaction_id" = ${next.betTransactionId ?? null},
               "settle_transaction_id" = ${next.settleTransactionId ?? null},
+              "refund_transaction_id" = ${next.refundTransactionId ?? null},
               "rollback_transaction_id" = ${next.rollbackTransactionId ?? null},
+              "cancel_transaction_id" = ${next.cancelTransactionId ?? null},
               "last_event_type" = ${event.eventType},
               "last_event_payload" = ${payloadJson}::jsonb,
               "settled_at" = CASE WHEN ${next.state} = 'SETTLED' THEN ${now} ELSE "settled_at" END,
@@ -113,7 +117,7 @@ export class GameRoundPersistenceService {
       SET "total_bet_amount" = "total_bet_amount" + CASE WHEN inserted."operation" = 'BET' THEN inserted."amount" ELSE 0 END,
           "total_win_amount" = "total_win_amount" + CASE WHEN inserted."operation" = 'WIN' THEN inserted."amount" ELSE 0 END,
           "total_refund_amount" = "total_refund_amount" + CASE WHEN inserted."operation" = 'REFUND' THEN inserted."amount" ELSE 0 END,
-          "total_rollback_amount" = "total_rollback_amount" + CASE WHEN inserted."operation" = 'ROLLBACK' THEN inserted."amount" ELSE 0 END,
+          "total_rollback_amount" = "total_rollback_amount" + CASE WHEN inserted."operation" IN ('ROLLBACK', 'CANCEL') THEN inserted."amount" ELSE 0 END,
           "updated_at" = CURRENT_TIMESTAMP
       FROM inserted
       WHERE "game_rounds"."id" = ${input.roundId}::uuid
@@ -129,9 +133,11 @@ export class GameRoundPersistenceService {
       ? 'BET'
       : roundEvent === 'SETTLE'
         ? 'WIN'
-        : this.normalizedEventType(event.eventType).includes('REFUND')
+        : roundEvent === 'REFUND'
           ? 'REFUND'
-          : 'ROLLBACK';
+          : roundEvent === 'CANCEL'
+            ? 'CANCEL'
+            : 'ROLLBACK';
     return {
       amount,
       currency: this.nonEmptyString(payload.currency) ?? 'THB',
@@ -146,7 +152,9 @@ export class GameRoundPersistenceService {
       SELECT "id", "provider_round_id" AS "providerRoundId", "state",
              "bet_transaction_id" AS "betTransactionId",
              "settle_transaction_id" AS "settleTransactionId",
-             "rollback_transaction_id" AS "rollbackTransactionId"
+             "refund_transaction_id" AS "refundTransactionId",
+             "rollback_transaction_id" AS "rollbackTransactionId",
+             "cancel_transaction_id" AS "cancelTransactionId"
       FROM "game_rounds"
       WHERE "provider_id" = ${providerId}::uuid AND "provider_round_id" = ${providerRoundId}
       LIMIT 1
@@ -159,7 +167,9 @@ export class GameRoundPersistenceService {
       RETURNING "id", "provider_round_id" AS "providerRoundId", "state",
                 "bet_transaction_id" AS "betTransactionId",
                 "settle_transaction_id" AS "settleTransactionId",
-                "rollback_transaction_id" AS "rollbackTransactionId"
+                "refund_transaction_id" AS "refundTransactionId",
+                "rollback_transaction_id" AS "rollbackTransactionId",
+                "cancel_transaction_id" AS "cancelTransactionId"
     `;
     const round = created[0];
     if (!round) throw new BadRequestException('Unable to create game round');
@@ -173,7 +183,9 @@ export class GameRoundPersistenceService {
       state: round.state,
       ...(round.betTransactionId ? { betTransactionId: round.betTransactionId } : {}),
       ...(round.settleTransactionId ? { settleTransactionId: round.settleTransactionId } : {}),
+      ...(round.refundTransactionId ? { refundTransactionId: round.refundTransactionId } : {}),
       ...(round.rollbackTransactionId ? { rollbackTransactionId: round.rollbackTransactionId } : {}),
+      ...(round.cancelTransactionId ? { cancelTransactionId: round.cancelTransactionId } : {}),
     };
   }
 
@@ -181,7 +193,9 @@ export class GameRoundPersistenceService {
     const normalized = this.normalizedEventType(eventType);
     if (['BET', 'PLACE_BET', 'BET_PLACED'].includes(normalized)) return 'PLACE_BET';
     if (['SETTLE', 'SETTLED', 'WIN', 'PAYOUT'].includes(normalized)) return 'SETTLE';
-    if (['ROLLBACK', 'REFUND', 'BET_ROLLBACK', 'CANCEL_BET'].includes(normalized)) return 'ROLLBACK';
+    if (['REFUND', 'BET_REFUND'].includes(normalized)) return 'REFUND';
+    if (['CANCEL', 'CANCEL_BET', 'BET_CANCELLED'].includes(normalized)) return 'CANCEL';
+    if (['ROLLBACK', 'BET_ROLLBACK', 'WIN_ROLLBACK'].includes(normalized)) return 'ROLLBACK';
     if (['CLOSE', 'ROUND_CLOSED'].includes(normalized)) return 'CLOSE';
     return null;
   }
