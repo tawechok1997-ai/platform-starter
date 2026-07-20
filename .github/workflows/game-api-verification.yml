@@ -118,7 +118,26 @@ jobs:
             game-platform-unit-results.json
           if-no-files-found: warn
       - name: PostgreSQL game concurrency tests
-        run: pnpm --filter @platform/api test:db:game
+        shell: bash
+        run: |
+          set +e
+          pnpm --filter @platform/api exec jest \
+            src/modules/provider-simulator/provider-simulator-concurrency.db.spec.ts \
+            src/modules/game-platform/game-round-persistence.db.spec.ts \
+            --runInBand --json --outputFile=game-concurrency-results.json \
+            2>&1 | tee game-concurrency-tests.log
+          status=${PIPESTATUS[0]}
+          exit "$status"
+      - name: Upload game concurrency diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-concurrency-diagnostics
+          path: |
+            game-concurrency-tests.log
+            apps/api/game-concurrency-results.json
+            game-concurrency-results.json
+          if-no-files-found: warn
       - name: API typecheck
         run: pnpm --filter @platform/api typecheck
       - name: API build
