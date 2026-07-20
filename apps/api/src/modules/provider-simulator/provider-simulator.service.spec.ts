@@ -131,7 +131,7 @@ describe('ProviderSimulatorService', () => {
   it('returns a game catalog with loadable asset or fallback icon URLs', () => {
     const result = service.games('https://api.example.test');
     expect(result.success).toBe(true);
-    expect(result.items.length).toBe(GAME_CATALOG.length);
+    expect(result.items.length).toBe(Math.min(30, GAME_CATALOG.length));
     expect(result.items[0]?.iconUrl).toMatch(/^https:\/\//);
     expect(result.items[0]?.fallbackIconUrl).toMatch(/^https:\/\/api\.example\.test\/provider-simulator\/icons\/.+\.svg$/);
     expect(result.pagination.total).toBe(GAME_CATALOG.length);
