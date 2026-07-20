@@ -30,15 +30,15 @@
 - [ ] ตรวจ duplicate ด้วย content hash
 - [ ] สร้าง rename manifest สำหรับชื่อไฟล์ที่ไม่ตรงรูป
 - [ ] เปลี่ยน mock SVG เป็น asset จริงทีละรายการ
-- [ ] เพิ่ม fallback image กลางเมื่อ asset โหลดไม่ได้
+- [x] เพิ่ม fallback image กลางเมื่อ asset โหลดไม่ได้
 
 ## Member integration
 
-- [ ] เชื่อมหน้า Member games กับ catalog response รุ่นล่าสุด
-- [ ] เพิ่ม platform filter Mobile/PC
-- [ ] เพิ่ม provider และ category filter
-- [ ] เพิ่ม search และ pagination/infinite loading
-- [ ] เพิ่ม loading, empty และ error states
+- [x] เชื่อมหน้า Member games กับ catalog response รุ่นล่าสุด
+- [x] เพิ่ม platform filter Mobile/PC
+- [x] เพิ่ม provider และ category filter
+- [x] เพิ่ม search และ pagination/infinite loading
+- [x] เพิ่ม loading, empty และ error states
 - [ ] ตรวจ responsive mobile/desktop
 
 ## Verification
@@ -50,6 +50,13 @@
 
 ## จำนวนงาน
 
-- ปิดแล้ว: 15 รายการ
-- คงค้าง: 17 รายการ
+- ปิดแล้ว: 21 รายการ
+- คงค้าง: 11 รายการ
 - งานคงค้างส่วน asset ต้องใช้ไฟล์ Mobile และ PC ชุดจริงเป็นอินพุต
+
+## หลักฐานรอบล่าสุด
+
+- `apps/web-member/app/games/page.tsx` รองรับ response ทั้ง Member lobby แบบเดิมและ catalog response ที่ใช้ `data` array
+- เพิ่มตัวกรอง Mobile/PC, provider, category, search และการโหลดเพิ่มครั้งละ 24 เกม
+- เพิ่ม loading, retryable error, empty state, launch network error และ fallback เมื่อรูปปกโหลดไม่สำเร็จ
+- commit implementation: `c69fc7254243a506566bb3d7220515b2b42a3c13`
