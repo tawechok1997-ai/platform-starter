@@ -90,8 +90,18 @@ jobs:
             migration-deploy.log
             migration-status.log
           if-no-files-found: warn
-      - name: Provider simulator unit tests
-        run: pnpm --filter @platform/api exec jest provider-simulator.service.spec.ts provider-simulator-round.service.spec.ts transaction-retry.spec.ts --runInBand
+      - name: Game platform unit tests
+        run: >-
+          pnpm --filter @platform/api exec jest
+          provider-simulator.service.spec.ts
+          provider-simulator-round.service.spec.ts
+          transaction-retry.spec.ts
+          provider-adapter.registry.spec.ts
+          provider-webhook.service.spec.ts
+          game-round-persistence.service.spec.ts
+          provider-reconciliation-command.service.spec.ts
+          game-platform-monitoring.service.spec.ts
+          --runInBand
       - name: PostgreSQL game concurrency tests
         run: pnpm --filter @platform/api test:db:game
       - name: API typecheck
