@@ -1,5 +1,14 @@
 import { Body, Controller, Get, Headers, NotFoundException, Param, Post, Req, Res } from '@nestjs/common';
 import { ProviderSimulatorGameTransactionDto } from './dto/provider-simulator-game-transaction.dto';
+import {
+  ProviderSimulatorBalanceRequestDto,
+  ProviderSimulatorBetHistoryRequestDto,
+  ProviderSimulatorGamesRequestDto,
+  ProviderSimulatorHealthRequestDto,
+  ProviderSimulatorLaunchRequestDto,
+  ProviderSimulatorResetRequestDto,
+  ProviderSimulatorTransferRequestDto,
+} from './dto/provider-simulator-requests.dto';
 import { ProviderSimulatorService } from './provider-simulator.service';
 
 type ProviderSimulatorRequest = {
@@ -17,33 +26,33 @@ export class ProviderSimulatorController {
   constructor(private readonly simulator: ProviderSimulatorService) {}
 
   @Post('health')
-  health(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+  health(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorHealthRequestDto) {
     this.authenticate(headers, body);
     return this.simulator.health();
   }
 
   @Post('launch')
-  launch(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+  launch(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorLaunchRequestDto) {
     this.authenticate(headers, body);
-    return this.simulator.launch(body);
+    return this.simulator.launch({ ...body });
   }
 
   @Post('balance')
-  balance(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+  balance(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorBalanceRequestDto) {
     this.authenticate(headers, body);
-    return this.simulator.getBalance(body);
+    return this.simulator.getBalance({ ...body });
   }
 
   @Post('transfer-in')
-  transferIn(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+  transferIn(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorTransferRequestDto) {
     this.authenticate(headers, body);
-    return this.simulator.transfer('TRANSFER_IN', body);
+    return this.simulator.transfer('TRANSFER_IN', { ...body });
   }
 
   @Post('transfer-out')
-  transferOut(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+  transferOut(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorTransferRequestDto) {
     this.authenticate(headers, body);
-    return this.simulator.transfer('TRANSFER_OUT', body);
+    return this.simulator.transfer('TRANSFER_OUT', { ...body });
   }
 
   @Post('bet')
@@ -73,7 +82,7 @@ export class ProviderSimulatorController {
   @Post('games')
   games(
     @Headers() headers: Record<string, string | string[] | undefined>,
-    @Body() body: Record<string, unknown>,
+    @Body() body: ProviderSimulatorGamesRequestDto,
     @Req() request: ProviderSimulatorRequest,
   ) {
     this.authenticate(headers, body);
@@ -84,13 +93,13 @@ export class ProviderSimulatorController {
   }
 
   @Post('bet-history')
-  betHistory(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+  betHistory(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorBetHistoryRequestDto) {
     this.authenticate(headers, body);
-    return this.simulator.betHistory(body);
+    return this.simulator.betHistory({ ...body });
   }
 
   @Post('reset')
-  reset(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+  reset(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorResetRequestDto) {
     this.authenticate(headers, body);
     return this.simulator.reset();
   }
