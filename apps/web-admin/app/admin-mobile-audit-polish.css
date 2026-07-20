@@ -1,0 +1,42 @@
+/* Cross-module mobile audit: wallet, promotion, reports and risk */
+
+:where(.admin-wallet-detail,.admin-wallet-analytics,.admin-wallet-statement,.admin-reconciliation-center,.admin-promotion-operations,.admin-risk-operations,.admin-reports-ux){min-width:0}
+
+:where(.admin-wallet-detail__toolbar,.admin-reconciliation-center__toolbar,.admin-promotion-operations__actions){min-width:0}
+
+:where(.admin-wallet-detail__toolbar,.admin-reconciliation-center__toolbar) :where(input,select,textarea){max-width:100%}
+
+:where(.admin-wallet-detail__table-shell,.admin-reconciliation-center__table-shell){width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+
+:where(.admin-wallet-detail__table,.admin-reconciliation-center__table){min-width:840px}
+
+:where(.admin-wallet-detail__amount,.admin-reconciliation-center__amount){font-variant-numeric:tabular-nums;white-space:nowrap}
+
+@media (max-width:760px){
+  :where(.admin-wallet-detail__stats,.admin-reconciliation-center__stats){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  :where(.admin-wallet-detail__toolbar,.admin-reconciliation-center__toolbar){display:grid!important;grid-template-columns:1fr!important;align-items:stretch!important;width:100%}
+  :where(.admin-wallet-detail__toolbar,.admin-reconciliation-center__toolbar) > *{min-width:0;width:100%}
+  :where(.admin-wallet-detail__toolbar,.admin-reconciliation-center__toolbar) button{min-height:44px}
+  .admin-promotion-operations__grid{grid-template-columns:1fr!important}
+  .admin-promotion-operations__campaign,.admin-promotion-operations__claim{align-items:flex-start!important;flex-direction:column!important}
+  .admin-promotion-operations__badges,.admin-promotion-operations__actions{width:100%;justify-content:flex-start!important}
+  .admin-promotion-operations__actions>*{flex:1 1 160px}
+  .admin-risk-operations__status{align-items:flex-start;flex-direction:column}
+  .admin-risk-operations__status>*{max-width:100%}
+}
+
+@media (max-width:520px){
+  :where(.admin-wallet-detail__stats,.admin-reconciliation-center__stats){grid-template-columns:1fr!important}
+  :where(.admin-wallet-detail__stat,.admin-reconciliation-center__stat){padding:14px!important}
+  .admin-promotion-operations__identity{align-items:flex-start!important}
+  .admin-promotion-operations__identity img,.admin-promotion-operations__identity>span{width:44px!important;height:44px!important;flex:0 0 44px!important}
+  :where(.admin-wallet-detail__table-shell,.admin-reconciliation-center__table-shell){margin-inline:-4px;width:calc(100% + 8px)}
+}
+
+@media (hover:none) and (pointer:coarse){
+  :where(.admin-wallet-detail,.admin-reconciliation-center,.admin-promotion-operations,.admin-risk-operations,.admin-reports-ux) :where(button,a,[role='button']){min-height:44px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  :where(.admin-wallet-detail,.admin-reconciliation-center,.admin-promotion-operations,.admin-risk-operations,.admin-reports-ux) *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
