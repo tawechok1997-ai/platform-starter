@@ -91,17 +91,32 @@ jobs:
             migration-status.log
           if-no-files-found: warn
       - name: Game platform unit tests
-        run: >-
-          pnpm --filter @platform/api exec jest
-          provider-simulator.service.spec.ts
-          provider-simulator-round.service.spec.ts
-          transaction-retry.spec.ts
-          provider-adapter.registry.spec.ts
-          provider-webhook.service.spec.ts
-          game-round-persistence.service.spec.ts
-          provider-reconciliation-command.service.spec.ts
-          game-platform-monitoring.service.spec.ts
-          --runInBand
+        shell: bash
+        run: |
+          set +e
+          pnpm --filter @platform/api exec jest \
+            provider-simulator.service.spec.ts \
+            provider-simulator-round.service.spec.ts \
+            transaction-retry.spec.ts \
+            provider-adapter.registry.spec.ts \
+            provider-webhook.service.spec.ts \
+            game-round-persistence.service.spec.ts \
+            provider-reconciliation-command.service.spec.ts \
+            game-platform-monitoring.service.spec.ts \
+            --runInBand --json --outputFile=game-platform-unit-results.json \
+            2>&1 | tee game-platform-unit-tests.log
+          status=${PIPESTATUS[0]}
+          exit "$status"
+      - name: Upload game unit diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-platform-unit-diagnostics
+          path: |
+            game-platform-unit-tests.log
+            apps/api/game-platform-unit-results.json
+            game-platform-unit-results.json
+          if-no-files-found: warn
       - name: PostgreSQL game concurrency tests
         run: pnpm --filter @platform/api test:db:game
       - name: API typecheck
