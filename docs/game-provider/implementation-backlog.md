@@ -26,10 +26,11 @@ This backlog contains only work that remains after comparing the requested archi
 
 ## Workstream B: wallet and ledger semantics
 
-- [ ] Add explicit game ledger types for bet, win, refund, rollback bet, rollback win, cancel, adjustment, and reconciliation.
-- [ ] Replace broad transfer/reversal classification for seamless game transactions.
-- [ ] Add member and admin history filters for provider, game, round, and game operation.
-- [ ] Preserve backward-compatible reads for existing transfer/reversal rows.
+- [ ] Add database-native game ledger types for bet, win, refund, rollback bet, rollback win, cancel, adjustment, and reconciliation.
+- [ ] Replace broad transfer/reversal persistence classification after migration compatibility is verified.
+- [x] Add member and admin history filters for provider, game, round, and game operation.
+- [x] Preserve backward-compatible reads for existing transfer/reversal rows by deriving game operation from metadata and reference type.
+- [x] Return normalized game operation, provider, game, round, and original transaction fields in ledger responses.
 
 ## Workstream C: transaction correctness
 
@@ -72,6 +73,7 @@ This backlog contains only work that remains after comparing the requested archi
 - [ ] Add concurrent bet tests.
 - [x] Add payload-conflict protection at the wallet idempotency boundary.
 - [x] Add focused refund, rollback direction, source validation, and partial-refund tests.
+- [ ] Add focused wallet ledger semantic/filter tests.
 - [ ] Add full refund, rollback, and manual-review integration tests.
 
 ## Deferred until the repository UI and asset audit is complete
