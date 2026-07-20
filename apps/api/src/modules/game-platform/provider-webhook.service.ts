@@ -5,6 +5,7 @@ import { createDecipheriv, createHash } from 'node:crypto';
 import { PrismaService } from '../../database/prisma.service';
 import { ProviderAdapterRegistry } from './adapters/provider-adapter.registry';
 import { GameProviderEndpointType, GameProviderWalletMode } from './game-platform.types';
+import { GameRoundPersistenceService } from './game-round-persistence.service';
 import type { ProviderAdapterContext } from './provider-adapter.interface';
 
 type ProviderWithAdapterData = {
@@ -23,6 +24,7 @@ export class ProviderWebhookService {
     private readonly prisma: PrismaService,
     private readonly adapters: ProviderAdapterRegistry,
     private readonly config: ConfigService,
+    private readonly rounds: GameRoundPersistenceService,
   ) {}
 
   async receive(
@@ -90,6 +92,7 @@ export class ProviderWebhookService {
         return { ok: true, duplicate: true, logId: log.id, statusCode: 208 };
       }
 
+      const roundTransitions = await this.rounds.applyWebhookEvents(tx, provider.id, events);
       const log = await tx.webhookLog.create({
         data: {
           providerId: provider.id,
@@ -99,12 +102,12 @@ export class ProviderWebhookService {
           idempotencyKey,
           providerTransactionId: this.optionalText(payload.providerTransactionId) ?? events[0]?.providerTransactionId,
           rawPayload: this.safeJson(payload),
-          normalizedPayload: this.safeJson({ events, walletSettlementEnabled: settlementEnabled }),
+          normalizedPayload: this.safeJson({ events, roundTransitions, walletSettlementEnabled: settlementEnabled }),
           responseStatus: 200,
           processedAt: new Date(),
         },
       });
-      return { ok: true, logId: log.id, events, walletSettlementEnabled: settlementEnabled };
+      return { ok: true, logId: log.id, events, roundTransitions, walletSettlementEnabled: settlementEnabled };
     });
   }
 
