@@ -15,6 +15,7 @@ on:
       - 'playwright.game-api.config.ts'
       - 'docs/game-api-worklist.md'
       - '.github/workflows/game-api-verification.yml'
+      - 'tools/bootstrap-prisma-ci-baseline.mjs'
   push:
     branches: [main]
     paths:
@@ -30,6 +31,7 @@ on:
       - 'playwright.game-api.config.ts'
       - 'docs/game-api-worklist.md'
       - '.github/workflows/game-api-verification.yml'
+      - 'tools/bootstrap-prisma-ci-baseline.mjs'
   workflow_dispatch:
 
 permissions:
@@ -68,8 +70,26 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Generate Prisma client
         run: pnpm db:generate
-      - name: Apply database migrations
-        run: pnpm db:migrate
+      - name: Validate migration files
+        run: pnpm audit:migration-validation 2>&1 | tee migration-validation.log
+      - name: Bootstrap disposable CI database baseline
+        shell: bash
+        run: |
+          set +e
+          node tools/bootstrap-prisma-ci-baseline.mjs 2>&1 | tee migration-deploy.log
+          status=${PIPESTATUS[0]}
+          pnpm db:migrate:status 2>&1 | tee migration-status.log
+          exit "$status"
+      - name: Upload migration diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-api-migration-diagnostics
+          path: |
+            migration-validation.log
+            migration-deploy.log
+            migration-status.log
+          if-no-files-found: warn
       - name: Provider simulator unit tests
         run: pnpm --filter @platform/api exec jest provider-simulator.service.spec.ts provider-simulator-round.service.spec.ts transaction-retry.spec.ts --runInBand
       - name: PostgreSQL game concurrency tests
