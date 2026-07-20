@@ -104,6 +104,7 @@ jobs:
           game-round-persistence.service.spec.ts
           provider-reconciliation-command.service.spec.ts
           game-platform-monitoring.service.spec.ts
+          wallet-game-ledger-semantics.service.spec.ts
           --runInBand
       - name: PostgreSQL game concurrency tests
         run: pnpm --filter @platform/api test:db:game
