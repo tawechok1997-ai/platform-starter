@@ -1,0 +1,76 @@
+# Admin Selector and Primitive Audit
+
+Updated: 2026-07-21  
+Status: Active implementation audit  
+Scope: `apps/web-admin`
+
+## Purpose
+
+Record the selector debt and primitive ownership evidence required before compatibility CSS or duplicate UI variants are removed.
+
+## Inline-style selector findings
+
+### Fixed
+
+`apps/web-admin/app/admin-shell-overlay-fix.css` previously selected the mobile drawer wrapper through fragments of its serialized inline style:
+
+- `div[style*="position: fixed"]`
+
+The selector was used for the wrapper, backdrop and drawer descendants. It is now based on the existing semantic structure:
+
+- `.admin-shell > div:has(> .admin-drawer-backdrop)`
+
+This removes dependence on React style serialization, whitespace and property ordering without changing the drawer markup or runtime behavior.
+
+### Remaining
+
+`apps/web-admin/app/(admin)/_components/admin-ui.tsx` still contains one responsive selector coupled to serialized inline text:
+
+- `.admin-ui-row > [style*="text-align: right"]`
+- `.admin-ui-section-row > [style*="text-align: right"]`
+
+This must be replaced with an explicit alignment class or component prop before the tracker item can be closed. It is intentionally not removed blindly because route-level usages have not yet been browser-verified.
+
+## Primitive ownership findings
+
+The canonical Batch 1 primitives are exported from:
+
+- `apps/web-admin/app/(admin)/_components/admin-ui.tsx`
+
+Current canonical exports include:
+
+- page, card, metric, grid and stack surfaces;
+- toolbar and filter bar;
+- notice, empty and skeleton states;
+- button, icon button and link button;
+- badge, code and data-value presentation;
+- pagination and confirm dialog;
+- command panel and action strip.
+
+A second Admin primitive family also exists under `apps/web-admin/app/components/admin-ui` and is used by the protected layout. Consolidation must therefore be evidence-led rather than deleting either family by filename.
+
+## Safe consolidation order
+
+1. Enumerate imports from both primitive families.
+2. Classify API differences and route ownership.
+3. Add component tests for focus, disabled, keyboard, dialog and responsive behavior.
+4. Migrate one low-risk primitive at a time.
+5. Retain compatibility aliases until all imports and browser evidence are complete.
+6. Remove an alias only in the same commit that removes its final consumer.
+
+## Acceptance status
+
+- [x] Drawer overlay selectors no longer depend on inline style text.
+- [x] Remaining inline-style selector is identified with exact owner and migration condition.
+- [x] Canonical primitive families and the consolidation boundary are documented.
+- [ ] All inline-style text selectors removed.
+- [ ] Primitive imports enumerated route by route.
+- [ ] Component tests added before compatibility deletion.
+- [ ] Duplicate primitive families consolidated.
+
+## Safety notes
+
+- No API, Prisma, Member, wallet, provider or permission behavior changed.
+- No runtime dependency added.
+- No compatibility file deleted.
+- Browser and build verification remain required before closing the related tracker items.
