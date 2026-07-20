@@ -1,9 +1,24 @@
+import { BadRequestException } from '@nestjs/common';
 import { ProviderReconciliationCommandService } from './provider-reconciliation-command.service';
 
 describe('ProviderReconciliationCommandService', () => {
   const actor = { id: 'admin-1' } as any;
 
   function setup() {
+    const tx = {
+      providerWalletSnapshot: {
+        findUnique: jest.fn(),
+        update: jest.fn(),
+      },
+      riskAlert: {
+        findMany: jest.fn().mockResolvedValue([]),
+        updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+      },
+      riskAlertNote: {
+        createMany: jest.fn().mockResolvedValue({ count: 0 }),
+      },
+      adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit-1' }) },
+    } as any;
     const prisma = {
       gameSession: {
         findUnique: jest.fn(),
@@ -17,6 +32,7 @@ describe('ProviderReconciliationCommandService', () => {
         update: jest.fn(),
       },
       adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit-1' }) },
+      $transaction: jest.fn().mockImplementation((callback) => callback(tx)),
     } as any;
     const adapter = { getBalance: jest.fn() };
     const adapters = {
@@ -26,7 +42,7 @@ describe('ProviderReconciliationCommandService', () => {
     const config = { get: jest.fn().mockReturnValue('test-secret') } as any;
     const alerts = { create: jest.fn() } as any;
     const service = new ProviderReconciliationCommandService(prisma, adapters, config, alerts);
-    return { service, prisma, adapter, adapters, alerts };
+    return { service, prisma, tx, adapter, adapters, alerts };
   }
 
   it('creates a matched snapshot without a mismatch alert', async () => {
@@ -102,5 +118,71 @@ describe('ProviderReconciliationCommandService', () => {
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ action: 'game.reconciliation.batch_run' }),
     }));
+  });
+
+  it('moves linked alerts to reviewing without resolving the snapshot', async () => {
+    const { service, tx } = setup();
+    tx.providerWalletSnapshot.findUnique.mockResolvedValue({
+      id: 'snapshot-review',
+      status: 'MISMATCH',
+      rawPayload: {},
+    });
+    tx.providerWalletSnapshot.update.mockResolvedValue({ id: 'snapshot-review', status: 'MISMATCH' });
+    tx.riskAlert.findMany.mockResolvedValue([{ id: 'alert-review' }]);
+    tx.riskAlert.updateMany.mockResolvedValue({ count: 1 });
+
+    const result = await service.reviewSnapshot('snapshot-review', actor, {
+      note: 'กำลังตรวจสอบกับ provider',
+      status: 'reviewed',
+    });
+
+    expect(result.reviewStatus).toBe('REVIEWED');
+    expect(result.item.status).toBe('MISMATCH');
+    expect(tx.riskAlert.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ status: 'REVIEWING', resolvedAt: null, resolvedBy: null }),
+    }));
+    expect(tx.riskAlertNote.createMany).toHaveBeenCalledWith({
+      data: [{ riskAlertId: 'alert-review', adminUserId: 'admin-1', note: '[REVIEWED] กำลังตรวจสอบกับ provider' }],
+    });
+  });
+
+  it('resolves the snapshot, linked alerts and audit log in one transaction', async () => {
+    const { service, prisma, tx } = setup();
+    tx.providerWalletSnapshot.findUnique.mockResolvedValue({
+      id: 'snapshot-resolve',
+      status: 'MISMATCH',
+      rawPayload: {},
+    });
+    tx.providerWalletSnapshot.update.mockResolvedValue({ id: 'snapshot-resolve', status: 'MATCHED' });
+    tx.riskAlert.findMany.mockResolvedValue([{ id: 'alert-1' }, { id: 'alert-2' }]);
+    tx.riskAlert.updateMany.mockResolvedValue({ count: 2 });
+    tx.riskAlertNote.createMany.mockResolvedValue({ count: 2 });
+
+    const result = await service.reviewSnapshot('snapshot-resolve', actor, {
+      note: 'ยอดปัจจุบันตรงกันแล้ว',
+      status: 'RESOLVED',
+    });
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(result.item.status).toBe('MATCHED');
+    expect(result.linkedRiskAlertsUpdated).toBe(2);
+    expect(tx.riskAlert.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: { in: ['alert-1', 'alert-2'] } },
+      data: expect.objectContaining({ status: 'RESOLVED', resolvedBy: 'admin-1' }),
+    }));
+    expect(tx.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ action: 'game.reconciliation.resolve' }),
+    }));
+  });
+
+  it('rejects invalid review input before opening a transaction', async () => {
+    const { service, prisma } = setup();
+
+    await expect(service.reviewSnapshot('snapshot-1', actor, { note: 'note', status: 'INVALID' }))
+      .rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.reviewSnapshot('snapshot-1', actor, { note: '   ', status: 'RESOLVED' }))
+      .rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });
