@@ -11,16 +11,26 @@ type TransferResult = {
 };
 
 type GameTransactionKind = 'BET' | 'WIN' | 'REFUND' | 'ROLLBACK';
+type GamePlatform = 'mobile' | 'pc';
+type GameCatalogQuery = {
+  provider?: string;
+  platform?: GamePlatform;
+  category?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+  sort?: 'name-asc' | 'name-desc' | 'code-asc' | 'code-desc';
+};
 
 const GAME_CATALOG = [
-  { code: 'fortune-tiger', name: 'Fortune Tiger', category: 'slot', accent: '#f59e0b', symbol: '虎' },
-  { code: 'dragon-reels', name: 'Dragon Reels', category: 'slot', accent: '#ef4444', symbol: '龍' },
-  { code: 'royal-baccarat', name: 'Royal Baccarat', category: 'casino', accent: '#8b5cf6', symbol: 'B' },
-  { code: 'speed-roulette', name: 'Speed Roulette', category: 'casino', accent: '#10b981', symbol: 'R' },
-  { code: 'golden-mines', name: 'Golden Mines', category: 'slot', accent: '#eab308', symbol: '⛏' },
-  { code: 'ocean-treasure', name: 'Ocean Treasure', category: 'arcade', accent: '#0ea5e9', symbol: '⚓' },
-  { code: 'neon-racer', name: 'Neon Racer', category: 'arcade', accent: '#ec4899', symbol: 'N' },
-  { code: 'classic-blackjack', name: 'Classic Blackjack', category: 'casino', accent: '#334155', symbol: '21' },
+  { code: 'fortune-tiger', name: 'Fortune Tiger', provider: 'pg-soft', platform: 'mobile', category: 'slot', accent: '#f59e0b', symbol: '虎' },
+  { code: 'dragon-reels', name: 'Dragon Reels', provider: 'pg-soft', platform: 'mobile', category: 'slot', accent: '#ef4444', symbol: '龍' },
+  { code: 'royal-baccarat', name: 'Royal Baccarat', provider: 'evolution', platform: 'mobile', category: 'casino', accent: '#8b5cf6', symbol: 'B' },
+  { code: 'speed-roulette', name: 'Speed Roulette', provider: 'evolution', platform: 'mobile', category: 'casino', accent: '#10b981', symbol: 'R' },
+  { code: 'golden-mines', name: 'Golden Mines', provider: 'platform-pc', platform: 'pc', category: 'arcade', accent: '#eab308', symbol: '⛏' },
+  { code: 'ocean-treasure', name: 'Ocean Treasure', provider: 'platform-pc', platform: 'pc', category: 'arcade', accent: '#0ea5e9', symbol: '⚓' },
+  { code: 'neon-racer', name: 'Neon Racer', provider: 'platform-pc', platform: 'pc', category: 'racing', accent: '#ec4899', symbol: 'N' },
+  { code: 'classic-blackjack', name: 'Classic Blackjack', provider: 'evolution', platform: 'pc', category: 'casino', accent: '#334155', symbol: '21' },
 ] as const;
 
 @Injectable()
@@ -57,20 +67,21 @@ export class ProviderSimulatorService {
   }
 
   health() {
-    return { status: 'ONLINE', provider: 'platform-provider-simulator', version: 2, walletSource: 'platform-wallet' };
+    return { status: 'ONLINE', provider: 'platform-provider-simulator', version: 3, walletSource: 'platform-wallet' };
   }
 
   launch(input: Record<string, unknown>) {
     const userId = this.requiredString(input.userId, 'userId');
     const gameCode = this.requiredString(input.gameCode, 'gameCode');
     const sessionId = this.requiredString(input.sessionId, 'sessionId');
-    if (!GAME_CATALOG.some((game) => game.code === gameCode)) {
-      throw new BadRequestException('Unknown simulator game code');
-    }
+    const game = GAME_CATALOG.find((item) => item.code === gameCode);
+    if (!game) throw new BadRequestException('Unknown simulator game code');
 
     const memberBaseUrl = (process.env.MEMBER_WEB_URL ?? 'http://localhost:3000').replace(/\/$/, '');
     return {
-      launchUrl: `${memberBaseUrl}/games/demo-launch?game=${encodeURIComponent(gameCode)}&session=${encodeURIComponent(sessionId)}&provider=provider-simulator`,
+      success: true,
+      game: { code: game.code, name: game.name, provider: game.provider, platform: game.platform },
+      launchUrl: `${memberBaseUrl}/games/demo-launch?game=${encodeURIComponent(gameCode)}&session=${encodeURIComponent(sessionId)}&provider=${encodeURIComponent(game.provider)}`,
       providerSessionId: `sim_${userId}_${sessionId}`,
       expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
     };
@@ -95,11 +106,7 @@ export class ProviderSimulatorService {
       referenceType: direction === 'TRANSFER_IN' ? 'game_transfer_in' : 'game_transfer_out',
       referenceId: providerTransactionId,
       currency: String(input.currency ?? 'THB'),
-      metadata: {
-        provider: 'provider-simulator',
-        providerTransactionId,
-        transferDirection: direction,
-      },
+      metadata: { provider: 'provider-simulator', providerTransactionId, transferDirection: direction },
     });
     return this.toTransferResult(providerTransactionId, result.ledger, result.replayed);
   }
@@ -110,7 +117,8 @@ export class ProviderSimulatorService {
     const roundId = this.requiredString(input.roundId, 'roundId');
     const gameCode = this.requiredString(input.gameCode, 'gameCode');
     const amount = this.requiredAmount(input.amount);
-    if (!GAME_CATALOG.some((game) => game.code === gameCode)) throw new BadRequestException('Unknown simulator game code');
+    const game = GAME_CATALOG.find((item) => item.code === gameCode);
+    if (!game) throw new BadRequestException('Unknown simulator game code');
 
     const providerTransactionId = `sim_${kind.toLowerCase()}_${transactionId}`;
     const credit = kind === 'WIN' || kind === 'REFUND' || kind === 'ROLLBACK';
@@ -124,10 +132,11 @@ export class ProviderSimulatorService {
       currency: String(input.currency ?? 'THB'),
       isReversal: kind === 'REFUND' || kind === 'ROLLBACK',
       metadata: {
-        provider: 'provider-simulator',
+        provider: game.provider,
         providerTransactionId,
         roundId,
         gameCode,
+        platform: game.platform,
         sessionId: typeof input.sessionId === 'string' ? input.sessionId : null,
         transactionKind: kind,
       },
@@ -135,19 +144,60 @@ export class ProviderSimulatorService {
     return this.toTransferResult(providerTransactionId, result.ledger, result.replayed);
   }
 
-  games(publicBaseUrl: string) {
+  games(publicBaseUrl: string, query: GameCatalogQuery = {}) {
     const baseUrl = publicBaseUrl.replace(/\/$/, '');
+    const page = Math.max(1, Number(query.page ?? 1));
+    const limit = Math.min(100, Math.max(1, Number(query.limit ?? 30)));
+    const provider = query.provider?.trim().toLowerCase();
+    const platform = query.platform?.trim().toLowerCase();
+    const category = query.category?.trim().toLowerCase();
+    const search = query.search?.trim().toLowerCase();
+
+    let filtered = GAME_CATALOG.filter((game) => {
+      if (provider && game.provider !== provider) return false;
+      if (platform && game.platform !== platform) return false;
+      if (category && game.category !== category) return false;
+      if (search && !`${game.code} ${game.name} ${game.provider} ${game.category}`.toLowerCase().includes(search)) return false;
+      return true;
+    });
+
+    const sort = query.sort ?? 'name-asc';
+    filtered = [...filtered].sort((left, right) => {
+      const leftValue = sort.startsWith('code') ? left.code : left.name;
+      const rightValue = sort.startsWith('code') ? right.code : right.name;
+      const comparison = leftValue.localeCompare(rightValue);
+      return sort.endsWith('desc') ? -comparison : comparison;
+    });
+
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const start = (page - 1) * limit;
+    const items = filtered.slice(start, start + limit).map((game) => ({
+      id: `${game.provider}:${game.code}:${game.platform}`,
+      providerGameCode: game.code,
+      code: game.code,
+      name: game.name,
+      providerId: game.provider,
+      provider: game.provider,
+      platform: game.platform,
+      category: game.category,
+      status: 'ACTIVE',
+      enabled: true,
+      imageUrl: `${baseUrl}/provider-simulator/icons/${game.code}.svg`,
+      iconUrl: `${baseUrl}/provider-simulator/icons/${game.code}.svg`,
+      rawPayload: { simulator: true, version: 3 },
+    }));
+
     return {
-      items: GAME_CATALOG.map((game) => ({
-        providerGameCode: game.code,
-        code: game.code,
-        name: game.name,
-        category: game.category,
-        status: 'ACTIVE',
-        imageUrl: `${baseUrl}/provider-simulator/icons/${game.code}.svg`,
-        iconUrl: `${baseUrl}/provider-simulator/icons/${game.code}.svg`,
-        rawPayload: { simulator: true, version: 2 },
-      })),
+      success: true,
+      items,
+      data: items,
+      filters: {
+        providers: [...new Set(GAME_CATALOG.map((game) => game.provider))],
+        platforms: [...new Set(GAME_CATALOG.map((game) => game.platform))],
+        categories: [...new Set(GAME_CATALOG.map((game) => game.category))],
+      },
+      pagination: { page, limit, total, totalPages },
     };
   }
 
@@ -172,13 +222,7 @@ export class ProviderSimulatorService {
   }
 
   private toTransferResult(providerTransactionId: string, ledger: any, replayed: boolean): TransferResult {
-    return {
-      providerTransactionId,
-      beforeBalance: ledger.balanceBefore,
-      afterBalance: ledger.balanceAfter,
-      status: 'SUCCESS',
-      replayed,
-    };
+    return { providerTransactionId, beforeBalance: ledger.balanceBefore, afterBalance: ledger.balanceAfter, status: 'SUCCESS', replayed };
   }
 
   private requiredAmount(value: unknown) {
@@ -190,9 +234,7 @@ export class ProviderSimulatorService {
   }
 
   private requiredString(value: unknown, field: string) {
-    if (typeof value !== 'string' || value.trim().length === 0) {
-      throw new BadRequestException(`${field} is required`);
-    }
+    if (typeof value !== 'string' || value.trim().length === 0) throw new BadRequestException(`${field} is required`);
     return value.trim();
   }
 
