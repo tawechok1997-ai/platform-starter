@@ -3,7 +3,7 @@ import { access, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
-const assetRoot = path.join(root, 'asset', 'mobil');
+const assetRoot = path.join(root, 'asset', 'catalog', 'mobile');
 const manifestPath = path.join(assetRoot, 'manifest.json');
 const outputDir = path.join(root, 'docs', 'generated');
 const inventoryPath = path.join(outputDir, 'game-asset-inventory.json');
@@ -11,25 +11,9 @@ const duplicatePath = path.join(outputDir, 'game-asset-duplicates.json');
 const renamePath = path.join(outputDir, 'game-asset-rename-manifest.json');
 
 await access(manifestPath);
-const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-if (!Array.isArray(manifest)) throw new Error('asset/mobil/manifest.json must contain an array');
-
-const classify = (file) => {
-  const normalized = file.replaceAll('\\', '/').toLowerCase();
-  if (normalized.includes('/providers/')) return 'provider-logo';
-  if (normalized.includes('/games/') || normalized.includes('/gamecard/')) return 'game-image';
-  if (normalized.includes('/imageslides/') || normalized.includes('/highlight/')) return 'banner';
-  if (normalized.includes('/promotions/')) return 'promotion';
-  return 'other';
-};
-
-const stripDuplicateSuffix = (filename) => filename.replace(/_\d+(?=\.[^.]+$)/, '');
-const slugify = (value) => value
-  .normalize('NFKD')
-  .replace(/[^a-zA-Z0-9._/-]+/g, '-')
-  .replace(/-+/g, '-')
-  .replace(/^-|-$/g, '')
-  .toLowerCase();
+const parsed = JSON.parse(await readFile(manifestPath, 'utf8'));
+const manifest = Array.isArray(parsed) ? parsed : parsed?.items;
+if (!Array.isArray(manifest)) throw new Error('asset/catalog/mobile/manifest.json must contain an items array');
 
 const records = [];
 for (const entry of manifest) {
@@ -47,15 +31,14 @@ for (const entry of manifest) {
       sha256 = createHash('sha256').update(await readFile(absolute)).digest('hex');
     }
   } catch {
-    // Keep missing entries in the report so uploads can be reconciled safely.
+    // Missing entries remain visible in the report for reconciliation.
   }
-  const kind = classify(relative);
   records.push({
-    sourceUrl: typeof entry.url === 'string' ? entry.url : null,
+    sourceUrl: typeof entry.sourceUrl === 'string' ? entry.sourceUrl : null,
     mimeType: typeof entry.mimeType === 'string' ? entry.mimeType : null,
     status: Number(entry.status ?? 0),
     file: relative,
-    kind,
+    category: String(entry.category ?? relative.split('/')[0] ?? 'misc'),
     exists,
     size,
     sha256,
@@ -74,38 +57,29 @@ const duplicateGroups = [...byHash.entries()]
   .map(([sha256, files]) => ({ sha256, canonical: files[0], duplicates: files.slice(1), files }))
   .sort((a, b) => b.files.length - a.files.length || a.canonical.localeCompare(b.canonical));
 
-const canonicalByHash = new Map(duplicateGroups.map((group) => [group.sha256, group.canonical]));
 const renameManifest = records
-  .filter((record) => record.kind === 'provider-logo' || record.kind === 'game-image')
-  .map((record) => {
-    const parsed = path.posix.parse(record.file);
-    const cleanName = slugify(stripDuplicateSuffix(parsed.base));
-    const targetFolder = record.kind === 'provider-logo' ? 'providers' : 'games';
-    const duplicateOf = record.sha256 ? canonicalByHash.get(record.sha256) ?? null : null;
-    return {
-      source: record.file,
-      proposedTarget: `asset/catalog/mobile/${targetFolder}/${cleanName}`,
-      kind: record.kind,
-      duplicateOf: duplicateOf && duplicateOf !== record.file ? duplicateOf : null,
-      action: duplicateOf && duplicateOf !== record.file ? 'skip-duplicate' : 'copy',
-      reviewRequired: /(^|[-_])\d{6,}([-_.]|$)/.test(cleanName),
-    };
-  })
-  .sort((a, b) => a.proposedTarget.localeCompare(b.proposedTarget));
+  .filter((record) => /(^|[-_])\d{6,}([-_.]|$)/.test(path.posix.basename(record.file)))
+  .map((record) => ({
+    source: `asset/catalog/mobile/${record.file}`,
+    category: record.category,
+    action: 'review-name',
+    reviewRequired: true,
+  }))
+  .sort((a, b) => a.source.localeCompare(b.source));
 
 const counts = records.reduce((summary, record) => {
   summary.total += 1;
-  summary[record.kind] = (summary[record.kind] ?? 0) + 1;
+  summary[record.category] = (summary[record.category] ?? 0) + 1;
   if (!record.exists) summary.missing += 1;
   return summary;
 }, { total: 0, missing: 0 });
 
 await mkdir(outputDir, { recursive: true });
-await writeFile(inventoryPath, `${JSON.stringify({ generatedAt: new Date().toISOString(), assetRoot: 'asset/mobil', counts, items: records }, null, 2)}\n`);
+await writeFile(inventoryPath, `${JSON.stringify({ generatedAt: new Date().toISOString(), assetRoot: 'asset/catalog/mobile', counts, items: records }, null, 2)}\n`);
 await writeFile(duplicatePath, `${JSON.stringify({ generatedAt: new Date().toISOString(), duplicateGroups }, null, 2)}\n`);
 await writeFile(renamePath, `${JSON.stringify({ generatedAt: new Date().toISOString(), items: renameManifest }, null, 2)}\n`);
 
 console.log(`Game asset inventory: ${records.length} entries`);
 console.log(`Duplicate groups: ${duplicateGroups.length}`);
-console.log(`Rename candidates: ${renameManifest.length}`);
+console.log(`Rename review candidates: ${renameManifest.length}`);
 console.log(`Missing files: ${counts.missing}`);
