@@ -40,7 +40,7 @@ This backlog contains only work that remains after comparing the requested archi
 - [x] Verify that refund and rollback references match the original bet or win for the same user, game, and round.
 - [x] Support partial refunds without exceeding the original bet.
 - [x] Add canonical payload hashes for idempotency conflict detection.
-- [ ] Send insufficient-balance rollback-win cases to manual review.
+- [x] Send insufficient-balance rollback-win cases to a persistent manual-review queue.
 
 ## Workstream D: round persistence
 
@@ -52,8 +52,8 @@ This backlog contains only work that remains after comparing the requested archi
 - [x] Split refund, rollback, and cancel transitions.
 - [x] Add separate refund and cancel transaction references to round persistence.
 - [x] Preserve refund semantics when simulator rounds are reconstructed from wallet ledger history.
-- [ ] Add manual-review transitions.
-- [ ] Add stale-round detection.
+- [x] Add persistent manual-review records for game transaction exceptions.
+- [x] Add stale-round detection that marks rounds for manual review.
 - [ ] Backfill existing round totals and transaction rows from historical webhook and wallet data.
 - [ ] Add final Prisma models after migration validation against an existing database snapshot.
 
@@ -76,8 +76,8 @@ This backlog contains only work that remains after comparing the requested archi
 ## Workstream G: reconciliation and tests
 
 - [ ] Reconcile wallet balance against ledger totals.
-- [ ] Reconcile round totals against round transactions.
-- [ ] Detect missing round and ledger links.
+- [x] Reconcile stored round totals against persisted round transactions.
+- [x] Detect round transactions that have no linked wallet ledger entry.
 - [ ] Add concurrent bet tests.
 - [x] Add payload-conflict protection at the wallet idempotency boundary.
 - [x] Add focused refund, rollback direction, source validation, and partial-refund tests.
@@ -86,6 +86,7 @@ This backlog contains only work that remains after comparing the requested archi
 - [ ] Add game-round transaction persistence and duplicate-event integration tests.
 - [x] Add provider simulator runtime configuration tests.
 - [ ] Add full refund, rollback, and manual-review integration tests.
+- [ ] Add diagnostics service tests against disposable PostgreSQL.
 
 ## Deferred until the repository UI and asset audit is complete
 
