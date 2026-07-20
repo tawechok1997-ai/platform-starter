@@ -110,8 +110,6 @@
     z-index: 90;
   }
 
-  /* Shared authentication buttons. These classes are intentionally reusable
-     in the header, drawer and public authentication pages. */
   .member-login-button,
   .member-register-button {
     min-height: 36px;
@@ -152,5 +150,169 @@
 
   .member-locked-action[aria-disabled='true'] {
     cursor: not-allowed;
+  }
+
+  /* Dedicated pre-login home. The signed-in MemberHome remains untouched. */
+  .member-guest-home {
+    min-height: calc(100dvh - var(--member-mobile-header-height));
+    padding-top: 12px;
+    padding-right: 10px;
+    padding-bottom: calc(var(--member-mobile-bottom-nav-height) + 24px);
+    color: #fff;
+    background:
+      radial-gradient(circle at 70% 4%, rgba(146, 54, 255, 0.22), transparent 32%),
+      linear-gradient(180deg, #110e16 0%, #17111d 100%);
+  }
+
+  body:has(.member-guest-home) .member-guest-actions,
+  body:has(.member-guest-home) .member-drawer-auth-actions {
+    display: none !important;
+  }
+
+  .member-guest-home__hero {
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(39, 29, 49, 0.98), rgba(22, 17, 28, 0.98));
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+  }
+
+  .member-guest-home__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .member-guest-home__brand img {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+  }
+
+  .member-guest-home__brand div {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .member-guest-home__brand strong {
+    font-size: 16px;
+  }
+
+  .member-guest-home__brand span {
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .member-guest-home__welcome {
+    margin-top: 22px;
+  }
+
+  .member-guest-home__eyebrow {
+    margin: 0 0 5px;
+    color: #d6a7ff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .member-guest-home__welcome h1 {
+    margin: 0;
+    font-size: clamp(24px, 7vw, 34px);
+    line-height: 1.1;
+  }
+
+  .member-guest-home__welcome > p:last-child {
+    margin: 10px 0 0;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .member-guest-home__auth {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-top: 20px;
+  }
+
+  .member-login-button--guest,
+  .member-register-button--guest {
+    min-height: 46px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  .member-guest-home__categories {
+    margin-top: 14px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    background: rgba(25, 20, 31, 0.92);
+  }
+
+  .member-guest-home__section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .member-guest-home__section-head small {
+    color: rgba(255, 255, 255, 0.54);
+    font-size: 10px;
+  }
+
+  .member-guest-home__section-head h2 {
+    margin: 2px 0 0;
+    font-size: 17px;
+  }
+
+  .member-guest-home__section-head > span {
+    color: #c89aff;
+    font-size: 10px;
+  }
+
+  .member-guest-home__category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .member-guest-home__category {
+    min-height: 84px;
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 11px;
+    color: #fff;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .member-guest-home__category > span:first-child {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: rgba(155, 76, 255, 0.16);
+  }
+
+  .member-guest-home__category strong {
+    font-size: 13px;
+  }
+
+  .member-guest-home__category small {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 9px;
   }
 }
