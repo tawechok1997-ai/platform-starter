@@ -51,6 +51,7 @@ This backlog contains only work that remains after comparing the requested archi
 - [x] Support multiple bets and multiple wins in the round transition policy.
 - [x] Split refund, rollback, and cancel transitions.
 - [x] Add separate refund and cancel transaction references to round persistence.
+- [x] Preserve refund semantics when simulator rounds are reconstructed from wallet ledger history.
 - [ ] Add manual-review transitions.
 - [ ] Add stale-round detection.
 - [ ] Backfill existing round totals and transaction rows from historical webhook and wallet data.
@@ -58,10 +59,11 @@ This backlog contains only work that remains after comparing the requested archi
 
 ## Workstream E: security
 
-- [ ] Add nonce replay protection.
-- [ ] Sign a canonical payload or verified raw request body.
+- [x] Add persistent nonce replay protection with merchant and nonce uniqueness.
+- [x] Sign a canonical JSON payload together with timestamp and nonce.
 - [x] Reject development fallback credentials outside local and test environments.
-- [ ] Add endpoint-specific rate limits.
+- [x] Add endpoint-specific per-merchant rate limits.
+- [x] Add focused canonical-signature, nonce, and rate-limit tests.
 
 ## Workstream F: provider, catalog, and sessions
 
