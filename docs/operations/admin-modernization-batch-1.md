@@ -60,14 +60,18 @@ Policy source: [`../architecture/admin-server-state-policy.md`](../architecture/
 ### E. Forms and mutation safety
 
 - [ ] Inventory mutation forms and manual validation.
-- [ ] Standardize error-code mapping, focus-first-error, validation summary, dirty state, duplicate-submit protection, and mandatory reasons.
+- [x] Standardize error-code mapping, focus-first-error, validation summary, dirty state, duplicate-submit protection, mandatory reasons, conflict and partial-failure handling.
 - [ ] Decide whether React Hook Form and Zod are justified and record an ADR before installation.
+
+Contract source: [`../architecture/admin-form-mutation-safety.md`](../architecture/admin-form-mutation-safety.md).
 
 ### F. Dense operations UI
 
 - [ ] Inventory queue/table implementations.
-- [ ] Define one Admin data-view contract for filters, URL state, sorting, pagination, masking, bulk actions, partial failures, and mobile card fallback.
+- [x] Define one Admin data-view contract for filters, URL state, sorting, pagination, masking, bulk actions, partial failures, mobile card fallback and export.
 - [ ] Decide whether TanStack Table is justified after inventory and bundle review.
+
+Contract source: [`../architecture/admin-data-view-contract.md`](../architecture/admin-data-view-contract.md).
 
 ### G. Quality gates
 
@@ -79,8 +83,8 @@ Policy source: [`../architecture/admin-server-state-policy.md`](../architecture/
 
 ## Progress count
 
-- Completed checklist items: **16**
-- Remaining checklist items: **18**
+- Completed checklist items: **18**
+- Remaining checklist items: **16**
 - Member implementation items changed: **0**
 - API/Prisma contract items changed: **0**
 
@@ -96,7 +100,10 @@ Policy source: [`../architecture/admin-server-state-policy.md`](../architecture/
 - `ace3168c` and `c68a2931` — shared root-state styling and layout import.
 - `7ab21889` — Admin CSS ownership and consolidation inventory.
 - `b5e71406` — Admin server-state policy.
-- `64b44d0e` — documentation-map links for the active Admin contracts.
+- `64b44d0e` — documentation-map links for active Admin contracts.
+- `5df064a4` — Admin form and mutation safety contract.
+- `bffbb579` — Admin data-view contract.
+- `b11511d3` — documentation-map links for form and data-view contracts.
 
 ## Verification commands
 
@@ -112,8 +119,8 @@ pnpm --filter @platform/web-admin analyze
 
 - CI status has not appeared for the latest branch head yet.
 - Compatibility stylesheets remain loaded until selector ownership and visual evidence justify migration.
-- The server-state policy is documented, but page-level request inventory and dependency decision remain open.
-- Browser, accessibility, bundle, and visual verification are not yet claimed as passing.
+- Form, request and table implementation inventories remain open; framework decisions are intentionally deferred.
+- Browser, accessibility, bundle and visual verification are not yet claimed as passing.
 
 ## Handoff record
 
