@@ -9,6 +9,7 @@ describe('ProviderSimulatorService', () => {
   let roundService: { enforceInTransaction: jest.Mock };
 
   beforeEach(() => {
+    process.env.NODE_ENV = 'test';
     process.env.PROVIDER_SIMULATOR_API_KEY = 'test-api-key';
     process.env.PROVIDER_SIMULATOR_MERCHANT_ID = 'test-merchant';
     process.env.PROVIDER_SIMULATOR_SECRET = 'test-secret';
@@ -59,19 +60,13 @@ describe('ProviderSimulatorService', () => {
     expect(balance.balance).toBe('100.00');
 
     const transferIn = await service.transfer('TRANSFER_IN', {
-      userId: 'member-1',
-      amount: '35.50',
-      currency: 'THB',
-      idempotencyKey: 'in-1',
+      userId: 'member-1', amount: '35.50', currency: 'THB', idempotencyKey: 'in-1',
     });
     expect(transferIn.beforeBalance).toBe('100.00');
     expect(transferIn.afterBalance).toBe('64.50');
 
     const transferOut = await service.transfer('TRANSFER_OUT', {
-      userId: 'member-1',
-      amount: '10.00',
-      currency: 'THB',
-      idempotencyKey: 'out-1',
+      userId: 'member-1', amount: '10.00', currency: 'THB', idempotencyKey: 'out-1',
     });
     expect(transferOut.beforeBalance).toBe('64.50');
     expect(transferOut.afterBalance).toBe('74.50');
@@ -89,28 +84,47 @@ describe('ProviderSimulatorService', () => {
 
   it('rejects an overdraft through the wallet contract', async () => {
     await expect(service.transfer('TRANSFER_IN', {
-      userId: 'member-3',
-      amount: '11.00',
-      idempotencyKey: 'out-no-funds',
+      userId: 'member-3', amount: '11.00', idempotencyKey: 'out-no-funds',
     })).rejects.toThrow('Balance cannot be negative');
   });
 
-  it('records bet, win, refund and rollback against the same wallet', async () => {
+  it('records explicit bet, win, refund and rollback-bet operations', async () => {
     await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'bet-1', roundId: 'round-1', gameCode: 'fortune-tiger' });
     await service.gameTransaction('WIN', { userId: 'member-1', amount: '25.00', transactionId: 'win-1', roundId: 'round-1', gameCode: 'fortune-tiger' });
-    await service.gameTransaction('REFUND', { userId: 'member-1', amount: '5.00', transactionId: 'refund-1', roundId: 'round-2', gameCode: 'fortune-tiger' });
-    await service.gameTransaction('ROLLBACK', { userId: 'member-1', amount: '2.00', transactionId: 'rollback-1', roundId: 'round-2', gameCode: 'fortune-tiger' });
+    await service.gameTransaction('REFUND', { userId: 'member-1', amount: '5.00', transactionId: 'refund-1', originalTransactionId: 'bet-2', roundId: 'round-2', gameCode: 'fortune-tiger' });
+    await service.gameTransaction('ROLLBACK', { userId: 'member-1', amount: '2.00', transactionId: 'rollback-1', originalTransactionId: 'bet-2', rollbackTarget: 'BET', roundId: 'round-2', gameCode: 'fortune-tiger' });
     expect((await service.getBalance({ userId: 'member-1' })).balance).toBe('122.00');
-    expect((await service.betHistory({ userId: 'member-1' })).items).toHaveLength(4);
+    const history = await service.betHistory({ userId: 'member-1' });
+    expect(history.items).toHaveLength(4);
+    expect(history.items.map((item: any) => item.metadata.gameOperation)).toEqual(['BET', 'WIN', 'REFUND', 'ROLLBACK_BET']);
     expect(roundService.enforceInTransaction).toHaveBeenCalledTimes(4);
+  });
+
+  it('debits the wallet when rolling back a win', async () => {
+    await service.gameTransaction('WIN', { userId: 'member-1', amount: '25.00', transactionId: 'win-rb-source', roundId: 'round-win-rb', gameCode: 'fortune-tiger' });
+    const rollback = await service.gameTransaction('ROLLBACK', {
+      userId: 'member-1', amount: '25.00', transactionId: 'win-rb', originalTransactionId: 'win-rb-source', rollbackTarget: 'WIN', roundId: 'round-win-rb', gameCode: 'fortune-tiger',
+    });
+    expect(rollback.beforeBalance).toBe('125.00');
+    expect(rollback.afterBalance).toBe('100.00');
+    expect((await service.betHistory({ userId: 'member-1' })).items.at(-1)?.metadata.gameOperation).toBe('ROLLBACK_WIN');
+  });
+
+  it('requires source transaction context for refunds and rollbacks', async () => {
+    await expect(service.gameTransaction('REFUND', {
+      userId: 'member-1', amount: '5.00', transactionId: 'refund-missing-source', roundId: 'round-1', gameCode: 'fortune-tiger',
+    })).rejects.toThrow('originalTransactionId is required');
+
+    await expect(service.gameTransaction('ROLLBACK', {
+      userId: 'member-1', amount: '5.00', transactionId: 'rollback-missing-target', originalTransactionId: 'bet-1', roundId: 'round-1', gameCode: 'fortune-tiger',
+    })).rejects.toThrow('rollbackTarget is required');
   });
 
   it('passes a stable per-round concurrency key to the wallet transaction', async () => {
     const wallet = (service as any).walletService;
     await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'bet-lock-1', roundId: 'round-lock', gameCode: 'fortune-tiger' });
     expect(wallet.mutateGameBalance).toHaveBeenCalledWith(expect.objectContaining({
-      concurrencyKey: 'provider-simulator:member-1:fortune-tiger:round-lock',
-      beforeMutation: expect.any(Function),
+      concurrencyKey: 'provider-simulator:member-1:fortune-tiger:round-lock', beforeMutation: expect.any(Function),
     }));
   });
 
@@ -119,11 +133,16 @@ describe('ProviderSimulatorService', () => {
     const timestamp = new Date().toISOString();
     const signature = createHmac('sha256', 'test-secret').update(`${timestamp}.${JSON.stringify(body)}`).digest('hex');
     expect(() => service.verifyRequest({
-      'x-api-key': 'test-api-key',
-      'x-merchant-id': 'test-merchant',
-      'x-timestamp': timestamp,
-      'x-signature': signature,
+      'x-api-key': 'test-api-key', 'x-merchant-id': 'test-merchant', 'x-timestamp': timestamp, 'x-signature': signature,
     }, body)).not.toThrow();
+  });
+
+  it('rejects fallback simulator credentials outside development and test', () => {
+    delete process.env.PROVIDER_SIMULATOR_API_KEY;
+    delete process.env.PROVIDER_SIMULATOR_MERCHANT_ID;
+    delete process.env.PROVIDER_SIMULATOR_SECRET;
+    process.env.NODE_ENV = 'production';
+    expect(() => service.verifyRequest({}, {})).toThrow('PROVIDER_SIMULATOR_API_KEY must be configured');
   });
 
   it('returns a game catalog with loadable API icon URLs', () => {
@@ -146,11 +165,7 @@ describe('ProviderSimulatorService', () => {
   });
 
   it('filters by provider category and search text', () => {
-    const result = service.games('https://api.example.test', {
-      provider: 'pg-soft',
-      category: 'slot',
-      search: 'tiger',
-    });
+    const result = service.games('https://api.example.test', { provider: 'pg-soft', category: 'slot', search: 'tiger' });
     expect(result.items).toHaveLength(1);
     expect(result.items[0]).toMatchObject({ code: 'fortune-tiger', provider: 'pg-soft', category: 'slot' });
   });
