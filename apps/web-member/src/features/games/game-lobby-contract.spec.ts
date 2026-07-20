@@ -18,8 +18,9 @@ test('game lobby exposes platform, provider, category and search controls', () =
 
 test('game lobby keeps explicit desktop and responsive grid contracts', () => {
   assert.match(styleSource, /grid-template-columns:\s*repeat\(4,minmax\(0,1fr\)\)/);
-  assert.match(styleSource, /@media\s*\(max-width:\s*900px\)[\s\S]*repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(styleSource, /@media\s*\(max-width:\s*360px\)[\s\S]*grid-template-columns:\s*1fr/);
+  assert.match(styleSource, /@media\s*\(max-width:\s*900px\)[\s\S]*?repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(styleSource, /@media\s*\(max-width:\s*640px\)[\s\S]*?repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(styleSource, /@media\s*\(max-width:\s*360px\)[\s\S]*?grid-template-columns:\s*1fr/);
 });
 
 test('game lobby includes retry, incremental loading and broken-image fallback', () => {
