@@ -162,21 +162,36 @@ export class ProviderReconciliationCommandService {
         },
       });
 
-      const alertStatus = reviewStatus === 'DISMISSED' ? 'DISMISSED' : reviewStatus === 'RESOLVED' ? 'RESOLVED' : 'REVIEWING';
-      const linkedAlerts = await tx.riskAlert.updateMany({
+      const linkedAlertItems = await tx.riskAlert.findMany({
         where: {
           type: 'WALLET_LEDGER_MISMATCH',
           refType: 'PROVIDER_WALLET_SNAPSHOT',
           refId: id,
           status: { in: ['OPEN', 'REVIEWING'] },
         },
-        data: {
-          status: alertStatus,
-          resolvedAt: resolved ? reviewedAt : null,
-          resolvedBy: resolved ? actor.id : null,
-          resolutionNote: resolved ? note : null,
-        },
+        select: { id: true },
       });
+      const linkedAlertIds = linkedAlertItems.map((alert) => alert.id);
+      const alertStatus = reviewStatus === 'DISMISSED' ? 'DISMISSED' : reviewStatus === 'RESOLVED' ? 'RESOLVED' : 'REVIEWING';
+      const linkedAlerts = linkedAlertIds.length === 0
+        ? { count: 0 }
+        : await tx.riskAlert.updateMany({
+          where: { id: { in: linkedAlertIds } },
+          data: {
+            status: alertStatus,
+            resolvedAt: resolved ? reviewedAt : null,
+            resolvedBy: resolved ? actor.id : null,
+          },
+        });
+      if (linkedAlertIds.length > 0) {
+        await tx.riskAlertNote.createMany({
+          data: linkedAlertIds.map((riskAlertId) => ({
+            riskAlertId,
+            adminUserId: actor.id,
+            note: `[${reviewStatus}] ${note}`,
+          })),
+        });
+      }
 
       await tx.adminAuditLog.create({
         data: buildAdminAuditData({
