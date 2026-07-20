@@ -233,7 +233,9 @@
 - [ ] Deployed login/refresh/logout/cookie regression
 - [ ] Session reuse/rotation regression ผ่าน browser/API จริง
 - [ ] Anti-bot failure/fallback regression ใน deployed environment
-- [ ] Deployment health/version ตรง approved commit
+- [x] Deployment health/version ตรง approved commit
+
+**หลักฐาน deployment health:** commit `4c1b3cfc` บน `main` มี Railway deployment checks ผ่านครบทั้ง `@platform/api`, `@platform/web-admin` และ `@platform/web-member` เมื่อวันที่ 2026-07-20
 
 ## Staging และ production verification
 
@@ -264,5 +266,5 @@
 # จำนวนงานคงค้าง
 
 - งานโค้ดใน P0 ถึง P5: **0 รายการ**
-- งาน external verification และ UAT ใน P6: **30 รายการ**
-- รวม checkbox ที่ยังไม่ปิด: **30 รายการ**
+- งาน external verification และ UAT ใน P6: **29 รายการ**
+- รวม checkbox ที่ยังไม่ปิด: **29 รายการ**
