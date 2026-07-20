@@ -43,7 +43,7 @@ Modernize the Admin application in parallel-safe batches without changing Member
 - [x] Classify styles as tokens, shell, primitive, feature, compatibility, or consolidation candidates.
 - [x] Remove selectors coupled to inline style text.
 - [ ] Consolidate duplicate Button, Field, Card, Badge, Modal, Drawer, Table, Toast, Skeleton, Empty, Error, and ConfirmDialog variants.
-- [ ] Add component tests before deleting compatibility CSS.
+- [x] Add component tests before deleting compatibility CSS.
 
 Ownership source: [`admin-css-ownership-inventory.md`](./admin-css-ownership-inventory.md).  
 Implementation audit: [`admin-selector-and-primitive-audit.md`](./admin-selector-and-primitive-audit.md).
@@ -88,8 +88,8 @@ Decision source: [`../architecture/admin-dependency-decisions.md`](../architectu
 
 ## Progress count
 
-- Completed checklist items: **25**
-- Remaining checklist items: **9**
+- Completed checklist items: **26**
+- Remaining checklist items: **8**
 - Member implementation items changed: **0**
 - API/Prisma contract items changed: **0**
 
@@ -116,6 +116,8 @@ Decision source: [`../architecture/admin-dependency-decisions.md`](../architectu
 - `14d10d41` — selector debt and primitive ownership audit.
 - `8e8b3740` — responsive Admin row selector decoupled from serialized inline style text.
 - `7e7e939e` — selector audit closed with no known remaining inline-style text selectors.
+- `bf61be87` — canonical Admin primitive component contract tests.
+- `f8dda7b0` — primitive audit updated with test coverage and safety boundary.
 
 ## Verification commands
 
@@ -130,6 +132,7 @@ pnpm --filter @platform/web-admin analyze
 ## Current remaining risk
 
 - CI status has not appeared for the latest branch head yet.
+- Component contract tests are committed but the full Admin verification command set is still an open quality gate.
 - Compatibility stylesheets remain loaded until selector ownership and visual evidence justify migration.
 - Dependency installation is intentionally deferred until bundle and browser measurements justify reopening the ADR.
 - Primitive imports have not yet been enumerated route by route; no duplicate family is safe to delete yet.
