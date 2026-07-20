@@ -11,6 +11,8 @@ import {
   UploadWithdrawalPaymentProofDto,
   VerifyWithdrawalPaymentDto,
 } from './dto/withdrawal-workflow.dto';
+import { BatchWithdrawalWorkflowDto } from './dto/batch-withdrawal-workflow.dto';
+import { BatchWithdrawalWorkflowService } from './batch-withdrawal-workflow.service';
 
 @Controller('admin/withdrawals')
 @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -18,6 +20,7 @@ export class WithdrawalWorkflowController {
   constructor(
     private readonly workflow: WithdrawalWorkflowService,
     private readonly withdrawalRisk: WithdrawalRiskEnforcementService,
+    private readonly batchWorkflow: BatchWithdrawalWorkflowService,
   ) {}
 
   @RequirePermission('finance.withdrawals.view')
@@ -58,6 +61,12 @@ export class WithdrawalWorkflowController {
     @Req() req: AdminRequestContext,
   ) {
     return this.workflow.verifyAndComplete(id, user.id, body.note, this.meta(req));
+  }
+
+  @RequirePermission('finance.withdrawals.review')
+  @Post('batch/workflow')
+  batchWorkflowAction(@CurrentUser() user: AuthenticatedAdminActor, @Body() body: BatchWithdrawalWorkflowDto, @Req() req: AdminRequestContext) {
+    return this.batchWorkflow.execute(user.id, body.action, body.ids, body.reason.trim(), body.stepUpCode, this.meta(req));
   }
 
   private meta(req: AdminRequestContext) {

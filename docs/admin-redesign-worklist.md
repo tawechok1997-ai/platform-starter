@@ -18,7 +18,7 @@
 
 ## P0 — Data integrity, authentication และ security boundary
 
-สถานะ: **6 / 7 เสร็จ | เหลือ 1**
+สถานะ: **7 / 7 เสร็จ | เหลือ 0**
 
 - [x] เพิ่ม migration สำหรับข้อมูลโปรไฟล์ Admin ได้แก่ชื่อ ตำแหน่ง แผนก และรูปโปรไฟล์
 - [x] เพิ่ม API อ่านโปรไฟล์ Admin จากข้อมูลฐานจริง
@@ -26,10 +26,11 @@
 - [x] บันทึก audit log เมื่อแก้ไขโปรไฟล์ พร้อมข้อมูลก่อน/หลัง IP และ user agent
 - [x] ป้องกัน refresh 401 ที่หน้า Login และจัดการ session hint โดยไม่เก็บ token ฝั่ง client
 - [x] บังคับ authentication, route permission และ API permission โดยไม่พึ่งการซ่อนเมนูเพียงอย่างเดียว
-- [ ] ทำให้ `prisma/schema.prisma` ตรงกับคอลัมน์โปรไฟล์ใน migration และเปลี่ยน Profile query/update จาก raw SQL เป็น Prisma Client พร้อม regression test
-  - แก้ defect Login loop และ `/admin/auth/me` 500 แล้ว โดยใช้ HttpOnly access cookie ผ่าน Next.js proxy และเปลี่ยน Profile query ฝั่งอ่านเป็น Prisma Client
-  - ยืนยันใช้งาน Login → Dashboard ได้จริง และ Railway build ของ API, Web Admin และ Web Member ผ่านทั้งหมดที่ commit `f8e6cbd8`
-  - คงเหลือ: sync profile fields เข้า Prisma schema และปรับ Profile update ให้ใช้ Prisma Client
+- [x] ทำให้ `prisma/schema.prisma` ตรงกับคอลัมน์โปรไฟล์ใน migration และเปลี่ยน Profile query/update จาก raw SQL เป็น Prisma Client พร้อม regression test
+  - เพิ่มฟิลด์ profile ของ `AdminUser` ให้ตรงกับ migration และให้ query คืนค่าที่บันทึกจริง โดยคง fallback จาก role สำหรับข้อมูลเก่า
+  - เปลี่ยน Profile update เป็น `adminUser.findUnique` / `adminUser.update` ภายใน transaction เดียวกับ audit log; ไม่มี raw SQL ใน profile command แล้ว
+  - เพิ่ม regression test สำหรับ persisted profile fields, normalization, audit before/after และ account-not-found
+  - ยืนยัน `prisma validate` และ targeted Jest ผ่านใน Node 22; API typecheck ยังถูกบล็อกด้วย Prisma Client generated artifacts ที่ไม่สมบูรณ์ใน environment นี้
 
 ---
 
@@ -79,10 +80,12 @@
 - [x] สร้างมาตรฐานตาราง Admin กลางสำหรับ sticky header, density, loading, empty และ error states
 - [x] ทำ filter, sort, pagination และ search ให้ใช้พฤติกรรมสอดคล้องกันทุกหน้าหลัก
 - [x] เพิ่ม column visibility, saved views และการจำค่าตาม Admin
-- [ ] เพิ่ม bulk action พร้อม confirm dialog, reason field, step-up และผลลัพธ์รายแถว
+- [x] เพิ่ม bulk action พร้อม confirm dialog, reason field, step-up และผลลัพธ์รายแถว
   - ความคืบหน้า: มี reusable component, เลือกหลายรายการ, reason, confirmation phrase, retry และผลลัพธ์รายแถวแล้ว
   - ใช้งานจริงที่ `/bulk-queue-operations` สำหรับ Claim/Release ซึ่งไม่เปลี่ยนยอดเงินจริง
-  - คงเหลือ: batch API และ step-up authentication สำหรับ Approve, Reject, Confirm credit/payment ก่อนปิดงาน
+  - เพิ่ม batch API สำหรับ Deposit `APPROVE_SLIP`, `REJECT` และ `CONFIRM_CREDIT`: จำกัด 50 รายการ, deduplicate IDs, บังคับ reason และ step-up, เก็บผลรายแถว/partial failure และ audit หลักฐานชุดเดียว
+  - เพิ่ม batch API สำหรับ Withdrawal `APPROVE`, `REJECT` และ `VERIFY_PAYMENT` ด้วยขอบเขต, step-up, per-row result และ audit แบบเดียวกัน
+  - เชื่อม batch API ทั้งสองชุดกับ Admin surface แล้ว; ยังคงต้องเก็บ browser regression evidence ใน CI/staging ก่อน deploy
 - [x] ปรับ Export Center ให้ติดตามสถานะไฟล์ ประวัติการส่งออก และสิทธิ์ข้อมูล
 
 ### Module visual completion
@@ -156,12 +159,11 @@
 
 | Priority | เสร็จ | ทั้งหมด | เหลือ |
 |---|---:|---:|---:|
-| P0 | 6 | 7 | 1 |
+| P0 | 7 | 7 | 0 |
 | P1 | 13 | 13 | 0 |
-| P2 | 38 | 39 | 1 |
-| **รวม** | **57** | **59** | **2** |
+| P2 | 39 | 39 | 0 |
+| **รวม** | **59** | **59** | **0** |
 
 ## ลำดับดำเนินงานต่อ
 
-1. ปิด P0 โดย sync Prisma schema และเปลี่ยน Profile update เป็น Prisma Client
-2. เพิ่ม batch API และ step-up สำหรับ bulk financial actions
+1. เก็บ browser regression evidence ของ bulk financial workflow ใน CI/staging ก่อน deploy
