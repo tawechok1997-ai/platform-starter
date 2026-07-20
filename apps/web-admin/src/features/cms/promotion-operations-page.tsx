@@ -19,7 +19,7 @@ type PromotionCampaign = {
   title: string;
   description: string;
   enabled: boolean;
-  category?: PromotionCategory;
+  category?: PromotionCategory | undefined;
   bonusType: 'fixed' | 'percent';
   bonusValue: number;
   minDeposit: number;
@@ -31,10 +31,10 @@ type PromotionCampaign = {
   badgeText?: string;
   accentColor?: string;
   priority?: number;
-  startsAt?: string;
-  endsAt?: string;
-  couponCode?: string;
-  rewardLabel?: string;
+  startsAt?: string | undefined;
+  endsAt?: string | undefined;
+  couponCode?: string | undefined;
+  rewardLabel?: string | undefined;
 };
 
 type ClaimSummary = { total: number; pending: number; approved: number; rejected: number };
