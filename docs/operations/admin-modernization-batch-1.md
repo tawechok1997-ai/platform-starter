@@ -84,12 +84,14 @@ Decision source: [`../architecture/admin-dependency-decisions.md`](../architectu
 - [ ] Retain six-viewport Admin visual evidence.
 - [ ] Add keyboard, focus restoration, 200% zoom, reduced-motion, and axe evidence.
 - [ ] Add console/network failure gates for authenticated Admin flows.
-- [ ] Add performance budgets for route JS, layout shift, and long-table rendering.
+- [x] Add performance budgets for route JS, layout shift, and long-table rendering.
+
+Performance budget source: [`../../apps/web-admin/performance-budget.json`](../../apps/web-admin/performance-budget.json).
 
 ## Progress count
 
-- Completed checklist items: **26**
-- Remaining checklist items: **8**
+- Completed checklist items: **27**
+- Remaining checklist items: **7**
 - Member implementation items changed: **0**
 - API/Prisma contract items changed: **0**
 
@@ -119,6 +121,8 @@ Decision source: [`../architecture/admin-dependency-decisions.md`](../architectu
 - `bf61be87` — canonical Admin primitive component contract tests.
 - `f8dda7b0` — primitive audit updated with test coverage and safety boundary.
 - `5a200e43` — component-test checklist and progress count updated.
+- `d0b984a7` — machine-readable Admin performance budget.
+- `782f5037` — performance-budget contract tests.
 
 ## Verification commands
 
@@ -133,7 +137,8 @@ pnpm --filter @platform/web-admin analyze
 ## Current remaining risk
 
 - CI status has not appeared for the latest branch head yet.
-- Component contract tests are committed but the full Admin verification command set is still an open quality gate.
+- Component and performance contract tests are committed but the full Admin verification command set is still an open quality gate.
+- Performance thresholds are defined; measured production build and browser evidence are still required before claiming the application meets them.
 - Compatibility stylesheets remain loaded until selector ownership and visual evidence justify migration.
 - Dependency installation is intentionally deferred until bundle and browser measurements justify reopening the ADR.
 - Primitive imports have not yet been enumerated route by route; no duplicate family is safe to delete yet.
