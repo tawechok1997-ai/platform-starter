@@ -35,9 +35,9 @@ This backlog contains only work that remains after comparing the requested archi
 
 - [x] Split rollback-bet from rollback-win at the simulator transaction boundary.
 - [x] Require refunds to reference an original transaction.
-- [ ] Verify that the referenced refund transaction is an original bet.
-- [ ] Support partial refunds without exceeding the original bet.
-- [ ] Add canonical payload hashes for idempotency conflict detection.
+- [x] Verify that refund and rollback references match the original bet or win for the same user, game, and round.
+- [x] Support partial refunds without exceeding the original bet.
+- [x] Add canonical payload hashes for idempotency conflict detection.
 - [ ] Send insufficient-balance rollback-win cases to manual review.
 
 ## Workstream D: round persistence
@@ -70,8 +70,8 @@ This backlog contains only work that remains after comparing the requested archi
 - [ ] Reconcile round totals against round transactions.
 - [ ] Detect missing round and ledger links.
 - [ ] Add concurrent bet tests.
-- [ ] Add duplicate callback and payload-conflict tests.
-- [x] Add focused refund and rollback direction tests.
+- [x] Add payload-conflict protection at the wallet idempotency boundary.
+- [x] Add focused refund, rollback direction, source validation, and partial-refund tests.
 - [ ] Add full refund, rollback, and manual-review integration tests.
 
 ## Deferred until the repository UI and asset audit is complete
