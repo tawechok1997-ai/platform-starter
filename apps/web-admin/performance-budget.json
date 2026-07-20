@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "scope": "@platform/web-admin",
+  "routeJavaScript": {
+    "initialKilobytesGzip": 220,
+    "largestAsyncChunkKilobytesGzip": 160,
+    "routeGrowthPercent": 10
+  },
+  "layoutStability": {
+    "cumulativeLayoutShift": 0.1
+  },
+  "responsiveness": {
+    "interactionToNextPaintMilliseconds": 200,
+    "longTaskMilliseconds": 50
+  },
+  "longDataViews": {
+    "rowsWithoutVirtualization": 200,
+    "firstRenderMilliseconds": 500,
+    "filterOrSortMilliseconds": 200
+  },
+  "measurement": {
+    "productionBuildRequired": true,
+    "authenticatedRoutesRequired": true,
+    "mobileAndDesktopRequired": true,
+    "browserEvidenceRequired": true
+  }
+}
