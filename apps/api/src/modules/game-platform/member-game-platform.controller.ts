@@ -1,17 +1,21 @@
-import { Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { MemberActor, MemberRequestContext } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { GamePlatformService } from './game-platform.service';
+import { MemberGameCatalogQuery, MemberGameCatalogService } from './member-game-catalog.service';
 
 @UseGuards(MemberAuthGuard)
 @Controller('member')
 export class MemberGamePlatformController {
-  constructor(private readonly gamePlatformService: GamePlatformService) {}
+  constructor(
+    private readonly gamePlatformService: GamePlatformService,
+    private readonly memberGameCatalogService: MemberGameCatalogService,
+  ) {}
 
   @Get('games')
-  listGames() {
-    return this.gamePlatformService.listMemberGames();
+  listGames(@Query() query: MemberGameCatalogQuery) {
+    return this.memberGameCatalogService.list(query);
   }
 
   @Post('games/:gameId/launch')
