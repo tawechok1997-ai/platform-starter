@@ -130,7 +130,17 @@ export class WalletService {
 
       const existing = await tx.walletLedger.findUnique({ where: { idempotencyKey } });
       if (existing) {
-        const sameRequest = existing.userId === userId && existing.direction === input.direction && existing.amount.equals(amount) && existing.referenceType === input.referenceType && existing.referenceId === input.referenceId;
+        const existingPayloadHash = this.metadataString(existing.metadata, 'payloadHash');
+        const requestedPayloadHash = this.metadataString(input.metadata, 'payloadHash');
+        const payloadMatches = !existingPayloadHash && !requestedPayloadHash
+          ? true
+          : Boolean(existingPayloadHash && requestedPayloadHash && existingPayloadHash === requestedPayloadHash);
+        const sameRequest = existing.userId === userId
+          && existing.direction === input.direction
+          && existing.amount.equals(amount)
+          && existing.referenceType === input.referenceType
+          && existing.referenceId === input.referenceId
+          && payloadMatches;
         if (!sameRequest) throw new ConflictException('Idempotency key was already used with different game transaction data');
         return { wallet: await this.currentWalletInTransaction(tx, userId), ledger: this.formatLedger(existing), replayed: true };
       }
@@ -180,6 +190,12 @@ export class WalletService {
     const wallet = await tx.wallet.findUnique({ where: { userId } });
     if (!wallet) throw new NotFoundException('Wallet not found');
     return this.formatWallet(wallet);
+  }
+
+  private metadataString(metadata: unknown, key: string) {
+    if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return null;
+    const value = (metadata as Record<string, unknown>)[key];
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
   }
 
   private matchesIdentifier(identifier: string, user: any, userId: string) { const q = identifier.toLowerCase(); return userId.toLowerCase() === q || userId.toLowerCase().startsWith(q) || user?.username?.toLowerCase().includes(q) || user?.phone?.toLowerCase().includes(q) || user?.email?.toLowerCase().includes(q); }
