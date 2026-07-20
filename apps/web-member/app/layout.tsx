@@ -14,6 +14,7 @@ import './member-home-sections.css';
 import './member-home-responsive.css';
 import './member-shell.css';
 import './member-mobile.css';
+import './member-mobile-shared-shell.css';
 import './member-desktop.css';
 import './member-finance-responsive.css';
 import './member-finance-pages.css';
