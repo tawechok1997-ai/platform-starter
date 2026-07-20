@@ -9,10 +9,12 @@ on:
       - 'asset/catalog/pc/**'
       - 'asset/catalog/mobile/**'
       - 'apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts'
+      - 'apps/api/src/modules/provider-simulator/provider-simulator-pc-catalog.generated.ts'
       - 'tools/cleanup-game-assets.mjs'
       - 'tools/organize-game-assets.mjs'
       - 'tools/build-game-asset-inventory.mjs'
       - 'tools/migrate-pc-assets.mjs'
+      - 'tools/build-pc-game-catalog.mjs'
       - '.github/workflows/game-asset-cleanup.yml'
 
 permissions:
@@ -49,26 +51,31 @@ jobs:
           else
             echo 'No raw PC manifest requires migration.'
           fi
-      - name: Verify migrations are complete
+      - name: Build PC game and provider catalog
+        run: node tools/build-pc-game-catalog.mjs
+      - name: Verify migrations and generated catalogs
         run: |
           test ! -e asset/mobil
           test ! -e asset/pc
           test -f asset/catalog/mobile/manifest.json
           test -f asset/catalog/pc/manifest.json
+          test -f asset/catalog/pc/catalog.json
+          test -f apps/api/src/modules/provider-simulator/provider-simulator-pc-catalog.generated.ts
           node -e "const m=require('./asset/catalog/mobile/manifest.json'); if(!Array.isArray(m.items)||m.items.length===0) process.exit(1); console.log('Mobile canonical assets:',m.items.length)"
           node -e "const m=require('./asset/catalog/pc/manifest.json'); if(!Array.isArray(m.items)||m.items.length===0) process.exit(1); console.log('PC canonical assets:',m.items.length)"
-          if grep -q "asset/mobil/\|asset/pc/" apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts; then
-            echo 'Provider catalog still references a raw asset path.'
+          node -e "const c=require('./asset/catalog/pc/catalog.json'); if(!Array.isArray(c.games)||c.games.length===0) process.exit(1); console.log('PC catalog games:',c.games.length,'providers:',c.providers.length,'resolved images:',c.counts.gamesWithAssets)"
+          if grep -q "asset/mobil/\|asset/pc/\|MOBILE_ASSET_ROOT" apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts; then
+            echo 'Provider catalog still references a raw or removed asset path.'
             exit 1
           fi
-      - name: Commit organized asset libraries
+      - name: Commit organized asset libraries and generated catalogs
         run: |
           if git diff --quiet; then
-            echo 'No asset migration changes required.'
+            echo 'No asset catalog changes required.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A asset docs/generated apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts
-          git commit -m 'chore(game-assets): migrate pc assets into canonical library'
+          git add -A asset docs/generated apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts apps/api/src/modules/provider-simulator/provider-simulator-pc-catalog.generated.ts
+          git commit -m 'chore(game-assets): generate pc game catalog'
           git push
