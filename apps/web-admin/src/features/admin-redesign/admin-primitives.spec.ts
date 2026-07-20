@@ -8,6 +8,11 @@ const adminUiSource = readFileSync(
   'utf8',
 );
 
+const adminShellUiSource = readFileSync(
+  resolve(process.cwd(), 'app/components/admin-ui.tsx'),
+  'utf8',
+);
+
 const overlayCss = readFileSync(
   resolve(process.cwd(), 'app/admin-shell-overlay-fix.css'),
   'utf8',
@@ -48,6 +53,18 @@ test('interactive Admin primitives retain accessible names and dialog semantics'
   assert.match(adminUiSource, /aria-describedby=\{descriptionId\}/);
   assert.match(adminUiSource, /event\.key === 'Escape'/);
   assert.match(adminUiSource, /confirmRef\.current\?\.focus\(\)/);
+});
+
+test('shell button and link primitives share one class composition contract', () => {
+  assert.match(adminShellUiSource, /export function adminButtonClassName/);
+  assert.match(adminShellUiSource, /className=\{adminButtonClassName\(tone, className\)\}/g);
+  assert.match(adminShellUiSource, /forwardRef<\s*HTMLButtonElement/);
+  assert.match(adminShellUiSource, /forwardRef<\s*HTMLAnchorElement/);
+  assert.doesNotMatch(
+    adminShellUiSource,
+    /className=\{classes\(buttonPrimitiveByTone\[tone\]/,
+    'button and link primitives must not rebuild tone classes independently',
+  );
 });
 
 test('loading and feedback primitives expose status semantics', () => {
