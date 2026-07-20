@@ -2,6 +2,12 @@
 
 This backlog contains only work that remains after comparing the requested architecture with the current repository implementation.
 
+## Status convention
+
+- `[x]` implementation is present in the branch.
+- `Awaiting CI` means the code is complete but merge readiness still depends on the required workflow result.
+- unchecked items require additional implementation, migration evidence, external-provider work, or production-safe data validation.
+
 ## Completed foundation already in the repository
 
 - platform wallet and wallet ledger
@@ -21,8 +27,8 @@ This backlog contains only work that remains after comparing the requested archi
 - [x] Document the current wallet architecture and source of truth.
 - [x] Add a runtime guard that isolates simulator mode from external provider mode.
 - [ ] Consolidate overlapping responsibilities between `game-platform` and `provider-simulator`.
-- [ ] Make `WalletService.mutateGameBalance()` the documented and tested exclusive mutation boundary for game operations.
-- [x] Centralize and test simulator versus external-provider runtime mode validation.
+- [x] Make `WalletService.mutateGameBalance()` the documented and tested exclusive mutation boundary for game operations. Awaiting CI.
+- [x] Centralize and test simulator versus external-provider runtime mode validation. Awaiting CI.
 - [ ] Add configuration validation for seamless wallet and placeholder asset flags.
 
 ## Workstream B: wallet and ledger semantics
@@ -63,7 +69,7 @@ This backlog contains only work that remains after comparing the requested archi
 - [x] Sign a canonical JSON payload together with timestamp and nonce.
 - [x] Reject development fallback credentials outside local and test environments.
 - [x] Add endpoint-specific per-merchant rate limits.
-- [x] Add focused canonical-signature, nonce, and rate-limit tests.
+- [x] Add focused canonical-signature, nonce, and rate-limit tests. Awaiting CI.
 
 ## Workstream F: provider, catalog, and sessions
 
@@ -78,15 +84,26 @@ This backlog contains only work that remains after comparing the requested archi
 - [ ] Reconcile wallet balance against ledger totals.
 - [x] Reconcile stored round totals against persisted round transactions.
 - [x] Detect round transactions that have no linked wallet ledger entry.
-- [ ] Add concurrent bet tests.
+- [x] Add concurrent bet tests. Awaiting PostgreSQL CI.
 - [x] Add payload-conflict protection at the wallet idempotency boundary.
 - [x] Add focused refund, rollback direction, source validation, and partial-refund tests.
-- [ ] Add focused wallet ledger semantic/filter tests.
+- [x] Add focused wallet ledger semantic/filter tests. Awaiting CI.
 - [x] Add round-policy tests for repeated bets, repeated wins, refund, cancel, replay, and closed-round rejection.
-- [ ] Add game-round transaction persistence and duplicate-event integration tests.
+- [x] Add game-round transaction persistence and duplicate-event integration tests. Awaiting PostgreSQL CI.
 - [x] Add provider simulator runtime configuration tests.
 - [ ] Add full refund, rollback, and manual-review integration tests.
 - [ ] Add diagnostics service tests against disposable PostgreSQL.
+
+## Code-complete items awaiting CI
+
+- provider simulator service and transaction unit suites
+- wallet game-ledger semantic/filter suite
+- PostgreSQL simulator concurrency suite
+- PostgreSQL game-round persistence and duplicate replay suite
+- API typecheck and build
+- Member contract tests, typecheck, build, and browser regression
+
+These items must remain open for merge readiness until the workflow reports success. A commit existing is evidence of implementation, not evidence that GitHub Actions approves of human ambition.
 
 ## Deferred until the repository UI and asset audit is complete
 
