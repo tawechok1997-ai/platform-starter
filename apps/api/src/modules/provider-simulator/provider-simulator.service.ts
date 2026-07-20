@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { WalletService } from '../wallet/wallet.service';
+import { ProviderSimulatorRoundService } from './provider-simulator-round.service';
 
 type TransferResult = {
   providerTransactionId: string;
@@ -35,7 +36,10 @@ const GAME_CATALOG = [
 
 @Injectable()
 export class ProviderSimulatorService {
-  constructor(private readonly walletService: WalletService) {}
+  constructor(
+    private readonly walletService: WalletService,
+    private readonly roundService: ProviderSimulatorRoundService,
+  ) {}
 
   verifyRequest(headers: Record<string, string | string[] | undefined>, body: unknown) {
     const apiKey = this.header(headers, 'x-api-key');
@@ -67,7 +71,7 @@ export class ProviderSimulatorService {
   }
 
   health() {
-    return { status: 'ONLINE', provider: 'platform-provider-simulator', version: 3, walletSource: 'platform-wallet' };
+    return { status: 'ONLINE', provider: 'platform-provider-simulator', version: 4, walletSource: 'platform-wallet', roundLock: 'postgres-advisory-xact-lock' };
   }
 
   launch(input: Record<string, unknown>) {
@@ -122,6 +126,7 @@ export class ProviderSimulatorService {
 
     const providerTransactionId = `sim_${kind.toLowerCase()}_${transactionId}`;
     const credit = kind === 'WIN' || kind === 'REFUND' || kind === 'ROLLBACK';
+    const roundInput = { userId, roundId, gameCode, transactionId };
     const result = await this.walletService.mutateGameBalance({
       userId,
       amount,
@@ -131,9 +136,14 @@ export class ProviderSimulatorService {
       referenceId: providerTransactionId,
       currency: String(input.currency ?? 'THB'),
       isReversal: kind === 'REFUND' || kind === 'ROLLBACK',
+      concurrencyKey: `provider-simulator:${userId}:${gameCode}:${roundId}`,
+      beforeMutation: async (tx) => {
+        await this.roundService.enforceInTransaction(tx, kind, roundInput);
+      },
       metadata: {
         provider: game.provider,
         providerTransactionId,
+        transactionId,
         roundId,
         gameCode,
         platform: game.platform,
@@ -185,7 +195,7 @@ export class ProviderSimulatorService {
       enabled: true,
       imageUrl: `${baseUrl}/provider-simulator/icons/${game.code}.svg`,
       iconUrl: `${baseUrl}/provider-simulator/icons/${game.code}.svg`,
-      rawPayload: { simulator: true, version: 3 },
+      rawPayload: { simulator: true, version: 4 },
     }));
 
     return {
