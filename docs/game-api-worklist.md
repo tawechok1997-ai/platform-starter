@@ -43,7 +43,7 @@
 
 ## Verification
 
-- [ ] รัน provider simulator unit tests ใน CI
+- [ ] รัน provider simulator และ game-platform unit tests ใน CI
 - [x] รัน API typecheck และ build
 - [x] รัน Member typecheck และ build หลังเชื่อมหน้าเกม
 - [ ] รัน browser regression สำหรับ filter, launch และ image fallback
@@ -71,5 +71,6 @@
 - `apps/web-member/app/games/games.css` แสดง tabs/toolbar จริงและกำหนด grid 4/3/2/1 คอลัมน์
 - `playwright.game-api.config.ts` เปิด Next.js Member จริงทั้ง Chromium และ Mobile Safari
 - `tests/game-api-browser/game-lobby.spec.ts` ทดสอบ filter, launch request/session navigation และ broken-image fallback
-- workflow `Game API Verification` รัน provider simulator tests, API/Member checks และ browser regression
-- ยังไม่ปิดสอง checkbox verification จนกว่า GitHub Actions จะรายงานผลสำเร็จจริง
+- workflow `Game API Verification` รัน migration validation, CI database bootstrap, provider simulator, adapter registry, webhook, round persistence, reconciliation, monitoring, PostgreSQL concurrency, API/Member checks และ browser regression
+- Railway deployment ของ API, Web Admin และ Web Member ผ่านบน commit `afb3e8ada2063ba99e107680cff50ace1284323f`
+- PR closure run ใช้ยืนยัน workflow ฉบับเต็มก่อนปิด checkbox verification โดยไม่อาศัยสถานะ deployment เพียงอย่างเดียว
