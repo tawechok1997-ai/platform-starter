@@ -68,14 +68,13 @@ export class GameRoundDiagnosticsService {
       LIMIT ${safeLimit}
     `;
 
-    if (rows.length > 0) {
-      const ids = rows.map((row) => row.roundId);
+    for (const row of rows) {
       await this.prisma.$executeRaw`
         UPDATE "game_rounds"
         SET "manual_review_reason" = COALESCE("manual_review_reason", 'ROUND_TOTAL_MISMATCH'),
             "manual_review_at" = COALESCE("manual_review_at", CURRENT_TIMESTAMP),
             "updated_at" = CURRENT_TIMESTAMP
-        WHERE "id" = ANY(${ids}::uuid[])
+        WHERE "id" = ${row.roundId}::uuid
       `;
     }
 
