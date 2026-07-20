@@ -29,7 +29,7 @@
 - [ ] กวาดคำอังกฤษที่ไม่จำเป็นในหน้า Admin หลัก
 - [ ] ทำ action labels ให้สั้นและใช้คำเดียวกันทั้งระบบ
 - [x] ทำ status wording ให้ใช้ mapping กลางในโมดูลหลักที่รีแฟกเตอร์แล้ว
-- [x] ลดคำอธิบายที่ยาวเกินใน Webhook, Audit Logs และ Reports
+- [x] ลดคำอธิบายที่ยาวเกินใน Webhook, Audit Logs, Reports และ Settings
 - [x] เปลี่ยนข้อความเชิงเทคนิคให้ผู้ดูแลเข้าใจง่าย โดยยังเปิดดูค่าจริงได้ในโมดูลที่รีแฟกเตอร์แล้ว
 
 ## P2 — Unified layout
@@ -49,6 +49,7 @@
 - [x] ทำ data-value stack บนจอแคบ
 - [x] ทำ filter controls stack บนจอแคบ
 - [x] ทำ pagination stack บนจอแคบ
+- [x] ทำ action groups stack บนจอแคบ
 - [x] ทำ modal safe area และ sticky actions
 - [ ] ตรวจตารางและการ์ดที่ยังต้อง horizontal scroll
 
@@ -59,7 +60,7 @@
 - [x] Shared empty, notice และ skeleton baseline
 - [x] Shared detail/data rows
 - [x] Shared JSON/payload viewer
-- [ ] Shared action group
+- [x] Shared action group
 - [ ] Shared expandable technical details
 - [ ] ลด component/helper ซ้ำในแต่ละโมดูล
 
@@ -68,6 +69,7 @@
 - [ ] ใช้ loading skeleton ครบทุกหน้าหลัก
 - [x] Button hover, focus, pressed และ disabled baseline
 - [x] เพิ่ม button border และ surface contrast ทุก tone
+- [x] ทำ form surface, hover และ focus contract กลางใน Admin cards
 - [ ] Dialog transition
 - [ ] Expand/collapse animation
 - [ ] Success/error feedback consistency audit
@@ -98,9 +100,9 @@
 - [x] Promotion workflows
 - [x] Audit logs
 - [x] Reports
-- [ ] Settings
+- [x] Settings
 - [ ] Support
-- [ ] Risk detail surfaces
+- [x] Risk detail surfaces
 
 ## รอบปัจจุบัน
 
@@ -109,4 +111,7 @@
 - เพิ่ม button contrast layer และ interaction states ที่ commits `72168e99`, `8c9637b9`
 - ย้าย Audit Logs มาใช้ shared data, payload และ pagination ที่ commit `145e8504`
 - ย้าย Reports มาใช้ shared filter และ data layout ที่ commit `4aea10cd`
-- ขั้นถัดไป: ย้าย Settings, Support และ Risk detail surfaces จากนั้นกวาด inline styles และ component/helper ซ้ำ
+- เพิ่ม action group และ form surface contract กลางที่ commits `b611548c`, `4ead3f99`, `62fb4721`
+- ย้าย Settings มาใช้ action strip และ section heading กลางที่ commit `3676b42e`
+- Risk detail ได้รับ action/form/mobile contract กลางโดยไม่รื้อ logic เดิม
+- ขั้นถัดไป: ระบุตำแหน่ง Support surface ที่ใช้งานจริง จากนั้นกวาด inline styles, helper ซ้ำ และ mobile viewport ที่เหลือ
