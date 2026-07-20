@@ -9,8 +9,8 @@ import {
   ProviderSimulatorResetRequestDto,
   ProviderSimulatorTransferRequestDto,
 } from './dto/provider-simulator-requests.dto';
-import { ProviderSimulatorRoundService } from './provider-simulator-round.service';
 import { ProviderSimulatorService } from './provider-simulator.service';
+import { ProviderSimulatorTransactionService } from './provider-simulator-transaction.service';
 
 type ProviderSimulatorRequest = {
   headers: Record<string, string | string[] | undefined>;
@@ -26,7 +26,7 @@ type SvgResponse = {
 export class ProviderSimulatorController {
   constructor(
     private readonly simulator: ProviderSimulatorService,
-    private readonly rounds: ProviderSimulatorRoundService,
+    private readonly transactions: ProviderSimulatorTransactionService,
   ) {}
 
   @Post('health')
@@ -60,31 +60,27 @@ export class ProviderSimulatorController {
   }
 
   @Post('bet')
-  async bet(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
+  bet(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
     this.authenticate(headers, body);
-    await this.rounds.enforce('BET', body);
-    return this.simulator.gameTransaction('BET', { ...body });
+    return this.transactions.gameTransaction('BET', { ...body });
   }
 
   @Post('win')
-  async win(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
+  win(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
     this.authenticate(headers, body);
-    await this.rounds.enforce('WIN', body);
-    return this.simulator.gameTransaction('WIN', { ...body });
+    return this.transactions.gameTransaction('WIN', { ...body });
   }
 
   @Post('refund')
-  async refund(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
+  refund(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
     this.authenticate(headers, body);
-    await this.rounds.enforce('REFUND', body);
-    return this.simulator.gameTransaction('REFUND', { ...body });
+    return this.transactions.gameTransaction('REFUND', { ...body });
   }
 
   @Post('rollback')
-  async rollback(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
+  rollback(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
     this.authenticate(headers, body);
-    await this.rounds.enforce('ROLLBACK', body);
-    return this.simulator.gameTransaction('ROLLBACK', { ...body });
+    return this.transactions.gameTransaction('ROLLBACK', { ...body });
   }
 
   @Post('games')
