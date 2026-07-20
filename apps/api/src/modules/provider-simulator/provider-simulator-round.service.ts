@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import {
   GameRoundSnapshot,
   GameRoundTransitionError,
@@ -19,22 +20,50 @@ export class ProviderSimulatorRoundService {
   constructor(private readonly walletService: WalletService) {}
 
   async enforce(kind: SimulatorRoundKind, input: SimulatorRoundInput): Promise<GameRoundSnapshot> {
-    const current = await this.reconstruct(input.userId, input.roundId, input.gameCode);
-    const event = kind === 'BET' ? 'PLACE_BET' : kind === 'WIN' ? 'SETTLE' : 'ROLLBACK';
+    const current = await this.reconstructFromWallet(input.userId, input.roundId, input.gameCode);
+    return this.apply(kind, input, current);
+  }
 
+  async enforceInTransaction(
+    tx: Prisma.TransactionClient,
+    kind: SimulatorRoundKind,
+    input: SimulatorRoundInput,
+  ): Promise<GameRoundSnapshot> {
+    const current = await this.reconstructFromTransaction(tx, input.userId, input.roundId, input.gameCode);
+    return this.apply(kind, input, current);
+  }
+
+  private apply(kind: SimulatorRoundKind, input: SimulatorRoundInput, current: GameRoundSnapshot) {
+    const event = kind === 'BET' ? 'PLACE_BET' : kind === 'WIN' ? 'SETTLE' : 'ROLLBACK';
     try {
       return transitionGameRound(current, event, input.transactionId);
     } catch (error) {
-      if (error instanceof GameRoundTransitionError) {
-        throw new BadRequestException(error.message);
-      }
+      if (error instanceof GameRoundTransitionError) throw new BadRequestException(error.message);
       throw error;
     }
   }
 
-  private async reconstruct(userId: string, roundId: string, gameCode: string): Promise<GameRoundSnapshot> {
+  private async reconstructFromWallet(userId: string, roundId: string, gameCode: string) {
     const ledger = await this.walletService.getMemberLedger(userId, 100);
-    const related = ledger.items.filter((item: any) => {
+    return this.reconstruct(ledger.items, roundId, gameCode);
+  }
+
+  private async reconstructFromTransaction(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    roundId: string,
+    gameCode: string,
+  ) {
+    const items = await tx.walletLedger.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    return this.reconstruct(items, roundId, gameCode);
+  }
+
+  private reconstruct(items: any[], roundId: string, gameCode: string): GameRoundSnapshot {
+    const related = items.filter((item: any) => {
       const metadata = this.metadata(item);
       return metadata.roundId === roundId && metadata.gameCode === gameCode;
     });
