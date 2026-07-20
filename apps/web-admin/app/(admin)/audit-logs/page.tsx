@@ -6,12 +6,16 @@ import {
   AdminBadge,
   AdminButton,
   AdminCard,
+  AdminCode,
+  AdminDataValue,
   AdminEmpty,
   AdminLinkButton,
   AdminMetric,
   AdminMetricGrid,
   AdminNotice,
   AdminPage,
+  AdminPagination,
+  AdminPayloadViewer,
   AdminStack,
 } from '../_components/admin-ui';
 
@@ -86,8 +90,8 @@ export default function AdminAuditPage() {
   return <AdminPage
     eyebrow="ความปลอดภัยและการตรวจสอบ"
     title="บันทึกกิจกรรมผู้ดูแล"
-    description="ตรวจสอบว่าใครดำเนินการอะไร เวลาใด จากอุปกรณ์ใด และข้อมูลเปลี่ยนแปลงอย่างไร"
-    actions={<AdminButton disabled={loading} onClick={() => void loadAuditLogs(page, applied)}>รีเฟรช</AdminButton>}
+    description="ตรวจว่าใครทำอะไร เมื่อใด จากอุปกรณ์ใด และข้อมูลเปลี่ยนอย่างไร"
+    actions={<AdminButton size="compact" disabled={loading} onClick={() => void loadAuditLogs(page, applied)}>รีเฟรช</AdminButton>}
   >
     {message && <AdminNotice>{message}</AdminNotice>}
 
@@ -96,16 +100,16 @@ export default function AdminAuditPage() {
       <AdminMetric title="หน้า" value={`${page}/${pageCount}`} helper={`${PAGE_SIZE} รายการต่อหน้า`} />
       <AdminMetric title="หมวดงาน" value={moduleCount.toLocaleString('th-TH')} helper="จากรายการในหน้านี้" />
       <AdminMetric title="ผู้ดูแล" value={adminCount.toLocaleString('th-TH')} helper="จากรายการในหน้านี้" />
-      <AdminMetric title="สิทธิ์การใช้งาน" value="อ่านอย่างเดียว" helper="ไม่แก้ไขข้อมูลจากหน้านี้" />
+      <AdminMetric title="สิทธิ์" value="อ่านอย่างเดียว" helper="หน้านี้ไม่แก้ไขข้อมูล" />
     </AdminMetricGrid>
 
-    <AdminCard title="ค้นหาและกรอง" description="ค้นหาจากข้อความ หมวดงาน การดำเนินการ ผู้ดูแล รหัสรายการ หรือช่วงเวลา">
+    <AdminCard title="ค้นหาและกรอง" description="ค้นหาจากข้อความ หมวดงาน ผู้ดูแล รหัสรายการ หรือช่วงเวลา">
       <div style={filterGridStyle}>
         <label style={fieldStyle}><span>ค้นหาทั้งหมด</span><input value={draft.search} onChange={(event) => setDraft((value) => ({ ...value, search: event.target.value }))} placeholder="การดำเนินการ หมวดงาน รหัสรายการ หรือ IP" style={inputStyle} /></label>
         <label style={fieldStyle}><span>หมวดงาน</span><input value={draft.module} onChange={(event) => setDraft((value) => ({ ...value, module: event.target.value }))} placeholder="เช่น ฝาก ถอน หรือสมาชิก" style={inputStyle} /></label>
         <label style={fieldStyle}><span>การดำเนินการ</span><input value={draft.action} onChange={(event) => setDraft((value) => ({ ...value, action: event.target.value }))} placeholder="เช่น อนุมัติ ปฏิเสธ หรือเข้าสู่ระบบ" style={inputStyle} /></label>
         <label style={fieldStyle}><span>ผู้ดูแล</span><input value={draft.admin} onChange={(event) => setDraft((value) => ({ ...value, admin: event.target.value }))} placeholder="ชื่อหรืออีเมล" style={inputStyle} /></label>
-        <label style={fieldStyle}><span>รหัสรายการ</span><input value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder="รหัส UUID ของรายการ" style={inputStyle} /></label>
+        <label style={fieldStyle}><span>รหัสรายการ</span><input value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder="UUID หรือรหัสอ้างอิง" style={inputStyle} /></label>
         <label style={fieldStyle}><span>ตั้งแต่วันที่</span><input type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} style={inputStyle} /></label>
         <label style={fieldStyle}><span>ถึงวันที่</span><input type="date" value={draft.to} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} style={inputStyle} /></label>
       </div>
@@ -116,7 +120,7 @@ export default function AdminAuditPage() {
       {activeFilters.length > 0 && <div style={chipWrapStyle}>{activeFilters.map(([key, value]) => <AdminBadge key={key} tone="warning">{filterLabel(key)}: {value}</AdminBadge>)}</div>}
     </AdminCard>
 
-    <AdminCard title="รายการกิจกรรม" description="เปิดดูข้อมูลก่อนและหลังเพื่อใช้ตรวจสอบการเปลี่ยนแปลง">
+    <AdminCard title="รายการกิจกรรม" description="เปิดข้อมูลก่อนและหลังเพื่อตรวจสอบการเปลี่ยนแปลง">
       <AdminStack>
         {items.map((item) => {
           const href = targetHref(item.module, item.targetId);
@@ -130,39 +134,40 @@ export default function AdminAuditPage() {
             </header>
 
             <div style={summaryGridStyle}>
-              <div><span style={labelStyle}>ผู้ดูแล</span><strong>{item.adminUser?.username ?? item.adminUser?.email ?? 'ไม่พบข้อมูลผู้ดูแล'}</strong></div>
-              <div><span style={labelStyle}>อีเมล</span><strong>{item.adminUser?.email ?? '-'}</strong></div>
-              <div><span style={labelStyle}>รหัสรายการ</span><strong style={wrapStyle}>{item.targetId || '-'}</strong></div>
-              <div><span style={labelStyle}>ที่อยู่ IP</span><strong>{item.ipAddress || '-'}</strong></div>
+              <AdminDataValue label="ผู้ดูแล">{item.adminUser?.username ?? item.adminUser?.email ?? 'ไม่พบข้อมูลผู้ดูแล'}</AdminDataValue>
+              <AdminDataValue label="อีเมล">{item.adminUser?.email ?? '-'}</AdminDataValue>
+              <AdminDataValue label="รหัสรายการ"><AdminCode {...(item.targetId ? { title: item.targetId } : {})}>{item.targetId || '-'}</AdminCode></AdminDataValue>
+              <AdminDataValue label="ที่อยู่ IP"><AdminCode>{item.ipAddress || '-'}</AdminCode></AdminDataValue>
             </div>
 
-            <div style={agentBoxStyle}><span style={labelStyle}>อุปกรณ์และเบราว์เซอร์</span><span style={wrapStyle}>{item.userAgent || '-'}</span></div>
+            <AdminDataValue label="อุปกรณ์และเบราว์เซอร์">{item.userAgent || '-'}</AdminDataValue>
 
             <div style={detailGridStyle}>
               <AuditData title="ข้อมูลก่อนเปลี่ยน" value={item.oldData} />
               <AuditData title="ข้อมูลหลังเปลี่ยน" value={item.newData} />
             </div>
 
-            {href && <div style={linkRowStyle}><AdminLinkButton href={href}>เปิดรายการที่เกี่ยวข้อง</AdminLinkButton></div>}
+            {href && <div style={linkRowStyle}><AdminLinkButton size="compact" href={href}>เปิดรายการที่เกี่ยวข้อง</AdminLinkButton></div>}
           </article>;
         })}
         {!loading && items.length === 0 && <AdminEmpty>ไม่พบบันทึกกิจกรรมตามเงื่อนไขนี้</AdminEmpty>}
       </AdminStack>
 
-      <div style={pagerStyle}>
-        <AdminButton disabled={loading || page <= 1} onClick={() => setPage((value) => Math.max(value - 1, 1))}>ก่อนหน้า</AdminButton>
-        <span>หน้า {page} / {pageCount}</span>
-        <AdminButton disabled={loading || page >= pageCount} onClick={() => setPage((value) => Math.min(value + 1, pageCount))}>ถัดไป</AdminButton>
-      </div>
+      <AdminPagination
+        page={page}
+        totalPages={pageCount}
+        disabled={loading}
+        onPrevious={() => setPage((value) => Math.max(value - 1, 1))}
+        onNext={() => setPage((value) => Math.min(value + 1, pageCount))}
+      />
     </AdminCard>
   </AdminPage>;
 }
 
 function AuditData({ title, value }: { title: string; value: unknown }) {
-  const hasValue = value !== undefined && value !== null;
   return <details style={detailsStyle}>
     <summary>{title}</summary>
-    {hasValue ? <pre style={preStyle}>{JSON.stringify(value, null, 2)}</pre> : <p style={emptyDataStyle}>ไม่มีข้อมูล</p>}
+    <div style={payloadWrapStyle}><AdminPayloadViewer payload={value} emptyLabel="ไม่มีข้อมูล" maxHeight={360} /></div>
   </details>;
 }
 
@@ -210,7 +215,7 @@ function moduleLabel(moduleName: string) {
   if (value.includes('withdraw')) return 'รายการถอน';
   if (value.includes('member') || value.includes('user')) return 'สมาชิก';
   if (value.includes('wallet')) return 'กระเป๋าเงิน';
-  if (value.includes('ledger')) return 'ประวัติเงิน';
+  if (value.includes('ledger') || value.includes('money')) return 'บัญชีแยกประเภท';
   if (value.includes('risk')) return 'ความเสี่ยง';
   if (value.includes('auth')) return 'การเข้าสู่ระบบ';
   if (value.includes('access')) return 'สิทธิ์ผู้ดูแล';
@@ -231,12 +236,7 @@ const logBoxStyle = { border: '1px solid rgba(148,163,184,.18)', borderRadius: 1
 const logTopStyle = { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' } as const;
 const badgeWrapStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' } as const;
 const summaryGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 12 } as const;
-const labelStyle = { display: 'block', color: '#94a3b8', fontSize: 12, marginBottom: 4 } as const;
-const wrapStyle = { overflowWrap: 'anywhere' } as const;
-const agentBoxStyle = { borderRadius: 12, background: 'rgba(15,23,42,.7)', padding: 10, minWidth: 0 } as const;
 const detailGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 10 } as const;
 const detailsStyle = { border: '1px solid rgba(148,163,184,.16)', borderRadius: 12, padding: 10, minWidth: 0 } as const;
-const preStyle = { margin: '10px 0 0', padding: 10, borderRadius: 10, background: '#05070a', overflowX: 'auto', fontSize: 12, maxHeight: 360 } as const;
-const emptyDataStyle = { margin: '10px 0 0', color: '#94a3b8' } as const;
+const payloadWrapStyle = { marginTop: 10 } as const;
 const linkRowStyle = { display: 'flex', justifyContent: 'flex-end' } as const;
-const pagerStyle = { display: 'grid', gridTemplateColumns: 'minmax(88px, 1fr) auto minmax(88px, 1fr)', gap: 8, alignItems: 'center', marginTop: 16, textAlign: 'center', overflowWrap: 'anywhere' } as const;
