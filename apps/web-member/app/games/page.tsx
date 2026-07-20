@@ -7,7 +7,8 @@ import { memberApiFetch } from '../member-api';
 type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null; status: string };
 type GamePlatform = 'mobile' | 'pc' | 'both';
 type PlatformFilter = 'all' | GamePlatform;
-type Game = { id: string; providerGameCode: string; name: string; category: string; platform: GamePlatform; status?: string; isFeatured: boolean; isNew: boolean; isPopular: boolean; provider?: { name: string; code: string; status?: string | null }; media?: GameMedia[]; imageUrl?: string | null; iconUrl?: string | null };
+type GameProvider = { name: string; code: string; status?: string | null; logoUrl?: string | null };
+type Game = { id: string; providerGameCode: string; name: string; category: string; platform: GamePlatform; status?: string; isFeatured: boolean; isNew: boolean; isPopular: boolean; provider?: GameProvider; media?: GameMedia[]; imageUrl?: string | null; iconUrl?: string | null };
 type ProviderOption = { code: string; name: string };
 type Pagination = { page: number; limit: number; total: number; totalPages: number; hasMore: boolean };
 type Counts = { total: number; database: number; catalogOnly: number; mobile: number; pc: number };
@@ -37,6 +38,7 @@ export default function MemberGamesPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const [loadMoreError, setLoadMoreError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
   const [launching, setLaunching] = useState<LaunchState>({});
   const [hydrated, setHydrated] = useState(false);
@@ -66,6 +68,7 @@ export default function MemberGamesPage() {
   useEffect(() => {
     if (!hydrated) return;
     setPage(1);
+    setLoadMoreError('');
   }, [category, provider, platform, debouncedQuery, hydrated]);
 
   useEffect(() => {
@@ -74,7 +77,7 @@ export default function MemberGamesPage() {
     async function loadGames() {
       const append = page > 1;
       append ? setLoadingMore(true) : setLoading(true);
-      setError('');
+      append ? setLoadMoreError('') : setError('');
       try {
         const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
         if (platform !== 'all') params.set('platform', platform);
@@ -84,11 +87,18 @@ export default function MemberGamesPage() {
         const res = await memberApiFetch(`/member/games?${params.toString()}`);
         const data = await res.json().catch(() => null);
         if (cancelled) return;
-        if (!res.ok) { setError(readApiMessage(data, 'โหลดเกมไม่สำเร็จ')); return; }
+        if (!res.ok) {
+          const message = readApiMessage(data, 'โหลดเกมไม่สำเร็จ');
+          append ? setLoadMoreError(message) : setError(message);
+          return;
+        }
         const next = normalizeLobbyPayload(data);
         setPayload((current) => append ? { ...next, items: mergeGames(current.items, next.items) } : next);
       } catch {
-        if (!cancelled) setError('ไม่สามารถเชื่อมต่อบริการเกมได้ กรุณาลองใหม่');
+        if (!cancelled) {
+          const message = 'ไม่สามารถเชื่อมต่อบริการเกมได้ กรุณาลองใหม่';
+          page > 1 ? setLoadMoreError(message) : setError(message);
+        }
       } finally {
         if (!cancelled) { setLoading(false); setLoadingMore(false); }
       }
@@ -129,6 +139,7 @@ export default function MemberGamesPage() {
 
   function selectPlatform(next: PlatformFilter) { setPlatform(next); setProvider('all'); setCategory('all'); }
   function resetFilters() { setCategory('all'); setProvider('all'); setPlatform('all'); setQuery(''); setDebouncedQuery(''); }
+  function retryLoadMore() { setLoadMoreError(''); setReloadKey((value) => value + 1); }
 
   return <main className="game-lobby-page">
     <nav className="game-lobby-tabs" aria-label="เลือกแพลตฟอร์มเกม">
@@ -162,7 +173,8 @@ export default function MemberGamesPage() {
       <section className="game-lobby-section">
         <header><h2>{platform === 'pc' ? 'เกม PC ทั้งหมด' : platform === 'mobile' ? 'เกม Mobile ทั้งหมด' : category === 'favorite' ? 'เกมโปรด' : 'เกมทั้งหมด'}</h2><span>{category === 'favorite' ? favoriteGames.length : payload.pagination.total} เกม · พร้อมเล่นในหน้านี้ {availableCount}</span></header>
         <div className="game-lobby-grid">{visibleGames.map((game) => <GameCard key={game.id} game={game} favorite={favoriteIds.includes(game.id)} launching={launching.gameId === game.id} onLaunch={launchGame} onFavorite={toggleFavorite} />)}{visibleGames.length === 0 && <EmptyLobby onReset={resetFilters} />}</div>
-        {category !== 'favorite' && payload.pagination.hasMore && <button type="button" className="game-lobby-clear" disabled={loadingMore} onClick={() => setPage((value) => value + 1)}>{loadingMore ? 'กำลังโหลด...' : `โหลดเพิ่มอีก ${Math.min(PAGE_SIZE, payload.pagination.total - games.length)} เกม`}</button>}
+        {loadMoreError && <div className="game-lobby-notice" role="alert"><span>{loadMoreError}</span> <button type="button" onClick={retryLoadMore}>ลองโหลดหน้านี้อีกครั้ง</button></div>}
+        {category !== 'favorite' && payload.pagination.hasMore && !loadMoreError && <button type="button" className="game-lobby-clear" disabled={loadingMore} aria-busy={loadingMore} onClick={() => setPage((value) => value + 1)}>{loadingMore ? 'กำลังโหลดเกมเพิ่มเติม...' : `โหลดเพิ่มอีก ${Math.min(PAGE_SIZE, payload.pagination.total - games.length)} เกม`}</button>}
       </section>
     </>}
     <MemberBottomNav />
@@ -181,8 +193,17 @@ function GameCard({ game, favorite, launching, onLaunch, onFavorite }: { game: G
     <button type="button" className="game-lobby-cover-button" onClick={() => onLaunch(game)} disabled={launching || !available} aria-label={available ? `เล่น ${game.name}` : `${game.name} ยังไม่พร้อมให้เล่น`}><GameImage game={game} /></button>
     <button type="button" aria-label={favorite ? `นำ ${game.name} ออกจากเกมโปรด` : `เพิ่ม ${game.name} เป็นเกมโปรด`} aria-pressed={favorite} className={`game-lobby-favorite${favorite ? ' is-active' : ''}`} onClick={() => onFavorite(game)}>{favorite ? '★' : '☆'}</button>
     {!available && <span className="game-lobby-maintenance">Catalog only</span>}
-    <div className="game-lobby-card-body"><strong>{game.name}</strong><span>{game.provider?.name ?? game.providerGameCode} · {platformLabel(game.platform)}</span><div className="game-lobby-badges">{game.isFeatured && <em>แนะนำ</em>}{game.isNew && <em>ใหม่</em>}{game.isPopular && <em>นิยม</em>}<em>{categoryLabel(game.category)}</em></div><button type="button" onClick={() => onLaunch(game)} disabled={launching || !available}>{launching ? 'กำลังเปิด...' : available ? 'เล่น' : 'ยังไม่เชื่อมระบบ'}</button></div>
+    <div className="game-lobby-card-body"><strong>{game.name}</strong><ProviderIdentity provider={game.provider} fallback={game.providerGameCode} platform={game.platform} /><div className="game-lobby-badges">{game.isFeatured && <em>แนะนำ</em>}{game.isNew && <em>ใหม่</em>}{game.isPopular && <em>นิยม</em>}<em>{categoryLabel(game.category)}</em>{!available && <em>รอเชื่อมระบบ</em>}</div><button type="button" onClick={() => onLaunch(game)} disabled={launching || !available}>{launching ? 'กำลังเปิด...' : available ? 'เล่น' : 'ยังไม่เชื่อมระบบ'}</button></div>
   </article>;
+}
+
+function ProviderIdentity({ provider, fallback, platform }: { provider?: GameProvider; fallback: string; platform: GamePlatform }) {
+  const [logoFailed, setLogoFailed] = useState(false);
+  const name = provider?.name || fallback;
+  return <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+    {provider?.logoUrl && !logoFailed ? <img src={provider.logoUrl} alt="" loading="lazy" onError={() => setLogoFailed(true)} style={{ width: 20, height: 20, borderRadius: 6, objectFit: 'contain', flex: '0 0 auto', background: 'rgba(255,255,255,.08)' }} /> : <i aria-hidden="true" style={{ width: 20, height: 20, borderRadius: 6, display: 'grid', placeItems: 'center', flex: '0 0 auto', background: 'rgba(255,255,255,.08)', fontSize: 10, fontStyle: 'normal' }}>{name.slice(0, 1).toUpperCase()}</i>}
+    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name} · {platformLabel(platform)}</span>
+  </span>;
 }
 
 function GameImage({ game }: { game: Game }) { const [failed, setFailed] = useState(false); const image = pickImage(game); if (!image || failed) return <div className="game-lobby-fallback" aria-hidden="true">{game.name.slice(0, 2).toUpperCase()}</div>; return <img src={image} alt={`ภาพปก ${game.name}`} loading="lazy" onError={() => setFailed(true)} />; }
@@ -193,7 +214,7 @@ function categoryLabel(value: string) { const map: Record<string, string> = { sl
 function platformLabel(value: GamePlatform) { return value === 'mobile' ? 'Mobile' : value === 'pc' ? 'PC' : 'Mobile / PC'; }
 function readApiMessage(value: unknown, fallback: string) { if (value && typeof value === 'object' && 'message' in value && typeof value.message === 'string') return value.message; return fallback; }
 function normalizeLobbyPayload(value: unknown): LobbyPayload { const source = value && typeof value === 'object' ? value as Record<string, unknown> : {}; const nested = source.data && typeof source.data === 'object' && !Array.isArray(source.data) ? source.data as Record<string, unknown> : source; const items = (Array.isArray(nested.items) ? nested.items : []).map(normalizeGame).filter(Boolean) as Game[]; const list = (key: string) => (Array.isArray(nested[key]) ? nested[key] as unknown[] : []).map(normalizeGame).filter(Boolean) as Game[]; const rawPagination = nested.pagination && typeof nested.pagination === 'object' ? nested.pagination as Record<string, unknown> : {}; const rawCounts = nested.counts && typeof nested.counts === 'object' ? nested.counts as Record<string, unknown> : {}; const providers = (Array.isArray(nested.providers) ? nested.providers : []).filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object')).map((item) => ({ code: String(item.code ?? ''), name: String(item.name ?? item.code ?? '') })).filter((item) => item.code); return { items, categories: (Array.isArray(nested.categories) ? nested.categories : []).filter((item): item is string => typeof item === 'string'), providers, featured: list('featured'), newest: list('newest'), popular: list('popular'), pagination: { page: Number(rawPagination.page ?? 1), limit: Number(rawPagination.limit ?? PAGE_SIZE), total: Number(rawPagination.total ?? items.length), totalPages: Number(rawPagination.totalPages ?? 1), hasMore: rawPagination.hasMore === true }, counts: { total: Number(rawCounts.total ?? items.length), database: Number(rawCounts.database ?? 0), catalogOnly: Number(rawCounts.catalogOnly ?? 0), mobile: Number(rawCounts.mobile ?? 0), pc: Number(rawCounts.pc ?? 0) } }; }
-function normalizeGame(value: unknown): Game | null { if (!value || typeof value !== 'object') return null; const source = value as Record<string, unknown>; const providerValue = source.provider; const provider = providerValue && typeof providerValue === 'object' ? providerValue as Record<string, unknown> : undefined; const providerCode = typeof providerValue === 'string' ? providerValue : String(provider?.code ?? 'unknown'); const media = Array.isArray(source.media) ? source.media.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object')).map((item) => ({ type: String(item.type ?? ''), sourceUrl: typeof item.sourceUrl === 'string' ? item.sourceUrl : null, cachedUrl: typeof item.cachedUrl === 'string' ? item.cachedUrl : null, status: String(item.status ?? '') })) : []; const id = String(source.id ?? source.providerGameCode ?? source.code ?? ''); if (!id) return null; const rawPlatform = String(source.platform ?? 'both').toLowerCase(); const gamePlatform: GamePlatform = rawPlatform === 'mobile' || rawPlatform === 'pc' ? rawPlatform : 'both'; return { id, providerGameCode: String(source.providerGameCode ?? source.code ?? id), name: String(source.name ?? 'เกมไม่มีชื่อ'), category: String(source.category ?? 'other'), platform: gamePlatform, status: typeof source.status === 'string' ? source.status : undefined, isFeatured: source.isFeatured === true, isNew: source.isNew === true, isPopular: source.isPopular === true, provider: { name: String(provider?.name ?? providerCode), code: providerCode, status: typeof provider?.status === 'string' ? provider.status : null }, media, imageUrl: typeof source.imageUrl === 'string' ? source.imageUrl : null, iconUrl: typeof source.iconUrl === 'string' ? source.iconUrl : null }; }
+function normalizeGame(value: unknown): Game | null { if (!value || typeof value !== 'object') return null; const source = value as Record<string, unknown>; const providerValue = source.provider; const provider = providerValue && typeof providerValue === 'object' ? providerValue as Record<string, unknown> : undefined; const providerCode = typeof providerValue === 'string' ? providerValue : String(provider?.code ?? 'unknown'); const media = Array.isArray(source.media) ? source.media.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object')).map((item) => ({ type: String(item.type ?? ''), sourceUrl: typeof item.sourceUrl === 'string' ? item.sourceUrl : null, cachedUrl: typeof item.cachedUrl === 'string' ? item.cachedUrl : null, status: String(item.status ?? '') })) : []; const id = String(source.id ?? source.providerGameCode ?? source.code ?? ''); if (!id) return null; const rawPlatform = String(source.platform ?? 'both').toLowerCase(); const gamePlatform: GamePlatform = rawPlatform === 'mobile' || rawPlatform === 'pc' ? rawPlatform : 'both'; return { id, providerGameCode: String(source.providerGameCode ?? source.code ?? id), name: String(source.name ?? 'เกมไม่มีชื่อ'), category: String(source.category ?? 'other'), platform: gamePlatform, status: typeof source.status === 'string' ? source.status : undefined, isFeatured: source.isFeatured === true, isNew: source.isNew === true, isPopular: source.isPopular === true, provider: { name: String(provider?.name ?? providerCode), code: providerCode, status: typeof provider?.status === 'string' ? provider.status : null, logoUrl: typeof provider?.logoUrl === 'string' ? provider.logoUrl : null }, media, imageUrl: typeof source.imageUrl === 'string' ? source.imageUrl : null, iconUrl: typeof source.iconUrl === 'string' ? source.iconUrl : null }; }
 function mergeGames(current: Game[], incoming: Game[]) { return [...new Map([...current, ...incoming].map((game) => [game.id, game])).values()]; }
 function readIds(key: string) { try { return JSON.parse(window.localStorage.getItem(key) ?? '[]') as string[]; } catch { return []; } }
 function writeIds(key: string, ids: string[]) { try { window.localStorage.setItem(key, JSON.stringify(ids)); } catch { /* storage may be blocked */ } }
