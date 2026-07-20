@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type TouchEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 
 type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null; status: string };
 type GameProvider = { name: string; code: string; status?: string | null; logoUrl?: string | null };
@@ -20,7 +20,7 @@ export default function HeroCarousel({ games, counts, providerCount, loading, on
   const slides = useMemo(() => uniqueGames(games).slice(0, 5), [games]);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
-  const touchStart = useRef<number | null>(null);
+  const pointerStart = useRef<number | null>(null);
   const current = slides[active];
 
   useEffect(() => {
@@ -38,12 +38,16 @@ export default function HeroCarousel({ games, counts, providerCount, loading, on
     setActive((value) => (value + direction + slides.length) % slides.length);
   }
 
-  function handleTouchEnd(event: TouchEvent<HTMLElement>) {
-    const start = touchStart.current;
-    const end = event.changedTouches.item(0)?.clientX;
-    touchStart.current = null;
-    if (start === null || end === undefined) return;
-    const delta = end - start;
+  function handlePointerDown(event: PointerEvent<HTMLElement>) {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    pointerStart.current = event.clientX;
+  }
+
+  function handlePointerUp(event: PointerEvent<HTMLElement>) {
+    const start = pointerStart.current;
+    pointerStart.current = null;
+    if (start === null) return;
+    const delta = event.clientX - start;
     if (Math.abs(delta) > 45) move(delta < 0 ? 1 : -1);
   }
 
@@ -58,8 +62,9 @@ export default function HeroCarousel({ games, counts, providerCount, loading, on
     onMouseLeave={() => setPaused(false)}
     onFocusCapture={() => setPaused(true)}
     onBlurCapture={() => setPaused(false)}
-    onTouchStart={(event) => { touchStart.current = event.touches.item(0)?.clientX ?? null; }}
-    onTouchEnd={handleTouchEnd}
+    onPointerDown={handlePointerDown}
+    onPointerUp={handlePointerUp}
+    onPointerCancel={() => { pointerStart.current = null; }}
     style={image ? { backgroundImage: `linear-gradient(90deg,rgba(8,8,12,.97),rgba(8,8,12,.72) 50%,rgba(8,8,12,.22)),url(${JSON.stringify(image).slice(1, -1)})` } : undefined}
   >
     <div className="game-hero-carousel-copy" aria-live="polite">
@@ -87,8 +92,8 @@ export default function HeroCarousel({ games, counts, providerCount, loading, on
   </section>;
 }
 
-function uniqueGames(games: Game[]) { return [...new Map(games.filter(Boolean).map((game) => [game.id, game])).values()]; }
+function uniqueGames(games: Game[]) { return [...new Map(games.map((game) => [game.id, game])).values()]; }
 function pickImage(game: Game) { const media = Array.isArray(game.media) ? game.media : []; return game.imageUrl ?? game.iconUrl ?? media.find((item) => item.type === 'COVER')?.cachedUrl ?? media.find((item) => item.type === 'COVER')?.sourceUrl ?? media.find((item) => item.type === 'ICON')?.cachedUrl ?? media.find((item) => item.type === 'ICON')?.sourceUrl ?? null; }
 function isAvailable(game: Game) { return String(game.status ?? 'ACTIVE').toUpperCase() === 'ACTIVE' && String(game.provider?.status ?? 'ACTIVE').toUpperCase() === 'ACTIVE' && !game.id.startsWith('catalog:'); }
-function categoryLabel(value: string) { const map: Record<string, string> = { slot: 'สล็อต', casino: 'คาสิโน', sport: 'กีฬา', fishing: 'ตกปลา', arcade: 'อาร์เคด', fps: 'FPS', moba: 'MOBA', rpg: 'RPG', casual: 'แคชชวล', lottery: 'หวย' }; return map[value?.toLowerCase?.()] ?? value; }
+function categoryLabel(value: string) { const map: Record<string, string> = { slot: 'สล็อต', casino: 'คาสิโน', sport: 'กีฬา', fishing: 'ตกปลา', arcade: 'อาร์เคด', fps: 'FPS', moba: 'MOBA', rpg: 'RPG', casual: 'แคชชวล', lottery: 'หวย' }; return map[value.toLowerCase()] ?? value; }
 function platformLabel(value: Game['platform']) { return value === 'mobile' ? 'Mobile' : value === 'pc' ? 'PC' : 'Mobile / PC'; }
