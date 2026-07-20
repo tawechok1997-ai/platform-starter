@@ -2,12 +2,6 @@
 
 This backlog contains only work that remains after comparing the requested architecture with the current repository implementation.
 
-## Status convention
-
-- `[x]` implementation is present in the branch.
-- `Awaiting CI` means the code is complete but merge readiness still depends on the required workflow result.
-- unchecked items require additional implementation, migration evidence, external-provider work, or production-safe data validation.
-
 ## Completed foundation already in the repository
 
 - platform wallet and wallet ledger
@@ -29,7 +23,7 @@ This backlog contains only work that remains after comparing the requested archi
 - [ ] Consolidate overlapping responsibilities between `game-platform` and `provider-simulator`.
 - [x] Make `WalletService.mutateGameBalance()` the documented and tested exclusive mutation boundary for game operations. Awaiting CI.
 - [x] Centralize and test simulator versus external-provider runtime mode validation. Awaiting CI.
-- [ ] Add configuration validation for seamless wallet and placeholder asset flags.
+- [x] Add configuration validation for seamless wallet and placeholder asset flags. Awaiting CI.
 
 ## Workstream B: wallet and ledger semantics
 
@@ -90,20 +84,19 @@ This backlog contains only work that remains after comparing the requested archi
 - [x] Add focused wallet ledger semantic/filter tests. Awaiting CI.
 - [x] Add round-policy tests for repeated bets, repeated wins, refund, cancel, replay, and closed-round rejection.
 - [x] Add game-round transaction persistence and duplicate-event integration tests. Awaiting PostgreSQL CI.
-- [x] Add provider simulator runtime configuration tests.
+- [x] Add provider simulator runtime configuration tests. Awaiting CI.
 - [ ] Add full refund, rollback, and manual-review integration tests.
 - [ ] Add diagnostics service tests against disposable PostgreSQL.
 
 ## Code-complete items awaiting CI
 
 - provider simulator service and transaction unit suites
-- wallet game-ledger semantic/filter suite
-- PostgreSQL simulator concurrency suite
+- provider simulator security and runtime configuration suites
+- wallet game-ledger semantic and filter suite
+- PostgreSQL provider simulator concurrency suite
 - PostgreSQL game-round persistence and duplicate replay suite
-- API typecheck and build
-- Member contract tests, typecheck, build, and browser regression
-
-These items must remain open for merge readiness until the workflow reports success. A commit existing is evidence of implementation, not evidence that GitHub Actions approves of human ambition.
+- API typecheck and production build
+- Member game contract tests, typecheck, production build, and browser regression
 
 ## Deferred until the repository UI and asset audit is complete
 
