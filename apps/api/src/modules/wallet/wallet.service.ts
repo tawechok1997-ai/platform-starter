@@ -144,7 +144,11 @@ export class WalletService {
 
     return this.prisma.$transaction(async (tx) => {
       const concurrencyKey = input.concurrencyKey?.trim();
-      if (concurrencyKey) await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${concurrencyKey}, 0))`;
+      if (concurrencyKey) {
+        await tx.$queryRaw<Array<{ locked: boolean }>>`
+          SELECT pg_advisory_xact_lock(hashtextextended(${concurrencyKey}, 0)) IS NULL AS "locked"
+        `;
+      }
 
       const existing = await tx.walletLedger.findUnique({ where: { idempotencyKey } });
       if (existing) {
