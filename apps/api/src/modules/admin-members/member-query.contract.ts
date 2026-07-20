@@ -9,7 +9,7 @@ export const MEMBER_QUERY = Symbol('MEMBER_QUERY');
  * Mutations must use AdminMembersCommandService and are intentionally excluded.
  */
 export interface MemberQueryContract {
-  listMembers(query: AdminMembersQueryDto): ReturnType<MemberQueryContract['listMembers']>;
-  getMemberInsights(): ReturnType<MemberQueryContract['getMemberInsights']>;
-  getMemberDetail(id: string): ReturnType<MemberQueryContract['getMemberDetail']>;
+  listMembers(query: AdminMembersQueryDto): Promise<unknown>;
+  getMemberInsights(): Promise<unknown>;
+  getMemberDetail(id: string): Promise<unknown>;
 }
