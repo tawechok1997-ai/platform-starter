@@ -27,3 +27,22 @@ test('game lobby includes retry, incremental loading and broken-image fallback',
   assert.match(pageSource, /onError=/);
   assert.match(pageSource, /game-lobby-fallback/);
 });
+
+test('provider selector preserves logo, fallback and accessible selection contracts', () => {
+  assert.match(pageSource, /function ProviderStrip/);
+  assert.match(pageSource, /function ProviderButton/);
+  assert.match(pageSource, /aria-label="เลือกค่ายเกม"/);
+  assert.match(pageSource, /aria-pressed=\{active\}/);
+  assert.match(pageSource, /overflowX:\s*'auto'/);
+  assert.match(pageSource, /item\.logoUrl && !failed/);
+  assert.match(pageSource, /onError=\{\(\) => setFailed\(true\)\}/);
+  assert.match(pageSource, /initials\(item\.name\)/);
+  assert.match(pageSource, /logoUrl:\s*typeof item\.logoUrl === 'string'/);
+});
+
+test('changing provider resets category before requesting the new lobby slice', () => {
+  assert.match(
+    pageSource,
+    /<ProviderStrip[\s\S]*setProvider\(code\);\s*setCategory\('all'\);/,
+  );
+});
