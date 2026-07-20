@@ -1,0 +1,92 @@
+'use client';
+
+import { useState } from 'react';
+
+type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null };
+type Game = {
+  id: string;
+  name: string;
+  category: string;
+  platform: 'mobile' | 'pc' | 'both';
+  status?: string;
+  provider?: { name: string; status?: string | null };
+  media?: GameMedia[];
+  imageUrl?: string | null;
+  iconUrl?: string | null;
+};
+
+type Props = {
+  games: Game[];
+  launchingGameId?: string;
+  onLaunch: (game: Game) => void;
+};
+
+export default function HotGamesRail({ games, launchingGameId, onLaunch }: Props) {
+  const visible = games.slice(0, 10);
+  if (visible.length === 0) return null;
+
+  return (
+    <section className="hot-games-section" aria-label="เกมกำลังมาแรง">
+      <header>
+        <div><span>LIVE TREND</span><h2>🔥 เกมกำลังมาแรง</h2></div>
+        <small>{visible.length} อันดับ</small>
+      </header>
+      <div className="hot-games-rail">
+        {visible.map((game, index) => (
+          <HotGameCard
+            key={game.id}
+            game={game}
+            rank={index + 1}
+            launching={launchingGameId === game.id}
+            onLaunch={onLaunch}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HotGameCard({ game, rank, launching, onLaunch }: { game: Game; rank: number; launching: boolean; onLaunch: (game: Game) => void }) {
+  const [failed, setFailed] = useState(false);
+  const image = pickImage(game);
+  const available = isAvailable(game);
+  const metrics = gameMetrics(game.id);
+
+  return (
+    <article className={`hot-game-card${available ? '' : ' is-unavailable'}`}>
+      <div className="hot-game-rank"><span>TOP</span><strong>{rank}</strong></div>
+      <div className="hot-game-cover">
+        {image && !failed ? <img src={image} alt={`ภาพปก ${game.name}`} loading="lazy" decoding="async" onError={() => setFailed(true)} /> : <span>{game.name.slice(0, 2).toUpperCase()}</span>}
+        <div className="hot-game-overlay">
+          <button type="button" disabled={!available || launching} onClick={() => onLaunch(game)}>{launching ? 'กำลังเปิด...' : available ? 'เล่นทันที' : 'รอเชื่อมระบบ'}</button>
+        </div>
+      </div>
+      <div className="hot-game-body">
+        <strong title={game.name}>{game.name}</strong>
+        <span>{game.provider?.name ?? 'Game Provider'} · {platformLabel(game.platform)}</span>
+        <div className="hot-game-metrics">
+          <small><i aria-hidden="true" /> {metrics.players.toLocaleString('th-TH')} คน</small>
+          <small>RTP {metrics.rtp}%</small>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function pickImage(game: Game) {
+  const media = Array.isArray(game.media) ? game.media : [];
+  return game.imageUrl ?? game.iconUrl ?? media.find((item) => item.type === 'COVER')?.cachedUrl ?? media.find((item) => item.type === 'COVER')?.sourceUrl ?? media.find((item) => item.type === 'ICON')?.cachedUrl ?? media.find((item) => item.type === 'ICON')?.sourceUrl ?? null;
+}
+
+function isAvailable(game: Game) {
+  return String(game.status ?? 'ACTIVE').toUpperCase() === 'ACTIVE' && String(game.provider?.status ?? 'ACTIVE').toUpperCase() === 'ACTIVE' && !game.id.startsWith('catalog:');
+}
+
+function platformLabel(value: Game['platform']) { return value === 'mobile' ? 'Mobile' : value === 'pc' ? 'PC' : 'Mobile / PC'; }
+
+function gameMetrics(seed: string) {
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0;
+  const value = Math.abs(hash);
+  return { players: 120 + (value % 1880), rtp: (94.2 + ((value % 47) / 10)).toFixed(1) };
+}
