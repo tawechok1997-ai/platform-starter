@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import MemberBottomNav from '../member-bottom-nav';
 import { memberApiFetch } from '../member-api';
+import HotGamesRail from './hot-games-rail';
 
 type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null; status: string };
 type GamePlatform = 'mobile' | 'pc' | 'both';
@@ -172,7 +173,7 @@ export default function MemberGamesPage() {
     {launching.message && <div className="game-lobby-notice" role="status">{launching.message}</div>}
 
     {!loading && !error && <>
-      <GameSection title={platform === 'pc' ? 'เกม PC ยอดนิยม' : platform === 'mobile' ? 'เกม Mobile ยอดนิยม' : 'เกมยอดนิยม'} items={payload.popular} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
+      <HotGamesRail games={payload.popular.length ? payload.popular : payload.items} launchingGameId={launching.gameId} onLaunch={launchGame} />
       <GameSection title="เกมแนะนำ" items={payload.featured} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
       <GameSection title="เล่นล่าสุด" items={recentGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
       <GameSection title="เกมใหม่" items={payload.newest} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
@@ -190,58 +191,26 @@ export default function MemberGamesPage() {
 
 function LobbyHero({ game, counts, providerCount, loading, onExplore, onLaunch }: { game?: Game; counts: Counts; providerCount: number; loading: boolean; onExplore: () => void; onLaunch: (game: Game) => void }) {
   const image = game ? pickImage(game) : null;
-  return <section className="game-lobby-hero" style={image ? { backgroundImage: `linear-gradient(90deg,rgba(8,8,12,.96) 0%,rgba(8,8,12,.76) 48%,rgba(8,8,12,.26) 100%), url(${JSON.stringify(image).slice(1, -1)})` } : undefined}>
-    <div className="game-lobby-hero-copy">
-      <span className="game-lobby-kicker">MEMBER GAME LOBBY</span>
-      <h1>{loading ? 'กำลังเตรียมเกมให้คุณ' : game ? game.name : 'เกมทั้งหมดในที่เดียว'}</h1>
-      <p>{game ? `${game.provider?.name ?? 'Game Provider'} · ${categoryLabel(game.category)} · ${platformLabel(game.platform)}` : `เลือกจาก ${counts.total} เกม และ ${providerCount} ค่าย`}</p>
-      <div className="game-lobby-hero-actions">
-        {game && isGameAvailable(game) && <button type="button" className="is-primary" onClick={() => onLaunch(game)}>เล่นเกมแนะนำ</button>}
-        <button type="button" onClick={onExplore}>ดูเกมทั้งหมด</button>
-      </div>
-    </div>
-    <div className="game-lobby-hero-orb" aria-hidden="true"><span>{loading ? '…' : counts.total}</span><small>GAMES</small></div>
-  </section>;
+  return <section className="game-lobby-hero" style={image ? { backgroundImage: `linear-gradient(90deg,rgba(8,8,12,.96) 0%,rgba(8,8,12,.76) 48%,rgba(8,8,12,.26) 100%), url(${JSON.stringify(image).slice(1, -1)})` } : undefined}><div className="game-lobby-hero-copy"><span className="game-lobby-kicker">MEMBER GAME LOBBY</span><h1>{loading ? 'กำลังเตรียมเกมให้คุณ' : game ? game.name : 'เกมทั้งหมดในที่เดียว'}</h1><p>{game ? `${game.provider?.name ?? 'Game Provider'} · ${categoryLabel(game.category)} · ${platformLabel(game.platform)}` : `เลือกจาก ${counts.total} เกม และ ${providerCount} ค่าย`}</p><div className="game-lobby-hero-actions">{game && isGameAvailable(game) && <button type="button" className="is-primary" onClick={() => onLaunch(game)}>เล่นเกมแนะนำ</button>}<button type="button" onClick={onExplore}>ดูเกมทั้งหมด</button></div></div><div className="game-lobby-hero-orb" aria-hidden="true"><span>{loading ? '…' : counts.total}</span><small>GAMES</small></div></section>;
 }
 
 function LobbyStats({ counts, providerCount, availableCount, loading }: { counts: Counts; providerCount: number; availableCount: number; loading: boolean }) {
-  const items = [
-    ['เกมทั้งหมด', counts.total],
-    ['ค่ายเกม', providerCount],
-    ['พร้อมเล่น', availableCount],
-    ['เกมใหม่', counts.catalogOnly],
-  ];
+  const items = [['เกมทั้งหมด', counts.total], ['ค่ายเกม', providerCount], ['พร้อมเล่น', availableCount], ['เกมใหม่', counts.catalogOnly]];
   return <section className="game-lobby-stats" aria-label="สถิติ Lobby">{items.map(([label, value]) => <article key={String(label)}><span>{label}</span><strong>{loading ? '—' : Number(value).toLocaleString('th-TH')}</strong></article>)}</section>;
 }
 
 function PromotionStrip({ onSelect }: { onSelect: (category: string) => void }) {
-  const items = [
-    ['🔥', 'เกมยอดนิยม', 'all'],
-    ['🎰', 'สล็อต', 'slot'],
-    ['🎮', 'อาร์เคด', 'arcade'],
-    ['🏆', 'กีฬา', 'sport'],
-  ];
+  const items = [['🔥', 'เกมยอดนิยม', 'all'], ['🎰', 'สล็อต', 'slot'], ['🎮', 'อาร์เคด', 'arcade'], ['🏆', 'กีฬา', 'sport']];
   return <section className="game-promotion-strip" aria-label="ทางลัดหมวดเกม">{items.map(([icon, label, value]) => <button key={label} type="button" onClick={() => onSelect(value)}><span aria-hidden="true">{icon}</span><strong>{label}</strong><small>เปิดดูทันที</small></button>)}</section>;
 }
 
 function ProviderStrip({ providers, selected, loading, onSelect }: { providers: ProviderOption[]; selected: string; loading: boolean; onSelect: (code: string) => void }) {
-  return <section className="game-provider-strip" aria-label="เลือกค่ายเกม">
-    <div className="game-provider-strip-head"><strong>ค่ายเกม</strong><span>{loading ? 'กำลังโหลด...' : `${providers.length} ค่าย`}</span></div>
-    <div className="game-provider-strip-list" role="list">
-      {loading ? Array.from({ length: 7 }, (_, index) => <div key={index} className="game-provider-skeleton" aria-hidden="true" />) : <>
-        <ProviderButton item={{ code: 'all', name: 'ทุกค่าย' }} active={selected === 'all'} onSelect={onSelect} />
-        {providers.map((item) => <ProviderButton key={item.code} item={item} active={selected === item.code} onSelect={onSelect} />)}
-      </>}
-    </div>
-  </section>;
+  return <section className="game-provider-strip" aria-label="เลือกค่ายเกม"><div className="game-provider-strip-head"><strong>ค่ายเกม</strong><span>{loading ? 'กำลังโหลด...' : `${providers.length} ค่าย`}</span></div><div className="game-provider-strip-list" role="list">{loading ? Array.from({ length: 7 }, (_, index) => <div key={index} className="game-provider-skeleton" aria-hidden="true" />) : <><ProviderButton item={{ code: 'all', name: 'ทุกค่าย' }} active={selected === 'all'} onSelect={onSelect} />{providers.map((item) => <ProviderButton key={item.code} item={item} active={selected === item.code} onSelect={onSelect} />)}</>}</div></section>;
 }
 
 function ProviderButton({ item, active, onSelect }: { item: ProviderOption; active: boolean; onSelect: (code: string) => void }) {
   const [failed, setFailed] = useState(false);
-  return <button type="button" role="listitem" aria-pressed={active} className={`game-provider-button${active ? ' is-active' : ''}`} onClick={() => onSelect(item.code)}>
-    {item.logoUrl && !failed ? <img src={item.logoUrl} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} /> : <span aria-hidden="true">{item.code === 'all' ? 'ALL' : initials(item.name)}</span>}
-    <strong title={item.name}>{item.name}</strong>
-  </button>;
+  return <button type="button" role="listitem" aria-pressed={active} className={`game-provider-button${active ? ' is-active' : ''}`} onClick={() => onSelect(item.code)}>{item.logoUrl && !failed ? <img src={item.logoUrl} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} /> : <span aria-hidden="true">{item.code === 'all' ? 'ALL' : initials(item.name)}</span>}<strong title={item.name}>{item.name}</strong></button>;
 }
 
 function LobbySkeleton({ count }: { count: number }) { return <section className="game-lobby-section" aria-busy="true" aria-label="กำลังโหลดเกม"><header className="game-lobby-skeleton-header"><span /><span /></header><div className="game-lobby-grid">{Array.from({ length: count }, (_, index) => <GameCardSkeleton key={index} />)}</div></section>; }
@@ -255,12 +224,7 @@ function GameSection({ title, items, favoriteIds, launchingGameId, onLaunch, onF
 
 function GameCard({ game, favorite, launching, onLaunch, onFavorite }: { game: Game; favorite: boolean; launching: boolean; onLaunch: (game: Game) => void; onFavorite: (game: Game) => void }) {
   const available = isGameAvailable(game);
-  return <article className={`game-lobby-card${available ? '' : ' is-unavailable'}`}>
-    <button type="button" className="game-lobby-cover-button" onClick={() => onLaunch(game)} disabled={launching || !available} aria-label={available ? `เล่น ${game.name}` : `${game.name} ยังไม่พร้อมให้เล่น`}><GameImage game={game} /></button>
-    <button type="button" aria-label={favorite ? `นำ ${game.name} ออกจากเกมโปรด` : `เพิ่ม ${game.name} เป็นเกมโปรด`} aria-pressed={favorite} className={`game-lobby-favorite${favorite ? ' is-active' : ''}`} onClick={() => onFavorite(game)}>{favorite ? '★' : '☆'}</button>
-    {!available && <span className="game-lobby-maintenance">Catalog only</span>}
-    <div className="game-lobby-card-body"><strong title={game.name}>{game.name}</strong><ProviderIdentity provider={game.provider} fallback={game.providerGameCode} platform={game.platform} /><div className="game-lobby-badges">{game.isFeatured && <em>แนะนำ</em>}{game.isNew && <em>ใหม่</em>}{game.isPopular && <em>นิยม</em>}<em>{categoryLabel(game.category)}</em>{!available && <em>รอเชื่อมระบบ</em>}</div><button type="button" onClick={() => onLaunch(game)} disabled={launching || !available}>{launching ? 'กำลังเปิด...' : available ? 'เล่น' : 'ยังไม่เชื่อมระบบ'}</button></div>
-  </article>;
+  return <article className={`game-lobby-card${available ? '' : ' is-unavailable'}`}><button type="button" className="game-lobby-cover-button" onClick={() => onLaunch(game)} disabled={launching || !available} aria-label={available ? `เล่น ${game.name}` : `${game.name} ยังไม่พร้อมให้เล่น`}><GameImage game={game} /></button><button type="button" aria-label={favorite ? `นำ ${game.name} ออกจากเกมโปรด` : `เพิ่ม ${game.name} เป็นเกมโปรด`} aria-pressed={favorite} className={`game-lobby-favorite${favorite ? ' is-active' : ''}`} onClick={() => onFavorite(game)}>{favorite ? '★' : '☆'}</button>{!available && <span className="game-lobby-maintenance">Catalog only</span>}<div className="game-lobby-card-body"><strong title={game.name}>{game.name}</strong><ProviderIdentity provider={game.provider} fallback={game.providerGameCode} platform={game.platform} /><div className="game-lobby-badges">{game.isFeatured && <em>แนะนำ</em>}{game.isNew && <em>ใหม่</em>}{game.isPopular && <em>นิยม</em>}<em>{categoryLabel(game.category)}</em>{!available && <em>รอเชื่อมระบบ</em>}</div><button type="button" onClick={() => onLaunch(game)} disabled={launching || !available}>{launching ? 'กำลังเปิด...' : available ? 'เล่น' : 'ยังไม่เชื่อมระบบ'}</button></div></article>;
 }
 
 function ProviderIdentity({ provider, fallback, platform }: { provider?: GameProvider; fallback: string; platform: GamePlatform }) {
