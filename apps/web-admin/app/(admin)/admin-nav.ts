@@ -72,6 +72,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     id: 'growth', title: 'โปรโมชันและเนื้อหา', description: 'โปรโมชัน โบนัส ตัวแทน และหน้าเว็บไซต์',
     items: [
       { title: 'ภาพรวมการตลาด', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
+      { title: 'Promotion Operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'] },
       { title: 'โปรโมชันและโบนัส', href: '/promotion-center', permissions: ['promotion.view'] },
       { title: 'คำขอรับโปรโมชัน', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
       { title: 'ประวัติโบนัสด', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
