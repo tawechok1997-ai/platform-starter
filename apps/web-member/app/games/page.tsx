@@ -42,7 +42,8 @@ export default function MemberGamesPage() {
     let cancelled = false;
     async function load() {
       const append = page > 1;
-      append ? setLoadingMore(true) : setLoading(true);
+      if (append) setLoadingMore(true);
+      else setLoading(true);
       setError('');
       try {
         const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
@@ -88,7 +89,11 @@ export default function MemberGamesPage() {
   function toggleFavorite(game: Game) {
     setFavoriteIds((current) => {
       const next = current.includes(game.id) ? current.filter((id) => id !== game.id) : [game.id, ...current].slice(0, 60);
-      try { window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(next)); } catch {}
+      try {
+        window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
+      } catch {
+        // Storage may be blocked in privacy mode; keep the in-memory state.
+      }
       return next;
     });
   }
