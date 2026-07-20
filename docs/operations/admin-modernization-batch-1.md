@@ -49,17 +49,18 @@ Ownership source: [`admin-css-ownership-inventory.md`](./admin-css-ownership-inv
 
 ### D. Admin server-state policy
 
-- [ ] Inventory page-level fetch/effect orchestration.
+- [x] Inventory page-level fetch/effect orchestration.
 - [x] Define query keys, stale times, retries, cancellation, polling, and invalidation by domain.
 - [x] Define central session-expiry and permission-change handling.
 - [x] Define optimistic rollback and conflict handling.
 - [ ] Decide whether the measured need justifies TanStack Query and record an ADR before installation.
 
 Policy source: [`../architecture/admin-server-state-policy.md`](../architecture/admin-server-state-policy.md).
+Inventory source: [`../architecture/admin-request-form-data-view-inventory.md`](../architecture/admin-request-form-data-view-inventory.md).
 
 ### E. Forms and mutation safety
 
-- [ ] Inventory mutation forms and manual validation.
+- [x] Inventory mutation forms and manual validation.
 - [x] Standardize error-code mapping, focus-first-error, validation summary, dirty state, duplicate-submit protection, mandatory reasons, conflict and partial-failure handling.
 - [ ] Decide whether React Hook Form and Zod are justified and record an ADR before installation.
 
@@ -67,7 +68,7 @@ Contract source: [`../architecture/admin-form-mutation-safety.md`](../architectu
 
 ### F. Dense operations UI
 
-- [ ] Inventory queue/table implementations.
+- [x] Inventory queue/table implementations.
 - [x] Define one Admin data-view contract for filters, URL state, sorting, pagination, masking, bulk actions, partial failures, mobile card fallback and export.
 - [ ] Decide whether TanStack Table is justified after inventory and bundle review.
 
@@ -83,8 +84,8 @@ Contract source: [`../architecture/admin-data-view-contract.md`](../architecture
 
 ## Progress count
 
-- Completed checklist items: **18**
-- Remaining checklist items: **16**
+- Completed checklist items: **21**
+- Remaining checklist items: **13**
 - Member implementation items changed: **0**
 - API/Prisma contract items changed: **0**
 
@@ -104,6 +105,7 @@ Contract source: [`../architecture/admin-data-view-contract.md`](../architecture
 - `5df064a4` — Admin form and mutation safety contract.
 - `bffbb579` — Admin data-view contract.
 - `b11511d3` — documentation-map links for form and data-view contracts.
+- `1859e8e7` — request, form, and data-view implementation inventory.
 
 ## Verification commands
 
@@ -119,7 +121,8 @@ pnpm --filter @platform/web-admin analyze
 
 - CI status has not appeared for the latest branch head yet.
 - Compatibility stylesheets remain loaded until selector ownership and visual evidence justify migration.
-- Form, request and table implementation inventories remain open; framework decisions are intentionally deferred.
+- Dependency ADRs remain intentionally open until bundle measurements are recorded.
+- The inventory is pattern-level; route-by-route migration evidence is still required during implementation.
 - Browser, accessibility, bundle and visual verification are not yet claimed as passing.
 
 ## Handoff record
