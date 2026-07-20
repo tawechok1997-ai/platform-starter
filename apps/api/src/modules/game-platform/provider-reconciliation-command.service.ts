@@ -1,5 +1,5 @@
 import type { AdminActor } from '../../common/actors';
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import { createDecipheriv, createHash } from 'crypto';
@@ -17,6 +17,8 @@ type ProviderWithAdapterData = {
   endpoints: Array<{ type: GameProviderEndpointType; url: string; timeoutMs: number; isEnabled?: boolean }>;
   credentials: Array<{ type: string; maskedValue: string; encryptedValue?: string; isEnabled?: boolean }>;
 };
+
+type SnapshotReviewStatus = 'REVIEWED' | 'RESOLVED' | 'DISMISSED';
 
 @Injectable()
 export class ProviderReconciliationCommandService {
@@ -131,32 +133,99 @@ export class ProviderReconciliationCommandService {
   }
 
   async reviewSnapshot(id: string, actor: AdminActor, input: { note: string; status: string }) {
-    const current = await this.prisma.providerWalletSnapshot.findUnique({ where: { id } });
-    if (!current) throw new NotFoundException('Provider wallet snapshot not found');
-    const currentPayload = this.objectJson(current.rawPayload);
-    const rawPayload = this.safeJson({
-      ...currentPayload,
-      manualReview: { note: input.note, status: input.status, reviewedBy: actor.id, reviewedAt: new Date().toISOString() },
+    const reviewStatus = this.parseReviewStatus(input.status);
+    const note = input.note.trim();
+    if (!note) throw new BadRequestException('Review note is required');
+
+    return this.prisma.$transaction(async (tx) => {
+      const current = await tx.providerWalletSnapshot.findUnique({ where: { id } });
+      if (!current) throw new NotFoundException('Provider wallet snapshot not found');
+
+      const reviewedAt = new Date();
+      const currentPayload = this.objectJson(current.rawPayload);
+      const rawPayload = this.safeJson({
+        ...currentPayload,
+        manualReview: {
+          note,
+          status: reviewStatus,
+          reviewedBy: actor.id,
+          reviewedAt: reviewedAt.toISOString(),
+        },
+      });
+      const resolved = reviewStatus === 'RESOLVED' || reviewStatus === 'DISMISSED';
+      const item = await tx.providerWalletSnapshot.update({
+        where: { id },
+        data: { rawPayload, status: resolved ? 'MATCHED' : current.status },
+        include: {
+          user: { select: { id: true, username: true, phone: true } },
+          provider: { select: { id: true, name: true, code: true } },
+        },
+      });
+
+      const linkedAlertItems = await tx.riskAlert.findMany({
+        where: {
+          type: 'WALLET_LEDGER_MISMATCH',
+          refType: 'PROVIDER_WALLET_SNAPSHOT',
+          refId: id,
+          status: { in: ['OPEN', 'REVIEWING'] },
+        },
+        select: { id: true },
+      });
+      const linkedAlertIds = linkedAlertItems.map((alert) => alert.id);
+      const alertStatus = reviewStatus === 'DISMISSED' ? 'DISMISSED' : reviewStatus === 'RESOLVED' ? 'RESOLVED' : 'REVIEWING';
+      const linkedAlerts = linkedAlertIds.length === 0
+        ? { count: 0 }
+        : await tx.riskAlert.updateMany({
+          where: { id: { in: linkedAlertIds } },
+          data: {
+            status: alertStatus,
+            resolvedAt: resolved ? reviewedAt : null,
+            resolvedBy: resolved ? actor.id : null,
+          },
+        });
+      if (linkedAlertIds.length > 0) {
+        await tx.riskAlertNote.createMany({
+          data: linkedAlertIds.map((riskAlertId) => ({
+            riskAlertId,
+            adminUserId: actor.id,
+            note: `[${reviewStatus}] ${note}`,
+          })),
+        });
+      }
+
+      await tx.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: actor.id,
+          module: 'game_platform',
+          action: reviewStatus === 'RESOLVED'
+            ? 'game.reconciliation.resolve'
+            : reviewStatus === 'DISMISSED'
+              ? 'game.reconciliation.dismiss'
+              : 'game.reconciliation.review',
+          targetId: id,
+          oldData: current,
+          newData: {
+            note,
+            status: reviewStatus,
+            snapshotStatus: item.status,
+            linkedRiskAlertsUpdated: linkedAlerts.count,
+          },
+        }),
+      });
+
+      return {
+        ok: true,
+        item,
+        reviewStatus,
+        linkedRiskAlertsUpdated: linkedAlerts.count,
+      };
     });
-    const item = await this.prisma.providerWalletSnapshot.update({
-      where: { id },
-      data: { rawPayload, status: input.status === 'RESOLVED' ? 'MATCHED' : current.status },
-      include: {
-        user: { select: { id: true, username: true, phone: true } },
-        provider: { select: { id: true, name: true, code: true } },
-      },
-    });
-    await this.prisma.adminAuditLog.create({
-      data: buildAdminAuditData({
-        adminUserId: actor.id,
-        module: 'game_platform',
-        action: input.status === 'RESOLVED' ? 'game.reconciliation.resolve' : 'game.reconciliation.review',
-        targetId: id,
-        oldData: current,
-        newData: input,
-      }),
-    });
-    return { ok: true, item, reviewStatus: input.status };
+  }
+
+  private parseReviewStatus(value: string): SnapshotReviewStatus {
+    const status = value.trim().toUpperCase();
+    if (status === 'REVIEWED' || status === 'RESOLVED' || status === 'DISMISSED') return status;
+    throw new BadRequestException('status must be REVIEWED, RESOLVED or DISMISSED');
   }
 
   private assertSafetyGate(provider: ProviderWithAdapterData) {
