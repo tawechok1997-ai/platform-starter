@@ -6,11 +6,16 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { DepositAdminNoteDto } from './dto/deposit-workflow.dto';
+import { BatchDepositWorkflowDto } from './dto/batch-deposit-workflow.dto';
+import { BatchDepositWorkflowService } from './batch-deposit-workflow.service';
 import { DepositEvidenceInput, DepositWorkflowService } from './deposit-workflow.service';
 
 @Controller()
 export class DepositWorkflowController {
-  constructor(private readonly workflow: DepositWorkflowService) {}
+  constructor(
+    private readonly workflow: DepositWorkflowService,
+    private readonly batchWorkflow: BatchDepositWorkflowService,
+  ) {}
 
   @UseGuards(MemberAuthGuard)
   @Post('member/topups/:id/slip-evidence')
@@ -59,6 +64,17 @@ export class DepositWorkflowController {
     @Req() req: AdminRequestContext,
   ) {
     return this.workflow.confirmCredit(id, user.id, body.adminNote, this.meta(req));
+  }
+
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.topups.review')
+  @Post('admin/topups/batch/workflow')
+  batchWorkflowAction(
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Body() body: BatchDepositWorkflowDto,
+    @Req() req: AdminRequestContext,
+  ) {
+    return this.batchWorkflow.execute(user.id, body.action, body.ids, body.reason.trim(), body.stepUpCode, this.meta(req));
   }
 
   private meta(req: AdminRequestContext) {
