@@ -1,4 +1,4 @@
-import { Injectable, TooManyRequestsException, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
@@ -52,7 +52,8 @@ export class ProviderSimulatorSecurityService {
   }
 
   canonicalJson(value: unknown): string {
-    if (value === null || typeof value !== 'object') return JSON.stringify(value);
+    if (value === undefined) return 'null';
+    if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
     if (Array.isArray(value)) return `[${value.map((item) => this.canonicalJson(item)).join(',')}]`;
     const record = value as Record<string, unknown>;
     return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${this.canonicalJson(record[key])}`).join(',')}}`;
@@ -85,7 +86,9 @@ export class ProviderSimulatorSecurityService {
     const configured = Number(process.env.PROVIDER_SIMULATOR_RATE_LIMIT_PER_MINUTE ?? 120);
     const limit = Number.isFinite(configured) ? Math.min(Math.max(Math.trunc(configured), 10), 2_000) : 120;
     const recent = (this.requests.get(key) ?? []).filter((value) => now - value < windowMs);
-    if (recent.length >= limit) throw new TooManyRequestsException('Provider simulator rate limit exceeded');
+    if (recent.length >= limit) {
+      throw new HttpException('Provider simulator rate limit exceeded', HttpStatus.TOO_MANY_REQUESTS);
+    }
     recent.push(now);
     this.requests.set(key, recent);
   }
@@ -104,6 +107,6 @@ export class ProviderSimulatorSecurityService {
   }
 
   private isUniqueViolation(error: unknown) {
-    return Boolean(error && typeof error === 'object' && String((error as any).code ?? '') === '23505');
+    return Boolean(error && typeof error === 'object' && String((error as { code?: unknown }).code ?? '') === '23505');
   }
 }
