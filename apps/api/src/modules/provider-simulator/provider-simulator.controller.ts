@@ -45,6 +45,30 @@ export class ProviderSimulatorController {
     return this.simulator.transfer('TRANSFER_OUT', body);
   }
 
+  @Post('bet')
+  bet(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+    this.authenticate(headers, body);
+    return this.simulator.gameTransaction('BET', body);
+  }
+
+  @Post('win')
+  win(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+    this.authenticate(headers, body);
+    return this.simulator.gameTransaction('WIN', body);
+  }
+
+  @Post('refund')
+  refund(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+    this.authenticate(headers, body);
+    return this.simulator.gameTransaction('REFUND', body);
+  }
+
+  @Post('rollback')
+  rollback(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: Record<string, unknown>) {
+    this.authenticate(headers, body);
+    return this.simulator.gameTransaction('ROLLBACK', body);
+  }
+
   @Post('games')
   games(
     @Headers() headers: Record<string, string | string[] | undefined>,
