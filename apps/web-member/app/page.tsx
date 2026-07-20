@@ -3,13 +3,16 @@
 import type { CSSProperties } from 'react';
 import type { MemberFeatureFlags } from './site-settings';
 import MemberHome from './member-home';
+import MemberGuestHome from './member-guest-home';
 import { MemberCard } from './components/member-ui';
 import { useSiteSettings } from './site-settings-provider';
+import { useMemberSession } from './member-session-provider';
 
 type BrandStyle = CSSProperties & Record<`--${string}`, string>;
 
 export default function Page() {
   const { typedSettings, ready } = useSiteSettings();
+  const { ready: sessionReady, isLoggedIn } = useMemberSession();
   const { website, branding, theme, maintenance, features, icons } = typedSettings;
 
   const featureFlags: MemberFeatureFlags = {
@@ -42,10 +45,21 @@ export default function Page() {
     '--color-danger': branding.danger_color,
   };
 
-  if (!ready) return <main className="member-loading-screen">กำลังโหลดการตั้งค่า...</main>;
+  if (!ready || !sessionReady) return <main className="member-loading-screen">กำลังโหลดการตั้งค่า...</main>;
 
   if (maintenanceEnabled) {
     return <main className="member-ui-page member-maintenance"><div className="member-ui-container"><MemberCard tone="warning"><p className="member-maintenance__eyebrow">Maintenance</p><h1>{website.site_name}</h1><p>{maintenance.message}</p></MemberCard></div></main>;
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <MemberGuestHome
+        siteName={website.site_name}
+        description={website.site_description}
+        logoUrl={branding.logo_url || '/images/member-lobby/noah345-reference/0010_ba66cd74-2429-42dd-858e-aaae9fb3b688_48d3df600e.png'}
+        features={featureFlags}
+      />
+    );
   }
 
   return <main data-animation-level={animationLevel} style={brandStyle}>
