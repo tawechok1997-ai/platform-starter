@@ -1,0 +1,156 @@
+/* Shared NOAH-style mobile shell foundation.
+ * Keep these dimensions and positions shared across every member page.
+ * Page-level styles may change content only, never the shell geometry.
+ */
+
+@media (max-width: 767px) {
+  :root {
+    --member-mobile-header-height: 58px;
+    --member-mobile-left-rail-width: 64px;
+    --member-mobile-bottom-nav-height: 64px;
+    --member-mobile-page-gutter: 10px;
+    --member-mobile-shell-bg: #110e16;
+    --member-mobile-panel-bg: #17131d;
+    --member-mobile-border: rgba(255, 255, 255, 0.09);
+  }
+
+  html,
+  body {
+    min-width: 320px;
+    background: var(--member-mobile-shell-bg);
+    overflow-x: hidden;
+  }
+
+  .global-member-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 70;
+    min-height: var(--member-mobile-header-height);
+    background: rgba(17, 14, 22, 0.96);
+    border-bottom: 1px solid var(--member-mobile-border);
+    backdrop-filter: blur(14px);
+  }
+
+  .global-member-topbar .member-topbar__inner {
+    min-height: var(--member-mobile-header-height);
+    padding-inline: 10px;
+  }
+
+  .member-category-rail {
+    position: fixed;
+    z-index: 55;
+    top: var(--member-mobile-header-height);
+    left: 0;
+    bottom: var(--member-mobile-bottom-nav-height);
+    width: var(--member-mobile-left-rail-width);
+    margin: 0;
+    padding: 8px 5px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: rgba(20, 16, 25, 0.98);
+    border-right: 1px solid var(--member-mobile-border);
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  .member-category-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .member-category-rail > a {
+    width: 100%;
+    min-height: 55px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 2px;
+    border-radius: 10px;
+  }
+
+  .member-category-rail > a strong {
+    max-width: 100%;
+    font-size: 10px;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .member-category-rail__handle {
+    display: none !important;
+  }
+
+  .member-category-rail ~ main,
+  .member-category-rail ~ .member-page,
+  body:has(.member-category-rail) main {
+    padding-left: calc(var(--member-mobile-left-rail-width) + var(--member-mobile-page-gutter));
+  }
+
+  .member-bottom-nav {
+    position: fixed;
+    z-index: 65;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-height: var(--member-mobile-bottom-nav-height);
+    padding-bottom: env(safe-area-inset-bottom);
+    background: rgba(17, 14, 22, 0.98);
+    border-top: 1px solid var(--member-mobile-border);
+    backdrop-filter: blur(14px);
+  }
+
+  .member-drawer {
+    z-index: 100;
+    width: min(84vw, 330px);
+    background: var(--member-mobile-panel-bg);
+  }
+
+  .member-menu-backdrop {
+    z-index: 90;
+  }
+
+  /* Shared authentication buttons. These classes are intentionally reusable
+     in the header, drawer and public authentication pages. */
+  .member-login-button,
+  .member-register-button {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  .member-login-button {
+    color: #fff;
+    background: #24202b;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .member-register-button {
+    color: #fff;
+    background: linear-gradient(135deg, #a54cff, #7100a8);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 5px 18px rgba(126, 0, 180, 0.32);
+  }
+
+  .member-locked-action {
+    position: relative;
+    opacity: 0.72;
+  }
+
+  .member-locked-action::after {
+    content: '🔒';
+    margin-left: auto;
+    font-size: 11px;
+  }
+
+  .member-locked-action[aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+}
