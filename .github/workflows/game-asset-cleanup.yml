@@ -5,12 +5,14 @@ on:
   push:
     branches: [main]
     paths:
-      - 'asset/mobil/**'
+      - 'asset/pc/**'
+      - 'asset/catalog/pc/**'
       - 'asset/catalog/mobile/**'
       - 'apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts'
       - 'tools/cleanup-game-assets.mjs'
       - 'tools/organize-game-assets.mjs'
       - 'tools/build-game-asset-inventory.mjs'
+      - 'tools/migrate-pc-assets.mjs'
       - '.github/workflows/game-asset-cleanup.yml'
 
 permissions:
@@ -24,7 +26,7 @@ jobs:
   cleanup:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,25 +34,34 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Remove exact duplicates and junk from uploaded assets
-        run: node tools/cleanup-game-assets.mjs
-      - name: Move every remaining mobile asset into canonical categories
-        run: node tools/organize-game-assets.mjs
-      - name: Rebuild canonical inventory and rename reports
-        run: node tools/build-game-asset-inventory.mjs
-      - name: Verify canonical catalog has no exact duplicates
-        run: node tools/cleanup-game-assets.mjs --dry-run
-      - name: Verify migration is complete
+      - name: Normalize mobile catalog when present
+        run: |
+          if [ -d asset/catalog/mobile ]; then
+            node tools/cleanup-game-assets.mjs
+            node tools/organize-game-assets.mjs
+            node tools/build-game-asset-inventory.mjs
+            node tools/cleanup-game-assets.mjs --dry-run
+          fi
+      - name: Migrate complete PC asset library
+        run: |
+          if [ -f asset/pc/manifest.json ]; then
+            node tools/migrate-pc-assets.mjs
+          else
+            echo 'No raw PC manifest requires migration.'
+          fi
+      - name: Verify migrations are complete
         run: |
           test ! -e asset/mobil
-          test -f asset/catalog/mobile/catalog.json
+          test ! -e asset/pc
           test -f asset/catalog/mobile/manifest.json
-          if grep -q "asset/mobil/" apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts; then
-            echo 'Provider catalog still references asset/mobil.'
+          test -f asset/catalog/pc/manifest.json
+          node -e "const m=require('./asset/catalog/mobile/manifest.json'); if(!Array.isArray(m.items)||m.items.length===0) process.exit(1); console.log('Mobile canonical assets:',m.items.length)"
+          node -e "const m=require('./asset/catalog/pc/manifest.json'); if(!Array.isArray(m.items)||m.items.length===0) process.exit(1); console.log('PC canonical assets:',m.items.length)"
+          if grep -q "asset/mobil/\|asset/pc/" apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts; then
+            echo 'Provider catalog still references a raw asset path.'
             exit 1
           fi
-          node -e "const m=require('./asset/catalog/mobile/manifest.json'); if(!Array.isArray(m.items)||m.items.length===0) process.exit(1); console.log('Canonical assets:',m.items.length)"
-      - name: Commit fully organized asset library
+      - name: Commit organized asset libraries
         run: |
           if git diff --quiet; then
             echo 'No asset migration changes required.'
@@ -59,5 +70,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A asset docs/generated apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts
-          git commit -m 'chore(game-assets): migrate all mobile assets into canonical library'
+          git commit -m 'chore(game-assets): migrate pc assets into canonical library'
           git push
