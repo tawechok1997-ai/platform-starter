@@ -41,7 +41,7 @@ Modernize the Admin application in parallel-safe batches without changing Member
 
 - [x] Inventory root CSS imports and assign every stylesheet an owner.
 - [x] Classify styles as tokens, shell, primitive, feature, compatibility, or consolidation candidates.
-- [ ] Remove selectors coupled to inline style text.
+- [x] Remove selectors coupled to inline style text.
 - [ ] Consolidate duplicate Button, Field, Card, Badge, Modal, Drawer, Table, Toast, Skeleton, Empty, Error, and ConfirmDialog variants.
 - [ ] Add component tests before deleting compatibility CSS.
 
@@ -88,8 +88,8 @@ Decision source: [`../architecture/admin-dependency-decisions.md`](../architectu
 
 ## Progress count
 
-- Completed checklist items: **24**
-- Remaining checklist items: **10**
+- Completed checklist items: **25**
+- Remaining checklist items: **9**
 - Member implementation items changed: **0**
 - API/Prisma contract items changed: **0**
 
@@ -114,6 +114,8 @@ Decision source: [`../architecture/admin-dependency-decisions.md`](../architectu
 - `43d8ca9e` — dependency decision ADR deferring TanStack Query, React Hook Form/Zod and TanStack Table.
 - `1e5c8a7d` — drawer overlay selectors decoupled from serialized inline styles.
 - `14d10d41` — selector debt and primitive ownership audit.
+- `8e8b3740` — responsive Admin row selector decoupled from serialized inline style text.
+- `7e7e939e` — selector audit closed with no known remaining inline-style text selectors.
 
 ## Verification commands
 
@@ -128,7 +130,6 @@ pnpm --filter @platform/web-admin analyze
 ## Current remaining risk
 
 - CI status has not appeared for the latest branch head yet.
-- One responsive selector in `app/(admin)/_components/admin-ui.tsx` still depends on serialized `text-align: right` and requires route-level verification before replacement.
 - Compatibility stylesheets remain loaded until selector ownership and visual evidence justify migration.
 - Dependency installation is intentionally deferred until bundle and browser measurements justify reopening the ADR.
 - Primitive imports have not yet been enumerated route by route; no duplicate family is safe to delete yet.
