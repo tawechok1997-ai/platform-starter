@@ -49,25 +49,25 @@ export class ProviderSimulatorController {
   @Post('bet')
   bet(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
     this.authenticate(headers, body);
-    return this.simulator.gameTransaction('BET', body);
+    return this.simulator.gameTransaction('BET', { ...body });
   }
 
   @Post('win')
   win(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
     this.authenticate(headers, body);
-    return this.simulator.gameTransaction('WIN', body);
+    return this.simulator.gameTransaction('WIN', { ...body });
   }
 
   @Post('refund')
   refund(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
     this.authenticate(headers, body);
-    return this.simulator.gameTransaction('REFUND', body);
+    return this.simulator.gameTransaction('REFUND', { ...body });
   }
 
   @Post('rollback')
   rollback(@Headers() headers: Record<string, string | string[] | undefined>, @Body() body: ProviderSimulatorGameTransactionDto) {
     this.authenticate(headers, body);
-    return this.simulator.gameTransaction('ROLLBACK', body);
+    return this.simulator.gameTransaction('ROLLBACK', { ...body });
   }
 
   @Post('games')
