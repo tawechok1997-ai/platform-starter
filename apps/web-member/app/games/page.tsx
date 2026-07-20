@@ -125,7 +125,7 @@ export default function MemberGamesPage() {
   </main>;
 }
 
-function LobbyHero({ game, counts, loading, onLaunch }: { game?: Game; counts: Counts; loading: boolean; onLaunch: (game: Game) => void }) {
+function LobbyHero({ game, counts, loading, onLaunch }: { game: Game | undefined; counts: Counts; loading: boolean; onLaunch: (game: Game) => void }) {
   const image = game ? pickImage(game) : null;
   return <section className="game-lobby-hero" style={image ? { backgroundImage: `linear-gradient(90deg,rgba(8,8,12,.96),rgba(8,8,12,.3)),url(${JSON.stringify(image).slice(1, -1)})` } : undefined}><div className="game-lobby-hero-copy"><span className="game-lobby-kicker">MEMBER GAME LOBBY</span><h1>{loading ? 'กำลังเตรียมเกมให้คุณ' : game?.name ?? 'เกมทั้งหมดในที่เดียว'}</h1><p>{game ? `${game.provider?.name ?? 'Game Provider'} · ${categoryLabel(game.category)}` : `${counts.total} เกม`}</p>{game && isAvailable(game) && <div className="game-lobby-hero-actions"><button type="button" className="is-primary" onClick={() => onLaunch(game)}>เล่นเกมแนะนำ</button></div>}</div><div className="game-lobby-hero-orb" aria-hidden="true"><span>{loading ? '…' : counts.total}</span><small>GAMES</small></div></section>;
 }
