@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminLinkButton, AdminNotice, AdminPage, AdminSkeleton, formatMoney } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminConfirmDialog, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminSkeleton, formatMoney } from '../_components/admin-ui';
 
 const PAGE_SIZE = 20;
 
@@ -98,12 +98,12 @@ export default function AdminWalletsPage() {
 
   return <AdminPage eyebrow="การเงิน" title="กระเป๋าเงินสมาชิก" description="ค้นหาสมาชิก ตรวจยอด และปรับยอดพร้อมหลักฐานการดำเนินการทุกครั้ง" actions={<AdminButton size="compact" onClick={() => void loadItems(page)} disabled={loading}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}>
     <section className="admin-wallet-detail" aria-busy={loading}>
-      <div className="admin-wallet-detail__stats" aria-label="สรุปกระเป๋าเงิน">
-        <Stat label="กระเป๋าทั้งหมด" value={total.toLocaleString('th-TH')} />
-        <Stat label="รายการหน้านี้" value={items.length.toLocaleString('th-TH')} />
-        <Stat label="ยอดใช้ได้หน้านี้" value={formatMoney(pageAvailable)} />
-        <Stat label="ยอดล็อกหน้านี้" value={formatMoney(pageLocked)} />
-      </div>
+      <AdminMetricGrid>
+        <AdminMetric title="กระเป๋าทั้งหมด" value={total.toLocaleString('th-TH')} helper="จำนวนกระเป๋าที่ตรงกับตัวกรอง" />
+        <AdminMetric title="รายการหน้านี้" value={items.length.toLocaleString('th-TH')} helper={`หน้า ${page} จาก ${pageCount}`} />
+        <AdminMetric title="ยอดใช้ได้หน้านี้" value={formatMoney(pageAvailable)} tone="success" helper="รวมเฉพาะข้อมูลที่แสดงอยู่" />
+        <AdminMetric title="ยอดล็อกหน้านี้" value={formatMoney(pageLocked)} tone={pageLocked > 0 ? 'warning' : 'neutral'} helper="ยอดที่ยังไม่พร้อมใช้งาน" />
+      </AdminMetricGrid>
 
       <form onSubmit={searchWallets} className="admin-wallet-detail__toolbar">
         <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ชื่อผู้ใช้ รหัสสมาชิก หรือ User ID" aria-label="ค้นหาสมาชิก" />
@@ -128,5 +128,3 @@ export default function AdminWalletsPage() {
     <AdminConfirmDialog open={Boolean(pendingAdjustment)} title={pendingAdjustment?.direction === 'DEBIT' ? 'ยืนยันการลดยอด' : 'ยืนยันการเพิ่มยอด'} description="ตรวจสอบสมาชิก จำนวนเงิน และเหตุผลให้ถูกต้อง การปรับยอดจะถูกบันทึกใน ledger" confirmLabel={pendingAdjustment?.direction === 'DEBIT' ? 'ยืนยันลดยอด' : 'ยืนยันเพิ่มยอด'} tone={pendingAdjustment?.direction === 'DEBIT' ? 'danger' : 'success'} busy={busy} onCancel={() => setPendingAdjustment(null)} onConfirm={() => void confirmAdjustment()} details={pendingAdjustment ? <><p><strong>สมาชิก:</strong> {pendingAdjustment.username}</p><p><strong>จำนวน:</strong> {formatMoney(pendingAdjustment.amount)}</p><p><strong>เหตุผล:</strong> {pendingAdjustment.reason}</p></> : null} />
   </AdminPage>;
 }
-
-function Stat({ label, value }: { label: string; value: string }) { return <article className="admin-wallet-detail__stat"><span>{label}</span><strong>{value}</strong></article>; }
