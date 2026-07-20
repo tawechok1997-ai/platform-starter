@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
 
 export class ProviderSimulatorHealthRequestDto {
   @IsOptional()
@@ -52,6 +52,33 @@ export class ProviderSimulatorGamesRequestDto {
   @IsOptional()
   @IsString()
   provider?: string;
+
+  @IsOptional()
+  @IsIn(['mobile', 'pc'])
+  platform?: 'mobile' | 'pc';
+
+  @IsOptional()
+  @IsString()
+  category?: string;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
+
+  @IsOptional()
+  @IsIn(['name-asc', 'name-desc', 'code-asc', 'code-desc'])
+  sort?: 'name-asc' | 'name-desc' | 'code-asc' | 'code-desc';
 }
 
 export class ProviderSimulatorBetHistoryRequestDto {
