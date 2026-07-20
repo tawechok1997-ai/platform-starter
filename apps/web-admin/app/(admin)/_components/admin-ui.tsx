@@ -71,6 +71,7 @@ export function AdminStack({ children }: { children: ReactNode }) { return <div 
 export function AdminRow({ children }: { children: ReactNode }) { return <div className="admin-ui-row" style={rowStyle}>{children}</div>; }
 export function AdminSectionRow({ children }: { children: ReactNode }) { return <div className="admin-ui-section-row" style={rowStyle}>{children}</div>; }
 export function AdminToolbar({ children }: { children: ReactNode }) { return <div className="admin-ui-toolbar" style={safeTextContainerStyle}>{children}</div>; }
+export function AdminFilterBar({ children, resultText }: { children: ReactNode; resultText?: ReactNode }) { return <div className="admin-ui-filter-bar" style={safeTextContainerStyle}><div className="admin-ui-filter-bar__controls">{children}</div>{resultText && <div className="admin-ui-filter-bar__result">{resultText}</div>}</div>; }
 export function AdminNotice({ children, tone = 'neutral' }: { children: ReactNode; tone?: SurfaceTone }) { return <div className={`admin-ui-notice admin-ui-surface--${tone}`} role={tone === 'danger' ? 'alert' : 'status'} style={safeTextContainerStyle}>{children}</div>; }
 export function AdminEmpty({ children }: { children: ReactNode }) { return <div className="admin-ui-empty" style={safeTextContainerStyle}>{children}</div>; }
 export function AdminSkeleton({ lines = 3 }: { lines?: number }) { return <div className="admin-ui-skeleton" aria-label="กำลังโหลด" role="status"><span className="admin-ui-skeleton__block" />{Array.from({ length: lines }, (_, index) => <span key={index} className="admin-ui-skeleton__line" />)}</div>; }
@@ -90,6 +91,14 @@ export function AdminLinkButton({ children, href, tone = 'secondary', size = 're
 export function AdminBadge({ children, tone = 'neutral' }: { children: ReactNode; tone?: BadgeTone }) { return <span className={`admin-ui-badge admin-ui-badge--${tone}`}>{children}</span>; }
 export function AdminCode({ children, title }: { children: ReactNode; title?: string }) { return <code className="admin-ui-code" title={title} style={monoStyle}>{children}</code>; }
 export function AdminDataValue({ label, children, mono = false }: { label: string; children: ReactNode; mono?: boolean }) { return <div className="admin-ui-data-value"><span>{label}</span><strong style={mono ? monoStyle : safeTextContainerStyle}>{children}</strong></div>; }
+export function AdminPayloadViewer({ payload, emptyLabel = 'ไม่มีข้อมูล', maxHeight = 420 }: { payload: unknown; emptyLabel?: string; maxHeight?: number }) {
+  const hasPayload = payload !== null && payload !== undefined;
+  return <pre className="admin-ui-payload" style={{ maxHeight }}>{hasPayload ? JSON.stringify(payload, null, 2) : emptyLabel}</pre>;
+}
+export function AdminPagination({ page, totalPages, onPrevious, onNext, disabled = false }: { page: number; totalPages: number; onPrevious: () => void; onNext: () => void; disabled?: boolean }) {
+  const safeTotalPages = Math.max(1, totalPages);
+  return <nav className="admin-ui-pagination" aria-label="เปลี่ยนหน้า"><AdminButton size="compact" tone="ghost" onClick={onPrevious} disabled={disabled || page <= 1}>ก่อนหน้า</AdminButton><span>หน้า {Math.min(page, safeTotalPages)} / {safeTotalPages}</span><AdminButton size="compact" tone="ghost" onClick={onNext} disabled={disabled || page >= safeTotalPages}>ถัดไป</AdminButton></nav>;
+}
 
 export function AdminConfirmDialog({ open, title, description, confirmLabel, cancelLabel = 'ยกเลิก', tone = 'primary', busy = false, details, onConfirm, onCancel }: ConfirmDialogProps) {
   const [mounted, setMounted] = useState(false);
@@ -152,15 +161,16 @@ const adminSystemCss = `
 .admin-ui-card__head p{margin:5px 0 0!important;font-size:13px!important;line-height:1.45!important}
 .admin-ui-stack{display:grid;gap:12px;min-width:0;max-width:100%}
 .admin-ui-row,.admin-ui-section-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0}
-.admin-ui-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0;padding:12px!important;border:1px solid var(--line);border-radius:14px;background:rgba(148,163,184,.045)}
-.admin-ui-toolbar>input,.admin-ui-toolbar>select{flex:1 1 190px!important}
+.admin-ui-toolbar,.admin-ui-filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0;padding:12px!important;border:1px solid var(--line);border-radius:14px;background:rgba(148,163,184,.045)}
+.admin-ui-toolbar>input,.admin-ui-toolbar>select,.admin-ui-filter-bar__controls>input,.admin-ui-filter-bar__controls>select{flex:1 1 190px!important}
+.admin-ui-filter-bar{justify-content:space-between}.admin-ui-filter-bar__controls{display:flex;align-items:center;gap:10px;flex:1 1 520px;flex-wrap:wrap;min-width:0}.admin-ui-filter-bar__result{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap}
 .admin-ui-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;white-space:normal;text-align:center;border:1px solid transparent;transition:transform .16s ease,background .16s ease,border-color .16s ease,opacity .16s ease}
 .admin-ui-button--regular{min-height:42px;padding:9px 15px;border-radius:11px;font-size:14px;line-height:1.2}
 .admin-ui-button--compact{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;line-height:1.15}
 .admin-ui-icon-button{width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;padding:0!important;font-size:17px}
 .admin-ui-button--ghost{background:transparent;color:#cbd5e1;border-color:var(--line)}
 .admin-ui-button:disabled{cursor:not-allowed;opacity:.55;transform:none!important}
-.admin-ui-button:focus-visible,.admin-ui-toolbar input:focus-visible,.admin-ui-toolbar select:focus-visible{outline:3px solid rgba(245,197,66,.24);outline-offset:2px}
+.admin-ui-button:focus-visible,.admin-ui-toolbar input:focus-visible,.admin-ui-toolbar select:focus-visible,.admin-ui-filter-bar input:focus-visible,.admin-ui-filter-bar select:focus-visible{outline:3px solid rgba(245,197,66,.24);outline-offset:2px}
 .admin-ui-metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .admin-ui-metric{padding:15px!important;min-height:112px;display:grid;align-content:start;gap:5px}
 .admin-ui-metric p,.admin-ui-metric span,.admin-ui-metric em{margin:0!important;font-size:12px!important;line-height:1.35!important}
@@ -168,22 +178,22 @@ const adminSystemCss = `
 .admin-ui-badge{display:inline-flex;align-items:center;max-width:100%;overflow-wrap:anywhere}
 .admin-ui-code{display:inline-block;max-width:100%;font-size:12px;line-height:1.45;overflow-wrap:anywhere;word-break:break-word}
 .admin-ui-data-value{display:grid;grid-template-columns:minmax(110px,.45fr) minmax(0,1fr);gap:10px;align-items:start;min-width:0}
-.admin-ui-data-value>span{color:var(--muted);font-size:13px}
-.admin-ui-data-value>strong{font-size:14px;font-weight:800;text-align:right}
+.admin-ui-data-value>span{color:var(--muted);font-size:13px}.admin-ui-data-value>strong{font-size:14px;font-weight:800;text-align:right}
+.admin-ui-payload{margin:0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#020617;color:#cbd5e1;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font-size:12px;line-height:1.5;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+.admin-ui-pagination{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;min-width:0}.admin-ui-pagination>span{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
 .admin-confirm-layer{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:max(14px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom));overflow:hidden;overscroll-behavior:contain;background:rgba(2,6,23,.72);backdrop-filter:blur(8px)}
 .admin-confirm-dialog{width:min(100%,560px);max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));margin:auto;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;border:1px solid var(--line2);border-radius:20px;background:var(--card);box-shadow:0 28px 90px rgba(0,0,0,.55)}
 .admin-confirm-dialog__head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start;padding:20px 20px 12px;background:inherit;position:sticky;top:0;z-index:2}
-.admin-confirm-dialog__copy h2{margin:0 0 6px!important;font-size:21px!important}
-.admin-confirm-dialog__copy p{margin:0!important;font-size:14px!important}
+.admin-confirm-dialog__copy h2{margin:0 0 6px!important;font-size:21px!important}.admin-confirm-dialog__copy p{margin:0!important;font-size:14px!important}
 .admin-confirm-dialog__body{min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 20px 16px}
 .admin-confirm-dialog__actions{position:sticky;bottom:0;z-index:2;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:12px 20px max(16px,env(safe-area-inset-bottom));background:inherit;border-top:1px solid var(--line)}
 @media(max-width:720px){
  .admin-ui-page{gap:14px}.admin-ui-page__head{grid-template-columns:1fr;gap:12px}.admin-ui-page__actions{justify-content:flex-start}.admin-ui-page__description{font-size:13px!important}
  .admin-ui-card{padding:14px!important;border-radius:16px!important}.admin-ui-card__head{grid-template-columns:1fr;gap:9px}.admin-ui-card__action{display:flex;justify-content:flex-start;flex-wrap:wrap;gap:8px}
  .admin-ui-row,.admin-ui-section-row{flex-direction:column;align-items:stretch}.admin-ui-row>[style*="text-align: right"],.admin-ui-section-row>[style*="text-align: right"]{text-align:left!important}
- .admin-ui-toolbar{display:grid;grid-template-columns:minmax(0,1fr);padding:10px!important}.admin-ui-toolbar>*{width:100%;max-width:100%}
+ .admin-ui-toolbar,.admin-ui-filter-bar{display:grid;grid-template-columns:minmax(0,1fr);padding:10px!important}.admin-ui-toolbar>*,.admin-ui-filter-bar>*{width:100%;max-width:100%}.admin-ui-filter-bar__controls{display:grid;grid-template-columns:minmax(0,1fr);width:100%}.admin-ui-filter-bar__controls>*{width:100%;max-width:100%}.admin-ui-filter-bar__result{margin-left:0;white-space:normal}
  .admin-ui-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.admin-ui-metric{min-height:98px;padding:12px!important}
- .admin-ui-data-value{grid-template-columns:1fr;gap:3px}.admin-ui-data-value>strong{text-align:left}
+ .admin-ui-data-value{grid-template-columns:1fr;gap:3px}.admin-ui-data-value>strong{text-align:left}.admin-ui-pagination{justify-content:stretch}.admin-ui-pagination .admin-ui-button{flex:1 1 120px}.admin-ui-pagination>span{order:-1;width:100%;text-align:center}
  .admin-confirm-dialog__head{padding:17px 16px 10px}.admin-confirm-dialog__body{padding:0 16px 12px}.admin-confirm-dialog__actions{padding:11px 16px max(14px,env(safe-area-inset-bottom))}.admin-confirm-dialog__actions>*{flex:1 1 140px}
 }
 @media(max-width:420px){.admin-ui-metric-grid{grid-template-columns:1fr}.admin-ui-page__actions .admin-ui-button:not(.admin-ui-icon-button){flex:1 1 auto}.admin-ui-button--regular{min-height:40px;padding:8px 12px}}
