@@ -38,12 +38,15 @@ if (/output\s*=/.test(schema.match(/generator\s+client\s*\{[\s\S]*?\}/m)?.[0] ??
 if (rootPackage.scripts?.['db:generate'] !== 'prisma generate --schema prisma/schema.prisma') {
   failures.push('package.json: db:generate must use the canonical root schema');
 }
-const apiBuild = String(rootPackage.scripts?.['build:api'] ?? '');
-if (
-  !apiBuild.includes('pnpm db:generate') ||
-  apiBuild.indexOf('pnpm db:generate') > apiBuild.indexOf('@platform/api build')
-) {
-  failures.push('package.json: build:api must generate Prisma client before compiling');
+
+const rootApiBuild = String(rootPackage.scripts?.['build:api'] ?? '');
+const apiBuild = String(apiPackage.scripts?.build ?? '');
+const rootGeneratesBeforeBuild = rootApiBuild.includes('pnpm db:generate')
+  && rootApiBuild.indexOf('pnpm db:generate') < rootApiBuild.indexOf('@platform/api build');
+const apiGeneratesBeforeCompile = apiBuild.includes('prisma generate --schema ../../prisma/schema.prisma')
+  && apiBuild.indexOf('prisma generate --schema ../../prisma/schema.prisma') < apiBuild.indexOf('nest build');
+if (!rootGeneratesBeforeBuild && !apiGeneratesBeforeCompile) {
+  failures.push('API build must generate the canonical Prisma client before compiling');
 }
 
 console.log('Generated client/schema drift audit:');
@@ -51,6 +54,7 @@ console.log(`  Prisma version: ${expectedVersion ?? 'missing'}`);
 console.log(
   `  aligned version declarations: ${Object.keys(versions).length - failures.filter((item) => item.includes('Prisma version') || item.includes('differs')).length}/${Object.keys(versions).length}`,
 );
+console.log(`  Prisma generated before API compile: ${rootGeneratesBeforeBuild || apiGeneratesBeforeCompile ? 'yes' : 'no'}`);
 console.log(`  failures: ${failures.length}`);
 
 if (failures.length) {
