@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type TouchEvent } from 'react';
 
 type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null; status: string };
 type GameProvider = { name: string; code: string; status?: string | null; logoUrl?: string | null };
@@ -38,10 +38,12 @@ export default function HeroCarousel({ games, counts, providerCount, loading, on
     setActive((value) => (value + direction + slides.length) % slides.length);
   }
 
-  function handleTouchEnd(event: React.TouchEvent<HTMLElement>) {
-    if (touchStart.current === null) return;
-    const delta = event.changedTouches[0]?.clientX - touchStart.current;
+  function handleTouchEnd(event: TouchEvent<HTMLElement>) {
+    const start = touchStart.current;
+    const end = event.changedTouches.item(0)?.clientX;
     touchStart.current = null;
+    if (start === null || end === undefined) return;
+    const delta = end - start;
     if (Math.abs(delta) > 45) move(delta < 0 ? 1 : -1);
   }
 
@@ -56,7 +58,7 @@ export default function HeroCarousel({ games, counts, providerCount, loading, on
     onMouseLeave={() => setPaused(false)}
     onFocusCapture={() => setPaused(true)}
     onBlurCapture={() => setPaused(false)}
-    onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }}
+    onTouchStart={(event) => { touchStart.current = event.touches.item(0)?.clientX ?? null; }}
     onTouchEnd={handleTouchEnd}
     style={image ? { backgroundImage: `linear-gradient(90deg,rgba(8,8,12,.97),rgba(8,8,12,.72) 50%,rgba(8,8,12,.22)),url(${JSON.stringify(image).slice(1, -1)})` } : undefined}
   >
