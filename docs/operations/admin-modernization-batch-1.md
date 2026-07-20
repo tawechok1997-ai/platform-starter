@@ -35,23 +35,27 @@ Modernize the Admin application in parallel-safe batches without changing Member
 
 - [x] Update `docs/ADMIN_UX_UI_REDESIGN.md` from the obsolete Next.js 14 / React 18 baseline to the actual Next.js 15.5.18 / React 19.2.7 baseline.
 - [x] Separate implemented facts from planned dependencies.
-- [ ] Link this execution record from `docs/README.md` after the batch passes verification.
+- [x] Link the execution record and new Admin contracts from `docs/README.md`.
 
 ### C. Styling and component ownership
 
-- [ ] Inventory root CSS imports and assign every stylesheet an owner.
-- [ ] Classify styles as tokens, shell, primitive, feature, compatibility, or removable.
+- [x] Inventory root CSS imports and assign every stylesheet an owner.
+- [x] Classify styles as tokens, shell, primitive, feature, compatibility, or consolidation candidates.
 - [ ] Remove selectors coupled to inline style text.
 - [ ] Consolidate duplicate Button, Field, Card, Badge, Modal, Drawer, Table, Toast, Skeleton, Empty, Error, and ConfirmDialog variants.
 - [ ] Add component tests before deleting compatibility CSS.
 
+Ownership source: [`admin-css-ownership-inventory.md`](./admin-css-ownership-inventory.md).
+
 ### D. Admin server-state policy
 
 - [ ] Inventory page-level fetch/effect orchestration.
-- [ ] Define query keys, stale times, retries, cancellation, polling, and invalidation by domain.
-- [ ] Define central session-expiry and permission-change handling.
-- [ ] Define optimistic rollback and conflict handling.
+- [x] Define query keys, stale times, retries, cancellation, polling, and invalidation by domain.
+- [x] Define central session-expiry and permission-change handling.
+- [x] Define optimistic rollback and conflict handling.
 - [ ] Decide whether the measured need justifies TanStack Query and record an ADR before installation.
+
+Policy source: [`../architecture/admin-server-state-policy.md`](../architecture/admin-server-state-policy.md).
 
 ### E. Forms and mutation safety
 
@@ -73,6 +77,13 @@ Modernize the Admin application in parallel-safe batches without changing Member
 - [ ] Add console/network failure gates for authenticated Admin flows.
 - [ ] Add performance budgets for route JS, layout shift, and long-table rendering.
 
+## Progress count
+
+- Completed checklist items: **16**
+- Remaining checklist items: **18**
+- Member implementation items changed: **0**
+- API/Prisma contract items changed: **0**
+
 ## Completed commits
 
 - `8bcca0c1` — Admin metadata and root-layout modernization.
@@ -83,6 +94,9 @@ Modernize the Admin application in parallel-safe batches without changing Member
 - `51e5678e` — recoverable root error state.
 - `a25dbefa` — root not-found state.
 - `ace3168c` and `c68a2931` — shared root-state styling and layout import.
+- `7ab21889` — Admin CSS ownership and consolidation inventory.
+- `b5e71406` — Admin server-state policy.
+- `64b44d0e` — documentation-map links for the active Admin contracts.
 
 ## Verification commands
 
@@ -97,7 +111,8 @@ pnpm --filter @platform/web-admin analyze
 ## Current remaining risk
 
 - CI status has not appeared for the latest branch head yet.
-- The root layout still imports many overlapping Admin stylesheets; consolidation must wait for selector ownership and visual evidence.
+- Compatibility stylesheets remain loaded until selector ownership and visual evidence justify migration.
+- The server-state policy is documented, but page-level request inventory and dependency decision remain open.
 - Browser, accessibility, bundle, and visual verification are not yet claimed as passing.
 
 ## Handoff record
