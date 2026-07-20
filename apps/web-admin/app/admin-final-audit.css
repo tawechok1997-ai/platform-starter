@@ -1,0 +1,142 @@
+/* Final cross-module audit layer: responsive safety, accessibility, and rendering cost. */
+
+html {
+  overflow-x: clip;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-width: 0;
+  overflow-x: clip;
+}
+
+:where(main, section, article, form, nav, aside, header, footer, div) {
+  min-width: 0;
+}
+
+:where(img, svg, video, canvas) {
+  max-width: 100%;
+}
+
+:where(button, [role='button'], input, select, textarea, a) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(button, [role='button'], input:not([type='checkbox']):not([type='radio']), select) {
+  min-height: 44px;
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid rgba(245, 197, 66, .78);
+  outline-offset: 3px;
+}
+
+:where(button, [role='button'])[disabled],
+:where(button, [role='button'])[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+:where(table) {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+:where(.admin-ui-card, .admin-card, .admin-panel, .admin-section) {
+  overflow-wrap: anywhere;
+}
+
+:where(.admin-ui-card, .admin-card, .admin-panel, .admin-section):not(:has(dialog)) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 320px;
+}
+
+:where(code, pre, .admin-ui-code, .admin-data-value) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+:where(pre) {
+  max-width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+:where(dialog, [role='dialog']) {
+  max-width: min(720px, calc(100vw - 24px));
+  max-height: min(88dvh, 900px);
+  overscroll-behavior: contain;
+}
+
+:where([aria-busy='true']) {
+  cursor: progress;
+}
+
+@media (max-width: 720px) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  :where(.admin-ui-page, .admin-page, main) {
+    max-width: 100%;
+  }
+
+  :where(.admin-ui-card, .admin-card, .admin-panel) {
+    border-radius: 14px;
+  }
+
+  :where(.admin-ui-action-strip, .admin-ui-action-group, .admin-toolbar) {
+    max-width: 100%;
+  }
+
+  :where(.admin-ui-action-strip, .admin-ui-action-group, .admin-toolbar) > :where(button, a) {
+    min-height: 44px;
+  }
+
+  :where(.admin-table-wrap, .admin-ui-table-wrap, [class*='table-wrap']) {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  :where(table) {
+    min-width: 640px;
+  }
+
+  :where(dialog, [role='dialog']) {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
+  }
+}
+
+@media (max-width: 420px) {
+  :where(.admin-ui-action-strip, .admin-ui-action-group, .admin-toolbar) > :where(button, a) {
+    width: 100%;
+  }
+
+  :where(input, select, textarea) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid CanvasText;
+  }
+}
