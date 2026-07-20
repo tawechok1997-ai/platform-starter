@@ -31,13 +31,24 @@ test('game lobby includes retry, incremental loading and broken-image fallback',
 test('provider selector preserves logo, fallback and accessible selection contracts', () => {
   assert.match(pageSource, /function ProviderStrip/);
   assert.match(pageSource, /function ProviderButton/);
+  assert.match(pageSource, /className="game-provider-strip"/);
+  assert.match(pageSource, /className="game-provider-strip-list"/);
   assert.match(pageSource, /aria-label="เลือกค่ายเกม"/);
   assert.match(pageSource, /aria-pressed=\{active\}/);
-  assert.match(pageSource, /overflowX:\s*'auto'/);
   assert.match(pageSource, /item\.logoUrl && !failed/);
   assert.match(pageSource, /onError=\{\(\) => setFailed\(true\)\}/);
   assert.match(pageSource, /initials\(item\.name\)/);
   assert.match(pageSource, /logoUrl:\s*typeof item\.logoUrl === 'string'/);
+  assert.match(styleSource, /\.game-provider-strip-list\s*\{[\s\S]*?overflow-x:\s*auto/);
+});
+
+test('provider and lobby loading states use stable skeleton contracts', () => {
+  assert.match(pageSource, /loading \? Array\.from\(\{ length: 7 \}/);
+  assert.match(pageSource, /function LobbySkeleton/);
+  assert.match(pageSource, /function GameCardSkeleton/);
+  assert.match(pageSource, /aria-busy="true"/);
+  assert.match(styleSource, /@keyframes\s+gameLobbyShimmer/);
+  assert.match(styleSource, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 });
 
 test('changing provider resets category before requesting the new lobby slice', () => {
