@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminCode, AdminConfirmDialog, AdminDataValue, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
 
 type Session = { id: string; status: string; launchUrl?: string | null; providerSessionId?: string | null; ipAddress?: string | null; userAgent?: string | null; startedAt?: string | null; endedAt?: string | null; errorCode?: string | null; errorMessage?: string | null; createdAt: string; user?: { username?: string | null; phone?: string | null }; provider?: { name: string; code: string }; game?: { name: string; providerGameCode: string; category: string }; transfers?: Array<{ id: string; type: string; status: string; amount: string; currency: string; createdAt: string }> };
 type Payload = { items?: Session[]; summary?: { total: number; launched: number; failed: number; active: number } };
@@ -54,13 +54,18 @@ export default function GameSessionsPage() {
     <AdminToolbar><strong>รายการล่าสุด</strong><span style={mutedStyle}>{loading ? 'กำลังโหลด...' : `${items.length} รายการ`}</span></AdminToolbar>
     <AdminStack>{items.map((item) => <AdminCard key={item.id} compact tone={item.status === 'FAILED' ? 'danger' : 'neutral'}>
       <AdminRow>
-        <div style={mainInfoStyle}><h2 style={titleStyle}>{item.game?.name ?? item.id}</h2><span style={mutedStyle}>{item.provider?.name ?? '-'} · สมาชิก {item.user?.username ?? item.user?.phone ?? '-'}</span><span style={smallMutedStyle}>รหัสค่าย {shortId(item.providerSessionId ?? item.id)} · IP {item.ipAddress ?? '-'}</span><span style={smallMutedStyle}>{new Date(item.createdAt).toLocaleString('th-TH')}</span></div>
+        <div style={mainInfoStyle}><h2 style={titleStyle}>{item.game?.name ?? item.id}</h2><span style={mutedStyle}>{item.provider?.name ?? '-'} · สมาชิก {item.user?.username ?? item.user?.phone ?? '-'}</span></div>
         <div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge><AdminButton size="compact" tone="ghost" onClick={() => setPendingReconcile(item)} disabled={reconciling === item.id}>{reconciling === item.id ? 'กำลังตรวจ...' : 'ตรวจยอด'}</AdminButton></div>
       </AdminRow>
-      {item.launchUrl && <details><summary style={summaryStyle}>ข้อมูลเปิดเกม</summary><p style={urlStyle}>{item.launchUrl}</p></details>}
+      <div style={detailGridStyle}>
+        <AdminDataValue label="รหัสเซสชัน"><AdminCode title={item.providerSessionId ?? item.id}>{shortId(item.providerSessionId ?? item.id)}</AdminCode></AdminDataValue>
+        <AdminDataValue label="IP"><AdminCode>{item.ipAddress ?? '-'}</AdminCode></AdminDataValue>
+        <AdminDataValue label="สร้างเมื่อ">{new Date(item.createdAt).toLocaleString('th-TH')}</AdminDataValue>
+      </div>
+      {item.launchUrl && <details><summary style={summaryStyle}>ข้อมูลเปิดเกม</summary><AdminCode title={item.launchUrl}>{item.launchUrl}</AdminCode></details>}
       {item.errorMessage && <AdminNotice tone="danger">{item.errorCode ? `${item.errorCode}: ` : ''}{item.errorMessage}</AdminNotice>}
     </AdminCard>)}{!loading && items.length === 0 && <AdminEmpty>ยังไม่มีเซสชันเกม</AdminEmpty>}</AdminStack>
-    <AdminConfirmDialog open={Boolean(pendingReconcile)} title={pendingReconcile ? `ตรวจยอด ${pendingReconcile.game?.name ?? ''}` : ''} description="ระบบจะตรวจยอดและสถานะล่าสุดจากค่าย โดยไม่ควรเปลี่ยนยอดเงินจริง" confirmLabel="เริ่มตรวจยอด" tone="primary" busy={Boolean(pendingReconcile && reconciling === pendingReconcile.id)} onCancel={() => setPendingReconcile(null)} onConfirm={() => void reconcile()} details={pendingReconcile ? <><p><strong>สมาชิก:</strong> {pendingReconcile.user?.username ?? pendingReconcile.user?.phone ?? '-'}</p><p><strong>ค่าย:</strong> {pendingReconcile.provider?.name ?? '-'}</p><p><strong>สถานะ:</strong> {statusLabel(pendingReconcile.status)}</p></> : null} />
+    <AdminConfirmDialog open={Boolean(pendingReconcile)} title={pendingReconcile ? `ตรวจยอด ${pendingReconcile.game?.name ?? ''}` : ''} description="ระบบจะตรวจยอดและสถานะล่าสุดจากค่าย โดยไม่ควรเปลี่ยนยอดเงินจริง" confirmLabel="เริ่มตรวจยอด" tone="primary" busy={Boolean(pendingReconcile && reconciling === pendingReconcile.id)} onCancel={() => setPendingReconcile(null)} onConfirm={() => void reconcile()} details={pendingReconcile ? <><AdminDataValue label="สมาชิก">{pendingReconcile.user?.username ?? pendingReconcile.user?.phone ?? '-'}</AdminDataValue><AdminDataValue label="ค่าย">{pendingReconcile.provider?.name ?? '-'}</AdminDataValue><AdminDataValue label="สถานะ">{statusLabel(pendingReconcile.status)}</AdminDataValue></> : null} />
   </AdminPage>;
 }
 
@@ -69,9 +74,8 @@ function statusLabel(status: string) { return ({ CREATED: 'สร้างแล
 function snapshotStatus(status?: string) { return ({ MATCHED: 'ยอดตรงกัน', MISMATCH: 'ยอดไม่ตรง', UNKNOWN: 'ยังระบุไม่ได้' } as Record<string, string>)[status ?? ''] ?? status ?? '-'; }
 function statusTone(status: string) { if (status === 'LAUNCHED' || status === 'ACTIVE' || status === 'ENDED') return 'success'; if (status === 'FAILED' || status === 'EXPIRED') return 'danger'; if (status === 'CREATED') return 'warning'; return 'neutral'; }
 const mainInfoStyle = { display: 'grid', gap: 5, minWidth: 0 } as const;
+const detailGridStyle = { display: 'grid', gap: 8, marginTop: 2 } as const;
 const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.45, overflowWrap: 'anywhere' as const };
-const smallMutedStyle = { margin: 0, color: '#64748b', fontSize: 12, lineHeight: 1.4, overflowWrap: 'anywhere' as const };
 const titleStyle = { margin: 0, fontSize: 19, lineHeight: 1.18 } as const;
 const badgeStackStyle = { display: 'flex', gap: 7, flexWrap: 'wrap' as const, justifyContent: 'flex-end' as const };
-const urlStyle = { margin: '8px 0 0', padding: 10, borderRadius: 12, background: 'rgba(15,23,42,.72)', border: '1px solid rgba(148,163,184,.18)', color: '#c4b5fd', overflowWrap: 'anywhere' as const, fontSize: 12 };
-const summaryStyle = { cursor: 'pointer', color: '#cbd5e1', fontWeight: 800, fontSize: 13 } as const;
+const summaryStyle = { cursor: 'pointer', color: '#cbd5e1', fontWeight: 800, fontSize: 13, marginBottom: 8 } as const;
