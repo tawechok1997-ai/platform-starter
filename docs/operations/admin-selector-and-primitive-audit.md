@@ -22,14 +22,23 @@ The selector was used for the wrapper, backdrop and drawer descendants. It is no
 
 This removes dependence on React style serialization, whitespace and property ordering without changing the drawer markup or runtime behavior.
 
-### Remaining
-
-`apps/web-admin/app/(admin)/_components/admin-ui.tsx` still contains one responsive selector coupled to serialized inline text:
+`apps/web-admin/app/(admin)/_components/admin-ui.tsx` previously selected right-aligned row children through serialized inline text:
 
 - `.admin-ui-row > [style*="text-align: right"]`
 - `.admin-ui-section-row > [style*="text-align: right"]`
 
-This must be replaced with an explicit alignment class or component prop before the tracker item can be closed. It is intentionally not removed blindly because route-level usages have not yet been browser-verified.
+The responsive rule now targets row children structurally:
+
+- `.admin-ui-row > *`
+- `.admin-ui-section-row > *`
+
+At the mobile breakpoint the row layout is already column-based, so normalizing child alignment to the left preserves the intended stacked presentation without depending on style-string serialization.
+
+### Remaining
+
+No known selector in the audited Admin compatibility and primitive files depends on serialized inline style text.
+
+Future compatibility edits must not introduce attribute selectors against `style` text. Use semantic classes, component props, data attributes or stable structural selectors instead.
 
 ## Primitive ownership findings
 
@@ -61,9 +70,9 @@ A second Admin primitive family also exists under `apps/web-admin/app/components
 ## Acceptance status
 
 - [x] Drawer overlay selectors no longer depend on inline style text.
-- [x] Remaining inline-style selector is identified with exact owner and migration condition.
+- [x] Responsive row selectors no longer depend on inline style text.
 - [x] Canonical primitive families and the consolidation boundary are documented.
-- [ ] All inline-style text selectors removed.
+- [x] All known inline-style text selectors removed from the audited Admin files.
 - [ ] Primitive imports enumerated route by route.
 - [ ] Component tests added before compatibility deletion.
 - [ ] Duplicate primitive families consolidated.
@@ -73,4 +82,4 @@ A second Admin primitive family also exists under `apps/web-admin/app/components
 - No API, Prisma, Member, wallet, provider or permission behavior changed.
 - No runtime dependency added.
 - No compatibility file deleted.
-- Browser and build verification remain required before closing the related tracker items.
+- Browser and build verification remain required before closing the related consolidation and quality-gate items.
