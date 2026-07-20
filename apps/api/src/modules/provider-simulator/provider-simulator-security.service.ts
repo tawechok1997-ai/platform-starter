@@ -1,13 +1,13 @@
 import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHmac, timingSafeEqual } from 'crypto';
-import { PrismaService } from '../../database/prisma.service';
+import { ProviderSimulatorPersistenceRepository } from './provider-simulator-persistence.repository';
 
 @Injectable()
 export class ProviderSimulatorSecurityService {
   private readonly requests = new Map<string, number[]>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: ProviderSimulatorPersistenceRepository) {}
 
   async authenticate(
     headers: Record<string, string | string[] | undefined>,
@@ -62,13 +62,7 @@ export class ProviderSimulatorSecurityService {
   private async reserveNonce(merchantId: string, nonce: string, requestTimestamp: Date) {
     const expiresAt = new Date(requestTimestamp.getTime() + 10 * 60_000);
     try {
-      await this.prisma.$transaction(async (tx) => {
-        await tx.$executeRaw`DELETE FROM "provider_simulator_nonces" WHERE "expires_at" < CURRENT_TIMESTAMP`;
-        await tx.$executeRaw`
-          INSERT INTO "provider_simulator_nonces" ("merchant_id", "nonce", "request_timestamp", "expires_at")
-          VALUES (${merchantId}, ${nonce}, ${requestTimestamp}, ${expiresAt})
-        `;
-      });
+      await this.repository.reserveNonce(merchantId, nonce, requestTimestamp, expiresAt);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new UnauthorizedException('Simulator request nonce has already been used');
