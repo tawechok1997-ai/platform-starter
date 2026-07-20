@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { AdminBadge, AdminCard, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminPage } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminFilterBar, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminPage, AdminStack } from '../_components/admin-ui';
 
 type SettingsItem = [title: string, href: string, description: string, badge: string];
 
@@ -54,41 +54,39 @@ export default function SettingsPage() {
     ];
   }, [query]);
   const visibleCount = sections.reduce((sum, section) => sum + section.items.length, 0);
+  const totalCount = websiteItems.length + moneyItems.length + gameItems.length + safetyItems.length;
 
   return <AdminPage eyebrow="ศูนย์ควบคุมผู้ดูแล" title="การตั้งค่า" description="รวมการตั้งค่าเว็บไซต์ การเงิน เกม การเชื่อมต่อ และความปลอดภัยไว้ในหน้าเดียว">
     <AdminMetricGrid>
-      <AdminMetric title="เว็บไซต์และแบรนด์" value={String(websiteItems.length)} helper="เว็บไซต์ ไอคอน SEO ช่องทางติดต่อ และฟีเจอร์" />
+      <AdminMetric title="เว็บไซต์และแบรนด์" value={String(websiteItems.length)} helper="เว็บไซต์ ไอคอน การค้นหา ช่องทางติดต่อ และฟีเจอร์" />
       <AdminMetric title="การเงิน" value={String(moneyItems.length)} helper="คิวงาน กระเป๋าเงิน บัญชีแยกประเภท และความเสี่ยง" />
       <AdminMetric title="เกมและ API" value={String(gameItems.length)} helper="ค่ายเกม API รายการเกม และตัวเชื่อม" />
       <AdminMetric title="ความปลอดภัย" value={String(safetyItems.length)} helper="สิทธิ์ บันทึกกิจกรรม และลำดับเหตุการณ์" />
     </AdminMetricGrid>
 
-    <section style={quickPanelStyle}>
-      <div><h2 style={{ margin: 0 }}>ค้นหาการตั้งค่า</h2><p style={mutedStyle}>ค้นหาจากชื่อหมวด ชื่อหน้า หรือคำอธิบาย โดยไม่ต้องเปิดทุกหน้าแบบสำรวจเขาวงกต</p></div>
-      <div style={searchWrapStyle}><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="เช่น ปิดปรับปรุง ความเสี่ยง API เกม" aria-label="ค้นหาการตั้งค่า" style={searchInputStyle} />{query && <button type="button" onClick={() => setQuery('')} style={clearButtonStyle}>ล้าง</button>}</div>
-    </section>
+    <AdminCard title="ค้นหาการตั้งค่า" description="ค้นหาจากชื่อหมวด ชื่อหน้า หรือคำอธิบาย">
+      <AdminFilterBar resultText={`${visibleCount}/${totalCount} หน้า`}>
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="เช่น ปิดปรับปรุง ความเสี่ยง หรือ API เกม" aria-label="ค้นหาการตั้งค่า" />
+        {query && <AdminButton size="compact" tone="ghost" onClick={() => setQuery('')}>ล้างคำค้น</AdminButton>}
+      </AdminFilterBar>
+    </AdminCard>
 
-    <section style={quickPanelStyle}>
-      <div><h2 style={{ margin: 0 }}>ทางลัดสำคัญ</h2><p style={mutedStyle}>หน้าที่มีผลต่อระบบจริง การเงิน ค่ายเกม และข้อมูลลับของ API</p></div>
+    <AdminCard title="ทางลัดสำคัญ" description="หน้าที่มีผลต่อระบบจริง การเงิน ค่ายเกม และข้อมูลลับของ API">
       <div style={quickActionsStyle}><AdminLinkButton href="/settings/icons">ไอคอน</AdminLinkButton><AdminLinkButton href="/game-providers">ค่ายเกม</AdminLinkButton><AdminLinkButton href="/game-api-settings">API เกม</AdminLinkButton><AdminLinkButton href="/games">รายการเกม</AdminLinkButton><AdminLinkButton href="/settings/maintenance">ปิดปรับปรุง</AdminLinkButton></div>
-    </section>
+    </AdminCard>
 
     {sections.map((section) => section.items.length > 0 && <SettingsSection key={section.title} title={section.title} items={section.items} accent={section.accent} />)}
-    {visibleCount === 0 && <AdminCard><div style={emptyStyle}><strong>ไม่พบการตั้งค่า</strong><span>ลองใช้คำค้นที่กว้างขึ้น เช่น “เกม” “เงิน” หรือ “ความปลอดภัย”</span></div></AdminCard>}
+    {visibleCount === 0 && <AdminEmpty>ไม่พบการตั้งค่า ลองใช้คำค้นที่กว้างขึ้น เช่น “เกม” “เงิน” หรือ “ความปลอดภัย”</AdminEmpty>}
   </AdminPage>;
 }
 
-function SettingsSection({ title, items, accent = false }: { title: string; items: SettingsItem[]; accent?: boolean }) { return <><h2 style={sectionTitleStyle}>{title}</h2><AdminGrid>{items.map(([cardTitle, href, description, badge]) => <HubCard key={href} title={cardTitle} href={href} description={description} badge={badge} accent={accent} />)}</AdminGrid></>; }
-function HubCard({ title, href, description, badge, accent = false }: { title: string; href: string; description: string; badge: string; accent?: boolean }) { return <AdminCard><div style={cardStackStyle}><div style={cardTopStyle}><AdminBadge tone={accent ? 'warning' : 'neutral'}>{badge}</AdminBadge><span style={smallMutedStyle}>{accent ? 'งานปฏิบัติการ' : 'การตั้งค่า'}</span></div><h2 style={{ margin: 0, fontSize: 24 }}>{title}</h2><p style={mutedStyle}>{description}</p><AdminLinkButton href={href}>เปิดหน้า</AdminLinkButton></div></AdminCard>; }
+function SettingsSection({ title, items, accent = false }: { title: string; items: SettingsItem[]; accent?: boolean }) {
+  return <AdminStack><h2 style={sectionTitleStyle}>{title}</h2><AdminGrid>{items.map(([cardTitle, href, description, badge]) => <HubCard key={href} title={cardTitle} href={href} description={description} badge={badge} accent={accent} />)}</AdminGrid></AdminStack>;
+}
 
-const sectionTitleStyle = { margin: '24px 0 12px', fontSize: 'clamp(24px, 7vw, 34px)', lineHeight: 1 } as const;
-const quickPanelStyle = { border: '1px solid rgba(148,163,184,.18)', background: 'rgba(15,23,42,.58)', borderRadius: 22, padding: 18, display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' as const, alignItems: 'center' };
+function HubCard({ title, href, description, badge, accent = false }: { title: string; href: string; description: string; badge: string; accent?: boolean }) {
+  return <AdminCard title={title} description={description} action={<AdminBadge tone={accent ? 'warning' : 'neutral'}>{badge}</AdminBadge>}><AdminLinkButton href={href}>เปิดหน้า</AdminLinkButton></AdminCard>;
+}
+
+const sectionTitleStyle = { margin: '16px 0 0', fontSize: 'clamp(22px, 5vw, 30px)', lineHeight: 1.1 } as const;
 const quickActionsStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' as const };
-const searchWrapStyle = { display: 'flex', gap: 8, flex: '1 1 320px', maxWidth: 560 } as const;
-const searchInputStyle = { minHeight: 44, width: '100%', minWidth: 0, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px' } as const;
-const clearButtonStyle = { minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: 'rgba(148,163,184,.08)', color: '#f8fafc', padding: '0 14px', fontWeight: 800 } as const;
-const cardStackStyle = { display: 'grid', gap: 10 } as const;
-const cardTopStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 } as const;
-const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.55 } as const;
-const smallMutedStyle = { color: '#64748b', fontSize: 12, fontWeight: 900, textTransform: 'uppercase' as const, letterSpacing: '.08em' };
-const emptyStyle = { display: 'grid', gap: 6, textAlign: 'center' as const, padding: 20 };
