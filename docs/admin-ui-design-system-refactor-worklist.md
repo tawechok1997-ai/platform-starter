@@ -28,15 +28,15 @@
 
 - [ ] กวาดคำอังกฤษที่ไม่จำเป็นในหน้า Admin หลัก
 - [ ] ทำ action labels ให้สั้นและใช้คำเดียวกันทั้งระบบ
-- [ ] ทำ status wording ให้ใช้ mapping กลาง
-- [ ] ลดคำอธิบายที่ยาวเกินใน page/card/dialog
-- [ ] เปลี่ยนข้อความเชิงเทคนิคให้ผู้ดูแลเข้าใจง่าย โดยยังเปิดดูค่าจริงได้
+- [x] ทำ status wording ให้ใช้ mapping กลางในโมดูลหลักที่รีแฟกเตอร์แล้ว
+- [x] ลดคำอธิบายที่ยาวเกินใน Webhook, Audit Logs และ Reports
+- [x] เปลี่ยนข้อความเชิงเทคนิคให้ผู้ดูแลเข้าใจง่าย โดยยังเปิดดูค่าจริงได้ในโมดูลที่รีแฟกเตอร์แล้ว
 
 ## P2 — Unified layout
 
 - [ ] ทำ grid ของหน้าหลักให้ใช้ pattern เดียวกัน
 - [ ] ทำ page และ section spacing ให้สม่ำเสมอ
-- [ ] ทำ action area ให้ใช้ตำแหน่งและ wrapping contract เดียวกัน
+- [x] ทำ action area ให้ใช้ตำแหน่งและ wrapping contract เดียวกันใน shared primitives
 - [x] เพิ่ม shared filter bar
 - [x] เพิ่ม shared pagination
 - [ ] ย้ายหน้าหลักที่มี filter/search/pager มาใช้ shared components
@@ -66,12 +66,13 @@
 ## P5 — Visual polish
 
 - [ ] ใช้ loading skeleton ครบทุกหน้าหลัก
-- [x] Button hover, focus และ disabled baseline
+- [x] Button hover, focus, pressed และ disabled baseline
+- [x] เพิ่ม button border และ surface contrast ทุก tone
 - [ ] Dialog transition
 - [ ] Expand/collapse animation
 - [ ] Success/error feedback consistency audit
 - [x] Reduced-motion baseline
-- [ ] Contrast และ readability audit
+- [ ] Contrast และ readability audit ทั้งระบบ
 
 ## P6 — Cleanup
 
@@ -95,8 +96,8 @@
 - [x] Reconciliation dialogs
 - [x] Withdrawal dialogs
 - [x] Promotion workflows
-- [ ] Audit logs
-- [ ] Reports
+- [x] Audit logs
+- [x] Reports
 - [ ] Settings
 - [ ] Support
 - [ ] Risk detail surfaces
@@ -105,4 +106,7 @@
 
 - เพิ่ม `AdminFilterBar`, `AdminPagination` และ `AdminPayloadViewer` กลางที่ commit `6866f48d`
 - ย้าย Webhook logs มาใช้ filter bar และ payload viewer กลางที่ commit `f1f148cd`
-- ขั้นถัดไป: ย้ายหน้าที่มี filter/pager และ payload ซ้ำ จากนั้นกวาด wording และ inline styles ในโมดูลเดียวกัน
+- เพิ่ม button contrast layer และ interaction states ที่ commits `72168e99`, `8c9637b9`
+- ย้าย Audit Logs มาใช้ shared data, payload และ pagination ที่ commit `145e8504`
+- ย้าย Reports มาใช้ shared filter และ data layout ที่ commit `4aea10cd`
+- ขั้นถัดไป: ย้าย Settings, Support และ Risk detail surfaces จากนั้นกวาด inline styles และ component/helper ซ้ำ
