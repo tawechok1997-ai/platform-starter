@@ -13,7 +13,7 @@
 | Risk Module | ✅ Implementation complete | dashboard, AML, blacklist, alerts, timeline, investigation และ standard investigation flow |
 | Reports UX | ✅ Implementation complete | date filters, export UX, loading/empty states, accessible trend chart, queue aging และ reconciliation |
 | Responsive / Mobile static coverage | ✅ Guarded | six viewport route matrix, horizontal overflow guard, semantic checks และ Axe scan |
-| Authenticated mobile runtime verification | ⏸️ External dependency | ต้องใช้ seeded Admin credentials และ deployed environment ที่เข้าถึงข้อมูลจริง |
+| Authenticated runtime acceptance | ⏸️ External dependency | รัน workflow ในโหมด `require_authentication=true` ด้วย seeded Admin credentials เพื่อปิด acceptance ทั้งชุดในครั้งเดียว |
 
 ## Regression gates
 
@@ -29,8 +29,16 @@ Browser QA ตรวจ 15 protected routes บน viewport 320, 360, 390, 768, 
 
 ## งานที่ยังเหลือจริง
 
-- [ ] รัน authenticated browser matrix ด้วย seeded Admin credentials
-- [ ] ตรวจข้อมูลจริงและ interaction สำคัญบน mobile viewport
-- [ ] เก็บ visual evidence จาก deployment และปิดผลต่างที่พบ
+- [ ] รัน **Authenticated Runtime Acceptance** หนึ่งครั้งด้วย seeded Admin credentials
 
-งานข้างต้นเป็น runtime verification ไม่ใช่งาน implementation คงค้างใน source code
+Acceptance gate เดียวนี้รวมงานเดิมทั้งหมด:
+
+- authenticated browser matrix
+- ข้อมูลจริงและ interaction สำคัญบน mobile viewport
+- full-page visual evidence จาก deployment
+- horizontal overflow, title, meaningful content, console/page/request failures
+- semantic accessibility และ Axe WCAG checks
+
+เมื่อ workflow สำเร็จในโหมด `require_authentication=true` manifest จะตั้ง `acceptance.complete=true` และระบุสาม work item เดิมเป็นรายการที่ปิดแล้วอัตโนมัติ
+
+งานที่เหลือนี้เป็น runtime verification ที่ต้องใช้ credentials ภายนอก ไม่ใช่งาน implementation คงค้างใน source code
