@@ -5,6 +5,7 @@ This backlog turns structural overlap into explicit, reviewable work. Production
 ## Status
 
 - Completed: 2 production targets plus 7 safe-batch tasks
+- In progress: 1 production target
 - Remaining production targets: 5
 
 ## Completed targets
@@ -13,6 +14,12 @@ This backlog turns structural overlap into explicit, reviewable work. Production
 |---|---|---|---|
 | DEDUP-06 | Shared security primitives | Centralized empty `JwtModule.register({})` ownership in `common/security/JwtAuthModule`; member and admin session policy services remain separate | `pnpm audit:jwt-registration-boundary` fails when feature modules register JWT infrastructure directly |
 | DEDUP-07 | Shared frontend/platform utilities | Confirmed Admin and Member consume the existing `@platform/api-client` workspace package instead of introducing another transport layer | `pnpm audit:frontend-api-client-boundary` verifies both dependencies and blocks local redeclaration of shared API primitives |
+
+## In progress
+
+| ID | Target | Progress | Remaining closure evidence |
+|---|---|---|---|
+| DEDUP-04 | Activity projections | Declared `admin-activity` as the first-class cross-domain timeline owner; documented the narrower `/admin/operations/history` compatibility contract; exported `AdminActivityService`; moved `admin-activity` to shared JWT infrastructure | Inventory route consumers, move the compact audit query behind an `admin-activity` adapter, preserve the legacy response for one release cycle, then remove the transitional module |
 
 ## Remaining targets
 
