@@ -42,11 +42,11 @@ Future compatibility edits must not introduce attribute selectors against `style
 
 ## Primitive ownership findings
 
-The canonical Batch 1 primitives are exported from:
+The canonical Batch 1 route primitives are exported from:
 
 - `apps/web-admin/app/(admin)/_components/admin-ui.tsx`
 
-Current canonical exports include:
+Current canonical route exports include:
 
 - page, card, metric, grid and stack surfaces;
 - toolbar and filter bar;
@@ -56,17 +56,30 @@ Current canonical exports include:
 - pagination and confirm dialog;
 - command panel and action strip.
 
-A second Admin primitive family also exists under `apps/web-admin/app/components/admin-ui` and is used by the protected layout. Consolidation must therefore be evidence-led rather than deleting either family by filename.
+A second Admin primitive family exists at:
+
+- `apps/web-admin/app/components/admin-ui.tsx`
+
+It is consumed by the protected Admin layout and remains the shell compatibility boundary.
+
+### Shell primitive consolidation completed
+
+The protected-shell `AdminButton` and `AdminLinkButton` previously assembled tone, shared primitive and compatibility classes independently. They now use one exported `adminButtonClassName` contract.
+
+Both shell primitives now use `forwardRef`, preserving native button and anchor props while allowing focus ownership to move through the primitive instead of requiring raw interactive elements.
+
+This is the first low-risk consolidation slice. It does not delete the shell compatibility family or claim that the richer route family has already migrated.
 
 ## Component contract coverage
 
-`apps/web-admin/src/features/admin-redesign/admin-primitives.spec.ts` protects the current canonical primitive boundary without adding another test dependency.
+`apps/web-admin/src/features/admin-redesign/admin-primitives.spec.ts` protects the current primitive boundaries without adding another test dependency.
 
 The tests assert:
 
-- required primitive exports remain available;
+- required route primitive exports remain available;
 - buttons and icon buttons retain accessible-name wiring;
 - confirm dialogs retain `alertdialog`, modal labelling, Escape handling and initial focus behavior;
+- shell buttons and shell link buttons use one shared class-composition contract and forward refs;
 - loading and feedback primitives retain status and alert semantics;
 - audited Admin primitive and overlay files do not reintroduce selectors coupled to serialized inline style text.
 
@@ -89,11 +102,14 @@ These tests run through the existing `node:test` and `tsx` command used by `pnpm
 - [x] All known inline-style text selectors removed from the audited Admin files.
 - [ ] Primitive imports enumerated route by route.
 - [x] Component contract tests added before compatibility deletion.
-- [ ] Duplicate primitive families consolidated.
+- [x] Shell button and link class composition consolidated.
+- [x] Shell interactive primitives forward refs through the compatibility boundary.
+- [ ] Route and shell duplicate primitive families fully consolidated.
 
 ## Safety notes
 
 - No API, Prisma, Member, wallet, provider or permission behavior changed.
 - No runtime or test dependency added.
 - No compatibility file deleted.
+- Existing shell imports remain valid.
 - Browser and build verification remain required before closing the related consolidation and quality-gate items.
