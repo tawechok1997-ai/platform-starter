@@ -4,14 +4,15 @@ This backlog turns structural overlap into explicit, reviewable work. Production
 
 ## Status
 
-- Completed: 1 production target plus 7 safe-batch tasks
-- Remaining production targets: 6
+- Completed: 2 production targets plus 7 safe-batch tasks
+- Remaining production targets: 5
 
-## Completed target
+## Completed targets
 
 | ID | Target | Result | Regression guard |
 |---|---|---|---|
-| DEDUP-06 | Shared security primitives | Centralized empty `JwtModule.register({})` ownership in `common/security/JwtAuthModule`; member and admin session policy services remain separate | `node tools/audit-jwt-registration-boundary.mjs` fails when feature modules register JWT infrastructure directly |
+| DEDUP-06 | Shared security primitives | Centralized empty `JwtModule.register({})` ownership in `common/security/JwtAuthModule`; member and admin session policy services remain separate | `pnpm audit:jwt-registration-boundary` fails when feature modules register JWT infrastructure directly |
+| DEDUP-07 | Shared frontend/platform utilities | Confirmed Admin and Member consume the existing `@platform/api-client` workspace package instead of introducing another transport layer | `pnpm audit:frontend-api-client-boundary` verifies both dependencies and blocks local redeclaration of shared API primitives |
 
 ## Remaining targets
 
@@ -22,7 +23,6 @@ This backlog turns structural overlap into explicit, reviewable work. Production
 | DEDUP-03 | Member query ownership | `admin-members` mixes identity queries with operations projections | Extract a public member-query contract; keep admin-only mutations behind permissioned services |
 | DEDUP-04 | Activity projections | `activity` and `admin-activity` both expose operational timelines | Establish one projection owner and adapters for finance/admin views |
 | DEDUP-05 | Finance mutation ownership | `wallet`, `topups`, `withdrawals`, `finance` and `money-ops` may share ledger, idempotency and state-transition responsibilities | Produce a mutation ownership matrix; one owner per mutation and lock boundary |
-| DEDUP-07 | Shared frontend/platform utilities | Admin, Member and `packages/api-client` may contain repeated config, transport and UI helpers | Inventory identical responsibilities; extract only stable shared contracts with independent tests |
 
 ## Required evidence before module moves
 
