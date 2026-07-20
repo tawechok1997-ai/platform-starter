@@ -63,7 +63,7 @@ export default function AdminProfilePage() {
 
   const roleNames = (profile.roles ?? []).map((role) => typeof role === 'string' ? role : role.name || role.code || 'Role');
   const position = profile.position || roleNames[0] || 'Admin';
-  const permissions = profile.permissions ?? [];
+  const permissions: string[] = profile.permissions ?? [];
   const permissionGroups = groupPermissions(permissions);
 
   return (
@@ -124,7 +124,7 @@ export default function AdminProfilePage() {
         {permissionGroups.length > 0 ? <div className="admin-permission-groups">
           {permissionGroups.map(([module, items]) => <section key={module}>
             <header><strong>{moduleLabel(module)}</strong><span>{items.length}</span></header>
-            <div>{items.map((permission) => <code key={permission}>{permission}</code>)}</div>
+            <div>{items.map((permission: string) => <code key={permission}>{permission}</code>)}</div>
           </section>)}
         </div> : <p className="admin-profile-muted">บัญชีนี้ยังไม่มีรายการ permission ที่แสดงได้</p>}
       </AdminCard>
