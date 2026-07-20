@@ -24,7 +24,7 @@ jobs:
   cleanup:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,29 +32,32 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Remove exact duplicates and junk
+      - name: Remove exact duplicates and junk from uploaded assets
         run: node tools/cleanup-game-assets.mjs
-      - name: Move active assets into canonical catalog
+      - name: Move every remaining mobile asset into canonical categories
         run: node tools/organize-game-assets.mjs
-      - name: Rebuild inventory and rename reports
+      - name: Rebuild canonical inventory and rename reports
         run: node tools/build-game-asset-inventory.mjs
-      - name: Verify no exact duplicates remain
+      - name: Verify canonical catalog has no exact duplicates
         run: node tools/cleanup-game-assets.mjs --dry-run
-      - name: Verify catalog no longer references raw upload paths
+      - name: Verify migration is complete
         run: |
+          test ! -e asset/mobil
+          test -f asset/catalog/mobile/catalog.json
+          test -f asset/catalog/mobile/manifest.json
           if grep -q "asset/mobil/" apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts; then
             echo 'Provider catalog still references asset/mobil.'
             exit 1
           fi
-          test -f asset/catalog/mobile/catalog.json
-      - name: Commit normalized assets
+          node -e "const m=require('./asset/catalog/mobile/manifest.json'); if(!Array.isArray(m.items)||m.items.length===0) process.exit(1); console.log('Canonical assets:',m.items.length)"
+      - name: Commit fully organized asset library
         run: |
           if git diff --quiet; then
-            echo 'No asset organization changes required.'
+            echo 'No asset migration changes required.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add asset/mobil asset/catalog/mobile docs/generated apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts
-          git commit -m 'chore(game-assets): organize active catalog assets'
+          git add -A asset docs/generated apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts
+          git commit -m 'chore(game-assets): migrate all mobile assets into canonical library'
           git push
