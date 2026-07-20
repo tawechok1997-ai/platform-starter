@@ -118,6 +118,7 @@ Decision source: [`../architecture/admin-dependency-decisions.md`](../architectu
 - `7e7e939e` — selector audit closed with no known remaining inline-style text selectors.
 - `bf61be87` — canonical Admin primitive component contract tests.
 - `f8dda7b0` — primitive audit updated with test coverage and safety boundary.
+- `5a200e43` — component-test checklist and progress count updated.
 
 ## Verification commands
 
