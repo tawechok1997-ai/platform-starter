@@ -53,7 +53,7 @@ export class MemberGameCatalogService {
         { name: 'asc' },
       ],
       include: {
-        provider: { select: { id: true, name: true, code: true, status: true } },
+        provider: { select: { id: true, name: true, code: true, status: true, logoUrl: true } },
         media: {
           where: { status: { in: ['READY', 'FALLBACK'] } },
           orderBy: [{ isOverride: 'desc' }, { createdAt: 'desc' }],
@@ -88,7 +88,11 @@ export class MemberGameCatalogService {
     const items = allItems.slice(start, start + limit);
     const categories = Array.from(new Set(allItems.map((item) => item.category))).sort((a, b) => a.localeCompare(b, 'th'));
     const providers = Array.from(
-      new Map(allItems.map((item) => [item.provider.code, { code: item.provider.code, name: item.provider.name }])).values(),
+      new Map(allItems.map((item) => [item.provider.code, {
+        code: item.provider.code,
+        name: item.provider.name,
+        logoUrl: item.provider.logoUrl ?? null,
+      }])).values(),
     ).sort((a, b) => a.name.localeCompare(b.name, 'th'));
 
     return {
