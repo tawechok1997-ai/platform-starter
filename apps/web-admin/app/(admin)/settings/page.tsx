@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminFilterBar, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminPage, AdminStack } from '../_components/admin-ui';
+import { AdminActionStrip, AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminFilterBar, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminPage, AdminStack } from '../_components/admin-ui';
 
 type SettingsItem = [title: string, href: string, description: string, badge: string];
 
@@ -64,29 +64,26 @@ export default function SettingsPage() {
       <AdminMetric title="ความปลอดภัย" value={String(safetyItems.length)} helper="สิทธิ์ บันทึกกิจกรรม และลำดับเหตุการณ์" />
     </AdminMetricGrid>
 
-    <AdminCard title="ค้นหาการตั้งค่า" description="ค้นหาจากชื่อหมวด ชื่อหน้า หรือคำอธิบาย">
+    <AdminCard title="ค้นหาการตั้งค่า" description="ค้นหาจากชื่อหมวด หน้า หรือคำอธิบาย">
       <AdminFilterBar resultText={`${visibleCount}/${totalCount} หน้า`}>
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="เช่น ปิดปรับปรุง ความเสี่ยง หรือ API เกม" aria-label="ค้นหาการตั้งค่า" />
         {query && <AdminButton size="compact" tone="ghost" onClick={() => setQuery('')}>ล้างคำค้น</AdminButton>}
       </AdminFilterBar>
     </AdminCard>
 
-    <AdminCard title="ทางลัดสำคัญ" description="หน้าที่มีผลต่อระบบจริง การเงิน ค่ายเกม และข้อมูลลับของ API">
-      <div style={quickActionsStyle}><AdminLinkButton href="/settings/icons">ไอคอน</AdminLinkButton><AdminLinkButton href="/game-providers">ค่ายเกม</AdminLinkButton><AdminLinkButton href="/game-api-settings">API เกม</AdminLinkButton><AdminLinkButton href="/games">รายการเกม</AdminLinkButton><AdminLinkButton href="/settings/maintenance">ปิดปรับปรุง</AdminLinkButton></div>
+    <AdminCard title="ทางลัดสำคัญ" description="หน้าที่มีผลต่อระบบจริง การเงิน ค่ายเกม และข้อมูลลับ">
+      <AdminActionStrip><AdminLinkButton href="/settings/icons">ไอคอน</AdminLinkButton><AdminLinkButton href="/game-providers">ค่ายเกม</AdminLinkButton><AdminLinkButton href="/game-api-settings">API เกม</AdminLinkButton><AdminLinkButton href="/games">รายการเกม</AdminLinkButton><AdminLinkButton href="/settings/maintenance">ปิดปรับปรุง</AdminLinkButton></AdminActionStrip>
     </AdminCard>
 
     {sections.map((section) => section.items.length > 0 && <SettingsSection key={section.title} title={section.title} items={section.items} accent={section.accent} />)}
-    {visibleCount === 0 && <AdminEmpty>ไม่พบการตั้งค่า ลองใช้คำค้นที่กว้างขึ้น เช่น “เกม” “เงิน” หรือ “ความปลอดภัย”</AdminEmpty>}
+    {visibleCount === 0 && <AdminEmpty>ไม่พบการตั้งค่า ลองค้นหาคำที่กว้างขึ้น เช่น “เกม” “เงิน” หรือ “ความปลอดภัย”</AdminEmpty>}
   </AdminPage>;
 }
 
 function SettingsSection({ title, items, accent = false }: { title: string; items: SettingsItem[]; accent?: boolean }) {
-  return <AdminStack><h2 style={sectionTitleStyle}>{title}</h2><AdminGrid>{items.map(([cardTitle, href, description, badge]) => <HubCard key={href} title={cardTitle} href={href} description={description} badge={badge} accent={accent} />)}</AdminGrid></AdminStack>;
+  return <AdminStack><h2 className="admin-ui-section-title">{title}</h2><AdminGrid>{items.map(([cardTitle, href, description, badge]) => <HubCard key={href} title={cardTitle} href={href} description={description} badge={badge} accent={accent} />)}</AdminGrid></AdminStack>;
 }
 
 function HubCard({ title, href, description, badge, accent = false }: { title: string; href: string; description: string; badge: string; accent?: boolean }) {
   return <AdminCard title={title} description={description} action={<AdminBadge tone={accent ? 'warning' : 'neutral'}>{badge}</AdminBadge>}><AdminLinkButton href={href}>เปิดหน้า</AdminLinkButton></AdminCard>;
 }
-
-const sectionTitleStyle = { margin: '16px 0 0', fontSize: 'clamp(22px, 5vw, 30px)', lineHeight: 1.1 } as const;
-const quickActionsStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' as const };
