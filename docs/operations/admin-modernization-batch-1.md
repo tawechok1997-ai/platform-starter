@@ -25,14 +25,17 @@ Modernize the Admin application in parallel-safe batches without changing Member
 - [x] Disable the framework-identifying response header.
 - [x] Enable React strict mode.
 - [x] Add an Admin bundle-analysis command.
+- [x] Add a root loading state with live-region feedback.
+- [x] Add a recoverable root error state with retry and dashboard fallback.
+- [x] Add a root not-found state.
 - [ ] Run Admin lint, test, typecheck, build, and bundle analysis.
 - [ ] Record baseline route chunks and largest client bundles.
 
 ### B. Documentation alignment
 
-- [ ] Update `docs/ADMIN_UX_UI_REDESIGN.md` from the obsolete Next.js 14 / React 18 baseline to the actual Next.js 15.5.18 / React 19.2.7 baseline.
-- [ ] Separate implemented facts from planned dependencies.
-- [ ] Link this execution record from `docs/README.md`.
+- [x] Update `docs/ADMIN_UX_UI_REDESIGN.md` from the obsolete Next.js 14 / React 18 baseline to the actual Next.js 15.5.18 / React 19.2.7 baseline.
+- [x] Separate implemented facts from planned dependencies.
+- [ ] Link this execution record from `docs/README.md` after the batch passes verification.
 
 ### C. Styling and component ownership
 
@@ -64,10 +67,22 @@ Modernize the Admin application in parallel-safe batches without changing Member
 
 ### G. Quality gates
 
+- [ ] Retain browser evidence for loading, error, and not-found states.
 - [ ] Retain six-viewport Admin visual evidence.
 - [ ] Add keyboard, focus restoration, 200% zoom, reduced-motion, and axe evidence.
 - [ ] Add console/network failure gates for authenticated Admin flows.
 - [ ] Add performance budgets for route JS, layout shift, and long-table rendering.
+
+## Completed commits
+
+- `8bcca0c1` — Admin metadata and root-layout modernization.
+- `fc113cd0` — React strict mode, powered-by header removal, and analyzer wiring.
+- `1bdedc98` — Admin package bundle-analysis command.
+- `afc0e27d` — initial parallel-safe execution tracker.
+- `d8ddbadf` — root loading state.
+- `51e5678e` — recoverable root error state.
+- `a25dbefa` — root not-found state.
+- `ace3168c` and `c68a2931` — shared root-state styling and layout import.
 
 ## Verification commands
 
@@ -78,6 +93,12 @@ pnpm --filter @platform/web-admin typecheck
 pnpm --filter @platform/web-admin build
 pnpm --filter @platform/web-admin analyze
 ```
+
+## Current remaining risk
+
+- CI status has not appeared for the latest branch head yet.
+- The root layout still imports many overlapping Admin stylesheets; consolidation must wait for selector ownership and visual evidence.
+- Browser, accessibility, bundle, and visual verification are not yet claimed as passing.
 
 ## Handoff record
 
