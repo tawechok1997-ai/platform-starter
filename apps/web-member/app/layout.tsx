@@ -31,6 +31,7 @@ import './member-games.css';
 import './games/games.css';
 import './games/lobby-enhancements.css';
 import './games/provider-lobby.css';
+import './games/game-detail-provider-theme.css';
 import './guide/guide.css';
 import './member-promotions.css';
 import './public-auth-shell.css';
@@ -66,22 +67,8 @@ import MemberHeroSwipeController from './components/member-hero-swipe-controller
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-};
+export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="th">
-      <body>
-        <SiteSettingsProvider>
-          <MemberSessionProvider>
-            <MemberHeroSwipeController />
-            <MemberChrome>{children}</MemberChrome>
-          </MemberSessionProvider>
-        </SiteSettingsProvider>
-      </body>
-    </html>
-  );
+  return <html lang="th"><body><SiteSettingsProvider><MemberSessionProvider><MemberHeroSwipeController /><MemberChrome>{children}</MemberChrome></MemberSessionProvider></SiteSettingsProvider></body></html>;
 }
