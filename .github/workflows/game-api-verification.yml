@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'apps/api/src/modules/provider-simulator/**'
+      - 'apps/api/src/modules/game-platform/**'
+      - 'apps/api/src/modules/wallet/**'
+      - 'apps/api/package.json'
+      - 'prisma/**'
       - 'apps/web-member/app/games/**'
       - 'apps/web-member/src/features/games/**'
       - 'apps/web-member/package.json'
@@ -15,6 +19,10 @@ on:
     branches: [main]
     paths:
       - 'apps/api/src/modules/provider-simulator/**'
+      - 'apps/api/src/modules/game-platform/**'
+      - 'apps/api/src/modules/wallet/**'
+      - 'apps/api/package.json'
+      - 'prisma/**'
       - 'apps/web-member/app/games/**'
       - 'apps/web-member/src/features/games/**'
       - 'apps/web-member/package.json'
@@ -30,7 +38,24 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: platform_game_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d platform_game_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_game_ci?schema=public
+      GAME_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_game_ci?schema=public
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -43,8 +68,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Generate Prisma client
         run: pnpm db:generate
+      - name: Apply database migrations
+        run: pnpm db:migrate
       - name: Provider simulator unit tests
-        run: pnpm --filter @platform/api exec jest provider-simulator.service.spec.ts --runInBand
+        run: pnpm --filter @platform/api exec jest provider-simulator.service.spec.ts provider-simulator-round.service.spec.ts transaction-retry.spec.ts --runInBand
+      - name: PostgreSQL game concurrency tests
+        run: pnpm --filter @platform/api test:db:game
       - name: API typecheck
         run: pnpm --filter @platform/api typecheck
       - name: API build
