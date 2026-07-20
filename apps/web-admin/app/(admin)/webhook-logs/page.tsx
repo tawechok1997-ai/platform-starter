@@ -41,8 +41,8 @@ export default function WebhookLogsPage() {
     <AdminStack>{filtered.map((item) => <AdminCard key={item.id} compact tone={item.status === 'FAILED' || !item.signatureValid ? 'danger' : 'neutral'}>
       <AdminRow><div style={mainInfoStyle}><h2 style={titleStyle}>{eventLabel(item.eventType)}</h2><span style={mutedStyle}>{item.provider?.name ?? item.provider?.code ?? '-'} · HTTP {item.responseStatus ?? '-'}</span></div><div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminBadge tone={item.signatureValid ? 'success' : 'danger'}>{item.signatureValid ? 'ลายเซ็นถูกต้อง' : 'ลายเซ็นไม่ถูกต้อง'}</AdminBadge><AdminButton size="compact" tone="ghost" onClick={() => setExpanded(expanded === item.id ? '' : item.id)}>{expanded === item.id ? 'ซ่อนข้อมูล' : 'ข้อมูลเทคนิค'}</AdminButton></div></AdminRow>
       <div style={detailGridStyle}>
-        <AdminDataValue label="รหัสกันซ้ำ"><AdminCode title={item.idempotencyKey ?? undefined}>{shortId(item.idempotencyKey)}</AdminCode></AdminDataValue>
-        <AdminDataValue label="เลขอ้างอิงค่าย"><AdminCode title={item.providerTransactionId ?? undefined}>{shortId(item.providerTransactionId)}</AdminCode></AdminDataValue>
+        <AdminDataValue label="รหัสกันซ้ำ"><AdminCode {...(item.idempotencyKey ? { title: item.idempotencyKey } : {})}>{shortId(item.idempotencyKey)}</AdminCode></AdminDataValue>
+        <AdminDataValue label="เลขอ้างอิงค่าย"><AdminCode {...(item.providerTransactionId ? { title: item.providerTransactionId } : {})}>{shortId(item.providerTransactionId)}</AdminCode></AdminDataValue>
         <AdminDataValue label="สร้างเมื่อ">{new Date(item.createdAt).toLocaleString('th-TH')}</AdminDataValue>
       </div>
       {item.errorMessage && <AdminNotice tone="danger">{item.errorCode ? `${item.errorCode}: ` : ''}{item.errorMessage}</AdminNotice>}
