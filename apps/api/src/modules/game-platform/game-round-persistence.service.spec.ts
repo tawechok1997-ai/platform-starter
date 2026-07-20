@@ -28,23 +28,35 @@ describe('GameRoundPersistenceService', () => {
   it('creates and persists a bet transition with round totals', async () => {
     const tx = {
       $executeRaw: jest.fn().mockResolvedValue(1),
-      $queryRaw: jest.fn().mockResolvedValueOnce([]).mockResolvedValueOnce([createdRound()]),
+      $queryRaw: jest.fn()
+        .mockResolvedValueOnce([{ locked: true }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([createdRound()])
+        .mockResolvedValueOnce([{ exists: false }]),
     };
     const result = await service.applyWebhookEvents(tx as never, '22222222-2222-4222-8222-222222222222', [{
       eventType: 'bet_placed', providerTransactionId: 'bet-1', roundId: 'provider-round-1', payload: { amount: '10.00' },
     }]);
     expect(result).toEqual([expect.objectContaining({ providerRoundId: 'provider-round-1', state: 'BET', event: 'PLACE_BET', replay: false })]);
-    expect(tx.$executeRaw).toHaveBeenCalledTimes(3);
+    expect(tx.$queryRaw).toHaveBeenCalledTimes(4);
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(2);
   });
 
   it('replays the matching provider transaction without another update', async () => {
     const round = { ...createdRound(), state: 'BET' as const, betTransactionId: 'bet-1' };
-    const tx = { $executeRaw: jest.fn().mockResolvedValue(1), $queryRaw: jest.fn().mockResolvedValueOnce([round]) };
+    const tx = {
+      $executeRaw: jest.fn().mockResolvedValue(1),
+      $queryRaw: jest.fn()
+        .mockResolvedValueOnce([{ locked: true }])
+        .mockResolvedValueOnce([round])
+        .mockResolvedValueOnce([{ exists: true }]),
+    };
     const result = await service.applyWebhookEvents(tx as never, '22222222-2222-4222-8222-222222222222', [{
       eventType: 'BET', providerTransactionId: 'bet-1', roundId: 'provider-round-1', payload: {},
     }]);
     expect(result[0]).toEqual(expect.objectContaining({ state: 'BET', replay: true }));
-    expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
+    expect(tx.$queryRaw).toHaveBeenCalledTimes(3);
+    expect(tx.$executeRaw).not.toHaveBeenCalled();
   });
 
   it('ignores unsupported events', async () => {
