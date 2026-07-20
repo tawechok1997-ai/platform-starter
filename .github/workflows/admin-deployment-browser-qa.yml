@@ -114,7 +114,7 @@ jobs:
             ? 'signed-in'
             : 'redirect-only';
           const manifest = {
-            schemaVersion: 2,
+            schemaVersion: 3,
             workflow: process.env.GITHUB_WORKFLOW,
             runId: process.env.GITHUB_RUN_ID,
             runAttempt: process.env.GITHUB_RUN_ATTEMPT,
@@ -128,6 +128,13 @@ jobs:
             loginRoute: matrix.loginRoute,
             protectedRoutes: matrix.protectedRoutes,
             viewports: matrix.viewports,
+            accessibility: {
+              engine: '@axe-core/playwright',
+              standards: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'],
+              blockedImpacts: ['critical', 'serious'],
+              semanticChecks: ['main-landmark', 'single-h1', 'form-control-labels'],
+              violationEvidence: 'axe-*.json attachments on failure',
+            },
             tests: { total, passed, failed, skipped },
             generatedAt: new Date().toISOString(),
           };
@@ -154,9 +161,11 @@ jobs:
           console.log(`- Routes: ${manifest.loginRoute}, ${manifest.protectedRoutes.join(', ')}`);
           console.log(`- Viewports: ${manifest.viewports.map((item) => item.width).join(', ')} px`);
           console.log(`- Tests: ${manifest.tests.passed} passed, ${manifest.tests.failed} failed, ${manifest.tests.skipped} skipped`);
+          console.log(`- Accessibility: Axe ${manifest.accessibility.standards.join(', ')}; blocks ${manifest.accessibility.blockedImpacts.join('/')} violations`);
+          console.log(`- Semantic checks: ${manifest.accessibility.semanticChecks.join(', ')}`);
           console.log(`- Commit: \`${manifest.commit}\``);
           console.log(`- Run: ${manifest.runUrl}`);
-          console.log('- Evidence: JSON manifest, Playwright report, screenshots, traces, and failure videos');
+          console.log('- Evidence: JSON manifest, Axe violation attachments, Playwright report, screenshots, traces, and failure videos');
           NODE
 
       - name: Upload Playwright evidence
