@@ -1,0 +1,18 @@
+{
+  "loginRoute": "/login",
+  "protectedRoutes": [
+    "/dashboard",
+    "/reports",
+    "/promotion-center",
+    "/risk-operations",
+    "/wallet-analytics"
+  ],
+  "viewports": [
+    { "name": "mobile-320", "width": 320, "height": 740 },
+    { "name": "mobile-360", "width": 360, "height": 800 },
+    { "name": "mobile-390", "width": 390, "height": 844 },
+    { "name": "tablet-768", "width": 768, "height": 1024 },
+    { "name": "desktop-1024", "width": 1024, "height": 768 },
+    { "name": "desktop-1440", "width": 1440, "height": 1000 }
+  ]
+}
