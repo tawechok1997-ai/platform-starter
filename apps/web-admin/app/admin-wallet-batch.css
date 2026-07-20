@@ -1,0 +1,215 @@
+/* Shared polish for remaining wallet surfaces: detail, reconciliation, statement, analytics. */
+.admin-wallet-detail,
+.admin-reconciliation-center,
+.admin-wallet-statement,
+.admin-wallet-analytics {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.admin-wallet-detail__hero,
+.admin-reconciliation-center__hero,
+.admin-wallet-statement__hero,
+.admin-wallet-analytics__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(220px, .8fr);
+  gap: 14px;
+}
+
+.admin-wallet-detail__panel,
+.admin-reconciliation-center__panel,
+.admin-wallet-statement__panel,
+.admin-wallet-analytics__panel {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  background: rgba(255,255,255,.022);
+}
+
+.admin-wallet-detail__stats,
+.admin-reconciliation-center__stats,
+.admin-wallet-statement__stats,
+.admin-wallet-analytics__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-wallet-detail__stat,
+.admin-reconciliation-center__stat,
+.admin-wallet-statement__stat,
+.admin-wallet-analytics__stat {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  background: rgba(255,255,255,.018);
+}
+
+.admin-wallet-detail__stat span,
+.admin-reconciliation-center__stat span,
+.admin-wallet-statement__stat span,
+.admin-wallet-analytics__stat span {
+  display: block;
+  color: var(--admin-text-secondary);
+  font-size: 12px;
+}
+
+.admin-wallet-detail__stat strong,
+.admin-reconciliation-center__stat strong,
+.admin-wallet-statement__stat strong,
+.admin-wallet-analytics__stat strong {
+  display: block;
+  margin-top: 6px;
+  font-size: clamp(18px, 2vw, 24px);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.admin-wallet-detail__toolbar,
+.admin-reconciliation-center__toolbar,
+.admin-wallet-statement__toolbar,
+.admin-wallet-analytics__toolbar {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  background: rgba(255,255,255,.018);
+}
+
+.admin-wallet-detail__toolbar > *,
+.admin-reconciliation-center__toolbar > *,
+.admin-wallet-statement__toolbar > *,
+.admin-wallet-analytics__toolbar > * {
+  min-width: 0;
+}
+
+.admin-wallet-detail__table-shell,
+.admin-reconciliation-center__table-shell,
+.admin-wallet-statement__table-shell,
+.admin-wallet-analytics__table-shell {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  scrollbar-gutter: stable;
+}
+
+.admin-wallet-detail__table,
+.admin-reconciliation-center__table,
+.admin-wallet-statement__table,
+.admin-wallet-analytics__table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.admin-wallet-detail__table th,
+.admin-wallet-detail__table td,
+.admin-reconciliation-center__table th,
+.admin-reconciliation-center__table td,
+.admin-wallet-statement__table th,
+.admin-wallet-statement__table td,
+.admin-wallet-analytics__table th,
+.admin-wallet-analytics__table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--admin-border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-wallet-detail__table th,
+.admin-reconciliation-center__table th,
+.admin-wallet-statement__table th,
+.admin-wallet-analytics__table th {
+  color: var(--admin-text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+  background: rgba(255,255,255,.02);
+}
+
+.admin-wallet-detail__amount,
+.admin-reconciliation-center__amount,
+.admin-wallet-statement__amount,
+.admin-wallet-analytics__amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-wallet-detail__state,
+.admin-reconciliation-center__state,
+.admin-wallet-statement__state,
+.admin-wallet-analytics__state {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  padding: 28px 18px;
+  color: var(--admin-text-secondary);
+  text-align: center;
+}
+
+.admin-wallet-detail :where(button,a,input,select,textarea):focus-visible,
+.admin-reconciliation-center :where(button,a,input,select,textarea):focus-visible,
+.admin-wallet-statement :where(button,a,input,select,textarea):focus-visible,
+.admin-wallet-analytics :where(button,a,input,select,textarea):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(109,124,255,.18);
+}
+
+@media (max-width: 1100px) {
+  .admin-wallet-detail__stats,
+  .admin-reconciliation-center__stats,
+  .admin-wallet-statement__stats,
+  .admin-wallet-analytics__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-wallet-detail,
+  .admin-reconciliation-center,
+  .admin-wallet-statement,
+  .admin-wallet-analytics {
+    gap: 12px;
+  }
+
+  .admin-wallet-detail__hero,
+  .admin-reconciliation-center__hero,
+  .admin-wallet-statement__hero,
+  .admin-wallet-analytics__hero,
+  .admin-wallet-detail__stats,
+  .admin-reconciliation-center__stats,
+  .admin-wallet-statement__stats,
+  .admin-wallet-analytics__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-wallet-detail__toolbar,
+  .admin-reconciliation-center__toolbar,
+  .admin-wallet-statement__toolbar,
+  .admin-wallet-analytics__toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-wallet-detail__toolbar > *,
+  .admin-reconciliation-center__toolbar > *,
+  .admin-wallet-statement__toolbar > *,
+  .admin-wallet-analytics__toolbar > * {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-wallet-detail *,
+  .admin-reconciliation-center *,
+  .admin-wallet-statement *,
+  .admin-wallet-analytics * {
+    scroll-behavior: auto !important;
+  }
+}
