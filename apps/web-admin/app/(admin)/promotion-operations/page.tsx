@@ -67,7 +67,7 @@ export default function PromotionOperationsPage() {
 
         <AdminCard title="คำขอรับโปรล่าสุด" description="ดูสถานะล่าสุดก่อนเข้าสู่คิวตรวจ">
           <AdminStack>{claims.map((item) => <article className="admin-promotion-operations__claim" key={item.id}><div><strong>{item.promotionTitle ?? 'Promotion claim'}</strong><small>{item.user?.username ?? 'ไม่พบชื่อสมาชิก'} · {new Date(item.createdAt).toLocaleString('th-TH')}</small></div><AdminBadge tone={['APPROVED', 'COMPLETED'].includes(String(item.status).toUpperCase()) ? 'success' : ['REJECTED', 'CANCELLED'].includes(String(item.status).toUpperCase()) ? 'danger' : 'warning'}>{item.status}</AdminBadge></article>)}{claims.length === 0 && <AdminEmpty>ไม่มีคำขอรับโปรล่าสุด</AdminEmpty>}</AdminStack>
-          <div className="admin-promotion-operations__actions"><AdminLinkButton href="/promotion-claims">เปิดคิวตรวจเคลม</AdminLinkButton><AdminLinkButton href="/bonus-ledgers">ดูประวัติโบนัสด</AdminLinkButton></div>
+          <div className="admin-promotion-operations__actions"><AdminLinkButton href="/promotion-claims">เปิดคิวตรวจเคลม</AdminLinkButton><AdminLinkButton href="/bonus-ledgers">ดูรายการโบนัส</AdminLinkButton></div>
         </AdminCard>
       </div>}
     </section>
