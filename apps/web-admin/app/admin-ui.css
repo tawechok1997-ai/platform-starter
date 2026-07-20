@@ -138,6 +138,349 @@
   margin: 6px 0 0;
 }
 
+/* Admin typography contract ------------------------------------------------ */
+.admin-ui,
+.admin-shell,
+main {
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+.admin-ui h1,
+.admin-ui h2,
+.admin-ui h3,
+.admin-ui h4,
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3,
+.admin-shell h4,
+main h1,
+main h2,
+main h3,
+main h4 {
+  margin-block: 0;
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: -.018em;
+  overflow-wrap: anywhere;
+}
+
+.admin-ui h1,
+.admin-shell h1,
+main h1 {
+  font-size: clamp(1.55rem, 1.3rem + .7vw, 2.1rem);
+  line-height: 1.2;
+}
+
+.admin-ui h2,
+.admin-shell h2,
+main h2 {
+  font-size: clamp(1.2rem, 1.08rem + .35vw, 1.5rem);
+  line-height: 1.3;
+}
+
+.admin-ui h3,
+.admin-shell h3,
+main h3 {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.admin-ui :where(p, li, dd),
+.admin-shell :where(p, li, dd),
+main :where(p, li, dd) {
+  line-height: 1.62;
+}
+
+.admin-ui :where(code, pre, kbd, samp, [data-numeric='true'], .numeric, .tabular-nums),
+.admin-shell :where(code, pre, kbd, samp, [data-numeric='true'], .numeric, .tabular-nums),
+main :where(code, pre, kbd, samp, [data-numeric='true'], .numeric, .tabular-nums) {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.admin-ui :where(.muted, .hint, .help-text, .description, small),
+.admin-shell :where(.muted, .hint, .help-text, .description, small),
+main :where(.muted, .hint, .help-text, .description, small) {
+  color: var(--muted);
+  font-size: .8125rem;
+  line-height: 1.55;
+}
+
+/* Shared form system ------------------------------------------------------- */
+.admin-ui :where(form, .form, .admin-form),
+.admin-shell :where(form, .form, .admin-form),
+main :where(form, .form, .admin-form) {
+  min-width: 0;
+}
+
+.admin-ui :where(.field, .form-field, .admin-field, .admin-ui-field),
+.admin-shell :where(.field, .form-field, .admin-field, .admin-ui-field),
+main :where(.field, .form-field, .admin-field, .admin-ui-field) {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.admin-ui :where(label, .field-label, .form-label),
+.admin-shell :where(label, .field-label, .form-label),
+main :where(label, .field-label, .form-label) {
+  color: var(--text);
+  font-size: .8125rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.admin-ui :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select, textarea),
+.admin-shell :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select, textarea),
+main :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select, textarea) {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface2);
+  color: var(--text);
+  font: inherit;
+  font-size: .9375rem;
+  line-height: 1.45;
+  transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+.admin-ui :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select),
+.admin-shell :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select),
+main :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select) {
+  min-height: 42px;
+  padding: 9px 12px;
+}
+
+.admin-ui textarea,
+.admin-shell textarea,
+main textarea {
+  min-height: 112px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.admin-ui :where(input, textarea)::placeholder,
+.admin-shell :where(input, textarea)::placeholder,
+main :where(input, textarea)::placeholder {
+  color: var(--muted);
+  opacity: .78;
+}
+
+.admin-ui :where(input, select, textarea):hover:not(:disabled),
+.admin-shell :where(input, select, textarea):hover:not(:disabled),
+main :where(input, select, textarea):hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--brand) 34%, var(--line));
+}
+
+.admin-ui :where(input, select, textarea):focus-visible,
+.admin-shell :where(input, select, textarea):focus-visible,
+main :where(input, select, textarea):focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 20%, transparent);
+}
+
+.admin-ui :where(input, select, textarea)[aria-invalid='true'],
+.admin-ui :where(input, select, textarea).is-invalid,
+.admin-shell :where(input, select, textarea)[aria-invalid='true'],
+.admin-shell :where(input, select, textarea).is-invalid,
+main :where(input, select, textarea)[aria-invalid='true'],
+main :where(input, select, textarea).is-invalid {
+  border-color: var(--bad);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad) 16%, transparent);
+}
+
+.admin-ui :where(input, select, textarea):disabled,
+.admin-shell :where(input, select, textarea):disabled,
+main :where(input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: .58;
+}
+
+.admin-ui :where(input[type='checkbox'], input[type='radio']),
+.admin-shell :where(input[type='checkbox'], input[type='radio']),
+main :where(input[type='checkbox'], input[type='radio']) {
+  inline-size: 18px;
+  block-size: 18px;
+  margin: 0;
+  accent-color: var(--brand);
+  flex: 0 0 auto;
+}
+
+.admin-ui :where(.checkbox-row, .radio-row, .choice-row),
+.admin-shell :where(.checkbox-row, .radio-row, .choice-row),
+main :where(.checkbox-row, .radio-row, .choice-row) {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.admin-ui :where(.form-grid, .admin-form-grid),
+.admin-shell :where(.form-grid, .admin-form-grid),
+main :where(.form-grid, .admin-form-grid) {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+  min-width: 0;
+}
+
+.admin-ui :where(.form-grid, .admin-form-grid) > *,
+.admin-shell :where(.form-grid, .admin-form-grid) > *,
+main :where(.form-grid, .admin-form-grid) > * {
+  grid-column: span 6;
+  min-width: 0;
+}
+
+.admin-ui :where(.form-actions, .admin-form-actions),
+.admin-shell :where(.form-actions, .admin-form-actions),
+main :where(.form-actions, .admin-form-actions) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+/* Shared table system ------------------------------------------------------ */
+.admin-ui :where(.table-wrap, .table-container, .admin-table-wrap, .admin-ui-table-wrap),
+.admin-shell :where(.table-wrap, .table-container, .admin-table-wrap, .admin-ui-table-wrap),
+main :where(.table-wrap, .table-container, .admin-table-wrap, .admin-ui-table-wrap) {
+  width: 100%;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior-inline: contain;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  scrollbar-gutter: stable;
+}
+
+.admin-ui table,
+.admin-shell table,
+main table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--text);
+  font-size: .875rem;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.admin-ui :where(th, td),
+.admin-shell :where(th, td),
+main :where(th, td) {
+  min-width: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: start;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.admin-ui th,
+.admin-shell th,
+main th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--surface2) 94%, transparent);
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .035em;
+  text-transform: none;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+
+.admin-ui tbody tr,
+.admin-shell tbody tr,
+main tbody tr {
+  transition: background-color .14s ease;
+}
+
+.admin-ui tbody tr:hover,
+.admin-shell tbody tr:hover,
+main tbody tr:hover {
+  background: color-mix(in srgb, var(--brand) 5%, transparent);
+}
+
+.admin-ui tbody tr:last-child td,
+.admin-shell tbody tr:last-child td,
+main tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-ui :where(td, th)[data-align='right'],
+.admin-shell :where(td, th)[data-align='right'],
+main :where(td, th)[data-align='right'] {
+  text-align: end;
+}
+
+.admin-ui :where(td, th)[data-nowrap='true'],
+.admin-shell :where(td, th)[data-nowrap='true'],
+main :where(td, th)[data-nowrap='true'] {
+  white-space: nowrap;
+}
+
+.admin-ui :where(.table-actions, .row-actions),
+.admin-shell :where(.table-actions, .row-actions),
+main :where(.table-actions, .row-actions) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.admin-ui :where(.table-empty, .table-loading),
+.admin-shell :where(.table-empty, .table-loading),
+main :where(.table-empty, .table-loading) {
+  padding: 28px 18px;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .admin-ui :where(.form-grid, .admin-form-grid) > *,
+  .admin-shell :where(.form-grid, .admin-form-grid) > *,
+  main :where(.form-grid, .admin-form-grid) > * {
+    grid-column: 1 / -1;
+  }
+
+  .admin-ui :where(.form-actions, .admin-form-actions),
+  .admin-shell :where(.form-actions, .admin-form-actions),
+  main :where(.form-actions, .admin-form-actions) {
+    align-items: stretch;
+  }
+
+  .admin-ui :where(.form-actions, .admin-form-actions) > *,
+  .admin-shell :where(.form-actions, .admin-form-actions) > *,
+  main :where(.form-actions, .admin-form-actions) > * {
+    flex: 1 1 auto;
+  }
+
+  .admin-ui table,
+  .admin-shell table,
+  main table {
+    min-width: 620px;
+  }
+
+  .admin-ui :where(th, td),
+  .admin-shell :where(th, td),
+  main :where(th, td) {
+    padding: 11px 12px;
+  }
+}
+
 @media (max-width: 560px) {
   .admin-ui-notice {
     padding: 11px 12px;
@@ -146,6 +489,13 @@
   .admin-ui-skeleton__block {
     width: 58%;
   }
+
+  .admin-ui :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select),
+  .admin-shell :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select),
+  main :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select) {
+    min-height: 44px;
+    font-size: 1rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -153,5 +503,11 @@
   .admin-ui-skeleton__line::after {
     animation: none;
     display: none;
+  }
+
+  .admin-ui :where(input, select, textarea, tbody tr),
+  .admin-shell :where(input, select, textarea, tbody tr),
+  main :where(input, select, textarea, tbody tr) {
+    transition-duration: .01ms;
   }
 }
