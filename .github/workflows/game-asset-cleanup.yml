@@ -1,0 +1,48 @@
+name: Game Asset Cleanup
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'asset/mobil/**'
+      - 'tools/cleanup-game-assets.mjs'
+      - 'tools/build-game-asset-inventory.mjs'
+      - '.github/workflows/game-asset-cleanup.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: game-asset-cleanup-main
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Remove exact duplicates and junk
+        run: node tools/cleanup-game-assets.mjs
+      - name: Rebuild inventory and rename reports
+        run: node tools/build-game-asset-inventory.mjs
+      - name: Verify no exact duplicates remain
+        run: node tools/cleanup-game-assets.mjs --dry-run
+      - name: Commit normalized assets
+        run: |
+          if git diff --quiet; then
+            echo 'No asset cleanup changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add asset/mobil docs/generated
+          git commit -m 'chore(game-assets): remove duplicates and normalize manifest'
+          git push
