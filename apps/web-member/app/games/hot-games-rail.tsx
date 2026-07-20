@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null; status: string };
 type GameProvider = { name: string; code: string; status?: string | null; logoUrl?: string | null };
 type Game = { id: string; providerGameCode: string; name: string; category: string; platform: 'mobile' | 'pc' | 'both'; status?: string; isFeatured: boolean; isNew: boolean; isPopular: boolean; provider?: GameProvider; media?: GameMedia[]; imageUrl?: string | null; iconUrl?: string | null };
-type Props = { games: Game[]; launchingGameId?: string; onLaunch: (game: Game) => void };
+type Props = { games: Game[]; launchingGameId: string | undefined; onLaunch: (game: Game) => void };
 
 export default function HotGamesRail({ games, launchingGameId, onLaunch }: Props) {
   const [detailGame, setDetailGame] = useState<Game | null>(null);
