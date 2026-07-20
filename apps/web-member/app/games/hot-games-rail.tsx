@@ -2,14 +2,19 @@
 
 import { useState } from 'react';
 
-type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null };
+type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null; status: string };
+type GameProvider = { name: string; code: string; status?: string | null; logoUrl?: string | null };
 type Game = {
   id: string;
+  providerGameCode: string;
   name: string;
   category: string;
   platform: 'mobile' | 'pc' | 'both';
   status?: string;
-  provider?: { name: string; status?: string | null };
+  isFeatured: boolean;
+  isNew: boolean;
+  isPopular: boolean;
+  provider?: GameProvider;
   media?: GameMedia[];
   imageUrl?: string | null;
   iconUrl?: string | null;
