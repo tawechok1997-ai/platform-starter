@@ -141,6 +141,7 @@ defaultTakes.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
 
 const findings = [...hardCodedTakes, ...duplicateQueryGroups];
 const unreviewed = findings.filter((item) => !item.review);
+const unreviewedDuplicateGroups = duplicateQueryGroups.filter((item) => !item.review);
 const staleReviewKeys = Object.keys(reviewLedger.findings).filter((key) => !findings.some((item) => item.key === key));
 const byOwner = {};
 for (const item of findings) {
@@ -154,6 +155,7 @@ const result = {
   hardCodedTakeCount: hardCodedTakes.length,
   defaultTakeCount: defaultTakes.length,
   duplicateQueryGroupCount: duplicateQueryGroups.length,
+  unreviewedDuplicateQueryGroupCount: unreviewedDuplicateGroups.length,
   unreviewedCount: unreviewed.length,
   staleReviewCount: staleReviewKeys.length,
   findingsByOwner: Object.fromEntries(Object.entries(byOwner).sort(([a], [b]) => a.localeCompare(b))),
@@ -169,7 +171,7 @@ if (JSON_MODE) {
 } else {
   console.log(`R-010 query inventory: scanned ${files.length} TypeScript file(s).`);
   console.log(`Hard-coded takes: ${hardCodedTakes.length}; default takes: ${defaultTakes.length}; duplicate query groups: ${duplicateQueryGroups.length}.`);
-  console.log(`Unreviewed: ${unreviewed.length}; stale reviews: ${staleReviewKeys.length}.`);
+  console.log(`Unreviewed: ${unreviewed.length}; unreviewed duplicate groups: ${unreviewedDuplicateGroups.length}; stale reviews: ${staleReviewKeys.length}.`);
   for (const [owner, count] of Object.entries(result.findingsByOwner)) console.log(`- OWNER ${owner}: ${count} finding(s)`);
   for (const item of hardCodedTakes) console.log(`- TAKE [${item.owner}] ${item.file}:${item.line} ${item.method} -> ${item.value}`);
   for (const group of duplicateQueryGroups) console.log(`- DUPLICATE [${group.owners.join(',')}] ${group.key}: ${group.occurrences.length} occurrence(s)`);
@@ -178,6 +180,6 @@ if (JSON_MODE) {
 if (STRICT_MODE && (unreviewed.length > 0 || staleReviewKeys.length > 0)) {
   process.exitCode = 1;
 }
-if (DUPLICATE_STRICT_MODE && duplicateQueryGroups.length > 0) {
+if (DUPLICATE_STRICT_MODE && unreviewedDuplicateGroups.length > 0) {
   process.exitCode = 1;
 }
