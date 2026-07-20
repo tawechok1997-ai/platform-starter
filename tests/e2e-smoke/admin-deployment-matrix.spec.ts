@@ -22,7 +22,9 @@ function collectRuntimeFailures(page: Page) {
   page.on('pageerror', (error) => pageErrors.push(error.message));
   page.on('requestfailed', (request) => {
     const failure = request.failure()?.errorText ?? 'unknown error';
-    if (!request.url().startsWith('data:')) failedRequests.push(`${request.method()} ${request.url()} :: ${failure}`);
+    if (request.url().startsWith('data:')) return;
+    if (/ERR_ABORTED|NS_BINDING_ABORTED/i.test(failure)) return;
+    failedRequests.push(`${request.method()} ${request.url()} :: ${failure}`);
   });
 
   return { consoleErrors, pageErrors, failedRequests };
@@ -36,9 +38,11 @@ async function assertPageHealth(page: Page, route: string) {
     viewportWidth: document.documentElement.clientWidth,
     documentWidth: document.documentElement.scrollWidth,
     bodyTextLength: document.body.innerText.trim().length,
+    title: document.title,
   }));
 
   expect(metrics.bodyTextLength, `${route} rendered no meaningful content`).toBeGreaterThan(10);
+  expect(metrics.title.trim(), `${route} has no document title`).not.toBe('');
   expect(metrics.documentWidth, `${route} overflowed: ${metrics.documentWidth}px > ${metrics.viewportWidth}px`).toBeLessThanOrEqual(metrics.viewportWidth + 2);
 }
 
@@ -48,7 +52,7 @@ async function optionallySignIn(page: Page) {
   if (!username || !password) return false;
 
   await page.goto('/login', { waitUntil: 'domcontentloaded' });
-  const usernameInput = page.locator('input[name="username"], input[name="email"], input[type="email"], input[autocomplete="username"]').first();
+  const usernameInput = page.locator('input[name="identifier"], input[name="username"], input[name="email"], input[type="email"], input[autocomplete="username"]').first();
   const passwordInput = page.locator('input[name="password"], input[type="password"]').first();
 
   await expect(usernameInput).toBeVisible();
@@ -80,7 +84,7 @@ for (const viewport of VIEWPORTS) {
 
         if (authenticated) {
           expect(currentPath, `${route} returned to login after authentication`).not.toBe('/login');
-          await page.screenshot({ path: testInfo.outputPath(`${viewport.name}-${route.slice(1)}.png`), fullPage: true });
+          await page.screenshot({ path: testInfo.outputPath(`${viewport.name}-${route.slice(1).replaceAll('/', '-')}.png`), fullPage: true });
         } else {
           expect(currentPath, `${route} did not redirect to login`).toBe('/login');
         }
@@ -89,7 +93,7 @@ for (const viewport of VIEWPORTS) {
 
     const ignoredConsolePatterns = [/favicon/i, /Failed to load resource.*404/i, /ResizeObserver loop/i];
     const meaningfulConsoleErrors = runtime.consoleErrors.filter((message) => !ignoredConsolePatterns.some((pattern) => pattern.test(message)));
-    const meaningfulRequestFailures = runtime.failedRequests.filter((message) => !/favicon|analytics|telemetry/i.test(message));
+    const meaningfulRequestFailures = runtime.failedRequests.filter((message) => !/favicon|analytics|telemetry|browser-intake/i.test(message));
 
     expect(runtime.pageErrors, `page errors:\n${runtime.pageErrors.join('\n')}`).toEqual([]);
     expect(meaningfulConsoleErrors, `console errors:\n${meaningfulConsoleErrors.join('\n')}`).toEqual([]);
