@@ -1,20 +1,16 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'crypto';
+import { WalletService } from '../wallet/wallet.service';
 
-type ProviderBalance = { balance: number; currency: string };
 type TransferResult = {
   providerTransactionId: string;
   beforeBalance: string;
   afterBalance: string;
   status: 'SUCCESS';
+  replayed?: boolean;
 };
-type TransferRecord = TransferResult & {
-  direction: 'TRANSFER_IN' | 'TRANSFER_OUT';
-  userId: string;
-  amount: string;
-  idempotencyKey: string;
-  createdAt: string;
-};
+
+type GameTransactionKind = 'BET' | 'WIN' | 'REFUND' | 'ROLLBACK';
 
 const GAME_CATALOG = [
   { code: 'fortune-tiger', name: 'Fortune Tiger', category: 'slot', accent: '#f59e0b', symbol: '虎' },
@@ -29,8 +25,7 @@ const GAME_CATALOG = [
 
 @Injectable()
 export class ProviderSimulatorService {
-  private readonly balances = new Map<string, ProviderBalance>();
-  private readonly transfers = new Map<string, TransferRecord>();
+  constructor(private readonly walletService: WalletService) {}
 
   verifyRequest(headers: Record<string, string | string[] | undefined>, body: unknown) {
     const apiKey = this.header(headers, 'x-api-key');
@@ -56,14 +51,13 @@ export class ProviderSimulatorService {
       .digest('hex');
     const actualBuffer = Buffer.from(signature, 'utf8');
     const expectedBuffer = Buffer.from(expected, 'utf8');
-    const valid =
-      actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
+    const valid = actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
 
     if (!valid) throw new UnauthorizedException('Invalid simulator provider signature');
   }
 
   health() {
-    return { status: 'ONLINE', provider: 'platform-provider-simulator', version: 1 };
+    return { status: 'ONLINE', provider: 'platform-provider-simulator', version: 2, walletSource: 'platform-wallet' };
   }
 
   launch(input: Record<string, unknown>) {
@@ -82,47 +76,63 @@ export class ProviderSimulatorService {
     };
   }
 
-  getBalance(input: Record<string, unknown>) {
+  async getBalance(input: Record<string, unknown>) {
     const userId = this.requiredString(input.providerUserId ?? input.userId, 'userId');
-    const wallet = this.readWallet(userId, String(input.currency ?? 'THB'));
-    return { balance: wallet.balance.toFixed(2), currency: wallet.currency, providerUserId: userId };
+    const wallet = await this.walletService.getMemberWallet(userId);
+    return { balance: wallet.balance, currency: wallet.currency, providerUserId: userId };
   }
 
-  transfer(direction: 'TRANSFER_IN' | 'TRANSFER_OUT', input: Record<string, unknown>): TransferResult {
+  async transfer(direction: 'TRANSFER_IN' | 'TRANSFER_OUT', input: Record<string, unknown>): Promise<TransferResult> {
     const userId = this.requiredString(input.userId, 'userId');
     const idempotencyKey = this.requiredString(input.idempotencyKey, 'idempotencyKey');
-    const amount = Number(input.amount);
-    if (!Number.isFinite(amount) || amount <= 0) throw new BadRequestException('Amount must be greater than zero');
-
-    const transferKey = `${direction}:${idempotencyKey}`;
-    const existing = this.transfers.get(transferKey);
-    if (existing) {
-      if (existing.userId !== userId || Number(existing.amount) !== amount) {
-        throw new BadRequestException('Idempotency key was already used with different transfer data');
-      }
-      return this.toTransferResult(existing);
-    }
-
-    const wallet = this.readWallet(userId, String(input.currency ?? 'THB'));
-    const beforeBalance = wallet.balance;
-    if (direction === 'TRANSFER_OUT' && amount > beforeBalance) {
-      throw new BadRequestException(`Insufficient provider balance; available ${beforeBalance.toFixed(2)}`);
-    }
-
-    wallet.balance = Number((direction === 'TRANSFER_IN' ? beforeBalance + amount : beforeBalance - amount).toFixed(2));
-    const record: TransferRecord = {
-      providerTransactionId: `sim_${direction.toLowerCase()}_${idempotencyKey}`,
-      beforeBalance: beforeBalance.toFixed(2),
-      afterBalance: wallet.balance.toFixed(2),
-      status: 'SUCCESS',
-      direction,
+    const amount = this.requiredAmount(input.amount);
+    const providerTransactionId = `sim_${direction.toLowerCase()}_${idempotencyKey}`;
+    const result = await this.walletService.mutateGameBalance({
       userId,
-      amount: amount.toFixed(2),
-      idempotencyKey,
-      createdAt: new Date().toISOString(),
-    };
-    this.transfers.set(transferKey, record);
-    return this.toTransferResult(record);
+      amount,
+      direction: direction === 'TRANSFER_IN' ? 'DEBIT' : 'CREDIT',
+      idempotencyKey: `transfer:${direction}:${idempotencyKey}`,
+      referenceType: direction === 'TRANSFER_IN' ? 'game_transfer_in' : 'game_transfer_out',
+      referenceId: providerTransactionId,
+      currency: String(input.currency ?? 'THB'),
+      metadata: {
+        provider: 'provider-simulator',
+        providerTransactionId,
+        transferDirection: direction,
+      },
+    });
+    return this.toTransferResult(providerTransactionId, result.ledger, result.replayed);
+  }
+
+  async gameTransaction(kind: GameTransactionKind, input: Record<string, unknown>): Promise<TransferResult> {
+    const userId = this.requiredString(input.userId, 'userId');
+    const transactionId = this.requiredString(input.transactionId ?? input.idempotencyKey, 'transactionId');
+    const roundId = this.requiredString(input.roundId, 'roundId');
+    const gameCode = this.requiredString(input.gameCode, 'gameCode');
+    const amount = this.requiredAmount(input.amount);
+    if (!GAME_CATALOG.some((game) => game.code === gameCode)) throw new BadRequestException('Unknown simulator game code');
+
+    const providerTransactionId = `sim_${kind.toLowerCase()}_${transactionId}`;
+    const credit = kind === 'WIN' || kind === 'REFUND' || kind === 'ROLLBACK';
+    const result = await this.walletService.mutateGameBalance({
+      userId,
+      amount,
+      direction: credit ? 'CREDIT' : 'DEBIT',
+      idempotencyKey: `${kind.toLowerCase()}:${transactionId}`,
+      referenceType: `game_${kind.toLowerCase()}`,
+      referenceId: providerTransactionId,
+      currency: String(input.currency ?? 'THB'),
+      isReversal: kind === 'REFUND' || kind === 'ROLLBACK',
+      metadata: {
+        provider: 'provider-simulator',
+        providerTransactionId,
+        roundId,
+        gameCode,
+        sessionId: typeof input.sessionId === 'string' ? input.sessionId : null,
+        transactionKind: kind,
+      },
+    });
+    return this.toTransferResult(providerTransactionId, result.ledger, result.replayed);
   }
 
   games(publicBaseUrl: string) {
@@ -136,16 +146,15 @@ export class ProviderSimulatorService {
         status: 'ACTIVE',
         imageUrl: `${baseUrl}/provider-simulator/icons/${game.code}.svg`,
         iconUrl: `${baseUrl}/provider-simulator/icons/${game.code}.svg`,
-        rawPayload: { simulator: true, version: 1 },
+        rawPayload: { simulator: true, version: 2 },
       })),
     };
   }
 
-  betHistory(input: Record<string, unknown>) {
+  async betHistory(input: Record<string, unknown>) {
     const userId = this.requiredString(input.userId, 'userId');
-    const items = Array.from(this.transfers.values())
-      .filter((record) => record.userId === userId)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    const ledger = await this.walletService.getMemberLedger(userId, 100);
+    const items = ledger.items.filter((item: any) => String(item.referenceType ?? '').startsWith('game_'));
     return { items, nextCursor: null };
   }
 
@@ -159,26 +168,25 @@ export class ProviderSimulatorService {
   }
 
   reset() {
-    this.balances.clear();
-    this.transfers.clear();
-    return { reset: true };
+    return { reset: false, reason: 'Simulator now uses the persistent platform wallet; use an audited admin wallet adjustment to reset credit.' };
   }
 
-  private readWallet(userId: string, currency: string) {
-    const existing = this.balances.get(userId);
-    if (existing) return existing;
-    const wallet = { balance: 0, currency };
-    this.balances.set(userId, wallet);
-    return wallet;
-  }
-
-  private toTransferResult(record: TransferRecord): TransferResult {
+  private toTransferResult(providerTransactionId: string, ledger: any, replayed: boolean): TransferResult {
     return {
-      providerTransactionId: record.providerTransactionId,
-      beforeBalance: record.beforeBalance,
-      afterBalance: record.afterBalance,
-      status: record.status,
+      providerTransactionId,
+      beforeBalance: ledger.balanceBefore,
+      afterBalance: ledger.balanceAfter,
+      status: 'SUCCESS',
+      replayed,
     };
+  }
+
+  private requiredAmount(value: unknown) {
+    const amount = String(value ?? '').trim();
+    if (!amount || !/^\d+(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0) {
+      throw new BadRequestException('Amount must be greater than zero with at most two decimal places');
+    }
+    return amount;
   }
 
   private requiredString(value: unknown, field: string) {
@@ -194,6 +202,6 @@ export class ProviderSimulatorService {
   }
 
   private escapeXml(value: string) {
-    return value.replace(/[<>&'\"]/g, (char) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[char] ?? char);
+    return value.replace(/[<>&'"]/g, (char) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[char] ?? char);
   }
 }
