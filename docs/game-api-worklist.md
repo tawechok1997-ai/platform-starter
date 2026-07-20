@@ -24,12 +24,12 @@
 
 ## Asset catalog
 
-- [ ] นำ asset Mobile ชุดจริงเข้า repository
+- [x] นำ asset Mobile ชุดจริงเข้า repository
 - [ ] นำ asset PC ชุดจริงเข้า repository
-- [ ] สร้าง inventory ของ provider logos และ game icons
+- [x] สร้าง inventory ของ provider logos และ game icons
 - [ ] ตรวจ duplicate ด้วย content hash
 - [ ] สร้าง rename manifest สำหรับชื่อไฟล์ที่ไม่ตรงรูป
-- [ ] เปลี่ยน mock SVG เป็น asset จริงทีละรายการ
+- [x] เปลี่ยน mock SVG เป็น asset จริงทีละรายการ
 - [x] เพิ่ม fallback image กลางเมื่อ asset โหลดไม่ได้
 
 ## Member integration
@@ -50,20 +50,26 @@
 
 ## จำนวนงาน
 
-- ปิดแล้ว: 24 รายการ
-- คงค้าง: 8 รายการ
-- งานคงค้างส่วน asset ต้องใช้ไฟล์ Mobile และ PC ชุดจริงเป็นอินพุต
+- ปิดแล้ว: 27 รายการ
+- คงค้าง: 5 รายการ
+- งานคงค้างฝั่ง asset คือ PC upload, การรัน content-hash report และการตรวจ rename manifest ที่ generator สร้าง
 
-## หลักฐานรอบล่าสุด
+## หลักฐานรอบ Mobile asset
+
+- ชุดจริงอยู่ใน `asset/mobil` และมี `manifest.json` สำหรับ reconciliation
+- `apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts` เป็น curated inventory ของเกมและ provider logo ที่ยืนยัน path แล้ว
+- Mobile catalog ใช้รูปจริง 7 เกมจาก Kingmaker, NoLimit City, CQ9, Evolution Play, Pragmatic Play และ Fa Chai
+- response เพิ่ม `providerName`, `providerLogoUrl`, `fallbackIconUrl` และ `rawPayload.assetSource`
+- ค่า `GAME_ASSET_BASE_URL` ใช้ชี้ไป object storage/CDN ได้; หากไม่กำหนดจะใช้ raw repository URL
+- `tools/build-game-asset-inventory.mjs` อ่าน manifest, ตรวจไฟล์จริง, คำนวณ SHA-256, สร้าง duplicate groups และเสนอ rename manifest
+- SVG endpoint ยังอยู่เป็น fallback สำหรับ PC mock หรือ asset ที่โหลดไม่ได้
+- commits: `a5ba00a63046d008af64743bbb3ead9db836e8a1`, `bb3f038918fa9b3b81cea9d8fe71fbfcff968d0d`, `fa3142531c7d85bd4fa8f1e60c8d7618616831d7`
+
+## หลักฐาน Browser และ deployment
 
 - `apps/web-member/app/games/page.tsx` รองรับ response ทั้ง Member lobby แบบเดิมและ catalog response ที่ใช้ `data` array
-- เพิ่มตัวกรอง Mobile/PC, provider, category, search และการโหลดเพิ่มครั้งละ 24 เกม
-- เพิ่ม loading, retryable error, empty state, launch network error และ fallback เมื่อรูปปกโหลดไม่สำเร็จ
-- `apps/web-member/app/games/games.css` แสดง tabs/toolbar จริงและกำหนด grid 4/3/2/1 คอลัมน์สำหรับ desktop/tablet/mobile/narrow mobile
-- `apps/web-member/src/features/games/game-lobby-contract.spec.ts` ป้องกัน regression ที่ซ่อน filter, ทำ responsive grid หาย หรือถอด retry/load-more/image fallback
+- `apps/web-member/app/games/games.css` แสดง tabs/toolbar จริงและกำหนด grid 4/3/2/1 คอลัมน์
 - `playwright.game-api.config.ts` เปิด Next.js Member จริงทั้ง Chromium และ Mobile Safari
-- `tests/game-api-browser/game-lobby.spec.ts` mock network contract และทดสอบ filter, launch request/session navigation และ broken-image fallback ใน browser จริง
-- workflow `Game API Verification` ติดตั้ง Chromium/WebKit รัน provider simulator tests, API/Member checks และ browser regression พร้อมอัปโหลด Playwright report
-- Railway deployment checks ของ API, Web Admin และ Web Member ผ่านบน commit `a8fc8913d8449de67f890f6b74de1124491bfe4a`
+- `tests/game-api-browser/game-lobby.spec.ts` ทดสอบ filter, launch request/session navigation และ broken-image fallback
+- workflow `Game API Verification` รัน provider simulator tests, API/Member checks และ browser regression
 - ยังไม่ปิดสอง checkbox verification จนกว่า GitHub Actions จะรายงานผลสำเร็จจริง
-- commits รอบ browser regression: `0e6affeed6028bed2102f3ad6f48f0f7754f98ca`, `a32e8a2c8bc3f5ab4ce4815d743532bb550e6aef`, `a8fc8913d8449de67f890f6b74de1124491bfe4a`
