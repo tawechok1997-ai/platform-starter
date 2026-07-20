@@ -6,7 +6,10 @@ on:
     branches: [main]
     paths:
       - 'asset/mobil/**'
+      - 'asset/catalog/mobile/**'
+      - 'apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts'
       - 'tools/cleanup-game-assets.mjs'
+      - 'tools/organize-game-assets.mjs'
       - 'tools/build-game-asset-inventory.mjs'
       - '.github/workflows/game-asset-cleanup.yml'
 
@@ -31,18 +34,27 @@ jobs:
           node-version: 22
       - name: Remove exact duplicates and junk
         run: node tools/cleanup-game-assets.mjs
+      - name: Move active assets into canonical catalog
+        run: node tools/organize-game-assets.mjs
       - name: Rebuild inventory and rename reports
         run: node tools/build-game-asset-inventory.mjs
       - name: Verify no exact duplicates remain
         run: node tools/cleanup-game-assets.mjs --dry-run
+      - name: Verify catalog no longer references raw upload paths
+        run: |
+          if grep -q "asset/mobil/" apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts; then
+            echo 'Provider catalog still references asset/mobil.'
+            exit 1
+          fi
+          test -f asset/catalog/mobile/catalog.json
       - name: Commit normalized assets
         run: |
           if git diff --quiet; then
-            echo 'No asset cleanup changes required.'
+            echo 'No asset organization changes required.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add asset/mobil docs/generated
-          git commit -m 'chore(game-assets): remove duplicates and normalize manifest'
+          git add asset/mobil asset/catalog/mobile docs/generated apps/api/src/modules/provider-simulator/provider-simulator-catalog.ts
+          git commit -m 'chore(game-assets): organize active catalog assets'
           git push
