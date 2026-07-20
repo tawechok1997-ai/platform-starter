@@ -6,8 +6,9 @@
     "analyze": "ANALYZE=true next build",
     "build": "next build",
     "lint": "eslint app src --ext .ts,.tsx",
-    "test": "node --import tsx --test src/features/auth/auth-redirect.spec.ts src/features/auth/member-api-session.spec.ts src/features/auth/session-navigation.spec.ts src/features/finance/finance-feature.spec.ts src/features/games/game-lobby-contract.spec.ts src/features/wallet/member-wallet.spec.ts",
+    "test": "node --import tsx --test \"src/**/*.spec.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "verify": "pnpm test && pnpm typecheck && pnpm build",
     "start": "next start -p 3000"
   },
   "dependencies": {
