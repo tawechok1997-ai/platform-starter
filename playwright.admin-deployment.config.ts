@@ -11,7 +11,11 @@ export default defineConfig({
   workers: process.env.CI ? 2 : 1,
   fullyParallel: true,
   reporter: process.env.CI
-    ? [['list'], ['html', { open: 'never', outputFolder: 'playwright-report-admin' }]]
+    ? [
+        ['list'],
+        ['html', { open: 'never', outputFolder: 'playwright-report-admin' }],
+        ['json', { outputFile: 'test-results/admin-deployment/results.json' }],
+      ]
     : 'list',
   use: {
     baseURL,
