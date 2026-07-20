@@ -1,0 +1,96 @@
+.admin-ui-action-strip,
+.admin-ui-action-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.admin-ui-action-strip > .admin-ui-button,
+.admin-ui-action-group > .admin-ui-button {
+  flex: 0 1 auto;
+}
+
+.admin-ui-card select,
+.admin-ui-card textarea,
+.admin-ui-card input:not([type='checkbox']):not([type='radio']) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, .3);
+  background: rgba(7, 13, 25, .92);
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025);
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.admin-ui-card select,
+.admin-ui-card input:not([type='checkbox']):not([type='radio']) {
+  min-height: 44px;
+  border-radius: 12px;
+  padding: 0 12px;
+}
+
+.admin-ui-card textarea {
+  min-height: 110px;
+  resize: vertical;
+  border-radius: 12px;
+  padding: 12px;
+  line-height: 1.55;
+}
+
+.admin-ui-card select:hover,
+.admin-ui-card textarea:hover,
+.admin-ui-card input:not([type='checkbox']):not([type='radio']):hover {
+  border-color: rgba(203, 213, 225, .48);
+  background: rgba(10, 18, 34, .96);
+}
+
+.admin-ui-card select:focus-visible,
+.admin-ui-card textarea:focus-visible,
+.admin-ui-card input:not([type='checkbox']):not([type='radio']):focus-visible {
+  outline: none;
+  border-color: rgba(245, 197, 66, .78);
+  box-shadow: 0 0 0 3px rgba(245, 197, 66, .17);
+}
+
+.admin-ui-card select:disabled,
+.admin-ui-card textarea:disabled,
+.admin-ui-card input:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+}
+
+@media (max-width: 720px) {
+  .admin-ui-action-strip,
+  .admin-ui-action-group {
+    align-items: stretch;
+  }
+
+  .admin-ui-action-strip > .admin-ui-button,
+  .admin-ui-action-group > .admin-ui-button {
+    flex: 1 1 150px;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-ui-action-strip,
+  .admin-ui-action-group {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-ui-action-strip > .admin-ui-button,
+  .admin-ui-action-group > .admin-ui-button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-ui-card select,
+  .admin-ui-card textarea,
+  .admin-ui-card input {
+    transition: none !important;
+  }
+}
