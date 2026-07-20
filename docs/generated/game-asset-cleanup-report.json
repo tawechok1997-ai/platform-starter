@@ -1,6 +1,7 @@
 {
-  "generatedAt": "2026-07-20T11:12:21.331Z",
+  "generatedAt": "2026-07-20T11:32:18.926Z",
   "dryRun": true,
+  "assetRoot": "asset/catalog/mobile",
   "policy": {
     "exactByteDuplicatesOnly": true,
     "junkPatterns": [
@@ -10,14 +11,14 @@
       "__MACOSX/**",
       "._*"
     ],
-    "preservesNonDuplicateBannersPromotionsAndUiAssets": true
+    "preservesUniqueAssets": true
   },
   "before": {
-    "files": 234,
+    "files": 247,
     "manifestEntries": 234
   },
   "after": {
-    "files": 234,
+    "files": 247,
     "manifestEntries": 234
   },
   "removedCount": 0,
