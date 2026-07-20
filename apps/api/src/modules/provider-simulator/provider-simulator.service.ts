@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { WalletService } from '../wallet/wallet.service';
+import { assetUrl, GAME_CATALOG, PROVIDER_DISPLAY_NAMES, type SimulatorGamePlatform } from './provider-simulator-catalog';
 import { ProviderSimulatorRoundService } from './provider-simulator-round.service';
 
 type TransferResult = {
@@ -12,27 +13,15 @@ type TransferResult = {
 };
 
 type GameTransactionKind = 'BET' | 'WIN' | 'REFUND' | 'ROLLBACK';
-type GamePlatform = 'mobile' | 'pc';
 type GameCatalogQuery = {
   provider?: string;
-  platform?: GamePlatform;
+  platform?: SimulatorGamePlatform;
   category?: string;
   search?: string;
   page?: number;
   limit?: number;
   sort?: 'name-asc' | 'name-desc' | 'code-asc' | 'code-desc';
 };
-
-const GAME_CATALOG = [
-  { code: 'fortune-tiger', name: 'Fortune Tiger', provider: 'pg-soft', platform: 'mobile', category: 'slot', accent: '#f59e0b', symbol: '虎' },
-  { code: 'dragon-reels', name: 'Dragon Reels', provider: 'pg-soft', platform: 'mobile', category: 'slot', accent: '#ef4444', symbol: '龍' },
-  { code: 'royal-baccarat', name: 'Royal Baccarat', provider: 'evolution', platform: 'mobile', category: 'casino', accent: '#8b5cf6', symbol: 'B' },
-  { code: 'speed-roulette', name: 'Speed Roulette', provider: 'evolution', platform: 'mobile', category: 'casino', accent: '#10b981', symbol: 'R' },
-  { code: 'golden-mines', name: 'Golden Mines', provider: 'platform-pc', platform: 'pc', category: 'arcade', accent: '#eab308', symbol: '⛏' },
-  { code: 'ocean-treasure', name: 'Ocean Treasure', provider: 'platform-pc', platform: 'pc', category: 'arcade', accent: '#0ea5e9', symbol: '⚓' },
-  { code: 'neon-racer', name: 'Neon Racer', provider: 'platform-pc', platform: 'pc', category: 'racing', accent: '#ec4899', symbol: 'N' },
-  { code: 'classic-blackjack', name: 'Classic Blackjack', provider: 'evolution', platform: 'pc', category: 'casino', accent: '#334155', symbol: '21' },
-] as const;
 
 @Injectable()
 export class ProviderSimulatorService {
@@ -71,7 +60,16 @@ export class ProviderSimulatorService {
   }
 
   health() {
-    return { status: 'ONLINE', provider: 'platform-provider-simulator', version: 4, walletSource: 'platform-wallet', roundLock: 'postgres-advisory-xact-lock' };
+    const mobileAssetCount = GAME_CATALOG.filter((game) => game.platform === 'mobile' && game.assetPath).length;
+    return {
+      status: 'ONLINE',
+      provider: 'platform-provider-simulator',
+      version: 5,
+      walletSource: 'platform-wallet',
+      roundLock: 'postgres-advisory-xact-lock',
+      catalogSource: 'repository-assets',
+      mobileAssetCount,
+    };
   }
 
   launch(input: Record<string, unknown>) {
@@ -182,21 +180,29 @@ export class ProviderSimulatorService {
     const total = filtered.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const start = (page - 1) * limit;
-    const items = filtered.slice(start, start + limit).map((game) => ({
-      id: `${game.provider}:${game.code}:${game.platform}`,
-      providerGameCode: game.code,
-      code: game.code,
-      name: game.name,
-      providerId: game.provider,
-      provider: game.provider,
-      platform: game.platform,
-      category: game.category,
-      status: 'ACTIVE',
-      enabled: true,
-      imageUrl: `${baseUrl}/provider-simulator/icons/${game.code}.svg`,
-      iconUrl: `${baseUrl}/provider-simulator/icons/${game.code}.svg`,
-      rawPayload: { simulator: true, version: 4 },
-    }));
+    const items = filtered.slice(start, start + limit).map((game) => {
+      const repositoryImage = assetUrl(game.assetPath, baseUrl);
+      const repositoryProviderLogo = assetUrl(game.providerLogoPath, baseUrl);
+      const fallbackIcon = `${baseUrl}/provider-simulator/icons/${game.code}.svg`;
+      return {
+        id: `${game.provider}:${game.code}:${game.platform}`,
+        providerGameCode: game.code,
+        code: game.code,
+        name: game.name,
+        providerId: game.provider,
+        provider: game.provider,
+        providerName: PROVIDER_DISPLAY_NAMES[game.provider] ?? game.provider,
+        providerLogoUrl: repositoryProviderLogo,
+        platform: game.platform,
+        category: game.category,
+        status: 'ACTIVE',
+        enabled: true,
+        imageUrl: repositoryImage ?? fallbackIcon,
+        iconUrl: repositoryImage ?? fallbackIcon,
+        fallbackIconUrl: fallbackIcon,
+        rawPayload: { simulator: true, version: 5, assetSource: repositoryImage ? 'repository' : 'generated-svg' },
+      };
+    });
 
     return {
       success: true,
