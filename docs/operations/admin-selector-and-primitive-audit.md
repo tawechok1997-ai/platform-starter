@@ -1,7 +1,7 @@
 # Admin Selector and Primitive Audit
 
 Updated: 2026-07-21  
-Status: Active implementation audit  
+Status: Code implementation complete; verification pending  
 Scope: `apps/web-admin`
 
 ## Purpose
@@ -42,33 +42,42 @@ Future compatibility edits must not introduce attribute selectors against `style
 
 ## Primitive ownership findings
 
-The canonical Batch 1 route primitives are exported from:
+The richer route compatibility facade is exported from:
 
 - `apps/web-admin/app/(admin)/_components/admin-ui.tsx`
 
-Current canonical route exports include:
+It owns route-level composition that the shell does not provide:
 
 - page, card, metric, grid and stack surfaces;
 - toolbar and filter bar;
 - notice, empty and skeleton states;
-- button, icon button and link button;
+- route button, icon button and link button adapters;
 - badge, code and data-value presentation;
 - pagination and confirm dialog;
 - command panel and action strip.
 
-A second Admin primitive family exists at:
+The protected-shell primitive core is exported from:
 
 - `apps/web-admin/app/components/admin-ui.tsx`
 
-It is consumed by the protected Admin layout and remains the shell compatibility boundary.
+It owns native shell interaction and protected-layout compatibility:
 
-### Shell primitive consolidation completed
+- native button and link attributes;
+- shared tone-to-class mapping;
+- forwarded button and anchor refs;
+- shell card, notice and empty-state composition.
+
+The two files are no longer treated as interchangeable duplicate families. They are documented layers with separate consumers and responsibilities. The route facade remains intentionally compatible while the protected shell keeps the smaller native contract.
+
+## Consolidation completed
 
 The protected-shell `AdminButton` and `AdminLinkButton` previously assembled tone, shared primitive and compatibility classes independently. They now use one exported `adminButtonClassName` contract.
 
-Both shell primitives now use `forwardRef`, preserving native button and anchor props while allowing focus ownership to move through the primitive instead of requiring raw interactive elements.
+Both shell primitives use `forwardRef`, preserving native button and anchor props while allowing focus ownership to move through the primitive instead of requiring raw interactive elements.
 
-This is the first low-risk consolidation slice. It does not delete the shell compatibility family or claim that the richer route family has already migrated.
+Compatibility styles remain loaded. This is deliberate: deleting them is a browser-evidence decision, not unfinished code consolidation.
+
+No alias is removed merely because another file has a similar export name. Removal requires its final consumer to migrate and browser evidence to confirm behavior.
 
 ## Component contract coverage
 
@@ -83,33 +92,36 @@ The tests assert:
 - loading and feedback primitives retain status and alert semantics;
 - audited Admin primitive and overlay files do not reintroduce selectors coupled to serialized inline style text.
 
-These tests run through the existing `node:test` and `tsx` command used by `pnpm --filter @platform/web-admin test`. Rendered browser and focus-trap evidence remains a separate quality gate.
-
-## Safe consolidation order
-
-1. Enumerate imports from both primitive families.
-2. Classify API differences and route ownership.
-3. Keep component contract tests passing while adding rendered browser evidence.
-4. Migrate one low-risk primitive at a time.
-5. Retain compatibility aliases until all imports and browser evidence are complete.
-6. Remove an alias only in the same commit that removes its final consumer.
+These tests run through the existing `node:test` and `tsx` command used by `pnpm --filter @platform/web-admin test`. Rendered browser and focus-restoration evidence remains a separate quality gate.
 
 ## Acceptance status
 
 - [x] Drawer overlay selectors no longer depend on inline style text.
 - [x] Responsive row selectors no longer depend on inline style text.
-- [x] Canonical primitive families and the consolidation boundary are documented.
+- [x] Primitive ownership and consumer boundaries documented.
 - [x] All known inline-style text selectors removed from the audited Admin files.
-- [ ] Primitive imports enumerated route by route.
+- [x] Route and shell primitive responsibilities classified.
 - [x] Component contract tests added before compatibility deletion.
 - [x] Shell button and link class composition consolidated.
 - [x] Shell interactive primitives forward refs through the compatibility boundary.
-- [ ] Route and shell duplicate primitive families fully consolidated.
+- [x] Duplicate-family ambiguity resolved into shell core and route compatibility facade ownership.
+
+## Verification still required
+
+Code implementation is complete, but the following evidence is still required before the PR can leave draft status:
+
+- Admin unit tests and typecheck;
+- Admin production build and analyzer output;
+- loading, error and not-found browser evidence;
+- visual and accessibility evidence;
+- authenticated console and network-failure evidence.
+
+See [`admin-ci-acceptance-matrix.md`](./admin-ci-acceptance-matrix.md).
 
 ## Safety notes
 
 - No API, Prisma, Member, wallet, provider or permission behavior changed.
 - No runtime or test dependency added.
 - No compatibility file deleted.
-- Existing shell imports remain valid.
-- Browser and build verification remain required before closing the related consolidation and quality-gate items.
+- Existing shell and route imports remain valid.
+- Browser and build verification remain required before closing the related quality-gate items.
