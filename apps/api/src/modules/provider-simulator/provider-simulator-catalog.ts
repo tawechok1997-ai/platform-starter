@@ -1,3 +1,5 @@
+import { PC_GAME_CATALOG } from './provider-simulator-pc-catalog.generated';
+
 export type SimulatorGamePlatform = 'mobile' | 'pc';
 
 export type SimulatorGameCatalogItem = {
@@ -22,7 +24,7 @@ export const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   pp: 'Pragmatic Play',
 };
 
-export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
+const MOBILE_GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
   {
     code: 'thai-hi-lo-2',
     name: 'Thai Hi-Lo 2',
@@ -31,8 +33,8 @@ export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
     category: 'casino',
     accent: '#f59e0b',
     symbol: 'HL',
-    assetPath: `${MOBILE_ASSET_ROOT}/games/KM/TH/Thai_Hi_Lo_2.jpg`,
-    providerLogoPath: `${MOBILE_ASSET_ROOT}/providers/set/1_1_badge/kingm.png`,
+    assetPath: 'asset/catalog/mobile/games/kingmaker/thai-hi-lo-2.jpg',
+    providerLogoPath: 'asset/catalog/mobile/providers/kingmaker.png',
   },
   {
     code: 'bushido-ways',
@@ -42,8 +44,8 @@ export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
     category: 'slot',
     accent: '#dc2626',
     symbol: '武',
-    assetPath: `${MOBILE_ASSET_ROOT}/games/NLC/bushidoways00000.jpg`,
-    providerLogoPath: `${MOBILE_ASSET_ROOT}/providers/set/1_1_badge/nlc.png`,
+    assetPath: 'asset/catalog/mobile/games/nolimit-city/bushido-ways.jpg',
+    providerLogoPath: 'asset/catalog/mobile/providers/nolimit-city.png',
   },
   {
     code: 'el-paso',
@@ -53,8 +55,8 @@ export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
     category: 'slot',
     accent: '#b45309',
     symbol: 'EP',
-    assetPath: `${MOBILE_ASSET_ROOT}/games/NLC/elpaso0000000000.jpg`,
-    providerLogoPath: `${MOBILE_ASSET_ROOT}/providers/set/1_1_badge/nlc.png`,
+    assetPath: 'asset/catalog/mobile/games/nolimit-city/el-paso.jpg',
+    providerLogoPath: 'asset/catalog/mobile/providers/nolimit-city.png',
   },
   {
     code: 'alice-run',
@@ -64,8 +66,8 @@ export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
     category: 'arcade',
     accent: '#0ea5e9',
     symbol: 'AR',
-    assetPath: `${MOBILE_ASSET_ROOT}/games/vertical/CQ/alice_run.jpg`,
-    providerLogoPath: `${MOBILE_ASSET_ROOT}/providers/set/1_1_badge/cq.png`,
+    assetPath: 'asset/catalog/mobile/games/cq9/alice-run.jpg',
+    providerLogoPath: 'asset/catalog/mobile/providers/cq9.png',
   },
   {
     code: 'penalty-series',
@@ -75,8 +77,8 @@ export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
     category: 'sport',
     accent: '#16a34a',
     symbol: 'PS',
-    assetPath: `${MOBILE_ASSET_ROOT}/games/vertical/EVP/penalty_series.jpg`,
-    providerLogoPath: `${MOBILE_ASSET_ROOT}/providers/set/1_1_badge/evp.png`,
+    assetPath: 'asset/catalog/mobile/games/evolution-play/penalty-series.jpg',
+    providerLogoPath: 'asset/catalog/mobile/providers/evolution-play.png',
   },
   {
     code: 'sweet-bonanza-xmas',
@@ -86,8 +88,8 @@ export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
     category: 'slot',
     accent: '#db2777',
     symbol: 'SB',
-    assetPath: `${MOBILE_ASSET_ROOT}/games/vertical/PP/sweet_bonanza_xmas.png`,
-    providerLogoPath: `${MOBILE_ASSET_ROOT}/providers/set/1_1_badge/pp.png`,
+    assetPath: 'asset/catalog/mobile/games/pragmatic-play/sweet-bonanza-xmas.png',
+    providerLogoPath: 'asset/catalog/mobile/providers/pragmatic-play.png',
   },
   {
     code: 'fachai-27001',
@@ -97,13 +99,14 @@ export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
     category: 'slot',
     accent: '#eab308',
     symbol: '發',
-    assetPath: `${MOBILE_ASSET_ROOT}/games/FACHAI/TH/27001.jpg`,
-    providerLogoPath: `${MOBILE_ASSET_ROOT}/providers/set/1_1_badge/fachai.png`,
+    assetPath: 'asset/catalog/mobile/games/fa-chai/fachai-27001.jpg',
+    providerLogoPath: 'asset/catalog/mobile/providers/fa-chai.png',
   },
-  { code: 'golden-mines', name: 'Golden Mines', provider: 'platform-pc', platform: 'pc', category: 'arcade', accent: '#eab308', symbol: '⛏' },
-  { code: 'ocean-treasure', name: 'Ocean Treasure', provider: 'platform-pc', platform: 'pc', category: 'arcade', accent: '#0ea5e9', symbol: '⚓' },
-  { code: 'neon-racer', name: 'Neon Racer', provider: 'platform-pc', platform: 'pc', category: 'racing', accent: '#ec4899', symbol: 'N' },
-  { code: 'classic-blackjack', name: 'Classic Blackjack', provider: 'evolution', platform: 'pc', category: 'casino', accent: '#334155', symbol: '21' },
+];
+
+export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
+  ...MOBILE_GAME_CATALOG,
+  ...PC_GAME_CATALOG,
 ];
 
 export function assetUrl(path: string | undefined, publicBaseUrl: string) {
