@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { GameProviderAdapter } from '../provider-adapter.interface';
 import { DemoProviderAdapter } from './demo-provider.adapter';
 import { SimulatorProviderAdapter } from './simulator-provider.adapter';
@@ -21,25 +21,42 @@ export class ProviderAdapterRegistry {
     this.register('provider-simulator', genericTransferAdapter);
   }
 
-  register(providerCode: string, adapter: GameProviderAdapter) {
-    this.adapters.set(this.normalize(providerCode), adapter);
+  register(providerCode: string, adapter: GameProviderAdapter, options: { replace?: boolean } = {}) {
+    const code = this.normalize(providerCode);
+    if (!code) throw new BadRequestException('Provider code is required');
+    if (!adapter) throw new BadRequestException(`Provider adapter is required for ${code}`);
+    if (this.adapters.has(code) && options.replace !== true) {
+      throw new ConflictException(`Provider adapter already registered for ${code}`);
+    }
+    this.adapters.set(code, adapter);
+    return adapter;
   }
 
   getAdapter(providerCode: string) {
-    const adapter = this.adapters.get(this.normalize(providerCode));
+    const code = this.normalize(providerCode);
+    if (!code) throw new BadRequestException('Provider code is required');
+    const adapter = this.adapters.get(code);
     if (!adapter) throw new NotFoundException(`Provider adapter not registered for ${providerCode}`);
     return adapter;
   }
 
   hasAdapter(providerCode: string) {
-    return this.adapters.has(this.normalize(providerCode));
+    const code = this.normalize(providerCode);
+    return Boolean(code) && this.adapters.has(code);
   }
 
   listAdapterCodes() {
     return Array.from(this.adapters.keys()).sort();
   }
 
+  describeAdapters() {
+    return this.listAdapterCodes().map((providerCode) => ({
+      providerCode,
+      adapterName: this.adapters.get(providerCode)?.constructor.name ?? 'UnknownAdapter',
+    }));
+  }
+
   private normalize(providerCode: string) {
-    return providerCode.trim().toLowerCase();
+    return typeof providerCode === 'string' ? providerCode.trim().toLowerCase() : '';
   }
 }
