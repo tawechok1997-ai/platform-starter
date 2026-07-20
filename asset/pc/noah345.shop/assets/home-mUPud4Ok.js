@@ -1,0 +1,1 @@
+import{y as t}from"./index-BWz46_jw.js";const e="https://api.noproky.net/lobby",i=async a=>await t("get")(e+`/preview/${a}`),o="https://api.noproky.net/lobby",n=async()=>await t("get")(o+"/imageslides");export{i as a,n as g};

@@ -1,0 +1,1 @@
+import{y as t}from"./index-BWz46_jw.js";const s="https://api.noproky.net/lobby/leaderboard",e=async a=>await t("get")(s+`/list/100/${a}`),o=async a=>await t("get")(s+`/rewards/${a}`),i=async a=>await t("get")(s+`/ranking/${a}`),r=async a=>await t("get")(s+`/ranking/user/${a}`),g=async a=>await t("post")(s,a);export{o as a,i as b,r as c,e as g,g as j};

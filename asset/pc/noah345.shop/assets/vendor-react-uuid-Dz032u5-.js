@@ -1,0 +1,1 @@
+import{g as o}from"./vendor-DgdRZPFd.js";var e,i;function n(){if(i)return e;i=1;function a(){const t=["a","b","c","d","e","f","0","1","2","3","4","5","6","7","8","9"];let r=[];for(let u=0;u<36;u++)u===8||u===13||u===18||u===23?r[u]="-":r[u]=t[Math.ceil(Math.random()*t.length-1)];return r.join("")}return e=a,e}var d=n();const f=o(d);export{f as u};

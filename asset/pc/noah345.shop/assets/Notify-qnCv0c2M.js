@@ -1,0 +1,1 @@
+import{b7 as t}from"./vendor-DgdRZPFd.js";const r=()=>t.jsxs("svg",{width:"12",height:"12",viewBox:"0 0 12 12",fill:"none",xmlns:"http://www.w3.org/2000/svg",children:[t.jsx("circle",{cx:"6",cy:"6",r:"6",fill:"#FF566B"}),t.jsx("path",{d:"M6 3V6",stroke:"white",strokeWidth:"1.5",strokeLinecap:"round"}),t.jsx("circle",{cx:"6",cy:"9",r:"1",fill:"white"})]});export{r as N};
