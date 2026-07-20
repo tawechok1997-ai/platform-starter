@@ -104,6 +104,7 @@ const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'จัดการสิทธิ์', href: '/access', permissions: ['admin.access.view'] },
   { title: 'กิจกรรม', href: '/activity', permissions: ['admin.view', 'admin.access.view'] },
   { title: 'บันทึกการใช้งานระบบ', href: '/audit-logs', permissions: ['admin.view', 'admin.access.view'] },
+  { title: 'โปรไฟล์ผู้ดูแล', href: '/profile', permissions: ['admin.view'] },
   { title: 'การเงิน', href: '/finance', permissions: ['wallet.view', 'reports.view'] },
   { title: 'ตรวจ KYC', href: '/kyc', permissions: ['users.view', 'risk.view'] },
   { title: 'ประวัติยอดเงิน', href: '/ledgers', permissions: ['wallet.view'] },
