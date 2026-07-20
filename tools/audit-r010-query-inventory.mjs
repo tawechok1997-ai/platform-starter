@@ -101,10 +101,11 @@ for (const file of files) {
   for (const match of source.matchAll(/\b(?:this\.prisma|tx)\.([A-Za-z0-9_]+)\.findMany\s*\(\s*\{([\s\S]{0,2000}?)\}\s*\)/g)) {
     const model = match[1];
     const body = normalizeWhitespace(match[2]);
+    const where = body.match(/\bwhere\s*:\s*\{([\s\S]*?)\}(?:\s*,|$)/)?.[1] ?? '';
     const select = body.match(/\bselect\s*:\s*\{([\s\S]*?)\}(?:\s*,|$)/)?.[1] ?? '';
     const include = body.match(/\binclude\s*:\s*\{([\s\S]*?)\}(?:\s*,|$)/)?.[1] ?? '';
     const orderBy = body.match(/\borderBy\s*:\s*([^,}]+)/)?.[1] ?? '';
-    const shape = normalizeWhitespace(`${model}|select:${select}|include:${include}|orderBy:${orderBy}`);
+    const shape = normalizeWhitespace(`${model}|where:${where}|select:${select}|include:${include}|orderBy:${orderBy}`);
     const method = methodForIndex(ranges, match.index ?? 0);
     const item = {
       key: `${fileName}#${method}#${model}.findMany:${lineNumber(source, match.index ?? 0)}`,
