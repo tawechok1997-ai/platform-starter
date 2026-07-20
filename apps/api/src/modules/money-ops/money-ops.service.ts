@@ -4,6 +4,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { Prisma, RiskAlertSeverity, RiskAlertType, WalletLedgerDirection } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
+import { AdminLedgerMutationService } from '../wallet/admin-ledger-mutation.service';
 
 type RequestMeta = { ipAddress?: string; userAgent?: string };
 type LedgerDryRunInput = { userId?: string; amount?: unknown; direction?: unknown; referenceType?: unknown; referenceId?: unknown; note?: unknown; idempotencyKey?: unknown };
@@ -23,7 +24,10 @@ const ALERT_RULES: AlertRule[] = [
 
 @Injectable()
 export class MoneyOpsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly adminLedgerMutation: AdminLedgerMutationService,
+  ) {}
 
   async financeControlCenter() {
     const [walletCount, ledgers, failedTransfers, pendingTransfers, mismatchSnapshots, webhookFailed, duplicateWebhooks, openRiskAlerts, recentLedgers, recentTransfers, recentSnapshots, recentAlerts] = await Promise.all([
@@ -45,7 +49,7 @@ export class MoneyOpsService {
 
   async listLedger(query: { userId?: string; referenceType?: string; referenceId?: string; take?: string | number }) { const take = Math.min(Math.max(Number(query.take ?? 50), 1), 100); const where: Prisma.WalletLedgerWhereInput = {}; if (query.userId) where.userId = query.userId; if (query.referenceType) where.referenceType = query.referenceType; if (query.referenceId) where.referenceId = query.referenceId; const items = await this.prisma.walletLedger.findMany({ where, orderBy: { createdAt: 'desc' }, take, include: { user: { select: { id: true, username: true, phone: true } }, wallet: { select: { id: true, currency: true, balance: true, lockedBalance: true } } } }); return { items, total: items.length }; }
   simulateLedgerMutation(body: LedgerDryRunInput) { const parsed = this.parseLedgerInput(body); const balanceBefore = 1000; const balanceAfter = parsed.direction === 'CREDIT' ? balanceBefore + parsed.amount : balanceBefore - parsed.amount; const ok = balanceAfter >= 0; return { ok, dryRun: true, mutation: { ...parsed, amount: parsed.amount.toFixed(2), balanceBefore: balanceBefore.toFixed(2), balanceAfter: balanceAfter.toFixed(2) }, warning: ok ? null : 'Insufficient simulated balance' }; }
-  async mutateLedger(actor: AdminActor, meta: RequestMeta, body: LedgerDryRunInput) { if (!REAL_LEDGER_MUTATION_ENABLED) throw new ForbiddenException('REAL_LEDGER_MUTATION_ENABLED is not enabled'); const parsed = this.parseLedgerInput(body); const item = await this.prisma.$transaction(async (tx) => { const wallet = await tx.wallet.findUnique({ where: { userId: parsed.userId } }); if (!wallet) throw new BadRequestException('Wallet not found'); if (wallet.status !== 'ACTIVE') throw new BadRequestException('Wallet is not active'); const balanceBefore = Number(wallet.balance); const balanceAfter = parsed.direction === 'CREDIT' ? balanceBefore + parsed.amount : balanceBefore - parsed.amount; if (balanceAfter < 0) throw new BadRequestException('Insufficient balance'); const updatedWallet = await tx.wallet.update({ where: { id: wallet.id }, data: { balance: balanceAfter.toFixed(2) } }); return tx.walletLedger.create({ data: { walletId: wallet.id, userId: parsed.userId, type: 'ADJUSTMENT', direction: parsed.direction, amount: parsed.amount.toFixed(2), balanceBefore: balanceBefore.toFixed(2), balanceAfter: balanceAfter.toFixed(2), referenceType: parsed.referenceType, referenceId: parsed.referenceId, idempotencyKey: parsed.idempotencyKey, metadata: this.safeJson({ note: parsed.note, featureFlag: 'REAL_LEDGER_MUTATION_ENABLED', updatedWalletId: updatedWallet.id }), createdByAdminId: actor.id } }); }); await this.writeAudit(actor, meta, { action: 'ledger.mutate', module: 'money_ops', targetId: item.id, newData: item }); return { ok: true, item, realMutation: true }; }
+  async mutateLedger(actor: AdminActor, meta: RequestMeta, body: LedgerDryRunInput) { if (!REAL_LEDGER_MUTATION_ENABLED) throw new ForbiddenException('REAL_LEDGER_MUTATION_ENABLED is not enabled'); const parsed = this.parseLedgerInput(body); const item = await this.adminLedgerMutation.execute(actor, meta, { userId: parsed.userId, amount: parsed.amount.toFixed(2), direction: parsed.direction, referenceType: parsed.referenceType, referenceId: parsed.referenceId, idempotencyKey: parsed.idempotencyKey, note: parsed.note }); return { ok: true, item, realMutation: true }; }
   async writeAudit(actor: AdminActor, meta: RequestMeta, input: { action: string; module: string; targetId?: string; oldData?: unknown; newData?: unknown }) { const item = await this.prisma.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: actor.id, action: input.action, module: input.module, targetId: input.targetId, oldData: input.oldData, newData: input.newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) }); return { ok: true, item }; }
   listAlertRules() { return { items: ALERT_RULES, dryRun: false }; }
   async scanAlertRules(actor: AdminActor, meta: RequestMeta) { const findings = (await Promise.all([this.findFailedTransfers(), this.findInvalidWebhooks(), this.findDuplicateWebhooks(), this.findMismatchSnapshots(), this.findDegradedProviders(), this.findRealMoneyEnabledProviders()])).flat(); const persisted = []; for (const finding of findings) persisted.push(await this.upsertRiskAlert(finding)); await this.writeAudit(actor, meta, { action: 'alert_rules.scan', module: 'money_ops', newData: { findings, persisted: persisted.length } }); return { findings, persisted, dryRun: false }; }
