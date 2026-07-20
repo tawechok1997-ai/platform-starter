@@ -7,6 +7,8 @@ on:
       - 'apps/web-member/app/games/**'
       - 'apps/web-member/src/features/games/**'
       - 'apps/web-member/package.json'
+      - 'tests/game-api-browser/**'
+      - 'playwright.game-api.config.ts'
       - 'docs/game-api-worklist.md'
       - '.github/workflows/game-api-verification.yml'
   push:
@@ -16,6 +18,8 @@ on:
       - 'apps/web-member/app/games/**'
       - 'apps/web-member/src/features/games/**'
       - 'apps/web-member/package.json'
+      - 'tests/game-api-browser/**'
+      - 'playwright.game-api.config.ts'
       - 'docs/game-api-worklist.md'
       - '.github/workflows/game-api-verification.yml'
   workflow_dispatch:
@@ -26,7 +30,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -51,3 +55,14 @@ jobs:
         run: pnpm --filter @platform/web-member typecheck
       - name: Member build
         run: pnpm --filter @platform/web-member build
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium webkit
+      - name: Game lobby browser regression
+        run: pnpm exec playwright test -c playwright.game-api.config.ts
+      - name: Upload browser report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-api-browser-report
+          path: playwright-game-api-report
+          if-no-files-found: ignore
