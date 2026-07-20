@@ -80,9 +80,9 @@ export default function RiskAlertDetailPage() {
           <AdminDataValue label="สถานะ"><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge></AdminDataValue>
           <AdminDataValue label="ประเภท">{item.type}</AdminDataValue>
           <AdminDataValue label="สมาชิก">{item.memberId ? <AdminLinkButton href={`/members/${item.memberId}`} size="compact">{item.shortMemberId ?? shortId(item.memberId)}</AdminLinkButton> : '-'}</AdminDataValue>
-          <AdminDataValue label="ข้อมูลอ้างอิง"><AdminCode title={item.refId ?? undefined}>{item.refType ?? '-'} / {item.refId ?? '-'}</AdminCode></AdminDataValue>
+          <AdminDataValue label="ข้อมูลอ้างอิง"><AdminCode {...(item.refId ? { title: item.refId } : {})}>{item.refType ?? '-'} / {item.refId ?? '-'}</AdminCode></AdminDataValue>
           <AdminDataValue label="แก้ไขล่าสุด">{item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH') : '-'}</AdminDataValue>
-          <AdminDataValue label="ผู้ปิดรายการ"><AdminCode title={item.resolvedBy ?? undefined}>{item.resolvedBy ?? '-'}</AdminCode></AdminDataValue>
+          <AdminDataValue label="ผู้ปิดรายการ"><AdminCode {...(item.resolvedBy ? { title: item.resolvedBy } : {})}>{item.resolvedBy ?? '-'}</AdminCode></AdminDataValue>
         </AdminStack>
       </AdminCard>
 
