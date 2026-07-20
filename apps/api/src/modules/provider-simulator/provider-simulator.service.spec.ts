@@ -26,7 +26,16 @@ describe('ProviderSimulatorService', () => {
       mutateGameBalance: jest.fn(async (input: any) => {
         const existing = ledgers.get(input.idempotencyKey);
         if (existing) return { wallet: { balance: existing.balanceAfter, currency: 'THB' }, ledger: existing, replayed: true };
-        if (input.beforeMutation) await input.beforeMutation({ walletLedger: {} });
+        const transactionClient = {
+          walletLedger: {
+            findMany: jest.fn(async ({ where }: any) => Array.from(ledgers.values()).filter((item) => {
+              if (where?.userId && item.userId !== where.userId) return false;
+              if (where?.referenceType && item.referenceType !== where.referenceType) return false;
+              return true;
+            })),
+          },
+        };
+        if (input.beforeMutation) await input.beforeMutation(transactionClient);
         const before = balances.get(input.userId) ?? 0;
         const amount = Number(input.amount);
         const after = input.direction === 'CREDIT' ? before + amount : before - amount;
@@ -91,13 +100,14 @@ describe('ProviderSimulatorService', () => {
   it('records explicit bet, win, refund and rollback-bet operations', async () => {
     await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'bet-1', roundId: 'round-1', gameCode: 'fortune-tiger' });
     await service.gameTransaction('WIN', { userId: 'member-1', amount: '25.00', transactionId: 'win-1', roundId: 'round-1', gameCode: 'fortune-tiger' });
+    await service.gameTransaction('BET', { userId: 'member-1', amount: '7.00', transactionId: 'bet-2', roundId: 'round-2', gameCode: 'fortune-tiger' });
     await service.gameTransaction('REFUND', { userId: 'member-1', amount: '5.00', transactionId: 'refund-1', originalTransactionId: 'bet-2', roundId: 'round-2', gameCode: 'fortune-tiger' });
     await service.gameTransaction('ROLLBACK', { userId: 'member-1', amount: '2.00', transactionId: 'rollback-1', originalTransactionId: 'bet-2', rollbackTarget: 'BET', roundId: 'round-2', gameCode: 'fortune-tiger' });
-    expect((await service.getBalance({ userId: 'member-1' })).balance).toBe('122.00');
+    expect((await service.getBalance({ userId: 'member-1' })).balance).toBe('115.00');
     const history = await service.betHistory({ userId: 'member-1' });
-    expect(history.items).toHaveLength(4);
-    expect(history.items.map((item: any) => item.metadata.gameOperation)).toEqual(['BET', 'WIN', 'REFUND', 'ROLLBACK_BET']);
-    expect(roundService.enforceInTransaction).toHaveBeenCalledTimes(4);
+    expect(history.items).toHaveLength(5);
+    expect(history.items.map((item: any) => item.metadata.gameOperation)).toEqual(['BET', 'WIN', 'BET', 'REFUND', 'ROLLBACK_BET']);
+    expect(roundService.enforceInTransaction).toHaveBeenCalledTimes(5);
   });
 
   it('debits the wallet when rolling back a win', async () => {
@@ -120,11 +130,35 @@ describe('ProviderSimulatorService', () => {
     })).rejects.toThrow('rollbackTarget is required');
   });
 
+  it('rejects refunds when the source bet does not match the user, game and round', async () => {
+    await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'bet-source', roundId: 'round-source', gameCode: 'fortune-tiger' });
+    await expect(service.gameTransaction('REFUND', {
+      userId: 'member-1', amount: '5.00', transactionId: 'refund-wrong-round', originalTransactionId: 'bet-source', roundId: 'other-round', gameCode: 'fortune-tiger',
+    })).rejects.toThrow('Original bet transaction was not found');
+  });
+
+  it('supports partial refunds but rejects cumulative refunds above the original bet', async () => {
+    await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'partial-bet', roundId: 'partial-round', gameCode: 'fortune-tiger' });
+    await service.gameTransaction('REFUND', { userId: 'member-1', amount: '4.00', transactionId: 'partial-refund-1', originalTransactionId: 'partial-bet', roundId: 'partial-round', gameCode: 'fortune-tiger' });
+    await service.gameTransaction('REFUND', { userId: 'member-1', amount: '6.00', transactionId: 'partial-refund-2', originalTransactionId: 'partial-bet', roundId: 'partial-round', gameCode: 'fortune-tiger' });
+    await expect(service.gameTransaction('REFUND', {
+      userId: 'member-1', amount: '0.01', transactionId: 'partial-refund-over', originalTransactionId: 'partial-bet', roundId: 'partial-round', gameCode: 'fortune-tiger',
+    })).rejects.toThrow('Cumulative refund amount cannot exceed');
+  });
+
   it('passes a stable per-round concurrency key to the wallet transaction', async () => {
     const wallet = (service as any).walletService;
     await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'bet-lock-1', roundId: 'round-lock', gameCode: 'fortune-tiger' });
     expect(wallet.mutateGameBalance).toHaveBeenCalledWith(expect.objectContaining({
       concurrencyKey: 'provider-simulator:member-1:fortune-tiger:round-lock', beforeMutation: expect.any(Function),
+    }));
+  });
+
+  it('stores a canonical payload hash for idempotency conflict detection', async () => {
+    const wallet = (service as any).walletService;
+    await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'hash-bet', roundId: 'hash-round', gameCode: 'fortune-tiger' });
+    expect(wallet.mutateGameBalance).toHaveBeenLastCalledWith(expect.objectContaining({
+      metadata: expect.objectContaining({ payloadHash: expect.stringMatching(/^[a-f0-9]{64}$/) }),
     }));
   });
 
