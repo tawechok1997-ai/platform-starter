@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from '../../database/database.module';
+import { JwtAuthModule } from '../../common/security/jwt-auth.module';
 import { QueuesController } from './queues.controller';
 import { QueuesService } from './queues.service';
 
 @Module({
-  imports: [DatabaseModule, JwtModule.register({})],
+  imports: [DatabaseModule, JwtAuthModule],
   controllers: [QueuesController],
   providers: [QueuesService],
   exports: [QueuesService],
