@@ -36,6 +36,7 @@ import './admin-wallet-history.css';
 import './admin-wallet-batch.css';
 import './admin-wallet-insights.css';
 import './admin-promotion-operations.css';
+import './admin-risk-operations.css';
 import './admin-button-contrast.css';
 import './admin-ui-refactor-polish.css';
 import './support-center.css';
