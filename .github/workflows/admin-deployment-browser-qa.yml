@@ -16,6 +16,8 @@ on:
       - 'packages/design-tokens/**'
       - 'packages/ui-core/**'
       - 'tests/e2e-smoke/admin-deployment-matrix.spec.ts'
+      - 'tests/e2e-smoke/admin-critical-routes.json'
+      - 'tools/audit-admin-browser-route-matrix.mjs'
       - 'playwright.admin-deployment.config.ts'
       - '.github/workflows/admin-deployment-browser-qa.yml'
 
@@ -48,6 +50,9 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+
+      - name: Audit browser route matrix
+        run: node tools/audit-admin-browser-route-matrix.mjs
 
       - name: Deployment preflight
         shell: bash
@@ -82,6 +87,7 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const reportPath = 'test-results/admin-deployment/results.json';
+          const matrixPath = 'tests/e2e-smoke/admin-critical-routes.json';
           let passed = 0;
           let failed = 0;
           let skipped = 0;
@@ -103,11 +109,12 @@ jobs:
             };
             for (const suite of report.suites ?? []) visit(suite);
           }
+          const matrix = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
           const authMode = process.env.ADMIN_TEST_USERNAME && process.env.ADMIN_TEST_PASSWORD
             ? 'signed-in'
             : 'redirect-only';
           const manifest = {
-            schemaVersion: 1,
+            schemaVersion: 2,
             workflow: process.env.GITHUB_WORKFLOW,
             runId: process.env.GITHUB_RUN_ID,
             runAttempt: process.env.GITHUB_RUN_ATTEMPT,
@@ -118,7 +125,9 @@ jobs:
             deployment: process.env.ADMIN_BASE_URL,
             authenticationMode: authMode,
             outcome: process.env.QA_OUTCOME,
-            viewports: [320, 360, 390, 768, 1024, 1440],
+            loginRoute: matrix.loginRoute,
+            protectedRoutes: matrix.protectedRoutes,
+            viewports: matrix.viewports,
             tests: { total, passed, failed, skipped },
             generatedAt: new Date().toISOString(),
           };
@@ -128,8 +137,6 @@ jobs:
       - name: Write job summary
         if: always()
         shell: bash
-        env:
-          QA_OUTCOME: ${{ steps.browser_qa.outcome }}
         run: |
           node <<'NODE' >> "$GITHUB_STEP_SUMMARY"
           const fs = require('fs');
@@ -144,7 +151,8 @@ jobs:
           console.log(`- Outcome: **${manifest.outcome}**`);
           console.log(`- Deployment: ${manifest.deployment}`);
           console.log(`- Authentication mode: ${manifest.authenticationMode}`);
-          console.log(`- Viewports: ${manifest.viewports.join(', ')} px`);
+          console.log(`- Routes: ${manifest.loginRoute}, ${manifest.protectedRoutes.join(', ')}`);
+          console.log(`- Viewports: ${manifest.viewports.map((item) => item.width).join(', ')} px`);
           console.log(`- Tests: ${manifest.tests.passed} passed, ${manifest.tests.failed} failed, ${manifest.tests.skipped} skipped`);
           console.log(`- Commit: \`${manifest.commit}\``);
           console.log(`- Run: ${manifest.runUrl}`);
