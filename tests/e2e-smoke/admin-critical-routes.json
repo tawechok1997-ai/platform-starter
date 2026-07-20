@@ -2,10 +2,20 @@
   "loginRoute": "/login",
   "protectedRoutes": [
     "/dashboard",
+    "/wallets",
+    "/topups",
+    "/withdrawals",
+    "/wallet-ledgers",
+    "/wallet-analytics",
+    "/reconciliation-center",
     "/reports",
+    "/exports",
     "/promotion-center",
+    "/promotion-claims",
     "/risk-operations",
-    "/wallet-analytics"
+    "/risk-alerts",
+    "/aml",
+    "/blacklist"
   ],
   "viewports": [
     { "name": "mobile-320", "width": 320, "height": 740 },
