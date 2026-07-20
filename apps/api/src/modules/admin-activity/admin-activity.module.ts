@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthModule } from '../../common/security/jwt-auth.module';
 import { DatabaseModule } from '../../database/database.module';
 import { AdminActivityController } from './admin-activity.controller';
+import { AdminActivityQueryService } from './admin-activity-query.service';
 import { AdminActivityService } from './admin-activity.service';
 
 @Module({
-  imports: [DatabaseModule, JwtModule.register({})],
+  imports: [DatabaseModule, JwtAuthModule],
   controllers: [AdminActivityController],
-  providers: [AdminActivityService],
+  providers: [AdminActivityService, AdminActivityQueryService],
+  exports: [AdminActivityService, AdminActivityQueryService],
 })
 export class AdminActivityModule {}

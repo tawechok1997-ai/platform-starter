@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthModule } from '../../common/security/jwt-auth.module';
 import { DatabaseModule } from '../../database/database.module';
 import { RiskAlertsModule } from '../risk-alerts/risk-alerts.module';
 import { AdminAuthModule } from '../admin-auth/admin-auth.module';
@@ -12,7 +12,7 @@ import { WithdrawalsController } from './withdrawals.controller';
 import { WithdrawalsService } from './withdrawals.service';
 
 @Module({
-  imports: [DatabaseModule, JwtModule.register({}), StorageModule, RiskAlertsModule, AdminAuthModule],
+  imports: [DatabaseModule, JwtAuthModule, StorageModule, RiskAlertsModule, AdminAuthModule],
   controllers: [WithdrawalsController, WithdrawalWorkflowController],
   providers: [WithdrawalsService, WithdrawalWorkflowService, WithdrawalRiskEnforcementService, BatchWithdrawalWorkflowService],
   exports: [WithdrawalsService, WithdrawalWorkflowService],

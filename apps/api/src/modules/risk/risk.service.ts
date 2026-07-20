@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { RiskSummaryQueryService } from './risk-summary-query.service';
+import { FinanceRiskSummaryQueryService } from '../risk-alerts/finance-risk-summary-query.service';
 
 @Injectable()
 export class RiskService {
-  constructor(private readonly summaryQuery: RiskSummaryQueryService) {}
+  constructor(private readonly summaryQuery: FinanceRiskSummaryQueryService) {}
 
   getSummary() {
     return this.summaryQuery.execute();

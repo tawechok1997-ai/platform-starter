@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthModule } from '../../common/security/jwt-auth.module';
 import { DatabaseModule } from '../../database/database.module';
 import { ProviderSimulatorEnabledGuard } from '../../common/guards/provider-simulator-enabled.guard';
+import { WalletModule } from '../wallet/wallet.module';
 import { MoneyOpsController } from './money-ops.controller';
 import { MoneyOpsService } from './money-ops.service';
 import { ProviderSimulatorAdminController } from './provider-simulator-admin.controller';
@@ -12,7 +13,7 @@ import { WalletLedgerDetailController } from './wallet-ledger-detail.controller'
 import { WalletLedgerDetailService } from './wallet-ledger-detail.service';
 
 @Module({
-  imports: [DatabaseModule, JwtModule.register({})],
+  imports: [DatabaseModule, JwtAuthModule, WalletModule],
   controllers: [MoneyOpsController, ProviderSimulatorController, ProviderSimulatorAdminController, ReconciliationDetailController, WalletLedgerDetailController],
   providers: [MoneyOpsService, ReconciliationDetailService, WalletLedgerDetailService, ProviderSimulatorEnabledGuard],
 })

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AdminActivityQuery, AdminActivityQueryService } from './admin-activity-query.service';
+import { AdminActivityQuery, AdminActivityQueryService } from '../admin-activity/admin-activity-query.service';
 
 @Injectable()
 export class ActivityService {

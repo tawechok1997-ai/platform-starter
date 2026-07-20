@@ -3,11 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "node --import tsx --test src/features/**/*.spec.ts && next build",
+    "build": "next build",
     "lint": "eslint app src --ext .ts,.tsx",
-    "test": "node --import tsx --test src/features/**/*.spec.ts",
+    "test": "node --import tsx --test \"src/**/*.spec.ts\"",
     "test:admin-regression": "node --import tsx --test src/features/admin-redesign/*.spec.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "verify": "pnpm test && pnpm typecheck && pnpm build",
     "start": "next start -p 3001"
   },
   "dependencies": {

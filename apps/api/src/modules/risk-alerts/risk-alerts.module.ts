@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthModule } from '../../common/security/jwt-auth.module';
 import { DatabaseModule } from '../../database/database.module';
 import { StorageModule } from '../storage/storage.module';
 import { AdminKycController } from './admin-kyc.controller';
+import { FinanceRiskSummaryQueryService } from './finance-risk-summary-query.service';
 import { KycAccessService } from './kyc-access.service';
 import { KycDocumentsQueryService } from './kyc-documents-query.service';
 import { KycDocumentsService } from './kyc-documents.service';
@@ -19,10 +20,11 @@ import { RiskWatchlistService } from './risk-watchlist.service';
 import { RiskEnforcementService } from './risk-enforcement.service';
 
 @Module({
-  imports: [DatabaseModule, JwtModule.register({}), StorageModule],
+  imports: [DatabaseModule, JwtAuthModule, StorageModule],
   controllers: [RiskAlertsController, RiskWatchlistController, AdminKycController, MemberKycController],
   providers: [
     RiskAlertsService,
+    FinanceRiskSummaryQueryService,
     RiskWatchlistService,
     RiskWatchlistQueryService,
     RiskWatchlistCommandService,
@@ -36,6 +38,7 @@ import { RiskEnforcementService } from './risk-enforcement.service';
   ],
   exports: [
     RiskAlertsService,
+    FinanceRiskSummaryQueryService,
     RiskWatchlistService,
     RiskWatchlistQueryService,
     RiskWatchlistCommandService,

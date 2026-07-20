@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { mapAdminActivity } from './activity.mapper';
+import { mapAdminActivity } from '../activity/activity.mapper';
 
 export type AdminActivityQuery = {
   module?: string;

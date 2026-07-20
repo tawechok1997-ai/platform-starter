@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { DatabaseModule } from '../../database/database.module';
+import { RiskAlertsModule } from '../risk-alerts/risk-alerts.module';
 import { RiskController } from './risk.controller';
 import { RiskService } from './risk.service';
-import { RiskSummaryQueryService } from './risk-summary-query.service';
 
 @Module({
-  imports: [DatabaseModule, JwtModule.register({})],
+  imports: [RiskAlertsModule],
   controllers: [RiskController],
-  providers: [RiskService, RiskSummaryQueryService],
-  exports: [RiskService, RiskSummaryQueryService],
+  providers: [RiskService],
+  exports: [RiskService],
 })
 export class RiskModule {}

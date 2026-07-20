@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthModule } from '../../common/security/jwt-auth.module';
 import { AntiBotModule } from '../anti-bot/anti-bot.module';
 import { RiskAlertsModule } from '../risk-alerts/risk-alerts.module';
 import { AuthController } from './auth.controller';
@@ -9,7 +9,7 @@ import { PhoneOtpService } from './phone-otp.service';
 import { SmsProviderService } from './sms-provider.service';
 
 @Module({
-  imports: [JwtModule.register({}), AntiBotModule, RiskAlertsModule],
+  imports: [JwtAuthModule, AntiBotModule, RiskAlertsModule],
   controllers: [AuthController],
   providers: [AuthService, MemberRiskEnforcementService, PhoneOtpService, SmsProviderService],
   exports: [AuthService, PhoneOtpService],
