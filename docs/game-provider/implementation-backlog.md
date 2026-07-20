@@ -44,11 +44,14 @@ This backlog contains only work that remains after comparing the requested archi
 ## Workstream D: round persistence
 
 - [ ] Promote the raw-SQL `game_rounds` table to a Prisma model.
-- [ ] Add a game-round transaction model.
-- [ ] Track total bet, win, refund, and rollback amounts.
-- [ ] Support multiple bets and multiple wins per round.
+- [x] Add the additive migration foundation for `game_round_transactions`.
+- [x] Persist webhook round transactions with provider transaction and idempotency uniqueness.
+- [x] Track total bet, win, refund, and rollback amounts for newly persisted webhook transactions.
+- [ ] Backfill existing round totals and transaction rows from historical webhook and wallet data.
+- [ ] Support multiple bets and multiple wins in the round transition policy.
 - [ ] Split refund, rollback, cancel, and manual-review transitions.
 - [ ] Add stale-round detection.
+- [ ] Add final Prisma models after migration validation against an existing database snapshot.
 
 ## Workstream E: security
 
@@ -74,6 +77,7 @@ This backlog contains only work that remains after comparing the requested archi
 - [x] Add payload-conflict protection at the wallet idempotency boundary.
 - [x] Add focused refund, rollback direction, source validation, and partial-refund tests.
 - [ ] Add focused wallet ledger semantic/filter tests.
+- [ ] Add game-round transaction persistence and duplicate-event tests.
 - [ ] Add full refund, rollback, and manual-review integration tests.
 
 ## Deferred until the repository UI and asset audit is complete
