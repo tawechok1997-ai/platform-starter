@@ -112,6 +112,7 @@ export default function MemberGamesPage() {
   const recentGames = useMemo(() => recentIds.map((id) => games.find((game) => game.id === id)).filter(Boolean) as Game[], [recentIds, games]);
   const visibleGames = useMemo(() => category === 'favorite' ? favoriteGames : games, [category, favoriteGames, games]);
   const availableCount = useMemo(() => visibleGames.filter(isGameAvailable).length, [visibleGames]);
+  const heroGame = payload.featured[0] ?? payload.popular[0] ?? payload.items[0];
 
   async function launchGame(game: Game) {
     if (!isGameAvailable(game)) { setLaunching({ gameId: game.id, message: 'เกมนี้อยู่ใน catalog แต่ยังไม่เชื่อมระบบเปิดเกม' }); return; }
@@ -142,6 +143,10 @@ export default function MemberGamesPage() {
   function retryLoadMore() { setLoadMoreError(''); setReloadKey((value) => value + 1); }
 
   return <main className="game-lobby-page">
+    <LobbyHero game={heroGame} counts={payload.counts} providerCount={payload.providers.length} loading={loading} onExplore={() => document.getElementById('game-catalog')?.scrollIntoView({ behavior: 'smooth' })} onLaunch={launchGame} />
+    <LobbyStats counts={payload.counts} providerCount={payload.providers.length} availableCount={availableCount} loading={loading} />
+    <PromotionStrip onSelect={(next) => { setCategory(next); setProvider('all'); }} />
+
     <nav className="game-lobby-tabs" aria-label="เลือกแพลตฟอร์มเกม">
       <button className={platform === 'all' ? 'is-active' : ''} aria-pressed={platform === 'all'} onClick={() => selectPlatform('all')}>ทั้งหมด <span>{payload.counts.total}</span></button>
       <button className={platform === 'mobile' ? 'is-active' : ''} aria-pressed={platform === 'mobile'} onClick={() => selectPlatform('mobile')}>📱 Mobile <span>{payload.counts.mobile}</span></button>
@@ -172,7 +177,7 @@ export default function MemberGamesPage() {
       <GameSection title="เล่นล่าสุด" items={recentGames} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
       <GameSection title="เกมใหม่" items={payload.newest} favoriteIds={favoriteIds} launchingGameId={launching.gameId} onLaunch={launchGame} onFavorite={toggleFavorite} />
 
-      <section className="game-lobby-section">
+      <section className="game-lobby-section" id="game-catalog">
         <header><h2>{platform === 'pc' ? 'เกม PC ทั้งหมด' : platform === 'mobile' ? 'เกม Mobile ทั้งหมด' : category === 'favorite' ? 'เกมโปรด' : 'เกมทั้งหมด'}</h2><span>{category === 'favorite' ? favoriteGames.length : payload.pagination.total} เกม · พร้อมเล่นในหน้านี้ {availableCount}</span></header>
         <div className="game-lobby-grid">{visibleGames.map((game) => <GameCard key={game.id} game={game} favorite={favoriteIds.includes(game.id)} launching={launching.gameId === game.id} onLaunch={launchGame} onFavorite={toggleFavorite} />)}{loadingMore && Array.from({ length: 4 }, (_, index) => <GameCardSkeleton key={`more-${index}`} />)}{visibleGames.length === 0 && <EmptyLobby onReset={resetFilters} />}</div>
         {loadMoreError && <div className="game-lobby-notice" role="alert"><span>{loadMoreError}</span> <button type="button" onClick={retryLoadMore}>ลองโหลดหน้านี้อีกครั้ง</button></div>}
@@ -181,6 +186,42 @@ export default function MemberGamesPage() {
     </>}
     <MemberBottomNav />
   </main>;
+}
+
+function LobbyHero({ game, counts, providerCount, loading, onExplore, onLaunch }: { game?: Game; counts: Counts; providerCount: number; loading: boolean; onExplore: () => void; onLaunch: (game: Game) => void }) {
+  const image = game ? pickImage(game) : null;
+  return <section className="game-lobby-hero" style={image ? { backgroundImage: `linear-gradient(90deg,rgba(8,8,12,.96) 0%,rgba(8,8,12,.76) 48%,rgba(8,8,12,.26) 100%), url(${JSON.stringify(image).slice(1, -1)})` } : undefined}>
+    <div className="game-lobby-hero-copy">
+      <span className="game-lobby-kicker">MEMBER GAME LOBBY</span>
+      <h1>{loading ? 'กำลังเตรียมเกมให้คุณ' : game ? game.name : 'เกมทั้งหมดในที่เดียว'}</h1>
+      <p>{game ? `${game.provider?.name ?? 'Game Provider'} · ${categoryLabel(game.category)} · ${platformLabel(game.platform)}` : `เลือกจาก ${counts.total} เกม และ ${providerCount} ค่าย`}</p>
+      <div className="game-lobby-hero-actions">
+        {game && isGameAvailable(game) && <button type="button" className="is-primary" onClick={() => onLaunch(game)}>เล่นเกมแนะนำ</button>}
+        <button type="button" onClick={onExplore}>ดูเกมทั้งหมด</button>
+      </div>
+    </div>
+    <div className="game-lobby-hero-orb" aria-hidden="true"><span>{loading ? '…' : counts.total}</span><small>GAMES</small></div>
+  </section>;
+}
+
+function LobbyStats({ counts, providerCount, availableCount, loading }: { counts: Counts; providerCount: number; availableCount: number; loading: boolean }) {
+  const items = [
+    ['เกมทั้งหมด', counts.total],
+    ['ค่ายเกม', providerCount],
+    ['พร้อมเล่น', availableCount],
+    ['เกมใหม่', counts.catalogOnly],
+  ];
+  return <section className="game-lobby-stats" aria-label="สถิติ Lobby">{items.map(([label, value]) => <article key={String(label)}><span>{label}</span><strong>{loading ? '—' : Number(value).toLocaleString('th-TH')}</strong></article>)}</section>;
+}
+
+function PromotionStrip({ onSelect }: { onSelect: (category: string) => void }) {
+  const items = [
+    ['🔥', 'เกมยอดนิยม', 'all'],
+    ['🎰', 'สล็อต', 'slot'],
+    ['🎮', 'อาร์เคด', 'arcade'],
+    ['🏆', 'กีฬา', 'sport'],
+  ];
+  return <section className="game-promotion-strip" aria-label="ทางลัดหมวดเกม">{items.map(([icon, label, value]) => <button key={label} type="button" onClick={() => onSelect(value)}><span aria-hidden="true">{icon}</span><strong>{label}</strong><small>เปิดดูทันที</small></button>)}</section>;
 }
 
 function ProviderStrip({ providers, selected, loading, onSelect }: { providers: ProviderOption[]; selected: string; loading: boolean; onSelect: (code: string) => void }) {
@@ -203,24 +244,8 @@ function ProviderButton({ item, active, onSelect }: { item: ProviderOption; acti
   </button>;
 }
 
-function LobbySkeleton({ count }: { count: number }) {
-  return <section className="game-lobby-section" aria-busy="true" aria-label="กำลังโหลดเกม">
-    <header className="game-lobby-skeleton-header"><span /><span /></header>
-    <div className="game-lobby-grid">{Array.from({ length: count }, (_, index) => <GameCardSkeleton key={index} />)}</div>
-  </section>;
-}
-
-function GameCardSkeleton() {
-  return <article className="game-lobby-card game-lobby-card-skeleton" aria-hidden="true">
-    <div className="game-lobby-skeleton-cover" />
-    <div className="game-lobby-card-body">
-      <span className="game-lobby-skeleton-line is-title" />
-      <span className="game-lobby-skeleton-line is-provider" />
-      <div className="game-lobby-skeleton-badges"><span /><span /></div>
-      <span className="game-lobby-skeleton-button" />
-    </div>
-  </article>;
-}
+function LobbySkeleton({ count }: { count: number }) { return <section className="game-lobby-section" aria-busy="true" aria-label="กำลังโหลดเกม"><header className="game-lobby-skeleton-header"><span /><span /></header><div className="game-lobby-grid">{Array.from({ length: count }, (_, index) => <GameCardSkeleton key={index} />)}</div></section>; }
+function GameCardSkeleton() { return <article className="game-lobby-card game-lobby-card-skeleton" aria-hidden="true"><div className="game-lobby-skeleton-cover" /><div className="game-lobby-card-body"><span className="game-lobby-skeleton-line is-title" /><span className="game-lobby-skeleton-line is-provider" /><div className="game-lobby-skeleton-badges"><span /><span /></div><span className="game-lobby-skeleton-button" /></div></article>; }
 
 function GameSection({ title, items, favoriteIds, launchingGameId, onLaunch, onFavorite }: { title: string; items: Game[]; favoriteIds: string[]; launchingGameId?: string; onLaunch: (game: Game) => void; onFavorite: (game: Game) => void }) {
   const visible = items.slice(0, 8);
@@ -241,10 +266,7 @@ function GameCard({ game, favorite, launching, onLaunch, onFavorite }: { game: G
 function ProviderIdentity({ provider, fallback, platform }: { provider?: GameProvider; fallback: string; platform: GamePlatform }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const name = provider?.name || fallback;
-  return <span className="game-provider-identity">
-    {provider?.logoUrl && !logoFailed ? <img src={provider.logoUrl} alt="" loading="lazy" decoding="async" onError={() => setLogoFailed(true)} /> : <i aria-hidden="true">{name.slice(0, 1).toUpperCase()}</i>}
-    <span>{name} · {platformLabel(platform)}</span>
-  </span>;
+  return <span className="game-provider-identity">{provider?.logoUrl && !logoFailed ? <img src={provider.logoUrl} alt="" loading="lazy" decoding="async" onError={() => setLogoFailed(true)} /> : <i aria-hidden="true">{name.slice(0, 1).toUpperCase()}</i>}<span>{name} · {platformLabel(platform)}</span></span>;
 }
 
 function GameImage({ game }: { game: Game }) {
@@ -252,10 +274,7 @@ function GameImage({ game }: { game: Game }) {
   const [failed, setFailed] = useState(false);
   const image = pickImage(game);
   if (!image || failed) return <div className="game-lobby-fallback" aria-hidden="true">{game.name.slice(0, 2).toUpperCase()}</div>;
-  return <span className={`game-lobby-image${loaded ? ' is-loaded' : ''}`}>
-    <span className="game-lobby-image-placeholder" aria-hidden="true" />
-    <img src={image} alt={`ภาพปก ${game.name}`} loading="lazy" decoding="async" onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
-  </span>;
+  return <span className={`game-lobby-image${loaded ? ' is-loaded' : ''}`}><span className="game-lobby-image-placeholder" aria-hidden="true" /><img src={image} alt={`ภาพปก ${game.name}`} loading="lazy" decoding="async" onLoad={() => setLoaded(true)} onError={() => setFailed(true)} /></span>;
 }
 
 function EmptyLobby({ onReset }: { onReset: () => void }) { return <div className="game-lobby-empty"><strong>ไม่เจอเกมในเงื่อนไขนี้</strong><span>ลองล้างตัวกรองหรือค้นหาด้วยชื่อค่ายหรือชื่อเกมอื่น</span><button type="button" onClick={onReset}>ล้างตัวกรอง</button></div>; }
