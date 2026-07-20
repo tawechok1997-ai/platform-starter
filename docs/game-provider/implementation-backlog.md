@@ -22,7 +22,8 @@ This backlog contains only work that remains after comparing the requested archi
 - [x] Add a runtime guard that isolates simulator mode from external provider mode.
 - [ ] Consolidate overlapping responsibilities between `game-platform` and `provider-simulator`.
 - [ ] Make `WalletService.mutateGameBalance()` the documented and tested exclusive mutation boundary for game operations.
-- [ ] Add configuration validation for simulator, seamless wallet, placeholder asset, and external-provider flags.
+- [x] Centralize and test simulator versus external-provider runtime mode validation.
+- [ ] Add configuration validation for seamless wallet and placeholder asset flags.
 
 ## Workstream B: wallet and ledger semantics
 
@@ -47,10 +48,12 @@ This backlog contains only work that remains after comparing the requested archi
 - [x] Add the additive migration foundation for `game_round_transactions`.
 - [x] Persist webhook round transactions with provider transaction and idempotency uniqueness.
 - [x] Track total bet, win, refund, and rollback amounts for newly persisted webhook transactions.
-- [ ] Backfill existing round totals and transaction rows from historical webhook and wallet data.
-- [ ] Support multiple bets and multiple wins in the round transition policy.
-- [ ] Split refund, rollback, cancel, and manual-review transitions.
+- [x] Support multiple bets and multiple wins in the round transition policy.
+- [x] Split refund, rollback, and cancel transitions.
+- [x] Add separate refund and cancel transaction references to round persistence.
+- [ ] Add manual-review transitions.
 - [ ] Add stale-round detection.
+- [ ] Backfill existing round totals and transaction rows from historical webhook and wallet data.
 - [ ] Add final Prisma models after migration validation against an existing database snapshot.
 
 ## Workstream E: security
@@ -77,7 +80,9 @@ This backlog contains only work that remains after comparing the requested archi
 - [x] Add payload-conflict protection at the wallet idempotency boundary.
 - [x] Add focused refund, rollback direction, source validation, and partial-refund tests.
 - [ ] Add focused wallet ledger semantic/filter tests.
-- [ ] Add game-round transaction persistence and duplicate-event tests.
+- [x] Add round-policy tests for repeated bets, repeated wins, refund, cancel, replay, and closed-round rejection.
+- [ ] Add game-round transaction persistence and duplicate-event integration tests.
+- [x] Add provider simulator runtime configuration tests.
 - [ ] Add full refund, rollback, and manual-review integration tests.
 
 ## Deferred until the repository UI and asset audit is complete
