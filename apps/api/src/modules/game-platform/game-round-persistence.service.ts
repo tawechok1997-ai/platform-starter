@@ -9,7 +9,17 @@ type PersistedGameRound = {
   state: GameRoundState;
   betTransactionId: string | null;
   settleTransactionId: string | null;
+  refundTransactionId: string | null;
   rollbackTransactionId: string | null;
+  cancelTransactionId: string | null;
+};
+
+type PersistableRoundTransaction = {
+  amount: string;
+  currency: string;
+  originalProviderTransactionId: string | null;
+  direction: 'CREDIT' | 'DEBIT';
+  operation: 'BET' | 'WIN' | 'REFUND' | 'ROLLBACK' | 'CANCEL';
 };
 
 export type PersistedRoundTransition = {
@@ -48,7 +58,9 @@ export class GameRoundPersistenceService {
           SET "state" = ${next.state},
               "bet_transaction_id" = ${next.betTransactionId ?? null},
               "settle_transaction_id" = ${next.settleTransactionId ?? null},
+              "refund_transaction_id" = ${next.refundTransactionId ?? null},
               "rollback_transaction_id" = ${next.rollbackTransactionId ?? null},
+              "cancel_transaction_id" = ${next.cancelTransactionId ?? null},
               "last_event_type" = ${event.eventType},
               "last_event_payload" = ${payloadJson}::jsonb,
               "settled_at" = CASE WHEN ${next.state} = 'SETTLED' THEN ${now} ELSE "settled_at" END,
@@ -57,10 +69,82 @@ export class GameRoundPersistenceService {
               "updated_at" = ${now}
           WHERE "id" = ${current.id}::uuid
         `;
+
+        if (transactionId) {
+          const transaction = this.extractTransaction(event, roundEvent);
+          if (transaction) {
+            await this.persistTransaction(tx, {
+              providerId,
+              roundId: current.id,
+              providerTransactionId: transactionId,
+              idempotencyKey: event.idempotencyKey?.trim() || `${providerId}:${transactionId}`,
+              rawPayload: payloadJson,
+              ...transaction,
+            });
+          }
+        }
       }
       results.push({ roundId: current.id, providerRoundId, state: next.state, event: roundEvent, replay });
     }
     return results;
+  }
+
+  private async persistTransaction(
+    tx: Prisma.TransactionClient,
+    input: PersistableRoundTransaction & {
+      providerId: string;
+      roundId: string;
+      providerTransactionId: string;
+      idempotencyKey: string;
+      rawPayload: string;
+    },
+  ) {
+    await tx.$executeRaw`
+      WITH inserted AS (
+        INSERT INTO "game_round_transactions" (
+          "round_id", "provider_id", "provider_transaction_id",
+          "original_provider_transaction_id", "operation", "direction",
+          "amount", "currency", "idempotency_key", "raw_payload"
+        ) VALUES (
+          ${input.roundId}::uuid, ${input.providerId}::uuid, ${input.providerTransactionId},
+          ${input.originalProviderTransactionId}, ${input.operation}, ${input.direction}::"WalletLedgerDirection",
+          ${input.amount}::decimal, ${input.currency}, ${input.idempotencyKey}, ${input.rawPayload}::jsonb
+        )
+        ON CONFLICT ("provider_id", "provider_transaction_id") DO NOTHING
+        RETURNING "operation", "amount"
+      )
+      UPDATE "game_rounds"
+      SET "total_bet_amount" = "total_bet_amount" + CASE WHEN inserted."operation" = 'BET' THEN inserted."amount" ELSE 0 END,
+          "total_win_amount" = "total_win_amount" + CASE WHEN inserted."operation" = 'WIN' THEN inserted."amount" ELSE 0 END,
+          "total_refund_amount" = "total_refund_amount" + CASE WHEN inserted."operation" = 'REFUND' THEN inserted."amount" ELSE 0 END,
+          "total_rollback_amount" = "total_rollback_amount" + CASE WHEN inserted."operation" IN ('ROLLBACK', 'CANCEL') THEN inserted."amount" ELSE 0 END,
+          "updated_at" = CURRENT_TIMESTAMP
+      FROM inserted
+      WHERE "game_rounds"."id" = ${input.roundId}::uuid
+    `;
+  }
+
+  private extractTransaction(event: ParsedWebhookEvent, roundEvent: GameRoundEvent): PersistableRoundTransaction | null {
+    if (roundEvent === 'CLOSE') return null;
+    const payload = this.asRecord(event.payload);
+    const amount = this.positiveAmount(payload.amount ?? payload.betAmount ?? payload.winAmount ?? payload.refundAmount ?? payload.rollbackAmount);
+    if (!amount) return null;
+    const operation = roundEvent === 'PLACE_BET'
+      ? 'BET'
+      : roundEvent === 'SETTLE'
+        ? 'WIN'
+        : roundEvent === 'REFUND'
+          ? 'REFUND'
+          : roundEvent === 'CANCEL'
+            ? 'CANCEL'
+            : 'ROLLBACK';
+    return {
+      amount,
+      currency: this.nonEmptyString(payload.currency) ?? 'THB',
+      originalProviderTransactionId: this.nonEmptyString(payload.originalTransactionId ?? payload.originalProviderTransactionId),
+      direction: operation === 'BET' ? 'DEBIT' : 'CREDIT',
+      operation,
+    };
   }
 
   private async findOrCreate(tx: Prisma.TransactionClient, providerId: string, providerRoundId: string): Promise<PersistedGameRound> {
@@ -68,7 +152,9 @@ export class GameRoundPersistenceService {
       SELECT "id", "provider_round_id" AS "providerRoundId", "state",
              "bet_transaction_id" AS "betTransactionId",
              "settle_transaction_id" AS "settleTransactionId",
-             "rollback_transaction_id" AS "rollbackTransactionId"
+             "refund_transaction_id" AS "refundTransactionId",
+             "rollback_transaction_id" AS "rollbackTransactionId",
+             "cancel_transaction_id" AS "cancelTransactionId"
       FROM "game_rounds"
       WHERE "provider_id" = ${providerId}::uuid AND "provider_round_id" = ${providerRoundId}
       LIMIT 1
@@ -81,7 +167,9 @@ export class GameRoundPersistenceService {
       RETURNING "id", "provider_round_id" AS "providerRoundId", "state",
                 "bet_transaction_id" AS "betTransactionId",
                 "settle_transaction_id" AS "settleTransactionId",
-                "rollback_transaction_id" AS "rollbackTransactionId"
+                "refund_transaction_id" AS "refundTransactionId",
+                "rollback_transaction_id" AS "rollbackTransactionId",
+                "cancel_transaction_id" AS "cancelTransactionId"
     `;
     const round = created[0];
     if (!round) throw new BadRequestException('Unable to create game round');
@@ -95,16 +183,37 @@ export class GameRoundPersistenceService {
       state: round.state,
       ...(round.betTransactionId ? { betTransactionId: round.betTransactionId } : {}),
       ...(round.settleTransactionId ? { settleTransactionId: round.settleTransactionId } : {}),
+      ...(round.refundTransactionId ? { refundTransactionId: round.refundTransactionId } : {}),
       ...(round.rollbackTransactionId ? { rollbackTransactionId: round.rollbackTransactionId } : {}),
+      ...(round.cancelTransactionId ? { cancelTransactionId: round.cancelTransactionId } : {}),
     };
   }
 
   private mapEvent(eventType: string): GameRoundEvent | null {
-    const normalized = eventType.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_');
+    const normalized = this.normalizedEventType(eventType);
     if (['BET', 'PLACE_BET', 'BET_PLACED'].includes(normalized)) return 'PLACE_BET';
     if (['SETTLE', 'SETTLED', 'WIN', 'PAYOUT'].includes(normalized)) return 'SETTLE';
-    if (['ROLLBACK', 'REFUND', 'BET_ROLLBACK', 'CANCEL_BET'].includes(normalized)) return 'ROLLBACK';
+    if (['REFUND', 'BET_REFUND'].includes(normalized)) return 'REFUND';
+    if (['CANCEL', 'CANCEL_BET', 'BET_CANCELLED'].includes(normalized)) return 'CANCEL';
+    if (['ROLLBACK', 'BET_ROLLBACK', 'WIN_ROLLBACK'].includes(normalized)) return 'ROLLBACK';
     if (['CLOSE', 'ROUND_CLOSED'].includes(normalized)) return 'CLOSE';
     return null;
+  }
+
+  private normalizedEventType(eventType: string) {
+    return eventType.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_');
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  }
+
+  private nonEmptyString(value: unknown) {
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+  }
+
+  private positiveAmount(value: unknown) {
+    const amount = String(value ?? '').trim();
+    return /^\d+(\.\d{1,2})?$/.test(amount) && Number(amount) > 0 ? amount : null;
   }
 }
