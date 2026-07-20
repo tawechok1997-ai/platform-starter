@@ -14,6 +14,7 @@ import {
   AdminPage,
   AdminRow,
   AdminSectionRow,
+  AdminSkeleton,
   AdminStack,
   AdminToolbar,
   formatMoney,
@@ -50,6 +51,7 @@ export default function AdminTopUpsPage() {
   const [total, setTotal] = useState(0);
   const [message, setMessage] = useState('');
   const [messageTone, setMessageTone] = useState<NoticeTone>('neutral');
+  const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState('');
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [slips, setSlips] = useState<Record<string, string>>({});
@@ -57,12 +59,6 @@ export default function AdminTopUpsPage() {
 
   useEffect(() => { void loadItems(status, page); }, [status, page]);
   useEffect(() => { void loadSlips(items); }, [items]);
-  useEffect(() => {
-    if (!pendingAction) return;
-    const close = (event: KeyboardEvent) => { if (event.key === 'Escape' && !busyId) setPendingAction(null); };
-    window.addEventListener('keydown', close);
-    return () => window.removeEventListener('keydown', close);
-  }, [pendingAction, busyId]);
 
   const counts = useMemo(() => ({
     waitingSlip: items.filter((item) => item.status === 'PENDING_SLIP_REVIEW').length,
@@ -77,35 +73,54 @@ export default function AdminTopUpsPage() {
   }
 
   async function loadItems(nextStatus = status, nextPage = page) {
+    setLoading(true);
     showMessage('กำลังโหลดรายการฝาก...', 'neutral');
-    const query = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
-    if (nextStatus !== 'ALL') query.set('status', nextStatus);
-    const res = await adminApiFetch(`/admin/topups?${query}`);
-    const data = await res.json().catch(() => null);
-    if (!res.ok) return showMessage(data?.message ?? 'โหลดรายการฝากไม่สำเร็จ', 'danger');
-    setItems(data.items ?? []);
-    setTotal(Number(data.total ?? 0));
-    setPageCount(Math.max(Number(data.pageCount ?? 1), 1));
-    showMessage('');
+    try {
+      const query = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
+      if (nextStatus !== 'ALL') query.set('status', nextStatus);
+      const res = await adminApiFetch(`/admin/topups?${query}`);
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message ?? 'โหลดรายการฝากไม่สำเร็จ');
+      setItems(Array.isArray(data?.items) ? data.items : []);
+      setTotal(Number(data?.total ?? data?.items?.length ?? 0));
+      setPageCount(Math.max(Number(data?.pageCount ?? 1), 1));
+      showMessage('');
+    } catch (error) {
+      setItems([]);
+      setTotal(0);
+      setPageCount(1);
+      showMessage(error instanceof Error ? error.message : 'โหลดรายการฝากไม่สำเร็จ', 'danger');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function loadSlips(nextItems: TopUpItem[]) {
     const targets = nextItems.filter((item) => ['PENDING_SLIP_REVIEW', 'PENDING_CREDIT', 'COMPLETED'].includes(item.status) && !slips[item.id]);
     await Promise.all(targets.map(async (item) => {
-      const res = await adminApiFetch(`/admin/topups/${item.id}/slip`);
-      const data = await res.json().catch(() => null);
-      if (res.ok && data?.dataUrl) setSlips((current) => ({ ...current, [item.id]: data.dataUrl }));
+      try {
+        const res = await adminApiFetch(`/admin/topups/${item.id}/slip`);
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.dataUrl) setSlips((current) => ({ ...current, [item.id]: data.dataUrl }));
+      } catch {
+        // Slip preview is non-blocking; the queue remains usable from server state.
+      }
     }));
   }
 
   async function claim(id: string, action: 'claim' | 'release') {
     setBusyId(id);
-    const res = await adminApiFetch(`/admin/topups/${id}/${action}`, { method: 'POST' });
-    const data = await res.json().catch(() => null);
-    setBusyId('');
-    if (!res.ok) return showMessage(data?.message ?? 'ทำรายการไม่สำเร็จ', 'danger');
-    setItems((current) => current.map((item) => item.id === id ? { ...item, ...data } : item));
-    showMessage(action === 'claim' ? 'รับงานตรวจฝากแล้ว' : 'ปล่อยงานแล้ว', 'success');
+    try {
+      const res = await adminApiFetch(`/admin/topups/${id}/${action}`, { method: 'POST' });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message ?? 'ทำรายการไม่สำเร็จ');
+      setItems((current) => current.map((item) => item.id === id ? { ...item, ...data } : item));
+      showMessage(action === 'claim' ? 'รับงานตรวจฝากแล้ว' : 'ปล่อยงานแล้ว', 'success');
+    } catch (error) {
+      showMessage(error instanceof Error ? error.message : 'ทำรายการไม่สำเร็จ', 'danger');
+    } finally {
+      setBusyId('');
+    }
   }
 
   function requestAction(item: TopUpItem, action: DepositAction) {
@@ -119,43 +134,52 @@ export default function AdminTopUpsPage() {
     const { item, action } = pendingAction;
     const adminNote = (notes[item.id] ?? '').trim();
     setBusyId(item.id);
-    const res = await adminApiFetch(`/admin/topups/${item.id}/${action}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminNote }),
-    });
-    const data = await res.json().catch(() => null);
-    setBusyId('');
-    if (!res.ok) return showMessage(data?.message ?? 'ทำรายการไม่สำเร็จ', 'danger');
-    setPendingAction(null);
-    showMessage(action === 'approve-slip' ? 'ตรวจสลิปผ่านแล้ว รอยืนยันเครดิต' : action === 'confirm-credit' ? 'เพิ่มเครดิตสำเร็จ' : 'ปฏิเสธรายการฝากแล้ว', 'success');
-    void loadItems(status, page);
+    try {
+      const res = await adminApiFetch(`/admin/topups/${item.id}/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminNote }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message ?? 'ทำรายการไม่สำเร็จ');
+      setPendingAction(null);
+      showMessage(action === 'approve-slip' ? 'ตรวจสลิปผ่านแล้ว รอยืนยันเครดิต' : action === 'confirm-credit' ? 'เพิ่มเครดิตสำเร็จ' : 'ปฏิเสธรายการฝากแล้ว', 'success');
+      await loadItems(status, page);
+    } catch (error) {
+      showMessage(error instanceof Error ? error.message : 'ทำรายการไม่สำเร็จ', 'danger');
+    } finally {
+      setBusyId('');
+    }
   }
 
+  const queueBusy = loading || Boolean(busyId);
+
   return (
-    <AdminPage eyebrow="Deposit Operations" title="ตรวจฝาก" description="ตรวจสลิปก่อน แล้วจึงยืนยันเครดิตเป็นคนละขั้นตอน" actions={<AdminButton onClick={() => void loadItems()}>รีเฟรช</AdminButton>}>
+    <AdminPage eyebrow="การเงิน" title="คิวตรวจรายการฝาก" description="ตรวจสลิป รับผิดชอบงาน และยืนยันเครดิตตามลำดับที่ตรวจสอบได้" actions={<AdminButton size="compact" disabled={queueBusy} onClick={() => void loadItems()}>{loading ? 'กำลังโหลด...' : 'รีเฟรชคิว'}</AdminButton>}>
       <AdminMetricGrid>
-        <AdminMetric tone={counts.waitingSlip ? 'warning' : 'success'} title="รอตรวจสลิป" value={`${counts.waitingSlip}`} />
-        <AdminMetric tone={counts.waitingCredit ? 'warning' : 'success'} title="รอยืนยันเครดิต" value={`${counts.waitingCredit}`} />
-        <AdminMetric tone="success" title="สำเร็จ" value={`${counts.done}`} />
-        <AdminMetric tone={counts.rejected ? 'danger' : 'neutral'} title="ปฏิเสธ/สลิปซ้ำ" value={`${counts.rejected}`} />
-        <AdminMetric title="ทั้งหมด" value={`${total}`} />
+        <AdminMetric tone={counts.waitingSlip ? 'warning' : 'success'} title="รอตรวจสลิป" value={`${counts.waitingSlip}`} helper={`ทั้งหมดตามตัวกรอง ${total}`} />
+        <AdminMetric tone={counts.waitingCredit ? 'warning' : 'success'} title="รอยืนยันเครดิต" value={`${counts.waitingCredit}`} helper={`หน้า ${page} / ${pageCount}`} />
+        <AdminMetric tone="success" title="สำเร็จ" value={`${counts.done}`} helper="เฉพาะรายการในหน้านี้" />
+        <AdminMetric tone={counts.rejected ? 'danger' : 'neutral'} title="ปฏิเสธ/สลิปซ้ำ" value={`${counts.rejected}`} helper={`${PAGE_SIZE} รายการต่อหน้า`} />
       </AdminMetricGrid>
+
       <AdminToolbar>
-        <label className="admin-queue-filter"><span>สถานะ</span><select value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>
+        <label className="admin-queue-filter"><span>สถานะคิว</span><select aria-label="กรองสถานะรายการฝาก" value={status} disabled={queueBusy} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>
           {FILTERS.map((value) => <option key={value} value={value}>{statusLabel(value)}</option>)}
           <option value="ALL">ทั้งหมด</option>
         </select></label>
-        <div className="admin-queue-pager"><AdminButton disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>ก่อนหน้า</AdminButton><span>หน้า {page} / {pageCount}</span><AdminButton disabled={page >= pageCount} onClick={() => setPage((value) => value + 1)}>ถัดไป</AdminButton></div>
+        <div className="admin-queue-pager"><AdminButton size="compact" tone="ghost" disabled={page <= 1 || queueBusy} onClick={() => setPage((value) => value - 1)}>ก่อนหน้า</AdminButton><span aria-live="polite">หน้า {page} / {pageCount}</span><AdminButton size="compact" tone="ghost" disabled={page >= pageCount || queueBusy} onClick={() => setPage((value) => value + 1)}>ถัดไป</AdminButton></div>
       </AdminToolbar>
+
       {message && <AdminNotice tone={messageTone}>{message}</AdminNotice>}
-      <AdminStack>
+      {loading ? <AdminCard><AdminSkeleton lines={5} /></AdminCard> : <AdminStack>
         {items.map((item) => {
           const actionable = ['PENDING_SLIP_REVIEW', 'PENDING_CREDIT'].includes(item.status);
+          const isBusy = busyId === item.id;
           return <AdminCard key={item.id} tone={item.status === 'COMPLETED' ? 'success' : ['REJECTED', 'DUPLICATE'].includes(item.status) ? 'danger' : 'neutral'}>
             <AdminSectionRow>
-              <div><AdminBadge tone={badgeTone(item.status)}>{statusLabel(item.status)}</AdminBadge><h2>{formatMoney(item.amount)}</h2><p>สมาชิก: {item.user?.username ?? item.user?.phone ?? item.userId}</p><p>สร้างเมื่อ: {new Date(item.createdAt).toLocaleString('th-TH')}</p></div>
-              {slips[item.id] && <img src={slips[item.id]} alt="สลิปฝาก" className="admin-topup-modal-slip" />}
+              <div><AdminBadge tone={badgeTone(item.status)}>{statusLabel(item.status)}</AdminBadge>{item.claimedBy ? <AdminBadge tone="success">มีผู้รับงานแล้ว</AdminBadge> : <AdminBadge>ยังไม่มีผู้รับงาน</AdminBadge>}<h2>{formatMoney(item.amount)}</h2><p>สมาชิก: {item.user?.username ?? item.user?.phone ?? item.userId}</p><p>สร้างเมื่อ: {new Date(item.createdAt).toLocaleString('th-TH')}</p></div>
+              {slips[item.id] && <img src={slips[item.id]} alt={`สลิปฝากของ ${item.user?.username ?? item.userId}`} className="admin-topup-modal-slip" />}
             </AdminSectionRow>
             <AdminCard title="การตรวจสอบ" description="ต้องรับงานก่อนเปลี่ยนสถานะหรือเพิ่มเครดิต">
               <AdminRow><strong>หมายเหตุสมาชิก</strong><span>{memberNote(item.note)}</span></AdminRow>
@@ -163,16 +187,17 @@ export default function AdminTopUpsPage() {
               {item.claimedAt && <AdminRow><strong>รับงานเมื่อ</strong><span>{new Date(item.claimedAt).toLocaleString('th-TH')}</span></AdminRow>}
             </AdminCard>
             {actionable ? <div className="admin-topup-operations">
-              <div className="admin-topup-action-grid"><AdminButton disabled={busyId === item.id} onClick={() => void claim(item.id, 'claim')}>รับงาน</AdminButton><AdminButton tone="secondary" disabled={busyId === item.id || !item.claimedBy} onClick={() => void claim(item.id, 'release')}>ปล่อยงาน</AdminButton></div>
-              <label className="admin-topup-note-field"><span>หมายเหตุแอดมิน</span><textarea value={notes[item.id] ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [item.id]: event.target.value }))} placeholder="จำเป็นเมื่อปฏิเสธ" /></label>
-              {item.status === 'PENDING_SLIP_REVIEW' && <AdminButton tone="success" disabled={busyId === item.id || !item.claimedBy} onClick={() => requestAction(item, 'approve-slip')}>สลิปถูกต้อง → รอยืนยันเครดิต</AdminButton>}
-              {item.status === 'PENDING_CREDIT' && <AdminButton tone="success" disabled={busyId === item.id || !item.claimedBy} onClick={() => requestAction(item, 'confirm-credit')}>ยืนยันเพิ่มเครดิต</AdminButton>}
-              <AdminButton tone="danger" disabled={busyId === item.id || !item.claimedBy} onClick={() => requestAction(item, 'reject')}>ปฏิเสธรายการ</AdminButton>
+              <div className="admin-topup-action-grid"><AdminButton disabled={isBusy} onClick={() => void claim(item.id, 'claim')}>รับงาน</AdminButton><AdminButton tone="secondary" disabled={isBusy || !item.claimedBy} onClick={() => void claim(item.id, 'release')}>ปล่อยงาน</AdminButton></div>
+              <label className="admin-topup-note-field"><span>หมายเหตุแอดมิน</span><textarea disabled={isBusy} value={notes[item.id] ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [item.id]: event.target.value }))} placeholder="จำเป็นเมื่อปฏิเสธ" /></label>
+              {item.status === 'PENDING_SLIP_REVIEW' && <AdminButton tone="success" disabled={isBusy || !item.claimedBy} onClick={() => requestAction(item, 'approve-slip')}>สลิปถูกต้อง → รอยืนยันเครดิต</AdminButton>}
+              {item.status === 'PENDING_CREDIT' && <AdminButton tone="success" disabled={isBusy || !item.claimedBy} onClick={() => requestAction(item, 'confirm-credit')}>ยืนยันเพิ่มเครดิต</AdminButton>}
+              <AdminButton tone="danger" disabled={isBusy || !item.claimedBy} onClick={() => requestAction(item, 'reject')}>ปฏิเสธรายการ</AdminButton>
             </div> : <AdminNotice tone="warning">รายการนี้ไม่สามารถเปลี่ยนสถานะต่อได้</AdminNotice>}
           </AdminCard>;
         })}
         {items.length === 0 && <AdminEmpty>ไม่มีรายการในสถานะนี้</AdminEmpty>}
-      </AdminStack>
+      </AdminStack>}
+
       <AdminConfirmDialog
         open={Boolean(pendingAction)}
         title={pendingAction ? actionTitle(pendingAction.action) : ''}
