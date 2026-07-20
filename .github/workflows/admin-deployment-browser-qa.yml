@@ -7,6 +7,11 @@ on:
         description: Admin deployment URL
         required: false
         default: https://platformweb-admin-production.up.railway.app
+      require_authentication:
+        description: Require seeded Admin credentials and run the full authenticated acceptance matrix
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: '20 2 * * *'
   push:
@@ -36,6 +41,7 @@ jobs:
       ADMIN_BASE_URL: ${{ inputs.admin_base_url || vars.ADMIN_BASE_URL || 'https://platformweb-admin-production.up.railway.app' }}
       ADMIN_TEST_USERNAME: ${{ secrets.ADMIN_TEST_USERNAME }}
       ADMIN_TEST_PASSWORD: ${{ secrets.ADMIN_TEST_PASSWORD }}
+      REQUIRE_AUTHENTICATION: ${{ inputs.require_authentication == true && 'true' || 'false' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,6 +59,31 @@ jobs:
 
       - name: Audit browser route matrix
         run: node tools/audit-admin-browser-route-matrix.mjs
+
+      - name: Validate acceptance configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          has_username=false
+          has_password=false
+          [[ -n "${ADMIN_TEST_USERNAME:-}" ]] && has_username=true
+          [[ -n "${ADMIN_TEST_PASSWORD:-}" ]] && has_password=true
+
+          if [[ "$has_username" != "$has_password" ]]; then
+            echo "ADMIN_TEST_USERNAME and ADMIN_TEST_PASSWORD must be configured together." >&2
+            exit 1
+          fi
+
+          if [[ "$REQUIRE_AUTHENTICATION" == "true" && "$has_username" != "true" ]]; then
+            echo "Authenticated acceptance was requested, but seeded Admin credentials are missing." >&2
+            exit 1
+          fi
+
+          if [[ "$has_username" == "true" ]]; then
+            echo "Authentication mode: signed-in"
+          else
+            echo "Authentication mode: redirect-only"
+          fi
 
       - name: Deployment preflight
         shell: bash
@@ -110,11 +141,12 @@ jobs:
             for (const suite of report.suites ?? []) visit(suite);
           }
           const matrix = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
-          const authMode = process.env.ADMIN_TEST_USERNAME && process.env.ADMIN_TEST_PASSWORD
-            ? 'signed-in'
-            : 'redirect-only';
+          const hasCredentials = Boolean(process.env.ADMIN_TEST_USERNAME && process.env.ADMIN_TEST_PASSWORD);
+          const authMode = hasCredentials ? 'signed-in' : 'redirect-only';
+          const acceptanceRequested = process.env.REQUIRE_AUTHENTICATION === 'true';
+          const acceptanceComplete = acceptanceRequested && hasCredentials && process.env.QA_OUTCOME === 'success';
           const manifest = {
-            schemaVersion: 3,
+            schemaVersion: 4,
             workflow: process.env.GITHUB_WORKFLOW,
             runId: process.env.GITHUB_RUN_ID,
             runAttempt: process.env.GITHUB_RUN_ATTEMPT,
@@ -124,6 +156,15 @@ jobs:
             ref: process.env.GITHUB_REF,
             deployment: process.env.ADMIN_BASE_URL,
             authenticationMode: authMode,
+            acceptance: {
+              requested: acceptanceRequested,
+              complete: acceptanceComplete,
+              closesWorkItems: acceptanceComplete ? [
+                'authenticated browser matrix',
+                'mobile real-data interaction verification',
+                'deployment visual evidence review',
+              ] : [],
+            },
             outcome: process.env.QA_OUTCOME,
             loginRoute: matrix.loginRoute,
             protectedRoutes: matrix.protectedRoutes,
@@ -135,6 +176,8 @@ jobs:
               semanticChecks: ['main-landmark', 'single-h1', 'form-control-labels'],
               violationEvidence: 'axe-*.json attachments on failure',
             },
+            runtimeChecks: ['horizontal-overflow', 'document-title', 'meaningful-content', 'console-errors', 'page-errors', 'request-failures'],
+            evidence: ['full-page screenshots', 'Playwright HTML report', 'JSON report', 'traces', 'failure videos', 'Axe violation attachments'],
             tests: { total, passed, failed, skipped },
             generatedAt: new Date().toISOString(),
           };
@@ -158,14 +201,17 @@ jobs:
           console.log(`- Outcome: **${manifest.outcome}**`);
           console.log(`- Deployment: ${manifest.deployment}`);
           console.log(`- Authentication mode: ${manifest.authenticationMode}`);
+          console.log(`- Authenticated acceptance requested: ${manifest.acceptance.requested ? 'yes' : 'no'}`);
+          console.log(`- Authenticated acceptance complete: **${manifest.acceptance.complete ? 'yes' : 'no'}**`);
           console.log(`- Routes: ${manifest.loginRoute}, ${manifest.protectedRoutes.join(', ')}`);
           console.log(`- Viewports: ${manifest.viewports.map((item) => item.width).join(', ')} px`);
           console.log(`- Tests: ${manifest.tests.passed} passed, ${manifest.tests.failed} failed, ${manifest.tests.skipped} skipped`);
           console.log(`- Accessibility: Axe ${manifest.accessibility.standards.join(', ')}; blocks ${manifest.accessibility.blockedImpacts.join('/')} violations`);
-          console.log(`- Semantic checks: ${manifest.accessibility.semanticChecks.join(', ')}`);
+          console.log(`- Runtime checks: ${manifest.runtimeChecks.join(', ')}`);
+          if (manifest.acceptance.closesWorkItems.length) console.log(`- Closed work items: ${manifest.acceptance.closesWorkItems.join(', ')}`);
           console.log(`- Commit: \`${manifest.commit}\``);
           console.log(`- Run: ${manifest.runUrl}`);
-          console.log('- Evidence: JSON manifest, Axe violation attachments, Playwright report, screenshots, traces, and failure videos');
+          console.log(`- Evidence: ${manifest.evidence.join(', ')}`);
           NODE
 
       - name: Upload Playwright evidence
