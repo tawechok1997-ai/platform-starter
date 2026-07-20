@@ -1,6 +1,7 @@
 {
   "extends": "../../packages/config/typescript/next.json",
   "compilerOptions": {
+    "target": "ES2018",
     "baseUrl": ".",
     "paths": {
       "@platform/api-client": [
