@@ -1,86 +1,117 @@
 # Platform Starter Agent Operating Contract
 
-This file governs implementation work in this repository. It is the short operational entry point; the linked documents are the detailed source of truth.
+Updated: **2026-07-21**  
+Status: **Active**
+
+This file governs implementation work in this repository. It is the short operational entry point; linked documents are the detailed source of truth.
 
 ## Current execution scope
 
-The active implementation scope is **Member only** (`apps/web-member`). Do not change `apps/web-admin`, Admin components, Admin CSS, Admin routes, or Admin behavior while executing the current UI phase. Admin documents remain linked for future reference, but Member and Admin work must be separate commits/phases.
+The repository does not have a permanent Member-only, Admin-only or backend-only scope. Every task must declare its scope before editing:
+
+- `apps/web-member`
+- `apps/web-admin`
+- `apps/api`
+- `packages/*`
+- `prisma`
+- documentation/operations
+
+Do not expand scope implicitly. Cross-surface or cross-domain changes require an explicit ownership and regression review.
 
 Full documentation map: [`docs/README.md`](docs/README.md).
 
-## Read before changing UI
+## Read before changing code
 
-1. [`docs/AI_RULES.md`](docs/AI_RULES.md) and [`docs/PROJECT_RULES.md`](docs/PROJECT_RULES.md) — project-wide safety and architecture rules.
-2. [`docs/master-project-worklist.md`](docs/master-project-worklist.md), [`docs/MEMBER_UX_UI_TOOLING.md`](docs/MEMBER_UX_UI_TOOLING.md), and [`docs/ADMIN_UX_UI_REDESIGN.md`](docs/ADMIN_UX_UI_REDESIGN.md) — separate project and UI backlogs.
-3. [`docs/UI_DESIGN_REFERENCE.md`](docs/UI_DESIGN_REFERENCE.md) — supplied LUX88/Gaming Fintech visual target.
-4. [`docs/MEMBER_MENU_INFORMATION_ARCHITECTURE.md`](docs/MEMBER_MENU_INFORMATION_ARCHITECTURE.md) — current Member route/menu/feature map. Read [`docs/ADMIN_MENU_INFORMATION_ARCHITECTURE.md`](docs/ADMIN_MENU_INFORMATION_ARCHITECTURE.md) only for future Admin work.
-5. [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](docs/UI_CONSISTENCY_COMPLETION_PLAN.md) — component, card, copy, state, duplicate-work, priority, and tool plan.
-6. [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](docs/UI_MOTION_ANIMATION_CONTRACT.md) — motion tokens, approved patterns, reduced-motion, and performance rules.
-7. [`docs/MEMBER_UI_PRODUCT_BRIEF.md`](docs/MEMBER_UI_PRODUCT_BRIEF.md) — current Member-only hierarchy, page order, card rules, copy, responsive layout, and motion brief.
-8. [`docs/MEMBER_TYPOGRAPHY_CONTRACT.md`](docs/MEMBER_TYPOGRAPHY_CONTRACT.md) — Thai/English font roles, numeric treatment, loading, and typography QA.
-9. [`docs/MEMBER_COLOR_ICON_CONTRACT.md`](docs/MEMBER_COLOR_ICON_CONTRACT.md) — dark palette, semantic color states, depth, borders, shadows, glow, and Lucide icon rules.
-10. [`docs/MEMBER_UX_UI_TOOLING.md`](docs/MEMBER_UX_UI_TOOLING.md) — current route-specific acceptance criteria.
-11. [`docs/MEMBER_ROUTE_MATRIX.md`](docs/MEMBER_ROUTE_MATRIX.md) and [`docs/ux-regression-matrix-finance-operations.md`](docs/ux-regression-matrix-finance-operations.md) — route ownership and regression states.
+1. [`docs/AI_RULES.md`](docs/AI_RULES.md) and [`docs/PROJECT_RULES.md`](docs/PROJECT_RULES.md)
+2. [`docs/master-project-worklist.md`](docs/master-project-worklist.md)
+3. [`docs/operations/codebase-professionalization-audit.md`](docs/operations/codebase-professionalization-audit.md)
+4. Relevant architecture ownership documents under [`docs/architecture/`](docs/architecture/)
+5. Relevant UI, finance, security, storage or provider contract for the affected scope
 
-When documents conflict, preserve financial/security/architecture rules first, then the canonical menu and consistency contracts, then route-specific polish. Update the source-of-truth document when resolving a conflict; do not silently create a third rule.
+For Member UI work, also read the Member product, typography, color/icon, menu and route documents. For Admin UI work, read the Admin redesign and menu architecture documents. Do not treat a historical phase restriction as a repository-wide rule.
+
+When documents conflict, preserve financial, security and architecture contracts first. Update the canonical source of truth when resolving conflict; do not silently create another rule.
 
 ## Working rules
 
-- Keep `apps/web-member`, `apps/web-admin`, API, database, and shared packages separated by ownership and contracts.
-- Inspect existing routes, components, tokens, API contracts, and tests before editing. Search with `rg`/`rg --files`.
-- Reuse the canonical menu, card, button, badge, formatter, state, icon, and token systems. Add a variant before adding a new component; add a dependency only with an ADR.
-- Never duplicate route definitions, API mappings, status labels, query ownership, or feature-flag logic across pages.
-- Keep copy short and action-oriented. Follow the copy budgets in `UI_CONSISTENCY_COMPLETION_PLAN.md`.
-- Use `apply_patch` for source edits. Preserve unrelated user changes. Do not use destructive reset/checkout commands.
-- Keep Member and Admin completely separated during this phase; do not “share” a visual change by editing Admin files. Shared API/design-token changes require explicit scope review.
-- Financial, identity, session, permission, storage, and audit changes require explicit tests and rollback/evidence notes.
+- Keep Member, Admin, API, database and shared packages separated by ownership and contracts.
+- Inspect routes, components, tokens, providers, API contracts and tests before editing.
+- Reuse canonical primitives and owners. Add a variant before creating a duplicate component or service.
+- Never duplicate route definitions, API mappings, status labels, mutation logic, query ownership or feature-flag logic.
+- Financial, identity, session, permission, storage, migration and audit changes require tests plus rollback/evidence notes.
+- Public service/controller boundaries must use named types; avoid `any` and dense single-line methods.
+- A Nest module using a guard must import an approved module that exports every guard dependency. Do not assume transitive providers are visible.
+- Preserve unrelated user changes and avoid destructive reset commands.
 
-## UI implementation loop
+## Implementation loop
 
-1. Define the target route, user flow, owner, priority, API readiness, and reference board.
-2. Identify duplicate components/menu paths and write the intended canonical source before refactoring.
-3. Make the smallest shared-component/token change that solves the pattern.
-4. Implement loading, empty, error, partial, offline, stale, maintenance, permission, success, retry, conflict, and session-expired states.
-5. Add keyboard/focus/reduced-motion behavior and short copy before visual polish.
-6. Validate with typecheck, lint, unit tests, route audit, production build, and format checks.
-7. Validate rendered behavior with Browser when available; otherwise use the repository Playwright workflow and record the fallback reason. Capture desktop and mobile screenshots, console/network health, and at least one interaction proof.
-8. Keep a mismatch ledger: reference expectation, rendered result, intentional deviation or fix, and evidence path.
-9. Update the relevant worklist/evidence log with implementation status, owner, commit SHA, remaining risk, and rollback note.
-10. Commit intentionally, verify the branch is based on current `main`, and push only after all relevant checks pass.
+1. Define scope, owner, priority, contracts and risk.
+2. Identify duplicate logic and the intended canonical owner.
+3. Make the smallest coherent change.
+4. Preserve compatibility routes/contracts during ownership moves.
+5. Implement relevant loading/error/permission/conflict/retry and failure states.
+6. Run targeted checks, then repository checks appropriate to the risk.
+7. For API/module changes, verify Nest application bootstrap or deployed startup, not only compilation.
+8. Retain evidence for rendered, deployed, migration, finance or security behavior where relevant.
+9. Update canonical worklist, architecture and handoff documents in the same change.
+10. Commit intentionally and publish only after actual verification results are known.
+
+## Required verification by scope
+
+### Repository baseline
+
+```bash
+pnpm check:repository
+pnpm lint
+pnpm typecheck
+```
+
+### Backend structure
+
+```bash
+pnpm audit:backend-decomposition
+pnpm check:architecture
+pnpm typecheck:api
+pnpm build:api
+```
+
+Also run an application bootstrap/startup check for dependency-injection changes.
+
+### Finance/security
+
+Run the relevant finance, permission, secret, dependency and workflow audits plus targeted tests. Never report a money/security path as verified from typecheck alone.
+
+### UI
+
+Run package lint, typecheck, tests, production build and rendered browser/Playwright evidence at required viewports.
+
+### Release
+
+Verify container startup, health/version endpoint and deployment commit identity before declaring success.
 
 ## Tool and skill routing
 
-| Need                                            | Required route                                                                   |
-| ----------------------------------------------- | -------------------------------------------------------------------------------- |
-| Repository inventory and duplicate search       | `rg`, route audit scripts, TypeScript inspection                                 |
-| React/Next implementation or refactor           | `build-web-apps:react-best-practices`                                            |
-| Rendered UI debugging, responsive and visual QA | `build-web-apps:frontend-testing-debugging`                                      |
-| Browser interaction and screenshots             | Browser plugin if available; otherwise Playwright with documented fallback       |
-| Accessibility                                   | `@axe-core/playwright`, JSX a11y ESLint, keyboard/focus checks                   |
-| Design tokens and shared primitives             | `packages/design-tokens`, existing Member/Admin primitives                       |
-| Animation                                       | CSS motion tokens first; `motion`/Framer Motion only after measured need and ADR |
-| Performance                                     | `@next/bundle-analyzer`, stable staging Lighthouse CI, React render review       |
-| Source publication                              | repository GitHub workflow/connector; verify fast-forward `main`                 |
-
-## Animation rules
-
-- Use existing `instant` 80ms, `fast` 160ms, `normal` 240ms, `slow` 360ms motion tokens.
-- Prefer transform/opacity and short feedback. Do not animate money/security copy, block actions until animation ends, or add decorative infinite loops.
-- Every animation needs purpose, reduced-motion fallback, performance check, and visual evidence.
-- Read [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](docs/UI_MOTION_ANIMATION_CONTRACT.md) before adding or changing motion.
+| Need | Required route |
+|---|---|
+| Repository inventory and duplicate search | `rg`, audit scripts, TypeScript inspection |
+| React/Next implementation or refactor | React best-practice workflow |
+| Rendered UI debugging | Browser/Playwright verification |
+| Accessibility | axe, JSX a11y, keyboard/focus checks |
+| Architecture/backend refactor | ownership maps, boundary audits, bootstrap test |
+| Source publication | repository GitHub workflow; verify current `main` |
 
 ## Definition of done
 
-A UI task is complete only when:
+A task is complete only when:
 
-- canonical route/menu/component/state/copy ownership is clear;
-- no duplicate or dead visible action remains;
-- desktop and mobile match the reference composition at required viewports;
-- all relevant states, accessibility, reduced motion, and keyboard behavior are implemented;
-- tests/build/lint/format/route audit pass;
-- rendered screenshot/interaction evidence and mismatch notes are retained;
-- worklists and evidence logs are updated with commit and remaining risk.
+- scope and canonical ownership are clear
+- no duplicate or dead path remains unintentionally
+- compatibility, permission and audit behavior are preserved
+- relevant checks actually ran and results are recorded
+- startup/rendered/deployed behavior is verified where required
+- documentation and evidence are current
+- remaining risk and rollback path are explicit
 
 ## Stop conditions
 
-Stop and ask for direction when a change would require production credentials, destructive data operations, a new external dependency without an ADR, a financial/security contract change without an owner, or a visual deviation that materially changes the supplied reference.
+Stop and escalate when a change requires production credentials, destructive data operations, an unapproved dependency, an ownerless finance/security contract, unverifiable migration state, wallet/ledger inconsistency, or a material contract deviation without approval.
