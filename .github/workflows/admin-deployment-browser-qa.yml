@@ -56,7 +56,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run admin deployment matrix
-        run: pnpm test:e2e:admin-deployment
+        run: pnpm exec playwright test -c playwright.admin-deployment.config.ts
 
       - name: Upload Playwright report
         if: always()
