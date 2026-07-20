@@ -123,12 +123,19 @@ export class WalletService {
     if (amount.lte(0)) throw new BadRequestException('Amount must be greater than zero');
 
     return this.prisma.$transaction(async (tx) => {
+      const concurrencyKey = input.concurrencyKey?.trim();
+      if (concurrencyKey) {
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${concurrencyKey}, 0))`;
+      }
+
       const existing = await tx.walletLedger.findUnique({ where: { idempotencyKey } });
       if (existing) {
         const sameRequest = existing.userId === userId && existing.direction === input.direction && existing.amount.equals(amount) && existing.referenceType === input.referenceType && existing.referenceId === input.referenceId;
         if (!sameRequest) throw new ConflictException('Idempotency key was already used with different game transaction data');
         return { wallet: await this.currentWalletInTransaction(tx, userId), ledger: this.formatLedger(existing), replayed: true };
       }
+
+      if (input.beforeMutation) await input.beforeMutation(tx);
 
       const user = await tx.user.findUnique({ where: { id: userId }, select: { id: true } });
       if (!user) throw new NotFoundException('User not found');
@@ -195,4 +202,6 @@ export type GameWalletMutationInput = {
   currency?: string;
   isReversal?: boolean;
   metadata?: Prisma.InputJsonValue;
+  concurrencyKey?: string;
+  beforeMutation?: (tx: Prisma.TransactionClient) => Promise<void>;
 };

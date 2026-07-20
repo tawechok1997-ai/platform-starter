@@ -6,6 +6,7 @@ describe('ProviderSimulatorService', () => {
   let service: ProviderSimulatorService;
   let balances: Map<string, number>;
   let ledgers: Map<string, any>;
+  let roundService: { enforceInTransaction: jest.Mock };
 
   beforeEach(() => {
     process.env.PROVIDER_SIMULATOR_API_KEY = 'test-api-key';
@@ -13,6 +14,7 @@ describe('ProviderSimulatorService', () => {
     process.env.PROVIDER_SIMULATOR_SECRET = 'test-secret';
     balances = new Map([['member-1', 100], ['member-2', 50], ['member-3', 10]]);
     ledgers = new Map();
+    roundService = { enforceInTransaction: jest.fn(async () => undefined) };
 
     const walletService = {
       getMemberWallet: jest.fn(async (userId: string) => ({ balance: (balances.get(userId) ?? 0).toFixed(2), currency: 'THB' })),
@@ -23,6 +25,7 @@ describe('ProviderSimulatorService', () => {
       mutateGameBalance: jest.fn(async (input: any) => {
         const existing = ledgers.get(input.idempotencyKey);
         if (existing) return { wallet: { balance: existing.balanceAfter, currency: 'THB' }, ledger: existing, replayed: true };
+        if (input.beforeMutation) await input.beforeMutation({ walletLedger: {} });
         const before = balances.get(input.userId) ?? 0;
         const amount = Number(input.amount);
         const after = input.direction === 'CREDIT' ? before + amount : before - amount;
@@ -42,7 +45,7 @@ describe('ProviderSimulatorService', () => {
       }),
     };
 
-    service = new ProviderSimulatorService(walletService as any);
+    service = new ProviderSimulatorService(walletService as any, roundService as any);
   });
 
   afterEach(() => {
@@ -99,6 +102,16 @@ describe('ProviderSimulatorService', () => {
     await service.gameTransaction('ROLLBACK', { userId: 'member-1', amount: '2.00', transactionId: 'rollback-1', roundId: 'round-2', gameCode: 'fortune-tiger' });
     expect((await service.getBalance({ userId: 'member-1' })).balance).toBe('122.00');
     expect((await service.betHistory({ userId: 'member-1' })).items).toHaveLength(4);
+    expect(roundService.enforceInTransaction).toHaveBeenCalledTimes(4);
+  });
+
+  it('passes a stable per-round concurrency key to the wallet transaction', async () => {
+    const wallet = (service as any).walletService;
+    await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'bet-lock-1', roundId: 'round-lock', gameCode: 'fortune-tiger' });
+    expect(wallet.mutateGameBalance).toHaveBeenCalledWith(expect.objectContaining({
+      concurrencyKey: 'provider-simulator:member-1:fortune-tiger:round-lock',
+      beforeMutation: expect.any(Function),
+    }));
   });
 
   it('validates the HMAC contract used by the provider adapter', () => {
