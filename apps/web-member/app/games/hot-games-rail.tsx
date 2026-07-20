@@ -5,11 +5,12 @@ import { useEffect, useState } from 'react';
 type GameMedia = { type: string; sourceUrl?: string | null | undefined; cachedUrl?: string | null | undefined; status: string };
 type GameProvider = { name: string; code: string; status?: string | null | undefined; logoUrl?: string | null | undefined };
 type Game = { id: string; providerGameCode: string; name: string; category: string; platform: 'mobile' | 'pc' | 'both'; status?: string | undefined; isFeatured: boolean; isNew: boolean; isPopular: boolean; provider?: GameProvider | undefined; media?: GameMedia[] | undefined; imageUrl?: string | null | undefined; iconUrl?: string | null | undefined };
-type Props = { games: Game[]; launchingGameId: string | undefined; onLaunch: (game: Game) => void };
+type Props<TGame extends Game> = { games: TGame[]; launchingGameId: string | undefined; onLaunch: (game: TGame) => void | Promise<void> };
 
-export default function HotGamesRail({ games, launchingGameId, onLaunch }: Props) {
+export default function HotGamesRail<TGame extends Game>({ games, launchingGameId, onLaunch }: Props<TGame>) {
   const [detailGame, setDetailGame] = useState<Game | null>(null);
   const visible = games.slice(0, 10);
+  const launchGame = (game: Game) => { void onLaunch(game as TGame); };
   useEffect(() => {
     if (!detailGame) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setDetailGame(null); };
@@ -21,9 +22,9 @@ export default function HotGamesRail({ games, launchingGameId, onLaunch }: Props
   return <>
     <section className="hot-games-section" aria-label="เกมกำลังมาแรง">
       <header><div><span>LIVE TREND</span><h2>🔥 เกมกำลังมาแรง</h2></div><small>{visible.length} อันดับ</small></header>
-      <div className="hot-games-rail">{visible.map((game, index) => <HotGameCard key={game.id} game={game} rank={index + 1} launching={launchingGameId === game.id} onLaunch={onLaunch} onDetail={setDetailGame} />)}</div>
+      <div className="hot-games-rail">{visible.map((game, index) => <HotGameCard key={game.id} game={game} rank={index + 1} launching={launchingGameId === game.id} onLaunch={launchGame} onDetail={setDetailGame} />)}</div>
     </section>
-    {detailGame && <GameDetailDialog game={detailGame} launching={launchingGameId === detailGame.id} onClose={() => setDetailGame(null)} onLaunch={onLaunch} />}
+    {detailGame && <GameDetailDialog game={detailGame} launching={launchingGameId === detailGame.id} onClose={() => setDetailGame(null)} onLaunch={launchGame} />}
   </>;
 }
 
