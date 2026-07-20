@@ -6,7 +6,9 @@ type FakeRound = {
   state: 'CREATED' | 'BET' | 'SETTLED' | 'ROLLED_BACK' | 'CLOSED';
   betTransactionId: string | null;
   settleTransactionId: string | null;
+  refundTransactionId: string | null;
   rollbackTransactionId: string | null;
+  cancelTransactionId: string | null;
 };
 
 const createdRound = (): FakeRound => ({
@@ -15,13 +17,15 @@ const createdRound = (): FakeRound => ({
   state: 'CREATED',
   betTransactionId: null,
   settleTransactionId: null,
+  refundTransactionId: null,
   rollbackTransactionId: null,
+  cancelTransactionId: null,
 });
 
 describe('GameRoundPersistenceService', () => {
   const service = new GameRoundPersistenceService();
 
-  it('creates and persists a bet transition', async () => {
+  it('creates and persists a bet transition with round totals', async () => {
     const tx = {
       $executeRaw: jest.fn().mockResolvedValue(1),
       $queryRaw: jest.fn().mockResolvedValueOnce([]).mockResolvedValueOnce([createdRound()]),
@@ -30,7 +34,7 @@ describe('GameRoundPersistenceService', () => {
       eventType: 'bet_placed', providerTransactionId: 'bet-1', roundId: 'provider-round-1', payload: { amount: '10.00' },
     }]);
     expect(result).toEqual([expect.objectContaining({ providerRoundId: 'provider-round-1', state: 'BET', event: 'PLACE_BET', replay: false })]);
-    expect(tx.$executeRaw).toHaveBeenCalledTimes(2);
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(3);
   });
 
   it('replays the matching provider transaction without another update', async () => {
