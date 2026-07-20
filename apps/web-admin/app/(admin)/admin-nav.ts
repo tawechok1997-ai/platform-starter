@@ -72,7 +72,7 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'ภาพรวมการตลาด', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
       { title: 'โปรโมชันและโบนัส', href: '/promotion-center', permissions: ['promotion.view'] },
       { title: 'คำขอรับโปรโมชัน', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
-      { title: 'ประวัติโบนัส', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
+      { title: 'ประวัติโบนััส', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
       { title: 'ตัวแทนและ Affiliate', href: '/affiliate-center', permissions: ['affiliate.view'] },
       { title: 'ประวัติคอมมิชชัน', href: '/commission-ledgers', permissions: ['commission.view'] },
       { title: 'จัดการเนื้อหาเว็บไซต์', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
@@ -103,6 +103,7 @@ export const navGroups: readonly AdminNavGroup[] = [
 const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'จัดการสิทธิ์', href: '/access', permissions: ['admin.access.view'] },
   { title: 'กิจกรรม', href: '/activity', permissions: ['admin.view', 'admin.access.view'] },
+  { title: 'บันทึกการใช้งานระบบ', href: '/audit-logs', permissions: ['admin.view', 'admin.access.view'] },
   { title: 'การเงิน', href: '/finance', permissions: ['wallet.view', 'reports.view'] },
   { title: 'ตรวจ KYC', href: '/kyc', permissions: ['users.view', 'risk.view'] },
   { title: 'ประวัติยอดเงิน', href: '/ledgers', permissions: ['wallet.view'] },
