@@ -14,7 +14,7 @@
     "test:db:phone-otp": "jest src/modules/auth/phone-otp.db.spec.ts --runInBand",
     "test:db:risk-watchlist": "jest src/modules/risk-alerts/risk-watchlist-concurrency.db.spec.ts --runInBand",
     "test:db:kyc": "jest src/modules/risk-alerts/kyc-concurrency.db.spec.ts --runInBand",
-    "test:db:game": "jest src/modules/provider-simulator/provider-simulator-concurrency.db.spec.ts --runInBand"
+    "test:db:game": "jest src/modules/provider-simulator/provider-simulator-concurrency.db.spec.ts src/modules/game-platform/game-round-persistence.db.spec.ts --runInBand"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1084.0",

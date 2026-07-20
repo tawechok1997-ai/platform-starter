@@ -5,6 +5,7 @@ import { createDecipheriv, createHash } from 'node:crypto';
 import { PrismaService } from '../../database/prisma.service';
 import { ProviderAdapterRegistry } from './adapters/provider-adapter.registry';
 import { GameProviderEndpointType, GameProviderWalletMode } from './game-platform.types';
+import { GameRoundPersistenceService } from './game-round-persistence.service';
 import type { ProviderAdapterContext } from './provider-adapter.interface';
 
 type ProviderWithAdapterData = {
@@ -23,24 +24,17 @@ export class ProviderWebhookService {
     private readonly prisma: PrismaService,
     private readonly adapters: ProviderAdapterRegistry,
     private readonly config: ConfigService,
+    private readonly rounds: GameRoundPersistenceService,
   ) {}
 
-  async receive(
-    providerCode: string,
-    headers: Record<string, string | string[] | undefined>,
-    body: unknown,
-    rawBody?: Buffer,
-  ) {
+  async receive(providerCode: string, headers: Record<string, string | string[] | undefined>, body: unknown, rawBody?: Buffer) {
     const payload = this.objectJson(body);
     const eventType = this.requireText(payload.eventType, 'eventType');
     const requestIdempotencyKey = this.requireText(payload.idempotencyKey, 'idempotencyKey');
     const provider = await this.loadProvider(providerCode);
     const adapter = this.adapters.getAdapter(provider.code);
 
-    await this.prisma.gameProviderCredential.updateMany({
-      where: { providerId: provider.id, isEnabled: true },
-      data: { lastUsedAt: new Date() },
-    });
+    await this.prisma.gameProviderCredential.updateMany({ where: { providerId: provider.id, isEnabled: true }, data: { lastUsedAt: new Date() } });
 
     const context = this.buildContext(provider);
     const validation = await adapter.validateWebhook(context, headers, body, rawBody);
@@ -70,9 +64,7 @@ export class ProviderWebhookService {
 
     return this.prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
-      const duplicate = await tx.webhookLog.findFirst({
-        where: { providerId: provider.id, idempotencyKey, status: { in: ['PROCESSED', 'DUPLICATE'] } },
-      });
+      const duplicate = await tx.webhookLog.findFirst({ where: { providerId: provider.id, idempotencyKey, status: { in: ['PROCESSED', 'DUPLICATE'] } } });
       if (duplicate) {
         const log = await tx.webhookLog.create({
           data: {
@@ -90,6 +82,7 @@ export class ProviderWebhookService {
         return { ok: true, duplicate: true, logId: log.id, statusCode: 208 };
       }
 
+      const roundTransitions = await this.rounds.applyWebhookEvents(tx, provider.id, events);
       const log = await tx.webhookLog.create({
         data: {
           providerId: provider.id,
@@ -99,12 +92,12 @@ export class ProviderWebhookService {
           idempotencyKey,
           providerTransactionId: this.optionalText(payload.providerTransactionId) ?? events[0]?.providerTransactionId,
           rawPayload: this.safeJson(payload),
-          normalizedPayload: this.safeJson({ events, walletSettlementEnabled: settlementEnabled }),
+          normalizedPayload: this.safeJson({ events, roundTransitions, walletSettlementEnabled: settlementEnabled }),
           responseStatus: 200,
           processedAt: new Date(),
         },
       });
-      return { ok: true, logId: log.id, events, walletSettlementEnabled: settlementEnabled };
+      return { ok: true, logId: log.id, events, roundTransitions, walletSettlementEnabled: settlementEnabled };
     });
   }
 
@@ -113,11 +106,7 @@ export class ProviderWebhookService {
       where: { code },
       include: {
         endpoints: { where: { isEnabled: true }, orderBy: { type: 'asc' } },
-        credentials: {
-          where: { isEnabled: true },
-          orderBy: { type: 'asc' },
-          select: { type: true, maskedValue: true, encryptedValue: true },
-        },
+        credentials: { where: { isEnabled: true }, orderBy: { type: 'asc' }, select: { type: true, maskedValue: true, encryptedValue: true } },
       },
     });
     if (!provider) throw new NotFoundException('Provider not found');
@@ -125,14 +114,9 @@ export class ProviderWebhookService {
   }
 
   private buildContext(provider: ProviderWithAdapterData): ProviderAdapterContext {
-    const endpointMap = provider.endpoints.reduce<Partial<Record<GameProviderEndpointType, string>>>((result, endpoint) => {
-      result[endpoint.type] = endpoint.url;
-      return result;
-    }, {});
+    const endpointMap = provider.endpoints.reduce<Partial<Record<GameProviderEndpointType, string>>>((result, endpoint) => { result[endpoint.type] = endpoint.url; return result; }, {});
     const credentialMap = provider.credentials.reduce<Record<string, string>>((result, credential) => {
-      result[credential.type] = credential.encryptedValue
-        ? this.decryptSecret(credential.encryptedValue)
-        : credential.maskedValue;
+      result[credential.type] = credential.encryptedValue ? this.decryptSecret(credential.encryptedValue) : credential.maskedValue;
       return result;
     }, {});
     return {
@@ -149,38 +133,16 @@ export class ProviderWebhookService {
   private decryptSecret(value: string) {
     const [, ivRaw, tagRaw, encryptedRaw] = value.split(':');
     if (!ivRaw || !tagRaw || !encryptedRaw) return value;
-    const keySource = this.config.get<string>('GAME_CREDENTIAL_SECRET')
-      ?? this.config.get<string>('JWT_ACCESS_KEY')
-      ?? 'local_game_credential_key';
+    const keySource = this.config.get<string>('GAME_CREDENTIAL_SECRET') ?? this.config.get<string>('JWT_ACCESS_KEY') ?? 'local_game_credential_key';
     const key = createHash('sha256').update(keySource).digest();
     const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(ivRaw, 'base64'));
     decipher.setAuthTag(Buffer.from(tagRaw, 'base64'));
-    return Buffer.concat([
-      decipher.update(Buffer.from(encryptedRaw, 'base64')),
-      decipher.final(),
-    ]).toString('utf8');
+    return Buffer.concat([decipher.update(Buffer.from(encryptedRaw, 'base64')), decipher.final()]).toString('utf8');
   }
 
-  private webhookSettlementEnabled(metadata: unknown) {
-    return this.objectJson(metadata).webhookSettlementEnabled === true;
-  }
-
-  private requireText(value: unknown, label: string) {
-    if (typeof value !== 'string' || !value.trim()) throw new BadRequestException(`${label} is required`);
-    return value.trim();
-  }
-
-  private optionalText(value: unknown) {
-    return typeof value === 'string' && value.trim() ? value.trim() : undefined;
-  }
-
-  private safeJson(value: unknown) {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  }
-
-  private objectJson(value: unknown) {
-    return value && typeof value === 'object' && !Array.isArray(value)
-      ? value as Record<string, unknown>
-      : {};
-  }
+  private webhookSettlementEnabled(metadata: unknown) { return this.objectJson(metadata).webhookSettlementEnabled === true; }
+  private requireText(value: unknown, label: string) { if (typeof value !== 'string' || !value.trim()) throw new BadRequestException(`${label} is required`); return value.trim(); }
+  private optionalText(value: unknown) { return typeof value === 'string' && value.trim() ? value.trim() : undefined; }
+  private safeJson(value: unknown) { return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue; }
+  private objectJson(value: unknown) { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
 }
