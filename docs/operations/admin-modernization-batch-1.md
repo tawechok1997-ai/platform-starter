@@ -45,7 +45,8 @@ Modernize the Admin application in parallel-safe batches without changing Member
 - [ ] Consolidate duplicate Button, Field, Card, Badge, Modal, Drawer, Table, Toast, Skeleton, Empty, Error, and ConfirmDialog variants.
 - [ ] Add component tests before deleting compatibility CSS.
 
-Ownership source: [`admin-css-ownership-inventory.md`](./admin-css-ownership-inventory.md).
+Ownership source: [`admin-css-ownership-inventory.md`](./admin-css-ownership-inventory.md).  
+Implementation audit: [`admin-selector-and-primitive-audit.md`](./admin-selector-and-primitive-audit.md).
 
 ### D. Admin server-state policy
 
@@ -111,6 +112,8 @@ Decision source: [`../architecture/admin-dependency-decisions.md`](../architectu
 - `1859e8e7` — request, form, and data-view implementation inventory.
 - `b72a5bef` — top-up queue loading, error, busy-state and accessibility modernization.
 - `43d8ca9e` — dependency decision ADR deferring TanStack Query, React Hook Form/Zod and TanStack Table.
+- `1e5c8a7d` — drawer overlay selectors decoupled from serialized inline styles.
+- `14d10d41` — selector debt and primitive ownership audit.
 
 ## Verification commands
 
@@ -125,9 +128,10 @@ pnpm --filter @platform/web-admin analyze
 ## Current remaining risk
 
 - CI status has not appeared for the latest branch head yet.
+- One responsive selector in `app/(admin)/_components/admin-ui.tsx` still depends on serialized `text-align: right` and requires route-level verification before replacement.
 - Compatibility stylesheets remain loaded until selector ownership and visual evidence justify migration.
 - Dependency installation is intentionally deferred until bundle and browser measurements justify reopening the ADR.
-- The inventory is pattern-level; route-by-route migration evidence is still required during implementation.
+- Primitive imports have not yet been enumerated route by route; no duplicate family is safe to delete yet.
 - Browser, accessibility, bundle and visual verification are not yet claimed as passing.
 
 ## Handoff record
