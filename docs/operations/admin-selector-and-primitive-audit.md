@@ -58,11 +58,25 @@ Current canonical exports include:
 
 A second Admin primitive family also exists under `apps/web-admin/app/components/admin-ui` and is used by the protected layout. Consolidation must therefore be evidence-led rather than deleting either family by filename.
 
+## Component contract coverage
+
+`apps/web-admin/src/features/admin-redesign/admin-primitives.spec.ts` protects the current canonical primitive boundary without adding another test dependency.
+
+The tests assert:
+
+- required primitive exports remain available;
+- buttons and icon buttons retain accessible-name wiring;
+- confirm dialogs retain `alertdialog`, modal labelling, Escape handling and initial focus behavior;
+- loading and feedback primitives retain status and alert semantics;
+- audited Admin primitive and overlay files do not reintroduce selectors coupled to serialized inline style text.
+
+These tests run through the existing `node:test` and `tsx` command used by `pnpm --filter @platform/web-admin test`. Rendered browser and focus-trap evidence remains a separate quality gate.
+
 ## Safe consolidation order
 
 1. Enumerate imports from both primitive families.
 2. Classify API differences and route ownership.
-3. Add component tests for focus, disabled, keyboard, dialog and responsive behavior.
+3. Keep component contract tests passing while adding rendered browser evidence.
 4. Migrate one low-risk primitive at a time.
 5. Retain compatibility aliases until all imports and browser evidence are complete.
 6. Remove an alias only in the same commit that removes its final consumer.
@@ -74,12 +88,12 @@ A second Admin primitive family also exists under `apps/web-admin/app/components
 - [x] Canonical primitive families and the consolidation boundary are documented.
 - [x] All known inline-style text selectors removed from the audited Admin files.
 - [ ] Primitive imports enumerated route by route.
-- [ ] Component tests added before compatibility deletion.
+- [x] Component contract tests added before compatibility deletion.
 - [ ] Duplicate primitive families consolidated.
 
 ## Safety notes
 
 - No API, Prisma, Member, wallet, provider or permission behavior changed.
-- No runtime dependency added.
+- No runtime or test dependency added.
 - No compatibility file deleted.
 - Browser and build verification remain required before closing the related consolidation and quality-gate items.
