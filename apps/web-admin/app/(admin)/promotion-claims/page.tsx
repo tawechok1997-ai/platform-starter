@@ -14,6 +14,7 @@ export default function PromotionClaimsPage() {
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('กำลังโหลดคำขอรับโปรโมชัน...');
   const [busyId, setBusyId] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const [pendingReview, setPendingReview] = useState<PendingReview>(null);
 
   useEffect(() => { void load(); }, [status]);
@@ -26,19 +27,27 @@ export default function PromotionClaimsPage() {
   }), [items]);
 
   async function load() {
+    setIsLoading(true);
     setMessage('กำลังโหลดคำขอรับโปรโมชัน...');
-    const params = new URLSearchParams();
-    if (status !== 'ALL') params.set('status', status);
-    const res = await adminApiFetch(`/admin/promotion-claims?${params.toString()}`);
-    const data = await res.json().catch(() => null);
-    if (!res.ok) { setMessage(data?.message ?? 'โหลดคำขอรับโปรโมชันไม่สำเร็จ'); return; }
-    setItems(data.items ?? []);
-    setMessage('');
+    try {
+      const params = new URLSearchParams();
+      if (status !== 'ALL') params.set('status', status);
+      const res = await adminApiFetch(`/admin/promotion-claims?${params.toString()}`);
+      const data = await res.json().catch(() => null);
+      if (!res.ok) { setMessage(data?.message ?? 'โหลดคำขอรับโปรโมชันไม่สำเร็จ'); return; }
+      setItems(data.items ?? []);
+      setMessage('');
+    } catch {
+      setMessage('เชื่อมต่อระบบโปรโมชันไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function requestReview(id: string, next: 'APPROVED' | 'REJECTED') {
     const adminNote = (notes[id] ?? '').trim();
     if (next === 'REJECTED' && !adminNote) { setMessage('กรุณาใส่เหตุผลก่อนปฏิเสธคำขอ'); return; }
+    setMessage('');
     setPendingReview({ id, next });
   }
 
@@ -47,18 +56,23 @@ export default function PromotionClaimsPage() {
     const { id, next } = pendingReview;
     const adminNote = (notes[id] ?? '').trim();
     setBusyId(id);
-    const res = await adminApiFetch(`/admin/promotion-claims/${id}/review`, { method: 'PATCH', body: JSON.stringify({ status: next, adminNote }) });
-    const data = await res.json().catch(() => null);
-    setBusyId('');
-    if (!res.ok) { setMessage(data?.message ?? 'ตรวจคำขอไม่สำเร็จ'); return; }
-    setItems((current) => current.map((item) => item.id === id ? data.item : item));
-    setPendingReview(null);
-    setMessage(next === 'APPROVED' ? 'อนุมัติคำขอแล้ว ระบบสร้างบัญชีโบนัสตามขั้นตอนที่กำหนด' : 'ปฏิเสธคำขอแล้ว');
+    try {
+      const res = await adminApiFetch(`/admin/promotion-claims/${id}/review`, { method: 'PATCH', body: JSON.stringify({ status: next, adminNote }) });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) { setMessage(data?.message ?? 'ตรวจคำขอไม่สำเร็จ'); return; }
+      setItems((current) => current.map((item) => item.id === id ? data.item : item));
+      setPendingReview(null);
+      setMessage(next === 'APPROVED' ? 'อนุมัติคำขอแล้ว ระบบสร้างบัญชีโบนัสตามขั้นตอนที่กำหนด' : 'ปฏิเสธคำขอแล้ว');
+    } catch {
+      setMessage('เชื่อมต่อระบบตรวจคำขอไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setBusyId('');
+    }
   }
 
   const pendingItem = pendingReview ? items.find((item) => item.id === pendingReview.id) : undefined;
 
-  return <AdminPage eyebrow="งานโปรโมชัน" title="คำขอรับโปรโมชัน" description="ตรวจคำขอของสมาชิก ดูหลักฐานการฝาก และอนุมัติหรือปฏิเสธพร้อมบันทึกเหตุผล" actions={<AdminButton onClick={() => void load()}>รีเฟรช</AdminButton>}>
+  return <AdminPage eyebrow="งานโปรโมชัน" title="คำขอรับโปรโมชัน" description="ตรวจคำขอของสมาชิก ดูหลักฐานการฝาก และอนุมัติหรือปฏิเสธพร้อมบันทึกเหตุผล" actions={<AdminButton disabled={isLoading} onClick={() => void load()}>{isLoading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}>
     {message && <AdminNotice>{message}</AdminNotice>}
     <AdminMetricGrid>
       <AdminMetric tone={counts.pending > 0 ? 'warning' : 'success'} title="รอตรวจ" value={String(counts.pending)} />
@@ -66,7 +80,7 @@ export default function PromotionClaimsPage() {
       <AdminMetric tone="success" title="อนุมัติแล้ว" value={String(counts.approved)} />
       <AdminMetric tone="danger" title="ปฏิเสธแล้ว" value={String(counts.rejected)} />
     </AdminMetricGrid>
-    <AdminToolbar><select value={status} onChange={(event) => setStatus(event.target.value)} style={selectStyle}><option value="ALL">ทุกสถานะ</option><option value="OPEN">รอตรวจ</option><option value="REVIEWING">กำลังตรวจ</option><option value="RESOLVED">อนุมัติแล้ว</option><option value="DISMISSED">ปฏิเสธแล้ว</option></select></AdminToolbar>
+    <AdminToolbar><select aria-label="กรองคำขอตามสถานะ" disabled={isLoading} value={status} onChange={(event) => setStatus(event.target.value)} style={selectStyle}><option value="ALL">ทุกสถานะ</option><option value="OPEN">รอตรวจ</option><option value="REVIEWING">กำลังตรวจ</option><option value="RESOLVED">อนุมัติแล้ว</option><option value="DISMISSED">ปฏิเสธแล้ว</option></select></AdminToolbar>
     <AdminGrid>{items.map((item) => <AdminCard key={item.id} title={item.campaign?.title ?? item.campaignId} description={`${new Date(item.createdAt).toLocaleString('th-TH')} · ${memberLabel(item)}`} tone={item.status === 'APPROVED' ? 'success' : item.status === 'REJECTED' ? 'danger' : 'warning'}><AdminStack>
       <AdminRow><strong>สถานะ</strong><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge></AdminRow>
       <AdminRow><strong>สมาชิก</strong><span>{memberLabel(item)}</span></AdminRow>
@@ -76,10 +90,10 @@ export default function PromotionClaimsPage() {
       <AdminRow><strong>การจ่ายโบนัส</strong><span>{settlementLabel(item)}</span></AdminRow>
       {item.memberNote && <AdminRow><strong>หมายเหตุสมาชิก</strong><span>{item.memberNote}</span></AdminRow>}
       {item.adminNote && <AdminRow><strong>หมายเหตุผู้ดูแล</strong><span>{item.adminNote}</span></AdminRow>}
-      <section style={timelineStyle}>{(item.events ?? []).slice(-4).map((event, index) => <div key={index} style={eventStyle}><AdminBadge tone={event.by === 'admin' ? 'success' : event.by === 'member' ? 'warning' : 'neutral'}>{senderLabel(event.by)}</AdminBadge><strong>{eventActionLabel(event.action)}</strong><span>{event.message || '-'}</span><small>{new Date(event.createdAt).toLocaleString('th-TH')}</small></div>)}</section>
-      <textarea value={notes[item.id] ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [item.id]: event.target.value }))} placeholder="หมายเหตุผู้ดูแล โดยจำเป็นเมื่อปฏิเสธ" style={textareaStyle} />
-      <div style={actionRowStyle}><AdminButton disabled={busyId === item.id || item.status === 'APPROVED'} tone="success" onClick={() => requestReview(item.id, 'APPROVED')}>อนุมัติคำขอ</AdminButton><AdminButton disabled={busyId === item.id || item.status === 'REJECTED'} tone="danger" onClick={() => requestReview(item.id, 'REJECTED')}>ปฏิเสธคำขอ</AdminButton></div>
-    </AdminStack></AdminCard>)}{items.length === 0 && <AdminEmpty>ยังไม่มีคำขอรับโปรโมชัน</AdminEmpty>}</AdminGrid>
+      <section aria-label="ประวัติคำขอ" style={timelineStyle}>{(item.events ?? []).length > 0 ? (item.events ?? []).slice(-4).map((event, index) => <div key={`${event.createdAt}-${index}`} style={eventStyle}><AdminBadge tone={event.by === 'admin' ? 'success' : event.by === 'member' ? 'warning' : 'neutral'}>{senderLabel(event.by)}</AdminBadge><strong>{eventActionLabel(event.action)}</strong><span>{event.message || '-'}</span><small>{new Date(event.createdAt).toLocaleString('th-TH')}</small></div>) : <small>ยังไม่มีประวัติการดำเนินการ</small>}</section>
+      <textarea aria-label={`หมายเหตุผู้ดูแลสำหรับ ${memberLabel(item)}`} value={notes[item.id] ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [item.id]: event.target.value }))} placeholder="หมายเหตุผู้ดูแล โดยจำเป็นเมื่อปฏิเสธ" style={textareaStyle} />
+      <div style={actionRowStyle}><AdminButton disabled={busyId === item.id || item.status === 'APPROVED'} tone="success" onClick={() => requestReview(item.id, 'APPROVED')}>{busyId === item.id ? 'กำลังดำเนินการ...' : 'อนุมัติคำขอ'}</AdminButton><AdminButton disabled={busyId === item.id || item.status === 'REJECTED'} tone="danger" onClick={() => requestReview(item.id, 'REJECTED')}>{busyId === item.id ? 'กำลังดำเนินการ...' : 'ปฏิเสธคำขอ'}</AdminButton></div>
+    </AdminStack></AdminCard>)}{!isLoading && items.length === 0 && <AdminEmpty>ยังไม่มีคำขอรับโปรโมชันในสถานะนี้</AdminEmpty>}</AdminGrid>
     <AdminConfirmDialog open={Boolean(pendingReview)} title={pendingReview?.next === 'APPROVED' ? 'ยืนยันการอนุมัติคำขอ' : 'ยืนยันการปฏิเสธคำขอ'} description={pendingReview?.next === 'APPROVED' ? 'ระบบจะอนุมัติคำขอและสร้างขั้นตอนบัญชีโบนัสต่อไป กรุณาตรวจหลักฐานและเงื่อนไขให้ครบก่อนดำเนินการ' : 'คำขอนี้จะถูกปฏิเสธและสมาชิกจะไม่สามารถรับโบนัสจากรายการนี้ได้'} confirmLabel={pendingReview?.next === 'APPROVED' ? 'ยืนยันอนุมัติ' : 'ยืนยันปฏิเสธ'} tone={pendingReview?.next === 'APPROVED' ? 'success' : 'danger'} busy={Boolean(pendingReview && busyId === pendingReview.id)} details={pendingItem ? <div style={confirmDetailsStyle}><strong>{pendingItem.campaign?.title ?? pendingItem.campaignId}</strong><span>{memberLabel(pendingItem)}</span><span>ยอดฝาก {money(Number(pendingItem.depositAmount ?? pendingItem.linkedTopup?.amount ?? 0))}</span>{(notes[pendingItem.id] ?? '').trim() && <span>หมายเหตุ: {(notes[pendingItem.id] ?? '').trim()}</span>}</div> : undefined} onConfirm={() => void confirmReview()} onCancel={() => { if (!busyId) setPendingReview(null); }} />
   </AdminPage>;
 }
