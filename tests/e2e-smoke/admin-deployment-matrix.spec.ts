@@ -1,15 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
+import routeMatrix from './admin-critical-routes.json';
 
-const VIEWPORTS = [
-  { name: 'mobile-320', width: 320, height: 740 },
-  { name: 'mobile-360', width: 360, height: 800 },
-  { name: 'mobile-390', width: 390, height: 844 },
-  { name: 'tablet-768', width: 768, height: 1024 },
-  { name: 'desktop-1024', width: 1024, height: 768 },
-  { name: 'desktop-1440', width: 1440, height: 1000 },
-] as const;
-
-const PROTECTED_ROUTES = ['/dashboard', '/reports', '/promotion-center', '/risk-operations', '/wallet-analytics'] as const;
+const VIEWPORTS = routeMatrix.viewports;
+const LOGIN_ROUTE = routeMatrix.loginRoute;
+const PROTECTED_ROUTES = routeMatrix.protectedRoutes;
 
 function collectRuntimeFailures(page: Page) {
   const consoleErrors: string[] = [];
@@ -51,7 +45,7 @@ async function optionallySignIn(page: Page) {
   const password = process.env.ADMIN_TEST_PASSWORD;
   if (!username || !password) return false;
 
-  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await page.goto(LOGIN_ROUTE, { waitUntil: 'domcontentloaded' });
   const usernameInput = page.locator('input[name="identifier"], input[name="username"], input[name="email"], input[type="email"], input[autocomplete="username"]').first();
   const passwordInput = page.locator('input[name="password"], input[type="password"]').first();
 
@@ -60,7 +54,7 @@ async function optionallySignIn(page: Page) {
   await usernameInput.fill(username);
   await passwordInput.fill(password);
   await page.locator('button[type="submit"]').first().click();
-  await expect(page).not.toHaveURL(/\/login(?:\?|$)/, { timeout: 20_000 });
+  await expect(page).not.toHaveURL(new RegExp(`${LOGIN_ROUTE.replace('/', '\\/')}(?:\\?|$)`), { timeout: 20_000 });
   return true;
 }
 
@@ -71,8 +65,8 @@ for (const viewport of VIEWPORTS) {
     const authenticated = await optionallySignIn(page);
 
     if (!authenticated) {
-      await page.goto('/login', { waitUntil: 'domcontentloaded' });
-      await assertPageHealth(page, '/login');
+      await page.goto(LOGIN_ROUTE, { waitUntil: 'domcontentloaded' });
+      await assertPageHealth(page, LOGIN_ROUTE);
       await page.screenshot({ path: testInfo.outputPath(`${viewport.name}-login.png`), fullPage: true });
     }
 
@@ -83,10 +77,10 @@ for (const viewport of VIEWPORTS) {
         const currentPath = new URL(page.url()).pathname;
 
         if (authenticated) {
-          expect(currentPath, `${route} returned to login after authentication`).not.toBe('/login');
+          expect(currentPath, `${route} returned to login after authentication`).not.toBe(LOGIN_ROUTE);
           await page.screenshot({ path: testInfo.outputPath(`${viewport.name}-${route.slice(1).replaceAll('/', '-')}.png`), fullPage: true });
         } else {
-          expect(currentPath, `${route} did not redirect to login`).toBe('/login');
+          expect(currentPath, `${route} did not redirect to login`).toBe(LOGIN_ROUTE);
         }
       });
     }
