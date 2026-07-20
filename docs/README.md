@@ -28,6 +28,8 @@ This index connects the repository documentation so implementation work starts f
 - [`MEMBER_COLOR_ICON_CONTRACT.md`](MEMBER_COLOR_ICON_CONTRACT.md) — palette, semantic states and icon rules.
 - [`MEMBER_UX_UI_TOOLING.md`](MEMBER_UX_UI_TOOLING.md) — Member route/tooling worklist.
 - [`ADMIN_UX_UI_REDESIGN.md`](ADMIN_UX_UI_REDESIGN.md) — Admin redesign worklist.
+- [`operations/admin-modernization-batch-1.md`](operations/admin-modernization-batch-1.md) — active Admin-only modernization execution record.
+- [`operations/admin-css-ownership-inventory.md`](operations/admin-css-ownership-inventory.md) — ownership and consolidation map for every Admin root stylesheet.
 - [`MEMBER_ROUTE_MATRIX.md`](MEMBER_ROUTE_MATRIX.md) — Member route ownership and state gaps.
 - [`member-ux-qa.md`](member-ux-qa.md), [`mobile-qa-checklist.md`](mobile-qa-checklist.md), [`mobile-visual-regression-checklist.md`](mobile-visual-regression-checklist.md) — rendered QA checklists.
 - [`visual-regression.md`](visual-regression.md), [`ux-regression-matrix-finance-operations.md`](ux-regression-matrix-finance-operations.md) — visual and finance-operation regression contracts.
@@ -37,6 +39,7 @@ This index connects the repository documentation so implementation work starts f
 - [`ARCHITECTURE.md`](ARCHITECTURE.md), [`architecture/module-map.md`](architecture/module-map.md), [`architecture/dependency-map.md`](architecture/dependency-map.md) — module boundaries and dependencies.
 - [`architecture/route-ownership.md`](architecture/route-ownership.md), [`architecture/endpoint-ownership-matrix.md`](architecture/endpoint-ownership-matrix.md), [`architecture/mutation-contract-inventory.md`](architecture/mutation-contract-inventory.md) — route/API ownership.
 - [`architecture/state-machines.md`](architecture/state-machines.md), [`architecture/error-code-catalog.md`](architecture/error-code-catalog.md), [`architecture/test-inventory.md`](architecture/test-inventory.md) — state, error and test contracts.
+- [`architecture/admin-server-state-policy.md`](architecture/admin-server-state-policy.md) — Admin query, retry, cancellation, polling, cache and mutation-safety contract.
 - [`architecture/backend-decomposition-policy.md`](architecture/backend-decomposition-policy.md), [`architecture/backend-decomposition-baseline.json`](architecture/backend-decomposition-baseline.json), [`architecture/backend-decomposition-review-checklist.md`](architecture/backend-decomposition-review-checklist.md) — backend size/coupling policy and review evidence.
 - [`architecture/finance-module-ownership.md`](architecture/finance-module-ownership.md), [`architecture/finance-mutation-ownership.md`](architecture/finance-mutation-ownership.md), [`architecture/risk-ownership.md`](architecture/risk-ownership.md), [`architecture/activity-projection-ownership.md`](architecture/activity-projection-ownership.md), [`architecture/member-query-ownership.md`](architecture/member-query-ownership.md) — current ownership boundaries created by the deduplication work.
 - [`architecture/deduplication-targets.md`](architecture/deduplication-targets.md) and [`deduplication-safe-batch-1.md`](deduplication-safe-batch-1.md) — retained closure evidence; not a competing active backlog.
