@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-07-20T11:07:39.660Z",
+  "generatedAt": "2026-07-20T11:12:21.142Z",
   "assetRoot": "asset/mobil",
   "counts": {
-    "total": 247,
+    "total": 234,
     "missing": 0,
     "other": 94,
     "banner": 11,
     "promotion": 27,
-    "game-image": 26,
-    "provider-logo": 89
+    "game-image": 19,
+    "provider-logo": 83
   },
   "items": [
     {
@@ -692,106 +692,6 @@
       "sha256": "437e135bcd238581efa96f79d5a6c8d668aca40c7062fb7e94aa4b8244b59077"
     },
     {
-      "sourceUrl": "https://cdn.zabbet.com/games/FACHAI/TH/27001.jpg",
-      "mimeType": "image/jpeg",
-      "status": 200,
-      "file": "cdn.zabbet.com/games/FACHAI/TH/27001.jpg",
-      "kind": "game-image",
-      "exists": true,
-      "size": 137334,
-      "sha256": "e4a35e709e2e4ea2c8aa6571ea3ecda57393ce1441074ffb11d5aad0ff572251"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg",
-      "mimeType": "image/jpeg",
-      "status": 200,
-      "file": "cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg",
-      "kind": "game-image",
-      "exists": true,
-      "size": 159267,
-      "sha256": "82fe79b2c78aad8d254e9b19eac8a350808fe338bfb77cee721fefa398fce802"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/games/NLC/bushidoways00000.jpg",
-      "mimeType": "image/jpeg",
-      "status": 200,
-      "file": "cdn.zabbet.com/games/NLC/bushidoways00000.jpg",
-      "kind": "game-image",
-      "exists": true,
-      "size": 80533,
-      "sha256": "80d9c2106fd3f9f0ffd48b9bc08dfd1e1ac95ba2945f41018ae9f73672793552"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/games/NLC/elpaso0000000000.jpg",
-      "mimeType": "image/jpeg",
-      "status": 200,
-      "file": "cdn.zabbet.com/games/NLC/elpaso0000000000.jpg",
-      "kind": "game-image",
-      "exists": true,
-      "size": 80778,
-      "sha256": "783203a4c7de833939dafd29850ff6d1d67a0b602a1a1ead5f9e09cb6f75b327"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/games/vertical/CQ/alice_run.jpg",
-      "mimeType": "image/jpeg",
-      "status": 200,
-      "file": "cdn.zabbet.com/games/vertical/CQ/alice_run.jpg",
-      "kind": "game-image",
-      "exists": true,
-      "size": 26170,
-      "sha256": "5e4c7ff2616949605b48875ed3bb9bf13fee93b6f5a403bcfbcf955911be7a2c"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/games/vertical/EVP/penalty_series.jpg",
-      "mimeType": "image/jpeg",
-      "status": 200,
-      "file": "cdn.zabbet.com/games/vertical/EVP/penalty_series.jpg",
-      "kind": "game-image",
-      "exists": true,
-      "size": 23330,
-      "sha256": "9947b94776246ea1b5e1a4a7ee8bd8875c9a318ba7cd7c845d78ff57aac5ef85"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png",
-      "mimeType": "image/png",
-      "status": 200,
-      "file": "cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png",
-      "kind": "game-image",
-      "exists": true,
-      "size": 44206,
-      "sha256": "4bcdb36f9d3a08f5b5bb9e815bce029b989da50c0e06ce282663a705ffaeaca8"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/cq.png",
-      "mimeType": "image/png",
-      "status": 200,
-      "file": "cdn.zabbet.com/providers/set/1_1_badge/cq.png",
-      "kind": "provider-logo",
-      "exists": true,
-      "size": 15349,
-      "sha256": "86ed9cf6688d6e44a3f7e8dadd06b4d9c573787799d9d292f24195bdb8a453ce"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/evp.png",
-      "mimeType": "image/png",
-      "status": 200,
-      "file": "cdn.zabbet.com/providers/set/1_1_badge/evp.png",
-      "kind": "provider-logo",
-      "exists": true,
-      "size": 13242,
-      "sha256": "8a08a3ea7ff74d1625e22bb1b38c3eafbc4e34f1492eca91dd7e4c0b3fbcd758"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/fachai.png",
-      "mimeType": "image/png",
-      "status": 200,
-      "file": "cdn.zabbet.com/providers/set/1_1_badge/fachai.png",
-      "kind": "provider-logo",
-      "exists": true,
-      "size": 25355,
-      "sha256": "e3a8d24e2b5f24ee59f558d9f0d096a2930ca858e3d069232e3d8399415af4d7"
-    },
-    {
       "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/jkgx2.png",
       "mimeType": "image/png",
       "status": 200,
@@ -812,26 +712,6 @@
       "sha256": "27b912820c479da509835045b77ea33f9b80a8351df64ccc5a84dbc039649eb3"
     },
     {
-      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/kingm.png",
-      "mimeType": "image/png",
-      "status": 200,
-      "file": "cdn.zabbet.com/providers/set/1_1_badge/kingm.png",
-      "kind": "provider-logo",
-      "exists": true,
-      "size": 79494,
-      "sha256": "40b396d4cf4dca83fdb436d3e3289f36a36db59c173b0ed7649c16a059a35fca"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/nlc.png",
-      "mimeType": "image/png",
-      "status": 200,
-      "file": "cdn.zabbet.com/providers/set/1_1_badge/nlc.png",
-      "kind": "provider-logo",
-      "exists": true,
-      "size": 28146,
-      "sha256": "7fba37b378fb8527b29575cb707e8b805c824bf50ebcf1d501541bf1248ed5ba"
-    },
-    {
       "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/pgsoft.png",
       "mimeType": "image/png",
       "status": 200,
@@ -840,16 +720,6 @@
       "exists": true,
       "size": 17987,
       "sha256": "ee96855e01aeeb251aa04489dcef8e5c5d04c2a31007379202c4d23397aa933c"
-    },
-    {
-      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/pp.png",
-      "mimeType": "image/png",
-      "status": 200,
-      "file": "cdn.zabbet.com/providers/set/1_1_badge/pp.png",
-      "kind": "provider-logo",
-      "exists": true,
-      "size": 22625,
-      "sha256": "5157691abf40061b2bcfad8b353b32239eac5f589b2d36785f89db91e2cc0d2c"
     },
     {
       "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/ps.png",

@@ -1,0 +1,116 @@
+{
+  "generatedAt": "2026-07-20T11:12:20.953Z",
+  "platform": "mobile",
+  "purpose": "Assets actively referenced by the platform game catalog",
+  "counts": {
+    "total": 13,
+    "games": 7,
+    "providers": 6
+  },
+  "items": [
+    {
+      "kind": "game-image",
+      "file": "games/kingmaker/thai-hi-lo-2.jpg",
+      "repositoryPath": "asset/catalog/mobile/games/kingmaker/thai-hi-lo-2.jpg",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg",
+      "sourceUrl": "https://cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "kind": "game-image",
+      "file": "games/nolimit-city/bushido-ways.jpg",
+      "repositoryPath": "asset/catalog/mobile/games/nolimit-city/bushido-ways.jpg",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/games/NLC/bushidoways00000.jpg",
+      "sourceUrl": "https://cdn.zabbet.com/games/NLC/bushidoways00000.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "kind": "game-image",
+      "file": "games/nolimit-city/el-paso.jpg",
+      "repositoryPath": "asset/catalog/mobile/games/nolimit-city/el-paso.jpg",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/games/NLC/elpaso0000000000.jpg",
+      "sourceUrl": "https://cdn.zabbet.com/games/NLC/elpaso0000000000.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "kind": "game-image",
+      "file": "games/cq9/alice-run.jpg",
+      "repositoryPath": "asset/catalog/mobile/games/cq9/alice-run.jpg",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/games/vertical/CQ/alice_run.jpg",
+      "sourceUrl": "https://cdn.zabbet.com/games/vertical/CQ/alice_run.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "kind": "game-image",
+      "file": "games/evolution-play/penalty-series.jpg",
+      "repositoryPath": "asset/catalog/mobile/games/evolution-play/penalty-series.jpg",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/games/vertical/EVP/penalty_series.jpg",
+      "sourceUrl": "https://cdn.zabbet.com/games/vertical/EVP/penalty_series.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "kind": "game-image",
+      "file": "games/pragmatic-play/sweet-bonanza-xmas.png",
+      "repositoryPath": "asset/catalog/mobile/games/pragmatic-play/sweet-bonanza-xmas.png",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png",
+      "sourceUrl": "https://cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png",
+      "mimeType": "image/png"
+    },
+    {
+      "kind": "game-image",
+      "file": "games/fa-chai/fachai-27001.jpg",
+      "repositoryPath": "asset/catalog/mobile/games/fa-chai/fachai-27001.jpg",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/games/FACHAI/TH/27001.jpg",
+      "sourceUrl": "https://cdn.zabbet.com/games/FACHAI/TH/27001.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "kind": "provider-logo",
+      "file": "providers/kingmaker.png",
+      "repositoryPath": "asset/catalog/mobile/providers/kingmaker.png",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/providers/set/1_1_badge/kingm.png",
+      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/kingm.png",
+      "mimeType": "image/png"
+    },
+    {
+      "kind": "provider-logo",
+      "file": "providers/nolimit-city.png",
+      "repositoryPath": "asset/catalog/mobile/providers/nolimit-city.png",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/providers/set/1_1_badge/nlc.png",
+      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/nlc.png",
+      "mimeType": "image/png"
+    },
+    {
+      "kind": "provider-logo",
+      "file": "providers/cq9.png",
+      "repositoryPath": "asset/catalog/mobile/providers/cq9.png",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/providers/set/1_1_badge/cq.png",
+      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/cq.png",
+      "mimeType": "image/png"
+    },
+    {
+      "kind": "provider-logo",
+      "file": "providers/evolution-play.png",
+      "repositoryPath": "asset/catalog/mobile/providers/evolution-play.png",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/providers/set/1_1_badge/evp.png",
+      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/evp.png",
+      "mimeType": "image/png"
+    },
+    {
+      "kind": "provider-logo",
+      "file": "providers/pragmatic-play.png",
+      "repositoryPath": "asset/catalog/mobile/providers/pragmatic-play.png",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/providers/set/1_1_badge/pp.png",
+      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/pp.png",
+      "mimeType": "image/png"
+    },
+    {
+      "kind": "provider-logo",
+      "file": "providers/fa-chai.png",
+      "repositoryPath": "asset/catalog/mobile/providers/fa-chai.png",
+      "sourceFile": "asset/mobil/cdn.zabbet.com/providers/set/1_1_badge/fachai.png",
+      "sourceUrl": "https://cdn.zabbet.com/providers/set/1_1_badge/fachai.png",
+      "mimeType": "image/png"
+    }
+  ]
+}

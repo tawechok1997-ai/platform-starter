@@ -12,8 +12,6 @@ export type SimulatorGameCatalogItem = {
   providerLogoPath?: string;
 };
 
-const MOBILE_ASSET_ROOT = 'asset/mobil/cdn.zabbet.com';
-
 export const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   cq: 'CQ9 Gaming',
   evp: 'Evolution Play',

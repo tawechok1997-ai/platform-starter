@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-20T11:07:39.661Z",
+  "generatedAt": "2026-07-20T11:12:21.144Z",
   "items": [
     {
       "source": "cdn.zabbet.com/games/1671994886397-c7725f74-3996-42c6-8be6-b1d9ef7e4cf4.jpg",
@@ -154,62 +154,6 @@
       "reviewRequired": true
     },
     {
-      "source": "cdn.zabbet.com/games/FACHAI/TH/27001.jpg",
-      "proposedTarget": "asset/catalog/mobile/games/27001.jpg",
-      "kind": "game-image",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
-      "source": "cdn.zabbet.com/games/vertical/CQ/alice_run.jpg",
-      "proposedTarget": "asset/catalog/mobile/games/alice_run.jpg",
-      "kind": "game-image",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
-      "source": "cdn.zabbet.com/games/NLC/bushidoways00000.jpg",
-      "proposedTarget": "asset/catalog/mobile/games/bushidoways00000.jpg",
-      "kind": "game-image",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
-      "source": "cdn.zabbet.com/games/NLC/elpaso0000000000.jpg",
-      "proposedTarget": "asset/catalog/mobile/games/elpaso0000000000.jpg",
-      "kind": "game-image",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
-      "source": "cdn.zabbet.com/games/vertical/EVP/penalty_series.jpg",
-      "proposedTarget": "asset/catalog/mobile/games/penalty_series.jpg",
-      "kind": "game-image",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
-      "source": "cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png",
-      "proposedTarget": "asset/catalog/mobile/games/sweet_bonanza_xmas.png",
-      "kind": "game-image",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
-      "source": "cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg",
-      "proposedTarget": "asset/catalog/mobile/games/thai_hi_lo.jpg",
-      "kind": "game-image",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
       "source": "cdn.zabbet.com/providers/set/1_1_h/ab.png",
       "proposedTarget": "asset/catalog/mobile/providers/ab.png",
       "kind": "provider-logo",
@@ -330,14 +274,6 @@
       "reviewRequired": false
     },
     {
-      "source": "cdn.zabbet.com/providers/set/1_1_badge/cq.png",
-      "proposedTarget": "asset/catalog/mobile/providers/cq.png",
-      "kind": "provider-logo",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
       "source": "cdn.zabbet.com/providers/set/1_1_h/cq.png",
       "proposedTarget": "asset/catalog/mobile/providers/cq.png",
       "kind": "provider-logo",
@@ -386,14 +322,6 @@
       "reviewRequired": false
     },
     {
-      "source": "cdn.zabbet.com/providers/set/1_1_badge/evp.png",
-      "proposedTarget": "asset/catalog/mobile/providers/evp.png",
-      "kind": "provider-logo",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
       "source": "cdn.zabbet.com/providers/set/1_1_h/evp.png",
       "proposedTarget": "asset/catalog/mobile/providers/evp.png",
       "kind": "provider-logo",
@@ -412,14 +340,6 @@
     {
       "source": "cdn.zabbet.com/providers/set/1_1_v/evt.png",
       "proposedTarget": "asset/catalog/mobile/providers/evt.png",
-      "kind": "provider-logo",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
-      "source": "cdn.zabbet.com/providers/set/1_1_badge/fachai.png",
-      "proposedTarget": "asset/catalog/mobile/providers/fachai.png",
       "kind": "provider-logo",
       "duplicateOf": null,
       "action": "copy",
@@ -554,14 +474,6 @@
       "reviewRequired": false
     },
     {
-      "source": "cdn.zabbet.com/providers/set/1_1_badge/kingm.png",
-      "proposedTarget": "asset/catalog/mobile/providers/kingm.png",
-      "kind": "provider-logo",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
       "source": "cdn.zabbet.com/providers/set/1_1_h/kingm.png",
       "proposedTarget": "asset/catalog/mobile/providers/kingm.png",
       "kind": "provider-logo",
@@ -634,14 +546,6 @@
       "reviewRequired": false
     },
     {
-      "source": "cdn.zabbet.com/providers/set/1_1_badge/nlc.png",
-      "proposedTarget": "asset/catalog/mobile/providers/nlc.png",
-      "kind": "provider-logo",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
       "source": "cdn.zabbet.com/providers/set/1_1_h/nlc.png",
       "proposedTarget": "asset/catalog/mobile/providers/nlc.png",
       "kind": "provider-logo",
@@ -676,14 +580,6 @@
     {
       "source": "cdn.zabbet.com/providers/set/1_1_h/pokslot.png",
       "proposedTarget": "asset/catalog/mobile/providers/pokslot.png",
-      "kind": "provider-logo",
-      "duplicateOf": null,
-      "action": "copy",
-      "reviewRequired": false
-    },
-    {
-      "source": "cdn.zabbet.com/providers/set/1_1_badge/pp.png",
-      "proposedTarget": "asset/catalog/mobile/providers/pp.png",
       "kind": "provider-logo",
       "duplicateOf": null,
       "action": "copy",
