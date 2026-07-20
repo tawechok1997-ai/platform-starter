@@ -26,6 +26,7 @@ Every module owns its controllers, application services, DTOs, persistence orche
 | admin-audit | Immutable admin audit log access | Security | AdminAuditLog | `admin-audit/admin-audit.module.ts` |
 | admin-activity | Admin activity timeline and detail read models | Operations | Read-only audit projections | `admin-activity/admin-activity.module.ts` |
 | game-platform | Provider, game session, transfer and webhook orchestration | Provider | Provider config, transfer, webhook and snapshot | `game-platform/game-platform.module.ts` |
+| provider-simulator | Signed mock-provider routes backed by the existing member wallet | Provider / Finance | Wallet and ledger reads/mutations, game callback simulation | `provider-simulator/provider-simulator.module.ts` |
 | money-ops | Manual finance/provider operations | Finance / Provider | Reconcile, retry, fail and reverse actions | `money-ops/money-ops.module.ts` |
 | support | FAQ and support ticket lifecycle | Support | Ticket, reply and attachment metadata | `support/support.module.ts` |
 | storage | Private object storage, upload policy, malware scanning and signed object delivery | Platform / Security | Object writes/reads/deletes, signed token verification and response headers | `storage/storage.module.ts` |
