@@ -35,11 +35,13 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | topups | wallet | Idempotent deposit credit and ledger write |
 | topups | finance | Financial workflow locking and reconciliation |
 | topups | storage | Private slip object lifecycle |
+| topups | admin-auth | Admin actor/session verification for protected batch deposit workflows |
 | withdrawals | wallet | Balance reservation, debit and reversal |
 | withdrawals | finance | Withdrawal completion and idempotency orchestration |
 | withdrawals | bank-accounts | Destination-bank ownership and review state |
 | withdrawals | risk-alerts | Withdrawal watchlist/risk enforcement and override audit |
 | withdrawals | storage | Private proof object lifecycle |
+| withdrawals | admin-auth | Admin actor/session verification for protected batch withdrawal workflows |
 | bank-accounts | risk-alerts | Duplicate-bank and watchlist enforcement |
 | finance | queues | Deposit/withdrawal work-queue controllers and projections |
 | finance | activity | Operational activity controllers and read models |
