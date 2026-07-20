@@ -13,6 +13,7 @@ type TransferResult = {
 };
 
 type GameTransactionKind = 'BET' | 'WIN' | 'REFUND' | 'ROLLBACK';
+type RollbackTarget = 'BET' | 'WIN';
 type GameCatalogQuery = {
   provider?: string;
   platform?: SimulatorGamePlatform;
@@ -36,9 +37,9 @@ export class ProviderSimulatorService {
     const timestamp = this.header(headers, 'x-timestamp');
     const signature = this.header(headers, 'x-signature');
 
-    const expectedApiKey = process.env.PROVIDER_SIMULATOR_API_KEY ?? 'simulator-api-key';
-    const expectedMerchantId = process.env.PROVIDER_SIMULATOR_MERCHANT_ID ?? 'simulator-merchant';
-    const secret = process.env.PROVIDER_SIMULATOR_SECRET ?? 'simulator-secret';
+    const expectedApiKey = this.requiredCredential('PROVIDER_SIMULATOR_API_KEY', 'simulator-api-key');
+    const expectedMerchantId = this.requiredCredential('PROVIDER_SIMULATOR_MERCHANT_ID', 'simulator-merchant');
+    const secret = this.requiredCredential('PROVIDER_SIMULATOR_SECRET', 'simulator-secret');
 
     if (apiKey !== expectedApiKey || merchantId !== expectedMerchantId) {
       throw new UnauthorizedException('Invalid simulator provider credentials');
@@ -64,10 +65,11 @@ export class ProviderSimulatorService {
     return {
       status: 'ONLINE',
       provider: 'platform-provider-simulator',
-      version: 5,
+      version: 6,
       walletSource: 'platform-wallet',
       roundLock: 'postgres-advisory-xact-lock',
       catalogSource: 'repository-assets',
+      transactionSemantics: 'explicit-refund-and-rollback-target',
       mobileAssetCount,
     };
   }
@@ -122,18 +124,26 @@ export class ProviderSimulatorService {
     const game = GAME_CATALOG.find((item) => item.code === gameCode);
     if (!game) throw new BadRequestException('Unknown simulator game code');
 
-    const providerTransactionId = `sim_${kind.toLowerCase()}_${transactionId}`;
-    const credit = kind === 'WIN' || kind === 'REFUND' || kind === 'ROLLBACK';
+    const originalTransactionId = kind === 'REFUND' || kind === 'ROLLBACK'
+      ? this.requiredString(input.originalTransactionId, 'originalTransactionId')
+      : null;
+    const rollbackTarget = kind === 'ROLLBACK'
+      ? this.requiredRollbackTarget(input.rollbackTarget)
+      : null;
+    const operation = this.resolveGameOperation(kind, rollbackTarget);
+    const direction = operation === 'BET' || operation === 'ROLLBACK_WIN' ? 'DEBIT' : 'CREDIT';
+    const providerTransactionId = `sim_${operation.toLowerCase()}_${transactionId}`;
     const roundInput = { userId, roundId, gameCode, transactionId };
+
     const result = await this.walletService.mutateGameBalance({
       userId,
       amount,
-      direction: credit ? 'CREDIT' : 'DEBIT',
-      idempotencyKey: `${kind.toLowerCase()}:${transactionId}`,
-      referenceType: `game_${kind.toLowerCase()}`,
+      direction,
+      idempotencyKey: `${operation.toLowerCase()}:${transactionId}`,
+      referenceType: `game_${operation.toLowerCase()}`,
       referenceId: providerTransactionId,
       currency: String(input.currency ?? 'THB'),
-      isReversal: kind === 'REFUND' || kind === 'ROLLBACK',
+      isReversal: operation === 'REFUND' || operation.startsWith('ROLLBACK_'),
       concurrencyKey: `provider-simulator:${userId}:${gameCode}:${roundId}`,
       beforeMutation: async (tx) => {
         await this.roundService.enforceInTransaction(tx, kind, roundInput);
@@ -142,11 +152,14 @@ export class ProviderSimulatorService {
         provider: game.provider,
         providerTransactionId,
         transactionId,
+        originalTransactionId,
+        rollbackTarget,
         roundId,
         gameCode,
         platform: game.platform,
         sessionId: typeof input.sessionId === 'string' ? input.sessionId : null,
         transactionKind: kind,
+        gameOperation: operation,
       },
     });
     return this.toTransferResult(providerTransactionId, result.ledger, result.replayed);
@@ -200,7 +213,7 @@ export class ProviderSimulatorService {
         imageUrl: repositoryImage ?? fallbackIcon,
         iconUrl: repositoryImage ?? fallbackIcon,
         fallbackIconUrl: fallbackIcon,
-        rawPayload: { simulator: true, version: 5, assetSource: repositoryImage ? 'repository' : 'generated-svg' },
+        rawPayload: { simulator: true, version: 6, assetSource: repositoryImage ? 'repository' : 'generated-svg' },
       };
     });
 
@@ -235,6 +248,25 @@ export class ProviderSimulatorService {
 
   reset() {
     return { reset: false, reason: 'Simulator now uses the persistent platform wallet; use an audited admin wallet adjustment to reset credit.' };
+  }
+
+  private resolveGameOperation(kind: GameTransactionKind, rollbackTarget: RollbackTarget | null) {
+    if (kind === 'ROLLBACK') return rollbackTarget === 'WIN' ? 'ROLLBACK_WIN' : 'ROLLBACK_BET';
+    return kind;
+  }
+
+  private requiredRollbackTarget(value: unknown): RollbackTarget {
+    const target = this.requiredString(value, 'rollbackTarget').toUpperCase();
+    if (target !== 'BET' && target !== 'WIN') throw new BadRequestException('rollbackTarget must be BET or WIN');
+    return target;
+  }
+
+  private requiredCredential(name: string, developmentFallback: string) {
+    const configured = process.env[name]?.trim();
+    if (configured) return configured;
+    const environment = (process.env.NODE_ENV ?? 'development').trim().toLowerCase();
+    if (environment === 'development' || environment === 'test') return developmentFallback;
+    throw new UnauthorizedException(`${name} must be configured outside development and test environments`);
   }
 
   private toTransferResult(providerTransactionId: string, ledger: any, replayed: boolean): TransferResult {
