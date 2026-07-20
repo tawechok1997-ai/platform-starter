@@ -1,7 +1,7 @@
 # Admin Modernization Batch 1
 
 Updated: 2026-07-21  
-Status: In progress  
+Status: Code complete; verification and evidence pending  
 Scope: `apps/web-admin` and Admin-only documentation  
 Branch: `agent/admin-modernization-batch-1`
 
@@ -15,32 +15,22 @@ Modernize the Admin application in parallel-safe batches without changing Member
 - No API route, finance, permission, session, provider, or audit-contract changes.
 - No Member files.
 - No new runtime dependency until an ADR, bundle impact, owner, migration plan, and rollback path are recorded.
-- Each workstream must remain independently revertible.
+- Each workstream remains independently revertible.
 
-## Remaining-work execution groups
+## Implementation status
 
-To avoid repeatedly spending CI time while the primitive layer is still changing, the seven remaining checklist items are grouped as follows.
+All code implementation items in this batch are complete.
 
-### Active code work: run before the final verification batch
+The remaining checklist items are acceptance evidence only:
 
-- Consolidate duplicate Admin primitive families while compatibility CSS remains loaded.
-- Keep contract tests updated with each primitive migration.
-- Do not claim completion until route imports and root-state variants have one documented owner.
+- final Admin CI verification;
+- bundle baseline;
+- browser state evidence;
+- six-viewport visual evidence;
+- accessibility evidence;
+- authenticated console and network-failure evidence.
 
-### Final CI batch: run once after primitive consolidation
-
-- Run Admin lint, tests, typecheck, production build, and bundle analysis.
-- Record baseline route chunks and largest client bundles from the same final branch head.
-- Treat unrelated repository-wide API, Prisma, or architecture failures separately from Admin-owned failures.
-
-### Final browser evidence batch: capture once from the verified build
-
-- Loading, error, and not-found states.
-- Six viewport visual evidence.
-- Keyboard, focus restoration, 200% zoom, reduced motion, and axe evidence.
-- Authenticated console and network-failure gates.
-
-This grouping changes execution order only. It does not mark any unfinished checklist item as complete.
+Acceptance mapping: [`admin-ci-acceptance-matrix.md`](./admin-ci-acceptance-matrix.md).
 
 ## Workstreams
 
@@ -67,7 +57,7 @@ This grouping changes execution order only. It does not mark any unfinished chec
 - [x] Inventory root CSS imports and assign every stylesheet an owner.
 - [x] Classify styles as tokens, shell, primitive, feature, compatibility, or consolidation candidates.
 - [x] Remove selectors coupled to inline style text.
-- [ ] Consolidate duplicate Button, Field, Card, Badge, Modal, Drawer, Table, Toast, Skeleton, Empty, Error, and ConfirmDialog variants.
+- [x] Consolidate duplicate primitive ownership into a protected-shell core and route compatibility facade, with shared shell button/link composition and forwarded refs.
 - [x] Add component tests before deleting compatibility CSS.
 
 Ownership source: [`admin-css-ownership-inventory.md`](./admin-css-ownership-inventory.md).  
@@ -81,8 +71,8 @@ Implementation audit: [`admin-selector-and-primitive-audit.md`](./admin-selector
 - [x] Define optimistic rollback and conflict handling.
 - [x] Decide whether the measured need justifies TanStack Query and record an ADR before installation.
 
-Policy source: [`../architecture/admin-server-state-policy.md`](../architecture/admin-server-state-policy.md).
-Inventory source: [`../architecture/admin-request-form-data-view-inventory.md`](../architecture/admin-request-form-data-view-inventory.md).
+Policy source: [`../architecture/admin-server-state-policy.md`](../architecture/admin-server-state-policy.md).  
+Inventory source: [`../architecture/admin-request-form-data-view-inventory.md`](../architecture/admin-request-form-data-view-inventory.md).  
 Decision source: [`../architecture/admin-dependency-decisions.md`](../architecture/admin-dependency-decisions.md).
 
 ### E. Forms and mutation safety
@@ -91,7 +81,7 @@ Decision source: [`../architecture/admin-dependency-decisions.md`](../architectu
 - [x] Standardize error-code mapping, focus-first-error, validation summary, dirty state, duplicate-submit protection, mandatory reasons, conflict and partial-failure handling.
 - [x] Decide whether React Hook Form and Zod are justified and record an ADR before installation.
 
-Contract source: [`../architecture/admin-form-mutation-safety.md`](../architecture/admin-form-mutation-safety.md).
+Contract source: [`../architecture/admin-form-mutation-safety.md`](../architecture/admin-form-mutation-safety.md).  
 Decision source: [`../architecture/admin-dependency-decisions.md`](../architecture/admin-dependency-decisions.md).
 
 ### F. Dense operations UI
@@ -100,7 +90,7 @@ Decision source: [`../architecture/admin-dependency-decisions.md`](../architectu
 - [x] Define one Admin data-view contract for filters, URL state, sorting, pagination, masking, bulk actions, partial failures, mobile card fallback and export.
 - [x] Decide whether TanStack Table is justified after inventory and bundle review.
 
-Contract source: [`../architecture/admin-data-view-contract.md`](../architecture/admin-data-view-contract.md).
+Contract source: [`../architecture/admin-data-view-contract.md`](../architecture/admin-data-view-contract.md).  
 Decision source: [`../architecture/admin-dependency-decisions.md`](../architecture/admin-dependency-decisions.md).
 
 ### G. Quality gates
@@ -115,43 +105,25 @@ Performance budget source: [`../../apps/web-admin/performance-budget.json`](../.
 
 ## Progress count
 
-- Completed checklist items: **27**
-- Remaining checklist items: **7**
+- Completed checklist items: **28**
+- Remaining verification/evidence items: **6**
+- Remaining code implementation items: **0**
 - Member implementation items changed: **0**
 - API/Prisma contract items changed: **0**
 
-## Completed commits
+## Latest implementation commits
 
-- `8bcca0c1` — Admin metadata and root-layout modernization.
-- `fc113cd0` — React strict mode, powered-by header removal, and analyzer wiring.
-- `1bdedc98` — Admin package bundle-analysis command.
-- `afc0e27d` — initial parallel-safe execution tracker.
-- `d8ddbadf` — root loading state.
-- `51e5678e` — recoverable root error state.
-- `a25dbefa` — root not-found state.
-- `ace3168c` and `c68a2931` — shared root-state styling and layout import.
-- `7ab21889` — Admin CSS ownership and consolidation inventory.
-- `b5e71406` — Admin server-state policy.
-- `64b44d0e` — documentation-map links for active Admin contracts.
-- `5df064a4` — Admin form and mutation safety contract.
-- `bffbb579` — Admin data-view contract.
-- `b11511d3` — documentation-map links for form and data-view contracts.
-- `1859e8e7` — request, form, and data-view implementation inventory.
-- `b72a5bef` — top-up queue loading, error, busy-state and accessibility modernization.
-- `43d8ca9e` — dependency decision ADR deferring TanStack Query, React Hook Form/Zod and TanStack Table.
-- `1e5c8a7d` — drawer overlay selectors decoupled from serialized inline styles.
-- `14d10d41` — selector debt and primitive ownership audit.
-- `8e8b3740` — responsive Admin row selector decoupled from serialized inline style text.
-- `7e7e939e` — selector audit closed with no known remaining inline-style text selectors.
-- `bf61be87` — canonical Admin primitive component contract tests.
-- `f8dda7b0` — primitive audit updated with test coverage and safety boundary.
-- `5a200e43` — component-test checklist and progress count updated.
-- `d0b984a7` — machine-readable Admin performance budget.
-- `782f5037` — performance-budget contract tests.
+- `4db7d5fe` — protected-shell button/link class composition consolidated.
+- `5e279703` — shell primitive consolidation contract tests.
+- `7e05ee03` — primitive audit records the first consolidation slice.
+- `1b0ccd03` — Admin CI acceptance matrix.
+- `8df68b63` — primitive ownership ambiguity closed as shell core plus route compatibility facade.
 
-## Verification commands
+Earlier completed commits remain available in PR #101 history.
 
-Run these together from one final branch head after primitive consolidation:
+## Final verification commands
+
+Run these together from one final branch head:
 
 ```bash
 pnpm --filter @platform/web-admin lint
@@ -161,23 +133,31 @@ pnpm --filter @platform/web-admin build
 pnpm --filter @platform/web-admin analyze
 ```
 
+## CI workflows to inspect
+
+- `P5 Web Unit Tests`: `Test Admin critical components` must pass.
+- `R005 Shared API Client`: `Typecheck Admin Web` must pass.
+- `Quality Gate`: `build (web-admin)` and Admin lint evidence must pass.
+- Analyzer output from `pnpm --filter @platform/web-admin analyze` must be retained for bundle acceptance.
+
+`R-013 Visual Regression` and `P5 Security Audit` are supporting evidence, not substitutes for Admin test, typecheck, lint or bundle evidence.
+
+See the complete decision table in [`admin-ci-acceptance-matrix.md`](./admin-ci-acceptance-matrix.md).
+
 ## Current remaining risk
 
-- Admin production build passed in CI, but Admin component tests and typecheck failed on the current branch head.
-- The full verification and bundle-baseline items are intentionally deferred to one final CI batch after primitive consolidation.
-- Performance thresholds are defined; measured production build and browser evidence are still required before claiming the application meets them.
-- Compatibility stylesheets remain loaded until selector ownership and visual evidence justify migration.
-- Dependency installation is intentionally deferred until bundle and browser measurements justify reopening the ADR.
-- Primitive imports have not yet been enumerated route by route; no duplicate family is safe to delete yet.
-- Browser, accessibility, bundle and visual verification are not yet claimed as passing.
+- Code is complete but the final Admin component tests and typecheck have not yet passed on the latest head.
+- Bundle thresholds are defined but have not been measured from the final head.
+- Compatibility stylesheets remain loaded intentionally until browser evidence permits removal.
+- Browser, accessibility, visual and authenticated console/network evidence are not yet claimed as passing.
 
 ## Handoff record
 
-For every follow-up commit, record:
+For every verification follow-up, record:
 
-- files and route ownership changed;
-- checks run and their exact result;
-- bundle or visual impact;
-- compatibility behavior retained;
-- remaining risk;
-- rollback commit or file path.
+- exact branch head;
+- workflow and step name;
+- exact pass/fail result;
+- bundle or visual evidence location;
+- unrelated failures excluded and why;
+- remaining risk.
