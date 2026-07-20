@@ -51,6 +51,7 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | affiliates | finance | Commission settlement safety |
 | game-platform | finance | Provider transfer reconciliation and ledger safety |
 | game-platform | wallet | Member/provider balance movement |
+| provider-simulator | wallet | Signed mock-provider balance reads and atomic game ledger mutations using the existing member wallet |
 | money-ops | game-platform | Provider retry, fail, reverse and reconcile operations |
 | money-ops | finance | Financial operation safety and audit |
 | admin-access | admin-auth | Session revocation after privilege or ownership changes |
