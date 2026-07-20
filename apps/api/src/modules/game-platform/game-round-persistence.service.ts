@@ -40,8 +40,16 @@ export class GameRoundPersistenceService {
       if (!roundEvent || !providerRoundId) continue;
       const transactionId = event.providerTransactionId?.trim() || event.idempotencyKey?.trim();
       const lockKey = `game-round:${providerId}:${providerRoundId}`;
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+      await tx.$queryRaw<Array<{ locked: boolean }>>`
+        SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0)) IS NULL AS "locked"
+      `;
       const current = await this.findOrCreate(tx, providerId, providerRoundId);
+
+      if (transactionId && await this.transactionExists(tx, providerId, transactionId)) {
+        results.push({ roundId: current.id, providerRoundId, state: current.state, event: roundEvent, replay: true });
+        continue;
+      }
+
       const snapshot = this.toSnapshot(current);
       let next: GameRoundSnapshot;
       try { next = transitionGameRound(snapshot, roundEvent, transactionId); }
@@ -87,6 +95,18 @@ export class GameRoundPersistenceService {
       results.push({ roundId: current.id, providerRoundId, state: next.state, event: roundEvent, replay });
     }
     return results;
+  }
+
+  private async transactionExists(tx: Prisma.TransactionClient, providerId: string, providerTransactionId: string) {
+    const rows = await tx.$queryRaw<Array<{ exists: boolean }>>`
+      SELECT EXISTS (
+        SELECT 1
+        FROM "game_round_transactions"
+        WHERE "provider_id" = ${providerId}::uuid
+          AND "provider_transaction_id" = ${providerTransactionId}
+      ) AS "exists"
+    `;
+    return rows[0]?.exists === true;
   }
 
   private async persistTransaction(
