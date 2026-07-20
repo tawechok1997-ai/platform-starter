@@ -30,6 +30,7 @@ import './member-finance-market.css';
 import './member-games.css';
 import './games/games.css';
 import './games/lobby-enhancements.css';
+import './games/provider-lobby.css';
 import './guide/guide.css';
 import './member-promotions.css';
 import './public-auth-shell.css';
