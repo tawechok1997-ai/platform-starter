@@ -17,6 +17,31 @@ Modernize the Admin application in parallel-safe batches without changing Member
 - No new runtime dependency until an ADR, bundle impact, owner, migration plan, and rollback path are recorded.
 - Each workstream must remain independently revertible.
 
+## Remaining-work execution groups
+
+To avoid repeatedly spending CI time while the primitive layer is still changing, the seven remaining checklist items are grouped as follows.
+
+### Active code work: run before the final verification batch
+
+- Consolidate duplicate Admin primitive families while compatibility CSS remains loaded.
+- Keep contract tests updated with each primitive migration.
+- Do not claim completion until route imports and root-state variants have one documented owner.
+
+### Final CI batch: run once after primitive consolidation
+
+- Run Admin lint, tests, typecheck, production build, and bundle analysis.
+- Record baseline route chunks and largest client bundles from the same final branch head.
+- Treat unrelated repository-wide API, Prisma, or architecture failures separately from Admin-owned failures.
+
+### Final browser evidence batch: capture once from the verified build
+
+- Loading, error, and not-found states.
+- Six viewport visual evidence.
+- Keyboard, focus restoration, 200% zoom, reduced motion, and axe evidence.
+- Authenticated console and network-failure gates.
+
+This grouping changes execution order only. It does not mark any unfinished checklist item as complete.
+
 ## Workstreams
 
 ### A. Runtime and delivery foundation
@@ -126,6 +151,8 @@ Performance budget source: [`../../apps/web-admin/performance-budget.json`](../.
 
 ## Verification commands
 
+Run these together from one final branch head after primitive consolidation:
+
 ```bash
 pnpm --filter @platform/web-admin lint
 pnpm --filter @platform/web-admin test
@@ -136,8 +163,8 @@ pnpm --filter @platform/web-admin analyze
 
 ## Current remaining risk
 
-- CI status has not appeared for the latest branch head yet.
-- Component and performance contract tests are committed but the full Admin verification command set is still an open quality gate.
+- Admin production build passed in CI, but Admin component tests and typecheck failed on the current branch head.
+- The full verification and bundle-baseline items are intentionally deferred to one final CI batch after primitive consolidation.
 - Performance thresholds are defined; measured production build and browser evidence are still required before claiming the application meets them.
 - Compatibility stylesheets remain loaded until selector ownership and visual evidence justify migration.
 - Dependency installation is intentionally deferred until bundle and browser measurements justify reopening the ADR.
