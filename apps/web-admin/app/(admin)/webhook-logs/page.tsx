@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminCode, AdminDataValue, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
 import { humanStatus, statusTone } from '../_components/human-labels';
 
 type WebhookLog = { id: string; eventType: string; status: string; signatureValid: boolean; idempotencyKey?: string | null; providerTransactionId?: string | null; responseStatus?: number | null; errorCode?: string | null; errorMessage?: string | null; rawPayload?: unknown; normalizedPayload?: unknown; createdAt: string; provider?: { name: string; code: string } };
@@ -41,9 +41,9 @@ export default function WebhookLogsPage() {
     <AdminStack>{filtered.map((item) => <AdminCard key={item.id} compact tone={item.status === 'FAILED' || !item.signatureValid ? 'danger' : 'neutral'}>
       <AdminRow><div style={mainInfoStyle}><h2 style={titleStyle}>{eventLabel(item.eventType)}</h2><span style={mutedStyle}>{item.provider?.name ?? item.provider?.code ?? '-'} · HTTP {item.responseStatus ?? '-'}</span></div><div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminBadge tone={item.signatureValid ? 'success' : 'danger'}>{item.signatureValid ? 'ลายเซ็นถูกต้อง' : 'ลายเซ็นไม่ถูกต้อง'}</AdminBadge><AdminButton size="compact" tone="ghost" onClick={() => setExpanded(expanded === item.id ? '' : item.id)}>{expanded === item.id ? 'ซ่อนข้อมูล' : 'ข้อมูลเทคนิค'}</AdminButton></div></AdminRow>
       <div style={detailGridStyle}>
-        <AdminDataValue label="รหัสกันซ้ำ"><AdminCode {...(item.idempotencyKey ? { title: item.idempotencyKey } : {})}>{shortId(item.idempotencyKey)}</AdminCode></AdminDataValue>
-        <AdminDataValue label="เลขอ้างอิงค่าย"><AdminCode {...(item.providerTransactionId ? { title: item.providerTransactionId } : {})}>{shortId(item.providerTransactionId)}</AdminCode></AdminDataValue>
-        <AdminDataValue label="สร้างเมื่อ">{new Date(item.createdAt).toLocaleString('th-TH')}</AdminDataValue>
+        <WebhookDetail label="รหัสกันซ้ำ" value={shortId(item.idempotencyKey)} fullValue={item.idempotencyKey} />
+        <WebhookDetail label="เลขอ้างอิงค่าย" value={shortId(item.providerTransactionId)} fullValue={item.providerTransactionId} />
+        <WebhookDetail label="สร้างเมื่อ" value={new Date(item.createdAt).toLocaleString('th-TH')} />
       </div>
       {item.errorMessage && <AdminNotice tone="danger">{item.errorCode ? `${item.errorCode}: ` : ''}{item.errorMessage}</AdminNotice>}
       {expanded === item.id && <details open><summary style={summaryStyle}>Payload ที่รับและแปลงแล้ว</summary><pre style={preStyle}>{JSON.stringify({ rawPayload: item.rawPayload, normalizedPayload: item.normalizedPayload }, null, 2)}</pre></details>}
@@ -51,10 +51,16 @@ export default function WebhookLogsPage() {
   </AdminPage>;
 }
 
+function WebhookDetail({ label, value, fullValue }: { label: string; value: string; fullValue?: string | null }) {
+  return <div style={detailStyle}><span style={detailLabelStyle}>{label}</span><code title={fullValue ?? undefined} style={codeStyle}>{value}</code></div>;
+}
 function shortId(value?: string | null) { if (!value) return '-'; return value.length > 22 ? `${value.slice(0, 12)}…${value.slice(-7)}` : value; }
 function eventLabel(type: string) { const map: Record<string, string> = { BET_SETTLED: 'เดิมพันจบแล้ว', WIN: 'ผลชนะ', ROLLBACK: 'คืนรายการ', CANCEL: 'ยกเลิก', 'adapter.test': 'ทดสอบการเชื่อมต่อ' }; return map[type] ?? type; }
 const mainInfoStyle = { display: 'grid', gap: 5, minWidth: 0 } as const;
 const detailGridStyle = { display: 'grid', gap: 8, marginTop: 2 } as const;
+const detailStyle = { display: 'grid', gap: 4, minWidth: 0 } as const;
+const detailLabelStyle = { color: '#64748b', fontSize: 12, fontWeight: 700 } as const;
+const codeStyle = { color: '#cbd5e1', overflowWrap: 'anywhere' as const, whiteSpace: 'normal' as const };
 const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.45, overflowWrap: 'anywhere' as const };
 const titleStyle = { margin: 0, fontSize: 19, lineHeight: 1.18 } as const;
 const badgeStackStyle = { display: 'flex', gap: 7, flexWrap: 'wrap' as const, justifyContent: 'flex-end' as const };
