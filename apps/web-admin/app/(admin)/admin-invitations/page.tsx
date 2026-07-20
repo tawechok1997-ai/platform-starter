@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminNotice, AdminPage, AdminSectionRow, AdminStack } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminNotice, AdminPage, AdminSectionRow, AdminStack } from '../_components/admin-ui';
 import InviteAdminPanel from '../access/invite-admin-panel';
 
 type Role = { id: string; code: string; name: string; level: number; hasWildcard: boolean };
@@ -14,6 +14,7 @@ export default function AdminInvitationsPage() {
   const [message, setMessage] = useState('กำลังโหลดคำเชิญ...');
   const [busyKey, setBusyKey] = useState('');
   const [latestLink, setLatestLink] = useState('');
+  const [pendingAction, setPendingAction] = useState<{ item: Invitation; action: 'revoke' | 'reissue' } | null>(null);
 
   useEffect(() => { void load(); }, []);
 
@@ -40,7 +41,7 @@ export default function AdminInvitationsPage() {
   }
 
   async function revoke(item: Invitation) {
-    if (item.protected || !window.confirm(`ยืนยันยกเลิกคำเชิญของ ${item.email}?`)) return;
+    if (item.protected) return;
     setBusyKey(`${item.adminUserId}:revoke`);
     try {
       const response = await adminApiFetch(`/admin/access/invitations/${item.adminUserId}`, { method: 'DELETE' });
@@ -50,11 +51,12 @@ export default function AdminInvitationsPage() {
       await load();
     } finally {
       setBusyKey('');
+      setPendingAction(null);
     }
   }
 
   async function reissue(item: Invitation) {
-    if (item.protected || !window.confirm(`ออกลิงก์ใหม่ให้ ${item.email} และยกเลิกลิงก์เดิม?`)) return;
+    if (item.protected) return;
     setBusyKey(`${item.adminUserId}:reissue`);
     setLatestLink('');
     try {
@@ -67,6 +69,7 @@ export default function AdminInvitationsPage() {
       await load();
     } finally {
       setBusyKey('');
+      setPendingAction(null);
     }
   }
 
@@ -79,14 +82,10 @@ export default function AdminInvitationsPage() {
   return <AdminPage eyebrow="Security" title="คำเชิญผู้ดูแล" description="สร้าง ยกเลิก และออกลิงก์เชิญใหม่จากหน้าที่แยกเฉพาะ">
     {message && <AdminNotice>{message}</AdminNotice>}
     <InviteAdminPanel roles={roles} onCreated={load} />
-    {latestLink && <AdminCard title="ลิงก์ล่าสุด" description="แสดงเพียงครั้งเดียว กรุณาคัดลอกทันที"><textarea readOnly value={latestLink} rows={3} style={linkStyle} /><div style={{ marginTop: 10 }}><AdminButton onClick={copyLatestLink}>คัดลอกลิงก์</AdminButton></div></AdminCard>}
+    {latestLink && <AdminCard title="ลิงก์ล่าสุด" description="แสดงเพียงครั้งเดียว กรุณาคัดลอกทันที"><textarea readOnly value={latestLink} rows={3} className="admin-invitations__link" /><div className="admin-invitations__copy-action"><AdminButton onClick={copyLatestLink}>คัดลอกลิงก์</AdminButton></div></AdminCard>}
     <AdminCard title="รายการคำเชิญ" description={`${items.length} รายการล่าสุด`}>
-      <AdminStack>{items.map((item) => <AdminSectionRow key={item.adminUserId}><div style={itemStyle}><div style={badgeStyle}><AdminBadge tone={item.invitationStatus === 'ACTIVE' ? 'success' : item.invitationStatus === 'EXPIRED' ? 'warning' : 'danger'}>{item.invitationStatus}</AdminBadge><AdminBadge tone={item.accountStatus === 'ACTIVE' ? 'success' : 'neutral'}>{item.accountStatus}</AdminBadge>{item.protected && <AdminBadge tone="danger">PROTECTED</AdminBadge>}</div><strong>{item.email}</strong><span>{item.roles.map((role) => role.code).join(', ') || 'ไม่มี Role'}</span><small>หมดอายุ: {new Date(item.expiresAt).toLocaleString('th-TH')}</small></div>{!item.protected && item.accountStatus === 'LOCKED' && <div style={actionStyle}><AdminButton disabled={Boolean(busyKey)} onClick={() => reissue(item)}>ออกลิงก์ใหม่</AdminButton><AdminButton disabled={Boolean(busyKey)} onClick={() => revoke(item)}>ยกเลิก</AdminButton></div>}</AdminSectionRow>)}{items.length === 0 && <AdminEmpty>ยังไม่มีคำเชิญ</AdminEmpty>}</AdminStack>
+      <AdminStack>{items.map((item) => <AdminSectionRow key={item.adminUserId}><div className="admin-invitations__item"><div className="admin-invitations__badges"><AdminBadge tone={item.invitationStatus === 'ACTIVE' ? 'success' : item.invitationStatus === 'EXPIRED' ? 'warning' : 'danger'}>{item.invitationStatus}</AdminBadge><AdminBadge tone={item.accountStatus === 'ACTIVE' ? 'success' : 'neutral'}>{item.accountStatus}</AdminBadge>{item.protected && <AdminBadge tone="danger">PROTECTED</AdminBadge>}</div><strong>{item.email}</strong><span>{item.roles.map((role) => role.code).join(', ') || 'ไม่มี Role'}</span><small>หมดอายุ: {new Date(item.expiresAt).toLocaleString('th-TH')}</small></div>{!item.protected && item.accountStatus === 'LOCKED' && <div className="admin-invitations__actions"><AdminButton disabled={Boolean(busyKey)} onClick={() => setPendingAction({ item, action: 'reissue' })}>ออกลิงก์ใหม่</AdminButton><AdminButton disabled={Boolean(busyKey)} tone="danger" onClick={() => setPendingAction({ item, action: 'revoke' })}>ยกเลิก</AdminButton></div>}</AdminSectionRow>)}{items.length === 0 && <AdminEmpty>ยังไม่มีคำเชิญ</AdminEmpty>}</AdminStack>
     </AdminCard>
+    <AdminConfirmDialog open={Boolean(pendingAction)} title={pendingAction?.action === 'reissue' ? 'ออกลิงก์คำเชิญใหม่' : 'ยกเลิกคำเชิญ'} description={pendingAction?.action === 'reissue' ? 'ลิงก์เดิมจะใช้งานไม่ได้ทันที และลิงก์ใหม่จะแสดงเพียงครั้งเดียวหลังยืนยัน' : 'ผู้รับจะไม่สามารถใช้ลิงก์คำเชิญนี้เพื่อสร้างบัญชีผู้ดูแลได้'} confirmLabel={pendingAction?.action === 'reissue' ? 'ออกลิงก์ใหม่' : 'ยกเลิกคำเชิญ'} tone={pendingAction?.action === 'reissue' ? 'primary' : 'danger'} busy={Boolean(pendingAction && busyKey === `${pendingAction.item.adminUserId}:${pendingAction.action}`)} details={pendingAction ? <p><strong>ผู้รับ:</strong> {pendingAction.item.email}</p> : null} onCancel={() => { if (!busyKey) setPendingAction(null); }} onConfirm={() => { if (!pendingAction) return; void (pendingAction.action === 'reissue' ? reissue(pendingAction.item) : revoke(pendingAction.item)); }} />
   </AdminPage>;
 }
-
-const itemStyle = { display: 'grid', gap: 8, minWidth: 0 } as const;
-const badgeStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const };
-const actionStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const, alignItems: 'start' };
-const linkStyle = { width: '100%', resize: 'vertical' as const, borderRadius: 12, border: '1px solid rgba(148,163,184,.26)', background: '#070d18', color: '#f8fafc', padding: 12, boxSizing: 'border-box' as const, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' };

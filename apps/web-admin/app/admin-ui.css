@@ -20,6 +20,138 @@
   border-color: color-mix(in srgb, var(--brand) 42%, transparent);
 }
 
+/* Canonical Admin primitive contract. Keep layout, type, and overflow behavior
+   here so pages do not need one-off inline styles for common surfaces. */
+.admin-ui-page__copy,
+.admin-ui-card__copy,
+.admin-ui-card__body,
+.admin-ui-row,
+.admin-ui-section-row,
+.admin-ui-toolbar,
+.admin-ui-notice,
+.admin-ui-empty,
+.admin-ui-command-panel,
+.admin-ui-action-strip {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.admin-ui-page__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.admin-ui-eyebrow {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  letter-spacing: .1em;
+}
+
+.admin-ui-page h1 { font-size: clamp(var(--font-size-3xl), 3vw, var(--font-size-4xl)); }
+.admin-ui-page__description { margin-bottom: 0; }
+.admin-ui-card__body { display: grid; gap: var(--space-3); padding-inline: var(--space-1); }
+.admin-ui-card--compact { padding: var(--space-3) !important; }
+.admin-ui-card--compact .admin-ui-card__head { margin-bottom: var(--space-2); }
+.admin-ui-card__copy h2 { margin-bottom: var(--space-1); }
+.admin-ui-card__copy h2:last-child { margin-bottom: 0; }
+.admin-ui-card__copy p { line-height: var(--line-height-body); }
+
+.admin-ui-row { width: 100%; column-gap: var(--space-4); }
+.admin-ui-toolbar { gap: var(--space-3); }
+.admin-ui-toolbar > :is(input, select, textarea) { flex: 1 1 180px; }
+.admin-ui-toolbar > :is(button, a) { flex: 0 0 auto; }
+
+.admin-ui-button--ghost {
+  color: var(--admin-text);
+  border-color: transparent;
+  background: transparent;
+}
+.admin-ui-button--ghost:hover:not(:disabled) {
+  border-color: var(--admin-border);
+  background: var(--admin-surface-soft);
+}
+.admin-ui-button--compact {
+  min-height: 38px !important;
+  padding: 7px 12px !important;
+  border-radius: 10px !important;
+  font-size: var(--font-size-sm);
+  line-height: 1.15;
+}
+.admin-ui-button--icon {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px !important;
+  padding: 0 !important;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 11px !important;
+  font-size: 18px;
+}
+
+@media (max-width: 560px) {
+  .admin-ui-page__head { grid-template-columns: minmax(0, 1fr); }
+  .admin-ui-page__actions { width: 100%; }
+  .admin-ui-page__actions > :not(.admin-ui-button--icon) { flex: 1 1 auto; }
+  .admin-ui-toolbar { padding: var(--space-3); }
+  .admin-ui-toolbar > :is(input, select, textarea),
+  .admin-ui-toolbar > label { flex-basis: 100%; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .admin-ui-page__actions--sticky {
+    position: sticky;
+    top: calc(var(--space-2) + env(safe-area-inset-top));
+    z-index: var(--z-sticky);
+  }
+}
+
+.admin-invitations__link {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-family-mono);
+}
+.admin-invitations__copy-action { margin-top: var(--space-2); }
+.admin-invitations__item { display: grid; gap: var(--space-2); min-width: 0; }
+.admin-invitations__badges,
+.admin-invitations__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.admin-invitations__actions { align-items: start; }
+
+.admin-invitation-list__result {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3-5);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--admin-brand) 28%, transparent);
+  border-radius: var(--radius-control-lg);
+  background: color-mix(in srgb, var(--admin-brand) 8%, transparent);
+}
+.admin-invitation-list__link {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-family-mono);
+}
+.admin-invitation-list__info { display: grid; gap: 7px; min-width: 0; }
+.admin-invitation-list__badges,
+.admin-invitation-list__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.admin-invitation-list__actions { justify-content: flex-end; }
+.admin-invitation-list__muted { color: var(--admin-muted); overflow-wrap: anywhere; }
+
 .admin-ui-notice {
   border: 1px solid var(--line);
   border-radius: 12px;

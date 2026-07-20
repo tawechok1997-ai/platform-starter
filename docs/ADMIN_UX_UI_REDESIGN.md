@@ -237,9 +237,12 @@ Source of truth for Admin UX/UI work: this file
 
 # Evidence log
 
-- Commit/PR:
-- Build:
-- Visual artifact:
-- Accessibility artifact:
+- Commit/PR: `c2e777f` — centralized Admin primitive layout contract; PR pending.
+- Follow-up: `f1ea594` — migrated the Admin invitation revoke/reissue flow from native confirms to the shared confirmation dialog.
+- Follow-up: `2c1b76c` — migrated the Access invitation list to the same shared dialog and tokenized its remaining local presentation styles.
+- Follow-up: `cf1b71d` — added initial focus, Tab focus containment, focus restoration, and centralized layout classes to the shared confirmation dialog.
+- Build: not run locally; the container uses Node.js 20.20.2 while the repository requires Node.js 22.x and pnpm 11 requires `node:sqlite`.
+- Visual artifact: not captured; browser validation remains required after the Node.js 22 environment is available.
+- Accessibility artifact: not captured; keyboard, reduced-motion, and six-viewport verification remain required.
 - Bundle report:
-- Remaining blockers:
+- Remaining blockers: apply the shared primitives route-by-route, replace remaining native confirm/prompt calls, and retain rendered Admin evidence.

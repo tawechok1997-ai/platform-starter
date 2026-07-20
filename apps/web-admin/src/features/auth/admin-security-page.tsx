@@ -3,7 +3,7 @@
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { adminApiFetch, clearAdminSession } from '../../../app/admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminStack } from '../../../app/(admin)/_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminStack } from '../../../app/(admin)/_components/admin-ui';
 
 type AdminMe = { id: string; username: string; permissions?: string[] };
 type SetupResponse = { secret: string; otpAuthUrl: string };
@@ -22,6 +22,7 @@ export default function AdminSecurityPage() {
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{ kind: 'deactivate-2fa' | 'regenerate-codes' | 'revoke-session' | 'logout-others' | 'logout-all'; session?: SessionItem } | null>(null);
 
   useEffect(() => { loadAll(); }, []);
   useEffect(() => {
@@ -78,9 +79,9 @@ export default function AdminSecurityPage() {
     await loadMe();
   }
 
-  async function deactivate2FA() {
+  async function deactivate2FA(confirmed = false) {
     if (!deactivateCode.trim()) { setMessage('กรุณาใส่ TOTP หรือ recovery code ก่อน'); return; }
-    if (!window.confirm('ยืนยันเปลี่ยนสถานะ 2FA?')) return;
+    if (!confirmed) { setPendingAction({ kind: 'deactivate-2fa' }); return; }
     setLoading(true); setMessage('กำลังเปลี่ยนสถานะ 2FA...');
     const res = await adminApiFetch('/admin/auth/2fa/disable', { method: 'POST', body: JSON.stringify({ code: deactivateCode.trim() }) });
     const data = await res.json().catch(() => null);
@@ -91,12 +92,12 @@ export default function AdminSecurityPage() {
     setRecoveryCodes([]);
     setSetup(null);
     setMessage('อัปเดตสถานะ 2FA แล้ว');
-    await loadMe();
+    await loadMe(); setPendingAction(null);
   }
 
-  async function regenerateRecoveryCodes() {
+  async function regenerateRecoveryCodes(confirmed = false) {
     if (!regenerateCode.trim()) { setMessage('กรุณาใส่รหัส 2FA หรือ recovery code ปัจจุบันก่อนสร้างชุดใหม่'); return; }
-    if (!window.confirm('สร้าง recovery codes ชุดใหม่? ชุดเก่าทั้งหมดจะใช้ไม่ได้ทันที')) return;
+    if (!confirmed) { setPendingAction({ kind: 'regenerate-codes' }); return; }
     setLoading(true); setMessage('กำลังสร้าง recovery codes ชุดใหม่...');
     const res = await adminApiFetch('/admin/auth/2fa/recovery-codes/regenerate', { method: 'POST', body: JSON.stringify({ code: regenerateCode.trim() }) });
     const data = await res.json().catch(() => null);
@@ -104,11 +105,11 @@ export default function AdminSecurityPage() {
     if (!res.ok) { setMessage(data?.message ?? 'สร้าง recovery codes ไม่สำเร็จ'); return; }
     setRecoveryCodes(data?.recoveryCodes ?? []);
     setRegenerateCode('');
-    setMessage('สร้าง recovery codes ชุดใหม่แล้ว กรุณาบันทึกทันที');
+    setMessage('สร้าง recovery codes ชุดใหม่แล้ว กรุณาบันทึกทันที'); setPendingAction(null);
   }
 
-  async function revokeSession(session: SessionItem) {
-    if (!window.confirm(session.current ? 'ยืนยันออกจากระบบ session ปัจจุบัน?' : 'ยืนยันปิด session นี้?')) return;
+  async function revokeSession(session: SessionItem, confirmed = false) {
+    if (!confirmed) { setPendingAction({ kind: 'revoke-session', session }); return; }
     setLoading(true); setMessage('กำลังปิด session...');
     const res = await adminApiFetch(`/admin/auth/sessions/${session.id}`, { method: 'DELETE' });
     const data = await res.json().catch(() => null);
@@ -116,22 +117,22 @@ export default function AdminSecurityPage() {
     if (!res.ok) { setMessage(data?.message ?? 'ปิด session ไม่สำเร็จ'); return; }
     if (data?.current) { clearAdminSession(); window.location.replace('/login'); return; }
     setMessage('ปิด session แล้ว');
-    await loadSessions();
+    await loadSessions(); setPendingAction(null);
   }
 
-  async function logoutOtherDevices() {
-    if (!window.confirm('ยืนยันออกจากระบบอุปกรณ์อื่นทั้งหมด?')) return;
+  async function logoutOtherDevices(confirmed = false) {
+    if (!confirmed) { setPendingAction({ kind: 'logout-others' }); return; }
     setLoading(true); setMessage('กำลังออกจากระบบอุปกรณ์อื่น...');
     const res = await adminApiFetch('/admin/auth/sessions/logout-others', { method: 'POST' });
     const data = await res.json().catch(() => null);
     setLoading(false);
     if (!res.ok) { setMessage(data?.message ?? 'ออกจากระบบอุปกรณ์อื่นไม่สำเร็จ'); return; }
     setMessage(`ออกจากระบบอุปกรณ์อื่นแล้ว ${data?.revoked ?? 0} session`);
-    await loadSessions();
+    await loadSessions(); setPendingAction(null);
   }
 
-  async function endEverySession() {
-    if (!window.confirm('ยืนยันปิด session ทั้งหมด รวมเครื่องนี้?')) return;
+  async function endEverySession(confirmed = false) {
+    if (!confirmed) { setPendingAction({ kind: 'logout-all' }); return; }
     setLoading(true); setMessage('กำลังปิด session ทั้งหมด...');
     const res = await adminApiFetch('/admin/auth/sessions/' + 'logout-all', { method: 'POST' });
     const data = await res.json().catch(() => null);
@@ -222,6 +223,7 @@ export default function AdminSecurityPage() {
       <div style={sessionToolbarStyle}><AdminButton disabled={loading || otherActiveCount === 0} onClick={logoutOtherDevices}>Logout other devices</AdminButton><AdminButton disabled={loading || activeCount === 0} tone="danger" onClick={endEverySession}>End all sessions</AdminButton></div>
       <AdminStack>{sessions.map((session) => <section key={session.id} style={sessionBoxStyle}><div style={sessionTopStyle}><div style={badgeRowStyle}><AdminBadge tone={session.active ? 'success' : 'neutral'}>{session.active ? 'ACTIVE' : 'ENDED'}</AdminBadge>{session.current && <AdminBadge tone="warning">CURRENT</AdminBadge>}</div>{session.active && <AdminButton disabled={loading} tone="danger" onClick={() => revokeSession(session)}>Revoke</AdminButton>}</div><strong>{session.deviceId || 'Unknown device'}</strong><p>IP: {session.ipAddress || '-'}</p><p style={agentStyle}>UA: {session.userAgent || '-'}</p><p>Created: {new Date(session.createdAt).toLocaleString('th-TH')}</p><p>Expires: {new Date(session.expiresAt).toLocaleString('th-TH')}</p>{session.revokedAt && <p>Ended: {new Date(session.revokedAt).toLocaleString('th-TH')}</p>}</section>)}{sessions.length === 0 && <AdminNotice>ยังไม่มี session ให้แสดง</AdminNotice>}</AdminStack>
     </AdminCard>
+    <AdminConfirmDialog open={Boolean(pendingAction)} title={pendingAction?.kind === 'deactivate-2fa' ? 'ปิดการใช้งาน 2FA' : pendingAction?.kind === 'regenerate-codes' ? 'สร้าง Recovery Codes ใหม่' : pendingAction?.kind === 'revoke-session' ? 'ปิด Session' : pendingAction?.kind === 'logout-others' ? 'ออกจากระบบอุปกรณ์อื่น' : 'ปิดทุก Session'} description={pendingAction?.kind === 'deactivate-2fa' ? 'บัญชีจะไม่มีการยืนยันสองขั้นตอนจนกว่าจะเปิดใช้งานใหม่' : pendingAction?.kind === 'regenerate-codes' ? 'Recovery codes ชุดเก่าจะใช้ไม่ได้ทันที' : pendingAction?.kind === 'revoke-session' ? 'Session ที่เลือกจะถูกปิดทันที' : pendingAction?.kind === 'logout-others' ? 'อุปกรณ์อื่นทั้งหมดจะต้องเข้าสู่ระบบใหม่' : 'รวมถึง session ปัจจุบัน คุณจะถูกนำกลับไปหน้าเข้าสู่ระบบ'} confirmLabel="ยืนยันดำเนินการ" tone="danger" busy={loading} onCancel={() => { if (!loading) setPendingAction(null); }} onConfirm={() => { if (!pendingAction) return; if (pendingAction.kind === 'deactivate-2fa') void deactivate2FA(true); else if (pendingAction.kind === 'regenerate-codes') void regenerateRecoveryCodes(true); else if (pendingAction.kind === 'revoke-session' && pendingAction.session) void revokeSession(pendingAction.session, true); else if (pendingAction.kind === 'logout-others') void logoutOtherDevices(true); else void endEverySession(true); }} />
   </AdminPage>;
 }
 

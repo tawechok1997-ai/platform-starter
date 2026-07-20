@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
 import { checkLabel, humanStatus } from '../_components/human-labels';
 
 type Provider = { id: string; name: string; code: string; status: string };
@@ -23,10 +23,11 @@ export default function ProviderRiskPage() {
   const [preflight, setPreflight] = useState<Preflight | null>(null);
   const [message, setMessage] = useState('กำลังโหลดค่ายเกม...');
   const [loading, setLoading] = useState(false);
+  const [confirmRealMoney, setConfirmRealMoney] = useState(false);
   useEffect(() => { loadProviders(); }, []);
   async function loadProviders() { setLoading(true); setMessage('กำลังโหลดค่ายเกม...'); const res = await adminApiFetch('/admin/game-providers'); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'โหลดค่ายเกมไม่สำเร็จ'); return; } const items = data.items ?? []; setProviders(items); const first = items[0]?.id ?? ''; setProviderId(first); setMessage(''); if (first) await loadRisk(first); }
   async function loadRisk(id = providerId) { if (!id) return; setLoading(true); setMessage('กำลังตรวจความพร้อม...'); const res = await adminApiFetch(`/admin/game-providers/${id}/risk-panel`); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'ตรวจความพร้อมไม่สำเร็จ'); return; } setPanel(data); setPreflight(null); setMessage(''); }
-  async function saveGate(key: string, value: boolean) { if (!providerId) return; if (key === 'realMoneyEnabled' && value && !window.confirm('เปิดเงินจริงต้องตรวจผ่านครบแล้ว ยืนยันไหม?')) return; setLoading(true); const res = await adminApiFetch(`/admin/game-providers/${providerId}/gates`, { method: 'PATCH', body: JSON.stringify({ [key]: value }) }); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'บันทึกไม่สำเร็จ'); return; } setMessage('บันทึกการตั้งค่าแล้ว'); await loadRisk(providerId); }
+  async function saveGate(key: string, value: boolean, confirmed = false) { if (!providerId) return; if (key === 'realMoneyEnabled' && value && !confirmed) { setConfirmRealMoney(true); return; } setLoading(true); const res = await adminApiFetch(`/admin/game-providers/${providerId}/gates`, { method: 'PATCH', body: JSON.stringify({ [key]: value }) }); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'บันทึกไม่สำเร็จ'); return; } setMessage('บันทึกการตั้งค่าแล้ว'); setConfirmRealMoney(false); await loadRisk(providerId); }
   async function runPreflight() { if (!providerId) return; setLoading(true); setMessage('กำลังตรวจขั้นสุดท้าย...'); const res = await adminApiFetch(`/admin/game-providers/${providerId}/preflight`); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { setMessage(data?.message ?? 'ตรวจขั้นสุดท้ายไม่สำเร็จ'); return; } setPreflight(data); setMessage(data.ok ? 'ตรวจผ่าน พร้อมไปขั้นต่อไป' : 'ยังมีจุดที่ต้องแก้ก่อนเปิดเงินจริง'); }
   const passed = panel?.checks.filter((item) => item.ok).length ?? 0;
   const total = panel?.checks.length ?? 0;
@@ -43,6 +44,7 @@ export default function ProviderRiskPage() {
       <AdminToolbar><strong>รายการตรวจ</strong><span style={mutedStyle}>{passed}/{total} เรียบร้อย</span></AdminToolbar><AdminStack>{panel.checks.map((item) => <AdminCard key={item.key}><AdminRow><strong>{checkLabel(item.key)}</strong><AdminBadge tone={item.ok ? 'success' : 'danger'}>{item.ok ? 'เรียบร้อย' : 'ต้องทำ'}</AdminBadge></AdminRow></AdminCard>)}</AdminStack>
     </>}
     {!loading && !panel && <AdminEmpty>ยังไม่มีข้อมูลค่าย</AdminEmpty>}
+    <AdminConfirmDialog open={confirmRealMoney} title="ยืนยันเปิดเงินจริง" description="ต้องตรวจสอบ preflight, ยอดคงเหลือ และการตั้งค่าความปลอดภัยให้ครบก่อนเปิดใช้งานเงินจริง" confirmLabel="เปิดเงินจริง" tone="danger" busy={loading} onCancel={() => { if (!loading) setConfirmRealMoney(false); }} onConfirm={() => void saveGate('realMoneyEnabled', true, true)} />
   </AdminPage>;
 }
 function readinessState(panel: RiskPanel | null, preflight: Preflight | null): { label: 'พร้อมใช้' | 'พร้อมทดสอบ' | 'ต้องตรวจ' | 'มีปัญหา'; tone: 'success' | 'warning' | 'danger' | 'neutral'; description: string; nextActions: string[] } {
