@@ -9,6 +9,7 @@ import { ProviderWebhookPayloadDto } from './dto/game-platform-mutation.dto';
 import { ReviewDto, normalizeReviewNote, normalizeSnapshotReview } from './dto/game-review.dto';
 import { CreateGameTransferDto, normalizeTransferAmount } from './dto/game-transfer.dto';
 import { ProviderGatesDto, normalizeProviderGatesDto } from './dto/provider-gates.dto';
+import { GamePlatformMonitoringService } from './game-platform-monitoring.service';
 import { GamePlatformMoneyService } from './game-platform-money.service';
 import { ProviderReconciliationCommandService } from './provider-reconciliation-command.service';
 import { ProviderReconciliationQueryService } from './provider-reconciliation-query.service';
@@ -43,10 +44,15 @@ export class MemberGameTransferController {
 export class AdminGameMoneyController {
   constructor(
     private readonly moneyService: GamePlatformMoneyService,
+    private readonly monitoringService: GamePlatformMonitoringService,
     private readonly transferCommands: ProviderTransferCommandService,
     private readonly reconciliationQueries: ProviderReconciliationQueryService,
     private readonly reconciliationCommands: ProviderReconciliationCommandService,
   ) {}
+
+  @RequirePermission('game.providers.view')
+  @Get('game-monitoring/overview')
+  monitoringOverview() { return this.monitoringService.overview(); }
 
   @RequirePermission('game.providers.view')
   @Get('game-providers/:providerId/risk-panel')
