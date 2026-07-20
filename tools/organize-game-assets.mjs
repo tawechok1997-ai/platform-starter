@@ -1,103 +1,167 @@
-import { access, mkdir, readFile, rename, rm, stat, writeFile, readdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { access, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
 const sourceRoot = path.join(root, 'asset', 'mobil');
 const catalogRoot = path.join(root, 'asset', 'catalog', 'mobile');
-const apiCatalogPath = path.join(root, 'apps', 'api', 'src', 'modules', 'provider-simulator', 'provider-simulator-catalog.ts');
 const sourceManifestPath = path.join(sourceRoot, 'manifest.json');
-const catalogManifestPath = path.join(catalogRoot, 'catalog.json');
+const catalogManifestPath = path.join(catalogRoot, 'manifest.json');
+const activeCatalogPath = path.join(catalogRoot, 'catalog.json');
 
-const moves = [
-  ['cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg', 'games/kingmaker/thai-hi-lo-2.jpg'],
-  ['cdn.zabbet.com/games/NLC/bushidoways00000.jpg', 'games/nolimit-city/bushido-ways.jpg'],
-  ['cdn.zabbet.com/games/NLC/elpaso0000000000.jpg', 'games/nolimit-city/el-paso.jpg'],
-  ['cdn.zabbet.com/games/vertical/CQ/alice_run.jpg', 'games/cq9/alice-run.jpg'],
-  ['cdn.zabbet.com/games/vertical/EVP/penalty_series.jpg', 'games/evolution-play/penalty-series.jpg'],
-  ['cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png', 'games/pragmatic-play/sweet-bonanza-xmas.png'],
-  ['cdn.zabbet.com/games/FACHAI/TH/27001.jpg', 'games/fa-chai/fachai-27001.jpg'],
-  ['cdn.zabbet.com/providers/set/1_1_badge/kingm.png', 'providers/kingmaker.png'],
-  ['cdn.zabbet.com/providers/set/1_1_badge/nlc.png', 'providers/nolimit-city.png'],
-  ['cdn.zabbet.com/providers/set/1_1_badge/cq.png', 'providers/cq9.png'],
-  ['cdn.zabbet.com/providers/set/1_1_badge/evp.png', 'providers/evolution-play.png'],
-  ['cdn.zabbet.com/providers/set/1_1_badge/pp.png', 'providers/pragmatic-play.png'],
-  ['cdn.zabbet.com/providers/set/1_1_badge/fachai.png', 'providers/fa-chai.png'],
+const CATEGORY_RULES = [
+  ['games', ['/games/', '/gamecard/', '/mini_game/']],
+  ['providers', ['/providers/']],
+  ['banners', ['/imageslides/', '/highlight/', '/slides/', '/banner/']],
+  ['promotions', ['/promotions/', '/promotion/']],
+  ['banks', ['/banks/']],
+  ['footer', ['/footer/']],
+  ['flags', ['/flags/']],
+  ['tournament', ['/tournament/', '/predict/']],
+  ['theme', ['/theme/', '/shortcut/']],
+  ['ui', ['/images/', '/icons/', '/icon/', '/lobby_settings/']],
 ];
 
-const oldPrefix = 'asset/mobil/';
-const newPrefix = 'asset/catalog/mobile/';
-const moved = [];
+await mkdir(catalogRoot, { recursive: true });
+
+const sourceManifest = await readJsonArray(sourceManifestPath);
+const existingManifest = await readJsonArray(catalogManifestPath);
+const activeCatalog = await readJsonObject(activeCatalogPath);
+const activeItems = Array.isArray(activeCatalog?.items) ? activeCatalog.items : [];
+
+const existingBySource = new Map(
+  existingManifest
+    .filter((item) => item && typeof item.sourceFile === 'string')
+    .map((item) => [item.sourceFile, item]),
+);
+const occupiedTargets = new Set(
+  existingManifest
+    .filter((item) => item && typeof item.file === 'string')
+    .map((item) => item.file),
+);
+for (const item of activeItems) {
+  if (item && typeof item.file === 'string') occupiedTargets.add(item.file);
+}
+
+const migrated = [];
 const missing = [];
 
-for (const [sourceRelative, targetRelative] of moves) {
-  const source = path.join(sourceRoot, ...sourceRelative.split('/'));
-  const target = path.join(catalogRoot, ...targetRelative.split('/'));
-  const targetExists = await exists(target);
-  const sourceExists = await exists(source);
-
-  if (targetExists) {
-    if (sourceExists) await rm(source);
-    moved.push({ source: `${oldPrefix}${sourceRelative}`, target: `${newPrefix}${targetRelative}`, status: 'already-organized' });
-    continue;
-  }
-  if (!sourceExists) {
-    missing.push(`${oldPrefix}${sourceRelative}`);
+for (const entry of sourceManifest) {
+  if (!entry || typeof entry.file !== 'string') continue;
+  const sourceRelative = normalize(entry.file);
+  const sourceAbsolute = path.join(sourceRoot, ...sourceRelative.split('/'));
+  if (!(await exists(sourceAbsolute))) {
+    missing.push(sourceRelative);
     continue;
   }
 
-  await mkdir(path.dirname(target), { recursive: true });
-  await rename(source, target);
-  moved.push({ source: `${oldPrefix}${sourceRelative}`, target: `${newPrefix}${targetRelative}`, status: 'moved' });
+  const sourceFile = `asset/mobil/${sourceRelative}`;
+  const previous = existingBySource.get(sourceFile);
+  if (previous?.file && await exists(path.join(catalogRoot, ...String(previous.file).split('/')))) {
+    await rm(sourceAbsolute, { force: true });
+    migrated.push(previous);
+    continue;
+  }
+
+  const sha256 = await hashFile(sourceAbsolute);
+  const category = classify(sourceRelative, entry.url);
+  const targetRelative = await chooseTarget(category, sourceRelative, sha256, occupiedTargets);
+  const targetAbsolute = path.join(catalogRoot, ...targetRelative.split('/'));
+  await mkdir(path.dirname(targetAbsolute), { recursive: true });
+  await rename(sourceAbsolute, targetAbsolute);
+  occupiedTargets.add(targetRelative);
+
+  const info = await stat(targetAbsolute);
+  migrated.push({
+    file: targetRelative,
+    repositoryPath: `asset/catalog/mobile/${targetRelative}`,
+    sourceFile,
+    sourceUrl: typeof entry.url === 'string' ? entry.url : null,
+    mimeType: typeof entry.mimeType === 'string' ? entry.mimeType : mimeFromExtension(targetRelative),
+    status: Number(entry.status ?? 0),
+    category,
+    size: info.size,
+    sha256,
+  });
 }
 
 if (missing.length > 0) {
-  throw new Error(`Required game assets are missing:\n${missing.map((item) => `- ${item}`).join('\n')}`);
+  throw new Error(`Manifest references missing files:\n${missing.map((item) => `- ${item}`).join('\n')}`);
 }
 
-const replacementMap = new Map(moves.map(([source, target]) => [`${oldPrefix}${source}`, `${newPrefix}${target}`]));
-let apiCatalog = await readFile(apiCatalogPath, 'utf8');
-for (const [source, target] of replacementMap) apiCatalog = apiCatalog.replaceAll(source, target);
-apiCatalog = apiCatalog.replace("const MOBILE_ASSET_ROOT = 'asset/mobil/cdn.zabbet.com';\n\n", '');
-await writeFile(apiCatalogPath, apiCatalog);
+const combined = [...existingManifest, ...migrated]
+  .filter((item) => item && typeof item.file === 'string')
+  .reduce((map, item) => map.set(item.file, item), new Map());
+const normalizedManifest = [...combined.values()].sort((a, b) => String(a.file).localeCompare(String(b.file)));
 
-let sourceManifest = [];
-if (await exists(sourceManifestPath)) {
-  const parsed = JSON.parse(await readFile(sourceManifestPath, 'utf8'));
-  sourceManifest = Array.isArray(parsed) ? parsed : [];
-}
-
-const sourceByFile = new Map(sourceManifest.filter((item) => item && typeof item.file === 'string').map((item) => [item.file.replaceAll('\\', '/'), item]));
-const catalogItems = moves.map(([source, target]) => {
-  const original = sourceByFile.get(source);
-  return {
-    kind: target.startsWith('providers/') ? 'provider-logo' : 'game-image',
-    file: target,
-    repositoryPath: `${newPrefix}${target}`,
-    sourceFile: `${oldPrefix}${source}`,
-    sourceUrl: typeof original?.url === 'string' ? original.url : null,
-    mimeType: typeof original?.mimeType === 'string' ? original.mimeType : mimeFromExtension(target),
-  };
-});
-
-const movedSourceSet = new Set(moves.map(([source]) => source));
-const normalizedSourceManifest = sourceManifest.filter((entry) => !entry || typeof entry.file !== 'string' || !movedSourceSet.has(entry.file.replaceAll('\\', '/')));
-await writeFile(sourceManifestPath, `${JSON.stringify(normalizedSourceManifest, null, 2)}\n`);
-await mkdir(catalogRoot, { recursive: true });
 await writeFile(catalogManifestPath, `${JSON.stringify({
   generatedAt: new Date().toISOString(),
   platform: 'mobile',
-  purpose: 'Assets actively referenced by the platform game catalog',
-  counts: {
-    total: catalogItems.length,
-    games: catalogItems.filter((item) => item.kind === 'game-image').length,
-    providers: catalogItems.filter((item) => item.kind === 'provider-logo').length,
-  },
-  items: catalogItems,
+  sourceDirectoryRemoved: true,
+  counts: summarize(normalizedManifest),
+  items: normalizedManifest,
 }, null, 2)}\n`);
 
-await removeEmptyDirectories(sourceRoot);
-console.log(`Organized ${moved.length} active assets into asset/catalog/mobile.`);
-console.log(`Source manifest now contains ${normalizedSourceManifest.length} uncurated entries.`);
+if (await exists(sourceRoot)) await rm(sourceRoot, { recursive: true, force: true });
+await removeEmptyDirectories(path.join(root, 'asset'));
+
+console.log(`Migrated ${migrated.length} remaining mobile assets.`);
+console.log(`Canonical mobile catalog now contains ${normalizedManifest.length} assets.`);
+console.log('Removed asset/mobil after successful migration.');
+
+function classify(file, url) {
+  const value = `/${normalize(file).toLowerCase()} ${String(url ?? '').toLowerCase()}`;
+  for (const [category, patterns] of CATEGORY_RULES) {
+    if (patterns.some((pattern) => value.includes(pattern))) return category;
+  }
+  return 'misc';
+}
+
+async function chooseTarget(category, sourceRelative, sha256, occupied) {
+  const parsed = path.posix.parse(normalize(sourceRelative));
+  const host = slugify(sourceRelative.split('/')[0] || 'source');
+  const parentParts = parsed.dir.split('/').slice(1).map(slugify).filter(Boolean).slice(-3);
+  const base = `${slugify(parsed.name) || sha256.slice(0, 12)}${parsed.ext.toLowerCase()}`;
+  let candidate = path.posix.join(category, host, ...parentParts, base);
+  if (!occupied.has(candidate) && !(await exists(path.join(catalogRoot, ...candidate.split('/'))))) return candidate;
+  candidate = path.posix.join(category, host, ...parentParts, `${slugify(parsed.name) || 'asset'}-${sha256.slice(0, 10)}${parsed.ext.toLowerCase()}`);
+  return candidate;
+}
+
+function summarize(items) {
+  const counts = { total: items.length };
+  for (const item of items) counts[item.category ?? 'misc'] = (counts[item.category ?? 'misc'] ?? 0) + 1;
+  return counts;
+}
+
+function slugify(value) {
+  return String(value)
+    .normalize('NFKD')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+}
+
+function normalize(value) {
+  return String(value).replaceAll('\\', '/').replace(/^\/+/, '');
+}
+
+async function hashFile(filePath) {
+  return createHash('sha256').update(await readFile(filePath)).digest('hex');
+}
+
+async function readJsonArray(filePath) {
+  if (!(await exists(filePath))) return [];
+  const parsed = JSON.parse(await readFile(filePath, 'utf8'));
+  if (Array.isArray(parsed)) return parsed;
+  return Array.isArray(parsed?.items) ? parsed.items : [];
+}
+
+async function readJsonObject(filePath) {
+  if (!(await exists(filePath))) return null;
+  return JSON.parse(await readFile(filePath, 'utf8'));
+}
 
 async function exists(filePath) {
   try {
@@ -114,20 +178,18 @@ function mimeFromExtension(file) {
   if (extension === '.jpg' || extension === '.jpeg') return 'image/jpeg';
   if (extension === '.webp') return 'image/webp';
   if (extension === '.svg') return 'image/svg+xml';
+  if (extension === '.ico') return 'image/x-icon';
+  if (extension === '.gif') return 'image/gif';
   return 'application/octet-stream';
 }
 
 async function removeEmptyDirectories(directory) {
-  if (!(await exists(directory))) return false;
+  if (!(await exists(directory))) return;
   const entries = await readdir(directory, { withFileTypes: true });
   for (const entry of entries) {
     if (entry.isDirectory()) await removeEmptyDirectories(path.join(directory, entry.name));
   }
-  if (directory === sourceRoot) return false;
+  if (directory === path.join(root, 'asset')) return;
   const remaining = await readdir(directory);
-  if (remaining.length === 0) {
-    await rm(directory, { recursive: true, force: true });
-    return true;
-  }
-  return false;
+  if (remaining.length === 0) await rm(directory, { recursive: true, force: true });
 }
