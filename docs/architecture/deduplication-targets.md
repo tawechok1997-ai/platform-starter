@@ -4,9 +4,9 @@ This backlog turns structural overlap into explicit, reviewable work. Production
 
 ## Status
 
-- Completed: 6 production targets plus 11 safe-batch tasks
-- In progress: 1 production target
-- Remaining production targets: 1
+- Completed: 7 production targets plus 11 safe-batch tasks
+- In progress: 0
+- Remaining production targets: 0
 
 ## Completed targets
 
@@ -16,16 +16,11 @@ This backlog turns structural overlap into explicit, reviewable work. Production
 | DEDUP-02 | Risk ownership | `risk-alerts` now owns the risk lifecycle and the explicitly named finance-risk summary projection; `/admin/risk/summary` remains a compatibility route with its original permission and response contract | `node tools/audit-risk-ownership-boundary.mjs` verifies the legacy module only delegates and prevents the removed query implementation from returning |
 | DEDUP-03 | Member query ownership | Added the read-only `MEMBER_QUERY` contract and token for cross-module consumers while retaining current admin list, insights and detail projections; status mutations remain owned by `AdminMembersCommandService` | `node tools/audit-member-query-boundary.mjs` blocks mutation APIs from the public query contract and verifies the module token binding |
 | DEDUP-04 | Activity projections | `admin-activity` now owns both the cross-domain timeline and compact audit-history query; `/admin/operations/history` remains a compatibility route with its original permission and response contract | `activity` imports `AdminActivityModule` and delegates to its exported query service; the duplicate local query implementation was removed |
+| DEDUP-05 | Finance mutation ownership | `MoneyOpsService.mutateLedger()` preserves its feature gate and response contract but delegates wallet update, ledger creation, idempotency and audit ownership to `AdminLedgerMutationService` in the wallet domain | `node tools/audit-finance-mutation-boundary.mjs` blocks wallet and ledger mutations outside the documented owner services and verifies the required owners remain present |
 | DEDUP-06 | Shared security primitives | Centralized empty `JwtModule.register({})` ownership in `common/security/JwtAuthModule`; member and admin session policy services remain separate; wallet, topups, withdrawals, money-ops and risk-alerts were also migrated to the shared module | `pnpm audit:jwt-registration-boundary` fails when feature modules register JWT infrastructure directly |
 | DEDUP-07 | Shared frontend/platform utilities | Confirmed Admin and Member consume the existing `@platform/api-client` workspace package instead of introducing another transport layer | `pnpm audit:frontend-api-client-boundary` verifies both dependencies and blocks local redeclaration of shared API primitives |
 
-## In progress
-
-| ID | Target | Progress | Remaining closure evidence |
-|---|---|---|---|
-| DEDUP-05 | Finance mutation ownership | Added an explicit mutation ownership matrix and an automated guard that blocks new direct wallet mutations outside approved owners; identified `MoneyOpsService.mutateLedger()` as an existing gated duplicate mutation path | Preserve its feature gate, endpoint response, references, idempotency, permission and audit behavior while delegating the mutation to WalletService; then remove the temporary audit exception |
-
-## Required evidence before module moves
+## Required evidence before future module moves
 
 1. Route inventory with method, path and controller.
 2. Data mutation owner and transaction boundary.
@@ -40,4 +35,4 @@ This backlog turns structural overlap into explicit, reviewable work. Production
 - Do not merge modules solely because names look similar.
 - Do not move Prisma mutations before lock and idempotency ownership is documented.
 - Do not remove compatibility exports in the same change that moves implementation.
-- Keep each production refactor behind a focused pull request after this inventory PR is merged.
+- Keep future production refactors behind focused pull requests.
