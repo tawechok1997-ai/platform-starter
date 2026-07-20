@@ -33,8 +33,9 @@ This backlog contains only work that remains after comparing the requested archi
 
 ## Workstream C: transaction correctness
 
-- [ ] Split rollback-bet from rollback-win.
-- [ ] Require refunds to reference an original bet.
+- [x] Split rollback-bet from rollback-win at the simulator transaction boundary.
+- [x] Require refunds to reference an original transaction.
+- [ ] Verify that the referenced refund transaction is an original bet.
 - [ ] Support partial refunds without exceeding the original bet.
 - [ ] Add canonical payload hashes for idempotency conflict detection.
 - [ ] Send insufficient-balance rollback-win cases to manual review.
@@ -52,7 +53,7 @@ This backlog contains only work that remains after comparing the requested archi
 
 - [ ] Add nonce replay protection.
 - [ ] Sign a canonical payload or verified raw request body.
-- [ ] Reject development fallback credentials outside local and test environments.
+- [x] Reject development fallback credentials outside local and test environments.
 - [ ] Add endpoint-specific rate limits.
 
 ## Workstream F: provider, catalog, and sessions
@@ -70,7 +71,8 @@ This backlog contains only work that remains after comparing the requested archi
 - [ ] Detect missing round and ledger links.
 - [ ] Add concurrent bet tests.
 - [ ] Add duplicate callback and payload-conflict tests.
-- [ ] Add refund, rollback, and manual-review integration tests.
+- [x] Add focused refund and rollback direction tests.
+- [ ] Add full refund, rollback, and manual-review integration tests.
 
 ## Deferred until the repository UI and asset audit is complete
 
