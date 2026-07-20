@@ -169,7 +169,7 @@ export default function SupportCenterPage() {
         <AdminStack>
           <AdminDataValue label="สมาชิก">{ticket.member?.username ?? ticket.member?.phone ?? ticket.member?.email ?? '-'}</AdminDataValue>
           <AdminDataValue label="สถานะ"><span><AdminBadge tone={statusTone(ticket.status)}>{statusLabel(ticket.status)}</AdminBadge> <AdminBadge tone={severityTone(ticket.severity)}>{severityLabel(ticket.severity)}</AdminBadge></span></AdminDataValue>
-          <AdminDataValue label="รายการอ้างอิง"><AdminCode title={ticket.refId ?? undefined}>{ticket.refType ?? '-'} {ticket.refId ?? ''}</AdminCode></AdminDataValue>
+          <AdminDataValue label="รายการอ้างอิง"><AdminCode {...(ticket.refId ? { title: ticket.refId } : {})}>{ticket.refType ?? '-'} {ticket.refId ?? ''}</AdminCode></AdminDataValue>
 
           <section className="admin-support-message-box">
             <strong>ข้อความจากสมาชิก</strong>
