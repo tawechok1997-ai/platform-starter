@@ -61,6 +61,9 @@
 - เพิ่ม loading, retryable error, empty state, launch network error และ fallback เมื่อรูปปกโหลดไม่สำเร็จ
 - `apps/web-member/app/games/games.css` แสดง tabs/toolbar จริงและกำหนด grid 4/3/2/1 คอลัมน์สำหรับ desktop/tablet/mobile/narrow mobile
 - `apps/web-member/src/features/games/game-lobby-contract.spec.ts` ป้องกัน regression ที่ซ่อน filter, ทำ responsive grid หาย หรือถอด retry/load-more/image fallback
-- workflow `Game API Verification` รัน provider simulator tests, API typecheck/build และ Member tests/typecheck/build เมื่อไฟล์ Game API เปลี่ยน
-- Railway deployment checks ของ API, Web Admin และ Web Member ผ่านบน commit `6620dcbf446b451c01ee7cb2ac3bb97fc3f04ec1`
-- commits: `d0bbfba1fe5029cafdbb947a24ee8439d6185420`, `944034265f678dc05ff4e062133d863d1559c9c9`, `9192474cd99bd881c596ed2ebe7f65551860f118`, `6620dcbf446b451c01ee7cb2ac3bb97fc3f04ec1`
+- `playwright.game-api.config.ts` เปิด Next.js Member จริงทั้ง Chromium และ Mobile Safari
+- `tests/game-api-browser/game-lobby.spec.ts` mock network contract และทดสอบ filter, launch request/session navigation และ broken-image fallback ใน browser จริง
+- workflow `Game API Verification` ติดตั้ง Chromium/WebKit รัน provider simulator tests, API/Member checks และ browser regression พร้อมอัปโหลด Playwright report
+- Railway deployment checks ของ API, Web Admin และ Web Member ผ่านบน commit `a8fc8913d8449de67f890f6b74de1124491bfe4a`
+- ยังไม่ปิดสอง checkbox verification จนกว่า GitHub Actions จะรายงานผลสำเร็จจริง
+- commits รอบ browser regression: `0e6affeed6028bed2102f3ad6f48f0f7754f98ca`, `a32e8a2c8bc3f5ab4ce4815d743532bb550e6aef`, `a8fc8913d8449de67f890f6b74de1124491bfe4a`

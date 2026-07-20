@@ -1,0 +1,106 @@
+.admin-support-template-list,
+.admin-support-template-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.admin-support-template-button {
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid rgba(148, 163, 184, .34);
+  border-radius: 999px;
+  background: rgba(148, 163, 184, .09);
+  color: #dbeafe;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.admin-support-template-button:hover {
+  border-color: rgba(203, 213, 225, .58);
+  background: rgba(148, 163, 184, .16);
+  transform: translateY(-1px);
+}
+
+.admin-support-template-button:active {
+  transform: translateY(0);
+}
+
+.admin-support-template-button:focus-visible {
+  outline: 3px solid rgba(245, 197, 66, .2);
+  outline-offset: 2px;
+}
+
+.admin-support-message-box {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(148, 163, 184, .2);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .035);
+}
+
+.admin-support-message-box > p {
+  margin: 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.admin-support-thread {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  min-width: 0;
+  padding-top: 9px;
+  border-top: 1px solid rgba(148, 163, 184, .13);
+}
+
+.admin-support-thread > span,
+.admin-support-thread > small {
+  overflow-wrap: anywhere;
+}
+
+.admin-support-thread > small {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.admin-support-reply {
+  min-height: 96px !important;
+}
+
+@media (max-width: 720px) {
+  .admin-support-thread {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .admin-support-thread > small {
+    grid-column: 1 / -1;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-support-template-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-support-template-button {
+    width: 100%;
+    border-radius: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-support-template-button {
+    transition: none !important;
+  }
+}
