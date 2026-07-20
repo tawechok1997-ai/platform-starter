@@ -1,22 +1,32 @@
 # Deduplication Safe Batch 1
 
-## Purpose
+## Goal
 
-ลดงานซ้ำโดยเริ่มจากการเปลี่ยนแปลงที่ไม่แตะ business logic, database schema, API routes หรือ financial state transitions ก่อน
+Reduce repeated verification work and add evidence-driven duplicate detection without changing production business behavior.
 
-## Changes in this batch
+## Completed
 
-1. `web-admin` build no longer executes the same feature test suite internally. Tests, type checking and build are composed explicitly through `pnpm verify`.
-2. `web-member` test discovery uses `src/**/*.spec.ts` instead of a hand-maintained file list, preventing new tests from being silently omitted.
-3. Admin and Member now expose the same `test`, `typecheck`, `build`, and `verify` lifecycle.
-4. `tools/audit-duplicate-structure.mjs` inventories duplicate normalized Nest routes and repeated named declarations across `apps` and `packages`.
+1. Separated Admin tests from `next build`.
+2. Added matching `verify` lifecycles to Admin and Member.
+3. Replaced Member's hand-maintained test file list with `src/**/*.spec.ts` discovery.
+4. Added a report-only duplicate structure audit.
+5. Exposed report, JSON and strict audit commands at the repository root.
+6. Added an explicit allowlist config with no ignored findings by default.
+7. Added a seven-target architecture backlog with safety exit criteria.
 
-## Safety properties
+## Safety boundaries
 
-- No production route, controller, service, repository, Prisma schema or migration is changed.
-- No dependency version is changed.
-- The duplicate audit reports findings by default and only fails when explicitly run with `--strict`.
-- Existing app-level `test`, `typecheck` and `build` commands remain available.
+This batch does not change:
+
+- Prisma schema or migrations
+- production routes
+- business services
+- wallet or ledger mutations
+- provider integrations
+- permissions or authentication behavior
+- dependency versions
+
+The duplicate audit is report-only unless `--strict` is passed. The allowlist is committed and reviewable; ignored findings cannot be hidden in source code.
 
 ## Validation commands
 
@@ -27,19 +37,16 @@ pnpm --filter @platform/web-admin build
 pnpm --filter @platform/web-member test
 pnpm --filter @platform/web-member typecheck
 pnpm --filter @platform/web-member build
-node tools/audit-duplicate-structure.mjs
-node tools/audit-duplicate-structure.mjs --json
+pnpm audit:duplicate-structure
+pnpm audit:duplicate-structure:json
 ```
 
-Do not enable strict duplicate enforcement until the initial inventory has been reviewed and an allowlist or ownership rule is agreed. Duplicate declaration names can be legitimate across bounded contexts, while duplicate normalized HTTP method/path pairs are generally higher priority.
+Use strict mode only after current findings are classified:
 
-## Next safe batch
+```bash
+pnpm audit:duplicate-structure:strict
+```
 
-Use the generated inventory to classify each finding into:
+## Remaining work
 
-- true duplicate requiring consolidation;
-- intentional bounded-context duplication;
-- legacy compatibility surface with a removal target;
-- false positive requiring audit refinement.
-
-Only after classification should transitional modules such as `risk`, `activity`, `queues`, and `admin-members` be moved or folded into first-class owners.
+Seven production-oriented targets remain. They are tracked in `docs/architecture/deduplication-targets.md` and must be handled as focused changes after route, mutation, permission, audit and test ownership are documented.
