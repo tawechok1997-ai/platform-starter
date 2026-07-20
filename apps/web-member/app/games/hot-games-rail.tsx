@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 
-type GameMedia = { type: string; sourceUrl?: string | null; cachedUrl?: string | null; status: string };
-type GameProvider = { name: string; code: string; status?: string | null; logoUrl?: string | null };
-type Game = { id: string; providerGameCode: string; name: string; category: string; platform: 'mobile' | 'pc' | 'both'; status?: string; isFeatured: boolean; isNew: boolean; isPopular: boolean; provider?: GameProvider; media?: GameMedia[]; imageUrl?: string | null; iconUrl?: string | null };
+type GameMedia = { type: string; sourceUrl?: string | null | undefined; cachedUrl?: string | null | undefined; status: string };
+type GameProvider = { name: string; code: string; status?: string | null | undefined; logoUrl?: string | null | undefined };
+type Game = { id: string; providerGameCode: string; name: string; category: string; platform: 'mobile' | 'pc' | 'both'; status?: string | undefined; isFeatured: boolean; isNew: boolean; isPopular: boolean; provider?: GameProvider | undefined; media?: GameMedia[] | undefined; imageUrl?: string | null | undefined; iconUrl?: string | null | undefined };
 type Props = { games: Game[]; launchingGameId: string | undefined; onLaunch: (game: Game) => void };
 
 export default function HotGamesRail({ games, launchingGameId, onLaunch }: Props) {
