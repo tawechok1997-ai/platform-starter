@@ -1,0 +1,70 @@
+name: Admin Deployment Browser QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      admin_base_url:
+        description: Admin deployment URL
+        required: false
+        default: https://platformweb-admin-production.up.railway.app
+  schedule:
+    - cron: '20 2 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-admin/**'
+      - 'packages/design-tokens/**'
+      - 'packages/ui-core/**'
+      - 'tests/e2e-smoke/admin-deployment-matrix.spec.ts'
+      - 'playwright.admin-deployment.config.ts'
+      - '.github/workflows/admin-deployment-browser-qa.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-deployment-browser-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ADMIN_BASE_URL: ${{ inputs.admin_base_url || vars.ADMIN_BASE_URL || 'https://platformweb-admin-production.up.railway.app' }}
+      ADMIN_TEST_USERNAME: ${{ secrets.ADMIN_TEST_USERNAME }}
+      ADMIN_TEST_PASSWORD: ${{ secrets.ADMIN_TEST_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run admin deployment matrix
+        run: pnpm test:e2e:admin-deployment
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-deployment-playwright-report
+          path: |
+            playwright-report-admin
+            test-results/admin-deployment
+          if-no-files-found: ignore
+          retention-days: 14
