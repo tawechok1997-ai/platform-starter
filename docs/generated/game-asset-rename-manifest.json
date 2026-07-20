@@ -1,0 +1,925 @@
+{
+  "generatedAt": "2026-07-20T11:07:39.661Z",
+  "items": [
+    {
+      "source": "cdn.zabbet.com/games/1671994886397-c7725f74-3996-42c6-8be6-b1d9ef7e4cf4.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/1671994886397-c7725f74-3996-42c6-8be6-b1d9ef7e4cf4.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/1672859511212-8c45edac-1680-42ba-9b6c-091d06f9ae6e.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/1672859511212-8c45edac-1680-42ba-9b6c-091d06f9ae6e.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/1672859746105-2f854e5f-234b-435f-80f0-df5be2f08d7f.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/1672859746105-2f854e5f-234b-435f-80f0-df5be2f08d7f.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/1672957788935-4d291968-4756-4893-9de0-bf88970c472f.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/1672957788935-4d291968-4756-4893-9de0-bf88970c472f.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/1684318646873-73cdc710-185c-4b7e-b5e2-f2bc2c1ee646.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/1684318646873-73cdc710-185c-4b7e-b5e2-f2bc2c1ee646.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/1692882357754-c47b8426-4045-4792-8ee3-58b784ed9a78.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/1692882357754-c47b8426-4045-4792-8ee3-58b784ed9a78.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/gamecard/1696220882369-08f56f11-f604-4f39-a75f-98e9d185447f.png",
+      "proposedTarget": "asset/catalog/mobile/games/1696220882369-08f56f11-f604-4f39-a75f-98e9d185447f.png",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/gamecard/1696220889989-c5077b35-50f5-4b4b-88df-c1cf454b6ddc.png",
+      "proposedTarget": "asset/catalog/mobile/games/1696220889989-c5077b35-50f5-4b4b-88df-c1cf454b6ddc.png",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/gamecard/1696220905204-ec63ab13-ca4b-42f7-a2d5-8d67d2412de1.png",
+      "proposedTarget": "asset/catalog/mobile/games/1696220905204-ec63ab13-ca4b-42f7-a2d5-8d67d2412de1.png",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/gamecard/1696220913691-196f7483-a6a7-41d0-bebd-0a05a66456ca.png",
+      "proposedTarget": "asset/catalog/mobile/games/1696220913691-196f7483-a6a7-41d0-bebd-0a05a66456ca.png",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/gamecard/1696220923099-b4aa1a6e-f7be-4d05-bd9f-5ed9d95c9ca3.png",
+      "proposedTarget": "asset/catalog/mobile/games/1696220923099-b4aa1a6e-f7be-4d05-bd9f-5ed9d95c9ca3.png",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/gamecard/1696220930543-93f26193-12cd-4770-a4f9-b62e46d332ed.png",
+      "proposedTarget": "asset/catalog/mobile/games/1696220930543-93f26193-12cd-4770-a4f9-b62e46d332ed.png",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/gamecard/1716396459922-8e8fa406-fe27-4e61-a1af-adb2eb690bc4.png",
+      "proposedTarget": "asset/catalog/mobile/games/1716396459922-8e8fa406-fe27-4e61-a1af-adb2eb690bc4.png",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/gamecard/1719889778219-fb0449a1-a9a6-4f4e-8291-1a3ce92ca79f.png",
+      "proposedTarget": "asset/catalog/mobile/games/1719889778219-fb0449a1-a9a6-4f4e-8291-1a3ce92ca79f.png",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/1723580353743-8d95a5d2-b1d2-4afd-8e95-33b46175d15a.jpeg",
+      "proposedTarget": "asset/catalog/mobile/games/1723580353743-8d95a5d2-b1d2-4afd-8e95-33b46175d15a.jpeg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg",
+      "proposedTarget": "asset/catalog/mobile/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/1773199444224-c679ea9f-ad44-41d9-9dbe-fd5d309f3717.jpeg",
+      "proposedTarget": "asset/catalog/mobile/games/1773199444224-c679ea9f-ad44-41d9-9dbe-fd5d309f3717.jpeg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": true
+    },
+    {
+      "source": "cdn.zabbet.com/games/FACHAI/TH/27001.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/27001.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/games/vertical/CQ/alice_run.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/alice_run.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/games/NLC/bushidoways00000.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/bushidoways00000.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/games/NLC/elpaso0000000000.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/elpaso0000000000.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/games/vertical/EVP/penalty_series.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/penalty_series.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png",
+      "proposedTarget": "asset/catalog/mobile/games/sweet_bonanza_xmas.png",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg",
+      "proposedTarget": "asset/catalog/mobile/games/thai_hi_lo.jpg",
+      "kind": "game-image",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/ab.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ab.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/acewin.png",
+      "proposedTarget": "asset/catalog/mobile/providers/acewin.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/acewinfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/acewinfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/amb.png",
+      "proposedTarget": "asset/catalog/mobile/providers/amb.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_l/amb.png",
+      "proposedTarget": "asset/catalog/mobile/providers/amb.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/ame.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ame.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/ap.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ap.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/ask.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ask.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/askfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/askfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/astar.png",
+      "proposedTarget": "asset/catalog/mobile/providers/astar.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/bcs.png",
+      "proposedTarget": "asset/catalog/mobile/providers/bcs.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/biggamecasino.png",
+      "proposedTarget": "asset/catalog/mobile/providers/biggamecasino.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_v/biggamecasino.png",
+      "proposedTarget": "asset/catalog/mobile/providers/biggamecasino.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/bng.png",
+      "proposedTarget": "asset/catalog/mobile/providers/bng.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/cala.png",
+      "proposedTarget": "asset/catalog/mobile/providers/cala.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/cq.png",
+      "proposedTarget": "asset/catalog/mobile/providers/cq.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/cq.png",
+      "proposedTarget": "asset/catalog/mobile/providers/cq.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/cqfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/cqfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/dac.png",
+      "proposedTarget": "asset/catalog/mobile/providers/dac.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/dg.png",
+      "proposedTarget": "asset/catalog/mobile/providers/dg.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/drag.png",
+      "proposedTarget": "asset/catalog/mobile/providers/drag.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/edp.png",
+      "proposedTarget": "asset/catalog/mobile/providers/edp.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/evp.png",
+      "proposedTarget": "asset/catalog/mobile/providers/evp.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/evp.png",
+      "proposedTarget": "asset/catalog/mobile/providers/evp.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/evt.png",
+      "proposedTarget": "asset/catalog/mobile/providers/evt.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_v/evt.png",
+      "proposedTarget": "asset/catalog/mobile/providers/evt.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/fachai.png",
+      "proposedTarget": "asset/catalog/mobile/providers/fachai.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/fachai.png",
+      "proposedTarget": "asset/catalog/mobile/providers/fachai.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/fachaifish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/fachaifish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/fs.png",
+      "proposedTarget": "asset/catalog/mobile/providers/fs.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/fsfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/fsfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/glx.png",
+      "proposedTarget": "asset/catalog/mobile/providers/glx.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/hacksaw.png",
+      "proposedTarget": "asset/catalog/mobile/providers/hacksaw.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/hbn.png",
+      "proposedTarget": "asset/catalog/mobile/providers/hbn.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_l/hotdog.png",
+      "proposedTarget": "asset/catalog/mobile/providers/hotdog.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/jkgx2.png",
+      "proposedTarget": "asset/catalog/mobile/providers/jkgx2.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/jkgx2.png",
+      "proposedTarget": "asset/catalog/mobile/providers/jkgx2.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/jkgx2fish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/jkgx2fish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/jl.png",
+      "proposedTarget": "asset/catalog/mobile/providers/jl.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/jl.png",
+      "proposedTarget": "asset/catalog/mobile/providers/jl.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/jlfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/jlfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/kaga.png",
+      "proposedTarget": "asset/catalog/mobile/providers/kaga.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/kagafish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/kagafish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/kingm.png",
+      "proposedTarget": "asset/catalog/mobile/providers/kingm.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/kingm.png",
+      "proposedTarget": "asset/catalog/mobile/providers/kingm.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/l22.png",
+      "proposedTarget": "asset/catalog/mobile/providers/l22.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_l/lali.png",
+      "proposedTarget": "asset/catalog/mobile/providers/lali.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/lotmw.png",
+      "proposedTarget": "asset/catalog/mobile/providers/lotmw.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/misolt.png",
+      "proposedTarget": "asset/catalog/mobile/providers/misolt.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_l/misoltfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/misoltfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/muay.png",
+      "proposedTarget": "asset/catalog/mobile/providers/muay.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/n2.png",
+      "proposedTarget": "asset/catalog/mobile/providers/n2.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/netent.png",
+      "proposedTarget": "asset/catalog/mobile/providers/netent.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/nlc.png",
+      "proposedTarget": "asset/catalog/mobile/providers/nlc.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/nlc.png",
+      "proposedTarget": "asset/catalog/mobile/providers/nlc.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/pgsoft.png",
+      "proposedTarget": "asset/catalog/mobile/providers/pgsoft.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/pgsoft.png",
+      "proposedTarget": "asset/catalog/mobile/providers/pgsoft.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/pgsus.png",
+      "proposedTarget": "asset/catalog/mobile/providers/pgsus.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/pokslot.png",
+      "proposedTarget": "asset/catalog/mobile/providers/pokslot.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/pp.png",
+      "proposedTarget": "asset/catalog/mobile/providers/pp.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/pp.png",
+      "proposedTarget": "asset/catalog/mobile/providers/pp.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/ppcasino.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ppcasino.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/ps.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ps.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/ps.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ps.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/r88.png",
+      "proposedTarget": "asset/catalog/mobile/providers/r88.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/r88fish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/r88fish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/rb7slot.png",
+      "proposedTarget": "asset/catalog/mobile/providers/rb7slot.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/redtiger.png",
+      "proposedTarget": "asset/catalog/mobile/providers/redtiger.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/reg.png",
+      "proposedTarget": "asset/catalog/mobile/providers/reg.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/rsg.png",
+      "proposedTarget": "asset/catalog/mobile/providers/rsg.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/rsg.png",
+      "proposedTarget": "asset/catalog/mobile/providers/rsg.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/rsgfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/rsgfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/saba.png",
+      "proposedTarget": "asset/catalog/mobile/providers/saba.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/sag.png",
+      "proposedTarget": "asset/catalog/mobile/providers/sag.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/sbo.png",
+      "proposedTarget": "asset/catalog/mobile/providers/sbo.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_l/sexyd.png",
+      "proposedTarget": "asset/catalog/mobile/providers/sexyd.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/spg.png",
+      "proposedTarget": "asset/catalog/mobile/providers/spg.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/spgfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/spgfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/spp.png",
+      "proposedTarget": "asset/catalog/mobile/providers/spp.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/sppfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/sppfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/vp.png",
+      "proposedTarget": "asset/catalog/mobile/providers/vp.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/wmc.png",
+      "proposedTarget": "asset/catalog/mobile/providers/wmc.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/wmfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/wmfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/wmslot.png",
+      "proposedTarget": "asset/catalog/mobile/providers/wmslot.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/yeebet.png",
+      "proposedTarget": "asset/catalog/mobile/providers/yeebet.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/ygg.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ygg.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_badge/ygr.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ygr.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/ygr.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ygr.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    },
+    {
+      "source": "cdn.zabbet.com/providers/set/1_1_h/ygrfish.png",
+      "proposedTarget": "asset/catalog/mobile/providers/ygrfish.png",
+      "kind": "provider-logo",
+      "duplicateOf": null,
+      "action": "copy",
+      "reviewRequired": false
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "generatedAt": "2026-07-20T11:07:39.799Z",
+  "dryRun": true,
+  "policy": {
+    "exactByteDuplicatesOnly": true,
+    "junkPatterns": [
+      ".DS_Store",
+      "Thumbs.db",
+      "desktop.ini",
+      "__MACOSX/**",
+      "._*"
+    ],
+    "preservesNonDuplicateBannersPromotionsAndUiAssets": true
+  },
+  "before": {
+    "files": 247,
+    "manifestEntries": 247
+  },
+  "after": {
+    "files": 247,
+    "manifestEntries": 247
+  },
+  "removedCount": 0,
+  "duplicateGroups": 0,
+  "bytesSaved": 0,
+  "junkFiles": [],
+  "groups": []
+}
