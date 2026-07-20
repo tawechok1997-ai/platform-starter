@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthModule } from '../../common/security/jwt-auth.module';
 import { AntiBotModule } from '../anti-bot/anti-bot.module';
 import { AdminAuthController } from './admin-auth.controller';
 import { AdminAuthService } from './admin-auth.service';
@@ -15,7 +15,7 @@ import { AdminStepUpService } from './admin-step-up.service';
 import { AdminTwoFactorCommandService } from './admin-two-factor-command.service';
 
 @Module({
-  imports: [JwtModule.register({}), AntiBotModule],
+  imports: [JwtAuthModule, AntiBotModule],
   controllers: [AdminAuthController],
   providers: [
     AdminAuthService,
