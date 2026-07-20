@@ -4,6 +4,7 @@ import routeMatrix from './admin-critical-routes.json';
 
 const VIEWPORTS = routeMatrix.viewports;
 const PROTECTED_ROUTES = routeMatrix.protectedRoutes;
+const REQUIRE_AUTHENTICATION = process.env.REQUIRE_AUTHENTICATION === 'true';
 
 function collectRuntimeFailures(page: Page) {
   const consoleErrors: string[] = [];
@@ -107,6 +108,10 @@ for (const viewport of VIEWPORTS) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     const runtime = collectRuntimeFailures(page);
     const authenticated = await optionallySignIn(page);
+
+    if (REQUIRE_AUTHENTICATION) {
+      expect(authenticated, 'Authenticated acceptance mode requires ADMIN_TEST_USERNAME and ADMIN_TEST_PASSWORD').toBe(true);
+    }
 
     if (!authenticated) {
       await page.goto(routeMatrix.loginRoute, { waitUntil: 'domcontentloaded' });
