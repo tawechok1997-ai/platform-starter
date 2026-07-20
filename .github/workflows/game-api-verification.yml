@@ -1,0 +1,53 @@
+name: Game API Verification
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/src/modules/provider-simulator/**'
+      - 'apps/web-member/app/games/**'
+      - 'apps/web-member/src/features/games/**'
+      - 'apps/web-member/package.json'
+      - 'docs/game-api-worklist.md'
+      - '.github/workflows/game-api-verification.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/modules/provider-simulator/**'
+      - 'apps/web-member/app/games/**'
+      - 'apps/web-member/src/features/games/**'
+      - 'apps/web-member/package.json'
+      - 'docs/game-api-worklist.md'
+      - '.github/workflows/game-api-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm db:generate
+      - name: Provider simulator unit tests
+        run: pnpm --filter @platform/api exec jest provider-simulator.service.spec.ts --runInBand
+      - name: API typecheck
+        run: pnpm --filter @platform/api typecheck
+      - name: API build
+        run: pnpm --filter @platform/api build
+      - name: Member game contract tests
+        run: pnpm --filter @platform/web-member test
+      - name: Member typecheck
+        run: pnpm --filter @platform/web-member typecheck
+      - name: Member build
+        run: pnpm --filter @platform/web-member build
