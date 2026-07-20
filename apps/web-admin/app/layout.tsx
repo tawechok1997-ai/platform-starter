@@ -32,6 +32,7 @@ import './admin-professional-polish.css';
 import './admin-language-system.css';
 import './admin-chart-polish.css';
 import './admin-module-cleanup.css';
+import './admin-button-contrast.css';
 
 export const viewport: Viewport = {
   width: 'device-width',
