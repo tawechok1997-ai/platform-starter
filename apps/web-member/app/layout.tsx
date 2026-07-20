@@ -29,6 +29,7 @@ import './member-withdraw-contract.css';
 import './member-finance-market.css';
 import './member-games.css';
 import './games/games.css';
+import './games/lobby-enhancements.css';
 import './guide/guide.css';
 import './member-promotions.css';
 import './public-auth-shell.css';
