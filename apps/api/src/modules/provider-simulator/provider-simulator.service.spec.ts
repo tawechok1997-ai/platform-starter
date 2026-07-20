@@ -115,8 +115,46 @@ describe('ProviderSimulatorService', () => {
 
   it('returns a game catalog with loadable API icon URLs', () => {
     const result = service.games('https://api.example.test');
+    expect(result.success).toBe(true);
     expect(result.items.length).toBeGreaterThanOrEqual(8);
     expect(result.items[0]?.iconUrl).toMatch(/^https:\/\/api\.example\.test\/provider-simulator\/icons\/.+\.svg$/);
+    expect(result.pagination.total).toBe(result.items.length);
     expect(service.icon('fortune-tiger.svg')).toContain('<svg');
+  });
+
+  it('keeps mobile and pc catalogs separated', () => {
+    const mobile = service.games('https://api.example.test', { platform: 'mobile' });
+    const pc = service.games('https://api.example.test', { platform: 'pc' });
+    expect(mobile.items.length).toBeGreaterThan(0);
+    expect(pc.items.length).toBeGreaterThan(0);
+    expect(mobile.items.every((item) => item.platform === 'mobile')).toBe(true);
+    expect(pc.items.every((item) => item.platform === 'pc')).toBe(true);
+    expect(new Set([...mobile.items, ...pc.items].map((item) => item.id)).size).toBe(mobile.items.length + pc.items.length);
+  });
+
+  it('filters by provider category and search text', () => {
+    const result = service.games('https://api.example.test', {
+      provider: 'pg-soft',
+      category: 'slot',
+      search: 'tiger',
+    });
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({ code: 'fortune-tiger', provider: 'pg-soft', category: 'slot' });
+  });
+
+  it('paginates and sorts catalog results deterministically', () => {
+    const firstPage = service.games('https://api.example.test', { page: 1, limit: 2, sort: 'code-asc' });
+    const secondPage = service.games('https://api.example.test', { page: 2, limit: 2, sort: 'code-asc' });
+    expect(firstPage.items).toHaveLength(2);
+    expect(secondPage.items).toHaveLength(2);
+    expect(firstPage.pagination).toMatchObject({ page: 1, limit: 2, total: 8, totalPages: 4 });
+    expect(firstPage.items.map((item) => item.code)).not.toEqual(secondPage.items.map((item) => item.code));
+  });
+
+  it('includes provider and platform details in launch responses', () => {
+    const result = service.launch({ userId: 'member-1', gameCode: 'fortune-tiger', sessionId: 'session-1' });
+    expect(result.success).toBe(true);
+    expect(result.game).toEqual({ code: 'fortune-tiger', name: 'Fortune Tiger', provider: 'pg-soft', platform: 'mobile' });
+    expect(result.launchUrl).toContain('provider=pg-soft');
   });
 });
