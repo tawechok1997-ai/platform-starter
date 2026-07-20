@@ -1,0 +1,1336 @@
+{
+  "generatedAt": "2026-07-20T11:42:41.395Z",
+  "sourceEntries": 1807,
+  "migrated": 1544,
+  "dropped": 263,
+  "exactDuplicatesRemoved": 257,
+  "bytesSaved": 16984533,
+  "counts": {
+    "total": 1544,
+    "banks": 17,
+    "banners": 19,
+    "data": 22,
+    "flags": 2,
+    "fonts": 2,
+    "games": 1037,
+    "images": 138,
+    "misc": 1,
+    "pages": 1,
+    "promotions": 1,
+    "providers": 184,
+    "scripts": 111,
+    "styles": 6,
+    "tournament": 3
+  },
+  "droppedItems": [
+    {
+      "file": "tools.luckyorange.com/core/lo.js",
+      "reason": "third-party-tracker"
+    },
+    {
+      "file": "www.clarity.ms/tag/qu476v0ip8",
+      "reason": "third-party-tracker"
+    },
+    {
+      "file": "static.hotjar.com/c/hotjar-5350997.js",
+      "reason": "third-party-tracker"
+    },
+    {
+      "file": "matomo.drinkpa.club/matomo.js",
+      "reason": "third-party-tracker"
+    },
+    {
+      "file": "settings.luckyorange.com/c7e7bc42.json",
+      "reason": "third-party-tracker"
+    },
+    {
+      "file": "matomo.drinkpa.club/matomo.php",
+      "reason": "third-party-tracker"
+    },
+    {
+      "file": "api.noproky.net/game-cards_215.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/game-cards.json"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/hotdog.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/hotdog.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/misolt.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/misolt.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/pgsoft.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/pgsoft.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/hacksaw.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/hacksaw.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/rb7slot.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/rb7slot.png"
+    },
+    {
+      "file": "cdn.zabbet.com/FEZX/lobby_settings/083e4b9b-63aa-4825-a0e3-57a88de57e2f_320.ico",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/cdn.zabbet.com/fezx/lobby_settings/083e4b9b-63aa-4825-a0e3-57a88de57e2f.ico"
+    },
+    {
+      "file": "t.clarity.ms/collect_321",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_322",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_323.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_325",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_326.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_328",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_329.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_331",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_332.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_334",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_335",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_336.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_338",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_339.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_341.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_343.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_345",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_346.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_348.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_350.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_352",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_353.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_355",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_356.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_358.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_360.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_362",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_363.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_365",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_366.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_442",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_448.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "noah345.shop/images/game/maintenance_601.svg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/noah345.shop/images/game/maintenance.svg"
+    },
+    {
+      "file": "t.clarity.ms/collect_644",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_711.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_755",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_834.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_872",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_897.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_1055",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_1072.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_1170",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_1171.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_1173.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_1175.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1698636232466-1ac5bb62-f8ac-4a21-a4af-530d7b6a448b_1177.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1698636232466-1ac5bb62-f8ac-4a21-a4af-530d7b6a448b.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/ygg/880319_1178.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/ygg/880319.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/vertical/CQ/vampirekiss_1179.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/vertical/cq/vampirekiss.jpg"
+    },
+    {
+      "file": "t.clarity.ms/collect_1180",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1213",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1214",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1215",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/ygrfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/ygr.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/misoltfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/misolt.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/cqfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/cq.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/fachaifish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/fachai.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/jlfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/jl.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/jkgx2fish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/jkgx2.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/rsgfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/rsg.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/sppfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/spp.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/spgfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/spg.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/wmfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/wmslot.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/kagafish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/kaga.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/r88fish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/r88.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/fsfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/fs.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/askfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/ask.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_title/acewinfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/acewin.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/ygrfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/ygr.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/misoltfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/misolt.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/cqfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/cq.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/fachaifish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/fachai.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/jlfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/jl.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/jkgx2fish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/jkgx2.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/rsgfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/rsg.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/sppfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/spp.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/spgfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/spg.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/wmfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/wmslot.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/kagafish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/kaga.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/r88fish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/r88.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/fsfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/fs.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/askfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/ask.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/acewinfish.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/acewin.png"
+    },
+    {
+      "file": "t.clarity.ms/collect_1293",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1294",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_1307.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_1349",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1687330555629-85ecc725-558f-4748-9186-84629c516ea7_1356.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1687330555629-85ecc725-558f-4748-9186-84629c516ea7.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1687329747015-3e8f2412-ae62-4591-ace8-08ee940f258c_1357.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1687329747015-3e8f2412-ae62-4591-ace8-08ee940f258c.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1687331615155-fe89b566-a74f-4095-a81a-043d3cc7f807_1358.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1687331615155-fe89b566-a74f-4095-a81a-043d3cc7f807.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1687331248675-0253e6b5-a7f4-481b-abfc-0f0ca88aa2d1_1359.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1687331248675-0253e6b5-a7f4-481b-abfc-0f0ca88aa2d1.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1687330643793-ac4645c8-8222-448c-9d93-773ff697f755_1360.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1687330643793-ac4645c8-8222-448c-9d93-773ff697f755.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1687330993024-dc2e08d7-4fa3-4182-8299-c630c66b6457_1361.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1687330993024-dc2e08d7-4fa3-4182-8299-c630c66b6457.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1687331021351-09164c86-99e3-4f25-b0cd-41efc9800260_1362.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1687331021351-09164c86-99e3-4f25-b0cd-41efc9800260.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1671996296008-2f7dde2f-2624-4101-9102-81521984f904_1393.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1671996296008-2f7dde2f-2624-4101-9102-81521984f904.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672848985939-948f93b1-2f89-4510-8383-b32a50e35e38_1394.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672848985939-948f93b1-2f89-4510-8383-b32a50e35e38.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/vertical/JKG/bird_paradise_1395.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/vertical/jkg/bird_paradise.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672849014982-1926e3ca-2a8e-4546-8fe0-1f0382191576_1396.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672849014982-1926e3ca-2a8e-4546-8fe0-1f0382191576.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672848999709-9c5232f0-50cc-4a1c-9daa-338ab68d7519_1397.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672848999709-9c5232f0-50cc-4a1c-9daa-338ab68d7519.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672848955234-01d2cc1f-ab15-4f1f-8cc5-e8c0b8dfba99_1398.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672848955234-01d2cc1f-ab15-4f1f-8cc5-e8c0b8dfba99.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672848969807-ee11d803-e1ef-44a4-b6a7-85001a4fb4c1_1399.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672848969807-ee11d803-e1ef-44a4-b6a7-85001a4fb4c1.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672848934843-15fb13db-8de1-4923-adfa-ff27ae9911e4_1400.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672848934843-15fb13db-8de1-4923-adfa-ff27ae9911e4.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672848908896-0bc42d98-415e-4725-a1c5-136ef2bc5362_1401.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672848908896-0bc42d98-415e-4725-a1c5-136ef2bc5362.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672848848613-32077385-ab0d-4c96-acbc-275f9d4ebbe1_1402.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672848848613-32077385-ab0d-4c96-acbc-275f9d4ebbe1.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672848828531-83d2fb45-13c5-4ae8-9221-bca5bfcda36c_1403.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672848828531-83d2fb45-13c5-4ae8-9221-bca5bfcda36c.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672848792268-16b4c2f9-2f47-4d79-8d20-d1d586f21cb7_1404.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672848792268-16b4c2f9-2f47-4d79-8d20-d1d586f21cb7.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/vertical/CQ/paradise_1417.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/vertical/cq/paradise.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/AskMeSlot/Fish/TOP_1418.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/askmeslot/fish/top.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/AskMeSlot/Fish/TREASURELAND_1419.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/askmeslot/fish/treasureland.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/AskMeSlot/Fish/GHOSTBUSTER_1420.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/askmeslot/fish/ghostbuster.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/vertical/SPP/simplay_ne_1421.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/vertical/spp/simplay_ne.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1690996504480-9989cc58-a204-4485-921a-34663ad82864_1422.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1690996504480-9989cc58-a204-4485-921a-34663ad82864.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/vertical/SPG/fishing_god_1423.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/vertical/spg/fishing_god.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/vertical/SPG/zombie_party_1424.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/vertical/spg/zombie_party.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1740458776884-18c32046-bb76-4492-97dc-36236cb71845_1425.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1740458776884-18c32046-bb76-4492-97dc-36236cb71845.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1740458812418-0812108f-f14a-46d8-b945-7be61ce0737b_1426.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1740458812418-0812108f-f14a-46d8-b945-7be61ce0737b.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1740458852527-7d3e1374-860a-499b-aa99-f88e7416798c_1427.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1740458852527-7d3e1374-860a-499b-aa99-f88e7416798c.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1740458937740-c40ce81c-566e-452d-8eae-a4c951391d65_1428.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1740458937740-c40ce81c-566e-452d-8eae-a4c951391d65.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/vertical/CQ/oneshot_fishing_1429.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/vertical/cq/oneshot_fishing.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1682637746669-06e685fc-2939-442d-a6de-986b82d993be_1430.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1682637746669-06e685fc-2939-442d-a6de-986b82d993be.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1713425309332-8a03e24d-e1ed-4a91-b5da-ff40de7f52b5_1431.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1713425309332-8a03e24d-e1ed-4a91-b5da-ff40de7f52b5.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1686804932871-fe6bb3c4-e7ec-4a57-8bae-96089cb4a87f_1432.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1686804932871-fe6bb3c4-e7ec-4a57-8bae-96089cb4a87f.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1684333496065-b988dfd3-ddef-4287-834c-9b4843de1e54_1433.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1684333496065-b988dfd3-ddef-4287-834c-9b4843de1e54.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1696500316419-c95c9300-087f-41a3-975b-7a38d56d2181_1434.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1696500316419-c95c9300-087f-41a3-975b-7a38d56d2181.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1705570969344-791f4565-0201-4752-8c06-e0bd7db505b2_1435.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1705570969344-791f4565-0201-4752-8c06-e0bd7db505b2.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/FACHAIFISH/TH/21008_1436.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/fachaifish/th/21008.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1704678891483-1766acd5-e22d-4a14-b9d4-7c7e6619e61d_1437.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1704678891483-1766acd5-e22d-4a14-b9d4-7c7e6619e61d.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1704871947762-276f8adb-b534-4ee5-bea7-dba0fcaa9e24_1438.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1704871947762-276f8adb-b534-4ee5-bea7-dba0fcaa9e24.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1697176887116-101a6395-131e-4372-bde4-3d4af56c7fca_1439.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1697176887116-101a6395-131e-4372-bde4-3d4af56c7fca.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/FACHAIFISH/TH/21003_1440.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/fachaifish/th/21003.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/FACHAIFISH/TH/21006_1441.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/fachaifish/th/21006.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/FACHAIFISH/TH/21004_1442.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/fachaifish/th/21004.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1697459171078-7bd5c126-34ba-493a-919a-f5d3d7f87851_1443.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1697459171078-7bd5c126-34ba-493a-919a-f5d3d7f87851.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1697460472114-3f89bfd3-2791-48e0-8867-d18cebf1fa1c_1444.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1697460472114-3f89bfd3-2791-48e0-8867-d18cebf1fa1c.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/vertical/SPG/alien_hunter_1445.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/vertical/spg/alien_hunter.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/vertical/SPG/fishing_war_1446.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/vertical/spg/fishing_war.png"
+    },
+    {
+      "file": "t.clarity.ms/collect_1447",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1741166271145-aedb0e71-feb3-4fc0-8bdc-93d802aad6af_1448.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1741166271145-aedb0e71-feb3-4fc0-8bdc-93d802aad6af.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1761033507345-9c813589-d742-44fc-bdaf-482287ecb1fb_1449.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1761033507345-9c813589-d742-44fc-bdaf-482287ecb1fb.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1761033563444-33346463-8d88-4681-b162-25026222e492_1450.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1761033563444-33346463-8d88-4681-b162-25026222e492.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1750314327897-a4ba5b45-cd97-4fc1-bd6e-a6101a601374_1451.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1750314327897-a4ba5b45-cd97-4fc1-bd6e-a6101a601374.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/hotdog_1452.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_title/hotdog.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1784182969722-c0f87194-1cd6-495e-8a1a-9d07b4cefa32_1453.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1784182969722-c0f87194-1cd6-495e-8a1a-9d07b4cefa32.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1743996724945-d7ee46e9-725a-4204-8d49-a09974a821d5_1454.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1743996724945-d7ee46e9-725a-4204-8d49-a09974a821d5.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1752474018535-c2626452-f823-4dce-8282-0117dab41e54_1455.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1752474018535-c2626452-f823-4dce-8282-0117dab41e54.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1752474129622-932b2c1d-0497-4878-bb9e-02a456cab9d6_1456.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1752474129622-932b2c1d-0497-4878-bb9e-02a456cab9d6.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1764653862531-bdec48b8-f529-4f97-88da-304f413b4cee_1457.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1764653862531-bdec48b8-f529-4f97-88da-304f413b4cee.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1764653886940-5891175d-2e74-48b1-b1e6-5e5885c64942_1458.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1764653886940-5891175d-2e74-48b1-b1e6-5e5885c64942.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1764653919632-1f3b8165-5729-4fdb-832a-54cbabb0ed2f_1459.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1764653919632-1f3b8165-5729-4fdb-832a-54cbabb0ed2f.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1698405911323-cd74cbd7-2a49-4077-9cc7-9d87e035a64e_1460.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1698405911323-cd74cbd7-2a49-4077-9cc7-9d87e035a64e.png"
+    },
+    {
+      "file": "t.clarity.ms/collect_1461",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1479",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1480",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1481",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1762491448874-7fcaf6e3-1b1c-4e81-a3ca-9f4ebeb6c5b5_1484.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1762491448874-7fcaf6e3-1b1c-4e81-a3ca-9f4ebeb6c5b5.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1762491483123-8f8674b7-bbbf-4d96-8ea1-cf134f0abfa2_1485.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1762491483123-8f8674b7-bbbf-4d96-8ea1-cf134f0abfa2.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1762491587805-9b47d8a1-5f56-4aeb-82b6-b43ebfc6fa17_1486.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1762491587805-9b47d8a1-5f56-4aeb-82b6-b43ebfc6fa17.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1762769398184-e0ba7c5e-7624-4f5a-a292-da7cf4d19371_1487.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1762769398184-e0ba7c5e-7624-4f5a-a292-da7cf4d19371.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/KM/TH/Thai_Fish_Prawn_Crab_1494.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/km/th/thai_fish_prawn_crab.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/KM/TH/Viet_Fish_Prawn_Crab_1504.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/km/th/viet_fish_prawn_crab.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/KM/TH/Dragon_Tiger_2_1505.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/km/th/dragon_tiger_2.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/KM/TH/Kingmaker_Pok_Deng_1506.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/km/th/kingmaker_pok_deng.jpg"
+    },
+    {
+      "file": "t.clarity.ms/collect_1513",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/amb_1545.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/amb.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1715916987916-fdf13396-7817-436f-86bf-7ad6ac7f5816_1546.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1715916987916-fdf13396-7817-436f-86bf-7ad6ac7f5816.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1715916923440-bdb16506-6d94-4b05-af2c-05cb4bdce347_1547.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1715916923440-bdb16506-6d94-4b05-af2c-05cb4bdce347.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1715916960192-fc2c19bf-da8f-4022-9181-e86faebbbcae_1548.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1715916960192-fc2c19bf-da8f-4022-9181-e86faebbbcae.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1715917254637-4d111956-89a9-4740-bf1c-010c6675978c_1549.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1715917254637-4d111956-89a9-4740-bf1c-010c6675978c.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1715917286521-bdb65905-5f1b-4676-aeaf-3eee145ba5d4_1550.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1715917286521-bdb65905-5f1b-4676-aeaf-3eee145ba5d4.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1715917307542-e4487406-3355-40d6-962d-12db816fdc29_1551.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1715917307542-e4487406-3355-40d6-962d-12db816fdc29.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1715917341947-401b039e-ef24-4126-9ce3-fa08c96f0279_1552.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1715917341947-401b039e-ef24-4126-9ce3-fa08c96f0279.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1673135756865-131cb19a-a552-4ad1-a761-62546adbda2f_1556.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1673135756865-131cb19a-a552-4ad1-a761-62546adbda2f.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/pp_1558.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/pp.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1673193529728-f8c37c4e-fcf8-43f9-a233-4ca6d3c114fe_1560.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1673193529728-f8c37c4e-fcf8-43f9-a233-4ca6d3c114fe.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/redtiger_1561.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/redtiger.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/cq_1563.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/cq.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1691001477765-44ef9638-ecce-4514-bf42-3cb889e82464_1567.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1691001477765-44ef9638-ecce-4514-bf42-3cb889e82464.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/pokslot_1568.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/pokslot.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/netent_1570.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/netent.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/evp_1572.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/evp.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1673193768285-e3b615ad-61fa-42b2-85e9-11bd545bf366_1574.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1673193768285-e3b615ad-61fa-42b2-85e9-11bd545bf366.jpg"
+    },
+    {
+      "file": "t.clarity.ms/collect_1585",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1586",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1595",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1596",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1597",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "noah345.shop/images/game/live/bg_live.webp",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1636",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1676",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "noah345.shop/assets/index-IACIxQni_1678.css",
+      "reason": "exact-duplicate",
+      "duplicateOf": "styles/noah345.shop/assets/index-iacixqni.css"
+    },
+    {
+      "file": "api.noproky.net/lobby/leaderboard/list/100/1.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/highlight_1705.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/highlight.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_1724",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "noah345.shop/images/LeaderBoard/undefined.webp",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "noah345.shop/images/LeaderBoard/rank4.webp",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "cdn.zabbet.com/FEZX/lobby_settings/3e57c423-07f9-4334-80a9-43ebb2040871.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/cdn.zabbet.com/fezx/lobby_settings/cc956ae5-4906-4190-8ee4-84a840a525eb.png"
+    },
+    {
+      "file": "cdn.zabbet.com/FEZX/lobby_settings/87c8770e-e158-4491-b511-5e1e271ac486.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/cdn.zabbet.com/fezx/lobby_settings/cc956ae5-4906-4190-8ee4-84a840a525eb.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/jl_1754.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/jl.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93_1755.jpeg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/ygr_1756.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/ygr.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782_1757.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/nlc_1758.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/nlc.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/pp_1760.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/pp.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/rsg_1762.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/rsg.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9_1763.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/ps_1764.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/ps.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/vertical/PP/starlight_princess_1766.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/vertical/pp/starlight_princess.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_v/evt_1768.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_v/evt.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_v/biggamecasino_1769.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_v/biggamecasino.png"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_1770.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_1778",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "soccerlivehd.co/api/lobby/table-list_1779.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/soccerlivehd.co/api/lobby/table-list.json"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1671994502814-033d1aac-0e0b-45bc-9303-d526c0693505_1797.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1671994502814-033d1aac-0e0b-45bc-9303-d526c0693505.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/cq_1799.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/cq.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/jkgx2_1804.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/jkgx2.png"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/evp_1807.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/evp.png"
+    },
+    {
+      "file": "cdn.zabbet.com/games/1672859511212-8c45edac-1680-42ba-9b6c-091d06f9ae6e_1810.jpg",
+      "reason": "exact-duplicate",
+      "duplicateOf": "games/cdn.zabbet.com/games/1672859511212-8c45edac-1680-42ba-9b6c-091d06f9ae6e.jpg"
+    },
+    {
+      "file": "cdn.zabbet.com/providers/set/1_1_badge/netent_1812.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/cdn.zabbet.com/providers/set/1_1_badge/netent.png"
+    },
+    {
+      "file": "googlecdn.live/teams/2989_1819.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/googlecdn.live/teams/2989.png"
+    },
+    {
+      "file": "googlecdn.live/teams/18351_1820.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/googlecdn.live/teams/18351.png"
+    },
+    {
+      "file": "googlecdn.live/teams/10752_1822.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/googlecdn.live/teams/10752.png"
+    },
+    {
+      "file": "googlecdn.live/teams/1381_1823.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/googlecdn.live/teams/1381.png"
+    },
+    {
+      "file": "googlecdn.live/teams/uploads/logo-none_1824.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/googlecdn.live/teams/uploads/logo-none.png"
+    },
+    {
+      "file": "googlecdn.live/teams/10705_1825.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/googlecdn.live/teams/10705.png"
+    },
+    {
+      "file": "googlecdn.live/teams/6565_1826.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/googlecdn.live/teams/6565.png"
+    },
+    {
+      "file": "googlecdn.live/teams/38314_1827.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/googlecdn.live/teams/38314.png"
+    },
+    {
+      "file": "googlecdn.live/teams/1382_1828.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/googlecdn.live/teams/1382.png"
+    },
+    {
+      "file": "googlecdn.live/teams/21229_1829.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/googlecdn.live/teams/21229.png"
+    },
+    {
+      "file": "t.clarity.ms/collect_1831",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1833",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/providers/FEZX_1839.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/api.noproky.net/providers/fezx.json"
+    },
+    {
+      "file": "api.noproky.net/providers/FEZX_1841.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "providers/api.noproky.net/providers/fezx.json"
+    },
+    {
+      "file": "cdn.zabbet.com/FEZX/rewards/1719041921061-0895cbb8-7950-4410-aec8-ac091190235d.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/cdn.zabbet.com/fezx/mini-game/icon/1719042231858-158da2b9-0540-49dd-96e2-8b73028d6b50.png"
+    },
+    {
+      "file": "cdn.zabbet.com/FEZX/rewards/1719041616090-bc9abbd0-743b-4efe-b3ea-abc91d132851.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/cdn.zabbet.com/fezx/mini-game/icon/1719042231880-e048869d-9c95-468c-a526-6bf365e82e77.png"
+    },
+    {
+      "file": "cdn.zabbet.com/FEZX/rewards/1719041939816-7876795b-0d3b-4d4f-9931-84cebd90cdd5.png",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/cdn.zabbet.com/fezx/mini-game/icon/1719042231858-158da2b9-0540-49dd-96e2-8b73028d6b50.png"
+    },
+    {
+      "file": "cdn.zabbet.com/FEZX/rewards/1742925501545-045a2366-4fec-4591-9d47-f7263551347c.webp",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/cdn.zabbet.com/fezx/rewards/1732459420575-c65b717e-361b-4ce5-9936-c8cdf14d3346.webp"
+    },
+    {
+      "file": "cdn.zabbet.com/FEZX/rewards/1732459480462-d6ac468d-4853-4a2d-8242-66455120b154.webp",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/cdn.zabbet.com/fezx/rewards/1732459420575-c65b717e-361b-4ce5-9936-c8cdf14d3346.webp"
+    },
+    {
+      "file": "cdn.zabbet.com/FEZX/rewards/1742925509284-a5e2dba6-ac4c-4fd0-9705-5a7422dffc5e.webp",
+      "reason": "exact-duplicate",
+      "duplicateOf": "images/cdn.zabbet.com/fezx/rewards/1732459420575-c65b717e-361b-4ce5-9936-c8cdf14d3346.webp"
+    },
+    {
+      "file": "t.clarity.ms/collect_1862",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1863",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/leader-board/top5_1864.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/leader-board/top5.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_1866.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_1873",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1874",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/leader-board/top5_1875.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/leader-board/top5.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_1877",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_1878.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    },
+    {
+      "file": "t.clarity.ms/collect_1880",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "t.clarity.ms/collect_1881",
+      "reason": "exact-duplicate",
+      "duplicateOf": "misc/t.clarity.ms/collect"
+    },
+    {
+      "file": "api.noproky.net/lobby/leader-board/top5_1882.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/leader-board/top5.json"
+    },
+    {
+      "file": "api.noproky.net/lobby/events/live_1884.json",
+      "reason": "exact-duplicate",
+      "duplicateOf": "data/api.noproky.net/lobby/events/live.json"
+    }
+  ]
+}
