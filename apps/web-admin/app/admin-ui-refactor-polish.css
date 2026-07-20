@@ -69,74 +69,6 @@
   opacity: .58;
 }
 
-.admin-ui-card details,
-.admin-ui-expandable {
-  overflow: clip;
-  border: 1px solid rgba(148, 163, 184, .2);
-  border-radius: 14px;
-  background: rgba(148, 163, 184, .045);
-  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
-}
-
-.admin-ui-card details:hover,
-.admin-ui-expandable:hover {
-  border-color: rgba(203, 213, 225, .34);
-  background: rgba(148, 163, 184, .065);
-}
-
-.admin-ui-card details[open],
-.admin-ui-expandable[data-open='true'] {
-  border-color: rgba(245, 197, 66, .3);
-  background: rgba(245, 197, 66, .035);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025);
-}
-
-.admin-ui-card details > summary,
-.admin-ui-expandable__trigger {
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  cursor: pointer;
-  font-weight: 850;
-  color: var(--admin-text, #f8fafc);
-  list-style: none;
-  user-select: none;
-}
-
-.admin-ui-card details > summary::-webkit-details-marker {
-  display: none;
-}
-
-.admin-ui-card details > summary::after,
-.admin-ui-expandable__trigger::after {
-  content: '⌄';
-  margin-left: auto;
-  font-size: 18px;
-  line-height: 1;
-  color: var(--admin-muted, #94a3b8);
-  transition: transform .18s ease, color .18s ease;
-}
-
-.admin-ui-card details[open] > summary::after,
-.admin-ui-expandable[data-open='true'] .admin-ui-expandable__trigger::after {
-  transform: rotate(180deg);
-  color: var(--admin-brand, #f5c542);
-}
-
-.admin-ui-card details > :not(summary),
-.admin-ui-expandable__content {
-  margin: 0;
-  padding: 0 12px 12px;
-  animation: admin-expand-content-in .18s ease-out both;
-}
-
-@keyframes admin-expand-content-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @media (max-width: 720px) {
   .admin-ui-action-strip,
   .admin-ui-action-group {
@@ -165,16 +97,7 @@
 @media (prefers-reduced-motion: reduce) {
   .admin-ui-card select,
   .admin-ui-card textarea,
-  .admin-ui-card input,
-  .admin-ui-card details,
-  .admin-ui-expandable,
-  .admin-ui-card details > summary::after,
-  .admin-ui-expandable__trigger::after {
+  .admin-ui-card input {
     transition: none !important;
-  }
-
-  .admin-ui-card details > :not(summary),
-  .admin-ui-expandable__content {
-    animation: none !important;
   }
 }
