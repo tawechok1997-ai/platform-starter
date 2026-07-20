@@ -8,6 +8,10 @@ import { WalletModule } from './modules/wallet/wallet.module';
 import { TopUpsModule } from './modules/topups/topups.module';
 import { WithdrawalsModule } from './modules/withdrawals/withdrawals.module';
 import { FinanceModule } from './modules/finance/finance.module';
+import { QueuesModule } from './modules/queues/queues.module';
+import { ActivityModule } from './modules/activity/activity.module';
+import { RiskModule } from './modules/risk/risk.module';
+import { AdminMembersModule } from './modules/admin-members/admin-members.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { ExportsModule } from './modules/exports/exports.module';
 import { BankAccountsModule } from './modules/bank-accounts/bank-accounts.module';
@@ -37,6 +41,10 @@ import { ProviderSimulatorModule } from './modules/provider-simulator/provider-s
     TopUpsModule,
     WithdrawalsModule,
     FinanceModule,
+    QueuesModule,
+    ActivityModule,
+    RiskModule,
+    AdminMembersModule,
     ReportsModule,
     ExportsModule,
     BankAccountsModule,
