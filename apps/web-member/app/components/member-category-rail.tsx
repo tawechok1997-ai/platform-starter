@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import type {
   GameCategoryNavigationConfig,
   GameCategoryNavigationKey,
@@ -31,10 +31,14 @@ export function MemberCategoryRail({
   config: GameCategoryNavigationConfig;
   baseIcons: SiteIconSettings;
 }) {
-  const searchParams = useSearchParams();
-  if (!features.games || (pathname !== '/' && !pathname.startsWith('/games'))) return null;
+  const [selectedCategory, setSelectedCategory] = useState('');
 
-  const selectedCategory = searchParams.get('category')?.trim().toLowerCase() ?? '';
+  useEffect(() => {
+    const category = new URLSearchParams(window.location.search).get('category');
+    setSelectedCategory(category?.trim().toLowerCase() ?? '');
+  }, [pathname]);
+
+  if (!features.games || (pathname !== '/' && !pathname.startsWith('/games'))) return null;
 
   return (
     <aside
