@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
 import { hasAnyPermission, maskEmail, maskPhone } from '../_components/member-mask';
@@ -157,6 +157,7 @@ export default function MembersPage() {
   </AdminPage>;
 }
 
+function AdminRow({ children }: { children: ReactNode }) { return <div className="admin-member-drawer-row">{children}</div>; }
 function statusTone(status: string) { if (status === 'ACTIVE') return 'success'; if (status === 'SUSPENDED' || status === 'LOCKED') return 'danger'; return 'neutral'; }
 function statusLabel(status: string) { const labels: Record<string, string> = { ALL: 'ทุกสถานะ', ACTIVE: 'ใช้งานได้', SUSPENDED: 'ระงับ', LOCKED: 'ล็อก', CLOSED: 'ปิดบัญชี' }; return labels[status] ?? status; }
 function statusActionLabel(status: PendingStatus['status']) { return status === 'ACTIVE' ? 'เปิดใช้งาน' : status === 'SUSPENDED' ? 'ระงับบัญชี' : 'ล็อกบัญชี'; }
