@@ -14,8 +14,6 @@ describe('ProviderSimulatorService', () => {
   let ledgers: Map<string, any>;
   let roundService: { enforceInTransaction: jest.Mock };
 
-  const catalogGame = GAME_CATALOG[0]!;
-
   beforeEach(() => {
     balances = new Map([['member-1', 100], ['member-2', 50], ['member-3', 10]]);
     ledgers = new Map();
