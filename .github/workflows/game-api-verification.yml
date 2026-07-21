@@ -16,6 +16,7 @@ on:
       - 'asset/catalog/mobile/**'
       - 'asset/catalog/pc/**'
       - 'tools/build-game-asset-inventory.mjs'
+      - 'tools/audit-game-asset-source.mjs'
       - 'docs/generated/game-asset-*.json'
       - 'docs/game-api-worklist.md'
       - '.github/workflows/game-api-verification.yml'
@@ -36,6 +37,7 @@ on:
       - 'asset/catalog/mobile/**'
       - 'asset/catalog/pc/**'
       - 'tools/build-game-asset-inventory.mjs'
+      - 'tools/audit-game-asset-source.mjs'
       - 'docs/generated/game-asset-*.json'
       - 'docs/game-api-worklist.md'
       - '.github/workflows/game-api-verification.yml'
@@ -76,6 +78,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Validate asset audit tooling
+        run: |
+          node --check tools/build-game-asset-inventory.mjs
+          node --check tools/audit-game-asset-source.mjs
       - name: Reconcile Mobile and PC asset manifests
         run: |
           node tools/build-game-asset-inventory.mjs
