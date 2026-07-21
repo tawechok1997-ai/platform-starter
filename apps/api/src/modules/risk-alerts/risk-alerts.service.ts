@@ -224,7 +224,7 @@ export class RiskAlertsService {
     return { item: this.formatAlert(item) };
   }
 
-  async bulkDismiss(ids: string[], admin: AuthenticatedAdminActor) {
+  async bulkDismiss(ids: string[], reason: string, admin: AuthenticatedAdminActor) {
     const uniqueIds = [...new Set(ids.map((id) => String(id).trim()).filter(Boolean))].slice(0, 50);
     if (!uniqueIds.length) throw new BadRequestException('At least one risk alert id is required');
     const items = await this.prisma.riskAlert.findMany({
@@ -238,7 +238,7 @@ export class RiskAlertsService {
     if (blocked.length) throw new BadRequestException('Bulk dismiss is limited to active LOW/MEDIUM alerts');
     const updated = [];
     for (const item of items) updated.push(await this.updateStatus(item.id, 'DISMISSED', admin));
-    await this.audit(admin.id, 'BULK_DISMISS_RISK_ALERTS', 'risk-alerts', { ids: uniqueIds }, { count: updated.length });
+    await this.audit(admin.id, 'BULK_DISMISS_RISK_ALERTS', 'risk-alerts', { ids: uniqueIds }, { count: updated.length, reason });
     return { updated: updated.length, items: updated.map((result) => result.item) };
   }
 
