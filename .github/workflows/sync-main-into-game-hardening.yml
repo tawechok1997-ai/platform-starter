@@ -1,0 +1,31 @@
+name: Sync main into game hardening
+
+on:
+  push:
+    branches:
+      - feature/game-platform-hardening
+    paths:
+      - .github/workflows/sync-main-into-game-hardening.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync-main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/game-platform-hardening
+          fetch-depth: 0
+
+      - name: Merge latest main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit -X ours origin/main
+          git push origin HEAD:feature/game-platform-hardening
