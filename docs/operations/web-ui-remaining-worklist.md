@@ -11,6 +11,25 @@ Status source: source-code inspection of `main`; items marked “ต้องย
 - ⏳ ยังเหลือ
 - 🧪 ต้องยืนยันด้วย browser, accessibility หรือ release evidence
 
+## Project-fit rules
+
+- **Scope:** Admin UI only (`apps/web-admin`) plus shared design tokens only when a page-level fix cannot solve the issue.
+- **Reuse first:** use existing `AdminPage`, `AdminCard`, `AdminMetric`, `AdminBadge`, `AdminConfirmDialog`, `AdminBulkAction`, `AdminIcon` and `packages/api-client`.
+- **No unapproved stack expansion:** do not add Tailwind, shadcn, Radix, TanStack, form libraries, chart libraries, or motion libraries for visual polish without an ADR and bundle/ownership review.
+- **Contract safety:** preserve API routes, permissions, audit metadata, money semantics and production/UAT gates. UI changes must not enable real-money mutations.
+- **Evidence rule:** “✅” means source implementation exists; it does not mean the rendered route is released. Move 🧪 to ✅ only after browser, accessibility and relevant build evidence.
+- **Change slices:** land one coherent slice at a time: shared shell → safety/formatters → high-frequency queues → detail modules → visual polish/QA.
+
+## Recommended execution slices
+
+| Slice | Files/routes | Exit criteria |
+|---|---|---|
+| S1 Shell consistency | `(admin)/layout.tsx`, `admin-*.css`, design tokens | Sidebar/Profile decision, one palette, responsive shell, keyboard focus |
+| S2 Safety baseline | `admin-ui.tsx`, game transfers, operations, provider credentials | safe errors, no raw payload, finite money formatting, permission guards |
+| S3 Operations workflow | dashboard, operations, topups, withdrawals, bulk queue | queue priority/SLA, non-duplicated KPIs, confirmation/reason/audit |
+| S4 Domain completeness | members, KYC, bank, support, risk, providers, growth, settings | loading/empty/error/permission states and mutation guards per route |
+| S5 Release evidence | package lint/typecheck/build, Playwright, axe, six viewports | screenshots, console/network results, commit/deployment identity |
+
 ## Phase 0 — Shared foundation
 
 | งาน | สถานะ | ขอบเขต |
