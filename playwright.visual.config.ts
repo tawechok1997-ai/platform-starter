@@ -13,6 +13,7 @@ export default defineConfig({
   testDir: './tests/e2e-visual',
   outputDir: 'artifacts/r013-visual/test-results',
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}-{projectName}{ext}',
+  updateSnapshots: process.env.CI ? 'missing' : 'none',
   timeout: 45_000,
   expect: { timeout: 10_000, toHaveScreenshot: { animations: 'disabled', maxDiffPixelRatio: 0.02 } },
   retries: process.env.CI ? 1 : 0,
