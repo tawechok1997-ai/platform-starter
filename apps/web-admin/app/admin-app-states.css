@@ -96,9 +96,13 @@
 }
 
 .admin-app-state__primary {
-  border: 1px solid transparent;
-  background: var(--color-accent-primary, #7c6df2);
+  border: 1px solid #5a4bc8;
+  background: #6556d9;
   color: #fff;
+}
+
+.admin-app-state__primary:hover {
+  background: #5949c7;
 }
 
 .admin-app-state__secondary {
