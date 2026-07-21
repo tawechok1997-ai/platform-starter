@@ -12,7 +12,6 @@ export default function GameTransfersPage() {
   const [payload, setPayload] = useState<Payload>({});
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
-  const [expanded, setExpanded] = useState('');
   const [message, setMessage] = useState('กำลังโหลดรายการโยกเงิน...');
   const [loading, setLoading] = useState(false);
   const [working, setWorking] = useState('');
@@ -30,7 +29,7 @@ export default function GameTransfersPage() {
     const res = await adminApiFetch('/admin/game-transfers');
     const data = await res.json().catch(() => null);
     setLoading(false);
-    if (!res.ok) { setMessage(data?.message ?? 'โหลดรายการโยกเงินไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('โหลดรายการโยกเงินไม่สำเร็จ กรุณาลองใหม่'); return; }
     setPayload(data ?? {});
     setMessage('');
   }
@@ -50,7 +49,7 @@ export default function GameTransfersPage() {
     const res = await adminApiFetch(endpoint, { method: action === 'review' ? 'PATCH' : 'POST', body: JSON.stringify({ note: reason }) });
     const data = await res.json().catch(() => null);
     setWorking('');
-    if (!res.ok || (action === 'retry' && !data?.ok)) { setMessage(data?.message ?? data?.errorMessage ?? 'ดำเนินการไม่สำเร็จ'); return; }
+    if (!res.ok || (action === 'retry' && !data?.ok)) { setMessage('ดำเนินการไม่สำเร็จ กรุณาตรวจสอบสิทธิ์และสถานะรายการ'); return; }
     setPendingAction(null);
     setNote('');
     setMessage(action === 'review' ? 'บันทึกหมายเหตุแล้ว' : 'ทดสอบรายการใหม่สำเร็จ');
@@ -69,10 +68,9 @@ export default function GameTransfersPage() {
     <AdminStack>{filtered.map((item) => <AdminCard key={item.id}>
       <AdminRow>
         <div><h2 style={titleStyle}>{transferLabel(item.type)} · {formatMoney(item.amount, item.currency)}</h2><p style={mutedStyle}>{item.provider?.name ?? '-'} · {item.session?.game?.name ?? '-'} · สมาชิก {item.user?.username ?? item.user?.phone ?? '-'}</p><p style={smallMutedStyle}>รหัสกันรายการซ้ำ: {item.idempotencyKey}</p><p style={smallMutedStyle}>เลขอ้างอิงค่าย: {item.providerTransactionId ?? '-'}</p></div>
-        <div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminLinkButton href={`/game-transfers/${item.id}`}>ดูรายละเอียด</AdminLinkButton><AdminButton tone="secondary" onClick={() => setExpanded(expanded === item.id ? '' : item.id)}>{expanded === item.id ? 'ซ่อนข้อมูลเทคนิค' : 'ข้อมูลเทคนิค'}</AdminButton><AdminButton tone="secondary" onClick={() => requestAction(item, 'review')} disabled={working === item.id}>{working === item.id ? 'กำลังทำ...' : 'บันทึกผลตรวจ'}</AdminButton>{item.status === 'FAILED' && <AdminButton tone="secondary" onClick={() => requestAction(item, 'retry')} disabled={working === item.id}>ทดสอบใหม่</AdminButton>}</div>
+        <div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminLinkButton href={`/game-transfers/${item.id}`}>ดูรายละเอียด</AdminLinkButton><AdminButton tone="secondary" onClick={() => requestAction(item, 'review')} disabled={working === item.id}>{working === item.id ? 'กำลังทำ...' : 'บันทึกผลตรวจ'}</AdminButton>{item.status === 'FAILED' && <AdminButton tone="secondary" onClick={() => requestAction(item, 'retry')} disabled={working === item.id}>ทดสอบใหม่</AdminButton>}</div>
       </AdminRow>
-      {item.errorMessage && <AdminNotice tone="danger">{item.errorCode ? `${item.errorCode}: ` : ''}{item.errorMessage}</AdminNotice>}
-      {expanded === item.id && <pre style={preStyle}>{JSON.stringify({ requestPayload: item.requestPayload, responsePayload: item.responsePayload }, null, 2)}</pre>}
+      {item.status === 'FAILED' && <AdminNotice tone="danger">รายการนี้ดำเนินการไม่สำเร็จ กรุณาตรวจสอบขั้นตอนและลองใหม่ตามสิทธิ์ที่ได้รับ</AdminNotice>}
       <p style={smallMutedStyle}>สร้างเมื่อ {new Date(item.createdAt).toLocaleString('th-TH')}</p>
     </AdminCard>)}{!loading && filtered.length === 0 && <AdminEmpty>ยังไม่มีรายการโยกเงินตามตัวกรอง</AdminEmpty>}</AdminStack>
 
@@ -92,6 +90,6 @@ const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.55 } as const;
 const smallMutedStyle = { margin: 0, color: '#64748b', fontSize: 12 } as const;
 const titleStyle = { margin: 0, fontSize: 22, lineHeight: 1.12 } as const;
 const badgeStackStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const, justifyContent: 'flex-end' as const };
-const preStyle = { margin: 0, padding: 12, borderRadius: 14, background: '#020617', border: '1px solid rgba(148,163,184,.18)', color: '#cbd5e1', overflowX: 'auto' as const, fontSize: 12, lineHeight: 1.5 };
+
 const noteStyle = { display: 'grid', gap: 8, minWidth: 0 } as const;
 const textareaStyle = { minHeight: 100, width: '100%', borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: 12, boxSizing: 'border-box' as const };

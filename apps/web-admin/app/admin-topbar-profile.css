@@ -236,3 +236,95 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Sidebar profile placement ------------------------------------------------ */
+.admin-sidebar-profile {
+  position: relative;
+  min-width: 0;
+  margin: 10px 10px 8px;
+}
+
+.admin-sidebar-profile__trigger {
+  width: 100%;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 8px 16px;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px 7px 7px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(109, 124, 255, 0.08), rgba(255, 255, 255, 0.018));
+  color: var(--admin-text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--admin-motion-fast), background var(--admin-motion-fast), box-shadow var(--admin-motion-standard);
+}
+
+.admin-sidebar-profile__trigger:hover,
+.admin-sidebar-profile__trigger[aria-expanded='true'] {
+  border-color: rgba(129, 140, 248, 0.34);
+  background: linear-gradient(145deg, rgba(109, 124, 255, 0.13), rgba(255, 255, 255, 0.028));
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
+}
+
+.admin-sidebar-profile__trigger .admin-profile-avatar {
+  width: 38px;
+  height: 38px;
+}
+
+.admin-sidebar-profile__chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--admin-text-muted);
+  transform: rotate(90deg);
+  transition: transform var(--admin-motion-standard) var(--admin-ease);
+}
+
+.admin-sidebar-profile__trigger[aria-expanded='true'] .admin-sidebar-profile__chevron {
+  transform: rotate(-90deg);
+}
+
+.admin-profile-menu--sidebar {
+  top: auto;
+  right: 0;
+  bottom: calc(100% + 10px);
+  left: 0;
+  width: min(360px, calc(100vw - 32px));
+  transform-origin: bottom left;
+}
+
+.admin-sidebar-profile + .admin-collapse-button {
+  margin-top: 2px;
+}
+
+@media (max-width: 900px) {
+  .admin-sidebar-profile__trigger {
+    grid-template-columns: 38px 8px;
+    padding-right: 8px;
+  }
+
+  .admin-sidebar-profile__trigger .admin-profile-meta,
+  .admin-sidebar-profile__trigger .admin-sidebar-profile__chevron {
+    display: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .admin-profile-menu--sidebar {
+    position: fixed;
+    top: auto;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-sidebar-profile__trigger,
+  .admin-sidebar-profile__chevron {
+    transition-duration: 0.01ms;
+  }
+}
