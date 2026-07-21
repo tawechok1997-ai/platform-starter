@@ -5,6 +5,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { GAME_CATALOG } from './provider-simulator-catalog';
 import { ProviderSimulatorRoundService } from './provider-simulator-round.service';
 import { ProviderSimulatorService } from './provider-simulator.service';
+import { ProviderSimulatorTransactionService } from './provider-simulator-transaction.service';
 
 const databaseUrl = process.env.GAME_TEST_DATABASE_URL?.trim();
 const describeWithDatabase = databaseUrl ? describe : describe.skip;
@@ -24,7 +25,7 @@ function roundId(prefix: string) {
 
 describeWithDatabase('provider simulator concurrency with PostgreSQL', () => {
   let prisma: PrismaClient;
-  let simulator: ProviderSimulatorService;
+  let transactions: ProviderSimulatorTransactionService;
   const userId = randomUUID();
 
   beforeAll(async () => {
@@ -45,7 +46,10 @@ describeWithDatabase('provider simulator concurrency with PostgreSQL', () => {
     const prismaService = prisma as unknown as PrismaService;
     const wallet = new WalletService(prismaService);
     const rounds = new ProviderSimulatorRoundService(wallet);
-    simulator = new ProviderSimulatorService(wallet, rounds);
+    const simulator = new ProviderSimulatorService(wallet, rounds);
+    transactions = new ProviderSimulatorTransactionService(simulator, {
+      create: jest.fn(),
+    } as never);
   }, 30_000);
 
   afterAll(async () => {
@@ -60,8 +64,8 @@ describeWithDatabase('provider simulator concurrency with PostgreSQL', () => {
     const activeRoundId = roundId('parallel-round');
     const base = { userId, amount: '100.00', roundId: activeRoundId, gameCode: testGame!.code };
     const results = await Promise.allSettled([
-      simulator.gameTransaction('BET', { ...base, transactionId: `${activeRoundId}-bet-a` }),
-      simulator.gameTransaction('BET', { ...base, transactionId: `${activeRoundId}-bet-b` }),
+      transactions.gameTransaction('BET', { ...base, transactionId: `${activeRoundId}-bet-a` }),
+      transactions.gameTransaction('BET', { ...base, transactionId: `${activeRoundId}-bet-b` }),
     ]);
 
     const fulfilled = results.filter((item) => item.status === 'fulfilled');
@@ -82,12 +86,12 @@ describeWithDatabase('provider simulator concurrency with PostgreSQL', () => {
     const transactionId = `${activeRoundId}-bet`;
     const input = { userId, amount: '50.00', transactionId, roundId: activeRoundId, gameCode: testGame!.code };
     const results = await Promise.allSettled([
-      simulator.gameTransaction('BET', input),
-      simulator.gameTransaction('BET', input),
+      transactions.gameTransaction('BET', input),
+      transactions.gameTransaction('BET', input),
     ]);
 
     expect(results.every((item) => item.status === 'fulfilled')).toBe(true);
-    const fulfilled = results.filter((item): item is PromiseFulfilledResult<Awaited<ReturnType<ProviderSimulatorService['gameTransaction']>>> => item.status === 'fulfilled');
+    const fulfilled = results.filter((item): item is PromiseFulfilledResult<Awaited<ReturnType<ProviderSimulatorTransactionService['gameTransaction']>>> => item.status === 'fulfilled');
     expect(fulfilled.map((item) => item.value.replayed).filter(Boolean)).toHaveLength(1);
 
     const ledgers = await prisma.walletLedger.findMany({ where: { userId, referenceId: `sim_bet_${transactionId}` } });
