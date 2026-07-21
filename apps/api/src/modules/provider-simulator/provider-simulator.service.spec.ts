@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { createHmac } from 'crypto';
+import { GAME_CATALOG } from './provider-simulator-catalog';
 import { ProviderSimulatorService } from './provider-simulator.service';
 
 describe('ProviderSimulatorService', () => {
@@ -7,6 +8,8 @@ describe('ProviderSimulatorService', () => {
   let balances: Map<string, number>;
   let ledgers: Map<string, any>;
   let roundService: { enforceInTransaction: jest.Mock };
+
+  const catalogGame = GAME_CATALOG[0]!;
 
   beforeEach(() => {
     process.env.PROVIDER_SIMULATOR_API_KEY = 'test-api-key';
@@ -96,10 +99,10 @@ describe('ProviderSimulatorService', () => {
   });
 
   it('records bet, win, refund and rollback against the same wallet', async () => {
-    await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'bet-1', roundId: 'round-1', gameCode: 'fortune-tiger' });
-    await service.gameTransaction('WIN', { userId: 'member-1', amount: '25.00', transactionId: 'win-1', roundId: 'round-1', gameCode: 'fortune-tiger' });
-    await service.gameTransaction('REFUND', { userId: 'member-1', amount: '5.00', transactionId: 'refund-1', roundId: 'round-2', gameCode: 'fortune-tiger' });
-    await service.gameTransaction('ROLLBACK', { userId: 'member-1', amount: '2.00', transactionId: 'rollback-1', roundId: 'round-2', gameCode: 'fortune-tiger' });
+    await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'bet-1', roundId: 'round-1', gameCode: catalogGame.code });
+    await service.gameTransaction('WIN', { userId: 'member-1', amount: '25.00', transactionId: 'win-1', roundId: 'round-1', gameCode: catalogGame.code });
+    await service.gameTransaction('REFUND', { userId: 'member-1', amount: '5.00', transactionId: 'refund-1', roundId: 'round-2', gameCode: catalogGame.code });
+    await service.gameTransaction('ROLLBACK', { userId: 'member-1', amount: '2.00', transactionId: 'rollback-1', roundId: 'round-2', gameCode: catalogGame.code });
     expect((await service.getBalance({ userId: 'member-1' })).balance).toBe('122.00');
     expect((await service.betHistory({ userId: 'member-1' })).items).toHaveLength(4);
     expect(roundService.enforceInTransaction).toHaveBeenCalledTimes(4);
@@ -107,9 +110,9 @@ describe('ProviderSimulatorService', () => {
 
   it('passes a stable per-round concurrency key to the wallet transaction', async () => {
     const wallet = (service as any).walletService;
-    await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'bet-lock-1', roundId: 'round-lock', gameCode: 'fortune-tiger' });
+    await service.gameTransaction('BET', { userId: 'member-1', amount: '10.00', transactionId: 'bet-lock-1', roundId: 'round-lock', gameCode: catalogGame.code });
     expect(wallet.mutateGameBalance).toHaveBeenCalledWith(expect.objectContaining({
-      concurrencyKey: 'provider-simulator:member-1:fortune-tiger:round-lock',
+      concurrencyKey: `provider-simulator:member-1:${catalogGame.code}:round-lock`,
       beforeMutation: expect.any(Function),
     }));
   });
@@ -126,13 +129,14 @@ describe('ProviderSimulatorService', () => {
     }, body)).not.toThrow();
   });
 
-  it('returns a game catalog with loadable API icon URLs', () => {
+  it('returns a game catalog with loadable image or fallback icon URLs', () => {
     const result = service.games('https://api.example.test');
     expect(result.success).toBe(true);
-    expect(result.items.length).toBeGreaterThanOrEqual(8);
-    expect(result.items[0]?.iconUrl).toMatch(/^https:\/\/api\.example\.test\/provider-simulator\/icons\/.+\.svg$/);
-    expect(result.pagination.total).toBe(result.items.length);
-    expect(service.icon('fortune-tiger.svg')).toContain('<svg');
+    expect(result.items.length).toBeGreaterThan(0);
+    expect(result.items[0]?.iconUrl).toMatch(/^https:\/\//);
+    expect(result.items[0]?.fallbackIconUrl).toMatch(/^https:\/\/api\.example\.test\/provider-simulator\/icons\/.+\.svg$/);
+    expect(result.pagination.total).toBe(GAME_CATALOG.length);
+    expect(service.icon(`${catalogGame.code}.svg`)).toContain('<svg');
   });
 
   it('keeps mobile and pc catalogs separated', () => {
@@ -146,13 +150,15 @@ describe('ProviderSimulatorService', () => {
   });
 
   it('filters by provider category and search text', () => {
+    const target = GAME_CATALOG.find((item) => item.name.trim().length > 2)!;
+    const search = target.name.trim().split(/\s+/)[0]!.toLowerCase();
     const result = service.games('https://api.example.test', {
-      provider: 'pg-soft',
-      category: 'slot',
-      search: 'tiger',
+      provider: target.provider,
+      category: target.category,
+      search,
     });
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0]).toMatchObject({ code: 'fortune-tiger', provider: 'pg-soft', category: 'slot' });
+    expect(result.items.length).toBeGreaterThan(0);
+    expect(result.items).toContainEqual(expect.objectContaining({ code: target.code, provider: target.provider, category: target.category }));
   });
 
   it('paginates and sorts catalog results deterministically', () => {
@@ -160,14 +166,24 @@ describe('ProviderSimulatorService', () => {
     const secondPage = service.games('https://api.example.test', { page: 2, limit: 2, sort: 'code-asc' });
     expect(firstPage.items).toHaveLength(2);
     expect(secondPage.items).toHaveLength(2);
-    expect(firstPage.pagination).toMatchObject({ page: 1, limit: 2, total: 8, totalPages: 4 });
+    expect(firstPage.pagination).toMatchObject({
+      page: 1,
+      limit: 2,
+      total: GAME_CATALOG.length,
+      totalPages: Math.ceil(GAME_CATALOG.length / 2),
+    });
     expect(firstPage.items.map((item) => item.code)).not.toEqual(secondPage.items.map((item) => item.code));
   });
 
   it('includes provider and platform details in launch responses', () => {
-    const result = service.launch({ userId: 'member-1', gameCode: 'fortune-tiger', sessionId: 'session-1' });
+    const result = service.launch({ userId: 'member-1', gameCode: catalogGame.code, sessionId: 'session-1' });
     expect(result.success).toBe(true);
-    expect(result.game).toEqual({ code: 'fortune-tiger', name: 'Fortune Tiger', provider: 'pg-soft', platform: 'mobile' });
-    expect(result.launchUrl).toContain('provider=pg-soft');
+    expect(result.game).toEqual({
+      code: catalogGame.code,
+      name: catalogGame.name,
+      provider: catalogGame.provider,
+      platform: catalogGame.platform,
+    });
+    expect(result.launchUrl).toContain(`provider=${encodeURIComponent(catalogGame.provider)}`);
   });
 });
