@@ -1,0 +1,182 @@
+.referenceHome {
+  --home-gap: clamp(12px, 2vw, 24px);
+  --home-radius: clamp(14px, 2vw, 22px);
+  display: grid;
+  gap: var(--home-gap);
+}
+
+.referenceHome :global(.promotion-carousel) {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--home-radius);
+  background: var(--brand-card, #181818);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.referenceHome :global(.promotion-carousel__viewport) {
+  position: relative;
+  aspect-ratio: 16 / 5.8;
+  min-height: 180px;
+}
+
+.referenceHome :global(.promotion-carousel__slide) {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 280ms ease;
+}
+
+.referenceHome :global(.promotion-carousel__slide.is-active) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.referenceHome :global(.promotion-carousel__slide img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.referenceHome :global(.promotion-carousel__control) {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  transform: translateY(-50%);
+}
+
+.referenceHome :global(.promotion-carousel__control--previous) { left: 12px; }
+.referenceHome :global(.promotion-carousel__control--next) { right: 12px; }
+
+.referenceHome :global(.promotion-carousel__dots) {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  gap: 7px;
+  transform: translateX(-50%);
+}
+
+.referenceHome :global(.promotion-carousel__dots button) {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.referenceHome :global(.promotion-carousel__dots button[aria-selected='true']) {
+  width: 24px;
+  background: var(--brand-primary, #f5c542);
+}
+
+.referenceHome :global(.home-announcement-strip) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+}
+
+.referenceHome :global(.home-announcement-strip__badge) {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--brand-primary, #f5c542);
+  color: #111;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.referenceHome :global(.home-announcement-strip__track) {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.referenceHome :global(.home-announcement-strip__track::-webkit-scrollbar) { display: none; }
+
+.referenceHome :global(.home-announcement-strip__item) {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: max-content;
+  color: var(--brand-text, #fff);
+}
+
+.referenceHome :global(.home-announcement-strip__item span) {
+  color: var(--brand-text-muted, rgba(255,255,255,.7));
+  font-size: 13px;
+}
+
+.referenceHome :global(.home-promotion-cards),
+.referenceHome :global(.home-competition-showcase) {
+  display: grid;
+  gap: var(--home-gap);
+}
+
+.referenceHome :global(.home-promotion-cards) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.referenceHome :global(.home-promotion-card),
+.referenceHome :global(.home-competition-card) {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--home-radius);
+  background: var(--brand-card, #181818);
+}
+
+@media (max-width: 900px) {
+  .referenceHome :global(.home-promotion-cards) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .referenceHome {
+    --home-gap: 12px;
+  }
+
+  .referenceHome :global(.promotion-carousel__viewport) {
+    aspect-ratio: 16 / 7.8;
+    min-height: 150px;
+  }
+
+  .referenceHome :global(.promotion-carousel__control) {
+    display: none;
+  }
+
+  .referenceHome :global(.home-announcement-strip) {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .referenceHome :global(.home-announcement-strip__badge) {
+    width: max-content;
+  }
+
+  .referenceHome :global(.home-promotion-cards) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .referenceHome :global(.promotion-carousel__slide) {
+    transition: none;
+  }
+}
