@@ -3,7 +3,7 @@ import { join, relative, sep } from 'node:path';
 
 const ADMIN_ROOT = join(process.cwd(), 'apps', 'web-admin', 'app', '(admin)');
 const NAV_FILE = join(ADMIN_ROOT, 'admin-nav.ts');
-const ROUTE_ALLOWLIST = new Set(['/dashboard', '/operations', '/security']);
+const ROUTE_ALLOWLIST = new Set(['/dashboard', '/operations', '/profile', '/security']);
 const navSource = await readFile(NAV_FILE, 'utf8');
 
 function normalize(path) { return path.split(sep).join('/'); }
