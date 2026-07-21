@@ -10,6 +10,7 @@ const renamePath = path.join(outputDir, 'game-asset-rename-manifest.json');
 const platforms = ['mobile', 'pc'];
 
 const records = [];
+const manifestGeneratedAt = [];
 
 for (const platform of platforms) {
   const assetRoot = path.join(root, 'asset', 'catalog', platform);
@@ -17,6 +18,10 @@ for (const platform of platforms) {
   await access(manifestPath);
 
   const parsed = JSON.parse(await readFile(manifestPath, 'utf8'));
+  if (typeof parsed?.generatedAt === 'string' && !Number.isNaN(Date.parse(parsed.generatedAt))) {
+    manifestGeneratedAt.push(parsed.generatedAt);
+  }
+
   const manifest = Array.isArray(parsed) ? parsed : parsed?.items;
   if (!Array.isArray(manifest)) {
     throw new Error(`asset/catalog/${platform}/manifest.json must contain an items array`);
@@ -61,6 +66,8 @@ for (const platform of platforms) {
   }
 }
 
+records.sort((a, b) => a.platform.localeCompare(b.platform) || a.file.localeCompare(b.file));
+
 const byHash = new Map();
 for (const record of records) {
   if (!record.sha256) continue;
@@ -104,8 +111,10 @@ const counts = records.reduce(
   { total: 0, notCheckedIntoGit: 0, missingHash: 0, byPlatform: {}, byCategory: {} },
 );
 
+const generatedAt = manifestGeneratedAt
+  .sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? '1970-01-01T00:00:00.000Z';
+
 await mkdir(outputDir, { recursive: true });
-const generatedAt = new Date().toISOString();
 await writeFile(
   inventoryPath,
   `${JSON.stringify({ generatedAt, assetRoots: platforms.map((platform) => `asset/catalog/${platform}`), counts, items: records }, null, 2)}\n`,
