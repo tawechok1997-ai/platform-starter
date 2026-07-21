@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS "game_rounds" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "provider_id" UUID NOT NULL,
   "provider_round_id" VARCHAR(180) NOT NULL,
-  "state" VARCHAR(40) NOT NULL DEFAULT 'OPEN',
+  "state" VARCHAR(40) NOT NULL DEFAULT 'CREATED',
   "bet_transaction_id" VARCHAR(180),
   "settle_transaction_id" VARCHAR(180),
   "rollback_transaction_id" VARCHAR(180),
@@ -21,6 +21,13 @@ CREATE TABLE IF NOT EXISTS "game_rounds" (
   CONSTRAINT "game_rounds_provider_id_fkey"
     FOREIGN KEY ("provider_id") REFERENCES "game_providers"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- Some disposable CI baselines previously created the raw-SQL-owned table with
+-- OPEN as its initial state. The round transition policy uses CREATED, so repair
+-- that bootstrap-only legacy value before concurrency tests execute.
+ALTER TABLE "game_rounds"
+  ALTER COLUMN "state" SET DEFAULT 'CREATED';
+UPDATE "game_rounds" SET "state" = 'CREATED' WHERE "state" = 'OPEN';
 
 CREATE UNIQUE INDEX IF NOT EXISTS "game_rounds_provider_round_key"
   ON "game_rounds"("provider_id", "provider_round_id");
