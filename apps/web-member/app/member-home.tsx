@@ -10,12 +10,12 @@ import {
 import {
   AnnouncementList,
   CmsPopup,
-  HomeHero,
   PendingRequests,
 } from './components/member-home-sections';
 import { HomeActivitiesPanel } from './components/member-home/home-activities-panel';
 import { HomeHighlightsPanel } from './components/member-home/home-highlights-panel';
 import { HomePromotionsPanel } from './components/member-home/home-promotions-panel';
+import { HomePromotionCarousel } from './components/member-home/home-promotion-carousel';
 import { SourceHomeTabs, type HomeTab } from './components/member-home/source-home-tabs';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
@@ -58,12 +58,7 @@ export default function MemberHome(props: MemberHomeProps) {
     <section className="member-shell member-home-shell member-source-home">
       <div className="member-home-zone member-home-zone--primary">
         {props.showPromotion && features.games && (
-          <HomeHero
-            siteName={props.siteName}
-            description={props.description}
-            primaryColor={props.primaryColor}
-            content={props.cmsContent}
-          />
+          <HomePromotionCarousel content={props.cmsContent} siteName={props.siteName} />
         )}
         <AnnouncementList content={props.cmsContent} />
         <SourceHomeTabs activeTab={activeTab} onChange={setActiveTab} />
