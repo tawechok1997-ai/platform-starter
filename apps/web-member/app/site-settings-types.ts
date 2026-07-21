@@ -11,7 +11,11 @@ export type WebsiteSettings = {
 
 type BrandingSettings = {
   logo_url?: string;
+  logo_mobile_url?: string;
+  logo_login_url?: string;
+  logo_register_url?: string;
   favicon_url?: string;
+  language_icon_url?: string;
   brand_mark?: string;
   primary_color: string;
   background_color: string;
@@ -81,11 +85,13 @@ type MaintenanceSettings = {
   [key: string]: unknown;
 };
 
+export type PublicIconSettings = SiteIconSettings & Record<string, string>;
+
 export type TypedPublicSiteSettings = {
   website: WebsiteSettings;
   branding: BrandingSettings;
   theme: ThemeSettings;
-  icons: SiteIconSettings;
+  icons: PublicIconSettings;
   seo: Record<string, unknown>;
   contact: ContactSettings;
   maintenance: MaintenanceSettings;
