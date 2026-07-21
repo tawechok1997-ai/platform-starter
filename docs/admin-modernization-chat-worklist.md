@@ -13,6 +13,7 @@
 - [ ] สีสถานะกลาง success, warning, danger, info
 - [x] App Shell เดียวทุกหน้า
 - [ ] Responsive สำหรับ PC, tablet, mobile
+- [x] Shell: topbar controls 44px บน mobile, Command Palette เป็น bottom sheet และ Activity detail drawer ปรับตาม desktop/tablet/mobile
 - [ ] ทุกหน้ามี loading, empty, error, permission state
 - [x] Profile อยู่ Sidebar ด้านล่างเป็นจุดหลักจุดเดียว
 - [x] เอา Profile trigger/Dropdown ซ้ำออกจาก Topbar
