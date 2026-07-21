@@ -13,6 +13,10 @@ on:
       - 'apps/web-member/package.json'
       - 'tests/game-api-browser/**'
       - 'playwright.game-api.config.ts'
+      - 'asset/catalog/mobile/**'
+      - 'asset/catalog/pc/**'
+      - 'tools/build-game-asset-inventory.mjs'
+      - 'docs/generated/game-asset-*.json'
       - 'docs/game-api-worklist.md'
       - '.github/workflows/game-api-verification.yml'
       - 'tools/bootstrap-prisma-ci-baseline.mjs'
@@ -29,6 +33,10 @@ on:
       - 'apps/web-member/package.json'
       - 'tests/game-api-browser/**'
       - 'playwright.game-api.config.ts'
+      - 'asset/catalog/mobile/**'
+      - 'asset/catalog/pc/**'
+      - 'tools/build-game-asset-inventory.mjs'
+      - 'docs/generated/game-asset-*.json'
       - 'docs/game-api-worklist.md'
       - '.github/workflows/game-api-verification.yml'
       - 'tools/bootstrap-prisma-ci-baseline.mjs'
@@ -68,6 +76,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Reconcile Mobile and PC asset manifests
+        run: |
+          node tools/build-game-asset-inventory.mjs
+          test -s docs/generated/game-asset-inventory.json
+          test -s docs/generated/game-asset-duplicates.json
+          test -s docs/generated/game-asset-rename-manifest.json
+          git diff --exit-code -- docs/generated/game-asset-inventory.json docs/generated/game-asset-duplicates.json docs/generated/game-asset-rename-manifest.json
       - name: Generate Prisma client
         run: pnpm db:generate
       - name: Validate migration files
