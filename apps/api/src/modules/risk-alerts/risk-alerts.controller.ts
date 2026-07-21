@@ -40,7 +40,7 @@ export class RiskAlertsController {
   @RequirePermission('risk.resolve')
   @Post('bulk-dismiss')
   bulkDismiss(@Body() body: BulkDismissRiskAlertsDto, @CurrentUser() admin: AuthenticatedAdminActor) {
-    return this.riskAlertsService.bulkDismiss(body.ids, admin);
+    return this.riskAlertsService.bulkDismiss(body.ids, body.reason.trim(), admin);
   }
 
   @RequirePermission('risk.view')
