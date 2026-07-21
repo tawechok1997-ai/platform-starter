@@ -277,14 +277,14 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     </div>
     <div className="admin-nav-search"><AdminIcon name="search" /><input value={navQuery} onChange={(event) => setNavQuery(event.target.value)} placeholder="ค้นหาเมนู" aria-label="ค้นหาเมนู" /></div>
     <nav className="admin-drawer-nav" aria-label="Admin navigation">
-      {favoriteItems.length > 0 && <QuickNavSection title="รายการโปรด" items={favoriteItems} onNavigate={navigate} />}
-      {recentItems.length > 0 && <QuickNavSection title="ใช้ล่าสุด" items={recentItems} onNavigate={navigate} onClear={() => setRecentHrefs([])} />}
+      {favoriteItems.length > 0 && <QuickNavSection title="รายการโปรด" items={favoriteItems} pathname={pathname} onNavigate={navigate} />}
+      {recentItems.length > 0 && <QuickNavSection title="ใช้ล่าสุด" items={recentItems} pathname={pathname} onNavigate={navigate} onClear={() => setRecentHrefs([])} />}
       {visibleGroups.map((group) => {
         const containsActiveRoute = group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
         const expanded = Boolean(normalizedQuery) || openGroups.has(group.id) || containsActiveRoute;
         const groupIcon = iconForAdminHref(group.items[0]?.href ?? '/dashboard');
         return <section className="admin-nav-group" key={group.id}>
-          <button type="button" className="admin-nav-group__trigger" onClick={() => toggleGroup(group.id)} aria-expanded={expanded} aria-controls={`admin-nav-${group.id}`}>
+          <button type="button" className="admin-nav-group__trigger" onClick={() => toggleGroup(group.id)} aria-expanded={expanded} aria-controls={`admin-nav-${group.id}`} data-active={containsActiveRoute || undefined} title={sidebarCollapsed ? group.title : undefined}>
             <AdminIcon name={groupIcon} />
             <span className="admin-nav-group__label"><strong>{group.title}</strong>{group.description && <small>{group.description}</small>}</span>
             <span className="admin-nav-group__chevron" aria-hidden="true"><AdminIcon name="chevron-left" /></span>
@@ -349,8 +349,8 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   </main>;
 }
 
-function QuickNavSection({ title, items, onNavigate, onClear }: { title: string; items: QuickNavItem[]; onNavigate: (href: string) => void; onClear?: () => void }) {
-  return <section className="admin-quick-nav" aria-label={title}><header><span>{title}</span>{onClear && <button type="button" onClick={onClear}>ล้าง</button>}</header>{items.map((item) => <a key={item.href} href={item.href} onClick={(event) => { event.preventDefault(); onNavigate(item.href); }}><AdminIcon name={iconForAdminHref(item.href)} /><span>{item.title}</span></a>)}</section>;
+function QuickNavSection({ title, items, pathname, onNavigate, onClear }: { title: string; items: QuickNavItem[]; pathname: string; onNavigate: (href: string) => void; onClear?: () => void }) {
+  return <section className="admin-quick-nav" aria-label={title}><header><span>{title}</span>{onClear && <button type="button" onClick={onClear}>ล้าง</button>}</header>{items.map((item) => { const active = pathname === item.href || pathname.startsWith(`${item.href}/`); return <a key={item.href} href={item.href} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} onClick={(event) => { event.preventDefault(); onNavigate(item.href); }}><AdminIcon name={iconForAdminHref(item.href)} /><span>{item.title}</span></a>; })}</section>;
 }
 
 function CommandPalette({ query, onQueryChange, items, favoriteHrefs, onToggleFavorite, onNavigate, onClose }: { query: string; onQueryChange: (value: string) => void; items: QuickNavItem[]; favoriteHrefs: string[]; onToggleFavorite: (href: string) => void; onNavigate: (href: string) => void; onClose: () => void }) {

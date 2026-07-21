@@ -31,7 +31,7 @@
 - [ ] Route เก่าต้อง redirect ไปหน้าปัจจุบัน ไม่มีลิงก์เสีย
 - [ ] ชื่อเมนู ภาษา และลำดับกลุ่มสอดคล้องกัน
 - [x] Menu, Command Palette และ deep-link ใช้ permission เดียวกัน
-- [ ] Active state/open group ตรงกับ route ปัจจุบัน
+- [x] Active state/open group ตรงกับ route ปัจจุบัน รวม Favorites และ Recently used
 - [ ] Badge งานค้างไม่ซ้ำและแสดงเฉพาะจุดที่มี action
 
 ## Phase 0.1 — Overlay, ปุ่ม และ Sidebar
@@ -51,7 +51,7 @@
 - [ ] Desktop Sidebar expanded 272px และ collapsed Icon Rail 72px
 - [ ] ปุ่มย่อ/ขยายเป็นปุ่มกลมที่ขอบ Sidebar
 - [ ] Rail mode แสดง icon, active state, badge โดยไม่บีบข้อความ
-- [ ] Hover/focus icon แสดง tooltip
+- [x] Hover/focus icon แสดง tooltip สำหรับเมนูและกลุ่มใน rail mode
 - [ ] คลิก group ใน rail เปิด flyout menu
 - [ ] Rail mode Profile เหลือ avatar + online dot และเปิด account menu ได้
 - [x] Tablet/mobile ใช้ full drawer พร้อม focus trap, backdrop และ Escape
