@@ -6,6 +6,7 @@ import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, Adm
 import { hasAnyPermission, maskEmail, maskPhone } from '../_components/member-mask';
 
 type MemberItem = { id: string; shortId: string; username: string; phone?: string | null; email?: string | null; status: string; displayName?: string | null; balance: string; lockedBalance: string; availableBalance: string; createdAt: string; lastLoginAt?: string | null };
+type MemberDrawerData = { user: MemberItem & { updatedAt?: string; profile?: { displayName?: string | null } | null }; wallet: { currency: string; balance: string; lockedBalance: string; availableBalance: string; status: string; updatedAt: string } | null };
 type AdminIdentity = { permissions?: string[] };
 type PendingStatus = { member: MemberItem; status: 'ACTIVE' | 'SUSPENDED' | 'LOCKED' };
 const STATUSES = ['ALL', 'ACTIVE', 'SUSPENDED', 'LOCKED', 'CLOSED'];
@@ -25,6 +26,9 @@ export default function MembersPage() {
   const [permissions, setPermissions] = useState<string[]>([]);
   const [pendingStatus, setPendingStatus] = useState<PendingStatus | null>(null);
   const [statusReason, setStatusReason] = useState('');
+  const [drawerId, setDrawerId] = useState('');
+  const [drawerData, setDrawerData] = useState<MemberDrawerData | null>(null);
+  const [drawerLoading, setDrawerLoading] = useState(false);
 
   useEffect(() => { void loadAccess(); }, []);
   useEffect(() => { void loadItems(page, submittedSearch, status); }, [page, submittedSearch, status]);
@@ -72,6 +76,17 @@ export default function MembersPage() {
   }
 
   function requestStatus(member: MemberItem, nextStatus: PendingStatus['status']) { setPendingStatus({ member, status: nextStatus }); setStatusReason(''); }
+
+  async function openDrawer(member: MemberItem) {
+    setDrawerId(member.id);
+    setDrawerData(null);
+    setDrawerLoading(true);
+    const res = await adminApiFetch(`/admin/members/${member.id}`);
+    const payload = await res.json().catch(() => null);
+    if (res.ok && payload?.user) setDrawerData(payload as MemberDrawerData);
+    else setMessage(payload?.message ?? 'โหลดรายละเอียดสมาชิกไม่สำเร็จ');
+    setDrawerLoading(false);
+  }
 
   async function updateStatus() {
     if (!pendingStatus) return;
@@ -122,26 +137,16 @@ export default function MembersPage() {
       <AdminMetric title="ยอดใช้ได้รวม" value={canViewBalances ? formatMoney(String(totals.available)) : '••••••'} helper={canViewBalances ? 'เฉพาะรายการที่แสดง' : 'ไม่มีสิทธิ์ดูยอดเงิน'} />
     </AdminMetricGrid>
 
-    {loading && items.length === 0 ? <AdminEmpty>กำลังโหลดสมาชิก...</AdminEmpty> : <AdminStack>{items.map((item) => <AdminCard key={item.id} title={item.username} description={`${item.displayName || 'ยังไม่ได้ตั้งชื่อ'} · ${item.shortId}`}>
-      <article className="admin-member-card-grid">
-        <section className="admin-member-identity">
-          <div className="admin-member-badges"><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge><AdminBadge>{item.shortId}</AdminBadge></div>
-          <p>{maskPhone(item.phone, canViewPii)} · {maskEmail(item.email, canViewPii)}</p>
-          <p>สมัครเมื่อ {new Date(item.createdAt).toLocaleDateString('th-TH')}</p>
-          <p>เข้าใช้ล่าสุด {item.lastLoginAt ? new Date(item.lastLoginAt).toLocaleString('th-TH') : 'ยังไม่เคยเข้าใช้'}</p>
-        </section>
-        <section className="admin-member-money-summary">
-          <div><span>ยอดใช้ได้</span><strong>{canViewBalances ? formatMoney(item.availableBalance) : '••••••'}</strong></div>
-          <div className="admin-member-balance-grid"><span>ยอดรวม {canViewBalances ? formatMoney(item.balance) : '••••••'}</span><span>ยอดล็อก {canViewBalances ? formatMoney(item.lockedBalance) : '••••••'}</span></div>
-          <a href={`/members/${item.id}`} className="admin-member-profile-link">ดูรายละเอียด</a>
-        </section>
-        <section className="admin-member-actions" aria-label={`เปลี่ยนสถานะ ${item.username}`}>
-          <AdminButton disabled={busyId === item.id || item.status === 'ACTIVE'} tone="success" onClick={() => requestStatus(item, 'ACTIVE')}>เปิดใช้งาน</AdminButton>
-          <AdminButton disabled={busyId === item.id || item.status === 'SUSPENDED'} tone="danger" onClick={() => requestStatus(item, 'SUSPENDED')}>ระงับบัญชี</AdminButton>
-          <AdminButton disabled={busyId === item.id || item.status === 'LOCKED'} tone="danger" onClick={() => requestStatus(item, 'LOCKED')}>ล็อกบัญชี</AdminButton>
-        </section>
-      </article>
-    </AdminCard>)}{items.length === 0 && <AdminEmpty>ไม่พบสมาชิก</AdminEmpty>}</AdminStack>}
+    {loading && items.length === 0 ? <AdminEmpty>กำลังโหลดสมาชิก...</AdminEmpty> : <AdminCard title="Member directory" description="เลือกสมาชิกเพื่อเปิดรายละเอียดแบบ drawer"><div className="admin-members-table-wrap"><table className="admin-members-table"><thead><tr><th>สมาชิก</th><th>สถานะ</th><th>ติดต่อ</th><th>ยอดใช้ได้</th><th>เข้าใช้ล่าสุด</th><th>การทำงาน</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}>
+      <td><button type="button" className="admin-members-name-button" onClick={() => void openDrawer(item)}><strong>{item.username}</strong><small>{item.displayName || 'ยังไม่ได้ตั้งชื่อ'} · {item.shortId}</small></button></td>
+      <td><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge></td>
+      <td>{maskPhone(item.phone, canViewPii)}<br />{maskEmail(item.email, canViewPii)}</td>
+      <td className="admin-members-number">{canViewBalances ? formatMoney(item.availableBalance) : '••••••'}</td>
+      <td>{item.lastLoginAt ? new Date(item.lastLoginAt).toLocaleString('th-TH') : 'ยังไม่เคยเข้าใช้'}</td>
+      <td><div className="admin-members-row-actions"><AdminButton size="compact" tone="secondary" onClick={() => void openDrawer(item)}>รายละเอียด</AdminButton><AdminButton size="compact" tone="success" disabled={busyId === item.id || item.status === 'ACTIVE'} onClick={() => requestStatus(item, 'ACTIVE')}>เปิด</AdminButton><AdminButton size="compact" tone="danger" disabled={busyId === item.id || item.status === 'SUSPENDED'} onClick={() => requestStatus(item, 'SUSPENDED')}>ระงับ</AdminButton></div></td>
+    </tr>)}</tbody></table></div>{items.length === 0 && <AdminEmpty>ไม่พบสมาชิก</AdminEmpty>}</AdminCard>}
+
+    {drawerId && <div className="admin-member-drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) { setDrawerId(''); setDrawerData(null); } }}><aside className="admin-member-drawer" aria-label="รายละเอียดสมาชิก"><header><div><p className="admin-ui-eyebrow">Member detail</p><h2>{drawerData?.user.username ?? 'กำลังโหลด...'}</h2></div><AdminButton tone="ghost" onClick={() => { setDrawerId(''); setDrawerData(null); }}>ปิด</AdminButton></header>{drawerLoading && <AdminEmpty>กำลังโหลดรายละเอียด...</AdminEmpty>}{drawerData && <AdminStack><AdminRow><span>สถานะ</span><AdminBadge tone={statusTone(drawerData.user.status)}>{statusLabel(drawerData.user.status)}</AdminBadge></AdminRow><AdminRow><span>โทรศัพท์</span><strong>{maskPhone(drawerData.user.phone, canViewPii)}</strong></AdminRow><AdminRow><span>อีเมล</span><strong>{maskEmail(drawerData.user.email, canViewPii)}</strong></AdminRow><AdminRow><span>สมัครเมื่อ</span><span>{new Date(drawerData.user.createdAt).toLocaleString('th-TH')}</span></AdminRow><AdminRow><span>เข้าใช้ล่าสุด</span><span>{drawerData.user.lastLoginAt ? new Date(drawerData.user.lastLoginAt).toLocaleString('th-TH') : 'ยังไม่เคยเข้าใช้'}</span></AdminRow><AdminCard title="Wallet" compact>{drawerData.wallet ? <AdminStack><AdminRow><span>ยอดรวม</span><strong>{canViewBalances ? formatMoney(drawerData.wallet.balance) : '••••••'}</strong></AdminRow><AdminRow><span>ยอดล็อก</span><strong>{canViewBalances ? formatMoney(drawerData.wallet.lockedBalance) : '••••••'}</strong></AdminRow><AdminRow><span>ยอดใช้ได้</span><strong>{canViewBalances ? formatMoney(drawerData.wallet.availableBalance) : '••••••'}</strong></AdminRow></AdminStack> : <AdminEmpty>ไม่มี wallet</AdminEmpty>}</AdminCard></AdminStack>}</aside></div>}
 
     <AdminConfirmDialog
       open={Boolean(pendingStatus)}
