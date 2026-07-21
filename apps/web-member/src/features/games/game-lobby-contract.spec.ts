@@ -13,8 +13,8 @@ test('game lobby exposes platform, provider, category and search controls', () =
   assert.match(pageSource, /ค้นหาเกมหรือค่าย/);
   assert.match(pageSource, /aria-label="หมวดเกม"/);
   assert.match(pageSource, /game-lobby-tabs/);
-  assert.doesNotMatch(styleSource, /game-lobby-tabs[^}]*display:\s*none/i);
-  assert.doesNotMatch(styleSource, /game-lobby-toolbar[^}]*display:\s*none/i);
+  assert.match(styleSource, /\.game-lobby-tabs\s*\{[\s\S]*?display:\s*flex/);
+  assert.match(styleSource, /\.game-lobby-toolbar\s*\{[\s\S]*?display:\s*grid/);
 });
 
 test('game lobby keeps explicit desktop and responsive grid contracts', () => {
