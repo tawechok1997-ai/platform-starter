@@ -41,6 +41,7 @@ Branch: `feature/member-branding-foundation`
 - ✅ สร้าง unit test สำหรับค่าปกติและค่าที่ไม่ปลอดภัย
 - ✅ เพิ่ม Brand context/hook สำหรับ consumer
 - ✅ เชื่อม Brand runtime config กับ SiteSettingsProvider โดยไม่โหลดข้อมูลซ้ำ
+- ✅ เพิ่ม Auth runtime compatibility bridge
 - 🧪 รัน Member test
 - 🧪 รัน Member typecheck
 - 🧪 รัน Member build
@@ -59,8 +60,10 @@ Branch: `feature/member-branding-foundation`
 - ✅ เชื่อม Logo Login/Register จาก Brand config พร้อม fallback
 - ✅ เชื่อมสีและ Typography จาก Design tokens
 - ✅ สร้าง Auth brand presentation model
-- ✅ รักษา API, Session, Validation, CAPTCHA และ Redirect เดิมโดยยังไม่ย้าย flow
-- 🔄 เชื่อม Auth shell เข้าหน้า Login/Register จริงแบบทีละหน้า
+- ✅ รักษา API, Session, Validation, CAPTCHA และ Redirect เดิม
+- ✅ เชื่อมหน้า Login เข้ากับ Brand runtime โดยไม่เปลี่ยน Auth flow
+- ✅ เพิ่ม test สำหรับ Login/Register logo fallback และ compatibility tokens
+- 🔄 เชื่อมหน้า Register เข้ากับ Brand runtime
 - ⬜ ตรวจ Mobile/Desktop เทียบไฟล์ต้นแบบ
 
 ## Workstream C: Icon and Asset Mapping
@@ -81,7 +84,9 @@ Branch: `feature/member-branding-foundation`
 - ✅ สร้าง Brand asset manifest
 - ✅ แยกกลุ่ม Brand, Auth, Navigation, Promotion, Placeholder และ Social
 - ✅ เพิ่ม fallback resolution สำหรับ Logo/Auth assets
-- ⬜ นำ asset จริงจากไฟล์ต้นแบบเข้าโครงสร้างโปรเจกต์
+- ✅ สร้าง controlled asset intake path สำหรับไฟล์ต้นแบบ
+- ✅ เพิ่มกฎไม่รับ JS, API URL, Cookie และ Auth code จาก Static package
+- 🔄 นำ asset จริงจากไฟล์ต้นแบบเข้าโครงสร้างโปรเจกต์
 - ⬜ ตรวจไฟล์ซ้ำและไฟล์เสีย
 - ⬜ เชื่อม Icon registry เข้ากับ MemberIcon consumer
 
@@ -144,4 +149,8 @@ Branch: `feature/member-branding-foundation`
 9. ✅ เพิ่ม Auth brand presentation model
 10. ✅ เพิ่ม Extended icon registry
 11. ✅ เพิ่ม Brand asset manifest และ fallback rules
-12. ✅ อัปเดตเอกสารติดตามงานหลายสายพร้อมสถานะจริง
+12. ✅ เพิ่ม Auth runtime compatibility bridge
+13. ✅ เชื่อมหน้า Login กับ Branding runtime
+14. ✅ เพิ่ม controlled asset intake path
+15. ✅ เพิ่ม Auth branding compatibility tests
+16. ✅ อัปเดตเอกสารติดตามงานหลายสายพร้อมสถานะจริง
