@@ -14,6 +14,7 @@
 - [x] App Shell เดียวทุกหน้า
 - [x] App Shell เปลี่ยนภาษาไทย/English ได้ และจำการเลือก
 - [x] Activity Center ใช้ข้อความ UI, วันเวลา และสถานะตามภาษาที่เลือก
+- [x] Dashboard ใช้ข้อความ UI, สถานะ, จำนวน และวันเวลาตามภาษาที่เลือก
 - [x] ปรับข้อความเตือน/คำอธิบายที่ฟุ่มเฟือยในหน้าค่ายเกมเป็นคำสั้นตามงาน
 - [ ] Responsive สำหรับ PC, tablet, mobile
 - [x] Shell: topbar controls 44px บน mobile, Command Palette เป็น bottom sheet และ Activity detail drawer ปรับตาม desktop/tablet/mobile
