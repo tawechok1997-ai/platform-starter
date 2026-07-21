@@ -8,9 +8,33 @@ const inventoryPath = path.join(outputDir, 'game-asset-inventory.json');
 const duplicatePath = path.join(outputDir, 'game-asset-duplicates.json');
 const renamePath = path.join(outputDir, 'game-asset-rename-manifest.json');
 const platforms = ['mobile', 'pc'];
+const SHA256_PATTERN = /^[a-f0-9]{64}$/i;
+const UUID_PATTERN = /(^|[-_])[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}([-_.]|$)/i;
+const LONG_TOKEN_PATTERN = /(^|[-_])(?:\d{6,}|[a-f0-9]{16,})([-_.]|$)/i;
 
 const records = [];
 const manifestGeneratedAt = [];
+const manifestKeys = new Set();
+const validationErrors = [];
+
+function normalizeManifestFile(platform, value) {
+  const relative = value.replaceAll('\\', '/').replace(/^\.\//, '');
+  if (!relative || path.posix.isAbsolute(relative)) {
+    throw new Error(`asset/catalog/${platform}/manifest.json contains an invalid absolute or empty file path: ${value}`);
+  }
+
+  const normalized = path.posix.normalize(relative);
+  if (normalized === '..' || normalized.startsWith('../')) {
+    throw new Error(`asset/catalog/${platform}/manifest.json contains a path outside the catalog root: ${value}`);
+  }
+
+  return normalized;
+}
+
+function needsNameReview(file) {
+  const basename = path.posix.basename(file);
+  return UUID_PATTERN.test(basename) || LONG_TOKEN_PATTERN.test(basename);
+}
 
 for (const platform of platforms) {
   const assetRoot = path.join(root, 'asset', 'catalog', platform);
@@ -27,14 +51,29 @@ for (const platform of platforms) {
     throw new Error(`asset/catalog/${platform}/manifest.json must contain an items array`);
   }
 
-  for (const entry of manifest) {
-    if (!entry || typeof entry.file !== 'string') continue;
+  for (const [index, entry] of manifest.entries()) {
+    if (!entry || typeof entry.file !== 'string' || !entry.file.trim()) {
+      validationErrors.push(`asset/catalog/${platform}/manifest.json item ${index} is missing a valid file`);
+      continue;
+    }
 
-    const relative = entry.file.replaceAll('\\', '/');
+    const relative = normalizeManifestFile(platform, entry.file.trim());
+    const manifestKey = `${platform}:${relative.toLowerCase()}`;
+    if (manifestKeys.has(manifestKey)) {
+      validationErrors.push(`Duplicate manifest file entry: asset/catalog/${platform}/${relative}`);
+      continue;
+    }
+    manifestKeys.add(manifestKey);
+
     const absolute = path.join(assetRoot, ...relative.split('/'));
     let size = Number.isFinite(Number(entry.size)) ? Number(entry.size) : null;
-    let sha256 = typeof entry.sha256 === 'string' && entry.sha256.trim() ? entry.sha256.trim() : null;
+    let sha256 = typeof entry.sha256 === 'string' && entry.sha256.trim() ? entry.sha256.trim().toLowerCase() : null;
     let exists = false;
+
+    if (sha256 && !SHA256_PATTERN.test(sha256)) {
+      validationErrors.push(`Invalid SHA-256 for asset/catalog/${platform}/${relative}`);
+      sha256 = null;
+    }
 
     try {
       const info = await stat(absolute);
@@ -66,6 +105,10 @@ for (const platform of platforms) {
   }
 }
 
+if (validationErrors.length > 0) {
+  throw new Error(`Game asset manifest validation failed:\n- ${validationErrors.join('\n- ')}`);
+}
+
 records.sort((a, b) => a.platform.localeCompare(b.platform) || a.file.localeCompare(b.file));
 
 const byHash = new Map();
@@ -78,17 +121,20 @@ for (const record of records) {
 
 const duplicateGroups = [...byHash.entries()]
   .filter(([, files]) => files.length > 1)
-  .map(([sha256, files]) => ({
-    sha256,
-    canonical: files[0],
-    duplicates: files.slice(1),
-    files,
-    crossPlatform: new Set(files.map((item) => item.platform)).size > 1,
-  }))
+  .map(([sha256, files]) => {
+    const sortedFiles = [...files].sort((a, b) => a.repositoryPath.localeCompare(b.repositoryPath));
+    return {
+      sha256,
+      canonical: sortedFiles[0],
+      duplicates: sortedFiles.slice(1),
+      files: sortedFiles,
+      crossPlatform: new Set(sortedFiles.map((item) => item.platform)).size > 1,
+    };
+  })
   .sort((a, b) => b.files.length - a.files.length || a.canonical.repositoryPath.localeCompare(b.canonical.repositoryPath));
 
 const renameManifest = records
-  .filter((record) => /(^|[-_])\d{6,}([-_.]|$)/.test(path.posix.basename(record.file)))
+  .filter((record) => needsNameReview(record.file))
   .map((record) => ({
     source: record.repositoryPath,
     platform: record.platform,
