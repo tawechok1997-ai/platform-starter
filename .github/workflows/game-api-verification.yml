@@ -97,11 +97,14 @@ jobs:
           provider-simulator-round.service.spec.ts
           provider-simulator-security.service.spec.ts
           provider-simulator-transaction.service.spec.ts
+          provider-simulator-catalog.spec.ts
           transaction-retry.spec.ts
           provider-adapter.registry.spec.ts
           provider-webhook.service.spec.ts
           round-engine.policy.spec.ts
           game-round-persistence.service.spec.ts
+          game-session-token.service.spec.ts
+          wallet-ledger-reconciliation.service.spec.ts
           provider-reconciliation-command.service.spec.ts
           game-platform-monitoring.service.spec.ts
           wallet-game-ledger-semantics.service.spec.ts
