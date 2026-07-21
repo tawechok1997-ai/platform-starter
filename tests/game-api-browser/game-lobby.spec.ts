@@ -136,6 +136,14 @@ async function installApiMock(page: Page) {
   });
 }
 
+function catalog(page: Page) {
+  return page.locator('#game-catalog');
+}
+
+function catalogCard(page: Page, gameName: string) {
+  return catalog(page).locator('.game-lobby-card').filter({ hasText: gameName });
+}
+
 test.beforeEach(async ({ page }) => {
   await installApiMock(page);
   await page.goto('/games');
@@ -144,26 +152,25 @@ test.beforeEach(async ({ page }) => {
 
 test('filters the catalog by platform provider category and search', async ({ page }) => {
   await page.getByRole('button', { name: '💻 PC', exact: true }).click();
-  await expect(page.getByText('Neon Racer', { exact: true })).toBeVisible();
-  await expect(page.getByText('Fortune Tiger', { exact: true })).toHaveCount(0);
+  await expect(catalog(page).getByText('Neon Racer', { exact: true })).toBeVisible();
+  await expect(catalog(page).getByText('Fortune Tiger', { exact: true })).toHaveCount(0);
 
   await page.getByRole('button', { name: 'ทั้งหมด', exact: true }).click();
   await page.getByLabel('ค่ายเกม').selectOption('pg-soft');
-  await expect(page.getByText('Fortune Tiger', { exact: true })).toBeVisible();
-  await expect(page.getByText('Neon Racer', { exact: true })).toHaveCount(0);
+  await expect(catalog(page).getByText('Fortune Tiger', { exact: true })).toBeVisible();
+  await expect(catalog(page).getByText('Neon Racer', { exact: true })).toHaveCount(0);
 
   await page.getByRole('button', { name: 'สล็อต', exact: true }).click();
   await page.getByLabel('ค้นหาเกม').fill('fortune');
-  await expect(page.getByText('Fortune Tiger', { exact: true })).toBeVisible();
+  await expect(catalog(page).getByText('Fortune Tiger', { exact: true })).toBeVisible();
 });
 
 test('uses the fallback when a game image fails', async ({ page }) => {
-  const card = page.locator('.game-lobby-card').filter({ hasText: 'Fortune Tiger' });
-  await expect(card.locator('.game-lobby-fallback')).toHaveText('FO');
+  await expect(catalogCard(page, 'Fortune Tiger').locator('.game-lobby-fallback')).toHaveText('FO');
 });
 
 test('launches a game through the member launch contract', async ({ page }) => {
-  const card = page.locator('.game-lobby-card').filter({ hasText: 'Fortune Tiger' });
+  const card = catalogCard(page, 'Fortune Tiger');
   const launchRequest = page.waitForRequest((request) => request.url().endsWith('/member/games/mobile-fortune-tiger/launch'));
   await card.getByRole('button', { name: 'เล่น', exact: true }).click();
   await launchRequest;
