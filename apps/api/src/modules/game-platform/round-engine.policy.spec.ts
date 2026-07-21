@@ -16,13 +16,11 @@ describe('transitionGameRound', () => {
     expect(closed.state).toBe('CLOSED');
   });
 
-  it('supports multiple distinct bets and settlements', () => {
-    const firstBet = transitionGameRound(created(), 'PLACE_BET', 'bet-1');
-    const secondBet = transitionGameRound(firstBet, 'PLACE_BET', 'bet-2');
-    const firstWin = transitionGameRound(secondBet, 'SETTLE', 'win-1');
-    const secondWin = transitionGameRound(firstWin, 'SETTLE', 'win-2');
-    expect(secondBet.betTransactionId).toBe('bet-2');
-    expect(secondWin.settleTransactionId).toBe('win-2');
+  it('rejects conflicting repeated mutations for one round', () => {
+    const bet = transitionGameRound(created(), 'PLACE_BET', 'bet-1');
+    expect(() => transitionGameRound(bet, 'PLACE_BET', 'bet-2')).toThrow(GameRoundTransitionError);
+    const settled = transitionGameRound(bet, 'SETTLE', 'settle-1');
+    expect(() => transitionGameRound(settled, 'SETTLE', 'settle-2')).toThrow(GameRoundTransitionError);
   });
 
   it('records refund without collapsing it into rollback', () => {
