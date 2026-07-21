@@ -91,7 +91,11 @@ Branch: `feature/member-branding-foundation`
 - ✅ ป้องกัน Index หลุดด้วย normalized safe index
 - ✅ หยุด autoplay เมื่อ hover, focus หรือซ่อนแท็บ
 - ✅ รองรับ dots, previous/next และ accessibility state
-- 🔄 เชื่อม Banner จาก CMS พร้อม fallback asset
+- ✅ เชื่อม Promotion carousel เข้าหน้า Home จริง
+- ✅ เชื่อม CMS banner พร้อม fallback asset จากไฟล์ต้นแบบ
+- ✅ กรอง URL รูปและลิงก์โปรโมชั่นที่ไม่ปลอดภัย
+- ✅ ตัดภาพซ้ำก่อน render
+- ✅ เพิ่ม unit tests สำหรับ index normalization, link safety และ duplicate filtering
 - ⬜ ย้าย Announcement, Promotion cards, Tournament, Jackpot และ Leaderboard
 - 🧪 ตรวจ Responsive และ soak test หลังเชื่อมหน้า Home จริง
 
@@ -143,3 +147,6 @@ Branch: `feature/member-branding-foundation`
 21. ✅ เพิ่ม Promotion carousel foundation แบบ React
 22. ✅ เพิ่ม BrandIcon consumer bridge
 23. ✅ เพิ่ม Reference asset audit และ verify gate
+24. ✅ เชื่อม Promotion carousel เข้าหน้า Home จริง
+25. ✅ เพิ่ม CMS banner model พร้อม fallback และ safety filters
+26. ✅ เพิ่ม Home carousel regression tests
