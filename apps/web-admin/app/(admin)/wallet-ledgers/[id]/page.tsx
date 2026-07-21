@@ -92,7 +92,7 @@ export default function WalletLedgerDetailPage({ params }: Props) {
 
 function JsonCard({ title, payload }: { title: string; payload: unknown }) { return <AdminCard title={title}><pre style={preStyle}>{JSON.stringify(payload ?? {}, null, 2)}</pre></AdminCard>; }
 function ledgerTitle(item: any) { if (item.referenceType?.includes('GAME')) return item.direction === 'DEBIT' ? 'โยกเข้าเกม' : item.type === 'REVERSAL' ? 'Rollback คืนวอเลต' : 'โยกกลับวอเลต'; if (item.type === 'DEPOSIT') return 'ฝาก'; if (item.type === 'WITHDRAWAL') return 'ถอนเงิน'; if (item.type === 'ADJUSTMENT') return 'ปรับยอด'; return item.type; }
-function formatMoney(value: string | number, currency: string) { return `${currency} ${Number(value ?? 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
+function formatMoney(value: string | number, currency: string) { const amount = Number(value ?? 0); return `${currency} ${(Number.isFinite(amount) ? amount : 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
 const monoStyle = { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', overflowWrap: 'anywhere' as const, color: '#cbd5e1' } as const;
 const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.55 } as const;
 const rightStyle = { display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap' as const };

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminStack } from '../_components/admin-ui';
+import { formatMoney } from '../_components/human-labels';
 
 type AuditItem = { id: string; action: string; module: string; targetId?: string | null; createdAt: string; adminUser?: { username?: string | null; email?: string | null } | null };
 type RiskItem = { id: string; title: string; severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'; createdAt: string; memberId?: string | null };
@@ -48,7 +49,7 @@ export default function ActivityCenterPage() {
   const timeline = useMemo<TimelineItem[]>(() => {
     const auditItems = audit.map((item) => ({ id: `audit-${item.id}`, kind: 'audit' as const, title: `${item.module}: ${item.action}`, detail: item.adminUser?.username ?? item.adminUser?.email ?? 'Unknown admin', createdAt: item.createdAt, tone: auditTone(item.action), href: auditHref(item.module, item.targetId) }));
     const riskItems = risk.map((item) => ({ id: `risk-${item.id}`, kind: 'risk' as const, title: item.title, detail: `${item.severity} risk alert`, createdAt: item.createdAt, tone: item.severity === 'CRITICAL' || item.severity === 'HIGH' ? 'danger' as const : 'warning' as const, href: `/risk-alerts/${item.id}` }));
-    const ledgerItems = (finance?.recentLedgers ?? []).map((item) => ({ id: `ledger-${item.id}`, kind: 'ledger' as const, title: `${item.type} / ${item.direction}`, detail: `${item.user?.username ?? item.user?.shortId ?? '-'} · ${Number(item.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`, createdAt: item.createdAt, tone: item.direction === 'CREDIT' ? 'success' as const : 'neutral' as const, href: '/wallet-ledgers' }));
+    const ledgerItems = (finance?.recentLedgers ?? []).map((item) => ({ id: `ledger-${item.id}`, kind: 'ledger' as const, title: `${item.type} / ${item.direction}`, detail: `${item.user?.username ?? item.user?.shortId ?? '-'} · ${formatMoney(item.amount)}`, createdAt: item.createdAt, tone: item.direction === 'CREDIT' ? 'success' as const : 'neutral' as const, href: '/wallet-ledgers' }));
     return [...auditItems, ...riskItems, ...ledgerItems].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 40);
   }, [audit, finance, risk]);
 

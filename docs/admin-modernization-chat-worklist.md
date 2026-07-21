@@ -57,8 +57,9 @@
 
 ## Phase 1 — Bug และความปลอดภัย
 
-- [ ] แก้ THB NaN ใน /operations
-- [ ] แก้ THB NaN ใน /game-transfers
+- [x] แก้ THB NaN ใน /operations
+- [x] แก้ THB NaN ใน /game-transfers
+- [x] Harden money display ใน Activity Center, Bonus, Commission, Promotion Claims, Wallet Ledger detail และ Provider Snapshot
 - [ ] แก้ Prisma/UUID error ใน /member-insights
 - [ ] ห้ามแสดง raw backend error
 - [x] Member Insights และ Game Transfers ใช้ข้อความผิดพลาดที่ผ่านการกรอง พร้อม network fallback

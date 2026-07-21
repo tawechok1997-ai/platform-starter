@@ -107,7 +107,7 @@ function progressPercent(item: BonusLedger) { const required = Number(item.turno
 function actionTitle(action?: 'RELEASE' | 'EXPIRE' | 'REVOKE') { return action === 'RELEASE' ? 'ยืนยันการจ่ายโบนัส' : action === 'EXPIRE' ? 'ยืนยันการหมดอายุ' : 'ยืนยันการยกเลิกโบนัส'; }
 function actionDescription(action?: 'RELEASE' | 'EXPIRE' | 'REVOKE') { return action === 'RELEASE' ? 'ระบบจะเพิ่มยอดโบนัสเข้ากระเป๋าเงินของสมาชิก การดำเนินการนี้มีผลต่อเงินจริง' : action === 'EXPIRE' ? 'โบนัสนี้จะหมดอายุและไม่ถูกจ่ายเข้ากระเป๋าเงิน' : 'โบนัสนี้จะถูกยกเลิกและไม่สามารถนำกลับมาใช้ได้'; }
 function actionConfirmLabel(action?: 'RELEASE' | 'EXPIRE' | 'REVOKE') { return action === 'RELEASE' ? 'ยืนยันจ่ายโบนัส' : action === 'EXPIRE' ? 'ยืนยันหมดอายุ' : 'ยืนยันยกเลิก'; }
-function money(value: number) { return `THB ${Number(value || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
+function money(value: number) { const amount = Number(value); return `THB ${(Number.isFinite(amount) ? amount : 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
 const selectStyle = { minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', minWidth: 180 } as const;
 const inputStyle = { minHeight: 42, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', minWidth: 0 } as const;
 const formGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap: 8 } as const;

@@ -54,7 +54,7 @@ function JsonCard({ title, payload }: { title: string; payload: unknown }) { ret
 function statusTone(status: string) { if (status === 'MATCHED') return 'success'; if (status === 'MISMATCH') return 'danger'; if (status === 'UNKNOWN') return 'warning'; return 'neutral'; }
 function snapshotLabel(status: string) { if (status === 'MATCHED') return 'MATCHED'; if (status === 'MISMATCH') return 'NEEDS_REVIEW'; if (status === 'UNKNOWN') return 'UNKNOWN_PROVIDER_BALANCE'; return status; }
 function snapshotDescription(item: Snapshot) { if (item.status === 'MATCHED') return 'ยอดระบบและ provider ตรงกัน'; if (item.status === 'MISMATCH') return `ยอดไม่ตรง diff ${formatMoney(item.difference, 'THB')} ต้องตรวจ transfer/webhook/ledger`; return 'provider ตอบไม่ชัดหรือดึง balance ไม่สำเร็จ ต้องตรวจ adapter/log'; }
-function formatMoney(value: string | number, currency: string) { return `${currency} ${Number(value).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
+function formatMoney(value: string | number, currency: string) { const amount = Number(value); return `${currency} ${(Number.isFinite(amount) ? amount : 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
 function trafficStyle(status: string) { const background = status === 'MATCHED' ? 'rgba(34,197,94,.14)' : status === 'MISMATCH' ? 'rgba(239,68,68,.14)' : 'rgba(245,197,66,.14)'; return { border: '1px solid rgba(148,163,184,.18)', borderRadius: 18, padding: 16, background, display: 'grid', gap: 6 } as const; }
 const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.55 } as const;
 const actionRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' as const };
