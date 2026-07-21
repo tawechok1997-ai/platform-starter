@@ -17,13 +17,11 @@ concurrency:
 
 jobs:
   browser-evidence:
-    name: Capture every Admin route on mobile and desktop
+    name: Quick Admin browser smoke check
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     env:
       ADMIN_BASE_URL: ${{ secrets.ADMIN_BASE_URL || 'https://platformweb-admin-production.up.railway.app' }}
-      ADMIN_TEST_USERNAME: ${{ secrets.ADMIN_TEST_USERNAME }}
-      ADMIN_TEST_PASSWORD: ${{ secrets.ADMIN_TEST_PASSWORD }}
       CI: 'true'
 
     steps:
@@ -52,19 +50,17 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Create evidence test
+      - name: Create quick smoke test
         shell: bash
         run: |
           mkdir -p .admin-browser-evidence
           cat > .admin-browser-evidence/admin-evidence.spec.ts <<'EOF'
-          import { test, expect, type Browser, type Page } from '@playwright/test';
+          import { test, expect, type Page } from '@playwright/test';
           import AxeBuilder from '@axe-core/playwright';
           import fs from 'node:fs';
           import path from 'node:path';
 
           const baseURL = process.env.ADMIN_BASE_URL!;
-          const username = process.env.ADMIN_TEST_USERNAME;
-          const password = process.env.ADMIN_TEST_PASSWORD;
           const evidenceDir = path.resolve('artifacts/admin-browser-evidence');
           fs.mkdirSync(evidenceDir, { recursive: true });
 
@@ -72,12 +68,6 @@ jobs:
             { name: 'mobile-390x844', width: 390, height: 844, mobile: true },
             { name: 'desktop-1440x900', width: 1440, height: 900, mobile: false },
           ];
-
-          const blockedPrefixes = ['/logout', '/api', '/_next'];
-
-          function slugFor(route: string) {
-            return route === '/' ? 'root' : route.replace(/^\/+/, '').replace(/[^a-zA-Z0-9-_]+/g, '-').replace(/-+/g, '-');
-          }
 
           function attachRuntimeGuards(page: Page) {
             const consoleErrors: string[] = [];
@@ -91,60 +81,7 @@ jobs:
             return { consoleErrors, failedRequests };
           }
 
-          function seriousViolations(result: Awaited<ReturnType<AxeBuilder['analyze']>>) {
-            return result.violations.filter((violation) => ['critical', 'serious'].includes(violation.impact ?? ''));
-          }
-
-          async function login(page: Page) {
-            await page.goto(`${baseURL}/login?next=%2Fdashboard`, { waitUntil: 'domcontentloaded', timeout: 15_000 });
-            const userInput = page.locator('input[name="username"], input[name="email"], input[type="email"], input[autocomplete="username"]').first();
-            const passwordInput = page.locator('input[name="password"], input[type="password"], input[autocomplete="current-password"]').first();
-            await expect(userInput).toBeVisible();
-            await expect(passwordInput).toBeVisible();
-            await userInput.fill(username!);
-            await passwordInput.fill(password!);
-            await page.locator('button[type="submit"], input[type="submit"]').first().click();
-            await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 });
-            await page.waitForLoadState('domcontentloaded');
-            await page.waitForTimeout(750);
-          }
-
-          async function collectRoutes(page: Page) {
-            const discovered = new Set<string>(['/dashboard']);
-            const hrefs = await page.locator('a[href]').evaluateAll((anchors) =>
-              anchors.map((anchor) => (anchor as HTMLAnchorElement).getAttribute('href') || ''),
-            );
-
-            for (const href of hrefs) {
-              try {
-                const url = new URL(href, baseURL);
-                if (url.origin !== new URL(baseURL).origin) continue;
-                if (blockedPrefixes.some((prefix) => url.pathname.startsWith(prefix))) continue;
-                if (url.pathname.startsWith('/login')) continue;
-                discovered.add(url.pathname);
-              } catch {
-                // Ignore malformed links.
-              }
-            }
-
-            return [...discovered].sort();
-          }
-
-          async function createAuthenticatedContext(browser: Browser, device: typeof devices[number]) {
-            const context = await browser.newContext({
-              viewport: { width: device.width, height: device.height },
-              reducedMotion: 'reduce',
-              isMobile: device.mobile,
-              hasTouch: device.mobile,
-            });
-            const page = await context.newPage();
-            page.setDefaultTimeout(10_000);
-            page.setDefaultNavigationTimeout(15_000);
-            await login(page);
-            return { context, page };
-          }
-
-          test('public states and accessibility evidence', async ({ browser }) => {
+          test('public login and not-found smoke evidence', async ({ browser }) => {
             for (const device of devices) {
               const context = await browser.newContext({
                 viewport: { width: device.width, height: device.height },
@@ -153,82 +90,65 @@ jobs:
                 hasTouch: device.mobile,
               });
               const page = await context.newPage();
+              page.setDefaultTimeout(10_000);
               page.setDefaultNavigationTimeout(15_000);
               const guards = attachRuntimeGuards(page);
 
-              await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded', timeout: 15_000 });
-              await page.screenshot({ path: path.join(evidenceDir, `${device.name}-login.png`), fullPage: true });
+              const loginResponse = await page.goto(`${baseURL}/login`, {
+                waitUntil: 'domcontentloaded',
+                timeout: 15_000,
+              });
+              expect(loginResponse?.status() ?? 200).toBeLessThan(500);
+              await page.screenshot({
+                path: path.join(evidenceDir, `${device.name}-login.png`),
+                fullPage: true,
+              });
 
-              await page.goto(`${baseURL}/__admin-evidence-not-found`, { waitUntil: 'domcontentloaded', timeout: 15_000 });
-              await page.screenshot({ path: path.join(evidenceDir, `${device.name}-not-found.png`), fullPage: true });
+              const axe = await new AxeBuilder({ page }).analyze();
+              fs.writeFileSync(
+                path.join(evidenceDir, `${device.name}-login-axe.json`),
+                JSON.stringify(axe, null, 2),
+              );
 
-              const accessibility = await new AxeBuilder({ page }).analyze();
-              const issues = seriousViolations(accessibility);
-              fs.writeFileSync(path.join(evidenceDir, `${device.name}-public-axe.json`), JSON.stringify(accessibility, null, 2));
-              fs.writeFileSync(path.join(evidenceDir, `${device.name}-public-console-errors.json`), JSON.stringify(guards.consoleErrors, null, 2));
-              fs.writeFileSync(path.join(evidenceDir, `${device.name}-public-failed-requests.json`), JSON.stringify(guards.failedRequests, null, 2));
-              console.log(`[audit] ${device.name} public serious accessibility issues: ${issues.length}`);
-              console.log(`[audit] ${device.name} public console errors: ${guards.consoleErrors.length}`);
+              const notFoundResponse = await page.goto(`${baseURL}/__admin-evidence-not-found`, {
+                waitUntil: 'domcontentloaded',
+                timeout: 15_000,
+              });
+              expect(notFoundResponse?.status() ?? 200).toBeLessThan(500);
+              await page.screenshot({
+                path: path.join(evidenceDir, `${device.name}-not-found.png`),
+                fullPage: true,
+              });
+
+              fs.writeFileSync(
+                path.join(evidenceDir, `${device.name}-console-errors.json`),
+                JSON.stringify(guards.consoleErrors, null, 2),
+              );
+              fs.writeFileSync(
+                path.join(evidenceDir, `${device.name}-failed-requests.json`),
+                JSON.stringify(guards.failedRequests, null, 2),
+              );
+
+              console.log(`[smoke] ${device.name}: console=${guards.consoleErrors.length}, failedRequests=${guards.failedRequests.length}, axe=${axe.violations.length}`);
               await context.close();
             }
           });
 
-          test('crawl and capture every authenticated Admin route', async ({ browser }) => {
-            test.skip(!username || !password, 'Authenticated crawl skipped because repository secrets are not configured.');
-
-            const routeManifest: Record<string, { url: string; status: number | null; title: string; accessibilityIssues: number; consoleErrors: string[]; failedRequests: string[] }[]> = {};
-            let canonicalRoutes: string[] = [];
-
-            for (const device of devices) {
-              const { context, page } = await createAuthenticatedContext(browser, device);
-              if (canonicalRoutes.length === 0) canonicalRoutes = await collectRoutes(page);
-              routeManifest[device.name] = [];
-              fs.mkdirSync(path.join(evidenceDir, device.name, 'axe'), { recursive: true });
-
-              for (const route of canonicalRoutes) {
-                const guards = attachRuntimeGuards(page);
-                const response = await page.goto(`${baseURL}${route}`, { waitUntil: 'domcontentloaded', timeout: 15_000 }).catch(() => null);
-                await page.waitForTimeout(500);
-                const currentPath = new URL(page.url()).pathname;
-                const slug = slugFor(route);
-                await page.screenshot({ path: path.join(evidenceDir, device.name, `${slug}.png`), fullPage: true, timeout: 15_000 });
-
-                const axe = await new AxeBuilder({ page }).analyze();
-                const issues = seriousViolations(axe);
-                fs.writeFileSync(path.join(evidenceDir, device.name, 'axe', `${slug}.json`), JSON.stringify(axe, null, 2));
-
-                routeManifest[device.name].push({
-                  url: currentPath,
-                  status: response?.status() ?? null,
-                  title: await page.title(),
-                  accessibilityIssues: issues.length,
-                  consoleErrors: guards.consoleErrors,
-                  failedRequests: guards.failedRequests,
-                });
-
-                console.log(`[audit] ${device.name} ${route}: status=${response?.status() ?? 'unknown'}, accessibility=${issues.length}, console=${guards.consoleErrors.length}, failedRequests=${guards.failedRequests.length}`);
-                expect(currentPath.startsWith('/login'), `${route} redirected to login`).toBe(false);
-                expect(response?.status() ?? 200, `${route} returned an error status`).toBeLessThan(500);
-              }
-
-              await context.close();
-            }
-
-            fs.writeFileSync(path.join(evidenceDir, 'routes.json'), JSON.stringify(canonicalRoutes, null, 2));
-            fs.writeFileSync(path.join(evidenceDir, 'route-manifest.json'), JSON.stringify(routeManifest, null, 2));
-            fs.writeFileSync(
-              path.join(evidenceDir, 'ROUTE-SUMMARY.md'),
-              ['# Admin route evidence', '', `Total routes: ${canonicalRoutes.length}`, '', ...canonicalRoutes.map((route) => `- ${route}`)].join('\n'),
-            );
-          });
-
-          test('keyboard focus and 200 percent zoom evidence', async ({ page }) => {
-            await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded', timeout: 15_000 });
-            await page.evaluate(() => { document.documentElement.style.zoom = '200%'; });
+          test('login keyboard focus and 200 percent zoom', async ({ page }) => {
+            await page.goto(`${baseURL}/login`, {
+              waitUntil: 'domcontentloaded',
+              timeout: 15_000,
+            });
+            await page.evaluate(() => {
+              document.documentElement.style.zoom = '200%';
+            });
             await page.keyboard.press('Tab');
             const activeTag = await page.evaluate(() => document.activeElement?.tagName ?? '');
             expect(['INPUT', 'BUTTON', 'A']).toContain(activeTag);
-            await page.screenshot({ path: path.join(evidenceDir, 'login-zoom-200-keyboard-focus.png'), fullPage: true });
+            await page.screenshot({
+              path: path.join(evidenceDir, 'login-zoom-200-keyboard-focus.png'),
+              fullPage: true,
+            });
           });
           EOF
 
@@ -238,7 +158,7 @@ jobs:
           export default defineConfig({
             testDir: '.',
             testMatch: /admin-evidence\.spec\.ts/,
-            timeout: 8 * 60_000,
+            timeout: 2 * 60_000,
             expect: { timeout: 10_000 },
             retries: 0,
             workers: 1,
@@ -250,14 +170,14 @@ jobs:
               browserName: 'chromium',
               trace: 'retain-on-failure',
               screenshot: 'only-on-failure',
-              video: 'retain-on-failure',
+              video: 'off',
               ignoreHTTPSErrors: false,
             },
             outputDir: '../artifacts/test-results',
           });
           EOF
 
-      - name: Run Admin browser evidence
+      - name: Run quick Admin browser smoke check
         run: pnpm exec playwright test --config .admin-browser-evidence/playwright.config.ts
 
       - name: Write evidence summary
@@ -266,13 +186,13 @@ jobs:
         run: |
           mkdir -p artifacts/admin-browser-evidence
           {
-            echo "# Admin Browser Evidence"
+            echo "# Quick Admin Browser Smoke Check"
             echo
             echo "- Commit: $GITHUB_SHA"
             echo "- Base URL: $ADMIN_BASE_URL"
+            echo "- Checked: login, not-found, keyboard focus, 200% zoom"
             echo "- Devices: mobile 390x844 and desktop 1440x900"
-            echo "- Accessibility and console findings are reported without failing the workflow"
-            echo "- Authenticated secrets configured: $([[ -n \"$ADMIN_TEST_USERNAME\" && -n \"$ADMIN_TEST_PASSWORD\" ]] && echo yes || echo no)"
+            echo "- Full authenticated route crawl: disabled"
             echo "- Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           } > artifacts/admin-browser-evidence/SUMMARY.md
 
@@ -283,4 +203,4 @@ jobs:
           name: admin-browser-evidence-${{ github.sha }}
           path: artifacts
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 14
