@@ -96,7 +96,8 @@ export class ProviderSimulatorController {
     const forwardedProto = String(request.headers['x-forwarded-proto'] ?? request.protocol ?? 'http').split(',')[0].trim();
     const forwardedHost = String(request.headers['x-forwarded-host'] ?? request.headers.host ?? 'localhost:4000').split(',')[0].trim();
     const configuredBaseUrl = process.env.API_PUBLIC_URL?.replace(/\/$/, '');
-    return this.simulator.games(configuredBaseUrl || `${forwardedProto}://${forwardedHost}`, body);
+    const platform = body.platform === 'pc' ? 'desktop' : body.platform;
+    return this.simulator.games(configuredBaseUrl || `${forwardedProto}://${forwardedHost}`, { ...body, platform });
   }
 
   @Post('bet-history')
