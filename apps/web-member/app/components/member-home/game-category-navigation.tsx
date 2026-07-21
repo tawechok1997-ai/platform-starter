@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import type { SiteIconSettings } from '../../site-settings';
+import type { ExtendedBrandIconSettings } from '../../brand/brand-icon-registry';
 import type {
   GameCategoryNavigationConfig,
   GameCategoryNavigationEntry,
 } from '../../brand/game-category-navigation';
 import { buildVisibleGameCategoryNavigation } from '../../brand/game-category-navigation';
+import type { SiteIconSettings } from '../../site-settings';
 import { BrandIcon } from '../brand-icon';
 
 export function GameCategoryNavigation({
@@ -49,7 +50,7 @@ function CategoryNavigationLink({
   const href = item.category
     ? `/games?category=${encodeURIComponent(item.category)}`
     : '/games';
-  const configured = { [item.iconName]: item.iconValue };
+  const configured: ExtendedBrandIconSettings = { [item.iconName]: item.iconValue };
 
   return (
     <Link
