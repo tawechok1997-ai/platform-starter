@@ -34,9 +34,11 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | admin-members | admin-audit | Administrative member-change audit projection |
 | activity | admin-activity | Legacy operational activity routes delegate to the canonical admin activity projection |
 | risk | risk-alerts | Legacy finance-risk summary route delegates to the canonical risk-alerts projection |
+| topups | admin-auth | Administrative authorization for deposit review and operational commands |
 | topups | wallet | Idempotent deposit credit and ledger write |
 | topups | finance | Financial workflow locking and reconciliation |
 | topups | storage | Private slip object lifecycle |
+| withdrawals | admin-auth | Administrative authorization for withdrawal review and operational commands |
 | withdrawals | wallet | Balance reservation, debit and reversal |
 | withdrawals | finance | Withdrawal completion and idempotency orchestration |
 | withdrawals | bank-accounts | Destination-bank ownership and review state |
