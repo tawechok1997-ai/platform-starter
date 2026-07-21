@@ -32,10 +32,12 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const pathname = usePathname();
   const router = useRouter();
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const notificationMenuRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -44,6 +46,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const [admin, setAdmin] = useState<CurrentAdmin>({});
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(['overview']));
   const [queueCount, setQueueCount] = useState({ topups: 0, withdrawals: 0 });
+  const [openRiskCount, setOpenRiskCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,6 +73,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   useEffect(() => {
     setMenuOpen(false);
     setProfileOpen(false);
+    setNotificationOpen(false);
     const activeGroup = navGroups.find((group) => group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`)));
     if (activeGroup) setOpenGroups((current) => new Set(current).add(activeGroup.id));
   }, [pathname]);
@@ -112,6 +116,18 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   }, [profileOpen]);
 
   useEffect(() => {
+    if (!notificationOpen) return;
+    const closeNotificationMenu = (event: MouseEvent | KeyboardEvent) => {
+      if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
+      if (event instanceof MouseEvent && notificationMenuRef.current?.contains(event.target as Node)) return;
+      setNotificationOpen(false);
+    };
+    document.addEventListener('mousedown', closeNotificationMenu);
+    document.addEventListener('keydown', closeNotificationMenu);
+    return () => { document.removeEventListener('mousedown', closeNotificationMenu); document.removeEventListener('keydown', closeNotificationMenu); };
+  }, [notificationOpen]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
@@ -125,9 +141,10 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
 
   async function loadQueueCount() {
     try {
-      const res = await adminApiFetch('/admin/queues/summary');
-      const data = await res.json().catch(() => null);
-      if (res.ok && data) setQueueCount({ topups: Number(data.topUps?.count ?? 0), withdrawals: Number(data.withdrawals?.count ?? 0) });
+      const [queueResponse, riskResponse] = await Promise.all([adminApiFetch('/admin/queues/summary'), adminApiFetch('/admin/risk-alerts?status=OPEN&take=1')]);
+      const [queueData, riskData] = await Promise.all([queueResponse.json().catch(() => null), riskResponse.json().catch(() => null)]);
+      if (queueResponse.ok && queueData) setQueueCount({ topups: Number(queueData.topUps?.count ?? 0), withdrawals: Number(queueData.withdrawals?.count ?? 0) });
+      if (riskResponse.ok && riskData) setOpenRiskCount(Number(riskData.summary?.openCount ?? riskData.total ?? 0));
     } catch {
       // Queue counters are supplementary and must never block the admin shell.
     }
@@ -165,6 +182,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   function navigate(href: string) {
     setMenuOpen(false);
     setProfileOpen(false);
+    setNotificationOpen(false);
     setCommandOpen(false);
     setCommandQuery('');
     if (href === pathname) return;
@@ -183,6 +201,12 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   if (!ready || !isLoggedIn) return <main className="admin-loading-screen"><span className="admin-loading-mark">A</span><p>กำลังตรวจสอบสิทธิ์...</p></main>;
 
   const pendingTotal = queueCount.topups + queueCount.withdrawals;
+  const notificationCount = pendingTotal + openRiskCount;
+  const notifications = [
+    queueCount.topups > 0 ? { title: 'มีรายการฝากรอตรวจ', detail: `${queueCount.topups.toLocaleString('th-TH')} รายการ`, href: '/topups', tone: 'warning' } : null,
+    queueCount.withdrawals > 0 ? { title: 'มีรายการถอนรอดำเนินการ', detail: `${queueCount.withdrawals.toLocaleString('th-TH')} รายการ`, href: '/withdrawals', tone: 'warning' } : null,
+    openRiskCount > 0 ? { title: 'มีเคสความเสี่ยงที่ยังเปิดอยู่', detail: `${openRiskCount.toLocaleString('th-TH')} เคส`, href: '/risk-alerts', tone: 'danger' } : null,
+  ].filter((item): item is { title: string; detail: string; href: string; tone: 'warning' | 'danger' } => Boolean(item));
   const currentItem = navGroups.flatMap((group) => group.items).find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
   const toggleCollapsed = () => setSidebarCollapsed((current) => { const next = !current; window.localStorage.setItem('admin_sidebar_collapsed', String(next)); return next; });
   const displayName = admin.displayName || [admin.firstName, admin.lastName].filter(Boolean).join(' ') || admin.username || 'ผู้ดูแลระบบ';
@@ -241,6 +265,10 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
           <button type="button" className="admin-command-trigger" onClick={() => setCommandOpen(true)} aria-label="เปิด Command Palette"><AdminIcon name="search" /><span>ค้นหาคำสั่ง</span><kbd>⌘ K</kbd></button>
           <span className={`admin-environment-badge admin-environment-badge--${environment.toLowerCase()}`}>{environment}</span>
           <div className="admin-topbar-status"><span className="admin-system-dot" />ระบบพร้อมใช้งาน{pendingTotal > 0 && <a href="/operations" onClick={(event) => { event.preventDefault(); navigate('/operations'); }}>{pendingTotal} รายการรอดำเนินการ</a>}</div>
+          <div className="admin-notification-menu" ref={notificationMenuRef}>
+            <button type="button" className="admin-notification-trigger" onClick={() => setNotificationOpen((current) => !current)} aria-label="เปิดศูนย์แจ้งเตือน" aria-expanded={notificationOpen} aria-haspopup="menu"><AdminIcon name="bell" />{notificationCount > 0 && <em>{notificationCount > 99 ? '99+' : notificationCount}</em>}</button>
+            {notificationOpen && <div className="admin-notification-popover" role="menu"><header><div><strong>การแจ้งเตือน</strong><span>งานที่ต้องติดตาม</span></div><button type="button" onClick={() => navigate('/operations')}>ดูทั้งหมด</button></header>{notifications.length ? <div>{notifications.map((item) => <button type="button" key={item.href} role="menuitem" data-tone={item.tone} onClick={() => navigate(item.href)}><AdminIcon name={item.tone === 'danger' ? 'risk' : 'money'} /><span><strong>{item.title}</strong><small>{item.detail}</small></span></button>)}</div> : <p>ไม่มีงานที่ต้องจัดการตอนนี้</p>}</div>}
+          </div>
           <div className="admin-topbar-profile" ref={profileMenuRef}>
             <button type="button" className="admin-topbar-profile__trigger" onClick={() => setProfileOpen((current) => !current)} aria-expanded={profileOpen} aria-haspopup="menu">
               {avatar}
