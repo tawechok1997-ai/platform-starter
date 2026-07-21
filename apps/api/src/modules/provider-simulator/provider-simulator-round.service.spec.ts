@@ -32,12 +32,12 @@ describe('ProviderSimulatorRoundService', () => {
     expect(result).toMatchObject({ state: 'BET', betTransactionId: 'bet-1' });
   });
 
-  it('allows an additional bet in an active round', async () => {
+  it('rejects a different bet transaction in an active round', async () => {
     items.push(ledger('BET', 'bet-1'));
-    const result = await service.enforce('BET', {
+
+    await expect(service.enforce('BET', {
       userId: 'member-1', roundId: 'round-1', gameCode: 'fortune-tiger', transactionId: 'bet-2',
-    });
-    expect(result).toMatchObject({ state: 'BET', betTransactionId: 'bet-2' });
+    })).rejects.toThrow('Round already has a different bet transaction');
   });
 
   it('rejects settlement before a bet', async () => {
