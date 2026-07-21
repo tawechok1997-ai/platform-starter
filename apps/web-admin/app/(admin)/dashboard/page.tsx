@@ -175,11 +175,11 @@ export default function OperationDashboardPage() {
             </AdminMetricGrid>
           </AdminCard>
 
-          <AdminCard title={t.operationsKpi} description={`${QUEUE_TARGET_MINUTES} / ${QUEUE_CRITICAL_MINUTES} นาที`}>
+          <AdminCard title={t.operationsKpi} description={`${formatDuration(QUEUE_TARGET_MINUTES, locale)} / ${formatDuration(QUEUE_CRITICAL_MINUTES, locale)}`}>
             <AdminMetricGrid>
               <AdminMetric title={t.pending} value={String(pendingTotal)} helper={`${summary.totals.pendingTopUps} ${t.deposit} · ${summary.totals.pendingWithdrawals} ${t.withdrawal}`} tone={pendingTotal > 0 ? 'warning' : 'success'} />
               <AdminMetric title={t.overdue} value={queueMetrics.overdueCount.toLocaleString(dateLocale)} helper={`${queueMetrics.loadedCount} ${t.loaded}`} tone={queueMetrics.overdueCount > 0 ? 'warning' : 'success'} />
-              <AdminMetric title={t.criticalQueue} value={queueMetrics.criticalCount.toLocaleString(dateLocale)} helper={`${QUEUE_CRITICAL_MINUTES} นาที`} tone={queueMetrics.criticalCount > 0 ? 'danger' : 'success'} />
+              <AdminMetric title={t.criticalQueue} value={queueMetrics.criticalCount.toLocaleString(dateLocale)} helper={formatDuration(QUEUE_CRITICAL_MINUTES, locale)} tone={queueMetrics.criticalCount > 0 ? 'danger' : 'success'} />
               <AdminMetric title={t.oldestQueue} value={formatDuration(queueMetrics.oldestMinutes, locale)} helper={t.pending} tone={queueMetrics.oldestMinutes >= QUEUE_CRITICAL_MINUTES ? 'danger' : queueMetrics.oldestMinutes >= QUEUE_TARGET_MINUTES ? 'warning' : 'success'} />
               {canViewRisk && <AdminMetric title={t.riskAlerts} value={`${riskSummary.openCount}`} helper={`${riskSummary.criticalCount} ${t.criticalRisk}`} tone={riskSummary.criticalCount > 0 ? 'danger' : riskSummary.openCount > 0 ? 'warning' : 'success'} />}
             </AdminMetricGrid>
@@ -251,19 +251,12 @@ function FinanceComparisonChart({ today, locale, copy }: { today: NonNullable<Fi
   const amountMax = Math.max(depositAmount, withdrawalAmount, 1);
   const countMax = Math.max(today.topUpCount, today.withdrawalCount, 1);
   const netFlow = Number(today.netFlow);
-  if (locale) return <div className="admin-finance-chart">
-    <div className="admin-finance-chart__plot" aria-label={`${copy.deposit} ${formatMoney(today.topUpAmount)} ${copy.withdrawal} ${formatMoney(today.withdrawalAmount)}`}>
-      <ChartColumn label={copy.deposit} amount={depositAmount} count={today.topUpCount} amountPercent={(depositAmount / amountMax) * 100} countPercent={(today.topUpCount / countMax) * 100} kind="deposit" locale={locale} copy={copy} />
-      <ChartColumn label={copy.withdrawal} amount={withdrawalAmount} count={today.withdrawalCount} amountPercent={(withdrawalAmount / amountMax) * 100} countPercent={(today.withdrawalCount / countMax) * 100} kind="withdrawal" locale={locale} copy={copy} />
-    </div>
-    <div className="admin-finance-chart__net" data-tone={netFlow < 0 ? 'negative' : 'positive'}><span>{copy.netFlow}</span><strong>{formatMoney(today.netFlow)}</strong><small>{netFlow < 0 ? copy.outflow : copy.inflow}</small></div>
-  </div>;
   return <div className="admin-finance-chart">
     <div className="admin-finance-chart__plot" aria-label={`${copy.deposit} ${formatMoney(today.topUpAmount)} ${copy.withdrawal} ${formatMoney(today.withdrawalAmount)}`}>
       <ChartColumn label={copy.deposit} amount={depositAmount} count={today.topUpCount} amountPercent={(depositAmount / amountMax) * 100} countPercent={(today.topUpCount / countMax) * 100} kind="deposit" locale={locale} copy={copy} />
       <ChartColumn label={copy.withdrawal} amount={withdrawalAmount} count={today.withdrawalCount} amountPercent={(withdrawalAmount / amountMax) * 100} countPercent={(today.withdrawalCount / countMax) * 100} kind="withdrawal" locale={locale} copy={copy} />
     </div>
-    <div className="admin-finance-chart__net" data-tone={netFlow < 0 ? 'negative' : 'positive'}><span>Net flow</span><strong>{formatMoney(today.netFlow)}</strong><small>{netFlow < 0 ? 'เงินไหลออกมากกว่าไหลเข้า' : 'เงินไหลเข้ามากกว่าหรือเท่ากับไหลออก'}</small></div>
+    <div className="admin-finance-chart__net" data-tone={netFlow < 0 ? 'negative' : 'positive'}><span>{copy.netFlow}</span><strong>{formatMoney(today.netFlow)}</strong><small>{netFlow < 0 ? copy.outflow : copy.inflow}</small></div>
   </div>;
 }
 
