@@ -10,6 +10,17 @@
     "sport": { "path": "/assets/reference-brand/menu/sport.png", "sourcePath": "assets/menu/กีฬา.png", "sha256": "17f702ead38b492d1b03eee37dbb553d705b724b4582dce23991e30be75c6ef6" },
     "fishing": { "path": "/assets/reference-brand/menu/fishing.png", "sourcePath": "assets/menu/ตกปลา.png", "sha256": "10e5b4196ab7077b7ad1a7800abb27acffb59cf3365af54841b03affbf41d213" },
     "lottery": { "path": "/assets/reference-brand/menu/lottery.png", "sourcePath": "assets/menu/หวย.png", "sha256": "da8970660d86dc3ee446fdf52b8e018274881476bdb091931b738b954ad51125" },
-    "card": { "path": "/assets/reference-brand/menu/card.png", "sourcePath": "assets/menu/ไพ่.png", "sha256": "f9816fb79d26b1d5c000bdd74e8862330391f6ce5e1a2f0c558c6daacb24264c" }
+    "card": { "path": "/assets/reference-brand/menu/card.png", "sourcePath": "assets/menu/ไพ่.png", "sha256": "f9816fb79d26b1d5c000bdd74e8862330391f6ce5e1a2f0c558c6daacb24264c" },
+    "deposit": { "path": "/assets/reference-brand/menu/deposit.png", "sourcePath": "assets/menu/ฝาก.png", "sha256": "4bcc5f5b703b93732a78080833123fde683fa1d421eea280d2a25373b807f0ec" },
+    "withdraw": { "path": "/assets/reference-brand/menu/withdraw.png", "sourcePath": "assets/menu/ถอน.png", "sha256": "baa203065a26ed2639cb5216634c9bfa052bc4bcb1bd681dc54c49e94f1fdd53" },
+    "promotion": { "path": "/assets/reference-brand/menu/promotion.png", "sourcePath": "assets/menu/โปรโมชัน.png", "sha256": "1c5c97546f0525cc56142f165f074e5719616c8fc7a8df9667e4c20a7bbde3c0" },
+    "bonus": { "path": "/assets/reference-brand/menu/bonus.png", "sourcePath": "assets/menu/โบนัส.png", "sha256": "2032aaf5598ce463555cbcbc27f1ca832fecc6edf882a80559506df019aea40c" },
+    "affiliate": { "path": "/assets/reference-brand/menu/affiliate.png", "sourcePath": "assets/menu/ลิ้งเเนะนำเพื่อน.png", "sha256": "d8a757fbc566e660194bea6ea313aaa8098a22a1c5936ac779c4ef16bba57f36" },
+    "support": { "path": "/assets/reference-brand/menu/support.png", "sourcePath": "assets/menu/บริการลูกค้า.png", "sha256": "ccd93373b15a5022cae0b9c0fe8537afe2f41871ef01a464c4f184e4759213be" },
+    "history": { "path": "/assets/reference-brand/menu/history.png", "sourcePath": "assets/menu/ประวัตื.png", "sha256": "6d55ba36610afe8e2f8892f785d2ee0c490fcdeb862a4a0ce453948f8f7a1f4a" },
+    "notification": { "path": "/assets/reference-brand/menu/notification.png", "sourcePath": "assets/menu/เเจ้งเตอน.png", "sha256": "6f8d1d7dc9fb3fb500e44a778ae1a11f30e0d671d2fc309262e9cb931683739e" },
+    "activities": { "path": "/assets/reference-brand/menu/activities.png", "sourcePath": "assets/menu/กิจกรรม.png", "sha256": "440870a74143e65d5aba0e96034365c144f27b85d536c2fb101c56696bf555f7" },
+    "news": { "path": "/assets/reference-brand/menu/news.png", "sourcePath": "assets/menu/ข่าวสาร.png", "sha256": "7589309d8a58361058a59ef60e0b922bbb2ccb1618e6ec66b74e7110f1011ee6" },
+    "recommended": { "path": "/assets/reference-brand/menu/recommended.png", "sourcePath": "assets/menu/เเนะนำ.png", "sha256": "69c3b3600c1a08f39bb24b54856b1b221a166a632bc293033354891cda8134e2" }
   }
 }
