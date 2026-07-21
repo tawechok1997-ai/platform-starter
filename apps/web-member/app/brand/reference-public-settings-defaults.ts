@@ -51,12 +51,13 @@ export const REFERENCE_BRANDING_DEFAULTS: Record<string, unknown> = {
   logo_login_url: DEFAULT_REFERENCE_ASSETS.logoLogin,
   logo_register_url: DEFAULT_REFERENCE_ASSETS.logoRegister,
   favicon_url: DEFAULT_REFERENCE_ASSETS.favicon,
-  language_icon_url: '/assets/reference-brand/header/th.svg',
+  language_icon_url: DEFAULT_REFERENCE_ASSETS.languageIcon,
 };
 
 /**
- * These legacy menu values are exported now, but consumers should switch to
- * the settings-backed image renderer before this whole map is enabled globally.
+ * MemberChrome consumes these defaults without changing the legacy IconKey
+ * contract. Other consumers migrate individually so a root-relative image path
+ * is never rendered as plain text.
  */
 export const REFERENCE_LEGACY_MENU_ICON_DEFAULTS: Record<string, string> = {
   home: DEFAULT_REFERENCE_MENU_ICONS.home,
