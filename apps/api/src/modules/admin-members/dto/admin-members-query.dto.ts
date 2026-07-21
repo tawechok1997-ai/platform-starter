@@ -30,4 +30,14 @@ export class AdminMembersQueryDto {
   @IsString()
   @MaxLength(32)
   to?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(24)
+  bankStatus?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(24)
+  kycStatus?: string;
 }
