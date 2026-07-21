@@ -1,4 +1,4 @@
-import { ArrayMaxSize, IsArray, IsIn, IsNumberString, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsIn, IsNumberString, IsOptional, IsString, IsUUID, Length, MaxLength } from 'class-validator';
 
 export class RiskAlertListQueryDto {
   @IsOptional()
@@ -53,6 +53,10 @@ export class BulkDismissRiskAlertsDto {
   @ArrayMaxSize(100)
   @IsUUID(undefined, { each: true })
   ids!: string[];
+
+  @IsString()
+  @Length(5, 1000)
+  reason!: string;
 }
 
 export class AssignRiskAlertDto {
