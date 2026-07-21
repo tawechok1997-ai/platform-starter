@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { GameCategoryNavigationConfig } from './brand/game-category-navigation';
 import {
   CmsContent,
   MemberFeatureFlags,
   SiteIconSettings,
   defaultFeatureFlags,
+  defaultIconSettings,
 } from './site-settings';
 import {
   CmsPopup,
@@ -33,6 +35,7 @@ type MemberHomeProps = {
   showProviders: boolean;
   showRecommended: boolean;
   cmsContent: CmsContent;
+  gameCategoryNavigation: GameCategoryNavigationConfig;
   icons?: SiteIconSettings;
   features?: MemberFeatureFlags;
 };
@@ -41,6 +44,7 @@ const POPUP_CLOSED_VERSION_KEY = 'member_cms_popup_closed_version';
 
 export default function MemberHome(props: MemberHomeProps) {
   const features = props.features ?? defaultFeatureFlags;
+  const icons = props.icons ?? defaultIconSettings;
   const [popupClosed, setPopupClosed] = useState(false);
   const [activeTab, setActiveTab] = useState<HomeTab>('highlights');
   const popupVersion = props.cmsContent.popup.version ?? 'v1';
@@ -81,6 +85,8 @@ export default function MemberHome(props: MemberHomeProps) {
         showCategories={props.showCategories}
         showRecommended={props.showRecommended}
         gamesEnabled={features.games}
+        gameCategoryNavigation={props.gameCategoryNavigation}
+        icons={icons}
       />
 
       <HomePromotionsPanel
