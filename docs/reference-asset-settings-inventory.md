@@ -62,22 +62,10 @@ All primary Member navigation icons must be editable through settings:
 - Notification
 - VIP
 - Wallet
-- Casino
-- Slot
-- Fishing
-- Sport
-- Lottery
-- Live
 
-Category reference assets include:
+Reference source files under `assets/menu/` include Thai-named originals such as `หน้าเเรก.png`, `คาสิโน.png`, `สล็อต.png`, `กีฬา.png`, `ตกปลา.png`, `ถ่ายทอดสด.png`, `หวย.png`, and `ไพ่.png`. During intake they are renamed to stable English filenames under `public/assets/reference-brand/menu/`.
 
-- `assets/casino-mobile/*`
-- `assets/fishing/fishing-bg.webp`
-- `assets/live/logo_live.webp`
-- `assets/lotto/bg_lotto.webp`
-- provider and category assets under the corresponding folders
-
-Settings keys:
+Primary settings keys:
 
 - `icons.home`
 - `icons.deposit`
@@ -93,12 +81,55 @@ Settings keys:
 - `icons.notification`
 - `icons.vip`
 - `icons.wallet`
-- `icons.casino`
-- `icons.slot`
-- `icons.fishing`
-- `icons.sport`
-- `icons.lottery`
-- `icons.live`
+
+## Game category navigation icons and labels
+
+The category rail shown on Member Home and the game lobby must read both label and icon values from settings. It covers:
+
+- หน้าหลัก
+- คาสิโน
+- สล็อต
+- คาสิโนสด
+- กีฬา
+- ยิงปลา
+- หวย
+- ไพ่
+- อาร์เคด
+- เกมใหม่
+- ยอดนิยม
+- หมวดอื่นจาก API
+
+Icon settings keys:
+
+- `icons.game_category_home_icon`
+- `icons.game_category_casino_icon`
+- `icons.game_category_slot_icon`
+- `icons.game_category_live_icon`
+- `icons.game_category_sport_icon`
+- `icons.game_category_fishing_icon`
+- `icons.game_category_lottery_icon`
+- `icons.game_category_card_icon`
+- `icons.game_category_arcade_icon`
+- `icons.game_category_new_icon`
+- `icons.game_category_popular_icon`
+- `icons.game_category_other_icon`
+
+Label settings keys:
+
+- `website.game_category_home_label`
+- `website.game_category_casino_label`
+- `website.game_category_slot_label`
+- `website.game_category_live_label`
+- `website.game_category_sport_label`
+- `website.game_category_fishing_label`
+- `website.game_category_lottery_label`
+- `website.game_category_card_label`
+- `website.game_category_arcade_label`
+- `website.game_category_new_label`
+- `website.game_category_popular_label`
+- `website.game_category_other_label`
+
+The UI maps aliases returned by the game API, such as `slots`, `live_casino`, `sports`, `fish`, and `lotto`, into these configurable entries. Unknown API categories remain visible using the configurable `other` fallback.
 
 ## Important editable content
 
@@ -114,10 +145,11 @@ Text must be provided by settings rather than embedded inside UI components:
 - Login title and subtitle
 - Register title and subtitle
 - Deposit, withdraw and support labels
+- Game category menu labels
 - Primary CTA text
 - Footer and support text
 
-Suggested settings namespace: `content`.
+Suggested settings namespace: `content` for general copy, while existing public settings compatibility keeps game category labels under `website` until the Admin migration is complete.
 
 ## Safety and runtime rules
 
@@ -125,7 +157,7 @@ Suggested settings namespace: `content`.
 2. Member UI reads values through public settings.
 3. Admin can upload, replace, disable or restore each asset.
 4. Game names, provider logos, categories and game icons continue to come from the game API.
-5. Promotion records and banners come from Admin/CMS settings.
+5. Promotion records and banners come from Admin/CMS settings only.
 6. Asset URLs and SVG content must pass existing sanitizers and asset audit.
 7. Components must keep a safe text or image fallback when a configured asset fails.
 8. All layouts must remain fluid from 320px through wide desktop displays.
