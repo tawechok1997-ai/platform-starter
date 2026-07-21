@@ -8,14 +8,15 @@ import {
   defaultFeatureFlags,
 } from './site-settings';
 import {
-  AnnouncementList,
   CmsPopup,
   PendingRequests,
 } from './components/member-home-sections';
 import { HomeActivitiesPanel } from './components/member-home/home-activities-panel';
+import { HomeAnnouncementStrip } from './components/member-home/home-announcement-strip';
 import { HomeHighlightsPanel } from './components/member-home/home-highlights-panel';
 import { HomePromotionsPanel } from './components/member-home/home-promotions-panel';
 import { HomePromotionCarousel } from './components/member-home/home-promotion-carousel';
+import styles from './components/member-home/home-reference.module.css';
 import { SourceHomeTabs, type HomeTab } from './components/member-home/source-home-tabs';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
@@ -55,12 +56,12 @@ export default function MemberHome(props: MemberHomeProps) {
   }
 
   return (
-    <section className="member-shell member-home-shell member-source-home">
+    <section className={`member-shell member-home-shell member-source-home ${styles.referenceHome}`}>
       <div className="member-home-zone member-home-zone--primary">
         {props.showPromotion && features.games && (
           <HomePromotionCarousel content={props.cmsContent} siteName={props.siteName} />
         )}
-        <AnnouncementList content={props.cmsContent} />
+        <HomeAnnouncementStrip content={props.cmsContent} />
         <SourceHomeTabs activeTab={activeTab} onChange={setActiveTab} />
       </div>
 
