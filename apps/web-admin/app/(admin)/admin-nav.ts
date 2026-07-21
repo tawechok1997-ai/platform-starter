@@ -75,15 +75,16 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'Promotion Operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'] },
       { title: 'โปรโมชันและโบนัส', href: '/promotion-center', permissions: ['promotion.view'] },
       { title: 'คำขอรับโปรโมชัน', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
-      { title: 'ประวัติโบนัสด', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
+      { title: 'ประวัติโบนัส', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
       { title: 'ตัวแทนและ Affiliate', href: '/affiliate-center', permissions: ['affiliate.view'] },
       { title: 'ประวัติคอมมิชชัน', href: '/commission-ledgers', permissions: ['commission.view'] },
       { title: 'จัดการเนื้อหาเว็บไซต์', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
     ],
   },
   {
-    id: 'administration', title: 'ผู้ดูแลและสิทธิ์', description: 'บัญชี บทบาท และสิทธิ์การใช้งาน',
+    id: 'administration', title: 'บัญชีผู้ดูแลและสิทธิ์', description: 'โปรไฟล์ บัญชีผู้ดูแล บทบาท และการตรวจสอบ',
     items: [
+      { title: 'โปรไฟล์ของฉัน', href: '/profile' },
       { title: 'บัญชีผู้ดูแล', href: '/admin-accounts', permissions: ['admin.view', 'admin.access.view'] },
       { title: 'บทบาทและสิทธิ์', href: '/admin-roles', permissions: ['admin.access.view'] },
       { title: 'คำเชิญผู้ดูแล', href: '/admin-invitations', permissions: ['admin.create'] },
