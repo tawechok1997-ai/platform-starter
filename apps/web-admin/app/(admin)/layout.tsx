@@ -4,7 +4,8 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from '../admin-api';
 import { AdminButton, AdminEmptyState } from '../components/admin-ui';
-import { canAccessNavItem, localizedNavGroupDescription, localizedNavGroupTitle, localizedNavTitle, navGroups, requiredPermissionsForPath, type AdminLocale } from './admin-nav';
+import { canAccessNavItem, localizedNavGroupDescription, localizedNavGroupTitle, localizedNavTitle, navGroups, requiredPermissionsForPath } from './admin-nav';
+import { useAdminLocale, type AdminLocale } from './admin-locale';
 import { AdminIcon, iconForAdminHref } from './_components/admin-icon';
 
 const AUTH_TIMEOUT_MS = 12000;
@@ -33,14 +34,13 @@ type QuickNavItem = { title: string; href: string };
 type AdminNotification = { title: string; detail: string; href: string; tone: 'warning' | 'danger' };
 const FAVORITE_NAV_STORAGE_KEY = 'admin_favorite_nav_items';
 const RECENT_NAV_STORAGE_KEY = 'admin_recent_nav_items';
-const ADMIN_LOCALE_STORAGE_KEY = 'admin_locale';
 
 const shellCopy = {
   th: {
-    workspace: 'พื้นที่ทำงาน', searchMenu: 'ค้นหาเมนู', favorites: 'รายการโปรด', recentlyUsed: 'ใช้ล่าสุด', clear: 'ล้าง', openMenu: 'เปิดเมนูแอดมิน', closeMenu: 'ปิดเมนู', searchCommands: 'ค้นหาคำสั่ง', commandPlaceholder: 'ค้นหาหน้า หรือคำสั่ง...', noCommand: 'ไม่พบคำสั่ง', noCommandDescription: 'ลองค้นหาด้วยชื่ออื่น', notifications: 'การแจ้งเตือน', followUp: 'งานที่ต้องติดตาม', viewAll: 'ดูทั้งหมด', noNotifications: 'ไม่มีงานค้าง', topupsPending: 'มีรายการฝากรอตรวจ', withdrawalsPending: 'มีรายการถอนรอดำเนินการ', risksPending: 'มีเคสความเสี่ยงที่ยังเปิดอยู่', online: 'ออนไลน์', profile: 'โปรไฟล์', security: 'ความปลอดภัยและ 2FA', activity: 'กิจกรรมล่าสุด', logout: 'ออกจากระบบ', collapse: 'ย่อเมนู', expand: 'ขยายเมนู', systemReady: 'ระบบพร้อมใช้งาน', pending: 'รายการรอดำเนินการ', accessDenied: 'ไม่มีสิทธิ์เข้าถึงหน้านี้', accessDeniedDescription: 'กรุณาติดต่อผู้ดูแลสิทธิ์หากจำเป็น', backToDashboard: 'กลับไป Dashboard', removeFavorite: 'เอาออกจากรายการโปรด', addFavorite: 'เพิ่มในรายการโปรด', language: 'ภาษา', thai: 'ไทย', english: 'EN', adminConsole: 'แอดมิน',
+    workspace: 'พื้นที่ทำงาน', searchMenu: 'ค้นหาเมนู', favorites: 'รายการโปรด', recentlyUsed: 'ใช้ล่าสุด', clear: 'ล้าง', openMenu: 'เปิดเมนูแอดมิน', closeMenu: 'ปิดเมนู', searchCommands: 'ค้นหาคำสั่ง', commandPlaceholder: 'ค้นหาหน้า หรือคำสั่ง...', noCommand: 'ไม่พบคำสั่ง', noCommandDescription: 'ลองค้นหาด้วยชื่ออื่น', notifications: 'การแจ้งเตือน', followUp: 'งานที่ต้องติดตาม', viewAll: 'ดูทั้งหมด', noNotifications: 'ไม่มีงานค้าง', topupsPending: 'มีรายการฝากรอตรวจ', withdrawalsPending: 'มีรายการถอนรอดำเนินการ', risksPending: 'มีเคสความเสี่ยงที่ยังเปิดอยู่', online: 'ออนไลน์', profile: 'โปรไฟล์', security: 'ความปลอดภัยและ 2FA', activity: 'กิจกรรมล่าสุด', logout: 'ออกจากระบบ', collapse: 'ย่อเมนู', expand: 'ขยายเมนู', systemReady: 'ระบบพร้อมใช้งาน', pending: 'รายการรอดำเนินการ', accessDenied: 'ไม่มีสิทธิ์เข้าถึงหน้านี้', accessDeniedDescription: 'กรุณาติดต่อผู้ดูแลสิทธิ์หากจำเป็น', backToDashboard: 'กลับหน้าหลัก', removeFavorite: 'เอาออกจากรายการโปรด', addFavorite: 'เพิ่มในรายการโปรด', language: 'ภาษา', thai: 'ไทย', english: 'อังกฤษ', adminConsole: 'ระบบผู้ดูแล', brandTitle: 'ระบบผู้ดูแล', brandSubtitle: 'ศูนย์ปฏิบัติการ',
   },
   en: {
-    workspace: 'Workspace', searchMenu: 'Search menu', favorites: 'Favorites', recentlyUsed: 'Recent', clear: 'Clear', openMenu: 'Open admin menu', closeMenu: 'Close menu', searchCommands: 'Search commands', commandPlaceholder: 'Search pages or commands...', noCommand: 'No commands found', noCommandDescription: 'Try another search', notifications: 'Notifications', followUp: 'Items to review', viewAll: 'View all', noNotifications: 'No pending items', topupsPending: 'Top ups pending review', withdrawalsPending: 'Withdrawals pending review', risksPending: 'Open risk cases', online: 'Online', profile: 'Profile', security: 'Security & 2FA', activity: 'Recent activity', logout: 'Sign out', collapse: 'Collapse menu', expand: 'Expand menu', systemReady: 'System ready', pending: 'pending', accessDenied: 'Access denied', accessDeniedDescription: 'Contact an administrator if you need access', backToDashboard: 'Back to dashboard', removeFavorite: 'Remove from favorites', addFavorite: 'Add to favorites', language: 'Language', thai: 'TH', english: 'EN', adminConsole: 'Admin console',
+    workspace: 'Workspace', searchMenu: 'Search menu', favorites: 'Favorites', recentlyUsed: 'Recent', clear: 'Clear', openMenu: 'Open admin menu', closeMenu: 'Close menu', searchCommands: 'Search commands', commandPlaceholder: 'Search pages or commands...', noCommand: 'No commands found', noCommandDescription: 'Try another search', notifications: 'Notifications', followUp: 'Items to review', viewAll: 'View all', noNotifications: 'No pending items', topupsPending: 'Top ups pending review', withdrawalsPending: 'Withdrawals pending review', risksPending: 'Open risk cases', online: 'Online', profile: 'Profile', security: 'Security & 2FA', activity: 'Recent activity', logout: 'Sign out', collapse: 'Collapse menu', expand: 'Expand menu', systemReady: 'System ready', pending: 'pending', accessDenied: 'Access denied', accessDeniedDescription: 'Contact an administrator if you need access', backToDashboard: 'Back to dashboard', removeFavorite: 'Remove from favorites', addFavorite: 'Add to favorites', language: 'Language', thai: 'TH', english: 'EN', adminConsole: 'Admin console', brandTitle: 'Admin console', brandSubtitle: 'Operations workspace',
   },
 } as const;
 
@@ -65,7 +65,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const [favoriteHrefs, setFavoriteHrefs] = useState<string[]>([]);
   const [recentHrefs, setRecentHrefs] = useState<string[]>([]);
   const [quickNavLoaded, setQuickNavLoaded] = useState(false);
-  const [locale, setLocale] = useState<AdminLocale>('th');
+  const [locale, changeLocale] = useAdminLocale();
   const menuOpen = openSurface === 'menu';
   const profileOpen = openSurface === 'profile';
   const notificationOpen = openSurface === 'notification';
@@ -115,20 +115,6 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     setRecentHrefs(readStoredHrefs(RECENT_NAV_STORAGE_KEY));
     setQuickNavLoaded(true);
   }, []);
-
-  useEffect(() => {
-    const savedLocale = window.localStorage.getItem(ADMIN_LOCALE_STORAGE_KEY);
-    if (savedLocale === 'th' || savedLocale === 'en') setLocale(savedLocale);
-    const syncLocale = (event: StorageEvent) => {
-      if (event.key === ADMIN_LOCALE_STORAGE_KEY && (event.newValue === 'th' || event.newValue === 'en')) setLocale(event.newValue);
-    };
-    window.addEventListener('storage', syncLocale);
-    return () => window.removeEventListener('storage', syncLocale);
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.lang = locale;
-  }, [locale]);
 
   useEffect(() => {
     if (!quickNavLoaded) return;
@@ -253,11 +239,6 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     setFavoriteHrefs((current) => current.includes(href) ? current.filter((value) => value !== href) : [...current, href].slice(0, 6));
   }
 
-  function changeLocale(next: AdminLocale) {
-    setLocale(next);
-    window.localStorage.setItem(ADMIN_LOCALE_STORAGE_KEY, next);
-  }
-
   function openAdminSurface(surface: AdminSurface, trigger?: HTMLElement) {
     if (trigger) lastSurfaceTriggerRef.current = trigger;
     else if (document.activeElement instanceof HTMLElement) lastSurfaceTriggerRef.current = document.activeElement;
@@ -311,7 +292,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     style={menuOpen ? { zIndex: 2, pointerEvents: 'auto' } : undefined}
   >
     <div className="admin-drawer-head">
-      <a href="/dashboard" onClick={(event) => { event.preventDefault(); navigate('/dashboard'); }} className="admin-brand-row admin-brand-link"><span className="admin-brand-mark">A</span><span className="admin-brand-text"><strong>Admin Console</strong><small>Operations workspace</small></span></a>
+      <a href="/dashboard" onClick={(event) => { event.preventDefault(); navigate('/dashboard'); }} className="admin-brand-row admin-brand-link"><span className="admin-brand-mark">A</span><span className="admin-brand-text"><strong>{copy.brandTitle}</strong><small>{copy.brandSubtitle}</small></span></a>
       <AdminButton type="button" tone="default" className="admin-drawer-close" onClick={closeAdminSurface} aria-label={copy.closeMenu}><AdminIcon name="close" /></AdminButton>
     </div>
     <div className="admin-nav-search"><AdminIcon name="search" /><input value={navQuery} onChange={(event) => setNavQuery(event.target.value)} placeholder={copy.searchMenu} aria-label={copy.searchMenu} /></div>
@@ -346,7 +327,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
         <button type="button" className="admin-sidebar-profile__trigger" onClick={(event) => toggleAdminSurface('profile', event.currentTarget)} aria-expanded={profileOpen} aria-haspopup="menu" aria-controls="admin-profile-menu">
           {avatar}
           <span className="admin-profile-meta"><strong>{displayName}</strong><span>{roleName}</span></span>
-          <span className="admin-profile-status" title="ออนไลน์" aria-label="ออนไลน์" />
+          <span className="admin-profile-status" title={copy.online} aria-label={copy.online} />
           <span className="admin-sidebar-profile__chevron" aria-hidden="true"><AdminIcon name="chevron-left" /></span>
         </button>
         {profileOpen && <div className="admin-profile-menu admin-profile-menu--sidebar" id="admin-profile-menu" role="menu">

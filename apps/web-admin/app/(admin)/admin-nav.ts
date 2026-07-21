@@ -17,7 +17,7 @@ export type AdminNavGroup = {
   items: readonly AdminNavItem[];
 };
 
-export type AdminLocale = 'th' | 'en';
+export type { AdminLocale } from './admin-locale';
 
 export function localizedNavTitle(item: Pick<AdminNavItem, 'title' | 'titleEn'>, locale: AdminLocale) {
   return locale === 'en' ? item.titleEn ?? item.title : item.title;
@@ -35,7 +35,7 @@ export const navGroups: readonly AdminNavGroup[] = [
   {
     id: 'overview', title: 'ภาพรวม', titleEn: 'Overview', description: 'สถานะและคิวงาน', descriptionEn: 'System status and queues',
     items: [
-      { title: 'Dashboard', titleEn: 'Dashboard', href: '/dashboard', badgeKey: 'pending' },
+      { title: 'แดชบอร์ด', titleEn: 'Dashboard', href: '/dashboard', badgeKey: 'pending' },
       { title: 'งานที่ต้องตรวจ', titleEn: 'Review queue', href: '/operations', badgeKey: 'pending' },
       { title: 'กิจกรรมล่าสุด', titleEn: 'Activity', href: '/activity-center', permissions: ['admin.view', 'admin.access.view', 'risk.view', 'reports.view'] },
     ],
@@ -48,8 +48,8 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'จัดการหลายรายการ', titleEn: 'Bulk review', href: '/bulk-queue-operations', permissions: ['topups.view', 'deposit.view', 'withdraw.view'], sidebar: false },
       { title: 'กระเป๋าเงินสมาชิก', titleEn: 'Member wallets', href: '/wallets', permissions: ['wallet.view'] },
       { title: 'ประวัติยอดเงิน', titleEn: 'Wallet ledger', href: '/wallet-ledgers', permissions: ['wallet.view'] },
-      { title: 'Wallet Statement', titleEn: 'Wallet statement', href: '/wallet-statement', permissions: ['wallet.view'], sidebar: false },
-      { title: 'Wallet Analytics', titleEn: 'Wallet analytics', href: '/wallet-analytics', permissions: ['wallet.view', 'reports.view'], sidebar: false },
+      { title: 'รายการเดินบัญชี', titleEn: 'Wallet statement', href: '/wallet-statement', permissions: ['wallet.view'], sidebar: false },
+      { title: 'วิเคราะห์กระเป๋าเงิน', titleEn: 'Wallet analytics', href: '/wallet-analytics', permissions: ['wallet.view', 'reports.view'], sidebar: false },
       { title: 'กระทบยอด', titleEn: 'Reconciliation', href: '/reconciliation-center', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'รายงานการเงิน', titleEn: 'Finance reports', href: '/reports', permissions: ['reports.view'] },
       { title: 'ส่งออกรายงาน', titleEn: 'Exports', href: '/exports', permissions: ['reports.export', 'reports.view'], sidebar: false },
@@ -82,7 +82,7 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'ชุดตั้งค่าค่ายเกม', titleEn: 'Provider presets', href: '/provider-presets', permissions: ['game.providers.manage', 'provider.update'] },
       { title: 'ค่ายเกมทั้งหมด', titleEn: 'Game providers', href: '/game-providers', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'เกมทั้งหมด', titleEn: 'Games', href: '/games', permissions: ['game.providers.view', 'provider.view'] },
-      { title: 'Session เกม', titleEn: 'Game sessions', href: '/game-sessions', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'เซสชันเกม', titleEn: 'Game sessions', href: '/game-sessions', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'รายการโอนเงินเกม', titleEn: 'Game transfers', href: '/game-transfers', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'บันทึก Webhook', titleEn: 'Webhook logs', href: '/webhook-logs', permissions: ['provider.view', 'game.providers.view'] },
     ],
@@ -91,7 +91,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     id: 'growth', title: 'โปรโมชันและเนื้อหา', titleEn: 'Growth & content', description: 'โปรโมชัน โบนัส และเนื้อหา', descriptionEn: 'Promotions, bonuses, and content',
     items: [
       { title: 'ภาพรวมการตลาด', titleEn: 'Growth overview', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
-      { title: 'Promotion Operations', titleEn: 'Promotion operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'] },
+      { title: 'งานโปรโมชัน', titleEn: 'Promotion operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'] },
       { title: 'โปรโมชันและโบนัส', titleEn: 'Promotions & bonuses', href: '/promotion-center', permissions: ['promotion.view'] },
       { title: 'คำขอรับโปรโมชัน', titleEn: 'Promotion claims', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
       { title: 'ประวัติโบนัส', titleEn: 'Bonus ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
@@ -152,3 +152,4 @@ export function requiredPermissionsForPath(pathname: string) {
   for (const item of routeItems) if (pathname === item.href || pathname.startsWith(`${item.href}/`)) return item.permissions ?? [];
   return [] as readonly string[];
 }
+import type { AdminLocale } from './admin-locale';
