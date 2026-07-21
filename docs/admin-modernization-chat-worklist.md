@@ -122,6 +122,7 @@
 
 ### /topups
 
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 - [ ] Table เดียวกับ withdrawals
 - [ ] Sticky filter
 - [ ] Proof drawer
@@ -130,6 +131,7 @@
 
 ### /withdrawals
 
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 - [ ] ยอดรวมและจำนวนรายการ
 - [ ] Queue priority
 - [ ] Approve/Reject แยกชัด
