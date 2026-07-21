@@ -48,10 +48,10 @@ export default function GameApiSettingsPage() {
     <AdminPage
       eyebrow="Game Platform"
       title="ตั้งค่า API เกม"
-      description="หน้าใช้งานจริงแบบตลาด: ตั้งค่าให้น้อยที่สุดก่อน แล้วค่อยเปิดขั้นสูงเมื่อต้อง map endpoint เฉพาะค่าย"
+      description="ตั้งค่าพื้นฐานก่อน แล้วเปิดขั้นสูงเมื่อจำเป็น"
       actions={<><AdminLinkButton href="/provider-setup-wizard" tone="primary">Setup Wizard</AdminLinkButton><AdminLinkButton href="/operations">Operations Hub</AdminLinkButton></>}
     >
-      <AdminNotice>แนะนำ: เริ่มจาก Preset + Wizard แล้วเปิด Transfer Wallet ก่อนเสมอ อย่าเปิดเงินจริงจนกว่า Preflight ผ่านครบทุกข้อ เพราะฐานข้อมูลไม่ได้ชอบความตื่นเต้นแบบนั้น</AdminNotice>
+      <AdminNotice>ใช้ Preset และ Wizard ก่อน เปิดเงินจริงเมื่อ Preflight ผ่านครบ</AdminNotice>
 
       <AdminMetricGrid>
         <AdminMetric title="Setup mode" value="ง่าย" helper="ซ่อน endpoint ขั้นสูงไว้ก่อน" />

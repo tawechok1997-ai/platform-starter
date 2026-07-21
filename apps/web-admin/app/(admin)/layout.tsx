@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from '../admin-api';
 import { AdminButton, AdminEmptyState } from '../components/admin-ui';
-import { canAccessNavItem, navGroups, requiredPermissionsForPath } from './admin-nav';
+import { canAccessNavItem, localizedNavGroupDescription, localizedNavGroupTitle, localizedNavTitle, navGroups, requiredPermissionsForPath, type AdminLocale } from './admin-nav';
 import { AdminIcon, iconForAdminHref } from './_components/admin-icon';
 
 const AUTH_TIMEOUT_MS = 12000;
@@ -30,8 +30,19 @@ type AdminSession = {
 
 type AdminSurface = 'menu' | 'profile' | 'notification' | 'command';
 type QuickNavItem = { title: string; href: string };
+type AdminNotification = { title: string; detail: string; href: string; tone: 'warning' | 'danger' };
 const FAVORITE_NAV_STORAGE_KEY = 'admin_favorite_nav_items';
 const RECENT_NAV_STORAGE_KEY = 'admin_recent_nav_items';
+const ADMIN_LOCALE_STORAGE_KEY = 'admin_locale';
+
+const shellCopy = {
+  th: {
+    workspace: 'พื้นที่ทำงาน', searchMenu: 'ค้นหาเมนู', favorites: 'รายการโปรด', recentlyUsed: 'ใช้ล่าสุด', clear: 'ล้าง', openMenu: 'เปิดเมนูแอดมิน', closeMenu: 'ปิดเมนู', searchCommands: 'ค้นหาคำสั่ง', commandPlaceholder: 'ค้นหาหน้า หรือคำสั่ง...', noCommand: 'ไม่พบคำสั่ง', noCommandDescription: 'ลองค้นหาด้วยชื่ออื่น', notifications: 'การแจ้งเตือน', followUp: 'งานที่ต้องติดตาม', viewAll: 'ดูทั้งหมด', noNotifications: 'ไม่มีงานค้าง', topupsPending: 'มีรายการฝากรอตรวจ', withdrawalsPending: 'มีรายการถอนรอดำเนินการ', risksPending: 'มีเคสความเสี่ยงที่ยังเปิดอยู่', online: 'ออนไลน์', profile: 'โปรไฟล์', security: 'ความปลอดภัยและ 2FA', activity: 'กิจกรรมล่าสุด', logout: 'ออกจากระบบ', collapse: 'ย่อเมนู', expand: 'ขยายเมนู', systemReady: 'ระบบพร้อมใช้งาน', pending: 'รายการรอดำเนินการ', accessDenied: 'ไม่มีสิทธิ์เข้าถึงหน้านี้', accessDeniedDescription: 'กรุณาติดต่อผู้ดูแลสิทธิ์หากจำเป็น', backToDashboard: 'กลับไป Dashboard', removeFavorite: 'เอาออกจากรายการโปรด', addFavorite: 'เพิ่มในรายการโปรด', language: 'ภาษา', thai: 'ไทย', english: 'EN', adminConsole: 'แอดมิน',
+  },
+  en: {
+    workspace: 'Workspace', searchMenu: 'Search menu', favorites: 'Favorites', recentlyUsed: 'Recent', clear: 'Clear', openMenu: 'Open admin menu', closeMenu: 'Close menu', searchCommands: 'Search commands', commandPlaceholder: 'Search pages or commands...', noCommand: 'No commands found', noCommandDescription: 'Try another search', notifications: 'Notifications', followUp: 'Items to review', viewAll: 'View all', noNotifications: 'No pending items', topupsPending: 'Top ups pending review', withdrawalsPending: 'Withdrawals pending review', risksPending: 'Open risk cases', online: 'Online', profile: 'Profile', security: 'Security & 2FA', activity: 'Recent activity', logout: 'Sign out', collapse: 'Collapse menu', expand: 'Expand menu', systemReady: 'System ready', pending: 'pending', accessDenied: 'Access denied', accessDeniedDescription: 'Contact an administrator if you need access', backToDashboard: 'Back to dashboard', removeFavorite: 'Remove from favorites', addFavorite: 'Add to favorites', language: 'Language', thai: 'TH', english: 'EN', adminConsole: 'Admin console',
+  },
+} as const;
 
 export default function AdminProtectedLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -54,10 +65,12 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const [favoriteHrefs, setFavoriteHrefs] = useState<string[]>([]);
   const [recentHrefs, setRecentHrefs] = useState<string[]>([]);
   const [quickNavLoaded, setQuickNavLoaded] = useState(false);
+  const [locale, setLocale] = useState<AdminLocale>('th');
   const menuOpen = openSurface === 'menu';
   const profileOpen = openSurface === 'profile';
   const notificationOpen = openSurface === 'notification';
   const commandOpen = openSurface === 'command';
+  const copy = shellCopy[locale];
 
   useEffect(() => {
     let cancelled = false;
@@ -102,6 +115,20 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     setRecentHrefs(readStoredHrefs(RECENT_NAV_STORAGE_KEY));
     setQuickNavLoaded(true);
   }, []);
+
+  useEffect(() => {
+    const savedLocale = window.localStorage.getItem(ADMIN_LOCALE_STORAGE_KEY);
+    if (savedLocale === 'th' || savedLocale === 'en') setLocale(savedLocale);
+    const syncLocale = (event: StorageEvent) => {
+      if (event.key === ADMIN_LOCALE_STORAGE_KEY && (event.newValue === 'th' || event.newValue === 'en')) setLocale(event.newValue);
+    };
+    window.addEventListener('storage', syncLocale);
+    return () => window.removeEventListener('storage', syncLocale);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   useEffect(() => {
     if (!quickNavLoaded) return;
@@ -181,11 +208,16 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const visibleGroups = useMemo(() => navGroups
     .map((group) => ({
       ...group,
+      title: localizedNavGroupTitle(group, locale),
+      description: localizedNavGroupDescription(group, locale),
       items: group.items.filter((item) => item.sidebar !== false && canAccessNavItem(item, permissions)
-        && (!normalizedQuery || `${group.title} ${item.title}`.toLocaleLowerCase('th').includes(normalizedQuery))),
+        && (!normalizedQuery || `${group.title} ${group.titleEn ?? ''} ${item.title} ${item.titleEn ?? ''}`.toLocaleLowerCase('th').includes(normalizedQuery)))
+        .map((item) => ({ ...item, title: localizedNavTitle(item, locale) })),
     }))
-    .filter((group) => group.items.length > 0), [permissions, normalizedQuery]);
-  const commandItems = useMemo(() => navGroups.flatMap((group) => group.items.filter((item) => canAccessNavItem(item, permissions))), [permissions]);
+    .filter((group) => group.items.length > 0), [locale, permissions, normalizedQuery]);
+  const commandItems = useMemo(() => navGroups.flatMap((group) => group.items
+    .filter((item) => canAccessNavItem(item, permissions))
+    .map((item) => ({ ...item, title: localizedNavTitle(item, locale) }))), [locale, permissions]);
   const favoriteItems = useMemo(() => itemsForHrefs(favoriteHrefs, commandItems), [favoriteHrefs, commandItems]);
   const recentItems = useMemo(() => itemsForHrefs(recentHrefs, commandItems), [recentHrefs, commandItems]);
 
@@ -221,6 +253,11 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     setFavoriteHrefs((current) => current.includes(href) ? current.filter((value) => value !== href) : [...current, href].slice(0, 6));
   }
 
+  function changeLocale(next: AdminLocale) {
+    setLocale(next);
+    window.localStorage.setItem(ADMIN_LOCALE_STORAGE_KEY, next);
+  }
+
   function openAdminSurface(surface: AdminSurface, trigger?: HTMLElement) {
     if (trigger) lastSurfaceTriggerRef.current = trigger;
     else if (document.activeElement instanceof HTMLElement) lastSurfaceTriggerRef.current = document.activeElement;
@@ -250,11 +287,13 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
 
   const pendingTotal = queueCount.topups + queueCount.withdrawals;
   const notificationCount = pendingTotal + openRiskCount;
-  const notifications = [
-    queueCount.topups > 0 ? { title: 'มีรายการฝากรอตรวจ', detail: `${queueCount.topups.toLocaleString('th-TH')} รายการ`, href: '/topups', tone: 'warning' } : null,
-    queueCount.withdrawals > 0 ? { title: 'มีรายการถอนรอดำเนินการ', detail: `${queueCount.withdrawals.toLocaleString('th-TH')} รายการ`, href: '/withdrawals', tone: 'warning' } : null,
-    openRiskCount > 0 ? { title: 'มีเคสความเสี่ยงที่ยังเปิดอยู่', detail: `${openRiskCount.toLocaleString('th-TH')} เคส`, href: '/risk-alerts', tone: 'danger' } : null,
-  ].filter((item): item is { title: string; detail: string; href: string; tone: 'warning' | 'danger' } => Boolean(item));
+  const numberLocale = locale === 'th' ? 'th-TH' : 'en-US';
+  const notificationCandidates: Array<AdminNotification | null> = [
+    queueCount.topups > 0 ? { title: copy.topupsPending, detail: `${queueCount.topups.toLocaleString(numberLocale)} ${copy.pending}`, href: '/topups', tone: 'warning' } : null,
+    queueCount.withdrawals > 0 ? { title: copy.withdrawalsPending, detail: `${queueCount.withdrawals.toLocaleString(numberLocale)} ${copy.pending}`, href: '/withdrawals', tone: 'warning' } : null,
+    openRiskCount > 0 ? { title: copy.risksPending, detail: `${openRiskCount.toLocaleString(numberLocale)} ${copy.pending}`, href: '/risk-alerts', tone: 'danger' } : null,
+  ];
+  const notifications = notificationCandidates.filter((item): item is AdminNotification => item !== null);
   const currentItem = navGroups.flatMap((group) => group.items).find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
   const toggleCollapsed = () => setSidebarCollapsed((current) => { const next = !current; window.localStorage.setItem('admin_sidebar_collapsed', String(next)); return next; });
   const displayName = admin.displayName || [admin.firstName, admin.lastName].filter(Boolean).join(' ') || admin.username || 'ผู้ดูแลระบบ';
@@ -273,12 +312,12 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   >
     <div className="admin-drawer-head">
       <a href="/dashboard" onClick={(event) => { event.preventDefault(); navigate('/dashboard'); }} className="admin-brand-row admin-brand-link"><span className="admin-brand-mark">A</span><span className="admin-brand-text"><strong>Admin Console</strong><small>Operations workspace</small></span></a>
-      <AdminButton type="button" tone="default" className="admin-drawer-close" onClick={closeAdminSurface} aria-label="ปิดเมนู"><AdminIcon name="close" /></AdminButton>
+      <AdminButton type="button" tone="default" className="admin-drawer-close" onClick={closeAdminSurface} aria-label={copy.closeMenu}><AdminIcon name="close" /></AdminButton>
     </div>
-    <div className="admin-nav-search"><AdminIcon name="search" /><input value={navQuery} onChange={(event) => setNavQuery(event.target.value)} placeholder="ค้นหาเมนู" aria-label="ค้นหาเมนู" /></div>
-    <nav className="admin-drawer-nav" aria-label="Admin navigation">
-      {favoriteItems.length > 0 && <QuickNavSection title="รายการโปรด" items={favoriteItems} pathname={pathname} onNavigate={navigate} />}
-      {recentItems.length > 0 && <QuickNavSection title="ใช้ล่าสุด" items={recentItems} pathname={pathname} onNavigate={navigate} onClear={() => setRecentHrefs([])} />}
+    <div className="admin-nav-search"><AdminIcon name="search" /><input value={navQuery} onChange={(event) => setNavQuery(event.target.value)} placeholder={copy.searchMenu} aria-label={copy.searchMenu} /></div>
+    <nav className="admin-drawer-nav" aria-label={copy.workspace}>
+      {favoriteItems.length > 0 && <QuickNavSection title={copy.favorites} items={favoriteItems} pathname={pathname} onNavigate={navigate} />}
+      {recentItems.length > 0 && <QuickNavSection title={copy.recentlyUsed} items={recentItems} pathname={pathname} onNavigate={navigate} onClear={() => setRecentHrefs([])} clearLabel={copy.clear} />}
       {visibleGroups.map((group) => {
         const containsActiveRoute = group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
         const expanded = Boolean(normalizedQuery) || openGroups.has(group.id) || containsActiveRoute;
@@ -300,7 +339,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
           </div>
         </section>;
       })}
-      {visibleGroups.length === 0 && <p className="admin-nav-empty">ไม่พบเมนูที่ค้นหา</p>}
+      {visibleGroups.length === 0 && <p className="admin-nav-empty">{copy.noCommand}</p>}
     </nav>
     <div className="admin-sidebar-footer">
       <div className="admin-sidebar-profile" ref={profileMenuRef}>
@@ -312,71 +351,74 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
         </button>
         {profileOpen && <div className="admin-profile-menu admin-profile-menu--sidebar" id="admin-profile-menu" role="menu">
           <div className="admin-profile-menu__identity">{avatar}<div><strong>{displayName}</strong><span>@{admin.username || 'admin'}</span><small>{roleName}{admin.department ? ` · ${admin.department}` : ''}</small></div></div>
-          <div className="admin-profile-menu__security"><span className="admin-system-dot" />บัญชีกำลังใช้งาน</div>
+          <div className="admin-profile-menu__security"><span className="admin-system-dot" />{copy.online}</div>
           <div className="admin-profile-menu__links">
-            <button type="button" role="menuitem" onClick={() => navigate('/profile')}><AdminIcon name="user" /><span>โปรไฟล์ของฉัน</span></button>
-            <button type="button" role="menuitem" onClick={() => navigate('/security')}><AdminIcon name="security" /><span>ความปลอดภัยและ 2FA</span></button>
-            <button type="button" role="menuitem" onClick={() => navigate('/activity-center')}><AdminIcon name="activity" /><span>กิจกรรมล่าสุด</span></button>
+            <button type="button" role="menuitem" onClick={() => navigate('/profile')}><AdminIcon name="user" /><span>{copy.profile}</span></button>
+            <button type="button" role="menuitem" onClick={() => navigate('/security')}><AdminIcon name="security" /><span>{copy.security}</span></button>
+            <button type="button" role="menuitem" onClick={() => navigate('/activity-center')}><AdminIcon name="activity" /><span>{copy.activity}</span></button>
           </div>
-          <button type="button" className="admin-profile-menu__logout" role="menuitem" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></button>
+          <button type="button" className="admin-profile-menu__logout" role="menuitem" onClick={logout}><AdminIcon name="logout" /><span>{copy.logout}</span></button>
         </div>}
       </div>
-      <AdminButton type="button" tone="default" className="admin-collapse-button" onClick={toggleCollapsed} aria-label={sidebarCollapsed ? 'ขยายแถบเมนู' : 'ย่อแถบเมนู'}><AdminIcon name="chevron-left" /><span>{sidebarCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}</span></AdminButton>
+      <AdminButton type="button" tone="default" className="admin-collapse-button" onClick={toggleCollapsed} aria-label={sidebarCollapsed ? copy.expand : copy.collapse}><AdminIcon name="chevron-left" /><span>{sidebarCollapsed ? copy.expand : copy.collapse}</span></AdminButton>
     </div>
   </aside>;
 
   return <main className={`admin-shell${sidebarCollapsed ? ' admin-shell--collapsed' : ''}`}>
     {menuOpen ? <div style={{ position: 'fixed', inset: 0, zIndex: 1000, isolation: 'isolate' }}>
-      <AdminButton type="button" tone="default" className="admin-drawer-backdrop" style={{ zIndex: 0 }} onClick={closeAdminSurface} aria-label="ปิดเมนู" />
+      <AdminButton type="button" tone="default" className="admin-drawer-backdrop" style={{ zIndex: 0 }} onClick={closeAdminSurface} aria-label={copy.closeMenu} />
       {drawer}
     </div> : drawer}
     <div className="admin-main-shell">
       <header className="admin-topbar">
-        <div className="admin-topbar-context"><AdminButton type="button" tone="default" className="admin-menu-button" onClick={(event) => openAdminSurface('menu', event.currentTarget)} aria-label="เปิดเมนูแอดมิน" aria-controls="admin-sidebar"><AdminIcon name="menu" /></AdminButton><div><span>Workspace</span><strong>{currentItem?.title ?? 'Admin Console'}</strong></div></div>
+        <div className="admin-topbar-context"><AdminButton type="button" tone="default" className="admin-menu-button" onClick={(event) => openAdminSurface('menu', event.currentTarget)} aria-label={copy.openMenu} aria-controls="admin-sidebar"><AdminIcon name="menu" /></AdminButton><div><span>{copy.workspace}</span><strong>{currentItem ? localizedNavTitle(currentItem, locale) : copy.adminConsole}</strong></div></div>
         <div className="admin-topbar-actions">
-          <button type="button" className="admin-command-trigger" onClick={(event) => openAdminSurface('command', event.currentTarget)} aria-label="เปิด Command Palette" aria-controls="admin-command-dialog"><AdminIcon name="search" /><span>ค้นหาคำสั่ง</span><kbd>⌘ K</kbd></button>
+          <button type="button" className="admin-command-trigger" onClick={(event) => openAdminSurface('command', event.currentTarget)} aria-label={copy.searchCommands} aria-controls="admin-command-dialog"><AdminIcon name="search" /><span>{copy.searchCommands}</span><kbd>⌘ K</kbd></button>
+          <div className="admin-language-toggle" role="group" aria-label={copy.language}><button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'}>{copy.thai}</button><button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'}>{copy.english}</button></div>
           <span className={`admin-environment-badge admin-environment-badge--${environment.toLowerCase()}`}>{environment}</span>
-          <div className="admin-topbar-status"><span className="admin-system-dot" />ระบบพร้อมใช้งาน{pendingTotal > 0 && <a href="/operations" onClick={(event) => { event.preventDefault(); navigate('/operations'); }}>{pendingTotal} รายการรอดำเนินการ</a>}</div>
+          <div className="admin-topbar-status"><span className="admin-system-dot" />{copy.systemReady}{pendingTotal > 0 && <a href="/operations" onClick={(event) => { event.preventDefault(); navigate('/operations'); }}>{pendingTotal.toLocaleString(numberLocale)} {copy.pending}</a>}</div>
           <div className="admin-notification-menu" ref={notificationMenuRef}>
-            <button type="button" className="admin-notification-trigger" onClick={(event) => toggleAdminSurface('notification', event.currentTarget)} aria-label="เปิดศูนย์แจ้งเตือน" aria-expanded={notificationOpen} aria-haspopup="menu" aria-controls="admin-notification-menu"><AdminIcon name="bell" />{notificationCount > 0 && <em>{notificationCount > 99 ? '99+' : notificationCount}</em>}</button>
-            {notificationOpen && <div className="admin-notification-popover" id="admin-notification-menu" role="menu"><header><div><strong>การแจ้งเตือน</strong><span>งานที่ต้องติดตาม</span></div><button type="button" onClick={() => navigate('/operations')}>ดูทั้งหมด</button></header>{notifications.length ? <div>{notifications.map((item) => <button type="button" key={item.href} role="menuitem" data-tone={item.tone} onClick={() => navigate(item.href)}><AdminIcon name={item.tone === 'danger' ? 'risk' : 'money'} /><span><strong>{item.title}</strong><small>{item.detail}</small></span></button>)}</div> : <p>ไม่มีงานที่ต้องจัดการตอนนี้</p>}</div>}
+            <button type="button" className="admin-notification-trigger" onClick={(event) => toggleAdminSurface('notification', event.currentTarget)} aria-label={copy.notifications} aria-expanded={notificationOpen} aria-haspopup="menu" aria-controls="admin-notification-menu"><AdminIcon name="bell" />{notificationCount > 0 && <em>{notificationCount > 99 ? '99+' : notificationCount}</em>}</button>
+            {notificationOpen && <div className="admin-notification-popover" id="admin-notification-menu" role="menu"><header><div><strong>{copy.notifications}</strong><span>{copy.followUp}</span></div><button type="button" onClick={() => navigate('/operations')}>{copy.viewAll}</button></header>{notifications.length ? <div>{notifications.map((item) => <button type="button" key={item.href} role="menuitem" data-tone={item.tone} onClick={() => navigate(item.href)}><AdminIcon name={item.tone === 'danger' ? 'risk' : 'money'} /><span><strong>{item.title}</strong><small>{item.detail}</small></span></button>)}</div> : <p>{copy.noNotifications}</p>}</div>}
           </div>
         </div>
       </header>
-      <section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section>
-      {commandOpen && <CommandPalette query={commandQuery} onQueryChange={setCommandQuery} items={commandItems} favoriteHrefs={favoriteHrefs} onToggleFavorite={toggleFavorite} onNavigate={navigate} onClose={() => { closeAdminSurface(); setCommandQuery(''); }} />}
+      <section className="admin-content-shell">{canViewRoute ? children : <AccessDenied locale={locale} />}</section>
+      {commandOpen && <CommandPalette locale={locale} query={commandQuery} onQueryChange={setCommandQuery} items={commandItems} favoriteHrefs={favoriteHrefs} onToggleFavorite={toggleFavorite} onNavigate={navigate} onClose={() => { closeAdminSurface(); setCommandQuery(''); }} />}
     </div>
   </main>;
 }
 
-function QuickNavSection({ title, items, pathname, onNavigate, onClear }: { title: string; items: QuickNavItem[]; pathname: string; onNavigate: (href: string) => void; onClear?: () => void }) {
-  return <section className="admin-quick-nav" aria-label={title}><header><span>{title}</span>{onClear && <button type="button" onClick={onClear}>ล้าง</button>}</header>{items.map((item) => { const active = pathname === item.href || pathname.startsWith(`${item.href}/`); return <a key={item.href} href={item.href} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} onClick={(event) => { event.preventDefault(); onNavigate(item.href); }}><AdminIcon name={iconForAdminHref(item.href)} /><span>{item.title}</span></a>; })}</section>;
+function QuickNavSection({ title, items, pathname, onNavigate, onClear, clearLabel }: { title: string; items: QuickNavItem[]; pathname: string; onNavigate: (href: string) => void; onClear?: () => void; clearLabel?: string }) {
+  return <section className="admin-quick-nav" aria-label={title}><header><span>{title}</span>{onClear && <button type="button" onClick={onClear}>{clearLabel ?? 'Clear'}</button>}</header>{items.map((item) => { const active = pathname === item.href || pathname.startsWith(`${item.href}/`); return <a key={item.href} href={item.href} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} onClick={(event) => { event.preventDefault(); onNavigate(item.href); }}><AdminIcon name={iconForAdminHref(item.href)} /><span>{item.title}</span></a>; })}</section>;
 }
 
-function CommandPalette({ query, onQueryChange, items, favoriteHrefs, onToggleFavorite, onNavigate, onClose }: { query: string; onQueryChange: (value: string) => void; items: QuickNavItem[]; favoriteHrefs: string[]; onToggleFavorite: (href: string) => void; onNavigate: (href: string) => void; onClose: () => void }) {
+function CommandPalette({ locale, query, onQueryChange, items, favoriteHrefs, onToggleFavorite, onNavigate, onClose }: { locale: AdminLocale; query: string; onQueryChange: (value: string) => void; items: QuickNavItem[]; favoriteHrefs: string[]; onToggleFavorite: (href: string) => void; onNavigate: (href: string) => void; onClose: () => void }) {
+  const copy = shellCopy[locale];
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
   const normalized = query.trim().toLocaleLowerCase('th');
   const matches = items.filter((item) => !normalized || `${item.title} ${item.href}`.toLocaleLowerCase('th').includes(normalized)).slice(0, 10);
   useEffect(() => { inputRef.current?.focus(); }, []);
   return <div className="admin-command-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <section className="admin-command-dialog" id="admin-command-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-label="ค้นหาคำสั่ง" onKeyDown={(event) => trapFocus(event, dialogRef.current)}>
-      <div className="admin-command-search"><AdminIcon name="search" /><input ref={inputRef} value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="ค้นหาหน้า หรือคำสั่ง..." /><kbd>Esc</kbd></div>
-      <div className="admin-command-results">{matches.length ? matches.map((item) => <div className="admin-command-result" key={item.href}><button type="button" onClick={() => onNavigate(item.href)}><AdminIcon name={iconForAdminHref(item.href)} /><span><strong>{item.title}</strong><small>{item.href}</small></span></button><button type="button" className={favoriteHrefs.includes(item.href) ? 'admin-command-result__favorite active' : 'admin-command-result__favorite'} onClick={() => onToggleFavorite(item.href)} aria-label={favoriteHrefs.includes(item.href) ? `เอา ${item.title} ออกจากรายการโปรด` : `เพิ่ม ${item.title} ในรายการโปรด`} title={favoriteHrefs.includes(item.href) ? 'เอาออกจากรายการโปรด' : 'เพิ่มในรายการโปรด'}><AdminIcon name="star" /></button></div>) : <AdminEmptyState title="ไม่พบคำสั่ง" description="ลองค้นหาด้วยชื่อเมนูอื่น" />}</div>
+    <section className="admin-command-dialog" id="admin-command-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-label={copy.searchCommands} onKeyDown={(event) => trapFocus(event, dialogRef.current)}>
+      <div className="admin-command-search"><AdminIcon name="search" /><input ref={inputRef} value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder={copy.commandPlaceholder} aria-label={copy.searchCommands} /><kbd>Esc</kbd></div>
+      <div className="admin-command-results">{matches.length ? matches.map((item) => <div className="admin-command-result" key={item.href}><button type="button" onClick={() => onNavigate(item.href)}><AdminIcon name={iconForAdminHref(item.href)} /><span><strong>{item.title}</strong><small>{item.href}</small></span></button><button type="button" className={favoriteHrefs.includes(item.href) ? 'admin-command-result__favorite active' : 'admin-command-result__favorite'} onClick={() => onToggleFavorite(item.href)} aria-label={`${favoriteHrefs.includes(item.href) ? copy.removeFavorite : copy.addFavorite}: ${item.title}`} title={favoriteHrefs.includes(item.href) ? copy.removeFavorite : copy.addFavorite}><AdminIcon name="star" /></button></div>) : <AdminEmptyState title={copy.noCommand} description={copy.noCommandDescription} />}</div>
     </section>
   </div>;
 }
 
-function AccessDenied() {
+function AccessDenied({ locale }: { locale: AdminLocale }) {
+  const copy = shellCopy[locale];
   return (
     <div className="admin-access-denied">
       <AdminEmptyState
         className="admin-access-denied__state"
         icon={<AdminIcon name="security" />}
-        title="ไม่มีสิทธิ์เข้าถึงหน้านี้"
-        description="เมนูนี้ถูกซ่อนและบล็อกตามสิทธิ์ของบัญชีผู้ดูแล กรุณาติดต่อผู้ดูแลสิทธิ์หากจำเป็นต้องใช้งาน"
+        title={copy.accessDenied}
+        description={copy.accessDeniedDescription}
         actionHref="/dashboard"
-        actionLabel="กลับไป Dashboard"
+        actionLabel={copy.backToDashboard}
       />
     </div>
   );

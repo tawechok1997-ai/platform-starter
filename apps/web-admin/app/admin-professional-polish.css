@@ -73,6 +73,30 @@ body { overscroll-behavior-y: none; }
 .admin-topbar-context > div > strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-topbar-actions { gap: 12px; justify-content: flex-end; }
 .admin-menu-button { display: none; }
+.admin-language-toggle {
+  display: inline-flex;
+  min-height: 38px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .025);
+}
+.admin-language-toggle button {
+  min-width: 42px;
+  min-height: 38px;
+  padding: 0 9px;
+  border: 0;
+  background: transparent;
+  color: var(--admin-text-muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.admin-language-toggle button[aria-pressed='true'] {
+  background: rgba(109, 124, 255, .2);
+  color: var(--admin-text);
+}
 
 .admin-content-shell {
   width: 100%;
@@ -254,13 +278,16 @@ body { overscroll-behavior-y: none; }
 @media (max-width: 720px) {
   .admin-command-trigger,
   .admin-notification-trigger,
-  .admin-menu-button {
+  .admin-menu-button,
+  .admin-language-toggle,
+  .admin-language-toggle button {
     width: 44px;
     min-width: 44px;
     height: 44px;
     min-height: 44px;
   }
   .admin-topbar-actions { gap: 8px; }
+  .admin-language-toggle button { min-width: 44px; }
   .admin-command-overlay {
     align-items: end;
     padding: 12px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
