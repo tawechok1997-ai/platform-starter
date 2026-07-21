@@ -13,6 +13,7 @@ import { GameRoundDiagnosticsController } from './game-round-diagnostics.control
 import { GameRoundDiagnosticsRepository } from './game-round-diagnostics.repository';
 import { GameRoundDiagnosticsService } from './game-round-diagnostics.service';
 import { GameRoundPersistenceService } from './game-round-persistence.service';
+import { GameSessionTokenService } from './game-session-token.service';
 import { GameTransferActionController } from './game-transfer-action.controller';
 import { GameTransferActionService } from './game-transfer-action.service';
 import { MemberGameCatalogService } from './member-game-catalog.service';
@@ -24,12 +25,13 @@ import { ProviderReconciliationCommandService } from './provider-reconciliation-
 import { ProviderReconciliationQueryService } from './provider-reconciliation-query.service';
 import { ProviderTransferCommandService } from './provider-transfer-command.service';
 import { ProviderWebhookService } from './provider-webhook.service';
+import { WalletLedgerReconciliationService } from './wallet-ledger-reconciliation.service';
 import { WalletMutationService } from './wallet-mutation.service';
 
 @Module({
   imports: [DatabaseModule, JwtModule.register({})],
   controllers: [GamePlatformController, MemberGamePlatformController, MemberGameTransferController, AdminGameMoneyController, ProviderWebhookController, ProviderPresetController, AdapterTestController, GameTransferActionController, GameRoundDiagnosticsController],
-  providers: [GamePlatformService, MemberGameCatalogService, GamePlatformMoneyService, GamePlatformMonitoringService, GameRoundPersistenceService, GameRoundDiagnosticsRepository, GameRoundDiagnosticsService, ProviderWebhookService, ProviderTransferCommandService, WalletMutationService, ProviderReconciliationQueryService, ProviderReconciliationCommandService, ProviderReconciliationAlertService, ProviderPresetService, AdapterTestService, GameTransferActionService, ProviderAdapterRegistry],
-  exports: [GamePlatformService, MemberGameCatalogService, GamePlatformMoneyService, GamePlatformMonitoringService, GameRoundPersistenceService, GameRoundDiagnosticsService, ProviderWebhookService, ProviderTransferCommandService, WalletMutationService, ProviderReconciliationQueryService, ProviderReconciliationCommandService, ProviderReconciliationAlertService, ProviderPresetService, AdapterTestService, GameTransferActionService, ProviderAdapterRegistry],
+  providers: [GamePlatformService, MemberGameCatalogService, GamePlatformMoneyService, GamePlatformMonitoringService, GameRoundPersistenceService, GameRoundDiagnosticsRepository, GameRoundDiagnosticsService, GameSessionTokenService, WalletLedgerReconciliationService, ProviderWebhookService, ProviderTransferCommandService, WalletMutationService, ProviderReconciliationQueryService, ProviderReconciliationCommandService, ProviderReconciliationAlertService, ProviderPresetService, AdapterTestService, GameTransferActionService, ProviderAdapterRegistry],
+  exports: [GamePlatformService, MemberGameCatalogService, GamePlatformMoneyService, GamePlatformMonitoringService, GameRoundPersistenceService, GameRoundDiagnosticsService, GameSessionTokenService, WalletLedgerReconciliationService, ProviderWebhookService, ProviderTransferCommandService, WalletMutationService, ProviderReconciliationQueryService, ProviderReconciliationCommandService, ProviderReconciliationAlertService, ProviderPresetService, AdapterTestService, GameTransferActionService, ProviderAdapterRegistry],
 })
 export class GamePlatformModule {}
