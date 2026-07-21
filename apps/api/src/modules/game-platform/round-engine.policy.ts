@@ -37,14 +37,20 @@ export function transitionGameRound(
   switch (event) {
     case 'PLACE_BET':
       if (round.betTransactionId === id) return round;
-      if (round.state !== 'CREATED' && round.state !== 'BET') {
+      if (round.betTransactionId) {
+        throw new GameRoundTransitionError('Round already has a different bet transaction');
+      }
+      if (round.state !== 'CREATED') {
         throw new GameRoundTransitionError(`Cannot place bet while round is ${round.state}`);
       }
       return { ...round, state: 'BET', betTransactionId: id };
 
     case 'SETTLE':
       if (round.settleTransactionId === id) return round;
-      if (round.state !== 'BET' && round.state !== 'SETTLED') {
+      if (round.settleTransactionId) {
+        throw new GameRoundTransitionError('Round already has a different settlement transaction');
+      }
+      if (round.state !== 'BET') {
         throw new GameRoundTransitionError(`Cannot settle while round is ${round.state}`);
       }
       return { ...round, state: 'SETTLED', settleTransactionId: id };
