@@ -36,6 +36,8 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [navQuery, setNavQuery] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
@@ -109,6 +111,18 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     };
   }, [profileOpen]);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setCommandOpen((current) => !current);
+      }
+      if (event.key === 'Escape') setCommandOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   async function loadQueueCount() {
     try {
       const res = await adminApiFetch('/admin/queues/summary');
@@ -151,6 +165,8 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   function navigate(href: string) {
     setMenuOpen(false);
     setProfileOpen(false);
+    setCommandOpen(false);
+    setCommandQuery('');
     if (href === pathname) return;
     router.push(href);
   }
@@ -171,6 +187,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const toggleCollapsed = () => setSidebarCollapsed((current) => { const next = !current; window.localStorage.setItem('admin_sidebar_collapsed', String(next)); return next; });
   const displayName = admin.displayName || [admin.firstName, admin.lastName].filter(Boolean).join(' ') || admin.username || 'ผู้ดูแลระบบ';
   const roleName = admin.position || roleLabel(admin.roles) || admin.department || 'Admin';
+  const environment = process.env.NEXT_PUBLIC_APP_ENV || (process.env.NODE_ENV === 'production' ? 'Production' : 'UAT');
   const initials = getInitials(displayName);
 
   const avatar = <span className="admin-profile-avatar">{admin.avatarUrl ? <img src={admin.avatarUrl} alt="" /> : initials}</span>;
@@ -221,6 +238,8 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
       <header className="admin-topbar">
         <div className="admin-topbar-context"><AdminButton type="button" tone="default" className="admin-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูแอดมิน"><AdminIcon name="menu" /></AdminButton><div><span>Workspace</span><strong>{currentItem?.title ?? 'Admin Console'}</strong></div></div>
         <div className="admin-topbar-actions">
+          <button type="button" className="admin-command-trigger" onClick={() => setCommandOpen(true)} aria-label="เปิด Command Palette"><AdminIcon name="search" /><span>ค้นหาคำสั่ง</span><kbd>⌘ K</kbd></button>
+          <span className={`admin-environment-badge admin-environment-badge--${environment.toLowerCase()}`}>{environment}</span>
           <div className="admin-topbar-status"><span className="admin-system-dot" />ระบบพร้อมใช้งาน{pendingTotal > 0 && <a href="/operations" onClick={(event) => { event.preventDefault(); navigate('/operations'); }}>{pendingTotal} รายการรอดำเนินการ</a>}</div>
           <div className="admin-topbar-profile" ref={profileMenuRef}>
             <button type="button" className="admin-topbar-profile__trigger" onClick={() => setProfileOpen((current) => !current)} aria-expanded={profileOpen} aria-haspopup="menu">
@@ -244,8 +263,22 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
         </div>
       </header>
       <section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section>
+      {commandOpen && <CommandPalette query={commandQuery} onQueryChange={setCommandQuery} items={visibleGroups.flatMap((group) => group.items)} onNavigate={navigate} onClose={() => { setCommandOpen(false); setCommandQuery(''); }} />}
     </div>
   </main>;
+}
+
+function CommandPalette({ query, onQueryChange, items, onNavigate, onClose }: { query: string; onQueryChange: (value: string) => void; items: Array<{ title: string; href: string }>; onNavigate: (href: string) => void; onClose: () => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const normalized = query.trim().toLocaleLowerCase('th');
+  const matches = items.filter((item) => !normalized || `${item.title} ${item.href}`.toLocaleLowerCase('th').includes(normalized)).slice(0, 10);
+  useEffect(() => { inputRef.current?.focus(); }, []);
+  return <div className="admin-command-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <section className="admin-command-dialog" role="dialog" aria-modal="true" aria-label="ค้นหาคำสั่ง">
+      <div className="admin-command-search"><AdminIcon name="search" /><input ref={inputRef} value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="ค้นหาหน้า หรือคำสั่ง..." /><kbd>Esc</kbd></div>
+      <div className="admin-command-results">{matches.length ? matches.map((item) => <button key={item.href} type="button" onClick={() => onNavigate(item.href)}><AdminIcon name={iconForAdminHref(item.href)} /><span><strong>{item.title}</strong><small>{item.href}</small></span></button>) : <AdminEmptyState title="ไม่พบคำสั่ง" description="ลองค้นหาด้วยชื่อเมนูอื่น" />}</div>
+    </section>
+  </div>;
 }
 
 function AccessDenied() {
