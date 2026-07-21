@@ -155,10 +155,11 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const visibleGroups = useMemo(() => navGroups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => canAccessNavItem(item, permissions)
+      items: group.items.filter((item) => item.sidebar !== false && canAccessNavItem(item, permissions)
         && (!normalizedQuery || `${group.title} ${item.title}`.toLocaleLowerCase('th').includes(normalizedQuery))),
     }))
     .filter((group) => group.items.length > 0), [permissions, normalizedQuery]);
+  const commandItems = useMemo(() => navGroups.flatMap((group) => group.items.filter((item) => canAccessNavItem(item, permissions))), [permissions]);
 
   const required = requiredPermissionsForPath(pathname);
   const canViewRoute = required.length === 0 || permissions.includes('*') || required.some((permission) => permissions.includes(permission));
@@ -290,7 +291,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
         </div>
       </header>
       <section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section>
-      {commandOpen && <CommandPalette query={commandQuery} onQueryChange={setCommandQuery} items={visibleGroups.flatMap((group) => group.items)} onNavigate={navigate} onClose={() => { setOpenSurface(null); setCommandQuery(''); }} />}
+      {commandOpen && <CommandPalette query={commandQuery} onQueryChange={setCommandQuery} items={commandItems} onNavigate={navigate} onClose={() => { setOpenSurface(null); setCommandQuery(''); }} />}
     </div>
   </main>;
 }

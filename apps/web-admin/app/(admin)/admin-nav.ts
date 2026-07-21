@@ -3,6 +3,8 @@ export type AdminNavItem = {
   href: string;
   permissions?: readonly string[];
   badgeKey?: 'topups' | 'withdrawals' | 'pending';
+  /** Keep advanced routes available through Command Palette and deep links, but out of the daily sidebar. */
+  sidebar?: boolean;
 };
 
 export type AdminNavGroup = {
@@ -26,14 +28,14 @@ export const navGroups: readonly AdminNavGroup[] = [
     items: [
       { title: 'รายการฝาก', href: '/topups', permissions: ['topups.view', 'deposit.view'], badgeKey: 'topups' },
       { title: 'รายการถอน', href: '/withdrawals', permissions: ['withdraw.view'], badgeKey: 'withdrawals' },
-      { title: 'จัดการหลายรายการ', href: '/bulk-queue-operations', permissions: ['topups.view', 'deposit.view', 'withdraw.view'] },
+      { title: 'จัดการหลายรายการ', href: '/bulk-queue-operations', permissions: ['topups.view', 'deposit.view', 'withdraw.view'], sidebar: false },
       { title: 'กระเป๋าเงินสมาชิก', href: '/wallets', permissions: ['wallet.view'] },
       { title: 'ประวัติยอดเงิน', href: '/wallet-ledgers', permissions: ['wallet.view'] },
-      { title: 'Wallet Statement', href: '/wallet-statement', permissions: ['wallet.view'] },
-      { title: 'Wallet Analytics', href: '/wallet-analytics', permissions: ['wallet.view', 'reports.view'] },
+      { title: 'Wallet Statement', href: '/wallet-statement', permissions: ['wallet.view'], sidebar: false },
+      { title: 'Wallet Analytics', href: '/wallet-analytics', permissions: ['wallet.view', 'reports.view'], sidebar: false },
       { title: 'กระทบยอด', href: '/reconciliation-center', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'รายงานการเงิน', href: '/reports', permissions: ['reports.view'] },
-      { title: 'ส่งออกรายงาน', href: '/exports', permissions: ['reports.export', 'reports.view'] },
+      { title: 'ส่งออกรายงาน', href: '/exports', permissions: ['reports.export', 'reports.view'], sidebar: false },
     ],
   },
   {
@@ -84,7 +86,6 @@ export const navGroups: readonly AdminNavGroup[] = [
   {
     id: 'administration', title: 'บัญชีผู้ดูแลและสิทธิ์', description: 'โปรไฟล์ บัญชีผู้ดูแล บทบาท และการตรวจสอบ',
     items: [
-      { title: 'โปรไฟล์ของฉัน', href: '/profile' },
       { title: 'บัญชีผู้ดูแล', href: '/admin-accounts', permissions: ['admin.view', 'admin.access.view'] },
       { title: 'บทบาทและสิทธิ์', href: '/admin-roles', permissions: ['admin.access.view'] },
       { title: 'คำเชิญผู้ดูแล', href: '/admin-invitations', permissions: ['admin.create'] },
@@ -97,14 +98,15 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'ตั้งค่าเว็บไซต์', href: '/settings', permissions: ['settings.update', 'settings.website.view'] },
       { title: 'CAPTCHA และป้องกันบอต', href: '/anti-bot', permissions: ['security.anti_bot.view'] },
       { title: 'ความปลอดภัย', href: '/security' },
-      { title: 'ข้อมูลเชื่อมต่อค่ายเกม', href: '/provider-credentials', permissions: ['provider.update', 'game.providers.manage'] },
-      { title: 'ทดสอบ API ค่ายเกม', href: '/adapter-test', permissions: ['provider.update', 'game.providers.manage'] },
-      { title: 'ตั้งค่า API แบบเดิม', href: '/game-api-settings', permissions: ['provider.update'] },
+      { title: 'ข้อมูลเชื่อมต่อค่ายเกม', href: '/provider-credentials', permissions: ['provider.update', 'game.providers.manage'], sidebar: false },
+      { title: 'ทดสอบ API ค่ายเกม', href: '/adapter-test', permissions: ['provider.update', 'game.providers.manage'], sidebar: false },
+      { title: 'ตั้งค่า API แบบเดิม', href: '/game-api-settings', permissions: ['provider.update'], sidebar: false },
     ],
   },
 ] as const;
 
 const additionalRoutePermissions: readonly AdminNavItem[] = [
+  { title: 'โปรไฟล์ของฉัน', href: '/profile' },
   { title: 'จัดการสิทธิ์', href: '/access', permissions: ['admin.access.view'] },
   { title: 'กิจกรรม', href: '/activity', permissions: ['admin.view', 'admin.access.view'] },
   { title: 'AML Review Center', href: '/aml', permissions: ['risk.view'] },

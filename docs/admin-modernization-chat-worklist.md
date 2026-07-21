@@ -24,12 +24,12 @@
 - [x] Environment badge: Demo / UAT / Production
 - [ ] แยกเมนูเป็นงานหลัก, รายงาน, ตั้งค่า, เครื่องมือเทคนิค และ legacy
 - [ ] เมนูหลักเหลือเฉพาะงานที่ใช้ประจำ
-- [ ] Bulk Queue, Statement, Analytics, Export เปิดจากหน้าบริบทหรือ Command Palette
-- [ ] Credential, Adapter Test, Webhook Test, API Settings, Money Ops ไม่อยู่ Sidebar หลัก
+- [x] Bulk Queue, Statement, Analytics, Export เปิดจากหน้าบริบทหรือ Command Palette
+- [x] Credential, Adapter Test, Webhook Test, API Settings, Money Ops ไม่อยู่ Sidebar หลัก
 - [ ] รวมเมนูซ้ำ: Activity, KYC, Audit, Ledger, Access, Provider Adapter
 - [ ] Route เก่าต้อง redirect ไปหน้าปัจจุบัน ไม่มีลิงก์เสีย
 - [ ] ชื่อเมนู ภาษา และลำดับกลุ่มสอดคล้องกัน
-- [ ] Menu, Command Palette และ deep-link ใช้ permission เดียวกัน
+- [x] Menu, Command Palette และ deep-link ใช้ permission เดียวกัน
 - [ ] Active state/open group ตรงกับ route ปัจจุบัน
 - [ ] Badge งานค้างไม่ซ้ำและแสดงเฉพาะจุดที่มี action
 
