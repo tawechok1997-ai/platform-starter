@@ -148,6 +148,7 @@
 
 ### /wallets
 
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 - [ ] ยอดใช้ได้ / ยอดรวม / ยอดล็อก
 - [ ] Member search และ filter
 - [ ] Before/after balance
@@ -156,6 +157,7 @@
 
 ### /wallet-ledgers
 
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 - [ ] Filter วันที่และประเภทเงิน
 - [ ] Compact table
 - [ ] Expandable row
