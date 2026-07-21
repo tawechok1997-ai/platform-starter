@@ -28,6 +28,8 @@ export class WalletService {
     const where: any = {};
     if (query.type) where.type = query.type;
     if (query.direction) where.direction = query.direction;
+    const createdAt = this.dateRange(query.from, query.to);
+    if (createdAt) where.createdAt = createdAt;
 
     if (identifier) {
       const items = await this.prisma.walletLedger.findMany({ where, include: { user: { select: { id: true, username: true, phone: true, email: true } }, wallet: { select: { id: true, userId: true, currency: true, balance: true, lockedBalance: true, status: true, updatedAt: true } }, createdByAdmin: { select: { id: true, username: true, email: true } } }, orderBy: { createdAt: 'desc' }, take: 500 });
@@ -186,10 +188,12 @@ export class WalletService {
   private shortId(id?: string | null) { return id ? id.slice(0, 8) : null; }
   private formatAdminLedger(item: any) { return { ...this.formatLedger(item), shortUserId: this.shortId(item.userId), user: item.user ? { ...item.user, shortId: this.shortId(item.user.id) } : null, wallet: item.wallet ? this.formatWallet(item.wallet) : null, createdByAdmin: item.createdByAdmin }; }
   private formatWallet(wallet: any) { return { id: wallet.id, userId: wallet.userId, shortUserId: this.shortId(wallet.userId), currency: wallet.currency, balance: wallet.balance.toString(), lockedBalance: wallet.lockedBalance.toString(), availableBalance: wallet.balance.minus(wallet.lockedBalance).toString(), status: wallet.status, updatedAt: wallet.updatedAt }; }
-  private formatLedger(ledger: any) { return { id: ledger.id, walletId: ledger.walletId, userId: ledger.userId, shortUserId: this.shortId(ledger.userId), type: ledger.type, direction: ledger.direction, amount: ledger.amount.toString(), balanceBefore: ledger.balanceBefore.toString(), balanceAfter: ledger.balanceAfter.toString(), referenceType: ledger.referenceType, referenceId: ledger.referenceId, metadata: ledger.metadata, createdByAdminId: ledger.createdByAdminId, createdAt: ledger.createdAt }; }
+  private formatLedger(ledger: any) { return { id: ledger.id, walletId: ledger.walletId, userId: ledger.userId, shortUserId: this.shortId(ledger.userId), type: ledger.type, direction: ledger.direction, amount: ledger.amount.toString(), balanceBefore: ledger.balanceBefore.toString(), balanceAfter: ledger.balanceAfter.toString(), referenceType: ledger.referenceType, referenceId: ledger.referenceId, idempotencyKey: ledger.idempotencyKey, metadata: ledger.metadata, createdByAdminId: ledger.createdByAdminId, createdAt: ledger.createdAt }; }
+  private dateRange(from?: string, to?: string) { const range: { gte?: Date; lt?: Date } = {}; const start = this.dateOnly(from); const end = this.dateOnly(to); if (start) range.gte = start; if (end) { const nextDay = new Date(end); nextDay.setUTCDate(nextDay.getUTCDate() + 1); range.lt = nextDay; } return Object.keys(range).length ? range : undefined; }
+  private dateOnly(value?: string) { if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null; const date = new Date(`${value}T00:00:00.000Z`); return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value ? null : date; }
 }
 
-type AdminLedgerQuery = { userId?: string; identifier?: string; type?: string; direction?: string; limit?: string; page?: string; take?: string };
+type AdminLedgerQuery = { userId?: string; identifier?: string; type?: string; direction?: string; limit?: string; page?: string; take?: string; from?: string; to?: string };
 type AdminWalletQuery = { search?: string; limit?: string; page?: string; take?: string };
 type RequestMeta = { ipAddress?: string; userAgent?: string };
 export type GameWalletMutationInput = {
