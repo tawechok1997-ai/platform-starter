@@ -73,9 +73,12 @@ Branch: `feature/member-branding-foundation`
 - ✅ เพิ่ม fallback resolution สำหรับ Logo/Auth assets
 - ✅ สร้าง controlled asset intake path สำหรับไฟล์ต้นแบบ
 - ✅ เพิ่มกฎไม่รับ JS, API URL, Cookie และ Auth code จาก Static package
+- ✅ เพิ่ม `BrandIcon` consumer bridge แบบ fallback-safe
+- ✅ เพิ่ม asset audit ตรวจไฟล์ว่าง ไฟล์ใหญ่ ไฟล์ซ้ำ นามสกุล และ SVG อันตราย
+- ✅ เพิ่ม `audit:reference-assets` เข้า verify pipeline
 - 🔄 นำ asset จริงจากไฟล์ต้นแบบเข้าโครงสร้างโปรเจกต์
-- ⬜ ตรวจไฟล์ซ้ำและไฟล์เสีย
-- ⬜ เชื่อม Icon registry เข้ากับ MemberIcon consumer
+- 🧪 รัน asset audit หลังนำไฟล์จริงเข้า
+- 🔄 เชื่อม BrandIcon เข้ากับ MemberIcon consumer ทีละจุด
 
 ## Workstream D: Member Home Integration Contract
 
@@ -83,11 +86,14 @@ Branch: `feature/member-branding-foundation`
 
 - ✅ ตรวจจุดเชื่อม `HomeHero` และ CMS banner เดิม
 - ✅ ยืนยันว่า Home ใช้ Site Settings และ Feature flags อยู่แล้ว
-- ⬜ สร้าง Promotion carousel component แบบ React
-- ⬜ ป้องกัน Timer ซ้อน, Index หลุด และภาพมืดค้าง
-- ⬜ เชื่อม Banner จาก CMS พร้อม fallback asset
+- ✅ สร้าง Promotion carousel component แบบ React
+- ✅ ป้องกัน Timer ซ้อนด้วย timeout เดียวและ cleanup ทุกครั้ง
+- ✅ ป้องกัน Index หลุดด้วย normalized safe index
+- ✅ หยุด autoplay เมื่อ hover, focus หรือซ่อนแท็บ
+- ✅ รองรับ dots, previous/next และ accessibility state
+- 🔄 เชื่อม Banner จาก CMS พร้อม fallback asset
 - ⬜ ย้าย Announcement, Promotion cards, Tournament, Jackpot และ Leaderboard
-- ⬜ ตรวจ Responsive และ soak test
+- 🧪 ตรวจ Responsive และ soak test หลังเชื่อมหน้า Home จริง
 
 ## Workstream E: Admin Branding Contract
 
@@ -134,3 +140,6 @@ Branch: `feature/member-branding-foundation`
 18. ✅ เพิ่ม Auth route-group layout สำหรับ scoped CSS
 19. ✅ เพิ่ม Register settings bridge tests
 20. ✅ เพิ่ม app branding specs เข้า Member test suite
+21. ✅ เพิ่ม Promotion carousel foundation แบบ React
+22. ✅ เพิ่ม BrandIcon consumer bridge
+23. ✅ เพิ่ม Reference asset audit และ verify gate
