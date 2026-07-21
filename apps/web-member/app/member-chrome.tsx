@@ -59,7 +59,13 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
   function iconValueFor(iconKey: IconKey) {
     const configured = runtimeIcons[iconKey];
-    if (typeof configured === 'string' && configured.trim()) return configured.trim();
+    if (
+      typeof configured === 'string'
+      && configured.trim()
+      && configured.trim() !== defaultIconSettings[iconKey]
+    ) {
+      return configured.trim();
+    }
     return REFERENCE_LEGACY_MENU_ICON_DEFAULTS[iconKey]
       ?? icons[iconKey]
       ?? defaultIconSettings[iconKey];
