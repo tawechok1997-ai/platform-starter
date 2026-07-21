@@ -86,6 +86,8 @@ async function assertPageHealth(page: Page, route: string, testInfo: TestInfo) {
 }
 
 async function optionallySignIn(page: Page) {
+  if (!REQUIRE_AUTHENTICATION) return false;
+
   const username = process.env.ADMIN_TEST_USERNAME;
   const password = process.env.ADMIN_TEST_PASSWORD;
   if (!username || !password) return false;
