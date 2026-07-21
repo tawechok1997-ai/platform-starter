@@ -62,8 +62,11 @@ Branch: `feature/member-branding-foundation`
 - ✅ สร้าง Auth brand presentation model
 - ✅ รักษา API, Session, Validation, CAPTCHA และ Redirect เดิม
 - ✅ เชื่อมหน้า Login เข้ากับ Brand runtime โดยไม่เปลี่ยน Auth flow
-- ✅ เพิ่ม test สำหรับ Login/Register logo fallback และ compatibility tokens
-- 🔄 เชื่อมหน้า Register เข้ากับ Brand runtime
+- ✅ เพิ่ม Register brand adapter สำหรับ contract เดิม
+- ✅ เพิ่ม Register adapter tests สำหรับ logo fallback และ legacy tokens
+- ✅ เพิ่ม Scoped Auth reference layout contract
+- 🔄 เชื่อม Register adapter เข้าหน้า Register จริง
+- 🔄 ปรับระยะ ขนาด และ responsive ให้ตรงไฟล์ต้นแบบ
 - ⬜ ตรวจ Mobile/Desktop เทียบไฟล์ต้นแบบ
 
 ## Workstream C: Icon and Asset Mapping
@@ -153,4 +156,7 @@ Branch: `feature/member-branding-foundation`
 13. ✅ เชื่อมหน้า Login กับ Branding runtime
 14. ✅ เพิ่ม controlled asset intake path
 15. ✅ เพิ่ม Auth branding compatibility tests
-16. ✅ อัปเดตเอกสารติดตามงานหลายสายพร้อมสถานะจริง
+16. ✅ เพิ่ม Register brand adapter
+17. ✅ เพิ่ม Register adapter tests
+18. ✅ เพิ่ม Scoped Auth reference layout contract
+19. ✅ อัปเดตเอกสารติดตามงานหลายสายพร้อมสถานะจริง
