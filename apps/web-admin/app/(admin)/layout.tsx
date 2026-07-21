@@ -263,9 +263,8 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
           <div className="admin-profile-menu__security"><span className="admin-system-dot" />บัญชีกำลังใช้งาน</div>
           <div className="admin-profile-menu__links">
             <button type="button" role="menuitem" onClick={() => navigate('/profile')}><AdminIcon name="user" /><span>โปรไฟล์ของฉัน</span></button>
-            <button type="button" role="menuitem" onClick={() => navigate('/profile/edit')}><AdminIcon name="settings" /><span>แก้ไขโปรไฟล์</span></button>
             <button type="button" role="menuitem" onClick={() => navigate('/security')}><AdminIcon name="security" /><span>ความปลอดภัยและ 2FA</span></button>
-            <button type="button" role="menuitem" onClick={() => navigate('/activity')}><AdminIcon name="activity" /><span>กิจกรรมและเซสชัน</span></button>
+            <button type="button" role="menuitem" onClick={() => navigate('/activity-center')}><AdminIcon name="activity" /><span>กิจกรรมล่าสุด</span></button>
           </div>
           <button type="button" className="admin-profile-menu__logout" role="menuitem" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></button>
         </div>}
