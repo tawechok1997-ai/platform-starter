@@ -55,6 +55,7 @@
 - [ ] คลิก group ใน rail เปิด flyout menu
 - [ ] Rail mode Profile เหลือ avatar + online dot และเปิด account menu ได้
 - [x] Tablet/mobile ใช้ full drawer พร้อม focus trap, backdrop และ Escape
+- [x] Confirmation dialog: focus เริ่มที่ Cancel, trap focus, Escape/backdrop และ mobile bottom sheet
 
 ## Phase 1 — Bug และความปลอดภัย
 
