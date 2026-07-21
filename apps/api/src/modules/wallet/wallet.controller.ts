@@ -45,8 +45,6 @@ export class WalletController {
     @Query('limit') limit?: string,
     @Query('page') page?: string,
     @Query('take') take?: string,
-    @Query('from') from?: string,
-    @Query('to') to?: string,
   ) {
     return this.walletService.getAdminLedgers({ userId, identifier, type, direction, operation, provider, gameCode, roundId, limit, page, take });
   }
