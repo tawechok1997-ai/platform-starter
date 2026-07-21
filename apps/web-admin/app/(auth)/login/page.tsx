@@ -77,7 +77,11 @@ export default function AdminLoginPage() {
   const [showSecret, setShowSecret] = useState(false);
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const [challengeId, setChallengeId] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string; twoFactor?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{
+    username?: string | undefined;
+    password?: string | undefined;
+    twoFactor?: string | undefined;
+  }>({});
 
   useEffect(() => {
     void refreshAdminToken().then((token) => {
