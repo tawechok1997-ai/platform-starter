@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile, stat } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -31,7 +31,7 @@ test('reference menu manifest points to non-empty project assets', async () => {
     assert.ok(item.sourcePath.startsWith('assets/menu/'), `${key} source path`);
     assert.match(item.sha256, /^[a-f0-9]{64}$/);
 
-    const file = await stat(join(menuDirectory, item.path.split('/').at(-1) ?? ''));
+    const file = await stat(join(menuDirectory, basename(item.path)));
     assert.ok(file.isFile(), `${key} must be a file`);
     assert.ok(file.size > 0, `${key} must not be empty`);
   }
