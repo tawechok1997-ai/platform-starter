@@ -250,7 +250,29 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
       })}
       {visibleGroups.length === 0 && <p className="admin-nav-empty">ไม่พบเมนูที่ค้นหา</p>}
     </nav>
-    <div className="admin-sidebar-footer"><AdminButton type="button" tone="default" className="admin-collapse-button" onClick={toggleCollapsed} aria-label={sidebarCollapsed ? 'ขยายแถบเมนู' : 'ย่อแถบเมนู'}><AdminIcon name="chevron-left" /><span>{sidebarCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}</span></AdminButton><AdminButton type="button" tone="danger" className="admin-logout-button" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></AdminButton></div>
+    <div className="admin-sidebar-footer">
+      <div className="admin-sidebar-profile" ref={profileMenuRef}>
+        <button type="button" className="admin-sidebar-profile__trigger" onClick={() => setProfileOpen((current) => !current)} aria-expanded={profileOpen} aria-haspopup="menu">
+          {avatar}
+          <span className="admin-profile-meta"><strong>{displayName}</strong><span>{roleName}</span></span>
+          <span className="admin-profile-status" title="ออนไลน์" aria-label="ออนไลน์" />
+          <span className="admin-sidebar-profile__chevron" aria-hidden="true"><AdminIcon name="chevron-left" /></span>
+        </button>
+        {profileOpen && <div className="admin-profile-menu admin-profile-menu--sidebar" role="menu">
+          <div className="admin-profile-menu__identity">{avatar}<div><strong>{displayName}</strong><span>@{admin.username || 'admin'}</span><small>{roleName}{admin.department ? ` · ${admin.department}` : ''}</small></div></div>
+          <div className="admin-profile-menu__security"><span className="admin-system-dot" />บัญชีกำลังใช้งาน</div>
+          <div className="admin-profile-menu__links">
+            <button type="button" role="menuitem" onClick={() => navigate('/profile')}><AdminIcon name="user" /><span>โปรไฟล์ของฉัน</span></button>
+            <button type="button" role="menuitem" onClick={() => navigate('/profile/edit')}><AdminIcon name="settings" /><span>แก้ไขโปรไฟล์</span></button>
+            <button type="button" role="menuitem" onClick={() => navigate('/security')}><AdminIcon name="security" /><span>ความปลอดภัยและ 2FA</span></button>
+            <button type="button" role="menuitem" onClick={() => navigate('/activity')}><AdminIcon name="activity" /><span>กิจกรรมและเซสชัน</span></button>
+          </div>
+          <button type="button" className="admin-profile-menu__logout" role="menuitem" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></button>
+        </div>}
+      </div>
+      <AdminButton type="button" tone="default" className="admin-collapse-button" onClick={toggleCollapsed} aria-label={sidebarCollapsed ? 'ขยายแถบเมนู' : 'ย่อแถบเมนู'}><AdminIcon name="chevron-left" /><span>{sidebarCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}</span></AdminButton>
+      <AdminButton type="button" tone="danger" className="admin-logout-button" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></AdminButton>
+    </div>
   </aside>;
 
   return <main className={`admin-shell${sidebarCollapsed ? ' admin-shell--collapsed' : ''}`}>
@@ -268,25 +290,6 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
           <div className="admin-notification-menu" ref={notificationMenuRef}>
             <button type="button" className="admin-notification-trigger" onClick={() => setNotificationOpen((current) => !current)} aria-label="เปิดศูนย์แจ้งเตือน" aria-expanded={notificationOpen} aria-haspopup="menu"><AdminIcon name="bell" />{notificationCount > 0 && <em>{notificationCount > 99 ? '99+' : notificationCount}</em>}</button>
             {notificationOpen && <div className="admin-notification-popover" role="menu"><header><div><strong>การแจ้งเตือน</strong><span>งานที่ต้องติดตาม</span></div><button type="button" onClick={() => navigate('/operations')}>ดูทั้งหมด</button></header>{notifications.length ? <div>{notifications.map((item) => <button type="button" key={item.href} role="menuitem" data-tone={item.tone} onClick={() => navigate(item.href)}><AdminIcon name={item.tone === 'danger' ? 'risk' : 'money'} /><span><strong>{item.title}</strong><small>{item.detail}</small></span></button>)}</div> : <p>ไม่มีงานที่ต้องจัดการตอนนี้</p>}</div>}
-          </div>
-          <div className="admin-topbar-profile" ref={profileMenuRef}>
-            <button type="button" className="admin-topbar-profile__trigger" onClick={() => setProfileOpen((current) => !current)} aria-expanded={profileOpen} aria-haspopup="menu">
-              {avatar}
-              <span className="admin-profile-meta"><strong>{displayName}</strong><span>{roleName}</span></span>
-              <span className="admin-profile-status" title="ออนไลน์" />
-              <span className="admin-topbar-profile__chevron" aria-hidden="true"><AdminIcon name="chevron-left" /></span>
-            </button>
-            {profileOpen && <div className="admin-profile-menu" role="menu">
-              <div className="admin-profile-menu__identity">{avatar}<div><strong>{displayName}</strong><span>@{admin.username || 'admin'}</span><small>{roleName}{admin.department ? ` · ${admin.department}` : ''}</small></div></div>
-              <div className="admin-profile-menu__security"><span className="admin-system-dot" />บัญชีกำลังใช้งาน</div>
-              <div className="admin-profile-menu__links">
-                <button type="button" role="menuitem" onClick={() => navigate('/profile')}><AdminIcon name="user" /><span>โปรไฟล์ของฉัน</span></button>
-                <button type="button" role="menuitem" onClick={() => navigate('/profile/edit')}><AdminIcon name="settings" /><span>แก้ไขโปรไฟล์</span></button>
-                <button type="button" role="menuitem" onClick={() => navigate('/security')}><AdminIcon name="security" /><span>ความปลอดภัยและ 2FA</span></button>
-                <button type="button" role="menuitem" onClick={() => navigate('/activity')}><AdminIcon name="activity" /><span>กิจกรรมและเซสชัน</span></button>
-              </div>
-              <button type="button" className="admin-profile-menu__logout" role="menuitem" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></button>
-            </div>}
           </div>
         </div>
       </header>
