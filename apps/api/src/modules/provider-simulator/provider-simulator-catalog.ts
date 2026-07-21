@@ -1,17 +1,27 @@
 import { PC_GAME_CATALOG } from './provider-simulator-pc-catalog.generated';
 
-export type SimulatorGamePlatform = 'mobile' | 'pc';
+export type SimulatorGamePlatform = 'mobile' | 'desktop' | 'both';
+type SimulatorCatalogPlatform = SimulatorGamePlatform | 'pc';
 
 export type SimulatorGameCatalogItem = {
   code: string;
   name: string;
   provider: string;
-  platform: SimulatorGamePlatform;
+  platform: SimulatorCatalogPlatform;
   category: string;
   accent: string;
   symbol: string;
   assetPath?: string;
   providerLogoPath?: string;
+};
+
+export type SimulatorMediaContract = {
+  imageUrl: string;
+  iconUrl: string;
+  fallbackIconUrl: string;
+  providerLogoUrl: string | null;
+  source: 'repository' | 'generated-placeholder';
+  placeholder: boolean;
 };
 
 export const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
@@ -109,7 +119,35 @@ export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
   ...PC_GAME_CATALOG,
 ];
 
-export function assetUrl(path: string | undefined, publicBaseUrl: string) {
+export function normalizeSimulatorPlatform(platform: SimulatorCatalogPlatform): SimulatorGamePlatform {
+  return platform === 'pc' ? 'desktop' : platform;
+}
+
+export function platformMatches(gamePlatform: SimulatorCatalogPlatform, requested?: SimulatorGamePlatform) {
+  if (!requested) return true;
+  const normalized = normalizeSimulatorPlatform(gamePlatform);
+  return normalized === 'both' || requested === 'both' || normalized === requested;
+}
+
+export function buildSimulatorMediaContract(
+  game: Pick<SimulatorGameCatalogItem, 'code' | 'assetPath' | 'providerLogoPath'>,
+  publicBaseUrl: string,
+): SimulatorMediaContract {
+  const baseUrl = publicBaseUrl.replace(/\/$/, '');
+  const repositoryImage = assetUrl(game.assetPath, baseUrl);
+  const providerLogoUrl = assetUrl(game.providerLogoPath, baseUrl);
+  const fallbackIconUrl = `${baseUrl}/provider-simulator/icons/${game.code}.svg`;
+  return {
+    imageUrl: repositoryImage ?? fallbackIconUrl,
+    iconUrl: repositoryImage ?? fallbackIconUrl,
+    fallbackIconUrl,
+    providerLogoUrl,
+    source: repositoryImage ? 'repository' : 'generated-placeholder',
+    placeholder: !repositoryImage,
+  };
+}
+
+export function assetUrl(path: string | undefined, _publicBaseUrl: string) {
   if (!path) return null;
   const configured = process.env.GAME_ASSET_BASE_URL?.replace(/\/$/, '');
   if (configured) return `${configured}/${path}`;

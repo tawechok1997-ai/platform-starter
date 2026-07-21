@@ -106,6 +106,9 @@ export const navGroups: readonly AdminNavGroup[] = [
 const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'จัดการสิทธิ์', href: '/access', permissions: ['admin.access.view'] },
   { title: 'กิจกรรม', href: '/activity', permissions: ['admin.view', 'admin.access.view'] },
+  { title: 'AML Review Center', href: '/aml', permissions: ['risk.view'] },
+  { title: 'บันทึกการใช้งานเดิม', href: '/audit-logs', permissions: ['admin.view', 'admin.access.view'] },
+  { title: 'บัญชีดำ', href: '/blacklist', permissions: ['risk.view'] },
   { title: 'การเงิน', href: '/finance', permissions: ['wallet.view', 'reports.view'] },
   { title: 'ตรวจ KYC', href: '/kyc', permissions: ['users.view', 'risk.view'] },
   { title: 'ประวัติยอดเงิน', href: '/ledgers', permissions: ['wallet.view'] },
@@ -113,6 +116,7 @@ const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'จัดการยอดเงิน', href: '/money-ops', permissions: ['wallet.view'] },
   { title: 'ตัวเชื่อมต่อค่ายเกม', href: '/provider-adapters', permissions: ['game.providers.view', 'provider.view'] },
   { title: 'ยอดเงินฝั่งค่ายเกม', href: '/provider-wallet-snapshots', permissions: ['game.providers.view', 'provider.view'] },
+  { title: 'ปฏิบัติการความเสี่ยง', href: '/risk-operations', permissions: ['risk.view'] },
   { title: 'กระทบยอด Webhook', href: '/webhook-settlement', permissions: ['provider.view', 'game.providers.view'] },
   { title: 'ทดสอบ Webhook', href: '/webhook-test', permissions: ['provider.update', 'game.providers.manage'] },
 ];

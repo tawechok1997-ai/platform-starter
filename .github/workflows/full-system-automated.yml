@@ -47,6 +47,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
       FINANCE_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
       FULL_SYSTEM_ALLOW_DATABASE_TESTS: 'true'
+      FULL_SYSTEM_UNIT_ONLY: ${{ (inputs.profile || 'ci') != 'database' }}
       FULL_SYSTEM_REPORT_DIR: artifacts/full-system/latest
       PHONE_OTP_SECRET: ci-phone-otp-secret-value-2026
       RISK_MATCH_SECRET: ci-risk-match-secret-value-2026
@@ -72,19 +73,8 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Prepare disposable PostgreSQL
-        if: ${{ inputs.profile == 'database' }}
-        run: |
-          pnpm prisma db push --skip-generate
-          PSQL_DATABASE_URL="${DATABASE_URL%%\?*}"
-          for migration in \
-            prisma/migrations/20260714190000_add_promotion_domain_models/migration.sql \
-            prisma/migrations/20260714191000_backfill_promotion_domain_models/migration.sql \
-            prisma/migrations/20260714213000_add_risk_watchlist_domain/migration.sql \
-            prisma/migrations/20260714213100_add_watchlist_risk_alert_type/migration.sql \
-            prisma/migrations/20260714230000_add_kyc_document_domain/migration.sql \
-            prisma/migrations/20260714230100_add_phone_otp_verification/migration.sql; do
-            psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration"
-          done
+        if: ${{ (inputs.profile || 'ci') == 'ci' || (inputs.profile || 'ci') == 'database' }}
+        run: node tools/bootstrap-prisma-ci-baseline.mjs
 
       - name: Run automated profile
         run: node tools/run-full-system-tests.mjs --profile="${{ inputs.profile || 'ci' }}" --fail-on-blocked

@@ -12,12 +12,12 @@ const publicPages = [
 ];
 
 for (const pageDef of publicPages) {
-  test(`${pageDef.name} visual baseline`, async ({ page }, testInfo) => {
+  test(`${pageDef.name} visual baseline`, async ({ page }) => {
     const response = await page.goto(`${memberUrl}${pageDef.path}`, { waitUntil: 'networkidle' });
     expect(response?.status(), pageDef.name).toBeLessThan(500);
     await expect(page.locator('body')).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
-    await expect(page).toHaveScreenshot(`${pageDef.name}-${testInfo.project.name}.png`, {
+    await expect(page).toHaveScreenshot(`${pageDef.name}.png`, {
       fullPage: true,
       animations: 'disabled',
       caret: 'hide',

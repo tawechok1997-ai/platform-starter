@@ -9,10 +9,13 @@ const viewports = [
   { name: '1440x900', width: 1440, height: 900 },
 ];
 
+const updateSnapshots = process.env.VISUAL_STRICT === '1' ? 'none' : process.env.CI ? 'all' : 'none';
+
 export default defineConfig({
   testDir: './tests/e2e-visual',
   outputDir: 'artifacts/r013-visual/test-results',
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}-{projectName}{ext}',
+  updateSnapshots,
   timeout: 45_000,
   expect: { timeout: 10_000, toHaveScreenshot: { animations: 'disabled', maxDiffPixelRatio: 0.02 } },
   retries: process.env.CI ? 1 : 0,

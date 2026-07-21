@@ -11,6 +11,9 @@ const games = [
     provider: { code: 'pg-soft', name: 'PG Soft', status: 'ACTIVE' },
     status: 'ACTIVE',
     imageUrl: 'http://127.0.0.1:4000/broken/fortune-tiger.png',
+    isFeatured: true,
+    isPopular: true,
+    isNew: false,
   },
   {
     id: 'pc-neon-racer',
@@ -22,6 +25,9 @@ const games = [
     provider: { code: 'nova-pc', name: 'Nova PC', status: 'ACTIVE' },
     status: 'ACTIVE',
     iconUrl: 'http://127.0.0.1:4000/icons/neon-racer.svg',
+    isFeatured: false,
+    isPopular: false,
+    isNew: true,
   },
   {
     id: 'shared-royal-baccarat',
@@ -32,7 +38,16 @@ const games = [
     platform: 'both',
     provider: { code: 'royal-live', name: 'Royal Live', status: 'ACTIVE' },
     status: 'ACTIVE',
+    isFeatured: false,
+    isPopular: false,
+    isNew: false,
   },
+];
+
+const providers = [
+  { code: 'pg-soft', name: 'PG Soft' },
+  { code: 'nova-pc', name: 'Nova PC' },
+  { code: 'royal-live', name: 'Royal Live' },
 ];
 
 async function installApiMock(page: Page) {
@@ -54,13 +69,37 @@ async function installApiMock(page: Page) {
     }
 
     if (path === '/member/games') {
+      const platform = url.searchParams.get('platform');
+      const provider = url.searchParams.get('provider');
+      const category = url.searchParams.get('category');
+      const query = url.searchParams.get('query')?.toLowerCase();
+      const filtered = games.filter((game) => {
+        if (platform && game.platform !== platform && game.platform !== 'both') return false;
+        if (provider && game.provider.code !== provider) return false;
+        if (category && game.category !== category) return false;
+        if (query && !`${game.name} ${game.provider.name}`.toLowerCase().includes(query)) return false;
+        return true;
+      });
+
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
           success: true,
-          data: games,
-          pagination: { page: 1, limit: 100, total: games.length, totalPages: 1 },
+          items: filtered,
+          categories: ['slot', 'arcade', 'casino'],
+          providers,
+          featured: filtered.filter((game) => game.isFeatured),
+          newest: filtered.filter((game) => game.isNew),
+          popular: filtered.filter((game) => game.isPopular),
+          pagination: { page: 1, limit: 24, total: filtered.length, totalPages: 1, hasMore: false },
+          counts: {
+            total: filtered.length,
+            database: filtered.length,
+            catalogOnly: 0,
+            mobile: filtered.filter((game) => game.platform === 'mobile' || game.platform === 'both').length,
+            pc: filtered.filter((game) => game.platform === 'pc' || game.platform === 'both').length,
+          },
         }),
       });
       return;
@@ -97,35 +136,45 @@ async function installApiMock(page: Page) {
   });
 }
 
+function catalog(page: Page) {
+  return page.locator('#game-catalog');
+}
+
+function catalogCard(page: Page, gameName: string) {
+  return catalog(page).locator('.game-lobby-card').filter({ hasText: gameName });
+}
+
 test.beforeEach(async ({ page }) => {
   await installApiMock(page);
   await page.goto('/games');
-  await expect(page.getByRole('heading', { name: 'เกมทั้งหมด' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'เกมทั้งหมด', exact: true })).toBeVisible();
 });
 
 test('filters the catalog by platform provider category and search', async ({ page }) => {
-  await page.getByLabel('แพลตฟอร์ม').selectOption('pc');
-  await expect(page.getByText('Neon Racer', { exact: true })).toBeVisible();
-  await expect(page.getByText('Fortune Tiger', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: '💻 PC', exact: true }).click();
+  await expect(catalog(page).getByText('Neon Racer', { exact: true })).toBeVisible();
+  await expect(catalog(page).getByText('Fortune Tiger', { exact: true })).toHaveCount(0);
 
-  await page.getByLabel('แพลตฟอร์ม').selectOption('all');
+  await page.getByRole('button', { name: 'ทั้งหมด', exact: true }).click();
   await page.getByLabel('ค่ายเกม').selectOption('pg-soft');
-  await expect(page.getByText('Fortune Tiger', { exact: true })).toBeVisible();
-  await expect(page.getByText('Neon Racer', { exact: true })).toHaveCount(0);
+  await expect(catalog(page).getByText('Fortune Tiger', { exact: true })).toBeVisible();
+  await expect(catalog(page).getByText('Neon Racer', { exact: true })).toHaveCount(0);
 
-  await page.getByRole('button', { name: /สล็อต/ }).click();
-  await page.getByLabel('ค้นหาเกม').fill('fortune');
-  await expect(page.getByText('Fortune Tiger', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'สล็อต', exact: true }).click();
+  await page.getByRole('textbox', { name: 'ค้นหาเกม', exact: true }).fill('fortune');
+  await expect(catalog(page).getByText('Fortune Tiger', { exact: true })).toBeVisible();
 });
 
 test('uses the fallback when a game image fails', async ({ page }) => {
-  const card = page.locator('.game-lobby-card').filter({ hasText: 'Fortune Tiger' });
-  await expect(card.locator('.game-lobby-fallback')).toHaveText('FO');
+  await expect(catalogCard(page, 'Fortune Tiger').locator('.game-lobby-fallback')).toHaveText('FO');
 });
 
 test('launches a game through the member launch contract', async ({ page }) => {
+  const card = catalogCard(page, 'Fortune Tiger');
+  const launchButton = card.locator('.game-lobby-cover-button');
+  await expect(launchButton).toBeVisible();
   const launchRequest = page.waitForRequest((request) => request.url().endsWith('/member/games/mobile-fortune-tiger/launch'));
-  await page.getByRole('button', { name: 'เล่น Fortune Tiger' }).click();
+  await launchButton.click();
   await launchRequest;
   await expect(page).toHaveURL(/\/games\/session\?session=session-browser-1/);
 });

@@ -19,8 +19,15 @@ export class WalletController {
 
   @UseGuards(MemberAuthGuard)
   @Get('member/wallet/ledger')
-  getLedger(@CurrentUser() user: any, @Query('limit') limit?: string) {
-    return this.walletService.getMemberLedger(user.id, Number(limit ?? 50));
+  getLedger(
+    @CurrentUser() user: any,
+    @Query('limit') limit?: string,
+    @Query('operation') operation?: string,
+    @Query('provider') provider?: string,
+    @Query('gameCode') gameCode?: string,
+    @Query('roundId') roundId?: string,
+  ) {
+    return this.walletService.getMemberLedger(user.id, Number(limit ?? 50), { operation, provider, gameCode, roundId });
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)
@@ -31,13 +38,15 @@ export class WalletController {
     @Query('identifier') identifier?: string,
     @Query('type') type?: string,
     @Query('direction') direction?: string,
+    @Query('operation') operation?: string,
+    @Query('provider') provider?: string,
+    @Query('gameCode') gameCode?: string,
+    @Query('roundId') roundId?: string,
     @Query('limit') limit?: string,
     @Query('page') page?: string,
     @Query('take') take?: string,
-    @Query('from') from?: string,
-    @Query('to') to?: string,
   ) {
-    return this.walletService.getAdminLedgers({ userId, identifier, type, direction, limit, page, take, from, to });
+    return this.walletService.getAdminLedgers({ userId, identifier, type, direction, operation, provider, gameCode, roundId, limit, page, take });
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)

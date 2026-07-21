@@ -13,6 +13,11 @@ on:
       - 'apps/web-member/package.json'
       - 'tests/game-api-browser/**'
       - 'playwright.game-api.config.ts'
+      - 'asset/catalog/mobile/**'
+      - 'asset/catalog/pc/**'
+      - 'tools/build-game-asset-inventory.mjs'
+      - 'tools/audit-game-asset-source.mjs'
+      - 'docs/generated/game-asset-*.json'
       - 'docs/game-api-worklist.md'
       - '.github/workflows/game-api-verification.yml'
       - 'tools/bootstrap-prisma-ci-baseline.mjs'
@@ -29,6 +34,11 @@ on:
       - 'apps/web-member/package.json'
       - 'tests/game-api-browser/**'
       - 'playwright.game-api.config.ts'
+      - 'asset/catalog/mobile/**'
+      - 'asset/catalog/pc/**'
+      - 'tools/build-game-asset-inventory.mjs'
+      - 'tools/audit-game-asset-source.mjs'
+      - 'docs/generated/game-asset-*.json'
       - 'docs/game-api-worklist.md'
       - '.github/workflows/game-api-verification.yml'
       - 'tools/bootstrap-prisma-ci-baseline.mjs'
@@ -68,6 +78,33 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Validate asset audit tooling
+        run: |
+          node --check tools/build-game-asset-inventory.mjs
+          node --check tools/audit-game-asset-source.mjs
+      - name: Reconcile Mobile and PC asset manifests
+        shell: bash
+        run: |
+          set -o pipefail
+          node tools/build-game-asset-inventory.mjs 2>&1 | tee game-asset-reconciliation.log
+          test -s docs/generated/game-asset-inventory.json
+          test -s docs/generated/game-asset-duplicates.json
+          test -s docs/generated/game-asset-rename-manifest.json
+          if ! git diff --quiet -- docs/generated/game-asset-inventory.json docs/generated/game-asset-duplicates.json docs/generated/game-asset-rename-manifest.json; then
+            echo "::warning title=Generated asset manifests are stale::Asset reconciliation produced changes. Review the uploaded diagnostics and commit refreshed manifests separately."
+            git diff --stat -- docs/generated/game-asset-inventory.json docs/generated/game-asset-duplicates.json docs/generated/game-asset-rename-manifest.json
+          fi
+      - name: Upload asset diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-asset-reconciliation-diagnostics
+          path: |
+            game-asset-reconciliation.log
+            docs/generated/game-asset-inventory.json
+            docs/generated/game-asset-duplicates.json
+            docs/generated/game-asset-rename-manifest.json
+          if-no-files-found: warn
       - name: Generate Prisma client
         run: pnpm db:generate
       - name: Validate migration files
@@ -95,15 +132,33 @@ jobs:
           pnpm --filter @platform/api exec jest
           provider-simulator.service.spec.ts
           provider-simulator-round.service.spec.ts
+          provider-simulator-security.service.spec.ts
+          provider-simulator-transaction.service.spec.ts
+          provider-simulator-catalog.spec.ts
           transaction-retry.spec.ts
           provider-adapter.registry.spec.ts
           provider-webhook.service.spec.ts
+          round-engine.policy.spec.ts
           game-round-persistence.service.spec.ts
+          game-session-token.service.spec.ts
+          game-session-lifecycle.service.spec.ts
+          wallet-ledger-reconciliation.service.spec.ts
           provider-reconciliation-command.service.spec.ts
           game-platform-monitoring.service.spec.ts
+          wallet-game-ledger-semantics.service.spec.ts
           --runInBand
       - name: PostgreSQL game concurrency tests
-        run: pnpm --filter @platform/api test:db:game
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm --filter @platform/api test:db:game 2>&1 | tee game-concurrency.log
+      - name: Upload concurrency diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-concurrency-diagnostics
+          path: game-concurrency.log
+          if-no-files-found: warn
       - name: API typecheck
         run: pnpm --filter @platform/api typecheck
       - name: API build

@@ -14,11 +14,18 @@ export class WalletService {
     return this.formatWallet(wallet);
   }
 
-  async getMemberLedger(userId: string, limit = 50) {
+  async getMemberLedger(userId: string, limit = 50, query: MemberLedgerQuery = {}) {
     const wallet = await this.ensureWallet(userId);
     const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 100);
-    const ledgers = await this.prisma.walletLedger.findMany({ where: { walletId: wallet.id, userId }, orderBy: { createdAt: 'desc' }, take: safeLimit });
-    return { walletId: wallet.id, items: ledgers.map((ledger) => this.formatLedger(ledger)) };
+    const requiresSemanticFilter = Boolean(query.operation || query.provider || query.gameCode || query.roundId);
+    const ledgers = await this.prisma.walletLedger.findMany({
+      where: { walletId: wallet.id, userId },
+      orderBy: { createdAt: 'desc' },
+      take: requiresSemanticFilter ? 500 : safeLimit,
+    });
+    const formatted = ledgers.map((ledger) => this.formatLedger(ledger));
+    const filtered = this.filterFormattedLedgers(formatted, query);
+    return { walletId: wallet.id, items: filtered.slice(0, safeLimit), filters: this.normalizeLedgerFilters(query) };
   }
 
   async getAdminLedgers(query: AdminLedgerQuery) {
@@ -28,21 +35,32 @@ export class WalletService {
     const where: any = {};
     if (query.type) where.type = query.type;
     if (query.direction) where.direction = query.direction;
-    const createdAt = this.dateRange(query.from, query.to);
-    if (createdAt) where.createdAt = createdAt;
+    const requiresApplicationFilter = Boolean(identifier || query.operation || query.provider || query.gameCode || query.roundId);
 
-    if (identifier) {
-      const items = await this.prisma.walletLedger.findMany({ where, include: { user: { select: { id: true, username: true, phone: true, email: true } }, wallet: { select: { id: true, userId: true, currency: true, balance: true, lockedBalance: true, status: true, updatedAt: true } }, createdByAdmin: { select: { id: true, username: true, email: true } } }, orderBy: { createdAt: 'desc' }, take: 500 });
-      const filtered = items.filter((item) => this.matchesIdentifier(identifier, item.user, item.userId));
+    if (requiresApplicationFilter) {
+      const items = await this.prisma.walletLedger.findMany({
+        where,
+        include: {
+          user: { select: { id: true, username: true, phone: true, email: true } },
+          wallet: { select: { id: true, userId: true, currency: true, balance: true, lockedBalance: true, status: true, updatedAt: true } },
+          createdByAdmin: { select: { id: true, username: true, email: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 1000,
+      });
+      const filtered = items
+        .filter((item) => !identifier || this.matchesIdentifier(identifier, item.user, item.userId))
+        .map((item) => this.formatAdminLedger(item))
+        .filter((item) => this.matchesLedgerFilters(item, query));
       const pageItems = filtered.slice((page - 1) * take, page * take);
-      return { items: pageItems.map((item) => this.formatAdminLedger(item)), page, take, total: filtered.length, pageCount: Math.max(Math.ceil(filtered.length / take), 1) };
+      return { items: pageItems, page, take, total: filtered.length, pageCount: Math.max(Math.ceil(filtered.length / take), 1), filters: this.normalizeLedgerFilters(query) };
     }
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.walletLedger.findMany({ where, include: { user: { select: { id: true, username: true, phone: true, email: true } }, wallet: { select: { id: true, userId: true, currency: true, balance: true, lockedBalance: true, status: true, updatedAt: true } }, createdByAdmin: { select: { id: true, username: true, email: true } } }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * take, take }),
       this.prisma.walletLedger.count({ where }),
     ]);
-    return { items: items.map((item) => this.formatAdminLedger(item)), page, take, total, pageCount: Math.max(Math.ceil(total / take), 1) };
+    return { items: items.map((item) => this.formatAdminLedger(item)), page, take, total, pageCount: Math.max(Math.ceil(total / take), 1), filters: this.normalizeLedgerFilters(query) };
   }
 
   async getAdminWallets(query: AdminWalletQuery) {
@@ -127,18 +145,22 @@ export class WalletService {
     return this.prisma.$transaction(async (tx) => {
       const concurrencyKey = input.concurrencyKey?.trim();
       if (concurrencyKey) {
-        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${concurrencyKey}, 0))`;
+        await tx.$queryRaw<Array<{ locked: boolean }>>`
+          SELECT pg_advisory_xact_lock(hashtextextended(${concurrencyKey}, 0)) IS NULL AS "locked"
+        `;
       }
 
       const existing = await tx.walletLedger.findUnique({ where: { idempotencyKey } });
       if (existing) {
-        const sameRequest = existing.userId === userId && existing.direction === input.direction && existing.amount.equals(amount) && existing.referenceType === input.referenceType && existing.referenceId === input.referenceId;
+        const existingPayloadHash = this.metadataString(existing.metadata, 'payloadHash');
+        const requestedPayloadHash = this.metadataString(input.metadata, 'payloadHash');
+        const payloadMatches = !existingPayloadHash && !requestedPayloadHash ? true : Boolean(existingPayloadHash && requestedPayloadHash && existingPayloadHash === requestedPayloadHash);
+        const sameRequest = existing.userId === userId && existing.direction === input.direction && existing.amount.equals(amount) && existing.referenceType === input.referenceType && existing.referenceId === input.referenceId && payloadMatches;
         if (!sameRequest) throw new ConflictException('Idempotency key was already used with different game transaction data');
         return { wallet: await this.currentWalletInTransaction(tx, userId), ledger: this.formatLedger(existing), replayed: true };
       }
 
       if (input.beforeMutation) await input.beforeMutation(tx);
-
       const user = await tx.user.findUnique({ where: { id: userId }, select: { id: true } });
       if (!user) throw new NotFoundException('User not found');
 
@@ -152,22 +174,7 @@ export class WalletService {
       if (input.direction === 'DEBIT' && balanceAfter.lt(wallet.lockedBalance)) throw new BadRequestException('Insufficient available wallet balance');
 
       const updatedWallet = await tx.wallet.update({ where: { id: wallet.id }, data: { balance: balanceAfter } });
-      const ledger = await tx.walletLedger.create({
-        data: {
-          walletId: wallet.id,
-          userId,
-          type: input.isReversal ? 'REVERSAL' : 'TRANSFER',
-          direction: input.direction,
-          amount,
-          balanceBefore,
-          balanceAfter,
-          referenceType: input.referenceType,
-          referenceId: input.referenceId,
-          idempotencyKey,
-          metadata: input.metadata ?? Prisma.JsonNull,
-        },
-      });
-
+      const ledger = await tx.walletLedger.create({ data: { walletId: wallet.id, userId, type: input.isReversal ? 'REVERSAL' : 'TRANSFER', direction: input.direction, amount, balanceBefore, balanceAfter, referenceType: input.referenceType, referenceId: input.referenceId, idempotencyKey, metadata: input.metadata ?? Prisma.JsonNull } });
       return { wallet: this.formatWallet(updatedWallet), ledger: this.formatLedger(ledger), replayed: false };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
@@ -184,28 +191,52 @@ export class WalletService {
     return this.formatWallet(wallet);
   }
 
+  private metadataString(metadata: unknown, key: string) {
+    if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return null;
+    const value = (metadata as Record<string, unknown>)[key];
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+  }
+
+  private deriveGameOperation(ledger: any) {
+    const explicit = this.metadataString(ledger.metadata, 'gameOperation');
+    if (explicit) return explicit.toUpperCase();
+    const referenceType = String(ledger.referenceType ?? '').toLowerCase();
+    const legacyMap: Record<string, string> = {
+      game_bet: 'BET', game_win: 'WIN', game_refund: 'REFUND', game_rollback_bet: 'ROLLBACK_BET', game_rollback_win: 'ROLLBACK_WIN',
+      game_transfer_in: 'TRANSFER_IN', game_transfer_out: 'TRANSFER_OUT',
+    };
+    if (legacyMap[referenceType]) return legacyMap[referenceType];
+    if (referenceType.startsWith('game_')) return referenceType.slice(5).toUpperCase();
+    return null;
+  }
+
+  private matchesLedgerFilters(item: any, query: LedgerSemanticFilters) {
+    const operation = query.operation?.trim().toUpperCase();
+    const provider = query.provider?.trim().toLowerCase();
+    const gameCode = query.gameCode?.trim().toLowerCase();
+    const roundId = query.roundId?.trim().toLowerCase();
+    if (operation && item.gameOperation !== operation) return false;
+    if (provider && String(item.provider ?? '').toLowerCase() !== provider) return false;
+    if (gameCode && String(item.gameCode ?? '').toLowerCase() !== gameCode) return false;
+    if (roundId && String(item.roundId ?? '').toLowerCase() !== roundId) return false;
+    return true;
+  }
+
+  private filterFormattedLedgers(items: any[], query: LedgerSemanticFilters) { return items.filter((item) => this.matchesLedgerFilters(item, query)); }
+  private normalizeLedgerFilters(query: LedgerSemanticFilters) { return { operation: query.operation?.trim().toUpperCase() || null, provider: query.provider?.trim() || null, gameCode: query.gameCode?.trim() || null, roundId: query.roundId?.trim() || null }; }
   private matchesIdentifier(identifier: string, user: any, userId: string) { const q = identifier.toLowerCase(); return userId.toLowerCase() === q || userId.toLowerCase().startsWith(q) || user?.username?.toLowerCase().includes(q) || user?.phone?.toLowerCase().includes(q) || user?.email?.toLowerCase().includes(q); }
   private shortId(id?: string | null) { return id ? id.slice(0, 8) : null; }
   private formatAdminLedger(item: any) { return { ...this.formatLedger(item), shortUserId: this.shortId(item.userId), user: item.user ? { ...item.user, shortId: this.shortId(item.user.id) } : null, wallet: item.wallet ? this.formatWallet(item.wallet) : null, createdByAdmin: item.createdByAdmin }; }
   private formatWallet(wallet: any) { return { id: wallet.id, userId: wallet.userId, shortUserId: this.shortId(wallet.userId), currency: wallet.currency, balance: wallet.balance.toString(), lockedBalance: wallet.lockedBalance.toString(), availableBalance: wallet.balance.minus(wallet.lockedBalance).toString(), status: wallet.status, updatedAt: wallet.updatedAt }; }
-  private formatLedger(ledger: any) { return { id: ledger.id, walletId: ledger.walletId, userId: ledger.userId, shortUserId: this.shortId(ledger.userId), type: ledger.type, direction: ledger.direction, amount: ledger.amount.toString(), balanceBefore: ledger.balanceBefore.toString(), balanceAfter: ledger.balanceAfter.toString(), referenceType: ledger.referenceType, referenceId: ledger.referenceId, idempotencyKey: ledger.idempotencyKey, metadata: ledger.metadata, createdByAdminId: ledger.createdByAdminId, createdAt: ledger.createdAt }; }
-  private dateRange(from?: string, to?: string) { const range: { gte?: Date; lt?: Date } = {}; const start = this.dateOnly(from); const end = this.dateOnly(to); if (start) range.gte = start; if (end) { const nextDay = new Date(end); nextDay.setUTCDate(nextDay.getUTCDate() + 1); range.lt = nextDay; } return Object.keys(range).length ? range : undefined; }
-  private dateOnly(value?: string) { if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null; const date = new Date(`${value}T00:00:00.000Z`); return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value ? null : date; }
+  private formatLedger(ledger: any) {
+    const gameOperation = this.deriveGameOperation(ledger);
+    return { id: ledger.id, walletId: ledger.walletId, userId: ledger.userId, shortUserId: this.shortId(ledger.userId), type: ledger.type, direction: ledger.direction, amount: ledger.amount.toString(), balanceBefore: ledger.balanceBefore.toString(), balanceAfter: ledger.balanceAfter.toString(), referenceType: ledger.referenceType, referenceId: ledger.referenceId, metadata: ledger.metadata, gameOperation, provider: this.metadataString(ledger.metadata, 'provider'), gameCode: this.metadataString(ledger.metadata, 'gameCode'), roundId: this.metadataString(ledger.metadata, 'roundId'), originalTransactionId: this.metadataString(ledger.metadata, 'originalTransactionId'), createdByAdminId: ledger.createdByAdminId, createdAt: ledger.createdAt };
+  }
 }
 
-type AdminLedgerQuery = { userId?: string; identifier?: string; type?: string; direction?: string; limit?: string; page?: string; take?: string; from?: string; to?: string };
+type LedgerSemanticFilters = { operation?: string; provider?: string; gameCode?: string; roundId?: string };
+type MemberLedgerQuery = LedgerSemanticFilters;
+type AdminLedgerQuery = LedgerSemanticFilters & { userId?: string; identifier?: string; type?: string; direction?: string; limit?: string; page?: string; take?: string };
 type AdminWalletQuery = { search?: string; limit?: string; page?: string; take?: string };
 type RequestMeta = { ipAddress?: string; userAgent?: string };
-export type GameWalletMutationInput = {
-  userId: string;
-  amount: string | number | Decimal;
-  direction: 'CREDIT' | 'DEBIT';
-  idempotencyKey: string;
-  referenceType: string;
-  referenceId: string;
-  currency?: string;
-  isReversal?: boolean;
-  metadata?: Prisma.InputJsonValue;
-  concurrencyKey?: string;
-  beforeMutation?: (tx: Prisma.TransactionClient) => Promise<void>;
-};
+export type GameWalletMutationInput = { userId: string; amount: string | number | Decimal; direction: 'CREDIT' | 'DEBIT'; idempotencyKey: string; referenceType: string; referenceId: string; currency?: string; isReversal?: boolean; metadata?: Prisma.InputJsonValue; concurrencyKey?: string; beforeMutation?: (tx: Prisma.TransactionClient) => Promise<void> };

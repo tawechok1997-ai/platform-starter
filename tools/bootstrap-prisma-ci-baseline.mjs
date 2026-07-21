@@ -38,6 +38,32 @@ const migrations = (await readdir(migrationsRoot, { withFileTypes: true }))
   .map((entry) => entry.name)
   .sort();
 
+// These tables are intentionally managed through raw SQL and are not represented
+// in schema.prisma. Apply their idempotent migrations after db push, before the
+// historical migration ledger is baselined.
+const rawSqlBootstrapMigrations = [
+  '20260720212000_game_round_transaction_foundation',
+  '20260720214500_separate_round_refund_cancel',
+  '20260720220000_provider_simulator_nonce_security',
+  '20260720223500_game_round_manual_review_and_diagnostics',
+];
+
+for (const migration of rawSqlBootstrapMigrations) {
+  if (!migrations.includes(migration)) {
+    throw new Error(`Required CI raw-SQL migration is missing: ${migration}`);
+  }
+  run('pnpm', [
+    'exec',
+    'prisma',
+    'db',
+    'execute',
+    '--schema',
+    'prisma/schema.prisma',
+    '--file',
+    join('prisma/migrations', migration, 'migration.sql'),
+  ]);
+}
+
 for (const migration of migrations) {
   run('pnpm', ['exec', 'prisma', 'migrate', 'resolve', '--schema', 'prisma/schema.prisma', '--applied', migration]);
 }
@@ -45,4 +71,4 @@ for (const migration of migrations) {
 run('pnpm', ['db:migrate']);
 run('pnpm', ['db:migrate:status']);
 
-console.log(`CI Prisma baseline ready with ${migrations.length} migrations recorded.`);
+console.log(`CI Prisma baseline ready with ${migrations.length} migrations recorded and ${rawSqlBootstrapMigrations.length} raw-SQL migrations applied.`);

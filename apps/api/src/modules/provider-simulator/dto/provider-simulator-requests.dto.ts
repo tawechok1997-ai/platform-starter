@@ -54,8 +54,8 @@ export class ProviderSimulatorGamesRequestDto {
   provider?: string;
 
   @IsOptional()
-  @IsIn(['mobile', 'pc'])
-  platform?: 'mobile' | 'pc';
+  @IsIn(['mobile', 'pc', 'desktop', 'both'])
+  platform?: 'mobile' | 'pc' | 'desktop' | 'both';
 
   @IsOptional()
   @IsString()

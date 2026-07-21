@@ -34,7 +34,13 @@ export class ProviderSimulatorRoundService {
   }
 
   private apply(kind: SimulatorRoundKind, input: SimulatorRoundInput, current: GameRoundSnapshot) {
-    const event = kind === 'BET' ? 'PLACE_BET' : kind === 'WIN' ? 'SETTLE' : 'ROLLBACK';
+    const event = kind === 'BET'
+      ? 'PLACE_BET'
+      : kind === 'WIN'
+        ? 'SETTLE'
+        : kind === 'REFUND'
+          ? 'REFUND'
+          : 'ROLLBACK';
     try {
       return transitionGameRound(current, event, input.transactionId);
     } catch (error) {
@@ -76,15 +82,17 @@ export class ProviderSimulatorRoundService {
 
     for (const item of [...related].reverse()) {
       const metadata = this.metadata(item);
-      const kind = String(metadata.transactionKind ?? item.referenceType ?? '').toUpperCase();
+      const operation = String(metadata.gameOperation ?? metadata.transactionKind ?? item.referenceType ?? '').toUpperCase();
       const transactionId = this.transactionId(item, metadata);
-      const event = kind.includes('BET')
-        ? 'PLACE_BET'
-        : kind.includes('WIN')
-          ? 'SETTLE'
-          : kind.includes('REFUND') || kind.includes('ROLLBACK')
-            ? 'ROLLBACK'
-            : null;
+      const event = operation.includes('ROLLBACK')
+        ? 'ROLLBACK'
+        : operation.includes('REFUND')
+          ? 'REFUND'
+          : operation.includes('WIN')
+            ? 'SETTLE'
+            : operation.includes('BET')
+              ? 'PLACE_BET'
+              : null;
       if (!event || !transactionId) continue;
 
       try {
@@ -110,6 +118,6 @@ export class ProviderSimulatorRoundService {
     const explicit = typeof metadata.transactionId === 'string' ? metadata.transactionId.trim() : '';
     if (explicit) return explicit;
     const reference = String(metadata.providerTransactionId ?? item.referenceId ?? '');
-    return reference.replace(/^sim_(bet|win|refund|rollback)_/i, '').trim();
+    return reference.replace(/^sim_(bet|win|refund|rollback_bet|rollback_win|rollback)_/i, '').trim();
   }
 }

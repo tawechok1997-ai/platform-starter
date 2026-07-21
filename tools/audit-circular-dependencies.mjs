@@ -30,7 +30,7 @@ function normalize(path) {
 function importsOf(source) {
   const imports = [];
   const patterns = [
-    /(?:import|export)\s+(?:type\s+)?(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]/g,
+    /(?:import|export)\s+(?!type\b)(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]/g,
     /import\(\s*['"]([^'"]+)['"]\s*\)/g,
     /require\(\s*['"]([^'"]+)['"]\s*\)/g,
   ];
