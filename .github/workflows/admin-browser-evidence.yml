@@ -17,9 +17,9 @@ concurrency:
 
 jobs:
   browser-evidence:
-    name: Admin browser, visual and accessibility evidence
+    name: Capture every Admin route on mobile and desktop
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       ADMIN_BASE_URL: ${{ secrets.ADMIN_BASE_URL || 'https://platformweb-admin-production.up.railway.app' }}
       ADMIN_TEST_USERNAME: ${{ secrets.ADMIN_TEST_USERNAME }}
@@ -57,7 +57,7 @@ jobs:
         run: |
           mkdir -p .admin-browser-evidence
           cat > .admin-browser-evidence/admin-evidence.spec.ts <<'EOF'
-          import { test, expect } from '@playwright/test';
+          import { test, expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
           import AxeBuilder from '@axe-core/playwright';
           import fs from 'node:fs';
           import path from 'node:path';
@@ -68,16 +68,18 @@ jobs:
           const evidenceDir = path.resolve('artifacts/admin-browser-evidence');
           fs.mkdirSync(evidenceDir, { recursive: true });
 
-          const viewports = [
-            { name: 'mobile-390x844', width: 390, height: 844 },
-            { name: 'mobile-430x932', width: 430, height: 932 },
-            { name: 'tablet-768x1024', width: 768, height: 1024 },
-            { name: 'tablet-landscape-1024x768', width: 1024, height: 768 },
-            { name: 'desktop-1366x768', width: 1366, height: 768 },
-            { name: 'desktop-1920x1080', width: 1920, height: 1080 },
+          const devices = [
+            { name: 'mobile-390x844', width: 390, height: 844, mobile: true },
+            { name: 'desktop-1440x900', width: 1440, height: 900, mobile: false },
           ];
 
-          function attachRuntimeGuards(page: import('@playwright/test').Page) {
+          const blockedPrefixes = ['/logout', '/api', '/_next'];
+
+          function slugFor(route: string) {
+            return route === '/' ? 'root' : route.replace(/^\/+/, '').replace(/[^a-zA-Z0-9-_]+/g, '-').replace(/-+/g, '-');
+          }
+
+          function attachRuntimeGuards(page: Page) {
             const consoleErrors: string[] = [];
             const failedRequests: string[] = [];
             page.on('console', (message) => {
@@ -89,8 +91,8 @@ jobs:
             return { consoleErrors, failedRequests };
           }
 
-          async function login(page: import('@playwright/test').Page) {
-            test.skip(!username || !password, 'Authenticated evidence requires ADMIN_TEST_USERNAME and ADMIN_TEST_PASSWORD secrets.');
+          async function login(page: Page) {
+            test.skip(!username || !password, 'Authenticated crawl requires ADMIN_TEST_USERNAME and ADMIN_TEST_PASSWORD secrets.');
             await page.goto(`${baseURL}/login?next=%2Fdashboard`, { waitUntil: 'networkidle' });
             const userInput = page.locator('input[name="username"], input[name="email"], input[type="email"], input[autocomplete="username"]').first();
             const passwordInput = page.locator('input[name="password"], input[type="password"], input[autocomplete="current-password"]').first();
@@ -100,69 +102,128 @@ jobs:
             await passwordInput.fill(password!);
             await page.locator('button[type="submit"], input[type="submit"]').first().click();
             await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 });
+            await page.waitForLoadState('networkidle');
           }
 
-          test('public loading, not-found, accessibility and six viewport evidence', async ({ browser }) => {
-            for (const viewport of viewports) {
+          async function collectRoutes(page: Page) {
+            const discovered = new Set<string>(['/dashboard']);
+            for (let pass = 0; pass < 3; pass += 1) {
+              const hrefs = await page.locator('a[href]').evaluateAll((anchors) => anchors.map((anchor) => (anchor as HTMLAnchorElement).getAttribute('href') || ''));
+              for (const href of hrefs) {
+                try {
+                  const url = new URL(href, baseURL);
+                  if (url.origin !== new URL(baseURL).origin) continue;
+                  if (!url.pathname.startsWith('/')) continue;
+                  if (blockedPrefixes.some((prefix) => url.pathname.startsWith(prefix))) continue;
+                  if (url.pathname.startsWith('/login')) continue;
+                  discovered.add(url.pathname);
+                } catch {
+                  // Ignore malformed hrefs.
+                }
+              }
+              const groupTriggers = page.locator('button[aria-expanded="false"]');
+              const count = await groupTriggers.count();
+              for (let index = 0; index < count; index += 1) {
+                await groupTriggers.nth(index).click().catch(() => undefined);
+              }
+              await page.waitForTimeout(250);
+            }
+            return [...discovered].sort();
+          }
+
+          async function createAuthenticatedContext(browser: Browser, device: typeof devices[number]) {
+            const context = await browser.newContext({
+              viewport: { width: device.width, height: device.height },
+              reducedMotion: 'reduce',
+              isMobile: device.mobile,
+              hasTouch: device.mobile,
+            });
+            const page = await context.newPage();
+            await login(page);
+            return { context, page };
+          }
+
+          test('public states and accessibility evidence', async ({ browser }) => {
+            for (const device of devices) {
               const context = await browser.newContext({
-                viewport: { width: viewport.width, height: viewport.height },
+                viewport: { width: device.width, height: device.height },
                 reducedMotion: 'reduce',
+                isMobile: device.mobile,
+                hasTouch: device.mobile,
               });
               const page = await context.newPage();
               const guards = attachRuntimeGuards(page);
 
-              await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded' });
-              await page.screenshot({ path: path.join(evidenceDir, `${viewport.name}-login-loading.png`), fullPage: true });
-              await page.waitForLoadState('networkidle');
-              await page.screenshot({ path: path.join(evidenceDir, `${viewport.name}-login.png`), fullPage: true });
+              await page.goto(`${baseURL}/login`, { waitUntil: 'networkidle' });
+              await page.screenshot({ path: path.join(evidenceDir, `${device.name}-login.png`), fullPage: true });
 
               await page.goto(`${baseURL}/__admin-evidence-not-found`, { waitUntil: 'networkidle' });
-              await page.screenshot({ path: path.join(evidenceDir, `${viewport.name}-not-found.png`), fullPage: true });
+              await page.screenshot({ path: path.join(evidenceDir, `${device.name}-not-found.png`), fullPage: true });
 
               const accessibility = await new AxeBuilder({ page }).analyze();
-              fs.writeFileSync(
-                path.join(evidenceDir, `${viewport.name}-axe.json`),
-                JSON.stringify(accessibility, null, 2),
-              );
+              fs.writeFileSync(path.join(evidenceDir, `${device.name}-public-axe.json`), JSON.stringify(accessibility, null, 2));
+              fs.writeFileSync(path.join(evidenceDir, `${device.name}-public-console-errors.json`), JSON.stringify(guards.consoleErrors, null, 2));
+              fs.writeFileSync(path.join(evidenceDir, `${device.name}-public-failed-requests.json`), JSON.stringify(guards.failedRequests, null, 2));
               expect(accessibility.violations.filter((violation) => ['critical', 'serious'].includes(violation.impact ?? ''))).toEqual([]);
-
-              fs.writeFileSync(path.join(evidenceDir, `${viewport.name}-console-errors.json`), JSON.stringify(guards.consoleErrors, null, 2));
-              fs.writeFileSync(path.join(evidenceDir, `${viewport.name}-failed-requests.json`), JSON.stringify(guards.failedRequests, null, 2));
               expect(guards.consoleErrors).toEqual([]);
-
               await context.close();
             }
           });
 
-          test('keyboard and 200 percent zoom evidence', async ({ page }) => {
+          test('crawl and capture every authenticated Admin route', async ({ browser }) => {
+            test.skip(!username || !password, 'Authenticated crawl requires repository secrets.');
+
+            const routeManifest: Record<string, { url: string; status: number | null; title: string; consoleErrors: string[]; failedRequests: string[] }[]> = {};
+            let canonicalRoutes: string[] = [];
+
+            for (const device of devices) {
+              const { context, page } = await createAuthenticatedContext(browser, device);
+              if (canonicalRoutes.length === 0) canonicalRoutes = await collectRoutes(page);
+              routeManifest[device.name] = [];
+
+              for (const route of canonicalRoutes) {
+                const guards = attachRuntimeGuards(page);
+                const response = await page.goto(`${baseURL}${route}`, { waitUntil: 'networkidle', timeout: 30_000 }).catch(() => null);
+                await page.waitForTimeout(350);
+                const currentPath = new URL(page.url()).pathname;
+                const slug = slugFor(route);
+                await page.screenshot({ path: path.join(evidenceDir, device.name, `${slug}.png`), fullPage: true });
+
+                const axe = await new AxeBuilder({ page }).analyze();
+                fs.mkdirSync(path.join(evidenceDir, device.name, 'axe'), { recursive: true });
+                fs.writeFileSync(path.join(evidenceDir, device.name, 'axe', `${slug}.json`), JSON.stringify(axe, null, 2));
+
+                routeManifest[device.name].push({
+                  url: currentPath,
+                  status: response?.status() ?? null,
+                  title: await page.title(),
+                  consoleErrors: guards.consoleErrors,
+                  failedRequests: guards.failedRequests,
+                });
+
+                expect(currentPath.startsWith('/login'), `${route} redirected to login`).toBe(false);
+                expect(response?.status() ?? 200, `${route} returned an error status`).toBeLessThan(500);
+                expect(axe.violations.filter((violation) => ['critical', 'serious'].includes(violation.impact ?? '')), `${route} has serious accessibility violations`).toEqual([]);
+              }
+
+              await context.close();
+            }
+
+            fs.writeFileSync(path.join(evidenceDir, 'routes.json'), JSON.stringify(canonicalRoutes, null, 2));
+            fs.writeFileSync(path.join(evidenceDir, 'route-manifest.json'), JSON.stringify(routeManifest, null, 2));
+            fs.writeFileSync(
+              path.join(evidenceDir, 'ROUTE-SUMMARY.md'),
+              ['# Admin route evidence', '', `Total routes: ${canonicalRoutes.length}`, '', ...canonicalRoutes.map((route) => `- ${route}`)].join('\n'),
+            );
+          });
+
+          test('keyboard focus and 200 percent zoom evidence', async ({ page }) => {
             await page.goto(`${baseURL}/login`, { waitUntil: 'networkidle' });
             await page.evaluate(() => { document.documentElement.style.zoom = '200%'; });
             await page.keyboard.press('Tab');
             const activeTag = await page.evaluate(() => document.activeElement?.tagName ?? '');
             expect(['INPUT', 'BUTTON', 'A']).toContain(activeTag);
             await page.screenshot({ path: path.join(evidenceDir, 'login-zoom-200-keyboard-focus.png'), fullPage: true });
-          });
-
-          test('authenticated dashboard, error and runtime evidence', async ({ page }) => {
-            await login(page);
-            const guards = attachRuntimeGuards(page);
-            await page.goto(`${baseURL}/dashboard`, { waitUntil: 'networkidle' });
-            await expect(page.locator('main')).toBeVisible();
-            await page.screenshot({ path: path.join(evidenceDir, 'authenticated-dashboard.png'), fullPage: true });
-
-            const accessibility = await new AxeBuilder({ page }).analyze();
-            fs.writeFileSync(path.join(evidenceDir, 'authenticated-dashboard-axe.json'), JSON.stringify(accessibility, null, 2));
-            expect(accessibility.violations.filter((violation) => ['critical', 'serious'].includes(violation.impact ?? ''))).toEqual([]);
-
-            await page.route('**/admin/**', async (route) => {
-              await route.abort('failed');
-            });
-            await page.reload({ waitUntil: 'domcontentloaded' });
-            await page.waitForTimeout(1500);
-            await page.screenshot({ path: path.join(evidenceDir, 'authenticated-network-error.png'), fullPage: true });
-
-            fs.writeFileSync(path.join(evidenceDir, 'authenticated-console-errors.json'), JSON.stringify(guards.consoleErrors, null, 2));
-            fs.writeFileSync(path.join(evidenceDir, 'authenticated-failed-requests.json'), JSON.stringify(guards.failedRequests, null, 2));
           });
           EOF
 
@@ -172,8 +233,8 @@ jobs:
           export default defineConfig({
             testDir: '.',
             testMatch: /admin-evidence\.spec\.ts/,
-            timeout: 60_000,
-            expect: { timeout: 10_000 },
+            timeout: 20 * 60_000,
+            expect: { timeout: 15_000 },
             retries: 1,
             workers: 1,
             reporter: [
@@ -204,6 +265,7 @@ jobs:
             echo
             echo "- Commit: $GITHUB_SHA"
             echo "- Base URL: $ADMIN_BASE_URL"
+            echo "- Devices: mobile 390x844 and desktop 1440x900"
             echo "- Authenticated secrets configured: $([[ -n \"$ADMIN_TEST_USERNAME\" && -n \"$ADMIN_TEST_PASSWORD\" ]] && echo yes || echo no)"
             echo "- Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           } > artifacts/admin-browser-evidence/SUMMARY.md
