@@ -30,7 +30,7 @@ export function buildHomePromotionItems(content: CmsContent): PromotionCarouselI
         const imageUrl = resolveCmsUrl(assetUrl || banner.imageUrl || '');
         if (!imageUrl) return [];
         return [{
-          id: String(banner.id || banner.assetId || `cms-${index + 1}`),
+          id: String(banner.assetId || `cms-${index + 1}`),
           title: banner.title || `โปรโมชั่น ${index + 1}`,
           imageUrl,
           href: safeInternalHref(banner.href) || '/promotions',
