@@ -104,6 +104,7 @@ jobs:
           round-engine.policy.spec.ts
           game-round-persistence.service.spec.ts
           game-session-token.service.spec.ts
+          game-session-lifecycle.service.spec.ts
           wallet-ledger-reconciliation.service.spec.ts
           provider-reconciliation-command.service.spec.ts
           game-platform-monitoring.service.spec.ts
