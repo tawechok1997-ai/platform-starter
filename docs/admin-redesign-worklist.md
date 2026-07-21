@@ -12,7 +12,7 @@
 - จำนวนงานต้องนับจาก checkbox จริงทุกครั้ง ไม่ใช้ยอดเดิมที่พิมพ์ค้างไว้
 - งาน visual completion ต้องแยกตามโมดูลจริง ห้ามรวมหลายระบบไว้ใน checkbox เดียว
 
-อัปเดตล่าสุด: **2026-07-22**
+อัปเดตล่าสุด: **2026-07-20**
 
 ---
 
@@ -162,77 +162,10 @@
 | P0 | 7 | 7 | 0 |
 | P1 | 13 | 13 | 0 |
 | P2 | 39 | 39 | 0 |
-| P3 | 0 | 40 | 40 |
-| **รวม** | **59** | **99** | **40** |
+| **รวม** | **59** | **59** | **0** |
 
 
 ---
-
-## P3 — Admin navigation, controls และ release quality
-
-สถานะ: **0 / 40 เสร็จ | เหลือ 40**
-
-ส่วนนี้เพิ่มจากการทบทวน Admin menu, Sidebar, ปุ่ม action และความพร้อมก่อนใช้งานจริงเมื่อวันที่ 2026-07-22 โดยต้องทำตามลำดับเพื่อไม่ให้แก้หน้าตาแต่สร้าง route/permission ที่ขัดกัน
-
-### Navigation และ information architecture
-
-- [ ] เอา Profile trigger ซ้ำออกจาก Topbar ให้เหลือ account entry point หลักที่ Sidebar ด้านล่าง
-- [ ] คง Profile ในกลุ่มบัญชีผู้ดูแล พร้อม avatar, role, online status และ account dropdown
-- [ ] แยก Sidebar เป็นงานหลัก, รายงาน, ตั้งค่า, เครื่องมือเทคนิค และ legacy route อย่างชัดเจน
-- [ ] กำหนดว่า Bulk Queue, Statement, Analytics และ Export เป็น contextual destination จากหน้าที่เกี่ยวข้องหรือ Command Palette
-- [ ] ย้าย Credential, Adapter Test, Webhook Test, API Settings และ Money Ops ออกจาก Sidebar หลัก โดยยังเข้าผ่าน Command Palette/deep-link ตามสิทธิ์
-- [ ] รวม Activity/Activity Center, KYC/KYC Center, Audit/Audit Logs และ Ledger/Wallet Ledger ให้มีหน้าหลักเดียว
-- [ ] ทำ redirect สำหรับ route legacy โดยไม่ปล่อยลิงก์เสียหรือ route ที่ทำงานซ้ำ
-- [ ] ตรวจและแก้ปุ่ม/link ที่เรียก route ไม่มีหน้า เช่น Profile Edit หรือชื่อ route เก่า
-- [ ] ทำชื่อเมนู ภาษา และลำดับกลุ่มให้สอดคล้องกับงานจริง
-- [ ] กรองเมนู, Command Palette และ deep-link ตาม permission เดียวกัน
-- [ ] ทำ active state และ open group ให้สะท้อน route ปัจจุบัน แม้เข้าผ่าน deep-link
-- [ ] ตรวจ badge งานค้างไม่ซ้ำและไม่แสดงบนหน้าที่ไม่มี action ให้ทำ
-
-### Overlay, dropdown และปุ่ม action
-
-- [ ] รวม state controller ของ Sidebar drawer, Profile menu, Notification Center และ Command Palette
-- [ ] บังคับให้เปิด overlay ได้ทีละชั้น และปิด surface อื่นอัตโนมัติเมื่อเปิดอันใหม่
-- [ ] จัดลำดับ Escape ให้ปิด surface ชั้นบนสุดก่อน แล้วคืน focus ไปยังปุ่มต้นทาง
-- [ ] รวม Profile menu ให้มี implementation เดียว ลด trigger/dropdown ซ้ำ
-- [ ] ตัดปุ่ม Logout ซ้ำ โดยคง footer logout เฉพาะ mobile เมื่อจำเป็น
-- [ ] ตรวจ close button, backdrop, click-outside และ navigation transition ทุก surface
-- [ ] ทำให้ปุ่ม action หนึ่งรายการมีคำสั่งหลักเพียงหนึ่งปุ่ม ไม่เกิด Approve/Confirm ซ้อนกัน
-- [ ] ปุ่ม disabled ทุกปุ่มต้องแสดงเหตุผลหรือ helper ที่อ่านได้
-- [ ] ใช้ destructive tone เฉพาะ Reject, Delete, Suspend และ Logout
-- [ ] จำกัด primary action หนึ่งปุ่มต่อ section และทำ loading/pending state ป้องกัน double-submit
-- [ ] ปุ่ม icon ต้องมี tooltip, aria-label และ keyboard focus ที่ชัดเจน
-- [ ] บังคับ touch target ขั้นต่ำ 44px บน mobile สำหรับทุก action สำคัญ
-
-### Sidebar rail และ responsive navigation
-
-- [ ] ปรับ Desktop Sidebar expanded เป็น 272px และ collapsed icon rail เป็น 72px
-- [ ] แทนปุ่ม footer “ย่อเมนู” ด้วยปุ่มกลมที่ขอบ Sidebar ซึ่งสื่อการย่อ/ขยายชัดเจน
-- [ ] เมื่อ rail mode ให้แสดง icon, active state และ queue badge โดยไม่บีบข้อความ
-- [ ] เพิ่ม tooltip บน hover/focus ของ icon rail และรองรับ screen reader
-- [ ] คลิก group ใน rail ให้เปิด flyout menu แทนการยืด Sidebar เต็มโดยไม่จำเป็น
-- [ ] เมื่อ rail mode ให้ Profile เหลือ avatar/online dot และเปิด account menu ได้
-- [ ] บน tablet/mobile ใช้ full drawer เท่านั้น ไม่ใช้ rail mode และจัด focus trap/backdrop ให้ครบ
-
-### QA, observability และ release controls
-
-- [ ] สร้าง seeded UAT data และ Admin test accounts แยกตาม role สำหรับ browser regression
-- [ ] เพิ่ม E2E critical-action coverage สำหรับ approve, reject, pay, wallet adjustment และ role change พร้อม audit assertion
-- [ ] เพิ่ม feature flags เพื่อแยก Demo/UAT/Production, gradual rollout และ rollback
-- [ ] เพิ่ม error tracking สำหรับ Admin/API โดย redact PII, secret และ payment payload
-- [ ] เพิ่ม structured log และ trace ID เชื่อม UI, API, database และ provider workflow
-- [ ] เพิ่ม monitoring dashboard/SLO สำหรับ error rate, latency, queue aging, webhook failure และ provider downtime
-- [ ] เพิ่ม Lighthouse/performance budget ใน CI สำหรับ Admin critical routes
-- [ ] ทำ automated backup-restore drill และเก็บหลักฐานว่า restore ใช้งานได้จริง
-
-### P3 Definition of Done
-
-- ไม่มี Profile, Logout, Activity หรือ menu action ซ้ำ
-- Overlay เปิดพร้อมกันไม่ได้ และการปิดด้วย Escape/click-outside คืน focus ถูกต้อง
-- ไม่มี route legacy/link เสียใน menu, dropdown หรือ Command Palette
-- Desktop rail, tablet และ mobile drawer ผ่าน keyboard, responsive และ permission checks
-- Action เสี่ยงมี confirmation, audit, idempotency/retry policy และ automated regression
-- UAT/Production แยก environment, credential, webhook และ feature flag
 
 ## ลำดับดำเนินงานต่อ
 
