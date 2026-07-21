@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminBadge, AdminButton, AdminDataValue, AdminEmpty, AdminNotice, AdminPage, AdminSkeleton, formatMoney } from '../_components/admin-ui';
 
@@ -16,6 +16,7 @@ export default function WalletStatementPage() {
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
   const [total, setTotal] = useState(0);
+  const [selected, setSelected] = useState<LedgerItem | null>(null);
 
   useEffect(() => { void loadStatement(1); }, []);
 
@@ -52,7 +53,9 @@ export default function WalletStatementPage() {
     const anchor = document.createElement('a'); anchor.href = url; anchor.download = `wallet-statement-${new Date().toISOString().slice(0,10)}.csv`; anchor.click(); URL.revokeObjectURL(url);
   }
 
-  return <AdminPage eyebrow="การเงิน" title="Wallet Statement" description="ตรวจรายการเดินบัญชี พร้อมยอดก่อนและหลัง และส่งออกได้ทันที" actions={<><AdminButton size="compact" tone="secondary" disabled={loading || items.length === 0} onClick={exportCsv}>ส่งออก CSV</AdminButton><AdminButton size="compact" disabled={loading} onClick={() => void loadStatement(page)}>รีเฟรช</AdminButton></>}>
+  const groupedItems = useMemo(() => items.reduce<Array<{ date: string; items: LedgerItem[] }>>((groups, item) => { const date = new Date(item.createdAt).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }); const current = groups[groups.length - 1]; if (current?.date === date) current.items.push(item); else groups.push({ date, items: [item] }); return groups; }, []), [items]);
+
+  return <AdminPage eyebrow="การเงิน" title="Wallet Statement" description="ตรวจรายการเดินบัญชี พร้อมยอดก่อนและหลัง และส่งออกได้ทันที" actions={<><AdminButton size="compact" tone="secondary" disabled={loading || items.length === 0} onClick={exportCsv}>ส่งออก CSV</AdminButton><AdminButton size="compact" tone="secondary" disabled={loading || items.length === 0} onClick={() => window.print()}>พิมพ์ / PDF</AdminButton><AdminButton size="compact" disabled={loading} onClick={() => void loadStatement(page)}>รีเฟรช</AdminButton></>}>
     <section className="admin-wallet-statement" aria-busy={loading}>
       <div className="admin-wallet-statement__stats"><Metric label="รายการทั้งหมด" value={total.toLocaleString('th-TH')} /><Metric label="เงินเข้าหน้านี้" value={formatMoney(totals.credit)} /><Metric label="เงินออกหน้านี้" value={formatMoney(totals.debit)} /><Metric label="หน้าปัจจุบัน" value={`${page}/${pageCount}`} /></div>
       <form className="admin-wallet-statement__toolbar" onSubmit={(event) => { event.preventDefault(); void loadStatement(1); }}>
@@ -62,10 +65,15 @@ export default function WalletStatementPage() {
         <AdminButton type="submit" size="compact" disabled={loading}>ค้นหา</AdminButton><AdminButton size="compact" tone="secondary" disabled={loading} onClick={clearFilters}>ล้าง</AdminButton>
       </form>
       {message && <AdminNotice tone="danger">{message}</AdminNotice>}
-      {loading && items.length === 0 ? <AdminSkeleton lines={6} /> : <div className="admin-wallet-statement__table-shell"><table className="admin-wallet-statement__table"><thead><tr><th>วันที่</th><th>สมาชิก</th><th>รายการ</th><th>จำนวน</th><th>ยอดก่อน</th><th>ยอดหลัง</th><th>อ้างอิง</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td>{new Date(item.createdAt).toLocaleString('th-TH')}</td><td><strong>{item.user?.username ?? '-'}</strong><br /><small>{item.user?.shortId ?? '-'}</small></td><td><AdminBadge tone={item.direction === 'CREDIT' ? 'success' : 'danger'}>{item.direction === 'CREDIT' ? 'เงินเข้า' : 'เงินออก'}</AdminBadge><br /><small>{item.type}</small></td><td className="admin-wallet-statement__amount">{item.direction === 'CREDIT' ? '+' : '-'} {formatMoney(item.amount)}</td><td>{formatMoney(item.balanceBefore)}</td><td>{formatMoney(item.balanceAfter)}</td><td><AdminDataValue label={item.referenceType ?? 'Reference'} mono>{item.referenceId ?? '-'}</AdminDataValue></td></tr>)}</tbody></table>{!loading && items.length === 0 && <div className="admin-wallet-statement__state"><AdminEmpty>ไม่พบรายการตามเงื่อนไข</AdminEmpty></div>}</div>}
+      {loading && items.length === 0 ? <AdminSkeleton lines={6} /> : <div className="admin-wallet-statement__table-shell"><table className="admin-wallet-statement__table"><thead><tr><th>วันที่</th><th>สมาชิก</th><th>รายการ</th><th>จำนวน</th><th>ยอดก่อน</th><th>ยอดหลัง</th><th>อ้างอิง</th><th><span className="sr-only">รายละเอียด</span></th></tr></thead><tbody>{groupedItems.map((group) => <Fragment key={group.date}><tr className="admin-wallet-statement__day"><td colSpan={8}>{group.date} · {group.items.length} รายการ</td></tr>{group.items.map((item) => <tr key={item.id}><td>{new Date(item.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td><td><strong>{item.user?.username ?? '-'}</strong><br /><small>{item.user?.shortId ?? '-'}</small></td><td><AdminBadge tone={item.direction === 'CREDIT' ? 'success' : 'danger'}>{item.direction === 'CREDIT' ? 'เงินเข้า' : 'เงินออก'}</AdminBadge><br /><small>{item.type}</small></td><td className="admin-wallet-statement__amount">{item.direction === 'CREDIT' ? '+' : '-'} {formatMoney(item.amount)}</td><td>{formatMoney(item.balanceBefore)}</td><td>{formatMoney(item.balanceAfter)}</td><td><AdminDataValue label={item.referenceType ?? 'Reference'} mono>{item.referenceId ?? '-'}</AdminDataValue></td><td><AdminButton size="compact" tone="secondary" onClick={() => setSelected(item)}>ดู</AdminButton></td></tr>)}</Fragment>)}</tbody></table>{!loading && items.length === 0 && <div className="admin-wallet-statement__state"><AdminEmpty>ไม่พบรายการตามเงื่อนไข</AdminEmpty></div>}</div>}
       <div className="admin-wallet-statement__toolbar"><AdminButton size="compact" tone="secondary" disabled={loading || page <= 1} onClick={() => void loadStatement(page - 1)}>ก่อนหน้า</AdminButton><span>หน้า {page} จาก {pageCount}</span><AdminButton size="compact" tone="secondary" disabled={loading || page >= pageCount} onClick={() => void loadStatement(page + 1)}>ถัดไป</AdminButton></div>
+      {selected && <div style={drawerOverlayStyle} role="presentation" onClick={() => setSelected(null)}><aside role="dialog" aria-modal="true" aria-label="รายละเอียดรายการเงิน" style={drawerStyle} onClick={(event) => event.stopPropagation()}><AdminButton size="compact" tone="secondary" onClick={() => setSelected(null)}>ปิด</AdminButton><h2>รายละเอียดรายการ</h2><dl style={detailListStyle}><Detail label="เวลา" value={new Date(selected.createdAt).toLocaleString('th-TH')} /><Detail label="สมาชิก" value={selected.user?.username ?? selected.user?.shortId ?? '-'} /><Detail label="ประเภท" value={`${selected.type} · ${selected.direction}`} /><Detail label="จำนวน" value={formatMoney(selected.amount)} /><Detail label="ยอดก่อน" value={formatMoney(selected.balanceBefore)} /><Detail label="ยอดหลัง (Running balance)" value={formatMoney(selected.balanceAfter)} /><Detail label="อ้างอิง" value={[selected.referenceType, selected.referenceId].filter(Boolean).join(' · ') || '-'} /></dl></aside></div>}
     </section>
   </AdminPage>;
 }
 
 function Metric({ label, value }: { label: string; value: string }) { return <article className="admin-wallet-statement__stat"><span>{label}</span><strong>{value}</strong></article>; }
+function Detail({ label, value }: { label: string; value: string }) { return <div><dt>{label}</dt><dd>{value}</dd></div>; }
+const drawerOverlayStyle = { position: 'fixed' as const, inset: 0, zIndex: 50, background: 'rgba(2,6,23,.65)', display: 'flex', justifyContent: 'flex-end' } as const;
+const drawerStyle = { width: 'min(430px, 100%)', height: '100%', overflowY: 'auto' as const, background: '#0f172a', color: '#f8fafc', padding: 20, display: 'grid', alignContent: 'start', gap: 16, boxShadow: '-12px 0 30px rgba(0,0,0,.3)' } as const;
+const detailListStyle = { display: 'grid', gap: 12, margin: 0 } as const;
