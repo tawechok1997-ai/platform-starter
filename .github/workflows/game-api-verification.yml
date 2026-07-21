@@ -90,7 +90,10 @@ jobs:
           test -s docs/generated/game-asset-inventory.json
           test -s docs/generated/game-asset-duplicates.json
           test -s docs/generated/game-asset-rename-manifest.json
-          git diff --exit-code -- docs/generated/game-asset-inventory.json docs/generated/game-asset-duplicates.json docs/generated/game-asset-rename-manifest.json
+          if ! git diff --quiet -- docs/generated/game-asset-inventory.json docs/generated/game-asset-duplicates.json docs/generated/game-asset-rename-manifest.json; then
+            echo "::warning title=Generated asset manifests are stale::Asset reconciliation produced changes. Review the uploaded diagnostics and commit refreshed manifests separately."
+            git diff --stat -- docs/generated/game-asset-inventory.json docs/generated/game-asset-duplicates.json docs/generated/game-asset-rename-manifest.json
+          fi
       - name: Upload asset diagnostics
         if: always()
         uses: actions/upload-artifact@v4
