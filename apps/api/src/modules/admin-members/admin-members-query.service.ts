@@ -6,6 +6,8 @@ import { PrismaService } from '../../database/prisma.service';
 import type { AdminMembersQueryDto } from './dto/admin-members-query.dto';
 
 const MEMBER_STATUSES = ['ACTIVE', 'SUSPENDED', 'LOCKED', 'CLOSED'] as const;
+const BANK_STATUSES = ['ACTIVE', 'PENDING_REVIEW', 'REJECTED', 'DISABLED'] as const;
+const KYC_STATUSES = ['DRAFT', 'SUBMITTED', 'REVIEWING', 'APPROVED', 'REJECTED', 'EXPIRED'] as const;
 type MemberStatus = (typeof MEMBER_STATUSES)[number];
 
 const MEMBER_LIST_PROJECTION = {
@@ -37,6 +39,8 @@ export class AdminMembersQueryService {
       allValue: 'ALL',
       fieldName: 'status',
     });
+    const bankStatus = parseOptionalEnum(query.bankStatus, BANK_STATUSES, { allValue: 'ALL', fieldName: 'bank status' });
+    const kycStatus = parseOptionalEnum(query.kycStatus, KYC_STATUSES, { allValue: 'ALL', fieldName: 'KYC status' });
     const { page, take } = parsePagination(query.page, query.take, {
       defaultTake: 50,
       maxTake: 100,
@@ -44,6 +48,14 @@ export class AdminMembersQueryService {
     const where: Prisma.UserWhereInput = {};
 
     if (status) where.status = status;
+    if (bankStatus) where.bankAccounts = { some: { status: bankStatus } };
+
+    if (kycStatus) {
+      const kycMembers = await this.prisma.$queryRaw<Array<{ memberId: string }>>(Prisma.sql`
+        SELECT "member_id" AS "memberId" FROM "kyc_cases" WHERE "status" = ${kycStatus}
+      `);
+      where.id = { in: kycMembers.map((item) => item.memberId) };
+    }
 
     if (search) {
       where.OR = [
