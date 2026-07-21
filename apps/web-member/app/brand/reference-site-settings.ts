@@ -31,6 +31,10 @@ export type ReferenceMenuIconSettings = {
   sport: string;
   lottery: string;
   live: string;
+  card: string;
+  arcade: string;
+  new: string;
+  popular: string;
 };
 
 export type ReferenceContentSettings = {
@@ -55,6 +59,18 @@ export type ReferenceContentSettings = {
   depositLabel: string;
   withdrawLabel: string;
   supportLabel: string;
+  gameCategoryHomeLabel: string;
+  gameCategoryCasinoLabel: string;
+  gameCategorySlotLabel: string;
+  gameCategoryLiveLabel: string;
+  gameCategorySportLabel: string;
+  gameCategoryFishingLabel: string;
+  gameCategoryLotteryLabel: string;
+  gameCategoryCardLabel: string;
+  gameCategoryArcadeLabel: string;
+  gameCategoryNewLabel: string;
+  gameCategoryPopularLabel: string;
+  gameCategoryOtherLabel: string;
 };
 
 const ROOT = '/assets/reference-brand';
@@ -72,26 +88,30 @@ export const DEFAULT_REFERENCE_ASSETS: ReferenceAssetSettings = {
 };
 
 export const DEFAULT_REFERENCE_MENU_ICONS: ReferenceMenuIconSettings = {
-  home: '⌂',
-  deposit: '＋',
-  withdraw: '↗',
-  games: '🎮',
-  promotion: '🎁',
-  bonus: '★',
-  affiliate: '↔',
-  support: DEFAULT_REFERENCE_ASSETS.supportIcon,
-  history: '≡',
+  home: `${ROOT}/menu/home.png`,
+  deposit: `${ROOT}/menu/deposit.png`,
+  withdraw: `${ROOT}/menu/withdraw.png`,
+  games: `${ROOT}/menu/home.png`,
+  promotion: `${ROOT}/menu/promotion.png`,
+  bonus: `${ROOT}/menu/bonus.png`,
+  affiliate: `${ROOT}/menu/affiliate.png`,
+  support: `${ROOT}/menu/support.png`,
+  history: `${ROOT}/menu/history.png`,
   bank: '◈',
   profile: '👤',
-  notification: '🔔',
+  notification: `${ROOT}/menu/notification.png`,
   vip: '♛',
   wallet: '฿',
-  casino: `${ROOT}/casino-mobile/ab.webp`,
-  slot: `${ROOT}/slot/slot-bg.webp`,
-  fishing: `${ROOT}/fishing/fishing-bg.webp`,
-  sport: '⚽',
-  lottery: `${ROOT}/lotto/bg_lotto.webp`,
-  live: `${ROOT}/live/logo_live.webp`,
+  casino: `${ROOT}/menu/casino.png`,
+  slot: `${ROOT}/menu/slot.png`,
+  fishing: `${ROOT}/menu/fishing.png`,
+  sport: `${ROOT}/menu/sport.png`,
+  lottery: `${ROOT}/menu/lottery.png`,
+  live: `${ROOT}/menu/live.png`,
+  card: `${ROOT}/menu/card.png`,
+  arcade: `${ROOT}/menu/activities.png`,
+  new: `${ROOT}/menu/news.png`,
+  popular: `${ROOT}/menu/recommended.png`,
 };
 
 export const DEFAULT_REFERENCE_CONTENT: ReferenceContentSettings = {
@@ -116,4 +136,16 @@ export const DEFAULT_REFERENCE_CONTENT: ReferenceContentSettings = {
   depositLabel: 'ฝากเงิน',
   withdrawLabel: 'ถอนเงิน',
   supportLabel: 'ติดต่อเรา',
+  gameCategoryHomeLabel: 'หน้าหลัก',
+  gameCategoryCasinoLabel: 'คาสิโน',
+  gameCategorySlotLabel: 'สล็อต',
+  gameCategoryLiveLabel: 'คาสิโนสด',
+  gameCategorySportLabel: 'กีฬา',
+  gameCategoryFishingLabel: 'ยิงปลา',
+  gameCategoryLotteryLabel: 'หวย',
+  gameCategoryCardLabel: 'ไพ่',
+  gameCategoryArcadeLabel: 'อาร์เคด',
+  gameCategoryNewLabel: 'เกมใหม่',
+  gameCategoryPopularLabel: 'ยอดนิยม',
+  gameCategoryOtherLabel: 'เกมอื่น ๆ',
 };
