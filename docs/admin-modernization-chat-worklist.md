@@ -208,11 +208,12 @@
 
 ### /members
 
-- [ ] Data table + member drawer
-- [ ] ซ่อน PII โดย default
-- [ ] Filter status / KYC / bank
-- [ ] Quick actions
-- [ ] Last activity
+- [x] Data table + member drawer
+- [x] ซ่อน PII โดย default
+- [x] Filter status / KYC / bank
+- [x] Quick actions
+- [x] Last activity
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 
 ### /member-insights
 
