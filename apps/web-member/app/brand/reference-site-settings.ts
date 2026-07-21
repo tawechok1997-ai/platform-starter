@@ -4,6 +4,7 @@ export type ReferenceAssetSettings = {
   logoLogin: string;
   logoRegister: string;
   favicon: string;
+  languageIcon: string;
   announcementIcon: string;
   jackpotImage: string;
   promotionCardBackground: string;
@@ -74,13 +75,15 @@ export type ReferenceContentSettings = {
 };
 
 const ROOT = '/assets/reference-brand';
+const HEADER_LOGO = `${ROOT}/header/noah345-logo.webp`;
 
 export const DEFAULT_REFERENCE_ASSETS: ReferenceAssetSettings = {
-  logo: `${ROOT}/header/noah345-logo.png`,
-  logoMobile: `${ROOT}/header/noah345-logo.png`,
-  logoLogin: `${ROOT}/home/login.webp`,
-  logoRegister: `${ROOT}/header/noah345-logo.png`,
-  favicon: `${ROOT}/header/noah345-logo.png`,
+  logo: HEADER_LOGO,
+  logoMobile: HEADER_LOGO,
+  logoLogin: HEADER_LOGO,
+  logoRegister: HEADER_LOGO,
+  favicon: HEADER_LOGO,
+  languageIcon: `${ROOT}/header/th.svg`,
   announcementIcon: `${ROOT}/home-source/announcement-megaphone.png`,
   jackpotImage: `${ROOT}/home-source/jackpot.gif`,
   promotionCardBackground: `${ROOT}/home-source/promo-card-bg.png`,
