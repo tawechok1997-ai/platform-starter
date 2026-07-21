@@ -4,9 +4,17 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { GameSessionLifecycleService } from './game-session-lifecycle.service';
 
-type HeartbeatBody = { token?: string };
-type CloseBody = { reason?: string };
-type IssueBody = { ttlMs?: number };
+class IssueGameSessionTokenDto {
+  ttlMs?: number;
+}
+
+class HeartbeatGameSessionDto {
+  token?: string;
+}
+
+class CloseGameSessionDto {
+  reason?: string;
+}
 
 @UseGuards(MemberAuthGuard)
 @Controller('member/game-sessions')
@@ -17,7 +25,7 @@ export class MemberGameSessionController {
   issueToken(
     @Param('sessionId') sessionId: string,
     @CurrentUser() user: MemberActor,
-    @Body() body: IssueBody,
+    @Body() body: IssueGameSessionTokenDto,
   ) {
     return this.lifecycle.issueForMember(sessionId, user.id, body.ttlMs);
   }
@@ -26,7 +34,7 @@ export class MemberGameSessionController {
   heartbeat(
     @Param('sessionId') sessionId: string,
     @CurrentUser() user: MemberActor,
-    @Body() body: HeartbeatBody,
+    @Body() body: HeartbeatGameSessionDto,
   ) {
     return this.lifecycle.heartbeat(sessionId, user.id, String(body.token ?? ''));
   }
@@ -40,7 +48,7 @@ export class MemberGameSessionController {
   close(
     @Param('sessionId') sessionId: string,
     @CurrentUser() user: MemberActor,
-    @Body() body: CloseBody,
+    @Body() body: CloseGameSessionDto,
   ) {
     return this.lifecycle.close(sessionId, user.id, body.reason);
   }
