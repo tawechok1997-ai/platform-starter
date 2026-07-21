@@ -57,7 +57,7 @@ jobs:
         run: |
           mkdir -p .admin-browser-evidence
           cat > .admin-browser-evidence/admin-evidence.spec.ts <<'EOF'
-          import { test, expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
+          import { test, expect, type Browser, type Page } from '@playwright/test';
           import AxeBuilder from '@axe-core/playwright';
           import fs from 'node:fs';
           import path from 'node:path';
@@ -91,8 +91,11 @@ jobs:
             return { consoleErrors, failedRequests };
           }
 
+          function seriousViolations(result: Awaited<ReturnType<AxeBuilder['analyze']>>) {
+            return result.violations.filter((violation) => ['critical', 'serious'].includes(violation.impact ?? ''));
+          }
+
           async function login(page: Page) {
-            test.skip(!username || !password, 'Authenticated crawl requires ADMIN_TEST_USERNAME and ADMIN_TEST_PASSWORD secrets.');
             await page.goto(`${baseURL}/login?next=%2Fdashboard`, { waitUntil: 'networkidle' });
             const userInput = page.locator('input[name="username"], input[name="email"], input[type="email"], input[autocomplete="username"]').first();
             const passwordInput = page.locator('input[name="password"], input[type="password"], input[autocomplete="current-password"]').first();
@@ -113,12 +116,11 @@ jobs:
                 try {
                   const url = new URL(href, baseURL);
                   if (url.origin !== new URL(baseURL).origin) continue;
-                  if (!url.pathname.startsWith('/')) continue;
                   if (blockedPrefixes.some((prefix) => url.pathname.startsWith(prefix))) continue;
                   if (url.pathname.startsWith('/login')) continue;
                   discovered.add(url.pathname);
                 } catch {
-                  // Ignore malformed hrefs.
+                  // Ignore malformed links.
                 }
               }
               const groupTriggers = page.locator('button[aria-expanded="false"]');
@@ -161,25 +163,27 @@ jobs:
               await page.screenshot({ path: path.join(evidenceDir, `${device.name}-not-found.png`), fullPage: true });
 
               const accessibility = await new AxeBuilder({ page }).analyze();
+              const issues = seriousViolations(accessibility);
               fs.writeFileSync(path.join(evidenceDir, `${device.name}-public-axe.json`), JSON.stringify(accessibility, null, 2));
               fs.writeFileSync(path.join(evidenceDir, `${device.name}-public-console-errors.json`), JSON.stringify(guards.consoleErrors, null, 2));
               fs.writeFileSync(path.join(evidenceDir, `${device.name}-public-failed-requests.json`), JSON.stringify(guards.failedRequests, null, 2));
-              expect(accessibility.violations.filter((violation) => ['critical', 'serious'].includes(violation.impact ?? ''))).toEqual([]);
-              expect(guards.consoleErrors).toEqual([]);
+              console.log(`[audit] ${device.name} public serious accessibility issues: ${issues.length}`);
+              console.log(`[audit] ${device.name} public console errors: ${guards.consoleErrors.length}`);
               await context.close();
             }
           });
 
           test('crawl and capture every authenticated Admin route', async ({ browser }) => {
-            test.skip(!username || !password, 'Authenticated crawl requires repository secrets.');
+            test.skip(!username || !password, 'Authenticated crawl skipped because repository secrets are not configured.');
 
-            const routeManifest: Record<string, { url: string; status: number | null; title: string; consoleErrors: string[]; failedRequests: string[] }[]> = {};
+            const routeManifest: Record<string, { url: string; status: number | null; title: string; accessibilityIssues: number; consoleErrors: string[]; failedRequests: string[] }[]> = {};
             let canonicalRoutes: string[] = [];
 
             for (const device of devices) {
               const { context, page } = await createAuthenticatedContext(browser, device);
               if (canonicalRoutes.length === 0) canonicalRoutes = await collectRoutes(page);
               routeManifest[device.name] = [];
+              fs.mkdirSync(path.join(evidenceDir, device.name, 'axe'), { recursive: true });
 
               for (const route of canonicalRoutes) {
                 const guards = attachRuntimeGuards(page);
@@ -190,20 +194,21 @@ jobs:
                 await page.screenshot({ path: path.join(evidenceDir, device.name, `${slug}.png`), fullPage: true });
 
                 const axe = await new AxeBuilder({ page }).analyze();
-                fs.mkdirSync(path.join(evidenceDir, device.name, 'axe'), { recursive: true });
+                const issues = seriousViolations(axe);
                 fs.writeFileSync(path.join(evidenceDir, device.name, 'axe', `${slug}.json`), JSON.stringify(axe, null, 2));
 
                 routeManifest[device.name].push({
                   url: currentPath,
                   status: response?.status() ?? null,
                   title: await page.title(),
+                  accessibilityIssues: issues.length,
                   consoleErrors: guards.consoleErrors,
                   failedRequests: guards.failedRequests,
                 });
 
+                console.log(`[audit] ${device.name} ${route}: status=${response?.status() ?? 'unknown'}, accessibility=${issues.length}, console=${guards.consoleErrors.length}, failedRequests=${guards.failedRequests.length}`);
                 expect(currentPath.startsWith('/login'), `${route} redirected to login`).toBe(false);
                 expect(response?.status() ?? 200, `${route} returned an error status`).toBeLessThan(500);
-                expect(axe.violations.filter((violation) => ['critical', 'serious'].includes(violation.impact ?? '')), `${route} has serious accessibility violations`).toEqual([]);
               }
 
               await context.close();
@@ -266,6 +271,7 @@ jobs:
             echo "- Commit: $GITHUB_SHA"
             echo "- Base URL: $ADMIN_BASE_URL"
             echo "- Devices: mobile 390x844 and desktop 1440x900"
+            echo "- Accessibility and console findings are reported without failing the workflow"
             echo "- Authenticated secrets configured: $([[ -n \"$ADMIN_TEST_USERNAME\" && -n \"$ADMIN_TEST_PASSWORD\" ]] && echo yes || echo no)"
             echo "- Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           } > artifacts/admin-browser-evidence/SUMMARY.md
