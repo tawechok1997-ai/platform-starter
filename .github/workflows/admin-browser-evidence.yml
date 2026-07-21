@@ -1,0 +1,218 @@
+name: Admin Browser Evidence
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-admin/**'
+      - '.github/workflows/admin-browser-evidence.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-browser-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-evidence:
+    name: Admin browser, visual and accessibility evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ADMIN_BASE_URL: ${{ secrets.ADMIN_BASE_URL || 'https://platformweb-admin-production.up.railway.app' }}
+      ADMIN_TEST_USERNAME: ${{ secrets.ADMIN_TEST_USERNAME }}
+      ADMIN_TEST_PASSWORD: ${{ secrets.ADMIN_TEST_PASSWORD }}
+      CI: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install repository dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install temporary browser-test dependencies
+        run: pnpm add -Dw @playwright/test@1.55.1 @axe-core/playwright@4.10.2 --lockfile=false
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Create evidence test
+        shell: bash
+        run: |
+          mkdir -p .admin-browser-evidence
+          cat > .admin-browser-evidence/admin-evidence.spec.ts <<'EOF'
+          import { test, expect } from '@playwright/test';
+          import AxeBuilder from '@axe-core/playwright';
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const baseURL = process.env.ADMIN_BASE_URL!;
+          const username = process.env.ADMIN_TEST_USERNAME;
+          const password = process.env.ADMIN_TEST_PASSWORD;
+          const evidenceDir = path.resolve('artifacts/admin-browser-evidence');
+          fs.mkdirSync(evidenceDir, { recursive: true });
+
+          const viewports = [
+            { name: 'mobile-390x844', width: 390, height: 844 },
+            { name: 'mobile-430x932', width: 430, height: 932 },
+            { name: 'tablet-768x1024', width: 768, height: 1024 },
+            { name: 'tablet-landscape-1024x768', width: 1024, height: 768 },
+            { name: 'desktop-1366x768', width: 1366, height: 768 },
+            { name: 'desktop-1920x1080', width: 1920, height: 1080 },
+          ];
+
+          function attachRuntimeGuards(page: import('@playwright/test').Page) {
+            const consoleErrors: string[] = [];
+            const failedRequests: string[] = [];
+            page.on('console', (message) => {
+              if (message.type() === 'error') consoleErrors.push(message.text());
+            });
+            page.on('requestfailed', (request) => {
+              failedRequests.push(`${request.method()} ${request.url()} :: ${request.failure()?.errorText ?? 'failed'}`);
+            });
+            return { consoleErrors, failedRequests };
+          }
+
+          async function login(page: import('@playwright/test').Page) {
+            test.skip(!username || !password, 'Authenticated evidence requires ADMIN_TEST_USERNAME and ADMIN_TEST_PASSWORD secrets.');
+            await page.goto(`${baseURL}/login?next=%2Fdashboard`, { waitUntil: 'networkidle' });
+            const userInput = page.locator('input[name="username"], input[name="email"], input[type="email"], input[autocomplete="username"]').first();
+            const passwordInput = page.locator('input[name="password"], input[type="password"], input[autocomplete="current-password"]').first();
+            await expect(userInput).toBeVisible();
+            await expect(passwordInput).toBeVisible();
+            await userInput.fill(username!);
+            await passwordInput.fill(password!);
+            await page.locator('button[type="submit"], input[type="submit"]').first().click();
+            await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 });
+          }
+
+          test('public loading, not-found, accessibility and six viewport evidence', async ({ browser }) => {
+            for (const viewport of viewports) {
+              const context = await browser.newContext({
+                viewport: { width: viewport.width, height: viewport.height },
+                reducedMotion: 'reduce',
+              });
+              const page = await context.newPage();
+              const guards = attachRuntimeGuards(page);
+
+              await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded' });
+              await page.screenshot({ path: path.join(evidenceDir, `${viewport.name}-login-loading.png`), fullPage: true });
+              await page.waitForLoadState('networkidle');
+              await page.screenshot({ path: path.join(evidenceDir, `${viewport.name}-login.png`), fullPage: true });
+
+              await page.goto(`${baseURL}/__admin-evidence-not-found`, { waitUntil: 'networkidle' });
+              await page.screenshot({ path: path.join(evidenceDir, `${viewport.name}-not-found.png`), fullPage: true });
+
+              const accessibility = await new AxeBuilder({ page }).analyze();
+              fs.writeFileSync(
+                path.join(evidenceDir, `${viewport.name}-axe.json`),
+                JSON.stringify(accessibility, null, 2),
+              );
+              expect(accessibility.violations.filter((violation) => ['critical', 'serious'].includes(violation.impact ?? ''))).toEqual([]);
+
+              fs.writeFileSync(path.join(evidenceDir, `${viewport.name}-console-errors.json`), JSON.stringify(guards.consoleErrors, null, 2));
+              fs.writeFileSync(path.join(evidenceDir, `${viewport.name}-failed-requests.json`), JSON.stringify(guards.failedRequests, null, 2));
+              expect(guards.consoleErrors).toEqual([]);
+
+              await context.close();
+            }
+          });
+
+          test('keyboard and 200 percent zoom evidence', async ({ page }) => {
+            await page.goto(`${baseURL}/login`, { waitUntil: 'networkidle' });
+            await page.evaluate(() => { document.documentElement.style.zoom = '200%'; });
+            await page.keyboard.press('Tab');
+            const activeTag = await page.evaluate(() => document.activeElement?.tagName ?? '');
+            expect(['INPUT', 'BUTTON', 'A']).toContain(activeTag);
+            await page.screenshot({ path: path.join(evidenceDir, 'login-zoom-200-keyboard-focus.png'), fullPage: true });
+          });
+
+          test('authenticated dashboard, error and runtime evidence', async ({ page }) => {
+            await login(page);
+            const guards = attachRuntimeGuards(page);
+            await page.goto(`${baseURL}/dashboard`, { waitUntil: 'networkidle' });
+            await expect(page.locator('main')).toBeVisible();
+            await page.screenshot({ path: path.join(evidenceDir, 'authenticated-dashboard.png'), fullPage: true });
+
+            const accessibility = await new AxeBuilder({ page }).analyze();
+            fs.writeFileSync(path.join(evidenceDir, 'authenticated-dashboard-axe.json'), JSON.stringify(accessibility, null, 2));
+            expect(accessibility.violations.filter((violation) => ['critical', 'serious'].includes(violation.impact ?? ''))).toEqual([]);
+
+            await page.route('**/admin/**', async (route) => {
+              await route.abort('failed');
+            });
+            await page.reload({ waitUntil: 'domcontentloaded' });
+            await page.waitForTimeout(1500);
+            await page.screenshot({ path: path.join(evidenceDir, 'authenticated-network-error.png'), fullPage: true });
+
+            fs.writeFileSync(path.join(evidenceDir, 'authenticated-console-errors.json'), JSON.stringify(guards.consoleErrors, null, 2));
+            fs.writeFileSync(path.join(evidenceDir, 'authenticated-failed-requests.json'), JSON.stringify(guards.failedRequests, null, 2));
+          });
+          EOF
+
+          cat > .admin-browser-evidence/playwright.config.ts <<'EOF'
+          import { defineConfig } from '@playwright/test';
+
+          export default defineConfig({
+            testDir: '.',
+            testMatch: /admin-evidence\.spec\.ts/,
+            timeout: 60_000,
+            expect: { timeout: 10_000 },
+            retries: 1,
+            workers: 1,
+            reporter: [
+              ['list'],
+              ['html', { outputFolder: '../artifacts/playwright-report', open: 'never' }],
+            ],
+            use: {
+              browserName: 'chromium',
+              trace: 'retain-on-failure',
+              screenshot: 'only-on-failure',
+              video: 'retain-on-failure',
+              ignoreHTTPSErrors: false,
+            },
+            outputDir: '../artifacts/test-results',
+          });
+          EOF
+
+      - name: Run Admin browser evidence
+        run: pnpm exec playwright test --config .admin-browser-evidence/playwright.config.ts
+
+      - name: Write evidence summary
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts/admin-browser-evidence
+          {
+            echo "# Admin Browser Evidence"
+            echo
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Base URL: $ADMIN_BASE_URL"
+            echo "- Authenticated secrets configured: $([[ -n \"$ADMIN_TEST_USERNAME\" && -n \"$ADMIN_TEST_PASSWORD\" ]] && echo yes || echo no)"
+            echo "- Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          } > artifacts/admin-browser-evidence/SUMMARY.md
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-browser-evidence-${{ github.sha }}
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 30
