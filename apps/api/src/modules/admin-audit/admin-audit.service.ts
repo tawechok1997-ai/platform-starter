@@ -79,7 +79,10 @@ export class AdminAuditService {
     const createdAt = buildDateRange(since, until);
     if (!createdAt) throw new BadRequestException('Audit date range is required');
 
-    const where: Prisma.AdminAuditLogWhereInput = { createdAt };
+    const where: Prisma.AdminAuditLogWhereInput = {
+      createdAt,
+      ...(query.module ? { module: { equals: String(query.module).trim(), mode: 'insensitive' } } : {}),
+    };
     const items = await this.prisma.adminAuditLog.findMany({ where, orderBy: { createdAt: 'desc' }, take: 300, include: { adminUser: { select: { id: true, username: true, email: true } } } });
     const risky = items.filter((item) => isRiskyAudit(item.module, item.action));
     const byModule = bucket(risky.map((item) => item.module || 'unknown'));
