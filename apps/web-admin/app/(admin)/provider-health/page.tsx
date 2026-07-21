@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage } from '../_components/admin-ui';
 import { AdminDataColumn, AdminDataTable } from '../_components/admin-data-table';
 
 type Provider = { id: string; name: string; code: string; status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'DEGRADED'; walletMode: string; updatedAt: string; _count?: { endpoints?: number; credentials?: number; games?: number; sessions?: number; transfers?: number; webhookLogs?: number } };
