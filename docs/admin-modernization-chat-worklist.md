@@ -18,7 +18,7 @@
 - [x] เอา Profile trigger/Dropdown ซ้ำออกจาก Topbar
 - [x] Sidebar Profile มี avatar, ชื่อ, role, online status, dropdown
 - [x] Profile dropdown มี Profile, Security/2FA, Activity Center, Logout
-- [ ] Favorites, Recently used, badge งานค้างใน Sidebar
+- [x] Favorites, Recently used, badge งานค้างใน Sidebar
 - [x] Command Palette Ctrl/Cmd + K
 - [x] Notification Center
 - [x] Environment badge: Demo / UAT / Production

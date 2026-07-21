@@ -2,7 +2,7 @@ import type { ReactNode, SVGProps } from 'react';
 
 type AdminIconName =
   | 'activity' | 'bank' | 'bell' | 'chevron-left' | 'close' | 'dashboard' | 'game'
-  | 'logout' | 'menu' | 'money' | 'report' | 'risk' | 'search'
+  | 'logout' | 'menu' | 'money' | 'report' | 'risk' | 'search' | 'star'
   | 'security' | 'settings' | 'support' | 'user' | 'wallet';
 
 const paths: Record<AdminIconName, ReactNode> = {
@@ -19,6 +19,7 @@ const paths: Record<AdminIconName, ReactNode> = {
   report: <><path d="M5 20V10m7 10V4m7 16v-7" /><path d="M3 20h18" /></>,
   risk: <><path d="M12 3 3.5 19h17L12 3Z" /><path d="M12 9v4m0 3h.01" /></>,
   search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
+  star: <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" />,
   security: <><path d="M12 3 5 6v5c0 4.8 2.7 8 7 10 4.3-2 7-5.2 7-10V6l-7-3Z" /><path d="m9 12 2 2 4-4" /></>,
   settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V3h4v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" /></>,
   support: <><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 1-1 1.7m0 3h.01" /></>,

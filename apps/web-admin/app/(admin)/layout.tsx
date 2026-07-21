@@ -29,6 +29,9 @@ type AdminSession = {
 };
 
 type AdminSurface = 'menu' | 'profile' | 'notification' | 'command';
+type QuickNavItem = { title: string; href: string };
+const FAVORITE_NAV_STORAGE_KEY = 'admin_favorite_nav_items';
+const RECENT_NAV_STORAGE_KEY = 'admin_recent_nav_items';
 
 export default function AdminProtectedLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -46,6 +49,9 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(['overview']));
   const [queueCount, setQueueCount] = useState({ topups: 0, withdrawals: 0 });
   const [openRiskCount, setOpenRiskCount] = useState(0);
+  const [favoriteHrefs, setFavoriteHrefs] = useState<string[]>([]);
+  const [recentHrefs, setRecentHrefs] = useState<string[]>([]);
+  const [quickNavLoaded, setQuickNavLoaded] = useState(false);
   const menuOpen = openSurface === 'menu';
   const profileOpen = openSurface === 'profile';
   const notificationOpen = openSurface === 'notification';
@@ -90,7 +96,20 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
         // Ignore malformed local preferences and use the safe default.
       }
     }
+    setFavoriteHrefs(readStoredHrefs(FAVORITE_NAV_STORAGE_KEY));
+    setRecentHrefs(readStoredHrefs(RECENT_NAV_STORAGE_KEY));
+    setQuickNavLoaded(true);
   }, []);
+
+  useEffect(() => {
+    if (!quickNavLoaded) return;
+    window.localStorage.setItem(FAVORITE_NAV_STORAGE_KEY, JSON.stringify(favoriteHrefs));
+  }, [favoriteHrefs, quickNavLoaded]);
+
+  useEffect(() => {
+    if (!quickNavLoaded) return;
+    window.localStorage.setItem(RECENT_NAV_STORAGE_KEY, JSON.stringify(recentHrefs));
+  }, [recentHrefs, quickNavLoaded]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -160,6 +179,8 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     }))
     .filter((group) => group.items.length > 0), [permissions, normalizedQuery]);
   const commandItems = useMemo(() => navGroups.flatMap((group) => group.items.filter((item) => canAccessNavItem(item, permissions))), [permissions]);
+  const favoriteItems = useMemo(() => itemsForHrefs(favoriteHrefs, commandItems), [favoriteHrefs, commandItems]);
+  const recentItems = useMemo(() => itemsForHrefs(recentHrefs, commandItems), [recentHrefs, commandItems]);
 
   const required = requiredPermissionsForPath(pathname);
   const canViewRoute = required.length === 0 || permissions.includes('*') || required.some((permission) => permissions.includes(permission));
@@ -184,8 +205,13 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   function navigate(href: string) {
     setOpenSurface(null);
     setCommandQuery('');
+    if (commandItems.some((item) => item.href === href)) setRecentHrefs((current) => [href, ...current.filter((value) => value !== href)].slice(0, 5));
     if (href === pathname) return;
     router.push(href);
+  }
+
+  function toggleFavorite(href: string) {
+    setFavoriteHrefs((current) => current.includes(href) ? current.filter((value) => value !== href) : [...current, href].slice(0, 6));
   }
 
   function toggleGroup(groupId: string) {
@@ -226,6 +252,8 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     </div>
     <div className="admin-nav-search"><AdminIcon name="search" /><input value={navQuery} onChange={(event) => setNavQuery(event.target.value)} placeholder="ค้นหาเมนู" aria-label="ค้นหาเมนู" /></div>
     <nav className="admin-drawer-nav" aria-label="Admin navigation">
+      {favoriteItems.length > 0 && <QuickNavSection title="รายการโปรด" items={favoriteItems} onNavigate={navigate} />}
+      {recentItems.length > 0 && <QuickNavSection title="ใช้ล่าสุด" items={recentItems} onNavigate={navigate} onClear={() => setRecentHrefs([])} />}
       {visibleGroups.map((group) => {
         const containsActiveRoute = group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
         const expanded = Boolean(normalizedQuery) || openGroups.has(group.id) || containsActiveRoute;
@@ -291,12 +319,16 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
         </div>
       </header>
       <section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section>
-      {commandOpen && <CommandPalette query={commandQuery} onQueryChange={setCommandQuery} items={commandItems} onNavigate={navigate} onClose={() => { setOpenSurface(null); setCommandQuery(''); }} />}
+      {commandOpen && <CommandPalette query={commandQuery} onQueryChange={setCommandQuery} items={commandItems} favoriteHrefs={favoriteHrefs} onToggleFavorite={toggleFavorite} onNavigate={navigate} onClose={() => { setOpenSurface(null); setCommandQuery(''); }} />}
     </div>
   </main>;
 }
 
-function CommandPalette({ query, onQueryChange, items, onNavigate, onClose }: { query: string; onQueryChange: (value: string) => void; items: Array<{ title: string; href: string }>; onNavigate: (href: string) => void; onClose: () => void }) {
+function QuickNavSection({ title, items, onNavigate, onClear }: { title: string; items: QuickNavItem[]; onNavigate: (href: string) => void; onClear?: () => void }) {
+  return <section className="admin-quick-nav" aria-label={title}><header><span>{title}</span>{onClear && <button type="button" onClick={onClear}>ล้าง</button>}</header>{items.map((item) => <a key={item.href} href={item.href} onClick={(event) => { event.preventDefault(); onNavigate(item.href); }}><AdminIcon name={iconForAdminHref(item.href)} /><span>{item.title}</span></a>)}</section>;
+}
+
+function CommandPalette({ query, onQueryChange, items, favoriteHrefs, onToggleFavorite, onNavigate, onClose }: { query: string; onQueryChange: (value: string) => void; items: QuickNavItem[]; favoriteHrefs: string[]; onToggleFavorite: (href: string) => void; onNavigate: (href: string) => void; onClose: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const normalized = query.trim().toLocaleLowerCase('th');
   const matches = items.filter((item) => !normalized || `${item.title} ${item.href}`.toLocaleLowerCase('th').includes(normalized)).slice(0, 10);
@@ -304,7 +336,7 @@ function CommandPalette({ query, onQueryChange, items, onNavigate, onClose }: { 
   return <div className="admin-command-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="admin-command-dialog" role="dialog" aria-modal="true" aria-label="ค้นหาคำสั่ง">
       <div className="admin-command-search"><AdminIcon name="search" /><input ref={inputRef} value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="ค้นหาหน้า หรือคำสั่ง..." /><kbd>Esc</kbd></div>
-      <div className="admin-command-results">{matches.length ? matches.map((item) => <button key={item.href} type="button" onClick={() => onNavigate(item.href)}><AdminIcon name={iconForAdminHref(item.href)} /><span><strong>{item.title}</strong><small>{item.href}</small></span></button>) : <AdminEmptyState title="ไม่พบคำสั่ง" description="ลองค้นหาด้วยชื่อเมนูอื่น" />}</div>
+      <div className="admin-command-results">{matches.length ? matches.map((item) => <div className="admin-command-result" key={item.href}><button type="button" onClick={() => onNavigate(item.href)}><AdminIcon name={iconForAdminHref(item.href)} /><span><strong>{item.title}</strong><small>{item.href}</small></span></button><button type="button" className={favoriteHrefs.includes(item.href) ? 'admin-command-result__favorite active' : 'admin-command-result__favorite'} onClick={() => onToggleFavorite(item.href)} aria-label={favoriteHrefs.includes(item.href) ? `เอา ${item.title} ออกจากรายการโปรด` : `เพิ่ม ${item.title} ในรายการโปรด`} title={favoriteHrefs.includes(item.href) ? 'เอาออกจากรายการโปรด' : 'เพิ่มในรายการโปรด'}><AdminIcon name="star" /></button></div>) : <AdminEmptyState title="ไม่พบคำสั่ง" description="ลองค้นหาด้วยชื่อเมนูอื่น" />}</div>
     </section>
   </div>;
 }
@@ -334,6 +366,20 @@ function roleLabel(roles: CurrentAdmin['roles']) {
   const first = roles?.[0];
   if (typeof first === 'string') return first;
   return first?.name || first?.code || '';
+}
+
+function readStoredHrefs(key: string) {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(key) ?? '[]');
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string').slice(0, 6) : [];
+  } catch {
+    return [];
+  }
+}
+
+function itemsForHrefs(hrefs: string[], items: readonly QuickNavItem[]) {
+  const byHref = new Map(items.map((item) => [item.href, item]));
+  return hrefs.map((href) => byHref.get(href)).filter((item): item is QuickNavItem => Boolean(item));
 }
 
 async function verifyAdminSession(): Promise<AdminSession | null> {
