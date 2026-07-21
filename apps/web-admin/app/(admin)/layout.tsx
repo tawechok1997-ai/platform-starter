@@ -38,6 +38,8 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const router = useRouter();
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const notificationMenuRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+  const lastSurfaceTriggerRef = useRef<HTMLElement | null>(null);
   const [ready, setReady] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [openSurface, setOpenSurface] = useState<AdminSurface | null>(null);
@@ -80,7 +82,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   }, [pathname]);
 
   useEffect(() => {
-    setOpenSurface(null);
+    closeAdminSurface();
     const activeGroup = navGroups.find((group) => group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`)));
     if (activeGroup) setOpenGroups((current) => new Set(current).add(activeGroup.id));
   }, [pathname]);
@@ -115,7 +117,12 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     if (!menuOpen) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpenSurface(null); };
+    const firstFocusable = getFocusableElements(drawerRef.current)[0];
+    firstFocusable?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeAdminSurface();
+      else trapFocus(event, drawerRef.current);
+    };
     window.addEventListener('keydown', closeOnEscape);
     return () => { document.body.style.overflow = previous; window.removeEventListener('keydown', closeOnEscape); };
   }, [menuOpen]);
@@ -125,7 +132,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     const closeProfileMenu = (event: MouseEvent | KeyboardEvent) => {
       if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
       if (event instanceof MouseEvent && profileMenuRef.current?.contains(event.target as Node)) return;
-      setOpenSurface(null);
+      closeAdminSurface();
     };
     document.addEventListener('mousedown', closeProfileMenu);
     document.addEventListener('keydown', closeProfileMenu);
@@ -140,7 +147,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     const closeNotificationMenu = (event: MouseEvent | KeyboardEvent) => {
       if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
       if (event instanceof MouseEvent && notificationMenuRef.current?.contains(event.target as Node)) return;
-      setOpenSurface(null);
+      closeAdminSurface();
     };
     document.addEventListener('mousedown', closeNotificationMenu);
     document.addEventListener('keydown', closeNotificationMenu);
@@ -151,9 +158,9 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        setOpenSurface((current) => current === 'command' ? null : 'command');
+        toggleAdminSurface('command');
       }
-      if (event.key === 'Escape') setOpenSurface(null);
+      if (event.key === 'Escape') closeAdminSurface();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -203,7 +210,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   }
 
   function navigate(href: string) {
-    setOpenSurface(null);
+    closeAdminSurface();
     setCommandQuery('');
     if (commandItems.some((item) => item.href === href)) setRecentHrefs((current) => [href, ...current.filter((value) => value !== href)].slice(0, 5));
     if (href === pathname) return;
@@ -212,6 +219,22 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
 
   function toggleFavorite(href: string) {
     setFavoriteHrefs((current) => current.includes(href) ? current.filter((value) => value !== href) : [...current, href].slice(0, 6));
+  }
+
+  function openAdminSurface(surface: AdminSurface, trigger?: HTMLElement) {
+    if (trigger) lastSurfaceTriggerRef.current = trigger;
+    else if (document.activeElement instanceof HTMLElement) lastSurfaceTriggerRef.current = document.activeElement;
+    setOpenSurface(surface);
+  }
+
+  function toggleAdminSurface(surface: AdminSurface, trigger?: HTMLElement) {
+    if (openSurface === surface) closeAdminSurface(); else openAdminSurface(surface, trigger);
+  }
+
+  function closeAdminSurface() {
+    setOpenSurface(null);
+    const trigger = lastSurfaceTriggerRef.current;
+    if (trigger) window.setTimeout(() => trigger.focus(), 0);
   }
 
   function toggleGroup(groupId: string) {
@@ -242,13 +265,15 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const avatar = <span className="admin-profile-avatar">{admin.avatarUrl ? <img src={admin.avatarUrl} alt="" /> : initials}</span>;
 
   const drawer = <aside
+    ref={drawerRef}
+    id="admin-sidebar"
     className={menuOpen ? 'admin-drawer open' : 'admin-drawer'}
     aria-label="เมนูผู้ดูแล"
     style={menuOpen ? { zIndex: 2, pointerEvents: 'auto' } : undefined}
   >
     <div className="admin-drawer-head">
       <a href="/dashboard" onClick={(event) => { event.preventDefault(); navigate('/dashboard'); }} className="admin-brand-row admin-brand-link"><span className="admin-brand-mark">A</span><span className="admin-brand-text"><strong>Admin Console</strong><small>Operations workspace</small></span></a>
-      <AdminButton type="button" tone="default" className="admin-drawer-close" onClick={() => setOpenSurface(null)} aria-label="ปิดเมนู"><AdminIcon name="close" /></AdminButton>
+      <AdminButton type="button" tone="default" className="admin-drawer-close" onClick={closeAdminSurface} aria-label="ปิดเมนู"><AdminIcon name="close" /></AdminButton>
     </div>
     <div className="admin-nav-search"><AdminIcon name="search" /><input value={navQuery} onChange={(event) => setNavQuery(event.target.value)} placeholder="ค้นหาเมนู" aria-label="ค้นหาเมนู" /></div>
     <nav className="admin-drawer-nav" aria-label="Admin navigation">
@@ -279,13 +304,13 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     </nav>
     <div className="admin-sidebar-footer">
       <div className="admin-sidebar-profile" ref={profileMenuRef}>
-        <button type="button" className="admin-sidebar-profile__trigger" onClick={() => setOpenSurface((current) => current === 'profile' ? null : 'profile')} aria-expanded={profileOpen} aria-haspopup="menu">
+        <button type="button" className="admin-sidebar-profile__trigger" onClick={(event) => toggleAdminSurface('profile', event.currentTarget)} aria-expanded={profileOpen} aria-haspopup="menu" aria-controls="admin-profile-menu">
           {avatar}
           <span className="admin-profile-meta"><strong>{displayName}</strong><span>{roleName}</span></span>
           <span className="admin-profile-status" title="ออนไลน์" aria-label="ออนไลน์" />
           <span className="admin-sidebar-profile__chevron" aria-hidden="true"><AdminIcon name="chevron-left" /></span>
         </button>
-        {profileOpen && <div className="admin-profile-menu admin-profile-menu--sidebar" role="menu">
+        {profileOpen && <div className="admin-profile-menu admin-profile-menu--sidebar" id="admin-profile-menu" role="menu">
           <div className="admin-profile-menu__identity">{avatar}<div><strong>{displayName}</strong><span>@{admin.username || 'admin'}</span><small>{roleName}{admin.department ? ` · ${admin.department}` : ''}</small></div></div>
           <div className="admin-profile-menu__security"><span className="admin-system-dot" />บัญชีกำลังใช้งาน</div>
           <div className="admin-profile-menu__links">
@@ -302,24 +327,24 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
 
   return <main className={`admin-shell${sidebarCollapsed ? ' admin-shell--collapsed' : ''}`}>
     {menuOpen ? <div style={{ position: 'fixed', inset: 0, zIndex: 1000, isolation: 'isolate' }}>
-      <AdminButton type="button" tone="default" className="admin-drawer-backdrop" style={{ zIndex: 0 }} onClick={() => setOpenSurface(null)} aria-label="ปิดเมนู" />
+      <AdminButton type="button" tone="default" className="admin-drawer-backdrop" style={{ zIndex: 0 }} onClick={closeAdminSurface} aria-label="ปิดเมนู" />
       {drawer}
     </div> : drawer}
     <div className="admin-main-shell">
       <header className="admin-topbar">
-        <div className="admin-topbar-context"><AdminButton type="button" tone="default" className="admin-menu-button" onClick={() => setOpenSurface('menu')} aria-label="เปิดเมนูแอดมิน"><AdminIcon name="menu" /></AdminButton><div><span>Workspace</span><strong>{currentItem?.title ?? 'Admin Console'}</strong></div></div>
+        <div className="admin-topbar-context"><AdminButton type="button" tone="default" className="admin-menu-button" onClick={(event) => openAdminSurface('menu', event.currentTarget)} aria-label="เปิดเมนูแอดมิน" aria-controls="admin-sidebar"><AdminIcon name="menu" /></AdminButton><div><span>Workspace</span><strong>{currentItem?.title ?? 'Admin Console'}</strong></div></div>
         <div className="admin-topbar-actions">
-          <button type="button" className="admin-command-trigger" onClick={() => setOpenSurface('command')} aria-label="เปิด Command Palette"><AdminIcon name="search" /><span>ค้นหาคำสั่ง</span><kbd>⌘ K</kbd></button>
+          <button type="button" className="admin-command-trigger" onClick={(event) => openAdminSurface('command', event.currentTarget)} aria-label="เปิด Command Palette" aria-controls="admin-command-dialog"><AdminIcon name="search" /><span>ค้นหาคำสั่ง</span><kbd>⌘ K</kbd></button>
           <span className={`admin-environment-badge admin-environment-badge--${environment.toLowerCase()}`}>{environment}</span>
           <div className="admin-topbar-status"><span className="admin-system-dot" />ระบบพร้อมใช้งาน{pendingTotal > 0 && <a href="/operations" onClick={(event) => { event.preventDefault(); navigate('/operations'); }}>{pendingTotal} รายการรอดำเนินการ</a>}</div>
           <div className="admin-notification-menu" ref={notificationMenuRef}>
-            <button type="button" className="admin-notification-trigger" onClick={() => setOpenSurface((current) => current === 'notification' ? null : 'notification')} aria-label="เปิดศูนย์แจ้งเตือน" aria-expanded={notificationOpen} aria-haspopup="menu"><AdminIcon name="bell" />{notificationCount > 0 && <em>{notificationCount > 99 ? '99+' : notificationCount}</em>}</button>
-            {notificationOpen && <div className="admin-notification-popover" role="menu"><header><div><strong>การแจ้งเตือน</strong><span>งานที่ต้องติดตาม</span></div><button type="button" onClick={() => navigate('/operations')}>ดูทั้งหมด</button></header>{notifications.length ? <div>{notifications.map((item) => <button type="button" key={item.href} role="menuitem" data-tone={item.tone} onClick={() => navigate(item.href)}><AdminIcon name={item.tone === 'danger' ? 'risk' : 'money'} /><span><strong>{item.title}</strong><small>{item.detail}</small></span></button>)}</div> : <p>ไม่มีงานที่ต้องจัดการตอนนี้</p>}</div>}
+            <button type="button" className="admin-notification-trigger" onClick={(event) => toggleAdminSurface('notification', event.currentTarget)} aria-label="เปิดศูนย์แจ้งเตือน" aria-expanded={notificationOpen} aria-haspopup="menu" aria-controls="admin-notification-menu"><AdminIcon name="bell" />{notificationCount > 0 && <em>{notificationCount > 99 ? '99+' : notificationCount}</em>}</button>
+            {notificationOpen && <div className="admin-notification-popover" id="admin-notification-menu" role="menu"><header><div><strong>การแจ้งเตือน</strong><span>งานที่ต้องติดตาม</span></div><button type="button" onClick={() => navigate('/operations')}>ดูทั้งหมด</button></header>{notifications.length ? <div>{notifications.map((item) => <button type="button" key={item.href} role="menuitem" data-tone={item.tone} onClick={() => navigate(item.href)}><AdminIcon name={item.tone === 'danger' ? 'risk' : 'money'} /><span><strong>{item.title}</strong><small>{item.detail}</small></span></button>)}</div> : <p>ไม่มีงานที่ต้องจัดการตอนนี้</p>}</div>}
           </div>
         </div>
       </header>
       <section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section>
-      {commandOpen && <CommandPalette query={commandQuery} onQueryChange={setCommandQuery} items={commandItems} favoriteHrefs={favoriteHrefs} onToggleFavorite={toggleFavorite} onNavigate={navigate} onClose={() => { setOpenSurface(null); setCommandQuery(''); }} />}
+      {commandOpen && <CommandPalette query={commandQuery} onQueryChange={setCommandQuery} items={commandItems} favoriteHrefs={favoriteHrefs} onToggleFavorite={toggleFavorite} onNavigate={navigate} onClose={() => { closeAdminSurface(); setCommandQuery(''); }} />}
     </div>
   </main>;
 }
@@ -330,11 +355,12 @@ function QuickNavSection({ title, items, onNavigate, onClear }: { title: string;
 
 function CommandPalette({ query, onQueryChange, items, favoriteHrefs, onToggleFavorite, onNavigate, onClose }: { query: string; onQueryChange: (value: string) => void; items: QuickNavItem[]; favoriteHrefs: string[]; onToggleFavorite: (href: string) => void; onNavigate: (href: string) => void; onClose: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
   const normalized = query.trim().toLocaleLowerCase('th');
   const matches = items.filter((item) => !normalized || `${item.title} ${item.href}`.toLocaleLowerCase('th').includes(normalized)).slice(0, 10);
   useEffect(() => { inputRef.current?.focus(); }, []);
   return <div className="admin-command-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <section className="admin-command-dialog" role="dialog" aria-modal="true" aria-label="ค้นหาคำสั่ง">
+    <section className="admin-command-dialog" id="admin-command-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-label="ค้นหาคำสั่ง" onKeyDown={(event) => trapFocus(event, dialogRef.current)}>
       <div className="admin-command-search"><AdminIcon name="search" /><input ref={inputRef} value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="ค้นหาหน้า หรือคำสั่ง..." /><kbd>Esc</kbd></div>
       <div className="admin-command-results">{matches.length ? matches.map((item) => <div className="admin-command-result" key={item.href}><button type="button" onClick={() => onNavigate(item.href)}><AdminIcon name={iconForAdminHref(item.href)} /><span><strong>{item.title}</strong><small>{item.href}</small></span></button><button type="button" className={favoriteHrefs.includes(item.href) ? 'admin-command-result__favorite active' : 'admin-command-result__favorite'} onClick={() => onToggleFavorite(item.href)} aria-label={favoriteHrefs.includes(item.href) ? `เอา ${item.title} ออกจากรายการโปรด` : `เพิ่ม ${item.title} ในรายการโปรด`} title={favoriteHrefs.includes(item.href) ? 'เอาออกจากรายการโปรด' : 'เพิ่มในรายการโปรด'}><AdminIcon name="star" /></button></div>) : <AdminEmptyState title="ไม่พบคำสั่ง" description="ลองค้นหาด้วยชื่อเมนูอื่น" />}</div>
     </section>
@@ -380,6 +406,23 @@ function readStoredHrefs(key: string) {
 function itemsForHrefs(hrefs: string[], items: readonly QuickNavItem[]) {
   const byHref = new Map(items.map((item) => [item.href, item]));
   return hrefs.map((href) => byHref.get(href)).filter((item): item is QuickNavItem => Boolean(item));
+}
+
+function getFocusableElements(container: HTMLElement | null) {
+  if (!container) return [];
+  return Array.from(container.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+    .filter((element) => !element.hasAttribute('hidden') && element.getClientRects().length > 0);
+}
+
+function trapFocus(event: { key: string; shiftKey: boolean; preventDefault: () => void }, container: HTMLElement | null) {
+  if (event.key !== 'Tab') return;
+  const focusable = getFocusableElements(container);
+  if (focusable.length === 0) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (!first || !last) return;
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 }
 
 async function verifyAdminSession(): Promise<AdminSession | null> {

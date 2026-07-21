@@ -37,8 +37,8 @@
 
 - [x] รวม state controller ของ Sidebar drawer, Profile, Notification, Command Palette
 - [x] เปิด overlay ได้ทีละชั้น และเปิดเมนูใหม่ต้องปิด surface อื่นอัตโนมัติ
-- [ ] Escape ปิด layer บนสุดก่อนและคืน focus จุดเดิม
-- [ ] ตรวจ click-outside, backdrop, close button และ navigation transition
+- [x] Escape ปิด layer บนสุดก่อนและคืน focus จุดเดิม
+- [x] ตรวจ click-outside, backdrop, close button และ navigation transition
 - [x] ไม่มี Logout ซ้ำ; footer logout แสดงเฉพาะ mobile เมื่อจำเป็น
 - [ ] Action เดียวมีปุ่มหลักเดียว ไม่เกิด Approve/Confirm ซ้อนกัน
 - [ ] ปุ่ม disabled มีเหตุผล/helper ชัดเจน
@@ -53,7 +53,7 @@
 - [ ] Hover/focus icon แสดง tooltip
 - [ ] คลิก group ใน rail เปิด flyout menu
 - [ ] Rail mode Profile เหลือ avatar + online dot และเปิด account menu ได้
-- [ ] Tablet/mobile ใช้ full drawer พร้อม focus trap, backdrop และ Escape
+- [x] Tablet/mobile ใช้ full drawer พร้อม focus trap, backdrop และ Escape
 
 ## Phase 1 — Bug และความปลอดภัย
 
