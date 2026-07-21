@@ -161,7 +161,7 @@ test('filters the catalog by platform provider category and search', async ({ pa
   await expect(catalog(page).getByText('Neon Racer', { exact: true })).toHaveCount(0);
 
   await page.getByRole('button', { name: 'สล็อต', exact: true }).click();
-  await page.getByLabel('ค้นหาเกม').fill('fortune');
+  await page.getByRole('textbox', { name: 'ค้นหาเกม', exact: true }).fill('fortune');
   await expect(catalog(page).getByText('Fortune Tiger', { exact: true })).toBeVisible();
 });
 
@@ -171,8 +171,10 @@ test('uses the fallback when a game image fails', async ({ page }) => {
 
 test('launches a game through the member launch contract', async ({ page }) => {
   const card = catalogCard(page, 'Fortune Tiger');
+  const launchButton = card.locator('.game-lobby-card-body > button');
+  await expect(launchButton).toBeVisible();
   const launchRequest = page.waitForRequest((request) => request.url().endsWith('/member/games/mobile-fortune-tiger/launch'));
-  await card.getByRole('button', { name: 'เล่น', exact: true }).click();
+  await launchButton.click();
   await launchRequest;
   await expect(page).toHaveURL(/\/games\/session\?session=session-browser-1/);
 });
