@@ -1,5 +1,8 @@
 import type { CSSProperties } from 'react';
 import type { BrandRuntimeConfig } from '../../brand/brand-config';
+import { createBrandRuntimeConfig } from '../../brand/brand-config';
+import type { PublicSiteSettings } from '../../site-settings';
+import { normalizeTypedSiteSettings } from '../../typed-site-settings';
 import { createAuthBrandViewModel } from './auth-brand-model';
 
 export type RegisterBrandAdapter = {
@@ -39,5 +42,19 @@ export function createRegisterBrandAdapter(brand: BrandRuntimeConfig): RegisterB
       'data-brand-code': brand.code,
       'data-has-brand-logo': model.logoUrl ? 'true' : 'false',
     },
+  };
+}
+
+export function createRegisterBrandAdapterFromSettings(settings: PublicSiteSettings): RegisterBrandAdapter {
+  const typedSettings = normalizeTypedSiteSettings(settings);
+  const brand = createBrandRuntimeConfig(typedSettings);
+  const adapter = createRegisterBrandAdapter(brand);
+  const configuredMark = typedSettings.branding.brand_mark;
+
+  return {
+    ...adapter,
+    brandMark: typeof configuredMark === 'string' && configuredMark.trim()
+      ? configuredMark.trim().slice(0, 8)
+      : adapter.brandMark,
   };
 }
