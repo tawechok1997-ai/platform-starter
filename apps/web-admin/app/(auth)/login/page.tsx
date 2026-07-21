@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { ApiClientError, createApiClient } from '@platform/api-client';
+import { createApiClient } from '@platform/api-client';
 import { AntiBotWidget } from '../anti-bot-widget';
 import { refreshAdminToken, setAdminAccessToken } from '../../admin-api';
 
@@ -33,6 +33,8 @@ const copy = {
     success: 'เข้าสู่ระบบสำเร็จ',
     showPassword: 'แสดงรหัสผ่าน',
     hidePassword: 'ซ่อนรหัสผ่าน',
+    usernameRequired: 'กรุณากรอกชื่อผู้ใช้',
+    passwordRequired: 'กรุณากรอกรหัสผ่าน',
   },
   en: {
     title: 'Admin sign in',
@@ -55,6 +57,8 @@ const copy = {
     success: 'Signed in successfully',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
+    usernameRequired: 'Enter your username',
+    passwordRequired: 'Enter your password',
   },
 } as const;
 
@@ -73,6 +77,7 @@ export default function AdminLoginPage() {
   const [showSecret, setShowSecret] = useState(false);
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const [challengeId, setChallengeId] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string; twoFactor?: string }>({});
 
   useEffect(() => {
     void refreshAdminToken().then((token) => {
@@ -97,15 +102,19 @@ export default function AdminLoginPage() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (requiresTwoFactor && (!challengeId || !twoFactorCode.trim())) {
+      setFieldErrors({ twoFactor: t.twoFactorRequired });
       setStatus('error');
       setMessage(t.twoFactorRequired);
       return;
     }
     if (!requiresTwoFactor && (!username.trim() || !secret.trim())) {
+      setFieldErrors({ ...(username.trim() ? {} : { username: t.usernameRequired }), ...(secret.trim() ? {} : { password: t.passwordRequired }) });
       setStatus('error');
       setMessage(t.required);
       return;
     }
+
+    setFieldErrors({});
     if (!requiresTwoFactor && captchaRequired && (!captchaReady || !captchaToken)) {
       setStatus('error');
       setMessage(t.captchaRequired);
@@ -155,9 +164,8 @@ export default function AdminLoginPage() {
       window.location.replace('/dashboard');
     } catch (error) {
       const timeout = error instanceof DOMException && error.name === 'AbortError';
-      const apiMessage = error instanceof ApiClientError && typeof error.message === 'string' ? error.message : '';
       setStatus('error');
-      setMessage(timeout ? t.timeout : apiMessage || t.failed);
+      setMessage(timeout ? t.timeout : t.failed);
       setCaptchaResetKey((value) => value + 1);
     } finally {
       setLoading(false);
@@ -234,11 +242,14 @@ export default function AdminLoginPage() {
                 <input
                   className="ui-input"
                   value={username}
-                  onChange={(event) => setUsername(event.target.value)}
+                  onChange={(event) => { setUsername(event.target.value); setFieldErrors((current) => ({ ...current, username: undefined })); }}
                   autoComplete="username"
                   disabled={loading}
                   placeholder={t.usernamePlaceholder}
+                  aria-invalid={Boolean(fieldErrors.username)}
+                  aria-describedby={fieldErrors.username ? 'admin-login-username-error' : undefined}
                 />
+                {fieldErrors.username && <small id="admin-login-username-error" className="admin-auth-field-error">{fieldErrors.username}</small>}
               </label>
               <label className="admin-auth-field">
                 {t.password}
@@ -246,11 +257,13 @@ export default function AdminLoginPage() {
                   <input
                     className="ui-input"
                     value={secret}
-                    onChange={(event) => setSecret(event.target.value)}
+                    onChange={(event) => { setSecret(event.target.value); setFieldErrors((current) => ({ ...current, password: undefined })); }}
                     type={showSecret ? 'text' : 'password'}
                     autoComplete="current-password"
                     disabled={loading}
                     placeholder={t.passwordPlaceholder}
+                    aria-invalid={Boolean(fieldErrors.password)}
+                    aria-describedby={fieldErrors.password ? 'admin-login-password-error' : undefined}
                   />
                   <button
                     type="button"
@@ -262,6 +275,7 @@ export default function AdminLoginPage() {
                     {showSecret ? (locale === 'th' ? 'ซ่อน' : 'Hide') : locale === 'th' ? 'แสดง' : 'Show'}
                   </button>
                 </div>
+                {fieldErrors.password && <small id="admin-login-password-error" className="admin-auth-field-error">{fieldErrors.password}</small>}
               </label>
             </>
           )}
@@ -273,18 +287,16 @@ export default function AdminLoginPage() {
                 className="ui-input"
                 value={twoFactorCode}
                 onChange={(event) =>
-                  setTwoFactorCode(
-                    event.target.value
-                      .toUpperCase()
-                      .replace(/[^A-Z0-9]/g, '')
-                      .slice(0, 12),
-                  )
+                  { setTwoFactorCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12)); setFieldErrors((current) => ({ ...current, twoFactor: undefined })); }
                 }
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 disabled={loading}
                 placeholder={t.twoFactorPlaceholder}
+                aria-invalid={Boolean(fieldErrors.twoFactor)}
+                aria-describedby={fieldErrors.twoFactor ? 'admin-login-two-factor-error' : undefined}
               />
+              {fieldErrors.twoFactor && <small id="admin-login-two-factor-error" className="admin-auth-field-error">{fieldErrors.twoFactor}</small>}
             </label>
           )}
           {!requiresTwoFactor && (
