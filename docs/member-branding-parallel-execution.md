@@ -23,12 +23,6 @@ Branch: `feature/member-branding-foundation`
 
 ## Workstream A: Brand Runtime Foundation
 
-ขอบเขตไฟล์:
-
-- `apps/web-member/app/brand/**`
-- `apps/web-member/app/site-settings-types.ts`
-- `apps/web-member/app/typed-site-settings.ts`
-
 สถานะ:
 
 - ✅ สร้าง branch งานแยกจาก `main`
@@ -48,11 +42,6 @@ Branch: `feature/member-branding-foundation`
 
 ## Workstream B: Auth Branding Foundation
 
-ขอบเขตไฟล์:
-
-- `apps/web-member/app/(auth)/**`
-- `apps/web-member/app/components/auth/**`
-
 สถานะ:
 
 - ✅ ตรวจโครงสร้าง Login/Register ปัจจุบัน
@@ -63,20 +52,15 @@ Branch: `feature/member-branding-foundation`
 - ✅ รักษา API, Session, Validation, CAPTCHA และ Redirect เดิม
 - ✅ เชื่อมหน้า Login เข้ากับ Brand runtime โดยไม่เปลี่ยน Auth flow
 - ✅ เพิ่ม Register brand adapter สำหรับ contract เดิม
-- ✅ เพิ่ม Register adapter tests สำหรับ logo fallback และ legacy tokens
-- ✅ เพิ่ม Scoped Auth reference layout contract
-- 🔄 เชื่อม Register adapter เข้าหน้า Register จริง
+- ✅ เชื่อม Register adapter เข้าหน้า Register จริง
+- ✅ เพิ่ม data attributes สำหรับตรวจ Brand state บนหน้า Register
+- ✅ เพิ่ม Scoped Auth reference layout ผ่าน route-group layout
+- ✅ เพิ่ม Register adapter tests สำหรับ logo fallback, configured mark และ legacy tokens
+- ✅ เพิ่ม app branding specs เข้า Member test suite
 - 🔄 ปรับระยะ ขนาด และ responsive ให้ตรงไฟล์ต้นแบบ
 - ⬜ ตรวจ Mobile/Desktop เทียบไฟล์ต้นแบบ
 
 ## Workstream C: Icon and Asset Mapping
-
-ขอบเขตไฟล์:
-
-- `apps/web-member/app/components/member-icon.tsx`
-- `apps/web-member/app/site-settings.ts`
-- `apps/web-member/app/brand/**`
-- `apps/web-member/public/assets/**`
 
 สถานะ:
 
@@ -95,12 +79,6 @@ Branch: `feature/member-branding-foundation`
 
 ## Workstream D: Member Home Integration Contract
 
-ขอบเขตไฟล์:
-
-- `apps/web-member/app/member-home.tsx`
-- `apps/web-member/app/components/member-home/**`
-- `apps/web-member/app/components/member-home-sections.tsx`
-
 สถานะ:
 
 - ✅ ตรวจจุดเชื่อม `HomeHero` และ CMS banner เดิม
@@ -112,11 +90,6 @@ Branch: `feature/member-branding-foundation`
 - ⬜ ตรวจ Responsive และ soak test
 
 ## Workstream E: Admin Branding Contract
-
-ขอบเขตไฟล์:
-
-- Admin settings UI
-- Public site settings API contract
 
 สถานะ:
 
@@ -157,6 +130,7 @@ Branch: `feature/member-branding-foundation`
 14. ✅ เพิ่ม controlled asset intake path
 15. ✅ เพิ่ม Auth branding compatibility tests
 16. ✅ เพิ่ม Register brand adapter
-17. ✅ เพิ่ม Register adapter tests
-18. ✅ เพิ่ม Scoped Auth reference layout contract
-19. ✅ อัปเดตเอกสารติดตามงานหลายสายพร้อมสถานะจริง
+17. ✅ เชื่อม Register adapter เข้าหน้าจริง
+18. ✅ เพิ่ม Auth route-group layout สำหรับ scoped CSS
+19. ✅ เพิ่ม Register settings bridge tests
+20. ✅ เพิ่ม app branding specs เข้า Member test suite
