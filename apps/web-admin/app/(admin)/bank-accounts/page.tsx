@@ -2,11 +2,12 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
 
 type ReceivingAccount = { id: string; bankName: string; accountName: string; accountNumber: string; promptPay?: string | null; qrImageUrl?: string | null; minAmount?: string | null; maxAmount?: string | null; status: string; sortOrder: number };
 type MemberBank = { id: string; userId: string; bankName: string; accountName: string; accountNumber: string; isPrimary: boolean; status: string; adminNote?: string | null; user?: { username: string; phone?: string | null; email?: string | null; status: string } };
 type PaymentType = 'bank' | 'promptpay' | 'wallet' | 'other';
+type ReviewIntent = { item: MemberBank; status: 'ACTIVE' | 'REJECTED' } | null;
 
 const THAI_BANKS = ['ธนาคารกสิกรไทย', 'ธนาคารไทยพาณิชย์', 'ธนาคารกรุงเทพ', 'ธนาคารกรุงไทย', 'ธนาคารกรุงศรีอยุธยา', 'ธนาคารทหารไทยธนชาต', 'ธนาคารออมสิน', 'ธนาคารอาคารสงเคราะห์', 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร', 'ธนาคารยูโอบี', 'ธนาคารซีไอเอ็มบีไทย', 'ธนาคารเกียรตินาคินภัทร', 'ธนาคารแลนด์ แอนด์ เฮ้าส์', 'ธนาคารไอซีบีซี ไทย', 'ธนาคารไทยเครดิต'];
 const DEFAULT_THAI_BANK = THAI_BANKS[0] ?? 'ธนาคารกสิกรไทย';
@@ -21,6 +22,9 @@ export default function BankAccountsPage() {
   const [message, setMessage] = useState('');
   const [busyId, setBusyId] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [duplicateAccountIds, setDuplicateAccountIds] = useState<string[]>([]);
+  const [reviewIntent, setReviewIntent] = useState<ReviewIntent>(null);
+  const [reviewReason, setReviewReason] = useState('');
 
   const typeLabel = useMemo(() => PAYMENT_TYPES.find((item) => item.value === paymentType)?.label ?? 'บัญชีธนาคาร', [paymentType]);
   const accountNumberLabel = paymentType === 'bank' ? 'เลขบัญชี' : paymentType === 'promptpay' ? 'เบอร์พร้อมเพย์' : paymentType === 'wallet' ? 'วอเลต' : 'รายละเอียด';
@@ -30,14 +34,16 @@ export default function BankAccountsPage() {
 
   async function loadAll() {
     setMessage('กำลังโหลดบัญชีรับเงิน...');
-    const [receivingRes, memberRes, meRes] = await Promise.all([adminApiFetch('/admin/receiving-bank-accounts'), adminApiFetch('/admin/member-bank-accounts'), adminApiFetch('/admin/auth/me')]);
+    const [receivingRes, memberRes, meRes, kycRes] = await Promise.all([adminApiFetch('/admin/receiving-bank-accounts'), adminApiFetch('/admin/member-bank-accounts'), adminApiFetch('/admin/auth/me'), adminApiFetch('/admin/member-bank-accounts/kyc-summary')]);
     const receivingData = await receivingRes.json().catch(() => null);
     const memberData = await memberRes.json().catch(() => null);
     const meData = await meRes.json().catch(() => null);
+    const kycData = await kycRes.json().catch(() => null);
     if (!receivingRes.ok || !memberRes.ok) { setMessage(receivingData?.message ?? memberData?.message ?? 'โหลดข้อมูลไม่สำเร็จ'); return; }
     setPermissions(Array.isArray(meData?.permissions) ? meData.permissions : []);
     setReceiving(receivingData.items ?? []);
     setMemberBanks(memberData.items ?? []);
+    setDuplicateAccountIds((kycData?.duplicateGroups ?? []).flatMap((group: { items?: { id: string }[] }) => group.items?.map((item) => item.id) ?? []));
     setMessage('');
   }
 
@@ -87,10 +93,10 @@ export default function BankAccountsPage() {
     setReceiving((current) => current.map((row) => row.id === item.id ? data.item : row));
   }
 
-  async function reviewMemberBank(item: MemberBank, status: string) {
+  async function reviewMemberBank(item: MemberBank, status: 'ACTIVE' | 'REJECTED', adminNote?: string) {
     if (!canReview) { setMessage('คุณไม่มีสิทธิ์ตรวจสอบบัญชีธนาคารสมาชิก'); return; }
     setBusyId(item.id);
-    const res = await adminApiFetch(`/admin/member-bank-accounts/${item.id}/review`, { method: 'PATCH', body: JSON.stringify({ status }) });
+    const res = await adminApiFetch(`/admin/member-bank-accounts/${item.id}/review`, { method: 'PATCH', body: JSON.stringify({ status, adminNote: adminNote?.trim() || undefined }) });
     const data = await res.json().catch(() => null);
     setBusyId('');
     if (!res.ok) { setMessage(data?.message ?? 'ตรวจบัญชีไม่สำเร็จ'); return; }
@@ -100,6 +106,14 @@ export default function BankAccountsPage() {
   const canView = permissions.includes('*') || permissions.includes('bank_accounts.view');
   const canManage = permissions.includes('*') || permissions.includes('bank_accounts.manage');
   const canReview = permissions.includes('*') || permissions.includes('bank_accounts.review');
+  const confirmReview = async () => {
+    if (!reviewIntent) return;
+    if (reviewIntent.status === 'REJECTED' && reviewReason.trim().length < 5) { setMessage('ระบุเหตุผลปฏิเสธอย่างน้อย 5 ตัวอักษร'); return; }
+    const intent = reviewIntent;
+    setReviewIntent(null);
+    await reviewMemberBank(intent.item, intent.status, reviewReason);
+    setReviewReason('');
+  };
 
   return (
     <AdminPage eyebrow="Bank Operations" title="Bank Accounts" description="เพิ่มบัญชีรับเงินหลายช่องทาง ระบบจะสลับบัญชีเองเมื่อมีหลายบัญชี" actions={<AdminButton onClick={loadAll}>Refresh</AdminButton>}>
@@ -118,15 +132,17 @@ export default function BankAccountsPage() {
             <AdminButton type="submit">Add Account</AdminButton>
           </AdminToolbar></form>
         </AdminCard>}
-        <AdminCard title="Receiving Accounts"><AdminStack>{receiving.map((item) => <AdminRow key={item.id}><div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : 'danger'}>{item.status}</AdminBadge><h2 style={{ margin: '10px 0 4px' }}>{labelForAccount(item)}</h2><p>ชื่อบัญชี: {item.accountName}</p><p>{numberLabelForAccount(item)}: {item.accountNumber}</p>{item.promptPay && <p>PromptPay: {item.promptPay}</p>}<p>Limit: {item.minAmount ?? '-'} - {item.maxAmount ?? '-'}</p>{item.qrImageUrl && <img src={item.qrImageUrl} alt="QR" style={qrPreviewStyle} />}</div>{canManage && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton tone="success" disabled={busyId === item.id} onClick={() => setReceivingStatus(item, 'ACTIVE')}>Enable</AdminButton><AdminButton tone="danger" disabled={busyId === item.id} onClick={() => setReceivingStatus(item, 'DISABLED')}>Disable</AdminButton></div>}</AdminRow>)}{receiving.length === 0 && <AdminEmpty>ยังไม่มีบัญชีรับเงิน</AdminEmpty>}</AdminStack></AdminCard>
+        <AdminCard title="Receiving Accounts"><AdminStack>{receiving.map((item) => <AdminRow key={item.id}><div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : 'danger'}>{item.status}</AdminBadge><h2 style={{ margin: '10px 0 4px' }}>{labelForAccount(item)}</h2><p>ชื่อบัญชี: {item.accountName}</p><p>{numberLabelForAccount(item)}: {maskAccountNumber(item.accountNumber)}</p>{item.promptPay && <p>PromptPay: {maskAccountNumber(item.promptPay)}</p>}<p>Limit: {item.minAmount ?? '-'} - {item.maxAmount ?? '-'}</p>{item.qrImageUrl && <img src={item.qrImageUrl} alt="QR" style={qrPreviewStyle} />}</div>{canManage && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton tone="success" disabled={busyId === item.id} onClick={() => setReceivingStatus(item, 'ACTIVE')}>Enable</AdminButton><AdminButton tone="danger" disabled={busyId === item.id} onClick={() => setReceivingStatus(item, 'DISABLED')}>Disable</AdminButton></div>}</AdminRow>)}{receiving.length === 0 && <AdminEmpty>ยังไม่มีบัญชีรับเงิน</AdminEmpty>}</AdminStack></AdminCard>
       </AdminGrid>
-      <AdminCard title="Member Withdrawal Bank Review" description="สมาชิก 1 คนเพิ่มบัญชีถอนได้ 1 บัญชี และชื่อบัญชีต้องตรงกับชื่อสมาชิก"><AdminStack>{memberBanks.map((item) => <AdminRow key={item.id}><div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : item.status === 'REJECTED' ? 'danger' : 'warning'}>{item.status}</AdminBadge><h2 style={{ margin: '10px 0 4px' }}>{item.bankName}</h2><p>{item.accountName} / {item.accountNumber}</p><p>Member: {item.user?.username ?? item.userId}</p><p>Primary: {item.isPrimary ? 'YES' : 'NO'}</p></div>{canReview && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton tone="success" disabled={busyId === item.id} onClick={() => reviewMemberBank(item, 'ACTIVE')}>Approve</AdminButton><AdminButton tone="danger" disabled={busyId === item.id} onClick={() => reviewMemberBank(item, 'REJECTED')}>Reject</AdminButton></div>}</AdminRow>)}{memberBanks.length === 0 && <AdminEmpty>ยังไม่มีบัญชีถอนของสมาชิก</AdminEmpty>}</AdminStack></AdminCard>
+      <AdminCard title="Member Withdrawal Bank Review" description="สมาชิก 1 คนเพิ่มบัญชีถอนได้ 1 บัญชี และชื่อบัญชีต้องตรงกับชื่อสมาชิก"><AdminStack>{memberBanks.map((item) => <AdminRow key={item.id}><div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : item.status === 'REJECTED' ? 'danger' : 'warning'}>{item.status}</AdminBadge>{duplicateAccountIds.includes(item.id) && <AdminBadge tone="danger">DUPLICATE WARNING</AdminBadge>}<h2 style={{ margin: '10px 0 4px' }}>{item.bankName}</h2><p>{item.accountName} / {maskAccountNumber(item.accountNumber)}</p><p>Member: {item.user?.username ?? item.userId}</p><p>Primary: {item.isPrimary ? 'YES' : 'NO'}</p></div>{canReview && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton tone="success" disabled={busyId === item.id || duplicateAccountIds.includes(item.id)} onClick={() => setReviewIntent({ item, status: 'ACTIVE' })}>Approve</AdminButton><AdminButton tone="danger" disabled={busyId === item.id} onClick={() => setReviewIntent({ item, status: 'REJECTED' })}>Reject</AdminButton></div>}</AdminRow>)}{memberBanks.length === 0 && <AdminEmpty>ยังไม่มีบัญชีถอนของสมาชิก</AdminEmpty>}</AdminStack></AdminCard>
+      <AdminConfirmDialog open={Boolean(reviewIntent)} title={reviewIntent?.status === 'ACTIVE' ? 'อนุมัติบัญชีถอน' : 'ปฏิเสธบัญชีถอน'} description={reviewIntent?.status === 'ACTIVE' ? 'ตรวจสอบชื่อบัญชีและความเสี่ยงก่อนอนุมัติ' : 'การปฏิเสธต้องระบุเหตุผลเพื่อเก็บใน audit log'} confirmLabel={reviewIntent?.status === 'ACTIVE' ? 'ยืนยันอนุมัติ' : 'ยืนยันปฏิเสธ'} tone={reviewIntent?.status === 'REJECTED' ? 'danger' : 'success'} busy={Boolean(reviewIntent && busyId === reviewIntent.item.id)} onCancel={() => { setReviewIntent(null); setReviewReason(''); }} onConfirm={() => void confirmReview()} details={reviewIntent?.status === 'REJECTED' ? <label style={labelStyle}>เหตุผล<input value={reviewReason} onChange={(event) => setReviewReason(event.target.value)} placeholder="ระบุเหตุผลปฏิเสธ" /></label> : undefined} />
     </AdminPage>
   );
 }
 
 function labelForAccount(item: ReceivingAccount) { if (item.bankName === 'พร้อมเพย์') return 'พร้อมเพย์'; if (item.bankName === 'วอเลต') return 'วอเลต'; if (item.bankName === 'อื่น ๆ') return 'อื่น ๆ'; return `บัญชีธนาคาร · ${item.bankName}`; }
 function numberLabelForAccount(item: ReceivingAccount) { if (item.bankName === 'พร้อมเพย์') return 'เบอร์พร้อมเพย์'; if (item.bankName === 'วอเลต') return 'วอเลต'; if (item.bankName === 'อื่น ๆ') return 'รายละเอียด'; return 'เลขบัญชี'; }
+function maskAccountNumber(value: string) { const visible = value.slice(-4); return `${'•'.repeat(Math.max(value.length - visible.length, 4))}${visible}`; }
 function resizeImage(file: File, maxSize: number, quality: number) { return new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => { const img = new Image(); img.onload = () => { const scale = Math.min(1, maxSize / Math.max(img.width, img.height)); const canvas = document.createElement('canvas'); canvas.width = Math.round(img.width * scale); canvas.height = Math.round(img.height * scale); const ctx = canvas.getContext('2d'); if (!ctx) return reject(new Error('อ่านรูปไม่ได้')); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL('image/jpeg', quality)); }; img.onerror = () => reject(new Error('อ่านรูปไม่ได้')); img.src = String(reader.result); }; reader.onerror = () => reject(new Error('อ่านรูปไม่ได้')); reader.readAsDataURL(file); }); }
 const labelStyle = { display: 'grid', gap: 6, fontWeight: 800 } as const;
 const qrPreviewStyle = { width: 150, height: 150, objectFit: 'cover' as const, borderRadius: 14, border: '1px solid rgba(148,163,184,.18)' } as const;
