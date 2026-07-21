@@ -1,4 +1,4 @@
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react';
+import { forwardRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from 'react';
 import { uiClasses } from '../../../../packages/ui-core/src/index';
 
 type Tone = 'default' | 'brand' | 'success' | 'warning' | 'danger';
@@ -13,6 +13,10 @@ const buttonPrimitiveByTone: Record<Tone, string> = {
 
 function classes(...values: Array<string | undefined | false>) {
   return values.filter(Boolean).join(' ');
+}
+
+export function adminButtonClassName(tone: Tone, className?: string) {
+  return classes(buttonPrimitiveByTone[tone], 'admin-ui-button', `admin-ui-button--${tone}`, className);
 }
 
 export function AdminCard({
@@ -50,37 +54,27 @@ export function AdminNotice({
   );
 }
 
-export function AdminButton({
-  children,
-  tone = 'brand',
-  className,
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { tone?: Tone }) {
+export const AdminButton = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & { tone?: Tone }
+>(function AdminButton({ children, tone = 'brand', className, ...props }, ref) {
   return (
-    <button
-      {...props}
-      className={classes(buttonPrimitiveByTone[tone], 'admin-ui-button', `admin-ui-button--${tone}`, className)}
-    >
+    <button ref={ref} {...props} className={adminButtonClassName(tone, className)}>
       {children}
     </button>
   );
-}
+});
 
-export function AdminLinkButton({
-  children,
-  tone = 'brand',
-  className,
-  ...props
-}: AnchorHTMLAttributes<HTMLAnchorElement> & { children: ReactNode; tone?: Tone }) {
+export const AdminLinkButton = forwardRef<
+  HTMLAnchorElement,
+  AnchorHTMLAttributes<HTMLAnchorElement> & { children: ReactNode; tone?: Tone }
+>(function AdminLinkButton({ children, tone = 'brand', className, ...props }, ref) {
   return (
-    <a
-      {...props}
-      className={classes(buttonPrimitiveByTone[tone], 'admin-ui-button', `admin-ui-button--${tone}`, className)}
-    >
+    <a ref={ref} {...props} className={adminButtonClassName(tone, className)}>
       {children}
     </a>
   );
-}
+});
 
 export function AdminEmptyState({
   title,

@@ -1,4 +1,4 @@
-import type { Viewport } from 'next';
+import type { Metadata, Viewport } from 'next';
 import '../../../packages/design-tokens/colors.css';
 import '../../../packages/design-tokens/shape-space-shadow.css';
 import '../../../packages/design-tokens/type-motion-layout.css';
@@ -43,9 +43,43 @@ import './admin-button-contrast.css';
 import './admin-ui-refactor-polish.css';
 import './support-center.css';
 import './admin-final-audit.css';
+import './admin-app-states.css';
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
+export const metadata: Metadata = {
+  title: {
+    default: 'Platform Admin',
+    template: '%s | Platform Admin',
+  },
+  applicationName: 'Platform Admin',
+  description: 'Secure operations workspace for platform administration.',
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false,
+  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  colorScheme: 'dark',
+  themeColor: '#0b1020',
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="th"><body>{children}</body></html>;
+  return (
+    <html lang="th" dir="ltr">
+      <body data-app-surface="admin">{children}</body>
+    </html>
+  );
 }
