@@ -1,10 +1,7 @@
 import { createHash } from 'node:crypto';
-import { createReadStream } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-import { pipeline } from 'node:stream/promises';
-import { createUnzip } from 'node:zlib';
 
 // Source archives are intentionally kept outside Git. This tool consumes an
 // extracted asset directory so audits remain deterministic and reviewable.
