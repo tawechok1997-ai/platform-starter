@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { MemberRuntimeImage } from '../../components/member-runtime-image';
+import { createAuthBrandRuntime } from '../../components/auth/auth-brand-runtime';
 import { AntiBotWidget } from '../anti-bot-widget';
-import { PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags, textSetting } from '../../site-settings';
+import { PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags } from '../../site-settings';
 import { memberApiFetch } from '../../member-api';
 import { resolveMemberLoginDestination } from '../../../src/features/auth/auth-redirect';
 
@@ -42,18 +43,14 @@ export default function MemberSignInPage() {
   }, []);
 
   const t = copy[locale];
-  const siteName = textSetting(settings, 'website', 'site_name', 'Member Center');
-  const primaryColor = textSetting(settings, 'branding', 'primary_color', '#f5c542');
-  const backgroundColor = textSetting(settings, 'branding', 'background_color', '#080808');
-  const cardColor = textSetting(settings, 'branding', 'card_color', '#181818');
-  const textColor = textSetting(settings, 'branding', 'text_color', '#ffffff');
-  const logoUrl = textSetting(settings, 'branding', 'logo_url', '');
-  const brandMark = textSetting(settings, 'branding', 'brand_mark', siteName.slice(0, 1).toUpperCase() || 'P');
+  const authBrand = useMemo(() => createAuthBrandRuntime(settings, 'login'), [settings]);
+  const siteName = authBrand.model.siteName;
+  const logoUrl = authBrand.model.logoUrl;
+  const brandMark = authBrand.brandMark;
   const flags = memberFeatureFlags(settings);
   const handleCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
   const handleCaptchaState = useCallback((required: boolean, ready: boolean) => { setCaptchaRequired(required); setCaptchaReady(ready); }, []);
   const disabled = loading || !flags.login || (captchaRequired && !captchaReady);
-  const cssVars = useMemo(() => ({ '--color-brand': primaryColor, '--color-bg': backgroundColor, '--color-card': cardColor, '--color-text': textColor }) as React.CSSProperties, [primaryColor, backgroundColor, cardColor, textColor]);
 
   function changeLocale(next: Locale) { setLocale(next); window.localStorage.setItem('member_locale', next); }
   function validate() { const next: LoginErrors = {}; if (!identifier.trim()) next.identifier = t.identifierRequired; if (!secret.trim()) next.secret = t.passwordRequired; setErrors(next); return Object.keys(next).length === 0; }
@@ -87,10 +84,10 @@ export default function MemberSignInPage() {
     } finally { window.clearTimeout(timeoutId); setLoading(false); }
   }
 
-  return <main className="public-auth-page" style={cssVars}>
+  return <main className="public-auth-page" style={authBrand.style} {...{ 'data-brand-code': String((settings.website as Record<string, unknown> | undefined)?.brand_code ?? 'default') }}>
     <div className="public-auth-ambient" aria-hidden="true"><span /><span /><span /></div>
     <div className="public-auth-scene" aria-hidden="true"><span className="public-auth-scene__tower" /><span className="public-auth-scene__tower public-auth-scene__tower--small" /><span className="public-auth-scene__arc" /><span className="public-auth-scene__light" /></div>
-    <section className="public-auth-shell">
+    <section className="public-auth-shell" data-auth-mode="login">
       <aside className="public-auth-brand-panel">
         <div className="public-auth-brand-kicker"><span /> {locale === 'th' ? 'ประสบการณ์สมาชิกระดับพรีเมียม' : 'Premium member experience'}</div>
         <div className="public-auth-brand-lockup"><span className="public-auth-brand__mark">{logoUrl ? <MemberRuntimeImage src={logoUrl} alt="" /> : brandMark}</span><strong>{siteName}</strong></div>
@@ -101,7 +98,7 @@ export default function MemberSignInPage() {
       </aside>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
         <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <MemberRuntimeImage src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} className="public-auth-language__button ui-button ui-button--secondary">ไทย</button><button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} className="public-auth-language__button ui-button ui-button--secondary">EN</button></div></div>
-        <div className="public-auth-heading"><span className="public-auth-heading__eyebrow">MEMBER ACCESS</span><h1>{t.title}</h1><p>{t.subtitle}</p></div>
+        <div className="public-auth-heading"><span className="public-auth-heading__eyebrow">{authBrand.model.eyebrow}</span><h1>{t.title}</h1><p>{t.subtitle}</p></div>
         {!flags.login && <div className="public-auth-alert public-auth-alert--error" role="alert">{t.loginDisabled}</div>}
         {status === 'error' && message && <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>}
         <label className="public-auth-field" htmlFor="login-identifier">{t.identifier}<input id="login-identifier" className="public-auth-input ui-input" value={identifier} onChange={(event) => { setIdentifier(event.target.value); if (errors.identifier) clearFieldError('identifier'); }} disabled={disabled} autoComplete="username" placeholder={t.identifierPlaceholder} aria-invalid={Boolean(errors.identifier)} /></label>
