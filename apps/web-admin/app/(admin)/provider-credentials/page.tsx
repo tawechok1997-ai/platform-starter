@@ -7,6 +7,7 @@ import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminLinkButton, AdminM
 type Provider = { id: string; name: string; code: string; status: string };
 type Credential = { id: string; type: string; maskedValue: string; isEnabled: boolean; rotatedAt?: string | null; createdAt: string; updatedAt: string };
 type NoticeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
+type SafeTestResult = { provider: string; status: 'SUCCESS' | 'FAILED'; httpStatus: string; latency: string; testedAt: string };
 
 export default function ProviderCredentialsPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -15,7 +16,7 @@ export default function ProviderCredentialsPage() {
   const [message, setMessage] = useState('กำลังโหลด API Key...');
   const [messageTone, setMessageTone] = useState<NoticeTone>('neutral');
   const [loading, setLoading] = useState(false);
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<SafeTestResult | null>(null);
   useEffect(() => { loadProviders(); }, []);
   useEffect(() => { if (providerId) loadCredentials(providerId); }, [providerId]);
   function showMessage(nextMessage: string, tone: NoticeTone = 'neutral') { setMessage(nextMessage); setMessageTone(tone); }
@@ -23,7 +24,7 @@ export default function ProviderCredentialsPage() {
   async function loadCredentials(id = providerId) { setLoading(true); showMessage('กำลังโหลด API Key...', 'neutral'); const res = await adminApiFetch(`/admin/game-providers/${id}/credentials`); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { showMessage(data?.message ?? 'โหลด API Key ไม่สำเร็จ', 'danger'); return; } setItems(data.items ?? []); showMessage(''); }
   async function rotate(item: Credential) { const value = window.prompt(`ค่าใหม่สำหรับ ${credentialLabel(item.type)}`); if (!value) return; if (!window.confirm(`เปลี่ยน ${credentialLabel(item.type)} ใช่ไหม? ค่าเก่าจะถูกแทนที่`)) return; setLoading(true); showMessage(`กำลังเปลี่ยน ${credentialLabel(item.type)}...`, 'neutral'); const res = await adminApiFetch(`/admin/game-providers/${providerId}/credentials/${item.id}`, { method: 'PATCH', body: JSON.stringify({ value, isEnabled: true }) }); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { showMessage(data?.message ?? 'เปลี่ยนค่าไม่สำเร็จ', 'danger'); return; } showMessage(`เปลี่ยน ${credentialLabel(item.type)} แล้ว`, 'success'); await loadCredentials(); }
   async function toggle(item: Credential) { if (item.isEnabled && !window.confirm(`ปิด ${credentialLabel(item.type)} ใช่ไหม? ถ้าค่ายต้องใช้ค่านี้ API อาจใช้งานไม่ได้`)) return; setLoading(true); showMessage(`กำลัง${item.isEnabled ? 'ปิด' : 'เปิดใช้'} ${credentialLabel(item.type)}...`, 'neutral'); const res = await adminApiFetch(`/admin/game-providers/${providerId}/credentials/${item.id}`, { method: 'PATCH', body: JSON.stringify({ isEnabled: !item.isEnabled }) }); const data = await res.json().catch(() => null); setLoading(false); if (!res.ok) { showMessage(data?.message ?? 'บันทึกไม่สำเร็จ', 'danger'); return; } showMessage(`${!item.isEnabled ? 'เปิดใช้' : 'ปิด'} ${credentialLabel(item.type)} แล้ว`, item.isEnabled ? 'warning' : 'success'); await loadCredentials(); }
-  async function testProvider() { setLoading(true); showMessage('กำลังทดสอบ API ค่าย...', 'neutral'); const res = await adminApiFetch(`/admin/game-providers/${providerId}/health-check`, { method: 'POST' }); const data = await res.json().catch(() => null); setLoading(false); setTestResult(data); showMessage(res.ok ? 'ทดสอบ API สำเร็จ' : data?.message ?? 'ทดสอบ API ไม่สำเร็จ', res.ok ? 'success' : 'danger'); }
+  async function testProvider() { setLoading(true); showMessage('กำลังทดสอบ API ค่าย...', 'neutral'); const startedAt = performance.now(); const res = await adminApiFetch(`/admin/game-providers/${providerId}/health-check`, { method: 'POST' }); const data = await res.json().catch(() => null); setLoading(false); setTestResult(safeTestResult(res.ok, res.status, performance.now() - startedAt, providers.find((item) => item.id === providerId)?.name)); showMessage(res.ok ? 'ทดสอบ API สำเร็จ' : data?.message ?? 'ทดสอบ API ไม่สำเร็จ', res.ok ? 'success' : 'danger'); }
   const enabled = items.filter((item) => item.isEnabled).length;
   const placeholders = items.filter(isPlaceholder).length;
   const stale = items.filter((item) => item.rotatedAt && Date.now() - new Date(item.rotatedAt).getTime() > 90 * 24 * 60 * 60 * 1000).length;
@@ -34,12 +35,12 @@ export default function ProviderCredentialsPage() {
     {placeholders > 0 && <AdminNotice tone="danger">ยังมีค่าตัวอย่างอยู่ ต้องเปลี่ยนก่อนใช้กับค่ายจริง ไม่งั้น API จะตอบกลับมาว่า “ไม่รู้จักคุณ” ในภาษาคอมพิวเตอร์</AdminNotice>}
     {stale > 0 && <AdminNotice tone="warning">มีค่าที่ไม่ได้เปลี่ยนเกิน 90 วันแล้ว ควรตรวจรอบเปลี่ยนคีย์เพื่อความปลอดภัย</AdminNotice>}
     <AdminStack>{items.map((item) => <AdminCard key={item.id} title={credentialLabel(item.type)} description={`เปลี่ยนล่าสุด: ${item.rotatedAt ? new Date(item.rotatedAt).toLocaleString('th-TH') : '-'}`}><AdminRow><div><strong>{item.maskedValue}</strong><p style={mutedStyle}>อัปเดต {new Date(item.updatedAt).toLocaleString('th-TH')}</p></div><div style={actionRowStyle}><AdminBadge tone={item.isEnabled ? 'success' : 'danger'}>{item.isEnabled ? 'เปิดใช้' : 'ปิดอยู่'}</AdminBadge>{isPlaceholder(item) && <AdminBadge tone="warning">ตัวอย่าง</AdminBadge>}</div></AdminRow><div style={actionRowStyle}><AdminButton onClick={() => rotate(item)} disabled={loading}>เปลี่ยนค่า</AdminButton><AdminButton tone="secondary" onClick={() => toggle(item)} disabled={loading}>{item.isEnabled ? 'ปิด' : 'เปิดใช้'}</AdminButton></div></AdminCard>)}{!loading && items.length === 0 && <AdminEmpty>ยังไม่มี API Key / Secret</AdminEmpty>}</AdminStack>
-    {testResult && <AdminCard title="ผลทดสอบ API" description="แสดงเฉพาะผลลัพธ์ที่ระบบซ่อนไม่ให้เห็น secret แล้ว"><pre style={preStyle}>{JSON.stringify(testResult, null, 2)}</pre></AdminCard>}
+    {testResult && <AdminCard title="ผลทดสอบ API" description="แสดงเฉพาะข้อมูลที่ปลอดภัย ไม่แสดง secret หรือ payload จากค่าย"><AdminStack><AdminRow><strong>ค่าย</strong><span>{testResult.provider}</span></AdminRow><AdminRow><strong>สถานะ</strong><AdminBadge tone={testResult.status === 'SUCCESS' ? 'success' : 'danger'}>{testResult.status === 'SUCCESS' ? 'สำเร็จ' : 'ไม่สำเร็จ'}</AdminBadge></AdminRow><AdminRow><strong>HTTP status</strong><span>{testResult.httpStatus}</span></AdminRow><AdminRow><strong>Latency</strong><span>{testResult.latency}</span></AdminRow><AdminRow><strong>ทดสอบเมื่อ</strong><span>{testResult.testedAt}</span></AdminRow></AdminStack></AdminCard>}
   </AdminPage>;
 }
 function credentialLabel(type: string) { const map: Record<string, string> = { API_KEY: 'API Key', SECRET_KEY: 'Secret Key', MERCHANT_ID: 'Merchant ID', AGENT_ID: 'Agent ID', WEBHOOK_SECRET: 'Webhook Secret', TOKEN: 'Token' }; return map[type] ?? type; }
 function isPlaceholder(item: Credential) { return item.maskedValue?.includes('TODO') || item.maskedValue?.includes('placeholder'); }
+function safeTestResult(ok: boolean, httpStatus: number, elapsedMs: number, provider?: string): SafeTestResult { return { provider: provider || '-', status: ok ? 'SUCCESS' : 'FAILED', httpStatus: String(httpStatus), latency: `${Math.max(0, Math.round(elapsedMs)).toLocaleString('th-TH')} ms`, testedAt: new Date().toLocaleString('th-TH') }; }
 const inputStyle = { width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', boxSizing: 'border-box' as const, fontSize: 15 };
 const actionRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' as const, alignItems: 'center' as const };
 const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.55 } as const;
-const preStyle = { overflowX: 'auto' as const, whiteSpace: 'pre-wrap' as const, background: '#020617', borderRadius: 12, padding: 12, color: '#cbd5e1', maxHeight: 520 } as const;

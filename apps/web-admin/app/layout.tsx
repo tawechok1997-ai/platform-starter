@@ -20,6 +20,7 @@ import './admin-color-aliases.css';
 import './admin-ui.css';
 import './admin-enterprise-shell.css';
 import './admin-topbar-profile.css';
+import './admin-command-palette.css';
 import './admin-profile.css';
 import './admin-profile-edit.css';
 import './admin-accounts.css';

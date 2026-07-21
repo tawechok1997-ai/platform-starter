@@ -26,8 +26,8 @@ export class AdminMembersController {
 
   @RequirePermission('users.view')
   @Get('insights')
-  getMemberInsights() {
-    return this.queries.getMemberInsights();
+  getMemberInsights(@Query() query: AdminMembersQueryDto) {
+    return this.queries.getMemberInsights(query);
   }
 
   @RequirePermission('users.view')

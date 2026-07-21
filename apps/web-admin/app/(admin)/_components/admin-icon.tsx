@@ -1,13 +1,14 @@
 import type { ReactNode, SVGProps } from 'react';
 
 type AdminIconName =
-  | 'activity' | 'bank' | 'chevron-left' | 'close' | 'dashboard' | 'game'
+  | 'activity' | 'bank' | 'bell' | 'chevron-left' | 'close' | 'dashboard' | 'game'
   | 'logout' | 'menu' | 'money' | 'report' | 'risk' | 'search'
   | 'security' | 'settings' | 'support' | 'user' | 'wallet';
 
 const paths: Record<AdminIconName, ReactNode> = {
   activity: <><path d="M4 12h3l2-5 4 10 2-5h5" /><path d="M4 5v14h16" /></>,
   bank: <><path d="m3 10 9-6 9 6" /><path d="M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18" /></>,
+  bell: <><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></>,
   'chevron-left': <path d="m15 18-6-6 6-6" />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
   dashboard: <><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /></>,

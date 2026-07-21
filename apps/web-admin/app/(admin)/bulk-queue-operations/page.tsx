@@ -36,10 +36,17 @@ export default function BulkQueueOperationsPage() {
   }
   async function executeBatch(ids: string[], reason: string, stepUpCode: string) {
     const financial = !['claim', 'release'].includes(action);
-    const res = await adminApiFetch(financial ? `/admin/${kind}/batch/workflow` : `/admin/${kind}/${ids[0]}/${action}`, { method: 'POST', body: JSON.stringify(financial ? { ids, action, reason, stepUpCode } : {}) });
+    if (financial) {
+      const res = await adminApiFetch(`/admin/${kind}/batch/workflow`, { method: 'POST', body: JSON.stringify({ ids, action, reason, stepUpCode }) });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message ?? 'ทำรายการไม่สำเร็จ');
+      return data?.results ?? [];
+    }
+
+    const res = await adminApiFetch(`/admin/${kind}/batch/${action}`, { method: 'POST', body: JSON.stringify({ ids }) });
     const data = await res.json().catch(() => null);
     if (!res.ok) throw new Error(data?.message ?? 'ทำรายการไม่สำเร็จ');
-    return financial ? (data?.results ?? []) : ids.map((id) => ({ id, ok: true, message: 'สำเร็จ' }));
+    return data?.results ?? [];
   }
 
   function toggle(id: string) { setSelected((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]); }

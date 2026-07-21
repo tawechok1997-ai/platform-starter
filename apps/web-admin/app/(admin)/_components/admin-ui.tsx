@@ -143,7 +143,7 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
 
 export function AdminCommandPanel({ children }: { children: ReactNode }) { return <section className="admin-ui-command-panel" style={safeTextContainerStyle}>{children}</section>; }
 export function AdminActionStrip({ children }: { children: ReactNode }) { return <div className="admin-ui-action-strip" style={safeTextContainerStyle}>{children}</div>; }
-export function formatMoney(value: string | number) { return `THB ${Number(value).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
+export function formatMoney(value: string | number | null | undefined) { const amount = typeof value === 'number' ? value : Number(value ?? 0); const safeAmount = Number.isFinite(amount) ? amount : 0; return `THB ${safeAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
 
 const adminSystemCss = `
 .admin-ui-page{min-width:0;width:100%;display:grid;gap:18px}

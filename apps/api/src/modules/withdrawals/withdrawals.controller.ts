@@ -8,6 +8,7 @@ import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { CreateWithdrawalRequestDto } from './dto/create-withdrawal-request.dto';
 import { ReviewWithdrawalRequestDto } from './dto/review-withdrawal-request.dto';
 import { WithdrawalsService } from './withdrawals.service';
+import { BatchClaimDto } from './dto/batch-claim.dto';
 
 @Controller()
 export class WithdrawalsController {
@@ -73,6 +74,13 @@ export class WithdrawalsController {
     @Req() req: AdminRequestContext,
   ) {
     return this.withdrawalsService.releaseRequest(id, user, this.meta(req));
+  }
+
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.withdrawals.review')
+  @Post('admin/withdrawals/batch/:action')
+  batchClaimOrRelease(@Param('action') action: 'claim' | 'release', @Body() body: BatchClaimDto, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
+    return this.withdrawalsService.batchClaimOrRelease(action, body.ids, user, this.meta(req));
   }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard)

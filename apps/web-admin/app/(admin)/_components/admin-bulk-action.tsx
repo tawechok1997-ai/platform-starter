@@ -5,6 +5,11 @@ import { AdminButton, AdminNotice } from './admin-ui';
 
 type BulkResult = { id: string; ok: boolean; message: string };
 
+function safeActionMessage(error: unknown) {
+  if (error instanceof Error && /^(ไม่สำเร็จ|ทำรายการไม่สำเร็จ|โหลดข้อมูลไม่สำเร็จ)$/u.test(error.message.trim())) return error.message;
+  return 'ดำเนินการไม่สำเร็จ กรุณาตรวจสอบรายละเอียดและลองใหม่';
+}
+
 type Props = {
   selectedIds: string[];
   actionLabel: string;
@@ -29,13 +34,13 @@ export function AdminBulkAction({ selectedIds, actionLabel, confirmText, onExecu
     setRunning(true);
     if (onExecuteBatch && ids === selectedIds) {
       try { setResults(await onExecuteBatch(ids, reason.trim(), stepUpCode.trim())); onDone?.(); }
-      catch (error) { setResults(ids.map((id) => ({ id, ok: false, message: error instanceof Error ? error.message : 'ไม่สำเร็จ' }))); }
+      catch (error) { setResults(ids.map((id) => ({ id, ok: false, message: safeActionMessage(error) }))); }
       setRunning(false); return;
     }
     const next: BulkResult[] = [];
     for (const id of ids) {
       try { await onExecute(id, reason.trim()); next.push({ id, ok: true, message: 'สำเร็จ' }); }
-      catch (error) { next.push({ id, ok: false, message: error instanceof Error ? error.message : 'ไม่สำเร็จ' }); }
+      catch (error) { next.push({ id, ok: false, message: safeActionMessage(error) }); }
     }
     setResults(next);
     setRunning(false);

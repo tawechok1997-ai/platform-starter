@@ -65,7 +65,7 @@ export default function WalletLedgersPage() {
           </section>
           <section className="admin-ledger-amount"><span>จำนวน</span><strong>{formatMoney(item.amount, currency)}</strong><AdminLinkButton href={`/wallet-ledgers/${item.id}`}>ดูรายละเอียด</AdminLinkButton></section>
           <section className="admin-ledger-balance-grid"><div><span>ยอดก่อน</span><strong>{formatMoney(item.balanceBefore, currency)}</strong></div><div><span>ยอดหลัง</span><strong>{formatMoney(item.balanceAfter, currency)}</strong></div><div><span>รหัสกันซ้ำ</span><strong>{item.idempotencyKey ?? '-'}</strong></div></section>
-          {hasMetadata && <details className="admin-ledger-details"><summary>ข้อมูลเทคนิค</summary><pre>{JSON.stringify(item.metadata, null, 2)}</pre></details>}
+          {hasMetadata && <LedgerMetadata metadata={item.metadata} />}
         </article>
       </AdminCard>;
     })}{!loading && visibleItems.length === 0 && <AdminEmpty>ไม่พบประวัติเงินตามตัวกรอง</AdminEmpty>}</AdminStack>
@@ -73,3 +73,16 @@ export default function WalletLedgersPage() {
 }
 
 function ledgerTitle(item: Ledger) { if (item.referenceType?.includes('GAME')) return item.direction === 'DEBIT' ? 'โยกเข้าเกม' : item.type === 'REVERSAL' ? 'คืนเงินกลับวอเลต' : 'โยกกลับวอเลต'; return ledgerLabel(item.type); }
+
+function LedgerMetadata({ metadata }: { metadata: unknown }) {
+  const value = metadata && typeof metadata === 'object' ? metadata as Record<string, unknown> : {};
+  const items = [
+    ['เหตุผล', safeText(value.reason)],
+    ['Workflow', safeText(value.workflow)],
+    ['หมายเหตุ', safeText(value.note)],
+  ].filter((item): item is [string, string] => Boolean(item[1]));
+  if (!items.length) return <details className="admin-ledger-details"><summary>ข้อมูลเพิ่มเติม</summary><p>ไม่มีข้อมูลธุรกิจเพิ่มเติมสำหรับรายการนี้</p></details>;
+  return <details className="admin-ledger-details"><summary>ข้อมูลเพิ่มเติม</summary><dl>{items.map(([label, content]) => <div key={label}><dt>{label}</dt><dd>{content}</dd></div>)}</dl></details>;
+}
+
+function safeText(value: unknown) { return typeof value === 'string' ? value.slice(0, 500) : ''; }

@@ -6,6 +6,7 @@ import {
   AdminBadge,
   AdminButton,
   AdminCard,
+  AdminConfirmDialog,
   AdminEmpty,
   AdminMetric,
   AdminMetricGrid,
@@ -35,6 +36,7 @@ type PromotionCampaign = {
   endsAt?: string | undefined;
   couponCode?: string | undefined;
   rewardLabel?: string | undefined;
+  lifecycle?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 };
 
 type ClaimSummary = { total: number; pending: number; approved: number; rejected: number };
@@ -50,6 +52,8 @@ export default function PromotionOperationsPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [claims, setClaims] = useState<ClaimSummary>(EMPTY_CLAIMS);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
 
   useEffect(() => { void load(); }, []);
 
@@ -130,15 +134,17 @@ export default function PromotionOperationsPage() {
     setView(category);
   }
 
-  function remove(id: string) {
-    setItems((current) => current.filter((item) => item.id !== id));
+  function archiveSelected() {
+    setItems((current) => current.map((item) => selectedIds.includes(item.id) ? { ...item, lifecycle: 'ARCHIVED', enabled: false } : item));
+    setSelectedIds([]); setArchiveConfirmOpen(false);
+    setMessage('ย้ายรายการที่เลือกไป Archived แล้ว กดบันทึกทั้งหมดเพื่อเผยแพร่การเปลี่ยนแปลง');
   }
 
   return <AdminPage
     eyebrow="การตลาด"
     title="Promotion Operations"
     description="จัดการรายการโปรโมชัน แบนเนอร์ โบนัส คูปอง แคมเปญ และรางวัลจากศูนย์เดียว"
-    actions={<><AdminButton tone="secondary" disabled={loading || saving} onClick={() => void load()}>รีเฟรช</AdminButton><AdminButton disabled={loading || saving} onClick={() => void save()}>{saving ? 'กำลังบันทึก...' : 'บันทึกทั้งหมด'}</AdminButton></>}
+    actions={<>{selectedIds.length > 0 && <AdminButton tone="danger" disabled={saving} onClick={() => setArchiveConfirmOpen(true)}>Archive ({selectedIds.length})</AdminButton>}<AdminButton tone="secondary" disabled={loading || saving} onClick={() => void load()}>รีเฟรช</AdminButton><AdminButton disabled={loading || saving} onClick={() => void save()}>{saving ? 'กำลังบันทึก...' : 'บันทึกทั้งหมด'}</AdminButton></>}
   >
     {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') || message.includes('ต้อง') ? 'danger' : 'success'}>{message}</AdminNotice>}
 
@@ -166,8 +172,8 @@ export default function PromotionOperationsPage() {
         {filtered.map((item) => <AdminCard key={item.id} tone={item.enabled ? 'success' : 'neutral'} compact>
           <article className="admin-promotion-ops__card">
             <header>
-              <div><AdminBadge tone={item.enabled ? 'success' : 'neutral'}>{item.enabled ? 'เปิดใช้งาน' : 'ปิดอยู่'}</AdminBadge><h2>{item.title || item.id}</h2><p>{categoryLabel(categoryOf(item))} · Priority {item.priority ?? 0}</p></div>
-              <div className="admin-promotion-ops__card-actions"><AdminButton size="compact" tone="secondary" onClick={() => patch(item.id, { enabled: !item.enabled })}>{item.enabled ? 'ปิด' : 'เปิด'}</AdminButton><AdminButton size="compact" tone="danger" onClick={() => remove(item.id)}>ลบ</AdminButton></div>
+              <div><AdminBadge tone={lifecycleTone(item.lifecycle)}>{lifecycleLabel(item.lifecycle)}</AdminBadge><h2>{item.title || item.id}</h2><p>{categoryLabel(categoryOf(item))} · Priority {item.priority ?? 0}</p></div>
+              <div className="admin-promotion-ops__card-actions"><label><input type="checkbox" checked={selectedIds.includes(item.id)} onChange={(event) => setSelectedIds((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))} /> เลือก</label><AdminButton size="compact" tone="secondary" onClick={() => patch(item.id, item.lifecycle === 'PUBLISHED' ? { lifecycle: 'DRAFT', enabled: false } : { lifecycle: 'PUBLISHED', enabled: true })}>{item.lifecycle === 'PUBLISHED' ? 'ย้าย Draft' : 'Publish'}</AdminButton><AdminButton size="compact" tone="danger" onClick={() => patch(item.id, { lifecycle: 'ARCHIVED', enabled: false })}>Archive</AdminButton></div>
             </header>
 
             {item.imageUrl && <img className="admin-promotion-ops__banner" src={item.imageUrl} alt={`ตัวอย่างแบนเนอร์ ${item.title}`} />}
@@ -203,6 +209,7 @@ export default function PromotionOperationsPage() {
         <span>รอตรวจ <strong>{claims.pending}</strong></span>
       </footer>
     </section>
+    <AdminConfirmDialog open={archiveConfirmOpen} title="Archive รายการที่เลือก" description={`ย้าย ${selectedIds.length.toLocaleString('th-TH')} รายการไป Archived และปิดการเผยแพร่`} confirmLabel="ยืนยัน Archive" tone="danger" onCancel={() => setArchiveConfirmOpen(false)} onConfirm={archiveSelected} />
   </AdminPage>;
 }
 
@@ -221,7 +228,9 @@ function NumberField({ label, value, onChange }: { label: string; value: number;
 function categoryOf(item: PromotionCampaign): PromotionCategory { return item.category ?? (item.couponCode ? 'coupon' : item.rewardLabel ? 'reward' : item.imageUrl ? 'banner' : item.bonusValue > 0 ? 'bonus' : 'campaign'); }
 function categoryLabel(value: PromotionCategory) { return CATEGORY_OPTIONS.find((item) => item.value === value)?.label ?? value; }
 function viewLabel(value: ViewKey) { return value === 'list' ? 'แคมเปญ' : categoryLabel(value); }
+function lifecycleLabel(value: PromotionCampaign['lifecycle']) { return value === 'ARCHIVED' ? 'Archived' : value === 'PUBLISHED' ? 'Published' : 'Draft'; }
+function lifecycleTone(value: PromotionCampaign['lifecycle']) { return value === 'ARCHIVED' ? 'neutral' : value === 'PUBLISHED' ? 'success' : 'warning'; }
 function slug(value: string) { return value.toLowerCase().trim().replace(/[^a-z0-9ก-๙]+/g, '-').replace(/^-|-$/g, ''); }
-function createCampaign(category: PromotionCategory, index: number): PromotionCampaign { return { id: `${category}-${Date.now()}`, title: `${categoryLabel(category)} ${index}`, description: '', enabled: false, category, bonusType: 'percent', bonusValue: category === 'bonus' ? 10 : 0, minDeposit: 0, maxBonus: 0, turnoverMultiplier: 1, claimMode: 'manual_review', badgeText: category.toUpperCase(), accentColor: '#f5c542', priority: index }; }
-function normalizeCampaigns(value: unknown): PromotionCampaign[] { if (!Array.isArray(value)) return []; return value.filter((item): item is PromotionCampaign => Boolean(item && typeof item === 'object')).map((item, index) => ({ id: String(item.id ?? `promotion-${index + 1}`), title: String(item.title ?? `โปรโมชัน ${index + 1}`), description: String(item.description ?? ''), enabled: Boolean(item.enabled), category: CATEGORY_OPTIONS.some((option) => option.value === item.category) ? item.category : undefined, bonusType: item.bonusType === 'fixed' ? 'fixed' : 'percent', bonusValue: Number(item.bonusValue ?? 0), minDeposit: Number(item.minDeposit ?? 0), maxBonus: Number(item.maxBonus ?? 0), turnoverMultiplier: Number(item.turnoverMultiplier ?? 1), claimMode: item.claimMode === 'auto_pending' ? 'auto_pending' : 'manual_review', imageUrl: String(item.imageUrl ?? ''), iconUrl: String(item.iconUrl ?? ''), badgeText: String(item.badgeText ?? ''), accentColor: String(item.accentColor ?? '#f5c542'), priority: Number(item.priority ?? index), startsAt: item.startsAt ? String(item.startsAt) : undefined, endsAt: item.endsAt ? String(item.endsAt) : undefined, couponCode: item.couponCode ? String(item.couponCode) : undefined, rewardLabel: item.rewardLabel ? String(item.rewardLabel) : undefined })); }
+function createCampaign(category: PromotionCategory, index: number): PromotionCampaign { return { id: `${category}-${Date.now()}`, title: `${categoryLabel(category)} ${index}`, description: '', enabled: false, lifecycle: 'DRAFT', category, bonusType: 'percent', bonusValue: category === 'bonus' ? 10 : 0, minDeposit: 0, maxBonus: 0, turnoverMultiplier: 1, claimMode: 'manual_review', badgeText: category.toUpperCase(), accentColor: '#f5c542', priority: index }; }
+function normalizeCampaigns(value: unknown): PromotionCampaign[] { if (!Array.isArray(value)) return []; return value.filter((item): item is PromotionCampaign => Boolean(item && typeof item === 'object')).map((item, index) => ({ id: String(item.id ?? `promotion-${index + 1}`), title: String(item.title ?? `โปรโมชัน ${index + 1}`), description: String(item.description ?? ''), enabled: Boolean(item.enabled), lifecycle: item.lifecycle === 'ARCHIVED' ? 'ARCHIVED' : item.enabled ? 'PUBLISHED' : 'DRAFT', category: CATEGORY_OPTIONS.some((option) => option.value === item.category) ? item.category : undefined, bonusType: item.bonusType === 'fixed' ? 'fixed' : 'percent', bonusValue: Number(item.bonusValue ?? 0), minDeposit: Number(item.minDeposit ?? 0), maxBonus: Number(item.maxBonus ?? 0), turnoverMultiplier: Number(item.turnoverMultiplier ?? 1), claimMode: item.claimMode === 'auto_pending' ? 'auto_pending' : 'manual_review', imageUrl: String(item.imageUrl ?? ''), iconUrl: String(item.iconUrl ?? ''), badgeText: String(item.badgeText ?? ''), accentColor: String(item.accentColor ?? '#f5c542'), priority: Number(item.priority ?? index), startsAt: item.startsAt ? String(item.startsAt) : undefined, endsAt: item.endsAt ? String(item.endsAt) : undefined, couponCode: item.couponCode ? String(item.couponCode) : undefined, rewardLabel: item.rewardLabel ? String(item.rewardLabel) : undefined })); }
 function validate(items: PromotionCampaign[]) { const errors: string[] = []; const ids = new Set<string>(); for (const item of items) { if (!item.id.trim()) errors.push('ทุกรายการต้องมีรหัส'); if (ids.has(item.id)) errors.push(`รหัสซ้ำ ${item.id}`); ids.add(item.id); if (!item.title.trim()) errors.push(`รายการ ${item.id || '-'} ต้องมีชื่อ`); if (item.startsAt && item.endsAt && item.startsAt > item.endsAt) errors.push(`${item.title}: วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม`); if (categoryOf(item) === 'coupon' && !item.couponCode?.trim()) errors.push(`${item.title}: ต้องมี Coupon Code`); } return [...new Set(errors)]; }

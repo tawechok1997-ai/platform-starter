@@ -160,6 +160,32 @@ export class WithdrawalsService {
     });
   }
 
+  async batchClaimOrRelease(action: 'claim' | 'release', ids: string[], adminUser: any, meta: RequestMeta = {}) {
+    if (action !== 'claim' && action !== 'release') throw new BadRequestException('Unsupported batch queue action');
+    const uniqueIds = [...new Set(ids)];
+    return this.prisma.$transaction(async (tx) => {
+      const results: Array<{ id: string; ok: boolean; status?: string; message?: string }> = [];
+      for (const id of uniqueIds) {
+        try {
+          const request = await lockWithdrawalSnapshotForUpdate(tx, id);
+          if (!request) throw new NotFoundException('Withdrawal request not found');
+          if (action === 'claim') {
+            if (!WithdrawalPolicy.canBeClaimed(request.status as WithdrawalStatus)) throw new ConflictException('Withdrawal request is not available for claim');
+            if (request.claimedBy && request.claimedBy !== adminUser.id && request.claimedAt && Date.now() - request.claimedAt.getTime() < CLAIM_TIMEOUT_MS) throw new ConflictException('รายการนี้มีแอดมินคนอื่นกำลังตรวจอยู่');
+          } else if (request.claimedBy && request.claimedBy !== adminUser.id) {
+            throw new ConflictException('ปล่อยงานได้เฉพาะคนที่ claim เท่านั้น');
+          }
+          const updated = await tx.withdrawalRequest.update({ where: { id }, data: action === 'claim' ? { claimedBy: adminUser.id, claimedAt: new Date() } : { claimedBy: null, claimedAt: null } });
+          results.push({ id, ok: true, status: updated.status });
+        } catch (error) {
+          results.push({ id, ok: false, message: error instanceof Error ? error.message : 'Batch action failed' });
+        }
+      }
+      await tx.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: adminUser.id, action: `BATCH_${action.toUpperCase()}_WITHDRAWAL`, module: 'withdrawals', targetId: null, oldData: { ids: uniqueIds }, newData: { action, results }, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) });
+      return { action, results, summary: { requested: uniqueIds.length, succeeded: results.filter((item) => item.ok).length, failed: results.filter((item) => !item.ok).length } };
+    });
+  }
+
   async approveRequest(id: string, adminUser: any, dto: ReviewWithdrawalRequestDto, meta: RequestMeta = {}) {
     return this.prisma.$transaction(async (tx) => {
       const request = await lockWithdrawalSnapshotForUpdate(tx, id);

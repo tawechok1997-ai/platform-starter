@@ -169,6 +169,7 @@ export default function SupportCenterPage() {
         <AdminStack>
           <AdminDataValue label="สมาชิก">{ticket.member?.username ?? ticket.member?.phone ?? ticket.member?.email ?? '-'}</AdminDataValue>
           <AdminDataValue label="สถานะ"><span><AdminBadge tone={statusTone(ticket.status)}>{statusLabel(ticket.status)}</AdminBadge> <AdminBadge tone={severityTone(ticket.severity)}>{severityLabel(ticket.severity)}</AdminBadge></span></AdminDataValue>
+          <AdminDataValue label="SLA"><span><AdminBadge tone={slaTone(ticket)}>{slaLabel(ticket)}</AdminBadge></span></AdminDataValue>
           <AdminDataValue label="รายการอ้างอิง"><AdminCode {...(ticket.refId ? { title: ticket.refId } : {})}>{ticket.refType ?? '-'} {ticket.refId ?? ''}</AdminCode></AdminDataValue>
 
           <section className="admin-support-message-box">
@@ -212,7 +213,10 @@ export default function SupportCenterPage() {
 
 function statusTone(status: string): BadgeTone { if (status === 'RESOLVED') return 'success'; if (status === 'OPEN') return 'danger'; if (status === 'REVIEWING') return 'warning'; return 'neutral'; }
 function severityTone(severity: string): BadgeTone { if (severity === 'CRITICAL' || severity === 'HIGH') return 'danger'; if (severity === 'MEDIUM') return 'warning'; return 'neutral'; }
-function statusLabel(status: string) { const map: Record<string, string> = { OPEN: 'รอตอบ', REVIEWING: 'กำลังดูแล', RESOLVED: 'แก้แล้ว', DISMISSED: 'ปิดโดยไม่ดำเนินการ' }; return map[status] ?? status; }
+function statusLabel(status: string) { const map: Record<string, string> = { OPEN: 'Open', REVIEWING: 'Pending', RESOLVED: 'Resolved', DISMISSED: 'ปิดโดยไม่ดำเนินการ' }; return map[status] ?? status; }
 function categoryLabel(category: string) { const map: Record<string, string> = { deposit: 'ฝากเงิน', withdraw: 'ถอนเงิน', game: 'เกม', account: 'บัญชี', general: 'ทั่วไป' }; return map[category] ?? category; }
 function severityLabel(severity: string) { const map: Record<string, string> = { LOW: 'ทั่วไป', MEDIUM: 'ควรตรวจ', HIGH: 'เร่งด่วน', CRITICAL: 'วิกฤต' }; return map[severity] ?? severity; }
 function senderLabel(sender: string) { const map: Record<string, string> = { admin: 'ผู้ดูแล', member: 'สมาชิก', system: 'ระบบ' }; return map[sender] ?? sender; }
+function slaMinutes(severity: string) { if (severity === 'CRITICAL') return 30; if (severity === 'HIGH') return 120; if (severity === 'MEDIUM') return 480; return 1440; }
+function slaLabel(ticket: Ticket) { if (ticket.status === 'RESOLVED' || ticket.status === 'DISMISSED') return 'ปิด SLA แล้ว'; const minutes = Math.ceil((new Date(ticket.createdAt).getTime() + slaMinutes(ticket.severity) * 60_000 - Date.now()) / 60_000); if (minutes < 0) return `เกิน SLA ${Math.abs(minutes)} นาที`; if (minutes < 60) return `เหลือ ${minutes} นาที`; return `เหลือ ${Math.ceil(minutes / 60)} ชม.`; }
+function slaTone(ticket: Ticket): BadgeTone { if (ticket.status === 'RESOLVED' || ticket.status === 'DISMISSED') return 'success'; const minutes = Math.ceil((new Date(ticket.createdAt).getTime() + slaMinutes(ticket.severity) * 60_000 - Date.now()) / 60_000); return minutes <= 0 ? 'danger' : minutes <= 60 ? 'warning' : 'neutral'; }

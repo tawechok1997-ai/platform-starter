@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage } from '../_components/admin-ui';
 import { AdminDataColumn, AdminDataTable } from '../_components/admin-data-table';
 
 type Provider = { id: string; name: string; code: string; status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'DEGRADED'; walletMode: string; updatedAt: string; _count?: { endpoints?: number; credentials?: number; games?: number; sessions?: number; transfers?: number; webhookLogs?: number } };
@@ -18,8 +18,9 @@ export default function ProviderHealthPage() {
   const [loading, setLoading] = useState(true);
   const [checkingId, setCheckingId] = useState('');
   const [message, setMessage] = useState('');
+  const [savedView, setSavedView] = useState<'all' | 'attention' | 'online'>('all');
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { setSavedView((window.localStorage.getItem('provider-health-view') as 'all' | 'attention' | 'online' | null) ?? 'all'); void load(); }, []);
 
   async function load() {
     setLoading(true); setMessage('');
@@ -69,6 +70,13 @@ export default function ProviderHealthPage() {
       mismatch,
     };
   }, [health, items, wallet.mismatch, webhook.failed, webhook.total]);
+  const displayedItems = useMemo(() => items.filter((provider) => {
+    const observed = health[provider.id]?.payload?.status;
+    if (savedView === 'attention') return observed === 'OFFLINE' || observed === 'DEGRADED' || provider.status === 'DEGRADED' || provider.status === 'MAINTENANCE';
+    if (savedView === 'online') return observed === 'ONLINE' || (!observed && provider.status === 'ACTIVE');
+    return true;
+  }), [health, items, savedView]);
+  function selectView(next: 'all' | 'attention' | 'online') { setSavedView(next); window.localStorage.setItem('provider-health-view', next); }
 
   const columns: AdminDataColumn<Provider>[] = [
     { key: 'provider', title: 'ค่ายเกม', render: (provider) => <div><strong>{provider.name}</strong><small style={{ display: 'block', color: '#94a3b8' }}>{provider.code}</small></div>, sortValue: (provider) => provider.name, searchValue: (provider) => `${provider.name} ${provider.code}` },
@@ -89,7 +97,8 @@ export default function ProviderHealthPage() {
       <AdminMetric title="Webhook ผิดพลาด" value={`${metrics.webhookFailureRate}%`} helper={`${webhook.failed ?? 0} จาก ${webhook.total ?? 0} รายการ`} tone={metrics.webhookFailureRate ? 'warning' : 'success'} />
       <AdminMetric title="ยอดเงินไม่ตรง" value={metrics.mismatch.toLocaleString('th-TH')} helper={`ตรวจ ${wallet.total ?? 0} รายการ`} tone={metrics.mismatch ? 'danger' : 'success'} />
     </AdminMetricGrid>
-    <AdminDataTable id="provider-health" rows={items} columns={columns} rowKey={(provider) => provider.id} loading={loading} error={message} emptyText="ยังไม่มีข้อมูลค่ายเกม" searchPlaceholder="ค้นหาชื่อหรือรหัสค่าย" />
+    <AdminCard title="Saved views" description="มุมมองที่ใช้ล่าสุดจะถูกจำไว้ใน browser นี้"><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton tone={savedView === 'all' ? 'primary' : 'secondary'} onClick={() => selectView('all')}>ทั้งหมด ({items.length})</AdminButton><AdminButton tone={savedView === 'attention' ? 'primary' : 'secondary'} onClick={() => selectView('attention')}>ต้องตรวจ ({metrics.degraded + metrics.failures})</AdminButton><AdminButton tone={savedView === 'online' ? 'primary' : 'secondary'} onClick={() => selectView('online')}>ออนไลน์</AdminButton></div></AdminCard>
+    <AdminDataTable id="provider-health" rows={displayedItems} columns={columns} rowKey={(provider) => provider.id} loading={loading} error={message} emptyText="ยังไม่มีข้อมูลค่ายเกม" searchPlaceholder="ค้นหาชื่อหรือรหัสค่าย" />
   </AdminPage>;
 }
 
