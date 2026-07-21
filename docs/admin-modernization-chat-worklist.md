@@ -66,7 +66,7 @@
 - [x] แก้ THB NaN ใน /operations
 - [x] แก้ THB NaN ใน /game-transfers
 - [x] Harden money display ใน Activity Center, Bonus, Commission, Promotion Claims, Wallet Ledger detail และ Provider Snapshot
-- [ ] แก้ Prisma/UUID error ใน /member-insights
+- [x] แก้ Prisma/UUID error ใน /member-insights
 - [ ] ห้ามแสดง raw backend error
 - [x] Member Insights และ Game Transfers ใช้ข้อความผิดพลาดที่ผ่านการกรอง พร้อม network fallback
 - [ ] เอา credential ตัวอย่างออกจาก /provider-credentials
@@ -216,11 +216,12 @@
 
 ### /member-insights
 
-- [ ] แก้ UUID error
-- [ ] Trend สมาชิกใหม่/กลับมาใช้งาน
-- [ ] Segmentation
-- [ ] Date range
-- [ ] Data source และ last sync
+- [x] แก้ UUID error
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก
+- [x] Trend สมาชิกใหม่/กลับมาใช้งาน
+- [x] Segmentation
+- [x] Date range
+- [x] Data source และ last sync
 
 ### /bank-accounts
 
