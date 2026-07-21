@@ -147,7 +147,7 @@ export function buildSimulatorMediaContract(
   };
 }
 
-export function assetUrl(path: string | undefined, publicBaseUrl: string) {
+export function assetUrl(path: string | undefined, _publicBaseUrl: string) {
   if (!path) return null;
   const configured = process.env.GAME_ASSET_BASE_URL?.replace(/\/$/, '');
   if (configured) return `${configured}/${path}`;
