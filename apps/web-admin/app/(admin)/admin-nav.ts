@@ -16,7 +16,7 @@ export const navGroups: readonly AdminNavGroup[] = [
   {
     id: 'overview', title: 'ภาพรวม', description: 'สถานะระบบและงานที่ต้องตรวจ',
     items: [
-      { title: 'Dashboard', href: '/dashboard', badgeKey: 'pending' },
+      { title: 'แดชบอร์ด', href: '/dashboard', badgeKey: 'pending' },
       { title: 'งานที่ต้องตรวจ', href: '/operations', badgeKey: 'pending' },
       { title: 'กิจกรรมล่าสุด', href: '/activity-center', permissions: ['admin.view', 'admin.access.view', 'risk.view', 'reports.view'] },
     ],
@@ -29,8 +29,8 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'จัดการหลายรายการ', href: '/bulk-queue-operations', permissions: ['topups.view', 'deposit.view', 'withdraw.view'] },
       { title: 'กระเป๋าเงินสมาชิก', href: '/wallets', permissions: ['wallet.view'] },
       { title: 'ประวัติยอดเงิน', href: '/wallet-ledgers', permissions: ['wallet.view'] },
-      { title: 'Wallet Statement', href: '/wallet-statement', permissions: ['wallet.view'] },
-      { title: 'Wallet Analytics', href: '/wallet-analytics', permissions: ['wallet.view', 'reports.view'] },
+      { title: 'รายการเดินบัญชี', href: '/wallet-statement', permissions: ['wallet.view'] },
+      { title: 'วิเคราะห์กระเป๋าเงิน', href: '/wallet-analytics', permissions: ['wallet.view', 'reports.view'] },
       { title: 'กระทบยอด', href: '/reconciliation-center', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'รายงานการเงิน', href: '/reports', permissions: ['reports.view'] },
       { title: 'ส่งออกรายงาน', href: '/exports', permissions: ['reports.export', 'reports.view'] },
@@ -55,7 +55,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     ],
   },
   {
-    id: 'providers', title: 'เกมและค่ายเกม', description: 'เกม API และสถานะการเชื่อมต่อ',
+    id: 'providers', title: 'เกมและค่ายเกม', description: 'เกม การเชื่อมต่อ และสถานะค่ายเกม',
     items: [
       { title: 'สถานะค่ายเกม', href: '/provider-health', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'ตั้งค่าค่ายเกม', href: '/simple-game-settings', permissions: ['game.providers.manage', 'provider.update'] },
@@ -63,7 +63,7 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'ชุดตั้งค่าค่ายเกม', href: '/provider-presets', permissions: ['game.providers.manage', 'provider.update'] },
       { title: 'ค่ายเกมทั้งหมด', href: '/game-providers', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'เกมทั้งหมด', href: '/games', permissions: ['game.providers.view', 'provider.view'] },
-      { title: 'Session เกม', href: '/game-sessions', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'เซสชันเกม', href: '/game-sessions', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'รายการโอนเงินเกม', href: '/game-transfers', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'บันทึก Webhook', href: '/webhook-logs', permissions: ['provider.view', 'game.providers.view'] },
     ],
@@ -72,11 +72,11 @@ export const navGroups: readonly AdminNavGroup[] = [
     id: 'growth', title: 'โปรโมชันและเนื้อหา', description: 'โปรโมชัน โบนัส ตัวแทน และหน้าเว็บไซต์',
     items: [
       { title: 'ภาพรวมการตลาด', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
-      { title: 'Promotion Operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'] },
+      { title: 'จัดการโปรโมชัน', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'] },
       { title: 'โปรโมชันและโบนัส', href: '/promotion-center', permissions: ['promotion.view'] },
       { title: 'คำขอรับโปรโมชัน', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
-      { title: 'ประวัติโบนัสด', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
-      { title: 'ตัวแทนและ Affiliate', href: '/affiliate-center', permissions: ['affiliate.view'] },
+      { title: 'ประวัติโบนัส', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
+      { title: 'ตัวแทนและผู้แนะนำ', href: '/affiliate-center', permissions: ['affiliate.view'] },
       { title: 'ประวัติคอมมิชชัน', href: '/commission-ledgers', permissions: ['commission.view'] },
       { title: 'จัดการเนื้อหาเว็บไซต์', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
     ],
@@ -91,11 +91,16 @@ export const navGroups: readonly AdminNavGroup[] = [
     ],
   },
   {
-    id: 'system', title: 'ระบบและการตั้งค่า', description: 'เว็บไซต์ ความปลอดภัย และการเชื่อมต่อ',
+    id: 'system', title: 'ระบบและความปลอดภัย', description: 'เว็บไซต์ บัญชี และการป้องกันระบบ',
     items: [
       { title: 'ตั้งค่าเว็บไซต์', href: '/settings', permissions: ['settings.update', 'settings.website.view'] },
       { title: 'CAPTCHA และป้องกันบอต', href: '/anti-bot', permissions: ['security.anti_bot.view'] },
       { title: 'ความปลอดภัย', href: '/security' },
+    ],
+  },
+  {
+    id: 'advanced', title: 'เครื่องมือขั้นสูง', description: 'การเชื่อมต่อและเครื่องมือสำหรับผู้ดูแลระบบ',
+    items: [
       { title: 'ข้อมูลเชื่อมต่อค่ายเกม', href: '/provider-credentials', permissions: ['provider.update', 'game.providers.manage'] },
       { title: 'ทดสอบ API ค่ายเกม', href: '/adapter-test', permissions: ['provider.update', 'game.providers.manage'] },
       { title: 'ตั้งค่า API แบบเดิม', href: '/game-api-settings', permissions: ['provider.update'] },
