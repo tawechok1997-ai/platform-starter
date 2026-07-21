@@ -1,0 +1,110 @@
+name: Admin Verification & Bundle
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-admin/**'
+      - 'packages/api-client/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/admin-verification-bundle.yml'
+  pull_request:
+    paths:
+      - 'apps/web-admin/**'
+      - 'packages/api-client/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/admin-verification-bundle.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-verification-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  admin-verification:
+    name: Admin lint, test, typecheck and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint Admin Web
+        run: pnpm --filter @platform/web-admin lint
+
+      - name: Test Admin Web
+        run: pnpm --filter @platform/web-admin test
+
+      - name: Typecheck Admin Web
+        run: pnpm --filter @platform/web-admin typecheck
+
+      - name: Build Admin Web
+        run: pnpm --filter @platform/web-admin build
+
+  admin-bundle-evidence:
+    name: Admin bundle analysis and baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Analyze Admin bundle
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/admin-bundle
+          pnpm --filter @platform/web-admin analyze 2>&1 | tee artifacts/admin-bundle/analyze.log
+          cp apps/web-admin/performance-budget.json artifacts/admin-bundle/performance-budget.json
+          if [ -d apps/web-admin/.next/analyze ]; then
+            cp -R apps/web-admin/.next/analyze artifacts/admin-bundle/analyzer-report
+          fi
+          if [ -f apps/web-admin/.next/build-manifest.json ]; then
+            cp apps/web-admin/.next/build-manifest.json artifacts/admin-bundle/build-manifest.json
+          fi
+          if [ -f apps/web-admin/.next/app-build-manifest.json ]; then
+            cp apps/web-admin/.next/app-build-manifest.json artifacts/admin-bundle/app-build-manifest.json
+          fi
+
+      - name: Upload Admin bundle evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-bundle-evidence-${{ github.sha }}
+          path: artifacts/admin-bundle
+          if-no-files-found: error
+          retention-days: 30
