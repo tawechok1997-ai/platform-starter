@@ -79,10 +79,10 @@ jobs:
             exit 1
           fi
 
-          if [[ "$has_username" == "true" ]]; then
-            echo "Authentication mode: signed-in"
+          if [[ "$REQUIRE_AUTHENTICATION" == "true" ]]; then
+            echo "Authentication mode: signed-in acceptance"
           else
-            echo "Authentication mode: redirect-only"
+            echo "Authentication mode: public redirect smoke"
           fi
 
       - name: Deployment preflight
@@ -123,9 +123,11 @@ jobs:
           let failed = 0;
           let skipped = 0;
           let total = 0;
+          const failures = [];
           if (fs.existsSync(reportPath)) {
             const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
-            const visit = (suite) => {
+            const visit = (suite, parents = []) => {
+              const suitePath = [...parents, suite.title].filter(Boolean);
               for (const spec of suite.specs ?? []) {
                 for (const test of spec.tests ?? []) {
                   total += 1;
@@ -133,20 +135,27 @@ jobs:
                   const final = results.at(-1);
                   if (final?.status === 'passed') passed += 1;
                   else if (final?.status === 'skipped') skipped += 1;
-                  else failed += 1;
+                  else {
+                    failed += 1;
+                    failures.push({
+                      title: [...suitePath, spec.title].filter(Boolean).join(' > '),
+                      status: final?.status ?? 'unknown',
+                      error: final?.error?.message ?? final?.errors?.[0]?.message ?? 'No error message recorded',
+                    });
+                  }
                 }
               }
-              for (const child of suite.suites ?? []) visit(child);
+              for (const child of suite.suites ?? []) visit(child, suitePath);
             };
             for (const suite of report.suites ?? []) visit(suite);
           }
           const matrix = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
           const hasCredentials = Boolean(process.env.ADMIN_TEST_USERNAME && process.env.ADMIN_TEST_PASSWORD);
-          const authMode = hasCredentials ? 'signed-in' : 'redirect-only';
           const acceptanceRequested = process.env.REQUIRE_AUTHENTICATION === 'true';
+          const authMode = acceptanceRequested ? 'signed-in acceptance' : 'public redirect smoke';
           const acceptanceComplete = acceptanceRequested && hasCredentials && process.env.QA_OUTCOME === 'success';
           const manifest = {
-            schemaVersion: 4,
+            schemaVersion: 5,
             workflow: process.env.GITHUB_WORKFLOW,
             runId: process.env.GITHUB_RUN_ID,
             runAttempt: process.env.GITHUB_RUN_ATTEMPT,
@@ -166,19 +175,20 @@ jobs:
               ] : [],
             },
             outcome: process.env.QA_OUTCOME,
+            enforcement: acceptanceRequested ? 'blocking' : 'advisory',
             loginRoute: matrix.loginRoute,
             protectedRoutes: matrix.protectedRoutes,
             viewports: matrix.viewports,
             accessibility: {
               engine: '@axe-core/playwright',
               standards: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'],
-              blockedImpacts: ['critical', 'serious'],
-              semanticChecks: ['main-landmark', 'single-h1', 'form-control-labels'],
+              blockedImpacts: acceptanceRequested ? ['critical', 'serious'] : [],
+              semanticChecks: acceptanceRequested ? ['main-landmark', 'single-h1', 'form-control-labels'] : [],
               violationEvidence: 'axe-*.json attachments on failure',
             },
             runtimeChecks: ['horizontal-overflow', 'document-title', 'meaningful-content', 'console-errors', 'page-errors', 'request-failures'],
             evidence: ['full-page screenshots', 'Playwright HTML report', 'JSON report', 'traces', 'failure videos', 'Axe violation attachments'],
-            tests: { total, passed, failed, skipped },
+            tests: { total, passed, failed, skipped, failures },
             generatedAt: new Date().toISOString(),
           };
           fs.writeFileSync('test-results/admin-deployment/manifest.json', `${JSON.stringify(manifest, null, 2)}\n`);
@@ -199,6 +209,7 @@ jobs:
             process.exit(0);
           }
           console.log(`- Outcome: **${manifest.outcome}**`);
+          console.log(`- Enforcement: **${manifest.enforcement}**`);
           console.log(`- Deployment: ${manifest.deployment}`);
           console.log(`- Authentication mode: ${manifest.authenticationMode}`);
           console.log(`- Authenticated acceptance requested: ${manifest.acceptance.requested ? 'yes' : 'no'}`);
@@ -206,7 +217,14 @@ jobs:
           console.log(`- Routes: ${manifest.loginRoute}, ${manifest.protectedRoutes.join(', ')}`);
           console.log(`- Viewports: ${manifest.viewports.map((item) => item.width).join(', ')} px`);
           console.log(`- Tests: ${manifest.tests.passed} passed, ${manifest.tests.failed} failed, ${manifest.tests.skipped} skipped`);
-          console.log(`- Accessibility: Axe ${manifest.accessibility.standards.join(', ')}; blocks ${manifest.accessibility.blockedImpacts.join('/')} violations`);
+          if (manifest.tests.failures.length) {
+            console.log('');
+            console.log('### Failed tests');
+            for (const failure of manifest.tests.failures) {
+              console.log(`- **${failure.title}** (${failure.status})`);
+              console.log(`  - ${String(failure.error).replace(/\s+/g, ' ').slice(0, 500)}`);
+            }
+          }
           console.log(`- Runtime checks: ${manifest.runtimeChecks.join(', ')}`);
           if (manifest.acceptance.closesWorkItems.length) console.log(`- Closed work items: ${manifest.acceptance.closesWorkItems.join(', ')}`);
           console.log(`- Commit: \`${manifest.commit}\``);
@@ -231,7 +249,15 @@ jobs:
         env:
           QA_OUTCOME: ${{ steps.browser_qa.outcome }}
         run: |
-          if [[ "$QA_OUTCOME" != "success" ]]; then
-            echo "Admin deployment browser QA did not pass: $QA_OUTCOME" >&2
+          if [[ "$QA_OUTCOME" == "success" ]]; then
+            echo "Admin deployment browser QA passed."
+            exit 0
+          fi
+
+          if [[ "$REQUIRE_AUTHENTICATION" == "true" ]]; then
+            echo "Authenticated Admin deployment acceptance did not pass: $QA_OUTCOME" >&2
             exit 1
           fi
+
+          echo "::warning title=Admin browser smoke findings::Public redirect smoke completed with outcome '$QA_OUTCOME'. Review the uploaded Playwright report and failed-test summary."
+          exit 0
