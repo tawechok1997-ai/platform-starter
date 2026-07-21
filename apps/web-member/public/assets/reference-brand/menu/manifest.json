@@ -1,0 +1,15 @@
+{
+  "source": "noah345-combined-v47-all-mobile-game-pattern (1).rar",
+  "outputSize": "64x64",
+  "format": "png",
+  "items": {
+    "home": { "path": "/assets/reference-brand/menu/home.png", "sourcePath": "assets/menu/หน้าเเรก.png", "sha256": "eeb5e8923176488e7b465bb4d42aff22de83346d6a6590a7659986cf0f2e20a1" },
+    "casino": { "path": "/assets/reference-brand/menu/casino.png", "sourcePath": "assets/menu/คาสิโน.png", "sha256": "b964badaa0e7d9f8105710761fd500c14d7b7844b783b69d6e5a515f5d52bf9e" },
+    "slot": { "path": "/assets/reference-brand/menu/slot.png", "sourcePath": "assets/menu/สล็อต.png", "sha256": "375dd93d5e8a9b3755e9a50d7c524e8737cb4f7c14eff3a8494c71f00b800e97" },
+    "live": { "path": "/assets/reference-brand/menu/live.png", "sourcePath": "assets/menu/ถ่ายทอดสด.png", "sha256": "09ff61446990c59a25639fbab7876eb00acdbe50b80223f6ba231ee9770c9220" },
+    "sport": { "path": "/assets/reference-brand/menu/sport.png", "sourcePath": "assets/menu/กีฬา.png", "sha256": "17f702ead38b492d1b03eee37dbb553d705b724b4582dce23991e30be75c6ef6" },
+    "fishing": { "path": "/assets/reference-brand/menu/fishing.png", "sourcePath": "assets/menu/ตกปลา.png", "sha256": "10e5b4196ab7077b7ad1a7800abb27acffb59cf3365af54841b03affbf41d213" },
+    "lottery": { "path": "/assets/reference-brand/menu/lottery.png", "sourcePath": "assets/menu/หวย.png", "sha256": "da8970660d86dc3ee446fdf52b8e018274881476bdb091931b738b954ad51125" },
+    "card": { "path": "/assets/reference-brand/menu/card.png", "sourcePath": "assets/menu/ไพ่.png", "sha256": "f9816fb79d26b1d5c000bdd74e8862330391f6ce5e1a2f0c558c6daacb24264c" }
+  }
+}
