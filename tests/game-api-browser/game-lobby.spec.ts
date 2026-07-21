@@ -100,7 +100,7 @@ async function installApiMock(page: Page) {
 test.beforeEach(async ({ page }) => {
   await installApiMock(page);
   await page.goto('/games');
-  await expect(page.getByRole('heading', { name: 'เกมทั้งหมด' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'เกมทั้งหมด', exact: true })).toBeVisible();
 });
 
 test('filters the catalog by platform provider category and search', async ({ page }) => {
