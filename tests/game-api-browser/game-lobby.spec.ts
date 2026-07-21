@@ -171,7 +171,7 @@ test('uses the fallback when a game image fails', async ({ page }) => {
 
 test('launches a game through the member launch contract', async ({ page }) => {
   const card = catalogCard(page, 'Fortune Tiger');
-  const launchButton = card.locator('.game-lobby-card-body > button');
+  const launchButton = card.locator('.game-lobby-cover-button');
   await expect(launchButton).toBeVisible();
   const launchRequest = page.waitForRequest((request) => request.url().endsWith('/member/games/mobile-fortune-tiger/launch'));
   await launchButton.click();
