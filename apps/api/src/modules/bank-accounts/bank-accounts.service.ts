@@ -236,6 +236,8 @@ export class BankAccountsService {
       include: { user: { select: { id: true, username: true, status: true, phone: true, email: true } } },
     });
     if (!existing) throw new NotFoundException('Member bank account not found');
+    if (body.status === 'REJECTED' && !body.adminNote?.trim())
+      throw new BadRequestException('ต้องระบุเหตุผลเมื่อปฏิเสธบัญชีธนาคาร');
     if (body.status === 'ACTIVE') {
       const duplicate = await this.prisma.memberBankAccount.findFirst({
         where: { id: { not: id }, accountNumber: existing.accountNumber, status: { in: ['ACTIVE', 'PENDING_REVIEW'] } },
