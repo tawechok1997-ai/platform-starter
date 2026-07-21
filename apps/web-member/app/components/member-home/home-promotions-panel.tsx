@@ -1,7 +1,7 @@
 'use client';
 
 import type { CmsContent } from '../../site-settings';
-import { PromotionSlotGrid } from '../member-home-sections';
+import { HomePromotionCards } from './home-promotion-cards';
 
 export function HomePromotionsPanel({
   active,
@@ -19,7 +19,7 @@ export function HomePromotionsPanel({
       aria-label="โปรโมชั่นแนะนำ"
     >
       {enabled ? (
-        <PromotionSlotGrid content={content} />
+        <HomePromotionCards content={content} />
       ) : (
         <div className="member-source-state">โปรโมชั่นถูกปิดใช้งานชั่วคราว</div>
       )}
