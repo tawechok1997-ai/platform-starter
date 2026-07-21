@@ -1,0 +1,206 @@
+name: Admin Browser Evidence
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web-admin/**'
+      - '.github/workflows/admin-browser-evidence.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-browser-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-evidence:
+    name: Quick Admin browser smoke check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ADMIN_BASE_URL: ${{ secrets.ADMIN_BASE_URL || 'https://platformweb-admin-production.up.railway.app' }}
+      CI: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install repository dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install temporary browser-test dependencies
+        run: pnpm add -Dw @playwright/test@1.55.1 @axe-core/playwright@4.10.2 --lockfile=false
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Create quick smoke test
+        shell: bash
+        run: |
+          mkdir -p .admin-browser-evidence
+          cat > .admin-browser-evidence/admin-evidence.spec.ts <<'EOF'
+          import { test, expect, type Page } from '@playwright/test';
+          import AxeBuilder from '@axe-core/playwright';
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const baseURL = process.env.ADMIN_BASE_URL!;
+          const evidenceDir = path.resolve('artifacts/admin-browser-evidence');
+          fs.mkdirSync(evidenceDir, { recursive: true });
+
+          const devices = [
+            { name: 'mobile-390x844', width: 390, height: 844, mobile: true },
+            { name: 'desktop-1440x900', width: 1440, height: 900, mobile: false },
+          ];
+
+          function attachRuntimeGuards(page: Page) {
+            const consoleErrors: string[] = [];
+            const failedRequests: string[] = [];
+            page.on('console', (message) => {
+              if (message.type() === 'error') consoleErrors.push(message.text());
+            });
+            page.on('requestfailed', (request) => {
+              failedRequests.push(`${request.method()} ${request.url()} :: ${request.failure()?.errorText ?? 'failed'}`);
+            });
+            return { consoleErrors, failedRequests };
+          }
+
+          test('public login and not-found smoke evidence', async ({ browser }) => {
+            for (const device of devices) {
+              const context = await browser.newContext({
+                viewport: { width: device.width, height: device.height },
+                reducedMotion: 'reduce',
+                isMobile: device.mobile,
+                hasTouch: device.mobile,
+              });
+              const page = await context.newPage();
+              page.setDefaultTimeout(10_000);
+              page.setDefaultNavigationTimeout(15_000);
+              const guards = attachRuntimeGuards(page);
+
+              const loginResponse = await page.goto(`${baseURL}/login`, {
+                waitUntil: 'domcontentloaded',
+                timeout: 15_000,
+              });
+              expect(loginResponse?.status() ?? 200).toBeLessThan(500);
+              await page.screenshot({
+                path: path.join(evidenceDir, `${device.name}-login.png`),
+                fullPage: true,
+              });
+
+              const axe = await new AxeBuilder({ page }).analyze();
+              fs.writeFileSync(
+                path.join(evidenceDir, `${device.name}-login-axe.json`),
+                JSON.stringify(axe, null, 2),
+              );
+
+              const notFoundResponse = await page.goto(`${baseURL}/__admin-evidence-not-found`, {
+                waitUntil: 'domcontentloaded',
+                timeout: 15_000,
+              });
+              expect(notFoundResponse?.status() ?? 200).toBeLessThan(500);
+              await page.screenshot({
+                path: path.join(evidenceDir, `${device.name}-not-found.png`),
+                fullPage: true,
+              });
+
+              fs.writeFileSync(
+                path.join(evidenceDir, `${device.name}-console-errors.json`),
+                JSON.stringify(guards.consoleErrors, null, 2),
+              );
+              fs.writeFileSync(
+                path.join(evidenceDir, `${device.name}-failed-requests.json`),
+                JSON.stringify(guards.failedRequests, null, 2),
+              );
+
+              console.log(`[smoke] ${device.name}: console=${guards.consoleErrors.length}, failedRequests=${guards.failedRequests.length}, axe=${axe.violations.length}`);
+              await context.close();
+            }
+          });
+
+          test('login keyboard focus and 200 percent zoom', async ({ page }) => {
+            await page.goto(`${baseURL}/login`, {
+              waitUntil: 'domcontentloaded',
+              timeout: 15_000,
+            });
+            await page.evaluate(() => {
+              document.documentElement.style.zoom = '200%';
+            });
+            await page.keyboard.press('Tab');
+            const activeTag = await page.evaluate(() => document.activeElement?.tagName ?? '');
+            expect(['INPUT', 'BUTTON', 'A']).toContain(activeTag);
+            await page.screenshot({
+              path: path.join(evidenceDir, 'login-zoom-200-keyboard-focus.png'),
+              fullPage: true,
+            });
+          });
+          EOF
+
+          cat > .admin-browser-evidence/playwright.config.ts <<'EOF'
+          import { defineConfig } from '@playwright/test';
+
+          export default defineConfig({
+            testDir: '.',
+            testMatch: /admin-evidence\.spec\.ts/,
+            timeout: 2 * 60_000,
+            expect: { timeout: 10_000 },
+            retries: 0,
+            workers: 1,
+            reporter: [
+              ['list'],
+              ['html', { outputFolder: '../artifacts/playwright-report', open: 'never' }],
+            ],
+            use: {
+              browserName: 'chromium',
+              trace: 'retain-on-failure',
+              screenshot: 'only-on-failure',
+              video: 'off',
+              ignoreHTTPSErrors: false,
+            },
+            outputDir: '../artifacts/test-results',
+          });
+          EOF
+
+      - name: Run quick Admin browser smoke check
+        run: pnpm exec playwright test --config .admin-browser-evidence/playwright.config.ts
+
+      - name: Write evidence summary
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts/admin-browser-evidence
+          {
+            echo "# Quick Admin Browser Smoke Check"
+            echo
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Base URL: $ADMIN_BASE_URL"
+            echo "- Checked: login, not-found, keyboard focus, 200% zoom"
+            echo "- Devices: mobile 390x844 and desktop 1440x900"
+            echo "- Full authenticated route crawl: disabled"
+            echo "- Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          } > artifacts/admin-browser-evidence/SUMMARY.md
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-browser-evidence-${{ github.sha }}
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 14

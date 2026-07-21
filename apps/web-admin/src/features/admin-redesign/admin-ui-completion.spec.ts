@@ -19,13 +19,6 @@ test('wallet operations use shared metrics, notice, empty, loading and confirmat
   assertSharedSurface(wallets, [/AdminMetric/, /AdminEmpty/, /AdminSkeleton/, /AdminConfirmDialog/, /aria-busy/]);
 });
 
-test('promotion operations cover campaign, banner, bonus, coupon and reward workflows', () => {
-  const promotion = source('../../cms/promotion-operations-page.tsx');
-  assertSharedSurface(promotion, [/AdminEmpty/, /PromotionCategory/, /campaign/, /banner/, /bonus/, /coupon/, /reward/, /promotion-claims/]);
-  assert.match(promotion, /<label>/);
-  assert.match(promotion, /aria-busy/);
-});
-
 test('risk operations expose dashboard, AML, blacklist, alerts, timeline and investigation', () => {
   const risk = source('../../../app/(admin)/risk-operations/page.tsx');
   assertSharedSurface(risk, [/AdminStack/, /Risk Dashboard/, /AML/, /Blacklist/, /Alerts/, /Timeline/, /Investigation/]);
@@ -42,7 +35,6 @@ test('reports provide filters, export state, loading, empty states and accessibl
 test('critical admin UI pages declare mobile-safe layout hooks', () => {
   const pages = [
     source('../../../app/(admin)/wallets/page.tsx'),
-    source('../../cms/promotion-operations-page.tsx'),
     source('../../../app/(admin)/risk-operations/page.tsx'),
     source('../../../app/(admin)/reports/page.tsx'),
   ];

@@ -5,8 +5,10 @@ import {
   assetUrl,
   GAME_CATALOG,
   PROVIDER_DISPLAY_NAMES,
-  type SimulatorGamePlatform,
 } from '../provider-simulator/provider-simulator-catalog';
+
+type MemberGamePlatform = 'mobile' | 'pc';
+type MemberGamePlatformFilter = 'all' | MemberGamePlatform | 'both';
 
 export type MemberGameCatalogQuery = {
   platform?: string;
@@ -163,17 +165,17 @@ function normalizeFilter(value: unknown) {
   return !normalized || normalized === 'all' ? undefined : normalized;
 }
 
-function normalizePlatform(value: unknown): 'all' | SimulatorGamePlatform | 'both' {
+function normalizePlatform(value: unknown): MemberGamePlatformFilter {
   const normalized = String(value ?? '').trim().toLowerCase();
   return normalized === 'mobile' || normalized === 'pc' || normalized === 'both' ? normalized : 'all';
 }
 
-function matchesPlatform(value: string, filter: 'all' | SimulatorGamePlatform | 'both') {
+function matchesPlatform(value: string, filter: MemberGamePlatformFilter) {
   if (filter === 'all') return true;
   return value === filter || value === 'both';
 }
 
-function readDatabasePlatform(metadata: Prisma.JsonValue | null): SimulatorGamePlatform | 'both' {
+function readDatabasePlatform(metadata: Prisma.JsonValue | null): MemberGamePlatform | 'both' {
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return 'both';
   const value = String((metadata as Prisma.JsonObject).platform ?? '').toLowerCase();
   return value === 'mobile' || value === 'pc' ? value : 'both';

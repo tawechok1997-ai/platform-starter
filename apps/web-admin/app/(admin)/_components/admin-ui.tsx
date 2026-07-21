@@ -190,7 +190,7 @@ const adminSystemCss = `
 @media(max-width:720px){
  .admin-ui-page{gap:14px}.admin-ui-page__head{grid-template-columns:1fr;gap:12px}.admin-ui-page__actions{justify-content:flex-start}.admin-ui-page__description{font-size:13px!important}
  .admin-ui-card{padding:14px!important;border-radius:16px!important}.admin-ui-card__head{grid-template-columns:1fr;gap:9px}.admin-ui-card__action{display:flex;justify-content:flex-start;flex-wrap:wrap;gap:8px}
- .admin-ui-row,.admin-ui-section-row{flex-direction:column;align-items:stretch}.admin-ui-row>[style*="text-align: right"],.admin-ui-section-row>[style*="text-align: right"]{text-align:left!important}
+ .admin-ui-row,.admin-ui-section-row{flex-direction:column;align-items:stretch}.admin-ui-row>*,.admin-ui-section-row>*{text-align:left!important}
  .admin-ui-toolbar,.admin-ui-filter-bar{display:grid;grid-template-columns:minmax(0,1fr);padding:10px!important}.admin-ui-toolbar>*,.admin-ui-filter-bar>*{width:100%;max-width:100%}.admin-ui-filter-bar__controls{display:grid;grid-template-columns:minmax(0,1fr);width:100%}.admin-ui-filter-bar__controls>*{width:100%;max-width:100%}.admin-ui-filter-bar__result{margin-left:0;white-space:normal}
  .admin-ui-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.admin-ui-metric{min-height:98px;padding:12px!important}
  .admin-ui-data-value{grid-template-columns:1fr;gap:3px}.admin-ui-data-value>strong{text-align:left}.admin-ui-pagination{justify-content:stretch}.admin-ui-pagination .admin-ui-button{flex:1 1 120px}.admin-ui-pagination>span{order:-1;width:100%;text-align:center}

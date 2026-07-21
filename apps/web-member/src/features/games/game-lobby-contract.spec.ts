@@ -8,12 +8,13 @@ const enhancementStyleSource = readFileSync(new URL('../../../app/games/lobby-en
 
 test('game lobby exposes platform, provider, category and search controls', () => {
   assert.match(pageSource, /aria-label="เลือกแพลตฟอร์มเกม"/);
-  assert.match(pageSource, />ทั้งหมด <span>/);
+  assert.match(pageSource, /\(\['all', 'mobile', 'pc'\] as PlatformFilter\[\]\)/);
   assert.match(pageSource, /ทุกค่าย/);
   assert.match(pageSource, /ค้นหาเกมหรือค่าย/);
+  assert.match(pageSource, /aria-label="หมวดเกม"/);
   assert.match(pageSource, /game-lobby-tabs/);
-  assert.doesNotMatch(styleSource, /game-lobby-tabs[^}]*display:\s*none/i);
-  assert.doesNotMatch(styleSource, /game-lobby-toolbar[^}]*display:\s*none/i);
+  assert.match(styleSource, /\.game-lobby-tabs\s*\{[\s\S]*?display:\s*flex/);
+  assert.match(styleSource, /\.game-lobby-toolbar\s*\{[\s\S]*?display:\s*grid/);
 });
 
 test('game lobby keeps explicit desktop and responsive grid contracts', () => {
@@ -23,50 +24,45 @@ test('game lobby keeps explicit desktop and responsive grid contracts', () => {
   assert.match(styleSource, /@media\s*\(max-width:\s*360px\)[\s\S]*?grid-template-columns:\s*1fr/);
 });
 
-test('game lobby includes retry, incremental loading and broken-image fallback', () => {
-  assert.match(pageSource, /ลองใหม่/);
-  assert.match(pageSource, /โหลดเพิ่มอีก/);
+test('game lobby includes error feedback, incremental loading and broken-image fallback', () => {
+  assert.match(pageSource, /role="alert"/);
+  assert.match(pageSource, /โหลดเพิ่ม/);
+  assert.match(pageSource, /loadingMore/);
   assert.match(pageSource, /onError=/);
   assert.match(pageSource, /game-lobby-fallback/);
+  assert.match(pageSource, /resetFilters/);
 });
 
-test('provider selector preserves logo, fallback and accessible selection contracts', () => {
-  assert.match(pageSource, /function ProviderStrip/);
-  assert.match(pageSource, /function ProviderButton/);
-  assert.match(pageSource, /className="game-provider-strip"/);
-  assert.match(pageSource, /className="game-provider-strip-list"/);
-  assert.match(pageSource, /aria-label="เลือกค่ายเกม"/);
-  assert.match(pageSource, /aria-pressed=\{active\}/);
-  assert.match(pageSource, /item\.logoUrl && !failed/);
-  assert.match(pageSource, /onError=\{\(\) => setFailed\(true\)\}/);
-  assert.match(pageSource, /initials\(item\.name\)/);
+test('provider selector preserves accessible filtering and normalized provider metadata', () => {
+  assert.match(pageSource, /className="game-lobby-provider"/);
+  assert.match(pageSource, /<select value=\{provider\}/);
+  assert.match(pageSource, /payload\.providers\.map/);
+  assert.match(pageSource, /setProvider\(event\.target\.value\)/);
   assert.match(pageSource, /logoUrl:\s*typeof item\.logoUrl === 'string'/);
-  assert.match(styleSource, /\.game-provider-strip-list\s*\{[\s\S]*?overflow-x:\s*auto/);
+  assert.match(pageSource, /if \(provider !== 'all'\) params\.set\('provider', provider\)/);
 });
 
-test('provider and lobby loading states use stable skeleton contracts', () => {
-  assert.match(pageSource, /loading \? Array\.from\(\{ length: 7 \}/);
+test('lobby loading state uses a stable skeleton contract', () => {
   assert.match(pageSource, /function LobbySkeleton/);
-  assert.match(pageSource, /function GameCardSkeleton/);
+  assert.match(pageSource, /Array\.from\(\{ length: 12 \}/);
+  assert.match(pageSource, /game-lobby-card-skeleton/);
   assert.match(pageSource, /aria-busy="true"/);
   assert.match(styleSource, /@keyframes\s+gameLobbyShimmer/);
   assert.match(styleSource, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 });
 
-test('hero, stats and promotion shortcuts remain wired to lobby behavior', () => {
+test('hero and game rails remain wired to lobby behavior', () => {
   assert.match(pageSource, /function LobbyHero/);
-  assert.match(pageSource, /function LobbyStats/);
-  assert.match(pageSource, /function PromotionStrip/);
+  assert.match(pageSource, /<HotGamesRail/);
+  assert.match(pageSource, /payload\.popular\.length \? payload\.popular : payload\.items/);
   assert.match(pageSource, /id="game-catalog"/);
-  assert.match(pageSource, /scrollIntoView\(\{ behavior: 'smooth' \}\)/);
+  assert.match(pageSource, /onLaunch=\{launchGame\}/);
   assert.match(enhancementStyleSource, /\.game-lobby-hero\s*\{/);
-  assert.match(enhancementStyleSource, /\.game-lobby-stats\s*\{/);
-  assert.match(enhancementStyleSource, /\.game-promotion-strip\s*\{/);
 });
 
-test('changing provider resets category before requesting the new lobby slice', () => {
+test('changing filters resets pagination before requesting the new lobby slice', () => {
   assert.match(
     pageSource,
-    /<ProviderStrip[\s\S]*setProvider\(code\);\s*setCategory\('all'\);/,
+    /useEffect\(\(\) => \{ setPage\(1\); \}, \[category, provider, platform, debouncedQuery\]\)/,
   );
 });
