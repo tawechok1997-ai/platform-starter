@@ -5,9 +5,9 @@ import {
   GameLobbyState,
   GameRail,
   GameRailSkeleton,
-  TournamentSection,
 } from '../member-home-sections';
 import { useMemberHomeData } from '../../hooks/use-member-home-data';
+import { HomeCompetitionShowcase } from './home-competition-showcase';
 
 type MemberHomeData = ReturnType<typeof useMemberHomeData>;
 
@@ -32,7 +32,7 @@ export function HomeHighlightsPanel({
       hidden={!active}
       aria-label="ไฮไลท์"
     >
-      {gamesEnabled && <TournamentSection />}
+      {gamesEnabled && <HomeCompetitionShowcase />}
 
       <div className="member-source-games">
         {gamesEnabled && data.isGamesLoading && <GameRailSkeleton />}
