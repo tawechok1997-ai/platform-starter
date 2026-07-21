@@ -28,6 +28,8 @@ type AdminSession = {
   admin: CurrentAdmin;
 };
 
+type AdminSurface = 'menu' | 'profile' | 'notification' | 'command';
+
 export default function AdminProtectedLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -35,10 +37,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const notificationMenuRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [notificationOpen, setNotificationOpen] = useState(false);
-  const [commandOpen, setCommandOpen] = useState(false);
+  const [openSurface, setOpenSurface] = useState<AdminSurface | null>(null);
   const [commandQuery, setCommandQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [navQuery, setNavQuery] = useState('');
@@ -47,6 +46,10 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(['overview']));
   const [queueCount, setQueueCount] = useState({ topups: 0, withdrawals: 0 });
   const [openRiskCount, setOpenRiskCount] = useState(0);
+  const menuOpen = openSurface === 'menu';
+  const profileOpen = openSurface === 'profile';
+  const notificationOpen = openSurface === 'notification';
+  const commandOpen = openSurface === 'command';
 
   useEffect(() => {
     let cancelled = false;
@@ -71,9 +74,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   }, [pathname]);
 
   useEffect(() => {
-    setMenuOpen(false);
-    setProfileOpen(false);
-    setNotificationOpen(false);
+    setOpenSurface(null);
     const activeGroup = navGroups.find((group) => group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`)));
     if (activeGroup) setOpenGroups((current) => new Set(current).add(activeGroup.id));
   }, [pathname]);
@@ -95,7 +96,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     if (!menuOpen) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenuOpen(false); };
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpenSurface(null); };
     window.addEventListener('keydown', closeOnEscape);
     return () => { document.body.style.overflow = previous; window.removeEventListener('keydown', closeOnEscape); };
   }, [menuOpen]);
@@ -105,7 +106,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     const closeProfileMenu = (event: MouseEvent | KeyboardEvent) => {
       if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
       if (event instanceof MouseEvent && profileMenuRef.current?.contains(event.target as Node)) return;
-      setProfileOpen(false);
+      setOpenSurface(null);
     };
     document.addEventListener('mousedown', closeProfileMenu);
     document.addEventListener('keydown', closeProfileMenu);
@@ -120,7 +121,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     const closeNotificationMenu = (event: MouseEvent | KeyboardEvent) => {
       if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
       if (event instanceof MouseEvent && notificationMenuRef.current?.contains(event.target as Node)) return;
-      setNotificationOpen(false);
+      setOpenSurface(null);
     };
     document.addEventListener('mousedown', closeNotificationMenu);
     document.addEventListener('keydown', closeNotificationMenu);
@@ -131,9 +132,9 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        setCommandOpen((current) => !current);
+        setOpenSurface((current) => current === 'command' ? null : 'command');
       }
-      if (event.key === 'Escape') setCommandOpen(false);
+      if (event.key === 'Escape') setOpenSurface(null);
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -180,10 +181,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   }
 
   function navigate(href: string) {
-    setMenuOpen(false);
-    setProfileOpen(false);
-    setNotificationOpen(false);
-    setCommandOpen(false);
+    setOpenSurface(null);
     setCommandQuery('');
     if (href === pathname) return;
     router.push(href);
@@ -223,7 +221,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   >
     <div className="admin-drawer-head">
       <a href="/dashboard" onClick={(event) => { event.preventDefault(); navigate('/dashboard'); }} className="admin-brand-row admin-brand-link"><span className="admin-brand-mark">A</span><span className="admin-brand-text"><strong>Admin Console</strong><small>Operations workspace</small></span></a>
-      <AdminButton type="button" tone="default" className="admin-drawer-close" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู"><AdminIcon name="close" /></AdminButton>
+      <AdminButton type="button" tone="default" className="admin-drawer-close" onClick={() => setOpenSurface(null)} aria-label="ปิดเมนู"><AdminIcon name="close" /></AdminButton>
     </div>
     <div className="admin-nav-search"><AdminIcon name="search" /><input value={navQuery} onChange={(event) => setNavQuery(event.target.value)} placeholder="ค้นหาเมนู" aria-label="ค้นหาเมนู" /></div>
     <nav className="admin-drawer-nav" aria-label="Admin navigation">
@@ -252,7 +250,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
     </nav>
     <div className="admin-sidebar-footer">
       <div className="admin-sidebar-profile" ref={profileMenuRef}>
-        <button type="button" className="admin-sidebar-profile__trigger" onClick={() => setProfileOpen((current) => !current)} aria-expanded={profileOpen} aria-haspopup="menu">
+        <button type="button" className="admin-sidebar-profile__trigger" onClick={() => setOpenSurface((current) => current === 'profile' ? null : 'profile')} aria-expanded={profileOpen} aria-haspopup="menu">
           {avatar}
           <span className="admin-profile-meta"><strong>{displayName}</strong><span>{roleName}</span></span>
           <span className="admin-profile-status" title="ออนไลน์" aria-label="ออนไลน์" />
@@ -270,30 +268,29 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
         </div>}
       </div>
       <AdminButton type="button" tone="default" className="admin-collapse-button" onClick={toggleCollapsed} aria-label={sidebarCollapsed ? 'ขยายแถบเมนู' : 'ย่อแถบเมนู'}><AdminIcon name="chevron-left" /><span>{sidebarCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}</span></AdminButton>
-      <AdminButton type="button" tone="danger" className="admin-logout-button" onClick={logout}><AdminIcon name="logout" /><span>ออกจากระบบ</span></AdminButton>
     </div>
   </aside>;
 
   return <main className={`admin-shell${sidebarCollapsed ? ' admin-shell--collapsed' : ''}`}>
     {menuOpen ? <div style={{ position: 'fixed', inset: 0, zIndex: 1000, isolation: 'isolate' }}>
-      <AdminButton type="button" tone="default" className="admin-drawer-backdrop" style={{ zIndex: 0 }} onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />
+      <AdminButton type="button" tone="default" className="admin-drawer-backdrop" style={{ zIndex: 0 }} onClick={() => setOpenSurface(null)} aria-label="ปิดเมนู" />
       {drawer}
     </div> : drawer}
     <div className="admin-main-shell">
       <header className="admin-topbar">
-        <div className="admin-topbar-context"><AdminButton type="button" tone="default" className="admin-menu-button" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนูแอดมิน"><AdminIcon name="menu" /></AdminButton><div><span>Workspace</span><strong>{currentItem?.title ?? 'Admin Console'}</strong></div></div>
+        <div className="admin-topbar-context"><AdminButton type="button" tone="default" className="admin-menu-button" onClick={() => setOpenSurface('menu')} aria-label="เปิดเมนูแอดมิน"><AdminIcon name="menu" /></AdminButton><div><span>Workspace</span><strong>{currentItem?.title ?? 'Admin Console'}</strong></div></div>
         <div className="admin-topbar-actions">
-          <button type="button" className="admin-command-trigger" onClick={() => setCommandOpen(true)} aria-label="เปิด Command Palette"><AdminIcon name="search" /><span>ค้นหาคำสั่ง</span><kbd>⌘ K</kbd></button>
+          <button type="button" className="admin-command-trigger" onClick={() => setOpenSurface('command')} aria-label="เปิด Command Palette"><AdminIcon name="search" /><span>ค้นหาคำสั่ง</span><kbd>⌘ K</kbd></button>
           <span className={`admin-environment-badge admin-environment-badge--${environment.toLowerCase()}`}>{environment}</span>
           <div className="admin-topbar-status"><span className="admin-system-dot" />ระบบพร้อมใช้งาน{pendingTotal > 0 && <a href="/operations" onClick={(event) => { event.preventDefault(); navigate('/operations'); }}>{pendingTotal} รายการรอดำเนินการ</a>}</div>
           <div className="admin-notification-menu" ref={notificationMenuRef}>
-            <button type="button" className="admin-notification-trigger" onClick={() => setNotificationOpen((current) => !current)} aria-label="เปิดศูนย์แจ้งเตือน" aria-expanded={notificationOpen} aria-haspopup="menu"><AdminIcon name="bell" />{notificationCount > 0 && <em>{notificationCount > 99 ? '99+' : notificationCount}</em>}</button>
+            <button type="button" className="admin-notification-trigger" onClick={() => setOpenSurface((current) => current === 'notification' ? null : 'notification')} aria-label="เปิดศูนย์แจ้งเตือน" aria-expanded={notificationOpen} aria-haspopup="menu"><AdminIcon name="bell" />{notificationCount > 0 && <em>{notificationCount > 99 ? '99+' : notificationCount}</em>}</button>
             {notificationOpen && <div className="admin-notification-popover" role="menu"><header><div><strong>การแจ้งเตือน</strong><span>งานที่ต้องติดตาม</span></div><button type="button" onClick={() => navigate('/operations')}>ดูทั้งหมด</button></header>{notifications.length ? <div>{notifications.map((item) => <button type="button" key={item.href} role="menuitem" data-tone={item.tone} onClick={() => navigate(item.href)}><AdminIcon name={item.tone === 'danger' ? 'risk' : 'money'} /><span><strong>{item.title}</strong><small>{item.detail}</small></span></button>)}</div> : <p>ไม่มีงานที่ต้องจัดการตอนนี้</p>}</div>}
           </div>
         </div>
       </header>
       <section className="admin-content-shell">{canViewRoute ? children : <AccessDenied />}</section>
-      {commandOpen && <CommandPalette query={commandQuery} onQueryChange={setCommandQuery} items={visibleGroups.flatMap((group) => group.items)} onNavigate={navigate} onClose={() => { setCommandOpen(false); setCommandQuery(''); }} />}
+      {commandOpen && <CommandPalette query={commandQuery} onQueryChange={setCommandQuery} items={visibleGroups.flatMap((group) => group.items)} onNavigate={navigate} onClose={() => { setOpenSurface(null); setCommandQuery(''); }} />}
     </div>
   </main>;
 }

@@ -47,5 +47,7 @@ export function checkLabel(key?: string | null) {
 }
 
 export function formatMoney(value: string | number | null | undefined, currency = 'THB') {
-  return `${currency} ${Number(value ?? 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
+  const amount = typeof value === 'number' ? value : Number(value ?? 0);
+  const safeAmount = Number.isFinite(amount) ? amount : 0;
+  return `${currency} ${safeAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
 }
