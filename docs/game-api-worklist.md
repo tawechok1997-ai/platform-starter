@@ -2,7 +2,7 @@
 
 เอกสารนี้เป็น source of truth สำหรับงาน Game API, Provider Simulator, game catalog และ asset mapping ของ Mobile/PC
 
-อัปเดตล่าสุด: 2026-07-20
+อัปเดตล่าสุด: 2026-07-21
 
 ## สถานะรวม
 
@@ -27,8 +27,8 @@
 - [x] นำ asset Mobile ชุดจริงเข้า repository
 - [ ] นำ asset PC ชุดจริงเข้า repository
 - [x] สร้าง inventory ของ provider logos และ game icons
-- [ ] ตรวจ duplicate ด้วย content hash
-- [ ] สร้าง rename manifest สำหรับชื่อไฟล์ที่ไม่ตรงรูป
+- [ ] ตรวจ duplicate ด้วย content hash หลังได้รับ PC asset ชุดจริง
+- [ ] ตรวจและอนุมัติ rename manifest หลังได้รับ PC asset ชุดจริง
 - [x] เปลี่ยน mock SVG เป็น asset จริงทีละรายการ
 - [x] เพิ่ม fallback image กลางเมื่อ asset โหลดไม่ได้
 
@@ -43,16 +43,19 @@
 
 ## Verification
 
-- [ ] รัน provider simulator unit tests ใน CI
-- [x] รัน API typecheck และ build
+- [x] Provider simulator และ Game platform unit tests ผ่านใน Game API Verification run 235
+- [ ] แก้ PostgreSQL game concurrency tests ที่ล้มก่อน API typecheck/build
+- [x] รัน API typecheck และ build ในรอบก่อนหน้า
 - [x] รัน Member typecheck และ build หลังเชื่อมหน้าเกม
-- [ ] รัน browser regression สำหรับ filter, launch และ image fallback
+- [ ] รัน browser regression สำหรับ filter, launch และ image fallback หลัง concurrency gate ผ่าน
 
 ## จำนวนงาน
 
-- ปิดแล้ว: 27 รายการ
+- ปิดแล้ว: 28 รายการ
 - คงค้าง: 5 รายการ
-- งานคงค้างฝั่ง asset คือ PC upload, การรัน content-hash report และการตรวจ rename manifest ที่ generator สร้าง
+- งานที่ทำต่อได้ใน repository: วิเคราะห์และแก้ PostgreSQL game concurrency tests
+- งานที่ต้องรอ input ภายนอก: PC asset upload, content-hash report และ rename manifest approval
+- งานที่ต้องรอ CI หลังแก้ concurrency: browser regression
 
 ## หลักฐานรอบ Mobile asset
 
@@ -72,4 +75,6 @@
 - `playwright.game-api.config.ts` เปิด Next.js Member จริงทั้ง Chromium และ Mobile Safari
 - `tests/game-api-browser/game-lobby.spec.ts` ทดสอบ filter, launch request/session navigation และ broken-image fallback
 - workflow `Game API Verification` รัน provider simulator tests, API/Member checks และ browser regression
-- ยังไม่ปิดสอง checkbox verification จนกว่า GitHub Actions จะรายงานผลสำเร็จจริง
+- Game API Verification run 235 ผ่าน Generate Prisma, migration validation, disposable database bootstrap และ unit tests แล้ว
+- run 235 ล้มที่ `PostgreSQL game concurrency tests`; ขั้น API typecheck/build, Member checks และ browser regression จึงถูกข้าม
+- ยังไม่ปิด browser verification จนกว่า workflow จะเดินผ่าน concurrency gate และรายงานผลสำเร็จจริง
