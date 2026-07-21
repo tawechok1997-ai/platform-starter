@@ -54,9 +54,14 @@ Branch: `feature/member-branding-foundation`
 - ✅ `BrandIcon` consumer bridge แบบ fallback-safe
 - ✅ Asset audit ตรวจไฟล์ว่าง ไฟล์ใหญ่ ไฟล์ซ้ำ นามสกุล และ SVG อันตราย
 - ✅ เพิ่ม `audit:reference-assets` เข้า verify pipeline
-- 🔄 นำ asset จริงจากไฟล์ต้นแบบเข้าโครงสร้างโปรเจกต์
+- ✅ เพิ่ม settings contract สำหรับไอคอนเมนูหมวดเกมและข้อความกำกับ
+- ✅ เชื่อมไอคอน หน้าหลัก/คาสิโน/สล็อต/คาสิโนสด/กีฬา/ยิงปลา/หวย/ไพ่ และหมวดอื่นจาก API เข้าหน้า Home
+- ✅ เพิ่ม alias mapping สำหรับ category จาก Game API และ fallback สำหรับหมวดที่ไม่รู้จัก
+- ✅ เพิ่ม responsive category rail ตั้งแต่ 320px ถึง wide desktop
+- ✅ เพิ่ม regression tests สำหรับ label/icon override, unsafe icon และ category dedupe
+- 🔄 นำ asset binary จริงจากไฟล์ต้นแบบเข้า `public/assets/reference-brand/menu/`
 - 🧪 รัน asset audit หลังนำไฟล์จริงเข้า
-- 🔄 เชื่อม BrandIcon เข้ากับ MemberIcon consumer ทีละจุด
+- 🔄 เชื่อม BrandIcon เข้ากับ MemberIcon consumer จุดอื่นทีละส่วน
 
 ## Workstream D: Member Home Integration Contract
 
@@ -64,25 +69,27 @@ Branch: `feature/member-branding-foundation`
 - ✅ Promotion carousel แบบ React
 - ✅ ป้องกัน Timer ซ้อน, Index หลุด และ autoplay ขณะซ่อนแท็บ
 - ✅ รองรับ dots, previous/next และ accessibility state
-- ✅ เชื่อม Carousel กับ CMS Banner และ fallback จากไฟล์ต้นแบบ
+- ✅ เชื่อม Carousel กับ CMS Banner จาก Admin settings
 - ✅ กรอง URL และลิงก์ไม่ปลอดภัย พร้อมตัดภาพซ้ำ
 - ✅ เพิ่ม Carousel regression tests
 - ✅ ย้าย Promotion cards เป็น component และ model แยก
-- ✅ Promotion cards ใช้ CMS จริงพร้อม reference fallback
+- ✅ Promotion cards ใช้ CMS/Admin เป็น source of truth โดยไม่ hardcode รายการใน Member
 - ✅ กรองข้อมูลว่าง ลิงก์อันตราย และภาพซ้ำก่อน render
 - ✅ แยก Tournament, Jackpot และ Leaderboard เป็น Competition Showcase
 - ✅ เพิ่ม normalization สำหรับอันดับ ผู้ใช้ คะแนน รูป และยอด Jackpot
 - ✅ เพิ่ม regression tests สำหรับ Promotion และ Competition sections
-- ⬜ ย้าย Announcement ให้ตรงไฟล์ต้นแบบ
+- ✅ ย้าย Announcement เป็น component แยกและเชื่อม CMS
+- ✅ เชื่อม Game category navigation กับ category ที่คืนจาก `/member/games`
 - 🔄 ปรับ CSS ของ Promotion/Tournament/Jackpot/Leaderboard ให้ตรงภาพต้นแบบ
 - 🧪 ตรวจ Responsive และ soak test หลังส่วน Home ครบ
 
 ## Workstream E: Admin Branding Contract
 
-- ⬜ ตรวจหน้าตั้งค่า Branding ปัจจุบัน
-- ⬜ ทำ field inventory ก่อนเพิ่ม schema
-- ⬜ ออกแบบ Draft/Publish/Version/Rollback แบบย้อนหลังได้
+- 🔄 ทำ field inventory สำหรับ Brand asset, menu icon, game category label/icon และข้อความสำคัญ
+- ⬜ เชื่อมค่าเริ่มต้นของ asset ต้นแบบเข้าฟอร์ม Admin จริง
+- ⬜ เพิ่ม Upload/Replace/Disable/Restore สำหรับโลโก้และไอคอน
 - ⬜ เพิ่ม Preview Desktop/Tablet/Mobile
+- ⬜ ออกแบบ Draft/Publish/Version/Rollback แบบย้อนหลังได้
 - ⬜ แยกสิทธิ์ Edit และ Publish
 - ⬜ เพิ่ม Audit log
 
@@ -100,9 +107,9 @@ Branch: `feature/member-branding-foundation`
 
 ## งานที่เสร็จแล้วล่าสุด
 
-1. ✅ เชื่อม Promotion carousel เข้าหน้า Home จริง
-2. ✅ เพิ่ม CMS banner model พร้อม fallback และ safety filters
-3. ✅ ย้าย Promotion cards เป็น component/model แยก
-4. ✅ เพิ่ม Tournament, Jackpot และ Leaderboard showcase
-5. ✅ เพิ่มข้อมูล fallback ที่ผ่าน normalization
-6. ✅ เพิ่ม regression tests สำหรับ Home reference sections
+1. ✅ เพิ่ม settings model ของ Game category navigation
+2. ✅ เพิ่มไอคอนและข้อความตั้งค่าได้สำหรับ หน้าหลัก คาสิโน สล็อต คาสิโนสด กีฬา ยิงปลา หวย ไพ่ และหมวดเสริม
+3. ✅ เชื่อม category ที่มาจาก Game API เข้ากับเมนูดังกล่าว
+4. ✅ เพิ่ม safe fallback สำหรับ URL/ข้อความ/หมวดไม่รู้จัก
+5. ✅ เพิ่ม responsive rail สำหรับ mobile, tablet, desktop และ ultra-wide
+6. ✅ เพิ่ม regression tests และเอกสาร mapping ของ settings keys
