@@ -105,11 +105,11 @@
 
 ### /activity-center
 
-- [ ] Tabs: Activity / Audit / Risk / Finance
-- [ ] Timeline
-- [ ] Severity filter
-- [ ] Detail side drawer
-- [ ] Source และ timestamp ชัดเจน
+- [x] Tabs: Activity / Audit / Risk / Finance
+- [x] Timeline
+- [x] Severity filter
+- [x] Detail side drawer
+- [x] Source และ timestamp ชัดเจน
 
 ## Finance
 
