@@ -94,6 +94,32 @@ export class TopUpsService {
     });
   }
 
+  async batchClaimOrRelease(action: 'claim' | 'release', ids: string[], adminUser: any, meta: RequestMeta = {}) {
+    if (action !== 'claim' && action !== 'release') throw new BadRequestException('Unsupported batch queue action');
+    const uniqueIds = [...new Set(ids)];
+    return this.prisma.$transaction(async (tx) => {
+      const results: Array<{ id: string; ok: boolean; status?: string; message?: string }> = [];
+      for (const id of uniqueIds) {
+        try {
+          const lockedId = await lockTopUpRequestForUpdate(tx, id);
+          if (!lockedId) throw new NotFoundException('Top up request not found');
+          const request = await tx.topUpRequest.findUniqueOrThrow({ where: { id: lockedId } });
+          if (action === 'claim') {
+            try { DepositPolicy.assertClaim(request.status as DepositStatus, request.claimedBy, adminUser.id, request.claimedAt, CLAIM_TIMEOUT_MS); } catch (error) { this.rethrowDomainError(error, true); }
+          } else if (request.claimedBy && request.claimedBy !== adminUser.id) {
+            throw new ConflictException('ปล่อยงานได้เฉพาะคนที่ claim เท่านั้น');
+          }
+          const updated = await tx.topUpRequest.update({ where: { id }, data: action === 'claim' ? { claimedBy: adminUser.id, claimedAt: new Date() } : { claimedBy: null, claimedAt: null } });
+          results.push({ id, ok: true, status: updated.status });
+        } catch (error) {
+          results.push({ id, ok: false, message: error instanceof Error ? error.message : 'Batch action failed' });
+        }
+      }
+      await tx.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: adminUser.id, action: `BATCH_${action.toUpperCase()}_TOP_UP`, module: 'topups', targetId: null, oldData: { ids: uniqueIds }, newData: { action, results }, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) });
+      return { action, results, summary: { requested: uniqueIds.length, succeeded: results.filter((item) => item.ok).length, failed: results.filter((item) => !item.ok).length } };
+    });
+  }
+
   private async validateReceivingAccount(note: string | undefined | null, method: string | undefined | null, amount: Decimal) {
     const proof = this.parseProof(note);
     if (!proof.receivingBankAccountId) return;
