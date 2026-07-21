@@ -6,6 +6,7 @@ import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { CreateTopUpRequestDto } from './dto/create-top-up-request.dto';
 import { TopUpsService } from './topups.service';
+import { BatchClaimDto } from './dto/batch-claim.dto';
 
 @Controller()
 export class TopUpsController {
@@ -59,6 +60,13 @@ export class TopUpsController {
   @Post('admin/topups/:id/release')
   releaseRequest(@Param('id') id: string, @CurrentUser() user: any, @Req() req: any) {
     return this.topUpsService.releaseRequest(id, user, this.meta(req));
+  }
+
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('finance.topups.review')
+  @Post('admin/topups/batch/:action')
+  batchClaimOrRelease(@Param('action') action: 'claim' | 'release', @Body() body: BatchClaimDto, @CurrentUser() user: any, @Req() req: any) {
+    return this.topUpsService.batchClaimOrRelease(action, body.ids, user, this.meta(req));
   }
 
   private meta(req: any) { return { ipAddress: req.ip, userAgent: req.headers?.['user-agent'] }; }
