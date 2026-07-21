@@ -61,6 +61,7 @@
 - [ ] แก้ THB NaN ใน /game-transfers
 - [ ] แก้ Prisma/UUID error ใน /member-insights
 - [ ] ห้ามแสดง raw backend error
+- [x] Member Insights และ Game Transfers ใช้ข้อความผิดพลาดที่ผ่านการกรอง พร้อม network fallback
 - [ ] เอา credential ตัวอย่างออกจาก /provider-credentials
 - [ ] แยก Demo/UAT/Production ให้ชัด
 - [ ] เพิ่ม 2FA setup และ recovery code warning ใน /security

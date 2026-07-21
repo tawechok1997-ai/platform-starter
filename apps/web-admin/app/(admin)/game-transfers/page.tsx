@@ -26,12 +26,17 @@ export default function GameTransfersPage() {
   async function loadTransfers() {
     setLoading(true);
     setMessage('กำลังโหลดรายการโยกเงิน...');
-    const res = await adminApiFetch('/admin/game-transfers');
-    const data = await res.json().catch(() => null);
-    setLoading(false);
-    if (!res.ok) { setMessage('โหลดรายการโยกเงินไม่สำเร็จ กรุณาลองใหม่'); return; }
-    setPayload(data ?? {});
-    setMessage('');
+    try {
+      const res = await adminApiFetch('/admin/game-transfers');
+      const data = await res.json().catch(() => null);
+      if (!res.ok) { setMessage('โหลดรายการโยกเงินไม่สำเร็จ กรุณาลองใหม่'); return; }
+      setPayload(data ?? {});
+      setMessage('');
+    } catch {
+      setMessage('เชื่อมต่อรายการโยกเงินไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function requestAction(item: Transfer, action: PendingAction['action']) {
@@ -46,14 +51,19 @@ export default function GameTransfersPage() {
     const { item, action } = pendingAction;
     setWorking(item.id);
     const endpoint = action === 'review' ? `/admin/game-transfers/${item.id}/review` : `/admin/game-transfers/${item.id}/retry-dry-run`;
-    const res = await adminApiFetch(endpoint, { method: action === 'review' ? 'PATCH' : 'POST', body: JSON.stringify({ note: reason }) });
-    const data = await res.json().catch(() => null);
-    setWorking('');
-    if (!res.ok || (action === 'retry' && !data?.ok)) { setMessage('ดำเนินการไม่สำเร็จ กรุณาตรวจสอบสิทธิ์และสถานะรายการ'); return; }
-    setPendingAction(null);
-    setNote('');
-    setMessage(action === 'review' ? 'บันทึกหมายเหตุแล้ว' : 'ทดสอบรายการใหม่สำเร็จ');
-    await loadTransfers();
+    try {
+      const res = await adminApiFetch(endpoint, { method: action === 'review' ? 'PATCH' : 'POST', body: JSON.stringify({ note: reason }) });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || (action === 'retry' && !data?.ok)) { setMessage('ดำเนินการไม่สำเร็จ กรุณาตรวจสอบสิทธิ์และสถานะรายการ'); return; }
+      setPendingAction(null);
+      setNote('');
+      setMessage(action === 'review' ? 'บันทึกหมายเหตุแล้ว' : 'ทดสอบรายการใหม่สำเร็จ');
+      await loadTransfers();
+    } catch {
+      setMessage('เชื่อมต่อระบบไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setWorking('');
+    }
   }
 
   return <AdminPage eyebrow="แพลตฟอร์มเกม" title="รายการโยกเงินเกม" description="ตรวจเงินเข้าเกม เงินกลับกระเป๋า การคืนรายการ และรายการที่ต้องติดตาม" actions={<AdminButton onClick={() => void loadTransfers()} disabled={loading}>รีเฟรช</AdminButton>}>

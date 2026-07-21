@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminButton, AdminCard, AdminEmpty, AdminFilterBar, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage } from '../_components/admin-ui';
+import { safeAdminErrorMessage } from '../_components/human-labels';
 
 type MemberInsights = {
   totals: { total: number; active30d: number; inactive30d: number; newToday: number; new30d: number; newInRange: number; returningInRange: number };
@@ -27,15 +28,20 @@ export default function MemberInsightsPage() {
     setLoading(true);
     setMessage('');
     const params = new URLSearchParams({ from, to });
-    const response = await adminApiFetch(`/admin/members/insights?${params.toString()}`, { cache: 'no-store' });
-    const payload = await response.json().catch(() => null);
-    if (!response.ok || !payload?.totals) {
-      setMessage(payload?.message ?? 'โหลดแนวโน้มสมาชิกไม่สำเร็จ');
+    try {
+      const response = await adminApiFetch(`/admin/members/insights?${params.toString()}`, { cache: 'no-store' });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload?.totals) {
+        setMessage(safeAdminErrorMessage(payload?.message, 'โหลดแนวโน้มสมาชิกไม่สำเร็จ กรุณาลองใหม่'));
+        setLoading(false);
+        return;
+      }
+      setData(payload as MemberInsights);
+    } catch {
+      setMessage('เชื่อมต่อข้อมูลสมาชิกไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
       setLoading(false);
-      return;
     }
-    setData(payload as MemberInsights);
-    setLoading(false);
   }
 
   const max = useMemo(() => Math.max(...(data?.trend ?? []).flatMap((item) => [item.newMembers, item.returningMembers]), 1), [data]);
