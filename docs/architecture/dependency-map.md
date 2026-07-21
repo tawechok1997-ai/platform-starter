@@ -16,6 +16,7 @@ Dependencies point inward toward stable policy and contract code. Presentation a
 
 - `DatabaseModule` is infrastructure and may be consumed by application services.
 - `StorageModule` is infrastructure and exposes storage operations through its exported service.
+- `JwtAuthModule` is shared security infrastructure and may be consumed by API modules that need `JwtService`.
 - `packages/api-client` is the intended shared frontend transport layer.
 - Guards and decorators under `apps/api/src/common` are cross-cutting presentation concerns.
 - Actor types and request metadata are shared contracts, not ownership shortcuts for reaching into another module.
@@ -30,8 +31,9 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | auth | risk-alerts | Registration phone/watchlist enforcement |
 | auth | notifications | Authentication/security notification delivery |
 | admin-auth | anti-bot | Admin-login challenge and adaptive anti-bot verification |
-| auth | risk-alerts | Registration/profile phone/watchlist enforcement |
 | admin-members | admin-audit | Administrative member-change audit projection |
+| activity | admin-activity | Legacy operational activity routes delegate to the canonical admin activity projection |
+| risk | risk-alerts | Legacy finance-risk summary route delegates to the canonical risk-alerts projection |
 | topups | wallet | Idempotent deposit credit and ledger write |
 | topups | finance | Financial workflow locking and reconciliation |
 | topups | storage | Private slip object lifecycle |
@@ -54,6 +56,7 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | provider-simulator | wallet | Signed mock-provider balance reads and atomic game ledger mutations using the existing member wallet |
 | money-ops | game-platform | Provider retry, fail, reverse and reconcile operations |
 | money-ops | finance | Financial operation safety and audit |
+| money-ops | wallet | Audited administrative wallet command delegation and ledger diagnostics |
 | admin-access | admin-auth | Session revocation after privilege or ownership changes |
 | support | auth/admin-members | Ticket ownership and member identity lookup through user records |
 | support | finance | Deposit/withdrawal/provider reference correlation |
@@ -65,7 +68,7 @@ The table is the allowlist of supported domain-level relationships. A caller may
 | reports | admin-members | Member reporting projections |
 | exports | reports | Export generation from report projections |
 
-Relationships through `DatabaseModule`, shared guards/decorators and actor types are cross-cutting infrastructure and are not repeated for every module.
+Relationships through `DatabaseModule`, `JwtAuthModule`, shared guards/decorators and actor types are cross-cutting infrastructure and are not repeated for every module.
 
 ## Background jobs and schedulers
 
