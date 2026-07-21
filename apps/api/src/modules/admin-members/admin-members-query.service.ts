@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { normalizeOptionalText, parseOptionalEnum, parsePagination } from '../../common/query/query-filters';
+import { parseDateBoundary } from '../../common/query/date-range';
 import { PrismaService } from '../../database/prisma.service';
 import type { AdminMembersQueryDto } from './dto/admin-members-query.dto';
 
@@ -73,22 +74,27 @@ export class AdminMembersQueryService {
     };
   }
 
-  async getMemberInsights() {
+  async getMemberInsights(query: Pick<AdminMembersQueryDto, 'from' | 'to'> = {}) {
     const now = new Date();
+    const defaultStart = new Date(now);
+    defaultStart.setUTCHours(0, 0, 0, 0);
+    defaultStart.setUTCDate(defaultStart.getUTCDate() - 13);
+    const start = parseDateBoundary(query.from, false, 'member insight date from') ?? defaultStart;
+    const end = parseDateBoundary(query.to, true, 'member insight date to') ?? now;
+    if (start > end) throw new BadRequestException('member insight date range is invalid');
+    const rangeDays = Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+    if (rangeDays > 90) throw new BadRequestException('member insight date range must not exceed 90 days');
     const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
-    const sevenDaysAgo = new Date(startOfToday);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const trendStart = new Date(startOfToday);
-    trendStart.setDate(trendStart.getDate() - 13);
 
-    const [total, active30d, newToday, new7d, new30d, statusGroups, trendMembers] = await this.prisma.$transaction([
+    const [total, active30d, newToday, new30d, newInRange, returningInRange, statusGroups, trendMembers] = await this.prisma.$transaction([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { lastLoginAt: { gte: thirtyDaysAgo } } }),
       this.prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
-      this.prisma.user.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
       this.prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      this.prisma.user.count({ where: { createdAt: { gte: start, lte: end } } }),
+      this.prisma.user.count({ where: { createdAt: { lt: start }, lastLoginAt: { gte: start, lte: end } } }),
       this.prisma.user.groupBy({
         by: ['status'],
         orderBy: { status: 'asc' },
@@ -97,8 +103,8 @@ export class AdminMembersQueryService {
       this.prisma.user.findMany({
         where: {
           OR: [
-            { createdAt: { gte: trendStart } },
-            { lastLoginAt: { gte: trendStart } },
+            { createdAt: { gte: start, lte: end } },
+            { lastLoginAt: { gte: start, lte: end } },
           ],
         },
         select: { createdAt: true, lastLoginAt: true },
@@ -111,22 +117,22 @@ export class AdminMembersQueryService {
       if (group.status in status) status[group.status as MemberStatus] = count;
     }
 
-    const trend = Array.from({ length: 14 }, (_, index) => {
-      const date = new Date(trendStart);
-      date.setDate(date.getDate() + index);
+    const trend = Array.from({ length: rangeDays }, (_, index) => {
+      const date = new Date(start);
+      date.setUTCDate(date.getUTCDate() + index);
       const key = toDateKey(date);
-      return { date: key, newMembers: 0, activeMembers: 0 };
+      return { date: key, newMembers: 0, returningMembers: 0 };
     });
     const byDate = new Map(trend.map((item) => [item.date, item]));
 
     for (const member of trendMembers) {
-      if (member.createdAt >= trendStart) {
+      if (member.createdAt >= start && member.createdAt <= end) {
         const bucket = byDate.get(toDateKey(member.createdAt));
         if (bucket) bucket.newMembers += 1;
       }
-      if (member.lastLoginAt && member.lastLoginAt >= trendStart) {
+      if (member.lastLoginAt && member.createdAt < start && member.lastLoginAt >= start && member.lastLoginAt <= end) {
         const bucket = byDate.get(toDateKey(member.lastLoginAt));
-        if (bucket) bucket.activeMembers += 1;
+        if (bucket) bucket.returningMembers += 1;
       }
     }
 
@@ -136,11 +142,20 @@ export class AdminMembersQueryService {
         active30d,
         inactive30d: Math.max(total - active30d, 0),
         newToday,
-        new7d,
         new30d,
+        newInRange,
+        returningInRange,
       },
       status,
       trend,
+      segment: {
+        newMembers: newInRange,
+        returningMembers: returningInRange,
+        inactiveMembers: Math.max(total - active30d, 0),
+        restrictedMembers: status.SUSPENDED + status.LOCKED,
+      },
+      period: { from: start.toISOString(), to: end.toISOString(), days: rangeDays },
+      dataSource: 'primary database',
       generatedAt: now.toISOString(),
     };
   }
