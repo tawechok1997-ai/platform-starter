@@ -15,18 +15,21 @@ Branch: `feature/member-branding-foundation`
 - ✅ ไม่ push ตรงเข้า `main`
 - ✅ ทำงานบน branch `feature/member-branding-foundation`
 - ✅ งาน foundation ไม่แก้ API, Prisma, Wallet mutation, Provider หรือ Finance contract
-- ✅ โค้ด Branding ใหม่เป็นแบบ additive และย้อนกลับเป็นรายส่วนได้
+- ✅ โค้ด Branding เป็นแบบ additive และย้อนกลับเป็นรายส่วนได้
 - ✅ Route และ Feature flag เดิมของ Member ยังเป็น source of truth
 - ✅ ตรวจ Asset URL, CSS value และค่าที่นำไป render ก่อนใช้งาน
 - ✅ ยึดเว็บในไฟล์ต้นแบบเป็น Visual source of truth
+- ✅ ค่า Admin/Public settings ทับค่าเริ่มต้นจากไฟล์ต้นแบบเสมอ
 
 ## Workstream A: Brand Runtime Foundation
 
 - ✅ Brand runtime config และชนิดข้อมูล assets กลาง
 - ✅ CSS variable mapping และ validation สี, URL, CSS length, Font family
 - ✅ Brand context/hook เชื่อม SiteSettingsProvider โดยไม่โหลดข้อมูลซ้ำ
-- ✅ Auth runtime compatibility bridge
-- ✅ Unit tests สำหรับค่าปกติและค่าที่ไม่ปลอดภัย
+- ✅ เพิ่ม reference defaults ระหว่าง app defaults กับค่า runtime
+- ✅ ค่าเว็บไซต์ โลโก้ ข้อความ และไอคอนหมวดเกมอ่านผ่าน typed settings
+- ✅ เพิ่มชนิดข้อมูลรองรับ extended public icon settings
+- 🧪 เพิ่ม tests ตรวจ reference defaults และ Admin override
 - 🧪 รัน Member test
 - 🧪 รัน Member typecheck
 - 🧪 รัน Member build
@@ -35,10 +38,10 @@ Branch: `feature/member-branding-foundation`
 
 - ✅ ตรวจโครงสร้าง Login/Register ปัจจุบัน
 - ✅ Auth shell กลางแบบ presentation-only
-- ✅ Logo Login/Register พร้อม fallback
+- ✅ เชื่อมหน้า Login และ Register กับ Brand runtime โดยไม่เปลี่ยน Auth flow
+- ✅ นำเข้าโลโก้ต้นแบบและตั้งเป็นค่าเริ่มต้นของ Login/Register
 - ✅ สีและ Typography จาก Design tokens
 - ✅ รักษา API, Session, Validation, CAPTCHA และ Redirect เดิม
-- ✅ เชื่อมหน้า Login และ Register กับ Brand runtime
 - ✅ Scoped Auth reference layout ผ่าน route-group layout
 - ✅ Branding regression tests เข้า Member test suite
 - 🔄 ปรับระยะ ขนาด และ responsive ให้ตรงไฟล์ต้นแบบ
@@ -48,45 +51,43 @@ Branch: `feature/member-branding-foundation`
 
 - ✅ Extended brand icon registry โดยไม่แก้ IconKey เดิม
 - ✅ fallback และ validation ป้องกัน icon value อันตราย
-- ✅ Brand asset manifest และ fallback resolution
-- ✅ Controlled asset intake path สำหรับไฟล์ต้นแบบ
+- ✅ Brand asset manifest และ controlled intake path
 - ✅ ไม่รับ JS, API URL, Cookie และ Auth code จาก static package
-- ✅ `BrandIcon` consumer bridge แบบ fallback-safe
-- ✅ Asset audit ตรวจไฟล์ว่าง ไฟล์ใหญ่ ไฟล์ซ้ำ นามสกุล และ SVG อันตราย
-- ✅ เพิ่ม `audit:reference-assets` เข้า verify pipeline
-- ✅ เพิ่ม settings contract สำหรับไอคอนเมนูหมวดเกมและข้อความกำกับ
-- ✅ เชื่อมไอคอน หน้าหลัก/คาสิโน/สล็อต/คาสิโนสด/กีฬา/ยิงปลา/หวย/ไพ่ และหมวดอื่นจาก API เข้าหน้า Home
+- ✅ นำเข้าไอคอนเมนูต้นแบบเป็นไฟล์ PNG ชื่อคงที่
+- ✅ นำเข้าไอคอน หน้าหลัก/คาสิโน/สล็อต/คาสิโนสด/กีฬา/ยิงปลา/หวย/ไพ่
+- ✅ นำเข้าไอคอน ฝาก/ถอน/โปรโมชั่น/โบนัส/Affiliate/Support/ประวัติ/แจ้งเตือน
+- ✅ นำเข้าไอคอน กิจกรรม/ข่าวสาร/แนะนำ สำหรับ fallback ของหมวดเสริม
+- ✅ เพิ่ม manifest ระบุ source path, output path และ SHA-256
+- ✅ นำเข้าโลโก้เว็บแบบ WebP และธงภาษาไทยแบบ SVG
+- ✅ เชื่อม Desktop nav, Drawer, Bottom nav และ Header notification กับ Settings
+- ✅ เชื่อม category rail ด้านบนกับ label/icon จาก Settings
+- ✅ ค่าไอคอนที่ Admin ตั้งเองมีลำดับสูงกว่าค่าเริ่มต้น
 - ✅ เพิ่ม alias mapping สำหรับ category จาก Game API และ fallback สำหรับหมวดที่ไม่รู้จัก
 - ✅ เพิ่ม responsive category rail ตั้งแต่ 320px ถึง wide desktop
-- ✅ เพิ่ม regression tests สำหรับ label/icon override, unsafe icon และ category dedupe
-- 🔄 นำ asset binary จริงจากไฟล์ต้นแบบเข้า `public/assets/reference-brand/menu/`
-- 🧪 รัน asset audit หลังนำไฟล์จริงเข้า
-- 🔄 เชื่อม BrandIcon เข้ากับ MemberIcon consumer จุดอื่นทีละส่วน
+- 🧪 รัน asset audit กับไฟล์ binary ที่นำเข้า
+- 🔄 ย้าย consumer อื่น เช่น Quick actions ให้ใช้ renderer กลางทีละส่วน
+- 🔄 นำเข้า asset Home/Promotion/Support สำคัญที่เหลือ
 
 ## Workstream D: Member Home Integration Contract
 
 - ✅ ตรวจจุดเชื่อม Home และยืนยัน Site Settings/Feature flags เดิม
 - ✅ Promotion carousel แบบ React
 - ✅ ป้องกัน Timer ซ้อน, Index หลุด และ autoplay ขณะซ่อนแท็บ
-- ✅ รองรับ dots, previous/next และ accessibility state
 - ✅ เชื่อม Carousel กับ CMS Banner จาก Admin settings
-- ✅ กรอง URL และลิงก์ไม่ปลอดภัย พร้อมตัดภาพซ้ำ
-- ✅ เพิ่ม Carousel regression tests
-- ✅ ย้าย Promotion cards เป็น component และ model แยก
 - ✅ Promotion cards ใช้ CMS/Admin เป็น source of truth โดยไม่ hardcode รายการใน Member
-- ✅ กรองข้อมูลว่าง ลิงก์อันตราย และภาพซ้ำก่อน render
+- ✅ กรอง URL, ลิงก์อันตราย และภาพซ้ำก่อน render
 - ✅ แยก Tournament, Jackpot และ Leaderboard เป็น Competition Showcase
-- ✅ เพิ่ม normalization สำหรับอันดับ ผู้ใช้ คะแนน รูป และยอด Jackpot
-- ✅ เพิ่ม regression tests สำหรับ Promotion และ Competition sections
 - ✅ ย้าย Announcement เป็น component แยกและเชื่อม CMS
 - ✅ เชื่อม Game category navigation กับ category ที่คืนจาก `/member/games`
+- ✅ เกม ชื่อเกม ค่าย ประเภท และ media ยังอ่านจาก Game API
 - 🔄 ปรับ CSS ของ Promotion/Tournament/Jackpot/Leaderboard ให้ตรงภาพต้นแบบ
 - 🧪 ตรวจ Responsive และ soak test หลังส่วน Home ครบ
 
 ## Workstream E: Admin Branding Contract
 
-- 🔄 ทำ field inventory สำหรับ Brand asset, menu icon, game category label/icon และข้อความสำคัญ
-- ⬜ เชื่อมค่าเริ่มต้นของ asset ต้นแบบเข้าฟอร์ม Admin จริง
+- ✅ ทำ field inventory สำหรับ Brand asset, menu icon, game category label/icon และข้อความสำคัญ
+- ✅ กำหนดค่าเริ่มต้นจากไฟล์ต้นแบบใน public settings normalizer
+- ⬜ เชื่อม field inventory เข้าฟอร์ม Admin จริง
 - ⬜ เพิ่ม Upload/Replace/Disable/Restore สำหรับโลโก้และไอคอน
 - ⬜ เพิ่ม Preview Desktop/Tablet/Mobile
 - ⬜ ออกแบบ Draft/Publish/Version/Rollback แบบย้อนหลังได้
@@ -101,15 +102,16 @@ Branch: `feature/member-branding-foundation`
 - ⬜ ไม่มี route เดิมเสีย
 - ⬜ ไม่มี API contract เปลี่ยนโดยไม่ตั้งใจ
 - ⬜ ไม่มี CSS global ทับหน้าอื่น
-- ✅ มีรายการไฟล์เปลี่ยนและ rollback note ระดับ foundation
-- ⬜ อัปเดต branch ให้ตรงกับ `main`
+- ✅ มี manifest, source mapping และ rollback note ระดับ foundation
+- 🔄 อัปเดต branch ให้ตรงกับ `main`
 - ⬜ เปิด Draft PR เพื่อรีวิวก่อน merge
 
 ## งานที่เสร็จแล้วล่าสุด
 
-1. ✅ เพิ่ม settings model ของ Game category navigation
-2. ✅ เพิ่มไอคอนและข้อความตั้งค่าได้สำหรับ หน้าหลัก คาสิโน สล็อต คาสิโนสด กีฬา ยิงปลา หวย ไพ่ และหมวดเสริม
-3. ✅ เชื่อม category ที่มาจาก Game API เข้ากับเมนูดังกล่าว
-4. ✅ เพิ่ม safe fallback สำหรับ URL/ข้อความ/หมวดไม่รู้จัก
-5. ✅ เพิ่ม responsive rail สำหรับ mobile, tablet, desktop และ ultra-wide
-6. ✅ เพิ่ม regression tests และเอกสาร mapping ของ settings keys
+1. ✅ นำเข้าไอคอนเมนูและหมวดเกมจากไฟล์ต้นแบบเข้าโปรเจกต์
+2. ✅ นำเข้าโลโก้เว็บและไอคอนภาษาไทย
+3. ✅ เพิ่ม defaults module สำหรับ Brand asset, ข้อความ และไอคอน
+4. ✅ เชื่อม defaults เข้ากับ typed settings โดยรักษา Admin override
+5. ✅ เชื่อมเมนู Desktop/Drawer/Bottom/Header notification กับไอคอน Settings
+6. ✅ แทน category rail แบบ hardcode ด้วย rail ที่อ่าน label/icon จาก Settings
+7. 🧪 เพิ่ม regression tests แล้ว รอรัน test/typecheck/build
