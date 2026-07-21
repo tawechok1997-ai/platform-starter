@@ -11,17 +11,17 @@
 - [ ] Design System กลาง: สี, ฟอนต์, spacing, radius, shadow, button, badge, table
 - [ ] ใช้ฟอนต์ไทย Noto Sans Thai หรือ IBM Plex Sans Thai
 - [ ] สีสถานะกลาง success, warning, danger, info
-- [ ] App Shell เดียวทุกหน้า
+- [x] App Shell เดียวทุกหน้า
 - [ ] Responsive สำหรับ PC, tablet, mobile
 - [ ] ทุกหน้ามี loading, empty, error, permission state
-- [ ] Profile อยู่ Sidebar ด้านล่างเป็นจุดหลักจุดเดียว
-- [ ] เอา Profile trigger/Dropdown ซ้ำออกจาก Topbar
-- [ ] Sidebar Profile มี avatar, ชื่อ, role, online status, dropdown
-- [ ] Profile dropdown มี Profile, Security/2FA, Activity Center, Logout
+- [x] Profile อยู่ Sidebar ด้านล่างเป็นจุดหลักจุดเดียว
+- [x] เอา Profile trigger/Dropdown ซ้ำออกจาก Topbar
+- [x] Sidebar Profile มี avatar, ชื่อ, role, online status, dropdown
+- [x] Profile dropdown มี Profile, Security/2FA, Activity Center, Logout
 - [ ] Favorites, Recently used, badge งานค้างใน Sidebar
-- [ ] Command Palette Ctrl/Cmd + K
-- [ ] Notification Center
-- [ ] Environment badge: Demo / UAT / Production
+- [x] Command Palette Ctrl/Cmd + K
+- [x] Notification Center
+- [x] Environment badge: Demo / UAT / Production
 - [ ] แยกเมนูเป็นงานหลัก, รายงาน, ตั้งค่า, เครื่องมือเทคนิค และ legacy
 - [ ] เมนูหลักเหลือเฉพาะงานที่ใช้ประจำ
 - [ ] Bulk Queue, Statement, Analytics, Export เปิดจากหน้าบริบทหรือ Command Palette
@@ -35,11 +35,11 @@
 
 ## Phase 0.1 — Overlay, ปุ่ม และ Sidebar
 
-- [ ] รวม state controller ของ Sidebar drawer, Profile, Notification, Command Palette
-- [ ] เปิด overlay ได้ทีละชั้น และเปิดเมนูใหม่ต้องปิด surface อื่นอัตโนมัติ
+- [x] รวม state controller ของ Sidebar drawer, Profile, Notification, Command Palette
+- [x] เปิด overlay ได้ทีละชั้น และเปิดเมนูใหม่ต้องปิด surface อื่นอัตโนมัติ
 - [ ] Escape ปิด layer บนสุดก่อนและคืน focus จุดเดิม
 - [ ] ตรวจ click-outside, backdrop, close button และ navigation transition
-- [ ] ไม่มี Logout ซ้ำ; footer logout แสดงเฉพาะ mobile เมื่อจำเป็น
+- [x] ไม่มี Logout ซ้ำ; footer logout แสดงเฉพาะ mobile เมื่อจำเป็น
 - [ ] Action เดียวมีปุ่มหลักเดียว ไม่เกิด Approve/Confirm ซ้อนกัน
 - [ ] ปุ่ม disabled มีเหตุผล/helper ชัดเจน
 - [ ] ปุ่มแดงใช้เฉพาะ Reject, Delete, Suspend, Logout
