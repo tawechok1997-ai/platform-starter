@@ -2,7 +2,7 @@
 
 อัปเดต: 2026-07-23
 
-เอกสารนี้เป็นสถานะที่ตรวจจากโค้ดบน `main` และ PR ที่ merge แล้ว ไม่ใช้ checkbox เดิมเป็นหลักฐานโดยลำพัง
+เอกสารนี้เป็นบันทึกหลักฐานจากโค้ดบน `main` และ PR ที่ merge แล้ว ส่วน checkbox ที่ใช้ทำงานต่ออยู่ใน [`admin-modernization-chat-worklist.md`](./admin-modernization-chat-worklist.md)
 
 ## ความหมายสถานะ
 
@@ -158,12 +158,10 @@
 - [~] Desktop rail, tablet และ mobile drawer: implementation มี แต่หลักฐาน responsive/permission ยังไม่ครบ
 - [ ] Action เสี่ยงมี automated regression ครบก่อน deploy
 
-## ข้อที่ต้องแก้ใน Chat Baseline
+## รายการที่รวมกลับเข้า Chat Baseline แล้ว
 
-ไฟล์ `docs/admin-modernization-chat-worklist.md` มีสถานะซ้ำที่ขัดกันและต้องอ้างเอกสารนี้จนกว่าจะรวมสถานะกลับเข้าไฟล์หลัก เช่น:
-
-- Phase 1 ติ๊ก NaN ของ `/operations` และ `/game-transfers` แล้ว แต่หัวข้อย่อยของสองหน้ายังไม่ติ๊ก
-- `/withdrawals` ใน baseline ยังไม่ติ๊กหลายข้อที่โค้ดปัจจุบันทำแล้ว เช่นยอดรวม การแยก action เหตุผล reject และหลักฐานก่อนจ่าย
-- Global raw-error ยังไม่ควรติ๊ก แม้บางหน้าปิดปัญหาแล้ว
-- Global responsive/loading/permission ยังไม่ควรติ๊กจากหลักฐานเฉพาะ shell หรือหน้า Topups/Withdrawals
-- Definition of Done ยังไม่ผ่านทั้งระบบ แม้ foundation หลายรายการเสร็จแล้ว
+- `/operations` และ `/game-transfers`: ติ๊กการแก้ `NaN` ให้ตรงกับ Phase 1
+- `/topups`: ติ๊ก workflow status ตามโค้ดปัจจุบัน
+- `/withdrawals`: ติ๊กยอดรวม/จำนวนรายการ, action แยก, เหตุผล reject และหลักฐานก่อนจ่าย
+- `/exports`: ติ๊ก progress, retry และ pagination
+- Definition of Done: ติ๊กเฉพาะ overlay ที่มีหลักฐานครบ ไม่ยกยอด foundation ไปเหมารวมทั้งระบบ
