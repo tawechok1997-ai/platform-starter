@@ -277,18 +277,18 @@
 
 ### /provider-health
 
-- [ ] Status matrix
-- [ ] Response time
-- [ ] Webhook health
-- [ ] Provider ที่ต้องตรวจ
-- [ ] Saved views
+- [x] Status matrix
+- [x] Response time
+- [x] Webhook health
+- [x] Provider ที่ต้องตรวจ
+- [x] Saved views
 
 ### /simple-game-settings
 
-- [ ] Setup checklist
-- [ ] Completion percentage
-- [ ] Basic / Advanced
-- [ ] Test connection
+- [x] Setup checklist
+- [x] Completion percentage
+- [x] Basic / Advanced
+- [x] Test connection
 
 ### /provider-setup-wizard
 
