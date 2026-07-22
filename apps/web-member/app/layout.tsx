@@ -1,4 +1,4 @@
-import type { Viewport } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './design-tokens.css';
 import '../../../packages/design-tokens/colors.css';
 import '../../../packages/design-tokens/shape-space-shadow.css';
@@ -67,6 +67,14 @@ import MemberChrome from './member-chrome';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Platform Starter',
+    template: '%s | Platform Starter',
+  },
+  description: 'ระบบสมาชิก Platform Starter',
+};
 
 export const viewport: Viewport = {
   width: 'device-width',
