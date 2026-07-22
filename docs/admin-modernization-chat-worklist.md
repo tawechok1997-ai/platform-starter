@@ -465,10 +465,10 @@
 
 ### /adapter-test
 
-- [ ] Safe Test/Production Test
-- [ ] Test history
-- [ ] Technical payload ใน drawer
-- [ ] Latency และ response status
+- [x] Safe Test/Production Test
+- [x] Test history
+- [x] Technical payload ใน drawer
+- [x] Latency และ response status
 
 ### /game-api-settings
 
