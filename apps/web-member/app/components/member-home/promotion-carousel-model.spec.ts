@@ -10,7 +10,7 @@ test('normalizes carousel indexes in both directions', () => {
   assert.equal(normalizeCarouselIndex(2, 0), 0);
 });
 
-test('keeps reference banners and accepts only safe internal cms links', () => {
+test('uses enabled CMS banners and accepts only safe internal links', () => {
   const content: CmsContent = {
     assets: [],
     banners: [
@@ -24,9 +24,9 @@ test('keeps reference banners and accepts only safe internal cms links', () => {
   };
 
   const items = buildHomePromotionItems(content);
-  assert.equal(items.length, 6);
-  assert.equal(items[4]?.href, '/promotions/safe');
-  assert.equal(items[5]?.href, '/promotions');
+  assert.equal(items.length, 2);
+  assert.equal(items[0]?.href, '/promotions/safe');
+  assert.equal(items[1]?.href, '/promotions');
 });
 
 test('removes duplicate images case-insensitively', () => {
