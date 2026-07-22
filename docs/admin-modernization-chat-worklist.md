@@ -299,10 +299,10 @@
 
 ### /provider-presets
 
-- [ ] Preset card + search
-- [ ] Version
-- [ ] Last updated
-- [ ] Confirm ก่อนแก้ preset ที่ใช้งานอยู่
+- [x] Preset card + search
+- [x] Version
+- [x] Last updated
+- [x] Preset เป็น read-only และยืนยันก่อนสร้าง provider ใหม่
 
 ### /game-providers
 
