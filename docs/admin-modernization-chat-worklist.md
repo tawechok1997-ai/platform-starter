@@ -472,11 +472,11 @@
 
 ### /game-api-settings
 
-- [ ] Readiness checklist
-- [ ] Basic/Advanced
-- [ ] Endpoint completeness
-- [ ] Preflight check
-- [ ] Real-money gate
+- [x] Readiness checklist
+- [x] Basic/Advanced
+- [x] Endpoint completeness
+- [x] Preflight check
+- [x] Real-money gate
 
 ## Phase 2 — QA, Monitoring และ Release Control
 
