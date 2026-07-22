@@ -23,15 +23,26 @@ jobs:
           cache: pnpm
       - name: Install dependencies quietly
         run: pnpm install --frozen-lockfile --reporter=silent
-      - name: Run Member typecheck with compact diagnostics
+      - name: Capture Member typecheck diagnostics
         shell: bash
         run: |
           set +e
-          pnpm --filter @platform/web-member typecheck > /tmp/member-typecheck.log 2>&1
-          status=$?
-          echo '===== MEMBER TYPECHECK DIAGNOSTICS ====='
-          grep -E "error TS[0-9]+|Type error:|Failed to compile|Cannot find|is not assignable|does not exist" /tmp/member-typecheck.log | head -n 120 || true
-          echo '===== END DIAGNOSTICS ====='
-          if [ "$status" -ne 0 ]; then
-            exit "$status"
-          fi
+          pnpm --filter @platform/web-member typecheck > member-typecheck.log 2>&1
+          echo "$?" > member-typecheck.status
+          grep -E "error TS[0-9]+|Type error:|Failed to compile|Cannot find|is not assignable|does not exist" member-typecheck.log > member-typecheck-errors.log || true
+      - name: Upload Member typecheck diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: member-typecheck-diagnostics
+          path: |
+            member-typecheck.log
+            member-typecheck-errors.log
+            member-typecheck.status
+          if-no-files-found: error
+          retention-days: 1
+      - name: Fail when Member typecheck failed
+        shell: bash
+        run: |
+          status="$(cat member-typecheck.status)"
+          cat member-typecheck-errors.log || true
+          exit "$status"
