@@ -457,11 +457,11 @@
 
 ### /provider-credentials
 
-- [ ] Demo/UAT/Production
-- [ ] Mask secret
-- [ ] Key rotation
-- [ ] Last changed
-- [ ] Test connection โดยไม่เปิดเงินจริง
+- [x] Demo/UAT/Production
+- [x] Mask secret
+- [x] Key rotation
+- [x] Last changed
+- [x] Test connection โดยไม่เปิดเงินจริง
 
 ### /adapter-test
 
