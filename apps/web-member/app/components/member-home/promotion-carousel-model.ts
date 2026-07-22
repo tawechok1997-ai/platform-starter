@@ -7,29 +7,26 @@ export function normalizeCarouselIndex(index: number, count: number) {
   return ((Math.trunc(index) % count) + count) % count;
 }
 
-/**
- * Member promotions are sourced only from Admin/CMS settings.
- * The member app must not invent fallback promotions because that creates a
- * second source of truth and can show campaigns that admins have not enabled.
- */
+/** Member promotions are sourced only from Admin/CMS settings. */
 export function buildHomePromotionItems(content: CmsContent): PromotionCarouselItem[] {
-  const cmsItems = Array.isArray(content?.banners)
-    ? content.banners.flatMap((banner, index) => {
-        if (!banner?.enabled) return [];
-        const assetUrl = cmsAssetUrl(content, banner.assetId);
-        const imageUrl = resolveCmsUrl(assetUrl || banner.imageUrl || '');
-        if (!imageUrl) return [];
-        return [{
-          id: String(banner.assetId || `cms-${index + 1}`),
-          title: cleanText(banner.title, `โปรโมชั่น ${index + 1}`),
-          imageUrl,
-          href: safeInternalHref(banner.href) || '/promotions',
-          alt: cleanText(banner.title, 'โปรโมชั่น'),
-        }];
-      })
-    : [];
+  return dedupePromotionItems(buildCmsPromotionItems(content));
+}
 
-  return dedupePromotionItems(cmsItems);
+function buildCmsPromotionItems(content: CmsContent): PromotionCarouselItem[] {
+  if (!Array.isArray(content?.banners)) return [];
+  return content.banners.flatMap((banner, index) => {
+    if (!banner?.enabled) return [];
+    const assetUrl = cmsAssetUrl(content, banner.assetId);
+    const imageUrl = resolveCmsUrl(assetUrl || banner.imageUrl || '');
+    if (!imageUrl) return [];
+    return [{
+      id: String(banner.assetId || `cms-${index + 1}`),
+      title: cleanText(banner.title, `โปรโมชั่น ${index + 1}`),
+      imageUrl,
+      href: safeInternalHref(banner.href) || '/promotions',
+      alt: cleanText(banner.title, 'โปรโมชั่น'),
+    }];
+  });
 }
 
 export function dedupePromotionItems(items: PromotionCarouselItem[]) {
