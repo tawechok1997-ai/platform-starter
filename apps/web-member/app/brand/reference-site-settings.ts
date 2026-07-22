@@ -84,10 +84,10 @@ export const DEFAULT_REFERENCE_ASSETS: ReferenceAssetSettings = {
   logoRegister: HEADER_LOGO,
   favicon: HEADER_LOGO,
   languageIcon: `${ROOT}/header/th.svg`,
-  announcementIcon: `${ROOT}/home-source/announcement-megaphone.png`,
-  jackpotImage: `${ROOT}/home-source/jackpot.gif`,
-  promotionCardBackground: `${ROOT}/home-source/promo-card-bg.png`,
-  supportIcon: `${ROOT}/home/support-headset.webp`,
+  announcementIcon: `${ROOT}/menu/news.png`,
+  jackpotImage: '',
+  promotionCardBackground: '',
+  supportIcon: `${ROOT}/menu/support.png`,
 };
 
 export const DEFAULT_REFERENCE_MENU_ICONS: ReferenceMenuIconSettings = {
