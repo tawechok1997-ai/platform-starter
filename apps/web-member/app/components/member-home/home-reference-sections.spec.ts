@@ -12,11 +12,9 @@ const emptyContent: CmsContent = {
   faqs: [],
 };
 
-test('promotion cards keep safe reference fallbacks when CMS is empty', () => {
+test('promotion cards stay empty until Admin enables CMS banners', () => {
   const cards = buildHomePromotionCards(emptyContent);
-  assert.equal(cards.length, 3);
-  assert.ok(cards.every((card) => card.href.startsWith('/')));
-  assert.ok(cards.every((card) => card.imageUrl.includes('/noah345-reference/')));
+  assert.deepEqual(cards, []);
 });
 
 test('promotion cards reject unsafe hrefs and duplicate images', () => {
