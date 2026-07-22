@@ -13,6 +13,7 @@ export default function GameSessionsPage() {
   const [loading, setLoading] = useState(false);
   const [reconciling, setReconciling] = useState('');
   const [pendingReconcile, setPendingReconcile] = useState<Session | null>(null);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
   useEffect(() => { void loadSessions(); }, []);
   const items = payload.items ?? [];
@@ -55,17 +56,18 @@ export default function GameSessionsPage() {
     <AdminStack>{items.map((item) => <AdminCard key={item.id} compact tone={item.status === 'FAILED' ? 'danger' : 'neutral'}>
       <AdminRow>
         <div style={mainInfoStyle}><h2 style={titleStyle}>{item.game?.name ?? item.id}</h2><span style={mutedStyle}>{item.provider?.name ?? '-'} · สมาชิก {item.user?.username ?? item.user?.phone ?? '-'}</span></div>
-        <div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge><AdminButton size="compact" tone="ghost" onClick={() => setPendingReconcile(item)} disabled={reconciling === item.id}>{reconciling === item.id ? 'กำลังตรวจ...' : 'ตรวจยอด'}</AdminButton></div>
+        <div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge><AdminButton size="compact" tone="secondary" onClick={() => setSelectedSession(item)}>รายละเอียด</AdminButton><AdminButton size="compact" tone="ghost" onClick={() => setPendingReconcile(item)} disabled={reconciling === item.id}>{reconciling === item.id ? 'กำลังตรวจ...' : 'ตรวจยอด'}</AdminButton></div>
       </AdminRow>
       <div style={detailGridStyle}>
         <AdminDataValue label="รหัสเซสชัน"><AdminCode title={item.providerSessionId ?? item.id}>{shortId(item.providerSessionId ?? item.id)}</AdminCode></AdminDataValue>
         <AdminDataValue label="IP"><AdminCode>{item.ipAddress ?? '-'}</AdminCode></AdminDataValue>
         <AdminDataValue label="สร้างเมื่อ">{new Date(item.createdAt).toLocaleString('th-TH')}</AdminDataValue>
       </div>
-      <section style={timelineStyle} aria-label="ไทม์ไลน์เซสชัน"><strong>ไทม์ไลน์</strong><div style={timelineItemsStyle}><TimelineItem label="สร้าง" value={item.createdAt} /><TimelineItem label="เริ่ม" value={item.startedAt} /><TimelineItem label="สิ้นสุด" value={item.endedAt} /></div></section>
+      <section style={timelineStyle}><strong>ไทม์ไลน์</strong><div style={timelineItemsStyle}><TimelineItem label="สร้าง" value={item.createdAt} /><TimelineItem label="เริ่ม" value={item.startedAt} /><TimelineItem label="สิ้นสุด" value={item.endedAt} /></div></section>
       {item.launchUrl && <details><summary style={summaryStyle}>ข้อมูลเปิดเกม</summary><AdminCode title={item.launchUrl}>{item.launchUrl}</AdminCode></details>}
       {item.errorMessage && <AdminNotice tone="danger">{sessionErrorLabel(item.errorCode)}</AdminNotice>}
     </AdminCard>)}{!loading && items.length === 0 && <AdminEmpty>ยังไม่มีเซสชันเกม</AdminEmpty>}</AdminStack>
+    {selectedSession && <div style={drawerLayerStyle} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedSession(null); }}><aside style={drawerStyle} aria-label="รายละเอียดเซสชันเกม"><AdminStack><AdminRow><div><p style={mutedStyle}>รายละเอียดเซสชัน</p><h2 style={titleStyle}>{selectedSession.game?.name ?? selectedSession.id}</h2></div><AdminButton tone="ghost" onClick={() => setSelectedSession(null)}>ปิด</AdminButton></AdminRow><AdminRow><span>ค่าย</span><strong>{selectedSession.provider?.name ?? '-'}</strong></AdminRow><AdminRow><span>สมาชิก</span><strong>{selectedSession.user?.username ?? selectedSession.user?.phone ?? '-'}</strong></AdminRow><AdminRow><span>สถานะ</span><AdminBadge tone={statusTone(selectedSession.status)}>{statusLabel(selectedSession.status)}</AdminBadge></AdminRow><AdminRow><span>รหัสค่าย</span><AdminCode title={selectedSession.providerSessionId ?? selectedSession.id}>{selectedSession.providerSessionId ?? selectedSession.id}</AdminCode></AdminRow><section style={timelineStyle}><strong>ไทม์ไลน์</strong><div style={timelineItemsStyle}><TimelineItem label="สร้าง" value={selectedSession.createdAt} /><TimelineItem label="เริ่ม" value={selectedSession.startedAt} /><TimelineItem label="สิ้นสุด" value={selectedSession.endedAt} /></div></section><AdminCard title="รายการโยกเงิน" compact><AdminStack>{(selectedSession.transfers ?? []).map((transfer) => <AdminRow key={transfer.id}><div><strong>{transfer.type}</strong><p style={mutedStyle}>{new Date(transfer.createdAt).toLocaleString('th-TH')}</p></div><span>{transfer.amount} {transfer.currency} · {transfer.status}</span></AdminRow>)}{(selectedSession.transfers ?? []).length === 0 && <AdminEmpty>ไม่มีรายการโยกเงิน</AdminEmpty>}</AdminStack></AdminCard></AdminStack></aside></div>}
     <AdminConfirmDialog open={Boolean(pendingReconcile)} title={pendingReconcile ? `ตรวจยอด ${pendingReconcile.game?.name ?? ''}` : ''} description="ระบบจะตรวจยอดและสถานะล่าสุดจากค่าย โดยไม่ควรเปลี่ยนยอดเงินจริง" confirmLabel="เริ่มตรวจยอด" tone="primary" busy={Boolean(pendingReconcile && reconciling === pendingReconcile.id)} onCancel={() => setPendingReconcile(null)} onConfirm={() => void reconcile()} details={pendingReconcile ? <><AdminDataValue label="สมาชิก">{pendingReconcile.user?.username ?? pendingReconcile.user?.phone ?? '-'}</AdminDataValue><AdminDataValue label="ค่าย">{pendingReconcile.provider?.name ?? '-'}</AdminDataValue><AdminDataValue label="สถานะ">{statusLabel(pendingReconcile.status)}</AdminDataValue></> : null} />
   </AdminPage>;
 }
@@ -85,3 +87,5 @@ const summaryStyle = { cursor: 'pointer', color: '#cbd5e1', fontWeight: 800, fon
 const timelineStyle = { display: 'grid', gap: 8, paddingTop: 4 } as const;
 const timelineItemsStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: 8 } as const;
 const timelineItemStyle = { display: 'grid', gap: 3, padding: 10, borderRadius: 10, background: 'rgba(15,23,42,.5)', color: '#cbd5e1' } as const;
+const drawerLayerStyle = { position: 'fixed' as const, inset: 0, zIndex: 9000, display: 'flex', justifyContent: 'flex-end', background: 'rgba(2,6,23,.62)', backdropFilter: 'blur(5px)' } as const;
+const drawerStyle = { width: 'min(600px, 100%)', height: '100%', overflow: 'auto' as const, padding: 24, background: '#111823', borderLeft: '1px solid rgba(148,163,184,.22)', boxSizing: 'border-box' as const } as const;
