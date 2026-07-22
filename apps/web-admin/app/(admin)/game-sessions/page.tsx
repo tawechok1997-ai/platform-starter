@@ -73,7 +73,7 @@ export default function GameSessionsPage() {
 }
 
 function shortId(value?: string | null) { if (!value) return '-'; return value.length > 18 ? `${value.slice(0, 10)}…${value.slice(-6)}` : value; }
-function TimelineItem({ label, value }: { label: string; value?: string | null }) { return <span style={timelineItemStyle}><strong>{label}</strong><small>{value ? new Date(value).toLocaleString('th-TH') : '-'}</small></span>; }
+function TimelineItem({ label, value }: { label: string; value: string | null | undefined }) { return <span style={timelineItemStyle}><strong>{label}</strong><small>{value ? new Date(value).toLocaleString('th-TH') : '-'}</small></span>; }
 function statusLabel(status: string) { return ({ CREATED: 'สร้างแล้ว', LAUNCHED: 'เปิดเกมแล้ว', ACTIVE: 'กำลังใช้งาน', ENDED: 'สิ้นสุดแล้ว', FAILED: 'ไม่สำเร็จ', EXPIRED: 'หมดอายุ' } as Record<string, string>)[status] ?? status; }
 function snapshotStatus(status?: string) { return ({ MATCHED: 'ยอดตรงกัน', MISMATCH: 'ยอดไม่ตรง', UNKNOWN: 'ยังระบุไม่ได้' } as Record<string, string>)[status ?? ''] ?? status ?? '-'; }
 function statusTone(status: string) { if (status === 'LAUNCHED' || status === 'ACTIVE' || status === 'ENDED') return 'success'; if (status === 'FAILED' || status === 'EXPIRED') return 'danger'; if (status === 'CREATED') return 'warning'; return 'neutral'; }
