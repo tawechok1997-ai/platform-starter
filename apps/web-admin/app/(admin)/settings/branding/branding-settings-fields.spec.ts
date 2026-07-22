@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
 
 const brandingSource = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 const websiteSource = readFileSync(new URL('../website/page.tsx', import.meta.url), 'utf8');
