@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { upstreamApiUrl } from '../../upstream';
+import { safeAdminError, safeLogicalAdminError } from '../admin-error-safety';
 
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
 const ADMIN_ACCESS_COOKIE = 'platform_admin_access';
@@ -56,7 +57,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
     const setCookie = response.headers.get('set-cookie');
     if (setCookie) responseHeaders.append('set-cookie', setCookie);
 
-    const responsePayload = response.ok ? payload : JSON.stringify(safeAdminError(response.status, payload));
+    const responsePayload = response.ok ? safeLogicalAdminError(payload) : JSON.stringify(safeAdminError(response.status, payload));
     const nextResponse = new NextResponse(responsePayload || null, {
       status: response.status,
       headers: responseHeaders,
@@ -72,34 +73,6 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
       { message: 'Admin API service is unavailable' },
       { status: 503, headers: { 'cache-control': 'no-store' } },
     );
-  }
-}
-
-function safeAdminError(status: number, payload: string) {
-  const upstream = readErrorPayload(payload);
-  const code = typeof upstream?.code === 'string' && /^([A-Z0-9_]{3,80})$/.test(upstream.code) ? upstream.code : undefined;
-  const message = status === 400 || status === 422
-    ? 'ข้อมูลที่ส่งมาไม่ถูกต้อง กรุณาตรวจสอบแล้วลองใหม่'
-    : status === 401
-      ? 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่'
-      : status === 403
-        ? 'คุณไม่มีสิทธิ์ดำเนินการนี้'
-        : status === 404
-          ? 'ไม่พบข้อมูลที่ต้องการ'
-          : status === 409
-            ? 'ข้อมูลนี้ถูกเปลี่ยนแปลงแล้ว กรุณารีเฟรชและลองใหม่'
-            : status >= 500
-              ? 'ระบบขัดข้องชั่วคราว กรุณาลองใหม่ภายหลัง'
-              : 'ดำเนินการไม่สำเร็จ กรุณาลองใหม่';
-  return { message, ...(code ? { code } : {}) };
-}
-
-function readErrorPayload(payload: string): { code?: unknown } | null {
-  try {
-    const value = JSON.parse(payload) as unknown;
-    return value && typeof value === 'object' ? value as { code?: unknown } : null;
-  } catch {
-    return null;
   }
 }
 
