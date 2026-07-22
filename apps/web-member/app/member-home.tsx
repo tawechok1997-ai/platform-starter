@@ -6,6 +6,7 @@ import {
   MemberFeatureFlags,
   SiteIconSettings,
   defaultFeatureFlags,
+  defaultIconSettings,
 } from './site-settings';
 import {
   AnnouncementList,
@@ -52,7 +53,10 @@ export default function MemberHome(props: MemberHomeProps) {
     () => createGameCategoryNavigationConfig(settings),
     [settings],
   );
-  const baseIcons = props.icons ?? settings.icons ?? {};
+  const baseIcons = useMemo(
+    () => normalizeSiteIcons(settings.icons, props.icons),
+    [settings.icons, props.icons],
+  );
 
   useEffect(() => {
     setPopupClosed(readClosedPopupVersion() === popupVersion);
@@ -124,6 +128,23 @@ export default function MemberHome(props: MemberHomeProps) {
       )}
     </section>
   );
+}
+
+function normalizeSiteIcons(
+  runtimeIcons: Record<string, unknown> | undefined,
+  explicitIcons: SiteIconSettings | undefined,
+): SiteIconSettings {
+  const normalizedRuntime = Object.fromEntries(
+    Object.entries(runtimeIcons ?? {}).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string' && Boolean(entry[1].trim()),
+    ),
+  );
+
+  return {
+    ...defaultIconSettings,
+    ...normalizedRuntime,
+    ...explicitIcons,
+  };
 }
 
 function readClosedPopupVersion() {
