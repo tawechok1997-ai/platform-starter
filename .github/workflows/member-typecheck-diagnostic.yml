@@ -1,0 +1,37 @@
+name: Member Typecheck Diagnostic
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web-member/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/member-typecheck-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  member-typecheck-diagnostic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install dependencies quietly
+        run: pnpm install --frozen-lockfile --reporter=silent
+      - name: Run Member typecheck with compact diagnostics
+        shell: bash
+        run: |
+          set +e
+          pnpm --filter @platform/web-member typecheck > /tmp/member-typecheck.log 2>&1
+          status=$?
+          echo '===== MEMBER TYPECHECK DIAGNOSTICS ====='
+          grep -E "error TS[0-9]+|Type error:|Failed to compile|Cannot find|is not assignable|does not exist" /tmp/member-typecheck.log | head -n 120 || true
+          echo '===== END DIAGNOSTICS ====='
+          if [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
