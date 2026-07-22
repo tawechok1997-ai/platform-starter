@@ -41,7 +41,7 @@ export function normalizeLeaderboard(value: unknown): CompetitionEntry[] {
     if (!item || typeof item !== 'object') return [];
     const record = item as Record<string, unknown>;
     const rank = Number(record.rank);
-    const user = maskUser(record.user);
+    const user = maskLeaderboardUser(record.user);
     const score = safeScore(record.score);
     if (!Number.isInteger(rank) || rank < 1 || rank > 99 || !user) return [];
     return [{ rank, user, score: score || String(Math.max(0, 20 - index * 3)) }];
@@ -72,9 +72,9 @@ function safeMoneyLabel(value: unknown, fallback: string) {
   return /^[฿$€£¥\s\d,.+-]+$/.test(text) ? text : fallback;
 }
 
-function maskUser(value: unknown) {
+function maskLeaderboardUser(value: unknown) {
   if (typeof value !== 'string') return '';
-  const localPart = value.trim().split('@', 1)[0] ?? '';
+  const [localPart = ''] = value.trim().split('@', 1);
   const clean = localPart.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 24);
   if (!clean) return '';
   if (clean.length <= 4) return clean;
