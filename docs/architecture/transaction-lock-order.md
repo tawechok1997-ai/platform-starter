@@ -19,6 +19,7 @@ Every transaction that acquires more than one row lock must use one canonical or
    - `kyc_documents`
    - `watchlist_entries`
    - `risk_watchlist_entries`
+   - `risk_alerts`
    - `promotion_settlements`
    - `bonus_ledgers` when it owns turnover and settlement lifecycle state
    - admin ownership/account lifecycle rows
@@ -40,6 +41,7 @@ Every transaction that acquires more than one row lock must use one canonical or
 - A create flow may lock the wallet first only when the workflow row does not exist yet. It must create the workflow row inside the same transaction after the wallet mutation.
 - Never acquire an aggregate lock after acquiring its wallet lock in a flow where that aggregate already exists.
 - A table named as a ledger may still be an aggregate when it owns mutable lifecycle state. `bonus_ledgers` is classified this way because settlement reads and transitions its turnover/status fields before crediting the wallet.
+- `risk_alerts` is classified as an aggregate because assignment, investigation, escalation, and resolution mutate the alert lifecycle before audit or notification output is written.
 - Do not perform network, storage, provider, email, or callback I/O while holding database row locks.
 - All rows of the same table must be locked in deterministic primary-key order when more than one row is involved.
 - A retry must preserve the same order and idempotency key.
