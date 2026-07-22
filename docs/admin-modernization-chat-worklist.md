@@ -292,10 +292,10 @@
 
 ### /provider-setup-wizard
 
-- [ ] Step 1–4
-- [ ] Progress indicator
-- [ ] Validate ทุกขั้น
-- [ ] Production readiness gate
+- [x] Step 1–4
+- [x] Progress indicator
+- [x] Validate ทุกขั้น
+- [x] Production readiness gate
 
 ### /provider-presets
 
