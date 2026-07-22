@@ -48,11 +48,6 @@ export function PromotionCarousel({
   const previous = useCallback(() => goTo(safeIndex - 1), [goTo, safeIndex]);
 
   useEffect(() => {
-    if (!count) setActiveIndex(0);
-    else if (activeIndex >= count || activeIndex < 0) setActiveIndex(safeIndex);
-  }, [activeIndex, count, safeIndex]);
-
-  useEffect(() => {
     stopTimer();
     if (paused || count < 2 || autoPlayMs < 1000 || document.hidden) return;
 
