@@ -32,7 +32,7 @@ export default function GameApiSettingsPage() {
   const [messageTone, setMessageTone] = useState<NoticeTone>('neutral');
   useEffect(() => { void loadProviders(); }, []);
   useEffect(() => { if (providerId) void loadProvider(providerId); else { setDetail(null); setPreflight(null); } }, [providerId]);
-  const requiredEndpoints = useMemo<readonly string[]>(() => requiredByWalletMode[detail?.walletMode ?? 'TRANSFER'] ?? TRANSFER_REQUIRED_ENDPOINTS, [detail?.walletMode]);
+  const requiredEndpoints = useMemo(() => getRequiredEndpoints(detail?.walletMode), [detail?.walletMode]);
   const endpointStatus = useMemo(() => requiredEndpoints.map((type) => ({ type, item: detail?.endpoints.find((endpoint) => endpoint.type === type), ok: Boolean(detail?.endpoints.find((endpoint) => endpoint.type === type)?.isEnabled) })), [detail?.endpoints, requiredEndpoints]);
   const enabledCredentials = detail?.credentials.filter((item) => item.isEnabled).length ?? 0;
   const flags = gateFlags(detail?.metadata, preflight?.flags);
@@ -51,6 +51,7 @@ export default function GameApiSettingsPage() {
   </AdminPage>;
 }
 
+function getRequiredEndpoints(walletMode?: string): readonly string[] { return requiredByWalletMode[walletMode ?? 'TRANSFER'] ?? TRANSFER_REQUIRED_ENDPOINTS; }
 function gateFlags(metadata: unknown, preflightFlags?: Record<string, boolean>) { const value = metadata && typeof metadata === 'object' ? metadata as Record<string, unknown> : {}; return { transferEnabled: preflightFlags?.transferEnabled === true || value.transferEnabled === true, realMoneyEnabled: preflightFlags?.realMoneyEnabled === true || value.realMoneyEnabled === true, webhookSettlementEnabled: preflightFlags?.webhookSettlementEnabled === true || value.webhookSettlementEnabled === true }; }
 function endpointLabel(type: string) { const labels: Record<string, string> = { LAUNCH: 'เปิดเกม', BALANCE: 'ตรวจยอด', TRANSFER_IN: 'โยกเข้าเกม', TRANSFER_OUT: 'โยกกลับวอเลต', GAME_LIST: 'รายการเกม', BET_HISTORY: 'ประวัติเกม', WEBHOOK: 'Webhook', HEALTH_CHECK: 'Health check' }; return labels[type] ?? type; }
 function credentialLabel(type: string) { const labels: Record<string, string> = { API_KEY: 'API Key', SECRET_KEY: 'Secret Key', MERCHANT_ID: 'Merchant ID', AGENT_ID: 'Agent ID', WEBHOOK_SECRET: 'Webhook Secret' }; return labels[type] ?? type; }
