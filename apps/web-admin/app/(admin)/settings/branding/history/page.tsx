@@ -62,7 +62,11 @@ export default function BrandingHistoryPage() {
     >
       {message && <AdminNotice>{message}</AdminNotice>}
       <AdminStack>
-        {history.length === 0 && <AdminCard title="ยังไม่มี Version history" description="เมื่อ Publish หรือ Rollback ระบบจะแสดงรายการที่นี่" />}
+        {history.length === 0 && (
+          <AdminCard title="ยังไม่มี Version history" description="เมื่อ Publish หรือ Rollback ระบบจะแสดงรายการที่นี่">
+            <p style={{ margin: 0, opacity: 0.75 }}>บันทึก Draft แล้ว Publish อย่างน้อยหนึ่งครั้งเพื่อเริ่มสร้างประวัติย้อนหลัง</p>
+          </AdminCard>
+        )}
         {history.map((entry) => (
           <AdminCard key={entry.id} title={entry.field} description={formatDate(entry.createdAt)}>
             <div style={historyGridStyle}>
@@ -90,7 +94,7 @@ function ValueBlock({ title, value }: { title: string; value: unknown }) {
 function formatValue(value: unknown) {
   if (typeof value === 'string') return value || '(ค่าว่าง)';
   if (value === null || value === undefined) return '(ไม่มีค่า)';
-  return JSON.stringify(value, null, 2);
+  return JSON.stringify(value, null, 2) ?? '(ไม่สามารถแสดงค่าได้)';
 }
 
 function formatDate(value: string) {
