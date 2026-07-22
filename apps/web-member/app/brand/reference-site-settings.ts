@@ -74,47 +74,53 @@ export type ReferenceContentSettings = {
   gameCategoryOtherLabel: string;
 };
 
-const ROOT = '/assets/reference-brand';
-const HEADER_LOGO = `${ROOT}/header/noah345-logo.webp`;
-
+/**
+ * Binary reference assets are intentionally empty until the checksum-backed
+ * asset commit lands. Runtime settings remain authoritative and empty defaults
+ * avoid shipping internal URLs that would return 404.
+ */
 export const DEFAULT_REFERENCE_ASSETS: ReferenceAssetSettings = {
-  logo: HEADER_LOGO,
-  logoMobile: HEADER_LOGO,
-  logoLogin: HEADER_LOGO,
-  logoRegister: HEADER_LOGO,
-  favicon: HEADER_LOGO,
-  languageIcon: `${ROOT}/header/th.svg`,
-  announcementIcon: `${ROOT}/menu/news.png`,
+  logo: '',
+  logoMobile: '',
+  logoLogin: '',
+  logoRegister: '',
+  favicon: '',
+  languageIcon: '',
+  announcementIcon: '',
   jackpotImage: '',
   promotionCardBackground: '',
-  supportIcon: `${ROOT}/menu/support.png`,
+  supportIcon: '',
 };
 
+/**
+ * Text/emoji fallbacks keep navigation usable without network requests. Admin
+ * configured image URLs override these values through the normal settings path.
+ */
 export const DEFAULT_REFERENCE_MENU_ICONS: ReferenceMenuIconSettings = {
-  home: `${ROOT}/menu/home.png`,
-  deposit: `${ROOT}/menu/deposit.png`,
-  withdraw: `${ROOT}/menu/withdraw.png`,
-  games: `${ROOT}/menu/home.png`,
-  promotion: `${ROOT}/menu/promotion.png`,
-  bonus: `${ROOT}/menu/bonus.png`,
-  affiliate: `${ROOT}/menu/affiliate.png`,
-  support: `${ROOT}/menu/support.png`,
-  history: `${ROOT}/menu/history.png`,
+  home: '⌂',
+  deposit: '＋',
+  withdraw: '−',
+  games: '▦',
+  promotion: '★',
+  bonus: '◆',
+  affiliate: '◎',
+  support: '?',
+  history: '◷',
   bank: '◈',
-  profile: '👤',
-  notification: `${ROOT}/menu/notification.png`,
+  profile: '●',
+  notification: '•',
   vip: '♛',
   wallet: '฿',
-  casino: `${ROOT}/menu/casino.png`,
-  slot: `${ROOT}/menu/slot.png`,
-  fishing: `${ROOT}/menu/fishing.png`,
-  sport: `${ROOT}/menu/sport.png`,
-  lottery: `${ROOT}/menu/lottery.png`,
-  live: `${ROOT}/menu/live.png`,
-  card: `${ROOT}/menu/card.png`,
-  arcade: `${ROOT}/menu/activities.png`,
-  new: `${ROOT}/menu/news.png`,
-  popular: `${ROOT}/menu/recommended.png`,
+  casino: '♠',
+  slot: '▦',
+  fishing: '◁',
+  sport: '⚽',
+  lottery: '◎',
+  live: '●',
+  card: '♣',
+  arcade: '◆',
+  new: 'N',
+  popular: '★',
 };
 
 export const DEFAULT_REFERENCE_CONTENT: ReferenceContentSettings = {
@@ -144,7 +150,7 @@ export const DEFAULT_REFERENCE_CONTENT: ReferenceContentSettings = {
   gameCategorySlotLabel: 'สล็อต',
   gameCategoryLiveLabel: 'คาสิโนสด',
   gameCategorySportLabel: 'กีฬา',
-  gameCategoryFishingLabel: 'ยิงปลา',
+  gameCategoryFishingLabel: 'เกมตกปลา',
   gameCategoryLotteryLabel: 'หวย',
   gameCategoryCardLabel: 'ไพ่',
   gameCategoryArcadeLabel: 'อาร์เคด',
