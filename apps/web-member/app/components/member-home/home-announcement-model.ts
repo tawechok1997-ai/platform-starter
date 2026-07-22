@@ -31,9 +31,13 @@ export function buildHomeAnnouncements(content: CmsContent): HomeAnnouncementIte
 
 export function cleanAnnouncementText(value: unknown, maxLength: number) {
   if (typeof value !== 'string') return '';
-  return value
+  const withoutControls = Array.from(value, (character) => {
+    const code = character.charCodeAt(0);
+    return code <= 31 || code === 127 ? ' ' : character;
+  }).join('');
+
+  return withoutControls
     .replace(/[<>]/g, '')
-    .replace(/[\u0000-\u001f\u007f]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, Math.max(0, maxLength));
