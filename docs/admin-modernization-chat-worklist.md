@@ -4,7 +4,7 @@
 >
 > เอกสารนี้ใช้ติดตามงานปรับ Web Admin ชุดนี้โดยเฉพาะ และไม่อ้างอิงสถานะเสร็จจาก worklist เก่าโดยอัตโนมัติ
 >
-> สถานะที่ตรวจจากโค้ดจริงและหลักฐาน merge อยู่ใน [`admin-modernization-code-audit-status.md`](./admin-modernization-code-audit-status.md)
+> สถานะที่ตรวจจากโค้ดและหลักฐาน merge อยู่ใน [`admin-modernization-code-audit-status.md`](./admin-modernization-code-audit-status.md)
 
 สถานะเริ่มต้น: ต้อง audit โค้ดจริงก่อนติ๊กแต่ละข้อ
 
@@ -142,28 +142,26 @@
 
 ### /bulk-queue-operations
 
-- [ ] Selected count
-- [ ] ปิดปุ่มเมื่อยังไม่เลือก
+- [x] Selected count
+- [x] ปิดปุ่มเมื่อยังไม่เลือก
 - [ ] Preview ก่อนยืนยัน
-- [ ] Claim / Approve / Reject แยกกัน
-- [ ] Audit reason
+- [x] Claim / Approve / Reject แยกกัน
+- [x] Audit reason
 
 ### /wallets
 
-- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
-- [ ] ยอดใช้ได้ / ยอดรวม / ยอดล็อก
-- [ ] Member search และ filter
-- [ ] Before/after balance
-- [ ] Confirmation ก่อนเพิ่ม/ลดเงิน
-- [ ] บังคับเหตุผลทุก adjustment
+- [x] ยอดใช้ได้ / ยอดรวม / ยอดล็อก
+- [x] Member search และ filter
+- [x] Before/after balance
+- [x] Confirmation ก่อนเพิ่ม/ลดเงิน
+- [x] บังคับเหตุผลทุก adjustment
 
 ### /wallet-ledgers
 
-- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 - [ ] Filter วันที่และประเภทเงิน
-- [ ] Compact table
-- [ ] Expandable row
-- [ ] จำกัดรายการต่อหน้า
+- [x] Compact table
+- [x] Expandable row
+- [x] จำกัดรายการต่อหน้า
 - [ ] Export
 
 ### /wallet-statement
@@ -184,19 +182,19 @@
 
 ### /reconciliation-center
 
-- [ ] แยกยอดตรง/ยอดไม่ตรง
-- [ ] Variance เด่น
+- [x] แยกยอดตรง/ยอดไม่ตรง
+- [x] Variance เด่น
 - [ ] Evidence drawer
-- [ ] Status workflow
+- [x] Status workflow
 - [ ] Export รายการผิดปกติ
 
 ### /reports
 
 - [ ] Date range picker กลางทั้งระบบ
-- [ ] Summary / Trend / Aging tabs
+- [x] Summary / Trend / Aging มี implementation ในรูป sections
 - [ ] Comparison period
 - [ ] ลดความยาวหน้า
-- [ ] Export progress
+- [x] Export progress
 
 ### /exports
 
@@ -228,19 +226,19 @@
 
 ### /bank-accounts
 
-- [ ] แยกบัญชีรับเงิน/บัญชีถอน
-- [ ] Verification status
-- [ ] Mask เลขบัญชี
-- [ ] Duplicate warning
-- [ ] Approval workflow
+- [x] แยกบัญชีรับเงิน/บัญชีถอน
+- [x] Verification status
+- [x] Mask เลขบัญชี
+- [x] Duplicate warning
+- [x] Approval workflow
 
 ### /kyc-center
 
-- [ ] KYC checklist
-- [ ] Risk reason
+- [x] KYC checklist
+- [x] Risk reason
 - [ ] Document drawer
-- [ ] Reject ต้องใส่เหตุผล
-- [ ] Status filter
+- [x] Reject ต้องใส่เหตุผล
+- [x] Status filter
 
 ### /support-center
 
