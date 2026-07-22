@@ -3,6 +3,14 @@ import test from 'node:test';
 import type { CmsContent } from '../../site-settings';
 import { buildHomePromotionItems, dedupePromotionItems, normalizeCarouselIndex } from './promotion-carousel-model';
 
+const emptyContent: CmsContent = {
+  assets: [],
+  banners: [],
+  popup: { title: '', message: '', ctaLabel: '', href: '', enabled: false },
+  announcements: [],
+  faqs: [],
+};
+
 test('normalizes carousel indexes in both directions', () => {
   assert.equal(normalizeCarouselIndex(5, 4), 1);
   assert.equal(normalizeCarouselIndex(-1, 4), 3);
@@ -10,17 +18,18 @@ test('normalizes carousel indexes in both directions', () => {
   assert.equal(normalizeCarouselIndex(2, 0), 0);
 });
 
+test('carousel stays empty until Admin enables CMS banners', () => {
+  assert.deepEqual(buildHomePromotionItems(emptyContent), []);
+});
+
 test('uses enabled CMS banners and accepts only safe internal links', () => {
   const content: CmsContent = {
-    assets: [],
+    ...emptyContent,
     banners: [
       { title: 'Safe', subtitle: '', imageUrl: 'https://cdn.example.com/safe.jpg', href: '/promotions/safe', enabled: true },
       { title: 'Unsafe', subtitle: '', imageUrl: 'https://cdn.example.com/unsafe.jpg', href: 'https://evil.example', enabled: true },
       { title: 'Disabled', subtitle: '', imageUrl: 'https://cdn.example.com/off.jpg', href: '/off', enabled: false },
     ],
-    popup: { title: '', message: '', ctaLabel: '', href: '', enabled: false },
-    announcements: [],
-    faqs: [],
   };
 
   const items = buildHomePromotionItems(content);
