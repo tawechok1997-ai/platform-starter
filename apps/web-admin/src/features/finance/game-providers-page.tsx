@@ -99,7 +99,7 @@ export default function GameProvidersPage() {
     if (!payload.name || !payload.code) { setMessage('กรุณากรอกชื่อค่ายและรหัสค่าย'); return; }
     setSaving(true);
     const res = await adminApiFetch(form.id ? `/admin/game-providers/${form.id}` : '/admin/game-providers', { method: form.id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
-    const data = await res.json().catch(() => null);
+    const _data = await res.json().catch(() => null);
     setSaving(false);
     if (!res.ok) { setMessage('บันทึกค่ายเกมไม่สำเร็จ'); return; }
     setMessage(form.id ? 'บันทึกข้อมูลค่ายเกมแล้ว' : 'เพิ่มค่ายเกมแล้ว');
@@ -155,7 +155,7 @@ export default function GameProvidersPage() {
     const payload = { type: endpointForm.type, url: endpointForm.url.trim(), method: endpointForm.method, timeoutMs: Number(endpointForm.timeoutMs || 10000), retryCount: Number(endpointForm.retryCount || 2), isEnabled: endpointForm.isEnabled };
     if (!payload.url) { setMessage('กรุณากรอก URL endpoint'); return; }
     const res = await adminApiFetch(endpointForm.id ? `/admin/game-providers/${detail.id}/endpoints/${endpointForm.id}` : `/admin/game-providers/${detail.id}/endpoints`, { method: endpointForm.id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
-    const data = await res.json().catch(() => null);
+    const _data = await res.json().catch(() => null);
     if (!res.ok) { setMessage('บันทึก endpoint ไม่สำเร็จ'); return; }
     setEndpointForm(emptyEndpointForm);
     await loadDetail(detail.id);
@@ -169,7 +169,7 @@ export default function GameProvidersPage() {
     const payload: Record<string, unknown> = { type: credentialForm.type, isEnabled: credentialForm.isEnabled };
     if (credentialForm.value.trim()) payload.value = credentialForm.value.trim();
     const res = await adminApiFetch(credentialForm.id ? `/admin/game-providers/${detail.id}/credentials/${credentialForm.id}` : `/admin/game-providers/${detail.id}/credentials`, { method: credentialForm.id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
-    const data = await res.json().catch(() => null);
+    const _data = await res.json().catch(() => null);
     if (!res.ok) { setMessage('บันทึกข้อมูลเชื่อมต่อไม่สำเร็จ'); return; }
     setCredentialForm(emptyCredentialForm);
     await loadDetail(detail.id);

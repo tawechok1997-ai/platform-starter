@@ -32,7 +32,7 @@ export default function ReconciliationCenterPage() {
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error('โหลดการตรวจยอดไม่สำเร็จ');
       setPayload(data ?? {});
-    } catch (error) {
+    } catch {
       setPayload({}); showMessage('โหลดการตรวจยอดไม่สำเร็จ', 'danger');
     } finally { setLoading(false); }
   }
@@ -60,7 +60,6 @@ export default function ReconciliationCenterPage() {
     setLoading(true); showMessage('กำลังบันทึกสถานะการตรวจ...', 'neutral');
     try {
       const res = await adminApiFetch(`/admin/provider-wallet-snapshots/${reviewRequest.item.id}/review`, { method: 'PATCH', body: JSON.stringify({ note, status: reviewRequest.status }) });
-      const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error('บันทึกไม่สำเร็จ');
       showMessage(reviewRequest.status === 'RESOLVED' ? 'ปิดเคสยอดไม่ตรงแล้ว' : 'บันทึกว่ากำลังตรวจแล้ว', 'success');
       setReviewRequest(null); setReviewNote(''); await load();
