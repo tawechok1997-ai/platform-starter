@@ -39,7 +39,7 @@
 .admin-wallet-history__filters {
   display: grid;
   grid-template-columns: minmax(220px, 1.6fr) repeat(3, minmax(150px, .8fr)) auto;
-  align-items: end;
+  align-items: flex-end;
   gap: 10px;
   min-width: 0;
   padding: 14px;
