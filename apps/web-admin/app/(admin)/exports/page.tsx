@@ -64,7 +64,8 @@ export default function ExportsPage() {
     if (runningPaths.has(item.path)) return;
     const id = crypto.randomUUID();
     const createdAt = new Date().toISOString();
-    setJobs((current) => [{ id, title: item.title, path: item.path, status: 'RUNNING', createdAt }, ...current].slice(0, MAX_HISTORY));
+    const nextJob: ExportJob = { id, title: item.title, path: item.path, status: 'RUNNING', createdAt };
+    setJobs((current) => [nextJob, ...current].slice(0, MAX_HISTORY));
     try {
       const res = await adminApiFetch(item.path);
       if (!res.ok) throw new Error('Export failed');
