@@ -23,13 +23,17 @@ export function BrandIcon({ name, configured = {}, existing, className = '', tit
   const isImage = value.startsWith('/') || /^https?:\/\//i.test(value);
 
   if (isImage) {
-    return <img
-      src={value}
-      alt={title || ''}
-      aria-hidden={title ? undefined : true}
-      className={`brand-icon brand-icon--image ${className}`.trim()}
-      style={style}
-    />;
+    return (
+      // Runtime brand icons may come from an administrator-configured external URL.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={value}
+        alt={title || ''}
+        aria-hidden={title ? undefined : true}
+        className={`brand-icon brand-icon--image ${className}`.trim()}
+        style={style}
+      />
+    );
   }
 
   return <span
