@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { adminApiFetch } from '../../../../admin-api';
-import { AdminButton, AdminCard, AdminNotice, AdminPage, AdminStack } from '../../../../_components/admin-ui';
+import { adminApiFetch } from '../../../admin-api';
+import { AdminButton, AdminCard, AdminNotice, AdminPage, AdminStack } from '../../../_components/admin-ui';
 
 type HistoryEntry = {
   id: string;
