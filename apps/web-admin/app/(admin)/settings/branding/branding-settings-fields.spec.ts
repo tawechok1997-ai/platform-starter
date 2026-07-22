@@ -3,7 +3,9 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const brandingSource = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
+const workflowPanelSource = readFileSync(new URL('./branding-publish-panel.tsx', import.meta.url), 'utf8');
 const previewPageSource = readFileSync(new URL('./preview/page.tsx', import.meta.url), 'utf8');
+const historyPageSource = readFileSync(new URL('./history/page.tsx', import.meta.url), 'utf8');
 const previewComponentSource = readFileSync(new URL('../branding-member-preview.tsx', import.meta.url), 'utf8');
 const settingsSectionSource = readFileSync(new URL('../settings-section-page.tsx', import.meta.url), 'utf8');
 const websiteSource = readFileSync(new URL('../website/page.tsx', import.meta.url), 'utf8');
@@ -55,11 +57,20 @@ const settingsEndpoint = '/admin/settings/website';
 test('branding settings retain every Member logo and system-image key', () => {
   assert.match(brandingSource, /group=["']branding["']/);
   assert.match(brandingSource, /preview=["']branding["']/);
-  assert.match(brandingSource, /\/settings\/branding\/preview/);
+  assert.match(brandingSource, /BrandingPublishPanel/);
 
   for (const key of requiredBrandingKeys) {
     assert.match(brandingSource, new RegExp(`key:\\s*["']${key}["']`), `${key} must remain editable in Admin branding settings`);
   }
+});
+
+test('branding workflow preserves draft publish preview history and rollback ownership', () => {
+  assert.match(workflowPanelSource, /\/admin\/settings\/branding\/publish/);
+  assert.match(workflowPanelSource, /\/settings\/branding\/preview/);
+  assert.match(workflowPanelSource, /\/settings\/branding\/history/);
+  assert.match(previewPageSource, /\/admin\/settings\/branding\/draft/);
+  assert.match(historyPageSource, /\/admin\/settings\/branding\/history/);
+  assert.match(historyPageSource, /rollback/);
 });
 
 test('branding asset lifecycle keeps the shared upload transport and safe restore controls', () => {
