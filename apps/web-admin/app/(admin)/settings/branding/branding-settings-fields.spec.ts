@@ -3,6 +3,9 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const brandingSource = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
+const previewPageSource = readFileSync(new URL('./preview/page.tsx', import.meta.url), 'utf8');
+const previewComponentSource = readFileSync(new URL('../branding-member-preview.tsx', import.meta.url), 'utf8');
+const settingsSectionSource = readFileSync(new URL('../settings-section-page.tsx', import.meta.url), 'utf8');
 const websiteSource = readFileSync(new URL('../website/page.tsx', import.meta.url), 'utf8');
 
 const requiredBrandingKeys = [
@@ -52,10 +55,31 @@ const settingsEndpoint = '/admin/settings/website';
 test('branding settings retain every Member logo and system-image key', () => {
   assert.match(brandingSource, /group=["']branding["']/);
   assert.match(brandingSource, /preview=["']branding["']/);
+  assert.match(brandingSource, /\/settings\/branding\/preview/);
 
   for (const key of requiredBrandingKeys) {
     assert.match(brandingSource, new RegExp(`key:\\s*["']${key}["']`), `${key} must remain editable in Admin branding settings`);
   }
+});
+
+test('branding asset lifecycle keeps the shared upload transport and safe restore controls', () => {
+  assert.match(settingsSectionSource, /\/admin\/settings\/cms-assets/);
+  assert.match(settingsSectionSource, /Upload/);
+  assert.match(settingsSectionSource, /Replace/);
+  assert.match(settingsSectionSource, /Disable/);
+  assert.match(settingsSectionSource, /Restore/);
+  assert.match(settingsSectionSource, /disabled_url/);
+  assert.match(settingsSectionSource, /Save Changes/);
+});
+
+test('full-page branding preview supports desktop tablet and mobile contracts', () => {
+  assert.match(previewPageSource, /BrandingMemberPreview/);
+  assert.match(previewPageSource, /\/admin\/settings\/branding/);
+  assert.match(previewComponentSource, /desktop:\s*1180/);
+  assert.match(previewComponentSource, /tablet:\s*768/);
+  assert.match(previewComponentSource, /mobile:\s*390/);
+  assert.match(previewComponentSource, /data-preview-viewport/);
+  assert.match(previewComponentSource, /aria-label=["']Preview viewport["']/);
 });
 
 test('website settings retain Member-facing content keys and the existing API contract', () => {
