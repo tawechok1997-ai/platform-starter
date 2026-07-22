@@ -320,9 +320,9 @@
 
 ### /game-sessions
 
-- [ ] Compact session card
-- [ ] Timeline
-- [ ] Provider/member/game
+- [x] Compact session card
+- [x] Timeline
+- [x] Provider/member/game
 - [ ] Session detail drawer
 
 ### /game-transfers
