@@ -1,5 +1,7 @@
 import SettingsSectionPage from '../settings-section-page';
 
+const REFERENCE_LOGO = '/assets/reference-brand/header/noah345-logo.webp';
+
 export default function BrandingSettingsPage() {
   return (
     <SettingsSectionPage
@@ -7,27 +9,36 @@ export default function BrandingSettingsPage() {
       title="Branding Settings"
       description="ตั้งค่าโลโก้ สี ไอคอน และตัวอย่างหน้าตาแบรนด์ที่ Member ใช้งานจริง"
       preview="branding"
+      defaults={{
+        logo_url: REFERENCE_LOGO,
+        logo_horizontal_url: REFERENCE_LOGO,
+        logo_square_url: REFERENCE_LOGO,
+        logo_mobile_url: REFERENCE_LOGO,
+        logo_login_url: REFERENCE_LOGO,
+        logo_register_url: REFERENCE_LOGO,
+        favicon_url: REFERENCE_LOGO,
+      }}
       fields={[
         { key: 'brand_mark', label: 'Brand Mark', placeholder: 'เช่น P, K, ★ หรือชื่อย่อ' },
-        { key: 'logo_url', label: 'Primary Logo URL', placeholder: '/assets/reference-brand/header/noah345-logo.webp' },
-        { key: 'logo_horizontal_url', label: 'Horizontal Logo URL' },
-        { key: 'logo_square_url', label: 'Square Logo URL' },
-        { key: 'logo_mobile_url', label: 'Mobile Logo URL' },
-        { key: 'logo_login_url', label: 'Login Logo URL' },
-        { key: 'logo_register_url', label: 'Register Logo URL' },
-        { key: 'logo_dark_url', label: 'Dark Background Logo URL' },
-        { key: 'logo_light_url', label: 'Light Background Logo URL' },
-        { key: 'favicon_url', label: 'Favicon URL' },
-        { key: 'apple_touch_icon_url', label: 'Apple Touch Icon URL' },
-        { key: 'pwa_icon_url', label: 'PWA Icon URL' },
-        { key: 'open_graph_image_url', label: 'Open Graph Image URL' },
-        { key: 'default_avatar_url', label: 'Default Avatar URL' },
-        { key: 'game_placeholder_url', label: 'Game Placeholder URL' },
-        { key: 'promotion_placeholder_url', label: 'Promotion Placeholder URL' },
-        { key: 'app_icon_url', label: 'App Icon URL' },
-        { key: 'footer_logo_url', label: 'Footer Logo URL' },
-        { key: 'loading_logo_url', label: 'Loading Logo URL' },
-        { key: 'watermark_logo_url', label: 'Watermark Logo URL' },
+        { key: 'logo_url', label: 'Primary Logo URL', placeholder: REFERENCE_LOGO, asset: true, defaultValue: REFERENCE_LOGO },
+        { key: 'logo_horizontal_url', label: 'Horizontal Logo URL', asset: true, defaultValue: REFERENCE_LOGO },
+        { key: 'logo_square_url', label: 'Square Logo URL', asset: true, defaultValue: REFERENCE_LOGO },
+        { key: 'logo_mobile_url', label: 'Mobile Logo URL', asset: true, defaultValue: REFERENCE_LOGO },
+        { key: 'logo_login_url', label: 'Login Logo URL', asset: true, defaultValue: REFERENCE_LOGO },
+        { key: 'logo_register_url', label: 'Register Logo URL', asset: true, defaultValue: REFERENCE_LOGO },
+        { key: 'logo_dark_url', label: 'Dark Background Logo URL', asset: true },
+        { key: 'logo_light_url', label: 'Light Background Logo URL', asset: true },
+        { key: 'favicon_url', label: 'Favicon URL', asset: true, defaultValue: REFERENCE_LOGO },
+        { key: 'apple_touch_icon_url', label: 'Apple Touch Icon URL', asset: true },
+        { key: 'pwa_icon_url', label: 'PWA Icon URL', asset: true },
+        { key: 'open_graph_image_url', label: 'Open Graph Image URL', asset: true },
+        { key: 'default_avatar_url', label: 'Default Avatar URL', asset: true },
+        { key: 'game_placeholder_url', label: 'Game Placeholder URL', asset: true },
+        { key: 'promotion_placeholder_url', label: 'Promotion Placeholder URL', asset: true },
+        { key: 'app_icon_url', label: 'App Icon URL', asset: true },
+        { key: 'footer_logo_url', label: 'Footer Logo URL', asset: true },
+        { key: 'loading_logo_url', label: 'Loading Logo URL', asset: true },
+        { key: 'watermark_logo_url', label: 'Watermark Logo URL', asset: true },
         { key: 'primary_color', label: 'Primary Color', type: 'color' },
         { key: 'secondary_color', label: 'Secondary Color', type: 'color' },
         { key: 'accent_color', label: 'Accent Color', type: 'color' },
