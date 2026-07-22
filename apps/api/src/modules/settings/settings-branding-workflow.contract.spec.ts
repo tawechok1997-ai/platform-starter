@@ -4,7 +4,7 @@ import { join } from 'node:path';
 describe('branding settings workflow contract', () => {
   const controllerSource = readFileSync(join(__dirname, 'settings.controller.ts'), 'utf8');
   const serviceSource = readFileSync(join(__dirname, 'settings.service.ts'), 'utf8');
-  const seedSource = readFileSync(join(__dirname, '../../../../prisma/seed.ts'), 'utf8');
+  const seedSource = readFileSync(join(__dirname, '../../../../../prisma/seed.ts'), 'utf8');
 
   it('keeps separate edit and publish permissions', () => {
     expect(controllerSource).toContain("@RequirePermission('settings.branding.update')");
