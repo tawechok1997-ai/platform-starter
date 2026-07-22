@@ -31,14 +31,16 @@ export function buildHomeAnnouncements(content: CmsContent): HomeAnnouncementIte
 
 export function cleanAnnouncementText(value: unknown, maxLength: number) {
   if (typeof value !== 'string') return '';
-  const withoutControls = Array.from(value, (character) => {
-    const code = character.charCodeAt(0);
-    return code <= 31 || code === 127 ? ' ' : character;
-  }).join('');
-
-  return withoutControls
+  return stripControlCharacters(value)
     .replace(/[<>]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, Math.max(0, maxLength));
+}
+
+function stripControlCharacters(value: string) {
+  return Array.from(value, (character) => {
+    const codePoint = character.codePointAt(0) ?? 0;
+    return codePoint <= 31 || codePoint === 127 ? ' ' : character;
+  }).join('');
 }
