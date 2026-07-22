@@ -1,17 +1,17 @@
 import SettingsSectionPage from '../settings-section-page';
+import BrandingPublishPanel from './branding-publish-panel';
 
 const REFERENCE_LOGO = '/assets/reference-brand/header/noah345-logo.webp';
 
 export default function BrandingSettingsPage() {
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <a href="/settings/branding/preview">เปิด Preview เต็มหน้า: Desktop / Tablet / Mobile →</a>
-      </div>
+      <BrandingPublishPanel />
+      <div style={{ height: 12 }} />
       <SettingsSectionPage
         group="branding"
         title="Branding Settings"
-        description="ตั้งค่าโลโก้ สี ไอคอน และตัวอย่างหน้าตาแบรนด์ที่ Member ใช้งานจริง"
+        description="แก้ไขค่า Branding และกด Save Changes เพื่อบันทึกเป็น Draft จากนั้นตรวจ Preview ก่อน Publish"
         preview="branding"
         defaults={{
           logo_url: REFERENCE_LOGO,
