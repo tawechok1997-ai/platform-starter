@@ -7,6 +7,7 @@ const allowedExtensions = new Set(['.svg', '.png', '.jpg', '.jpeg', '.webp', '.a
 const requiredAssets = [
   'header/noah345-logo.webp',
   'header/th.svg',
+  'home/support-headset.webp',
   'menu/home.png',
   'menu/casino.png',
   'menu/slot.png',
