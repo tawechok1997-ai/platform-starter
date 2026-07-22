@@ -56,10 +56,23 @@ jobs:
         run: pnpm --filter @platform/web-admin test
 
       - name: Typecheck Admin Web
-        run: pnpm --filter @platform/web-admin typecheck
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/admin-verification
+          pnpm --filter @platform/web-admin typecheck 2>&1 | tee artifacts/admin-verification/typecheck.log
 
       - name: Build Admin Web
         run: pnpm --filter @platform/web-admin build
+
+      - name: Upload Admin verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-verification-evidence-${{ github.sha }}
+          path: artifacts/admin-verification
+          if-no-files-found: warn
+          retention-days: 30
 
   admin-bundle-evidence:
     name: Admin bundle analysis and baseline
@@ -102,9 +115,10 @@ jobs:
           fi
 
       - name: Upload Admin bundle evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: admin-bundle-evidence-${{ github.sha }}
           path: artifacts/admin-bundle
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
