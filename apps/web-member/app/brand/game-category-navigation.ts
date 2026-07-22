@@ -42,7 +42,7 @@ const DEFINITIONS: Array<{
   { key: 'slot', label: 'สล็อต', iconName: 'slot', aliases: ['slot', 'slots', 'slot-game'] },
   { key: 'live', label: 'คาสิโนสด', iconName: 'live', aliases: ['live', 'live-casino', 'livecasino'] },
   { key: 'sport', label: 'กีฬา', iconName: 'sport', aliases: ['sport', 'sports', 'sportbook', 'sportsbook'] },
-  { key: 'fishing', label: 'ยิงปลา', iconName: 'fishing', aliases: ['fishing', 'fish', 'shooting-fish'] },
+  { key: 'fishing', label: 'บิงปลา', iconName: 'fishing', aliases: ['fishing', 'fish', 'shooting-fish'] },
   { key: 'lottery', label: 'หวย', iconName: 'lottery', aliases: ['lottery', 'lotto', 'หวย'] },
   { key: 'card', label: 'ไพ่', iconName: 'card', aliases: ['card', 'cards', 'poker'] },
   { key: 'arcade', label: 'อาร์เคด', iconName: 'arcade', aliases: ['arcade', 'mini-game', 'minigame'] },
@@ -96,13 +96,14 @@ export function buildVisibleGameCategoryNavigation(
   const source = Array.isArray(categories)
     ? categories.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
     : [];
-  const seen = new Set<string>();
+  const seenCategories = new Set<string>();
+  const seenKeys = new Set<GameCategoryNavigationKey>(['home']);
   const entries: GameCategoryNavigationEntry[] = [{ ...config.home }];
 
   for (const rawCategory of source) {
     const normalized = normalizeCategory(rawCategory);
-    if (!normalized || seen.has(normalized)) continue;
-    seen.add(normalized);
+    if (!normalized || seenCategories.has(normalized)) continue;
+    seenCategories.add(normalized);
 
     const known = DEFINITIONS.find((definition) =>
       definition.key !== 'home' && definition.key !== 'other'
@@ -110,6 +111,8 @@ export function buildVisibleGameCategoryNavigation(
     );
 
     if (known) {
+      if (seenKeys.has(known.key)) continue;
+      seenKeys.add(known.key);
       const item = config[known.key];
       entries.push({ ...item, category: rawCategory.trim() });
       continue;
