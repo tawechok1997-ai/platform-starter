@@ -44,7 +44,7 @@
 - [x] ไม่มี Logout ซ้ำใน desktop shell
 - [~] Action hierarchy ยังไม่ได้ audit ครบทุกหน้า
 - [~] Disabled reason/helper มีบางหน้า แต่ยังไม่ครบทุก action
-- [~] Double-submit protection และ loading state มีใน Topups และบาง workflow แต่ยังไม่ครบทุก mutation
+- [~] Double-submit protection และ loading state มีใน Topups, Withdrawals และบาง workflow แต่ยังไม่ครบทุก mutation
 - [~] Icon button accessibility มีใน shared shell บางส่วน แต่ยังไม่ครบทุกหน้า
 - [~] Touch target 44px ยืนยันได้ใน shell/mobile controls บางส่วน ยังไม่ครบทุก interactive element
 - [~] Sidebar rail มี tooltip และ responsive drawer แต่ขนาด 272/72, flyout และ profile rail mode ยังไม่ยืนยันครบ
@@ -57,12 +57,12 @@
 - [x] แก้ THB NaN ใน `/game-transfers`
 - [x] Harden money formatting ไม่ให้ค่าที่ไม่ finite แสดงเป็น `NaN`
 - [x] แก้ Prisma/UUID error ใน `/member-insights`
-- [~] Raw backend error: ปิดแล้วใน Operations, Game Transfers, Member Insights, Topups และหน้าที่ปรับภาษาแล้วบางส่วน แต่ยังไม่ยืนยันครบทั้ง Admin
+- [~] Raw backend error: ปิดแล้วใน Operations, Game Transfers, Member Insights, Topups, Withdrawals และหน้าที่ปรับภาษาแล้วบางส่วน แต่ยังไม่ยืนยันครบทั้ง Admin
 - [x] เอา credential ตัวอย่างออกจาก seed และไม่สร้าง placeholder credential ใน preset ใหม่
 - [~] Demo/UAT/Production มี badge และ credential environment แต่ยังไม่ยืนยัน isolation ครบทุก workflow
 - [ ] 2FA setup และ recovery code warning ใน `/security`
 - [~] Audit log มีในระบบหลาย action แต่ยังไม่ยืนยันครบทุก action สำคัญ
-- [~] Confirmation มี shared dialog และใช้ในบาง flow แต่ยังไม่ครบ approve, reject, delete, pay และ permission change ทุกหน้า
+- [~] Confirmation มี shared dialog และใช้ใน Topups, Withdrawals และบาง flow แต่ยังไม่ครบ approve, reject, delete, pay และ permission change ทุกหน้า
 - [~] Permission/empty-data guards มีบางหน้า แต่ยังไม่ครบทุก action
 - [~] Idempotency, retry/reversal และ audit trace มีในระบบเงินจริงบางส่วน แต่ยังไม่ยืนยันครบทุก action เงิน
 
@@ -79,6 +79,21 @@
 - [~] ยังไม่ใช่ table contract เดียวกับ Withdrawals
 - [ ] Sticky filter
 - [ ] Proof drawer
+- [ ] Bulk review
+
+### `/withdrawals`
+
+- [x] แสดงยอดรวมของหน้าปัจจุบันและจำนวนรายการตามตัวกรอง
+- [x] แยกสถานะรอตรวจ รอโอน และรอยืนยันหลักฐาน
+- [x] Approve, Verify payment และ Reject เป็น action แยกกัน
+- [x] Reject บังคับระบุเหตุผลก่อนเปิด confirmation
+- [x] แสดงบัญชีธนาคารแบบ mask และแสดงหลักฐานการโอนก่อนยืนยันจ่าย
+- [x] ตรวจชนิดและขนาดไฟล์หลักฐาน พร้อมบังคับเลขอ้างอิง
+- [x] Loading, skeleton, empty state, pagination และข้อความผิดพลาดแบบปลอดภัย
+- [x] Busy guards ป้องกันกด action ซ้ำระหว่าง mutation
+- [x] Confirmation dialog แสดงสมาชิก บัญชี ยอดเงิน และเหตุผลก่อนทำ action
+- [~] Queue priority ยังอาศัย status filter ยังไม่มี priority score/SLA ordering
+- [ ] Proof drawer แยกสำหรับตรวจหลักฐาน
 - [ ] Bulk review
 
 ### `/operations`
@@ -148,6 +163,7 @@
 ไฟล์ `docs/admin-modernization-chat-worklist.md` มีสถานะซ้ำที่ขัดกันและต้องอ้างเอกสารนี้จนกว่าจะรวมสถานะกลับเข้าไฟล์หลัก เช่น:
 
 - Phase 1 ติ๊ก NaN ของ `/operations` และ `/game-transfers` แล้ว แต่หัวข้อย่อยของสองหน้ายังไม่ติ๊ก
+- `/withdrawals` ใน baseline ยังไม่ติ๊กหลายข้อที่โค้ดปัจจุบันทำแล้ว เช่นยอดรวม การแยก action เหตุผล reject และหลักฐานก่อนจ่าย
 - Global raw-error ยังไม่ควรติ๊ก แม้บางหน้าปิดปัญหาแล้ว
-- Global responsive/loading/permission ยังไม่ควรติ๊กจากหลักฐานเฉพาะ shell หรือหน้า Topups
+- Global responsive/loading/permission ยังไม่ควรติ๊กจากหลักฐานเฉพาะ shell หรือหน้า Topups/Withdrawals
 - Definition of Done ยังไม่ผ่านทั้งระบบ แม้ foundation หลายรายการเสร็จแล้ว
