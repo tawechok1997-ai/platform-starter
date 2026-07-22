@@ -29,6 +29,7 @@ Branch: `feature/member-branding-foundation`
 - ✅ เพิ่ม reference defaults ระหว่าง app defaults กับค่า runtime
 - ✅ ค่าเว็บไซต์ โลโก้ ข้อความ และไอคอนหมวดเกมอ่านผ่าน typed settings
 - ✅ เพิ่มชนิดข้อมูลรองรับ extended public icon settings
+- ✅ ถอด default asset path ที่ไม่มีไฟล์จริงออก ป้องกัน 404
 - 🧪 เพิ่ม tests ตรวจ reference defaults และ Admin override
 - 🧪 รัน Member test
 - 🧪 รัน Member typecheck
@@ -65,9 +66,11 @@ Branch: `feature/member-branding-foundation`
 - ✅ ค่าไอคอนที่ Admin ตั้งเองมีลำดับสูงกว่าค่าเริ่มต้น
 - ✅ เพิ่ม alias mapping สำหรับ category จาก Game API และ fallback สำหรับหมวดที่ไม่รู้จัก
 - ✅ เพิ่ม responsive category rail ตั้งแต่ 320px ถึง wide desktop
+- ✅ เพิ่มสคริปต์ sync asset ชุดเดียวจาก Member ไป Admin ก่อน dev/build
 - 🧪 รัน asset audit กับไฟล์ binary ที่นำเข้า
+- 🧪 ตรวจ Admin asset sync ระหว่าง build จริง
 - 🔄 ย้าย consumer อื่น เช่น Quick actions ให้ใช้ renderer กลางทีละส่วน
-- 🔄 นำเข้า asset Home/Promotion/Support สำคัญที่เหลือ
+- 🔄 นำเข้า asset Home/Promotion/Support ต้นฉบับที่เหลือเป็นไฟล์จริง
 
 ## Workstream D: Member Home Integration Contract
 
@@ -90,8 +93,9 @@ Branch: `feature/member-branding-foundation`
 - ✅ กำหนดค่าเริ่มต้นจากไฟล์ต้นแบบใน public settings normalizer
 - ✅ เชื่อมไอคอนเมนูและไอคอนหมวดเกมเข้าฟอร์ม `/settings/icons`
 - ✅ แสดงชื่อไฟล์ไทยเดิม ชื่ออังกฤษใหม่ และ path ค่าเริ่มต้นในฟอร์ม
-- ✅ เพิ่ม Preview ไอคอนแบบ responsive ในหน้าตั้งค่า
 - ✅ ค่าที่บันทึกจาก Admin เชื่อมกลับไปยังตำแหน่งเมนูเดิมผ่าน settings key เดียวกัน
+- ✅ แก้คำสั่ง Admin test ให้รวม `app/**/*.spec.ts`
+- 🧪 Preview ไอคอนแบบ responsive รอตรวจหลัง asset sync และ build
 - 🔄 เชื่อม field กลุ่ม Logo และข้อความสำคัญเข้าฟอร์ม Admin จริง
 - ⬜ เพิ่ม Upload/Replace/Disable/Restore สำหรับโลโก้และไอคอน
 - ⬜ เพิ่ม Preview Desktop/Tablet/Mobile ของหน้า Member เต็มหน้า
@@ -113,10 +117,11 @@ Branch: `feature/member-branding-foundation`
 
 ## งานที่เสร็จแล้วล่าสุด
 
-1. ✅ ตรวจชื่อไฟล์หมวดเกมภาษาไทยจาก RAR ต้นฉบับจริง
-2. ✅ ยืนยัน `หน้าเเรก.png → home.png`, `คาสิโน.png → casino.png`, `สล็อต.png → slot.png` และหมวดอื่น
-3. ✅ เพิ่ม config กลางเชื่อมชื่อไทย ชื่ออังกฤษ settings key และ default path
-4. ✅ เพิ่มฟิลด์หมวดเกมทั้งหมดใน `/settings/icons`
-5. ✅ เพิ่ม Preview รูปไอคอนจริงในหน้าตั้งค่า
-6. ✅ เชื่อมค่าที่ Admin บันทึกกลับ category rail เดิม
-7. 🧪 เพิ่ม regression tests แล้ว รอรัน test/typecheck/build
+1. ✅ แก้ Admin test script ให้รัน spec ใต้ `app/**`
+2. ✅ เพิ่ม `sync-reference-assets.mjs` เพื่อใช้ asset ชุดเดียวกันระหว่าง Member และ Admin
+3. ✅ ผูก asset sync เข้ากับ Admin dev, analyze และ build
+4. ✅ ถอด path ของ Home asset ที่ยังไม่มีไฟล์ออกจาก runtime defaults
+5. ✅ เปลี่ยน Announcement และ Support fallback ไปใช้ไฟล์เมนูที่มีจริง
+6. 🧪 Preview Admin รอตรวจด้วย build จริง
+7. 🔄 ไฟล์ต้นฉบับ Announcement/Jackpot/Promotion background/Support ถูกตรวจใน RAR แล้ว แต่ยังไม่ถือว่านำเข้า GitHub จนกว่าจะมี commit ไฟล์จริง
+8. 🧪 Test, typecheck และ production build ยังไม่ถูกรัน
