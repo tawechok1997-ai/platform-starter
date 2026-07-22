@@ -32,7 +32,9 @@ test('every game category settings key uses a project-local image path', () => {
   assert.equal(GAME_CATEGORY_ICON_DEFINITIONS.length, 12);
   for (const definition of GAME_CATEGORY_ICON_DEFINITIONS) {
     assert.match(definition.key, /^game_category_[a-z]+_icon$/);
-    assert.match(ICON_SETTINGS_DEFAULTS[definition.key], /^\/assets\/reference-brand\/menu\/[a-z-]+\.png$/);
+    const value = ICON_SETTINGS_DEFAULTS[definition.key];
+    assert.ok(value, `${definition.key} default must exist`);
+    assert.match(value, /^\/assets\/reference-brand\/menu\/[a-z-]+\.png$/);
   }
 });
 
