@@ -89,7 +89,7 @@ test.describe('KYC responsive regression', () => {
     await page.goto('http://127.0.0.1:3101/kyc');
     await expect(page.getByRole('heading', { name: /ยืนยันตัวตน|KYC/i })).toBeVisible();
     await expect(page.getByText('selfie.png')).toBeVisible();
-    await expect(page.getByRole('button', { name: /ส่งตรวจ/ })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'ส่งคำขอตรวจ' })).toBeDisabled();
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
     expect(overflow).toBe(false);
