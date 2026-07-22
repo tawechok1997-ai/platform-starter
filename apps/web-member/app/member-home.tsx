@@ -22,7 +22,7 @@ import { createGameCategoryNavigationConfig } from './brand/game-category-naviga
 import { useMemberHomeData } from './hooks/use-member-home-data';
 import { useSiteSettings } from './site-settings-provider';
 
- type MemberHomeProps = {
+type MemberHomeProps = {
   siteName: string;
   description: string;
   primaryColor: string;
