@@ -87,7 +87,7 @@ export const DEFAULT_REFERENCE_ASSETS: ReferenceAssetSettings = {
   announcementIcon: `${ROOT}/menu/news.png`,
   jackpotImage: '',
   promotionCardBackground: '',
-  supportIcon: `${ROOT}/menu/support.png`,
+  supportIcon: `${ROOT}/home/support-headset.webp`,
 };
 
 export const DEFAULT_REFERENCE_MENU_ICONS: ReferenceMenuIconSettings = {
