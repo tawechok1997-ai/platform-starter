@@ -32,7 +32,7 @@ export default function GameApiSettingsPage() {
   const [messageTone, setMessageTone] = useState<NoticeTone>('neutral');
   useEffect(() => { void loadProviders(); }, []);
   useEffect(() => { if (providerId) void loadProvider(providerId); else { setDetail(null); setPreflight(null); } }, [providerId]);
-  const requiredEndpoints = useMemo<readonly string[]>(() => requiredByWalletMode[detail?.walletMode ?? 'TRANSFER'] ?? TRANSFER_REQUIRED_ENDPOINTS, [detail?.walletMode]);
+  const requiredEndpoints = useMemo<readonly string[]>(() => requiredByWalletMode[detail?.walletMode ?? 'TRANSFER'] ?? requiredByWalletMode.TRANSFER ?? [], [detail?.walletMode]);
   const endpointStatus = useMemo(() => requiredEndpoints.map((type) => ({ type, item: detail?.endpoints.find((endpoint) => endpoint.type === type), ok: Boolean(detail?.endpoints.find((endpoint) => endpoint.type === type)?.isEnabled) })), [detail?.endpoints, requiredEndpoints]);
   const enabledCredentials = detail?.credentials.filter((item) => item.isEnabled).length ?? 0;
   const flags = gateFlags(detail?.metadata, preflight?.flags);
