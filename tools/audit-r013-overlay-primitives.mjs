@@ -5,7 +5,7 @@ const files = {
   adminLayout: 'apps/web-admin/app/layout.tsx',
   memberLayout: 'apps/web-member/app/layout.tsx',
   drawer: 'apps/web-member/app/member-chrome.tsx',
-  confirm: 'apps/web-member/app/components/member-finance-flow.tsx',
+  confirm: 'apps/web-member/src/features/finance/finance-components.tsx',
 };
 
 const source = Object.fromEntries(await Promise.all(Object.entries(files).map(async ([key, path]) => [key, await readFile(path, 'utf8')])));
