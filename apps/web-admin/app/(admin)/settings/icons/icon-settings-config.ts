@@ -7,6 +7,12 @@ type IconSettingsDefinition = {
   sourceFile: string;
 };
 
+type TextIconSettingsDefinition = {
+  key: string;
+  label: string;
+  defaultValue: string;
+};
+
 const PRIMARY_MENU_ICONS: IconSettingsDefinition[] = [
   { key: 'home', label: 'เมนูหน้าแรก', outputFile: 'home.png', sourceFile: 'หน้าเเรก.png' },
   { key: 'deposit', label: 'เมนูฝากเงิน', outputFile: 'deposit.png', sourceFile: 'ฝาก.png' },
@@ -18,6 +24,13 @@ const PRIMARY_MENU_ICONS: IconSettingsDefinition[] = [
   { key: 'support', label: 'เมนูบริการลูกค้า', outputFile: 'support.png', sourceFile: 'บริการลูกค้า.png' },
   { key: 'history', label: 'เมนูประวัติ', outputFile: 'history.png', sourceFile: 'ประวัตื.png' },
   { key: 'notification', label: 'เมนูแจ้งเตือน', outputFile: 'notification.png', sourceFile: 'เเจ้งเตอน.png' },
+];
+
+const LEGACY_TEXT_ICONS: TextIconSettingsDefinition[] = [
+  { key: 'bank', label: 'เมนูบัญชีธนาคาร', defaultValue: '◈' },
+  { key: 'profile', label: 'เมนูโปรไฟล์', defaultValue: '👤' },
+  { key: 'vip', label: 'เมนู VIP', defaultValue: '♛' },
+  { key: 'wallet', label: 'เมนูยอดเงิน', defaultValue: '฿' },
 ];
 
 export const GAME_CATEGORY_ICON_DEFINITIONS: IconSettingsDefinition[] = [
@@ -35,17 +48,30 @@ export const GAME_CATEGORY_ICON_DEFINITIONS: IconSettingsDefinition[] = [
   { key: 'game_category_other_icon', label: 'หมวดเกม: หมวดอื่นจาก API', outputFile: 'home.png', sourceFile: 'หน้าเเรก.png' },
 ];
 
-const ALL_DEFINITIONS = [...PRIMARY_MENU_ICONS, ...GAME_CATEGORY_ICON_DEFINITIONS];
+const ALL_IMAGE_DEFINITIONS = [...PRIMARY_MENU_ICONS, ...GAME_CATEGORY_ICON_DEFINITIONS];
 
-export const ICON_SETTINGS_DEFAULTS: Record<string, string> = Object.fromEntries(
-  ALL_DEFINITIONS.map((item) => [item.key, `${MENU_ROOT}/${item.outputFile}`]),
-);
+export const ICON_SETTINGS_DEFAULTS: Record<string, string> = {
+  ...Object.fromEntries(ALL_IMAGE_DEFINITIONS.map((item) => [item.key, `${MENU_ROOT}/${item.outputFile}`])),
+  ...Object.fromEntries(LEGACY_TEXT_ICONS.map((item) => [item.key, item.defaultValue])),
+};
 
-export const ICON_SETTINGS_FIELDS = ALL_DEFINITIONS.map((item) => ({
-  key: item.key,
-  label: `${item.label} (${item.sourceFile} → ${item.outputFile})`,
-  placeholder: `${MENU_ROOT}/${item.outputFile}`,
-}));
+export const ICON_SETTINGS_FIELDS = [
+  ...PRIMARY_MENU_ICONS.map((item) => ({
+    key: item.key,
+    label: `${item.label} (${item.sourceFile} → ${item.outputFile})`,
+    placeholder: `${MENU_ROOT}/${item.outputFile}`,
+  })),
+  ...LEGACY_TEXT_ICONS.map((item) => ({
+    key: item.key,
+    label: `${item.label} (ยังใช้ fallback เดิม)`,
+    placeholder: item.defaultValue,
+  })),
+  ...GAME_CATEGORY_ICON_DEFINITIONS.map((item) => ({
+    key: item.key,
+    label: `${item.label} (${item.sourceFile} → ${item.outputFile})`,
+    placeholder: `${MENU_ROOT}/${item.outputFile}`,
+  })),
+];
 
 export function referenceIconPath(outputFile: string) {
   return `${MENU_ROOT}/${outputFile}`;
