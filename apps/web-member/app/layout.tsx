@@ -28,6 +28,7 @@ import './member-withdraw-flow.css';
 import './member-withdraw-contract.css';
 import './member-finance-market.css';
 import './member-games.css';
+import './member-game-category-navigation.css';
 import './games/games.css';
 import './games/lobby-enhancements.css';
 import './games/provider-lobby.css';
