@@ -10,6 +10,7 @@ overrides:
   react-dom: 19.2.7
   postcss: 8.5.10
   effect: 3.20.0
+  sharp: 0.35.0
 
 allowBuilds:
   '@prisma/client': true
