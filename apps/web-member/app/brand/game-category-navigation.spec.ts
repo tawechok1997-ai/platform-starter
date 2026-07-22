@@ -11,13 +11,14 @@ function settings(overrides: PublicSiteSettings = {}): PublicSiteSettings {
   return { website: {}, icons: {}, ...overrides };
 }
 
-test('uses reference defaults for main game category menu', () => {
+test('uses safe built-in fallbacks for main game category menu', () => {
   const config = createGameCategoryNavigationConfig(settings());
   assert.equal(config.home.label, 'หน้าหลัก');
   assert.equal(config.casino.label, 'คาสิโน');
   assert.equal(config.slot.label, 'สล็อต');
-  assert.match(config.home.iconValue, /\/assets\/reference-brand\/menu\/home\.png$/);
-  assert.match(config.live.iconValue, /\/assets\/reference-brand\/menu\/live\.png$/);
+  assert.equal(config.home.iconValue, '⌂');
+  assert.equal(config.live.iconValue, '●');
+  assert.equal(config.fishing.label, 'เกมตกปลา');
 });
 
 test('accepts labels and icons from settings', () => {
@@ -38,11 +39,12 @@ test('accepts labels and icons from settings', () => {
   assert.equal(config.fishing.iconValue, '🐟');
 });
 
-test('rejects unsafe configured icon values', () => {
+test('rejects unsafe configured icon values without introducing a missing asset request', () => {
   const config = createGameCategoryNavigationConfig(settings({
     icons: { game_category_slot_icon: 'javascript:alert(1)' },
   }));
-  assert.match(config.slot.iconValue, /\/assets\/reference-brand\/menu\/slot\.png$/);
+  assert.equal(config.slot.iconValue, '▦');
+  assert.equal(config.slot.iconValue.startsWith('/'), false);
 });
 
 test('maps API categories, removes duplicates, and keeps unknown categories', () => {
