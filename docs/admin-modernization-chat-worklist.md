@@ -313,10 +313,10 @@
 
 ### /games
 
-- [ ] Search/filter
-- [ ] Provider/status/category
-- [ ] Bulk enable/disable
-- [ ] Game preview
+- [x] Search/filter
+- [x] Provider/status/category
+- [x] Bulk enable/disable + confirmation
+- [x] Game preview
 
 ### /game-sessions
 
