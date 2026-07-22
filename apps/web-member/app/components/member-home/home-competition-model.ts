@@ -74,9 +74,10 @@ function safeMoneyLabel(value: unknown, fallback: string) {
 
 function maskUser(value: unknown) {
   if (typeof value !== 'string') return '';
-  const clean = value.trim().replace(/[^A-Za-z0-9_-]/g, '').slice(0, 24);
+  const localPart = value.trim().split('@', 1)[0] ?? '';
+  const clean = localPart.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 24);
   if (!clean) return '';
-  if (clean.length <= 6) return clean;
+  if (clean.length <= 4) return clean;
   return `${clean.slice(0, 2)}XXX${clean.slice(-4)}`;
 }
 
