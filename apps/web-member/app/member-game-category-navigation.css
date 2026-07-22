@@ -1,0 +1,119 @@
+.member-game-category-navigation {
+  display: grid;
+  gap: var(--space-3, 0.75rem);
+  min-width: 0;
+}
+
+.member-game-category-navigation__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 0.75rem);
+}
+
+.member-game-category-navigation__head h2 {
+  margin: 0;
+  color: var(--color-text-primary, #fff);
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  line-height: 1.25;
+}
+
+.member-game-category-navigation__head a {
+  color: var(--color-text-muted, #aeb7cf);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.member-game-category-navigation__head a:hover,
+.member-game-category-navigation__head a:focus-visible {
+  color: var(--color-text-primary, #fff);
+}
+
+.member-game-category-navigation__rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(5.25rem, 1fr);
+  gap: var(--space-3, 0.75rem);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline proximity;
+  scrollbar-width: thin;
+  padding-block-end: 0.25rem;
+}
+
+.member-game-category-navigation__item {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.5rem;
+  min-height: 5.5rem;
+  padding: 0.75rem 0.625rem;
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-lg, 0.875rem);
+  background: var(--color-surface-raised, rgba(20, 29, 55, 0.9));
+  color: var(--color-text-primary, #fff);
+  text-decoration: none;
+  scroll-snap-align: start;
+  transition:
+    transform var(--motion-duration-fast, 150ms) ease,
+    border-color var(--motion-duration-fast, 150ms) ease,
+    background-color var(--motion-duration-fast, 150ms) ease;
+}
+
+.member-game-category-navigation__item:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong, rgba(128, 112, 255, 0.65));
+}
+
+.member-game-category-navigation__item:focus-visible {
+  outline: 2px solid var(--color-focus-ring, #8b7cff);
+  outline-offset: 2px;
+}
+
+.member-game-category-navigation__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+}
+
+.member-game-category-navigation__icon .brand-icon--image {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}
+
+.member-game-category-navigation__icon .brand-icon--text {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.member-game-category-navigation__label {
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+@media (min-width: 48rem) {
+  .member-game-category-navigation__rail {
+    grid-auto-columns: minmax(6.25rem, 1fr);
+  }
+
+  .member-game-category-navigation__item {
+    min-height: 6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-game-category-navigation__item {
+    transition: none;
+  }
+
+  .member-game-category-navigation__item:hover {
+    transform: none;
+  }
+}
