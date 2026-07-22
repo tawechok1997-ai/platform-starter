@@ -25,7 +25,9 @@ export class SettingsController {
   @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.view') @Get('admin/settings/branding')
   getBranding() { return this.settingsService.getAdminGroup('branding'); }
   @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.update') @Put('admin/settings/branding')
-  updateBranding(@Body() body: SettingsUpdateRequest, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) { return this.update('branding', body, user, req); }
+  updateBranding(@Body() body: SettingsUpdateRequest, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
+    return this.settingsService.saveAdminDraft('branding', body, user, this.meta(req));
+  }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.view') @Get('admin/settings/branding/draft')
   getBrandingDraft() { return this.settingsService.getAdminDraft('branding'); }
