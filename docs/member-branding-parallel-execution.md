@@ -55,6 +55,7 @@ Branch: `feature/member-branding-foundation`
 - ✅ ไม่รับ JS, API URL, Cookie และ Auth code จาก static package
 - ✅ นำเข้าไอคอนเมนูต้นแบบเป็นไฟล์ PNG ชื่อคงที่
 - ✅ นำเข้าไอคอน หน้าหลัก/คาสิโน/สล็อต/คาสิโนสด/กีฬา/ยิงปลา/หวย/ไพ่
+- ✅ ยืนยัน mapping จากชื่อไทยจริงใน RAR ไปชื่ออังกฤษในโปรเจกต์
 - ✅ นำเข้าไอคอน ฝาก/ถอน/โปรโมชั่น/โบนัส/Affiliate/Support/ประวัติ/แจ้งเตือน
 - ✅ นำเข้าไอคอน กิจกรรม/ข่าวสาร/แนะนำ สำหรับ fallback ของหมวดเสริม
 - ✅ เพิ่ม manifest ระบุ source path, output path และ SHA-256
@@ -87,9 +88,13 @@ Branch: `feature/member-branding-foundation`
 
 - ✅ ทำ field inventory สำหรับ Brand asset, menu icon, game category label/icon และข้อความสำคัญ
 - ✅ กำหนดค่าเริ่มต้นจากไฟล์ต้นแบบใน public settings normalizer
-- ⬜ เชื่อม field inventory เข้าฟอร์ม Admin จริง
+- ✅ เชื่อมไอคอนเมนูและไอคอนหมวดเกมเข้าฟอร์ม `/settings/icons`
+- ✅ แสดงชื่อไฟล์ไทยเดิม ชื่ออังกฤษใหม่ และ path ค่าเริ่มต้นในฟอร์ม
+- ✅ เพิ่ม Preview ไอคอนแบบ responsive ในหน้าตั้งค่า
+- ✅ ค่าที่บันทึกจาก Admin เชื่อมกลับไปยังตำแหน่งเมนูเดิมผ่าน settings key เดียวกัน
+- 🔄 เชื่อม field กลุ่ม Logo และข้อความสำคัญเข้าฟอร์ม Admin จริง
 - ⬜ เพิ่ม Upload/Replace/Disable/Restore สำหรับโลโก้และไอคอน
-- ⬜ เพิ่ม Preview Desktop/Tablet/Mobile
+- ⬜ เพิ่ม Preview Desktop/Tablet/Mobile ของหน้า Member เต็มหน้า
 - ⬜ ออกแบบ Draft/Publish/Version/Rollback แบบย้อนหลังได้
 - ⬜ แยกสิทธิ์ Edit และ Publish
 - ⬜ เพิ่ม Audit log
@@ -108,10 +113,10 @@ Branch: `feature/member-branding-foundation`
 
 ## งานที่เสร็จแล้วล่าสุด
 
-1. ✅ นำเข้าไอคอนเมนูและหมวดเกมจากไฟล์ต้นแบบเข้าโปรเจกต์
-2. ✅ นำเข้าโลโก้เว็บและไอคอนภาษาไทย
-3. ✅ เพิ่ม defaults module สำหรับ Brand asset, ข้อความ และไอคอน
-4. ✅ เชื่อม defaults เข้ากับ typed settings โดยรักษา Admin override
-5. ✅ เชื่อมเมนู Desktop/Drawer/Bottom/Header notification กับไอคอน Settings
-6. ✅ แทน category rail แบบ hardcode ด้วย rail ที่อ่าน label/icon จาก Settings
+1. ✅ ตรวจชื่อไฟล์หมวดเกมภาษาไทยจาก RAR ต้นฉบับจริง
+2. ✅ ยืนยัน `หน้าเเรก.png → home.png`, `คาสิโน.png → casino.png`, `สล็อต.png → slot.png` และหมวดอื่น
+3. ✅ เพิ่ม config กลางเชื่อมชื่อไทย ชื่ออังกฤษ settings key และ default path
+4. ✅ เพิ่มฟิลด์หมวดเกมทั้งหมดใน `/settings/icons`
+5. ✅ เพิ่ม Preview รูปไอคอนจริงในหน้าตั้งค่า
+6. ✅ เชื่อมค่าที่ Admin บันทึกกลับ category rail เดิม
 7. 🧪 เพิ่ม regression tests แล้ว รอรัน test/typecheck/build
