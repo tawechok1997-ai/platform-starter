@@ -30,10 +30,10 @@ Branch: `feature/member-branding-foundation`
 - ✅ ค่าเว็บไซต์ โลโก้ ข้อความ และไอคอนหมวดเกมอ่านผ่าน typed settings
 - ✅ เพิ่มชนิดข้อมูลรองรับ extended public icon settings
 - ✅ ถอด default asset path ที่ไม่มีไฟล์จริงออก ป้องกัน 404
-- 🧪 เพิ่ม tests ตรวจ reference defaults และ Admin override
-- 🧪 รัน Member test
-- 🧪 รัน Member typecheck
-- 🧪 รัน Member build
+- ✅ เพิ่ม tests ตรวจ reference defaults และ Admin override
+- ✅ รัน Member test
+- ✅ รัน Member typecheck
+- ✅ รัน Member build
 
 ## Workstream B: Auth Branding Foundation
 
@@ -67,8 +67,8 @@ Branch: `feature/member-branding-foundation`
 - ✅ เพิ่ม alias mapping สำหรับ category จาก Game API และ fallback สำหรับหมวดที่ไม่รู้จัก
 - ✅ เพิ่ม responsive category rail ตั้งแต่ 320px ถึง wide desktop
 - ✅ เพิ่มสคริปต์ sync asset ชุดเดียวจาก Member ไป Admin ก่อน dev/build
-- 🧪 รัน asset audit กับไฟล์ binary ที่นำเข้า
-- 🧪 ตรวจ Admin asset sync ระหว่าง build จริง
+- ✅ รัน asset audit กับไฟล์ binary ที่นำเข้า
+- ✅ ตรวจ Admin asset sync ระหว่าง build จริง
 - 🔄 ย้าย consumer อื่น เช่น Quick actions ให้ใช้ renderer กลางทีละส่วน
 - 🔄 นำเข้า asset Home/Promotion/Support ต้นฉบับที่เหลือเป็นไฟล์จริง
 
@@ -95,7 +95,7 @@ Branch: `feature/member-branding-foundation`
 - ✅ แสดงชื่อไฟล์ไทยเดิม ชื่ออังกฤษใหม่ และ path ค่าเริ่มต้นในฟอร์ม
 - ✅ ค่าที่บันทึกจาก Admin เชื่อมกลับไปยังตำแหน่งเมนูเดิมผ่าน settings key เดียวกัน
 - ✅ แก้คำสั่ง Admin test ให้รวม `app/**/*.spec.ts`
-- 🧪 Preview ไอคอนแบบ responsive รอตรวจหลัง asset sync และ build
+- 🧪 Preview ไอคอนแบบ responsive รอตรวจด้วย browser จริง
 - 🔄 เชื่อม field กลุ่ม Logo และข้อความสำคัญเข้าฟอร์ม Admin จริง
 - ⬜ เพิ่ม Upload/Replace/Disable/Restore สำหรับโลโก้และไอคอน
 - ⬜ เพิ่ม Preview Desktop/Tablet/Mobile ของหน้า Member เต็มหน้า
@@ -105,15 +105,15 @@ Branch: `feature/member-branding-foundation`
 
 ## Gate ก่อนเปิด Pull Request
 
-- 🧪 Unit tests ผ่าน
-- 🧪 Typecheck ผ่าน
-- 🧪 Production build ผ่าน
-- ⬜ ไม่มี route เดิมเสีย
-- ⬜ ไม่มี API contract เปลี่ยนโดยไม่ตั้งใจ
-- ⬜ ไม่มี CSS global ทับหน้าอื่น
+- ✅ Unit tests ผ่าน
+- ✅ Typecheck ผ่าน
+- ✅ Production build ผ่าน
+- 🧪 ไม่มี route เดิมเสีย รอ final browser regression
+- ✅ ไม่มี API contract เปลี่ยนโดยไม่ตั้งใจตาม architecture/contract audits
+- 🧪 ไม่มี CSS global ทับหน้าอื่น รอ final visual regression รอบสะอาด
 - ✅ มี manifest, source mapping และ rollback note ระดับ foundation
-- 🔄 อัปเดต branch ให้ตรงกับ `main`
-- ⬜ เปิด Draft PR เพื่อรีวิวก่อน merge
+- ✅ อัปเดต branch ให้ตรงกับ `main`
+- ✅ เปิด Draft PR `#105` เพื่อรีวิวก่อน merge
 
 ## งานที่เสร็จแล้วล่าสุด
 
@@ -122,6 +122,8 @@ Branch: `feature/member-branding-foundation`
 3. ✅ ผูก asset sync เข้ากับ Admin dev, analyze และ build
 4. ✅ ถอด path ของ Home asset ที่ยังไม่มีไฟล์ออกจาก runtime defaults
 5. ✅ เปลี่ยน Announcement และ Support fallback ไปใช้ไฟล์เมนูที่มีจริง
-6. 🧪 Preview Admin รอตรวจด้วย build จริง
-7. 🔄 ไฟล์ต้นฉบับ Announcement/Jackpot/Promotion background/Support ถูกตรวจใน RAR แล้ว แต่ยังไม่ถือว่านำเข้า GitHub จนกว่าจะมี commit ไฟล์จริง
-8. 🧪 Test, typecheck และ production build ยังไม่ถูกรัน
+6. ✅ Member/Admin test, typecheck และ production build ผ่าน
+7. ✅ R009, R012 และ R013 audits ผ่านบน branch ล่าสุด
+8. ✅ Sync branch กับ `main` ด้วย merge commit โดยไม่ force push
+9. 🔄 ไฟล์ต้นฉบับ Announcement/Jackpot/Promotion background/Support ถูกตรวจใน RAR แล้ว แต่ยังไม่ถือว่านำเข้า GitHub จนกว่าจะมี commit ไฟล์จริง
+10. 🔄 เหลือ visual polish, browser comparison, Admin Branding workflow ขั้นสูง และ final clean CI
