@@ -3,6 +3,8 @@
 > สร้างจากลิสที่ตกลงกันในแชทเมื่อ 2026-07-21/22
 >
 > เอกสารนี้ใช้ติดตามงานปรับ Web Admin ชุดนี้โดยเฉพาะ และไม่อ้างอิงสถานะเสร็จจาก worklist เก่าโดยอัตโนมัติ
+>
+> สถานะที่ตรวจจากโค้ดจริงและหลักฐาน merge อยู่ใน [`admin-modernization-code-audit-status.md`](./admin-modernization-code-audit-status.md)
 
 สถานะเริ่มต้น: ต้อง audit โค้ดจริงก่อนติ๊กแต่ละข้อ
 
@@ -107,7 +109,7 @@
 - [ ] SLA และเวลาค้าง
 - [ ] Priority filter
 - [ ] ใช้ภาษาธุรกิจ
-- [ ] แก้ THB NaN
+- [x] แก้ THB NaN
 - [ ] Action drawer ต่อรายการ
 
 ### /activity-center
@@ -126,17 +128,17 @@
 - [ ] Table เดียวกับ withdrawals
 - [ ] Sticky filter
 - [ ] Proof drawer
-- [ ] สถานะตาม workflow
+- [x] สถานะตาม workflow
 - [ ] Bulk review พร้อม confirmation
 
 ### /withdrawals
 
 - [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
-- [ ] ยอดรวมและจำนวนรายการ
+- [x] ยอดรวมและจำนวนรายการ
 - [ ] Queue priority
-- [ ] Approve/Reject แยกชัด
-- [ ] Reject ต้องใส่เหตุผล
-- [ ] แสดงหลักฐานก่อนจ่ายเงิน
+- [x] Approve/Reject แยกชัด
+- [x] Reject ต้องใส่เหตุผล
+- [x] แสดงหลักฐานก่อนจ่ายเงิน
 
 ### /bulk-queue-operations
 
@@ -199,9 +201,9 @@
 ### /exports
 
 - [ ] ประเภทไฟล์และช่วงวันที่
-- [ ] Progress status
-- [ ] Retry
-- [ ] Export history pagination
+- [x] Progress status
+- [x] Retry
+- [x] Export history pagination
 - [ ] แจ้งจำนวนแถวก่อนดาวน์โหลด
 
 ## Members
@@ -327,7 +329,7 @@
 
 ### /game-transfers
 
-- [ ] แก้ THB NaN
+- [x] แก้ THB NaN
 - [ ] Transfer direction
 - [ ] Idempotency key
 - [ ] Success/Pending/Failed
@@ -502,7 +504,7 @@
 - [ ] Action สำคัญมี confirmation และ audit
 - [ ] ภาษา วันที่ ตัวเลข และ status เป็นมาตรฐานเดียวกัน
 - [ ] ไม่มีเมนู/ปุ่ม/Profile/Logout ซ้ำ
-- [ ] Overlay เปิดชนกันไม่ได้
+- [x] Overlay เปิดชนกันไม่ได้
 - [ ] ไม่มี route legacy หรือลิงก์เสียใน menu/dropdown/Command Palette
 - [ ] Desktop rail, tablet, mobile drawer ผ่าน responsive และ permission check
 - [ ] Action เสี่ยงมี automated regression ก่อน deploy
