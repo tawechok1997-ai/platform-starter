@@ -15,6 +15,7 @@ const TABLE_RANK = new Map([
   ['kyc_documents', 10],
   ['watchlist_entries', 10],
   ['risk_watchlist_entries', 10],
+  ['risk_alerts', 10],
   ['promotion_settlements', 10],
   ['bonus_ledgers', 10],
   ['admin_users', 20],
