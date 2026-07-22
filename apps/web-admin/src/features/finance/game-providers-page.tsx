@@ -47,15 +47,7 @@ export default function GameProvidersPage() {
 
   useEffect(() => { void loadProviders(); }, []);
   const metrics = useMemo(() => ({ total: items.length, active: items.filter((item) => item.status === 'ACTIVE').length, attention: items.filter((item) => item.status === 'MAINTENANCE' || item.status === 'DEGRADED').length, games: items.reduce((sum, item) => sum + Number(item._count?.games ?? 0), 0) }), [items]);
-  const visibleItems = useMemo(() => {
-    const keyword = query.trim().toLowerCase();
-    return items.filter((item) => {
-      const attention = item.status === 'MAINTENANCE' || item.status === 'DEGRADED';
-      return (!keyword || `${item.name} ${item.code}`.toLowerCase().includes(keyword))
-        && (statusFilter === 'ALL' || item.status === statusFilter)
-        && (healthFilter === 'ALL' || (healthFilter === 'ATTENTION' ? attention : !attention));
-    });
-  }, [items, query, statusFilter, healthFilter]);
+  const visibleItems = useMemo(() => { const keyword = query.trim().toLowerCase(); return items.filter((item) => { const attention = item.status === 'MAINTENANCE' || item.status === 'DEGRADED'; return (!keyword || `${item.name} ${item.code}`.toLowerCase().includes(keyword)) && (statusFilter === 'ALL' || item.status === statusFilter) && (healthFilter === 'ALL' || (healthFilter === 'ATTENTION' ? attention : !attention)); }); }, [items, query, statusFilter, healthFilter]);
   const readiness = health?.readiness ?? detail?.readiness;
 
   async function loadProviders() {
@@ -64,7 +56,7 @@ export default function GameProvidersPage() {
     const res = await adminApiFetch('/admin/game-providers');
     const data = await res.json().catch(() => null);
     setLoading(false);
-    if (!res.ok) { setMessage(data?.message ?? 'โหลดค่ายเกมไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('โหลดค่ายเกมไม่สำเร็จ'); return; }
     setItems(data.items ?? []);
     setMessage('');
   }
@@ -73,7 +65,7 @@ export default function GameProvidersPage() {
     setMessage('กำลังโหลดรายละเอียดค่ายเกม...');
     const res = await adminApiFetch(`/admin/game-providers/${id}`);
     const data = await res.json().catch(() => null);
-    if (!res.ok) { setMessage(data?.message ?? 'โหลดรายละเอียดค่ายเกมไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('โหลดรายละเอียดค่ายเกมไม่สำเร็จ'); return; }
     setDetail(data);
     setHealth(null);
     setSyncResult(null);
@@ -109,7 +101,7 @@ export default function GameProvidersPage() {
     const res = await adminApiFetch(form.id ? `/admin/game-providers/${form.id}` : '/admin/game-providers', { method: form.id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
     const data = await res.json().catch(() => null);
     setSaving(false);
-    if (!res.ok) { setMessage(data?.message ?? 'บันทึกค่ายเกมไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('บันทึกค่ายเกมไม่สำเร็จ'); return; }
     setMessage(form.id ? 'บันทึกข้อมูลค่ายเกมแล้ว' : 'เพิ่มค่ายเกมแล้ว');
     setForm(emptyForm);
     setDetail(null);
@@ -122,7 +114,7 @@ export default function GameProvidersPage() {
       const { provider, status } = pendingAction;
       const res = await adminApiFetch(`/admin/game-providers/${provider.id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
       const data = await res.json().catch(() => null);
-      if (!res.ok) { setMessage(data?.message ?? 'เปลี่ยนสถานะไม่สำเร็จ'); return; }
+      if (!res.ok) { setMessage('เปลี่ยนสถานะไม่สำเร็จ'); return; }
       setItems((current) => current.map((item) => item.id === provider.id ? { ...item, ...data } : item));
       if (detail?.id === provider.id) setDetail((current) => current ? { ...current, ...data } : current);
       setMessage(`เปลี่ยนสถานะ ${provider.name} เป็น ${statusLabel(status)} แล้ว`);
@@ -135,7 +127,7 @@ export default function GameProvidersPage() {
       const res = await adminApiFetch(`/admin/game-providers/${provider.id}/sync-games`, { method: 'POST' });
       const data = await res.json().catch(() => null);
       setSyncing(false);
-      if (!res.ok) { setMessage(data?.message ?? 'ซิงก์เกมไม่สำเร็จ'); return; }
+      if (!res.ok) { setMessage('ซิงก์เกมไม่สำเร็จ'); return; }
       setSyncResult(data);
       setMessage(`ซิงก์เกมแล้ว: เพิ่ม ${data.created ?? 0}, อัปเดต ${data.updated ?? 0}, ข้าม ${data.skipped ?? 0}`);
       setPendingAction(null);
@@ -151,7 +143,7 @@ export default function GameProvidersPage() {
     const res = await adminApiFetch(`/admin/game-providers/${detail.id}/health-check`, { method: 'POST' });
     const data = await res.json().catch(() => null);
     setChecking(false);
-    if (!res.ok) { setMessage(data?.message ?? 'ทดสอบการเชื่อมต่อไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('ทดสอบการเชื่อมต่อไม่สำเร็จ'); return; }
     setHealth(data);
     setMessage(data?.payload?.status === 'ONLINE' ? 'เชื่อมต่อค่ายได้ตามปกติ' : 'การเชื่อมต่อค่ายมีปัญหา');
     await loadDetail(detail.id);
@@ -164,7 +156,7 @@ export default function GameProvidersPage() {
     if (!payload.url) { setMessage('กรุณากรอก URL endpoint'); return; }
     const res = await adminApiFetch(endpointForm.id ? `/admin/game-providers/${detail.id}/endpoints/${endpointForm.id}` : `/admin/game-providers/${detail.id}/endpoints`, { method: endpointForm.id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
     const data = await res.json().catch(() => null);
-    if (!res.ok) { setMessage(data?.message ?? 'บันทึก endpoint ไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('บันทึก endpoint ไม่สำเร็จ'); return; }
     setEndpointForm(emptyEndpointForm);
     await loadDetail(detail.id);
     await loadProviders();
@@ -178,7 +170,7 @@ export default function GameProvidersPage() {
     if (credentialForm.value.trim()) payload.value = credentialForm.value.trim();
     const res = await adminApiFetch(credentialForm.id ? `/admin/game-providers/${detail.id}/credentials/${credentialForm.id}` : `/admin/game-providers/${detail.id}/credentials`, { method: credentialForm.id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
     const data = await res.json().catch(() => null);
-    if (!res.ok) { setMessage(data?.message ?? 'บันทึกข้อมูลเชื่อมต่อไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('บันทึกข้อมูลเชื่อมต่อไม่สำเร็จ'); return; }
     setCredentialForm(emptyCredentialForm);
     await loadDetail(detail.id);
     await loadProviders();
