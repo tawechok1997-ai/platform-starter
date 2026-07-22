@@ -34,13 +34,15 @@ jobs:
             echo "$?" > "closure-diagnostics/${name}.status"
           }
           run_audit r012-feature node tools/audit-r012-feature-boundaries.mjs
-          run_audit r013-ui node tools/audit-r013-ui-system.mjs
           run_audit r006 node tools/audit-r006-closure.mjs
-          run_audit r009-withdrawal node tools/audit-r009-withdrawal-completion.mjs
+          run_audit r009-lock pnpm audit:r9-lock-order:strict
+          run_audit r009-transaction pnpm audit:r9-transaction-escapes
           run_audit p1-production bash scripts/verify-p1-production.sh
           run_audit p2-product bash scripts/verify-p2-product.sh
           run_audit p3-provider bash scripts/verify-p3-provider-readiness.sh
           run_audit p4 node tools/audit-p4-closure.mjs
+          grep -R -n -B 4 -A 8 -E 'Transaction ownership and lock order|Shared color token contract|Design-token inventory' .github/workflows > closure-diagnostics/workflow-command-matches.log 2>&1
+          find tools packages -maxdepth 3 -type f | sort | grep -E 'r009|r013|withdraw|token|color|design' > closure-diagnostics/relevant-files.log 2>&1
           for file in closure-diagnostics/*.log; do
             echo "===== ${file} ====="
             cat "$file"
