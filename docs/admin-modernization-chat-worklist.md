@@ -307,8 +307,8 @@
 ### /game-providers
 
 - [ ] Table
-- [ ] Status/health filter
-- [ ] Credential state
+- [x] Status/health filter
+- [x] Credential state
 - [ ] Provider detail drawer
 
 ### /games
