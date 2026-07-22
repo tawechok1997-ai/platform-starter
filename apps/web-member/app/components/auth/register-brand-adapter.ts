@@ -5,11 +5,15 @@ import type { PublicSiteSettings } from '../../site-settings';
 import { normalizeTypedSiteSettings } from '../../typed-site-settings';
 import { createAuthBrandViewModel } from './auth-brand-model';
 
+type CssCustomProperties = CSSProperties & {
+  [key: `--${string}`]: string | number | undefined;
+};
+
 export type RegisterBrandAdapter = {
   siteName: string;
   logoUrl: string;
   brandMark: string;
-  cssVars: CSSProperties;
+  cssVars: CssCustomProperties;
   dataAttributes: {
     'data-auth-mode': 'register';
     'data-brand-code': string;
@@ -36,7 +40,7 @@ export function createRegisterBrandAdapter(brand: BrandRuntimeConfig): RegisterB
       '--color-bg': String(brand.themeStyle['--brand-background'] ?? '#080808'),
       '--color-card': String(brand.themeStyle['--brand-card'] ?? '#181818'),
       '--color-text': String(brand.themeStyle['--brand-text'] ?? '#ffffff'),
-    } as CSSProperties,
+    },
     dataAttributes: {
       'data-auth-mode': 'register',
       'data-brand-code': brand.code,
