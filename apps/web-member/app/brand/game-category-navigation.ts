@@ -42,7 +42,7 @@ const DEFINITIONS: Array<{
   { key: 'slot', label: 'สล็อต', iconName: 'slot', aliases: ['slot', 'slots', 'slot-game'] },
   { key: 'live', label: 'คาสิโนสด', iconName: 'live', aliases: ['live', 'live-casino', 'livecasino'] },
   { key: 'sport', label: 'กีฬา', iconName: 'sport', aliases: ['sport', 'sports', 'sportbook', 'sportsbook'] },
-  { key: 'fishing', label: 'ยิงปลา', iconName: 'fishing', aliases: ['fishing', 'fish', 'shooting-fish'] },
+  { key: 'fishing', label: 'เกมตกปลา', iconName: 'fishing', aliases: ['fishing', 'fish', 'shooting-fish'] },
   { key: 'lottery', label: 'หวย', iconName: 'lottery', aliases: ['lottery', 'lotto', 'หวย'] },
   { key: 'card', label: 'ไพ่', iconName: 'card', aliases: ['card', 'cards', 'poker'] },
   { key: 'arcade', label: 'อาร์เคด', iconName: 'arcade', aliases: ['arcade', 'mini-game', 'minigame'] },
