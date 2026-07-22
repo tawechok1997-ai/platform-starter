@@ -39,15 +39,15 @@ export default function ExportsPage() {
     setJobs((current) => [{ id, title: item.title, path: item.path, status: 'RUNNING', createdAt }, ...current]);
     try {
       const res = await adminApiFetch(item.path);
-      if (!res.ok) throw new Error((await res.json().catch(() => null))?.message ?? 'Export ไม่สำเร็จ');
+      if (!res.ok) throw new Error('Export ไม่สำเร็จ');
       const text = await res.text();
       const rows = Math.max(text.trim().split('\n').length - 1, 0);
       const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = `${item.title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(url);
       setJobs((current) => current.map((job) => job.id === id ? { ...job, status: 'COMPLETED', completedAt: new Date().toISOString(), rows } : job));
-    } catch (error) {
-      setJobs((current) => current.map((job) => job.id === id ? { ...job, status: 'FAILED', completedAt: new Date().toISOString(), error: error instanceof Error ? error.message : 'Export ไม่สำเร็จ' } : job));
+    } catch {
+      setJobs((current) => current.map((job) => job.id === id ? { ...job, status: 'FAILED', completedAt: new Date().toISOString(), error: 'สร้างไฟล์ไม่สำเร็จ กรุณาลองใหม่' } : job));
     }
   }
 
