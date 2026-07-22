@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   GAME_CATEGORY_ICON_DEFINITIONS,
   ICON_SETTINGS_DEFAULTS,
+  ICON_SETTINGS_FIELDS,
   referenceIconPath,
 } from './icon-settings-config';
 
@@ -33,4 +34,13 @@ test('every game category settings key uses a project-local image path', () => {
     assert.match(definition.key, /^game_category_[a-z]+_icon$/);
     assert.match(ICON_SETTINGS_DEFAULTS[definition.key], /^\/assets\/reference-brand\/menu\/[a-z-]+\.png$/);
   }
+});
+
+test('keeps the existing bank, profile, vip, and wallet icon fields', () => {
+  const keys = new Set(ICON_SETTINGS_FIELDS.map((field) => field.key));
+  for (const key of ['bank', 'profile', 'vip', 'wallet']) assert.ok(keys.has(key), `${key} field must remain`);
+  assert.equal(ICON_SETTINGS_DEFAULTS.bank, '◈');
+  assert.equal(ICON_SETTINGS_DEFAULTS.profile, '👤');
+  assert.equal(ICON_SETTINGS_DEFAULTS.vip, '♛');
+  assert.equal(ICON_SETTINGS_DEFAULTS.wallet, '฿');
 });
