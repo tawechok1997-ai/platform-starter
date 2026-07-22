@@ -1,5 +1,11 @@
 # Admin Worklist Code Audit Handoff
 
-Canonical audited status: [`../admin-modernization-code-audit-status.md`](../admin-modernization-code-audit-status.md)
+Canonical worklist:
 
-The original chat baseline remains an item inventory. Use the audited status file for completion claims until every checkbox in the baseline is revalidated against current `main` code and merged evidence.
+- [`../admin-modernization-chat-worklist.md`](../admin-modernization-chat-worklist.md)
+
+Evidence index:
+
+- [`../admin-modernization-code-audit-status.md`](../admin-modernization-code-audit-status.md)
+
+Use the canonical worklist for all completion claims and future implementation work. Supporting audit documents provide route-level evidence only.
