@@ -47,18 +47,20 @@ const requiredWebsiteKeys = [
   'support_label',
 ] as const;
 
+const settingsEndpoint = '/admin/settings/website';
+
 test('branding settings retain every Member logo and system-image key', () => {
   assert.match(brandingSource, /group=["']branding["']/);
   assert.match(brandingSource, /preview=["']branding["']/);
 
   for (const key of requiredBrandingKeys) {
-    assert.match(brandingSource, new RegExp(`key:\\s*['\"]${key}['\"]`), `${key} must remain editable in Admin branding settings`);
+    assert.match(brandingSource, new RegExp(`key:\\s*["']${key}["']`), `${key} must remain editable in Admin branding settings`);
   }
 });
 
 test('website settings retain Member-facing content keys and the existing API contract', () => {
-  assert.match(websiteSource, /adminApiFetch\(['\"]\/admin\/settings\/website['\"]\)/);
-  assert.match(websiteSource, /adminApiFetch\(['\"]\/admin\/settings\/website['\"],\s*\{/);
+  assert.ok(websiteSource.includes(`adminApiFetch('${settingsEndpoint}')`) || websiteSource.includes(`adminApiFetch("${settingsEndpoint}")`));
+  assert.ok(websiteSource.includes(`adminApiFetch('${settingsEndpoint}', {`) || websiteSource.includes(`adminApiFetch("${settingsEndpoint}", {`));
 
   for (const key of requiredWebsiteKeys) {
     assert.match(websiteSource, new RegExp(`\\b${key}\\b`), `${key} must remain editable in Admin website settings`);
