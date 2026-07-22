@@ -13,8 +13,7 @@ const emptyContent: CmsContent = {
 };
 
 test('promotion cards stay empty until Admin enables CMS banners', () => {
-  const cards = buildHomePromotionCards(emptyContent);
-  assert.deepEqual(cards, []);
+  assert.deepEqual(buildHomePromotionCards(emptyContent), []);
 });
 
 test('promotion cards reject unsafe hrefs and duplicate images', () => {
@@ -40,7 +39,7 @@ test('dedupeCards removes duplicate and invalid entries', () => {
   assert.equal(cards.length, 1);
 });
 
-test('competition showcase falls back for invalid values', () => {
+test('competition showcase sanitizes invalid values and masks only the local email part', () => {
   const showcase = buildCompetitionShowcase({
     jackpotLabel: '<script>alert(1)</script>',
     heroImageUrl: 'javascript:alert(1)',
