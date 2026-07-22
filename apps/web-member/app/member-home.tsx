@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   CmsContent,
   MemberFeatureFlags,
@@ -16,10 +16,13 @@ import {
 import { HomeActivitiesPanel } from './components/member-home/home-activities-panel';
 import { HomeHighlightsPanel } from './components/member-home/home-highlights-panel';
 import { HomePromotionsPanel } from './components/member-home/home-promotions-panel';
+import { GameCategoryNavigation } from './components/member-home/game-category-navigation';
 import { SourceHomeTabs, type HomeTab } from './components/member-home/source-home-tabs';
+import { createGameCategoryNavigationConfig } from './brand/game-category-navigation';
 import { useMemberHomeData } from './hooks/use-member-home-data';
+import { useSiteSettings } from './site-settings-provider';
 
-type MemberHomeProps = {
+ type MemberHomeProps = {
   siteName: string;
   description: string;
   primaryColor: string;
@@ -44,6 +47,12 @@ export default function MemberHome(props: MemberHomeProps) {
   const [activeTab, setActiveTab] = useState<HomeTab>('highlights');
   const popupVersion = props.cmsContent.popup.version ?? 'v1';
   const data = useMemberHomeData(features.games);
+  const { settings } = useSiteSettings();
+  const categoryConfig = useMemo(
+    () => createGameCategoryNavigationConfig(settings),
+    [settings],
+  );
+  const baseIcons = props.icons ?? settings.icons ?? {};
 
   useEffect(() => {
     setPopupClosed(readClosedPopupVersion() === popupVersion);
@@ -78,11 +87,19 @@ export default function MemberHome(props: MemberHomeProps) {
         />
       </div>
 
+      {props.showCategories && features.games && (
+        <GameCategoryNavigation
+          categories={data.categories}
+          config={categoryConfig}
+          baseIcons={baseIcons}
+        />
+      )}
+
       <HomeHighlightsPanel
         active={activeTab === 'highlights'}
         data={data}
         primaryColor={props.primaryColor}
-        showCategories={props.showCategories}
+        showCategories={false}
         showRecommended={props.showRecommended}
         gamesEnabled={features.games}
       />
