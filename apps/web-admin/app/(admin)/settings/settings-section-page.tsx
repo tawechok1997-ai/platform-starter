@@ -1,7 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage, AdminStack, AdminToolbar } from '../_components/admin-ui';
 
