@@ -69,7 +69,7 @@
 - [x] แก้ Prisma/UUID error ใน /member-insights
 - [ ] ห้ามแสดง raw backend error
 - [x] Member Insights และ Game Transfers ใช้ข้อความผิดพลาดที่ผ่านการกรอง พร้อม network fallback
-- [ ] เอา credential ตัวอย่างออกจาก /provider-credentials
+- [x] เอา credential ตัวอย่างออกจาก seed และไม่สร้าง placeholder credential ใน preset ใหม่
 - [ ] แยก Demo/UAT/Production ให้ชัด
 - [ ] เพิ่ม 2FA setup และ recovery code warning ใน /security
 - [ ] Audit log สำหรับ action สำคัญทั้งหมด
