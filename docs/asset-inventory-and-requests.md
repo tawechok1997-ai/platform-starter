@@ -58,10 +58,10 @@
 - รูปโปรโมชั่น 5 รายการ: `apps/web-member/public/images/member-lobby/promotions/`
 - กระเป๋าเงิน, อันดับ, Tournament และโลโก้ fallback: `apps/web-member/public/images/member-lobby/noah345-reference/`
 
-## จุดที่ต้องแก้โค้ด ไม่ต้องหาไฟล์เพิ่ม
+## จุดที่แก้แล้ว ไม่ต้องหาไฟล์เพิ่ม
 
-- [ ] CSS เรียก `category-home-v2.png`, `category-casino-v2.png`, `category-slot-v2.png`, `category-fishing-v2.png`, `category-sport-v2.png`, `category-card-v2.png` และ `category-lottery-v2.png` แต่ไม่มีไฟล์เหล่านี้
-- [ ] เปลี่ยนให้ใช้ SVG ที่มีอยู่แล้วใน `source-icons/category-*.svg` แทน
+- [x] ลบ CSS เก่าที่ไม่ได้ถูก import และเรียก `category-*-v2.png` ซึ่งไม่มีอยู่จริง
+- [x] Style ที่เว็บใช้งานจริงเรียก SVG ใน `source-icons/category-*.svg` ครบทั้ง 7 หมวดแล้ว
 - [ ] ไม่ใช้ `category-home.png.b64` ตอน runtime เพราะเป็นไฟล์ข้อมูล ไม่ใช่รูปที่เว็บแสดงได้
 - [ ] ทำ asset registry เดียว เพื่อเลือกไฟล์ PC/Mobile และไม่คัดลอก asset ซ้ำ
 
