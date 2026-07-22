@@ -32,7 +32,6 @@ export function createAuthBrandViewModel(
     title: login ? 'เข้าสู่ระบบสมาชิก' : 'สมัครสมาชิก',
     subtitle: login ? 'เข้าสู่ระบบเพื่อใช้งานบัญชีของคุณ' : 'สร้างบัญชีเพื่อเริ่มใช้งาน',
     ...overrides,
-    mode,
   };
 }
 
