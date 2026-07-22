@@ -12,23 +12,24 @@ export type HomePromotionCard = {
 
 /** Promotion cards are controlled exclusively from Admin/CMS settings. */
 export function buildHomePromotionCards(content: CmsContent): HomePromotionCard[] {
-  const cmsCards = Array.isArray(content?.banners)
-    ? content.banners.flatMap((banner, index) => {
-        if (!banner?.enabled) return [];
-        const imageUrl = resolveImageUrl(cmsAssetUrl(content, banner.assetId) || banner.imageUrl);
-        if (!imageUrl) return [];
-        return [{
-          id: String(banner.assetId || `cms-promotion-${index + 1}`),
-          title: cleanText(banner.title, `โปรโมชั่น ${index + 1}`),
-          subtitle: cleanText(banner.subtitle, ''),
-          imageUrl,
-          href: safeInternalHref(banner.href) || '/promotions',
-          badge: index === 0 ? 'HOT' : '',
-        }];
-      })
-    : [];
+  return dedupeCards(buildCmsPromotionCards(content)).slice(0, 6);
+}
 
-  return dedupeCards(cmsCards).slice(0, 6);
+function buildCmsPromotionCards(content: CmsContent): HomePromotionCard[] {
+  if (!Array.isArray(content?.banners)) return [];
+  return content.banners.flatMap((banner, index) => {
+    if (!banner?.enabled) return [];
+    const imageUrl = resolveImageUrl(cmsAssetUrl(content, banner.assetId) || banner.imageUrl);
+    if (!imageUrl) return [];
+    return [{
+      id: String(banner.assetId || `cms-promotion-${index + 1}`),
+      title: cleanText(banner.title, `โปรโมชั่น ${index + 1}`),
+      subtitle: cleanText(banner.subtitle, ''),
+      imageUrl,
+      href: safeInternalHref(banner.href) || '/promotions',
+      badge: index === 0 ? 'HOT' : '',
+    }];
+  });
 }
 
 export function dedupeCards(cards: HomePromotionCard[]) {
