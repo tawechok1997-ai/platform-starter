@@ -50,8 +50,8 @@
   --line2: var(--color-border-strong);
   --text: var(--color-text-primary);
   --muted: var(--color-text-secondary);
-  --brand: var(--member-accent);
-  --brandSoft: var(--member-accent-soft);
+  --brand: var(--color-brand-primary);
+  --brandSoft: var(--color-brand-soft);
   --radius: var(--radius-card-lg);
   --shadow: var(--shadow-card-raised);
 }
