@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage, AdminStack, AdminToolbar } from '../_components/admin-ui';
@@ -112,7 +113,7 @@ function Preview({ type, form, title }: { type: string; form: SettingsRecord; ti
   if (type === 'icons') {
     return <div style={iconPreviewGridStyle}>{Object.entries(form).map(([key, value]) => {
       const displayValue = String(value ?? '').trim();
-      return <div key={key} style={iconPreviewItemStyle}><span style={iconPreviewImageStyle}>{isPreviewImage(displayValue) ? <img src={displayValue} alt="" style={iconImageStyle} /> : <strong>{displayValue || '–'}</strong>}</span><small style={iconPreviewLabelStyle}>{humanizeIconKey(key)}</small></div>;
+      return <div key={key} style={iconPreviewItemStyle}><span style={iconPreviewImageStyle}>{isPreviewImage(displayValue) ? <Image unoptimized src={displayValue} alt="" width={52} height={52} style={iconImageStyle} /> : <strong>{displayValue || '–'}</strong>}</span><small style={iconPreviewLabelStyle}>{humanizeIconKey(key)}</small></div>;
     })}</div>;
   }
   if (type === 'maintenance') return <div style={previewBoxStyle}><p>Maintenance: {form.enabled ? 'ON' : 'OFF'}</p><p>Message: {form.message ?? 'ระบบกำลังปรับปรุง'}</p><p>Deposit: {form.deposit_enabled ? 'ปิดปรับปรุง' : 'เปิดใช้งาน'}</p><p>Withdraw: {form.withdraw_enabled ? 'ปิดปรับปรุง' : 'เปิดใช้งาน'}</p></div>;
