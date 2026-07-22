@@ -30,10 +30,10 @@ export default function ReconciliationCenterPage() {
     try {
       const res = await adminApiFetch('/admin/provider-wallet-snapshots');
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.message ?? 'โหลดการตรวจยอดไม่สำเร็จ');
+      if (!res.ok) throw new Error('โหลดการตรวจยอดไม่สำเร็จ');
       setPayload(data ?? {});
     } catch (error) {
-      setPayload({}); showMessage(error instanceof Error ? error.message : 'โหลดการตรวจยอดไม่สำเร็จ', 'danger');
+      setPayload({}); showMessage('โหลดการตรวจยอดไม่สำเร็จ', 'danger');
     } finally { setLoading(false); }
   }
 
@@ -43,11 +43,11 @@ export default function ReconciliationCenterPage() {
     try {
       const res = await adminApiFetch(`/admin/game-sessions/${sessionId.trim()}/reconcile`, { method: 'POST' });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.message ?? 'ตรวจยอดไม่สำเร็จ');
+      if (!res.ok) throw new Error('ตรวจยอดไม่สำเร็จ');
       showMessage(data.ok ? 'ยอดตรงกัน' : `ยอดยังไม่ตรง · ส่วนต่าง ${data.snapshot?.difference ?? '-'}`, data.ok ? 'success' : 'danger');
       setSessionId('');
       await load();
-    } catch (error) { showMessage(error instanceof Error ? error.message : 'ตรวจยอดไม่สำเร็จ', 'danger'); }
+    } catch { showMessage('ตรวจยอดไม่สำเร็จ', 'danger'); }
     finally { setLoading(false); }
   }
 
@@ -61,10 +61,10 @@ export default function ReconciliationCenterPage() {
     try {
       const res = await adminApiFetch(`/admin/provider-wallet-snapshots/${reviewRequest.item.id}/review`, { method: 'PATCH', body: JSON.stringify({ note, status: reviewRequest.status }) });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.message ?? 'บันทึกไม่สำเร็จ');
+      if (!res.ok) throw new Error('บันทึกไม่สำเร็จ');
       showMessage(reviewRequest.status === 'RESOLVED' ? 'ปิดเคสยอดไม่ตรงแล้ว' : 'บันทึกว่ากำลังตรวจแล้ว', 'success');
       setReviewRequest(null); setReviewNote(''); await load();
-    } catch (error) { showMessage(error instanceof Error ? error.message : 'บันทึกไม่สำเร็จ', 'danger'); }
+    } catch { showMessage('บันทึกไม่สำเร็จ', 'danger'); }
     finally { setLoading(false); }
   }
 
