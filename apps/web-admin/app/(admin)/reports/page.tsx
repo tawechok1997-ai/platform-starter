@@ -47,10 +47,10 @@ export default function ReportsPage() {
       const [dailyData, reconData, trendsData, agingData] = await Promise.all([
         dailyRes.json().catch(() => null), reconRes.json().catch(() => null), trendsRes.json().catch(() => null), agingRes.json().catch(() => null),
       ]);
-      if (!dailyRes.ok || !reconRes.ok || !trendsRes.ok || !agingRes.ok) throw new Error(dailyData?.message ?? reconData?.message ?? trendsData?.message ?? agingData?.message ?? 'โหลดรายงานไม่สำเร็จ');
+      if (!dailyRes.ok || !reconRes.ok || !trendsRes.ok || !agingRes.ok) throw new Error('โหลดรายงานไม่สำเร็จ');
       setDaily(dailyData); setRecon(reconData); setTrends(trendsData); setAging(agingData); setTrendDays(nextTrendDays); setMessage('');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'เชื่อมต่อระบบรายงานไม่สำเร็จ');
+    } catch {
+      setMessage('เชื่อมต่อระบบรายงานไม่สำเร็จ');
     } finally { setLoading(false); }
   }
 
@@ -61,13 +61,13 @@ export default function ReportsPage() {
     setExporting(filename); setMessage('กำลังเตรียมไฟล์ CSV...');
     try {
       const response = await adminApiFetch(path);
-      if (!response.ok) throw new Error((await response.json().catch(() => null))?.message ?? 'ดาวน์โหลดไฟล์ไม่สำเร็จ');
+      if (!response.ok) throw new Error('ดาวน์โหลดไฟล์ไม่สำเร็จ');
       const blob = new Blob([await response.text()], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a'); anchor.href = url; anchor.download = filename; anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
       setMessage('ดาวน์โหลดไฟล์เรียบร้อยแล้ว');
-    } catch (error) { setMessage(error instanceof Error ? error.message : 'ดาวน์โหลดไฟล์ไม่สำเร็จ'); }
+    } catch { setMessage('ดาวน์โหลดไฟล์ไม่สำเร็จ'); }
     finally { setExporting(''); }
   }
 

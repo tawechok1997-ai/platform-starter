@@ -47,6 +47,11 @@ body { overscroll-behavior-y: none; }
 .admin-shell--collapsed .admin-sidebar-footer button span { display: none; }
 .admin-shell--collapsed .admin-nav-group__trigger { grid-template-columns: 1fr; justify-items: center; }
 .admin-shell--collapsed .admin-nav-group__chevron { display: none; }
+.admin-nav-group__trigger[data-active='true'] {
+  color: var(--admin-text);
+  background: linear-gradient(90deg, rgba(109, 124, 255, .16), rgba(109, 124, 255, .05));
+  box-shadow: inset 3px 0 0 var(--admin-brand);
+}
 .admin-shell--collapsed .admin-nav-submenu__inner { padding-left: 0; }
 .admin-shell--collapsed .admin-nav-submenu__inner::before { display: none; }
 .admin-shell--collapsed .admin-nav-submenu a { margin-inline: 0; padding-inline: 0; justify-content: center; }
@@ -68,6 +73,30 @@ body { overscroll-behavior-y: none; }
 .admin-topbar-context > div > strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-topbar-actions { gap: 12px; justify-content: flex-end; }
 .admin-menu-button { display: none; }
+.admin-language-toggle {
+  display: inline-flex;
+  min-height: 38px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .025);
+}
+.admin-language-toggle button {
+  min-width: 42px;
+  min-height: 38px;
+  padding: 0 9px;
+  border: 0;
+  background: transparent;
+  color: var(--admin-text-muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.admin-language-toggle button[aria-pressed='true'] {
+  background: rgba(109, 124, 255, .2);
+  color: var(--admin-text);
+}
 
 .admin-content-shell {
   width: 100%;
@@ -116,7 +145,7 @@ body { overscroll-behavior-y: none; }
 .admin-ui-toolbar {
   position: relative;
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
   padding: 14px;
@@ -158,6 +187,32 @@ body { overscroll-behavior-y: none; }
 
 .admin-profile-menu { transform-origin: top right; animation: admin-popover-in 160ms var(--admin-ease) both; }
 .admin-drawer.open { animation: admin-drawer-in 220ms var(--admin-ease) both; }
+
+.admin-activity-drawer-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px;
+  background: rgba(2, 6, 23, .62);
+}
+.admin-activity-drawer {
+  width: min(100%, 460px);
+  height: 100%;
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, .2);
+  border-radius: 18px;
+  background: #0e1625;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .46);
+}
+
+.admin-quick-nav a.active {
+  color: var(--admin-brand-strong);
+  background: rgba(232, 189, 72, .12);
+  box-shadow: inset 3px 0 0 var(--admin-brand);
+}
 
 @keyframes admin-popover-in {
   from { opacity: 0; transform: translateY(-6px) scale(.985); }
@@ -221,6 +276,40 @@ body { overscroll-behavior-y: none; }
 }
 
 @media (max-width: 720px) {
+  .admin-command-trigger,
+  .admin-notification-trigger,
+  .admin-menu-button,
+  .admin-language-toggle,
+  .admin-language-toggle button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+  .admin-topbar-actions { gap: 8px; }
+  .admin-language-toggle button { min-width: 44px; }
+  .admin-command-overlay {
+    align-items: flex-end;
+    padding: 12px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+  .admin-command-dialog {
+    width: 100%;
+    max-height: min(82dvh, 720px);
+    border-radius: 20px 20px 14px 14px;
+  }
+  .admin-command-results { max-height: min(58dvh, 480px); }
+  .admin-command-search input { font-size: 16px; }
+  .admin-activity-drawer-layer {
+    align-items: flex-end;
+    padding: 12px 0 0;
+  }
+  .admin-activity-drawer {
+    width: 100%;
+    height: auto;
+    max-height: min(82dvh, 720px);
+    padding: 18px max(16px, env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    border-radius: 20px 20px 0 0;
+  }
   .admin-ui-page__head { display: grid; grid-template-columns: 1fr; margin-bottom: 18px; }
   .admin-ui-page__actions { justify-content: stretch; }
   .admin-ui-page__actions > * { flex: 1 1 160px; }

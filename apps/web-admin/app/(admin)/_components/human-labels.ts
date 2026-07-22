@@ -47,5 +47,14 @@ export function checkLabel(key?: string | null) {
 }
 
 export function formatMoney(value: string | number | null | undefined, currency = 'THB') {
-  return `${currency} ${Number(value ?? 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
+  const amount = typeof value === 'number' ? value : Number(value ?? 0);
+  const safeAmount = Number.isFinite(amount) ? amount : 0;
+  return `${currency} ${safeAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
+}
+
+/** Never render implementation, provider, database, or stack details returned by an API. */
+export function safeAdminErrorMessage(value: unknown, fallback: string) {
+  const message = typeof value === 'string' ? value.trim() : '';
+  const approved = new Set(['ไม่มีสิทธิ์ดำเนินการ', 'ไม่พบข้อมูล', 'ข้อมูลไม่ถูกต้อง', 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่']);
+  return approved.has(message) ? message : fallback;
 }

@@ -22,12 +22,24 @@ function routeFromPage(file) {
   if (!rel) return '/';
   return `/${rel.replace(/\[[^/]+\]/g, ':id')}`;
 }
-function extractProtectedHrefs(source) {
-  const protectedHrefs = [];
-  const itemPattern = /\{\s*title:\s*['"][^'"]+['"],\s*href:\s*['"]([^'"]+)['"]\s*,\s*permissions:\s*\[([^\]]+)\]/g;
+function extractNavItems(source) {
+  const items = [];
+  const itemPattern = /\{([^{}]*)\}/g;
   let match;
-  while ((match = itemPattern.exec(source))) protectedHrefs.push(match[1]);
-  return protectedHrefs.sort((a, b) => b.length - a.length);
+  while ((match = itemPattern.exec(source))) {
+    const itemSource = match[1];
+    const title = itemSource.match(/\btitle:\s*['"]([^'"]+)['"]/);
+    const href = itemSource.match(/\bhref:\s*['"]([^'"]+)['"]/);
+    if (!title || !href) continue;
+    items.push({ title: title[1], href: href[1], hasPermissions: /\bpermissions:\s*\[/.test(itemSource) });
+  }
+  return items;
+}
+function extractProtectedHrefs(source) {
+  return extractNavItems(source)
+    .filter((item) => item.hasPermissions)
+    .map((item) => item.href)
+    .sort((a, b) => b.length - a.length);
 }
 function isProtected(route, protectedHrefs) {
   if (ROUTE_ALLOWLIST.has(route) || [...ROUTE_ALLOWLIST].some((href) => route.startsWith(`${href}/`))) return true;
@@ -38,9 +50,8 @@ const protectedHrefs = extractProtectedHrefs(navSource);
 const pages = (await walk(ADMIN_ROOT)).map(routeFromPage).filter((route) => route !== '/');
 const unprotected = pages.filter((route) => !isProtected(route, protectedHrefs));
 
-const navItemsWithoutPermission = [...navSource.matchAll(/\{\s*title:\s*['"]([^'"]+)['"],\s*href:\s*['"]([^'"]+)['"](?!\s*,\s*permissions)/g)]
-  .map((m) => ({ title: m[1], href: m[2] }))
-  .filter((item) => !ROUTE_ALLOWLIST.has(item.href));
+const navItemsWithoutPermission = extractNavItems(navSource)
+  .filter((item) => !item.hasPermissions && !ROUTE_ALLOWLIST.has(item.href));
 
 console.log(`Admin UI permission audit: ${pages.length} admin page routes`);
 console.log(`  protected/allowlisted routes: ${pages.length - unprotected.length}`);

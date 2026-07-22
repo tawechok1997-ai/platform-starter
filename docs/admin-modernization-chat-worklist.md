@@ -11,35 +11,40 @@
 - [ ] Design System กลาง: สี, ฟอนต์, spacing, radius, shadow, button, badge, table
 - [ ] ใช้ฟอนต์ไทย Noto Sans Thai หรือ IBM Plex Sans Thai
 - [ ] สีสถานะกลาง success, warning, danger, info
-- [ ] App Shell เดียวทุกหน้า
+- [x] App Shell เดียวทุกหน้า
+- [x] App Shell เปลี่ยนภาษาไทย/English ได้ และจำการเลือก
+- [x] Activity Center ใช้ข้อความ UI, วันเวลา และสถานะตามภาษาที่เลือก
+- [x] Dashboard ใช้ข้อความ UI, สถานะ, จำนวน และวันเวลาตามภาษาที่เลือก
+- [x] ปรับข้อความเตือน/คำอธิบายที่ฟุ่มเฟือยในหน้าค่ายเกมเป็นคำสั้นตามงาน
 - [ ] Responsive สำหรับ PC, tablet, mobile
+- [x] Shell: topbar controls 44px บน mobile, Command Palette เป็น bottom sheet และ Activity detail drawer ปรับตาม desktop/tablet/mobile
 - [ ] ทุกหน้ามี loading, empty, error, permission state
-- [ ] Profile อยู่ Sidebar ด้านล่างเป็นจุดหลักจุดเดียว
-- [ ] เอา Profile trigger/Dropdown ซ้ำออกจาก Topbar
-- [ ] Sidebar Profile มี avatar, ชื่อ, role, online status, dropdown
-- [ ] Profile dropdown มี Profile, Security/2FA, Activity Center, Logout
-- [ ] Favorites, Recently used, badge งานค้างใน Sidebar
-- [ ] Command Palette Ctrl/Cmd + K
-- [ ] Notification Center
-- [ ] Environment badge: Demo / UAT / Production
+- [x] Profile อยู่ Sidebar ด้านล่างเป็นจุดหลักจุดเดียว
+- [x] เอา Profile trigger/Dropdown ซ้ำออกจาก Topbar
+- [x] Sidebar Profile มี avatar, ชื่อ, role, online status, dropdown
+- [x] Profile dropdown มี Profile, Security/2FA, Activity Center, Logout
+- [x] Favorites, Recently used, badge งานค้างใน Sidebar
+- [x] Command Palette Ctrl/Cmd + K
+- [x] Notification Center
+- [x] Environment badge: Demo / UAT / Production
 - [ ] แยกเมนูเป็นงานหลัก, รายงาน, ตั้งค่า, เครื่องมือเทคนิค และ legacy
 - [ ] เมนูหลักเหลือเฉพาะงานที่ใช้ประจำ
-- [ ] Bulk Queue, Statement, Analytics, Export เปิดจากหน้าบริบทหรือ Command Palette
-- [ ] Credential, Adapter Test, Webhook Test, API Settings, Money Ops ไม่อยู่ Sidebar หลัก
+- [x] Bulk Queue, Statement, Analytics, Export เปิดจากหน้าบริบทหรือ Command Palette
+- [x] Credential, Adapter Test, Webhook Test, API Settings, Money Ops ไม่อยู่ Sidebar หลัก
 - [ ] รวมเมนูซ้ำ: Activity, KYC, Audit, Ledger, Access, Provider Adapter
 - [ ] Route เก่าต้อง redirect ไปหน้าปัจจุบัน ไม่มีลิงก์เสีย
 - [ ] ชื่อเมนู ภาษา และลำดับกลุ่มสอดคล้องกัน
-- [ ] Menu, Command Palette และ deep-link ใช้ permission เดียวกัน
-- [ ] Active state/open group ตรงกับ route ปัจจุบัน
+- [x] Menu, Command Palette และ deep-link ใช้ permission เดียวกัน
+- [x] Active state/open group ตรงกับ route ปัจจุบัน รวม Favorites และ Recently used
 - [ ] Badge งานค้างไม่ซ้ำและแสดงเฉพาะจุดที่มี action
 
 ## Phase 0.1 — Overlay, ปุ่ม และ Sidebar
 
-- [ ] รวม state controller ของ Sidebar drawer, Profile, Notification, Command Palette
-- [ ] เปิด overlay ได้ทีละชั้น และเปิดเมนูใหม่ต้องปิด surface อื่นอัตโนมัติ
-- [ ] Escape ปิด layer บนสุดก่อนและคืน focus จุดเดิม
-- [ ] ตรวจ click-outside, backdrop, close button และ navigation transition
-- [ ] ไม่มี Logout ซ้ำ; footer logout แสดงเฉพาะ mobile เมื่อจำเป็น
+- [x] รวม state controller ของ Sidebar drawer, Profile, Notification, Command Palette
+- [x] เปิด overlay ได้ทีละชั้น และเปิดเมนูใหม่ต้องปิด surface อื่นอัตโนมัติ
+- [x] Escape ปิด layer บนสุดก่อนและคืน focus จุดเดิม
+- [x] ตรวจ click-outside, backdrop, close button และ navigation transition
+- [x] ไม่มี Logout ซ้ำ; footer logout แสดงเฉพาะ mobile เมื่อจำเป็น
 - [ ] Action เดียวมีปุ่มหลักเดียว ไม่เกิด Approve/Confirm ซ้อนกัน
 - [ ] ปุ่ม disabled มีเหตุผล/helper ชัดเจน
 - [ ] ปุ่มแดงใช้เฉพาะ Reject, Delete, Suspend, Logout
@@ -50,18 +55,21 @@
 - [ ] Desktop Sidebar expanded 272px และ collapsed Icon Rail 72px
 - [ ] ปุ่มย่อ/ขยายเป็นปุ่มกลมที่ขอบ Sidebar
 - [ ] Rail mode แสดง icon, active state, badge โดยไม่บีบข้อความ
-- [ ] Hover/focus icon แสดง tooltip
+- [x] Hover/focus icon แสดง tooltip สำหรับเมนูและกลุ่มใน rail mode
 - [ ] คลิก group ใน rail เปิด flyout menu
 - [ ] Rail mode Profile เหลือ avatar + online dot และเปิด account menu ได้
-- [ ] Tablet/mobile ใช้ full drawer พร้อม focus trap, backdrop และ Escape
+- [x] Tablet/mobile ใช้ full drawer พร้อม focus trap, backdrop และ Escape
+- [x] Confirmation dialog: focus เริ่มที่ Cancel, trap focus, Escape/backdrop และ mobile bottom sheet
 
 ## Phase 1 — Bug และความปลอดภัย
 
-- [ ] แก้ THB NaN ใน /operations
-- [ ] แก้ THB NaN ใน /game-transfers
-- [ ] แก้ Prisma/UUID error ใน /member-insights
+- [x] แก้ THB NaN ใน /operations
+- [x] แก้ THB NaN ใน /game-transfers
+- [x] Harden money display ใน Activity Center, Bonus, Commission, Promotion Claims, Wallet Ledger detail และ Provider Snapshot
+- [x] แก้ Prisma/UUID error ใน /member-insights
 - [ ] ห้ามแสดง raw backend error
-- [ ] เอา credential ตัวอย่างออกจาก /provider-credentials
+- [x] Member Insights และ Game Transfers ใช้ข้อความผิดพลาดที่ผ่านการกรอง พร้อม network fallback
+- [x] เอา credential ตัวอย่างออกจาก seed และไม่สร้าง placeholder credential ใน preset ใหม่
 - [ ] แยก Demo/UAT/Production ให้ชัด
 - [ ] เพิ่ม 2FA setup และ recovery code warning ใน /security
 - [ ] Audit log สำหรับ action สำคัญทั้งหมด
@@ -94,6 +102,7 @@
 
 ### /operations
 
+- [x] ข้อความ UI, สถานะ, จำนวน และเงินตามภาษาที่เลือก
 - [ ] งานเร่งด่วนก่อน
 - [ ] SLA และเวลาค้าง
 - [ ] Priority filter
@@ -103,16 +112,17 @@
 
 ### /activity-center
 
-- [ ] Tabs: Activity / Audit / Risk / Finance
-- [ ] Timeline
-- [ ] Severity filter
-- [ ] Detail side drawer
-- [ ] Source และ timestamp ชัดเจน
+- [x] Tabs: Activity / Audit / Risk / Finance
+- [x] Timeline
+- [x] Severity filter
+- [x] Detail side drawer
+- [x] Source และ timestamp ชัดเจน
 
 ## Finance
 
 ### /topups
 
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 - [ ] Table เดียวกับ withdrawals
 - [ ] Sticky filter
 - [ ] Proof drawer
@@ -121,6 +131,7 @@
 
 ### /withdrawals
 
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 - [ ] ยอดรวมและจำนวนรายการ
 - [ ] Queue priority
 - [ ] Approve/Reject แยกชัด
@@ -137,6 +148,7 @@
 
 ### /wallets
 
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 - [ ] ยอดใช้ได้ / ยอดรวม / ยอดล็อก
 - [ ] Member search และ filter
 - [ ] Before/after balance
@@ -145,6 +157,7 @@
 
 ### /wallet-ledgers
 
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 - [ ] Filter วันที่และประเภทเงิน
 - [ ] Compact table
 - [ ] Expandable row
@@ -195,19 +208,21 @@
 
 ### /members
 
-- [ ] Data table + member drawer
-- [ ] ซ่อน PII โดย default
-- [ ] Filter status / KYC / bank
-- [ ] Quick actions
-- [ ] Last activity
+- [x] Data table + member drawer
+- [x] ซ่อน PII โดย default
+- [x] Filter status / KYC / bank
+- [x] Quick actions
+- [x] Last activity
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
 
 ### /member-insights
 
-- [ ] แก้ UUID error
-- [ ] Trend สมาชิกใหม่/กลับมาใช้งาน
-- [ ] Segmentation
-- [ ] Date range
-- [ ] Data source และ last sync
+- [x] แก้ UUID error
+- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก
+- [x] Trend สมาชิกใหม่/กลับมาใช้งาน
+- [x] Segmentation
+- [x] Date range
+- [x] Data source และ last sync
 
 ### /bank-accounts
 
@@ -262,52 +277,52 @@
 
 ### /provider-health
 
-- [ ] Status matrix
-- [ ] Response time
-- [ ] Webhook health
-- [ ] Provider ที่ต้องตรวจ
-- [ ] Saved views
+- [x] Status matrix
+- [x] Response time
+- [x] Webhook health
+- [x] Provider ที่ต้องตรวจ
+- [x] Saved views
 
 ### /simple-game-settings
 
-- [ ] Setup checklist
-- [ ] Completion percentage
-- [ ] Basic / Advanced
-- [ ] Test connection
+- [x] Setup checklist
+- [x] Completion percentage
+- [x] Basic / Advanced
+- [x] Test connection
 
 ### /provider-setup-wizard
 
-- [ ] Step 1–4
-- [ ] Progress indicator
-- [ ] Validate ทุกขั้น
-- [ ] Production readiness gate
+- [x] Step 1–4
+- [x] Progress indicator
+- [x] Validate ทุกขั้น
+- [x] Production readiness gate
 
 ### /provider-presets
 
-- [ ] Preset card + search
-- [ ] Version
-- [ ] Last updated
-- [ ] Confirm ก่อนแก้ preset ที่ใช้งานอยู่
+- [x] Preset card + search
+- [x] Version
+- [x] Last updated
+- [x] Preset เป็น read-only และยืนยันก่อนสร้าง provider ใหม่
 
 ### /game-providers
 
 - [ ] Table
-- [ ] Status/health filter
-- [ ] Credential state
+- [x] Status/health filter
+- [x] Credential state
 - [ ] Provider detail drawer
 
 ### /games
 
-- [ ] Search/filter
-- [ ] Provider/status/category
-- [ ] Bulk enable/disable
-- [ ] Game preview
+- [x] Search/filter
+- [x] Provider/status/category
+- [x] Bulk enable/disable + confirmation
+- [x] Game preview
 
 ### /game-sessions
 
-- [ ] Compact session card
-- [ ] Timeline
-- [ ] Provider/member/game
+- [x] Compact session card
+- [x] Timeline
+- [x] Provider/member/game
 - [ ] Session detail drawer
 
 ### /game-transfers
@@ -442,26 +457,26 @@
 
 ### /provider-credentials
 
-- [ ] Demo/UAT/Production
-- [ ] Mask secret
-- [ ] Key rotation
-- [ ] Last changed
-- [ ] Test connection โดยไม่เปิดเงินจริง
+- [x] Demo/UAT/Production
+- [x] Mask secret
+- [x] Key rotation
+- [x] Last changed
+- [x] Test connection โดยไม่เปิดเงินจริง
 
 ### /adapter-test
 
-- [ ] Safe Test/Production Test
-- [ ] Test history
-- [ ] Technical payload ใน drawer
-- [ ] Latency และ response status
+- [x] Safe Test/Production Test
+- [x] Test history
+- [x] Technical payload ใน drawer
+- [x] Latency และ response status
 
 ### /game-api-settings
 
-- [ ] Readiness checklist
-- [ ] Basic/Advanced
-- [ ] Endpoint completeness
-- [ ] Preflight check
-- [ ] Real-money gate
+- [x] Readiness checklist
+- [x] Basic/Advanced
+- [x] Endpoint completeness
+- [x] Preflight check
+- [x] Real-money gate
 
 ## Phase 2 — QA, Monitoring และ Release Control
 

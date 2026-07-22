@@ -8,6 +8,7 @@ import {
   AdminCard,
   AdminConfirmDialog,
   AdminEmpty,
+  AdminFilterBar,
   AdminMetric,
   AdminMetricGrid,
   AdminNotice,
@@ -25,6 +26,7 @@ type Game = { id: string; providerId: string; providerGameCode: string; name: st
 type GameForm = { id?: string; providerId: string; providerGameCode: string; name: string; category: string; status: GameStatus; sortOrder: string; isFeatured: boolean; isNew: boolean; isPopular: boolean };
 type MediaForm = { gameId: string; type: MediaType; sourceUrl: string };
 type PendingStatus = { item: Game; status: GameStatus };
+type PendingBulkStatus = { status: GameStatus; games: Game[] };
 
 const emptyForm: GameForm = { providerId: '', providerGameCode: '', name: '', category: 'slot', status: 'INACTIVE', sortOrder: '100', isFeatured: false, isNew: false, isPopular: false };
 const emptyMediaForm: MediaForm = { gameId: '', type: 'COVER', sourceUrl: '' };
@@ -41,6 +43,13 @@ export default function GameCatalogPage() {
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState('');
   const [pendingStatus, setPendingStatus] = useState<PendingStatus | null>(null);
+  const [pendingBulkStatus, setPendingBulkStatus] = useState<PendingBulkStatus | null>(null);
+  const [query, setQuery] = useState('');
+  const [providerFilter, setProviderFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | GameStatus>('ALL');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   useEffect(() => { void loadAll(); }, []);
 
@@ -50,6 +59,15 @@ export default function GameCatalogPage() {
     attention: games.filter((item) => item.status === 'MAINTENANCE' || item.status === 'REMOVED').length,
     missingMedia: games.filter((item) => (item.media ?? []).length === 0).length,
   }), [games]);
+  const categories = useMemo(() => [...new Set(games.map((item) => item.category).filter(Boolean))].sort(), [games]);
+  const visibleGames = useMemo(() => {
+    const keyword = query.trim().toLowerCase();
+    return games.filter((item) => (!keyword || `${item.name} ${item.providerGameCode} ${item.provider?.name ?? ''}`.toLowerCase().includes(keyword))
+      && (providerFilter === 'ALL' || item.providerId === providerFilter)
+      && (statusFilter === 'ALL' || item.status === statusFilter)
+      && (categoryFilter === 'ALL' || item.category === categoryFilter));
+  }, [games, query, providerFilter, statusFilter, categoryFilter]);
+  const selectedGames = useMemo(() => games.filter((item) => selectedIds.includes(item.id)), [games, selectedIds]);
 
   async function loadAll() {
     setLoading(true);
@@ -66,6 +84,7 @@ export default function GameCatalogPage() {
     const providerItems = providersData.items ?? [];
     const gameItems = gamesData.items ?? [];
     setGames(gameItems);
+    setSelectedIds((current) => current.filter((id) => gameItems.some((item: Game) => item.id === id)));
     setProviders(providerItems);
     setForm((current) => ({ ...current, providerId: current.providerId || providerItems[0]?.id || '' }));
     setMediaForm((current) => ({ ...current, gameId: current.gameId || gameItems[0]?.id || '' }));
@@ -123,6 +142,24 @@ export default function GameCatalogPage() {
     setPendingStatus(null);
   }
 
+  async function confirmBulkStatus() {
+    if (!pendingBulkStatus) return;
+    setBulkBusy(true);
+    let failed = 0;
+    for (const item of pendingBulkStatus.games) {
+      const res = await adminApiFetch(`/admin/games/${item.id}`, { method: 'PATCH', body: JSON.stringify({ status: pendingBulkStatus.status }) });
+      if (!res.ok) failed += 1;
+    }
+    setBulkBusy(false);
+    setPendingBulkStatus(null);
+    setSelectedIds([]);
+    setMessage(failed ? `อัปเดตสำเร็จ ${pendingBulkStatus.games.length - failed} เกม, ไม่สำเร็จ ${failed} เกม` : `อัปเดต ${pendingBulkStatus.games.length} เกมแล้ว`);
+    await loadAll();
+  }
+
+  function toggleSelected(id: string) { setSelectedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
+  function toggleAllVisible() { setSelectedIds((current) => visibleGames.every((item) => current.includes(item.id)) ? current.filter((id) => !visibleGames.some((item) => item.id === id)) : [...new Set([...current, ...visibleGames.map((item) => item.id)])]); }
+
   return <AdminPage eyebrow="แพลตฟอร์มเกม" title="คลังเกม" description="จัดการรายชื่อเกม หมวดหมู่ สถานะ ป้ายแนะนำ และสื่อที่แสดงต่อสมาชิก" actions={<AdminButton onClick={() => void loadAll()} disabled={loading}>รีเฟรช</AdminButton>}>
     <AdminMetricGrid>
       <AdminMetric title="เกมทั้งหมด" value={String(metrics.total)} />
@@ -156,10 +193,12 @@ export default function GameCatalogPage() {
       </form>
     </AdminCard>
 
-    <AdminToolbar><strong>รายชื่อเกม</strong><span style={mutedStyle}>{loading ? 'กำลังโหลด...' : `${games.length} เกม`}</span></AdminToolbar>
-    <AdminStack>{games.map((item) => <AdminCard key={item.id}>
+    <AdminToolbar><strong>รายชื่อเกม</strong><span style={mutedStyle}>{loading ? 'กำลังโหลด...' : `${visibleGames.length}/${games.length} เกม`}</span></AdminToolbar>
+    <AdminFilterBar resultText={`เลือก ${selectedGames.length} เกม`}><label style={filterLabelStyle}>ค้นหา<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ชื่อ, รหัส, ค่าย" style={inputStyle} /></label><label style={filterLabelStyle}>ค่าย<select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)} style={inputStyle}><option value="ALL">ทุกค่าย</option>{providers.map((provider) => <option key={provider.id} value={provider.id}>{provider.name}</option>)}</select></label><label style={filterLabelStyle}>สถานะ<select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'ALL' | GameStatus)} style={inputStyle}><option value="ALL">ทุกสถานะ</option>{statuses.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label><label style={filterLabelStyle}>หมวด<select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} style={inputStyle}><option value="ALL">ทุกหมวด</option>{categories.map((category) => <option key={category} value={category}>{category}</option>)}</select></label></AdminFilterBar>
+    <AdminToolbar><label style={checkStyle}><input type="checkbox" checked={visibleGames.length > 0 && visibleGames.every((item) => selectedIds.includes(item.id))} onChange={toggleAllVisible} /> เลือกทั้งหมดที่แสดง</label><div style={actionRowStyle}><AdminButton tone="success" disabled={selectedGames.length === 0 || bulkBusy} onClick={() => setPendingBulkStatus({ status: 'ACTIVE', games: selectedGames })}>เปิด {selectedGames.length}</AdminButton><AdminButton tone="danger" disabled={selectedGames.length === 0 || bulkBusy} onClick={() => setPendingBulkStatus({ status: 'INACTIVE', games: selectedGames })}>ปิด {selectedGames.length}</AdminButton></div></AdminToolbar>
+    <AdminStack>{visibleGames.map((item) => <AdminCard key={item.id}>
       <AdminRow>
-        <div><h2 style={gameNameStyle}>{item.name}</h2><p style={mutedStyle}>{item.provider?.name ?? item.providerId} · {item.providerGameCode} · {item.category}</p><p style={smallMutedStyle}>สื่อ {(item.media ?? []).length} รายการ</p></div>
+        <div style={gameSummaryStyle}><label style={checkStyle}><input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => toggleSelected(item.id)} aria-label={`เลือก ${item.name}`} /></label>{previewUrl(item) ? <img src={previewUrl(item)} alt="" style={previewStyle} /> : <div style={previewPlaceholderStyle}>ไม่มีรูป</div>}<div><h2 style={gameNameStyle}>{item.name}</h2><p style={mutedStyle}>{item.provider?.name ?? item.providerId} · {item.providerGameCode} · {item.category}</p><p style={smallMutedStyle}>สื่อ {(item.media ?? []).length} รายการ</p></div></div>
         <div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge>{item.isFeatured && <AdminBadge>แนะนำ</AdminBadge>}{item.isNew && <AdminBadge>ใหม่</AdminBadge>}{item.isPopular && <AdminBadge>ยอดนิยม</AdminBadge>}</div>
       </AdminRow>
       <div style={actionRowStyle}>
@@ -170,21 +209,27 @@ export default function GameCatalogPage() {
         <AdminButton disabled={busyId === item.id} tone="secondary" onClick={() => void patchGame(item, { isPopular: !item.isPopular })}>{item.isPopular ? 'เอาป้ายยอดนิยมออก' : 'ติดป้ายยอดนิยม'}</AdminButton>
       </div>
       <p style={smallMutedStyle}>ลำดับ {item.sortOrder} · อัปเดต {new Date(item.updatedAt).toLocaleString('th-TH')}</p>
-    </AdminCard>)}{!loading && games.length === 0 && <AdminEmpty>ยังไม่มีเกม</AdminEmpty>}</AdminStack>
+    </AdminCard>)}{!loading && visibleGames.length === 0 && <AdminEmpty>{games.length === 0 ? 'ยังไม่มีเกม' : 'ไม่พบเกมตามตัวกรอง'}</AdminEmpty>}</AdminStack>
 
     <AdminConfirmDialog open={Boolean(pendingStatus)} title={pendingStatus ? `${pendingStatus.status === 'ACTIVE' ? 'เปิดใช้งาน' : 'ปิดปรับปรุง'} ${pendingStatus.item.name}` : ''} description={pendingStatus?.status === 'ACTIVE' ? 'เกมจะกลับมาแสดงและพร้อมให้สมาชิกเปิดใช้งาน' : 'เกมจะถูกซ่อนจากการใช้งานระหว่างตรวจสอบหรือปรับปรุง'} confirmLabel={pendingStatus?.status === 'ACTIVE' ? 'เปิดใช้งาน' : 'ปิดปรับปรุง'} tone={pendingStatus?.status === 'ACTIVE' ? 'success' : 'danger'} busy={Boolean(pendingStatus && busyId === pendingStatus.item.id)} onCancel={() => setPendingStatus(null)} onConfirm={() => void confirmStatus()} />
+    <AdminConfirmDialog open={Boolean(pendingBulkStatus)} title={pendingBulkStatus ? `${pendingBulkStatus.status === 'ACTIVE' ? 'เปิดใช้งาน' : 'ปิดใช้งาน'} ${pendingBulkStatus.games.length} เกม` : ''} description={pendingBulkStatus?.status === 'ACTIVE' ? 'เกมที่เลือกจะเปิดใช้งานตามลำดับ' : 'เกมที่เลือกจะถูกปิดใช้งานตามลำดับ'} confirmLabel={pendingBulkStatus?.status === 'ACTIVE' ? 'เปิดใช้งานทั้งหมด' : 'ปิดใช้งานทั้งหมด'} tone={pendingBulkStatus?.status === 'ACTIVE' ? 'success' : 'danger'} busy={bulkBusy} onCancel={() => setPendingBulkStatus(null)} onConfirm={() => void confirmBulkStatus()} />
   </AdminPage>;
 }
 
 function statusLabel(status: GameStatus) { return ({ ACTIVE: 'เปิดใช้งาน', INACTIVE: 'ปิดใช้งาน', MAINTENANCE: 'ปิดปรับปรุง', REMOVED: 'นำออกแล้ว' } as Record<GameStatus, string>)[status]; }
 function mediaLabel(type: MediaType) { return ({ COVER: 'ภาพปก', ICON: 'ไอคอน', THUMBNAIL: 'ภาพย่อ', BANNER: 'แบนเนอร์', LOGO: 'โลโก้', FALLBACK: 'ภาพสำรอง' } as Record<MediaType, string>)[type]; }
 function statusTone(status: GameStatus) { if (status === 'ACTIVE') return 'success'; if (status === 'MAINTENANCE') return 'warning'; if (status === 'REMOVED') return 'danger'; return 'neutral'; }
+function previewUrl(game: Game) { const media = (game.media ?? []).find((item) => ['COVER', 'THUMBNAIL', 'ICON'].includes(item.type)); return media?.cachedUrl ?? media?.sourceUrl ?? ''; }
 const formStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(230px, 100%), 1fr))', gap: 12, minWidth: 0 } as const;
 const labelStyle = { display: 'grid', gap: 6, color: '#cbd5e1', fontWeight: 900, minWidth: 0 } as const;
+const filterLabelStyle = { ...labelStyle, minWidth: 'min(100%, 180px)' } as const;
 const inputStyle = { width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', boxSizing: 'border-box' as const, fontSize: 15 };
 const checkStyle = { display: 'flex', gap: 8, alignItems: 'center', color: '#cbd5e1', fontWeight: 900 } as const;
 const actionRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' as const, alignItems: 'center' } as const;
 const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.55 } as const;
 const smallMutedStyle = { margin: 0, color: '#64748b', fontSize: 12 } as const;
 const badgeStackStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const, justifyContent: 'flex-end' as const };
+const gameSummaryStyle = { display: 'flex', gap: 12, alignItems: 'center', minWidth: 0 } as const;
+const previewStyle = { width: 56, height: 56, borderRadius: 12, objectFit: 'cover' as const, background: '#0b1220' } as const;
+const previewPlaceholderStyle = { width: 56, height: 56, borderRadius: 12, display: 'grid', placeItems: 'center', flex: '0 0 auto', background: '#172033', color: '#94a3b8', fontSize: 11 } as const;
 const gameNameStyle = { margin: 0, fontSize: 22, lineHeight: 1.12 } as const;

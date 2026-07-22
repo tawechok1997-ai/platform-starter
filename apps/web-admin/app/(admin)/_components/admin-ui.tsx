@@ -104,7 +104,8 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
   const [mounted, setMounted] = useState(false);
   const titleId = useId();
   const descriptionId = useId();
-  const confirmRef = useRef<HTMLButtonElement | null>(null);
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const cancelRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
@@ -115,12 +116,22 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
     document.body.style.position = 'fixed';
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
-    const focusTimer = window.setTimeout(() => confirmRef.current?.focus(), 30);
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape' && !busy) onCancel(); };
-    window.addEventListener('keydown', closeOnEscape);
+    const focusTimer = window.setTimeout(() => cancelRef.current?.focus(), 30);
+    const containFocus = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !busy) { onCancel(); return; }
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? []).filter((element) => !element.hasAttribute('hidden'));
+      if (focusable.length === 0) { event.preventDefault(); return; }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) { event.preventDefault(); return; }
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener('keydown', containFocus);
     return () => {
       window.clearTimeout(focusTimer);
-      window.removeEventListener('keydown', closeOnEscape);
+      window.removeEventListener('keydown', containFocus);
       document.body.style.overflow = previous.overflow;
       document.body.style.position = previous.position;
       document.body.style.top = previous.top;
@@ -132,10 +143,10 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
 
   return createPortal(
     <div className="admin-confirm-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
-      <section className="admin-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descriptionId}>
+      <section ref={dialogRef} className="admin-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descriptionId}>
         <div className="admin-confirm-dialog__head"><div className={`admin-confirm-dialog__mark admin-confirm-dialog__mark--${tone}`} aria-hidden="true">!</div><div className="admin-confirm-dialog__copy"><h2 id={titleId}>{title}</h2><p id={descriptionId}>{description}</p></div></div>
         <div className="admin-confirm-dialog__body">{details ? <div className="admin-confirm-dialog__details">{details}</div> : null}</div>
-        <div className="admin-confirm-dialog__actions"><AdminButton tone="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</AdminButton><button ref={confirmRef} type="button" disabled={busy} onClick={onConfirm} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--regular`}>{busy ? 'กำลังดำเนินการ...' : confirmLabel}</button></div>
+        <div className="admin-confirm-dialog__actions"><button ref={cancelRef} type="button" className="admin-ui-button admin-ui-button--secondary admin-ui-button--regular" disabled={busy} onClick={onCancel}>{cancelLabel}</button><button type="button" disabled={busy} onClick={onConfirm} className={`admin-ui-button admin-ui-button--${tone} admin-ui-button--regular`}>{busy ? 'กำลังดำเนินการ...' : confirmLabel}</button></div>
       </section>
     </div>, document.body,
   );
@@ -194,7 +205,7 @@ const adminSystemCss = `
  .admin-ui-toolbar,.admin-ui-filter-bar{display:grid;grid-template-columns:minmax(0,1fr);padding:10px!important}.admin-ui-toolbar>*,.admin-ui-filter-bar>*{width:100%;max-width:100%}.admin-ui-filter-bar__controls{display:grid;grid-template-columns:minmax(0,1fr);width:100%}.admin-ui-filter-bar__controls>*{width:100%;max-width:100%}.admin-ui-filter-bar__result{margin-left:0;white-space:normal}
  .admin-ui-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.admin-ui-metric{min-height:98px;padding:12px!important}
  .admin-ui-data-value{grid-template-columns:1fr;gap:3px}.admin-ui-data-value>strong{text-align:left}.admin-ui-pagination{justify-content:stretch}.admin-ui-pagination .admin-ui-button{flex:1 1 120px}.admin-ui-pagination>span{order:-1;width:100%;text-align:center}
- .admin-confirm-dialog__head{padding:17px 16px 10px}.admin-confirm-dialog__body{padding:0 16px 12px}.admin-confirm-dialog__actions{padding:11px 16px max(14px,env(safe-area-inset-bottom))}.admin-confirm-dialog__actions>*{flex:1 1 140px}
+ .admin-confirm-layer{place-items:end center;padding:12px max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}.admin-confirm-dialog{width:100%;max-height:min(82dvh,720px);margin:0;border-radius:20px 20px 14px 14px}.admin-confirm-dialog__head{padding:17px 16px 10px}.admin-confirm-dialog__body{padding:0 16px 12px}.admin-confirm-dialog__actions{padding:11px 16px max(14px,env(safe-area-inset-bottom))}.admin-confirm-dialog__actions>*{flex:1 1 140px}
 }
 @media(max-width:420px){.admin-ui-metric-grid{grid-template-columns:1fr}.admin-ui-page__actions .admin-ui-button:not(.admin-ui-icon-button){flex:1 1 auto}.admin-ui-button--regular{min-height:40px;padding:8px 12px}}
 @media(prefers-reduced-motion:reduce){.admin-ui-button{transition:none!important}.admin-confirm-layer{backdrop-filter:none}}

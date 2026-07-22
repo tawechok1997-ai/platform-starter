@@ -52,7 +52,7 @@ test('interactive Admin primitives retain accessible names and dialog semantics'
   assert.match(adminUiSource, /aria-labelledby=\{titleId\}/);
   assert.match(adminUiSource, /aria-describedby=\{descriptionId\}/);
   assert.match(adminUiSource, /event\.key === 'Escape'/);
-  assert.match(adminUiSource, /confirmRef\.current\?\.focus\(\)/);
+  assert.match(adminUiSource, /cancelRef\.current\?\.focus\(\)/);
 });
 
 test('shell button and link primitives share one class composition contract', () => {

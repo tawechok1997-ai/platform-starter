@@ -41,13 +41,18 @@ export class ProviderPresetService {
     if (!input.name?.trim() || !input.code?.trim() || !input.baseUrl?.trim()) throw new BadRequestException('name, code and baseUrl are required');
     const endpointTypes = this.selectedEndpointTypes(preset.endpoints, input.enabledEndpoints);
     const overrideMap = this.endpointOverrideMap(preset.endpoints, input.endpointOverrides);
+    const providerCode = input.code.trim().toLowerCase();
+    const environment = providerCode.endsWith('-uat') ? 'UAT' : input.presetCode === 'demo-provider' || input.presetCode === 'simulator-provider' ? 'DEMO' : 'PRODUCTION';
+    const secretValues: Record<string, string | undefined> = { API_KEY: input.apiKey, SECRET_KEY: input.secretKey, MERCHANT_ID: input.merchantId, AGENT_ID: input.agentId, WEBHOOK_SECRET: input.webhookSecret };
+    const credentialRows = preset.credentials.flatMap((type) => {
+      const value = secretValues[type]?.trim();
+      return value ? [{ type, value }] : [];
+    });
     try {
-      const secretValues: Record<string, string | undefined> = { API_KEY: input.apiKey, SECRET_KEY: input.secretKey, MERCHANT_ID: input.merchantId, AGENT_ID: input.agentId, WEBHOOK_SECRET: input.webhookSecret };
       const result = await this.prisma.$transaction(async (tx) => {
-        const provider = await tx.gameProvider.create({ data: { name: input.name.trim(), code: input.code.trim().toLowerCase(), status: input.status ?? 'INACTIVE', walletMode: preset.walletMode as any, currency: 'THB', timezone: 'Asia/Bangkok', sortOrder: 100, metadata: { presetCode: input.presetCode, ...preset.gates, enabledEndpointTypes: endpointTypes, endpointOverrideTypes: Array.from(overrideMap.keys()), appliedBy: actor.id, appliedAt: new Date().toISOString() } } });
+        const provider = await tx.gameProvider.create({ data: { name: input.name.trim(), code: providerCode, status: input.status ?? 'INACTIVE', walletMode: preset.walletMode as any, currency: 'THB', timezone: 'Asia/Bangkok', sortOrder: 100, metadata: { presetCode: input.presetCode, environment, ...preset.gates, enabledEndpointTypes: endpointTypes, endpointOverrideTypes: Array.from(overrideMap.keys()), requiredCredentialTypes: preset.credentials, providedCredentialTypes: credentialRows.map((item) => item.type), appliedBy: actor.id, appliedAt: new Date().toISOString() } } });
         await tx.gameProviderEndpoint.createMany({ data: endpointTypes.map((type) => ({ providerId: provider.id, type: type as any, url: overrideMap.get(type) ?? this.endpointUrl(input.baseUrl, type), method: 'POST', timeoutMs: 10000, retryCount: 2, isEnabled: true })), skipDuplicates: true });
-        const credentialRows = preset.credentials.map((type) => ({ providerId: provider.id, type: type as any, encryptedValue: this.encryptSecret(secretValues[type] || `TODO_${type}`), maskedValue: this.maskSecret(secretValues[type] || `TODO_${type}`), isEnabled: Boolean(secretValues[type]), rotatedAt: new Date() }));
-        await tx.gameProviderCredential.createMany({ data: credentialRows, skipDuplicates: true });
+        if (credentialRows.length > 0) await tx.gameProviderCredential.createMany({ data: credentialRows.map((item) => ({ providerId: provider.id, type: item.type as any, encryptedValue: this.encryptSecret(item.value), maskedValue: this.maskSecret(item.value), isEnabled: true, rotatedAt: new Date() })), skipDuplicates: true });
         return provider;
       });
       await this.audit(actor, 'game_provider.preset.apply', result.id, { presetCode: input.presetCode, providerCode: result.code, enabledEndpointTypes: endpointTypes, endpointOverrideTypes: Array.from(overrideMap.keys()), credentialTypes: preset.credentials }, meta);

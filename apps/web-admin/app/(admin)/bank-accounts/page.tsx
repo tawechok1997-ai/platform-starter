@@ -39,7 +39,7 @@ export default function BankAccountsPage() {
     const memberData = await memberRes.json().catch(() => null);
     const meData = await meRes.json().catch(() => null);
     const kycData = await kycRes.json().catch(() => null);
-    if (!receivingRes.ok || !memberRes.ok) { setMessage(receivingData?.message ?? memberData?.message ?? 'โหลดข้อมูลไม่สำเร็จ'); return; }
+    if (!receivingRes.ok || !memberRes.ok) { setMessage('โหลดข้อมูลบัญชีไม่สำเร็จ'); return; }
     setPermissions(Array.isArray(meData?.permissions) ? meData.permissions : []);
     setReceiving(receivingData.items ?? []);
     setMemberBanks(memberData.items ?? []);
@@ -55,7 +55,7 @@ export default function BankAccountsPage() {
     setMessage('กำลังบันทึกบัญชีรับเงิน...');
     const res = await adminApiFetch('/admin/receiving-bank-accounts', { method: 'POST', body: JSON.stringify(payload) });
     const data = await res.json().catch(() => null);
-    if (!res.ok) { setMessage(data?.message ?? 'บันทึกไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('บันทึกบัญชีรับเงินไม่สำเร็จ'); return; }
     setReceiving((current) => [data.item, ...current]);
     setPaymentType('bank'); setForm(blankReceiving);
     setMessage('เพิ่มบัญชีรับเงินแล้ว');
@@ -89,7 +89,7 @@ export default function BankAccountsPage() {
     const res = await adminApiFetch(`/admin/receiving-bank-accounts/${item.id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
     const data = await res.json().catch(() => null);
     setBusyId('');
-    if (!res.ok) { setMessage(data?.message ?? 'อัปเดตไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('อัปเดตบัญชีรับเงินไม่สำเร็จ'); return; }
     setReceiving((current) => current.map((row) => row.id === item.id ? data.item : row));
   }
 
@@ -99,7 +99,7 @@ export default function BankAccountsPage() {
     const res = await adminApiFetch(`/admin/member-bank-accounts/${item.id}/review`, { method: 'PATCH', body: JSON.stringify({ status, adminNote: adminNote?.trim() || undefined }) });
     const data = await res.json().catch(() => null);
     setBusyId('');
-    if (!res.ok) { setMessage(data?.message ?? 'ตรวจบัญชีไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('ตรวจบัญชีธนาคารไม่สำเร็จ'); return; }
     setMemberBanks((current) => current.map((row) => row.id === item.id ? { ...row, ...data.item } : row));
   }
 

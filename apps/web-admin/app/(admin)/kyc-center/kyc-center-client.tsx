@@ -43,7 +43,7 @@ export default function KycCenterPage() {
     if (summaryRes.ok) setSummary(summaryData ?? {});
     if (accountRes.ok) setAccounts(accountData.items ?? []);
     if (!summaryRes.ok || !accountRes.ok) {
-      setMessage(summaryData?.message ?? accountData?.message ?? 'โหลดข้อมูลบัญชีไม่สำเร็จ');
+      setMessage('โหลดข้อมูลบัญชีไม่สำเร็จ');
       return;
     }
     setMessage('');
@@ -55,7 +55,7 @@ export default function KycCenterPage() {
     if (nextStatus !== 'ALL') params.set('status', nextStatus);
     const res = await adminApiFetch(`/admin/kyc/cases?${params.toString()}`);
     const data = await res.json().catch(() => null);
-    if (!res.ok) setMessage(data?.message ?? 'โหลดรายการ KYC ไม่สำเร็จ');
+    if (!res.ok) setMessage('โหลดรายการ KYC ไม่สำเร็จ');
     else setKycCases(data.items ?? []);
     setKycLoading(false);
   }
@@ -63,7 +63,7 @@ export default function KycCenterPage() {
   async function openKycCase(id: string) {
     const res = await adminApiFetch(`/admin/kyc/cases/${id}`);
     const data = await res.json().catch(() => null);
-    if (!res.ok || !data?.item) { setMessage(data?.message ?? 'โหลดรายละเอียด KYC ไม่สำเร็จ'); return; }
+    if (!res.ok || !data?.item) { setMessage('โหลดรายละเอียด KYC ไม่สำเร็จ'); return; }
     setSelectedKyc(data as KycCaseDetail);
     setKycNote('');
   }
@@ -76,7 +76,7 @@ export default function KycCenterPage() {
     const res = await adminApiFetch(`/admin/kyc/cases/${pendingKycReview.item.id}/review`, { method: 'PATCH', body: JSON.stringify({ status: pendingKycReview.status, note: note || undefined, version: pendingKycReview.item.version }) });
     const data = await res.json().catch(() => null);
     setBusyId('');
-    if (!res.ok) { setMessage(data?.message ?? 'อัปเดต KYC ไม่สำเร็จ'); return; }
+    if (!res.ok) { setMessage('อัปเดต KYC ไม่สำเร็จ'); return; }
     setPendingKycReview(null);
     setSelectedKyc((current) => current ? { ...current, item: { ...current.item, ...data.item } } : current);
     setMessage(`อัปเดต KYC เป็น ${kycStatusLabel(pendingKycReview.status)} แล้ว`);
@@ -104,7 +104,7 @@ export default function KycCenterPage() {
     const data = await res.json().catch(() => null);
     setBusyId('');
     if (!res.ok) {
-      setMessage(data?.message ?? 'ตรวจบัญชีไม่สำเร็จ');
+      setMessage('ตรวจบัญชีไม่สำเร็จ');
       return;
     }
     setPendingReview(null);
