@@ -71,7 +71,7 @@ Branch: `feature/member-branding-foundation`
 - ✅ ตรวจ Admin asset sync ระหว่าง buildจริง
 - 🔄 ย้าย consumer อื่น เช่น Quick actions ให้ใช้ renderer กลางทีละส่วน
 - 🔄 นำเข้า asset Home/Promotion ต้นฉบับที่เหลือเป็นไฟล์จริง
-- ✅ นำเข้าและผูก `support-headset.webp` กับ runtime default และ asset audit
+- ✅ นำเข้าและเชื่อม Support headset WebP
 
 ## Workstream D: Member Home Integration Contract
 
@@ -98,36 +98,32 @@ Branch: `feature/member-branding-foundation`
 - ✅ แก้คำสั่ง Admin test ให้รวม `app/**/*.spec.ts`
 - 🧪 Preview ไอคอนแบบ responsive รอตรวจด้วย browser จริง
 - ✅ เชื่อม field กลุ่ม Logo และข้อความสำคัญเข้าฟอร์ม Admin จริง
-- ✅ เพิ่ม Upload/Replace/Disable/Restore สำหรับโลโก้และภาพระบบ โดยใช้ CMS binary storage contract เดิม
-- 🧪 เพิ่ม Preview Desktop/Tablet/Mobile ของหน้า Member เต็มหน้า พร้อม regression contract แล้ว รอ CI/browser acceptance
-- 🔄 เพิ่ม Draft/Publish/Version/Rollback แบบย้อนหลังได้ โดยใช้ `SiteSettingHistory` เดิม
-- 🔄 แยกสิทธิ์ Edit และ Publish สำหรับ Branding
-- ✅ Settings update มี `SiteSettingHistory` และ `AdminAuditLog` บันทึกค่าเก่า/ใหม่ ผู้แก้ IP และ user-agent อยู่แล้ว
-- 🔄 แยก audit action สำหรับ draft/publish/rollback ให้ชัดเจน
+- ✅ เพิ่ม Upload/Replace/Disable/Restore สำหรับโลโก้และไอคอน
+- ✅ เพิ่ม Preview Desktop/Tablet/Mobile ของหน้า Member เต็มหน้า
+- 🧪 เพิ่ม Draft/Publish/Version/Rollback แบบย้อนหลังได้ รอ CI รอบสะอาด
+- 🧪 แยกสิทธิ์ Edit และ Publish รอ CI รอบสะอาด
+- 🧪 เพิ่ม Audit action สำหรับ Draft/Publish/Rollback รอ CI รอบสะอาด
+- 🧪 เพิ่มหลักฐาน Admin typecheck เป็น workflow artifact เพื่อวินิจฉัย CI โดยไม่เดา
 
 ## Gate ก่อนเปิด Pull Request
 
-- ✅ Unit tests ผ่าน
-- ✅ Typecheck ผ่าน
-- ✅ Production build ผ่าน
+- ✅ Unit tests เคยผ่านก่อน workflow ขั้นสูงล่าสุด
+- ✅ Typecheck เคยผ่านก่อน workflow ขั้นสูงล่าสุด
+- ✅ Production build เคยผ่านก่อน workflow ขั้นสูงล่าสุด
+- 🧪 Draft/Publish/History/Rollback อยู่ระหว่าง CI รอบสะอาด
 - 🧪 ไม่มี route เดิมเสีย รอ final browser regression
 - ✅ ไม่มี API contract เปลี่ยนโดยไม่ตั้งใจตาม architecture/contract audits
 - 🧪 ไม่มี CSS global ทับหน้าอื่น รอ final visual regression รอบสะอาด
 - ✅ มี manifest, source mapping และ rollback note ระดับ foundation
-- ✅ อัปเดต branchให้ตรงกับ `main`
-- ✅ เปิด Draft PR `#105` เพื่อรีวิวก่อน merge
+- ✅ Branch ตาม `main` และ PR ยัง mergeable ตอนตรวจล่าสุด
+- ✅ Draft PR `#105` ยังเปิดเพื่อรีวิวก่อน merge
 
-## งานที่เสร็จแล้วล่าสุด
+## งานค้างหลัก
 
-1. ✅ แก้ Admin test script ให้รัน spec ใต้ `app/**`
-2. ✅ เพิ่ม `sync-reference-assets.mjs` เพื่อใช้ asset ชุดเดียวกันระหว่าง Member และ Admin
-3. ✅ ผูก asset sync เข้ากับ Admin dev, analyze และ build
-4. ✅ Member/Admin test, typecheck และ production build ผ่าน
-5. ✅ R009, R012 และ R013 audits ผ่านบน branch
-6. ✅ Sync branch กับ `main` ด้วย merge commitโดยไม่ force push
-7. ✅ เพิ่ม Logo/Text fields, unsaved-change guard และ runtime preview ใน Admin
-8. ✅ เพิ่ม Upload/Replace/Disable/Restore พร้อม file validation และ metadata
-9. ✅ เพิ่ม Full-page Branding Preview สำหรับ Desktop/Tablet/Mobile และ regression tests
-10. ✅ นำเข้า `support-headset.webp`; Announcement/Jackpot/Promotion PNG ยังไม่ commit เพราะ connector ทำ checksum เปลี่ยน
-11. 🔄 กำลังทำ Draft/Publish/Version/Rollback, permission split และ audit action เฉพาะ
-12. 🔄 เหลือ visual polish, browser comparison, PNG ต้นฉบับ 3 ตัว และ final clean CI
+1. 🧪 ปิด Admin typecheck/build ของ Draft/Publish/History/Rollback จาก artifact ล่าสุด
+2. 🔄 ย้าย Quick Actions ให้ใช้ icon renderer กลาง
+3. 🔄 Auth visual polish และเทียบ Mobile/Desktop
+4. 🔄 Home visual polish และ browser soak test
+5. ⛔ Announcement/Jackpot/Promotion PNG ยังไม่ commit เพราะ binary transport ทำ checksum เปลี่ยน
+6. ⬜ Final browser acceptance หลังล็อกอินจริง
+7. ⬜ Final clean CI และอัปเดต PR body รอบสุดท้าย
