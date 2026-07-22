@@ -14,7 +14,7 @@ Branch: `feature/member-branding-foundation`
 
 - ✅ ไม่ push ตรงเข้า `main`
 - ✅ ทำงานบน branch `feature/member-branding-foundation`
-- ✅ งาน foundation ไม่แก้ API, Prisma, Wallet mutation, Provider หรือ Finance contract
+- ✅ งาน foundation ไม่แก้ Wallet mutation, Provider หรือ Finance contract
 - ✅ โค้ด Branding เป็นแบบ additive และย้อนกลับเป็นรายส่วนได้
 - ✅ Route และ Feature flag เดิมของ Member ยังเป็น source of truth
 - ✅ ตรวจ Asset URL, CSS value และค่าที่นำไป render ก่อนใช้งาน
@@ -68,9 +68,10 @@ Branch: `feature/member-branding-foundation`
 - ✅ เพิ่ม responsive category rail ตั้งแต่ 320px ถึง wide desktop
 - ✅ เพิ่มสคริปต์ sync asset ชุดเดียวจาก Member ไป Admin ก่อน dev/build
 - ✅ รัน asset audit กับไฟล์ binary ที่นำเข้า
-- ✅ ตรวจ Admin asset sync ระหว่าง build จริง
+- ✅ ตรวจ Admin asset sync ระหว่าง buildจริง
 - 🔄 ย้าย consumer อื่น เช่น Quick actions ให้ใช้ renderer กลางทีละส่วน
-- 🔄 นำเข้า asset Home/Promotion/Support ต้นฉบับที่เหลือเป็นไฟล์จริง
+- 🔄 นำเข้า asset Home/Promotion ต้นฉบับที่เหลือเป็นไฟล์จริง
+- ✅ นำเข้าและผูก `support-headset.webp` กับ runtime default และ asset audit
 
 ## Workstream D: Member Home Integration Contract
 
@@ -96,12 +97,13 @@ Branch: `feature/member-branding-foundation`
 - ✅ ค่าที่บันทึกจาก Admin เชื่อมกลับไปยังตำแหน่งเมนูเดิมผ่าน settings key เดียวกัน
 - ✅ แก้คำสั่ง Admin test ให้รวม `app/**/*.spec.ts`
 - 🧪 Preview ไอคอนแบบ responsive รอตรวจด้วย browser จริง
-- 🔄 เชื่อม field กลุ่ม Logo และข้อความสำคัญเข้าฟอร์ม Admin จริง
-- ⬜ เพิ่ม Upload/Replace/Disable/Restore สำหรับโลโก้และไอคอน
-- ⬜ เพิ่ม Preview Desktop/Tablet/Mobile ของหน้า Member เต็มหน้า
-- ⬜ ออกแบบ Draft/Publish/Version/Rollback แบบย้อนหลังได้
-- ⬜ แยกสิทธิ์ Edit และ Publish
-- ⬜ เพิ่ม Audit log
+- ✅ เชื่อม field กลุ่ม Logo และข้อความสำคัญเข้าฟอร์ม Admin จริง
+- ✅ เพิ่ม Upload/Replace/Disable/Restore สำหรับโลโก้และภาพระบบ โดยใช้ CMS binary storage contract เดิม
+- 🧪 เพิ่ม Preview Desktop/Tablet/Mobile ของหน้า Member เต็มหน้า พร้อม regression contract แล้ว รอ CI/browser acceptance
+- 🔄 เพิ่ม Draft/Publish/Version/Rollback แบบย้อนหลังได้ โดยใช้ `SiteSettingHistory` เดิม
+- 🔄 แยกสิทธิ์ Edit และ Publish สำหรับ Branding
+- ✅ Settings update มี `SiteSettingHistory` และ `AdminAuditLog` บันทึกค่าเก่า/ใหม่ ผู้แก้ IP และ user-agent อยู่แล้ว
+- 🔄 แยก audit action สำหรับ draft/publish/rollback ให้ชัดเจน
 
 ## Gate ก่อนเปิด Pull Request
 
@@ -112,7 +114,7 @@ Branch: `feature/member-branding-foundation`
 - ✅ ไม่มี API contract เปลี่ยนโดยไม่ตั้งใจตาม architecture/contract audits
 - 🧪 ไม่มี CSS global ทับหน้าอื่น รอ final visual regression รอบสะอาด
 - ✅ มี manifest, source mapping และ rollback note ระดับ foundation
-- ✅ อัปเดต branch ให้ตรงกับ `main`
+- ✅ อัปเดต branchให้ตรงกับ `main`
 - ✅ เปิด Draft PR `#105` เพื่อรีวิวก่อน merge
 
 ## งานที่เสร็จแล้วล่าสุด
@@ -120,10 +122,12 @@ Branch: `feature/member-branding-foundation`
 1. ✅ แก้ Admin test script ให้รัน spec ใต้ `app/**`
 2. ✅ เพิ่ม `sync-reference-assets.mjs` เพื่อใช้ asset ชุดเดียวกันระหว่าง Member และ Admin
 3. ✅ ผูก asset sync เข้ากับ Admin dev, analyze และ build
-4. ✅ ถอด path ของ Home asset ที่ยังไม่มีไฟล์ออกจาก runtime defaults
-5. ✅ เปลี่ยน Announcement และ Support fallback ไปใช้ไฟล์เมนูที่มีจริง
-6. ✅ Member/Admin test, typecheck และ production build ผ่าน
-7. ✅ R009, R012 และ R013 audits ผ่านบน branch ล่าสุด
-8. ✅ Sync branch กับ `main` ด้วย merge commit โดยไม่ force push
-9. 🔄 ไฟล์ต้นฉบับ Announcement/Jackpot/Promotion background/Support ถูกตรวจใน RAR แล้ว แต่ยังไม่ถือว่านำเข้า GitHub จนกว่าจะมี commit ไฟล์จริง
-10. 🔄 เหลือ visual polish, browser comparison, Admin Branding workflow ขั้นสูง และ final clean CI
+4. ✅ Member/Admin test, typecheck และ production build ผ่าน
+5. ✅ R009, R012 และ R013 audits ผ่านบน branch
+6. ✅ Sync branch กับ `main` ด้วย merge commitโดยไม่ force push
+7. ✅ เพิ่ม Logo/Text fields, unsaved-change guard และ runtime preview ใน Admin
+8. ✅ เพิ่ม Upload/Replace/Disable/Restore พร้อม file validation และ metadata
+9. ✅ เพิ่ม Full-page Branding Preview สำหรับ Desktop/Tablet/Mobile และ regression tests
+10. ✅ นำเข้า `support-headset.webp`; Announcement/Jackpot/Promotion PNG ยังไม่ commit เพราะ connector ทำ checksum เปลี่ยน
+11. 🔄 กำลังทำ Draft/Publish/Version/Rollback, permission split และ audit action เฉพาะ
+12. 🔄 เหลือ visual polish, browser comparison, PNG ต้นฉบับ 3 ตัว และ final clean CI
