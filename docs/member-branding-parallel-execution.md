@@ -6,16 +6,17 @@ Merged delivery:
 
 - PR #105 merged into `main` at `1ece28bcb57caeed4143d4311905907eabbe0af1`
 - PR #123 closed because its menu/category scope was already included in PR #105
-- Open pull requests for this workstream: 0
+- PR #139 merged into `main` at `7c63926b91594404e97eb349650606664657ba99`
+- Implementation pull requests still open for this workstream: 0
+- Current `main` deployment status: API, Admin and Member succeeded
 
-เอกสารนี้สรุปเฉพาะสถานะที่ตรวจจากโค้ดซึ่งอยู่บน `main` แล้ว ไม่ใช้สถานะจาก branch หรือ Draft PR เก่า
+เอกสารนี้นับเฉพาะสถานะที่ตรวจจากโค้ดและหลักฐานบน `main` แล้ว ไม่ใช้สถานะจาก branch, Draft PR หรือเอกสารความคืบหน้ารุ่นเก่า
 
 ## สัญลักษณ์
 
 - ✅ มีโค้ดบน `main` และมีชุดตรวจรองรับ
-- 🧪 มีโค้ดบน `main` แต่ยังต้องตรวจผ่าน browser หรือสภาพแวดล้อมจริง
-- ⛔ ติด asset หรือข้อจำกัดภายนอก
-- ⬜ ยังไม่มีหลักฐานว่าปิดจากโค้ดปัจจุบัน
+- 🧪 ต้องยืนยันบนระบบจริงหรือเทียบต้นแบบด้วยคน
+- ⛔ ติด asset หรือข้อมูลจากภายนอก
 
 ## งานที่อยู่บน `main` แล้ว
 
@@ -34,41 +35,60 @@ Merged delivery:
 - ✅ แยก ownership ระหว่าง Website, Branding, Icons, CMS, Promotion Center และ Game API
 - ✅ Uploader, history, audit และ permission ใช้ระบบกลาง ไม่สร้างระบบซ้ำ
 - ✅ Regression tests ป้องกัน field ข้ามหมวดและ workflow/preview ซ้ำ
-- ✅ Admin lint, tests, typecheck, production build และ bundle analysis ผ่านบนหัวงานก่อน merge
 
 ### Member Runtime และ Navigation
 
 - ✅ Brand context และ typed settings
-- ✅ Desktop navigation, drawer, bottom navigation และ notification icon อ่านจาก Settings
+- ✅ Desktop navigation, drawer, bottom navigation, notification และ Quick Actions ใช้ `BrandIcon` renderer กลาง
+- ✅ Reference menu/category defaults ถูก merge ใน normalized settings จุดเดียว
 - ✅ Game category navigation อ่าน category จาก `/member/games`
-- ✅ Menu และ category icon ใช้ Brand icon registry พร้อม safe fallback
-- ✅ Quick Actions ใช้ shared `BrandIcon` renderer
+- ✅ Home เหลือ category navigation owner เดียว และ `show_game_categories` ยังควบคุมการแสดงผลจริง
 - ✅ Quick Actions ใช้ `navigationFor('home', features)` เป็น source of truth
-- ✅ Route, title และ description มาจาก navigation เดิม
-- ✅ ไม่มี hardcoded URL และไม่มี renderer logic ซ้ำใน Quick Actions
-- ✅ มี regression test ล็อก navigation, feature flags และ shared icon renderer
+- ✅ Route, title และ description มาจาก navigation contract เดิม
+- ✅ ลบ hardcoded icon URL และ CSS `nth-child` / `nth-of-type` ที่ผูก icon กับลำดับเมนู
+- ✅ Bottom navigation จัด layout ตามจำนวนเมนูจริง ไม่พังเมื่อ feature flag เปลี่ยนจำนวนรายการ
+- ✅ มี regression tests ล็อก navigation, feature flags, shared renderer และ fallback
 
 ### Auth Login และ Register
 
-- ✅ Login/Register ใช้ branding runtime และ settings เดิม
+- ✅ Login/Register ใช้ branding runtime และ settings ชุดเดียว
+- ✅ Register adapter delegate ไป Auth runtime กลาง ไม่ทำ mapping ซ้ำ
+- ✅ Auth เหลือ stylesheet contract ปัจจุบันไฟล์เดียว
+- ✅ ลบ Auth CSS/test layers รุ่นเก่าที่แข่งกันด้วย import order และ `!important`
 - ✅ ไม่เปลี่ยน Auth, Session, CAPTCHA หรือ Redirect contract
 - ✅ Login legal footer แยกข้อความไทยและอังกฤษ
 - ✅ ปุ่มแสดง/ซ่อนรหัสผ่านใช้ locale copy
-- ✅ โหมดไทยไม่แสดง `Secure connection`
-- ✅ มี regression test ป้องกันข้อความ Login ไทย/อังกฤษปนกัน
-- 🧪 Login visual และ responsive implementation อยู่บน `main` แต่ยังไม่มี final browser acceptance
-- 🧪 Register flow และ branding implementation อยู่บน `main` แต่ยังไม่มี final browser acceptance ครบทุก breakpoint
+- ✅ โหมดไทยไม่แสดงข้อความอังกฤษที่ไม่จำเป็น
+- ✅ Regression tests ครอบคลุม locale purity, runtime branding และ responsive contract
 
 ### Member Home และ CMS Contract
 
-- ✅ Promotion carousel พร้อม autoplay safeguards
-- ✅ Promotion cards อ่านจาก Admin/CMS
-- ✅ Announcement แยก component และอ่านจาก CMS
+- ✅ Promotion carousel พร้อม autoplay และ reduced-motion safeguards
+- ✅ Promotion cards และ carousel ใช้ CMS promotion normalizer กลาง
+- ✅ URL safety, text cleanup, internal href และ image dedupe อยู่ใน contract เดียว
+- ✅ Announcement อ่านจาก CMS component แยก
 - ✅ Tournament / Jackpot / Leaderboard แยกเป็น Competition Showcase
 - ✅ Games, provider, category และ media อ่านจาก Game API
-- ✅ Quick Actions เชื่อมผ่าน HomeHighlightsPanel
+- ✅ ลบ Home implementation รุ่นเก่าที่ถูกแทนแล้วออกจาก `member-home-sections.tsx`
+- ✅ ลบ category navigation component/CSS ชุดซ้ำ
+- ✅ Game image fallback browser test โหลด lazy image เข้า viewport ก่อนตรวจ `onError`
 - ✅ Support headset WebP ถูกนำเข้าและเชื่อมแล้ว
-- 🧪 Home presentation และ responsive implementation อยู่บน `main` แต่ยังไม่มี browser soak/acceptance รอบสุดท้าย
+
+### Member CSS และ Theme Ownership
+
+- ✅ แทน CSS patch/fix/final/balance หลายชั้นด้วย theme ปัจจุบันและ geometry contract ที่แยกหน้าที่
+- ✅ ลบ header, rail, hero, tournament, bottom-nav และ asset override รุ่นเก่าที่ไม่ได้ import แล้ว
+- ✅ Home market stylesheet เหลือเฉพาะ Quick Actions, Game Rail, Skeleton และ Wallet surfaces ที่ยังใช้จริง
+- ✅ Visual regression ผ่าน 6 viewport พร้อม screenshot, trace, console และ network evidence
+
+### Dependency และ CI
+
+- ✅ Upgrade Next.js จาก `15.5.18` เป็น `15.5.21`
+- ✅ Upgrade PostCSS override เป็น `8.5.12`
+- ✅ Regenerate `pnpm-lock.yaml` และยืนยันด้วย frozen install
+- ✅ Production dependency audit ผ่าน ไม่มี advisory ระดับ High/Critical ค้าง
+- ✅ ลด CI command ซ้ำโดยคง owner ของ test, typecheck, build และ bundle ชัดเจน
+- ✅ Admin finance queue regression test ตรงกับ ownership ใหม่ของ `AdminFinanceQueueFrame`
 
 ## Asset ที่มีใน repository แล้ว
 
@@ -79,48 +99,55 @@ Merged delivery:
 
 ## งานที่เหลือจริง
 
-1. 🧪 ตรวจ Login และ Register บน Mobile/Desktop ด้วย browser จริง
-2. 🧪 ตรวจ Home Promotion, Tournament, Jackpot และ Leaderboard เทียบต้นแบบ
-3. 🧪 ทำ Home responsive soak test และตรวจ console/network error
-4. ⛔ นำเข้า Announcement, Jackpot และ Promotion PNG ต้นฉบับอีก 3 ไฟล์ เมื่อมี binary ที่ checksum คงที่
-5. 🧪 ทดสอบหลังล็อกอินจริง รวม route, settings override, feature flags และ fallback assets
-6. ⬜ รัน repository-wide CI บน `main` หลัง merge และแยก failure เดิมออกจาก regression ของ workstream นี้
+1. 🧪 Final visual acceptance บนระบบที่ deploy แล้ว: Login, Register และ Home บน Mobile/Desktop เทียบภาพต้นแบบภายนอก โดย automated visual regression ผ่านแล้ว แต่ยังไม่มี human sign-off เทียบต้นแบบ
+2. 🧪 Authenticated production smoke: login/session/redirect, route สำคัญ, settings override, feature flags, `show_game_categories`, fallback assets และตรวจ console/network บน session จริง
+3. ⛔ นำเข้า Announcement, Jackpot และ Promotion PNG ต้นฉบับอีก 3 ไฟล์ เมื่อได้รับ binary ที่ checksum คงที่
+
+ไม่มี code, typecheck, test, security, build, browser regression หรือ deployment blocker ที่ทราบอยู่ใน workstream นี้ ณ สถานะปัจจุบัน
 
 ## งานที่ปิดและต้องไม่ใส่กลับในรายการค้าง
 
-- ✅ Sync `main`
-- ✅ แก้ PR conflict
-- ✅ อัปเดตและ merge PR #105
-- ✅ ปิด PR #123 ที่ซ้ำกับงานใน #105
-- ✅ ย้าย Quick Actions ไปใช้ renderer กลาง
-- ✅ ปิด Admin overlap และ ownership audit
+- ✅ Sync `main` และแก้ PR conflict
+- ✅ Merge PR #105 และ PR #139
+- ✅ ปิด PR #123 ที่ซ้ำกับ PR #105
+- ✅ ย้าย Member icon ทุก surface ไป renderer กลาง
+- ✅ ปิด category navigation ซ้ำ
+- ✅ ปิด promotion normalizer ซ้ำ
+- ✅ ปิด Auth runtime/CSS/test ซ้ำ
+- ✅ ปิด Home legacy implementation ซ้ำ
+- ✅ ปิด Member theme/patch/final CSS ซ้ำ
+- ✅ ปิด Admin settings overlap และ ownership audit
+- ✅ ปิด Next.js/PostCSS security advisories
+- ✅ ปิด Game API lazy-image fallback regression
+- ✅ รัน repository-wide CI หลัง merge และยืนยัน deployment ทั้งสาม service
 
-## CI ที่ผ่านก่อน merge
+## ชุดตรวจที่ผ่านบน PR #139
 
 - ✅ Admin Verification & Bundle
 - ✅ P5 Web Unit Tests
 - ✅ Member UI Quality
 - ✅ Build
 - ✅ Quality Gate
-- ✅ Visual Regression
+- ✅ R-013 Visual Regression
 - ✅ Architecture Contracts
 - ✅ Game API Verification
 - ✅ KYC Browser Regression
-
-## Repository-wide checks ที่เคยแดงและยังต้องตรวจใหม่บน `main`
-
-รายการนี้ไม่ควรถูกนับว่าเป็น failure ของ Member Branding โดยอัตโนมัติ จนกว่าจะตรวจ log บน `main` หลัง merge:
-
-- ⬜ R-010 Query Ownership
-- ⬜ R-010 Query Boundaries
-- ⬜ P5 Security Audit
-- ⬜ Full-System Automated Tests
+- ✅ P5 Security Audit
+- ✅ Full-System Automated Tests
+- ✅ P1-P4 Repository Verification
+- ✅ R005 Shared API Client
+- ✅ R012 Frontend Architecture
+- ✅ R-006 Quality Baseline
+- ✅ R-010 EXPLAIN ANALYZE
+- ✅ R-009 Critical Repository Ports
+- ✅ R-009 Withdrawal Completion Closure
 
 ## กติกาสำหรับงานต่อ
 
 - ทำงานใหม่ผ่าน branch และ PR ไม่ push feature code ตรง `main`
+- ตรวจ worklist และ ownership contract ก่อนสร้าง component, workflow, stylesheet หรือ normalizer ใหม่
 - ไม่เปลี่ยน Wallet, Finance, Provider credential, Session, CAPTCHA หรือ Redirect contract โดยไม่แยก scope
-- ไม่ hardcode รายการเกมหรือโปรโมชันใน Member
+- ไม่ hardcode รายการเกม โปรโมชัน หรือ icon ตามตำแหน่ง DOM
 - Admin/CMS และ Game API ต้องเป็น source of truth
 - หน้าไทยต้องมีเฉพาะภาษาไทย และหน้าอังกฤษต้องมีเฉพาะภาษาอังกฤษ ยกเว้นชื่อแบรนด์หรือคำเฉพาะ
 - Member ใช้ visual language เดียวกับต้นแบบ ส่วน Admin ใช้ design system เดิมของ Admin
