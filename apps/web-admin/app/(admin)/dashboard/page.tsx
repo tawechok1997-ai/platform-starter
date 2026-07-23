@@ -170,7 +170,7 @@ export default function OperationDashboardPage() {
               <AdminMetric title={t.depositsToday} value={formatMoney(String(financialKpis.deposits))} helper={`${summary.today?.topUpCount ?? 0} ${t.items}`} />
               <AdminMetric title={t.withdrawalsToday} value={formatMoney(String(financialKpis.withdrawals))} helper={`${summary.today?.withdrawalCount ?? 0} ${t.items}`} />
               <AdminMetric title={t.netFlow} value={formatMoney(String(financialKpis.netFlow))} helper={t.depositsLessWithdrawals} tone={financialKpis.netFlow < 0 ? 'warning' : 'success'} />
-              <AdminMetric title={t.totalWallet} value={formatMoney(String(financialKpis.total))} helper={`${summary.totals.walletCount.toLocaleString(dateLocale)} ${t.wallets}`} />
+              <AdminMetric title={t.totalWallet} value={formatMoney(String(financialKpis.total)).replace(' ', '\u00a0')} helper={`${summary.totals.walletCount.toLocaleString(dateLocale)} ${t.wallets}`} />
               <AdminMetric title={t.walletVariance} value={formatMoney(String(financialKpis.variance))} helper={t.varianceFormula} tone={financialKpis.variance === 0 ? 'success' : 'danger'} />
             </AdminMetricGrid>
           </AdminCard>
