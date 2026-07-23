@@ -1,3 +1,4 @@
+import { AdminStack } from '../../_components/admin-ui';
 import SettingsSectionPage from '../settings-section-page';
 import BrandingPublishPanel from './branding-publish-panel';
 
@@ -5,7 +6,7 @@ const REFERENCE_LOGO = '/assets/reference-brand/header/noah345-logo.webp';
 
 export default function BrandingSettingsPage() {
   return (
-    <section style={pageStackStyle}>
+    <AdminStack>
       <BrandingPublishPanel />
       <SettingsSectionPage
         group="branding"
@@ -62,8 +63,6 @@ export default function BrandingSettingsPage() {
           { key: 'font_numeric', label: 'Numeric Font Family', placeholder: 'Inter, sans-serif' },
         ]}
       />
-    </section>
+    </AdminStack>
   );
 }
-
-const pageStackStyle = { display: 'grid', gap: 18, minWidth: 0 } as const;
