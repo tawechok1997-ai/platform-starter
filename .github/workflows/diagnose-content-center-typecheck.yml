@@ -1,0 +1,41 @@
+name: Diagnose Content Center Typecheck
+
+on:
+  push:
+    branches:
+      - diagnose/content-center-typecheck-20260724
+    paths:
+      - .github/workflows/diagnose-content-center-typecheck.yml
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: diagnose/content-center-typecheck-20260724
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --silent
+      - name: Capture typecheck output
+        shell: bash
+        run: |
+          mkdir -p docs/verification
+          set +e
+          pnpm --filter @platform/web-admin typecheck > docs/verification/content-center-typecheck.log 2>&1
+          status=$?
+          set -e
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/verification/content-center-typecheck.log
+          git commit -m "test(ci): capture Content Center typecheck output" || true
+          git push
+          exit $status
