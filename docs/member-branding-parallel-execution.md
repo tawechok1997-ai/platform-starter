@@ -104,6 +104,13 @@ Branch: `feature/member-branding-foundation`
 - 🧪 แยกสิทธิ์ Edit และ Publish รอ CI รอบสะอาด
 - 🧪 เพิ่ม Audit action สำหรับ Draft/Publish/Rollback รอ CI รอบสะอาด
 - 🧪 เพิ่มหลักฐาน Admin typecheck เป็น workflow artifact เพื่อวินิจฉัย CI โดยไม่เดา
+- ✅ ทำ ownership audit ระหว่าง Website, Branding, Icons, CMS, Promotion และ Game API
+- ✅ ยืนยันว่า uploader, history, audit และ permission ใช้ระบบกลางเดิม ไม่สร้างชุดซ้ำ
+- ✅ ปรับ Branding workflow และ layout ให้ใช้ AdminActionStrip, AdminLinkButton และ AdminStack เดิม
+- ✅ เพิ่ม regression tests กัน key ข้ามหมวดและ custom workflow UI กลับมา
+- 🔄 แยก form lifecycle กลางสำหรับ load, dirty, before-unload, save, reset และ notice
+- ⬜ ย้าย Website settings มาใช้ form lifecycle กลางโดยไม่เปลี่ยน API contract
+- ⬜ รวม inline preview contract และคง full-page preview เพียงชุดเดียว
 
 ## Gate ก่อนเปิด Pull Request
 
@@ -120,10 +127,11 @@ Branch: `feature/member-branding-foundation`
 
 ## งานค้างหลัก
 
-1. 🧪 ปิด Admin typecheck/build ของ Draft/Publish/History/Rollback จาก artifact ล่าสุด
-2. 🔄 ย้าย Quick Actions ให้ใช้ icon renderer กลาง
-3. 🔄 Auth visual polish และเทียบ Mobile/Desktop
-4. 🔄 Home visual polish และ browser soak test
-5. ⛔ Announcement/Jackpot/Promotion PNG ยังไม่ commit เพราะ binary transport ทำ checksum เปลี่ยน
-6. ⬜ Final browser acceptance หลังล็อกอินจริง
-7. ⬜ Final clean CI และอัปเดต PR body รอบสุดท้าย
+1. 🧪 ปิด Admin typecheck/build ของ Draft/Publish/History/Rollback และ Admin overlap refactor
+2. 🔄 แยก form lifecycle กลางและย้าย Website settings มาใช้ร่วมกัน
+3. 🔄 ย้าย Quick Actions ให้ใช้ icon renderer กลาง
+4. 🔄 Auth visual polish และเทียบ Mobile/Desktop
+5. 🔄 Home visual polish และ browser soak test
+6. ⛔ Announcement/Jackpot/Promotion PNG ยังไม่ commit เพราะ binary transport ทำ checksum เปลี่ยน
+7. ⬜ Final browser acceptance หลังล็อกอินจริง
+8. ⬜ Final clean CI และอัปเดต PR body รอบสุดท้าย
