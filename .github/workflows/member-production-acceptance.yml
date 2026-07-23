@@ -9,12 +9,19 @@ on:
       - playwright.production-acceptance.config.ts
       - tests/e2e-production/**
       - .github/workflows/member-production-acceptance.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - playwright.production-acceptance.config.ts
+      - tests/e2e-production/**
+      - .github/workflows/member-production-acceptance.yml
 
 permissions:
   contents: read
 
 concurrency:
-  group: member-production-acceptance-${{ github.ref }}
+  group: member-production-acceptance-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
