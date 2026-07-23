@@ -31,6 +31,19 @@ jobs:
       - run: pnpm install --frozen-lockfile=false
       - name: Query review ledger
         run: node tools/audit-r010-query-review-ledger.mjs
+      - name: Export query inventory evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p r010-inventory
+          R010_QUERY_JSON=1 node tools/audit-r010-query-inventory.mjs > r010-inventory/query-inventory.json
+      - name: Upload query inventory evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: r010-query-inventory-${{ github.sha }}
+          path: r010-inventory/query-inventory.json
+          if-no-files-found: error
+          retention-days: 1
       - name: No duplicate query shapes
         env:
           R010_DUPLICATE_QUERY_STRICT: '1'
