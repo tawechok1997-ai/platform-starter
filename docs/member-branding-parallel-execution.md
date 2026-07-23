@@ -8,7 +8,9 @@ Merged delivery:
 - PR #123 closed because its menu/category scope was already included in PR #105
 - PR #139 merged into `main` at `7c63926b91594404e97eb349650606664657ba99`
 - PR #144 merged into `main` at `7ada12fb1c9e36002658fa2e0a034b6ad9ea5768`
-- Current `main` deployment status: Member and API succeeded; Admin deployment follows the latest Admin-only commits independently
+- PR #146 merged into `main` with deployed Auth production assertions
+- PR #147 merged into `main` at `98333057eb9c9da701ae88c8d4a5286f45cfff61`
+- Implementation pull requests still open for this workstream: 0
 
 เอกสารนี้นับเฉพาะสถานะที่ตรวจจากโค้ด หลักฐาน CI และระบบที่ deploy แล้ว ไม่ใช้สถานะจาก branch, Draft PR หรือเอกสารความคืบหน้ารุ่นเก่า
 
@@ -79,6 +81,9 @@ Merged delivery:
 - ✅ Game image fallback browser test โหลด lazy image เข้า viewport ก่อนตรวจ `onError`
 - ✅ Support headset WebP ถูกนำเข้าและเชื่อมแล้ว
 - ✅ Public production probe ยืนยันว่า `/` redirect ไป `/login?next=%2F` เมื่อไม่มี session ตาม contract
+- ✅ เพิ่ม authenticated Home Playwright contract สำหรับ session, protected route, settings, feature flags, categories, Promotion, Tournament, Jackpot, Leaderboard, image, overflow, console และ network
+- ✅ เพิ่ม manual production evidence workflow ที่รองรับ `PROD_MEMBER_TOKEN` หรือ seeded credentials และไม่ยอมรับ skipped test เป็นหลักฐานผ่าน
+- ✅ ปิด trace/video เมื่อใช้ token เพื่อไม่ให้ข้อมูลลับถูกบันทึกใน artifact
 
 ### Member CSS และ Theme Ownership
 
@@ -96,7 +101,7 @@ Merged delivery:
 - ✅ Production dependency audit ผ่าน ไม่มี advisory ระดับ High/Critical ค้าง
 - ✅ ลด CI command ซ้ำโดยคง owner ของ test, typecheck, build และ bundle ชัดเจน
 - ✅ Admin finance queue regression test ตรงกับ ownership ใหม่ของ `AdminFinanceQueueFrame`
-- ✅ PR #144 ผ่าน Build, Full-System, Security, Admin, Member, Visual และ architecture checks ครบก่อน merge
+- ✅ PR #144 และ PR #147 ผ่าน Build, Full-System, Security, Quality และ architecture checks ก่อน merge
 
 ## Asset ที่มีใน repository แล้ว
 
@@ -105,18 +110,27 @@ Merged delivery:
 - ✅ Support headset WebP
 - ✅ Reference menu PNG และ manifest
 
+## Asset ต้นแบบที่พบชื่ออ้างอิง แต่ยังไม่พบ binary
+
+- ⛔ Promotion card: `a426b420-d905-4a61-bac3-fb9f69b57901.png`
+- ⛔ Event card: `eb8a2aa7-d675-4bc0-bd1f-64e25aba8ffe.png`
+- ⛔ Announcement / News card: `009138d7-8a4f-44ef-a315-49d300f6f6e1.png`
+- ⛔ Promotion theme image: `e6a882fe-0528-48d5-9707-8e563f1aeb96.png`
+
+ค้น File Library แล้วพบเฉพาะ metadata/ข้อความตั้งค่าที่อ้างชื่อไฟล์ ไม่พบ PNG binary ที่เปิดอ่านและตรวจ checksum ได้ จึงห้ามนำชื่อเหล่านี้ไปสร้างไฟล์ placeholder แล้วถือว่าเป็นต้นฉบับ
+
 ## งานที่เหลือจริง
 
-1. 🧪 Authenticated production smoke และ Home acceptance: ใช้บัญชีจริงตรวจ login/session/redirect, Home route, settings override, feature flags, `show_game_categories`, fallback assets, Promotion, Tournament, Jackpot, Leaderboard และ console/network
-2. ⛔ Exact visual comparison กับต้นแบบภายนอกยังทำอัตโนมัติไม่ได้ เพราะ `noah345.shop` ตอบ Cloudflare 403 ต่อ GitHub runner และระบบค้นไฟล์ภาพต้นแบบเก่าตอบผิดพลาด ต้องมี reference screenshot/source capture ที่เปิดอ่านได้อย่างคงที่
-3. ⛔ นำเข้า Announcement, Jackpot และ Promotion PNG ต้นฉบับอีก 3 ไฟล์ เมื่อได้รับ binary ที่ checksum คงที่
+1. 🧪 Authenticated production Home acceptance: ตั้ง `PROD_MEMBER_TOKEN` ที่ยังใช้งานได้ หรือ seeded Member credentials ที่ล็อกอิน deployed API ได้ แล้วรัน `Member Authenticated Production Smoke` แบบ manual เพื่อเก็บหลักฐาน session จริง
+2. ⛔ Exact visual comparison กับต้นแบบภายนอกยังทำอัตโนมัติไม่ได้ เพราะ `noah345.shop` ตอบ Cloudflare 403 ต่อ GitHub runner ต้องมี reference screenshot/source capture ที่เปิดอ่านได้อย่างคงที่
+3. ⛔ นำเข้า Announcement, Jackpot และ Promotion PNG ต้นฉบับ เมื่อได้รับ binary ที่ checksum คงที่ โดยใช้ชื่ออ้างอิงด้านบนช่วยจับคู่
 
 ไม่มี code, typecheck, test, security, build, public Auth browser regression หรือ Member deployment blocker ที่ทราบอยู่ใน workstream นี้ ณ สถานะปัจจุบัน
 
 ## งานที่ปิดและต้องไม่ใส่กลับในรายการค้าง
 
 - ✅ Sync `main` และแก้ PR conflict
-- ✅ Merge PR #105, PR #139 และ PR #144
+- ✅ Merge PR #105, PR #139, PR #144, PR #146 และ PR #147
 - ✅ ปิด PR #123 ที่ซ้ำกับ PR #105
 - ✅ ย้าย Member icon ทุก surface ไป renderer กลาง
 - ✅ ปิด category navigation ซ้ำ
@@ -131,23 +145,17 @@ Merged delivery:
 - ✅ ปิดปัญหาข้อความอังกฤษปนในหน้า Auth ภาษาไทย
 - ✅ ปิดปัญหาชื่อแบรนด์ถูกตัดบน Auth มือถือ
 - ✅ ปิด Admin safe-error empty fallback ที่ค้นพบระหว่าง full CI
-- ✅ รัน repository-wide CI และยืนยัน Member deployment หลัง merge
+- ✅ เพิ่ม authenticated Home evidence framework โดยไม่สร้างบัญชี production หรือแก้ credential แบบไม่ปลอดภัย
+- ✅ ลบ workflow สำรวจ API/seeded account ชั่วคราวก่อน merge
+- ✅ รัน repository-wide CI หลัง merge ของแต่ละก้อนงาน
 
-## ชุดตรวจที่ผ่านบน PR #144
+## ชุดตรวจที่ผ่านบน PR #147
 
-- ✅ Admin Verification & Bundle
-- ✅ P5 Web Unit Tests
-- ✅ Member UI Quality
 - ✅ Build
-- ✅ Quality Gate
-- ✅ R-013 Visual Regression
-- ✅ Architecture Contracts
-- ✅ Member Production Acceptance
-- ✅ P5 Security Audit
 - ✅ Full-System Automated Tests
-- ✅ P1-P4 Repository Verification
-- ✅ R005 Shared API Client
-- ✅ R012 Frontend Architecture
+- ✅ P5 Security Audit
+- ✅ Quality Gate
+- ✅ Architecture Contracts
 - ✅ R-006 Quality Baseline
 - ✅ R-009 Critical Repository Ports
 - ✅ R-009 Withdrawal Completion Closure
