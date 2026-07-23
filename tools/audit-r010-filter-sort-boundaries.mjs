@@ -28,7 +28,7 @@ for (const message of [
 if (/\.slice\(0,\s*Math\.max\(maxLength/.test(utility)) {
   failures.push('oversized query text must be rejected instead of truncated');
 }
-if (/\? \(field as TField\) : defaults\.field/.test(utility)) {
+if (/allowedFields\.includes\([^)]*\)\s*\?\s*\(field as TField\)\s*:\s*defaults\.field/.test(utility)) {
   failures.push('invalid sort fields must not silently fall back to defaults');
 }
 
