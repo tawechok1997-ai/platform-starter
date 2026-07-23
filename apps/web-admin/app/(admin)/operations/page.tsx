@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminActionStrip, AdminBadge, AdminButton, AdminCard, AdminCommandPanel, AdminEmpty, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
 import { useAdminLocale, type AdminLocale } from '../admin-locale';
