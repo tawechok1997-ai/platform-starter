@@ -67,13 +67,32 @@ With five roles, nine routes and three viewports, one workflow run produces 135 
 - Escape closes the drawer.
 - Focus returns to the Details trigger.
 
-## Evidence
+## Passing evidence
 
-The workflow uploads:
+Verification PR: `#148` (`verify/admin-browser-matrix-20260724`)
+
+- Workflow run: `30036250614`
+- Job: `89304839529` — `Route × Role × Viewport`
+- Result: success
+- Matrix JSON files: 15
+- Route checks: 135
+- Permission expectation/render mismatches: 0
+- Runtime and critical network issues: 0
+- Maximum horizontal overflow: 0 px
+- Owner full-page screenshots: 27
+- Artifact ID: `8575441418`
+- Artifact name: `admin-browser-matrix-a0537e372f976b5f582b1e05386b9e2fb5d7cd2c`
+- Artifact size: 11,040,091 bytes
+- Artifact digest: `sha256:7cb2e993decef4f1d625642bc8a4d788996053aa8fa4241f5bed326ced36a6c1`
+- Artifact expiry: 2026-08-06
+
+The verification PR contains only a workflow-trigger marker and must not be merged.
+
+## Evidence contents
 
 - Per-role JSON results for every Playwright project.
 - Owner route screenshots.
-- Failure screenshots and traces.
+- Failure screenshots and traces when a future run fails.
 - HTML Playwright report.
 
 Artifacts are retained for 14 days.
@@ -82,4 +101,4 @@ Artifacts are retained for 14 days.
 
 - Mocked API fixtures verify frontend permission routing and responsive contracts, not backend authorization behavior. Backend permission metadata remains covered separately by `audit:admin-permissions` and API tests.
 - The suite is read-only and does not verify mutation success.
-- A committed matrix is not passing evidence by itself. D-08 may be marked complete only after a real browser run succeeds and its workflow run or artifact is recorded.
+- Changes to route permissions, Admin navigation, responsive shell behavior or shared drawers must update this matrix and pass the workflow again.
