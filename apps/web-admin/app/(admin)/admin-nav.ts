@@ -1,3 +1,5 @@
+import type { AdminLocale } from './admin-locale';
+
 export type AdminNavItem = {
   title: string;
   titleEn?: string;
@@ -94,7 +96,7 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'งานโปรโมชัน', titleEn: 'Promotion operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'] },
       { title: 'โปรโมชันและโบนัส', titleEn: 'Promotions & bonuses', href: '/promotion-center', permissions: ['promotion.view'] },
       { title: 'คำขอรับโปรโมชัน', titleEn: 'Promotion claims', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
-      { title: 'ประวัติโบนัสด', titleEn: 'Bonus ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
+      { title: 'โบนัสย้อนหลัง', titleEn: 'Bonus ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
       { title: 'ตัวแทนและ Affiliate', titleEn: 'Affiliates', href: '/affiliate-center', permissions: ['affiliate.view'] },
       { title: 'ประวัติคอมมิชชัน', titleEn: 'Commission ledger', href: '/commission-ledgers', permissions: ['commission.view'] },
       { title: 'จัดการเนื้อหาเว็บไซต์', titleEn: 'Content', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
@@ -152,5 +154,3 @@ export function requiredPermissionsForPath(pathname: string) {
   for (const item of routeItems) if (pathname === item.href || pathname.startsWith(`${item.href}/`)) return item.permissions ?? [];
   return [] as readonly string[];
 }
-
-import type { AdminLocale } from './admin-locale';
