@@ -16,12 +16,21 @@ on:
       - tests/admin-browser-matrix/**
       - apps/web-admin/app/(admin)/**
       - apps/web-admin/app/admin-api.ts
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/admin-browser-regression-matrix.yml
+      - playwright.admin-matrix.config.ts
+      - tests/admin-browser-matrix/**
+      - apps/web-admin/app/(admin)/**
+      - apps/web-admin/app/admin-api.ts
 
 permissions:
   contents: read
 
 concurrency:
-  group: admin-browser-regression-${{ github.ref }}
+  group: admin-browser-regression-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
