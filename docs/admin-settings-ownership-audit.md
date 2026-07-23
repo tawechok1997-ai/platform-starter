@@ -18,27 +18,26 @@ Keep the Admin UI consistent with the existing Admin design system and prevent s
 | Audit | `AdminAuditLog` | Actor, action, old/new data, IP and user agent | A second branding audit store |
 | Permissions | Existing role/permission framework | Edit/publish capability checks | A parallel permission system |
 
-## Shared UI rules
+## Shared implementation contracts
 
-1. Admin pages must use `AdminPage`, `AdminCard`, `AdminGrid`, `AdminActionStrip`, `AdminToolbar`, `AdminNotice`, `AdminButton` and `AdminLinkButton` where applicable.
-2. Do not introduce raw page-level button/link/card styling when an Admin primitive already exists.
-3. Inline preview is for the current form values. Full-page preview is for Desktop/Tablet/Mobile acceptance. Do not create a third preview implementation.
-4. Form lifecycle behavior should converge on one shared implementation: load, dirty state, before-unload guard, save, reset and notices.
-5. Branding edits save as Draft. Publish and rollback remain separate privileged actions.
+1. Admin pages use `AdminPage`, `AdminCard`, `AdminGrid`, `AdminActionStrip`, `AdminToolbar`, `AdminNotice`, `AdminButton` and `AdminLinkButton` where applicable.
+2. `useAdminSettingsForm` is the single owner of settings load, dirty state, before-unload guard, save, reset and notices.
+3. Inline preview is for current form values. The Branding full-page preview is the only Desktop/Tablet/Mobile acceptance preview.
+4. Settings-managed images use `/admin/settings/cms-assets`; no page-specific upload backend is allowed.
+5. Branding edits save as Draft. Publish and rollback remain separate privileged actions using the existing history, audit and permission systems.
+6. Moving a settings key between Website, Branding or Icons requires an explicit migration. A key must not be exposed by two owner pages at the same time.
 
-## Current overlap findings
+## Current status
 
-- Website and `SettingsSectionPage` both implement load, dirty detection, before-unload, save, reset and notice behavior.
-- Website has a dedicated inline preview while generic settings pages use the shared Preview renderer.
-- Branding workflow previously used custom link/card styles; it now uses Admin design-system primitives.
-- Branding, Website and Icons are close in purpose but their key ownership is distinct. Moving keys must be an explicit migration, not duplicate exposure in two pages.
+- ✅ Website Settings and `SettingsSectionPage` use the shared form lifecycle.
+- ✅ Branding workflow uses Admin design-system primitives.
+- ✅ Inline and full-page previews have distinct ownership and no third preview implementation exists.
+- ✅ Branding, Website, Icons, Promotion Center and Game API retain separate key/data ownership.
+- ✅ Asset upload, version history, rollback, audit and permissions reuse existing systems.
+- ✅ Ownership and workflow regression tests protect the boundaries above.
 
-## Refactor order
+## Remaining verification
 
-1. Preserve current API routes and settings keys.
-2. Normalize Branding workflow layout to Admin primitives.
-3. Add ownership regression tests.
-4. Extract a shared settings form lifecycle hook without changing page behavior.
-5. Migrate Website to the shared lifecycle.
-6. Consolidate inline preview contracts and retain one full-page Member preview.
-7. Run Admin lint, tests, typecheck and production build before further Member visual work.
+- 🧪 Run Admin lint and tests for Admin-specific behavior.
+- 🧪 Run repository Build for Admin typecheck and production build.
+- 🧪 Complete browser acceptance for the full-page Member preview when visual assets change.
