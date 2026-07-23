@@ -133,12 +133,12 @@
 - `/exports`: file type/date range และ row count ก่อนดาวน์โหลด
 - `/risk-alerts`: Critical-first ordering
 - `/game-providers`: Table contract และ Provider detail drawer
-- `/webhook-logs`: Replay permission, server pagination, provider payload redaction
+- `/webhook-logs`: Replay endpoint/workflow, server pagination, provider payload redaction
 - `/promotion-operations`: readiness checklist, request priority, member preview
 - `/promotion-center`: tabs, lifecycle, search, bulk archive
 - `/content-center`: lifecycle และ editable raw JSON
 - `/admin-roles`: editor/save workflow
-- `/audit`: permission-gated export และ field-level masking
+- `/audit`: field-level masking
 - `/anti-bot`: Test/Production mode
 - `/security`: current-account login event history
 
@@ -224,7 +224,22 @@
 
 ### D-07 — Permission gating
 
-- [ ] UI/API permission matrix กลาง
+- [x] UI/API permission matrix กลาง
+  - Contract: `apps/web-admin/app/(admin)/_components/admin-permission-contract.ts`
+  - Shared gate: `apps/web-admin/app/(admin)/_components/admin-permissions.tsx`
+  - Matrix: `docs/admin-permission-matrix.md`
+  - Permission contract: `78f94866fa3d4b448ffbfd34724fef7086429950`
+  - Shared gate: `2cc92b99fa0317b39b32103401604fd64af81fcc`
+  - Invitation roles API: `e294b7e7c684a6008b298487dc9774f1609eaa4d`, `1f06ab4cdf269c653967de1cc65ca549c48fac3f`
+  - Invitation UI: `41cbd96dab9b753a9256dab56ca4aec3ec0f4c5e`, `d417a5b583398edced063503ce97aae8a32e13ed`
+  - Audit export API/UI: `59d1ded6c94579f3946dcf7dca27ac63148a5cbb`, `4aef688d8de06d7ae6476e3047d166f87550112d`, `ba4fc8a11dbe8ccdf6b0489cd444b51fac40f2e6`, `147309cbaa7570e15953b3659002f21eeded470e`
+  - Audit Risk permission alignment: `61d753fe576438777cb2e3f40c236702aaee5455`
+  - Webhook navigation alignment: `711a62731e60161634ff13ac49c342a0fc99627f`
+  - Regression spec: `4fca22bb8c3e5d09ee0aa1d5b457e72b2092c8c4`
+  - Matrix sync: `2fe2039153cdde9aa28009aaa08de62a108b2055`
+  - Webhook replay ยังไม่มี endpoint จึงไม่แสดงปุ่ม ฟีเจอร์นี้ยังค้างใน route task ไม่ใช่ permission mismatch
+  - ยังไม่อ้างว่า permission spec ผ่าน เพราะ Railway build ไม่ได้รัน `pnpm test`
+  - Railway deploy: API, Member และ Admin ผ่าน
 
 ### D-08 — Responsive/mobile verification
 
@@ -252,7 +267,7 @@
 - ช่อง `[ ]` เดิมที่ควรเป็น `[~]`: 4 งาน
 - ช่อง `[x]` ที่ลดสถานะใน Promotion Center: 4 งาน
 - กลุ่มงานซ้ำเชิงระบบ: 10 กลุ่ม
-- งานใหม่ที่ปิดหลัง audit: 7 งาน
+- งานใหม่ที่ปิดหลัง audit: 8 งาน
   1. `/operations` SLA/เวลาค้าง
   2. D-01 Bulk Queue entry points
   3. D-02 Shared finance queue contract
@@ -260,5 +275,6 @@
   5. D-04 Shared safe-error contract
   6. D-05 Shared confirmation/mutation guard
   7. D-06 Shared drawer/focus contract และ adoption matrix
+  8. D-07 Shared UI/API permission matrix และ action/API alignment
 
 ตัวเลขนี้นับเฉพาะหัวข้อที่เปิด source ตรวจแล้ว ไม่รวมการคาดเดาจากชื่อ route หรือเอกสารเดิม
