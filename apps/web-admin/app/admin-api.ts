@@ -7,8 +7,16 @@ const ADMIN_SESSION_HINT = 'admin_session_hint';
 const ADMIN_ACCESS_TOKEN = 'admin_access_token';
 const ADMIN_LOCALE_STORAGE_KEY = 'admin_locale';
 const SENSITIVE_ERROR_KEYS = new Set(['stack', 'trace', 'traceback', 'debug', 'exception', 'cause', 'query', 'sql']);
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const inFlightAdminMutations = new Map<string, Promise<ReplayableResponse>>();
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
+type ReplayableResponse = {
+  body: string;
+  status: number;
+  statusText: string;
+  headers: Headers;
+};
 
 export function proxiedAdminPath(path: string) {
   if (!path.startsWith('/admin/')) throw new Error(`Unsupported admin API path: ${path}`);
@@ -16,6 +24,28 @@ export function proxiedAdminPath(path: string) {
 }
 
 export async function adminApiFetch(path: string, options: ApiOptions = {}) {
+  const method = String(options.method ?? 'GET').toUpperCase();
+  if (!MUTATING_METHODS.has(method)) return adminApiFetchOnce(path, options);
+  return guardedAdminMutationFetch(path, { ...options, method });
+}
+
+async function guardedAdminMutationFetch(path: string, options: ApiOptions) {
+  const headers = mergeHeaders(options.headers);
+  if (!headers.has('Idempotency-Key')) headers.set('Idempotency-Key', createAdminIdempotencyKey());
+  const signature = adminMutationSignature(path, options);
+  const existing = inFlightAdminMutations.get(signature);
+  if (existing) return replayAdminResponse(await existing);
+
+  const request = adminApiFetchOnce(path, { ...options, headers }).then(toReplayableResponse);
+  inFlightAdminMutations.set(signature, request);
+  try {
+    return replayAdminResponse(await request);
+  } finally {
+    if (inFlightAdminMutations.get(signature) === request) inFlightAdminMutations.delete(signature);
+  }
+}
+
+async function adminApiFetchOnce(path: string, options: ApiOptions = {}) {
   const token = getAdminAccessToken();
   const headers = mergeHeaders(options.headers);
   if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
@@ -37,6 +67,40 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   const retry = await fetch(url, { cache: 'no-store', ...options, headers });
   await handleAdminResponse(retry, options, true);
   return sanitizeAdminErrorResponse(retry);
+}
+
+export function adminMutationSignature(path: string, options: RequestInit = {}) {
+  const method = String(options.method ?? 'POST').toUpperCase();
+  const body = typeof options.body === 'string'
+    ? options.body
+    : options.body
+      ? Object.prototype.toString.call(options.body)
+      : '';
+  return `${method}:${path}:${body}`;
+}
+
+export function createAdminIdempotencyKey() {
+  const random = typeof globalThis.crypto?.randomUUID === 'function'
+    ? globalThis.crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  return `admin-${random}`;
+}
+
+async function toReplayableResponse(response: Response): Promise<ReplayableResponse> {
+  return {
+    body: await response.clone().text(),
+    status: response.status,
+    statusText: response.statusText,
+    headers: new Headers(response.headers),
+  };
+}
+
+function replayAdminResponse(response: ReplayableResponse) {
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: new Headers(response.headers),
+  });
 }
 
 async function sanitizeAdminErrorResponse(response: Response) {
