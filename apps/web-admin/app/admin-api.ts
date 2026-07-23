@@ -51,6 +51,8 @@ async function sanitizeAdminErrorResponse(response: Response) {
   const safePayload = sanitizeAdminErrorPayload(payload, message);
   const headers = new Headers(response.headers);
   headers.delete('content-length');
+  headers.delete('content-encoding');
+  headers.delete('transfer-encoding');
   headers.set('content-type', 'application/json; charset=utf-8');
 
   return new Response(JSON.stringify(safePayload), {
