@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { adminApiFetch } from '../../../admin-api';
-import { AdminButton, AdminCard, AdminNotice, AdminStack } from '../../../_components/admin-ui';
+import { AdminButton, AdminCard, AdminNotice, AdminStack } from '../../_components/admin-ui';
 
 export default function BrandingPublishPanel() {
   const [message, setMessage] = useState('แก้ไขและกด Save Changes เพื่อบันทึกเป็น Draft จากนั้นตรวจ Preview ก่อน Publish');
