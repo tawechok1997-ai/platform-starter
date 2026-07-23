@@ -1,5 +1,6 @@
+import { WebhookLogStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class WebhookLogQueryDto {
   @IsOptional()
@@ -8,8 +9,8 @@ export class WebhookLogQueryDto {
   search?: string;
 
   @IsOptional()
-  @IsIn(['PROCESSED', 'RETRY', 'FAILED', 'DUPLICATE'])
-  status?: 'PROCESSED' | 'RETRY' | 'FAILED' | 'DUPLICATE';
+  @IsEnum(WebhookLogStatus)
+  status?: WebhookLogStatus;
 
   @IsOptional()
   @Type(() => Number)
