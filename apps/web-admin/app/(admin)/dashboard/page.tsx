@@ -88,7 +88,6 @@ export default function OperationDashboardPage() {
   const canViewRisk = hasPermission(['risk.view']);
   const canViewTopUps = hasPermission(['topups.view', 'deposit.view']);
   const canViewWithdrawals = hasPermission(['withdraw.view']);
-  const canViewReports = hasPermission(['reports.view']);
   const canViewWallet = hasPermission(['wallet.view']);
 
   const queueMetrics = useMemo(() => {
@@ -137,18 +136,6 @@ export default function OperationDashboardPage() {
     return { tone: 'success', label: t.clear, message: t.controlled };
   }, [financeError, pendingTotal, queueMetrics.criticalCount, queueMetrics.overdueCount, riskError, riskSummary.criticalCount, t]);
 
-  const financeFlow = useMemo(() => {
-    const deposits = Math.max(Number(summary?.today?.topUpAmount ?? 0), 0);
-    const withdrawals = Math.max(Number(summary?.today?.withdrawalAmount ?? 0), 0);
-    const total = deposits + withdrawals;
-    return {
-      deposits,
-      withdrawals,
-      depositPercent: total > 0 ? Math.round((deposits / total) * 100) : 0,
-      withdrawalPercent: total > 0 ? Math.round((withdrawals / total) * 100) : 0,
-    };
-  }, [summary]);
-
   return (
     <div className="admin-dashboard">
       <AdminPage eyebrow={t.eyebrow} title={t.title} description={t.description} actions={<AdminButton onClick={loadSummary} disabled={loading}>{loading ? t.loading : t.refresh}</AdminButton>}>
@@ -194,21 +181,6 @@ export default function OperationDashboardPage() {
 
         {canViewRisk && !riskError && <AdminCard title={t.riskPressure} description={`${riskSummary.openCount} ${t.open} · ${riskMetrics.loadedTotal} ${t.loaded}`} action={<AdminLinkButton href="/risk-alerts">{t.openRiskCenter}</AdminLinkButton>}>
           <RiskSeverityChart metrics={riskMetrics} locale={locale} copy={t} />
-        </AdminCard>}
-
-        {summary?.today && canViewFinance && <AdminCard title={t.financeFlow} description={summary.today.date} action={canViewReports ? <AdminLinkButton href="/reports">{t.fullReport}</AdminLinkButton> : undefined}>
-          <div className="admin-finance-flow">
-            <div className="admin-finance-flow__summary">
-              <div><span>{t.deposit}</span><strong>{formatMoney(summary.today.topUpAmount)}</strong><small>{summary.today.topUpCount} {t.items}</small></div>
-              <div><span>{t.withdrawal}</span><strong>{formatMoney(summary.today.withdrawalAmount)}</strong><small>{summary.today.withdrawalCount} {t.items}</small></div>
-              <div><span>{t.netFlow}</span><strong>{formatMoney(summary.today.netFlow)}</strong><small>{t.depositsLessWithdrawals}</small></div>
-            </div>
-            <div className="admin-finance-flow__bar" aria-label={`${t.deposit} ${financeFlow.depositPercent}% ${t.withdrawal} ${financeFlow.withdrawalPercent}%`}>
-              <span style={{ width: `${financeFlow.depositPercent}%` }} data-kind="deposit" />
-              <span style={{ width: `${financeFlow.withdrawalPercent}%` }} data-kind="withdrawal" />
-            </div>
-            <div className="admin-finance-flow__legend"><span data-kind="deposit">{t.deposit} {financeFlow.depositPercent}%</span><span data-kind="withdrawal">{t.withdrawal} {financeFlow.withdrawalPercent}%</span></div>
-          </div>
         </AdminCard>}
 
         {summary?.today && canViewFinance && <AdminCard title={t.financeComparison} description={t.financeComparisonDescription}>
