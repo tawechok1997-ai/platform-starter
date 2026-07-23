@@ -1,0 +1,50 @@
+name: Repair PR 126 typecheck
+
+on:
+  push:
+    branches:
+      - agent/admin-batch-dashboard-operations
+    paths:
+      - .github/workflows/fix-pr126-typecheck.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/admin-batch-dashboard-operations
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Apply narrow TypeScript repair
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("apps/web-admin/app/(admin)/operations/page.tsx")
+          text = path.read_text()
+          old = "import { ReactNode, useEffect, useMemo, useState } from 'react';"
+          new = "import { useEffect, useMemo, useState, type ReactNode } from 'react';"
+          if old not in text:
+              raise SystemExit("expected import not found")
+          path.write_text(text.replace(old, new, 1))
+          PY
+          rm .github/workflows/fix-pr126-typecheck.yml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify Admin typecheck
+        run: pnpm --filter @platform/web-admin typecheck
+      - name: Commit repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web-admin/app/'(admin)'/operations/page.tsx .github/workflows/fix-pr126-typecheck.yml
+          git commit -m "fix(admin): use type-only ReactNode import"
+          git push origin HEAD:agent/admin-batch-dashboard-operations
