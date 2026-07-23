@@ -56,7 +56,11 @@ export default function ContentCenterPage() {
   const [rawJsonError, setRawJsonError] = useState('');
   const [rawDirty, setRawDirty] = useState(false);
   const busy = loading || saving || uploading;
-  const { isDirty, saveState } = useAdminUnsavedChanges({ value: content, savedValue: savedContent, saving: saving || uploading });
+  const { isDirty, saveState } = useAdminUnsavedChanges({
+    value: { content, pendingRawJson: rawDirty ? rawJson : '' },
+    savedValue: { content: savedContent, pendingRawJson: '' },
+    saving: saving || uploading,
+  });
 
   useEffect(() => { void load(); }, []);
   useEffect(() => {
