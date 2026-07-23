@@ -25,7 +25,6 @@ export function BrandIcon({ name, configured = {}, existing, className = '', tit
   if (isImage) {
     return (
       // Runtime brand icons may come from an administrator-configured external URL.
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={value}
         alt={title || ''}
