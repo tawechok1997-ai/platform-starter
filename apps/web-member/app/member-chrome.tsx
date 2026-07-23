@@ -22,7 +22,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { typedSettings } = useSiteSettings();
   const { ready, isLoggedIn, wallet, walletLoading, logout } = useMemberSession();
-  const { website, branding, icons, features: typedFeatures } = typedSettings;
+  const { website, branding, icons, theme, features: typedFeatures } = typedSettings;
 
   const features: MemberFeatureFlags = {
     registration: typedFeatures.registration_enabled,
@@ -138,12 +138,14 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <MemberCategoryRail
-        pathname={pathname}
-        features={features}
-        config={gameCategoryNavigation}
-        baseIcons={icons}
-      />
+      {theme.show_game_categories && (
+        <MemberCategoryRail
+          pathname={pathname}
+          features={features}
+          config={gameCategoryNavigation}
+          baseIcons={icons}
+        />
+      )}
 
       {menuOpen && <button type="button" className="member-menu-backdrop ui-overlay" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}
 
