@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsDefined, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+import { IsDateString, IsDefined, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
 export class MoneyOpsLedgerQueryDto {
   @IsOptional()
@@ -15,6 +15,34 @@ export class MoneyOpsLedgerQueryDto {
   @IsString()
   @MaxLength(255)
   referenceId?: string;
+
+  @IsOptional()
+  @IsIn(['CREDIT', 'DEBIT'])
+  direction?: 'CREDIT' | 'DEBIT';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  type?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  search?: string;
+
+  @IsOptional()
+  @IsDateString({ strict: true })
+  dateFrom?: string;
+
+  @IsOptional()
+  @IsDateString({ strict: true })
+  dateTo?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
 
   @IsOptional()
   @Type(() => Number)
