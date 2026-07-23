@@ -6,11 +6,11 @@ import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, Adm
 
 type PromotionCategory = 'campaign' | 'banner' | 'bonus' | 'coupon' | 'reward';
 type PromotionCampaign = {
-  id: string; title: string; description: string; enabled: boolean; category?: PromotionCategory;
+  id: string; title: string; description: string; enabled: boolean; category?: PromotionCategory | undefined;
   bonusType: 'fixed' | 'percent'; bonusValue: number; minDeposit: number; maxBonus: number;
-  turnoverMultiplier: number; claimMode: 'manual_review' | 'auto_pending'; imageUrl?: string;
-  iconUrl?: string; badgeText?: string; accentColor?: string; priority?: number; startsAt?: string;
-  endsAt?: string; couponCode?: string; rewardLabel?: string; lifecycle?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  turnoverMultiplier: number; claimMode: 'manual_review' | 'auto_pending'; imageUrl?: string | undefined;
+  iconUrl?: string | undefined; badgeText?: string | undefined; accentColor?: string | undefined; priority?: number | undefined; startsAt?: string | undefined;
+  endsAt?: string | undefined; couponCode?: string | undefined; rewardLabel?: string | undefined; lifecycle?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | undefined;
 };
 type ClaimSummary = { total: number; pending: number; approved: number; rejected: number };
 type ViewKey = 'list' | PromotionCategory;
