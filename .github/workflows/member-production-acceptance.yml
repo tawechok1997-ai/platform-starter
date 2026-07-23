@@ -1,0 +1,74 @@
+name: Member Production Acceptance
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/production-member-acceptance
+    paths:
+      - playwright.production-acceptance.config.ts
+      - tests/e2e-production/**
+      - .github/workflows/member-production-acceptance.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - playwright.production-acceptance.config.ts
+      - tests/e2e-production/**
+      - .github/workflows/member-production-acceptance.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: member-production-acceptance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  acceptance:
+    name: Public Member production acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MEMBER_BASE_URL: https://platformweb-member-production.up.railway.app
+      REFERENCE_BASE_URL: https://noah345.shop
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Capture production and reference evidence
+        id: acceptance
+        continue-on-error: true
+        run: pnpm exec playwright test -c playwright.production-acceptance.config.ts
+
+      - name: Upload production acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: member-production-acceptance-${{ github.sha }}
+          path: artifacts/production-member-acceptance
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Fail when acceptance found a blocker
+        if: steps.acceptance.outcome != 'success'
+        run: exit 1

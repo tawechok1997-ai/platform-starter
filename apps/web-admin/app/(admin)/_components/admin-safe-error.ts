@@ -37,7 +37,7 @@ export function safeAdminErrorMessage(
   const candidate = extractMessage(payload);
   if (candidate && isSafeBusinessMessage(candidate)) return candidate;
 
-  return statusMessage(options.status, locale) ?? fallback;
+  return statusMessage(options.status, locale) || fallback;
 }
 
 export function safeAdminCaughtError(fallback: string) {

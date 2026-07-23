@@ -10,6 +10,7 @@ const previewComponentSource = readFileSync(new URL('../branding-member-preview.
 const settingsSectionSource = readFileSync(new URL('../settings-section-page.tsx', import.meta.url), 'utf8');
 const websiteSource = readFileSync(new URL('../website/page.tsx', import.meta.url), 'utf8');
 const lifecycleSource = readFileSync(new URL('../use-admin-settings-form.ts', import.meta.url), 'utf8');
+const unsavedChangesSource = readFileSync(new URL('../../_components/admin-unsaved-changes.tsx', import.meta.url), 'utf8');
 
 const requiredBrandingKeys = [
   'logo_url',
@@ -137,7 +138,9 @@ test('settings pages preserve shared reset and unsaved-change safeguards', () =>
   assert.match(settingsSectionSource, /useAdminSettingsForm<SettingsRecord>/);
   assert.match(websiteSource, /reset/);
   assert.match(settingsSectionSource, /onClick={reset}/);
-  assert.match(lifecycleSource, /beforeunload/);
+  assert.match(lifecycleSource, /useAdminUnsavedChanges/);
+  assert.match(unsavedChangesSource, /beforeunload/);
+  assert.match(unsavedChangesSource, /window\.confirm\(warningMessage\)/);
   assert.match(lifecycleSource, /setForm\(initialForm\)/);
 });
 

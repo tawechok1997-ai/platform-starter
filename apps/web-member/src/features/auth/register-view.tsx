@@ -82,8 +82,8 @@ export function RegisterView(props: RegisterViewProps) {
         <div className="public-auth-security-card"><span className="public-auth-security-card__icon">◇</span><div><strong>{locale === 'th' ? 'ข้อมูลสมัครสมาชิกถูกเข้ารหัส' : 'Registration data is encrypted'}</strong><small>{locale === 'th' ? 'ตรวจสอบข้อมูลอย่างปลอดภัยทุกขั้นตอน' : 'Secure verification at every step'}</small></div></div>
       </aside>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
-        <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => onLocaleChange('th')} aria-pressed={locale === 'th'} className="public-auth-language__button">ไทย</button><button type="button" onClick={() => onLocaleChange('en')} aria-pressed={locale === 'en'} className="public-auth-language__button">EN</button></div></div>
-        <div className="public-auth-heading"><span className="public-auth-heading__eyebrow">CREATE MEMBER ACCOUNT</span><h1>{t.title}</h1><p>{t.subtitle}</p></div>
+        <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span><strong style={{ maxWidth: 'min(170px, 44vw)' }}>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => onLocaleChange('th')} aria-pressed={locale === 'th'} className="public-auth-language__button">ไทย</button><button type="button" onClick={() => onLocaleChange('en')} aria-pressed={locale === 'en'} className="public-auth-language__button">EN</button></div></div>
+        <div className="public-auth-heading"><span className="public-auth-heading__eyebrow">{locale === 'th' ? 'สร้างบัญชีสมาชิก' : 'CREATE MEMBER ACCOUNT'}</span><h1>{t.title}</h1><p>{t.subtitle}</p></div>
         <div className="public-auth-progress"><div><span>{t.step} {step}/3</span><span>{step === 1 ? t.account : step === 2 ? t.identity : t.review}</span></div><div><span style={{ width: `${step * 33.333}%` }} /></div></div>
         {(maintenanceEnabled || !registrationEnabled) && <div className="public-auth-alert public-auth-alert--error" role="alert">{maintenanceEnabled ? t.maintenance : t.registrationDisabled}</div>}
         {status === 'error' && message && <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>}
@@ -115,7 +115,7 @@ export function RegisterView(props: RegisterViewProps) {
         <div className={`public-auth-form-actions${step > 1 ? ' has-back' : ''}`}>{step > 1 && <button type="button" onClick={onBack} disabled={disabled} className="public-auth-submit public-auth-submit--secondary">{t.back}</button>}<button type="submit" disabled={disabled} className="public-auth-submit">{loading ? t.submitting : step < 3 ? t.next : t.submit}</button></div>
         {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
         {loginEnabled && <p className="public-auth-footer">{t.loginPrompt} <a href="/login">{t.login}</a></p>}
-        <div className="public-auth-legal"><span>Secure registration</span><a href="/legal/privacy">{locale === 'th' ? 'ความเป็นส่วนตัว' : 'Privacy'}</a><a href="/legal/terms">{locale === 'th' ? 'เงื่อนไข' : 'Terms'}</a></div>
+        <div className="public-auth-legal"><span>{locale === 'th' ? 'การสมัครที่ปลอดภัย' : 'Secure registration'}</span><a href="/legal/privacy">{locale === 'th' ? 'ความเป็นส่วนตัว' : 'Privacy'}</a><a href="/legal/terms">{locale === 'th' ? 'เงื่อนไข' : 'Terms'}</a></div>
       </form>
     </section>
   </main>;
