@@ -1,279 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import {
   API_URL,
   type CmsContent,
   type MemberFeatureFlags,
-  type SiteIconSettings,
   cmsAssetUrl,
-  defaultIconSettings,
-  isIconUrl,
 } from '../site-settings';
-import { navigationFor } from '../member-navigation';
 import { MemberIcon } from './member-icon';
 import { MemberRuntimeImage } from './member-runtime-image';
 import type { Game, LedgerItem, MoneyRequest } from '../types/member-api';
 import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNotice } from './member-ui';
-
-const NOAH345_FALLBACK_BANNERS = [
-  '0015_1782630857612-4098241f-e70d-4a32-b41b-623d74b974b6_b58847238e.jpg',
-  '0014_1782990586367-b41e5c36-0d4d-4e7c-80ed-bb145a2e3a77_0728e0b61b.jpg',
-  '0016_1780250534847-0b47bd80-15a3-4117-bdd3-f383308509bc_c438ce1b3e.jpg',
-  '0018_1783665647358-f637b660-a3e9-46e3-989d-a62654566985_2945931932.jpg',
-].map((fileName, index) => ({
-  title: `โปรโมชั่น ${index + 1}`,
-  subtitle: 'โปรโมชั่นและกิจกรรมสำหรับสมาชิก',
-  imageUrl: `/images/member-lobby/noah345-reference/${fileName}`,
-  href: '/promotions',
-  enabled: true,
-}));
-
-export function HomeHero({
-  siteName,
-  content,
-}: {
-  siteName: string;
-  description: string;
-  primaryColor: string;
-  content: CmsContent;
-}) {
-  const banners = safeArray(content?.banners).filter(
-    (item) => item?.enabled && (cmsAssetUrl(content, item.assetId) || item.imageUrl),
-  );
-  // Keep the supplied reference assets first so the lobby always opens with
-  // the same visual language as the approved Noah345 mobile reference.
-  const slides = [...NOAH345_FALLBACK_BANNERS, ...banners];
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReduceMotion(mediaQuery.matches);
-    update();
-    mediaQuery.addEventListener?.('change', update);
-    return () => mediaQuery.removeEventListener?.('change', update);
-  }, []);
-
-  useEffect(() => {
-    if (slides.length < 2 || isPaused || reduceMotion) return;
-    const timer = window.setInterval(
-      () => setActiveIndex((current) => (current + 1) % slides.length),
-      5000,
-    );
-    return () => window.clearInterval(timer);
-  }, [isPaused, reduceMotion, slides.length]);
-
-  const slide = slides[activeIndex % slides.length] ?? slides[0];
-  if (!slide) return null;
-  const slideAssetId = 'assetId' in slide && typeof slide.assetId === 'string' ? slide.assetId : undefined;
-  const imageUrl = resolveCmsUrl(cmsAssetUrl(content, slideAssetId) || slide.imageUrl || '');
-  const nextSlide = slides[(activeIndex + 1) % slides.length];
-  const nextSlideAssetId =
-    nextSlide && 'assetId' in nextSlide && typeof nextSlide.assetId === 'string' ? nextSlide.assetId : undefined;
-  const nextImageUrl = nextSlide
-    ? resolveCmsUrl(cmsAssetUrl(content, nextSlideAssetId) || nextSlide.imageUrl || '')
-    : '';
-
-  return (
-    <section
-      className="member-home-hero"
-      aria-label="โปรโมชั่น"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onFocus={() => setIsPaused(true)}
-      onBlur={() => setIsPaused(false)}
-    >
-      {nextImageUrl && <link rel="preload" as="image" href={nextImageUrl} />}
-      <RuntimeNavigationLink
-        href={slide.href || '/promotions'}
-        className="member-home-hero__slide-link"
-        ariaLabel={slide.title || siteName}
-      >
-        <MemberRuntimeImage
-          src={imageUrl}
-          alt={slide.title || siteName}
-          className="member-home-hero__image"
-          width={1600}
-          height={600}
-          priority
-          sizes="100vw"
-        />
-      </RuntimeNavigationLink>
-      {slides.length > 1 && (
-        <div className="member-home-hero__dots" aria-label="เลือกโปรโมชั่น">
-          {slides.map((item, index) => (
-            <button
-              key={`${item.imageUrl || item.title || 'slide'}-${index}`}
-              type="button"
-              className={index === activeIndex ? 'active' : ''}
-              onClick={() => setActiveIndex(index)}
-              aria-label={`แสดงโปรโมชั่นที่ ${index + 1}`}
-              aria-current={index === activeIndex ? 'true' : undefined}
-            />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-export function PromotionSlotGrid({ content }: { content: CmsContent }) {
-  const slots = safeArray(content?.banners)
-    .filter((item) => item?.enabled && (cmsAssetUrl(content, item.assetId) || item.imageUrl))
-    .slice(1, 4);
-  if (!slots.length) return null;
-
-  return (
-    <section className="member-promo-slots" aria-label="โปรโมชั่นแนะนำ">
-      {slots.map((slot, index) => {
-        const imageUrl = resolveCmsUrl(cmsAssetUrl(content, slot.assetId) || slot.imageUrl || '');
-        return (
-          <RuntimeNavigationLink
-            key={`${slot.title || 'promotion'}-${index}`}
-            href={slot.href || '/promotions'}
-            className="member-promo-slot"
-          >
-            <MemberRuntimeImage
-              src={imageUrl}
-              alt={slot.title || 'โปรโมชั่น'}
-              width={800}
-              height={450}
-              sizes="(max-width: 720px) 92vw, 33vw"
-            />
-            <span>{slot.title || 'โปรโมชั่น'}</span>
-          </RuntimeNavigationLink>
-        );
-      })}
-    </section>
-  );
-}
-
-export function LobbyTabs() {
-  return (
-    <nav className="member-lobby-tabs" aria-label="เมนูหน้า Lobby">
-      <a className="active" href="#highlights">
-        <MemberIcon name="games" /> <span>ไฮไลท์</span>
-      </a>
-      <Link href="/promotions">
-        <MemberIcon name="promotion" /> <span>โปรโมชั่นแนะนำ</span>
-      </Link>
-      <a href="#activities">
-        <MemberIcon name="bonus" /> <span>กิจกรรม</span>
-      </a>
-    </nav>
-  );
-}
-
-export function TournamentSection() {
-  const leaderboard = [
-    { rank: 1, user: 'ZAXXXU709740', score: '20', accent: 'gold', badge: '0145_rank1_42eae97af3.webp' },
-    { rank: 2, user: 'ZAXXXM664100', score: '17', accent: 'silver', badge: '0147_rank2_5017371e0a.webp' },
-    { rank: 3, user: 'ZAXXXR440174', score: '13', accent: 'bronze', badge: '0148_rank3_ced2c3d123.webp' },
-  ];
-
-  return (
-    <section className="member-tournament-section" id="highlights">
-      <Link className="member-lobby-promo-card" href="/games">
-        <MemberRuntimeImage
-          src="/images/member-lobby/noah345-reference/0028_4a7df032-03f5-4999-ba59-f38d12c13761_0ff5658475.png"
-          alt="Tournament"
-          width={1600}
-          height={600}
-          sizes="100vw"
-        />
-      </Link>
-      <div className="member-tournament-title">
-        <MemberRuntimeImage
-          src="/images/member-lobby/noah345-reference/0029_tournament_45e06f0b11.svg"
-          alt=""
-          width={24}
-          height={24}
-          sizes="24px"
-        />
-        <strong>ทัวร์นาเมนต์</strong>
-      </div>
-      <div className="member-tournament-board">
-        <div className="member-tournament-board__head">
-          <div>
-            <strong>No1. Tournament Football Royale ครั้งที่ 2</strong>
-            <span>สิ้นสุดแล้ว</span>
-          </div>
-          <Link href="/games" className="member-tournament-board__all">ดูทั้งหมด <b>›</b></Link>
-        </div>
-        <div className="member-tournament-board__info" aria-label="สถานะการแข่งขัน">ⓘ</div>
-        <div className="member-tournament-ranking">
-          {leaderboard.map((item) => (
-            <article key={item.rank} className={`member-tournament-rank member-tournament-rank--${item.accent}`}>
-              <MemberRuntimeImage
-                src={`/images/member-lobby/noah345-reference/${item.badge}`}
-                alt={`อันดับ ${item.rank}`}
-                width={34}
-                height={34}
-                sizes="34px"
-                className="member-tournament-rank__medal"
-              />
-              <strong>{item.user}</strong>
-              <b>{item.score}</b>
-              <div className="member-tournament-rank__dots"><i /><i /><i /><i /><i /><i /></div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function AnnouncementList({ content }: { content: CmsContent }) {
-  const items = safeArray(content?.announcements)
-    .filter((item) => item?.enabled)
-    .slice(0, 3);
-  if (!items.length) return null;
-  const first = items[0];
-
-  return (
-    <div className="member-announcement-strip" role="status">
-      <span className="member-announcement-strip__icon">
-        <MemberIcon name="notification" />
-      </span>
-      <div className="member-announcement-marquee">
-        <span>{first?.message || first?.title || ''}</span>
-      </div>
-    </div>
-  );
-}
-
-export function QuickActions({ icons, features }: { icons: SiteIconSettings; features: MemberFeatureFlags }) {
-  const quickActionKeys = new Set(['deposit', 'withdraw', 'transactions', 'bonus']);
-  const items = navigationFor('home', features)
-    .filter((item) => quickActionKeys.has(item.key))
-    .slice(0, 4);
-
-  return (
-    <section className="member-quick-panel">
-      {items.map((item) => {
-        const icon = typeof icons?.[item.iconKey] === 'string' ? icons[item.iconKey] : '';
-        return (
-          <Link key={item.key} href={item.href} className="member-quick-action">
-            <span className="member-home-quick-icon">
-              {isIconUrl(icon) ? (
-                <MemberRuntimeImage src={icon} alt="" width={32} height={32} sizes="32px" />
-              ) : icon === defaultIconSettings[item.iconKey] ? (
-                <MemberIcon name={item.iconKey} />
-              ) : (
-                icon
-              )}
-            </span>
-            <strong>{item.shortTitle ?? item.title}</strong>
-            <span>{item.description}</span>
-          </Link>
-        );
-      })}
-    </section>
-  );
-}
 
 export function PendingRequests({
   pendingTopups,
@@ -387,6 +124,7 @@ export function GameLobbyState({
       </MemberNotice>
     );
   }
+
   return (
     <MemberEmptyState
       compact
@@ -395,30 +133,6 @@ export function GameLobbyState({
       actionHref="/games"
       actionLabel="ไปหน้าเกม"
     />
-  );
-}
-
-export function CategoryList({ categories }: { categories: string[]; primaryColor: string }) {
-  const safeCategories = safeArray(categories).filter((item): item is string => typeof item === 'string');
-  return (
-    <MemberCard>
-      <div className="member-home-section-head">
-        <h2>หมวดเกม</h2>
-        <Link href="/games">ดูทั้งหมด</Link>
-      </div>
-      <div className="member-home-categories">
-        {safeCategories.slice(0, 8).map((item) => (
-          <Link
-            key={item}
-            href={`/games?category=${encodeURIComponent(item)}`}
-            className="member-home-category-pill"
-          >
-            {categoryLabel(item)}
-          </Link>
-        ))}
-        {safeCategories.length === 0 && <span className="member-home-muted">ยังไม่มีหมวดเกม</span>}
-      </div>
-    </MemberCard>
   );
 }
 
@@ -525,7 +239,7 @@ export function CmsPopup({
   return (
     <div className="member-home-popup">
       <MemberCard tone="brand" className="member-home-popup__card">
-        <button type="button" onClick={onClose} className="member-home-popup__close">
+        <button type="button" onClick={onClose} className="member-home-popup__close" aria-label="ปิดประกาศ">
           ×
         </button>
         {imageUrl && (
@@ -558,31 +272,6 @@ function resolveCmsUrl(value: string) {
     : typeof value === 'string'
       ? value
       : '';
-}
-
-function RuntimeNavigationLink({
-  href,
-  className,
-  ariaLabel,
-  children,
-}: {
-  href: string;
-  className?: string | undefined;
-  ariaLabel?: string | undefined;
-  children: React.ReactNode;
-}) {
-  if (href.startsWith('/') || href.startsWith('#')) {
-    return (
-      <Link href={href} className={className} aria-label={ariaLabel}>
-        {children}
-      </Link>
-    );
-  }
-  return (
-    <a href={href} className={className} aria-label={ariaLabel} rel="noopener noreferrer">
-      {children}
-    </a>
-  );
 }
 
 function ActivityRow({ title, href, item }: { title: string; href: string; item: MoneyRequest }) {
@@ -651,18 +340,6 @@ function pickImage(game: Game) {
     media.find((item) => item?.type === 'ICON')?.sourceUrl ??
     null
   );
-}
-
-function categoryLabel(value: string) {
-  const map: Record<string, string> = {
-    slot: 'สล็อต',
-    casino: 'คาสิโน',
-    sport: 'กีฬา',
-    fishing: 'ตกปลา',
-    popular: 'ยอดนิยม',
-    new: 'ใหม่',
-  };
-  return map[value.toLowerCase()] ?? value;
 }
 
 function formatMoney(value: unknown, currency: unknown) {
