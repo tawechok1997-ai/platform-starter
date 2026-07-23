@@ -2,6 +2,7 @@
 
 import { Dispatch, ReactNode, SetStateAction, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../../app/admin-api';
+import { AdminSaveStateBadge, AdminUnsavedChangesNotice, useAdminUnsavedChanges } from '../../../app/(admin)/_components/admin-unsaved-changes';
 import { AdminBadge, AdminButton, AdminCard, AdminGrid, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack } from '../../../app/(admin)/_components/admin-ui';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
@@ -41,12 +42,14 @@ const defaultContent: CmsContent = {
 
 export default function ContentCenterPage() {
   const [content, setContent] = useState<CmsContent>(defaultContent);
+  const [savedContent, setSavedContent] = useState<CmsContent>(defaultContent);
   const [message, setMessage] = useState('กำลังโหลด CMS...');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadName, setUploadName] = useState('');
   const [uploadTag, setUploadTag] = useState('banner');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const { isDirty, saveState } = useAdminUnsavedChanges({ value: content, savedValue: savedContent, saving: saving || uploading });
 
   useEffect(() => { void load(); }, []);
 
@@ -64,8 +67,15 @@ export default function ContentCenterPage() {
     const res = await adminApiFetch('/admin/settings/features');
     const data = await res.json().catch(() => null);
     if (!res.ok) { setMessage(data?.message ?? 'โหลด CMS ไม่สำเร็จ'); return; }
-    setContent(normalizeContent(data?.settings?.cms_content));
+    const nextContent = normalizeContent(data?.settings?.cms_content);
+    setContent(nextContent);
+    setSavedContent(nextContent);
     setMessage('');
+  }
+
+  function requestReload() {
+    if (isDirty && !window.confirm('มีการแก้ไข CMS ที่ยังไม่ได้บันทึก ต้องการทิ้งการแก้ไขและโหลดใหม่หรือไม่')) return;
+    void load();
   }
 
   async function save(nextContent = content) {
@@ -75,6 +85,7 @@ export default function ContentCenterPage() {
     const data = await res.json().catch(() => null);
     setSaving(false);
     if (!res.ok) { setMessage(data?.message ?? 'บันทึก CMS ไม่สำเร็จ'); return false; }
+    setSavedContent(nextContent);
     setMessage('บันทึก CMS แล้ว');
     return true;
   }
@@ -137,8 +148,9 @@ export default function ContentCenterPage() {
     setMessage('เปลี่ยน popup version แล้ว สมาชิกจะเห็น popup ใหม่หลังบันทึก');
   }
 
-  return <AdminPage eyebrow="Content" title="CMS / Asset Library" description="จัดการ banner, popup, announcement, FAQ และ binary asset ที่เก็บใน private storage พร้อม public read endpoint" actions={<><AdminButton onClick={load} tone="secondary">รีเฟรช</AdminButton><AdminButton onClick={() => void save()} disabled={saving}>{saving ? 'กำลังบันทึก...' : 'บันทึก'}</AdminButton></>}>
+  return <AdminPage eyebrow="Content" title="CMS / Asset Library" description="จัดการ banner, popup, announcement, FAQ และ binary asset ที่เก็บใน private storage พร้อม public read endpoint" actions={<><AdminSaveStateBadge state={saveState} /><AdminButton onClick={requestReload} tone="secondary" disabled={saving || uploading}>รีเฟรช</AdminButton><AdminButton onClick={() => void save()} disabled={saving || uploading || !isDirty}>{saving ? 'กำลังบันทึก...' : 'บันทึก'}</AdminButton></>}>
     {message && <AdminNotice>{message}</AdminNotice>}
+    <AdminUnsavedChangesNotice isDirty={isDirty}>มีการแก้ไข CMS ที่ยังไม่ได้บันทึก ระบบจะเตือนก่อนออกจากหน้านี้</AdminUnsavedChangesNotice>
     {warnings.length > 0 && <AdminNotice>{warnings.join(' • ')}</AdminNotice>}
     <AdminMetricGrid>
       <AdminMetric tone="success" title="Banner เปิดอยู่" value={String(stats.banners)} helper={`${content.banners.length} รายการ`} />
