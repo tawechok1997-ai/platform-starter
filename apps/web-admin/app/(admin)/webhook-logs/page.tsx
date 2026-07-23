@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { paginateAdminItems, useAdminListContract } from '../_components/admin-list-contract';
 import { redactAdminPayload } from '../_components/admin-payload-redaction';
-import { AdminBadge, AdminButton, AdminCard, AdminCode, AdminDataValue, AdminEmpty, AdminFilterBar, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminPayloadViewer, AdminRow, AdminStack } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminCode, AdminDataValue, AdminEmpty, AdminFilterBar, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminPagination, AdminPayloadViewer, AdminRow, AdminStack } from '../_components/admin-ui';
 import { humanStatus, statusTone } from '../_components/human-labels';
 
 type WebhookLog = { id: string; eventType: string; status: string; signatureValid: boolean; idempotencyKey?: string | null; providerTransactionId?: string | null; responseStatus?: number | null; errorCode?: string | null; errorMessage?: string | null; rawPayload?: unknown; normalizedPayload?: unknown; createdAt: string; provider?: { name: string; code: string } };
@@ -16,10 +17,12 @@ export default function WebhookLogsPage() {
   const [expanded, setExpanded] = useState('');
   const [message, setMessage] = useState('กำลังโหลด Webhook...');
   const [loading, setLoading] = useState(false);
+  const list = useAdminListContract({ initialPageSize: 25 });
 
   useEffect(() => { void loadLogs(); }, []);
   const items = payload.items ?? [];
   const filtered = useMemo(() => items.filter((item) => (status === 'all' || item.status === status) && [item.eventType, item.idempotencyKey, item.providerTransactionId, item.provider?.name, item.provider?.code].join(' ').toLowerCase().includes(query.toLowerCase())), [items, query, status]);
+  const page = useMemo(() => paginateAdminItems(filtered, list.page, list.pageSize), [filtered, list.page, list.pageSize]);
   const metrics = useMemo(() => payload.summary ?? { total: items.length, processed: items.filter((item) => item.status === 'PROCESSED').length, failed: items.filter((item) => item.status === 'FAILED').length, duplicate: items.filter((item) => item.status === 'DUPLICATE').length }, [payload.summary, items]);
 
   async function loadLogs() {
@@ -33,13 +36,15 @@ export default function WebhookLogsPage() {
     setMessage('');
   }
 
-  function clearFilters() { setQuery(''); setStatus('all'); }
+  function clearFilters() { setQuery(''); setStatus('all'); list.resetPage(); }
+  function updateQuery(value: string) { setQuery(value); list.resetPage(); }
+  function updateStatus(value: string) { setStatus(value); list.resetPage(); }
 
   return <AdminPage eyebrow="ระบบเชื่อมต่อ" title="Webhook จากค่าย" description="ตรวจ callback ลายเซ็น และรายการที่ต้องติดตาม" actions={<><AdminButton size="compact" tone="ghost" onClick={clearFilters}>ล้างตัวกรอง</AdminButton><AdminButton size="compact" onClick={() => void loadLogs()} disabled={loading}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton></>}>
     <AdminMetricGrid><AdminMetric title="ทั้งหมด" value={String(metrics.total)} helper="รายการล่าสุด" /><AdminMetric title="ประมวลผลแล้ว" value={String(metrics.processed)} tone="success" /><AdminMetric title="รายการซ้ำ" value={String(metrics.duplicate)} tone={metrics.duplicate ? 'warning' : 'success'} /><AdminMetric title="มีปัญหา" value={String(metrics.failed)} tone={metrics.failed ? 'danger' : 'success'} /></AdminMetricGrid>
     {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
-    <AdminFilterBar resultText={loading ? 'กำลังโหลด...' : `${filtered.length}/${items.length} รายการ`}><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหาค่าย รหัสรายการ หรือเหตุการณ์" /><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">ทุกสถานะ</option><option value="PROCESSED">ประมวลผลแล้ว</option><option value="RETRY">รอลองใหม่</option><option value="FAILED">มีปัญหา</option><option value="DUPLICATE">รายการซ้ำ</option></select></AdminFilterBar>
-    <AdminStack>{filtered.map((item) => <AdminCard key={item.id} compact tone={item.status === 'FAILED' || !item.signatureValid ? 'danger' : 'neutral'}>
+    <AdminFilterBar resultText={loading ? 'กำลังโหลด...' : `${filtered.length}/${items.length} รายการ`}><input value={query} onChange={(event) => updateQuery(event.target.value)} placeholder="ค้นหาค่าย รหัสรายการ หรือเหตุการณ์" /><select value={status} onChange={(event) => updateStatus(event.target.value)}><option value="all">ทุกสถานะ</option><option value="PROCESSED">ประมวลผลแล้ว</option><option value="RETRY">รอลองใหม่</option><option value="FAILED">มีปัญหา</option><option value="DUPLICATE">รายการซ้ำ</option></select><select aria-label="จำนวนรายการต่อหน้า" value={list.pageSize} onChange={(event) => list.setPageSize(Number(event.target.value))}>{list.allowedPageSizes.map((size) => <option key={size} value={size}>{size} / หน้า</option>)}</select></AdminFilterBar>
+    <AdminStack>{page.items.map((item) => <AdminCard key={item.id} compact tone={item.status === 'FAILED' || !item.signatureValid ? 'danger' : 'neutral'}>
       <AdminRow><div style={mainInfoStyle}><h2 style={titleStyle}>{eventLabel(item.eventType)}</h2><span style={mutedStyle}>{item.provider?.name ?? item.provider?.code ?? '-'} · HTTP {item.responseStatus ?? '-'}</span></div><div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminBadge tone={item.signatureValid ? 'success' : 'danger'}>{item.signatureValid ? 'ลายเซ็นถูกต้อง' : 'ลายเซ็นไม่ถูกต้อง'}</AdminBadge><AdminButton size="compact" tone="ghost" onClick={() => setExpanded(expanded === item.id ? '' : item.id)}>{expanded === item.id ? 'ซ่อนข้อมูล' : 'ข้อมูลเทคนิค'}</AdminButton></div></AdminRow>
       <div style={detailGridStyle}>
         <AdminDataValue label="รหัสกันซ้ำ"><AdminCode {...(item.idempotencyKey ? { title: item.idempotencyKey } : {})}>{shortId(item.idempotencyKey)}</AdminCode></AdminDataValue>
@@ -48,7 +53,8 @@ export default function WebhookLogsPage() {
       </div>
       {item.errorMessage && <AdminNotice tone="danger">{webhookErrorLabel(item.errorCode)}</AdminNotice>}
       {expanded === item.id && <details open><summary style={summaryStyle}>ข้อมูลที่รับและแปลงแล้ว</summary><AdminPayloadViewer payload={redactAdminPayload({ rawPayload: item.rawPayload, normalizedPayload: item.normalizedPayload })} maxHeight={360} /></details>}
-    </AdminCard>)}{!loading && filtered.length === 0 && <AdminEmpty>ไม่พบ Webhook ตามตัวกรอง</AdminEmpty>}</AdminStack>
+    </AdminCard>)}{!loading && page.items.length === 0 && <AdminEmpty>ไม่พบ Webhook ตามตัวกรอง</AdminEmpty>}</AdminStack>
+    {filtered.length > 0 && <AdminPagination page={page.page} totalPages={page.totalPages} onPrevious={() => list.setPage(page.page - 1)} onNext={() => list.setPage(page.page + 1)} disabled={loading} />}
   </AdminPage>;
 }
 
