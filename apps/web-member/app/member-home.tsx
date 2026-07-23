@@ -87,6 +87,7 @@ export default function MemberHome(props: MemberHomeProps) {
         gamesEnabled={features.games}
         gameCategoryNavigation={props.gameCategoryNavigation}
         icons={icons}
+        features={features}
       />
 
       <HomePromotionsPanel
