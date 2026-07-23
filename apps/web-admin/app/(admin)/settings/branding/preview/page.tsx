@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { adminApiFetch } from '../../../../admin-api';
-import { AdminButton, AdminNotice, AdminPage } from '../../../../_components/admin-ui';
+import { AdminButton, AdminNotice, AdminPage } from '../../../_components/admin-ui';
 import BrandingMemberPreview from '../../branding-member-preview';
 
 type SettingsValue = string | boolean | number | null;
