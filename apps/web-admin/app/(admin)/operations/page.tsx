@@ -13,7 +13,7 @@ type QueueSummary = { topUps?: { count?: number }; withdrawals?: { count?: numbe
 type QueueAging = { oldest?: Array<{ type?: 'TOPUP' | 'WITHDRAWAL'; ageMinutes?: number }> };
 type TopAction = { title: string; description: string; href: string };
 type PriorityFilter = 'all' | 'critical' | 'member';
-type QueueTask = { id: string; title: string; count: number; href: string; tone: BadgeTone; priority: number; group: Exclude<PriorityFilter, 'all'>; helper: string; ageMinutes?: number };
+type QueueTask = { id: string; title: string; count: number; href: string; tone: BadgeTone; priority: number; group: Exclude<PriorityFilter, 'all'>; helper: string; ageMinutes?: number | undefined };
 
 type OperationsCopy = {
   eyebrow: string; title: string; description: string; refresh: string; loading: string; loadFailed: string; primaryLabel: string; openPrimary: string;
