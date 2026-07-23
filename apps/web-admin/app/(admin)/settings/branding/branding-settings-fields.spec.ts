@@ -73,6 +73,14 @@ test('branding workflow preserves draft publish preview history and rollback own
   assert.match(historyPageSource, /rollback/);
 });
 
+test('branding workflow uses the existing Admin design-system primitives', () => {
+  assert.match(workflowPanelSource, /AdminActionStrip/);
+  assert.match(workflowPanelSource, /AdminLinkButton/);
+  assert.match(workflowPanelSource, /AdminNotice/);
+  assert.match(workflowPanelSource, /AdminButton/);
+  assert.doesNotMatch(workflowPanelSource, /linkStyle/);
+});
+
 test('branding asset lifecycle keeps the shared upload transport and safe restore controls', () => {
   assert.match(settingsSectionSource, /\/admin\/settings\/cms-assets/);
   assert.match(settingsSectionSource, /Upload/);
@@ -99,6 +107,15 @@ test('website settings retain Member-facing content keys and the existing API co
 
   for (const key of requiredWebsiteKeys) {
     assert.match(websiteSource, new RegExp(`\\b${key}\\b`), `${key} must remain editable in Admin website settings`);
+  }
+});
+
+test('website and branding settings keep distinct field ownership', () => {
+  for (const key of ['site_name', 'site_url', 'maintenance_mode', 'login_title', 'home_heading']) {
+    assert.doesNotMatch(brandingSource, new RegExp(`key:\\s*["']${key}["']`), `${key} belongs to Website settings, not Branding`);
+  }
+  for (const key of ['logo_url', 'primary_color', 'font_thai', 'card_radius']) {
+    assert.doesNotMatch(websiteSource, new RegExp(`\\b${key}\\b`), `${key} belongs to Branding settings, not Website`);
   }
 });
 
