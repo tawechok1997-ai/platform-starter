@@ -337,14 +337,14 @@
 - [x] รวมคิว Promotion/Bonus/Affiliate/Commission/Support/KYC
 - [x] Link ไปหน้าปฏิบัติการโดยตรง
 - [x] ไม่อนุมัติ ไม่ payout และไม่แก้ wallet
-- [~] ภาษาและ shared components ยังไม่สม่ำเสมอ
+- [x] ภาษา, loading, partial-error visibility และ shared components สม่ำเสมอ
 
 ### `/promotion-operations`
 
-- [ ] Campaign readiness checklist
-- [ ] Request priority
-- [ ] Member preview
-- [~] Campaign status มีผ่าน Promotion Center แต่ยังไม่ยืนยัน route นี้ครบ
+- [x] Campaign readiness checklist
+- [x] Request priority
+- [x] Member preview
+- [x] Draft/Published/Archived และ Member visibility boundary
 
 ### `/promotion-center`
 
@@ -370,7 +370,7 @@
 - [x] Wallet-credit state และ turnover guard
 - [x] Release/Expire/Revoke พร้อมเหตุผล/confirmation
 - [x] Timeline
-- [~] Async guards และ safe error ยังไม่ครบทุก mutation
+- [x] Async guards, double-submit protection และ safe error ครบทุก mutation
 
 ### `/affiliate-center`
 
@@ -379,7 +379,7 @@
 - [x] Commission rule
 - [x] Duplicate referral warning และ block approve
 - [x] Auto payout ปิดโดย default
-- [~] Nested tree/shared confirmation/error handling ยังไม่ครบ
+- [x] Nested tree, shared confirmation และ async error handling
 
 ### `/commission-ledgers`
 
@@ -389,7 +389,7 @@
 - [x] Confirmation ก่อนสร้าง ledger
 - [x] Manual override และ review แยกจาก payout
 - [x] Payout ยังปิด ไม่แตะ wallet
-- [~] Reject reason และ shared confirmation ยังไม่สมบูรณ์
+- [x] Reject reason, preview-before-create และ shared confirmation
 
 ### `/content-center`
 
