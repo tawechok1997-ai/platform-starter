@@ -1,0 +1,64 @@
+name: Admin Dashboard SLA Patch
+
+on:
+  push:
+    paths:
+      - '.github/admin-dashboard-sla-trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Patch SLA countdown
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web-admin/app/(admin)/dashboard/page.tsx')
+          text = path.read_text()
+          old = '<AdminMetric title={t.oldestQueue} value={formatDuration(queueMetrics.oldestMinutes, locale)} helper={t.pending} tone={queueMetrics.oldestMinutes >= QUEUE_CRITICAL_MINUTES ? \'danger\' : queueMetrics.oldestMinutes >= QUEUE_TARGET_MINUTES ? \'warning\' : \'success\'} />'
+          new = '<AdminMetric title={t.oldestQueue} value={formatDuration(queueMetrics.oldestMinutes, locale)} helper={formatSlaCountdown(queueMetrics.oldestMinutes, locale)} tone={queueMetrics.oldestMinutes >= QUEUE_CRITICAL_MINUTES ? \'danger\' : queueMetrics.oldestMinutes >= QUEUE_TARGET_MINUTES ? \'warning\' : \'success\'} />'
+          if old not in text:
+              raise SystemExit('oldest queue metric target not found')
+          text = text.replace(old, new, 1)
+          marker = 'function formatDuration(minutes: number, locale: AdminLocale) {'
+          helper = "function formatSlaCountdown(minutes: number, locale: AdminLocale) {\n  if (minutes <= 0) return locale === 'th' ? 'ไม่มีคิวค้าง' : 'No pending queue';\n  if (minutes < QUEUE_TARGET_MINUTES) {\n    const remaining = QUEUE_TARGET_MINUTES - minutes;\n    return locale === 'th' ? `เหลือ ${formatDuration(remaining, locale)} ก่อน SLA` : `${formatDuration(remaining, locale)} until SLA`;\n  }\n  const overdue = minutes - QUEUE_TARGET_MINUTES;\n  return locale === 'th' ? `เกิน SLA ${formatDuration(overdue, locale)}` : `${formatDuration(overdue, locale)} over SLA`;\n}\n\n"
+          if 'function formatSlaCountdown(' not in text:
+              text = text.replace(marker, helper + marker, 1)
+          path.write_text(text)
+          PY
+      - run: pnpm --filter @platform/web-admin typecheck
+      - name: Update dashboard tracking
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          worklist = Path('docs/admin-modernization-chat-worklist.md')
+          text = worklist.read_text().replace('- [ ] SLA countdown', '- [x] SLA countdown', 1)
+          worklist.write_text(text)
+          progress = Path('docs/admin-dashboard-progress.md')
+          p = progress.read_text()
+          p = p.replace('- [ ] ปรับ SLA ให้แสดง countdown ที่เข้าใจง่าย', '- [x] ปรับ SLA ให้แสดง countdown ที่เข้าใจง่าย', 1)
+          p = p.replace('**เป้าหมายถัดไป:** SLA countdown', '**เป้าหมายถัดไป:** ตรวจและจัดลำดับ section ตาม worklist', 1)
+          progress.write_text(p)
+          PY
+      - name: Self cleanup and commit
+        run: |
+          rm -f .github/workflows/admin-dashboard-sla-patch.yml .github/admin-dashboard-sla-trigger
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'feat(admin): add dashboard SLA countdown' || exit 0
+          git push
