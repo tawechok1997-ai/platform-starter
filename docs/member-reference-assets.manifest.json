@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "status": "awaiting-source-binaries",
+  "rules": {
+    "format": "png",
+    "requirePngSignature": true,
+    "requireUniqueSha256": true,
+    "minimumBytes": 1024,
+    "placeholdersAllowed": false
+  },
+  "assets": [
+    {
+      "role": "promotion-card",
+      "sourceFilename": "a426b420-d905-4a61-bac3-fb9f69b57901.png",
+      "required": true,
+      "sha256": null
+    },
+    {
+      "role": "event-card",
+      "sourceFilename": "eb8a2aa7-d675-4bc0-bd1f-64e25aba8ffe.png",
+      "required": true,
+      "sha256": null
+    },
+    {
+      "role": "announcement-news-card",
+      "sourceFilename": "009138d7-8a4f-44ef-a315-49d300f6f6e1.png",
+      "required": true,
+      "sha256": null
+    },
+    {
+      "role": "promotion-theme-image",
+      "sourceFilename": "e6a882fe-0528-48d5-9707-8e563f1aeb96.png",
+      "required": true,
+      "sha256": null
+    }
+  ]
+}
