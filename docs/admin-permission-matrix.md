@@ -20,18 +20,18 @@
 |---|---|---|---|---|---|
 | Global sidebar / command palette | From `admin-nav.ts` | N/A | N/A | N/A | ✅ Navigation filtered and deep links blocked by Admin shell |
 | Audit list | `admin.access.view` | N/A | `GET /admin/audit-logs` | `admin.access.view` | ✅ Aligned |
-| Audit risk summary | `risk.view` route, API currently uses access permission | N/A | `GET /admin/audit-logs/risk-summary` | `admin.access.view` | ⚠️ Route/API vocabulary differs; existing page works only when actor also has API permission |
-| Audit CSV export | `admin.access.view` to open page | `admin.access.manage` | `GET /admin/audit-logs/export` | `admin.access.manage` | ✅ UI and API action guard added |
+| Audit risk summary | `risk.view` | N/A | `GET /admin/audit-logs/risk-summary` | `risk.view` | ✅ Aligned in UI and API |
+| Audit CSV export | `admin.access.view` to open page | `admin.access.manage` | `GET /admin/audit-logs/export` | `admin.access.manage` | ✅ UI and API action guard |
 | Admin invitation list | `admin.create` | `admin.create` | `GET /admin/access/invitations` | `admin.create` | ✅ Aligned |
-| Assignable invitation roles | `admin.create` | `admin.create` | `GET /admin/access/invitations/roles` | `admin.create` | ✅ Added to remove former `admin.access.view` mismatch |
+| Assignable invitation roles | `admin.create` | `admin.create` | `GET /admin/access/invitations/roles` | `admin.create` | ✅ Actor-filtered roles; former overview mismatch removed |
 | Create invitation | `admin.create` | `admin.create` | `POST /admin/access/invitations` | `admin.create` | ✅ Shared permission gate and API guard |
 | Reissue invitation | `admin.create` | `admin.create` | `POST /admin/access/invitations/:id/reissue` | `admin.create` | ✅ Shared permission gate and API guard |
 | Revoke invitation | `admin.create` | `admin.create` | `DELETE /admin/access/invitations/:id` | `admin.create` | ✅ Shared permission gate and API guard |
-| Webhook log view | `game.providers.view` or `provider.view` in navigation | N/A | `GET /admin/webhook-logs` | `game.providers.view` | ⚠️ Navigation alias `provider.view` can open a route whose API requires `game.providers.view` |
-| Webhook replay | Future action requirement: `game.providers.manage` | `game.providers.manage` | No replay endpoint exists | N/A | ⏳ Not implemented; do not render a replay button yet |
-| Dashboard top-up queue links | Dashboard is broadly visible | `topups.view` or `deposit.view` | Queue/top-up endpoints | Endpoint-specific | ⚠️ Deep-link shell blocks destination, but card-level adoption remains |
-| Dashboard withdrawal queue links | Dashboard is broadly visible | `withdraw.view` | Queue/withdrawal endpoints | Endpoint-specific | ⚠️ Deep-link shell blocks destination, but card-level adoption remains |
-| Dashboard risk links | Dashboard is broadly visible | `risk.view` | Risk endpoints | `risk.view` | ⚠️ Deep-link shell blocks destination, but card-level adoption remains |
+| Webhook log view | `game.providers.view` | N/A | `GET /admin/webhook-logs` | `game.providers.view` | ✅ Navigation and API aligned |
+| Webhook replay | Future action requirement: `game.providers.manage` | `game.providers.manage` | No replay endpoint exists | N/A | ⏳ Feature not implemented; no replay UI is rendered |
+| Dashboard top-up queue links | Dashboard is broadly visible | `topups.view` or `deposit.view` | Queue/top-up endpoints | Endpoint-specific | ✅ Existing card and queue action gating |
+| Dashboard withdrawal queue links | Dashboard is broadly visible | `withdraw.view` | Queue/withdrawal endpoints | Endpoint-specific | ✅ Existing card and queue action gating |
+| Dashboard risk links | Dashboard is broadly visible | `risk.view` | Risk endpoints | `risk.view` | ✅ Existing card and queue action gating |
 
 ## Changes in this pass
 
@@ -41,15 +41,16 @@
 - Added actor-filtered assignable invitation roles under the same `admin.create` permission as the invitation page.
 - Added permission-gated server-side Audit CSV export under `admin.access.manage`.
 - Audit export excludes `oldData` and `newData`; payload masking/redaction remains tracked under D-09.
+- Aligned Audit Risk route and API on `risk.view`.
+- Aligned Webhook Logs navigation and API on `game.providers.view`.
+- Confirmed Dashboard cards already gate finance and risk actions using the current admin permission set.
 - Recorded Webhook replay as absent instead of creating an unbacked UI action.
 
-## Remaining permission alignment work
+## Remaining permission work
 
-1. Decide whether `/audit-risk` should require `admin.access.view`, or move the API summary to a risk-specific permission.
-2. Remove the `provider.view` alias from Webhook navigation or allow the API endpoint to accept the same supported alias through an explicit permission policy.
-3. Adopt action gates inside Dashboard cards rather than relying only on destination route denial.
-4. Add a replay endpoint and audit trail before enabling Webhook replay UI.
-5. Run browser role fixtures for owner, finance, risk, support, and read-only roles under D-08.
+1. Add a replay endpoint, audit trail, confirmation and `game.providers.manage` guard before enabling Webhook replay UI.
+2. Migrate Dashboard's local permission fetch to the shared permission hook when that page is next refactored; current action behavior is already gated.
+3. Run browser role fixtures for owner, finance, risk, support and read-only roles under D-08.
 
 ## Verification limits
 
