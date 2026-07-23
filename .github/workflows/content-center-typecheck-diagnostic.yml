@@ -38,3 +38,5 @@ jobs:
           git commit -m "test(ci): capture Content Center typecheck output"
           git push
           exit $status
+
+# trigger: 2026-07-24
