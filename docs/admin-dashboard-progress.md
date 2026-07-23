@@ -18,15 +18,16 @@
 - [x] จำกัด Recent Ledger บน Dashboard ให้แสดง 5 รายการ
 - [x] Wallet total ใช้ช่องว่างแบบไม่ตัดบรรทัด
 - [x] SLA countdown แบบเหลือเวลา/เกินเวลา
+- [x] ลำดับต้นหน้าเป็น System → Urgent queue → KPI → Risk → Finance
 
 ## ยังต้องทำทีละชิ้น
 
-- [ ] ตรวจและจัดลำดับ section ตาม worklist
+- [ ] ย้าย Activity / Recent Ledger ไปท้ายสุดของ Dashboard
 - [ ] ลด KPI / chart ที่ซ้ำกัน
 
 ## งานรอบปัจจุบัน
 
-**เป้าหมายถัดไป:** ตรวจลำดับ section ของ Dashboard เทียบกับ worklist แล้วขยับทีละ section โดยไม่แก้เนื้อหาภายในการ์ด
+**เป้าหมายถัดไป:** กำหนด `order` ให้กลุ่ม Activity / Recent Ledger อยู่ท้ายสุดผ่านโครงสร้าง CSS Grid ของ `AdminPage` โดยไม่ย้าย JSX ก้อนใหญ่และไม่แตะข้อมูลภายในการ์ด
 
 ## หลักฐาน Role-based dashboard
 
