@@ -9,6 +9,7 @@ const historyPageSource = readFileSync(new URL('./history/page.tsx', import.meta
 const previewComponentSource = readFileSync(new URL('../branding-member-preview.tsx', import.meta.url), 'utf8');
 const settingsSectionSource = readFileSync(new URL('../settings-section-page.tsx', import.meta.url), 'utf8');
 const websiteSource = readFileSync(new URL('../website/page.tsx', import.meta.url), 'utf8');
+const lifecycleSource = readFileSync(new URL('../use-admin-settings-form.ts', import.meta.url), 'utf8');
 
 const requiredBrandingKeys = [
   'logo_url',
@@ -102,8 +103,10 @@ test('full-page branding preview supports desktop tablet and mobile contracts', 
 });
 
 test('website settings retain Member-facing content keys and the existing API contract', () => {
-  assert.ok(websiteSource.includes(`adminApiFetch('${settingsEndpoint}')`) || websiteSource.includes(`adminApiFetch("${settingsEndpoint}")`));
-  assert.ok(websiteSource.includes(`adminApiFetch('${settingsEndpoint}', {`) || websiteSource.includes(`adminApiFetch("${settingsEndpoint}", {`));
+  assert.match(websiteSource, /useAdminSettingsForm<WebsiteSettings>/);
+  assert.match(websiteSource, new RegExp(`endpoint:\\s*["']${settingsEndpoint}["']`));
+  assert.match(lifecycleSource, /adminApiFetch\(endpoint\)/);
+  assert.match(lifecycleSource, /method:\s*["']PUT["']/);
 
   for (const key of requiredWebsiteKeys) {
     assert.match(websiteSource, new RegExp(`\\b${key}\\b`), `${key} must remain editable in Admin website settings`);
@@ -119,8 +122,10 @@ test('website and branding settings keep distinct field ownership', () => {
   }
 });
 
-test('settings pages preserve reset and unsaved-change safeguards', () => {
+test('settings pages preserve shared reset and unsaved-change safeguards', () => {
   assert.match(brandingSource, /SettingsSectionPage/);
-  assert.match(websiteSource, /beforeunload/);
-  assert.match(websiteSource, /Reset/);
+  assert.match(websiteSource, /useAdminSettingsForm/);
+  assert.match(websiteSource, /reset/);
+  assert.match(lifecycleSource, /beforeunload/);
+  assert.match(lifecycleSource, /setForm\(initialForm\)/);
 });
