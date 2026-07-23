@@ -15,14 +15,14 @@ const UNSAFE_ERROR_PATTERNS = [
   /(?:\{[\s\S]{120,}\}|\[[\s\S]{120,}\])/,
 ];
 
-const CODE_MESSAGES: Record<string, Record<AdminErrorLocale, string>> = {
+const CODE_MESSAGES = {
   FORBIDDEN: { th: 'คุณไม่มีสิทธิ์ทำรายการนี้', en: 'You do not have permission to perform this action.' },
   UNAUTHORIZED: { th: 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่', en: 'Your session has expired. Sign in again.' },
   VALIDATION_ERROR: { th: 'ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง', en: 'Some information is invalid. Check it and try again.' },
   NOT_FOUND: { th: 'ไม่พบข้อมูลที่ต้องการ', en: 'The requested record was not found.' },
   CONFLICT: { th: 'ข้อมูลถูกเปลี่ยนแปลงแล้ว กรุณารีเฟรชและลองใหม่', en: 'The record has changed. Refresh and try again.' },
   RATE_LIMITED: { th: 'ทำรายการถี่เกินไป กรุณารอสักครู่', en: 'Too many requests. Wait a moment and try again.' },
-};
+} satisfies Record<string, Record<AdminErrorLocale, string>>;
 
 export function safeAdminErrorMessage(
   payload: unknown,
@@ -31,7 +31,8 @@ export function safeAdminErrorMessage(
 ) {
   const locale = options.locale ?? 'th';
   const code = extractCode(payload);
-  if (code && CODE_MESSAGES[code]) return CODE_MESSAGES[code][locale];
+  const codeMessage = code ? CODE_MESSAGES[code as keyof typeof CODE_MESSAGES] : undefined;
+  if (codeMessage) return codeMessage[locale];
 
   const candidate = extractMessage(payload);
   if (candidate && isSafeBusinessMessage(candidate)) return candidate;
