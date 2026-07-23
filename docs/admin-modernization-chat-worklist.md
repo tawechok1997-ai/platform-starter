@@ -1,118 +1,101 @@
-# Admin Modernization Worklist — Chat Baseline
+# Admin Modernization Worklist — Code-Audited Canonical List
 
-> สร้างจากลิสที่ตกลงกันในแชทเมื่อ 2026-07-21/22
+> อัปเดตจากโค้ดบน `main` และหลักฐานที่ตรวจถึง 2026-07-23
 >
-> เอกสารนี้ใช้ติดตามงานปรับ Web Admin ชุดนี้โดยเฉพาะ และไม่อ้างอิงสถานะเสร็จจาก worklist เก่าโดยอัตโนมัติ
-
-สถานะเริ่มต้น: ต้อง audit โค้ดจริงก่อนติ๊กแต่ละข้อ
+> `[x]` ยืนยันจากโค้ดแล้ว · `[~]` ทำบางส่วน/ยังขาดหลักฐานทั้งระบบ · `[ ]` ยังไม่พบหรือยังไม่ครบ
+>
+> เอกสาร audit รายหมวดใช้เป็นหลักฐานประกอบ แต่ไฟล์นี้เป็นลิสต์หลักสำหรับทำงานต่อ
 
 ## Phase 0 — ระบบกลางและ Navigation
 
-- [ ] Design System กลาง: สี, ฟอนต์, spacing, radius, shadow, button, badge, table
-- [ ] ใช้ฟอนต์ไทย Noto Sans Thai หรือ IBM Plex Sans Thai
-- [ ] สีสถานะกลาง success, warning, danger, info
-- [x] App Shell เดียวทุกหน้า
-- [x] App Shell เปลี่ยนภาษาไทย/English ได้ และจำการเลือก
-- [x] Activity Center ใช้ข้อความ UI, วันเวลา และสถานะตามภาษาที่เลือก
-- [x] Dashboard ใช้ข้อความ UI, สถานะ, จำนวน และวันเวลาตามภาษาที่เลือก
-- [x] ปรับข้อความเตือน/คำอธิบายที่ฟุ่มเฟือยในหน้าค่ายเกมเป็นคำสั้นตามงาน
-- [ ] Responsive สำหรับ PC, tablet, mobile
-- [x] Shell: topbar controls 44px บน mobile, Command Palette เป็น bottom sheet และ Activity detail drawer ปรับตาม desktop/tablet/mobile
-- [ ] ทุกหน้ามี loading, empty, error, permission state
-- [x] Profile อยู่ Sidebar ด้านล่างเป็นจุดหลักจุดเดียว
-- [x] เอา Profile trigger/Dropdown ซ้ำออกจาก Topbar
-- [x] Sidebar Profile มี avatar, ชื่อ, role, online status, dropdown
-- [x] Profile dropdown มี Profile, Security/2FA, Activity Center, Logout
-- [x] Favorites, Recently used, badge งานค้างใน Sidebar
-- [x] Command Palette Ctrl/Cmd + K
+- [~] Design System กลาง: มี tokens และ Admin primitives แต่ยังมี compatibility CSS/inline styles
+- [ ] ยืนยันฟอนต์ไทยมาตรฐานครบทุกหน้า
+- [~] สีสถานะกลาง success/warning/danger/info มีแล้ว แต่ยังไม่ audit ครบทุก route
+- [x] App Shell เดียวสำหรับ Admin routes
+- [x] สลับไทย/อังกฤษและจำภาษา
+- [x] Profile อยู่ Sidebar จุดหลักเดียว และไม่มี trigger ซ้ำใน Topbar
+- [x] Sidebar Profile มี avatar, role, online status และเมนูบัญชี
+- [x] Favorites, Recently used และ badge ใน Sidebar
+- [x] Command Palette `Ctrl/Cmd + K`
 - [x] Notification Center
-- [x] Environment badge: Demo / UAT / Production
-- [ ] แยกเมนูเป็นงานหลัก, รายงาน, ตั้งค่า, เครื่องมือเทคนิค และ legacy
-- [ ] เมนูหลักเหลือเฉพาะงานที่ใช้ประจำ
-- [x] Bulk Queue, Statement, Analytics, Export เปิดจากหน้าบริบทหรือ Command Palette
-- [x] Credential, Adapter Test, Webhook Test, API Settings, Money Ops ไม่อยู่ Sidebar หลัก
-- [ ] รวมเมนูซ้ำ: Activity, KYC, Audit, Ledger, Access, Provider Adapter
-- [ ] Route เก่าต้อง redirect ไปหน้าปัจจุบัน ไม่มีลิงก์เสีย
-- [ ] ชื่อเมนู ภาษา และลำดับกลุ่มสอดคล้องกัน
-- [x] Menu, Command Palette และ deep-link ใช้ permission เดียวกัน
-- [x] Active state/open group ตรงกับ route ปัจจุบัน รวม Favorites และ Recently used
-- [ ] Badge งานค้างไม่ซ้ำและแสดงเฉพาะจุดที่มี action
+- [x] Environment badge
+- [~] Responsive shell/primitives รองรับหลาย breakpoint แต่ยังไม่มีหลักฐานครบทุกหน้าและ viewport
+- [~] Loading/empty/error/permission states มี root และหลายหน้า แต่ยังไม่ครบทุก route
+- [~] Navigation grouping และการลดเมนูซ้ำยังต้องตรวจ route ต่อ route
+- [~] Legacy redirect และลิงก์เสียยังไม่มีหลักฐานครบ
+- [x] Menu, Command Palette และ deep-link ใช้ permission model ร่วมกัน
+- [x] Active state/open group รองรับ route, Favorites และ Recently used
+- [ ] ยืนยันว่า badge งานค้างไม่ซ้ำทุกจุด
 
 ## Phase 0.1 — Overlay, ปุ่ม และ Sidebar
 
-- [x] รวม state controller ของ Sidebar drawer, Profile, Notification, Command Palette
-- [x] เปิด overlay ได้ทีละชั้น และเปิดเมนูใหม่ต้องปิด surface อื่นอัตโนมัติ
-- [x] Escape ปิด layer บนสุดก่อนและคืน focus จุดเดิม
-- [x] ตรวจ click-outside, backdrop, close button และ navigation transition
-- [x] ไม่มี Logout ซ้ำ; footer logout แสดงเฉพาะ mobile เมื่อจำเป็น
-- [ ] Action เดียวมีปุ่มหลักเดียว ไม่เกิด Approve/Confirm ซ้อนกัน
-- [ ] ปุ่ม disabled มีเหตุผล/helper ชัดเจน
-- [ ] ปุ่มแดงใช้เฉพาะ Reject, Delete, Suspend, Logout
-- [ ] หนึ่ง section มี primary action เด่นเพียงหนึ่งปุ่ม
-- [ ] ป้องกัน double-submit พร้อม loading state
-- [ ] Icon button มี tooltip, aria-label, focus state
-- [ ] Touch target ขั้นต่ำ 44px บน mobile
-- [ ] Desktop Sidebar expanded 272px และ collapsed Icon Rail 72px
-- [ ] ปุ่มย่อ/ขยายเป็นปุ่มกลมที่ขอบ Sidebar
-- [ ] Rail mode แสดง icon, active state, badge โดยไม่บีบข้อความ
-- [x] Hover/focus icon แสดง tooltip สำหรับเมนูและกลุ่มใน rail mode
-- [ ] คลิก group ใน rail เปิด flyout menu
-- [ ] Rail mode Profile เหลือ avatar + online dot และเปิด account menu ได้
-- [x] Tablet/mobile ใช้ full drawer พร้อม focus trap, backdrop และ Escape
-- [x] Confirmation dialog: focus เริ่มที่ Cancel, trap focus, Escape/backdrop และ mobile bottom sheet
+- [x] รวม controller ของ Sidebar drawer, Profile, Notification และ Command Palette
+- [x] เปิด overlay ได้ทีละชั้น
+- [x] Escape ปิด layer บนสุดและคืน focus
+- [x] รองรับ click-outside, backdrop, close button และ navigation transition
+- [x] ไม่มี Logout ซ้ำใน desktop shell
+- [~] Action hierarchy ยังไม่ได้ audit ครบทุกหน้า
+- [~] Disabled reason/helper มีบางหน้า
+- [~] ปุ่ม danger ใช้ถูกต้องหลายหน้า แต่ยังไม่ยืนยันทั้งระบบ
+- [~] Double-submit protection และ loading state มีใน workflow สำคัญหลายหน้า แต่ยังไม่ครบทุก mutation
+- [~] Icon button accessibility และ touch target 44px มีบางส่วน
+- [~] Sidebar rail มี tooltip/responsive drawer แต่ขนาด 272/72, flyout และ profile rail mode ยังไม่ยืนยันครบ
+- [x] Tablet/mobile drawer มี focus trap, backdrop และ Escape
+- [x] Confirmation dialog มี cancel-first focus, focus trap, Escape/backdrop และ mobile bottom sheet
 
 ## Phase 1 — Bug และความปลอดภัย
 
-- [x] แก้ THB NaN ใน /operations
-- [x] แก้ THB NaN ใน /game-transfers
-- [x] Harden money display ใน Activity Center, Bonus, Commission, Promotion Claims, Wallet Ledger detail และ Provider Snapshot
-- [x] แก้ Prisma/UUID error ใน /member-insights
-- [ ] ห้ามแสดง raw backend error
-- [x] Member Insights และ Game Transfers ใช้ข้อความผิดพลาดที่ผ่านการกรอง พร้อม network fallback
+- [x] แก้ THB NaN ใน `/operations`
+- [x] แก้ THB NaN ใน `/game-transfers`
+- [x] Harden money formatter ไม่ให้ค่าที่ไม่ finite แสดง `NaN`
+- [x] แก้ Prisma/UUID error ใน `/member-insights`
+- [~] ปิด raw backend error แล้วหลายหน้า แต่ยังไม่ยืนยันครบทั้ง Admin
 - [x] เอา credential ตัวอย่างออกจาก seed และไม่สร้าง placeholder credential ใน preset ใหม่
-- [ ] แยก Demo/UAT/Production ให้ชัด
-- [ ] เพิ่ม 2FA setup และ recovery code warning ใน /security
-- [ ] Audit log สำหรับ action สำคัญทั้งหมด
-- [ ] Confirmation สำหรับ approve, reject, delete, pay, permission change
-- [ ] ป้องกัน action เมื่อไม่มีข้อมูลหรือไม่มีสิทธิ์
-- [ ] ทุก action เงินมี idempotency, retry/reversal policy และ audit trace
+- [~] Demo/UAT/Production มี badge และ credential environment แต่ยังไม่ยืนยัน isolation ครบทุก workflow
+- [x] `/security` มี TOTP setup, QR และ recovery codes
+- [~] Audit log มีหลาย action แต่ยังไม่ยืนยันครบทุก action สำคัญ
+- [~] Confirmation มีใน financial/security workflow หลายหน้า แต่ยังไม่ครบทุก action
+- [~] Permission/empty-data guards มีหลายหน้า แต่ยังไม่ครบทุก action
+- [~] Idempotency, retry/reversal และ audit trace มีบางส่วน แต่ยังไม่ครบทุก action เงิน
 
 ## Login
 
-- [ ] Validation ใต้ field
-- [ ] Error state อ่านง่าย
-- [ ] Password toggle มีสถานะซ่อน/แสดงชัด
-- [ ] 2FA flow
-- [ ] Session timeout notice
-- [ ] ปุ่มภาษา 44px
-- [ ] Loading state ตอน login
-- [ ] ไม่แสดง demo credential ใน Production
+- [x] Validation ใต้ field และ accessible error binding
+- [x] Error state อ่านง่ายและไม่แสดง raw technical error
+- [x] Password toggle มีสถานะซ่อน/แสดง
+- [x] 2FA challenge รองรับ TOTP และ recovery code
+- [x] Timeout handling
+- [x] ปุ่มภาษาและการจำภาษา
+- [x] Loading/busy state กัน submit ซ้ำ
+- [x] CAPTCHA/Anti-bot integration
+- [x] ไม่แสดง demo credential
+- [~] Branding ยัง hard-code บางส่วน และยังไม่มี browser evidence ครบทุก flow
 
 ## Overview
 
-### /dashboard
+### `/dashboard`
 
-- [ ] System status → Urgent queue → KPI → Risk → Finance → Activity
-- [ ] ลด KPI/กราฟซ้ำกัน
+- [ ] เรียง System status → Urgent queue → KPI → Risk → Finance → Activity
+- [ ] ลด KPI/กราฟซ้ำ
 - [ ] Wallet total ไม่ตัดบรรทัด
-- [ ] Recent Ledger แสดง 5 รายการ + ดูทั้งหมด
+- [ ] Recent Ledger 5 รายการ + ดูทั้งหมด
 - [ ] SLA countdown
 - [ ] Quick Actions
 - [ ] Role-based dashboard
 
-### /operations
+### `/operations`
 
-- [x] ข้อความ UI, สถานะ, จำนวน และเงินตามภาษาที่เลือก
+- [x] รองรับภาษา สถานะ จำนวน และเงินตาม locale
+- [x] Money formatting ไม่แสดง `NaN`
+- [x] ข้อความผิดพลาดผ่าน safe copy
 - [ ] งานเร่งด่วนก่อน
-- [ ] SLA และเวลาค้าง
+- [ ] SLA/เวลาค้าง
 - [ ] Priority filter
-- [ ] ใช้ภาษาธุรกิจ
-- [ ] แก้ THB NaN
 - [ ] Action drawer ต่อรายการ
 
-### /activity-center
+### `/activity-center`
 
-- [x] Tabs: Activity / Audit / Risk / Finance
+- [x] Tabs Activity/Audit/Risk/Finance
 - [x] Timeline
 - [x] Severity filter
 - [x] Detail side drawer
@@ -120,389 +103,417 @@
 
 ## Finance
 
-### /topups
+### `/topups`
 
-- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
-- [ ] Table เดียวกับ withdrawals
+- [x] Loading/skeleton/busy states
+- [x] Filter และ pagination พร้อม accessibility labels
+- [x] Error handling แบบ `try/catch/finally`
+- [x] Slip preview failure ไม่ทำให้ queue ล้ม
+- [x] Confirmation สำหรับ action สำคัญ
+- [~] ยังไม่ใช้ table contract เดียวกับ Withdrawals
 - [ ] Sticky filter
 - [ ] Proof drawer
-- [ ] สถานะตาม workflow
-- [ ] Bulk review พร้อม confirmation
+- [ ] Bulk review
 
-### /withdrawals
+### `/withdrawals`
 
-- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
-- [ ] ยอดรวมและจำนวนรายการ
-- [ ] Queue priority
-- [ ] Approve/Reject แยกชัด
-- [ ] Reject ต้องใส่เหตุผล
-- [ ] แสดงหลักฐานก่อนจ่ายเงิน
+- [x] ยอดรวมและจำนวนรายการ
+- [x] แยกสถานะ workflow
+- [x] Approve/Verify payment/Reject แยก action
+- [x] Reject บังคับเหตุผล
+- [x] แสดงบัญชีแบบ mask และหลักฐานก่อนยืนยันจ่าย
+- [x] ตรวจชนิด/ขนาดไฟล์และบังคับเลขอ้างอิง
+- [x] Loading/skeleton/empty/pagination/safe error
+- [x] Busy guards และ confirmation context
+- [~] Queue priority ยังไม่มี score/SLA ordering
+- [ ] Proof drawer เฉพาะทาง
+- [ ] Bulk review
 
-### /bulk-queue-operations
+### `/bulk-queue-operations`
 
-- [ ] Selected count
-- [ ] ปิดปุ่มเมื่อยังไม่เลือก
-- [ ] Preview ก่อนยืนยัน
-- [ ] Claim / Approve / Reject แยกกัน
-- [ ] Audit reason
+- [x] Selected count และปิดปุ่มเมื่อข้อมูลไม่ครบ
+- [x] บังคับเหตุผล, confirmation text และ 2FA สำหรับ financial action
+- [x] แยก Claim/Release/Approve/Reject/Verify
+- [x] แสดงผลรายรายการและ retry เฉพาะรายการล้มเหลว
+- [x] ใช้ batch financial endpoint
+- [~] มี confirmation summary แต่ยังไม่มี preview dialog แยก
+- [~] ยังมี raw backend message บางจุด
 
-### /wallets
+### `/wallets`
 
-- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
-- [ ] ยอดใช้ได้ / ยอดรวม / ยอดล็อก
-- [ ] Member search และ filter
-- [ ] Before/after balance
-- [ ] Confirmation ก่อนเพิ่ม/ลดเงิน
-- [ ] บังคับเหตุผลทุก adjustment
+- [x] ยอดใช้ได้/ยอดรวม/ยอดล็อก
+- [x] Member search และ pagination
+- [x] Before/current balance
+- [x] Confirmation และบังคับเหตุผลทุก adjustment
+- [x] Busy guard และ idempotency key
+- [x] Loading/empty/safe error
 
-### /wallet-ledgers
+### `/wallet-ledgers`
 
-- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
-- [ ] Filter วันที่และประเภทเงิน
-- [ ] Compact table
-- [ ] Expandable row
-- [ ] จำกัดรายการต่อหน้า
+- [x] Filter ทิศทางและค้นหา member/reference/idempotency
+- [x] Compact record cards และ expandable metadata
+- [x] Before/after balance และ idempotency key
+- [x] จำกัด API ล่าสุด 100 รายการ
+- [ ] Date filter
+- [ ] Type filter แยกเฉพาะ
+- [ ] Server-side pagination
 - [ ] Export
 
-### /wallet-statement
+### `/wallet-statement`
 
-- [ ] Filter สมาชิก/วันที่ชัดเจน
+- [ ] Filter สมาชิก/วันที่
 - [ ] Running balance
 - [ ] Grouping ตามวัน
 - [ ] Export CSV/PDF
 - [ ] Transaction detail drawer
 
-### /wallet-analytics
+### `/wallet-analytics`
 
 - [ ] ช่วงเวลา 7/30/90 วัน
-- [ ] Line chart และ bar chart
+- [ ] Line/bar chart
 - [ ] Empty state
 - [ ] ลดความสูงกราฟ
-- [ ] Tooltip และ legend
+- [ ] Tooltip/legend
 
-### /reconciliation-center
+### `/reconciliation-center`
 
-- [ ] แยกยอดตรง/ยอดไม่ตรง
-- [ ] Variance เด่น
-- [ ] Evidence drawer
-- [ ] Status workflow
+- [x] แยก matched/mismatch และแสดง summary
+- [x] แสดง variance ต่อรายการและส่วนต่างรวม
+- [x] Detail link และ REVIEWING/RESOLVED workflow
+- [x] บังคับ review note และ confirmation
+- [x] Loading/empty/safe error
+- [~] Detail page ใช้แทน evidence drawer ในหน้าเดียว
 - [ ] Export รายการผิดปกติ
 
-### /reports
+### `/reports`
 
+- [x] Summary/Trend/Aging sections
+- [x] Export progress
 - [ ] Date range picker กลางทั้งระบบ
-- [ ] Summary / Trend / Aging tabs
 - [ ] Comparison period
 - [ ] ลดความยาวหน้า
-- [ ] Export progress
 
-### /exports
+### `/exports`
 
-- [ ] ประเภทไฟล์และช่วงวันที่
-- [ ] Progress status
-- [ ] Retry
-- [ ] Export history pagination
+- [x] Progress status
+- [x] Retry
+- [x] Export history pagination
+- [ ] ประเภทไฟล์และช่วงวันที่แบบครบ contract
 - [ ] แจ้งจำนวนแถวก่อนดาวน์โหลด
 
 ## Members
 
-### /members
+### `/members`
 
 - [x] Data table + member drawer
 - [x] ซ่อน PII โดย default
-- [x] Filter status / KYC / bank
-- [x] Quick actions
-- [x] Last activity
-- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก; ไม่แสดง raw backend error
+- [x] Filter status/KYC/bank
+- [x] Quick actions และ last activity
+- [x] Locale และ safe error
 
-### /member-insights
+### `/member-insights`
 
 - [x] แก้ UUID error
-- [x] ข้อความ UI, สถานะ, จำนวน และวันที่ตามภาษาที่เลือก
 - [x] Trend สมาชิกใหม่/กลับมาใช้งาน
-- [x] Segmentation
-- [x] Date range
-- [x] Data source และ last sync
+- [x] Segmentation และ date range
+- [x] Data source/last sync
+- [x] Locale และ safe error
 
-### /bank-accounts
+### `/bank-accounts`
 
-- [ ] แยกบัญชีรับเงิน/บัญชีถอน
-- [ ] Verification status
-- [ ] Mask เลขบัญชี
-- [ ] Duplicate warning
-- [ ] Approval workflow
+- [x] แยกบัญชีรับเงิน/บัญชีสมาชิก
+- [x] Verification status และ mask เลขบัญชี
+- [x] Duplicate warning
+- [x] Approval workflow
+- [~] ภาษาและ async guards ยังไม่สม่ำเสมอทุกจุด
 
-### /kyc-center
+### `/kyc-center`
 
-- [ ] KYC checklist
-- [ ] Risk reason
-- [ ] Document drawer
-- [ ] Reject ต้องใส่เหตุผล
-- [ ] Status filter
+- [x] KYC checklist และ risk reason
+- [x] Reject บังคับเหตุผล
+- [x] Status filter
+- [~] มี detail panel แต่ยังไม่มี browser/focus evidence ว่าเป็น drawer ที่สมบูรณ์
 
-### /support-center
+### `/support-center`
 
 - [ ] Ticket priority
 - [ ] SLA
 - [ ] Canned response
 - [ ] Conversation timeline
-- [ ] Open / Pending / Resolved
+- [ ] Open/Pending/Resolved
 
 ## Risk
 
-### /risk-alerts
+### `/risk-alerts`
 
-- [ ] Critical อยู่บนสุด
-- [ ] Severity filter
-- [ ] Evidence
-- [ ] Acknowledge workflow
-- [ ] Bulk review + confirmation
+- [x] Severity/Status/Type/Provider/Member/Date filters
+- [x] Summary Open/Critical
+- [x] Evidence/metadata และ related links
+- [x] OPEN/REVIEWING/RESOLVED/DISMISSED workflow
+- [x] Pagination และ bulk dismiss พร้อมเหตุผล/confirmation
+- [x] Scan cooldown
+- [ ] Critical-first ordering contract
+- [~] Safe error ยังไม่ครบทุกจุด
 
-### /provider-risk
+### `/provider-risk`
 
-- [ ] Readiness score
-- [ ] Blocker ก่อนเปิดเงินจริง
-- [ ] Warning/Critical แยกกัน
-- [ ] Preflight checklist
+- [x] Readiness score และสถานะพร้อม/เตือน/อันตราย
+- [x] Blocker ก่อนเปิดเงินจริง
+- [x] Preflight checklist และ real-money gate
+- [x] ตรวจ failed transfers และ unresolved mismatch
+- [~] ยังใช้ native confirm และ async guards ไม่ครบ
 
-### /audit-risk
+### `/audit-risk`
 
 - [ ] Event timeline
 - [ ] Risk type filter
-- [ ] Before/after change
+- [ ] Before/after
 - [ ] Export
 - [ ] Related record
 
 ## Games และ Providers
 
-### /provider-health
+### `/provider-health`
 
-- [x] Status matrix
-- [x] Response time
-- [x] Webhook health
-- [x] Provider ที่ต้องตรวจ
-- [x] Saved views
+- [x] Status matrix/response time/webhook health
+- [x] Provider ที่ต้องตรวจและ saved views
 
-### /simple-game-settings
+### `/simple-game-settings`
 
-- [x] Setup checklist
-- [x] Completion percentage
-- [x] Basic / Advanced
-- [x] Test connection
+- [x] Setup checklist/completion percentage
+- [x] Basic/Advanced และ test connection
 
-### /provider-setup-wizard
+### `/provider-setup-wizard`
 
-- [x] Step 1–4
-- [x] Progress indicator
-- [x] Validate ทุกขั้น
+- [x] Step 1–4, progress และ validation
 - [x] Production readiness gate
 
-### /provider-presets
+### `/provider-presets`
 
-- [x] Preset card + search
-- [x] Version
-- [x] Last updated
-- [x] Preset เป็น read-only และยืนยันก่อนสร้าง provider ใหม่
+- [x] Preset card/search/version/last updated
+- [x] Read-only preset และ confirmation ก่อนสร้าง provider
 
-### /game-providers
+### `/game-providers`
 
-- [ ] Table
-- [x] Status/health filter
-- [x] Credential state
+- [x] Status/health filter และ credential state
+- [ ] Table contract
 - [ ] Provider detail drawer
 
-### /games
+### `/games`
 
-- [x] Search/filter
-- [x] Provider/status/category
+- [x] Search/filter และ provider/status/category
 - [x] Bulk enable/disable + confirmation
 - [x] Game preview
 
-### /game-sessions
+### `/game-sessions`
 
-- [x] Compact session card
-- [x] Timeline
-- [x] Provider/member/game
+- [x] Compact session card/timeline/provider/member/game
 - [ ] Session detail drawer
 
-### /game-transfers
+### `/game-transfers`
 
-- [ ] แก้ THB NaN
-- [ ] Transfer direction
-- [ ] Idempotency key
-- [ ] Success/Pending/Failed
-- [ ] Retry เฉพาะรายการปลอดภัย
+- [x] Direction labels และ safe money formatter
+- [x] Idempotency key/provider transaction ID
+- [x] Success/Pending/Failed/Reversed summary และ filter
+- [x] Failed-only retry dry-run พร้อมเหตุผล/confirmation
+- [~] Payload redaction และ async guards ยังไม่ครบ
 
-### /webhook-logs
+### `/webhook-logs`
 
-- [ ] Processed/Retry/Failed
-- [ ] Payload drawer
-- [ ] Signature status
-- [ ] Replay เฉพาะ Admin ที่มีสิทธิ์
+- [x] Processed/Retry/Failed/Duplicate states
+- [x] Signature status
+- [x] Raw/normalized payload viewer
+- [x] Search/status filter และ safe error labels
+- [ ] Replay action จำกัดสิทธิ์
+- [ ] Server-side pagination
+- [~] Payload redaction ยังไม่ยืนยันทุก provider
 
 ## Promotion และ Growth
 
-### /growth-center
+### `/growth-center`
 
-- [ ] Read-only summary dashboard
-- [ ] Queue ทุก feature
-- [ ] ลดข้อความซ้ำ
-- [ ] Link ไปหน้าปฏิบัติการโดยตรง
+- [x] Read-only summary dashboard
+- [x] รวมคิว Promotion/Bonus/Affiliate/Commission/Support/KYC
+- [x] Link ไปหน้าปฏิบัติการโดยตรง
+- [x] ไม่อนุมัติ ไม่ payout และไม่แก้ wallet
+- [~] ภาษาและ shared components ยังไม่สม่ำเสมอ
 
-### /promotion-operations
+### `/promotion-operations`
 
-- [ ] Campaign status
-- [ ] Readiness checklist
+- [ ] Campaign readiness checklist
 - [ ] Request priority
 - [ ] Member preview
+- [~] Campaign status มีผ่าน Promotion Center แต่ยังไม่ยืนยัน route นี้ครบ
 
-### /promotion-center
+### `/promotion-center`
 
-- [ ] Campaign / Banner / Bonus / Coupon tabs
-- [ ] Draft/publish state
-- [ ] Bulk archive
+- [x] Campaign/Banner/Bonus/Coupon/Reward tabs
+- [x] Draft/Published/Archived lifecycle
+- [x] Search/priority/banner preview/validation
+- [x] Bulk archive พร้อม confirmation
+- [ ] Unsaved changes warning
+- [~] Safe error ยังไม่ครบทุกจุด
 
-### /promotion-claims
+### `/promotion-claims`
 
-- [ ] หลักฐานการฝาก
-- [ ] Review drawer
-- [ ] Reject reason
-- [ ] SLA
+- [x] Linked deposit evidence
+- [x] Review drawer
+- [x] Reject reason และ SLA
+- [x] Timeline และ approve/reject confirmation
+- [~] Drawer focus contract และ safe error ยังไม่ครบ
 
-### /bonus-ledgers
+### `/bonus-ledgers`
 
-- [ ] Turnover progress
-- [ ] Active/Completed/Expired
-- [ ] Wallet impact
-- [ ] Approval guard ก่อนจ่าย
+- [x] Turnover progress/progress bar
+- [x] Active/Completed/Expired/Revoked/Settled
+- [x] Wallet-credit state และ turnover guard
+- [x] Release/Expire/Revoke พร้อมเหตุผล/confirmation
+- [x] Timeline
+- [~] Async guards และ safe error ยังไม่ครบทุก mutation
 
-### /affiliate-center
+### `/affiliate-center`
 
-- [ ] Downline tree
-- [ ] Pending review
-- [ ] Commission rule
-- [ ] Duplicate referral warning
+- [x] First-level downline tree
+- [x] Pending/Approved/Rejected review
+- [x] Commission rule
+- [x] Duplicate referral warning และ block approve
+- [x] Auto payout ปิดโดย default
+- [~] Nested tree/shared confirmation/error handling ยังไม่ครบ
 
-### /commission-ledgers
+### `/commission-ledgers`
 
-- [ ] Calculation preview
-- [ ] Basis/rate/cap
-- [ ] Preview แยกจาก create ledger
-- [ ] Confirmation ก่อนสร้างยอดจริง
+- [x] Calculation preview
+- [x] Basis/rate/cap
+- [x] Preview แยกจาก create ledger
+- [x] Confirmation ก่อนสร้าง ledger
+- [x] Manual override และ review แยกจาก payout
+- [x] Payout ยังปิด ไม่แตะ wallet
+- [~] Reject reason และ shared confirmation ยังไม่สมบูรณ์
 
-### /content-center
+### `/content-center`
 
-- [ ] Asset / Banner / Popup / Announcement / FAQ
-- [ ] PC/Mobile preview
-- [ ] Draft/publish workflow
-- [ ] Raw JSON อยู่ใน Advanced
-- [ ] Asset validation
+- [x] Asset/Banner/Popup/Announcement/FAQ
+- [x] Mobile/PC preview
+- [x] MIME/size/URL validation
+- [x] Private storage upload และ usage guard ก่อนลบ
+- [x] แสดง storage key/size/SHA-256 และ broken asset warning
+- [ ] Draft/Published lifecycle ชัดเจน
+- [ ] Raw JSON ใน Advanced mode
+- [ ] Unsaved changes warning
+- [~] Error handling/try-finally ยังไม่ครบทุก flow
 
 ## Admin และ Security
 
-### /admin-accounts
+### `/admin-accounts`
 
-- [ ] Role, 2FA, session status
-- [ ] Account detail drawer
-- [ ] Suspend/reactivate workflow
-- [ ] Login history
+- [x] Role, 2FA, account/session status และ last login
+- [x] Sessions/login history/status timeline
+- [x] Suspend/Lock/Reactivate พร้อมเหตุผลและ guards
+- [x] Revoke session พร้อม audit message
+- [~] Detail เป็น inline panel ไม่ใช่ drawer
+- [~] Native confirm/prompt และ raw message บางจุด
 
-### /admin-roles
+### `/admin-roles`
 
-- [ ] Permission ตาม module
+- [x] Permission ตาม module
+- [x] จำนวน permission/user และ wildcard/level
+- [x] Module filter
 - [ ] Search
 - [ ] Accordion
-- [ ] จำนวน permission/user
-- [ ] Permission preview ก่อนบันทึก
+- [ ] Permission preview
+- [ ] Editor/save workflow
 
-### /admin-invitations
+### `/admin-invitations`
 
-- [ ] Pending/Used/Expired
-- [ ] Resend/revoke
-- [ ] วันหมดอายุ
-- [ ] Validate email/role
+- [x] Status และวันหมดอายุ
+- [x] Reissue/Revoke
+- [x] Token แสดงครั้งเดียว
+- [x] Permission gating และ email/role validation
+- [x] ป้องกัน Owner/Super Admin/Wildcard role
+- [~] Status normalization และ shared confirmation ยังไม่ครบ
 
-### /audit
+### `/audit`
 
-- [ ] Server-side pagination
-- [ ] Filter module/action/user/IP
-- [ ] Expandable row
-- [ ] Before/after
+- [x] Server-side pagination
+- [x] Filter search/module/action/admin/target/date และแสดง IP/user agent
+- [x] Expandable before/after
+- [x] Deep link ไปข้อมูลที่เกี่ยวข้อง
+- [x] Read-only
 - [ ] Export จำกัดสิทธิ์
+- [~] Field-level masking/redaction ยังไม่ยืนยันครบ
 
-### /settings
+### `/settings`
 
-- [ ] Category index
-- [ ] ไม่รวม 24 หน้าในหน้าเดียว
-- [ ] Search + quick links
-- [ ] Unsaved changes warning
-- [ ] Save state ชัดเจน
+- [x] Category index
+- [x] แยก editor ออกจาก hub ไม่รวม 24 หน้าในหน้าเดียว
+- [x] Search + quick links + empty state
+- [ ] Unsaved changes warning กลาง
+- [ ] Save-state contract กลาง
 
-### /anti-bot
+### `/anti-bot`
 
-- [ ] Setup wizard
-- [ ] Provider status
+- [x] Provider status และ Turnstile/reCAPTCHA/hCaptcha
+- [x] Site key/secret state
+- [x] Route checklist และ provider test
+- [x] Adaptive/emergency mode
+- [ ] Setup wizard แบบ step
 - [ ] Test/Production mode
-- [ ] Route checklist
-- [ ] เปิดใช้ไม่ได้หาก key ไม่ครบ
+- [ ] Client-side block เมื่อ key ไม่ครบ
+- [~] Shared components ยังไม่ครบ
 
-### /security
+### `/security`
 
-- [ ] Security Center
-- [ ] 2FA status
-- [ ] Recovery codes
-- [ ] Active sessions
-- [ ] Login history
-- [ ] ยืนยัน 2FA ก่อน action สำคัญ
+- [x] Security Center และ TOTP QR setup
+- [x] เปิด/ปิด 2FA
+- [x] Recovery codes/regenerate/owner recovery readiness
+- [x] Active sessions/revoke/logout others/logout all
+- [ ] Login history ของบัญชีปัจจุบันในหน้านี้
+- [~] ยังไม่ยืนยันว่า action สำคัญทุกระบบบังคับ 2FA step-up
+- [~] Native confirm และ safe error ยังไม่ครบ
 
-### /provider-credentials
+### `/provider-credentials`
 
 - [x] Demo/UAT/Production
-- [x] Mask secret
-- [x] Key rotation
-- [x] Last changed
+- [x] Mask secret/key rotation/last changed
 - [x] Test connection โดยไม่เปิดเงินจริง
 
-### /adapter-test
+### `/adapter-test`
 
 - [x] Safe Test/Production Test
-- [x] Test history
-- [x] Technical payload ใน drawer
-- [x] Latency และ response status
+- [x] Test history/latency/response status
+- [x] Technical payload drawer
 
-### /game-api-settings
+### `/game-api-settings`
 
-- [x] Readiness checklist
-- [x] Basic/Advanced
-- [x] Endpoint completeness
-- [x] Preflight check
-- [x] Real-money gate
+- [x] Readiness checklist และ Basic/Advanced
+- [x] Endpoint completeness/preflight/real-money gate
 
 ## Phase 2 — QA, Monitoring และ Release Control
 
-- [ ] Seeded UAT data และ test account แยกตาม role
-- [ ] E2E สำหรับ approve, reject, pay, wallet adjustment, role change
-- [ ] E2E ต้องตรวจ audit log และ permission ด้วย
-- [ ] Feature Flag สำหรับ Demo/UAT/Production, gradual rollout, rollback
-- [ ] Error tracking ของ Admin/API โดย redact PII/secret/payment payload
-- [ ] Structured log + trace ID: UI → API → DB → Provider
-- [ ] Monitoring/SLO: error rate, latency, queue aging, webhook fail, provider downtime
-- [ ] Lighthouse/performance budget ใน CI สำหรับ Admin routes สำคัญ
-- [ ] Backup-restore drill อัตโนมัติ พร้อมหลักฐาน restore ได้จริง
+- [ ] Seeded UAT data และ test account แยกตาม role พร้อมหลักฐานใช้งาน
+- [ ] E2E ครบ approve/reject/pay/wallet adjustment/role change
+- [ ] E2E ตรวจ audit log และ permission
+- [ ] Feature flag gradual rollout/rollback
+- [ ] Error tracking พร้อม redact PII/secret/payment payload
+- [ ] Structured log + trace ID UI → API → DB → Provider
+- [ ] Monitoring/SLO สำหรับ error, latency, queue aging, webhook และ provider
+- [ ] Lighthouse/performance budget ใน CI
+- [ ] Backup-restore drill อัตโนมัติพร้อมหลักฐาน restore
 - [ ] Authenticated browser/visual regression ด้วย non-production credentials
+- [~] Repository มี Build/Quality/Security/Architecture/Full-System workflows แต่ชื่อ workflow ยังไม่ใช่หลักฐาน coverage หรือผลผ่าน
 
 ## Definition of Done
 
-- [ ] ไม่มี NaN
-- [ ] ไม่มี raw backend error
-- [ ] มี loading/empty/error/permission state
-- [ ] ใช้ layout/component กลาง
-- [ ] ใช้งาน keyboard ได้
-- [ ] Mobile ไม่มีเนื้อหาซ้อนหรือหลุดจอ
-- [ ] Action สำคัญมี confirmation และ audit
-- [ ] ภาษา วันที่ ตัวเลข และ status เป็นมาตรฐานเดียวกัน
-- [ ] ไม่มีเมนู/ปุ่ม/Profile/Logout ซ้ำ
-- [ ] Overlay เปิดชนกันไม่ได้
-- [ ] ไม่มี route legacy หรือลิงก์เสียใน menu/dropdown/Command Palette
-- [ ] Desktop rail, tablet, mobile drawer ผ่าน responsive และ permission check
-- [ ] Action เสี่ยงมี automated regression ก่อน deploy
+- [~] ไม่มี NaN ในหน้าที่ตรวจแล้ว แต่ยังไม่ยืนยันทั้งระบบ
+- [~] ไม่มี raw backend error ในหลายหน้า แต่ยังไม่ครบ
+- [~] Loading/empty/error/permission states มีหลายหน้า แต่ยังไม่ครบทุก route
+- [~] ใช้ layout/component กลางหลายหน้า แต่ยังมี inline/native controls
+- [~] Keyboard/focus รองรับ shell/dialog หลัก แต่ยังไม่ audit ทุก custom drawer
+- [ ] Mobile ไม่มีเนื้อหาซ้อนหรือหลุดจอครบทุก viewport
+- [~] Action สำคัญหลายส่วนมี confirmation/audit แต่ยังไม่ครบทุก action
+- [~] ภาษา วันที่ ตัวเลข และ status ดีขึ้นมาก แต่ยังไม่มาตรฐานเดียวกันทั้งหมด
+- [~] Profile/Logout ซ้ำถูกแก้แล้ว แต่เมนูและปุ่มซ้ำยังต้อง audit ต่อ
+- [x] Overlay เปิดชนกันไม่ได้
+- [ ] ไม่มี route legacy หรือลิงก์เสียครบทุก navigation surface
+- [~] Desktop rail/tablet/mobile drawer มี implementation แต่ยังไม่มีหลักฐานครบทุก permission/viewport
+- [ ] Action เสี่ยงมี automated regression ครบก่อน deploy
