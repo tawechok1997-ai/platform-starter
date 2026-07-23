@@ -11,19 +11,12 @@ on:
         description: Deployed API URL
         required: false
         type: string
-  pull_request:
-    branches:
-      - main
-    paths:
-      - .github/workflows/member-authenticated-production-smoke.yml
-      - tests/authenticated-visual/seeded-authenticated-visual.spec.ts
-      - playwright.authenticated-visual.config.ts
 
 permissions:
   contents: read
 
 concurrency:
-  group: member-authenticated-production-smoke-${{ github.event.pull_request.number || github.ref }}
+  group: member-authenticated-production-smoke-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -81,9 +74,21 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: member-authenticated-production-${{ github.sha }}
+          name: member-authenticated-production-${{ github.run_id }}
           path: |
             test-results/authenticated-visual/**
             playwright-report/authenticated-visual/**
           if-no-files-found: error
           retention-days: 14
+
+      - name: Write evidence summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Member authenticated production smoke'
+            echo
+            echo 'This is an explicit evidence gate. It must execute a real authenticated session and never treats skipped tests as success.'
+            echo
+            echo 'Authentication may use PROD_MEMBER_TOKEN or seeded Member credentials. Secret values are never written to artifacts.'
+          } >> "$GITHUB_STEP_SUMMARY"
