@@ -53,7 +53,11 @@ jobs:
         run: pnpm --filter @platform/web-admin lint
 
       - name: Test Admin Web
-        run: pnpm --filter @platform/web-admin test
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/admin-verification
+          pnpm --filter @platform/web-admin test 2>&1 | tee artifacts/admin-verification/test.log
 
       - name: Typecheck Admin Web
         shell: bash
