@@ -23,8 +23,8 @@ type PromotionCampaign = {
   badgeText?: string;
   accentColor?: string;
   priority?: number;
-  startsAt?: string;
-  endsAt?: string;
+  startsAt?: string | undefined;
+  endsAt?: string | undefined;
 };
 
 type LifecycleFilter = 'all' | PromotionLifecycle;
