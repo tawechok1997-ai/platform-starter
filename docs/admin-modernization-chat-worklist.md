@@ -398,10 +398,10 @@
 - [x] MIME/size/URL validation
 - [x] Private storage upload และ usage guard ก่อนลบ
 - [x] แสดง storage key/size/SHA-256 และ broken asset warning
-- [ ] Draft/Published lifecycle ชัดเจน
-- [ ] Raw JSON ใน Advanced mode
-- [x] Unsaved changes warning
-- [~] Error handling/try-finally ยังไม่ครบทุก flow
+- [x] Draft/Published/Archived lifecycle ชัดเจนและ backward-compatible
+- [x] Editable Raw JSON ใน Advanced mode พร้อม parse/normalize
+- [x] Unsaved changes warning ครอบคลุมฟอร์มและ Raw JSON ที่ยังไม่ apply
+- [x] Error handling/try-finally ครบ load/save/upload/delete
 
 ## Admin และ Security
 
