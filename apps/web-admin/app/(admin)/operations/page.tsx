@@ -87,14 +87,14 @@ export default function OperationsPage() {
   const primaryAction = topAction({ pendingTopUps, pendingWithdrawals, failedTransfers, openRiskAlerts, mismatchSnapshots, webhookFailed }, copy);
   const quickGroups = buildQuickGroups(copy);
   const message = state === 'loading' ? copy.loading : state === 'failed' ? copy.loadFailed : '';
-  const queueTasks = useMemo<QueueTask[]>(() => [
+  const queueTasks = useMemo<QueueTask[]>(() => ([
     { id: 'transfer', title: copy.failedTransferReview, count: failedTransfers, href: '/game-transfers', tone: 'danger', priority: 100, group: 'critical', helper: copy.transferHelp },
     { id: 'mismatch', title: copy.reconciliationReview, count: mismatchSnapshots, href: '/reconciliation-center', tone: 'danger', priority: 90, group: 'critical', helper: copy.mismatchHelp },
     { id: 'risk', title: copy.riskReview, count: openRiskAlerts, href: '/risk-alerts', tone: 'danger', priority: 80, group: 'critical', helper: copy.reviewHelp },
     { id: 'webhook', title: copy.webhookReview, count: webhookFailed, href: '/webhook-logs', tone: 'warning', priority: 70, group: 'critical', helper: copy.reviewHelp },
     { id: 'withdrawal', title: copy.withdrawalReview, count: pendingWithdrawals, href: '/withdrawals', tone: 'warning', priority: 60, group: 'member', helper: copy.withdrawalHelp },
     { id: 'deposit', title: copy.depositReview, count: pendingTopUps, href: '/topups', tone: 'warning', priority: 50, group: 'member', helper: copy.depositHelp },
-  ].filter((task) => priorityFilter === 'all' || task.group === priorityFilter).sort((a, b) => (b.count > 0 ? b.priority : 0) - (a.count > 0 ? a.priority : 0)), [copy, failedTransfers, mismatchSnapshots, openRiskAlerts, pendingTopUps, pendingWithdrawals, priorityFilter, webhookFailed]);
+  ] satisfies QueueTask[]).filter((task) => priorityFilter === 'all' || task.group === priorityFilter).sort((a, b) => (b.count > 0 ? b.priority : 0) - (a.count > 0 ? a.priority : 0)), [copy, failedTransfers, mismatchSnapshots, openRiskAlerts, pendingTopUps, pendingWithdrawals, priorityFilter, webhookFailed]);
 
   async function load() {
     setLoading(true);
