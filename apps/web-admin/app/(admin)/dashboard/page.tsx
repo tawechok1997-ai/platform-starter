@@ -180,7 +180,7 @@ export default function OperationDashboardPage() {
               <AdminMetric title={t.pending} value={String(pendingTotal)} helper={`${summary.totals.pendingTopUps} ${t.deposit} · ${summary.totals.pendingWithdrawals} ${t.withdrawal}`} tone={pendingTotal > 0 ? 'warning' : 'success'} />
               <AdminMetric title={t.overdue} value={queueMetrics.overdueCount.toLocaleString(dateLocale)} helper={`${queueMetrics.loadedCount} ${t.loaded}`} tone={queueMetrics.overdueCount > 0 ? 'warning' : 'success'} />
               <AdminMetric title={t.criticalQueue} value={queueMetrics.criticalCount.toLocaleString(dateLocale)} helper={formatDuration(QUEUE_CRITICAL_MINUTES, locale)} tone={queueMetrics.criticalCount > 0 ? 'danger' : 'success'} />
-              <AdminMetric title={t.oldestQueue} value={formatDuration(queueMetrics.oldestMinutes, locale)} helper={t.pending} tone={queueMetrics.oldestMinutes >= QUEUE_CRITICAL_MINUTES ? 'danger' : queueMetrics.oldestMinutes >= QUEUE_TARGET_MINUTES ? 'warning' : 'success'} />
+              <AdminMetric title={t.oldestQueue} value={formatDuration(queueMetrics.oldestMinutes, locale)} helper={formatSlaCountdown(queueMetrics.oldestMinutes, locale)} tone={queueMetrics.oldestMinutes >= QUEUE_CRITICAL_MINUTES ? 'danger' : queueMetrics.oldestMinutes >= QUEUE_TARGET_MINUTES ? 'warning' : 'success'} />
               {canViewRisk && <AdminMetric title={t.riskAlerts} value={`${riskSummary.openCount}`} helper={`${riskSummary.criticalCount} ${t.criticalRisk}`} tone={riskSummary.criticalCount > 0 ? 'danger' : riskSummary.openCount > 0 ? 'warning' : 'success'} />}
             </AdminMetricGrid>
           </AdminCard>
@@ -297,6 +297,16 @@ function QuickCard({ title, href, count, tone, locale, copy }: { title: string; 
 
 function QueueCard({ title, href, count, items, locale, copy }: { title: string; href: string; count: number; items: QueueItem[]; locale: AdminLocale; copy: DashboardCopy }) {
   return <AdminCard title={title} description={`${count.toLocaleString(locale === 'th' ? 'th-TH' : 'en-US')} ${copy.items}`} action={<AdminLinkButton href={href}>{copy.reviewQueue}</AdminLinkButton>}><AdminStack>{items.slice(0, 5).map((item) => <AdminRow key={item.id}><div><strong>{item.user?.username ?? item.shortUserId}</strong><p>{item.method ?? '-'} · {new Date(item.createdAt).toLocaleString(locale === 'th' ? 'th-TH' : 'en-US')}</p></div><strong>{formatMoney(item.amount)}</strong></AdminRow>)}{items.length === 0 && <AdminEmpty>{copy.noQueueItems}</AdminEmpty>}</AdminStack></AdminCard>;
+}
+
+function formatSlaCountdown(minutes: number, locale: AdminLocale) {
+  if (minutes <= 0) return locale === 'th' ? 'ไม่มีคิวค้าง' : 'No pending queue';
+  if (minutes < QUEUE_TARGET_MINUTES) {
+    const remaining = QUEUE_TARGET_MINUTES - minutes;
+    return locale === 'th' ? `เหลือ ${formatDuration(remaining, locale)} ก่อน SLA` : `${formatDuration(remaining, locale)} until SLA`;
+  }
+  const overdue = minutes - QUEUE_TARGET_MINUTES;
+  return locale === 'th' ? `เกิน SLA ${formatDuration(overdue, locale)}` : `${formatDuration(overdue, locale)} over SLA`;
 }
 
 function formatDuration(minutes: number, locale: AdminLocale) {

@@ -79,7 +79,7 @@
 - [ ] ลด KPI/กราฟซ้ำ
 - [x] Wallet total ไม่ตัดบรรทัด
 - [x] Recent Ledger 5 รายการ + ดูทั้งหมด
-- [ ] SLA countdown
+- [x] SLA countdown
 - [x] Quick Actions
 - [ ] Role-based dashboard
 

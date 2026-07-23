@@ -213,6 +213,12 @@ importers:
 
   packages/api-client: {}
 
+  packages/config: {}
+
+  packages/design-tokens: {}
+
+  packages/ui-core: {}
+
 packages:
 
   '@angular-devkit/core@19.2.24':
