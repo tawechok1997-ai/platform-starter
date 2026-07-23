@@ -2,7 +2,7 @@
 
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminSectionRow, AdminSkeleton, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminSectionRow, AdminSkeleton, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
 import { useAdminLocale, type AdminLocale } from '../admin-locale';
 
 type WithdrawalStatus = 'PENDING' | 'PENDING_REVIEW' | 'APPROVED_FOR_PAYMENT' | 'PAYMENT_PROOF_UPLOADED' | 'COMPLETED' | 'REJECTED' | 'CANCELLED';
@@ -153,7 +153,7 @@ export default function AdminWithdrawalsPage() {
   }
 
   const dialog = pendingAction ? copy.dialogs[pendingAction.action] : null;
-  return <AdminPage eyebrow={copy.eyebrow} title={copy.title} description={copy.description} actions={<AdminButton size="compact" disabled={queueBusy} onClick={() => void loadItems()}>{loading ? copy.loading : copy.refresh}</AdminButton>}>
+  return <AdminPage eyebrow={copy.eyebrow} title={copy.title} description={copy.description} actions={<><AdminLinkButton href="/bulk-queue-operations?kind=withdrawals" tone="secondary">{locale === 'th' ? 'ตรวจหลายรายการ' : 'Bulk review'}</AdminLinkButton><AdminButton size="compact" disabled={queueBusy} onClick={() => void loadItems()}>{loading ? copy.loading : copy.refresh}</AdminButton></>}>
     <div className="admin-wallet-history"><AdminMetricGrid>
       <AdminMetric tone="warning" title={copy.review} value={formatNumber(totals.review, locale)} helper={`${copy.filteredTotal} ${formatNumber(total, locale)}`} />
       <AdminMetric tone="warning" title={copy.payment} value={formatNumber(totals.payment, locale)} helper={`${copy.page} ${formatNumber(page, locale)} / ${formatNumber(pageCount, locale)}`} />
