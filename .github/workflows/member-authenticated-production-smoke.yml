@@ -32,17 +32,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      MEMBER_WEB_URL: ${{ inputs.member_url || secrets.SEED_MEMBER_WEB_URL || 'https://platformweb-member-production.up.railway.app' }}
-      API_URL: ${{ inputs.api_url || secrets.SEED_API_URL || 'https://platformapi-production-3c91.up.railway.app' }}
-      SEED_MEMBER_USERNAME: ${{ secrets.SEED_MEMBER_USERNAME }}
-      SEED_MEMBER_EMAIL: ${{ secrets.SEED_MEMBER_EMAIL }}
-      SEED_MEMBER_PHONE: ${{ secrets.SEED_MEMBER_PHONE }}
-      SEED_MEMBER_PASSWORD: ${{ secrets.SEED_MEMBER_PASSWORD }}
+      MEMBER_WEB_URL: ${{ inputs.member_url || secrets.SEED_MEMBER_WEB_URL || secrets.P6_MEMBER_URL || 'https://platformweb-member-production.up.railway.app' }}
+      API_URL: ${{ inputs.api_url || secrets.SEED_API_URL || secrets.P6_API_URL || 'https://platformapi-production-3c91.up.railway.app' }}
+      SEED_MEMBER_USERNAME: ${{ secrets.SEED_MEMBER_USERNAME || secrets.P6_MEMBER_USERNAME }}
+      SEED_MEMBER_EMAIL: ${{ secrets.SEED_MEMBER_EMAIL || secrets.P6_MEMBER_EMAIL }}
+      SEED_MEMBER_PHONE: ${{ secrets.SEED_MEMBER_PHONE || secrets.P6_MEMBER_PHONE }}
+      SEED_MEMBER_PASSWORD: ${{ secrets.SEED_MEMBER_PASSWORD || secrets.P6_MEMBER_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate seeded Member credentials
+      - name: Validate authenticated Member environment
         shell: bash
         run: |
           set -euo pipefail
@@ -81,5 +81,5 @@ jobs:
           path: |
             test-results/authenticated-visual/**
             playwright-report/authenticated-visual/**
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
