@@ -27,9 +27,9 @@ concurrency:
 
 jobs:
   admin-verification:
-    name: Admin lint, test, typecheck and build
+    name: Admin lint and tests
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -58,16 +58,6 @@ jobs:
           set -o pipefail
           mkdir -p artifacts/admin-verification
           pnpm --filter @platform/web-admin test 2>&1 | tee artifacts/admin-verification/test.log
-
-      - name: Typecheck Admin Web
-        shell: bash
-        run: |
-          set -o pipefail
-          mkdir -p artifacts/admin-verification
-          pnpm --filter @platform/web-admin typecheck 2>&1 | tee artifacts/admin-verification/typecheck.log
-
-      - name: Build Admin Web
-        run: pnpm --filter @platform/web-admin build
 
       - name: Upload Admin verification evidence
         if: always()

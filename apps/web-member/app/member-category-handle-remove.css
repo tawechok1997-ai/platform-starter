@@ -1,6 +1,0 @@
-/* Remove the floating purple category-rail handle requested by design review. */
-.member-category-rail__handle {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}

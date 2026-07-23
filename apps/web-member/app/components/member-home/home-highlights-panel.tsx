@@ -1,6 +1,5 @@
 'use client';
 
-import type { GameCategoryNavigationConfig } from '../../brand/game-category-navigation';
 import type { MemberFeatureFlags, SiteIconSettings } from '../../site-settings';
 import {
   GameLobbyState,
@@ -8,7 +7,6 @@ import {
   GameRailSkeleton,
 } from '../member-home-sections';
 import { useMemberHomeData } from '../../hooks/use-member-home-data';
-import { GameCategoryNavigation } from './game-category-navigation';
 import { HomeCompetitionShowcase } from './home-competition-showcase';
 import { HomeQuickActions } from './home-quick-actions';
 
@@ -18,20 +16,16 @@ export function HomeHighlightsPanel({
   active,
   data,
   primaryColor,
-  showCategories,
   showRecommended,
   gamesEnabled,
-  gameCategoryNavigation,
   icons,
   features,
 }: {
   active: boolean;
   data: MemberHomeData;
   primaryColor: string;
-  showCategories: boolean;
   showRecommended: boolean;
   gamesEnabled: boolean;
-  gameCategoryNavigation: GameCategoryNavigationConfig;
   icons: SiteIconSettings;
   features: MemberFeatureFlags;
 }) {
@@ -56,13 +50,6 @@ export function HomeHighlightsPanel({
           data.popular.length === 0 && <GameLobbyState tone="empty" />}
         {gamesEnabled && data.recentGames.length > 0 && (
           <GameRail title="เล่นล่าสุด" href="/games" items={data.recentGames} primaryColor={primaryColor} />
-        )}
-        {gamesEnabled && showCategories && (
-          <GameCategoryNavigation
-            categories={data.categories}
-            config={gameCategoryNavigation}
-            baseIcons={icons}
-          />
         )}
         {gamesEnabled && showRecommended && (
           <GameRail title="เกมแนะนำ" href="/games" items={data.featured} primaryColor={primaryColor} />

@@ -92,15 +92,27 @@ test('desktop drawer guard hides the backdrop without disabling the sidebar', ()
 });
 
 test('finance pages use the shared admin surface system', () => {
-  const paths = [
+  const queuePaths = [
     '../../../app/(admin)/topups/page.tsx',
     '../../../app/(admin)/withdrawals/page.tsx',
+  ];
+  const directSurfacePaths = [
     '../../../app/(admin)/wallets/page.tsx',
     '../../../app/(admin)/wallet-ledgers/page.tsx',
     '../../../app/(admin)/reconciliation-center/page.tsx',
   ];
 
-  for (const path of paths) {
+  for (const path of queuePaths) {
+    const source = readFileSync(new URL(path, import.meta.url), 'utf8');
+    assert.match(source, /AdminPage/);
+    assert.match(source, /AdminFinanceQueueFrame/);
+    assert.match(source, /AdminNotice/);
+  }
+
+  const queueFrame = readFileSync(new URL('../../../app/(admin)/_components/admin-finance-queue.tsx', import.meta.url), 'utf8');
+  assert.match(queueFrame, /AdminMetricGrid/);
+
+  for (const path of directSurfacePaths) {
     const source = readFileSync(new URL(path, import.meta.url), 'utf8');
     assert.match(source, /AdminPage/);
     assert.match(source, /AdminMetricGrid/);

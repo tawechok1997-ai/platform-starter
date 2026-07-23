@@ -1,0 +1,285 @@
+/*
+ * Noah member visual theme.
+ *
+ * Colors and component appearance live here. Geometry for the current Header,
+ * Home hero, category rail and bottom navigation lives in
+ * member-reference-current.css. Keeping those responsibilities separate avoids
+ * import-order patches and nth-child business logic.
+ */
+
+:root {
+  --noah-bg: #0d0914;
+  --noah-surface: #17111f;
+  --noah-surface-2: #241a34;
+  --noah-surface-3: #342844;
+  --noah-purple: #a315ec;
+  --noah-purple-bright: #c33cff;
+  --noah-purple-soft: #cf72ff;
+  --noah-gold: #f3b632;
+  --noah-line: rgba(255, 255, 255, 0.16);
+  --noah-muted: #c9c0d5;
+}
+
+html,
+body {
+  background: var(--noah-bg) !important;
+  color: #fff;
+  font-family: "Noto Sans Thai", "Noto Sans", Inter, system-ui, sans-serif !important;
+}
+
+body:has(.member-shell),
+body:has(.game-lobby-page),
+body:has(.member-feature-page),
+body:has(.member-guide-page) {
+  --color-bg: var(--noah-bg);
+  --color-surface: var(--noah-surface);
+  --color-card: var(--noah-surface-2);
+  --color-card-raised: var(--noah-surface-3);
+  --color-surface-soft: rgba(255, 255, 255, 0.045);
+  --color-border: rgba(204, 170, 255, 0.18);
+  --color-brand: var(--noah-purple);
+  --color-text: #f7f4fb;
+  --color-text-muted: #b8b0c4;
+  --member-page: var(--noah-bg);
+  --member-surface-1: var(--noah-surface);
+  --member-surface-2: var(--noah-surface-2);
+  --member-surface-3: var(--noah-surface-3);
+  --member-accent: var(--noah-purple);
+  --member-accent-hover: var(--noah-purple-bright);
+  --member-accent-active: #7200b8;
+  --member-accent-soft: rgba(157, 24, 232, 0.16);
+}
+
+.global-member-topbar {
+  background: #151020 !important;
+  border-bottom: 1px solid rgba(157, 24, 232, 0.2) !important;
+  box-shadow: none !important;
+}
+
+.global-member-topbar .member-header-tool,
+.global-member-topbar .member-menu-button {
+  border: 0 !important;
+  background: linear-gradient(145deg, #302344, #241a36) !important;
+  color: #c45cff !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 6px 14px rgba(0, 0, 0, 0.22) !important;
+}
+
+.global-member-topbar .member-brand-mark {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.global-member-topbar .member-header-wallet {
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  background: linear-gradient(145deg, #342b49, #292039) !important;
+  color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.member-desktop-nav a.active,
+.member-drawer-nav a.active {
+  border-color: rgba(157, 24, 232, 0.5) !important;
+  background: rgba(157, 24, 232, 0.16) !important;
+  color: #d18aff !important;
+}
+
+.member-menu-backdrop {
+  background: rgba(4, 2, 9, 0.76) !important;
+}
+
+.member-drawer,
+.member-modal,
+.ui-overlay-surface {
+  border-color: rgba(230, 218, 242, 0.24) !important;
+  background: linear-gradient(180deg, #403d4e, #272331) !important;
+}
+
+.member-drawer-nav a {
+  border-color: rgba(187, 85, 255, 0.28);
+  background: rgba(24, 15, 37, 0.62);
+}
+
+.member-drawer-back-button,
+.member-logout-button {
+  border-color: rgba(187, 85, 255, 0.4);
+  background: rgba(24, 15, 37, 0.72);
+  color: #fff;
+}
+
+.member-home-shell,
+.game-lobby-page,
+.member-feature-page,
+.member-guide-page {
+  background: var(--noah-bg) !important;
+}
+
+.member-quick-action,
+.member-home-game-tile,
+.member-wallet-card,
+.game-lobby-card,
+.member-reference-promotion-card,
+.member-jackpot-card,
+.member-leaderboard-card {
+  border-color: rgba(157, 24, 232, 0.25) !important;
+  background: linear-gradient(145deg, #241731, #15101d) !important;
+}
+
+.member-quick-action:hover,
+.member-home-game-tile:hover,
+.member-reference-promotion-card:hover {
+  border-color: rgba(192, 92, 255, 0.62) !important;
+}
+
+.member-home-quick-icon {
+  background: rgba(157, 24, 232, 0.2) !important;
+  color: #d18aff !important;
+}
+
+.member-home-section-head h2,
+.game-lobby-eyebrow,
+.member-competition-showcase__hero span,
+.member-leaderboard-card header strong {
+  color: #e1baff !important;
+}
+
+.home-announcement-strip {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  background: #110e15 !important;
+}
+
+.home-announcement-strip__badge {
+  background: linear-gradient(135deg, #9a16e8, #c41aff) !important;
+  color: #fff !important;
+}
+
+.member-competition-showcase__hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(157, 24, 232, 0.34);
+  border-radius: 12px;
+  background: #151020;
+  color: #fff;
+}
+
+.member-competition-showcase__hero::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(12, 7, 20, 0.12), rgba(12, 7, 20, 0.82));
+  content: '';
+  pointer-events: none;
+}
+
+.member-competition-showcase__hero > div {
+  position: relative;
+  z-index: 1;
+}
+
+.member-jackpot-card {
+  border-color: rgba(243, 182, 50, 0.38) !important;
+  background: linear-gradient(145deg, rgba(243, 182, 50, 0.14), #17111f) !important;
+}
+
+.member-jackpot-card > span,
+.member-jackpot-card > strong {
+  color: var(--noah-gold);
+}
+
+.member-leaderboard-card li[data-rank='1'] > span { color: #ffd45a; }
+.member-leaderboard-card li[data-rank='2'] > span { color: #d7dce5; }
+.member-leaderboard-card li[data-rank='3'] > span { color: #d99a66; }
+
+.member-category-rail a {
+  border-color: rgba(210, 186, 240, 0.12) !important;
+  background: linear-gradient(145deg, #3b324b, #282036) !important;
+  color: #fff !important;
+  box-shadow: 0 9px 18px rgba(0, 0, 0, 0.34) !important;
+}
+
+.member-category-rail a:hover {
+  border-color: rgba(192, 92, 255, 0.56) !important;
+}
+
+.member-category-rail a.active,
+.member-category-rail a[aria-current='page'] {
+  background: #fff !important;
+  color: #5e168d !important;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.26) !important;
+}
+
+.member-bottom-nav {
+  border-top: 1px solid rgba(220, 196, 255, 0.3) !important;
+  background: linear-gradient(180deg, rgba(73, 61, 92, 0.96), rgba(37, 29, 51, 0.98)) !important;
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.member-bottom-nav > a {
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.86) !important;
+}
+
+.member-bottom-nav > a.active {
+  background: rgba(157, 24, 232, 0.24) !important;
+  color: #f0d9ff !important;
+}
+
+.member-bottom-nav .brand-icon--text {
+  color: #fff;
+}
+
+.game-lobby-page .game-lobby-tabs button.is-active,
+.game-lobby-card-body > button,
+.member-ui-button--brand,
+.member-wallet-card__action.is-primary {
+  border-color: var(--noah-purple) !important;
+  background: linear-gradient(135deg, #b321ee, #7200b8) !important;
+  color: #fff !important;
+}
+
+.game-lobby-page .game-lobby-toolbar input,
+.game-lobby-page .game-lobby-toolbar select {
+  border-color: rgba(191, 85, 255, 0.65);
+  background: var(--noah-surface);
+  color: #fff;
+}
+
+.game-lobby-page .game-lobby-notice {
+  border-color: rgba(190, 80, 255, 0.42);
+  background: rgba(116, 30, 155, 0.13);
+  color: #dfb6ff;
+}
+
+.member-guide-section__title,
+.game-lobby-section > header {
+  background: linear-gradient(90deg, #5f2472, #211528) !important;
+  color: #fff !important;
+}
+
+.member-guide-faqs details {
+  border-color: #5c526f !important;
+  background: #3b324d !important;
+}
+
+.member-guide-faqs details p {
+  background: #211a2c !important;
+  color: #d7ccdf !important;
+}
+
+.member-footer {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: #171121 !important;
+  color: #fff !important;
+}
+
+.member-footer__copyright {
+  color: #8f8797 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-quick-action,
+  .member-home-game-tile,
+  .member-reference-promotion-card,
+  .member-category-rail a,
+  .member-bottom-nav a {
+    transition: none !important;
+  }
+}

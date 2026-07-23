@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { GameCategoryNavigationConfig } from './brand/game-category-navigation';
 import {
   CmsContent,
   MemberFeatureFlags,
@@ -31,11 +30,9 @@ type MemberHomeProps = {
   showBalanceHeader: boolean;
   showButtons: boolean;
   showPromotion: boolean;
-  showCategories: boolean;
   showProviders: boolean;
   showRecommended: boolean;
   cmsContent: CmsContent;
-  gameCategoryNavigation: GameCategoryNavigationConfig;
   icons?: SiteIconSettings;
   features?: MemberFeatureFlags;
 };
@@ -82,10 +79,8 @@ export default function MemberHome(props: MemberHomeProps) {
         active={activeTab === 'highlights'}
         data={data}
         primaryColor={props.primaryColor}
-        showCategories={props.showCategories}
         showRecommended={props.showRecommended}
         gamesEnabled={features.games}
-        gameCategoryNavigation={props.gameCategoryNavigation}
         icons={icons}
         features={features}
       />

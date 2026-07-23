@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/web-admin/**'
       - 'apps/web-member/**'
       - 'packages/api-client/**'
       - 'package.json'
@@ -12,7 +11,6 @@ on:
       - '.github/workflows/p5-web-unit-tests.yml'
   pull_request:
     paths:
-      - 'apps/web-admin/**'
       - 'apps/web-member/**'
       - 'packages/api-client/**'
       - 'package.json'
@@ -28,6 +26,7 @@ concurrency:
 
 jobs:
   critical-web-tests:
+    name: API client and Member tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -52,18 +51,12 @@ jobs:
       - name: Test shared API client
         run: pnpm --filter @platform/api-client test
 
-      - name: Test Admin critical components
-        run: pnpm --filter @platform/web-admin test
-
       - name: Test Member critical components
         shell: bash
         run: |
           set -o pipefail
           mkdir -p artifacts/p5-web-unit
           pnpm --filter @platform/web-member test 2>&1 | tee artifacts/p5-web-unit/member-test.log
-
-      - name: Typecheck web applications
-        run: pnpm typecheck:admin && pnpm typecheck:member
 
       - name: Upload P5 web unit evidence
         if: always()

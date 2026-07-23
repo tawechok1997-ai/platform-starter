@@ -55,9 +55,9 @@ export const REFERENCE_BRANDING_DEFAULTS: Record<string, unknown> = {
 };
 
 /**
- * MemberChrome consumes these defaults without changing the legacy IconKey
- * contract. Other consumers migrate individually so a root-relative image path
- * is never rendered as plain text.
+ * Reference menu defaults are merged into the normalized icon settings once.
+ * Every Member consumer can therefore use the shared BrandIcon renderer without
+ * maintaining a second fallback chain.
  */
 export const REFERENCE_LEGACY_MENU_ICON_DEFAULTS: Record<string, string> = {
   home: DEFAULT_REFERENCE_MENU_ICONS.home,
@@ -90,5 +90,8 @@ export const REFERENCE_GAME_CATEGORY_ICON_DEFAULTS: Record<string, string> = {
 export const REFERENCE_PUBLIC_SETTINGS_DEFAULTS = {
   website: REFERENCE_WEBSITE_DEFAULTS,
   branding: REFERENCE_BRANDING_DEFAULTS,
-  icons: REFERENCE_GAME_CATEGORY_ICON_DEFAULTS,
+  icons: {
+    ...REFERENCE_LEGACY_MENU_ICON_DEFAULTS,
+    ...REFERENCE_GAME_CATEGORY_ICON_DEFAULTS,
+  },
 } as const;
