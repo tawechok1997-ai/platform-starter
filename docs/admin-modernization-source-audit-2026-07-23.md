@@ -1,6 +1,6 @@
 # Admin Modernization — Source Audit Corrections
 
-> ตรวจจาก source บน `main` วันที่ 2026-07-23
+> ตรวจจาก source บน `main` วันที่ 2026-07-24
 >
 > ไฟล์นี้เป็น correction layer สำหรับ `docs/admin-modernization-chat-worklist.md`
 > จนกว่าจะรวมสถานะกลับเข้า canonical worklist แบบเต็มไฟล์
@@ -175,7 +175,7 @@
   - Shared frame คุม metric grid, toolbar, notice, loading, empty และ content stack
   - Shared toolbar คุม status options, page boundary และ disabled state
   - Shared evidence ใช้ preview contract และ CSS class เดียวกัน
-  - Workflowเฉพาะฝาก/ถอน, claim/release, note และ confirmation ยังแยกตามธุรกิจเดิม
+  - Workflow เฉพาะฝาก/ถอน, claim/release, note และ confirmation ยังแยกตามธุรกิจเดิม
   - Shared contract: `399d3e2e3a5f8824d1c17b202a5a47b671851cd6`
   - Top-ups migration: `86b37afa9875b4cb60c56257d5a4ea759240dff1`
   - Withdrawals migration: `6c012c9d3e013255a0960c29cffeaf65215114df`
@@ -226,10 +226,34 @@
 
 ### D-05 — Confirmation และ mutation guard
 
-ซ้ำใน finance, security, provider, promotion, bonus, affiliate และ admin accounts
+เคยซ้ำใน finance, security, provider, promotion, bonus, affiliate และ admin accounts
 
-- [ ] Shared confirmation contract
-- [ ] Shared mutation/busy/idempotency guard
+- [x] Shared confirmation contract
+  - ใช้ `AdminConfirmDialog` เป็น dialog กลางสำหรับงานที่มีผลจริง
+  - Top-ups และ Withdrawals ใช้กับ approve/credit/settle/reject
+  - Bulk Queue ใช้ typed phrase + final confirmation dialog ก่อนส่ง batch
+  - Dialog มี focus trap, Escape/backdrop cancel และ busy lock
+- [x] Shared mutation/busy/idempotency guard
+  - Global boundary อยู่ใน `apps/web-admin/app/admin-api.ts`
+  - ครอบคลุม `POST`, `PUT`, `PATCH`, `DELETE` ที่ผ่าน `adminApiFetch`
+  - เพิ่ม `Idempotency-Key` อัตโนมัติและใช้ key เดิมเมื่อ retry หลัง refresh token
+  - คำขอ method/path/body-hash เดียวกันที่ยังทำงานอยู่ใช้ network result เดียวกัน
+  - Response ถูก snapshot/replay เพื่อให้ caller ซ้ำอ่าน body ได้แยกกัน
+  - รองรับ bodyless status 204/205/304
+  - Body ถูก hash ก่อนใช้เป็น in-memory signature จึงไม่เก็บ reason/2FA ดิบ
+  - Shared UI hook: `apps/web-admin/app/(admin)/_components/admin-mutation-guard.tsx`
+  - Bulk Action migrate มาใช้ shared busy hook แล้ว
+  - Top-ups/Withdrawals ยังมี item-level busy state และได้รับ global request guard เพิ่มอีกชั้น
+  - Audit matrix: `docs/admin-mutation-guard-audit.md`
+  - Global mutation boundary: `82ae60347009bff836c8ff69b1e58abb27155107`
+  - Shared busy hook: `7a06325793df8494030a2a36c98e008968fa7d32`
+  - Bulk confirmation/busy migration: `2642396018c32b40fcaee05b81eeb4321ecd1ccb`
+  - Body hash/no-content hardening: `0434a5e3b4ab1d1716b5e5601c9cfdca08e85316`
+  - Regression spec added: `56ca3d0fdf480255b262fb005ad92bcd5624ced9`
+  - Audit matrix: `494cf67dd1ee8625beefb4984a99f5f7ac70b1f7`
+  - Client dedupe ไม่ใช่ cross-tab/cross-device guarantee และ server-side replay ต้องอาศัย endpoint รองรับ header
+  - ยังไม่อ้างว่า regression spec ผ่าน เพราะ Railway build ไม่ได้รัน `pnpm test`
+  - Railway deploy: API, Member และ Admin ผ่าน
 
 ### D-06 — Drawer/focus contract
 
@@ -276,11 +300,12 @@
 - ช่อง `[ ]` เดิมที่ควรเป็น `[~]`: 4 งาน
 - ช่อง `[x]` ที่ต้องลดสถานะใน Promotion Center: 4 งาน
 - กลุ่มงานซ้ำเชิงระบบ: 10 กลุ่ม
-- งานใหม่ที่ปิดหลัง audit: 5 งาน
+- งานใหม่ที่ปิดหลัง audit: 6 งาน
   1. `/operations` SLA/เวลาค้าง
   2. D-01 เชื่อม Top-ups/Withdrawals เข้าสู่ Bulk Queue เดิม
   3. D-02 Shared finance queue shell/filter/pager/evidence contract
   4. D-03 Shared unsaved changes/navigation/save-state contract
   5. D-04 Shared safe-error mapper/global boundary/route audit matrix
+  6. D-05 Shared confirmation/mutation/busy/idempotency contract
 
 ตัวเลขนี้นับเฉพาะหัวข้อที่เปิด source ตรวจแล้ว ไม่รวมการคาดเดาจากชื่อ route หรือเอกสาร audit เดิม
