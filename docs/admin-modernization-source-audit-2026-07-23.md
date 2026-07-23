@@ -175,7 +175,7 @@
   - Shared frame คุม metric grid, toolbar, notice, loading, empty และ content stack
   - Shared toolbar คุม status options, page boundary และ disabled state
   - Shared evidence ใช้ preview contract และ CSS class เดียวกัน
-  - Workflow เฉพาะฝาก/ถอน, claim/release, note และ confirmation ยังแยกตามธุรกิจเดิม
+  - Workflowเฉพาะฝาก/ถอน, claim/release, note และ confirmation ยังแยกตามธุรกิจเดิม
   - Shared contract: `399d3e2e3a5f8824d1c17b202a5a47b671851cd6`
   - Top-ups migration: `86b37afa9875b4cb60c56257d5a4ea759240dff1`
   - Withdrawals migration: `6c012c9d3e013255a0960c29cffeaf65215114df`
@@ -203,9 +203,26 @@
 
 ### D-04 — Safe error contract
 
-ซ้ำใน Phase 1, route รายหน้า และ Definition of Done
+เคยซ้ำใน Phase 1, route รายหน้า และ Definition of Done
 
-- [ ] Safe-error mapper กลาง + route audit matrix
+- [x] Safe-error mapper กลาง + route audit matrix
+  - Mapper: `apps/web-admin/app/(admin)/_components/admin-safe-error.ts`
+  - Global boundary: `apps/web-admin/app/admin-api.ts`
+  - Route matrix: `docs/admin-safe-error-audit.md`
+  - ทุก non-2xx response ที่ผ่าน `adminApiFetch` ถูก sanitize ก่อน route อ่าน payload
+  - ยอมให้เฉพาะข้อความธุรกิจสั้นที่ผ่าน pattern guard
+  - Known code/status mapping รองรับไทยและอังกฤษ
+  - ตัด top-level `stack`, `trace`, `traceback`, `debug`, `exception`, `cause`, `query`, `sql`
+  - Login ที่ใช้ API client ตรงแสดงเฉพาะ generic local copy
+  - Token refresh failure ไม่แสดง payload ต่อผู้ใช้
+  - Mapper: `5414b660aacbcb7d1047cc1f01bbbfae6ab7fd04`
+  - Global sanitization: `9bbdebd3bcfa2224c1438fc08ee48018d9e269c8`
+  - Type hardening: `ce81b0615808a3e6b1307f1af19a906f850e358b`
+  - Header normalization: `ffc68414a1487a42078b2feb3b02001011b9af3e`
+  - Audit matrix: `a80cd491b45cf33311e76b10957f24538ec1f2c1`
+  - Regression spec added: `9bce7e8902d2bd9006e3607884c5a9f8bd84957b`
+  - ยังไม่อ้างว่า regression spec ผ่าน เพราะ Railway build ไม่ได้รัน `pnpm test`
+  - Runtime code Railway deploy: API, Member และ Admin ผ่าน
 
 ### D-05 — Confirmation และ mutation guard
 
@@ -259,10 +276,11 @@
 - ช่อง `[ ]` เดิมที่ควรเป็น `[~]`: 4 งาน
 - ช่อง `[x]` ที่ต้องลดสถานะใน Promotion Center: 4 งาน
 - กลุ่มงานซ้ำเชิงระบบ: 10 กลุ่ม
-- งานใหม่ที่ปิดหลัง audit: 4 งาน
+- งานใหม่ที่ปิดหลัง audit: 5 งาน
   1. `/operations` SLA/เวลาค้าง
   2. D-01 เชื่อม Top-ups/Withdrawals เข้าสู่ Bulk Queue เดิม
   3. D-02 Shared finance queue shell/filter/pager/evidence contract
   4. D-03 Shared unsaved changes/navigation/save-state contract
+  5. D-04 Shared safe-error mapper/global boundary/route audit matrix
 
 ตัวเลขนี้นับเฉพาะหัวข้อที่เปิด source ตรวจแล้ว ไม่รวมการคาดเดาจากชื่อ route หรือเอกสาร audit เดิม
