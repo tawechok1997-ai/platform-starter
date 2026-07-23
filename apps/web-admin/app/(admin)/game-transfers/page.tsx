@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { stringifyAdminPayload } from '../_components/admin-payload-redaction';
 import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
 
 type Transfer = { id: string; type: string; status: string; amount: string; currency: string; idempotencyKey: string; providerTransactionId?: string | null; errorCode?: string | null; errorMessage?: string | null; requestPayload?: unknown; responsePayload?: unknown; createdAt: string; user?: { username?: string | null; phone?: string | null }; provider?: { name: string; code: string }; session?: { id: string; providerSessionId?: string | null; game?: { name: string; providerGameCode: string } } };
@@ -72,7 +73,7 @@ export default function GameTransfersPage() {
         <div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminLinkButton href={`/game-transfers/${item.id}`}>ดูรายละเอียด</AdminLinkButton><AdminButton tone="secondary" onClick={() => setExpanded(expanded === item.id ? '' : item.id)}>{expanded === item.id ? 'ซ่อนข้อมูลเทคนิค' : 'ข้อมูลเทคนิค'}</AdminButton><AdminButton tone="secondary" onClick={() => requestAction(item, 'review')} disabled={working === item.id}>{working === item.id ? 'กำลังทำ...' : 'บันทึกผลตรวจ'}</AdminButton>{item.status === 'FAILED' && <AdminButton tone="secondary" onClick={() => requestAction(item, 'retry')} disabled={working === item.id}>ทดสอบใหม่</AdminButton>}</div>
       </AdminRow>
       {item.errorMessage && <AdminNotice tone="danger">{transferErrorLabel(item.errorCode)}</AdminNotice>}
-      {expanded === item.id && <pre style={preStyle}>{JSON.stringify({ requestPayload: item.requestPayload, responsePayload: item.responsePayload }, null, 2)}</pre>}
+      {expanded === item.id && <pre style={preStyle}>{stringifyAdminPayload({ requestPayload: item.requestPayload, responsePayload: item.responsePayload })}</pre>}
       <p style={smallMutedStyle}>สร้างเมื่อ {new Date(item.createdAt).toLocaleString('th-TH')}</p>
     </AdminCard>)}{!loading && filtered.length === 0 && <AdminEmpty>ยังไม่มีรายการโยกเงินตามตัวกรอง</AdminEmpty>}</AdminStack>
 
