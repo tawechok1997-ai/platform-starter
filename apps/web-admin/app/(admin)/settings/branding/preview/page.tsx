@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { adminApiFetch } from '../../../../admin-api';
-import { AdminButton, AdminNotice, AdminPage } from '../../../_components/admin-ui';
+import { AdminButton, AdminLinkButton, AdminNotice, AdminPage } from '../../../_components/admin-ui';
 import BrandingMemberPreview from '../../branding-member-preview';
 
 type SettingsValue = string | boolean | number | null;
@@ -36,11 +36,19 @@ export default function BrandingPreviewPage() {
     <AdminPage
       eyebrow="Settings"
       title="Member Branding Preview"
-      description="ตรวจภาพรวมหน้า Member แบบเต็มพื้นที่ก่อนเผยแพร่ แยก Desktop, Tablet และ Mobile"
-      actions={<><a href="/settings/branding">← Branding Settings</a><a href="/settings/branding/history">Version History</a><AdminButton type="button" tone="secondary" onClick={() => void load()}>รีเฟรช</AdminButton></>}
+      description="Full-page preview สำหรับตรวจภาพรวมหน้า Member ก่อนเผยแพร่ แยก Desktop, Tablet และ Mobile"
+      actions={
+        <>
+          <AdminLinkButton href="/settings/branding" tone="ghost">← Branding Settings</AdminLinkButton>
+          <AdminLinkButton href="/settings/branding/history" tone="secondary">Version History</AdminLinkButton>
+          <AdminButton type="button" tone="secondary" onClick={() => void load()}>รีเฟรช</AdminButton>
+        </>
+      }
     >
       {message && <AdminNotice>{message}</AdminNotice>}
-      <BrandingMemberPreview form={settings} />
+      <div data-preview-scope="full-page">
+        <BrandingMemberPreview form={settings} />
+      </div>
     </AdminPage>
   );
 }
