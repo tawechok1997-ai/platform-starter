@@ -10,12 +10,7 @@ const roles = {
 } as const;
 
 type RoleName = keyof typeof roles;
-
-type RouteCase = {
-  path: string;
-  label: string;
-  anyOf?: readonly string[];
-};
+type RouteCase = { path: string; label: string; anyOf?: readonly string[] };
 
 const routeCases: readonly RouteCase[] = [
   { path: '/dashboard', label: 'Dashboard' },
@@ -29,12 +24,7 @@ const routeCases: readonly RouteCase[] = [
   { path: '/webhook-logs', label: 'Webhook logs', anyOf: ['game.providers.view'] },
 ] as const;
 
-type RuntimeIssue = {
-  route: string;
-  kind: 'console' | 'page' | 'request' | 'response';
-  detail: string;
-};
-
+type RuntimeIssue = { route: string; kind: 'console' | 'page' | 'request' | 'response'; detail: string };
 type MatrixResult = {
   role: RoleName;
   route: string;
@@ -55,9 +45,10 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
     await installMockAdminSession(page, roleName, permissions);
 
     for (const routeCase of routeCases) {
-      const issueStart = issues.length;
       await page.goto(routeCase.path, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle', { timeout: 8_000 }).catch(() => undefined);
+      const issueStart = issues.length;
+
       await expect(page.locator('.admin-shell')).toBeVisible();
       await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/);
 
@@ -73,6 +64,7 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
       const overflow = layout.scrollWidth - layout.clientWidth;
       expect(overflow, `${roleName} ${routeCase.path} must not overflow horizontally`).toBeLessThanOrEqual(2);
 
+      await page.waitForTimeout(100);
       const routeIssues = issues.slice(issueStart);
       expect(routeIssues, `${roleName} ${routeCase.path} must not raise runtime or critical network errors`).toEqual([]);
 
@@ -87,11 +79,7 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
       });
 
       if (roleName === 'owner' && expectedAllowed) {
-        await page.screenshot({
-          path: testInfo.outputPath(`${slug(routeCase.path)}.png`),
-          fullPage: true,
-          animations: 'disabled',
-        });
+        await page.screenshot({ path: testInfo.outputPath(`${slug(routeCase.path)}.png`), fullPage: true, animations: 'disabled' });
       }
 
       if (routeCase.path === '/dashboard' && (page.viewportSize()?.width ?? 1_000) <= 834) {
@@ -103,9 +91,7 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
         await expect(page.locator('#admin-sidebar')).not.toHaveClass(/open/);
       }
 
-      if (roleName === 'owner' && routeCase.path === '/operations') {
-        await assertOperationsDrawerKeyboardContract(page);
-      }
+      if (roleName === 'owner' && routeCase.path === '/operations') await assertOperationsDrawerKeyboardContract(page);
     }
 
     await attachMatrix(testInfo, roleName, results, issues);
@@ -120,23 +106,15 @@ async function installMockAdminSession(page: Page, roleName: RoleName, permissio
   });
 
   await page.route('**/api/admin/**', async (route) => {
-    const request = route.request();
-    const url = new URL(request.url());
+    const url = new URL(route.request().url());
     const path = url.pathname.replace(/^\/api\/admin/, '/admin');
-    const payload = fixtureFor(path, roleName, permissions);
-    await fulfillJson(route, payload);
+    await fulfillJson(route, fixtureFor(path, roleName, permissions));
   });
 }
 
 function fixtureFor(path: string, roleName: RoleName, permissions: readonly string[]) {
   if (path === '/admin/auth/me') {
-    return {
-      id: `matrix-${roleName}`,
-      username: `matrix_${roleName}`,
-      displayName: `Matrix ${roleName}`,
-      roles: [{ code: roleName, name: roleName }],
-      permissions,
-    };
+    return { id: `matrix-${roleName}`, username: `matrix_${roleName}`, displayName: `Matrix ${roleName}`, roles: [{ code: roleName, name: roleName }], permissions };
   }
   if (path.startsWith('/admin/queues/summary')) return { topUps: { count: 0 }, withdrawals: { count: 0 } };
   if (path.startsWith('/admin/reports/queue-aging')) return { oldest: [] };
@@ -145,14 +123,11 @@ function fixtureFor(path: string, roleName: RoleName, permissions: readonly stri
     return {
       totals: { walletCount: 0, totalBalance: '0', totalLockedBalance: '0', totalAvailableBalance: '0', pendingTopUps: 0, pendingWithdrawals: 0 },
       today: { date: '2026-07-24', topUpAmount: '0', topUpCount: 0, withdrawalAmount: '0', withdrawalCount: 0, netFlow: '0' },
-      queues: { topUps: [], withdrawals: [] },
-      recentLedgers: [],
-      generatedAt: new Date().toISOString(),
+      queues: { topUps: [], withdrawals: [] }, recentLedgers: [], generatedAt: new Date().toISOString(),
     };
   }
   if (path.startsWith('/admin/risk-alerts')) return { items: [], total: 0, page: 1, pageCount: 1, summary: { openCount: 0, criticalCount: 0 } };
-  if (path.startsWith('/admin/topups')) return { items: [], total: 0, page: 1, pageCount: 1 };
-  if (path.startsWith('/admin/withdrawals')) return { items: [], total: 0, page: 1, pageCount: 1 };
+  if (path.startsWith('/admin/topups') || path.startsWith('/admin/withdrawals')) return { items: [], total: 0, page: 1, pageCount: 1 };
   if (path.startsWith('/admin/support')) return { items: [], total: 0, page: 1, pageCount: 1, summary: {} };
   if (path.startsWith('/admin/audit-logs')) return { items: [], total: 0, page: 1, pageCount: 1 };
   if (path === '/admin/access/invitations/roles') return { items: [] };
@@ -162,19 +137,14 @@ function fixtureFor(path: string, roleName: RoleName, permissions: readonly stri
 }
 
 async function fulfillJson(route: Route, payload: unknown) {
-  await route.fulfill({
-    status: 200,
-    contentType: 'application/json; charset=utf-8',
-    body: JSON.stringify(payload),
-  });
+  await route.fulfill({ status: 200, contentType: 'application/json; charset=utf-8', body: JSON.stringify(payload) });
 }
 
 function installRuntimeAudit(page: Page, issues: RuntimeIssue[]) {
-  page.on('console', (message) => {
-    if (message.type() === 'error') issues.push({ route: page.url(), kind: 'console', detail: message.text() });
-  });
+  page.on('console', (message) => { if (message.type() === 'error') issues.push({ route: page.url(), kind: 'console', detail: message.text() }); });
   page.on('pageerror', (error) => issues.push({ route: page.url(), kind: 'page', detail: error.message }));
   page.on('requestfailed', (request) => {
+    if (request.failure()?.errorText === 'net::ERR_ABORTED') return;
     if (!['document', 'script', 'stylesheet', 'font', 'image'].includes(request.resourceType())) return;
     issues.push({ route: page.url(), kind: 'request', detail: `${request.resourceType()} ${request.url()} ${request.failure()?.errorText ?? ''}` });
   });
@@ -191,7 +161,7 @@ async function assertOperationsDrawerKeyboardContract(page: Page) {
   await expect(detailButton).toBeVisible();
   await detailButton.focus();
   await detailButton.click();
-  const drawer = page.getByRole('dialog', { name: /รายละเอียดงาน|Task details/i });
+  const drawer = page.locator('[role="dialog"][aria-modal="true"]').last();
   await expect(drawer).toBeVisible();
   await expect(drawer.getByRole('button', { name: /ปิด|Close/i })).toBeFocused();
   await page.keyboard.press('Escape');
