@@ -28,6 +28,7 @@ type PromotionCampaign = {
 };
 
 type LifecycleFilter = 'all' | PromotionLifecycle;
+type LifecycleBadgeTone = 'neutral' | 'success' | 'warning';
 
 const defaultCampaigns: PromotionCampaign[] = [{
   id: 'welcome-bonus', title: 'โบนัสต้อนรับ', description: 'รับโบนัสสำหรับรายการฝากแรกตามเงื่อนไขที่กำหนด', enabled: false,
@@ -168,7 +169,7 @@ function patchCampaign(index: number, patch: Partial<PromotionCampaign>, setCamp
 function moveCampaign(index: number, direction: -1 | 1, setCampaigns: Dispatch<SetStateAction<PromotionCampaign[]>>) { setCampaigns((current) => { const target = index + direction; if (index < 0 || target < 0 || index >= current.length || target >= current.length) return current; const next = [...current]; const source = next[index]; const destination = next[target]; if (!source || !destination) return current; next[index] = destination; next[target] = source; return next; }); }
 function buildWarnings(campaigns: PromotionCampaign[]) { const warnings: string[] = []; const ids = new Set<string>(); for (const item of campaigns) { if (!item.id.trim()) warnings.push('มีโปรที่ไม่มีรหัส'); if (ids.has(item.id)) warnings.push(`รหัสโปรซ้ำ: ${item.id}`); ids.add(item.id); if (item.lifecycle === 'published' && !item.title.trim()) warnings.push('มีโปรเผยแพร่แต่ไม่มีชื่อ'); if (item.lifecycle === 'published' && !item.description.trim()) warnings.push(`โปรที่เผยแพร่ต้องมีรายละเอียด: ${item.title || item.id}`); if (item.bonusType === 'percent' && item.bonusValue > 100) warnings.push('เปอร์เซ็นต์โบนัสเกิน 100%'); if (item.maxBonus < 0 || item.minDeposit < 0 || item.bonusValue < 0 || item.turnoverMultiplier < 0) warnings.push('ตัวเลขโปรโมชันต้องไม่ติดลบ'); if (item.lifecycle === 'published' && item.turnoverMultiplier <= 0) warnings.push(`โปรที่เผยแพร่ต้องมีเทิร์นมากกว่า 0: ${item.title || item.id}`); if (item.startsAt && item.endsAt && item.startsAt > item.endsAt) warnings.push(`วันเริ่มต้องไม่เกินวันสิ้นสุด: ${item.title || item.id}`); if (item.imageUrl && !isValidUrl(item.imageUrl)) warnings.push(`URL รูปโปรไม่ถูกต้อง: ${item.title || item.id}`); if (item.iconUrl && !isValidUrl(item.iconUrl)) warnings.push(`URL ไอคอนไม่ถูกต้อง: ${item.title || item.id}`); } return warnings; }
 function lifecycleLabel(value: PromotionLifecycle) { return value === 'published' ? 'เผยแพร่' : value === 'archived' ? 'เก็บถาวร' : 'ฉบับร่าง'; }
-function lifecycleTone(value: PromotionLifecycle) { return value === 'published' ? 'success' : value === 'archived' ? 'neutral' : 'warning'; }
+function lifecycleTone(value: PromotionLifecycle): LifecycleBadgeTone { return value === 'published' ? 'success' : value === 'archived' ? 'neutral' : 'warning'; }
 function slug(value: unknown) { return String(value ?? '').trim().toLowerCase().replace(/[^a-z0-9-_]+/g, '-').replace(/^-+|-+$/g, '') || `promotion-${Date.now()}`; }
 function isValidUrl(value: string) { if (!value) return true; try { const url = new URL(value); return url.protocol === 'http:' || url.protocol === 'https:'; } catch { return false; } }
 function money(value: number) { return `THB ${Number(value || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
@@ -192,4 +193,4 @@ const previewIconStyle = { width: 68, height: 68, objectFit: 'cover' as const, b
 const miniIconStyle = { width: 32, height: 32, objectFit: 'cover' as const, borderRadius: 10, border: '1px solid rgba(255,255,255,.14)' };
 const previewBodyStyle = { padding: 14, display: 'grid', gap: 7 } as const;
 const mediaPreviewStyle = { width: '100%', maxHeight: 160, objectFit: 'cover' as const, borderRadius: 14, border: '1px solid rgba(148,163,184,.16)' };
-const preStyle = { overflowX: 'auto' as const, whiteSpace: 'pre-wrap' as const, border: '1px solid rgba(148,163,184,.14)', borderRadius: 16, padding: 14, background: '#020617', color: '#cbd5e1' } as const;
+const preStyle = { overflowX: 'auto' as const, whiteSpace: 'pre-wrap' as const, border: '1px solid rgba(148,163,184,.14)', borderRadius: 16, padding: 14, background: '#0b1220', fontSize: 12 } as const;
