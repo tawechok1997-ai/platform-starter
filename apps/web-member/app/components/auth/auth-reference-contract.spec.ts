@@ -6,10 +6,12 @@ const layoutSource = readFileSync(new URL('../../(auth)/layout.tsx', import.meta
 const loginSource = readFileSync(new URL('../../(auth)/login/page.tsx', import.meta.url), 'utf8');
 const registerSource = readFileSync(new URL('../../(auth)/register/page.tsx', import.meta.url), 'utf8');
 const cssSource = readFileSync(new URL('./auth-reference-contract.css', import.meta.url), 'utf8');
+const polishSource = readFileSync(new URL('./auth-visual-polish.css', import.meta.url), 'utf8');
 
 test('auth route group activates the shared visual scope for login and register', () => {
   assert.match(layoutSource, /className=["']auth-reference-scope["']/);
   assert.match(layoutSource, /auth-reference-contract\.css/);
+  assert.match(layoutSource, /auth-visual-polish\.css/);
   assert.match(cssSource, /\.auth-reference-scope \.public-auth-page/);
   assert.match(cssSource, /\.auth-reference-scope \.public-auth-shell/);
 });
@@ -28,8 +30,13 @@ test('auth polish keeps mobile hierarchy focus validation and reduced-motion saf
   assert.match(cssSource, /\.public-auth-brand-panel\s*\{\s*display:\s*none;/s);
   assert.match(cssSource, /min-height:\s*calc\(100dvh\s*-\s*12px\)/);
   assert.match(cssSource, /\.public-auth-input:focus-visible/);
-  assert.match(cssSource, /\.public-auth-input\[aria-invalid=['"]true['"]\]/);
+  assert.match(cssSource, /\.public-auth-input\[aria-invalid=["']true["']\]/);
   assert.match(cssSource, /@media \(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(polishSource, /env\(safe-area-inset-top\)/);
+  assert.match(polishSource, /env\(safe-area-inset-bottom\)/);
+  assert.match(polishSource, /\.public-auth-submit\s*\{[\s\S]*position:\s*sticky/);
+  assert.match(polishSource, /\.public-auth-language__button\[aria-pressed=["']true["']\]/);
+  assert.match(polishSource, /@media \(prefers-reduced-motion:\s*reduce\)/);
 });
 
 test('login polish preserves captcha API session and redirect contracts', () => {
