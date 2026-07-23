@@ -1,0 +1,58 @@
+name: Fix dashboard activity order
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/dashboard-activity-order-trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Move activity block to the end
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web-admin/app/(admin)/dashboard/page.tsx')
+          text = path.read_text()
+          activity = '''        <div className="admin-dashboard__sections">
+          {canViewRisk && <AdminCard title={t.riskAlerts} description={`${riskSummary.openCount} ${t.open} · ${riskSummary.criticalCount} ${t.criticalRisk}`} action={<AdminLinkButton href="/risk-alerts">{t.openRiskQueue}</AdminLinkButton>}>
+            <AdminStack>{riskItems.slice(0, 8).map((item) => <AdminRow key={item.id}><div><div className="admin-dashboard__badge-row"><AdminBadge tone={riskTone(item.severity)}>{severityLabel(item.severity, locale)}</AdminBadge><AdminBadge>{item.type}</AdminBadge></div><strong>{item.title}</strong><p>{new Date(item.createdAt).toLocaleString(dateLocale)}</p></div><div className="admin-dashboard__actions">{item.memberId && <AdminLinkButton href={`/members/${item.memberId}`}>{t.member}</AdminLinkButton>}<AdminLinkButton href={`/risk-alerts/${item.id}`}>{t.details}</AdminLinkButton></div></AdminRow>)}{riskItems.length === 0 && <AdminEmpty>{t.noImportantAlerts}</AdminEmpty>}</AdminStack>
+          </AdminCard>}
+
+          {summary && canViewFinance && <AdminCard title={t.recentLedger} description={`${t.updated} ${new Date(summary.generatedAt).toLocaleString(dateLocale)}`} action={canViewWallet ? <AdminLinkButton href="/wallet-ledgers">{t.viewAll}</AdminLinkButton> : undefined}><AdminStack>{summary.recentLedgers.slice(0, 5).map((item) => <AdminRow key={item.id}><div><strong>{item.type} / {item.direction}</strong><p>{item.user?.username ?? item.user?.shortId ?? '-'}</p></div><div className="admin-dashboard__money"><strong>{formatMoney(item.amount)}</strong><p>{new Date(item.createdAt).toLocaleString(dateLocale)}</p></div></AdminRow>)}</AdminStack></AdminCard>}
+        </div>
+
+'''
+          if text.count(activity) != 1:
+              raise SystemExit('activity block not found exactly once')
+          text = text.replace(activity, '')
+          marker = '''        {summary && <AdminGrid>{canViewTopUps && <QueueCard title={t.depositQueueTitle} href="/topups" count={summary.totals.pendingTopUps} items={summary.queues.topUps} locale={locale} copy={t} />}{canViewWithdrawals && <QueueCard title={t.withdrawalQueueTitle} href="/withdrawals" count={summary.totals.pendingWithdrawals} items={summary.queues.withdrawals} locale={locale} copy={t} />}</AdminGrid>}
+'''
+          if text.count(marker) != 1:
+              raise SystemExit('queue grid marker not found exactly once')
+          text = text.replace(marker, marker + activity)
+          path.write_text(text)
+          PY
+      - run: pnpm --filter @platform/web-admin typecheck
+      - name: Commit patch and cleanup
+        run: |
+          rm -f .github/workflows/fix-dashboard-activity-order.yml .github/dashboard-activity-order-trigger
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web-admin/app/'(admin)'/dashboard/page.tsx .github/workflows/fix-dashboard-activity-order.yml .github/dashboard-activity-order-trigger
+          git commit -m "refactor(admin): move dashboard activity to the end"
+          git push origin main
