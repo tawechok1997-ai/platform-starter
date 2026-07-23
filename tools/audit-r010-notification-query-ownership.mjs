@@ -17,16 +17,16 @@ const moduleSource = fs.existsSync(modulePath) ? fs.readFileSync(modulePath, 'ut
 
 const requiredRepositorySignals = [
   'export class NotificationFeedReadRepository',
-  'const FEED_SOURCE_LIMIT = 20',
+  'NOTIFICATION_FEED_SOURCE_LIMIT',
   'loadMemberFeedSources(userId: string)',
   'this.prisma.topUpRequest.findMany',
   'this.prisma.withdrawalRequest.findMany',
   'this.prisma.riskAlert.findMany',
   'this.prisma.loginHistory.findMany',
-  'select: TOP_UP_FEED_PROJECTION',
-  'select: WITHDRAWAL_FEED_PROJECTION',
-  'select: SUPPORT_FEED_PROJECTION',
-  'select: LOGIN_FEED_PROJECTION',
+  'select: TOP_UP_NOTIFICATION_LIST_PROJECTION',
+  'select: WITHDRAWAL_NOTIFICATION_LIST_PROJECTION',
+  'select: SUPPORT_NOTIFICATION_LIST_PROJECTION',
+  'select: LOGIN_NOTIFICATION_LIST_PROJECTION',
 ];
 
 for (const signal of requiredRepositorySignals) {
@@ -39,10 +39,16 @@ if (!service.includes('private readonly feedRepository: NotificationFeedReadRepo
 if (!service.includes('this.feedRepository.loadMemberFeedSources(userId)')) {
   failures.push('NotificationsQueryService does not route feed reads through the repository');
 }
+if (!service.includes('this.feedRepository.loadMemberFeedState(userId')) {
+  failures.push('NotificationsQueryService does not route feed-state reads through the repository');
+}
+if (!service.includes('this.feedRepository.loadMemberPreferenceDetail(')) {
+  failures.push('NotificationsQueryService does not route preference reads through the repository');
+}
 
-for (const model of ['topUpRequest', 'withdrawalRequest', 'riskAlert', 'loginHistory']) {
-  if (service.includes(`this.prisma.${model}.findMany`)) {
-    failures.push(`NotificationsQueryService still owns ${model}.findMany directly`);
+for (const model of ['topUpRequest', 'withdrawalRequest', 'riskAlert', 'loginHistory', 'notificationState', 'notificationPreference', 'siteSetting']) {
+  if (service.includes(`this.prisma.${model}.`)) {
+    failures.push(`NotificationsQueryService still owns ${model} queries directly`);
   }
 }
 
@@ -56,4 +62,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('R-010 notification query ownership audit passed. Feed source reads are consolidated under the notifications module owner.');
+console.log('R-010 notification query ownership audit passed. Feed, state, and preference reads are consolidated under the notifications repository owner.');
