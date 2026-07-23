@@ -11,6 +11,10 @@ const service = fs.readFileSync(servicePath, 'utf8');
 const moduleSource = fs.readFileSync(modulePath, 'utf8');
 const failures = [];
 
+function hasResponseKey(source, key) {
+  return new RegExp(`\\b${key}\\s*(?=:|,)`).test(source);
+}
+
 for (const method of ['loadTrends', 'loadQueueAging', 'loadReconciliation']) {
   if (!model.includes(`${method}(`)) failures.push(`missing report read-model method ${method}`);
   if (!service.includes(`this.reportReadModel.${method}`)) failures.push(`reports query service does not delegate ${method}`);
@@ -23,13 +27,13 @@ if (service.includes('PrismaService') || service.includes('this.prisma.')) {
 if (!moduleSource.includes('AdminReportReadModel')) failures.push('ReportsModule does not register AdminReportReadModel');
 
 for (const key of ['range', 'totals', 'daily', 'generatedAt']) {
-  if (!model.includes(`${key}:`)) failures.push(`trends response key drifted: ${key}`);
+  if (!hasResponseKey(model, key)) failures.push(`trends response key drifted: ${key}`);
 }
 for (const key of ['summary', 'oldest', 'generatedAt']) {
-  if (!model.includes(`${key}:`)) failures.push(`queue-aging response key drifted: ${key}`);
+  if (!hasResponseKey(model, key)) failures.push(`queue-aging response key drifted: ${key}`);
 }
 for (const key of ['items', 'checkedCount', 'mismatchCount', 'generatedAt']) {
-  if (!model.includes(`${key}:`)) failures.push(`reconciliation response key drifted: ${key}`);
+  if (!hasResponseKey(model, key)) failures.push(`reconciliation response key drifted: ${key}`);
 }
 
 if (!model.includes('select: TREND_PROJECTION')) {
