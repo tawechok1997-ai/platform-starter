@@ -1,0 +1,47 @@
+name: Dashboard order narrow patch
+on:
+  push:
+    paths:
+      - '.github/dashboard-order-trigger'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Move urgent queue before KPI
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web-admin/app/(admin)/dashboard/page.tsx')
+          text = path.read_text()
+          kpi_start = text.index('        {summary && canViewFinance && <section className="admin-kpi-groups"')
+          priority_start = text.index('        <section className="admin-command-priority"', kpi_start)
+          priority_end = text.index('        </section>', priority_start) + len('        </section>')
+          kpi_block = text[kpi_start:priority_start].rstrip()
+          priority_block = text[priority_start:priority_end]
+          replacement = priority_block + '\n\n' + kpi_block
+          text = text[:kpi_start] + replacement + text[priority_end:]
+          path.write_text(text)
+          PY
+      - name: Typecheck admin
+        run: pnpm --filter @platform/web-admin exec tsc --noEmit
+      - name: Clean temporary files and commit
+        run: |
+          rm -f .github/workflows/dashboard-order-narrow.yml .github/dashboard-order-trigger
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "refactor(admin): move urgent dashboard queue before KPI"
+          git push
