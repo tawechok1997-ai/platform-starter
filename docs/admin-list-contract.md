@@ -4,7 +4,7 @@
 
 ## Scope
 
-The shared Admin list contract centralizes page state, page-size selection, filter resets, client fallback pagination, server payload normalization and query-string construction.
+The shared Admin list contract centralizes page state, page-size selection, filter resets, server payload normalization and query-string construction.
 
 ## Shared boundary
 
@@ -12,29 +12,56 @@ The shared Admin list contract centralizes page state, page-size selection, filt
 - `apps/web-admin/app/(admin)/_components/admin-list-contract.spec.ts`
 - `apps/web-admin/app/(admin)/_components/admin-list-contract-adoption.spec.ts`
 
-## Adopted routes
+## Server-adopted routes
 
-- `/wallet-ledgers`
-- `/webhook-logs`
+### `/wallet-ledgers`
 
-Both routes now:
+- API query: `page`, `take`, `search`, `direction`, `type`, `dateFrom`, `dateTo`
+- API uses validated DTO input, Prisma `count`, `skip` and `take`
+- Response includes `items`, `total`, `page`, `pageSize` and `totalPages`
+- Filters reset to page 1
+- Search uses a short debounce
+- CSV export is explicitly scoped to the loaded server page
 
-- Reset to page 1 when filters change
-- Clamp the current page when filtered results shrink
-- Use the shared `AdminPagination` primitive
-- Allow consistent page-size selection
-- Preserve loading and empty states
+### `/webhook-logs`
 
-Wallet Ledger CSV export intentionally uses the complete filtered result, not only the visible page.
+- API query: `page`, `take`, `search`, `status`
+- API uses validated DTO input, Prisma `count`, `skip` and `take`
+- Response includes list metadata plus filtered summary counts
+- Search/status changes reset to page 1
+- Provider payload redaction from D-09 remains enforced
 
-## Server compatibility
+## API query services
 
-`normalizeAdminListPayload` accepts server metadata using `total`, `page`, `pageSize` and `totalPages`, while safely falling back when legacy endpoints only return `items`.
+- `apps/api/src/modules/money-ops/money-ops-ledger-query.service.ts`
+- `apps/api/src/modules/game-platform/webhook-log-query.service.ts`
+- `apps/api/src/modules/money-ops/dto/money-ops.dto.ts`
+- `apps/api/src/modules/game-platform/dto/webhook-log-query.dto.ts`
 
-`buildAdminListQuery` provides the query boundary for future server pagination without forcing unsupported parameters into existing endpoints.
+The query services are separated from mutation/orchestration services so pagination changes do not expand the risk surface of wallet mutations, provider settlement or webhook receipt processing.
 
-## Current limit
+## Regression protection
 
-The current `/admin/money-ops/ledger` and `/admin/webhook-logs` calls still fetch legacy result sets and paginate them in the browser. D-10 is therefore partial until their API controllers/services expose and verify server-side pagination/filter contracts.
+The adoption spec requires both routes to use:
 
-The shared boundary must be reused by `/game-providers` and other list-heavy routes before D-10 can be closed.
+- `useAdminListContract`
+- `buildAdminListQuery`
+- `normalizeAdminListPayload`
+- `page` and `take` server parameters
+- `AdminPagination`
+
+It rejects a return to browser-only `paginateAdminItems` on these routes.
+
+## Verification
+
+Railway status for commit `334e17632e1501fb663bb92d9e733717683778ac`:
+
+- API: success
+- Admin: success
+- Member: success
+
+Verification PR `#161` was opened as a marker-only GitHub Actions trigger and must not be merged.
+
+## Remaining D-10 scope
+
+D-10 remains partial until `/game-providers` adopts the shared query/result contract. Other list-heavy routes can migrate incrementally after that reference implementation.
