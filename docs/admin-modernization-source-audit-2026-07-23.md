@@ -5,7 +5,7 @@
 > ไฟล์นี้เป็น correction layer สำหรับ `docs/admin-modernization-chat-worklist.md`
 > จนกว่าจะรวมสถานะกลับเข้า canonical worklist แบบเต็มไฟล์
 >
-> หลักเกณฑ์: `[x]` มี implementation ใน source จริง · `[~]` มีบางส่วนแต่ไม่ครบข้อความของงาน · `[ ]` ยังไม่พบ implementation ตาม contract
+> หลักเกณฑ์: `[x]` มี implementation ใน source จริง · `[~]` ทำบางส่วนแต่ไม่ครบข้อความของงาน · `[ ]` ยังไม่พบ implementation ตาม contract
 
 ## 1. ช่อง `[ ]` ที่ทำแล้วจริง
 
@@ -167,9 +167,19 @@
 
 ### D-02 — Finance queue contract
 
-`/topups` และ `/withdrawals` มีโครงสร้างซ้ำ: status filter, pagination, claim/release, note, proof preview, busy guard และ confirmation
+`/topups` และ `/withdrawals` เคยมีโครงสร้าง filter, pagination, loading/empty และ evidence preview ซ้ำกัน
 
-- [ ] สร้าง shared queue shell/filter/pager/evidence contract แล้ว migrate สองหน้า
+- [x] สร้าง shared queue shell/filter/pager/evidence contract แล้ว migrate สองหน้า
+  - Shared component: `apps/web-admin/app/(admin)/_components/admin-finance-queue.tsx`
+  - Shared frame คุม metric grid, toolbar, notice, loading, empty และ content stack
+  - Shared toolbar คุม status options, page boundary และ disabled state
+  - Shared evidence ใช้ preview contract และ CSS class เดียวกัน
+  - Workflow เฉพาะฝาก/ถอน, claim/release, note และ confirmation ยังแยกตามธุรกิจเดิม
+  - Shared contract: `399d3e2e3a5f8824d1c17b202a5a47b671851cd6`
+  - Top-ups migration: `86b37afa9875b4cb60c56257d5a4ea759240dff1`
+  - Withdrawals migration: `6c012c9d3e013255a0960c29cffeaf65215114df`
+  - Optional evidence type fix: `63a6943a19c5820e64a2a004a802c79aecf76f6a`
+  - Railway deploy: API, Member และ Admin ผ่าน
 
 ### D-03 — Unsaved changes และ save state
 
@@ -235,8 +245,9 @@
 - ช่อง `[ ]` เดิมที่ควรเป็น `[~]`: 4 งาน
 - ช่อง `[x]` ที่ต้องลดสถานะใน Promotion Center: 4 งาน
 - กลุ่มงานซ้ำเชิงระบบ: 10 กลุ่ม
-- งานใหม่ที่ปิดหลัง audit: 2 งาน
-  - `/operations` SLA/เวลาค้าง
-  - D-01 เชื่อม Top-ups/Withdrawals เข้าสู่ Bulk Queue เดิม
+- งานใหม่ที่ปิดหลัง audit: 3 งาน
+  1. `/operations` SLA/เวลาค้าง
+  2. D-01 เชื่อม Top-ups/Withdrawals เข้าสู่ Bulk Queue เดิม
+  3. D-02 Shared finance queue shell/filter/pager/evidence contract
 
 ตัวเลขนี้นับเฉพาะหัวข้อที่เปิด source ตรวจแล้ว ไม่รวมการคาดเดาจากชื่อ route หรือเอกสาร audit เดิม
