@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   upgrade:
-    name: Upgrade and verify Next.js
+    name: Upgrade and verify runtime dependencies
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -65,10 +65,9 @@ jobs:
           }
 
           const workspacePath = 'pnpm-workspace.yaml';
-          const workspace = fs.readFileSync(workspacePath, 'utf8').replace(
-            /(^\s*next:\s*)15\.5\.18(\s*$)/m,
-            '$115.5.21$2',
-          );
+          const workspace = fs.readFileSync(workspacePath, 'utf8')
+            .replace(/(^\s*next:\s*)15\.5\.18(\s*$)/m, '$115.5.21$2')
+            .replace(/(^\s*postcss:\s*)8\.5\.10(\s*$)/m, '$18.5.12$2');
           fs.writeFileSync(workspacePath, workspace);
 
           const brandIconPath = 'apps/web-member/app/components/brand-icon.tsx';
@@ -86,8 +85,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify production dependency audit
-        id: dependency-audit
-        continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
@@ -97,14 +94,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: next-security-audit-${{ github.sha }}
+          name: runtime-security-audit-${{ github.sha }}
           path: dependency-audit.log
           if-no-files-found: error
           retention-days: 7
-
-      - name: Stop on dependency audit failure
-        if: steps.dependency-audit.outcome != 'success'
-        run: exit 1
 
       - name: Verify Member tests and types
         run: pnpm --filter @platform/web-member test && pnpm typecheck:member
@@ -124,5 +117,5 @@ jobs:
             echo 'No dependency changes to commit.'
             exit 0
           fi
-          git commit -m 'fix(security): upgrade Next.js to 15.5.21'
+          git commit -m 'fix(security): upgrade Next.js and PostCSS patches'
           git push origin HEAD:agent/consolidate-duplicate-work
