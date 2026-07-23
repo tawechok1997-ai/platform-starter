@@ -34,6 +34,7 @@ jobs:
     env:
       MEMBER_WEB_URL: ${{ inputs.member_url || secrets.SEED_MEMBER_WEB_URL || secrets.P6_MEMBER_URL || 'https://platformweb-member-production.up.railway.app' }}
       API_URL: ${{ inputs.api_url || secrets.SEED_API_URL || secrets.P6_API_URL || 'https://platformapi-production-3c91.up.railway.app' }}
+      PROD_MEMBER_TOKEN: ${{ secrets.PROD_MEMBER_TOKEN }}
       SEED_MEMBER_USERNAME: ${{ secrets.SEED_MEMBER_USERNAME || secrets.P6_MEMBER_USERNAME }}
       SEED_MEMBER_EMAIL: ${{ secrets.SEED_MEMBER_EMAIL || secrets.P6_MEMBER_EMAIL }}
       SEED_MEMBER_PHONE: ${{ secrets.SEED_MEMBER_PHONE || secrets.P6_MEMBER_PHONE }}
@@ -49,8 +50,10 @@ jobs:
           set -euo pipefail
           test -n "$MEMBER_WEB_URL"
           test -n "$API_URL"
-          test -n "$SEED_MEMBER_PASSWORD"
-          test -n "${SEED_MEMBER_USERNAME:-${SEED_MEMBER_EMAIL:-${SEED_MEMBER_PHONE:-}}}"
+          if [ -z "${PROD_MEMBER_TOKEN:-}" ]; then
+            test -n "$SEED_MEMBER_PASSWORD"
+            test -n "${SEED_MEMBER_USERNAME:-${SEED_MEMBER_EMAIL:-${SEED_MEMBER_PHONE:-}}}"
+          fi
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
