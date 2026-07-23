@@ -223,6 +223,8 @@ export default function OperationDashboardPage() {
           {!loading && permissions !== null && !canViewFinance && !canViewRisk && <AdminEmpty>{t.noDashboardPermission}</AdminEmpty>}
         </div>
 
+        {summary && <AdminGrid>{canViewTopUps && <QueueCard title={t.depositQueueTitle} href="/topups" count={summary.totals.pendingTopUps} items={summary.queues.topUps} locale={locale} copy={t} />}{canViewWithdrawals && <QueueCard title={t.withdrawalQueueTitle} href="/withdrawals" count={summary.totals.pendingWithdrawals} items={summary.queues.withdrawals} locale={locale} copy={t} />}</AdminGrid>}
+
         <div className="admin-dashboard__sections">
           {canViewRisk && <AdminCard title={t.riskAlerts} description={`${riskSummary.openCount} ${t.open} · ${riskSummary.criticalCount} ${t.criticalRisk}`} action={<AdminLinkButton href="/risk-alerts">{t.openRiskQueue}</AdminLinkButton>}>
             <AdminStack>{riskItems.slice(0, 8).map((item) => <AdminRow key={item.id}><div><div className="admin-dashboard__badge-row"><AdminBadge tone={riskTone(item.severity)}>{severityLabel(item.severity, locale)}</AdminBadge><AdminBadge>{item.type}</AdminBadge></div><strong>{item.title}</strong><p>{new Date(item.createdAt).toLocaleString(dateLocale)}</p></div><div className="admin-dashboard__actions">{item.memberId && <AdminLinkButton href={`/members/${item.memberId}`}>{t.member}</AdminLinkButton>}<AdminLinkButton href={`/risk-alerts/${item.id}`}>{t.details}</AdminLinkButton></div></AdminRow>)}{riskItems.length === 0 && <AdminEmpty>{t.noImportantAlerts}</AdminEmpty>}</AdminStack>
@@ -230,8 +232,6 @@ export default function OperationDashboardPage() {
 
           {summary && canViewFinance && <AdminCard title={t.recentLedger} description={`${t.updated} ${new Date(summary.generatedAt).toLocaleString(dateLocale)}`} action={canViewWallet ? <AdminLinkButton href="/wallet-ledgers">{t.viewAll}</AdminLinkButton> : undefined}><AdminStack>{summary.recentLedgers.slice(0, 5).map((item) => <AdminRow key={item.id}><div><strong>{item.type} / {item.direction}</strong><p>{item.user?.username ?? item.user?.shortId ?? '-'}</p></div><div className="admin-dashboard__money"><strong>{formatMoney(item.amount)}</strong><p>{new Date(item.createdAt).toLocaleString(dateLocale)}</p></div></AdminRow>)}</AdminStack></AdminCard>}
         </div>
-
-        {summary && <AdminGrid>{canViewTopUps && <QueueCard title={t.depositQueueTitle} href="/topups" count={summary.totals.pendingTopUps} items={summary.queues.topUps} locale={locale} copy={t} />}{canViewWithdrawals && <QueueCard title={t.withdrawalQueueTitle} href="/withdrawals" count={summary.totals.pendingWithdrawals} items={summary.queues.withdrawals} locale={locale} copy={t} />}</AdminGrid>}
       </AdminPage>
     </div>
   );
