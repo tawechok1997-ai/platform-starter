@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { AuthenticatedAdminActor, HttpRequestContext, MemberActor, MemberRequestContext } from '../../common/actors';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
@@ -9,12 +9,14 @@ import { ProviderWebhookPayloadDto } from './dto/game-platform-mutation.dto';
 import { ReviewDto, normalizeReviewNote, normalizeSnapshotReview } from './dto/game-review.dto';
 import { CreateGameTransferDto, normalizeTransferAmount } from './dto/game-transfer.dto';
 import { ProviderGatesDto, normalizeProviderGatesDto } from './dto/provider-gates.dto';
+import { WebhookLogQueryDto } from './dto/webhook-log-query.dto';
 import { GamePlatformMoneyService } from './game-platform-money.service';
 import { GamePlatformMonitoringService } from './game-platform-monitoring.service';
 import { ProviderReconciliationCommandService } from './provider-reconciliation-command.service';
 import { ProviderReconciliationQueryService } from './provider-reconciliation-query.service';
 import { ProviderTransferCommandService } from './provider-transfer-command.service';
 import { ProviderWebhookService } from './provider-webhook.service';
+import { WebhookLogQueryService } from './webhook-log-query.service';
 
 @UseGuards(MemberAuthGuard)
 @Controller('member')
@@ -35,6 +37,7 @@ export class AdminGameMoneyController {
     private readonly transferCommands: ProviderTransferCommandService,
     private readonly reconciliationQueries: ProviderReconciliationQueryService,
     private readonly reconciliationCommands: ProviderReconciliationCommandService,
+    private readonly webhookLogs: WebhookLogQueryService,
   ) {}
   @RequirePermission('game.providers.view') @Get('game-monitoring/overview') overview() { return this.monitoring.overview(); }
   @RequirePermission('game.providers.view') @Get('game-providers/:providerId/risk-panel') providerRiskPanel(@Param('providerId') providerId: string) { return this.moneyService.providerRiskPanel(providerId); }
@@ -49,7 +52,7 @@ export class AdminGameMoneyController {
   @RequirePermission('game.providers.view') @Get('provider-wallet-snapshots') listSnapshots() { return this.reconciliationQueries.listSnapshots(); }
   @RequirePermission('game.providers.view') @Get('provider-wallet-snapshots/:id') getSnapshot(@Param('id') id: string) { return this.reconciliationQueries.getSnapshot(id); }
   @RequirePermission('game.providers.manage') @Patch('provider-wallet-snapshots/:id/review') reviewSnapshot(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.reconciliationCommands.reviewSnapshot(id, user, normalizeSnapshotReview(body)); }
-  @RequirePermission('game.providers.view') @Get('webhook-logs') listWebhookLogs() { return this.moneyService.listWebhookLogs(); }
+  @RequirePermission('game.providers.view') @Get('webhook-logs') listWebhookLogs(@Query() query: WebhookLogQueryDto) { return this.webhookLogs.list(query); }
   @RequirePermission('game.providers.view') @Get('webhook-logs/:id') getWebhookLog(@Param('id') id: string) { return this.moneyService.getWebhookLog(id); }
 }
 
