@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { adminApiFetch } from '../../../admin-api';
 import { AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage, AdminToolbar } from '../../_components/admin-ui';
+import { useAdminSettingsForm } from '../use-admin-settings-form';
 
 type WebsiteSettings = {
   site_name: string;
@@ -72,67 +71,14 @@ const defaults: WebsiteSettings = {
 };
 
 export default function WebsiteSettingsPage() {
-  const [form, setForm] = useState<WebsiteSettings>(defaults);
-  const [initialForm, setInitialForm] = useState<WebsiteSettings>(defaults);
-  const [message, setMessage] = useState('กำลังโหลด...');
-  const isDirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(initialForm), [form, initialForm]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    adminApiFetch('/admin/settings/website')
-      .then(async (res) => {
-        const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(data?.message ?? `โหลด settings ไม่สำเร็จ (${res.status})`);
-        return data;
-      })
-      .then((data) => {
-        if (cancelled) return;
-        const settings = { ...defaults, ...(data.settings ?? {}) };
-        setForm(settings);
-        setInitialForm(settings);
-        setMessage('');
-      })
-      .catch((error) => {
-        if (!cancelled) setMessage(error instanceof Error ? error.message : 'โหลด settings ไม่สำเร็จ');
-      });
-
-    return () => { cancelled = true; };
-  }, []);
-
-  useEffect(() => {
-    if (!isDirty) return;
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = '';
-    };
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, [isDirty]);
+  const { form, message, saving, isDirty, save, reset, update } = useAdminSettingsForm<WebsiteSettings>({
+    endpoint: '/admin/settings/website',
+    defaults,
+  });
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage('กำลังบันทึก...');
-
-    try {
-      const res = await adminApiFetch('/admin/settings/website', {
-        method: 'PUT',
-        body: JSON.stringify(form),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        setMessage(data?.message ?? `บันทึกไม่สำเร็จ (${res.status})`);
-        return;
-      }
-      setInitialForm(form);
-      setMessage(data?.requiresDualApproval ? 'บันทึกแล้ว แต่รายการเสี่ยงควรเข้าคิว Dual Approval' : 'บันทึกสำเร็จ');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'บันทึกไม่สำเร็จ');
-    }
-  }
-
-  function update<K extends keyof WebsiteSettings>(key: K, value: WebsiteSettings[K]) {
-    setForm((current) => ({ ...current, [key]: value }));
+    await save();
   }
 
   return (
@@ -188,8 +134,8 @@ export default function WebsiteSettingsPage() {
             </section>
 
             <AdminToolbar>
-              <AdminButton type="submit">Save Changes</AdminButton>
-              <AdminButton type="button" tone="secondary" disabled={!isDirty} onClick={() => { setForm(initialForm); setMessage('คืนค่าล่าสุดจากระบบแล้ว'); }}>Reset</AdminButton>
+              <AdminButton type="submit" disabled={saving}>{saving ? 'กำลังบันทึก...' : 'Save Changes'}</AdminButton>
+              <AdminButton type="button" tone="secondary" disabled={!isDirty || saving} onClick={reset}>Reset</AdminButton>
             </AdminToolbar>
           </form>
         </AdminCard>
