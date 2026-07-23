@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { AdminDrawer } from '../_components/admin-drawer';
 import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminPayloadViewer, AdminRow, AdminSkeleton, AdminStack, AdminToolbar } from '../_components/admin-ui';
 
 type Bucket = { name: string; count: number };
@@ -77,7 +78,9 @@ export default function AuditRiskPage() {
       <AdminGrid><BucketCard title="By Module" items={summary.byModule ?? []} /><BucketCard title="By Action" items={summary.byAction ?? []} /><BucketCard title="By Admin" items={summary.byAdmin ?? []} /></AdminGrid>
       <AdminCard title="Event Timeline" description={`${recent.length.toLocaleString('th-TH')} เหตุการณ์ · เรียงล่าสุดก่อน`}><AdminStack>{recent.map((item) => <AdminRow key={item.id}><div><strong>{item.module || '-'} · {item.action}</strong><p style={mutedStyle}>{new Date(item.createdAt).toLocaleString('th-TH')} · {item.adminUser?.username ?? item.adminUser?.email ?? item.adminUserId}</p></div><div style={actionStyle}>{relatedHref(item) && <AdminLinkButton href={relatedHref(item)!}>Related Record</AdminLinkButton>}<AdminButton size="compact" tone="secondary" onClick={() => void openAudit(item)}>Before / After</AdminButton></div></AdminRow>)}{recent.length === 0 && <AdminEmpty>ไม่มีเหตุการณ์ตามตัวกรอง</AdminEmpty>}</AdminStack></AdminCard>
     </>}
-    {selected && <div style={drawerLayerStyle} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><aside style={drawerStyle} role="dialog" aria-modal="true" aria-label="รายละเอียด Audit Risk"><AdminStack><AdminRow><div><strong>{selected.module || '-'} · {selected.action}</strong><p style={mutedStyle}>{new Date(selected.createdAt).toLocaleString('th-TH')}</p></div><AdminButton tone="ghost" onClick={() => setSelected(null)}>ปิด</AdminButton></AdminRow><AdminRow><span>ผู้ดำเนินการ</span><strong>{selected.adminUser?.username ?? selected.adminUser?.email ?? selected.adminUserId}</strong></AdminRow><AdminRow><span>Related Record</span><span>{relatedHref(selected) ? <AdminLinkButton href={relatedHref(selected)!}>{selected.targetId ?? 'เปิดรายการ'}</AdminLinkButton> : <strong>{selected.targetId ?? '-'}</strong>}</span></AdminRow><AdminCard title="Before" compact><AdminPayloadViewer payload={selected.oldData} emptyLabel="ไม่มีข้อมูลก่อนเปลี่ยน" /></AdminCard><AdminCard title="After" compact><AdminPayloadViewer payload={selected.newData} emptyLabel="ไม่มีข้อมูลหลังเปลี่ยน" /></AdminCard></AdminStack></aside></div>}
+    <AdminDrawer open={Boolean(selected)} title={selected ? `${selected.module || '-'} · ${selected.action}` : 'รายละเอียด Audit Risk'} description={selected ? new Date(selected.createdAt).toLocaleString('th-TH') : undefined} closeLabel="ปิด" size="wide" onClose={() => setSelected(null)}>
+      {selected && <AdminStack><AdminRow><span>ผู้ดำเนินการ</span><strong>{selected.adminUser?.username ?? selected.adminUser?.email ?? selected.adminUserId}</strong></AdminRow><AdminRow><span>Related Record</span><span>{relatedHref(selected) ? <AdminLinkButton href={relatedHref(selected)!}>{selected.targetId ?? 'เปิดรายการ'}</AdminLinkButton> : <strong>{selected.targetId ?? '-'}</strong>}</span></AdminRow><AdminCard title="Before" compact><AdminPayloadViewer payload={selected.oldData} emptyLabel="ไม่มีข้อมูลก่อนเปลี่ยน" /></AdminCard><AdminCard title="After" compact><AdminPayloadViewer payload={selected.newData} emptyLabel="ไม่มีข้อมูลหลังเปลี่ยน" /></AdminCard></AdminStack>}
+    </AdminDrawer>
     <AdminNotice>หน้านี้เป็น Read-only ไม่สามารถอนุมัติหรือแก้ยอดเงินได้</AdminNotice>
   </AdminPage>;
 }
@@ -87,5 +90,3 @@ function relatedHref(item: AuditItem) { if (!item.targetId) return ''; const mod
 const selectStyle = { minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', minWidth: 160 } as const;
 const mutedStyle = { margin: '4px 0 0', color: '#94a3b8', lineHeight: 1.5 } as const;
 const actionStyle = { display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap' as const };
-const drawerLayerStyle = { position: 'fixed' as const, inset: 0, zIndex: 9000, display: 'flex', justifyContent: 'flex-end', background: 'rgba(2,6,23,.62)', backdropFilter: 'blur(5px)' };
-const drawerStyle = { width: 'min(680px, 100%)', height: '100%', overflow: 'auto' as const, padding: 24, background: '#111823', borderLeft: '1px solid rgba(148,163,184,.22)' };
