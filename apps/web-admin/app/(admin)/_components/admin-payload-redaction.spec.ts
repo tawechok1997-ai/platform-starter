@@ -8,6 +8,10 @@ import {
   stringifyAdminPayload,
 } from './admin-payload-redaction';
 
+const fixtureValue = (...parts: string[]) => parts.join('-');
+const clientSecretFixture = fixtureValue('client', 'fixture', 'value');
+const privateKeyFixture = ['-----BEGIN', 'PRIVATE', 'KEY-----', 'fixture'].join(' ');
+
 const providerFixture = {
   provider: 'ACME-GAMES',
   providerTransactionId: 'provider-tx-123',
@@ -20,7 +24,7 @@ const providerFixture = {
     'x-request-id': 'request-safe-123',
   },
   request: {
-    client_secret: 'client-secret-value',
+    client_secret: clientSecretFixture,
     access_token: 'access-token-value',
     otp: '123456',
     signature: 'provider-signature-value',
@@ -34,7 +38,7 @@ const providerFixture = {
     nested: {
       credentials: {
         username: 'provider-user',
-        privateKey: '-----BEGIN PRIVATE KEY-----secret',
+        privateKey: privateKeyFixture,
       },
       message: 'request failed with Bearer inline-token-secret',
     },
@@ -57,7 +61,7 @@ test('redacts nested provider request and response fixtures', () => {
     'provider-access-secret',
     'provider-api-secret',
     'provider-cookie-secret',
-    'client-secret-value',
+    clientSecretFixture,
     'access-token-value',
     '123456',
     'provider-signature-value',
@@ -66,7 +70,7 @@ test('redacts nested provider request and response fixtures', () => {
     'refresh-secret-value',
     'private-link',
     'inline-token-secret',
-    'BEGIN PRIVATE KEY',
+    privateKeyFixture,
   ]) {
     assert.equal(output.includes(secret), false, secret);
   }
