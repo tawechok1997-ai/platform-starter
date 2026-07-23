@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminSectionRow, AdminSkeleton, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminSectionRow, AdminSkeleton, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
 import { useAdminLocale, type AdminLocale } from '../admin-locale';
 
 type DepositStatus = 'PENDING' | 'PENDING_SLIP_REVIEW' | 'PENDING_CREDIT' | 'COMPLETED' | 'DUPLICATE' | 'REJECTED' | 'CANCELLED' | 'APPROVED';
@@ -126,7 +126,7 @@ export default function AdminTopUpsPage() {
   }
 
   const dialog = pendingAction ? copy.dialogs[pendingAction.action] : null;
-  return <AdminPage eyebrow={copy.eyebrow} title={copy.title} description={copy.description} actions={<AdminButton size="compact" disabled={queueBusy} onClick={() => void loadItems()}>{loading ? copy.loading : copy.refresh}</AdminButton>}>
+  return <AdminPage eyebrow={copy.eyebrow} title={copy.title} description={copy.description} actions={<><AdminLinkButton href="/bulk-queue-operations?kind=topups" tone="secondary">{locale === 'th' ? 'ตรวจหลายรายการ' : 'Bulk review'}</AdminLinkButton><AdminButton size="compact" disabled={queueBusy} onClick={() => void loadItems()}>{loading ? copy.loading : copy.refresh}</AdminButton></>}>
     <AdminMetricGrid>
       <AdminMetric tone={counts.waitingSlip ? 'warning' : 'success'} title={copy.waitingSlip} value={formatNumber(counts.waitingSlip, locale)} helper={`${copy.filteredTotal} ${formatNumber(total, locale)}`} />
       <AdminMetric tone={counts.waitingCredit ? 'warning' : 'success'} title={copy.waitingCredit} value={formatNumber(counts.waitingCredit, locale)} helper={`${copy.page} ${formatNumber(page, locale)} / ${formatNumber(pageCount, locale)}`} />
