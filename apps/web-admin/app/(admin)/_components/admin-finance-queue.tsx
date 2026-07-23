@@ -72,7 +72,7 @@ export function AdminFinanceQueueFrame({ className, metrics, toolbar, notice, lo
   </div>;
 }
 
-export function AdminFinanceEvidence({ src, alt }: { src?: string | null; alt: string }) {
+export function AdminFinanceEvidence({ src, alt }: { src?: string | null | undefined; alt: string }) {
   if (!src) return null;
   return <img src={src} alt={alt} className="admin-topup-modal-slip" />;
 }
