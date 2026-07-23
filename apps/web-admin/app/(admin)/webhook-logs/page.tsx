@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { redactAdminPayload } from '../_components/admin-payload-redaction';
 import { AdminBadge, AdminButton, AdminCard, AdminCode, AdminDataValue, AdminEmpty, AdminFilterBar, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminPayloadViewer, AdminRow, AdminStack } from '../_components/admin-ui';
 import { humanStatus, statusTone } from '../_components/human-labels';
 
@@ -46,7 +47,7 @@ export default function WebhookLogsPage() {
         <AdminDataValue label="สร้างเมื่อ">{new Date(item.createdAt).toLocaleString('th-TH')}</AdminDataValue>
       </div>
       {item.errorMessage && <AdminNotice tone="danger">{webhookErrorLabel(item.errorCode)}</AdminNotice>}
-      {expanded === item.id && <details open><summary style={summaryStyle}>ข้อมูลที่รับและแปลงแล้ว</summary><AdminPayloadViewer payload={{ rawPayload: item.rawPayload, normalizedPayload: item.normalizedPayload }} maxHeight={360} /></details>}
+      {expanded === item.id && <details open><summary style={summaryStyle}>ข้อมูลที่รับและแปลงแล้ว</summary><AdminPayloadViewer payload={redactAdminPayload({ rawPayload: item.rawPayload, normalizedPayload: item.normalizedPayload })} maxHeight={360} /></details>}
     </AdminCard>)}{!loading && filtered.length === 0 && <AdminEmpty>ไม่พบ Webhook ตามตัวกรอง</AdminEmpty>}</AdminStack>
   </AdminPage>;
 }
