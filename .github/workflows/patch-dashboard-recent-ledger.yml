@@ -1,0 +1,51 @@
+name: Patch Dashboard Recent Ledger
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/.trigger-dashboard-recent-ledger
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Limit Dashboard recent ledger to five rows
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("apps/web-admin/app/(admin)/dashboard/page.tsx")
+          text = path.read_text()
+          old = "summary.recentLedgers.map((item) =>"
+          new = "summary.recentLedgers.slice(0, 5).map((item) =>"
+          if old not in text:
+              raise SystemExit("expected recent ledger map not found")
+          path.write_text(text.replace(old, new, 1))
+          PY
+          rm docs/.trigger-dashboard-recent-ledger
+          rm .github/workflows/patch-dashboard-recent-ledger.yml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck Admin
+        run: pnpm --filter @platform/web-admin typecheck
+      - name: Commit Dashboard patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web-admin/app/'(admin)'/dashboard/page.tsx docs/.trigger-dashboard-recent-ledger .github/workflows/patch-dashboard-recent-ledger.yml
+          git commit -m "fix(admin): limit dashboard recent ledger to five"
+          git push origin HEAD:main
