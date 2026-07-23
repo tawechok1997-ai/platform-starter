@@ -42,6 +42,15 @@ Branch: `feature/member-branding-foundation`
 - ✅ เพิ่ม regression test กัน Quick Actions เขียน URL/text/default-icon renderer ซ้ำ
 - ✅ Member UI Quality, P5 Web Unit Tests, Build, Quality Gate และ Visual Regression ผ่านหลัง Quick Actions migration
 
+### Auth Login และ Register
+
+- ✅ Login/Register ใช้ branding runtime และ settings เดิมโดยไม่เปลี่ยน Auth, Session, CAPTCHA หรือ Redirect contract
+- ✅ Login legal footer แยกข้อความไทยและอังกฤษครบ
+- ✅ ปุ่มแสดง/ซ่อนรหัสผ่านใช้ locale copy โดยตรง
+- ✅ ตัดข้อความอังกฤษ `Secure connection` ออกจากโหมดภาษาไทย
+- ✅ เพิ่ม regression test ป้องกันข้อความไทย/อังกฤษปนกันใน Login
+- 🧪 Login locale purity ทำเสร็จแล้ว รอ final browser comparison
+
 ### Member Home และ CMS Contract
 
 - ✅ Promotion carousel และ autoplay safeguards
@@ -51,10 +60,17 @@ Branch: `feature/member-branding-foundation`
 - ✅ Games, provider, category และ media ยังอ่านจาก Game API
 - ✅ Support headset WebP ถูกนำเข้าและเชื่อมแล้ว
 
+## Commit สำคัญล่าสุด
+
+- `e21c0028254d46a362556042468042ae443b6d99` ปิด Admin overlap refactor และอัปเดต ownership/worklist
+- `152691bf78280c3492ff4ea92a2bc320800427a5` ล็อก Quick Actions ให้ใช้ shared `BrandIcon` renderer
+- `790ff7a85aa26e7cd8dc0efea995983f405d79d8` แก้ Login legal copy ให้แยก locale ถูกต้อง
+- `e86b22ef485d984d01b7c0299c0da265a1631abd` เพิ่ม regression test สำหรับ Auth locale purity
+
 ## งานที่เหลือ
 
-1. 🔄 Auth Login/Register visual polish ให้ตรงต้นแบบทุก breakpoint
-2. 🔄 ตรวจ Auth แบบ Mobile และ Desktop เทียบต้นแบบ
+1. 🔄 Register locale purity และ visual polish ให้ตรงต้นแบบทุก breakpoint
+2. 🔄 ตรวจ Auth Login/Register แบบ Mobile และ Desktop เทียบต้นแบบ
 3. 🔄 Home visual polish สำหรับ Promotion, Tournament, Jackpot และ Leaderboard
 4. 🔄 Home responsive และ browser soak test
 5. ⛔ นำเข้า Announcement, Jackpot และ Promotion PNG อีก 3 ไฟล์ เพราะ binary transport เปลี่ยน checksum
@@ -64,7 +80,7 @@ Branch: `feature/member-branding-foundation`
 
 ## CI ล่าสุดของงานชุดนี้
 
-ผ่าน:
+ผ่านจากรอบ Quick Actions:
 
 - ✅ Admin Verification & Bundle
 - ✅ P5 Web Unit Tests
@@ -75,6 +91,8 @@ Branch: `feature/member-branding-foundation`
 - ✅ Architecture Contracts
 - ✅ Game API Verification
 - ✅ KYC Browser Regression
+
+รอบ Auth locale purity ล่าสุดเริ่มรันบน head ใหม่แล้ว และยังต้องรอผลครบก่อนปิด Auth visual workstream
 
 ยังแดงจาก merge-ref / repository-wide audit เดิม และยังไม่ถือว่าเป็นความล้มเหลวของ Quick Actions หรือ Admin Settings ก้อนนี้:
 
@@ -89,4 +107,5 @@ Branch: `feature/member-branding-foundation`
 - ไม่เปลี่ยน Wallet, Finance, Provider credential, Session, CAPTCHA หรือ Redirect contract
 - ไม่ hardcode รายการเกมหรือโปรโมชันใน Member
 - Admin/CMS และ Game API ต้องเป็น source of truth
+- หน้าไทยต้องมีเฉพาะข้อความไทย และหน้าอังกฤษต้องมีเฉพาะข้อความอังกฤษ ยกเว้นชื่อแบรนด์หรือคำเฉพาะที่จำเป็น
 - งาน Member ทุกหน้าต้องใช้ visual language เดียวกันกับต้นแบบ แต่ Admin ต้องยึด design system เดิมของ Admin
