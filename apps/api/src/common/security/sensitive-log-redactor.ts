@@ -32,6 +32,24 @@ const SENSITIVE_NORMALIZED_KEYS = new Set([
   'privateurl',
   'jwt',
 ]);
+const SENSITIVE_KEY_SUFFIXES = [
+  'password',
+  'passcode',
+  'otp',
+  'token',
+  'authorization',
+  'cookie',
+  'secret',
+  'apikey',
+  'privatekey',
+  'credential',
+  'credentials',
+  'signature',
+  'signedurl',
+  'presignedurl',
+  'privateurl',
+  'jwt',
+] as const;
 
 const SENSITIVE_QUERY_PATTERN = /([?&](?:password|passcode|pin|otp|token|access_token|accessToken|refresh_token|refreshToken|session_token|sessionToken|id_token|idToken|authorization|cookie|secret|client_secret|clientSecret|signing_secret|signingSecret|webhook_secret|webhookSecret|api_key|apiKey|private_key|privateKey|credential|signature|signed_url|signedUrl|presigned_url|presignedUrl|private_url|privateUrl|jwt)=)[^&#]*/gi;
 const AUTH_SCHEME_PATTERN = /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/gi;
@@ -42,7 +60,9 @@ function normalizeSensitiveKey(key: string): string {
 }
 
 export function isSensitiveLogKey(key: string): boolean {
-  return SENSITIVE_NORMALIZED_KEYS.has(normalizeSensitiveKey(key));
+  const normalized = normalizeSensitiveKey(key);
+  return SENSITIVE_NORMALIZED_KEYS.has(normalized)
+    || SENSITIVE_KEY_SUFFIXES.some((suffix) => normalized.endsWith(suffix));
 }
 
 export function redactSensitiveUrl(value: unknown): string {
