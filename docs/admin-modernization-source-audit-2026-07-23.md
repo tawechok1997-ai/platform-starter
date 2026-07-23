@@ -110,7 +110,8 @@
 - [~] Raw JSON ใน Advanced mode
   - มี `Advanced: Preview JSON` แบบ read-only แต่ยังแก้ JSON โดยตรงไม่ได้
 - [ ] Draft/Published lifecycle ชัดเจน
-- [ ] Unsaved changes warning
+- [x] Unsaved changes warning
+  - ใช้ shared dirty-state/navigation guard และ saved snapshot หลังโหลดหรือบันทึกสำเร็จ
 
 ## 2. ช่อง `[x]` ที่ติ๊กเกิน implementation จริง
 
@@ -124,7 +125,8 @@
   - มี priority, member preview และ validation แต่ยังไม่มี search
 - [ ] Bulk archive พร้อม confirmation
   - ไม่พบ bulk archive workflow
-- [ ] Unsaved changes warning
+- [x] Unsaved changes warning
+  - ใช้ shared dirty-state/navigation guard และ saved snapshot หลังโหลดหรือบันทึกสำเร็จ
 
 ## 3. งานที่ตรวจแล้วว่ายังค้างจริง
 
@@ -139,11 +141,10 @@
 - `/game-providers`: Table contract และ Provider detail drawer
 - `/webhook-logs`: Replay permission, server-side pagination, provider payload redaction
 - `/promotion-operations`: readiness checklist, request priority, member preview
-- `/promotion-center`: tabs/lifecycle/search/bulk archive/unsaved guard
-- `/content-center`: lifecycle, editable raw JSON และ unsaved guard
+- `/promotion-center`: tabs/lifecycle/search/bulk archive
+- `/content-center`: lifecycle และ editable raw JSON
 - `/admin-roles`: editor/save workflow
 - `/audit`: permission-gated export และ field-level masking
-- `/settings`: shared unsaved/save-state contract
 - `/anti-bot`: Test/Production mode
 - `/security`: current-account login event history
 
@@ -183,9 +184,22 @@
 
 ### D-03 — Unsaved changes และ save state
 
-ซ้ำใน Promotion Center, Content Center และ Settings
+เคยแยก logic ใน Promotion Center, Content Center และ Settings
 
-- [ ] Shared dirty-state hook + navigation guard + save-state contract
+- [x] Shared dirty-state hook + navigation guard + save-state contract
+  - Shared component: `apps/web-admin/app/(admin)/_components/admin-unsaved-changes.tsx`
+  - Save state: `saved`, `dirty`, `saving`
+  - ป้องกัน reload/ปิดแท็บด้วย `beforeunload`
+  - ป้องกันคลิกลิงก์ออกจากหน้า Admin และยืนยันเพียงครั้งเดียว
+  - Promotion/Content มี saved snapshot หลังโหลดและหลัง save สำเร็จ
+  - Refresh ของ Promotion/Content ถามก่อนทับค่าที่แก้ค้าง
+  - Settings ทุกหมวดใช้ guard ผ่าน `useAdminSettingsForm`
+  - Shared guard: `1cf282479b899410ac7cc7df720337ba8688c28a`
+  - Settings migration: `ffdd71ca2d51609e6a87686245319c0a1a6e8b4b`
+  - Promotion migration: `9bf59366e484d870dbdcfd4ee7380695ce6c78e9`
+  - Content migration: `21b962296b6c7e0f1b2378ef259c7adb3a4a8a9e`
+  - Duplicate prompt fix: `9ca792e4c3e042030691262b3cffdf0409d0a56a`
+  - Railway deploy: API, Member และ Admin ผ่าน
 
 ### D-04 — Safe error contract
 
@@ -245,9 +259,10 @@
 - ช่อง `[ ]` เดิมที่ควรเป็น `[~]`: 4 งาน
 - ช่อง `[x]` ที่ต้องลดสถานะใน Promotion Center: 4 งาน
 - กลุ่มงานซ้ำเชิงระบบ: 10 กลุ่ม
-- งานใหม่ที่ปิดหลัง audit: 3 งาน
+- งานใหม่ที่ปิดหลัง audit: 4 งาน
   1. `/operations` SLA/เวลาค้าง
   2. D-01 เชื่อม Top-ups/Withdrawals เข้าสู่ Bulk Queue เดิม
   3. D-02 Shared finance queue shell/filter/pager/evidence contract
+  4. D-03 Shared unsaved changes/navigation/save-state contract
 
 ตัวเลขนี้นับเฉพาะหัวข้อที่เปิด source ตรวจแล้ว ไม่รวมการคาดเดาจากชื่อ route หรือเอกสาร audit เดิม
