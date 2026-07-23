@@ -153,7 +153,15 @@
 
 ลิสเดิมนับ Bulk review แยกใน `/topups` และ `/withdrawals` แต่มี `/bulk-queue-operations` รองรับฝาก/ถอนอยู่แล้ว
 
-- [ ] เชื่อม entry point จาก Top-ups และ Withdrawals ไป Bulk Queue เดิม พร้อมส่งชนิดคิว/ตัวกรองเริ่มต้น
+- [x] เชื่อม entry point จาก Top-ups และ Withdrawals ไป Bulk Queue เดิม พร้อมส่งชนิดคิว/ตัวกรองเริ่มต้น
+  - `/topups` ส่ง `?kind=topups`
+  - `/withdrawals` ส่ง `?kind=withdrawals`
+  - Bulk Queue อ่าน query หลัง mount ก่อนโหลดข้อมูล จึงไม่เกิด hydration mismatch
+  - สลับชนิดคิวแล้ว reset action เป็น `claim` ป้องกัน action เก่าค้างผิดประเภท
+  - Bulk route: `93685fcf5335ad13f384b2dc30f86647e9be0b65`
+  - Top-ups entry: `750e6f871b59c47aa0e8edc648050c1c87f654f7`
+  - Withdrawals entry: `a7a522b8c4b4f9c59f5bf342ebe5cf7876809463`
+  - Railway deploy: API, Member และ Admin ผ่าน
 
 ห้ามสร้าง batch workflow ใหม่ในสองหน้า
 
@@ -227,6 +235,8 @@
 - ช่อง `[ ]` เดิมที่ควรเป็น `[~]`: 4 งาน
 - ช่อง `[x]` ที่ต้องลดสถานะใน Promotion Center: 4 งาน
 - กลุ่มงานซ้ำเชิงระบบ: 10 กลุ่ม
-- งานใหม่ที่ปิดหลัง audit: `/operations` SLA/เวลาค้าง 1 งาน
+- งานใหม่ที่ปิดหลัง audit: 2 งาน
+  - `/operations` SLA/เวลาค้าง
+  - D-01 เชื่อม Top-ups/Withdrawals เข้าสู่ Bulk Queue เดิม
 
 ตัวเลขนี้นับเฉพาะหัวข้อที่เปิด source ตรวจแล้ว ไม่รวมการคาดเดาจากชื่อ route หรือเอกสาร audit เดิม
