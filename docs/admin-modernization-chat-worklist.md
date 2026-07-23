@@ -89,9 +89,9 @@
 - [x] Money formatting ไม่แสดง `NaN`
 - [x] ข้อความผิดพลาดผ่าน safe copy
 - [ ] งานเร่งด่วนก่อน
-- [ ] SLA/เวลาค้าง
+- [x] SLA/เวลาค้างจาก queue-aging endpoint
 - [ ] Priority filter
-- [ ] Action drawer ต่อรายการ
+- [x] Action drawer ต่อรายการผ่าน shared drawer contract
 
 ### `/activity-center`
 
@@ -153,11 +153,11 @@
 - [x] Filter ทิศทางและค้นหา member/reference/idempotency
 - [x] Compact record cards และ expandable metadata
 - [x] Before/after balance และ idempotency key
-- [x] จำกัด API ล่าสุด 100 รายการ
-- [ ] Date filter
-- [ ] Type filter แยกเฉพาะ
-- [ ] Server-side pagination
-- [ ] Export
+- [x] Server query รองรับ page/take/filter และ response metadata
+- [x] Date filter
+- [x] Type filter แยกเฉพาะ
+- [x] Server-side pagination
+- [~] CSV export เฉพาะหน้าที่โหลดจาก server
 
 ### `/wallet-statement`
 
@@ -296,7 +296,7 @@
 ### `/game-providers`
 
 - [x] Status/health filter และ credential state
-- [ ] Table contract
+- [x] Shared server list/filter/pagination contract
 - [ ] Provider detail drawer
 
 ### `/games`
@@ -321,12 +321,12 @@
 
 ### `/webhook-logs`
 
-- [x] Processed/Retry/Failed/Duplicate states
+- [x] Received/Processed/Failed/Duplicate/Ignored/Resolved states
 - [x] Signature status
 - [x] Raw/normalized payload viewer
 - [x] Search/status filter และ safe error labels
-- [ ] Replay action จำกัดสิทธิ์
-- [ ] Server-side pagination
+- [ ] Replay endpoint/action พร้อม permission, confirmation และ audit trail
+- [x] Server-side pagination
 - [x] Payload redaction ยืนยันด้วย provider fixtures และ shared boundary
 
 ## Promotion และ Growth
@@ -348,12 +348,12 @@
 
 ### `/promotion-center`
 
-- [x] Campaign/Banner/Bonus/Coupon/Reward tabs
+- [~] Campaign editor + Member preview มีแล้ว แต่ยังไม่มี Banner/Bonus/Coupon/Reward tabs แยก
 - [x] Draft/Published/Archived lifecycle
 - [x] Search/priority/banner preview/validation
 - [x] Bulk archive พร้อม confirmation
-- [ ] Unsaved changes warning
-- [~] Safe error ยังไม่ครบทุกจุด
+- [x] Unsaved changes warning + shared reload confirmation
+- [x] Safe error ผ่าน global boundary และ network fallback
 
 ### `/promotion-claims`
 
@@ -400,7 +400,7 @@
 - [x] แสดง storage key/size/SHA-256 และ broken asset warning
 - [ ] Draft/Published lifecycle ชัดเจน
 - [ ] Raw JSON ใน Advanced mode
-- [ ] Unsaved changes warning
+- [x] Unsaved changes warning
 - [~] Error handling/try-finally ยังไม่ครบทุก flow
 
 ## Admin และ Security
@@ -440,7 +440,7 @@
 - [x] Expandable before/after
 - [x] Deep link ไปข้อมูลที่เกี่ยวข้อง
 - [x] Read-only
-- [ ] Export จำกัดสิทธิ์
+- [x] Export จำกัดสิทธิ์ผ่าน `admin.access.manage`
 - [~] Field-level masking/redaction ยังไม่ยืนยันครบ
 
 ### `/settings`
@@ -448,8 +448,8 @@
 - [x] Category index
 - [x] แยก editor ออกจาก hub ไม่รวม 24 หน้าในหน้าเดียว
 - [x] Search + quick links + empty state
-- [ ] Unsaved changes warning กลาง
-- [ ] Save-state contract กลาง
+- [x] Unsaved changes warning กลาง
+- [x] Save-state contract กลาง
 
 ### `/anti-bot`
 
@@ -500,7 +500,7 @@
 - [ ] Monitoring/SLO สำหรับ error, latency, queue aging, webhook และ provider
 - [ ] Lighthouse/performance budget ใน CI
 - [ ] Backup-restore drill อัตโนมัติพร้อมหลักฐาน restore
-- [ ] Authenticated browser/visual regression ด้วย non-production credentials
+- [x] Authenticated Role × Route × Viewport browser regression พร้อม evidence
 - [~] Repository มี Build/Quality/Security/Architecture/Full-System workflows แต่ชื่อ workflow ยังไม่ใช่หลักฐาน coverage หรือผลผ่าน
 
 ## Definition of Done
