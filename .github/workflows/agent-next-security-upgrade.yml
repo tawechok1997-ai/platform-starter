@@ -6,17 +6,23 @@ on:
       - agent/consolidate-duplicate-work
     paths:
       - .github/workflows/agent-next-security-upgrade.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/agent-next-security-upgrade.yml
 
 permissions:
   contents: write
 
 concurrency:
-  group: agent-next-security-upgrade
+  group: agent-next-security-upgrade-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   upgrade:
     name: Upgrade and verify Next.js
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
