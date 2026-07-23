@@ -8,6 +8,7 @@ const ADMIN_ACCESS_TOKEN = 'admin_access_token';
 const ADMIN_LOCALE_STORAGE_KEY = 'admin_locale';
 const SENSITIVE_ERROR_KEYS = new Set(['stack', 'trace', 'traceback', 'debug', 'exception', 'cause', 'query', 'sql']);
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const BODYLESS_RESPONSE_STATUSES = new Set([204, 205, 304]);
 const inFlightAdminMutations = new Map<string, Promise<ReplayableResponse>>();
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
@@ -76,7 +77,7 @@ export function adminMutationSignature(path: string, options: RequestInit = {}) 
     : options.body
       ? Object.prototype.toString.call(options.body)
       : '';
-  return `${method}:${path}:${body}`;
+  return `${method}:${path}:${hashMutationBody(body)}`;
 }
 
 export function createAdminIdempotencyKey() {
@@ -86,9 +87,18 @@ export function createAdminIdempotencyKey() {
   return `admin-${random}`;
 }
 
+function hashMutationBody(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
 async function toReplayableResponse(response: Response): Promise<ReplayableResponse> {
   return {
-    body: await response.clone().text(),
+    body: BODYLESS_RESPONSE_STATUSES.has(response.status) ? '' : await response.clone().text(),
     status: response.status,
     statusText: response.statusText,
     headers: new Headers(response.headers),
@@ -96,7 +106,8 @@ async function toReplayableResponse(response: Response): Promise<ReplayableRespo
 }
 
 function replayAdminResponse(response: ReplayableResponse) {
-  return new Response(response.body, {
+  const body = BODYLESS_RESPONSE_STATUSES.has(response.status) ? null : response.body;
+  return new Response(body, {
     status: response.status,
     statusText: response.statusText,
     headers: new Headers(response.headers),
