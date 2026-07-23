@@ -192,6 +192,10 @@ export default function OperationDashboardPage() {
           </AdminCard>
         </section>}
 
+        {canViewRisk && !riskError && <AdminCard title={t.riskPressure} description={`${riskSummary.openCount} ${t.open} · ${riskMetrics.loadedTotal} ${t.loaded}`} action={<AdminLinkButton href="/risk-alerts">{t.openRiskCenter}</AdminLinkButton>}>
+          <RiskSeverityChart metrics={riskMetrics} locale={locale} copy={t} />
+        </AdminCard>}
+
         {summary?.today && canViewFinance && <AdminCard title={t.financeFlow} description={summary.today.date} action={canViewReports ? <AdminLinkButton href="/reports">{t.fullReport}</AdminLinkButton> : undefined}>
           <div className="admin-finance-flow">
             <div className="admin-finance-flow__summary">
@@ -209,10 +213,6 @@ export default function OperationDashboardPage() {
 
         {summary?.today && canViewFinance && <AdminCard title={t.financeComparison} description={t.financeComparisonDescription}>
           <FinanceComparisonChart today={summary.today} locale={locale} copy={t} />
-        </AdminCard>}
-
-        {canViewRisk && !riskError && <AdminCard title={t.riskPressure} description={`${riskSummary.openCount} ${t.open} · ${riskMetrics.loadedTotal} ${t.loaded}`} action={<AdminLinkButton href="/risk-alerts">{t.openRiskCenter}</AdminLinkButton>}>
-          <RiskSeverityChart metrics={riskMetrics} locale={locale} copy={t} />
         </AdminCard>}
 
         <div className="admin-dashboard__quick">
