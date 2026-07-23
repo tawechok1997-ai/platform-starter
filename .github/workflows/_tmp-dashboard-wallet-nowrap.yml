@@ -1,0 +1,43 @@
+name: Temporary dashboard wallet nowrap patch
+on:
+  push:
+    paths:
+      - '.github/_tmp-dashboard-wallet-nowrap-trigger'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Patch wallet total only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('apps/web-admin/app/(admin)/dashboard/page.tsx')
+          s = p.read_text()
+          old = "value={formatMoney(String(financialKpis.total))}"
+          new = "value={formatMoney(String(financialKpis.total)).replace(' ', '\\u00a0')}"
+          if old not in s:
+              raise SystemExit('target not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+      - run: pnpm --filter @platform/web-admin typecheck
+      - name: Commit patch and cleanup
+        run: |
+          rm -f .github/workflows/_tmp-dashboard-wallet-nowrap.yml .github/_tmp-dashboard-wallet-nowrap-trigger
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/web-admin/app/'(admin)'/dashboard/page.tsx .github/workflows/_tmp-dashboard-wallet-nowrap.yml .github/_tmp-dashboard-wallet-nowrap-trigger
+          git commit -m "fix(admin): keep dashboard wallet total on one line"
+          git push
