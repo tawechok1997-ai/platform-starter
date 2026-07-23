@@ -166,7 +166,9 @@ test('filters the catalog by platform provider category and search', async ({ pa
 });
 
 test('uses the fallback when a game image fails', async ({ page }) => {
-  await expect(catalogCard(page, 'Fortune Tiger').locator('.game-lobby-fallback')).toHaveText('FO');
+  const card = catalogCard(page, 'Fortune Tiger');
+  await card.scrollIntoViewIfNeeded();
+  await expect(card.locator('.game-lobby-fallback')).toHaveText('FO');
 });
 
 test('launches a game through the member launch contract', async ({ page }) => {
