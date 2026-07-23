@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { adminApiFetch } from '../../../admin-api';
+import { stringifyAdminPayload } from '../../_components/admin-payload-redaction';
 import { AdminBadge, AdminButton, AdminCard, AdminCode, AdminConfirmDialog, AdminDataValue, AdminEmpty, AdminLinkButton, AdminNotice, AdminPage, AdminRow, AdminStack } from '../../_components/admin-ui';
 
 type Props = { params: Promise<{ id: string }> };
@@ -100,7 +101,7 @@ function LedgerRow({ label, id }: { label: string; id?: string | null }) {
   return <AdminRow><div style={{ minWidth: 0 }}><strong style={labelStyle}>{label}</strong><p style={mutedStyle}>{id ? <AdminCode title={id}>{id}</AdminCode> : '-'}</p></div>{id ? <AdminLinkButton href={`/wallet-ledgers/${id}`} tone="ghost" size="compact">เปิดรายการ</AdminLinkButton> : null}</AdminRow>;
 }
 
-function JsonCard({ title, payload }: { title: string; payload: unknown }) { return <AdminCard compact title={title}><details><summary style={summaryStyle}>ดูข้อมูลเทคนิค</summary><pre style={preStyle}>{JSON.stringify(payload ?? {}, null, 2)}</pre></details></AdminCard>; }
+function JsonCard({ title, payload }: { title: string; payload: unknown }) { return <AdminCard compact title={title}><details><summary style={summaryStyle}>ดูข้อมูลเทคนิค</summary><pre style={preStyle}>{stringifyAdminPayload(payload)}</pre></details></AdminCard>; }
 function transferLabel(type: string) { return type === 'TRANSFER_IN' ? 'โยกเข้าเกม' : type === 'TRANSFER_OUT' ? 'โยกกลับกระเป๋า' : type === 'ROLLBACK' ? 'คืนรายการ' : type; }
 function statusLabel(status: string) { return ({ SUCCESS: 'สำเร็จ', FAILED: 'ล้มเหลว', PENDING: 'กำลังดำเนินการ', REVERSED: 'ย้อนรายการแล้ว' } as Record<string, string>)[status] ?? status; }
 function statusTone(status: string) { if (status === 'SUCCESS') return 'success'; if (status === 'FAILED') return 'danger'; if (status === 'PENDING') return 'warning'; return 'neutral'; }
