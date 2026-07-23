@@ -2,18 +2,17 @@
 
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import type { IconKey, MemberFeatureFlags } from './site-settings';
-import { defaultIconSettings, isIconUrl } from './site-settings';
+import type { MemberFeatureFlags } from './site-settings';
 import { createGameCategoryNavigationConfig } from './brand/game-category-navigation';
-import { REFERENCE_LEGACY_MENU_ICON_DEFAULTS } from './brand/reference-public-settings-defaults';
 import { activeNavigationHref, navigationFor } from './member-navigation';
 import { disabledMemberRoute, isPublicMemberRoute, routeRuleFor } from './member-routes';
 import MemberFooter from './member-footer';
 import { useSiteSettings } from './site-settings-provider';
 import { useMemberSession } from './member-session-provider';
 import { usePendingCount } from './hooks/use-pending-count';
+import { BrandIcon } from './components/brand-icon';
 import { MemberCard, MemberLinkButton } from './components/member-ui';
-import { CloseIcon, MemberIcon, MenuIcon } from './components/member-icon';
+import { CloseIcon, MenuIcon } from './components/member-icon';
 import { MemberCategoryRail } from './components/member-category-rail';
 import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
 
@@ -21,7 +20,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/';
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { settings, typedSettings } = useSiteSettings();
+  const { typedSettings } = useSiteSettings();
   const { ready, isLoggedIn, wallet, walletLoading, logout } = useMemberSession();
   const { website, branding, icons, features: typedFeatures } = typedSettings;
 
@@ -55,21 +54,6 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const brandMark = branding.brand_mark || siteName.slice(0, 1).toUpperCase() || 'P';
   const formattedWalletBalance = formatMemberWalletBalance(wallet);
   const compactWalletBalance = formattedWalletBalance.replace(/^[A-Z]{3}\s+/, '');
-  const runtimeIcons = settings.icons ?? {};
-
-  function iconValueFor(iconKey: IconKey) {
-    const configured = runtimeIcons[iconKey];
-    if (
-      typeof configured === 'string'
-      && configured.trim()
-      && configured.trim() !== defaultIconSettings[iconKey]
-    ) {
-      return configured.trim();
-    }
-    return REFERENCE_LEGACY_MENU_ICON_DEFAULTS[iconKey]
-      ?? icons[iconKey]
-      ?? defaultIconSettings[iconKey];
-  }
 
   useEffect(() => {
     document.documentElement.style.setProperty('--color-brand', branding.primary_color);
@@ -135,7 +119,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           <nav className="member-desktop-nav" aria-label="เมนูหลักเดสก์ท็อป">
             {visibleBottomNav.map((item) => (
               <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}>
-                <IconValue iconKey={item.iconKey} value={iconValueFor(item.iconKey)} />
+                <BrandIcon name={item.iconKey} existing={icons} className="member-nav-icon-image" />
                 <span>{item.shortTitle ?? item.title}</span>
                 {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
               </a>
@@ -143,7 +127,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           </nav>
           <div className="member-actions">
             <a href="/notifications" className="member-header-icon" aria-label="แจ้งเตือน">
-              <IconValue iconKey="notification" value={iconValueFor('notification')} />
+              <BrandIcon name="notification" existing={icons} className="member-nav-icon-image" />
               {pendingCount > 0 && <em>{pendingCount}</em>}
             </a>
             <span className="member-header-wallet" aria-label={walletLoading ? 'กำลังโหลดยอดเงิน' : `ยอดใช้ได้ ${formattedWalletBalance}`} aria-live="polite">
@@ -178,7 +162,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
         <nav className="member-drawer-nav ui-overlay-surface__body">
           {visibleDrawer.map((item) => (
             <a key={item.key} href={item.href} onClick={() => setMenuOpen(false)} className={activeHref === item.href ? 'active' : ''}>
-              <IconValue iconKey={item.iconKey} value={iconValueFor(item.iconKey)} />
+              <BrandIcon name={item.iconKey} existing={icons} className="member-nav-icon-image" />
               <span className="member-drawer-copy"><strong>{item.title}</strong><small>{item.badge === 'pending' && pendingCount > 0 ? `${pendingCount} รายการรอตรวจสอบ` : item.description}</small></span>
               {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
             </a>
@@ -192,8 +176,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
       <nav className="member-bottom-nav" aria-label="เมนูหลัก">
         {visibleBottomNav.map((item) => (
-          <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined}>
-            <span className="member-bottom-icon"><IconValue iconKey={item.iconKey} value={iconValueFor(item.iconKey)} /></span>
+          <a key={item.key} href={item.href} className={activeHref === item.href ? 'active' : ''} aria-current={activeHref === item.href ? 'page' : undefined} data-navigation-key={item.key}>
+            <span className="member-bottom-icon"><BrandIcon name={item.iconKey} existing={icons} /></span>
             <span>{item.shortTitle ?? item.title}</span>
             {item.badge === 'pending' && pendingCount > 0 && <em>{pendingCount}</em>}
           </a>
@@ -214,11 +198,4 @@ function FeatureDisabled({ label, siteName }: { label: string; siteName: string 
       </MemberCard>
     </main>
   );
-}
-
-function IconValue({ iconKey, value }: { iconKey: keyof typeof defaultIconSettings; value: string }) {
-  const isRootRelativeImage = value.startsWith('/') && !value.startsWith('//') && !value.includes('\\');
-  if (isRootRelativeImage || isIconUrl(value)) return <img src={value} alt="" className="member-nav-icon-image" />;
-  if (value !== defaultIconSettings[iconKey]) return <span className="member-custom-icon" aria-hidden="true">{value}</span>;
-  return <MemberIcon name={iconKey} />;
 }
