@@ -81,7 +81,7 @@
 - [x] Recent Ledger 5 รายการ + ดูทั้งหมด
 - [x] SLA countdown
 - [x] Quick Actions
-- [ ] Role-based dashboard
+- [x] Role-based dashboard
 
 ### `/operations`
 
