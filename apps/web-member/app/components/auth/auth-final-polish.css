@@ -1,13 +1,19 @@
 .auth-reference-scope .public-auth-page {
   display: grid;
+  min-height: 100svh;
   place-items: center;
+  padding: clamp(16px, 3vw, 40px);
   background:
     radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--brand-primary) 9%, transparent), transparent 34%),
     var(--brand-background);
 }
 
 .auth-reference-scope .public-auth-shell {
+  width: min(1180px, 100%);
   max-height: calc(100svh - clamp(24px, 6vw, 64px));
+  border-radius: clamp(22px, 2.4vw, 34px);
+  overflow: hidden;
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.46);
 }
 
 .auth-reference-scope .public-auth-brand-panel,
@@ -16,19 +22,77 @@
   scrollbar-color: color-mix(in srgb, var(--brand-primary) 34%, transparent) transparent;
 }
 
+.auth-reference-scope .public-auth-brand-panel {
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: clamp(28px, 4vw, 58px);
+}
+
 .auth-reference-scope .public-auth-card {
   max-height: 100%;
   overflow: auto;
   overscroll-behavior: contain;
-}
-
-.auth-reference-scope .public-auth-brand-panel {
-  overflow: auto;
-  overscroll-behavior: contain;
+  gap: clamp(14px, 1.8vw, 22px);
+  padding: clamp(24px, 3.4vw, 48px);
 }
 
 .auth-reference-scope .public-auth-card-topbar {
   flex-wrap: wrap;
+  gap: 14px;
+}
+
+.auth-reference-scope .public-auth-card__logo {
+  min-width: 0;
+}
+
+.auth-reference-scope .public-auth-card__logo > span {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+}
+
+.auth-reference-scope .public-auth-card__logo strong {
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-reference-scope .public-auth-heading {
+  gap: 8px;
+}
+
+.auth-reference-scope .public-auth-heading h1 {
+  margin: 0;
+  font-size: clamp(30px, 3.2vw, 46px);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.auth-reference-scope .public-auth-heading p {
+  max-width: 48ch;
+  margin: 0;
+  line-height: 1.65;
+}
+
+.auth-reference-scope .public-auth-field {
+  min-width: 0;
+}
+
+.auth-reference-scope .public-auth-input,
+.auth-reference-scope .public-auth-eye,
+.auth-reference-scope .public-auth-submit,
+.auth-reference-scope .public-auth-language__button {
+  min-height: 48px;
+}
+
+.auth-reference-scope .public-auth-input {
+  width: 100%;
+  padding-inline: 14px;
+}
+
+.auth-reference-scope .public-auth-input-wrap {
+  min-width: 0;
 }
 
 .auth-reference-scope .public-auth-eye,
@@ -58,6 +122,29 @@
   overflow-wrap: anywhere;
 }
 
+.auth-reference-scope .public-auth-alert {
+  border-radius: 13px;
+  line-height: 1.55;
+}
+
+.auth-reference-scope .public-auth-submit {
+  width: 100%;
+  min-height: 52px;
+}
+
+.auth-reference-scope .public-auth-footer,
+.auth-reference-scope .public-auth-legal {
+  margin-block: 0;
+}
+
+.auth-reference-scope .public-auth-shell--register .public-auth-card {
+  padding-block: clamp(22px, 2.8vw, 38px);
+}
+
+.auth-reference-scope .public-auth-shell--register .public-auth-heading h1 {
+  font-size: clamp(28px, 2.8vw, 40px);
+}
+
 @media (max-height: 760px) and (min-width: 861px) {
   .auth-reference-scope .public-auth-page {
     align-items: start;
@@ -75,12 +162,22 @@
 }
 
 @media (max-width: 860px) {
+  .auth-reference-scope .public-auth-page {
+    align-items: start;
+    padding: 0;
+  }
+
   .auth-reference-scope .public-auth-shell {
+    width: 100%;
     max-height: none;
+    min-height: 100svh;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .auth-reference-scope .public-auth-card {
     overflow: visible;
+    min-height: 100svh;
   }
 }
 
@@ -92,23 +189,40 @@
 
   .auth-reference-scope .public-auth-card {
     max-height: none;
-    padding-inline: max(18px, env(safe-area-inset-left), env(safe-area-inset-right));
+    gap: 16px;
+    padding: calc(18px + env(safe-area-inset-top)) max(18px, env(safe-area-inset-left), env(safe-area-inset-right)) calc(22px + env(safe-area-inset-bottom));
   }
 
   .auth-reference-scope .public-auth-card-topbar {
     align-items: center;
+    gap: 10px;
+  }
+
+  .auth-reference-scope .public-auth-card__logo > span {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
   }
 
   .auth-reference-scope .public-auth-heading h1 {
     max-width: none;
+    font-size: clamp(28px, 9vw, 38px);
   }
 
   .auth-reference-scope .public-auth-heading p {
     max-width: 42ch;
+    font-size: 14px;
   }
 
   .auth-reference-scope .public-auth-input-wrap {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .auth-reference-scope .public-auth-input,
+  .auth-reference-scope .public-auth-eye,
+  .auth-reference-scope .public-auth-submit,
+  .auth-reference-scope .public-auth-language__button {
+    min-height: 50px;
   }
 
   .auth-reference-scope .public-auth-legal {
@@ -135,6 +249,10 @@
     min-width: 56px;
     padding-inline: 7px;
   }
+
+  .auth-reference-scope .public-auth-shell--register .public-auth-card {
+    padding-inline: 16px;
+  }
 }
 
 @media (max-width: 340px) {
@@ -152,6 +270,10 @@
 
   .auth-reference-scope .public-auth-eye {
     width: 100%;
+  }
+
+  .auth-reference-scope .public-auth-form-actions.has-back {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
