@@ -15,18 +15,18 @@
 - [x] Quick Actions
 - [x] Role / permission-based rendering
 - [x] ปุ่มดู Wallet Ledger ทั้งหมด
+- [x] จำกัด Recent Ledger บน Dashboard ให้แสดง 5 รายการ
+- [x] Wallet total ใช้ช่องว่างแบบไม่ตัดบรรทัด
 
 ## ยังต้องทำทีละชิ้น
 
-- [ ] จำกัด Recent Ledger บน Dashboard ให้แสดง 5 รายการ
-- [ ] ตรวจ Wallet total ไม่ให้ตัดบรรทัดบนทุก viewport
 - [ ] ตรวจและจัดลำดับ section ตาม worklist
 - [ ] ลด KPI / chart ที่ซ้ำกัน
 - [ ] ปรับ SLA ให้แสดง countdown ที่เข้าใจง่าย
 
 ## งานรอบปัจจุบัน
 
-**เป้าหมายถัดไป:** จำกัด `summary.recentLedgers` เป็น 5 รายการ โดยไม่แตะ API, Database หรือส่วนอื่นของ Dashboard
+**เป้าหมายถัดไป:** ปรับ SLA countdown ให้เข้าใจง่าย โดยใช้ข้อมูลอายุคิวที่มีอยู่แล้ว และไม่แก้ API หรือ Database
 
 ## กติกา
 
