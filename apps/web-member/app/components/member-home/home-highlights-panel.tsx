@@ -1,7 +1,7 @@
 'use client';
 
 import type { GameCategoryNavigationConfig } from '../../brand/game-category-navigation';
-import type { SiteIconSettings } from '../../site-settings';
+import type { MemberFeatureFlags, SiteIconSettings } from '../../site-settings';
 import {
   GameLobbyState,
   GameRail,
@@ -10,6 +10,7 @@ import {
 import { useMemberHomeData } from '../../hooks/use-member-home-data';
 import { GameCategoryNavigation } from './game-category-navigation';
 import { HomeCompetitionShowcase } from './home-competition-showcase';
+import { HomeQuickActions } from './home-quick-actions';
 
 type MemberHomeData = ReturnType<typeof useMemberHomeData>;
 
@@ -22,6 +23,7 @@ export function HomeHighlightsPanel({
   gamesEnabled,
   gameCategoryNavigation,
   icons,
+  features,
 }: {
   active: boolean;
   data: MemberHomeData;
@@ -31,6 +33,7 @@ export function HomeHighlightsPanel({
   gamesEnabled: boolean;
   gameCategoryNavigation: GameCategoryNavigationConfig;
   icons: SiteIconSettings;
+  features: MemberFeatureFlags;
 }) {
   return (
     <section
@@ -38,6 +41,7 @@ export function HomeHighlightsPanel({
       hidden={!active}
       aria-label="ไฮไลท์"
     >
+      <HomeQuickActions icons={icons} features={features} />
       {gamesEnabled && <HomeCompetitionShowcase />}
 
       <div className="member-source-games">
