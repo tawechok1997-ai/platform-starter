@@ -7,6 +7,7 @@
   --auth-border: var(--brand-border, rgba(255, 255, 255, 0.12));
   --auth-surface: color-mix(in srgb, var(--brand-card, #181818) 94%, transparent);
   --auth-muted: var(--brand-text-muted, #a3a3a3);
+  --auth-focus: color-mix(in srgb, var(--brand-primary) 42%, transparent);
   display: contents;
 }
 
@@ -20,6 +21,7 @@
 .auth-reference-scope .public-auth-shell {
   width: var(--auth-shell-max);
   min-width: 0;
+  min-height: min(760px, calc(100svh - 64px));
   margin-inline: auto;
   gap: var(--auth-panel-gap);
   grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
@@ -36,12 +38,16 @@
 }
 
 .auth-reference-scope .public-auth-brand-panel {
+  display: flex;
+  min-height: 100%;
   padding: clamp(28px, 4vw, 56px);
 }
 
 .auth-reference-scope .public-auth-card {
   width: 100%;
+  align-self: center;
   padding: var(--auth-card-padding);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 28%);
 }
 
 .auth-reference-scope .public-auth-card-topbar,
@@ -49,6 +55,31 @@
 .auth-reference-scope .public-auth-benefits > div,
 .auth-reference-scope .public-auth-security-card {
   min-width: 0;
+}
+
+.auth-reference-scope .public-auth-card-topbar {
+  margin-bottom: 4px;
+}
+
+.auth-reference-scope .public-auth-heading {
+  margin-bottom: 2px;
+}
+
+.auth-reference-scope .public-auth-heading h1 {
+  margin-block: 6px 8px;
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.auth-reference-scope .public-auth-heading p,
+.auth-reference-scope .public-auth-legal,
+.auth-reference-scope .public-auth-footer {
+  color: var(--auth-muted);
+}
+
+.auth-reference-scope .public-auth-field {
+  gap: 8px;
 }
 
 .auth-reference-scope .public-auth-input,
@@ -60,23 +91,44 @@
 .auth-reference-scope .public-auth-input {
   width: 100%;
   font-size: 16px;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
 
-.auth-reference-scope .public-auth-heading h1 {
-  font-size: clamp(28px, 3vw, 42px);
-  line-height: 1.12;
+.auth-reference-scope .public-auth-input:focus-visible {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 4px var(--auth-focus);
+  outline: none;
 }
 
-.auth-reference-scope .public-auth-heading p,
-.auth-reference-scope .public-auth-legal,
-.auth-reference-scope .public-auth-footer {
-  color: var(--auth-muted);
+.auth-reference-scope .public-auth-input[aria-invalid='true'] {
+  border-color: #f87171;
+}
+
+.auth-reference-scope .public-auth-field-error {
+  margin-top: -8px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.auth-reference-scope .public-auth-alert {
+  border-radius: 12px;
+  line-height: 1.55;
+}
+
+.auth-reference-scope .public-auth-submit {
+  width: 100%;
+  font-weight: 900;
 }
 
 .auth-reference-scope .public-auth-brand__mark img,
 .auth-reference-scope .public-auth-card__logo img {
   max-width: 100%;
   object-fit: contain;
+}
+
+.auth-reference-scope .public-auth-legal {
+  padding-top: 2px;
+  border-top: 1px solid color-mix(in srgb, var(--auth-border) 70%, transparent);
 }
 
 @media (max-width: 1040px) {
@@ -108,10 +160,12 @@
   }
 
   .auth-reference-scope .public-auth-shell {
+    min-height: auto;
     grid-template-columns: minmax(0, 1fr);
   }
 
   .auth-reference-scope .public-auth-brand-panel {
+    min-height: auto;
     padding: 22px;
   }
 
@@ -130,7 +184,7 @@
   .auth-reference-scope {
     --auth-shell-max: 100%;
     --auth-card-padding: 18px;
-    --auth-panel-gap: 10px;
+    --auth-panel-gap: 0;
     --auth-panel-radius: 16px;
     --auth-control-height: 48px;
   }
@@ -140,13 +194,18 @@
     padding: 6px;
   }
 
-  .auth-reference-scope .public-auth-brand-panel {
-    padding: 16px 18px;
+  .auth-reference-scope .public-auth-shell {
+    width: 100%;
   }
 
-  .auth-reference-scope .public-auth-brand-kicker,
-  .auth-reference-scope .public-auth-security-card {
+  .auth-reference-scope .public-auth-brand-panel {
     display: none;
+  }
+
+  .auth-reference-scope .public-auth-card {
+    min-height: calc(100dvh - 12px);
+    border-radius: 16px;
+    box-shadow: none;
   }
 
   .auth-reference-scope .public-auth-card-topbar {
@@ -183,6 +242,7 @@
   }
 
   .auth-reference-scope .public-auth-legal {
+    margin-top: auto;
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px 12px;
@@ -197,6 +257,10 @@
 
   .auth-reference-scope .public-auth-page {
     padding: 4px;
+  }
+
+  .auth-reference-scope .public-auth-card {
+    min-height: calc(100dvh - 8px);
   }
 
   .auth-reference-scope .public-auth-card-topbar {
