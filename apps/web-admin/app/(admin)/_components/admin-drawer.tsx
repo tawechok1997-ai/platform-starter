@@ -29,10 +29,14 @@ export function AdminDrawer({ open, title, description, closeLabel = 'ปิด'
   const titleId = useId();
   const descriptionId = useId();
   const drawerRef = useRef<HTMLElement | null>(null);
-  const closeRef = useRef<HTMLButtonElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const openerRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  const busyRef = useRef(busy);
 
   useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+  useEffect(() => { busyRef.current = busy; }, [busy]);
 
   useEffect(() => {
     if (!open) return;
@@ -51,11 +55,11 @@ export function AdminDrawer({ open, title, description, closeLabel = 'ปิด'
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
 
-    const focusTimer = window.setTimeout(() => closeRef.current?.focus(), 30);
+    const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 30);
     const containFocus = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) {
+      if (event.key === 'Escape' && !busyRef.current) {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== 'Tab') return;
@@ -91,20 +95,20 @@ export function AdminDrawer({ open, title, description, closeLabel = 'ปิด'
       window.scrollTo(0, scrollY);
       window.setTimeout(() => openerRef.current?.focus(), 0);
     };
-  }, [busy, onClose, open]);
+  }, [open]);
 
   if (!mounted || !open) return null;
 
   return createPortal(<>
     <style jsx global>{drawerCss}</style>
-    <div className="admin-drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
+    <div className="admin-drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busyRef.current) onCloseRef.current(); }}>
       <aside ref={drawerRef} className={`admin-drawer admin-drawer--${size}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined} tabIndex={-1}>
         <header className="admin-drawer__head">
           <div className="admin-drawer__copy">
             <h2 id={titleId}>{title}</h2>
             {description && <p id={descriptionId}>{description}</p>}
           </div>
-          <button ref={closeRef} type="button" className="admin-ui-button admin-ui-button--ghost admin-ui-button--compact" disabled={busy} onClick={onClose}>{closeLabel}</button>
+          <button ref={closeButtonRef} type="button" className="admin-ui-button admin-ui-button--ghost admin-ui-button--compact" disabled={busy} onClick={onClose}>{closeLabel}</button>
         </header>
         <div className="admin-drawer__body">{children}</div>
         {footer && <footer className="admin-drawer__footer">{footer}</footer>}
