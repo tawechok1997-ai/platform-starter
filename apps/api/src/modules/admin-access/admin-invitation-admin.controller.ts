@@ -12,6 +12,12 @@ export class AdminInvitationAdminController {
   constructor(private readonly service: AdminInvitationAdminService) {}
 
   @RequirePermission('admin.create')
+  @Get('roles')
+  roles(@Req() req: AdminRequestContext) {
+    return this.service.listAssignableRoles(req.user.id);
+  }
+
+  @RequirePermission('admin.create')
   @Get()
   list() {
     return this.service.list();
