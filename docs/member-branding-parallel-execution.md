@@ -7,16 +7,16 @@ Merged delivery:
 - PR #105 merged into `main` at `1ece28bcb57caeed4143d4311905907eabbe0af1`
 - PR #123 closed because its menu/category scope was already included in PR #105
 - PR #139 merged into `main` at `7c63926b91594404e97eb349650606664657ba99`
-- Implementation pull requests still open for this workstream: 0
-- Current `main` deployment status: API, Admin and Member succeeded
+- PR #144 merged into `main` at `7ada12fb1c9e36002658fa2e0a034b6ad9ea5768`
+- Current `main` deployment status: Member and API succeeded; Admin deployment follows the latest Admin-only commits independently
 
-เอกสารนี้นับเฉพาะสถานะที่ตรวจจากโค้ดและหลักฐานบน `main` แล้ว ไม่ใช้สถานะจาก branch, Draft PR หรือเอกสารความคืบหน้ารุ่นเก่า
+เอกสารนี้นับเฉพาะสถานะที่ตรวจจากโค้ด หลักฐาน CI และระบบที่ deploy แล้ว ไม่ใช้สถานะจาก branch, Draft PR หรือเอกสารความคืบหน้ารุ่นเก่า
 
 ## สัญลักษณ์
 
-- ✅ มีโค้ดบน `main` และมีชุดตรวจรองรับ
-- 🧪 ต้องยืนยันบนระบบจริงหรือเทียบต้นแบบด้วยคน
-- ⛔ ติด asset หรือข้อมูลจากภายนอก
+- ✅ มีโค้ดบน `main` และมีชุดตรวจหรือ production evidence รองรับ
+- 🧪 ต้องยืนยันด้วย session จริงหรือเทียบต้นแบบด้วยคน
+- ⛔ ติด asset หรือข้อจำกัดภายนอก
 
 ## งานที่อยู่บน `main` แล้ว
 
@@ -35,6 +35,8 @@ Merged delivery:
 - ✅ แยก ownership ระหว่าง Website, Branding, Icons, CMS, Promotion Center และ Game API
 - ✅ Uploader, history, audit และ permission ใช้ระบบกลาง ไม่สร้างระบบซ้ำ
 - ✅ Regression tests ป้องกัน field ข้ามหมวดและ workflow/preview ซ้ำ
+- ✅ Unsaved-change regression test ตรวจ owner กลาง `useAdminUnsavedChanges` แทนการยึด implementation รุ่นเก่า
+- ✅ Admin safe-error fallback ไม่คืนข้อความว่างเมื่อ backend message ถูกกรองออก
 
 ### Member Runtime และ Navigation
 
@@ -58,8 +60,11 @@ Merged delivery:
 - ✅ ไม่เปลี่ยน Auth, Session, CAPTCHA หรือ Redirect contract
 - ✅ Login legal footer แยกข้อความไทยและอังกฤษ
 - ✅ ปุ่มแสดง/ซ่อนรหัสผ่านใช้ locale copy
-- ✅ โหมดไทยไม่แสดงข้อความอังกฤษที่ไม่จำเป็น
-- ✅ Regression tests ครอบคลุม locale purity, runtime branding และ responsive contract
+- ✅ หน้าไทยใช้ `เข้าสู่ระบบสมาชิก`, `สร้างบัญชีสมาชิก`, `การเชื่อมต่อปลอดภัย` และ `การสมัครที่ปลอดภัย` โดยไม่มีข้อความอังกฤษเดิมปน
+- ✅ ชื่อแบรนด์ใน Auth header ไม่ถูกตัดบน viewport มือถือ 390px
+- ✅ Regression tests ครอบคลุม locale purity, runtime branding, responsive contract และ visible copy
+- ✅ Production acceptance ผ่าน Login/Register บน 390×844 และ 1440×900
+- ✅ Production evidence ไม่มี horizontal overflow, page error, HTTP 4xx/5xx, critical static-request failure หรือ broken rendered image
 
 ### Member Home และ CMS Contract
 
@@ -73,6 +78,7 @@ Merged delivery:
 - ✅ ลบ category navigation component/CSS ชุดซ้ำ
 - ✅ Game image fallback browser test โหลด lazy image เข้า viewport ก่อนตรวจ `onError`
 - ✅ Support headset WebP ถูกนำเข้าและเชื่อมแล้ว
+- ✅ Public production probe ยืนยันว่า `/` redirect ไป `/login?next=%2F` เมื่อไม่มี session ตาม contract
 
 ### Member CSS และ Theme Ownership
 
@@ -80,6 +86,7 @@ Merged delivery:
 - ✅ ลบ header, rail, hero, tournament, bottom-nav และ asset override รุ่นเก่าที่ไม่ได้ import แล้ว
 - ✅ Home market stylesheet เหลือเฉพาะ Quick Actions, Game Rail, Skeleton และ Wallet surfaces ที่ยังใช้จริง
 - ✅ Visual regression ผ่าน 6 viewport พร้อม screenshot, trace, console และ network evidence
+- ✅ เพิ่ม production acceptance workflow ที่เก็บ full-page screenshot, audit JSON, console, network, overflow และ broken-image evidence
 
 ### Dependency และ CI
 
@@ -89,6 +96,7 @@ Merged delivery:
 - ✅ Production dependency audit ผ่าน ไม่มี advisory ระดับ High/Critical ค้าง
 - ✅ ลด CI command ซ้ำโดยคง owner ของ test, typecheck, build และ bundle ชัดเจน
 - ✅ Admin finance queue regression test ตรงกับ ownership ใหม่ของ `AdminFinanceQueueFrame`
+- ✅ PR #144 ผ่าน Build, Full-System, Security, Admin, Member, Visual และ architecture checks ครบก่อน merge
 
 ## Asset ที่มีใน repository แล้ว
 
@@ -99,16 +107,16 @@ Merged delivery:
 
 ## งานที่เหลือจริง
 
-1. 🧪 Final visual acceptance บนระบบที่ deploy แล้ว: Login, Register และ Home บน Mobile/Desktop เทียบภาพต้นแบบภายนอก โดย automated visual regression ผ่านแล้ว แต่ยังไม่มี human sign-off เทียบต้นแบบ
-2. 🧪 Authenticated production smoke: login/session/redirect, route สำคัญ, settings override, feature flags, `show_game_categories`, fallback assets และตรวจ console/network บน session จริง
+1. 🧪 Authenticated production smoke และ Home acceptance: ใช้บัญชีจริงตรวจ login/session/redirect, Home route, settings override, feature flags, `show_game_categories`, fallback assets, Promotion, Tournament, Jackpot, Leaderboard และ console/network
+2. ⛔ Exact visual comparison กับต้นแบบภายนอกยังทำอัตโนมัติไม่ได้ เพราะ `noah345.shop` ตอบ Cloudflare 403 ต่อ GitHub runner และระบบค้นไฟล์ภาพต้นแบบเก่าตอบผิดพลาด ต้องมี reference screenshot/source capture ที่เปิดอ่านได้อย่างคงที่
 3. ⛔ นำเข้า Announcement, Jackpot และ Promotion PNG ต้นฉบับอีก 3 ไฟล์ เมื่อได้รับ binary ที่ checksum คงที่
 
-ไม่มี code, typecheck, test, security, build, browser regression หรือ deployment blocker ที่ทราบอยู่ใน workstream นี้ ณ สถานะปัจจุบัน
+ไม่มี code, typecheck, test, security, build, public Auth browser regression หรือ Member deployment blocker ที่ทราบอยู่ใน workstream นี้ ณ สถานะปัจจุบัน
 
 ## งานที่ปิดและต้องไม่ใส่กลับในรายการค้าง
 
 - ✅ Sync `main` และแก้ PR conflict
-- ✅ Merge PR #105 และ PR #139
+- ✅ Merge PR #105, PR #139 และ PR #144
 - ✅ ปิด PR #123 ที่ซ้ำกับ PR #105
 - ✅ ย้าย Member icon ทุก surface ไป renderer กลาง
 - ✅ ปิด category navigation ซ้ำ
@@ -119,9 +127,13 @@ Merged delivery:
 - ✅ ปิด Admin settings overlap และ ownership audit
 - ✅ ปิด Next.js/PostCSS security advisories
 - ✅ ปิด Game API lazy-image fallback regression
-- ✅ รัน repository-wide CI หลัง merge และยืนยัน deployment ทั้งสาม service
+- ✅ ปิด Login/Register public production visual acceptance บน Mobile/Desktop
+- ✅ ปิดปัญหาข้อความอังกฤษปนในหน้า Auth ภาษาไทย
+- ✅ ปิดปัญหาชื่อแบรนด์ถูกตัดบน Auth มือถือ
+- ✅ ปิด Admin safe-error empty fallback ที่ค้นพบระหว่าง full CI
+- ✅ รัน repository-wide CI และยืนยัน Member deployment หลัง merge
 
-## ชุดตรวจที่ผ่านบน PR #139
+## ชุดตรวจที่ผ่านบน PR #144
 
 - ✅ Admin Verification & Bundle
 - ✅ P5 Web Unit Tests
@@ -130,15 +142,13 @@ Merged delivery:
 - ✅ Quality Gate
 - ✅ R-013 Visual Regression
 - ✅ Architecture Contracts
-- ✅ Game API Verification
-- ✅ KYC Browser Regression
+- ✅ Member Production Acceptance
 - ✅ P5 Security Audit
 - ✅ Full-System Automated Tests
 - ✅ P1-P4 Repository Verification
 - ✅ R005 Shared API Client
 - ✅ R012 Frontend Architecture
 - ✅ R-006 Quality Baseline
-- ✅ R-010 EXPLAIN ANALYZE
 - ✅ R-009 Critical Repository Ports
 - ✅ R-009 Withdrawal Completion Closure
 
