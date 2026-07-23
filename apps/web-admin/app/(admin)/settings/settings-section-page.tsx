@@ -1,10 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage, AdminStack, AdminToolbar } from '../_components/admin-ui';
+import { useAdminSettingsForm } from './use-admin-settings-form';
 
 type FieldType = 'text' | 'textarea' | 'checkbox' | 'color' | 'date';
 type FieldConfig = {
@@ -39,70 +40,27 @@ const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 export default function SettingsSectionPage({ group, title, description, fields, preview = 'default', defaults }: Props) {
-  const [form, setForm] = useState<SettingsRecord>({});
-  const [initialForm, setInitialForm] = useState<SettingsRecord>({});
-  const [message, setMessage] = useState('');
-  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const resolvedDefaults = defaults ?? EMPTY_DEFAULTS;
-  const isDirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(initialForm), [form, initialForm]);
+  const {
+    form,
+    message,
+    saving,
+    isDirty,
+    setForm,
+    setMessage,
+    save,
+    reset,
+    update,
+  } = useAdminSettingsForm<SettingsRecord>({
+    endpoint: `/admin/settings/${group}`,
+    defaults: resolvedDefaults,
+    loadingMessage: 'กำลังโหลดการตั้งค่า...',
+  });
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadSettings() {
-      setMessage('กำลังโหลดการตั้งค่า...');
-      try {
-        const res = await adminApiFetch(`/admin/settings/${group}`);
-        const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(data?.message ?? `โหลด settings ไม่สำเร็จ (${res.status})`);
-        if (!cancelled) {
-          const settings = { ...resolvedDefaults, ...(data?.settings ?? {}) };
-          setForm(settings);
-          setInitialForm(settings);
-          setMessage('');
-        }
-      } catch (error) {
-        if (!cancelled) setMessage(error instanceof Error ? error.message : 'โหลด settings ไม่สำเร็จ');
-      }
-    }
-
-    void loadSettings();
-    return () => { cancelled = true; };
-  }, [group, resolvedDefaults]);
-
-  useEffect(() => {
-    if (!isDirty) return;
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = '';
-    };
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, [isDirty]);
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage('กำลังบันทึก...');
-
-    try {
-      const res = await adminApiFetch(`/admin/settings/${group}`, {
-        method: 'PUT',
-        body: JSON.stringify(form),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        setMessage(data?.message ?? `บันทึกไม่สำเร็จ (${res.status})`);
-        return;
-      }
-      setInitialForm(form);
-      setMessage(data?.requiresDualApproval ? 'บันทึกแล้ว แต่รายการเสี่ยงควรเข้าคิว Dual Approval' : 'บันทึกสำเร็จ');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'บันทึกไม่สำเร็จ');
-    }
-  }
-
-  function update(key: string, value: string | boolean) {
-    setForm((current) => ({ ...current, [key]: value }));
+    void save();
   }
 
   async function uploadAsset(field: FieldConfig, file: File) {
@@ -174,6 +132,8 @@ export default function SettingsSectionPage({ group, title, description, fields,
     setMessage(`คืนค่า ${field.label} แล้ว กด Save Changes เพื่อบันทึก`);
   }
 
+  const busy = saving || uploadingKey !== null;
+
   return (
     <AdminPage eyebrow="Settings" title={title} description={description} actions={<a href="/settings">← Settings</a>}>
       {message && <AdminNotice>{message}</AdminNotice>}
@@ -194,8 +154,8 @@ export default function SettingsSectionPage({ group, title, description, fields,
                   onRestore={() => restoreAsset(field)}
                 />
               ))}
-              <AdminButton type="submit" disabled={uploadingKey !== null}>Save Changes</AdminButton>
-              <AdminButton type="button" tone="secondary" disabled={!isDirty || uploadingKey !== null} onClick={() => { setForm(initialForm); setMessage('คืนค่าล่าสุดจากระบบแล้ว'); }}>Reset</AdminButton>
+              <AdminButton type="submit" disabled={busy}>{saving ? 'กำลังบันทึก...' : 'Save Changes'}</AdminButton>
+              <AdminButton type="button" tone="secondary" disabled={!isDirty || busy} onClick={reset}>Reset</AdminButton>
             </AdminToolbar>
           </form>
         </AdminCard>
