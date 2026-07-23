@@ -102,6 +102,15 @@ test('full-page branding preview supports desktop tablet and mobile contracts', 
   assert.match(previewComponentSource, /aria-label=["']Preview viewport["']/);
 });
 
+test('preview ownership remains limited to inline form previews and one full-page Member preview', () => {
+  assert.match(previewPageSource, /data-preview-scope=["']full-page["']/);
+  assert.match(previewPageSource, /AdminLinkButton/);
+  assert.doesNotMatch(settingsSectionSource, /BrandingMemberPreview/);
+  assert.doesNotMatch(websiteSource, /BrandingMemberPreview/);
+  assert.equal((workflowPanelSource.match(/\/settings\/branding\/preview/g) ?? []).length, 1);
+  assert.equal((previewPageSource.match(/data-preview-scope=["']full-page["']/g) ?? []).length, 1);
+});
+
 test('website settings retain Member-facing content keys and the existing API contract', () => {
   assert.match(websiteSource, /useAdminSettingsForm<WebsiteSettings>/);
   assert.match(websiteSource, new RegExp(`endpoint:\\s*["']${settingsEndpoint}["']`));
