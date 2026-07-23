@@ -1,46 +1,31 @@
 # Admin Modernization — Source Audit Corrections
 
-> ตรวจจาก source บน `main` วันที่ 2026-07-24
+> ตรวจจาก source บน `main` และ browser evidence ล่าสุดวันที่ 2026-07-24
 >
-> ไฟล์นี้เป็น correction layer สำหรับ `docs/admin-modernization-chat-worklist.md`
-> จนกว่าจะรวมสถานะกลับเข้า canonical worklist แบบเต็มไฟล์
+> ไฟล์นี้เป็น correction layer ของ `docs/admin-modernization-chat-worklist.md`
 >
-> หลักเกณฑ์: `[x]` มี implementation ใน source จริง · `[~]` ทำบางส่วนแต่ไม่ครบข้อความของงาน · `[ ]` ยังไม่พบ implementation ตาม contract
+> `[x]` มี implementation/evidence จริง · `[~]` ทำบางส่วน · `[ ]` ยังไม่ครบ contract
 
-## 1. ช่อง `[ ]` ที่ทำแล้วจริง
+## 1. สถานะที่เอกสารเดิมตาม source ไม่ทัน
 
 ### `/dashboard`
 
 - [x] เรียง System status → Urgent queue → KPI → Risk → Finance → Activity
-  - Source: `apps/web-admin/app/(admin)/dashboard/page.tsx`
-  - Operational queue อยู่ก่อน Activity และลำดับหลักตาม contract ครบ
-- [x] ลด KPI/กราฟซ้ำ
-  - ลบ Finance flow แล้ว เก็บ Finance comparison เป็นกราฟการเงินหลัก
+- [x] ลด KPI/กราฟซ้ำ เหลือ Finance comparison เป็นกราฟหลัก
 
 ### `/operations`
 
 - [x] งานเร่งด่วนก่อน
-  - มี priority score และ sort งานที่มีจำนวนค้างก่อน
-- [x] SLA/เวลาค้าง
-  - ดึงข้อมูลจาก `/admin/reports/queue-aging`
-  - แสดงเวลาค้างสูงสุดของคิวฝากและถอนใน KPI, queue row และ detail drawer
-  - สีสถานะใช้เกณฑ์ต่ำกว่า 15 นาที / 15 นาที / 60 นาที
-  - Queue-aging เป็นข้อมูลเสริม หาก endpoint นี้ล้ม Operations หลักยังใช้งานได้
-  - Implementation: `f385eac19961df7fe5776fedb80b6c9b53874aee`
-  - Type fix: `3ed63bd81af100c61a9f8164881a669dadcc787a`
-  - Railway deploy: API, Member และ Admin ผ่าน
-- [x] Priority filter
-  - รองรับ `all`, `critical`, `member`
-- [x] Action drawer ต่อรายการ
-  - มี task detail dialog/drawer และลิงก์เข้าคิวจริง
+- [x] SLA/เวลาค้างจาก `/admin/reports/queue-aging`
+- [x] Priority filter: `all`, `critical`, `member`
+- [x] Action drawer ต่อรายการผ่าน shared `AdminDrawer`
 
 ### `/wallet-ledgers`
 
 - [x] Date filter
-- [x] Type filter แยกเฉพาะ
+- [x] Type filter
 - [x] Export CSV
 - [ ] Server-side pagination
-  - ปัจจุบันโหลด `/admin/money-ops/ledger?take=100` แล้วกรองฝั่ง browser
 
 ### `/wallet-statement`
 
@@ -48,31 +33,25 @@
 - [x] Running balance
 - [x] Grouping ตามวัน
 - [x] Export CSV/PDF
-- [x] Transaction detail drawer
+- [x] Transaction detail ผ่าน shared `AdminDrawer`
 
 ### `/wallet-analytics`
 
-- [x] ช่วงเวลา 7/30/90 วัน
-  - Source รองรับ 7/14/30/90 วัน
-- [x] Line/bar chart
-  - ใช้ bar chart ของ net flow รายวัน
+- [x] ช่วงเวลา 7/14/30/90 วัน
+- [x] Bar chart
 - [x] Empty state
-- [~] Tooltip/legend
-  - มี tooltip ผ่าน `title` แต่ยังไม่มี legend contract ชัดเจน
-- [ ] ลดความสูงกราฟ
-  - ต้องยืนยันจาก CSS/visual evidence เพิ่ม
+- [~] Tooltip มีผ่าน `title` แต่ legend contract ยังไม่ชัด
+- [ ] ยืนยันความสูงกราฟจาก visual evidence เพิ่ม
 
 ### `/reports`
 
-- [~] Date range picker กลางทั้งระบบ
-  - หน้า Reports มี date range picker แล้ว แต่ยังไม่ใช่ shared contract ที่ทุก route ใช้ร่วมกัน
+- [~] มี date range แต่ยังไม่ใช่ shared contract ทุก route
 - [ ] Comparison period
 - [ ] ลดความยาวหน้า
 
 ### `/support-center`
 
-- [~] Ticket priority
-  - มี severity badge/tone และ SLA ตาม severity แต่ยังไม่มี explicit priority ordering contract
+- [~] มี severity/SLA แต่ explicit priority ordering ยังไม่ครบ
 - [x] SLA
 - [x] Canned response
 - [x] Conversation timeline
@@ -80,232 +59,158 @@
 
 ### `/audit-risk`
 
-- [x] Event timeline
-- [x] Risk type filter
-- [x] Before/after
-- [x] Export
-- [x] Related record
+- [x] Timeline, filter, before/after, export และ related record
+- [x] Shared detail drawer
+- [x] Route/API permission ตรงกันที่ `risk.view`
 
 ### `/game-sessions`
 
-- [x] Session detail drawer
-  - มี session detail, timeline และ transfers
+- [x] Session detail, timeline และ transfers ผ่าน shared drawer
 
 ### `/admin-roles`
 
 - [x] Search
 - [x] Accordion
-- [x] Permission preview
+- [x] Permission preview ผ่าน shared drawer
 - [ ] Editor/save workflow
-  - หน้าปัจจุบันเป็น read-only
 
 ### `/anti-bot`
 
-- [x] Setup wizard แบบ step
-- [x] Client-side block เมื่อ key ไม่ครบ
+- [x] Step setup wizard
+- [x] Block เมื่อ key/config ไม่ครบ
 - [ ] Test/Production mode
 
 ### `/content-center`
 
-- [~] Raw JSON ใน Advanced mode
-  - มี `Advanced: Preview JSON` แบบ read-only แต่ยังแก้ JSON โดยตรงไม่ได้
-- [ ] Draft/Published lifecycle ชัดเจน
-- [x] Unsaved changes warning
-  - ใช้ shared dirty-state/navigation guard และ saved snapshot หลังโหลดหรือบันทึกสำเร็จ
+- [~] Advanced JSON เป็น preview แบบ read-only
+- [ ] Draft/Published lifecycle
+- [x] Shared unsaved-change guard
 
-## 2. ช่อง `[x]` ที่ติ๊กเกิน implementation จริง
-
-### `/promotion-center`
+## 2. Promotion Center ที่เอกสารเดิมติ๊กเกิน source
 
 - [ ] Campaign/Banner/Bonus/Coupon/Reward tabs
-  - Source ปัจจุบันเป็น Campaign editor หน้าเดียว ไม่มี tabs ห้าหมวด
 - [ ] Draft/Published/Archived lifecycle
-  - Source ใช้ `enabled` toggle ไม่มี lifecycle ดังกล่าว
-- [~] Search/priority/banner preview/validation
-  - มี priority, member preview และ validation แต่ยังไม่มี search
+- [~] มี priority, member preview และ validation แต่ยังไม่มี search
 - [ ] Bulk archive พร้อม confirmation
-  - ไม่พบ bulk archive workflow
-- [x] Unsaved changes warning
-  - ใช้ shared dirty-state/navigation guard และ saved snapshot หลังโหลดหรือบันทึกสำเร็จ
+- [x] Shared unsaved-change guard
 
-## 3. งานที่ตรวจแล้วว่ายังค้างจริง
+## 3. งาน route ที่ยังค้างจริง
 
-- `/topups`: Sticky filter, Proof drawer
-- `/withdrawals`: Proof drawer เฉพาะทาง, queue priority/SLA ordering
+- `/topups`: Sticky filter และ Proof drawer
+- `/withdrawals`: Proof drawer และ queue priority/SLA ordering
 - `/wallet-ledgers`: Server-side pagination
 - `/wallet-analytics`: chart height และ legend contract
 - `/reconciliation-center`: Export รายการผิดปกติ
-- `/reports`: shared date-range contract, comparison period, ลดความยาวหน้า
-- `/exports`: file type/date-range contract และ row count ก่อนดาวน์โหลด
-- `/risk-alerts`: Critical-first ordering contract
+- `/reports`: shared date range, comparison period และลดความยาวหน้า
+- `/exports`: file type/date range และ row count ก่อนดาวน์โหลด
+- `/risk-alerts`: Critical-first ordering
 - `/game-providers`: Table contract และ Provider detail drawer
-- `/webhook-logs`: Replay permission, server-side pagination, provider payload redaction
-- `/promotion-operations`: readiness checklist, request priority, member preview
-- `/promotion-center`: tabs/lifecycle/search/bulk archive
+- `/webhook-logs`: Replay endpoint/workflow, server pagination และ payload redaction
+- `/promotion-operations`: readiness checklist, request priority และ member preview
+- `/promotion-center`: tabs, lifecycle, search และ bulk archive
 - `/content-center`: lifecycle และ editable raw JSON
 - `/admin-roles`: editor/save workflow
-- `/audit`: permission-gated export และ field-level masking
+- `/audit`: field-level masking; permission-gated export ทำแล้ว
 - `/anti-bot`: Test/Production mode
 - `/security`: current-account login event history
 
-## 4. งานซ้ำที่ต้องรวมก่อนพัฒนาต่อ
+## 4. งานซ้ำเชิงระบบ
 
 ### D-01 — Bulk queue review
 
-ลิสเดิมนับ Bulk review แยกใน `/topups` และ `/withdrawals` แต่มี `/bulk-queue-operations` รองรับฝาก/ถอนอยู่แล้ว
-
-- [x] เชื่อม entry point จาก Top-ups และ Withdrawals ไป Bulk Queue เดิม พร้อมส่งชนิดคิว/ตัวกรองเริ่มต้น
-  - `/topups` ส่ง `?kind=topups`
-  - `/withdrawals` ส่ง `?kind=withdrawals`
-  - Bulk Queue อ่าน query หลัง mount ก่อนโหลดข้อมูล จึงไม่เกิด hydration mismatch
-  - สลับชนิดคิวแล้ว reset action เป็น `claim` ป้องกัน action เก่าค้างผิดประเภท
-  - Bulk route: `93685fcf5335ad13f384b2dc30f86647e9be0b65`
-  - Top-ups entry: `750e6f871b59c47aa0e8edc648050c1c87f654f7`
-  - Withdrawals entry: `a7a522b8c4b4f9c59f5bf342ebe5cf7876809463`
-  - Railway deploy: API, Member และ Admin ผ่าน
-
-ห้ามสร้าง batch workflow ใหม่ในสองหน้า
+- [x] Top-ups และ Withdrawals เชื่อมเข้า Bulk Queue เดิมพร้อม `kind`
+  - Bulk: `93685fcf5335ad13f384b2dc30f86647e9be0b65`
+  - Entries: `750e6f871b59c47aa0e8edc648050c1c87f654f7`, `a7a522b8c4b4f9c59f5bf342ebe5cf7876809463`
 
 ### D-02 — Finance queue contract
 
-`/topups` และ `/withdrawals` เคยมีโครงสร้าง filter, pagination, loading/empty และ evidence preview ซ้ำกัน
+- [x] Shared frame/filter/pager/evidence และ migrate ฝาก/ถอน
+  - `apps/web-admin/app/(admin)/_components/admin-finance-queue.tsx`
 
-- [x] สร้าง shared queue shell/filter/pager/evidence contract แล้ว migrate สองหน้า
-  - Shared component: `apps/web-admin/app/(admin)/_components/admin-finance-queue.tsx`
-  - Shared frame คุม metric grid, toolbar, notice, loading, empty และ content stack
-  - Shared toolbar คุม status options, page boundary และ disabled state
-  - Shared evidence ใช้ preview contract และ CSS class เดียวกัน
-  - Workflow เฉพาะฝาก/ถอน, claim/release, note และ confirmation ยังแยกตามธุรกิจเดิม
-  - Shared contract: `399d3e2e3a5f8824d1c17b202a5a47b671851cd6`
-  - Top-ups migration: `86b37afa9875b4cb60c56257d5a4ea759240dff1`
-  - Withdrawals migration: `6c012c9d3e013255a0960c29cffeaf65215114df`
-  - Optional evidence type fix: `63a6943a19c5820e64a2a004a802c79aecf76f6a`
-  - Railway deploy: API, Member และ Admin ผ่าน
+### D-03 — Unsaved changes/save state
 
-### D-03 — Unsaved changes และ save state
-
-เคยแยก logic ใน Promotion Center, Content Center และ Settings
-
-- [x] Shared dirty-state hook + navigation guard + save-state contract
-  - Shared component: `apps/web-admin/app/(admin)/_components/admin-unsaved-changes.tsx`
-  - Save state: `saved`, `dirty`, `saving`
-  - ป้องกัน reload/ปิดแท็บด้วย `beforeunload`
-  - ป้องกันคลิกลิงก์ออกจากหน้า Admin และยืนยันเพียงครั้งเดียว
-  - Promotion/Content มี saved snapshot หลังโหลดและหลัง save สำเร็จ
-  - Refresh ของ Promotion/Content ถามก่อนทับค่าที่แก้ค้าง
-  - Settings ทุกหมวดใช้ guard ผ่าน `useAdminSettingsForm`
-  - Shared guard: `1cf282479b899410ac7cc7df720337ba8688c28a`
-  - Settings migration: `ffdd71ca2d51609e6a87686245319c0a1a6e8b4b`
-  - Promotion migration: `9bf59366e484d870dbdcfd4ee7380695ce6c78e9`
-  - Content migration: `21b962296b6c7e0f1b2378ef259c7adb3a4a8a9e`
-  - Duplicate prompt fix: `9ca792e4c3e042030691262b3cffdf0409d0a56a`
-  - Railway deploy: API, Member และ Admin ผ่าน
+- [x] Shared dirty-state, navigation guard และ save state
+  - `apps/web-admin/app/(admin)/_components/admin-unsaved-changes.tsx`
+  - ใช้ใน Settings, Promotion และ Content
 
 ### D-04 — Safe error contract
 
-เคยซ้ำใน Phase 1, route รายหน้า และ Definition of Done
-
-- [x] Safe-error mapper กลาง + route audit matrix
+- [x] Safe-error mapper และ route audit matrix
   - Mapper: `apps/web-admin/app/(admin)/_components/admin-safe-error.ts`
-  - Global boundary: `apps/web-admin/app/admin-api.ts`
-  - Route matrix: `docs/admin-safe-error-audit.md`
-  - ทุก non-2xx response ที่ผ่าน `adminApiFetch` ถูก sanitize ก่อน route อ่าน payload
-  - ยอมให้เฉพาะข้อความธุรกิจสั้นที่ผ่าน pattern guard
-  - Known code/status mapping รองรับไทยและอังกฤษ
-  - ตัด top-level `stack`, `trace`, `traceback`, `debug`, `exception`, `cause`, `query`, `sql`
-  - Login ที่ใช้ API client ตรงแสดงเฉพาะ generic local copy
-  - Token refresh failure ไม่แสดง payload ต่อผู้ใช้
-  - Mapper: `5414b660aacbcb7d1047cc1f01bbbfae6ab7fd04`
-  - Global sanitization: `9bbdebd3bcfa2224c1438fc08ee48018d9e269c8`
-  - Type hardening: `ce81b0615808a3e6b1307f1af19a906f850e358b`
-  - Header normalization: `ffc68414a1487a42078b2feb3b02001011b9af3e`
-  - Audit matrix: `a80cd491b45cf33311e76b10957f24538ec1f2c1`
-  - Regression spec added: `9bce7e8902d2bd9006e3607884c5a9f8bd84957b`
-  - ยังไม่อ้างว่า regression spec ผ่าน เพราะ Railway build ไม่ได้รัน `pnpm test`
-  - Runtime code Railway deploy: API, Member และ Admin ผ่าน
+  - Matrix: `docs/admin-safe-error-audit.md`
 
-### D-05 — Confirmation และ mutation guard
-
-เคยซ้ำใน finance, security, provider, promotion, bonus, affiliate และ admin accounts
+### D-05 — Confirmation/mutation guard
 
 - [x] Shared confirmation contract
-  - ใช้ `AdminConfirmDialog` เป็น dialog กลางสำหรับงานที่มีผลจริง
-  - Top-ups และ Withdrawals ใช้กับ approve/credit/settle/reject
-  - Bulk Queue ใช้ typed phrase + final confirmation dialog ก่อนส่ง batch
-  - Dialog มี focus trap, Escape/backdrop cancel และ busy lock
-- [x] Shared mutation/busy/idempotency guard
-  - Global boundary อยู่ใน `apps/web-admin/app/admin-api.ts`
-  - ครอบคลุม `POST`, `PUT`, `PATCH`, `DELETE` ที่ผ่าน `adminApiFetch`
-  - เพิ่ม `Idempotency-Key` อัตโนมัติและใช้ key เดิมเมื่อ retry หลัง refresh token
-  - คำขอ method/path/body-hash เดียวกันที่ยังทำงานอยู่ใช้ network result เดียวกัน
-  - Response ถูก snapshot/replay เพื่อให้ caller ซ้ำอ่าน body ได้แยกกัน
-  - รองรับ bodyless status 204/205/304
-  - Body ถูก hash ก่อนใช้เป็น in-memory signature จึงไม่เก็บ reason/2FA ดิบ
-  - Shared UI hook: `apps/web-admin/app/(admin)/_components/admin-mutation-guard.tsx`
-  - Bulk Action migrate มาใช้ shared busy hook แล้ว
-  - Top-ups/Withdrawals ยังมี item-level busy state และได้รับ global request guard เพิ่มอีกชั้น
-  - Audit matrix: `docs/admin-mutation-guard-audit.md`
-  - Global mutation boundary: `82ae60347009bff836c8ff69b1e58abb27155107`
-  - Shared busy hook: `7a06325793df8494030a2a36c98e008968fa7d32`
-  - Bulk confirmation/busy migration: `2642396018c32b40fcaee05b81eeb4321ecd1ccb`
-  - Body hash/no-content hardening: `0434a5e3b4ab1d1716b5e5601c9cfdca08e85316`
-  - Regression spec added: `56ca3d0fdf480255b262fb005ad92bcd5624ced9`
-  - Audit matrix: `494cf67dd1ee8625beefb4984a99f5f7ac70b1f7`
-  - Client dedupe ไม่ใช่ cross-tab/cross-device guarantee และ server-side replay ต้องอาศัย endpoint รองรับ header
-  - ยังไม่อ้างว่า regression spec ผ่าน เพราะ Railway build ไม่ได้รัน `pnpm test`
-  - Railway deploy: API, Member และ Admin ผ่าน
+- [x] Shared busy/idempotency/in-flight dedupe boundary
+  - `apps/web-admin/app/(admin)/_components/admin-mutation-guard.tsx`
+  - `apps/web-admin/app/admin-api.ts`
 
 ### D-06 — Drawer/focus contract
 
-ซ้ำใน proof, KYC, promotion claim, provider, session, audit และ admin detail
-
-- [ ] Shared Drawer primitive + focus/escape/backdrop/mobile contract
-- [ ] Route adoption matrix
+- [x] Shared portal/focus/Escape/backdrop/scroll/mobile drawer
+- [x] Adoption matrix
+  - `docs/admin-drawer-adoption.md`
+  - Adopted: Operations, Wallet Statement, Game Sessions, Audit Risk, Admin Roles
 
 ### D-07 — Permission gating
 
-ซ้ำใน dashboard, webhook replay, audit export, invitations และ global navigation
-
-- [ ] UI/API permission matrix กลาง
+- [x] Shared UI/API permission matrix และ action/API alignment
+  - Contract: `apps/web-admin/app/(admin)/_components/admin-permission-contract.ts`
+  - Gate: `apps/web-admin/app/(admin)/_components/admin-permissions.tsx`
+  - Matrix: `docs/admin-permission-matrix.md`
+  - Invitation Role API, Audit export, Audit Risk และ Webhook navigation aligned
+  - Webhook replay ยังไม่มีฟีเจอร์ จึงไม่แสดงปุ่ม
 
 ### D-08 — Responsive/mobile verification
 
-ซ้ำใน Phase 0, route ต่าง ๆ และ Definition of Done
-
-- [ ] Route × role × viewport regression matrix
+- [x] Route × Role × Viewport regression matrix พร้อม browser evidence
+  - Config: `playwright.admin-matrix.config.ts`
+  - Suite: `tests/admin-browser-matrix/admin-route-role-viewport.spec.ts`
+  - Workflow: `.github/workflows/admin-browser-regression-matrix.yml`
+  - Matrix: `docs/admin-browser-regression-matrix.md`
+  - Roles: Owner, Finance, Risk, Support, Read-only
+  - Viewports: 1440×900, 834×1112, 390×844
+  - Routes: 9
+  - Browser checks: 135
+  - Permission mismatches: 0
+  - Runtime/critical network issues: 0
+  - Maximum horizontal overflow: 0 px
+  - Owner screenshots: 27
+  - Workflow run: `30036250614`
+  - Job: `89304839529`
+  - Artifact: `8575441418`
+  - Verification PR #148 ปิดโดยไม่ merge marker file
 
 ### D-09 — Payload redaction
-
-ซ้ำใน Game Transfers, Webhook Logs, error tracking และ Definition of Done
 
 - [ ] Redaction boundary กลาง + provider fixtures/tests
 
 ### D-10 — Server table/filter/pagination
 
-ซ้ำใน Top-ups, Withdrawals, Game Providers, Wallet Ledgers, Webhook Logs และ Audit
-
 - [ ] Shared server-table query/result contract
 
 ## 5. กติกาป้องกันทำซ้ำ
 
-1. ก่อนเริ่ม route task ต้องตรวจ correction layer นี้ก่อน
-2. งานที่อยู่ใน D-01 ถึง D-10 ให้แก้ shared contract ก่อน route adoption
-3. ห้ามสร้าง component/workflow ใหม่ ถ้ามี implementation เดิมที่ทำหน้าที่เดียวกัน
-4. `[x]` ต้องระบุ source path หรือ commit ที่ตรวจได้
-5. งาน browser/focus/responsive ต้องมี evidence ก่อนเปลี่ยน `[~]` เป็น `[x]`
+1. ตรวจ correction layer นี้ก่อนเริ่ม route task
+2. งาน D-01 ถึง D-10 ให้แก้ shared contract ก่อน route adoption
+3. ห้ามสร้าง component/workflow ใหม่ หากของเดิมทำหน้าที่เดียวกัน
+4. `[x]` ต้องมี source path, commit หรือ browser evidence
+5. Browser/focus/responsive ต้องมี workflow artifact ไม่ใช้ build status แทน browser test
 
-## 6. ผลการตรวจและการทำงานรอบนี้
+## 6. สรุป
 
-- ช่อง `[ ]` เดิมที่มี implementation จริงและยืนยันเป็น `[x]`: 32 งาน
+- ช่อง `[ ]` เดิมที่ source ยืนยันเป็น `[x]`: 32 งาน
 - ช่อง `[ ]` เดิมที่ควรเป็น `[~]`: 4 งาน
-- ช่อง `[x]` ที่ต้องลดสถานะใน Promotion Center: 4 งาน
+- ช่อง `[x]` เดิมที่ลดสถานะใน Promotion Center: 4 งาน
 - กลุ่มงานซ้ำเชิงระบบ: 10 กลุ่ม
-- งานใหม่ที่ปิดหลัง audit: 6 งาน
-  1. `/operations` SLA/เวลาค้าง
-  2. D-01 เชื่อม Top-ups/Withdrawals เข้าสู่ Bulk Queue เดิม
-  3. D-02 Shared finance queue shell/filter/pager/evidence contract
-  4. D-03 Shared unsaved changes/navigation/save-state contract
-  5. D-04 Shared safe-error mapper/global boundary/route audit matrix
-  6. D-05 Shared confirmation/mutation/busy/idempotency contract
-
-ตัวเลขนี้นับเฉพาะหัวข้อที่เปิด source ตรวจแล้ว ไม่รวมการคาดเดาจากชื่อ route หรือเอกสาร audit เดิม
+- งานใหม่ที่ปิดหลัง audit: 9 งาน
+  1. Operations SLA/เวลาค้าง
+  2. D-01 Bulk Queue entry points
+  3. D-02 Shared finance queue contract
+  4. D-03 Shared unsaved-change/save-state contract
+  5. D-04 Shared safe-error contract
+  6. D-05 Shared confirmation/mutation guard
+  7. D-06 Shared drawer/focus contract
+  8. D-07 Shared UI/API permission matrix
+  9. D-08 Route × Role × Viewport browser regression matrix

@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { ADMIN_ACTION_PERMISSIONS } from '../_components/admin-permission-contract';
+import { AdminPermissionGate } from '../_components/admin-permissions';
 import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminNotice, AdminPage, AdminSectionRow, AdminStack } from '../_components/admin-ui';
 import InviteAdminPanel from '../access/invite-admin-panel';
 
@@ -26,12 +28,20 @@ export default function AdminInvitationsPage() {
     setLoading(true);
     setMessage('');
     try {
-      const [overviewRes, invitationsRes] = await Promise.all([adminApiFetch('/admin/access/overview'), adminApiFetch('/admin/access/invitations')]);
-      const [overview, invitations] = await Promise.all([overviewRes.json().catch(() => null), invitationsRes.json().catch(() => null)]);
-      if (!overviewRes.ok || !invitationsRes.ok) throw new Error('load');
-      setRoles(Array.isArray(overview?.roles) ? overview.roles : []);
+      const [rolesRes, invitationsRes] = await Promise.all([
+        adminApiFetch('/admin/access/invitations/roles'),
+        adminApiFetch('/admin/access/invitations'),
+      ]);
+      const [rolesPayload, invitations] = await Promise.all([
+        rolesRes.json().catch(() => null),
+        invitationsRes.json().catch(() => null),
+      ]);
+      if (!rolesRes.ok || !invitationsRes.ok) throw new Error('load');
+      setRoles(Array.isArray(rolesPayload?.items) ? rolesPayload.items : []);
       setItems(Array.isArray(invitations?.items) ? invitations.items : []);
     } catch {
+      setRoles([]);
+      setItems([]);
       setMessage('โหลดคำเชิญไม่สำเร็จ กรุณาลองใหม่');
     } finally {
       setLoading(false);
@@ -76,7 +86,7 @@ export default function AdminInvitationsPage() {
     <InviteAdminPanel roles={roles} onCreated={load} />
     {latestLink && <AdminCard title="ลิงก์ล่าสุด" description="แสดงเพียงครั้งเดียว กรุณาคัดลอกทันที"><textarea readOnly value={latestLink} rows={3} style={linkStyle} /><div style={{ marginTop: 10 }}><AdminButton onClick={copyLatestLink}>คัดลอกลิงก์</AdminButton></div></AdminCard>}
     <AdminCard title="รายการคำเชิญ" description={`${normalizedItems.length} รายการล่าสุด`}>
-      <AdminStack>{normalizedItems.map((item) => <AdminSectionRow key={item.adminUserId}><div style={itemStyle}><div style={badgeStyle}><AdminBadge tone={statusTone(item.invitationStatus)}>{statusLabel(item.invitationStatus)}</AdminBadge><AdminBadge tone={item.accountStatus === 'ACTIVE' ? 'success' : 'neutral'}>{accountStatusLabel(item.accountStatus)}</AdminBadge>{item.protected && <AdminBadge tone="danger">PROTECTED</AdminBadge>}</div><strong>{item.email}</strong><span>{item.roles.map((role) => role.code).join(', ') || 'ไม่มี Role'}</span><small>หมดอายุ: {new Date(item.expiresAt).toLocaleString('th-TH')}</small></div>{!item.protected && item.accountStatus === 'LOCKED' && <div style={actionStyle}><AdminButton disabled={Boolean(busyKey)} onClick={() => setPendingAction({ type: 'reissue', item })}>ออกลิงก์ใหม่</AdminButton><AdminButton tone="danger" disabled={Boolean(busyKey)} onClick={() => setPendingAction({ type: 'revoke', item })}>ยกเลิก</AdminButton></div>}</AdminSectionRow>)}{!loading && normalizedItems.length === 0 && <AdminEmpty>ยังไม่มีคำเชิญ</AdminEmpty>}</AdminStack>
+      <AdminStack>{normalizedItems.map((item) => <AdminSectionRow key={item.adminUserId}><div style={itemStyle}><div style={badgeStyle}><AdminBadge tone={statusTone(item.invitationStatus)}>{statusLabel(item.invitationStatus)}</AdminBadge><AdminBadge tone={item.accountStatus === 'ACTIVE' ? 'success' : 'neutral'}>{accountStatusLabel(item.accountStatus)}</AdminBadge>{item.protected && <AdminBadge tone="danger">PROTECTED</AdminBadge>}</div><strong>{item.email}</strong><span>{item.roles.map((role) => role.code).join(', ') || 'ไม่มี Role'}</span><small>หมดอายุ: {new Date(item.expiresAt).toLocaleString('th-TH')}</small></div>{!item.protected && item.accountStatus === 'LOCKED' && <AdminPermissionGate anyOf={ADMIN_ACTION_PERMISSIONS.adminInvitationManage}><div style={actionStyle}><AdminButton disabled={Boolean(busyKey)} onClick={() => setPendingAction({ type: 'reissue', item })}>ออกลิงก์ใหม่</AdminButton><AdminButton tone="danger" disabled={Boolean(busyKey)} onClick={() => setPendingAction({ type: 'revoke', item })}>ยกเลิก</AdminButton></div></AdminPermissionGate>}</AdminSectionRow>)}{!loading && normalizedItems.length === 0 && <AdminEmpty>ยังไม่มีคำเชิญ</AdminEmpty>}</AdminStack>
     </AdminCard>
     <AdminConfirmDialog open={Boolean(pendingAction)} title={pendingAction?.type === 'reissue' ? 'ออกลิงก์ใหม่' : 'ยกเลิกคำเชิญ'} description={pendingAction ? `${pendingAction.type === 'reissue' ? 'ออกลิงก์ใหม่และยกเลิกลิงก์เดิมของ' : 'ยกเลิกคำเชิญของ'} ${pendingAction.item.email}` : ''} confirmLabel={pendingAction?.type === 'reissue' ? 'ออกลิงก์ใหม่' : 'ยืนยันยกเลิก'} tone={pendingAction?.type === 'revoke' ? 'danger' : 'primary'} busy={Boolean(busyKey)} onCancel={() => setPendingAction(null)} onConfirm={() => void executeAction()} />
   </AdminPage>;

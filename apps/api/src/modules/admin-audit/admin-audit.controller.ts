@@ -9,10 +9,16 @@ import { AdminAuditService, AuditLogQuery } from './admin-audit.service';
 export class AdminAuditController {
   constructor(private readonly service: AdminAuditService) {}
 
-  @RequirePermission('admin.access.view')
+  @RequirePermission('risk.view')
   @Get('risk-summary')
   riskSummary(@Query() query: AuditLogQuery) {
     return this.service.riskSummary(query);
+  }
+
+  @RequirePermission('admin.access.manage')
+  @Get('export')
+  exportCsv(@Query() query: AuditLogQuery) {
+    return this.service.exportCsv(query);
   }
 
   @RequirePermission('admin.access.view')

@@ -13,6 +13,30 @@ const ADMIN_INVITE_TARGET_PREFIX = 'ADMIN_INVITE:';
 export class AdminInvitationAdminService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async listAssignableRoles(actorAdminId: string) {
+    const [actor, roles] = await Promise.all([
+      this.findAdminWithPermissions(actorAdminId),
+      this.prisma.role.findMany({
+        include: { permissions: { include: { permission: true } } },
+        orderBy: [{ level: 'asc' }, { code: 'asc' }],
+      }),
+    ]);
+    if (!actor) throw new ForbiddenException('Acting admin account not found');
+
+    const items = roles
+      .filter((role) => !PROTECTED_ROLE_CODES.has(role.code))
+      .filter((role) => this.canGrantRole(actor, role))
+      .map((role) => ({
+        id: role.id,
+        code: role.code,
+        name: role.name,
+        level: role.level,
+        hasWildcard: role.permissions.some((item) => item.permission.code === SUPER_PERMISSION),
+      }));
+
+    return { items };
+  }
+
   async create(actorAdminId: string, emailInput: string, roleId: string, expiresInHours = 24) {
     const email = String(emailInput ?? '').trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(email)) throw new BadRequestException('A valid email is required');
@@ -221,6 +245,18 @@ export class AdminInvitationAdminService {
 
   private permissionCodes(admin: { roles: Array<{ role: { permissions: Array<{ permission: { code: string } }> } }> }) {
     return new Set(admin.roles.flatMap((item) => item.role.permissions.map((permission) => permission.permission.code)));
+  }
+
+  private canGrantRole(
+    actor: { roles: Array<{ role: { code: string; level: number; permissions: Array<{ permission: { code: string } }> } }> },
+    role: { code: string; level: number; permissions: Array<{ permission: { code: string } }> },
+  ) {
+    try {
+      this.assertCanGrantRole(actor, role);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private assertCanGrantRole(

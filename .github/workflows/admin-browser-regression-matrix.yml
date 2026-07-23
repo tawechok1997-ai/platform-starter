@@ -1,0 +1,78 @@
+name: Admin Browser Regression Matrix
+
+on:
+  workflow_dispatch:
+    inputs:
+      admin_url:
+        description: Deployed Admin web URL
+        required: false
+        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/admin-browser-regression-matrix.yml
+      - playwright.admin-matrix.config.ts
+      - tests/admin-browser-matrix/**
+      - apps/web-admin/app/(admin)/**
+      - apps/web-admin/app/admin-api.ts
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/admin-browser-regression-matrix.yml
+      - playwright.admin-matrix.config.ts
+      - tests/admin-browser-matrix/**
+      - apps/web-admin/app/(admin)/**
+      - apps/web-admin/app/admin-api.ts
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-browser-regression-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  route-role-viewport:
+    name: Route × Role × Viewport
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ADMIN_WEB_URL: ${{ inputs.admin_url || 'https://platformweb-admin-production.up.railway.app' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Admin browser matrix
+        run: pnpm exec playwright test -c playwright.admin-matrix.config.ts
+
+      - name: Upload Admin browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-browser-matrix-${{ github.sha }}
+          path: |
+            test-results/admin-browser-matrix/**
+            playwright-report/admin-browser-matrix/**
+          if-no-files-found: error
+          retention-days: 14

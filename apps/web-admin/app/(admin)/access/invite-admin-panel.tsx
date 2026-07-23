@@ -1,7 +1,9 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { ADMIN_ACTION_PERMISSIONS } from '../_components/admin-permission-contract';
+import { AdminPermissionGate } from '../_components/admin-permissions';
 import { AdminButton, AdminCard, AdminNotice } from '../_components/admin-ui';
 
 type Role = {
@@ -10,10 +12,6 @@ type Role = {
   name: string;
   level: number;
   hasWildcard: boolean;
-};
-
-type CurrentAdmin = {
-  permissions?: string[];
 };
 
 type InvitationResult = {
@@ -27,8 +25,6 @@ type InvitationResult = {
 };
 
 export default function InviteAdminPanel({ roles, onCreated }: { roles: Role[]; onCreated: () => void | Promise<void> }) {
-  const [allowed, setAllowed] = useState(false);
-  const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState('');
   const [roleId, setRoleId] = useState('');
   const [expiresInHours, setExpiresInHours] = useState(24);
@@ -36,27 +32,7 @@ export default function InviteAdminPanel({ roles, onCreated }: { roles: Role[]; 
   const [message, setMessage] = useState('');
   const [result, setResult] = useState<InvitationResult | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    adminApiFetch('/admin/auth/me')
-      .then(async (response) => ({ response, payload: await response.json().catch(() => null) }))
-      .then(({ response, payload }) => {
-        if (!active) return;
-        const permissions = Array.isArray((payload as CurrentAdmin | null)?.permissions) ? (payload as CurrentAdmin).permissions ?? [] : [];
-        setAllowed(response.ok && (permissions.includes('*') || permissions.includes('admin.create')));
-      })
-      .catch(() => {
-        if (active) setAllowed(false);
-      })
-      .finally(() => {
-        if (active) setChecking(false);
-      });
-    return () => { active = false; };
-  }, []);
-
   const selectableRoles = useMemo(() => roles.filter((role) => !role.hasWildcard && !['owner', 'super_admin'].includes(role.code)), [roles]);
-
-  if (checking || !allowed) return null;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -105,37 +81,40 @@ export default function InviteAdminPanel({ roles, onCreated }: { roles: Role[]; 
     }
   }
 
-  return <AdminCard title="เชิญผู้ดูแลระบบ" description="สร้างบัญชีแบบล็อกและส่งลิงก์เปิดใช้งานที่ใช้ได้ครั้งเดียว">
-    {message && <AdminNotice>{message}</AdminNotice>}
-    <form onSubmit={submit} style={formStyle}>
-      <label style={fieldStyle}>อีเมลผู้รับคำเชิญ
-        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" placeholder="admin@example.com" disabled={busy} style={inputStyle} />
-      </label>
-      <label style={fieldStyle}>Role
-        <select value={roleId} onChange={(event) => setRoleId(event.target.value)} disabled={busy} style={inputStyle}>
-          <option value="">เลือก Role</option>
-          {selectableRoles.map((role) => <option key={role.id} value={role.id}>{role.name} ({role.code})</option>)}
-        </select>
-      </label>
-      <label style={fieldStyle}>อายุคำเชิญ
-        <select value={expiresInHours} onChange={(event) => setExpiresInHours(Number(event.target.value))} disabled={busy} style={inputStyle}>
-          <option value={1}>1 ชั่วโมง</option>
-          <option value={12}>12 ชั่วโมง</option>
-          <option value={24}>24 ชั่วโมง</option>
-          <option value={72}>3 วัน</option>
-          <option value={168}>7 วัน</option>
-        </select>
-      </label>
-      <div style={actionStyle}><AdminButton disabled={busy || selectableRoles.length === 0}>{busy ? 'กำลังสร้าง...' : 'สร้างคำเชิญ'}</AdminButton></div>
-    </form>
-    {result && <div style={resultStyle}>
-      <strong>{result.invitation.email}</strong>
-      <span>Role: {result.invitation.role.name}</span>
-      <span>หมดอายุ: {new Date(result.invitation.expiresAt).toLocaleString('th-TH')}</span>
-      <textarea value={invitationLink} readOnly rows={3} style={linkStyle} aria-label="Invitation link" />
-      <AdminButton onClick={copyLink}>คัดลอกลิงก์</AdminButton>
-    </div>}
-  </AdminCard>;
+  return <AdminPermissionGate anyOf={ADMIN_ACTION_PERMISSIONS.adminInvitationManage}>
+    <AdminCard title="เชิญผู้ดูแลระบบ" description="สร้างบัญชีแบบล็อกและส่งลิงก์เปิดใช้งานที่ใช้ได้ครั้งเดียว">
+      {message && <AdminNotice>{message}</AdminNotice>}
+      <form onSubmit={submit} style={formStyle}>
+        <label style={fieldStyle}>อีเมลผู้รับคำเชิญ
+          <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" placeholder="admin@example.com" disabled={busy} style={inputStyle} />
+        </label>
+        <label style={fieldStyle}>Role
+          <select value={roleId} onChange={(event) => setRoleId(event.target.value)} disabled={busy} style={inputStyle}>
+            <option value="">เลือก Role</option>
+            {selectableRoles.map((role) => <option key={role.id} value={role.id}>{role.name} ({role.code})</option>)}
+          </select>
+        </label>
+        <label style={fieldStyle}>อายุคำเชิญ
+          <select value={expiresInHours} onChange={(event) => setExpiresInHours(Number(event.target.value))} disabled={busy} style={inputStyle}>
+            <option value={1}>1 ชั่วโมง</option>
+            <option value={12}>12 ชั่วโมง</option>
+            <option value={24}>24 ชั่วโมง</option>
+            <option value={72}>3 วัน</option>
+            <option value={168}>7 วัน</option>
+          </select>
+        </label>
+        <div style={actionStyle}><AdminButton disabled={busy || selectableRoles.length === 0}>{busy ? 'กำลังสร้าง...' : 'สร้างคำเชิญ'}</AdminButton></div>
+      </form>
+      {selectableRoles.length === 0 && <AdminNotice tone="warning">ไม่มี Role ที่บัญชีนี้มีสิทธิ์มอบให้</AdminNotice>}
+      {result && <div style={resultStyle}>
+        <strong>{result.invitation.email}</strong>
+        <span>Role: {result.invitation.role.name}</span>
+        <span>หมดอายุ: {new Date(result.invitation.expiresAt).toLocaleString('th-TH')}</span>
+        <textarea value={invitationLink} readOnly rows={3} style={linkStyle} aria-label="Invitation link" />
+        <AdminButton onClick={copyLink}>คัดลอกลิงก์</AdminButton>
+      </div>}
+    </AdminCard>
+  </AdminPermissionGate>;
 }
 
 const formStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, alignItems: 'end' } as const;

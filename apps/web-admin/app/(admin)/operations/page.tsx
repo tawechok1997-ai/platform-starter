@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { AdminDrawer } from '../_components/admin-drawer';
 import { AdminActionStrip, AdminBadge, AdminButton, AdminCard, AdminCommandPanel, AdminEmpty, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../_components/admin-ui';
 import { useAdminLocale, type AdminLocale } from '../admin-locale';
 
@@ -57,7 +58,7 @@ const operationsCopy: Record<AdminLocale, OperationsCopy> = {
       transfer: { title: 'Review failed transfers', description: 'Directly affects member and provider balances', href: '/game-transfers' },
       mismatch: { title: 'Review provider mismatches', description: 'Check related snapshots and transactions', href: '/reconciliation-center' },
       risk: { title: 'Review risk cases', description: 'Prioritized by severity and SLA', href: '/risk-alerts' },
-      withdrawal: { title: 'Review withdrawals', description: 'Verify account and evidence before payment', href: '/withdrawals' },
+      withdrawal: { title: 'Review withdrawals', description: 'Verify the account and evidence before payment', href: '/withdrawals' },
       deposit: { title: 'Review deposits', description: 'Verify evidence and credit by workflow', href: '/topups' },
       webhook: { title: 'Review failed webhooks', description: 'Check logs and processing results', href: '/webhook-logs' },
       clear: { title: 'No urgent work', description: 'No queue or event needs action now', href: '/simple-game-settings' },
@@ -160,7 +161,9 @@ export default function OperationsPage() {
     </AdminGrid>
     <AdminToolbar><strong>{copy.allTools}</strong><span style={mutedStyle}>{copy.allToolsDescription}</span></AdminToolbar>
     <AdminGrid>{quickGroups.map((group) => <AdminCard key={group.title} title={group.title}><AdminStack>{group.items.map(([title, href]) => <AdminRow key={href}><strong>{title}</strong><div style={rightStyle}><AdminBadge tone={group.tone}>{group.title}</AdminBadge><AdminLinkButton href={href}>{copy.open}</AdminLinkButton></div></AdminRow>)}</AdminStack></AdminCard>)}</AdminGrid>
-    {selectedTask && <div style={drawerLayerStyle} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedTask(null); }}><aside style={drawerStyle} role="dialog" aria-modal="true" aria-label={copy.taskDetail}><AdminStack><AdminRow><div><p style={eyebrowInlineStyle}>{copy.taskDetail}</p><h2 style={drawerTitleStyle}>{selectedTask.title}</h2></div><AdminButton tone="ghost" onClick={() => setSelectedTask(null)}>{copy.close}</AdminButton></AdminRow><AdminRow><strong>{copy.priorityLabel}</strong><AdminBadge tone={selectedTask.tone}>{selectedTask.priority}</AdminBadge></AdminRow><AdminRow><strong>{copy.urgent}</strong><span>{formatNumber(selectedTask.count, locale)}</span></AdminRow>{selectedTask.ageMinutes !== undefined && <AdminRow><strong>{copy.oldestWaiting}</strong><AdminBadge tone={ageTone(selectedTask.ageMinutes)}>{formatQueueAge(selectedTask.ageMinutes, locale)}</AdminBadge></AdminRow>}<AdminRow><strong>{copy.details}</strong><span>{selectedTask.helper}</span></AdminRow><AdminLinkButton href={selectedTask.href} tone="primary">{copy.openPrimary}</AdminLinkButton></AdminStack></aside></div>}
+    <AdminDrawer open={Boolean(selectedTask)} title={selectedTask?.title ?? copy.taskDetail} description={copy.taskDetail} closeLabel={copy.close} size="compact" onClose={() => setSelectedTask(null)}>
+      {selectedTask && <AdminStack><AdminRow><strong>{copy.priorityLabel}</strong><AdminBadge tone={selectedTask.tone}>{selectedTask.priority}</AdminBadge></AdminRow><AdminRow><strong>{copy.urgent}</strong><span>{formatNumber(selectedTask.count, locale)}</span></AdminRow>{selectedTask.ageMinutes !== undefined && <AdminRow><strong>{copy.oldestWaiting}</strong><AdminBadge tone={ageTone(selectedTask.ageMinutes)}>{formatQueueAge(selectedTask.ageMinutes, locale)}</AdminBadge></AdminRow>}<AdminRow><strong>{copy.details}</strong><span>{selectedTask.helper}</span></AdminRow><AdminLinkButton href={selectedTask.href} tone="primary">{copy.openPrimary}</AdminLinkButton></AdminStack>}
+    </AdminDrawer>
   </AdminPage>;
 }
 
@@ -211,6 +214,3 @@ const rightStyle = { display: 'flex', gap: 8, alignItems: 'center', justifyConte
 const eyebrowInlineStyle = { margin: '0 0 6px', color: '#f5c542', fontSize: 12, fontWeight: 950, letterSpacing: '.12em', textTransform: 'uppercase' as const } as const;
 const commandTitleStyle = { margin: '0 0 6px', fontSize: 'clamp(24px, 4vw, 34px)', lineHeight: 1.08, fontWeight: 950, letterSpacing: -0.6 } as const;
 const filterLabelStyle = { display: 'flex', alignItems: 'center', gap: 8, color: '#cbd5e1', fontSize: 13, fontWeight: 800 } as const;
-const drawerLayerStyle = { position: 'fixed', inset: 0, zIndex: 80, display: 'flex', justifyContent: 'flex-end', background: 'rgba(2,6,23,.72)', backdropFilter: 'blur(5px)' } as const;
-const drawerStyle = { width: 'min(440px, 100%)', height: '100%', overflowY: 'auto' as const, background: '#07101f', borderLeft: '1px solid rgba(148,163,184,.22)', padding: 20, boxSizing: 'border-box' as const, boxShadow: '-20px 0 60px rgba(0,0,0,.35)' };
-const drawerTitleStyle = { margin: 0, fontSize: 24, lineHeight: 1.15 } as const;

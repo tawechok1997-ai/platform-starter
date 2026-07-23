@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { AdminAuditExportButton } from './admin-audit-export-button';
 import {
   AdminBadge,
   AdminButton,
@@ -38,6 +39,8 @@ type AuditFilters = {
   to: string;
 };
 
+type NoticeTone = 'neutral' | 'success' | 'danger';
+
 const PAGE_SIZE = 20;
 const emptyFilters: AuditFilters = { search: '', module: '', action: '', admin: '', targetId: '', from: '', to: '' };
 
@@ -49,6 +52,7 @@ export default function AdminAuditPage() {
   const [draft, setDraft] = useState<AuditFilters>(emptyFilters);
   const [applied, setApplied] = useState<AuditFilters>(emptyFilters);
   const [message, setMessage] = useState('');
+  const [messageTone, setMessageTone] = useState<NoticeTone>('neutral');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { void loadAuditLogs(page, applied); }, [page, applied]);
@@ -59,13 +63,18 @@ export default function AdminAuditPage() {
 
   async function loadAuditLogs(nextPage = page, filters = applied) {
     setLoading(true);
+    setMessageTone('neutral');
     setMessage('กำลังโหลด audit logs...');
     const params = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
     Object.entries(filters).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()); });
     const res = await adminApiFetch(`/admin/audit-logs?${params.toString()}`);
     const data = await res.json().catch(() => null);
     setLoading(false);
-    if (!res.ok) { setMessage(data?.message ?? 'โหลด audit logs ไม่สำเร็จ'); return; }
+    if (!res.ok) {
+      setMessageTone('danger');
+      setMessage(data?.message ?? 'โหลด audit logs ไม่สำเร็จ');
+      return;
+    }
     setItems(data.items ?? []);
     setTotal(Number(data.total ?? 0));
     setPageCount(Math.max(Number(data.pageCount ?? 1), 1));
@@ -83,13 +92,21 @@ export default function AdminAuditPage() {
     setApplied({ ...emptyFilters });
   }
 
+  function showExportMessage(nextMessage: string, error = false) {
+    setMessageTone(error ? 'danger' : 'success');
+    setMessage(nextMessage);
+  }
+
   return <AdminPage
     eyebrow="Security & Operations"
     title="Audit Logs"
     description="ตรวจสอบว่าใครทำอะไร เมื่อไร จากอุปกรณ์ใด และข้อมูลเปลี่ยนจากอะไรเป็นอะไร"
-    actions={<AdminButton disabled={loading} onClick={() => void loadAuditLogs(page, applied)}>รีเฟรช</AdminButton>}
+    actions={<>
+      <AdminAuditExportButton filters={applied} disabled={loading} onMessage={showExportMessage} />
+      <AdminButton disabled={loading} onClick={() => void loadAuditLogs(page, applied)}>รีเฟรช</AdminButton>
+    </>}
   >
-    {message && <AdminNotice>{message}</AdminNotice>}
+    {message && <AdminNotice tone={messageTone}>{message}</AdminNotice>}
 
     <AdminMetricGrid>
       <AdminMetric title="รายการหน้านี้" value={items.length.toLocaleString('th-TH')} helper={`${total.toLocaleString('th-TH')} รายการทั้งหมด`} />
