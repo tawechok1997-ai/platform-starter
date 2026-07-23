@@ -5,7 +5,7 @@ const colors = fs.readFileSync('packages/design-tokens/colors.css', 'utf8');
 const adminLayout = fs.readFileSync('apps/web-admin/app/layout.tsx', 'utf8');
 const memberLayout = fs.readFileSync('apps/web-member/app/layout.tsx', 'utf8');
 const memberChrome = fs.readFileSync('apps/web-member/app/member-chrome.tsx', 'utf8');
-const financeFlow = fs.readFileSync('apps/web-member/app/components/member-finance-flow.tsx', 'utf8');
+const financeFlow = fs.readFileSync('apps/web-member/src/features/finance/finance-components.tsx', 'utf8');
 const memberLogin = fs.readFileSync('apps/web-member/app/(auth)/login/page.tsx', 'utf8');
 
 function token(name) {

@@ -19,10 +19,12 @@ if (start < 0 || end < 0) {
 }
 
 const method = source.slice(start, end);
+const withdrawalLock = method.indexOf('lockWithdrawalSnapshotForUpdate(tx, id)');
+const walletLock = method.indexOf('lockWalletSnapshotForUpdateByUserId(tx, request.userId)');
 const checks = [
   ['single caller-owned Prisma transaction', /return\s+this\.prisma\.\$transaction\s*\(\s*async\s*\(tx\)/.test(method)],
-  ['withdrawal aggregate is locked before mutation', /withdrawal_requests[\s\S]*FOR\s+UPDATE/.test(method)],
-  ['wallet is locked after withdrawal aggregate', method.indexOf('FROM "withdrawal_requests"') < method.indexOf('FROM "wallets"')],
+  ['withdrawal aggregate is locked before mutation', withdrawalLock >= 0],
+  ['wallet is locked after withdrawal aggregate', withdrawalLock >= 0 && walletLock > withdrawalLock],
   ['ledger write uses transaction client', /await\s+tx\.walletLedger\.create\s*\(/.test(method)],
   ['wallet mutation uses transaction client', /await\s+tx\.wallet\.update\s*\(/.test(method)],
   ['withdrawal mutation uses transaction client', /UPDATE\s+"withdrawal_requests"/.test(method)],

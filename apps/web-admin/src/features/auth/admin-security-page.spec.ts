@@ -37,6 +37,13 @@ test('owner recovery state is permission-safe and visible', () => {
 });
 
 test('destructive actions require explicit confirmation', () => {
-  const confirmations = source.match(/window\.confirm\(/g) ?? [];
-  assert.ok(confirmations.length >= 4, 'expected confirmation guards for destructive security actions');
+  assert.match(source, /AdminConfirmDialog/);
+  assert.match(source, /PendingAction/);
+  assert.match(source, /setPendingAction/);
+  assert.match(source, /confirmPendingAction/);
+  assert.match(source, /disable-2fa/);
+  assert.match(source, /regenerate-codes/);
+  assert.match(source, /revoke-session/);
+  assert.match(source, /logout-others/);
+  assert.match(source, /logout-all/);
 });

@@ -1,6 +1,7 @@
 import type { PublicSiteSettings } from './site-settings';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 import { cmsContentSetting, defaultSettings } from './site-settings';
+import { REFERENCE_PUBLIC_SETTINGS_DEFAULTS } from './brand/reference-public-settings-defaults';
 
 export function normalizeTypedSiteSettings(settings: PublicSiteSettings): TypedPublicSiteSettings {
   const features = {
@@ -11,10 +12,22 @@ export function normalizeTypedSiteSettings(settings: PublicSiteSettings): TypedP
   const merged = {
     ...defaultSettings,
     ...settings,
-    website: { ...defaultSettings.website, ...(settings.website ?? {}) },
-    branding: { ...defaultSettings.branding, ...(settings.branding ?? {}) },
+    website: {
+      ...defaultSettings.website,
+      ...REFERENCE_PUBLIC_SETTINGS_DEFAULTS.website,
+      ...(settings.website ?? {}),
+    },
+    branding: {
+      ...defaultSettings.branding,
+      ...REFERENCE_PUBLIC_SETTINGS_DEFAULTS.branding,
+      ...(settings.branding ?? {}),
+    },
     theme: { ...defaultSettings.theme, ...(settings.theme ?? {}) },
-    icons: { ...defaultSettings.icons, ...(settings.icons ?? {}) },
+    icons: {
+      ...defaultSettings.icons,
+      ...REFERENCE_PUBLIC_SETTINGS_DEFAULTS.icons,
+      ...(settings.icons ?? {}),
+    },
     seo: { ...(defaultSettings.seo ?? {}), ...(settings.seo ?? {}) },
     contact: { ...(defaultSettings.contact ?? {}), ...(settings.contact ?? {}) },
     maintenance: { ...defaultSettings.maintenance, ...(settings.maintenance ?? {}) },

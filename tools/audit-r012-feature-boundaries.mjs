@@ -62,7 +62,7 @@ for (const symbol of ['DEPOSIT_FORM_DEFAULTS', 'validateDepositSelection', 'seri
 for (const localServerState of ['setAccounts(', 'setHistory(', 'useState<ReceivingAccount[]>', 'useState<TopUpItem[]>']) if (depositContainer.includes(localServerState)) failures.push(`web-member: deposit container must not own server state (${localServerState})`);
 
 if (!fs.existsSync(withdrawalViewPath)) failures.push('web-member: missing WithdrawalView presentation component');
-if (!withdrawalContainer.includes("import { WithdrawalView } from '../../src/features/finance'")) failures.push('web-member: withdrawal container must import WithdrawalView through finance public boundary');
+if (!(withdrawalContainer.includes("from '../../src/features/finance'") && withdrawalContainer.includes('WithdrawalView'))) failures.push('web-member: withdrawal container must import WithdrawalView through finance public boundary');
 if (!withdrawalContainer.includes('<WithdrawalView')) failures.push('web-member: withdrawal container must render WithdrawalView');
 if (withdrawalContainer.includes('member-finance-flow')) failures.push('web-member: withdrawal container must not import presentation primitives directly');
 

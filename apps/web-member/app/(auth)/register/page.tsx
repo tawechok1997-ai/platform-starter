@@ -8,7 +8,8 @@ import {
   type RegisterLocale,
   type RegisterStep,
 } from '../../../src/features/auth';
-import { PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags, textSetting } from '../../site-settings';
+import { createRegisterBrandAdapterFromSettings } from '../../components/auth/register-brand-adapter';
+import { PublicSiteSettings, defaultSettings, loadPublicSiteSettings, memberFeatureFlags } from '../../site-settings';
 import { memberApiFetch } from '../../member-api';
 
 const REFERRAL_CODE_KEY = 'member_pending_referral_code';
@@ -82,19 +83,13 @@ export default function MemberRegisterPage() {
   }, []);
 
   const t = copy[locale];
-  const siteName = textSetting(settings, 'website', 'site_name', 'Platform Starter');
-  const primaryColor = textSetting(settings, 'branding', 'primary_color', '#f5c542');
-  const backgroundColor = textSetting(settings, 'branding', 'background_color', '#080808');
-  const cardColor = textSetting(settings, 'branding', 'card_color', '#181818');
-  const textColor = textSetting(settings, 'branding', 'text_color', '#ffffff');
-  const logoUrl = textSetting(settings, 'branding', 'logo_url', '');
-  const brandMark = textSetting(settings, 'branding', 'brand_mark', siteName.slice(0, 1).toUpperCase() || 'P');
+  const registerBrand = useMemo(() => createRegisterBrandAdapterFromSettings(settings), [settings]);
+  const { siteName, logoUrl, brandMark, cssVars } = registerBrand;
   const flags = memberFeatureFlags(settings);
   const maintenanceEnabled = Boolean(settings.maintenance?.enabled || settings.maintenance?.member_enabled || settings.website?.maintenance_mode);
   const handleCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
   const handleCaptchaState = useCallback((required: boolean, ready: boolean) => { setCaptchaRequired(required); setCaptchaReady(ready); }, []);
   const disabled = !flags.registration || maintenanceEnabled || loading || (captchaRequired && !captchaReady);
-  const cssVars = useMemo(() => ({ '--color-brand': primaryColor, '--color-bg': backgroundColor, '--color-card': cardColor, '--color-text': textColor }) as React.CSSProperties, [primaryColor, backgroundColor, cardColor, textColor]);
   const passwordProgress = useMemo(() => Math.min(secret.length / 8, 1), [secret]);
 
   function changeLocale(next: RegisterLocale) { setLocale(next); window.localStorage.setItem('member_locale', next); }
@@ -169,18 +164,20 @@ export default function MemberRegisterPage() {
     }
   }
 
-  return <RegisterView
-    cssVars={cssVars} locale={locale} step={step} t={t} siteName={siteName} logoUrl={logoUrl} brandMark={brandMark}
-    banks={THAI_BANKS} username={username} phone={phone} email={email} secret={secret} referralCode={referralCode}
-    fullName={fullName} bankName={bankName} bankAccountNumber={bankAccountNumber} acceptedTerms={acceptedTerms}
-    errors={errors} message={message} status={status} loading={loading} disabled={disabled} showSecret={showSecret}
-    passwordProgress={passwordProgress} registrationEnabled={flags.registration} loginEnabled={flags.login}
-    maintenanceEnabled={maintenanceEnabled} captchaResetKey={captchaResetKey} selectedBankLabel={selectedBankLabel(bankName)}
-    onSubmit={onSubmit} onLocaleChange={changeLocale} onFieldChange={changeField}
-    onAcceptedTermsChange={(value) => { setAcceptedTerms(value); clearError('terms'); }}
-    onShowSecretToggle={() => setShowSecret((value) => !value)} onBack={goBack}
-    onCaptchaToken={handleCaptchaToken} onCaptchaState={handleCaptchaState}
-  />;
+  return <div {...registerBrand.dataAttributes}>
+    <RegisterView
+      cssVars={cssVars} locale={locale} step={step} t={t} siteName={siteName} logoUrl={logoUrl} brandMark={brandMark}
+      banks={THAI_BANKS} username={username} phone={phone} email={email} secret={secret} referralCode={referralCode}
+      fullName={fullName} bankName={bankName} bankAccountNumber={bankAccountNumber} acceptedTerms={acceptedTerms}
+      errors={errors} message={message} status={status} loading={loading} disabled={disabled} showSecret={showSecret}
+      passwordProgress={passwordProgress} registrationEnabled={flags.registration} loginEnabled={flags.login}
+      maintenanceEnabled={maintenanceEnabled} captchaResetKey={captchaResetKey} selectedBankLabel={selectedBankLabel(bankName)}
+      onSubmit={onSubmit} onLocaleChange={changeLocale} onFieldChange={changeField}
+      onAcceptedTermsChange={(value) => { setAcceptedTerms(value); clearError('terms'); }}
+      onShowSecretToggle={() => setShowSecret((value) => !value)} onBack={goBack}
+      onCaptchaToken={handleCaptchaToken} onCaptchaState={handleCaptchaState}
+    />
+  </div>;
 }
 
 async function linkReferralAfterRegister(referralCode: string, token?: string) { const accessToken = token || window.localStorage.getItem('member_access_token'); if (!accessToken) return; window.localStorage.setItem('member_access_token', accessToken); const res = await memberApiFetch('/member/affiliate/link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ referralCode }) }); if (res.ok) window.localStorage.removeItem(REFERRAL_CODE_KEY); }

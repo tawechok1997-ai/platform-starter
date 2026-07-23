@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
@@ -25,7 +25,28 @@ export class SettingsController {
   @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.view') @Get('admin/settings/branding')
   getBranding() { return this.settingsService.getAdminGroup('branding'); }
   @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.update') @Put('admin/settings/branding')
-  updateBranding(@Body() body: SettingsUpdateRequest, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) { return this.update('branding', body, user, req); }
+  updateBranding(@Body() body: SettingsUpdateRequest, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
+    return this.settingsService.saveAdminDraft('branding', body, user, this.meta(req));
+  }
+
+  @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.view') @Get('admin/settings/branding/draft')
+  getBrandingDraft() { return this.settingsService.getAdminDraft('branding'); }
+  @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.update') @Put('admin/settings/branding/draft')
+  saveBrandingDraft(@Body() body: SettingsUpdateRequest, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
+    return this.settingsService.saveAdminDraft('branding', body, user, this.meta(req));
+  }
+  @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.publish') @Post('admin/settings/branding/publish')
+  publishBranding(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
+    return this.settingsService.publishAdminDraft('branding', user, this.meta(req));
+  }
+  @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.view') @Get('admin/settings/branding/history')
+  getBrandingHistory(@Query('limit') limit?: string) {
+    return this.settingsService.getAdminHistory('branding', Number(limit ?? 50));
+  }
+  @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.publish') @Post('admin/settings/branding/history/:historyId/rollback')
+  rollbackBranding(@Param('historyId') historyId: string, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
+    return this.settingsService.rollbackAdminSetting('branding', historyId, user, this.meta(req));
+  }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.theme.view') @Get('admin/settings/theme')
   getTheme() { return this.settingsService.getAdminGroup('theme'); }

@@ -1,21 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { GameCategoryNavigationConfig } from './brand/game-category-navigation';
 import {
   CmsContent,
   MemberFeatureFlags,
   SiteIconSettings,
   defaultFeatureFlags,
+  defaultIconSettings,
 } from './site-settings';
 import {
-  AnnouncementList,
   CmsPopup,
-  HomeHero,
   PendingRequests,
 } from './components/member-home-sections';
 import { HomeActivitiesPanel } from './components/member-home/home-activities-panel';
+import { HomeAnnouncementStrip } from './components/member-home/home-announcement-strip';
 import { HomeHighlightsPanel } from './components/member-home/home-highlights-panel';
 import { HomePromotionsPanel } from './components/member-home/home-promotions-panel';
+import { HomePromotionCarousel } from './components/member-home/home-promotion-carousel';
+import styles from './components/member-home/home-reference.module.css';
 import { SourceHomeTabs, type HomeTab } from './components/member-home/source-home-tabs';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
@@ -32,6 +35,7 @@ type MemberHomeProps = {
   showProviders: boolean;
   showRecommended: boolean;
   cmsContent: CmsContent;
+  gameCategoryNavigation: GameCategoryNavigationConfig;
   icons?: SiteIconSettings;
   features?: MemberFeatureFlags;
 };
@@ -40,6 +44,7 @@ const POPUP_CLOSED_VERSION_KEY = 'member_cms_popup_closed_version';
 
 export default function MemberHome(props: MemberHomeProps) {
   const features = props.features ?? defaultFeatureFlags;
+  const icons = props.icons ?? defaultIconSettings;
   const [popupClosed, setPopupClosed] = useState(false);
   const [activeTab, setActiveTab] = useState<HomeTab>('highlights');
   const popupVersion = props.cmsContent.popup.version ?? 'v1';
@@ -55,17 +60,12 @@ export default function MemberHome(props: MemberHomeProps) {
   }
 
   return (
-    <section className="member-shell member-home-shell member-source-home">
+    <section className={`member-shell member-home-shell member-source-home ${styles.referenceHome}`}>
       <div className="member-home-zone member-home-zone--primary">
         {props.showPromotion && features.games && (
-          <HomeHero
-            siteName={props.siteName}
-            description={props.description}
-            primaryColor={props.primaryColor}
-            content={props.cmsContent}
-          />
+          <HomePromotionCarousel content={props.cmsContent} siteName={props.siteName} />
         )}
-        <AnnouncementList content={props.cmsContent} />
+        <HomeAnnouncementStrip content={props.cmsContent} />
         <SourceHomeTabs activeTab={activeTab} onChange={setActiveTab} />
       </div>
 
@@ -85,6 +85,9 @@ export default function MemberHome(props: MemberHomeProps) {
         showCategories={props.showCategories}
         showRecommended={props.showRecommended}
         gamesEnabled={features.games}
+        gameCategoryNavigation={props.gameCategoryNavigation}
+        icons={icons}
+        features={features}
       />
 
       <HomePromotionsPanel

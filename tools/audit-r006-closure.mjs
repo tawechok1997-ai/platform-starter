@@ -53,7 +53,8 @@ for (const path of requiredFiles) {
 }
 
 const eslintConfig = await readFile(join(root, 'eslint.config.mjs'), 'utf8');
-if (!eslintConfig.includes("'@typescript-eslint/no-unused-vars': ['error'")) {
+const unusedVarsRule = /['"]@typescript-eslint\/no-unused-vars['"]\s*:\s*\[\s*['"]error['"]/m;
+if (!unusedVarsRule.test(eslintConfig)) {
   failures.push('eslint.config.mjs: unused TypeScript symbols must fail lint');
 }
 

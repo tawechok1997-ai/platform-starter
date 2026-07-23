@@ -56,7 +56,20 @@ jobs:
         run: pnpm --filter @platform/web-admin test
 
       - name: Test Member critical components
-        run: pnpm --filter @platform/web-member test
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/p5-web-unit
+          pnpm --filter @platform/web-member test 2>&1 | tee artifacts/p5-web-unit/member-test.log
 
       - name: Typecheck web applications
         run: pnpm typecheck:admin && pnpm typecheck:member
+
+      - name: Upload P5 web unit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p5-web-unit-evidence-${{ github.sha }}
+          path: artifacts/p5-web-unit
+          if-no-files-found: warn
+          retention-days: 30

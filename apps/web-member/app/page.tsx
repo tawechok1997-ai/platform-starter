@@ -1,6 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
+import { createGameCategoryNavigationConfig } from './brand/game-category-navigation';
 import type { MemberFeatureFlags } from './site-settings';
 import MemberHome from './member-home';
 import { MemberCard } from './components/member-ui';
@@ -26,6 +27,7 @@ export default function Page() {
     profile: features.profile_enabled,
     notifications: features.notification_enabled,
   };
+  const gameCategoryNavigation = createGameCategoryNavigationConfig(typedSettings);
 
   const maintenanceEnabled = maintenance.enabled || maintenance.member_enabled || website.maintenance_mode;
   const animationLevel = theme.animation_level ?? 'subtle';
@@ -62,6 +64,7 @@ export default function Page() {
       showProviders={theme.show_popular_providers}
       showRecommended={theme.show_recommended_games}
       cmsContent={features.cms_content}
+      gameCategoryNavigation={gameCategoryNavigation}
       icons={icons}
       features={featureFlags}
     />

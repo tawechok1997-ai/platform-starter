@@ -60,13 +60,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@11.13.0 --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -74,11 +75,24 @@ jobs:
       - name: Generate Prisma client
         run: pnpm db:generate
 
-      - name: Apply test migrations
-        run: pnpm db:migrate
+      - name: Bootstrap ephemeral test database
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          pnpm db:push 2>&1 | tee artifacts/p1-p4-database-bootstrap.log
 
       - name: Verify P1-P4 repository scope
         run: bash scripts/verify-p1-p4-repository.sh
+
+      - name: Upload P1-P4 execution logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-p4-execution-logs
+          path: artifacts/p1-p4-database-bootstrap.log
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Upload failure evidence
         if: failure()

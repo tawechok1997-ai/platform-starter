@@ -14,7 +14,12 @@ type Preflight = { ok: boolean; blockers?: string[]; flags?: Record<string, bool
 type View = 'BASIC' | 'ADVANCED';
 type NoticeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
 
-const requiredByWalletMode: Record<string, string[]> = { SEAMLESS: ['LAUNCH', 'BALANCE', 'WEBHOOK'], TRANSFER: ['LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'WEBHOOK'], HYBRID: ['LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'WEBHOOK'] };
+const TRANSFER_REQUIRED_ENDPOINTS = ['LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'WEBHOOK'] as const;
+const requiredByWalletMode: Record<string, readonly string[]> = {
+  SEAMLESS: ['LAUNCH', 'BALANCE', 'WEBHOOK'],
+  TRANSFER: TRANSFER_REQUIRED_ENDPOINTS,
+  HYBRID: TRANSFER_REQUIRED_ENDPOINTS,
+};
 
 export default function GameApiSettingsPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -27,7 +32,7 @@ export default function GameApiSettingsPage() {
   const [messageTone, setMessageTone] = useState<NoticeTone>('neutral');
   useEffect(() => { void loadProviders(); }, []);
   useEffect(() => { if (providerId) void loadProvider(providerId); else { setDetail(null); setPreflight(null); } }, [providerId]);
-  const requiredEndpoints = useMemo<string[]>(() => requiredByWalletMode[detail?.walletMode ?? 'TRANSFER'] ?? requiredByWalletMode.TRANSFER ?? [], [detail?.walletMode]);
+  const requiredEndpoints = useMemo<readonly string[]>(() => requiredByWalletMode[detail?.walletMode ?? 'TRANSFER'] ?? requiredByWalletMode.TRANSFER ?? [], [detail?.walletMode]);
   const endpointStatus = useMemo(() => requiredEndpoints.map((type) => ({ type, item: detail?.endpoints.find((endpoint) => endpoint.type === type), ok: Boolean(detail?.endpoints.find((endpoint) => endpoint.type === type)?.isEnabled) })), [detail?.endpoints, requiredEndpoints]);
   const enabledCredentials = detail?.credentials.filter((item) => item.isEnabled).length ?? 0;
   const flags = gateFlags(detail?.metadata, preflight?.flags);
@@ -55,5 +60,5 @@ function preflightLabel(value: string) { const labels: Record<string, string> = 
 const labelStyle = { display: 'grid', gap: 6, color: '#94a3b8', fontSize: 12, fontWeight: 900 } as const;
 const inputStyle = { width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', boxSizing: 'border-box' as const, fontSize: 15 };
 const summaryStyle = { border: '1px solid rgba(148,163,184,.18)', borderRadius: 14, padding: 12, background: 'rgba(148,163,184,.05)', display: 'grid', gap: 4, color: '#94a3b8' } as const;
-const actionRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' as const, alignItems: 'center' };
+const actionRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' as const, alignItems: 'center' } as const;
 const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.55, overflowWrap: 'anywhere' as const };

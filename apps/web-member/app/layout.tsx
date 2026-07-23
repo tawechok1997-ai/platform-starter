@@ -56,6 +56,7 @@ import './member-noah-final-pass.css';
 import './member-home-order-fix.css';
 import './member-reference-assets-final.css';
 import './member-category-uploaded-icons.css';
+import './member-game-category-navigation.css';
 import './member-promotion-frame-fix.css';
 import './member-hero-carousel-controls.css';
 import './member-category-handle-remove.css';
@@ -73,7 +74,7 @@ export const metadata: Metadata = {
     default: 'Platform Starter',
     template: '%s | Platform Starter',
   },
-  description: 'ระบบสมาชิก Platform Starter',
+  description: 'แพลตฟอร์มสมาชิก',
 };
 
 export const viewport: Viewport = {
