@@ -1,67 +1,90 @@
-# Admin List Contract
+# Admin Server List Contract
 
-> D-10 implementation evidence · 2026-07-24
+> D-10 implementation evidence · verified 2026-07-24
 
-## Scope
+## Status
 
-The shared Admin list contract centralizes page state, page-size selection, filter resets, server payload normalization and query-string construction.
+D-10 is complete for the audited list-heavy Admin routes.
 
-## Shared boundary
+The shared contract now covers UI list state, validated API query DTOs, server filtering, database counts, `skip/take` pagination, normalized response metadata, page-size selection, filter resets, loading/empty states and regression guards.
+
+## Shared Admin boundary
 
 - `apps/web-admin/app/(admin)/_components/admin-list-contract.ts`
 - `apps/web-admin/app/(admin)/_components/admin-list-contract.spec.ts`
 - `apps/web-admin/app/(admin)/_components/admin-list-contract-adoption.spec.ts`
 
-## Server-adopted routes
+The normalized response shape is:
+
+- `items`
+- `total`
+- `page`
+- `pageSize`
+- `totalPages`
+
+## Adopted routes
 
 ### `/wallet-ledgers`
 
-- API query: `page`, `take`, `search`, `direction`, `type`, `dateFrom`, `dateTo`
-- API uses validated DTO input, Prisma `count`, `skip` and `take`
-- Response includes `items`, `total`, `page`, `pageSize` and `totalPages`
-- Filters reset to page 1
-- Search uses a short debounce
-- CSV export is explicitly scoped to the loaded server page
+- Server search, direction, type and date filters
+- Database `count`, `skip` and `take`
+- Page metadata returned by the API
+- Search debounce and page reset on filter changes
+- CSV is explicitly scoped to the loaded page
+
+API boundary:
+
+- `apps/api/src/modules/money-ops/dto/money-ops.dto.ts`
+- `apps/api/src/modules/money-ops/money-ops-ledger-query.service.ts`
 
 ### `/webhook-logs`
 
-- API query: `page`, `take`, `search`, `status`
-- API uses validated DTO input, Prisma `count`, `skip` and `take`
-- Response includes list metadata plus filtered summary counts
-- Search/status changes reset to page 1
-- Provider payload redaction from D-09 remains enforced
+- Server search and status filters
+- Status validation matches the Prisma `WebhookLogStatus` enum
+- Database `count`, `skip` and `take`
+- Server summary for processed, failed and duplicate records
+- Payload redaction from D-09 remains enforced
 
-## API query services
+API boundary:
 
-- `apps/api/src/modules/money-ops/money-ops-ledger-query.service.ts`
-- `apps/api/src/modules/game-platform/webhook-log-query.service.ts`
-- `apps/api/src/modules/money-ops/dto/money-ops.dto.ts`
 - `apps/api/src/modules/game-platform/dto/webhook-log-query.dto.ts`
+- `apps/api/src/modules/game-platform/webhook-log-query.service.ts`
 
-The query services are separated from mutation/orchestration services so pagination changes do not expand the risk surface of wallet mutations, provider settlement or webhook receipt processing.
+### `/game-providers`
 
-## Regression protection
+- Server search, status and health filters
+- Health filters preserve the existing `ATTENTION` and `NORMAL` behavior
+- Database `count`, `skip` and `take`
+- Server summary for total providers, active providers, attention providers and games
+- Detail, create/edit, status, sync, health-check, endpoint and credential workflows remain available
 
-The adoption spec requires both routes to use:
+API boundary:
+
+- `apps/api/src/modules/game-platform/dto/game-provider-query.dto.ts`
+- `apps/api/src/modules/game-platform/game-provider-query.service.ts`
+
+## Regression guards
+
+`admin-list-contract-adoption.spec.ts` requires all three routes to use:
 
 - `useAdminListContract`
 - `buildAdminListQuery`
 - `normalizeAdminListPayload`
-- `page` and `take` server parameters
 - `AdminPagination`
 
-It rejects a return to browser-only `paginateAdminItems` on these routes.
+It also rejects a return to browser-only `paginateAdminItems` for these routes and verifies that provider detail and mutation workflows remain present.
 
 ## Verification
 
-Railway status for commit `334e17632e1501fb663bb92d9e733717683778ac`:
+Verification PR `#169` was marker-only and was not merged.
 
-- API: success
-- Admin: success
-- Member: success
+- Railway: API, Admin and Member passed
+- Quality Gate run `30048941795`: API tests and all three app builds passed
+- Build run `30048941863`: schema validation, Prisma generation, API/Admin/Member typechecks, API and database regression tests, and all app builds passed
+- Full-System run `30048941880`: automated profile passed
+- Full-System artifact: `8580304143`
+- Artifact digest: `sha256:0563bb82b226414547002af2efae1ac6f61d8bdffca06babfc02c2c0e69f198c`
 
-Verification PR `#161` was opened as a marker-only GitHub Actions trigger and must not be merged.
+## Boundary
 
-## Remaining D-10 scope
-
-D-10 remains partial until `/game-providers` adopts the shared query/result contract. Other list-heavy routes can migrate incrementally after that reference implementation.
+This contract closes server list behavior for the three audited routes. It does not claim that every list page in Admin has been migrated. Future list-heavy routes must adopt the same response and query contract instead of creating another pagination shape.

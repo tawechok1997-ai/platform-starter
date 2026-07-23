@@ -4,8 +4,13 @@ import test from 'node:test';
 
 const webhookSource = readFileSync(new URL('../webhook-logs/page.tsx', import.meta.url), 'utf8');
 const ledgerSource = readFileSync(new URL('../wallet-ledgers/page.tsx', import.meta.url), 'utf8');
+const providerSource = readFileSync(new URL('../../../src/features/finance/game-providers-page.tsx', import.meta.url), 'utf8');
 
-for (const [route, source] of [['webhook-logs', webhookSource], ['wallet-ledgers', ledgerSource]] as const) {
+for (const [route, source] of [
+  ['webhook-logs', webhookSource],
+  ['wallet-ledgers', ledgerSource],
+  ['game-providers', providerSource],
+] as const) {
   test(`${route} uses server list state`, () => {
     assert.equal(source.includes('useAdminListContract'), true);
     assert.equal(source.includes('buildAdminListQuery'), true);
@@ -25,4 +30,11 @@ test('wallet ledger export names the loaded page', () => {
 test('webhook viewer keeps payload redaction', () => {
   assert.equal(webhookSource.includes('redactAdminPayload'), true);
   assert.equal(webhookSource.includes('AdminPayloadViewer'), true);
+});
+
+test('provider list preserves detail and mutation workflows', () => {
+  assert.equal(providerSource.includes('loadDetail'), true);
+  assert.equal(providerSource.includes('submitEndpoint'), true);
+  assert.equal(providerSource.includes('submitCredential'), true);
+  assert.equal(providerSource.includes('confirmPendingAction'), true);
 });
