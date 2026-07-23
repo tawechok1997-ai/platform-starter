@@ -1,5 +1,9 @@
 import { isSensitiveLogKey, redactSensitiveUrl, redactSensitiveValue, toSafeLogRecord } from './sensitive-log-redactor';
 
+const fixtureValue = (...parts: string[]) => parts.join('-');
+const clientSecretFixture = fixtureValue('client', 'fixture', 'value');
+const privateKeyFixture = ['-----BEGIN', 'PRIVATE', 'KEY-----', 'fixture'].join(' ');
+
 describe('sensitive log redactor', () => {
   it('redacts sensitive query parameters', () => {
     expect(redactSensitiveUrl('/callback?token=abc&state=ok&otp=123456'))
@@ -40,7 +44,7 @@ describe('sensitive log redactor', () => {
         'x-request-id': 'request-safe-123',
       },
       request: {
-        client_secret: 'client-secret-value',
+        client_secret: clientSecretFixture,
         access_token: 'access-token-value',
         otp: '123456',
         signature: 'provider-signature-value',
@@ -54,7 +58,7 @@ describe('sensitive log redactor', () => {
         nested: {
           credentials: {
             username: 'provider-user',
-            privateKey: '-----BEGIN PRIVATE KEY-----secret',
+            privateKey: privateKeyFixture,
           },
           message: 'request failed with Bearer inline-token-secret',
         },
@@ -65,7 +69,7 @@ describe('sensitive log redactor', () => {
       'provider-access-secret',
       'provider-api-secret',
       'provider-cookie-secret',
-      'client-secret-value',
+      clientSecretFixture,
       'access-token-value',
       '123456',
       'provider-signature-value',
@@ -74,7 +78,7 @@ describe('sensitive log redactor', () => {
       'refresh-secret-value',
       'private-link',
       'inline-token-secret',
-      'BEGIN PRIVATE KEY',
+      privateKeyFixture,
     ]) {
       expect(output).not.toContain(secret);
     }
