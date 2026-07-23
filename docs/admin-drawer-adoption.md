@@ -29,7 +29,7 @@
 | `/game-sessions` | Session timeline and related transfers | ✅ Adopted | Uses medium `AdminDrawer`; reconcile confirmation remains a separate `AdminConfirmDialog` |
 | `/audit-risk` | Before/after payload and related record | ✅ Adopted | Uses wide `AdminDrawer`; read-only behavior unchanged |
 | `/admin-roles` | Permission preview | ✅ Adopted | Uses compact `AdminDrawer`; read-only warning unchanged |
-| `/operations` | Queue task detail | ⏳ Remaining | Still uses local `drawerLayerStyle` / `drawerStyle`; migrate in the next route adoption pass |
+| `/operations` | Queue task detail | ✅ Adopted | Uses compact `AdminDrawer`; removed local overlay, z-index and drawer styles |
 
 ## Worklist candidates requiring source inspection
 
@@ -60,3 +60,4 @@ Each candidate must be opened from source before being marked adopted. A route w
 - Wallet Statement adoption: `8c45252765f3b7956be19cbac12a0a6f4f93ff85`
 - Game Sessions adoption: `5b5eb0fdfa6b8f91f89d26bdfdfc8f7e600594e5`
 - Audit Risk adoption: `551e42782946c9d73ae4716d07fb7056360d73a5`
+- Operations adoption: `940e74eff737425205c2836481eba4759c85da56`
