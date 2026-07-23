@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminSectionRow, AdminSkeleton, AdminStack, AdminToolbar, formatMoney } from '../_components/admin-ui';
+import { AdminFinanceEvidence, AdminFinanceQueueFrame, AdminFinanceQueueToolbar } from '../_components/admin-finance-queue';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminLinkButton, AdminMetric, AdminNotice, AdminPage, AdminRow, AdminSectionRow, formatMoney } from '../_components/admin-ui';
 import { useAdminLocale, type AdminLocale } from '../admin-locale';
 
 type DepositStatus = 'PENDING' | 'PENDING_SLIP_REVIEW' | 'PENDING_CREDIT' | 'COMPLETED' | 'DUPLICATE' | 'REJECTED' | 'CANCELLED' | 'APPROVED';
@@ -60,6 +61,7 @@ export default function AdminTopUpsPage() {
 
   const counts = useMemo(() => ({ waitingSlip: items.filter((item) => item.status === 'PENDING_SLIP_REVIEW').length, waitingCredit: items.filter((item) => item.status === 'PENDING_CREDIT').length, done: items.filter((item) => item.status === 'COMPLETED').length, rejected: items.filter((item) => ['REJECTED', 'DUPLICATE'].includes(item.status)).length }), [items]);
   const queueBusy = loading || Boolean(busyId);
+  const statusOptions = [...FILTERS.map((value) => ({ value, label: statusLabel(value, copy) })), { value: 'ALL', label: copy.all }];
   const showMessage = (nextMessage: TopUpMessage | '', tone: NoticeTone = 'neutral') => { setMessage(nextMessage); setMessageTone(tone); };
 
   async function loadItems(nextStatus = status, nextPage = page) {
@@ -127,30 +129,33 @@ export default function AdminTopUpsPage() {
 
   const dialog = pendingAction ? copy.dialogs[pendingAction.action] : null;
   return <AdminPage eyebrow={copy.eyebrow} title={copy.title} description={copy.description} actions={<><AdminLinkButton href="/bulk-queue-operations?kind=topups" tone="secondary">{locale === 'th' ? 'ตรวจหลายรายการ' : 'Bulk review'}</AdminLinkButton><AdminButton size="compact" disabled={queueBusy} onClick={() => void loadItems()}>{loading ? copy.loading : copy.refresh}</AdminButton></>}>
-    <AdminMetricGrid>
-      <AdminMetric tone={counts.waitingSlip ? 'warning' : 'success'} title={copy.waitingSlip} value={formatNumber(counts.waitingSlip, locale)} helper={`${copy.filteredTotal} ${formatNumber(total, locale)}`} />
-      <AdminMetric tone={counts.waitingCredit ? 'warning' : 'success'} title={copy.waitingCredit} value={formatNumber(counts.waitingCredit, locale)} helper={`${copy.page} ${formatNumber(page, locale)} / ${formatNumber(pageCount, locale)}`} />
-      <AdminMetric tone="success" title={copy.completed} value={formatNumber(counts.done, locale)} helper={copy.currentPageOnly} />
-      <AdminMetric tone={counts.rejected ? 'danger' : 'neutral'} title={copy.rejected} value={formatNumber(counts.rejected, locale)} helper={`${PAGE_SIZE} ${copy.perPage}`} />
-    </AdminMetricGrid>
-    <AdminToolbar>
-      <label className="admin-queue-filter"><span>{copy.queueStatus}</span><select aria-label={copy.queueStatusAria} value={status} disabled={queueBusy} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>{FILTERS.map((value) => <option key={value} value={value}>{statusLabel(value, copy)}</option>)}<option value="ALL">{copy.all}</option></select></label>
-      <div className="admin-queue-pager"><AdminButton size="compact" tone="ghost" disabled={page <= 1 || queueBusy} onClick={() => setPage((value) => value - 1)}>{copy.previous}</AdminButton><span aria-live="polite">{copy.page} {formatNumber(page, locale)} / {formatNumber(pageCount, locale)}</span><AdminButton size="compact" tone="ghost" disabled={page >= pageCount || queueBusy} onClick={() => setPage((value) => value + 1)}>{copy.next}</AdminButton></div>
-    </AdminToolbar>
-    {message && <AdminNotice tone={messageTone}>{copy.messages[message]}</AdminNotice>}
-    {loading ? <AdminCard><AdminSkeleton lines={5} /></AdminCard> : <AdminStack>{items.map((item) => {
-      const actionable = ['PENDING_SLIP_REVIEW', 'PENDING_CREDIT'].includes(item.status);
-      const isBusy = busyId === item.id;
-      return <AdminCard key={item.id} tone={item.status === 'COMPLETED' ? 'success' : ['REJECTED', 'DUPLICATE'].includes(item.status) ? 'danger' : 'neutral'}>
-        <AdminSectionRow><div><AdminBadge tone={badgeTone(item.status)}>{statusLabel(item.status, copy)}</AdminBadge>{item.claimedBy ? <AdminBadge tone="success">{copy.claimed}</AdminBadge> : <AdminBadge>{copy.unclaimed}</AdminBadge>}<h2>{formatMoney(item.amount)}</h2><p>{copy.member}: {item.user?.username ?? item.user?.phone ?? item.userId}</p><p>{copy.createdAt}: {new Date(item.createdAt).toLocaleString(dateLocale)}</p></div>{slips[item.id] && <img src={slips[item.id]} alt={`${copy.slipAlt} ${item.user?.username ?? item.userId}`} className="admin-topup-modal-slip" />}</AdminSectionRow>
-        <AdminCard title={copy.review} description={copy.reviewDescription}>
-          <AdminRow><strong>{copy.memberNote}</strong><span>{memberNote(item.note)}</span></AdminRow>
-          <AdminRow><strong>{copy.adminNote}</strong><span>{item.adminNote || notes[item.id] || '-'}</span></AdminRow>
-          {item.claimedAt && <AdminRow><strong>{copy.claimedAt}</strong><span>{new Date(item.claimedAt).toLocaleString(dateLocale)}</span></AdminRow>}
-        </AdminCard>
-        {actionable ? <div className="admin-topup-operations"><div className="admin-topup-action-grid"><AdminButton disabled={isBusy} onClick={() => void claim(item.id, 'claim')}>{copy.claim}</AdminButton><AdminButton tone="secondary" disabled={isBusy || !item.claimedBy} onClick={() => void claim(item.id, 'release')}>{copy.release}</AdminButton></div><label className="admin-topup-note-field"><span>{copy.adminNote}</span><textarea disabled={isBusy} value={notes[item.id] ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [item.id]: event.target.value }))} placeholder={copy.notePlaceholder} /></label>{item.status === 'PENDING_SLIP_REVIEW' && <AdminButton tone="success" disabled={isBusy || !item.claimedBy} onClick={() => requestAction(item, 'approve-slip')}>{copy.approveSlip}</AdminButton>}{item.status === 'PENDING_CREDIT' && <AdminButton tone="success" disabled={isBusy || !item.claimedBy} onClick={() => requestAction(item, 'confirm-credit')}>{copy.confirmCredit}</AdminButton>}<AdminButton tone="danger" disabled={isBusy || !item.claimedBy} onClick={() => requestAction(item, 'reject')}>{copy.reject}</AdminButton></div> : <AdminNotice tone="warning">{copy.closed}</AdminNotice>}
-      </AdminCard>;
-    })}{items.length === 0 && <AdminEmpty>{copy.noItems}</AdminEmpty>}</AdminStack>}
+    <AdminFinanceQueueFrame
+      metrics={<>
+        <AdminMetric tone={counts.waitingSlip ? 'warning' : 'success'} title={copy.waitingSlip} value={formatNumber(counts.waitingSlip, locale)} helper={`${copy.filteredTotal} ${formatNumber(total, locale)}`} />
+        <AdminMetric tone={counts.waitingCredit ? 'warning' : 'success'} title={copy.waitingCredit} value={formatNumber(counts.waitingCredit, locale)} helper={`${copy.page} ${formatNumber(page, locale)} / ${formatNumber(pageCount, locale)}`} />
+        <AdminMetric tone="success" title={copy.completed} value={formatNumber(counts.done, locale)} helper={copy.currentPageOnly} />
+        <AdminMetric tone={counts.rejected ? 'danger' : 'neutral'} title={copy.rejected} value={formatNumber(counts.rejected, locale)} helper={`${PAGE_SIZE} ${copy.perPage}`} />
+      </>}
+      toolbar={<AdminFinanceQueueToolbar label={copy.queueStatus} ariaLabel={copy.queueStatusAria} value={status} options={statusOptions} disabled={queueBusy} page={page} pageCount={pageCount} pageLabel={copy.page} previousLabel={copy.previous} nextLabel={copy.next} onValueChange={(value) => { setStatus(value); setPage(1); }} onPrevious={() => setPage((value) => value - 1)} onNext={() => setPage((value) => value + 1)} />}
+      notice={message ? <AdminNotice tone={messageTone}>{copy.messages[message]}</AdminNotice> : null}
+      loading={loading}
+      empty={items.length === 0}
+      emptyLabel={copy.noItems}
+    >
+      {items.map((item) => {
+        const actionable = ['PENDING_SLIP_REVIEW', 'PENDING_CREDIT'].includes(item.status);
+        const isBusy = busyId === item.id;
+        return <AdminCard key={item.id} tone={item.status === 'COMPLETED' ? 'success' : ['REJECTED', 'DUPLICATE'].includes(item.status) ? 'danger' : 'neutral'}>
+          <AdminSectionRow><div><AdminBadge tone={badgeTone(item.status)}>{statusLabel(item.status, copy)}</AdminBadge>{item.claimedBy ? <AdminBadge tone="success">{copy.claimed}</AdminBadge> : <AdminBadge>{copy.unclaimed}</AdminBadge>}<h2>{formatMoney(item.amount)}</h2><p>{copy.member}: {item.user?.username ?? item.user?.phone ?? item.userId}</p><p>{copy.createdAt}: {new Date(item.createdAt).toLocaleString(dateLocale)}</p></div><AdminFinanceEvidence src={slips[item.id]} alt={`${copy.slipAlt} ${item.user?.username ?? item.userId}`} /></AdminSectionRow>
+          <AdminCard title={copy.review} description={copy.reviewDescription}>
+            <AdminRow><strong>{copy.memberNote}</strong><span>{memberNote(item.note)}</span></AdminRow>
+            <AdminRow><strong>{copy.adminNote}</strong><span>{item.adminNote || notes[item.id] || '-'}</span></AdminRow>
+            {item.claimedAt && <AdminRow><strong>{copy.claimedAt}</strong><span>{new Date(item.claimedAt).toLocaleString(dateLocale)}</span></AdminRow>}
+          </AdminCard>
+          {actionable ? <div className="admin-topup-operations"><div className="admin-topup-action-grid"><AdminButton disabled={isBusy} onClick={() => void claim(item.id, 'claim')}>{copy.claim}</AdminButton><AdminButton tone="secondary" disabled={isBusy || !item.claimedBy} onClick={() => void claim(item.id, 'release')}>{copy.release}</AdminButton></div><label className="admin-topup-note-field"><span>{copy.adminNote}</span><textarea disabled={isBusy} value={notes[item.id] ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [item.id]: event.target.value }))} placeholder={copy.notePlaceholder} /></label>{item.status === 'PENDING_SLIP_REVIEW' && <AdminButton tone="success" disabled={isBusy || !item.claimedBy} onClick={() => requestAction(item, 'approve-slip')}>{copy.approveSlip}</AdminButton>}{item.status === 'PENDING_CREDIT' && <AdminButton tone="success" disabled={isBusy || !item.claimedBy} onClick={() => requestAction(item, 'confirm-credit')}>{copy.confirmCredit}</AdminButton>}<AdminButton tone="danger" disabled={isBusy || !item.claimedBy} onClick={() => requestAction(item, 'reject')}>{copy.reject}</AdminButton></div> : <AdminNotice tone="warning">{copy.closed}</AdminNotice>}
+        </AdminCard>;
+      })}
+    </AdminFinanceQueueFrame>
     <AdminConfirmDialog open={Boolean(pendingAction)} title={dialog?.title ?? ''} description={dialog?.description ?? ''} confirmLabel={dialog?.confirm ?? ''} tone={pendingAction?.action === 'reject' ? 'danger' : 'success'} busy={Boolean(pendingAction && busyId === pendingAction.item.id)} onCancel={() => setPendingAction(null)} onConfirm={() => void confirmPendingAction()} details={pendingAction ? <><p><strong>{copy.dialogMember}:</strong> {pendingAction.item.user?.username ?? pendingAction.item.userId}</p><p><strong>{copy.dialogAmount}:</strong> {formatMoney(pendingAction.item.amount)}</p><p><strong>{copy.dialogReason}:</strong> {(notes[pendingAction.item.id] ?? '').trim() || '-'}</p></> : null} />
   </AdminPage>;
 }
