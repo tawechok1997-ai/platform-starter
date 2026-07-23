@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { adminApiFetch } from '../../../admin-api';
-import { AdminButton, AdminCard, AdminNotice, AdminStack } from '../../_components/admin-ui';
+import { AdminActionStrip, AdminButton, AdminLinkButton, AdminNotice, AdminStack } from '../../_components/admin-ui';
 
 export default function BrandingPublishPanel() {
   const [message, setMessage] = useState('แก้ไขและกด Save Changes เพื่อบันทึกเป็น Draft จากนั้นตรวจ Preview ก่อน Publish');
@@ -25,20 +25,24 @@ export default function BrandingPublishPanel() {
   }
 
   return (
-    <AdminCard title="Branding Workflow" description="Edit และ Publish ใช้สิทธิ์แยกกัน พร้อม Preview, Version history และ Rollback">
+    <AdminActionStrip>
       <AdminStack>
+        <div>
+          <strong>Branding Workflow</strong>
+          <p style={descriptionStyle}>Edit และ Publish ใช้สิทธิ์แยกกัน พร้อม Preview, Version history และ Rollback</p>
+        </div>
         <AdminNotice>{message}</AdminNotice>
         <div style={actionsStyle}>
-          <a href="/settings/branding/preview" style={linkStyle}>Preview Desktop / Tablet / Mobile</a>
-          <a href="/settings/branding/history" style={linkStyle}>Version History / Rollback</a>
+          <AdminLinkButton href="/settings/branding/preview" tone="secondary">Preview Desktop / Tablet / Mobile</AdminLinkButton>
+          <AdminLinkButton href="/settings/branding/history" tone="ghost">Version History / Rollback</AdminLinkButton>
           <AdminButton type="button" disabled={publishing} onClick={() => void publish()}>
             {publishing ? 'กำลัง Publish...' : 'Publish Draft'}
           </AdminButton>
         </div>
       </AdminStack>
-    </AdminCard>
+    </AdminActionStrip>
   );
 }
 
-const actionsStyle = { display: 'flex', flexWrap: 'wrap' as const, gap: 10, alignItems: 'center' } as const;
-const linkStyle = { display: 'inline-flex', alignItems: 'center', minHeight: 40, padding: '0 14px', borderRadius: 10, border: '1px solid rgba(148,163,184,.28)', textDecoration: 'none', fontWeight: 800 } as const;
+const descriptionStyle = { margin: '4px 0 0', opacity: 0.76, lineHeight: 1.5 } as const;
+const actionsStyle = { display: 'flex', flexWrap: 'wrap' as const, gap: 8, alignItems: 'center' } as const;
