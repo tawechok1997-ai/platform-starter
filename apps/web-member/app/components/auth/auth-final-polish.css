@@ -1,0 +1,164 @@
+.auth-reference-scope .public-auth-page {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--brand-primary) 9%, transparent), transparent 34%),
+    var(--brand-background);
+}
+
+.auth-reference-scope .public-auth-shell {
+  max-height: calc(100svh - clamp(24px, 6vw, 64px));
+}
+
+.auth-reference-scope .public-auth-brand-panel,
+.auth-reference-scope .public-auth-card {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--brand-primary) 34%, transparent) transparent;
+}
+
+.auth-reference-scope .public-auth-card {
+  max-height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.auth-reference-scope .public-auth-brand-panel {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.auth-reference-scope .public-auth-card-topbar {
+  flex-wrap: wrap;
+}
+
+.auth-reference-scope .public-auth-eye,
+.auth-reference-scope .public-auth-submit--secondary,
+.auth-reference-scope .public-auth-language__button {
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.auth-reference-scope .public-auth-eye:hover:not(:disabled),
+.auth-reference-scope .public-auth-submit--secondary:hover:not(:disabled),
+.auth-reference-scope .public-auth-language__button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--brand-primary) 45%, var(--auth-border));
+  background: color-mix(in srgb, var(--brand-primary) 9%, var(--brand-card));
+}
+
+.auth-reference-scope .public-auth-eye:focus-visible,
+.auth-reference-scope .public-auth-submit:focus-visible,
+.auth-reference-scope .public-auth-language__button:focus-visible,
+.auth-reference-scope .public-auth-footer a:focus-visible,
+.auth-reference-scope .public-auth-legal a:focus-visible {
+  outline: 3px solid var(--auth-focus);
+  outline-offset: 2px;
+}
+
+.auth-reference-scope .public-auth-field-error,
+.auth-reference-scope .public-auth-alert {
+  overflow-wrap: anywhere;
+}
+
+@media (max-height: 760px) and (min-width: 861px) {
+  .auth-reference-scope .public-auth-page {
+    align-items: start;
+  }
+
+  .auth-reference-scope .public-auth-shell {
+    min-height: calc(100svh - 24px);
+    max-height: none;
+  }
+
+  .auth-reference-scope .public-auth-brand-panel,
+  .auth-reference-scope .public-auth-card {
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 860px) {
+  .auth-reference-scope .public-auth-shell {
+    max-height: none;
+  }
+
+  .auth-reference-scope .public-auth-card {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 560px) {
+  .auth-reference-scope .public-auth-page {
+    display: block;
+    background: var(--brand-background);
+  }
+
+  .auth-reference-scope .public-auth-card {
+    max-height: none;
+    padding-inline: max(18px, env(safe-area-inset-left), env(safe-area-inset-right));
+  }
+
+  .auth-reference-scope .public-auth-card-topbar {
+    align-items: center;
+  }
+
+  .auth-reference-scope .public-auth-heading h1 {
+    max-width: none;
+  }
+
+  .auth-reference-scope .public-auth-heading p {
+    max-width: 42ch;
+  }
+
+  .auth-reference-scope .public-auth-input-wrap {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .auth-reference-scope .public-auth-legal {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (max-width: 390px) {
+  .auth-reference-scope .public-auth-card-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .auth-reference-scope .public-auth-card__logo strong {
+    max-width: 108px;
+  }
+
+  .auth-reference-scope .public-auth-language__button {
+    min-width: 40px;
+    padding-inline: 7px;
+  }
+
+  .auth-reference-scope .public-auth-eye {
+    min-width: 56px;
+    padding-inline: 7px;
+  }
+}
+
+@media (max-width: 340px) {
+  .auth-reference-scope .public-auth-card-topbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .auth-reference-scope .public-auth-language {
+    justify-self: start;
+  }
+
+  .auth-reference-scope .public-auth-input-wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .auth-reference-scope .public-auth-eye {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-reference-scope .public-auth-eye,
+  .auth-reference-scope .public-auth-submit--secondary,
+  .auth-reference-scope .public-auth-language__button {
+    transition: none;
+  }
+}
