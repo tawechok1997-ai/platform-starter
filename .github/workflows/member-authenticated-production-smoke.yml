@@ -1,0 +1,94 @@
+name: Member Authenticated Production Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      member_url:
+        description: Deployed Member web URL
+        required: false
+        type: string
+      api_url:
+        description: Deployed API URL
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: member-authenticated-production-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  member-smoke:
+    name: Authenticated Member Home
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MEMBER_WEB_URL: ${{ inputs.member_url || secrets.SEED_MEMBER_WEB_URL || secrets.P6_MEMBER_URL || 'https://platformweb-member-production.up.railway.app' }}
+      API_URL: ${{ inputs.api_url || secrets.SEED_API_URL || secrets.P6_API_URL || 'https://platformapi-production-3c91.up.railway.app' }}
+      PROD_MEMBER_TOKEN: ${{ secrets.PROD_MEMBER_TOKEN }}
+      SEED_MEMBER_USERNAME: ${{ secrets.SEED_MEMBER_USERNAME || secrets.P6_MEMBER_USERNAME }}
+      SEED_MEMBER_EMAIL: ${{ secrets.SEED_MEMBER_EMAIL || secrets.P6_MEMBER_EMAIL }}
+      SEED_MEMBER_PHONE: ${{ secrets.SEED_MEMBER_PHONE || secrets.P6_MEMBER_PHONE }}
+      SEED_MEMBER_PASSWORD: ${{ secrets.SEED_MEMBER_PASSWORD || secrets.P6_MEMBER_PASSWORD }}
+      REQUIRE_MEMBER_AUTHENTICATED_SMOKE: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate authenticated Member environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$MEMBER_WEB_URL"
+          test -n "$API_URL"
+          if [ -z "${PROD_MEMBER_TOKEN:-}" ]; then
+            test -n "$SEED_MEMBER_PASSWORD"
+            test -n "${SEED_MEMBER_USERNAME:-${SEED_MEMBER_EMAIL:-${SEED_MEMBER_PHONE:-}}}"
+          fi
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run authenticated Member Home smoke
+        run: pnpm exec playwright test -c playwright.authenticated-visual.config.ts --grep "member authenticated home"
+
+      - name: Upload authenticated Member evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: member-authenticated-production-${{ github.run_id }}
+          path: |
+            test-results/authenticated-visual/**
+            playwright-report/authenticated-visual/**
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Write evidence summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Member authenticated production smoke'
+            echo
+            echo 'This is an explicit evidence gate. It must execute a real authenticated session and never treats skipped tests as success.'
+            echo
+            echo 'Authentication may use PROD_MEMBER_TOKEN or seeded Member credentials. Secret values are never written to artifacts.'
+          } >> "$GITHUB_STEP_SUMMARY"
