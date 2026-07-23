@@ -1,13 +1,22 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 
-const memberUrl = process.env.MEMBER_WEB_URL;
-const adminUrl = process.env.ADMIN_WEB_URL;
-const apiUrl = process.env.API_URL;
-const memberIdentity = process.env.SEED_MEMBER_USERNAME ?? process.env.SEED_MEMBER_EMAIL ?? process.env.SEED_MEMBER_PHONE;
-const memberPassword = process.env.SEED_MEMBER_PASSWORD;
-const adminIdentity = process.env.SEED_ADMIN_USERNAME ?? process.env.SEED_ADMIN_EMAIL;
-const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+function firstNonEmpty(...values: Array<string | undefined>) {
+  return values.map((value) => value?.trim()).find((value): value is string => Boolean(value));
+}
+
+const memberUrl = firstNonEmpty(process.env.MEMBER_WEB_URL);
+const adminUrl = firstNonEmpty(process.env.ADMIN_WEB_URL);
+const apiUrl = firstNonEmpty(process.env.API_URL);
+const memberIdentity = firstNonEmpty(
+  process.env.SEED_MEMBER_USERNAME,
+  process.env.SEED_MEMBER_EMAIL,
+  process.env.SEED_MEMBER_PHONE,
+);
+const memberPassword = firstNonEmpty(process.env.SEED_MEMBER_PASSWORD);
+const adminIdentity = firstNonEmpty(process.env.SEED_ADMIN_USERNAME, process.env.SEED_ADMIN_EMAIL);
+const adminPassword = firstNonEmpty(process.env.SEED_ADMIN_PASSWORD);
+const requireMemberSmoke = process.env.REQUIRE_MEMBER_AUTHENTICATED_SMOKE === 'true';
 
 type NetworkIssue = {
   url: string;
@@ -147,7 +156,17 @@ async function assertRuntimeHealth(page: Page, audit: RuntimeAudit) {
 
 test.describe('seeded authenticated visual artifacts', () => {
   test('member authenticated home', async ({ page }, testInfo) => {
-    test.skip(!memberUrl || !memberIdentity || !memberPassword, 'seeded member credentials are required');
+    const missingMemberEnvironment = [
+      !memberUrl && 'MEMBER_WEB_URL',
+      !apiUrl && 'API_URL',
+      !memberIdentity && 'member identity',
+      !memberPassword && 'member password',
+    ].filter(Boolean);
+    if (missingMemberEnvironment.length > 0 && requireMemberSmoke) {
+      throw new Error(`Authenticated Member smoke environment is incomplete: ${missingMemberEnvironment.join(', ')}`);
+    }
+    test.skip(missingMemberEnvironment.length > 0, 'seeded member credentials are required');
+
     const audit = installRuntimeAudit(page);
     const settings = await fetchPublicSettings(page);
 
