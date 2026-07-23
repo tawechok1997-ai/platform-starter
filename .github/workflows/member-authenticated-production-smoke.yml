@@ -1,0 +1,85 @@
+name: Member Authenticated Production Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      member_url:
+        description: Deployed Member web URL
+        required: false
+        type: string
+      api_url:
+        description: Deployed API URL
+        required: false
+        type: string
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/member-authenticated-production-smoke.yml
+      - tests/authenticated-visual/seeded-authenticated-visual.spec.ts
+      - playwright.authenticated-visual.config.ts
+
+permissions:
+  contents: read
+
+concurrency:
+  group: member-authenticated-production-smoke-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  member-smoke:
+    name: Authenticated Member Home
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MEMBER_WEB_URL: ${{ inputs.member_url || secrets.SEED_MEMBER_WEB_URL || 'https://platformweb-member-production.up.railway.app' }}
+      API_URL: ${{ inputs.api_url || secrets.SEED_API_URL || 'https://platformapi-production-3c91.up.railway.app' }}
+      SEED_MEMBER_USERNAME: ${{ secrets.SEED_MEMBER_USERNAME }}
+      SEED_MEMBER_EMAIL: ${{ secrets.SEED_MEMBER_EMAIL }}
+      SEED_MEMBER_PHONE: ${{ secrets.SEED_MEMBER_PHONE }}
+      SEED_MEMBER_PASSWORD: ${{ secrets.SEED_MEMBER_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate seeded Member credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$MEMBER_WEB_URL"
+          test -n "$API_URL"
+          test -n "$SEED_MEMBER_PASSWORD"
+          test -n "${SEED_MEMBER_USERNAME:-${SEED_MEMBER_EMAIL:-${SEED_MEMBER_PHONE:-}}}"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run authenticated Member Home smoke
+        run: pnpm exec playwright test -c playwright.authenticated-visual.config.ts --grep "member authenticated home"
+
+      - name: Upload authenticated Member evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: member-authenticated-production-${{ github.sha }}
+          path: |
+            test-results/authenticated-visual/**
+            playwright-report/authenticated-visual/**
+          if-no-files-found: error
+          retention-days: 14
