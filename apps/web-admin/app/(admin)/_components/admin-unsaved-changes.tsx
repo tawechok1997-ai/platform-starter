@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { AdminBadge, AdminNotice } from './admin-ui';
 
 export type AdminSaveState = 'saved' | 'dirty' | 'saving';
@@ -22,14 +22,21 @@ export function useAdminUnsavedChanges<T>({
   enabled = true,
   warningMessage = DEFAULT_WARNING,
 }: UnsavedChangesOptions<T>) {
+  const allowNavigationRef = useRef(false);
   const currentSnapshot = useMemo(() => stableSerialize(value), [value]);
   const savedSnapshot = useMemo(() => stableSerialize(savedValue), [savedValue]);
   const isDirty = enabled && currentSnapshot !== savedSnapshot;
   const saveState: AdminSaveState = saving ? 'saving' : isDirty ? 'dirty' : 'saved';
 
   useEffect(() => {
+    if (isDirty) return;
+    allowNavigationRef.current = false;
+  }, [isDirty]);
+
+  useEffect(() => {
     if (!isDirty) return;
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (allowNavigationRef.current) return;
       event.preventDefault();
       event.returnValue = '';
     };
@@ -39,6 +46,7 @@ export function useAdminUnsavedChanges<T>({
 
   useEffect(() => {
     if (!isDirty) return;
+    let resetTimer = 0;
     const onDocumentClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const target = event.target instanceof Element ? event.target : null;
@@ -48,13 +56,21 @@ export function useAdminUnsavedChanges<T>({
       if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:') || rawHref.startsWith('javascript:')) return;
       const destination = new URL(anchor.href, window.location.href);
       if (destination.href === window.location.href) return;
-      if (window.confirm(warningMessage)) return;
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
+      if (!window.confirm(warningMessage)) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        return;
+      }
+      allowNavigationRef.current = true;
+      window.clearTimeout(resetTimer);
+      resetTimer = window.setTimeout(() => { allowNavigationRef.current = false; }, 1500);
     };
     document.addEventListener('click', onDocumentClick, true);
-    return () => document.removeEventListener('click', onDocumentClick, true);
+    return () => {
+      window.clearTimeout(resetTimer);
+      document.removeEventListener('click', onDocumentClick, true);
+    };
   }, [isDirty, warningMessage]);
 
   return { isDirty, saveState };
