@@ -2,6 +2,7 @@
 
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../../app/admin-api';
+import { AdminSaveStateBadge, AdminUnsavedChangesNotice, useAdminUnsavedChanges } from '../../../app/(admin)/_components/admin-unsaved-changes';
 import {
   AdminBadge,
   AdminButton,
@@ -58,8 +59,10 @@ const defaultCampaigns: PromotionCampaign[] = [
 
 export default function PromotionCenterPage() {
   const [campaigns, setCampaigns] = useState<PromotionCampaign[]>(defaultCampaigns);
+  const [savedCampaigns, setSavedCampaigns] = useState<PromotionCampaign[]>(defaultCampaigns);
   const [message, setMessage] = useState('กำลังโหลดโปรโมชัน...');
   const [saving, setSaving] = useState(false);
+  const { isDirty, saveState } = useAdminUnsavedChanges({ value: campaigns, savedValue: savedCampaigns, saving });
 
   useEffect(() => {
     void load();
@@ -87,8 +90,15 @@ export default function PromotionCenterPage() {
       setMessage(data?.message ?? 'โหลดโปรโมชันไม่สำเร็จ');
       return;
     }
-    setCampaigns(normalizeCampaigns(data?.settings?.promotion_campaigns));
+    const nextCampaigns = normalizeCampaigns(data?.settings?.promotion_campaigns);
+    setCampaigns(nextCampaigns);
+    setSavedCampaigns(nextCampaigns);
     setMessage('');
+  }
+
+  function requestReload() {
+    if (isDirty && !window.confirm('มีการแก้ไขโปรโมชันที่ยังไม่ได้บันทึก ต้องการทิ้งการแก้ไขและโหลดใหม่หรือไม่')) return;
+    void load();
   }
 
   async function save() {
@@ -108,6 +118,7 @@ export default function PromotionCenterPage() {
       setMessage(data?.message ?? 'บันทึกโปรโมชันไม่สำเร็จ');
       return;
     }
+    setSavedCampaigns(campaigns);
     setMessage('บันทึกโปรโมชันแล้ว รูป/ไอคอน/badge จะแสดงบนหน้า member');
   }
 
@@ -118,16 +129,18 @@ export default function PromotionCenterPage() {
       description="ตั้งค่าโปรโมชัน รูปภาพ ไอคอน badge สี accent และลำดับแสดงผลให้สมาชิกเห็นได้จริง"
       actions={
         <>
-          <AdminButton tone="secondary" onClick={() => void load()}>
+          <AdminSaveStateBadge state={saveState} />
+          <AdminButton tone="secondary" onClick={requestReload} disabled={saving}>
             รีเฟรช
           </AdminButton>
-          <AdminButton onClick={() => void save()} disabled={saving || warnings.length > 0}>
+          <AdminButton onClick={() => void save()} disabled={saving || warnings.length > 0 || !isDirty}>
             {saving ? 'กำลังบันทึก...' : 'บันทึก'}
           </AdminButton>
         </>
       }
     >
       {message && <AdminNotice>{message}</AdminNotice>}
+      <AdminUnsavedChangesNotice isDirty={isDirty}>มีการแก้ไขโปรโมชันที่ยังไม่ได้บันทึก ระบบจะเตือนก่อนออกจากหน้านี้</AdminUnsavedChangesNotice>
       {warnings.length > 0 && <AdminNotice>{warnings.join(' • ')}</AdminNotice>}
 
       <AdminMetricGrid>
