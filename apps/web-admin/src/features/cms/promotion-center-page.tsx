@@ -71,11 +71,13 @@ export default function PromotionCenterPage() {
   const [campaigns, setCampaigns] = useState<PromotionCampaign[]>(defaultCampaigns);
   const [savedCampaigns, setSavedCampaigns] = useState<PromotionCampaign[]>(defaultCampaigns);
   const [message, setMessage] = useState('กำลังโหลดโปรโมชัน...');
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState('');
   const [lifecycleFilter, setLifecycleFilter] = useState<LifecycleFilter>('all');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [confirmReload, setConfirmReload] = useState(false);
   const { isDirty, saveState } = useAdminUnsavedChanges({ value: campaigns, savedValue: savedCampaigns, saving });
 
   useEffect(() => { void load(); }, []);
@@ -84,9 +86,9 @@ export default function PromotionCenterPage() {
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase();
     return campaigns.filter((item) => {
-      const matchesQuery = !keyword || `${item.title} ${item.id} ${item.badgeText ?? ''}`.toLowerCase().includes(keyword);
-      const matchesLifecycle = lifecycleFilter === 'all' || item.lifecycle === lifecycleFilter;
-      return matchesQuery && matchesLifecycle;
+      const searchable = `${item.title} ${item.id} ${item.badgeText ?? ''}`.toLowerCase();
+      return (!keyword || searchable.includes(keyword))
+        && (lifecycleFilter === 'all' || item.lifecycle === lifecycleFilter);
     });
   }, [campaigns, lifecycleFilter, query]);
 
@@ -107,21 +109,37 @@ export default function PromotionCenterPage() {
   const selectedVisible = filtered.length > 0 && filtered.every((item) => selectedIds.includes(item.id));
 
   async function load() {
-    const res = await adminApiFetch('/admin/settings/features');
-    const data = await res.json().catch(() => null);
-    if (!res.ok) {
-      setMessage(data?.message ?? 'โหลดโปรโมชันไม่สำเร็จ');
-      return;
+    setLoading(true);
+    setMessage('กำลังโหลดโปรโมชัน...');
+    try {
+      const res = await adminApiFetch('/admin/settings/features');
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setMessage(data?.message ?? 'โหลดโปรโมชันไม่สำเร็จ');
+        return;
+      }
+      const nextCampaigns = normalizeCampaigns(data?.settings?.promotion_campaigns);
+      setCampaigns(nextCampaigns);
+      setSavedCampaigns(nextCampaigns);
+      setSelectedIds([]);
+      setMessage('');
+    } catch {
+      setMessage('โหลดโปรโมชันไม่สำเร็จ');
+    } finally {
+      setLoading(false);
     }
-    const nextCampaigns = normalizeCampaigns(data?.settings?.promotion_campaigns);
-    setCampaigns(nextCampaigns);
-    setSavedCampaigns(nextCampaigns);
-    setSelectedIds([]);
-    setMessage('');
   }
 
   function requestReload() {
-    if (isDirty && !window.confirm('มีการแก้ไขโปรโมชันที่ยังไม่ได้บันทึก ต้องการทิ้งการแก้ไขและโหลดใหม่หรือไม่')) return;
+    if (isDirty) {
+      setConfirmReload(true);
+      return;
+    }
+    void load();
+  }
+
+  function discardAndReload() {
+    setConfirmReload(false);
     void load();
   }
 
@@ -132,22 +150,32 @@ export default function PromotionCenterPage() {
     }
     setSaving(true);
     setMessage('กำลังบันทึกโปรโมชัน...');
-    const res = await adminApiFetch('/admin/settings/features', {
-      method: 'PUT',
-      body: JSON.stringify({ promotion_campaigns: campaigns }),
-    });
-    const data = await res.json().catch(() => null);
-    setSaving(false);
-    if (!res.ok) {
-      setMessage(data?.message ?? 'บันทึกโปรโมชันไม่สำเร็จ');
-      return;
+    try {
+      const res = await adminApiFetch('/admin/settings/features', {
+        method: 'PUT',
+        body: JSON.stringify({ promotion_campaigns: campaigns }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setMessage(data?.message ?? 'บันทึกโปรโมชันไม่สำเร็จ');
+        return;
+      }
+      setSavedCampaigns(campaigns);
+      setMessage('บันทึกโปรโมชันแล้ว');
+    } catch {
+      setMessage('บันทึกโปรโมชันไม่สำเร็จ');
+    } finally {
+      setSaving(false);
     }
-    setSavedCampaigns(campaigns);
-    setMessage('บันทึกโปรโมชันแล้ว');
   }
 
   function setLifecycle(index: number, lifecycle: PromotionLifecycle) {
     patchCampaign(index, { lifecycle, enabled: lifecycle === 'published' }, setCampaigns);
+  }
+
+  function removeCampaign(index: number, id: string) {
+    setCampaigns((current) => current.filter((_, itemIndex) => itemIndex !== index));
+    setSelectedIds((current) => current.filter((selectedId) => selectedId !== id));
   }
 
   function archiveSelected() {
@@ -167,8 +195,10 @@ export default function PromotionCenterPage() {
       description="จัดการวงจรชีวิต การแสดงผล สื่อ และเงื่อนไขโปรโมชัน"
       actions={<>
         <AdminSaveStateBadge state={saveState} />
-        <AdminButton tone="secondary" onClick={requestReload} disabled={saving}>รีเฟรช</AdminButton>
-        <AdminButton onClick={() => void save()} disabled={saving || warnings.length > 0 || !isDirty}>
+        <AdminButton tone="secondary" onClick={requestReload} disabled={loading || saving}>
+          {loading ? 'กำลังโหลด...' : 'รีเฟรช'}
+        </AdminButton>
+        <AdminButton onClick={() => void save()} disabled={loading || saving || warnings.length > 0 || !isDirty}>
           {saving ? 'กำลังบันทึก...' : 'บันทึก'}
         </AdminButton>
       </>}
@@ -184,18 +214,35 @@ export default function PromotionCenterPage() {
         <AdminMetric title="เก็บถาวร" value={String(stats.archived)} />
       </AdminMetricGrid>
 
-      <AdminFilterBar resultText={`${filtered.length}/${campaigns.length} รายการ`}>
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหาชื่อ รหัส หรือ Badge" style={inputStyle} />
-        <select value={lifecycleFilter} onChange={(event) => setLifecycleFilter(event.target.value as LifecycleFilter)} style={inputStyle}>
+      <AdminFilterBar resultText={loading ? 'กำลังโหลด...' : `${filtered.length}/${campaigns.length} รายการ`}>
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="ค้นหาชื่อ รหัส หรือ Badge"
+          style={inputStyle}
+        />
+        <select
+          value={lifecycleFilter}
+          onChange={(event) => setLifecycleFilter(event.target.value as LifecycleFilter)}
+          style={inputStyle}
+        >
           <option value="all">ทุกสถานะ</option>
           <option value="draft">ฉบับร่าง</option>
           <option value="published">เผยแพร่</option>
           <option value="archived">เก็บถาวร</option>
         </select>
-        <AdminButton tone="secondary" onClick={() => setSelectedIds(selectedVisible ? [] : filtered.map((item) => item.id))}>
+        <AdminButton
+          tone="secondary"
+          disabled={loading || filtered.length === 0}
+          onClick={() => setSelectedIds(selectedVisible ? [] : filtered.map((item) => item.id))}
+        >
           {selectedVisible ? 'ยกเลิกเลือกทั้งหมด' : 'เลือกทั้งหมดที่แสดง'}
         </AdminButton>
-        <AdminButton tone="danger" disabled={selectedIds.length === 0} onClick={() => setConfirmArchive(true)}>
+        <AdminButton
+          tone="danger"
+          disabled={loading || selectedIds.length === 0}
+          onClick={() => setConfirmArchive(true)}
+        >
           เก็บถาวร {selectedIds.length || ''}
         </AdminButton>
       </AdminFilterBar>
@@ -217,13 +264,17 @@ export default function PromotionCenterPage() {
                   ))}
                   onPatch={(patch) => patchCampaign(index, patch, setCampaigns)}
                   onLifecycle={(lifecycle) => setLifecycle(index, lifecycle)}
-                  onRemove={() => setCampaigns((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                  onRemove={() => removeCampaign(index, item.id)}
                   onMove={(direction) => moveCampaign(index, direction, setCampaigns)}
                 />
               );
             })}
-            {filtered.length === 0 && <AdminNotice>ไม่พบโปรโมชันตามตัวกรอง</AdminNotice>}
-            <AdminButton tone="secondary" onClick={() => setCampaigns((current) => [...current, createCampaign(current.length + 1)])}>
+            {!loading && filtered.length === 0 && <AdminNotice>ไม่พบโปรโมชันตามตัวกรอง</AdminNotice>}
+            <AdminButton
+              tone="secondary"
+              disabled={loading}
+              onClick={() => setCampaigns((current) => [...current, createCampaign(current.length + 1)])}
+            >
               เพิ่มโปรโมชัน
             </AdminButton>
           </AdminStack>
@@ -232,12 +283,15 @@ export default function PromotionCenterPage() {
         <AdminCard title="Member preview" description="แสดงเฉพาะรายการที่เผยแพร่และเปิดใช้งาน">
           <div style={previewShellStyle}>
             {sortedPreview.slice(0, 4).map((item) => <PromotionPreview key={item.id} item={item} />)}
-            {sortedPreview.length === 0 && <AdminNotice>ยังไม่มีโปรที่เผยแพร่</AdminNotice>}
+            {!loading && sortedPreview.length === 0 && <AdminNotice>ยังไม่มีโปรที่เผยแพร่</AdminNotice>}
           </div>
         </AdminCard>
       </AdminGrid>
 
-      <AdminToolbar><strong>Preview JSON</strong><span style={mutedStyle}>เก็บใน features.promotion_campaigns</span></AdminToolbar>
+      <AdminToolbar>
+        <strong>Preview JSON</strong>
+        <span style={mutedStyle}>เก็บใน features.promotion_campaigns</span>
+      </AdminToolbar>
       <pre style={preStyle}>{JSON.stringify(campaigns, null, 2)}</pre>
 
       <AdminConfirmDialog
@@ -249,6 +303,15 @@ export default function PromotionCenterPage() {
         onCancel={() => setConfirmArchive(false)}
         onConfirm={archiveSelected}
         details={<p>ต้องกดบันทึกอีกครั้งจึงจะส่งผลจริง</p>}
+      />
+      <AdminConfirmDialog
+        open={confirmReload}
+        title="ทิ้งการแก้ไขที่ยังไม่บันทึก"
+        description="ระบบจะโหลดข้อมูลโปรโมชันล่าสุดและยกเลิกการแก้ไขทั้งหมดในหน้านี้"
+        confirmLabel="ทิ้งการแก้ไข"
+        tone="danger"
+        onCancel={() => setConfirmReload(false)}
+        onConfirm={discardAndReload}
       />
     </AdminPage>
   );
@@ -267,11 +330,14 @@ function CampaignEditor({ item, index, count, selected, onSelect, onPatch, onLif
 }) {
   const imageWarning = item.imageUrl && !isValidUrl(item.imageUrl) ? 'URL รูปไม่ถูกต้อง' : undefined;
   const iconWarning = item.iconUrl && !isValidUrl(item.iconUrl) ? 'URL ไอคอนไม่ถูกต้อง' : undefined;
+
   return (
     <section style={editorStyle}>
       <AdminRow>
         <div style={headingStyle}>
-          <label style={selectStyle}><input type="checkbox" checked={selected} onChange={(event) => onSelect(event.target.checked)} /> เลือก</label>
+          <label style={selectStyle}>
+            <input type="checkbox" checked={selected} onChange={(event) => onSelect(event.target.checked)} /> เลือก
+          </label>
           <strong>{item.title || `Promotion ${index + 1}`}</strong>
           <p style={mutedStyle}>{lifecycleLabel(item.lifecycle)} · priority {item.priority ?? 0}</p>
         </div>
@@ -279,7 +345,11 @@ function CampaignEditor({ item, index, count, selected, onSelect, onPatch, onLif
           <AdminBadge tone={lifecycleTone(item.lifecycle)}>{lifecycleLabel(item.lifecycle)}</AdminBadge>
           {index > 0 && <AdminButton tone="secondary" onClick={() => onMove(-1)}>ขึ้น</AdminButton>}
           {index < count - 1 && <AdminButton tone="secondary" onClick={() => onMove(1)}>ลง</AdminButton>}
-          <select value={item.lifecycle} onChange={(event) => onLifecycle(event.target.value as PromotionLifecycle)} style={compactSelectStyle}>
+          <select
+            value={item.lifecycle}
+            onChange={(event) => onLifecycle(event.target.value as PromotionLifecycle)}
+            style={compactSelectStyle}
+          >
             <option value="draft">ฉบับร่าง</option>
             <option value="published">เผยแพร่</option>
             <option value="archived">เก็บถาวร</option>
@@ -287,6 +357,7 @@ function CampaignEditor({ item, index, count, selected, onSelect, onPatch, onLif
           <AdminButton tone="danger" onClick={onRemove}>ลบ</AdminButton>
         </div>
       </AdminRow>
+
       <div style={fieldGridStyle}>
         <Field label="รหัสโปร" value={item.id} onChange={(value) => onPatch({ id: slug(value) })} />
         <Field label="ชื่อโปร" value={item.title} onChange={(value) => onPatch({ title: value })} />
@@ -296,12 +367,24 @@ function CampaignEditor({ item, index, count, selected, onSelect, onPatch, onLif
         <Field label="รูปโปรโมชัน URL" value={item.imageUrl ?? ''} onChange={(value) => onPatch({ imageUrl: value })} warning={imageWarning} />
         <Field label="ไอคอน URL" value={item.iconUrl ?? ''} onChange={(value) => onPatch({ iconUrl: value })} warning={iconWarning} />
         <Field label="รายละเอียด" value={item.description} onChange={(value) => onPatch({ description: value })} textarea />
-        <label style={fieldStyle}><span>ประเภทโบนัส</span><select value={item.bonusType} onChange={(event) => onPatch({ bonusType: event.target.value as PromotionCampaign['bonusType'] })} style={inputStyle}><option value="percent">เปอร์เซ็นต์</option><option value="fixed">จำนวนคงที่</option></select></label>
+        <label style={fieldStyle}>
+          <span>ประเภทโบนัส</span>
+          <select value={item.bonusType} onChange={(event) => onPatch({ bonusType: event.target.value as PromotionCampaign['bonusType'] })} style={inputStyle}>
+            <option value="percent">เปอร์เซ็นต์</option>
+            <option value="fixed">จำนวนคงที่</option>
+          </select>
+        </label>
         <NumberField label="โบนัส" value={item.bonusValue} onChange={(value) => onPatch({ bonusValue: value })} />
         <NumberField label="ฝากขั้นต่ำ" value={item.minDeposit} onChange={(value) => onPatch({ minDeposit: value })} />
         <NumberField label="โบนัสสูงสุด" value={item.maxBonus} onChange={(value) => onPatch({ maxBonus: value })} />
         <NumberField label="เทิร์น x" value={item.turnoverMultiplier} onChange={(value) => onPatch({ turnoverMultiplier: value })} />
-        <label style={fieldStyle}><span>Claim mode</span><select value={item.claimMode} onChange={(event) => onPatch({ claimMode: event.target.value as PromotionCampaign['claimMode'] })} style={inputStyle}><option value="manual_review">แอดมินตรวจ</option><option value="auto_pending">สร้างคำขอรอตรวจอัตโนมัติ</option></select></label>
+        <label style={fieldStyle}>
+          <span>Claim mode</span>
+          <select value={item.claimMode} onChange={(event) => onPatch({ claimMode: event.target.value as PromotionCampaign['claimMode'] })} style={inputStyle}>
+            <option value="manual_review">แอดมินตรวจ</option>
+            <option value="auto_pending">สร้างคำขอรอตรวจอัตโนมัติ</option>
+          </select>
+        </label>
         <Field label="เริ่ม" value={item.startsAt ?? ''} onChange={(value) => onPatch({ startsAt: value || undefined })} inputType="date" />
         <Field label="สิ้นสุด" value={item.endsAt ?? ''} onChange={(value) => onPatch({ endsAt: value || undefined })} inputType="date" />
       </div>
@@ -312,7 +395,24 @@ function CampaignEditor({ item, index, count, selected, onSelect, onPatch, onLif
 
 function PromotionPreview({ item }: { item: PromotionCampaign }) {
   const accent = item.accentColor || '#f5c542';
-  return <section style={{ ...previewCardStyle, borderColor: `${accent}66`, background: `linear-gradient(135deg, ${accent}26, rgba(15,23,42,.92))` }}><div style={previewMediaStyle}>{item.imageUrl && isValidUrl(item.imageUrl) ? <img src={item.imageUrl} alt="" style={previewImageStyle} /> : <div style={{ ...previewFallbackStyle, color: accent }}>{item.iconUrl && isValidUrl(item.iconUrl) ? <img src={item.iconUrl} alt="" style={previewIconStyle} /> : '★'}</div>}</div><div style={previewBodyStyle}><div style={actionRowStyle}>{item.iconUrl && isValidUrl(item.iconUrl) && <img src={item.iconUrl} alt="" style={miniIconStyle} />}<AdminBadge tone="warning">{item.badgeText || (item.bonusType === 'percent' ? `${item.bonusValue}%` : money(item.bonusValue))}</AdminBadge></div><h3>{item.title}</h3><p>{item.description}</p><span>ฝากขั้นต่ำ {money(item.minDeposit)} · เทิร์น x{item.turnoverMultiplier}</span></div></section>;
+  return (
+    <section style={{ ...previewCardStyle, borderColor: `${accent}66`, background: `linear-gradient(135deg, ${accent}26, rgba(15,23,42,.92))` }}>
+      <div style={previewMediaStyle}>
+        {item.imageUrl && isValidUrl(item.imageUrl)
+          ? <img src={item.imageUrl} alt="" style={previewImageStyle} />
+          : <div style={{ ...previewFallbackStyle, color: accent }}>{item.iconUrl && isValidUrl(item.iconUrl) ? <img src={item.iconUrl} alt="" style={previewIconStyle} /> : '★'}</div>}
+      </div>
+      <div style={previewBodyStyle}>
+        <div style={actionRowStyle}>
+          {item.iconUrl && isValidUrl(item.iconUrl) && <img src={item.iconUrl} alt="" style={miniIconStyle} />}
+          <AdminBadge tone="warning">{item.badgeText || (item.bonusType === 'percent' ? `${item.bonusValue}%` : money(item.bonusValue))}</AdminBadge>
+        </div>
+        <h3>{item.title}</h3>
+        <p>{item.description}</p>
+        <span>ฝากขั้นต่ำ {money(item.minDeposit)} · เทิร์น x{item.turnoverMultiplier}</span>
+      </div>
+    </section>
+  );
 }
 
 function Field({ label, value, onChange, textarea = false, warning, inputType = 'text' }: {
@@ -323,17 +423,34 @@ function Field({ label, value, onChange, textarea = false, warning, inputType = 
   warning?: string | undefined;
   inputType?: 'text' | 'date' | undefined;
 }) {
-  return <label style={fieldStyle}><span>{label}</span>{textarea ? <textarea value={value} onChange={(event) => onChange(event.target.value)} style={textareaStyle} /> : <input type={inputType} value={value} onChange={(event) => onChange(event.target.value)} style={inputStyle} />}{warning && <small style={warningStyle}>{warning}</small>}</label>;
+  return (
+    <label style={fieldStyle}>
+      <span>{label}</span>
+      {textarea
+        ? <textarea value={value} onChange={(event) => onChange(event.target.value)} style={textareaStyle} />
+        : <input type={inputType} value={value} onChange={(event) => onChange(event.target.value)} style={inputStyle} />}
+      {warning && <small style={warningStyle}>{warning}</small>}
+    </label>
+  );
 }
 
 function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
-  return <label style={fieldStyle}><span>{label}</span><input type="number" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value || 0))} style={inputStyle} /></label>;
+  return (
+    <label style={fieldStyle}>
+      <span>{label}</span>
+      <input type="number" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value || 0))} style={inputStyle} />
+    </label>
+  );
 }
 
 function normalizeCampaigns(value: unknown): PromotionCampaign[] {
   if (!Array.isArray(value)) return defaultCampaigns;
   return value.map((item: Record<string, unknown>, index) => {
-    const lifecycle: PromotionLifecycle = item.lifecycle === 'archived' ? 'archived' : item.lifecycle === 'published' || item.enabled === true ? 'published' : 'draft';
+    const lifecycle: PromotionLifecycle = item.lifecycle === 'archived'
+      ? 'archived'
+      : item.lifecycle === 'published' || item.enabled === true
+        ? 'published'
+        : 'draft';
     return {
       id: slug(item.id ?? `promotion-${index + 1}`),
       title: String(item.title ?? ''),
@@ -358,16 +475,96 @@ function normalizeCampaigns(value: unknown): PromotionCampaign[] {
 }
 
 function createCampaign(index: number): PromotionCampaign {
-  return { id: `promotion-${Date.now()}`, title: `โปรโมชัน ${index}`, description: '', enabled: false, lifecycle: 'draft', bonusType: 'percent', bonusValue: 10, minDeposit: 100, maxBonus: 500, turnoverMultiplier: 3, claimMode: 'manual_review', imageUrl: '', iconUrl: '', badgeText: 'NEW', accentColor: '#f5c542', priority: index * 10 };
+  return {
+    id: `promotion-${Date.now()}`,
+    title: `โปรโมชัน ${index}`,
+    description: '',
+    enabled: false,
+    lifecycle: 'draft',
+    bonusType: 'percent',
+    bonusValue: 10,
+    minDeposit: 100,
+    maxBonus: 500,
+    turnoverMultiplier: 3,
+    claimMode: 'manual_review',
+    imageUrl: '',
+    iconUrl: '',
+    badgeText: 'NEW',
+    accentColor: '#f5c542',
+    priority: index * 10,
+  };
 }
-function patchCampaign(index: number, patch: Partial<PromotionCampaign>, setCampaigns: Dispatch<SetStateAction<PromotionCampaign[]>>) { setCampaigns((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item)); }
-function moveCampaign(index: number, direction: -1 | 1, setCampaigns: Dispatch<SetStateAction<PromotionCampaign[]>>) { setCampaigns((current) => { const target = index + direction; if (index < 0 || target < 0 || index >= current.length || target >= current.length) return current; const next = [...current]; const source = next[index]; const destination = next[target]; if (!source || !destination) return current; next[index] = destination; next[target] = source; return next; }); }
-function buildWarnings(campaigns: PromotionCampaign[]) { const warnings: string[] = []; const ids = new Set<string>(); for (const item of campaigns) { if (!item.id.trim()) warnings.push('มีโปรที่ไม่มีรหัส'); if (ids.has(item.id)) warnings.push(`รหัสโปรซ้ำ: ${item.id}`); ids.add(item.id); if (item.lifecycle === 'published' && !item.title.trim()) warnings.push('มีโปรเผยแพร่แต่ไม่มีชื่อ'); if (item.lifecycle === 'published' && !item.description.trim()) warnings.push(`โปรที่เผยแพร่ต้องมีรายละเอียด: ${item.title || item.id}`); if (item.bonusType === 'percent' && item.bonusValue > 100) warnings.push('เปอร์เซ็นต์โบนัสเกิน 100%'); if (item.maxBonus < 0 || item.minDeposit < 0 || item.bonusValue < 0 || item.turnoverMultiplier < 0) warnings.push('ตัวเลขโปรโมชันต้องไม่ติดลบ'); if (item.lifecycle === 'published' && item.turnoverMultiplier <= 0) warnings.push(`โปรที่เผยแพร่ต้องมีเทิร์นมากกว่า 0: ${item.title || item.id}`); if (item.startsAt && item.endsAt && item.startsAt > item.endsAt) warnings.push(`วันเริ่มต้องไม่เกินวันสิ้นสุด: ${item.title || item.id}`); if (item.imageUrl && !isValidUrl(item.imageUrl)) warnings.push(`URL รูปโปรไม่ถูกต้อง: ${item.title || item.id}`); if (item.iconUrl && !isValidUrl(item.iconUrl)) warnings.push(`URL ไอคอนไม่ถูกต้อง: ${item.title || item.id}`); } return warnings; }
-function lifecycleLabel(value: PromotionLifecycle) { return value === 'published' ? 'เผยแพร่' : value === 'archived' ? 'เก็บถาวร' : 'ฉบับร่าง'; }
-function lifecycleTone(value: PromotionLifecycle): 'success' | 'neutral' | 'warning' { return value === 'published' ? 'success' : value === 'archived' ? 'neutral' : 'warning'; }
-function slug(value: unknown) { return String(value ?? '').trim().toLowerCase().replace(/[^a-z0-9-_]+/g, '-').replace(/^-+|-+$/g, '') || `promotion-${Date.now()}`; }
-function isValidUrl(value: string) { if (!value) return true; try { const url = new URL(value); return url.protocol === 'http:' || url.protocol === 'https:'; } catch { return false; } }
-function money(value: number) { return `THB ${Number(value || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
+
+function patchCampaign(
+  index: number,
+  patch: Partial<PromotionCampaign>,
+  setCampaigns: Dispatch<SetStateAction<PromotionCampaign[]>>,
+) {
+  setCampaigns((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
+}
+
+function moveCampaign(
+  index: number,
+  direction: -1 | 1,
+  setCampaigns: Dispatch<SetStateAction<PromotionCampaign[]>>,
+) {
+  setCampaigns((current) => {
+    const target = index + direction;
+    if (index < 0 || target < 0 || index >= current.length || target >= current.length) return current;
+    const source = current[index];
+    const destination = current[target];
+    if (!source || !destination) return current;
+    const next = [...current];
+    next[index] = destination;
+    next[target] = source;
+    return next;
+  });
+}
+
+function buildWarnings(campaigns: PromotionCampaign[]) {
+  const warnings: string[] = [];
+  const ids = new Set<string>();
+  for (const item of campaigns) {
+    if (!item.id.trim()) warnings.push('มีโปรที่ไม่มีรหัส');
+    if (ids.has(item.id)) warnings.push(`รหัสโปรซ้ำ: ${item.id}`);
+    ids.add(item.id);
+    if (item.lifecycle === 'published' && !item.title.trim()) warnings.push('มีโปรเผยแพร่แต่ไม่มีชื่อ');
+    if (item.lifecycle === 'published' && !item.description.trim()) warnings.push(`โปรที่เผยแพร่ต้องมีรายละเอียด: ${item.title || item.id}`);
+    if (item.bonusType === 'percent' && item.bonusValue > 100) warnings.push('เปอร์เซ็นต์โบนัสเกิน 100%');
+    if (item.maxBonus < 0 || item.minDeposit < 0 || item.bonusValue < 0 || item.turnoverMultiplier < 0) warnings.push('ตัวเลขโปรโมชันต้องไม่ติดลบ');
+    if (item.lifecycle === 'published' && item.turnoverMultiplier <= 0) warnings.push(`โปรที่เผยแพร่ต้องมีเทิร์นมากกว่า 0: ${item.title || item.id}`);
+    if (item.startsAt && item.endsAt && item.startsAt > item.endsAt) warnings.push(`วันเริ่มต้องไม่เกินวันสิ้นสุด: ${item.title || item.id}`);
+    if (item.imageUrl && !isValidUrl(item.imageUrl)) warnings.push(`URL รูปโปรไม่ถูกต้อง: ${item.title || item.id}`);
+    if (item.iconUrl && !isValidUrl(item.iconUrl)) warnings.push(`URL ไอคอนไม่ถูกต้อง: ${item.title || item.id}`);
+  }
+  return warnings;
+}
+
+function lifecycleLabel(value: PromotionLifecycle) {
+  return value === 'published' ? 'เผยแพร่' : value === 'archived' ? 'เก็บถาวร' : 'ฉบับร่าง';
+}
+
+function lifecycleTone(value: PromotionLifecycle): 'success' | 'neutral' | 'warning' {
+  return value === 'published' ? 'success' : value === 'archived' ? 'neutral' : 'warning';
+}
+
+function slug(value: unknown) {
+  return String(value ?? '').trim().toLowerCase().replace(/[^a-z0-9-_]+/g, '-').replace(/^-+|-+$/g, '') || `promotion-${Date.now()}`;
+}
+
+function isValidUrl(value: string) {
+  if (!value) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function money(value: number) {
+  return `THB ${Number(value || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
+}
 
 const mutedStyle = { margin: '4px 0 0', color: '#94a3b8', lineHeight: 1.5 } as const;
 const headingStyle = { display: 'grid', gap: 4 } as const;
