@@ -70,7 +70,7 @@ Branch: `feature/member-branding-foundation`
 - ✅ รัน asset audit กับไฟล์ binary ที่นำเข้า
 - ✅ ตรวจ Admin asset sync ระหว่าง buildจริง
 - 🔄 ย้าย consumer อื่น เช่น Quick actions ให้ใช้ renderer กลางทีละส่วน
-- 🔄 นำเข้า asset Home/Promotion ต้นฉบับที่เหลือเป็นไฟล์จริง
+- ⛔ นำเข้า Announcement/Jackpot/Promotion PNG ต้นฉบับไม่ได้ เพราะ binary transport เปลี่ยน checksum
 - ✅ นำเข้าและเชื่อม Support headset WebP
 
 ## Workstream D: Member Home Integration Contract
@@ -100,38 +100,38 @@ Branch: `feature/member-branding-foundation`
 - ✅ เชื่อม field กลุ่ม Logo และข้อความสำคัญเข้าฟอร์ม Admin จริง
 - ✅ เพิ่ม Upload/Replace/Disable/Restore สำหรับโลโก้และไอคอน
 - ✅ เพิ่ม Preview Desktop/Tablet/Mobile ของหน้า Member เต็มหน้า
-- 🧪 เพิ่ม Draft/Publish/Version/Rollback แบบย้อนหลังได้ รอ CI รอบสะอาด
-- 🧪 แยกสิทธิ์ Edit และ Publish รอ CI รอบสะอาด
-- 🧪 เพิ่ม Audit action สำหรับ Draft/Publish/Rollback รอ CI รอบสะอาด
-- 🧪 เพิ่มหลักฐาน Admin typecheck เป็น workflow artifact เพื่อวินิจฉัย CI โดยไม่เดา
+- ✅ เพิ่ม Draft/Publish/Version/Rollback แบบย้อนหลังได้
+- ✅ แยกสิทธิ์ Edit และ Publish
+- ✅ เพิ่ม Audit action สำหรับ Draft/Publish/Rollback
+- ✅ เพิ่มหลักฐาน Admin test/typecheck เป็น workflow artifact เพื่อวินิจฉัย CI โดยไม่เดา
 - ✅ ทำ ownership audit ระหว่าง Website, Branding, Icons, CMS, Promotion และ Game API
 - ✅ ยืนยันว่า uploader, history, audit และ permission ใช้ระบบกลางเดิม ไม่สร้างชุดซ้ำ
 - ✅ ปรับ Branding workflow และ layout ให้ใช้ AdminActionStrip, AdminLinkButton และ AdminStack เดิม
 - ✅ เพิ่ม regression tests กัน key ข้ามหมวดและ custom workflow UI กลับมา
-- 🔄 แยก form lifecycle กลางสำหรับ load, dirty, before-unload, save, reset และ notice
-- ⬜ ย้าย Website settings มาใช้ form lifecycle กลางโดยไม่เปลี่ยน API contract
-- ⬜ รวม inline preview contract และคง full-page preview เพียงชุดเดียว
+- ✅ แยก form lifecycle กลางสำหรับ load, dirty, before-unload, save, reset และ notice
+- ✅ ย้าย Website และ SettingsSectionPage มาใช้ form lifecycle กลางโดยไม่เปลี่ยน API contract
+- ✅ รวม preview contract ให้เหลือ inline preview และ full-page preview เพียงสองระดับ
+- ✅ Admin lint, tests, typecheck, production build และ bundle analysis ผ่านหลัง overlap refactor
 
 ## Gate ก่อนเปิด Pull Request
 
-- ✅ Unit tests เคยผ่านก่อน workflow ขั้นสูงล่าสุด
-- ✅ Typecheck เคยผ่านก่อน workflow ขั้นสูงล่าสุด
-- ✅ Production build เคยผ่านก่อน workflow ขั้นสูงล่าสุด
-- 🧪 Draft/Publish/History/Rollback อยู่ระหว่าง CI รอบสะอาด
+- ✅ Unit tests ผ่านหลัง Admin overlap refactor
+- ✅ Typecheck ผ่านหลัง Admin overlap refactor
+- ✅ Production build ผ่านหลัง Admin overlap refactor
+- ✅ Draft/Publish/History/Rollback ผ่าน Admin verification
 - 🧪 ไม่มี route เดิมเสีย รอ final browser regression
 - ✅ ไม่มี API contract เปลี่ยนโดยไม่ตั้งใจตาม architecture/contract audits
-- 🧪 ไม่มี CSS global ทับหน้าอื่น รอ final visual regression รอบสะอาด
+- ✅ ไม่มี CSS global ทับหน้าอื่นตาม visual regression ล่าสุด
 - ✅ มี manifest, source mapping และ rollback note ระดับ foundation
-- ✅ Branch ตาม `main` และ PR ยัง mergeable ตอนตรวจล่าสุด
+- ⛔ Branch แยกจาก `main` และ PR มี conflict หลัง `main` รับงาน Admin ชุดใหม่ ต้อง sync ก่อน final merge
 - ✅ Draft PR `#105` ยังเปิดเพื่อรีวิวก่อน merge
 
 ## งานค้างหลัก
 
-1. 🧪 ปิด Admin typecheck/build ของ Draft/Publish/History/Rollback และ Admin overlap refactor
-2. 🔄 แยก form lifecycle กลางและย้าย Website settings มาใช้ร่วมกัน
-3. 🔄 ย้าย Quick Actions ให้ใช้ icon renderer กลาง
-4. 🔄 Auth visual polish และเทียบ Mobile/Desktop
-5. 🔄 Home visual polish และ browser soak test
-6. ⛔ Announcement/Jackpot/Promotion PNG ยังไม่ commit เพราะ binary transport ทำ checksum เปลี่ยน
-7. ⬜ Final browser acceptance หลังล็อกอินจริง
-8. ⬜ Final clean CI และอัปเดต PR body รอบสุดท้าย
+1. 🔄 ย้าย Quick Actions ให้ใช้ icon renderer กลาง
+2. 🔄 Auth visual polish และเทียบ Mobile/Desktop
+3. 🔄 Home visual polish และ browser soak test
+4. ⛔ Announcement/Jackpot/Promotion PNG ยังไม่ commit เพราะ binary transport ทำ checksum เปลี่ยน
+5. ⬜ Sync `main` และแก้ PR conflict โดยรักษางาน Admin ล่าสุดทั้งสองฝั่ง
+6. ⬜ Final browser acceptance หลังล็อกอินจริง
+7. ⬜ Final clean CI และอัปเดต PR body รอบสุดท้าย
