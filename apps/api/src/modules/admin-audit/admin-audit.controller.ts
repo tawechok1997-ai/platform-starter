@@ -15,6 +15,12 @@ export class AdminAuditController {
     return this.service.riskSummary(query);
   }
 
+  @RequirePermission('admin.access.manage')
+  @Get('export')
+  exportCsv(@Query() query: AuditLogQuery) {
+    return this.service.exportCsv(query);
+  }
+
   @RequirePermission('admin.access.view')
   @Get()
   list(@Query() query: AuditLogQuery) {
