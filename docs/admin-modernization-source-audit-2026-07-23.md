@@ -13,7 +13,7 @@
 
 - [x] เรียง System status → Urgent queue → KPI → Risk → Finance → Activity
   - Source: `apps/web-admin/app/(admin)/dashboard/page.tsx`
-  - หมายเหตุ: operational queue อยู่ก่อน Activity แต่ลำดับหลักตาม contract ครบ
+  - Operational queue อยู่ก่อน Activity และลำดับหลักตาม contract ครบ
 - [x] ลด KPI/กราฟซ้ำ
   - ลบ Finance flow แล้ว เก็บ Finance comparison เป็นกราฟการเงินหลัก
 
@@ -21,12 +21,18 @@
 
 - [x] งานเร่งด่วนก่อน
   - มี priority score และ sort งานที่มีจำนวนค้างก่อน
+- [x] SLA/เวลาค้าง
+  - ดึงข้อมูลจาก `/admin/reports/queue-aging`
+  - แสดงเวลาค้างสูงสุดของคิวฝากและถอนใน KPI, queue row และ detail drawer
+  - สีสถานะใช้เกณฑ์ต่ำกว่า 15 นาที / 15 นาที / 60 นาที
+  - Queue-aging เป็นข้อมูลเสริม หาก endpoint นี้ล้ม Operations หลักยังใช้งานได้
+  - Implementation: `f385eac19961df7fe5776fedb80b6c9b53874aee`
+  - Type fix: `3ed63bd81af100c61a9f8164881a669dadcc787a`
+  - Railway deploy: API, Member และ Admin ผ่าน
 - [x] Priority filter
   - รองรับ `all`, `critical`, `member`
 - [x] Action drawer ต่อรายการ
   - มี task detail dialog/drawer และลิงก์เข้าคิวจริง
-- [ ] SLA/เวลาค้าง
-  - ยังไม่มี age/SLA ของแต่ละ queue task
 
 ### `/wallet-ledgers`
 
@@ -101,8 +107,8 @@
 
 ### `/content-center`
 
-- [x] Raw JSON ใน Advanced mode
-  - มี `Advanced: Preview JSON` แบบ read-only
+- [~] Raw JSON ใน Advanced mode
+  - มี `Advanced: Preview JSON` แบบ read-only แต่ยังแก้ JSON โดยตรงไม่ได้
 - [ ] Draft/Published lifecycle ชัดเจน
 - [ ] Unsaved changes warning
 
@@ -122,7 +128,6 @@
 
 ## 3. งานที่ตรวจแล้วว่ายังค้างจริง
 
-- `/operations`: SLA/เวลาค้าง
 - `/topups`: Sticky filter, Proof drawer
 - `/withdrawals`: Proof drawer เฉพาะทาง, queue priority/SLA ordering
 - `/wallet-ledgers`: Server-side pagination
@@ -135,7 +140,7 @@
 - `/webhook-logs`: Replay permission, server-side pagination, provider payload redaction
 - `/promotion-operations`: readiness checklist, request priority, member preview
 - `/promotion-center`: tabs/lifecycle/search/bulk archive/unsaved guard
-- `/content-center`: lifecycle และ unsaved guard
+- `/content-center`: lifecycle, editable raw JSON และ unsaved guard
 - `/admin-roles`: editor/save workflow
 - `/audit`: permission-gated export และ field-level masking
 - `/settings`: shared unsaved/save-state contract
@@ -148,25 +153,21 @@
 
 ลิสเดิมนับ Bulk review แยกใน `/topups` และ `/withdrawals` แต่มี `/bulk-queue-operations` รองรับฝาก/ถอนอยู่แล้ว
 
-งานที่ถูกต้องเหลือหนึ่งงาน:
-
-- [ ] เชื่อม entry point จาก Top-ups และ Withdrawals ไป Bulk Queue เดิม พร้อมส่งชนิดคิว/ตัวกรองเริ่มต้น
+- [x] เชื่อม entry point จาก Top-ups และ Withdrawals ไป Bulk Queue เดิม พร้อมส่งชนิดคิว/ตัวกรองเริ่มต้น
+  - `/topups` ส่ง `?kind=topups`
+  - `/withdrawals` ส่ง `?kind=withdrawals`
+  - Bulk Queue อ่าน query หลัง mount ก่อนโหลดข้อมูล จึงไม่เกิด hydration mismatch
+  - สลับชนิดคิวแล้ว reset action เป็น `claim` ป้องกัน action เก่าค้างผิดประเภท
+  - Bulk route: `93685fcf5335ad13f384b2dc30f86647e9be0b65`
+  - Top-ups entry: `750e6f871b59c47aa0e8edc648050c1c87f654f7`
+  - Withdrawals entry: `a7a522b8c4b4f9c59f5bf342ebe5cf7876809463`
+  - Railway deploy: API, Member และ Admin ผ่าน
 
 ห้ามสร้าง batch workflow ใหม่ในสองหน้า
 
 ### D-02 — Finance queue contract
 
-`/topups` และ `/withdrawals` มีโครงสร้างซ้ำ:
-
-- status filter
-- pagination
-- claim/release
-- note
-- proof preview
-- busy guard
-- confirmation
-
-งานรวม:
+`/topups` และ `/withdrawals` มีโครงสร้างซ้ำ: status filter, pagination, claim/release, note, proof preview, busy guard และ confirmation
 
 - [ ] สร้าง shared queue shell/filter/pager/evidence contract แล้ว migrate สองหน้า
 
@@ -174,23 +175,17 @@
 
 ซ้ำใน Promotion Center, Content Center และ Settings
 
-งานรวม:
-
 - [ ] Shared dirty-state hook + navigation guard + save-state contract
 
 ### D-04 — Safe error contract
 
 ซ้ำใน Phase 1, route รายหน้า และ Definition of Done
 
-งานรวม:
-
 - [ ] Safe-error mapper กลาง + route audit matrix
 
 ### D-05 — Confirmation และ mutation guard
 
 ซ้ำใน finance, security, provider, promotion, bonus, affiliate และ admin accounts
-
-งานรวม:
 
 - [ ] Shared confirmation contract
 - [ ] Shared mutation/busy/idempotency guard
@@ -199,8 +194,6 @@
 
 ซ้ำใน proof, KYC, promotion claim, provider, session, audit และ admin detail
 
-งานรวม:
-
 - [ ] Shared Drawer primitive + focus/escape/backdrop/mobile contract
 - [ ] Route adoption matrix
 
@@ -208,15 +201,11 @@
 
 ซ้ำใน dashboard, webhook replay, audit export, invitations และ global navigation
 
-งานรวม:
-
 - [ ] UI/API permission matrix กลาง
 
 ### D-08 — Responsive/mobile verification
 
 ซ้ำใน Phase 0, route ต่าง ๆ และ Definition of Done
-
-งานรวม:
 
 - [ ] Route × role × viewport regression matrix
 
@@ -224,15 +213,11 @@
 
 ซ้ำใน Game Transfers, Webhook Logs, error tracking และ Definition of Done
 
-งานรวม:
-
 - [ ] Redaction boundary กลาง + provider fixtures/tests
 
 ### D-10 — Server table/filter/pagination
 
 ซ้ำใน Top-ups, Withdrawals, Game Providers, Wallet Ledgers, Webhook Logs และ Audit
-
-งานรวม:
 
 - [ ] Shared server-table query/result contract
 
@@ -241,14 +226,17 @@
 1. ก่อนเริ่ม route task ต้องตรวจ correction layer นี้ก่อน
 2. งานที่อยู่ใน D-01 ถึง D-10 ให้แก้ shared contract ก่อน route adoption
 3. ห้ามสร้าง component/workflow ใหม่ ถ้ามี implementation เดิมที่ทำหน้าที่เดียวกัน
-4. `[x]` ต้องระบุ source path ที่ตรวจได้
+4. `[x]` ต้องระบุ source path หรือ commit ที่ตรวจได้
 5. งาน browser/focus/responsive ต้องมี evidence ก่อนเปลี่ยน `[~]` เป็น `[x]`
 
-## 6. ผลการตรวจรอบนี้
+## 6. ผลการตรวจและการทำงานรอบนี้
 
-- ช่อง `[ ]` ที่มี implementation จริงและควรเปลี่ยนเป็น `[x]`: 32 งาน
-- ช่อง `[ ]` ที่ควรเปลี่ยนเป็น `[~]`: 3 งาน
+- ช่อง `[ ]` เดิมที่มี implementation จริงและยืนยันเป็น `[x]`: 32 งาน
+- ช่อง `[ ]` เดิมที่ควรเป็น `[~]`: 4 งาน
 - ช่อง `[x]` ที่ต้องลดสถานะใน Promotion Center: 4 งาน
 - กลุ่มงานซ้ำเชิงระบบ: 10 กลุ่ม
+- งานใหม่ที่ปิดหลัง audit: 2 งาน
+  - `/operations` SLA/เวลาค้าง
+  - D-01 เชื่อม Top-ups/Withdrawals เข้าสู่ Bulk Queue เดิม
 
 ตัวเลขนี้นับเฉพาะหัวข้อที่เปิด source ตรวจแล้ว ไม่รวมการคาดเดาจากชื่อ route หรือเอกสาร audit เดิม
