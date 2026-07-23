@@ -17,16 +17,24 @@
 - [x] ปุ่มดู Wallet Ledger ทั้งหมด
 - [x] จำกัด Recent Ledger บน Dashboard ให้แสดง 5 รายการ
 - [x] Wallet total ใช้ช่องว่างแบบไม่ตัดบรรทัด
+- [x] SLA countdown แบบเหลือเวลา/เกินเวลา
 
 ## ยังต้องทำทีละชิ้น
 
 - [ ] ตรวจและจัดลำดับ section ตาม worklist
 - [ ] ลด KPI / chart ที่ซ้ำกัน
-- [x] ปรับ SLA ให้แสดง countdown ที่เข้าใจง่าย
 
 ## งานรอบปัจจุบัน
 
-**เป้าหมายถัดไป:** ปรับ SLA countdown ให้เข้าใจง่าย โดยใช้ข้อมูลอายุคิวที่มีอยู่แล้ว และไม่แก้ API หรือ Database
+**เป้าหมายถัดไป:** ตรวจลำดับ section ของ Dashboard เทียบกับ worklist แล้วขยับทีละ section โดยไม่แก้เนื้อหาภายในการ์ด
+
+## หลักฐาน Role-based dashboard
+
+- Finance KPI และ Finance sections แสดงเมื่อมีสิทธิ์ Finance ที่เกี่ยวข้อง
+- Risk metrics, priority lane และ Risk section แสดงเมื่อมี `risk.view`
+- Top-up และ Withdrawal actions แยกตาม permission ของแต่ละ workflow
+- ปุ่มรายงานและ Wallet Ledger แสดงเฉพาะเมื่อมีสิทธิ์ปลายทาง
+- เมื่อไม่มีสิทธิ์ Finance และ Risk จะแสดง empty state แทนข้อมูลที่ไม่ควรเห็น
 
 ## กติกา
 
