@@ -90,6 +90,9 @@ Verification PR: `#154` (`verify/admin-payload-redaction-v3-20260724`)
 - Full-System run: `30042666172`
   - Job `89326149456`: automated profile passed
   - Test summary and report upload passed
+  - Artifact `8577954279`: `full-system-ci-30042666172`
+  - Digest: `sha256:832be1152f64904c55040566d3b8dccf54a4343820d707d390f9a7dda55f4a03`
+  - Expires: 2026-08-06
 
 ## Limits
 
