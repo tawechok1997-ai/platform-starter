@@ -24,9 +24,17 @@ test('auth visual contract covers desktop tablet mobile and narrow screens', () 
   assert.match(cssSource, /min-height:\s*100dvh/);
 });
 
+test('auth polish keeps mobile hierarchy focus validation and reduced-motion safeguards', () => {
+  assert.match(cssSource, /\.public-auth-brand-panel\s*\{\s*display:\s*none;/s);
+  assert.match(cssSource, /min-height:\s*calc\(100dvh\s*-\s*12px\)/);
+  assert.match(cssSource, /\.public-auth-input:focus-visible/);
+  assert.match(cssSource, /\.public-auth-input\[aria-invalid=['"]true['"]\]/);
+  assert.match(cssSource, /@media \(prefers-reduced-motion:\s*reduce\)/);
+});
+
 test('login polish preserves captcha API session and redirect contracts', () => {
   assert.match(loginSource, /AntiBotWidget endpoint=["']member-login["']/);
-  assert.match(loginSource, /memberApiFetch\(['"]\/member\/auth\/login['"]/);
+  assert.match(loginSource, /memberApiFetch\(["']\/member\/auth\/login["']/);
   assert.match(loginSource, /member_access_token/);
   assert.match(loginSource, /member_refresh_token/);
   assert.match(loginSource, /resolveMemberLoginDestination/);
@@ -36,9 +44,9 @@ test('register polish preserves validation captcha API tokens referral and redir
   assert.match(registerSource, /validateStep\(3\)/);
   assert.match(registerSource, /captchaRequired/);
   assert.match(registerSource, /onCaptchaToken={handleCaptchaToken}/);
-  assert.match(registerSource, /memberApiFetch\(['"]\/member\/auth\/register['"]/);
+  assert.match(registerSource, /memberApiFetch\(["']\/member\/auth\/register["']/);
   assert.match(registerSource, /member_access_token/);
   assert.match(registerSource, /member_refresh_token/);
   assert.match(registerSource, /linkReferralAfterRegister/);
-  assert.match(registerSource, /window\.location\.replace\(['"]\/['"]\)/);
+  assert.match(registerSource, /window\.location\.replace\(["']\/["']\)/);
 });
