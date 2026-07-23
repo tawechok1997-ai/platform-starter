@@ -5,9 +5,8 @@ const REFERENCE_LOGO = '/assets/reference-brand/header/noah345-logo.webp';
 
 export default function BrandingSettingsPage() {
   return (
-    <>
+    <section style={pageStackStyle}>
       <BrandingPublishPanel />
-      <div style={{ height: 12 }} />
       <SettingsSectionPage
         group="branding"
         title="Branding Settings"
@@ -63,6 +62,8 @@ export default function BrandingSettingsPage() {
           { key: 'font_numeric', label: 'Numeric Font Family', placeholder: 'Inter, sans-serif' },
         ]}
       />
-    </>
+    </section>
   );
 }
+
+const pageStackStyle = { display: 'grid', gap: 18, minWidth: 0 } as const;
