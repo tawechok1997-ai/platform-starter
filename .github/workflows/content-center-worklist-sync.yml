@@ -1,0 +1,48 @@
+name: One-shot Content Center Worklist Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/content-center-worklist-sync.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch verified Content Center status
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('docs/admin-modernization-chat-worklist.md')
+          text = path.read_text(encoding='utf-8')
+          old = '''- [ ] Draft/Published lifecycle ชัดเจน
+          - [ ] Raw JSON ใน Advanced mode
+          - [x] Unsaved changes warning
+          - [~] Error handling/try-finally ยังไม่ครบทุก flow'''
+          new = '''- [x] Draft/Published/Archived lifecycle ชัดเจนและ backward-compatible
+          - [x] Editable Raw JSON ใน Advanced mode พร้อม parse/normalize
+          - [x] Unsaved changes warning ครอบคลุมฟอร์มและ Raw JSON ที่ยังไม่ apply
+          - [x] Error handling/try-finally ครบ load/save/upload/delete'''
+          if old not in text:
+              raise SystemExit('Expected Content Center worklist block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/content-center-worklist-sync.yml
+      - name: Commit worklist sync
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/admin-modernization-chat-worklist.md .github/workflows/content-center-worklist-sync.yml
+          git commit -m "docs(admin): close Content Center lifecycle scope"
+          git push
