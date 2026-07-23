@@ -164,6 +164,12 @@ export default function OperationDashboardPage() {
 
         {(loading || permissions === null) && !summary && <div className="admin-dashboard__loading"><AdminSkeleton lines={4} /><AdminSkeleton lines={4} /><AdminSkeleton lines={3} /></div>}
 
+        <section className="admin-command-priority" aria-label={t.priority}>
+          {canViewRisk && <PriorityLane label={t.criticalRisk} value={riskSummary.criticalCount} href="/risk-alerts" tone="danger" helper={t.reviewFirst} locale={locale} />}
+          {canViewWithdrawals && <PriorityLane label={t.withdrawalQueue} value={summary?.totals.pendingWithdrawals ?? 0} href="/withdrawals" tone="warning" helper={t.paymentReview} locale={locale} />}
+          {canViewTopUps && <PriorityLane label={t.depositQueue} value={summary?.totals.pendingTopUps ?? 0} href="/topups" tone="neutral" helper={t.evidenceReview} locale={locale} />}
+        </section>
+
         {summary && canViewFinance && <section className="admin-kpi-groups" aria-label={t.financeKpi}>
           <AdminCard title={t.financeKpi} description={t.financeKpiDescription}>
             <AdminMetricGrid>
@@ -185,12 +191,6 @@ export default function OperationDashboardPage() {
             </AdminMetricGrid>
           </AdminCard>
         </section>}
-
-        <section className="admin-command-priority" aria-label={t.priority}>
-          {canViewRisk && <PriorityLane label={t.criticalRisk} value={riskSummary.criticalCount} href="/risk-alerts" tone="danger" helper={t.reviewFirst} locale={locale} />}
-          {canViewWithdrawals && <PriorityLane label={t.withdrawalQueue} value={summary?.totals.pendingWithdrawals ?? 0} href="/withdrawals" tone="warning" helper={t.paymentReview} locale={locale} />}
-          {canViewTopUps && <PriorityLane label={t.depositQueue} value={summary?.totals.pendingTopUps ?? 0} href="/topups" tone="neutral" helper={t.evidenceReview} locale={locale} />}
-        </section>
 
         {summary?.today && canViewFinance && <AdminCard title={t.financeFlow} description={summary.today.date} action={canViewReports ? <AdminLinkButton href="/reports">{t.fullReport}</AdminLinkButton> : undefined}>
           <div className="admin-finance-flow">
