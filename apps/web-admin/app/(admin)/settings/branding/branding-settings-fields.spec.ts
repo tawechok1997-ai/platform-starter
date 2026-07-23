@@ -125,7 +125,18 @@ test('website and branding settings keep distinct field ownership', () => {
 test('settings pages preserve shared reset and unsaved-change safeguards', () => {
   assert.match(brandingSource, /SettingsSectionPage/);
   assert.match(websiteSource, /useAdminSettingsForm/);
+  assert.match(settingsSectionSource, /useAdminSettingsForm<SettingsRecord>/);
   assert.match(websiteSource, /reset/);
+  assert.match(settingsSectionSource, /onClick={reset}/);
   assert.match(lifecycleSource, /beforeunload/);
   assert.match(lifecycleSource, /setForm\(initialForm\)/);
+});
+
+test('settings lifecycle transport is centralized instead of copied into each page', () => {
+  assert.doesNotMatch(websiteSource, /adminApiFetch/);
+  assert.doesNotMatch(websiteSource, /beforeunload/);
+  assert.doesNotMatch(settingsSectionSource, /method:\s*["']PUT["']/);
+  assert.doesNotMatch(settingsSectionSource, /beforeunload/);
+  assert.match(lifecycleSource, /adminApiFetch\(endpoint/);
+  assert.match(lifecycleSource, /JSON\.stringify\(form\)/);
 });
