@@ -1,0 +1,37 @@
+name: Diagnose Content Center Typecheck Artifact
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --silent
+      - name: Capture typecheck output
+        id: typecheck
+        shell: bash
+        run: |
+          set +e
+          pnpm --filter @platform/web-admin typecheck > content-center-typecheck.log 2>&1
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          set -e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: content-center-typecheck-log
+          path: content-center-typecheck.log
+      - name: Fail when typecheck fails
+        if: steps.typecheck.outputs.status != '0'
+        run: exit 1
