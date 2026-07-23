@@ -1,0 +1,41 @@
+name: Admin Dashboard Quick Actions Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/.admin-dashboard-quick-actions-trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Mark dashboard quick actions complete
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('docs/admin-modernization-chat-worklist.md')
+          text = path.read_text()
+          old = '- [ ] Quick Actions'
+          new = '- [x] Quick Actions'
+          if old not in text:
+              raise SystemExit('Expected Quick Actions worklist item not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Remove temporary automation files
+        run: |
+          rm -f docs/.admin-dashboard-quick-actions-trigger
+          rm -f .github/workflows/admin-dashboard-quick-actions-sync.yml
+      - name: Commit result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/admin-modernization-chat-worklist.md docs/.admin-dashboard-quick-actions-trigger .github/workflows/admin-dashboard-quick-actions-sync.yml
+          git commit -m 'docs(admin): mark dashboard quick actions complete'
+          git push
