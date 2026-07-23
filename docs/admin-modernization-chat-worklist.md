@@ -77,8 +77,8 @@
 
 - [ ] เรียง System status → Urgent queue → KPI → Risk → Finance → Activity
 - [ ] ลด KPI/กราฟซ้ำ
-- [ ] Wallet total ไม่ตัดบรรทัด
-- [ ] Recent Ledger 5 รายการ + ดูทั้งหมด
+- [x] Wallet total ไม่ตัดบรรทัด
+- [x] Recent Ledger 5 รายการ + ดูทั้งหมด
 - [ ] SLA countdown
 - [x] Quick Actions
 - [ ] Role-based dashboard
