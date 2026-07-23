@@ -1,6 +1,6 @@
 # Admin Modernization Worklist — Code-Audited Canonical List
 
-> อัปเดตจากโค้ดบน `main` และหลักฐานที่ตรวจถึง 2026-07-23
+> อัปเดตจากโค้ดบน `main` และหลักฐานที่ตรวจถึง 2026-07-24
 >
 > `[x]` ยืนยันจากโค้ดแล้ว · `[~]` ทำบางส่วน/ยังขาดหลักฐานทั้งระบบ · `[ ]` ยังไม่พบหรือยังไม่ครบ
 >
@@ -316,7 +316,8 @@
 - [x] Idempotency key/provider transaction ID
 - [x] Success/Pending/Failed/Reversed summary และ filter
 - [x] Failed-only retry dry-run พร้อมเหตุผล/confirmation
-- [~] Payload redaction และ async guards ยังไม่ครบ
+- [x] Request/response payload redaction พร้อม provider fixtures และ adoption guard
+- [~] Async guards ยังไม่ครบ
 
 ### `/webhook-logs`
 
@@ -326,7 +327,7 @@
 - [x] Search/status filter และ safe error labels
 - [ ] Replay action จำกัดสิทธิ์
 - [ ] Server-side pagination
-- [~] Payload redaction ยังไม่ยืนยันทุก provider
+- [x] Payload redaction ยืนยันด้วย provider fixtures และ shared boundary
 
 ## Promotion และ Growth
 
@@ -494,7 +495,7 @@
 - [ ] E2E ครบ approve/reject/pay/wallet adjustment/role change
 - [ ] E2E ตรวจ audit log และ permission
 - [ ] Feature flag gradual rollout/rollback
-- [ ] Error tracking พร้อม redact PII/secret/payment payload
+- [~] Error tracking/logging มี secret/provider payload redaction กลางแล้ว แต่ PII/payment coverage ยังไม่ครบ
 - [ ] Structured log + trace ID UI → API → DB → Provider
 - [ ] Monitoring/SLO สำหรับ error, latency, queue aging, webhook และ provider
 - [ ] Lighthouse/performance budget ใน CI
