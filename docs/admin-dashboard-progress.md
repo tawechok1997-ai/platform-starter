@@ -19,15 +19,17 @@
 - [x] Wallet total ใช้ช่องว่างแบบไม่ตัดบรรทัด
 - [x] SLA countdown แบบเหลือเวลา/เกินเวลา
 - [x] ลำดับต้นหน้าเป็น System → Urgent queue → KPI → Risk → Finance
+- [x] ย้าย Queue ก่อน Activity / Recent Ledger
 
 ## ยังต้องทำทีละชิ้น
 
-- [ ] ย้าย Activity / Recent Ledger ไปท้ายสุดของ Dashboard
 - [ ] ลด KPI / chart ที่ซ้ำกัน
 
 ## งานรอบปัจจุบัน
 
-**เป้าหมายถัดไป:** กำหนด `order` ให้กลุ่ม Activity / Recent Ledger อยู่ท้ายสุดผ่านโครงสร้าง CSS Grid ของ `AdminPage` โดยไม่ย้าย JSX ก้อนใหญ่และไม่แตะข้อมูลภายในการ์ด
+**จุดซ้ำที่ยืนยันแล้ว:** `Finance flow` และ `Finance comparison` แสดงยอดฝาก ยอดถอน และ net flow ชุดเดียวกัน โดย `Finance comparison` แสดงทั้งมูลค่า จำนวนรายการ และ net flow ครบกว่า
+
+**ขอบเขตงานถัดไป:** ลบการ์ด `Finance flow` พร้อม `financeFlow useMemo` ใน commit เดียว ไม่ใช้ CSS ซ่อน และไม่แตะ API, Database, permission หรือ KPI อื่น
 
 ## หลักฐาน Role-based dashboard
 
