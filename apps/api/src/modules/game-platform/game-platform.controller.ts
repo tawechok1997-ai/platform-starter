@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { AdminRequestContext, AuthenticatedAdminActor } from '../../common/actors';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { GamePlatformService } from './game-platform.service';
+import { GameProviderQueryService } from './game-provider-query.service';
+import { GameProviderQueryDto } from './dto/game-provider-query.dto';
 import { CreateGameProviderDto, UpdateGameProviderDto, normalizeCreateGameProviderDto, normalizeUpdateGameProviderDto } from './dto/game-provider.dto';
 import { CreateGameProviderEndpointDto, UpdateGameProviderEndpointDto, normalizeCreateGameProviderEndpointDto, normalizeUpdateGameProviderEndpointDto } from './dto/game-provider-endpoint.dto';
 import { CreateGameProviderCredentialDto, UpdateGameProviderCredentialDto, normalizeCreateGameProviderCredentialDto, normalizeUpdateGameProviderCredentialDto } from './dto/game-provider-credential.dto';
@@ -14,10 +16,13 @@ import { CreateGameMediaDto, UpdateGameMediaDto, normalizeCreateGameMediaDto, no
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 @Controller('admin')
 export class GamePlatformController {
-  constructor(private readonly gamePlatformService: GamePlatformService) {}
+  constructor(
+    private readonly gamePlatformService: GamePlatformService,
+    private readonly providerQueries: GameProviderQueryService,
+  ) {}
   @RequirePermission('game.providers.view') @Get('game-platform/overview') overview() { return this.gamePlatformService.overview(); }
   @RequirePermission('game.providers.view') @Get('game-platform/data-model-plan') dataModelPlan() { return this.gamePlatformService.dataModelPlan(); }
-  @RequirePermission('game.providers.view') @Get('game-providers') listProviders() { return this.gamePlatformService.listProviders(); }
+  @RequirePermission('game.providers.view') @Get('game-providers') listProviders(@Query() query: GameProviderQueryDto) { return this.providerQueries.list(query); }
   @RequirePermission('game.providers.view') @Get('game-providers/:id') getProvider(@Param('id') id: string) { return this.gamePlatformService.getProvider(id); }
   @RequirePermission('game.providers.manage') @Post('game-providers') createProvider(@Body() body: CreateGameProviderDto, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) { return this.gamePlatformService.createProvider(normalizeCreateGameProviderDto(body), user, this.meta(req)); }
   @RequirePermission('game.providers.manage') @Patch('game-providers/:id') updateProvider(@Param('id') id: string, @Body() body: UpdateGameProviderDto, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) { return this.gamePlatformService.updateProvider(id, normalizeUpdateGameProviderDto(body), user, this.meta(req)); }
