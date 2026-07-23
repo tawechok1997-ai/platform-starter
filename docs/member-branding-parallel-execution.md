@@ -1,18 +1,23 @@
-# Member Branding Active Worklist
+# Member Branding Worklist
 
-Branch: `feature/member-branding-foundation`
+Source of truth: `main`
 
-เอกสารนี้เก็บเฉพาะงานที่ทำในชุด Member Branding / Admin Settings / Member Visual Integration ปัจจุบันเท่านั้น
+Merged delivery:
+
+- PR #105 merged into `main` at `1ece28bcb57caeed4143d4311905907eabbe0af1`
+- PR #123 closed because its menu/category scope was already included in PR #105
+- Open pull requests for this workstream: 0
+
+เอกสารนี้สรุปเฉพาะสถานะที่ตรวจจากโค้ดซึ่งอยู่บน `main` แล้ว ไม่ใช้สถานะจาก branch หรือ Draft PR เก่า
 
 ## สัญลักษณ์
 
-- ✅ เสร็จและผ่านชุดตรวจหลักแล้ว
-- 🔄 กำลังทำ
-- 🧪 ทำเสร็จแล้ว รอตรวจด้วย browser หรือ final acceptance
-- ⛔ ติดข้อจำกัด
-- ⬜ ยังไม่เริ่ม
+- ✅ มีโค้ดบน `main` และมีชุดตรวจรองรับ
+- 🧪 มีโค้ดบน `main` แต่ยังต้องตรวจผ่าน browser หรือสภาพแวดล้อมจริง
+- ⛔ ติด asset หรือข้อจำกัดภายนอก
+- ⬜ ยังไม่มีหลักฐานว่าปิดจากโค้ดปัจจุบัน
 
-## งานที่เสร็จแล้ว
+## งานที่อยู่บน `main` แล้ว
 
 ### Admin Settings และ Branding
 
@@ -22,65 +27,75 @@ Branch: `feature/member-branding-foundation`
 - ✅ Save Draft / Publish / Version History / Rollback
 - ✅ แยกสิทธิ์ Edit และ Publish
 - ✅ Audit actions สำหรับ Draft / Publish / Rollback
-- ✅ Preview แบบ inline และ full-page Desktop / Tablet / Mobile
-- ✅ รวม form lifecycle กลางสำหรับ load, dirty state, before-unload, save, reset และ notice
+- ✅ Preview แบบ inline และ full-page สำหรับ Desktop / Tablet / Mobile
+- ✅ Form lifecycle กลางสำหรับ load, dirty state, before-unload, save, reset และ notice
 - ✅ Website Settings และ SettingsSectionPage ใช้ lifecycle กลางโดยไม่เปลี่ยน API contract
-- ✅ ปรับ Branding workflow ให้ใช้ Admin design-system เดิม
-- ✅ ตรวจ ownership ระหว่าง Website, Branding, Icons, CMS, Promotion Center และ Game API
-- ✅ ยืนยันว่า uploader, history, audit และ permission ไม่ได้สร้างระบบซ้ำ
-- ✅ เพิ่ม regression tests กัน field ข้ามหมวดและ preview/workflow ซ้ำ
-- ✅ Admin lint, tests, typecheck, production build และ bundle analysis ผ่าน
+- ✅ Branding workflow ใช้ Admin design system เดิม
+- ✅ แยก ownership ระหว่าง Website, Branding, Icons, CMS, Promotion Center และ Game API
+- ✅ Uploader, history, audit และ permission ใช้ระบบกลาง ไม่สร้างระบบซ้ำ
+- ✅ Regression tests ป้องกัน field ข้ามหมวดและ workflow/preview ซ้ำ
+- ✅ Admin lint, tests, typecheck, production build และ bundle analysis ผ่านบนหัวงานก่อน merge
 
 ### Member Runtime และ Navigation
 
 - ✅ Brand context และ typed settings
 - ✅ Desktop navigation, drawer, bottom navigation และ notification icon อ่านจาก Settings
 - ✅ Game category navigation อ่าน category จาก `/member/games`
-- ✅ Menu/category icon ใช้ Brand icon registry และ safe fallback
-- ✅ Quick Actions ย้ายมาใช้ `BrandIcon` renderer กลาง
-- ✅ Quick Actions ยังคงใช้ `navigationFor`, feature flags, route, title และ description เดิม
-- ✅ เพิ่ม regression test กัน Quick Actions เขียน URL/text/default-icon renderer ซ้ำ
-- ✅ Member UI Quality, P5 Web Unit Tests, Build, Quality Gate และ Visual Regression ผ่านหลัง Quick Actions migration
+- ✅ Menu และ category icon ใช้ Brand icon registry พร้อม safe fallback
+- ✅ Quick Actions ใช้ shared `BrandIcon` renderer
+- ✅ Quick Actions ใช้ `navigationFor('home', features)` เป็น source of truth
+- ✅ Route, title และ description มาจาก navigation เดิม
+- ✅ ไม่มี hardcoded URL และไม่มี renderer logic ซ้ำใน Quick Actions
+- ✅ มี regression test ล็อก navigation, feature flags และ shared icon renderer
 
 ### Auth Login และ Register
 
-- ✅ Login/Register ใช้ branding runtime และ settings เดิมโดยไม่เปลี่ยน Auth, Session, CAPTCHA หรือ Redirect contract
-- ✅ Login legal footer แยกข้อความไทยและอังกฤษครบ
-- ✅ ปุ่มแสดง/ซ่อนรหัสผ่านใช้ locale copy โดยตรง
-- ✅ ตัดข้อความอังกฤษ `Secure connection` ออกจากโหมดภาษาไทย
-- ✅ เพิ่ม regression test ป้องกันข้อความไทย/อังกฤษปนกันใน Login
-- 🧪 Login locale purity ทำเสร็จแล้ว รอ final browser comparison
+- ✅ Login/Register ใช้ branding runtime และ settings เดิม
+- ✅ ไม่เปลี่ยน Auth, Session, CAPTCHA หรือ Redirect contract
+- ✅ Login legal footer แยกข้อความไทยและอังกฤษ
+- ✅ ปุ่มแสดง/ซ่อนรหัสผ่านใช้ locale copy
+- ✅ โหมดไทยไม่แสดง `Secure connection`
+- ✅ มี regression test ป้องกันข้อความ Login ไทย/อังกฤษปนกัน
+- 🧪 Login visual และ responsive implementation อยู่บน `main` แต่ยังไม่มี final browser acceptance
+- 🧪 Register flow และ branding implementation อยู่บน `main` แต่ยังไม่มี final browser acceptance ครบทุก breakpoint
 
 ### Member Home และ CMS Contract
 
-- ✅ Promotion carousel และ autoplay safeguards
+- ✅ Promotion carousel พร้อม autoplay safeguards
 - ✅ Promotion cards อ่านจาก Admin/CMS
 - ✅ Announcement แยก component และอ่านจาก CMS
 - ✅ Tournament / Jackpot / Leaderboard แยกเป็น Competition Showcase
-- ✅ Games, provider, category และ media ยังอ่านจาก Game API
+- ✅ Games, provider, category และ media อ่านจาก Game API
+- ✅ Quick Actions เชื่อมผ่าน HomeHighlightsPanel
 - ✅ Support headset WebP ถูกนำเข้าและเชื่อมแล้ว
+- 🧪 Home presentation และ responsive implementation อยู่บน `main` แต่ยังไม่มี browser soak/acceptance รอบสุดท้าย
 
-## Commit สำคัญล่าสุด
+## Asset ที่มีใน repository แล้ว
 
-- `e21c0028254d46a362556042468042ae443b6d99` ปิด Admin overlap refactor และอัปเดต ownership/worklist
-- `152691bf78280c3492ff4ea92a2bc320800427a5` ล็อก Quick Actions ให้ใช้ shared `BrandIcon` renderer
-- `790ff7a85aa26e7cd8dc0efea995983f405d79d8` แก้ Login legal copy ให้แยก locale ถูกต้อง
-- `e86b22ef485d984d01b7c0299c0da265a1631abd` เพิ่ม regression test สำหรับ Auth locale purity
+- ✅ Header logo WebP
+- ✅ Thai language SVG
+- ✅ Support headset WebP
+- ✅ Reference menu PNG และ manifest
 
-## งานที่เหลือ
+## งานที่เหลือจริง
 
-1. 🔄 Register locale purity และ visual polish ให้ตรงต้นแบบทุก breakpoint
-2. 🔄 ตรวจ Auth Login/Register แบบ Mobile และ Desktop เทียบต้นแบบ
-3. 🔄 Home visual polish สำหรับ Promotion, Tournament, Jackpot และ Leaderboard
-4. 🔄 Home responsive และ browser soak test
-5. ⛔ นำเข้า Announcement, Jackpot และ Promotion PNG อีก 3 ไฟล์ เพราะ binary transport เปลี่ยน checksum
-6. ⬜ Sync `main` และแก้ PR conflict โดยรักษางาน Admin ล่าสุดทั้งสองฝั่ง
-7. ⬜ Final browser acceptance หลังล็อกอินจริงทุกหน้าที่เกี่ยวข้อง
-8. ⬜ Final clean CI และอัปเดต Draft PR #105 ก่อน merge
+1. 🧪 ตรวจ Login และ Register บน Mobile/Desktop ด้วย browser จริง
+2. 🧪 ตรวจ Home Promotion, Tournament, Jackpot และ Leaderboard เทียบต้นแบบ
+3. 🧪 ทำ Home responsive soak test และตรวจ console/network error
+4. ⛔ นำเข้า Announcement, Jackpot และ Promotion PNG ต้นฉบับอีก 3 ไฟล์ เมื่อมี binary ที่ checksum คงที่
+5. 🧪 ทดสอบหลังล็อกอินจริง รวม route, settings override, feature flags และ fallback assets
+6. ⬜ รัน repository-wide CI บน `main` หลัง merge และแยก failure เดิมออกจาก regression ของ workstream นี้
 
-## CI ล่าสุดของงานชุดนี้
+## งานที่ปิดและต้องไม่ใส่กลับในรายการค้าง
 
-ผ่านจากรอบ Quick Actions:
+- ✅ Sync `main`
+- ✅ แก้ PR conflict
+- ✅ อัปเดตและ merge PR #105
+- ✅ ปิด PR #123 ที่ซ้ำกับงานใน #105
+- ✅ ย้าย Quick Actions ไปใช้ renderer กลาง
+- ✅ ปิด Admin overlap และ ownership audit
+
+## CI ที่ผ่านก่อน merge
 
 - ✅ Admin Verification & Bundle
 - ✅ P5 Web Unit Tests
@@ -92,20 +107,20 @@ Branch: `feature/member-branding-foundation`
 - ✅ Game API Verification
 - ✅ KYC Browser Regression
 
-รอบ Auth locale purity ล่าสุดเริ่มรันบน head ใหม่แล้ว และยังต้องรอผลครบก่อนปิด Auth visual workstream
+## Repository-wide checks ที่เคยแดงและยังต้องตรวจใหม่บน `main`
 
-ยังแดงจาก merge-ref / repository-wide audit เดิม และยังไม่ถือว่าเป็นความล้มเหลวของ Quick Actions หรือ Admin Settings ก้อนนี้:
+รายการนี้ไม่ควรถูกนับว่าเป็น failure ของ Member Branding โดยอัตโนมัติ จนกว่าจะตรวจ log บน `main` หลัง merge:
 
-- ⛔ R-010 Query Ownership
-- ⛔ R-010 Query Boundaries
-- ⛔ P5 Security Audit
-- ⛔ Full-System Automated Tests
+- ⬜ R-010 Query Ownership
+- ⬜ R-010 Query Boundaries
+- ⬜ P5 Security Audit
+- ⬜ Full-System Automated Tests
 
-## ข้อห้ามระหว่างทำต่อ
+## กติกาสำหรับงานต่อ
 
-- ไม่ push ตรง `main`
-- ไม่เปลี่ยน Wallet, Finance, Provider credential, Session, CAPTCHA หรือ Redirect contract
+- ทำงานใหม่ผ่าน branch และ PR ไม่ push feature code ตรง `main`
+- ไม่เปลี่ยน Wallet, Finance, Provider credential, Session, CAPTCHA หรือ Redirect contract โดยไม่แยก scope
 - ไม่ hardcode รายการเกมหรือโปรโมชันใน Member
 - Admin/CMS และ Game API ต้องเป็น source of truth
-- หน้าไทยต้องมีเฉพาะข้อความไทย และหน้าอังกฤษต้องมีเฉพาะข้อความอังกฤษ ยกเว้นชื่อแบรนด์หรือคำเฉพาะที่จำเป็น
-- งาน Member ทุกหน้าต้องใช้ visual language เดียวกันกับต้นแบบ แต่ Admin ต้องยึด design system เดิมของ Admin
+- หน้าไทยต้องมีเฉพาะภาษาไทย และหน้าอังกฤษต้องมีเฉพาะภาษาอังกฤษ ยกเว้นชื่อแบรนด์หรือคำเฉพาะ
+- Member ใช้ visual language เดียวกับต้นแบบ ส่วน Admin ใช้ design system เดิมของ Admin
