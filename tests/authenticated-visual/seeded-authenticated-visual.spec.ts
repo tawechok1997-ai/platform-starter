@@ -8,6 +8,7 @@ function firstNonEmpty(...values: Array<string | undefined>) {
 const memberUrl = firstNonEmpty(process.env.MEMBER_WEB_URL);
 const adminUrl = firstNonEmpty(process.env.ADMIN_WEB_URL);
 const apiUrl = firstNonEmpty(process.env.API_URL);
+const memberToken = firstNonEmpty(process.env.PROD_MEMBER_TOKEN);
 const memberIdentity = firstNonEmpty(
   process.env.SEED_MEMBER_USERNAME,
   process.env.SEED_MEMBER_EMAIL,
@@ -92,6 +93,13 @@ async function login(page: Page, baseUrl: string, identity: string, password: st
   await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
 }
 
+async function installMemberToken(page: Page, token: string) {
+  await page.addInitScript((accessToken) => {
+    window.localStorage.setItem('member_access_token', accessToken);
+    window.localStorage.removeItem('member_refresh_token');
+  }, token);
+}
+
 async function loadLazyContent(page: Page) {
   await page.evaluate(async () => {
     const sleep = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -156,21 +164,24 @@ async function assertRuntimeHealth(page: Page, audit: RuntimeAudit) {
 
 test.describe('seeded authenticated visual artifacts', () => {
   test('member authenticated home', async ({ page }, testInfo) => {
+    const hasCredentialLogin = Boolean(memberIdentity && memberPassword);
+    const hasTokenLogin = Boolean(memberToken);
     const missingMemberEnvironment = [
       !memberUrl && 'MEMBER_WEB_URL',
       !apiUrl && 'API_URL',
-      !memberIdentity && 'member identity',
-      !memberPassword && 'member password',
+      !hasCredentialLogin && !hasTokenLogin && 'member credentials or PROD_MEMBER_TOKEN',
     ].filter(Boolean);
     if (missingMemberEnvironment.length > 0 && requireMemberSmoke) {
       throw new Error(`Authenticated Member smoke environment is incomplete: ${missingMemberEnvironment.join(', ')}`);
     }
-    test.skip(missingMemberEnvironment.length > 0, 'seeded member credentials are required');
+    test.skip(missingMemberEnvironment.length > 0, 'seeded member authentication is required');
 
     const audit = installRuntimeAudit(page);
     const settings = await fetchPublicSettings(page);
 
-    await login(page, memberUrl!, memberIdentity!, memberPassword!);
+    if (memberToken) await installMemberToken(page, memberToken);
+    else await login(page, memberUrl!, memberIdentity!, memberPassword!);
+
     await page.goto(new URL('/', memberUrl!).toString(), { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
     await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/);
@@ -232,6 +243,7 @@ test.describe('seeded authenticated visual artifacts', () => {
     await attachAudit(testInfo, audit, {
       finalUrl: page.url(),
       project: testInfo.project.name,
+      authMode: memberToken ? 'token' : 'credentials',
       expectedSiteName,
       gamesEnabled,
       showCategories,
