@@ -1,9 +1,12 @@
 import { mergeHeaders } from '@platform/api-client';
+import { safeAdminErrorMessage, type AdminErrorLocale } from './(admin)/_components/admin-safe-error';
 import { adminNextPath, sessionDecision } from './admin-session-policy';
 
 let inMemoryAccessToken = '';
 const ADMIN_SESSION_HINT = 'admin_session_hint';
 const ADMIN_ACCESS_TOKEN = 'admin_access_token';
+const ADMIN_LOCALE_STORAGE_KEY = 'admin_locale';
+const SENSITIVE_ERROR_KEYS = new Set(['stack', 'trace', 'traceback', 'debug', 'exception', 'cause', 'query', 'sql']);
 
 type ApiOptions = RequestInit & { skipAuth?: boolean };
 
@@ -22,18 +25,55 @@ export async function adminApiFetch(path: string, options: ApiOptions = {}) {
   const url = proxiedAdminPath(path);
   const res = await fetch(url, { cache: 'no-store', ...options, headers });
   const handled = await handleAdminResponse(res, options, false);
-  if (handled !== 'refresh') return res;
+  if (handled !== 'refresh') return sanitizeAdminErrorResponse(res);
 
   const refreshed = await refreshAdminToken(true);
   if (!refreshed) {
     redirectToLogin();
-    return res;
+    return sanitizeAdminErrorResponse(res);
   }
 
   headers.set('Authorization', `Bearer ${refreshed}`);
   const retry = await fetch(url, { cache: 'no-store', ...options, headers });
   await handleAdminResponse(retry, options, true);
-  return retry;
+  return sanitizeAdminErrorResponse(retry);
+}
+
+async function sanitizeAdminErrorResponse(response: Response) {
+  if (response.ok) return response;
+
+  const locale = getAdminErrorLocale();
+  const fallback = locale === 'en'
+    ? 'Unable to complete the request. Try again.'
+    : 'ทำรายการไม่สำเร็จ กรุณาลองใหม่';
+  const payload = await response.clone().json().catch(() => null);
+  const message = safeAdminErrorMessage(payload, fallback, { status: response.status, locale });
+  const safePayload = sanitizeAdminErrorPayload(payload, message);
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  headers.delete('content-encoding');
+  headers.delete('transfer-encoding');
+  headers.set('content-type', 'application/json; charset=utf-8');
+
+  return new Response(JSON.stringify(safePayload), {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function sanitizeAdminErrorPayload(payload: unknown, message: string) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return { message };
+  const result: Record<string, unknown> = { ...(payload as Record<string, unknown>), message };
+  for (const key of Object.keys(result)) {
+    if (SENSITIVE_ERROR_KEYS.has(key.toLowerCase())) delete result[key];
+  }
+  return result;
+}
+
+function getAdminErrorLocale(): AdminErrorLocale {
+  if (typeof window === 'undefined') return 'th';
+  return window.localStorage.getItem(ADMIN_LOCALE_STORAGE_KEY) === 'en' ? 'en' : 'th';
 }
 
 async function handleAdminResponse(response: Response, options: ApiOptions, hasRetried: boolean) {
