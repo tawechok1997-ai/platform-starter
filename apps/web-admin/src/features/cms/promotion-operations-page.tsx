@@ -1,44 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { adminApiFetch } from '../../../app/admin-api';
-import {
-  AdminBadge,
-  AdminButton,
-  AdminCard,
-  AdminConfirmDialog,
-  AdminEmpty,
-  AdminMetric,
-  AdminMetricGrid,
-  AdminNotice,
-  AdminPage,
-} from '../../../app/(admin)/_components/admin-ui';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage } from '../../../app/(admin)/_components/admin-ui';
 
 type PromotionCategory = 'campaign' | 'banner' | 'bonus' | 'coupon' | 'reward';
 type PromotionCampaign = {
-  id: string;
-  title: string;
-  description: string;
-  enabled: boolean;
-  category?: PromotionCategory | undefined;
-  bonusType: 'fixed' | 'percent';
-  bonusValue: number;
-  minDeposit: number;
-  maxBonus: number;
-  turnoverMultiplier: number;
-  claimMode: 'manual_review' | 'auto_pending';
-  imageUrl?: string;
-  iconUrl?: string;
-  badgeText?: string;
-  accentColor?: string;
-  priority?: number;
-  startsAt?: string | undefined;
-  endsAt?: string | undefined;
-  couponCode?: string | undefined;
-  rewardLabel?: string | undefined;
-  lifecycle?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  id: string; title: string; description: string; enabled: boolean; category?: PromotionCategory | undefined;
+  bonusType: 'fixed' | 'percent'; bonusValue: number; minDeposit: number; maxBonus: number;
+  turnoverMultiplier: number; claimMode: 'manual_review' | 'auto_pending'; imageUrl?: string | undefined;
+  iconUrl?: string | undefined; badgeText?: string | undefined; accentColor?: string | undefined; priority?: number | undefined; startsAt?: string | undefined;
+  endsAt?: string | undefined; couponCode?: string | undefined; rewardLabel?: string | undefined; lifecycle?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | undefined;
 };
-
 type ClaimSummary = { total: number; pending: number; approved: number; rejected: number };
 type ViewKey = 'list' | PromotionCategory;
 
@@ -54,8 +27,22 @@ export default function PromotionOperationsPage() {
   const [claims, setClaims] = useState<ClaimSummary>(EMPTY_CLAIMS);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
+  const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
+  const savedSnapshot = useRef('[]');
 
   useEffect(() => { void load(); }, []);
+  const currentSnapshot = useMemo(() => JSON.stringify(items), [items]);
+  const dirty = !loading && currentSnapshot !== savedSnapshot.current;
+
+  useEffect(() => {
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (!dirty) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [dirty]);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -73,9 +60,9 @@ export default function PromotionOperationsPage() {
     rewards: items.filter((item) => categoryOf(item) === 'reward').length,
   }), [items]);
 
-  async function load() {
-    setLoading(true);
-    setMessage('');
+  async function load(force = false) {
+    if (dirty && !force) { setDiscardConfirmOpen(true); return; }
+    setLoading(true); setMessage('');
     try {
       const [settingsResponse, claimsResponse] = await Promise.all([
         adminApiFetch('/admin/settings/features'),
@@ -85,8 +72,10 @@ export default function PromotionOperationsPage() {
         settingsResponse.json().catch(() => null),
         claimsResponse.json().catch(() => null),
       ]);
-      if (!settingsResponse.ok) throw new Error(settingsData?.message ?? 'โหลดโปรโมชันไม่สำเร็จ');
-      setItems(normalizeCampaigns(settingsData?.settings?.promotion_campaigns));
+      if (!settingsResponse.ok) throw new Error('โหลดโปรโมชันไม่สำเร็จ');
+      const nextItems = normalizeCampaigns(settingsData?.settings?.promotion_campaigns);
+      setItems(nextItems);
+      savedSnapshot.current = JSON.stringify(nextItems);
       if (claimsResponse.ok) {
         const claimItems = Array.isArray(claimsData?.items) ? claimsData.items : [];
         setClaims({
@@ -96,57 +85,38 @@ export default function PromotionOperationsPage() {
           rejected: claimItems.filter((item: { status?: string }) => ['REJECTED', 'DISMISSED'].includes(String(item.status))).length,
         });
       }
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'โหลด Promotion Operations ไม่สำเร็จ');
-    } finally {
-      setLoading(false);
-    }
+    } catch {
+      setMessage('โหลด Promotion Operations ไม่สำเร็จ กรุณาลองใหม่');
+    } finally { setLoading(false); }
   }
 
   async function save() {
-    if (saving) return;
+    if (saving || !dirty) return;
     const errors = validate(items);
     if (errors.length) { setMessage(errors.join(' • ')); return; }
-    setSaving(true);
-    setMessage('กำลังบันทึกโปรโมชัน...');
+    setSaving(true); setMessage('กำลังบันทึกโปรโมชัน...');
     try {
-      const response = await adminApiFetch('/admin/settings/features', {
-        method: 'PUT',
-        body: JSON.stringify({ promotion_campaigns: items }),
-      });
-      const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(data?.message ?? 'บันทึกโปรโมชันไม่สำเร็จ');
+      const response = await adminApiFetch('/admin/settings/features', { method: 'PUT', body: JSON.stringify({ promotion_campaigns: items }) });
+      if (!response.ok) throw new Error();
+      savedSnapshot.current = JSON.stringify(items);
       setMessage('บันทึก Promotion Module แล้ว');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'บันทึกโปรโมชันไม่สำเร็จ');
-    } finally {
-      setSaving(false);
-    }
+    } catch {
+      setMessage('บันทึกโปรโมชันไม่สำเร็จ กรุณาตรวจข้อมูลและลองใหม่');
+    } finally { setSaving(false); }
   }
 
-  function patch(id: string, next: Partial<PromotionCampaign>) {
-    setItems((current) => current.map((item) => item.id === id ? { ...item, ...next } : item));
-  }
+  function patch(id: string, next: Partial<PromotionCampaign>) { setItems((current) => current.map((item) => item.id === id ? { ...item, ...next } : item)); }
+  function add(category: PromotionCategory) { setItems((current) => [...current, createCampaign(category, current.length + 1)]); setView(category); }
+  function archiveSelected() { setItems((current) => current.map((item) => selectedIds.includes(item.id) ? { ...item, lifecycle: 'ARCHIVED', enabled: false } : item)); setSelectedIds([]); setArchiveConfirmOpen(false); setMessage('ย้ายรายการที่เลือกไป Archived แล้ว กดบันทึกเพื่อยืนยัน'); }
 
-  function add(category: PromotionCategory) {
-    const next = createCampaign(category, items.length + 1);
-    setItems((current) => [...current, next]);
-    setView(category);
-  }
-
-  function archiveSelected() {
-    setItems((current) => current.map((item) => selectedIds.includes(item.id) ? { ...item, lifecycle: 'ARCHIVED', enabled: false } : item));
-    setSelectedIds([]); setArchiveConfirmOpen(false);
-    setMessage('ย้ายรายการที่เลือกไป Archived แล้ว กดบันทึกทั้งหมดเพื่อเผยแพร่การเปลี่ยนแปลง');
-  }
-
-  return <AdminPage
-    eyebrow="การตลาด"
-    title="Promotion Operations"
-    description="จัดการรายการโปรโมชัน แบนเนอร์ โบนัส คูปอง แคมเปญ และรางวัลจากศูนย์เดียว"
-    actions={<>{selectedIds.length > 0 && <AdminButton tone="danger" disabled={saving} onClick={() => setArchiveConfirmOpen(true)}>Archive ({selectedIds.length})</AdminButton>}<AdminButton tone="secondary" disabled={loading || saving} onClick={() => void load()}>รีเฟรช</AdminButton><AdminButton disabled={loading || saving} onClick={() => void save()}>{saving ? 'กำลังบันทึก...' : 'บันทึกทั้งหมด'}</AdminButton></>}
-  >
+  return <AdminPage eyebrow="การตลาด" title="Promotion Operations" description="จัดการโปรโมชัน แบนเนอร์ โบนัส คูปอง แคมเปญ และรางวัลจากศูนย์เดียว" actions={<>
+    {dirty && <AdminBadge tone="warning">ยังไม่บันทึก</AdminBadge>}
+    {selectedIds.length > 0 && <AdminButton tone="danger" disabled={saving} onClick={() => setArchiveConfirmOpen(true)}>Archive ({selectedIds.length})</AdminButton>}
+    <AdminButton tone="secondary" disabled={loading || saving} onClick={() => void load()}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>
+    <AdminButton disabled={loading || saving || !dirty} onClick={() => void save()}>{saving ? 'กำลังบันทึก...' : dirty ? 'บันทึกทั้งหมด' : 'บันทึกแล้ว'}</AdminButton>
+  </>}>
     {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') || message.includes('ต้อง') ? 'danger' : 'success'}>{message}</AdminNotice>}
+    {dirty && <AdminNotice tone="warning">มีการแก้ไขที่ยังไม่บันทึก การรีเฟรชหรือออกจากหน้านี้อาจทำให้ข้อมูลหาย</AdminNotice>}
 
     <AdminMetricGrid>
       <AdminMetric title="โปรโมชันทั้งหมด" value={stats.total.toLocaleString('th-TH')} helper={`${stats.enabled} รายการเปิดใช้งาน`} />
@@ -156,73 +126,47 @@ export default function PromotionOperationsPage() {
     </AdminMetricGrid>
 
     <section className="admin-promotion-ops" aria-busy={loading}>
-      <nav className="admin-promotion-ops__tabs" aria-label="หมวดจัดการโปรโมชัน">
-        {VIEW_OPTIONS.map((option) => <button key={option.value} type="button" aria-current={view === option.value ? 'page' : undefined} className={view === option.value ? 'is-active' : ''} onClick={() => setView(option.value)}>{option.label}</button>)}
-      </nav>
-
+      <nav className="admin-promotion-ops__tabs" aria-label="หมวดจัดการโปรโมชัน">{VIEW_OPTIONS.map((option) => <button key={option.value} type="button" aria-current={view === option.value ? 'page' : undefined} className={view === option.value ? 'is-active' : ''} onClick={() => setView(option.value)}>{option.label}</button>)}</nav>
       <div className="admin-promotion-ops__toolbar">
         <label><span>ค้นหา</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ชื่อ รหัส Badge หรือ Coupon Code" /></label>
-        <div className="admin-promotion-ops__quick-add">
-          <AdminButton tone="secondary" onClick={() => add(view === 'list' ? 'campaign' : view)}>เพิ่ม{viewLabel(view)}</AdminButton>
-          <a className="admin-ui-button admin-ui-button--ghost admin-ui-button--regular" href="/promotion-claims">ตรวจคำขอ</a>
-        </div>
+        <div className="admin-promotion-ops__quick-add"><AdminButton tone="secondary" onClick={() => add(view === 'list' ? 'campaign' : view)}>เพิ่ม{viewLabel(view)}</AdminButton><a className="admin-ui-button admin-ui-button--ghost admin-ui-button--regular" href="/promotion-claims">ตรวจคำขอ</a></div>
       </div>
 
-      {loading ? <div className="admin-promotion-ops__state">กำลังโหลดข้อมูลโปรโมชัน...</div> : filtered.length === 0 ? <AdminEmpty>ไม่พบรายการในหมวดนี้</AdminEmpty> : <div className="admin-promotion-ops__grid">
-        {filtered.map((item) => <AdminCard key={item.id} tone={item.enabled ? 'success' : 'neutral'} compact>
-          <article className="admin-promotion-ops__card">
-            <header>
-              <div><AdminBadge tone={lifecycleTone(item.lifecycle)}>{lifecycleLabel(item.lifecycle)}</AdminBadge><h2>{item.title || item.id}</h2><p>{categoryLabel(categoryOf(item))} · Priority {item.priority ?? 0}</p></div>
-              <div className="admin-promotion-ops__card-actions"><label><input type="checkbox" checked={selectedIds.includes(item.id)} onChange={(event) => setSelectedIds((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))} /> เลือก</label><AdminButton size="compact" tone="secondary" onClick={() => patch(item.id, item.lifecycle === 'PUBLISHED' ? { lifecycle: 'DRAFT', enabled: false } : { lifecycle: 'PUBLISHED', enabled: true })}>{item.lifecycle === 'PUBLISHED' ? 'ย้าย Draft' : 'Publish'}</AdminButton><AdminButton size="compact" tone="danger" onClick={() => patch(item.id, { lifecycle: 'ARCHIVED', enabled: false })}>Archive</AdminButton></div>
-            </header>
-
-            {item.imageUrl && <img className="admin-promotion-ops__banner" src={item.imageUrl} alt={`ตัวอย่างแบนเนอร์ ${item.title}`} />}
-
-            <div className="admin-promotion-ops__fields">
-              <Field label="รหัส" value={item.id} onChange={(value) => patch(item.id, { id: slug(value) })} />
-              <Field label="ชื่อ" value={item.title} onChange={(value) => patch(item.id, { title: value })} />
-              <label><span>หมวด</span><select value={categoryOf(item)} onChange={(event) => patch(item.id, { category: event.target.value as PromotionCategory })}>{CATEGORY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-              <NumberField label="Priority" value={Number(item.priority ?? 0)} onChange={(value) => patch(item.id, { priority: value })} />
-              <Field label="Badge" value={item.badgeText ?? ''} onChange={(value) => patch(item.id, { badgeText: value })} />
-              <Field label="สี Accent" value={item.accentColor ?? '#f5c542'} onChange={(value) => patch(item.id, { accentColor: value })} />
-              <Field label="URL แบนเนอร์" value={item.imageUrl ?? ''} onChange={(value) => patch(item.id, { imageUrl: value })} />
-              <Field label="URL ไอคอน" value={item.iconUrl ?? ''} onChange={(value) => patch(item.id, { iconUrl: value })} />
-              <Field label="Coupon Code" value={item.couponCode ?? ''} onChange={(value) => patch(item.id, { couponCode: value.toUpperCase() })} />
-              <Field label="ชื่อรางวัล" value={item.rewardLabel ?? ''} onChange={(value) => patch(item.id, { rewardLabel: value })} />
-              <label><span>ประเภทโบนัส</span><select value={item.bonusType} onChange={(event) => patch(item.id, { bonusType: event.target.value as PromotionCampaign['bonusType'] })}><option value="percent">เปอร์เซ็นต์</option><option value="fixed">จำนวนคงที่</option></select></label>
-              <NumberField label="มูลค่าโบนัส" value={item.bonusValue} onChange={(value) => patch(item.id, { bonusValue: value })} />
-              <NumberField label="ฝากขั้นต่ำ" value={item.minDeposit} onChange={(value) => patch(item.id, { minDeposit: value })} />
-              <NumberField label="โบนัสสูงสุด" value={item.maxBonus} onChange={(value) => patch(item.id, { maxBonus: value })} />
-              <NumberField label="ยอดทำรายการ x" value={item.turnoverMultiplier} onChange={(value) => patch(item.id, { turnoverMultiplier: value })} />
-              <label><span>วิธีรับ</span><select value={item.claimMode} onChange={(event) => patch(item.id, { claimMode: event.target.value as PromotionCampaign['claimMode'] })}><option value="manual_review">ผู้ดูแลตรวจ</option><option value="auto_pending">สร้างคำขออัตโนมัติ</option></select></label>
-              <Field label="วันที่เริ่ม" type="date" value={item.startsAt ?? ''} onChange={(value) => patch(item.id, { startsAt: value || undefined })} />
-              <Field label="วันที่สิ้นสุด" type="date" value={item.endsAt ?? ''} onChange={(value) => patch(item.id, { endsAt: value || undefined })} />
-              <label className="is-wide"><span>รายละเอียด</span><textarea value={item.description} onChange={(event) => patch(item.id, { description: event.target.value })} /></label>
-            </div>
-          </article>
-        </AdminCard>)}
-      </div>}
-
-      <footer className="admin-promotion-ops__claim-summary">
-        <span>อนุมัติแล้ว <strong>{claims.approved}</strong></span>
-        <span>ปฏิเสธแล้ว <strong>{claims.rejected}</strong></span>
-        <span>รอตรวจ <strong>{claims.pending}</strong></span>
-      </footer>
+      {loading ? <div className="admin-promotion-ops__state">กำลังโหลดข้อมูลโปรโมชัน...</div> : filtered.length === 0 ? <AdminEmpty>ไม่พบรายการในหมวดนี้</AdminEmpty> : <div className="admin-promotion-ops__grid">{filtered.map((item) => <AdminCard key={item.id} tone={item.enabled ? 'success' : 'neutral'} compact><article className="admin-promotion-ops__card">
+        <header><div><AdminBadge tone={lifecycleTone(item.lifecycle)}>{lifecycleLabel(item.lifecycle)}</AdminBadge><h2>{item.title || item.id}</h2><p>{categoryLabel(categoryOf(item))} · Priority {item.priority ?? 0}</p></div><div className="admin-promotion-ops__card-actions"><label><input type="checkbox" checked={selectedIds.includes(item.id)} onChange={(event) => setSelectedIds((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))} /> เลือก</label><AdminButton size="compact" tone="secondary" onClick={() => patch(item.id, item.lifecycle === 'PUBLISHED' ? { lifecycle: 'DRAFT', enabled: false } : { lifecycle: 'PUBLISHED', enabled: true })}>{item.lifecycle === 'PUBLISHED' ? 'ย้าย Draft' : 'Publish'}</AdminButton><AdminButton size="compact" tone="danger" onClick={() => patch(item.id, { lifecycle: 'ARCHIVED', enabled: false })}>Archive</AdminButton></div></header>
+        {item.imageUrl && <img className="admin-promotion-ops__banner" src={item.imageUrl} alt={`ตัวอย่างแบนเนอร์ ${item.title}`} />}
+        <div className="admin-promotion-ops__fields">
+          <Field label="รหัส" value={item.id} onChange={(value) => patch(item.id, { id: slug(value) })} />
+          <Field label="ชื่อ" value={item.title} onChange={(value) => patch(item.id, { title: value })} />
+          <label><span>หมวด</span><select value={categoryOf(item)} onChange={(event) => patch(item.id, { category: event.target.value as PromotionCategory })}>{CATEGORY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+          <NumberField label="Priority" value={Number(item.priority ?? 0)} onChange={(value) => patch(item.id, { priority: value })} />
+          <Field label="Badge" value={item.badgeText ?? ''} onChange={(value) => patch(item.id, { badgeText: value })} />
+          <Field label="สี Accent" value={item.accentColor ?? '#f5c542'} onChange={(value) => patch(item.id, { accentColor: value })} />
+          <Field label="URL แบนเนอร์" value={item.imageUrl ?? ''} onChange={(value) => patch(item.id, { imageUrl: value })} />
+          <Field label="URL ไอคอน" value={item.iconUrl ?? ''} onChange={(value) => patch(item.id, { iconUrl: value })} />
+          <Field label="Coupon Code" value={item.couponCode ?? ''} onChange={(value) => patch(item.id, { couponCode: value.toUpperCase() })} />
+          <Field label="ชื่อรางวัล" value={item.rewardLabel ?? ''} onChange={(value) => patch(item.id, { rewardLabel: value })} />
+          <label><span>ประเภทโบนัส</span><select value={item.bonusType} onChange={(event) => patch(item.id, { bonusType: event.target.value as PromotionCampaign['bonusType'] })}><option value="percent">เปอร์เซ็นต์</option><option value="fixed">จำนวนคงที่</option></select></label>
+          <NumberField label="มูลค่าโบนัส" value={item.bonusValue} onChange={(value) => patch(item.id, { bonusValue: value })} />
+          <NumberField label="ฝากขั้นต่ำ" value={item.minDeposit} onChange={(value) => patch(item.id, { minDeposit: value })} />
+          <NumberField label="โบนัสสูงสุด" value={item.maxBonus} onChange={(value) => patch(item.id, { maxBonus: value })} />
+          <NumberField label="ยอดทำรายการ x" value={item.turnoverMultiplier} onChange={(value) => patch(item.id, { turnoverMultiplier: value })} />
+          <label><span>วิธีรับ</span><select value={item.claimMode} onChange={(event) => patch(item.id, { claimMode: event.target.value as PromotionCampaign['claimMode'] })}><option value="manual_review">ผู้ดูแลตรวจ</option><option value="auto_pending">สร้างคำขออัตโนมัติ</option></select></label>
+          <Field label="วันที่เริ่ม" type="date" value={item.startsAt ?? ''} onChange={(value) => patch(item.id, { startsAt: value || undefined })} />
+          <Field label="วันที่สิ้นสุด" type="date" value={item.endsAt ?? ''} onChange={(value) => patch(item.id, { endsAt: value || undefined })} />
+          <label className="is-wide"><span>รายละเอียด</span><textarea value={item.description} onChange={(event) => patch(item.id, { description: event.target.value })} /></label>
+        </div>
+      </article></AdminCard>)}</div>}
+      <footer className="admin-promotion-ops__claim-summary"><span>อนุมัติแล้ว <strong>{claims.approved}</strong></span><span>ปฏิเสธแล้ว <strong>{claims.rejected}</strong></span><span>รอตรวจ <strong>{claims.pending}</strong></span></footer>
     </section>
+
     <AdminConfirmDialog open={archiveConfirmOpen} title="Archive รายการที่เลือก" description={`ย้าย ${selectedIds.length.toLocaleString('th-TH')} รายการไป Archived และปิดการเผยแพร่`} confirmLabel="ยืนยัน Archive" tone="danger" onCancel={() => setArchiveConfirmOpen(false)} onConfirm={archiveSelected} />
+    <AdminConfirmDialog open={discardConfirmOpen} title="ทิ้งการแก้ไขที่ยังไม่บันทึก" description="การรีเฟรชจะโหลดข้อมูลล่าสุดและลบการแก้ไขในหน้านี้" confirmLabel="ทิ้งการแก้ไข" tone="danger" onCancel={() => setDiscardConfirmOpen(false)} onConfirm={() => { setDiscardConfirmOpen(false); void load(true); }} />
   </AdminPage>;
 }
 
-const VIEW_OPTIONS: Array<{ value: ViewKey; label: string }> = [
-  { value: 'list', label: 'รายการทั้งหมด' },
-  { value: 'banner', label: 'แบนเนอร์' },
-  { value: 'bonus', label: 'โบนัส' },
-  { value: 'coupon', label: 'คูปอง' },
-  { value: 'campaign', label: 'แคมเปญ' },
-  { value: 'reward', label: 'รางวัล' },
-];
+const VIEW_OPTIONS: Array<{ value: ViewKey; label: string }> = [{ value: 'list', label: 'รายการทั้งหมด' }, { value: 'banner', label: 'แบนเนอร์' }, { value: 'bonus', label: 'โบนัส' }, { value: 'coupon', label: 'คูปอง' }, { value: 'campaign', label: 'แคมเปญ' }, { value: 'reward', label: 'รางวัล' }];
 const CATEGORY_OPTIONS = VIEW_OPTIONS.filter((item): item is { value: PromotionCategory; label: string } => item.value !== 'list');
-
 function Field({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (value: string) => void; type?: 'text' | 'date' }) { return <label><span>{label}</span><input type={type} value={value} onChange={(event) => onChange(event.target.value)} /></label>; }
 function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) { return <label><span>{label}</span><input type="number" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value || 0))} /></label>; }
 function categoryOf(item: PromotionCampaign): PromotionCategory { return item.category ?? (item.couponCode ? 'coupon' : item.rewardLabel ? 'reward' : item.imageUrl ? 'banner' : item.bonusValue > 0 ? 'bonus' : 'campaign'); }
