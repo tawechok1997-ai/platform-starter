@@ -10,12 +10,16 @@ import {
   ResolveMoneyOpsRiskAlertDto,
   WriteMoneyOpsAuditDto,
 } from './dto/money-ops.dto';
+import { MoneyOpsLedgerQueryService } from './money-ops-ledger-query.service';
 import { MoneyOpsService } from './money-ops.service';
 
 @UseGuards(AdminAuthGuard, PermissionsGuard)
 @Controller('admin/money-ops')
 export class MoneyOpsController {
-  constructor(private readonly moneyOps: MoneyOpsService) {}
+  constructor(
+    private readonly moneyOps: MoneyOpsService,
+    private readonly ledgerQuery: MoneyOpsLedgerQueryService,
+  ) {}
 
   @RequirePermission('game.providers.view')
   @Get('control-center')
@@ -23,7 +27,7 @@ export class MoneyOpsController {
 
   @RequirePermission('game.providers.view')
   @Get('ledger')
-  ledger(@Query() query: MoneyOpsLedgerQueryDto) { return this.moneyOps.listLedger(query); }
+  ledger(@Query() query: MoneyOpsLedgerQueryDto) { return this.ledgerQuery.list(query); }
 
   @RequirePermission('game.providers.manage')
   @Post('ledger/simulate')
