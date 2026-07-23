@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { useAdminUnsavedChanges } from '../_components/admin-unsaved-changes';
 
 type SettingsFormOptions<T extends object> = {
   endpoint: string;
@@ -23,7 +24,7 @@ export function useAdminSettingsForm<T extends object>({
   const [initialForm, setInitialForm] = useState<T>(defaults);
   const [message, setMessage] = useState(loadingMessage);
   const [saving, setSaving] = useState(false);
-  const isDirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(initialForm), [form, initialForm]);
+  const { isDirty, saveState } = useAdminUnsavedChanges({ value: form, savedValue: initialForm, saving });
 
   const load = useCallback(async () => {
     setMessage(loadingMessage);
@@ -43,16 +44,6 @@ export function useAdminSettingsForm<T extends object>({
   useEffect(() => {
     void load();
   }, [load]);
-
-  useEffect(() => {
-    if (!isDirty) return;
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = '';
-    };
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, [isDirty]);
 
   const save = useCallback(async () => {
     setSaving(true);
@@ -93,6 +84,7 @@ export function useAdminSettingsForm<T extends object>({
     message,
     saving,
     isDirty,
+    saveState,
     setForm,
     setMessage,
     load,
