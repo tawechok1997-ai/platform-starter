@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 
-type SettingsFormOptions<T extends Record<string, unknown>> = {
+type SettingsFormOptions<T extends object> = {
   endpoint: string;
   defaults: T;
   loadingMessage?: string;
@@ -14,7 +14,7 @@ type SaveResult = {
   message?: string;
 };
 
-export function useAdminSettingsForm<T extends Record<string, unknown>>({
+export function useAdminSettingsForm<T extends object>({
   endpoint,
   defaults,
   loadingMessage = 'กำลังโหลด...',
