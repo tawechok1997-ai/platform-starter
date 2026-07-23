@@ -5,6 +5,7 @@ import { PrismaService } from '../../database/prisma.service';
 
 const RISK_MODULES = ['promotions', 'affiliates', 'withdrawals', 'topups', 'money-ops', 'game-platform', 'bank-accounts', 'support'];
 const HIGH_RISK_ACTION_WORDS = ['review', 'approve', 'reject', 'complete', 'revoke', 'release', 'expire', 'turnover', 'commission', 'withdrawal', 'deposit', 'credential', 'provider'];
+const AUDIT_EXPORT_LIMIT = 5000;
 
 @Injectable()
 export class AdminAuditService {
@@ -13,51 +14,7 @@ export class AdminAuditService {
   async list(query: AuditLogQuery) {
     const page = Math.max(Number(query.page ?? 1) || 1, 1);
     const take = Math.min(Math.max(Number(query.take ?? 50) || 50, 1), 100);
-    const where: Prisma.AdminAuditLogWhereInput = {};
-
-    if (query.module) where.module = { equals: String(query.module).trim(), mode: 'insensitive' };
-    if (query.action) where.action = { contains: String(query.action).trim(), mode: 'insensitive' };
-    if (query.adminUserId) where.adminUserId = String(query.adminUserId).trim();
-    if (query.targetId) where.targetId = String(query.targetId).trim();
-
-    const admin = String(query.admin ?? '').trim();
-    const search = String(query.search ?? '').trim();
-    const and: Prisma.AdminAuditLogWhereInput[] = [];
-
-    if (admin) {
-      and.push({
-        adminUser: {
-          is: {
-            OR: [
-              { username: { contains: admin, mode: 'insensitive' } },
-              { email: { contains: admin, mode: 'insensitive' } },
-            ],
-          },
-        },
-      });
-    }
-
-    if (search) {
-      and.push({
-        OR: [
-          { module: { contains: search, mode: 'insensitive' } },
-          { action: { contains: search, mode: 'insensitive' } },
-          { targetId: { contains: search, mode: 'insensitive' } },
-          { ipAddress: { contains: search, mode: 'insensitive' } },
-          { userAgent: { contains: search, mode: 'insensitive' } },
-          { adminUser: { is: { username: { contains: search, mode: 'insensitive' } } } },
-          { adminUser: { is: { email: { contains: search, mode: 'insensitive' } } } },
-        ],
-      });
-    }
-
-    if (and.length) where.AND = and;
-
-    const createdAt = buildDateRange(
-      parseDateBoundary(query.from, false, 'audit date'),
-      parseDateBoundary(query.to, true, 'audit date'),
-    );
-    if (createdAt) where.createdAt = createdAt;
+    const where = buildAuditWhere(query);
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.adminAuditLog.findMany({
@@ -71,6 +28,46 @@ export class AdminAuditService {
     ]);
 
     return { items, total, page, take, pageCount: Math.max(Math.ceil(total / take), 1) };
+  }
+
+  async exportCsv(query: AuditLogQuery) {
+    const where = buildAuditWhere(query);
+    const items = await this.prisma.adminAuditLog.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: AUDIT_EXPORT_LIMIT,
+      select: {
+        createdAt: true,
+        module: true,
+        action: true,
+        targetId: true,
+        ipAddress: true,
+        userAgent: true,
+        adminUserId: true,
+        adminUser: { select: { username: true, email: true } },
+      },
+    });
+
+    const header = ['timestamp', 'module', 'action', 'target_id', 'admin', 'admin_email', 'ip_address', 'user_agent'];
+    const rows = items.map((item) => [
+      item.createdAt.toISOString(),
+      item.module ?? '',
+      item.action,
+      item.targetId ?? '',
+      item.adminUser?.username ?? item.adminUserId,
+      item.adminUser?.email ?? '',
+      item.ipAddress ?? '',
+      item.userAgent ?? '',
+    ]);
+    const content = [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\n');
+
+    return {
+      filename: `admin-audit-${new Date().toISOString().slice(0, 10)}.csv`,
+      contentType: 'text/csv;charset=utf-8',
+      rowCount: items.length,
+      truncated: items.length >= AUDIT_EXPORT_LIMIT,
+      content: `\uFEFF${content}`,
+    };
   }
 
   async riskSummary(query: AuditLogQuery) {
@@ -97,6 +94,59 @@ export class AdminAuditService {
       recent: risky.slice(0, 50),
     };
   }
+}
+
+function buildAuditWhere(query: AuditLogQuery) {
+  const where: Prisma.AdminAuditLogWhereInput = {};
+
+  if (query.module) where.module = { equals: String(query.module).trim(), mode: 'insensitive' };
+  if (query.action) where.action = { contains: String(query.action).trim(), mode: 'insensitive' };
+  if (query.adminUserId) where.adminUserId = String(query.adminUserId).trim();
+  if (query.targetId) where.targetId = String(query.targetId).trim();
+
+  const admin = String(query.admin ?? '').trim();
+  const search = String(query.search ?? '').trim();
+  const and: Prisma.AdminAuditLogWhereInput[] = [];
+
+  if (admin) {
+    and.push({
+      adminUser: {
+        is: {
+          OR: [
+            { username: { contains: admin, mode: 'insensitive' } },
+            { email: { contains: admin, mode: 'insensitive' } },
+          ],
+        },
+      },
+    });
+  }
+
+  if (search) {
+    and.push({
+      OR: [
+        { module: { contains: search, mode: 'insensitive' } },
+        { action: { contains: search, mode: 'insensitive' } },
+        { targetId: { contains: search, mode: 'insensitive' } },
+        { ipAddress: { contains: search, mode: 'insensitive' } },
+        { userAgent: { contains: search, mode: 'insensitive' } },
+        { adminUser: { is: { username: { contains: search, mode: 'insensitive' } } } },
+        { adminUser: { is: { email: { contains: search, mode: 'insensitive' } } } },
+      ],
+    });
+  }
+
+  if (and.length) where.AND = and;
+
+  const createdAt = buildDateRange(
+    parseDateBoundary(query.from, false, 'audit date'),
+    parseDateBoundary(query.to, true, 'audit date'),
+  );
+  if (createdAt) where.createdAt = createdAt;
+  return where;
+}
+
+function csvCell(value: unknown) {
+  return `"${String(value ?? '').replaceAll('"', '""')}"`;
 }
 
 function isRiskyAudit(module: string | null, action: string) {
