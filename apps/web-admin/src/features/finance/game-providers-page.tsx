@@ -1,8 +1,10 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import type { FormEvent, ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { adminApiFetch } from '../../../app/admin-api';
-import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminFilterBar, AdminGrid, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminRow, AdminStack, AdminToolbar } from '../../../app/(admin)/_components/admin-ui';
+import { buildAdminListQuery, normalizeAdminListPayload, type AdminListPayload, useAdminListContract } from '../../../app/(admin)/_components/admin-list-contract';
+import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminEmpty, AdminFilterBar, AdminGrid, AdminMetric, AdminMetricGrid, AdminNotice, AdminPage, AdminPagination, AdminRow, AdminStack, AdminToolbar } from '../../../app/(admin)/_components/admin-ui';
 
 type ProviderStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'DEGRADED';
 type WalletMode = 'SEAMLESS' | 'TRANSFER' | 'HYBRID';
@@ -20,15 +22,18 @@ type ProviderFormState = { id?: string; name: string; code: string; logoUrl: str
 type EndpointFormState = { id?: string; type: EndpointType; url: string; method: string; timeoutMs: string; retryCount: string; isEnabled: boolean };
 type CredentialFormState = { id?: string; type: CredentialType; value: string; isEnabled: boolean };
 type PendingAction = { action: 'status' | 'sync'; provider: GameProvider; status?: ProviderStatus };
+type ProviderSummary = { total: number; active: number; attention: number; games: number };
+type ProviderPayload = AdminListPayload<GameProvider> & { summary: ProviderSummary };
 
 const emptyForm: ProviderFormState = { name: '', code: '', logoUrl: '', status: 'INACTIVE', walletMode: 'TRANSFER', currency: 'THB', timezone: 'Asia/Bangkok', sortOrder: '100' };
 const emptyEndpointForm: EndpointFormState = { type: 'LAUNCH', url: '', method: 'POST', timeoutMs: '10000', retryCount: '2', isEnabled: true };
 const emptyCredentialForm: CredentialFormState = { type: 'API_KEY', value: '', isEnabled: true };
+const emptyPayload: ProviderPayload = { items: [], total: 0, page: 1, pageSize: 25, totalPages: 1, summary: { total: 0, active: 0, attention: 0, games: 0 } };
 const ENDPOINT_TYPES: EndpointType[] = ['LAUNCH', 'BALANCE', 'TRANSFER_IN', 'TRANSFER_OUT', 'GAME_LIST', 'BET_HISTORY', 'WEBHOOK', 'HEALTH_CHECK'];
 const CREDENTIAL_TYPES: CredentialType[] = ['API_KEY', 'SECRET_KEY', 'MERCHANT_ID', 'AGENT_ID', 'WEBHOOK_SECRET', 'TOKEN'];
 
 export default function GameProvidersPage() {
-  const [items, setItems] = useState<GameProvider[]>([]);
+  const [payload, setPayload] = useState<ProviderPayload>(emptyPayload);
   const [detail, setDetail] = useState<ProviderDetail | null>(null);
   const [health, setHealth] = useState<HealthResult | null>(null);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
@@ -44,20 +49,31 @@ export default function GameProvidersPage() {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | ProviderStatus>('ALL');
   const [healthFilter, setHealthFilter] = useState<'ALL' | 'ATTENTION' | 'NORMAL'>('ALL');
-
-  useEffect(() => { void loadProviders(); }, []);
-  const metrics = useMemo(() => ({ total: items.length, active: items.filter((item) => item.status === 'ACTIVE').length, attention: items.filter((item) => item.status === 'MAINTENANCE' || item.status === 'DEGRADED').length, games: items.reduce((sum, item) => sum + Number(item._count?.games ?? 0), 0) }), [items]);
-  const visibleItems = useMemo(() => { const keyword = query.trim().toLowerCase(); return items.filter((item) => { const attention = item.status === 'MAINTENANCE' || item.status === 'DEGRADED'; return (!keyword || `${item.name} ${item.code}`.toLowerCase().includes(keyword)) && (statusFilter === 'ALL' || item.status === statusFilter) && (healthFilter === 'ALL' || (healthFilter === 'ATTENTION' ? attention : !attention)); }); }, [items, query, statusFilter, healthFilter]);
+  const list = useAdminListContract({ initialPageSize: 25 });
   const readiness = health?.readiness ?? detail?.readiness;
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadProviders(); }, query ? 250 : 0);
+    return () => window.clearTimeout(timer);
+  }, [list.page, list.pageSize, query, statusFilter, healthFilter]);
 
   async function loadProviders() {
     setLoading(true);
     setMessage('กำลังโหลดค่ายเกม...');
-    const res = await adminApiFetch('/admin/game-providers');
+    const suffix = buildAdminListQuery({
+      page: list.page,
+      take: list.pageSize,
+      search: query.trim(),
+      status: statusFilter === 'ALL' ? undefined : statusFilter,
+      health: healthFilter === 'ALL' ? undefined : healthFilter,
+    });
+    const res = await adminApiFetch(`/admin/game-providers${suffix}`);
     const data = await res.json().catch(() => null);
     setLoading(false);
     if (!res.ok) { setMessage('โหลดค่ายเกมไม่สำเร็จ'); return; }
-    setItems(data.items ?? []);
+    const normalized = normalizeAdminListPayload<GameProvider>(data, list.page, list.pageSize);
+    setPayload({ ...normalized, summary: data?.summary ?? emptyPayload.summary });
+    if (normalized.page !== list.page) list.setPage(normalized.page);
     setMessage('');
   }
 
@@ -75,6 +91,9 @@ export default function GameProvidersPage() {
   function updateField<K extends keyof ProviderFormState>(key: K, value: ProviderFormState[K]) { setForm((current) => ({ ...current, [key]: value })); }
   function updateEndpointField<K extends keyof EndpointFormState>(key: K, value: EndpointFormState[K]) { setEndpointForm((current) => ({ ...current, [key]: value })); }
   function updateCredentialField<K extends keyof CredentialFormState>(key: K, value: CredentialFormState[K]) { setCredentialForm((current) => ({ ...current, [key]: value })); }
+  function updateQuery(value: string) { setQuery(value); list.resetPage(); }
+  function updateStatus(value: 'ALL' | ProviderStatus) { setStatusFilter(value); list.resetPage(); }
+  function updateHealth(value: 'ALL' | 'ATTENTION' | 'NORMAL') { setHealthFilter(value); list.resetPage(); }
 
   async function editProvider(item: GameProvider) {
     setForm({ id: item.id, name: item.name, code: item.code, logoUrl: item.logoUrl ?? '', status: item.status, walletMode: item.walletMode, currency: item.currency, timezone: item.timezone, sortOrder: String(item.sortOrder) });
@@ -95,45 +114,43 @@ export default function GameProvidersPage() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const payload = { name: form.name.trim(), code: form.code.trim(), logoUrl: form.logoUrl.trim() || null, status: form.status, walletMode: form.walletMode, currency: form.currency.trim() || 'THB', timezone: form.timezone.trim() || 'Asia/Bangkok', sortOrder: Number(form.sortOrder || 100) };
-    if (!payload.name || !payload.code) { setMessage('กรุณากรอกชื่อค่ายและรหัสค่าย'); return; }
+    const body = { name: form.name.trim(), code: form.code.trim(), logoUrl: form.logoUrl.trim() || null, status: form.status, walletMode: form.walletMode, currency: form.currency.trim() || 'THB', timezone: form.timezone.trim() || 'Asia/Bangkok', sortOrder: Number(form.sortOrder || 100) };
+    if (!body.name || !body.code) { setMessage('กรุณากรอกชื่อค่ายและรหัสค่าย'); return; }
     setSaving(true);
-    const res = await adminApiFetch(form.id ? `/admin/game-providers/${form.id}` : '/admin/game-providers', { method: form.id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
-    const _data = await res.json().catch(() => null);
+    const res = await adminApiFetch(form.id ? `/admin/game-providers/${form.id}` : '/admin/game-providers', { method: form.id ? 'PATCH' : 'POST', body: JSON.stringify(body) });
+    await res.json().catch(() => null);
     setSaving(false);
     if (!res.ok) { setMessage('บันทึกค่ายเกมไม่สำเร็จ'); return; }
-    setMessage(form.id ? 'บันทึกข้อมูลค่ายเกมแล้ว' : 'เพิ่มค่ายเกมแล้ว');
+    const savedMessage = form.id ? 'บันทึกข้อมูลค่ายเกมแล้ว' : 'เพิ่มค่ายเกมแล้ว';
     setForm(emptyForm);
     setDetail(null);
     await loadProviders();
+    setMessage(savedMessage);
   }
 
   async function confirmPendingAction() {
     if (!pendingAction) return;
+    const provider = pendingAction.provider;
     if (pendingAction.action === 'status' && pendingAction.status) {
-      const { provider, status } = pendingAction;
+      const status = pendingAction.status;
       const res = await adminApiFetch(`/admin/game-providers/${provider.id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
-      const data = await res.json().catch(() => null);
+      await res.json().catch(() => null);
       if (!res.ok) { setMessage('เปลี่ยนสถานะไม่สำเร็จ'); return; }
-      setItems((current) => current.map((item) => item.id === provider.id ? { ...item, ...data } : item));
-      if (detail?.id === provider.id) setDetail((current) => current ? { ...current, ...data } : current);
+      if (detail?.id === provider.id) await loadDetail(provider.id);
+      await loadProviders();
       setMessage(`เปลี่ยนสถานะ ${provider.name} เป็น ${statusLabel(status)} แล้ว`);
       setPendingAction(null);
       return;
     }
-    if (pendingAction.action === 'sync') {
-      const provider = pendingAction.provider;
-      setSyncing(true);
-      const res = await adminApiFetch(`/admin/game-providers/${provider.id}/sync-games`, { method: 'POST' });
-      const data = await res.json().catch(() => null);
-      setSyncing(false);
-      if (!res.ok) { setMessage('ซิงก์เกมไม่สำเร็จ'); return; }
-      setSyncResult(data);
-      setMessage(`ซิงก์เกมแล้ว: เพิ่ม ${data.created ?? 0}, อัปเดต ${data.updated ?? 0}, ข้าม ${data.skipped ?? 0}`);
-      setPendingAction(null);
-      await loadDetail(provider.id);
-      await loadProviders();
-    }
+    setSyncing(true);
+    const res = await adminApiFetch(`/admin/game-providers/${provider.id}/sync-games`, { method: 'POST' });
+    const data = await res.json().catch(() => null);
+    setSyncing(false);
+    if (!res.ok) { setMessage('ซิงก์เกมไม่สำเร็จ'); return; }
+    setSyncResult(data);
+    setMessage(`ซิงก์เกมแล้ว: เพิ่ม ${data.created ?? 0}, อัปเดต ${data.updated ?? 0}, ข้าม ${data.skipped ?? 0}`);
+    setPendingAction(null);
+    await Promise.all([loadDetail(provider.id), loadProviders()]);
   }
 
   async function testConnection() {
@@ -152,34 +169,33 @@ export default function GameProvidersPage() {
   async function submitEndpoint(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!detail) return;
-    const payload = { type: endpointForm.type, url: endpointForm.url.trim(), method: endpointForm.method, timeoutMs: Number(endpointForm.timeoutMs || 10000), retryCount: Number(endpointForm.retryCount || 2), isEnabled: endpointForm.isEnabled };
-    if (!payload.url) { setMessage('กรุณากรอก URL endpoint'); return; }
-    const res = await adminApiFetch(endpointForm.id ? `/admin/game-providers/${detail.id}/endpoints/${endpointForm.id}` : `/admin/game-providers/${detail.id}/endpoints`, { method: endpointForm.id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
-    const _data = await res.json().catch(() => null);
+    const body = { type: endpointForm.type, url: endpointForm.url.trim(), method: endpointForm.method, timeoutMs: Number(endpointForm.timeoutMs || 10000), retryCount: Number(endpointForm.retryCount || 2), isEnabled: endpointForm.isEnabled };
+    if (!body.url) { setMessage('กรุณากรอก URL endpoint'); return; }
+    const res = await adminApiFetch(endpointForm.id ? `/admin/game-providers/${detail.id}/endpoints/${endpointForm.id}` : `/admin/game-providers/${detail.id}/endpoints`, { method: endpointForm.id ? 'PATCH' : 'POST', body: JSON.stringify(body) });
+    await res.json().catch(() => null);
     if (!res.ok) { setMessage('บันทึก endpoint ไม่สำเร็จ'); return; }
     setEndpointForm(emptyEndpointForm);
-    await loadDetail(detail.id);
-    await loadProviders();
+    await Promise.all([loadDetail(detail.id), loadProviders()]);
     setMessage('บันทึก endpoint แล้ว');
   }
 
   async function submitCredential(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!detail) return;
-    const payload: Record<string, unknown> = { type: credentialForm.type, isEnabled: credentialForm.isEnabled };
-    if (credentialForm.value.trim()) payload.value = credentialForm.value.trim();
-    const res = await adminApiFetch(credentialForm.id ? `/admin/game-providers/${detail.id}/credentials/${credentialForm.id}` : `/admin/game-providers/${detail.id}/credentials`, { method: credentialForm.id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
-    const _data = await res.json().catch(() => null);
+    const body: Record<string, unknown> = { type: credentialForm.type, isEnabled: credentialForm.isEnabled };
+    if (credentialForm.value.trim()) body.value = credentialForm.value.trim();
+    const res = await adminApiFetch(credentialForm.id ? `/admin/game-providers/${detail.id}/credentials/${credentialForm.id}` : `/admin/game-providers/${detail.id}/credentials`, { method: credentialForm.id ? 'PATCH' : 'POST', body: JSON.stringify(body) });
+    await res.json().catch(() => null);
     if (!res.ok) { setMessage('บันทึกข้อมูลเชื่อมต่อไม่สำเร็จ'); return; }
     setCredentialForm(emptyCredentialForm);
-    await loadDetail(detail.id);
-    await loadProviders();
+    await Promise.all([loadDetail(detail.id), loadProviders()]);
     setMessage('บันทึกข้อมูลเชื่อมต่อแล้ว');
   }
 
   function editEndpoint(item: ProviderEndpoint) { setEndpointForm({ id: item.id, type: item.type, url: item.url, method: item.method, timeoutMs: String(item.timeoutMs), retryCount: String(item.retryCount), isEnabled: item.isEnabled }); }
   function editCredential(item: ProviderCredential) { setCredentialForm({ id: item.id, type: item.type, value: '', isEnabled: item.isEnabled }); }
 
+  const metrics = payload.summary;
   return <AdminPage eyebrow="แพลตฟอร์มเกม" title="ค่ายเกม" description="จัดการข้อมูลค่าย Endpoint ข้อมูลเชื่อมต่อ ความพร้อม และการซิงก์รายชื่อเกม" actions={<AdminButton onClick={() => void loadProviders()} disabled={loading}>รีเฟรช</AdminButton>}>
     <AdminMetricGrid>
       <AdminMetric title="ค่ายทั้งหมด" value={String(metrics.total)} />
@@ -209,7 +225,6 @@ export default function GameProvidersPage() {
         <section style={panelStyle}><h3 style={panelTitleStyle}>ความพร้อม</h3><p style={mutedStyle}>{readiness ? `ผ่าน ${readiness.passed} จาก ${readiness.total} รายการ` : 'ยังไม่มีผลตรวจ'}</p><AdminStack>{(readiness?.checks ?? []).map((item) => <AdminRow key={item.key}><strong>{item.label}</strong><AdminBadge tone={item.ok ? 'success' : 'warning'}>{item.ok ? 'ผ่าน' : 'รอตรวจ'}</AdminBadge></AdminRow>)}</AdminStack>{health?.payload && <AdminNotice tone={health.payload.status === 'ONLINE' ? 'success' : 'warning'}>{healthLabel(health.payload.status)} · {health.payload.latencyMs ?? '-'} ms</AdminNotice>}{syncResult && <AdminNotice tone="success">เพิ่ม {syncResult.created} · อัปเดต {syncResult.updated} · ข้าม {syncResult.skipped}</AdminNotice>}</section>
         <section style={panelStyle}><h3 style={panelTitleStyle}>จำนวนรายการ</h3><AdminStack><AdminRow><strong>Endpoint</strong><span>{detail._count?.endpoints ?? detail.endpoints?.length ?? 0}</span></AdminRow><AdminRow><strong>ข้อมูลเชื่อมต่อ</strong><span>{detail._count?.credentials ?? detail.credentials?.length ?? 0}</span></AdminRow><AdminRow><strong>เกม</strong><span>{detail._count?.games ?? 0}</span></AdminRow><AdminRow><strong>เซสชัน</strong><span>{detail._count?.sessions ?? 0}</span></AdminRow><AdminRow><strong>รายการโยกเงิน</strong><span>{detail._count?.transfers ?? 0}</span></AdminRow><AdminRow><strong>Webhook</strong><span>{detail._count?.webhookLogs ?? 0}</span></AdminRow></AdminStack></section>
       </AdminGrid>
-
       <AdminGrid>
         <AdminCard title="Endpoint" description="URL และนโยบาย retry ของแต่ละงาน"><form onSubmit={submitEndpoint} style={formStyle}><Field label="ประเภท"><select value={endpointForm.type} onChange={(event) => updateEndpointField('type', event.target.value as EndpointType)} style={inputStyle}>{ENDPOINT_TYPES.map((value) => <option key={value} value={value}>{endpointLabel(value)}</option>)}</select></Field><Field label="URL"><input value={endpointForm.url} onChange={(event) => updateEndpointField('url', event.target.value)} style={inputStyle} /></Field><Field label="Method"><select value={endpointForm.method} onChange={(event) => updateEndpointField('method', event.target.value)} style={inputStyle}><option>POST</option><option>GET</option><option>PUT</option><option>PATCH</option></select></Field><Field label="Timeout (ms)"><input value={endpointForm.timeoutMs} onChange={(event) => updateEndpointField('timeoutMs', event.target.value)} style={inputStyle} /></Field><Field label="Retry"><input value={endpointForm.retryCount} onChange={(event) => updateEndpointField('retryCount', event.target.value)} style={inputStyle} /></Field><label style={checkStyle}><input type="checkbox" checked={endpointForm.isEnabled} onChange={(event) => updateEndpointField('isEnabled', event.target.checked)} /> เปิดใช้งาน</label><div style={actionRowStyle}><AdminButton type="submit">{endpointForm.id ? 'บันทึก Endpoint' : 'เพิ่ม Endpoint'}</AdminButton>{endpointForm.id && <AdminButton type="button" tone="secondary" onClick={() => setEndpointForm(emptyEndpointForm)}>ยกเลิก</AdminButton>}</div></form><AdminStack>{(detail.endpoints ?? []).map((item) => <AdminRow key={item.id}><div><strong>{endpointLabel(item.type)}</strong><p style={smallMutedStyle}>{item.method} · {item.url} · timeout {item.timeoutMs}ms · retry {item.retryCount}</p></div><div style={actionRowStyle}><AdminBadge tone={item.isEnabled ? 'success' : 'neutral'}>{item.isEnabled ? 'เปิด' : 'ปิด'}</AdminBadge><AdminButton tone="secondary" onClick={() => editEndpoint(item)}>แก้ไข</AdminButton></div></AdminRow>)}{(detail.endpoints ?? []).length === 0 && <AdminEmpty>ยังไม่มี Endpoint</AdminEmpty>}</AdminStack></AdminCard>
         <AdminCard title="ข้อมูลเชื่อมต่อ" description="ค่าลับจะแสดงแบบปิดบังเสมอ"><form onSubmit={submitCredential} style={formStyle}><Field label="ประเภท"><select value={credentialForm.type} onChange={(event) => updateCredentialField('type', event.target.value as CredentialType)} style={inputStyle}>{CREDENTIAL_TYPES.map((value) => <option key={value} value={value}>{credentialLabel(value)}</option>)}</select></Field><Field label="ค่าใหม่"><input type="password" value={credentialForm.value} onChange={(event) => updateCredentialField('value', event.target.value)} style={inputStyle} placeholder={credentialForm.id ? 'เว้นว่างเพื่อคงค่าเดิม' : 'กรอกค่าลับ'} /></Field><label style={checkStyle}><input type="checkbox" checked={credentialForm.isEnabled} onChange={(event) => updateCredentialField('isEnabled', event.target.checked)} /> เปิดใช้งาน</label><div style={actionRowStyle}><AdminButton type="submit">{credentialForm.id ? 'บันทึกข้อมูลเชื่อมต่อ' : 'เพิ่มข้อมูลเชื่อมต่อ'}</AdminButton>{credentialForm.id && <AdminButton type="button" tone="secondary" onClick={() => setCredentialForm(emptyCredentialForm)}>ยกเลิก</AdminButton>}</div></form><AdminStack>{(detail.credentials ?? []).map((item) => <AdminRow key={item.id}><div><strong>{credentialLabel(item.type)}</strong><p style={smallMutedStyle}>{item.maskedValue} · อัปเดต {new Date(item.updatedAt).toLocaleString('th-TH')}</p></div><div style={actionRowStyle}><AdminBadge tone={item.isEnabled ? 'success' : 'neutral'}>{item.isEnabled ? 'เปิด' : 'ปิด'}</AdminBadge><AdminButton tone="secondary" onClick={() => editCredential(item)}>แก้ไข</AdminButton></div></AdminRow>)}{(detail.credentials ?? []).length === 0 && <AdminEmpty>ยังไม่มีข้อมูลเชื่อมต่อ</AdminEmpty>}</AdminStack></AdminCard>
@@ -217,15 +232,16 @@ export default function GameProvidersPage() {
     </AdminCard>}
 
     <AdminCard title="รายชื่อค่าย" description="เลือกค่ายเพื่อแก้ไขและตรวจความพร้อม">
-      <AdminFilterBar resultText={`แสดง ${visibleItems.length}/${items.length} ค่าย`}><label style={filterLabelStyle}>ค้นหา<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ชื่อหรือรหัสค่าย" style={inputStyle} /></label><label style={filterLabelStyle}>สถานะ<select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'ALL' | ProviderStatus)} style={inputStyle}><option value="ALL">ทั้งหมด</option>{(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'DEGRADED'] as ProviderStatus[]).map((value) => <option key={value} value={value}>{statusLabel(value)}</option>)}</select></label><label style={filterLabelStyle}>สุขภาพ<select value={healthFilter} onChange={(event) => setHealthFilter(event.target.value as 'ALL' | 'ATTENTION' | 'NORMAL')} style={inputStyle}><option value="ALL">ทั้งหมด</option><option value="ATTENTION">ต้องตรวจ</option><option value="NORMAL">ปกติ</option></select></label></AdminFilterBar>
-      <AdminStack>{visibleItems.map((item) => <AdminRow key={item.id}><div><strong>{item.name}</strong><p style={mutedStyle}>{item.code} · {walletModeLabel(item.walletMode)} · เกม {item._count?.games ?? 0}</p><p style={smallMutedStyle}>ข้อมูลเชื่อมต่อ {item._count?.credentials ?? 0} รายการ · อัปเดต {new Date(item.updatedAt).toLocaleString('th-TH')}</p></div><div style={actionRowStyle}><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge><AdminBadge tone={Number(item._count?.credentials ?? 0) > 0 ? 'success' : 'warning'}>{Number(item._count?.credentials ?? 0) > 0 ? 'ตั้งค่า credential แล้ว' : 'ยังไม่มี credential'}</AdminBadge><AdminButton tone="secondary" onClick={() => void editProvider(item)}>จัดการ</AdminButton><AdminButton tone={item.status === 'ACTIVE' ? 'danger' : 'success'} onClick={() => setPendingAction({ action: 'status', provider: item, status: item.status === 'ACTIVE' ? 'MAINTENANCE' : 'ACTIVE' })}>{item.status === 'ACTIVE' ? 'ปิดปรับปรุง' : 'เปิดใช้งาน'}</AdminButton></div></AdminRow>)}{!loading && visibleItems.length === 0 && <AdminEmpty>{items.length === 0 ? 'ยังไม่มีค่ายเกม' : 'ไม่พบค่ายตามตัวกรอง'}</AdminEmpty>}</AdminStack>
+      <AdminFilterBar resultText={loading ? 'กำลังโหลด...' : `แสดง ${payload.items.length}/${payload.total} ค่าย`}><label style={filterLabelStyle}>ค้นหา<input value={query} onChange={(event) => updateQuery(event.target.value)} placeholder="ชื่อหรือรหัสค่าย" style={inputStyle} /></label><label style={filterLabelStyle}>สถานะ<select value={statusFilter} onChange={(event) => updateStatus(event.target.value as 'ALL' | ProviderStatus)} style={inputStyle}><option value="ALL">ทั้งหมด</option>{(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'DEGRADED'] as ProviderStatus[]).map((value) => <option key={value} value={value}>{statusLabel(value)}</option>)}</select></label><label style={filterLabelStyle}>สุขภาพ<select value={healthFilter} onChange={(event) => updateHealth(event.target.value as 'ALL' | 'ATTENTION' | 'NORMAL')} style={inputStyle}><option value="ALL">ทั้งหมด</option><option value="ATTENTION">ต้องตรวจ</option><option value="NORMAL">ปกติ</option></select></label><label style={filterLabelStyle}>ต่อหน้า<select value={list.pageSize} onChange={(event) => list.setPageSize(Number(event.target.value))} style={inputStyle}>{list.allowedPageSizes.map((size) => <option key={size} value={size}>{size}</option>)}</select></label></AdminFilterBar>
+      <AdminStack>{payload.items.map((item) => <AdminRow key={item.id}><div><strong>{item.name}</strong><p style={mutedStyle}>{item.code} · {walletModeLabel(item.walletMode)} · เกม {item._count?.games ?? 0}</p><p style={smallMutedStyle}>ข้อมูลเชื่อมต่อ {item._count?.credentials ?? 0} รายการ · อัปเดต {new Date(item.updatedAt).toLocaleString('th-TH')}</p></div><div style={actionRowStyle}><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge><AdminBadge tone={Number(item._count?.credentials ?? 0) > 0 ? 'success' : 'warning'}>{Number(item._count?.credentials ?? 0) > 0 ? 'ตั้งค่า credential แล้ว' : 'ยังไม่มี credential'}</AdminBadge><AdminButton tone="secondary" onClick={() => void editProvider(item)}>จัดการ</AdminButton><AdminButton tone={item.status === 'ACTIVE' ? 'danger' : 'success'} onClick={() => setPendingAction({ action: 'status', provider: item, status: item.status === 'ACTIVE' ? 'MAINTENANCE' : 'ACTIVE' })}>{item.status === 'ACTIVE' ? 'ปิดปรับปรุง' : 'เปิดใช้งาน'}</AdminButton></div></AdminRow>)}{!loading && payload.items.length === 0 && <AdminEmpty>{payload.total === 0 ? 'ยังไม่มีค่ายเกมตามตัวกรอง' : 'ไม่พบค่ายในหน้านี้'}</AdminEmpty>}</AdminStack>
+      {payload.total > 0 && <AdminPagination page={payload.page} totalPages={payload.totalPages} onPrevious={() => list.setPage(payload.page - 1)} onNext={() => list.setPage(payload.page + 1)} disabled={loading} />}
     </AdminCard>
 
     <AdminConfirmDialog open={Boolean(pendingAction)} title={pendingAction ? pendingTitle(pendingAction) : ''} description={pendingAction?.action === 'sync' ? 'ระบบจะขอรายชื่อเกมล่าสุดจากค่ายและอัปเดตคลังเกมเดิม' : pendingAction?.status === 'ACTIVE' ? 'ค่ายจะกลับมาเปิดให้ระบบเรียกใช้งาน' : 'ค่ายจะถูกปิดปรับปรุงและไม่ควรถูกใช้เปิดเกมใหม่'} confirmLabel={pendingAction?.action === 'sync' ? 'ซิงก์เกม' : pendingAction?.status === 'ACTIVE' ? 'เปิดใช้งาน' : 'ปิดปรับปรุง'} tone={pendingAction?.action === 'status' && pendingAction.status !== 'ACTIVE' ? 'danger' : 'primary'} busy={syncing} onCancel={() => setPendingAction(null)} onConfirm={() => void confirmPendingAction()} details={pendingAction ? <><p><strong>ค่าย:</strong> {pendingAction.provider.name}</p><p><strong>สถานะปัจจุบัน:</strong> {statusLabel(pendingAction.provider.status)}</p></> : null} />
   </AdminPage>;
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label style={labelStyle}><span>{label}</span>{children}</label>; }
+function Field({ label, children }: { label: string; children: ReactNode }) { return <label style={labelStyle}><span>{label}</span>{children}</label>; }
 function pendingTitle(action: PendingAction) { if (action.action === 'sync') return `ซิงก์เกมจาก ${action.provider.name}`; return `${action.status === 'ACTIVE' ? 'เปิดใช้งาน' : 'ปิดปรับปรุง'} ${action.provider.name}`; }
 function statusLabel(status: ProviderStatus) { return ({ ACTIVE: 'เปิดใช้งาน', INACTIVE: 'ปิดใช้งาน', MAINTENANCE: 'ปิดปรับปรุง', DEGRADED: 'ประสิทธิภาพลดลง' } as Record<ProviderStatus, string>)[status]; }
 function statusTone(status: ProviderStatus) { if (status === 'ACTIVE') return 'success'; if (status === 'MAINTENANCE' || status === 'DEGRADED') return 'warning'; return 'neutral'; }
