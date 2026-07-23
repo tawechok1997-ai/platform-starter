@@ -80,7 +80,7 @@
 - [ ] Wallet total ไม่ตัดบรรทัด
 - [ ] Recent Ledger 5 รายการ + ดูทั้งหมด
 - [ ] SLA countdown
-- [ ] Quick Actions
+- [x] Quick Actions
 - [ ] Role-based dashboard
 
 ### `/operations`
