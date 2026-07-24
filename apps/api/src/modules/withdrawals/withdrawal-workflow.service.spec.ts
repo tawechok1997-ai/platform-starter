@@ -16,6 +16,7 @@ describe('WithdrawalWorkflowService claim ownership', () => {
   it('accepts the current claim owner', () => {
     expect(() => (service as any).assertClaimOwner('admin-1', 'admin-1')).not.toThrow();
   });
+
   it('removes uploaded proof when the workflow transaction fails', async () => {
     const storage = { put: jest.fn().mockResolvedValue(undefined), remove: jest.fn().mockResolvedValue(undefined) };
     const tx = {
@@ -26,10 +27,10 @@ describe('WithdrawalWorkflowService claim ownership', () => {
       $queryRaw: jest.fn().mockResolvedValue([]),
       $transaction: jest.fn(async (callback: any) => callback(tx)),
     };
-    const service = new WithdrawalWorkflowService(prisma as any, storage as any);
+    const workflow = new WithdrawalWorkflowService(prisma as any, storage as any);
     const data = Buffer.from('payment-proof').toString('base64');
 
-    await expect(service.uploadPaymentProof('request-1', 'admin-1', {
+    await expect(workflow.uploadPaymentProof('request-1', 'admin-1', {
       slipImageData: `data:image/png;base64,${data}`,
     })).rejects.toThrow('state changed');
 
@@ -44,17 +45,43 @@ describe('WithdrawalWorkflowService claim ownership', () => {
       $queryRaw: jest.fn().mockResolvedValue([]),
       $transaction: jest.fn(async (callback: any) => callback(tx)),
     };
-    const service = new WithdrawalWorkflowService(prisma as any, storage as any);
+    const workflow = new WithdrawalWorkflowService(prisma as any, storage as any);
     const data = Buffer.from('payment-proof').toString('base64');
     const expectedHash = createHash('sha256').update(Buffer.from('payment-proof')).digest('hex');
     tx.$queryRaw.mockResolvedValueOnce([{ status: 'PAYMENT_PROOF_UPLOADED', claimed_by: 'admin-1' }])
       .mockResolvedValueOnce([{ payment_slip_url: 'withdrawal-proofs/existing.png', payment_slip_file_hash: expectedHash }]);
 
-    const result = await service.uploadPaymentProof('request-1', 'admin-1', {
+    const result = await workflow.uploadPaymentProof('request-1', 'admin-1', {
       slipImageData: `data:image/png;base64,${data}`,
     });
 
     expect(result).toEqual(expect.objectContaining({ idempotent: true, status: 'PAYMENT_PROOF_UPLOADED' }));
     expect(storage.remove).toHaveBeenCalledTimes(1);
+  });
+
+  it('retrieves payment proof through private storage instead of exposing the object key', async () => {
+    const proofKey = 'withdrawal-proofs/2026-07-25/private-proof.png';
+    const proof = Buffer.from('private-payment-proof');
+    const storage = {
+      get: jest.fn().mockResolvedValue({ data: proof, contentType: 'image/png' }),
+    };
+    const prisma = {
+      withdrawalRequest: {
+        findUnique: jest.fn().mockResolvedValue({
+          paymentSlipUrl: proofKey,
+          paymentTransactionRef: 'BANK-REF-001',
+        }),
+      },
+    };
+    const workflow = new WithdrawalWorkflowService(prisma as any, storage as any);
+
+    const result = await workflow.getPaymentProof('request-1');
+
+    expect(storage.get).toHaveBeenCalledWith(proofKey, 'image/png');
+    expect(result).toEqual({
+      dataUrl: `data:image/png;base64,${proof.toString('base64')}`,
+      transactionRef: 'BANK-REF-001',
+    });
+    expect(JSON.stringify(result)).not.toContain(proofKey);
   });
 });
