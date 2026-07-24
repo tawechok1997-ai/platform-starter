@@ -12,6 +12,19 @@
   line-height: 0.8 !important;
 }
 
+.member-source-home .member-source-tab__label--compact {
+  display: none;
+}
+
+.member-source-home .member-source-tab[role='tab'] {
+  min-width: 0;
+}
+
+.member-source-home .member-source-tab[role='tab']:focus-visible {
+  outline: 2px solid rgb(255 255 255 / 92%);
+  outline-offset: 2px;
+}
+
 .member-source-panel--promotions .member-reference-promotion-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -34,6 +47,34 @@
 }
 
 @media (max-width: 640px) {
+  .member-source-home .member-source-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .member-source-home .member-source-tab {
+    min-height: 46px !important;
+    gap: 5px !important;
+    padding-inline: 6px !important;
+    font-size: 14px !important;
+  }
+
+  .member-source-home .member-source-tab__label--full {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .member-source-home .member-source-tab__label--compact {
+    display: inline;
+  }
+
   .member-source-panel--promotions {
     min-width: 0;
     overflow: hidden;
