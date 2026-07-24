@@ -123,16 +123,16 @@ export function DesktopHomeScaffold({ content, siteName, showPromotion, games, i
   );
 }
 
-function BannerCard({ banner, content, siteName, className, showImage }: { banner?: CmsContent['banners'][number]; content: CmsContent; siteName: string; className: string; showImage: boolean }) {
+function BannerCard({ banner, content, siteName, className, showImage }: { banner: CmsContent['banners'][number] | undefined; content: CmsContent; siteName: string; className: string; showImage: boolean }) {
   const imageUrl = banner?.imageUrl || resolveCmsAssetById(content, banner?.assetId);
   return <a className={`reference-banner ${className}`} href={banner?.href || '/promotions'}>{showImage && imageUrl ? <img src={imageUrl} alt={banner?.title || siteName} onError={hideBrokenImage} /> : null}<span className="reference-banner-overlay" /><span className="reference-banner-copy"><strong>{banner?.title || 'โปรโมชั่นสมาชิก'}</strong><small>{banner?.subtitle || 'รับสิทธิ์และรางวัลล่าสุด'}</small></span></a>;
 }
 
-function PanelHeading({ asset, fallback, title }: { asset?: CmsAsset; fallback: string; title: string }) {
+function PanelHeading({ asset, fallback, title }: { asset?: CmsAsset | undefined; fallback: string; title: string }) {
   return <header className="reference-panel-heading"><AssetIcon asset={asset} fallback={fallback} className="reference-heading-icon" /><strong>{title}</strong></header>;
 }
 
-function AssetIcon({ asset, fallback, className }: { asset?: CmsAsset; fallback: string; className: string }) {
+function AssetIcon({ asset, fallback, className }: { asset?: CmsAsset | undefined; fallback: string; className: string }) {
   return <span className={className} aria-hidden="true">{asset?.url ? <img src={asset.url} alt="" onError={hideBrokenImage} /> : fallback}</span>;
 }
 
