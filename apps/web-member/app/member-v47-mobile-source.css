@@ -129,11 +129,16 @@
 
   .v47-mobile-game-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; padding: 10px; }
   .v47-mobile-game-grid > a { overflow: hidden; border: 1px solid #382141; border-radius: 8px; background: #120e18; color: #fff; text-decoration: none; }
+  .v47-mobile-game-grid > a.v47-mobile-game-card--hero { grid-column: 1 / -1; }
   .v47-mobile-game-grid > a > div { position: relative; aspect-ratio: 1.75 / 1; overflow: hidden; }
+  .v47-mobile-game-grid > a.v47-mobile-game-card--hero > div { aspect-ratio: 2.18 / 1; }
   .v47-mobile-game-grid img,
   .v47-mobile-game-fallback { display: grid; width: 100%; height: 100%; place-items: center; object-fit: cover; background: #26132e; }
   .v47-mobile-game-grid > a > div > span { position: absolute; top: 5px; left: 5px; padding: 2px 5px; border-radius: 4px; background: #d31f75; font-size: 8px; font-weight: 900; }
-  .v47-mobile-game-grid b { display: block; padding: 7px; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+  .v47-mobile-game-meta { display: grid; gap: 2px; padding: 7px 8px 8px; }
+  .v47-mobile-game-meta b { display: block; padding: 0; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+  .v47-mobile-game-meta small { overflow: hidden; color: rgb(255 255 255 / 48%); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+  .v47-mobile-game-card--hero .v47-mobile-game-meta b { font-size: 11px; }
   .v47-mobile-empty { padding: 22px 12px; color: rgb(255 255 255 / 55%); font-size: 11px; text-align: center; }
 
   .v47-mobile-live article { padding: 10px; }
