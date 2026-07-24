@@ -91,7 +91,7 @@ export default function MemberSignInPage() {
       <Link href="/" className="public-auth-close" aria-label={t.close}>×</Link>
       <div className="public-auth-tabs" role="tablist" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
         <Link href="/register" role="tab" aria-selected="false">{t.register}</Link>
-        <span role="tab" aria-selected="true">{t.title}</span>
+        <span role="tab" aria-selected="true" tabIndex={0}>{t.title}</span>
       </div>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
         <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <MemberRuntimeImage src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} className="public-auth-language__button ui-button ui-button--secondary">ไทย</button><button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} className="public-auth-language__button ui-button ui-button--secondary">EN</button></div></div>
