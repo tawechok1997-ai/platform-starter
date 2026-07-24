@@ -75,7 +75,7 @@
 
 ### `/dashboard`
 
-- [ ] เรียง System status → Urgent queue → KPI → Risk → Finance → Activity
+- [x] เรียง System status → Urgent queue → KPI → Risk → Finance → Activity
 - [ ] ลด KPI/กราฟซ้ำ
 - [x] Wallet total ไม่ตัดบรรทัด
 - [x] Recent Ledger 5 รายการ + ดูทั้งหมด
@@ -88,9 +88,9 @@
 - [x] รองรับภาษา สถานะ จำนวน และเงินตาม locale
 - [x] Money formatting ไม่แสดง `NaN`
 - [x] ข้อความผิดพลาดผ่าน safe copy
-- [ ] งานเร่งด่วนก่อน
+- [x] งานเร่งด่วนก่อนด้วย explicit priority score และ primary action
 - [x] SLA/เวลาค้างจาก queue-aging endpoint
-- [ ] Priority filter
+- [x] Priority filter แยก Critical และ Member queues
 - [x] Action drawer ต่อรายการผ่าน shared drawer contract
 
 ### `/activity-center`
