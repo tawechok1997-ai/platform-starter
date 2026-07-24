@@ -36,7 +36,9 @@ export function routeRuleFor(pathname: string | null | undefined) {
 }
 
 export function isPublicMemberRoute(pathname: string | null | undefined) {
-  return Boolean(routeRuleFor(pathname)?.public);
+  const safePathname = pathname ?? '/';
+  if (safePathname === '/') return true;
+  return Boolean(routeRuleFor(safePathname)?.public);
 }
 
 export function disabledMemberRoute(pathname: string | null | undefined, features: MemberFeatureFlags) {
