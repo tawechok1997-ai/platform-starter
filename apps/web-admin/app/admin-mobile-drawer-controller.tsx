@@ -126,10 +126,14 @@ export function AdminMobileDrawerController() {
     </header>
 
     <footer className="admin-mobile-drawer-controller__footer">
-      <div className="admin-mobile-drawer-controller__language" role="group" aria-label={copy.language}>
-        <button type="button" aria-pressed={locale === 'th'} onClick={() => changeLocale('th')}>ไทย</button>
-        <button type="button" aria-pressed={locale === 'en'} onClick={() => changeLocale('en')}>EN</button>
-      </div>
+      <button
+        type="button"
+        className="admin-mobile-drawer-controller__language"
+        aria-label={copy.language}
+        onClick={() => changeLocale(locale === 'th' ? 'en' : 'th')}
+      >
+        <span>{locale === 'th' ? 'EN' : 'ไทย'}</span>
+      </button>
       <button type="button" onClick={() => navigate('/profile')}><AdminIcon name="user" /><span>{copy.profile}</span></button>
       <button type="button" onClick={() => navigate('/security')}><AdminIcon name="security" /><span>{copy.security}</span></button>
       <button type="button" className="admin-mobile-drawer-controller__logout" disabled={loggingOut} onClick={() => void logout()}><AdminIcon name="logout" /><span>{copy.logout}</span></button>
