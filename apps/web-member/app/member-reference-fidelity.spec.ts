@@ -6,8 +6,12 @@ import test from 'node:test';
 const appRoot = path.resolve(process.cwd(), 'app');
 const layoutSource = readFileSync(path.join(appRoot, 'layout.tsx'), 'utf8');
 const fidelityCss = readFileSync(path.join(appRoot, 'member-reference-fidelity.css'), 'utf8');
+const homeTabsSource = readFileSync(
+  path.join(appRoot, 'components/member-home/source-home-tabs.tsx'),
+  'utf8',
+);
 
- test('loads the final Member reference-fidelity layer after the current reference contract', () => {
+test('loads the final Member reference-fidelity layer after the current reference contract', () => {
   const currentIndex = layoutSource.indexOf("import './member-reference-current.css';");
   const fidelityIndex = layoutSource.indexOf("import './member-reference-fidelity.css';");
 
@@ -36,4 +40,13 @@ test('keeps the mobile announcement strip compact and horizontally readable', ()
   assert.equal(fidelityCss.includes('overscroll-behavior-inline: contain'), true);
   assert.equal(fidelityCss.includes('mask-image: linear-gradient'), true);
   assert.equal(fidelityCss.includes('white-space: nowrap'), true);
+});
+
+test('uses semantic home tabs with compact mobile labels', () => {
+  assert.equal(homeTabsSource.includes('role="tablist"'), true);
+  assert.equal(homeTabsSource.includes('role="tab"'), true);
+  assert.equal(homeTabsSource.includes('aria-selected={selected}'), true);
+  assert.equal(homeTabsSource.includes("compactLabel: 'โปรโมชั่น'"), true);
+  assert.equal(fidelityCss.includes('.member-source-tab__label--compact'), true);
+  assert.equal(fidelityCss.includes('grid-template-columns: repeat(3, minmax(0, 1fr))'), true);
 });
