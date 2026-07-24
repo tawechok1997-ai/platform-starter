@@ -1,0 +1,63 @@
+.admin-topbar-actions,
+.admin-language-toggle {
+  position: relative;
+  z-index: 3;
+  pointer-events: auto !important;
+}
+
+.admin-language-toggle {
+  display: inline-flex !important;
+  align-items: center;
+  min-width: 48px;
+}
+
+.admin-language-toggle button {
+  pointer-events: auto !important;
+  min-width: 48px;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-language-toggle button[aria-pressed='true'] {
+  display: none !important;
+}
+
+.admin-language-toggle button[aria-pressed='false'] {
+  display: inline-flex !important;
+}
+
+.admin-mobile-drawer-controller__language {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  padding: 0 14px !important;
+  pointer-events: auto !important;
+}
+
+.admin-mobile-drawer-controller__language > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  font-weight: 900;
+}
+
+@media (max-width: 820px) {
+  .admin-topbar-actions {
+    pointer-events: auto !important;
+  }
+
+  .admin-language-toggle {
+    z-index: 80;
+    isolation: isolate;
+  }
+
+  .admin-language-toggle::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    z-index: -1;
+  }
+}
