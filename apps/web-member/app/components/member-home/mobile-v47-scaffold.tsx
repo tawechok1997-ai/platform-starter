@@ -50,8 +50,8 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
 
       <div className="v47-mobile-quick-grid">
         <QuickCard icon={icons.promotion} title="โปรโมชั่น" href="/promotions" />
-        <QuickCard icon={icons.activity} title="กิจกรรม" href="/promotions" />
-        <QuickCard icon={icons.news} title="ข่าวสาร" href="/notifications" />
+        <QuickCard icon={icons.bonus} title="กิจกรรม" href="/promotions" />
+        <QuickCard icon={icons.notification} title="ข่าวสาร" href="/notifications" />
       </div>
 
       <a className="v47-mobile-tournament-banner" href="/promotions">
@@ -61,21 +61,21 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
       </a>
 
       <section className="v47-mobile-panel v47-mobile-rank-panel">
-        <SectionTitle icon={tournament?.url || icons.tournament} title="ทัวร์นาเมนต์" />
+        <SectionTitle icon={tournament?.url || icons.promotion} title="ทัวร์นาเมนต์" />
         <div className="v47-mobile-rank-title"><strong>No.1 Tournament Football Royale ครั้งที่ 2</strong><a href="/promotions">ดูทั้งหมด ›</a></div>
         <div className="v47-mobile-ranks">{Array.from({ length: 3 }, (_, index) => <article key={index}><b>{index + 1}</b><span>ZAX00{[790740, 664100, 844010][index]}</span><strong>{[20, 17, 13][index]}</strong><small>● ● ● ● ●</small></article>)}</div>
       </section>
 
       <section className="v47-mobile-jackpot">{jackpot?.url ? <img src={jackpot.url} alt="Jackpot" onError={hideBrokenImage} /> : null}<span><small>JACKPOTS</small><strong>194,428,645</strong><em>Epic of the day</em></span></section>
 
-      <section className="v47-mobile-panel"><SectionTitle icon={leaderboard?.url || icons.leaderboard} title="Leaderboard" action="ดูทั้งหมด" /><div className="v47-mobile-board-head"><span>อันดับ</span><span>ชื่อผู้เล่น</span><span>รางวัล</span></div>{Array.from({ length: 5 }, (_, index) => <div className="v47-mobile-board-row" key={index}><b>{index + 1}</b><span>0{980000018 - index * 8241}</span><em>{[15000, 5700, 3500, 2904, 2100][index]?.toLocaleString()}</em></div>)}</section>
+      <section className="v47-mobile-panel"><SectionTitle icon={leaderboard?.url || icons.vip} title="Leaderboard" action="ดูทั้งหมด" /><div className="v47-mobile-board-head"><span>อันดับ</span><span>ชื่อผู้เล่น</span><span>รางวัล</span></div>{Array.from({ length: 5 }, (_, index) => <div className="v47-mobile-board-row" key={index}><b>{index + 1}</b><span>0{980000018 - index * 8241}</span><em>{[15000, 5700, 3500, 2904, 2100][index]?.toLocaleString()}</em></div>)}</section>
 
-      <GameSection title="Top 10 Popular Games" icon={icons.popular} games={popular} loading={isGamesLoading} message={gamesMessage} />
-      <GameSection title="Most Online Now" icon={icons.online} games={online} loading={isGamesLoading} message={gamesMessage} />
+      <GameSection title="Top 10 Popular Games" icon={icons.games} games={popular} loading={isGamesLoading} message={gamesMessage} />
+      <GameSection title="Most Online Now" icon={icons.games} games={online} loading={isGamesLoading} message={gamesMessage} />
 
-      <section className="v47-mobile-panel v47-mobile-live"><SectionTitle icon={icons.live} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/login">ดูถ่ายทอดสด</a><a href="/login">เดิมพันทันที</a></footer></article></section>
+      <section className="v47-mobile-panel v47-mobile-live"><SectionTitle icon={icons.notification} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/login">ดูถ่ายทอดสด</a><a href="/login">เดิมพันทันที</a></footer></article></section>
 
-      <GameSection title="Classic Games" icon={icons.classic} games={classic} loading={isGamesLoading} message={gamesMessage} />
+      <GameSection title="Classic Games" icon={icons.games} games={classic} loading={isGamesLoading} message={gamesMessage} />
 
       <section className="v47-mobile-panel v47-mobile-guide"><SectionTitle icon={icons.support} title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="v47-mobile-guide-more" href="/guide">ดูทั้งหมด</a></section>
 
