@@ -62,6 +62,7 @@ import './member-v47-desktop-carousel.css';
 import './member-v47-header-structure.css';
 import './member-v47-quick-actions.css';
 import MemberChrome from './member-chrome';
+import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
@@ -86,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteSettingsProvider>
           <MemberSessionProvider>
             <MemberHeroSwipeController />
+            <MemberDragScrollController />
             <MemberChrome>{children}</MemberChrome>
           </MemberSessionProvider>
         </SiteSettingsProvider>
