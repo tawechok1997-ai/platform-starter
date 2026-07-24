@@ -1,6 +1,15 @@
 /* Final V47 mobile lower-section completion. Loaded after the mobile source layout. */
 
 @media (max-width: 900px) {
+  .v47-mobile-announcement {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+  .v47-mobile-announcement img { width: 17px; height: 17px; object-fit: contain; flex: 0 0 auto; }
+  .v47-mobile-announcement span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
   .v47-mobile-rank-badge,
   .v47-mobile-board-badge {
     position: relative;
@@ -8,155 +17,50 @@
     place-items: center;
     flex: 0 0 auto;
   }
+  .v47-mobile-rank-badge { width: 44px; height: 38px; }
+  .v47-mobile-rank-badge img { position: absolute; inset: 50% auto auto 50%; width: 54px; max-width: none; height: 45px; object-fit: contain; transform: translate(-50%, -50%); }
+  .v47-mobile-rank-badge b { position: relative; z-index: 1; display: grid; width: auto !important; height: auto !important; place-items: center; border: 0 !important; border-radius: 0 !important; background: transparent !important; color: #fff; font-size: 11px; text-shadow: 0 1px 3px rgb(0 0 0 / 80%); }
+  .v47-mobile-board-badge { width: 34px; height: 30px; }
+  .v47-mobile-board-badge img { position: absolute; inset: 50% auto auto 50%; width: 42px; max-width: none; height: 35px; object-fit: contain; transform: translate(-50%, -50%); }
+  .v47-mobile-board-badge b { position: relative; z-index: 1; display: grid; width: auto !important; height: auto !important; place-items: center; border-radius: 0 !important; background: transparent !important; color: #fff; font-size: 9px; text-shadow: 0 1px 3px rgb(0 0 0 / 80%); }
+  .v47-mobile-board-row { grid-template-columns: 48px minmax(0, 1fr) 78px; }
 
-  .v47-mobile-rank-badge {
-    width: 44px;
-    height: 38px;
-  }
-
-  .v47-mobile-rank-badge img {
-    position: absolute;
-    inset: 50% auto auto 50%;
-    width: 54px;
-    max-width: none;
-    height: 45px;
-    object-fit: contain;
-    transform: translate(-50%, -50%);
-  }
-
-  .v47-mobile-rank-badge b {
-    position: relative;
-    z-index: 1;
+  .v47-mobile-mini-games > div {
     display: grid;
-    width: auto !important;
-    height: auto !important;
-    place-items: center;
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    color: #fff;
-    font-size: 11px;
-    text-shadow: 0 1px 3px rgb(0 0 0 / 80%);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
   }
-
-  .v47-mobile-board-badge {
-    width: 34px;
-    height: 30px;
-  }
-
-  .v47-mobile-board-badge img {
-    position: absolute;
-    inset: 50% auto auto 50%;
-    width: 42px;
-    max-width: none;
-    height: 35px;
-    object-fit: contain;
-    transform: translate(-50%, -50%);
-  }
-
-  .v47-mobile-board-badge b {
-    position: relative;
-    z-index: 1;
+  .v47-mobile-mini-games > div > a {
     display: grid;
-    width: auto !important;
-    height: auto !important;
-    place-items: center;
-    border-radius: 0 !important;
-    background: transparent !important;
-    color: #fff;
-    font-size: 9px;
-    text-shadow: 0 1px 3px rgb(0 0 0 / 80%);
-  }
-
-  .v47-mobile-board-row {
-    grid-template-columns: 48px minmax(0, 1fr) 78px;
-  }
-
-  .v47-mobile-guide details {
-    border-top: 1px solid rgb(255 255 255 / 5%);
-    background: #17121d;
-  }
-
-  .v47-mobile-guide summary {
-    position: relative;
-    display: flex;
-    min-height: 44px;
+    min-height: 78px;
+    grid-template-columns: 58px minmax(0, 1fr);
     align-items: center;
-    padding: 0 34px 0 12px;
-    color: rgb(255 255 255 / 84%);
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    list-style: none;
-  }
-
-  .v47-mobile-guide summary::-webkit-details-marker { display: none; }
-  .v47-mobile-guide summary::after {
-    content: '+';
-    position: absolute;
-    right: 13px;
-    color: #d7a5e9;
-    font-size: 17px;
-    font-weight: 400;
-  }
-  .v47-mobile-guide details[open] summary::after { content: '−'; }
-
-  .v47-mobile-guide p {
-    margin: 0;
-    padding: 0 12px 12px;
-    color: rgb(255 255 255 / 58%);
-    font-size: 10px;
-    line-height: 1.6;
-  }
-
-  .v47-mobile-guide-more {
-    display: grid;
-    width: 148px;
-    min-height: 34px !important;
-    place-items: center;
-    margin: 12px auto;
-    border: 1px solid #713084;
-    border-radius: 7px;
-    background: #25152d;
-    color: #e2b9ee;
-    font-size: 10px;
+    gap: 8px;
+    padding: 8px;
+    overflow: hidden;
+    border: 1px solid #4c2458;
+    border-radius: 9px;
+    background: linear-gradient(145deg, #291332, #17101d);
+    color: #fff;
     text-decoration: none;
   }
+  .v47-mobile-mini-games > div > a > img { width: 58px; height: 58px; object-fit: contain; }
+  .v47-mobile-mini-games > div > a > span { display: grid; gap: 2px; min-width: 0; }
+  .v47-mobile-mini-games strong { font-size: 11px; }
+  .v47-mobile-mini-games small { overflow: hidden; color: rgb(255 255 255 / 50%); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
 
-  .v47-mobile-partners > div {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    padding: 12px 10px 14px;
-  }
+  .v47-mobile-guide details { border-top: 1px solid rgb(255 255 255 / 5%); background: #17121d; }
+  .v47-mobile-guide summary { position: relative; display: flex; min-height: 44px; align-items: center; padding: 0 34px 0 12px; color: rgb(255 255 255 / 84%); font-size: 11px; font-weight: 700; cursor: pointer; list-style: none; }
+  .v47-mobile-guide summary::-webkit-details-marker { display: none; }
+  .v47-mobile-guide summary::after { content: '+'; position: absolute; right: 13px; color: #d7a5e9; font-size: 17px; font-weight: 400; }
+  .v47-mobile-guide details[open] summary::after { content: '−'; }
+  .v47-mobile-guide p { margin: 0; padding: 0 12px 12px; color: rgb(255 255 255 / 58%); font-size: 10px; line-height: 1.6; }
+  .v47-mobile-guide-more { display: grid; width: 148px; min-height: 34px !important; place-items: center; margin: 12px auto; border: 1px solid #713084; border-radius: 7px; background: #25152d; color: #e2b9ee; font-size: 10px; text-decoration: none; }
 
-  .v47-mobile-partners > div > span {
-    display: grid;
-    min-height: 48px;
-    place-items: center;
-    overflow: hidden;
-    border: 1px solid rgb(255 255 255 / 6%);
-    border-radius: 7px;
-    background: #120e18;
-  }
-
-  .v47-mobile-partners img {
-    width: 82%;
-    max-width: 92px;
-    height: 30px;
-    object-fit: contain !important;
-    filter: grayscale(1) brightness(1.45);
-    opacity: .72;
-  }
-
-  .v47-mobile-partners b {
-    max-width: 90%;
-    overflow: hidden;
-    color: rgb(255 255 255 / 58%);
-    font-size: 9px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
+  .v47-mobile-partners > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px 10px 14px; }
+  .v47-mobile-partners > div > span { display: grid; min-height: 48px; place-items: center; overflow: hidden; border: 1px solid rgb(255 255 255 / 6%); border-radius: 7px; background: #120e18; }
+  .v47-mobile-partners img { width: 82%; max-width: 92px; height: 30px; object-fit: contain !important; filter: grayscale(1) brightness(1.45); opacity: .72; }
+  .v47-mobile-partners b { max-width: 90%; overflow: hidden; color: rgb(255 255 255 / 58%); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
   .v47-mobile-home > section:last-child { margin-bottom: 8px; }
 }
