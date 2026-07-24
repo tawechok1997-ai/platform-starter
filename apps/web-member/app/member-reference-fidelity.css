@@ -59,10 +59,50 @@
   .member-source-panel--promotions .member-reference-promotion-grid::-webkit-scrollbar {
     display: none;
   }
+
+  .member-source-home .home-announcement-strip {
+    display: grid !important;
+    min-height: 42px !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 6px 8px !important;
+  }
+
+  .member-source-home .home-announcement-strip__badge {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+
+  .member-source-home .home-announcement-strip__track {
+    min-width: 0;
+    gap: 18px !important;
+    padding-inline: 2px 18px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 18px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 18px), transparent);
+  }
+
+  .member-source-home .home-announcement-strip__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .member-source-home .home-announcement-strip__item {
+    min-width: max-content;
+    gap: 6px !important;
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .member-source-panel--promotions .member-reference-promotion-grid {
+  .member-source-panel--promotions .member-reference-promotion-grid,
+  .member-source-home .home-announcement-strip__track {
     scroll-behavior: auto;
   }
 }
