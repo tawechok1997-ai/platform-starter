@@ -1,0 +1,123 @@
+name: Deployment Verification
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+
+concurrency:
+  group: deployment-verification-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      P6_API_URL: ${{ vars.P6_API_URL }}
+      P6_ADMIN_URL: ${{ vars.P6_ADMIN_URL }}
+      P6_MEMBER_URL: ${{ vars.P6_MEMBER_URL }}
+      P6_ENVIRONMENT: ${{ vars.P6_ENVIRONMENT || 'production' }}
+      P6_APPROVED_COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      P6_CONNECTIVITY_TIMEOUT_MS: '10000'
+
+    steps:
+      - name: Checkout verified commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Validate deployment verification configuration
+        shell: bash
+        run: |
+          missing=()
+          for name in P6_API_URL P6_ADMIN_URL P6_MEMBER_URL P6_APPROVED_COMMIT_SHA; do
+            if [ -z "${!name:-}" ]; then
+              missing+=("$name")
+            fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error title=Deployment verification is not configured::Missing repository variables: ${missing[*]}"
+            {
+              echo "## Deployment verification blocked"
+              echo ""
+              echo "Missing repository variables: \`${missing[*]}\`."
+              echo "Configure the public service URLs as repository variables before relying on this gate."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Wait for Railway deployment and verify services
+        id: deployment_check
+        shell: bash
+        run: |
+          set +e
+          attempts=30
+          interval=20
+          success=0
+          mkdir -p deployment-verification-reports
+
+          for attempt in $(seq 1 "$attempts"); do
+            node tools/check-p6-connectivity.mjs --json > deployment-verification-reports/connectivity.json
+            connectivity_status=$?
+            node tools/check-p6-deployment-identity.mjs --json > deployment-verification-reports/identity.json
+            identity_status=$?
+
+            connectivity_ready=$(node -e "const r=require('./deployment-verification-reports/connectivity.json'); process.stdout.write(String(r.ready === true))")
+            identity_ready=$(node -e "const r=require('./deployment-verification-reports/identity.json'); process.stdout.write(String(r.ready === true))")
+
+            if [ "$connectivity_status" -eq 0 ] && [ "$identity_status" -eq 0 ] && [ "$connectivity_ready" = "true" ] && [ "$identity_ready" = "true" ]; then
+              success=1
+              echo "Deployment verification passed on attempt ${attempt}/${attempts}."
+              break
+            fi
+
+            echo "Deployment not ready yet (${attempt}/${attempts}); retrying in ${interval}s."
+            if [ "$attempt" -lt "$attempts" ]; then
+              sleep "$interval"
+            fi
+          done
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const connectivity = JSON.parse(fs.readFileSync('deployment-verification-reports/connectivity.json', 'utf8'));
+          const identity = JSON.parse(fs.readFileSync('deployment-verification-reports/identity.json', 'utf8'));
+          const rows = [];
+          for (const service of connectivity.services ?? []) {
+            rows.push({ check: 'connectivity', service: service.name, ready: service.ok === true, reason: service.reason ?? '' });
+          }
+          for (const service of identity.services ?? []) {
+            rows.push({ check: 'identity', service: service.name, ready: service.ready === true, reason: service.reason ?? '' });
+          }
+          const lines = [
+            '## Deployment verification',
+            '',
+            '| Check | Service | Result | Reason |',
+            '|---|---|---|---|',
+            ...rows.map((row) => `| ${row.check} | ${row.service} | ${row.ready ? 'PASS' : 'FAIL'} | ${row.reason || '-'} |`),
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
+          NODE
+
+          if [ "$success" -ne 1 ]; then
+            echo "::error title=Deployment verification failed::Health or deployment identity did not become ready before the retry window expired."
+            exit 1
+          fi
+
+      - name: Upload deployment verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-verification-${{ github.run_id }}
+          path: deployment-verification-reports/*.json
+          if-no-files-found: ignore
+          retention-days: 7
