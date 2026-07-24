@@ -1,54 +1,52 @@
-/* Final NOAH345 reference-fidelity layer for public Member Auth.
+/* Final NOAH345 source-fidelity layer for public Member Auth.
  * Presentation only: Auth, CAPTCHA, API and redirect behavior remain owned by the page runtime.
  */
 .auth-reference-scope {
-  --auth-reference-pink: #ed20d5;
-  --auth-reference-violet: #8137ff;
-  --auth-reference-panel: #1b1024;
-  --auth-reference-bg: #07040b;
-  --auth-reference-muted: #c9b9d6;
+  --auth-reference-bg: #0b0712;
+  --auth-reference-panel: #1d1729;
+  --auth-reference-pink: #d81bbf;
+  --auth-reference-violet: #8b36ff;
+  --auth-reference-muted: #c9bdd3;
 }
 
 .auth-reference-scope .public-auth-page {
   background:
-    radial-gradient(circle at 16% 8%, rgb(188 61 255 / 24%), transparent 34%),
-    radial-gradient(circle at 86% 84%, rgb(237 32 213 / 18%), transparent 30%),
-    linear-gradient(160deg, #13091d 0%, var(--auth-reference-bg) 48%, #0e0615 100%);
+    radial-gradient(circle at 14% 10%, rgb(139 54 255 / 22%), transparent 34%),
+    radial-gradient(circle at 88% 82%, rgb(216 27 191 / 18%), transparent 32%),
+    var(--auth-reference-bg);
 }
 
 .auth-reference-scope .public-auth-page::before {
   background-image:
-    linear-gradient(rgb(237 32 213 / 4%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(129 55 255 / 4%) 1px, transparent 1px);
+    linear-gradient(rgb(216 27 191 / 4%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(139 54 255 / 4%) 1px, transparent 1px);
 }
 
-.auth-reference-scope .public-auth-ambient span:nth-child(1),
-.auth-reference-scope .public-auth-ambient span:nth-child(2) {
-  background: radial-gradient(circle, rgb(237 32 213 / 24%), transparent 68%);
-}
-
-.auth-reference-scope .public-auth-ambient span:nth-child(3) {
-  background: radial-gradient(circle, rgb(129 55 255 / 18%), transparent 68%);
-}
-
-.auth-reference-scope .public-auth-shell {
-  border-color: rgb(255 255 255 / 11%);
-  background: rgb(13 7 19 / 90%);
-  box-shadow: 0 34px 100px rgb(0 0 0 / 58%), 0 0 64px rgb(166 40 218 / 12%);
+.auth-reference-scope .public-auth-shell,
+.auth-reference-scope .public-auth-shell--register {
+  grid-template-columns: minmax(0, 1.05fr) minmax(400px, 0.95fr);
+  border-color: rgb(255 255 255 / 10%);
+  background: rgb(15 9 21 / 92%);
+  box-shadow: 0 30px 90px rgb(0 0 0 / 55%);
 }
 
 .auth-reference-scope .public-auth-brand-panel {
   background:
-    radial-gradient(circle at 16% 16%, rgb(237 32 213 / 23%), transparent 40%),
-    radial-gradient(circle at 82% 78%, rgb(129 55 255 / 20%), transparent 38%),
-    linear-gradient(155deg, #281338, #12091a 62%, #09050e);
+    radial-gradient(circle at 18% 16%, rgb(216 27 191 / 23%), transparent 40%),
+    radial-gradient(circle at 82% 80%, rgb(139 54 255 / 20%), transparent 38%),
+    linear-gradient(150deg, #2a1738, #140d1d 64%, #0b0712);
+}
+
+.auth-reference-scope .public-auth-card {
+  border-color: rgb(255 255 255 / 9%);
+  background: linear-gradient(180deg, rgb(29 23 41 / 98%), rgb(20 14 29 / 98%));
 }
 
 .auth-reference-scope .public-auth-brand-kicker,
 .auth-reference-scope .public-auth-heading__eyebrow,
 .auth-reference-scope .public-auth-footer a,
 .auth-reference-scope .public-auth-legal a {
-  color: #ff73ed;
+  color: #f06dde;
 }
 
 .auth-reference-scope .public-auth-brand-kicker > span,
@@ -57,47 +55,49 @@
 }
 
 .auth-reference-scope .public-auth-brand-kicker > span {
-  box-shadow: 0 0 18px rgb(237 32 213 / 72%);
+  box-shadow: 0 0 18px rgb(216 27 191 / 70%);
 }
 
 .auth-reference-scope .public-auth-brand__mark,
 .auth-reference-scope .public-auth-card__logo > span {
-  background: linear-gradient(145deg, rgb(237 32 213 / 20%), rgb(129 55 255 / 16%));
-  color: #ff6dec;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%), 0 0 24px rgb(237 32 213 / 14%);
-}
-
-.auth-reference-scope .public-auth-card {
-  border-color: rgb(255 255 255 / 9%);
-  background: linear-gradient(180deg, rgb(30 18 40 / 96%), rgb(17 10 24 / 98%));
+  background: linear-gradient(145deg, rgb(216 27 191 / 20%), rgb(139 54 255 / 16%));
+  color: #f06dde;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%);
 }
 
 .auth-reference-scope .public-auth-input,
 .auth-reference-scope .public-auth-eye,
 .auth-reference-scope .public-auth-language {
-  border-color: rgb(255 255 255 / 11%);
-  background: rgb(10 6 15 / 72%);
+  border-color: rgb(255 255 255 / 12%);
+  background: rgb(11 7 18 / 74%);
+}
+
+.auth-reference-scope .public-auth-input {
+  min-height: 52px;
+  border-radius: 15px;
 }
 
 .auth-reference-scope .public-auth-input:hover:not(:disabled),
 .auth-reference-scope .public-auth-input:focus-visible {
-  border-color: #e94ddd;
+  border-color: var(--auth-reference-pink);
 }
 
 .auth-reference-scope .public-auth-input:focus-visible,
 .auth-reference-scope :is(.public-auth-eye, .public-auth-submit, .public-auth-language__button, a):focus-visible {
-  box-shadow: 0 0 0 4px rgb(237 32 213 / 16%);
-  outline-color: #ef73e5;
+  box-shadow: 0 0 0 4px rgb(216 27 191 / 16%);
+  outline-color: #f06dde;
 }
 
 .auth-reference-scope .public-auth-language__button[aria-pressed='true'] {
-  background: linear-gradient(135deg, rgb(237 32 213 / 28%), rgb(129 55 255 / 22%));
+  background: linear-gradient(135deg, rgb(216 27 191 / 28%), rgb(139 54 255 / 22%));
   color: #fff;
 }
 
 .auth-reference-scope .public-auth-submit {
+  min-height: 52px;
+  border-radius: 15px;
   color: #fff;
-  box-shadow: 0 16px 38px rgb(199 34 210 / 28%);
+  box-shadow: 0 16px 36px rgb(166 31 205 / 28%);
 }
 
 .auth-reference-scope .public-auth-heading p,
@@ -109,59 +109,69 @@
 
 @media (max-width: 860px) {
   .auth-reference-scope .public-auth-page {
-    display: grid;
+    display: block;
     min-height: 100svh;
-    place-items: end center;
-    padding: max(72px, 12svh) 12px 0;
+    padding: 0;
   }
 
   .auth-reference-scope .public-auth-shell,
   .auth-reference-scope .public-auth-shell--register {
-    width: min(430px, 100%);
-    min-height: auto;
+    display: grid;
+    width: min(620px, 100%);
+    min-height: 100svh;
+    grid-template-columns: minmax(0, 1fr);
+    margin-inline: auto;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .auth-reference-scope .public-auth-brand-panel {
+    display: flex;
+    min-height: 240px;
+    gap: 14px;
+    padding: 28px 24px 24px;
     overflow: hidden;
-    border: 1px solid rgb(255 255 255 / 12%);
-    border-bottom: 0;
-    border-radius: 24px 24px 0 0;
-    background: var(--auth-reference-panel);
-    box-shadow: 0 -24px 70px rgb(0 0 0 / 58%), 0 0 50px rgb(237 32 213 / 12%);
+  }
+
+  .auth-reference-scope .public-auth-brand-panel > h2 {
+    max-width: 18ch;
+    margin: auto 0 0;
+    font-size: clamp(30px, 8vw, 46px);
+  }
+
+  .auth-reference-scope .public-auth-brand-panel > p,
+  .auth-reference-scope .public-auth-benefits,
+  .auth-reference-scope .public-auth-security-card {
+    display: none;
   }
 
   .auth-reference-scope .public-auth-card {
     width: 100%;
     min-height: auto;
-    max-height: calc(100svh - 64px);
-    overflow-y: auto;
+    overflow: visible;
     border: 0;
-    border-radius: inherit;
-    background: linear-gradient(180deg, #24152f, #160c1f);
-  }
-
-  .auth-reference-scope .public-auth-card::before {
-    width: 42px;
-    height: 4px;
-    margin: -4px auto 6px;
-    border-radius: 999px;
-    background: #75617f;
-    content: '';
+    border-radius: 24px 24px 0 0;
+    background: var(--auth-reference-panel);
   }
 }
 
 @media (max-width: 560px) {
-  .auth-reference-scope .public-auth-page {
-    padding-inline: 0;
+  .auth-reference-scope .public-auth-brand-panel {
+    min-height: 210px;
+    padding:
+      calc(22px + env(safe-area-inset-top))
+      max(18px, env(safe-area-inset-left), env(safe-area-inset-right))
+      22px;
   }
 
   .auth-reference-scope .public-auth-card {
     gap: 14px;
     padding:
-      14px
-      max(16px, env(safe-area-inset-left), env(safe-area-inset-right))
-      calc(20px + env(safe-area-inset-bottom));
-  }
-
-  .auth-reference-scope .public-auth-card-topbar {
-    align-items: center;
+      22px
+      max(18px, env(safe-area-inset-left), env(safe-area-inset-right))
+      calc(24px + env(safe-area-inset-bottom));
   }
 
   .auth-reference-scope .public-auth-card__logo strong {
@@ -171,11 +181,6 @@
 
   .auth-reference-scope .public-auth-heading h1 {
     font-size: clamp(27px, 8vw, 34px);
-  }
-
-  .auth-reference-scope .public-auth-input,
-  .auth-reference-scope .public-auth-eye {
-    min-height: 48px;
   }
 }
 
