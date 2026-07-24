@@ -21,16 +21,18 @@ export default function ReconciliationCenterPage() {
   const items = payload.items ?? [];
   const summary = useMemo(() => payload.summary ?? { total: items.length, matched: items.filter((i) => i.status === 'MATCHED').length, mismatch: items.filter((i) => i.status === 'MISMATCH').length, unknown: items.filter((i) => i.status === 'UNKNOWN').length }, [payload.summary, items]);
   const differenceTotal = useMemo(() => items.reduce((sum, item) => sum + Math.abs(Number(item.difference || 0)), 0), [items]);
+  const exceptionItems = useMemo(() => items.filter((item) => item.status !== 'MATCHED'), [items]);
 
   useEffect(() => { void load(); }, []);
   function showMessage(nextMessage: string, tone: NoticeTone = 'neutral') { setMessage(nextMessage); setMessageTone(tone); }
 
   async function load() {
+    if (loading) return;
     setLoading(true); showMessage('', 'neutral');
     try {
       const res = await adminApiFetch('/admin/provider-wallet-snapshots');
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error('โหลดการตรวจยอดไม่สำเร็จ');
+      if (!res.ok) throw new Error('load');
       setPayload(data ?? {});
     } catch {
       setPayload({}); showMessage('โหลดการตรวจยอดไม่สำเร็จ', 'danger');
@@ -38,12 +40,13 @@ export default function ReconciliationCenterPage() {
   }
 
   async function runReconcile() {
+    if (loading) return;
     if (!sessionId.trim()) return showMessage('กรอก Game Session ID ก่อน', 'warning');
     setLoading(true); showMessage('กำลังตรวจยอด...', 'neutral');
     try {
       const res = await adminApiFetch(`/admin/game-sessions/${sessionId.trim()}/reconcile`, { method: 'POST' });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error('ตรวจยอดไม่สำเร็จ');
+      if (!res.ok) throw new Error('reconcile');
       showMessage(data.ok ? 'ยอดตรงกัน' : `ยอดยังไม่ตรง · ส่วนต่าง ${data.snapshot?.difference ?? '-'}`, data.ok ? 'success' : 'danger');
       setSessionId('');
       await load();
@@ -51,23 +54,51 @@ export default function ReconciliationCenterPage() {
     finally { setLoading(false); }
   }
 
+  function exportExceptions() {
+    if (exceptionItems.length === 0) return;
+    const rows = [
+      ['ตรวจเมื่อ', 'สถานะ', 'ค่าย', 'สมาชิก', 'ยอดระบบ', 'ยอดค่าย', 'ส่วนต่าง', 'Snapshot ID'],
+      ...exceptionItems.map((item) => [
+        new Date(item.checkedAt).toISOString(),
+        item.status,
+        item.provider?.name ?? item.provider?.code ?? '-',
+        item.user?.username ?? item.user?.phone ?? '-',
+        item.systemBalance,
+        item.providerBalance,
+        item.difference,
+        item.id,
+      ]),
+    ];
+    const csv = rows.map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `reconciliation-exceptions-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.hidden = true;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    showMessage(`ส่งออกรายการผิดปกติ ${exceptionItems.length.toLocaleString('th-TH')} รายการแล้ว`, 'success');
+  }
+
   function requestReview(item: Snapshot, status: 'REVIEWING' | 'RESOLVED') { setReviewNote(''); setReviewRequest({ item, status }); }
 
   async function confirmReview() {
-    if (!reviewRequest) return;
+    if (!reviewRequest || loading) return;
     const note = reviewNote.trim();
     if (!note) return showMessage('กรุณาระบุหมายเหตุการตรวจสอบก่อน', 'warning');
     setLoading(true); showMessage('กำลังบันทึกสถานะการตรวจ...', 'neutral');
     try {
       const res = await adminApiFetch(`/admin/provider-wallet-snapshots/${reviewRequest.item.id}/review`, { method: 'PATCH', body: JSON.stringify({ note, status: reviewRequest.status }) });
-      if (!res.ok) throw new Error('บันทึกไม่สำเร็จ');
+      if (!res.ok) throw new Error('review');
       showMessage(reviewRequest.status === 'RESOLVED' ? 'ปิดเคสยอดไม่ตรงแล้ว' : 'บันทึกว่ากำลังตรวจแล้ว', 'success');
       setReviewRequest(null); setReviewNote(''); await load();
     } catch { showMessage('บันทึกไม่สำเร็จ', 'danger'); }
     finally { setLoading(false); }
   }
 
-  return <AdminPage eyebrow="การเงิน" title="ตรวจยอดค่าย" description="เทียบยอดในระบบกับยอดฝั่งค่ายและจัดการเคสที่ไม่ตรงอย่างมีหลักฐาน" actions={<AdminButton size="compact" onClick={() => void load()} disabled={loading}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}>
+  return <AdminPage eyebrow="การเงิน" title="ตรวจยอดค่าย" description="เทียบยอดในระบบกับยอดฝั่งค่ายและจัดการเคสที่ไม่ตรงอย่างมีหลักฐาน" actions={<><AdminButton size="compact" tone="secondary" onClick={exportExceptions} disabled={loading || exceptionItems.length === 0}>ส่งออกข้อผิดปกติ CSV</AdminButton><AdminButton size="compact" onClick={() => void load()} disabled={loading}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton></>}>
     <section className="admin-reconciliation-center" aria-busy={loading}>
       <AdminMetricGrid>
         <AdminMetric title="รายการทั้งหมด" value={String(summary.total)} helper="Snapshot ที่อยู่ในระบบ" />
@@ -75,10 +106,10 @@ export default function ReconciliationCenterPage() {
         <AdminMetric title="ยอดไม่ตรง" value={String(summary.mismatch)} helper="ต้องตรวจสอบหลักฐาน" tone={summary.mismatch > 0 ? 'warning' : 'success'} />
         <AdminMetric title="ส่วนต่างรวม" value={formatMoney(differenceTotal)} helper="มูลค่าที่ต้องกระทบยอด" tone={differenceTotal > 0 ? 'warning' : 'success'} />
       </AdminMetricGrid>
-      <div className="admin-reconciliation-center__toolbar"><input value={sessionId} onChange={(event) => setSessionId(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void runReconcile(); }} placeholder="Game Session ID" aria-label="Game Session ID" /><AdminButton size="compact" onClick={() => void runReconcile()} disabled={loading}>ตรวจยอด</AdminButton></div>
+      <div className="admin-reconciliation-center__toolbar"><input value={sessionId} disabled={loading} onChange={(event) => setSessionId(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void runReconcile(); }} placeholder="Game Session ID" aria-label="Game Session ID" /><AdminButton size="compact" onClick={() => void runReconcile()} disabled={loading}>ตรวจยอด</AdminButton></div>
       {message && <AdminNotice tone={messageTone}>{message}</AdminNotice>}
       {loading && items.length === 0 ? <AdminSkeleton lines={5} /> : items.length === 0 ? <div className="admin-reconciliation-center__state"><AdminEmpty>ยังไม่มีรายการตรวจยอด</AdminEmpty></div> : <div className="admin-reconciliation-center__table-shell"><table className="admin-reconciliation-center__table"><thead><tr><th>ค่าย / สมาชิก</th><th>ยอดระบบ</th><th>ยอดค่าย</th><th>ส่วนต่าง</th><th>สถานะ</th><th>ตรวจเมื่อ</th><th>การทำงาน</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td><strong>{item.provider?.name ?? item.provider?.code ?? '-'}</strong><br /><small>{item.user?.username ?? item.user?.phone ?? '-'}</small></td><td className="admin-reconciliation-center__amount">{formatMoney(item.systemBalance)}</td><td className="admin-reconciliation-center__amount">{formatMoney(item.providerBalance)}</td><td className="admin-reconciliation-center__amount">{formatMoney(item.difference)}</td><td><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge></td><td>{new Date(item.checkedAt).toLocaleString('th-TH')}</td><td><div className="admin-reconciliation-center__toolbar"><AdminLinkButton size="compact" href={`/provider-wallet-snapshots/${item.id}`}>ดู</AdminLinkButton>{item.status !== 'MATCHED' && <AdminButton size="compact" tone="secondary" disabled={loading} onClick={() => requestReview(item, 'REVIEWING')}>กำลังตรวจ</AdminButton>}{item.status !== 'MATCHED' && <AdminButton size="compact" tone="success" disabled={loading} onClick={() => requestReview(item, 'RESOLVED')}>ปิดเคส</AdminButton>}</div></td></tr>)}</tbody></table></div>}
     </section>
-    <AdminConfirmDialog open={Boolean(reviewRequest)} title={reviewRequest?.status === 'RESOLVED' ? 'ปิดเคสยอดไม่ตรง' : 'เริ่มตรวจสอบยอดไม่ตรง'} description={reviewRequest?.status === 'RESOLVED' ? 'ยืนยันว่าตรวจสอบและแก้ไขสาเหตุเรียบร้อยแล้ว' : 'บันทึกว่าเคสนี้อยู่ระหว่างการตรวจสอบ'} confirmLabel={reviewRequest?.status === 'RESOLVED' ? 'ปิดเคส' : 'เริ่มตรวจ'} tone={reviewRequest?.status === 'RESOLVED' ? 'success' : 'primary'} busy={loading} onCancel={() => { setReviewRequest(null); setReviewNote(''); }} onConfirm={() => void confirmReview()} details={<label className="admin-ledger-field"><span>หมายเหตุการตรวจสอบ</span><textarea value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} placeholder="ระบุสาเหตุ ผลการตรวจ หรือแนวทางแก้ไข" /></label>} />
+    <AdminConfirmDialog open={Boolean(reviewRequest)} title={reviewRequest?.status === 'RESOLVED' ? 'ปิดเคสยอดไม่ตรง' : 'เริ่มตรวจสอบยอดไม่ตรง'} description={reviewRequest?.status === 'RESOLVED' ? 'ยืนยันว่าตรวจสอบและแก้ไขสาเหตุเรียบร้อยแล้ว' : 'บันทึกว่าเคสนี้อยู่ระหว่างการตรวจสอบ'} confirmLabel={reviewRequest?.status === 'RESOLVED' ? 'ปิดเคส' : 'เริ่มตรวจ'} tone={reviewRequest?.status === 'RESOLVED' ? 'success' : 'primary'} busy={loading} onCancel={() => { if (!loading) { setReviewRequest(null); setReviewNote(''); } }} onConfirm={() => void confirmReview()} details={<label className="admin-ledger-field"><span>หมายเหตุการตรวจสอบ</span><textarea disabled={loading} value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} placeholder="ระบุสาเหตุ ผลการตรวจ หรือแนวทางแก้ไข" /></label>} />
   </AdminPage>;
 }
