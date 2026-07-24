@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
+import { stringifyAdminPayload } from '../_components/admin-payload-redaction';
 import { AdminAuditExportButton } from './admin-audit-export-button';
 import {
   AdminBadge,
@@ -62,23 +63,29 @@ export default function AdminAuditPage() {
   const activeFilters = useMemo(() => Object.entries(applied).filter(([, value]) => value.trim()), [applied]);
 
   async function loadAuditLogs(nextPage = page, filters = applied) {
+    if (loading) return;
     setLoading(true);
     setMessageTone('neutral');
     setMessage('กำลังโหลด audit logs...');
-    const params = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
-    Object.entries(filters).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()); });
-    const res = await adminApiFetch(`/admin/audit-logs?${params.toString()}`);
-    const data = await res.json().catch(() => null);
-    setLoading(false);
-    if (!res.ok) {
+    try {
+      const params = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
+      Object.entries(filters).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()); });
+      const response = await adminApiFetch(`/admin/audit-logs?${params.toString()}`);
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload || !Array.isArray(payload.items)) throw new Error('load');
+      setItems(payload.items);
+      setTotal(Number(payload.total ?? 0));
+      setPageCount(Math.max(Number(payload.pageCount ?? 1), 1));
+      setMessage('');
+    } catch {
+      setItems([]);
+      setTotal(0);
+      setPageCount(1);
       setMessageTone('danger');
-      setMessage(data?.message ?? 'โหลด audit logs ไม่สำเร็จ');
-      return;
+      setMessage('โหลด audit logs ไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
     }
-    setItems(data.items ?? []);
-    setTotal(Number(data.total ?? 0));
-    setPageCount(Math.max(Number(data.pageCount ?? 1), 1));
-    setMessage('');
   }
 
   function applyFilters() {
@@ -118,13 +125,13 @@ export default function AdminAuditPage() {
 
     <AdminCard title="ค้นหาและกรอง" description="กรองตามข้อความ โมดูล action ผู้ดูแล target และช่วงเวลา">
       <div style={filterGridStyle}>
-        <label style={fieldStyle}><span>ค้นหารวม</span><input value={draft.search} onChange={(event) => setDraft((value) => ({ ...value, search: event.target.value }))} placeholder="action, module, target, IP..." style={inputStyle} /></label>
-        <label style={fieldStyle}><span>โมดูล</span><input value={draft.module} onChange={(event) => setDraft((value) => ({ ...value, module: event.target.value }))} placeholder="topups, withdrawals..." style={inputStyle} /></label>
-        <label style={fieldStyle}><span>Action</span><input value={draft.action} onChange={(event) => setDraft((value) => ({ ...value, action: event.target.value }))} placeholder="approve, reject, login..." style={inputStyle} /></label>
-        <label style={fieldStyle}><span>ผู้ดูแล</span><input value={draft.admin} onChange={(event) => setDraft((value) => ({ ...value, admin: event.target.value }))} placeholder="ชื่อหรืออีเมล" style={inputStyle} /></label>
-        <label style={fieldStyle}><span>Target ID</span><input value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder="UUID ของรายการ" style={inputStyle} /></label>
-        <label style={fieldStyle}><span>ตั้งแต่วันที่</span><input type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} style={inputStyle} /></label>
-        <label style={fieldStyle}><span>ถึงวันที่</span><input type="date" value={draft.to} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ค้นหารวม</span><input disabled={loading} value={draft.search} onChange={(event) => setDraft((value) => ({ ...value, search: event.target.value }))} placeholder="action, module, target, IP..." style={inputStyle} /></label>
+        <label style={fieldStyle}><span>โมดูล</span><input disabled={loading} value={draft.module} onChange={(event) => setDraft((value) => ({ ...value, module: event.target.value }))} placeholder="topups, withdrawals..." style={inputStyle} /></label>
+        <label style={fieldStyle}><span>Action</span><input disabled={loading} value={draft.action} onChange={(event) => setDraft((value) => ({ ...value, action: event.target.value }))} placeholder="approve, reject, login..." style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ผู้ดูแล</span><input disabled={loading} value={draft.admin} onChange={(event) => setDraft((value) => ({ ...value, admin: event.target.value }))} placeholder="ชื่อหรืออีเมล" style={inputStyle} /></label>
+        <label style={fieldStyle}><span>Target ID</span><input disabled={loading} value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder="UUID ของรายการ" style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ตั้งแต่วันที่</span><input disabled={loading} type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ถึงวันที่</span><input disabled={loading} type="date" value={draft.to} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} style={inputStyle} /></label>
       </div>
       <div style={filterActionStyle}>
         <AdminButton disabled={loading} onClick={applyFilters}>ใช้ตัวกรอง</AdminButton>
@@ -133,7 +140,7 @@ export default function AdminAuditPage() {
       {activeFilters.length > 0 && <div style={chipWrapStyle}>{activeFilters.map(([key, value]) => <AdminBadge key={key} tone="warning">{key}: {value}</AdminBadge>)}</div>}
     </AdminCard>
 
-    <AdminCard title="เหตุการณ์" description="คลิกดูข้อมูลก่อนและหลังเพื่อใช้ตรวจสอบการเปลี่ยนแปลง">
+    <AdminCard title="เหตุการณ์" description="ข้อมูลสำคัญใน before/after จะถูกปิดบังก่อนแสดงผล">
       <AdminStack>
         {items.map((item) => {
           const href = targetHref(item.module, item.targetId);
@@ -179,7 +186,7 @@ function AuditData({ title, value }: { title: string; value: unknown }) {
   const hasValue = value !== undefined && value !== null;
   return <details style={detailsStyle}>
     <summary>{title}</summary>
-    {hasValue ? <pre style={preStyle}>{JSON.stringify(value, null, 2)}</pre> : <p style={emptyDataStyle}>ไม่มีข้อมูล</p>}
+    {hasValue ? <pre style={preStyle}>{stringifyAdminPayload(value)}</pre> : <p style={emptyDataStyle}>ไม่มีข้อมูล</p>}
   </details>;
 }
 
