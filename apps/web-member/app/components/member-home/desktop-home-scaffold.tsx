@@ -11,197 +11,270 @@ type DesktopGameSections = {
   favorites: Game[];
 };
 
-const QUICK_LINKS = [
-  { label: 'ฝากเงิน', hint: 'เติมเครดิต', href: '/deposit', icon: '＋' },
-  { label: 'ถอนเงิน', hint: 'รับเงินรางวัล', href: '/withdraw', icon: '↗' },
-  { label: 'โปรโมชั่น', hint: 'รับสิทธิ์ล่าสุด', href: '/promotions', icon: '★' },
-  { label: 'เกมทั้งหมด', hint: 'เลือกค่ายและเกม', href: '/games', icon: '▦' },
-];
-
-export function DesktopHomeScaffold({
-  content,
-  siteName,
-  showPromotion,
-  games,
-  isGamesLoading,
-  gamesMessage,
-}: {
+type DesktopHomeProps = {
   content: CmsContent;
   siteName: string;
   showPromotion: boolean;
   games: DesktopGameSections;
   isGamesLoading: boolean;
   gamesMessage: string;
-}) {
-  const banners = Array.isArray(content?.banners) ? content.banners : [];
-  const announcements = Array.isArray(content?.announcements) ? content.announcements : [];
-  const faqs = Array.isArray(content?.faqs) ? content.faqs : [];
-  const enabledBanners = banners.filter((banner) => banner?.enabled);
-  const heroBanner = enabledBanners[0];
-  const featureTiles = enabledBanners.slice(1, 3);
-  const promotionCards = enabledBanners.slice(0, 3);
-  const announcement = announcements.find((item) => item?.enabled);
-  const enabledFaqs = faqs.filter((item) => item?.enabled).slice(0, 5);
-  const sections = [
-    { title: 'เกมไฮไลต์', eyebrow: 'FEATURED', items: Array.isArray(games?.featured) ? games.featured : [] },
-    { title: 'Top 10 Games', eyebrow: 'POPULAR', items: Array.isArray(games?.popular) ? games.popular : [] },
-    { title: 'เล่นล่าสุด', eyebrow: 'RECENT', items: Array.isArray(games?.recent) ? games.recent : [] },
-    { title: 'เกมโปรด', eyebrow: 'FAVORITES', items: Array.isArray(games?.favorites) ? games.favorites : [] },
-  ];
+};
+
+const PROMO_CARDS = [
+  { icon: '✦', title: 'โปรโมชั่นพิเศษ', subtitle: 'โปรโมชั่นใหม่เฉพาะคุณ', href: '/promotions' },
+  { icon: '♤', title: 'กิจกรรม', subtitle: 'กิจกรรมตลอด 24 ชั่วโมง', href: '/promotions' },
+  { icon: '◇', title: 'ข่าวสาร', subtitle: 'ข่าวสารที่คุณไม่ควรพลาด', href: '/notifications' },
+];
+
+const MATCH_CARDS = [
+  { time: 'LIVE', league: 'พรีเมียร์ลีก', home: 'ทีมเหย้า', away: 'ทีมเยือน' },
+  { time: '18:00', league: 'ฟุตบอลนานาชาติ', home: 'เจ้าบ้าน', away: 'ทีมเยือน' },
+  { time: '20:30', league: 'ลีกยอดนิยม', home: 'ทีม A', away: 'ทีม B' },
+];
+
+export function DesktopHomeScaffold({ content, siteName, showPromotion, games, isGamesLoading, gamesMessage }: DesktopHomeProps) {
+  const banners = Array.isArray(content?.banners) ? content.banners.filter((banner) => banner?.enabled) : [];
+  const faqs = Array.isArray(content?.faqs) ? content.faqs.filter((faq) => faq?.enabled).slice(0, 5) : [];
+  const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
+  const featured = fillGames(games.featured, allGames, 9);
+  const popular = fillGames(games.popular, allGames, 7);
+  const online = fillGames(allGames.slice(3), allGames, 5);
+  const classic = fillGames(allGames.slice(8), allGames, 6);
+  const providers = uniqueProviders(allGames).slice(0, 12);
+  const heroPrimary = banners[0];
+  const heroPeek = banners[1] ?? banners[0];
+  const rewardBanner = banners[2] ?? banners[1] ?? banners[0];
 
   return (
-    <section className="desktop-home" aria-label="หน้าแรกเดสก์ท็อป">
-      <div className="desktop-home__main">
-        <section className="desktop-home__hero-grid">
-          <a className="desktop-home__hero-primary" href={heroBanner?.href || '/promotions'}>
-            {showPromotion && heroBanner?.imageUrl ? (
-              <img src={heroBanner.imageUrl} alt={heroBanner.title || siteName} onError={hideBrokenImage} />
-            ) : null}
-            <span className="desktop-home__hero-overlay" />
-            <span className="desktop-home__hero-copy">
-              <small>FEATURED PROMOTION</small>
-              <strong>{heroBanner?.title || 'โปรโมชั่นสมาชิก'}</strong>
-              <em>{heroBanner?.subtitle || 'ดูโปรโมชั่นและกิจกรรมล่าสุด'}</em>
-            </span>
-          </a>
-
-          <div className="desktop-home__hero-stack">
-            {featureTiles.length ? featureTiles.map((banner, index) => (
-              <a key={`${banner.title || 'banner'}-${index}`} className="desktop-home__feature-tile" href={banner.href || '/promotions'}>
-                {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title || 'โปรโมชั่น'} onError={hideBrokenImage} />}
-                <span className="desktop-home__feature-tile-overlay" />
-                <span className="desktop-home__feature-copy">
-                  <small>{index === 0 ? 'ACTIVITY' : 'NEWS'}</small>
-                  <strong>{banner.title || 'รายการแนะนำ'}</strong>
-                  <em>{banner.subtitle || 'ดูรายละเอียดเพิ่มเติม'}</em>
-                </span>
-              </a>
-            )) : (
-              <>
-                <a className="desktop-home__feature-tile desktop-home__feature-tile--activity" href="/promotions"><span className="desktop-home__feature-copy"><small>ACTIVITY</small><strong>กิจกรรมประจำสัปดาห์</strong><em>ดูสิทธิ์และรางวัลทั้งหมด</em></span></a>
-                <a className="desktop-home__feature-tile desktop-home__feature-tile--news" href="/notifications"><span className="desktop-home__feature-copy"><small>NEWS</small><strong>ข่าวสารและประกาศ</strong><em>ติดตามรายการอัปเดตล่าสุด</em></span></a>
-              </>
-            )}
-          </div>
+    <section className="desktop-home desktop-reference-home" aria-label="หน้าแรกเดสก์ท็อป">
+      <div className="desktop-home__main reference-main-column">
+        <section className="reference-hero-row" aria-label="โปรโมชั่นแนะนำ">
+          <BannerCard banner={heroPeek} siteName={siteName} className="reference-hero-peek" showImage={showPromotion} />
+          <BannerCard banner={heroPrimary} siteName={siteName} className="reference-hero-main" showImage={showPromotion} />
         </section>
 
-        {announcement && (
-          <section className="desktop-home__announcement" aria-label="ประกาศล่าสุด">
-            <b>ประกาศ</b><strong>{announcement.title || 'ประกาศล่าสุด'}</strong><span>{announcement.message || ''}</span>
-          </section>
-        )}
+        <div className="reference-carousel-dots" aria-hidden="true"><i /><i className="active" /><i /><i /></div>
 
-        <nav className="desktop-home__quick-strip" aria-label="เมนูลัด">
-          {QUICK_LINKS.map((item) => (
-            <a key={item.href} href={item.href}>
-              <span className="desktop-home__quick-icon" aria-hidden="true">{item.icon}</span>
-              <span><strong>{item.label}</strong><small>{item.hint}</small></span>
+        <section className="reference-promo-row" aria-label="โปรโมชั่น กิจกรรม และข่าวสาร">
+          {PROMO_CARDS.map((card, index) => (
+            <a key={card.title} href={card.href} className={`reference-promo-card reference-promo-card--${index + 1}`}>
+              <span className="reference-promo-icon" aria-hidden="true">{card.icon}</span>
+              <span><strong>{card.title}</strong><small>{card.subtitle}</small></span>
             </a>
           ))}
-        </nav>
+        </section>
 
-        <section className="desktop-home__promo-row" aria-label="โปรโมชั่นเด่น">
-          {(promotionCards.length ? promotionCards : [
-            { title: 'โปรโมชั่น', subtitle: 'สิทธิพิเศษสำหรับสมาชิก', imageUrl: '', href: '/promotions' },
-            { title: 'กิจกรรม', subtitle: 'กิจกรรมประจำสัปดาห์', imageUrl: '', href: '/promotions' },
-            { title: 'ข่าวสาร', subtitle: 'รายการอัปเดตล่าสุด', imageUrl: '', href: '/notifications' },
-          ]).map((banner, index) => (
-            <a key={`${banner.title || 'promotion'}-${index}`} href={banner.href || '/promotions'} className="desktop-home__promo-card">
-              <div className={`desktop-home__promo-art desktop-home__promo-art--${index + 1}`}>
-                {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title || 'โปรโมชั่น'} loading="lazy" onError={hideBrokenImage} />}
-                <span className="desktop-home__promo-shade" />
+        <a href="/promotions" className="reference-tournament-cta">
+          <span className="reference-tournament-mark">V</span>
+          <span><small>TOURNAMENT</small><strong>เข้าร่วมชิงความเป็นที่ 1</strong></span>
+          <b>เข้าแข่งขัน ›</b>
+        </a>
+
+        <section className="reference-panel reference-tournament-board">
+          <PanelHeading icon="🏆" title="ทัวร์นาเมนต์" />
+          <div className="reference-tournament-title"><strong>No.1 Tournament Football Royale ครั้งที่ 2</strong><a href="/promotions">ดูทั้งหมด ›</a></div>
+          <div className="reference-tournament-track">
+            {Array.from({ length: 8 }, (_, index) => (
+              <article key={index} className="reference-rank-card">
+                <b>{index + 1}</b>
+                <strong>{maskName(index)}</strong>
+                <span>{20 - index * 2}</span>
+                <small>● ● ● ● ●</small>
+              </article>
+            ))}
+          </div>
+          <div className="reference-panel-dots" aria-hidden="true"><i className="active" /><i /><i /></div>
+        </section>
+
+        <section className="reference-panel reference-featured-section">
+          <PanelHeading icon="★" title="เกมไฮไลต์" />
+          {isGamesLoading ? <EmptyState label="กำลังโหลดเกมจาก API..." /> : featured.length ? (
+            <div className="reference-featured-grid">
+              <GameTile game={featured[0]} large />
+              <div className="reference-featured-small-grid">
+                {featured.slice(1, 9).map((game) => <GameTile key={game.id} game={game} />)}
               </div>
-              <div className="desktop-home__promo-copy"><strong>{banner.title || 'โปรโมชั่น'}</strong><span>{banner.subtitle || 'ดูรายละเอียดเพิ่มเติม'}</span></div>
-            </a>
-          ))}
+            </div>
+          ) : <EmptyState label={gamesMessage || 'ยังไม่มีข้อมูลเกม'} />}
         </section>
 
-        <section className="desktop-home__tournament">
-          <div className="desktop-home__section-heading">
-            <div><span>TOURNAMENT</span><h2>การแข่งขันล่าสุด</h2></div>
-            <a href="/promotions">ดูทั้งหมด</a>
-          </div>
-          <div className="desktop-home__tournament-banner">
-            <div><span>WEEKLY TOURNAMENT</span><strong>แข่งขันสะสมแต้มประจำสัปดาห์</strong><small>เตรียมพื้นที่สำหรับข้อมูล Tournament API</small></div>
-          </div>
-          <div className="desktop-home__match-row">
-            {[
-              ['รายการแข่งขัน', 'รอบปัจจุบัน'],
-              ['อันดับผู้เล่น', 'อัปเดตแบบเรียลไทม์'],
-              ['รางวัลล่าสุด', 'ประกาศผลอัตโนมัติ'],
-            ].map(([label, value]) => <div key={label} className="desktop-home__match-card"><span>{label}</span><strong>{value}</strong></div>)}
+        <section className="reference-number-section">
+          <PanelHeading icon="🔥" title="Top 10 Popular Games" />
+          <div className="reference-number-row">
+            {popular.map((game, index) => (
+              <a key={`${game.id}-${index}`} href="/login?next=%2Fgames" className="reference-number-card" title={safeGameName(game)}>
+                <span>{index + 1}</span>
+                <strong>{safeGameName(game)}</strong>
+              </a>
+            ))}
           </div>
         </section>
 
-        {sections.map((section) => (
-          <GameSection key={section.title} title={section.title} eyebrow={section.eyebrow} games={section.items} loading={isGamesLoading} message={gamesMessage} />
-        ))}
+        <section className="reference-compact-section">
+          <PanelHeading icon="⚡" title="Most Online Now" />
+          <div className="reference-online-row">
+            {online.map((game, index) => (
+              <a key={`${game.id}-${index}`} href="/login?next=%2Fgames" className="reference-online-card">
+                <GameImage game={game} />
+                <span><strong>{safeGameName(game)}</strong><small>♟ {(4274 - index * 437).toLocaleString()}</small></span>
+              </a>
+            ))}
+          </div>
+        </section>
 
-        <section className="desktop-home__guide">
-          <div className="desktop-home__section-heading"><div><span>HELP CENTER</span><h2>คู่มือการใช้งาน</h2></div></div>
-          {enabledFaqs.map((item) => (
-            <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>
+        <section className="reference-compact-section">
+          <PanelHeading icon="🔴" title="Live Now!!" />
+          <div className="reference-live-row">
+            {MATCH_CARDS.map((match, index) => (
+              <article key={`${match.league}-${index}`} className="reference-live-card">
+                <header><span>{match.league}</span><b>{match.time}</b></header>
+                <div><strong>{match.home}</strong><span>VS</span><strong>{match.away}</strong></div>
+                <footer><a href="/login">ดูบอลสด</a><a href="/login">เล่นเกมทันที</a></footer>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="reference-compact-section">
+          <PanelHeading icon="💧" title="Classic Games" />
+          <div className="reference-classic-row">
+            {classic.map((game) => <GameTile key={game.id} game={game} compact />)}
+          </div>
+        </section>
+
+        <section className="reference-guide" id="guide">
+          <PanelHeading icon="?" title="Guide" />
+          {(faqs.length ? faqs : fallbackFaqs()).map((faq) => (
+            <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>
           ))}
-          {!enabledFaqs.length && ['วิธีสมัครสมาชิก', 'วิธีฝากเงิน', 'วิธีถอนเงิน'].map((item) => (
-            <details key={item}><summary>{item}</summary><p>ข้อมูลคู่มือจะเชื่อมจาก CMS ของระบบ</p></details>
-          ))}
+          <a className="reference-guide-more" href="/guide">ดูทั้งหมด</a>
+        </section>
+
+        <section className="reference-provider-strip">
+          <h2>พันธมิตรของเรา</h2>
+          <div>
+            {providers.map((provider, index) => (
+              <span key={`${provider.code}-${index}`} className="reference-provider-logo">
+                {provider.logoUrl ? <img src={normalizeUrl(provider.logoUrl)} alt={provider.name || provider.code || 'Provider'} onError={hideBrokenImage} /> : <b>{provider.code || provider.name}</b>}
+              </span>
+            ))}
+          </div>
         </section>
       </div>
 
-      <aside className="desktop-home__sidebar" aria-label="ข้อมูลเสริม">
-        <section className="desktop-home__side-card desktop-home__side-card--jackpot"><span>JACKPOT</span><strong>฿ 88,888,888.00</strong><small>ยอดรางวัลรวมวันนี้</small></section>
-        <section className="desktop-home__side-card">
-          <div className="desktop-home__side-title"><strong>Leaderboard</strong><span>วันนี้</span></div>
-          {[1, 2, 3, 4, 5].map((rank) => <div key={rank} className="desktop-home__leader-row"><b>{rank}</b><span>Player {rank}</span><strong>฿0.00</strong></div>)}
+      <aside className="desktop-home__sidebar reference-sidebar" aria-label="ข้อมูลรางวัลและอันดับ">
+        <BannerCard banner={rewardBanner} siteName={siteName} className="reference-reward-banner" showImage={showPromotion} />
+
+        <section className="reference-side-card reference-jackpot">
+          <header><span>●</span><strong>Jackpot</strong></header>
+          <div><small>JACKPOTS</small><strong>195,574,797</strong><em>ลุ้นรับรางวัลใหญ่</em></div>
         </section>
-        <section className="desktop-home__side-card desktop-home__mini-game"><span>MINI GAME</span><strong>Lucky Wheel</strong><small>ลุ้นรับรางวัลประจำวัน</small><button type="button">เล่นเลย</button></section>
-        <section className="desktop-home__side-card">
-          <div className="desktop-home__side-title"><strong>ผู้ชนะล่าสุด</strong><span>LIVE</span></div>
-          {[1, 2, 3, 4].map((item) => <div key={item} className="desktop-home__winner-row"><div className="desktop-home__winner-avatar">{item}</div><div><strong>สมาชิก***{item}</strong><span>ได้รับรางวัลล่าสุด</span></div></div>)}
+
+        <section className="reference-side-card reference-leaderboard">
+          <header><strong>🏆 Leaderboard</strong><span>วันนี้</span></header>
+          {Array.from({ length: 5 }, (_, index) => (
+            <div key={index}><b>{index + 1}</b><span><strong>{leaderName(index)}</strong><small>ชนะล่าสุด</small></span><em>›</em></div>
+          ))}
+        </section>
+
+        <section className="reference-side-card reference-mini-games">
+          <header><strong>🎯 Mini Game</strong></header>
+          <div><a href="/login">วงล้อ</a><a href="/login">ทายการ์ด</a></div>
         </section>
       </aside>
     </section>
   );
 }
 
-function GameSection({ title, eyebrow, games, loading, message }: { title: string; eyebrow: string; games: Game[]; loading: boolean; message: string }) {
-  const visibleGames = Array.isArray(games) ? games.slice(0, 10) : [];
+function BannerCard({ banner, siteName, className, showImage }: { banner?: CmsContent['banners'][number]; siteName: string; className: string; showImage: boolean }) {
   return (
-    <section className="desktop-home__games">
-      <div className="desktop-home__section-heading desktop-home__section-heading--games"><div><span>{eyebrow}</span><h2>{title}</h2></div><a href="/games">ดูทั้งหมด</a></div>
-      {loading ? <div className="desktop-home__empty">กำลังโหลดเกมจาก API...</div> : visibleGames.length ? (
-        <div className="desktop-home__game-grid">{visibleGames.map((game) => <GameCard key={game.id} game={game} />)}</div>
-      ) : <div className="desktop-home__empty">{message || 'ยังไม่มีข้อมูลเกมในหมวดนี้'}</div>}
-    </section>
-  );
-}
-
-function GameCard({ game }: { game: Game }) {
-  const media = Array.isArray(game?.media) ? game.media : [];
-  const image = resolveGameImage(media);
-  const provider = game?.provider?.name || game?.provider?.code || 'Provider';
-  const name = typeof game?.name === 'string' && game.name.trim() ? game.name : 'Game';
-  const id = typeof game?.id === 'string' ? game.id : '';
-  return (
-    <a className="desktop-home__game-card" href={id ? `/games/${encodeURIComponent(id)}` : '/games'}>
-      <div className="desktop-home__game-art">
-        {image ? <img src={image} alt={name} loading="lazy" onError={hideBrokenImage} /> : <span>{name.slice(0, 1).toUpperCase()}</span>}
-        {game?.isNew && <em>NEW</em>}
-        <span className="desktop-home__game-play">เล่นเกม</span>
-      </div>
-      <div className="desktop-home__game-meta"><strong>{name}</strong><span>{provider}</span></div>
+    <a className={`reference-banner ${className}`} href={banner?.href || '/promotions'}>
+      {showImage && banner?.imageUrl ? <img src={banner.imageUrl} alt={banner.title || siteName} onError={hideBrokenImage} /> : null}
+      <span className="reference-banner-overlay" />
+      <span className="reference-banner-copy"><strong>{banner?.title || 'โปรโมชั่นสมาชิก'}</strong><small>{banner?.subtitle || 'รับสิทธิ์และรางวัลล่าสุด'}</small></span>
     </a>
   );
 }
 
-function resolveGameImage(media: Game['media']) {
-  if (!Array.isArray(media)) return '';
-  const candidate = media.find((item) => typeof item?.cachedUrl === 'string' && item.cachedUrl.trim())?.cachedUrl
-    || media.find((item) => typeof item?.sourceUrl === 'string' && item.sourceUrl.trim())?.sourceUrl
-    || '';
-  if (!candidate) return '';
-  if (/^https?:\/\//i.test(candidate) || candidate.startsWith('/')) return candidate;
-  return `/${candidate.replace(/^\.\//, '')}`;
+function PanelHeading({ icon, title }: { icon: string; title: string }) {
+  return <header className="reference-panel-heading"><span>{icon}</span><strong>{title}</strong></header>;
+}
+
+function GameTile({ game, large = false, compact = false }: { game: Game; large?: boolean; compact?: boolean }) {
+  return (
+    <a href="/login?next=%2Fgames" className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}>
+      <GameImage game={game} />
+      {game?.isNew && <em>NEW</em>}
+      <span><strong>{safeGameName(game)}</strong><small>{game?.provider?.name || game?.provider?.code || 'Provider'}</small></span>
+    </a>
+  );
+}
+
+function GameImage({ game }: { game: Game }) {
+  const image = resolveGameImage(game);
+  return image ? <img src={image} alt={safeGameName(game)} loading="lazy" onError={hideBrokenImage} /> : <span className="reference-game-fallback">{safeGameName(game).slice(0, 1).toUpperCase()}</span>;
+}
+
+function EmptyState({ label }: { label: string }) {
+  return <div className="reference-empty">{label}</div>;
+}
+
+function uniqueGames(...groups: Game[][]) {
+  const map = new Map<string, Game>();
+  groups.flat().forEach((game) => {
+    const key = game?.id || `${game?.providerGameCode || ''}:${game?.name || ''}`;
+    if (key && !map.has(key)) map.set(key, game);
+  });
+  return Array.from(map.values());
+}
+
+function fillGames(primary: Game[], fallback: Game[], count: number) {
+  return uniqueGames(Array.isArray(primary) ? primary : [], fallback).slice(0, count);
+}
+
+function uniqueProviders(games: Game[]) {
+  const map = new Map<string, NonNullable<Game['provider']>>();
+  games.forEach((game) => {
+    const provider = game?.provider;
+    const key = provider?.code || provider?.name;
+    if (key && provider && !map.has(key)) map.set(key, provider);
+  });
+  return Array.from(map.values());
+}
+
+function resolveGameImage(game: Game) {
+  const direct = game?.imageUrl || game?.iconUrl;
+  if (direct) return normalizeUrl(direct);
+  const media = Array.isArray(game?.media) ? game.media : [];
+  const candidate = media.find((item) => item?.cachedUrl)?.cachedUrl || media.find((item) => item?.sourceUrl)?.sourceUrl || '';
+  return candidate ? normalizeUrl(candidate) : '';
+}
+
+function normalizeUrl(value: string) {
+  if (/^https?:\/\//i.test(value) || value.startsWith('/')) return value;
+  return `/${value.replace(/^\.\//, '')}`;
+}
+
+function safeGameName(game: Game) {
+  return typeof game?.name === 'string' && game.name.trim() ? game.name : 'Game';
+}
+
+function fallbackFaqs() {
+  return [
+    { question: 'ฝากเงินแบบโอนผ่านธนาคาร', answer: 'เลือกธนาคารที่ต้องการและทำตามขั้นตอนบนหน้าฝากเงิน' },
+    { question: 'ฝากเงินแบบ QR Payment', answer: 'สแกน QR และตรวจสอบยอดเงินก่อนยืนยันรายการ' },
+    { question: 'ฝากเงิน ฝากวอลเล็ต', answer: 'เลือกช่องทางวอลเล็ตที่ระบบรองรับแล้วทำตามคำแนะนำ' },
+    { question: 'วิธีการฝากแบบ TrueWallet', answer: 'กรอกข้อมูลให้ครบและรอระบบตรวจสอบรายการ' },
+    { question: 'เติมไม่เข้า ต้องทำยังไง?', answer: 'ติดต่อฝ่ายบริการพร้อมหลักฐานการทำรายการ' },
+  ];
+}
+
+function maskName(index: number) {
+  return ['ZAXXXKU70974020', 'ZAXXXM66410017', 'ZAXXXR44017413', 'ZAXXXM154', 'ZAXXXS413', 'ZAXXXXB25', 'ZAXXXJ11', 'ZAXXXP90'][index] || `PLAYER${index + 1}`;
+}
+
+function leaderName(index: number) {
+  return ['GameJackpot', 'Treasure Mouse', 'BIG & BIG', 'Lucky', 'Player Win'][index] || `Player ${index + 1}`;
 }
 
 function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
