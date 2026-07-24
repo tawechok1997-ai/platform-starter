@@ -4,6 +4,17 @@ import { useEffect, useState, type SyntheticEvent } from 'react';
 import type { CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
 
+const V47_ASSETS = {
+  promotion: '/v47-assets/home-source/promo-special.png',
+  activity: '/v47-assets/home-source/promo-activity.png',
+  news: '/v47-assets/home-source/promo-news.png',
+  announcement: '/v47-assets/home-source/announcement-megaphone.png',
+  tournament: '/v47-assets/home/tournament-banner-normalized.png',
+  jackpot: '/v47-assets/home-source/jackpot.gif',
+  live: '/v47-assets/live/logo_live.webp',
+  miniGame: '/v47-assets/home/mini-game-wheel.png',
+} as const;
+
 type Props = {
   content: CmsContent;
   icons: SiteIconSettings;
@@ -41,7 +52,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
 
   return (
     <section className="v47-mobile-home" aria-label="หน้าแรกมือถือ">
-      <div className="v47-mobile-announcement">คาสิโนออนไลน์ครบทุกค่าย เปิดให้บริการตลอด 24 ชั่วโมง</div>
+      <div className="v47-mobile-announcement"><Icon value={V47_ASSETS.announcement} />คาสิโนออนไลน์ครบทุกค่าย เปิดให้บริการตลอด 24 ชั่วโมง</div>
 
       <a className="v47-mobile-hero" href={hero?.href || '/promotions'}>
         {heroImage ? <img key={heroImage} src={heroImage} alt={hero?.title || siteName} onError={hideBrokenImage} /> : <div className="v47-mobile-hero-fallback">{siteName}</div>}
@@ -49,31 +60,31 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
       <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">{(banners.length ? banners : Array.from({ length: 5 })).map((_, index) => <button key={index} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}`} />)}</div>
 
       <div className="v47-mobile-quick-grid">
-        <QuickCard icon={icons.promotion} title="โปรโมชั่น" href="/promotions" />
-        <QuickCard icon={icons.bonus} title="กิจกรรม" href="/promotions" />
-        <QuickCard icon={icons.notification} title="ข่าวสาร" href="/notifications" />
+        <QuickCard icon={V47_ASSETS.promotion} title="โปรโมชั่น" href="/promotions" />
+        <QuickCard icon={V47_ASSETS.activity} title="กิจกรรม" href="/promotions" />
+        <QuickCard icon={V47_ASSETS.news} title="ข่าวสาร" href="/notifications" />
       </div>
 
       <a className="v47-mobile-tournament-banner" href="/promotions">
-        {tournament?.url ? <img src={tournament.url} alt="Tournament" onError={hideBrokenImage} /> : null}
+        <img src={tournament?.url || V47_ASSETS.tournament} alt="Tournament" onError={hideBrokenImage} />
         <span><small>TOURNAMENT</small><strong>เข้าร่วมชิงความเป็นที่ 1</strong></span>
         <b>เข้าแข่งขัน ›</b>
       </a>
 
       <section className="v47-mobile-panel v47-mobile-rank-panel">
-        <SectionTitle icon={tournament?.url || icons.promotion} title="ทัวร์นาเมนต์" />
+        <SectionTitle icon={tournament?.url || V47_ASSETS.tournament} title="ทัวร์นาเมนต์" />
         <div className="v47-mobile-rank-title"><strong>No.1 Tournament Football Royale ครั้งที่ 2</strong><a href="/promotions">ดูทั้งหมด ›</a></div>
         <div className="v47-mobile-ranks">{Array.from({ length: 3 }, (_, index) => <article key={index}><b>{index + 1}</b><span>ZAX00{[790740, 664100, 844010][index]}</span><strong>{[20, 17, 13][index]}</strong><small>● ● ● ● ●</small></article>)}</div>
       </section>
 
-      <section className="v47-mobile-jackpot">{jackpot?.url ? <img src={jackpot.url} alt="Jackpot" onError={hideBrokenImage} /> : null}<span><small>JACKPOTS</small><strong>194,428,645</strong><em>Epic of the day</em></span></section>
+      <section className="v47-mobile-jackpot"><img src={jackpot?.url || V47_ASSETS.jackpot} alt="Jackpot" onError={hideBrokenImage} /><span><small>JACKPOTS</small><strong>194,428,645</strong><em>Epic of the day</em></span></section>
 
       <section className="v47-mobile-panel"><SectionTitle icon={leaderboard?.url || icons.vip} title="Leaderboard" action="ดูทั้งหมด" /><div className="v47-mobile-board-head"><span>อันดับ</span><span>ชื่อผู้เล่น</span><span>รางวัล</span></div>{Array.from({ length: 5 }, (_, index) => <div className="v47-mobile-board-row" key={index}><b>{index + 1}</b><span>0{980000018 - index * 8241}</span><em>{[15000, 5700, 3500, 2904, 2100][index]?.toLocaleString()}</em></div>)}</section>
 
       <GameSection title="Top 10 Popular Games" icon={icons.games} games={popular} loading={isGamesLoading} message={gamesMessage} />
       <GameSection title="Most Online Now" icon={icons.games} games={online} loading={isGamesLoading} message={gamesMessage} />
 
-      <section className="v47-mobile-panel v47-mobile-live"><SectionTitle icon={icons.notification} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/login">ดูถ่ายทอดสด</a><a href="/login">เดิมพันทันที</a></footer></article></section>
+      <section className="v47-mobile-panel v47-mobile-live"><SectionTitle icon={V47_ASSETS.live} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/login">ดูถ่ายทอดสด</a><a href="/login">เดิมพันทันที</a></footer></article></section>
 
       <GameSection title="Classic Games" icon={icons.games} games={classic} loading={isGamesLoading} message={gamesMessage} />
 
