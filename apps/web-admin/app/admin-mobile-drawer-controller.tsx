@@ -70,6 +70,24 @@ export function AdminMobileDrawerController() {
   }, []);
 
   useEffect(() => {
+    const handleDesktopMenuToggle = (event: MouseEvent) => {
+      if (window.matchMedia('(max-width: 820px)').matches) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const menuButton = target.closest<HTMLButtonElement>('.admin-menu-button');
+      if (!menuButton) return;
+      const collapseButton = document.querySelector<HTMLButtonElement>('.admin-collapse-button');
+      if (!collapseButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      collapseButton.click();
+    };
+
+    document.addEventListener('click', handleDesktopMenuToggle, true);
+    return () => document.removeEventListener('click', handleDesktopMenuToggle, true);
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
     let cancelled = false;
     void adminApiFetch('/admin/auth/me')
@@ -87,7 +105,11 @@ export function AdminMobileDrawerController() {
 
   function closeMenu() {
     const closeButton = document.querySelector<HTMLButtonElement>('#admin-sidebar .admin-drawer-close');
-    closeButton?.click();
+    if (closeButton) {
+      closeButton.click();
+      return;
+    }
+    document.querySelector<HTMLButtonElement>('.admin-drawer-backdrop')?.click();
   }
 
   function navigate(href: string) {
