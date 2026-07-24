@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 import type { CSSProperties, FormEvent } from 'react';
 import Link from 'next/link';
