@@ -9,10 +9,9 @@ type AlertSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 type AdminOption = { id: string; username: string; email: string };
 type InvestigationAlert = { id: string; type: string; severity: AlertSeverity; status: 'REVIEWING'; memberId?: string | null; shortMemberId?: string | null; title: string; description?: string | null; refType?: string | null; refId?: string | null; assignedToAdminId?: string | null; assignedAt?: string | null; assignedToAdmin?: AdminOption | null; createdAt: string; updatedAt?: string | null };
 type RiskResponse = { items?: unknown[]; total?: number };
+type OwnerFilter = '' | 'ASSIGNED' | 'UNASSIGNED';
 
 const SEVERITY_OPTIONS: Array<'' | AlertSeverity> = ['', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-const OWNER_OPTIONS = ['', 'ASSIGNED', 'UNASSIGNED'] as const;
-type OwnerFilter = (typeof OWNER_OPTIONS)[number];
 
 function isInvestigationAlert(value: unknown): value is InvestigationAlert {
   if (!value || typeof value !== 'object') return false;
