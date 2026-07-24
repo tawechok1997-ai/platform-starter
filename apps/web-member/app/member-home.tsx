@@ -61,6 +61,7 @@ export default function MemberHome(props: MemberHomeProps) {
     <>
       <DesktopHomeScaffold
         content={props.cmsContent}
+        icons={icons}
         siteName={props.siteName}
         showPromotion={props.showPromotion && features.games}
         games={{
