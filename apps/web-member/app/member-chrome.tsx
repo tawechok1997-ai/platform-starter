@@ -134,17 +134,16 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
               <img src="/images/member-lobby/noah345-reference/0012_wallet_a4fadd0a57.webp" alt="" aria-hidden="true" />
               <span className="member-header-wallet__amount">{walletLoading ? '…' : compactWalletBalance}</span>
             </span>
+            <button type="button" className="member-header-logout" onClick={logout} aria-label="ออกจากระบบ">
+              <span aria-hidden="true">↪</span>
+              <span>ออกจากระบบ</span>
+            </button>
           </div>
         </div>
       </header>
 
       {theme.show_game_categories && (
-        <MemberCategoryRail
-          pathname={pathname}
-          features={features}
-          config={gameCategoryNavigation}
-          baseIcons={icons}
-        />
+        <MemberCategoryRail pathname={pathname} features={features} config={gameCategoryNavigation} baseIcons={icons} />
       )}
 
       {menuOpen && <button type="button" className="member-menu-backdrop ui-overlay" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}
