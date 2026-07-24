@@ -14,17 +14,18 @@ import { BrandIcon } from './components/brand-icon';
 import { MemberCard, MemberLinkButton } from './components/member-ui';
 import { CloseIcon, MenuIcon } from './components/member-icon';
 import { MemberCategoryRail } from './components/member-category-rail';
+import { V47_ASSETS } from './components/member-home/v47-asset-map';
 import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
 
 const PUBLIC_HOME_NAV = [
-  { key: 'home', title: 'หน้าหลัก', href: '/', icon: undefined },
-  { key: 'casino', title: 'คาสิโน', href: '/games?category=casino', icon: '/home-asset/casino.png' },
-  { key: 'slot', title: 'สล็อต', href: '/games?category=slot', icon: '/home-asset/slot.png' },
-  { key: 'fishing', title: 'ยิงปลา', href: '/games?category=fishing', icon: '/home-asset/fish.png' },
-  { key: 'sport', title: 'กีฬา', href: '/games?category=sport', icon: '/home-asset/sport.png' },
-  { key: 'card', title: 'ไพ่', href: '/games?category=card', icon: '/home-asset/card.png' },
-  { key: 'lottery', title: 'หวย', href: '/games?category=lottery', icon: '/home-asset/loto.png' },
-  { key: 'download', title: 'ถ่ายทอดสด', href: '#live', icon: '/home-asset/live.png' },
+  { key: 'home', title: 'หน้าหลัก', href: '/', icon: V47_ASSETS.menuHome },
+  { key: 'casino', title: 'คาสิโน', href: '/games?category=casino', icon: V47_ASSETS.menuCasino },
+  { key: 'slot', title: 'สล็อต', href: '/games?category=slot', icon: V47_ASSETS.menuSlot },
+  { key: 'fishing', title: 'ยิงปลา', href: '/games?category=fishing', icon: V47_ASSETS.menuFishing },
+  { key: 'sport', title: 'กีฬา', href: '/games?category=sport', icon: V47_ASSETS.menuSport },
+  { key: 'card', title: 'ไพ่', href: '/games?category=card', icon: V47_ASSETS.menuCard },
+  { key: 'lottery', title: 'หวย', href: '/games?category=lottery', icon: V47_ASSETS.menuLottery },
+  { key: 'live', title: 'ถ่ายทอดสด', href: '#live', icon: V47_ASSETS.menuLive },
 ];
 
 export default function MemberChrome({ children }: { children: ReactNode }) {
@@ -62,7 +63,10 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
   const siteName = website.site_name;
   const siteDescription = website.site_description;
-  const logoUrl = branding.logo_url || '/home-asset/logo.png';
+  const configuredLogoUrl = branding.logo_url?.trim();
+  const logoUrl = configuredLogoUrl && !configuredLogoUrl.startsWith('/home-asset/')
+    ? configuredLogoUrl
+    : V47_ASSETS.headerLogo;
   const brandMark = branding.brand_mark || siteName.slice(0, 1).toUpperCase() || 'P';
   const formattedWalletBalance = formatMemberWalletBalance(wallet);
   const compactWalletBalance = formattedWalletBalance.replace(/^[A-Z]{3}\s+/, '');
@@ -212,18 +216,21 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
 }) {
   return (
     <header className="member-topbar global-member-topbar public-home-topbar">
-      <div className="member-topbar__inner">
+      <div className="member-topbar__inner public-home-desktop-bar">
         <a href="/" className="member-brand">
           <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="NOAH345" className="member-brand-logo" /> : brandMark}</span>
         </a>
-        <nav className="member-desktop-nav member-desktop-nav--guest" aria-label="เมนูหน้าแรก">
-          {PUBLIC_HOME_NAV.map((item) => (
-            <a key={item.key} href={item.href} className={item.href === '/' ? 'active' : ''}>
-              {item.icon ? <img src={item.icon} alt="" className="public-home-nav-icon" aria-hidden="true" /> : <span className="public-home-nav-home" aria-hidden="true">⌂</span>}
-              <span>{item.title}</span>
-            </a>
-          ))}
-        </nav>
+        <button type="button" className="public-home-flag" aria-label="เปลี่ยนภาษา">
+          <img src={V47_ASSETS.headerFlag} alt="ภาษาไทย" />
+        </button>
+        <a className="public-home-search" href="/games" aria-label="ค้นหาเกม">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4.2-4.2" /></svg>
+        </a>
+        <a className="public-home-mission" href="/promotions">
+          <img src={V47_ASSETS.headerMission} alt="" aria-hidden="true" />
+          <span>ภารกิจ</span>
+        </a>
+        <span className="public-home-header-spacer" aria-hidden="true" />
         <div className="member-actions">
           {isLoggedIn ? (
             <>
@@ -239,6 +246,14 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
           )}
         </div>
       </div>
+      <nav className="member-desktop-nav member-desktop-nav--guest" aria-label="เมนูหน้าแรก">
+        {PUBLIC_HOME_NAV.map((item) => (
+          <a key={item.key} href={item.href} className={item.href === '/' ? 'active' : ''}>
+            <span className="public-home-nav-icon-frame"><img src={item.icon} alt="" className="public-home-nav-icon" aria-hidden="true" /></span>
+            <span>{item.title}</span>
+          </a>
+        ))}
+      </nav>
     </header>
   );
 }
