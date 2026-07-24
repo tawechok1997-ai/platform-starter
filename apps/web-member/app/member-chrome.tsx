@@ -17,14 +17,14 @@ import { MemberCategoryRail } from './components/member-category-rail';
 import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
 
 const PUBLIC_HOME_NAV = [
-  { key: 'home', title: 'หน้าหลัก', href: '/' },
-  { key: 'casino', title: 'คาสิโน', href: '/games?category=casino' },
-  { key: 'slot', title: 'สล็อต', href: '/games?category=slot' },
-  { key: 'fishing', title: 'ยิงปลา', href: '/games?category=fishing' },
-  { key: 'sport', title: 'กีฬา', href: '/games?category=sport' },
-  { key: 'card', title: 'ไพ่', href: '/games?category=card' },
-  { key: 'lottery', title: 'หวย', href: '/games?category=lottery' },
-  { key: 'download', title: 'ดาวน์โหลด', href: '#download' },
+  { key: 'home', title: 'หน้าหลัก', href: '/', icon: undefined },
+  { key: 'casino', title: 'คาสิโน', href: '/games?category=casino', icon: '/home-asset/casino.png' },
+  { key: 'slot', title: 'สล็อต', href: '/games?category=slot', icon: '/home-asset/slot.png' },
+  { key: 'fishing', title: 'ยิงปลา', href: '/games?category=fishing', icon: '/home-asset/fish.png' },
+  { key: 'sport', title: 'กีฬา', href: '/games?category=sport', icon: '/home-asset/sport.png' },
+  { key: 'card', title: 'ไพ่', href: '/games?category=card', icon: '/home-asset/card.png' },
+  { key: 'lottery', title: 'หวย', href: '/games?category=lottery', icon: '/home-asset/loto.png' },
+  { key: 'download', title: 'ถ่ายทอดสด', href: '#live', icon: '/home-asset/live.png' },
 ];
 
 export default function MemberChrome({ children }: { children: ReactNode }) {
@@ -62,7 +62,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
   const siteName = website.site_name;
   const siteDescription = website.site_description;
-  const logoUrl = branding.logo_url || '/images/member-lobby/noah345-reference/0010_ba66cd74-2429-42dd-858e-aaae9fb3b688_48d3df600e.png';
+  const logoUrl = branding.logo_url || '/home-asset/logo.png';
   const brandMark = branding.brand_mark || siteName.slice(0, 1).toUpperCase() || 'P';
   const formattedWalletBalance = formatMemberWalletBalance(wallet);
   const compactWalletBalance = formattedWalletBalance.replace(/^[A-Z]{3}\s+/, '');
@@ -214,10 +214,15 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
     <header className="member-topbar global-member-topbar public-home-topbar">
       <div className="member-topbar__inner">
         <a href="/" className="member-brand">
-          <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="" className="member-brand-logo" /> : brandMark}</span>
+          <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="NOAH345" className="member-brand-logo" /> : brandMark}</span>
         </a>
         <nav className="member-desktop-nav member-desktop-nav--guest" aria-label="เมนูหน้าแรก">
-          {PUBLIC_HOME_NAV.map((item) => <a key={item.key} href={item.href} className={item.href === '/' ? 'active' : ''}><span>{item.title}</span></a>)}
+          {PUBLIC_HOME_NAV.map((item) => (
+            <a key={item.key} href={item.href} className={item.href === '/' ? 'active' : ''}>
+              {item.icon ? <img src={item.icon} alt="" className="public-home-nav-icon" aria-hidden="true" /> : <span className="public-home-nav-home" aria-hidden="true">⌂</span>}
+              <span>{item.title}</span>
+            </a>
+          ))}
         </nav>
         <div className="member-actions">
           {isLoggedIn ? (
