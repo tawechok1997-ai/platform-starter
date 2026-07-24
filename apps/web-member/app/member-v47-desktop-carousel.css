@@ -30,7 +30,7 @@
 
   .reference-hero-carousel {
     --hero-gap: 8px;
-    --hero-slide-width: min(710.5px, calc((100vw - 48px) * .49));
+    --hero-center-width: min(710.5px, calc((100vw - 48px) * .49));
     position: relative !important;
     width: min(1450px, calc(100vw - 32px)) !important;
     max-width: 1450px !important;
@@ -57,28 +57,23 @@
   }
 
   .reference-hero-track {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) var(--hero-center-width) minmax(0, 1fr) !important;
     align-items: center !important;
     gap: var(--hero-gap) !important;
-    width: max-content !important;
+    width: 100% !important;
     cursor: grab !important;
-    will-change: transform !important;
-    transition: transform 520ms cubic-bezier(.22, .61, .36, 1) !important;
   }
 
-  .reference-hero-track.is-dragging,
-  .reference-hero-track.is-jumping {
+  .reference-hero-carousel:active .reference-hero-track {
     cursor: grabbing !important;
-    transition: none !important;
   }
 
   .reference-hero-slide {
     position: relative !important;
     display: block !important;
-    flex: 0 0 var(--hero-slide-width) !important;
-    width: var(--hero-slide-width) !important;
-    min-width: var(--hero-slide-width) !important;
-    max-width: var(--hero-slide-width) !important;
+    width: 100% !important;
+    min-width: 0 !important;
     aspect-ratio: 710.5 / 288.463 !important;
     overflow: hidden !important;
     border: 0 !important;
@@ -89,7 +84,8 @@
     filter: brightness(.52) saturate(.82) !important;
     transform: scale(.985) !important;
     transform-origin: center !important;
-    transition: transform 520ms ease, opacity 520ms ease, filter 520ms ease !important;
+    animation: v47-hero-enter 420ms cubic-bezier(.22, .61, .36, 1) both !important;
+    transition: transform 420ms ease, opacity 420ms ease, filter 420ms ease !important;
   }
 
   .reference-hero-slide.is-active {
@@ -109,6 +105,14 @@
     object-fit: cover !important;
     border-radius: inherit !important;
     pointer-events: none !important;
+  }
+
+  .reference-hero-slide--previous img {
+    object-position: right center !important;
+  }
+
+  .reference-hero-slide--next img {
+    object-position: left center !important;
   }
 
   .reference-hero-pagination {
@@ -149,6 +153,11 @@
   }
 }
 
+@keyframes v47-hero-enter {
+  from { opacity: .16; }
+  to { opacity: .38; }
+}
+
 @media (min-width: 901px) and (max-width: 1240px) {
   .desktop-home__body {
     grid-template-columns: minmax(0, 1fr) 300px !important;
@@ -162,9 +171,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reference-hero-track,
   .reference-hero-slide,
   .reference-hero-pagination button {
+    animation: none !important;
     transition: none !important;
   }
 }
