@@ -27,9 +27,10 @@ export type GameMedia = {
   cachedUrl?: string | null;
 };
 
-type GameProviderSummary = {
+export type GameProviderSummary = {
   name?: string | null;
   code?: string | null;
+  logoUrl?: string | null;
 };
 
 export type Game = {
@@ -37,6 +38,9 @@ export type Game = {
   providerGameCode: string;
   name: string;
   category: string;
+  platform?: string;
+  imageUrl?: string | null;
+  iconUrl?: string | null;
   isFeatured?: boolean;
   isNew?: boolean;
   isPopular?: boolean;
@@ -50,6 +54,7 @@ export type GameLobbyPayload = {
   newest?: Game[];
   popular?: Game[];
   categories?: string[];
+  providers?: GameProviderSummary[];
 };
 
 export type PaginatedItems<T> = {
