@@ -5,6 +5,8 @@ import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const GAME_ASSET_NAMES = Array.from({ length: 22 }, (_, index) => `game-${String(index + 1).padStart(2, '0')}.webp`);
+
 const ALLOWED = new Set([
   'home.png',
   'promotion.png',
@@ -26,6 +28,7 @@ const ALLOWED = new Set([
   'tournament.webp',
   'icon-dailymission.webp',
   'icon-luckywheel.webp',
+  ...GAME_ASSET_NAMES,
 ]);
 
 const SOURCE_NAMES: Record<string, string[]> = {
@@ -76,7 +79,7 @@ export async function GET(_request: Request, context: { params: Promise<{ name: 
 async function resolveAsset(publicName: string) {
   if (cache.has(publicName)) return cache.get(publicName) ?? null;
 
-  const targets = SOURCE_NAMES[publicName] ?? [publicName];
+  const targets = sourceNamesFor(publicName);
   const roots = candidateRoots();
 
   for (const root of roots) {
@@ -97,6 +100,16 @@ async function resolveAsset(publicName: string) {
 
   cache.set(publicName, null);
   return null;
+}
+
+function sourceNamesFor(publicName: string) {
+  const configured = SOURCE_NAMES[publicName];
+  if (configured) return configured;
+
+  const match = /^game-(\d{2})\.webp$/.exec(publicName);
+  if (!match) return [publicName];
+  const stem = `game-${match[1]}`;
+  return [`${stem}.webp`, `${stem}.jpg`, `${stem}.jpeg`, `${stem}.png`];
 }
 
 function candidateRoots() {
