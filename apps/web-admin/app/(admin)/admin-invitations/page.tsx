@@ -177,7 +177,7 @@ export default function AdminInvitationsPage() {
   >
     {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') || message.includes('ไม่ได้') ? 'danger' : message.includes('ยังสร้าง') ? 'warning' : 'neutral'}>{message}</AdminNotice>}
 
-    <InviteAdminPanel roles={roles} onCreated={load} />
+    <InviteAdminPanel roles={roles} onCreated={async () => { await load(); }} />
 
     {latestLink && <AdminCard title="ลิงก์ล่าสุด" description="แสดงชั่วคราว 60 วินาที กรุณาคัดลอกและส่งผ่านช่องทางที่ปลอดภัย">
       <textarea readOnly value={latestLink} rows={3} style={linkStyle} aria-label="ลิงก์คำเชิญล่าสุด" />
