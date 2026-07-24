@@ -1,6 +1,6 @@
 'use client';
 
-import type { SyntheticEvent } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
 import type { CmsAsset, CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
 
@@ -29,9 +29,20 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
   const online = fillGames(allGames.slice(3), allGames, 5);
   const classic = fillGames(allGames.slice(8), allGames, 6);
   const providers = uniqueProviders(allGames).slice(0, 12);
-  const heroPrimary = banners[0];
-  const heroPeek = banners[1] ?? banners[0];
-  const rewardBanner = banners[2] ?? banners[1] ?? banners[0];
+  const [activeBanner, setActiveBanner] = useState(0);
+  const heroPrimary = banners[activeBanner] ?? banners[0];
+  const heroPeek = banners.length > 1 ? banners[(activeBanner - 1 + banners.length) % banners.length] : heroPrimary;
+  const rewardBanner = banners.length ? banners[(activeBanner + 1) % banners.length] : undefined;
+
+  useEffect(() => {
+    if (banners.length < 2) return;
+    const timer = window.setInterval(() => setActiveBanner((current) => (current + 1) % banners.length), 5000);
+    return () => window.clearInterval(timer);
+  }, [banners.length]);
+
+  useEffect(() => {
+    if (activeBanner >= banners.length) setActiveBanner(0);
+  }, [activeBanner, banners.length]);
 
   const assets = {
     tournament: findCmsAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']),
@@ -55,7 +66,9 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
           <BannerCard banner={heroPeek} content={content} siteName={siteName} className="reference-hero-peek" showImage={showPromotion} />
           <BannerCard banner={heroPrimary} content={content} siteName={siteName} className="reference-hero-main" showImage={showPromotion} />
         </section>
-        <div className="reference-carousel-dots" aria-hidden="true"><i /><i className="active" /><i /><i /></div>
+        <div className="reference-carousel-dots" aria-label="เลือกแบนเนอร์">
+          {(banners.length ? banners : Array.from({ length: 4 })).map((_, index) => <button key={index} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}`} />)}
+        </div>
 
         <section className="reference-promo-row" aria-label="โปรโมชั่น กิจกรรม และข่าวสาร">
           {PROMO_CARDS.map((card, index) => {
@@ -103,7 +116,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
   );
 }
 
-function BannerCard({ banner, content, siteName, className, showImage }: { banner: CmsContent['banners'][number] | undefined; content: CmsContent; siteName: string; className: string; showImage: boolean }) { const imageUrl = banner?.imageUrl || resolveCmsAssetById(content, banner?.assetId); return <a className={`reference-banner ${className}`} href={banner?.href || '/promotions'}>{showImage && imageUrl ? <img src={imageUrl} alt={banner?.title || siteName} onError={hideBrokenImage} /> : null}<span className="reference-banner-overlay" /><span className="reference-banner-copy"><strong>{banner?.title || 'โปรโมชั่นสมาชิก'}</strong><small>{banner?.subtitle || 'รับสิทธิ์และรางวัลล่าสุด'}</small></span></a>; }
+function BannerCard({ banner, content, siteName, className, showImage }: { banner: CmsContent['banners'][number] | undefined; content: CmsContent; siteName: string; className: string; showImage: boolean }) { const imageUrl = banner?.imageUrl || resolveCmsAssetById(content, banner?.assetId); return <a key={banner?.id || imageUrl || className} className={`reference-banner ${className}`} href={banner?.href || '/promotions'}>{showImage && imageUrl ? <img src={imageUrl} alt={banner?.title || siteName} onError={hideBrokenImage} /> : null}<span className="reference-banner-overlay" /><span className="reference-banner-copy"><strong>{banner?.title || 'โปรโมชั่นสมาชิก'}</strong><small>{banner?.subtitle || 'รับสิทธิ์และรางวัลล่าสุด'}</small></span></a>; }
 function PanelHeading({ asset, configured, fallback, title }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; title: string }) { return <header className="reference-panel-heading"><AssetIcon asset={asset} configured={configured} fallback={fallback} className="reference-heading-icon" /><strong>{title}</strong></header>; }
 function AssetIcon({ asset, configured, fallback, className }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; className: string }) {
   const value = asset?.url || configured || '';
