@@ -81,7 +81,7 @@ export function RegisterView(props: RegisterViewProps) {
     <section className="public-auth-shell public-auth-shell--register public-auth-modal" role="dialog" aria-modal="true" aria-labelledby="member-register-title">
       <Link href="/" className="public-auth-close" aria-label={closeLabel}>×</Link>
       <div className="public-auth-tabs" role="tablist" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
-        <span role="tab" aria-selected="true">{registerLabel}</span>
+        <span role="tab" aria-selected="true" tabIndex={0}>{registerLabel}</span>
         <Link href="/login" role="tab" aria-selected="false">{t.login}</Link>
       </div>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
