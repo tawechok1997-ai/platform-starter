@@ -32,7 +32,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
     const hadSession = hasMemberSessionTokens();
     setWalletLoading(true);
     try {
-      const result = await fetchMemberWallet();
+      const result = await fetchMemberWallet(true);
       ok = result.authenticated;
       setWallet(result.wallet);
     } catch {
@@ -49,7 +49,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
   const refreshWallet = useCallback(async () => {
     setWalletLoading(true);
     try {
-      const result = await fetchMemberWallet();
+      const result = await fetchMemberWallet(false);
       if (!result.authenticated) {
         setIsLoggedIn(false);
         setWallet(null);
@@ -108,12 +108,12 @@ function getStoredToken(key: string) {
   }
 }
 
-async function fetchMemberWallet() {
+async function fetchMemberWallet(suppressSessionExpiryRedirect: boolean) {
   const token = getStoredToken('member_access_token');
   const refreshToken = getStoredToken('member_refresh_token');
   if (!token && !refreshToken) return { authenticated: false, wallet: null };
 
-  const response = await fetchWithTimeout('/member/wallet');
+  const response = await fetchWithTimeout('/member/wallet', suppressSessionExpiryRedirect);
   if (response.ok) {
     const payload = await response.json().catch(() => null);
     return { authenticated: true, wallet: normalizeMemberWallet(payload) };
@@ -121,11 +121,11 @@ async function fetchMemberWallet() {
   return { authenticated: response.status !== 401, wallet: null };
 }
 
-async function fetchWithTimeout(path: string, init: RequestInit = {}) {
+async function fetchWithTimeout(path: string, suppressSessionExpiryRedirect: boolean) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), SESSION_TIMEOUT_MS);
   try {
-    return await memberApiFetch(path, { ...init, signal: controller.signal });
+    return await memberApiFetch(path, { signal: controller.signal, suppressSessionExpiryRedirect });
   } finally {
     window.clearTimeout(timeout);
   }
