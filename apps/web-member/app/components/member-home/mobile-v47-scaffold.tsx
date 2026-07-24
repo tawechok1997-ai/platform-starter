@@ -5,6 +5,13 @@ import type { CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
 import { V47_ASSETS, resolveV47Asset } from './v47-asset-map';
 
+const PROJECT_FALLBACK_BANNERS: CmsContent['banners'] = [
+  { title: 'FIFA World Cup 2026', subtitle: 'โปรโมชั่นแนะนำ', imageUrl: '/images/member-lobby/promotions/world-cup.jpeg', href: '/promotions', enabled: true },
+  { title: 'Daily Login', subtitle: 'กิจกรรมสมาชิก', imageUrl: '/images/member-lobby/promotions/daily-login.jpeg', href: '/promotions', enabled: true },
+  { title: 'กิจกรรมทายผล', subtitle: 'กิจกรรมโปรโมชั่น', imageUrl: '/images/member-lobby/promotions/lottery-event.jpeg', href: '/promotions', enabled: true },
+  { title: 'โปรโมชั่นสล็อต', subtitle: 'โปรโมชั่นแนะนำ', imageUrl: '/images/member-lobby/promotions/slot-promotion.jpeg', href: '/promotions', enabled: true },
+];
+
 type Props = {
   content: CmsContent;
   icons: SiteIconSettings;
@@ -15,7 +22,8 @@ type Props = {
 };
 
 export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoading, gamesMessage }: Props) {
-  const banners = Array.isArray(content.banners) ? content.banners.filter((item) => item.enabled) : [];
+  const configuredBanners = Array.isArray(content.banners) ? content.banners.filter((item) => item.enabled) : [];
+  const banners = configuredBanners.length ? configuredBanners : PROJECT_FALLBACK_BANNERS;
   const announcements = Array.isArray(content.announcements) ? content.announcements.filter((item) => item.enabled) : [];
   const faqs = Array.isArray(content.faqs) ? content.faqs.filter((item) => item.enabled).slice(0, 5) : [];
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
@@ -51,7 +59,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
       <a className="v47-mobile-hero" href={hero?.href || '/promotions'}>
         {heroImage ? <img key={heroImage} src={heroImage} alt={hero?.title || siteName} onError={hideBrokenImage} /> : <div className="v47-mobile-hero-fallback">{siteName}</div>}
       </a>
-      <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">{(banners.length ? banners : Array.from({ length: 5 })).map((_, index) => <button key={index} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}`} />)}</div>
+      <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">{banners.map((banner, index) => <button key={`${banner.title}-${index}`} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}: ${banner.title}`} />)}</div>
 
       <div className="v47-mobile-quick-grid">
         <QuickCard icon={V47_ASSETS.quickPromotion} title="โปรโมชั่น" href="/promotions" />
@@ -78,11 +86,11 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
       <section className="v47-mobile-panel v47-mobile-mini-games"><SectionTitle icon={V47_ASSETS.miniGameWheel} title="Mini Game" /><div><a href="/login"><img src={miniWheel?.url || V47_ASSETS.miniGameWheel} alt="วงล้อ" onError={hideBrokenImage} /><span><strong>วงล้อ</strong><small>ลุ้นรางวัลทุกวัน</small></span></a><a href="/login"><img src={miniCard?.url || V47_ASSETS.quickActivity} alt="ทายการ์ด" onError={hideBrokenImage} /><span><strong>ทายการ์ด</strong><small>เล่นง่าย รับรางวัล</small></span></a></div></section>
 
       <GameSection title="Top 10 Popular Games" icon={V47_ASSETS.mobilePopular} games={popular} loading={isGamesLoading} message={gamesMessage} />
-      <GameSection title="Most Online Now" icon={icons.games} games={online} loading={isGamesLoading} message={gamesMessage} />
+      <GameSection title="Most Online Now" icon={V47_ASSETS.mobilePopular} games={online} loading={isGamesLoading} message={gamesMessage} />
 
       <section className="v47-mobile-panel v47-mobile-live"><SectionTitle icon={V47_ASSETS.live} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/login">ดูถ่ายทอดสด</a><a href="/login">เดิมพันทันที</a></footer></article></section>
 
-      <GameSection title="Classic Games" icon={icons.games} games={classic} loading={isGamesLoading} message={gamesMessage} />
+      <GameSection title="Classic Games" icon={V47_ASSETS.mobilePopular} games={classic} loading={isGamesLoading} message={gamesMessage} />
 
       <section className="v47-mobile-panel v47-mobile-guide"><SectionTitle icon={V47_ASSETS.mobileFaq} title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="v47-mobile-guide-more" href="/guide">ดูทั้งหมด</a></section>
 
