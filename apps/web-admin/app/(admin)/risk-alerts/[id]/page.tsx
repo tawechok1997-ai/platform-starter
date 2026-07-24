@@ -12,6 +12,18 @@ type RiskNote = { id: string; note: string; createdAt: string; adminUser?: Admin
 type RiskAlert = { id: string; type: string; severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'; status: 'OPEN' | 'REVIEWING' | 'RESOLVED' | 'DISMISSED'; memberId?: string | null; shortMemberId?: string | null; refType?: string | null; refId?: string | null; title: string; description?: string | null; metadata?: Record<string, unknown> | null; createdAt: string; updatedAt?: string; resolvedAt?: string | null; resolvedBy?: string | null; assignedToAdminId?: string | null; assignedAt?: string | null; assignedToAdmin?: AdminOption | null; notes?: RiskNote[] };
 type ChecklistTone = 'neutral' | 'success' | 'warning' | 'danger';
 
+function isRiskAlert(value: unknown): value is RiskAlert {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Partial<RiskAlert>;
+  return typeof item.id === 'string' && typeof item.title === 'string' && typeof item.type === 'string' && typeof item.createdAt === 'string' && ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].includes(String(item.severity)) && ['OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED'].includes(String(item.status));
+}
+
+function isAdminOption(value: unknown): value is AdminOption {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Partial<AdminOption>;
+  return typeof item.id === 'string' && typeof item.username === 'string' && typeof item.email === 'string';
+}
+
 export default function RiskAlertDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
@@ -20,50 +32,93 @@ export default function RiskAlertDetailPage() {
   const [message, setMessage] = useState('');
   const [assignees, setAssignees] = useState<AdminOption[]>([]);
   const [note, setNote] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [busyKey, setBusyKey] = useState('');
+  const pageBusy = loading || Boolean(busyKey);
 
   useEffect(() => { if (id) { void load(); void loadAssignees(); } }, [id]);
   const checklist = useMemo(() => item ? buildChecklist(item) : [], [item]);
 
   async function load() {
+    if (!id) return;
     setLoading(true);
-    const res = await adminApiFetch(`/admin/risk-alerts/${id}`);
-    const data = await res.json().catch(() => null);
-    if (res.ok) { setItem(data?.item ?? null); setMessage(''); } else setMessage(data?.message ?? 'โหลดรายการความเสี่ยงไม่สำเร็จ');
-    setLoading(false);
+    try {
+      const response = await adminApiFetch(`/admin/risk-alerts/${id}`);
+      const data = await response.json().catch(() => null);
+      const nextItem = data && typeof data === 'object' && 'item' in data ? data.item : null;
+      if (!response.ok || !isRiskAlert(nextItem)) throw new Error('risk-alert');
+      setItem(nextItem);
+      setMessage('');
+    } catch {
+      setItem(null);
+      setMessage('โหลดรายการความเสี่ยงไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function updateStatus(nextStatus: RiskAlert['status']) {
-    const res = await adminApiFetch(`/admin/risk-alerts/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
-    const data = await res.json().catch(() => null);
-    if (!res.ok) setMessage(data?.message ?? 'อัปเดตสถานะไม่สำเร็จ'); else setMessage('อัปเดตสถานะแล้ว');
-    await load();
+    if (!id || pageBusy) return;
+    setBusyKey(`status:${nextStatus}`);
+    try {
+      const response = await adminApiFetch(`/admin/risk-alerts/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
+      await response.json().catch(() => null);
+      if (!response.ok) throw new Error('status');
+      await load();
+      setMessage('อัปเดตสถานะแล้ว');
+    } catch {
+      setMessage('อัปเดตสถานะไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setBusyKey('');
+    }
   }
 
   async function loadAssignees() {
-    const res = await adminApiFetch('/admin/risk-alerts/assignees/list');
-    const data = await res.json().catch(() => null);
-    if (res.ok) setAssignees(data?.items ?? []);
+    try {
+      const response = await adminApiFetch('/admin/risk-alerts/assignees/list');
+      const data = await response.json().catch(() => null);
+      const items = data && typeof data === 'object' && 'items' in data && Array.isArray(data.items) ? data.items.filter(isAdminOption) : [];
+      if (!response.ok) throw new Error('assignees');
+      setAssignees(items);
+    } catch {
+      setAssignees([]);
+    }
   }
 
   async function assign(adminUserId: string) {
-    setSaving(true);
-    const res = await adminApiFetch(`/admin/risk-alerts/${id}/assignment`, { method: 'PATCH', body: JSON.stringify({ adminUserId: adminUserId || null }) });
-    const data = await res.json().catch(() => null);
-    setSaving(false);
-    if (!res.ok) setMessage(data?.message ?? 'มอบหมายงานไม่สำเร็จ'); else { setMessage('บันทึกผู้รับผิดชอบแล้ว'); await load(); }
+    if (!id || pageBusy) return;
+    setBusyKey('assignment');
+    try {
+      const response = await adminApiFetch(`/admin/risk-alerts/${id}/assignment`, { method: 'PATCH', body: JSON.stringify({ adminUserId: adminUserId || null }) });
+      await response.json().catch(() => null);
+      if (!response.ok) throw new Error('assignment');
+      await load();
+      setMessage('บันทึกผู้รับผิดชอบแล้ว');
+    } catch {
+      setMessage('มอบหมายงานไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setBusyKey('');
+    }
   }
 
   async function addNote() {
-    if (!note.trim() || saving) return;
-    setSaving(true);
-    const res = await adminApiFetch(`/admin/risk-alerts/${id}/notes`, { method: 'POST', body: JSON.stringify({ note: note.trim() }) });
-    const data = await res.json().catch(() => null);
-    setSaving(false);
-    if (!res.ok) setMessage(data?.message ?? 'เพิ่มหมายเหตุไม่สำเร็จ'); else { setNote(''); setMessage('เพิ่มหมายเหตุแล้ว'); await load(); }
+    const trimmedNote = note.trim();
+    if (!id || !trimmedNote || pageBusy) return;
+    setBusyKey('note');
+    try {
+      const response = await adminApiFetch(`/admin/risk-alerts/${id}/notes`, { method: 'POST', body: JSON.stringify({ note: trimmedNote }) });
+      await response.json().catch(() => null);
+      if (!response.ok) throw new Error('note');
+      setNote('');
+      await load();
+      setMessage('เพิ่มหมายเหตุแล้ว');
+    } catch {
+      setMessage('เพิ่มหมายเหตุไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setBusyKey('');
+    }
   }
 
-  return <AdminPage eyebrow="งานตรวจสอบความเสี่ยง" title="รายละเอียดรายการความเสี่ยง" description="ตรวจข้อมูลที่เกี่ยวข้อง มอบหมายผู้รับผิดชอบ บันทึกผล และปิดเคสอย่างมีหลักฐาน" actions={<><AdminLinkButton href="/risk-alerts">กลับรายการ</AdminLinkButton><AdminButton tone="secondary" onClick={load} disabled={loading}>รีเฟรช</AdminButton></>}>
+  return <AdminPage eyebrow="งานตรวจสอบความเสี่ยง" title="รายละเอียดรายการความเสี่ยง" description="ตรวจข้อมูลที่เกี่ยวข้อง มอบหมายผู้รับผิดชอบ บันทึกผล และปิดเคสอย่างมีหลักฐาน" actions={<><AdminLinkButton href="/risk-alerts">กลับรายการ</AdminLinkButton><AdminButton tone="secondary" onClick={() => void load()} disabled={pageBusy}>รีเฟรช</AdminButton></>}>
     {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
     {loading && !item && <AdminEmpty>กำลังโหลดรายการความเสี่ยง...</AdminEmpty>}
     {item && <>
@@ -88,19 +143,19 @@ export default function RiskAlertDetailPage() {
 
       <AdminGrid>
         <AdminCard title="ดำเนินการกับสถานะ" description="เปลี่ยนสถานะหลังตรวจสอบข้อมูลและบันทึกเหตุผลแล้ว">
-          <AdminActionStrip><AdminButton tone="secondary" disabled={item.status === 'REVIEWING'} onClick={() => updateStatus('REVIEWING')}>เริ่มตรวจสอบ</AdminButton><AdminButton tone="success" disabled={item.status === 'RESOLVED'} onClick={() => updateStatus('RESOLVED')}>ยืนยันและปิดเคส</AdminButton><AdminButton tone="danger" disabled={item.status === 'DISMISSED'} onClick={() => updateStatus('DISMISSED')}>ยกเลิกรายการเตือน</AdminButton></AdminActionStrip>
+          <AdminActionStrip><AdminButton tone="secondary" disabled={pageBusy || item.status === 'REVIEWING'} onClick={() => void updateStatus('REVIEWING')}>เริ่มตรวจสอบ</AdminButton><AdminButton tone="success" disabled={pageBusy || item.status === 'RESOLVED'} onClick={() => void updateStatus('RESOLVED')}>ยืนยันและปิดเคส</AdminButton><AdminButton tone="danger" disabled={pageBusy || item.status === 'DISMISSED'} onClick={() => void updateStatus('DISMISSED')}>ยกเลิกรายการเตือน</AdminButton></AdminActionStrip>
         </AdminCard>
         <AdminCard title="ข้อมูลที่เกี่ยวข้อง" description="ทางลัดไปยังสมาชิก รายการเงิน และข้อมูลอ้างอิง"><RiskRelatedLinks item={item} /></AdminCard>
       </AdminGrid>
 
       <AdminGrid>
         <AdminCard title="ผู้รับผิดชอบ" description="กำหนดเจ้าของเคสเพื่อป้องกันรายการตกหล่น">
-          <select value={item.assignedToAdminId ?? ''} onChange={(event) => void assign(event.target.value)} disabled={saving} style={selectStyle}><option value="">ยังไม่ได้มอบหมาย</option>{assignees.map((admin) => <option key={admin.id} value={admin.id}>{admin.username} · {admin.email}</option>)}</select>
+          <select value={item.assignedToAdminId ?? ''} onChange={(event) => void assign(event.target.value)} disabled={pageBusy} style={selectStyle}><option value="">ยังไม่ได้มอบหมาย</option>{assignees.map((admin) => <option key={admin.id} value={admin.id}>{admin.username} · {admin.email}</option>)}</select>
           {item.assignedAt && <p style={mutedStyle}>มอบหมายเมื่อ {new Date(item.assignedAt).toLocaleString('th-TH')}</p>}
         </AdminCard>
         <AdminCard title="เพิ่มหมายเหตุ" description="บันทึกเหตุผล ผลการตรวจสอบ และหลักฐานประกอบ">
-          <textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={2000} placeholder="เขียนหมายเหตุการตรวจสอบ..." style={textareaStyle} />
-          <AdminButton onClick={() => void addNote()} disabled={saving || !note.trim()}>{saving ? 'กำลังบันทึก...' : 'บันทึกหมายเหตุ'}</AdminButton>
+          <textarea value={note} onChange={(event) => setNote(event.target.value)} disabled={pageBusy} maxLength={2000} placeholder="เขียนหมายเหตุการตรวจสอบ..." style={textareaStyle} />
+          <AdminButton onClick={() => void addNote()} disabled={pageBusy || !note.trim()}>{busyKey === 'note' ? 'กำลังบันทึก...' : 'บันทึกหมายเหตุ'}</AdminButton>
         </AdminCard>
       </AdminGrid>
 
