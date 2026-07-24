@@ -3,7 +3,10 @@ import { buildMemberSessionExpiredHref } from '../src/features/auth/session-navi
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-type ApiOptions = RequestInit & { skipAuth?: boolean };
+type ApiOptions = RequestInit & {
+  skipAuth?: boolean;
+  suppressSessionExpiryRedirect?: boolean;
+};
 let refreshRequest: Promise<string> | null = null;
 let sessionExpiryRedirected = false;
 
@@ -53,13 +56,17 @@ export async function memberApiFetch(path: string, options: ApiOptions = {}) {
 
   const refreshed = await refreshMemberToken();
   if (!refreshed) {
-    expireMemberSession();
+    clearMemberSession();
+    if (!options.suppressSessionExpiryRedirect) expireMemberSession();
     return res;
   }
 
   headers.set('Authorization', `Bearer ${refreshed}`);
   const retry = await fetch(joinApiUrl(API_URL, path), { ...options, headers });
-  if (retry.status === 401) expireMemberSession();
+  if (retry.status === 401) {
+    clearMemberSession();
+    if (!options.suppressSessionExpiryRedirect) expireMemberSession();
+  }
   return retry;
 }
 
