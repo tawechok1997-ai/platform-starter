@@ -87,7 +87,7 @@ function SectionTitle({ icon, title, action }: { icon: string; title: string; ac
 }
 
 function GameSection({ title, icon, games, loading, message }: { title: string; icon: string; games: Game[]; loading: boolean; message: string }) {
-  return <section className="v47-mobile-panel"><SectionTitle icon={icon} title={title} action="ดูทั้งหมด" />{loading ? <div className="v47-mobile-empty">กำลังโหลดเกม...</div> : games.length ? <div className="v47-mobile-game-grid">{games.map((game) => <a href="/login?next=%2Fgames" key={game.id}><div><GameImage game={game} /><span>{game.isNew ? 'NEW' : 'HOT'}</span></div><b>{safeName(game)}</b></a>)}</div> : <div className="v47-mobile-empty">{message || 'ยังไม่มีข้อมูลเกม'}</div>}</section>;
+  return <section className="v47-mobile-panel"><SectionTitle icon={icon} title={title} action="ดูทั้งหมด" />{loading ? <div className="v47-mobile-empty">กำลังโหลดเกม...</div> : games.length ? <div className="v47-mobile-game-grid">{games.map((game, index) => <a href="/login?next=%2Fgames" key={`${game.id}-${index}`} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><GameImage game={game} /><span>{game.isNew ? 'NEW' : 'HOT'}</span></div><span className="v47-mobile-game-meta"><b>{safeName(game)}</b><small>{game.provider?.name || game.provider?.code || 'Provider'}</small></span></a>)}</div> : <div className="v47-mobile-empty">{message || 'ยังไม่มีข้อมูลเกม'}</div>}</section>;
 }
 
 function Icon({ value }: { value: string }) {
