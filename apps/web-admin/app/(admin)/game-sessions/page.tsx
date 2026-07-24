@@ -19,59 +19,53 @@ export default function GameSessionsPage() {
   useEffect(() => { void loadSessions(); }, []);
   const items = payload.items ?? [];
   const metrics = useMemo(() => payload.summary ?? { total: items.length, launched: items.filter((item) => item.status === 'LAUNCHED').length, failed: items.filter((item) => item.status === 'FAILED').length, active: items.filter((item) => item.status === 'ACTIVE').length }, [payload.summary, items]);
+  const busy = loading || Boolean(reconciling);
 
   async function loadSessions() {
+    if (reconciling) return;
     setLoading(true);
     setMessage('กำลังโหลดเซสชันเกม...');
-    const res = await adminApiFetch('/admin/game-sessions');
-    const data = await res.json().catch(() => null);
-    setLoading(false);
-    if (!res.ok) { setMessage(data?.message ?? 'โหลดเซสชันเกมไม่สำเร็จ'); return; }
-    setPayload(data ?? {});
-    setMessage('');
+    try {
+      const response = await adminApiFetch('/admin/game-sessions');
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data || (data.items !== undefined && !Array.isArray(data.items))) throw new Error('load');
+      setPayload(data as Payload);
+      setMessage('');
+    } catch {
+      setPayload({});
+      setMessage('โหลดเซสชันเกมไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function reconcile() {
-    if (!pendingReconcile) return;
+    if (!pendingReconcile || reconciling) return;
     const item = pendingReconcile;
     setReconciling(item.id);
     setMessage(`กำลังตรวจยอด ${item.game?.name ?? item.id}...`);
-    const res = await adminApiFetch(`/admin/game-sessions/${item.id}/reconcile`, { method: 'POST' });
-    const data = await res.json().catch(() => null);
-    setReconciling('');
-    if (!res.ok) { setMessage(data?.message ?? 'ตรวจยอดเซสชันไม่สำเร็จ'); return; }
-    setPendingReconcile(null);
-    setMessage(`ผลตรวจยอด: ${snapshotStatus(data.snapshot?.status)}`);
-    await loadSessions();
+    try {
+      const response = await adminApiFetch(`/admin/game-sessions/${item.id}/reconcile`, { method: 'POST' });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.snapshot) throw new Error('reconcile');
+      setPendingReconcile(null);
+      setMessage(`ผลตรวจยอด: ${snapshotStatus(data.snapshot.status)}`);
+      setReconciling('');
+      await loadSessions();
+    } catch {
+      setMessage('ตรวจยอดเซสชันไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setReconciling('');
+    }
   }
 
-  return <AdminPage eyebrow="เกม" title="เซสชันเกม" description="ตรวจสถานะการเปิดเกมและรายการที่ต้องติดตาม" actions={<AdminButton size="compact" onClick={() => void loadSessions()} disabled={loading}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}>
-    <AdminMetricGrid>
-      <AdminMetric title="ทั้งหมด" value={String(metrics.total)} helper="รายการล่าสุด" />
-      <AdminMetric title="เปิดสำเร็จ" value={String(metrics.launched)} tone="success" />
-      <AdminMetric title="กำลังใช้งาน" value={String(metrics.active)} tone="success" />
-      <AdminMetric title="ไม่สำเร็จ" value={String(metrics.failed)} tone={metrics.failed ? 'danger' : 'success'} />
-    </AdminMetricGrid>
+  return <AdminPage eyebrow="เกม" title="เซสชันเกม" description="ตรวจสถานะการเปิดเกมและรายการที่ต้องติดตาม" actions={<AdminButton size="compact" onClick={() => void loadSessions()} disabled={busy}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}>
+    <AdminMetricGrid><AdminMetric title="ทั้งหมด" value={String(metrics.total)} helper="รายการล่าสุด" /><AdminMetric title="เปิดสำเร็จ" value={String(metrics.launched)} tone="success" /><AdminMetric title="กำลังใช้งาน" value={String(metrics.active)} tone="success" /><AdminMetric title="ไม่สำเร็จ" value={String(metrics.failed)} tone={metrics.failed ? 'danger' : 'success'} /></AdminMetricGrid>
     {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
     <AdminToolbar><strong>รายการล่าสุด</strong><span style={mutedStyle}>{loading ? 'กำลังโหลด...' : `${items.length} รายการ`}</span></AdminToolbar>
-    <AdminStack>{items.map((item) => <AdminCard key={item.id} compact tone={item.status === 'FAILED' ? 'danger' : 'neutral'}>
-      <AdminRow>
-        <div style={mainInfoStyle}><h2 style={titleStyle}>{item.game?.name ?? item.id}</h2><span style={mutedStyle}>{item.provider?.name ?? '-'} · สมาชิก {item.user?.username ?? item.user?.phone ?? '-'}</span></div>
-        <div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge><AdminButton size="compact" tone="secondary" onClick={() => setSelectedSession(item)}>รายละเอียด</AdminButton><AdminButton size="compact" tone="ghost" onClick={() => setPendingReconcile(item)} disabled={reconciling === item.id}>{reconciling === item.id ? 'กำลังตรวจ...' : 'ตรวจยอด'}</AdminButton></div>
-      </AdminRow>
-      <div style={detailGridStyle}>
-        <AdminDataValue label="รหัสเซสชัน"><AdminCode title={item.providerSessionId ?? item.id}>{shortId(item.providerSessionId ?? item.id)}</AdminCode></AdminDataValue>
-        <AdminDataValue label="IP"><AdminCode>{item.ipAddress ?? '-'}</AdminCode></AdminDataValue>
-        <AdminDataValue label="สร้างเมื่อ">{new Date(item.createdAt).toLocaleString('th-TH')}</AdminDataValue>
-      </div>
-      <section style={timelineStyle}><strong>ไทม์ไลน์</strong><div style={timelineItemsStyle}><TimelineItem label="สร้าง" value={item.createdAt} /><TimelineItem label="เริ่ม" value={item.startedAt} /><TimelineItem label="สิ้นสุด" value={item.endedAt} /></div></section>
-      {item.launchUrl && <details><summary style={summaryStyle}>ข้อมูลเปิดเกม</summary><AdminCode title={item.launchUrl}>{item.launchUrl}</AdminCode></details>}
-      {item.errorMessage && <AdminNotice tone="danger">{sessionErrorLabel(item.errorCode)}</AdminNotice>}
-    </AdminCard>)}{!loading && items.length === 0 && <AdminEmpty>ยังไม่มีเซสชันเกม</AdminEmpty>}</AdminStack>
-    <AdminDrawer open={Boolean(selectedSession)} title={selectedSession?.game?.name ?? selectedSession?.id ?? 'รายละเอียดเซสชัน'} description="รายละเอียดเซสชันเกมและรายการโยกเงินที่เกี่ยวข้อง" closeLabel="ปิด" size="medium" onClose={() => setSelectedSession(null)}>
-      {selectedSession && <AdminStack><AdminRow><span>ค่าย</span><strong>{selectedSession.provider?.name ?? '-'}</strong></AdminRow><AdminRow><span>สมาชิก</span><strong>{selectedSession.user?.username ?? selectedSession.user?.phone ?? '-'}</strong></AdminRow><AdminRow><span>สถานะ</span><AdminBadge tone={statusTone(selectedSession.status)}>{statusLabel(selectedSession.status)}</AdminBadge></AdminRow><AdminRow><span>รหัสค่าย</span><AdminCode title={selectedSession.providerSessionId ?? selectedSession.id}>{selectedSession.providerSessionId ?? selectedSession.id}</AdminCode></AdminRow><section style={timelineStyle}><strong>ไทม์ไลน์</strong><div style={timelineItemsStyle}><TimelineItem label="สร้าง" value={selectedSession.createdAt} /><TimelineItem label="เริ่ม" value={selectedSession.startedAt} /><TimelineItem label="สิ้นสุด" value={selectedSession.endedAt} /></div></section><AdminCard title="รายการโยกเงิน" compact><AdminStack>{(selectedSession.transfers ?? []).map((transfer) => <AdminRow key={transfer.id}><div><strong>{transfer.type}</strong><p style={mutedStyle}>{new Date(transfer.createdAt).toLocaleString('th-TH')}</p></div><span>{transfer.amount} {transfer.currency} · {transfer.status}</span></AdminRow>)}{(selectedSession.transfers ?? []).length === 0 && <AdminEmpty>ไม่มีรายการโยกเงิน</AdminEmpty>}</AdminStack></AdminCard></AdminStack>}
-    </AdminDrawer>
-    <AdminConfirmDialog open={Boolean(pendingReconcile)} title={pendingReconcile ? `ตรวจยอด ${pendingReconcile.game?.name ?? ''}` : ''} description="ระบบจะตรวจยอดและสถานะล่าสุดจากค่าย โดยไม่ควรเปลี่ยนยอดเงินจริง" confirmLabel="เริ่มตรวจยอด" tone="primary" busy={Boolean(pendingReconcile && reconciling === pendingReconcile.id)} onCancel={() => setPendingReconcile(null)} onConfirm={() => void reconcile()} details={pendingReconcile ? <><AdminDataValue label="สมาชิก">{pendingReconcile.user?.username ?? pendingReconcile.user?.phone ?? '-'}</AdminDataValue><AdminDataValue label="ค่าย">{pendingReconcile.provider?.name ?? '-'}</AdminDataValue><AdminDataValue label="สถานะ">{statusLabel(pendingReconcile.status)}</AdminDataValue></> : null} />
+    <AdminStack>{items.map((item) => <AdminCard key={item.id} compact tone={item.status === 'FAILED' ? 'danger' : 'neutral'}><AdminRow><div style={mainInfoStyle}><h2 style={titleStyle}>{item.game?.name ?? item.id}</h2><span style={mutedStyle}>{item.provider?.name ?? '-'} · สมาชิก {item.user?.username ?? item.user?.phone ?? '-'}</span></div><div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</AdminBadge><AdminButton size="compact" tone="secondary" disabled={busy} onClick={() => setSelectedSession(item)}>รายละเอียด</AdminButton><AdminButton size="compact" tone="ghost" onClick={() => setPendingReconcile(item)} disabled={busy}>{reconciling === item.id ? 'กำลังตรวจ...' : 'ตรวจยอด'}</AdminButton></div></AdminRow><div style={detailGridStyle}><AdminDataValue label="รหัสเซสชัน"><AdminCode title={item.providerSessionId ?? item.id}>{shortId(item.providerSessionId ?? item.id)}</AdminCode></AdminDataValue><AdminDataValue label="IP"><AdminCode>{item.ipAddress ?? '-'}</AdminCode></AdminDataValue><AdminDataValue label="สร้างเมื่อ">{new Date(item.createdAt).toLocaleString('th-TH')}</AdminDataValue></div><section style={timelineStyle}><strong>ไทม์ไลน์</strong><div style={timelineItemsStyle}><TimelineItem label="สร้าง" value={item.createdAt} /><TimelineItem label="เริ่ม" value={item.startedAt} /><TimelineItem label="สิ้นสุด" value={item.endedAt} /></div></section>{item.launchUrl && <details><summary style={summaryStyle}>ข้อมูลเปิดเกม</summary><AdminCode title={item.launchUrl}>{item.launchUrl}</AdminCode></details>}{item.errorMessage && <AdminNotice tone="danger">{sessionErrorLabel(item.errorCode)}</AdminNotice>}</AdminCard>)}{!loading && items.length === 0 && <AdminEmpty>ยังไม่มีเซสชันเกม</AdminEmpty>}</AdminStack>
+    <AdminDrawer open={Boolean(selectedSession)} title={selectedSession?.game?.name ?? selectedSession?.id ?? 'รายละเอียดเซสชัน'} description="รายละเอียดเซสชันเกมและรายการโยกเงินที่เกี่ยวข้อง" closeLabel="ปิด" size="medium" busy={Boolean(reconciling)} onClose={() => { if (!reconciling) setSelectedSession(null); }}>{selectedSession && <AdminStack><AdminRow><span>ค่าย</span><strong>{selectedSession.provider?.name ?? '-'}</strong></AdminRow><AdminRow><span>สมาชิก</span><strong>{selectedSession.user?.username ?? selectedSession.user?.phone ?? '-'}</strong></AdminRow><AdminRow><span>สถานะ</span><AdminBadge tone={statusTone(selectedSession.status)}>{statusLabel(selectedSession.status)}</AdminBadge></AdminRow><AdminRow><span>รหัสค่าย</span><AdminCode title={selectedSession.providerSessionId ?? selectedSession.id}>{selectedSession.providerSessionId ?? selectedSession.id}</AdminCode></AdminRow><section style={timelineStyle}><strong>ไทม์ไลน์</strong><div style={timelineItemsStyle}><TimelineItem label="สร้าง" value={selectedSession.createdAt} /><TimelineItem label="เริ่ม" value={selectedSession.startedAt} /><TimelineItem label="สิ้นสุด" value={selectedSession.endedAt} /></div></section><AdminCard title="รายการโยกเงิน" compact><AdminStack>{(selectedSession.transfers ?? []).map((transfer) => <AdminRow key={transfer.id}><div><strong>{transfer.type}</strong><p style={mutedStyle}>{new Date(transfer.createdAt).toLocaleString('th-TH')}</p></div><span>{transfer.amount} {transfer.currency} · {transfer.status}</span></AdminRow>)}{(selectedSession.transfers ?? []).length === 0 && <AdminEmpty>ไม่มีรายการโยกเงิน</AdminEmpty>}</AdminStack></AdminCard></AdminStack>}</AdminDrawer>
+    <AdminConfirmDialog open={Boolean(pendingReconcile)} title={pendingReconcile ? `ตรวจยอด ${pendingReconcile.game?.name ?? ''}` : ''} description="ระบบจะตรวจยอดและสถานะล่าสุดจากค่าย โดยไม่ควรเปลี่ยนยอดเงินจริง" confirmLabel="เริ่มตรวจยอด" tone="primary" busy={Boolean(reconciling)} onCancel={() => { if (!reconciling) setPendingReconcile(null); }} onConfirm={() => void reconcile()} details={pendingReconcile ? <><AdminDataValue label="สมาชิก">{pendingReconcile.user?.username ?? pendingReconcile.user?.phone ?? '-'}</AdminDataValue><AdminDataValue label="ค่าย">{pendingReconcile.provider?.name ?? '-'}</AdminDataValue><AdminDataValue label="สถานะ">{statusLabel(pendingReconcile.status)}</AdminDataValue></> : null} />
   </AdminPage>;
 }
 
