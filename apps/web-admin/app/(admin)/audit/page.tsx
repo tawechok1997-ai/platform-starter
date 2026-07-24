@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { stringifyAdminPayload } from '../_components/admin-payload-redaction';
 import { AdminAuditExportButton } from './admin-audit-export-button';
@@ -55,6 +55,7 @@ export default function AdminAuditPage() {
   const [message, setMessage] = useState('');
   const [messageTone, setMessageTone] = useState<NoticeTone>('neutral');
   const [loading, setLoading] = useState(false);
+  const requestSequence = useRef(0);
 
   useEffect(() => { void loadAuditLogs(page, applied); }, [page, applied]);
 
@@ -63,32 +64,48 @@ export default function AdminAuditPage() {
   const activeFilters = useMemo(() => Object.entries(applied).filter(([, value]) => value.trim()), [applied]);
 
   async function loadAuditLogs(nextPage = page, filters = applied) {
-    if (loading) return;
+    const requestId = ++requestSequence.current;
+    const safePage = Math.max(1, Math.floor(nextPage));
     setLoading(true);
     setMessageTone('neutral');
     setMessage('กำลังโหลด audit logs...');
     try {
-      const params = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
-      Object.entries(filters).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()); });
+      const params = new URLSearchParams({ page: String(safePage), take: String(PAGE_SIZE) });
+      Object.entries(filters).forEach(([key, value]) => { const trimmed = value.trim(); if (trimmed) params.set(key, trimmed); });
       const response = await adminApiFetch(`/admin/audit-logs?${params.toString()}`);
       const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload || !Array.isArray(payload.items)) throw new Error('load');
+      if (!response.ok || !isAuditResponse(payload)) throw new Error('load');
+      if (requestId !== requestSequence.current) return;
+
+      const nextPageCount = positiveInteger(payload.pageCount, 1);
+      if (safePage > nextPageCount) {
+        setPage(nextPageCount);
+        return;
+      }
+
       setItems(payload.items);
-      setTotal(Number(payload.total ?? 0));
-      setPageCount(Math.max(Number(payload.pageCount ?? 1), 1));
+      setTotal(nonNegativeInteger(payload.total, payload.items.length));
+      setPageCount(nextPageCount);
       setMessage('');
     } catch {
+      if (requestId !== requestSequence.current) return;
       setItems([]);
       setTotal(0);
       setPageCount(1);
       setMessageTone('danger');
       setMessage('โหลด audit logs ไม่สำเร็จ กรุณาลองใหม่');
     } finally {
-      setLoading(false);
+      if (requestId === requestSequence.current) setLoading(false);
     }
   }
 
   function applyFilters() {
+    if (draft.from && draft.to && draft.from > draft.to) {
+      setMessageTone('danger');
+      setMessage('ช่วงวันที่ไม่ถูกต้อง วันที่เริ่มต้องไม่อยู่หลังวันที่สิ้นสุด');
+      return;
+    }
+    setMessage('');
     setPage(1);
     setApplied({ ...draft });
   }
@@ -124,19 +141,21 @@ export default function AdminAuditPage() {
     </AdminMetricGrid>
 
     <AdminCard title="ค้นหาและกรอง" description="กรองตามข้อความ โมดูล action ผู้ดูแล target และช่วงเวลา">
-      <div style={filterGridStyle}>
-        <label style={fieldStyle}><span>ค้นหารวม</span><input disabled={loading} value={draft.search} onChange={(event) => setDraft((value) => ({ ...value, search: event.target.value }))} placeholder="action, module, target, IP..." style={inputStyle} /></label>
-        <label style={fieldStyle}><span>โมดูล</span><input disabled={loading} value={draft.module} onChange={(event) => setDraft((value) => ({ ...value, module: event.target.value }))} placeholder="topups, withdrawals..." style={inputStyle} /></label>
-        <label style={fieldStyle}><span>Action</span><input disabled={loading} value={draft.action} onChange={(event) => setDraft((value) => ({ ...value, action: event.target.value }))} placeholder="approve, reject, login..." style={inputStyle} /></label>
-        <label style={fieldStyle}><span>ผู้ดูแล</span><input disabled={loading} value={draft.admin} onChange={(event) => setDraft((value) => ({ ...value, admin: event.target.value }))} placeholder="ชื่อหรืออีเมล" style={inputStyle} /></label>
-        <label style={fieldStyle}><span>Target ID</span><input disabled={loading} value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder="UUID ของรายการ" style={inputStyle} /></label>
-        <label style={fieldStyle}><span>ตั้งแต่วันที่</span><input disabled={loading} type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} style={inputStyle} /></label>
-        <label style={fieldStyle}><span>ถึงวันที่</span><input disabled={loading} type="date" value={draft.to} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} style={inputStyle} /></label>
-      </div>
-      <div style={filterActionStyle}>
-        <AdminButton disabled={loading} onClick={applyFilters}>ใช้ตัวกรอง</AdminButton>
-        <AdminButton disabled={loading} tone="secondary" onClick={clearFilters}>ล้างตัวกรอง</AdminButton>
-      </div>
+      <form onSubmit={(event) => { event.preventDefault(); applyFilters(); }}>
+        <div style={filterGridStyle}>
+          <label style={fieldStyle}><span>ค้นหารวม</span><input disabled={loading} value={draft.search} onChange={(event) => setDraft((value) => ({ ...value, search: event.target.value }))} placeholder="action, module, target, IP..." style={inputStyle} /></label>
+          <label style={fieldStyle}><span>โมดูล</span><input disabled={loading} value={draft.module} onChange={(event) => setDraft((value) => ({ ...value, module: event.target.value }))} placeholder="topups, withdrawals..." style={inputStyle} /></label>
+          <label style={fieldStyle}><span>Action</span><input disabled={loading} value={draft.action} onChange={(event) => setDraft((value) => ({ ...value, action: event.target.value }))} placeholder="approve, reject, login..." style={inputStyle} /></label>
+          <label style={fieldStyle}><span>ผู้ดูแล</span><input disabled={loading} value={draft.admin} onChange={(event) => setDraft((value) => ({ ...value, admin: event.target.value }))} placeholder="ชื่อหรืออีเมล" style={inputStyle} /></label>
+          <label style={fieldStyle}><span>Target ID</span><input disabled={loading} value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder="UUID ของรายการ" style={inputStyle} /></label>
+          <label style={fieldStyle}><span>ตั้งแต่วันที่</span><input disabled={loading} type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} style={inputStyle} /></label>
+          <label style={fieldStyle}><span>ถึงวันที่</span><input disabled={loading} type="date" value={draft.to} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} style={inputStyle} /></label>
+        </div>
+        <div style={filterActionStyle}>
+          <AdminButton type="submit" disabled={loading}>ใช้ตัวกรอง</AdminButton>
+          <AdminButton type="button" disabled={loading} tone="secondary" onClick={clearFilters}>ล้างตัวกรอง</AdminButton>
+        </div>
+      </form>
       {activeFilters.length > 0 && <div style={chipWrapStyle}>{activeFilters.map(([key, value]) => <AdminBadge key={key} tone="warning">{key}: {value}</AdminBadge>)}</div>}
     </AdminCard>
 
@@ -150,7 +169,7 @@ export default function AdminAuditPage() {
                 <AdminBadge tone="neutral">{item.module || 'unknown'}</AdminBadge>
                 <AdminBadge tone={actionTone(item.action)}>{item.action}</AdminBadge>
               </div>
-              <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString('th-TH')}</time>
+              <time dateTime={item.createdAt}>{formatDateTime(item.createdAt)}</time>
             </header>
 
             <div style={summaryGridStyle}>
@@ -193,14 +212,30 @@ function AuditData({ title, value }: { title: string; value: unknown }) {
 function targetHref(moduleName: string, targetId?: string | null) {
   if (!targetId) return null;
   const module = moduleName.toLowerCase();
-  if (module.includes('topup')) return `/topups?requestId=${encodeURIComponent(targetId)}`;
-  if (module.includes('withdraw')) return `/withdrawals?requestId=${encodeURIComponent(targetId)}`;
-  if (module.includes('member') || module.includes('user')) return `/members/${encodeURIComponent(targetId)}`;
-  if (module.includes('wallet') || module.includes('ledger') || module.includes('money')) return `/ledgers?referenceId=${encodeURIComponent(targetId)}`;
-  if (module.includes('risk')) return `/risk-alerts/${encodeURIComponent(targetId)}`;
-  if (module.includes('admin-access') || module.includes('admin_access')) return '/access';
-  if (module.includes('anti-bot') || module.includes('anti_bot') || module.includes('security')) return '/anti-bot';
-  if (module.includes('auth')) return '/security';
+  const id = encodeURIComponent(targetId);
+  if (module.includes('admin-access') || module.includes('admin_access') || module.includes('delegat') || module.includes('role') || module.includes('permission')) return '/access';
+  if (module.includes('admin-account') || module.includes('admin_user') || module.includes('admin-user')) return `/admin-accounts?adminId=${id}`;
+  if (module.includes('anti-bot') || module.includes('anti_bot') || module.includes('captcha')) return '/anti-bot';
+  if (module.includes('auth') || module === 'security') return '/security';
+  if (module.includes('topup') || module.includes('deposit')) return `/topups?requestId=${id}`;
+  if (module.includes('withdraw')) return `/withdrawals?requestId=${id}`;
+  if (module.includes('game-session') || module.includes('game_session')) return `/game-sessions?sessionId=${id}`;
+  if (module.includes('game-transfer') || module.includes('game_transfer')) return `/game-transfers?transferId=${id}`;
+  if (module.includes('webhook')) return `/webhook-logs?referenceId=${id}`;
+  if (module.includes('reconciliation')) return `/reconciliation-center?referenceId=${id}`;
+  if (module.includes('provider')) return `/game-providers?providerId=${id}`;
+  if (module.includes('promotion-claim') || module.includes('promotion_claim')) return `/promotion-claims?claimId=${id}`;
+  if (module.includes('promotion')) return `/promotion-center?promotionId=${id}`;
+  if (module.includes('bonus')) return `/bonus-ledgers?referenceId=${id}`;
+  if (module.includes('commission')) return `/commission-ledgers?referenceId=${id}`;
+  if (module.includes('affiliate')) return `/affiliate-center?affiliateId=${id}`;
+  if (module.includes('support')) return `/support-center?ticketId=${id}`;
+  if (module.includes('kyc')) return `/kyc-center?caseId=${id}`;
+  if (module.includes('content') || module.includes('cms')) return '/content-center';
+  if (module.includes('setting')) return '/settings';
+  if (module.includes('risk')) return `/risk-alerts/${id}`;
+  if (module.includes('member') || module.includes('user')) return `/members/${id}`;
+  if (module.includes('wallet') || module.includes('ledger') || module.includes('money')) return `/ledgers?referenceId=${id}`;
   return null;
 }
 
@@ -211,6 +246,15 @@ function actionTone(action: string) {
   if (value.includes('claim') || value.includes('review') || value.includes('update')) return 'warning';
   return 'neutral';
 }
+
+function isRecord(value: unknown): value is Record<string, unknown> { return Boolean(value) && typeof value === 'object' && !Array.isArray(value); }
+function isNullableString(value: unknown): value is string | null | undefined { return value === undefined || value === null || typeof value === 'string'; }
+function isAdminUser(value: unknown): value is NonNullable<AuditLog['adminUser']> { return isRecord(value) && typeof value.id === 'string' && typeof value.username === 'string' && typeof value.email === 'string'; }
+function isAuditLog(value: unknown): value is AuditLog { return isRecord(value) && typeof value.id === 'string' && typeof value.action === 'string' && typeof value.module === 'string' && typeof value.createdAt === 'string' && isNullableString(value.targetId) && isNullableString(value.ipAddress) && isNullableString(value.userAgent) && (value.adminUser === undefined || value.adminUser === null || isAdminUser(value.adminUser)); }
+function isAuditResponse(value: unknown): value is { items: AuditLog[]; total?: unknown; pageCount?: unknown } { return isRecord(value) && Array.isArray(value.items) && value.items.every(isAuditLog); }
+function nonNegativeInteger(value: unknown, fallback: number) { const parsed = Number(value); return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : fallback; }
+function positiveInteger(value: unknown, fallback: number) { const parsed = Number(value); return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : fallback; }
+function formatDateTime(value: string) { const date = new Date(value); return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('th-TH'); }
 
 const filterGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', gap: 12 } as const;
 const fieldStyle = { display: 'grid', gap: 6, minWidth: 0, color: '#cbd5e1', fontSize: 13 } as const;
