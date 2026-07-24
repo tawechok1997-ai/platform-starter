@@ -1,0 +1,86 @@
+name: Wire Withdrawal Priority
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/.wire-withdrawal-priority
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch withdrawals page
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web-admin/app/(admin)/withdrawals/page.tsx')
+          text = path.read_text(encoding='utf-8')
+
+          import_anchor = "import { useAdminLocale, type AdminLocale } from '../admin-locale';"
+          import_line = "import { sortWithdrawalsByPriority, withdrawalAgeMinutes, withdrawalSlaTone } from './withdrawal-priority';"
+          if import_line not in text:
+              if import_anchor not in text:
+                  raise SystemExit('withdrawal import anchor not found')
+              text = text.replace(import_anchor, import_anchor + '\n' + import_line, 1)
+
+          totals_anchor = "  const totals = useMemo(() => ({ review: items.filter((item) => item.status === 'PENDING_REVIEW').length, payment: items.filter((item) => item.status === 'APPROVED_FOR_PAYMENT').length, verify: items.filter((item) => item.status === 'PAYMENT_PROOF_UPLOADED').length, amount: items.reduce((sum, item) => sum + Number(item.amount || 0), 0) }), [items]);"
+          priority_line = "  const prioritizedItems = useMemo(() => sortWithdrawalsByPriority(items), [items]);"
+          if priority_line not in text:
+              if totals_anchor not in text:
+                  raise SystemExit('withdrawal totals anchor not found')
+              text = text.replace(totals_anchor, totals_anchor + '\n' + priority_line, 1)
+
+          if '{items.map((item) => {' in text:
+              text = text.replace('{items.map((item) => {', '{prioritizedItems.map((item) => {', 1)
+          elif '{prioritizedItems.map((item) => {' not in text:
+              raise SystemExit('withdrawal map anchor not found')
+
+          item_anchor = "        const closed = ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(item.status);"
+          sla_lines = "        const ageMinutes = withdrawalAgeMinutes(item.createdAt);\n        const slaTone = withdrawalSlaTone(ageMinutes);"
+          if sla_lines not in text:
+              if item_anchor not in text:
+                  raise SystemExit('withdrawal item anchor not found')
+              text = text.replace(item_anchor, item_anchor + '\n' + sla_lines, 1)
+
+          badge_anchor = "{item.claimedBy ? <AdminBadge tone=\"success\">{copy.claimed}</AdminBadge> : <AdminBadge>{copy.unclaimed}</AdminBadge>}"
+          sla_badge = badge_anchor + "<AdminBadge tone={slaTone}>{locale === 'th' ? `ค้าง ${ageMinutes} นาที` : `Waiting ${ageMinutes} min`}</AdminBadge>"
+          if 'Waiting ${ageMinutes} min' not in text:
+              if badge_anchor not in text:
+                  raise SystemExit('withdrawal badge anchor not found')
+              text = text.replace(badge_anchor, sla_badge, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Add wiring regression test
+        run: |
+          cat > 'apps/web-admin/app/(admin)/withdrawals/withdrawal-priority-wiring.behavior.spec.ts' <<'EOF'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import test from 'node:test';
+
+          const source = fs.readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
+
+          test('wires SLA priority ordering into the withdrawal queue', () => {
+            assert.equal(source.includes("from './withdrawal-priority'"), true);
+            assert.equal(source.includes('sortWithdrawalsByPriority(items)'), true);
+            assert.equal(source.includes('prioritizedItems.map'), true);
+            assert.equal(source.includes('withdrawalAgeMinutes(item.createdAt)'), true);
+            assert.equal(source.includes('withdrawalSlaTone(ageMinutes)'), true);
+          });
+          EOF
+      - name: Cleanup and commit
+        run: |
+          rm docs/.wire-withdrawal-priority
+          rm .github/workflows/wire-withdrawal-priority.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add 'apps/web-admin/app/(admin)/withdrawals/page.tsx' 'apps/web-admin/app/(admin)/withdrawals/withdrawal-priority-wiring.behavior.spec.ts' docs/.wire-withdrawal-priority .github/workflows/wire-withdrawal-priority.yml
+          git commit -m "feat(admin): wire withdrawal SLA priority queue"
+          git push
