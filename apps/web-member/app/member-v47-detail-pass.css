@@ -1,0 +1,274 @@
+/* V47 detail fidelity pass. Keep this import after member-v47-dual-master.css. */
+
+@media (min-width: 901px) {
+  .public-home-topbar .member-desktop-nav--guest {
+    justify-content: flex-start !important;
+    border-bottom: 1px solid rgb(255 255 255 / 4%) !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a {
+    color: rgb(255 255 255 / 86%) !important;
+    letter-spacing: 0 !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a:hover,
+  .public-home-topbar .member-desktop-nav--guest a.active {
+    color: #fff !important;
+    background: linear-gradient(180deg, rgb(114 0 163 / 18%), transparent) !important;
+  }
+
+  .reference-carousel-dots {
+    height: 12px !important;
+    margin: -8px 0 0 !important;
+  }
+
+  .reference-carousel-dots i,
+  .reference-panel-dots i {
+    width: 6px !important;
+    height: 6px !important;
+    background: rgb(255 255 255 / 36%) !important;
+  }
+
+  .reference-carousel-dots i.active,
+  .reference-panel-dots i.active {
+    width: 30px !important;
+    border-radius: 999px !important;
+    background: #c02de9 !important;
+  }
+
+  .reference-promo-card {
+    position: relative !important;
+    isolation: isolate !important;
+  }
+
+  .reference-promo-card::after {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: -1 !important;
+    border-radius: inherit !important;
+    background: radial-gradient(circle at 16% 50%, rgb(226 74 255 / 24%), transparent 42%) !important;
+  }
+
+  .reference-promo-card > span:last-child {
+    position: relative !important;
+    z-index: 2 !important;
+    align-content: center !important;
+    gap: 4px !important;
+  }
+
+  .reference-tournament-cta {
+    overflow: hidden !important;
+    border: 1px solid #176f97 !important;
+    background: linear-gradient(90deg, #082a43 0%, #08718c 52%, #17566c 100%) !important;
+  }
+
+  .reference-tournament-cta::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    pointer-events: none !important;
+    background: radial-gradient(circle at 16% 50%, rgb(49 210 255 / 22%), transparent 30%) !important;
+  }
+
+  .reference-tournament-cta > * {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  .reference-panel-heading,
+  .reference-side-card > header {
+    min-height: 34px !important;
+    border-bottom: 1px solid rgb(255 255 255 / 5%) !important;
+    background: #1b1722 !important;
+  }
+
+  .reference-panel-heading strong,
+  .reference-side-card > header strong {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+  }
+
+  .reference-game-tile,
+  .reference-online-card,
+  .reference-number-card {
+    overflow: hidden !important;
+    border: 1px solid #261c2f !important;
+    border-radius: 8px !important;
+    background: #17111f !important;
+    box-shadow: none !important;
+  }
+
+  .reference-game-tile > img,
+  .reference-online-card > img,
+  .reference-number-card > img {
+    transition: transform .22s ease !important;
+  }
+
+  .reference-game-tile:hover > img,
+  .reference-online-card:hover > img,
+  .reference-number-card:hover > img {
+    transform: scale(1.025) !important;
+  }
+
+  .reference-game-tile span,
+  .reference-online-card > span {
+    background: #17111f !important;
+  }
+
+  .reference-side-card {
+    border: 1px solid rgb(151 81 169 / 46%) !important;
+  }
+
+  .reference-jackpot > div {
+    background: radial-gradient(circle at 50% 40%, #6f1d86 0%, #2a1234 58%, #17111f 100%) !important;
+  }
+
+  .reference-jackpot > div > strong {
+    color: #fff !important;
+    text-shadow: 0 0 12px rgb(218 165 243 / 32%) !important;
+  }
+
+  .reference-leaderboard > div {
+    border-bottom: 1px solid rgb(255 255 255 / 5%) !important;
+  }
+
+  .reference-mini-games > div {
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  .reference-mini-games a {
+    border: 1px solid #2c2035 !important;
+    border-radius: 8px !important;
+    background: #17111f !important;
+  }
+
+  .reference-provider-strip {
+    border-top: 1px solid rgb(255 255 255 / 5%) !important;
+    background: #100c15 !important;
+  }
+
+  .reference-provider-logo {
+    border: 0 !important;
+    background: transparent !important;
+    opacity: .76 !important;
+    filter: grayscale(1) brightness(1.5) !important;
+  }
+
+  .reference-provider-logo:hover {
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .public-home-topbar .member-actions {
+    gap: 6px !important;
+  }
+
+  .public-home-topbar .member-guest-action {
+    min-width: 0 !important;
+    min-height: 36px !important;
+    padding: 0 12px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+  }
+
+  .member-home-mobile.member-source-home {
+    min-height: calc(100vh - 60px) !important;
+  }
+
+  .member-home-mobile .member-home-zone--primary {
+    display: grid !important;
+    gap: 10px !important;
+  }
+
+  .member-home-mobile [class*='carousel'] {
+    aspect-ratio: 2.12 / 1 !important;
+    min-height: 0 !important;
+    border: 1px solid #24192f !important;
+  }
+
+  .member-home-mobile [class*='carousel'] img,
+  .member-home-mobile [class*='banner'] img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .member-home-mobile [role='tablist'],
+  .member-home-mobile [class*='tabs'] {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    padding: 6px !important;
+    border: 1px solid #2a1c34 !important;
+    border-radius: 10px !important;
+    background: #17111f !important;
+  }
+
+  .member-home-mobile [role='tab'],
+  .member-home-mobile [class*='tab'] button {
+    min-height: 38px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+  }
+
+  .member-home-mobile [class*='game-card'],
+  .member-home-mobile [class*='provider-card'],
+  .member-home-mobile [class*='highlight-card'] {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    border-radius: 9px !important;
+  }
+
+  .member-home-mobile [class*='game-card'] strong,
+  .member-home-mobile [class*='provider-card'] strong,
+  .member-home-mobile [class*='highlight-card'] strong {
+    display: block !important;
+    overflow: hidden !important;
+    padding: 6px 8px !important;
+    color: #fff !important;
+    font-size: 11px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .member-home-mobile details {
+    overflow: hidden !important;
+    border: 1px solid #261c2f !important;
+    border-radius: 8px !important;
+    background: #17111f !important;
+  }
+
+  .member-home-mobile details + details {
+    margin-top: 7px !important;
+  }
+
+  .member-home-mobile summary {
+    min-height: 42px !important;
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .member-bottom-nav {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    box-shadow: 0 -8px 24px rgb(0 0 0 / 34%) !important;
+  }
+
+  .member-bottom-nav a {
+    min-width: 0 !important;
+    min-height: 64px !important;
+    padding: 7px 3px !important;
+    font-size: 10px !important;
+  }
+
+  .member-bottom-nav img,
+  .member-bottom-nav svg {
+    width: 23px !important;
+    height: 23px !important;
+    object-fit: contain !important;
+  }
+}
