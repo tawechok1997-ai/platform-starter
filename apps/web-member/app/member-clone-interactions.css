@@ -1,0 +1,155 @@
+/* Interaction and asset fidelity extracted from the supplied NOAH345 clone demo. */
+
+.reference-hero-track {
+  transform: translate3d(var(--hero-drag-x, 0px), 0, 0) !important;
+  transition: transform 320ms cubic-bezier(.22, .61, .36, 1) !important;
+  will-change: transform;
+}
+
+.reference-hero-carousel.is-dragging .reference-hero-track {
+  transition: none !important;
+  cursor: grabbing !important;
+}
+
+.reference-hero-carousel.is-dragging .reference-hero-slide {
+  pointer-events: none;
+}
+
+[data-drag-scroll] {
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+[data-drag-scroll]::-webkit-scrollbar {
+  display: none;
+}
+
+[data-drag-scroll].is-drag-ready,
+[data-drag-scroll].is-dragging {
+  user-select: none;
+}
+
+[data-drag-scroll].is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none !important;
+}
+
+[data-drag-scroll] > * {
+  scroll-snap-align: start;
+}
+
+.reference-promo-icon img,
+.reference-tournament-mark img,
+.reference-mini-icon img,
+.reference-jackpot-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.reference-featured-grid--archive .reference-game-tile img,
+.reference-number-card > img,
+.reference-online-card > img,
+.reference-classic-row .reference-game-tile > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (min-width: 901px) {
+  .reference-tournament-track,
+  .reference-number-row,
+  .reference-online-row,
+  .reference-live-row,
+  .reference-classic-row,
+  .reference-provider-strip > div {
+    overflow-x: auto !important;
+    scroll-snap-type: x proximity;
+  }
+
+  .reference-tournament-track {
+    grid-template-columns: none !important;
+    grid-auto-flow: column;
+    grid-auto-columns: 132px;
+    justify-content: start !important;
+  }
+
+  .reference-number-row {
+    display: flex !important;
+    gap: 12px !important;
+  }
+
+  .reference-number-row > * {
+    flex: 0 0 138px;
+  }
+
+  .reference-online-row {
+    display: flex !important;
+    gap: 12px !important;
+  }
+
+  .reference-online-row > * {
+    flex: 0 0 184px;
+  }
+
+  .reference-live-row {
+    display: flex !important;
+    gap: 12px !important;
+  }
+
+  .reference-live-row > * {
+    flex: 0 0 336px;
+  }
+
+  .reference-classic-row {
+    display: flex !important;
+    gap: 18px !important;
+  }
+
+  .reference-classic-row > * {
+    flex: 0 0 150px;
+  }
+
+  .reference-provider-strip > div {
+    display: flex !important;
+    gap: 34px !important;
+  }
+
+  .reference-provider-strip > div > * {
+    flex: 0 0 112px;
+  }
+
+  .reference-jackpot-art {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    opacity: .76;
+  }
+
+  .reference-jackpot > div > small,
+  .reference-jackpot > div > strong,
+  .reference-jackpot > div > em {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  [data-drag-scroll] {
+    overflow-x: auto !important;
+    scroll-snap-type: x proximity;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reference-hero-track {
+    transition: none !important;
+  }
+}
