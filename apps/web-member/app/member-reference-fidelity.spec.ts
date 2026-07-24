@@ -28,3 +28,12 @@ test('keeps mobile promotion cards in a swipeable snap rail', () => {
   assert.equal(fidelityCss.includes('scroll-snap-type: inline mandatory'), true);
   assert.equal(fidelityCss.includes('scroll-snap-align: start'), true);
 });
+
+test('keeps the mobile announcement strip compact and horizontally readable', () => {
+  assert.equal(fidelityCss.includes('.member-source-home .home-announcement-strip'), true);
+  assert.equal(fidelityCss.includes('grid-template-columns: auto minmax(0, 1fr)'), true);
+  assert.equal(fidelityCss.includes('.home-announcement-strip__track'), true);
+  assert.equal(fidelityCss.includes('overscroll-behavior-inline: contain'), true);
+  assert.equal(fidelityCss.includes('mask-image: linear-gradient'), true);
+  assert.equal(fidelityCss.includes('white-space: nowrap'), true);
+});
