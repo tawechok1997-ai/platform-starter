@@ -186,7 +186,7 @@ export function DesktopHomeScaffold({ content, siteName, showPromotion, games, i
   );
 }
 
-function BannerCard({ banner, siteName, className, showImage }: { banner?: CmsContent['banners'][number]; siteName: string; className: string; showImage: boolean }) {
+function BannerCard({ banner, siteName, className, showImage }: { banner?: CmsContent['banners'][number] | undefined; siteName: string; className: string; showImage: boolean }) {
   return (
     <a className={`reference-banner ${className}`} href={banner?.href || '/promotions'}>
       {showImage && banner?.imageUrl ? <img src={banner.imageUrl} alt={banner.title || siteName} onError={hideBrokenImage} /> : null}
