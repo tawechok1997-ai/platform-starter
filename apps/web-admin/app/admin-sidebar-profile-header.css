@@ -1,0 +1,94 @@
+/* Profile-first admin sidebar layout. Loaded after the viewport fixes. */
+.admin-drawer {
+  grid-template-rows: auto auto minmax(0, 1fr) !important;
+}
+
+.admin-drawer-head {
+  display: none !important;
+}
+
+.admin-sidebar-footer {
+  display: contents !important;
+}
+
+.admin-sidebar-profile {
+  grid-row: 1 !important;
+  margin: 0 4px 2px !important;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--admin-border, var(--line));
+}
+
+.admin-sidebar-profile__trigger {
+  min-height: 54px !important;
+}
+
+.admin-nav-search {
+  grid-row: 2 !important;
+}
+
+.admin-drawer-nav {
+  grid-row: 3 !important;
+}
+
+.admin-collapse-button {
+  display: none !important;
+}
+
+.admin-drawer-close {
+  display: none !important;
+}
+
+.admin-profile-menu--sidebar {
+  top: calc(100% + 8px) !important;
+  right: 0 !important;
+  bottom: auto !important;
+  left: 0 !important;
+  transform-origin: top center !important;
+}
+
+@media (min-width: 821px) {
+  .admin-menu-button {
+    display: inline-flex !important;
+  }
+
+  .admin-shell--collapsed .admin-sidebar-profile {
+    margin-inline: 0 !important;
+  }
+
+  .admin-shell--collapsed .admin-sidebar-profile__trigger {
+    grid-template-columns: 38px !important;
+    justify-content: center !important;
+    padding-inline: 6px !important;
+  }
+
+  .admin-shell--collapsed .admin-sidebar-profile__trigger .admin-profile-meta,
+  .admin-shell--collapsed .admin-sidebar-profile__trigger .admin-profile-status,
+  .admin-shell--collapsed .admin-sidebar-profile__trigger .admin-sidebar-profile__chevron {
+    display: none !important;
+  }
+
+  .admin-shell--collapsed .admin-profile-menu--sidebar {
+    left: calc(100% + 10px) !important;
+    right: auto !important;
+    top: 0 !important;
+    width: 220px !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .admin-drawer {
+    grid-template-rows: auto minmax(0, 1fr) !important;
+  }
+
+  .admin-sidebar-profile {
+    display: none !important;
+  }
+
+  .admin-nav-search {
+    grid-row: 1 !important;
+  }
+
+  .admin-drawer-nav {
+    grid-row: 2 !important;
+  }
+}
