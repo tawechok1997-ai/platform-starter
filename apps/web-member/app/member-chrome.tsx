@@ -16,6 +16,17 @@ import { CloseIcon, MenuIcon } from './components/member-icon';
 import { MemberCategoryRail } from './components/member-category-rail';
 import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
 
+const PUBLIC_HOME_NAV = [
+  { key: 'home', title: 'หน้าหลัก', href: '/' },
+  { key: 'casino', title: 'คาสิโน', href: '/games?category=casino' },
+  { key: 'slot', title: 'สล็อต', href: '/games?category=slot' },
+  { key: 'fishing', title: 'ยิงปลา', href: '/games?category=fishing' },
+  { key: 'sport', title: 'กีฬา', href: '/games?category=sport' },
+  { key: 'card', title: 'ไพ่', href: '/games?category=card' },
+  { key: 'lottery', title: 'หวย', href: '/games?category=lottery' },
+  { key: 'download', title: 'ดาวน์โหลด', href: '#download' },
+];
+
 export default function MemberChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/';
   const router = useRouter();
@@ -39,6 +50,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     notifications: typedFeatures.notification_enabled,
   };
 
+  const isHomeRoute = pathname === '/';
   const isPublicRoute = isPublicMemberRoute(pathname);
   const currentRule = routeRuleFor(pathname);
   const blockedRoute = disabledMemberRoute(pathname, features);
@@ -46,7 +58,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const visibleBottomNav = navigationFor('bottom', features);
   const visibleDrawer = navigationFor('drawer', features);
   const gameCategoryNavigation = createGameCategoryNavigationConfig(typedSettings);
-  const { pendingCount } = usePendingCount(isLoggedIn && !isPublicRoute);
+  const { pendingCount } = usePendingCount(isLoggedIn && !isHomeRoute && !isPublicRoute);
 
   const siteName = website.site_name;
   const siteDescription = website.site_description;
@@ -65,11 +77,11 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
       window.location.replace('/');
       return;
     }
-    if (!isPublicRoute && !isLoggedIn) {
+    if (!isHomeRoute && !isPublicRoute && !isLoggedIn) {
       const next = encodeURIComponent(`${pathname}${window.location.search}`);
       window.location.replace(`/login?next=${next}`);
     }
-  }, [ready, isLoggedIn, isPublicRoute, pathname, currentRule?.authRedirectHome]);
+  }, [ready, isLoggedIn, isHomeRoute, isPublicRoute, pathname, currentRule?.authRedirectHome]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -92,6 +104,24 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     setMenuOpen(false);
   }, [pathname]);
 
+  if (isHomeRoute) {
+    return (
+      <>
+        <PublicHomeHeader
+          logoUrl={logoUrl}
+          brandMark={brandMark}
+          features={features}
+          isLoggedIn={isLoggedIn}
+          walletLoading={walletLoading}
+          compactWalletBalance={compactWalletBalance}
+          logout={logout}
+        />
+        {children}
+        <MemberFooter settings={typedSettings} />
+      </>
+    );
+  }
+
   if (isPublicRoute) return <>{children}</>;
   if (!ready || !isLoggedIn) return <main className="member-loading-screen">กำลังโหลด...</main>;
 
@@ -102,19 +132,12 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
       <header className="member-topbar global-member-topbar">
         <div className="member-topbar__inner">
           <div className="member-header-tools">
-            <button type="button" className="member-header-tool" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนู">
-              <MenuIcon />
-            </button>
+            <button type="button" className="member-header-tool" onClick={() => setMenuOpen(true)} aria-label="เปิดเมนู"><MenuIcon /></button>
             <a className="member-header-tool" href="/games" aria-label="ค้นหาเกม">⌕</a>
           </div>
           <a href="/" className="member-brand">
-            <span className="member-brand-mark">
-              {logoUrl ? <img src={logoUrl} alt="" className="member-brand-logo" /> : brandMark}
-            </span>
-            <span className="member-brand-copy">
-              <strong>{siteName}</strong>
-              <small>{siteDescription}</small>
-            </span>
+            <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="" className="member-brand-logo" /> : brandMark}</span>
+            <span className="member-brand-copy"><strong>{siteName}</strong><small>{siteDescription}</small></span>
           </a>
           <nav className="member-desktop-nav" aria-label="เมนูหลักเดสก์ท็อป">
             {visibleBottomNav.map((item) => (
@@ -134,29 +157,19 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
               <img src="/images/member-lobby/noah345-reference/0012_wallet_a4fadd0a57.webp" alt="" aria-hidden="true" />
               <span className="member-header-wallet__amount">{walletLoading ? '…' : compactWalletBalance}</span>
             </span>
-            <button type="button" className="member-header-logout" onClick={logout} aria-label="ออกจากระบบ">
-              <span aria-hidden="true">↪</span>
-              <span>ออกจากระบบ</span>
-            </button>
+            <button type="button" className="member-header-logout" onClick={logout} aria-label="ออกจากระบบ"><span aria-hidden="true">↪</span><span>ออกจากระบบ</span></button>
           </div>
         </div>
       </header>
 
-      {theme.show_game_categories && (
-        <MemberCategoryRail pathname={pathname} features={features} config={gameCategoryNavigation} baseIcons={icons} />
-      )}
-
+      {theme.show_game_categories && <MemberCategoryRail pathname={pathname} features={features} config={gameCategoryNavigation} baseIcons={icons} />}
       {menuOpen && <button type="button" className="member-menu-backdrop ui-overlay" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู" />}
 
       <aside className={menuOpen ? 'member-drawer ui-drawer open' : 'member-drawer ui-drawer'} role="dialog" aria-modal="true" aria-label="เมนูสมาชิก" aria-hidden={!menuOpen} tabIndex={-1}>
         <div className="member-drawer-head ui-overlay-surface__header">
           <div><strong>{siteName}</strong><p>{siteDescription}</p></div>
           <div className="member-drawer-head__actions">
-            {pathname !== '/' && (
-              <button type="button" className="member-drawer-back-button" onClick={() => { setMenuOpen(false); if (window.history.length > 1) router.back(); else router.push('/'); }}>
-                ← ย้อนกลับ
-              </button>
-            )}
+            {pathname !== '/' && <button type="button" className="member-drawer-back-button" onClick={() => { setMenuOpen(false); if (window.history.length > 1) router.back(); else router.push('/'); }}>← ย้อนกลับ</button>}
             <button type="button" onClick={() => setMenuOpen(false)} aria-label="ปิดเมนู"><CloseIcon /></button>
           </div>
         </div>
@@ -185,6 +198,43 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
         ))}
       </nav>
     </>
+  );
+}
+
+function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoading, compactWalletBalance, logout }: {
+  logoUrl: string;
+  brandMark: string;
+  features: MemberFeatureFlags;
+  isLoggedIn: boolean;
+  walletLoading: boolean;
+  compactWalletBalance: string;
+  logout: () => void;
+}) {
+  return (
+    <header className="member-topbar global-member-topbar public-home-topbar">
+      <div className="member-topbar__inner">
+        <a href="/" className="member-brand">
+          <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="" className="member-brand-logo" /> : brandMark}</span>
+        </a>
+        <nav className="member-desktop-nav member-desktop-nav--guest" aria-label="เมนูหน้าแรก">
+          {PUBLIC_HOME_NAV.map((item) => <a key={item.key} href={item.href} className={item.href === '/' ? 'active' : ''}><span>{item.title}</span></a>)}
+        </nav>
+        <div className="member-actions">
+          {isLoggedIn ? (
+            <>
+              <a className="member-guest-action member-guest-action--login" href="/games">เข้าเล่นเกม</a>
+              <span className="member-header-wallet"><span className="member-header-wallet__amount">{walletLoading ? '…' : compactWalletBalance}</span></span>
+              <button type="button" className="member-header-logout" onClick={logout}>ออกจากระบบ</button>
+            </>
+          ) : (
+            <div className="member-guest-actions">
+              {features.login && <a className="member-guest-action member-guest-action--login" href="/login">เข้าสู่ระบบ</a>}
+              {features.registration && <a className="member-guest-action member-guest-action--register" href="/register">สมัครสมาชิก</a>}
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
   );
 }
 
