@@ -149,9 +149,35 @@
   }
 
   .admin-shell--collapsed .admin-sidebar-profile__trigger {
-    grid-template-columns: 38px !important;
+    grid-template-columns: 40px !important;
+    place-items: center !important;
     justify-content: center !important;
-    padding-inline: 6px !important;
+    padding: 6px !important;
+    min-height: 58px !important;
+  }
+
+  .admin-shell--collapsed .admin-sidebar-profile__trigger .admin-profile-avatar {
+    display: grid !important;
+    place-items: center !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    flex: 0 0 40px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  .admin-shell--collapsed .admin-sidebar-profile__trigger .admin-profile-avatar img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    object-fit: cover !important;
   }
 
   .admin-shell--collapsed .admin-sidebar-profile__trigger .admin-profile-meta,
