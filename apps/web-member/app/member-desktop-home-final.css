@@ -3,30 +3,52 @@
     display: none !important;
   }
 
+  body:has(.desktop-home) {
+    background:
+      radial-gradient(circle at 18% 4%, rgb(153 39 214 / 12%), transparent 30%),
+      radial-gradient(circle at 86% 12%, rgb(75 70 229 / 9%), transparent 28%),
+      #08070d !important;
+  }
+
   .desktop-home {
     width: min(100% - 36px, 1460px) !important;
-    grid-template-columns: minmax(0, 1fr) 300px !important;
-    gap: 16px !important;
-    margin-top: 18px !important;
+    grid-template-columns: minmax(0, 1fr) 310px !important;
+    gap: 18px !important;
+    margin-top: 20px !important;
+    color: #f8f6fb !important;
   }
 
   .desktop-home__main,
   .desktop-home__sidebar {
-    gap: 14px !important;
+    gap: 16px !important;
   }
 
   .desktop-home__hero-grid {
-    grid-template-columns: minmax(0, 2.35fr) minmax(260px, .9fr) !important;
-    min-height: 305px !important;
+    grid-template-columns: minmax(0, 2.35fr) minmax(270px, .9fr) !important;
+    gap: 12px !important;
+    min-height: 320px !important;
+  }
+
+  .desktop-home__hero-primary,
+  .desktop-home__feature-tile,
+  .desktop-home__promo-card,
+  .desktop-home__games,
+  .desktop-home__tournament,
+  .desktop-home__guide,
+  .desktop-home__side-card,
+  .desktop-home__quick-strip a,
+  .desktop-home__announcement {
+    border-color: rgb(255 255 255 / 8%) !important;
+    box-shadow: 0 18px 50px rgb(0 0 0 / 24%), inset 0 1px rgb(255 255 255 / 4%) !important;
+    backdrop-filter: blur(18px);
   }
 
   .desktop-home__hero-primary {
     position: relative !important;
     display: block !important;
-    min-height: 305px !important;
+    min-height: 320px !important;
     overflow: hidden !important;
-    border: 1px solid rgb(255 255 255 / 8%) !important;
-    border-radius: 16px !important;
+    border-radius: 22px !important;
     background: radial-gradient(circle at 70% 30%, rgb(186 48 255 / 24%), transparent 34%), #160d1d !important;
     color: #fff !important;
     text-decoration: none !important;
@@ -35,97 +57,273 @@
   .desktop-home__hero-primary > img {
     display: block;
     width: 100%;
-    height: 305px;
+    height: 320px;
     object-fit: cover;
+    transition: transform .55s cubic-bezier(.2,.7,.2,1), filter .35s ease;
+  }
+
+  .desktop-home__hero-primary:hover > img {
+    transform: scale(1.025);
+    filter: saturate(1.06) contrast(1.02);
   }
 
   .desktop-home__hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgb(8 4 12 / 82%), transparent 58%), linear-gradient(180deg, transparent 50%, rgb(8 4 12 / 58%));
+    background:
+      linear-gradient(90deg, rgb(8 4 12 / 88%), rgb(8 4 12 / 25%) 58%, transparent),
+      linear-gradient(180deg, transparent 42%, rgb(8 4 12 / 72%));
   }
 
   .desktop-home__hero-copy {
     position: absolute;
-    left: 24px;
-    bottom: 22px;
+    left: 28px;
+    bottom: 26px;
     z-index: 2;
     display: grid;
-    max-width: 58%;
-    gap: 5px;
+    max-width: 60%;
+    gap: 7px;
   }
 
-  .desktop-home__hero-copy small {
-    color: #efb6ff;
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: .1em;
+  .desktop-home__hero-copy small,
+  .desktop-home__section-heading span,
+  .desktop-home__feature-copy small {
+    color: #efa8ff !important;
+    font-weight: 900 !important;
+    letter-spacing: .13em !important;
   }
 
   .desktop-home__hero-copy strong {
-    font-size: clamp(24px, 2vw, 34px);
-    line-height: 1.05;
+    font-size: clamp(26px, 2vw, 36px);
+    line-height: 1.06;
+    text-wrap: balance;
   }
 
   .desktop-home__hero-copy em {
-    color: rgb(255 255 255 / 70%);
+    color: rgb(255 255 255 / 72%);
     font-size: 13px;
     font-style: normal;
   }
 
   .desktop-home__hero-stack {
-    gap: 10px !important;
+    gap: 12px !important;
   }
 
   .desktop-home__feature-tile {
-    border-radius: 14px !important;
+    border-radius: 18px !important;
+    background: #16111d !important;
+  }
+
+  .desktop-home__feature-tile-overlay {
+    background: linear-gradient(180deg, transparent 10%, rgb(7 4 11 / 88%)) !important;
+  }
+
+  .desktop-home__feature-copy {
+    inset: auto 16px 15px !important;
+  }
+
+  .desktop-home__announcement {
+    min-height: 48px !important;
+    border-radius: 16px !important;
+    background: linear-gradient(90deg, rgb(181 54 232 / 13%), rgb(255 255 255 / 3%)) !important;
+  }
+
+  .desktop-home__announcement b {
+    background: linear-gradient(135deg, #a72bd7, #6d28d9) !important;
+    box-shadow: 0 8px 20px rgb(167 43 215 / 28%);
+  }
+
+  .desktop-home__quick-strip {
+    gap: 12px !important;
+  }
+
+  .desktop-home__quick-strip a {
+    min-height: 72px !important;
+    border-radius: 18px !important;
+    background: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(255 255 255 / 2%)), #121018 !important;
+  }
+
+  .desktop-home__quick-strip a:hover {
+    transform: translateY(-3px) !important;
+    border-color: rgb(214 90 255 / 42%) !important;
+    background: linear-gradient(180deg, rgb(204 69 255 / 12%), rgb(255 255 255 / 3%)), #17101e !important;
+  }
+
+  .desktop-home__quick-icon {
+    border-radius: 13px !important;
+    background: linear-gradient(145deg, #b82ce4, #6d28d9) !important;
+    box-shadow: 0 10px 24px rgb(138 43 226 / 25%);
+  }
+
+  .desktop-home__promo-row {
+    gap: 16px !important;
   }
 
   .desktop-home__promo-card {
-    grid-template-rows: 130px auto !important;
+    grid-template-rows: 138px auto !important;
+    border-radius: 20px !important;
+    background: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(255 255 255 / 2%)), #121018 !important;
+  }
+
+  .desktop-home__promo-card:hover {
+    transform: translateY(-4px) !important;
+  }
+
+  .desktop-home__promo-art img {
+    transition: transform .35s ease;
+  }
+
+  .desktop-home__promo-card:hover .desktop-home__promo-art img {
+    transform: scale(1.04);
   }
 
   .desktop-home__games,
   .desktop-home__tournament,
-  .desktop-home__guide {
-    border-radius: 15px !important;
+  .desktop-home__guide,
+  .desktop-home__side-card {
+    border-radius: 20px !important;
+    background: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(255 255 255 / 2%)), rgb(18 15 24 / 92%) !important;
+  }
+
+  .desktop-home__section-heading h2 {
+    font-size: 21px !important;
+    letter-spacing: -.02em;
+  }
+
+  .desktop-home__section-heading a {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgb(212 93 255 / 10%);
+    transition: background .18s ease, color .18s ease;
+  }
+
+  .desktop-home__section-heading a:hover {
+    background: rgb(212 93 255 / 18%);
+    color: #fff !important;
+  }
+
+  .desktop-home__tournament-banner {
+    min-height: 180px !important;
+    border-radius: 16px !important;
+    background:
+      radial-gradient(circle at 85% 35%, rgb(243 178 255 / 22%), transparent 26%),
+      linear-gradient(135deg, #27102f, #69217d 56%, #a52ad0) !important;
+  }
+
+  .desktop-home__match-card {
+    border: 1px solid rgb(255 255 255 / 6%);
+    background: rgb(255 255 255 / 4%) !important;
   }
 
   .desktop-home__game-grid {
     grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
-    gap: 8px !important;
+    gap: 10px !important;
+  }
+
+  .desktop-home__game-card {
+    overflow: hidden;
+    border-radius: 14px !important;
+    background: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(255 255 255 / 2%)) !important;
+  }
+
+  .desktop-home__game-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 14px 28px rgb(0 0 0 / 28%);
   }
 
   .desktop-home__game-art,
   .desktop-home__game-art img {
-    height: 118px !important;
-    min-height: 118px !important;
+    height: 122px !important;
+    min-height: 122px !important;
   }
 
-  .desktop-home__game-card {
-    border-radius: 11px !important;
+  .desktop-home__game-art {
+    background: linear-gradient(145deg, #201526, #2d1838) !important;
+  }
+
+  .desktop-home__game-play {
+    padding: 7px 12px !important;
+    background: rgb(20 8 28 / 88%) !important;
+    box-shadow: 0 8px 22px rgb(0 0 0 / 30%);
   }
 
   .desktop-home__game-meta {
-    padding: 7px !important;
+    padding: 9px !important;
   }
 
   .desktop-home__sidebar {
     top: 84px !important;
   }
 
+  .desktop-home__side-card--jackpot {
+    background:
+      radial-gradient(circle at 50% 0%, rgb(224 95 255 / 30%), transparent 48%),
+      linear-gradient(180deg, #1d1225, #131018) !important;
+  }
+
+  .desktop-home__side-card--jackpot > strong {
+    font-size: 26px !important;
+    letter-spacing: -.03em;
+  }
+
+  .desktop-home__leader-row,
+  .desktop-home__winner-row {
+    transition: background .16s ease, transform .16s ease;
+  }
+
+  .desktop-home__leader-row:hover,
+  .desktop-home__winner-row:hover {
+    background: rgb(255 255 255 / 3%);
+    transform: translateX(2px);
+  }
+
+  .desktop-home__mini-game {
+    background:
+      radial-gradient(circle at 50% 0%, rgb(255 255 255 / 16%), transparent 38%),
+      linear-gradient(145deg, #3a1049, #8923b1) !important;
+  }
+
+  .desktop-home__mini-game button {
+    font-weight: 900;
+    box-shadow: 0 10px 24px rgb(0 0 0 / 24%);
+  }
+
+  .desktop-home__guide summary {
+    border-radius: 12px;
+    transition: background .16s ease, padding-inline .16s ease;
+  }
+
+  .desktop-home__guide summary:hover {
+    padding-inline: 10px !important;
+    background: rgb(255 255 255 / 4%);
+  }
+
   .member-footer {
     width: min(100% - 36px, 1460px) !important;
     max-width: 1460px !important;
+    border-radius: 22px !important;
+    background: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(255 255 255 / 2%)), #121018 !important;
+    box-shadow: 0 20px 60px rgb(0 0 0 / 24%);
   }
 }
 
 @media (min-width: 1024px) and (max-width: 1280px) {
   .desktop-home {
-    grid-template-columns: minmax(0, 1fr) 270px !important;
+    grid-template-columns: minmax(0, 1fr) 280px !important;
   }
 
   .desktop-home__game-grid {
     grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-home *,
+  .desktop-home *::before,
+  .desktop-home *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
