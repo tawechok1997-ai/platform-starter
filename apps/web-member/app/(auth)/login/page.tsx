@@ -89,10 +89,10 @@ export default function MemberSignInPage() {
     <div className="public-auth-backdrop" aria-hidden="true" />
     <section className="public-auth-shell public-auth-modal" data-auth-mode="login" role="dialog" aria-modal="true" aria-labelledby="member-login-title">
       <Link href="/" className="public-auth-close" aria-label={t.close}>×</Link>
-      <div className="public-auth-tabs" role="tablist" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
-        <Link href="/register" role="tab" aria-selected="false">{t.register}</Link>
-        <Link href="/login" role="tab" aria-selected="true">{t.title}</Link>
-      </div>
+      <nav className="public-auth-tabs" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
+        <Link href="/register">{t.register}</Link>
+        <Link href="/login" aria-current="page">{t.title}</Link>
+      </nav>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
         <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <MemberRuntimeImage src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => changeLocale('th')} aria-pressed={locale === 'th'} className="public-auth-language__button ui-button ui-button--secondary">ไทย</button><button type="button" onClick={() => changeLocale('en')} aria-pressed={locale === 'en'} className="public-auth-language__button ui-button ui-button--secondary">EN</button></div></div>
         <div className="public-auth-heading"><span className="public-auth-heading__eyebrow">{t.eyebrow}</span><h1 id="member-login-title">{t.title}</h1><p>{t.subtitle}</p></div>
