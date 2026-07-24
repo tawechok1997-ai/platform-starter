@@ -19,6 +19,13 @@ const ALLOWED = new Set([
   'card.png',
   'sport.png',
   'logo.png',
+  'promo-side.webp',
+  'hero-winners.webp',
+  'hero-login.webp',
+  'hero-news.webp',
+  'tournament.webp',
+  'icon-dailymission.webp',
+  'icon-luckywheel.webp',
 ]);
 
 const SOURCE_NAMES: Record<string, string[]> = {
@@ -27,18 +34,25 @@ const SOURCE_NAMES: Record<string, string[]> = {
     '9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png',
     'logo.png',
   ],
-  'home.png': ['หน้าเเรก.png', 'หน้าหลัก.png', 'home.png'],
-  'promotion.png': ['โปรโมชัน.png', 'promotion.png'],
-  'activity.png': ['กิจกรรม.png', 'activity.png'],
-  'news.png': ['ข่าวสาร.png', 'news.png'],
-  'mission.png': ['กิจกรรม.png', 'mission.png'],
-  'casino.png': ['คาสิโน.png', 'casino.png'],
-  'slot.png': ['สล็อต.png', 'slot.png'],
-  'fish.png': ['ตกปลา.png', 'fish.png'],
-  'sport.png': ['กีฬา.png', 'sport.png'],
-  'card.png': ['ไพ่.png', 'card.png'],
-  'loto.png': ['หวย.png', 'loto.png'],
-  'live.png': ['ถ่ายทอดสด.png', 'live.png'],
+  'home.png': ['หน้าเเรก.png', 'หน้าหลัก.png', 'icon-home.png', 'home.png'],
+  'promotion.png': ['โปรโมชัน.png', 'shortcut-promo.png', 'promotion.png'],
+  'activity.png': ['กิจกรรม.png', 'shortcut-event.png', 'activity.png'],
+  'news.png': ['ข่าวสาร.png', 'shortcut-news.png', 'news.png'],
+  'mission.png': ['กิจกรรม.png', 'mission.webp', 'mission.png'],
+  'casino.png': ['คาสิโน.png', 'icon-casino.png', 'casino.png'],
+  'slot.png': ['สล็อต.png', 'icon-slot.png', 'slot.png'],
+  'fish.png': ['ตกปลา.png', 'icon-fish.png', 'fish.png'],
+  'sport.png': ['กีฬา.png', 'icon-sport.png', 'sport.png'],
+  'card.png': ['ไพ่.png', 'icon-card.png', 'card.png'],
+  'loto.png': ['หวย.png', 'icon-lotto.png', 'loto.png'],
+  'live.png': ['ถ่ายทอดสด.png', 'icon-live.png', 'live.png'],
+  'promo-side.webp': ['promo-side.webp', 'promo-side.jpg'],
+  'hero-winners.webp': ['hero-winners.webp', 'hero-winners.jpg'],
+  'hero-login.webp': ['hero-login.webp', 'hero-login.jpg'],
+  'hero-news.webp': ['hero-news.webp', 'hero-news.jpg'],
+  'tournament.webp': ['tournament.webp', 'tournament.png'],
+  'icon-dailymission.webp': ['icon-dailymission.webp', 'icon-dailymission-dt.webp'],
+  'icon-luckywheel.webp': ['icon-luckywheel.webp', 'icon-luckywheel-dt.webp'],
 };
 
 const cache = new Map<string, string | null>();
@@ -53,7 +67,7 @@ export async function GET(_request: Request, context: { params: Promise<{ name: 
   const body = await fs.readFile(filePath);
   return new NextResponse(body, {
     headers: {
-      'content-type': 'image/png',
+      'content-type': contentTypeFor(filePath),
       'cache-control': 'public, max-age=86400, stale-while-revalidate=604800',
     },
   });
@@ -124,4 +138,13 @@ async function isFile(filePath: string) {
   } catch {
     return false;
   }
+}
+
+function contentTypeFor(filePath: string) {
+  const extension = path.extname(filePath).toLowerCase();
+  if (extension === '.webp') return 'image/webp';
+  if (extension === '.jpg' || extension === '.jpeg') return 'image/jpeg';
+  if (extension === '.gif') return 'image/gif';
+  if (extension === '.svg') return 'image/svg+xml';
+  return 'image/png';
 }
