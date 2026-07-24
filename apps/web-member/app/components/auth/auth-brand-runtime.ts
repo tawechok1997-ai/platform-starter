@@ -23,21 +23,25 @@ export function createAuthBrandRuntimeFromBrand(
   mode: AuthMode,
   configuredMark?: unknown,
 ): AuthBrandRuntime {
-  const model = createAuthBrandViewModel(brand, mode, {
+  const sourceModel = createAuthBrandViewModel(brand, mode, {
     eyebrow: mode === 'login' ? 'MEMBER ACCESS' : 'CREATE ACCOUNT',
   });
+  const usesStarterFallback = sourceModel.siteName.trim().toLowerCase() === 'platform starter';
+  const model: AuthBrandViewModel = usesStarterFallback
+    ? { ...sourceModel, siteName: 'NOAH345' }
+    : sourceModel;
   const explicitMark = typeof configuredMark === 'string' ? configuredMark.trim().slice(0, 8) : '';
 
   return {
     model,
     style: {
       ...brand.themeStyle,
-      '--color-brand': String(brand.themeStyle['--brand-primary'] ?? '#f5c542'),
-      '--color-bg': String(brand.themeStyle['--brand-background'] ?? '#080808'),
-      '--color-card': String(brand.themeStyle['--brand-card'] ?? '#181818'),
+      '--color-brand': String(brand.themeStyle['--brand-primary'] ?? '#d81bbf'),
+      '--color-bg': String(brand.themeStyle['--brand-background'] ?? '#0b0712'),
+      '--color-card': String(brand.themeStyle['--brand-card'] ?? '#1d1729'),
       '--color-text': String(brand.themeStyle['--brand-text'] ?? '#ffffff'),
     },
-    brandMark: explicitMark || model.siteName.trim().slice(0, 1).toUpperCase() || 'P',
+    brandMark: explicitMark || model.siteName.trim().slice(0, 1).toUpperCase() || 'N',
     brandCode: brand.code,
   };
 }

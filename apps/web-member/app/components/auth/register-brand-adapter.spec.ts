@@ -54,7 +54,7 @@ test('falls back to main logo and stable brand mark', () => {
     assets: { ...base.assets, logoRegister: '' },
   });
   assert.equal(adapter.logoUrl, '/assets/reference-brand/brand/logo.svg');
-  assert.equal(adapter.brandMark, 'P');
+  assert.equal(adapter.brandMark, 'N');
 });
 
 test('maps public settings while preserving configured brand mark', () => {
