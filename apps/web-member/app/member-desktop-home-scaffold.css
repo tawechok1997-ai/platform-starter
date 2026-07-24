@@ -13,12 +13,7 @@
   }
 
   .desktop-home__main,
-  .desktop-home__sidebar {
-    display: grid;
-    align-content: start;
-    gap: 18px;
-    min-width: 0;
-  }
+  .desktop-home__sidebar { display: grid; align-content: start; gap: 18px; min-width: 0; }
 
   .desktop-home__hero-grid {
     display: grid;
@@ -36,17 +31,8 @@
     min-height: 330px !important;
   }
 
-  .desktop-home__hero-primary {
-    overflow: hidden;
-    border-radius: 18px;
-    background: #17111f;
-  }
-
-  .desktop-home__hero-stack {
-    display: grid;
-    grid-template-rows: 1fr 1fr;
-    gap: 14px;
-  }
+  .desktop-home__hero-primary { overflow: hidden; border-radius: 18px; background: #17111f; }
+  .desktop-home__hero-stack { display: grid; grid-template-rows: 1fr 1fr; gap: 14px; }
 
   .desktop-home__placeholder,
   .desktop-home__promo-art,
@@ -59,14 +45,33 @@
     background: linear-gradient(135deg, #2e1940, #6b2497 58%, #c63bff);
     color: rgb(255 255 255 / 82%);
     font-weight: 900;
-    letter-spacing: .08em;
+    letter-spacing: .04em;
   }
 
-  .desktop-home__promo-row {
+  .desktop-home__feature-tile {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
+    align-content: end;
+    gap: 5px;
+    min-height: 0;
+    padding: 20px;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 11%);
+    border-radius: 18px;
+    color: #fff;
+    text-decoration: none;
   }
+  .desktop-home__feature-tile span { color: #e690ff; font-size: 12px; font-weight: 900; letter-spacing: .08em; }
+  .desktop-home__feature-tile strong { font-size: 21px; }
+  .desktop-home__feature-tile small { color: rgb(255 255 255 / 65%); }
+  .desktop-home__feature-tile--activity { background: radial-gradient(circle at 80% 18%, rgb(246 105 255 / 38%), transparent 33%), linear-gradient(145deg, #24112d, #5e1d74); }
+  .desktop-home__feature-tile--news { background: radial-gradient(circle at 80% 18%, rgb(101 153 255 / 30%), transparent 34%), linear-gradient(145deg, #16152c, #312c6f); }
+
+  .desktop-home__quick-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .desktop-home__quick-strip a { display: grid; gap: 3px; min-height: 68px; align-content: center; padding: 12px 16px; border: 1px solid rgb(255 255 255 / 9%); border-radius: 15px; background: #17121c; color: #fff; text-decoration: none; }
+  .desktop-home__quick-strip a:hover { border-color: rgb(212 93 255 / 50%); background: #211529; }
+  .desktop-home__quick-strip span { color: rgb(255 255 255 / 54%); font-size: 11px; }
+
+  .desktop-home__promo-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 
   .desktop-home__promo-card,
   .desktop-home__games,
@@ -81,6 +86,9 @@
 
   .desktop-home__promo-card { display: grid; grid-template-rows: 145px auto; }
   .desktop-home__promo-art { border-radius: 0; }
+  .desktop-home__promo-art--1 { background: linear-gradient(135deg, #511a70, #b832e8); }
+  .desktop-home__promo-art--2 { background: linear-gradient(135deg, #10284f, #3159a5); }
+  .desktop-home__promo-art--3 { background: linear-gradient(135deg, #4c1f2f, #ad3b66); }
   .desktop-home__promo-copy { display: grid; gap: 4px; padding: 12px 14px 14px; }
   .desktop-home__promo-copy span { color: rgb(255 255 255 / 62%); font-size: 13px; }
 
@@ -89,48 +97,46 @@
   .desktop-home__guide { padding: 16px; }
 
   .desktop-home__section-heading,
-  .desktop-home__side-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
+  .desktop-home__side-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .desktop-home__section-heading { margin-bottom: 14px; }
   .desktop-home__section-heading h2 { margin: 0; font-size: 20px; }
   .desktop-home__section-heading span { color: #d45dff; font-size: 12px; font-weight: 900; }
   .desktop-home__section-heading a { color: #d45dff; font-size: 13px; font-weight: 800; text-decoration: none; }
 
-  .desktop-home__tournament-banner { min-height: 170px; margin-bottom: 12px; }
+  .desktop-home__tournament-banner { min-height: 170px; margin-bottom: 12px; padding: 26px; place-items: end start; background: radial-gradient(circle at 82% 28%, rgb(255 197 66 / 36%), transparent 28%), linear-gradient(135deg, #301236, #7d246f 58%, #b78328); }
+  .desktop-home__tournament-banner > div { display: grid; gap: 5px; }
+  .desktop-home__tournament-banner span { color: #ffdc83; font-size: 12px; }
+  .desktop-home__tournament-banner strong { font-size: 24px; }
+  .desktop-home__tournament-banner small { color: rgb(255 255 255 / 67%); }
   .desktop-home__match-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .desktop-home__match-card { display: grid; gap: 6px; padding: 13px; border-radius: 13px; background: rgb(255 255 255 / 5%); }
   .desktop-home__match-card span { color: rgb(255 255 255 / 58%); font-size: 12px; }
 
   .desktop-home__game-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; }
-  .desktop-home__game-card { min-width: 0; overflow: hidden; border-radius: 13px; background: rgb(255 255 255 / 4%); }
-  .desktop-home__game-art { min-height: 108px; border-radius: 13px 13px 0 0; font-size: 12px; }
+  .desktop-home__game-card { min-width: 0; overflow: hidden; border-radius: 13px; background: rgb(255 255 255 / 4%); color: #fff; text-decoration: none; transition: transform .16s ease, background .16s ease; }
+  .desktop-home__game-card:hover { transform: translateY(-3px); background: rgb(255 255 255 / 8%); }
+  .desktop-home__game-art { position: relative; min-height: 108px; border-radius: 13px 13px 0 0; font-size: 28px; }
+  .desktop-home__game-art img { width: 100%; height: 108px; object-fit: cover; display: block; }
+  .desktop-home__game-art em { position: absolute; top: 7px; right: 7px; padding: 4px 6px; border-radius: 999px; background: #d45dff; color: #fff; font-size: 9px; font-style: normal; letter-spacing: .04em; }
   .desktop-home__game-meta { display: grid; gap: 2px; padding: 8px; }
   .desktop-home__game-meta strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-  .desktop-home__game-meta span { color: rgb(255 255 255 / 55%); font-size: 11px; }
+  .desktop-home__game-meta span { color: rgb(255 255 255 / 55%); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .desktop-home__empty { display: grid; min-height: 118px; place-items: center; border: 1px dashed rgb(255 255 255 / 12%); border-radius: 13px; color: rgb(255 255 255 / 55%); font-size: 13px; }
 
   .desktop-home__side-card { padding: 15px; }
   .desktop-home__side-card--jackpot { display: grid; gap: 7px; text-align: center; background: radial-gradient(circle at top, rgb(205 50 255 / 28%), transparent 58%), #17101d; }
   .desktop-home__side-card--jackpot > span { color: #e58fff; font-size: 12px; font-weight: 900; }
   .desktop-home__side-card--jackpot > strong { font-size: 24px; }
   .desktop-home__side-card small { color: rgb(255 255 255 / 52%); }
-
   .desktop-home__leader-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 42px; border-bottom: 1px solid rgb(255 255 255 / 7%); font-size: 12px; }
   .desktop-home__leader-row b { display: grid; width: 24px; height: 24px; place-items: center; border-radius: 999px; background: rgb(190 45 255 / 20%); color: #dc7cff; }
   .desktop-home__leader-row > strong { color: #e58fff; font-size: 11px; }
-
   .desktop-home__mini-game { display: grid; min-height: 180px; place-items: center; align-content: center; gap: 8px; text-align: center; background: linear-gradient(145deg, #311041, #7b1dab); }
   .desktop-home__mini-game button { min-height: 38px; padding: 0 18px; border: 0; border-radius: 999px; background: #fff; color: #68158c; cursor: pointer; }
-
   .desktop-home__winner-row { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 9px; align-items: center; padding: 10px 0; border-bottom: 1px solid rgb(255 255 255 / 7%); }
   .desktop-home__winner-avatar { width: 38px; height: 38px; border-radius: 999px; background: linear-gradient(135deg, #713197, #d45dff); }
   .desktop-home__winner-row > div:last-child { display: grid; gap: 2px; }
   .desktop-home__winner-row span { color: rgb(255 255 255 / 55%); font-size: 11px; }
-
   .desktop-home__guide details { border-top: 1px solid rgb(255 255 255 / 8%); }
   .desktop-home__guide summary { padding: 14px 2px; cursor: pointer; font-weight: 800; }
   .desktop-home__guide p { margin: 0 0 14px; }
