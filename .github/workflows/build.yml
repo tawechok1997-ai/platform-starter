@@ -51,6 +51,9 @@ jobs:
       - name: Validate shell scripts
         run: bash -n scripts/*.sh
 
+      - name: Audit deployment verification workflow
+        run: node --test tools/deployment-verification-workflow.test.mjs
+
       - name: Audit architecture inventory
         run: pnpm audit:architecture-inventory
 
