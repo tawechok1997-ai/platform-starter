@@ -1,5 +1,4 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 
 import type { CSSProperties, FormEvent } from 'react';
 import Link from 'next/link';
@@ -83,7 +82,7 @@ export function RegisterView(props: RegisterViewProps) {
       <Link href="/" className="public-auth-close" aria-label={closeLabel}>×</Link>
       <nav className="public-auth-tabs" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
         <Link href="/register" aria-current="page">{registerLabel}</Link>
-        <Link href="/login">{t.login}</Link>
+        {loginEnabled && <Link href="/login">{t.login}</Link>}
       </nav>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
         <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => onLocaleChange('th')} aria-pressed={locale === 'th'} className="public-auth-language__button">ไทย</button><button type="button" onClick={() => onLocaleChange('en')} aria-pressed={locale === 'en'} className="public-auth-language__button">EN</button></div></div>
