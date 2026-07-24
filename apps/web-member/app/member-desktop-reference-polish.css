@@ -1,0 +1,214 @@
+/* Final PC reference polish. Keep this file last. */
+
+@media (min-width: 1024px) {
+  .public-home-topbar.global-member-topbar {
+    min-height: 92px !important;
+    background: #1b1526 !important;
+    border-bottom: 0 !important;
+  }
+
+  .public-home-topbar .member-topbar__inner {
+    width: min(calc(100% - 28px), 1240px) !important;
+    max-width: 1240px !important;
+    min-height: 92px !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: start !important;
+    padding: 9px 0 38px !important;
+  }
+
+  .public-home-topbar .member-brand {
+    align-self: center !important;
+    min-width: 126px !important;
+  }
+
+  .public-home-topbar .member-brand-mark,
+  .public-home-topbar .member-brand-logo {
+    width: 126px !important;
+    max-width: 126px !important;
+    height: 31px !important;
+  }
+
+  .public-home-topbar .member-actions {
+    align-self: center !important;
+    min-height: 34px !important;
+    gap: 8px !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest {
+    right: calc((100vw - min(calc(100vw - 28px), 1240px)) / -2) !important;
+    left: calc((100vw - min(calc(100vw - 28px), 1240px)) / -2) !important;
+    min-height: 36px !important;
+    padding-left: max(12px, calc((100vw - 1240px) / 2)) !important;
+    border-top: 1px solid rgb(255 255 255 / 4%) !important;
+    background: #120e19 !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a {
+    min-height: 36px !important;
+    gap: 6px !important;
+    padding: 0 17px !important;
+    font-size: 12px !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a::before {
+    display: inline-grid !important;
+    width: 20px !important;
+    height: 20px !important;
+    place-items: center !important;
+    border-radius: 6px !important;
+    color: #f2c8ff !important;
+    font-size: 13px !important;
+    line-height: 1 !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a:nth-child(1)::before { content: '⌂'; }
+  .public-home-topbar .member-desktop-nav--guest a:nth-child(2)::before { content: '♣'; }
+  .public-home-topbar .member-desktop-nav--guest a:nth-child(3)::before { content: '▦'; }
+  .public-home-topbar .member-desktop-nav--guest a:nth-child(4)::before { content: '♠'; }
+  .public-home-topbar .member-desktop-nav--guest a:nth-child(5)::before { content: '⚽'; }
+  .public-home-topbar .member-desktop-nav--guest a:nth-child(6)::before { content: '◇'; }
+  .public-home-topbar .member-desktop-nav--guest a:nth-child(7)::before { content: '✹'; }
+  .public-home-topbar .member-desktop-nav--guest a:nth-child(8)::before { content: '▶'; }
+
+  .public-home-topbar .member-guest-action {
+    min-width: 94px !important;
+    min-height: 32px !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+  }
+
+  .desktop-reference-home.desktop-home {
+    width: min(calc(100% - 28px), 1240px) !important;
+    max-width: 1240px !important;
+    grid-template-columns: minmax(0, 1fr) 270px !important;
+    gap: 12px !important;
+    margin-top: 12px !important;
+  }
+
+  .reference-main-column,
+  .reference-sidebar {
+    gap: 10px !important;
+  }
+
+  .reference-hero-row {
+    min-height: 250px !important;
+    grid-template-columns: 185px minmax(0, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .reference-hero-main,
+  .reference-hero-peek,
+  .reference-reward-banner {
+    min-height: 250px !important;
+    border-radius: 6px !important;
+  }
+
+  .reference-reward-banner {
+    max-height: 250px !important;
+  }
+
+  .reference-promo-row {
+    min-height: 102px !important;
+    gap: 4px !important;
+    padding: 4px !important;
+  }
+
+  .reference-promo-card {
+    min-height: 92px !important;
+    grid-template-columns: 78px minmax(0, 1fr) !important;
+    padding: 7px 11px !important;
+  }
+
+  .reference-promo-icon {
+    width: 66px !important;
+    height: 66px !important;
+    font-size: 42px !important;
+  }
+
+  .reference-tournament-cta {
+    min-height: 62px !important;
+  }
+
+  .reference-tournament-board,
+  .reference-featured-section,
+  .reference-number-section,
+  .reference-compact-section,
+  .reference-guide {
+    border-radius: 5px !important;
+  }
+
+  .reference-featured-grid {
+    grid-template-columns: 218px minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .reference-featured-small-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .reference-game-tile--large > img,
+  .reference-game-tile--large > .reference-game-fallback {
+    height: 292px !important;
+  }
+
+  .reference-game-tile > img,
+  .reference-game-fallback {
+    height: 125px !important;
+  }
+
+  .reference-number-row {
+    min-height: 145px !important;
+  }
+
+  .reference-number-card span {
+    font-size: 58px !important;
+  }
+
+  .reference-online-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+
+  .reference-online-card > img,
+  .reference-online-card > .reference-game-fallback {
+    height: 142px !important;
+  }
+
+  .reference-live-card {
+    min-height: 112px !important;
+  }
+
+  .reference-sidebar {
+    top: 104px !important;
+  }
+
+  .reference-side-card > header {
+    min-height: 30px !important;
+  }
+
+  .reference-jackpot > div {
+    min-height: 132px !important;
+  }
+
+  .reference-leaderboard > div {
+    min-height: 43px !important;
+  }
+
+  .member-footer {
+    width: min(calc(100% - 28px), 1240px) !important;
+    max-width: 1240px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .desktop-reference-home.desktop-home,
+  .public-home-topbar .member-topbar__inner,
+  .member-footer {
+    width: min(calc(100% - 40px), 1280px) !important;
+    max-width: 1280px !important;
+  }
+
+  .desktop-reference-home.desktop-home {
+    grid-template-columns: minmax(0, 1fr) 286px !important;
+  }
+}
