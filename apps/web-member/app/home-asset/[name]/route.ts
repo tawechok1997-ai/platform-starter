@@ -6,6 +6,11 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const ALLOWED = new Set([
+  'home.png',
+  'promotion.png',
+  'activity.png',
+  'news.png',
+  'mission.png',
   'fish.png',
   'slot.png',
   'casino.png',
@@ -22,6 +27,18 @@ const SOURCE_NAMES: Record<string, string[]> = {
     '9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png',
     'logo.png',
   ],
+  'home.png': ['หน้าเเรก.png', 'หน้าหลัก.png', 'home.png'],
+  'promotion.png': ['โปรโมชัน.png', 'promotion.png'],
+  'activity.png': ['กิจกรรม.png', 'activity.png'],
+  'news.png': ['ข่าวสาร.png', 'news.png'],
+  'mission.png': ['กิจกรรม.png', 'mission.png'],
+  'casino.png': ['คาสิโน.png', 'casino.png'],
+  'slot.png': ['สล็อต.png', 'slot.png'],
+  'fish.png': ['ตกปลา.png', 'fish.png'],
+  'sport.png': ['กีฬา.png', 'sport.png'],
+  'card.png': ['ไพ่.png', 'card.png'],
+  'loto.png': ['หวย.png', 'loto.png'],
+  'live.png': ['ถ่ายทอดสด.png', 'live.png'],
 };
 
 const cache = new Map<string, string | null>();
