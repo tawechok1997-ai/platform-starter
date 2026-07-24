@@ -80,10 +80,10 @@ export function RegisterView(props: RegisterViewProps) {
     <div className="public-auth-backdrop" aria-hidden="true" />
     <section className="public-auth-shell public-auth-shell--register public-auth-modal" role="dialog" aria-modal="true" aria-labelledby="member-register-title">
       <Link href="/" className="public-auth-close" aria-label={closeLabel}>×</Link>
-      <div className="public-auth-tabs" role="tablist" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
-        <Link href="/register" role="tab" aria-selected="true">{registerLabel}</Link>
-        <Link href="/login" role="tab" aria-selected="false">{t.login}</Link>
-      </div>
+      <nav className="public-auth-tabs" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
+        <Link href="/register" aria-current="page">{registerLabel}</Link>
+        <Link href="/login">{t.login}</Link>
+      </nav>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
         <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => onLocaleChange('th')} aria-pressed={locale === 'th'} className="public-auth-language__button">ไทย</button><button type="button" onClick={() => onLocaleChange('en')} aria-pressed={locale === 'en'} className="public-auth-language__button">EN</button></div></div>
         <div className="public-auth-heading"><span className="public-auth-heading__eyebrow">{locale === 'th' ? 'สร้างบัญชีสมาชิก' : 'CREATE MEMBER ACCOUNT'}</span><h1 id="member-register-title">{step === 1 ? (locale === 'th' ? 'กรอกเบอร์โทรศัพท์' : 'Enter phone number') : t.title}</h1><p>{t.subtitle}</p></div>
