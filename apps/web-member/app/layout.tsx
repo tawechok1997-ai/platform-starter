@@ -48,6 +48,7 @@ import './member-reference-theme.css';
 import './member-reference-current.css';
 import './member-production-desktop-fix.css';
 import './member-desktop-home-scaffold.css';
+import './member-desktop-home-final.css';
 import MemberChrome from './member-chrome';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import { MemberSessionProvider } from './member-session-provider';
