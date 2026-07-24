@@ -3,17 +3,7 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import type { CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
-
-const V47_ASSETS = {
-  promotion: '/v47-assets/home-source/promo-special.png',
-  activity: '/v47-assets/home-source/promo-activity.png',
-  news: '/v47-assets/home-source/promo-news.png',
-  announcement: '/v47-assets/home-source/announcement-megaphone.png',
-  tournament: '/v47-assets/home/tournament-banner-normalized.png',
-  jackpot: '/v47-assets/home-source/jackpot.gif',
-  live: '/v47-assets/live/logo_live.webp',
-  miniGame: '/v47-assets/home/mini-game-wheel.png',
-} as const;
+import { V47_ASSETS, resolveV47Asset } from './v47-asset-map';
 
 type Props = {
   content: CmsContent;
@@ -60,35 +50,35 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
       <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">{(banners.length ? banners : Array.from({ length: 5 })).map((_, index) => <button key={index} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}`} />)}</div>
 
       <div className="v47-mobile-quick-grid">
-        <QuickCard icon={V47_ASSETS.promotion} title="โปรโมชั่น" href="/promotions" />
-        <QuickCard icon={V47_ASSETS.activity} title="กิจกรรม" href="/promotions" />
-        <QuickCard icon={V47_ASSETS.news} title="ข่าวสาร" href="/notifications" />
+        <QuickCard icon={V47_ASSETS.quickPromotion} title="โปรโมชั่น" href="/promotions" />
+        <QuickCard icon={V47_ASSETS.quickActivity} title="กิจกรรม" href="/promotions" />
+        <QuickCard icon={V47_ASSETS.quickNews} title="ข่าวสาร" href="/notifications" />
       </div>
 
       <a className="v47-mobile-tournament-banner" href="/promotions">
-        <img src={tournament?.url || V47_ASSETS.tournament} alt="Tournament" onError={hideBrokenImage} />
+        <img src={resolveV47Asset(tournament?.url, 'tournament')} alt="Tournament" onError={hideBrokenImage} />
         <span><small>TOURNAMENT</small><strong>เข้าร่วมชิงความเป็นที่ 1</strong></span>
         <b>เข้าแข่งขัน ›</b>
       </a>
 
       <section className="v47-mobile-panel v47-mobile-rank-panel">
-        <SectionTitle icon={tournament?.url || V47_ASSETS.tournament} title="ทัวร์นาเมนต์" />
+        <SectionTitle icon={resolveV47Asset(tournament?.url, 'tournament')} title="ทัวร์นาเมนต์" />
         <div className="v47-mobile-rank-title"><strong>No.1 Tournament Football Royale ครั้งที่ 2</strong><a href="/promotions">ดูทั้งหมด ›</a></div>
-        <div className="v47-mobile-ranks">{Array.from({ length: 3 }, (_, index) => <article key={index}><b>{index + 1}</b><span>ZAX00{[790740, 664100, 844010][index]}</span><strong>{[20, 17, 13][index]}</strong><small>● ● ● ● ●</small></article>)}</div>
+        <div className="v47-mobile-ranks">{Array.from({ length: 3 }, (_, index) => <article key={index}><img src={V47_ASSETS.rankTop3} alt="" onError={hideBrokenImage} /><b>{index + 1}</b><span>ZAX00{[790740, 664100, 844010][index]}</span><strong>{[20, 17, 13][index]}</strong><small>● ● ● ● ●</small></article>)}</div>
       </section>
 
-      <section className="v47-mobile-jackpot"><img src={jackpot?.url || V47_ASSETS.jackpot} alt="Jackpot" onError={hideBrokenImage} /><span><small>JACKPOTS</small><strong>194,428,645</strong><em>Epic of the day</em></span></section>
+      <section className="v47-mobile-jackpot"><img src={resolveV47Asset(jackpot?.url, 'jackpot')} alt="Jackpot" onError={hideBrokenImage} /><span><small>JACKPOTS</small><strong>194,428,645</strong><em>Epic of the day</em></span></section>
 
       <section className="v47-mobile-panel"><SectionTitle icon={leaderboard?.url || icons.vip} title="Leaderboard" action="ดูทั้งหมด" /><div className="v47-mobile-board-head"><span>อันดับ</span><span>ชื่อผู้เล่น</span><span>รางวัล</span></div>{Array.from({ length: 5 }, (_, index) => <div className="v47-mobile-board-row" key={index}><b>{index + 1}</b><span>0{980000018 - index * 8241}</span><em>{[15000, 5700, 3500, 2904, 2100][index]?.toLocaleString()}</em></div>)}</section>
 
-      <GameSection title="Top 10 Popular Games" icon={icons.games} games={popular} loading={isGamesLoading} message={gamesMessage} />
+      <GameSection title="Top 10 Popular Games" icon={V47_ASSETS.mobilePopular} games={popular} loading={isGamesLoading} message={gamesMessage} />
       <GameSection title="Most Online Now" icon={icons.games} games={online} loading={isGamesLoading} message={gamesMessage} />
 
       <section className="v47-mobile-panel v47-mobile-live"><SectionTitle icon={V47_ASSETS.live} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/login">ดูถ่ายทอดสด</a><a href="/login">เดิมพันทันที</a></footer></article></section>
 
       <GameSection title="Classic Games" icon={icons.games} games={classic} loading={isGamesLoading} message={gamesMessage} />
 
-      <section className="v47-mobile-panel v47-mobile-guide"><SectionTitle icon={icons.support} title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="v47-mobile-guide-more" href="/guide">ดูทั้งหมด</a></section>
+      <section className="v47-mobile-panel v47-mobile-guide"><SectionTitle icon={V47_ASSETS.mobileFaq} title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="v47-mobile-guide-more" href="/guide">ดูทั้งหมด</a></section>
 
       <section className="v47-mobile-panel v47-mobile-partners"><SectionTitle icon={partner?.url || icons.affiliate} title="พันธมิตรของเรา" /><div>{providers.map((provider, index) => <span key={`${provider.code}-${index}`}>{provider.logoUrl ? <img src={normalizeUrl(provider.logoUrl)} alt={provider.name || provider.code || 'Provider'} onError={hideBrokenImage} /> : <b>{provider.code || provider.name}</b>}</span>)}</div></section>
     </section>
