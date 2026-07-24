@@ -90,7 +90,7 @@ export function DesktopHomeScaffold({ content, siteName, showPromotion, games, i
           <PanelHeading icon="★" title="เกมไฮไลต์" />
           {isGamesLoading ? <EmptyState label="กำลังโหลดเกมจาก API..." /> : featured.length ? (
             <div className="reference-featured-grid">
-              <GameTile game={featured[0]} large />
+              <GameTile game={featured[0]!} large />
               <div className="reference-featured-small-grid">
                 {featured.slice(1, 9).map((game) => <GameTile key={game.id} game={game} />)}
               </div>
