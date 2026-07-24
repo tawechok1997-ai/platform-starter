@@ -2,29 +2,34 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { requestJson } from '../member-api';
-import type { Game, GameLobbyPayload, LedgerItem, MoneyRequest, PaginatedItems } from '../types/member-api';
+import type { Game, GameLobbyPayload, LedgerItem, MoneyRequest } from '../types/member-api';
 
 const FAVORITES_KEY = 'member_favorite_game_ids';
 const RECENT_KEY = 'member_recent_game_ids';
 
 export function useMemberHomeData(gamesEnabled: boolean) {
-  const [topups, setTopups] = useState<MoneyRequest[]>([]);
-  const [withdrawals, setWithdrawals] = useState<MoneyRequest[]>([]);
-  const [ledgers, setLedgers] = useState<LedgerItem[]>([]);
+  const [topups] = useState<MoneyRequest[]>([]);
+  const [withdrawals] = useState<MoneyRequest[]>([]);
+  const [ledgers] = useState<LedgerItem[]>([]);
   const [lobby, setLobby] = useState<GameLobbyPayload>({});
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [recentIds, setRecentIds] = useState<string[]>([]);
-  const [activityMessage, setActivityMessage] = useState('');
-  const [isActivityLoading, setIsActivityLoading] = useState(false);
   const [gamesMessage, setGamesMessage] = useState('');
   const [isGamesLoading, setIsGamesLoading] = useState(false);
 
   const loadGames = useCallback(async () => {
-    if (!gamesEnabled) { setLobby({}); return; }
+    if (!gamesEnabled) {
+      setLobby({});
+      return;
+    }
+
     setIsGamesLoading(true);
     setGamesMessage('');
     try {
-      const payload = await requestJson<GameLobbyPayload>('/member/games');
+      const payload = await requestJson<GameLobbyPayload>('/public/games', {
+        skipAuth: true,
+        suppressSessionExpiryRedirect: true,
+      });
       setLobby(payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {});
     } catch (error) {
       setLobby({});
@@ -34,31 +39,11 @@ export function useMemberHomeData(gamesEnabled: boolean) {
     }
   }, [gamesEnabled]);
 
-  const loadActivity = useCallback(async () => {
-    setIsActivityLoading(true);
-    setActivityMessage('');
-    try {
-      const [topupData, withdrawalData, ledgerData] = await Promise.all([
-        requestJson<PaginatedItems<MoneyRequest>>('/member/topups'),
-        requestJson<PaginatedItems<MoneyRequest>>('/member/withdrawals'),
-        requestJson<PaginatedItems<LedgerItem>>('/member/wallet/ledger?limit=5'),
-      ]);
-      setTopups(Array.isArray(topupData?.items) ? topupData.items : []);
-      setWithdrawals(Array.isArray(withdrawalData?.items) ? withdrawalData.items : []);
-      setLedgers(Array.isArray(ledgerData?.items) ? ledgerData.items : []);
-    } catch (error) {
-      setActivityMessage(error instanceof Error ? error.message : 'โหลดข้อมูลไม่สำเร็จ');
-    } finally {
-      setIsActivityLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     setFavoriteIds(readIds(FAVORITES_KEY));
     setRecentIds(readIds(RECENT_KEY));
     void loadGames();
-    void loadActivity();
-  }, [loadGames, loadActivity]);
+  }, [loadGames]);
 
   const pendingTopups = useMemo(() => topups.filter((item) => item?.status === 'PENDING').slice(0, 3), [topups]);
   const pendingWithdrawals = useMemo(() => withdrawals.filter((item) => item?.status === 'PENDING').slice(0, 3), [withdrawals]);
@@ -69,13 +54,28 @@ export function useMemberHomeData(gamesEnabled: boolean) {
   const popularSource = Array.isArray(lobby.popular) && lobby.popular.length
     ? lobby.popular
     : games.filter((game) => game?.isPopular);
-  const featured = featuredSource.slice(0, 8);
-  const popular = popularSource.slice(0, 8);
+  const featured = featuredSource.slice(0, 10);
+  const popular = popularSource.slice(0, 10);
   const recentGames = recentIds.map((id) => games.find((game) => game?.id === id)).filter(Boolean) as Game[];
   const favoriteGames = favoriteIds.map((id) => games.find((game) => game?.id === id)).filter(Boolean) as Game[];
   const categories = Array.isArray(lobby.categories) ? lobby.categories : [];
 
-  return { pendingTopups, pendingWithdrawals, ledgers, categories, featured, popular, recentGames, favoriteGames, activityMessage, isActivityLoading, reloadActivity: loadActivity, gamesMessage, isGamesLoading, reloadGames: loadGames };
+  return {
+    pendingTopups,
+    pendingWithdrawals,
+    ledgers,
+    categories,
+    featured,
+    popular,
+    recentGames,
+    favoriteGames,
+    activityMessage: '',
+    isActivityLoading: false,
+    reloadActivity: async () => undefined,
+    gamesMessage,
+    isGamesLoading,
+    reloadGames: loadGames,
+  };
 }
 
 function readIds(key: string) {
