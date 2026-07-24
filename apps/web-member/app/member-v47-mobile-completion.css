@@ -1,6 +1,77 @@
 /* Final V47 mobile lower-section completion. Loaded after the mobile source layout. */
 
 @media (max-width: 900px) {
+  .v47-mobile-rank-badge,
+  .v47-mobile-board-badge {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+  }
+
+  .v47-mobile-rank-badge {
+    width: 44px;
+    height: 38px;
+  }
+
+  .v47-mobile-rank-badge img {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 54px;
+    max-width: none;
+    height: 45px;
+    object-fit: contain;
+    transform: translate(-50%, -50%);
+  }
+
+  .v47-mobile-rank-badge b {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: auto !important;
+    height: auto !important;
+    place-items: center;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: #fff;
+    font-size: 11px;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 80%);
+  }
+
+  .v47-mobile-board-badge {
+    width: 34px;
+    height: 30px;
+  }
+
+  .v47-mobile-board-badge img {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 42px;
+    max-width: none;
+    height: 35px;
+    object-fit: contain;
+    transform: translate(-50%, -50%);
+  }
+
+  .v47-mobile-board-badge b {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: auto !important;
+    height: auto !important;
+    place-items: center;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: #fff;
+    font-size: 9px;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 80%);
+  }
+
+  .v47-mobile-board-row {
+    grid-template-columns: 48px minmax(0, 1fr) 78px;
+  }
+
   .v47-mobile-guide details {
     border-top: 1px solid rgb(255 255 255 / 5%);
     background: #17121d;
