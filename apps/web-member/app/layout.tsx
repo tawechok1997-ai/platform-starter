@@ -60,6 +60,7 @@ import './member-v47-mobile-completion.css';
 import './games/v47-mobile-game-pattern.css';
 import './member-v47-desktop-carousel.css';
 import './member-v47-header-structure.css';
+import './member-v47-quick-actions.css';
 import MemberChrome from './member-chrome';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import { MemberSessionProvider } from './member-session-provider';
