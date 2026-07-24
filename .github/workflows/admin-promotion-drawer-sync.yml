@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Add shared drawer and sync verified CMS work
+      - name: Add shared drawer contract
         shell: bash
         run: |
           python - <<'PY'
@@ -28,66 +28,71 @@ jobs:
           text = ui.read_text(encoding='utf-8')
           marker = "export function AdminCommandPanel({ children }: { children: ReactNode })"
           drawer = r'''export function AdminDrawer({ open, title, description, children, busy = false, onClose }: { open: boolean; title: string; description?: string; children: ReactNode; busy?: boolean; onClose: () => void }) {
-  const [mounted, setMounted] = useState(false);
-  const titleId = useId();
-  const descriptionId = useId();
-  const drawerRef = useRef<HTMLElement | null>(null);
-  const closeRef = useRef<HTMLButtonElement | null>(null);
-  const restoreFocusRef = useRef<HTMLElement | null>(null);
+            const [mounted, setMounted] = useState(false);
+            const titleId = useId();
+            const descriptionId = useId();
+            const drawerRef = useRef<HTMLElement | null>(null);
+            const closeRef = useRef<HTMLButtonElement | null>(null);
+            const restoreFocusRef = useRef<HTMLElement | null>(null);
 
-  useEffect(() => { setMounted(true); }, []);
-  useEffect(() => {
-    if (!open) return;
-    restoreFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const scrollY = window.scrollY;
-    const previous = { overflow: document.body.style.overflow, position: document.body.style.position, top: document.body.style.top, width: document.body.style.width };
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
-    const focusTimer = window.setTimeout(() => closeRef.current?.focus(), 30);
-    const containFocus = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) { onClose(); return; }
-      if (event.key !== 'Tab') return;
-      const focusable = Array.from(drawerRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? []).filter((element) => !element.hasAttribute('hidden'));
-      if (focusable.length === 0) { event.preventDefault(); return; }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) { event.preventDefault(); return; }
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    };
-    window.addEventListener('keydown', containFocus);
-    return () => {
-      window.clearTimeout(focusTimer);
-      window.removeEventListener('keydown', containFocus);
-      document.body.style.overflow = previous.overflow;
-      document.body.style.position = previous.position;
-      document.body.style.top = previous.top;
-      document.body.style.width = previous.width;
-      window.scrollTo(0, scrollY);
-      window.setTimeout(() => restoreFocusRef.current?.focus(), 0);
-    };
-  }, [open, busy, onClose]);
-  if (!open || !mounted) return null;
+            useEffect(() => { setMounted(true); }, []);
+            useEffect(() => {
+              if (!open) return;
+              restoreFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+              const scrollY = window.scrollY;
+              const previous = { overflow: document.body.style.overflow, position: document.body.style.position, top: document.body.style.top, width: document.body.style.width };
+              document.body.style.overflow = 'hidden';
+              document.body.style.position = 'fixed';
+              document.body.style.top = `-${scrollY}px`;
+              document.body.style.width = '100%';
+              const focusTimer = window.setTimeout(() => closeRef.current?.focus(), 30);
+              const containFocus = (event: KeyboardEvent) => {
+                if (event.key === 'Escape' && !busy) { onClose(); return; }
+                if (event.key !== 'Tab') return;
+                const focusable = Array.from(drawerRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? []).filter((element) => !element.hasAttribute('hidden'));
+                if (focusable.length === 0) { event.preventDefault(); return; }
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (!first || !last) { event.preventDefault(); return; }
+                if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+                else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+              };
+              window.addEventListener('keydown', containFocus);
+              return () => {
+                window.clearTimeout(focusTimer);
+                window.removeEventListener('keydown', containFocus);
+                document.body.style.overflow = previous.overflow;
+                document.body.style.position = previous.position;
+                document.body.style.top = previous.top;
+                document.body.style.width = previous.width;
+                window.scrollTo(0, scrollY);
+                window.setTimeout(() => restoreFocusRef.current?.focus(), 0);
+              };
+            }, [open, busy, onClose]);
+            if (!open || !mounted) return null;
 
-  return createPortal(
-    <div className="admin-drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
-      <aside ref={drawerRef} className="admin-drawer" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}>
-        <header className="admin-drawer__head"><div><h2 id={titleId}>{title}</h2>{description && <p id={descriptionId}>{description}</p>}</div><button ref={closeRef} type="button" className="admin-ui-button admin-ui-button--ghost admin-ui-button--compact" disabled={busy} onClick={onClose}>ปิด</button></header>
-        <div className="admin-drawer__body">{children}</div>
-      </aside>
-    </div>, document.body,
-  );
-}
+            const accessibility = description ? { 'aria-describedby': descriptionId } : {};
+            return createPortal(
+              <div className="admin-drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
+                <aside ref={drawerRef} className="admin-drawer" role="dialog" aria-modal="true" aria-labelledby={titleId} {...accessibility}>
+                  <header className="admin-drawer__head"><div><h2 id={titleId}>{title}</h2>{description && <p id={descriptionId}>{description}</p>}</div><button ref={closeRef} type="button" className="admin-ui-button admin-ui-button--ghost admin-ui-button--compact" disabled={busy} onClick={onClose}>ปิด</button></header>
+                  <div className="admin-drawer__body">{children}</div>
+                </aside>
+              </div>, document.body,
+            );
+          }
 
-'''
+          '''
           if 'export function AdminDrawer(' not in text:
             if marker not in text:
               raise SystemExit('Admin UI insertion marker not found')
             text = text.replace(marker, drawer + marker, 1)
           css_marker = ".admin-ui-page{min-width:0;width:100%;display:grid;gap:18px}"
-          drawer_css = ".admin-drawer-layer{position:fixed;inset:0;z-index:9000;display:flex;justify-content:flex-end;background:rgba(2,6,23,.62);backdrop-filter:blur(5px)}\n.admin-drawer{width:min(620px,100%);height:100%;overflow:auto;padding:24px;background:#111823;border-left:1px solid rgba(148,163,184,.22);box-shadow:-24px 0 60px rgba(2,6,23,.42)}\n.admin-drawer__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.admin-drawer__head h2{margin:0;font-size:24px}.admin-drawer__head p{margin:6px 0 0;color:#94a3b8}.admin-drawer__body{display:grid;gap:14px}\n@media(max-width:640px){.admin-drawer-layer{align-items:flex-end}.admin-drawer{width:100%;height:min(88dvh,760px);border-left:0;border-top:1px solid rgba(148,163,184,.22);border-radius:22px 22px 0 0;padding:18px}}\n"
+          drawer_css = '''.admin-drawer-layer{position:fixed;inset:0;z-index:9000;display:flex;justify-content:flex-end;background:rgba(2,6,23,.62);backdrop-filter:blur(5px)}
+          .admin-drawer{width:min(620px,100%);height:100%;overflow:auto;padding:24px;background:#111823;border-left:1px solid rgba(148,163,184,.22);box-shadow:-24px 0 60px rgba(2,6,23,.42)}
+          .admin-drawer__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.admin-drawer__head h2{margin:0;font-size:24px}.admin-drawer__head p{margin:6px 0 0;color:#94a3b8}.admin-drawer__body{display:grid;gap:14px}
+          @media(max-width:640px){.admin-drawer-layer{align-items:flex-end}.admin-drawer{width:100%;height:min(88dvh,760px);border-left:0;border-top:1px solid rgba(148,163,184,.22);border-radius:22px 22px 0 0;padding:18px}}
+          '''
           if '.admin-drawer-layer{' not in text:
             if css_marker not in text:
               raise SystemExit('Admin UI CSS marker not found')
@@ -96,22 +101,24 @@ jobs:
 
           page = Path('apps/web-admin/app/(admin)/promotion-claims/page.tsx')
           text = page.read_text(encoding='utf-8')
-          text = text.replace('AdminConfirmDialog, AdminEmpty', 'AdminConfirmDialog, AdminDrawer, AdminEmpty', 1)
-          start = text.index('    {selectedClaim && <div style={drawerLayerStyle}')
-          end = text.index('\n  </AdminPage>;', start)
-          replacement = '''    <AdminDrawer open={Boolean(selectedClaim)} title={selectedClaim?.campaign?.title ?? selectedClaim?.campaignId ?? 'Promotion claim review'} description="ตรวจหลักฐาน รายละเอียด SLA และ timeline ก่อนตัดสินใจ" busy={Boolean(selectedClaim && busyId === selectedClaim.id)} onClose={() => { if (!busyId) setSelectedClaim(null); }}>
-      {selectedClaim && <AdminStack><AdminRow><span>สมาชิก</span><strong>{memberLabel(selectedClaim)}</strong></AdminRow><AdminRow><span>หลักฐานรายการฝาก</span><strong>{selectedClaim.linkedTopup ? `${money(Number(selectedClaim.linkedTopup.amount))} · ${selectedClaim.linkedTopup.referenceCode ?? selectedClaim.linkedTopup.id}` : 'ไม่พบรายการฝากที่เชื่อมโยง'}</strong></AdminRow><AdminRow><span>สถานะรายการฝาก</span><AdminBadge tone={selectedClaim.linkedTopup?.status === 'COMPLETED' ? 'success' : 'warning'}>{selectedClaim.linkedTopup ? topupStatusLabel(selectedClaim.linkedTopup.status) : '-'}</AdminBadge></AdminRow><AdminRow><span>SLA</span><AdminBadge tone={slaTone(selectedClaim)}>{slaLabel(selectedClaim)}</AdminBadge></AdminRow><AdminCard title="Timeline" compact><AdminStack>{(selectedClaim.events ?? []).map((event, index) => <AdminRow key={`${event.createdAt}-${index}`}><div><strong>{eventActionLabel(event.action)}</strong><p style={{ margin: '4px 0 0', color: '#94a3b8' }}>{event.message || '-'}</p></div><small>{new Date(event.createdAt).toLocaleString('th-TH')}</small></AdminRow>)}{(selectedClaim.events ?? []).length === 0 && <AdminEmpty>ยังไม่มี timeline</AdminEmpty>}</AdminStack></AdminCard><label style={{ display: 'grid', gap: 6, fontWeight: 800 }}>เหตุผลผู้ดูแล<textarea aria-label="เหตุผลผู้ดูแลใน Review drawer" disabled={Boolean(busyId)} value={notes[selectedClaim.id] ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [selectedClaim.id]: event.target.value }))} placeholder="จำเป็นเมื่อปฏิเสธ" style={textareaStyle} /></label><div style={actionRowStyle}><AdminButton tone="success" disabled={Boolean(busyId) || selectedClaim.status === 'APPROVED'} onClick={() => requestReview(selectedClaim.id, 'APPROVED')}>อนุมัติ</AdminButton><AdminButton tone="danger" disabled={Boolean(busyId) || selectedClaim.status === 'REJECTED'} onClick={() => requestReview(selectedClaim.id, 'REJECTED')}>ปฏิเสธ</AdminButton></div></AdminStack>}
-    </AdminDrawer>'''
-          text = text[:start] + replacement + text[end:]
+          if 'AdminDrawer,' not in text:
+            text = text.replace('AdminConfirmDialog, AdminEmpty', 'AdminConfirmDialog, AdminDrawer, AdminEmpty', 1)
+          start_marker = '    {selectedClaim && <div style={drawerLayerStyle}'
+          if start_marker in text:
+            start = text.index(start_marker)
+            end = text.index('\n  </AdminPage>;', start)
+            replacement = '''    <AdminDrawer open={Boolean(selectedClaim)} title={selectedClaim?.campaign?.title ?? selectedClaim?.campaignId ?? 'Promotion claim review'} description="ตรวจหลักฐาน รายละเอียด SLA และ timeline ก่อนตัดสินใจ" busy={Boolean(selectedClaim && busyId === selectedClaim.id)} onClose={() => { if (!busyId) setSelectedClaim(null); }}>
+              {selectedClaim && <AdminStack><AdminRow><span>สมาชิก</span><strong>{memberLabel(selectedClaim)}</strong></AdminRow><AdminRow><span>หลักฐานรายการฝาก</span><strong>{selectedClaim.linkedTopup ? `${money(Number(selectedClaim.linkedTopup.amount))} · ${selectedClaim.linkedTopup.referenceCode ?? selectedClaim.linkedTopup.id}` : 'ไม่พบรายการฝากที่เชื่อมโยง'}</strong></AdminRow><AdminRow><span>สถานะรายการฝาก</span><AdminBadge tone={selectedClaim.linkedTopup?.status === 'COMPLETED' ? 'success' : 'warning'}>{selectedClaim.linkedTopup ? topupStatusLabel(selectedClaim.linkedTopup.status) : '-'}</AdminBadge></AdminRow><AdminRow><span>SLA</span><AdminBadge tone={slaTone(selectedClaim)}>{slaLabel(selectedClaim)}</AdminBadge></AdminRow><AdminCard title="Timeline" compact><AdminStack>{(selectedClaim.events ?? []).map((event, index) => <AdminRow key={`${event.createdAt}-${index}`}><div><strong>{eventActionLabel(event.action)}</strong><p style={{ margin: '4px 0 0', color: '#94a3b8' }}>{event.message || '-'}</p></div><small>{new Date(event.createdAt).toLocaleString('th-TH')}</small></AdminRow>)}{(selectedClaim.events ?? []).length === 0 && <AdminEmpty>ยังไม่มี timeline</AdminEmpty>}</AdminStack></AdminCard><label style={{ display: 'grid', gap: 6, fontWeight: 800 }}>เหตุผลผู้ดูแล<textarea aria-label="เหตุผลผู้ดูแลใน Review drawer" disabled={Boolean(busyId)} value={notes[selectedClaim.id] ?? ''} onChange={(event) => setNotes((current) => ({ ...current, [selectedClaim.id]: event.target.value }))} placeholder="จำเป็นเมื่อปฏิเสธ" style={textareaStyle} /></label><div style={actionRowStyle}><AdminButton tone="success" disabled={Boolean(busyId) || selectedClaim.status === 'APPROVED'} onClick={() => requestReview(selectedClaim.id, 'APPROVED')}>อนุมัติ</AdminButton><AdminButton tone="danger" disabled={Boolean(busyId) || selectedClaim.status === 'REJECTED'} onClick={() => requestReview(selectedClaim.id, 'REJECTED')}>ปฏิเสธ</AdminButton></div></AdminStack>}
+            </AdminDrawer>'''
+            text = text[:start] + replacement + text[end:]
           text = text.replace("\nconst drawerLayerStyle = { position: 'fixed' as const, inset: 0, zIndex: 9000, display: 'flex', justifyContent: 'flex-end', background: 'rgba(2,6,23,.62)', backdropFilter: 'blur(5px)' };\nconst drawerStyle = { width: 'min(620px, 100%)', height: '100%', overflow: 'auto' as const, padding: 24, background: '#111823', borderLeft: '1px solid rgba(148,163,184,.22)' };", '')
           page.write_text(text, encoding='utf-8')
 
           worklist = Path('docs/admin-modernization-chat-worklist.md')
           text = worklist.read_text(encoding='utf-8')
-          text = text.replace('- [~] Drawer focus contract และ safe error ยังไม่ครบ', '- [x] Shared drawer focus/Escape/backdrop/scroll-lock contract และ safe error', 1)
-          text = text.replace('- [ ] Draft/Published lifecycle ชัดเจน', '- [x] Draft/Published/Archived lifecycle ชัดเจน', 1)
-          text = text.replace('- [ ] Raw JSON ใน Advanced mode', '- [x] Raw JSON ใน Advanced mode พร้อม validation/reset/apply', 1)
-          text = text.replace('- [~] Error handling/try-finally ยังไม่ครบทุก flow', '- [x] Error handling/try-finally ครบ load/save/upload flow', 1)
+          old = '- [~] Drawer focus contract และ safe error ยังไม่ครบ'
+          if old in text:
+            text = text.replace(old, '- [x] Shared drawer focus/Escape/backdrop/scroll-lock contract และ safe error', 1)
           worklist.write_text(text, encoding='utf-8')
           PY
 
