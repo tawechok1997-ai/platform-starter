@@ -64,24 +64,34 @@ export default function AdminAuditPage() {
   async function loadAuditLogs(nextPage = page, filters = applied) {
     setLoading(true);
     setMessage('กำลังโหลดบันทึกกิจกรรม...');
-    const params = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
-    Object.entries(filters).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()); });
-    const res = await adminApiFetch(`/admin/audit-logs?${params.toString()}`);
-    const data = await res.json().catch(() => null);
-    setLoading(false);
-    if (!res.ok) { setMessage(data?.message ?? 'โหลดบันทึกกิจกรรมไม่สำเร็จ'); return; }
-    setItems(data.items ?? []);
-    setTotal(Number(data.total ?? 0));
-    setPageCount(Math.max(Number(data.pageCount ?? 1), 1));
-    setMessage('');
+    try {
+      const params = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
+      Object.entries(filters).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()); });
+      const res = await adminApiFetch(`/admin/audit-logs?${params.toString()}`);
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || !Array.isArray(data.items)) throw new Error('load');
+      setItems(data.items as AuditLog[]);
+      setTotal(Number(data.total ?? 0));
+      setPageCount(Math.max(Number(data.pageCount ?? 1), 1));
+      setMessage('');
+    } catch {
+      setItems([]);
+      setTotal(0);
+      setPageCount(1);
+      setMessage('โหลดบันทึกกิจกรรมไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function applyFilters() {
+    if (loading) return;
     setPage(1);
     setApplied({ ...draft });
   }
 
   function clearFilters() {
+    if (loading) return;
     setDraft(emptyFilters);
     setPage(1);
     setApplied({ ...emptyFilters });
@@ -91,9 +101,9 @@ export default function AdminAuditPage() {
     eyebrow="ความปลอดภัยและการตรวจสอบ"
     title="บันทึกกิจกรรมผู้ดูแล"
     description="ตรวจว่าใครทำอะไร เมื่อใด จากอุปกรณ์ใด และข้อมูลเปลี่ยนอย่างไร"
-    actions={<AdminButton size="compact" disabled={loading} onClick={() => void loadAuditLogs(page, applied)}>รีเฟรช</AdminButton>}
+    actions={<AdminButton size="compact" disabled={loading} onClick={() => void loadAuditLogs(page, applied)}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}
   >
-    {message && <AdminNotice>{message}</AdminNotice>}
+    {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
 
     <AdminMetricGrid>
       <AdminMetric title="รายการในหน้านี้" value={items.length.toLocaleString('th-TH')} helper={`${total.toLocaleString('th-TH')} รายการทั้งหมด`} />
@@ -105,13 +115,13 @@ export default function AdminAuditPage() {
 
     <AdminCard title="ค้นหาและกรอง" description="ค้นหาจากข้อความ หมวดงาน ผู้ดูแล รหัสรายการ หรือช่วงเวลา">
       <div style={filterGridStyle}>
-        <label style={fieldStyle}><span>ค้นหาทั้งหมด</span><input value={draft.search} onChange={(event) => setDraft((value) => ({ ...value, search: event.target.value }))} placeholder="การดำเนินการ หมวดงาน รหัสรายการ หรือ IP" style={inputStyle} /></label>
-        <label style={fieldStyle}><span>หมวดงาน</span><input value={draft.module} onChange={(event) => setDraft((value) => ({ ...value, module: event.target.value }))} placeholder="เช่น ฝาก ถอน หรือสมาชิก" style={inputStyle} /></label>
-        <label style={fieldStyle}><span>การดำเนินการ</span><input value={draft.action} onChange={(event) => setDraft((value) => ({ ...value, action: event.target.value }))} placeholder="เช่น อนุมัติ ปฏิเสธ หรือเข้าสู่ระบบ" style={inputStyle} /></label>
-        <label style={fieldStyle}><span>ผู้ดูแล</span><input value={draft.admin} onChange={(event) => setDraft((value) => ({ ...value, admin: event.target.value }))} placeholder="ชื่อหรืออีเมล" style={inputStyle} /></label>
-        <label style={fieldStyle}><span>รหัสรายการ</span><input value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder="UUID หรือรหัสอ้างอิง" style={inputStyle} /></label>
-        <label style={fieldStyle}><span>ตั้งแต่วันที่</span><input type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} style={inputStyle} /></label>
-        <label style={fieldStyle}><span>ถึงวันที่</span><input type="date" value={draft.to} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ค้นหาทั้งหมด</span><input disabled={loading} value={draft.search} onChange={(event) => setDraft((value) => ({ ...value, search: event.target.value }))} placeholder="การดำเนินการ หมวดงาน รหัสรายการ หรือ IP" style={inputStyle} /></label>
+        <label style={fieldStyle}><span>หมวดงาน</span><input disabled={loading} value={draft.module} onChange={(event) => setDraft((value) => ({ ...value, module: event.target.value }))} placeholder="เช่น ฝาก ถอน หรือสมาชิก" style={inputStyle} /></label>
+        <label style={fieldStyle}><span>การดำเนินการ</span><input disabled={loading} value={draft.action} onChange={(event) => setDraft((value) => ({ ...value, action: event.target.value }))} placeholder="เช่น อนุมัติ ปฏิเสธ หรือเข้าสู่ระบบ" style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ผู้ดูแล</span><input disabled={loading} value={draft.admin} onChange={(event) => setDraft((value) => ({ ...value, admin: event.target.value }))} placeholder="ชื่อหรืออีเมล" style={inputStyle} /></label>
+        <label style={fieldStyle}><span>รหัสรายการ</span><input disabled={loading} value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder="UUID หรือรหัสอ้างอิง" style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ตั้งแต่วันที่</span><input disabled={loading} type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} style={inputStyle} /></label>
+        <label style={fieldStyle}><span>ถึงวันที่</span><input disabled={loading} type="date" value={draft.to} min={draft.from || undefined} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} style={inputStyle} /></label>
       </div>
       <div style={filterActionStyle}>
         <AdminButton disabled={loading} onClick={applyFilters}>ใช้ตัวกรอง</AdminButton>
