@@ -86,7 +86,16 @@ export default function ExportsPage() {
       setMessage(`ไฟล์พร้อมแล้ว พบ ${rows.toLocaleString('th-TH')} แถว`);
     } catch {
       const now = new Date().toISOString();
-      setJobs((current) => [{ id: crypto.randomUUID(), title: source.title, path, status: 'FAILED', createdAt: now, completedAt: now, error: 'สร้างไฟล์ไม่สำเร็จ กรุณาลองใหม่' }, ...current].slice(0, MAX_HISTORY));
+      const failedJob: ExportJob = {
+        id: crypto.randomUUID(),
+        title: source.title,
+        path,
+        status: 'FAILED',
+        createdAt: now,
+        completedAt: now,
+        error: 'สร้างไฟล์ไม่สำเร็จ กรุณาลองใหม่',
+      };
+      setJobs((current) => [failedJob, ...current].slice(0, MAX_HISTORY));
       setMessage('สร้างไฟล์ไม่สำเร็จ กรุณาลองใหม่');
     } finally {
       setPreparingPath('');
@@ -107,7 +116,16 @@ export default function ExportsPage() {
     anchor.remove();
     URL.revokeObjectURL(url);
     const now = new Date().toISOString();
-    setJobs((current) => [{ id: crypto.randomUUID(), title: source.title, path, status: 'COMPLETED', createdAt: now, completedAt: now, rows }, ...current].slice(0, MAX_HISTORY));
+    const completedJob: ExportJob = {
+      id: crypto.randomUUID(),
+      title: source.title,
+      path,
+      status: 'COMPLETED',
+      createdAt: now,
+      completedAt: now,
+      rows,
+    };
+    setJobs((current) => [completedJob, ...current].slice(0, MAX_HISTORY));
     setPrepared(null);
     setMessage(`ดาวน์โหลด ${rows.toLocaleString('th-TH')} แถวแล้ว`);
   }
