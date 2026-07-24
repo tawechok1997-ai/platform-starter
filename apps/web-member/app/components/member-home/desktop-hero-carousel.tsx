@@ -10,6 +10,7 @@ import {
   type KeyboardEvent,
   type PointerEvent,
   type SyntheticEvent,
+  type TransitionEvent,
 } from 'react';
 import type { CmsContent } from '../../site-settings';
 
@@ -126,7 +127,7 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     setPosition((current) => current + delta);
   }
 
-  function handleTransitionEnd(event: React.TransitionEvent<HTMLDivElement>) {
+  function handleTransitionEnd(event: TransitionEvent<HTMLDivElement>) {
     if (event.target !== event.currentTarget || realCount < 2) return;
     if (positionRef.current === 0) {
       setTransitionEnabled(false);
