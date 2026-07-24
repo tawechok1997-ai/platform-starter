@@ -1,0 +1,131 @@
+@media (min-width: 1024px) {
+  .member-category-rail.member-category-rail--home {
+    display: none !important;
+  }
+
+  .desktop-home {
+    width: min(100% - 36px, 1460px) !important;
+    grid-template-columns: minmax(0, 1fr) 300px !important;
+    gap: 16px !important;
+    margin-top: 18px !important;
+  }
+
+  .desktop-home__main,
+  .desktop-home__sidebar {
+    gap: 14px !important;
+  }
+
+  .desktop-home__hero-grid {
+    grid-template-columns: minmax(0, 2.35fr) minmax(260px, .9fr) !important;
+    min-height: 305px !important;
+  }
+
+  .desktop-home__hero-primary {
+    position: relative !important;
+    display: block !important;
+    min-height: 305px !important;
+    overflow: hidden !important;
+    border: 1px solid rgb(255 255 255 / 8%) !important;
+    border-radius: 16px !important;
+    background: radial-gradient(circle at 70% 30%, rgb(186 48 255 / 24%), transparent 34%), #160d1d !important;
+    color: #fff !important;
+    text-decoration: none !important;
+  }
+
+  .desktop-home__hero-primary > img {
+    display: block;
+    width: 100%;
+    height: 305px;
+    object-fit: cover;
+  }
+
+  .desktop-home__hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgb(8 4 12 / 82%), transparent 58%), linear-gradient(180deg, transparent 50%, rgb(8 4 12 / 58%));
+  }
+
+  .desktop-home__hero-copy {
+    position: absolute;
+    left: 24px;
+    bottom: 22px;
+    z-index: 2;
+    display: grid;
+    max-width: 58%;
+    gap: 5px;
+  }
+
+  .desktop-home__hero-copy small {
+    color: #efb6ff;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .1em;
+  }
+
+  .desktop-home__hero-copy strong {
+    font-size: clamp(24px, 2vw, 34px);
+    line-height: 1.05;
+  }
+
+  .desktop-home__hero-copy em {
+    color: rgb(255 255 255 / 70%);
+    font-size: 13px;
+    font-style: normal;
+  }
+
+  .desktop-home__hero-stack {
+    gap: 10px !important;
+  }
+
+  .desktop-home__feature-tile {
+    border-radius: 14px !important;
+  }
+
+  .desktop-home__promo-card {
+    grid-template-rows: 130px auto !important;
+  }
+
+  .desktop-home__games,
+  .desktop-home__tournament,
+  .desktop-home__guide {
+    border-radius: 15px !important;
+  }
+
+  .desktop-home__game-grid {
+    grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .desktop-home__game-art,
+  .desktop-home__game-art img {
+    height: 118px !important;
+    min-height: 118px !important;
+  }
+
+  .desktop-home__game-card {
+    border-radius: 11px !important;
+  }
+
+  .desktop-home__game-meta {
+    padding: 7px !important;
+  }
+
+  .desktop-home__sidebar {
+    top: 84px !important;
+  }
+
+  .member-footer {
+    width: min(100% - 36px, 1460px) !important;
+    max-width: 1460px !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1280px) {
+  .desktop-home {
+    grid-template-columns: minmax(0, 1fr) 270px !important;
+  }
+
+  .desktop-home__game-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  }
+}
