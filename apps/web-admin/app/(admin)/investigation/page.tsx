@@ -26,6 +26,7 @@ export default function InvestigationPage() {
   const [severity, setSeverity] = useState<'' | AlertSeverity>('');
   const [owner, setOwner] = useState<OwnerFilter>('');
   const [loading, setLoading] = useState(true);
+  const [referenceTime, setReferenceTime] = useState(0);
   const [message, setMessage] = useState('');
 
   useEffect(() => { void load(); }, [severity]);
@@ -42,10 +43,12 @@ export default function InvestigationPage() {
       const nextItems = Array.isArray(data.items) ? data.items.filter(isInvestigationAlert) : [];
       setItems(nextItems);
       setTotal(Number.isFinite(Number(data.total)) ? Number(data.total) : nextItems.length);
+      setReferenceTime(Date.now());
       setMessage('');
     } catch {
       setItems([]);
       setTotal(0);
+      setReferenceTime(0);
       setMessage('โหลดคิวสืบสวนไม่สำเร็จ กรุณาลองใหม่');
     } finally {
       setLoading(false);
@@ -55,14 +58,14 @@ export default function InvestigationPage() {
   const visibleItems = items.filter((item) => owner === 'ASSIGNED' ? Boolean(item.assignedToAdminId) : owner === 'UNASSIGNED' ? !item.assignedToAdminId : true);
   const urgentCount = visibleItems.filter((item) => item.severity === 'HIGH' || item.severity === 'CRITICAL').length;
   const unassignedCount = visibleItems.filter((item) => !item.assignedToAdminId).length;
-  const staleCount = visibleItems.filter((item) => Date.now() - new Date(item.updatedAt ?? item.createdAt).getTime() > 24 * 60 * 60 * 1000).length;
+  const staleCount = referenceTime ? visibleItems.filter((item) => referenceTime - new Date(item.updatedAt ?? item.createdAt).getTime() > 24 * 60 * 60 * 1000).length : 0;
 
   return <AdminPage eyebrow="ความเสี่ยง" title="Investigation Queue" description="รวมเคสที่กำลังตรวจสอบ จัดลำดับความเร่งด่วน และเปิดหลักฐานหรือสมาชิกที่เกี่ยวข้องจากคิวเดียว" actions={<><AdminButton tone="secondary" onClick={() => void load()} disabled={loading}>รีเฟรช</AdminButton><AdminLinkButton href="/risk-alerts" tone="primary">เปิด Risk Alerts</AdminLinkButton></>}>
     <AdminMetricGrid>
       <AdminMetric title="คิวที่แสดง" value={String(visibleItems.length)} helper={`${total} รายการจาก API`} />
       <AdminMetric title="เร่งด่วน" value={String(urgentCount)} helper="Critical และ High" tone={urgentCount ? 'danger' : 'success'} />
       <AdminMetric title="ยังไม่มีผู้รับผิดชอบ" value={String(unassignedCount)} helper="ควรมอบหมายก่อนตรวจต่อ" tone={unassignedCount ? 'warning' : 'success'} />
-      <AdminMetric title="ค้างเกิน 24 ชั่วโมง" value={String(staleCount)} helper="อิงเวลาที่แก้ไขล่าสุด" tone={staleCount ? 'warning' : 'success'} />
+      <AdminMetric title="ค้างเกิน 24 ชั่วโมง" value={String(staleCount)} helper="อิงเวลาที่โหลดข้อมูลล่าสุด" tone={staleCount ? 'warning' : 'success'} />
     </AdminMetricGrid>
 
     {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
