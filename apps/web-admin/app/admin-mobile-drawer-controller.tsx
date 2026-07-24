@@ -22,7 +22,9 @@ const copyByLocale = {
     profile: 'โปรไฟล์',
     security: 'ความปลอดภัย',
     logout: 'ออกจากระบบ',
-    close: 'ปิดเมนู',
+    close: 'ย้อนกลับ',
+    expandMenu: 'ขยายเมนู',
+    collapseMenu: 'ย่อเมนู',
     language: 'ภาษา',
     fallbackName: 'ผู้ดูแลระบบ',
     fallbackRole: 'ผู้ดูแล',
@@ -32,7 +34,9 @@ const copyByLocale = {
     profile: 'Profile',
     security: 'Security',
     logout: 'Sign out',
-    close: 'Close menu',
+    close: 'Back',
+    expandMenu: 'Expand menu',
+    collapseMenu: 'Collapse menu',
     language: 'Language',
     fallbackName: 'Administrator',
     fallbackRole: 'Admin',
@@ -70,22 +74,73 @@ export function AdminMobileDrawerController() {
   }, []);
 
   useEffect(() => {
-    const handleDesktopMenuToggle = (event: MouseEvent) => {
+    let shellObserver: MutationObserver | null = null;
+    let retryId = 0;
+
+    const attach = () => {
+      const shell = document.querySelector<HTMLElement>('.admin-shell');
+      const menuButton = document.querySelector<HTMLButtonElement>('.admin-menu-button');
+      if (!shell || !menuButton) {
+        retryId = window.setTimeout(attach, 120);
+        return;
+      }
+
+      const syncButtonState = () => {
+        const collapsed = shell.classList.contains('admin-shell--collapsed');
+        menuButton.setAttribute('aria-expanded', String(!collapsed));
+        menuButton.setAttribute('aria-label', collapsed ? copy.expandMenu : copy.collapseMenu);
+        menuButton.title = collapsed ? copy.expandMenu : copy.collapseMenu;
+      };
+
+      syncButtonState();
+      shellObserver = new MutationObserver(syncButtonState);
+      shellObserver.observe(shell, { attributes: true, attributeFilter: ['class'] });
+    };
+
+    const expandSidebar = () => {
+      const shell = document.querySelector<HTMLElement>('.admin-shell');
+      if (!shell?.classList.contains('admin-shell--collapsed')) return false;
+      document.querySelector<HTMLButtonElement>('.admin-collapse-button')?.click();
+      return true;
+    };
+
+    const handleDesktopInteractions = (event: MouseEvent) => {
       if (window.matchMedia('(max-width: 820px)').matches) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
+
       const menuButton = target.closest<HTMLButtonElement>('.admin-menu-button');
-      if (!menuButton) return;
-      const collapseButton = document.querySelector<HTMLButtonElement>('.admin-collapse-button');
-      if (!collapseButton) return;
-      event.preventDefault();
-      event.stopPropagation();
-      collapseButton.click();
+      if (menuButton) {
+        const collapseButton = document.querySelector<HTMLButtonElement>('.admin-collapse-button');
+        if (!collapseButton) return;
+        event.preventDefault();
+        event.stopPropagation();
+        collapseButton.click();
+        return;
+      }
+
+      const search = target.closest<HTMLElement>('.admin-nav-search');
+      if (search && expandSidebar()) {
+        window.setTimeout(() => search.querySelector<HTMLInputElement>('input')?.focus(), 180);
+        return;
+      }
+
+      const groupTrigger = target.closest<HTMLButtonElement>('.admin-nav-group__trigger');
+      if (groupTrigger && expandSidebar()) {
+        event.preventDefault();
+        event.stopPropagation();
+        window.setTimeout(() => groupTrigger.click(), 180);
+      }
     };
 
-    document.addEventListener('click', handleDesktopMenuToggle, true);
-    return () => document.removeEventListener('click', handleDesktopMenuToggle, true);
-  }, []);
+    attach();
+    document.addEventListener('click', handleDesktopInteractions, true);
+    return () => {
+      shellObserver?.disconnect();
+      window.clearTimeout(retryId);
+      document.removeEventListener('click', handleDesktopInteractions, true);
+    };
+  }, [copy.collapseMenu, copy.expandMenu]);
 
   useEffect(() => {
     if (!open) return;
@@ -143,7 +198,7 @@ export function AdminMobileDrawerController() {
         </span>
       </button>
       <button type="button" className="admin-mobile-drawer-controller__close" onClick={closeMenu} aria-label={copy.close}>
-        <AdminIcon name="close" />
+        <AdminIcon name="chevron-left" />
       </button>
     </header>
 
