@@ -16,22 +16,25 @@ test('loads the NOAH345 Auth fidelity layer after the shared Auth contract', () 
   assert.equal(finalIndex > sharedIndex, true);
 });
 
-test('uses the reference purple and pink Auth palette', () => {
-  assert.equal(finalCss.includes('--auth-reference-pink: #ed20d5'), true);
-  assert.equal(finalCss.includes('--auth-reference-violet: #8137ff'), true);
-  assert.equal(finalCss.includes('linear-gradient(135deg, var(--auth-reference-pink), var(--auth-reference-violet))'), true);
+test('uses the palette and control geometry from the supplied source', () => {
+  assert.equal(finalCss.includes('--auth-reference-bg: #0b0712'), true);
+  assert.equal(finalCss.includes('--auth-reference-panel: #1d1729'), true);
+  assert.equal(finalCss.includes('--auth-reference-pink: #d81bbf'), true);
+  assert.equal(finalCss.includes('--auth-reference-violet: #8b36ff'), true);
+  assert.equal(finalCss.includes('min-height: 52px'), true);
+  assert.equal(finalCss.includes('border-radius: 15px'), true);
 });
 
-test('keeps public Auth in a mobile bottom-sheet presentation', () => {
+test('keeps the source hero and form composition on mobile', () => {
   assert.equal(finalCss.includes('@media (max-width: 860px)'), true);
-  assert.equal(finalCss.includes('place-items: end center'), true);
-  assert.equal(finalCss.includes('border-radius: 24px 24px 0 0'), true);
-  assert.equal(finalCss.includes('.public-auth-card::before'), true);
+  assert.equal(finalCss.includes('.public-auth-brand-panel {\n    display: flex'), true);
+  assert.equal(finalCss.includes('grid-template-columns: minmax(0, 1fr)'), true);
+  assert.equal(finalCss.includes('place-items: end center'), false);
+  assert.equal(finalCss.includes('.public-auth-card::before'), false);
 });
 
-test('does not alter Auth runtime or hide accessibility focus', () => {
+test('does not alter Auth runtime and preserves accessibility focus', () => {
   assert.equal(finalCss.includes('memberApiFetch'), false);
-  assert.equal(finalCss.includes('display: none'), false);
   assert.equal(finalCss.includes('focus-visible'), true);
   assert.equal(finalCss.includes('prefers-reduced-motion'), true);
 });
