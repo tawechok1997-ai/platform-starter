@@ -9,6 +9,7 @@ import {
   type SyntheticEvent,
 } from 'react';
 import type { CmsContent } from '../../site-settings';
+import { V47_ASSETS } from './v47-asset-map';
 
 type CmsBanner = CmsContent['banners'][number];
 
@@ -29,16 +30,32 @@ type VisibleSlide = {
   slide: HeroSlide;
 };
 
+type PointerState = {
+  pointerId: number;
+  startX: number;
+  deltaX: number;
+  moved: boolean;
+};
+
 const AUTOPLAY_DELAY_MS = 4200;
 const SWIPE_THRESHOLD_PX = 48;
+const DRAG_START_THRESHOLD_PX = 4;
+const ARCHIVE_BANNERS: CmsBanner[] = [
+  { title: 'ประกาศรางวัลผู้โชคดี', subtitle: 'NOAH345', imageUrl: V47_ASSETS.heroWinners, href: '/promotions', enabled: true },
+  { title: 'กิจกรรม Daily Login', subtitle: 'รับรางวัลทุกวัน', imageUrl: V47_ASSETS.heroLogin, href: '/promotions', enabled: true },
+  { title: 'ติดตามข่าวสาร', subtitle: 'ข่าวสารและกิจกรรมล่าสุด', imageUrl: V47_ASSETS.heroNews, href: '/notifications', enabled: true },
+];
 
 export function DesktopHeroCarousel({ content, siteName, showPromotion }: DesktopHeroCarouselProps) {
   const slides = useMemo<HeroSlide[]>(() => {
     const enabledBanners = Array.isArray(content.banners)
       ? content.banners.filter((banner) => banner.enabled)
       : [];
+    const bannerSource = enabledBanners.length >= 3
+      ? enabledBanners
+      : [...enabledBanners, ...ARCHIVE_BANNERS].slice(0, 3);
 
-    return enabledBanners.flatMap((banner, realIndex) => {
+    return bannerSource.flatMap((banner, realIndex) => {
       const imageUrl = normalizeUrl(banner.imageUrl || resolveCmsAssetById(content, banner.assetId));
       return imageUrl ? [{ banner, imageUrl, realIndex }] : [];
     });
@@ -47,7 +64,8 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const carouselRef = useRef<HTMLElement | null>(null);
-  const pointerStartX = useRef<number | null>(null);
+  const pointerState = useRef<PointerState | null>(null);
+  const suppressClickUntil = useRef(0);
   const realCount = slides.length;
   const normalizedActiveIndex = realCount ? modulo(activeIndex, realCount) : 0;
 
@@ -82,36 +100,72 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     const element = carouselRef.current;
     if (!element) return;
 
+    const resetDragVisual = () => {
+      element.style.setProperty('--hero-drag-x', '0px');
+      element.classList.remove('is-dragging');
+    };
+
     const handlePointerDown = (event: globalThis.PointerEvent) => {
       if (event.pointerType === 'mouse' && event.button !== 0) return;
-      pointerStartX.current = event.clientX;
+      if (event.target instanceof Element && event.target.closest('button')) return;
+      pointerState.current = { pointerId: event.pointerId, startX: event.clientX, deltaX: 0, moved: false };
       element.setPointerCapture?.(event.pointerId);
       setPaused(true);
     };
 
-    const handlePointerUp = (event: globalThis.PointerEvent) => {
-      const startX = pointerStartX.current;
-      pointerStartX.current = null;
-      if (element.hasPointerCapture?.(event.pointerId)) element.releasePointerCapture(event.pointerId);
-      setPaused(false);
-      if (startX === null) return;
+    const handlePointerMove = (event: globalThis.PointerEvent) => {
+      const pointer = pointerState.current;
+      if (!pointer || pointer.pointerId !== event.pointerId) return;
 
-      const distance = event.clientX - startX;
+      pointer.deltaX = event.clientX - pointer.startX;
+      if (!pointer.moved && Math.abs(pointer.deltaX) < DRAG_START_THRESHOLD_PX) return;
+
+      pointer.moved = true;
+      element.classList.add('is-dragging');
+      const limitedOffset = Math.max(-180, Math.min(180, pointer.deltaX));
+      element.style.setProperty('--hero-drag-x', `${limitedOffset}px`);
+      event.preventDefault();
+    };
+
+    const finishPointer = (event: globalThis.PointerEvent) => {
+      const pointer = pointerState.current;
+      if (!pointer || pointer.pointerId !== event.pointerId) return;
+      pointerState.current = null;
+      if (element.hasPointerCapture?.(event.pointerId)) element.releasePointerCapture(event.pointerId);
+
+      const distance = pointer.deltaX;
+      resetDragVisual();
+      setPaused(false);
+
+      if (pointer.moved) suppressClickUntil.current = performance.now() + 350;
       if (distance <= -SWIPE_THRESHOLD_PX) moveBy(1);
       else if (distance >= SWIPE_THRESHOLD_PX) moveBy(-1);
     };
 
-    const handlePointerCancel = () => {
-      pointerStartX.current = null;
+    const handlePointerCancel = (event: globalThis.PointerEvent) => {
+      if (pointerState.current?.pointerId !== event.pointerId) return;
+      pointerState.current = null;
+      resetDragVisual();
       setPaused(false);
     };
 
+    const handleClickCapture = (event: MouseEvent) => {
+      if (performance.now() >= suppressClickUntil.current) return;
+      event.preventDefault();
+      event.stopPropagation();
+      suppressClickUntil.current = 0;
+    };
+
     const pause = () => setPaused(true);
-    const resume = () => setPaused(false);
+    const resume = () => {
+      if (!pointerState.current) setPaused(false);
+    };
 
     element.addEventListener('pointerdown', handlePointerDown);
-    element.addEventListener('pointerup', handlePointerUp);
+    element.addEventListener('pointermove', handlePointerMove, { passive: false });
+    element.addEventListener('pointerup', finishPointer);
     element.addEventListener('pointercancel', handlePointerCancel);
+    element.addEventListener('click', handleClickCapture, true);
     element.addEventListener('mouseenter', pause);
     element.addEventListener('mouseleave', resume);
     element.addEventListener('focusin', pause);
@@ -119,8 +173,10 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
 
     return () => {
       element.removeEventListener('pointerdown', handlePointerDown);
-      element.removeEventListener('pointerup', handlePointerUp);
+      element.removeEventListener('pointermove', handlePointerMove);
+      element.removeEventListener('pointerup', finishPointer);
       element.removeEventListener('pointercancel', handlePointerCancel);
+      element.removeEventListener('click', handleClickCapture, true);
       element.removeEventListener('mouseenter', pause);
       element.removeEventListener('mouseleave', resume);
       element.removeEventListener('focusin', pause);
