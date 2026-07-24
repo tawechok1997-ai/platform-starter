@@ -1,0 +1,65 @@
+/* V47 desktop carousel behavior and geometry. Loaded after the desktop reference styles. */
+@media (min-width: 901px) {
+  .reference-hero-row {
+    position: relative;
+    width: 100%;
+    min-height: 288.463px;
+    overflow: hidden;
+  }
+
+  .reference-banner.reference-hero-main,
+  .reference-banner.reference-hero-peek {
+    min-height: 288.463px;
+    transition: opacity .35s ease, transform .45s ease;
+    will-change: transform, opacity;
+  }
+
+  .reference-banner.reference-hero-main {
+    width: 710.5px;
+    flex: 0 0 710.5px;
+  }
+
+  .reference-banner.reference-hero-peek {
+    opacity: .74;
+    transform: scale(.975);
+  }
+
+  .reference-carousel-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 22px;
+  }
+
+  .reference-carousel-dots button {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 30%);
+    cursor: pointer;
+    transition: width .25s ease, background-color .25s ease, transform .25s ease;
+  }
+
+  .reference-carousel-dots button:hover,
+  .reference-carousel-dots button:focus-visible {
+    background: rgb(255 255 255 / 62%);
+    transform: scale(1.12);
+    outline: none;
+  }
+
+  .reference-carousel-dots button.active {
+    width: 25px;
+    background: #b25dcc;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reference-banner.reference-hero-main,
+  .reference-banner.reference-hero-peek,
+  .reference-carousel-dots button {
+    transition: none;
+  }
+}
