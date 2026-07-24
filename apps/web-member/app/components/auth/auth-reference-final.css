@@ -1,0 +1,186 @@
+/* Final NOAH345 reference-fidelity layer for public Member Auth.
+ * Presentation only: Auth, CAPTCHA, API and redirect behavior remain owned by the page runtime.
+ */
+.auth-reference-scope {
+  --auth-reference-pink: #ed20d5;
+  --auth-reference-violet: #8137ff;
+  --auth-reference-panel: #1b1024;
+  --auth-reference-bg: #07040b;
+  --auth-reference-muted: #c9b9d6;
+}
+
+.auth-reference-scope .public-auth-page {
+  background:
+    radial-gradient(circle at 16% 8%, rgb(188 61 255 / 24%), transparent 34%),
+    radial-gradient(circle at 86% 84%, rgb(237 32 213 / 18%), transparent 30%),
+    linear-gradient(160deg, #13091d 0%, var(--auth-reference-bg) 48%, #0e0615 100%);
+}
+
+.auth-reference-scope .public-auth-page::before {
+  background-image:
+    linear-gradient(rgb(237 32 213 / 4%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(129 55 255 / 4%) 1px, transparent 1px);
+}
+
+.auth-reference-scope .public-auth-ambient span:nth-child(1),
+.auth-reference-scope .public-auth-ambient span:nth-child(2) {
+  background: radial-gradient(circle, rgb(237 32 213 / 24%), transparent 68%);
+}
+
+.auth-reference-scope .public-auth-ambient span:nth-child(3) {
+  background: radial-gradient(circle, rgb(129 55 255 / 18%), transparent 68%);
+}
+
+.auth-reference-scope .public-auth-shell {
+  border-color: rgb(255 255 255 / 11%);
+  background: rgb(13 7 19 / 90%);
+  box-shadow: 0 34px 100px rgb(0 0 0 / 58%), 0 0 64px rgb(166 40 218 / 12%);
+}
+
+.auth-reference-scope .public-auth-brand-panel {
+  background:
+    radial-gradient(circle at 16% 16%, rgb(237 32 213 / 23%), transparent 40%),
+    radial-gradient(circle at 82% 78%, rgb(129 55 255 / 20%), transparent 38%),
+    linear-gradient(155deg, #281338, #12091a 62%, #09050e);
+}
+
+.auth-reference-scope .public-auth-brand-kicker,
+.auth-reference-scope .public-auth-heading__eyebrow,
+.auth-reference-scope .public-auth-footer a,
+.auth-reference-scope .public-auth-legal a {
+  color: #ff73ed;
+}
+
+.auth-reference-scope .public-auth-brand-kicker > span,
+.auth-reference-scope .public-auth-submit {
+  background: linear-gradient(135deg, var(--auth-reference-pink), var(--auth-reference-violet));
+}
+
+.auth-reference-scope .public-auth-brand-kicker > span {
+  box-shadow: 0 0 18px rgb(237 32 213 / 72%);
+}
+
+.auth-reference-scope .public-auth-brand__mark,
+.auth-reference-scope .public-auth-card__logo > span {
+  background: linear-gradient(145deg, rgb(237 32 213 / 20%), rgb(129 55 255 / 16%));
+  color: #ff6dec;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%), 0 0 24px rgb(237 32 213 / 14%);
+}
+
+.auth-reference-scope .public-auth-card {
+  border-color: rgb(255 255 255 / 9%);
+  background: linear-gradient(180deg, rgb(30 18 40 / 96%), rgb(17 10 24 / 98%));
+}
+
+.auth-reference-scope .public-auth-input,
+.auth-reference-scope .public-auth-eye,
+.auth-reference-scope .public-auth-language {
+  border-color: rgb(255 255 255 / 11%);
+  background: rgb(10 6 15 / 72%);
+}
+
+.auth-reference-scope .public-auth-input:hover:not(:disabled),
+.auth-reference-scope .public-auth-input:focus-visible {
+  border-color: #e94ddd;
+}
+
+.auth-reference-scope .public-auth-input:focus-visible,
+.auth-reference-scope :is(.public-auth-eye, .public-auth-submit, .public-auth-language__button, a):focus-visible {
+  box-shadow: 0 0 0 4px rgb(237 32 213 / 16%);
+  outline-color: #ef73e5;
+}
+
+.auth-reference-scope .public-auth-language__button[aria-pressed='true'] {
+  background: linear-gradient(135deg, rgb(237 32 213 / 28%), rgb(129 55 255 / 22%));
+  color: #fff;
+}
+
+.auth-reference-scope .public-auth-submit {
+  color: #fff;
+  box-shadow: 0 16px 38px rgb(199 34 210 / 28%);
+}
+
+.auth-reference-scope .public-auth-heading p,
+.auth-reference-scope .public-auth-footer,
+.auth-reference-scope .public-auth-legal,
+.auth-reference-scope .public-auth-brand-panel > p {
+  color: var(--auth-reference-muted);
+}
+
+@media (max-width: 860px) {
+  .auth-reference-scope .public-auth-page {
+    display: grid;
+    min-height: 100svh;
+    place-items: end center;
+    padding: max(72px, 12svh) 12px 0;
+  }
+
+  .auth-reference-scope .public-auth-shell,
+  .auth-reference-scope .public-auth-shell--register {
+    width: min(430px, 100%);
+    min-height: auto;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-bottom: 0;
+    border-radius: 24px 24px 0 0;
+    background: var(--auth-reference-panel);
+    box-shadow: 0 -24px 70px rgb(0 0 0 / 58%), 0 0 50px rgb(237 32 213 / 12%);
+  }
+
+  .auth-reference-scope .public-auth-card {
+    width: 100%;
+    min-height: auto;
+    max-height: calc(100svh - 64px);
+    overflow-y: auto;
+    border: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, #24152f, #160c1f);
+  }
+
+  .auth-reference-scope .public-auth-card::before {
+    width: 42px;
+    height: 4px;
+    margin: -4px auto 6px;
+    border-radius: 999px;
+    background: #75617f;
+    content: '';
+  }
+}
+
+@media (max-width: 560px) {
+  .auth-reference-scope .public-auth-page {
+    padding-inline: 0;
+  }
+
+  .auth-reference-scope .public-auth-card {
+    gap: 14px;
+    padding:
+      14px
+      max(16px, env(safe-area-inset-left), env(safe-area-inset-right))
+      calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .auth-reference-scope .public-auth-card-topbar {
+    align-items: center;
+  }
+
+  .auth-reference-scope .public-auth-card__logo strong {
+    color: #fff;
+    font-size: 17px;
+  }
+
+  .auth-reference-scope .public-auth-heading h1 {
+    font-size: clamp(27px, 8vw, 34px);
+  }
+
+  .auth-reference-scope .public-auth-input,
+  .auth-reference-scope .public-auth-eye {
+    min-height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-reference-scope .public-auth-ambient span {
+    animation: none;
+  }
+}
