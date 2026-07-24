@@ -63,6 +63,14 @@ export default function MemberHome(props: MemberHomeProps) {
         content={props.cmsContent}
         siteName={props.siteName}
         showPromotion={props.showPromotion && features.games}
+        games={{
+          featured: data.featured,
+          popular: data.popular,
+          recent: data.recentGames,
+          favorites: data.favoriteGames,
+        }}
+        isGamesLoading={data.isGamesLoading}
+        gamesMessage={data.gamesMessage}
       />
 
       <section className={`member-shell member-home-shell member-source-home member-home-mobile ${styles.referenceHome}`}>
