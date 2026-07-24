@@ -28,56 +28,57 @@ export default function GameTransfersPage() {
   async function loadTransfers() {
     setLoading(true);
     setMessage('กำลังโหลดรายการโยกเงิน...');
-    const res = await adminApiFetch('/admin/game-transfers');
-    const data = await res.json().catch(() => null);
-    setLoading(false);
-    if (!res.ok) { setMessage(data?.message ?? 'โหลดรายการโยกเงินไม่สำเร็จ'); return; }
-    setPayload(data ?? {});
-    setMessage('');
+    try {
+      const res = await adminApiFetch('/admin/game-transfers');
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || (data.items !== undefined && !Array.isArray(data.items))) throw new Error('load');
+      setPayload(data as Payload);
+      setMessage('');
+    } catch {
+      setPayload({});
+      setMessage('โหลดรายการโยกเงินไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function requestAction(item: Transfer, action: PendingAction['action']) {
+    if (working) return;
     setPendingAction({ item, action });
     setNote('');
   }
 
   async function confirmAction() {
-    if (!pendingAction) return;
+    if (!pendingAction || working) return;
     const reason = note.trim();
-    if (!reason) { setMessage('กรุณาระบุเหตุผลหรือหมายเหตุก่อนดำเนินการ'); return; }
+    if (reason.length < 5) { setMessage('กรุณาระบุเหตุผลหรือหมายเหตุอย่างน้อย 5 ตัวอักษร'); return; }
     const { item, action } = pendingAction;
     setWorking(item.id);
-    const endpoint = action === 'review' ? `/admin/game-transfers/${item.id}/review` : `/admin/game-transfers/${item.id}/retry-dry-run`;
-    const res = await adminApiFetch(endpoint, { method: action === 'review' ? 'PATCH' : 'POST', body: JSON.stringify({ note: reason }) });
-    const data = await res.json().catch(() => null);
-    setWorking('');
-    if (!res.ok || (action === 'retry' && !data?.ok)) { setMessage(data?.message ?? data?.errorMessage ?? 'ดำเนินการไม่สำเร็จ'); return; }
-    setPendingAction(null);
-    setNote('');
-    setMessage(action === 'review' ? 'บันทึกหมายเหตุแล้ว' : 'ทดสอบรายการใหม่สำเร็จ');
-    await loadTransfers();
+    setMessage('');
+    try {
+      const endpoint = action === 'review' ? `/admin/game-transfers/${item.id}/review` : `/admin/game-transfers/${item.id}/retry-dry-run`;
+      const res = await adminApiFetch(endpoint, { method: action === 'review' ? 'PATCH' : 'POST', body: JSON.stringify({ note: reason }) });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || (action === 'retry' && data?.ok !== true)) throw new Error('action');
+      setPendingAction(null);
+      setNote('');
+      setMessage(action === 'review' ? 'บันทึกหมายเหตุแล้ว' : 'ทดสอบรายการใหม่สำเร็จ');
+      await loadTransfers();
+    } catch {
+      setMessage(action === 'review' ? 'บันทึกผลตรวจไม่สำเร็จ กรุณาลองใหม่' : 'ทดสอบรายการใหม่ไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setWorking('');
+    }
   }
 
-  return <AdminPage eyebrow="แพลตฟอร์มเกม" title="รายการโยกเงินเกม" description="ตรวจเงินเข้าเกม เงินกลับกระเป๋า การคืนรายการ และรายการที่ต้องติดตาม" actions={<AdminButton onClick={() => void loadTransfers()} disabled={loading}>รีเฟรช</AdminButton>}>
-    <AdminMetricGrid>
-      <AdminMetric title="ทั้งหมด" value={String(metrics.total)} />
-      <AdminMetric title="สำเร็จ" value={String(metrics.success)} tone="success" />
-      <AdminMetric title="กำลังดำเนินการ" value={String(metrics.pending)} tone={metrics.pending ? 'warning' : 'success'} />
-      <AdminMetric title="มีปัญหา" value={String(metrics.failed)} tone={metrics.failed ? 'danger' : 'success'} />
-    </AdminMetricGrid>
-    {message && <AdminNotice>{message}</AdminNotice>}
-    <AdminToolbar><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหาสมาชิก ค่าย หรือรหัสรายการ" style={inputStyle} /><select value={status} onChange={(event) => setStatus(event.target.value)} style={inputStyle}><option value="all">ทุกสถานะ</option><option value="SUCCESS">สำเร็จ</option><option value="FAILED">มีปัญหา</option><option value="PENDING">กำลังดำเนินการ</option><option value="REVERSED">คืนแล้ว</option></select><span style={mutedStyle}>{loading ? 'กำลังโหลด...' : `${filtered.length}/${items.length} รายการ`}</span></AdminToolbar>
-    <AdminStack>{filtered.map((item) => <AdminCard key={item.id}>
-      <AdminRow>
-        <div><h2 style={titleStyle}>{transferLabel(item.type)} · {formatMoney(item.amount, item.currency)}</h2><p style={mutedStyle}>{item.provider?.name ?? '-'} · {item.session?.game?.name ?? '-'} · สมาชิก {item.user?.username ?? item.user?.phone ?? '-'}</p><p style={smallMutedStyle}>รหัสกันรายการซ้ำ: {item.idempotencyKey}</p><p style={smallMutedStyle}>เลขอ้างอิงค่าย: {item.providerTransactionId ?? '-'}</p></div>
-        <div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminLinkButton href={`/game-transfers/${item.id}`}>ดูรายละเอียด</AdminLinkButton><AdminButton tone="secondary" onClick={() => setExpanded(expanded === item.id ? '' : item.id)}>{expanded === item.id ? 'ซ่อนข้อมูลเทคนิค' : 'ข้อมูลเทคนิค'}</AdminButton><AdminButton tone="secondary" onClick={() => requestAction(item, 'review')} disabled={working === item.id}>{working === item.id ? 'กำลังทำ...' : 'บันทึกผลตรวจ'}</AdminButton>{item.status === 'FAILED' && <AdminButton tone="secondary" onClick={() => requestAction(item, 'retry')} disabled={working === item.id}>ทดสอบใหม่</AdminButton>}</div>
-      </AdminRow>
-      {item.errorMessage && <AdminNotice tone="danger">{transferErrorLabel(item.errorCode)}</AdminNotice>}
-      {expanded === item.id && <pre style={preStyle}>{stringifyAdminPayload({ requestPayload: item.requestPayload, responsePayload: item.responsePayload })}</pre>}
-      <p style={smallMutedStyle}>สร้างเมื่อ {new Date(item.createdAt).toLocaleString('th-TH')}</p>
-    </AdminCard>)}{!loading && filtered.length === 0 && <AdminEmpty>ยังไม่มีรายการโยกเงินตามตัวกรอง</AdminEmpty>}</AdminStack>
+  const busy = loading || Boolean(working);
 
-    <AdminConfirmDialog open={Boolean(pendingAction)} title={pendingAction ? (pendingAction.action === 'review' ? 'บันทึกผลตรวจรายการ' : 'ทดสอบรายการใหม่') : ''} description={pendingAction?.action === 'review' ? 'หมายเหตุจะถูกบันทึกไว้กับรายการเพื่อใช้ติดตามและตรวจสอบย้อนหลัง' : 'ระบบจะเรียกขั้นตอนทดสอบซ้ำแบบไม่ควรเปลี่ยนยอดเงินจริง'} confirmLabel={pendingAction?.action === 'review' ? 'บันทึกผลตรวจ' : 'ทดสอบใหม่'} tone={pendingAction?.action === 'retry' ? 'primary' : 'success'} busy={Boolean(pendingAction && working === pendingAction.item.id)} onCancel={() => { setPendingAction(null); setNote(''); }} onConfirm={() => void confirmAction()} details={<label style={noteStyle}><span>เหตุผล / หมายเหตุ</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="ระบุข้อมูลให้ผู้ตรวจคนถัดไปเข้าใจ" style={textareaStyle} /></label>} />
+  return <AdminPage eyebrow="แพลตฟอร์มเกม" title="รายการโยกเงินเกม" description="ตรวจเงินเข้าเกม เงินกลับกระเป๋า การคืนรายการ และรายการที่ต้องติดตาม" actions={<AdminButton onClick={() => void loadTransfers()} disabled={busy}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}>
+    <AdminMetricGrid><AdminMetric title="ทั้งหมด" value={String(metrics.total)} /><AdminMetric title="สำเร็จ" value={String(metrics.success)} tone="success" /><AdminMetric title="กำลังดำเนินการ" value={String(metrics.pending)} tone={metrics.pending ? 'warning' : 'success'} /><AdminMetric title="มีปัญหา" value={String(metrics.failed)} tone={metrics.failed ? 'danger' : 'success'} /></AdminMetricGrid>
+    {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
+    <AdminToolbar><input disabled={busy} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหาสมาชิก ค่าย หรือรหัสรายการ" style={inputStyle} /><select disabled={busy} value={status} onChange={(event) => setStatus(event.target.value)} style={inputStyle}><option value="all">ทุกสถานะ</option><option value="SUCCESS">สำเร็จ</option><option value="FAILED">มีปัญหา</option><option value="PENDING">กำลังดำเนินการ</option><option value="REVERSED">คืนแล้ว</option></select><span style={mutedStyle}>{loading ? 'กำลังโหลด...' : `${filtered.length}/${items.length} รายการ`}</span></AdminToolbar>
+    <AdminStack>{filtered.map((item) => <AdminCard key={item.id}><AdminRow><div><h2 style={titleStyle}>{transferLabel(item.type)} · {formatMoney(item.amount, item.currency)}</h2><p style={mutedStyle}>{item.provider?.name ?? '-'} · {item.session?.game?.name ?? '-'} · สมาชิก {item.user?.username ?? item.user?.phone ?? '-'}</p><p style={smallMutedStyle}>รหัสกันรายการซ้ำ: {item.idempotencyKey}</p><p style={smallMutedStyle}>เลขอ้างอิงค่าย: {item.providerTransactionId ?? '-'}</p></div><div style={badgeStackStyle}><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminLinkButton href={`/game-transfers/${item.id}`}>ดูรายละเอียด</AdminLinkButton><AdminButton tone="secondary" onClick={() => setExpanded(expanded === item.id ? '' : item.id)} disabled={busy}>{expanded === item.id ? 'ซ่อนข้อมูลเทคนิค' : 'ข้อมูลเทคนิค'}</AdminButton><AdminButton tone="secondary" onClick={() => requestAction(item, 'review')} disabled={busy}>บันทึกผลตรวจ</AdminButton>{item.status === 'FAILED' && <AdminButton tone="secondary" onClick={() => requestAction(item, 'retry')} disabled={busy}>ทดสอบใหม่</AdminButton>}</div></AdminRow>{item.errorMessage && <AdminNotice tone="danger">{transferErrorLabel(item.errorCode)}</AdminNotice>}{expanded === item.id && <pre style={preStyle}>{stringifyAdminPayload({ requestPayload: item.requestPayload, responsePayload: item.responsePayload })}</pre>}<p style={smallMutedStyle}>สร้างเมื่อ {new Date(item.createdAt).toLocaleString('th-TH')}</p></AdminCard>)}{!loading && filtered.length === 0 && <AdminEmpty>ยังไม่มีรายการโยกเงินตามตัวกรอง</AdminEmpty>}</AdminStack>
+    <AdminConfirmDialog open={Boolean(pendingAction)} title={pendingAction ? (pendingAction.action === 'review' ? 'บันทึกผลตรวจรายการ' : 'ทดสอบรายการใหม่') : ''} description={pendingAction?.action === 'review' ? 'หมายเหตุจะถูกบันทึกไว้กับรายการเพื่อใช้ติดตามและตรวจสอบย้อนหลัง' : 'ระบบจะเรียกขั้นตอนทดสอบซ้ำแบบไม่ควรเปลี่ยนยอดเงินจริง'} confirmLabel={pendingAction?.action === 'review' ? 'บันทึกผลตรวจ' : 'ทดสอบใหม่'} tone={pendingAction?.action === 'retry' ? 'primary' : 'success'} busy={Boolean(pendingAction && working === pendingAction.item.id)} onCancel={() => { if (!working) { setPendingAction(null); setNote(''); } }} onConfirm={() => void confirmAction()} details={<label style={noteStyle}><span>เหตุผล / หมายเหตุ</span><textarea disabled={Boolean(working)} value={note} onChange={(event) => setNote(event.target.value)} placeholder="ระบุข้อมูลให้ผู้ตรวจคนถัดไปเข้าใจ" style={textareaStyle} /></label>} />
   </AdminPage>;
 }
 
@@ -85,10 +86,7 @@ function statusTone(status: string) { if (status === 'SUCCESS') return 'success'
 function humanStatus(status: string) { const map: Record<string, string> = { SUCCESS: 'สำเร็จ', FAILED: 'มีปัญหา', PENDING: 'กำลังดำเนินการ', REVERSED: 'คืนแล้ว', CANCELLED: 'ยกเลิก' }; return map[status] ?? status ?? '-'; }
 function transferLabel(type: string) { const map: Record<string, string> = { TRANSFER_IN: 'โยกเข้าเกม', TRANSFER_OUT: 'โยกกลับกระเป๋า', ROLLBACK: 'คืนเงิน', SYNC: 'ซิงก์ยอด', ADJUSTMENT: 'ปรับยอด' }; return map[type] ?? type ?? 'โยกเงิน'; }
 function transferErrorLabel(code?: string | null) { const labels: Record<string, string> = { TIMEOUT: 'ค่ายตอบกลับช้า กรุณาตรวจสอบและลองใหม่ภายหลัง', INSUFFICIENT_BALANCE: 'ยอดเงินไม่เพียงพอสำหรับรายการนี้', PROVIDER_UNAVAILABLE: 'ค่ายเกมไม่พร้อมใช้งาน', INVALID_REQUEST: 'ข้อมูลรายการไม่ถูกต้อง' }; return labels[code ?? ''] ?? 'ทำรายการไม่สำเร็จ กรุณาตรวจสอบข้อมูลค่ายและรายการ'; }
-function formatMoney(value: string | number | null | undefined, currency: string) {
-  const amount = typeof value === 'number' ? value : Number(value ?? 0);
-  return `${currency} ${(Number.isFinite(amount) ? amount : 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
-}
+function formatMoney(value: string | number | null | undefined, currency: string) { const amount = typeof value === 'number' ? value : Number(value ?? 0); return `${currency} ${(Number.isFinite(amount) ? amount : 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
 const inputStyle = { width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', boxSizing: 'border-box' as const, fontSize: 15 };
 const mutedStyle = { margin: 0, color: '#94a3b8', lineHeight: 1.55 } as const;
 const smallMutedStyle = { margin: 0, color: '#64748b', fontSize: 12 } as const;
