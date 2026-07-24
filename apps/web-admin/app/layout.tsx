@@ -46,6 +46,7 @@ import './support-center.css';
 import './admin-final-audit.css';
 import './admin-app-states.css';
 import './admin-mobile-drawer-fix.css';
+import './admin-single-language-button.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
