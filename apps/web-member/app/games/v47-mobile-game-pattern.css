@@ -1,0 +1,207 @@
+/* V47 archive mobile catalog contract. Keep desktop lobby untouched. */
+@media (max-width: 900px) {
+  .game-lobby-page {
+    width: min(100%, 428px);
+    max-width: 428px;
+    padding: 8px 10px calc(96px + env(safe-area-inset-bottom));
+    gap: 10px;
+  }
+
+  .game-lobby-hero {
+    min-height: 154px;
+    border-radius: 9px;
+  }
+
+  .game-lobby-hero-copy {
+    max-width: 70%;
+    padding: 15px;
+  }
+
+  .game-lobby-hero-copy h1 {
+    font-size: 18px;
+  }
+
+  .game-lobby-hero-copy p,
+  .game-lobby-kicker {
+    font-size: 9px;
+  }
+
+  .game-lobby-hero-orb {
+    right: 13px;
+    width: 64px;
+    height: 64px;
+  }
+
+  .game-lobby-tabs {
+    margin: 0 -10px;
+    padding: 2px 10px 5px;
+    gap: 6px;
+  }
+
+  .game-lobby-tabs button {
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 7px;
+    border-color: #4b2458;
+    background: #1b1222;
+    color: rgb(255 255 255 / 68%);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .game-lobby-tabs button.is-active {
+    border-color: #8a3ba0;
+    background: linear-gradient(180deg, #5d256f, #351442);
+    color: #fff;
+    box-shadow: none;
+  }
+
+  .game-lobby-toolbar {
+    grid-template-columns: minmax(0, 1fr) 112px 54px;
+    gap: 6px;
+    padding: 7px;
+    border-radius: 8px;
+    border-color: rgb(255 255 255 / 6%);
+    background: #17101d;
+  }
+
+  .game-lobby-toolbar input,
+  .game-lobby-toolbar select,
+  .game-lobby-clear {
+    min-height: 34px;
+    border-radius: 6px;
+    padding: 0 9px;
+    font-size: 10px;
+  }
+
+  .game-lobby-clear {
+    grid-column: auto;
+  }
+
+  .game-lobby-section {
+    gap: 8px;
+  }
+
+  .game-lobby-section > header {
+    min-height: 34px;
+    align-items: center;
+    padding: 6px 9px;
+    border-radius: 7px;
+    background: linear-gradient(90deg, #572267, #1b1122);
+  }
+
+  .game-lobby-section h2 {
+    font-size: 13px;
+  }
+
+  .game-lobby-section > header > span {
+    font-size: 9px;
+  }
+
+  .game-lobby-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .game-lobby-card {
+    min-height: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    grid-template-rows: auto auto;
+  }
+
+  .game-lobby-card:nth-child(-n + 2) {
+    grid-column: 1 / -1;
+  }
+
+  .game-lobby-cover-button,
+  .game-lobby-image,
+  .game-lobby-cover-button .game-lobby-fallback {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .game-lobby-cover-button > img,
+  .game-lobby-cover-button .game-lobby-fallback,
+  .game-lobby-image {
+    aspect-ratio: 1.75 / 1;
+  }
+
+  .game-lobby-card:nth-child(-n + 2) .game-lobby-cover-button > img,
+  .game-lobby-card:nth-child(-n + 2) .game-lobby-cover-button .game-lobby-fallback,
+  .game-lobby-card:nth-child(-n + 2) .game-lobby-image {
+    aspect-ratio: 2.18 / 1;
+  }
+
+  .game-lobby-card-body {
+    grid-template-rows: auto auto auto;
+    gap: 2px;
+    padding: 6px 2px 2px;
+  }
+
+  .game-lobby-card-body > strong {
+    min-width: 0;
+    font-size: 10px;
+    line-height: 1.25;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: block;
+  }
+
+  .game-lobby-card-body > span {
+    overflow: hidden;
+    color: rgb(255 255 255 / 46%);
+    font-size: 8px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .game-lobby-card-body > button {
+    min-height: 28px;
+    margin-top: 3px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #6f2e83, #452052);
+    color: #fff;
+    font-size: 9px;
+  }
+
+  .game-lobby-favorite {
+    top: 5px;
+    right: 5px;
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+  }
+
+  .game-lobby-card-skeleton {
+    min-height: 0;
+  }
+
+  .game-lobby-card-skeleton:nth-child(-n + 2) {
+    grid-column: 1 / -1;
+  }
+
+  .game-lobby-skeleton-cover {
+    aspect-ratio: 1.75 / 1;
+    border-radius: 8px;
+  }
+
+  .game-lobby-card-skeleton:nth-child(-n + 2) .game-lobby-skeleton-cover {
+    aspect-ratio: 2.18 / 1;
+  }
+}
+
+@media (max-width: 360px) {
+  .game-lobby-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .game-lobby-toolbar {
+    grid-template-columns: minmax(0, 1fr) 96px;
+  }
+
+  .game-lobby-clear {
+    grid-column: 1 / -1;
+  }
+}
