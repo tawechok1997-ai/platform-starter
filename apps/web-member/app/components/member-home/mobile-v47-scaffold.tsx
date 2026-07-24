@@ -16,6 +16,7 @@ type Props = {
 
 export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoading, gamesMessage }: Props) {
   const banners = Array.isArray(content.banners) ? content.banners.filter((item) => item.enabled) : [];
+  const announcements = Array.isArray(content.announcements) ? content.announcements.filter((item) => item.enabled) : [];
   const faqs = Array.isArray(content.faqs) ? content.faqs.filter((item) => item.enabled).slice(0, 5) : [];
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
   const popular = fillGames(games.popular, allGames, 6);
@@ -25,10 +26,13 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
   const [activeBanner, setActiveBanner] = useState(0);
   const hero = banners[activeBanner] ?? banners[0];
   const heroImage = hero?.imageUrl || resolveCmsAssetById(content, hero?.assetId);
+  const announcement = announcements[0];
   const tournament = findAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']);
   const jackpot = findAsset(content, ['jackpot', 'แจ็คพอต']);
   const leaderboard = findAsset(content, ['leaderboard', 'ranking', 'อันดับ']);
   const partner = findAsset(content, ['partner', 'provider', 'พันธมิตร']);
+  const miniWheel = findAsset(content, ['wheel', 'lucky wheel', 'วงล้อ']);
+  const miniCard = findAsset(content, ['card', 'mission', 'ไพ่', 'ภารกิจ']);
 
   useEffect(() => {
     if (banners.length < 2) return;
@@ -42,7 +46,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
 
   return (
     <section className="v47-mobile-home" aria-label="หน้าแรกมือถือ">
-      <div className="v47-mobile-announcement"><Icon value={V47_ASSETS.announcement} />คาสิโนออนไลน์ครบทุกค่าย เปิดให้บริการตลอด 24 ชั่วโมง</div>
+      <div className="v47-mobile-announcement"><Icon value={V47_ASSETS.announcement} /><span>{announcement?.message || announcement?.title || 'คาสิโนออนไลน์ครบทุกค่าย เปิดให้บริการตลอด 24 ชั่วโมง'}</span></div>
 
       <a className="v47-mobile-hero" href={hero?.href || '/promotions'}>
         {heroImage ? <img key={heroImage} src={heroImage} alt={hero?.title || siteName} onError={hideBrokenImage} /> : <div className="v47-mobile-hero-fallback">{siteName}</div>}
@@ -70,6 +74,8 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
       <section className="v47-mobile-jackpot"><img src={resolveV47Asset(jackpot?.url, 'jackpot')} alt="Jackpot" onError={hideBrokenImage} /><span><small>JACKPOTS</small><strong>194,428,645</strong><em>Epic of the day</em></span></section>
 
       <section className="v47-mobile-panel"><SectionTitle icon={leaderboard?.url || icons.vip} title="Leaderboard" action="ดูทั้งหมด" /><div className="v47-mobile-board-head"><span>อันดับ</span><span>ชื่อผู้เล่น</span><span>รางวัล</span></div>{Array.from({ length: 5 }, (_, index) => <div className="v47-mobile-board-row" key={index}><span className="v47-mobile-board-badge"><img src={index < 3 ? V47_ASSETS.rankTop3 : V47_ASSETS.rankOther} alt="" onError={hideBrokenImage} /><b>{index + 1}</b></span><span>0{980000018 - index * 8241}</span><em>{[15000, 5700, 3500, 2904, 2100][index]?.toLocaleString()}</em></div>)}</section>
+
+      <section className="v47-mobile-panel v47-mobile-mini-games"><SectionTitle icon={V47_ASSETS.miniGameWheel} title="Mini Game" /><div><a href="/login"><img src={miniWheel?.url || V47_ASSETS.miniGameWheel} alt="วงล้อ" onError={hideBrokenImage} /><span><strong>วงล้อ</strong><small>ลุ้นรางวัลทุกวัน</small></span></a><a href="/login"><img src={miniCard?.url || V47_ASSETS.quickActivity} alt="ทายการ์ด" onError={hideBrokenImage} /><span><strong>ทายการ์ด</strong><small>เล่นง่าย รับรางวัล</small></span></a></div></section>
 
       <GameSection title="Top 10 Popular Games" icon={V47_ASSETS.mobilePopular} games={popular} loading={isGamesLoading} message={gamesMessage} />
       <GameSection title="Most Online Now" icon={icons.games} games={online} loading={isGamesLoading} message={gamesMessage} />
