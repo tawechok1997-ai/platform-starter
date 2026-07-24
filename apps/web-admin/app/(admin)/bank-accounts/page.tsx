@@ -149,25 +149,78 @@ export default function BankAccountsPage() {
     setReviewIntent(null); setReviewReason('');
   }
 
-  return <AdminPage eyebrow={copy.eyebrow} title={copy.title} description={copy.description} actions={<AdminButton disabled={queueBusy} onClick={() => void loadAll()}>{loading ? copy.loading : copy.refresh}</AdminButton>}>
-    {message && <AdminNotice tone={message.includes('สำเร็จ') || message.includes('added') || message.includes('uploaded') ? 'success' : 'warning'}>{message}</AdminNotice>}
-    <AdminGrid>
-      {canManage && <AdminCard title={`${copy.addAccount}: ${typeLabel}`} description={copy.description}><form onSubmit={saveReceiving}><AdminToolbar>
-        <label style={labelStyle}>{typeLabel}<select disabled={saving} value={paymentType} onChange={(event) => changePaymentType(event.target.value as PaymentType)}>{paymentTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-        {paymentType === 'bank' && <label style={labelStyle}>{copy.bank}<select disabled={saving} value={form.bankName} onChange={(event) => setForm({ ...form, bankName: event.target.value })}>{THAI_BANKS.map((bank) => <option key={bank} value={bank}>{bank}</option>)}</select></label>}
-        <label style={labelStyle}>{copy.accountName}<input disabled={saving} value={form.accountName} onChange={(event) => setForm({ ...form, accountName: event.target.value })} /></label>
-        <label style={labelStyle}>{accountNumberLabel}<input disabled={saving} value={form.accountNumber} onChange={(event) => setForm({ ...form, accountNumber: event.target.value, promptPay: paymentType === 'promptpay' ? event.target.value : form.promptPay })} /></label>
-        <label style={labelStyle}>{copy.minAmount}<input disabled={saving} value={form.minAmount} onChange={(event) => setForm({ ...form, minAmount: event.target.value })} /></label>
-        <label style={labelStyle}>{copy.maxAmount}<input disabled={saving} value={form.maxAmount} onChange={(event) => setForm({ ...form, maxAmount: event.target.value })} /></label>
-        <label style={labelStyle}>{copy.uploadQr}<input disabled={saving} type="file" accept="image/*" onChange={(event) => void handleQrUpload(event)} /></label>
-        {form.qrImageUrl && <img src={form.qrImageUrl} alt="QR preview" style={qrPreviewStyle} />}
-        <AdminButton type="submit" disabled={saving}>{saving ? copy.loading : copy.addAccount}</AdminButton>
-      </AdminToolbar></form></AdminCard>}
-      <AdminCard title={copy.receivingTitle}><AdminStack>{receiving.map((item) => <AdminRow key={item.id}><div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : 'danger'}>{item.status}</AdminBadge><h2 style={{ margin: '10px 0 4px' }}>{labelForAccount(item, copy)}</h2><p>{copy.accountName}: {item.accountName}</p><p>{numberLabelForAccount(item, copy)}: {maskAccountNumber(item.accountNumber)}</p>{item.promptPay && <p>PromptPay: {maskAccountNumber(item.promptPay)}</p>}<p>{copy.limit}: {item.minAmount ?? '-'} - {item.maxAmount ?? '-'}</p>{item.qrImageUrl && <img src={item.qrImageUrl} alt="QR" style={qrPreviewStyle} /></div>{canManage && <div style={actionsStyle}><AdminButton tone="success" disabled={queueBusy} onClick={() => void setReceivingStatus(item, 'ACTIVE')}>{copy.enable}</AdminButton><AdminButton tone="danger" disabled={queueBusy} onClick={() => void setReceivingStatus(item, 'DISABLED')}>{copy.disable}</AdminButton></div>}</AdminRow>)}{!loading && receiving.length === 0 && <AdminEmpty>{copy.noReceiving}</AdminEmpty>}</AdminStack></AdminCard>
-    </AdminGrid>
-    <AdminCard title={copy.memberTitle} description={copy.memberDescription}><AdminStack>{memberBanks.map((item) => <AdminRow key={item.id}><div><AdminBadge tone={item.status === 'ACTIVE' ? 'success' : item.status === 'REJECTED' ? 'danger' : 'warning'}>{item.status}</AdminBadge>{duplicateAccountIds.includes(item.id) && <AdminBadge tone="danger">{copy.duplicate}</AdminBadge>}<h2 style={{ margin: '10px 0 4px' }}>{item.bankName}</h2><p>{item.accountName} / {maskAccountNumber(item.accountNumber)}</p><p>{copy.member}: {item.user?.username ?? item.userId}</p><p>{copy.primary}: {item.isPrimary ? '✓' : '−'}</p></div>{canReview && <div style={actionsStyle}><AdminButton tone="success" disabled={queueBusy || duplicateAccountIds.includes(item.id)} onClick={() => setReviewIntent({ item, status: 'ACTIVE' })}>{copy.approve}</AdminButton><AdminButton tone="danger" disabled={queueBusy} onClick={() => setReviewIntent({ item, status: 'REJECTED' })}>{copy.reject}</AdminButton></div>}</AdminRow>)}{!loading && memberBanks.length === 0 && <AdminEmpty>{copy.noMember}</AdminEmpty>}</AdminStack></AdminCard>
-    <AdminConfirmDialog open={Boolean(reviewIntent)} title={reviewIntent?.status === 'ACTIVE' ? copy.approveTitle : copy.rejectTitle} description={reviewIntent?.status === 'ACTIVE' ? copy.approveDescription : copy.rejectDescription} confirmLabel={reviewIntent?.status === 'ACTIVE' ? copy.confirmApprove : copy.confirmReject} tone={reviewIntent?.status === 'REJECTED' ? 'danger' : 'success'} busy={Boolean(reviewIntent && busyId === reviewIntent.item.id)} onCancel={() => { if (!busyId) { setReviewIntent(null); setReviewReason(''); } }} onConfirm={() => void confirmReview()} details={reviewIntent?.status === 'REJECTED' ? <label style={labelStyle}>{copy.reason}<input disabled={Boolean(busyId)} value={reviewReason} onChange={(event) => setReviewReason(event.target.value)} /></label> : undefined} />
-  </AdminPage>;
+  return (
+    <AdminPage eyebrow={copy.eyebrow} title={copy.title} description={copy.description} actions={<AdminButton disabled={queueBusy} onClick={() => void loadAll()}>{loading ? copy.loading : copy.refresh}</AdminButton>}>
+      {message && <AdminNotice tone={message.includes('สำเร็จ') || message.includes('added') || message.includes('uploaded') ? 'success' : 'warning'}>{message}</AdminNotice>}
+      <AdminGrid>
+        {canManage && (
+          <AdminCard title={`${copy.addAccount}: ${typeLabel}`} description={copy.description}>
+            <form onSubmit={saveReceiving}>
+              <AdminToolbar>
+                <label style={labelStyle}>{typeLabel}<select disabled={saving} value={paymentType} onChange={(event) => changePaymentType(event.target.value as PaymentType)}>{paymentTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+                {paymentType === 'bank' && <label style={labelStyle}>{copy.bank}<select disabled={saving} value={form.bankName} onChange={(event) => setForm({ ...form, bankName: event.target.value })}>{THAI_BANKS.map((bank) => <option key={bank} value={bank}>{bank}</option>)}</select></label>}
+                <label style={labelStyle}>{copy.accountName}<input disabled={saving} value={form.accountName} onChange={(event) => setForm({ ...form, accountName: event.target.value })} /></label>
+                <label style={labelStyle}>{accountNumberLabel}<input disabled={saving} value={form.accountNumber} onChange={(event) => setForm({ ...form, accountNumber: event.target.value, promptPay: paymentType === 'promptpay' ? event.target.value : form.promptPay })} /></label>
+                <label style={labelStyle}>{copy.minAmount}<input disabled={saving} value={form.minAmount} onChange={(event) => setForm({ ...form, minAmount: event.target.value })} /></label>
+                <label style={labelStyle}>{copy.maxAmount}<input disabled={saving} value={form.maxAmount} onChange={(event) => setForm({ ...form, maxAmount: event.target.value })} /></label>
+                <label style={labelStyle}>{copy.uploadQr}<input disabled={saving} type="file" accept="image/*" onChange={(event) => void handleQrUpload(event)} /></label>
+                {form.qrImageUrl && <img src={form.qrImageUrl} alt="QR preview" style={qrPreviewStyle} />}
+                <AdminButton type="submit" disabled={saving}>{saving ? copy.loading : copy.addAccount}</AdminButton>
+              </AdminToolbar>
+            </form>
+          </AdminCard>
+        )}
+        <AdminCard title={copy.receivingTitle}>
+          <AdminStack>
+            {receiving.map((item) => (
+              <AdminRow key={item.id}>
+                <div>
+                  <AdminBadge tone={item.status === 'ACTIVE' ? 'success' : 'danger'}>{item.status}</AdminBadge>
+                  <h2 style={{ margin: '10px 0 4px' }}>{labelForAccount(item, copy)}</h2>
+                  <p>{copy.accountName}: {item.accountName}</p>
+                  <p>{numberLabelForAccount(item, copy)}: {maskAccountNumber(item.accountNumber)}</p>
+                  {item.promptPay && <p>PromptPay: {maskAccountNumber(item.promptPay)}</p>}
+                  <p>{copy.limit}: {item.minAmount ?? '-'} - {item.maxAmount ?? '-'}</p>
+                  {item.qrImageUrl && <img src={item.qrImageUrl} alt="QR" style={qrPreviewStyle} />}
+                </div>
+                {canManage && (
+                  <div style={actionsStyle}>
+                    <AdminButton tone="success" disabled={queueBusy} onClick={() => void setReceivingStatus(item, 'ACTIVE')}>{copy.enable}</AdminButton>
+                    <AdminButton tone="danger" disabled={queueBusy} onClick={() => void setReceivingStatus(item, 'DISABLED')}>{copy.disable}</AdminButton>
+                  </div>
+                )}
+              </AdminRow>
+            ))}
+            {!loading && receiving.length === 0 && <AdminEmpty>{copy.noReceiving}</AdminEmpty>}
+          </AdminStack>
+        </AdminCard>
+      </AdminGrid>
+      <AdminCard title={copy.memberTitle} description={copy.memberDescription}>
+        <AdminStack>
+          {memberBanks.map((item) => (
+            <AdminRow key={item.id}>
+              <div>
+                <AdminBadge tone={item.status === 'ACTIVE' ? 'success' : item.status === 'REJECTED' ? 'danger' : 'warning'}>{item.status}</AdminBadge>
+                {duplicateAccountIds.includes(item.id) && <AdminBadge tone="danger">{copy.duplicate}</AdminBadge>}
+                <h2 style={{ margin: '10px 0 4px' }}>{item.bankName}</h2>
+                <p>{item.accountName} / {maskAccountNumber(item.accountNumber)}</p>
+                <p>{copy.member}: {item.user?.username ?? item.userId}</p>
+                <p>{copy.primary}: {item.isPrimary ? '✓' : '−'}</p>
+              </div>
+              {canReview && (
+                <div style={actionsStyle}>
+                  <AdminButton tone="success" disabled={queueBusy || duplicateAccountIds.includes(item.id)} onClick={() => setReviewIntent({ item, status: 'ACTIVE' })}>{copy.approve}</AdminButton>
+                  <AdminButton tone="danger" disabled={queueBusy} onClick={() => setReviewIntent({ item, status: 'REJECTED' })}>{copy.reject}</AdminButton>
+                </div>
+              )}
+            </AdminRow>
+          ))}
+          {!loading && memberBanks.length === 0 && <AdminEmpty>{copy.noMember}</AdminEmpty>}
+        </AdminStack>
+      </AdminCard>
+      <AdminConfirmDialog open={Boolean(reviewIntent)} title={reviewIntent?.status === 'ACTIVE' ? copy.approveTitle : copy.rejectTitle} description={reviewIntent?.status === 'ACTIVE' ? copy.approveDescription : copy.rejectDescription} confirmLabel={reviewIntent?.status === 'ACTIVE' ? copy.confirmApprove : copy.confirmReject} tone={reviewIntent?.status === 'REJECTED' ? 'danger' : 'success'} busy={Boolean(reviewIntent && busyId === reviewIntent.item.id)} onCancel={() => { if (!busyId) { setReviewIntent(null); setReviewReason(''); } }} onConfirm={() => void confirmReview()} details={reviewIntent?.status === 'REJECTED' ? <label style={labelStyle}>{copy.reason}<input disabled={Boolean(busyId)} value={reviewReason} onChange={(event) => setReviewReason(event.target.value)} /></label> : undefined} />
+    </AdminPage>
+  );
 }
 
 function labelForAccount(item: ReceivingAccount, copy: Copy) { if (item.bankName === 'พร้อมเพย์') return copy.paymentTypes.promptpay; if (item.bankName === 'วอเลต') return copy.paymentTypes.wallet; if (item.bankName === 'อื่น ๆ') return copy.paymentTypes.other; return `${copy.paymentTypes.bank} · ${item.bankName}`; }
