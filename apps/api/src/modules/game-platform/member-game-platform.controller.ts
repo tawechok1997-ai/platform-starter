@@ -5,6 +5,18 @@ import { MemberAuthGuard } from '../../common/guards/member-auth.guard';
 import { GamePlatformService } from './game-platform.service';
 import { MemberGameCatalogQuery, MemberGameCatalogService } from './member-game-catalog.service';
 
+@Controller('games')
+export class PublicGameCatalogController {
+  constructor(
+    private readonly memberGameCatalogService: MemberGameCatalogService,
+  ) {}
+
+  @Get('catalog')
+  listCatalog(@Query() query: MemberGameCatalogQuery) {
+    return this.memberGameCatalogService.list(query);
+  }
+}
+
 @UseGuards(MemberAuthGuard)
 @Controller('member')
 export class MemberGamePlatformController {
