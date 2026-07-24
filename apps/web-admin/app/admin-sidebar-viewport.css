@@ -105,8 +105,23 @@ body {
 }
 
 @media (min-width: 821px) {
+  html {
+    height: auto !important;
+    overflow-y: auto !important;
+  }
+
+  body {
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow-y: scroll !important;
+    overscroll-behavior-y: auto !important;
+  }
+
   .admin-shell {
     display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
 
   .admin-drawer {
@@ -119,7 +134,18 @@ body {
   .admin-main-shell {
     width: auto !important;
     min-width: 0 !important;
+    height: auto !important;
+    max-height: none !important;
     margin-left: 272px !important;
+    overflow: visible !important;
+  }
+
+  .admin-content-shell,
+  .admin-content-shell > main,
+  .admin-content-shell > .admin-ui-page {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
 
   .admin-shell--collapsed .admin-drawer {
