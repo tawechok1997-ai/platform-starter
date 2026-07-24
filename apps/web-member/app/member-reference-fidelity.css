@@ -1,0 +1,68 @@
+/*
+ * Final reference-fidelity adjustments that depend on composed Member markup.
+ * Keep selectors semantic so item order and CMS card counts can change safely.
+ */
+
+.global-member-topbar .member-header-tool[aria-label='ค้นหาเกม'] {
+  display: grid !important;
+  place-items: center !important;
+  padding-bottom: 3px !important;
+  font-size: 29px !important;
+  font-weight: 400 !important;
+  line-height: 0.8 !important;
+}
+
+.member-source-panel--promotions .member-reference-promotion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 2vw, 24px);
+}
+
+.member-source-panel--promotions .member-reference-promotion-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: clamp(14px, 2vw, 22px);
+  background: var(--brand-card, #181818);
+  scroll-snap-align: start;
+}
+
+@media (max-width: 900px) {
+  .member-source-panel--promotions .member-reference-promotion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .member-source-panel--promotions {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .member-source-panel--promotions .member-reference-promotion-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(248px, 82vw);
+    grid-template-columns: none;
+    gap: 12px;
+    margin-inline: -12px;
+    padding-inline: 12px;
+    padding-bottom: 4px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: 12px;
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .member-source-panel--promotions .member-reference-promotion-grid::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-source-panel--promotions .member-reference-promotion-grid {
+    scroll-behavior: auto;
+  }
+}
