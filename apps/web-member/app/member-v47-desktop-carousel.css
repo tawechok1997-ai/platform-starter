@@ -1,65 +1,170 @@
-/* V47 desktop carousel behavior and geometry. Loaded after the desktop reference styles. */
+/* V47 desktop hero carousel. Loaded after the legacy desktop reference layers. */
 @media (min-width: 901px) {
-  .reference-hero-row {
-    position: relative;
-    width: 100%;
-    min-height: 288.463px;
-    overflow: hidden;
+  .desktop-reference-home.desktop-home {
+    display: block !important;
+    width: min(1455px, calc(100% - 32px)) !important;
+    max-width: 1455px !important;
+    margin: 14px auto 36px !important;
   }
 
-  .reference-banner.reference-hero-main,
-  .reference-banner.reference-hero-peek {
-    min-height: 288.463px;
-    transition: opacity .35s ease, transform .45s ease;
-    will-change: transform, opacity;
+  .desktop-home__body {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1080px) 350px !important;
+    align-items: start !important;
+    justify-content: center !important;
+    gap: 15px !important;
+    width: min(1445px, 100%) !important;
+    margin: 0 auto !important;
   }
 
-  .reference-banner.reference-hero-main {
-    width: 710.5px;
-    flex: 0 0 710.5px;
+  .desktop-home__main,
+  .desktop-home__sidebar {
+    min-width: 0 !important;
   }
 
-  .reference-banner.reference-hero-peek {
-    opacity: .74;
-    transform: scale(.975);
+  .reference-hero-row,
+  .reference-carousel-dots,
+  .reference-reward-banner {
+    display: none !important;
   }
 
-  .reference-carousel-dots {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    min-height: 22px;
+  .reference-hero-carousel {
+    --hero-gap: 8px;
+    --hero-slide-width: min(710.5px, calc((100vw - 48px) * .49));
+    position: relative !important;
+    width: min(1450px, calc(100vw - 32px)) !important;
+    max-width: 1450px !important;
+    margin: 0 auto 10px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    outline: none !important;
+    touch-action: pan-y !important;
+    user-select: none !important;
   }
 
-  .reference-carousel-dots button {
-    width: 7px;
-    height: 7px;
-    padding: 0;
-    border: 0;
-    border-radius: 999px;
-    background: rgb(255 255 255 / 30%);
-    cursor: pointer;
-    transition: width .25s ease, background-color .25s ease, transform .25s ease;
+  .reference-hero-carousel:focus-visible {
+    outline: 2px solid rgb(218 165 243 / 72%) !important;
+    outline-offset: 3px !important;
+    border-radius: 9px !important;
   }
 
-  .reference-carousel-dots button:hover,
-  .reference-carousel-dots button:focus-visible {
-    background: rgb(255 255 255 / 62%);
-    transform: scale(1.12);
-    outline: none;
+  .reference-hero-mask {
+    width: 100% !important;
+    overflow: hidden !important;
+    border-radius: 0 !important;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 3.5%, #000 96.5%, transparent 100%) !important;
+    mask-image: linear-gradient(to right, transparent 0, #000 3.5%, #000 96.5%, transparent 100%) !important;
   }
 
-  .reference-carousel-dots button.active {
-    width: 25px;
-    background: #b25dcc;
+  .reference-hero-track {
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--hero-gap) !important;
+    width: max-content !important;
+    cursor: grab !important;
+    will-change: transform !important;
+    transition: transform 520ms cubic-bezier(.22, .61, .36, 1) !important;
+  }
+
+  .reference-hero-track.is-dragging,
+  .reference-hero-track.is-jumping {
+    cursor: grabbing !important;
+    transition: none !important;
+  }
+
+  .reference-hero-slide {
+    position: relative !important;
+    display: block !important;
+    flex: 0 0 var(--hero-slide-width) !important;
+    width: var(--hero-slide-width) !important;
+    min-width: var(--hero-slide-width) !important;
+    max-width: var(--hero-slide-width) !important;
+    aspect-ratio: 710.5 / 288.463 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 7px !important;
+    background: #17111f !important;
+    box-shadow: none !important;
+    opacity: .38 !important;
+    filter: brightness(.52) saturate(.82) !important;
+    transform: scale(.985) !important;
+    transform-origin: center !important;
+    transition: transform 520ms ease, opacity 520ms ease, filter 520ms ease !important;
+  }
+
+  .reference-hero-slide.is-active {
+    z-index: 2 !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: scale(1) !important;
+  }
+
+  .reference-hero-slide img {
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    object-fit: cover !important;
+    border-radius: inherit !important;
+    pointer-events: none !important;
+  }
+
+  .reference-hero-pagination {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    height: 12px !important;
+    margin: 2px 0 0 !important;
+  }
+
+  .reference-hero-pagination button {
+    display: block !important;
+    width: 4px !important;
+    min-width: 4px !important;
+    height: 4px !important;
+    min-height: 4px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background: rgb(255 255 255 / 65%) !important;
+    box-shadow: none !important;
+    opacity: .55 !important;
+    cursor: pointer !important;
+    transition: opacity .22s ease, background-color .22s ease, transform .22s ease !important;
+  }
+
+  .reference-hero-pagination button:hover,
+  .reference-hero-pagination button:focus-visible {
+    opacity: .9 !important;
+    outline: none !important;
+    transform: scale(1.35) !important;
+  }
+
+  .reference-hero-pagination button.is-active {
+    opacity: 1 !important;
+    background: #d92bef !important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1240px) {
+  .desktop-home__body {
+    grid-template-columns: minmax(0, 1fr) 300px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .reference-hero-carousel {
+    display: none !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reference-banner.reference-hero-main,
-  .reference-banner.reference-hero-peek,
-  .reference-carousel-dots button {
-    transition: none;
+  .reference-hero-track,
+  .reference-hero-slide,
+  .reference-hero-pagination button {
+    transition: none !important;
   }
 }
