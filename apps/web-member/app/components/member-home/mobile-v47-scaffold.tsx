@@ -1,6 +1,6 @@
 'use client';
 
-import type { SyntheticEvent } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
 import type { CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
 
@@ -15,24 +15,41 @@ type Props = {
 
 export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoading, gamesMessage }: Props) {
   const banners = Array.isArray(content.banners) ? content.banners.filter((item) => item.enabled) : [];
+  const [activeBanner, setActiveBanner] = useState(0);
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
   const popular = fillGames(games.popular, allGames, 2);
   const online = fillGames(allGames.slice(2), allGames, 6);
   const classic = fillGames(allGames.slice(8), allGames, 6);
-  const hero = banners[0];
+  const hero = banners[activeBanner] ?? banners[0];
   const heroImage = hero?.imageUrl || resolveCmsAssetById(content, hero?.assetId);
   const tournament = findAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']);
   const jackpot = findAsset(content, ['jackpot', 'แจ็คพอต']);
   const leaderboard = findAsset(content, ['leaderboard', 'ranking', 'อันดับ']);
 
+  useEffect(() => {
+    if (banners.length < 2) return;
+    const timer = window.setInterval(() => {
+      setActiveBanner((current) => (current + 1) % banners.length);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [banners.length]);
+
+  useEffect(() => {
+    if (activeBanner >= banners.length) setActiveBanner(0);
+  }, [activeBanner, banners.length]);
+
   return (
     <section className="v47-mobile-home" aria-label="หน้าแรกมือถือ">
       <div className="v47-mobile-announcement">คาสิโนออนไลน์ครบทุกค่าย เปิดให้บริการตลอด 24 ชั่วโมง</div>
 
-      <div className="v47-mobile-hero">
-        {heroImage ? <img src={heroImage} alt={hero?.title || siteName} onError={hideBrokenImage} /> : <div className="v47-mobile-hero-fallback">{siteName}</div>}
+      <a className="v47-mobile-hero" href={hero?.href || '/promotions'} aria-label={hero?.title || siteName}>
+        {heroImage ? <img key={heroImage} src={heroImage} alt={hero?.title || siteName} onError={hideBrokenImage} /> : <div className="v47-mobile-hero-fallback">{siteName}</div>}
+      </a>
+      <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">
+        {(banners.length ? banners : Array.from({ length: 1 })).map((_, index) => (
+          <button key={index} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}`} aria-current={index === activeBanner ? 'true' : undefined} />
+        ))}
       </div>
-      <div className="v47-mobile-dots" aria-hidden="true"><i className="active" /><i /><i /><i /><i /></div>
 
       <div className="v47-mobile-quick-grid">
         <QuickCard icon={icons.promotion} title="โปรโมชั่น" href="/promotions" />
