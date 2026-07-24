@@ -1,12 +1,11 @@
 'use client';
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type KeyboardEvent,
-  type PointerEvent,
   type SyntheticEvent,
 } from 'react';
 import type { CmsContent } from '../../site-settings';
@@ -47,6 +46,7 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const carouselRef = useRef<HTMLElement | null>(null);
   const pointerStartX = useRef<number | null>(null);
   const realCount = slides.length;
   const normalizedActiveIndex = realCount ? modulo(activeIndex, realCount) : 0;
@@ -62,6 +62,11 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     ];
   }, [normalizedActiveIndex, realCount, slides]);
 
+  const moveBy = useCallback((delta: number) => {
+    if (realCount < 2) return;
+    setActiveIndex((current) => modulo(current + delta, realCount));
+  }, [realCount]);
+
   useEffect(() => {
     if (realCount < 2 || paused) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -73,58 +78,63 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     return () => window.clearInterval(timer);
   }, [paused, realCount]);
 
+  useEffect(() => {
+    const element = carouselRef.current;
+    if (!element) return;
+
+    const handlePointerDown = (event: globalThis.PointerEvent) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      pointerStartX.current = event.clientX;
+      element.setPointerCapture?.(event.pointerId);
+      setPaused(true);
+    };
+
+    const handlePointerUp = (event: globalThis.PointerEvent) => {
+      const startX = pointerStartX.current;
+      pointerStartX.current = null;
+      if (element.hasPointerCapture?.(event.pointerId)) element.releasePointerCapture(event.pointerId);
+      setPaused(false);
+      if (startX === null) return;
+
+      const distance = event.clientX - startX;
+      if (distance <= -SWIPE_THRESHOLD_PX) moveBy(1);
+      else if (distance >= SWIPE_THRESHOLD_PX) moveBy(-1);
+    };
+
+    const handlePointerCancel = () => {
+      pointerStartX.current = null;
+      setPaused(false);
+    };
+
+    const pause = () => setPaused(true);
+    const resume = () => setPaused(false);
+
+    element.addEventListener('pointerdown', handlePointerDown);
+    element.addEventListener('pointerup', handlePointerUp);
+    element.addEventListener('pointercancel', handlePointerCancel);
+    element.addEventListener('mouseenter', pause);
+    element.addEventListener('mouseleave', resume);
+    element.addEventListener('focusin', pause);
+    element.addEventListener('focusout', resume);
+
+    return () => {
+      element.removeEventListener('pointerdown', handlePointerDown);
+      element.removeEventListener('pointerup', handlePointerUp);
+      element.removeEventListener('pointercancel', handlePointerCancel);
+      element.removeEventListener('mouseenter', pause);
+      element.removeEventListener('mouseleave', resume);
+      element.removeEventListener('focusin', pause);
+      element.removeEventListener('focusout', resume);
+    };
+  }, [moveBy]);
+
   if (!showPromotion || realCount === 0) return null;
-
-  function moveBy(delta: number) {
-    if (realCount < 2) return;
-    setActiveIndex((current) => modulo(current + delta, realCount));
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
-    if (event.key === 'ArrowLeft') {
-      event.preventDefault();
-      moveBy(-1);
-    } else if (event.key === 'ArrowRight') {
-      event.preventDefault();
-      moveBy(1);
-    }
-  }
-
-  function handlePointerDown(event: PointerEvent<HTMLElement>) {
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
-    pointerStartX.current = event.clientX;
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-    setPaused(true);
-  }
-
-  function handlePointerUp(event: PointerEvent<HTMLElement>) {
-    const startX = pointerStartX.current;
-    pointerStartX.current = null;
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
-    setPaused(false);
-    if (startX === null) return;
-
-    const distance = event.clientX - startX;
-    if (distance <= -SWIPE_THRESHOLD_PX) moveBy(1);
-    else if (distance >= SWIPE_THRESHOLD_PX) moveBy(-1);
-  }
 
   return (
     <section
+      ref={carouselRef}
       className="reference-hero-carousel"
       aria-label="โปรโมชั่นแนะนำ"
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={() => {
-        pointerStartX.current = null;
-        setPaused(false);
-      }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
     >
       <div className="reference-hero-mask">
         <div className="reference-hero-track">
