@@ -13,6 +13,7 @@ import {
   PendingRequests,
 } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
+import { MobileV47Scaffold } from './components/member-home/mobile-v47-scaffold';
 import { HomeActivitiesPanel } from './components/member-home/home-activities-panel';
 import { HomeAnnouncementStrip } from './components/member-home/home-announcement-strip';
 import { HomeHighlightsPanel } from './components/member-home/home-highlights-panel';
@@ -47,6 +48,12 @@ export default function MemberHome(props: MemberHomeProps) {
   const [activeTab, setActiveTab] = useState<HomeTab>('highlights');
   const popupVersion = props.cmsContent.popup.version ?? 'v1';
   const data = useMemberHomeData(features.games);
+  const gameSections = {
+    featured: data.featured,
+    popular: data.popular,
+    recent: data.recentGames,
+    favorites: data.favoriteGames,
+  };
 
   useEffect(() => {
     setPopupClosed(readClosedPopupVersion() === popupVersion);
@@ -64,17 +71,21 @@ export default function MemberHome(props: MemberHomeProps) {
         icons={icons}
         siteName={props.siteName}
         showPromotion={props.showPromotion && features.games}
-        games={{
-          featured: data.featured,
-          popular: data.popular,
-          recent: data.recentGames,
-          favorites: data.favoriteGames,
-        }}
+        games={gameSections}
         isGamesLoading={data.isGamesLoading}
         gamesMessage={data.gamesMessage}
       />
 
-      <section className={`member-shell member-home-shell member-source-home member-home-mobile ${styles.referenceHome}`}>
+      <MobileV47Scaffold
+        content={props.cmsContent}
+        icons={icons}
+        siteName={props.siteName}
+        games={gameSections}
+        isGamesLoading={data.isGamesLoading}
+        gamesMessage={data.gamesMessage}
+      />
+
+      <section className={`member-shell member-home-shell member-source-home member-home-mobile member-home-mobile--legacy ${styles.referenceHome}`}>
         <div className="member-home-zone member-home-zone--primary">
           {props.showPromotion && features.games && (
             <HomePromotionCarousel content={props.cmsContent} siteName={props.siteName} />
