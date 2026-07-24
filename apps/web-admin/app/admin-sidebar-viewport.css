@@ -4,6 +4,24 @@
   display: none !important;
 }
 
+html,
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto !important;
+}
+
+.admin-shell {
+  min-height: 100dvh !important;
+  overflow: visible !important;
+}
+
+.admin-main-shell,
+.admin-content-shell {
+  min-height: 100dvh;
+  overflow: visible !important;
+}
+
 .admin-drawer {
   height: 100dvh !important;
   max-height: 100dvh !important;
@@ -12,7 +30,7 @@
   grid-template-rows: auto auto minmax(0, 1fr) auto !important;
   align-content: stretch !important;
   overflow: hidden !important;
-  overscroll-behavior: contain;
+  overscroll-behavior: auto !important;
 }
 
 .admin-drawer-head,
@@ -27,7 +45,7 @@
   max-height: none !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: auto !important;
   scrollbar-gutter: stable;
   padding-bottom: 8px !important;
 }
@@ -86,6 +104,33 @@
   border-radius: 0 0 12px 12px !important;
 }
 
+@media (min-width: 821px) {
+  .admin-shell {
+    display: block !important;
+  }
+
+  .admin-drawer {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: 272px !important;
+    transform: none !important;
+  }
+
+  .admin-main-shell {
+    width: auto !important;
+    min-width: 0 !important;
+    margin-left: 272px !important;
+  }
+
+  .admin-shell--collapsed .admin-drawer {
+    width: 76px !important;
+  }
+
+  .admin-shell--collapsed .admin-main-shell {
+    margin-left: 76px !important;
+  }
+}
+
 @media (min-width: 821px) and (max-height: 900px) {
   .admin-drawer {
     gap: 9px !important;
@@ -122,8 +167,27 @@
 }
 
 @media (max-width: 820px) {
+  html,
+  body {
+    overflow-y: auto !important;
+  }
+
+  .admin-shell {
+    display: block !important;
+  }
+
+  .admin-main-shell {
+    margin-left: 0 !important;
+  }
+
   .admin-drawer {
+    position: fixed !important;
     grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+    overscroll-behavior: contain !important;
+  }
+
+  .admin-drawer-nav {
+    overscroll-behavior-y: contain !important;
   }
 
   .admin-sidebar-footer {
