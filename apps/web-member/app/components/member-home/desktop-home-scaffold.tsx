@@ -1,8 +1,8 @@
 'use client';
 
+import type { SyntheticEvent } from 'react';
 import type { CmsContent } from '../../site-settings';
 import type { Game } from '../../types/member-api';
-import { HomePromotionCarousel } from './home-promotion-carousel';
 
 type DesktopGameSections = {
   featured: Game[];
@@ -37,6 +37,7 @@ export function DesktopHomeScaffold({
   const announcements = Array.isArray(content?.announcements) ? content.announcements : [];
   const faqs = Array.isArray(content?.faqs) ? content.faqs : [];
   const enabledBanners = banners.filter((banner) => banner?.enabled);
+  const heroBanner = enabledBanners[0];
   const featureTiles = enabledBanners.slice(1, 3);
   const promotionCards = enabledBanners.slice(0, 3);
   const announcement = announcements.find((item) => item?.enabled);
@@ -52,17 +53,22 @@ export function DesktopHomeScaffold({
     <section className="desktop-home" aria-label="หน้าแรกเดสก์ท็อป">
       <div className="desktop-home__main">
         <section className="desktop-home__hero-grid">
-          <div className="desktop-home__hero-primary">
-            {showPromotion && banners.length ? (
-              <HomePromotionCarousel content={{ ...content, banners }} siteName={siteName} />
-            ) : (
-              <div className="desktop-home__placeholder desktop-home__placeholder--hero">PROMOTION</div>
-            )}
-          </div>
+          <a className="desktop-home__hero-primary" href={heroBanner?.href || '/promotions'}>
+            {showPromotion && heroBanner?.imageUrl ? (
+              <img src={heroBanner.imageUrl} alt={heroBanner.title || siteName} onError={hideBrokenImage} />
+            ) : null}
+            <span className="desktop-home__hero-overlay" />
+            <span className="desktop-home__hero-copy">
+              <small>FEATURED PROMOTION</small>
+              <strong>{heroBanner?.title || 'โปรโมชั่นสมาชิก'}</strong>
+              <em>{heroBanner?.subtitle || 'ดูโปรโมชั่นและกิจกรรมล่าสุด'}</em>
+            </span>
+          </a>
+
           <div className="desktop-home__hero-stack">
             {featureTiles.length ? featureTiles.map((banner, index) => (
               <a key={`${banner.title || 'banner'}-${index}`} className="desktop-home__feature-tile" href={banner.href || '/promotions'}>
-                {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title || 'โปรโมชั่น'} />}
+                {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title || 'โปรโมชั่น'} onError={hideBrokenImage} />}
                 <span className="desktop-home__feature-tile-overlay" />
                 <span className="desktop-home__feature-copy">
                   <small>{index === 0 ? 'ACTIVITY' : 'NEWS'}</small>
@@ -102,7 +108,7 @@ export function DesktopHomeScaffold({
           ]).map((banner, index) => (
             <a key={`${banner.title || 'promotion'}-${index}`} href={banner.href || '/promotions'} className="desktop-home__promo-card">
               <div className={`desktop-home__promo-art desktop-home__promo-art--${index + 1}`}>
-                {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title || 'โปรโมชั่น'} loading="lazy" />}
+                {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title || 'โปรโมชั่น'} loading="lazy" onError={hideBrokenImage} />}
                 <span className="desktop-home__promo-shade" />
               </div>
               <div className="desktop-home__promo-copy"><strong>{banner.title || 'โปรโมชั่น'}</strong><span>{banner.subtitle || 'ดูรายละเอียดเพิ่มเติม'}</span></div>
@@ -159,7 +165,7 @@ export function DesktopHomeScaffold({
 }
 
 function GameSection({ title, eyebrow, games, loading, message }: { title: string; eyebrow: string; games: Game[]; loading: boolean; message: string }) {
-  const visibleGames = Array.isArray(games) ? games.slice(0, 8) : [];
+  const visibleGames = Array.isArray(games) ? games.slice(0, 10) : [];
   return (
     <section className="desktop-home__games">
       <div className="desktop-home__section-heading desktop-home__section-heading--games"><div><span>{eyebrow}</span><h2>{title}</h2></div><a href="/games">ดูทั้งหมด</a></div>
@@ -172,18 +178,32 @@ function GameSection({ title, eyebrow, games, loading, message }: { title: strin
 
 function GameCard({ game }: { game: Game }) {
   const media = Array.isArray(game?.media) ? game.media : [];
-  const image = media.find((item) => item?.cachedUrl)?.cachedUrl || media.find((item) => item?.sourceUrl)?.sourceUrl || '';
+  const image = resolveGameImage(media);
   const provider = game?.provider?.name || game?.provider?.code || 'Provider';
   const name = typeof game?.name === 'string' && game.name.trim() ? game.name : 'Game';
   const id = typeof game?.id === 'string' ? game.id : '';
   return (
     <a className="desktop-home__game-card" href={id ? `/games/${encodeURIComponent(id)}` : '/games'}>
       <div className="desktop-home__game-art">
-        {image ? <img src={image} alt={name} loading="lazy" /> : <span>{name.slice(0, 1).toUpperCase()}</span>}
+        {image ? <img src={image} alt={name} loading="lazy" onError={hideBrokenImage} /> : <span>{name.slice(0, 1).toUpperCase()}</span>}
         {game?.isNew && <em>NEW</em>}
         <span className="desktop-home__game-play">เล่นเกม</span>
       </div>
       <div className="desktop-home__game-meta"><strong>{name}</strong><span>{provider}</span></div>
     </a>
   );
+}
+
+function resolveGameImage(media: Game['media']) {
+  if (!Array.isArray(media)) return '';
+  const candidate = media.find((item) => typeof item?.cachedUrl === 'string' && item.cachedUrl.trim())?.cachedUrl
+    || media.find((item) => typeof item?.sourceUrl === 'string' && item.sourceUrl.trim())?.sourceUrl
+    || '';
+  if (!candidate) return '';
+  if (/^https?:\/\//i.test(candidate) || candidate.startsWith('/')) return candidate;
+  return `/${candidate.replace(/^\.\//, '')}`;
+}
+
+function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
+  event.currentTarget.style.display = 'none';
 }
