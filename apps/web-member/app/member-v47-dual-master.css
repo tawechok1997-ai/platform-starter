@@ -1,0 +1,280 @@
+/* NOAH345 V47 dual-layout master. Loaded last. Data and artwork still come from API / Site Settings. */
+
+:root {
+  --v47-bg: #110e16;
+  --v47-header: #181523;
+  --v47-panel: #18151f;
+  --v47-purple: #7200a3;
+  --v47-accent: #daa5f3;
+  --v47-line: rgb(151 81 169 / 88%);
+}
+
+body:has(.desktop-reference-home),
+body:has(.member-home-mobile) {
+  background: var(--v47-bg) !important;
+}
+
+@media (min-width: 901px) {
+  :root {
+    --v47-page: 1455px;
+    --v47-main: 1080px;
+    --v47-rail: 350px;
+    --v47-gap: 15px;
+  }
+
+  .public-home-topbar.global-member-topbar {
+    min-height: 108px !important;
+    background: linear-gradient(90deg, #181523 0%, #373147 50%, #181523 100%) !important;
+  }
+
+  .public-home-topbar .member-topbar__inner {
+    width: min(var(--v47-page), calc(100% - 32px)) !important;
+    max-width: var(--v47-page) !important;
+    min-height: 108px !important;
+    padding: 8px 0 49px !important;
+  }
+
+  .public-home-topbar .member-brand,
+  .public-home-topbar .member-brand-mark,
+  .public-home-topbar .member-brand-logo {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    height: 43px !important;
+    object-fit: contain !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest {
+    min-height: 49px !important;
+    right: calc((100vw - min(var(--v47-page), calc(100vw - 32px))) / -2) !important;
+    left: calc((100vw - min(var(--v47-page), calc(100vw - 32px))) / -2) !important;
+    padding-left: max(16px, calc((100vw - var(--v47-page)) / 2)) !important;
+    gap: 10px !important;
+    background: #181523 !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a {
+    min-height: 49px !important;
+    padding: 0 12px !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a img {
+    width: 30px !important;
+    height: 30px !important;
+    object-fit: contain !important;
+  }
+
+  .public-home-topbar .member-guest-action {
+    min-width: 110px !important;
+    min-height: 40px !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+  }
+
+  .desktop-reference-home.desktop-home {
+    width: min(var(--v47-page), calc(100% - 32px)) !important;
+    max-width: var(--v47-page) !important;
+    grid-template-columns: var(--v47-main) var(--v47-rail) !important;
+    gap: var(--v47-gap) !important;
+    margin: 20px auto 36px !important;
+  }
+
+  .reference-main-column,
+  .reference-sidebar { gap: 20px !important; }
+  .reference-sidebar { top: 124px !important; }
+
+  .reference-hero-row {
+    min-height: 288px !important;
+    grid-template-columns: 350px 715px !important;
+    gap: 15px !important;
+  }
+
+  .reference-hero-main,
+  .reference-hero-peek,
+  .reference-reward-banner {
+    min-height: 288px !important;
+    max-height: 288px !important;
+    border-radius: 10px !important;
+  }
+
+  .reference-promo-row {
+    min-height: 124px !important;
+    gap: 20px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .reference-promo-card {
+    min-height: 117px !important;
+    grid-template-columns: 160px minmax(0, 1fr) !important;
+    gap: 4px !important;
+    padding: 0 14px 0 0 !important;
+    border: 1px solid var(--v47-line) !important;
+    border-radius: 11px !important;
+    background: linear-gradient(90deg, #5f008d 0%, #2c004c 100%) !important;
+  }
+
+  .reference-promo-icon,
+  .reference-promo-icon img {
+    width: 160px !important;
+    height: 160px !important;
+    object-fit: contain !important;
+    transform: none !important;
+  }
+
+  .reference-promo-card strong { font-size: 20px !important; }
+  .reference-promo-card small { font-size: 13px !important; }
+
+  .reference-tournament-cta {
+    min-height: 116px !important;
+    border-radius: 10px !important;
+  }
+
+  .reference-tournament-board,
+  .reference-featured-section,
+  .reference-number-section,
+  .reference-compact-section,
+  .reference-guide,
+  .reference-side-card {
+    border-radius: 10px !important;
+    background: var(--v47-panel) !important;
+  }
+
+  .reference-featured-grid {
+    grid-template-columns: 310px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    padding: 14px !important;
+  }
+
+  .reference-featured-small-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+
+  .reference-game-tile--large > img,
+  .reference-game-tile--large > .reference-game-fallback { height: 405px !important; }
+  .reference-game-tile > img,
+  .reference-game-fallback { height: 174px !important; }
+
+  .reference-number-row {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    padding: 14px !important;
+  }
+
+  .reference-online-row { gap: 14px !important; padding: 14px !important; }
+  .reference-live-row { gap: 12px !important; padding: 14px !important; }
+  .reference-classic-row { gap: 14px !important; padding: 14px !important; }
+
+  .reference-provider-strip,
+  .member-footer {
+    width: min(var(--v47-page), calc(100% - 32px)) !important;
+    max-width: var(--v47-page) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html, body {
+    width: 100% !important;
+    max-width: none !important;
+    background: #000 !important;
+  }
+
+  body { padding-bottom: 74px !important; }
+
+  .desktop-reference-home { display: none !important; }
+  .member-home-mobile { display: block !important; }
+
+  .public-home-topbar.global-member-topbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 90 !important;
+    width: 100% !important;
+    min-height: 58px !important;
+    padding: 0 !important;
+    background: #181523 !important;
+  }
+
+  .public-home-topbar .member-topbar__inner {
+    width: min(100%, 640px) !important;
+    min-height: 58px !important;
+    margin: 0 auto !important;
+    padding: 8px 12px !important;
+  }
+
+  .public-home-topbar .member-brand-mark,
+  .public-home-topbar .member-brand-logo {
+    width: 126px !important;
+    max-width: 126px !important;
+    height: 36px !important;
+    object-fit: contain !important;
+  }
+
+  .member-home-mobile.member-source-home {
+    width: min(100%, 428px) !important;
+    max-width: 428px !important;
+    margin: 0 auto !important;
+    padding: 12px 12px 20px !important;
+    background: #110e16 !important;
+  }
+
+  .member-home-mobile .member-home-zone,
+  .member-home-mobile .member-source-finance,
+  .member-home-mobile .member-home-panel,
+  .member-home-mobile section {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .member-home-mobile img {
+    max-width: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .member-home-mobile [class*='carousel'],
+  .member-home-mobile [class*='banner'] {
+    border-radius: 10px !important;
+    overflow: hidden !important;
+  }
+
+  .member-home-mobile [class*='grid'] {
+    gap: 8px !important;
+  }
+
+  .member-home-mobile [class*='card'] {
+    border-radius: 9px !important;
+  }
+
+  .member-home-mobile button,
+  .member-home-mobile a {
+    min-height: 42px;
+  }
+
+  .member-footer {
+    width: min(100%, 428px) !important;
+    max-width: 428px !important;
+    margin: 0 auto !important;
+    padding-right: 12px !important;
+    padding-left: 12px !important;
+  }
+
+  .member-bottom-nav {
+    position: fixed !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: 100 !important;
+    display: grid !important;
+    width: min(100%, 428px) !important;
+    max-width: 428px !important;
+    min-height: 64px !important;
+    margin: 0 auto !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+    background: #181523 !important;
+    border-top: 1px solid rgb(218 165 243 / 35%) !important;
+  }
+}
