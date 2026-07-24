@@ -61,6 +61,7 @@ import './games/v47-mobile-game-pattern.css';
 import './member-v47-desktop-carousel.css';
 import './member-v47-header-structure.css';
 import './member-v47-quick-actions.css';
+import './member-clone-interactions.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
