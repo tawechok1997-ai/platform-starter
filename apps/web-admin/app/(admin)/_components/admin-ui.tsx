@@ -152,11 +152,70 @@ export function AdminConfirmDialog({ open, title, description, confirmLabel, can
   );
 }
 
+export function AdminDrawer({ open, title, description, children, busy = false, onClose }: { open: boolean; title: string; description?: string; children: ReactNode; busy?: boolean; onClose: () => void }) {
+  const [mounted, setMounted] = useState(false);
+  const titleId = useId();
+  const descriptionId = useId();
+  const drawerRef = useRef<HTMLElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    if (!open) return;
+    restoreFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const scrollY = window.scrollY;
+    const previous = { overflow: document.body.style.overflow, position: document.body.style.position, top: document.body.style.top, width: document.body.style.width };
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    const focusTimer = window.setTimeout(() => closeRef.current?.focus(), 30);
+    const containFocus = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !busy) { onClose(); return; }
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(drawerRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? []).filter((element) => !element.hasAttribute('hidden'));
+      if (focusable.length === 0) { event.preventDefault(); return; }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) { event.preventDefault(); return; }
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener('keydown', containFocus);
+    return () => {
+      window.clearTimeout(focusTimer);
+      window.removeEventListener('keydown', containFocus);
+      document.body.style.overflow = previous.overflow;
+      document.body.style.position = previous.position;
+      document.body.style.top = previous.top;
+      document.body.style.width = previous.width;
+      window.scrollTo(0, scrollY);
+      window.setTimeout(() => restoreFocusRef.current?.focus(), 0);
+    };
+  }, [open, busy, onClose]);
+  if (!open || !mounted) return null;
+
+  const accessibility = description ? { 'aria-describedby': descriptionId } : {};
+  return createPortal(
+    <div className="admin-drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
+      <aside ref={drawerRef} className="admin-drawer" role="dialog" aria-modal="true" aria-labelledby={titleId} {...accessibility}>
+        <header className="admin-drawer__head"><div><h2 id={titleId}>{title}</h2>{description && <p id={descriptionId}>{description}</p>}</div><button ref={closeRef} type="button" className="admin-ui-button admin-ui-button--ghost admin-ui-button--compact" disabled={busy} onClick={onClose}>ปิด</button></header>
+        <div className="admin-drawer__body">{children}</div>
+      </aside>
+    </div>, document.body,
+  );
+}
+
 export function AdminCommandPanel({ children }: { children: ReactNode }) { return <section className="admin-ui-command-panel" style={safeTextContainerStyle}>{children}</section>; }
 export function AdminActionStrip({ children }: { children: ReactNode }) { return <div className="admin-ui-action-strip" style={safeTextContainerStyle}>{children}</div>; }
 export function formatMoney(value: string | number | null | undefined) { const amount = typeof value === 'number' ? value : Number(value ?? 0); const safeAmount = Number.isFinite(amount) ? amount : 0; return `THB ${safeAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`; }
 
 const adminSystemCss = `
+.admin-drawer-layer{position:fixed;inset:0;z-index:9000;display:flex;justify-content:flex-end;background:rgba(2,6,23,.62);backdrop-filter:blur(5px)}
+.admin-drawer{width:min(620px,100%);height:100%;overflow:auto;padding:24px;background:#111823;border-left:1px solid rgba(148,163,184,.22);box-shadow:-24px 0 60px rgba(2,6,23,.42)}
+.admin-drawer__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.admin-drawer__head h2{margin:0;font-size:24px}.admin-drawer__head p{margin:6px 0 0;color:#94a3b8}.admin-drawer__body{display:grid;gap:14px}
+@media(max-width:640px){.admin-drawer-layer{align-items:flex-end}.admin-drawer{width:100%;height:min(88dvh,760px);border-left:0;border-top:1px solid rgba(148,163,184,.22);border-radius:22px 22px 0 0;padding:18px}}
 .admin-ui-page{min-width:0;width:100%;display:grid;gap:18px}
 .admin-ui-page__head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:18px;margin-bottom:2px}
 .admin-ui-page__copy,.admin-ui-card__copy,.admin-ui-card__action,.admin-confirm-dialog__copy{min-width:0;max-width:100%;overflow-wrap:anywhere}

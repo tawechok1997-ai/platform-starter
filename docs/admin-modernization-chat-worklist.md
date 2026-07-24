@@ -361,7 +361,7 @@
 - [x] Review drawer
 - [x] Reject reason และ SLA
 - [x] Timeline และ approve/reject confirmation
-- [~] Drawer focus contract และ safe error ยังไม่ครบ
+- [x] Shared drawer focus/Escape/backdrop/scroll-lock contract และ safe error
 
 ### `/bonus-ledgers`
 
