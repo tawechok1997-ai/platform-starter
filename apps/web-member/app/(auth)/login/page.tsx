@@ -106,7 +106,7 @@ export default function MemberSignInPage() {
         <AntiBotWidget endpoint="member-login" locale={locale} resetKey={captchaResetKey} onToken={handleCaptchaToken} onRequiredChange={handleCaptchaState} />
         <button type="submit" disabled={disabled} className="public-auth-submit ui-button ui-button--primary">{loading ? t.submitting : t.submit}</button>
         {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
-        <div className="public-auth-legal"><span>{t.secureConnection}</span><Link href="/support">{t.support}</Link></div>
+        <div className="public-auth-legal"><span>{t.secureConnection}</span><Link href="/legal/privacy">{t.privacy}</Link><Link href="/legal/terms">{t.terms}</Link><Link href="/support">{t.support}</Link></div>
       </form>
     </section>
   </main>;
