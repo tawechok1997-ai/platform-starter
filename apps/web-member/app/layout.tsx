@@ -51,6 +51,7 @@ import './member-desktop-home-scaffold.css';
 import './member-desktop-home-final.css';
 import './member-desktop-reference-source.css';
 import './member-header-logout.css';
+import './member-desktop-reference-polish.css';
 import MemberChrome from './member-chrome';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import { MemberSessionProvider } from './member-session-provider';
