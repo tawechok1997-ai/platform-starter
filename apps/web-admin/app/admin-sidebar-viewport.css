@@ -1,0 +1,88 @@
+/* Keep the admin navigation usable within the viewport at every desktop height. */
+.admin-quick-nav[aria-label="ใช้ล่าสุด"],
+.admin-quick-nav[aria-label="Recent"] {
+  display: none !important;
+}
+
+.admin-drawer {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+  align-content: stretch !important;
+  overflow: hidden !important;
+  overscroll-behavior: contain;
+}
+
+.admin-drawer-head,
+.admin-nav-search,
+.admin-sidebar-footer {
+  min-height: 0;
+  flex: 0 0 auto;
+}
+
+.admin-drawer-nav {
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-bottom: 8px !important;
+}
+
+.admin-sidebar-footer {
+  position: relative !important;
+  z-index: 3;
+  margin-top: 0 !important;
+  padding-top: 10px !important;
+  padding-bottom: max(2px, env(safe-area-inset-bottom)) !important;
+  border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(15, 22, 32, 0), #0f1620 18%);
+}
+
+@media (min-width: 821px) and (max-height: 900px) {
+  .admin-drawer {
+    gap: 9px !important;
+    padding-top: 12px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .admin-drawer-head {
+    padding-bottom: 8px !important;
+  }
+
+  .admin-nav-search {
+    min-height: 40px !important;
+  }
+
+  .admin-nav-group__trigger {
+    min-height: 40px !important;
+    padding-block: 6px !important;
+  }
+
+  .admin-nav-submenu a {
+    min-height: 38px !important;
+    padding-block: 6px !important;
+  }
+
+  .admin-nav-group__label small {
+    display: none !important;
+  }
+
+  .admin-sidebar-profile__trigger,
+  .admin-collapse-button {
+    min-height: 42px !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .admin-drawer {
+    grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+  }
+
+  .admin-sidebar-footer {
+    padding-top: 8px !important;
+  }
+}
