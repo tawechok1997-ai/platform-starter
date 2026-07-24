@@ -12,6 +12,7 @@ import {
   CmsPopup,
   PendingRequests,
 } from './components/member-home-sections';
+import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
 import { HomeActivitiesPanel } from './components/member-home/home-activities-panel';
 import { HomeAnnouncementStrip } from './components/member-home/home-announcement-strip';
 import { HomeHighlightsPanel } from './components/member-home/home-highlights-panel';
@@ -57,53 +58,61 @@ export default function MemberHome(props: MemberHomeProps) {
   }
 
   return (
-    <section className={`member-shell member-home-shell member-source-home ${styles.referenceHome}`}>
-      <div className="member-home-zone member-home-zone--primary">
-        {props.showPromotion && features.games && (
-          <HomePromotionCarousel content={props.cmsContent} siteName={props.siteName} />
-        )}
-        <HomeAnnouncementStrip content={props.cmsContent} />
-        <SourceHomeTabs activeTab={activeTab} onChange={setActiveTab} />
-      </div>
+    <>
+      <DesktopHomeScaffold
+        content={props.cmsContent}
+        siteName={props.siteName}
+        showPromotion={props.showPromotion && features.games}
+      />
 
-      <div className="member-source-finance">
-        <PendingRequests
-          pendingTopups={data.pendingTopups}
-          pendingWithdrawals={data.pendingWithdrawals}
+      <section className={`member-shell member-home-shell member-source-home member-home-mobile ${styles.referenceHome}`}>
+        <div className="member-home-zone member-home-zone--primary">
+          {props.showPromotion && features.games && (
+            <HomePromotionCarousel content={props.cmsContent} siteName={props.siteName} />
+          )}
+          <HomeAnnouncementStrip content={props.cmsContent} />
+          <SourceHomeTabs activeTab={activeTab} onChange={setActiveTab} />
+        </div>
+
+        <div className="member-source-finance">
+          <PendingRequests
+            pendingTopups={data.pendingTopups}
+            pendingWithdrawals={data.pendingWithdrawals}
+            primaryColor={props.primaryColor}
+            features={features}
+          />
+        </div>
+
+        <HomeHighlightsPanel
+          active={activeTab === 'highlights'}
+          data={data}
           primaryColor={props.primaryColor}
+          showRecommended={props.showRecommended}
+          gamesEnabled={features.games}
+          icons={icons}
           features={features}
         />
-      </div>
 
-      <HomeHighlightsPanel
-        active={activeTab === 'highlights'}
-        data={data}
-        primaryColor={props.primaryColor}
-        showRecommended={props.showRecommended}
-        gamesEnabled={features.games}
-        icons={icons}
-        features={features}
-      />
+        <HomePromotionsPanel
+          active={activeTab === 'promotions'}
+          enabled={props.showPromotion}
+          content={props.cmsContent}
+        />
 
-      <HomePromotionsPanel
-        active={activeTab === 'promotions'}
-        enabled={props.showPromotion}
-        content={props.cmsContent}
-      />
+        <HomeActivitiesPanel
+          active={activeTab === 'activities'}
+          data={data}
+          content={props.cmsContent}
+          primaryColor={props.primaryColor}
+          depositEnabled={features.deposit}
+          supportEnabled={features.support}
+        />
 
-      <HomeActivitiesPanel
-        active={activeTab === 'activities'}
-        data={data}
-        content={props.cmsContent}
-        primaryColor={props.primaryColor}
-        depositEnabled={features.deposit}
-        supportEnabled={features.support}
-      />
-
-      {props.cmsContent.popup.enabled && !popupClosed && (
-        <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
-      )}
-    </section>
+        {props.cmsContent.popup.enabled && !popupClosed && (
+          <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
+        )}
+      </section>
+    </>
   );
 }
 
