@@ -1,0 +1,147 @@
+/* V47 mobile source-home rebuild. Loaded after the dual/detail passes. */
+.v47-mobile-home { display: none; }
+
+@media (max-width: 900px) {
+  .member-home-mobile--legacy { display: none !important; }
+  .v47-mobile-home {
+    display: grid;
+    width: min(100%, 428px);
+    max-width: 428px;
+    gap: 12px;
+    margin: 0 auto;
+    padding: 0 10px 28px;
+    background: #110e16;
+    color: #fff;
+  }
+
+  .v47-mobile-announcement {
+    min-height: 30px;
+    margin: 0 -10px;
+    padding: 7px 12px;
+    overflow: hidden;
+    background: #21172b;
+    color: rgb(255 255 255 / 78%);
+    font-size: 11px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .v47-mobile-hero {
+    position: relative;
+    aspect-ratio: 2.12 / 1;
+    overflow: hidden;
+    border: 1px solid rgb(209 91 241 / 30%);
+    border-radius: 10px;
+    background: linear-gradient(135deg, #371045, #7f1c9e);
+  }
+  .v47-mobile-hero img { width: 100%; height: 100%; object-fit: cover; }
+  .v47-mobile-hero-fallback { display: grid; height: 100%; place-items: center; font-size: 24px; font-weight: 900; }
+
+  .v47-mobile-dots { display: flex; height: 8px; align-items: center; justify-content: center; gap: 5px; margin-top: -6px; }
+  .v47-mobile-dots i { width: 5px; height: 5px; border-radius: 999px; background: rgb(255 255 255 / 30%); }
+  .v47-mobile-dots i.active { width: 25px; background: #bd22ea; }
+
+  .v47-mobile-quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .v47-mobile-quick-grid > a {
+    display: grid;
+    min-height: 86px;
+    place-items: center;
+    gap: 3px;
+    padding: 8px 4px;
+    border: 1px solid #72268b;
+    border-radius: 10px;
+    background: linear-gradient(155deg, #5d0878, #25102e);
+    color: #fff;
+    text-decoration: none;
+  }
+  .v47-mobile-quick-grid img,
+  .v47-mobile-quick-grid > a > span { width: 46px; height: 46px; object-fit: contain; font-size: 35px; line-height: 46px; text-align: center; }
+  .v47-mobile-quick-grid strong { font-size: 12px; }
+
+  .v47-mobile-tournament-banner {
+    position: relative;
+    display: grid;
+    min-height: 74px;
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    overflow: hidden;
+    border: 1px solid #17627d;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #062c43, #086181 58%, #124759);
+    color: #fff;
+    text-decoration: none;
+  }
+  .v47-mobile-tournament-banner > img { width: 62px; height: 58px; object-fit: contain; }
+  .v47-mobile-tournament-banner > span { display: grid; gap: 1px; }
+  .v47-mobile-tournament-banner small { color: #ffd66f; font-size: 9px; font-weight: 900; }
+  .v47-mobile-tournament-banner strong { font-size: 14px; }
+  .v47-mobile-tournament-banner b { padding: 8px 9px; border-radius: 6px; background: #e9b733; font-size: 9px; white-space: nowrap; }
+
+  .v47-mobile-panel,
+  .v47-mobile-jackpot {
+    overflow: hidden;
+    border: 1px solid rgb(172 53 205 / 28%);
+    border-radius: 10px;
+    background: #18151f;
+  }
+
+  .v47-mobile-section-title {
+    display: flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    border-bottom: 1px solid rgb(255 255 255 / 6%);
+    background: linear-gradient(90deg, #2c1537, #1b1622);
+  }
+  .v47-mobile-section-title > span { display: inline-flex; align-items: center; gap: 7px; }
+  .v47-mobile-section-title img,
+  .v47-mobile-section-title > span > span { width: 20px; height: 20px; object-fit: contain; line-height: 20px; text-align: center; }
+  .v47-mobile-section-title strong { font-size: 12px; }
+  .v47-mobile-section-title > a { color: #d9a8eb; font-size: 10px; text-decoration: none; }
+
+  .v47-mobile-rank-title { display: flex; min-height: 42px; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 10px; }
+  .v47-mobile-rank-title strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+  .v47-mobile-rank-title a { color: #cfa5df; font-size: 9px; text-decoration: none; white-space: nowrap; }
+  .v47-mobile-ranks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; padding: 0 8px 10px; }
+  .v47-mobile-ranks article { display: grid; min-height: 105px; align-content: center; justify-items: center; gap: 4px; padding: 7px 4px; border: 1px solid #5d286e; border-radius: 8px; background: #201427; }
+  .v47-mobile-ranks article > b { display: grid; width: 25px; height: 25px; place-items: center; border-radius: 50%; background: #9d25bd; font-size: 11px; }
+  .v47-mobile-ranks article > span { max-width: 100%; overflow: hidden; font-size: 9px; text-overflow: ellipsis; }
+  .v47-mobile-ranks article > strong { font-size: 18px; }
+  .v47-mobile-ranks article > small { color: #e3bc46; font-size: 7px; letter-spacing: 1px; }
+
+  .v47-mobile-jackpot { position: relative; min-height: 120px; }
+  .v47-mobile-jackpot > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .58; }
+  .v47-mobile-jackpot > span { position: relative; z-index: 1; display: grid; min-height: 120px; align-content: center; justify-items: center; gap: 2px; background: radial-gradient(circle, transparent, rgb(10 3 14 / 50%)); }
+  .v47-mobile-jackpot small { color: #f1b8ff; font-size: 10px; }
+  .v47-mobile-jackpot strong { font-size: 28px; text-shadow: 0 0 14px #e438ff; }
+  .v47-mobile-jackpot em { color: rgb(255 255 255 / 70%); font-size: 9px; font-style: normal; }
+
+  .v47-mobile-board-head,
+  .v47-mobile-board-row { display: grid; grid-template-columns: 48px 1fr 78px; align-items: center; }
+  .v47-mobile-board-head { min-height: 28px; padding: 0 8px; color: rgb(255 255 255 / 50%); font-size: 9px; }
+  .v47-mobile-board-row { min-height: 40px; padding: 0 8px; border-top: 1px solid rgb(255 255 255 / 5%); font-size: 10px; }
+  .v47-mobile-board-row > b { display: grid; width: 23px; height: 23px; place-items: center; border-radius: 50%; background: #50215c; }
+  .v47-mobile-board-row em { color: #e0a7f0; font-style: normal; text-align: right; }
+
+  .v47-mobile-game-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; padding: 10px; }
+  .v47-mobile-game-grid > a { overflow: hidden; border: 1px solid #382141; border-radius: 8px; background: #120e18; color: #fff; text-decoration: none; }
+  .v47-mobile-game-grid > a > div { position: relative; aspect-ratio: 1.75 / 1; overflow: hidden; }
+  .v47-mobile-game-grid img,
+  .v47-mobile-game-fallback { display: grid; width: 100%; height: 100%; place-items: center; object-fit: cover; background: #26132e; }
+  .v47-mobile-game-grid > a > div > span { position: absolute; top: 5px; left: 5px; padding: 2px 5px; border-radius: 4px; background: #d31f75; font-size: 8px; font-weight: 900; }
+  .v47-mobile-game-grid b { display: block; padding: 7px; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+  .v47-mobile-empty { padding: 22px 12px; color: rgb(255 255 255 / 55%); font-size: 11px; text-align: center; }
+
+  .v47-mobile-live article { padding: 10px; }
+  .v47-mobile-live article > small { color: #c891dc; font-size: 9px; }
+  .v47-mobile-live article > div { display: grid; min-height: 58px; grid-template-columns: 1fr 36px 1fr; align-items: center; text-align: center; }
+  .v47-mobile-live article > div span { font-size: 11px; font-weight: 800; }
+  .v47-mobile-live article > div i { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; background: #472154; color: #efc5fa; font-size: 9px; font-style: normal; }
+  .v47-mobile-live footer { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .v47-mobile-live footer a { display: grid; min-height: 34px; place-items: center; border-radius: 6px; background: #79199a; color: #fff; font-size: 10px; text-decoration: none; }
+  .v47-mobile-live footer a:last-child { background: #bd2585; }
+}
