@@ -29,7 +29,9 @@ export default function WalletStatementPage() {
   }, { credit: 0, debit: 0 }), [items]);
 
   async function loadStatement(nextPage = page) {
-    setLoading(true); setMessage('');
+    if (loading) return;
+    setLoading(true);
+    setMessage('');
     try {
       const params = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
       if (filters.identifier.trim()) params.set('identifier', filters.identifier.trim());
@@ -37,12 +39,20 @@ export default function WalletStatementPage() {
       if (filters.to) params.set('to', filters.to);
       const response = await adminApiFetch(`/admin/ledgers?${params.toString()}`);
       const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(data?.message ?? 'โหลด Statement ไม่สำเร็จ');
-      const nextItems = Array.isArray(data?.items) ? data.items : [];
-      setItems(nextItems); setTotal(Number(data?.total ?? nextItems.length)); setPageCount(Math.max(Number(data?.pageCount ?? 1), 1)); setPage(nextPage);
-    } catch (error) {
-      setItems([]); setTotal(0); setPageCount(1); setMessage(error instanceof Error ? error.message : 'โหลด Statement ไม่สำเร็จ');
-    } finally { setLoading(false); }
+      if (!response.ok || !data || !Array.isArray(data.items)) throw new Error('load');
+      const nextItems = data.items as LedgerItem[];
+      setItems(nextItems);
+      setTotal(Number(data.total ?? nextItems.length));
+      setPageCount(Math.max(Number(data.pageCount ?? 1), 1));
+      setPage(nextPage);
+    } catch {
+      setItems([]);
+      setTotal(0);
+      setPageCount(1);
+      setMessage('โหลด Statement ไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function clearFilters() { setFilters({ identifier: '', from: '', to: '' }); window.setTimeout(() => void loadStatement(1), 0); }
@@ -60,9 +70,9 @@ export default function WalletStatementPage() {
     <section className="admin-wallet-statement" aria-busy={loading}>
       <div className="admin-wallet-statement__stats"><Metric label="รายการทั้งหมด" value={total.toLocaleString('th-TH')} /><Metric label="เงินเข้าหน้านี้" value={formatMoney(totals.credit)} /><Metric label="เงินออกหน้านี้" value={formatMoney(totals.debit)} /><Metric label="หน้าปัจจุบัน" value={`${page}/${pageCount}`} /></div>
       <form className="admin-wallet-statement__toolbar" onSubmit={(event) => { event.preventDefault(); void loadStatement(1); }}>
-        <label><span>สมาชิก</span><input value={filters.identifier} onChange={(event) => setFilters((current) => ({ ...current, identifier: event.target.value }))} placeholder="ชื่อผู้ใช้ รหัสสมาชิก หรือ User ID" /></label>
-        <label><span>ตั้งแต่วันที่</span><input type="date" value={filters.from} onChange={(event) => setFilters((current) => ({ ...current, from: event.target.value }))} /></label>
-        <label><span>ถึงวันที่</span><input type="date" value={filters.to} onChange={(event) => setFilters((current) => ({ ...current, to: event.target.value }))} /></label>
+        <label><span>สมาชิก</span><input disabled={loading} value={filters.identifier} onChange={(event) => setFilters((current) => ({ ...current, identifier: event.target.value }))} placeholder="ชื่อผู้ใช้ รหัสสมาชิก หรือ User ID" /></label>
+        <label><span>ตั้งแต่วันที่</span><input disabled={loading} type="date" value={filters.from} onChange={(event) => setFilters((current) => ({ ...current, from: event.target.value }))} /></label>
+        <label><span>ถึงวันที่</span><input disabled={loading} type="date" value={filters.to} onChange={(event) => setFilters((current) => ({ ...current, to: event.target.value }))} /></label>
         <AdminButton type="submit" size="compact" disabled={loading}>ค้นหา</AdminButton><AdminButton size="compact" tone="secondary" disabled={loading} onClick={clearFilters}>ล้าง</AdminButton>
       </form>
       {message && <AdminNotice tone="danger">{message}</AdminNotice>}
