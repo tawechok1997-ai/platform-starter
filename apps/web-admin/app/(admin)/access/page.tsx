@@ -102,7 +102,8 @@ export default function AccessOverviewPage() {
       const response = await adminApiFetch('/admin/access/delegations', { method: 'POST', body: JSON.stringify({ delegateAdminId, permissionCodes, expiresInHours: hours, reason }) });
       const payload = await response.json().catch(() => null);
       if (!response.ok || !isRecord(payload) || !isDelegation(payload.delegation)) throw new Error('create');
-      setDelegations((current) => [payload.delegation, ...current.filter((item) => item.id !== payload.delegation.id)]);
+      const delegation = payload.delegation;
+      setDelegations((current) => [delegation, ...current.filter((item) => item.id !== delegation.id)]);
       setDelegateAdminId('');
       setDelegationPermissionCodes('');
       setDelegationReason('');
@@ -165,7 +166,8 @@ export default function AccessOverviewPage() {
         const response = await adminApiFetch(`/admin/access/delegations/${action.delegation.id}/revoke`, { method: 'POST', body: JSON.stringify({ reason: action.reason }) });
         const payload = await response.json().catch(() => null);
         if (!response.ok || !isRecord(payload) || !isDelegation(payload.delegation)) throw new Error('revoke');
-        setDelegations((current) => current.map((item) => item.id === action.delegation.id ? payload.delegation : item));
+        const delegation = payload.delegation;
+        setDelegations((current) => current.map((item) => item.id === action.delegation.id ? delegation : item));
         setDelegationRevokeReasons((current) => ({ ...current, [action.delegation.id]: '' }));
         setMessage('ยกเลิก delegated access แล้ว');
       }
