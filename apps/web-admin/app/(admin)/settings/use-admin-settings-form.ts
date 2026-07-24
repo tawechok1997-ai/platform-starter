@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
 import { useAdminUnsavedChanges } from '../_components/admin-unsaved-changes';
 
@@ -12,7 +12,7 @@ type SettingsFormOptions<T extends object> = {
 
 type SaveResult = {
   requiresDualApproval?: boolean;
-  message?: string;
+  settings?: unknown;
 };
 
 export function useAdminSettingsForm<T extends object>({
@@ -20,24 +20,34 @@ export function useAdminSettingsForm<T extends object>({
   defaults,
   loadingMessage = 'กำลังโหลด...',
 }: SettingsFormOptions<T>) {
+  const loadRequestRef = useRef(0);
+  const saveInFlightRef = useRef(false);
   const [form, setForm] = useState<T>(defaults);
   const [initialForm, setInitialForm] = useState<T>(defaults);
   const [message, setMessage] = useState(loadingMessage);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { isDirty, saveState } = useAdminUnsavedChanges({ value: form, savedValue: initialForm, saving });
 
   const load = useCallback(async () => {
+    const requestId = loadRequestRef.current + 1;
+    loadRequestRef.current = requestId;
+    setLoading(true);
     setMessage(loadingMessage);
     try {
-      const res = await adminApiFetch(endpoint);
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.message ?? `โหลด settings ไม่สำเร็จ (${res.status})`);
-      const settings = { ...defaults, ...(data?.settings ?? {}) } as T;
+      const response = await adminApiFetch(endpoint);
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !isRecord(payload) || !isRecord(payload.settings)) throw new Error('load');
+      if (loadRequestRef.current !== requestId) return;
+      const settings = { ...defaults, ...payload.settings } as T;
       setForm(settings);
       setInitialForm(settings);
       setMessage('');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'โหลด settings ไม่สำเร็จ');
+    } catch {
+      if (loadRequestRef.current !== requestId) return;
+      setMessage('โหลดการตั้งค่าไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      if (loadRequestRef.current === requestId) setLoading(false);
     }
   }, [defaults, endpoint, loadingMessage]);
 
@@ -46,35 +56,48 @@ export function useAdminSettingsForm<T extends object>({
   }, [load]);
 
   const save = useCallback(async () => {
+    if (saveInFlightRef.current) return false;
+    saveInFlightRef.current = true;
+    loadRequestRef.current += 1;
     setSaving(true);
     setMessage('กำลังบันทึก...');
     try {
-      const res = await adminApiFetch(endpoint, {
+      const response = await adminApiFetch(endpoint, {
         method: 'PUT',
         body: JSON.stringify(form),
       });
-      const data = await res.json().catch(() => null) as SaveResult | null;
-      if (!res.ok) {
-        setMessage(data?.message ?? `บันทึกไม่สำเร็จ (${res.status})`);
+      const payload = await response.json().catch(() => null) as SaveResult | null;
+      if (!response.ok || (payload !== null && !isRecord(payload))) {
+        setMessage('บันทึกการตั้งค่าไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่');
         return false;
       }
-      setInitialForm(form);
-      setMessage(data?.requiresDualApproval ? 'บันทึกแล้ว แต่รายการเสี่ยงควรเข้าคิว Dual Approval' : 'บันทึกสำเร็จ');
+
+      const normalized = payload && isRecord(payload.settings)
+        ? { ...defaults, ...payload.settings } as T
+        : form;
+      setForm(normalized);
+      setInitialForm(normalized);
+      setMessage(payload?.requiresDualApproval
+        ? 'ส่งการเปลี่ยนแปลงเข้าคิวอนุมัติแล้ว ค่ายังไม่ควรถือว่ามีผลจนกว่าจะอนุมัติครบ'
+        : 'บันทึกการตั้งค่าสำเร็จ');
       return true;
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'บันทึกไม่สำเร็จ');
+    } catch {
+      setMessage('เชื่อมต่อระบบบันทึกการตั้งค่าไม่สำเร็จ กรุณาลองใหม่');
       return false;
     } finally {
+      saveInFlightRef.current = false;
       setSaving(false);
     }
-  }, [endpoint, form]);
+  }, [defaults, endpoint, form]);
 
   const reset = useCallback(() => {
+    if (saveInFlightRef.current) return;
     setForm(initialForm);
     setMessage('คืนค่าล่าสุดจากระบบแล้ว');
   }, [initialForm]);
 
   const update = useCallback(<K extends keyof T>(key: K, value: T[K]) => {
+    if (saveInFlightRef.current) return;
     setForm((current) => ({ ...current, [key]: value }));
   }, []);
 
@@ -82,6 +105,7 @@ export function useAdminSettingsForm<T extends object>({
     form,
     initialForm,
     message,
+    loading,
     saving,
     isDirty,
     saveState,
@@ -92,4 +116,8 @@ export function useAdminSettingsForm<T extends object>({
     reset,
     update,
   };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
