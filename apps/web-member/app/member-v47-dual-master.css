@@ -3,6 +3,7 @@
 :root {
   --v47-bg: #110e16;
   --v47-header: #181523;
+  --v47-header-mid: #373147;
   --v47-panel: #18151f;
   --v47-purple: #7200a3;
   --v47-accent: #daa5f3;
@@ -16,6 +17,7 @@ body:has(.member-home-mobile) {
 
 @media (min-width: 901px) {
   :root {
+    --v47-header-width: 1440px;
     --v47-page: 1455px;
     --v47-main: 1080px;
     --v47-rail: 350px;
@@ -24,14 +26,19 @@ body:has(.member-home-mobile) {
 
   .public-home-topbar.global-member-topbar {
     min-height: 108px !important;
-    background: linear-gradient(90deg, #181523 0%, #373147 50%, #181523 100%) !important;
+    height: 108px !important;
+    background: linear-gradient(90deg, var(--v47-header) 0%, var(--v47-header-mid) 50%, var(--v47-header) 99.62%) !important;
+    box-shadow: none !important;
   }
 
   .public-home-topbar .member-topbar__inner {
-    width: min(var(--v47-page), calc(100% - 32px)) !important;
-    max-width: var(--v47-page) !important;
-    min-height: 108px !important;
-    padding: 8px 0 49px !important;
+    width: min(var(--v47-header-width), calc(100% - 32px)) !important;
+    max-width: var(--v47-header-width) !important;
+    min-height: 59px !important;
+    height: 59px !important;
+    padding: 8px 0 !important;
+    grid-template-columns: 140px minmax(0, 1fr) auto !important;
+    align-items: center !important;
   }
 
   .public-home-topbar .member-brand,
@@ -44,34 +51,64 @@ body:has(.member-home-mobile) {
     object-fit: contain !important;
   }
 
-  .public-home-topbar .member-desktop-nav--guest {
-    min-height: 49px !important;
-    right: calc((100vw - min(var(--v47-page), calc(100vw - 32px))) / -2) !important;
-    left: calc((100vw - min(var(--v47-page), calc(100vw - 32px))) / -2) !important;
-    padding-left: max(16px, calc((100vw - var(--v47-page)) / 2)) !important;
+  .public-home-topbar .member-actions {
+    align-self: center !important;
+    min-height: 44px !important;
     gap: 10px !important;
-    background: #181523 !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest {
+    position: fixed !important;
+    top: 59px !important;
+    right: 0 !important;
+    left: 0 !important;
+    bottom: auto !important;
+    width: 100% !important;
+    min-height: 49px !important;
+    height: 49px !important;
+    padding: 0 max(16px, calc((100vw - var(--v47-header-width)) / 2)) !important;
+    gap: 16px !important;
+    background: var(--v47-header) !important;
+    border-top: 0 !important;
+    box-shadow: none !important;
   }
 
   .public-home-topbar .member-desktop-nav--guest a {
+    position: relative !important;
+    min-width: 80px !important;
     min-height: 49px !important;
+    height: 49px !important;
     padding: 0 12px !important;
     gap: 8px !important;
-    font-size: 14px !important;
+    border-radius: 0 !important;
+    font-size: 16px !important;
     font-weight: 700 !important;
   }
 
   .public-home-topbar .member-desktop-nav--guest a img {
-    width: 30px !important;
-    height: 30px !important;
+    width: 32px !important;
+    height: 32px !important;
     object-fit: contain !important;
   }
 
+  .public-home-topbar .member-desktop-nav--guest a.active::after {
+    content: '' !important;
+    position: absolute !important;
+    right: 10px !important;
+    bottom: -4px !important;
+    left: 10px !important;
+    height: 8px !important;
+    background: var(--v47-accent) !important;
+    box-shadow: 0 -4px 9px #bd81db !important;
+  }
+
   .public-home-topbar .member-guest-action {
-    min-width: 110px !important;
-    min-height: 40px !important;
-    border-radius: 10px !important;
-    font-size: 14px !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding: 0 20px !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
   }
 
   .desktop-reference-home.desktop-home {
@@ -87,7 +124,7 @@ body:has(.member-home-mobile) {
   .reference-sidebar { top: 124px !important; }
 
   .reference-hero-row {
-    min-height: 288px !important;
+    min-height: 288.46px !important;
     grid-template-columns: 350px 715px !important;
     gap: 15px !important;
   }
@@ -95,13 +132,21 @@ body:has(.member-home-mobile) {
   .reference-hero-main,
   .reference-hero-peek,
   .reference-reward-banner {
-    min-height: 288px !important;
-    max-height: 288px !important;
+    min-height: 288.46px !important;
+    max-height: 288.46px !important;
+    aspect-ratio: 710.5 / 288.46 !important;
     border-radius: 10px !important;
   }
 
+  .reference-banner > img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
   .reference-promo-row {
-    min-height: 124px !important;
+    min-height: 123.5px !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 20px !important;
     padding: 0 !important;
     border: 0 !important;
@@ -109,10 +154,12 @@ body:has(.member-home-mobile) {
   }
 
   .reference-promo-card {
-    min-height: 117px !important;
-    grid-template-columns: 160px minmax(0, 1fr) !important;
-    gap: 4px !important;
+    min-height: 116.5px !important;
+    height: 116.5px !important;
+    grid-template-columns: 180px minmax(0, 1fr) !important;
+    gap: 0 !important;
     padding: 0 14px 0 0 !important;
+    overflow: visible !important;
     border: 1px solid var(--v47-line) !important;
     border-radius: 11px !important;
     background: linear-gradient(90deg, #5f008d 0%, #2c004c 100%) !important;
@@ -120,17 +167,22 @@ body:has(.member-home-mobile) {
 
   .reference-promo-icon,
   .reference-promo-icon img {
-    width: 160px !important;
-    height: 160px !important;
+    width: 180px !important;
+    height: 180px !important;
+    max-width: none !important;
     object-fit: contain !important;
-    transform: none !important;
+    transform: translate(-24px, -24px) !important;
+    filter: none !important;
   }
 
-  .reference-promo-card strong { font-size: 20px !important; }
-  .reference-promo-card small { font-size: 13px !important; }
+  .reference-promo-card > span:last-child { margin-left: -12px !important; }
+  .reference-promo-card strong { font-size: 20px !important; font-weight: 600 !important; }
+  .reference-promo-card small { font-size: 14px !important; font-weight: 300 !important; }
 
   .reference-tournament-cta {
-    min-height: 116px !important;
+    width: 1080px !important;
+    min-height: 116.5px !important;
+    aspect-ratio: 1080 / 116.5 !important;
     border-radius: 10px !important;
   }
 
@@ -142,6 +194,7 @@ body:has(.member-home-mobile) {
   .reference-side-card {
     border-radius: 10px !important;
     background: var(--v47-panel) !important;
+    box-shadow: none !important;
   }
 
   .reference-featured-grid {
@@ -178,6 +231,11 @@ body:has(.member-home-mobile) {
 }
 
 @media (max-width: 900px) {
+  :root {
+    --v47-mobile-shell: 640px;
+    --v47-mobile-content: 428px;
+  }
+
   html, body {
     width: 100% !important;
     max-width: none !important;
@@ -194,14 +252,14 @@ body:has(.member-home-mobile) {
     top: 0 !important;
     z-index: 90 !important;
     width: 100% !important;
-    min-height: 58px !important;
+    min-height: 60px !important;
     padding: 0 !important;
-    background: #181523 !important;
+    background: var(--v47-header) !important;
   }
 
   .public-home-topbar .member-topbar__inner {
-    width: min(100%, 640px) !important;
-    min-height: 58px !important;
+    width: min(100%, var(--v47-mobile-shell)) !important;
+    min-height: 60px !important;
     margin: 0 auto !important;
     padding: 8px 12px !important;
   }
@@ -215,11 +273,11 @@ body:has(.member-home-mobile) {
   }
 
   .member-home-mobile.member-source-home {
-    width: min(100%, 428px) !important;
-    max-width: 428px !important;
+    width: min(100%, var(--v47-mobile-content)) !important;
+    max-width: var(--v47-mobile-content) !important;
     margin: 0 auto !important;
-    padding: 12px 12px 20px !important;
-    background: #110e16 !important;
+    padding: 14px 12px 28px !important;
+    background: var(--v47-bg) !important;
   }
 
   .member-home-mobile .member-home-zone,
@@ -242,11 +300,33 @@ body:has(.member-home-mobile) {
   }
 
   .member-home-mobile [class*='grid'] {
-    gap: 8px !important;
+    gap: 10px !important;
   }
 
   .member-home-mobile [class*='card'] {
+    overflow: hidden !important;
+    border: 1px solid #24192f !important;
     border-radius: 9px !important;
+    background: #17111f !important;
+    box-shadow: none !important;
+  }
+
+  .member-home-mobile [class*='game-grid'],
+  .member-home-mobile [class*='provider-grid'],
+  .member-home-mobile [class*='highlight-grid'] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .member-home-mobile [class*='game-card'] > img,
+  .member-home-mobile [class*='provider-card'] > img,
+  .member-home-mobile [class*='highlight-card'] > img {
+    display: block !important;
+    width: 100% !important;
+    aspect-ratio: 1.75 / 1 !important;
+    object-fit: cover !important;
+    background: #130e19 !important;
   }
 
   .member-home-mobile button,
@@ -255,8 +335,8 @@ body:has(.member-home-mobile) {
   }
 
   .member-footer {
-    width: min(100%, 428px) !important;
-    max-width: 428px !important;
+    width: min(100%, var(--v47-mobile-content)) !important;
+    max-width: var(--v47-mobile-content) !important;
     margin: 0 auto !important;
     padding-right: 12px !important;
     padding-left: 12px !important;
@@ -269,12 +349,12 @@ body:has(.member-home-mobile) {
     left: 0 !important;
     z-index: 100 !important;
     display: grid !important;
-    width: min(100%, 428px) !important;
-    max-width: 428px !important;
+    width: min(100%, var(--v47-mobile-content)) !important;
+    max-width: var(--v47-mobile-content) !important;
     min-height: 64px !important;
     margin: 0 auto !important;
     grid-template-columns: repeat(5, 1fr) !important;
-    background: #181523 !important;
+    background: var(--v47-header) !important;
     border-top: 1px solid rgb(218 165 243 / 35%) !important;
   }
 }
