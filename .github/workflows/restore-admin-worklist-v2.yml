@@ -1,0 +1,72 @@
+name: Restore Admin Worklist V2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/restore-admin-worklist.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore canonical worklist and patch verified wallet scope
+        shell: bash
+        run: |
+          git checkout ead8da6d2511437f8d0346f27729b8ec2b95ad5f -- docs/admin-modernization-chat-worklist.md
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('docs/admin-modernization-chat-worklist.md')
+          text = path.read_text(encoding='utf-8')
+          replacements = {
+            '''### `/wallet-statement`
+
+- [ ] Filter สมาชิก/วันที่
+- [ ] Running balance
+- [ ] Grouping ตามวัน
+- [ ] Export CSV/PDF
+- [ ] Transaction detail drawer''': '''### `/wallet-statement`
+
+- [x] Filter สมาชิก/วันที่
+- [x] Running balance จาก balanceBefore/balanceAfter
+- [x] Grouping ตามวัน
+- [x] Export CSV และ Print/PDF
+- [x] Transaction detail drawer
+- [x] Server pagination และ loading/empty/safe error''',
+            '''### `/wallet-analytics`
+
+- [ ] ช่วงเวลา 7/30/90 วัน
+- [ ] Line/bar chart
+- [ ] Empty state
+- [ ] ลดความสูงกราฟ
+- [ ] Tooltip/legend''': '''### `/wallet-analytics`
+
+- [x] ช่วงเวลา 7/14/30/90 วัน
+- [x] Bar chart และตารางรายวัน
+- [x] Empty/loading/error state
+- [x] กราฟความสูงกระชับและ responsive
+- [x] Tooltip/legend พร้อม keyboard focus
+- [x] Liquidity health และ pending queue indicators''',
+          }
+          for old, new in replacements.items():
+            if old not in text:
+              raise SystemExit('expected wallet block not found')
+            text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Remove restore files and commit
+        run: |
+          rm .github/workflows/restore-admin-worklist.yml || true
+          rm .github/workflows/restore-admin-worklist-v2.yml
+          rm .github/restore-admin-worklist.trigger
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/admin-modernization-chat-worklist.md .github/workflows/restore-admin-worklist.yml .github/workflows/restore-admin-worklist-v2.yml .github/restore-admin-worklist.trigger
+          git commit -m "docs(admin): restore canonical worklist and close wallet scope"
+          git push
