@@ -45,6 +45,8 @@ import './admin-ui-refactor-polish.css';
 import './support-center.css';
 import './admin-final-audit.css';
 import './admin-app-states.css';
+import './admin-mobile-drawer-fix.css';
+import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
   title: {
@@ -80,7 +82,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th" dir="ltr">
-      <body data-app-surface="admin">{children}</body>
+      <body data-app-surface="admin">
+        {children}
+        <AdminMobileDrawerController />
+      </body>
     </html>
   );
 }
