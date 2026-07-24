@@ -1,0 +1,649 @@
+/* Source-specific PC homepage. Loaded last to neutralize generic scaffold polish. */
+
+@media (min-width: 1024px) {
+  :root {
+    --reference-bg: #0d0a13;
+    --reference-panel: #18131f;
+    --reference-panel-2: #21172a;
+    --reference-purple: #a51bd4;
+    --reference-purple-bright: #d42bff;
+    --reference-line: rgb(190 48 232 / 42%);
+    --reference-muted: rgb(255 255 255 / 64%);
+  }
+
+  html,
+  body {
+    background: var(--reference-bg) !important;
+  }
+
+  body:has(.desktop-reference-home) {
+    min-width: 1024px !important;
+    background: linear-gradient(180deg, #0d0913 0, #0d0a13 50%, #0b0810 100%) !important;
+  }
+
+  .global-member-topbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 80 !important;
+    min-height: 88px !important;
+    padding: 0 !important;
+    border-bottom: 1px solid rgb(171 39 218 / 20%) !important;
+    background: #191326 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .global-member-topbar .member-topbar__inner {
+    position: relative !important;
+    display: grid !important;
+    width: min(calc(100% - 24px), 1240px) !important;
+    max-width: 1240px !important;
+    min-height: 88px !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: start !important;
+    gap: 12px !important;
+    margin: 0 auto !important;
+    padding: 8px 0 36px !important;
+  }
+
+  .global-member-topbar .member-brand {
+    align-self: center !important;
+    margin-top: 0 !important;
+  }
+
+  .global-member-topbar .member-brand-mark {
+    width: 118px !important;
+    height: 30px !important;
+  }
+
+  .global-member-topbar .member-brand-logo {
+    width: 118px !important;
+    max-width: 118px !important;
+    height: 28px !important;
+  }
+
+  .global-member-topbar .member-desktop-nav--guest {
+    position: absolute !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    display: flex !important;
+    min-height: 34px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 2px !important;
+    padding: 0 4px !important;
+    border-top: 1px solid rgb(255 255 255 / 4%) !important;
+    background: #15101f !important;
+  }
+
+  .global-member-topbar .member-desktop-nav--guest a {
+    display: inline-flex !important;
+    min-height: 34px !important;
+    align-items: center !important;
+    padding: 0 15px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: rgb(255 255 255 / 88%) !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+  }
+
+  .global-member-topbar .member-desktop-nav--guest a.active,
+  .global-member-topbar .member-desktop-nav--guest a:hover {
+    background: linear-gradient(180deg, rgb(164 29 211 / 18%), rgb(164 29 211 / 4%)) !important;
+    color: #fff !important;
+    box-shadow: inset 0 -2px #c82df4 !important;
+  }
+
+  .member-guest-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding-top: 1px !important;
+  }
+
+  .member-guest-action {
+    min-height: 30px !important;
+    padding: 0 18px !important;
+    border: 1px solid rgb(255 255 255 / 12%) !important;
+    border-radius: 5px !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    text-decoration: none !important;
+  }
+
+  .member-guest-action--login {
+    background: linear-gradient(180deg, #d72cae, #9d176f) !important;
+    color: #fff !important;
+  }
+
+  .member-guest-action--register {
+    background: linear-gradient(180deg, #e9c7ef, #b98fc7) !important;
+    color: #fff !important;
+  }
+
+  .member-category-rail,
+  .member-bottom-nav {
+    display: none !important;
+  }
+
+  .desktop-reference-home.desktop-home {
+    display: grid !important;
+    width: min(calc(100% - 24px), 1240px) !important;
+    max-width: 1240px !important;
+    grid-template-columns: minmax(0, 1fr) 282px !important;
+    gap: 12px !important;
+    margin: 14px auto 32px !important;
+    color: #fff !important;
+  }
+
+  .reference-main-column,
+  .reference-sidebar {
+    display: grid !important;
+    align-content: start !important;
+    gap: 12px !important;
+    min-width: 0 !important;
+  }
+
+  .reference-sidebar {
+    position: sticky !important;
+    top: 102px !important;
+  }
+
+  .reference-hero-row {
+    display: grid !important;
+    min-height: 238px !important;
+    grid-template-columns: .58fr 1.42fr !important;
+    gap: 10px !important;
+    overflow: hidden !important;
+  }
+
+  .reference-banner {
+    position: relative !important;
+    display: block !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid rgb(182 45 225 / 28%) !important;
+    border-radius: 7px !important;
+    background: linear-gradient(145deg, #281133, #6d1887) !important;
+    color: #fff !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+  }
+
+  .reference-banner > img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .reference-hero-main,
+  .reference-hero-peek {
+    min-height: 238px !important;
+  }
+
+  .reference-hero-peek {
+    opacity: .72 !important;
+  }
+
+  .reference-reward-banner {
+    min-height: 238px !important;
+  }
+
+  .reference-banner-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    background: linear-gradient(180deg, transparent 54%, rgb(9 4 13 / 76%)) !important;
+  }
+
+  .reference-banner-copy {
+    position: absolute !important;
+    right: 12px !important;
+    bottom: 10px !important;
+    left: 12px !important;
+    z-index: 2 !important;
+    display: grid !important;
+    gap: 2px !important;
+  }
+
+  .reference-banner-copy strong {
+    overflow: hidden !important;
+    font-size: 13px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .reference-banner-copy small {
+    color: rgb(255 255 255 / 68%) !important;
+    font-size: 10px !important;
+  }
+
+  .reference-carousel-dots,
+  .reference-panel-dots {
+    display: flex !important;
+    height: 8px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+  }
+
+  .reference-carousel-dots i,
+  .reference-panel-dots i {
+    width: 5px !important;
+    height: 5px !important;
+    border-radius: 999px !important;
+    background: rgb(255 255 255 / 34%) !important;
+  }
+
+  .reference-carousel-dots i.active,
+  .reference-panel-dots i.active {
+    width: 28px !important;
+    background: #bd22ea !important;
+  }
+
+  .reference-promo-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    padding: 5px !important;
+    border: 1px solid #7a169c !important;
+    border-radius: 6px !important;
+    background: #18111f !important;
+  }
+
+  .reference-promo-card {
+    display: grid !important;
+    min-height: 96px !important;
+    grid-template-columns: 86px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 8px 12px !important;
+    border: 1px solid #b625e0 !important;
+    border-radius: 5px !important;
+    background: linear-gradient(120deg, #2b1236, #59106b) !important;
+    color: #fff !important;
+    text-decoration: none !important;
+    box-shadow: inset 0 0 30px rgb(198 31 236 / 10%) !important;
+  }
+
+  .reference-promo-card--2 { background: linear-gradient(120deg, #22122f, #68106d) !important; }
+  .reference-promo-card--3 { background: linear-gradient(120deg, #25142f, #5e1268) !important; }
+
+  .reference-promo-icon {
+    display: grid !important;
+    width: 74px !important;
+    height: 74px !important;
+    place-items: center !important;
+    border-radius: 12px !important;
+    color: #ffeaff !important;
+    font-size: 48px !important;
+    line-height: 1 !important;
+    text-shadow: 0 0 16px #e62fff !important;
+    transform: rotate(-9deg) !important;
+  }
+
+  .reference-promo-card > span:last-child {
+    display: grid !important;
+    gap: 5px !important;
+  }
+
+  .reference-promo-card strong { font-size: 15px !important; }
+  .reference-promo-card small { color: rgb(255 255 255 / 68%) !important; font-size: 10px !important; }
+
+  .reference-tournament-cta {
+    display: grid !important;
+    min-height: 64px !important;
+    grid-template-columns: 76px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 6px 18px !important;
+    overflow: hidden !important;
+    border: 1px solid #0c638b !important;
+    border-radius: 6px !important;
+    background: linear-gradient(90deg, #072d44, #086283 56%, #145061) !important;
+    color: #fff !important;
+    text-decoration: none !important;
+  }
+
+  .reference-tournament-mark {
+    color: #f7d260 !important;
+    font-size: 45px !important;
+    font-weight: 1000 !important;
+    text-shadow: 0 0 10px #e0b73c !important;
+  }
+
+  .reference-tournament-cta > span:nth-child(2) { display: grid !important; gap: 1px !important; }
+  .reference-tournament-cta small { color: #ffd36d !important; font-size: 10px !important; font-weight: 900 !important; }
+  .reference-tournament-cta strong { font-size: 18px !important; }
+  .reference-tournament-cta b { padding: 10px 14px !important; border-radius: 6px !important; background: #e9b733 !important; color: #fff !important; font-size: 11px !important; }
+
+  .reference-panel,
+  .reference-compact-section,
+  .reference-number-section,
+  .reference-guide {
+    overflow: hidden !important;
+    border: 1px solid rgb(180 38 218 / 24%) !important;
+    border-radius: 6px !important;
+    background: var(--reference-panel) !important;
+    box-shadow: none !important;
+  }
+
+  .reference-panel-heading {
+    display: flex !important;
+    min-height: 29px !important;
+    align-items: center !important;
+    gap: 7px !important;
+    padding: 0 10px !important;
+    border-bottom: 1px solid rgb(255 255 255 / 4%) !important;
+    background: linear-gradient(90deg, #6c1b82, #2b1835 75%, transparent) !important;
+  }
+
+  .reference-panel-heading span { color: #ffd03e !important; font-size: 12px !important; }
+  .reference-panel-heading strong { font-size: 12px !important; }
+
+  .reference-tournament-title {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    margin: 7px !important;
+    padding: 10px !important;
+    border: 1px solid #8d229e !important;
+    border-radius: 4px !important;
+    background: #25192e !important;
+  }
+
+  .reference-tournament-title strong { font-size: 12px !important; }
+  .reference-tournament-title a { padding: 5px 9px !important; border-radius: 4px !important; background: #d2a530 !important; color: #fff !important; font-size: 9px !important; text-decoration: none !important; }
+
+  .reference-tournament-track {
+    display: grid !important;
+    grid-template-columns: repeat(8, minmax(82px, 1fr)) !important;
+    gap: 6px !important;
+    padding: 0 8px 8px !important;
+    overflow: hidden !important;
+  }
+
+  .reference-rank-card {
+    position: relative !important;
+    display: grid !important;
+    min-height: 80px !important;
+    align-content: end !important;
+    gap: 2px !important;
+    padding: 25px 7px 7px !important;
+    border: 1px solid rgb(255 255 255 / 10%) !important;
+    border-radius: 5px !important;
+    background: #292330 !important;
+    text-align: center !important;
+  }
+
+  .reference-rank-card > b {
+    position: absolute !important;
+    top: -4px !important;
+    left: 50% !important;
+    display: grid !important;
+    width: 26px !important;
+    height: 26px !important;
+    place-items: center !important;
+    border-radius: 50% 50% 45% 45% !important;
+    background: linear-gradient(180deg, #1ab5ef, #0872b2) !important;
+    font-size: 11px !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .reference-rank-card strong { overflow: hidden !important; font-size: 8px !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+  .reference-rank-card > span { color: #4fe1f7 !important; font-size: 10px !important; font-weight: 900 !important; }
+  .reference-rank-card small { color: #32d75e !important; font-size: 7px !important; letter-spacing: 1px !important; }
+
+  .reference-featured-section { padding-bottom: 8px !important; }
+
+  .reference-featured-grid {
+    display: grid !important;
+    grid-template-columns: 202px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding: 12px !important;
+  }
+
+  .reference-featured-small-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .reference-game-tile {
+    position: relative !important;
+    display: grid !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: #211827 !important;
+    color: #fff !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+  }
+
+  .reference-game-tile > img,
+  .reference-game-fallback {
+    display: grid !important;
+    width: 100% !important;
+    height: 116px !important;
+    place-items: center !important;
+    object-fit: cover !important;
+    background: linear-gradient(135deg, #2c1836, #711886) !important;
+    color: #fff !important;
+    font-size: 22px !important;
+  }
+
+  .reference-game-tile--large > img,
+  .reference-game-tile--large > .reference-game-fallback {
+    height: 270px !important;
+  }
+
+  .reference-game-tile > span:last-child {
+    display: grid !important;
+    gap: 1px !important;
+    padding: 5px 6px !important;
+    text-align: center !important;
+  }
+
+  .reference-game-tile strong { overflow: hidden !important; font-size: 9px !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+  .reference-game-tile small { overflow: hidden !important; color: rgb(255 255 255 / 55%) !important; font-size: 8px !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+  .reference-game-tile em { position: absolute !important; top: 5px !important; right: 5px !important; padding: 2px 5px !important; border-radius: 8px !important; background: #15ca51 !important; color: #fff !important; font-size: 7px !important; font-style: normal !important; }
+
+  .reference-number-section,
+  .reference-compact-section { background: transparent !important; border-color: transparent !important; }
+
+  .reference-number-row {
+    display: grid !important;
+    min-height: 160px !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    align-items: center !important;
+    gap: 14px !important;
+    padding: 18px 8px !important;
+  }
+
+  .reference-number-card {
+    display: grid !important;
+    min-width: 0 !important;
+    gap: 5px !important;
+    color: #1688e9 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+  }
+
+  .reference-number-card span {
+    font-size: 62px !important;
+    font-weight: 1000 !important;
+    line-height: 1 !important;
+    -webkit-text-stroke: 1px #1a8bf0 !important;
+    color: transparent !important;
+    text-shadow: 0 0 8px rgb(17 120 219 / 22%) !important;
+  }
+
+  .reference-number-card strong { overflow: hidden !important; color: rgb(255 255 255 / 58%) !important; font-size: 8px !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+
+  .reference-online-row,
+  .reference-classic-row {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+
+  .reference-online-card {
+    display: grid !important;
+    overflow: hidden !important;
+    border: 1px solid #792095 !important;
+    border-radius: 6px !important;
+    background: #25162d !important;
+    color: #fff !important;
+    text-decoration: none !important;
+  }
+
+  .reference-online-card > img,
+  .reference-online-card > .reference-game-fallback { width: 100% !important; height: 134px !important; object-fit: cover !important; }
+  .reference-online-card > span:last-child { display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; gap: 4px !important; padding: 5px !important; }
+  .reference-online-card strong { overflow: hidden !important; font-size: 8px !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+  .reference-online-card small { color: #bd62e0 !important; font-size: 7px !important; }
+
+  .reference-live-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+
+  .reference-live-card {
+    display: grid !important;
+    gap: 10px !important;
+    padding: 10px !important;
+    border: 1px solid rgb(255 255 255 / 7%) !important;
+    border-radius: 6px !important;
+    background: #292231 !important;
+  }
+
+  .reference-live-card header,
+  .reference-live-card footer,
+  .reference-live-card > div { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 8px !important; }
+  .reference-live-card header span { font-size: 9px !important; }
+  .reference-live-card header b { padding: 3px 5px !important; border-radius: 3px !important; background: #f12538 !important; font-size: 7px !important; }
+  .reference-live-card > div { min-height: 42px !important; text-align: center !important; }
+  .reference-live-card > div strong { flex: 1 !important; font-size: 9px !important; }
+  .reference-live-card > div span { font-size: 9px !important; font-weight: 900 !important; }
+  .reference-live-card footer a { flex: 1 !important; padding: 7px !important; border-radius: 3px !important; background: #f1223a !important; color: #fff !important; font-size: 8px !important; font-weight: 900 !important; text-align: center !important; text-decoration: none !important; }
+  .reference-live-card footer a:last-child { background: #a91fd5 !important; }
+
+  .reference-classic-row { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+  .reference-game-tile--compact > img,
+  .reference-game-tile--compact > .reference-game-fallback { height: 126px !important; }
+
+  .reference-guide details {
+    margin: 8px 8px 0 !important;
+    border: 1px solid rgb(255 255 255 / 12%) !important;
+    border-radius: 3px !important;
+    background: #282431 !important;
+  }
+
+  .reference-guide summary { padding: 10px 12px !important; font-size: 10px !important; font-weight: 900 !important; cursor: pointer !important; }
+  .reference-guide p { margin: 0 !important; padding: 0 12px 10px !important; color: var(--reference-muted) !important; font-size: 9px !important; }
+  .reference-guide-more { display: block !important; width: 210px !important; margin: 14px auto !important; padding: 7px !important; border: 1px solid #8a249f !important; border-radius: 4px !important; color: #c149dd !important; font-size: 9px !important; text-align: center !important; text-decoration: none !important; }
+
+  .reference-provider-strip { padding: 18px 6px 6px !important; }
+  .reference-provider-strip h2 { margin: 0 0 18px !important; font-size: 14px !important; }
+  .reference-provider-strip > div { display: grid !important; grid-template-columns: repeat(8, minmax(0, 1fr)) !important; gap: 18px 24px !important; align-items: center !important; }
+  .reference-provider-logo { display: grid !important; min-height: 28px !important; place-items: center !important; }
+  .reference-provider-logo img { max-width: 84px !important; max-height: 24px !important; object-fit: contain !important; filter: grayscale(1) brightness(2.2) !important; opacity: .8 !important; }
+  .reference-provider-logo b { color: rgb(255 255 255 / 68%) !important; font-size: 8px !important; text-transform: uppercase !important; }
+
+  .reference-side-card {
+    overflow: hidden !important;
+    border: 1px solid rgb(173 38 214 / 22%) !important;
+    border-radius: 7px !important;
+    background: #1b1422 !important;
+    box-shadow: none !important;
+  }
+
+  .reference-side-card > header {
+    display: flex !important;
+    min-height: 32px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    padding: 0 10px !important;
+    background: linear-gradient(90deg, #67207b, #2a1733) !important;
+    font-size: 10px !important;
+  }
+
+  .reference-jackpot > div {
+    display: grid !important;
+    min-height: 125px !important;
+    place-items: center !important;
+    align-content: center !important;
+    gap: 5px !important;
+    background: radial-gradient(circle at 50% 30%, rgb(226 83 255 / 25%), transparent 45%), #17111d !important;
+  }
+
+  .reference-jackpot small { color: #f6d350 !important; font-size: 13px !important; font-weight: 1000 !important; }
+  .reference-jackpot strong { padding: 7px 16px !important; border: 3px solid #f0c235 !important; border-radius: 9px !important; background: #1276aa !important; color: #fff !important; font-size: 23px !important; line-height: 1 !important; box-shadow: inset 0 0 0 2px #6fd4ff !important; }
+  .reference-jackpot em { color: rgb(255 255 255 / 66%) !important; font-size: 8px !important; font-style: normal !important; }
+
+  .reference-leaderboard { padding-bottom: 6px !important; }
+  .reference-leaderboard > div {
+    display: grid !important;
+    min-height: 44px !important;
+    grid-template-columns: 24px minmax(0, 1fr) 18px !important;
+    align-items: center !important;
+    gap: 7px !important;
+    margin: 5px 7px 0 !important;
+    padding: 4px 6px !important;
+    border-radius: 4px !important;
+    background: #2b2035 !important;
+  }
+
+  .reference-leaderboard > div > b { display: grid !important; width: 22px !important; height: 22px !important; place-items: center !important; border-radius: 999px !important; background: #a727ca !important; font-size: 8px !important; }
+  .reference-leaderboard > div > span { display: grid !important; gap: 1px !important; }
+  .reference-leaderboard > div strong { font-size: 8px !important; }
+  .reference-leaderboard > div small { color: #c64fe3 !important; font-size: 7px !important; }
+  .reference-leaderboard > div em { color: #b52bd4 !important; font-size: 12px !important; font-style: normal !important; }
+
+  .reference-mini-games > div { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 5px !important; padding: 10px !important; }
+  .reference-mini-games a { padding: 11px 5px !important; border: 2px solid #f1c12e !important; border-radius: 999px !important; background: linear-gradient(90deg, #6d1ba3, #c324b7) !important; color: #fff !important; font-size: 10px !important; font-weight: 900 !important; text-align: center !important; text-decoration: none !important; }
+
+  .reference-empty {
+    display: grid !important;
+    min-height: 130px !important;
+    place-items: center !important;
+    color: var(--reference-muted) !important;
+    font-size: 11px !important;
+  }
+
+  .member-footer {
+    width: min(calc(100% - 24px), 1240px) !important;
+    max-width: 1240px !important;
+    margin: 12px auto 24px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1180px) {
+  .desktop-reference-home.desktop-home { grid-template-columns: minmax(0, 1fr) 248px !important; }
+  .reference-featured-grid { grid-template-columns: 180px minmax(0, 1fr) !important; }
+  .reference-featured-small-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .reference-tournament-track { grid-template-columns: repeat(6, minmax(82px, 1fr)) !important; overflow-x: auto !important; }
+  .reference-number-card span { font-size: 50px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-reference-home *,
+  .desktop-reference-home *::before,
+  .desktop-reference-home *::after { transition: none !important; animation: none !important; }
+}
