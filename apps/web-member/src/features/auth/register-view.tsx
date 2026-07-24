@@ -73,6 +73,7 @@ export function RegisterView(props: RegisterViewProps) {
   const closeLabel = locale === 'th' ? 'ปิด' : 'Close';
   const registerLabel = locale === 'th' ? 'สมัครสมาชิก' : 'Register';
   const supportLabel = locale === 'th' ? 'ติดต่อเจ้าหน้าที่' : 'Contact support';
+  const secureRegistrationLabel = locale === 'th' ? 'การสมัครที่ปลอดภัย' : 'Secure registration';
 
   return <main className="public-auth-page" style={cssVars}>
     <div className="public-auth-ambient" aria-hidden="true"><span /><span /><span /></div>
@@ -116,7 +117,7 @@ export function RegisterView(props: RegisterViewProps) {
 
         <div className={`public-auth-form-actions${step > 1 ? ' has-back' : ''}`}>{step > 1 && <button type="button" onClick={onBack} disabled={disabled} className="public-auth-submit public-auth-submit--secondary">{t.back}</button>}<button type="submit" disabled={disabled} className="public-auth-submit">{loading ? t.submitting : step < 3 ? t.next : t.submit}</button></div>
         {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
-        <div className="public-auth-legal"><span>{locale === 'th' ? 'พบปัญหาการใช้งาน' : 'Need help?'}</span><Link href="/support">{supportLabel}</Link></div>
+        <div className="public-auth-legal"><span>{secureRegistrationLabel}</span><Link href="/support">{supportLabel}</Link></div>
       </form>
     </section>
   </main>;
