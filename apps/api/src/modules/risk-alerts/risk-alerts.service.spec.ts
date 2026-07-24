@@ -58,12 +58,27 @@ describe('RiskAlertsService', () => {
     }));
   });
 
+  it('filters provider context through typed metadata', async () => {
+    const { prisma, service } = createService();
+
+    await service.list({ provider: 'pragmatic-play', page: '2', take: '20' });
+
+    expect(prisma.riskAlert.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        metadata: { path: ['providerCode'], equals: 'pragmatic-play' },
+      }),
+      skip: 20,
+      take: 20,
+    }));
+  });
+
   it('rejects malformed filters instead of silently ignoring them', async () => {
     const { service } = createService();
 
     await expect(service.list({ memberId: 'not-a-uuid' })).rejects.toBeInstanceOf(BadRequestException);
     await expect(service.list({ type: 'NOT_A_REAL_TYPE' })).rejects.toBeInstanceOf(BadRequestException);
     await expect(service.list({ status: 'UNKNOWN' })).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.list({ provider: '../unsafe' })).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('rejects invalid and reversed date ranges', async () => {
@@ -109,6 +124,18 @@ describe('RiskAlertsService', () => {
     prisma.riskAlert.findUnique.mockResolvedValue({ id: 'alert-1', status: 'OPEN' });
 
     await expect(service.updateStatus('alert-1', 'RESOLVED', actor)).rejects.toBeInstanceOf(BadRequestException);
+    expect(prisma.riskAlert.update).not.toHaveBeenCalled();
+  });
+
+  it('blocks bulk dismissal for high-risk or terminal alerts', async () => {
+    const { prisma, service } = createService();
+    prisma.riskAlert.findMany.mockResolvedValue([
+      { id: 'risk-high', severity: 'HIGH', status: 'OPEN' },
+      { id: 'risk-closed', severity: 'LOW', status: 'RESOLVED' },
+    ]);
+
+    await expect(service.bulkDismiss(['risk-high', 'risk-closed'], 'reviewed and closed', actor))
+      .rejects.toBeInstanceOf(BadRequestException);
     expect(prisma.riskAlert.update).not.toHaveBeenCalled();
   });
 
