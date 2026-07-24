@@ -14,6 +14,18 @@ const statusOptions = ['', 'OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED'];
 const severityOptions = ['', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const typeOptions = ['', 'REPEATED_TOPUPS', 'RAPID_DEPOSIT_WITHDRAWAL', 'HIGH_WITHDRAWAL', 'BANK_CHANGE_WITHDRAWAL', 'MULTIPLE_PENDING_TOPUPS', 'WALLET_LEDGER_MISMATCH', 'DUPLICATE_DEPOSIT_SLIP', 'REPEATED_DUPLICATE_DEPOSIT_SLIP'];
 
+function isRiskAlert(value: unknown): value is RiskAlert {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Partial<RiskAlert>;
+  return typeof item.id === 'string' && typeof item.type === 'string' && typeof item.title === 'string' && typeof item.createdAt === 'string' && typeof item.severity === 'string' && typeof item.status === 'string';
+}
+
+function isAutoCloseSuggestion(value: unknown): value is AutoCloseSuggestion {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Partial<AutoCloseSuggestion>;
+  return typeof item.id === 'string' && typeof item.reason === 'string' && typeof item.status === 'string';
+}
+
 export default function RiskAlertsPage() {
   const [items, setItems] = useState<RiskAlert[]>([]);
   const [summary, setSummary] = useState({ openCount: 0, criticalCount: 0 });
@@ -28,96 +40,148 @@ export default function RiskAlertsPage() {
   const [createdFrom, setCreatedFrom] = useState('');
   const [createdTo, setCreatedTo] = useState('');
   const [loading, setLoading] = useState(true);
-  const [scanning, setScanning] = useState(false);
+  const [busyKey, setBusyKey] = useState('');
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [message, setMessage] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [autoCloseSuggestions, setAutoCloseSuggestions] = useState<AutoCloseSuggestion[]>([]);
   const [dismissReason, setDismissReason] = useState('');
   const [dismissConfirmOpen, setDismissConfirmOpen] = useState(false);
-  const [dismissing, setDismissing] = useState(false);
+  const pageBusy = loading || Boolean(busyKey);
 
-  useEffect(() => { void load(1); }, []);
-  useEffect(() => { void load(page); }, [page]);
-  useEffect(() => { setPage(1); void load(1); }, [status, severity, type, provider]);
+  useEffect(() => { void load(page); }, [page, status, severity, type, provider]);
   useEffect(() => { if (cooldownRemaining <= 0) return; const timer = window.setInterval(() => setCooldownRemaining((value) => Math.max(0, value - 1)), 1000); return () => window.clearInterval(timer); }, [cooldownRemaining]);
 
   async function load(nextPage = page) {
     setLoading(true);
-    const query = new URLSearchParams();
-    if (status) query.set('status', status);
-    if (severity) query.set('severity', severity);
-    if (type) query.set('type', type);
-    if (memberId.trim()) query.set('memberId', memberId.trim());
-    if (provider.trim()) query.set('provider', provider.trim());
-    if (createdFrom) query.set('createdFrom', createdFrom);
-    if (createdTo) query.set('createdTo', createdTo);
-    query.set('page', String(nextPage));
-    query.set('take', String(PAGE_SIZE));
-    const res = await adminApiFetch(`/admin/risk-alerts?${query.toString()}`);
-    const data = (await res.json().catch(() => null)) as RiskResponse | { message?: string } | null;
-    if (res.ok && data) {
-      const payload = data as RiskResponse;
-      setItems(payload.items ?? []);
-      setTotal(Number(payload.total ?? payload.items?.length ?? 0));
-      setPageCount(Math.max(Number(payload.pageCount ?? 1), 1));
-      setSummary({ openCount: Number(payload.summary?.openCount ?? 0), criticalCount: Number(payload.summary?.criticalCount ?? 0) });
+    try {
+      const query = new URLSearchParams();
+      if (status) query.set('status', status);
+      if (severity) query.set('severity', severity);
+      if (type) query.set('type', type);
+      if (memberId.trim()) query.set('memberId', memberId.trim());
+      if (provider.trim()) query.set('provider', provider.trim());
+      if (createdFrom) query.set('createdFrom', createdFrom);
+      if (createdTo) query.set('createdTo', createdTo);
+      query.set('page', String(nextPage));
+      query.set('take', String(PAGE_SIZE));
+      const response = await adminApiFetch(`/admin/risk-alerts?${query.toString()}`);
+      const data = await response.json().catch(() => null) as RiskResponse | null;
+      if (!response.ok || !data || typeof data !== 'object') throw new Error('load');
+      const nextItems = Array.isArray(data.items) ? data.items.filter(isRiskAlert) : [];
+      const nextPageCount = Math.max(Number(data.pageCount ?? 1), 1);
+      setItems(nextItems);
+      setTotal(Number(data.total ?? nextItems.length));
+      setPageCount(nextPageCount);
+      setSummary({ openCount: Number(data.summary?.openCount ?? 0), criticalCount: Number(data.summary?.criticalCount ?? 0) });
+      if (nextPage > nextPageCount) setPage(nextPageCount);
+      setSelectedIds((current) => current.filter((id) => nextItems.some((item) => item.id === id)));
       setMessage('');
-    } else setMessage((data as { message?: string } | null)?.message ?? 'โหลดรายการความเสี่ยงไม่สำเร็จ');
-    setLoading(false);
+    } catch {
+      setItems([]);
+      setTotal(0);
+      setPageCount(1);
+      setSummary({ openCount: 0, criticalCount: 0 });
+      setMessage('โหลดรายการความเสี่ยงไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function scan() {
-    if (scanning || cooldownRemaining > 0) return;
-    setScanning(true);
+    if (pageBusy || cooldownRemaining > 0) return;
+    setBusyKey('scan');
     setMessage('กำลังตรวจหารายการผิดปกติ...');
-    const res = await adminApiFetch('/admin/risk-alerts/scan', { method: 'POST' });
-    const data = await res.json().catch(() => null);
-    if (res.ok) { setMessage(`ตรวจเสร็จ พบรายการใหม่ ${Number(data?.created ?? 0)} รายการ`); setCooldownRemaining(45); }
-    else if (data?.retryAfter) { const retryAfter = Number(data.retryAfter); setCooldownRemaining(Number.isFinite(retryAfter) ? retryAfter : 45); setMessage(`กรุณารอ ${data.retryAfter} วินาทีก่อนตรวจอีกครั้ง`); }
-    else setMessage(data?.message ?? 'ตรวจหารายการผิดปกติไม่สำเร็จ');
-    setScanning(false);
-    await load(page);
+    try {
+      const response = await adminApiFetch('/admin/risk-alerts/scan', { method: 'POST' });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        const retryAfter = data && typeof data === 'object' && 'retryAfter' in data ? Number(data.retryAfter) : 0;
+        if (Number.isFinite(retryAfter) && retryAfter > 0) {
+          setCooldownRemaining(retryAfter);
+          setMessage(`กรุณารอ ${retryAfter} วินาทีก่อนตรวจอีกครั้ง`);
+          return;
+        }
+        throw new Error('scan');
+      }
+      const created = data && typeof data === 'object' && 'created' in data ? Number(data.created) : 0;
+      setMessage(`ตรวจเสร็จ พบรายการใหม่ ${Number.isFinite(created) ? created : 0} รายการ`);
+      setCooldownRemaining(45);
+      await load(page);
+    } catch {
+      setMessage('ตรวจหารายการผิดปกติไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setBusyKey('');
+    }
   }
 
   async function updateStatus(id: string, nextStatus: RiskAlert['status']) {
-    const res = await adminApiFetch(`/admin/risk-alerts/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
-    const data = await res.json().catch(() => null);
-    setMessage(res.ok ? 'อัปเดตสถานะแล้ว' : data?.message ?? 'อัปเดตสถานะไม่สำเร็จ');
-    await load(page);
+    if (pageBusy) return;
+    setBusyKey(`status:${id}`);
+    try {
+      const response = await adminApiFetch(`/admin/risk-alerts/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
+      await response.json().catch(() => null);
+      if (!response.ok) throw new Error('status');
+      await load(page);
+      setMessage('อัปเดตสถานะแล้ว');
+    } catch {
+      setMessage('อัปเดตสถานะไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setBusyKey('');
+    }
   }
 
   async function loadAutoCloseSuggestions() {
-    const res = await adminApiFetch('/admin/risk-alerts/auto-close-suggestions?limit=20');
-    const data = await res.json().catch(() => null);
-    if (!res.ok) { setMessage(data?.message ?? 'โหลดรายการที่อาจปิดได้ไม่สำเร็จ'); return; }
-    setAutoCloseSuggestions(Array.isArray(data?.items) ? data.items : []);
-    setMessage(`พบรายการที่ควรตรวจเพื่อปิด ${Number(data?.items?.length ?? 0)} รายการ`);
+    if (pageBusy) return;
+    setBusyKey('suggestions');
+    try {
+      const response = await adminApiFetch('/admin/risk-alerts/auto-close-suggestions?limit=20');
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data || typeof data !== 'object') throw new Error('suggestions');
+      const suggestions = 'items' in data && Array.isArray(data.items) ? data.items.filter(isAutoCloseSuggestion) : [];
+      setAutoCloseSuggestions(suggestions);
+      setMessage(`พบรายการที่ควรตรวจเพื่อปิด ${suggestions.length} รายการ`);
+    } catch {
+      setAutoCloseSuggestions([]);
+      setMessage('โหลดรายการที่อาจปิดได้ไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setBusyKey('');
+    }
   }
 
   async function bulkDismiss() {
-    if (!selectedIds.length) return;
+    if (!selectedIds.length || pageBusy) return;
     if (dismissReason.trim().length < 5) { setMessage('กรุณาระบุเหตุผลอย่างน้อย 5 ตัวอักษร'); return; }
-    setDismissing(true);
-    const res = await adminApiFetch('/admin/risk-alerts/bulk-dismiss', { method: 'POST', body: JSON.stringify({ ids: selectedIds, reason: dismissReason.trim() }) });
-    const data = await res.json().catch(() => null);
-    setDismissing(false);
-    if (!res.ok) setMessage(data?.message ?? 'ปิดรายการไม่สำเร็จ');
-    else { setMessage(`ปิดรายการแล้ว ${Number(data?.updated ?? 0)} รายการ`); setSelectedIds([]); setDismissReason(''); setDismissConfirmOpen(false); await load(page); }
+    setBusyKey('bulk-dismiss');
+    try {
+      const response = await adminApiFetch('/admin/risk-alerts/bulk-dismiss', { method: 'POST', body: JSON.stringify({ ids: selectedIds, reason: dismissReason.trim() }) });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error('dismiss');
+      const updated = data && typeof data === 'object' && 'updated' in data ? Number(data.updated) : 0;
+      setSelectedIds([]);
+      setDismissReason('');
+      setDismissConfirmOpen(false);
+      await load(page);
+      setMessage(`ปิดรายการแล้ว ${Number.isFinite(updated) ? updated : 0} รายการ`);
+    } catch {
+      setMessage('ปิดรายการไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setBusyKey('');
+    }
   }
 
-  function applyFilters() { setPage(1); void load(1); }
-  function clearFilters() { setStatus('OPEN'); setSeverity(''); setType(''); setMemberId(''); setProvider(''); setCreatedFrom(''); setCreatedTo(''); setPage(1); window.setTimeout(() => void load(1), 0); }
-  const scanDisabled = scanning || cooldownRemaining > 0;
+  function applyFilters() { if (pageBusy) return; if (createdFrom && createdTo && createdFrom > createdTo) { setMessage('วันที่เริ่มต้องไม่อยู่หลังวันที่สิ้นสุด'); return; } setPage(1); void load(1); }
+  function clearFilters() { if (pageBusy) return; setStatus('OPEN'); setSeverity(''); setType(''); setMemberId(''); setProvider(''); setCreatedFrom(''); setCreatedTo(''); setPage(1); }
+  const scanDisabled = pageBusy || cooldownRemaining > 0;
 
-  return <AdminPage eyebrow="ความเสี่ยง" title="รายการที่ต้องตรวจ" description="รวมรายการผิดปกติจากการฝาก ถอน บัญชี และยอดเงิน เพื่อให้ผู้ดูแลตรวจสอบและปิดเรื่องได้จากหน้าเดียว" actions={<><AdminButton onClick={scan} disabled={scanDisabled}>{scanning ? 'กำลังตรวจ...' : cooldownRemaining > 0 ? `รอ ${cooldownRemaining} วินาที` : 'ตรวจหารายการผิดปกติ'}</AdminButton><AdminButton tone="secondary" onClick={() => void loadAutoCloseSuggestions()}>ดูรายการที่อาจปิดได้</AdminButton></>}>
+  return <AdminPage eyebrow="ความเสี่ยง" title="รายการที่ต้องตรวจ" description="รวมรายการผิดปกติจากการฝาก ถอน บัญชี และยอดเงิน เพื่อให้ผู้ดูแลตรวจสอบและปิดเรื่องได้จากหน้าเดียว" actions={<><AdminButton onClick={() => void scan()} disabled={scanDisabled}>{busyKey === 'scan' ? 'กำลังตรวจ...' : cooldownRemaining > 0 ? `รอ ${cooldownRemaining} วินาที` : 'ตรวจหารายการผิดปกติ'}</AdminButton><AdminButton tone="secondary" onClick={() => void loadAutoCloseSuggestions()} disabled={pageBusy}>ดูรายการที่อาจปิดได้</AdminButton></>}>
     <AdminMetricGrid><AdminMetric title="รอตรวจ" value={String(summary.openCount)} helper="รวมรายการใหม่และกำลังตรวจ" /><AdminMetric title="เร่งด่วนที่สุด" value={String(summary.criticalCount)} helper="ควรตรวจเป็นลำดับแรก" /><AdminMetric title="แสดงในหน้านี้" value={String(items.length)} helper={`${total} รายการทั้งหมด`} /><AdminMetric title="หน้า" value={`${page}/${pageCount}`} helper={`${PAGE_SIZE} รายการต่อหน้า`} /></AdminMetricGrid>
     {cooldownRemaining > 0 && <AdminNotice>ตรวจใหม่ได้ใน {cooldownRemaining} วินาที</AdminNotice>}
-    <AdminToolbar><label style={fieldStyle}>สถานะ<select value={status} onChange={(event) => setStatus(event.target.value)} style={inputStyle}>{statusOptions.map((value) => <option key={value} value={value}>{value ? humanStatus(value) : 'ทั้งหมด'}</option>)}</select></label><label style={fieldStyle}>ระดับความเสี่ยง<select value={severity} onChange={(event) => setSeverity(event.target.value)} style={inputStyle}>{severityOptions.map((value) => <option key={value} value={value}>{value ? severityLabel(value) : 'ทั้งหมด'}</option>)}</select></label><label style={fieldStyle}>ประเภท<select value={type} onChange={(event) => setType(event.target.value)} style={inputStyle}>{typeOptions.map((value) => <option key={value} value={value}>{value ? riskTypeLabel(value) : 'ทั้งหมด'}</option>)}</select></label><label style={fieldStyle}>รหัสสมาชิก<input value={memberId} onChange={(event) => setMemberId(event.target.value)} placeholder="รหัสสมาชิก" style={inputStyle} /></label><label style={fieldStyle}>รหัสค่าย<input value={provider} onChange={(event) => setProvider(event.target.value)} placeholder="เช่น pragmatic" style={inputStyle} /></label><label style={fieldStyle}>ตั้งแต่วันที่<input type="date" value={createdFrom} onChange={(event) => setCreatedFrom(event.target.value)} style={inputStyle} /></label><label style={fieldStyle}>ถึงวันที่<input type="date" value={createdTo} onChange={(event) => setCreatedTo(event.target.value)} style={inputStyle} /></label><div style={filterActionStyle}><AdminButton tone="secondary" onClick={applyFilters}>ใช้ตัวกรอง</AdminButton><AdminButton tone="secondary" onClick={clearFilters}>ล้างตัวกรอง</AdminButton></div>{selectedIds.length > 0 && <AdminButton tone="danger" onClick={() => setDismissConfirmOpen(true)}>ปิดรายการที่เลือก ({selectedIds.length})</AdminButton>}<div style={pagerStyle}><AdminButton disabled={loading || page <= 1} onClick={() => setPage((value) => Math.max(value - 1, 1))}>ก่อนหน้า</AdminButton><span>หน้า {page} / {pageCount}</span><AdminButton disabled={loading || page >= pageCount} onClick={() => setPage((value) => Math.min(value + 1, pageCount))}>ถัดไป</AdminButton></div></AdminToolbar>
-    {message && <AdminNotice>{message}</AdminNotice>}
+    <AdminToolbar><label style={fieldStyle}>สถานะ<select value={status} disabled={pageBusy} onChange={(event) => { setStatus(event.target.value); setPage(1); }} style={inputStyle}>{statusOptions.map((value) => <option key={value} value={value}>{value ? humanStatus(value) : 'ทั้งหมด'}</option>)}</select></label><label style={fieldStyle}>ระดับความเสี่ยง<select value={severity} disabled={pageBusy} onChange={(event) => { setSeverity(event.target.value); setPage(1); }} style={inputStyle}>{severityOptions.map((value) => <option key={value} value={value}>{value ? severityLabel(value) : 'ทั้งหมด'}</option>)}</select></label><label style={fieldStyle}>ประเภท<select value={type} disabled={pageBusy} onChange={(event) => { setType(event.target.value); setPage(1); }} style={inputStyle}>{typeOptions.map((value) => <option key={value} value={value}>{value ? riskTypeLabel(value) : 'ทั้งหมด'}</option>)}</select></label><label style={fieldStyle}>รหัสสมาชิก<input value={memberId} disabled={pageBusy} onChange={(event) => setMemberId(event.target.value)} placeholder="รหัสสมาชิก" style={inputStyle} /></label><label style={fieldStyle}>รหัสค่าย<input value={provider} disabled={pageBusy} onChange={(event) => setProvider(event.target.value)} placeholder="เช่น pragmatic" style={inputStyle} /></label><label style={fieldStyle}>ตั้งแต่วันที่<input type="date" value={createdFrom} disabled={pageBusy} onChange={(event) => setCreatedFrom(event.target.value)} style={inputStyle} /></label><label style={fieldStyle}>ถึงวันที่<input type="date" value={createdTo} disabled={pageBusy} onChange={(event) => setCreatedTo(event.target.value)} style={inputStyle} /></label><div style={filterActionStyle}><AdminButton tone="secondary" onClick={applyFilters} disabled={pageBusy}>ใช้ตัวกรอง</AdminButton><AdminButton tone="secondary" onClick={clearFilters} disabled={pageBusy}>ล้างตัวกรอง</AdminButton></div>{selectedIds.length > 0 && <AdminButton tone="danger" disabled={pageBusy} onClick={() => setDismissConfirmOpen(true)}>ปิดรายการที่เลือก ({selectedIds.length})</AdminButton>}<div style={pagerStyle}><AdminButton disabled={pageBusy || page <= 1} onClick={() => setPage((value) => Math.max(value - 1, 1))}>ก่อนหน้า</AdminButton><span>หน้า {page} / {pageCount}</span><AdminButton disabled={pageBusy || page >= pageCount} onClick={() => setPage((value) => Math.min(value + 1, pageCount))}>ถัดไป</AdminButton></div></AdminToolbar>
+    {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') || message.includes('วันที่') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
     {autoCloseSuggestions.length > 0 && <AdminCard title="รายการที่อาจปิดได้" description="ปลายทางของรายการเหล่านี้สิ้นสุดแล้ว ควรเปิดตรวจรายละเอียดก่อนปิด"><AdminStack>{autoCloseSuggestions.map((item) => <AdminRow key={item.id}><div style={alertBodyStyle}><strong>{item.reason}</strong><span style={mutedStyle}>{item.refType ?? 'รายการ'} / {item.refId ?? '-'} · {humanStatus(item.status)}</span></div><AdminLinkButton href={`/risk-alerts/${item.id}`}>ตรวจรายละเอียด</AdminLinkButton></AdminRow>)}</AdminStack></AdminCard>}
-    <AdminCard title="รายการความเสี่ยง" description="เปิดดูรายละเอียดก่อนเปลี่ยนสถานะ โดยเฉพาะรายการความเสี่ยงสูง"><AdminStack>{loading ? <AdminEmpty>กำลังโหลด...</AdminEmpty> : items.length === 0 ? <AdminEmpty>ไม่พบรายการตามตัวกรอง</AdminEmpty> : items.map((item) => <AdminRow key={item.id}><div style={alertBodyStyle}><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminBadge tone={severityTone(item.severity)}>{severityLabel(item.severity)}</AdminBadge><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminBadge>{riskTypeLabel(item.type)}</AdminBadge></div><strong>{item.title}</strong>{item.description && <span style={mutedStyle}>{item.description}</span>}<div style={detailGridStyle}><span>สมาชิก: {item.memberId ? <a href={`/members/${item.memberId}`} style={linkStyle}>{item.shortMemberId ?? item.memberId.slice(0, 8)}</a> : '-'}</span><span>รายการอ้างอิง: {item.refId ? <a href={riskTargetHref(item)} style={linkStyle}>{item.refType ?? 'รายการ'} / {item.refId.slice(0, 8)}</a> : '-'}</span><span>พบเมื่อ: {new Date(item.createdAt).toLocaleString('th-TH')}</span></div>{item.metadata && <details style={detailsStyle}><summary>ข้อมูลเพิ่มเติม</summary><RiskMetadataView metadata={item.metadata} /><RiskMetadataRaw metadata={item.metadata} /></details>}</div><div style={actionStyle}><label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#94a3b8', fontSize: 12 }}><input type="checkbox" checked={selectedIds.includes(item.id)} disabled={item.severity !== 'LOW' && item.severity !== 'MEDIUM'} onChange={(event) => setSelectedIds((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))} />เลือก</label><AdminLinkButton href={`/risk-alerts/${item.id}`}>ดูรายละเอียด</AdminLinkButton><AdminButton tone="secondary" disabled={item.status === 'REVIEWING'} onClick={() => void updateStatus(item.id, 'REVIEWING')}>เริ่มตรวจ</AdminButton><AdminButton tone="success" disabled={item.status === 'RESOLVED'} onClick={() => void updateStatus(item.id, 'RESOLVED')}>แก้ไขแล้ว</AdminButton><AdminButton tone="danger" disabled={item.status === 'DISMISSED'} onClick={() => void updateStatus(item.id, 'DISMISSED')}>ปิดรายการ</AdminButton></div></AdminRow>)}</AdminStack></AdminCard>
-    <AdminConfirmDialog open={dismissConfirmOpen} title="ยืนยันปิดเคสความเสี่ยง" description={`คุณกำลังปิด ${selectedIds.length.toLocaleString('th-TH')} เคสที่เลือก การดำเนินการนี้จะถูกบันทึกใน Audit log`} confirmLabel="ยืนยันปิดเคส" tone="danger" busy={dismissing} onCancel={() => setDismissConfirmOpen(false)} onConfirm={() => void bulkDismiss()} details={<label style={fieldStyle}>เหตุผลในการปิดเคส<textarea value={dismissReason} onChange={(event) => setDismissReason(event.target.value)} placeholder="ระบุเหตุผลอย่างน้อย 5 ตัวอักษร" style={{ ...inputStyle, minHeight: 100, padding: 12 }} /></label>} />
+    <AdminCard title="รายการความเสี่ยง" description="เปิดดูรายละเอียดก่อนเปลี่ยนสถานะ โดยเฉพาะรายการความเสี่ยงสูง"><AdminStack>{loading ? <AdminEmpty>กำลังโหลด...</AdminEmpty> : items.length === 0 ? <AdminEmpty>ไม่พบรายการตามตัวกรอง</AdminEmpty> : items.map((item) => <AdminRow key={item.id}><div style={alertBodyStyle}><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminBadge tone={severityTone(item.severity)}>{severityLabel(item.severity)}</AdminBadge><AdminBadge tone={statusTone(item.status)}>{humanStatus(item.status)}</AdminBadge><AdminBadge>{riskTypeLabel(item.type)}</AdminBadge></div><strong>{item.title}</strong>{item.description && <span style={mutedStyle}>{item.description}</span>}<div style={detailGridStyle}><span>สมาชิก: {item.memberId ? <a href={`/members/${item.memberId}`} style={linkStyle}>{item.shortMemberId ?? item.memberId.slice(0, 8)}</a> : '-'}</span><span>รายการอ้างอิง: {item.refId ? <a href={riskTargetHref(item)} style={linkStyle}>{item.refType ?? 'รายการ'} / {item.refId.slice(0, 8)}</a> : '-'}</span><span>พบเมื่อ: {new Date(item.createdAt).toLocaleString('th-TH')}</span></div>{item.metadata && <details style={detailsStyle}><summary>ข้อมูลเพิ่มเติม</summary><RiskMetadataView metadata={item.metadata} /><RiskMetadataRaw metadata={item.metadata} /></details>}</div><div style={actionStyle}><label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#94a3b8', fontSize: 12 }}><input type="checkbox" checked={selectedIds.includes(item.id)} disabled={pageBusy || (item.severity !== 'LOW' && item.severity !== 'MEDIUM')} onChange={(event) => setSelectedIds((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))} />เลือก</label><AdminLinkButton href={`/risk-alerts/${item.id}`}>ดูรายละเอียด</AdminLinkButton><AdminButton tone="secondary" disabled={pageBusy || item.status === 'REVIEWING'} onClick={() => void updateStatus(item.id, 'REVIEWING')}>เริ่มตรวจ</AdminButton><AdminButton tone="success" disabled={pageBusy || item.status === 'RESOLVED'} onClick={() => void updateStatus(item.id, 'RESOLVED')}>แก้ไขแล้ว</AdminButton><AdminButton tone="danger" disabled={pageBusy || item.status === 'DISMISSED'} onClick={() => void updateStatus(item.id, 'DISMISSED')}>ปิดรายการ</AdminButton></div></AdminRow>)}</AdminStack></AdminCard>
+    <AdminConfirmDialog open={dismissConfirmOpen} title="ยืนยันปิดเคสความเสี่ยง" description={`คุณกำลังปิด ${selectedIds.length.toLocaleString('th-TH')} เคสที่เลือก การดำเนินการนี้จะถูกบันทึกใน Audit log`} confirmLabel="ยืนยันปิดเคส" tone="danger" busy={busyKey === 'bulk-dismiss'} onCancel={() => { if (!pageBusy) setDismissConfirmOpen(false); }} onConfirm={() => void bulkDismiss()} details={<label style={fieldStyle}>เหตุผลในการปิดเคส<textarea value={dismissReason} disabled={pageBusy} onChange={(event) => setDismissReason(event.target.value)} placeholder="ระบุเหตุผลอย่างน้อย 5 ตัวอักษร" style={{ ...inputStyle, minHeight: 100, padding: 12 }} /></label>} />
   </AdminPage>;
 }
 
