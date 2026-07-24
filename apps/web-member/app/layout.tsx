@@ -54,6 +54,7 @@ import './member-header-logout.css';
 import './member-desktop-reference-polish.css';
 import './member-home-real-icons.css';
 import './member-v47-dual-master.css';
+import './member-v47-detail-pass.css';
 import MemberChrome from './member-chrome';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import { MemberSessionProvider } from './member-session-provider';
