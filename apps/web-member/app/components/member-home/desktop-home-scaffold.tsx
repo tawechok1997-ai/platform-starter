@@ -33,15 +33,19 @@ export function DesktopHomeScaffold({
   isGamesLoading: boolean;
   gamesMessage: string;
 }) {
-  const enabledBanners = content.banners.filter((banner) => banner.enabled);
+  const banners = Array.isArray(content?.banners) ? content.banners : [];
+  const announcements = Array.isArray(content?.announcements) ? content.announcements : [];
+  const faqs = Array.isArray(content?.faqs) ? content.faqs : [];
+  const enabledBanners = banners.filter((banner) => banner?.enabled);
   const featureTiles = enabledBanners.slice(1, 3);
   const promotionCards = enabledBanners.slice(0, 3);
-  const announcement = content.announcements.find((item) => item.enabled);
+  const announcement = announcements.find((item) => item?.enabled);
+  const enabledFaqs = faqs.filter((item) => item?.enabled).slice(0, 5);
   const sections = [
-    { title: 'เกมไฮไลต์', eyebrow: 'FEATURED', items: games.featured },
-    { title: 'Top 10 Games', eyebrow: 'POPULAR', items: games.popular },
-    { title: 'เล่นล่าสุด', eyebrow: 'RECENT', items: games.recent },
-    { title: 'เกมโปรด', eyebrow: 'FAVORITES', items: games.favorites },
+    { title: 'เกมไฮไลต์', eyebrow: 'FEATURED', items: Array.isArray(games?.featured) ? games.featured : [] },
+    { title: 'Top 10 Games', eyebrow: 'POPULAR', items: Array.isArray(games?.popular) ? games.popular : [] },
+    { title: 'เล่นล่าสุด', eyebrow: 'RECENT', items: Array.isArray(games?.recent) ? games.recent : [] },
+    { title: 'เกมโปรด', eyebrow: 'FAVORITES', items: Array.isArray(games?.favorites) ? games.favorites : [] },
   ];
 
   return (
@@ -49,20 +53,20 @@ export function DesktopHomeScaffold({
       <div className="desktop-home__main">
         <section className="desktop-home__hero-grid">
           <div className="desktop-home__hero-primary">
-            {showPromotion ? (
-              <HomePromotionCarousel content={content} siteName={siteName} />
+            {showPromotion && banners.length ? (
+              <HomePromotionCarousel content={{ ...content, banners }} siteName={siteName} />
             ) : (
               <div className="desktop-home__placeholder desktop-home__placeholder--hero">PROMOTION</div>
             )}
           </div>
           <div className="desktop-home__hero-stack">
             {featureTiles.length ? featureTiles.map((banner, index) => (
-              <a key={`${banner.title}-${index}`} className="desktop-home__feature-tile" href={banner.href || '/promotions'}>
-                {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title} />}
+              <a key={`${banner.title || 'banner'}-${index}`} className="desktop-home__feature-tile" href={banner.href || '/promotions'}>
+                {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title || 'โปรโมชั่น'} />}
                 <span className="desktop-home__feature-tile-overlay" />
                 <span className="desktop-home__feature-copy">
                   <small>{index === 0 ? 'ACTIVITY' : 'NEWS'}</small>
-                  <strong>{banner.title}</strong>
+                  <strong>{banner.title || 'รายการแนะนำ'}</strong>
                   <em>{banner.subtitle || 'ดูรายละเอียดเพิ่มเติม'}</em>
                 </span>
               </a>
@@ -77,7 +81,7 @@ export function DesktopHomeScaffold({
 
         {announcement && (
           <section className="desktop-home__announcement" aria-label="ประกาศล่าสุด">
-            <b>ประกาศ</b><strong>{announcement.title}</strong><span>{announcement.message}</span>
+            <b>ประกาศ</b><strong>{announcement.title || 'ประกาศล่าสุด'}</strong><span>{announcement.message || ''}</span>
           </section>
         )}
 
@@ -96,12 +100,12 @@ export function DesktopHomeScaffold({
             { title: 'กิจกรรม', subtitle: 'กิจกรรมประจำสัปดาห์', imageUrl: '', href: '/promotions' },
             { title: 'ข่าวสาร', subtitle: 'รายการอัปเดตล่าสุด', imageUrl: '', href: '/notifications' },
           ]).map((banner, index) => (
-            <a key={`${banner.title}-${index}`} href={banner.href || '/promotions'} className="desktop-home__promo-card">
+            <a key={`${banner.title || 'promotion'}-${index}`} href={banner.href || '/promotions'} className="desktop-home__promo-card">
               <div className={`desktop-home__promo-art desktop-home__promo-art--${index + 1}`}>
-                {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title} loading="lazy" />}
+                {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title || 'โปรโมชั่น'} loading="lazy" />}
                 <span className="desktop-home__promo-shade" />
               </div>
-              <div className="desktop-home__promo-copy"><strong>{banner.title}</strong><span>{banner.subtitle || 'ดูรายละเอียดเพิ่มเติม'}</span></div>
+              <div className="desktop-home__promo-copy"><strong>{banner.title || 'โปรโมชั่น'}</strong><span>{banner.subtitle || 'ดูรายละเอียดเพิ่มเติม'}</span></div>
             </a>
           ))}
         </section>
@@ -129,10 +133,10 @@ export function DesktopHomeScaffold({
 
         <section className="desktop-home__guide">
           <div className="desktop-home__section-heading"><div><span>HELP CENTER</span><h2>คู่มือการใช้งาน</h2></div></div>
-          {content.faqs.filter((item) => item.enabled).slice(0, 5).map((item) => (
+          {enabledFaqs.map((item) => (
             <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>
           ))}
-          {!content.faqs.some((item) => item.enabled) && ['วิธีสมัครสมาชิก', 'วิธีฝากเงิน', 'วิธีถอนเงิน'].map((item) => (
+          {!enabledFaqs.length && ['วิธีสมัครสมาชิก', 'วิธีฝากเงิน', 'วิธีถอนเงิน'].map((item) => (
             <details key={item}><summary>{item}</summary><p>ข้อมูลคู่มือจะเชื่อมจาก CMS ของระบบ</p></details>
           ))}
         </section>
@@ -155,7 +159,7 @@ export function DesktopHomeScaffold({
 }
 
 function GameSection({ title, eyebrow, games, loading, message }: { title: string; eyebrow: string; games: Game[]; loading: boolean; message: string }) {
-  const visibleGames = games.slice(0, 8);
+  const visibleGames = Array.isArray(games) ? games.slice(0, 8) : [];
   return (
     <section className="desktop-home__games">
       <div className="desktop-home__section-heading desktop-home__section-heading--games"><div><span>{eyebrow}</span><h2>{title}</h2></div><a href="/games">ดูทั้งหมด</a></div>
@@ -167,17 +171,19 @@ function GameSection({ title, eyebrow, games, loading, message }: { title: strin
 }
 
 function GameCard({ game }: { game: Game }) {
-  const media = Array.isArray(game.media) ? game.media : [];
+  const media = Array.isArray(game?.media) ? game.media : [];
   const image = media.find((item) => item?.cachedUrl)?.cachedUrl || media.find((item) => item?.sourceUrl)?.sourceUrl || '';
-  const provider = game.provider?.name || game.provider?.code || 'Provider';
+  const provider = game?.provider?.name || game?.provider?.code || 'Provider';
+  const name = typeof game?.name === 'string' && game.name.trim() ? game.name : 'Game';
+  const id = typeof game?.id === 'string' ? game.id : '';
   return (
-    <a className="desktop-home__game-card" href={`/games/${encodeURIComponent(game.id)}`}>
+    <a className="desktop-home__game-card" href={id ? `/games/${encodeURIComponent(id)}` : '/games'}>
       <div className="desktop-home__game-art">
-        {image ? <img src={image} alt={game.name} loading="lazy" /> : <span>{game.name.slice(0, 1).toUpperCase()}</span>}
-        {game.isNew && <em>NEW</em>}
+        {image ? <img src={image} alt={name} loading="lazy" /> : <span>{name.slice(0, 1).toUpperCase()}</span>}
+        {game?.isNew && <em>NEW</em>}
         <span className="desktop-home__game-play">เล่นเกม</span>
       </div>
-      <div className="desktop-home__game-meta"><strong>{game.name}</strong><span>{provider}</span></div>
+      <div className="desktop-home__game-meta"><strong>{name}</strong><span>{provider}</span></div>
     </a>
   );
 }
