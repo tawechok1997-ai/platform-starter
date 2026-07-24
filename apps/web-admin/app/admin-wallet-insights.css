@@ -134,17 +134,17 @@
 }
 
 .admin-wallet-analytics__chart {
-  min-height: 240px;
+  min-height: 190px;
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  padding: 18px 12px 8px;
+  padding: 14px 12px 8px;
   overflow-x: auto;
 }
 
 .admin-wallet-analytics__bar-item {
   flex: 1 0 34px;
-  height: 190px;
+  height: 145px;
   display: grid;
   grid-template-rows: 1fr auto;
   align-items: flex-end;
@@ -177,6 +177,8 @@
   .admin-wallet-statement__filters > div { width: 100%; }
   .admin-wallet-statement__filters > div > button { flex: 1 1 0; }
   .admin-wallet-statement__pager { justify-content: center; }
+  .admin-wallet-analytics__chart { min-height: 170px; padding-top: 10px; }
+  .admin-wallet-analytics__bar-item { height: 125px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
