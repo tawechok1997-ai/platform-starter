@@ -71,6 +71,7 @@ import './member-assets6-icon-contract.css';
 import './member-assets6-mobile-order.css';
 import './member-assets6-visual-delta.css';
 import './member-v47-responsive-final.css';
+import './member-v47-asset-rescue.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
