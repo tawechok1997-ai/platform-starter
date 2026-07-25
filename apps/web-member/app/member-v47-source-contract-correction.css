@@ -3,8 +3,8 @@
 @media (min-width: 901px) {
   .public-home-topbar .public-home-desktop-bar,
   .public-home-topbar .public-home-category-bar {
-    width: min(1455px, calc(100vw - 30px)) !important;
-    max-width: 1455px !important;
+    width: min(1800px, calc(100vw - 48px)) !important;
+    max-width: 1800px !important;
     margin-inline: auto !important;
   }
 
@@ -31,7 +31,10 @@
     display: block !important;
     width: 100vw !important;
     max-width: none !important;
+    height: 302.5px !important;
+    min-height: 0 !important;
     margin: 20px 0 24px !important;
+    padding: 0 !important;
     overflow: hidden !important;
     transform: translateX(-50%) !important;
     -webkit-mask-image: linear-gradient(to right, transparent 2%, #000 25%, #000 75%, transparent 98%) !important;
@@ -41,6 +44,8 @@
   .desktop-reference-home .reference-hero-mask {
     display: flex !important;
     width: 100% !important;
+    height: 288.46px !important;
+    min-height: 0 !important;
     justify-content: center !important;
     align-items: center !important;
     overflow: visible !important;
@@ -55,6 +60,7 @@
     width: 2180px !important;
     min-width: 2180px !important;
     max-width: none !important;
+    height: 288.46px !important;
     justify-content: center !important;
     gap: 10px !important;
     transform: translateX(var(--hero-drag-x, 0px)) !important;
@@ -64,6 +70,7 @@
     flex: 0 0 710.5px !important;
     width: 710.5px !important;
     max-width: 33.4% !important;
+    height: 288.46px !important;
     aspect-ratio: 710.5 / 288.46 !important;
     border: 0 !important;
     border-radius: 10px !important;
@@ -83,6 +90,14 @@
     height: 100% !important;
     object-fit: cover !important;
     border-radius: 10px !important;
+  }
+
+  .desktop-reference-home > .desktop-home__body {
+    width: min(1800px, calc(100vw - 48px)) !important;
+    max-width: 1800px !important;
+    grid-template-columns: minmax(0, 3fr) minmax(360px, 1fr) !important;
+    gap: 18px !important;
+    margin-top: 0 !important;
   }
 
   .desktop-reference-home .reference-promo-row::before {
@@ -189,14 +204,14 @@
 }
 
 @media (min-width: 1200px) and (max-width: 1499px) {
+  .desktop-reference-home > .desktop-home__body,
   .public-home-topbar .public-home-desktop-bar,
   .public-home-topbar .public-home-category-bar {
     width: calc(100vw - 24px) !important;
   }
 
   .desktop-reference-home > .desktop-home__body {
-    width: calc(100vw - 24px) !important;
-    grid-template-columns: minmax(0, calc(100% - 305px)) minmax(280px, 290px) !important;
+    grid-template-columns: minmax(0, 3fr) minmax(300px, 1fr) !important;
     gap: 15px !important;
   }
 
