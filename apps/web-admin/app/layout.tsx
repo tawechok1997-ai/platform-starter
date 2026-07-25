@@ -54,6 +54,7 @@ import './admin-modern-dashboard-layout.css';
 import './admin-modern-modules.css';
 import './admin-modern-token-bridge.css';
 import './admin-modern-workflows.css';
+import './admin-modern-auth.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
