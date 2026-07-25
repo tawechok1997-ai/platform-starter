@@ -1,0 +1,115 @@
+/* Final geometry normalization after legacy and modern layers are loaded. */
+
+.admin-shell {
+  display: block !important;
+  grid-template-columns: none !important;
+  width: 100%;
+}
+
+.admin-main-shell {
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-content-shell {
+  width: 100%;
+  max-width: none !important;
+  min-width: 0;
+}
+
+.admin-content-shell > .admin-ui-page {
+  width: min(100%, var(--admin-modern-content)) !important;
+  max-width: var(--admin-modern-content) !important;
+  margin-inline: auto !important;
+  padding: 0 !important;
+}
+
+.admin-ui-page__head {
+  margin: 0 !important;
+}
+
+.admin-ui-card__head {
+  margin: 0 0 16px !important;
+}
+
+.admin-ui-metric-grid {
+  margin: 0 !important;
+}
+
+.admin-ui-row,
+.admin-ui-section-row {
+  border: 0 !important;
+  border-bottom: 1px solid rgb(148 163 184 / 10%) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-ui-row:last-child,
+.admin-ui-section-row:last-child {
+  border-bottom: 0 !important;
+}
+
+.admin-ui-toolbar,
+.admin-ui-action-strip,
+.admin-ui-filter-bar {
+  border-color: var(--admin-modern-border) !important;
+  border-radius: 14px !important;
+  background: var(--admin-modern-surface) !important;
+  box-shadow: var(--admin-modern-shadow-soft);
+}
+
+.admin-content-shell :where(.admin-ui-card, .admin-ui-metric, .admin-directory-card, .admin-data-table__scroll) {
+  isolation: isolate;
+}
+
+.admin-content-shell :where(a, button) {
+  text-underline-offset: 3px;
+}
+
+.admin-content-shell :where(img) {
+  max-width: 100%;
+}
+
+.admin-content-shell :where(pre, code) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.admin-content-shell :where(pre) {
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(124 109 242 / 28%) transparent;
+}
+
+@media (min-width: 1100px) {
+  .admin-shell {
+    padding-left: var(--admin-modern-sidebar) !important;
+  }
+
+  .admin-shell.admin-shell--collapsed {
+    padding-left: var(--admin-modern-sidebar-collapsed) !important;
+  }
+}
+
+@media (max-width: 1099px) {
+  .admin-shell,
+  .admin-shell.admin-shell--collapsed {
+    padding-left: 0 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-content-shell > .admin-ui-page {
+    width: 100% !important;
+  }
+
+  .admin-ui-card__head {
+    margin-bottom: 13px !important;
+  }
+
+  .admin-ui-row,
+  .admin-ui-section-row {
+    padding-block: 12px !important;
+  }
+}
