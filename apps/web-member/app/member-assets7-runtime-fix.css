@@ -1,0 +1,155 @@
+/* Runtime asset repair after assets(7).rar mapping. Keep this stylesheet last. */
+
+.public-home-nav-icon-frame .public-home-nav-icon {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.reference-tournament-board .reference-heading-icon > img {
+  content: url('https://noah345.shop/images/home/tournament.svg') !important;
+}
+
+.reference-featured-section .reference-heading-icon > img {
+  content: url('https://noah345.shop/images/home/star.webp') !important;
+}
+
+.reference-number-section .reference-heading-icon > img,
+.reference-compact-section:has(.reference-classic-row) .reference-heading-icon > img {
+  content: url('https://noah345.shop/images/home/icongamehit.webp') !important;
+}
+
+.reference-compact-section:has(.reference-online-row) .reference-heading-icon > img {
+  content: url('https://noah345.shop/images/home/mostonline1.webp') !important;
+}
+
+.reference-compact-section:has(.reference-live-row) .reference-heading-icon > img {
+  content: url('/assets/reference-brand/menu/live.png') !important;
+}
+
+.reference-guide .reference-heading-icon > img {
+  content: url('/clone-assets/mini-game.webp') !important;
+}
+
+.reference-leaderboard .reference-side-icon > img {
+  content: url('https://noah345.shop/images/home/leader-board.svg') !important;
+}
+
+.reference-mini-games a:first-child .reference-mini-icon > img {
+  content: url('https://noah345.shop/images/home/icon-luckywheel-dt.webp') !important;
+}
+
+.reference-mini-games a:last-child .reference-mini-icon > img {
+  content: url('https://noah345.shop/images/home/icon-dailymission-dt.webp') !important;
+}
+
+.reference-heading-icon > img,
+.reference-side-icon > img,
+.reference-mini-icon > img {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.reference-tournament-cta {
+  background-color: #07526b !important;
+  background-image: url('https://noah345.shop/images/home/tournament.svg') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+
+.reference-sidebar::before {
+  background-color: #17121f !important;
+  background-image: url('https://cdn.zabbet.com/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+
+.reference-game-tile > img,
+.reference-online-card > img,
+.reference-number-card > img,
+.reference-provider-logo > img,
+.member-reference-footer img {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+.reference-provider-logo > img,
+.member-reference-footer img {
+  object-fit: contain !important;
+}
+
+.reference-featured-grid,
+.reference-featured-small-grid,
+.reference-online-row,
+.reference-classic-row {
+  min-width: 0 !important;
+}
+
+.reference-game-tile {
+  overflow: hidden !important;
+  background: #21152a !important;
+}
+
+.reference-game-tile > span {
+  background: linear-gradient(180deg, transparent, rgb(9 5 13 / 94%)) !important;
+}
+
+.reference-online-card {
+  overflow: hidden !important;
+  background: #21152a !important;
+}
+
+.reference-provider-strip > div {
+  min-height: 70px !important;
+}
+
+.reference-provider-logo {
+  display: grid !important;
+  place-items: center !important;
+  min-width: 70px !important;
+  min-height: 52px !important;
+}
+
+.reference-provider-logo > img {
+  width: 100% !important;
+  max-width: 92px !important;
+  height: 42px !important;
+}
+
+.member-reference-footer__trust img {
+  width: auto !important;
+  max-width: 94px !important;
+  height: 34px !important;
+}
+
+@media (min-width: 1200px) {
+  .desktop-reference-home .reference-sidebar {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .reference-main-column {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    min-width: 0 !important;
+  }
+
+  .reference-promo-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    overflow: hidden !important;
+  }
+}
