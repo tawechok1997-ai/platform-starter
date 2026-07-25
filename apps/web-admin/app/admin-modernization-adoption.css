@@ -1,0 +1,42 @@
+/* Final adoption layer for the shared Admin modernization primitives.
+   Keep this file small and delete page-specific rules as each module adopts shared components. */
+
+.admin-ledger-table-type,
+.admin-ledger-reference {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.admin-ledger-table-type {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.admin-ledger-table-type > strong,
+.admin-ledger-reference > span,
+.admin-ledger-reference > small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-ledger-reference > small {
+  color: color-mix(in srgb, currentColor 60%, transparent);
+  font-size: 0.72rem;
+}
+
+.admin-content-shell > * {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .admin-ledger-table-type {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .admin-toolbar .admin-ledger-field {
+    min-width: min(100%, 240px);
+  }
+}
