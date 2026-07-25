@@ -28,7 +28,9 @@ test('keeps the modernized roles catalog compact, localized and read-only', () =
   assert.equal(rolesSource.includes('pageSizeOptions={[20, 50, 100]}'), true);
   assert.equal(rolesSource.includes('admin-role-modern-card'), true);
   assert.equal(rolesSource.includes('admin-role-permission-groups'), true);
-  assert.equal(rolesSource.includes('copyByLocale'), true);
+  assert.equal(rolesSource.includes('const COPY: Record<AdminLocale, Copy>'), true);
+  assert.equal(rolesSource.includes("th: {"), true);
+  assert.equal(rolesSource.includes("en: {"), true);
   assert.equal(rolesSource.includes('read-only'), true);
   assert.equal(rolesSource.includes('admin-role-row'), false);
   assert.equal(rolesSource.includes('admin-permission-chip'), false);
