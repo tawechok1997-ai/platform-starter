@@ -99,7 +99,7 @@ test('uses production typography, compact number alignment and reduced motion', 
   assert.match(shellCss, /font-family: Inter, "Noto Sans Thai", "Leelawadee UI"/);
   assert.match(shellCss, /font-weight: 700 !important/);
   assert.match(dataTableCss, /font-variant-numeric: tabular-nums/);
-  assert.match(shellCss, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(adoptionCss, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(dataTableCss, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(layout, /themeColor: '#061019'/);
 });
