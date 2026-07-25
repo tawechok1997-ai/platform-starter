@@ -61,6 +61,12 @@ test('neutralizes legacy global width, padding, overflow and gold theme rules', 
   assert.match(controlsCss, /\.admin-topbar[\s\S]*display: grid !important/);
 });
 
+test('overrides runtime card clipping with stronger Admin-only specificity', () => {
+  assert.match(controlsCss, /body\[data-app-surface='admin'\] \.admin-content-shell \.admin-ui-card/);
+  assert.match(controlsCss, /height: auto !important/);
+  assert.match(controlsCss, /overflow: visible !important/);
+});
+
 test('keeps card headers, actions, rows and filters within their parent width', () => {
   assert.match(controlsCss, /\.admin-ui-card__head[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto !important/);
   assert.match(controlsCss, /\.admin-ui-card__action[\s\S]*flex-wrap: wrap !important/);
@@ -82,11 +88,14 @@ test('uses a proportional dashboard grid without fixed clipping', () => {
   assert.match(css, /admin-finance-chart__plot[\s\S]*height: auto !important/);
 });
 
-test('uses an admin-specific palette and production typography stack', () => {
+test('uses an admin-specific palette and production Thai typography stack', () => {
   assert.match(css, /--admin-modern-brand: #38bdf8/);
   assert.match(css, /--admin-modern-cyan: #2dd4bf/);
-  assert.match(css, /LINE Seed Sans TH/);
-  assert.match(css, /Noto Sans Thai/);
+  assert.match(controlsCss, /LINE Seed Sans TH/);
+  assert.match(controlsCss, /Noto Sans Thai/);
+  assert.match(controlsCss, /Leelawadee UI/);
+  assert.match(controlsCss, /admin-ui-page__copy h1[\s\S]*font-weight: 760 !important/);
+  assert.match(controlsCss, /admin-ui-button[\s\S]*font-weight: 680 !important/);
   assert.match(layout, /themeColor: '#061019'/);
 });
 
