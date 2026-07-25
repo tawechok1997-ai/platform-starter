@@ -30,12 +30,15 @@ test('runs the Admin test at explicit desktop and mobile viewports', () => {
   assert.match(config, /devices\['Pixel 7'\]/);
 });
 
-test('checks modern shell, drawer, command palette and horizontal overflow', () => {
+test('checks the shared shell, command palette, responsive navigation and route overflow', () => {
   assert.match(spec, /\.admin-shell/);
   assert.match(spec, /\.admin-command-dialog/);
+  assert.match(spec, /\.admin-menu-button/);
+  assert.match(spec, /\.admin-collapse-button/);
   assert.match(spec, /\.admin-mobile-drawer-controller/);
-  assert.match(spec, /Authenticated Admin Dashboard/);
+  assert.match(spec, /Authenticated Admin routes/);
   assert.match(spec, /must not overflow horizontally/);
+  assert.match(spec, /cards must stay inside the viewport/);
   assert.match(spec, /--admin-modern-brand/);
 });
 
