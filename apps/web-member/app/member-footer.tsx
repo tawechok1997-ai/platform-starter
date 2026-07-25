@@ -15,16 +15,28 @@ const GAME_LINKS = [
 const INFO_LINKS = [
   ['โปรโมชั่น', '/promotions'],
   ['ข่าวสาร', '/notifications'],
-  ['คำถามที่พบบ่อย', '/guide'],
-  ['สมัครสมาชิก', '/register'],
-  ['เข้าสู่ระบบ', '/login'],
+  ['กิจกรรม', '/promotions'],
+  ['ระดับสมาชิก VIP', '/profile'],
+  ['รายได้จากเครือข่าย', '/affiliate'],
+  ['รายได้จากคอมมิชชั่น', '/affiliate'],
 ] as const;
 
+const SOURCE_DESCRIPTION = 'เว็บพนันออนไลน์ที่ดีที่สุด พร้อมบริการลูกค้าทุกท่าน ตลอด 24 ชั่วโมง มีเกมให้เลือกเล่นมากมาย บาคาร่า รูเล็ต ไฮโล เสือมังกร สล็อตออนไลน์ กีฬาออนไลน์ แจ็คพอตแตกทุกวัน';
+
+function sourceBrandName(value: string | undefined) {
+  const normalized = value?.trim();
+  return !normalized || /platform starter/i.test(normalized) ? 'NOAH345' : normalized;
+}
+
+function sourceDescription(value: string | undefined) {
+  const normalized = value?.trim();
+  return !normalized || /แพลตฟอร์มสมาชิก|platform starter/i.test(normalized) ? SOURCE_DESCRIPTION : normalized;
+}
+
 export default function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
-  const { website, contact } = settings;
-  const company = contact.company_name || website.site_name;
-  const siteName = website.site_name || company || 'NOAH345';
-  const description = website.site_description || 'ศูนย์รวมเกมและกิจกรรมสำหรับสมาชิก พร้อมบริการตลอด 24 ชั่วโมง';
+  const { website } = settings;
+  const siteName = sourceBrandName(website.site_name);
+  const description = sourceDescription(website.site_description);
 
   return (
     <footer className="member-footer">
@@ -33,12 +45,10 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
           <img className="member-footer__about-logo" src="/reference-v6/logo.webp" alt={siteName} />
           <strong>{siteName}</strong>
           <p>{description}</p>
-          <p>ใช้งานง่าย รองรับทุกอุปกรณ์ และมีทีมบริการคอยดูแลสมาชิกตลอดวัน</p>
         </section>
 
         <section className="member-footer__trust">
-          <h3>ใบอนุญาต ความปลอดภัย และการรับรอง</h3>
-          <p className="member-footer__trust-copy">ระบบให้ความสำคัญกับความปลอดภัยของข้อมูล การใช้งานอย่างรับผิดชอบ และมาตรฐานการให้บริการ</p>
+          <h3>ใบอนุญาตและใบรับรอง (การันตีเกมลิขสิทธิ์แท้)</h3>
           <div className="member-footer__trust-grid">
             {REFERENCE_TRUST_BADGES.map((badge) => (
               <span key={badge.name} className="member-footer__trust-badge" title={badge.name}>
