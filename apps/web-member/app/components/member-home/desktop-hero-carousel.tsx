@@ -48,12 +48,9 @@ const ARCHIVE_BANNERS: CmsBanner[] = [
 
 export function DesktopHeroCarousel({ content, siteName, showPromotion }: DesktopHeroCarouselProps) {
   const slides = useMemo<HeroSlide[]>(() => {
-    const enabledBanners = Array.isArray(content.banners)
-      ? content.banners.filter((banner) => banner.enabled)
-      : [];
-    const bannerSource = enabledBanners.length >= 3
-      ? enabledBanners
-      : [...enabledBanners, ...ARCHIVE_BANNERS].slice(0, 3);
+    // Desktop fidelity uses the supplied V47 artwork. CMS remains available to the
+    // rest of Member Home instead of silently replacing the approved reference hero.
+    const bannerSource = ARCHIVE_BANNERS;
 
     return bannerSource.flatMap((banner, realIndex) => {
       const imageUrl = normalizeUrl(banner.imageUrl || resolveCmsAssetById(content, banner.assetId));
@@ -61,7 +58,7 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     });
   }, [content]);
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(1);
   const [paused, setPaused] = useState(false);
   const carouselRef = useRef<HTMLElement | null>(null);
   const pointerState = useRef<PointerState | null>(null);
