@@ -1,7 +1,10 @@
 'use client';
 
+import type { SyntheticEvent } from 'react';
 import type { TypedPublicSiteSettings } from './site-settings-types';
-import { REFERENCE_BANKS, REFERENCE_HOME_ASSETS, REFERENCE_TRUST_BADGES } from './components/reference-asset-catalog';
+import { REFERENCE_BANKS, REFERENCE_HOME_ASSETS } from './components/reference-asset-catalog';
+
+const SOURCE_ROOT = 'https://noah345.shop/images';
 
 const GAME_LINKS = [
   ['คาสิโน', '/games?category=casino'],
@@ -21,7 +24,30 @@ const INFO_LINKS = [
   ['รายได้จากคอมมิชชั่น', '/affiliate'],
 ] as const;
 
-const SOURCE_DESCRIPTION = 'เว็บพนันออนไลน์ที่ดีที่สุด พร้อมบริการลูกค้าทุกท่าน ตลอด 24 ชั่วโมง มีเกมให้เลือกเล่นมากมาย บาคาร่า รูเล็ต ไฮโล เสือมังกร สล็อตออนไลน์ กีฬาออนไลน์ แจ็คพอตแตกทุกวัน';
+const LICENSE_BADGES = [
+  ['GC', `${SOURCE_ROOT}/footer/GC-icon%202.webp`],
+  ['iTech Labs', `${SOURCE_ROOT}/footer/iTech.webp`],
+  ['Gaming Labs', `${SOURCE_ROOT}/footer/GamingLab.webp`],
+  ['BMM Testlabs', `${SOURCE_ROOT}/footer/BBM-Cert.webp`],
+  ['Iovation', `${SOURCE_ROOT}/footer/Iovation.webp`],
+] as const;
+
+const SECURITY_BADGES = [
+  ['GoDaddy', `${SOURCE_ROOT}/footer/GO%20DADDY.webp`],
+  ['Security Group', `${SOURCE_ROOT}/footer/Group%2048102721.webp`],
+] as const;
+
+const RESPONSIBLE_BADGES = [
+  ['18+', `${SOURCE_ROOT}/footer/18.webp`],
+  ['Game Care', `${SOURCE_ROOT}/footer/gamecare.webp`],
+  ['Be Gamble Aware', `${SOURCE_ROOT}/footer/be-gamble-aware.webp`],
+] as const;
+
+const SOURCE_DESCRIPTION = `เว็บพนันออนไลน์ที่ดีที่สุด
+พร้อมบริการลูกค้าทุกท่าน ตลอด 24 ชั่วโมง
+มีเกมให้เลือกเล่นมากมาย
+บาคาร่า รูเล็ต ไฮโล เสือมังกร สล็อตออนไลน์ กีฬาออนไลน์
+แจ็คพอตแตกทุกวัน`;
 
 function sourceBrandName(value: string | undefined) {
   const normalized = value?.trim();
@@ -30,7 +56,9 @@ function sourceBrandName(value: string | undefined) {
 
 function sourceDescription(value: string | undefined) {
   const normalized = value?.trim();
-  return !normalized || /แพลตฟอร์มสมาชิก|platform starter/i.test(normalized) ? SOURCE_DESCRIPTION : normalized;
+  return !normalized || /แพลตฟอร์มสมาชิก|member platform starter|platform starter/i.test(normalized)
+    ? SOURCE_DESCRIPTION
+    : normalized;
 }
 
 export default function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
@@ -42,62 +70,82 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
     <footer className="member-footer">
       <div className="member-footer__main">
         <section className="member-footer__about">
-          <img className="member-footer__about-logo" src="/reference-v6/logo.webp" alt={siteName} />
-          <strong>{siteName}</strong>
+          <h3>{siteName}</h3>
           <p>{description}</p>
         </section>
 
         <section className="member-footer__trust">
-          <h3>ใบอนุญาตและใบรับรอง (การันตีเกมลิขสิทธิ์แท้)</h3>
-          <div className="member-footer__trust-grid">
-            {REFERENCE_TRUST_BADGES.map((badge) => (
-              <span key={badge.name} className="member-footer__trust-badge" title={badge.name}>
-                <img src={badge.url} alt={badge.name} loading="lazy" />
-              </span>
-            ))}
+          <h3><strong>ใบอนุญาตและใบรับรอง</strong> <span>(การันตีเกมลิขสิทธิ์แท้)</span></h3>
+          <BadgeRow badges={LICENSE_BADGES} className="member-footer__trust-primary" />
+
+          <div className="member-footer__trust-groups">
+            <div className="member-footer__trust-group">
+              <h3>การรองรับและความปลอดภัยโดย</h3>
+              <BadgeRow badges={SECURITY_BADGES} />
+            </div>
+            <div className="member-footer__trust-group">
+              <h3>รับผิดชอบในการเดิมพัน</h3>
+              <BadgeRow badges={RESPONSIBLE_BADGES} />
+            </div>
           </div>
         </section>
 
-        <nav className="member-footer__links" aria-label="เกม">
-          <h3>เกม</h3>
-          {GAME_LINKS.map(([label, href]) => <a key={label} href={href}>{label}</a>)}
-        </nav>
+        <div className="member-footer__menus">
+          <nav className="member-footer__links" aria-label="เกม">
+            <h3>เกม</h3>
+            {GAME_LINKS.map(([label, href]) => <a key={label} href={href}>{label}</a>)}
+          </nav>
 
-        <nav className="member-footer__links" aria-label="ข้อมูล">
-          <h3>ข้อมูล</h3>
-          {INFO_LINKS.map(([label, href]) => <a key={label} href={href}>{label}</a>)}
-        </nav>
+          <nav className="member-footer__links" aria-label="ข้อมูล">
+            <h3>ข้อมูล</h3>
+            {INFO_LINKS.map(([label, href]) => <a key={label} href={href}>{label}</a>)}
+          </nav>
+        </div>
 
         <section className="member-footer__contact">
           <h3>ติดต่อเรา</h3>
-          <div className="member-footer__contact-list">
-            <a className="member-footer__contact-line" href="/contact">
-              <img src={REFERENCE_HOME_ASSETS.line} alt="LINE" loading="lazy" />
-              <span>Support 24 ชั่วโมง</span>
-            </a>
-          </div>
-          <div className="member-footer__responsible">
-            <span>18+</span>
-            <span>เล่นอย่างมีความรับผิดชอบ</span>
-          </div>
+          <a className="member-footer__contact-line" href="/contact" aria-label="ติดต่อฝ่ายบริการผ่าน LINE">
+            <img src={REFERENCE_HOME_ASSETS.line} alt="LINE" loading="lazy" onError={hideBrokenImage} />
+          </a>
         </section>
       </div>
+
+      <div className="member-footer__separator" aria-hidden="true" />
 
       <section className="member-footer__payments" aria-label="วิธีการชำระเงิน">
         <h3>วิธีการชำระเงิน</h3>
         <div className="member-footer__bank-grid">
           {REFERENCE_BANKS.map((bank) => (
             <span key={bank.name} className="member-footer__bank" title={bank.name}>
-              <img src={bank.url} alt={bank.name} loading="lazy" />
+              <img src={bank.url} alt={bank.name} loading="lazy" onError={hideBrokenImage} />
             </span>
           ))}
         </div>
       </section>
 
       <small className="member-footer__copyright">
-        <img className="member-footer__copyright-logo" src="/reference-v6/logo.webp" alt="" aria-hidden="true" />
-        <span>Copyright © {siteName}, All Rights Reserved.</span>
+        <img className="member-footer__copyright-logo" src="/reference-v6/logo.webp" alt="NOAH345" onError={hideBrokenImage} />
+        <span>Copyright © noah345.shop, All Rights Reserved.</span>
       </small>
     </footer>
   );
+}
+
+function BadgeRow({ badges, className = '' }: {
+  badges: readonly (readonly [name: string, url: string])[];
+  className?: string;
+}) {
+  return (
+    <div className={`member-footer__trust-row${className ? ` ${className}` : ''}`}>
+      {badges.map(([name, url]) => (
+        <span key={name} className="member-footer__trust-badge" title={name}>
+          <img src={url} alt={name} loading="lazy" onError={hideBrokenImage} />
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
+  event.currentTarget.style.display = 'none';
 }
