@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const workflow = readFileSync(new URL('../.github/workflows/admin-authenticated-ui-smoke.yml', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../playwright.authenticated-visual.config.ts', import.meta.url), 'utf8');
-const spec = readFileSync(new URL('../tests/authenticated-visual/seeded-authenticated-visual.spec.ts', import.meta.url), 'utf8');
+const spec = readFileSync(new URL('../tests/authenticated-visual/admin-authenticated-workspace.spec.ts', import.meta.url), 'utf8');
 
 test('Admin UI smoke remains manually dispatched and read-only', () => {
   assert.match(workflow, /workflow_dispatch:/);
@@ -12,6 +12,8 @@ test('Admin UI smoke remains manually dispatched and read-only', () => {
   assert.equal(workflow.includes('pull_request:'), false);
   assert.equal(workflow.includes('curl '), false);
   assert.equal(workflow.includes('method: POST'), false);
+  assert.match(spec, /Authenticated Admin workspace smoke must remain read-only/);
+  assert.match(spec, /\['GET', 'HEAD', 'OPTIONS'\]/);
 });
 
 test('validates HTTPS, host allow-list and real credentials', () => {
@@ -22,8 +24,8 @@ test('validates HTTPS, host allow-list and real credentials', () => {
   assert.match(workflow, /REQUIRE_ADMIN_AUTHENTICATED_SMOKE: 'true'/);
 });
 
-test('runs the Admin test at explicit desktop and mobile viewports', () => {
-  assert.match(workflow, /--grep "admin authenticated home"/);
+test('runs the dedicated Admin workspace test at explicit desktop and mobile viewports', () => {
+  assert.match(workflow, /--grep "admin authenticated workspace smoke"/);
   assert.match(config, /name: 'desktop-chromium'/);
   assert.match(config, /viewport: \{ width: 1440, height: 1000 \}/);
   assert.match(config, /name: 'mobile-chromium'/);
@@ -36,9 +38,9 @@ test('checks the shared shell, command palette, responsive navigation and route 
   assert.match(spec, /\.admin-menu-button/);
   assert.match(spec, /\.admin-collapse-button/);
   assert.match(spec, /\.admin-mobile-drawer-controller/);
-  assert.match(spec, /Authenticated Admin routes/);
   assert.match(spec, /must not overflow horizontally/);
-  assert.match(spec, /cards must stay inside the viewport/);
+  assert.match(spec, /surfaces must stay inside the viewport/);
+  assert.match(spec, /accessibleRoutes\.length\)\.toBeLessThanOrEqual\(11\)/);
   assert.match(spec, /--admin-modern-brand/);
 });
 
@@ -47,4 +49,5 @@ test('retains responsive evidence without recording credentials', () => {
   assert.match(workflow, /retention-days: 14/);
   assert.match(workflow, /Credentials are never written to artifacts/);
   assert.equal(workflow.includes('echo "$SEED_ADMIN_PASSWORD"'), false);
+  assert.match(spec, /admin-authenticated-workspace-audit\.json/);
 });
