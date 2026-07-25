@@ -59,6 +59,7 @@ import './admin-modern-normalization.css';
 import './admin-modern-governance.css';
 import './admin-modern-audit.css';
 import './admin-modern-platform-ops.css';
+import './admin-release-readiness.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
@@ -89,7 +90,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   colorScheme: 'dark',
-  themeColor: '#070b14',
+  themeColor: '#061019',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
