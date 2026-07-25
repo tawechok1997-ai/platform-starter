@@ -6,7 +6,6 @@ import type { Game } from '../../types/member-api';
 import {
   REFERENCE_GAMES,
   REFERENCE_HERO_SLIDES,
-  REFERENCE_HOME_ASSETS,
   REFERENCE_PROVIDERS,
   type ReferenceAsset,
 } from '../reference-asset-catalog';
@@ -19,6 +18,8 @@ const PROJECT_FALLBACK_BANNERS: CmsContent['banners'] = REFERENCE_HERO_SLIDES.ma
   href: '/promotions',
   enabled: true,
 }));
+
+const MOBILE_RANK_ART = [V47_ASSETS.rank1, V47_ASSETS.rank2, V47_ASSETS.rank3] as const;
 
 type Props = {
   content: CmsContent;
@@ -82,25 +83,25 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
       </a>
 
       <section className="v47-mobile-panel v47-mobile-rank-panel">
-        <SectionTitle icon={resolveV47Asset(tournament?.url, 'tournament')} title="ทัวร์นาเมนต์" />
+        <SectionTitle icon={V47_ASSETS.openGold} title="ทัวร์นาเมนต์" />
         <div className="v47-mobile-rank-title"><strong>No.1 Tournament Football Royale ครั้งที่ 2</strong><a href="/promotions">ดูทั้งหมด ›</a></div>
-        <div className="v47-mobile-ranks">{Array.from({ length: 3 }, (_, index) => <article key={index}><span className="v47-mobile-rank-badge"><img src={V47_ASSETS.rankTop3} alt="" onError={hideBrokenImage} /><b>{index + 1}</b></span><span>ZAX00{[790740, 664100, 844010][index]}</span><strong>{[20, 17, 13][index]}</strong><small>● ● ● ● ●</small></article>)}</div>
+        <div className="v47-mobile-ranks" data-drag-scroll="true">{Array.from({ length: 3 }, (_, index) => <article key={index}><span className="v47-mobile-rank-badge"><img src={MOBILE_RANK_ART[index]!} alt={`อันดับ ${index + 1}`} onError={hideBrokenImage} /><b>{index + 1}</b></span><span>ZAX00{[790740, 664100, 844010][index]}</span><strong>{[20, 17, 13][index]}</strong><small>● ● ● ● ●</small></article>)}</div>
       </section>
 
       <section className="v47-mobile-jackpot"><img src={resolveV47Asset(jackpot?.url, 'jackpot')} alt="Jackpot" onError={hideBrokenImage} /><span><small>JACKPOTS</small><strong>194,428,645</strong><em>Epic of the day</em></span></section>
 
-      <section className="v47-mobile-panel"><SectionTitle icon={leaderboard?.url || REFERENCE_HOME_ASSETS.leaderboard} title="Leaderboard" action="ดูทั้งหมด" /><div className="v47-mobile-board-head"><span>อันดับ</span><span>ชื่อผู้เล่น</span><span>รางวัล</span></div>{Array.from({ length: 5 }, (_, index) => <div className="v47-mobile-board-row" key={index}><span className="v47-mobile-board-badge"><img src={index < 3 ? V47_ASSETS.rankTop3 : V47_ASSETS.rankOther} alt="" onError={hideBrokenImage} /><b>{index + 1}</b></span><span>0{980000018 - index * 8241}</span><em>{[15000, 5700, 3500, 2904, 2100][index]?.toLocaleString()}</em></div>)}</section>
+      <section className="v47-mobile-panel"><SectionTitle icon={leaderboard?.url || V47_ASSETS.leaderboard} title="Leaderboard" action="ดูทั้งหมด" /><div className="v47-mobile-board-head"><span>อันดับ</span><span>ชื่อผู้เล่น</span><span>รางวัล</span></div>{Array.from({ length: 5 }, (_, index) => <div className="v47-mobile-board-row" key={index}><span className="v47-mobile-board-badge">{index < 3 ? <img src={MOBILE_RANK_ART[index]!} alt={`อันดับ ${index + 1}`} onError={hideBrokenImage} /> : <img src={V47_ASSETS.rankOther} alt="" onError={hideBrokenImage} />}<b>{index + 1}</b></span><span>0{980000018 - index * 8241}</span><em>{[15000, 5700, 3500, 2904, 2100][index]?.toLocaleString()}</em></div>)}</section>
 
       <section className="v47-mobile-panel v47-mobile-mini-games"><SectionTitle icon={V47_ASSETS.miniGameWheel} title="Mini Game" /><div><a href="/login"><img src={miniWheel?.url || V47_ASSETS.miniGameWheel} alt="วงล้อ" onError={hideBrokenImage} /><span><strong>วงล้อ</strong><small>ลุ้นรางวัลทุกวัน</small></span></a><a href="/login"><img src={miniCard?.url || V47_ASSETS.miniGameMission} alt="ทายการ์ด" onError={hideBrokenImage} /><span><strong>ทายการ์ด</strong><small>เล่นง่าย รับรางวัล</small></span></a></div></section>
 
-      <GameSection title="Top 10 Popular Games" icon={V47_ASSETS.mobilePopular} games={popular} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(0, 6)} />
-      <GameSection title="Most Online Now" icon={V47_ASSETS.mobilePopular} games={online} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(6, 12)} />
+      <GameSection title="Top 10 Popular Games" icon={V47_ASSETS.gameHit} games={popular} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(0, 6)} />
+      <GameSection title="Most Online Now" icon={V47_ASSETS.mostOnline} games={online} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(6, 12)} />
 
-      <section className="v47-mobile-panel v47-mobile-live"><SectionTitle icon={V47_ASSETS.live} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/login">ดูถ่ายทอดสด</a><a href="/login">เดิมพันทันที</a></footer></article></section>
+      <section className="v47-mobile-panel v47-mobile-live"><SectionTitle icon={V47_ASSETS.liveIcon} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/login">ดูถ่ายทอดสด</a><a href="/login">เดิมพันทันที</a></footer></article></section>
 
-      <GameSection title="Classic Games" icon={V47_ASSETS.mobilePopular} games={classic} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(12, 18)} />
+      <GameSection title="Classic Games" icon={V47_ASSETS.star} games={classic} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(12, 18)} />
 
-      <section className="v47-mobile-panel v47-mobile-guide"><SectionTitle icon={V47_ASSETS.mobileFaq} title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="v47-mobile-guide-more" href="/guide">ดูทั้งหมด</a></section>
+      <section className="v47-mobile-panel v47-mobile-guide"><SectionTitle icon={V47_ASSETS.dailyMission} title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="v47-mobile-guide-more" href="/guide">ดูทั้งหมด</a></section>
 
       <section className="v47-mobile-panel v47-mobile-partners"><SectionTitle icon={partner?.url || icons.affiliate} title="พันธมิตรของเรา" /><div data-drag-scroll="true">{providers.length ? providers.map((provider, index) => <span key={`${provider.code}-${index}`}>{provider.logoUrl ? <img src={normalizeUrl(provider.logoUrl)} alt={provider.name || provider.code || 'Provider'} onError={hideBrokenImage} /> : <b>{provider.code || provider.name}</b>}</span>) : REFERENCE_PROVIDERS.map((provider) => <span key={provider.name}><img src={provider.url} alt={provider.name} loading="lazy" onError={hideBrokenImage} /></span>)}</div></section>
     </section>
@@ -109,8 +110,8 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
 
 function QuickCard({ icon, title, href }: { icon: string; title: string; href: string }) { return <a href={href}><Icon value={icon} /><strong>{title}</strong></a>; }
 function SectionTitle({ icon, title, action }: { icon: string; title: string; action?: string }) { return <header className="v47-mobile-section-title"><span><Icon value={icon} /><strong>{title}</strong></span>{action ? <a href="/games">{action}</a> : null}</header>; }
-function GameSection({ title, icon, games, loading, message, fallbackGames }: { title: string; icon: string; games: Game[]; loading: boolean; message: string; fallbackGames: ReferenceAsset[] }) { return <section className="v47-mobile-panel"><SectionTitle icon={icon} title={title} action="ดูทั้งหมด" />{loading ? <div className="v47-mobile-empty">กำลังโหลดเกม...</div> : games.length ? <div className="v47-mobile-game-grid">{games.map((game, index) => <a href="/login?next=%2Fgames" key={`${game.id}-${index}`} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><GameImage game={game} /><span>{game.isNew ? 'NEW' : 'HOT'}</span></div><span className="v47-mobile-game-meta"><b>{safeName(game)}</b><small>{game.provider?.name || game.provider?.code || 'Provider'}</small></span></a>)}</div> : <ReferenceGameGrid games={fallbackGames} message={message} />}</section>; }
-function ReferenceGameGrid({ games, message }: { games: ReferenceAsset[]; message: string }) { return <div className="v47-mobile-game-grid" aria-label={message || 'เกมจากชุด asset'}>{games.map((game, index) => <a href="/login?next=%2Fgames" key={game.name} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><img src={game.url} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span>HOT</span></div><span className="v47-mobile-game-meta"><b>{game.name}</b><small>NOAH345</small></span></a>)}</div>; }
+function GameSection({ title, icon, games, loading, message, fallbackGames }: { title: string; icon: string; games: Game[]; loading: boolean; message: string; fallbackGames: ReferenceAsset[] }) { return <section className="v47-mobile-panel"><SectionTitle icon={icon} title={title} action="ดูทั้งหมด" />{loading ? <div className="v47-mobile-empty">กำลังโหลดเกม...</div> : games.length ? <div className="v47-mobile-game-grid" data-drag-scroll="true">{games.map((game, index) => <a href="/login?next=%2Fgames" key={`${game.id}-${index}`} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><GameImage game={game} /><span>{game.isNew ? 'NEW' : 'HOT'}</span></div><span className="v47-mobile-game-meta"><b>{safeName(game)}</b><small>{game.provider?.name || game.provider?.code || 'Provider'}</small></span></a>)}</div> : <ReferenceGameGrid games={fallbackGames} message={message} />}</section>; }
+function ReferenceGameGrid({ games, message }: { games: ReferenceAsset[]; message: string }) { return <div className="v47-mobile-game-grid" data-drag-scroll="true" aria-label={message || 'เกมจากชุด asset'}>{games.map((game, index) => <a href="/login?next=%2Fgames" key={game.name} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><img src={game.url} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span>HOT</span></div><span className="v47-mobile-game-meta"><b>{game.name}</b><small>NOAH345</small></span></a>)}</div>; }
 function Icon({ value }: { value: string }) { return isImageValue(value) ? <img src={normalizeUrl(value)} alt="" onError={hideBrokenImage} /> : <span>{value}</span>; }
 function GameImage({ game }: { game: Game }) { const src = resolveGameImage(game); return src ? <img src={src} alt={safeName(game)} loading="lazy" onError={hideBrokenImage} /> : <span className="v47-mobile-game-fallback">{safeName(game).slice(0, 1)}</span>; }
 function resolveCmsAssetById(content: CmsContent, assetId?: string) { return assetId ? content.assets?.find((asset) => asset.enabled && asset.id === assetId)?.url || '' : ''; }
