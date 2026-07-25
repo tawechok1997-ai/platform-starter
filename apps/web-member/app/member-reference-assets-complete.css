@@ -1,0 +1,146 @@
+/* Final pass for the complete icon sprite supplied with the reference archive. */
+
+.reference-promo-icon,
+.v47-mobile-quick-grid > a::before,
+.reference-jackpot .reference-side-icon,
+.reference-mini-games > header::before,
+.reference-rank-card small::before,
+.reference-tournament-title::before {
+  background-image: url('/clone-assets/reference-icon-sprite.webp') !important;
+  background-repeat: no-repeat !important;
+  background-size: 500% 400% !important;
+}
+
+.reference-promo-icon {
+  width: 64px !important;
+  height: 64px !important;
+  flex: 0 0 64px !important;
+}
+.reference-promo-icon > img { display: none !important; }
+.reference-promo-card--1 .reference-promo-icon { background-position: 50% 100% !important; }
+.reference-promo-card--2 .reference-promo-icon { background-position: 75% 100% !important; }
+.reference-promo-card--3 .reference-promo-icon { background-position: 100% 100% !important; }
+
+.v47-mobile-quick-grid > a > img,
+.v47-mobile-quick-grid > a > span:first-child { display: none !important; }
+.v47-mobile-quick-grid > a::before {
+  content: '';
+  display: block;
+  width: 58px;
+  height: 58px;
+  margin-inline: auto;
+}
+.v47-mobile-quick-grid > a:nth-child(1)::before { background-position: 50% 100% !important; }
+.v47-mobile-quick-grid > a:nth-child(2)::before { background-position: 75% 100% !important; }
+.v47-mobile-quick-grid > a:nth-child(3)::before { background-position: 100% 100% !important; }
+
+.reference-jackpot .reference-side-icon {
+  width: 29px !important;
+  height: 29px !important;
+  background-position: 50% 66.666% !important;
+}
+.reference-jackpot .reference-side-icon > img { display: none !important; }
+
+.reference-tournament-title::before {
+  content: '';
+  display: inline-block;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 31px;
+  background-position: 75% 66.666% !important;
+}
+
+.reference-rank-card small {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+.reference-rank-card small::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  background-position: 100% 66.666% !important;
+}
+
+.reference-mini-games > header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.reference-mini-games > header::before {
+  content: '';
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  background-position: 0 100% !important;
+}
+
+.reference-rank-medal {
+  display: grid !important;
+  place-items: center !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
+  color: #fff !important;
+}
+.reference-rank-medal img {
+  display: block !important;
+  width: 34px !important;
+  height: 34px !important;
+  object-fit: contain !important;
+}
+.reference-leaderboard .reference-rank-medal {
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+}
+.reference-leaderboard .reference-rank-medal img {
+  width: 38px !important;
+  height: 38px !important;
+}
+
+.v47-mobile-mini-games + .v47-mobile-panel .v47-mobile-section-title img[src*="reference-icon-sprite"] {
+  background-position: 0 66.666% !important;
+}
+.v47-mobile-mini-games + .v47-mobile-panel + .v47-mobile-panel .v47-mobile-section-title img[src*="reference-icon-sprite"] {
+  background-position: 25% 66.666% !important;
+}
+.v47-mobile-live + .v47-mobile-panel .v47-mobile-section-title img[src*="reference-icon-sprite"] {
+  background-position: 100% 66.666% !important;
+}
+
+.v47-mobile-partners > div {
+  display: flex !important;
+  gap: 10px !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  scroll-snap-type: x proximity !important;
+}
+.v47-mobile-partners > div::-webkit-scrollbar { display: none !important; }
+.v47-mobile-partners > div > span {
+  flex: 0 0 86px !important;
+  min-width: 86px !important;
+  height: 58px !important;
+  scroll-snap-align: start !important;
+}
+.v47-mobile-partners > div > span img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+.member-footer__trust-section {
+  grid-column: span 2;
+}
+
+@media (max-width: 900px) {
+  .reference-promo-icon { width: 58px !important; height: 58px !important; flex-basis: 58px !important; }
+  .member-footer__trust-section { grid-column: auto; }
+}
