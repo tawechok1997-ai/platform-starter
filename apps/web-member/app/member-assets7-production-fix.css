@@ -1,0 +1,411 @@
+/* Production correction from assets(7).rar and the supplied desktop reference.
+   This file must remain the final imported home stylesheet. */
+
+:root {
+  --a7-bg: #100c15;
+  --a7-top: #272136;
+  --a7-nav: #15111e;
+  --a7-panel: #18131f;
+  --a7-panel-soft: #211929;
+  --a7-card: #2a2232;
+  --a7-line: #42224f;
+  --a7-line-hot: #8d2abe;
+  --a7-head-a: #5e2475;
+  --a7-head-b: #2e1c38;
+  --a7-copy: #fff;
+  --a7-muted: #cbbad2;
+}
+
+body:has(.desktop-reference-home),
+body:has(.v47-mobile-home) {
+  overflow-x: clip !important;
+  background: var(--a7-bg) !important;
+}
+
+/* Use the stable local logo even when a stale Site Settings URL or resolver fails. */
+.public-home-topbar .member-brand-logo {
+  content: url('/reference-v6/logo.webp') !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  opacity: 1 !important;
+}
+
+/* Exact named artwork. Old atlas rules must not replace these files. */
+.reference-tournament-board .reference-heading-icon > img {
+  content: url('/home-asset/tournament.svg') !important;
+}
+
+.reference-featured-section .reference-heading-icon > img {
+  content: url('/home-asset/star.webp') !important;
+}
+
+.reference-number-section .reference-heading-icon > img {
+  content: url('/home-asset/icongamehit.webp') !important;
+}
+
+.reference-compact-section:has(.reference-online-row) .reference-heading-icon > img {
+  content: url('/home-asset/mostonline1.webp') !important;
+}
+
+.reference-compact-section:has(.reference-live-row) .reference-heading-icon > img {
+  content: url('/home-asset/icon-live.png') !important;
+}
+
+.reference-compact-section:has(.reference-classic-row) .reference-heading-icon > img {
+  content: url('/home-asset/icongamehit.webp') !important;
+}
+
+.reference-guide .reference-heading-icon > img {
+  content: url('/home-asset/mini-game.webp') !important;
+}
+
+.reference-leaderboard .reference-side-icon > img {
+  content: url('/home-asset/leader-board.svg') !important;
+}
+
+.reference-mini-games a:first-child .reference-mini-icon > img {
+  content: url('/home-asset/icon-luckywheel-dt.webp') !important;
+}
+
+.reference-mini-games a:last-child .reference-mini-icon > img {
+  content: url('/home-asset/icon-dailymission-dt.webp') !important;
+}
+
+.reference-heading-icon,
+.reference-heading-icon > img,
+.reference-side-icon,
+.reference-side-icon > img {
+  display: block !important;
+  width: 24px !important;
+  height: 24px !important;
+  flex: 0 0 24px !important;
+  background: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.reference-mini-icon,
+.reference-mini-icon > img {
+  display: block !important;
+  width: 68px !important;
+  height: 68px !important;
+  background: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Shared NOAH345 surface colors. */
+.reference-panel,
+.reference-number-section,
+.reference-compact-section,
+.reference-guide,
+.reference-side-card {
+  border: 1px solid #2d1d38 !important;
+  border-radius: 10px !important;
+  background: var(--a7-panel) !important;
+  box-shadow: none !important;
+}
+
+.reference-panel-heading,
+.reference-side-card > header,
+.v47-mobile-section-title {
+  color: var(--a7-copy) !important;
+  border-bottom: 1px solid var(--a7-line) !important;
+  background: linear-gradient(90deg, var(--a7-head-a) 0%, var(--a7-head-b) 68%, #1d1525 100%) !important;
+}
+
+.reference-rank-card,
+.reference-tournament-title,
+.reference-leaderboard > div,
+.reference-mini-games a,
+.v47-mobile-board-row,
+.v47-mobile-ranks article {
+  border-color: #44314d !important;
+  background: var(--a7-card) !important;
+}
+
+.reference-promo-card {
+  border: 1px solid var(--a7-line-hot) !important;
+  background: linear-gradient(100deg, #7800a8 0%, #570079 48%, #36004f 100%) !important;
+  box-shadow: inset 0 1px rgb(255 255 255 / 10%) !important;
+}
+
+.reference-promo-card--2 {
+  background: linear-gradient(100deg, #7200a2 0%, #50006f 50%, #310049 100%) !important;
+}
+
+.reference-promo-card--3 {
+  background: linear-gradient(100deg, #690094 0%, #470063 50%, #2c0043 100%) !important;
+}
+
+.reference-promo-card strong,
+.reference-panel-heading strong,
+.reference-side-card strong {
+  color: #fff !important;
+}
+
+.reference-promo-card small,
+.reference-game-tile small,
+.reference-online-card small {
+  color: var(--a7-muted) !important;
+}
+
+/* Tournament uses the supplied full-width artwork and keeps text as a safe fallback. */
+.reference-tournament-cta {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  border: 1px solid #21536b !important;
+  border-radius: 10px !important;
+  background: #07526b url('/reference-v6/tournament.webp') center / cover no-repeat !important;
+}
+
+.reference-tournament-cta::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  background: linear-gradient(90deg, rgb(0 26 42 / 12%), rgb(0 26 42 / 4%), rgb(0 26 42 / 30%)) !important;
+}
+
+.reference-tournament-cta > * {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.reference-tournament-mark {
+  display: none !important;
+}
+
+.reference-tournament-cta > span,
+.reference-tournament-cta > b {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+@media (min-width: 1200px) {
+  .desktop-reference-home.desktop-home {
+    display: grid !important;
+    grid-template-columns: minmax(0, 3.0857fr) minmax(270px, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    column-gap: clamp(10px, 1vw, 15px) !important;
+    row-gap: clamp(14px, 1.4vw, 20px) !important;
+    width: min(1455px, calc(100% - 28px)) !important;
+    max-width: 1455px !important;
+    margin: 14px auto 36px !important;
+    padding: 0 !important;
+    align-items: start !important;
+  }
+
+  .desktop-reference-home > .reference-hero-carousel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    aspect-ratio: 1080 / 288.46 !important;
+    height: auto !important;
+    margin: 0 !important;
+  }
+
+  .desktop-reference-home > .desktop-home__body {
+    display: contents !important;
+  }
+
+  .desktop-reference-home .reference-main-column {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    position: static !important;
+    z-index: auto !important;
+    display: grid !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: clamp(14px, 1.4vw, 20px) !important;
+  }
+
+  .desktop-reference-home .reference-sidebar {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    display: grid !important;
+    grid-auto-flow: row !important;
+    grid-auto-rows: max-content !important;
+    align-content: start !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    gap: 14px !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .reference-sidebar::before {
+    content: '' !important;
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 350 / 288.46 !important;
+    border: 1px solid #522463 !important;
+    border-radius: 10px !important;
+    background: #17121f url('/home-asset/promo-side.jpg') center / cover no-repeat !important;
+  }
+
+  .desktop-reference-home .reference-side-card {
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .reference-promo-row {
+    position: static !important;
+    z-index: auto !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: clamp(10px, 1.35vw, 20px) !important;
+    overflow: visible !important;
+  }
+
+  .reference-promo-card {
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+}
+
+/* Laptop: preserve all content without forcing the desktop rail into the main column. */
+@media (min-width: 901px) and (max-width: 1199px) {
+  .desktop-reference-home.desktop-home {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto !important;
+    width: min(100%, calc(100% - 24px)) !important;
+    max-width: 1080px !important;
+    margin: 12px auto 32px !important;
+    gap: 14px !important;
+  }
+
+  .desktop-reference-home > .reference-hero-carousel,
+  .desktop-reference-home .reference-main-column,
+  .desktop-reference-home .reference-sidebar {
+    grid-column: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .desktop-reference-home > .reference-hero-carousel {
+    grid-row: 1 !important;
+    aspect-ratio: 1080 / 288.46 !important;
+  }
+
+  .desktop-reference-home > .desktop-home__body {
+    display: contents !important;
+  }
+
+  .desktop-reference-home .reference-main-column {
+    grid-row: 2 !important;
+    display: grid !important;
+    gap: 14px !important;
+  }
+
+  .desktop-reference-home .reference-sidebar {
+    grid-row: 3 !important;
+    position: static !important;
+    inset: auto !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .reference-sidebar::before {
+    display: none !important;
+  }
+
+  .reference-promo-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .reference-promo-card {
+    min-width: 0 !important;
+    grid-template-columns: minmax(76px, 34%) minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .desktop-reference-home {
+    display: none !important;
+  }
+
+  .member-home-mobile,
+  .member-home-mobile.member-source-home,
+  .v47-mobile-home {
+    display: block !important;
+    width: min(100%, 640px) !important;
+    max-width: 640px !important;
+    margin-inline: auto !important;
+  }
+
+  .v47-mobile-section-title > span > img,
+  .v47-mobile-announcement > img,
+  .v47-mobile-mini-games a > img {
+    display: block !important;
+    background: none !important;
+    object-position: center !important;
+    object-fit: contain !important;
+    opacity: 1 !important;
+  }
+
+  .v47-mobile-rank-panel .v47-mobile-section-title img {
+    content: url('/home-asset/tournament.svg') !important;
+  }
+
+  .v47-mobile-live .v47-mobile-section-title img {
+    content: url('/home-asset/icon-live.png') !important;
+  }
+
+  .v47-mobile-guide .v47-mobile-section-title img {
+    content: url('/home-asset/mini-game.webp') !important;
+  }
+
+  .v47-mobile-quick-grid > a {
+    border: 1px solid var(--a7-line-hot) !important;
+    background: linear-gradient(135deg, #7600a6, #36004f) !important;
+  }
+
+  .v47-mobile-panel,
+  .v47-mobile-jackpot {
+    border-color: #2d1d38 !important;
+    background: var(--a7-panel) !important;
+  }
+
+  .member-reference-footer__top {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .member-reference-footer__top {
+    grid-template-columns: 1fr !important;
+  }
+}
