@@ -13,6 +13,7 @@ const ALLOWED = new Set([
   'activity.png',
   'news.png',
   'mission.png',
+  'mission.webp',
   'fish.png',
   'slot.png',
   'casino.png',
@@ -28,6 +29,14 @@ const ALLOWED = new Set([
   'tournament.webp',
   'icon-dailymission.webp',
   'icon-luckywheel.webp',
+  'icon-open-gold.webp',
+  'icongamehit.webp',
+  'mostonline1.webp',
+  'coin.webp',
+  'star.webp',
+  'rank1.webp',
+  'rank2.webp',
+  'rank3.webp',
   ...GAME_ASSET_NAMES,
 ]);
 
@@ -42,6 +51,7 @@ const SOURCE_NAMES: Record<string, string[]> = {
   'activity.png': ['กิจกรรม.png', 'shortcut-event.png', 'activity.png'],
   'news.png': ['ข่าวสาร.png', 'shortcut-news.png', 'news.png'],
   'mission.png': ['กิจกรรม.png', 'mission.webp', 'mission.png'],
+  'mission.webp': ['mission.webp', 'mission.png', 'กิจกรรม.png'],
   'casino.png': ['คาสิโน.png', 'icon-casino.png', 'casino.png'],
   'slot.png': ['สล็อต.png', 'icon-slot.png', 'slot.png'],
   'fish.png': ['ตกปลา.png', 'icon-fish.png', 'fish.png'],
@@ -56,6 +66,14 @@ const SOURCE_NAMES: Record<string, string[]> = {
   'tournament.webp': ['tournament.webp', 'tournament.png'],
   'icon-dailymission.webp': ['icon-dailymission.webp', 'icon-dailymission-dt.webp'],
   'icon-luckywheel.webp': ['icon-luckywheel.webp', 'icon-luckywheel-dt.webp'],
+  'icon-open-gold.webp': ['icon-open-gold.webp'],
+  'icongamehit.webp': ['icongamehit.webp'],
+  'mostonline1.webp': ['mostonline1.webp'],
+  'coin.webp': ['coin.webp'],
+  'star.webp': ['star.webp'],
+  'rank1.webp': ['rank1.webp'],
+  'rank2.webp': ['rank2.webp'],
+  'rank3.webp': ['rank3.webp'],
 };
 
 const cache = new Map<string, string | null>();
