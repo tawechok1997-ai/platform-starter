@@ -86,10 +86,10 @@ import { SiteSettingsProvider } from './site-settings-provider';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Platform Starter',
-    template: '%s | Platform Starter',
+    default: 'NOAH345',
+    template: '%s | NOAH345',
   },
-  description: 'แพลตฟอร์มสมาชิก',
+  description: 'เว็บพนันออนไลน์ที่ดีที่สุด พร้อมบริการลูกค้าตลอด 24 ชั่วโมง และมีเกมให้เลือกเล่นมากมาย',
 };
 
 export const viewport: Viewport = {
