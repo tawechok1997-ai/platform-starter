@@ -3,6 +3,7 @@
 import type { SyntheticEvent } from 'react';
 import type { CmsAsset, CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
+import { useMemberSession } from '../../member-session-provider';
 import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from '../reference-asset-catalog';
 import { DesktopHeroCarousel } from './desktop-hero-carousel';
 import { V47_ASSETS } from './v47-asset-map';
@@ -12,11 +13,14 @@ type DesktopHomeProps = { content: CmsContent; icons: SiteIconSettings; siteName
 type PromoCard = { title: string; subtitle: string; href: string; aliases: string[]; fallback: string; assetUrl: string; backgroundUrl: string };
 type ArchiveGame = { name: string; imageUrl: string };
 type ProviderLogo = { key: string; name: string; url: string };
+type GuideFaq = { question: string; answer: string };
+
+const ANNOUNCEMENT_TEXT = 'ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง';
 
 const PROMO_CARDS: PromoCard[] = [
-  { title: 'โปรโมชั่นพิเศษ', subtitle: 'โปรโมชั่นพิเศษเฉพาะคุณ', href: '/promotions', aliases: ['promotion', 'promo', 'bonus', 'reward', 'โปรโมชั่น'], fallback: '✦', assetUrl: V47_ASSETS.quickPromotion, backgroundUrl: V47_ASSETS.promoBackgroundPromotion },
-  { title: 'กิจกรรม', subtitle: 'กิจกรรมตลอด 24 ชั่วโมง', href: '/promotions', aliases: ['activity', 'event', 'mission', 'กิจกรรม'], fallback: '♤', assetUrl: V47_ASSETS.quickActivity, backgroundUrl: V47_ASSETS.promoBackgroundActivity },
-  { title: 'ข่าวสาร', subtitle: 'ข่าวสารที่คุณไม่ควรพลาด', href: '/notifications', aliases: ['news', 'announcement', 'notice', 'ข่าว'], fallback: '◇', assetUrl: V47_ASSETS.quickNews, backgroundUrl: V47_ASSETS.promoBackgroundNews },
+  { title: 'โปรโมชั่นพิเศษ', subtitle: 'โปรโมชั่นพิเศษเฉพาะคุณ', href: '/promotions', aliases: ['promotion', 'promo', 'bonus', 'reward', 'โปรโมชั่น'], fallback: '✦', assetUrl: '/clone-assets/shortcut-promo.webp', backgroundUrl: V47_ASSETS.promoBackgroundPromotion },
+  { title: 'กิจกรรม', subtitle: 'กิจกรรมตลอด 24 ชั่วโมง', href: '/promotions', aliases: ['activity', 'event', 'mission', 'กิจกรรม'], fallback: '♤', assetUrl: '/clone-assets/shortcut-event.webp', backgroundUrl: V47_ASSETS.promoBackgroundActivity },
+  { title: 'ข่าวสาร', subtitle: 'ข่าวสารที่คุณไม่ควรพลาด', href: '/notifications', aliases: ['news', 'announcement', 'notice', 'ข่าว'], fallback: '◇', assetUrl: '/clone-assets/shortcut-news.webp', backgroundUrl: V47_ASSETS.promoBackgroundNews },
 ];
 
 const ARCHIVE_GAMES: ArchiveGame[] = REFERENCE_GAMES.map(({ name, url }) => ({ name, imageUrl: url }));
@@ -30,7 +34,9 @@ const MATCH_CARDS = [
 ];
 
 export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, games, isGamesLoading, gamesMessage }: DesktopHomeProps) {
-  const faqs = Array.isArray(content?.faqs) ? content.faqs.filter((faq) => faq?.enabled).slice(0, 5) : [];
+  const { ready, isLoggedIn } = useMemberSession();
+  const configuredFaqs = Array.isArray(content?.faqs) ? content.faqs.filter((faq) => faq?.enabled).slice(0, 5) : [];
+  const guideFaqs = completeFaqs(configuredFaqs);
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
   const featured = fillGames(games.featured, allGames, 9);
   const popular = fillGames(games.popular, allGames, 10);
@@ -38,6 +44,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
   const classic = fillGames(allGames.slice(8), allGames, 10);
   const providers = uniqueProviders(allGames).slice(0, 12);
   const providerLogos = buildProviderLogos(providers);
+  const showGuestActions = !ready || !isLoggedIn;
 
   const assets = {
     tournament: findCmsAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']),
@@ -52,13 +59,25 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
 
   return (
     <section className="desktop-home desktop-reference-home" aria-label="หน้าแรกเดสก์ท็อป">
+      {showGuestActions ? (
+        <nav className="reference-auth-actions" aria-label="บัญชีสมาชิก">
+          <a className="reference-auth-action reference-auth-action--login" href="/login">เข้าสู่ระบบ</a>
+          <a className="reference-auth-action reference-auth-action--register" href="/register">สมัครสมาชิก</a>
+        </nav>
+      ) : null}
+
       <DesktopHeroCarousel content={content} siteName={siteName} showPromotion={showPromotion} />
 
       <div className="desktop-home__body">
         <main className="desktop-home__main reference-main-column">
           <div className="reference-announcement">
             <img src={V47_ASSETS.announcement} alt="" aria-hidden="true" onError={hideBrokenImage} />
-            <span>ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง</span>
+            <div className="reference-announcement-viewport">
+              <div className="reference-announcement-track">
+                <span>{ANNOUNCEMENT_TEXT}</span>
+                <span aria-hidden="true">{ANNOUNCEMENT_TEXT}</span>
+              </div>
+            </div>
           </div>
 
           <section className="reference-promo-row" aria-label="โปรโมชั่น กิจกรรม และข่าวสาร">
@@ -102,7 +121,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
 
           <section className="reference-compact-section" data-section-kind="classic"><PanelHeading asset={assets.classic} configured={V47_ASSETS.gameHit} fallback="💧" title="Classic Games" /><div className="reference-classic-row" data-drag-scroll="true">{classic.length ? classic.map((game) => <GameTile key={game.id} game={game} compact />) : ARCHIVE_GAMES.slice(10, 20).map((game) => <ArchiveGameTile key={game.name} game={game} compact />)}</div></section>
 
-          <section className="reference-guide" id="guide" data-section-kind="guide"><PanelHeading asset={assets.guide} configured={V47_ASSETS.openGold} fallback="?" title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="reference-guide-more" href="/guide">ดูทั้งหมด</a></section>
+          <section className="reference-guide" id="guide" data-section-kind="guide"><PanelHeading asset={assets.guide} configured={V47_ASSETS.openGold} fallback="?" title="Guide" />{guideFaqs.map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="reference-guide-more" href="/guide">ดูทั้งหมด</a></section>
 
           <section className="reference-provider-strip">
             <h2><AssetIcon asset={assets.partner} configured={icons.affiliate} fallback="" className="reference-heading-icon" />พันธมิตรของเรา</h2>
@@ -141,11 +160,37 @@ function isImageValue(value: string) { return /^https?:\/\//i.test(value) || val
 function uniqueGames(...groups: Game[][]) { const map = new Map<string, Game>(); groups.flat().forEach((game) => { const key = game?.id || `${game?.providerGameCode || ''}:${game?.name || ''}`; if (key && !map.has(key)) map.set(key, game); }); return Array.from(map.values()); }
 function fillGames(primary: Game[], fallback: Game[], count: number) { return uniqueGames(Array.isArray(primary) ? primary : [], fallback).slice(0, count); }
 function uniqueProviders(games: Game[]) { const map = new Map<string, NonNullable<Game['provider']>>(); games.forEach((game) => { const provider = game?.provider; const key = provider?.code || provider?.name; if (key && provider && !map.has(key)) map.set(key, provider); }); return Array.from(map.values()); }
-function buildProviderLogos(providers: ReturnType<typeof uniqueProviders>): ProviderLogo[] { if (providers.length) return providers.map((provider, index) => { const fallback = REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!; return { key: `${provider.code || provider.name || index}`, name: provider.name || provider.code || fallback.name, url: provider.logoUrl ? normalizeUrl(provider.logoUrl) : fallback.url }; }); return REFERENCE_PROVIDERS.map((provider, index) => ({ key: `${provider.name}-${index}`, name: provider.name, url: provider.url })); }
+function buildProviderLogos(providers: ReturnType<typeof uniqueProviders>): ProviderLogo[] {
+  const dynamic = providers.map((provider, index) => {
+    const fallback = REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!;
+    return { key: `dynamic-${provider.code || provider.name || index}`, name: provider.name || provider.code || fallback.name, url: provider.logoUrl ? normalizeUrl(provider.logoUrl) : fallback.url };
+  });
+  const fallback = REFERENCE_PROVIDERS.map((provider, index) => ({ key: `reference-${provider.name}-${index}`, name: provider.name, url: provider.url }));
+  const result: ProviderLogo[] = [];
+  const seen = new Set<string>();
+  [...dynamic, ...fallback].forEach((provider) => {
+    const signature = `${provider.name.toLowerCase()}|${provider.url}`;
+    if (seen.has(signature)) return;
+    seen.add(signature);
+    result.push(provider);
+  });
+  return result.slice(0, 18);
+}
+function completeFaqs(configured: GuideFaq[]): GuideFaq[] {
+  const result: GuideFaq[] = [];
+  const seen = new Set<string>();
+  [...configured, ...fallbackFaqs()].forEach((faq) => {
+    const key = faq.question.trim().toLowerCase();
+    if (!key || seen.has(key) || result.length >= 5) return;
+    seen.add(key);
+    result.push({ question: faq.question, answer: faq.answer });
+  });
+  return result;
+}
 function resolveGameImage(game: Game) { const direct = game?.imageUrl || game?.iconUrl; if (direct) return normalizeUrl(direct); const media = Array.isArray(game?.media) ? game.media : []; const candidate = media.find((item) => item?.cachedUrl)?.cachedUrl || media.find((item) => item?.sourceUrl)?.sourceUrl || ''; return candidate ? normalizeUrl(candidate) : ''; }
 function normalizeUrl(value: string) { if (/^https?:\/\//i.test(value) || value.startsWith('/')) return value; return `/${value.replace(/^\.\//, '')}`; }
 function safeGameName(game: Game) { return typeof game?.name === 'string' && game.name.trim() ? game.name : 'Game'; }
-function fallbackFaqs() { return [{ question: 'ฝากเงินแบบ โอนผ่านธนาคาร', answer: 'เลือกธนาคารที่ต้องการและทำตามขั้นตอนบนหน้าฝากเงิน' }, { question: 'ฝากเงินแบบ โอนผ่าน QR Payment', answer: 'สแกน QR และตรวจสอบยอดเงินก่อนยืนยันรายการ' }, { question: 'ฝากเงินแบบ ฝากจุดทศนิยม', answer: 'กรอกยอดที่มีจุดทศนิยมตามที่ระบบแจ้งเพื่อจับคู่รายการ' }, { question: 'วิธีการฝากแบบ TrueWallet', answer: 'กรอกข้อมูลให้ครบและรอระบบตรวจสอบรายการ' }, { question: 'ยอดไม่เข้าทันที ทำยังไงดี?', answer: 'ติดต่อฝ่ายบริการพร้อมหลักฐานการทำรายการ' }]; }
+function fallbackFaqs(): GuideFaq[] { return [{ question: 'ฝากเงินแบบ โอนผ่านธนาคาร', answer: 'เลือกธนาคารที่ต้องการและทำตามขั้นตอนบนหน้าฝากเงิน' }, { question: 'ฝากเงินแบบ โอนผ่าน QR Payment', answer: 'สแกน QR และตรวจสอบยอดเงินก่อนยืนยันรายการ' }, { question: 'ฝากเงินแบบ ฝากจุดทศนิยม', answer: 'กรอกยอดที่มีจุดทศนิยมตามที่ระบบแจ้งเพื่อจับคู่รายการ' }, { question: 'วิธีการฝากแบบ TrueWallet', answer: 'กรอกข้อมูลให้ครบและรอระบบตรวจสอบรายการ' }, { question: 'ยอดไม่เข้าทันที ทำยังไงดี?', answer: 'ติดต่อฝ่ายบริการพร้อมหลักฐานการทำรายการ' }]; }
 function maskName(index: number) { return ['ZAXXXU709740', 'ZAXXXM664100', 'ZAXXXR440174', 'ZAXXXM154', 'ZAXXXS413', 'ZAXXXXB25', 'ZAXXXJ11', 'ZAXXXP90'][index] || `PLAYER${index + 1}`; }
 function leaderName(index: number) { return ['GameJackpot', 'Treasure Mouse', 'BIG & BIG', 'Lucky', 'Player Win'][index] || `Player ${index + 1}`; }
 function swapBrokenImage(event: SyntheticEvent<HTMLImageElement>, fallback: string) { if (!fallback || event.currentTarget.dataset.fallbackApplied === 'true') { hideBrokenImage(event); return; } event.currentTarget.dataset.fallbackApplied = 'true'; event.currentTarget.src = fallback; }
