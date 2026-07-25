@@ -41,6 +41,18 @@ type PublicSettings = {
   features?: Record<string, unknown>;
 };
 
+type AdminRouteLayout = {
+  route: string;
+  clientWidth: number;
+  scrollWidth: number;
+  contentWidth: number;
+  pageWidth: number;
+  sidebarWidth: number;
+  cardCount: number;
+  cardsOutsideViewport: Array<{ className: string; left: number; right: number; width: number }>;
+  missingImages: Array<{ src: string; alt: string }>;
+};
+
 const featureRoutes = [
   ['game_lobby_enabled', '/games'],
   ['withdraw_enabled', '/withdraw'],
@@ -166,6 +178,47 @@ async function assertRuntimeHealth(page: Page, audit: RuntimeAudit, surfaceLabel
   expect(criticalFailures, `${surfaceLabel} must not have critical request failures`).toEqual([]);
   expect(criticalResponses, `${surfaceLabel} must not have critical HTTP errors`).toEqual([]);
   return metrics;
+}
+
+async function readAdminRouteLayout(page: Page): Promise<AdminRouteLayout> {
+  return page.evaluate(() => {
+    const viewportWidth = document.documentElement.clientWidth;
+    const content = document.querySelector<HTMLElement>('.admin-content-shell');
+    const pageElement = document.querySelector<HTMLElement>('.admin-ui-page');
+    const sidebar = document.querySelector<HTMLElement>('#admin-sidebar');
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('.admin-ui-card, .admin-ui-metric, .admin-command-status, .admin-priority-lane'))
+      .filter((element) => {
+        const style = getComputedStyle(element);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+      });
+    const cardsOutsideViewport = cards.flatMap((element) => {
+      const rect = element.getBoundingClientRect();
+      if (rect.left >= -2 && rect.right <= viewportWidth + 2) return [];
+      return [{
+        className: element.className,
+        left: Math.round(rect.left),
+        right: Math.round(rect.right),
+        width: Math.round(rect.width),
+      }];
+    });
+    return {
+      route: window.location.pathname,
+      clientWidth: viewportWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      contentWidth: Math.round(content?.getBoundingClientRect().width ?? 0),
+      pageWidth: Math.round(pageElement?.getBoundingClientRect().width ?? 0),
+      sidebarWidth: Math.round(sidebar?.getBoundingClientRect().width ?? 0),
+      cardCount: cards.length,
+      cardsOutsideViewport,
+      missingImages: Array.from(document.images)
+        .filter((image) => image.complete && image.naturalWidth === 0)
+        .map((image) => ({ src: image.currentSrc || image.src, alt: image.alt })),
+    };
+  });
+}
+
+function safeArtifactName(route: string) {
+  return route.replace(/^\/+|\/+$/g, '').replace(/[^a-zA-Z0-9_-]+/g, '-') || 'dashboard';
 }
 
 test.describe('seeded authenticated visual artifacts', () => {
@@ -296,10 +349,10 @@ test.describe('seeded authenticated visual artifacts', () => {
         sidebar: styles.getPropertyValue('--admin-modern-sidebar').trim(),
       };
     });
-    expect(modernTokens.background).toBe('#070b14');
-    expect(modernTokens.surface).toBe('#0f1726');
-    expect(modernTokens.brand).toBe('#7c6df2');
-    expect(modernTokens.sidebar).toBe('286px');
+    expect(modernTokens.background).toBe('#061019');
+    expect(modernTokens.surface).toBe('#0c1a28');
+    expect(modernTokens.brand).toBe('#38bdf8');
+    expect(modernTokens.sidebar).toBe('248px');
 
     const commandTrigger = page.locator('.admin-command-trigger');
     await expect(commandTrigger).toBeVisible();
@@ -310,49 +363,110 @@ test.describe('seeded authenticated visual artifacts', () => {
 
     const viewport = page.viewportSize();
     const mobileOrTablet = (viewport?.width ?? 1280) <= 1099;
+    const menuButton = page.locator('.admin-menu-button');
+    await expect(menuButton).toBeVisible();
+
     if (mobileOrTablet) {
-      const menuButton = page.locator('.admin-menu-button');
-      await expect(menuButton).toBeVisible();
       await menuButton.click();
       await expect(sidebar).toHaveClass(/open/);
-      await expect(page.locator('.admin-mobile-drawer-controller')).toBeVisible();
+      const mobileController = page.locator('.admin-mobile-drawer-controller');
+      await expect(mobileController).toBeVisible();
+      const mobileLogout = mobileController.locator('.admin-mobile-drawer-controller__logout');
+      await expect(mobileLogout).toBeVisible();
+      const logoutBox = await mobileLogout.boundingBox();
+      expect(logoutBox).not.toBeNull();
+      expect((logoutBox?.x ?? -1) + (logoutBox?.width ?? 0)).toBeLessThanOrEqual((viewport?.width ?? 0) + 1);
       await page.locator('.admin-mobile-drawer-controller__close').click();
       await expect(sidebar).not.toHaveClass(/open/);
     } else {
       await expect(sidebar).toBeVisible();
-      await expect(page.locator('.admin-collapse-button')).toBeVisible();
+      const collapseButton = page.locator('.admin-collapse-button');
+      await expect(collapseButton).toBeVisible();
+      await collapseButton.click();
+      await expect(shell).toHaveClass(/admin-shell--collapsed/);
+      await menuButton.click();
+      await expect(shell).not.toHaveClass(/admin-shell--collapsed/);
+
+      const profileTrigger = page.locator('.admin-sidebar-profile__trigger');
+      await expect(profileTrigger).toBeVisible();
+      await profileTrigger.click();
+      const profileMenu = page.locator('.admin-profile-menu--sidebar');
+      const logoutButton = profileMenu.locator('.admin-profile-menu__logout');
+      await expect(profileMenu).toBeVisible();
+      await expect(logoutButton).toBeVisible();
+      const profileMenuBox = await profileMenu.boundingBox();
+      expect(profileMenuBox).not.toBeNull();
+      expect(profileMenuBox?.x ?? -1).toBeGreaterThanOrEqual(-1);
+      expect((profileMenuBox?.x ?? 0) + (profileMenuBox?.width ?? 0)).toBeLessThanOrEqual((viewport?.width ?? 0) + 1);
+      expect(profileMenuBox?.y ?? -1).toBeGreaterThanOrEqual(-1);
+      expect((profileMenuBox?.y ?? 0) + (profileMenuBox?.height ?? 0)).toBeLessThanOrEqual((viewport?.height ?? 0) + 1);
+      await page.keyboard.press('Escape');
     }
 
-    await loadLazyContent(page);
-    const metrics = await assertRuntimeHealth(page, audit, 'Authenticated Admin Dashboard');
-    const layoutMetrics = await page.evaluate(() => {
-      const topbarElement = document.querySelector<HTMLElement>('.admin-topbar');
-      const contentElement = document.querySelector<HTMLElement>('.admin-content-shell');
-      const pageElement = document.querySelector<HTMLElement>('.admin-ui-page');
-      const sidebarElement = document.querySelector<HTMLElement>('#admin-sidebar');
-      return {
-        topbarPosition: topbarElement ? getComputedStyle(topbarElement).position : '',
-        contentWidth: contentElement?.getBoundingClientRect().width ?? 0,
-        pageWidth: pageElement?.getBoundingClientRect().width ?? 0,
-        sidebarWidth: sidebarElement?.getBoundingClientRect().width ?? 0,
-        viewportWidth: document.documentElement.clientWidth,
-      };
-    });
-    expect(layoutMetrics.topbarPosition).toBe('sticky');
-    expect(layoutMetrics.contentWidth).toBeGreaterThan(280);
-    expect(layoutMetrics.pageWidth).toBeGreaterThan(280);
-    expect(layoutMetrics.pageWidth).toBeLessThanOrEqual(layoutMetrics.contentWidth + 1);
-    if (mobileOrTablet) expect(layoutMetrics.sidebarWidth).toBeLessThan(layoutMetrics.viewportWidth);
-    else expect(layoutMetrics.sidebarWidth).toBeGreaterThanOrEqual(90);
+    const accessibleRoutes = await page.locator('#admin-sidebar a[href^="/"]').evaluateAll((anchors) => Array.from(new Set(
+      anchors
+        .map((anchor) => anchor.getAttribute('href'))
+        .filter((href): href is string => Boolean(href && href.startsWith('/'))),
+    )));
+    expect(accessibleRoutes).toContain('/dashboard');
 
-    await page.screenshot({ path: testInfo.outputPath(`admin-authenticated-dashboard-${testInfo.project.name}.png`), fullPage: true, animations: 'disabled' });
+    const routeLayouts: AdminRouteLayout[] = [];
+    for (const route of accessibleRoutes) {
+      await page.goto(new URL(route, adminUrl!).toString(), { waitUntil: 'domcontentloaded' });
+      await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/);
+      await expect(page.locator('.admin-content-shell')).toBeVisible({ timeout: 15_000 });
+      await page.waitForTimeout(450);
+      await loadLazyContent(page);
+      const layoutMetrics = await readAdminRouteLayout(page);
+      expect(layoutMetrics.scrollWidth - layoutMetrics.clientWidth, `${route} must not overflow horizontally`).toBeLessThanOrEqual(2);
+      expect(layoutMetrics.cardsOutsideViewport, `${route} cards must stay inside the viewport`).toEqual([]);
+      expect(layoutMetrics.missingImages, `${route} must not render broken images`).toEqual([]);
+      expect(layoutMetrics.contentWidth, `${route} content must have usable width`).toBeGreaterThan(280);
+      expect(layoutMetrics.pageWidth, `${route} page must have usable width`).toBeGreaterThan(280);
+      expect(layoutMetrics.pageWidth / Math.max(layoutMetrics.contentWidth, 1), `${route} must use the content workspace`).toBeGreaterThanOrEqual(0.9);
+      routeLayouts.push(layoutMetrics);
+
+      if (route === '/dashboard') {
+        await page.screenshot({
+          path: testInfo.outputPath(`admin-authenticated-dashboard-${testInfo.project.name}.png`),
+          fullPage: true,
+          animations: 'disabled',
+        });
+      }
+    }
+
+    await page.goto(new URL('/dashboard', adminUrl!).toString(), { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+    const metrics = await assertRuntimeHealth(page, audit, 'Authenticated Admin routes');
+    const dashboardLayout = await readAdminRouteLayout(page);
+    expect(getComputedStyleFromRoute(dashboardLayout.sidebarWidth, mobileOrTablet)).toBe(true);
+
     await attachAudit(testInfo, 'admin-authenticated-production-audit', audit, {
       finalUrl: page.url(),
       project: testInfo.project.name,
       mobileOrTablet,
       modernTokens,
       metrics,
-      layoutMetrics,
+      dashboardLayout,
+      accessibleRouteCount: accessibleRoutes.length,
+      routeLayouts,
     });
+
+    if (mobileOrTablet) {
+      await page.locator('.admin-menu-button').click();
+      const logoutButton = page.locator('.admin-mobile-drawer-controller__logout');
+      await expect(logoutButton).toBeVisible();
+      await logoutButton.click();
+    } else {
+      await page.locator('.admin-sidebar-profile__trigger').click();
+      const logoutButton = page.locator('.admin-profile-menu--sidebar .admin-profile-menu__logout');
+      await expect(logoutButton).toBeVisible();
+      await logoutButton.click();
+    }
+    await page.waitForURL(/\/login(?:[/?#]|$)/, { timeout: 20_000 });
   });
 });
+
+function getComputedStyleFromRoute(sidebarWidth: number, mobileOrTablet: boolean) {
+  return mobileOrTablet ? sidebarWidth < 1100 : sidebarWidth === 248;
+}
