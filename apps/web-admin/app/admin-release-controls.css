@@ -1,5 +1,86 @@
 /* Final interactive control safeguards. Loaded after admin-release-readiness.css. */
 
+:root {
+  /* Bridge the oldest global stylesheet into the Admin-only release palette. */
+  --bg: var(--admin-modern-bg);
+  --surface: var(--admin-modern-bg-soft);
+  --surface2: var(--admin-modern-surface-raised);
+  --card: var(--admin-modern-surface);
+  --card2: var(--admin-modern-surface-raised);
+  --line: var(--admin-modern-border);
+  --line2: var(--admin-modern-border-strong);
+  --text: var(--admin-modern-text);
+  --muted: var(--admin-modern-muted);
+  --brand: var(--admin-modern-brand);
+  --brand2: var(--admin-modern-brand-strong);
+  --good: var(--admin-modern-success);
+  --bad: var(--admin-modern-danger);
+}
+
+.admin-topbar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+}
+
+.admin-topbar-context,
+.admin-topbar-actions {
+  min-width: 0;
+}
+
+.admin-content-shell > main {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+.admin-content-shell > main > *,
+.admin-content-shell section,
+.admin-content-shell form,
+.admin-content-shell fieldset {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.admin-content-shell section,
+.admin-content-shell form {
+  overflow: visible !important;
+}
+
+.admin-content-shell section:hover,
+.admin-content-shell form:hover {
+  border-color: rgb(56 189 248 / 28%) !important;
+}
+
+.admin-content-shell input:focus,
+.admin-content-shell textarea:focus,
+.admin-content-shell select:focus {
+  border-color: rgb(56 189 248 / 68%) !important;
+  box-shadow: 0 0 0 3px rgb(56 189 248 / 13%) !important;
+}
+
+.admin-ui-card__head,
+.admin-ui-card__body,
+.admin-ui-card__content,
+.admin-ui-stack,
+.admin-ui-grid {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: visible;
+}
+
+.admin-content-shell pre,
+.admin-content-shell code,
+.admin-content-shell textarea,
+.admin-content-shell [data-json-viewer],
+.admin-content-shell [data-payload-viewer] {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 @media (min-width: 1100px) {
   #admin-sidebar .admin-profile-menu--sidebar .admin-profile-menu__identity {
     display: grid !important;
