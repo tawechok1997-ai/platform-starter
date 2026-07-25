@@ -5,20 +5,24 @@ import test from 'node:test';
 
 const appDir = process.cwd().endsWith(`${path.sep}app`) ? process.cwd() : path.join(process.cwd(), 'app');
 const css = readFileSync(path.join(appDir, 'admin-release-readiness.css'), 'utf8');
+const controlsCss = readFileSync(path.join(appDir, 'admin-release-controls.css'), 'utf8');
 const layout = readFileSync(path.join(appDir, 'layout.tsx'), 'utf8');
 const controller = readFileSync(path.join(appDir, 'admin-mobile-drawer-controller.tsx'), 'utf8');
 const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'admin-protected-layout.tsx'), 'utf8');
 
-test('loads the release correction layer after every legacy admin stylesheet', () => {
+test('loads release correction and control layers after every legacy admin stylesheet', () => {
   const readinessIndex = layout.indexOf("import './admin-release-readiness.css'");
+  const controlsIndex = layout.indexOf("import './admin-release-controls.css'");
   const previousLayerIndex = layout.indexOf("import './admin-modern-platform-ops.css'");
   assert.ok(readinessIndex > previousLayerIndex);
-  assert.equal(layout.slice(readinessIndex).includes("import './admin-"), false);
+  assert.ok(controlsIndex > readinessIndex);
+  assert.equal(layout.slice(controlsIndex).includes("import './admin-"), false);
 });
 
 test('uses one tablet and mobile breakpoint in CSS and the drawer controller', () => {
   assert.match(css, /@media \(min-width: 1100px\)/);
   assert.match(css, /@media \(max-width: 1099px\)/);
+  assert.match(controlsCss, /@media \(max-width: 1099px\)/);
   assert.match(controller, /MOBILE_DRAWER_MEDIA = '\(max-width: 1099px\)'/);
 });
 
@@ -35,6 +39,13 @@ test('keeps the profile menu and sign-out action inside the viewport', () => {
   assert.match(protectedLayout, /clearAdminSession\(\)/);
   assert.match(protectedLayout, /window\.location\.href = '\/login'/);
   assert.match(controller, /className="admin-mobile-drawer-controller__logout"/);
+});
+
+test('keeps every mobile drawer action visible without horizontal scrolling', () => {
+  assert.match(controlsCss, /admin-mobile-drawer-controller__footer[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(controlsCss, /admin-mobile-drawer-controller__footer[\s\S]*overflow: visible !important/);
+  assert.match(controlsCss, /admin-mobile-drawer-controller__logout/);
+  assert.equal(controlsCss.includes('overflow-x: auto'), false);
 });
 
 test('allows every admin page and card to use the available workspace', () => {
@@ -58,7 +69,14 @@ test('uses an admin-specific palette and production typography stack', () => {
   assert.match(layout, /themeColor: '#061019'/);
 });
 
+test('keeps the tablet topbar controls from colliding', () => {
+  assert.match(controlsCss, /min-width: 1100px\) and \(max-width: 1350px/);
+  assert.match(controlsCss, /\.admin-command-trigger > span/);
+  assert.match(controlsCss, /\.admin-topbar-status/);
+});
+
 test('honors reduced motion for shell interactions', () => {
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /animation: none !important/);
+  assert.match(controlsCss, /@media \(prefers-reduced-motion: reduce\)/);
 });
