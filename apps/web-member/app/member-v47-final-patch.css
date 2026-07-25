@@ -1,0 +1,41 @@
+/* Small final overrides for legacy rules that still hide source artwork. */
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-tournament-cta > img,
+  .desktop-reference-home .reference-jackpot-art,
+  .desktop-reference-home .reference-promo-background,
+  .desktop-reference-home .reference-promo-icon > img,
+  .desktop-reference-home .reference-mini-icon > img {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .desktop-reference-home .reference-tournament-cta > img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .desktop-reference-home .reference-provider-row > .reference-provider-logo:nth-child(n + 13) {
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-provider-row {
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+  }
+
+  .desktop-reference-home .reference-jackpot-art {
+    width: 100% !important;
+    height: 156px !important;
+    object-fit: contain !important;
+  }
+
+  .desktop-reference-home .reference-auth-action {
+    isolation: isolate !important;
+  }
+
+  .desktop-reference-home .reference-auth-action::before {
+    z-index: -1 !important;
+  }
+}
