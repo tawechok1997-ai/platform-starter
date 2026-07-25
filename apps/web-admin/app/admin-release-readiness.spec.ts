@@ -61,6 +61,14 @@ test('neutralizes legacy global width, padding, overflow and gold theme rules', 
   assert.match(controlsCss, /\.admin-topbar[\s\S]*display: grid !important/);
 });
 
+test('keeps card headers, actions, rows and filters within their parent width', () => {
+  assert.match(controlsCss, /\.admin-ui-card__head[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto !important/);
+  assert.match(controlsCss, /\.admin-ui-card__action[\s\S]*flex-wrap: wrap !important/);
+  assert.match(controlsCss, /\.admin-ui-row,[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto !important/);
+  assert.match(controlsCss, /\.admin-ui-toolbar,[\s\S]*flex-wrap: wrap !important/);
+  assert.match(controlsCss, /@media \(max-width: 720px\)[\s\S]*grid-template-columns: 1fr !important/);
+});
+
 test('allows every admin page and card to use the available workspace', () => {
   assert.match(css, /\.admin-ui-page,\s*\.admin-dashboard \.admin-ui-page[\s\S]*width: 100% !important/);
   assert.match(css, /\.admin-ui-card[\s\S]*overflow: visible !important/);
