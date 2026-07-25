@@ -58,6 +58,7 @@ import './admin-modern-auth.css';
 import './admin-modern-normalization.css';
 import './admin-modern-governance.css';
 import './admin-modern-audit.css';
+import './admin-modern-platform-ops.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
