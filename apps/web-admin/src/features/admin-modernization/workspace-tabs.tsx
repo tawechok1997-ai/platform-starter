@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 
-import { buildWorkspaceTabHref } from './workspace-tab-url';
+import { buildWorkspaceTabHref, type WorkspaceTabTarget } from './workspace-tab-url';
 import styles from './workspace-tabs.module.css';
 
 export type AdminWorkspaceTab = {
@@ -23,6 +23,12 @@ export type AdminWorkspaceTabsProps = {
   queryKey?: string;
   className?: string;
 };
+
+function tabTarget(tab: AdminWorkspaceTab): WorkspaceTabTarget {
+  if (tab.href) return { href: tab.href };
+  if (tab.value) return { value: tab.value };
+  return {};
+}
 
 export function AdminWorkspaceTabs({
   ariaLabel,
@@ -44,7 +50,7 @@ export function AdminWorkspaceTabs({
           pathname,
           search: searchParams.toString(),
           queryKey,
-          target: { href: tab.href, value: tab.value },
+          target: tabTarget(tab),
         });
 
         if (tab.disabled) {
