@@ -58,7 +58,7 @@ export default function GrowthCenterPage() {
         </div>
         <div className="admin-growth-center__queue-grid"><OpsCard title="Promotion" href="/promotion-claims" tone="warning" rows={[["คำขอรอตรวจ", metrics.promotionPending], ["ทั้งหมด", data.promotionClaims.total]]} error={data.promotionClaims.error} /><OpsCard title="Bonus Ledger" href="/bonus-ledgers" tone="warning" rows={[["โบนัสใช้งานอยู่", metrics.bonusActive], ["ทั้งหมด", data.bonusLedgers.total]]} error={data.bonusLedgers.error} /><OpsCard title="Affiliate" href="/affiliate-center" tone="warning" rows={[["ตัวแทนรอตรวจ", metrics.affiliatePending], ["ทั้งหมด", data.affiliates.total]]} error={data.affiliates.error} /><OpsCard title="Commission" href="/commission-ledgers" tone="danger" rows={[["คอมมิชชันรอตรวจ", metrics.commissionPending], ["ทั้งหมด", data.commissions.total]]} error={data.commissions.error} /><OpsCard title="Support" href="/support-center" tone="danger" rows={[["เปิดอยู่", metrics.supportOpen], ["ทั้งหมด", data.support.total]]} error={data.support.error} /><OpsCard title="KYC" href="/kyc-center" tone="warning" rows={[["รอตรวจบัญชี", metrics.kycPending], ["เลขบัญชีซ้ำ", data.kyc.duplicateGroups]]} error={data.kyc.error} /></div>
       </>}
-      <AdminNotice className="admin-growth-center__guard">หน้านี้เป็น read-only ไม่อนุมัติ ไม่จ่ายเงิน และไม่แก้กระเป๋าสมาชิกโดยตรง</AdminNotice>
+      <div className="admin-growth-center__guard"><AdminNotice>หน้านี้เป็น read-only ไม่อนุมัติ ไม่จ่ายเงิน และไม่แก้กระเป๋าสมาชิกโดยตรง</AdminNotice></div>
     </div>
   </AdminPage>;
 }
