@@ -63,6 +63,9 @@ jobs:
       - name: Audit authenticated Member smoke workflow
         run: node --test tools/member-production-smoke-workflow.test.mjs
 
+      - name: Audit authenticated Admin UI workflow
+        run: node --test tools/admin-authenticated-ui-workflow.test.mjs
+
       - name: Audit architecture inventory
         run: pnpm audit:architecture-inventory
 
