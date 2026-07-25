@@ -62,7 +62,30 @@
   box-shadow: 0 0 0 3px rgb(56 189 248 / 13%) !important;
 }
 
-.admin-ui-card__head,
+.admin-ui-card__head {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: 14px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+
+.admin-ui-card__copy,
+.admin-ui-card__action {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.admin-ui-card__action {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
 .admin-ui-card__body,
 .admin-ui-card__content,
 .admin-ui-stack,
@@ -70,6 +93,35 @@
   min-width: 0 !important;
   max-width: 100% !important;
   overflow: visible;
+}
+
+.admin-ui-row,
+.admin-ui-section-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: clamp(10px, 1.4vw, 18px) !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.admin-ui-row > *,
+.admin-ui-section-row > *,
+.admin-ui-toolbar > *,
+.admin-ui-filter-bar > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.admin-ui-toolbar,
+.admin-ui-filter-bar,
+.admin-ui-filter-bar__controls {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
 }
 
 .admin-content-shell pre,
@@ -187,6 +239,29 @@
 
   .admin-language-toggle {
     flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-ui-card__head,
+  .admin-ui-row,
+  .admin-ui-section-row {
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+  }
+
+  .admin-ui-card__action,
+  .admin-ui-card__action > *,
+  .admin-ui-row > :last-child,
+  .admin-ui-section-row > :last-child {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  .admin-ui-toolbar,
+  .admin-ui-filter-bar,
+  .admin-ui-filter-bar__controls {
+    align-items: stretch !important;
   }
 }
 
