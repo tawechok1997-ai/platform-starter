@@ -49,6 +49,7 @@ import './admin-mobile-drawer-fix.css';
 import './admin-single-language-button.css';
 import './admin-sidebar-viewport.css';
 import './admin-sidebar-profile-header.css';
+import './admin-modern-command-center.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
@@ -79,7 +80,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   colorScheme: 'dark',
-  themeColor: '#0b1020',
+  themeColor: '#070b14',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
