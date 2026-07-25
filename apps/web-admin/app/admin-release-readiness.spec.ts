@@ -4,116 +4,102 @@ import path from 'node:path';
 import test from 'node:test';
 
 const appDir = process.cwd().endsWith(`${path.sep}app`) ? process.cwd() : path.join(process.cwd(), 'app');
-const css = readFileSync(path.join(appDir, 'admin-release-readiness.css'), 'utf8');
-const controlsCss = readFileSync(path.join(appDir, 'admin-release-controls.css'), 'utf8');
 const layout = readFileSync(path.join(appDir, 'layout.tsx'), 'utf8');
+const shellCss = readFileSync(path.join(appDir, 'admin-shell-layout.css'), 'utf8');
+const profileCss = readFileSync(path.join(appDir, 'admin-shell-profile-popover.css'), 'utf8');
+const adoptionCss = readFileSync(path.join(appDir, 'admin-modernization-adoption.css'), 'utf8');
 const controller = readFileSync(path.join(appDir, 'admin-mobile-drawer-controller.tsx'), 'utf8');
-const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'admin-protected-layout.tsx'), 'utf8');
+const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'layout.tsx'), 'utf8');
+const dataTable = readFileSync(path.join(appDir, '..', 'src', 'features', 'admin-modernization', 'data-table.tsx'), 'utf8');
+const dataTableCss = readFileSync(path.join(appDir, '..', 'src', 'features', 'admin-modernization', 'data-table.module.css'), 'utf8');
 
 const controlsImport = "import './admin-release-controls.css'";
+const shellImport = "import './admin-shell-layout.css'";
+const profileImport = "import './admin-shell-profile-popover.css'";
+const adoptionImport = "import './admin-modernization-adoption.css'";
 
-test('loads release correction and control layers after every legacy admin stylesheet', () => {
-  const readinessIndex = layout.indexOf("import './admin-release-readiness.css'");
+test('loads the shared shell and adoption layers after legacy Admin presentation CSS', () => {
   const controlsIndex = layout.indexOf(controlsImport);
-  const previousLayerIndex = layout.indexOf("import './admin-modern-platform-ops.css'");
-  assert.ok(readinessIndex > previousLayerIndex);
-  assert.ok(controlsIndex > readinessIndex);
-  assert.equal(layout.slice(controlsIndex + controlsImport.length).includes("import './admin-"), false);
+  const shellIndex = layout.indexOf(shellImport);
+  const profileIndex = layout.indexOf(profileImport);
+  const adoptionIndex = layout.indexOf(adoptionImport);
+
+  assert.ok(controlsIndex >= 0);
+  assert.ok(shellIndex > controlsIndex);
+  assert.ok(profileIndex > shellIndex);
+  assert.ok(adoptionIndex > profileIndex);
+  assert.equal(layout.slice(adoptionIndex + adoptionImport.length).includes("import './admin-"), false);
 });
 
-test('uses one tablet and mobile breakpoint in CSS and the drawer controller', () => {
-  assert.match(css, /@media \(min-width: 1100px\)/);
-  assert.match(css, /@media \(max-width: 1099px\)/);
-  assert.match(controlsCss, /@media \(max-width: 1099px\)/);
+test('uses one 1100px desktop and mobile shell breakpoint', () => {
+  assert.match(shellCss, /@media \(min-width: 1100px\)/);
+  assert.match(shellCss, /@media \(max-width: 1099px\)/);
+  assert.match(profileCss, /@media \(min-width: 1100px\)/);
+  assert.match(profileCss, /@media \(max-width: 1099px\)/);
   assert.match(controller, /MOBILE_DRAWER_MEDIA = '\(max-width: 1099px\)'/);
 });
 
-test('keeps sidebar open, collapse and profile controls visible on desktop', () => {
-  assert.match(css, /\.admin-collapse-button,\s*\.admin-menu-button[\s\S]*display: inline-flex !important/);
-  assert.match(css, /grid-template-rows: auto auto minmax\(0, 1fr\) auto !important/);
-  assert.match(css, /\.admin-sidebar-footer[\s\S]*display: grid !important/);
+test('keeps desktop sidebar collapse and mobile menu controls mutually exclusive', () => {
+  assert.match(shellCss, /@media \(min-width: 1100px\)[\s\S]*\.admin-menu-button,[\s\S]*display: none !important/);
+  assert.match(shellCss, /@media \(min-width: 1100px\)[\s\S]*\.admin-collapse-button[\s\S]*display: inline-flex !important/);
+  assert.match(shellCss, /@media \(max-width: 1099px\)[\s\S]*\.admin-menu-button[\s\S]*display: inline-grid !important/);
+  assert.match(shellCss, /@media \(max-width: 1099px\)[\s\S]*\.admin-collapse-button[\s\S]*display: none !important/);
 });
 
-test('keeps the complete profile menu and sign-out action inside the viewport', () => {
-  assert.match(css, /\.admin-profile-menu--sidebar[\s\S]*inset: auto 0 calc\(100% \+ 8px\) 0 !important/);
-  assert.match(css, /\.admin-profile-menu__logout[\s\S]*position: sticky/);
-  assert.match(controlsCss, /admin-profile-menu__identity[\s\S]*display: grid !important/);
-  assert.match(controlsCss, /admin-profile-menu__security[\s\S]*display: flex !important/);
+test('keeps the complete profile and sign-out flow inside the viewport', () => {
+  assert.match(shellCss, /\.admin-profile-menu--sidebar \.admin-profile-menu__logout[\s\S]*position: sticky/);
+  assert.match(profileCss, /#admin-sidebar \.admin-profile-menu--sidebar[\s\S]*left: calc\(100% \+ 12px\)/);
+  assert.match(profileCss, /max-height: min\(520px, calc\(100dvh - 24px\)\)/);
   assert.match(protectedLayout, /className="admin-profile-menu__logout"/);
   assert.match(protectedLayout, /clearAdminSession\(\)/);
   assert.match(protectedLayout, /window\.location\.href = '\/login'/);
   assert.match(controller, /className="admin-mobile-drawer-controller__logout"/);
 });
 
-test('keeps every mobile drawer action visible without horizontal scrolling', () => {
-  assert.match(controlsCss, /admin-mobile-drawer-controller__footer[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(controlsCss, /admin-mobile-drawer-controller__footer[\s\S]*overflow: visible !important/);
-  assert.match(controlsCss, /admin-mobile-drawer-controller__logout/);
-  assert.equal(controlsCss.includes('overflow-x: auto'), false);
+test('keeps mobile drawer actions visible without horizontal scrolling', () => {
+  assert.match(shellCss, /admin-mobile-drawer-controller__footer[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(shellCss, /admin-mobile-drawer-controller__footer[\s\S]*overflow: visible !important/);
+  assert.match(shellCss, /padding-bottom: calc\(env\(safe-area-inset-bottom\) \+ 154px\)/);
 });
 
-test('neutralizes legacy global width, padding, overflow and gold theme rules', () => {
-  assert.match(controlsCss, /--brand: var\(--admin-modern-brand\)/);
-  assert.match(controlsCss, /--card: var\(--admin-modern-surface\)/);
-  assert.match(controlsCss, /\.admin-content-shell > main[\s\S]*max-width: none !important/);
-  assert.match(controlsCss, /\.admin-content-shell > main[\s\S]*padding: 0 !important/);
-  assert.match(controlsCss, /\.admin-content-shell section,[\s\S]*overflow: visible !important/);
-  assert.match(controlsCss, /\.admin-topbar[\s\S]*display: grid !important/);
+test('uses one sidebar offset and lets Admin content use the available workspace', () => {
+  assert.match(shellCss, /--admin-shell-sidebar-width: 248px/);
+  assert.match(shellCss, /--admin-shell-sidebar-collapsed-width: 72px/);
+  assert.match(shellCss, /\.admin-shell[\s\S]*padding-left: var\(--admin-shell-sidebar-width\) !important/);
+  assert.match(shellCss, /\.admin-main-shell[\s\S]*margin-left: 0 !important/);
+  assert.match(shellCss, /\.admin-content-shell[\s\S]*max-width: none !important/);
+  assert.match(shellCss, /--admin-shell-content-max: 1920px/);
 });
 
-test('overrides runtime card clipping with stronger Admin-only specificity', () => {
-  assert.match(controlsCss, /body\[data-app-surface='admin'\] \.admin-content-shell \.admin-ui-card/);
-  assert.match(controlsCss, /height: auto !important/);
-  assert.match(controlsCss, /overflow: visible !important/);
+test('keeps cards and grids responsive without fixed-height clipping', () => {
+  assert.match(shellCss, /\.admin-content-shell \.admin-ui-card,[\s\S]*height: auto !important/);
+  assert.match(shellCss, /max-height: none !important/);
+  assert.match(shellCss, /grid-template-columns: repeat\(auto-fit, minmax\(min\(360px, 100%\), 1fr\)\)/);
+  assert.match(adoptionCss, /\.admin-content-shell > \*[\s\S]*min-width: 0/);
 });
 
-test('keeps card headers, actions, rows and filters within their parent width', () => {
-  assert.match(controlsCss, /\.admin-ui-card__head[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto !important/);
-  assert.match(controlsCss, /\.admin-ui-card__action[\s\S]*flex-wrap: wrap !important/);
-  assert.match(controlsCss, /\.admin-ui-row,[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto !important/);
-  assert.match(controlsCss, /\.admin-ui-toolbar,[\s\S]*flex-wrap: wrap !important/);
-  assert.match(controlsCss, /@media \(max-width: 720px\)[\s\S]*grid-template-columns: 1fr !important/);
+test('uses proportional dashboard charts and safe mobile collapse', () => {
+  assert.match(shellCss, /admin-risk-chart\)[\s\S]*grid-column: span 4 !important/);
+  assert.match(shellCss, /admin-finance-chart\)[\s\S]*grid-column: span 8 !important/);
+  assert.match(shellCss, /admin-dashboard__sections[\s\S]*minmax\(0, 1\.25fr\) minmax\(360px, \.75fr\)/);
+  assert.match(shellCss, /@media \(max-width: 720px\)[\s\S]*grid-template-columns: 1fr !important/);
 });
 
-test('contains table overflow at the table or its dedicated viewport', () => {
-  assert.match(controlsCss, /admin-content-shell table[\s\S]*min-width: 0 !important/);
-  assert.match(controlsCss, /admin-content-shell table[\s\S]*overflow-x: auto !important/);
-  assert.match(controlsCss, /admin-data-table__viewport[\s\S]*overflow-x: auto !important/);
-  assert.match(controlsCss, /admin-data-table__viewport > table[\s\S]*min-width: 720px !important/);
+test('provides a responsive shared data table and mobile list pattern', () => {
+  assert.match(dataTable, /export function AdminDataTable/);
+  assert.match(dataTable, /className=\{styles\.desktopScroller\}/);
+  assert.match(dataTable, /className=\{styles\.mobileList\}/);
+  assert.match(dataTable, /getPaginationTokens/);
+  assert.match(dataTableCss, /\.table th[\s\S]*position: sticky/);
+  assert.match(dataTableCss, /@media \(max-width: 760px\)[\s\S]*\.desktopScroller[\s\S]*display: none/);
+  assert.match(dataTableCss, /@media \(max-width: 760px\)[\s\S]*\.mobileList[\s\S]*display: block/);
 });
 
-test('allows every admin page and card to use the available workspace', () => {
-  assert.match(css, /\.admin-ui-page,\s*\.admin-dashboard \.admin-ui-page[\s\S]*width: 100% !important/);
-  assert.match(css, /\.admin-ui-card[\s\S]*overflow: visible !important/);
-  assert.match(css, /\.admin-content-shell[\s\S]*width: 100% !important/);
-});
-
-test('uses a proportional dashboard grid without fixed clipping', () => {
-  assert.match(css, /admin-finance-chart\)[\s\S]*grid-column: span 8 !important/);
-  assert.match(css, /admin-risk-chart\)[\s\S]*grid-column: span 4 !important/);
-  assert.match(css, /admin-dashboard__quick[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/);
-  assert.match(css, /admin-finance-chart__plot[\s\S]*height: auto !important/);
-});
-
-test('uses an admin-specific palette and production Thai typography stack', () => {
-  assert.match(css, /--admin-modern-brand: #38bdf8/);
-  assert.match(css, /--admin-modern-cyan: #2dd4bf/);
-  assert.match(controlsCss, /LINE Seed Sans TH/);
-  assert.match(controlsCss, /Noto Sans Thai/);
-  assert.match(controlsCss, /Leelawadee UI/);
-  assert.match(controlsCss, /admin-ui-page__copy h1[\s\S]*font-weight: 760 !important/);
-  assert.match(controlsCss, /admin-ui-button[\s\S]*font-weight: 680 !important/);
+test('uses production typography, compact number alignment and reduced motion', () => {
+  assert.match(shellCss, /font-family: Inter, "Noto Sans Thai", "Leelawadee UI"/);
+  assert.match(shellCss, /font-weight: 700 !important/);
+  assert.match(dataTableCss, /font-variant-numeric: tabular-nums/);
+  assert.match(shellCss, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(dataTableCss, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(layout, /themeColor: '#061019'/);
-});
-
-test('keeps the tablet topbar controls from colliding', () => {
-  assert.match(controlsCss, /min-width: 1100px\) and \(max-width: 1350px/);
-  assert.match(controlsCss, /\.admin-command-trigger > span/);
-  assert.match(controlsCss, /\.admin-topbar-status/);
-});
-
-test('honors reduced motion for shell interactions', () => {
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(css, /animation: none !important/);
-  assert.match(controlsCss, /@media \(prefers-reduced-motion: reduce\)/);
 });
