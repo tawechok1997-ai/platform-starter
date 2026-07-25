@@ -10,13 +10,15 @@ const layout = readFileSync(path.join(appDir, 'layout.tsx'), 'utf8');
 const controller = readFileSync(path.join(appDir, 'admin-mobile-drawer-controller.tsx'), 'utf8');
 const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'admin-protected-layout.tsx'), 'utf8');
 
+const controlsImport = "import './admin-release-controls.css'";
+
 test('loads release correction and control layers after every legacy admin stylesheet', () => {
   const readinessIndex = layout.indexOf("import './admin-release-readiness.css'");
-  const controlsIndex = layout.indexOf("import './admin-release-controls.css'");
+  const controlsIndex = layout.indexOf(controlsImport);
   const previousLayerIndex = layout.indexOf("import './admin-modern-platform-ops.css'");
   assert.ok(readinessIndex > previousLayerIndex);
   assert.ok(controlsIndex > readinessIndex);
-  assert.equal(layout.slice(controlsIndex).includes("import './admin-"), false);
+  assert.equal(layout.slice(controlsIndex + controlsImport.length).includes("import './admin-"), false);
 });
 
 test('uses one tablet and mobile breakpoint in CSS and the drawer controller', () => {
@@ -32,9 +34,11 @@ test('keeps sidebar open, collapse and profile controls visible on desktop', () 
   assert.match(css, /\.admin-sidebar-footer[\s\S]*display: grid !important/);
 });
 
-test('keeps the profile menu and sign-out action inside the viewport', () => {
+test('keeps the complete profile menu and sign-out action inside the viewport', () => {
   assert.match(css, /\.admin-profile-menu--sidebar[\s\S]*inset: auto 0 calc\(100% \+ 8px\) 0 !important/);
   assert.match(css, /\.admin-profile-menu__logout[\s\S]*position: sticky/);
+  assert.match(controlsCss, /admin-profile-menu__identity[\s\S]*display: grid !important/);
+  assert.match(controlsCss, /admin-profile-menu__security[\s\S]*display: flex !important/);
   assert.match(protectedLayout, /className="admin-profile-menu__logout"/);
   assert.match(protectedLayout, /clearAdminSession\(\)/);
   assert.match(protectedLayout, /window\.location\.href = '\/login'/);
