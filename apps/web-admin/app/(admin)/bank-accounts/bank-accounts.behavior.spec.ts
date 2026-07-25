@@ -1,31 +1,30 @@
+import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import test from 'node:test';
 
 const source = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 
-describe('bank account admin contract', () => {
-  it('uses the shared admin locale contract', () => {
-    expect(source).toContain("useAdminLocale");
-    expect(source).toContain('copyByLocale');
-    expect(source).toContain("th:");
-    expect(source).toContain("en:");
-  });
+test('bank accounts use the shared Admin locale contract', () => {
+  assert.match(source, /useAdminLocale/);
+  assert.match(source, /copyByLocale/);
+  assert.match(source, /th:/);
+  assert.match(source, /en:/);
+});
 
-  it('guards all async mutations with try/finally state cleanup', () => {
-    expect(source).toContain('finally { setLoading(false); }');
-    expect(source).toContain('finally { setSaving(false); }');
-    expect(source.match(/finally \{ setBusyId\(''\); \}/g)?.length).toBeGreaterThanOrEqual(2);
-  });
+test('bank account async mutations always clean up state', () => {
+  assert.match(source, /finally \{ setLoading\(false\); \}/);
+  assert.match(source, /finally \{ setSaving\(false\); \}/);
+  assert.ok((source.match(/finally \{ setBusyId\(''\); \}/g)?.length ?? 0) >= 2);
+});
 
-  it('does not surface backend error messages directly', () => {
-    expect(source).not.toContain('data?.message');
-    expect(source).toContain('copy.loadFailed');
-    expect(source).toContain('copy.saveFailed');
-    expect(source).toContain('copy.reviewFailed');
-  });
+test('bank accounts do not surface backend error messages directly', () => {
+  assert.doesNotMatch(source, /data\?\.message/);
+  assert.match(source, /copy\.loadFailed/);
+  assert.match(source, /copy\.saveFailed/);
+  assert.match(source, /copy\.reviewFailed/);
+});
 
-  it('disables financial controls while loading or mutating', () => {
-    expect(source).toContain('const queueBusy = loading || saving || Boolean(busyId)');
-    expect(source).toContain('disabled={queueBusy}');
-  });
+test('bank account financial controls stay disabled while busy', () => {
+  assert.match(source, /const queueBusy = loading \|\| saving \|\| Boolean\(busyId\)/);
+  assert.match(source, /disabled=\{queueBusy\}/);
 });
