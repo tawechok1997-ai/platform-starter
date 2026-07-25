@@ -2,29 +2,80 @@
    Keep this file small and delete page-specific rules as each module adopts shared components. */
 
 .admin-ledger-table-type,
-.admin-ledger-reference {
+.admin-ledger-reference,
+.admin-audit-table-actor,
+.admin-audit-table-event {
   display: grid;
   min-width: 0;
   gap: 4px;
 }
 
-.admin-ledger-table-type {
+.admin-ledger-table-type,
+.admin-audit-table-event {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
 }
 
 .admin-ledger-table-type > strong,
 .admin-ledger-reference > span,
-.admin-ledger-reference > small {
+.admin-ledger-reference > small,
+.admin-audit-table-actor > strong,
+.admin-audit-table-actor > small,
+.admin-audit-table-event > small,
+.admin-audit-table-target {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.admin-ledger-reference > small {
+.admin-ledger-reference > small,
+.admin-audit-table-actor > small,
+.admin-audit-table-event > small {
   color: color-mix(in srgb, currentColor 60%, transparent);
   font-size: 0.72rem;
+}
+
+.admin-audit-table-details {
+  min-width: min(100%, 220px);
+}
+
+.admin-audit-table-details > summary {
+  cursor: pointer;
+  color: var(--admin-accent, #4f46e5);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-audit-table-details[open] {
+  min-width: min(70vw, 520px);
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 12px;
+  background: var(--admin-surface-raised, #f8fafc);
+}
+
+.admin-audit-table-meta {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.admin-audit-table-meta div {
+  display: grid;
+  gap: 2px;
+}
+
+.admin-audit-table-meta dt {
+  color: color-mix(in srgb, currentColor 60%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.admin-audit-table-meta dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.8rem;
 }
 
 .admin-content-shell > * {
@@ -32,11 +83,18 @@
 }
 
 @media (max-width: 760px) {
-  .admin-ledger-table-type {
+  .admin-ledger-table-type,
+  .admin-audit-table-event {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .admin-toolbar .admin-ledger-field {
     min-width: min(100%, 240px);
+  }
+
+  .admin-audit-table-details,
+  .admin-audit-table-details[open] {
+    min-width: 0;
+    width: 100%;
   }
 }
