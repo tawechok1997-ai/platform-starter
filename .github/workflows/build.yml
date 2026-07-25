@@ -57,6 +57,9 @@ jobs:
       - name: Audit private storage verifier
         run: node --test tools/check-private-finance-storage.test.mjs
 
+      - name: Audit production smoke guard
+        run: node --test tools/require-prod-smoke-env.test.mjs
+
       - name: Audit architecture inventory
         run: pnpm audit:architecture-inventory
 
