@@ -1,0 +1,511 @@
+/* assets(7).rar is the source of truth for home artwork and the NOAH345 color contract.
+   This stylesheet intentionally loads last and removes the old icon-atlas substitutions. */
+
+:root {
+  --a7-page: #100c15;
+  --a7-topbar: #272136;
+  --a7-nav: #15111e;
+  --a7-panel: #18131f;
+  --a7-panel-soft: #211929;
+  --a7-panel-card: #2a2232;
+  --a7-header-start: #582267;
+  --a7-header-mid: #3a1d47;
+  --a7-header-end: #211728;
+  --a7-border: #372141;
+  --a7-border-bright: #8d2abe;
+  --a7-purple: #7800a8;
+  --a7-purple-dark: #36004f;
+  --a7-copy: #f8f1fb;
+  --a7-muted: #c2afca;
+  --a7-gold: #f5cf4b;
+}
+
+body:has(.desktop-reference-home),
+body:has(.v47-mobile-home) {
+  background: var(--a7-page) !important;
+  color: var(--a7-copy) !important;
+}
+
+/* Stop the previous atlas pass from replacing the named files. */
+.public-home-mission img,
+.reference-heading-icon,
+.reference-heading-icon > img,
+.reference-side-icon,
+.reference-side-icon > img,
+.reference-mini-icon,
+.reference-mini-icon > img,
+.v47-mobile-announcement > img,
+.v47-mobile-section-title img,
+.v47-mobile-mini-games a > img {
+  background-image: none !important;
+  background-position: center !important;
+  background-size: contain !important;
+  object-position: center !important;
+  color: inherit !important;
+  font-size: inherit !important;
+}
+
+.reference-heading-icon > img,
+.reference-side-icon > img,
+.reference-mini-icon > img,
+.v47-mobile-announcement > img,
+.v47-mobile-section-title img,
+.v47-mobile-mini-games a > img {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  object-fit: contain !important;
+}
+
+.public-home-mission img {
+  width: 38px !important;
+  height: 38px !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+}
+
+.public-home-nav-icon-frame,
+.public-home-nav-icon-frame .public-home-nav-icon {
+  width: clamp(23px, 1.8vw, 28px) !important;
+  height: clamp(23px, 1.8vw, 28px) !important;
+  flex-basis: clamp(23px, 1.8vw, 28px) !important;
+  background: none !important;
+  filter: none !important;
+  object-fit: contain !important;
+}
+
+.reference-heading-icon,
+.reference-heading-icon > img {
+  width: 24px !important;
+  height: 24px !important;
+  flex: 0 0 24px !important;
+}
+
+.reference-side-icon,
+.reference-side-icon > img {
+  width: 24px !important;
+  height: 24px !important;
+  flex: 0 0 24px !important;
+}
+
+.reference-mini-icon {
+  display: grid !important;
+  place-items: center !important;
+  width: 76px !important;
+  height: 64px !important;
+  flex: 0 0 76px !important;
+}
+
+.reference-mini-icon > img {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+/* Exact quick-action files from assets(7), not converted sprite cells. */
+.reference-promo-card--1 .reference-promo-icon > img {
+  content: url('/home-asset/promo-special.png') !important;
+}
+
+.reference-promo-card--2 .reference-promo-icon > img {
+  content: url('/home-asset/promo-activity.png') !important;
+}
+
+.reference-promo-card--3 .reference-promo-icon > img {
+  content: url('/home-asset/promo-news.png') !important;
+}
+
+@media (min-width: 901px) {
+  .public-home-topbar.global-member-topbar {
+    background: var(--a7-topbar) !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest {
+    background: var(--a7-nav) !important;
+    border-bottom: 1px solid #24182e !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a {
+    color: #fff !important;
+    font-weight: 800 !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a.active {
+    background: linear-gradient(180deg, #26172f, #17111f) !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a.active::after {
+    height: 4px !important;
+    right: 8px !important;
+    bottom: 0 !important;
+    left: 8px !important;
+    background: #c764ef !important;
+    box-shadow: 0 -3px 9px rgb(199 100 239 / 60%) !important;
+  }
+
+  .desktop-reference-home .reference-sidebar {
+    position: static !important;
+    isolation: isolate !important;
+    z-index: 1 !important;
+    display: grid !important;
+    align-content: start !important;
+    grid-auto-flow: row !important;
+    grid-auto-rows: max-content !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .reference-sidebar::before {
+    content: '' !important;
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    display: block !important;
+    width: 100% !important;
+    aspect-ratio: 350 / 288.46 !important;
+    border: 1px solid #522463 !important;
+    border-radius: 10px !important;
+    background: #17121f url('/home-asset/promo-side.jpg') center / cover no-repeat !important;
+    box-shadow: none !important;
+  }
+
+  .desktop-reference-home .reference-side-card,
+  .desktop-reference-home .reference-jackpot,
+  .desktop-reference-home .reference-leaderboard,
+  .desktop-reference-home .reference-mini-games {
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .reference-promo-row {
+    isolation: isolate !important;
+    z-index: 0 !important;
+  }
+
+  .reference-promo-card {
+    position: relative !important;
+    overflow: hidden !important;
+    border: 1px solid var(--a7-border-bright) !important;
+    background: linear-gradient(100deg, var(--a7-purple) 0%, #570079 46%, var(--a7-purple-dark) 100%) !important;
+    box-shadow: inset 0 1px rgb(255 255 255 / 10%) !important;
+  }
+
+  .reference-promo-card--2 {
+    background: linear-gradient(100deg, #7100a1 0%, #510070 48%, #310049 100%) !important;
+  }
+
+  .reference-promo-card--3 {
+    background: linear-gradient(100deg, #690094 0%, #470063 48%, #2c0043 100%) !important;
+  }
+
+  .reference-promo-icon,
+  .reference-promo-icon > img {
+    width: clamp(92px, 9.4vw, 136px) !important;
+    height: clamp(92px, 9.4vw, 136px) !important;
+    max-width: none !important;
+    transform: none !important;
+    object-fit: contain !important;
+  }
+
+  .reference-promo-card strong {
+    color: #fff !important;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 35%) !important;
+  }
+
+  .reference-promo-card small {
+    color: #e1cfe8 !important;
+  }
+
+  .reference-tournament-cta {
+    background: #093d52 url('/home-asset/tournament.png') center / cover no-repeat !important;
+    border: 1px solid #0d5f77 !important;
+    box-shadow: inset 0 1px rgb(255 255 255 / 8%) !important;
+  }
+
+  .reference-tournament-cta > * {
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+
+  .reference-panel,
+  .reference-number-section,
+  .reference-compact-section,
+  .reference-guide,
+  .reference-side-card {
+    border: 1px solid var(--a7-border) !important;
+    background: var(--a7-panel) !important;
+    box-shadow: none !important;
+  }
+
+  .reference-panel-heading,
+  .reference-side-card > header {
+    color: #fff !important;
+    border-bottom: 1px solid #43234d !important;
+    background: linear-gradient(90deg, var(--a7-header-start) 0%, var(--a7-header-mid) 56%, var(--a7-header-end) 100%) !important;
+  }
+
+  .reference-panel-heading strong,
+  .reference-side-card > header strong {
+    color: #fff !important;
+    font-weight: 900 !important;
+  }
+
+  .reference-tournament-title {
+    border: 1px solid #7c2b91 !important;
+    background: #292131 !important;
+  }
+
+  .reference-tournament-title a {
+    color: #fff !important;
+    background: #dbad24 !important;
+    border-radius: 5px !important;
+  }
+
+  .reference-rank-card {
+    color: #fff !important;
+    border: 1px solid #43344d !important;
+    background: #2a2332 !important;
+  }
+
+  .reference-rank-card span {
+    color: #47e6d1 !important;
+  }
+
+  .reference-rank-card small {
+    color: #49e88d !important;
+  }
+
+  .reference-featured-section,
+  .reference-number-section,
+  .reference-compact-section,
+  .reference-guide {
+    background: #17121f !important;
+  }
+
+  .reference-featured-grid,
+  .reference-number-row,
+  .reference-online-row,
+  .reference-live-row,
+  .reference-classic-row {
+    background: #17121f !important;
+  }
+
+  .reference-game-tile,
+  .reference-online-card,
+  .reference-live-card {
+    border: 1px solid #2c2036 !important;
+    background: #120d18 !important;
+    box-shadow: none !important;
+  }
+
+  .reference-online-card > span {
+    border-top: 1px solid #542166 !important;
+    background: linear-gradient(180deg, #3d174e, #24112f) !important;
+  }
+
+  .reference-online-card small {
+    color: #bf65e2 !important;
+  }
+
+  .reference-live-card {
+    background-image: linear-gradient(180deg, rgb(7 18 34 / 15%), rgb(15 9 23 / 90%)), url('/home-asset/live-bg.webp') !important;
+    background-position: center !important;
+    background-size: cover !important;
+  }
+
+  .reference-live-card footer a:first-child {
+    background: #f31d46 !important;
+  }
+
+  .reference-live-card footer a:last-child {
+    background: #a719ce !important;
+  }
+
+  .reference-number-row {
+    background: #100c15 !important;
+  }
+
+  .reference-number-card > span {
+    -webkit-text-stroke: 2px #0782ce !important;
+    text-shadow: 0 0 13px rgb(0 126 213 / 30%) !important;
+  }
+
+  .reference-guide details {
+    border: 1px solid #4a3a54 !important;
+    background: #292330 !important;
+  }
+
+  .reference-guide-more {
+    color: #e56cff !important;
+    border: 1px solid #8b27a4 !important;
+    background: transparent !important;
+  }
+
+  .reference-provider-strip {
+    color: #fff !important;
+    background: #100b16 !important;
+  }
+
+  .reference-provider-logo img {
+    filter: grayscale(1) brightness(1.9) !important;
+    opacity: .82 !important;
+  }
+
+  .reference-jackpot > div {
+    background: #20162a !important;
+  }
+
+  .reference-jackpot-art {
+    width: 100% !important;
+    max-height: 156px !important;
+    object-fit: contain !important;
+  }
+
+  .reference-leaderboard > div {
+    border-bottom: 1px solid #4a3157 !important;
+    background: #2a2132 !important;
+  }
+
+  .reference-leaderboard > div:nth-child(even) {
+    background: #30243a !important;
+  }
+
+  .reference-leaderboard small {
+    color: #d488ee !important;
+  }
+
+  .reference-mini-games > div {
+    background: #17121f !important;
+  }
+
+  .reference-mini-games a {
+    color: #fff !important;
+    border: 1px solid #33213e !important;
+    background: #1d1525 !important;
+  }
+
+  .member-reference-footer {
+    color: #fff !important;
+    background: #100b16 !important;
+    border-top: 1px solid #21162b !important;
+  }
+
+  .member-reference-footer__brand,
+  .member-reference-footer__column,
+  .member-reference-footer__payment {
+    color: #fff !important;
+  }
+
+  .member-reference-footer__column a,
+  .member-reference-footer__brand p,
+  .member-reference-footer__copyright {
+    color: #c5b7cc !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .public-home-topbar.global-member-topbar {
+    background: var(--a7-topbar) !important;
+  }
+
+  .v47-mobile-home {
+    color: #fff !important;
+    background: var(--a7-page) !important;
+  }
+
+  .v47-mobile-announcement {
+    border: 1px solid #2d1b37 !important;
+    background: #17111f !important;
+  }
+
+  .v47-mobile-announcement > img {
+    width: 22px !important;
+    height: 22px !important;
+    flex: 0 0 22px !important;
+  }
+
+  .v47-mobile-quick-grid > a {
+    color: #fff !important;
+    border: 1px solid var(--a7-border-bright) !important;
+    background: linear-gradient(135deg, #7800a8, #36004f) !important;
+  }
+
+  .v47-mobile-quick-grid img {
+    width: clamp(66px, 22vw, 96px) !important;
+    height: clamp(66px, 22vw, 96px) !important;
+    object-fit: contain !important;
+  }
+
+  .v47-mobile-tournament-banner {
+    color: #fff !important;
+    border: 1px solid #0d5f77 !important;
+    background: #093d52 !important;
+  }
+
+  .v47-mobile-panel,
+  .v47-mobile-jackpot {
+    color: #fff !important;
+    border: 1px solid var(--a7-border) !important;
+    background: var(--a7-panel) !important;
+  }
+
+  .v47-mobile-section-title {
+    color: #fff !important;
+    border-bottom: 1px solid #43234d !important;
+    background: linear-gradient(90deg, var(--a7-header-start), var(--a7-header-mid) 58%, var(--a7-header-end)) !important;
+  }
+
+  .v47-mobile-section-title img {
+    width: 25px !important;
+    height: 25px !important;
+    flex: 0 0 25px !important;
+  }
+
+  .v47-mobile-rank-title,
+  .v47-mobile-board-head,
+  .v47-mobile-board-row,
+  .v47-mobile-ranks article,
+  .v47-mobile-mini-games a,
+  .v47-mobile-guide details {
+    border-color: #44304f !important;
+    background: #292230 !important;
+  }
+
+  .v47-mobile-game-grid > a {
+    border: 1px solid #2b1d35 !important;
+    background: #15101c !important;
+  }
+
+  .v47-mobile-game-meta {
+    border-top: 1px solid #4d1f5c !important;
+    background: linear-gradient(180deg, #31133e, #21102b) !important;
+  }
+
+  .v47-mobile-live article {
+    background-image: linear-gradient(180deg, rgb(7 18 34 / 15%), rgb(15 9 23 / 90%)), url('/home-asset/live-bg.webp') !important;
+    background-position: center !important;
+    background-size: cover !important;
+  }
+
+  .v47-mobile-live footer a:first-child {
+    background: #f31d46 !important;
+  }
+
+  .v47-mobile-live footer a:last-child {
+    background: #a719ce !important;
+  }
+
+  .v47-mobile-mini-games a > img {
+    width: 70px !important;
+    height: 70px !important;
+    flex: 0 0 70px !important;
+  }
+
+  .member-reference-footer {
+    color: #fff !important;
+    background: #100b16 !important;
+  }
+}
