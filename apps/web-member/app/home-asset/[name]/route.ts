@@ -6,74 +6,112 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const GAME_ASSET_NAMES = Array.from({ length: 22 }, (_, index) => `game-${String(index + 1).padStart(2, '0')}.webp`);
+const PROVIDER_CODES = ['cq', 'evp', 'fachai', 'jili', 'joker', 'kingm', 'nlc', 'pg', 'pp', 'ps', 'rsg', 'ygr'] as const;
+const PROVIDER_ASSET_NAMES = PROVIDER_CODES.map((code) => `provider-${code}.png`);
+const BANK_CODES = ['baac', 'bay', 'bbl', 'cimbt', 'exim', 'ghb', 'gsb', 'kbank', 'kkp', 'ktb', 'lhfg', 'scb', 'tcd', 'tisco', 'tmn', 'ttb', 'uobt'] as const;
+const BANK_ASSET_NAMES = BANK_CODES.map((code) => `bank-${code}.webp`);
+const FOOTER_CODES = ['bmm', 'gamecare', 'gaminglab', 'gc', 'godaddy', 'group', 'iovation', 'itech'] as const;
+const FOOTER_ASSET_NAMES = FOOTER_CODES.map((code) => `footer-${code}.webp`);
 
 const ALLOWED = new Set([
-  'home.png',
+  'logo.png',
+  'icon-home.png',
+  'icon-casino.png',
+  'icon-slot.png',
+  'icon-fish.png',
+  'icon-sport.png',
+  'icon-card.png',
+  'icon-lotto.png',
+  'icon-live.png',
   'promotion.png',
   'activity.png',
   'news.png',
-  'mission.png',
+  'promo-special.png',
+  'promo-activity.png',
+  'promo-news.png',
+  'shortcut-promo.png',
+  'shortcut-event.png',
+  'shortcut-news.png',
   'mission.webp',
-  'fish.png',
-  'slot.png',
-  'casino.png',
-  'live.png',
-  'loto.png',
-  'card.png',
-  'sport.png',
-  'logo.png',
-  'promo-side.webp',
-  'hero-winners.webp',
-  'hero-login.webp',
-  'hero-news.webp',
-  'tournament.webp',
-  'icon-dailymission.webp',
-  'icon-luckywheel.webp',
+  'promo-side.jpg',
+  'hero-winners.jpg',
+  'hero-login.jpg',
+  'hero-news.jpg',
+  'tournament.png',
+  'tournament.svg',
+  'leader-board.svg',
+  'jackpot.gif',
+  'jackpot.webp',
+  'live-bg.webp',
+  'mini-game.webp',
+  'icon-dailymission-dt.webp',
+  'icon-luckywheel-dt.webp',
   'icon-open-gold.webp',
   'icongamehit.webp',
   'mostonline1.webp',
   'coin.webp',
+  'fire.webp',
   'star.webp',
+  'line.png',
   'rank1.webp',
   'rank2.webp',
   'rank3.webp',
+  'rankBadgeTop3.svg',
+  'rankBadgeOther.svg',
   ...GAME_ASSET_NAMES,
+  ...PROVIDER_ASSET_NAMES,
+  ...BANK_ASSET_NAMES,
+  ...FOOTER_ASSET_NAMES,
 ]);
 
 const SOURCE_NAMES: Record<string, string[]> = {
-  'logo.png': [
-    '9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7(1).png',
-    '9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png',
-    'logo.png',
-  ],
-  'home.png': ['หน้าเเรก.png', 'หน้าหลัก.png', 'icon-home.png', 'home.png'],
-  'promotion.png': ['โปรโมชัน.png', 'shortcut-promo.png', 'promotion.png'],
-  'activity.png': ['กิจกรรม.png', 'shortcut-event.png', 'activity.png'],
-  'news.png': ['ข่าวสาร.png', 'shortcut-news.png', 'news.png'],
-  'mission.png': ['กิจกรรม.png', 'mission.webp', 'mission.png'],
+  'logo.png': ['logo.png', '9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7(1).png', '9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png'],
+  'icon-home.png': ['icon-home.png', 'หน้าเเรก.png', 'หน้าหลัก.png'],
+  'icon-casino.png': ['icon-casino.png', 'คาสิโน.png'],
+  'icon-slot.png': ['icon-slot.png', 'สล็อต.png'],
+  'icon-fish.png': ['icon-fish.png', 'ตกปลา.png'],
+  'icon-sport.png': ['icon-sport.png', 'กีฬา.png'],
+  'icon-card.png': ['icon-card.png', 'ไพ่.png'],
+  'icon-lotto.png': ['icon-lotto.png', 'หวย.png'],
+  'icon-live.png': ['icon-live.png', 'ถ่ายทอดสด.png'],
+  'promotion.png': ['promo-special.png', 'โปรโมชัน.png', 'shortcut-promo.png', 'promotion.png'],
+  'activity.png': ['promo-activity.png', 'กิจกรรม.png', 'shortcut-event.png', 'activity.png'],
+  'news.png': ['promo-news.png', 'ข่าวสาร.png', 'shortcut-news.png', 'news.png'],
+  'promo-special.png': ['promo-special.png', 'shortcut-promo.png', 'โปรโมชัน.png'],
+  'promo-activity.png': ['promo-activity.png', 'shortcut-event.png', 'กิจกรรม.png'],
+  'promo-news.png': ['promo-news.png', 'shortcut-news.png', 'ข่าวสาร.png'],
+  'shortcut-promo.png': ['shortcut-promo.png', 'promo-special.png'],
+  'shortcut-event.png': ['shortcut-event.png', 'promo-activity.png'],
+  'shortcut-news.png': ['shortcut-news.png', 'promo-news.png'],
   'mission.webp': ['mission.webp', 'mission.png', 'กิจกรรม.png'],
-  'casino.png': ['คาสิโน.png', 'icon-casino.png', 'casino.png'],
-  'slot.png': ['สล็อต.png', 'icon-slot.png', 'slot.png'],
-  'fish.png': ['ตกปลา.png', 'icon-fish.png', 'fish.png'],
-  'sport.png': ['กีฬา.png', 'icon-sport.png', 'sport.png'],
-  'card.png': ['ไพ่.png', 'icon-card.png', 'card.png'],
-  'loto.png': ['หวย.png', 'icon-lotto.png', 'loto.png'],
-  'live.png': ['ถ่ายทอดสด.png', 'icon-live.png', 'live.png'],
-  'promo-side.webp': ['promo-side.webp', 'promo-side.jpg'],
-  'hero-winners.webp': ['hero-winners.webp', 'hero-winners.jpg'],
-  'hero-login.webp': ['hero-login.webp', 'hero-login.jpg'],
-  'hero-news.webp': ['hero-news.webp', 'hero-news.jpg'],
-  'tournament.webp': ['tournament.webp', 'tournament.png'],
-  'icon-dailymission.webp': ['icon-dailymission.webp', 'icon-dailymission-dt.webp'],
-  'icon-luckywheel.webp': ['icon-luckywheel.webp', 'icon-luckywheel-dt.webp'],
+  'promo-side.jpg': ['promo-side.jpg', 'promo-side.webp'],
+  'hero-winners.jpg': ['hero-winners.jpg', 'hero-winners.webp'],
+  'hero-login.jpg': ['hero-login.jpg', 'hero-login.webp'],
+  'hero-news.jpg': ['hero-news.jpg', 'hero-news.webp'],
+  'tournament.png': ['tournament.png', 'tournament.webp'],
+  'tournament.svg': ['tournament.svg'],
+  'leader-board.svg': ['leader-board.svg'],
+  'jackpot.gif': ['jackpot.gif'],
+  'jackpot.webp': ['jackpot.webp'],
+  'live-bg.webp': ['live-bg.webp', 'background_live.webp'],
+  'mini-game.webp': ['mini-game.webp'],
+  'icon-dailymission-dt.webp': ['icon-dailymission-dt.webp', 'icon-dailymission.webp'],
+  'icon-luckywheel-dt.webp': ['icon-luckywheel-dt.webp', 'icon-luckywheel.webp'],
   'icon-open-gold.webp': ['icon-open-gold.webp'],
   'icongamehit.webp': ['icongamehit.webp'],
   'mostonline1.webp': ['mostonline1.webp'],
   'coin.webp': ['coin.webp'],
+  'fire.webp': ['fire.webp'],
   'star.webp': ['star.webp'],
+  'line.png': ['line.png'],
   'rank1.webp': ['rank1.webp'],
   'rank2.webp': ['rank2.webp'],
   'rank3.webp': ['rank3.webp'],
+  'rankBadgeTop3.svg': ['rankBadgeTop3.svg'],
+  'rankBadgeOther.svg': ['rankBadgeOther.svg'],
+  ...Object.fromEntries(PROVIDER_CODES.map((code) => [`provider-${code}.png`, [`provider-${code}.png`]])),
+  ...Object.fromEntries(BANK_CODES.map((code) => [`bank-${code}.webp`, [`${code}.webp`, `${code.toUpperCase()}.webp`]])),
+  ...Object.fromEntries(FOOTER_CODES.map((code) => [`footer-${code}.webp`, [`footer-${code}.webp`]])),
 };
 
 const cache = new Map<string, string | null>();
@@ -98,9 +136,7 @@ async function resolveAsset(publicName: string) {
   if (cache.has(publicName)) return cache.get(publicName) ?? null;
 
   const targets = sourceNamesFor(publicName);
-  const roots = candidateRoots();
-
-  for (const root of roots) {
+  for (const root of candidateRoots()) {
     for (const target of targets) {
       const direct = path.join(root, target);
       if (await isFile(direct)) {
@@ -109,7 +145,7 @@ async function resolveAsset(publicName: string) {
       }
     }
 
-    const found = await findByBasename(root, new Set(targets), 7);
+    const found = await findByBasename(root, new Set(targets), 8);
     if (found) {
       cache.set(publicName, found);
       return found;
@@ -132,12 +168,8 @@ function sourceNamesFor(publicName: string) {
 
 function candidateRoots() {
   const cwd = process.cwd();
-  return Array.from(new Set([
-    path.resolve(cwd, 'asset'),
-    path.resolve(cwd, '../../asset'),
-    path.resolve(cwd, '../../../asset'),
-    path.resolve(cwd, '../../../../asset'),
-  ]));
+  const relativeRoots = ['asset', 'assets', '../../asset', '../../assets', '../../../asset', '../../../assets', '../../../../asset', '../../../../assets'];
+  return Array.from(new Set(relativeRoots.map((root) => path.resolve(cwd, root))));
 }
 
 async function findByBasename(root: string, targets: Set<string>, depth: number): Promise<string | null> {
