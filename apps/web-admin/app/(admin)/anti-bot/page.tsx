@@ -126,56 +126,60 @@ export default function AntiBotPage() {
   }
 
   return <AdminPage eyebrow="Security" title="CAPTCHA / Anti-bot" description="ตั้งค่าการป้องกัน bot แบบเป็นขั้นตอน โดยไม่เปิด route ก่อนระบบพร้อม" actions={<AdminButton type="button" tone="secondary" disabled={saving} onClick={() => void load()}>{busyKey === 'load' ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}>
-    {message && <AdminNotice tone={messageTone(message)}>{message}</AdminNotice>}
+    <div className="admin-antibot">
+      {message && <AdminNotice tone={messageTone(message)}>{message}</AdminNotice>}
 
-    <AdminMetricGrid>
-      <AdminMetric title="Setup progress" value={`${readiness}/4`} helper="Key, Secret, Route, Test" tone={readiness === 4 ? 'success' : 'warning'} />
-      <AdminMetric title="Provider" value={config.provider} />
-      <AdminMetric title="Protected routes" value={String(Object.values(config.routes).filter(Boolean).length)} tone={hasProtectedRoute ? 'success' : 'warning'} />
-      <AdminMetric title="Status" value={config.enabled ? 'ENABLED' : 'DISABLED'} tone={config.enabled ? 'success' : 'warning'} />
-    </AdminMetricGrid>
+      <AdminMetricGrid>
+        <AdminMetric title="Setup progress" value={`${readiness}/4`} helper="Key, Secret, Route, Test" tone={readiness === 4 ? 'success' : 'warning'} />
+        <AdminMetric title="Provider" value={config.provider} />
+        <AdminMetric title="Protected routes" value={String(Object.values(config.routes).filter(Boolean).length)} tone={hasProtectedRoute ? 'success' : 'warning'} />
+        <AdminMetric title="Status" value={config.enabled ? 'ENABLED' : 'DISABLED'} tone={config.enabled ? 'success' : 'warning'} />
+      </AdminMetricGrid>
 
-    <AdminCard title="Setup Checklist" description="ทำตามลำดับก่อนเปิดใช้งานจริง">
-      <AdminStack>
-        <Step number="1" title="เลือก Provider และใส่ Site key" done={hasSiteKey} />
-        <Step number="2" title="ตั้งค่า Secret key และบันทึก" done={config.secretConfigured && !credentialsDirty} />
-        <Step number="3" title="เลือก Route ที่ต้องป้องกัน" done={hasProtectedRoute} />
-        <Step number="4" title="ทดสอบ Provider ด้วย token จริง" done={providerReady} />
-      </AdminStack>
-    </AdminCard>
+      <div className="admin-antibot-progress" role="progressbar" aria-label="Anti-bot setup progress" aria-valuemin={0} aria-valuemax={4} aria-valuenow={readiness}><span style={{ width: `${readiness * 25}%` }} /></div>
 
-    <AdminCard title="สถานะ" description="ระบบจะไม่ยอมเปิดจนกว่า Setup Checklist จะครบ">
-      <AdminStack>
-        <div style={rowStyle}><span>ระบบ Anti-bot</span><AdminBadge tone={config.enabled ? 'success' : 'warning'}>{config.enabled ? 'ENABLED' : 'DISABLED'}</AdminBadge></div>
-        <label style={checkStyle}><input type="checkbox" checked={config.enabled} onChange={(event) => toggleEnabled(event.target.checked)} disabled={saving || (!config.enabled && !readyToEnable)} /> เปิดใช้งาน Anti-bot</label>
-        {!readyToEnable && !config.enabled && <small style={hintStyle}>ปุ่มเปิดใช้จะพร้อมเมื่อ Key, Secret, Route และ Provider Test ผ่านครบ</small>}
-        <label style={checkStyle}><input type="checkbox" checked={config.adaptiveMode} onChange={(event) => setConfig((current) => ({ ...current, adaptiveMode: event.target.checked }))} disabled={saving} /> Adaptive challenge</label>
-        <label style={checkStyle}><input type="checkbox" checked={config.emergencyMode} onChange={(event) => setConfig((current) => ({ ...current, emergencyMode: event.target.checked }))} disabled={saving} /> Emergency mode</label>
-      </AdminStack>
-    </AdminCard>
+      <AdminCard title="Setup Checklist" description="ทำตามลำดับก่อนเปิดใช้งานจริง">
+        <AdminStack>
+          <Step number="1" title="เลือก Provider และใส่ Site key" done={hasSiteKey} />
+          <Step number="2" title="ตั้งค่า Secret key และบันทึก" done={config.secretConfigured && !credentialsDirty} />
+          <Step number="3" title="เลือก Route ที่ต้องป้องกัน" done={hasProtectedRoute} />
+          <Step number="4" title="ทดสอบ Provider ด้วย token จริง" done={providerReady} />
+        </AdminStack>
+      </AdminCard>
 
-    <AdminCard title="Provider" description="รองรับ Cloudflare Turnstile, Google reCAPTCHA และ hCaptcha">
-      <div style={gridStyle}>
-        <label style={fieldStyle}>Provider<select value={config.provider} onChange={(event) => setProvider(event.target.value as Provider)} style={inputStyle} disabled={saving}><option value="TURNSTILE">Cloudflare Turnstile</option><option value="RECAPTCHA">Google reCAPTCHA</option><option value="HCAPTCHA">hCaptcha</option></select></label>
-        <label style={fieldStyle}>Site key<input value={config.siteKey} onChange={(event) => setSiteKey(event.target.value)} style={inputStyle} autoComplete="off" disabled={saving} /></label>
-        <label style={fieldStyle}>Secret key<input value={secret} onChange={(event) => setSecretValue(event.target.value)} placeholder={config.secretConfigured ? 'ตั้งค่าแล้ว ••••••••' : 'ยังไม่ได้ตั้งค่า'} style={inputStyle} type="password" autoComplete="new-password" disabled={saving} /></label>
-      </div>
-      {credentialsDirty && <small style={hintStyle}>มีการเปลี่ยน Provider หรือ key กรุณาบันทึกก่อนทดสอบ</small>}
-    </AdminCard>
+      <AdminCard title="สถานะ" description="ระบบจะไม่ยอมเปิดจนกว่า Setup Checklist จะครบ">
+        <AdminStack>
+          <div className="admin-antibot-status-row"><span>ระบบ Anti-bot</span><span /><AdminBadge tone={config.enabled ? 'success' : 'warning'}>{config.enabled ? 'ENABLED' : 'DISABLED'}</AdminBadge></div>
+          <label className="admin-antibot-check"><input type="checkbox" checked={config.enabled} onChange={(event) => toggleEnabled(event.target.checked)} disabled={saving || (!config.enabled && !readyToEnable)} /><span>เปิดใช้งาน Anti-bot</span></label>
+          {!readyToEnable && !config.enabled && <small className="admin-antibot-hint">ปุ่มเปิดใช้จะพร้อมเมื่อ Key, Secret, Route และ Provider Test ผ่านครบ</small>}
+          <label className="admin-antibot-check"><input type="checkbox" checked={config.adaptiveMode} onChange={(event) => setConfig((current) => ({ ...current, adaptiveMode: event.target.checked }))} disabled={saving} /><span>Adaptive challenge</span></label>
+          <label className="admin-antibot-check"><input type="checkbox" checked={config.emergencyMode} onChange={(event) => setConfig((current) => ({ ...current, emergencyMode: event.target.checked }))} disabled={saving} /><span>Emergency mode</span></label>
+        </AdminStack>
+      </AdminCard>
 
-    <AdminCard title="Route ที่ป้องกัน" description="เลือกอย่างน้อยหนึ่ง route ก่อนเปิดใช้งาน">
-      <AdminStack>
-        <label style={checkStyle}><input type="checkbox" checked={config.routes.ADMIN_LOGIN} onChange={(event) => setRoute('ADMIN_LOGIN', event.target.checked)} disabled={saving} /> Admin Login</label>
-        <label style={checkStyle}><input type="checkbox" checked={config.routes.MEMBER_LOGIN} onChange={(event) => setRoute('MEMBER_LOGIN', event.target.checked)} disabled={saving} /> Member Login</label>
-        <label style={checkStyle}><input type="checkbox" checked={config.routes.MEMBER_REGISTER} onChange={(event) => setRoute('MEMBER_REGISTER', event.target.checked)} disabled={saving} /> Member Register</label>
-      </AdminStack>
-    </AdminCard>
+      <AdminCard title="Provider" description="รองรับ Cloudflare Turnstile, Google reCAPTCHA และ hCaptcha">
+        <div className="admin-antibot-grid">
+          <label className="admin-antibot-field"><span>Provider</span><select value={config.provider} onChange={(event) => setProvider(event.target.value as Provider)} disabled={saving}><option value="TURNSTILE">Cloudflare Turnstile</option><option value="RECAPTCHA">Google reCAPTCHA</option><option value="HCAPTCHA">hCaptcha</option></select></label>
+          <label className="admin-antibot-field"><span>Site key</span><input value={config.siteKey} onChange={(event) => setSiteKey(event.target.value)} autoComplete="off" disabled={saving} /></label>
+          <label className="admin-antibot-field"><span>Secret key</span><input value={secret} onChange={(event) => setSecretValue(event.target.value)} placeholder={config.secretConfigured ? 'ตั้งค่าแล้ว ••••••••' : 'ยังไม่ได้ตั้งค่า'} type="password" autoComplete="new-password" disabled={saving} /></label>
+        </div>
+        {credentialsDirty && <small className="admin-antibot-hint">มีการเปลี่ยน Provider หรือ key กรุณาบันทึกก่อนทดสอบ</small>}
+      </AdminCard>
 
-    <AdminCard title="ทดสอบ Provider" description="ใช้ response token จริงเพื่อยืนยัน Secret ที่บันทึกแล้ว โดยไม่เปิด route ก่อน">
-      <div style={gridStyle}><input value={testToken} onChange={(event) => setTestToken(event.target.value)} placeholder="CAPTCHA response token" style={inputStyle} disabled={saving} /><AdminButton type="button" tone="secondary" onClick={() => void testProvider()} disabled={saving || !savedProviderConfig}>{busyKey === 'test' ? 'กำลังทดสอบ...' : 'ทดสอบ'}</AdminButton></div>
-    </AdminCard>
+      <AdminCard title="Route ที่ป้องกัน" description="เลือกอย่างน้อยหนึ่ง route ก่อนเปิดใช้งาน">
+        <div className="admin-antibot-grid">
+          <label className="admin-antibot-check"><input type="checkbox" checked={config.routes.ADMIN_LOGIN} onChange={(event) => setRoute('ADMIN_LOGIN', event.target.checked)} disabled={saving} /><span>Admin Login</span></label>
+          <label className="admin-antibot-check"><input type="checkbox" checked={config.routes.MEMBER_LOGIN} onChange={(event) => setRoute('MEMBER_LOGIN', event.target.checked)} disabled={saving} /><span>Member Login</span></label>
+          <label className="admin-antibot-check"><input type="checkbox" checked={config.routes.MEMBER_REGISTER} onChange={(event) => setRoute('MEMBER_REGISTER', event.target.checked)} disabled={saving} /><span>Member Register</span></label>
+        </div>
+      </AdminCard>
 
-    <div style={actionStyle}><AdminButton type="button" onClick={() => void save()} disabled={saving}>{busyKey === 'save' ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}</AdminButton></div>
+      <AdminCard title="ทดสอบ Provider" description="ใช้ response token จริงเพื่อยืนยัน Secret ที่บันทึกแล้ว โดยไม่เปิด route ก่อน">
+        <div className="admin-antibot-grid"><label className="admin-antibot-field"><span>Response token</span><input value={testToken} onChange={(event) => setTestToken(event.target.value)} placeholder="CAPTCHA response token" disabled={saving} /></label><AdminButton type="button" tone="secondary" onClick={() => void testProvider()} disabled={saving || !savedProviderConfig}>{busyKey === 'test' ? 'กำลังทดสอบ...' : 'ทดสอบ'}</AdminButton></div>
+      </AdminCard>
+
+      <div className="admin-antibot-actions"><AdminButton type="button" onClick={() => void save()} disabled={saving}>{busyKey === 'save' ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}</AdminButton></div>
+    </div>
   </AdminPage>;
 }
 
@@ -185,11 +189,4 @@ function isRoutes(value: unknown): value is Routes { return isRecord(value) && t
 function isConfig(value: unknown): value is Config { return isRecord(value) && typeof value.enabled === 'boolean' && isProvider(value.provider) && typeof value.siteKey === 'string' && typeof value.secretConfigured === 'boolean' && isRoutes(value.routes) && typeof value.adaptiveMode === 'boolean' && typeof value.emergencyMode === 'boolean'; }
 function isTestResult(value: unknown): value is { success: boolean } { return isRecord(value) && typeof value.success === 'boolean'; }
 function messageTone(message: string): 'neutral' | 'success' | 'warning' | 'danger' { if (message.includes('สำเร็จ') || message.includes('แล้ว')) return 'success'; if (message.includes('ไม่สำเร็จ') || message.includes('ไม่ผ่าน')) return 'danger'; if (message.includes('ยัง') || message.includes('กรุณา')) return 'warning'; return 'neutral'; }
-function Step({ number, title, done }: { number: string; title: string; done: boolean }) { return <div style={rowStyle}><span><strong>{number}.</strong> {title}</span><AdminBadge tone={done ? 'success' : 'warning'}>{done ? 'พร้อม' : 'ยังไม่ครบ'}</AdminBadge></div>; }
-const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 12 } as const;
-const fieldStyle = { display: 'grid', gap: 8, color: '#e2e8f0', fontWeight: 800 } as const;
-const inputStyle = { minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.24)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', width: '100%', boxSizing: 'border-box' as const };
-const rowStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' } as const;
-const checkStyle = { display: 'flex', gap: 10, alignItems: 'center', minHeight: 44, color: '#e2e8f0', fontWeight: 800 } as const;
-const hintStyle = { color: '#94a3b8', lineHeight: 1.5 } as const;
-const actionStyle = { display: 'flex', justifyContent: 'flex-end' } as const;
+function Step({ number, title, done }: { number: string; title: string; done: boolean }) { return <div className="admin-antibot-step" data-complete={done || undefined}><span className="admin-antibot-step__number">{number}</span><span className="admin-antibot-step__copy">{title}</span><AdminBadge tone={done ? 'success' : 'warning'}>{done ? 'พร้อม' : 'ยังไม่ครบ'}</AdminBadge></div>; }
