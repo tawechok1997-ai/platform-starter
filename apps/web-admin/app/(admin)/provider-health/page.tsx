@@ -79,26 +79,28 @@ export default function ProviderHealthPage() {
   function selectView(next: 'all' | 'attention' | 'online') { setSavedView(next); window.localStorage.setItem('provider-health-view', next); }
 
   const columns: AdminDataColumn<Provider>[] = [
-    { key: 'provider', title: 'ค่ายเกม', render: (provider) => <div><strong>{provider.name}</strong><small style={{ display: 'block', color: '#94a3b8' }}>{provider.code}</small></div>, sortValue: (provider) => provider.name, searchValue: (provider) => `${provider.name} ${provider.code}` },
+    { key: 'provider', title: 'ค่ายเกม', render: (provider) => <div className="admin-provider-health__identity"><strong>{provider.name}</strong><small>{provider.code}</small></div>, sortValue: (provider) => provider.name, searchValue: (provider) => `${provider.name} ${provider.code}` },
     { key: 'status', title: 'สถานะ', render: (provider) => { const result = health[provider.id]; return <AdminBadge tone={providerTone(provider, result)}>{providerStatusLabel(result?.payload?.status ?? provider.status)}</AdminBadge>; }, sortValue: (provider) => health[provider.id]?.payload?.status ?? provider.status },
     { key: 'latency', title: 'เวลาตอบสนอง', render: (provider) => { const latencyMs = health[provider.id]?.payload?.latencyMs; return latencyMs != null ? `${latencyMs} ms` : '-'; }, sortValue: (provider) => Number(health[provider.id]?.payload?.latencyMs ?? 0), align: 'right' },
     { key: 'readiness', title: 'ความพร้อม', render: (provider) => { const readiness = health[provider.id]?.readiness; return readiness ? `${readiness.passed ?? 0}/${readiness.total ?? 0}` : '-'; }, sortValue: (provider) => Number(health[provider.id]?.readiness?.passed ?? 0), align: 'center' },
     { key: 'games', title: 'เกม', render: (provider) => Number(provider._count?.games ?? 0).toLocaleString('th-TH'), sortValue: (provider) => Number(provider._count?.games ?? 0), align: 'right' },
     { key: 'webhooks', title: 'Webhook', render: (provider) => Number(provider._count?.webhookLogs ?? 0).toLocaleString('th-TH'), sortValue: (provider) => Number(provider._count?.webhookLogs ?? 0), align: 'right' },
-    { key: 'actions', title: 'จัดการ', render: (provider) => <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton disabled={checkingId === provider.id} onClick={() => void check(provider)}>{checkingId === provider.id ? 'กำลังตรวจ...' : 'ตรวจการเชื่อมต่อ'}</AdminButton><AdminLinkButton href="/game-providers">ตั้งค่าค่าย</AdminLinkButton></div>, defaultVisible: true },
+    { key: 'actions', title: 'จัดการ', render: (provider) => <div className="admin-provider-health__actions"><AdminButton disabled={checkingId === provider.id} onClick={() => void check(provider)}>{checkingId === provider.id ? 'กำลังตรวจ...' : 'ตรวจการเชื่อมต่อ'}</AdminButton><AdminLinkButton href="/game-providers">ตั้งค่าค่าย</AdminLinkButton></div>, defaultVisible: true },
   ];
 
   return <AdminPage eyebrow="ค่ายเกม" title="สถานะค่ายเกม" description="ดูการเชื่อมต่อ เวลาตอบสนอง Webhook และยอดเงินที่ไม่ตรงกันในหน้าเดียว" actions={<AdminButton disabled={loading} onClick={() => void load()}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}>
-    {message && <AdminNotice tone="warning">{message}</AdminNotice>}
-    <AdminMetricGrid>
-      <AdminMetric title="ค่ายทั้งหมด" value={metrics.total.toLocaleString('th-TH')} helper={`${metrics.degraded} ค่ายต้องตรวจ`} tone={metrics.degraded ? 'warning' : 'success'} />
-      <AdminMetric title="เวลาตอบสนองเฉลี่ย" value={metrics.averageLatency ? `${metrics.averageLatency} ms` : '-'} helper={`ตรวจแล้ว ${metrics.checked} ค่าย`} tone={metrics.averageLatency > 1500 ? 'warning' : 'success'} />
-      <AdminMetric title="ตรวจไม่ผ่าน" value={`${metrics.errorRate}%`} helper={`${metrics.failures} จาก ${metrics.checked || 0} ครั้ง`} tone={metrics.errorRate ? 'danger' : 'success'} />
-      <AdminMetric title="Webhook ผิดพลาด" value={`${metrics.webhookFailureRate}%`} helper={`${webhook.failed ?? 0} จาก ${webhook.total ?? 0} รายการ`} tone={metrics.webhookFailureRate ? 'warning' : 'success'} />
-      <AdminMetric title="ยอดเงินไม่ตรง" value={metrics.mismatch.toLocaleString('th-TH')} helper={`ตรวจ ${wallet.total ?? 0} รายการ`} tone={metrics.mismatch ? 'danger' : 'success'} />
-    </AdminMetricGrid>
-    <AdminCard title="Saved views" description="มุมมองที่ใช้ล่าสุดจะถูกจำไว้ใน browser นี้"><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><AdminButton tone={savedView === 'all' ? 'primary' : 'secondary'} onClick={() => selectView('all')}>ทั้งหมด ({items.length})</AdminButton><AdminButton tone={savedView === 'attention' ? 'primary' : 'secondary'} onClick={() => selectView('attention')}>ต้องตรวจ ({metrics.degraded + metrics.failures})</AdminButton><AdminButton tone={savedView === 'online' ? 'primary' : 'secondary'} onClick={() => selectView('online')}>ออนไลน์</AdminButton></div></AdminCard>
-    <AdminDataTable id="provider-health" rows={displayedItems} columns={columns} rowKey={(provider) => provider.id} loading={loading} error={message} emptyText="ยังไม่มีข้อมูลค่ายเกม" searchPlaceholder="ค้นหาชื่อหรือรหัสค่าย" />
+    <div className="admin-provider-health">
+      {message && <AdminNotice tone="warning">{message}</AdminNotice>}
+      <AdminMetricGrid>
+        <AdminMetric title="ค่ายทั้งหมด" value={metrics.total.toLocaleString('th-TH')} helper={`${metrics.degraded} ค่ายต้องตรวจ`} tone={metrics.degraded ? 'warning' : 'success'} />
+        <AdminMetric title="เวลาตอบสนองเฉลี่ย" value={metrics.averageLatency ? `${metrics.averageLatency} ms` : '-'} helper={`ตรวจแล้ว ${metrics.checked} ค่าย`} tone={metrics.averageLatency > 1500 ? 'warning' : 'success'} />
+        <AdminMetric title="ตรวจไม่ผ่าน" value={`${metrics.errorRate}%`} helper={`${metrics.failures} จาก ${metrics.checked || 0} ครั้ง`} tone={metrics.errorRate ? 'danger' : 'success'} />
+        <AdminMetric title="Webhook ผิดพลาด" value={`${metrics.webhookFailureRate}%`} helper={`${webhook.failed ?? 0} จาก ${webhook.total ?? 0} รายการ`} tone={metrics.webhookFailureRate ? 'warning' : 'success'} />
+        <AdminMetric title="ยอดเงินไม่ตรง" value={metrics.mismatch.toLocaleString('th-TH')} helper={`ตรวจ ${wallet.total ?? 0} รายการ`} tone={metrics.mismatch ? 'danger' : 'success'} />
+      </AdminMetricGrid>
+      <AdminCard title="Saved views" description="มุมมองที่ใช้ล่าสุดจะถูกจำไว้ใน browser นี้"><div className="admin-provider-health__views" role="group" aria-label="มุมมองสถานะค่ายเกม"><AdminButton tone={savedView === 'all' ? 'primary' : 'secondary'} onClick={() => selectView('all')}>ทั้งหมด ({items.length.toLocaleString('th-TH')})</AdminButton><AdminButton tone={savedView === 'attention' ? 'primary' : 'secondary'} onClick={() => selectView('attention')}>ต้องตรวจ ({(metrics.degraded + metrics.failures).toLocaleString('th-TH')})</AdminButton><AdminButton tone={savedView === 'online' ? 'primary' : 'secondary'} onClick={() => selectView('online')}>ออนไลน์</AdminButton></div></AdminCard>
+      <AdminDataTable id="provider-health" rows={displayedItems} columns={columns} rowKey={(provider) => provider.id} loading={loading} error={message} emptyText="ยังไม่มีข้อมูลค่ายเกม" searchPlaceholder="ค้นหาชื่อหรือรหัสค่าย" />
+    </div>
   </AdminPage>;
 }
 
