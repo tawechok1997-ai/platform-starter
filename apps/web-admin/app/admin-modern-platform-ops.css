@@ -1,0 +1,189 @@
+/* Provider operations and Growth Center workflows. */
+.admin-provider-health,
+.admin-growth-center {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.admin-provider-health__views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 7px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 14px;
+  background: rgb(5 10 18 / 44%);
+}
+
+.admin-provider-health__views .admin-ui-button {
+  flex: 1 1 160px;
+  min-height: 42px;
+}
+
+.admin-provider-health__identity {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-provider-health__identity strong {
+  color: #f8fafc;
+  overflow-wrap: anywhere;
+}
+
+.admin-provider-health__identity small {
+  color: var(--admin-modern-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-provider-health__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.admin-provider-health__actions > * {
+  flex: 1 1 150px;
+}
+
+.admin-provider-health .admin-data-table__scroll {
+  border-color: var(--admin-modern-border);
+  background: rgb(5 10 18 / 34%);
+}
+
+.admin-provider-health .admin-data-table tbody tr:has(.admin-ui-badge--danger) {
+  background: rgb(251 113 133 / 3.5%);
+}
+
+.admin-provider-health .admin-data-table tbody tr:has(.admin-ui-badge--warning) {
+  background: rgb(245 158 11 / 2.8%);
+}
+
+.admin-growth-center__metrics {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-growth-center__queue-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.admin-growth-queue {
+  min-width: 0;
+  height: 100%;
+}
+
+.admin-growth-queue > .admin-ui-card {
+  position: relative;
+  height: 100%;
+  min-height: 235px;
+  overflow: hidden;
+  transition: transform 170ms var(--admin-modern-ease), border-color 170ms ease, box-shadow 170ms ease;
+}
+
+.admin-growth-queue > .admin-ui-card::before {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--admin-modern-brand), transparent 72%);
+  content: '';
+  opacity: .68;
+}
+
+.admin-growth-queue[data-tone='warning'] > .admin-ui-card::before {
+  background: linear-gradient(90deg, var(--admin-modern-warning), transparent 72%);
+}
+
+.admin-growth-queue[data-tone='danger'] > .admin-ui-card::before {
+  background: linear-gradient(90deg, var(--admin-modern-danger), transparent 72%);
+}
+
+.admin-growth-queue[data-tone='success'] > .admin-ui-card::before {
+  background: linear-gradient(90deg, var(--admin-modern-success), transparent 72%);
+}
+
+.admin-growth-queue > .admin-ui-card:hover {
+  border-color: rgb(124 109 242 / 28%) !important;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 24%) !important;
+  transform: translateY(-2px);
+}
+
+.admin-growth-queue__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 12px;
+  background: rgb(5 10 18 / 38%);
+}
+
+.admin-growth-queue__row strong {
+  color: #e2e8f0;
+  overflow-wrap: anywhere;
+}
+
+.admin-growth-center__guard {
+  position: sticky;
+  bottom: 12px;
+  z-index: 7;
+  border-color: rgb(245 158 11 / 24%) !important;
+  background: rgb(7 11 20 / 88%) !important;
+  box-shadow: 0 14px 36px rgb(0 0 0 / 24%);
+  backdrop-filter: blur(15px);
+}
+
+@media (max-width: 1099px) {
+  .admin-growth-center__queue-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-provider-health,
+  .admin-growth-center {
+    gap: 14px;
+  }
+
+  .admin-provider-health__views {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-provider-health__views .admin-ui-button,
+  .admin-provider-health__actions,
+  .admin-provider-health__actions > * {
+    width: 100%;
+  }
+
+  .admin-provider-health__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-growth-center__queue-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-growth-queue > .admin-ui-card {
+    min-height: 0;
+  }
+
+  .admin-growth-center__guard {
+    bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-growth-queue > .admin-ui-card {
+    transition: none !important;
+  }
+}
