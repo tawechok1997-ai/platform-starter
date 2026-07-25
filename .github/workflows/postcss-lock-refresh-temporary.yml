@@ -1,0 +1,60 @@
+name: Temporary PostCSS Lock Refresh
+
+on:
+  push:
+    branches:
+      - fix/admin-shell-responsive-layout
+    paths:
+      - '.github/workflows/postcss-lock-refresh-temporary.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: postcss-lock-refresh-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  refresh-lockfile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/admin-shell-responsive-layout
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Verify patched override
+        run: grep -F 'postcss: 8.5.23' pnpm-workspace.yaml
+
+      - name: Refresh lockfile without lifecycle scripts
+        run: pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts
+
+      - name: Commit generated lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- pnpm-lock.yaml; then
+            echo 'Lockfile is already current.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add pnpm-lock.yaml
+          git commit -m 'chore(lockfile): refresh patched PostCSS override'
+          git push origin HEAD:fix/admin-shell-responsive-layout
