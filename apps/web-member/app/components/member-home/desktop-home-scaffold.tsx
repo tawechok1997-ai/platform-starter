@@ -3,11 +3,7 @@
 import type { SyntheticEvent } from 'react';
 import type { CmsAsset, CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
-import {
-  REFERENCE_GAMES,
-  REFERENCE_HOME_ASSETS,
-  REFERENCE_PROVIDERS,
-} from '../reference-asset-catalog';
+import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from '../reference-asset-catalog';
 import { DesktopHeroCarousel } from './desktop-hero-carousel';
 import { V47_ASSETS } from './v47-asset-map';
 
@@ -23,7 +19,7 @@ const PROMO_CARDS: PromoCard[] = [
 ];
 
 const ARCHIVE_GAMES: ArchiveGame[] = REFERENCE_GAMES.map(({ name, url }) => ({ name, imageUrl: url }));
-const RANK_ART = [REFERENCE_HOME_ASSETS.rank1, REFERENCE_HOME_ASSETS.rank2, REFERENCE_HOME_ASSETS.rank3] as const;
+const RANK_ART = [V47_ASSETS.rank1, V47_ASSETS.rank2, V47_ASSETS.rank3] as const;
 
 const MATCH_CARDS = [
   { time: 'LIVE', league: 'พรีเมียร์ลีก', home: 'ทีมเหย้า', away: 'ทีมเยือน' },
@@ -72,35 +68,35 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
           <a href="/promotions" className="reference-tournament-cta"><AssetIcon asset={assets.tournament} configured={V47_ASSETS.tournament} fallback="V" className="reference-tournament-mark" /><span><small>TOURNAMENT</small><strong>เข้าร่วมชิงความเป็นที่ 1</strong></span><b>เข้าแข่งขัน ›</b></a>
 
           <section className="reference-panel reference-tournament-board">
-            <PanelHeading asset={assets.tournament} configured={REFERENCE_HOME_ASSETS.tournament} fallback="🏆" title="ทัวร์นาเมนต์" />
+            <PanelHeading asset={assets.tournament} configured={V47_ASSETS.tournament} fallback="🏆" title="ทัวร์นาเมนต์" />
             <div className="reference-tournament-title"><strong>No.1 Tournament Football Royale ครั้งที่ 2</strong><a href="/promotions">ดูทั้งหมด ›</a></div>
             <div className="reference-tournament-track" data-drag-scroll="true">{Array.from({ length: 8 }, (_, index) => <article key={index} className="reference-rank-card"><RankMark index={index} /><strong>{maskName(index)}</strong><span>{20 - index * 2}</span><small>● ● ● ● ●</small></article>)}</div>
             <div className="reference-panel-dots" aria-hidden="true"><i className="active" /><i /><i /></div>
           </section>
 
           <section className="reference-panel reference-featured-section">
-            <PanelHeading asset={assets.featured} configured={icons.games} fallback="★" title="เกมไฮไลต์" />
+            <PanelHeading asset={assets.featured} configured={V47_ASSETS.gameHit} fallback="★" title="เกมไฮไลต์" />
             {isGamesLoading ? <EmptyState label="กำลังโหลดเกมจาก API..." /> : featured.length ? <div className="reference-featured-grid"><GameTile game={featured[0]!} large /><div className="reference-featured-small-grid" data-drag-scroll="true">{featured.slice(1, 9).map((game) => <GameTile key={game.id} game={game} />)}</div></div> : <ArchiveFeaturedGames message={gamesMessage} />}
           </section>
 
-          <section className="reference-number-section"><PanelHeading asset={assets.popular} configured={icons.games} fallback="🔥" title="Top 10 Popular Games" /><div className="reference-number-row" data-drag-scroll="true">
+          <section className="reference-number-section"><PanelHeading asset={assets.popular} configured={V47_ASSETS.openGold} fallback="🔥" title="Top 10 Popular Games" /><div className="reference-number-row" data-drag-scroll="true">
             {popular.length ? popular.map((game, index) => <a key={`${game.id}-${index}`} href="/login?next=%2Fgames" className="reference-number-card" title={safeGameName(game)}><GameImage game={game} /><span>{index + 1}</span><strong>{safeGameName(game)}</strong></a>) : ARCHIVE_GAMES.slice(0, 10).map((game, index) => <ArchiveNumberCard key={game.name} game={game} index={index} />)}
           </div></section>
 
-          <section className="reference-compact-section"><PanelHeading asset={assets.online} configured={icons.games} fallback="⚡" title="Most Online Now" /><div className="reference-online-row" data-drag-scroll="true">{online.length ? online.map((game, index) => <a key={`${game.id}-${index}`} href="/login?next=%2Fgames" className="reference-online-card"><GameImage game={game} /><span><strong>{safeGameName(game)}</strong><small>♟ {(4274 - index * 437).toLocaleString()}</small></span></a>) : ARCHIVE_GAMES.slice(6, 13).map((game, index) => <ArchiveOnlineCard key={game.name} game={game} index={index} />)}</div></section>
+          <section className="reference-compact-section"><PanelHeading asset={assets.online} configured={V47_ASSETS.mostOnline} fallback="⚡" title="Most Online Now" /><div className="reference-online-row" data-drag-scroll="true">{online.length ? online.map((game, index) => <a key={`${game.id}-${index}`} href="/login?next=%2Fgames" className="reference-online-card"><GameImage game={game} /><span><strong>{safeGameName(game)}</strong><small>♟ {(4274 - index * 437).toLocaleString()}</small></span></a>) : ARCHIVE_GAMES.slice(6, 13).map((game, index) => <ArchiveOnlineCard key={game.name} game={game} index={index} />)}</div></section>
 
-          <section className="reference-compact-section" id="live"><PanelHeading asset={assets.live} configured={V47_ASSETS.live} fallback="🔴" title="Live Now!!" /><div className="reference-live-row" data-drag-scroll="true">{MATCH_CARDS.map((match, index) => <article key={`${match.league}-${index}`} className="reference-live-card"><header><span>{match.league}</span><b>{match.time}</b></header><div><strong>{match.home}</strong><span>VS</span><strong>{match.away}</strong></div><footer><a href="/login">ดูบอลสด</a><a href="/login">เล่นเกมทันที</a></footer></article>)}</div></section>
+          <section className="reference-compact-section" id="live"><PanelHeading asset={assets.live} configured={V47_ASSETS.liveIcon} fallback="🔴" title="Live Now!!" /><div className="reference-live-row" data-drag-scroll="true">{MATCH_CARDS.map((match, index) => <article key={`${match.league}-${index}`} className="reference-live-card"><header><span>{match.league}</span><b>{match.time}</b></header><div><strong>{match.home}</strong><span>VS</span><strong>{match.away}</strong></div><footer><a href="/login">ดูบอลสด</a><a href="/login">เล่นเกมทันที</a></footer></article>)}</div></section>
 
-          <section className="reference-compact-section"><PanelHeading asset={assets.classic} configured={icons.games} fallback="💧" title="Classic Games" /><div className="reference-classic-row" data-drag-scroll="true">{classic.length ? classic.map((game) => <GameTile key={game.id} game={game} compact />) : ARCHIVE_GAMES.slice(11, 19).map((game) => <ArchiveGameTile key={game.name} game={game} compact />)}</div></section>
+          <section className="reference-compact-section"><PanelHeading asset={assets.classic} configured={V47_ASSETS.star} fallback="💧" title="Classic Games" /><div className="reference-classic-row" data-drag-scroll="true">{classic.length ? classic.map((game) => <GameTile key={game.id} game={game} compact />) : ARCHIVE_GAMES.slice(11, 19).map((game) => <ArchiveGameTile key={game.name} game={game} compact />)}</div></section>
 
-          <section className="reference-guide" id="guide"><PanelHeading asset={assets.guide} configured={icons.support} fallback="?" title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="reference-guide-more" href="/guide">ดูทั้งหมด</a></section>
+          <section className="reference-guide" id="guide"><PanelHeading asset={assets.guide} configured={V47_ASSETS.dailyMission} fallback="?" title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="reference-guide-more" href="/guide">ดูทั้งหมด</a></section>
 
           <section className="reference-provider-strip"><h2><AssetIcon asset={assets.partner} configured={icons.affiliate} fallback="" className="reference-heading-icon" />พันธมิตรของเรา</h2><div data-drag-scroll="true">{providers.length ? providers.map((provider, index) => <span key={`${provider.code}-${index}`} className="reference-provider-logo">{provider.logoUrl ? <img src={normalizeUrl(provider.logoUrl)} alt={provider.name || provider.code || 'Provider'} onError={hideBrokenImage} /> : <b>{provider.code || provider.name}</b>}</span>) : REFERENCE_PROVIDERS.map((provider) => <span key={provider.name} className="reference-provider-logo"><img src={provider.url} alt={provider.name} loading="lazy" onError={hideBrokenImage} /></span>)}</div></section>
         </div>
 
         <aside className="desktop-home__sidebar reference-sidebar" aria-label="ข้อมูลรางวัลและอันดับ">
           <section className="reference-side-card reference-jackpot"><header><AssetIcon asset={assets.jackpot} configured={V47_ASSETS.jackpot} fallback="●" className="reference-side-icon" /><strong>Jackpot</strong></header><div><img className="reference-jackpot-art" src={jackpotImage} alt="Jackpot" onError={hideBrokenImage} /><small>JACKPOTS</small><strong>195,574,797</strong><em>ลุ้นรับรางวัลใหญ่</em></div></section>
-          <section className="reference-side-card reference-leaderboard"><header><span className="reference-side-title"><AssetIcon asset={assets.leaderboard} configured={REFERENCE_HOME_ASSETS.leaderboard} fallback="🏆" className="reference-side-icon" /><strong>Leaderboard</strong></span><span>วันนี้</span></header>{Array.from({ length: 5 }, (_, index) => <div key={index}><RankMark index={index} /><span><strong>{leaderName(index)}</strong><small>ชนะล่าสุด</small></span><em>›</em></div>)}</section>
+          <section className="reference-side-card reference-leaderboard"><header><span className="reference-side-title"><AssetIcon asset={assets.leaderboard} configured={V47_ASSETS.leaderboard} fallback="🏆" className="reference-side-icon" /><strong>Leaderboard</strong></span><span>วันนี้</span></header>{Array.from({ length: 5 }, (_, index) => <div key={index}><RankMark index={index} /><span><strong>{leaderName(index)}</strong><small>ชนะล่าสุด</small></span><em>›</em></div>)}</section>
           <section className="reference-side-card reference-mini-games"><header><strong>Mini Game</strong></header><div><a href="/login"><AssetIcon asset={assets.wheel} configured={V47_ASSETS.miniGameWheel} fallback="วงล้อ" className="reference-mini-icon" /><span>วงล้อ</span></a><a href="/login"><AssetIcon asset={assets.card} configured={V47_ASSETS.miniGameMission} fallback="ไพ่" className="reference-mini-icon" /><span>ทายการ์ด</span></a></div></section>
         </aside>
       </div>
