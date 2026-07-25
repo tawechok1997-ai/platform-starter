@@ -1,4 +1,9 @@
 export type ReferenceAsset = { name: string; url: string };
+type ReferencePair = readonly [name: string, url: string];
+
+function fromPairs(pairs: readonly ReferencePair[]): ReferenceAsset[] {
+  return pairs.map(([name, url]) => ({ name, url }));
+}
 
 export const REFERENCE_ICON_SPRITE = '/clone-assets/reference-icon-sprite.webp';
 
@@ -40,9 +45,12 @@ const GAME_NAMES = [
   'Grand Spin', 'Royal Fishing', 'Ways of the Qilin', 'Sweet Bonanza',
 ] as const;
 
-export const REFERENCE_GAMES: ReferenceAsset[] = GAME_URLS.map((url, index) => ({ name: GAME_NAMES[index] ?? `Game ${index + 1}`, url }));
+export const REFERENCE_GAMES: ReferenceAsset[] = GAME_URLS.map((url, index) => ({
+  name: GAME_NAMES[index] ?? `Game ${index + 1}`,
+  url,
+}));
 
-export const REFERENCE_PROVIDERS: ReferenceAsset[] = [
+export const REFERENCE_PROVIDERS = fromPairs([
   ['CQ9', 'https://cdn.zabbet.com/providers/set/1_1_badge/cq.png'],
   ['Evolution', 'https://cdn.zabbet.com/providers/set/1_1_badge/evp.png'],
   ['Fa Chai', 'https://cdn.zabbet.com/providers/set/1_1_badge/fachai.png'],
@@ -55,21 +63,29 @@ export const REFERENCE_PROVIDERS: ReferenceAsset[] = [
   ['PlayStar', 'https://cdn.zabbet.com/providers/set/1_1_badge/ps.png'],
   ['Red Tiger', 'https://cdn.zabbet.com/providers/set/1_1_badge/rsg.png'],
   ['YGR', 'https://cdn.zabbet.com/providers/set/1_1_badge/ygr.png'],
-].map(([name, url]) => ({ name, url }));
+] as const);
 
-export const REFERENCE_BANKS: ReferenceAsset[] = [
-  ['BAAC', 'https://noah345.shop/images/banks/TH/BAAC.webp'], ['BAY', 'https://noah345.shop/images/banks/TH/BAY.webp'],
-  ['BBL', 'https://noah345.shop/images/banks/TH/BBL.webp'], ['CIMBT', 'https://noah345.shop/images/banks/TH/CIMBT.webp'],
-  ['EXIM', 'https://noah345.shop/images/banks/TH/EXIM.webp'], ['GHB', 'https://noah345.shop/images/banks/TH/GHB.webp'],
-  ['GSB', 'https://noah345.shop/images/banks/TH/GSB.webp'], ['KBANK', 'https://noah345.shop/images/banks/TH/KBANK.webp'],
-  ['KKP', 'https://noah345.shop/images/banks/TH/KKP.webp'], ['KTB', 'https://noah345.shop/images/banks/TH/KTB.webp'],
-  ['LHFG', 'https://noah345.shop/images/banks/TH/LHFG.webp'], ['SCB', 'https://noah345.shop/images/banks/TH/SCB.webp'],
-  ['TCD', 'https://noah345.shop/images/banks/TH/TCD.webp'], ['TISCO', 'https://noah345.shop/images/banks/TH/TISCO.webp'],
-  ['TMN', 'https://noah345.shop/images/banks/TH/TMN.webp'], ['TTB', 'https://noah345.shop/images/banks/TH/TTB.webp'],
+export const REFERENCE_BANKS = fromPairs([
+  ['BAAC', 'https://noah345.shop/images/banks/TH/BAAC.webp'],
+  ['BAY', 'https://noah345.shop/images/banks/TH/BAY.webp'],
+  ['BBL', 'https://noah345.shop/images/banks/TH/BBL.webp'],
+  ['CIMBT', 'https://noah345.shop/images/banks/TH/CIMBT.webp'],
+  ['EXIM', 'https://noah345.shop/images/banks/TH/EXIM.webp'],
+  ['GHB', 'https://noah345.shop/images/banks/TH/GHB.webp'],
+  ['GSB', 'https://noah345.shop/images/banks/TH/GSB.webp'],
+  ['KBANK', 'https://noah345.shop/images/banks/TH/KBANK.webp'],
+  ['KKP', 'https://noah345.shop/images/banks/TH/KKP.webp'],
+  ['KTB', 'https://noah345.shop/images/banks/TH/KTB.webp'],
+  ['LHFG', 'https://noah345.shop/images/banks/TH/LHFG.webp'],
+  ['SCB', 'https://noah345.shop/images/banks/TH/SCB.webp'],
+  ['TCD', 'https://noah345.shop/images/banks/TH/TCD.webp'],
+  ['TISCO', 'https://noah345.shop/images/banks/TH/TISCO.webp'],
+  ['TMN', 'https://noah345.shop/images/banks/TH/TMN.webp'],
+  ['TTB', 'https://noah345.shop/images/banks/TH/TTB.webp'],
   ['UOBT', 'https://noah345.shop/images/banks/TH/UOBT.webp'],
-].map(([name, url]) => ({ name, url }));
+] as const);
 
-export const REFERENCE_TRUST_BADGES: ReferenceAsset[] = [
+export const REFERENCE_TRUST_BADGES = fromPairs([
   ['BMM', 'https://noah345.shop/images/footer/Bmm.webp'],
   ['Game Care', 'https://noah345.shop/images/footer/GAME%20CARE.webp'],
   ['Gaming Labs', 'https://noah345.shop/images/footer/GamingLab.webp'],
@@ -78,7 +94,7 @@ export const REFERENCE_TRUST_BADGES: ReferenceAsset[] = [
   ['Group', 'https://noah345.shop/images/footer/Group%2048102721.webp'],
   ['Iovation', 'https://noah345.shop/images/footer/Iovation.webp'],
   ['iTech Labs', 'https://noah345.shop/images/footer/iTech.webp'],
-].map(([name, url]) => ({ name, url }));
+] as const);
 
 export const REFERENCE_HOME_ASSETS = {
   logo: 'https://cdn.zabbet.com/FEZX/lobby_settings/ba66cd74-2429-42dd-858e-aaae9fb3b688.png',
