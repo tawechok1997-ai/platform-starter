@@ -43,6 +43,8 @@ const copyByLocale = {
   },
 } as const;
 
+const MOBILE_DRAWER_MEDIA = '(max-width: 1099px)';
+
 export function AdminMobileDrawerController() {
   const [locale, changeLocale] = useAdminLocale();
   const [open, setOpen] = useState(false);
@@ -105,7 +107,7 @@ export function AdminMobileDrawerController() {
     };
 
     const handleDesktopInteractions = (event: MouseEvent) => {
-      if (window.matchMedia('(max-width: 820px)').matches) return;
+      if (window.matchMedia(MOBILE_DRAWER_MEDIA).matches) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
 
@@ -148,7 +150,7 @@ export function AdminMobileDrawerController() {
     void adminApiFetch('/admin/auth/me')
       .then(async (response) => response.ok ? response.json().catch(() => null) : null)
       .then((data) => {
-        if (!cancelled && data && typeof data === 'object') setAdmin(data as MobileAdmin);
+        if (!cancelled && isMobileAdmin(data)) setAdmin(data);
       })
       .catch(() => undefined);
     return () => { cancelled = true; };
@@ -216,6 +218,10 @@ export function AdminMobileDrawerController() {
       <button type="button" className="admin-mobile-drawer-controller__logout" disabled={loggingOut} onClick={() => void logout()}><AdminIcon name="logout" /><span>{copy.logout}</span></button>
     </footer>
   </div>;
+}
+
+function isMobileAdmin(value: unknown): value is MobileAdmin {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
 function roleLabel(roles: MobileAdmin['roles']) {
