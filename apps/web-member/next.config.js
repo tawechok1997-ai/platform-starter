@@ -11,6 +11,16 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'cdn.yourdomain.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.zabbet.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'noah345.shop',
+        pathname: '/**',
+      },
     ],
   },
 };
