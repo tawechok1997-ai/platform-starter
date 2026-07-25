@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 
-import { buildWorkspaceTabHref } from './workspace-tabs';
+import { buildWorkspaceTabHref } from './workspace-tab-url';
 import styles from './workspace-tabs.module.css';
 
 export type AdminWorkspaceTab = {
