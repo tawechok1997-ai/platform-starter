@@ -1,0 +1,131 @@
+/* Corrections measured from the supplied V47 screenshot. Keep after source contract. */
+
+@media (min-width: 901px) {
+  .public-home-topbar .public-home-desktop-bar,
+  .public-home-topbar .public-home-category-bar {
+    width: min(1455px, calc(100vw - 30px)) !important;
+    max-width: 1455px !important;
+    margin-inline: auto !important;
+  }
+
+  .public-home-topbar .member-brand-logo {
+    width: 132px !important;
+    height: 38px !important;
+    object-fit: contain !important;
+  }
+
+  .public-home-topbar .public-home-nav-icon-frame,
+  .public-home-topbar .public-home-nav-icon {
+    width: 27px !important;
+    height: 27px !important;
+    object-fit: contain !important;
+  }
+
+  .desktop-reference-home .reference-hero-track {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+  }
+
+  .desktop-reference-home .reference-promo-card--1 .reference-promo-icon > img {
+    content: url('/home-asset/promo-special.png') !important;
+  }
+
+  .desktop-reference-home .reference-promo-card--2 .reference-promo-icon > img {
+    content: url('/home-asset/promo-activity.png') !important;
+  }
+
+  .desktop-reference-home .reference-promo-card--3 .reference-promo-icon > img {
+    content: url('/home-asset/promo-news.png') !important;
+  }
+
+  .desktop-reference-home .reference-tournament-cta {
+    background-image: url('/home-asset/tournament.png') !important;
+    background-position: center !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+  }
+
+  .desktop-reference-home .reference-number-row {
+    display: grid !important;
+    grid-template-columns: none !important;
+    grid-template-rows: minmax(96px, 1fr) !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: calc((100% - 60px) / 7) !important;
+    gap: 10px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x proximity !important;
+    scrollbar-width: none !important;
+  }
+
+  .desktop-reference-home .reference-number-row::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-number-card {
+    scroll-snap-align: start !important;
+  }
+
+  .desktop-reference-home .reference-online-row {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    overflow: hidden !important;
+  }
+
+  .desktop-reference-home .reference-classic-row {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    overflow: hidden !important;
+  }
+
+  .desktop-reference-home .reference-mini-games > div {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .desktop-reference-home .reference-mini-games a {
+    grid-template-columns: 54px minmax(0, 1fr) !important;
+    min-height: 62px !important;
+  }
+
+  .desktop-reference-home .reference-mini-games .reference-mini-icon,
+  .desktop-reference-home .reference-mini-games .reference-mini-icon > img {
+    display: block !important;
+    width: 54px !important;
+    height: 54px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    object-fit: contain !important;
+  }
+
+  .desktop-reference-home .reference-sidebar {
+    align-self: start !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__links,
+  body:has(.desktop-reference-home) .member-footer__contact {
+    min-width: 0 !important;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1499px) {
+  .desktop-reference-home > .reference-hero-carousel,
+  .desktop-reference-home > .desktop-home__body,
+  .public-home-topbar .public-home-desktop-bar,
+  .public-home-topbar .public-home-category-bar {
+    width: calc(100vw - 24px) !important;
+  }
+
+  .desktop-reference-home > .desktop-home__body {
+    grid-template-columns: minmax(0, calc(100% - 305px)) minmax(280px, 290px) !important;
+    gap: 15px !important;
+  }
+
+  .desktop-reference-home .reference-promo-row {
+    gap: 12px !important;
+  }
+}
