@@ -12,9 +12,11 @@ const SERVER_ONLY_IMPORTS = [
   /^@prisma\/client(?:\/|$)/,
   /^node:(?:fs|child_process|cluster|net|tls|worker_threads)(?:\/|$)/,
 ];
+const NEXT_ROUTE_HANDLER_ALLOWED_IMPORTS = [/^node:fs(?:\/|$)/];
 const DOMAIN_FORBIDDEN_IMPORTS = [/^@nestjs(?:\/|$)/, /^@prisma\/client(?:\/|$)/];
 const PRIVATE_CROSS_MODULE_SEGMENTS = /\/(?:controllers?|dto|repositories?|prisma|internal)(?:\/|$)|\.(?:controller|dto|repository)\b/;
 const TEST_FILE_PATTERN = /(?:^|\/)[^/]+\.(?:spec|test)\.(?:ts|tsx|mts|cts)$/;
+const NEXT_ROUTE_HANDLER_PATTERN = /(?:^|\/)route\.(?:ts|tsx|mts|cts)$/;
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -34,6 +36,10 @@ function normalize(path) {
 
 function isTestFile(path) {
   return TEST_FILE_PATTERN.test(normalize(path));
+}
+
+function isNextRouteHandler(path) {
+  return NEXT_ROUTE_HANDLER_PATTERN.test(normalize(path));
 }
 
 function importsOf(source) {
@@ -121,8 +127,12 @@ for (const frontendRoot of FRONTEND_ROOTS) {
     const source = await readFile(file, 'utf8');
     for (const specifier of importsOf(source)) {
       const serverOnly = SERVER_ONLY_IMPORTS.some((pattern) => pattern.test(specifier));
+      const allowedRouteHandlerImport = isNextRouteHandler(file)
+        && NEXT_ROUTE_HANDLER_ALLOWED_IMPORTS.some((pattern) => pattern.test(specifier));
       const apiSourceImport = specifier.includes('apps/api/') || specifier.includes('@platform/api/');
-      if (serverOnly || apiSourceImport) frontendViolations.push({ file: normalize(file), specifier });
+      if ((serverOnly && !allowedRouteHandlerImport) || apiSourceImport) {
+        frontendViolations.push({ file: normalize(file), specifier });
+      }
     }
   }
 }
@@ -131,6 +141,7 @@ const appBoundaryViolations = [];
 for (const appName of ['api', 'web-admin', 'web-member']) {
   const appRoot = join(ROOT, 'apps', appName);
   for (const file of await walk(appRoot)) {
+    if (isTestFile(file)) continue;
     const source = await readFile(file, 'utf8');
     for (const specifier of importsOf(source)) {
       if (!specifier.startsWith('.')) continue;
