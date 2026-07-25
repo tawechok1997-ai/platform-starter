@@ -51,6 +51,7 @@ import './admin-sidebar-viewport.css';
 import './admin-sidebar-profile-header.css';
 import './admin-modern-command-center.css';
 import './admin-modern-dashboard-layout.css';
+import './admin-modern-modules.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
