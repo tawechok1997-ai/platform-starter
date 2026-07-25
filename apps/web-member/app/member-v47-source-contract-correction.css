@@ -147,8 +147,7 @@
     z-index: 1 !important;
   }
 
-  .desktop-reference-home .reference-promo-icon,
-  .desktop-reference-home .reference-promo-icon > img {
+  .desktop-reference-home .reference-promo-icon {
     display: block !important;
     flex: 0 0 180px !important;
     width: 180px !important;
@@ -156,6 +155,16 @@
     max-width: none !important;
     margin-left: -24px !important;
     margin-top: -24px !important;
+    background: none !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .reference-promo-icon > img {
+    display: block !important;
+    width: 180px !important;
+    height: 180px !important;
+    max-width: none !important;
+    margin: 0 !important;
     background: none !important;
     object-fit: contain !important;
     transform: none !important;
