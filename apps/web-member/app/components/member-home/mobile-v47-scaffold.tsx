@@ -43,6 +43,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
   const [activeBanner, setActiveBanner] = useState(0);
   const hero = banners[activeBanner] ?? banners[0];
   const heroImage = hero?.imageUrl || resolveCmsAssetById(content, hero?.assetId);
+  const heroFallback = REFERENCE_HERO_SLIDES[activeBanner % REFERENCE_HERO_SLIDES.length]!.url;
   const announcement = announcements[0];
   const tournament = findAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']);
   const jackpot = findAsset(content, ['jackpot', 'แจ็คพอต']);
@@ -65,7 +66,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
       <div className="v47-mobile-announcement"><Icon value={V47_ASSETS.announcement} /><span>{announcement?.message || announcement?.title || 'คาสิโนออนไลน์ครบทุกค่าย เปิดให้บริการตลอด 24 ชั่วโมง'}</span></div>
 
       <a className="v47-mobile-hero" href={hero?.href || '/promotions'}>
-        {heroImage ? <img key={heroImage} src={heroImage} alt={hero?.title || siteName} onError={hideBrokenImage} /> : <div className="v47-mobile-hero-fallback">{siteName}</div>}
+        <img key={heroImage || heroFallback} src={heroImage || heroFallback} alt={hero?.title || siteName} onError={(event) => swapBrokenImage(event, heroFallback)} />
       </a>
       <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">{banners.map((banner, index) => <button key={`${banner.title}-${index}`} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}: ${banner.title}`} />)}</div>
 
@@ -76,7 +77,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
       </div>
 
       <a className="v47-mobile-tournament-banner" href="/promotions">
-        <img src={resolveV47Asset(tournament?.url, 'tournament')} alt="Tournament" onError={hideBrokenImage} />
+        <img src={resolveV47Asset(tournament?.url, 'tournament')} alt="Tournament" onError={(event) => swapBrokenImage(event, V47_ASSETS.tournament)} />
         <span><small>TOURNAMENT</small><strong>เข้าร่วมชิงความเป็นที่ 1</strong></span>
         <b>เข้าแข่งขัน ›</b>
       </a>
@@ -87,7 +88,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
         <div className="v47-mobile-ranks" data-drag-scroll="true">{Array.from({ length: 3 }, (_, index) => <article key={index}><span className="v47-mobile-rank-badge"><img src={MOBILE_RANK_ART[index]!} alt={`อันดับ ${index + 1}`} onError={hideBrokenImage} /><b>{index + 1}</b></span><span>ZAX00{[790740, 664100, 844010][index]}</span><strong>{[20, 17, 13][index]}</strong><small>● ● ● ● ●</small></article>)}</div>
       </section>
 
-      <section className="v47-mobile-jackpot"><img src={V47_ASSETS.jackpot || jackpot?.url} alt="Jackpot" onError={hideBrokenImage} /><span><small>JACKPOTS</small><strong>194,428,645</strong><em>Epic of the day</em></span></section>
+      <section className="v47-mobile-jackpot"><img src={V47_ASSETS.jackpot || jackpot?.url} alt="Jackpot" onError={(event) => swapBrokenImage(event, V47_ASSETS.jackpotStill)} /><span><small>JACKPOTS</small><strong>194,428,645</strong><em>Epic of the day</em></span></section>
 
       <section className="v47-mobile-panel" data-section-kind="leaderboard"><SectionTitle icon={V47_ASSETS.leaderboard} title="Leaderboard" action="ดูทั้งหมด" /><div className="v47-mobile-board-head"><span>อันดับ</span><span>ชื่อผู้เล่น</span><span>รางวัล</span></div>{Array.from({ length: 5 }, (_, index) => <div className="v47-mobile-board-row" key={index}><span className="v47-mobile-board-badge">{index < 3 ? <img src={MOBILE_RANK_ART[index]!} alt={`อันดับ ${index + 1}`} onError={hideBrokenImage} /> : <img src={V47_ASSETS.rankOther} alt="" onError={hideBrokenImage} />}<b>{index + 1}</b></span><span>0{980000018 - index * 8241}</span><em>{[15000, 5700, 3500, 2904, 2100][index]?.toLocaleString()}</em></div>)}</section>
 
@@ -102,7 +103,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
 
       <section className="v47-mobile-panel v47-mobile-guide" data-section-kind="guide"><SectionTitle icon={V47_ASSETS.openGold} title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="v47-mobile-guide-more" href="/guide">ดูทั้งหมด</a></section>
 
-      <section className="v47-mobile-panel v47-mobile-partners"><SectionTitle icon={partner?.url || icons.affiliate} title="พันธมิตรของเรา" /><div data-drag-scroll="true">{providers.length ? providers.map((provider, index) => <span key={`${provider.code}-${index}`}>{provider.logoUrl ? <img src={normalizeUrl(provider.logoUrl)} alt={provider.name || provider.code || 'Provider'} onError={hideBrokenImage} /> : <b>{provider.code || provider.name}</b>}</span>) : REFERENCE_PROVIDERS.map((provider) => <span key={provider.name}><img src={provider.url} alt={provider.name} loading="lazy" onError={hideBrokenImage} /></span>)}</div></section>
+      <section className="v47-mobile-panel v47-mobile-partners"><SectionTitle icon={partner?.url || icons.affiliate} title="พันธมิตรของเรา" /><div data-drag-scroll="true">{providers.length ? providers.map((provider, index) => { const fallbackProvider = REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!; return <span key={`${provider.code}-${index}`}>{provider.logoUrl ? <img src={normalizeUrl(provider.logoUrl)} alt={provider.name || provider.code || fallbackProvider.name} onError={(event) => swapBrokenImage(event, fallbackProvider.url)} /> : <img src={fallbackProvider.url} alt={provider.name || provider.code || fallbackProvider.name} onError={hideBrokenImage} />}</span>; }) : REFERENCE_PROVIDERS.map((provider) => <span key={provider.name}><img src={provider.url} alt={provider.name} loading="lazy" onError={hideBrokenImage} /></span>)}</div></section>
     </section>
   );
 }
@@ -112,7 +113,8 @@ function SectionTitle({ icon, title, action }: { icon: string; title: string; ac
 function GameSection({ kind, title, icon, games, loading, message, fallbackGames }: { kind: 'popular' | 'online' | 'classic'; title: string; icon: string; games: Game[]; loading: boolean; message: string; fallbackGames: ReferenceAsset[] }) { return <section className="v47-mobile-panel" data-section-kind={kind}><SectionTitle icon={icon} title={title} action="ดูทั้งหมด" />{loading ? <div className="v47-mobile-empty">กำลังโหลดเกม...</div> : games.length ? <div className="v47-mobile-game-grid" data-drag-scroll="true">{games.map((game, index) => <a href="/login?next=%2Fgames" key={`${game.id}-${index}`} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><GameImage game={game} /><span>{game.isNew ? 'NEW' : 'HOT'}</span></div><span className="v47-mobile-game-meta"><b>{safeName(game)}</b><small>{game.provider?.name || game.provider?.code || 'Provider'}</small></span></a>)}</div> : <ReferenceGameGrid games={fallbackGames} message={message} />}</section>; }
 function ReferenceGameGrid({ games, message }: { games: ReferenceAsset[]; message: string }) { return <div className="v47-mobile-game-grid" data-drag-scroll="true" aria-label={message || 'เกมจากชุด asset'}>{games.map((game, index) => <a href="/login?next=%2Fgames" key={game.name} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><img src={game.url} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span>HOT</span></div><span className="v47-mobile-game-meta"><b>{game.name}</b><small>NOAH345</small></span></a>)}</div>; }
 function Icon({ value }: { value: string }) { return isImageValue(value) ? <img src={normalizeUrl(value)} alt="" onError={hideBrokenImage} /> : <span>{value}</span>; }
-function GameImage({ game }: { game: Game }) { const src = resolveGameImage(game); return src ? <img src={src} alt={safeName(game)} loading="lazy" onError={hideBrokenImage} /> : <span className="v47-mobile-game-fallback">{safeName(game).slice(0, 1)}</span>; }
+function GameImage({ game }: { game: Game }) { const fallback = fallbackGameImage(game); const src = resolveGameImage(game) || fallback; return <img src={src} alt={safeName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />; }
+function fallbackGameImage(game: Game) { const seed = `${game.id || ''}:${game.providerGameCode || ''}:${safeName(game)}`; let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0; return REFERENCE_GAMES[Math.abs(hash) % REFERENCE_GAMES.length]!.url; }
 function resolveCmsAssetById(content: CmsContent, assetId?: string) { return assetId ? content.assets?.find((asset) => asset.enabled && asset.id === assetId)?.url || '' : ''; }
 function findAsset(content: CmsContent, aliases: string[]) { const keys = aliases.map(normalize); return (content.assets || []).find((asset) => asset.enabled && asset.type === 'image' && asset.url && keys.some((key) => normalize(`${asset.id} ${asset.name} ${asset.tag || ''} ${asset.url}`).includes(key))); }
 function normalize(value: string) { return value.toLowerCase().replace(/[\s_\-./\\]+/g, ''); }
@@ -124,4 +126,5 @@ function resolveGameImage(game: Game) { const direct = game.imageUrl || game.ico
 function normalizeUrl(value: string) { return /^https?:\/\//i.test(value) || value.startsWith('/') ? value : `/${value.replace(/^\.\//, '')}`; }
 function isImageValue(value: string) { return /^(https?:\/\/|\/|\.\/)/i.test(value) || /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(value); }
 function fallbackFaqs() { return [{ question: 'ฝากเงินแบบโอนผ่านธนาคาร', answer: 'เลือกธนาคารที่ต้องการและทำตามขั้นตอนบนหน้าฝากเงิน' }, { question: 'ฝากเงินแบบ QR Payment', answer: 'สแกน QR และตรวจสอบยอดเงินก่อนยืนยันรายการ' }, { question: 'เติมเงินไม่เข้า ต้องทำยังไง?', answer: 'ติดต่อฝ่ายบริการพร้อมหลักฐานการทำรายการ' }]; }
+function swapBrokenImage(event: SyntheticEvent<HTMLImageElement>, fallback: string) { if (!fallback || event.currentTarget.dataset.fallbackApplied === 'true') { hideBrokenImage(event); return; } event.currentTarget.dataset.fallbackApplied = 'true'; event.currentTarget.src = fallback; }
 function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) { event.currentTarget.style.display = 'none'; }
