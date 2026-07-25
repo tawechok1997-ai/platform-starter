@@ -60,6 +60,9 @@ jobs:
       - name: Audit production smoke guard
         run: node --test tools/require-prod-smoke-env.test.mjs
 
+      - name: Audit authenticated Member smoke workflow
+        run: node --test tools/member-production-smoke-workflow.test.mjs
+
       - name: Audit architecture inventory
         run: pnpm audit:architecture-inventory
 
