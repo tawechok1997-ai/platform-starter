@@ -1,1 +1,162 @@
-/* Placeholder for source-supplied reference assets. Populated in the next commit. */
+/* Reference assets from the supplied archive. Keep this file loaded last. */
+
+.public-home-nav-icon-frame,
+.public-home-mission::before,
+.reference-mini-icon,
+.v47-mobile-announcement::before,
+.v47-mobile-mini-games a::before,
+.v47-mobile-section-title img[src*="reference-icon-sprite"] {
+  background-image: url('/clone-assets/reference-icon-sprite.webp') !important;
+  background-repeat: no-repeat !important;
+  background-size: 500% 400% !important;
+}
+
+.public-home-nav-icon-frame {
+  display: inline-block !important;
+  width: 31px !important;
+  height: 31px !important;
+  flex: 0 0 31px !important;
+  background-position: 0 0;
+}
+
+.public-home-nav-icon-frame .public-home-nav-icon {
+  opacity: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.member-desktop-nav--guest > a:nth-child(1) .public-home-nav-icon-frame { background-position: 0 0 !important; }
+.member-desktop-nav--guest > a:nth-child(2) .public-home-nav-icon-frame { background-position: 25% 0 !important; }
+.member-desktop-nav--guest > a:nth-child(3) .public-home-nav-icon-frame { background-position: 50% 0 !important; }
+.member-desktop-nav--guest > a:nth-child(4) .public-home-nav-icon-frame { background-position: 75% 0 !important; }
+.member-desktop-nav--guest > a:nth-child(5) .public-home-nav-icon-frame { background-position: 100% 0 !important; }
+.member-desktop-nav--guest > a:nth-child(6) .public-home-nav-icon-frame { background-position: 0 33.333% !important; }
+.member-desktop-nav--guest > a:nth-child(7) .public-home-nav-icon-frame { background-position: 25% 33.333% !important; }
+.member-desktop-nav--guest > a:nth-child(8) .public-home-nav-icon-frame { background-position: 50% 33.333% !important; }
+
+.public-home-mission img { display: none !important; }
+.public-home-mission::before {
+  content: '';
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  background-position: 75% 33.333% !important;
+}
+
+.reference-mini-icon {
+  display: inline-block !important;
+  width: 74px !important;
+  height: 74px !important;
+  flex: 0 0 74px !important;
+}
+.reference-mini-icon > img { display: none !important; }
+.reference-mini-games a:nth-child(1) .reference-mini-icon { background-position: 100% 33.333% !important; }
+.reference-mini-games a:nth-child(2) .reference-mini-icon { background-position: 25% 100% !important; }
+
+.reference-featured-section .reference-heading-icon,
+.reference-number-section .reference-heading-icon,
+.reference-compact-section:has(.reference-online-row) .reference-heading-icon,
+.reference-guide .reference-heading-icon {
+  width: 30px !important;
+  height: 30px !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  background-image: url('/clone-assets/reference-icon-sprite.webp') !important;
+  background-repeat: no-repeat !important;
+  background-size: 500% 400% !important;
+}
+.reference-featured-section .reference-heading-icon { background-position: 0 66.666% !important; }
+.reference-number-section .reference-heading-icon { background-position: 100% 66.666% !important; }
+.reference-compact-section:has(.reference-online-row) .reference-heading-icon { background-position: 25% 66.666% !important; }
+.reference-guide .reference-heading-icon { background-position: 100% 66.666% !important; }
+.reference-featured-section .reference-heading-icon > img,
+.reference-number-section .reference-heading-icon > img,
+.reference-compact-section:has(.reference-online-row) .reference-heading-icon > img,
+.reference-guide .reference-heading-icon > img { display: none !important; }
+
+.reference-live-card {
+  background-image: linear-gradient(180deg, rgb(18 10 27 / 20%), rgb(18 10 27 / 88%)), url('https://noah345.shop/images/home/background_live.webp') !important;
+  background-position: center !important;
+  background-size: cover !important;
+}
+
+.reference-sidebar::before {
+  content: '';
+  display: block;
+  width: 100%;
+  aspect-ratio: 350 / 116.5;
+  border-radius: 8px;
+  background: #1c1425 url('https://cdn.zabbet.com/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg') center / cover no-repeat;
+}
+
+.v47-mobile-announcement > img { display: none !important; }
+.v47-mobile-announcement::before {
+  content: '';
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  background-position: 100% 100% !important;
+}
+
+.v47-mobile-mini-games a > img { display: none !important; }
+.v47-mobile-mini-games a::before {
+  content: '';
+  display: block;
+  width: 76px;
+  height: 76px;
+  flex: 0 0 76px;
+}
+.v47-mobile-mini-games a:nth-child(1)::before { background-position: 100% 33.333% !important; }
+.v47-mobile-mini-games a:nth-child(2)::before { background-position: 25% 100% !important; }
+
+.v47-mobile-section-title img[src*="reference-icon-sprite"] {
+  display: inline-block !important;
+  width: 29px !important;
+  height: 29px !important;
+  object-position: -9999px -9999px !important;
+  background-position: 0 66.666% !important;
+}
+.v47-mobile-guide .v47-mobile-section-title img[src*="reference-icon-sprite"] { background-position: 100% 66.666% !important; }
+.v47-mobile-live .v47-mobile-section-title img[src*="reference-icon-sprite"] { background-position: 50% 33.333% !important; }
+
+.reference-provider-logo img,
+.member-footer__bank img,
+.member-footer__trust-badge img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.member-footer__bank-grid {
+  grid-template-columns: repeat(auto-fit, minmax(58px, 1fr)) !important;
+}
+.member-footer__bank {
+  min-height: 48px !important;
+  padding: 7px !important;
+}
+.member-footer__bank img { width: 36px; height: 36px; margin: auto; }
+
+.member-footer__trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 9px;
+}
+.member-footer__trust-badge {
+  display: grid;
+  place-items: center;
+  min-height: 54px;
+  padding: 8px;
+  border: 1px solid rgb(136 71 172 / 35%);
+  border-radius: 8px;
+  background: rgb(25 17 34 / 72%);
+}
+.member-footer__trust-badge img { width: 94px; height: 34px; }
+.member-footer__line-image { width: 44px; height: 44px; object-fit: contain; }
+
+@media (max-width: 900px) {
+  .member-footer__bank-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+  .member-footer__trust-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reference-sidebar::before { display: none; }
+}
