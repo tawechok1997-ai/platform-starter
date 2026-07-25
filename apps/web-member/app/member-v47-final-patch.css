@@ -1,4 +1,4 @@
-/* Small final overrides for legacy rules that still hide source artwork. */
+/* Final overrides for legacy rules that still hide or shrink source artwork. */
 @media (min-width: 901px) {
   .desktop-reference-home .reference-tournament-cta > img,
   .desktop-reference-home .reference-jackpot-art,
@@ -37,5 +37,270 @@
 
   .desktop-reference-home .reference-auth-action::before {
     z-index: -1 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    background: linear-gradient(#13101a 0%, #171422 100%) !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__main {
+    display: grid !important;
+    grid-template-columns: minmax(220px, .9fr) minmax(520px, 1.95fr) minmax(230px, .9fr) minmax(100px, .42fr) !important;
+    align-items: start !important;
+    gap: 56px !important;
+    width: min(1440px, calc(100vw - 32px)) !important;
+    max-width: 1440px !important;
+    margin: 0 auto !important;
+    padding: 32px 0 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer h3 {
+    margin: 0 !important;
+    color: #7ca9b7 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__trust > h3 {
+    font-weight: 400 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__trust > h3 strong {
+    font-weight: 600 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__trust > h3 span {
+    color: #7ca9b7 !important;
+    font-size: 14px !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__about p {
+    margin: 12px 0 0 !important;
+    color: #b8b8b8 !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    line-height: 1.55 !important;
+    white-space: pre-line !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__trust-row {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 24px !important;
+    min-height: 32px !important;
+    margin-top: 12px !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__trust-badge {
+    display: grid !important;
+    place-items: center !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__trust-badge img {
+    display: block !important;
+    width: auto !important;
+    max-width: 108px !important;
+    height: auto !important;
+    max-height: 32px !important;
+    object-fit: contain !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__trust-groups {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 48px !important;
+    margin-top: 32px !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__trust-group {
+    min-width: 0 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__trust-group .member-footer__trust-row {
+    gap: 24px !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__menus {
+    display: grid !important;
+    grid-template-columns: auto auto !important;
+    align-items: start !important;
+    gap: 80px !important;
+    width: max-content !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__links {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    min-width: 0 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__links h3 {
+    margin-bottom: 0 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__links a {
+    color: #b8b8b8 !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    line-height: 1.25 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__links a:hover {
+    color: #fff !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__contact {
+    display: block !important;
+    min-width: 100px !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__contact-line {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    margin-top: 12px !important;
+    text-decoration: none !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__contact-line img {
+    display: block !important;
+    width: 32px !important;
+    height: 32px !important;
+    object-fit: contain !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__separator {
+    width: min(1440px, calc(100vw - 32px)) !important;
+    max-width: 1440px !important;
+    height: 1px !important;
+    margin: 0 auto !important;
+    border: 0 !important;
+    background: #a400d1 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__payments {
+    width: min(1440px, calc(100vw - 32px)) !important;
+    max-width: 1440px !important;
+    margin: 0 auto !important;
+    padding: 32px 0 0 !important;
+    border: 0 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__payments h3 {
+    color: #a400d1 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    opacity: .8 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__bank-grid {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 16px !important;
+    margin-top: 12px !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__bank {
+    position: relative !important;
+    display: inline-block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 32px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__bank img {
+    display: block !important;
+    width: auto !important;
+    max-width: 32px !important;
+    height: 32px !important;
+    border-radius: 999px !important;
+    object-fit: contain !important;
+    filter: brightness(.75) !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__copyright {
+    display: flex !important;
+    align-items: flex-end !important;
+    gap: 20px !important;
+    width: min(1440px, calc(100vw - 32px)) !important;
+    max-width: 1440px !important;
+    margin: 0 auto !important;
+    padding: 48px 0 32px !important;
+    border: 0 !important;
+    color: rgb(255 255 255 / 50%) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__copyright-logo {
+    display: block !important;
+    width: auto !important;
+    max-width: 112px !important;
+    height: 25px !important;
+    object-fit: contain !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .member-footer__main {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 28px !important;
+    padding: 28px 18px !important;
+  }
+
+  .member-footer__about p {
+    white-space: pre-line !important;
+  }
+
+  .member-footer__trust-row,
+  .member-footer__trust-groups {
+    display: flex !important;
+    align-items: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 14px !important;
+  }
+
+  .member-footer__trust-groups {
+    margin-top: 24px !important;
+  }
+
+  .member-footer__menus {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 32px !important;
+  }
+
+  .member-footer__separator,
+  .member-footer__payments,
+  .member-footer__copyright {
+    width: calc(100% - 36px) !important;
+    margin-inline: auto !important;
   }
 }
