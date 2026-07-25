@@ -141,6 +141,7 @@ const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'จัดการสิทธิ์', href: '/access', permissions: ['admin.access.view'] },
   { title: 'กิจกรรม', href: '/activity', permissions: ['admin.view', 'admin.access.view'] },
   { title: 'AML Review Center', href: '/aml', permissions: ['risk.view'] },
+  { title: 'การสืบสวน', href: '/investigation', permissions: ['risk.view'] },
   { title: 'บันทึกการใช้งานเดิม', href: '/audit-logs', permissions: ['admin.view', 'admin.access.view'] },
   { title: 'บัญชีดำ', href: '/blacklist', permissions: ['risk.view'] },
   { title: 'การเงิน', href: '/finance', permissions: ['wallet.view', 'reports.view'] },
