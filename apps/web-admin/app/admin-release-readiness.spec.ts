@@ -52,6 +52,15 @@ test('keeps every mobile drawer action visible without horizontal scrolling', ()
   assert.equal(controlsCss.includes('overflow-x: auto'), false);
 });
 
+test('neutralizes legacy global width, padding, overflow and gold theme rules', () => {
+  assert.match(controlsCss, /--brand: var\(--admin-modern-brand\)/);
+  assert.match(controlsCss, /--card: var\(--admin-modern-surface\)/);
+  assert.match(controlsCss, /\.admin-content-shell > main[\s\S]*max-width: none !important/);
+  assert.match(controlsCss, /\.admin-content-shell > main[\s\S]*padding: 0 !important/);
+  assert.match(controlsCss, /\.admin-content-shell section,[\s\S]*overflow: visible !important/);
+  assert.match(controlsCss, /\.admin-topbar[\s\S]*display: grid !important/);
+});
+
 test('allows every admin page and card to use the available workspace', () => {
   assert.match(css, /\.admin-ui-page,\s*\.admin-dashboard \.admin-ui-page[\s\S]*width: 100% !important/);
   assert.match(css, /\.admin-ui-card[\s\S]*overflow: visible !important/);
