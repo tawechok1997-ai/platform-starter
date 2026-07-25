@@ -1,0 +1,485 @@
+/*
+ * Admin release-readiness correction layer.
+ * Loaded last to resolve legacy shell, popover, dashboard and breakpoint conflicts.
+ */
+
+:root {
+  --admin-shell-sidebar: 248px;
+  --admin-shell-sidebar-collapsed: 76px;
+  --admin-shell-breakpoint: 1100px;
+  --admin-modern-bg: #061019;
+  --admin-modern-bg-soft: #081521;
+  --admin-modern-surface: #0c1a28;
+  --admin-modern-surface-raised: #102235;
+  --admin-modern-surface-hover: #142a40;
+  --admin-modern-border: rgb(125 163 191 / 16%);
+  --admin-modern-border-strong: rgb(125 181 218 / 28%);
+  --admin-modern-text: #f4f8fb;
+  --admin-modern-muted: #9bb0c1;
+  --admin-modern-subtle: #71899c;
+  --admin-modern-brand: #38bdf8;
+  --admin-modern-brand-strong: #0ea5e9;
+  --admin-modern-cyan: #2dd4bf;
+  --admin-modern-success: #34d399;
+  --admin-modern-warning: #fbbf24;
+  --admin-modern-danger: #fb7185;
+  --admin-modern-sidebar: var(--admin-shell-sidebar);
+  --admin-modern-sidebar-collapsed: var(--admin-shell-sidebar-collapsed);
+
+  /* Legacy token bridge. */
+  --admin-app-bg: var(--admin-modern-bg);
+  --admin-sidebar-bg: var(--admin-modern-bg-soft);
+  --admin-surface: var(--admin-modern-surface);
+  --admin-surface-raised: var(--admin-modern-surface-raised);
+  --admin-border: var(--admin-modern-border);
+  --admin-text: var(--admin-modern-text);
+  --admin-text-secondary: var(--admin-modern-muted);
+  --admin-text-muted: var(--admin-modern-subtle);
+  --admin-accent: var(--admin-modern-brand);
+  --admin-accent-hover: #7dd3fc;
+  --admin-accent-soft: rgb(56 189 248 / 13%);
+  --admin-success: var(--admin-modern-success);
+  --admin-warning: var(--admin-modern-warning);
+  --admin-danger: var(--admin-modern-danger);
+}
+
+body[data-app-surface='admin'] {
+  background:
+    radial-gradient(circle at 88% -8%, rgb(56 189 248 / 10%), transparent 34rem),
+    radial-gradient(circle at 18% 100%, rgb(45 212 191 / 6%), transparent 32rem),
+    linear-gradient(180deg, #061019 0%, #07131f 54%, #061019 100%) !important;
+  font-family: 'LINE Seed Sans TH', 'Noto Sans Thai', 'IBM Plex Sans Thai', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-size: 15px;
+  font-weight: 430;
+  line-height: 1.55;
+  letter-spacing: -.005em;
+}
+
+body[data-app-surface='admin'] button,
+body[data-app-surface='admin'] input,
+body[data-app-surface='admin'] select,
+body[data-app-surface='admin'] textarea {
+  font: inherit;
+}
+
+body[data-app-surface='admin'] strong,
+body[data-app-surface='admin'] h1,
+body[data-app-surface='admin'] h2,
+body[data-app-surface='admin'] h3 {
+  text-wrap: balance;
+}
+
+.admin-shell,
+.admin-main-shell,
+.admin-content-shell,
+.admin-content-shell > *,
+.admin-ui-page,
+.admin-ui-page > *,
+.admin-dashboard,
+.admin-dashboard > * {
+  min-width: 0;
+  max-width: none;
+}
+
+.admin-content-shell {
+  width: 100% !important;
+  padding: clamp(16px, 1.8vw, 28px) !important;
+  overflow: visible !important;
+}
+
+.admin-content-shell > main,
+.admin-content-shell > section,
+.admin-content-shell > .admin-ui-page,
+.admin-ui-page,
+.admin-dashboard .admin-ui-page {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+/* Shared card and data-surface safety. */
+.admin-ui-card,
+.admin-ui-metric,
+.admin-command-status,
+.admin-priority-lane,
+.admin-dashboard__quick > *,
+.admin-ui-notice,
+.admin-ui-empty {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.admin-ui-card {
+  height: auto !important;
+  min-height: 0;
+  overflow: visible !important;
+}
+
+.admin-ui-card__head,
+.admin-ui-card__body,
+.admin-ui-stack,
+.admin-ui-grid,
+.admin-ui-row,
+.admin-section-row,
+.admin-data-table,
+.admin-data-table__viewport,
+.admin-table-wrap,
+.admin-table-scroll {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-data-table__viewport,
+.admin-table-wrap,
+.admin-table-scroll,
+.admin-ui-card:has(table) {
+  overflow-x: auto !important;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+}
+
+body[data-app-surface='admin'] table {
+  width: 100%;
+  min-width: max-content;
+}
+
+body[data-app-surface='admin'] img,
+body[data-app-surface='admin'] canvas,
+body[data-app-surface='admin'] svg {
+  max-width: 100%;
+}
+
+/* Desktop shell. */
+@media (min-width: 1100px) {
+  .admin-shell {
+    display: block !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+  }
+
+  #admin-sidebar.admin-drawer {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 200 !important;
+    width: var(--admin-shell-sidebar) !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    display: grid !important;
+    grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+
+  .admin-main-shell {
+    width: calc(100% - var(--admin-shell-sidebar)) !important;
+    min-height: 100dvh !important;
+    margin-left: var(--admin-shell-sidebar) !important;
+    overflow: visible !important;
+    transition: width 180ms ease, margin-left 180ms ease;
+  }
+
+  .admin-shell--collapsed #admin-sidebar.admin-drawer {
+    width: var(--admin-shell-sidebar-collapsed) !important;
+  }
+
+  .admin-shell--collapsed .admin-main-shell {
+    width: calc(100% - var(--admin-shell-sidebar-collapsed)) !important;
+    margin-left: var(--admin-shell-sidebar-collapsed) !important;
+  }
+
+  #admin-sidebar .admin-drawer-head {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 68px !important;
+    padding: 12px 14px !important;
+  }
+
+  #admin-sidebar .admin-drawer-close {
+    display: none !important;
+  }
+
+  #admin-sidebar .admin-nav-search {
+    grid-row: auto !important;
+    margin: 10px 12px !important;
+  }
+
+  #admin-sidebar .admin-drawer-nav {
+    grid-row: auto !important;
+    min-height: 0 !important;
+    padding: 2px 10px 14px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  #admin-sidebar .admin-sidebar-footer {
+    position: relative !important;
+    z-index: 240;
+    display: grid !important;
+    grid-row: auto !important;
+    gap: 8px;
+    min-height: 0;
+    padding: 10px 10px max(10px, env(safe-area-inset-bottom)) !important;
+    border-top: 1px solid var(--admin-modern-border) !important;
+    background: linear-gradient(180deg, rgb(6 16 25 / 70%), #061019 26%) !important;
+    overflow: visible !important;
+  }
+
+  #admin-sidebar .admin-sidebar-profile {
+    position: relative !important;
+    z-index: 250;
+    display: block !important;
+    grid-row: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: visible !important;
+  }
+
+  #admin-sidebar .admin-collapse-button,
+  .admin-menu-button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #admin-sidebar .admin-collapse-button {
+    width: 100% !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    border: 1px solid var(--admin-modern-border) !important;
+    border-radius: 11px !important;
+    background: rgb(255 255 255 / 3%) !important;
+    color: var(--admin-modern-muted) !important;
+  }
+
+  #admin-sidebar .admin-collapse-button:hover {
+    border-color: rgb(56 189 248 / 30%) !important;
+    background: rgb(56 189 248 / 8%) !important;
+    color: #e0f2fe !important;
+  }
+
+  .admin-shell--collapsed .admin-brand-text,
+  .admin-shell--collapsed .admin-nav-group__label,
+  .admin-shell--collapsed .admin-nav-group__chevron,
+  .admin-shell--collapsed .admin-profile-meta,
+  .admin-shell--collapsed .admin-profile-status,
+  .admin-shell--collapsed .admin-sidebar-profile__chevron,
+  .admin-shell--collapsed .admin-collapse-button span {
+    display: none !important;
+  }
+
+  .admin-shell--collapsed .admin-brand-row,
+  .admin-shell--collapsed .admin-nav-search,
+  .admin-shell--collapsed .admin-nav-group__trigger,
+  .admin-shell--collapsed .admin-sidebar-profile__trigger,
+  .admin-shell--collapsed .admin-collapse-button {
+    justify-content: center !important;
+  }
+
+  .admin-shell--collapsed .admin-nav-search input,
+  .admin-shell--collapsed .admin-nav-submenu {
+    display: none !important;
+  }
+
+  .admin-shell--collapsed .admin-nav-group__trigger,
+  .admin-shell--collapsed .admin-sidebar-profile__trigger {
+    grid-template-columns: 42px !important;
+    place-items: center !important;
+    padding-inline: 0 !important;
+  }
+
+  /* Keep the profile menu inside the viewport and above the trigger. */
+  #admin-sidebar .admin-profile-menu--sidebar {
+    position: absolute !important;
+    inset: auto 0 calc(100% + 8px) 0 !important;
+    z-index: 3000 !important;
+    width: 100% !important;
+    max-height: min(430px, calc(100dvh - 120px)) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    border-radius: 14px !important;
+    transform-origin: bottom center !important;
+    overscroll-behavior: contain;
+  }
+
+  .admin-shell--collapsed #admin-sidebar .admin-profile-menu--sidebar {
+    position: fixed !important;
+    inset: auto auto 12px calc(var(--admin-shell-sidebar-collapsed) + 10px) !important;
+    width: min(300px, calc(100vw - var(--admin-shell-sidebar-collapsed) - 28px)) !important;
+  }
+}
+
+/* Profile menu must always expose the sign-out action. */
+.admin-profile-menu {
+  z-index: 3000 !important;
+  max-width: calc(100vw - 20px) !important;
+  overscroll-behavior: contain;
+}
+
+.admin-profile-menu__links {
+  min-width: 0;
+}
+
+.admin-profile-menu__links button,
+.admin-profile-menu__logout {
+  flex: 0 0 auto;
+}
+
+.admin-profile-menu__logout {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: #0b1825 !important;
+  box-shadow: 0 -8px 18px rgb(6 16 25 / 72%);
+}
+
+/* Dashboard should consume the available workspace. */
+.admin-dashboard .admin-ui-page {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  width: 100% !important;
+  max-width: none !important;
+  gap: clamp(14px, 1.35vw, 22px) !important;
+}
+
+.admin-dashboard .admin-ui-page > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.admin-dashboard .admin-ui-page > .admin-ui-card:has(.admin-finance-chart) {
+  grid-column: span 8 !important;
+  min-height: 430px;
+}
+
+.admin-dashboard .admin-ui-page > .admin-ui-card:has(.admin-risk-chart) {
+  grid-column: span 4 !important;
+  min-height: 430px;
+}
+
+.admin-dashboard .admin-finance-chart,
+.admin-dashboard .admin-risk-chart,
+.admin-dashboard .admin-finance-chart__plot {
+  min-width: 0;
+  max-width: 100%;
+  height: auto !important;
+}
+
+.admin-dashboard .admin-finance-chart__plot {
+  min-height: clamp(260px, 28vw, 370px) !important;
+  overflow: hidden;
+}
+
+.admin-dashboard .admin-dashboard__quick {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: clamp(12px, 1.25vw, 18px) !important;
+}
+
+.admin-dashboard .admin-dashboard__quick > * {
+  height: auto !important;
+  min-height: 176px !important;
+  overflow: visible !important;
+}
+
+.admin-dashboard .admin-kpi-groups {
+  width: 100%;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr) !important;
+}
+
+/* Tablet and mobile use one breakpoint across React and CSS. */
+@media (max-width: 1099px) {
+  .admin-main-shell {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .admin-menu-button {
+    display: inline-flex !important;
+  }
+
+  #admin-sidebar.admin-drawer {
+    overflow: hidden !important;
+  }
+
+  #admin-sidebar .admin-collapse-button {
+    display: none !important;
+  }
+
+  .admin-content-shell {
+    padding: clamp(12px, 3vw, 22px) !important;
+  }
+
+  .admin-dashboard .admin-ui-page > .admin-ui-card:has(.admin-finance-chart),
+  .admin-dashboard .admin-ui-page > .admin-ui-card:has(.admin-risk-chart) {
+    grid-column: 1 / -1 !important;
+    min-height: 0;
+  }
+
+  .admin-dashboard .admin-kpi-groups {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-dashboard .admin-dashboard__quick {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  body[data-app-surface='admin'] {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .admin-content-shell {
+    padding: 12px !important;
+  }
+
+  .admin-ui-page__head {
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+  }
+
+  .admin-ui-page__actions,
+  .admin-ui-page__actions > * {
+    width: 100%;
+  }
+
+  .admin-dashboard .admin-ui-page,
+  .admin-dashboard .admin-dashboard__quick,
+  .admin-ui-grid,
+  .admin-ui-metric-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-dashboard .admin-finance-chart {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-dashboard .admin-dashboard__quick > * {
+    min-height: 150px !important;
+  }
+
+  .admin-profile-menu--sidebar,
+  .admin-profile-menu {
+    position: fixed !important;
+    inset: auto 10px max(10px, env(safe-area-inset-bottom)) 10px !important;
+    width: auto !important;
+    max-height: min(78dvh, 560px) !important;
+    overflow-y: auto !important;
+    border-radius: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-main-shell,
+  .admin-profile-menu,
+  .admin-collapse-button,
+  .admin-menu-button {
+    transition-duration: .01ms !important;
+    animation: none !important;
+  }
+}
