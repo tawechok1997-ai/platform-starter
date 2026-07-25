@@ -1,0 +1,45 @@
+/* Keep legacy Admin modules inside the modern visual system without rewriting business-owned markup. */
+:root {
+  --admin-bg: var(--admin-modern-bg);
+  --admin-sidebar: var(--admin-modern-bg-soft);
+  --admin-surface: var(--admin-modern-surface);
+  --admin-surface-raised: var(--admin-modern-surface-raised);
+  --admin-surface-strong: var(--admin-modern-surface-raised);
+  --admin-surface-soft: rgb(148 163 184 / 6%);
+  --admin-border: var(--admin-modern-border);
+  --admin-border-strong: var(--admin-modern-border-strong);
+  --admin-text: var(--admin-modern-text);
+  --admin-text-secondary: var(--admin-modern-muted);
+  --admin-text-muted: var(--admin-modern-muted);
+  --admin-muted: var(--admin-modern-muted);
+  --admin-brand: var(--admin-modern-brand);
+  --admin-brand-strong: #a5b4fc;
+  --admin-success: var(--admin-modern-success);
+  --admin-warning: var(--admin-modern-warning);
+  --admin-danger: var(--admin-modern-danger);
+  --admin-radius-sm: var(--admin-modern-radius-sm);
+  --admin-radius-md: var(--admin-modern-radius-lg);
+  --admin-radius-lg: var(--admin-modern-radius-xl);
+  --admin-shadow: var(--admin-modern-shadow);
+
+  --background: var(--admin-modern-bg);
+  --surface: var(--admin-modern-surface);
+  --surface-raised: var(--admin-modern-surface-raised);
+  --border: var(--admin-modern-border);
+  --text: var(--admin-modern-text);
+  --muted: var(--admin-modern-muted);
+  --brand: var(--admin-modern-brand);
+  --success: var(--admin-modern-success);
+  --warning: var(--admin-modern-warning);
+  --danger: var(--admin-modern-danger);
+}
+
+body[data-app-surface='admin'] {
+  --color-bg: var(--admin-modern-bg);
+  --color-surface: var(--admin-modern-surface);
+  --color-surface-raised: var(--admin-modern-surface-raised);
+  --color-border: var(--admin-modern-border);
+  --color-text: var(--admin-modern-text);
+  --color-text-muted: var(--admin-modern-muted);
+  --color-brand: var(--admin-modern-brand);
+}
