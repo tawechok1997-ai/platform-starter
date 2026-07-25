@@ -1,0 +1,219 @@
+/* Footer contract matching the supplied desktop reference. Loaded after the V6 layout pass. */
+
+.member-footer__main {
+  color: #f4edf7;
+}
+
+.member-footer__main section,
+.member-footer__main nav {
+  min-width: 0;
+}
+
+.member-footer__main h3,
+.member-footer__payments h3 {
+  margin: 0 0 14px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.member-footer__about-logo {
+  display: block;
+  width: 118px;
+  height: 42px;
+  margin-bottom: 13px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.member-footer__about strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #85d8ee;
+  font-size: 13px;
+}
+
+.member-footer__about p {
+  margin: 0;
+  color: #b9adbf;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.member-footer__links {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+}
+
+.member-footer__links a {
+  color: #c6b9cd;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.member-footer__links a:hover,
+.member-footer__links a:focus-visible {
+  color: #f05cff;
+}
+
+.member-footer__trust-copy {
+  margin: 0 0 13px;
+  color: #78cadf;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.member-footer__trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.member-footer__trust-badge {
+  display: grid;
+  place-items: center;
+  min-height: 46px;
+  padding: 6px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+}
+
+.member-footer__trust-badge img {
+  display: block;
+  width: 100%;
+  max-width: 84px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.member-footer__contact-list {
+  display: grid;
+  gap: 12px;
+}
+
+.member-footer__contact-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #c6b9cd;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.member-footer__contact-line img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.member-footer__responsible {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.member-footer__responsible span {
+  padding: 5px 8px;
+  border: 1px solid #392745;
+  border-radius: 5px;
+  color: #ad9bb5;
+  font-size: 10px;
+}
+
+.member-footer__copyright-logo {
+  display: block;
+  width: 108px;
+  height: 34px;
+  object-fit: contain;
+}
+
+@media (min-width: 901px) {
+  .member-footer__main {
+    display: grid !important;
+    grid-template-columns: 2.05fr 2.65fr .72fr .9fr .75fr !important;
+    gap: 38px !important;
+    width: min(1455px, calc(100% - 32px)) !important;
+    max-width: 1455px !important;
+    margin: 0 auto !important;
+    padding: 42px 20px 34px !important;
+  }
+
+  .member-footer__payments {
+    width: min(1455px, calc(100% - 32px)) !important;
+    max-width: 1455px !important;
+    margin: 0 auto !important;
+    padding: 22px 20px 24px !important;
+    border-top: 1px solid #211729 !important;
+  }
+
+  .member-footer__bank-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 9px !important;
+  }
+
+  .member-footer__bank {
+    display: grid !important;
+    place-items: center !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 4px !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+  }
+
+  .member-footer__bank img {
+    width: 38px !important;
+    height: 38px !important;
+    object-fit: contain !important;
+  }
+
+  .member-footer__copyright {
+    display: flex !important;
+    align-items: center !important;
+    gap: 13px !important;
+    width: min(1455px, calc(100% - 32px)) !important;
+    max-width: 1455px !important;
+    min-height: 54px !important;
+    margin: 0 auto !important;
+    padding: 0 15px !important;
+    border-top: 1px solid #1e1525 !important;
+    color: #796d80 !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .member-footer__main {
+    display: grid;
+    gap: 24px;
+    padding: 28px 14px;
+  }
+
+  .member-footer__trust-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .member-footer__payments {
+    padding: 20px 14px;
+  }
+
+  .member-footer__bank-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .member-footer__copyright {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 14px 90px;
+  }
+}
