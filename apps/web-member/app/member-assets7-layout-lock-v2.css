@@ -1,0 +1,241 @@
+/* Last geometry owner. Prevents the desktop rail from covering the main column. */
+@media (min-width: 901px) {
+  :root {
+    --a7-max-page: 1455px;
+    --a7-main-ratio: 1080;
+    --a7-side-ratio: 350;
+    --a7-col-gap: clamp(10px, 1vw, 15px);
+    --a7-row-gap: clamp(12px, 1.35vw, 20px);
+    --a7-inline: clamp(12px, 2vw, 24px);
+  }
+
+  body:has(.desktop-reference-home) {
+    overflow-x: clip !important;
+    background: #100c15 !important;
+  }
+
+  .desktop-reference-home.desktop-home {
+    display: grid !important;
+    grid-template-columns:
+      minmax(0, calc((100% - var(--a7-col-gap)) * 0.755245))
+      minmax(0, calc((100% - var(--a7-col-gap)) * 0.244755)) !important;
+    grid-template-rows: auto auto !important;
+    column-gap: var(--a7-col-gap) !important;
+    row-gap: var(--a7-row-gap) !important;
+    width: min(var(--a7-max-page), calc(100% - (var(--a7-inline) * 2))) !important;
+    max-width: var(--a7-max-page) !important;
+    margin: clamp(12px, 1.35vw, 20px) auto 38px !important;
+    padding: 0 !important;
+    align-items: start !important;
+  }
+
+  .desktop-reference-home > .reference-hero-carousel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 1080 / 288.46 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .desktop-reference-home > .desktop-home__body {
+    display: contents !important;
+  }
+
+  .desktop-reference-home .reference-main-column {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    position: relative !important;
+    z-index: 1 !important;
+    display: grid !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: var(--a7-row-gap) !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .reference-sidebar {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    position: relative !important;
+    inset: auto !important;
+    z-index: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-flow: row !important;
+    grid-auto-rows: max-content !important;
+    align-content: start !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: clamp(10px, 1vw, 14px) !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .reference-sidebar::before {
+    content: '' !important;
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 350 / 288.46 !important;
+    border: 1px solid #522463 !important;
+    border-radius: 10px !important;
+    background:
+      #17121f
+      url('https://cdn.zabbet.com/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg')
+      center / cover no-repeat !important;
+  }
+
+  .desktop-reference-home .reference-side-card,
+  .desktop-reference-home .reference-jackpot,
+  .desktop-reference-home .reference-leaderboard,
+  .desktop-reference-home .reference-mini-games {
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .reference-hero-mask,
+  .reference-hero-track,
+  .reference-hero-slide {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .reference-hero-track {
+    display: grid !important;
+    grid-template-columns: minmax(0, 32.4074%) minmax(0, 1fr) !important;
+    gap: var(--a7-col-gap) !important;
+  }
+
+  .reference-promo-row {
+    position: relative !important;
+    z-index: 2 !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: clamp(8px, 1.35vw, 20px) !important;
+    overflow: visible !important;
+  }
+
+  .reference-promo-card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    border: 1px solid #8d2abe !important;
+    background: linear-gradient(100deg, #7800a8 0%, #570079 48%, #36004f 100%) !important;
+  }
+
+  .reference-promo-card--2 {
+    background: linear-gradient(100deg, #7100a1 0%, #510070 48%, #310049 100%) !important;
+  }
+
+  .reference-promo-card--3 {
+    background: linear-gradient(100deg, #690094 0%, #470063 48%, #2c0043 100%) !important;
+  }
+
+  .reference-tournament-cta,
+  .reference-panel,
+  .reference-number-section,
+  .reference-compact-section,
+  .reference-guide,
+  .reference-provider-strip {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .reference-panel-heading {
+    background: linear-gradient(90deg, #5c246e 0%, #3a1d47 62%, #211728 100%) !important;
+    border-bottom: 1px solid #482655 !important;
+  }
+
+  .reference-tournament-track {
+    grid-template-columns: repeat(8, minmax(104px, 1fr)) !important;
+    overflow-x: auto !important;
+  }
+
+  .reference-featured-grid {
+    grid-template-columns: minmax(190px, 28.7%) minmax(0, 1fr) !important;
+  }
+
+  .reference-featured-small-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .reference-number-row {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  }
+
+  .reference-online-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+
+  .reference-live-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .reference-classic-row {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  }
+
+  .reference-provider-strip > div {
+    grid-template-columns: repeat(12, minmax(54px, 1fr)) !important;
+    overflow-x: auto !important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1120px) {
+  .public-home-topbar .member-desktop-nav--guest a {
+    padding-inline: 5px !important;
+    font-size: 11px !important;
+  }
+
+  .reference-promo-card {
+    grid-template-columns: minmax(70px, 34%) minmax(0, 1fr) !important;
+  }
+
+  .reference-promo-card strong {
+    font-size: 13px !important;
+  }
+
+  .reference-promo-card small {
+    font-size: 10px !important;
+  }
+
+  .reference-featured-grid {
+    grid-template-columns: minmax(165px, 30%) minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .desktop-reference-home {
+    display: none !important;
+  }
+
+  .member-home-mobile,
+  .v47-mobile-home {
+    display: block !important;
+    width: min(100%, 640px) !important;
+    max-width: 640px !important;
+    margin-inline: auto !important;
+  }
+}
