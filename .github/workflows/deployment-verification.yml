@@ -29,6 +29,10 @@ jobs:
       P6_ENVIRONMENT: ${{ vars.P6_ENVIRONMENT || 'production' }}
       P6_APPROVED_COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
       P6_CONNECTIVITY_TIMEOUT_MS: '10000'
+      P6_ADMIN_ACCESS_TOKEN: ${{ secrets.P6_ADMIN_ACCESS_TOKEN }}
+      P6_DEPOSIT_REQUEST_ID: ${{ vars.P6_DEPOSIT_REQUEST_ID }}
+      P6_WITHDRAWAL_REQUEST_ID: ${{ vars.P6_WITHDRAWAL_REQUEST_ID }}
+      P6_PRIVATE_STORAGE_TIMEOUT_MS: '10000'
 
     steps:
       - name: Checkout verified commit
@@ -111,6 +115,51 @@ jobs:
           if [ "$success" -ne 1 ]; then
             echo "::error title=Deployment verification failed::Health or deployment identity did not become ready before the retry window expired."
             exit 1
+          fi
+
+      - name: Verify private finance evidence access
+        shell: bash
+        run: |
+          mkdir -p deployment-verification-reports
+          missing=()
+          for name in P6_ADMIN_ACCESS_TOKEN P6_DEPOSIT_REQUEST_ID P6_WITHDRAWAL_REQUEST_ID; do
+            if [ -z "${!name:-}" ]; then
+              missing+=("$name")
+            fi
+          done
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            printf '{"ready":false,"blocked":true,"missing":["%s"],"checks":[]}\n' "$(IFS='","'; echo "${missing[*]}")" > deployment-verification-reports/private-storage.json
+            {
+              echo "## Private finance evidence verification"
+              echo ""
+              echo "SKIPPED because the protected token or prepared request IDs are not configured."
+              echo "Missing names: \`${missing[*]}\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          set +e
+          node tools/check-private-finance-storage.mjs --json --strict > deployment-verification-reports/private-storage.json
+          status=$?
+          set -e
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('deployment-verification-reports/private-storage.json', 'utf8'));
+          const lines = [
+            '## Private finance evidence verification',
+            '',
+            '| Target | Mode | Result | Reason |',
+            '|---|---|---|---|',
+            ...(report.checks ?? []).map((check) => `| ${check.target} | ${check.mode} | ${check.ok ? 'PASS' : 'FAIL'} | ${check.reason || '-'} |`),
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
+          NODE
+
+          if [ "$status" -ne 0 ]; then
+            echo "::error title=Private finance evidence verification failed::Authorized or unauthorized private storage behavior is incorrect."
+            exit "$status"
           fi
 
       - name: Upload deployment verification reports
