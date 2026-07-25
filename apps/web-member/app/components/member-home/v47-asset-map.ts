@@ -26,7 +26,7 @@ export const V47_ASSETS = {
   announcement: REFERENCE_ICON_SPRITE,
   tournament: REFERENCE_HOME_ASSETS.tournament,
   jackpot: REFERENCE_HOME_ASSETS.jackpot,
-  live: REFERENCE_HOME_ASSETS.liveBackground,
+  live: REFERENCE_ICON_SPRITE,
   miniGameWheel: REFERENCE_ICON_SPRITE,
   miniGameMission: REFERENCE_ICON_SPRITE,
   mobilePopular: REFERENCE_ICON_SPRITE,
