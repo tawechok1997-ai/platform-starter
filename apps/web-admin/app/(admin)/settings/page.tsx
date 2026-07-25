@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { AdminActionStrip, AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminFilterBar, AdminGrid, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminPage, AdminStack } from '../_components/admin-ui';
+import { AdminActionStrip, AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminFilterBar, AdminLinkButton, AdminMetric, AdminMetricGrid, AdminPage } from '../_components/admin-ui';
 
 type SettingsItem = [title: string, href: string, description: string, badge: string];
 
@@ -57,33 +57,35 @@ export default function SettingsPage() {
   const totalCount = websiteItems.length + moneyItems.length + gameItems.length + safetyItems.length;
 
   return <AdminPage eyebrow="ศูนย์ควบคุมผู้ดูแล" title="การตั้งค่า" description="รวมการตั้งค่าเว็บไซต์ การเงิน เกม การเชื่อมต่อ และความปลอดภัยไว้ในหน้าเดียว">
-    <AdminMetricGrid>
-      <AdminMetric title="เว็บไซต์และแบรนด์" value={String(websiteItems.length)} helper="เว็บไซต์ ไอคอน การค้นหา ช่องทางติดต่อ และฟีเจอร์" />
-      <AdminMetric title="การเงิน" value={String(moneyItems.length)} helper="คิวงาน กระเป๋าเงิน บัญชีแยกประเภท และความเสี่ยง" />
-      <AdminMetric title="เกมและ API" value={String(gameItems.length)} helper="ค่ายเกม API รายการเกม และตัวเชื่อม" />
-      <AdminMetric title="ความปลอดภัย" value={String(safetyItems.length)} helper="สิทธิ์ บันทึกกิจกรรม และลำดับเหตุการณ์" />
-    </AdminMetricGrid>
+    <div className="admin-settings-hub">
+      <AdminMetricGrid>
+        <AdminMetric title="เว็บไซต์และแบรนด์" value={String(websiteItems.length)} helper="เว็บไซต์ ไอคอน การค้นหา ช่องทางติดต่อ และฟีเจอร์" />
+        <AdminMetric title="การเงิน" value={String(moneyItems.length)} helper="คิวงาน กระเป๋าเงิน บัญชีแยกประเภท และความเสี่ยง" />
+        <AdminMetric title="เกมและ API" value={String(gameItems.length)} helper="ค่ายเกม API รายการเกม และตัวเชื่อม" />
+        <AdminMetric title="ความปลอดภัย" value={String(safetyItems.length)} helper="สิทธิ์ บันทึกกิจกรรม และลำดับเหตุการณ์" />
+      </AdminMetricGrid>
 
-    <AdminCard title="ค้นหาการตั้งค่า" description="ค้นหาจากชื่อหมวด หน้า หรือคำอธิบาย">
-      <AdminFilterBar resultText={`${visibleCount}/${totalCount} หน้า`}>
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="เช่น ปิดปรับปรุง ความเสี่ยง หรือ API เกม" aria-label="ค้นหาการตั้งค่า" />
-        {query && <AdminButton size="compact" tone="ghost" onClick={() => setQuery('')}>ล้างคำค้น</AdminButton>}
-      </AdminFilterBar>
-    </AdminCard>
+      <div className="admin-settings-search"><AdminCard title="ค้นหาการตั้งค่า" description="ค้นหาจากชื่อหมวด หน้า หรือคำอธิบาย">
+        <AdminFilterBar resultText={`${visibleCount}/${totalCount} หน้า`}>
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="เช่น ปิดปรับปรุง ความเสี่ยง หรือ API เกม" aria-label="ค้นหาการตั้งค่า" />
+          {query && <AdminButton size="compact" tone="ghost" onClick={() => setQuery('')}>ล้างคำค้น</AdminButton>}
+        </AdminFilterBar>
+      </AdminCard></div>
 
-    <AdminCard title="ทางลัดสำคัญ" description="หน้าที่มีผลต่อระบบจริง การเงิน ค่ายเกม และข้อมูลลับ">
-      <AdminActionStrip><AdminLinkButton href="/settings/icons">ไอคอน</AdminLinkButton><AdminLinkButton href="/game-providers">ค่ายเกม</AdminLinkButton><AdminLinkButton href="/game-api-settings">API เกม</AdminLinkButton><AdminLinkButton href="/games">รายการเกม</AdminLinkButton><AdminLinkButton href="/settings/maintenance">ปิดปรับปรุง</AdminLinkButton></AdminActionStrip>
-    </AdminCard>
+      <div className="admin-settings-shortcuts"><AdminCard title="ทางลัดสำคัญ" description="หน้าที่มีผลต่อระบบจริง การเงิน ค่ายเกม และข้อมูลลับ">
+        <AdminActionStrip><AdminLinkButton href="/settings/icons">ไอคอน</AdminLinkButton><AdminLinkButton href="/game-providers">ค่ายเกม</AdminLinkButton><AdminLinkButton href="/game-api-settings">API เกม</AdminLinkButton><AdminLinkButton href="/games">รายการเกม</AdminLinkButton><AdminLinkButton href="/settings/maintenance">ปิดปรับปรุง</AdminLinkButton></AdminActionStrip>
+      </AdminCard></div>
 
-    {sections.map((section) => section.items.length > 0 && <SettingsSection key={section.title} title={section.title} items={section.items} accent={section.accent} />)}
-    {visibleCount === 0 && <AdminEmpty>ไม่พบการตั้งค่า ลองค้นหาคำที่กว้างขึ้น เช่น “เกม” “เงิน” หรือ “ความปลอดภัย”</AdminEmpty>}
+      {sections.map((section) => section.items.length > 0 && <SettingsSection key={section.title} title={section.title} items={section.items} accent={section.accent} />)}
+      {visibleCount === 0 && <AdminEmpty>ไม่พบการตั้งค่า ลองค้นหาคำที่กว้างขึ้น เช่น “เกม” “เงิน” หรือ “ความปลอดภัย”</AdminEmpty>}
+    </div>
   </AdminPage>;
 }
 
 function SettingsSection({ title, items, accent = false }: { title: string; items: SettingsItem[]; accent?: boolean }) {
-  return <AdminStack><h2 className="admin-ui-section-title">{title}</h2><AdminGrid>{items.map(([cardTitle, href, description, badge]) => <HubCard key={href} title={cardTitle} href={href} description={description} badge={badge} accent={accent} />)}</AdminGrid></AdminStack>;
+  return <section className="admin-settings-section" aria-labelledby={`settings-${title}`}><header className="admin-settings-section__head"><h2 id={`settings-${title}`}>{title}</h2><span>{items.length.toLocaleString('th-TH')} หน้า</span></header><div className="admin-settings-grid">{items.map(([cardTitle, href, description, badge]) => <HubCard key={href} title={cardTitle} href={href} description={description} badge={badge} accent={accent} />)}</div></section>;
 }
 
 function HubCard({ title, href, description, badge, accent = false }: { title: string; href: string; description: string; badge: string; accent?: boolean }) {
-  return <AdminCard title={title} description={description} action={<AdminBadge tone={accent ? 'warning' : 'neutral'}>{badge}</AdminBadge>}><AdminLinkButton href={href}>เปิดหน้า</AdminLinkButton></AdminCard>;
+  return <div className="admin-settings-hub-card" data-accent={accent || undefined}><AdminCard title={title} description={description} action={<AdminBadge tone={accent ? 'warning' : 'neutral'}>{badge}</AdminBadge>}><AdminLinkButton href={href}>เปิดหน้า</AdminLinkButton></AdminCard></div>;
 }
