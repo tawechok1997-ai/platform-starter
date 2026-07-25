@@ -1,0 +1,137 @@
+/* Final interactive control safeguards. Loaded after admin-release-readiness.css. */
+
+@media (min-width: 1100px) and (max-width: 1350px) {
+  .admin-topbar {
+    gap: 12px !important;
+  }
+
+  .admin-topbar-actions {
+    gap: 7px !important;
+  }
+
+  .admin-command-trigger {
+    width: 42px !important;
+    min-width: 42px !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  .admin-command-trigger > span,
+  .admin-command-trigger kbd,
+  .admin-topbar-status {
+    display: none !important;
+  }
+
+  .admin-environment-badge {
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 1099px) {
+  #admin-sidebar.admin-drawer {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 146px) !important;
+  }
+
+  .admin-mobile-drawer-controller__footer {
+    min-height: calc(env(safe-area-inset-bottom) + 132px) !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-content: center !important;
+    gap: 8px !important;
+    padding: 10px 12px calc(env(safe-area-inset-bottom) + 10px) !important;
+    overflow: visible !important;
+  }
+
+  .admin-mobile-drawer-controller__footer > button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 46px !important;
+    justify-content: center !important;
+    padding-inline: 9px !important;
+    overflow: hidden;
+  }
+
+  .admin-mobile-drawer-controller__footer > button span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin-mobile-drawer-controller__logout {
+    border-color: rgb(251 113 133 / 38%) !important;
+    background: rgb(251 113 133 / 14%) !important;
+    color: #ffe4e6 !important;
+  }
+
+  .admin-topbar {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    padding-inline: clamp(10px, 2.5vw, 18px) !important;
+  }
+
+  .admin-topbar-actions {
+    gap: 6px !important;
+  }
+
+  .admin-command-trigger {
+    width: 40px !important;
+    min-width: 40px !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  .admin-command-trigger > span,
+  .admin-command-trigger kbd,
+  .admin-topbar-status,
+  .admin-environment-badge {
+    display: none !important;
+  }
+
+  .admin-language-toggle {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .admin-language-toggle {
+    display: none !important;
+  }
+
+  .admin-topbar-context > div:last-child > span {
+    display: none;
+  }
+
+  .admin-topbar-context strong {
+    max-width: min(46vw, 220px);
+  }
+
+  .admin-notification-trigger,
+  .admin-menu-button,
+  .admin-command-trigger {
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-mobile-drawer-controller__footer {
+    grid-template-columns: 1fr 1fr !important;
+    padding-inline: 9px !important;
+  }
+
+  .admin-mobile-drawer-controller__footer > button {
+    font-size: 11px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-mobile-drawer-controller__footer > button,
+  .admin-command-trigger,
+  .admin-topbar-actions {
+    transition-duration: .01ms !important;
+  }
+}
