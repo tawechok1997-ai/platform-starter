@@ -183,6 +183,39 @@ body[data-app-surface='admin'] .admin-content-shell .admin-ui-card {
   overflow-wrap: anywhere;
 }
 
+body[data-app-surface='admin'] .admin-content-shell table {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+body[data-app-surface='admin'] .admin-data-table__viewport,
+body[data-app-surface='admin'] .admin-table-wrap,
+body[data-app-surface='admin'] .admin-table-scroll {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+}
+
+body[data-app-surface='admin'] .admin-data-table__viewport > table,
+body[data-app-surface='admin'] .admin-table-wrap > table,
+body[data-app-surface='admin'] .admin-table-scroll > table {
+  display: table !important;
+  width: 100% !important;
+  min-width: 720px !important;
+  max-width: none !important;
+  overflow: visible !important;
+}
+
 @media (min-width: 1100px) {
   #admin-sidebar .admin-profile-menu--sidebar .admin-profile-menu__identity {
     display: grid !important;
