@@ -65,6 +65,8 @@ import './member-clone-interactions.css';
 import './member-reference-assets.css';
 import './member-reference-assets-complete.css';
 import './member-assets5-exact.css';
+import './member-reference-v6-match.css';
+import './member-reference-v6-footer.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
