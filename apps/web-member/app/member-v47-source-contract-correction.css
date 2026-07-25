@@ -22,38 +22,48 @@
   }
 
   /*
-   * The inspected source has a 2180px Swiper track inside the 1455px page viewport.
-   * Each banner stays 710.5px wide; the viewport clips both neighbouring slides.
+   * Exact inspected wrapper: full viewport width, centred 2180px Swiper,
+   * 710.5px banners, 10px gaps and a soft fade at both viewport edges.
    */
   .desktop-reference-home > .reference-hero-carousel {
-    width: min(1455px, calc(100vw - 30px)) !important;
-    max-width: 1455px !important;
-    overflow: visible !important;
+    position: relative !important;
+    left: 50% !important;
+    display: block !important;
+    width: 100vw !important;
+    max-width: none !important;
+    margin: 20px 0 24px !important;
+    overflow: hidden !important;
+    transform: translateX(-50%) !important;
+    -webkit-mask-image: linear-gradient(to right, transparent 2%, #000 25%, #000 75%, transparent 98%) !important;
+    mask-image: linear-gradient(to right, transparent 2%, #000 25%, #000 75%, transparent 98%) !important;
   }
 
   .desktop-reference-home .reference-hero-mask {
+    display: flex !important;
     width: 100% !important;
-    overflow: hidden !important;
-    border-radius: 10px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
     -webkit-mask-image: none !important;
     mask-image: none !important;
   }
 
   .desktop-reference-home .reference-hero-track {
     position: relative !important;
-    left: 50% !important;
+    left: auto !important;
     width: 2180px !important;
     min-width: 2180px !important;
     max-width: none !important;
     justify-content: center !important;
     gap: 10px !important;
-    transform: translateX(calc(-50% + var(--hero-drag-x, 0px))) !important;
+    transform: translateX(var(--hero-drag-x, 0px)) !important;
   }
 
   .desktop-reference-home .reference-hero-slide {
     flex: 0 0 710.5px !important;
     width: 710.5px !important;
-    max-width: none !important;
+    max-width: 33.4% !important;
     aspect-ratio: 710.5 / 288.46 !important;
     border: 0 !important;
     border-radius: 10px !important;
@@ -179,7 +189,6 @@
 }
 
 @media (min-width: 1200px) and (max-width: 1499px) {
-  .desktop-reference-home > .reference-hero-carousel,
   .public-home-topbar .public-home-desktop-bar,
   .public-home-topbar .public-home-category-bar {
     width: calc(100vw - 24px) !important;
