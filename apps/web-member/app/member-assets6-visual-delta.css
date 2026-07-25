@@ -1,0 +1,350 @@
+/* Final desktop visual delta against the supplied NOAH345 capture.
+   Icons are owned by member-assets6-icon-contract.css; this file owns geometry only. */
+
+@media (min-width: 901px) {
+  body:has(.desktop-reference-home) {
+    overflow-x: hidden !important;
+    background: #0e0a13 !important;
+  }
+
+  .desktop-reference-home.desktop-home {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1080px) 350px !important;
+    grid-template-rows: 288.46px auto !important;
+    column-gap: 15px !important;
+    row-gap: 20px !important;
+    width: min(1455px, calc(100% - 20px)) !important;
+    max-width: 1455px !important;
+    margin: 14px auto 34px !important;
+    padding: 0 !important;
+    align-items: start !important;
+  }
+
+  .desktop-reference-home > .reference-hero-carousel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 1080px !important;
+    height: 288.46px !important;
+    min-height: 288.46px !important;
+    margin: 0 !important;
+  }
+
+  .desktop-reference-home > .desktop-home__body {
+    display: contents !important;
+  }
+
+  .desktop-reference-home .reference-main-column {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    display: grid !important;
+    gap: 20px !important;
+    width: 1080px !important;
+    min-width: 0 !important;
+  }
+
+  .desktop-reference-home .reference-sidebar {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    position: static !important;
+    display: grid !important;
+    align-content: start !important;
+    gap: 14px !important;
+    width: 350px !important;
+    min-width: 350px !important;
+  }
+
+  .desktop-reference-home .reference-sidebar::before {
+    content: '' !important;
+    display: block !important;
+    width: 350px !important;
+    height: 288.46px !important;
+    border: 1px solid rgb(151 81 169 / 45%) !important;
+    border-radius: 10px !important;
+    background: #17121f url('https://cdn.zabbet.com/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg') center / cover no-repeat !important;
+    box-shadow: none !important;
+  }
+
+  .reference-hero-mask,
+  .reference-hero-track {
+    width: 1080px !important;
+    height: 288.46px !important;
+  }
+
+  .reference-hero-mask {
+    overflow: hidden !important;
+    border-radius: 10px !important;
+  }
+
+  .reference-hero-track {
+    display: grid !important;
+    grid-template-columns: 350px 715px !important;
+    gap: 15px !important;
+    align-items: stretch !important;
+  }
+
+  .reference-hero-slide {
+    height: 288.46px !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+  }
+
+  .reference-hero-slide--previous,
+  .reference-hero-slide--active {
+    display: block !important;
+    opacity: 1 !important;
+  }
+
+  .reference-hero-slide--previous {
+    filter: brightness(.55) saturate(.8) !important;
+  }
+
+  .reference-hero-slide--next {
+    display: none !important;
+  }
+
+  .reference-hero-slide img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .reference-hero-pagination {
+    right: 0 !important;
+    bottom: 7px !important;
+    left: 365px !important;
+  }
+
+  .reference-promo-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+    width: 1080px !important;
+    min-height: 116.5px !important;
+  }
+
+  .reference-promo-card {
+    grid-template-columns: 136px minmax(0, 1fr) !important;
+    height: 116.5px !important;
+    min-height: 116.5px !important;
+    padding: 0 16px 0 0 !important;
+    overflow: hidden !important;
+    border: 1px solid #8d2abe !important;
+    border-radius: 10px !important;
+    background: linear-gradient(100deg, #7300a7 0%, #3b005e 100%) !important;
+  }
+
+  .reference-promo-card strong {
+    font-size: 18px !important;
+    font-weight: 800 !important;
+  }
+
+  .reference-promo-card small {
+    font-size: 12px !important;
+  }
+
+  .reference-tournament-cta {
+    display: block !important;
+    width: 1080px !important;
+    height: 116.5px !important;
+    min-height: 116.5px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: #062b3d url('/reference-v6/tournament.webp') center / cover no-repeat !important;
+  }
+
+  .reference-tournament-cta > * {
+    visibility: hidden !important;
+  }
+
+  .reference-panel,
+  .reference-number-section,
+  .reference-compact-section,
+  .reference-guide,
+  .reference-side-card {
+    overflow: hidden !important;
+    border: 1px solid #291b34 !important;
+    border-radius: 10px !important;
+    background: #17121f !important;
+    box-shadow: none !important;
+  }
+
+  .reference-panel-heading {
+    min-height: 38px !important;
+    padding: 0 12px !important;
+    border-bottom: 1px solid #42224f !important;
+    background: linear-gradient(90deg, #5e2475 0%, #2e1c38 67%, #1d1525 100%) !important;
+  }
+
+  .reference-tournament-track {
+    display: grid !important;
+    grid-template-columns: repeat(8, 132px) !important;
+    gap: 8px !important;
+    padding: 0 10px 12px !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x proximity !important;
+  }
+
+  .reference-rank-card {
+    min-height: 108px !important;
+    padding: 8px 6px !important;
+    border: 1px solid #42324d !important;
+    border-radius: 6px !important;
+    background: #2a2433 !important;
+    scroll-snap-align: start !important;
+  }
+
+  .reference-featured-grid {
+    display: grid !important;
+    grid-template-columns: 310px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    padding: 14px !important;
+  }
+
+  .reference-featured-small-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    overflow: visible !important;
+  }
+
+  .reference-game-tile {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid #2a1d34 !important;
+    border-radius: 8px !important;
+    background: #120d18 !important;
+  }
+
+  .reference-game-tile > img,
+  .reference-game-tile > .reference-game-fallback {
+    display: block !important;
+    width: 100% !important;
+    height: 174px !important;
+    object-fit: cover !important;
+  }
+
+  .reference-game-tile--large {
+    height: 405px !important;
+  }
+
+  .reference-game-tile--large > img,
+  .reference-game-tile--large > .reference-game-fallback {
+    height: 100% !important;
+  }
+
+  .reference-number-row {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    gap: 16px !important;
+    min-height: 180px !important;
+    padding: 10px 14px !important;
+    overflow: hidden !important;
+    background: #0d0912 !important;
+  }
+
+  .reference-number-card {
+    display: grid !important;
+    place-items: center !important;
+    min-width: 0 !important;
+    height: 150px !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .reference-number-card:nth-child(n + 8) {
+    display: none !important;
+  }
+
+  .reference-number-card img,
+  .reference-number-card strong {
+    display: none !important;
+  }
+
+  .reference-number-card > span {
+    position: static !important;
+    color: transparent !important;
+    font-size: 72px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    -webkit-text-stroke: 2px #087bc0 !important;
+    text-shadow: 0 0 12px rgb(0 120 200 / 28%) !important;
+  }
+
+  .reference-online-row {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    padding: 14px !important;
+    overflow: hidden !important;
+  }
+
+  .reference-online-card:nth-child(n + 6) {
+    display: none !important;
+  }
+
+  .reference-live-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    padding: 14px !important;
+    overflow: hidden !important;
+  }
+
+  .reference-classic-row {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    padding: 14px !important;
+    overflow: hidden !important;
+  }
+
+  .reference-classic-row > :nth-child(n + 8) {
+    display: none !important;
+  }
+
+  .reference-provider-strip {
+    width: 1080px !important;
+    padding: 18px 12px !important;
+    background: #100b16 !important;
+  }
+
+  .reference-provider-strip > div {
+    display: grid !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    overflow: hidden !important;
+  }
+
+  .reference-provider-logo {
+    min-width: 0 !important;
+    height: 44px !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .reference-provider-logo img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    filter: grayscale(1) brightness(1.8) !important;
+    opacity: .78 !important;
+  }
+
+  .reference-jackpot {
+    min-height: 218px !important;
+  }
+
+  .reference-leaderboard > div {
+    min-height: 56px !important;
+  }
+
+  .reference-mini-games > div {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+}
