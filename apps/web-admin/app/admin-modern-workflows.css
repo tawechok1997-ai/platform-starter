@@ -1,0 +1,546 @@
+/* Context-aware polish for critical Admin workflows. */
+
+/* Wallet history and operations */
+.admin-wallet-history,
+.admin-wallet-detail,
+.admin-reconciliation-center,
+.admin-wallet-statement,
+.admin-wallet-analytics {
+  gap: clamp(14px, 1.5vw, 20px);
+}
+
+.admin-wallet-history__summary-card,
+.admin-wallet-detail__panel,
+.admin-reconciliation-center__panel,
+.admin-wallet-statement__panel,
+.admin-wallet-analytics__panel,
+.admin-wallet-detail__stat,
+.admin-reconciliation-center__stat,
+.admin-wallet-statement__stat,
+.admin-wallet-analytics__stat,
+.admin-wallet-statement__summary article,
+.admin-wallet-analytics__health article {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--admin-modern-border) !important;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 2.6%), transparent 42%),
+    var(--admin-modern-surface) !important;
+  box-shadow: var(--admin-modern-shadow-soft);
+  transition: transform 180ms var(--admin-modern-ease), border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.admin-wallet-history__summary-card::before,
+.admin-wallet-detail__stat::before,
+.admin-reconciliation-center__stat::before,
+.admin-wallet-statement__stat::before,
+.admin-wallet-analytics__stat::before,
+.admin-wallet-statement__summary article::before,
+.admin-wallet-analytics__health article::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--admin-modern-brand);
+  content: '';
+}
+
+.admin-wallet-history__summary-card:hover,
+.admin-wallet-detail__panel:hover,
+.admin-reconciliation-center__panel:hover,
+.admin-wallet-statement__panel:hover,
+.admin-wallet-analytics__panel:hover,
+.admin-wallet-detail__stat:hover,
+.admin-reconciliation-center__stat:hover,
+.admin-wallet-statement__stat:hover,
+.admin-wallet-analytics__stat:hover,
+.admin-wallet-statement__summary article:hover,
+.admin-wallet-analytics__health article:hover {
+  border-color: rgb(124 109 242 / 28%) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--admin-modern-shadow);
+}
+
+.admin-wallet-history__summary-card span,
+.admin-wallet-detail__stat span,
+.admin-reconciliation-center__stat span,
+.admin-wallet-statement__stat span,
+.admin-wallet-analytics__stat span,
+.admin-wallet-statement__summary span,
+.admin-wallet-analytics__health span {
+  color: var(--admin-modern-muted) !important;
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: .025em;
+}
+
+.admin-wallet-history__summary-card strong,
+.admin-wallet-detail__stat strong,
+.admin-reconciliation-center__stat strong,
+.admin-wallet-statement__stat strong,
+.admin-wallet-analytics__stat strong,
+.admin-wallet-statement__summary strong,
+.admin-wallet-analytics__health strong {
+  color: #fff;
+  font-weight: 850;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-wallet-history__filters,
+.admin-wallet-detail__toolbar,
+.admin-reconciliation-center__toolbar,
+.admin-wallet-statement__toolbar,
+.admin-wallet-analytics__toolbar,
+.admin-wallet-statement__filters {
+  border-color: var(--admin-modern-border) !important;
+  border-radius: 15px !important;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 2.2%), transparent),
+    var(--admin-modern-surface) !important;
+  box-shadow: var(--admin-modern-shadow-soft);
+}
+
+.admin-wallet-history__table-shell,
+.admin-wallet-detail__table-shell,
+.admin-reconciliation-center__table-shell,
+.admin-wallet-statement__table-shell,
+.admin-wallet-analytics__table-shell,
+.admin-wallet-statement__table-wrap,
+.admin-wallet-analytics__table-wrap {
+  border-color: var(--admin-modern-border) !important;
+  border-radius: 17px !important;
+  background: var(--admin-modern-surface) !important;
+  box-shadow: var(--admin-modern-shadow-soft);
+}
+
+.admin-wallet-history__table th,
+.admin-wallet-detail__table th,
+.admin-reconciliation-center__table th,
+.admin-wallet-statement__table th,
+.admin-wallet-analytics__table th {
+  background: var(--admin-modern-surface-raised) !important;
+  color: var(--admin-modern-muted) !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.admin-wallet-history__table tbody tr,
+.admin-wallet-detail__table tbody tr,
+.admin-reconciliation-center__table tbody tr,
+.admin-wallet-statement__table tbody tr,
+.admin-wallet-analytics__table tbody tr {
+  transition: background 150ms ease;
+}
+
+.admin-wallet-history__table tbody tr:hover,
+.admin-wallet-detail__table tbody tr:hover,
+.admin-reconciliation-center__table tbody tr:hover,
+.admin-wallet-statement__table tbody tr:hover,
+.admin-wallet-analytics__table tbody tr:hover {
+  background: rgb(124 109 242 / 5%) !important;
+}
+
+.admin-wallet-history__amount--credit,
+.admin-wallet-statement__table .is-credit {
+  color: #5eead4 !important;
+}
+
+.admin-wallet-history__amount--debit,
+.admin-wallet-statement__table .is-debit {
+  color: #fda4af !important;
+}
+
+.admin-wallet-history__status--success {
+  background: rgb(45 212 191 / 12%) !important;
+  color: #99f6e4 !important;
+}
+
+.admin-wallet-history__status--pending {
+  background: rgb(245 158 11 / 13%) !important;
+  color: #fcd34d !important;
+}
+
+.admin-wallet-history__status--failed,
+.admin-wallet-history__status--reversed {
+  background: rgb(251 113 133 / 13%) !important;
+  color: #fda4af !important;
+}
+
+.admin-wallet-history__pagination,
+.admin-wallet-statement__pager {
+  border-color: var(--admin-modern-border) !important;
+  background: rgb(255 255 255 / 2%);
+}
+
+.admin-wallet-analytics__chart {
+  min-height: 250px;
+  padding: 22px 14px 10px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 17px;
+  background:
+    linear-gradient(rgb(148 163 184 / 6%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 163 184 / 4%) 1px, transparent 1px),
+    rgb(5 10 18 / 42%);
+  background-size: 100% 25%, 12.5% 100%, auto;
+}
+
+.admin-wallet-analytics__bar-item {
+  height: 190px;
+}
+
+.admin-wallet-analytics__bar-item > span {
+  width: min(30px, 74%);
+  transform-origin: bottom;
+  animation: admin-workflow-bar 680ms var(--admin-modern-ease) both;
+}
+
+.admin-wallet-analytics__bar-item > span.is-positive {
+  background: linear-gradient(180deg, #5eead4, #0f766e);
+  box-shadow: 0 0 22px rgb(45 212 191 / 17%);
+}
+
+.admin-wallet-analytics__bar-item > span.is-negative {
+  background: linear-gradient(180deg, #fda4af, #be123c);
+  box-shadow: 0 0 22px rgb(251 113 133 / 16%);
+}
+
+/* Member directory and insight charts */
+.admin-directory-toolbar {
+  min-height: 70px;
+  padding: 13px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 15px;
+  background: var(--admin-modern-surface);
+  box-shadow: var(--admin-modern-shadow-soft);
+}
+
+.admin-directory-grid {
+  gap: 12px;
+}
+
+.admin-directory-card {
+  padding: 17px;
+  border-color: var(--admin-modern-border);
+  border-radius: 17px;
+  background:
+    linear-gradient(145deg, rgb(124 109 242 / 5%), transparent 45%),
+    var(--admin-modern-surface);
+  box-shadow: var(--admin-modern-shadow-soft);
+}
+
+.admin-directory-card:hover {
+  border-color: rgb(124 109 242 / 28%);
+  box-shadow: var(--admin-modern-shadow);
+  transform: translateY(-2px);
+}
+
+.admin-directory-card:focus-within {
+  border-color: rgb(34 211 238 / 42%);
+  box-shadow: 0 0 0 3px rgb(34 211 238 / 9%), var(--admin-modern-shadow);
+}
+
+.admin-directory-avatar {
+  border: 2px solid rgb(124 109 242 / 42%);
+  background: linear-gradient(145deg, #4f46e5, #0891b2);
+  box-shadow: 0 0 0 4px rgb(124 109 242 / 8%), 0 14px 30px rgb(34 211 238 / 12%);
+}
+
+.admin-directory-identity h3 {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -.015em;
+}
+
+.admin-directory-identity p,
+.admin-directory-identity small {
+  color: var(--admin-modern-muted);
+}
+
+.admin-directory-fact,
+.admin-directory-security {
+  border-color: var(--admin-modern-border);
+  background: rgb(5 10 18 / 42%);
+}
+
+.admin-directory-fact span {
+  color: var(--admin-modern-subtle);
+  font-size: 10px;
+}
+
+.admin-directory-fact strong {
+  color: #dbe4f0;
+}
+
+.admin-directory-security {
+  border-radius: 13px;
+}
+
+.admin-member-insights__chart {
+  min-height: 320px;
+  padding: 22px 18px 12px;
+  border-color: var(--admin-modern-border);
+  border-radius: 18px;
+  background:
+    linear-gradient(rgb(148 163 184 / 6%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 163 184 / 4%) 1px, transparent 1px),
+    rgb(5 10 18 / 44%);
+  background-size: 100% 25%, 7.14% 100%, auto;
+  box-shadow: var(--admin-modern-shadow-soft);
+}
+
+.admin-member-insights__day {
+  grid-template-rows: 220px auto;
+}
+
+.admin-member-insights__bars {
+  height: 220px;
+}
+
+.admin-member-insights__bar {
+  width: 11px;
+  background: linear-gradient(180deg, #a5b4fc, #6366f1 54%, #4338ca);
+  box-shadow: 0 0 18px rgb(99 102 241 / 16%);
+  transform-origin: bottom;
+  animation: admin-workflow-bar 680ms var(--admin-modern-ease) both;
+}
+
+.admin-member-insights__bar[data-kind='active'] {
+  background: linear-gradient(180deg, #5eead4, #0f766e);
+  box-shadow: 0 0 18px rgb(45 212 191 / 15%);
+  opacity: .9;
+}
+
+.admin-member-insights__legend {
+  padding: 10px 12px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 2%);
+}
+
+/* Support center */
+.admin-support-template-list {
+  gap: 7px;
+  padding: 4px;
+}
+
+.admin-support-template-button {
+  min-height: 36px;
+  border-color: var(--admin-modern-border-strong);
+  background: rgb(255 255 255 / 3.5%);
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.admin-support-template-button:hover {
+  border-color: rgb(124 109 242 / 34%);
+  background: rgb(124 109 242 / 9%);
+  color: #fff;
+}
+
+.admin-support-message-box {
+  padding: 15px;
+  border-color: var(--admin-modern-border);
+  border-radius: 15px;
+  background:
+    linear-gradient(145deg, rgb(124 109 242 / 4%), transparent 46%),
+    var(--admin-modern-surface);
+  box-shadow: var(--admin-modern-shadow-soft);
+}
+
+.admin-support-thread {
+  grid-template-columns: auto minmax(0, 1fr) minmax(110px, auto);
+  gap: 10px;
+  min-height: 44px;
+  padding: 11px 0 0;
+  border-top-color: var(--admin-modern-border);
+}
+
+.admin-support-thread > span {
+  color: #e2e8f0;
+  line-height: 1.55;
+}
+
+.admin-support-thread > small {
+  color: var(--admin-modern-subtle);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.admin-support-reply {
+  min-height: 120px !important;
+}
+
+/* Security, invitations and settings forms inherit one calm workflow rhythm. */
+.admin-content-shell :where(
+  form,
+  .admin-settings-form,
+  .admin-security-form,
+  .admin-invitation-form
+) {
+  min-width: 0;
+}
+
+.admin-content-shell :where(form) > :where(.admin-ui-card, section) + :where(.admin-ui-card, section) {
+  margin-top: 14px;
+}
+
+.admin-content-shell :where(fieldset) {
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 14px;
+}
+
+.admin-content-shell :where(legend) {
+  padding-inline: 7px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@media (max-width: 1100px) {
+  .admin-member-insights__chart {
+    min-height: 280px;
+  }
+
+  .admin-member-insights__day,
+  .admin-member-insights__bars {
+    height: 185px;
+  }
+
+  .admin-member-insights__day {
+    grid-template-rows: 185px auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-wallet-history__summary,
+  .admin-wallet-detail__stats,
+  .admin-reconciliation-center__stats,
+  .admin-wallet-statement__stats,
+  .admin-wallet-analytics__stats,
+  .admin-wallet-statement__summary,
+  .admin-wallet-analytics__health,
+  .admin-member-insights__summary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-wallet-history__summary-card,
+  .admin-wallet-detail__stat,
+  .admin-reconciliation-center__stat,
+  .admin-wallet-statement__stat,
+  .admin-wallet-analytics__stat,
+  .admin-wallet-statement__summary article,
+  .admin-wallet-analytics__health article {
+    min-height: 108px;
+  }
+
+  .admin-wallet-history__table tr {
+    margin: 0;
+    padding: 12px 13px;
+    border-bottom-color: var(--admin-modern-border);
+    background: rgb(255 255 255 / 1.5%);
+  }
+
+  .admin-wallet-history__table td {
+    grid-template-columns: minmax(94px, .72fr) minmax(0, 1.28fr);
+    gap: 10px;
+  }
+
+  .admin-wallet-analytics__chart {
+    min-height: 205px;
+    margin-inline: -2px;
+    padding: 15px 10px 8px;
+  }
+
+  .admin-wallet-analytics__bar-item {
+    height: 145px;
+  }
+
+  .admin-directory-toolbar {
+    grid-template-columns: 1fr;
+    padding: 11px;
+  }
+
+  .admin-directory-card {
+    padding: 14px;
+  }
+
+  .admin-directory-facts {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-member-insights__chart {
+    min-height: 240px;
+    margin-inline: -2px;
+    padding: 14px 10px 10px;
+  }
+
+  .admin-member-insights__day,
+  .admin-member-insights__bars {
+    height: 155px;
+  }
+
+  .admin-member-insights__day {
+    grid-template-rows: 155px auto;
+  }
+
+  .admin-support-thread {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-support-thread > small {
+    grid-column: auto;
+    text-align: left;
+  }
+}
+
+@media (max-width: 430px) {
+  .admin-directory-main {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .admin-directory-status {
+    grid-column: 1 / -1;
+  }
+
+  .admin-directory-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-support-template-actions,
+  .admin-support-template-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .admin-support-template-button {
+    width: 100%;
+    border-radius: 11px;
+  }
+}
+
+@keyframes admin-workflow-bar {
+  from { opacity: .2; transform: scaleY(.025); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-wallet-history__summary-card,
+  .admin-wallet-detail__panel,
+  .admin-reconciliation-center__panel,
+  .admin-wallet-statement__panel,
+  .admin-wallet-analytics__panel,
+  .admin-wallet-analytics__bar-item > span,
+  .admin-directory-card,
+  .admin-member-insights__bar,
+  .admin-support-template-button {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
