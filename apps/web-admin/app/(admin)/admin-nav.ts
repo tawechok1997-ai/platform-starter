@@ -33,12 +33,6 @@ export function localizedNavGroupDescription(group: Pick<AdminNavGroup, 'descrip
   return locale === 'en' ? group.descriptionEn ?? group.description : group.description;
 }
 
-const financePermissions = ['topups.view', 'deposit.view', 'withdraw.view', 'wallet.view', 'reports.view', 'game.providers.view', 'provider.view'] as const;
-const memberPermissions = ['users.view', 'deposit.view', 'risk.view'] as const;
-const providerPermissions = ['game.providers.view', 'provider.view', 'game.providers.manage', 'provider.update'] as const;
-const growthPermissions = ['promotion.view', 'promotions.claims.view', 'bonus.ledger.view', 'affiliate.view'] as const;
-const accessPermissions = ['admin.view', 'admin.access.view', 'admin.create', 'security.anti_bot.view'] as const;
-
 /**
  * The sidebar exposes eleven task-oriented workspaces. Specialist pages remain
  * searchable in the command palette and keep their existing URLs and permission
@@ -64,7 +58,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     description: 'การเงิน สมาชิก ความเสี่ยง และผู้ให้บริการ',
     descriptionEn: 'Finance, members, risk, and providers',
     items: [
-      { title: 'การเงิน', titleEn: 'Finance', href: '/topups', permissions: financePermissions, badgeKey: 'pending' },
+      { title: 'การเงิน', titleEn: 'Finance', href: '/topups', permissions: ['topups.view', 'deposit.view'], badgeKey: 'pending' },
       { title: 'รายการถอน', titleEn: 'Withdrawals', href: '/withdrawals', permissions: ['withdraw.view'], badgeKey: 'withdrawals', sidebar: false },
       { title: 'จัดการหลายรายการ', titleEn: 'Bulk review', href: '/bulk-queue-operations', permissions: ['topups.view', 'deposit.view', 'withdraw.view'], sidebar: false },
       { title: 'กระเป๋าเงินสมาชิก', titleEn: 'Member wallets', href: '/wallets', permissions: ['wallet.view'], sidebar: false },
@@ -75,7 +69,7 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'รายงานการเงิน', titleEn: 'Finance reports', href: '/reports', permissions: ['reports.view'], sidebar: false },
       { title: 'ส่งออกรายงาน', titleEn: 'Exports', href: '/exports', permissions: ['reports.export', 'reports.view'], sidebar: false },
 
-      { title: 'สมาชิก', titleEn: 'Members', href: '/members', permissions: memberPermissions },
+      { title: 'สมาชิก', titleEn: 'Members', href: '/members', permissions: ['users.view'] },
       { title: 'ข้อมูลเชิงลึกสมาชิก', titleEn: 'Member insights', href: '/member-insights', permissions: ['users.view'], sidebar: false },
       { title: 'บัญชีธนาคาร', titleEn: 'Bank accounts', href: '/bank-accounts', permissions: ['users.view', 'deposit.view'], sidebar: false },
       { title: 'ตรวจ KYC', titleEn: 'KYC review', href: '/kyc-center', permissions: ['users.view', 'risk.view'], sidebar: false },
@@ -85,7 +79,7 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'ตรวจความเสี่ยงค่ายเกม', titleEn: 'Provider risk', href: '/provider-risk', permissions: ['risk.view', 'provider.view'], sidebar: false },
       { title: 'ตรวจบันทึกความเสี่ยง', titleEn: 'Risk audit', href: '/audit-risk', permissions: ['risk.view'], sidebar: false },
 
-      { title: 'ปฏิบัติการค่ายเกม', titleEn: 'Provider operations', href: '/provider-health', permissions: providerPermissions },
+      { title: 'ปฏิบัติการค่ายเกม', titleEn: 'Provider operations', href: '/provider-health', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'ตั้งค่าค่ายเกม', titleEn: 'Provider setup', href: '/simple-game-settings', permissions: ['game.providers.manage', 'provider.update'], sidebar: false },
       { title: 'เพิ่มค่ายเกม', titleEn: 'Add provider', href: '/provider-setup-wizard', permissions: ['game.providers.manage', 'provider.update'], sidebar: false },
       { title: 'ชุดตั้งค่าค่ายเกม', titleEn: 'Provider presets', href: '/provider-presets', permissions: ['game.providers.manage', 'provider.update'], sidebar: false },
@@ -111,13 +105,13 @@ export const navGroups: readonly AdminNavGroup[] = [
     description: 'โปรโมชัน พันธมิตร และเนื้อหา',
     descriptionEn: 'Promotions, affiliates, and content',
     items: [
-      { title: 'การเติบโตและโปรโมชัน', titleEn: 'Growth & promotions', href: '/growth-center', permissions: growthPermissions },
+      { title: 'การเติบโตและโปรโมชัน', titleEn: 'Growth & promotions', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
       { title: 'งานโปรโมชัน', titleEn: 'Promotion operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'], sidebar: false },
       { title: 'โปรโมชันและโบนัส', titleEn: 'Promotions & bonuses', href: '/promotion-center', permissions: ['promotion.view'], sidebar: false },
       { title: 'คำขอรับโปรโมชัน', titleEn: 'Promotion claims', href: '/promotion-claims', permissions: ['promotions.claims.view'], sidebar: false },
       { title: 'โบนัสย้อนหลัง', titleEn: 'Bonus ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'], sidebar: false },
 
-      { title: 'Affiliate และคอมมิชชัน', titleEn: 'Affiliate & commission', href: '/affiliate-center', permissions: ['affiliate.view', 'commission.view'] },
+      { title: 'Affiliate และคอมมิชชัน', titleEn: 'Affiliate & commission', href: '/affiliate-center', permissions: ['affiliate.view'] },
       { title: 'ประวัติคอมมิชชัน', titleEn: 'Commission ledger', href: '/commission-ledgers', permissions: ['commission.view'], sidebar: false },
 
       { title: 'เนื้อหาและสื่อ', titleEn: 'Content & assets', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
@@ -130,7 +124,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     description: 'บัญชี สิทธิ์ ความปลอดภัย และการตั้งค่า',
     descriptionEn: 'Accounts, access, security, and settings',
     items: [
-      { title: 'สิทธิ์และความปลอดภัย', titleEn: 'Access & security', href: '/admin-accounts', permissions: accessPermissions },
+      { title: 'สิทธิ์และความปลอดภัย', titleEn: 'Access & security', href: '/admin-accounts', permissions: ['admin.view', 'admin.access.view'] },
       { title: 'บทบาทและสิทธิ์', titleEn: 'Roles & permissions', href: '/admin-roles', permissions: ['admin.access.view'], sidebar: false },
       { title: 'คำเชิญผู้ดูแล', titleEn: 'Admin invitations', href: '/admin-invitations', permissions: ['admin.create'], sidebar: false },
       { title: 'บันทึกการใช้งาน', titleEn: 'Audit log', href: '/audit', permissions: ['admin.view', 'admin.access.view'], sidebar: false },
