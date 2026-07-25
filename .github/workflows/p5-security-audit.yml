@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: p5-security-${{ github.ref }}
@@ -20,6 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Install pnpm
@@ -33,6 +34,23 @@ jobs:
           node-version: 22
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
+
+      - name: Refresh patched PostCSS lockfile on the owned feature branch
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/admin-shell-responsive-layout'
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F 'postcss: 8.5.23' pnpm-workspace.yaml
+          pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts
+          if git diff --quiet -- pnpm-lock.yaml; then
+            echo 'Lockfile is already current.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add pnpm-lock.yaml
+          git commit -m 'chore(lockfile): refresh patched PostCSS override'
+          git push origin HEAD:${GITHUB_HEAD_REF}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
