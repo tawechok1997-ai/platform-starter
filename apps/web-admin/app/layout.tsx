@@ -62,6 +62,7 @@ import './admin-release-readiness.css';
 import './admin-release-controls.css';
 import './admin-shell-layout.css';
 import './admin-shell-profile-popover.css';
+import './admin-modernization-adoption.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
