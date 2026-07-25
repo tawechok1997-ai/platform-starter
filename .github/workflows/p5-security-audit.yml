@@ -38,7 +38,36 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Audit production dependencies and committed secrets
-        run: pnpm audit:dependency-security
+        id: dependency_security
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm audit:dependency-security 2>&1 | tee dependency-security-audit.log
+
+      - name: Upload dependency and secret audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-security-audit-evidence
+          path: dependency-security-audit.log
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish security audit summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Dependency and committed-secret audit'
+            echo
+            echo '- Outcome: **${{ steps.dependency_security.outcome }}**'
+            echo '- Full output: `dependency-security-audit-evidence` artifact'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on dependency or secret audit violations
+        if: steps.dependency_security.outcome == 'failure'
+        run: exit 1
 
       - name: Validate environment schema tests
         run: pnpm --filter @platform/api exec jest src/common/config/runtime-env.spec.ts --runInBand
