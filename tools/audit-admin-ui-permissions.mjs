@@ -1,7 +1,8 @@
 import { readdir } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
-import { navGroups, requiredPermissionsForPath } from '../apps/web-admin/app/(admin)/admin-nav.ts';
+import { tsImport } from 'tsx/esm/api';
 
+const { navGroups, requiredPermissionsForPath } = await tsImport('../apps/web-admin/app/(admin)/admin-nav.ts', import.meta.url);
 const ADMIN_ROOT = join(process.cwd(), 'apps', 'web-admin', 'app', '(admin)');
 const ROUTE_ALLOWLIST = new Set(['/dashboard', '/operations', '/profile', '/security']);
 
