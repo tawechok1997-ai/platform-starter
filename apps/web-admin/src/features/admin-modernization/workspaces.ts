@@ -79,7 +79,7 @@ export const ADMIN_WORKSPACES: readonly AdminWorkspace[] = [
     route: '/risk-alerts',
     labelKey: 'admin.navigation.riskCompliance.label',
     descriptionKey: 'admin.navigation.riskCompliance.description',
-    legacyPrefixes: ['/risk', '/risk-alerts', '/risk-operations', '/provider-risk', '/audit-risk', '/blacklist', '/watchlist', '/aml'],
+    legacyPrefixes: ['/risk', '/risk-alerts', '/risk-operations', '/provider-risk', '/audit-risk', '/investigation', '/blacklist', '/watchlist', '/aml'],
     mobilePattern: 'list-detail',
   },
   {
