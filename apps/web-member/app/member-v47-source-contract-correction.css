@@ -27,6 +27,24 @@
     justify-content: center !important;
   }
 
+  .desktop-reference-home .reference-promo-row::before {
+    content: 'ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง' !important;
+    display: flex !important;
+    grid-column: 1 / -1 !important;
+    align-items: center !important;
+    min-height: 30px !important;
+    padding: 0 12px 0 42px !important;
+    overflow: hidden !important;
+    border: 1px solid #7d218f !important;
+    border-radius: 5px !important;
+    background: #120d18 url('/home-asset/coin.webp') 10px center / 22px 22px no-repeat !important;
+    color: #d9c9de !important;
+    font-size: 11px !important;
+    line-height: 30px !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+  }
+
   .desktop-reference-home .reference-promo-card--1 .reference-promo-icon > img {
     content: url('/home-asset/promo-special.png') !important;
   }
