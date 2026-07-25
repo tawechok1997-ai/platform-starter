@@ -1,0 +1,232 @@
+/* Final icon contract derived from assets(6).rar and the supplied 5x4 icon atlas.
+   Loaded after all legacy passes so old /home-asset fallbacks cannot hide real artwork. */
+
+:root {
+  --reference-icon-atlas: url('/clone-assets/reference-icon-sprite.webp');
+}
+
+/* Header category icons are individual supplied images, not atlas placeholders. */
+.public-home-nav-icon-frame {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 25px !important;
+  height: 25px !important;
+  flex: 0 0 25px !important;
+  background: none !important;
+}
+
+.public-home-nav-icon-frame .public-home-nav-icon {
+  display: block !important;
+  width: 25px !important;
+  height: 25px !important;
+  opacity: 1 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  filter: none !important;
+}
+
+.public-home-topbar .member-desktop-nav--guest a {
+  gap: 5px !important;
+  min-width: 0 !important;
+  padding: 0 11px !important;
+  font-size: 14px !important;
+}
+
+/* Mission uses the supplied gift cell in the atlas. */
+.public-home-mission img {
+  display: block !important;
+  width: 40px !important;
+  height: 40px !important;
+  margin-left: -5px !important;
+  object-position: -9999px -9999px !important;
+  background-image: var(--reference-icon-atlas) !important;
+  background-repeat: no-repeat !important;
+  background-size: 500% 400% !important;
+  background-position: 50% 100% !important;
+}
+
+/* Quick actions use the actual supplied promo, event and news artwork. */
+.desktop-reference-home .reference-promo-icon::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+
+.desktop-reference-home .reference-promo-icon,
+.desktop-reference-home .reference-promo-icon > img {
+  display: block !important;
+  width: 136px !important;
+  height: 136px !important;
+  max-width: none !important;
+  object-fit: contain !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+.desktop-reference-home .reference-promo-icon {
+  place-self: center !important;
+  overflow: visible !important;
+}
+
+.desktop-reference-home .reference-promo-card--1 .reference-promo-icon > img {
+  content: url('/clone-assets/shortcut-promo.webp') !important;
+}
+
+.desktop-reference-home .reference-promo-card--2 .reference-promo-icon > img {
+  content: url('/clone-assets/shortcut-event.webp') !important;
+}
+
+.desktop-reference-home .reference-promo-card--3 .reference-promo-icon > img {
+  content: url('/clone-assets/shortcut-news.webp') !important;
+}
+
+/* Shared atlas crop. */
+.reference-heading-icon,
+.reference-mini-icon,
+.v47-mobile-section-title > span > img[src*='reference-icon-sprite'],
+.v47-mobile-announcement > img[src*='reference-icon-sprite'],
+.v47-mobile-mini-games a > img[src*='reference-icon-sprite'] {
+  background-image: var(--reference-icon-atlas) !important;
+  background-repeat: no-repeat !important;
+  background-size: 500% 400% !important;
+}
+
+.reference-heading-icon > img[src*='reference-icon-sprite'],
+.reference-mini-icon > img[src*='reference-icon-sprite'] {
+  display: none !important;
+}
+
+.reference-heading-icon {
+  display: inline-block !important;
+  width: 25px !important;
+  height: 25px !important;
+  flex: 0 0 25px !important;
+  color: transparent !important;
+  font-size: 0 !important;
+}
+
+.reference-featured-section .reference-heading-icon {
+  background-position: 0 66.666% !important;
+}
+
+.reference-number-section .reference-heading-icon {
+  background-position: 25% 66.666% !important;
+}
+
+.reference-compact-section:has(.reference-online-row) .reference-heading-icon {
+  background-position: 25% 66.666% !important;
+}
+
+.reference-compact-section:has(.reference-live-row) .reference-heading-icon {
+  background-position: 50% 33.333% !important;
+}
+
+.reference-compact-section:has(.reference-classic-row) .reference-heading-icon {
+  background-position: 100% 66.666% !important;
+}
+
+.reference-guide .reference-heading-icon {
+  background-position: 25% 100% !important;
+}
+
+.reference-mini-icon {
+  display: inline-block !important;
+  width: 70px !important;
+  height: 70px !important;
+  flex: 0 0 70px !important;
+}
+
+.reference-mini-games a:nth-child(1) .reference-mini-icon {
+  background-position: 100% 33.333% !important;
+}
+
+.reference-mini-games a:nth-child(2) .reference-mini-icon {
+  background-position: 75% 33.333% !important;
+}
+
+/* Mobile atlas crops. */
+.v47-mobile-announcement > img[src*='reference-icon-sprite'] {
+  display: block !important;
+  width: 23px !important;
+  height: 23px !important;
+  flex: 0 0 23px !important;
+  object-position: -9999px -9999px !important;
+  background-position: 100% 100% !important;
+}
+
+.v47-mobile-section-title > span > img[src*='reference-icon-sprite'] {
+  display: block !important;
+  width: 27px !important;
+  height: 27px !important;
+  flex: 0 0 27px !important;
+  object-position: -9999px -9999px !important;
+  background-position: 0 66.666% !important;
+}
+
+.v47-mobile-home [data-game-section='popular'] .v47-mobile-section-title img {
+  background-position: 0 66.666% !important;
+}
+
+.v47-mobile-home [data-game-section='online'] .v47-mobile-section-title img {
+  background-position: 25% 66.666% !important;
+}
+
+.v47-mobile-home [data-game-section='classic'] .v47-mobile-section-title img {
+  background-position: 100% 66.666% !important;
+}
+
+.v47-mobile-live .v47-mobile-section-title img {
+  background-position: 50% 33.333% !important;
+}
+
+.v47-mobile-guide .v47-mobile-section-title img {
+  background-position: 25% 100% !important;
+}
+
+.v47-mobile-mini-games a > img[src*='reference-icon-sprite'] {
+  display: block !important;
+  width: 72px !important;
+  height: 72px !important;
+  flex: 0 0 72px !important;
+  object-position: -9999px -9999px !important;
+}
+
+.v47-mobile-mini-games a:nth-child(1) > img {
+  background-position: 100% 33.333% !important;
+}
+
+.v47-mobile-mini-games a:nth-child(2) > img {
+  background-position: 75% 33.333% !important;
+}
+
+/* Remove legacy pseudo icons that covered or duplicated the supplied files. */
+.v47-mobile-announcement::before,
+.v47-mobile-mini-games a::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* The supplied rank artwork must remain visible above older badge CSS. */
+.reference-rank-medal,
+.v47-mobile-rank-badge,
+.v47-mobile-board-badge {
+  position: relative !important;
+  background: transparent !important;
+}
+
+.reference-rank-medal img,
+.v47-mobile-rank-badge img,
+.v47-mobile-board-badge img {
+  display: block !important;
+  object-fit: contain !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 900px) {
+  .v47-mobile-quick-grid img {
+    display: block !important;
+    width: 76px !important;
+    height: 76px !important;
+    object-fit: contain !important;
+  }
+}
