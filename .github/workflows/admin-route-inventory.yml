@@ -35,7 +35,6 @@ jobs:
 
       - name: Generate Admin route inventory
         id: inventory
-        continue-on-error: true
         run: pnpm --filter @platform/web-admin inventory:admin-routes
 
       - name: Publish inventory summary
@@ -59,6 +58,13 @@ jobs:
             `- Audit command result: **${{ steps.inventory.outcome }}**`,
             '',
           ];
+          if (registry.workspaceCounts) {
+            lines.push('### Workspace coverage', '');
+            for (const [workspace, count] of Object.entries(registry.workspaceCounts)) {
+              lines.push(`- ${workspace}: **${count}** routes`);
+            }
+            lines.push('');
+          }
           if (unassigned.length) {
             lines.push('### Routes requiring ownership', '');
             for (const route of unassigned) lines.push(`- \`${route.route}\` from \`${route.source}\``);
@@ -74,5 +80,5 @@ jobs:
         with:
           name: admin-route-registry
           path: docs/admin-route-registry.generated.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
