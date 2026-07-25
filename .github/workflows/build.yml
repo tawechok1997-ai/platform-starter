@@ -54,6 +54,9 @@ jobs:
       - name: Audit deployment verification workflow
         run: node --test tools/deployment-verification-workflow.test.mjs
 
+      - name: Audit private storage verifier
+        run: node --test tools/check-private-finance-storage.test.mjs
+
       - name: Audit architecture inventory
         run: pnpm audit:architecture-inventory
 
