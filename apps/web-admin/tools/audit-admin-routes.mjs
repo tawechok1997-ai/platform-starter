@@ -8,41 +8,57 @@ const outputPath = path.resolve(process.cwd(), '../../docs/admin-route-registry.
 const ROUTE_FILES = new Set(['page.tsx', 'page.ts', 'page.jsx', 'page.js']);
 const SYSTEM_SEGMENTS = new Set(['_components', '_lib', '_utils', '_hooks', '_styles']);
 
+const WORKSPACE_PREFIXES = [
+  ['authentication', ['/', '/login', '/two-factor', '/accept-invitation']],
+  ['command-center', ['/dashboard', '/operations', '/activity-center', '/activity']],
+  ['finance', [
+    '/finance', '/topups', '/withdrawals', '/bulk-queue-operations', '/wallets', '/wallet-ledgers',
+    '/wallet-statement', '/wallet-analytics', '/reconciliation-center', '/reports', '/exports',
+    '/ledgers', '/money-ops',
+  ]],
+  ['members', ['/members', '/member-detail', '/member-insights', '/bank-accounts', '/kyc', '/kyc-center', '/support-center']],
+  ['risk-compliance', ['/risk-alerts', '/risk-operations', '/provider-risk', '/audit-risk', '/investigation', '/blacklist', '/watchlist', '/aml']],
+  ['provider-operations', [
+    '/provider-health', '/simple-game-settings', '/provider-setup-wizard', '/provider-presets',
+    '/game-providers', '/provider-credentials', '/provider-adapters', '/provider-wallet-snapshots',
+    '/webhook-logs', '/webhook-settlement', '/webhook-test', '/adapter-test', '/game-api-settings',
+  ]],
+  ['games', ['/games', '/game-sessions', '/game-transfers']],
+  ['growth-promotions', ['/growth-center', '/promotion-operations', '/promotion-center', '/promotion-claims', '/bonus-ledgers']],
+  ['affiliate-commission', ['/affiliate-center', '/commission-ledgers']],
+  ['content', ['/content-center']],
+  ['access-security', [
+    '/access', '/admin-accounts', '/admin-roles', '/admin-invitations', '/audit', '/audit-logs',
+    '/security', '/anti-bot', '/profile',
+  ]],
+  ['settings', ['/settings']],
+];
+
 function normalizeSegment(segment) {
   if (segment.startsWith('(') && segment.endsWith(')')) return null;
   if (SYSTEM_SEGMENTS.has(segment)) return null;
   if (segment.startsWith('@')) return null;
-  if (segment === 'page.tsx' || segment === 'page.ts' || segment === 'page.jsx' || segment === 'page.js') return null;
+  if (ROUTE_FILES.has(segment)) return null;
   if (segment.startsWith('[[...') && segment.endsWith(']]')) return `:${segment.slice(5, -2)}*?`;
   if (segment.startsWith('[...') && segment.endsWith(']')) return `:${segment.slice(4, -1)}*`;
   if (segment.startsWith('[') && segment.endsWith(']')) return `:${segment.slice(1, -1)}`;
   return segment;
 }
 
-function classifyRoute(route) {
-  if (route === '/login' || route.includes('password') || route.includes('2fa') || route.includes('invite')) return 'auth';
+function routeMatchesPrefix(route, prefix) {
+  if (prefix === '/') return route === '/';
+  return route === prefix || route.startsWith(`${prefix}/`);
+}
+
+function classifyRoute(route, workspace) {
+  if (workspace === 'authentication') return 'auth';
   if (route.includes(':')) return 'dynamic-detail';
   if (route === '/not-found' || route.includes('error')) return 'system-state';
   return 'workspace';
 }
 
 function inferWorkspace(route) {
-  const mappings = [
-    ['command-center', ['/dashboard', '/operations', '/activity']],
-    ['finance', ['/finance', '/topups', '/withdrawals', '/wallet', '/reconciliation', '/reports']],
-    ['members', ['/members', '/member', '/bank-accounts', '/kyc', '/support']],
-    ['risk-compliance', ['/risk', '/blacklist', '/watchlist', '/aml']],
-    ['provider-operations', ['/providers', '/provider', '/webhook', '/game-settings', '/setup-wizard', '/presets']],
-    ['games', ['/games', '/game-sessions', '/game-transfers']],
-    ['growth-promotions', ['/growth', '/promotions', '/promotion', '/bonus']],
-    ['affiliate-commission', ['/affiliate', '/commission']],
-    ['content', ['/content', '/cms', '/assets']],
-    ['access-security', ['/admins', '/admin-accounts', '/roles', '/invitations', '/audit', '/security', '/anti-bot']],
-    ['settings', ['/settings']],
-    ['authentication', ['/login', '/password', '/2fa', '/invite']],
-  ];
-
-  const match = mappings.find(([, prefixes]) => prefixes.some((prefix) => route === prefix || route.startsWith(`${prefix}/`)));
+  const match = WORKSPACE_PREFIXES.find(([, prefixes]) => prefixes.some((prefix) => routeMatchesPrefix(route, prefix)));
   return match?.[0] ?? 'unassigned';
 }
 
@@ -70,11 +86,12 @@ async function main() {
   const routes = pageFiles
     .map((file) => {
       const route = routeFromPage(file);
+      const workspace = inferWorkspace(route);
       return {
         route,
         source: path.relative(process.cwd(), file).replaceAll(path.sep, '/'),
-        routeType: classifyRoute(route),
-        workspace: inferWorkspace(route),
+        routeType: classifyRoute(route, workspace),
+        workspace,
         requiresMobilePattern: true,
         requiresThai: true,
         requiresEnglish: true,
@@ -85,18 +102,23 @@ async function main() {
 
   const duplicates = routes.filter((route, index) => routes.findIndex((candidate) => candidate.route === route.route) !== index);
   const unassigned = routes.filter((route) => route.workspace === 'unassigned');
+  const workspaceCounts = Object.fromEntries([...new Set(routes.map((route) => route.workspace))]
+    .sort()
+    .map((workspace) => [workspace, routes.filter((route) => route.workspace === workspace).length]));
 
   const registry = {
     generatedAt: new Date().toISOString(),
     appRoot: 'apps/web-admin/app',
     totalRoutes: routes.length,
     unassignedCount: unassigned.length,
+    workspaceCounts,
     routes,
   };
 
   await fs.writeFile(outputPath, `${JSON.stringify(registry, null, 2)}\n`, 'utf8');
 
   console.log(`Admin route registry generated: ${routes.length} routes`);
+  console.log(`Workspace owners: ${Object.entries(workspaceCounts).map(([name, count]) => `${name}=${count}`).join(', ')}`);
   console.log(`Output: ${path.relative(process.cwd(), outputPath)}`);
 
   if (duplicates.length > 0) {
