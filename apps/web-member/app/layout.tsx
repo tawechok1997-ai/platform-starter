@@ -79,6 +79,7 @@ import './member-v47-source-contract-final.css';
 import './member-v47-source-contract-correction.css';
 import './member-v47-complete-pass.css';
 import './member-v47-runtime-final.css';
+import './member-v47-final-patch.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
