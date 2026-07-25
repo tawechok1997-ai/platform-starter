@@ -17,9 +17,9 @@ concurrency:
 
 jobs:
   admin-ui-smoke:
-    name: Admin Desktop and Mobile UI
+    name: Admin Desktop and Mobile Route Audit
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       ADMIN_WEB_URL: ${{ inputs.admin_url || vars.P6_ADMIN_URL || secrets.SEED_ADMIN_WEB_URL || 'https://platformweb-admin-production.up.railway.app' }}
       SEED_ADMIN_USERNAME: ${{ secrets.SEED_ADMIN_USERNAME || secrets.P6_ADMIN_USERNAME }}
@@ -83,7 +83,7 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run responsive Admin UI smoke
+      - name: Run responsive Admin route audit
         run: pnpm exec playwright test -c playwright.authenticated-visual.config.ts --grep "admin authenticated home"
 
       - name: Upload responsive Admin evidence
@@ -102,9 +102,11 @@ jobs:
         shell: bash
         run: |
           {
-            echo '## Admin responsive UI smoke'
+            echo '## Admin responsive route audit'
             echo
-            echo 'Checks the authenticated dashboard at desktop and mobile viewports.'
+            echo 'Checks every accessible Admin navigation route at desktop and mobile viewports.'
+            echo
+            echo 'Validates shell controls, profile/logout visibility, route width, horizontal overflow, card bounds, broken images and runtime errors.'
             echo
             echo 'Evidence includes screenshots and redacted runtime/layout audit JSON. Credentials are never written to artifacts.'
           } >> "$GITHUB_STEP_SUMMARY"
