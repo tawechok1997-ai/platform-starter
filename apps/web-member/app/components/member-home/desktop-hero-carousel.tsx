@@ -9,7 +9,6 @@ import {
   type SyntheticEvent,
 } from 'react';
 import type { CmsContent } from '../../site-settings';
-import { V47_ASSETS } from './v47-asset-map';
 
 type CmsBanner = CmsContent['banners'][number];
 
@@ -40,25 +39,89 @@ type PointerState = {
 const AUTOPLAY_DELAY_MS = 4200;
 const SWIPE_THRESHOLD_PX = 48;
 const DRAG_START_THRESHOLD_PX = 4;
-const ARCHIVE_BANNERS: CmsBanner[] = [
-  { title: 'ประกาศรางวัลผู้โชคดี', subtitle: 'NOAH345', imageUrl: V47_ASSETS.heroWinners, href: '/promotions', enabled: true },
-  { title: 'กิจกรรม Daily Login', subtitle: 'รับรางวัลทุกวัน', imageUrl: V47_ASSETS.heroLogin, href: '/promotions', enabled: true },
-  { title: 'ติดตามข่าวสาร', subtitle: 'ข่าวสารและกิจกรรมล่าสุด', imageUrl: V47_ASSETS.heroNews, href: '/notifications', enabled: true },
+
+// Exact source order from the inspected NOAH345 desktop Swiper.
+// Index 0 starts in the centre, with index 10 on the left and index 1 on the right.
+const SOURCE_BANNERS: CmsBanner[] = [
+  {
+    title: 'NOAH345 Banner 01',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1784894399570-2ba3393c-2988-4971-834b-86bbe275d0bb.jpg',
+    href: '/promotions',
+    enabled: true,
+  },
+  {
+    title: 'NOAH345 Banner 02',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1784894972162-da9eaece-7402-4bb6-813f-7a83dc2925c2.jpg',
+    href: '/promotions',
+    enabled: true,
+  },
+  {
+    title: 'NOAH345 Banner 03',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1784895027990-67f1beb1-8c13-4582-b6ff-dbb647773c9a.jpg',
+    href: '/promotions',
+    enabled: true,
+  },
+  {
+    title: 'NOAH345 Banner 04',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1784895081838-4f8ccf22-9b17-4157-900f-0b78f883d69d.jpg',
+    href: '/promotions',
+    enabled: true,
+  },
+  {
+    title: 'NOAH345 Banner 05',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1784895118089-b5159a76-a1b4-491e-81d0-e0d3f27d3818.jpg',
+    href: '/promotions',
+    enabled: true,
+  },
+  {
+    title: 'NOAH345 Banner 06',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1784470530271-94bf2de8-a759-4e02-8af9-bbd08a398208.jpg',
+    href: '/promotions',
+    enabled: true,
+  },
+  {
+    title: 'NOAH345 Banner 07',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1782914061717-d7de2072-63f1-4dd5-95f6-8628990ba631.jpg',
+    href: '/promotions',
+    enabled: true,
+  },
+  {
+    title: 'NOAH345 Banner 08',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1782990586367-b41e5c36-0d4d-4e7c-80ed-bb145a2e3a77.jpg',
+    href: '/promotions',
+    enabled: true,
+  },
+  {
+    title: 'NOAH345 Banner 09',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1782630857612-4098241f-e70d-4a32-b41b-623d74b974b6.jpg',
+    href: '/promotions',
+    enabled: true,
+  },
+  {
+    title: 'NOAH345 Banner 10',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1780250534847-0b47bd80-15a3-4117-bdd3-f383308509bc.jpg',
+    href: '/promotions',
+    enabled: true,
+  },
+  {
+    title: 'NOAH345 Banner 11',
+    imageUrl: 'https://cdn.zabbet.com/FEZX/imageslides/1778979600098-3be41f05-c93f-4c12-b278-54cfe390de4c.jpg',
+    href: '/promotion',
+    enabled: true,
+  },
 ];
 
-export function DesktopHeroCarousel({ content, siteName, showPromotion }: DesktopHeroCarouselProps) {
-  const slides = useMemo<HeroSlide[]>(() => {
-    // Desktop fidelity uses the supplied V47 artwork. CMS remains available to the
-    // rest of Member Home instead of silently replacing the approved reference hero.
-    const bannerSource = ARCHIVE_BANNERS;
+export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCarouselProps) {
+  const slides = useMemo<HeroSlide[]>(
+    () => SOURCE_BANNERS.map((banner, realIndex) => ({
+      banner,
+      imageUrl: banner.imageUrl || '',
+      realIndex,
+    })).filter((slide) => Boolean(slide.imageUrl)),
+    [],
+  );
 
-    return bannerSource.flatMap((banner, realIndex) => {
-      const imageUrl = normalizeUrl(banner.imageUrl || resolveCmsAssetById(content, banner.assetId));
-      return imageUrl ? [{ banner, imageUrl, realIndex }] : [];
-    });
-  }, [content]);
-
-  const [activeIndex, setActiveIndex] = useState(1);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const carouselRef = useRef<HTMLElement | null>(null);
   const pointerState = useRef<PointerState | null>(null);
@@ -234,20 +297,11 @@ function HeroSlideCard({ role, slide, siteName }: { role: VisibleSlide['role']; 
         src={slide.imageUrl}
         alt={slide.banner.title || siteName}
         draggable={false}
+        loading={isActive ? 'eager' : 'lazy'}
         onError={hideBrokenImage}
       />
     </a>
   );
-}
-
-function resolveCmsAssetById(content: CmsContent, assetId?: string) {
-  return assetId ? content.assets.find((asset) => asset.enabled && asset.id === assetId)?.url || '' : '';
-}
-
-function normalizeUrl(value: string) {
-  if (!value) return '';
-  if (/^https?:\/\//i.test(value) || value.startsWith('/')) return value;
-  return `/${value.replace(/^\.\//, '')}`;
 }
 
 function modulo(value: number, divisor: number) {
