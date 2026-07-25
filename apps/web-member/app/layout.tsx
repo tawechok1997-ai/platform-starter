@@ -69,6 +69,7 @@ import './member-reference-v6-match.css';
 import './member-reference-v6-footer.css';
 import './member-assets6-icon-contract.css';
 import './member-assets6-mobile-order.css';
+import './member-assets6-visual-delta.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
