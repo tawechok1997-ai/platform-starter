@@ -75,6 +75,13 @@ test('keeps card headers, actions, rows and filters within their parent width', 
   assert.match(controlsCss, /@media \(max-width: 720px\)[\s\S]*grid-template-columns: 1fr !important/);
 });
 
+test('contains table overflow at the table or its dedicated viewport', () => {
+  assert.match(controlsCss, /admin-content-shell table[\s\S]*min-width: 0 !important/);
+  assert.match(controlsCss, /admin-content-shell table[\s\S]*overflow-x: auto !important/);
+  assert.match(controlsCss, /admin-data-table__viewport[\s\S]*overflow-x: auto !important/);
+  assert.match(controlsCss, /admin-data-table__viewport > table[\s\S]*min-width: 720px !important/);
+});
+
 test('allows every admin page and card to use the available workspace', () => {
   assert.match(css, /\.admin-ui-page,\s*\.admin-dashboard \.admin-ui-page[\s\S]*width: 100% !important/);
   assert.match(css, /\.admin-ui-card[\s\S]*overflow: visible !important/);
