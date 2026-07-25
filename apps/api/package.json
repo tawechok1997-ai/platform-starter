@@ -10,6 +10,7 @@
     "start:prod": "node dist/main.js",
     "test": "jest",
     "test:db:finance": "jest src/modules/finance/finance-concurrency.db.spec.ts src/modules/finance/finance-lifecycle.db.spec.ts --runInBand",
+    "test:db:admin-access": "jest src/modules/admin-access/admin-delegation.db.spec.ts --runInBand",
     "test:db:promotions": "jest src/modules/promotions/promotion-settlement.db.spec.ts --runInBand",
     "test:db:phone-otp": "jest src/modules/auth/phone-otp.db.spec.ts --runInBand",
     "test:db:risk-watchlist": "jest src/modules/risk-alerts/risk-watchlist-concurrency.db.spec.ts --runInBand",
