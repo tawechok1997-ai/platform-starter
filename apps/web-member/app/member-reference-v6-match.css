@@ -1,0 +1,619 @@
+/* Final desktop structure pass based on the supplied reference capture and source CSS. */
+
+@media (min-width: 901px) {
+  :root {
+    --reference-page: 1455px;
+    --reference-main: 1080px;
+    --reference-side: 350px;
+    --reference-gap: 15px;
+    --reference-row-gap: 20px;
+  }
+
+  body:has(.desktop-reference-home) {
+    background:
+      radial-gradient(circle at 52% 30%, rgb(111 26 157 / 13%), transparent 26%),
+      linear-gradient(180deg, #0d0912 0%, #0d0912 62%, #100b17 100%) !important;
+  }
+
+  .desktop-reference-home.desktop-home {
+    display: grid !important;
+    grid-template-columns: minmax(0, var(--reference-main)) var(--reference-side) !important;
+    grid-template-rows: auto auto !important;
+    column-gap: var(--reference-gap) !important;
+    row-gap: var(--reference-row-gap) !important;
+    width: min(var(--reference-page), calc(100% - 24px)) !important;
+    max-width: var(--reference-page) !important;
+    margin: 18px auto 38px !important;
+    padding: 0 !important;
+    align-items: start !important;
+  }
+
+  .desktop-reference-home > .reference-hero-carousel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: var(--reference-main) !important;
+    max-width: var(--reference-main) !important;
+    height: 288.46px !important;
+    min-height: 288.46px !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home > .desktop-home__body {
+    display: contents !important;
+  }
+
+  .desktop-reference-home .reference-main-column {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    display: grid !important;
+    gap: var(--reference-row-gap) !important;
+    min-width: 0 !important;
+  }
+
+  .desktop-reference-home .reference-sidebar {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    position: static !important;
+    top: auto !important;
+    display: grid !important;
+    align-content: start !important;
+    gap: 14px !important;
+    width: var(--reference-side) !important;
+    min-width: var(--reference-side) !important;
+  }
+
+  .desktop-reference-home .reference-sidebar::before {
+    display: block !important;
+    width: 100% !important;
+    height: 288.46px !important;
+    aspect-ratio: auto !important;
+    border: 1px solid rgb(159 57 213 / 28%) !important;
+    border-radius: 10px !important;
+    background-position: center !important;
+    background-size: cover !important;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 28%) !important;
+  }
+
+  .reference-hero-mask,
+  .reference-hero-track {
+    width: 100% !important;
+    height: 288.46px !important;
+  }
+
+  .reference-hero-mask {
+    overflow: hidden !important;
+    border-radius: 10px !important;
+  }
+
+  .reference-hero-track {
+    display: grid !important;
+    grid-template-columns: 350px 715px !important;
+    gap: var(--reference-gap) !important;
+    align-items: stretch !important;
+    transform: translateX(var(--hero-drag-x, 0px)) !important;
+    transition: transform .28s ease !important;
+  }
+
+  .reference-hero-carousel.is-dragging .reference-hero-track {
+    transition: none !important;
+  }
+
+  .reference-hero-slide {
+    position: relative !important;
+    inset: auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 288.46px !important;
+    transform: none !important;
+    opacity: 1 !important;
+    border: 1px solid rgb(159 57 213 / 25%) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    background: #171121 !important;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 28%) !important;
+  }
+
+  .reference-hero-slide--previous {
+    display: block !important;
+    filter: brightness(.52) saturate(.78) !important;
+  }
+
+  .reference-hero-slide--active {
+    display: block !important;
+    filter: none !important;
+  }
+
+  .reference-hero-slide--next {
+    display: none !important;
+  }
+
+  .reference-hero-slide img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .reference-hero-pagination {
+    right: 0 !important;
+    left: 365px !important;
+    bottom: 8px !important;
+    z-index: 4 !important;
+  }
+
+  .reference-promo-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+    min-height: 116.5px !important;
+  }
+
+  .reference-promo-card {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: 136px minmax(0, 1fr) !important;
+    align-items: center !important;
+    min-height: 116.5px !important;
+    height: 116.5px !important;
+    padding: 0 18px 0 0 !important;
+    overflow: hidden !important;
+    border: 1px solid #8d2abe !important;
+    border-radius: 10px !important;
+    background: linear-gradient(100deg, #7300a7 0%, #3b005e 100%) !important;
+    box-shadow: inset 0 1px rgb(255 255 255 / 9%) !important;
+  }
+
+  .reference-promo-icon {
+    display: grid !important;
+    place-items: center !important;
+    width: 136px !important;
+    height: 116.5px !important;
+    overflow: visible !important;
+  }
+
+  .reference-promo-icon img {
+    display: block !important;
+    width: 122px !important;
+    height: 122px !important;
+    object-fit: contain !important;
+    transform: none !important;
+  }
+
+  .reference-promo-card > span:last-child {
+    display: grid !important;
+    gap: 2px !important;
+    margin: 0 !important;
+  }
+
+  .reference-promo-card strong {
+    font-size: 18px !important;
+    font-weight: 800 !important;
+  }
+
+  .reference-promo-card small {
+    color: #d6c5dd !important;
+    font-size: 12px !important;
+  }
+
+  .reference-tournament-cta {
+    position: relative !important;
+    display: block !important;
+    width: var(--reference-main) !important;
+    min-height: 116.5px !important;
+    height: 116.5px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: #062b3d url('/reference-v6/tournament.webp') center / cover no-repeat !important;
+    box-shadow: 0 8px 20px rgb(0 0 0 / 24%) !important;
+  }
+
+  .reference-tournament-cta > * {
+    visibility: hidden !important;
+  }
+
+  .reference-panel,
+  .reference-number-section,
+  .reference-compact-section,
+  .reference-guide,
+  .reference-side-card {
+    overflow: hidden !important;
+    border: 1px solid #291b34 !important;
+    border-radius: 10px !important;
+    background: #17121f !important;
+    box-shadow: 0 9px 26px rgb(0 0 0 / 22%) !important;
+  }
+
+  .reference-panel-heading {
+    min-height: 38px !important;
+    padding: 0 14px !important;
+    gap: 8px !important;
+    border-bottom: 1px solid #42224f !important;
+    background: linear-gradient(90deg, #5e2475 0%, #2e1c38 67%, #1d1525 100%) !important;
+  }
+
+  .reference-panel-heading strong {
+    font-size: 14px !important;
+    font-weight: 900 !important;
+  }
+
+  .reference-tournament-title {
+    min-height: 48px !important;
+    margin: 10px !important;
+    padding: 0 12px !important;
+    border: 1px solid #7b2499 !important;
+    border-radius: 6px !important;
+    background: #2a2133 !important;
+  }
+
+  .reference-tournament-track {
+    display: grid !important;
+    grid-template-columns: repeat(8, 132px) !important;
+    gap: 8px !important;
+    padding: 0 10px 12px !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x proximity !important;
+  }
+
+  .reference-rank-card {
+    min-height: 108px !important;
+    padding: 8px 6px !important;
+    border: 1px solid #42324d !important;
+    border-radius: 6px !important;
+    background: #2a2433 !important;
+    scroll-snap-align: start !important;
+  }
+
+  .reference-rank-card .reference-rank-medal,
+  .reference-rank-card .reference-rank-medal img {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .reference-featured-grid {
+    display: grid !important;
+    grid-template-columns: 310px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    padding: 14px !important;
+  }
+
+  .reference-featured-small-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    overflow: visible !important;
+  }
+
+  .reference-game-tile {
+    position: relative !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid #2a1d34 !important;
+    border-radius: 8px !important;
+    background: #120d18 !important;
+  }
+
+  .reference-game-tile > img,
+  .reference-game-tile > .reference-game-fallback {
+    display: block !important;
+    width: 100% !important;
+    height: 174px !important;
+    object-fit: cover !important;
+  }
+
+  .reference-game-tile--large {
+    height: 405px !important;
+  }
+
+  .reference-game-tile--large > img,
+  .reference-game-tile--large > .reference-game-fallback {
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .reference-game-tile > span {
+    position: absolute !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    display: grid !important;
+    gap: 1px !important;
+    padding: 20px 8px 7px !important;
+    background: linear-gradient(180deg, transparent, rgb(11 7 16 / 94%)) !important;
+  }
+
+  .reference-number-row {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    gap: 16px !important;
+    min-height: 180px !important;
+    padding: 10px 14px !important;
+    overflow: hidden !important;
+    background: #0d0912 !important;
+  }
+
+  .reference-number-card:nth-child(n + 8) {
+    display: none !important;
+  }
+
+  .reference-number-card {
+    display: grid !important;
+    place-items: center !important;
+    min-width: 0 !important;
+    height: 150px !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .reference-number-card img,
+  .reference-number-card strong {
+    display: none !important;
+  }
+
+  .reference-number-card > span {
+    position: static !important;
+    color: transparent !important;
+    font-size: 72px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    -webkit-text-stroke: 2px #087bc0 !important;
+    text-shadow: 0 0 12px rgb(0 122 203 / 28%) !important;
+  }
+
+  .reference-online-row {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    padding: 14px !important;
+  }
+
+  .reference-online-card:nth-child(n + 6) {
+    display: none !important;
+  }
+
+  .reference-online-card {
+    overflow: hidden !important;
+    border: 1px solid #5d2477 !important;
+    border-radius: 7px !important;
+    background: #2b1737 !important;
+  }
+
+  .reference-online-card > img {
+    width: 100% !important;
+    height: 168px !important;
+    object-fit: cover !important;
+  }
+
+  .reference-live-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    padding: 14px !important;
+  }
+
+  .reference-live-card {
+    min-height: 205px !important;
+    border: 1px solid #3f3048 !important;
+    border-radius: 8px !important;
+  }
+
+  .reference-classic-row {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    padding: 14px !important;
+  }
+
+  .reference-classic-row > :nth-child(n + 7) {
+    display: none !important;
+  }
+
+  .reference-classic-row .reference-game-tile > img {
+    height: 190px !important;
+  }
+
+  .reference-guide details {
+    margin: 9px 10px 0 !important;
+    border: 1px solid #41364e !important;
+    border-radius: 5px !important;
+    background: #252030 !important;
+  }
+
+  .reference-guide-more {
+    width: 305px !important;
+    min-height: 40px !important;
+    margin: 10px auto 22px !important;
+    border: 1px solid #8c33bd !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: #e74cff !important;
+  }
+
+  .reference-provider-strip {
+    padding: 0 8px 38px !important;
+    background: transparent !important;
+  }
+
+  .reference-provider-strip h2 {
+    margin: 0 0 28px !important;
+    font-size: 18px !important;
+  }
+
+  .reference-provider-strip > div {
+    display: grid !important;
+    grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    gap: 30px !important;
+  }
+
+  .reference-provider-logo {
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .reference-provider-logo img {
+    width: 100% !important;
+    height: 38px !important;
+    object-fit: contain !important;
+    filter: grayscale(1) brightness(2) !important;
+    opacity: .82 !important;
+  }
+
+  .reference-side-card > header {
+    min-height: 40px !important;
+    padding: 0 13px !important;
+    background: linear-gradient(90deg, #6d2b83, #312038 68%, #211626) !important;
+  }
+
+  .reference-jackpot > div {
+    min-height: 170px !important;
+    padding: 10px !important;
+    background: radial-gradient(circle at 70% 15%, rgb(151 39 206 / 35%), transparent 42%), #171220 !important;
+  }
+
+  .reference-jackpot-art {
+    width: 100% !important;
+    max-height: 115px !important;
+    object-fit: contain !important;
+  }
+
+  .reference-leaderboard > div {
+    min-height: 50px !important;
+    margin: 5px 10px !important;
+    padding: 4px 7px !important;
+    border-radius: 6px !important;
+    background: #2b2336 !important;
+  }
+
+  .reference-mini-games > div {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    padding: 15px !important;
+  }
+
+  .reference-mini-games a {
+    min-height: 58px !important;
+    border: 3px solid #ebc51a !important;
+    border-radius: 29px !important;
+    background: linear-gradient(180deg, #d028d3, #78008e) !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+  }
+
+  .reference-mini-games .reference-mini-icon {
+    width: 52px !important;
+    height: 52px !important;
+    flex-basis: 52px !important;
+  }
+
+  .member-footer {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-top: 1px solid #22172b !important;
+    background: #100a17 !important;
+  }
+
+  .member-footer__main,
+  .member-footer__payments,
+  .member-footer__copyright {
+    width: min(var(--reference-page), calc(100% - 32px)) !important;
+    max-width: var(--reference-page) !important;
+    margin-right: auto !important;
+    margin-left: auto !important;
+  }
+
+  .member-footer__main {
+    display: grid !important;
+    grid-template-columns: 2.1fr 2.5fr .7fr .9fr .7fr !important;
+    gap: 38px !important;
+    padding: 42px 20px 34px !important;
+  }
+
+  .member-footer__payments {
+    padding: 24px 20px !important;
+    border-top: 1px solid #22172b !important;
+  }
+
+  .member-footer__bank-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 9px !important;
+  }
+
+  .member-footer__bank {
+    width: 46px !important;
+    min-height: 46px !important;
+    padding: 5px !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .member-footer__copyright {
+    min-height: 54px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 0 15px !important;
+    border-top: 1px solid #1e1525 !important;
+  }
+
+  /* The supplied icon sprite contains the remaining section artwork. */
+  .reference-featured-section .reference-heading-icon,
+  .reference-number-section .reference-heading-icon,
+  .reference-compact-section:has(.reference-online-row) .reference-heading-icon,
+  .reference-compact-section:has(.reference-classic-row) .reference-heading-icon,
+  .reference-guide .reference-heading-icon,
+  .reference-mini-games .reference-mini-icon,
+  .public-home-mission::before {
+    background-image: url('/clone-assets/reference-icon-sprite.webp') !important;
+    background-repeat: no-repeat !important;
+    background-size: 500% 400% !important;
+  }
+
+  .reference-featured-section .reference-heading-icon { background-position: 0 66.666% !important; }
+  .reference-number-section .reference-heading-icon { background-position: 0 100% !important; }
+  .reference-compact-section:has(.reference-online-row) .reference-heading-icon { background-position: 25% 66.666% !important; }
+  .reference-compact-section:has(.reference-classic-row) .reference-heading-icon { background-position: 100% 66.666% !important; }
+  .reference-guide .reference-heading-icon { background-position: 25% 100% !important; }
+  .reference-mini-games a:first-child .reference-mini-icon { background-position: 100% 33.333% !important; }
+  .reference-mini-games a:last-child .reference-mini-icon { background-position: 75% 33.333% !important; }
+
+  .reference-featured-section .reference-heading-icon img,
+  .reference-number-section .reference-heading-icon img,
+  .reference-compact-section:has(.reference-online-row) .reference-heading-icon img,
+  .reference-compact-section:has(.reference-classic-row) .reference-heading-icon img,
+  .reference-guide .reference-heading-icon img,
+  .reference-mini-games .reference-mini-icon img {
+    visibility: hidden !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .v47-mobile-section-title img[src*='reference-icon-sprite'],
+  .v47-mobile-announcement img[src*='reference-icon-sprite'] {
+    visibility: hidden !important;
+  }
+
+  .v47-mobile-section-title > span > span:first-child,
+  .v47-mobile-announcement {
+    background-image: url('/clone-assets/reference-icon-sprite.webp') !important;
+    background-repeat: no-repeat !important;
+    background-size: 500% 400% !important;
+  }
+
+  .v47-mobile-announcement {
+    background-position: 100% 100% !important;
+  }
+
+  .v47-mobile-game-grid[data-drag-scroll='true'] {
+    overflow-x: auto !important;
+    scroll-snap-type: x proximity !important;
+  }
+}
