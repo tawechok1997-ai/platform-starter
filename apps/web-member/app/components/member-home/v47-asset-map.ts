@@ -3,7 +3,7 @@ import { REFERENCE_HERO_SLIDES, REFERENCE_HOME_ASSETS } from '../reference-asset
 const HOME_ASSET = '/home-asset';
 
 export const V47_ASSETS = {
-  headerLogo: `${HOME_ASSET}/logo.png`,
+  headerLogo: '/reference-v6/logo.webp',
   headerFlag: '/v47-assets/header/th.svg',
   headerMission: `${HOME_ASSET}/mission.webp`,
   menuHome: `${HOME_ASSET}/icon-home.png`,
@@ -26,7 +26,7 @@ export const V47_ASSETS = {
   quickActivity: `${HOME_ASSET}/promo-activity.png`,
   quickNews: `${HOME_ASSET}/promo-news.png`,
   announcement: `${HOME_ASSET}/coin.webp`,
-  tournament: `${HOME_ASSET}/tournament.png`,
+  tournament: '/reference-v6/tournament.webp',
   tournamentIcon: `${HOME_ASSET}/tournament.svg`,
   jackpot: `${HOME_ASSET}/jackpot.gif`,
   jackpotStill: `${HOME_ASSET}/jackpot.webp`,
