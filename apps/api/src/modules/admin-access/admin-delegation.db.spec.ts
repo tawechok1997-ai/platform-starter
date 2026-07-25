@@ -25,12 +25,19 @@ describeWithDatabase('admin delegated access lifecycle with PostgreSQL', () => {
   const grantorRoleId = randomUUID();
   const delegateRoleId = randomUUID();
   const outsiderRoleId = randomUUID();
-  const ownerRoleId = randomUUID();
-  const delegatePermissionId = randomUUID();
+  const requestedOwnerRoleId = randomUUID();
+  const delegatedPermissionId = randomUUID();
   const directPermissionId = randomUUID();
-  const wildcardPermissionId = randomUUID();
   const delegatedPermissionCode = `support.case.view.${suffix}`;
   const directPermissionCode = `admin.dashboard.view.${suffix}`;
+
+  let ownerRoleId = requestedOwnerRoleId;
+  let ownerRoleOwned = false;
+  let wildcardPermissionId = '';
+  let wildcardPermissionOwned = false;
+  let ownerWildcardRelationOwned = false;
+  let delegationPermissionId = '';
+  let delegationPermissionOwned = false;
 
   beforeAll(async () => {
     assertSafeTestDatabase(databaseUrl!);
@@ -39,16 +46,34 @@ describeWithDatabase('admin delegated access lifecycle with PostgreSQL', () => {
 
     await prisma.permission.createMany({
       data: [
-        { id: delegatePermissionId, code: delegatedPermissionCode, name: 'Delegated support view', module: 'support' },
+        { id: delegatedPermissionId, code: delegatedPermissionCode, name: 'Delegated support view', module: 'support' },
         { id: directPermissionId, code: directPermissionCode, name: 'Direct dashboard view', module: 'admin' },
-        { id: wildcardPermissionId, code: `delegation-owner-wildcard-${suffix}`, name: 'Owner test wildcard placeholder', module: 'admin-access' },
       ],
     });
-    await prisma.permission.update({ where: { id: wildcardPermissionId }, data: { code: '*' } }).catch(async () => {
-      const existing = await prisma.permission.findUniqueOrThrow({ where: { code: '*' } });
-      await prisma.permission.delete({ where: { id: wildcardPermissionId } });
-      Object.assign(testIds, { wildcardPermissionId: existing.id, wildcardOwned: false });
+
+    const existingWildcard = await prisma.permission.findUnique({ where: { code: '*' } });
+    if (existingWildcard) {
+      wildcardPermissionId = existingWildcard.id;
+    } else {
+      const created = await prisma.permission.create({
+        data: { code: '*', name: 'All permissions', module: 'admin-access' },
+      });
+      wildcardPermissionId = created.id;
+      wildcardPermissionOwned = true;
+    }
+
+    const existingDelegationPermission = await prisma.permission.findUnique({
+      where: { code: 'admin.access.delegate' },
     });
+    if (existingDelegationPermission) {
+      delegationPermissionId = existingDelegationPermission.id;
+    } else {
+      const created = await prisma.permission.create({
+        data: { code: 'admin.access.delegate', name: 'Delegate limited admin access', module: 'admin-access' },
+      });
+      delegationPermissionId = created.id;
+      delegationPermissionOwned = true;
+    }
 
     await prisma.role.createMany({
       data: [
@@ -57,32 +82,29 @@ describeWithDatabase('admin delegated access lifecycle with PostgreSQL', () => {
         { id: outsiderRoleId, code: `delegation_outsider_${suffix}`, name: 'Delegation Outsider', level: 80 },
       ],
     });
+
     const existingOwner = await prisma.role.findUnique({ where: { code: 'owner' } });
     if (existingOwner) {
-      Object.assign(testIds, { ownerRoleId: existingOwner.id, ownerRoleOwned: false });
+      ownerRoleId = existingOwner.id;
     } else {
       await prisma.role.create({ data: { id: ownerRoleId, code: 'owner', name: 'Owner', level: 1 } });
+      ownerRoleOwned = true;
     }
 
-    const delegationManagePermission = await prisma.permission.upsert({
-      where: { code: 'admin.access.delegate' },
-      update: {},
-      create: { code: 'admin.access.delegate', name: 'Delegate limited admin access', module: 'admin-access' },
+    const existingOwnerWildcard = await prisma.rolePermission.findUnique({
+      where: { roleId_permissionId: { roleId: ownerRoleId, permissionId: wildcardPermissionId } },
     });
-    Object.assign(testIds, {
-      delegationManagePermissionId: delegationManagePermission.id,
-      delegationManagePermissionOwned: delegationManagePermission.id !== undefined
-        && delegationManagePermission.createdAt.getTime() >= suiteStartedAt,
-    });
+    if (!existingOwnerWildcard) {
+      await prisma.rolePermission.create({ data: { roleId: ownerRoleId, permissionId: wildcardPermissionId } });
+      ownerWildcardRelationOwned = true;
+    }
 
     await prisma.rolePermission.createMany({
       data: [
-        { roleId: grantorRoleId, permissionId: delegationManagePermission.id },
-        { roleId: grantorRoleId, permissionId: delegatePermissionId },
+        { roleId: grantorRoleId, permissionId: delegationPermissionId },
+        { roleId: grantorRoleId, permissionId: delegatedPermissionId },
         { roleId: delegateRoleId, permissionId: directPermissionId },
-        { roleId: testIds.ownerRoleId, permissionId: testIds.wildcardPermissionId },
       ],
-      skipDuplicates: true,
     });
 
     await prisma.adminUser.createMany({
@@ -98,7 +120,7 @@ describeWithDatabase('admin delegated access lifecycle with PostgreSQL', () => {
         { adminUserId: grantorId, roleId: grantorRoleId },
         { adminUserId: delegateId, roleId: delegateRoleId },
         { adminUserId: outsiderId, roleId: outsiderRoleId },
-        { adminUserId: ownerId, roleId: testIds.ownerRoleId },
+        { adminUserId: ownerId, roleId: ownerRoleId },
       ],
     });
     await prisma.authSession.create({
@@ -115,15 +137,35 @@ describeWithDatabase('admin delegated access lifecycle with PostgreSQL', () => {
   afterAll(async () => {
     if (!prisma) return;
     await prisma.adminAuditLog.deleteMany({ where: { adminUserId: { in: [grantorId, delegateId, outsiderId, ownerId] } } });
-    await prisma.adminDelegation.deleteMany({ where: { OR: [{ grantorAdminId: { in: [grantorId, ownerId] } }, { delegateAdminId: { in: [delegateId, outsiderId] } }] } });
+    await prisma.adminDelegation.deleteMany({
+      where: {
+        OR: [
+          { grantorAdminId: { in: [grantorId, ownerId] } },
+          { delegateAdminId: { in: [delegateId, outsiderId] } },
+        ],
+      },
+    });
     await prisma.authSession.deleteMany({ where: { id: sessionId } });
     await prisma.adminUserRole.deleteMany({ where: { adminUserId: { in: [grantorId, delegateId, outsiderId, ownerId] } } });
     await prisma.adminUser.deleteMany({ where: { id: { in: [grantorId, delegateId, outsiderId, ownerId] } } });
-    await prisma.rolePermission.deleteMany({ where: { roleId: { in: [grantorRoleId, delegateRoleId, outsiderRoleId, testIds.ownerRoleId] } } });
-    await prisma.role.deleteMany({ where: { id: { in: [grantorRoleId, delegateRoleId, outsiderRoleId, ...(testIds.ownerRoleOwned ? [testIds.ownerRoleId] : [])] } } });
-    await prisma.permission.deleteMany({ where: { id: { in: [delegatePermissionId, directPermissionId, ...(testIds.wildcardOwned ? [testIds.wildcardPermissionId] : [])] } } });
-    if (testIds.delegationManagePermissionOwned && testIds.delegationManagePermissionId) {
-      await prisma.permission.deleteMany({ where: { id: testIds.delegationManagePermissionId, roles: { none: {} } } });
+
+    await prisma.rolePermission.deleteMany({
+      where: { roleId: { in: [grantorRoleId, delegateRoleId, outsiderRoleId] } },
+    });
+    if (ownerWildcardRelationOwned) {
+      await prisma.rolePermission.deleteMany({
+        where: { roleId: ownerRoleId, permissionId: wildcardPermissionId },
+      });
+    }
+    await prisma.role.deleteMany({
+      where: { id: { in: [grantorRoleId, delegateRoleId, outsiderRoleId, ...(ownerRoleOwned ? [ownerRoleId] : [])] } },
+    });
+    await prisma.permission.deleteMany({ where: { id: { in: [delegatedPermissionId, directPermissionId] } } });
+    if (wildcardPermissionOwned) {
+      await prisma.permission.deleteMany({ where: { id: wildcardPermissionId, roles: { none: {} } } });
+    }
+    if (delegationPermissionOwned) {
+      await prisma.permission.deleteMany({ where: { id: delegationPermissionId, roles: { none: {} } } });
     }
     await prisma.$disconnect();
   }, 30_000);
@@ -202,7 +244,10 @@ describeWithDatabase('admin delegated access lifecycle with PostgreSQL', () => {
     expect(request.user.delegated).toBe(false);
 
     const audits = await prisma.adminAuditLog.findMany({
-      where: { action: { in: ['CREATE_ADMIN_DELEGATION', 'REVOKE_ADMIN_DELEGATION'] }, targetId: delegateId },
+      where: {
+        action: { in: ['CREATE_ADMIN_DELEGATION', 'REVOKE_ADMIN_DELEGATION'] },
+        targetId: delegateId,
+      },
       select: { action: true, adminUserId: true },
     });
     expect(audits).toEqual(expect.arrayContaining([
@@ -216,7 +261,9 @@ describeWithDatabase('admin delegated access lifecycle with PostgreSQL', () => {
       headers: { authorization: 'Bearer delegated-access-test-token' },
       url: '/admin/support',
     };
-    const jwt = { verifyAsync: jest.fn().mockResolvedValue({ type: 'ADMIN', sub: delegateId, sessionId }) };
+    const jwt = {
+      verifyAsync: jest.fn().mockResolvedValue({ type: 'ADMIN', sub: delegateId, sessionId }),
+    };
     const config = {
       get: jest.fn((key: string) => key === 'JWT_ACCESS_KEY' ? 'delegation-test-access-key' : 'false'),
     };
@@ -228,19 +275,3 @@ describeWithDatabase('admin delegated access lifecycle with PostgreSQL', () => {
     return request;
   }
 });
-
-const suiteStartedAt = Date.now();
-const testIds: {
-  ownerRoleId: string;
-  ownerRoleOwned: boolean;
-  wildcardPermissionId: string;
-  wildcardOwned: boolean;
-  delegationManagePermissionId?: string;
-  delegationManagePermissionOwned: boolean;
-} = {
-  ownerRoleId: '',
-  ownerRoleOwned: true,
-  wildcardPermissionId: '',
-  wildcardOwned: true,
-  delegationManagePermissionOwned: false,
-};
