@@ -1,8 +1,7 @@
 'use client';
 
 import type { TypedPublicSiteSettings } from './site-settings-types';
-
-const BANKS = ['BBL', 'KBANK', 'KTB', 'ttb', 'SCB', 'BAY', 'KKP', 'GSB', 'TISCO', 'CIMB', 'LH', 'BAAC', 'EXIM', 'GHB', 'UOB', 'ICBC'];
+import { REFERENCE_BANKS, REFERENCE_HOME_ASSETS, REFERENCE_TRUST_BADGES } from './components/reference-asset-catalog';
 
 export default function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
   const { website, contact } = settings;
@@ -13,7 +12,11 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
       <section className="member-footer__payments" aria-label="วิธีการชำระเงิน">
         <h3>วิธีการชำระเงิน</h3>
         <div className="member-footer__bank-grid">
-          {BANKS.map((bank) => <span key={bank} className="member-footer__bank">{bank}</span>)}
+          {REFERENCE_BANKS.map((bank) => (
+            <span key={bank.name} className="member-footer__bank" title={bank.name}>
+              <img src={bank.url} alt={bank.name} loading="lazy" />
+            </span>
+          ))}
         </div>
       </section>
 
@@ -21,32 +24,29 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
         <section>
           <h4>ติดต่อเรา</h4>
           <div className="member-footer__badges">
-            <a className="member-footer__badge member-footer__badge--line" href="/contact">LINE</a>
-            <a className="member-footer__badge" href="/contact">Support</a>
+            <a className="member-footer__badge member-footer__badge--line" href="/contact">
+              <img className="member-footer__line-image" src={REFERENCE_HOME_ASSETS.line} alt="LINE" loading="lazy" />
+            </a>
+            <a className="member-footer__badge" href="/contact">Support 24 ชั่วโมง</a>
           </div>
         </section>
+
         <section>
           <h4>รับผิดชอบในการเดิมพัน</h4>
           <div className="member-footer__badges">
             <span className="member-footer__badge">18+</span>
-            <span className="member-footer__badge">GAMECARE</span>
-            <span className="member-footer__badge">Be Gamble Aware</span>
+            <span className="member-footer__badge">เล่นอย่างมีความรับผิดชอบ</span>
           </div>
         </section>
-        <section>
-          <h4>ใบอนุญาตและใบรับรอง</h4>
-          <div className="member-footer__badges">
-            <span className="member-footer__badge">BMM</span>
-            <span className="member-footer__badge">iTech Labs</span>
-            <span className="member-footer__badge">iOVATION</span>
-            <span className="member-footer__badge">Curaçao eGaming</span>
-          </div>
-        </section>
-        <section>
-          <h4>การรองรับและความปลอดภัยโดย</h4>
-          <div className="member-footer__badges">
-            <span className="member-footer__badge">Verified &amp; Secured</span>
-            <span className="member-footer__badge">SSL</span>
+
+        <section className="member-footer__trust-section">
+          <h4>ใบอนุญาต ความปลอดภัย และการรับรอง</h4>
+          <div className="member-footer__trust-grid">
+            {REFERENCE_TRUST_BADGES.map((badge) => (
+              <span key={badge.name} className="member-footer__trust-badge" title={badge.name}>
+                <img src={badge.url} alt={badge.name} loading="lazy" />
+              </span>
+            ))}
           </div>
         </section>
       </div>
