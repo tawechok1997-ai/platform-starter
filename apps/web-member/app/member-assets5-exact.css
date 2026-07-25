@@ -1,0 +1,151 @@
+/* Exact icon pass from assets(5).rar. Keep this stylesheet last. */
+
+.public-home-nav-icon-frame {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 31px !important;
+  height: 31px !important;
+  flex: 0 0 31px !important;
+  background: none !important;
+}
+
+.public-home-nav-icon-frame .public-home-nav-icon {
+  display: block !important;
+  width: 31px !important;
+  height: 31px !important;
+  opacity: 1 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.public-home-mission::before,
+.v47-mobile-announcement::before,
+.v47-mobile-mini-games a::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+
+.public-home-mission img {
+  display: block !important;
+  width: 30px !important;
+  height: 30px !important;
+  object-fit: contain !important;
+}
+
+.reference-heading-icon,
+.reference-side-icon,
+.reference-mini-icon,
+.v47-mobile-section-title img {
+  background: none !important;
+  color: inherit !important;
+  font-size: inherit !important;
+}
+
+.reference-heading-icon > img,
+.reference-side-icon > img,
+.reference-mini-icon > img,
+.v47-mobile-section-title img,
+.v47-mobile-announcement > img,
+.v47-mobile-mini-games a > img {
+  display: block !important;
+  opacity: 1 !important;
+  object-position: center !important;
+  object-fit: contain !important;
+}
+
+.reference-heading-icon,
+.reference-heading-icon > img {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.reference-side-icon,
+.reference-side-icon > img {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.reference-mini-icon {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 74px !important;
+  height: 74px !important;
+  flex: 0 0 74px !important;
+}
+
+.reference-mini-icon > img {
+  width: 70px !important;
+  height: 70px !important;
+}
+
+.reference-rank-medal {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+.reference-rank-medal img {
+  display: block !important;
+  width: 34px !important;
+  height: 34px !important;
+  object-fit: contain !important;
+}
+
+.v47-mobile-announcement > img {
+  width: 23px !important;
+  height: 23px !important;
+  flex: 0 0 23px !important;
+}
+
+.v47-mobile-section-title img {
+  width: 29px !important;
+  height: 29px !important;
+}
+
+.v47-mobile-mini-games a > img {
+  width: 76px !important;
+  height: 76px !important;
+  flex: 0 0 76px !important;
+}
+
+.v47-mobile-rank-badge img,
+.v47-mobile-board-badge img {
+  display: block !important;
+  width: 38px !important;
+  height: 38px !important;
+  object-fit: contain !important;
+}
+
+.v47-mobile-rank-badge b,
+.v47-mobile-board-badge b {
+  position: absolute !important;
+  inset: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+}
+
+.reference-live-card {
+  background-image: linear-gradient(180deg, rgb(18 10 27 / 20%), rgb(18 10 27 / 88%)), url('/home-asset/live-bg.webp') !important;
+  background-position: center !important;
+  background-size: cover !important;
+}
+
+[data-drag-scroll='true'] {
+  cursor: grab !important;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+}
+
+[data-drag-scroll='true']:active {
+  cursor: grabbing !important;
+}
+
+[data-drag-scroll='true']::-webkit-scrollbar {
+  display: none;
+}
