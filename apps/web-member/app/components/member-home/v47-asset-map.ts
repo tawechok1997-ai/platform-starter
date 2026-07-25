@@ -7,7 +7,7 @@ const SOURCE_CDN = 'https://cdn.zabbet.com/FEZX';
 export const V47_ASSETS = {
   headerLogo: '/reference-v6/logo.webp',
   headerFlag: '/v47-assets/header/th.svg',
-  headerMission: '/clone-assets/reference-icon-sprite.webp',
+  headerMission: `${SOURCE_IMAGE}/navbar/mission.webp`,
   menuHome: `${MENU_ROOT}/home.png`,
   menuPromotion: '/clone-assets/shortcut-promo.webp',
   menuActivity: '/clone-assets/shortcut-event.webp',
