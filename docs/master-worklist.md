@@ -9,3 +9,4 @@
 ## ข้อกำหนดเฉพาะระบบ
 
 - [`admin-experience-modernization-spec.md`](./admin-experience-modernization-spec.md) - ข้อกำหนดฉบับเต็มสำหรับรวมหน้า Admin, ปรับ Information Architecture, UX/UI, responsive, localization, data density, charts, permissions และเกณฑ์ปิดงาน
+- [`admin-complete-route-coverage-spec.md`](./admin-complete-route-coverage-spec.md) - ข้อกำหนดบังคับให้ครอบคลุมทุก Admin route รวมหน้าที่ไม่มีภาพ, dynamic detail, auth/recovery, create/edit, loading/error/permission states, hidden/legacy routes และ route ที่เพิ่มในอนาคต
