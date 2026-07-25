@@ -82,20 +82,202 @@
   min-width: 0;
 }
 
+.admin-modern-filter-field {
+  display: grid;
+  min-width: min(100%, 240px);
+  gap: 6px;
+}
+
+.admin-modern-filter-field > span {
+  color: color-mix(in srgb, currentColor 66%, transparent);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.admin-role-modern-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+  gap: 14px;
+}
+
+.admin-role-modern-card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--admin-modern-surface, #0c1a28) 94%, transparent);
+}
+
+.admin-role-modern-card > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+}
+
+.admin-role-modern-card > header > div {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.admin-role-modern-card > header strong {
+  font-size: 1rem;
+}
+
+.admin-role-modern-card > header code,
+.admin-permission-code {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--admin-modern-cyan, #38d5d1);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-role-modern-card > header p {
+  margin: 3px 0 0;
+  color: color-mix(in srgb, currentColor 66%, transparent);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.admin-role-modern-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(72px, auto));
+  gap: 8px;
+  margin: 0;
+}
+
+.admin-role-modern-card dl > div {
+  display: grid;
+  gap: 2px;
+  min-width: 72px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  text-align: end;
+}
+
+.admin-role-modern-card dt {
+  color: color-mix(in srgb, currentColor 58%, transparent);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.admin-role-modern-card dd {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-role-permission-groups {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-role-permission-groups details {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  border-radius: 10px;
+}
+
+.admin-role-permission-groups summary {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 11px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.admin-role-permission-groups details > div {
+  display: grid;
+  gap: 1px;
+  max-height: 300px;
+  overflow-y: auto;
+  border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.admin-role-permission-groups button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, .6fr);
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 7%, transparent);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+
+.admin-role-permission-groups button:hover,
+.admin-role-permission-groups button:focus-visible {
+  background: color-mix(in srgb, var(--admin-modern-brand, #6f7cff) 9%, transparent);
+  outline: none;
+}
+
+.admin-role-permission-groups button code,
+.admin-role-permission-groups button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-role-permission-groups button code {
+  color: var(--admin-modern-cyan, #38d5d1);
+  font-size: 0.72rem;
+}
+
+.admin-role-permission-groups button span {
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font-size: 0.76rem;
+}
+
 @media (max-width: 760px) {
   .admin-ledger-table-type,
   .admin-audit-table-event {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .admin-toolbar .admin-ledger-field {
-    min-width: min(100%, 240px);
+  .admin-toolbar .admin-ledger-field,
+  .admin-modern-filter-field {
+    min-width: 100%;
+    width: 100%;
   }
 
   .admin-audit-table-details,
   .admin-audit-table-details[open] {
     min-width: 0;
     width: 100%;
+  }
+
+  .admin-role-modern-list {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-role-modern-card > header {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-role-modern-card dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-role-permission-groups button {
+    grid-template-columns: 1fr;
+    gap: 3px;
   }
 }
 
@@ -105,7 +287,8 @@
   .admin-profile-menu--sidebar,
   .admin-command-trigger,
   .admin-ui-card,
-  .admin-ui-button {
+  .admin-ui-button,
+  .admin-role-permission-groups button {
     scroll-behavior: auto !important;
     animation: none !important;
     transition: none !important;
