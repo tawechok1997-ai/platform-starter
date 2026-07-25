@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildWorkspaceTabHref } from './workspace-tabs';
+import { buildWorkspaceTabHref } from './workspace-tab-url';
 
 test('workspace tab links preserve unrelated query context', () => {
   assert.equal(buildWorkspaceTabHref({ pathname: '/finance', search: 'range=7d&page=3', queryKey: 'tab', target: { value: 'withdrawals' } }), '/finance?range=7d&page=3&tab=withdrawals');
