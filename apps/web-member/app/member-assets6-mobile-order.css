@@ -1,0 +1,19 @@
+/* Mobile section icon positions for the supplied atlas.
+   GameSection is intentionally generic, so its stable page order owns the crop. */
+@media (max-width: 900px) {
+  .v47-mobile-home > section:nth-of-type(5) .v47-mobile-section-title img[src*='reference-icon-sprite'] {
+    background-position: 0 66.666% !important;
+  }
+
+  .v47-mobile-home > section:nth-of-type(6) .v47-mobile-section-title img[src*='reference-icon-sprite'] {
+    background-position: 25% 66.666% !important;
+  }
+
+  .v47-mobile-home > section:nth-of-type(8) .v47-mobile-section-title img[src*='reference-icon-sprite'] {
+    background-position: 100% 66.666% !important;
+  }
+
+  .v47-mobile-home > section:nth-of-type(9) .v47-mobile-section-title img[src*='reference-icon-sprite'] {
+    background-position: 25% 100% !important;
+  }
+}
