@@ -1,0 +1,379 @@
+/* Final fluid geometry pass. This file must remain the last home stylesheet. */
+
+@media (min-width: 901px) {
+  :root {
+    --home-page-gap: clamp(10px, 1vw, 15px);
+    --home-row-gap: clamp(12px, 1.35vw, 20px);
+    --home-page-inline: clamp(12px, 2vw, 24px);
+  }
+
+  body:has(.desktop-reference-home) {
+    overflow-x: clip !important;
+  }
+
+  .public-home-topbar .member-topbar__inner {
+    display: grid !important;
+    grid-template-columns: auto auto auto auto minmax(12px, 1fr) auto !important;
+    width: min(1440px, calc(100% - (var(--home-page-inline) * 2))) !important;
+    max-width: 1440px !important;
+    gap: clamp(5px, .75vw, 12px) !important;
+    padding-inline: 0 !important;
+  }
+
+  .public-home-topbar .member-brand,
+  .public-home-topbar .member-brand-mark,
+  .public-home-topbar .member-brand-logo {
+    width: clamp(108px, 9.75vw, 140px) !important;
+    min-width: 0 !important;
+    max-width: 140px !important;
+    height: 43px !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest {
+    gap: clamp(2px, .85vw, 16px) !important;
+    padding-inline: max(10px, calc((100vw - 1440px) / 2)) !important;
+    overflow: hidden !important;
+  }
+
+  .public-home-topbar .member-desktop-nav--guest a {
+    min-width: 0 !important;
+    padding-inline: clamp(5px, .7vw, 12px) !important;
+    gap: clamp(4px, .5vw, 8px) !important;
+    font-size: clamp(11px, 1.02vw, 16px) !important;
+    white-space: nowrap !important;
+  }
+
+  .public-home-nav-icon-frame,
+  .public-home-nav-icon-frame .public-home-nav-icon {
+    width: clamp(22px, 2.05vw, 31px) !important;
+    height: clamp(22px, 2.05vw, 31px) !important;
+    flex-basis: clamp(22px, 2.05vw, 31px) !important;
+  }
+
+  .desktop-reference-home.desktop-home {
+    display: grid !important;
+    grid-template-columns: minmax(0, 3.0857fr) minmax(220px, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    column-gap: var(--home-page-gap) !important;
+    row-gap: var(--home-row-gap) !important;
+    width: min(1455px, calc(100% - (var(--home-page-inline) * 2))) !important;
+    max-width: 1455px !important;
+    margin: clamp(12px, 1.4vw, 20px) auto 38px !important;
+    padding: 0 !important;
+    align-items: start !important;
+  }
+
+  .desktop-reference-home > .reference-hero-carousel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 1080 / 288.46 !important;
+    margin: 0 !important;
+  }
+
+  .desktop-reference-home > .desktop-home__body {
+    display: contents !important;
+  }
+
+  .desktop-reference-home .reference-main-column {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: var(--home-row-gap) !important;
+  }
+
+  .desktop-reference-home .reference-sidebar {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    position: static !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    gap: clamp(10px, 1vw, 14px) !important;
+  }
+
+  .desktop-reference-home .reference-sidebar::before {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 350 / 288.46 !important;
+  }
+
+  .reference-hero-mask,
+  .reference-hero-track {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+
+  .reference-hero-track {
+    grid-template-columns: minmax(0, 32.407%) minmax(0, 1fr) !important;
+    gap: var(--home-page-gap) !important;
+  }
+
+  .reference-hero-slide {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .reference-hero-pagination {
+    left: calc(32.407% + var(--home-page-gap)) !important;
+  }
+
+  .reference-promo-row {
+    width: 100% !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: clamp(8px, 1.35vw, 20px) !important;
+    min-height: 0 !important;
+  }
+
+  .reference-promo-card {
+    grid-template-columns: minmax(82px, 38%) minmax(0, 1fr) !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: clamp(88px, 8.1vw, 116.5px) !important;
+    padding-right: clamp(8px, 1vw, 16px) !important;
+  }
+
+  .reference-promo-icon {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .reference-promo-icon img {
+    width: clamp(82px, 8.4vw, 122px) !important;
+    height: clamp(82px, 8.4vw, 122px) !important;
+    max-width: 100% !important;
+  }
+
+  .reference-promo-card strong {
+    font-size: clamp(13px, 1.25vw, 18px) !important;
+  }
+
+  .reference-promo-card small {
+    font-size: clamp(10px, .82vw, 12px) !important;
+    line-height: 1.35 !important;
+  }
+
+  .reference-tournament-cta {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 1080 / 116.5 !important;
+  }
+
+  .reference-panel,
+  .reference-number-section,
+  .reference-compact-section,
+  .reference-guide,
+  .reference-provider-strip {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .reference-tournament-track {
+    grid-template-columns: repeat(8, minmax(104px, 1fr)) !important;
+    width: 100% !important;
+  }
+
+  .reference-featured-grid {
+    grid-template-columns: minmax(210px, 28.7%) minmax(0, 1fr) !important;
+    gap: clamp(8px, 1vw, 14px) !important;
+    padding: clamp(8px, 1vw, 14px) !important;
+  }
+
+  .reference-featured-small-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: clamp(8px, 1vw, 14px) !important;
+  }
+
+  .reference-game-tile {
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: .9 / 1 !important;
+  }
+
+  .reference-game-tile > img,
+  .reference-game-tile > .reference-game-fallback {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .reference-game-tile--large {
+    height: auto !important;
+    aspect-ratio: 310 / 405 !important;
+  }
+
+  .reference-number-row {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: clamp(8px, 1.1vw, 16px) !important;
+    min-height: clamp(125px, 12.4vw, 180px) !important;
+    padding: clamp(8px, 1vw, 14px) !important;
+  }
+
+  .reference-number-card {
+    height: clamp(105px, 10.35vw, 150px) !important;
+  }
+
+  .reference-number-card > span {
+    font-size: clamp(44px, 5vw, 72px) !important;
+  }
+
+  .reference-online-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: clamp(8px, 1vw, 14px) !important;
+    padding: clamp(8px, 1vw, 14px) !important;
+  }
+
+  .reference-live-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: clamp(8px, .85vw, 12px) !important;
+    padding: clamp(8px, 1vw, 14px) !important;
+  }
+
+  .reference-classic-row {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: clamp(7px, 1vw, 14px) !important;
+    padding: clamp(8px, 1vw, 14px) !important;
+  }
+
+  .reference-provider-strip > div {
+    grid-template-columns: repeat(12, minmax(54px, 1fr)) !important;
+    gap: clamp(8px, 1.1vw, 16px) !important;
+    overflow-x: auto !important;
+  }
+
+  .reference-side-card,
+  .reference-jackpot,
+  .reference-leaderboard,
+  .reference-mini-games {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .reference-jackpot {
+    min-height: clamp(170px, 15vw, 218px) !important;
+  }
+
+  .member-footer {
+    width: min(1455px, calc(100% - (var(--home-page-inline) * 2))) !important;
+    max-width: 1455px !important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .public-home-topbar .member-guest-action {
+    min-height: 38px !important;
+    padding-inline: 12px !important;
+    font-size: 13px !important;
+  }
+
+  .public-home-flag,
+  .public-home-search {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .public-home-mission {
+    min-width: 0 !important;
+    padding-inline: 8px !important;
+    font-size: 12px !important;
+  }
+
+  .reference-promo-card {
+    grid-template-columns: minmax(72px, 35%) minmax(0, 1fr) !important;
+  }
+
+  .reference-featured-grid {
+    grid-template-columns: minmax(190px, 30%) minmax(0, 1fr) !important;
+  }
+
+  .reference-online-card span,
+  .reference-game-tile > span {
+    font-size: 10px !important;
+  }
+
+  .reference-leaderboard > div {
+    min-height: 46px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html,
+  body {
+    max-width: 100% !important;
+    overflow-x: clip !important;
+  }
+
+  .member-home-mobile.member-source-home,
+  .v47-mobile-home,
+  .member-footer {
+    width: min(100%, 640px) !important;
+    max-width: 640px !important;
+    margin-inline: auto !important;
+  }
+
+  .member-home-mobile.member-source-home,
+  .v47-mobile-home {
+    padding-inline: clamp(8px, 3vw, 16px) !important;
+  }
+
+  .v47-mobile-hero {
+    width: 100% !important;
+    aspect-ratio: 16 / 7 !important;
+  }
+
+  .v47-mobile-hero img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .v47-mobile-game-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: clamp(8px, 2.5vw, 12px) !important;
+    min-width: 0 !important;
+  }
+
+  .v47-mobile-game-grid > a,
+  .v47-mobile-panel,
+  .v47-mobile-rank-panel,
+  .v47-mobile-jackpot {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .member-reference-footer__top {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .v47-mobile-quick-grid {
+    gap: 7px !important;
+  }
+
+  .v47-mobile-quick-grid > a {
+    min-width: 0 !important;
+    padding-inline: 6px !important;
+  }
+
+  .v47-mobile-quick-grid strong {
+    font-size: 12px !important;
+  }
+
+  .v47-mobile-game-grid {
+    gap: 8px !important;
+  }
+
+  .member-reference-footer__top {
+    grid-template-columns: 1fr !important;
+  }
+}
