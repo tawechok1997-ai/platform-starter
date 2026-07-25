@@ -1,10 +1,10 @@
-/* Corrections measured from the supplied V47 screenshot. Keep after source contract. */
+/* Corrections measured from the supplied V47 screenshot and inspected source HTML. */
 
 @media (min-width: 901px) {
   .public-home-topbar .public-home-desktop-bar,
   .public-home-topbar .public-home-category-bar {
-    width: min(1800px, calc(100vw - 48px)) !important;
-    max-width: 1800px !important;
+    width: min(1455px, calc(100vw - 30px)) !important;
+    max-width: 1455px !important;
     margin-inline: auto !important;
   }
 
@@ -21,10 +21,7 @@
     object-fit: contain !important;
   }
 
-  /*
-   * Exact inspected wrapper: full viewport width, centred 2180px Swiper,
-   * 710.5px banners, 10px gaps and a soft fade at both viewport edges.
-   */
+  /* Full-width masked source hero with a centred 2180px rail. */
   .desktop-reference-home > .reference-hero-carousel {
     position: relative !important;
     left: 50% !important;
@@ -92,14 +89,6 @@
     border-radius: 10px !important;
   }
 
-  .desktop-reference-home > .desktop-home__body {
-    width: min(1800px, calc(100vw - 48px)) !important;
-    max-width: 1800px !important;
-    grid-template-columns: minmax(0, 3fr) minmax(360px, 1fr) !important;
-    gap: 18px !important;
-    margin-top: 0 !important;
-  }
-
   .desktop-reference-home .reference-promo-row::before {
     content: 'ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง' !important;
     display: flex !important;
@@ -118,16 +107,89 @@
     text-overflow: ellipsis !important;
   }
 
+  /* Exact promotion-card geometry from the inspected source. */
+  .desktop-reference-home .reference-promo-card {
+    position: relative !important;
+    display: flex !important;
+    grid-template-columns: none !important;
+    align-items: center !important;
+    min-height: 116.5px !important;
+    height: 116.5px !important;
+    overflow: visible !important;
+    border-radius: 11px !important;
+  }
+
+  .desktop-reference-home .reference-promo-card::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: -20px !important;
+    z-index: 0 !important;
+    pointer-events: none !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: 100% 100% !important;
+  }
+
+  .desktop-reference-home .reference-promo-card--1::before {
+    background-image: url('https://cdn.zabbet.com/FEZX/lobby_settings/cc956ae5-4906-4190-8ee4-84a840a525eb.png') !important;
+  }
+
+  .desktop-reference-home .reference-promo-card--2::before {
+    background-image: url('https://cdn.zabbet.com/FEZX/lobby_settings/3e57c423-07f9-4334-80a9-43ebb2040871.png') !important;
+  }
+
+  .desktop-reference-home .reference-promo-card--3::before {
+    background-image: url('https://cdn.zabbet.com/FEZX/lobby_settings/87c8770e-e158-4491-b511-5e1e271ac486.png') !important;
+  }
+
+  .desktop-reference-home .reference-promo-card > * {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  .desktop-reference-home .reference-promo-icon,
+  .desktop-reference-home .reference-promo-icon > img {
+    display: block !important;
+    flex: 0 0 180px !important;
+    width: 180px !important;
+    height: 180px !important;
+    max-width: none !important;
+    margin-left: -24px !important;
+    margin-top: -24px !important;
+    background: none !important;
+    object-fit: contain !important;
+    transform: none !important;
+  }
+
   .desktop-reference-home .reference-promo-card--1 .reference-promo-icon > img {
-    content: url('/home-asset/promo-special.png') !important;
+    content: url('https://cdn.zabbet.com/FEZX/lobby_settings/9d4a5498-3fd3-49fe-aca2-2fe6266bffdb.png') !important;
   }
 
   .desktop-reference-home .reference-promo-card--2 .reference-promo-icon > img {
-    content: url('/home-asset/promo-activity.png') !important;
+    content: url('https://cdn.zabbet.com/FEZX/lobby_settings/ba6e40e2-2ce7-4ae8-a0dc-344197a35625.png') !important;
   }
 
   .desktop-reference-home .reference-promo-card--3 .reference-promo-icon > img {
-    content: url('/home-asset/promo-news.png') !important;
+    content: url('https://cdn.zabbet.com/FEZX/lobby_settings/ced6a371-3b8f-409b-889f-71f4952cd4cb.png') !important;
+  }
+
+  .desktop-reference-home .reference-promo-card > span:last-child {
+    min-width: 0 !important;
+    margin-left: 12px !important;
+    padding: 0 20px 0 0 !important;
+  }
+
+  .desktop-reference-home .reference-promo-card strong {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+  }
+
+  .desktop-reference-home .reference-promo-card small {
+    margin-top: 4px !important;
+    font-size: 14px !important;
+    font-weight: 300 !important;
+    line-height: 1.4 !important;
   }
 
   .desktop-reference-home .reference-tournament-cta {
@@ -204,14 +266,14 @@
 }
 
 @media (min-width: 1200px) and (max-width: 1499px) {
-  .desktop-reference-home > .desktop-home__body,
   .public-home-topbar .public-home-desktop-bar,
   .public-home-topbar .public-home-category-bar {
     width: calc(100vw - 24px) !important;
   }
 
   .desktop-reference-home > .desktop-home__body {
-    grid-template-columns: minmax(0, 3fr) minmax(300px, 1fr) !important;
+    width: calc(100vw - 24px) !important;
+    grid-template-columns: minmax(0, calc(100% - 305px)) minmax(280px, 290px) !important;
     gap: 15px !important;
   }
 
