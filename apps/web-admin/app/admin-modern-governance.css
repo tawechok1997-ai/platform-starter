@@ -1,0 +1,486 @@
+/* Administration, settings and security workflows for the modern Admin system. */
+.admin-governance-page,
+.admin-settings-hub,
+.admin-antibot {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* Roles and permissions */
+.admin-governance-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(200px, 280px) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-governance-toolbar > * {
+  min-width: 0;
+}
+
+.admin-role-list,
+.admin-permission-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-role-row,
+.admin-permission-row {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 18px !important;
+  align-items: center;
+  overflow: hidden;
+  padding: 17px 18px !important;
+  border-color: var(--admin-modern-border) !important;
+  background: linear-gradient(135deg, rgb(124 109 242 / 4%), transparent 46%), rgb(255 255 255 / 2.2%) !important;
+  transition: border-color 170ms ease, background 170ms ease, transform 170ms var(--admin-modern-ease);
+}
+
+.admin-role-row::before,
+.admin-permission-row::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--admin-modern-brand);
+  content: '';
+  opacity: .72;
+}
+
+.admin-permission-row::before {
+  background: var(--admin-modern-cyan);
+}
+
+.admin-role-row:hover,
+.admin-permission-row:hover {
+  border-color: rgb(124 109 242 / 30%) !important;
+  background: linear-gradient(135deg, rgb(124 109 242 / 7%), transparent 48%), rgb(255 255 255 / 3%) !important;
+  transform: translateY(-1px);
+}
+
+.admin-role-main,
+.admin-permission-main {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.admin-role-main > strong,
+.admin-permission-main > strong {
+  color: #fff;
+  font-size: 16px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.admin-role-main > span,
+.admin-permission-main > span,
+.admin-role-main > small,
+.admin-permission-main > small {
+  color: var(--admin-modern-muted);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.admin-role-badges,
+.admin-permission-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.admin-role-meta {
+  display: grid;
+  min-width: 148px;
+  gap: 6px;
+  justify-items: end;
+  color: var(--admin-modern-muted);
+  font-size: 12px;
+  font-weight: 760;
+  text-align: right;
+}
+
+.admin-permission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.admin-permission-chip {
+  display: flex;
+  min-width: 0;
+  min-height: 46px;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 12px;
+  background: rgb(5 10 18 / 54%);
+  color: #e2e8f0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.admin-permission-chip:hover {
+  border-color: rgb(34 211 238 / 32%);
+  background: rgb(34 211 238 / 6%);
+  transform: translateY(-1px);
+}
+
+.admin-permission-chip > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-governance-detail {
+  display: grid;
+  gap: 6px;
+  padding: 13px 14px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 13px;
+  background: rgb(255 255 255 / 2.7%);
+}
+
+.admin-governance-detail > span {
+  color: var(--admin-modern-muted);
+  font-size: 11px;
+  font-weight: 780;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.admin-governance-detail > strong {
+  color: #f8fafc;
+  overflow-wrap: anywhere;
+}
+
+/* Settings hub */
+.admin-settings-search,
+.admin-settings-shortcuts {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-settings-shortcuts::after {
+  position: absolute;
+  right: -70px;
+  bottom: -105px;
+  width: 230px;
+  height: 230px;
+  border-radius: 999px;
+  background: rgb(124 109 242 / 7%);
+  content: '';
+  pointer-events: none;
+}
+
+.admin-settings-section {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-settings-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 2px;
+}
+
+.admin-settings-section__head h2 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 18px;
+  letter-spacing: -.015em;
+}
+
+.admin-settings-section__head span {
+  color: var(--admin-modern-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 12px;
+}
+
+.admin-settings-hub-card {
+  min-width: 0;
+  height: 100%;
+}
+
+.admin-settings-hub-card > .admin-ui-card {
+  position: relative;
+  height: 100%;
+  min-height: 190px;
+  align-content: space-between;
+  overflow: hidden;
+  transition: border-color 170ms ease, transform 170ms var(--admin-modern-ease), box-shadow 170ms ease;
+}
+
+.admin-settings-hub-card > .admin-ui-card::before {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--admin-modern-brand), transparent 74%);
+  content: '';
+  opacity: .6;
+}
+
+.admin-settings-hub-card[data-accent='true'] > .admin-ui-card::before {
+  background: linear-gradient(90deg, var(--admin-modern-warning), transparent 74%);
+}
+
+.admin-settings-hub-card > .admin-ui-card:hover {
+  border-color: rgb(124 109 242 / 28%) !important;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 24%) !important;
+  transform: translateY(-2px);
+}
+
+.admin-settings-hub-card .admin-ui-stack {
+  align-content: end;
+  margin-top: auto;
+}
+
+/* Anti-bot */
+.admin-antibot-progress {
+  position: relative;
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: rgb(148 163 184 / 10%);
+}
+
+.admin-antibot-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--admin-modern-brand), var(--admin-modern-cyan));
+  box-shadow: 0 0 20px rgb(34 211 238 / 26%);
+  transition: width 260ms var(--admin-modern-ease);
+}
+
+.admin-antibot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  gap: 12px;
+}
+
+.admin-antibot-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  color: #dbe4f0;
+  font-weight: 760;
+}
+
+.admin-antibot-step,
+.admin-antibot-status-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 13px;
+  background: rgb(255 255 255 / 2.5%);
+}
+
+.admin-antibot-step__number {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid rgb(124 109 242 / 25%);
+  border-radius: 10px;
+  background: rgb(124 109 242 / 10%);
+  color: #c4b5fd;
+  font-weight: 860;
+}
+
+.admin-antibot-step[data-complete='true'] .admin-antibot-step__number {
+  border-color: rgb(45 212 191 / 28%);
+  background: rgb(45 212 191 / 11%);
+  color: #99f6e4;
+}
+
+.admin-antibot-step__copy {
+  min-width: 0;
+  color: #e2e8f0;
+  font-weight: 720;
+  overflow-wrap: anywhere;
+}
+
+.admin-antibot-check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 12px;
+  background: rgb(5 10 18 / 42%);
+  color: #dbe4f0;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.admin-antibot-check:has(input:checked) {
+  border-color: rgb(45 212 191 / 26%);
+  background: rgb(45 212 191 / 5%);
+}
+
+.admin-antibot-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--admin-modern-brand);
+}
+
+.admin-antibot-hint {
+  color: var(--admin-modern-muted);
+  line-height: 1.55;
+}
+
+.admin-antibot-actions {
+  position: sticky;
+  bottom: 14px;
+  z-index: 8;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--admin-modern-border);
+  border-radius: 15px;
+  background: rgb(7 11 20 / 86%);
+  box-shadow: 0 16px 38px rgb(0 0 0 / 24%);
+  backdrop-filter: blur(16px);
+}
+
+/* Existing account directory receives the same governance hierarchy. */
+.admin-directory-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(480px, 100%), 1fr));
+}
+
+.admin-directory-card {
+  background: linear-gradient(145deg, rgb(124 109 242 / 4%), transparent 48%), var(--admin-modern-surface-raised) !important;
+}
+
+.admin-directory-security {
+  border-color: var(--admin-modern-border) !important;
+  background: rgb(5 10 18 / 48%) !important;
+}
+
+@media (max-width: 1099px) {
+  .admin-governance-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(190px, .7fr);
+  }
+
+  .admin-governance-toolbar > :last-child {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .admin-settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-governance-page,
+  .admin-settings-hub,
+  .admin-antibot {
+    gap: 14px;
+  }
+
+  .admin-governance-toolbar,
+  .admin-settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-governance-toolbar > :last-child {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .admin-role-row,
+  .admin-permission-row {
+    grid-template-columns: 1fr !important;
+    gap: 13px !important;
+    padding: 15px !important;
+  }
+
+  .admin-role-meta {
+    min-width: 0;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .admin-role-meta .admin-ui-button,
+  .admin-permission-row > .admin-ui-button {
+    width: 100%;
+  }
+
+  .admin-settings-section__head {
+    align-items: flex-end;
+  }
+
+  .admin-settings-hub-card > .admin-ui-card {
+    min-height: 0;
+  }
+
+  .admin-antibot-step,
+  .admin-antibot-status-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .admin-antibot-step > :last-child,
+  .admin-antibot-status-row > :last-child {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .admin-antibot-actions {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-antibot-actions > * {
+    width: 100%;
+  }
+
+  .admin-directory-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .admin-permission-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-settings-section__head {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-role-row,
+  .admin-permission-row,
+  .admin-permission-chip,
+  .admin-settings-hub-card > .admin-ui-card,
+  .admin-antibot-progress > span {
+    transition: none !important;
+  }
+}
