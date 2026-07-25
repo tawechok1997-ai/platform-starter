@@ -18,6 +18,7 @@ const memberPassword = firstNonEmpty(process.env.SEED_MEMBER_PASSWORD);
 const adminIdentity = firstNonEmpty(process.env.SEED_ADMIN_USERNAME, process.env.SEED_ADMIN_EMAIL);
 const adminPassword = firstNonEmpty(process.env.SEED_ADMIN_PASSWORD);
 const requireMemberSmoke = process.env.REQUIRE_MEMBER_AUTHENTICATED_SMOKE === 'true';
+const requireAdminSmoke = process.env.REQUIRE_ADMIN_AUTHENTICATED_SMOKE === 'true';
 
 type NetworkIssue = {
   url: string;
@@ -126,17 +127,22 @@ function booleanSetting(group: Record<string, unknown> | undefined, key: string,
   return typeof value === 'boolean' ? value : fallback;
 }
 
-async function attachAudit(testInfo: TestInfo, audit: RuntimeAudit, extra: Record<string, unknown>) {
+async function attachAudit(
+  testInfo: TestInfo,
+  name: string,
+  audit: RuntimeAudit,
+  extra: Record<string, unknown>,
+) {
   const payload = `${JSON.stringify({ ...audit, ...extra }, null, 2)}\n`;
-  const outputPath = testInfo.outputPath('member-authenticated-production-audit.json');
+  const outputPath = testInfo.outputPath(`${name}.json`);
   await writeFile(outputPath, payload, 'utf8');
-  await testInfo.attach('member-authenticated-production-audit', {
+  await testInfo.attach(name, {
     body: Buffer.from(payload),
     contentType: 'application/json',
   });
 }
 
-async function assertRuntimeHealth(page: Page, audit: RuntimeAudit) {
+async function assertRuntimeHealth(page: Page, audit: RuntimeAudit, surfaceLabel: string) {
   const metrics = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
@@ -147,9 +153,9 @@ async function assertRuntimeHealth(page: Page, audit: RuntimeAudit) {
   }));
 
   expect(metrics.bodyTextLength).toBeGreaterThan(100);
-  expect(metrics.scrollWidth - metrics.clientWidth, 'Authenticated Home must not overflow horizontally').toBeLessThanOrEqual(2);
-  expect(metrics.missingImages, 'Authenticated Home must not render broken images').toEqual([]);
-  expect(audit.pageErrors, 'Authenticated Home must not raise page errors').toEqual([]);
+  expect(metrics.scrollWidth - metrics.clientWidth, `${surfaceLabel} must not overflow horizontally`).toBeLessThanOrEqual(2);
+  expect(metrics.missingImages, `${surfaceLabel} must not render broken images`).toEqual([]);
+  expect(audit.pageErrors, `${surfaceLabel} must not raise page errors`).toEqual([]);
 
   const criticalFailures = audit.failedRequests.filter((issue) =>
     ['document', 'script', 'stylesheet', 'font', 'image'].includes(issue.resourceType),
@@ -157,8 +163,8 @@ async function assertRuntimeHealth(page: Page, audit: RuntimeAudit) {
   const criticalResponses = audit.badResponses.filter((issue) =>
     (issue.status ?? 0) >= 500 || ['document', 'script', 'stylesheet', 'font', 'image'].includes(issue.resourceType),
   );
-  expect(criticalFailures, 'Authenticated Home must not have critical request failures').toEqual([]);
-  expect(criticalResponses, 'Authenticated Home must not have critical HTTP errors').toEqual([]);
+  expect(criticalFailures, `${surfaceLabel} must not have critical request failures`).toEqual([]);
+  expect(criticalResponses, `${surfaceLabel} must not have critical HTTP errors`).toEqual([]);
   return metrics;
 }
 
@@ -238,9 +244,9 @@ test.describe('seeded authenticated visual artifacts', () => {
     await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
 
     await loadLazyContent(page);
-    const metrics = await assertRuntimeHealth(page, audit);
+    const metrics = await assertRuntimeHealth(page, audit, 'Authenticated Member Home');
     await page.screenshot({ path: testInfo.outputPath('member-authenticated-home.png'), fullPage: true, animations: 'disabled' });
-    await attachAudit(testInfo, audit, {
+    await attachAudit(testInfo, 'member-authenticated-production-audit', audit, {
       finalUrl: page.url(),
       project: testInfo.project.name,
       authMode: memberToken ? 'token' : 'credentials',
@@ -253,8 +259,100 @@ test.describe('seeded authenticated visual artifacts', () => {
   });
 
   test('admin authenticated home', async ({ page }, testInfo) => {
-    test.skip(!adminUrl || !adminIdentity || !adminPassword, 'seeded admin credentials are required');
+    const missingAdminEnvironment = [
+      !adminUrl && 'ADMIN_WEB_URL',
+      !adminIdentity && 'admin identity',
+      !adminPassword && 'admin password',
+    ].filter(Boolean);
+    if (missingAdminEnvironment.length > 0 && requireAdminSmoke) {
+      throw new Error(`Authenticated Admin smoke environment is incomplete: ${missingAdminEnvironment.join(', ')}`);
+    }
+    test.skip(missingAdminEnvironment.length > 0, 'seeded admin credentials are required');
+
+    const audit = installRuntimeAudit(page);
     await login(page, adminUrl!, adminIdentity!, adminPassword!);
-    await expect(page.locator('body')).toHaveScreenshot(`admin-home-${testInfo.project.name}.png`, { fullPage: true });
+    await page.goto(new URL('/dashboard', adminUrl!).toString(), { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+    await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/);
+
+    const shell = page.locator('.admin-shell');
+    const topbar = page.locator('.admin-topbar');
+    const sidebar = page.locator('#admin-sidebar');
+    const content = page.locator('.admin-content-shell');
+    const adminPage = page.locator('.admin-ui-page');
+    await expect(shell).toBeVisible();
+    await expect(topbar).toBeVisible();
+    await expect(sidebar).toBeAttached();
+    await expect(content).toBeVisible();
+    await expect(adminPage).toBeVisible();
+    await expect(page.locator('.admin-command-status')).toBeVisible();
+
+    const modernTokens = await page.evaluate(() => {
+      const styles = getComputedStyle(document.documentElement);
+      return {
+        background: styles.getPropertyValue('--admin-modern-bg').trim(),
+        surface: styles.getPropertyValue('--admin-modern-surface').trim(),
+        brand: styles.getPropertyValue('--admin-modern-brand').trim(),
+        sidebar: styles.getPropertyValue('--admin-modern-sidebar').trim(),
+      };
+    });
+    expect(modernTokens.background).toBe('#070b14');
+    expect(modernTokens.surface).toBe('#0f1726');
+    expect(modernTokens.brand).toBe('#7c6df2');
+    expect(modernTokens.sidebar).toBe('286px');
+
+    const commandTrigger = page.locator('.admin-command-trigger');
+    await expect(commandTrigger).toBeVisible();
+    await commandTrigger.click();
+    await expect(page.locator('.admin-command-dialog')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.admin-command-dialog')).toHaveCount(0);
+
+    const viewport = page.viewportSize();
+    const mobileOrTablet = (viewport?.width ?? 1280) <= 1099;
+    if (mobileOrTablet) {
+      const menuButton = page.locator('.admin-menu-button');
+      await expect(menuButton).toBeVisible();
+      await menuButton.click();
+      await expect(sidebar).toHaveClass(/open/);
+      await expect(page.locator('.admin-mobile-drawer-controller')).toBeVisible();
+      await page.locator('.admin-mobile-drawer-controller__close').click();
+      await expect(sidebar).not.toHaveClass(/open/);
+    } else {
+      await expect(sidebar).toBeVisible();
+      await expect(page.locator('.admin-collapse-button')).toBeVisible();
+    }
+
+    await loadLazyContent(page);
+    const metrics = await assertRuntimeHealth(page, audit, 'Authenticated Admin Dashboard');
+    const layoutMetrics = await page.evaluate(() => {
+      const topbarElement = document.querySelector<HTMLElement>('.admin-topbar');
+      const contentElement = document.querySelector<HTMLElement>('.admin-content-shell');
+      const pageElement = document.querySelector<HTMLElement>('.admin-ui-page');
+      const sidebarElement = document.querySelector<HTMLElement>('#admin-sidebar');
+      return {
+        topbarPosition: topbarElement ? getComputedStyle(topbarElement).position : '',
+        contentWidth: contentElement?.getBoundingClientRect().width ?? 0,
+        pageWidth: pageElement?.getBoundingClientRect().width ?? 0,
+        sidebarWidth: sidebarElement?.getBoundingClientRect().width ?? 0,
+        viewportWidth: document.documentElement.clientWidth,
+      };
+    });
+    expect(layoutMetrics.topbarPosition).toBe('sticky');
+    expect(layoutMetrics.contentWidth).toBeGreaterThan(280);
+    expect(layoutMetrics.pageWidth).toBeGreaterThan(280);
+    expect(layoutMetrics.pageWidth).toBeLessThanOrEqual(layoutMetrics.contentWidth + 1);
+    if (mobileOrTablet) expect(layoutMetrics.sidebarWidth).toBeLessThan(layoutMetrics.viewportWidth);
+    else expect(layoutMetrics.sidebarWidth).toBeGreaterThanOrEqual(90);
+
+    await page.screenshot({ path: testInfo.outputPath(`admin-authenticated-dashboard-${testInfo.project.name}.png`), fullPage: true, animations: 'disabled' });
+    await attachAudit(testInfo, 'admin-authenticated-production-audit', audit, {
+      finalUrl: page.url(),
+      project: testInfo.project.name,
+      mobileOrTablet,
+      modernTokens,
+      metrics,
+      layoutMetrics,
+    });
   });
 });
