@@ -1,5 +1,19 @@
 /* Final interactive control safeguards. Loaded after admin-release-readiness.css. */
 
+@media (min-width: 1100px) {
+  #admin-sidebar .admin-profile-menu--sidebar .admin-profile-menu__identity {
+    display: grid !important;
+  }
+
+  #admin-sidebar .admin-profile-menu--sidebar .admin-profile-menu__security {
+    display: flex !important;
+  }
+
+  #admin-sidebar .admin-profile-menu--sidebar .admin-profile-menu__links {
+    display: grid !important;
+  }
+}
+
 @media (min-width: 1100px) and (max-width: 1350px) {
   .admin-topbar {
     gap: 12px !important;
