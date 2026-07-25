@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type SyntheticEvent,
 } from 'react';
 import type { CmsContent } from '../../site-settings';
@@ -24,11 +25,6 @@ type DesktopHeroCarouselProps = {
   showPromotion: boolean;
 };
 
-type VisibleSlide = {
-  role: 'previous' | 'active' | 'next';
-  slide: HeroSlide;
-};
-
 type PointerState = {
   pointerId: number;
   startX: number;
@@ -36,12 +32,21 @@ type PointerState = {
   moved: boolean;
 };
 
-const AUTOPLAY_DELAY_MS = 4200;
+type HeroTrackStyle = CSSProperties & {
+  '--hero-track-x': string;
+  '--hero-transition': string;
+};
+
+const AUTOPLAY_DELAY_MS = 3000;
+const TRANSITION_MS = 480;
 const SWIPE_THRESHOLD_PX = 48;
 const DRAG_START_THRESHOLD_PX = 4;
+const SLIDE_WIDTH_PX = 710.5;
+const SLIDE_GAP_PX = 10;
+const SLIDE_STEP_PX = SLIDE_WIDTH_PX + SLIDE_GAP_PX;
+const SOURCE_RAIL_WIDTH_PX = 2180;
 
 // Exact source order from the inspected NOAH345 desktop Swiper.
-// Index 0 starts in the centre, with index 10 on the left and index 1 on the right.
 const SOURCE_IMAGE_URLS = [
   'https://cdn.zabbet.com/FEZX/imageslides/1784894399570-2ba3393c-2988-4971-834b-86bbe275d0bb.jpg',
   'https://cdn.zabbet.com/FEZX/imageslides/1784894972162-da9eaece-7402-4bb6-813f-7a83dc2925c2.jpg',
@@ -60,42 +65,42 @@ const SOURCE_BANNERS: CmsBanner[] = SOURCE_IMAGE_URLS.map((imageUrl, index) => (
   title: `NOAH345 Banner ${String(index + 1).padStart(2, '0')}`,
   subtitle: 'NOAH345',
   imageUrl,
-  href: '/promotions',
+  href: index === 10 ? '/promotions' : '/',
   enabled: true,
 }));
 
 export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCarouselProps) {
   const slides = useMemo<HeroSlide[]>(
-    () => SOURCE_BANNERS.map((banner, realIndex) => ({
-      banner,
-      imageUrl: banner.imageUrl,
-      realIndex,
-    })),
+    () => SOURCE_BANNERS.map((banner, realIndex) => ({ banner, imageUrl: banner.imageUrl, realIndex })),
     [],
   );
-
-  const [activeIndex, setActiveIndex] = useState(0);
+  const realCount = slides.length;
+  const loopSlides = useMemo(() => [...slides, ...slides, ...slides], [slides]);
+  const [virtualIndex, setVirtualIndex] = useState(realCount);
+  const [animate, setAnimate] = useState(true);
   const [paused, setPaused] = useState(false);
   const carouselRef = useRef<HTMLElement | null>(null);
   const pointerState = useRef<PointerState | null>(null);
   const suppressClickUntil = useRef(0);
-  const realCount = slides.length;
-  const normalizedActiveIndex = realCount ? modulo(activeIndex, realCount) : 0;
+  const normalizedActiveIndex = realCount ? modulo(virtualIndex, realCount) : 0;
 
-  const visibleSlides = useMemo<VisibleSlide[]>(() => {
-    if (realCount === 0) return [];
-    if (realCount === 1) return [{ role: 'active', slide: slides[0]! }];
-
-    return [
-      { role: 'previous', slide: slides[modulo(normalizedActiveIndex - 1, realCount)]! },
-      { role: 'active', slide: slides[normalizedActiveIndex]! },
-      { role: 'next', slide: slides[modulo(normalizedActiveIndex + 1, realCount)]! },
-    ];
-  }, [normalizedActiveIndex, realCount, slides]);
+  const offsetPx = SOURCE_RAIL_WIDTH_PX / 2 - (virtualIndex * SLIDE_STEP_PX + SLIDE_WIDTH_PX / 2);
+  const trackStyle: HeroTrackStyle = {
+    '--hero-track-x': `${offsetPx}px`,
+    '--hero-transition': animate
+      ? `transform ${TRANSITION_MS}ms cubic-bezier(.22,.61,.36,1)`
+      : 'none',
+  };
 
   const moveBy = useCallback((delta: number) => {
     if (realCount < 2) return;
-    setActiveIndex((current) => modulo(current + delta, realCount));
+    setAnimate(true);
+    setVirtualIndex((current) => current + delta);
+  }, [realCount]);
+
+  const jumpTo = useCallback((realIndex: number) => {
+    setAnimate(true);
+    setVirtualIndex(realCount + realIndex);
   }, [realCount]);
 
   useEffect(() => {
@@ -103,11 +108,11 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const timer = window.setInterval(() => {
-      if (!document.hidden) setActiveIndex((current) => modulo(current + 1, realCount));
+      if (!document.hidden) moveBy(1);
     }, AUTOPLAY_DELAY_MS);
 
     return () => window.clearInterval(timer);
-  }, [paused, realCount]);
+  }, [moveBy, paused, realCount]);
 
   useEffect(() => {
     const element = carouselRef.current;
@@ -135,7 +140,7 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
 
       pointer.moved = true;
       element.classList.add('is-dragging');
-      const limitedOffset = Math.max(-180, Math.min(180, pointer.deltaX));
+      const limitedOffset = Math.max(-220, Math.min(220, pointer.deltaX));
       element.style.setProperty('--hero-drag-x', `${limitedOffset}px`);
       event.preventDefault();
     };
@@ -155,89 +160,97 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
       else if (distance >= SWIPE_THRESHOLD_PX) moveBy(-1);
     };
 
-    const handlePointerCancel = (event: globalThis.PointerEvent) => {
+    const cancelPointer = (event: globalThis.PointerEvent) => {
       if (pointerState.current?.pointerId !== event.pointerId) return;
       pointerState.current = null;
       resetDragVisual();
       setPaused(false);
     };
 
-    const handleClickCapture = (event: MouseEvent) => {
+    const suppressDraggedClick = (event: MouseEvent) => {
       if (performance.now() >= suppressClickUntil.current) return;
       event.preventDefault();
       event.stopPropagation();
       suppressClickUntil.current = 0;
     };
 
-    const pause = () => setPaused(true);
-    const resume = () => {
-      if (!pointerState.current) setPaused(false);
-    };
-
     element.addEventListener('pointerdown', handlePointerDown);
     element.addEventListener('pointermove', handlePointerMove, { passive: false });
     element.addEventListener('pointerup', finishPointer);
-    element.addEventListener('pointercancel', handlePointerCancel);
-    element.addEventListener('click', handleClickCapture, true);
-    element.addEventListener('mouseenter', pause);
-    element.addEventListener('mouseleave', resume);
-    element.addEventListener('focusin', pause);
-    element.addEventListener('focusout', resume);
+    element.addEventListener('pointercancel', cancelPointer);
+    element.addEventListener('click', suppressDraggedClick, true);
 
     return () => {
       element.removeEventListener('pointerdown', handlePointerDown);
       element.removeEventListener('pointermove', handlePointerMove);
       element.removeEventListener('pointerup', finishPointer);
-      element.removeEventListener('pointercancel', handlePointerCancel);
-      element.removeEventListener('click', handleClickCapture, true);
-      element.removeEventListener('mouseenter', pause);
-      element.removeEventListener('mouseleave', resume);
-      element.removeEventListener('focusin', pause);
-      element.removeEventListener('focusout', resume);
+      element.removeEventListener('pointercancel', cancelPointer);
+      element.removeEventListener('click', suppressDraggedClick, true);
     };
   }, [moveBy]);
+
+  const normalizeLoopPosition = useCallback(() => {
+    if (virtualIndex >= realCount * 2) {
+      setAnimate(false);
+      setVirtualIndex((current) => current - realCount);
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => setAnimate(true)));
+    } else if (virtualIndex <= 0) {
+      setAnimate(false);
+      setVirtualIndex((current) => current + realCount);
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => setAnimate(true)));
+    }
+  }, [realCount, virtualIndex]);
 
   if (!showPromotion || realCount === 0) return null;
 
   return (
-    <section
-      ref={carouselRef}
-      className="reference-hero-carousel"
-      aria-label="โปรโมชั่นแนะนำ"
-    >
+    <section ref={carouselRef} className="reference-hero-carousel" aria-label="โปรโมชั่นแนะนำ">
       <div className="reference-hero-mask">
-        <div className="reference-hero-track">
-          {visibleSlides.map(({ role, slide }) => (
-            <HeroSlideCard
-              key={`${role}-${slide.realIndex}-${slide.imageUrl}`}
-              role={role}
-              slide={slide}
-              siteName={siteName}
-            />
-          ))}
+        <div className="reference-hero-rail">
+          <div
+            className="reference-hero-track"
+            style={trackStyle}
+            onTransitionEnd={normalizeLoopPosition}
+          >
+            {loopSlides.map((slide, index) => {
+              const distance = index - virtualIndex;
+              const role = distance === 0 ? 'active' : distance === -1 ? 'previous' : distance === 1 ? 'next' : 'offscreen';
+              return (
+                <HeroSlideCard
+                  key={`${index}-${slide.realIndex}-${slide.imageUrl}`}
+                  role={role}
+                  slide={slide}
+                  siteName={siteName}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {realCount > 1 ? (
-        <div className="reference-hero-pagination" aria-label="เลือกแบนเนอร์">
-          {slides.map((slide, index) => (
-            <button
-              key={`${slide.realIndex}-${slide.imageUrl}`}
-              type="button"
-              className={index === normalizedActiveIndex ? 'is-active' : ''}
-              onClick={() => setActiveIndex(index)}
-              aria-label={`แบนเนอร์ ${index + 1}`}
-              aria-current={index === normalizedActiveIndex ? 'true' : undefined}
-            />
-          ))}
-        </div>
-      ) : null}
+      <div className="reference-hero-pagination" aria-label="เลือกแบนเนอร์">
+        {slides.map((slide, index) => (
+          <button
+            key={`${slide.realIndex}-${slide.imageUrl}`}
+            type="button"
+            className={index === normalizedActiveIndex ? 'is-active' : ''}
+            onClick={() => jumpTo(index)}
+            aria-label={`แบนเนอร์ ${index + 1}`}
+            aria-current={index === normalizedActiveIndex ? 'true' : undefined}
+          />
+        ))}
+      </div>
     </section>
   );
 }
 
-function HeroSlideCard({ role, slide, siteName }: { role: VisibleSlide['role']; slide: HeroSlide; siteName: string }) {
+function HeroSlideCard({ role, slide, siteName }: {
+  role: 'previous' | 'active' | 'next' | 'offscreen';
+  slide: HeroSlide;
+  siteName: string;
+}) {
   const isActive = role === 'active';
+  const isNear = role !== 'offscreen';
   return (
     <a
       href={slide.banner.href || '/promotions'}
@@ -250,7 +263,7 @@ function HeroSlideCard({ role, slide, siteName }: { role: VisibleSlide['role']; 
         src={slide.imageUrl}
         alt={slide.banner.title || siteName}
         draggable={false}
-        loading={isActive ? 'eager' : 'lazy'}
+        loading={isNear ? 'eager' : 'lazy'}
         onError={hideBrokenImage}
       />
     </a>
