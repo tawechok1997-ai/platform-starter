@@ -35,24 +35,25 @@ jobs:
       - name: Capture full API test failure
         run: |
           set +e
-          pnpm --filter @platform/api test -- --runInBand > /tmp/api-test.log 2>&1
+          pnpm --filter @platform/api exec jest --runInBand > /tmp/api-test.log 2>&1
           status=$?
+          echo "$status" > /tmp/test-status
           echo "TEST_STATUS=$status" >> "$GITHUB_ENV"
           python - <<'PY'
           from pathlib import Path
-          import os
 
           lines = Path('/tmp/api-test.log').read_text(encoding='utf-8', errors='replace').splitlines()
+          status = Path('/tmp/test-status').read_text(encoding='utf-8').strip()
           keywords = (
               'FAIL ', '● ', 'Test Suites:', 'Tests:', 'Snapshots:', 'Ran all test suites',
               'Expected:', 'Received:', 'TypeError:', 'ReferenceError:', 'Cannot find',
               'AssertionError', 'Error:', 'toEqual', 'toBe(', 'at Object.',
           )
-          selected = set(range(max(0, len(lines) - 140), len(lines)))
+          selected = set(range(max(0, len(lines) - 160), len(lines)))
           for index, line in enumerate(lines):
               if any(keyword in line for keyword in keywords):
-                  selected.update(range(max(0, index - 10), min(len(lines), index + 16)))
-          output = [f'TEST_STATUS={os.environ.get("TEST_STATUS", "unknown")}', '']
+                  selected.update(range(max(0, index - 12), min(len(lines), index + 18)))
+          output = [f'TEST_STATUS={status}', '']
           previous = -2
           for index in sorted(selected):
               if index != previous + 1:
@@ -61,13 +62,14 @@ jobs:
               previous = index
           path = Path('docs/evidence/temp-api-test-failure.txt')
           path.parent.mkdir(parents=True, exist_ok=True)
-          path.write_text('\n'.join(output[-650:]) + '\n', encoding='utf-8')
+          path.write_text('\n'.join(output[-750:]) + '\n', encoding='utf-8')
           PY
       - name: Commit diagnostic summary
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add docs/evidence/temp-api-test-failure.txt
+          git diff --cached --check
           git commit -m 'chore(ci): capture API test failure summary'
           git push origin HEAD:fix/game-platform-legacy-webhook-receiver
       - name: Preserve failing diagnostic status
