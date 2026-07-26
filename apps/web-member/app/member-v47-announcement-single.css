@@ -1,0 +1,50 @@
+/* Keep a single visible announcement while preserving the scrolling behavior. */
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-announcement-viewport {
+    position: relative !important;
+    display: block !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-announcement-track {
+    display: inline-flex !important;
+    align-items: center !important;
+    width: max-content !important;
+    min-width: max-content !important;
+    height: 100% !important;
+    padding-left: 100% !important;
+    gap: 0 !important;
+    white-space: nowrap !important;
+    will-change: transform !important;
+    animation: v47-announcement-single 18s linear infinite !important;
+  }
+
+  .desktop-reference-home .reference-announcement-track > span {
+    display: inline-block !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+  }
+
+  /* The second DOM node was only a seamless-loop clone. Hide it so users never see duplicate text. */
+  .desktop-reference-home .reference-announcement-track > span[aria-hidden='true'] {
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-announcement:hover .reference-announcement-track {
+    animation-play-state: paused !important;
+  }
+}
+
+@keyframes v47-announcement-single {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-100%, 0, 0); }
+}
