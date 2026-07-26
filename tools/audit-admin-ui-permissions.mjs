@@ -1,12 +1,13 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
+import { tsImport } from 'tsx/esm/api';
 
+const { navGroups, requiredPermissionsForPath } = await tsImport('../apps/web-admin/app/(admin)/admin-nav.ts', import.meta.url);
 const ADMIN_ROOT = join(process.cwd(), 'apps', 'web-admin', 'app', '(admin)');
-const NAV_FILE = join(ADMIN_ROOT, 'admin-nav.ts');
 const ROUTE_ALLOWLIST = new Set(['/dashboard', '/operations', '/profile', '/security']);
-const navSource = await readFile(NAV_FILE, 'utf8');
 
 function normalize(path) { return path.split(sep).join('/'); }
+
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
@@ -17,53 +18,44 @@ async function walk(directory) {
   }
   return files;
 }
+
 function routeFromPage(file) {
   const rel = normalize(relative(ADMIN_ROOT, file)).replace(/\/page\.tsx$/, '');
   if (!rel) return '/';
-  return `/${rel.replace(/\[[^/]+\]/g, ':id')}`;
-}
-function extractNavItems(source) {
-  const items = [];
-  const itemPattern = /\{([^{}]*)\}/g;
-  let match;
-  while ((match = itemPattern.exec(source))) {
-    const itemSource = match[1];
-    const title = itemSource.match(/\btitle:\s*['"]([^'"]+)['"]/);
-    const href = itemSource.match(/\bhref:\s*['"]([^'"]+)['"]/);
-    if (!title || !href) continue;
-    items.push({ title: title[1], href: href[1], hasPermissions: /\bpermissions:\s*\[/.test(itemSource) });
-  }
-  return items;
-}
-function extractProtectedHrefs(source) {
-  return extractNavItems(source)
-    .filter((item) => item.hasPermissions)
-    .map((item) => item.href)
-    .sort((a, b) => b.length - a.length);
-}
-function isProtected(route, protectedHrefs) {
-  if (ROUTE_ALLOWLIST.has(route) || [...ROUTE_ALLOWLIST].some((href) => route.startsWith(`${href}/`))) return true;
-  return protectedHrefs.some((href) => route === href || route.startsWith(`${href}/`) || route.replace(/\/:[^/]+/g, '').startsWith(`${href}/`));
+  return `/${rel.replace(/\[([^/]+)\]/g, ':$1')}`;
 }
 
-const protectedHrefs = extractProtectedHrefs(navSource);
-const pages = (await walk(ADMIN_ROOT)).map(routeFromPage).filter((route) => route !== '/');
-const unprotected = pages.filter((route) => !isProtected(route, protectedHrefs));
+function isAllowlisted(route) {
+  return ROUTE_ALLOWLIST.has(route)
+    || [...ROUTE_ALLOWLIST].some((href) => route.startsWith(`${href}/`));
+}
 
-const navItemsWithoutPermission = extractNavItems(navSource)
-  .filter((item) => !item.hasPermissions && !ROUTE_ALLOWLIST.has(item.href));
+const pages = (await walk(ADMIN_ROOT)).map(routeFromPage).filter((route) => route !== '/').sort();
+const unprotected = pages.filter((route) => !isAllowlisted(route) && requiredPermissionsForPath(route).length === 0);
+const navItemsWithoutPermission = navGroups
+  .flatMap((group) => group.items)
+  .filter((item) => !isAllowlisted(item.href) && (!item.permissions || item.permissions.length === 0));
+const duplicateHrefs = navGroups
+  .flatMap((group) => group.items.map((item) => item.href))
+  .filter((href, index, items) => items.indexOf(href) !== index);
 
 console.log(`Admin UI permission audit: ${pages.length} admin page routes`);
 console.log(`  protected/allowlisted routes: ${pages.length - unprotected.length}`);
 console.log(`  unprotected routes: ${unprotected.length}`);
-console.log(`  sidebar items without permission metadata outside allowlist: ${navItemsWithoutPermission.length}`);
+console.log(`  navigation items without permission metadata outside allowlist: ${navItemsWithoutPermission.length}`);
+console.log(`  duplicate navigation hrefs: ${duplicateHrefs.length}`);
 
 if (unprotected.length) {
   console.error('\nAdmin page routes missing route permission coverage:');
   for (const route of unprotected) console.error(`  - ${route}`);
 }
 if (navItemsWithoutPermission.length) {
-  console.error('\nAdmin sidebar items missing permission metadata:');
+  console.error('\nAdmin navigation items missing permission metadata:');
   for (const item of navItemsWithoutPermission) console.error(`  - ${item.href} (${item.title})`);
 }
-if (unprotected.length || navItemsWithoutPermission.length) process.exitCode = 1;
+if (duplicateHrefs.length) {
+  console.error('\nDuplicate Admin navigation hrefs:');
+  for (const href of [...new Set(duplicateHrefs)]) console.error(`  - ${href}`);
+}
+
+if (unprotected.length || navItemsWithoutPermission.length || duplicateHrefs.length) process.exitCode = 1;

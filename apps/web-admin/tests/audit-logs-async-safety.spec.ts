@@ -1,30 +1,29 @@
+import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import test from 'node:test';
 
 const source = readFileSync(new URL('../app/(admin)/audit-logs/page.tsx', import.meta.url), 'utf8');
 
-describe('audit logs async safety', () => {
-  it('uses guarded async loading with cleanup', () => {
-    expect(source).toContain('try {');
-    expect(source).toContain('catch {');
-    expect(source).toContain('finally {');
-    expect(source).toContain('setLoading(false)');
-  });
+test('uses guarded async loading with cleanup', () => {
+  assert.equal(source.includes('try {'), true);
+  assert.equal(source.includes('catch {'), true);
+  assert.equal(source.includes('finally {'), true);
+  assert.equal(source.includes('setLoading(false)'), true);
+});
 
-  it('validates list payloads and clears stale data on failure', () => {
-    expect(source).toContain('Array.isArray(data.items)');
-    expect(source).toContain('setItems([])');
-    expect(source).toContain('setTotal(0)');
-    expect(source).toContain('setPageCount(1)');
-  });
+test('validates list payloads and clears stale data on failure', () => {
+  assert.equal(source.includes('Array.isArray(data.items)'), true);
+  assert.equal(source.includes('setItems([])'), true);
+  assert.equal(source.includes('setTotal(0)'), true);
+  assert.equal(source.includes('setPageCount(1)'), true);
+});
 
-  it('does not surface raw backend messages', () => {
-    expect(source).not.toContain('data?.message');
-    expect(source).toContain('โหลดบันทึกกิจกรรมไม่สำเร็จ กรุณาลองใหม่');
-  });
+test('does not surface raw backend messages', () => {
+  assert.equal(source.includes('data?.message'), false);
+  assert.equal(source.includes('โหลดบันทึกกิจกรรมไม่สำเร็จ กรุณาลองใหม่'), true);
+});
 
-  it('locks filter controls while loading', () => {
-    expect(source.match(/disabled=\{loading\}/g)?.length ?? 0).toBeGreaterThanOrEqual(9);
-    expect(source).toContain("if (loading) return;");
-  });
+test('locks filter controls while loading', () => {
+  assert.ok((source.match(/disabled=\{loading\}/g)?.length ?? 0) >= 9);
+  assert.equal(source.includes('if (loading) return;'), true);
 });

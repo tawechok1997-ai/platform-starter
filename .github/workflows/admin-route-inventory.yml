@@ -1,0 +1,84 @@
+name: Admin Route Inventory
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web-admin/app/**'
+      - 'apps/web-admin/src/features/admin-modernization/**'
+      - 'apps/web-admin/tools/audit-admin-routes.mjs'
+      - 'apps/web-admin/package.json'
+      - '.github/workflows/admin-route-inventory.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-route-inventory-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  inventory:
+    name: Generate route registry
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Generate Admin route inventory
+        id: inventory
+        run: pnpm --filter @platform/web-admin inventory:admin-routes
+
+      - name: Publish inventory summary
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'docs/admin-route-registry.generated.json';
+          if (!fs.existsSync(path)) {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## Admin route inventory\n\nRegistry generation did not produce an artifact.\n');
+            process.exit(0);
+          }
+          const registry = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const unassigned = registry.routes.filter((route) => route.workspace === 'unassigned');
+          const lines = [
+            '## Admin route inventory',
+            '',
+            `- Total routes: **${registry.totalRoutes}**`,
+            `- Unassigned routes: **${registry.unassignedCount}**`,
+            `- Audit command result: **${{ steps.inventory.outcome }}**`,
+            '',
+          ];
+          if (registry.workspaceCounts) {
+            lines.push('### Workspace coverage', '');
+            for (const [workspace, count] of Object.entries(registry.workspaceCounts)) {
+              lines.push(`- ${workspace}: **${count}** routes`);
+            }
+            lines.push('');
+          }
+          if (unassigned.length) {
+            lines.push('### Routes requiring ownership', '');
+            for (const route of unassigned) lines.push(`- \`${route.route}\` from \`${route.source}\``);
+          } else {
+            lines.push('All discovered routes have a workspace owner.');
+          }
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
+          NODE
+
+      - name: Upload route registry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-route-registry
+          path: docs/admin-route-registry.generated.json
+          if-no-files-found: error
+          retention-days: 14

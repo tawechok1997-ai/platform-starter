@@ -83,8 +83,8 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run responsive Admin route audit
-        run: pnpm exec playwright test -c playwright.authenticated-visual.config.ts --grep "admin authenticated home"
+      - name: Run responsive Admin workspace audit
+        run: pnpm exec playwright test -c playwright.authenticated-visual.config.ts --grep "admin authenticated workspace smoke"
 
       - name: Upload responsive Admin evidence
         if: always()
@@ -102,11 +102,13 @@ jobs:
         shell: bash
         run: |
           {
-            echo '## Admin responsive route audit'
+            echo '## Admin responsive workspace audit'
             echo
-            echo 'Checks every accessible Admin navigation route at desktop and mobile viewports.'
+            echo 'Checks every accessible Admin workspace route at desktop and mobile viewports.'
             echo
-            echo 'Validates shell controls, profile/logout visibility, route width, horizontal overflow, card bounds, broken images and runtime errors.'
+            echo 'Validates shell controls, profile/logout visibility, route width, horizontal overflow, surface bounds, broken images and runtime errors.'
+            echo
+            echo 'The browser guard blocks non-read-only requests after authentication.'
             echo
             echo 'Evidence includes screenshots and redacted runtime/layout audit JSON. Credentials are never written to artifacts.'
           } >> "$GITHUB_STEP_SUMMARY"

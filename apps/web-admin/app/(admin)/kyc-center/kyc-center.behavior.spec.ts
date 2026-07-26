@@ -15,7 +15,7 @@ test('guards KYC async operations with safe state cleanup', () => {
   assert.equal(source.includes('finally {\n      setAccountLoading(false);'), true);
   assert.equal(source.includes('finally {\n      setKycLoading(false);'), true);
   assert.equal(source.includes("finally {\n      setOpeningKycId('');"), true);
-  assert.equal(source.match(/finally \{/g)?.length ?? 0 >= 5, true);
+  assert.equal((source.match(/finally \{/g)?.length ?? 0) >= 5, true);
 });
 
 test('does not surface raw backend messages and disables busy controls', () => {

@@ -1,0 +1,153 @@
+.workspace {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+}
+
+.filters {
+  display: grid;
+  gap: 12px;
+}
+
+.typeTabs,
+.chips,
+.actions,
+.badges,
+.referenceLinks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.typeTabs > * {
+  flex: 1 1 120px;
+}
+
+.advancedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  gap: 10px;
+}
+
+.advancedGrid label {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.advancedGrid label > span {
+  color: color-mix(in srgb, currentColor 62%, transparent);
+  font-size: .74rem;
+  font-weight: 700;
+}
+
+.advancedGrid input {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 11px;
+  background: #0b1220;
+  color: #f8fafc;
+  font: inherit;
+}
+
+.event,
+.actor,
+.reference {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.event strong,
+.event small,
+.actor strong,
+.actor small,
+.reference strong,
+.reference small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event small,
+.actor small,
+.reference small {
+  color: color-mix(in srgb, currentColor 58%, transparent);
+  font-size: .72rem;
+}
+
+.amount {
+  display: block;
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.drawerGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.drawerGrid dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.drawerGrid dl > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid color-mix(in srgb, currentColor 11%, transparent);
+  border-radius: 11px;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+}
+
+.drawerGrid dt {
+  color: color-mix(in srgb, currentColor 58%, transparent);
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+.drawerGrid dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: .84rem;
+  font-weight: 650;
+}
+
+@media (max-width: 640px) {
+  .typeTabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .typeTabs > * {
+    width: 100%;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+
+  .drawerGrid dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

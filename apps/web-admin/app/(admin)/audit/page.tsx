@@ -8,14 +8,14 @@ import {
   AdminBadge,
   AdminButton,
   AdminCard,
-  AdminEmpty,
   AdminLinkButton,
   AdminMetric,
   AdminMetricGrid,
   AdminNotice,
   AdminPage,
-  AdminStack,
 } from '../_components/admin-ui';
+import { useAdminLocale, type AdminLocale } from '../admin-locale';
+import { AdminDataTable, type AdminDataColumn } from '../../../src/features/admin-modernization/data-table';
 
 type AuditLog = {
   id: string;
@@ -42,10 +42,161 @@ type AuditFilters = {
 
 type NoticeTone = 'neutral' | 'success' | 'danger';
 
+type AuditCopy = {
+  eyebrow: string;
+  title: string;
+  description: string;
+  refresh: string;
+  loading: string;
+  loadFailed: string;
+  invalidDateRange: string;
+  pageItems: string;
+  totalItems: string;
+  modules: string;
+  admins: string;
+  readOnly: string;
+  readOnlyHelp: string;
+  filters: string;
+  filtersDescription: string;
+  search: string;
+  searchPlaceholder: string;
+  module: string;
+  modulePlaceholder: string;
+  action: string;
+  actionPlaceholder: string;
+  admin: string;
+  adminPlaceholder: string;
+  target: string;
+  targetPlaceholder: string;
+  from: string;
+  to: string;
+  applyFilters: string;
+  clearFilters: string;
+  events: string;
+  actor: string;
+  email: string;
+  ip: string;
+  time: string;
+  details: string;
+  userAgent: string;
+  before: string;
+  after: string;
+  noData: string;
+  noEvents: string;
+  noEventsHelp: string;
+  related: string;
+  previousPage: string;
+  nextPage: string;
+  page: string;
+  rowsPerPage: string;
+};
+
 const PAGE_SIZE = 20;
 const emptyFilters: AuditFilters = { search: '', module: '', action: '', admin: '', targetId: '', from: '', to: '' };
 
+const auditCopy: Record<AdminLocale, AuditCopy> = {
+  th: {
+    eyebrow: 'ความปลอดภัยและการปฏิบัติการ',
+    title: 'บันทึกการใช้งาน',
+    description: 'ตรวจสอบผู้ดำเนินการ เหตุการณ์ และข้อมูลที่เปลี่ยนแปลง',
+    refresh: 'รีเฟรช',
+    loading: 'กำลังโหลดบันทึกการใช้งาน...',
+    loadFailed: 'โหลดบันทึกการใช้งานไม่สำเร็จ กรุณาลองใหม่',
+    invalidDateRange: 'ช่วงวันที่ไม่ถูกต้อง วันที่เริ่มต้องไม่อยู่หลังวันที่สิ้นสุด',
+    pageItems: 'รายการหน้านี้',
+    totalItems: 'รายการทั้งหมด',
+    modules: 'โมดูล',
+    admins: 'ผู้ดูแล',
+    readOnly: 'อ่านอย่างเดียว',
+    readOnlyHelp: 'ไม่แก้ไขข้อมูลธุรกรรม',
+    filters: 'ค้นหาและกรอง',
+    filtersDescription: 'ใช้ตัวกรองหลักก่อน แล้วเปิดรายละเอียดเฉพาะรายการที่ต้องตรวจ',
+    search: 'ค้นหารวม',
+    searchPlaceholder: 'เหตุการณ์ โมดูล เป้าหมาย หรือ IP',
+    module: 'โมดูล',
+    modulePlaceholder: 'เช่น topups หรือ withdrawals',
+    action: 'เหตุการณ์',
+    actionPlaceholder: 'เช่น approve, reject หรือ login',
+    admin: 'ผู้ดูแล',
+    adminPlaceholder: 'ชื่อหรืออีเมล',
+    target: 'Target ID',
+    targetPlaceholder: 'รหัสรายการ',
+    from: 'ตั้งแต่วันที่',
+    to: 'ถึงวันที่',
+    applyFilters: 'ใช้ตัวกรอง',
+    clearFilters: 'ล้างตัวกรอง',
+    events: 'เหตุการณ์',
+    actor: 'ผู้ดำเนินการ',
+    email: 'อีเมล',
+    ip: 'IP address',
+    time: 'วันและเวลา',
+    details: 'รายละเอียด',
+    userAgent: 'อุปกรณ์และเบราว์เซอร์',
+    before: 'ข้อมูลก่อนเปลี่ยน',
+    after: 'ข้อมูลหลังเปลี่ยน',
+    noData: 'ไม่มีข้อมูล',
+    noEvents: 'ไม่พบบันทึกการใช้งาน',
+    noEventsHelp: 'ลองเปลี่ยนคำค้นหา ช่วงวันที่ หรือตัวกรอง',
+    related: 'เปิดรายการที่เกี่ยวข้อง',
+    previousPage: 'หน้าก่อนหน้า',
+    nextPage: 'หน้าถัดไป',
+    page: 'หน้า',
+    rowsPerPage: 'รายการต่อหน้า',
+  },
+  en: {
+    eyebrow: 'Security & operations',
+    title: 'Audit logs',
+    description: 'Review actors, events, and recorded data changes',
+    refresh: 'Refresh',
+    loading: 'Loading audit logs...',
+    loadFailed: 'Unable to load audit logs. Please try again.',
+    invalidDateRange: 'The start date cannot be after the end date.',
+    pageItems: 'Items on page',
+    totalItems: 'total items',
+    modules: 'Modules',
+    admins: 'Administrators',
+    readOnly: 'Read-only',
+    readOnlyHelp: 'Transaction data is not modified',
+    filters: 'Search and filters',
+    filtersDescription: 'Use the main filters, then open details only for records that need review.',
+    search: 'Search',
+    searchPlaceholder: 'Event, module, target, or IP',
+    module: 'Module',
+    modulePlaceholder: 'For example topups or withdrawals',
+    action: 'Action',
+    actionPlaceholder: 'For example approve, reject, or login',
+    admin: 'Administrator',
+    adminPlaceholder: 'Name or email',
+    target: 'Target ID',
+    targetPlaceholder: 'Record ID',
+    from: 'From date',
+    to: 'To date',
+    applyFilters: 'Apply filters',
+    clearFilters: 'Clear filters',
+    events: 'Events',
+    actor: 'Actor',
+    email: 'Email',
+    ip: 'IP address',
+    time: 'Date and time',
+    details: 'Details',
+    userAgent: 'Device and browser',
+    before: 'Before change',
+    after: 'After change',
+    noData: 'No data',
+    noEvents: 'No audit logs found',
+    noEventsHelp: 'Try another search, date range, or filter.',
+    related: 'Open related record',
+    previousPage: 'Previous page',
+    nextPage: 'Next page',
+    page: 'Page',
+    rowsPerPage: 'Rows per page',
+  },
+};
+
 export default function AdminAuditPage() {
+  const [locale] = useAdminLocale();
+  const copy = auditCopy[locale];
+  const dateLocale = locale === 'th' ? 'th-TH' : 'en-US';
   const [items, setItems] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -63,12 +214,62 @@ export default function AdminAuditPage() {
   const adminCount = useMemo(() => new Set(items.map((item) => item.adminUser?.id).filter(Boolean)).size, [items]);
   const activeFilters = useMemo(() => Object.entries(applied).filter(([, value]) => value.trim()), [applied]);
 
+  const columns = useMemo<readonly AdminDataColumn<AuditLog>[]>(() => [
+    {
+      id: 'time',
+      header: copy.time,
+      mobileLabel: copy.time,
+      priority: 'secondary',
+      width: '13%',
+      cell: (item) => <time dateTime={item.createdAt}>{formatDateTime(item.createdAt, dateLocale)}</time>,
+    },
+    {
+      id: 'actor',
+      header: copy.actor,
+      mobileLabel: copy.actor,
+      priority: 'primary',
+      width: '18%',
+      cell: (item) => <span className="admin-audit-table-actor"><strong>{item.adminUser?.username ?? item.adminUser?.email ?? '-'}</strong><small>{item.adminUser?.email ?? '-'}</small></span>,
+    },
+    {
+      id: 'event',
+      header: copy.action,
+      mobileLabel: copy.action,
+      priority: 'primary',
+      width: '20%',
+      cell: (item) => <span className="admin-audit-table-event"><AdminBadge tone={actionTone(item.action)}>{item.action}</AdminBadge><small>{item.module || 'unknown'}</small></span>,
+    },
+    {
+      id: 'target',
+      header: copy.target,
+      mobileLabel: copy.target,
+      priority: 'secondary',
+      width: '16%',
+      cell: (item) => <span className="admin-audit-table-target">{item.targetId || '-'}</span>,
+    },
+    {
+      id: 'ip',
+      header: copy.ip,
+      mobileLabel: copy.ip,
+      priority: 'tertiary',
+      width: '12%',
+      cell: (item) => item.ipAddress || '-',
+    },
+    {
+      id: 'details',
+      header: copy.details,
+      mobileLabel: copy.details,
+      priority: 'secondary',
+      cell: (item) => <AuditDetails item={item} copy={copy} />,
+    },
+  ], [copy, dateLocale]);
+
   async function loadAuditLogs(nextPage = page, filters = applied) {
     const requestId = ++requestSequence.current;
     const safePage = Math.max(1, Math.floor(nextPage));
     setLoading(true);
     setMessageTone('neutral');
-    setMessage('กำลังโหลด audit logs...');
+    setMessage(copy.loading);
     try {
       const params = new URLSearchParams({ page: String(safePage), take: String(PAGE_SIZE) });
       Object.entries(filters).forEach(([key, value]) => { const trimmed = value.trim(); if (trimmed) params.set(key, trimmed); });
@@ -93,7 +294,7 @@ export default function AdminAuditPage() {
       setTotal(0);
       setPageCount(1);
       setMessageTone('danger');
-      setMessage('โหลด audit logs ไม่สำเร็จ กรุณาลองใหม่');
+      setMessage(copy.loadFailed);
     } finally {
       if (requestId === requestSequence.current) setLoading(false);
     }
@@ -102,7 +303,7 @@ export default function AdminAuditPage() {
   function applyFilters() {
     if (draft.from && draft.to && draft.from > draft.to) {
       setMessageTone('danger');
-      setMessage('ช่วงวันที่ไม่ถูกต้อง วันที่เริ่มต้องไม่อยู่หลังวันที่สิ้นสุด');
+      setMessage(copy.invalidDateRange);
       return;
     }
     setMessage('');
@@ -122,93 +323,88 @@ export default function AdminAuditPage() {
   }
 
   return <AdminPage
-    eyebrow="Security & Operations"
-    title="Audit Logs"
-    description="ตรวจสอบว่าใครทำอะไร เมื่อไร จากอุปกรณ์ใด และข้อมูลเปลี่ยนจากอะไรเป็นอะไร"
+    eyebrow={copy.eyebrow}
+    title={copy.title}
+    description={copy.description}
     actions={<>
       <AdminAuditExportButton filters={applied} disabled={loading} onMessage={showExportMessage} />
-      <AdminButton disabled={loading} onClick={() => void loadAuditLogs(page, applied)}>รีเฟรช</AdminButton>
+      <AdminButton disabled={loading} onClick={() => void loadAuditLogs(page, applied)}>{copy.refresh}</AdminButton>
     </>}
   >
     <div className="admin-audit-page">
       {message && <AdminNotice tone={messageTone}>{message}</AdminNotice>}
 
       <AdminMetricGrid>
-        <AdminMetric title="รายการหน้านี้" value={items.length.toLocaleString('th-TH')} helper={`${total.toLocaleString('th-TH')} รายการทั้งหมด`} />
-        <AdminMetric title="หน้า" value={`${page}/${pageCount}`} helper={`${PAGE_SIZE} รายการต่อหน้า`} />
-        <AdminMetric title="โมดูล" value={moduleCount.toLocaleString('th-TH')} helper="จากข้อมูลหน้านี้" />
-        <AdminMetric title="ผู้ดูแล" value={adminCount.toLocaleString('th-TH')} helper="จากข้อมูลหน้านี้" />
-        <AdminMetric title="โหมด" value="Read-only" helper="ไม่แก้ไขข้อมูลธุรกรรม" />
+        <AdminMetric title={copy.pageItems} value={items.length.toLocaleString(dateLocale)} helper={`${total.toLocaleString(dateLocale)} ${copy.totalItems}`} />
+        <AdminMetric title={copy.modules} value={moduleCount.toLocaleString(dateLocale)} helper={copy.pageItems} />
+        <AdminMetric title={copy.admins} value={adminCount.toLocaleString(dateLocale)} helper={copy.pageItems} />
+        <AdminMetric title={copy.readOnly} value={`${page}/${pageCount}`} helper={copy.readOnlyHelp} />
       </AdminMetricGrid>
 
-      <AdminCard title="ค้นหาและกรอง" description="กรองตามข้อความ โมดูล action ผู้ดูแล target และช่วงเวลา">
+      <AdminCard title={copy.filters} description={copy.filtersDescription}>
         <form onSubmit={(event) => { event.preventDefault(); applyFilters(); }}>
           <div className="admin-audit-filter-grid">
-            <label className="admin-audit-field"><span>ค้นหารวม</span><input disabled={loading} value={draft.search} onChange={(event) => setDraft((value) => ({ ...value, search: event.target.value }))} placeholder="action, module, target, IP..." /></label>
-            <label className="admin-audit-field"><span>โมดูล</span><input disabled={loading} value={draft.module} onChange={(event) => setDraft((value) => ({ ...value, module: event.target.value }))} placeholder="topups, withdrawals..." /></label>
-            <label className="admin-audit-field"><span>Action</span><input disabled={loading} value={draft.action} onChange={(event) => setDraft((value) => ({ ...value, action: event.target.value }))} placeholder="approve, reject, login..." /></label>
-            <label className="admin-audit-field"><span>ผู้ดูแล</span><input disabled={loading} value={draft.admin} onChange={(event) => setDraft((value) => ({ ...value, admin: event.target.value }))} placeholder="ชื่อหรืออีเมล" /></label>
-            <label className="admin-audit-field"><span>Target ID</span><input disabled={loading} value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder="UUID ของรายการ" /></label>
-            <label className="admin-audit-field"><span>ตั้งแต่วันที่</span><input disabled={loading} type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} /></label>
-            <label className="admin-audit-field"><span>ถึงวันที่</span><input disabled={loading} type="date" value={draft.to} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} /></label>
+            <label className="admin-audit-field"><span>{copy.search}</span><input disabled={loading} value={draft.search} onChange={(event) => setDraft((value) => ({ ...value, search: event.target.value }))} placeholder={copy.searchPlaceholder} /></label>
+            <label className="admin-audit-field"><span>{copy.module}</span><input disabled={loading} value={draft.module} onChange={(event) => setDraft((value) => ({ ...value, module: event.target.value }))} placeholder={copy.modulePlaceholder} /></label>
+            <label className="admin-audit-field"><span>{copy.action}</span><input disabled={loading} value={draft.action} onChange={(event) => setDraft((value) => ({ ...value, action: event.target.value }))} placeholder={copy.actionPlaceholder} /></label>
+            <label className="admin-audit-field"><span>{copy.admin}</span><input disabled={loading} value={draft.admin} onChange={(event) => setDraft((value) => ({ ...value, admin: event.target.value }))} placeholder={copy.adminPlaceholder} /></label>
+            <label className="admin-audit-field"><span>{copy.target}</span><input disabled={loading} value={draft.targetId} onChange={(event) => setDraft((value) => ({ ...value, targetId: event.target.value }))} placeholder={copy.targetPlaceholder} /></label>
+            <label className="admin-audit-field"><span>{copy.from}</span><input disabled={loading} type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} /></label>
+            <label className="admin-audit-field"><span>{copy.to}</span><input disabled={loading} type="date" value={draft.to} min={draft.from || undefined} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} /></label>
           </div>
           <div className="admin-audit-filter-actions">
-            <AdminButton type="submit" disabled={loading}>ใช้ตัวกรอง</AdminButton>
-            <AdminButton type="button" disabled={loading} tone="secondary" onClick={clearFilters}>ล้างตัวกรอง</AdminButton>
+            <AdminButton type="submit" disabled={loading}>{copy.applyFilters}</AdminButton>
+            <AdminButton type="button" disabled={loading} tone="secondary" onClick={clearFilters}>{copy.clearFilters}</AdminButton>
           </div>
         </form>
         {activeFilters.length > 0 && <div className="admin-audit-filter-chips">{activeFilters.map(([key, value]) => <AdminBadge key={key} tone="warning">{key}: {value}</AdminBadge>)}</div>}
       </AdminCard>
 
-      <AdminCard title="เหตุการณ์" description="ข้อมูลสำคัญใน before/after จะถูกปิดบังก่อนแสดงผล">
-        <AdminStack>
-          {items.map((item) => {
-            const href = targetHref(item.module, item.targetId);
-            const tone = actionTone(item.action);
-            return <article key={item.id} className="admin-audit-event" data-tone={tone}>
-              <header className="admin-audit-event__top">
-                <div className="admin-audit-event__badges">
-                  <AdminBadge tone="neutral">{item.module || 'unknown'}</AdminBadge>
-                  <AdminBadge tone={tone}>{item.action}</AdminBadge>
-                </div>
-                <time dateTime={item.createdAt}>{formatDateTime(item.createdAt)}</time>
-              </header>
-
-              <div className="admin-audit-event__summary">
-                <div className="admin-audit-data-cell"><span>ผู้ดูแล</span><strong>{item.adminUser?.username ?? item.adminUser?.email ?? 'Unknown admin'}</strong></div>
-                <div className="admin-audit-data-cell"><span>อีเมล</span><strong>{item.adminUser?.email ?? '-'}</strong></div>
-                <div className="admin-audit-data-cell"><span>Target</span><strong>{item.targetId || '-'}</strong></div>
-                <div className="admin-audit-data-cell"><span>IP address</span><strong>{item.ipAddress || '-'}</strong></div>
-              </div>
-
-              <div className="admin-audit-agent"><span>User agent</span><span>{item.userAgent || '-'}</span></div>
-
-              <div className="admin-audit-event__details">
-                <AuditData title="ข้อมูลก่อนเปลี่ยน" value={item.oldData} />
-                <AuditData title="ข้อมูลหลังเปลี่ยน" value={item.newData} />
-              </div>
-
-              {href && <div className="admin-audit-event__link"><AdminLinkButton href={href}>เปิดรายการที่เกี่ยวข้อง</AdminLinkButton></div>}
-            </article>;
-          })}
-          {!loading && items.length === 0 && <AdminEmpty>ยังไม่มี audit log ตามเงื่อนไขนี้</AdminEmpty>}
-        </AdminStack>
-
-        <div className="admin-audit-pager">
-          <AdminButton disabled={loading || page <= 1} onClick={() => setPage((value) => Math.max(value - 1, 1))}>ก่อนหน้า</AdminButton>
-          <span>หน้า {page} / {pageCount}</span>
-          <AdminButton disabled={loading || page >= pageCount} onClick={() => setPage((value) => Math.min(value + 1, pageCount))}>ถัดไป</AdminButton>
-        </div>
-      </AdminCard>
+      <AdminDataTable
+        ariaLabel={copy.events}
+        columns={columns}
+        rows={items}
+        rowKey={(item) => item.id}
+        loading={loading}
+        emptyTitle={copy.noEvents}
+        emptyDescription={copy.noEventsHelp}
+        page={page}
+        pageSize={PAGE_SIZE}
+        totalItems={total}
+        onPageChange={(nextPage) => setPage(Math.min(Math.max(nextPage, 1), pageCount))}
+        labels={{
+          loading: copy.loading,
+          empty: copy.noEvents,
+          previousPage: copy.previousPage,
+          nextPage: copy.nextPage,
+          page: (pageNumber) => `${copy.page} ${pageNumber.toLocaleString(dateLocale)}`,
+          rowsPerPage: copy.rowsPerPage,
+          range: (from, to, count) => locale === 'th' ? `${from.toLocaleString(dateLocale)}–${to.toLocaleString(dateLocale)} จาก ${count.toLocaleString(dateLocale)}` : `${from.toLocaleString(dateLocale)}–${to.toLocaleString(dateLocale)} of ${count.toLocaleString(dateLocale)}`,
+        }}
+      />
     </div>
   </AdminPage>;
 }
 
-function AuditData({ title, value }: { title: string; value: unknown }) {
+function AuditDetails({ item, copy }: { item: AuditLog; copy: AuditCopy }) {
+  const href = targetHref(item.module, item.targetId);
+  return <details className="admin-audit-payload admin-audit-table-details">
+    <summary>{copy.details}</summary>
+    <dl className="admin-audit-table-meta">
+      <div><dt>{copy.userAgent}</dt><dd>{item.userAgent || '-'}</dd></div>
+      <div><dt>{copy.email}</dt><dd>{item.adminUser?.email ?? '-'}</dd></div>
+    </dl>
+    <AuditData title={copy.before} value={item.oldData} emptyLabel={copy.noData} />
+    <AuditData title={copy.after} value={item.newData} emptyLabel={copy.noData} />
+    {href && <AdminLinkButton href={href}>{copy.related}</AdminLinkButton>}
+  </details>;
+}
+
+function AuditData({ title, value, emptyLabel }: { title: string; value: unknown; emptyLabel: string }) {
   const hasValue = value !== undefined && value !== null;
   return <details className="admin-audit-payload">
     <summary>{title}</summary>
-    {hasValue ? <pre>{stringifyAdminPayload(value)}</pre> : <p>ไม่มีข้อมูล</p>}
+    {hasValue ? <pre>{stringifyAdminPayload(value)}</pre> : <p>{emptyLabel}</p>}
   </details>;
 }
 
@@ -257,4 +453,4 @@ function isAuditLog(value: unknown): value is AuditLog { return isRecord(value) 
 function isAuditResponse(value: unknown): value is { items: AuditLog[]; total?: unknown; pageCount?: unknown } { return isRecord(value) && Array.isArray(value.items) && value.items.every(isAuditLog); }
 function nonNegativeInteger(value: unknown, fallback: number) { const parsed = Number(value); return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : fallback; }
 function positiveInteger(value: unknown, fallback: number) { const parsed = Number(value); return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : fallback; }
-function formatDateTime(value: string) { const date = new Date(value); return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('th-TH'); }
+function formatDateTime(value: string, locale: string) { const date = new Date(value); return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString(locale); }

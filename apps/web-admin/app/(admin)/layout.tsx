@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from '../admin-api';
 import { AdminButton, AdminEmptyState } from '../components/admin-ui';
-import { canAccessNavItem, localizedNavGroupDescription, localizedNavGroupTitle, localizedNavTitle, navGroups, requiredPermissionsForPath } from './admin-nav';
+import { canAccessNavItem, localizedNavGroupDescription, localizedNavGroupTitle, localizedNavTitle, navGroups, requiredPermissionsForPath, resolveNavItemHref } from './admin-nav';
 import { useAdminLocale, type AdminLocale } from './admin-locale';
 import { AdminIcon, iconForAdminHref } from './_components/admin-icon';
 
@@ -198,12 +198,12 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
       description: localizedNavGroupDescription(group, locale),
       items: group.items.filter((item) => item.sidebar !== false && canAccessNavItem(item, permissions)
         && (!normalizedQuery || `${group.title} ${group.titleEn ?? ''} ${item.title} ${item.titleEn ?? ''}`.toLocaleLowerCase('th').includes(normalizedQuery)))
-        .map((item) => ({ ...item, title: localizedNavTitle(item, locale) })),
+        .map((item) => ({ ...item, href: resolveNavItemHref(item, permissions), title: localizedNavTitle(item, locale) })),
     }))
     .filter((group) => group.items.length > 0), [locale, permissions, normalizedQuery]);
   const commandItems = useMemo(() => navGroups.flatMap((group) => group.items
     .filter((item) => canAccessNavItem(item, permissions))
-    .map((item) => ({ ...item, title: localizedNavTitle(item, locale) }))), [locale, permissions]);
+    .map((item) => ({ ...item, href: resolveNavItemHref(item, permissions), title: localizedNavTitle(item, locale) }))), [locale, permissions]);
   const favoriteItems = useMemo(() => itemsForHrefs(favoriteHrefs, commandItems), [favoriteHrefs, commandItems]);
   const recentItems = useMemo(() => itemsForHrefs(recentHrefs, commandItems), [recentHrefs, commandItems]);
 

@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   architecture-contracts:
     runs-on: ubuntu-latest
@@ -38,7 +41,36 @@ jobs:
         run: pnpm audit:architecture-inventory
 
       - name: Audit architecture boundaries
-        run: pnpm audit:architecture-boundaries
+        id: architecture_boundaries
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm audit:architecture-boundaries 2>&1 | tee architecture-boundaries.log
+
+      - name: Upload architecture boundary evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-boundary-evidence
+          path: architecture-boundaries.log
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish architecture boundary summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Architecture boundary audit'
+            echo
+            echo '- Outcome: **${{ steps.architecture_boundaries.outcome }}**'
+            echo '- Full output: `architecture-boundary-evidence` artifact'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on architecture boundary violations
+        if: steps.architecture_boundaries.outcome == 'failure'
+        run: exit 1
 
       - name: Audit critical regression safety
         run: pnpm audit:critical-test-safety

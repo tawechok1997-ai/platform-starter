@@ -17,7 +17,7 @@ for (const [route, source] of [
     assert.equal(source.includes('normalizeAdminListPayload'), true);
     assert.equal(source.includes('page: list.page'), true);
     assert.equal(source.includes('take: list.pageSize'), true);
-    assert.equal(source.includes('AdminPagination'), true);
+    assert.equal(source.includes('AdminPagination') || source.includes('AdminDataTable'), true);
     assert.equal(source.includes('paginateAdminItems'), false);
   });
 }

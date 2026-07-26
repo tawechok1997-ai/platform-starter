@@ -4,8 +4,10 @@ import test from 'node:test';
 
 const featureUrl = new URL('./admin-security-page.tsx', import.meta.url);
 const routeUrl = new URL('../../../app/(admin)/security/page.tsx', import.meta.url);
+const cssUrl = new URL('./admin-security-workspace.module.css', import.meta.url);
 const source = fs.readFileSync(featureUrl, 'utf8');
 const route = fs.readFileSync(routeUrl, 'utf8');
+const css = fs.readFileSync(cssUrl, 'utf8');
 
 test('admin security route remains a thin component boundary', () => {
   assert.match(route, /admin-security-page/);
@@ -73,4 +75,17 @@ test('destructive actions require shared confirmation and cannot close while bus
   assert.match(source, /logout-others/);
   assert.match(source, /logout-all/);
   assert.match(source, /if \(!pageBusy\) setPendingAction\(null\)/);
+});
+
+test('modern security workspace uses tabs, pagination, responsive table and isolated locales', () => {
+  assert.match(source, /AdminWorkspaceTabs/);
+  assert.match(source, /AdminDataTable/);
+  assert.match(source, /pageSizeOptions=\{\[10, 20, 50\]\}/);
+  assert.match(source, /const COPY: Record<AdminLocale, SecurityCopy>/);
+  assert.match(source, /th: \{/);
+  assert.match(source, /en: \{/);
+  assert.match(source, /normalizeTab/);
+  assert.match(css, /\.twoFactorGrid/);
+  assert.match(css, /@media \(max-width: 640px\)/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 });

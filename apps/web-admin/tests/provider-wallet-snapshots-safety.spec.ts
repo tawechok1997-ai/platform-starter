@@ -1,38 +1,37 @@
+import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import test from 'node:test';
 
 const source = fs.readFileSync(path.join(process.cwd(), 'app/(admin)/provider-wallet-snapshots/page.tsx'), 'utf8');
 
-describe('provider wallet snapshots safety', () => {
-  it('uses shared confirmation instead of native prompts', () => {
-    expect(source).toContain('AdminConfirmDialog');
-    expect(source).not.toContain('window.prompt');
-    expect(source).not.toContain('window.confirm');
-  });
+test('uses shared confirmation instead of native prompts', () => {
+  assert.equal(source.includes('AdminConfirmDialog'), true);
+  assert.equal(source.includes('window.prompt'), false);
+  assert.equal(source.includes('window.confirm'), false);
+});
 
-  it('guards async work and cleans busy state', () => {
-    expect(source).toContain('try {');
-    expect(source).toContain('catch {');
-    expect(source).toContain('finally {');
-    expect(source).toContain('if (!pendingReview || loading || reviewing) return');
-    expect(source).toContain('setReviewing(\'\')');
-  });
+test('guards async work and cleans busy state', () => {
+  assert.equal(source.includes('try {'), true);
+  assert.equal(source.includes('catch {'), true);
+  assert.equal(source.includes('finally {'), true);
+  assert.equal(source.includes('if (!pendingReview || loading || reviewing) return'), true);
+  assert.equal(source.includes("setReviewing('')"), true);
+});
 
-  it('requires a meaningful review note', () => {
-    expect(source).toContain('note.length < 5');
-    expect(source).toContain('อย่างน้อย 5 ตัวอักษร');
-  });
+test('requires a meaningful review note', () => {
+  assert.equal(source.includes('note.length < 5'), true);
+  assert.equal(source.includes('อย่างน้อย 5 ตัวอักษร'), true);
+});
 
-  it('redacts payloads and avoids backend messages', () => {
-    expect(source).toContain('stringifyAdminPayload');
-    expect(source).not.toContain('data?.message');
-    expect(source).not.toContain('JSON.stringify({ rawPayload');
-  });
+test('redacts payloads and avoids backend messages', () => {
+  assert.equal(source.includes('stringifyAdminPayload'), true);
+  assert.equal(source.includes('data?.message'), false);
+  assert.equal(source.includes('JSON.stringify({ rawPayload'), false);
+});
 
-  it('locks controls while requests are active', () => {
-    expect(source).toContain('const busy = loading || Boolean(reviewing)');
-    expect(source).toContain('disabled={busy}');
-    expect(source).toContain('busy={Boolean(reviewing)}');
-  });
+test('locks controls while requests are active', () => {
+  assert.equal(source.includes('const busy = loading || Boolean(reviewing)'), true);
+  assert.equal(source.includes('disabled={busy}'), true);
+  assert.equal(source.includes('busy={Boolean(reviewing)}'), true);
 });

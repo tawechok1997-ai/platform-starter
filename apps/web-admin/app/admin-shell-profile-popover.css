@@ -1,0 +1,31 @@
+/* Keep the desktop profile menu visible without sacrificing the scrollable nav. */
+@media (min-width: 1100px) {
+  #admin-sidebar.admin-drawer {
+    overflow: visible !important;
+  }
+
+  #admin-sidebar .admin-sidebar-profile {
+    isolation: isolate;
+  }
+
+  #admin-sidebar .admin-profile-menu--sidebar {
+    position: absolute !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: 0 !important;
+    left: calc(100% + 12px) !important;
+    width: min(340px, calc(100vw - var(--admin-shell-sidebar-width) - 24px)) !important;
+    max-height: min(520px, calc(100dvh - 24px)) !important;
+    transform-origin: bottom left !important;
+  }
+
+  .admin-shell--collapsed #admin-sidebar .admin-profile-menu--sidebar {
+    width: min(340px, calc(100vw - var(--admin-shell-sidebar-collapsed-width) - 24px)) !important;
+  }
+}
+
+@media (max-width: 1099px) {
+  #admin-sidebar.admin-drawer {
+    overflow: hidden !important;
+  }
+}

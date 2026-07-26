@@ -1,38 +1,44 @@
+import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import test from 'node:test';
 
-const appRoot = path.resolve(__dirname, '..');
+const appRoot = path.resolve(import.meta.dirname, '..');
 const controller = fs.readFileSync(path.join(appRoot, 'app/admin-mobile-drawer-controller.tsx'), 'utf8');
 const css = fs.readFileSync(path.join(appRoot, 'app/admin-mobile-drawer-fix.css'), 'utf8');
 const rootLayout = fs.readFileSync(path.join(appRoot, 'app/layout.tsx'), 'utf8');
 
-describe('mobile admin drawer contract', () => {
-  it('mounts the dedicated mobile controller after the shell', () => {
-    expect(rootLayout).toContain("import './admin-mobile-drawer-fix.css';");
-    expect(rootLayout).toContain('<AdminMobileDrawerController />');
-  });
+test('mounts the dedicated mobile controller after the shell', () => {
+  assert.equal(rootLayout.includes("import './admin-mobile-drawer-fix.css';"), true);
+  assert.equal(rootLayout.includes('<AdminMobileDrawerController />'), true);
+});
 
-  it('uses a full viewport drawer on mobile', () => {
-    expect(css).toContain('width: 100dvw !important');
-    expect(css).toContain('height: 100dvh !important');
-    expect(css).toContain('#admin-sidebar .admin-drawer-head');
-    expect(css).toContain('#admin-sidebar .admin-sidebar-footer');
-  });
+test('uses a full viewport drawer on mobile', () => {
+  assert.equal(css.includes('width: 100dvw !important'), true);
+  assert.equal(css.includes('height: 100dvh !important'), true);
+  assert.equal(css.includes('#admin-sidebar .admin-drawer-head'), true);
+  assert.equal(css.includes('#admin-sidebar .admin-sidebar-footer'), true);
+});
 
-  it('keeps profile identity, close, locale and logout functional', () => {
-    expect(controller).toContain("useAdminLocale()");
-    expect(controller).toContain("AdminIcon name=\"close\"");
-    expect(controller).toContain("changeLocale('th')");
-    expect(controller).toContain("changeLocale('en')");
-    expect(controller).toContain("await adminApiFetch('/admin/auth/logout'");
-    expect(controller).toContain('clearAdminSession()');
-    expect(controller).toContain("window.location.href = '/login'");
-  });
+test('keeps mobile and desktop menu semantics separate', () => {
+  assert.equal(controller.includes("openMenu: 'เปิดเมนูแอดมิน'"), true);
+  assert.equal(controller.includes("openMenu: 'Open admin menu'"), true);
+  assert.equal(controller.includes('if (media.matches)'), true);
+  assert.equal(controller.includes("menuButton.setAttribute('aria-expanded', String(open))"), true);
+  assert.equal(controller.includes('const label = open ? copy.close : copy.openMenu'), true);
+  assert.equal(controller.includes("collapsed ? copy.expandMenu : copy.collapseMenu"), true);
+});
 
-  it('shows the current administrator name and role', () => {
-    expect(controller).toContain("admin.displayName");
-    expect(controller).toContain("roleLabel(admin.roles)");
-    expect(controller).toContain("admin.department");
-  });
+test('keeps profile identity, locale and logout functional', () => {
+  assert.equal(controller.includes('useAdminLocale()'), true);
+  assert.equal(controller.includes("changeLocale(locale === 'th' ? 'en' : 'th')"), true);
+  assert.equal(controller.includes("await adminApiFetch('/admin/auth/logout'"), true);
+  assert.equal(controller.includes('clearAdminSession()'), true);
+  assert.equal(controller.includes("window.location.href = '/login'"), true);
+});
+
+test('shows the current administrator name and role', () => {
+  assert.equal(controller.includes('admin.displayName'), true);
+  assert.equal(controller.includes('roleLabel(admin.roles)'), true);
+  assert.equal(controller.includes('admin.department'), true);
 });

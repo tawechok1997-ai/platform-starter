@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, extname, join, relative, resolve, sep } from 'node:path';
+import ts from 'typescript';
 
 const ROOT = process.cwd();
 const API_SRC = join(ROOT, 'apps', 'api', 'src');
@@ -12,9 +13,11 @@ const SERVER_ONLY_IMPORTS = [
   /^@prisma\/client(?:\/|$)/,
   /^node:(?:fs|child_process|cluster|net|tls|worker_threads)(?:\/|$)/,
 ];
+const NEXT_ROUTE_HANDLER_ALLOWED_IMPORTS = [/^node:fs(?:\/|$)/];
 const DOMAIN_FORBIDDEN_IMPORTS = [/^@nestjs(?:\/|$)/, /^@prisma\/client(?:\/|$)/];
 const PRIVATE_CROSS_MODULE_SEGMENTS = /\/(?:controllers?|dto|repositories?|prisma|internal)(?:\/|$)|\.(?:controller|dto|repository)\b/;
 const TEST_FILE_PATTERN = /(?:^|\/)[^/]+\.(?:spec|test)\.(?:ts|tsx|mts|cts)$/;
+const NEXT_ROUTE_HANDLER_PATTERN = /(?:^|\/)route\.(?:ts|tsx|mts|cts)$/;
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -36,11 +39,33 @@ function isTestFile(path) {
   return TEST_FILE_PATTERN.test(normalize(path));
 }
 
-function importsOf(source) {
+function isNextRouteHandler(path) {
+  return NEXT_ROUTE_HANDLER_PATTERN.test(normalize(path));
+}
+
+function importsOf(source, file) {
   const imports = [];
-  const pattern = /(?:import|export)\s+(?:type\s+)?(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]/g;
-  let match;
-  while ((match = pattern.exec(source))) imports.push(match[1]);
+  const scriptKind = file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+  const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, scriptKind);
+  function visit(node) {
+    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node))
+      && node.moduleSpecifier
+      && ts.isStringLiteral(node.moduleSpecifier)) {
+      imports.push(node.moduleSpecifier.text);
+    } else if (ts.isImportEqualsDeclaration(node)
+      && ts.isExternalModuleReference(node.moduleReference)
+      && node.moduleReference.expression
+      && ts.isStringLiteral(node.moduleReference.expression)) {
+      imports.push(node.moduleReference.expression.text);
+    } else if (ts.isCallExpression(node)
+      && node.expression.kind === ts.SyntaxKind.ImportKeyword
+      && node.arguments[0]
+      && ts.isStringLiteral(node.arguments[0])) {
+      imports.push(node.arguments[0].text);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(sourceFile);
   return imports;
 }
 
@@ -107,7 +132,7 @@ for (const file of moduleFiles) {
   if (!owner) continue;
   if (!graph.has(owner)) graph.set(owner, new Set());
   const source = await readFile(file, 'utf8');
-  for (const specifier of importsOf(source)) {
+  for (const specifier of importsOf(source, file)) {
     const dependency = importedModuleSlug(file, specifier);
     if (dependency && dependency !== owner) graph.get(owner).add(dependency);
   }
@@ -119,10 +144,14 @@ for (const frontendRoot of FRONTEND_ROOTS) {
   for (const file of await walk(frontendRoot)) {
     if (isTestFile(file)) continue;
     const source = await readFile(file, 'utf8');
-    for (const specifier of importsOf(source)) {
+    for (const specifier of importsOf(source, file)) {
       const serverOnly = SERVER_ONLY_IMPORTS.some((pattern) => pattern.test(specifier));
+      const allowedRouteHandlerImport = isNextRouteHandler(file)
+        && NEXT_ROUTE_HANDLER_ALLOWED_IMPORTS.some((pattern) => pattern.test(specifier));
       const apiSourceImport = specifier.includes('apps/api/') || specifier.includes('@platform/api/');
-      if (serverOnly || apiSourceImport) frontendViolations.push({ file: normalize(file), specifier });
+      if ((serverOnly && !allowedRouteHandlerImport) || apiSourceImport) {
+        frontendViolations.push({ file: normalize(file), specifier });
+      }
     }
   }
 }
@@ -132,7 +161,7 @@ for (const appName of ['api', 'web-admin', 'web-member']) {
   const appRoot = join(ROOT, 'apps', appName);
   for (const file of await walk(appRoot)) {
     const source = await readFile(file, 'utf8');
-    for (const specifier of importsOf(source)) {
+    for (const specifier of importsOf(source, file)) {
       if (!specifier.startsWith('.')) continue;
       const target = resolve(dirname(file), specifier);
       const targetRel = relative(join(ROOT, 'apps'), target).split(sep);
@@ -149,7 +178,7 @@ const deepImportViolations = [];
 for (const file of allApiFiles) {
   const source = await readFile(file, 'utf8');
   const owner = moduleSlugFromPath(file);
-  for (const specifier of importsOf(source)) {
+  for (const specifier of importsOf(source, file)) {
     if (isDomainOrPolicyFile(file) && DOMAIN_FORBIDDEN_IMPORTS.some((pattern) => pattern.test(specifier))) {
       domainViolations.push({ file: normalize(file), specifier });
     }

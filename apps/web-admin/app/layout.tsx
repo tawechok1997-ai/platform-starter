@@ -47,7 +47,6 @@ import './admin-final-audit.css';
 import './admin-app-states.css';
 import './admin-mobile-drawer-fix.css';
 import './admin-single-language-button.css';
-import './admin-sidebar-viewport.css';
 import './admin-sidebar-profile-header.css';
 import './admin-modern-command-center.css';
 import './admin-modern-dashboard-layout.css';
@@ -61,6 +60,9 @@ import './admin-modern-audit.css';
 import './admin-modern-platform-ops.css';
 import './admin-release-readiness.css';
 import './admin-release-controls.css';
+import './admin-shell-layout.css';
+import './admin-shell-profile-popover.css';
+import './admin-modernization-adoption.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {

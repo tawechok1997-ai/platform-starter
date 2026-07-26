@@ -1,18 +1,27 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.ADMIN_WEB_URL ?? 'https://platformweb-admin-production.up.railway.app';
+const deployedBaseURL = process.env.ADMIN_WEB_URL?.trim();
+const baseURL = deployedBaseURL || 'http://127.0.0.1:3001';
 
 export default defineConfig({
   testDir: './tests/admin-browser-matrix',
   timeout: 120_000,
   expect: { timeout: 12_000 },
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 3 : undefined,
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report/admin-browser-matrix', open: 'never' }],
   ],
   outputDir: 'test-results/admin-browser-matrix',
+  webServer: deployedBaseURL ? undefined : {
+    command: 'pnpm --filter @platform/web-admin build && pnpm --filter @platform/web-admin start',
+    url: baseURL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 300_000,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  },
   use: {
     baseURL,
     trace: 'retain-on-failure',
