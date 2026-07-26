@@ -82,6 +82,7 @@ import './member-v47-runtime-final.css';
 import './member-v47-final-patch.css';
 import './member-v47-visual-acceptance.css';
 import './member-v47-hero-mask-fix.css';
+import './member-v47-promo-source-match.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
