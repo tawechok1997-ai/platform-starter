@@ -1,0 +1,66 @@
+name: Temporary Game Platform Legacy Review Log Reads
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/api/src/modules/game-platform/game-platform-money.service.ts'
+      - '.github/workflows/temp-game-platform-legacy-review-log-reads.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temp-game-platform-legacy-review-log-reads-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/game-platform-legacy-review-log-reads
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Remove migrated legacy methods
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/api/src/modules/game-platform/game-platform-money.service.ts')
+          lines = path.read_text(encoding='utf-8').splitlines(keepends=True)
+          prefixes = (
+              '  async reviewSnapshot(',
+              '  async listWebhookLogs()',
+          )
+          counts = {prefix: sum(line.startswith(prefix) for line in lines) for prefix in prefixes}
+          if any(count != 1 for count in counts.values()):
+              raise SystemExit(f'unexpected method counts: {counts}')
+          path.write_text(''.join(line for line in lines if not line.startswith(prefixes)), encoding='utf-8')
+          PY
+      - name: Verify canonical ownership
+        run: |
+          ! grep -F 'async reviewSnapshot(' apps/api/src/modules/game-platform/game-platform-money.service.ts
+          ! grep -F 'async listWebhookLogs()' apps/api/src/modules/game-platform/game-platform-money.service.ts
+          grep -F 'return this.reconciliationCommands.reviewSnapshot' apps/api/src/modules/game-platform/game-platform-money.controller.ts
+          grep -F 'return this.webhookLogs.list(query)' apps/api/src/modules/game-platform/game-platform-money.controller.ts
+          pnpm --filter @platform/api test -- src/modules/game-platform --runInBand
+          pnpm --filter @platform/api typecheck
+      - name: Commit verified cleanup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/api/src/modules/game-platform/game-platform-money.service.ts
+          git diff --cached --check
+          git commit -m 'refactor(game-platform): remove legacy review and log reads'
+          git push origin HEAD:fix/game-platform-legacy-review-log-reads
