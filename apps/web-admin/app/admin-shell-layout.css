@@ -511,3 +511,31 @@ body[data-app-surface='admin'] h3 {
     min-height: 40px !important;
   }
 }
+
+
+/* Dashboard shell compaction verified from authenticated browser evidence. */
+.admin-environment-badge,
+.admin-topbar-status,
+.admin-language-toggle,
+.admin-notification-trigger {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (min-width: 1100px) and (max-width: 1599px) {
+  .admin-environment-badge,
+  .admin-topbar-status {
+    display: none !important;
+  }
+
+  .admin-command-trigger {
+    width: 40px !important;
+    min-width: 40px !important;
+    justify-content: center !important;
+  }
+
+  .admin-command-trigger span,
+  .admin-command-trigger kbd {
+    display: none !important;
+  }
+}
