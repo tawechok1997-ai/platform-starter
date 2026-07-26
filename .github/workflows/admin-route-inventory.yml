@@ -49,6 +49,18 @@ jobs:
           from pathlib import Path
 
           workflow = Path('.github/workflows/p5-security-audit.yml').read_text(encoding='utf-8')
+          workflow = workflow.replace(
+              "                      if source.count(old) != 1:\n",
+              "                      expected_count = 4 if old == \"for (const specifier of importsOf(source)) {\" else 1\n                      if source.count(old) != expected_count:\n",
+          )
+          workflow = workflow.replace(
+              "                          raise SystemExit(f'{path}: expected exactly one match for {old[:80]!r}, found {source.count(old)}')",
+              "                          raise SystemExit(f'{path}: expected {expected_count} match(es) for {old[:80]!r}, found {source.count(old)}')",
+          )
+          workflow = workflow.replace(
+              "                      source = source.replace(old, new, 1)",
+              "                      source = source.replace(old, new)",
+          )
           start_marker = "          python <<'PY'\n"
           end_marker = "\n          PY\n\n          if git diff --quiet"
           if start_marker not in workflow or end_marker not in workflow:
