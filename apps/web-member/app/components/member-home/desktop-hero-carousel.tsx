@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import type { CmsContent } from '../../site-settings';
@@ -183,7 +184,7 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
     setTransitionEnabled(true);
   };
 
-  const suppressDraggedClick = (event: ReactPointerEvent<HTMLElement>) => {
+  const suppressDraggedClick = (event: ReactMouseEvent<HTMLElement>) => {
     if (performance.now() >= suppressClickUntil.current) return;
     event.preventDefault();
     event.stopPropagation();
