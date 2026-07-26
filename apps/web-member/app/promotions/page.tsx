@@ -1,16 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import MemberBottomNav from '../member-bottom-nav';
 import { loadPublicSiteSettings, promotionCampaignsSetting, PromotionCampaign, defaultSettings } from '../site-settings';
 import { memberApiFetch } from '../member-api';
-import { useMemberSession } from '../member-session-provider';
 import './member-promotions-contract.css';
 
 type Claim = { id: string; campaignId: string; topupId?: string | null; linkedTopup?: Topup | null; depositAmount?: number; status: string; rawStatus: string; adminNote?: string; createdAt: string };
 type Topup = { id: string; amount: string | number; currency: string; status: string; method?: string | null; referenceCode?: string | null; createdAt: string; reviewedAt?: string | null };
 
-export default function PublicPromotionsPage() {
-  const { isLoggedIn } = useMemberSession();
+export default function MemberPromotionsPage() {
   const [campaigns, setCampaigns] = useState<PromotionCampaign[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [topups, setTopups] = useState<Topup[]>([]);
@@ -18,7 +17,7 @@ export default function PublicPromotionsPage() {
   const [message, setMessage] = useState('กำลังโหลดโปรโมชัน...');
   const [busyId, setBusyId] = useState('');
 
-  useEffect(() => { void load(); }, [isLoggedIn]);
+  useEffect(() => { load(); }, []);
 
   const claimMap = useMemo(() => new Map(claims.map((item) => [item.campaignId, item])), [claims]);
   const approvedTopups = useMemo(() => topups.filter((item) => item.status === 'APPROVED'), [topups]);
@@ -28,22 +27,12 @@ export default function PublicPromotionsPage() {
       const settings = await loadPublicSiteSettings();
       const active = promotionCampaignsSetting(settings).filter((item) => item.enabled && isInWindow(item)).sort((a, b) => Number(b.priority ?? 0) - Number(a.priority ?? 0));
       setCampaigns(active);
-      setMessage('');
-
-      if (!isLoggedIn) {
-        setClaims([]);
-        setTopups([]);
-        return;
-      }
-
-      const [claimRes, topupRes] = await Promise.all([
-        memberApiFetch('/member/promotion-claims', { suppressSessionExpiryRedirect: true }),
-        memberApiFetch('/member/topups', { suppressSessionExpiryRedirect: true }),
-      ]);
+      const [claimRes, topupRes] = await Promise.all([memberApiFetch('/member/promotion-claims'), memberApiFetch('/member/topups')]);
       const claimData = await claimRes.json().catch(() => null);
       const topupData = await topupRes.json().catch(() => null);
-      if (claimRes.ok) setClaims(claimData?.items ?? []);
-      if (topupRes.ok) setTopups(topupData?.items ?? []);
+      if (claimRes.ok) setClaims(claimData.items ?? []);
+      if (topupRes.ok) setTopups(topupData.items ?? []);
+      setMessage('');
     } catch {
       setCampaigns(promotionCampaignsSetting(defaultSettings).filter((item) => item.enabled));
       setMessage('โหลดโปรโมชันไม่สำเร็จ');
@@ -51,10 +40,6 @@ export default function PublicPromotionsPage() {
   }
 
   async function claimPromotion(item: PromotionCampaign) {
-    if (!isLoggedIn) {
-      window.location.href = `/login?next=${encodeURIComponent('/promotions')}`;
-      return;
-    }
     const topupId = selectedTopups[item.id] ?? eligibleTopups(item, approvedTopups, claims)[0]?.id;
     if (!topupId) { setMessage('กรุณาเลือกรายการฝากที่อนุมัติแล้วและมียอดถึงขั้นต่ำก่อนรับโปร'); return; }
     setBusyId(item.id);
@@ -67,21 +52,22 @@ export default function PublicPromotionsPage() {
     setMessage('ส่งคำขอรับโปรแล้ว รอแอดมินตรวจสอบ');
   }
 
-  return <main className="member-promotions-page public-promotions-page">
-    <section className="member-promotions-hero"><span>Promotion</span><h1>โปรโมชัน</h1><p>ดูรายละเอียดและเงื่อนไขทั้งหมดได้โดยไม่ต้องเข้าสู่ระบบ</p><div><strong>{campaigns.length}</strong><small>โปรที่เปิดใช้งาน</small>{isLoggedIn ? <><strong>{approvedTopups.length}</strong><small>รายการฝากที่ใช้ได้</small></> : <><strong>24/7</strong><small>เปิดดูได้ตลอด</small></>}</div></section>
+  return <main className="member-promotions-page">
+    <section className="member-promotions-hero"><span>Promotion</span><h1>โปรโมชัน</h1><p>เลือกฝากที่อนุมัติแล้วเพื่อรับโปร ระบบจะคำนวณโบนัสจากยอดฝากจริง</p><div><strong>{campaigns.length}</strong><small>โปรที่เปิดใช้งาน</small><strong>{approvedTopups.length}</strong><small>รายการฝากที่ใช้ได้</small></div></section>
     {message && <div className="member-promotions-notice" role="status">{message}</div>}
-    <section className="member-promotions-list">{campaigns.map((item) => { const claim = claimMap.get(item.id); const options = eligibleTopups(item, approvedTopups, claims); return <PromotionCard key={item.id} item={item} claim={claim} options={options} selectedTopupId={selectedTopups[item.id] ?? options[0]?.id ?? ''} busy={busyId === item.id} isLoggedIn={isLoggedIn} onSelect={(topupId) => setSelectedTopups((current) => ({ ...current, [item.id]: topupId }))} onClaim={() => claimPromotion(item)} />; })}{campaigns.length === 0 && <div className="member-promotions-empty">ยังไม่มีโปรโมชันที่เปิดใช้งาน</div>}</section>
+    <section className="member-promotions-list">{campaigns.map((item) => { const claim = claimMap.get(item.id); const options = eligibleTopups(item, approvedTopups, claims); return <PromotionCard key={item.id} item={item} claim={claim} options={options} selectedTopupId={selectedTopups[item.id] ?? options[0]?.id ?? ''} busy={busyId === item.id} onSelect={(topupId) => setSelectedTopups((current) => ({ ...current, [item.id]: topupId }))} onClaim={() => claimPromotion(item)} />; })}{campaigns.length === 0 && <div className="member-promotions-empty">ยังไม่มีโปรโมชันที่เปิดใช้งาน</div>}</section>
+    <MemberBottomNav />
   </main>;
 }
 
-function PromotionCard({ item, claim, options, selectedTopupId, busy, isLoggedIn, onSelect, onClaim }: { item: PromotionCampaign; claim?: Claim | undefined; options: Topup[]; selectedTopupId: string; busy: boolean; isLoggedIn: boolean; onSelect: (value: string) => void; onClaim: () => void | Promise<void> }) {
+function PromotionCard({ item, claim, options, selectedTopupId, busy, onSelect, onClaim }: { item: PromotionCampaign; claim?: Claim | undefined; options: Topup[]; selectedTopupId: string; busy: boolean; onSelect: (value: string) => void; onClaim: () => void | Promise<void> }) {
   const accent = item.accentColor || '#f5c542';
   const hasImage = Boolean(item.imageUrl && isValidUrl(item.imageUrl));
   const hasIcon = Boolean(item.iconUrl && isValidUrl(item.iconUrl));
   const style = { '--promotion-accent': accent } as React.CSSProperties;
   return <article className="member-promotion-card" style={style}>
     <div className="member-promotion-media">{hasImage ? <img src={item.imageUrl} alt={`ภาพโปรโมชัน ${item.title}`} loading="lazy" decoding="async" /> : <div className="member-promotion-fallback">{hasIcon ? <img src={item.iconUrl} alt="" /> : 'โปรโมชั่น'}</div>}<span>{item.badgeText || (item.bonusType === 'percent' ? `${item.bonusValue}%` : money(item.bonusValue))}</span></div>
-    <div className="member-promotion-content"><div className="member-promotion-topline">{hasIcon && <img src={item.iconUrl} alt="" />}<span>{item.claimMode === 'manual_review' ? 'แอดมินตรวจ' : 'รอตรวจอัตโนมัติ'}</span></div><h2>{item.title}</h2><p>{item.description}</p><div className="member-promotion-condition-grid"><Condition label="ฝากขั้นต่ำ" value={money(item.minDeposit)} /><Condition label="โบนัสสูงสุด" value={money(item.maxBonus)} /><Condition label="เทิร์น" value={`x${item.turnoverMultiplier}`} /></div>{item.endsAt && <p className="member-promotion-expiry">สิ้นสุด {new Date(item.endsAt).toLocaleDateString('th-TH')}</p>}{claim ? <div className={`member-promotion-claim is-${claim.status.toLowerCase()}`}><strong>สถานะ: {claimStatusLabel(claim.status)}</strong><span>{new Date(claim.createdAt).toLocaleString('th-TH')}</span>{claim.linkedTopup && <span>ฝากที่ใช้: {money(Number(claim.linkedTopup.amount))}</span>}{claim.adminNote && <span>{claim.adminNote}</span>}</div> : !isLoggedIn ? <a className="member-promotion-primary" href="/login?next=%2Fpromotions">เข้าสู่ระบบเพื่อรับโปรโมชั่น</a> : <><label className="member-promotion-field"><span>เลือกรายการฝาก</span><select aria-label={`เลือกรายการฝากสำหรับ ${item.title}`} value={selectedTopupId} onChange={(event) => onSelect(event.target.value)}><option value="">รายการฝากที่อนุมัติแล้ว</option>{options.map((topup) => <option key={topup.id} value={topup.id}>{money(Number(topup.amount))} · {new Date(topup.createdAt).toLocaleString('th-TH')}</option>)}</select></label><button type="button" disabled={busy || options.length === 0} onClick={() => { void onClaim(); }} className="member-promotion-primary">{busy ? 'กำลังส่ง...' : options.length === 0 ? 'ยังไม่มีรายการฝากที่ใช้ได้' : 'รับโปรนี้'}</button></>}<a href={isLoggedIn ? '/deposit' : '/login?next=%2Fdeposit'} className="member-promotion-secondary">ฝากเงิน</a><small>หนึ่งรายการฝากใช้รับโปรได้ครั้งเดียว และต้องผ่านการตรวจสอบก่อนสร้าง bonus ledger</small></div>
+    <div className="member-promotion-content"><div className="member-promotion-topline">{hasIcon && <img src={item.iconUrl} alt="" />}<span>{item.claimMode === 'manual_review' ? 'แอดมินตรวจ' : 'รอตรวจอัตโนมัติ'}</span></div><h2>{item.title}</h2><p>{item.description}</p><div className="member-promotion-condition-grid"><Condition label="ฝากขั้นต่ำ" value={money(item.minDeposit)} /><Condition label="โบนัสสูงสุด" value={money(item.maxBonus)} /><Condition label="เทิร์น" value={`x${item.turnoverMultiplier}`} /></div>{item.endsAt && <p className="member-promotion-expiry">สิ้นสุด {new Date(item.endsAt).toLocaleDateString('th-TH')}</p>}{claim ? <div className={`member-promotion-claim is-${claim.status.toLowerCase()}`}><strong>สถานะ: {claimStatusLabel(claim.status)}</strong><span>{new Date(claim.createdAt).toLocaleString('th-TH')}</span>{claim.linkedTopup && <span>ฝากที่ใช้: {money(Number(claim.linkedTopup.amount))}</span>}{claim.adminNote && <span>{claim.adminNote}</span>}</div> : <><label className="member-promotion-field"><span>เลือกรายการฝาก</span><select aria-label={`เลือกรายการฝากสำหรับ ${item.title}`} value={selectedTopupId} onChange={(event) => onSelect(event.target.value)}><option value="">รายการฝากที่อนุมัติแล้ว</option>{options.map((topup) => <option key={topup.id} value={topup.id}>{money(Number(topup.amount))} · {new Date(topup.createdAt).toLocaleString('th-TH')}</option>)}</select></label><button type="button" disabled={busy || options.length === 0} onClick={() => { void onClaim(); }} className="member-promotion-primary">{busy ? 'กำลังส่ง...' : options.length === 0 ? 'ยังไม่มีรายการฝากที่ใช้ได้' : 'รับโปรนี้'}</button></>}<a href="/deposit" className="member-promotion-secondary">ฝากเงิน</a><small>หนึ่งรายการฝากใช้รับโปรได้ครั้งเดียว และต้องผ่านการตรวจสอบก่อนสร้าง bonus ledger</small></div>
   </article>;
 }
 
