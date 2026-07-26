@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - fix/r010-money-ops-ledger-consolidation
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/api/src/modules/money-ops/money-ops.service.ts'
+      - 'docs/evidence/r010-query-review.json'
+      - '.github/workflows/temp-r010-money-ops-ledger-consolidation.yml'
 
 permissions:
   contents: write
