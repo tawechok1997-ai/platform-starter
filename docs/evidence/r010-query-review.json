@@ -36,11 +36,6 @@
       "owner": "risk-alerts",
       "reason": "Rapid deposit-withdrawal and high-withdrawal scanners use different time windows, amount predicates, and eligible workflow statuses."
     },
-    "duplicate:c5cda22e19b258e67c00fae4": {
-      "status": "consolidate",
-      "owner": "game-platform",
-      "reason": "Active-session reconciliation remains duplicated in the legacy money facade and the canonical reconciliation command service."
-    },
     "duplicate:694a4a0fd6b2ec70fd6f20ef": {
       "status": "consolidate",
       "owner": "game-platform",
