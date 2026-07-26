@@ -53,7 +53,7 @@ export class AdminGameMoneyController {
   @RequirePermission('game.providers.view') @Get('provider-wallet-snapshots/:id') getSnapshot(@Param('id') id: string) { return this.reconciliationQueries.getSnapshot(id); }
   @RequirePermission('game.providers.manage') @Patch('provider-wallet-snapshots/:id/review') reviewSnapshot(@Param('id') id: string, @Body() body: ReviewDto, @CurrentUser() user: AuthenticatedAdminActor) { return this.reconciliationCommands.reviewSnapshot(id, user, normalizeSnapshotReview(body)); }
   @RequirePermission('game.providers.view') @Get('webhook-logs') listWebhookLogs(@Query() query: WebhookLogQueryDto) { return this.webhookLogs.list(query); }
-  @RequirePermission('game.providers.view') @Get('webhook-logs/:id') getWebhookLog(@Param('id') id: string) { return this.moneyService.getWebhookLog(id); }
+  @RequirePermission('game.providers.view') @Get('webhook-logs/:id') getWebhookLog(@Param('id') id: string) { return this.webhookLogs.get(id); }
 }
 
 @Controller('provider-webhooks')
