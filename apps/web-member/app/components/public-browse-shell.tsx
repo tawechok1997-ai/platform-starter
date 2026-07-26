@@ -6,6 +6,7 @@ import MemberFooter from '../member-footer';
 import { useMemberSession } from '../member-session-provider';
 import { useSiteSettings } from '../site-settings-provider';
 import { V47_ASSETS } from './member-home/v47-asset-map';
+import { formatMemberWalletBalance } from '../../src/features/wallet/member-wallet';
 
 const PUBLIC_NAV = [
   { key: 'home', title: 'หน้าหลัก', href: '/', icon: V47_ASSETS.menuHome },
@@ -30,10 +31,7 @@ export default function PublicBrowseShell({ children }: { children: ReactNode })
   const logoUrl = configuredLogoUrl && !configuredLogoUrl.startsWith('/home-asset/')
     ? configuredLogoUrl
     : V47_ASSETS.headerLogo;
-  const balance = Number(wallet?.availableBalance ?? wallet?.balance ?? 0).toLocaleString('th-TH', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const balance = formatMemberWalletBalance(wallet).replace(/^[A-Z]{3}\s+/, '');
 
   return (
     <>
