@@ -41,7 +41,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
   const featured = fillGames(games.featured, allGames, 9);
   const popular = fillGames(games.popular, allGames, 10);
   const online = fillGames(allGames.slice(3), allGames, 6);
-  const classic = fillGames(allGames.slice(8), allGames, 10);
+  const classic = fillGames(allGames.slice(8), allGames, 6);
   const providers = uniqueProviders(allGames).slice(0, 12);
   const providerLogos = buildProviderLogos(providers);
   const showGuestActions = !ready || !isLoggedIn;
@@ -95,6 +95,8 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
 
           <a href="/promotions" className="reference-tournament-cta">
             <img src={V47_ASSETS.tournament} alt="เข้าร่วมแข่งขัน Tournament" onError={(event) => swapBrokenImage(event, assets.tournament?.url || '')} />
+            <span><small>ร่วมสนุกกับกิจกรรม Tournament</small><strong>TOURNAMENT เข้าร่วมชิงความเป็นที่ 1</strong></span>
+            <b>เข้าแข่งขัน ›</b>
           </a>
 
           <section className="reference-panel reference-tournament-board" data-section-kind="tournament">
@@ -119,7 +121,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
 
           <section className="reference-compact-section" id="live" data-section-kind="live"><PanelHeading asset={assets.live} configured={V47_ASSETS.liveIcon} fallback="🔴" title="Live Now!!" /><div className="reference-live-row" data-drag-scroll="true">{MATCH_CARDS.map((match, index) => <article key={`${match.league}-${index}`} className="reference-live-card"><header><span>{match.league}</span><b>{match.time}</b></header><div><strong>{match.home}</strong><span>VS</span><strong>{match.away}</strong></div><footer><a href="/login">ดูบอลสด</a><a href="/login">เล่นเกมทันที</a></footer></article>)}</div></section>
 
-          <section className="reference-compact-section" data-section-kind="classic"><PanelHeading asset={assets.classic} configured={V47_ASSETS.gameHit} fallback="💧" title="Classic Games" /><div className="reference-classic-row" data-drag-scroll="true">{classic.length ? classic.map((game) => <GameTile key={game.id} game={game} compact />) : ARCHIVE_GAMES.slice(10, 20).map((game) => <ArchiveGameTile key={game.name} game={game} compact />)}</div></section>
+          <section className="reference-compact-section" data-section-kind="classic"><PanelHeading asset={assets.classic} configured={V47_ASSETS.gameHit} fallback="💧" title="Classic Games" /><div className="reference-classic-row" data-drag-scroll="true">{classic.length ? classic.map((game) => <GameTile key={game.id} game={game} compact />) : ARCHIVE_GAMES.slice(10, 16).map((game) => <ArchiveGameTile key={game.name} game={game} compact />)}</div></section>
 
           <section className="reference-guide" id="guide" data-section-kind="guide"><PanelHeading asset={assets.guide} configured={V47_ASSETS.openGold} fallback="?" title="Guide" />{guideFaqs.map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="reference-guide-more" href="/guide">ดูทั้งหมด</a></section>
 
@@ -150,7 +152,23 @@ function ArchiveOnlineCard({ game, index }: { game: ArchiveGame; index: number }
 function EmptyState({ label }: { label: string }) { return <div className="reference-empty">{label}</div>; }
 function PanelHeading({ asset, configured, fallback, title }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; title: string }) { return <header className="reference-panel-heading"><AssetIcon asset={asset} configured={configured} fallback={fallback} className="reference-heading-icon" /><strong>{title}</strong></header>; }
 function AssetIcon({ asset, configured, fallback, className }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; className: string }) { const value = configured || asset?.url || ''; return <span className={className} aria-hidden="true">{value ? (isImageValue(value) ? <img src={normalizeUrl(value)} alt="" onError={hideBrokenImage} /> : value) : fallback}</span>; }
-function ProviderLogoItem({ provider }: { provider: ProviderLogo }) { return <span className="reference-provider-logo"><img src={provider.url} alt={provider.name} loading="lazy" onError={hideBrokenImage} /></span>; }
+function ProviderLogoItem({ provider }: { provider: ProviderLogo }) {
+  return (
+    <span className="reference-provider-logo" title={provider.name}>
+      <img
+        src={provider.url}
+        alt={provider.name}
+        loading="lazy"
+        onError={(event) => {
+          event.currentTarget.style.display = 'none';
+          const fallback = event.currentTarget.nextElementSibling;
+          if (fallback instanceof HTMLElement) fallback.style.display = 'block';
+        }}
+      />
+      <small>{provider.name}</small>
+    </span>
+  );
+}
 function GameTile({ game, large = false, compact = false }: { game: Game; large?: boolean; compact?: boolean }) { return <a href="/login?next=%2Fgames" className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}><GameImage game={game} />{game?.isNew && <em>NEW</em>}<span><strong>{safeGameName(game)}</strong><small>{game?.provider?.name || game?.provider?.code || 'Provider'}</small></span></a>; }
 function GameImage({ game }: { game: Game }) { const fallback = fallbackGameImage(game); const image = resolveGameImage(game) || fallback; return <img src={image} alt={safeGameName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />; }
 function fallbackGameImage(game: Game) { const seed = `${game?.id || ''}:${game?.providerGameCode || ''}:${safeGameName(game)}`; let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0; return REFERENCE_GAMES[Math.abs(hash) % REFERENCE_GAMES.length]!.url; }
@@ -174,7 +192,7 @@ function buildProviderLogos(providers: ReturnType<typeof uniqueProviders>): Prov
     seen.add(signature);
     result.push(provider);
   });
-  return result.slice(0, 18);
+  return result.slice(0, 12);
 }
 function completeFaqs(configured: GuideFaq[]): GuideFaq[] {
   const result: GuideFaq[] = [];
