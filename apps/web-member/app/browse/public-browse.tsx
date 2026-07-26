@@ -129,8 +129,9 @@ export function BrowseGames() {
       ) : <section className="browse-empty"><strong>ไม่พบเกมที่ตรงกับตัวกรอง</strong><p>ลองล้างตัวกรองหรือใช้คำค้นหาอื่น</p><button type="button" onClick={() => { setQuery(''); setCategory('all'); setProviderName('all'); }}>แสดงเกมทั้งหมด</button></section>}
 
       {selectedGame ? (
-        <div className="browse-modal-backdrop" role="presentation" onMouseDown={() => setSelectedGame(null)}>
-          <section className="browse-modal" role="dialog" aria-modal="true" aria-labelledby="browse-game-title" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="browse-modal-backdrop" role="presentation">
+          <button type="button" className="browse-modal-dismiss" onClick={() => setSelectedGame(null)} aria-label="ปิดรายละเอียดเกม" />
+          <section className="browse-modal" role="dialog" aria-modal="true" aria-labelledby="browse-game-title">
             <button type="button" className="browse-modal-close" onClick={() => setSelectedGame(null)} aria-label="ปิด">×</button>
             <AssetImage src={selectedGame.url} alt={'ภาพเกม ' + selectedGame.name} className="browse-modal-image" />
             <span className="browse-eyebrow">{CATEGORY_LABELS[selectedGame.category]} · {selectedGame.provider.name}</span><h2 id="browse-game-title">{selectedGame.name}</h2>
