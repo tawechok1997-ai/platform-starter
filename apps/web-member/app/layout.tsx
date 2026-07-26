@@ -64,6 +64,7 @@ import './member-v47-quick-actions.css';
 import './member-clone-interactions.css';
 import './member-reference-assets.css';
 import './member-reference-assets-complete.css';
+import './browse/public-browse.css';
 import './member-assets5-exact.css';
 import './member-reference-v6-match.css';
 import './member-reference-v6-footer.css';
