@@ -122,21 +122,22 @@ export function AdminDataTable<T>({
     <footer className={styles.footer}>
       <span className={styles.range}>{labels.range(range.from, range.to, totalItems)}</span>
       <div className={styles.pagination} aria-label={ariaLabel}>
-        <button type="button" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage <= 1} aria-label={labels.previousPage}>‹</button>
+        <button type="button" onClick={() => onPageChange(currentPage - 1)} disabled={loading || currentPage <= 1} aria-label={labels.previousPage}>‹</button>
         <div className={styles.pages}>
           {tokens.map((token) => typeof token === 'number' ? <button
             key={token}
             type="button"
             onClick={() => onPageChange(token)}
+            disabled={loading}
             aria-current={token === currentPage ? 'page' : undefined}
             aria-label={labels.page(token)}
           >{token}</button> : <span key={token} aria-hidden="true">…</span>)}
         </div>
-        <button type="button" onClick={() => onPageChange(currentPage + 1)} disabled={currentPage >= pageCount} aria-label={labels.nextPage}>›</button>
+        <button type="button" onClick={() => onPageChange(currentPage + 1)} disabled={loading || currentPage >= pageCount} aria-label={labels.nextPage}>›</button>
       </div>
       {onPageSizeChange && <label className={styles.pageSize}>
         <span>{labels.rowsPerPage}</span>
-        <select value={pageSize} onChange={(event) => onPageSizeChange(Number(event.target.value))}>
+        <select value={pageSize} disabled={loading} onChange={(event) => onPageSizeChange(Number(event.target.value))}>
           {pageSizeOptions.map((option) => <option value={option} key={option}>{option}</option>)}
         </select>
       </label>}

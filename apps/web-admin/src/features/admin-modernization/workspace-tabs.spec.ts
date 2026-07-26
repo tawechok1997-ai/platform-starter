@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { buildWorkspaceTabHref } from './workspace-tab-url';
+
+const componentSource = readFileSync(new URL('./workspace-tabs.tsx', import.meta.url), 'utf8');
+
+test('cross-route workspace navigation keeps native link semantics', () => {
+  assert.equal(componentSource.includes('role="tablist"'), false);
+  assert.equal(componentSource.includes('role="tab"'), false);
+  assert.equal(componentSource.includes('aria-selected='), false);
+  assert.equal(componentSource.includes("aria-current={active ? 'page' : undefined}"), true);
+});
 
 test('workspace tab links preserve unrelated query context', () => {
   assert.equal(buildWorkspaceTabHref({ pathname: '/finance', search: 'range=7d&page=3', queryKey: 'tab', target: { value: 'withdrawals' } }), '/finance?range=7d&page=3&tab=withdrawals');

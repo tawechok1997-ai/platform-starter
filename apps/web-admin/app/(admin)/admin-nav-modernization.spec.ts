@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { navGroups, requiredPermissionsForPath } from './admin-nav';
+import { navGroups, requiredPermissionsForPath, resolveNavItemHref } from './admin-nav';
 
 test('daily sidebar exposes exactly eleven workspace entries', () => {
   const visible = navGroups.flatMap((group) => group.items.filter((item) => item.sidebar !== false));
@@ -9,6 +9,15 @@ test('daily sidebar exposes exactly eleven workspace entries', () => {
   assert.equal(visible.length, 11);
   assert.equal(new Set(visible.map((item) => item.href)).size, visible.length);
   assert.ok(visible.every((item) => item.title && item.titleEn));
+});
+
+test('finance workspace resolves to an accessible landing route', () => {
+  const finance = navGroups.flatMap((group) => group.items).find((item) => item.titleEn === 'Finance');
+  assert.ok(finance);
+  assert.equal(resolveNavItemHref(finance, ['withdraw.view']), '/withdrawals');
+  assert.equal(resolveNavItemHref(finance, ['wallet.view']), '/wallets');
+  assert.equal(resolveNavItemHref(finance, ['reports.view']), '/reports');
+  assert.equal(resolveNavItemHref(finance, ['*']), '/topups');
 });
 
 test('specialist routes remain searchable without crowding the sidebar', () => {

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { promises as fs } from 'node:fs';
+import { promises as fs, readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
@@ -8,6 +8,7 @@ import { getWorkspaceByPathname } from './workspaces';
 const ROUTE_FILES = new Set(['page.tsx', 'page.ts', 'page.jsx', 'page.js']);
 const SYSTEM_SEGMENTS = new Set(['_components', '_lib', '_utils', '_hooks', '_styles']);
 const AUTHENTICATION_ROUTES = new Set(['/', '/login', '/two-factor', '/accept-invitation']);
+const auditSource = readFileSync(new URL('../../../tools/audit-admin-routes.mjs', import.meta.url), 'utf8');
 
 function normalizeSegment(segment: string) {
   if (segment.startsWith('(') && segment.endsWith(')')) return null;
@@ -33,6 +34,12 @@ function routeFromPage(appRoot: string, pageFile: string) {
   const segments = relative.split(path.sep).map(normalizeSegment).filter((segment): segment is string => Boolean(segment));
   return `/${segments.join('/')}`.replace(/\/$/, '') || '/';
 }
+
+test('route inventory imports the canonical workspace registry', () => {
+  assert.equal(auditSource.includes("import { ADMIN_WORKSPACES } from '../src/features/admin-modernization/workspaces.ts'"), true);
+  assert.equal(auditSource.includes('...ADMIN_WORKSPACES.map((workspace)'), true);
+  assert.equal(auditSource.includes("['members', ['/members'"), false);
+});
 
 test('every Admin route belongs to a workspace or the authentication surface', async () => {
   const appRoot = path.resolve(process.cwd(), 'app');

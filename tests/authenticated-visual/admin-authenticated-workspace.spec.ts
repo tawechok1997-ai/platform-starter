@@ -124,6 +124,20 @@ function installMutationGuard(page: Page) {
   });
 }
 
+async function revokeAdminSession(page: Page) {
+  if (!adminUrl) return;
+  const token = await page.evaluate(() => window.sessionStorage.getItem('admin_access_token')).catch(() => null);
+  if (!token) return;
+  const response = await page.context().request.post(new URL('/api/admin/auth/logout', adminUrl).toString(), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok()) throw new Error(`Admin smoke logout cleanup failed with ${response.status()}`);
+}
+
+test.afterEach(async ({ page }) => {
+  await revokeAdminSession(page);
+});
+
 async function attachAudit(testInfo: TestInfo, audit: RuntimeAudit, extra: Record<string, unknown>) {
   const payload = `${JSON.stringify({ ...audit, ...extra }, null, 2)}\n`;
   await writeFile(testInfo.outputPath('admin-authenticated-workspace-audit.json'), payload, 'utf8');

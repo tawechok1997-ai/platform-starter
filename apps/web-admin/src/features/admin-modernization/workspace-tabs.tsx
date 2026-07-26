@@ -43,7 +43,7 @@ export function AdminWorkspaceTabs({
   const resolvedActiveId = activeId ?? tabs.find((tab) => tab.value ? tab.value === currentValue : !currentValue)?.id ?? tabs[0]?.id;
 
   return <nav className={[styles.tabs, className].filter(Boolean).join(' ')} aria-label={ariaLabel}>
-    <div className={styles.scroller} role="tablist" aria-orientation="horizontal">
+    <div className={styles.scroller}>
       {tabs.map((tab) => {
         const active = tab.id === resolvedActiveId;
         const href = buildWorkspaceTabHref({
@@ -65,8 +65,6 @@ export function AdminWorkspaceTabs({
           key={tab.id}
           href={href}
           className={styles.tab}
-          role="tab"
-          aria-selected={active}
           aria-current={active ? 'page' : undefined}
           data-active={active || undefined}
           scroll={false}

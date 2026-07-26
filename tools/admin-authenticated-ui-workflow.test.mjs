@@ -41,6 +41,9 @@ test('checks the shared shell, command palette, responsive navigation and route 
   assert.match(spec, /must not overflow horizontally/);
   assert.match(spec, /surfaces must stay inside the viewport/);
   assert.match(spec, /accessibleRoutes\.length\)\.toBeLessThanOrEqual\(11\)/);
+  assert.match(spec, /test\.afterEach/);
+  assert.match(spec, /api\/admin\/auth\/logout/);
+  assert.match(spec, /Admin smoke logout cleanup failed/);
   assert.match(spec, /--admin-modern-brand/);
 });
 

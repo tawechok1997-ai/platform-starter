@@ -10,7 +10,7 @@
     "test": "node --import tsx --test \"src/**/*.spec.ts\" \"app/**/*.spec.ts\"",
     "test:admin-regression": "node --import tsx --test src/features/admin-redesign/*.spec.ts",
     "test:admin-modernization": "node --import tsx --test src/features/admin-modernization/*.spec.ts",
-    "inventory:admin-routes": "node tools/audit-admin-routes.mjs",
+    "inventory:admin-routes": "node --import tsx tools/audit-admin-routes.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "verify": "pnpm inventory:admin-routes && pnpm test && pnpm typecheck && pnpm build",
     "start": "next start -p 3001"

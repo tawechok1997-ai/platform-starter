@@ -7,10 +7,12 @@ import { AdminBadge, AdminButton, AdminCard, AdminEmpty, AdminMetric, AdminMetri
 import { useAdminLocale, type AdminLocale } from '../admin-locale';
 import { AdminDataTable, type AdminDataColumn } from '../../../src/features/admin-modernization/data-table';
 import { AdminWorkspaceTabs } from '../../../src/features/admin-modernization/workspace-tabs';
+import { canAccessPath } from '../admin-nav';
 
 type Permission = { id: string; code: string; name: string; module: string; description?: string | null };
 type Role = { id: string; code: string; name: string; description?: string | null; level: number; adminUserCount: number; permissionCount: number; hasWildcard: boolean; permissions: Permission[] };
 type AccessResponse = { roles: Role[]; permissions: Permission[] };
+type CurrentAdminResponse = { permissions?: string[] };
 type LoadState = 'loading' | 'ready' | 'error';
 
 type Copy = {
@@ -124,6 +126,7 @@ export default function AdminRolesPage() {
   const copy = COPY[locale];
   const numberLocale = locale === 'th' ? 'th-TH' : 'en-US';
   const [data, setData] = useState<AccessResponse>({ roles: [], permissions: [] });
+  const [currentPermissions, setCurrentPermissions] = useState<string[]>(['admin.access.view']);
   const [state, setState] = useState<LoadState>('loading');
   const [query, setQuery] = useState('');
   const [moduleFilter, setModuleFilter] = useState('ALL');
@@ -138,10 +141,19 @@ export default function AdminRolesPage() {
   async function load() {
     setState('loading');
     try {
-      const response = await adminApiFetch('/admin/access/overview');
-      const payload: unknown = await response.json().catch(() => null);
+      const [response, currentAdminResponse] = await Promise.all([
+        adminApiFetch('/admin/access/overview'),
+        adminApiFetch('/admin/auth/me'),
+      ]);
+      const [payload, currentAdminPayload]: [unknown, unknown] = await Promise.all([
+        response.json().catch(() => null),
+        currentAdminResponse.json().catch(() => null),
+      ]);
       if (!response.ok || !isAccessResponse(payload)) throw new Error('invalid access response');
       setData(payload);
+      setCurrentPermissions(currentAdminResponse.ok && isCurrentAdminResponse(currentAdminPayload)
+        ? currentAdminPayload.permissions ?? []
+        : ['admin.access.view']);
       setState('ready');
     } catch {
       setData({ roles: [], permissions: [] });
@@ -185,7 +197,7 @@ export default function AdminRolesPage() {
     <AdminWorkspaceTabs
       ariaLabel={locale === 'th' ? 'เมนูสิทธิ์และความปลอดภัย' : 'Access and security navigation'}
       activeId="roles"
-      tabs={accessTabs(locale, copy.title)}
+      tabs={accessTabs(locale, copy.title).filter((tab) => canAccessPath(tab.href, currentPermissions))}
     />
 
     <div className="admin-governance-page admin-roles-modernized">
@@ -341,6 +353,12 @@ function isRole(value: unknown): value is Role {
     && typeof value.hasWildcard === 'boolean'
     && Array.isArray(value.permissions)
     && value.permissions.every(isPermission);
+}
+
+function isCurrentAdminResponse(value: unknown): value is CurrentAdminResponse {
+  return isRecord(value)
+    && (value.permissions === undefined
+      || (Array.isArray(value.permissions) && value.permissions.every((permission) => typeof permission === 'string')));
 }
 
 function isAccessResponse(value: unknown): value is AccessResponse {

@@ -33,6 +33,8 @@ test('keeps the modernized roles catalog compact, localized and read-only', () =
   assert.equal(rolesSource.includes("th: {"), true);
   assert.equal(rolesSource.includes("en: {"), true);
   assert.equal(rolesSource.includes('read-only'), true);
+  assert.equal(rolesSource.includes("adminApiFetch('/admin/auth/me')"), true);
+  assert.equal(rolesSource.includes('canAccessPath(tab.href, currentPermissions)'), true);
   assert.equal(rolesSource.includes('admin-role-row'), false);
   assert.equal(rolesSource.includes('admin-permission-chip'), false);
   assert.equal(rolesSource.includes('const roleStyle'), false);

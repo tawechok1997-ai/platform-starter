@@ -2,6 +2,8 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
+import { ADMIN_WORKSPACES } from '../src/features/admin-modernization/workspaces.ts';
+
 const appRoot = path.resolve(process.cwd(), 'app');
 const outputPath = path.resolve(process.cwd(), '../../docs/admin-route-registry.generated.json');
 
@@ -10,28 +12,7 @@ const SYSTEM_SEGMENTS = new Set(['_components', '_lib', '_utils', '_hooks', '_st
 
 const WORKSPACE_PREFIXES = [
   ['authentication', ['/', '/login', '/two-factor', '/accept-invitation']],
-  ['command-center', ['/dashboard', '/operations', '/activity-center', '/activity']],
-  ['finance', [
-    '/finance', '/topups', '/withdrawals', '/bulk-queue-operations', '/wallets', '/wallet-ledgers',
-    '/wallet-statement', '/wallet-analytics', '/reconciliation-center', '/reports', '/exports',
-    '/ledgers', '/money-ops',
-  ]],
-  ['members', ['/members', '/member-detail', '/member-insights', '/bank-accounts', '/kyc', '/kyc-center', '/support-center']],
-  ['risk-compliance', ['/risk-alerts', '/risk-operations', '/provider-risk', '/audit-risk', '/investigation', '/blacklist', '/watchlist', '/aml']],
-  ['provider-operations', [
-    '/provider-health', '/simple-game-settings', '/provider-setup-wizard', '/provider-presets',
-    '/game-providers', '/provider-credentials', '/provider-adapters', '/provider-wallet-snapshots',
-    '/webhook-logs', '/webhook-settlement', '/webhook-test', '/adapter-test', '/game-api-settings',
-  ]],
-  ['games', ['/games', '/game-sessions', '/game-transfers']],
-  ['growth-promotions', ['/growth-center', '/promotion-operations', '/promotion-center', '/promotion-claims', '/bonus-ledgers']],
-  ['affiliate-commission', ['/affiliate-center', '/commission-ledgers']],
-  ['content', ['/content-center']],
-  ['access-security', [
-    '/access', '/admin-accounts', '/admin-roles', '/admin-invitations', '/audit', '/audit-logs',
-    '/security', '/anti-bot', '/profile',
-  ]],
-  ['settings', ['/settings']],
+  ...ADMIN_WORKSPACES.map((workspace) => [workspace.id, workspace.legacyPrefixes]),
 ];
 
 function normalizeSegment(segment) {

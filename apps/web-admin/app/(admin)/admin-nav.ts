@@ -5,6 +5,7 @@ export type AdminNavItem = {
   titleEn?: string;
   href: string;
   permissions?: readonly string[];
+  permissionTargets?: readonly { href: string; permissions: readonly string[] }[];
   badgeKey?: 'topups' | 'withdrawals' | 'pending';
   /** Keep specialist routes available through Command Palette and deep links, but out of the daily sidebar. */
   sidebar?: boolean;
@@ -58,7 +59,21 @@ export const navGroups: readonly AdminNavGroup[] = [
     description: 'การเงิน สมาชิก ความเสี่ยง และผู้ให้บริการ',
     descriptionEn: 'Finance, members, risk, and providers',
     items: [
-      { title: 'การเงิน', titleEn: 'Finance', href: '/topups', permissions: ['topups.view', 'deposit.view'], badgeKey: 'pending' },
+      {
+        title: 'การเงิน',
+        titleEn: 'Finance',
+        href: '/topups',
+        permissions: ['topups.view', 'deposit.view', 'withdraw.view', 'wallet.view', 'reports.view', 'reports.export', 'game.providers.view', 'provider.view'],
+        permissionTargets: [
+          { href: '/topups', permissions: ['topups.view', 'deposit.view'] },
+          { href: '/withdrawals', permissions: ['withdraw.view'] },
+          { href: '/wallets', permissions: ['wallet.view'] },
+          { href: '/reports', permissions: ['reports.view'] },
+          { href: '/exports', permissions: ['reports.export'] },
+          { href: '/reconciliation-center', permissions: ['game.providers.view', 'provider.view'] },
+        ],
+        badgeKey: 'pending',
+      },
       { title: 'รายการถอน', titleEn: 'Withdrawals', href: '/withdrawals', permissions: ['withdraw.view'], badgeKey: 'withdrawals', sidebar: false },
       { title: 'จัดการหลายรายการ', titleEn: 'Bulk review', href: '/bulk-queue-operations', permissions: ['topups.view', 'deposit.view', 'withdraw.view'], sidebar: false },
       { title: 'กระเป๋าเงินสมาชิก', titleEn: 'Member wallets', href: '/wallets', permissions: ['wallet.view'], sidebar: false },
@@ -151,6 +166,16 @@ const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'จัดการยอดเงิน', href: '/money-ops', permissions: ['wallet.view'] },
   { title: 'ปฏิบัติการความเสี่ยง', href: '/risk-operations', permissions: ['risk.view'] },
 ];
+
+export function resolveNavItemHref(item: AdminNavItem, permissions: readonly string[]) {
+  if (!item.permissionTargets?.length || permissions.includes('*')) return item.href;
+  return item.permissionTargets.find((target) => target.permissions.some((permission) => permissions.includes(permission)))?.href ?? item.href;
+}
+
+export function canAccessPath(pathname: string, permissions: readonly string[]) {
+  const required = requiredPermissionsForPath(pathname);
+  return required.length === 0 || permissions.includes('*') || required.some((permission) => permissions.includes(permission));
+}
 
 export function canAccessNavItem(item: AdminNavItem, permissions: readonly string[]) {
   if (permissions.includes('*')) return true;
