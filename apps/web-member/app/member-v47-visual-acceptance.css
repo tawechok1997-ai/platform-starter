@@ -1,0 +1,269 @@
+/* Final visual acceptance against the supplied NOAH345 desktop reference. */
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-tournament-cta {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: 86px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 18px !important;
+    width: 100% !important;
+    height: 116.5px !important;
+    min-height: 116.5px !important;
+    padding: 0 24px !important;
+    overflow: hidden !important;
+    border: 1px solid #0c6178 !important;
+    border-radius: 7px !important;
+    background-color: #073c52 !important;
+    background-image: linear-gradient(90deg, rgb(0 47 67 / 8%), rgb(0 87 108 / 6%)), url('/reference-v6/tournament.webp') !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+    text-decoration: none !important;
+    isolation: isolate !important;
+  }
+
+  .desktop-reference-home .reference-tournament-cta::before {
+    content: '' !important;
+    display: block !important;
+    width: 82px !important;
+    height: 82px !important;
+    background-image: url('/clone-assets/reference-icon-sprite.webp') !important;
+    background-repeat: no-repeat !important;
+    background-size: 500% 400% !important;
+    background-position: 75% 66.666% !important;
+    filter: drop-shadow(0 5px 7px rgb(0 0 0 / 35%)) !important;
+  }
+
+  .desktop-reference-home .reference-tournament-cta > img {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: -1 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: .82 !important;
+    visibility: visible !important;
+    object-fit: cover !important;
+  }
+
+  .desktop-reference-home .reference-tournament-cta > span {
+    position: relative !important;
+    z-index: 2 !important;
+    display: grid !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .desktop-reference-home .reference-tournament-cta > span small {
+    color: #f4cf69 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+  }
+
+  .desktop-reference-home .reference-tournament-cta > span strong {
+    overflow: hidden !important;
+    color: #fff !important;
+    font-size: clamp(22px, 2vw, 32px) !important;
+    font-weight: 950 !important;
+    line-height: 1.1 !important;
+    text-overflow: ellipsis !important;
+    text-shadow: 0 2px 6px rgb(0 0 0 / 48%) !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-tournament-cta > b {
+    position: relative !important;
+    z-index: 2 !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    min-width: 116px !important;
+    height: 48px !important;
+    padding: 0 16px !important;
+    border: 2px solid #f6d46c !important;
+    border-radius: 8px !important;
+    color: #fff !important;
+    background: linear-gradient(#e8b93b, #b87a14) !important;
+    box-shadow: inset 0 1px rgb(255 255 255 / 35%), 0 4px 10px rgb(0 0 0 / 28%) !important;
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-jackpot > div {
+    position: relative !important;
+    display: grid !important;
+    justify-items: center !important;
+    align-content: center !important;
+    min-height: 184px !important;
+    margin: 0 !important;
+    padding: 22px 16px 18px !important;
+    overflow: hidden !important;
+    background: radial-gradient(circle at 50% 18%, rgb(159 48 194 / 48%), transparent 48%), linear-gradient(145deg, #24122d, #16101d 72%) !important;
+  }
+
+  .desktop-reference-home .reference-jackpot > div::before {
+    content: 'JACKPOTS' !important;
+    display: block !important;
+    margin-bottom: 14px !important;
+    color: #ffd84e !important;
+    font-family: Montserrat, Arial, sans-serif !important;
+    font-size: 25px !important;
+    font-weight: 950 !important;
+    letter-spacing: .04em !important;
+    line-height: 1 !important;
+    text-shadow: 0 2px 0 #7f4c00, 0 0 10px rgb(255 198 54 / 55%) !important;
+  }
+
+  .desktop-reference-home .reference-jackpot > div::after {
+    content: 'ลุ้นรางวัลใหญ่ทุกวัน' !important;
+    display: block !important;
+    margin-top: 14px !important;
+    color: #eadbee !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+  }
+
+  .desktop-reference-home .reference-jackpot-art { display: none !important; }
+
+  .desktop-reference-home .reference-jackpot > div > strong {
+    position: static !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    min-width: 226px !important;
+    height: 48px !important;
+    padding: 0 20px !important;
+    transform: none !important;
+    border: 4px solid #e6b92c !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    background: linear-gradient(#168eb7, #077191) !important;
+    box-shadow: inset 0 0 0 2px #8cdaf4, 0 4px 12px rgb(0 0 0 / 35%) !important;
+    font-size: 25px !important;
+    font-weight: 950 !important;
+    letter-spacing: .08em !important;
+    line-height: 1 !important;
+  }
+
+  .desktop-reference-home .reference-mini-games > div {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 12px 10px 14px !important;
+  }
+
+  .desktop-reference-home .reference-mini-games a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    height: 58px !important;
+    padding: 2px 12px 2px 3px !important;
+    overflow: hidden !important;
+    border: 2px solid #f6cb27 !important;
+    border-radius: 999px !important;
+    color: #fff !important;
+    background: linear-gradient(90deg, #9a00ca, #6c0093) !important;
+    text-decoration: none !important;
+  }
+
+  .desktop-reference-home .reference-mini-icon {
+    display: block !important;
+    flex: 0 0 54px !important;
+    width: 54px !important;
+    height: 54px !important;
+    background-image: url('/clone-assets/reference-icon-sprite.webp') !important;
+    background-repeat: no-repeat !important;
+    background-size: 500% 400% !important;
+  }
+
+  .desktop-reference-home .reference-mini-games a:first-child .reference-mini-icon { background-position: 100% 33.333% !important; }
+  .desktop-reference-home .reference-mini-games a:last-child .reference-mini-icon { background-position: 25% 100% !important; }
+  .desktop-reference-home .reference-mini-icon > img { display: none !important; }
+
+  .desktop-reference-home .reference-mini-games a > span:last-child {
+    overflow: hidden !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-provider-strip {
+    min-height: 205px !important;
+    padding-top: 54px !important;
+    padding-bottom: 36px !important;
+  }
+
+  .desktop-reference-home .reference-provider-row {
+    display: grid !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    gap: 18px !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo {
+    display: grid !important;
+    place-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 30px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo img {
+    display: block !important;
+    width: 100% !important;
+    max-width: 82px !important;
+    height: 25px !important;
+    object-fit: contain !important;
+    filter: grayscale(1) brightness(3.3) contrast(1.12) !important;
+    opacity: .92 !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo small {
+    display: none;
+    color: #cfc5d4 !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-classic-row > :nth-child(n + 7),
+  .desktop-reference-home .reference-provider-row > :nth-child(n + 13) { display: none !important; }
+
+  body:has(.desktop-reference-home) .member-footer__main {
+    grid-template-columns: minmax(240px, 1.15fr) minmax(540px, 2.2fr) minmax(250px, 1fr) minmax(110px, .48fr) !important;
+    gap: 42px !important;
+    padding-top: 38px !important;
+    padding-bottom: 36px !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__about h3,
+  body:has(.desktop-reference-home) .member-footer__main h3 { font-size: 14px !important; }
+
+  body:has(.desktop-reference-home) .member-footer__about p,
+  body:has(.desktop-reference-home) .member-footer__links a {
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__trust-badge img,
+  body:has(.desktop-reference-home) .member-footer__bank img {
+    filter: none !important;
+    opacity: 1 !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__copyright { padding-top: 38px !important; }
+}
