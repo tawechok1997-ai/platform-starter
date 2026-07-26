@@ -1,58 +1,73 @@
 # Member Clone Asset Inventory
 
-Source of truth: `https://noah345.shop/home`, supplied screenshots, and supplied DOM snippets.
+Source of truth: `https://noah345.shop/home`, supplied screenshots, supplied DOM snippets, and the existing `web-member` asset library.
 
 ## Rule
 
 - Use an exact project asset when it exists.
-- If the exact asset is missing, show `MISSING ASSET`.
+- If the exact asset is still unidentified, show `MISSING ASSET`.
 - Never substitute an unrelated image.
 - Frontend interaction completion does not mean image completion.
 
-## Current status
+## Correction
 
-The Clone Preview has the shell, navigation, mock state, forms, modal flows, and button behavior. Exact image work is still incomplete.
+The earlier `49 missing assets` figure counted placeholder targets in Clone Preview. It did **not** mean the repository lacked 49 files.
 
-### Image slots still missing
+The repository already contains or references a substantial source-matched library, including:
 
-| Area | Minimum exact assets still needed | Current preview state |
-|---|---:|---|
-| Home hero promotion slider | 10 | `MISSING ASSET` |
-| Home quick cards | 3 | `MISSING ASSET` |
-| Tournament banner | 1 | `MISSING ASSET` |
-| Login artwork | 1 | `MISSING ASSET` |
-| Registration artwork | 1 | `MISSING ASSET` |
-| Game thumbnails used by current preview | 8 unique | `MISSING ASSET` |
-| Promotions page | 1 banner + 6 cards | `MISSING ASSET` |
-| Activities page | 1 banner + 6 cards | `MISSING ASSET` |
-| Deposit instruction states | 4 | `MISSING ASSET` |
-| Bonus cards | 4 | `MISSING ASSET` |
-| Game launch modal/frame | 1 | `MISSING ASSET` |
-| Promotion detail modal | 1 | `MISSING ASSET` |
-| Mini-game modal | 1 | `MISSING ASSET` |
+- Header logo, Thai flag, mission icon and menu icons.
+- Hero slides and side promotion artwork.
+- Three quick-card images and their three background layers.
+- Tournament, jackpot, leaderboard, mini-game and section-heading artwork.
+- Rank artwork and mobile fallbacks.
+- 22 game thumbnails in the reference game catalogue.
+- 12 provider logos.
+- 17 Thai payment/bank marks.
+- Footer licence, security and responsible-gaming marks.
+- A complete reference icon sprite used by desktop and mobile components.
 
-Minimum exact image assets represented by current placeholders: **49 unique asset targets**.
+The actual problem was that Clone Preview had not been wired to the existing library.
 
-The current screens render more visible image slots than 49 because game cards are reused in multiple places.
+## Wired into Clone Preview
 
-### Visual assets not yet modeled as explicit placeholders
+| Area | Current state |
+|---|---|
+| Home initial hero | Existing source hero image connected |
+| Home quick cards | Existing promo/activity/news assets connected |
+| Tournament banner | Existing `/reference-v6/tournament.webp` connected |
+| Game cards | Eight existing catalogue images connected and repeated by the mock grid |
+| Header and sidebar navigation | Existing reference icon sprite connected |
+| NOAH345 logo | Existing `/reference-v6/logo.webp` connected |
 
-These areas also need exact source-matched image/icon work before a 100% claim is possible:
+Asset wiring lives in:
 
-- Header and navigation icons
-- News thumbnails/details, if present in the accepted source state
-- Provider/partner logo rows
-- Footer licence, security, responsible-gaming, payment and bank marks
-- Contact-channel icons
-- Profile/security illustrations or icons
-- Empty, loading, success and error illustrations where the source uses them
-- Mobile-only icons, banners and bottom-navigation assets
+- `apps/web-member/app/clone-preview/clone-preview-assets.css`
 
-## Already present
+## Still requiring exact screen-to-asset mapping
 
-- NOAH345 logo at `/reference-v6/logo.webp`
-- Missing-asset component and visible fallback treatment
-- Layout containers for every current preview image area
+These areas may already have candidate files in the repository, but they are not yet approved or mapped to the correct source state:
+
+- Login artwork.
+- Registration artwork.
+- Promotions page banner and card variants.
+- Activities page banner and card variants.
+- News thumbnail/detail variants.
+- Deposit instruction artwork for bank, QR Payment, decimal deposit and TrueWallet.
+- Bonus card variants.
+- Game launch frame/state artwork.
+- Promotion detail artwork.
+- Mini-game modal artwork and animation states.
+- Contact-channel icons.
+- Profile/security illustrations and state icons.
+- Empty, loading, success and error illustrations.
+- Mobile-only screen variants.
+
+## Existing catalogues to reuse
+
+- `apps/web-member/app/components/member-home/v47-asset-map.ts`
+- `apps/web-member/app/components/reference-asset-catalog.ts`
+- `apps/web-member/app/member-reference-assets.css`
+- `apps/web-member/app/member-reference-assets-complete.css`
 
 ## Completion gate
 
