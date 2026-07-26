@@ -34,8 +34,7 @@
     text-decoration: none !important;
   }
 
-  /* This is the actual 116.5px rounded card. The anchor itself stays transparent,
-     matching the source wrapper and removing the unwanted purple slab behind it. */
+  /* The visible 116.5px card only. The decorative backdrop behind it is disabled. */
   .desktop-reference-home .reference-promo-card::before {
     content: '' !important;
     position: absolute !important;
@@ -52,17 +51,7 @@
   }
 
   .desktop-reference-home .reference-promo-background {
-    position: absolute !important;
-    inset: -20px !important;
-    z-index: 0 !important;
-    display: block !important;
-    width: calc(100% + 40px) !important;
-    height: calc(100% + 40px) !important;
-    max-width: none !important;
-    margin: 0 !important;
-    object-fit: fill !important;
-    opacity: 1 !important;
-    pointer-events: none !important;
+    display: none !important;
   }
 
   .desktop-reference-home .reference-promo-icon {
