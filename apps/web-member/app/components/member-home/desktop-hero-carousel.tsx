@@ -45,6 +45,7 @@ const SLIDE_WIDTH_PX = 710.5;
 const SLIDE_GAP_PX = 10;
 const SLIDE_STEP_PX = SLIDE_WIDTH_PX + SLIDE_GAP_PX;
 const SOURCE_RAIL_WIDTH_PX = 2180;
+const SOURCE_INITIAL_SLIDE_INDEX = 2;
 
 // Exact source order from the inspected NOAH345 desktop Swiper.
 const SOURCE_IMAGE_URLS = [
@@ -76,7 +77,7 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
   );
   const realCount = slides.length;
   const loopSlides = useMemo(() => [...slides, ...slides, ...slides], [slides]);
-  const [virtualIndex, setVirtualIndex] = useState(realCount);
+  const [virtualIndex, setVirtualIndex] = useState(realCount + SOURCE_INITIAL_SLIDE_INDEX);
   const [animate, setAnimate] = useState(true);
   const [paused, setPaused] = useState(false);
   const carouselRef = useRef<HTMLElement | null>(null);
