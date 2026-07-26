@@ -9,6 +9,7 @@ const cssSource = readFileSync(path.join(appRoot, 'admin-modern-governance.css')
 const adoptionSource = readFileSync(path.join(appRoot, 'admin-modernization-adoption.css'), 'utf8');
 const rolesSource = readFileSync(path.join(appRoot, '(admin)/admin-roles/page.tsx'), 'utf8');
 const settingsSource = readFileSync(path.join(appRoot, '(admin)/settings/page.tsx'), 'utf8');
+const settingsCssSource = readFileSync(path.join(appRoot, '(admin)/settings/settings-workspace.module.css'), 'utf8');
 const antiBotSource = readFileSync(path.join(appRoot, '(admin)/anti-bot/page.tsx'), 'utf8');
 
 test('loads governance and final adoption styles in the intended order', () => {
@@ -50,11 +51,19 @@ test('keeps anti-bot workflows class based', () => {
   assert.equal(antiBotSource.includes('const actionStyle'), false);
 });
 
-test('organizes the settings hub into semantic responsive sections', () => {
-  assert.equal(settingsSource.includes('admin-settings-hub'), true);
-  assert.equal(settingsSource.includes('admin-settings-section__head'), true);
-  assert.equal(settingsSource.includes('admin-settings-grid'), true);
-  assert.equal(settingsSource.includes("toLocaleString('th-TH')"), true);
+test('organizes settings into localized URL-backed responsive sections', () => {
+  assert.equal(settingsSource.includes('AdminWorkspaceTabs'), true);
+  assert.equal(settingsSource.includes('queryKey="section"'), true);
+  assert.equal(settingsSource.includes('normalizeSection'), true);
+  assert.equal(settingsSource.includes('type SettingsImpact'), true);
+  assert.equal(settingsSource.includes("th: 'ทั่วไป'"), true);
+  assert.equal(settingsSource.includes("en: 'General'"), true);
+  assert.equal(settingsSource.includes("toLocaleString(numberLocale)"), true);
+  assert.equal(settingsCssSource.includes('.workspace'), true);
+  assert.equal(settingsCssSource.includes('.grid'), true);
+  assert.equal(settingsCssSource.includes("[data-impact='sensitive']"), true);
+  assert.equal(settingsCssSource.includes('@media (max-width: 720px)'), true);
+  assert.equal(settingsSource.includes('admin-settings-hub'), false);
 });
 
 test('preserves tablet, mobile, safe-area and reduced-motion behavior', () => {
@@ -65,4 +74,5 @@ test('preserves tablet, mobile, safe-area and reduced-motion behavior', () => {
   assert.equal(cssSource.includes('env(safe-area-inset-bottom)'), true);
   assert.equal(adoptionSource.includes('@media (max-width: 760px)'), true);
   assert.equal(adoptionSource.includes('@media (prefers-reduced-motion: reduce)'), true);
+  assert.equal(settingsCssSource.includes('@media (prefers-reduced-motion: reduce)'), true);
 });
