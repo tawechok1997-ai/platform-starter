@@ -35,10 +35,7 @@ export class SettingsService {
 
   async getAdminGroup(group: string) {
     const normalized = this.assertGroup(group);
-    const settings = await this.prisma.siteSetting.findMany({
-      where: { group: GROUP_TO_PRISMA[normalized] as any },
-      orderBy: { key: 'asc' },
-    });
+    const settings = await this.getAdminGroupSettings(normalized);
 
     return {
       group: normalized,
@@ -48,10 +45,7 @@ export class SettingsService {
 
   async getAdminDraft(group: string) {
     const normalized = this.assertGroup(group);
-    const settings = await this.prisma.siteSetting.findMany({
-      where: { group: GROUP_TO_PRISMA[normalized] as any },
-      orderBy: { key: 'asc' },
-    });
+    const settings = await this.getAdminGroupSettings(normalized);
 
     return {
       group: normalized,
@@ -155,10 +149,7 @@ export class SettingsService {
 
   async publishAdminDraft(group: string, actor: AdminActor, meta: RequestMeta) {
     const normalized = this.assertGroup(group);
-    const draftSettings = (await this.prisma.siteSetting.findMany({
-      where: { group: GROUP_TO_PRISMA[normalized] as any },
-      orderBy: { key: 'asc' },
-    })).filter((setting) => this.isDraftKey(setting.key));
+    const draftSettings = (await this.getAdminGroupSettings(normalized)).filter((setting) => this.isDraftKey(setting.key));
 
     if (!draftSettings.length) throw new BadRequestException('No draft settings to publish');
 
@@ -367,6 +358,13 @@ export class SettingsService {
       requiresDualApproval,
       cacheInvalidated: true,
     };
+  }
+
+  private async getAdminGroupSettings(group: SettingGroupSlug) {
+    return this.prisma.siteSetting.findMany({
+      where: { group: GROUP_TO_PRISMA[group] as any },
+      orderBy: { key: 'asc' },
+    });
   }
 
   private async getPublicGroup(group: SettingGroupSlug) {
