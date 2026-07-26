@@ -1,0 +1,116 @@
+/* Reuse the real asset library that already exists in web-member.
+   This file is loaded after clone-preview.css so placeholders are only kept
+   where no exact project/source asset has been identified yet. */
+
+/* Shared treatment for placeholders that now have a real asset. */
+.clone-preview .clone-hero .clone-missing,
+.clone-preview .clone-promo-grid .clone-missing,
+.clone-preview .clone-tournament .clone-missing,
+.clone-preview .clone-game-card .clone-missing {
+  border: 0;
+  background-color: #17131f;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: transparent;
+}
+
+.clone-preview .clone-hero .clone-missing > *,
+.clone-preview .clone-promo-grid .clone-missing > *,
+.clone-preview .clone-tournament .clone-missing > *,
+.clone-preview .clone-game-card .clone-missing > * {
+  display: none !important;
+}
+
+/* The initial source slide used by the production desktop carousel. */
+.clone-preview .clone-hero .clone-missing {
+  background-image: url('https://cdn.zabbet.com/FEZX/imageslides/1784895118089-b5159a76-a1b4-491e-81d0-e0d3f27d3818.jpg');
+  background-size: cover;
+}
+
+/* Existing exact quick-card artwork from public/clone-assets. */
+.clone-preview .clone-promo-grid > button:nth-child(1) .clone-missing {
+  background-image: url('/clone-assets/shortcut-promo.webp');
+  background-size: contain;
+}
+.clone-preview .clone-promo-grid > button:nth-child(2) .clone-missing {
+  background-image: url('/clone-assets/shortcut-event.webp');
+  background-size: contain;
+}
+.clone-preview .clone-promo-grid > button:nth-child(3) .clone-missing {
+  background-image: url('/clone-assets/shortcut-news.webp');
+  background-size: contain;
+}
+
+/* Existing tournament artwork from public/reference-v6. */
+.clone-preview .clone-tournament .clone-missing {
+  background-image: url('/reference-v6/tournament.webp');
+  background-size: cover;
+}
+
+/* Existing game catalogue. Eight images are repeated by the preview grid. */
+.clone-preview .clone-game-card:nth-child(8n + 1) .clone-missing {
+  background-image: url('https://cdn.zabbet.com/games/pgslot/vertical/caishen_wins.jpg');
+}
+.clone-preview .clone-game-card:nth-child(8n + 2) .clone-missing {
+  background-image: url('https://cdn.zabbet.com/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg');
+}
+.clone-preview .clone-game-card:nth-child(8n + 3) .clone-missing {
+  background-image: url('https://cdn.zabbet.com/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg');
+}
+.clone-preview .clone-game-card:nth-child(8n + 4) .clone-missing {
+  background-image: url('https://cdn.zabbet.com/games/NLC/elpaso0000000000.jpg');
+}
+.clone-preview .clone-game-card:nth-child(8n + 5) .clone-missing {
+  background-image: url('https://cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png');
+}
+.clone-preview .clone-game-card:nth-child(8n + 6) .clone-missing {
+  background-image: url('https://cdn.zabbet.com/games/1692882357754-c47b8426-4045-4792-8ee3-58b784ed9a78.jpg');
+}
+.clone-preview .clone-game-card:nth-child(8n + 7) .clone-missing {
+  background-image: url('https://cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg');
+}
+.clone-preview .clone-game-card:nth-child(8n + 8) .clone-missing {
+  background-image: url('https://cdn.zabbet.com/games/NLC/bushidoways00000.jpg');
+}
+.clone-preview .clone-game-card .clone-missing {
+  background-size: cover;
+  transition: transform 180ms ease;
+}
+.clone-preview .clone-game-card:hover .clone-missing {
+  transform: scale(1.025);
+}
+
+/* Use the supplied icon sprite instead of text glyphs in the primary nav. */
+.clone-preview .clone-header__nav button > span,
+.clone-preview .clone-sidebar button > span {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  overflow: hidden;
+  background-image: url('/clone-assets/reference-icon-sprite.webp');
+  background-repeat: no-repeat;
+  background-size: 500% 400%;
+  color: transparent;
+  font-size: 0;
+}
+.clone-preview .clone-header__nav button:nth-child(1) > span,
+.clone-preview .clone-sidebar button:nth-child(1) > span { background-position: 0 0; }
+.clone-preview .clone-header__nav button:nth-child(2) > span,
+.clone-preview .clone-sidebar button:nth-child(2) > span { background-position: 25% 0; }
+.clone-preview .clone-header__nav button:nth-child(3) > span,
+.clone-preview .clone-sidebar button:nth-child(3) > span { background-position: 50% 100%; }
+.clone-preview .clone-header__nav button:nth-child(4) > span,
+.clone-preview .clone-sidebar button:nth-child(4) > span { background-position: 75% 100%; }
+.clone-preview .clone-header__nav button:nth-child(5) > span,
+.clone-preview .clone-sidebar button:nth-child(5) > span { background-position: 100% 100%; }
+.clone-preview .clone-header__nav button:nth-child(6) > span,
+.clone-preview .clone-sidebar button:nth-child(6) > span { background-position: 50% 33.333%; }
+.clone-preview .clone-header__nav button:nth-child(7) > span,
+.clone-preview .clone-sidebar button:nth-child(7) > span { background-position: 100% 66.666%; }
+
+/* The exact mini-game asset already exists. Keep unrelated modal artwork as a
+   visible placeholder until its exact asset is mapped. */
+.clone-preview .clone-sidebar > button:last-child > span {
+  background-position: 0 100%;
+}
