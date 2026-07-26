@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 type ScreenKey = 'home' | 'login' | 'register' | 'games' | 'promotions' | 'activity' | 'news' | 'deposit' | 'withdraw' | 'transactions' | 'bonus' | 'affiliate' | 'bank' | 'profile' | 'notifications' | 'support' | 'guide' | 'contact';
 type ModalKey = 'game' | 'promotion' | 'success' | 'error' | 'logout' | 'mini-game' | null;
@@ -189,7 +189,7 @@ function CloneModal({ modal, selectedGame, close, confirmLogout }: { modal: Excl
     'mini-game': { title: 'Mini Game', body: <><MissingAsset label="MINI GAME ASSET" /><p>วงล้อและภารกิจจำลองสำหรับตรวจ animation และ reward state</p></>, action: 'เริ่มเล่น' },
   };
   const content = map[modal];
-  return <div className="clone-modal-backdrop" role="presentation" onMouseDown={close}><section className="clone-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><button className="clone-modal__close" type="button" onClick={close}>×</button><h2>{content.title}</h2><div className="clone-modal__body">{content.body}</div><div className="clone-modal__actions"><button type="button" onClick={close}>ยกเลิก</button><button className="clone-primary" type="button" onClick={modal === 'logout' ? confirmLogout : close}>{content.action}</button></div></section></div>;
+  return <div className="clone-modal-backdrop" role="presentation"><button type="button" aria-label="ปิดหน้าต่าง" onClick={close} style={{ position: 'absolute', inset: 0, border: 0, background: 'transparent' }} /><section className="clone-modal" role="dialog" aria-modal="true" style={{ position: 'relative', zIndex: 1 }}><button className="clone-modal__close" type="button" onClick={close}>×</button><h2>{content.title}</h2><div className="clone-modal__body">{content.body}</div><div className="clone-modal__actions"><button type="button" onClick={close}>ยกเลิก</button><button className="clone-primary" type="button" onClick={modal === 'logout' ? confirmLogout : close}>{content.action}</button></div></section></div>;
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) { return <section className="clone-section"><header><h2>{title}</h2><button type="button">ดูทั้งหมด ›</button></header>{children}</section>; }
