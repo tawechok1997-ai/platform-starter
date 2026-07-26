@@ -20,11 +20,18 @@ test('uses a full viewport drawer on mobile', () => {
   assert.equal(css.includes('#admin-sidebar .admin-sidebar-footer'), true);
 });
 
-test('keeps profile identity, close, locale and logout functional', () => {
+test('keeps mobile and desktop menu semantics separate', () => {
+  assert.equal(controller.includes("openMenu: 'เปิดเมนูแอดมิน'"), true);
+  assert.equal(controller.includes("openMenu: 'Open admin menu'"), true);
+  assert.equal(controller.includes('if (media.matches)'), true);
+  assert.equal(controller.includes("menuButton.setAttribute('aria-expanded', String(open))"), true);
+  assert.equal(controller.includes('const label = open ? copy.close : copy.openMenu'), true);
+  assert.equal(controller.includes("collapsed ? copy.expandMenu : copy.collapseMenu"), true);
+});
+
+test('keeps profile identity, locale and logout functional', () => {
   assert.equal(controller.includes('useAdminLocale()'), true);
-  assert.equal(controller.includes('AdminIcon name="close"'), true);
-  assert.equal(controller.includes("changeLocale('th')"), true);
-  assert.equal(controller.includes("changeLocale('en')"), true);
+  assert.equal(controller.includes("changeLocale(locale === 'th' ? 'en' : 'th')"), true);
   assert.equal(controller.includes("await adminApiFetch('/admin/auth/logout'"), true);
   assert.equal(controller.includes('clearAdminSession()'), true);
   assert.equal(controller.includes("window.location.href = '/login'"), true);
