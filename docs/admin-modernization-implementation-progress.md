@@ -75,7 +75,7 @@ Branch: `fix/admin-shell-responsive-layout`
 
 - [x] เปลี่ยน stacked rows และ JSON ต่อแถวเป็น server-paginated table
 - [x] เพิ่ม mobile list, filters, page size 20/50/100 และ detail drawer
-- [x] โหลด payload รายละเอียดเมื่อผู้ใช้เปิดดู
+- [x] เปิด payload รายละเอียดเมื่อผู้ใช้เลือกดู ไม่ render JSON ทุกแถว
 - [x] คง member, top-up, withdrawal, ledger และ audit deep links
 - [x] แยกภาษาไทยและอังกฤษ
 
@@ -95,12 +95,13 @@ Branch: `fix/admin-shell-responsive-layout`
 - [x] Route × Role × Viewport browser matrix ผ่านบน production build ของ branch
 - [x] Browser matrix ใช้ 5 role profiles, 9 representative routes และ 3 viewports
 - [x] Browser matrix ตรวจ mobile drawer, Escape, permission denied และ horizontal overflow
+- [x] แก้ mobile menu accessible name และ `aria-expanded` ให้ตรงสถานะ Drawer
 - [x] อัปเดต PostCSS override เป็น `8.5.23`
 - [x] Regenerate `pnpm-lock.yaml` ด้วย pnpm จริง
 - [x] Dependency audit, committed-secret scan และ runtime environment tests ผ่าน
 - [x] คืน Security workflow เป็น `contents: read`
 - [x] ลบ temporary write workflow/permission หลังใช้งาน
-- [x] เก็บ Architecture, Security, Route และ Browser evidence เป็น CI artifacts
+- [x] เก็บ Architecture, Security, Route, Visual และ Browser evidence เป็น CI artifacts
 
 ## Deployment evidence ที่ต้องใช้ environment จริง
 
@@ -108,7 +109,7 @@ Authenticated deployed workspace smoke ถูกสร้างและผ่�
 
 ## สถานะภายนอกขอบเขต Admin
 
-Repository-wide Build workflow ยังอาจแดงที่ API test suite ซึ่ง branch นี้ไม่ได้แก้ไฟล์ใน `apps/api/src` เลย Admin lint, tests, typecheck, bundle, architecture, permissions, route inventory, security, visual และ browser matrix แยกผ่านครบแล้ว
+Repository-wide Build/Quality Gate ยังแดงเฉพาะ API test suite ซึ่ง branch นี้ไม่ได้แก้ไฟล์ใน `apps/api/src` เลย ฝั่ง `web-admin` และ `web-member` build/typecheck ผ่าน ส่วน Admin lint, tests, bundle, architecture, permissions, route inventory, security, visual และ browser matrix ผ่านครบแล้ว
 
 ## Safety rules ที่คงบังคับ
 
