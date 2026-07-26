@@ -48,6 +48,7 @@ const SLIDE_GAP_PX = 10;
 const SLIDE_STEP_PX = SLIDE_WIDTH_PX + SLIDE_GAP_PX;
 const SOURCE_RAIL_WIDTH_PX = 2180;
 const SOURCE_INITIAL_SLIDE_INDEX = 4;
+const IMAGE_RETRY_LIMIT = 2;
 
 // Exact ten-slide order from the latest inspected NOAH345 desktop Swiper.
 const SOURCE_IMAGE_URLS = [
@@ -121,8 +122,6 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
     setVirtualIndex(realCount + realIndex);
   }, [realCount]);
 
-  // A stable interval mirrors Swiper autoplay. It never depends on pointer state,
-  // so a missed browser event cannot leave the promotion rail permanently paused.
   useEffect(() => {
     if (realCount < 2) return;
     const timer = window.setInterval(() => {
@@ -142,6 +141,14 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
       window.requestAnimationFrame(() => window.requestAnimationFrame(() => setTransitionEnabled(true)));
     }
   }, [realCount, virtualIndex]);
+
+  // transitionend can be skipped when a tab is backgrounded. This fallback keeps
+  // the virtual index inside the cloned middle rail so autoplay can never run into blank space.
+  useEffect(() => {
+    if (realCount < 2 || (virtualIndex >= realCount && virtualIndex < realCount * 2)) return;
+    const timer = window.setTimeout(normalizeLoopPosition, TRANSITION_MS + 80);
+    return () => window.clearTimeout(timer);
+  }, [normalizeLoopPosition, realCount, virtualIndex]);
 
   const onPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
@@ -248,9 +255,25 @@ function HeroSlideCard({ role, slide, siteName }: {
   slide: HeroSlide;
   siteName: string;
 }) {
+  const [attempt, setAttempt] = useState(0);
   const [missing, setMissing] = useState(false);
   const isActive = role === 'active';
-  const isNear = role !== 'offscreen';
+
+  useEffect(() => {
+    setAttempt(0);
+    setMissing(false);
+  }, [slide.imageUrl]);
+
+  const retrySuffix = attempt > 0 ? `${slide.imageUrl.includes('?') ? '&' : '?'}hero_retry=${attempt}` : '';
+  const imageUrl = `${slide.imageUrl}${retrySuffix}`;
+
+  const handleImageError = () => {
+    if (attempt >= IMAGE_RETRY_LIMIT) {
+      setMissing(true);
+      return;
+    }
+    window.setTimeout(() => setAttempt((current) => current + 1), 800 * (attempt + 1));
+  };
 
   return (
     <a
@@ -264,11 +287,12 @@ function HeroSlideCard({ role, slide, siteName }: {
         <span style={MISSING_ASSET_STYLE}>MISSING PROMOTION ASSET<br />รอใส่รูปจริง</span>
       ) : (
         <img
-          src={slide.imageUrl}
+          src={imageUrl}
           alt={slide.banner.title || siteName}
           draggable={false}
-          loading={isNear ? 'eager' : 'lazy'}
-          onError={() => setMissing(true)}
+          loading="eager"
+          fetchPriority={isActive ? 'high' : 'auto'}
+          onError={handleImageError}
         />
       )}
     </a>
