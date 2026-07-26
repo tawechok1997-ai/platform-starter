@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { createHmac, randomUUID } from 'node:crypto';
-import { GamePlatformMoneyService } from './game-platform-money.service';
+import { ProviderWebhookService } from './provider-webhook.service';
 import { GenericTransferProviderAdapter } from './adapters/generic-transfer-provider.adapter';
 
 const databaseUrl = process.env.FINANCE_TEST_DATABASE_URL?.trim();
@@ -53,10 +53,11 @@ describeWithDatabase('provider webhook concurrency', () => {
 
   it('processes one copy and marks the concurrent copy as duplicate', async () => {
     const adapter = new GenericTransferProviderAdapter();
-    const service = new GamePlatformMoneyService(
+    const service = new ProviderWebhookService(
       prisma as any,
-      { getAdapter: () => adapter, hasAdapter: () => true } as any,
+      { getAdapter: () => adapter } as any,
       { get: (key: string) => key === 'GAME_CREDENTIAL_SECRET' ? 'test-key' : undefined } as any,
+      { applyWebhookEvents: async () => [] } as any,
     );
     const body = { eventType: 'transfer.completed', idempotencyKey: `webhook-${randomUUID()}` };
     const rawBody = Buffer.from(JSON.stringify(body));
@@ -70,8 +71,8 @@ describeWithDatabase('provider webhook concurrency', () => {
     };
 
     const results = await Promise.all([
-      service.receiveWebhook(providerCode, headers, body, rawBody),
-      service.receiveWebhook(providerCode, headers, body, rawBody),
+      service.receive(providerCode, headers, body, rawBody),
+      service.receive(providerCode, headers, body, rawBody),
     ]);
 
     expect(results.filter((result: any) => result.duplicate).length).toBe(1);
