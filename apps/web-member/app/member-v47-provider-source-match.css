@@ -1,0 +1,137 @@
+/* Partner/provider strip matched to the supplied NOAH345 desktop reference. */
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-provider-strip {
+    position: relative !important;
+    z-index: 2 !important;
+    display: block !important;
+    width: min(1455px, calc(100vw - 32px)) !important;
+    max-width: 1455px !important;
+    min-height: 205px !important;
+    margin: 28px 0 0 !important;
+    padding: 34px 0 36px !important;
+    overflow: visible !important;
+    border: 0 !important;
+    background: #110e16 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-strip h2 {
+    display: block !important;
+    margin: 0 0 27px !important;
+    padding: 0 !important;
+    color: #fff !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+  }
+
+  .desktop-reference-home .reference-provider-strip h2 .reference-heading-icon {
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-provider-rows {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-height: 60px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    min-height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 20px !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    scrollbar-width: none !important;
+  }
+
+  .desktop-reference-home .reference-provider-row--reverse {
+    justify-content: center !important;
+  }
+
+  .desktop-reference-home .reference-provider-row::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo {
+    position: relative !important;
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 102px !important;
+    width: 102px !important;
+    min-width: 102px !important;
+    max-width: 102px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    margin: 0 !important;
+    padding: 4px 9px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 5px !important;
+    background: #27232d !important;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo img {
+    position: relative !important;
+    z-index: 2 !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 78px !important;
+    height: 14px !important;
+    max-height: 14px !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+    filter: grayscale(1) brightness(3.5) contrast(1.15) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo small {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 5px !important;
+    overflow: hidden !important;
+    color: #f4eef7 !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  /* The component hides a broken image inline. Reveal its exact provider name
+     instead of substituting an unrelated logo. */
+  .desktop-reference-home .reference-provider-logo img[style*="display: none"] + small {
+    z-index: 3 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(n + 12) {
+    display: none !important;
+  }
+}
