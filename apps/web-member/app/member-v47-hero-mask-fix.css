@@ -4,6 +4,7 @@
     left: auto !important;
     width: min(var(--v47-shell, 1455px), calc(100vw - 30px)) !important;
     max-width: var(--v47-shell, 1455px) !important;
+    height: 317px !important;
     margin: 20px auto 24px !important;
     transform: none !important;
     overflow: hidden !important;
@@ -26,17 +27,27 @@
   .desktop-reference-home .reference-hero-mask {
     width: 100% !important;
     max-width: 100% !important;
+    height: 317px !important;
     overflow: hidden !important;
     -webkit-mask-image: none !important;
     mask-image: none !important;
   }
 
+  /* Enlarge the promotion artwork by 5% inside the existing shell.
+     The shell and fade stops stay fixed, so neither side can extend past its previous boundary. */
   .desktop-reference-home .reference-hero-rail {
     position: relative !important;
     flex: 0 0 2180px !important;
     width: 2180px !important;
     min-width: 2180px !important;
     max-width: 2180px !important;
+    height: 288.46px !important;
     margin-inline: auto !important;
+    transform: scale(1.05) !important;
+    transform-origin: top center !important;
+  }
+
+  .desktop-reference-home .reference-hero-pagination {
+    bottom: 0 !important;
   }
 }
