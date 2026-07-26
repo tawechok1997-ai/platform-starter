@@ -1,0 +1,75 @@
+name: Temporary API Failure Diagnostic
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/temp-api-failure-diagnostic.yml'
+      - 'apps/api/src/modules/game-platform/game-platform-money.service.ts'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temp-api-failure-diagnostic-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/game-platform-legacy-webhook-receiver
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Capture full API test failure
+        run: |
+          set +e
+          pnpm --filter @platform/api test -- --runInBand > /tmp/api-test.log 2>&1
+          status=$?
+          echo "TEST_STATUS=$status" >> "$GITHUB_ENV"
+          python - <<'PY'
+          from pathlib import Path
+          import os
+
+          lines = Path('/tmp/api-test.log').read_text(encoding='utf-8', errors='replace').splitlines()
+          keywords = (
+              'FAIL ', '● ', 'Test Suites:', 'Tests:', 'Snapshots:', 'Ran all test suites',
+              'Expected:', 'Received:', 'TypeError:', 'ReferenceError:', 'Cannot find',
+              'AssertionError', 'Error:', 'toEqual', 'toBe(', 'at Object.',
+          )
+          selected = set(range(max(0, len(lines) - 140), len(lines)))
+          for index, line in enumerate(lines):
+              if any(keyword in line for keyword in keywords):
+                  selected.update(range(max(0, index - 10), min(len(lines), index + 16)))
+          output = [f'TEST_STATUS={os.environ.get("TEST_STATUS", "unknown")}', '']
+          previous = -2
+          for index in sorted(selected):
+              if index != previous + 1:
+                  output.append('...')
+              output.append(f'{index + 1}: {lines[index]}')
+              previous = index
+          path = Path('docs/evidence/temp-api-test-failure.txt')
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text('\n'.join(output[-650:]) + '\n', encoding='utf-8')
+          PY
+      - name: Commit diagnostic summary
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/temp-api-test-failure.txt
+          git commit -m 'chore(ci): capture API test failure summary'
+          git push origin HEAD:fix/game-platform-legacy-webhook-receiver
+      - name: Preserve failing diagnostic status
+        if: env.TEST_STATUS != '0'
+        run: exit 1
