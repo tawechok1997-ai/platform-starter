@@ -65,7 +65,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
     <section className="v47-mobile-home" aria-label="หน้าแรกมือถือ">
       <div className="v47-mobile-announcement"><Icon value={V47_ASSETS.announcement} /><span>{announcement?.message || announcement?.title || 'คาสิโนออนไลน์ครบทุกค่าย เปิดให้บริการตลอด 24 ชั่วโมง'}</span></div>
 
-      <a className="v47-mobile-hero" href={hero?.href || '/browse/promotions'}>
+      <a className="v47-mobile-hero" href="/browse/promotions">
         <img key={heroImage || heroFallback} src={heroImage || heroFallback} alt={hero?.title || siteName} onError={(event) => swapBrokenImage(event, heroFallback)} />
       </a>
       <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">{banners.map((banner, index) => <button key={`${banner.title}-${index}`} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}: ${banner.title}`} />)}</div>
