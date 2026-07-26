@@ -1,10 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
-import path from 'node:path';
+import { resolve } from 'node:path';
 
 function resolveVerificationScript() {
   const candidates = [
-    path.resolve(process.cwd(), '../../scripts/verify-backup.sh'),
-    path.resolve(process.cwd(), 'scripts/verify-backup.sh'),
+    resolve(process.cwd(), '../../scripts/verify-backup.sh'),
+    resolve(process.cwd(), 'scripts/verify-backup.sh'),
   ];
   const resolved = candidates.find((candidate) => existsSync(candidate));
   if (!resolved) throw new Error('verify-backup.sh not found');
