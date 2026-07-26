@@ -101,19 +101,21 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
 
   const jumpTo = useCallback((realIndex: number) => {
     setAnimate(true);
+    setPaused(false);
     setVirtualIndex(realCount + realIndex);
   }, [realCount]);
 
+  // Re-arm after every completed move. This avoids an interval getting stuck after
+  // drag, tab visibility changes, or a missed pointer-up event.
   useEffect(() => {
     if (realCount < 2 || paused) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const timer = window.setInterval(() => {
-      if (!document.hidden) moveBy(1);
+    const timer = window.setTimeout(() => {
+      moveBy(1);
     }, AUTOPLAY_DELAY_MS);
 
-    return () => window.clearInterval(timer);
-  }, [moveBy, paused, realCount]);
+    return () => window.clearTimeout(timer);
+  }, [moveBy, paused, realCount, virtualIndex]);
 
   useEffect(() => {
     const element = carouselRef.current;
@@ -122,6 +124,12 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
     const resetDragVisual = () => {
       element.style.setProperty('--hero-drag-x', '0px');
       element.classList.remove('is-dragging');
+    };
+
+    const releaseInteraction = () => {
+      pointerState.current = null;
+      resetDragVisual();
+      setPaused(false);
     };
 
     const handlePointerDown = (event: globalThis.PointerEvent) => {
@@ -163,9 +171,7 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
 
     const cancelPointer = (event: globalThis.PointerEvent) => {
       if (pointerState.current?.pointerId !== event.pointerId) return;
-      pointerState.current = null;
-      resetDragVisual();
-      setPaused(false);
+      releaseInteraction();
     };
 
     const suppressDraggedClick = (event: MouseEvent) => {
@@ -179,14 +185,18 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
     element.addEventListener('pointermove', handlePointerMove, { passive: false });
     element.addEventListener('pointerup', finishPointer);
     element.addEventListener('pointercancel', cancelPointer);
+    element.addEventListener('lostpointercapture', releaseInteraction);
     element.addEventListener('click', suppressDraggedClick, true);
+    window.addEventListener('blur', releaseInteraction);
 
     return () => {
       element.removeEventListener('pointerdown', handlePointerDown);
       element.removeEventListener('pointermove', handlePointerMove);
       element.removeEventListener('pointerup', finishPointer);
       element.removeEventListener('pointercancel', cancelPointer);
+      element.removeEventListener('lostpointercapture', releaseInteraction);
       element.removeEventListener('click', suppressDraggedClick, true);
+      window.removeEventListener('blur', releaseInteraction);
     };
   }, [moveBy]);
 
@@ -205,7 +215,12 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
   if (!showPromotion || realCount === 0) return null;
 
   return (
-    <section ref={carouselRef} className="reference-hero-carousel" aria-label="โปรโมชั่นแนะนำ">
+    <section
+      ref={carouselRef}
+      className="reference-hero-carousel"
+      aria-label="โปรโมชั่นแนะนำ"
+      data-active-slide={normalizedActiveIndex}
+    >
       <div className="reference-hero-mask">
         <div className="reference-hero-rail">
           <div
