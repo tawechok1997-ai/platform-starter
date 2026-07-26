@@ -2,9 +2,11 @@
 
 import type { CmsContent } from '../../site-settings';
 import { MemberRuntimeImage } from '../member-runtime-image';
+import { useMemberSession } from '../../member-session-provider';
 import { buildHomePromotionCards } from './home-promotion-model';
 
 export function HomePromotionCards({ content }: { content: CmsContent }) {
+  const { isLoggedIn } = useMemberSession();
   const cards = buildHomePromotionCards(content);
 
   if (!cards.length) {
@@ -14,7 +16,7 @@ export function HomePromotionCards({ content }: { content: CmsContent }) {
   return (
     <div className="member-reference-promotion-grid" aria-label="รายการโปรโมชั่น">
       {cards.map((card) => (
-        <a key={card.id} className="member-reference-promotion-card" href={card.href}>
+        <a key={card.id} className="member-reference-promotion-card" href={isLoggedIn ? card.href : '/browse/promotions'}>
           <div className="member-reference-promotion-card__media">
             <MemberRuntimeImage src={card.imageUrl} alt={card.title} />
             {card.badge && <span className="member-reference-promotion-card__badge">{card.badge}</span>}
