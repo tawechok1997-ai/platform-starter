@@ -17,6 +17,7 @@ const memberRouteRules: MemberRouteRule[] = [
   { prefix: '/legal', label: 'นโยบาย', public: true },
   { prefix: '/maintenance', label: 'ปิดปรับปรุง', public: true },
   { prefix: '/session-expired', label: 'เซสชันหมดอายุ', public: true },
+  { prefix: '/games/session', label: 'เซสชันเกม', feature: 'games' },
   { prefix: '/games', label: 'เกม', feature: 'games', public: true },
   { prefix: '/promotions', label: 'โปรโมชัน', feature: 'promotion', public: true },
   { prefix: '/deposit', label: 'ฝาก', feature: 'deposit' },
