@@ -1,11 +1,6 @@
 {
   "version": 1,
   "findings": {
-    "duplicate:ddca9b0bf8f104cc9d6784f7": {
-      "status": "consolidate",
-      "owner": "settings",
-      "reason": "Admin group, draft, and publish flows repeat the same ordered setting-group read and should converge on one private query helper."
-    },
     "duplicate:268a9b4b550189f0f30b646c": {
       "status": "documented-exception",
       "owner": "growth",
