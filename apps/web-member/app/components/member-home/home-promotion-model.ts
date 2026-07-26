@@ -19,7 +19,7 @@ export function buildHomePromotionCards(content: CmsContent): HomePromotionCard[
       title: item.title,
       subtitle: item.subtitle,
       imageUrl: item.imageUrl,
-      href: '/browse/promotions',
+      href: item.href,
       badge: index === 0 ? 'HOT' : '',
     }));
 }
