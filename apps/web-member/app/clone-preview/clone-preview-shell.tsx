@@ -14,7 +14,7 @@ const NAV_ITEMS: NavItem[] = [
   ['news', 'ข่าวสาร', '◈'], ['deposit', 'ฝากเงิน', '฿'], ['withdraw', 'ถอนเงิน', '↗'], ['transactions', 'ประวัติรายการ', '≡'],
   ['bonus', 'โบนัส', '★'], ['affiliate', 'แนะนำเพื่อน', '◎'], ['bank', 'บัญชีธนาคาร', '▣'], ['profile', 'โปรไฟล์', '●'],
   ['notifications', 'แจ้งเตือน', '◉'], ['support', 'ช่วยเหลือ', '?'], ['guide', 'คู่มือ', '▤'], ['contact', 'ติดต่อเรา', '☎'],
-].map(([key, label, icon]) => ({ key: key as ScreenKey, label, icon }));
+].map(([key, label, icon]) => ({ key: key as ScreenKey, label: label ?? '', icon: icon ?? '' }));
 
 const GAMES = ['Caishen Wins', 'Maya Golden City', 'Roma X', 'El Paso', 'Sweet Bonanza Xmas', 'Golden Empire', 'Thai Hi Lo', 'Bushido Ways'];
 const TRANSACTIONS = [
