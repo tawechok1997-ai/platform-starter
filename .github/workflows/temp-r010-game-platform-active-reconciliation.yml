@@ -1,0 +1,91 @@
+name: Temporary R-010 Game Platform Active Reconciliation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/api/src/modules/game-platform/game-platform-money.service.ts'
+      - 'docs/evidence/r010-query-review.json'
+      - '.github/workflows/temp-r010-game-platform-active-reconciliation.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temp-r010-game-platform-active-reconciliation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/r010-game-platform-active-reconciliation
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Remove legacy active-session reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          import json
+          from pathlib import Path
+
+          service_path = Path('apps/api/src/modules/game-platform/game-platform-money.service.ts')
+          source = service_path.read_text(encoding='utf-8')
+          marker = '  async reconcileActiveSessions(actor: AdminActor) {'
+          start = source.find(marker)
+          if start >= 0:
+              brace_start = source.find('{', start)
+              depth = 0
+              end = None
+              for index in range(brace_start, len(source)):
+                  char = source[index]
+                  if char == '{':
+                      depth += 1
+                  elif char == '}':
+                      depth -= 1
+                      if depth == 0:
+                          end = index + 1
+                          break
+              if end is None:
+                  raise SystemExit('could not find the end of reconcileActiveSessions')
+              while end < len(source) and source[end] == '\n':
+                  end += 1
+              source = source[:start] + source[end:]
+              service_path.write_text(source, encoding='utf-8')
+
+          ledger_path = Path('docs/evidence/r010-query-review.json')
+          ledger = json.loads(ledger_path.read_text(encoding='utf-8'))
+          ledger['findings'].pop('duplicate:c5cda22e19b258e67c00fae4', None)
+          ledger_path.write_text(json.dumps(ledger, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+          PY
+      - name: Verify active reconciliation ownership
+        shell: bash
+        run: |
+          pnpm --filter @platform/api exec jest src/modules/game-platform --runInBand --passWithNoTests
+          pnpm typecheck:api
+          R010_DUPLICATE_QUERY_STRICT=1 node tools/audit-r010-query-inventory.mjs
+          node tools/audit-r010-query-review-ledger.mjs
+      - name: Commit verified consolidation
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'Active reconciliation consolidation is already applied.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- apps/api/src/modules/game-platform/game-platform-money.service.ts docs/evidence/r010-query-review.json
+          git commit -m 'refactor(game-platform): remove legacy active reconciliation'
+          git push origin HEAD:fix/r010-game-platform-active-reconciliation
