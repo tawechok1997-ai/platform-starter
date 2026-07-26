@@ -23,6 +23,7 @@ const copyByLocale = {
     security: 'ความปลอดภัย',
     logout: 'ออกจากระบบ',
     close: 'ย้อนกลับ',
+    openMenu: 'เปิดเมนูแอดมิน',
     expandMenu: 'ขยายเมนู',
     collapseMenu: 'ย่อเมนู',
     language: 'ภาษา',
@@ -35,6 +36,7 @@ const copyByLocale = {
     security: 'Security',
     logout: 'Sign out',
     close: 'Back',
+    openMenu: 'Open admin menu',
     expandMenu: 'Expand menu',
     collapseMenu: 'Collapse menu',
     language: 'Language',
@@ -78,6 +80,8 @@ export function AdminMobileDrawerController() {
   useEffect(() => {
     let shellObserver: MutationObserver | null = null;
     let retryId = 0;
+    let syncMediaState: (() => void) | null = null;
+    const media = window.matchMedia(MOBILE_DRAWER_MEDIA);
 
     const attach = () => {
       const shell = document.querySelector<HTMLElement>('.admin-shell');
@@ -88,6 +92,14 @@ export function AdminMobileDrawerController() {
       }
 
       const syncButtonState = () => {
+        if (media.matches) {
+          const label = open ? copy.close : copy.openMenu;
+          menuButton.setAttribute('aria-expanded', String(open));
+          menuButton.setAttribute('aria-label', label);
+          menuButton.title = label;
+          return;
+        }
+
         const collapsed = shell.classList.contains('admin-shell--collapsed');
         menuButton.setAttribute('aria-expanded', String(!collapsed));
         menuButton.setAttribute('aria-label', collapsed ? copy.expandMenu : copy.collapseMenu);
@@ -95,8 +107,10 @@ export function AdminMobileDrawerController() {
       };
 
       syncButtonState();
+      syncMediaState = syncButtonState;
       shellObserver = new MutationObserver(syncButtonState);
       shellObserver.observe(shell, { attributes: true, attributeFilter: ['class'] });
+      media.addEventListener('change', syncButtonState);
     };
 
     const expandSidebar = () => {
@@ -139,10 +153,11 @@ export function AdminMobileDrawerController() {
     document.addEventListener('click', handleDesktopInteractions, true);
     return () => {
       shellObserver?.disconnect();
+      if (syncMediaState) media.removeEventListener('change', syncMediaState);
       window.clearTimeout(retryId);
       document.removeEventListener('click', handleDesktopInteractions, true);
     };
-  }, [copy.collapseMenu, copy.expandMenu]);
+  }, [copy.close, copy.collapseMenu, copy.expandMenu, copy.openMenu, open]);
 
   useEffect(() => {
     if (!open) return;
