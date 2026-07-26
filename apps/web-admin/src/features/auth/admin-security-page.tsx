@@ -490,7 +490,7 @@ export default function AdminSecurityPage() {
     {message && <AdminNotice tone={isErrorMessage(message, locale) ? 'danger' : 'neutral'}>{message}</AdminNotice>}
 
     {activeTab === 'overview' && <SecurityOverview me={me} sessions={sessions} ownerRecovery={ownerRecovery} copy={copy} locale={dateLocale} />}
-    {activeTab === 'sessions' && <AdminCard title={copy.sessionOverview} description={copy.sessionHelp} actions={<span className={styles.actions}><AdminButton size="compact" disabled={pageBusy || otherActiveCount === 0} onClick={() => setPendingAction({ kind: 'logout-others' })}>{copy.logoutOthers}</AdminButton><AdminButton size="compact" disabled={pageBusy || activeCount === 0} tone="danger" onClick={() => setPendingAction({ kind: 'logout-all' })}>{copy.logoutAll}</AdminButton></span>}>
+    {activeTab === 'sessions' && <AdminCard title={copy.sessionOverview} description={copy.sessionHelp} action={<span className={styles.actions}><AdminButton size="compact" disabled={pageBusy || otherActiveCount === 0} onClick={() => setPendingAction({ kind: 'logout-others' })}>{copy.logoutOthers}</AdminButton><AdminButton size="compact" disabled={pageBusy || activeCount === 0} tone="danger" onClick={() => setPendingAction({ kind: 'logout-all' })}>{copy.logoutAll}</AdminButton></span>}>
       <AdminDataTable
         ariaLabel={copy.sessionOverview}
         columns={sessionColumns}
