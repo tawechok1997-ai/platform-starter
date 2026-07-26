@@ -1,0 +1,15 @@
+TEST_STATUS=unknown
+
+...
+1: $ jest -- --runInBand
+2: No tests found, exiting with code 1
+3: Run with `--passWithNoTests` to exit with code 0
+4: In /home/runner/work/platform-starter/platform-starter/apps/api
+5:   462 files checked.
+6:   testMatch: **/*.spec.ts - 127 matches
+7:   testPathIgnorePatterns:  - 0 matches
+8:   testRegex:  - 0 matches
+9: Pattern: --runInBand - 0 matches
+10: /home/runner/work/platform-starter/platform-starter/apps/api:
+11: [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @platform/api@ test: `jest -- --runInBand`
+12: Exit status 1
