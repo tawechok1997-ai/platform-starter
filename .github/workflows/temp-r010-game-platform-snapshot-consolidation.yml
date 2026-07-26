@@ -1,0 +1,82 @@
+name: Temporary R-010 Game Platform Snapshot Consolidation
+
+on:
+  push:
+    branches:
+      - fix/r010-game-platform-snapshot-query-consolidation
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/api/src/modules/game-platform/game-platform-money.service.ts'
+      - 'docs/evidence/r010-query-review.json'
+      - '.github/workflows/temp-r010-game-platform-snapshot-consolidation.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temp-r010-game-platform-snapshot-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/r010-game-platform-snapshot-query-consolidation
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Remove legacy snapshot reads
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          import json
+          from pathlib import Path
+
+          service_path = Path('apps/api/src/modules/game-platform/game-platform-money.service.ts')
+          lines = service_path.read_text(encoding='utf-8').splitlines()
+          targets = ('async listSnapshots()', 'async getSnapshot(')
+          matches = {target: [index for index, line in enumerate(lines) if target in line] for target in targets}
+          for target, indexes in matches.items():
+              if len(indexes) > 1:
+                  raise SystemExit(f'expected at most one {target} method, found {len(indexes)}')
+          remove_indexes = sorted((indexes[0] for indexes in matches.values() if indexes), reverse=True)
+          for index in remove_indexes:
+              del lines[index]
+          service_path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+
+          ledger_path = Path('docs/evidence/r010-query-review.json')
+          ledger = json.loads(ledger_path.read_text(encoding='utf-8'))
+          ledger['findings'].pop('duplicate:2de9acd37d0c06f862d4656c', None)
+          ledger_path.write_text(json.dumps(ledger, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+          PY
+      - name: Verify snapshot query ownership
+        shell: bash
+        run: |
+          pnpm --filter @platform/api exec jest src/modules/game-platform --runInBand --passWithNoTests
+          pnpm typecheck:api
+          R010_DUPLICATE_QUERY_STRICT=1 node tools/audit-r010-query-inventory.mjs
+          node tools/audit-r010-query-review-ledger.mjs
+      - name: Commit verified consolidation
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'Snapshot query consolidation is already applied.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- apps/api/src/modules/game-platform/game-platform-money.service.ts docs/evidence/r010-query-review.json
+          git commit -m 'refactor(game-platform): remove legacy snapshot reads'
+          git push origin HEAD:fix/r010-game-platform-snapshot-query-consolidation
