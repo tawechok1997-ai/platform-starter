@@ -31,11 +31,6 @@
       "owner": "bank-accounts",
       "reason": "Public account display orders newest records first while rotating assignment orders oldest records first after the shared sort priority."
     },
-    "duplicate:2d99292a0c07f3a187e5a76e": {
-      "status": "consolidate",
-      "owner": "money-ops",
-      "reason": "The legacy ledger listing overlaps the paginated MoneyOpsLedgerQueryService and should delegate to that canonical query owner."
-    },
     "duplicate:f039be0066b2b34c880c1aea": {
       "status": "documented-exception",
       "owner": "provider-simulator",
