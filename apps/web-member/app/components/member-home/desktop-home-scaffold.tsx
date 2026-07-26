@@ -18,9 +18,9 @@ type GuideFaq = { question: string; answer: string };
 const ANNOUNCEMENT_TEXT = 'ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง';
 
 const PROMO_CARDS: PromoCard[] = [
-  { title: 'โปรโมชั่นพิเศษ', subtitle: 'โปรโมชั่นพิเศษเฉพาะคุณ', href: '/promotions', aliases: ['promotion', 'promo', 'bonus', 'reward', 'โปรโมชั่น'], fallback: '✦', assetUrl: '/clone-assets/shortcut-promo.webp', backgroundUrl: V47_ASSETS.promoBackgroundPromotion },
-  { title: 'กิจกรรม', subtitle: 'กิจกรรมตลอด 24 ชั่วโมง', href: '/promotions', aliases: ['activity', 'event', 'mission', 'กิจกรรม'], fallback: '♤', assetUrl: '/clone-assets/shortcut-event.webp', backgroundUrl: V47_ASSETS.promoBackgroundActivity },
-  { title: 'ข่าวสาร', subtitle: 'ข่าวสารที่คุณไม่ควรพลาด', href: '/notifications', aliases: ['news', 'announcement', 'notice', 'ข่าว'], fallback: '◇', assetUrl: '/clone-assets/shortcut-news.webp', backgroundUrl: V47_ASSETS.promoBackgroundNews },
+  { title: 'โปรโมชั่นพิเศษ', subtitle: 'โปรโมชั่นพิเศษเฉพาะคุณ', href: '/browse/promotions?view=promotion', aliases: ['promotion', 'promo', 'bonus', 'reward', 'โปรโมชั่น'], fallback: '✦', assetUrl: '/clone-assets/shortcut-promo.webp', backgroundUrl: V47_ASSETS.promoBackgroundPromotion },
+  { title: 'กิจกรรม', subtitle: 'กิจกรรมตลอด 24 ชั่วโมง', href: '/browse/promotions?view=activity', aliases: ['activity', 'event', 'mission', 'กิจกรรม'], fallback: '♤', assetUrl: '/clone-assets/shortcut-event.webp', backgroundUrl: V47_ASSETS.promoBackgroundActivity },
+  { title: 'ข่าวสาร', subtitle: 'ข่าวสารที่คุณไม่ควรพลาด', href: '/browse/promotions?view=news', aliases: ['news', 'announcement', 'notice', 'ข่าว'], fallback: '◇', assetUrl: '/clone-assets/shortcut-news.webp', backgroundUrl: V47_ASSETS.promoBackgroundNews },
 ];
 
 const ARCHIVE_GAMES: ArchiveGame[] = REFERENCE_GAMES.map(({ name, url }) => ({ name, imageUrl: url }));
@@ -93,7 +93,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
             })}
           </section>
 
-          <a href="/promotions" className="reference-tournament-cta">
+          <a href="/browse/promotions?view=activity" className="reference-tournament-cta">
             <img src={V47_ASSETS.tournament} alt="เข้าร่วมแข่งขัน Tournament" onError={(event) => swapBrokenImage(event, assets.tournament?.url || '')} />
             <span><small>ร่วมสนุกกับกิจกรรม Tournament</small><strong>TOURNAMENT เข้าร่วมชิงความเป็นที่ 1</strong></span>
             <b>เข้าแข่งขัน ›</b>
@@ -101,7 +101,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
 
           <section className="reference-panel reference-tournament-board" data-section-kind="tournament">
             <PanelHeading configured={V47_ASSETS.tournamentIcon} fallback="🏆" title="ทัวร์นาเมนต์" />
-            <div className="reference-tournament-title"><strong>No1. Tournament Football Royale ครั้งที่ 2</strong><a href="/promotions">ดูทั้งหมด ›</a></div>
+            <div className="reference-tournament-title"><strong>No1. Tournament Football Royale ครั้งที่ 2</strong><a href="/browse/promotions?view=activity">ดูทั้งหมด ›</a></div>
             <div className="reference-tournament-track" data-drag-scroll="true">
               {TOURNAMENT_SCORES.map((score, index) => <article key={index} className="reference-rank-card"><RankMark index={index} /><strong>{maskName(index)}</strong><span>{score}</span><small>● ● ● ● ●</small></article>)}
             </div>
@@ -114,10 +114,10 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
           </section>
 
           <section className="reference-number-section" data-section-kind="popular"><PanelHeading asset={assets.popular} configured={V47_ASSETS.gameHit} fallback="🔥" title="Top 10 Popular Games" /><div className="reference-number-row" data-drag-scroll="true">
-            {popular.length ? popular.map((game, index) => <a key={`${game.id}-${index}`} href="/login?next=%2Fgames" className="reference-number-card" title={safeGameName(game)}><GameImage game={game} /><span>{index + 1}</span><strong>{safeGameName(game)}</strong></a>) : ARCHIVE_GAMES.slice(0, 10).map((game, index) => <ArchiveNumberCard key={game.name} game={game} index={index} />)}
+            {popular.length ? popular.map((game, index) => <a key={`${game.id}-${index}`} href="/browse/games" className="reference-number-card" title={safeGameName(game)}><GameImage game={game} /><span>{index + 1}</span><strong>{safeGameName(game)}</strong></a>) : ARCHIVE_GAMES.slice(0, 10).map((game, index) => <ArchiveNumberCard key={game.name} game={game} index={index} />)}
           </div></section>
 
-          <section className="reference-compact-section" data-section-kind="online"><PanelHeading asset={assets.online} configured={V47_ASSETS.mostOnline} fallback="⚡" title="Most Online Now" /><div className="reference-online-row" data-drag-scroll="true">{online.length ? online.map((game, index) => <a key={`${game.id}-${index}`} href="/login?next=%2Fgames" className="reference-online-card"><GameImage game={game} /><span><strong>{safeGameName(game)}</strong><small>♟ {(4195 - index * 437).toLocaleString()}</small></span></a>) : ARCHIVE_GAMES.slice(6, 12).map((game, index) => <ArchiveOnlineCard key={game.name} game={game} index={index} />)}</div></section>
+          <section className="reference-compact-section" data-section-kind="online"><PanelHeading asset={assets.online} configured={V47_ASSETS.mostOnline} fallback="⚡" title="Most Online Now" /><div className="reference-online-row" data-drag-scroll="true">{online.length ? online.map((game, index) => <a key={`${game.id}-${index}`} href="/browse/games" className="reference-online-card"><GameImage game={game} /><span><strong>{safeGameName(game)}</strong><small>♟ {(4195 - index * 437).toLocaleString()}</small></span></a>) : ARCHIVE_GAMES.slice(6, 12).map((game, index) => <ArchiveOnlineCard key={game.name} game={game} index={index} />)}</div></section>
 
           <section className="reference-compact-section" id="live" data-section-kind="live"><PanelHeading asset={assets.live} configured={V47_ASSETS.liveIcon} fallback="🔴" title="Live Now!!" /><div className="reference-live-row" data-drag-scroll="true">{MATCH_CARDS.map((match, index) => <article key={`${match.league}-${index}`} className="reference-live-card"><header><span>{match.league}</span><b>{match.time}</b></header><div><strong>{match.home}</strong><span>VS</span><strong>{match.away}</strong></div><footer><a href="/login">ดูบอลสด</a><a href="/login">เล่นเกมทันที</a></footer></article>)}</div></section>
 
@@ -146,9 +146,9 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
 
 function RankMark({ index }: { index: number }) { const image = RANK_ART[index]; return <b className="reference-rank-medal">{image ? <img src={image} alt={`อันดับ ${index + 1}`} loading="lazy" onError={hideBrokenImage} /> : index + 1}</b>; }
 function ArchiveFeaturedGames({ message }: { message: string }) { return <div className="reference-featured-grid reference-featured-grid--archive" aria-label={message || 'เกมตัวอย่างจากชุด asset'}><ArchiveGameTile game={ARCHIVE_GAMES[0]!} large /><div className="reference-featured-small-grid" data-drag-scroll="true">{ARCHIVE_GAMES.slice(1, 9).map((game) => <ArchiveGameTile key={game.name} game={game} />)}</div></div>; }
-function ArchiveGameTile({ game, large = false, compact = false }: { game: ArchiveGame; large?: boolean; compact?: boolean }) { return <a href="/login?next=%2Fgames" className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}><img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span><strong>{game.name}</strong><small>NOAH345</small></span></a>; }
-function ArchiveNumberCard({ game, index }: { game: ArchiveGame; index: number }) { return <a href="/login?next=%2Fgames" className="reference-number-card" title={game.name}><img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span>{index + 1}</span><strong>{game.name}</strong></a>; }
-function ArchiveOnlineCard({ game, index }: { game: ArchiveGame; index: number }) { return <a href="/login?next=%2Fgames" className="reference-online-card"><img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span><strong>{game.name}</strong><small>♟ {(4195 - index * 437).toLocaleString()}</small></span></a>; }
+function ArchiveGameTile({ game, large = false, compact = false }: { game: ArchiveGame; large?: boolean; compact?: boolean }) { return <a href="/browse/games" className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}><img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span><strong>{game.name}</strong><small>NOAH345</small></span></a>; }
+function ArchiveNumberCard({ game, index }: { game: ArchiveGame; index: number }) { return <a href="/browse/games" className="reference-number-card" title={game.name}><img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span>{index + 1}</span><strong>{game.name}</strong></a>; }
+function ArchiveOnlineCard({ game, index }: { game: ArchiveGame; index: number }) { return <a href="/browse/games" className="reference-online-card"><img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span><strong>{game.name}</strong><small>♟ {(4195 - index * 437).toLocaleString()}</small></span></a>; }
 function EmptyState({ label }: { label: string }) { return <div className="reference-empty">{label}</div>; }
 function PanelHeading({ asset, configured, fallback, title }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; title: string }) { return <header className="reference-panel-heading"><AssetIcon asset={asset} configured={configured} fallback={fallback} className="reference-heading-icon" /><strong>{title}</strong></header>; }
 function AssetIcon({ asset, configured, fallback, className }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; className: string }) { const value = configured || asset?.url || ''; return <span className={className} aria-hidden="true">{value ? (isImageValue(value) ? <img src={normalizeUrl(value)} alt="" onError={hideBrokenImage} /> : value) : fallback}</span>; }
@@ -169,7 +169,7 @@ function ProviderLogoItem({ provider }: { provider: ProviderLogo }) {
     </span>
   );
 }
-function GameTile({ game, large = false, compact = false }: { game: Game; large?: boolean; compact?: boolean }) { return <a href="/login?next=%2Fgames" className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}><GameImage game={game} />{game?.isNew && <em>NEW</em>}<span><strong>{safeGameName(game)}</strong><small>{game?.provider?.name || game?.provider?.code || 'Provider'}</small></span></a>; }
+function GameTile({ game, large = false, compact = false }: { game: Game; large?: boolean; compact?: boolean }) { return <a href="/browse/games" className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}><GameImage game={game} />{game?.isNew && <em>NEW</em>}<span><strong>{safeGameName(game)}</strong><small>{game?.provider?.name || game?.provider?.code || 'Provider'}</small></span></a>; }
 function GameImage({ game }: { game: Game }) { const fallback = fallbackGameImage(game); const image = resolveGameImage(game) || fallback; return <img src={image} alt={safeGameName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />; }
 function fallbackGameImage(game: Game) { const seed = `${game?.id || ''}:${game?.providerGameCode || ''}:${safeGameName(game)}`; let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0; return REFERENCE_GAMES[Math.abs(hash) % REFERENCE_GAMES.length]!.url; }
 function findCmsAsset(content: CmsContent, aliases: string[]) { const normalizedAliases = aliases.map(normalizeSearchText); return (Array.isArray(content?.assets) ? content.assets : []).find((asset) => { if (!asset?.enabled || asset.type !== 'image' || !asset.url) return false; const haystack = normalizeSearchText(`${asset.id} ${asset.name} ${asset.tag || ''} ${asset.url}`); return normalizedAliases.some((alias) => haystack.includes(alias)); }); }
