@@ -35,11 +35,6 @@
       "status": "documented-exception",
       "owner": "risk-alerts",
       "reason": "Rapid deposit-withdrawal and high-withdrawal scanners use different time windows, amount predicates, and eligible workflow statuses."
-    },
-    "duplicate:694a4a0fd6b2ec70fd6f20ef": {
-      "status": "consolidate",
-      "owner": "game-platform",
-      "reason": "Expected provider balance calculation is duplicated and should remain owned by the canonical reconciliation command service."
     }
   }
 }
