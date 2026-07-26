@@ -19,12 +19,12 @@ import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet'
 
 const PUBLIC_HOME_NAV = [
   { key: 'home', title: 'หน้าหลัก', href: '/', icon: V47_ASSETS.menuHome },
-  { key: 'casino', title: 'คาสิโน', href: '/games?category=casino', icon: V47_ASSETS.menuCasino },
-  { key: 'slot', title: 'สล็อต', href: '/games?category=slot', icon: V47_ASSETS.menuSlot },
-  { key: 'fishing', title: 'ยิงปลา', href: '/games?category=fishing', icon: V47_ASSETS.menuFishing },
-  { key: 'sport', title: 'กีฬา', href: '/games?category=sport', icon: V47_ASSETS.menuSport },
-  { key: 'card', title: 'ไพ่', href: '/games?category=card', icon: V47_ASSETS.menuCard },
-  { key: 'lottery', title: 'หวย', href: '/games?category=lottery', icon: V47_ASSETS.menuLottery },
+  { key: 'casino', title: 'คาสิโน', href: '/browse/games?category=casino', icon: V47_ASSETS.menuCasino },
+  { key: 'slot', title: 'สล็อต', href: '/browse/games?category=slot', icon: V47_ASSETS.menuSlot },
+  { key: 'fishing', title: 'ยิงปลา', href: '/browse/games?category=fishing', icon: V47_ASSETS.menuFishing },
+  { key: 'sport', title: 'กีฬา', href: '/browse/games?category=sport', icon: V47_ASSETS.menuSport },
+  { key: 'card', title: 'ไพ่', href: '/browse/games?category=card', icon: V47_ASSETS.menuCard },
+  { key: 'lottery', title: 'หวย', href: '/browse/games?category=lottery', icon: V47_ASSETS.menuLottery },
   { key: 'live', title: 'ถ่ายทอดสด', href: '#live', icon: V47_ASSETS.menuLive },
 ];
 
@@ -53,6 +53,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
   const isHomeRoute = pathname === '/';
   const isPublicRoute = isPublicMemberRoute(pathname);
+  const isBrowseRoute = pathname.startsWith('/browse');
   const currentRule = routeRuleFor(pathname);
   const blockedRoute = disabledMemberRoute(pathname, features);
   const activeHref = useMemo(() => activeNavigationHref(pathname), [pathname]);
@@ -109,6 +110,24 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   if (isHomeRoute) {
+    return (
+      <>
+        <PublicHomeHeader
+          logoUrl={logoUrl}
+          brandMark={brandMark}
+          features={features}
+          isLoggedIn={isLoggedIn}
+          walletLoading={walletLoading}
+          compactWalletBalance={compactWalletBalance}
+          logout={logout}
+        />
+        {children}
+        <MemberFooter settings={typedSettings} />
+      </>
+    );
+  }
+
+  if (isBrowseRoute) {
     return (
       <>
         <PublicHomeHeader
@@ -223,10 +242,10 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
         <button type="button" className="public-home-flag" aria-label="เปลี่ยนภาษา">
           <img src={V47_ASSETS.headerFlag} alt="ภาษาไทย" />
         </button>
-        <a className="public-home-search" href="/games" aria-label="ค้นหาเกม">
+        <a className="public-home-search" href="/browse/games" aria-label="ค้นหาเกม">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4.2-4.2" /></svg>
         </a>
-        <a className="public-home-mission" href="/promotions">
+        <a className="public-home-mission" href="/browse/promotions">
           <img src={V47_ASSETS.headerMission} alt="" aria-hidden="true" />
           <span>ภารกิจ</span>
         </a>
