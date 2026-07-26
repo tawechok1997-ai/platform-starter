@@ -1,0 +1,42 @@
+/* Keep the hero fade window aligned with the same desktop shell as the promo cards. */
+@media (min-width: 901px) {
+  .desktop-reference-home > .reference-hero-carousel {
+    left: auto !important;
+    width: min(var(--v47-shell, 1455px), calc(100vw - 30px)) !important;
+    max-width: var(--v47-shell, 1455px) !important;
+    margin: 20px auto 24px !important;
+    transform: none !important;
+    overflow: hidden !important;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 2%,
+      #000 25%,
+      #000 75%,
+      transparent 98%
+    ) !important;
+    mask-image: linear-gradient(
+      to right,
+      transparent 2%,
+      #000 25%,
+      #000 75%,
+      transparent 98%
+    ) !important;
+  }
+
+  .desktop-reference-home .reference-hero-mask {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  .desktop-reference-home .reference-hero-rail {
+    position: relative !important;
+    flex: 0 0 2180px !important;
+    width: 2180px !important;
+    min-width: 2180px !important;
+    max-width: 2180px !important;
+    margin-inline: auto !important;
+  }
+}
