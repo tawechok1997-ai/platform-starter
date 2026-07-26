@@ -13,7 +13,7 @@ export function buildHomePromotionItems(content: CmsContent): PromotionCarouselI
     id: item.id,
     title: item.title,
     imageUrl: item.imageUrl,
-    href: '/browse/promotions',
+    href: item.href,
     alt: item.title || 'โปรโมชั่น',
   }));
 }
