@@ -47,17 +47,12 @@ function removeStorage(key: string) {
 
 export async function memberApiFetch(path: string, options: ApiOptions = {}) {
   const token = readStorage('member_access_token');
-  const refreshToken = readStorage('member_refresh_token');
   const headers = mergeHeaders(options.headers);
   if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
   if (!options.skipAuth && token) headers.set('Authorization', `Bearer ${token}`);
 
   const res = await fetch(joinApiUrl(API_URL, path), { ...options, headers });
   if (res.status !== 401 || options.skipAuth) return res;
-
-  // Anonymous visitors are allowed to browse public pages. A 401 from an
-  // optional member request is not an expired session when no session existed.
-  if (!token && !refreshToken) return res;
 
   const refreshed = await refreshMemberToken();
   if (!refreshed) {
