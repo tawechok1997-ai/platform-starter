@@ -1,0 +1,80 @@
+name: Temporary Game Platform Legacy Webhook Receiver
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/api/src/modules/game-platform/game-platform-money.service.ts'
+      - '.github/workflows/temp-game-platform-legacy-webhook-receiver.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temp-game-platform-legacy-webhook-receiver-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/game-platform-legacy-webhook-receiver
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Remove legacy webhook receiver
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/api/src/modules/game-platform/game-platform-money.service.ts')
+          text = path.read_text(encoding='utf-8')
+          signature = '  async receiveWebhook('
+          if text.count(signature) != 1:
+              raise SystemExit(f'unexpected receiveWebhook count: {text.count(signature)}')
+          start = text.index(signature)
+          opening = text.index('{', start)
+          depth = 0
+          end = None
+          for index in range(opening, len(text)):
+              char = text[index]
+              if char == '{':
+                  depth += 1
+              elif char == '}':
+                  depth -= 1
+                  if depth == 0:
+                      end = index + 1
+                      break
+          if end is None:
+              raise SystemExit('receiveWebhook closing brace not found')
+          while end < len(text) and text[end] in '\r\n':
+              end += 1
+          path.write_text(text[:start] + text[end:], encoding='utf-8')
+          PY
+      - name: Verify canonical webhook ownership
+        run: |
+          ! grep -F 'async receiveWebhook(' apps/api/src/modules/game-platform/game-platform-money.service.ts
+          ! grep -R -F '.receiveWebhook(' apps/api/src/modules/game-platform --include='*.ts'
+          grep -F 'return this.webhooks.receive(providerCode, headers, body, req.rawBody)' apps/api/src/modules/game-platform/game-platform-money.controller.ts
+          grep -F 'async receive(providerCode:' apps/api/src/modules/game-platform/provider-webhook.service.ts
+          grep -F 'applyWebhookEvents' apps/api/src/modules/game-platform/provider-webhook.service.ts
+          pnpm --filter @platform/api test -- src/modules/game-platform --runInBand
+          pnpm --filter @platform/api typecheck
+      - name: Commit verified cleanup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/api/src/modules/game-platform/game-platform-money.service.ts
+          git diff --cached --check
+          git commit -m 'refactor(game-platform): remove legacy webhook receiver'
+          git push origin HEAD:fix/game-platform-legacy-webhook-receiver
