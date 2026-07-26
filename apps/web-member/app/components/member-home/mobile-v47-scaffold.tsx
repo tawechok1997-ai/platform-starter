@@ -65,18 +65,18 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
     <section className="v47-mobile-home" aria-label="หน้าแรกมือถือ">
       <div className="v47-mobile-announcement"><Icon value={V47_ASSETS.announcement} /><span>{announcement?.message || announcement?.title || 'คาสิโนออนไลน์ครบทุกค่าย เปิดให้บริการตลอด 24 ชั่วโมง'}</span></div>
 
-      <a className="v47-mobile-hero" href={hero?.href || '/promotions'}>
+      <a className="v47-mobile-hero" href={hero?.href || '/browse/promotions'}>
         <img key={heroImage || heroFallback} src={heroImage || heroFallback} alt={hero?.title || siteName} onError={(event) => swapBrokenImage(event, heroFallback)} />
       </a>
       <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">{banners.map((banner, index) => <button key={`${banner.title}-${index}`} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}: ${banner.title}`} />)}</div>
 
       <div className="v47-mobile-quick-grid">
-        <QuickCard icon={V47_ASSETS.quickPromotion} title="โปรโมชั่น" href="/promotions" />
-        <QuickCard icon={V47_ASSETS.quickActivity} title="กิจกรรม" href="/promotions" />
-        <QuickCard icon={V47_ASSETS.quickNews} title="ข่าวสาร" href="/notifications" />
+        <QuickCard icon={V47_ASSETS.quickPromotion} title="โปรโมชั่น" href="/browse/promotions?view=promotion" />
+        <QuickCard icon={V47_ASSETS.quickActivity} title="กิจกรรม" href="/browse/promotions?view=activity" />
+        <QuickCard icon={V47_ASSETS.quickNews} title="ข่าวสาร" href="/browse/promotions?view=news" />
       </div>
 
-      <a className="v47-mobile-tournament-banner" href="/promotions">
+      <a className="v47-mobile-tournament-banner" href="/browse/promotions?view=activity">
         <img src={resolveV47Asset(tournament?.url, 'tournament')} alt="Tournament" onError={(event) => swapBrokenImage(event, V47_ASSETS.tournament)} />
         <span><small>TOURNAMENT</small><strong>เข้าร่วมชิงความเป็นที่ 1</strong></span>
         <b>เข้าแข่งขัน ›</b>
@@ -84,7 +84,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
 
       <section className="v47-mobile-panel v47-mobile-rank-panel" data-section-kind="tournament">
         <SectionTitle icon={V47_ASSETS.tournamentIcon} title="ทัวร์นาเมนต์" />
-        <div className="v47-mobile-rank-title"><strong>No.1 Tournament Football Royale ครั้งที่ 2</strong><a href="/promotions">ดูทั้งหมด ›</a></div>
+        <div className="v47-mobile-rank-title"><strong>No.1 Tournament Football Royale ครั้งที่ 2</strong><a href="/browse/promotions?view=activity">ดูทั้งหมด ›</a></div>
         <div className="v47-mobile-ranks" data-drag-scroll="true">{Array.from({ length: 3 }, (_, index) => <article key={index}><span className="v47-mobile-rank-badge"><img src={MOBILE_RANK_ART[index]!} alt={`อันดับ ${index + 1}`} onError={hideBrokenImage} /><b>{index + 1}</b></span><span>ZAX00{[790740, 664100, 844010][index]}</span><strong>{[20, 17, 13][index]}</strong><small>● ● ● ● ●</small></article>)}</div>
       </section>
 
@@ -109,9 +109,9 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
 }
 
 function QuickCard({ icon, title, href }: { icon: string; title: string; href: string }) { return <a href={href}><Icon value={icon} /><strong>{title}</strong></a>; }
-function SectionTitle({ icon, title, action }: { icon: string; title: string; action?: string }) { return <header className="v47-mobile-section-title"><span><Icon value={icon} /><strong>{title}</strong></span>{action ? <a href="/games">{action}</a> : null}</header>; }
-function GameSection({ kind, title, icon, games, loading, message, fallbackGames }: { kind: 'popular' | 'online' | 'classic'; title: string; icon: string; games: Game[]; loading: boolean; message: string; fallbackGames: ReferenceAsset[] }) { return <section className="v47-mobile-panel" data-section-kind={kind}><SectionTitle icon={icon} title={title} action="ดูทั้งหมด" />{loading ? <div className="v47-mobile-empty">กำลังโหลดเกม...</div> : games.length ? <div className="v47-mobile-game-grid" data-drag-scroll="true">{games.map((game, index) => <a href="/login?next=%2Fgames" key={`${game.id}-${index}`} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><GameImage game={game} /><span>{game.isNew ? 'NEW' : 'HOT'}</span></div><span className="v47-mobile-game-meta"><b>{safeName(game)}</b><small>{game.provider?.name || game.provider?.code || 'Provider'}</small></span></a>)}</div> : <ReferenceGameGrid games={fallbackGames} message={message} />}</section>; }
-function ReferenceGameGrid({ games, message }: { games: ReferenceAsset[]; message: string }) { return <div className="v47-mobile-game-grid" data-drag-scroll="true" aria-label={message || 'เกมจากชุด asset'}>{games.map((game, index) => <a href="/login?next=%2Fgames" key={game.name} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><img src={game.url} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span>HOT</span></div><span className="v47-mobile-game-meta"><b>{game.name}</b><small>NOAH345</small></span></a>)}</div>; }
+function SectionTitle({ icon, title, action }: { icon: string; title: string; action?: string }) { return <header className="v47-mobile-section-title"><span><Icon value={icon} /><strong>{title}</strong></span>{action ? <a href="/browse/games">{action}</a> : null}</header>; }
+function GameSection({ kind, title, icon, games, loading, message, fallbackGames }: { kind: 'popular' | 'online' | 'classic'; title: string; icon: string; games: Game[]; loading: boolean; message: string; fallbackGames: ReferenceAsset[] }) { return <section className="v47-mobile-panel" data-section-kind={kind}><SectionTitle icon={icon} title={title} action="ดูทั้งหมด" />{loading ? <div className="v47-mobile-empty">กำลังโหลดเกม...</div> : games.length ? <div className="v47-mobile-game-grid" data-drag-scroll="true">{games.map((game, index) => <a href="/browse/games" key={`${game.id}-${index}`} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><GameImage game={game} /><span>{game.isNew ? 'NEW' : 'HOT'}</span></div><span className="v47-mobile-game-meta"><b>{safeName(game)}</b><small>{game.provider?.name || game.provider?.code || 'Provider'}</small></span></a>)}</div> : <ReferenceGameGrid games={fallbackGames} message={message} />}</section>; }
+function ReferenceGameGrid({ games, message }: { games: ReferenceAsset[]; message: string }) { return <div className="v47-mobile-game-grid" data-drag-scroll="true" aria-label={message || 'เกมจากชุด asset'}>{games.map((game, index) => <a href="/browse/games" key={game.name} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><img src={game.url} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span>HOT</span></div><span className="v47-mobile-game-meta"><b>{game.name}</b><small>NOAH345</small></span></a>)}</div>; }
 function Icon({ value }: { value: string }) { return isImageValue(value) ? <img src={normalizeUrl(value)} alt="" onError={hideBrokenImage} /> : <span>{value}</span>; }
 function GameImage({ game }: { game: Game }) { const fallback = fallbackGameImage(game); const src = resolveGameImage(game) || fallback; return <img src={src} alt={safeName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />; }
 function fallbackGameImage(game: Game) { const seed = `${game.id || ''}:${game.providerGameCode || ''}:${safeName(game)}`; let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0; return REFERENCE_GAMES[Math.abs(hash) % REFERENCE_GAMES.length]!.url; }
