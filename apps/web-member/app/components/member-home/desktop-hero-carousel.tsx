@@ -68,7 +68,7 @@ const SOURCE_BANNERS: CmsBanner[] = SOURCE_IMAGE_URLS.map((imageUrl, index) => (
   title: `NOAH345 Banner ${String(index + 1).padStart(2, '0')}`,
   subtitle: 'NOAH345',
   imageUrl,
-  href: index === 9 ? '/promotions' : '/',
+  href: index === 9 ? '/browse/promotions' : '/',
   enabled: true,
 }));
 
@@ -277,7 +277,7 @@ function HeroSlideCard({ role, slide, siteName }: {
 
   return (
     <a
-      href={slide.banner.href || '/promotions'}
+      href={slide.banner.href || '/browse/promotions'}
       className={`reference-hero-slide reference-hero-slide--${role}${isActive ? ' is-active' : ''}`}
       aria-label={slide.banner.title || `โปรโมชั่น ${slide.realIndex + 1}`}
       aria-hidden={isActive ? undefined : true}
