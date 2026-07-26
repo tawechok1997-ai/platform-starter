@@ -46,14 +46,18 @@ const FAVORITES_KEY = 'member_public_browse_favorite_games_v1';
 
 export function BrowseGames() {
   const { isLoggedIn, ready } = useMemberSession();
+  const searchParams = useSearchParams();
+  const requestedCategory = searchParams.get('category');
+  const initialCategory: BrowseCategory = isBrowseCategory(requestedCategory) ? requestedCategory : 'all';
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<BrowseCategory>('all');
+  const [category, setCategory] = useState<BrowseCategory>(initialCategory);
   const [providerName, setProviderName] = useState('all');
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [selectedGame, setSelectedGame] = useState<BrowseGame | null>(null);
   const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase());
 
   useEffect(() => { setFavoriteIds(readFavorites()); }, []);
+  useEffect(() => { setCategory(initialCategory); }, [initialCategory]);
 
   const favoriteSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
   const visibleGames = useMemo(() => BROWSE_GAMES.filter((game) => {
@@ -198,6 +202,10 @@ export function BrowsePromotionDetail({ id }: { id: string }) {
       <article className="browse-detail"><AssetImage src={item.image} alt={item.title} className="browse-detail-image" /><div className="browse-detail-copy"><span className="browse-eyebrow">{item.badge}</span><h1>{item.title}</h1><p>{item.summary}</p><section><h2>เงื่อนไข</h2><ul>{item.terms.map((term) => <li key={term}>{term}</li>)}</ul></section><section><h2>วันหมดอายุ</h2><p>{item.expiresAt}</p></section><button type="button" className="browse-primary-action browse-primary-action--wide" onClick={claimPromotion}>{isLoggedIn && ready ? 'ไปหน้ารับสิทธิ์' : 'เข้าสู่ระบบเพื่อรับสิทธิ์'}</button></div></article>
     </main>
   );
+}
+
+function isBrowseCategory(value: string | null): value is BrowseCategory {
+  return value === 'all' || value === 'casino' || value === 'slot' || value === 'fishing' || value === 'sport' || value === 'card' || value === 'lottery' || value === 'favorite';
 }
 
 function promotionKindLabel(kind: BrowsePromotion['kind']) {
