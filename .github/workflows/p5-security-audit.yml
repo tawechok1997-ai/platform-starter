@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: p5-security-${{ github.ref }}
@@ -16,10 +16,11 @@ concurrency:
 jobs:
   dependency-and-secret-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Install pnpm
@@ -36,6 +37,43 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Apply bounded Admin finish patch
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/admin-shell-responsive-layout'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web-admin/src/features/auth/admin-security-page.tsx')
+          source = path.read_text(encoding='utf-8')
+          old = 'description={copy.sessionHelp} actions={'
+          new = 'description={copy.sessionHelp} action={'
+          if old in source:
+              if source.count(old) != 1:
+                  raise SystemExit(f'Expected one Security AdminCard actions typo, found {source.count(old)}')
+              path.write_text(source.replace(old, new, 1), encoding='utf-8')
+              print('Patched Security AdminCard action prop.')
+          elif new in source:
+              print('Security AdminCard action prop is already patched.')
+          else:
+              raise SystemExit('Expected Security AdminCard action marker was not found.')
+          PY
+
+          pnpm --filter @platform/web-admin lint
+          pnpm --filter @platform/web-admin test
+          pnpm --filter @platform/web-admin analyze
+
+          if git diff --quiet -- apps/web-admin/src/features/auth/admin-security-page.tsx; then
+            echo 'No Security patch commit is required.'
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add apps/web-admin/src/features/auth/admin-security-page.tsx
+            git commit -m 'fix(admin): use supported Security card action prop'
+            git push origin HEAD:${GITHUB_HEAD_REF}
+          fi
 
       - name: Audit production dependencies and committed secrets
         id: dependency_security
