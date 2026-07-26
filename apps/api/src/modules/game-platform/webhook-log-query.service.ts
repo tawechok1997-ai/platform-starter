@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import type { WebhookLogQueryDto } from './dto/webhook-log-query.dto';
@@ -35,6 +35,15 @@ export class WebhookLogQueryService {
       totalPages,
       summary: { total, processed, failed, duplicate },
     };
+  }
+
+  async get(id: string) {
+    const item = await this.prisma.webhookLog.findUnique({
+      where: { id },
+      include: { provider: { select: { id: true, name: true, code: true } } },
+    });
+    if (!item) throw new NotFoundException('Webhook log not found');
+    return item;
   }
 
   private buildWhere(query: WebhookLogQueryDto): Prisma.WebhookLogWhereInput {
