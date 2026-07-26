@@ -41,10 +41,12 @@ jobs:
           source = service_path.read_text(encoding='utf-8')
           original = source
 
-          repeated_query = """    const settings = await this.prisma.siteSetting.findMany({
-                where: { group: GROUP_TO_PRISMA[normalized] as any },
-                orderBy: { key: 'asc' },
-              });"""
+          repeated_query = (
+              "    const settings = await this.prisma.siteSetting.findMany({\n"
+              "      where: { group: GROUP_TO_PRISMA[normalized] as any },\n"
+              "      orderBy: { key: 'asc' },\n"
+              "    });"
+          )
           helper_call = "    const settings = await this.getAdminGroupSettings(normalized);"
           if repeated_query in source:
               count = source.count(repeated_query)
@@ -54,10 +56,12 @@ jobs:
           elif source.count(helper_call) != 2:
               raise SystemExit('settings helper calls are neither original nor fully consolidated')
 
-          publish_query = """    const draftSettings = (await this.prisma.siteSetting.findMany({
-                where: { group: GROUP_TO_PRISMA[normalized] as any },
-                orderBy: { key: 'asc' },
-              })).filter((setting) => this.isDraftKey(setting.key));"""
+          publish_query = (
+              "    const draftSettings = (await this.prisma.siteSetting.findMany({\n"
+              "      where: { group: GROUP_TO_PRISMA[normalized] as any },\n"
+              "      orderBy: { key: 'asc' },\n"
+              "    })).filter((setting) => this.isDraftKey(setting.key));"
+          )
           publish_helper = "    const draftSettings = (await this.getAdminGroupSettings(normalized)).filter((setting) => this.isDraftKey(setting.key));"
           if publish_query in source:
               if source.count(publish_query) != 1:
@@ -66,14 +70,14 @@ jobs:
           elif publish_helper not in source:
               raise SystemExit('publish settings query is neither original nor consolidated')
 
-          insertion = """  private async getAdminGroupSettings(group: SettingGroupSlug) {
-              return this.prisma.siteSetting.findMany({
-                where: { group: GROUP_TO_PRISMA[group] as any },
-                orderBy: { key: 'asc' },
-              });
-            }
-
-          """
+          insertion = (
+              "  private async getAdminGroupSettings(group: SettingGroupSlug) {\n"
+              "    return this.prisma.siteSetting.findMany({\n"
+              "      where: { group: GROUP_TO_PRISMA[group] as any },\n"
+              "      orderBy: { key: 'asc' },\n"
+              "    });\n"
+              "  }\n\n"
+          )
           marker = "  private async getPublicGroup(group: SettingGroupSlug) {"
           if insertion not in source:
               if source.count(marker) != 1:
