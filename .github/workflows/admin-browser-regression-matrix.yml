@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       admin_url:
-        description: Deployed Admin web URL
+        description: Optional deployed Admin URL. Leave empty to test the checked-out branch locally.
         required: false
         type: string
   push:
@@ -16,6 +16,7 @@ on:
       - tests/admin-browser-matrix/**
       - apps/web-admin/app/(admin)/**
       - apps/web-admin/app/admin-api.ts
+      - apps/web-admin/src/**
   pull_request:
     branches:
       - main
@@ -25,6 +26,7 @@ on:
       - tests/admin-browser-matrix/**
       - apps/web-admin/app/(admin)/**
       - apps/web-admin/app/admin-api.ts
+      - apps/web-admin/src/**
 
 permissions:
   contents: read
@@ -37,9 +39,9 @@ jobs:
   route-role-viewport:
     name: Route × Role × Viewport
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     env:
-      ADMIN_WEB_URL: ${{ inputs.admin_url || 'https://platformweb-admin-production.up.railway.app' }}
+      ADMIN_WEB_URL: ${{ inputs.admin_url || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,6 +64,15 @@ jobs:
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
+
+      - name: Describe browser target
+        shell: bash
+        run: |
+          if [ -n "${ADMIN_WEB_URL}" ]; then
+            echo "Testing explicit deployed target: ${ADMIN_WEB_URL}"
+          else
+            echo 'Testing the checked-out PR production build at http://127.0.0.1:3001'
+          fi
 
       - name: Run Admin browser matrix
         run: pnpm exec playwright test -c playwright.admin-matrix.config.ts
