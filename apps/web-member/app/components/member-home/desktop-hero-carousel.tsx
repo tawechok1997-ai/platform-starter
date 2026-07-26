@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type SyntheticEvent,
+  type PointerEvent as ReactPointerEvent,
 } from 'react';
 import type { CmsContent } from '../../site-settings';
 
@@ -34,6 +34,7 @@ type PointerState = {
 
 type HeroTrackStyle = CSSProperties & {
   '--hero-track-x': string;
+  '--hero-drag-x': string;
   '--hero-transition': string;
 };
 
@@ -45,9 +46,9 @@ const SLIDE_WIDTH_PX = 710.5;
 const SLIDE_GAP_PX = 10;
 const SLIDE_STEP_PX = SLIDE_WIDTH_PX + SLIDE_GAP_PX;
 const SOURCE_RAIL_WIDTH_PX = 2180;
-const SOURCE_INITIAL_SLIDE_INDEX = 2;
+const SOURCE_INITIAL_SLIDE_INDEX = 4;
 
-// Exact source order from the inspected NOAH345 desktop Swiper.
+// Exact ten-slide order from the latest inspected NOAH345 desktop Swiper.
 const SOURCE_IMAGE_URLS = [
   'https://cdn.zabbet.com/FEZX/imageslides/1784894399570-2ba3393c-2988-4971-834b-86bbe275d0bb.jpg',
   'https://cdn.zabbet.com/FEZX/imageslides/1784894972162-da9eaece-7402-4bb6-813f-7a83dc2925c2.jpg',
@@ -57,7 +58,6 @@ const SOURCE_IMAGE_URLS = [
   'https://cdn.zabbet.com/FEZX/imageslides/1784470530271-94bf2de8-a759-4e02-8af9-bbd08a398208.jpg',
   'https://cdn.zabbet.com/FEZX/imageslides/1782914061717-d7de2072-63f1-4dd5-95f6-8628990ba631.jpg',
   'https://cdn.zabbet.com/FEZX/imageslides/1782990586367-b41e5c36-0d4d-4e7c-80ed-bb145a2e3a77.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1782630857612-4098241f-e70d-4a32-b41b-623d74b974b6.jpg',
   'https://cdn.zabbet.com/FEZX/imageslides/1780250534847-0b47bd80-15a3-4117-bdd3-f383308509bc.jpg',
   'https://cdn.zabbet.com/FEZX/imageslides/1778979600098-3be41f05-c93f-4c12-b278-54cfe390de4c.jpg',
 ] as const;
@@ -66,9 +66,24 @@ const SOURCE_BANNERS: CmsBanner[] = SOURCE_IMAGE_URLS.map((imageUrl, index) => (
   title: `NOAH345 Banner ${String(index + 1).padStart(2, '0')}`,
   subtitle: 'NOAH345',
   imageUrl,
-  href: index === 10 ? '/promotions' : '/',
+  href: index === 9 ? '/promotions' : '/',
   enabled: true,
 }));
+
+const MISSING_ASSET_STYLE: CSSProperties = {
+  display: 'grid',
+  placeItems: 'center',
+  width: '100%',
+  height: '100%',
+  border: '1px dashed rgba(224, 92, 255, .72)',
+  borderRadius: 10,
+  color: '#efc9ff',
+  background: 'linear-gradient(135deg, #211428, #110d17)',
+  fontSize: 14,
+  fontWeight: 800,
+  letterSpacing: '.06em',
+  textAlign: 'center',
+};
 
 export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCarouselProps) {
   const slides = useMemo<HeroSlide[]>(
@@ -78,148 +93,115 @@ export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCaro
   const realCount = slides.length;
   const loopSlides = useMemo(() => [...slides, ...slides, ...slides], [slides]);
   const [virtualIndex, setVirtualIndex] = useState(realCount + SOURCE_INITIAL_SLIDE_INDEX);
-  const [animate, setAnimate] = useState(true);
-  const [paused, setPaused] = useState(false);
-  const carouselRef = useRef<HTMLElement | null>(null);
+  const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [dragX, setDragX] = useState(0);
   const pointerState = useRef<PointerState | null>(null);
+  const draggingRef = useRef(false);
   const suppressClickUntil = useRef(0);
   const normalizedActiveIndex = realCount ? modulo(virtualIndex, realCount) : 0;
 
   const offsetPx = SOURCE_RAIL_WIDTH_PX / 2 - (virtualIndex * SLIDE_STEP_PX + SLIDE_WIDTH_PX / 2);
   const trackStyle: HeroTrackStyle = {
     '--hero-track-x': `${offsetPx}px`,
-    '--hero-transition': animate
+    '--hero-drag-x': `${dragX}px`,
+    '--hero-transition': transitionEnabled
       ? `transform ${TRANSITION_MS}ms cubic-bezier(.22,.61,.36,1)`
       : 'none',
   };
 
   const moveBy = useCallback((delta: number) => {
     if (realCount < 2) return;
-    setAnimate(true);
+    setTransitionEnabled(true);
     setVirtualIndex((current) => current + delta);
   }, [realCount]);
 
   const jumpTo = useCallback((realIndex: number) => {
-    setAnimate(true);
-    setPaused(false);
+    setTransitionEnabled(true);
     setVirtualIndex(realCount + realIndex);
   }, [realCount]);
 
-  // Re-arm after every completed move. This avoids an interval getting stuck after
-  // drag, tab visibility changes, or a missed pointer-up event.
+  // A stable interval mirrors Swiper autoplay. It never depends on pointer state,
+  // so a missed browser event cannot leave the promotion rail permanently paused.
   useEffect(() => {
-    if (realCount < 2 || paused) return;
-
-    const timer = window.setTimeout(() => {
-      moveBy(1);
+    if (realCount < 2) return;
+    const timer = window.setInterval(() => {
+      if (!document.hidden && !draggingRef.current) moveBy(1);
     }, AUTOPLAY_DELAY_MS);
-
-    return () => window.clearTimeout(timer);
-  }, [moveBy, paused, realCount, virtualIndex]);
-
-  useEffect(() => {
-    const element = carouselRef.current;
-    if (!element) return;
-
-    const resetDragVisual = () => {
-      element.style.setProperty('--hero-drag-x', '0px');
-      element.classList.remove('is-dragging');
-    };
-
-    const releaseInteraction = () => {
-      pointerState.current = null;
-      resetDragVisual();
-      setPaused(false);
-    };
-
-    const handlePointerDown = (event: globalThis.PointerEvent) => {
-      if (event.pointerType === 'mouse' && event.button !== 0) return;
-      if (event.target instanceof Element && event.target.closest('button')) return;
-      pointerState.current = { pointerId: event.pointerId, startX: event.clientX, deltaX: 0, moved: false };
-      element.setPointerCapture?.(event.pointerId);
-      setPaused(true);
-    };
-
-    const handlePointerMove = (event: globalThis.PointerEvent) => {
-      const pointer = pointerState.current;
-      if (!pointer || pointer.pointerId !== event.pointerId) return;
-
-      pointer.deltaX = event.clientX - pointer.startX;
-      if (!pointer.moved && Math.abs(pointer.deltaX) < DRAG_START_THRESHOLD_PX) return;
-
-      pointer.moved = true;
-      element.classList.add('is-dragging');
-      const limitedOffset = Math.max(-220, Math.min(220, pointer.deltaX));
-      element.style.setProperty('--hero-drag-x', `${limitedOffset}px`);
-      event.preventDefault();
-    };
-
-    const finishPointer = (event: globalThis.PointerEvent) => {
-      const pointer = pointerState.current;
-      if (!pointer || pointer.pointerId !== event.pointerId) return;
-      pointerState.current = null;
-      if (element.hasPointerCapture?.(event.pointerId)) element.releasePointerCapture(event.pointerId);
-
-      const distance = pointer.deltaX;
-      resetDragVisual();
-      setPaused(false);
-
-      if (pointer.moved) suppressClickUntil.current = performance.now() + 350;
-      if (distance <= -SWIPE_THRESHOLD_PX) moveBy(1);
-      else if (distance >= SWIPE_THRESHOLD_PX) moveBy(-1);
-    };
-
-    const cancelPointer = (event: globalThis.PointerEvent) => {
-      if (pointerState.current?.pointerId !== event.pointerId) return;
-      releaseInteraction();
-    };
-
-    const suppressDraggedClick = (event: MouseEvent) => {
-      if (performance.now() >= suppressClickUntil.current) return;
-      event.preventDefault();
-      event.stopPropagation();
-      suppressClickUntil.current = 0;
-    };
-
-    element.addEventListener('pointerdown', handlePointerDown);
-    element.addEventListener('pointermove', handlePointerMove, { passive: false });
-    element.addEventListener('pointerup', finishPointer);
-    element.addEventListener('pointercancel', cancelPointer);
-    element.addEventListener('lostpointercapture', releaseInteraction);
-    element.addEventListener('click', suppressDraggedClick, true);
-    window.addEventListener('blur', releaseInteraction);
-
-    return () => {
-      element.removeEventListener('pointerdown', handlePointerDown);
-      element.removeEventListener('pointermove', handlePointerMove);
-      element.removeEventListener('pointerup', finishPointer);
-      element.removeEventListener('pointercancel', cancelPointer);
-      element.removeEventListener('lostpointercapture', releaseInteraction);
-      element.removeEventListener('click', suppressDraggedClick, true);
-      window.removeEventListener('blur', releaseInteraction);
-    };
-  }, [moveBy]);
+    return () => window.clearInterval(timer);
+  }, [moveBy, realCount]);
 
   const normalizeLoopPosition = useCallback(() => {
     if (virtualIndex >= realCount * 2) {
-      setAnimate(false);
+      setTransitionEnabled(false);
       setVirtualIndex((current) => current - realCount);
-      window.requestAnimationFrame(() => window.requestAnimationFrame(() => setAnimate(true)));
-    } else if (virtualIndex <= 0) {
-      setAnimate(false);
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => setTransitionEnabled(true)));
+    } else if (virtualIndex < realCount) {
+      setTransitionEnabled(false);
       setVirtualIndex((current) => current + realCount);
-      window.requestAnimationFrame(() => window.requestAnimationFrame(() => setAnimate(true)));
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => setTransitionEnabled(true)));
     }
   }, [realCount, virtualIndex]);
+
+  const onPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (event.target instanceof Element && event.target.closest('button')) return;
+    pointerState.current = { pointerId: event.pointerId, startX: event.clientX, deltaX: 0, moved: false };
+    draggingRef.current = true;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const onPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    const pointer = pointerState.current;
+    if (!pointer || pointer.pointerId !== event.pointerId) return;
+    pointer.deltaX = event.clientX - pointer.startX;
+    if (!pointer.moved && Math.abs(pointer.deltaX) < DRAG_START_THRESHOLD_PX) return;
+    pointer.moved = true;
+    setTransitionEnabled(false);
+    setDragX(Math.max(-260, Math.min(260, pointer.deltaX)));
+    event.preventDefault();
+  };
+
+  const finishPointer = (event: ReactPointerEvent<HTMLElement>) => {
+    const pointer = pointerState.current;
+    if (!pointer || pointer.pointerId !== event.pointerId) return;
+    pointerState.current = null;
+    draggingRef.current = false;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setDragX(0);
+    setTransitionEnabled(true);
+    if (pointer.moved) suppressClickUntil.current = performance.now() + 350;
+    if (pointer.deltaX <= -SWIPE_THRESHOLD_PX) moveBy(1);
+    else if (pointer.deltaX >= SWIPE_THRESHOLD_PX) moveBy(-1);
+  };
+
+  const cancelPointer = () => {
+    pointerState.current = null;
+    draggingRef.current = false;
+    setDragX(0);
+    setTransitionEnabled(true);
+  };
+
+  const suppressDraggedClick = (event: ReactPointerEvent<HTMLElement>) => {
+    if (performance.now() >= suppressClickUntil.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    suppressClickUntil.current = 0;
+  };
 
   if (!showPromotion || realCount === 0) return null;
 
   return (
     <section
-      ref={carouselRef}
       className="reference-hero-carousel"
       aria-label="โปรโมชั่นแนะนำ"
-      data-active-slide={normalizedActiveIndex}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={finishPointer}
+      onPointerCancel={cancelPointer}
+      onLostPointerCapture={cancelPointer}
+      onClickCapture={suppressDraggedClick}
     >
       <div className="reference-hero-mask">
         <div className="reference-hero-rail">
@@ -265,8 +247,10 @@ function HeroSlideCard({ role, slide, siteName }: {
   slide: HeroSlide;
   siteName: string;
 }) {
+  const [missing, setMissing] = useState(false);
   const isActive = role === 'active';
   const isNear = role !== 'offscreen';
+
   return (
     <a
       href={slide.banner.href || '/promotions'}
@@ -275,21 +259,21 @@ function HeroSlideCard({ role, slide, siteName }: {
       aria-hidden={isActive ? undefined : true}
       tabIndex={isActive ? 0 : -1}
     >
-      <img
-        src={slide.imageUrl}
-        alt={slide.banner.title || siteName}
-        draggable={false}
-        loading={isNear ? 'eager' : 'lazy'}
-        onError={hideBrokenImage}
-      />
+      {missing ? (
+        <span style={MISSING_ASSET_STYLE}>MISSING PROMOTION ASSET<br />รอใส่รูปจริง</span>
+      ) : (
+        <img
+          src={slide.imageUrl}
+          alt={slide.banner.title || siteName}
+          draggable={false}
+          loading={isNear ? 'eager' : 'lazy'}
+          onError={() => setMissing(true)}
+        />
+      )}
     </a>
   );
 }
 
 function modulo(value: number, divisor: number) {
   return ((value % divisor) + divisor) % divisor;
-}
-
-function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
-  event.currentTarget.style.visibility = 'hidden';
 }
