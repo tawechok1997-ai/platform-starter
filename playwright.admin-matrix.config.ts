@@ -8,7 +8,7 @@ export default defineConfig({
   timeout: 120_000,
   expect: { timeout: 12_000 },
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 3 : undefined,
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report/admin-browser-matrix', open: 'never' }],
