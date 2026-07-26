@@ -19,6 +19,26 @@ jobs:
   diagnose:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: platform_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d platform_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+      FINANCE_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_ci?schema=public
+      RISK_MATCH_SECRET: ci-risk-match-secret-value-2026
+      KYC_ACCESS_SECRET: ci-kyc-access-secret-value-2026
+      PHONE_OTP_SECRET: ci-phone-otp-secret-value-2026
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,7 +51,19 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Prepare Build-equivalent database
+        run: |
+          pnpm prisma validate
+          pnpm prisma generate
+          pnpm prisma db push --skip-generate
+          PSQL_DATABASE_URL="${DATABASE_URL%%\?*}"
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714190000_add_promotion_domain_models/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714191000_backfill_promotion_domain_models/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714213000_add_risk_watchlist_domain/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714213100_add_watchlist_risk_alert_type/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714230000_add_kyc_document_domain/migration.sql
+          psql "$PSQL_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/migrations/20260714230100_add_phone_otp_verification/migration.sql
       - name: Capture full API test failure
         run: |
           set +e
@@ -47,12 +79,12 @@ jobs:
           keywords = (
               'FAIL ', '● ', 'Test Suites:', 'Tests:', 'Snapshots:', 'Ran all test suites',
               'Expected:', 'Received:', 'TypeError:', 'ReferenceError:', 'Cannot find',
-              'AssertionError', 'Error:', 'toEqual', 'toBe(', 'at Object.',
+              'AssertionError', 'Error:', 'toEqual', 'toBe(', 'at Object.', 'PrismaClient',
           )
-          selected = set(range(max(0, len(lines) - 160), len(lines)))
+          selected = set(range(max(0, len(lines) - 180), len(lines)))
           for index, line in enumerate(lines):
               if any(keyword in line for keyword in keywords):
-                  selected.update(range(max(0, index - 12), min(len(lines), index + 18)))
+                  selected.update(range(max(0, index - 14), min(len(lines), index + 20)))
           output = [f'TEST_STATUS={status}', '']
           previous = -2
           for index in sorted(selected):
@@ -62,7 +94,7 @@ jobs:
               previous = index
           path = Path('docs/evidence/temp-api-test-failure.txt')
           path.parent.mkdir(parents=True, exist_ok=True)
-          path.write_text('\n'.join(output[-750:]) + '\n', encoding='utf-8')
+          path.write_text('\n'.join(output[-900:]) + '\n', encoding='utf-8')
           PY
       - name: Commit diagnostic summary
         run: |
@@ -70,8 +102,12 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add docs/evidence/temp-api-test-failure.txt
           git diff --cached --check
-          git commit -m 'chore(ci): capture API test failure summary'
-          git push origin HEAD:fix/game-platform-legacy-webhook-receiver
+          if git diff --cached --quiet; then
+            echo 'Diagnostic summary is unchanged.'
+          else
+            git commit -m 'chore(ci): capture API test failure summary'
+            git push origin HEAD:fix/game-platform-legacy-webhook-receiver
+          fi
       - name: Preserve failing diagnostic status
         if: env.TEST_STATUS != '0'
         run: exit 1
