@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { REFERENCE_GAMES, REFERENCE_PROVIDERS, type ReferenceAsset } from '../components/reference-asset-catalog';
 import { V47_ASSETS } from '../components/member-home/v47-asset-map';
 import { useMemberSession } from '../member-session-provider';
-import styles from './public-browse.module.css';
 
 type BrowseCategory = 'all' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery' | 'favorite';
 type PromotionView = 'all' | 'promotion' | 'activity' | 'news';
@@ -233,4 +232,4 @@ function AssetImage({ src, alt, className }: { src: string; alt: string; classNa
   return <img className={className} src={src} alt={alt} loading="lazy" decoding="async" onError={() => setMissing(true)} />;
 }
 
-function BrowseStyles() { return <span className={styles.loaded} aria-hidden="true" />; }
+function BrowseStyles() { return null; }
