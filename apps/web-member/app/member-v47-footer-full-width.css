@@ -1,0 +1,34 @@
+/* Full-bleed footer background while preserving the centered source content shell. */
+@media (min-width: 901px) {
+  body:has(.desktop-reference-home) .member-footer {
+    position: relative !important;
+    left: 50% !important;
+    display: block !important;
+    width: 100vw !important;
+    min-width: 100vw !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: translateX(-50%) !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    background: #15111f !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__main,
+  body:has(.desktop-reference-home) .member-footer__payments,
+  body:has(.desktop-reference-home) .member-footer__copyright {
+    width: min(1455px, calc(100vw - 32px)) !important;
+    max-width: 1455px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__separator {
+    width: min(1455px, calc(100vw - 32px)) !important;
+    max-width: 1455px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
