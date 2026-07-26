@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -44,6 +45,11 @@ function methodForIndex(ranges, index) {
 
 function normalizeWhitespace(value) {
   return value.replace(/\s+/g, ' ').trim();
+}
+
+function duplicateFindingKey(shape) {
+  const digest = createHash('sha256').update(shape).digest('hex').slice(0, 24);
+  return `duplicate:${digest}`;
 }
 
 function loadReviewLedger() {
@@ -125,7 +131,7 @@ for (const file of files) {
 const duplicateQueryGroups = [...queryShapes.entries()]
   .filter(([, items]) => items.length > 1)
   .map(([shape, items]) => {
-    const key = `duplicate:${Buffer.from(shape).toString('base64url').slice(0, 24)}`;
+    const key = duplicateFindingKey(shape);
     return {
       key,
       owners: [...new Set(items.map((item) => item.owner))].sort(),
@@ -135,6 +141,11 @@ const duplicateQueryGroups = [...queryShapes.entries()]
     };
   })
   .sort((a, b) => b.occurrences.length - a.occurrences.length || a.key.localeCompare(b.key));
+
+const duplicateFindingKeys = duplicateQueryGroups.map((group) => group.key);
+if (new Set(duplicateFindingKeys).size !== duplicateFindingKeys.length) {
+  throw new Error('R-010 duplicate finding key collision detected');
+}
 
 hardCodedTakes.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
 defaultTakes.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);

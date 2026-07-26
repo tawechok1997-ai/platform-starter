@@ -1,4 +1,65 @@
 {
   "version": 1,
-  "findings": {}
+  "findings": {
+    "duplicate:ddca9b0bf8f104cc9d6784f7": {
+      "status": "consolidate",
+      "owner": "settings",
+      "reason": "Admin group, draft, and publish flows repeat the same ordered setting-group read and should converge on one private query helper."
+    },
+    "duplicate:268a9b4b550189f0f30b646c": {
+      "status": "documented-exception",
+      "owner": "growth",
+      "reason": "Affiliate profiles, commissions, and promotion bonus ledgers share the riskAlert persistence model but use distinct refType filters and response mappers."
+    },
+    "duplicate:272d19f3fa84a2abebfd3639": {
+      "status": "read-model",
+      "owner": "wallet",
+      "reason": "Risk monitoring scans a bounded wallet population while wallet administration serves searchable and paginated operational projections."
+    },
+    "duplicate:4596ccc38c5f96a3ff05eb2c": {
+      "status": "read-model",
+      "owner": "finance",
+      "reason": "Finance summary needs a fixed recent-ledger projection while wallet administration owns filtered and paginated ledger exploration."
+    },
+    "duplicate:cb4b63aa7be12a01753c5f66": {
+      "status": "read-model",
+      "owner": "admin-audit",
+      "reason": "Activity feed, paginated audit search, and risk summary intentionally apply different limits, filters, and response contracts over audit logs."
+    },
+    "duplicate:2de9acd37d0c06f862d4656c": {
+      "status": "consolidate",
+      "owner": "game-platform",
+      "reason": "The legacy money facade duplicates the extracted provider reconciliation query service and should delegate snapshot reads to the canonical owner."
+    },
+    "duplicate:4cb979face596eeda4f0835f": {
+      "status": "documented-exception",
+      "owner": "bank-accounts",
+      "reason": "Public account display orders newest records first while rotating assignment orders oldest records first after the shared sort priority."
+    },
+    "duplicate:2d99292a0c07f3a187e5a76e": {
+      "status": "consolidate",
+      "owner": "money-ops",
+      "reason": "The legacy ledger listing overlaps the paginated MoneyOpsLedgerQueryService and should delegate to that canonical query owner."
+    },
+    "duplicate:f039be0066b2b34c880c1aea": {
+      "status": "documented-exception",
+      "owner": "provider-simulator",
+      "reason": "Round reconstruction performs a transaction-scoped ledger read for deterministic state recovery, unlike the wallet admin detail projection."
+    },
+    "duplicate:2080dc38ccf3f10711ff131b": {
+      "status": "documented-exception",
+      "owner": "risk-alerts",
+      "reason": "Rapid deposit-withdrawal and high-withdrawal scanners use different time windows, amount predicates, and eligible workflow statuses."
+    },
+    "duplicate:c5cda22e19b258e67c00fae4": {
+      "status": "consolidate",
+      "owner": "game-platform",
+      "reason": "Active-session reconciliation remains duplicated in the legacy money facade and the canonical reconciliation command service."
+    },
+    "duplicate:694a4a0fd6b2ec70fd6f20ef": {
+      "status": "consolidate",
+      "owner": "game-platform",
+      "reason": "Expected provider balance calculation is duplicated and should remain owned by the canonical reconciliation command service."
+    }
+  }
 }

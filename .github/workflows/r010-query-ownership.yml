@@ -15,6 +15,9 @@ on:
       - 'docs/evidence/r010-query-review.json'
       - '.github/workflows/r010-query-ownership.yml'
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -31,10 +34,49 @@ jobs:
       - run: pnpm install --frozen-lockfile=false
       - name: Query review ledger
         run: node tools/audit-r010-query-review-ledger.mjs
-      - name: No duplicate query shapes
+      - name: Inventory duplicate query shapes
+        id: query_inventory
+        continue-on-error: true
         env:
+          R010_QUERY_JSON: '1'
           R010_DUPLICATE_QUERY_STRICT: '1'
-        run: node tools/audit-r010-query-inventory.mjs
+        shell: bash
+        run: |
+          set -o pipefail
+          node tools/audit-r010-query-inventory.mjs | tee r010-query-inventory.json
+      - name: Upload query ownership evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r010-query-ownership-evidence
+          path: r010-query-inventory.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Publish query ownership summary
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('r010-query-inventory.json', 'utf8'));
+          const lines = [
+            '## R-010 Query Ownership',
+            '',
+            `- Duplicate query groups: **${report.duplicateQueryGroupCount}**`,
+            `- Unreviewed duplicate groups: **${report.unreviewedDuplicateQueryGroupCount}**`,
+            `- Stale reviews: **${report.staleReviewCount}**`,
+            `- Inventory outcome: **${{ steps.query_inventory.outcome }}**`,
+            '',
+          ];
+          for (const group of report.unreviewed ?? []) {
+            if (!group.key?.startsWith('duplicate:')) continue;
+            lines.push(`- \`${group.key}\`: ${group.occurrences.length} occurrences owned by ${group.owners.join(', ')}`);
+          }
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
+          NODE
+      - name: Fail on unreviewed duplicate query shapes
+        if: steps.query_inventory.outcome == 'failure'
+        run: exit 1
       - name: Notification feed query ownership
         run: node tools/audit-r010-notification-query-ownership.mjs
       - name: API typecheck
