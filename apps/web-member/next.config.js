@@ -5,6 +5,20 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@platform/api-client'],
+  async redirects() {
+    return [
+      {
+        source: '/clone-preview',
+        destination: '/',
+        permanent: false,
+      },
+      {
+        source: '/clone-preview/:path*',
+        destination: '/',
+        permanent: false,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
