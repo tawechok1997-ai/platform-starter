@@ -1,0 +1,145 @@
+/* Exact desktop shortcut-card geometry from the inspected NOAH345 source DOM. */
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-promo-row {
+    display: flex !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 123.5px !important;
+    height: 123.5px !important;
+    gap: 20px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .reference-promo-card {
+    position: relative !important;
+    z-index: 0 !important;
+    display: flex !important;
+    flex: 1 1 0 !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 123.5px !important;
+    margin: 0 !important;
+    padding: 0 20px 7px 0 !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    color: #fff !important;
+    text-decoration: none !important;
+  }
+
+  /* This is the actual 116.5px rounded card. The anchor itself stays transparent,
+     matching the source wrapper and removing the unwanted purple slab behind it. */
+  .desktop-reference-home .reference-promo-card::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 0 7px 0 !important;
+    z-index: 1 !important;
+    display: block !important;
+    border: 1px solid transparent !important;
+    border-radius: 11px !important;
+    background:
+      linear-gradient(92deg, #7600a5 0%, #5c007e 51%, #36004f 100%) padding-box,
+      linear-gradient(92deg, #d9b2f1 0%, #a026cb 38%, #6f168f 100%) border-box !important;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%) !important;
+    pointer-events: none !important;
+  }
+
+  .desktop-reference-home .reference-promo-background {
+    position: absolute !important;
+    inset: -20px !important;
+    z-index: 0 !important;
+    display: block !important;
+    width: calc(100% + 40px) !important;
+    height: calc(100% + 40px) !important;
+    max-width: none !important;
+    margin: 0 !important;
+    object-fit: fill !important;
+    opacity: 1 !important;
+    pointer-events: none !important;
+  }
+
+  .desktop-reference-home .reference-promo-icon {
+    position: relative !important;
+    z-index: 2 !important;
+    display: block !important;
+    flex: 0 0 180px !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+    height: 180px !important;
+    margin: -24px 0 0 -24px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: none !important;
+    pointer-events: none !important;
+  }
+
+  .desktop-reference-home .reference-promo-icon > img {
+    display: block !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+    height: 180px !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+
+  .desktop-reference-home .reference-promo-copy {
+    position: relative !important;
+    z-index: 2 !important;
+    display: block !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin: 0 0 0 12px !important;
+    padding: 0 !important;
+    transform: none !important;
+    color: #fff !important;
+  }
+
+  .desktop-reference-home .reference-promo-copy strong {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    color: #fff !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .desktop-reference-home .reference-promo-copy small {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 4px 0 0 !important;
+    overflow: hidden !important;
+    color: #fff !important;
+    font-size: 14px !important;
+    font-weight: 300 !important;
+    line-height: 1.4 !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .desktop-reference-home .reference-promo-card:hover::before,
+  .desktop-reference-home .reference-promo-card:focus-visible::before {
+    filter: brightness(1.06) !important;
+  }
+
+  .desktop-reference-home .reference-promo-card:focus-visible {
+    outline: 2px solid rgb(222 129 255 / 80%) !important;
+    outline-offset: 3px !important;
+  }
+}
