@@ -21,11 +21,6 @@
       "owner": "admin-audit",
       "reason": "Activity feed, paginated audit search, and risk summary intentionally apply different limits, filters, and response contracts over audit logs."
     },
-    "duplicate:2de9acd37d0c06f862d4656c": {
-      "status": "consolidate",
-      "owner": "game-platform",
-      "reason": "The legacy money facade duplicates the extracted provider reconciliation query service and should delegate snapshot reads to the canonical owner."
-    },
     "duplicate:4cb979face596eeda4f0835f": {
       "status": "documented-exception",
       "owner": "bank-accounts",
