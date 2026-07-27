@@ -27,17 +27,26 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - name: Register icons as public settings
+      - name: Register icons in service and Prisma schema
         run: |
           python <<'PY'
           from pathlib import Path
-          path = Path('apps/api/src/modules/settings/settings.service.ts')
-          source = path.read_text()
+
+          service = Path('apps/api/src/modules/settings/settings.service.ts')
+          source = service.read_text()
           old = "const publicGroups: SettingGroupSlug[] = ['website', 'branding', 'theme', 'seo', 'contact', 'maintenance', 'features', 'legal'];"
           new = "const publicGroups: SettingGroupSlug[] = ['website', 'branding', 'icons', 'theme', 'seo', 'contact', 'maintenance', 'features', 'legal'];"
           if old not in source and new not in source:
               raise SystemExit('Expected public settings group line was not found')
-          path.write_text(source.replace(old, new))
+          service.write_text(source.replace(old, new))
+
+          schema = Path('prisma/schema.prisma')
+          schema_source = schema.read_text()
+          marker = 'enum SiteSettingGroup {\n  WEBSITE\n  BRANDING\n'
+          replacement = 'enum SiteSettingGroup {\n  WEBSITE\n  BRANDING\n  ICONS\n'
+          if marker not in schema_source and replacement not in schema_source:
+              raise SystemExit('SiteSettingGroup enum marker was not found')
+          schema.write_text(schema_source.replace(marker, replacement))
           PY
       - run: pnpm install --frozen-lockfile=false
       - name: Validate Prisma schema
@@ -50,14 +59,14 @@ jobs:
         run: pnpm --filter @platform/api test -- settings-icons.spec.ts --runInBand
       - name: API production build
         run: pnpm --filter @platform/api build
-      - name: Commit validated service integration
+      - name: Commit validated integration
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add apps/api/src/modules/settings/settings.service.ts
+          git add apps/api/src/modules/settings/settings.service.ts prisma/schema.prisma
           if git diff --cached --quiet; then
-            echo 'Service already contains icons public group.'
+            echo 'Validated integration is already committed.'
             exit 0
           fi
-          git commit -m 'fix(settings): publish icons settings group'
+          git commit -m 'fix(settings): publish dedicated icons settings group'
           git push origin HEAD:fix/admin-icons-settings-endpoint
