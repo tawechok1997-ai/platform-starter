@@ -9,6 +9,7 @@ const viewportCss = readFileSync(path.join(appDir, 'admin-full-viewport-layout.c
 const professionalCss = readFileSync(path.join(appDir, 'admin-professional-authority.css'), 'utf8');
 const permanentSidebarCss = readFileSync(path.join(appDir, 'admin-permanent-sidebar.css'), 'utf8');
 const staticGroupsCss = readFileSync(path.join(appDir, 'admin-static-sidebar-groups.css'), 'utf8');
+const dataPageCss = readFileSync(path.join(appDir, 'admin-data-page-layout.css'), 'utf8');
 const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'layout.tsx'), 'utf8');
 const dashboardPage = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'page.tsx'), 'utf8');
 const dashboardProfessional = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'dashboard-professional.tsx'), 'utf8');
@@ -22,6 +23,7 @@ const viewportImport = "import './admin-full-viewport-layout.css'";
 const professionalImport = "import './admin-professional-authority.css'";
 const permanentSidebarImport = "import './admin-permanent-sidebar.css'";
 const staticGroupsImport = "import './admin-static-sidebar-groups.css'";
+const dataPageImport = "import './admin-data-page-layout.css'";
 
 test('loads Admin presentation authorities in stable override order', () => {
   const controlsIndex = layout.indexOf(controlsImport);
@@ -33,6 +35,7 @@ test('loads Admin presentation authorities in stable override order', () => {
   const professionalIndex = layout.indexOf(professionalImport);
   const permanentSidebarIndex = layout.indexOf(permanentSidebarImport);
   const staticGroupsIndex = layout.indexOf(staticGroupsImport);
+  const dataPageIndex = layout.indexOf(dataPageImport);
 
   assert.ok(controlsIndex >= 0);
   assert.ok(shellIndex > controlsIndex);
@@ -43,7 +46,8 @@ test('loads Admin presentation authorities in stable override order', () => {
   assert.ok(professionalIndex > viewportIndex);
   assert.ok(permanentSidebarIndex > professionalIndex);
   assert.ok(staticGroupsIndex > permanentSidebarIndex);
-  assert.equal(layout.slice(staticGroupsIndex + staticGroupsImport.length).includes("import './admin-"), false);
+  assert.ok(dataPageIndex > staticGroupsIndex);
+  assert.equal(layout.slice(dataPageIndex + dataPageImport.length).includes("import './admin-"), false);
 });
 
 test('standardizes professional page headers and safe text spacing', () => {
@@ -92,6 +96,15 @@ test('lets data-heavy pages use the whole card width', () => {
   assert.match(viewportCss, /\.admin-content-shell table[\s\S]*width: 100% !important/);
   assert.match(viewportCss, /\.admin-content-shell table[\s\S]*min-width: 100% !important/);
   assert.match(viewportCss, /:has\(> table\)[\s\S]*max-width: none !important/);
+});
+
+test('uses a full-width authority for games, provider presets and wallet analytics', () => {
+  assert.match(dataPageCss, /Full-width authority for data-heavy Admin pages/);
+  assert.match(dataPageCss, /input\[placeholder='เช่น demo-slot-001'\][\s\S]*grid-template-columns: minmax\(260px, 2fr\)/);
+  assert.match(dataPageCss, /input\[placeholder='ชื่อ, รหัส หรือรูปแบบ'\][\s\S]*minmax\(440px, 1\.55fr\)/);
+  assert.match(dataPageCss, /\.admin-wallet-analytics__hero[\s\S]*minmax\(0, 2fr\) minmax\(300px, \.8fr\)/);
+  assert.match(dataPageCss, /\.admin-wallet-analytics__table-shell[\s\S]*width: 100% !important/);
+  assert.match(dataPageCss, /@media \(max-width: 720px\)[\s\S]*grid-template-columns: minmax\(0, 1fr\) !important/);
 });
 
 test('puts finance wallet and risk charts before recent dashboard activity', () => {
