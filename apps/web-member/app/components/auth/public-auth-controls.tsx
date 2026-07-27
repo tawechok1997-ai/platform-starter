@@ -1,23 +1,46 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useCallback, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useMemberSession } from '../../member-session-provider';
+import MemberAuthOverlay, { type MemberAuthMode } from './member-auth-overlay';
 
 export default function PublicAuthControls() {
   const pathname = usePathname() ?? '/';
-  const { ready, isLoggedIn } = useMemberSession();
+  const router = useRouter();
+  const { ready, isLoggedIn, verify } = useMemberSession();
+  const [mode, setMode] = useState<MemberAuthMode | null>(null);
   const isPublicSurface = pathname === '/' || pathname.startsWith('/browse');
+
+  const close = useCallback(() => setMode(null), []);
+
+  const complete = useCallback(async () => {
+    await verify();
+    setMode(null);
+    router.refresh();
+  }, [router, verify]);
 
   if (!isPublicSurface || (ready && isLoggedIn)) return null;
 
   return (
-    <div className="noah-public-auth-controls" aria-label="บัญชีสมาชิก">
-      <a className="noah-public-auth-button noah-public-auth-button--login" href="/login">
-        เข้าสู่ระบบ
-      </a>
-      <a className="noah-public-auth-button noah-public-auth-button--register" href="/register">
-        สมัครสมาชิก
-      </a>
-    </div>
+    <>
+      <div className="noah-public-auth-controls" aria-label="บัญชีสมาชิก">
+        <button
+          type="button"
+          className="noah-public-auth-button noah-public-auth-button--login"
+          onClick={() => setMode('login')}
+        >
+          เข้าสู่ระบบ
+        </button>
+        <button
+          type="button"
+          className="noah-public-auth-button noah-public-auth-button--register"
+          onClick={() => setMode('register')}
+        >
+          สมัครสมาชิก
+        </button>
+      </div>
+      {mode ? <MemberAuthOverlay mode={mode} onClose={close} onSuccess={complete} /> : null}
+    </>
   );
 }
