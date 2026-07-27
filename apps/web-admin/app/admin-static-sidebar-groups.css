@@ -1,0 +1,122 @@
+/*
+ * Permanent Admin navigation groups.
+ *
+ * The desktop sidebar is permanently expanded, so its category groups must also
+ * behave like stable section headings instead of accordions that close while
+ * navigating between pages. Mobile keeps the drawer interaction, but all
+ * permission-filtered groups remain visible inside the scrollable drawer.
+ */
+
+.admin-nav-group__trigger {
+  min-height: 0 !important;
+  padding: 12px 10px 6px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+.admin-nav-group__trigger[data-active],
+.admin-nav-group__trigger:hover {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.admin-nav-group__trigger > svg {
+  width: 17px !important;
+  height: 17px !important;
+  color: #8290a7 !important;
+}
+
+.admin-nav-group__trigger[data-active] > svg,
+.admin-nav-group__trigger[data-active] .admin-nav-group__label strong {
+  color: #aeb8ff !important;
+}
+
+.admin-nav-group__label {
+  gap: 1px !important;
+}
+
+.admin-nav-group__label strong {
+  color: #aeb8ca !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: .055em !important;
+  line-height: 1.35 !important;
+}
+
+.admin-nav-group__label small {
+  color: #64748b !important;
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+}
+
+.admin-nav-group__chevron {
+  display: none !important;
+}
+
+.admin-nav-submenu,
+.admin-nav-submenu[data-open='false'],
+.admin-nav-submenu[data-open='true'] {
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  max-height: none !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+.admin-nav-submenu__inner {
+  min-height: 0 !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.admin-drawer-nav .admin-nav-group + .admin-nav-group {
+  margin-top: 7px !important;
+  padding-top: 4px !important;
+  border-top: 1px solid rgb(148 163 184 / 8%) !important;
+}
+
+/* Rebalance the footer after removing the collapse control. */
+.admin-sidebar-footer {
+  display: block !important;
+  min-height: 0 !important;
+  padding: 9px 0 max(10px, env(safe-area-inset-bottom)) !important;
+  background: linear-gradient(180deg, rgb(7 11 19 / 0%), rgb(7 11 19 / 98%) 24%) !important;
+}
+
+.admin-sidebar-profile {
+  margin: 0 8px !important;
+}
+
+.admin-sidebar-profile__trigger {
+  width: 100% !important;
+  min-height: 62px !important;
+  padding: 9px 10px !important;
+  border-radius: 14px !important;
+}
+
+.admin-collapse-button {
+  display: none !important;
+}
+
+@media (max-width: 1099px) {
+  .admin-nav-group__trigger {
+    grid-template-columns: 18px minmax(0, 1fr) !important;
+    padding: 11px 9px 5px !important;
+  }
+
+  .admin-nav-group__label small {
+    display: none !important;
+  }
+
+  .admin-drawer-nav .admin-nav-group + .admin-nav-group {
+    margin-top: 5px !important;
+  }
+}
