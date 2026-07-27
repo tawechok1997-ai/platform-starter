@@ -1,0 +1,33 @@
+name: Temporary CI Audit Locator
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  locate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Locate failing audit definitions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const ref = context.payload.pull_request.head.sha;
+            const commit = await github.rest.repos.getCommit({ owner, repo, ref });
+            const tree = await github.rest.git.getTree({ owner, repo, tree_sha: commit.data.commit.tree.sha, recursive: 'true' });
+            const candidates = tree.data.tree.filter((entry) => entry.type === 'blob' && entry.path && (entry.path.startsWith('.github/workflows/') || entry.path.startsWith('tools/')) && /\.(?:ya?ml|mjs|js|ts)$/.test(entry.path));
+            const needles = ['Shared Button Input Select and TextArea primitives', 'Shared API client audit', 'existing allowlisted transport bridges', 'audit-r012-feature-boundaries'];
+            for (const entry of candidates) {
+              if (!entry.sha) continue;
+              const blob = await github.rest.git.getBlob({ owner, repo, file_sha: entry.sha });
+              const text = Buffer.from(blob.data.content, blob.data.encoding).toString('utf8');
+              const hits = needles.filter((needle) => text.includes(needle));
+              if (hits.length) {
+                console.log(`AUDIT_FILE ${entry.path}`);
+                for (const line of text.split('\n').filter((line) => hits.some((hit) => line.includes(hit)) || /audit.*(?:ui|api|r012)/i.test(line))) console.log(`AUDIT_LINE ${line.trim()}`);
+              }
+            }
