@@ -11,8 +11,9 @@
     "test:admin-regression": "node --import tsx --test src/features/admin-redesign/*.spec.ts",
     "test:admin-modernization": "node --import tsx --test src/features/admin-modernization/*.spec.ts",
     "inventory:admin-routes": "node --import tsx tools/audit-admin-routes.mjs",
+    "audit:admin-capabilities": "node --import tsx tools/audit-admin-capabilities.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "verify": "pnpm inventory:admin-routes && pnpm test && pnpm typecheck && pnpm build",
+    "verify": "pnpm inventory:admin-routes && pnpm audit:admin-capabilities && pnpm test && pnpm typecheck && pnpm build",
     "start": "next start -p 3001"
   },
   "dependencies": {
