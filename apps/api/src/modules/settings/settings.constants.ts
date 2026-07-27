@@ -16,7 +16,7 @@ export type SettingGroupSlug = (typeof SETTING_GROUPS)[number];
 export const GROUP_TO_PRISMA = {
   website: 'WEBSITE',
   branding: 'BRANDING',
-  icons: 'ICONS',
+  icons: 'BRANDING',
   theme: 'THEME',
   seo: 'SEO',
   contact: 'CONTACT',
