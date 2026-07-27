@@ -3,12 +3,13 @@ import test from 'node:test';
 
 import { navGroups, requiredPermissionsForPath, resolveNavItemHref } from './admin-nav';
 
-test('daily sidebar exposes exactly eleven workspace entries', () => {
+test('sidebar exposes the complete permission-aware workspace directory', () => {
   const visible = navGroups.flatMap((group) => group.items.filter((item) => item.sidebar !== false));
   assert.equal(navGroups.length, 4);
-  assert.equal(visible.length, 11);
+  assert.ok(visible.length >= 40, `expected the complete Admin directory, received ${visible.length} entries`);
   assert.equal(new Set(visible.map((item) => item.href)).size, visible.length);
   assert.ok(visible.every((item) => item.title && item.titleEn));
+  assert.ok(visible.every((item) => item.sidebar !== false));
 });
 
 test('finance workspace resolves to an accessible landing route', () => {
@@ -20,12 +21,12 @@ test('finance workspace resolves to an accessible landing route', () => {
   assert.equal(resolveNavItemHref(finance, ['*']), '/topups');
 });
 
-test('specialist routes remain searchable without crowding the sidebar', () => {
+test('important specialist routes remain visible, searchable and deep-linkable', () => {
   const allItems = navGroups.flatMap((group) => group.items);
-  const hiddenHrefs = new Set(allItems.filter((item) => item.sidebar === false).map((item) => item.href));
+  const hrefs = new Set(allItems.map((item) => item.href));
 
-  for (const href of ['/withdrawals', '/wallet-ledgers', '/kyc-center', '/provider-presets', '/game-transfers', '/promotion-claims', '/admin-roles', '/anti-bot']) {
-    assert.ok(hiddenHrefs.has(href), `${href} must remain available through command search and deep links`);
+  for (const href of ['/operations', '/withdrawals', '/wallet-ledgers', '/reports', '/member-insights', '/kyc-center', '/support-center', '/provider-presets', '/game-providers', '/webhook-logs', '/game-transfers', '/promotion-claims', '/admin-roles', '/audit', '/anti-bot']) {
+    assert.ok(hrefs.has(href), `${href} must remain visible through the permission-aware sidebar and command search`);
   }
 });
 
