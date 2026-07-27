@@ -1,0 +1,620 @@
+.page {
+  position: relative;
+  width: 100%;
+  min-height: 900px;
+  padding-top: 114px;
+  overflow-x: clip;
+  color: #fff;
+  background: rgb(17 14 22);
+}
+
+.backgroundStack {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  height: 600px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.providerBackground,
+.baseBackground {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  min-height: 600px;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.providerBackground {
+  z-index: 1;
+  opacity: 0;
+  transform: translate3d(0, -500%, 0);
+  transition: opacity 900ms ease, transform 900ms ease;
+}
+
+.providerBackground.isActive {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.baseBackground {
+  z-index: 2;
+  opacity: 1;
+  transition: opacity 1000ms ease;
+}
+
+.baseBackgroundMuted {
+  opacity: 0;
+}
+
+.purpleOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: linear-gradient(106deg, rgb(58 38 60) -46.77%, rgb(97 0 116) 80.31%);
+  opacity: .6;
+}
+
+.darkFade {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: linear-gradient(182deg, rgb(115 115 115 / 0%) 29.43%, rgb(17 14 22) 52.3%, rgb(17 14 22) 85.96%);
+}
+
+.viewport {
+  position: relative;
+  z-index: 2;
+  width: min(1455px, 100%);
+  min-height: 100%;
+  margin: 0 auto;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  width: min(1440px, calc(100% - 30px));
+  min-height: 100%;
+  margin: 0 auto;
+  padding-top: 20px;
+  padding-bottom: 70px;
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 170px;
+}
+
+.casinoLogo,
+.providerTitle {
+  display: block;
+  width: 396px;
+  height: 128px;
+  object-fit: contain;
+}
+
+.casinoLogo {
+  mix-blend-mode: luminosity;
+  opacity: 1;
+  transform: none;
+  transition: opacity 700ms ease, transform 700ms ease;
+}
+
+.casinoLogoHidden {
+  opacity: 0;
+  transform: translateY(-40px) scale(.86);
+}
+
+.providerTitle {
+  position: absolute;
+  inset: 0 auto auto 50%;
+  opacity: 0;
+  filter: brightness(0);
+  transform: translate(-50%, -200%) scale(0);
+  transition: opacity 1000ms ease, filter 1000ms ease, transform 1000ms ease;
+}
+
+.providerTitle.isActive {
+  opacity: 1;
+  filter: none;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.providerAvatar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: block;
+  width: 383px;
+  height: 385px;
+  object-fit: contain;
+  opacity: 0;
+  transform: translate(200%, -200%) scale(0);
+  transform-origin: top right;
+  transition: opacity 1000ms ease, transform 1000ms ease;
+  pointer-events: none;
+}
+
+.providerAvatar.isActive {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+}
+
+.layout {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.filterPanel {
+  position: sticky;
+  top: 124px;
+  z-index: 3;
+  flex: 0 0 345px;
+  width: 345px;
+  min-width: 345px;
+  max-width: 345px;
+  height: fit-content;
+  overflow: hidden;
+  border-radius: 20px;
+  background: rgb(24 21 35);
+  text-align: center;
+  scrollbar-width: none;
+}
+
+.filterPanel::-webkit-scrollbar {
+  display: none;
+}
+
+.filterGlow {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  height: 60px;
+  border-radius: 20px;
+  background: radial-gradient(35% 90% at 50% 10%, rgb(187 91 234) 0%, rgb(24 21 35) 90%);
+  pointer-events: none;
+}
+
+.filterTitle {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 345px;
+  min-height: 60px;
+  padding: 20px;
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+}
+
+.filterTitle h2 {
+  width: 100%;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.filterStrip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 27px;
+  padding: 6px 16px;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgb(3 23 45 / 60%) -6.21%, rgb(187 91 234) 4.41%, rgb(3 23 45 / 60%) 83.01%);
+  font-size: 12px;
+  font-weight: 300;
+  opacity: .8;
+  transition: all 300ms ease;
+}
+
+.filterStrip strong {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filterStrip span {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.filterOptions {
+  display: flex;
+  flex-wrap: wrap;
+  height: 60px;
+  overflow: hidden;
+  padding: 8px 0;
+  transition: height 300ms ease;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 50%;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.checkbox {
+  position: relative;
+  display: block;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgb(55 49 71);
+  border-radius: 6px;
+  background: rgb(21 19 26);
+}
+
+.checkbox i {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  display: block;
+  width: 6px;
+  height: 10px;
+  border-right: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  transform: rotate(45deg);
+}
+
+.checkboxLabel input:checked + .checkbox {
+  border-color: rgb(154 0 195);
+  background: linear-gradient(180deg, rgb(148 79 232), rgb(118 0 168));
+  box-shadow: 0 0 12px rgb(154 0 195 / 34%);
+}
+
+.checkboxLabel input:checked + .checkbox i {
+  border-color: #fff;
+}
+
+.checkboxLabel > span:nth-of-type(2),
+.checkboxLabel small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.checkboxLabel small {
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.filterActions {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding: 16px;
+}
+
+.filterSummary,
+.clearButton {
+  width: 100%;
+  height: 48px;
+  border-radius: 6px;
+  background: rgb(24 21 35);
+}
+
+.filterSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border: 1px solid rgb(55 49 71);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 20px;
+}
+
+.filterSummary span,
+.filterSummary strong {
+  width: 50%;
+  font-weight: 300;
+}
+
+.filterSummary span {
+  text-align: left;
+}
+
+.filterSummary strong {
+  text-align: right;
+}
+
+.clearButton {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgb(154 0 195);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  cursor: pointer;
+  transition: background 180ms ease, box-shadow 180ms ease;
+}
+
+.clearButton:hover,
+.clearButton:focus-visible {
+  background: rgb(97 0 116 / 45%);
+  box-shadow: 0 0 16px rgb(154 0 195 / 24%);
+  outline: none;
+}
+
+.catalog {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 100%;
+}
+
+.catalog h1 {
+  margin: 0;
+  padding: 0 0 20px;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 40px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  width: 100%;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  min-width: 0;
+  padding: 5px 25px 5px 5px;
+}
+
+.cardMedia {
+  position: relative;
+  width: 100%;
+}
+
+.cardLink {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  aspect-ratio: 7 / 10;
+  background: rgb(24 21 35);
+  box-shadow: none;
+  transition: box-shadow 220ms ease, transform 220ms ease;
+}
+
+.cardLink img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: filter 300ms ease, transform 300ms ease;
+}
+
+.card:hover .cardLink,
+.cardLink:focus-visible {
+  box-shadow: 0 0 0 1px rgb(187 91 234 / 60%), 0 10px 24px rgb(0 0 0 / 30%);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.card:hover .cardLink img,
+.cardLink:focus-visible img {
+  filter: brightness(1.05);
+  transform: scale(1.025);
+}
+
+.card p {
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.newBadge {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  height: 17px;
+  padding: 0 6px;
+  border-radius: 4px;
+  color: #fff;
+  background: #00d719;
+  box-shadow: rgb(0 255 30 / 53%) 0 2px 5px;
+  pointer-events: none;
+  transform: translate(4px, 4px) scale(1.2);
+  transform-origin: top right;
+}
+
+.newBadge b {
+  margin-top: 1px;
+  font-size: 9.5px;
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1;
+}
+
+@media (max-width: 1380px) {
+  .filterPanel,
+  .filterTitle {
+    width: 320px;
+    min-width: 320px;
+    max-width: 320px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1160px) {
+  .filterPanel,
+  .filterTitle {
+    width: 285px;
+    min-width: 285px;
+    max-width: 285px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .providerAvatar {
+    right: -60px;
+    opacity: .72;
+  }
+}
+
+@media (max-width: 900px) {
+  .page {
+    min-height: 760px;
+    padding-top: 58px;
+  }
+
+  .backgroundStack {
+    height: 460px;
+  }
+
+  .providerBackground,
+  .baseBackground {
+    min-height: 460px;
+  }
+
+  .content {
+    width: min(100% - 16px, 760px);
+    padding-top: 14px;
+    padding-bottom: 42px;
+  }
+
+  .hero {
+    height: 124px;
+  }
+
+  .casinoLogo,
+  .providerTitle {
+    width: 270px;
+    height: 88px;
+  }
+
+  .providerAvatar {
+    display: none;
+  }
+
+  .layout {
+    display: block;
+  }
+
+  .filterPanel,
+  .filterTitle {
+    position: relative;
+    top: auto;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .filterPanel {
+    margin-bottom: 18px;
+  }
+
+  .filterTitle {
+    min-height: 54px;
+  }
+
+  .filterOptions {
+    height: auto;
+  }
+
+  .checkboxLabel {
+    width: 100%;
+  }
+
+  .catalog h1 {
+    padding-bottom: 14px;
+    font-size: 26px;
+    line-height: 34px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .card {
+    height: auto;
+    min-height: 236px;
+    padding: 5px 12px 12px 5px;
+  }
+}
+
+@media (max-width: 620px) {
+  .filterStrip {
+    gap: 8px;
+  }
+
+  .filterStrip span {
+    display: none;
+  }
+
+  .filterActions {
+    gap: 10px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card {
+    min-height: 224px;
+    padding-right: 8px;
+  }
+
+  .card p {
+    font-size: 13px;
+  }
+}
