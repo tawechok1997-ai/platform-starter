@@ -9,7 +9,7 @@ import {
   REFERENCE_PROVIDERS,
   type ReferenceAsset,
 } from '../reference-asset-catalog';
-import { V47_ASSETS, resolveV47Asset } from './v47-asset-map';
+import { V47_ASSETS } from './v47-asset-map';
 
 const PROJECT_FALLBACK_BANNERS: CmsContent['banners'] = REFERENCE_HERO_SLIDES.map((slide, index) => ({
   id: `fallback-banner-${index + 1}`,
@@ -85,31 +85,31 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
 
       <section className="v47-mobile-panel"><PanelTitle icon={V47_ASSETS.gameHit} title="Top 10 Popular Games" /><GameRail games={popular} fallback={REFERENCE_GAMES.slice(0, 6)} loading={isGamesLoading} message={gamesMessage} /></section>
       <section className="v47-mobile-panel"><PanelTitle icon={V47_ASSETS.mostOnline} title="Most online game" /><GameRail games={online} fallback={REFERENCE_GAMES.slice(4, 10)} /></section>
-      <section className="v47-mobile-panel"><PanelTitle icon={V47_ASSETS.classic} title="Classic games" /><GameRail games={classic} fallback={REFERENCE_GAMES.slice(10, 16)} /></section>
+      <section className="v47-mobile-panel"><PanelTitle icon={V47_ASSETS.gameHit} title="Classic games" /><GameRail games={classic} fallback={REFERENCE_GAMES.slice(10, 16)} /></section>
 
-      <section className="v47-mobile-panel v47-mobile-live"><PanelTitle icon={V47_ASSETS.live} title="Live Now" /><img src={V47_ASSETS.liveBackground} alt="Live games" onError={hideBrokenImage} /><strong>ถ่ายทอดสดตลอด 24 ชั่วโมง</strong><a href="/games">เล่นเลย</a></section>
+      <section className="v47-mobile-panel v47-mobile-live"><PanelTitle icon={V47_ASSETS.live} title="Live Now" /><img src={V47_ASSETS.fallbackHomeAssets.liveBackground} alt="Live games" onError={hideBrokenImage} /><strong>ถ่ายทอดสดตลอด 24 ชั่วโมง</strong><a href="/games">เล่นเลย</a></section>
 
       <section className="v47-mobile-mini-grid">
         <a href="/promotions" className="v47-mobile-mini-card"><img src={jackpot?.url || miniWheel?.url || V47_ASSETS.jackpot} alt="Jackpot" onError={hideBrokenImage} /><strong>แจ็คพอต</strong></a>
         <a href="/promotions" className="v47-mobile-mini-card"><img src={miniCard?.url || V47_ASSETS.tournament} alt="กิจกรรม" onError={hideBrokenImage} /><strong>กิจกรรม</strong></a>
       </section>
 
-      <section className="v47-mobile-panel"><PanelTitle icon={partner?.url || V47_ASSETS.partner} title="พันธมิตรของเรา" /><div className="v47-mobile-provider-grid">{(providers.length ? providers : REFERENCE_PROVIDERS).map((provider) => <span key={provider.name}><img src={provider.url} alt={provider.name} onError={hideBrokenImage} /></span>)}</div></section>
+      <section className="v47-mobile-panel"><PanelTitle icon={partner?.url || icons.affiliate || V47_ASSETS.openGold} title="พันธมิตรของเรา" /><div className="v47-mobile-provider-grid">{(providers.length ? providers : REFERENCE_PROVIDERS).map((provider) => <span key={provider.name}><img src={provider.url} alt={provider.name} onError={hideBrokenImage} /></span>)}</div></section>
 
-      <section className="v47-mobile-panel"><PanelTitle icon={V47_ASSETS.guide} title="คู่มือช่วยเหลือ" /><div className="v47-mobile-faq-list">{(faqs.length ? faqs : [{ question: 'สมัครสมาชิกอย่างไร', answer: 'กดสมัครสมาชิกและกรอกข้อมูลให้ครบถ้วน' }, { question: 'ฝากเงินอย่างไร', answer: 'เลือกเมนูฝากเงินและทำตามขั้นตอน' }, { question: 'ถอนเงินอย่างไร', answer: 'เลือกบัญชีธนาคารและระบุจำนวนเงิน' }]).map((faq, index) => <details key={`${faq.question}-${index}`}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}</div></section>
+      <section className="v47-mobile-panel"><PanelTitle icon={V47_ASSETS.mobileFaq} title="คู่มือช่วยเหลือ" /><div className="v47-mobile-faq-list">{(faqs.length ? faqs : [{ question: 'สมัครสมาชิกอย่างไร', answer: 'กดสมัครสมาชิกและกรอกข้อมูลให้ครบถ้วน' }, { question: 'ฝากเงินอย่างไร', answer: 'เลือกเมนูฝากเงินและทำตามขั้นตอน' }, { question: 'ถอนเงินอย่างไร', answer: 'เลือกบัญชีธนาคารและระบุจำนวนเงิน' }]).map((faq, index) => <details key={`${faq.question}-${index}`}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}</div></section>
     </section>
   );
 }
 
 function PromoTile({ href, image, background, title, subtitle }: { href: string; image: string; background: string; title: string; subtitle: string }) { return <a href={href} className="v47-mobile-promo-card"><img className="v47-mobile-promo-bg" src={background} alt="" aria-hidden="true" onError={hideBrokenImage} /><img className="v47-mobile-promo-icon" src={image} alt="" aria-hidden="true" onError={hideBrokenImage} /><span><strong>{title}</strong><small>{subtitle}</small></span></a>; }
 function PanelTitle({ icon, title, href }: { icon: string; title: string; href?: string }) { return <header className="v47-mobile-panel-title"><Icon value={icon} /><strong>{title}</strong>{href && <a href={href}>ดูทั้งหมด ›</a>}</header>; }
-function Icon({ value }: { value: string }) { return <span aria-hidden="true">{isImage(value) ? <img src={resolveV47Asset(value)} alt="" onError={hideBrokenImage} /> : value}</span>; }
+function Icon({ value }: { value: string }) { return <span aria-hidden="true">{isImage(value) ? <img src={value} alt="" onError={hideBrokenImage} /> : value}</span>; }
 function GameRail({ games, fallback, loading = false, message = '' }: { games: Game[]; fallback: readonly ReferenceAsset[]; loading?: boolean; message?: string }) { if (loading) return <p className="v47-mobile-empty">กำลังโหลดเกม...</p>; const items = games.length ? games.slice(0, 8).map((game) => ({ name: safeGameName(game), url: resolveGameImage(game) || fallbackForGame(game) })) : fallback; return <>{message && !games.length ? <p className="v47-mobile-empty">{message}</p> : null}<div className="v47-mobile-game-rail">{items.map((item, index) => <a key={`${item.name}-${index}`} href="/games"><img src={item.url} alt={item.name} onError={(event) => swapBrokenImage(event, fallback[index % fallback.length]?.url || REFERENCE_GAMES[0]!.url)} /><strong>{item.name}</strong></a>)}</div></>; }
 function uniqueGames(...groups: Game[][]) { const seen = new Set<string>(); return groups.flat().filter((game) => { const key = String(game?.id || game?.providerGameCode || game?.name || ''); if (!key || seen.has(key)) return false; seen.add(key); return true; }); }
 function fillGames(primary: Game[], pool: Game[], count: number) { return uniqueGames(primary, pool).slice(0, count); }
 function uniqueProviders(games: Game[]) { const seen = new Set<string>(); return games.map((game) => ({ name: game.provider?.name || game.provider?.code || '', url: game.provider?.logoUrl || '' })).filter((item) => { const key = `${item.name}:${item.url}`; if (!item.name || !item.url || seen.has(key)) return false; seen.add(key); return true; }); }
 function safeGameName(game: Game) { return String(game?.name || game?.providerGameCode || 'เกม'); }
-function resolveGameImage(game: Game) { const asset = game?.media?.find((item) => item?.enabled && item.type === 'image' && item.url); return String(game?.imageUrl || asset?.url || game?.provider?.logoUrl || ''); }
+function resolveGameImage(game: Game) { const asset = game?.media?.find((item) => item?.type === 'image' && (item.cachedUrl || item.sourceUrl)); return String(game?.imageUrl || asset?.cachedUrl || asset?.sourceUrl || game?.provider?.logoUrl || ''); }
 function fallbackForGame(game: Game) { const seed = `${game?.id || ''}:${game?.providerGameCode || ''}:${safeGameName(game)}`; let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0; return REFERENCE_GAMES[Math.abs(hash) % REFERENCE_GAMES.length]!.url; }
 function findAsset(content: CmsContent, aliases: string[]) { const normalized = aliases.map(normalize); return (Array.isArray(content.assets) ? content.assets : []).find((asset) => { if (!asset?.enabled || asset.type !== 'image' || !asset.url) return false; const haystack = normalize(`${asset.id} ${asset.name} ${asset.tag || ''} ${asset.url}`); return normalized.some((alias) => haystack.includes(alias)); }); }
 function resolveCmsAssetById(content: CmsContent, assetId?: string) { if (!assetId) return ''; return content.assets.find((asset) => asset.id === assetId && asset.enabled)?.url || ''; }
