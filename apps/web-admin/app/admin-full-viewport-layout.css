@@ -15,7 +15,8 @@ body[data-app-surface='admin'] {
   margin: 0;
 }
 
-.admin-app-state {
+.admin-app-state,
+.admin-loading-screen {
   position: fixed !important;
   inset: 0 !important;
   z-index: 2000;
@@ -60,6 +61,33 @@ body[data-app-surface='admin'] {
   max-width: none !important;
   min-width: 0 !important;
   margin-inline: 0 !important;
+}
+
+/* Data-heavy pages must use the whole card instead of leaving a decorative empty half. */
+.admin-content-shell :where(
+  .admin-ui-card,
+  .admin-ui-table,
+  .admin-ui-data-table,
+  [class*='desktopScroller'],
+  [class*='tableWrap'],
+  [class*='tableContainer'],
+  [class*='dataTable']
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+.admin-content-shell :where(section, article, div):has(> table) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+.admin-content-shell table {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: none !important;
 }
 
 /* A two-column dashboard group must not reserve an empty second column. */

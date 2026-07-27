@@ -7,7 +7,6 @@ export type AdminNavItem = {
   permissions?: readonly string[];
   permissionTargets?: readonly { href: string; permissions: readonly string[] }[];
   badgeKey?: 'topups' | 'withdrawals' | 'pending';
-  /** Keep specialist routes available through Command Palette and deep links, but out of the daily sidebar. */
   sidebar?: boolean;
 };
 
@@ -35,9 +34,9 @@ export function localizedNavGroupDescription(group: Pick<AdminNavGroup, 'descrip
 }
 
 /**
- * The sidebar exposes eleven task-oriented workspaces. Specialist pages remain
- * searchable in the command palette and keep their existing URLs and permission
- * contracts, so navigation can be simplified without a risky route migration.
+ * The sidebar exposes every permission-allowed operational route. Groups remain
+ * collapsible and searchable so specialist tools are discoverable without losing
+ * the task-oriented structure of the workspace.
  */
 export const navGroups: readonly AdminNavGroup[] = [
   {
@@ -48,8 +47,8 @@ export const navGroups: readonly AdminNavGroup[] = [
     descriptionEn: 'System status and urgent work',
     items: [
       { title: 'ศูนย์บัญชาการ', titleEn: 'Command center', href: '/dashboard', badgeKey: 'pending' },
-      { title: 'งานที่ต้องตรวจ', titleEn: 'Review queue', href: '/operations', badgeKey: 'pending', sidebar: false },
-      { title: 'กิจกรรมล่าสุด', titleEn: 'Activity center', href: '/activity-center', permissions: ['admin.view', 'admin.access.view', 'risk.view', 'reports.view'], sidebar: false },
+      { title: 'งานที่ต้องตรวจ', titleEn: 'Review queue', href: '/operations', badgeKey: 'pending' },
+      { title: 'กิจกรรมล่าสุด', titleEn: 'Activity center', href: '/activity-center', permissions: ['admin.view', 'admin.access.view', 'risk.view', 'reports.view'] },
     ],
   },
   {
@@ -74,43 +73,43 @@ export const navGroups: readonly AdminNavGroup[] = [
         ],
         badgeKey: 'pending',
       },
-      { title: 'รายการถอน', titleEn: 'Withdrawals', href: '/withdrawals', permissions: ['withdraw.view'], badgeKey: 'withdrawals', sidebar: false },
-      { title: 'จัดการหลายรายการ', titleEn: 'Bulk review', href: '/bulk-queue-operations', permissions: ['topups.view', 'deposit.view', 'withdraw.view'], sidebar: false },
-      { title: 'กระเป๋าเงินสมาชิก', titleEn: 'Member wallets', href: '/wallets', permissions: ['wallet.view'], sidebar: false },
-      { title: 'ประวัติยอดเงิน', titleEn: 'Wallet ledger', href: '/wallet-ledgers', permissions: ['wallet.view'], sidebar: false },
-      { title: 'รายการเดินบัญชี', titleEn: 'Wallet statement', href: '/wallet-statement', permissions: ['wallet.view'], sidebar: false },
-      { title: 'วิเคราะห์กระเป๋าเงิน', titleEn: 'Wallet analytics', href: '/wallet-analytics', permissions: ['wallet.view', 'reports.view'], sidebar: false },
-      { title: 'กระทบยอด', titleEn: 'Reconciliation', href: '/reconciliation-center', permissions: ['game.providers.view', 'provider.view'], sidebar: false },
-      { title: 'รายงานการเงิน', titleEn: 'Finance reports', href: '/reports', permissions: ['reports.view'], sidebar: false },
-      { title: 'ส่งออกรายงาน', titleEn: 'Exports', href: '/exports', permissions: ['reports.export', 'reports.view'], sidebar: false },
+      { title: 'รายการถอน', titleEn: 'Withdrawals', href: '/withdrawals', permissions: ['withdraw.view'], badgeKey: 'withdrawals' },
+      { title: 'จัดการหลายรายการ', titleEn: 'Bulk review', href: '/bulk-queue-operations', permissions: ['topups.view', 'deposit.view', 'withdraw.view'] },
+      { title: 'กระเป๋าเงินสมาชิก', titleEn: 'Member wallets', href: '/wallets', permissions: ['wallet.view'] },
+      { title: 'ประวัติยอดเงิน', titleEn: 'Wallet ledger', href: '/wallet-ledgers', permissions: ['wallet.view'] },
+      { title: 'รายการเดินบัญชี', titleEn: 'Wallet statement', href: '/wallet-statement', permissions: ['wallet.view'] },
+      { title: 'วิเคราะห์กระเป๋าเงิน', titleEn: 'Wallet analytics', href: '/wallet-analytics', permissions: ['wallet.view', 'reports.view'] },
+      { title: 'กระทบยอด', titleEn: 'Reconciliation', href: '/reconciliation-center', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'รายงานการเงิน', titleEn: 'Finance reports', href: '/reports', permissions: ['reports.view'] },
+      { title: 'ส่งออกรายงาน', titleEn: 'Exports', href: '/exports', permissions: ['reports.export', 'reports.view'] },
 
       { title: 'สมาชิก', titleEn: 'Members', href: '/members', permissions: ['users.view'] },
-      { title: 'ข้อมูลเชิงลึกสมาชิก', titleEn: 'Member insights', href: '/member-insights', permissions: ['users.view'], sidebar: false },
-      { title: 'บัญชีธนาคาร', titleEn: 'Bank accounts', href: '/bank-accounts', permissions: ['users.view', 'deposit.view'], sidebar: false },
-      { title: 'ตรวจ KYC', titleEn: 'KYC review', href: '/kyc-center', permissions: ['users.view', 'risk.view'], sidebar: false },
-      { title: 'ช่วยเหลือสมาชิก', titleEn: 'Support', href: '/support-center', permissions: ['users.view'], sidebar: false },
+      { title: 'ข้อมูลเชิงลึกสมาชิก', titleEn: 'Member insights', href: '/member-insights', permissions: ['users.view'] },
+      { title: 'บัญชีธนาคาร', titleEn: 'Bank accounts', href: '/bank-accounts', permissions: ['users.view', 'deposit.view'] },
+      { title: 'ตรวจ KYC', titleEn: 'KYC review', href: '/kyc-center', permissions: ['users.view', 'risk.view'] },
+      { title: 'ช่วยเหลือสมาชิก', titleEn: 'Support', href: '/support-center', permissions: ['users.view'] },
 
       { title: 'ความเสี่ยงและกำกับดูแล', titleEn: 'Risk & compliance', href: '/risk-alerts', permissions: ['risk.view'] },
-      { title: 'ตรวจความเสี่ยงค่ายเกม', titleEn: 'Provider risk', href: '/provider-risk', permissions: ['risk.view', 'provider.view'], sidebar: false },
-      { title: 'ตรวจบันทึกความเสี่ยง', titleEn: 'Risk audit', href: '/audit-risk', permissions: ['risk.view'], sidebar: false },
+      { title: 'ตรวจความเสี่ยงค่ายเกม', titleEn: 'Provider risk', href: '/provider-risk', permissions: ['risk.view', 'provider.view'] },
+      { title: 'ตรวจบันทึกความเสี่ยง', titleEn: 'Risk audit', href: '/audit-risk', permissions: ['risk.view'] },
 
       { title: 'ปฏิบัติการค่ายเกม', titleEn: 'Provider operations', href: '/provider-health', permissions: ['game.providers.view', 'provider.view'] },
-      { title: 'ตั้งค่าค่ายเกม', titleEn: 'Provider setup', href: '/simple-game-settings', permissions: ['game.providers.manage', 'provider.update'], sidebar: false },
-      { title: 'เพิ่มค่ายเกม', titleEn: 'Add provider', href: '/provider-setup-wizard', permissions: ['game.providers.manage', 'provider.update'], sidebar: false },
-      { title: 'ชุดตั้งค่าค่ายเกม', titleEn: 'Provider presets', href: '/provider-presets', permissions: ['game.providers.manage', 'provider.update'], sidebar: false },
-      { title: 'ค่ายเกมทั้งหมด', titleEn: 'Game providers', href: '/game-providers', permissions: ['game.providers.view', 'provider.view'], sidebar: false },
-      { title: 'ข้อมูลเชื่อมต่อค่ายเกม', titleEn: 'Provider credentials', href: '/provider-credentials', permissions: ['provider.update', 'game.providers.manage'], sidebar: false },
-      { title: 'บันทึก Webhook', titleEn: 'Webhook logs', href: '/webhook-logs', permissions: ['game.providers.view'], sidebar: false },
-      { title: 'ตัวเชื่อมต่อค่ายเกม', titleEn: 'Provider adapters', href: '/provider-adapters', permissions: ['game.providers.view', 'provider.view'], sidebar: false },
-      { title: 'ยอดเงินฝั่งค่ายเกม', titleEn: 'Provider wallet snapshots', href: '/provider-wallet-snapshots', permissions: ['game.providers.view', 'provider.view'], sidebar: false },
-      { title: 'กระทบยอด Webhook', titleEn: 'Webhook settlement', href: '/webhook-settlement', permissions: ['provider.view', 'game.providers.view'], sidebar: false },
-      { title: 'ทดสอบ Webhook', titleEn: 'Webhook test', href: '/webhook-test', permissions: ['provider.update', 'game.providers.manage'], sidebar: false },
-      { title: 'ทดสอบ API ค่ายเกม', titleEn: 'Provider API test', href: '/adapter-test', permissions: ['provider.update', 'game.providers.manage'], sidebar: false },
-      { title: 'ตั้งค่า API แบบเดิม', titleEn: 'Legacy API settings', href: '/game-api-settings', permissions: ['provider.update'], sidebar: false },
+      { title: 'ตั้งค่าค่ายเกม', titleEn: 'Provider setup', href: '/simple-game-settings', permissions: ['game.providers.manage', 'provider.update'] },
+      { title: 'เพิ่มค่ายเกม', titleEn: 'Add provider', href: '/provider-setup-wizard', permissions: ['game.providers.manage', 'provider.update'] },
+      { title: 'ชุดตั้งค่าค่ายเกม', titleEn: 'Provider presets', href: '/provider-presets', permissions: ['game.providers.manage', 'provider.update'] },
+      { title: 'ค่ายเกมทั้งหมด', titleEn: 'Game providers', href: '/game-providers', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'ข้อมูลเชื่อมต่อค่ายเกม', titleEn: 'Provider credentials', href: '/provider-credentials', permissions: ['provider.update', 'game.providers.manage'] },
+      { title: 'บันทึก Webhook', titleEn: 'Webhook logs', href: '/webhook-logs', permissions: ['game.providers.view'] },
+      { title: 'ตัวเชื่อมต่อค่ายเกม', titleEn: 'Provider adapters', href: '/provider-adapters', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'ยอดเงินฝั่งค่ายเกม', titleEn: 'Provider wallet snapshots', href: '/provider-wallet-snapshots', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'กระทบยอด Webhook', titleEn: 'Webhook settlement', href: '/webhook-settlement', permissions: ['provider.view', 'game.providers.view'] },
+      { title: 'ทดสอบ Webhook', titleEn: 'Webhook test', href: '/webhook-test', permissions: ['provider.update', 'game.providers.manage'] },
+      { title: 'ทดสอบ API ค่ายเกม', titleEn: 'Provider API test', href: '/adapter-test', permissions: ['provider.update', 'game.providers.manage'] },
+      { title: 'ตั้งค่า API แบบเดิม', titleEn: 'Legacy API settings', href: '/game-api-settings', permissions: ['provider.update'] },
 
       { title: 'เกม', titleEn: 'Games', href: '/games', permissions: ['game.providers.view', 'provider.view'] },
-      { title: 'เซสชันเกม', titleEn: 'Game sessions', href: '/game-sessions', permissions: ['game.providers.view', 'provider.view'], sidebar: false },
-      { title: 'รายการโอนเงินเกม', titleEn: 'Game transfers', href: '/game-transfers', permissions: ['game.providers.view', 'provider.view'], sidebar: false },
+      { title: 'เซสชันเกม', titleEn: 'Game sessions', href: '/game-sessions', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'รายการโอนเงินเกม', titleEn: 'Game transfers', href: '/game-transfers', permissions: ['game.providers.view', 'provider.view'] },
     ],
   },
   {
@@ -121,13 +120,13 @@ export const navGroups: readonly AdminNavGroup[] = [
     descriptionEn: 'Promotions, affiliates, and content',
     items: [
       { title: 'การเติบโตและโปรโมชัน', titleEn: 'Growth & promotions', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
-      { title: 'งานโปรโมชัน', titleEn: 'Promotion operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'], sidebar: false },
-      { title: 'โปรโมชันและโบนัส', titleEn: 'Promotions & bonuses', href: '/promotion-center', permissions: ['promotion.view'], sidebar: false },
-      { title: 'คำขอรับโปรโมชัน', titleEn: 'Promotion claims', href: '/promotion-claims', permissions: ['promotions.claims.view'], sidebar: false },
-      { title: 'โบนัสย้อนหลัง', titleEn: 'Bonus ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'], sidebar: false },
+      { title: 'งานโปรโมชัน', titleEn: 'Promotion operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'] },
+      { title: 'โปรโมชันและโบนัส', titleEn: 'Promotions & bonuses', href: '/promotion-center', permissions: ['promotion.view'] },
+      { title: 'คำขอรับโปรโมชัน', titleEn: 'Promotion claims', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
+      { title: 'โบนัสย้อนหลัง', titleEn: 'Bonus ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
 
       { title: 'Affiliate และคอมมิชชัน', titleEn: 'Affiliate & commission', href: '/affiliate-center', permissions: ['affiliate.view'] },
-      { title: 'ประวัติคอมมิชชัน', titleEn: 'Commission ledger', href: '/commission-ledgers', permissions: ['commission.view'], sidebar: false },
+      { title: 'ประวัติคอมมิชชัน', titleEn: 'Commission ledger', href: '/commission-ledgers', permissions: ['commission.view'] },
 
       { title: 'เนื้อหาและสื่อ', titleEn: 'Content & assets', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
     ],
@@ -140,11 +139,11 @@ export const navGroups: readonly AdminNavGroup[] = [
     descriptionEn: 'Accounts, access, security, and settings',
     items: [
       { title: 'สิทธิ์และความปลอดภัย', titleEn: 'Access & security', href: '/admin-accounts', permissions: ['admin.view', 'admin.access.view'] },
-      { title: 'บทบาทและสิทธิ์', titleEn: 'Roles & permissions', href: '/admin-roles', permissions: ['admin.access.view'], sidebar: false },
-      { title: 'คำเชิญผู้ดูแล', titleEn: 'Admin invitations', href: '/admin-invitations', permissions: ['admin.create'], sidebar: false },
-      { title: 'บันทึกการใช้งาน', titleEn: 'Audit log', href: '/audit', permissions: ['admin.view', 'admin.access.view'], sidebar: false },
-      { title: 'ความปลอดภัย', titleEn: 'Security', href: '/security', sidebar: false },
-      { title: 'CAPTCHA และป้องกันบอต', titleEn: 'CAPTCHA & bot protection', href: '/anti-bot', permissions: ['security.anti_bot.view'], sidebar: false },
+      { title: 'บทบาทและสิทธิ์', titleEn: 'Roles & permissions', href: '/admin-roles', permissions: ['admin.access.view'] },
+      { title: 'คำเชิญผู้ดูแล', titleEn: 'Admin invitations', href: '/admin-invitations', permissions: ['admin.create'] },
+      { title: 'บันทึกการใช้งาน', titleEn: 'Audit log', href: '/audit', permissions: ['admin.view', 'admin.access.view'] },
+      { title: 'ความปลอดภัย', titleEn: 'Security', href: '/security' },
+      { title: 'CAPTCHA และป้องกันบอต', titleEn: 'CAPTCHA & bot protection', href: '/anti-bot', permissions: ['security.anti_bot.view'] },
 
       { title: 'การตั้งค่า', titleEn: 'Settings', href: '/settings', permissions: ['settings.update', 'settings.website.view'] },
     ],
