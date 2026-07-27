@@ -85,12 +85,12 @@ test('branding workflow uses the existing Admin design-system primitives', () =>
 
 test('branding asset lifecycle keeps the shared upload transport and safe restore controls', () => {
   assert.match(settingsSectionSource, /\/admin\/settings\/cms-assets/);
-  assert.match(settingsSectionSource, /Upload/);
-  assert.match(settingsSectionSource, /Replace/);
-  assert.match(settingsSectionSource, /Disable/);
-  assert.match(settingsSectionSource, /Restore/);
+  assert.match(settingsSectionSource, /Upload|อัปโหลด/);
+  assert.match(settingsSectionSource, /Replace|เปลี่ยนไฟล์/);
+  assert.match(settingsSectionSource, /Disable|ปิดใช้งาน/);
+  assert.match(settingsSectionSource, /Restore|คืนค่าเดิม/);
   assert.match(settingsSectionSource, /disabled_url/);
-  assert.match(settingsSectionSource, /Save Changes/);
+  assert.match(settingsSectionSource, /Save Changes|บันทึกการตั้งค่า/);
 });
 
 test('full-page branding preview supports desktop tablet and mobile contracts', () => {
