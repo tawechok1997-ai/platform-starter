@@ -1,14 +1,14 @@
-/* Partner/provider strip matched to the supplied NOAH345 desktop reference. */
+/* Exact alliance strip contract from the supplied NOAH345 source DOM. */
 @media (min-width: 901px) {
   .desktop-reference-home .reference-provider-strip {
     position: relative !important;
-    z-index: 2 !important;
+    z-index: 10 !important;
     display: block !important;
-    width: min(1455px, calc(100vw - 32px)) !important;
-    max-width: 1455px !important;
-    min-height: 205px !important;
-    margin: 28px 0 0 !important;
-    padding: 34px 0 36px !important;
+    width: min(1440px, calc(100vw - 32px)) !important;
+    max-width: 1440px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 64px 0 40px !important;
     overflow: visible !important;
     border: 0 !important;
     background: #110e16 !important;
@@ -18,12 +18,12 @@
 
   .desktop-reference-home .reference-provider-strip h2 {
     display: block !important;
-    margin: 0 0 27px !important;
+    margin: 0 0 20px !important;
     padding: 0 !important;
     color: #fff !important;
     font-size: 20px !important;
-    font-weight: 700 !important;
-    line-height: 1.3 !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
   }
 
   .desktop-reference-home .reference-provider-strip h2 .reference-heading-icon {
@@ -31,16 +31,13 @@
   }
 
   .desktop-reference-home .reference-provider-rows {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
     width: 100% !important;
-    min-height: 60px !important;
     margin: 0 !important;
     padding: 0 !important;
+    gap: 0 !important;
     overflow: visible !important;
-    opacity: 1 !important;
-    visibility: visible !important;
   }
 
   .desktop-reference-home .reference-provider-row {
@@ -50,11 +47,9 @@
     width: 100% !important;
     min-height: 24px !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 12px 0 0 !important;
     gap: 20px !important;
     overflow: visible !important;
-    opacity: 1 !important;
-    visibility: visible !important;
     scrollbar-width: none !important;
   }
 
@@ -77,12 +72,13 @@
     height: 24px !important;
     min-height: 24px !important;
     margin: 0 !important;
-    padding: 4px 9px !important;
+    padding: 7px 0 !important;
     overflow: hidden !important;
+    box-sizing: border-box !important;
     border: 0 !important;
     border-radius: 5px !important;
     background: #27232d !important;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%) !important;
+    box-shadow: none !important;
     opacity: 1 !important;
     visibility: visible !important;
   }
@@ -91,13 +87,13 @@
     position: relative !important;
     z-index: 2 !important;
     display: block !important;
-    width: 100% !important;
-    max-width: 78px !important;
-    height: 14px !important;
-    max-height: 14px !important;
-    margin: 0 !important;
+    width: auto !important;
+    max-width: 82px !important;
+    height: 10px !important;
+    max-height: 10px !important;
+    margin: 0 auto !important;
     object-fit: contain !important;
-    filter: grayscale(1) brightness(3.5) contrast(1.15) !important;
+    filter: none !important;
     opacity: 1 !important;
     visibility: visible !important;
   }
@@ -108,30 +104,48 @@
     z-index: 1 !important;
     display: grid !important;
     place-items: center !important;
-    width: 100% !important;
-    height: 100% !important;
     padding: 0 5px !important;
-    overflow: hidden !important;
     color: #f4eef7 !important;
-    font-size: 9px !important;
-    font-weight: 800 !important;
+    font-size: 8px !important;
+    font-weight: 700 !important;
     line-height: 1 !important;
     text-align: center !important;
-    text-overflow: ellipsis !important;
     white-space: nowrap !important;
     opacity: 0 !important;
     visibility: hidden !important;
   }
 
-  /* The component hides a broken image inline. Reveal its exact provider name
-     instead of substituting an unrelated logo. */
   .desktop-reference-home .reference-provider-logo img[style*="display: none"] + small {
     z-index: 3 !important;
     opacity: 1 !important;
     visibility: visible !important;
   }
 
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(n + 12) {
-    display: none !important;
-  }
+  /* First row: 12 exact logos. */
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(1) img { content: url("https://noah345.shop/images/alliance/evoplay.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(2) img { content: url("https://noah345.shop/images/alliance/cq9.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(3) img { content: url("https://noah345.shop/images/alliance/jili.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(4) img { content: url("https://noah345.shop/images/alliance/playstar.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(5) img { content: url("https://noah345.shop/images/alliance/joker.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(6) img { content: url("https://noah345.shop/images/alliance/ebet.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(7) img { content: url("https://noah345.shop/images/alliance/popk.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(8) img { content: url("https://noah345.shop/images/alliance/evoplay.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(9) img { content: url("https://noah345.shop/images/alliance/cq9.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(10) img { content: url("https://noah345.shop/images/alliance/jili.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(11) img { content: url("https://noah345.shop/images/alliance/playstar.webp") !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(12) img { content: url("https://noah345.shop/images/alliance/joker.webp") !important; }
+
+  /* Second row: 11 exact logos, centered. */
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(1) img { content: url("https://noah345.shop/images/alliance/jili.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(2) img { content: url("https://noah345.shop/images/alliance/playstar.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(3) img { content: url("https://noah345.shop/images/alliance/evoplay.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(4) img { content: url("https://noah345.shop/images/alliance/ebet.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(5) img { content: url("https://noah345.shop/images/alliance/popk.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(6) img { content: url("https://noah345.shop/images/alliance/cq9.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(7) img { content: url("https://noah345.shop/images/alliance/evoplay.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(8) img { content: url("https://noah345.shop/images/alliance/jili.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(9) img { content: url("https://noah345.shop/images/alliance/playstar.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(10) img { content: url("https://noah345.shop/images/alliance/joker.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(11) img { content: url("https://noah345.shop/images/alliance/evoplay.webp") !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(n + 12) { display: none !important; }
 }
