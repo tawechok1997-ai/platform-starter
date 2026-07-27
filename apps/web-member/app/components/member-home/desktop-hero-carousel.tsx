@@ -52,23 +52,20 @@ const IMAGE_RETRY_LIMIT = 2;
 
 // Exact ten-slide order from the latest inspected NOAH345 desktop Swiper.
 const SOURCE_IMAGE_URLS = [
-  'https://cdn.zabbet.com/FEZX/imageslides/1784894399570-2ba3393c-2988-4971-834b-86bbe275d0bb.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1784894972162-da9eaece-7402-4bb6-813f-7a83dc2925c2.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1784895027990-67f1beb1-8c13-4582-b6ff-dbb647773c9a.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1784895081838-4f8ccf22-9b17-4157-900f-0b78f883d69d.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1784895118089-b5159a76-a1b4-491e-81d0-e0d3f27d3818.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1784470530271-94bf2de8-a759-4e02-8af9-bbd08a398208.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1782914061717-d7de2072-63f1-4dd5-95f6-8628990ba631.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1782990586367-b41e5c36-0d4d-4e7c-80ed-bb145a2e3a77.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1780250534847-0b47bd80-15a3-4117-bdd3-f383308509bc.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1778979600098-3be41f05-c93f-4c12-b278-54cfe390de4c.jpg',
+  '/assets/asset-pc/images/FEZX/imageslides/1778979600098-3be41f05-c93f-4c12-b278-54cfe390de4c.jpg',
+  '/assets/asset-pc/images/FEZX/imageslides/1780250534847-0b47bd80-15a3-4117-bdd3-f383308509bc.jpg',
+  '/assets/asset-pc/images/FEZX/imageslides/1782630857612-4098241f-e70d-4a32-b41b-623d74b974b6.jpg',
+  '/assets/asset-pc/images/FEZX/imageslides/1782914061717-d7de2072-63f1-4dd5-95f6-8628990ba631.jpg',
+  '/assets/asset-pc/images/FEZX/imageslides/1782990586367-b41e5c36-0d4d-4e7c-80ed-bb145a2e3a77.jpg',
+  '/assets/asset-pc/images/FEZX/imageslides/1783665647358-f637b660-a3e9-46e3-989d-a62654566985.jpg',
+  '/assets/asset-pc/images/FEZX/imageslides/1784196704798-2fc7e5da-8d52-42a1-8a40-4f0f0465a264.jpg',
 ] as const;
 
 const SOURCE_BANNERS: CmsBanner[] = SOURCE_IMAGE_URLS.map((imageUrl, index) => ({
   title: `NOAH345 Banner ${String(index + 1).padStart(2, '0')}`,
   subtitle: 'NOAH345',
   imageUrl,
-  href: index === 9 ? '/browse/promotions' : '/',
+  href: index === SOURCE_IMAGE_URLS.length - 1 ? '/browse/promotions' : '/',
   enabled: true,
 }));
 
@@ -87,11 +84,14 @@ const MISSING_ASSET_STYLE: CSSProperties = {
   textAlign: 'center',
 };
 
-export function DesktopHeroCarousel({ siteName, showPromotion }: DesktopHeroCarouselProps) {
-  const slides = useMemo<HeroSlide[]>(
-    () => SOURCE_BANNERS.map((banner, realIndex) => ({ banner, imageUrl: banner.imageUrl, realIndex })),
-    [],
-  );
+export function DesktopHeroCarousel({ content, siteName, showPromotion }: DesktopHeroCarouselProps) {
+  const slides = useMemo<HeroSlide[]>(() => {
+    const cmsBanners = Array.isArray(content?.banners)
+      ? content.banners.filter((banner) => banner?.enabled !== false && typeof banner?.imageUrl === 'string' && banner.imageUrl.trim())
+      : [];
+    const banners = cmsBanners.length ? cmsBanners : SOURCE_BANNERS;
+    return banners.map((banner, realIndex) => ({ banner, imageUrl: banner.imageUrl, realIndex }));
+  }, [content]);
   const realCount = slides.length;
   const loopSlides = useMemo(() => [...slides, ...slides, ...slides], [slides]);
   const [virtualIndex, setVirtualIndex] = useState(realCount + SOURCE_INITIAL_SLIDE_INDEX);
