@@ -4,13 +4,17 @@ on:
   push:
     branches:
       - fix/admin-professional-hierarchy-rbac
+  pull_request:
+    paths:
+      - 'apps/web-admin/**'
+      - '.github/workflows/admin-functional-capability-audit.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: admin-functional-capability-audit-${{ github.ref }}
+  group: admin-functional-capability-audit-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
