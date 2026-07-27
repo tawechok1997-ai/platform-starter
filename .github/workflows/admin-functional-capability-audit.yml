@@ -1,0 +1,43 @@
+name: Admin Functional Capability Audit
+
+on:
+  push:
+    branches:
+      - fix/admin-professional-hierarchy-rbac
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-functional-capability-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Generate route registry
+        run: pnpm --filter @platform/web-admin inventory:admin-routes
+      - name: Audit functional capability coverage
+        run: node --import tsx apps/web-admin/tools/audit-admin-capabilities.mjs
+      - name: Upload Admin capability report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-functional-capability-audit
+          path: |
+            docs/admin-functional-audit.generated.json
+            docs/admin-functional-audit.generated.md
+          if-no-files-found: error
+          retention-days: 14
