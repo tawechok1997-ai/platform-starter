@@ -9,6 +9,7 @@ const viewportCss = readFileSync(path.join(appDir, 'admin-full-viewport-layout.c
 const professionalCss = readFileSync(path.join(appDir, 'admin-professional-authority.css'), 'utf8');
 const permanentSidebarCss = readFileSync(path.join(appDir, 'admin-permanent-sidebar.css'), 'utf8');
 const staticGroupsCss = readFileSync(path.join(appDir, 'admin-static-sidebar-groups.css'), 'utf8');
+const smartAccordionCss = readFileSync(path.join(appDir, 'admin-sidebar-smart-accordion.css'), 'utf8');
 const dataPageCss = readFileSync(path.join(appDir, 'admin-data-page-layout.css'), 'utf8');
 const universalFullWidthCss = readFileSync(path.join(appDir, 'admin-universal-full-width.css'), 'utf8');
 const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'layout.tsx'), 'utf8');
@@ -24,6 +25,7 @@ const viewportImport = "import './admin-full-viewport-layout.css'";
 const professionalImport = "import './admin-professional-authority.css'";
 const permanentSidebarImport = "import './admin-permanent-sidebar.css'";
 const staticGroupsImport = "import './admin-static-sidebar-groups.css'";
+const smartAccordionImport = "import './admin-sidebar-smart-accordion.css'";
 const dataPageImport = "import './admin-data-page-layout.css'";
 const universalFullWidthImport = "import './admin-universal-full-width.css'";
 
@@ -37,6 +39,7 @@ test('loads Admin presentation authorities in stable override order', () => {
   const professionalIndex = layout.indexOf(professionalImport);
   const permanentSidebarIndex = layout.indexOf(permanentSidebarImport);
   const staticGroupsIndex = layout.indexOf(staticGroupsImport);
+  const smartAccordionIndex = layout.indexOf(smartAccordionImport);
   const dataPageIndex = layout.indexOf(dataPageImport);
   const universalFullWidthIndex = layout.indexOf(universalFullWidthImport);
 
@@ -49,7 +52,8 @@ test('loads Admin presentation authorities in stable override order', () => {
   assert.ok(professionalIndex > viewportIndex);
   assert.ok(permanentSidebarIndex > professionalIndex);
   assert.ok(staticGroupsIndex > permanentSidebarIndex);
-  assert.ok(dataPageIndex > staticGroupsIndex);
+  assert.ok(smartAccordionIndex > staticGroupsIndex);
+  assert.ok(dataPageIndex > smartAccordionIndex);
   assert.ok(universalFullWidthIndex > dataPageIndex);
   assert.equal(layout.slice(universalFullWidthIndex + universalFullWidthImport.length).includes("import './admin-"), false);
 });
@@ -71,13 +75,16 @@ test('uses underline locale tabs instead of an input-looking language box', () =
   assert.match(protectedLayout, /changeLocale\('en'\)/);
 });
 
-test('keeps the desktop sidebar and its permission-filtered groups permanently expanded', () => {
+test('keeps the desktop sidebar permanent while submenus follow the active route', () => {
   assert.match(permanentSidebarCss, /\.admin-collapse-button[\s\S]*display: none !important/);
   assert.match(permanentSidebarCss, /\.admin-shell--collapsed[\s\S]*padding-left: var\(--admin-shell-sidebar-width\) !important/);
-  assert.match(staticGroupsCss, /\.admin-nav-group__trigger[\s\S]*pointer-events: none !important/);
-  assert.match(staticGroupsCss, /\.admin-nav-group__chevron[\s\S]*display: none !important/);
-  assert.match(staticGroupsCss, /\.admin-nav-submenu\[data-open='false'\][\s\S]*grid-template-rows: minmax\(0, 1fr\) !important/);
-  assert.match(staticGroupsCss, /Rebalance the footer after removing the collapse control/);
+  assert.match(staticGroupsCss, /Permanent Admin navigation groups/);
+  assert.match(smartAccordionCss, /Route-aware Admin sidebar accordion/);
+  assert.match(smartAccordionCss, /\.admin-nav-group__trigger[\s\S]*pointer-events: auto !important/);
+  assert.match(smartAccordionCss, /\.admin-nav-group__chevron[\s\S]*display: inline-flex !important/);
+  assert.match(smartAccordionCss, /\.admin-nav-submenu\[data-open='false'\][\s\S]*grid-template-rows: 0fr !important/);
+  assert.match(smartAccordionCss, /\.admin-nav-submenu\[data-open='true'\][\s\S]*grid-template-rows: minmax\(0, 1fr\) !important/);
+  assert.match(protectedLayout, /setOpenGroups\(activeGroup \? new Set\(\[activeGroup\.id\]\) : new Set\(\)\)/);
 });
 
 test('removes the legacy shell grid and expands single dashboard panels', () => {

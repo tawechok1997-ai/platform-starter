@@ -1,0 +1,156 @@
+/*
+ * Route-aware Admin sidebar accordion.
+ *
+ * The active route owns the open group. Moving to another category opens that
+ * category and closes the previous one. Users may still manually toggle a group.
+ */
+
+.admin-nav-group__trigger {
+  grid-template-columns: 18px minmax(0, 1fr) 16px !important;
+  min-height: 48px !important;
+  padding: 9px 10px !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  transition: background .16s ease, border-color .16s ease, color .16s ease !important;
+}
+
+.admin-nav-group__trigger:hover {
+  border-color: rgb(148 163 184 / 12%) !important;
+  background: rgb(148 163 184 / 7%) !important;
+}
+
+.admin-nav-group__trigger[data-active] {
+  border-color: rgb(111 124 255 / 24%) !important;
+  background: linear-gradient(90deg, rgb(111 124 255 / 13%), rgb(111 124 255 / 4%)) !important;
+}
+
+.admin-nav-group__trigger > svg {
+  width: 17px !important;
+  height: 17px !important;
+  color: #8290a7 !important;
+}
+
+.admin-nav-group__trigger[data-active] > svg,
+.admin-nav-group__trigger[data-active] .admin-nav-group__label strong {
+  color: #c4cbff !important;
+}
+
+.admin-nav-group__label {
+  min-width: 0 !important;
+  gap: 1px !important;
+}
+
+.admin-nav-group__label strong {
+  color: #b6c0d2 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: .045em !important;
+  line-height: 1.35 !important;
+}
+
+.admin-nav-group__label small {
+  color: #64748b !important;
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+}
+
+.admin-nav-group__chevron {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: #718096 !important;
+  transition: transform .18s ease, color .18s ease !important;
+}
+
+.admin-nav-group__trigger[aria-expanded='true'] .admin-nav-group__chevron {
+  transform: rotate(-90deg) !important;
+  color: #aeb8ff !important;
+}
+
+.admin-nav-submenu,
+.admin-nav-submenu[data-open='false'] {
+  display: grid !important;
+  grid-template-rows: 0fr !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translateY(-3px) !important;
+  pointer-events: none !important;
+  transition: grid-template-rows .2s ease, opacity .16s ease, transform .16s ease, visibility .16s ease !important;
+}
+
+.admin-nav-submenu[data-open='true'] {
+  grid-template-rows: minmax(0, 1fr) !important;
+  overflow: hidden !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+.admin-nav-submenu__inner {
+  min-height: 0 !important;
+  overflow: hidden !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.admin-drawer-nav .admin-nav-group + .admin-nav-group {
+  margin-top: 5px !important;
+  padding-top: 3px !important;
+  border-top: 1px solid rgb(148 163 184 / 7%) !important;
+}
+
+/* Keep the navigation as the scrollable middle row and the profile beneath it. */
+.admin-drawer {
+  grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+}
+
+.admin-drawer-nav {
+  min-height: 0 !important;
+  padding-bottom: 12px !important;
+  overflow-y: auto !important;
+}
+
+.admin-sidebar-footer {
+  position: relative !important;
+  align-self: end !important;
+  margin-top: auto !important;
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom)) !important;
+  border-top: 1px solid rgb(148 163 184 / 14%) !important;
+  background: #070b13 !important;
+  box-shadow: 0 -12px 26px rgb(2 6 23 / 28%) !important;
+}
+
+.admin-sidebar-profile {
+  margin: 0 8px !important;
+}
+
+.admin-sidebar-profile__trigger {
+  width: 100% !important;
+  min-height: 62px !important;
+  padding: 9px 10px !important;
+  border-radius: 14px !important;
+}
+
+.admin-collapse-button {
+  display: none !important;
+}
+
+@media (max-width: 1099px) {
+  .admin-nav-group__trigger {
+    grid-template-columns: 18px minmax(0, 1fr) 16px !important;
+    padding: 9px !important;
+  }
+
+  .admin-nav-group__label small {
+    display: none !important;
+  }
+}
