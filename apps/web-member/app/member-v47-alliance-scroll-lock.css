@@ -1,0 +1,67 @@
+/* Final static alliance strip lock: no horizontal carousel or clipped first row. */
+@media (min-width: 901px) {
+  html:has(.desktop-reference-home),
+  body:has(.desktop-reference-home) {
+    overflow-x: hidden !important;
+  }
+
+  .desktop-reference-home .reference-provider-strip,
+  .desktop-reference-home .reference-provider-rows {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .desktop-reference-home .reference-provider-row,
+  .desktop-reference-home .reference-provider-row--reverse {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    transform: none !important;
+    translate: none !important;
+  }
+
+  /* 12 x 102px cards fit the 1440px source shell without creating page scroll. */
+  .desktop-reference-home .reference-provider-row:first-child {
+    column-gap: 19.636px !important;
+  }
+
+  .desktop-reference-home .reference-provider-row--reverse {
+    column-gap: 20px !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo {
+    flex: 0 0 102px !important;
+    width: 102px !important;
+    min-width: 102px !important;
+    max-width: 102px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    overflow: hidden !important;
+    transform: none !important;
+  }
+
+  /* CSS content:url() from legacy patches can replace the real image and show blank bars. */
+  .desktop-reference-home .reference-provider-logo > img {
+    content: normal !important;
+    display: block !important;
+    position: static !important;
+    width: auto !important;
+    max-width: 82px !important;
+    height: 10px !important;
+    max-height: 10px !important;
+    margin: 0 auto !important;
+    object-fit: contain !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    filter: none !important;
+  }
+
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(n + 12) {
+    display: none !important;
+  }
+}
