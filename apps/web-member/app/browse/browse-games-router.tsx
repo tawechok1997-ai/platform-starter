@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { BrowseGames } from './public-browse';
+import FishingBrowseSource from './fishing-browse-source';
 import CasinoAllianceBand from './games/casino/casino-alliance-band';
 import CasinoSourcePage from './games/casino/casino-source-page';
 import SlotBrowseSource from './slot-browse-source';
@@ -19,5 +20,6 @@ export default function BrowseGamesRouter() {
     );
   }
   if (category === 'slot') return <SlotBrowseSource />;
+  if (category === 'fishing') return <FishingBrowseSource />;
   return <BrowseGames />;
 }
