@@ -139,7 +139,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     items: [
       { title: 'ภาพรวมการเติบโต', titleEn: 'Growth overview', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
       { title: 'งานโปรโมชัน', titleEn: 'Promotion operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'] },
-      { title: 'โปรโมชันและโบนัส', titleEn: 'Promotions & bonuses', href: '/promotion-center', permissions: ['promotion.view'] },
+      { title: 'โปรโมชันและโบนัส', titleEn: 'Promotions & bonuses', href: '/promotion-center', permissions: ['settings.features.view'] },
       { title: 'คำขอรับโปรโมชัน', titleEn: 'Promotion claims', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
       { title: 'โบนัสย้อนหลัง', titleEn: 'Bonus ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
       { title: 'Affiliate และคอมมิชชัน', titleEn: 'Affiliate & commission', href: '/affiliate-center', permissions: ['affiliate.view'] },
@@ -153,7 +153,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     description: 'CMS รูปภาพ วิดีโอ และเนื้อหาหน้า Member',
     descriptionEn: 'CMS, images, video, and member content',
     items: [
-      { title: 'CMS / Asset Library', titleEn: 'CMS / Asset Library', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
+      { title: 'CMS / Asset Library', titleEn: 'CMS / Asset Library', href: '/content-center', permissions: ['settings.features.view'] },
     ],
   },
   {
