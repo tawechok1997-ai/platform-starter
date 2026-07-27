@@ -41,7 +41,7 @@ const copy = {
   en: {
     title: 'Create account', subtitle: 'Complete a few short steps', account: 'Account details', identity: 'Identity and bank', review: 'Review',
     username: 'Username', phone: 'Phone number', email: 'Email (optional)', password: 'Password', referral: 'Referral code (optional)',
-    fullName: 'Legal full name', bankName: 'Bank', bankPlaceholder: 'Select a bank', bankAccountNumber: 'Account number',
+    fullName: 'Legal full name', bankName: 'Bank', bankPlaceholder: 'Select bank', bankAccountNumber: 'Account number',
     next: 'Continue', back: 'Back', submit: 'Create account', submitting: 'Creating account...', show: 'Show', hide: 'Hide',
     loginPrompt: 'Already have an account?', login: 'Sign in', terms: 'I confirm the information is correct and accept the terms of use',
     nameRule: 'This legal name will also be used as the bank account name for verification', checkFields: 'Check the highlighted fields', captchaRequired: 'Complete the security verification', success: 'Account created successfully', failed: 'Could not create the account. Please try again', timeout: 'The connection took too long. Please try again',
@@ -71,12 +71,20 @@ export default function MemberRegisterPage() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'info'>('idle');
   const [loading, setLoading] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
+  const [embedded, setEmbedded] = useState(false);
 
   useEffect(() => {
-    if (window.localStorage.getItem('member_access_token') || window.localStorage.getItem('member_refresh_token')) { window.location.replace('/'); return; }
+    const params = new URLSearchParams(window.location.search);
+    const isEmbedded = params.get('embed') === '1' && window.parent !== window;
+    setEmbedded(isEmbedded);
+    if (window.localStorage.getItem('member_access_token') || window.localStorage.getItem('member_refresh_token')) {
+      if (isEmbedded) window.parent.postMessage({ type: 'member-auth-success' }, window.location.origin);
+      else window.location.replace('/');
+      return;
+    }
     const savedLocale = window.localStorage.getItem('member_locale');
     if (savedLocale === 'th' || savedLocale === 'en') setLocale(savedLocale);
-    const ref = new URLSearchParams(window.location.search).get('ref') ?? window.localStorage.getItem(REFERRAL_CODE_KEY) ?? '';
+    const ref = params.get('ref') ?? window.localStorage.getItem(REFERRAL_CODE_KEY) ?? '';
     const cleanRef = normalizeReferralCode(ref);
     if (cleanRef) { setReferralCode(cleanRef); window.localStorage.setItem(REFERRAL_CODE_KEY, cleanRef); }
     loadPublicSiteSettings().then(setSettings).catch(() => setSettings(defaultSettings));
@@ -95,6 +103,7 @@ export default function MemberRegisterPage() {
   function changeLocale(next: RegisterLocale) { setLocale(next); window.localStorage.setItem('member_locale', next); }
   function clearError(name: RegisterErrorKey) { if (errors[name]) setErrors((current) => ({ ...current, [name]: undefined })); }
   function selectedBankLabel(value: string) { const bank = THAI_BANKS.find(([code]) => code === value); return bank ? (locale === 'th' ? bank[1] : bank[2]) : value; }
+  function closePopup() { if (embedded) window.parent.postMessage({ type: 'member-auth-close' }, window.location.origin); else window.location.assign('/'); }
 
   function changeField(field: RegisterErrorKey | 'referralCode', value: string) {
     if (field === 'username') setUsername(value);
@@ -155,7 +164,9 @@ export default function MemberRegisterPage() {
       window.localStorage.setItem('member_access_token', data.accessToken);
       window.localStorage.setItem('member_refresh_token', data.refreshToken);
       if (cleanRef) await linkReferralAfterRegister(cleanRef, data.accessToken);
-      setStatus('success'); setMessage(t.success); window.location.replace('/');
+      setStatus('success'); setMessage(t.success);
+      if (embedded) window.parent.postMessage({ type: 'member-auth-success' }, window.location.origin);
+      else window.location.replace('/');
     } catch (error) {
       const aborted = error instanceof DOMException && error.name === 'AbortError';
       setStatus('error'); setMessage(aborted ? t.timeout : t.failed); setCaptchaResetKey((value) => value + 1);
@@ -172,6 +183,7 @@ export default function MemberRegisterPage() {
       errors={errors} message={message} status={status} loading={loading} disabled={disabled} showSecret={showSecret}
       passwordProgress={passwordProgress} registrationEnabled={flags.registration} loginEnabled={flags.login}
       maintenanceEnabled={maintenanceEnabled} captchaResetKey={captchaResetKey} selectedBankLabel={selectedBankLabel(bankName)}
+      embedded={embedded} onClose={closePopup}
       onSubmit={onSubmit} onLocaleChange={changeLocale} onFieldChange={changeField}
       onAcceptedTermsChange={(value) => { setAcceptedTerms(value); clearError('terms'); }}
       onShowSecretToggle={() => setShowSecret((value) => !value)} onBack={goBack}
