@@ -76,7 +76,7 @@
 .reference-guide .reference-heading-icon > img { display: none !important; }
 
 .reference-live-card {
-  background-image: linear-gradient(180deg, rgb(18 10 27 / 20%), rgb(18 10 27 / 88%)), url('https://noah345.shop/images/home/background_live.webp') !important;
+  background-image: linear-gradient(180deg, rgb(18 10 27 / 20%), rgb(18 10 27 / 88%)), url('/assets/asset-pc/images/home/live1.webp') !important;
   background-position: center !important;
   background-size: cover !important;
 }
@@ -87,7 +87,7 @@
   width: 100%;
   aspect-ratio: 350 / 116.5;
   border-radius: 8px;
-  background: #1c1425 url('https://cdn.zabbet.com/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg') center / cover no-repeat;
+  background: #1c1425 url('/assets/asset-pc/images/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg') center / cover no-repeat;
 }
 
 .v47-mobile-announcement > img { display: none !important; }
