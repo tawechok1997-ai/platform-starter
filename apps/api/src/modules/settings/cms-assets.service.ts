@@ -9,6 +9,8 @@ import type { UploadCmsAssetDto } from './cms-assets.dto';
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
+const CMS_CONTENT_KEY = 'features.cms_content';
+const PROMOTION_CAMPAIGNS_KEY = 'features.promotion_campaigns';
 
 const MIME_RULES: Record<string, { ext: string; type: 'image' | 'video'; maxBytes: number; magic: (buffer: Buffer) => boolean }> = {
   'image/jpeg': { ext: 'jpg', type: 'image', maxBytes: MAX_IMAGE_BYTES, magic: (b) => b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
@@ -17,6 +19,20 @@ const MIME_RULES: Record<string, { ext: string; type: 'image' | 'video'; maxByte
   'image/gif': { ext: 'gif', type: 'image', maxBytes: MAX_IMAGE_BYTES, magic: (b) => b.length >= 6 && ['GIF87a', 'GIF89a'].includes(b.subarray(0, 6).toString('ascii')) },
   'video/mp4': { ext: 'mp4', type: 'video', maxBytes: MAX_VIDEO_BYTES, magic: (b) => b.length >= 12 && b.subarray(4, 8).toString('ascii') === 'ftyp' },
   'video/webm': { ext: 'webm', type: 'video', maxBytes: MAX_VIDEO_BYTES, magic: (b) => b.length >= 4 && b.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3])) },
+};
+
+type StoredCmsAsset = {
+  id?: string;
+  name?: string;
+  tag?: string;
+  type?: string;
+  enabled?: boolean;
+  url?: string;
+  storageKey?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  sha256?: string;
+  source?: string;
 };
 
 @Injectable()
@@ -35,10 +51,25 @@ export class CmsAssetsService {
     if (parsed.data.length > rule.maxBytes) throw new BadRequestException(`CMS asset exceeds ${Math.floor(rule.maxBytes / 1024 / 1024)} MB limit`);
     if (!rule.magic(parsed.data)) throw new BadRequestException('CMS asset file signature does not match MIME type');
 
+    const sha256 = createHash('sha256').update(parsed.data).digest('hex');
+    const existing = await this.findAssetBySha256(sha256);
+    if (existing?.id && existing.url) {
+      await this.prisma.adminAuditLog.create({
+        data: buildAdminAuditData({
+          adminUserId: actor.id,
+          action: 'cms.asset.reuse',
+          module: 'settings',
+          targetId: existing.id,
+          newData: { sha256, storageKey: existing.storageKey ?? null, requestedName: dto.name },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+        }),
+      });
+      return { ...existing, deduplicated: true };
+    }
+
     const id = randomUUID();
     const storageKey = `cms/${id}.${rule.ext}`;
-    const sha256 = createHash('sha256').update(parsed.data).digest('hex');
-
     await this.storage.put(storageKey, parsed.data, parsed.mimeType);
 
     await this.prisma.adminAuditLog.create({
@@ -72,11 +103,20 @@ export class CmsAssetsService {
       sizeBytes: parsed.data.length,
       sha256,
       source: 'upload',
+      deduplicated: false,
     };
   }
 
   async remove(storageKey: string, actor: AdminActor, meta: RequestMeta) {
     const fileName = this.assertCmsStorageKey(storageKey);
+    const snapshot = await this.readMediaSettings();
+    const asset = snapshot.assets.find((item) => item.storageKey === storageKey);
+    const publicUrl = `/public/cms-assets/${fileName}`;
+    const usage = this.findUsage(snapshot.cms, snapshot.promotions, asset?.id, publicUrl);
+    if (usage.length) {
+      throw new BadRequestException(`CMS asset is still in use: ${usage.join(', ')}`);
+    }
+
     await this.storage.remove(storageKey);
 
     await this.prisma.adminAuditLog.create({
@@ -84,14 +124,14 @@ export class CmsAssetsService {
         adminUserId: actor.id,
         action: 'cms.asset.delete',
         module: 'settings',
-        targetId: fileName,
-        oldData: { storageKey },
+        targetId: asset?.id ?? fileName,
+        oldData: { storageKey, assetId: asset?.id ?? null, sha256: asset?.sha256 ?? null },
         ipAddress: meta.ipAddress,
         userAgent: meta.userAgent,
       }),
     });
 
-    return { success: true, storageKey };
+    return { success: true, storageKey, assetId: asset?.id ?? null };
   }
 
   async readPublic(fileName: string) {
@@ -103,6 +143,47 @@ export class CmsAssetsService {
       if (error instanceof NotFoundException) throw error;
       throw new NotFoundException('CMS asset not found');
     }
+  }
+
+  private async findAssetBySha256(sha256: string): Promise<StoredCmsAsset | undefined> {
+    const snapshot = await this.readMediaSettings();
+    return snapshot.assets.find((asset) => asset.sha256 === sha256 && typeof asset.url === 'string' && asset.url.length > 0);
+  }
+
+  private async readMediaSettings() {
+    const settings = await this.prisma.siteSetting.findMany({
+      where: { key: { in: [CMS_CONTENT_KEY, PROMOTION_CAMPAIGNS_KEY] } },
+      select: { key: true, valueJson: true },
+    });
+    const cms = settings.find((item) => item.key === CMS_CONTENT_KEY)?.valueJson;
+    const promotions = settings.find((item) => item.key === PROMOTION_CAMPAIGNS_KEY)?.valueJson;
+    const cmsRecord = this.asRecord(cms);
+    const assets = Array.isArray(cmsRecord.assets)
+      ? cmsRecord.assets.map((item) => this.asRecord(item) as StoredCmsAsset)
+      : [];
+    return { cms, promotions, assets };
+  }
+
+  private findUsage(cms: unknown, promotions: unknown, assetId?: string, publicUrl?: string) {
+    const usage: string[] = [];
+    const cmsRecord = this.asRecord(cms);
+    const matches = (item: Record<string, unknown>) => {
+      const ids = [item.assetId, item.desktopAssetId, item.mobileAssetId];
+      const urls = [item.imageUrl, item.desktopImageUrl, item.mobileImageUrl, item.iconUrl];
+      return Boolean(assetId && ids.includes(assetId)) || Boolean(publicUrl && urls.includes(publicUrl));
+    };
+
+    if (Array.isArray(cmsRecord.banners)) {
+      cmsRecord.banners.forEach((item, index) => { if (matches(this.asRecord(item))) usage.push(`Banner ${index + 1}`); });
+    }
+    if (matches(this.asRecord(cmsRecord.popup))) usage.push('Popup');
+    if (Array.isArray(cmsRecord.announcements)) {
+      cmsRecord.announcements.forEach((item, index) => { if (matches(this.asRecord(item))) usage.push(`Announcement ${index + 1}`); });
+    }
+    if (Array.isArray(promotions)) {
+      promotions.forEach((item, index) => { if (matches(this.asRecord(item))) usage.push(`Promotion ${index + 1}`); });
+    }
+    return usage;
   }
 
   private parseDataUrl(value: string) {
@@ -136,5 +217,9 @@ export class CmsAssetsService {
       jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', mp4: 'video/mp4', webm: 'video/webm',
     };
     return map[ext ?? ''] ?? 'application/octet-stream';
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
   }
 }
