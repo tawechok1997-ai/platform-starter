@@ -4,8 +4,14 @@ import { useEffect, useState, type SyntheticEvent } from 'react';
 import type { CmsAsset, CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
 import { useMemberSession } from '../../member-session-provider';
-import { REFERENCE_GAMES } from '../reference-asset-catalog';
+import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from '../reference-asset-catalog';
 import { DesktopHeroCarousel } from './desktop-hero-carousel';
+import {
+  normalizePublicAssetUrl,
+  resolveHomeGameFallback,
+  resolveHomeGameImage,
+  resolveHomeProviderLogo,
+} from './local-game-asset-resolver';
 import { V47_ASSETS } from './v47-asset-map';
 
 type DesktopGameSections = { featured: Game[]; popular: Game[]; recent: Game[]; favorites: Game[] };
@@ -14,7 +20,6 @@ type PromoCard = { title: string; subtitle: string; href: string; aliases: strin
 type ArchiveGame = { name: string; imageUrl: string };
 type ProviderLogo = { key: string; name: string; url: string };
 type GuideFaq = { question: string; answer: string };
-type SourceHighlightGame = { name: string; imageUrl: string; providerLogo: string };
 
 const ANNOUNCEMENT_TEXT = 'ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง';
 
@@ -25,22 +30,11 @@ const PROMO_CARDS: PromoCard[] = [
 ];
 
 const SOURCE_HIGHLIGHT_BANNERS = [
-  'https://cdn.zabbet.com/_INIT/highlight/1731332886257-a7188fa9-8abc-4e47-9ea5-cfd777cb1abe.webp',
-  'https://cdn.zabbet.com/_INIT/highlight/1731332839344-d4557c6c-9f8f-4124-aa87-f533927c3885.webp',
-  'https://cdn.zabbet.com/_INIT/highlight/1731332920882-dee83096-8353-49b1-8a14-29c66a564c13.webp',
-  'https://cdn.zabbet.com/_INIT/highlight/1731332806809-ca83b9e9-d625-44e7-8185-b5122990a373.webp',
+  '/assets/asset-pc/images/_INIT/highlight/1731332886257-a7188fa9-8abc-4e47-9ea5-cfd777cb1abe.webp',
+  '/assets/asset-pc/images/_INIT/highlight/1731332839344-d4557c6c-9f8f-4124-aa87-f533927c3885.webp',
+  '/assets/asset-pc/images/_INIT/highlight/1731332920882-dee83096-8353-49b1-8a14-29c66a564c13.webp',
+  '/assets/asset-pc/images/_INIT/highlight/1731332806809-ca83b9e9-d625-44e7-8185-b5122990a373.webp',
 ] as const;
-
-const SOURCE_HIGHLIGHT_GAMES: SourceHighlightGame[] = [
-  { name: 'Maya Golden City4', imageUrl: 'https://cdn.zabbet.com/games/1723580353743-8d95a5d2-b1d2-4afd-8e95-33b46175d15a.jpeg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/ygr.png' },
-  { name: 'Cash Maker', imageUrl: 'https://cdn.zabbet.com/games/1716909790016-b558de4e-70e7-4477-b23c-18f306afa615.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/ygr.png' },
-  { name: 'RomaX', imageUrl: 'https://cdn.zabbet.com/games/1671994502814-033d1aac-0e0b-45bc-9303-d526c0693505.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/jl.png' },
-  { name: 'Sugar Rush 1000', imageUrl: 'https://cdn.zabbet.com/games/1711472496450-03e790b6-729c-4b8e-bcca-bb7ceabec021.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/pp.png' },
-  { name: 'Coin Spinner', imageUrl: 'https://cdn.zabbet.com/games/vertical/CQ/coin_spinner.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/cq.png' },
-  { name: 'Fortune Gems', imageUrl: 'https://cdn.zabbet.com/games/1671995554666-2fba59cf-2cb7-48bf-b619-ba56269e90ca.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/jl.png' },
-  { name: 'Crazy777', imageUrl: 'https://cdn.zabbet.com/games/1671995860232-42e5a06d-4126-4147-82c4-174d534fd522.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/jl.png' },
-  { name: REFERENCE_GAMES[0]!.name, imageUrl: REFERENCE_GAMES[0]!.url, providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/jl.png' },
-];
 
 const ALLIANCE_ROW_ONE = ['evoplay', 'cq9', 'jili', 'playstar', 'joker', 'ebet', 'popk', 'evoplay', 'cq9', 'jili', 'playstar', 'joker'].map((name, index) => ({ key: `alliance-1-${index}`, name, url: `/assets/asset-pc/images/alliance/${name}.webp` }));
 const ALLIANCE_ROW_TWO = ['jili', 'playstar', 'evoplay', 'ebet', 'popk', 'cq9', 'evoplay', 'jili', 'playstar', 'joker', 'evoplay'].map((name, index) => ({ key: `alliance-2-${index}`, name, url: `/assets/asset-pc/images/alliance/${name}.webp` }));
@@ -178,7 +172,36 @@ function SourceHighlightSection({ asset, apiGames, loading, message }: { asset?:
     return () => window.clearInterval(interval);
   }, []);
 
-  const bannerFallback = apiGames[activeBanner] ? resolveGameImage(apiGames[activeBanner]!) || fallbackGameImage(apiGames[activeBanner]!) : ARCHIVE_GAMES[activeBanner % ARCHIVE_GAMES.length]!.imageUrl;
+  const activeGame = apiGames[activeBanner];
+  const bannerFallback = activeGame
+    ? resolveHomeGameImage(activeGame) || resolveHomeGameFallback(activeGame)
+    : ARCHIVE_GAMES[activeBanner % ARCHIVE_GAMES.length]!.imageUrl;
+
+  const highlightGames = Array.from({ length: 8 }, (_, index) => {
+    const apiGame = apiGames[index];
+    const localFallback = ARCHIVE_GAMES[index % ARCHIVE_GAMES.length]!;
+    const fallbackProvider = REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!;
+    if (!apiGame) {
+      return {
+        key: `local-${localFallback.name}-${index}`,
+        name: localFallback.name,
+        imageUrl: localFallback.imageUrl,
+        fallback: localFallback.imageUrl,
+        providerLogo: fallbackProvider.url,
+        providerName: fallbackProvider.name,
+      };
+    }
+
+    const fallback = resolveHomeGameFallback(apiGame);
+    return {
+      key: apiGame.id || `${apiGame.providerGameCode}-${index}`,
+      name: safeGameName(apiGame),
+      imageUrl: resolveHomeGameImage(apiGame) || fallback,
+      fallback,
+      providerLogo: resolveHomeProviderLogo(apiGame.provider) || fallbackProvider.url,
+      providerName: apiGame.provider?.name || apiGame.provider?.code || fallbackProvider.name,
+    };
+  });
 
   return (
     <section
@@ -222,21 +245,17 @@ function SourceHighlightSection({ asset, apiGames, loading, message }: { asset?:
           </div>
 
           <div className="source-highlight-games">
-            {SOURCE_HIGHLIGHT_GAMES.map((game, index) => {
-              const apiFallback = apiGames[index];
-              const fallback = apiFallback ? resolveGameImage(apiFallback) || fallbackGameImage(apiFallback) : ARCHIVE_GAMES[index % ARCHIVE_GAMES.length]!.imageUrl;
-              return (
-                <a key={`${game.name}-${index}`} className="source-highlight-game" href="/browse/games" target="_blank" rel="noreferrer" title={game.name}>
-                  <span className="source-highlight-game__art">
-                    <img className="source-highlight-game__blur" src={game.imageUrl} alt="" aria-hidden="true" onError={(event) => swapBrokenImage(event, fallback)} />
-                    <img className="source-highlight-game__image" src={game.imageUrl} alt={game.name} onError={(event) => swapBrokenImage(event, fallback)} />
-                    <span className="source-highlight-game__provider"><img src={game.providerLogo} alt="" aria-hidden="true" onError={hideBrokenImage} /></span>
-                  </span>
-                  <span className="source-highlight-game__name">{game.name}</span>
-                  <span className="source-highlight-game__rank" aria-hidden="true">{index + 1}</span>
-                </a>
-              );
-            })}
+            {highlightGames.map((game, index) => (
+              <a key={game.key} className="source-highlight-game" href="/browse/games" target="_blank" rel="noreferrer" title={game.name}>
+                <span className="source-highlight-game__art">
+                  <img className="source-highlight-game__blur" src={game.imageUrl} alt="" aria-hidden="true" onError={(event) => swapBrokenImage(event, game.fallback)} />
+                  <img className="source-highlight-game__image" src={game.imageUrl} alt={game.name} onError={(event) => swapBrokenImage(event, game.fallback)} />
+                  <span className="source-highlight-game__provider"><img src={game.providerLogo} alt={game.providerName} onError={(event) => swapBrokenImage(event, REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!.url)} /></span>
+                </span>
+                <span className="source-highlight-game__name">{game.name}</span>
+                <span className="source-highlight-game__rank" aria-hidden="true">{index + 1}</span>
+              </a>
+            ))}
           </div>
         </div>
       </div>
@@ -249,7 +268,7 @@ function ArchiveGameTile({ game, large = false, compact = false }: { game: Archi
 function ArchiveNumberCard({ game, index }: { game: ArchiveGame; index: number }) { return <a href="/browse/games" className="reference-number-card" title={game.name}><img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span>{index + 1}</span><strong>{game.name}</strong></a>; }
 function ArchiveOnlineCard({ game, index }: { game: ArchiveGame; index: number }) { return <a href="/browse/games" className="reference-online-card"><img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span><strong>{game.name}</strong><small>♟ {(4195 - index * 437).toLocaleString()}</small></span></a>; }
 function PanelHeading({ asset, configured, fallback, title }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; title: string }) { return <header className="reference-panel-heading"><AssetIcon asset={asset} configured={configured} fallback={fallback} className="reference-heading-icon" /><strong>{title}</strong></header>; }
-function AssetIcon({ asset, configured, fallback, className }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; className: string }) { const value = asset?.url || configured || ''; return <span className={className} aria-hidden="true">{value ? (isImageValue(value) ? <img src={normalizeUrl(value)} alt="" onError={hideBrokenImage} /> : value) : fallback}</span>; }
+function AssetIcon({ asset, configured, fallback, className }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; className: string }) { const value = asset?.url || configured || ''; return <span className={className} aria-hidden="true">{value ? (isImageValue(value) ? <img src={normalizePublicAssetUrl(value)} alt="" onError={hideBrokenImage} /> : value) : fallback}</span>; }
 function ProviderLogoItem({ provider }: { provider: ProviderLogo }) {
   return (
     <span className="reference-provider-logo" title={provider.name}>
@@ -266,8 +285,7 @@ function ProviderLogoItem({ provider }: { provider: ProviderLogo }) {
   );
 }
 function GameTile({ game, large = false, compact = false }: { game: Game; large?: boolean; compact?: boolean }) { return <a href="/browse/games" className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}><GameImage game={game} />{game?.isNew && <em>NEW</em>}<span><strong>{safeGameName(game)}</strong><small>{game?.provider?.name || game?.provider?.code || 'Provider'}</small></span></a>; }
-function GameImage({ game }: { game: Game }) { const fallback = fallbackGameImage(game); const image = resolveGameImage(game) || fallback; return <img src={image} alt={safeGameName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />; }
-function fallbackGameImage(game: Game) { const seed = `${game?.id || ''}:${game?.providerGameCode || ''}:${safeGameName(game)}`; let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0; return REFERENCE_GAMES[Math.abs(hash) % REFERENCE_GAMES.length]!.url; }
+function GameImage({ game }: { game: Game }) { const fallback = resolveHomeGameFallback(game); const image = resolveHomeGameImage(game) || fallback; return <img src={image} alt={safeGameName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />; }
 function findCmsAsset(content: CmsContent, aliases: string[]) { const normalizedAliases = aliases.map(normalizeSearchText); return (Array.isArray(content?.assets) ? content.assets : []).find((asset) => { if (!asset?.enabled || asset.type !== 'image' || !asset.url) return false; const haystack = normalizeSearchText(`${asset.id} ${asset.name} ${asset.tag || ''} ${asset.url}`); return normalizedAliases.some((alias) => haystack.includes(alias)); }); }
 function normalizeSearchText(value: string) { return value.toLowerCase().replace(/[\s_\-./\\]+/g, ''); }
 function isImageValue(value: string) { return /^https?:\/\//i.test(value) || value.startsWith('/') || /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(value); }
@@ -284,8 +302,6 @@ function completeFaqs(configured: GuideFaq[]): GuideFaq[] {
   });
   return result;
 }
-function resolveGameImage(game: Game) { const direct = game?.imageUrl || game?.iconUrl; if (direct) return normalizeUrl(direct); const media = Array.isArray(game?.media) ? game.media : []; const candidate = media.find((item) => item?.cachedUrl)?.cachedUrl || media.find((item) => item?.sourceUrl)?.sourceUrl || ''; return candidate ? normalizeUrl(candidate) : ''; }
-function normalizeUrl(value: string) { if (/^https?:\/\//i.test(value) || value.startsWith('/')) return value; return `/${value.replace(/^\.\//, '')}`; }
 function safeGameName(game: Game) { return typeof game?.name === 'string' && game.name.trim() ? game.name : 'Game'; }
 function fallbackFaqs(): GuideFaq[] { return [{ question: 'ฝากเงินแบบ โอนผ่านธนาคาร', answer: 'เลือกธนาคารที่ต้องการและทำตามขั้นตอนบนหน้าฝากเงิน' }, { question: 'ฝากเงินแบบ โอนผ่าน QR Payment', answer: 'สแกน QR และตรวจสอบยอดเงินก่อนยืนยันรายการ' }, { question: 'ฝากเงินแบบ ฝากจุดทศนิยม', answer: 'กรอกยอดที่มีจุดทศนิยมตามที่ระบบแจ้งเพื่อจับคู่รายการ' }, { question: 'วิธีการฝากแบบ TrueWallet', answer: 'กรอกข้อมูลให้ครบและรอระบบตรวจสอบรายการ' }, { question: 'ยอดไม่เข้าทันที ทำยังไงดี?', answer: 'ติดต่อฝ่ายบริการพร้อมหลักฐานการทำรายการ' }]; }
 function maskName(index: number) { return ['ZAXXXU709740', 'ZAXXXM664100', 'ZAXXXR440174', 'ZAXXXM154', 'ZAXXXS413', 'ZAXXXXB25', 'ZAXXXJ11', 'ZAXXXP90'][index] || `PLAYER${index + 1}`; }
