@@ -46,6 +46,14 @@ test('removes the legacy shell grid and expands single dashboard panels', () => 
   assert.match(viewportCss, /article:only-child[\s\S]*grid-column: 1 \/ -1 !important/);
 });
 
+test('pins root loading and fallback states to the complete viewport', () => {
+  assert.match(viewportCss, /body\[data-app-surface='admin'\][\s\S]*width: 100%/);
+  assert.match(viewportCss, /\.admin-app-state[\s\S]*position: fixed !important/);
+  assert.match(viewportCss, /\.admin-app-state[\s\S]*inset: 0 !important/);
+  assert.match(viewportCss, /\.admin-app-state[\s\S]*max-width: none !important/);
+  assert.match(viewportCss, /\.admin-app-state[\s\S]*min-height: 100dvh !important/);
+});
+
 test('uses one 1100px desktop and mobile shell breakpoint', () => {
   assert.match(shellCss, /@media \(min-width: 1100px\)/);
   assert.match(shellCss, /@media \(max-width: 1099px\)/);
