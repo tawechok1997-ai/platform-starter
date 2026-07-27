@@ -162,9 +162,7 @@ function ProviderLogoItem({ provider }: { provider: ProviderLogo }) {
         alt={provider.name}
         loading="lazy"
         onError={(event) => {
-          event.currentTarget.style.display = 'none';
-          const fallback = event.currentTarget.nextElementSibling;
-          if (fallback instanceof HTMLElement) fallback.style.display = 'block';
+          event.currentTarget.parentElement?.classList.add('is-missing');
         }}
       />
       <small>{provider.name}</small>
