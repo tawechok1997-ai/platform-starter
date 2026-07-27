@@ -2,7 +2,6 @@
 
 import type { SyntheticEvent } from 'react';
 import type { TypedPublicSiteSettings } from './site-settings-types';
-import { REFERENCE_BANKS, REFERENCE_HOME_ASSETS } from './components/reference-asset-catalog';
 
 const SOURCE_ROOT = '/assets/asset-pc/images';
 
