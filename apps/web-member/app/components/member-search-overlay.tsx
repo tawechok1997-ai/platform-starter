@@ -1,6 +1,6 @@
 'use client';
 
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from './reference-asset-catalog';
 import styles from './member-search-overlay.module.css';
 
@@ -48,6 +48,7 @@ export default function MemberSearchOverlay() {
   const [history, setHistory] = useState<string[]>([]);
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase());
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function MemberSearchOverlay() {
     setRecentIds(readStoredList(RECENT_GAMES_KEY));
     setFavoriteIds(readStoredList(FAVORITES_KEY));
 
+    const focusFrame = window.requestAnimationFrame(() => searchInputRef.current?.focus());
     const previousBodyOverflow = document.body.style.overflow;
     const previousHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -84,6 +86,7 @@ export default function MemberSearchOverlay() {
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
+      window.cancelAnimationFrame(focusFrame);
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousHtmlOverflow;
       window.removeEventListener('keydown', onKeyDown);
@@ -182,7 +185,7 @@ export default function MemberSearchOverlay() {
               rememberQuery();
             }}>
               <input
-                autoFocus
+                ref={searchInputRef}
                 value={query}
                 onChange={(event) => setQuery(event.target.value.slice(0, 80))}
                 placeholder="พิมพ์เกมที่คุณค้นหา"
