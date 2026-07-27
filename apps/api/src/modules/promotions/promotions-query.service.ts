@@ -15,7 +15,9 @@ export class PromotionsQueryService {
   async listPublicCampaigns() {
     const settings = await this.prisma.siteSetting.findUnique({ where: { key: 'features.promotion_campaigns' } });
     const now = Date.now();
-    const items = this.normalizeCampaigns(settings?.valueJson).filter((item) => item.enabled && this.inWindow(item, now));
+    const items = this.normalizeCampaigns(settings?.valueJson)
+      .filter((item) => item.enabled && item.lifecycle === 'published' && this.inWindow(item, now))
+      .sort((a, b) => b.priority - a.priority);
     return { items };
   }
 
@@ -52,13 +54,38 @@ export class PromotionsQueryService {
 
   private normalizeCampaigns(value: unknown) {
     if (!Array.isArray(value)) return [];
-    return value.map((item: any, index) => ({
-      id: String(item.id ?? `promotion-${index + 1}`), title: String(item.title ?? 'Promotion'), description: String(item.description ?? ''),
-      enabled: item.enabled === true, bonusType: item.bonusType === 'fixed' ? 'fixed' : 'percent', bonusValue: Number(item.bonusValue ?? 0),
-      minDeposit: Number(item.minDeposit ?? 0), maxBonus: Number(item.maxBonus ?? 0), turnoverMultiplier: Number(item.turnoverMultiplier ?? 0),
-      claimMode: item.claimMode === 'auto_pending' ? 'auto_pending' : 'manual_review', startsAt: typeof item.startsAt === 'string' ? item.startsAt : undefined,
-      endsAt: typeof item.endsAt === 'string' ? item.endsAt : undefined,
-    }));
+    return value.map((item: any, index) => {
+      const legacyImage = typeof item.imageUrl === 'string'
+        ? item.imageUrl
+        : typeof item.desktopImageUrl === 'string'
+          ? item.desktopImageUrl
+          : '';
+      return {
+        id: String(item.id ?? `promotion-${index + 1}`),
+        title: String(item.title ?? 'Promotion'),
+        description: String(item.description ?? ''),
+        enabled: item.enabled === true,
+        lifecycle: item.lifecycle === 'archived' || item.lifecycle === 'draft' ? item.lifecycle : 'published',
+        bonusType: item.bonusType === 'fixed' ? 'fixed' : 'percent',
+        bonusValue: Number(item.bonusValue ?? 0),
+        minDeposit: Number(item.minDeposit ?? 0),
+        maxBonus: Number(item.maxBonus ?? 0),
+        turnoverMultiplier: Number(item.turnoverMultiplier ?? 0),
+        claimMode: item.claimMode === 'auto_pending' ? 'auto_pending' : 'manual_review',
+        imageUrl: legacyImage,
+        desktopImageUrl: typeof item.desktopImageUrl === 'string' ? item.desktopImageUrl : legacyImage,
+        mobileImageUrl: typeof item.mobileImageUrl === 'string' ? item.mobileImageUrl : legacyImage,
+        desktopAssetId: typeof item.desktopAssetId === 'string' ? item.desktopAssetId : '',
+        mobileAssetId: typeof item.mobileAssetId === 'string' ? item.mobileAssetId : '',
+        iconUrl: typeof item.iconUrl === 'string' ? item.iconUrl : '',
+        badgeText: typeof item.badgeText === 'string' ? item.badgeText : '',
+        accentColor: typeof item.accentColor === 'string' ? item.accentColor : '',
+        href: typeof item.href === 'string' ? item.href : '/promotions',
+        priority: Number(item.priority ?? 0),
+        startsAt: typeof item.startsAt === 'string' ? item.startsAt : undefined,
+        endsAt: typeof item.endsAt === 'string' ? item.endsAt : undefined,
+      };
+    });
   }
 
   private inWindow(item: { startsAt?: string; endsAt?: string }, now: number) {
