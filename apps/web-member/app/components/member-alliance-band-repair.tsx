@@ -20,29 +20,40 @@ const ALLIANCE_ROW_TWO: AllianceLogo[] = [
 export default function MemberAllianceBandRepair() {
   useEffect(() => {
     const installBand = () => {
-      const host = document.querySelector<HTMLElement>('.desktop-reference-home .reference-provider-strip');
-      if (!host) return;
+      const home = document.querySelector<HTMLElement>('.desktop-reference-home');
+      if (!home) return;
 
-      host.classList.add('noah-alliance-host');
-      if (host.querySelector(':scope > .noah-alliance-v2')) return;
+      const body = home.querySelector<HTMLElement>(':scope > .desktop-home__body');
+      const legacyHost = home.querySelector<HTMLElement>('.reference-provider-strip');
+      if (!body || !legacyHost) return;
 
-      const band = document.createElement('div');
-      band.className = 'noah-alliance-v2';
-      band.setAttribute('role', 'group');
-      band.setAttribute('aria-label', 'พันธมิตรของเรา');
+      legacyHost.classList.add('noah-alliance-host-hidden');
+      legacyHost.querySelectorAll(':scope > .noah-alliance-v2').forEach((node) => node.remove());
+
+      const existing = home.querySelector<HTMLElement>(':scope > .noah-alliance-v3');
+      if (existing) return;
+
+      const band = document.createElement('section');
+      band.className = 'noah-alliance-v3';
+      band.setAttribute('aria-labelledby', 'noah-alliance-v3-heading');
+
+      const inner = document.createElement('div');
+      inner.className = 'noah-alliance-v3__inner';
 
       const heading = document.createElement('h2');
-      heading.className = 'noah-alliance-v2__heading';
+      heading.id = 'noah-alliance-v3-heading';
+      heading.className = 'noah-alliance-v3__heading';
       heading.textContent = 'พันธมิตรของเรา';
-      band.appendChild(heading);
+      inner.appendChild(heading);
 
       const rows = document.createElement('div');
-      rows.className = 'noah-alliance-v2__rows';
-      rows.appendChild(createAllianceRow(ALLIANCE_ROW_ONE, 'noah-alliance-v2__row noah-alliance-v2__row--one'));
-      rows.appendChild(createAllianceRow(ALLIANCE_ROW_TWO, 'noah-alliance-v2__row noah-alliance-v2__row--two'));
-      band.appendChild(rows);
+      rows.className = 'noah-alliance-v3__rows';
+      rows.appendChild(createAllianceRow(ALLIANCE_ROW_ONE, 'noah-alliance-v3__row noah-alliance-v3__row--one'));
+      rows.appendChild(createAllianceRow(ALLIANCE_ROW_TWO, 'noah-alliance-v3__row noah-alliance-v3__row--two'));
+      inner.appendChild(rows);
+      band.appendChild(inner);
 
-      host.appendChild(band);
+      body.insertAdjacentElement('afterend', band);
     };
 
     installBand();
@@ -66,14 +77,16 @@ function createAllianceRow(logos: AllianceLogo[], className: string) {
 
   logos.forEach((logo) => {
     const card = document.createElement('span');
-    card.className = 'noah-alliance-v2__card';
+    card.className = 'noah-alliance-v3__card';
     card.title = logo.name;
-    card.setAttribute('aria-label', logo.name);
 
-    const artwork = document.createElement('span');
-    artwork.className = 'noah-alliance-v2__artwork';
-    artwork.style.backgroundImage = `url("${logo.url}")`;
-    card.appendChild(artwork);
+    const image = document.createElement('img');
+    image.className = 'noah-alliance-v3__image';
+    image.src = logo.url;
+    image.alt = logo.name;
+    image.loading = 'eager';
+    image.decoding = 'sync';
+    card.appendChild(image);
     row.appendChild(card);
   });
 
