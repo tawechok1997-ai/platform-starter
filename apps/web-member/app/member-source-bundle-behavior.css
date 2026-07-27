@@ -1,7 +1,99 @@
 /* Values recovered from the supplied production JS/CSS bundle.
-   This layer only owns drag rails, announcement motion, and source card geometry. */
+   This final member layer owns the source carousel, drag rails, marquee and card geometry. */
 
 @media (min-width: 901px) {
+  /* Layout 1 hero source: 2180px Swiper rail, 710.5px slides and 10px spacing. */
+  .desktop-reference-home > .reference-hero-carousel {
+    width: min(1455px, calc(100vw - 30px)) !important;
+    max-width: 1455px !important;
+    margin: 20px auto 24px !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .reference-hero-mask {
+    width: 100% !important;
+    overflow: hidden !important;
+    border-radius: 0 !important;
+    -webkit-mask-image: linear-gradient(to right, transparent 2%, #000 25%, #000 75%, transparent 98%) !important;
+    mask-image: linear-gradient(to right, transparent 2%, #000 25%, #000 75%, transparent 98%) !important;
+  }
+
+  .desktop-reference-home .reference-hero-rail {
+    position: relative !important;
+    left: 50% !important;
+    width: 2180px !important;
+    max-width: none !important;
+    overflow: visible !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .desktop-reference-home .reference-hero-track {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: max-content !important;
+    min-width: max-content !important;
+    transform: translate3d(calc(var(--hero-track-x, 0px) + var(--hero-drag-x, 0px)), 0, 0) !important;
+    transition: var(--hero-transition, none) !important;
+    will-change: transform !important;
+  }
+
+  .desktop-reference-home .reference-hero-slide,
+  .desktop-reference-home .reference-hero-slide.is-active {
+    position: relative !important;
+    display: block !important;
+    flex: 0 0 710.5px !important;
+    width: 710.5px !important;
+    max-width: 33.4% !important;
+    height: 288.46px !important;
+    aspect-ratio: 710.5 / 288.46 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    opacity: 1 !important;
+    transform: none !important;
+    cursor: pointer !important;
+  }
+
+  .desktop-reference-home .reference-hero-slide img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 10px !important;
+    -webkit-user-drag: none !important;
+    user-drag: none !important;
+  }
+
+  .desktop-reference-home .reference-hero-pagination {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    min-height: 8px !important;
+    margin: 0 !important;
+  }
+
+  .desktop-reference-home .reference-hero-pagination button {
+    width: 8px !important;
+    height: 8px !important;
+    min-width: 8px !important;
+    min-height: 8px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: 0 0 5px #000 !important;
+    opacity: .5 !important;
+    transition: all .2s !important;
+  }
+
+  .desktop-reference-home .reference-hero-pagination button.is-active {
+    width: 20px !important;
+    background: #e22ff1 !important;
+    opacity: 1 !important;
+  }
+
   .desktop-reference-home [data-drag-scroll='true'] {
     overflow-x: auto !important;
     overflow-y: hidden !important;
@@ -28,13 +120,13 @@
     cursor: grabbing !important;
   }
 
-  /* GameHitSlide source: auto-width free-mode cards. */
+  /* GameHitSlide source: max 137px slide with a 126px game card. */
   .desktop-reference-home .reference-number-row {
     display: flex !important;
     align-items: stretch !important;
-    gap: 10px !important;
+    gap: 11px !important;
     width: 100% !important;
-    padding: 10px !important;
+    padding: 0 16px 12px !important;
     scroll-snap-type: x proximity !important;
   }
 
@@ -43,12 +135,13 @@
     width: 126px !important;
     min-width: 126px !important;
     max-width: 126px !important;
+    margin-top: 12px !important;
     scroll-snap-align: start !important;
   }
 
-  /* MostOnline source: 128px cards inside a 232px section. */
+  /* MostOnline source: 128px x 232px cards, 20px spacing and a 40px counter panel. */
   .desktop-reference-home .reference-compact-section[data-section-kind='online'] {
-    min-height: 232px !important;
+    min-height: 0 !important;
   }
 
   .desktop-reference-home .reference-online-row {
@@ -56,26 +149,69 @@
     align-items: stretch !important;
     gap: 20px !important;
     width: 100% !important;
-    padding: 10px !important;
+    padding: 0 16px 12px !important;
     scroll-snap-type: x proximity !important;
   }
 
   .desktop-reference-home .reference-online-card {
+    position: relative !important;
+    display: flex !important;
     flex: 0 0 128px !important;
+    flex-direction: column !important;
     width: 128px !important;
     min-width: 128px !important;
     max-width: 128px !important;
+    height: 232px !important;
+    margin-top: 12px !important;
+    overflow: visible !important;
+    background: transparent !important;
     scroll-snap-align: start !important;
   }
 
   .desktop-reference-home .reference-online-card > img,
   .desktop-reference-home .reference-online-card > picture,
   .desktop-reference-home .reference-online-card > picture > img {
+    display: block !important;
+    flex: 0 0 184px !important;
     width: 128px !important;
     max-width: 128px !important;
+    height: 184px !important;
+    object-fit: cover !important;
+    border-radius: 11px !important;
   }
 
-  /* One visible announcement, matching react-fast-marquee behavior without exposing a duplicate copy. */
+  .desktop-reference-home .reference-online-card > span {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    width: 100% !important;
+    height: 40px !important;
+    margin-top: 8px !important;
+    padding: 7px !important;
+    overflow: hidden !important;
+    border: 1px solid rgb(226 47 241 / 34%) !important;
+    border-radius: 11px !important;
+    background: rgb(41 27 48 / 92%) !important;
+    backdrop-filter: blur(21px) !important;
+  }
+
+  .desktop-reference-home .reference-online-card > span > strong {
+    overflow: hidden !important;
+    font-size: 10px !important;
+    line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-online-card > span > small {
+    flex: 0 0 auto !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+  }
+
+  /* One visible announcement item with the same hover-pause behavior as the source marquee. */
   .desktop-reference-home .reference-announcement-viewport {
     position: relative !important;
     overflow: hidden !important;
@@ -88,19 +224,15 @@
     width: max-content !important;
     min-width: max-content !important;
     height: 100% !important;
-    padding: 0 !important;
+    padding-left: 100% !important;
     will-change: transform !important;
     animation: source-announcement-marquee 18s linear infinite !important;
   }
 
-  .desktop-reference-home .reference-announcement-track > span:first-child {
+  .desktop-reference-home .reference-announcement-track > span {
     display: inline-block !important;
-    padding-left: 100vw !important;
+    padding: 0 !important;
     white-space: nowrap !important;
-  }
-
-  .desktop-reference-home .reference-announcement-track > span[aria-hidden='true'] {
-    display: none !important;
   }
 
   .desktop-reference-home .reference-announcement:hover .reference-announcement-track {
