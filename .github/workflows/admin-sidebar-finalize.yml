@@ -1,0 +1,90 @@
+name: Finalize Admin Sidebar Accordion
+
+on:
+  push:
+    branches:
+      - fix/admin-sidebar-smart-accordion
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: ${{ !contains(github.event.head_commit.message, '[sidebar-finalized]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply route-aware accordion state
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web-admin/app/(admin)/layout.tsx')
+          text = path.read_text()
+
+          replacements = [
+              (
+                  "    if (activeGroup) setOpenGroups((current) => new Set(current).add(activeGroup.id));",
+                  "    setOpenGroups(activeGroup ? new Set([activeGroup.id]) : new Set());",
+              ),
+              (
+                  "    const storedGroups = window.localStorage.getItem('admin_nav_open_groups');\n"
+                  "    if (storedGroups) {\n"
+                  "      try {\n"
+                  "        const parsed = JSON.parse(storedGroups);\n"
+                  "        if (Array.isArray(parsed)) setOpenGroups(new Set(parsed.filter((value): value is string => typeof value === 'string')));\n"
+                  "      } catch {\n"
+                  "        // Ignore malformed local preferences and use the safe default.\n"
+                  "      }\n"
+                  "    }",
+                  "    window.localStorage.removeItem('admin_nav_open_groups');",
+              ),
+              (
+                  "  function toggleGroup(groupId: string) {\n"
+                  "    setOpenGroups((current) => {\n"
+                  "      const next = new Set(current);\n"
+                  "      if (next.has(groupId)) next.delete(groupId); else next.add(groupId);\n"
+                  "      window.localStorage.setItem('admin_nav_open_groups', JSON.stringify([...next]));\n"
+                  "      return next;\n"
+                  "    });\n"
+                  "  }",
+                  "  function toggleGroup(groupId: string) {\n"
+                  "    setOpenGroups((current) => current.has(groupId) ? new Set() : new Set([groupId]));\n"
+                  "  }",
+              ),
+              (
+                  "        const expanded = Boolean(normalizedQuery) || openGroups.has(group.id) || containsActiveRoute;",
+                  "        const expanded = Boolean(normalizedQuery) || openGroups.has(group.id);",
+              ),
+          ]
+
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'Expected one match, found {count}: {old[:90]!r}')
+              text = text.replace(old, new)
+
+          path.write_text(text)
+
+          for obsolete in [
+              Path('apps/web-admin/app/admin-sidebar-behavior-controller.tsx'),
+              Path('.github/workflows/admin-sidebar-diagnostic.yml'),
+              Path('.github/workflows/admin-sidebar-finalize.yml'),
+          ]:
+              obsolete.unlink(missing_ok=True)
+          PY
+      - name: Commit finalized sidebar
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'No sidebar changes to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(admin): finalize route-aware sidebar accordion [sidebar-finalized]'
+          git push origin HEAD:fix/admin-sidebar-smart-accordion
