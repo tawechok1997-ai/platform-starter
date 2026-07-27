@@ -22,6 +22,11 @@ test('unregistered routes fail closed for non-wildcard Admin sessions', () => {
   assert.equal(canAccessPath('/internal-page-without-rbac-registration', ['users.view']), false);
 });
 
+test('wildcard authority remains an explicit super-admin override', () => {
+  assert.equal(canAccessPath('/members', ['*']), true);
+  assert.equal(canAccessPath('/internal-page-without-rbac-registration', ['*']), true);
+});
+
 test('navigation exposes only entries allowed by the Admin permission set', () => {
   const items = navGroups.flatMap((group) => group.items);
   const memberItem = items.find((item) => item.href === '/members');
