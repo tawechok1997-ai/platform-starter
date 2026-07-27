@@ -6,6 +6,7 @@ import type { Game, GameLobbyPayload, LedgerItem, MoneyRequest } from '../types/
 
 const FAVORITES_KEY = 'member_favorite_game_ids';
 const RECENT_KEY = 'member_recent_game_ids';
+const USE_GAME_API = process.env.NEXT_PUBLIC_MEMBER_GAME_SOURCE === 'api';
 
 export function useMemberHomeData(gamesEnabled: boolean) {
   const [topups] = useState<MoneyRequest[]>([]);
@@ -18,8 +19,10 @@ export function useMemberHomeData(gamesEnabled: boolean) {
   const [isGamesLoading, setIsGamesLoading] = useState(false);
 
   const loadGames = useCallback(async () => {
-    if (!gamesEnabled) {
+    if (!gamesEnabled || !USE_GAME_API) {
       setLobby({});
+      setGamesMessage('');
+      setIsGamesLoading(false);
       return;
     }
 
