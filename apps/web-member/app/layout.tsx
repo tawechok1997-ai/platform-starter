@@ -98,6 +98,7 @@ import './member-v47-alliance-scroll-lock.css';
 import './member-alliance-v2.css';
 import './member-source-bundle-behavior.css';
 import './member-v47-mission-color-lock.css';
+import './member-auth-overlay.css';
 import MemberChrome from './member-chrome';
 import MemberAllianceBandRepair from './components/member-alliance-band-repair';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
