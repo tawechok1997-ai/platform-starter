@@ -20,9 +20,9 @@ test('promotion cards reject unsafe hrefs and duplicate images', () => {
   const content: CmsContent = {
     ...emptyContent,
     banners: [
-      { title: 'A', subtitle: '', imageUrl: 'https://cdn.example/a.jpg', href: 'https://evil.example', enabled: true },
-      { title: 'B', subtitle: '', imageUrl: 'https://cdn.example/a.jpg', href: '/promotions', enabled: true },
-      { title: 'C', subtitle: '', imageUrl: '', href: '/promotions', enabled: true },
+      { id: 'banner-a', title: 'A', subtitle: '', imageUrl: 'https://cdn.example/a.jpg', href: 'https://evil.example', enabled: true },
+      { id: 'banner-b', title: 'B', subtitle: '', imageUrl: 'https://cdn.example/a.jpg', href: '/promotions', enabled: true },
+      { id: 'banner-c', title: 'C', subtitle: '', imageUrl: '', href: '/promotions', enabled: true },
     ],
   };
   const cards = buildHomePromotionCards(content);
