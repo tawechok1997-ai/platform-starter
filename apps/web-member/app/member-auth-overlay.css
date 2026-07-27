@@ -1,10 +1,71 @@
 @import './member-v47-guide-source-match.css';
 
-/* Remove the legacy desktop auth links that were visually stacked over the real header buttons. */
+/* Keep the duplicate scaffold actions out of the click layer. */
 .desktop-reference-home > .reference-auth-actions {
   display: none !important;
   pointer-events: none !important;
   visibility: hidden !important;
+}
+
+/* The header owns the only visible guest auth controls. Older source CSS hid
+   this group because the scaffold used to draw a duplicate pair over it. */
+.public-home-topbar .member-actions,
+.public-home-topbar .member-guest-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  width: auto !important;
+  min-width: max-content !important;
+  height: auto !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+
+.public-home-topbar .member-guest-action {
+  position: relative !important;
+  z-index: 4 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  min-width: 112px !important;
+  height: 38px !important;
+  margin: 0 !important;
+  padding: 0 18px !important;
+  border-radius: 6px !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+
+.public-home-topbar .member-guest-action--login {
+  border: 1px solid #8e2bc0 !important;
+  background: linear-gradient(180deg, #3f174f 0%, #25102f 100%) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%) !important;
+}
+
+.public-home-topbar .member-guest-action--register {
+  border: 1px solid #bd49e5 !important;
+  background: linear-gradient(180deg, #a52ed1 0%, #7100bd 100%) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 18%), 0 0 12px rgb(113 0 189 / 25%) !important;
+}
+
+.public-home-topbar .member-guest-action:hover,
+.public-home-topbar .member-guest-action:focus-visible {
+  filter: brightness(1.08) !important;
+  outline: 2px solid rgb(187 91 234 / 35%) !important;
+  outline-offset: 2px !important;
 }
 
 .member-auth-overlay {
@@ -23,4 +84,17 @@
   height: 100%;
   border: 0;
   background: transparent;
+}
+
+@media (max-width: 900px) {
+  .public-home-topbar .member-guest-actions {
+    gap: 6px !important;
+  }
+
+  .public-home-topbar .member-guest-action {
+    min-width: 92px !important;
+    height: 36px !important;
+    padding-inline: 12px !important;
+    font-size: 12px !important;
+  }
 }
