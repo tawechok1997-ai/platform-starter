@@ -1,17 +1,16 @@
-/* Exact alliance markup contract from the supplied source HTML. */
+/* Exact source alliance strip using the checked-in asset-pc image pack. */
 @media (min-width: 901px) {
   .desktop-reference-home .reference-provider-strip {
     display: block !important;
     position: relative !important;
-    left: 15px !important;
+    left: auto !important;
     width: min(1440px, calc(100vw - 32px)) !important;
     max-width: 1440px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    margin: 0 auto !important;
     padding: 64px 0 40px !important;
+    box-sizing: border-box !important;
     background: transparent !important;
     overflow: visible !important;
-    box-sizing: border-box !important;
   }
 
   .desktop-reference-home .reference-provider-strip::before {
@@ -20,13 +19,14 @@
     z-index: -1 !important;
     top: 0 !important;
     bottom: 0 !important;
-    left: calc((1440px - 100vw) / 2 - 15px) !important;
+    left: calc((1440px - 100vw) / 2) !important;
     width: 100vw !important;
-    background: #110e16 !important;
+    background: linear-gradient(rgb(19, 16, 26), rgb(23, 20, 34)) !important;
     pointer-events: none !important;
   }
 
   .desktop-reference-home .reference-provider-strip h2 {
+    display: block !important;
     margin: 0 0 20px !important;
     color: #fff !important;
     font-size: 20px !important;
@@ -35,11 +35,14 @@
     text-align: left !important;
   }
 
+  .desktop-reference-home .reference-provider-strip .reference-heading-icon {
+    display: none !important;
+  }
+
   .desktop-reference-home .reference-provider-rows {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
     grid-template-rows: 24px 24px !important;
-    grid-auto-columns: auto !important;
     row-gap: 12px !important;
     width: 100% !important;
     height: 60px !important;
@@ -101,30 +104,28 @@
     display: none !important;
   }
 
-  /* Row 1: evoplay, cq9, jili, playstar, joker, ebet, popk, evoplay, cq9, jili, playstar, joker. */
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(1) img { content: url('/images/alliance/evoplay.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(2) img { content: url('/images/alliance/cq9.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(3) img { content: url('/images/alliance/jili.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(4) img { content: url('/images/alliance/playstar.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(5) img { content: url('/images/alliance/joker.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(6) img { content: url('/images/alliance/ebet.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(7) img { content: url('/images/alliance/popk.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(8) img { content: url('/images/alliance/evoplay.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(9) img { content: url('/images/alliance/cq9.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(10) img { content: url('/images/alliance/jili.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(11) img { content: url('/images/alliance/playstar.webp') !important; }
-  .desktop-reference-home .reference-provider-row:first-child > :nth-child(12) img { content: url('/images/alliance/joker.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(1) img { content: url('/assets/asset-pc/images/alliance/evoplay.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(2) img { content: url('/assets/asset-pc/images/alliance/cq9.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(3) img { content: url('/assets/asset-pc/images/alliance/jili.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(4) img { content: url('/assets/asset-pc/images/alliance/playstar.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(5) img { content: url('/assets/asset-pc/images/alliance/joker.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(6) img { content: url('/assets/asset-pc/images/alliance/ebet.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(7) img { content: url('/assets/asset-pc/images/alliance/popk.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(8) img { content: url('/assets/asset-pc/images/alliance/evoplay.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(9) img { content: url('/assets/asset-pc/images/alliance/cq9.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(10) img { content: url('/assets/asset-pc/images/alliance/jili.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(11) img { content: url('/assets/asset-pc/images/alliance/playstar.webp') !important; }
+  .desktop-reference-home .reference-provider-row:first-child > :nth-child(12) img { content: url('/assets/asset-pc/images/alliance/joker.webp') !important; }
 
-  /* Row 2: jili, playstar, evoplay, ebet, popk, cq9, evoplay, jili, playstar, joker, evoplay. */
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(1) img { content: url('/images/alliance/jili.webp') !important; }
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(2) img { content: url('/images/alliance/playstar.webp') !important; }
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(3) img { content: url('/images/alliance/evoplay.webp') !important; }
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(4) img { content: url('/images/alliance/ebet.webp') !important; }
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(5) img { content: url('/images/alliance/popk.webp') !important; }
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(6) img { content: url('/images/alliance/cq9.webp') !important; }
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(7) img { content: url('/images/alliance/evoplay.webp') !important; }
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(8) img { content: url('/images/alliance/jili.webp') !important; }
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(9) img { content: url('/images/alliance/playstar.webp') !important; }
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(10) img { content: url('/images/alliance/joker.webp') !important; }
-  .desktop-reference-home .reference-provider-row--reverse > :nth-child(11) img { content: url('/images/alliance/evoplay.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(1) img { content: url('/assets/asset-pc/images/alliance/jili.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(2) img { content: url('/assets/asset-pc/images/alliance/playstar.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(3) img { content: url('/assets/asset-pc/images/alliance/evoplay.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(4) img { content: url('/assets/asset-pc/images/alliance/ebet.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(5) img { content: url('/assets/asset-pc/images/alliance/popk.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(6) img { content: url('/assets/asset-pc/images/alliance/cq9.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(7) img { content: url('/assets/asset-pc/images/alliance/evoplay.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(8) img { content: url('/assets/asset-pc/images/alliance/jili.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(9) img { content: url('/assets/asset-pc/images/alliance/playstar.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(10) img { content: url('/assets/asset-pc/images/alliance/joker.webp') !important; }
+  .desktop-reference-home .reference-provider-row--reverse > :nth-child(11) img { content: url('/assets/asset-pc/images/alliance/evoplay.webp') !important; }
 }
