@@ -14,7 +14,7 @@ jobs:
   finalize:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - name: Checkout overhaul branch
         uses: actions/checkout@v4
@@ -22,61 +22,20 @@ jobs:
           ref: agent/admin-ux-ui-overhaul
           fetch-depth: 0
 
-      - name: Sync latest main and fix localization boundaries
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git merge --no-edit origin/main
-          python - <<'PY'
-          from pathlib import Path
-
-          audit_path = Path('apps/web-admin/app/(admin)/audit/page.tsx')
-          audit = audit_path.read_text(encoding='utf-8')
-          before, marker, english = audit.partition("  en: {")
-          if not marker:
-              raise SystemExit('English audit copy boundary is missing')
-          english = english.replace("target: 'รหัสเป้าหมาย'", "target: 'Target ID'", 1)
-          english = english.replace("ip: 'ที่อยู่ IP'", "ip: 'IP address'", 1)
-          audit_path.write_text(before + marker + english, encoding='utf-8')
-
-          invitation_path = Path('apps/web-admin/app/(admin)/admin-invitations/page.tsx')
-          invitation = invitation_path.read_text(encoding='utf-8')
-          invitation = invitation.replace('<strong>Role</strong>', '<strong>บทบาท</strong>')
-          invitation_path.write_text(invitation, encoding='utf-8')
-          PY
-
-      - name: Install dependencies
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install workspace
-        run: pnpm install --frozen-lockfile=false
-
-      - name: Verify Admin
-        run: |
-          pnpm --filter @platform/web-admin typecheck
-          pnpm --filter @platform/web-admin test
-          pnpm --filter @platform/web-admin build
-
-      - name: Commit and push synchronized branch
+      - name: Remove unrelated generated files
         shell: bash
         env:
           BRANCH_NAME: agent/admin-ux-ui-overhaul
         run: |
           set -euo pipefail
-          git add \
-            "apps/web-admin/app/(admin)/audit/page.tsx" \
-            "apps/web-admin/app/(admin)/admin-invitations/page.tsx"
-          if ! git diff --cached --quiet; then
-            git commit -m "fix(admin): finalize localized UX copy"
-          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout origin/main -- \
+            "apps/web-admin/next-env.d.ts" \
+            "apps/web-admin/tsconfig.json"
+          git rm -r --ignore-unmatch "apps/web-admin/public/assets/reference-brand"
+          git add "apps/web-admin/next-env.d.ts" "apps/web-admin/tsconfig.json"
+          git diff --cached --stat
+          git commit -m "chore(admin): remove unrelated generated artifacts"
           git push origin "HEAD:${BRANCH_NAME}"
