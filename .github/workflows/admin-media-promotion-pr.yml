@@ -29,8 +29,11 @@ jobs:
           node-version: 22
           cache: pnpm
       - name: Extract and run product patch
+        id: patch
+        shell: bash
         run: |
-          python <<'PY'
+          set +e
+          python <<'PY' > media-patch.log 2>&1
           from pathlib import Path
           import re
           import textwrap
@@ -41,6 +44,21 @@ jobs:
           script = textwrap.dedent(match.group('body'))
           exec(compile(script, 'admin-media-promotion-patch.py', 'exec'))
           PY
+          code=$?
+          cat media-patch.log
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload patch diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-media-patch-diagnostics
+          path: media-patch.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Stop after patch failure
+        if: steps.patch.outputs.exit_code != '0'
+        run: exit 1
       - run: pnpm install --frozen-lockfile=false
       - name: Admin tests
         run: pnpm --filter @platform/web-admin test
