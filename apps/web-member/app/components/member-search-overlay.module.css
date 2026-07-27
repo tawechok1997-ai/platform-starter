@@ -1,0 +1,563 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 80%);
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: min(1060px, calc(100vw - 32px));
+  min-width: min(470px, calc(100vw - 32px));
+  max-width: 1370px;
+  max-height: 90vh;
+  padding: 20px 20px 32px;
+  overflow: hidden;
+  border-radius: 8px;
+  color: #fff;
+  background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 80%) 0%, rgb(63 59 75 / 63%) 30.08%, rgb(27 24 36 / 80%) 100%);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 46%);
+}
+
+.topLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(255 255 255 / 0%) 26.03%, #fff 48.56%, rgb(255 255 255 / 0%) 72.48%);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 28px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.closeButton {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.closeButton img {
+  width: 16px;
+  height: 16px;
+}
+
+.scrollBody {
+  width: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.scrollBody::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+  padding: 9px 10px;
+  border-bottom: 2px solid rgb(68 61 91);
+  background: linear-gradient(rgb(42 38 57) 0.01%, rgb(23 20 34) 100%);
+}
+
+.tab,
+.activeTab {
+  display: flex;
+  flex: 1 0 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 5px;
+  color: rgb(187 91 234);
+  background: transparent;
+  cursor: pointer;
+}
+
+.activeTab {
+  color: #fff;
+  background: rgb(187 91 234);
+  box-shadow: 0 0 7.5px rgb(118 0 172);
+}
+
+.tab > span:last-child,
+.activeTab > span:last-child {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 22px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activeTab > span:last-child {
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.tabIcon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
+.activeTab .tabIcon {
+  width: 30px;
+  height: 30px;
+  flex-basis: 30px;
+  margin-block: -5px;
+}
+
+.tabIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.content {
+  padding-top: 15px;
+}
+
+.searchForm {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 4px;
+}
+
+.searchForm input {
+  width: 100%;
+  height: 50px;
+  padding: 8px 52px 8px 22px;
+  border: 1px solid rgb(55 49 71);
+  border-radius: 999px;
+  outline: none;
+  color: #fff;
+  background: rgb(28 27 35);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.searchForm input::placeholder {
+  color: rgb(255 255 255 / 74%);
+}
+
+.searchForm input:focus {
+  border-color: rgb(187 91 234);
+  box-shadow: 0 0 0 2px rgb(187 91 234 / 16%);
+}
+
+.searchForm > button {
+  position: absolute;
+  right: 20px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 5px;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.searchForm > button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.historyPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgb(46 0 58);
+}
+
+.historyHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.historyHeading strong {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.historyHeading button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  color: rgb(164 0 209);
+  background: transparent;
+  cursor: pointer;
+}
+
+.historyHeading button svg {
+  width: 16px;
+  height: 16px;
+  color: #617593;
+}
+
+.historyHeading button span {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.historyItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.historyItems button {
+  padding: 5px 10px;
+  border: 1px solid rgb(187 91 234 / 38%);
+  border-radius: 999px;
+  color: #dcb4f0;
+  background: rgb(31 16 40 / 82%);
+  cursor: pointer;
+}
+
+.section {
+  width: 100%;
+  height: auto;
+  padding-top: 20px;
+}
+
+.sectionHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 95%;
+  height: 30px;
+  padding: 0 12px;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) 4.41%, rgb(24 21 35 / 60%) 83.01%);
+}
+
+.sectionHeader::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) 4.41%, rgb(24 21 35 / 60%) 83.01%);
+  content: '';
+  opacity: .44;
+}
+
+.sectionHeader strong {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.sectionHeader button {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  color: #b3d1ff;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 300;
+  cursor: pointer;
+  transform: scale(.8);
+  transform-origin: right center;
+}
+
+.sectionHeader button svg {
+  width: 8px;
+  height: 13px;
+  color: #799fdc;
+}
+
+.sectionBody {
+  padding-top: 20px;
+}
+
+.newGrid,
+.resultGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  padding: 16px;
+  border-radius: 8px;
+  background: rgb(46 0 58);
+}
+
+.resultGrid {
+  row-gap: 16px;
+}
+
+.portraitCard {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.portraitImage {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding-bottom: 142.857%;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #170f1d;
+}
+
+.blurImage,
+.containImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.blurImage {
+  object-fit: cover;
+  filter: blur(8px);
+  opacity: .72;
+  transform: scale(1.25);
+}
+
+.containImage {
+  z-index: 1;
+  object-fit: contain;
+}
+
+.providerBadge {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  height: 15%;
+  padding: 3% 10%;
+  background: linear-gradient(90deg, rgb(0 0 0 / 40%), rgb(0 0 0 / 40%), transparent);
+}
+
+.providerBadge img {
+  width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.newBadge,
+.hotBadge {
+  position: absolute;
+  z-index: 3;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 17px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #fff;
+  background: #00d719;
+  box-shadow: 0 2px 5px rgb(0 255 30 / 53%);
+  font-size: 9.5px;
+  font-weight: 800;
+  font-style: italic;
+}
+
+.newBadge svg,
+.hotBadge svg {
+  width: 10px;
+  height: 10px;
+}
+
+.cardName {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hotGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.landscapeCard {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0 0 56%;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #170f1d;
+  cursor: pointer;
+}
+
+.landscapeCard > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.landscapeCard > span:last-child {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 18px 8px 6px;
+  overflow: hidden;
+  background: linear-gradient(transparent, rgb(0 0 0 / 76%));
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hotBadge {
+  min-height: 19px;
+  border-radius: 35px;
+  background: linear-gradient(#f45643 0%, #f11f70 73.74%, #fc3a85 94.5%);
+  box-shadow: 0 4px 4px rgb(243 45 120 / 71%);
+  font-size: 8px;
+  font-style: normal;
+}
+
+.hotBadge svg {
+  width: 18px;
+  height: 18px;
+  margin-top: -5px;
+}
+
+.emptyState {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  border-radius: 8px;
+  color: #c8bbce;
+  background: rgb(46 0 58);
+  font-size: 15px;
+}
+
+@media (max-width: 900px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    width: 100%;
+    min-width: 0;
+    max-height: 94dvh;
+    gap: 20px;
+    padding: 18px 12px 24px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .header h2 {
+    font-size: 20px;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab,
+  .activeTab {
+    flex: 0 0 auto;
+    min-width: 112px;
+  }
+
+  .newGrid,
+  .resultGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 10px;
+  }
+
+  .hotGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sectionHeader {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .newGrid,
+  .resultGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
