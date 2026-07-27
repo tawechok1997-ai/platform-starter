@@ -32,7 +32,7 @@ async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
-    if (['node_modules', '.next', 'dist', 'coverage'].includes(entry.name)) continue;
+    if (['node_modules', '.next', 'dist', 'coverage', 'public'].includes(entry.name)) continue;
     const path = join(directory, entry.name);
     if (entry.isDirectory()) files.push(...await walk(path));
     else if (entry.isFile() && /\.(?:ts|tsx|js|jsx)$/.test(entry.name)) files.push(path);
