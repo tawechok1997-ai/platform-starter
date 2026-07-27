@@ -97,20 +97,12 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   useEffect(() => {
     closeAdminSurface();
     const activeGroup = navGroups.find((group) => group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`)));
-    if (activeGroup) setOpenGroups((current) => new Set(current).add(activeGroup.id));
+    setOpenGroups(activeGroup ? new Set([activeGroup.id]) : new Set());
   }, [pathname]);
 
   useEffect(() => {
     setSidebarCollapsed(window.localStorage.getItem('admin_sidebar_collapsed') === 'true');
-    const storedGroups = window.localStorage.getItem('admin_nav_open_groups');
-    if (storedGroups) {
-      try {
-        const parsed = JSON.parse(storedGroups);
-        if (Array.isArray(parsed)) setOpenGroups(new Set(parsed.filter((value): value is string => typeof value === 'string')));
-      } catch {
-        // Ignore malformed local preferences and use the safe default.
-      }
-    }
+    window.localStorage.removeItem('admin_nav_open_groups');
     setFavoriteHrefs(readStoredHrefs(FAVORITE_NAV_STORAGE_KEY));
     setRecentHrefs(readStoredHrefs(RECENT_NAV_STORAGE_KEY));
     setQuickNavLoaded(true);
@@ -256,12 +248,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
   }
 
   function toggleGroup(groupId: string) {
-    setOpenGroups((current) => {
-      const next = new Set(current);
-      if (next.has(groupId)) next.delete(groupId); else next.add(groupId);
-      window.localStorage.setItem('admin_nav_open_groups', JSON.stringify([...next]));
-      return next;
-    });
+    setOpenGroups((current) => current.has(groupId) ? new Set() : new Set([groupId]));
   }
 
   if (!ready || !isLoggedIn) return <main className="admin-loading-screen"><span className="admin-loading-mark">A</span><p>กำลังตรวจสอบสิทธิ์...</p></main>;
@@ -301,7 +288,7 @@ export default function AdminProtectedLayout({ children }: { children: ReactNode
       {recentItems.length > 0 && <QuickNavSection title={copy.recentlyUsed} items={recentItems} pathname={pathname} onNavigate={navigate} onClear={() => setRecentHrefs([])} clearLabel={copy.clear} />}
       {visibleGroups.map((group) => {
         const containsActiveRoute = group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
-        const expanded = Boolean(normalizedQuery) || openGroups.has(group.id) || containsActiveRoute;
+        const expanded = Boolean(normalizedQuery) || openGroups.has(group.id);
         const groupIcon = iconForAdminHref(group.items[0]?.href ?? '/dashboard');
         return <section className="admin-nav-group" key={group.id}>
           <button type="button" className="admin-nav-group__trigger" onClick={() => toggleGroup(group.id)} aria-expanded={expanded} aria-controls={`admin-nav-${group.id}`} data-active={containsActiveRoute || undefined} title={sidebarCollapsed ? group.title : undefined}>
