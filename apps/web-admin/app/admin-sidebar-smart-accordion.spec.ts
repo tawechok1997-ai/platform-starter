@@ -34,3 +34,17 @@ test('restores manual submenu toggles and anchors the profile below navigation',
   assert.match(css, /\.admin-drawer[\s\S]*grid-template-rows: auto auto minmax\(0, 1fr\) auto !important/);
   assert.match(css, /\.admin-sidebar-footer[\s\S]*align-self: end !important[\s\S]*margin-top: auto !important/);
 });
+
+test('fits the desktop sidebar without scrolling and keeps mobile safely scrollable', () => {
+  assert.match(css, /@media \(min-width: 1100px\)[\s\S]*\.admin-drawer-nav[\s\S]*overflow: hidden !important/);
+  assert.match(css, /\.admin-drawer-nav > \.admin-quick-nav[\s\S]*display: none !important/);
+  assert.match(css, /@media \(min-width: 1100px\) and \(max-height: 900px\)/);
+  assert.match(css, /@media \(min-width: 1100px\) and \(max-height: 780px\)/);
+  assert.match(css, /@media \(max-width: 1099px\)[\s\S]*\.admin-drawer-nav[\s\S]*overflow-y: auto !important/);
+});
+
+test('keeps the profile control compact instead of consuming the footer', () => {
+  assert.match(css, /\.admin-sidebar-profile__trigger[\s\S]*min-height: 48px !important[\s\S]*padding: 6px 8px !important/);
+  assert.match(css, /\.admin-sidebar-profile__trigger \.admin-profile-avatar[\s\S]*width: 34px !important[\s\S]*height: 34px !important/);
+  assert.match(css, /max-height: 780px[\s\S]*\.admin-sidebar-profile__trigger[\s\S]*min-height: 40px !important/);
+});
