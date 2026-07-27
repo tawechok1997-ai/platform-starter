@@ -1,0 +1,36 @@
+/* Exact mission-button color match from the supplied NOAH345 reference crop. */
+
+@media (min-width: 901px) {
+  .public-home-topbar .public-home-mission,
+  .public-home-topbar .public-home-mission:hover,
+  .public-home-topbar .public-home-mission:focus-visible {
+    position: relative !important;
+    isolation: isolate !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    color: #fff !important;
+    background: linear-gradient(180deg, #81ccd6 0%, #a3d7e1 36%, #65068f 100%) !important;
+    box-shadow: none !important;
+  }
+
+  .public-home-topbar .public-home-mission::before,
+  .public-home-topbar .public-home-mission:hover::before,
+  .public-home-topbar .public-home-mission:focus-visible::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 1px !important;
+    z-index: 0 !important;
+    display: block !important;
+    border-radius: 7px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: linear-gradient(90deg, #481850 0%, #610074 100%) !important;
+    transform: none !important;
+  }
+
+  .public-home-topbar .public-home-mission > img,
+  .public-home-topbar .public-home-mission > span {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+}
