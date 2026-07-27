@@ -69,6 +69,7 @@ import './admin-professional-authority.css';
 import './admin-permanent-sidebar.css';
 import './admin-static-sidebar-groups.css';
 import './admin-data-page-layout.css';
+import './admin-universal-full-width.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
