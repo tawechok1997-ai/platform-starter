@@ -20,11 +20,13 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
-      - name: Capture focused typechecks
+      - name: Capture focused lint and typechecks
         shell: bash
         run: |
           set +e
           mkdir -p diagnostics
+          pnpm --filter @platform/web-admin lint > diagnostics/admin-lint.log 2>&1
+          echo $? > diagnostics/admin-lint.exit
           pnpm --filter @platform/web-admin typecheck > diagnostics/admin-typecheck.log 2>&1
           echo $? > diagnostics/admin-typecheck.exit
           pnpm --filter @platform/api typecheck > diagnostics/api-typecheck.log 2>&1
@@ -33,7 +35,7 @@ jobs:
           echo $? > diagnostics/member-typecheck.exit
           for file in diagnostics/*.log; do
             echo "===== $file ====="
-            tail -n 160 "$file"
+            tail -n 200 "$file"
           done
           exit 0
       - uses: actions/upload-artifact@v4
