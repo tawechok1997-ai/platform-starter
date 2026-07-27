@@ -31,7 +31,6 @@ export const ICON_SETTING_KEYS = [
 
 const ICON_SETTING_KEY_SET = new Set<string>(ICON_SETTING_KEYS);
 const MAX_ICON_SETTING_VALUE_LENGTH = 2_048;
-const CONTROL_CHARACTER_PATTERN = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/;
 
 export function validateIconSettingsUpdate(body: Record<string, unknown>) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -48,11 +47,18 @@ export function validateIconSettingsUpdate(body: Record<string, unknown>) {
     if (value.length > MAX_ICON_SETTING_VALUE_LENGTH) {
       throw new BadRequestException(`Icon setting ${key} is too long`);
     }
-    if (CONTROL_CHARACTER_PATTERN.test(value)) {
+    if (containsControlCharacter(value)) {
       throw new BadRequestException(`Icon setting ${key} contains invalid control characters`);
     }
 
     result[key] = value;
     return result;
   }, {});
+}
+
+function containsControlCharacter(value: string) {
+  return Array.from(value).some((character) => {
+    const code = character.charCodeAt(0);
+    return (code >= 0 && code <= 8) || code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127;
+  });
 }
