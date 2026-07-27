@@ -88,7 +88,7 @@ export class PromotionsQueryService {
     });
   }
 
-  private inWindow(item: { startsAt?: string; endsAt?: string }, now: number) {
+  private inWindow(item: { startsAt: string | undefined; endsAt: string | undefined }, now: number) {
     const start = item.startsAt ? Date.parse(item.startsAt) : NaN;
     const end = item.endsAt ? Date.parse(item.endsAt) : NaN;
     return !(Number.isFinite(start) && now < start) && !(Number.isFinite(end) && now > end);
