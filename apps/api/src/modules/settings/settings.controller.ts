@@ -4,6 +4,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AdminRequestContext, AuthenticatedAdminActor } from '../../common/actors';
+import { validateIconSettingsUpdate } from './icon-settings.validation';
 import { SettingsService } from './settings.service';
 
 type SettingsUpdateRequest = Record<string, unknown>;
@@ -29,10 +30,23 @@ export class SettingsController {
     return this.settingsService.saveAdminDraft('branding', body, user, this.meta(req));
   }
 
-  @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.view') @Get('admin/settings/icons')
-  getIcons() { return this.settingsService.getAdminGroup('icons'); }
-  @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.update') @Put('admin/settings/icons')
-  updateIcons(@Body() body: SettingsUpdateRequest, @CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) { return this.update('icons', body, user, req); }
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('settings.branding.view')
+  @Get('admin/settings/icons')
+  getIcons() {
+    return this.settingsService.getAdminGroup('icons');
+  }
+
+  @UseGuards(AdminAuthGuard, PermissionsGuard)
+  @RequirePermission('settings.branding.update')
+  @Put('admin/settings/icons')
+  updateIcons(
+    @Body() body: SettingsUpdateRequest,
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Req() req: AdminRequestContext,
+  ) {
+    return this.update('icons', validateIconSettingsUpdate(body), user, req);
+  }
 
   @UseGuards(AdminAuthGuard, PermissionsGuard) @RequirePermission('settings.branding.view') @Get('admin/settings/branding/draft')
   getBrandingDraft() { return this.settingsService.getAdminDraft('branding'); }
