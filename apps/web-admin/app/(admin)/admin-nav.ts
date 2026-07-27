@@ -34,9 +34,9 @@ export function localizedNavGroupDescription(group: Pick<AdminNavGroup, 'descrip
 }
 
 /**
- * The sidebar exposes every permission-allowed operational route. Groups remain
- * collapsible and searchable so specialist tools are discoverable without losing
- * the task-oriented structure of the workspace.
+ * Every permission-allowed operational route remains discoverable, but dense
+ * workspaces are split into focused collapsible groups so the sidebar does not
+ * become one enormous list.
  */
 export const navGroups: readonly AdminNavGroup[] = [
   {
@@ -52,27 +52,13 @@ export const navGroups: readonly AdminNavGroup[] = [
     ],
   },
   {
-    id: 'operations',
-    title: 'งานปฏิบัติการ',
-    titleEn: 'Operations',
-    description: 'การเงิน สมาชิก ความเสี่ยง และผู้ให้บริการ',
-    descriptionEn: 'Finance, members, risk, and providers',
+    id: 'finance',
+    title: 'การเงิน',
+    titleEn: 'Finance',
+    description: 'ฝาก ถอน กระเป๋าเงิน และรายงาน',
+    descriptionEn: 'Deposits, withdrawals, wallets, and reporting',
     items: [
-      {
-        title: 'การเงิน',
-        titleEn: 'Finance',
-        href: '/topups',
-        permissions: ['topups.view', 'deposit.view', 'withdraw.view', 'wallet.view', 'reports.view', 'reports.export', 'game.providers.view', 'provider.view'],
-        permissionTargets: [
-          { href: '/topups', permissions: ['topups.view', 'deposit.view'] },
-          { href: '/withdrawals', permissions: ['withdraw.view'] },
-          { href: '/wallets', permissions: ['wallet.view'] },
-          { href: '/reports', permissions: ['reports.view'] },
-          { href: '/exports', permissions: ['reports.export'] },
-          { href: '/reconciliation-center', permissions: ['game.providers.view', 'provider.view'] },
-        ],
-        badgeKey: 'pending',
-      },
+      { title: 'รายการฝาก', titleEn: 'Deposits', href: '/topups', permissions: ['topups.view', 'deposit.view'], badgeKey: 'topups' },
       { title: 'รายการถอน', titleEn: 'Withdrawals', href: '/withdrawals', permissions: ['withdraw.view'], badgeKey: 'withdrawals' },
       { title: 'จัดการหลายรายการ', titleEn: 'Bulk review', href: '/bulk-queue-operations', permissions: ['topups.view', 'deposit.view', 'withdraw.view'] },
       { title: 'กระเป๋าเงินสมาชิก', titleEn: 'Member wallets', href: '/wallets', permissions: ['wallet.view'] },
@@ -82,51 +68,92 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'กระทบยอด', titleEn: 'Reconciliation', href: '/reconciliation-center', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'รายงานการเงิน', titleEn: 'Finance reports', href: '/reports', permissions: ['reports.view'] },
       { title: 'ส่งออกรายงาน', titleEn: 'Exports', href: '/exports', permissions: ['reports.export', 'reports.view'] },
-
-      { title: 'สมาชิก', titleEn: 'Members', href: '/members', permissions: ['users.view'] },
+    ],
+  },
+  {
+    id: 'members',
+    title: 'สมาชิก',
+    titleEn: 'Members',
+    description: 'บัญชีสมาชิก KYC และงานช่วยเหลือ',
+    descriptionEn: 'Member accounts, KYC, and support',
+    items: [
+      { title: 'รายชื่อสมาชิก', titleEn: 'Member directory', href: '/members', permissions: ['users.view'] },
       { title: 'ข้อมูลเชิงลึกสมาชิก', titleEn: 'Member insights', href: '/member-insights', permissions: ['users.view'] },
       { title: 'บัญชีธนาคาร', titleEn: 'Bank accounts', href: '/bank-accounts', permissions: ['users.view', 'deposit.view'] },
       { title: 'ตรวจ KYC', titleEn: 'KYC review', href: '/kyc-center', permissions: ['users.view', 'risk.view'] },
       { title: 'ช่วยเหลือสมาชิก', titleEn: 'Support', href: '/support-center', permissions: ['users.view'] },
-
+    ],
+  },
+  {
+    id: 'risk',
+    title: 'ความเสี่ยง',
+    titleEn: 'Risk & compliance',
+    description: 'แจ้งเตือน การตรวจสอบ และกำกับดูแล',
+    descriptionEn: 'Alerts, investigations, and compliance',
+    items: [
       { title: 'ความเสี่ยงและกำกับดูแล', titleEn: 'Risk & compliance', href: '/risk-alerts', permissions: ['risk.view'] },
       { title: 'ตรวจความเสี่ยงค่ายเกม', titleEn: 'Provider risk', href: '/provider-risk', permissions: ['risk.view', 'provider.view'] },
       { title: 'ตรวจบันทึกความเสี่ยง', titleEn: 'Risk audit', href: '/audit-risk', permissions: ['risk.view'] },
-
-      { title: 'ปฏิบัติการค่ายเกม', titleEn: 'Provider operations', href: '/provider-health', permissions: ['game.providers.view', 'provider.view'] },
+    ],
+  },
+  {
+    id: 'providers',
+    title: 'ค่ายเกมและการเชื่อมต่อ',
+    titleEn: 'Providers & integrations',
+    description: 'ค่ายเกม API Webhook และการกระทบยอด',
+    descriptionEn: 'Providers, APIs, webhooks, and settlement',
+    items: [
+      { title: 'สถานะค่ายเกม', titleEn: 'Provider health', href: '/provider-health', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'ตั้งค่าค่ายเกม', titleEn: 'Provider setup', href: '/simple-game-settings', permissions: ['game.providers.manage', 'provider.update'] },
       { title: 'เพิ่มค่ายเกม', titleEn: 'Add provider', href: '/provider-setup-wizard', permissions: ['game.providers.manage', 'provider.update'] },
       { title: 'ชุดตั้งค่าค่ายเกม', titleEn: 'Provider presets', href: '/provider-presets', permissions: ['game.providers.manage', 'provider.update'] },
       { title: 'ค่ายเกมทั้งหมด', titleEn: 'Game providers', href: '/game-providers', permissions: ['game.providers.view', 'provider.view'] },
-      { title: 'ข้อมูลเชื่อมต่อค่ายเกม', titleEn: 'Provider credentials', href: '/provider-credentials', permissions: ['provider.update', 'game.providers.manage'] },
-      { title: 'บันทึก Webhook', titleEn: 'Webhook logs', href: '/webhook-logs', permissions: ['game.providers.view'] },
+      { title: 'ข้อมูลเชื่อมต่อ', titleEn: 'Provider credentials', href: '/provider-credentials', permissions: ['provider.update', 'game.providers.manage'] },
       { title: 'ตัวเชื่อมต่อค่ายเกม', titleEn: 'Provider adapters', href: '/provider-adapters', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'ยอดเงินฝั่งค่ายเกม', titleEn: 'Provider wallet snapshots', href: '/provider-wallet-snapshots', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'บันทึก Webhook', titleEn: 'Webhook logs', href: '/webhook-logs', permissions: ['game.providers.view'] },
       { title: 'กระทบยอด Webhook', titleEn: 'Webhook settlement', href: '/webhook-settlement', permissions: ['provider.view', 'game.providers.view'] },
       { title: 'ทดสอบ Webhook', titleEn: 'Webhook test', href: '/webhook-test', permissions: ['provider.update', 'game.providers.manage'] },
       { title: 'ทดสอบ API ค่ายเกม', titleEn: 'Provider API test', href: '/adapter-test', permissions: ['provider.update', 'game.providers.manage'] },
       { title: 'ตั้งค่า API แบบเดิม', titleEn: 'Legacy API settings', href: '/game-api-settings', permissions: ['provider.update'] },
-
-      { title: 'เกม', titleEn: 'Games', href: '/games', permissions: ['game.providers.view', 'provider.view'] },
+    ],
+  },
+  {
+    id: 'games',
+    title: 'เกม',
+    titleEn: 'Games',
+    description: 'รายการเกม เซสชัน และการโอนเงิน',
+    descriptionEn: 'Catalog, sessions, and transfers',
+    items: [
+      { title: 'รายการเกม', titleEn: 'Game catalog', href: '/games', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'เซสชันเกม', titleEn: 'Game sessions', href: '/game-sessions', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'รายการโอนเงินเกม', titleEn: 'Game transfers', href: '/game-transfers', permissions: ['game.providers.view', 'provider.view'] },
     ],
   },
   {
     id: 'growth',
-    title: 'การเติบโต',
-    titleEn: 'Growth',
-    description: 'โปรโมชัน พันธมิตร และเนื้อหา',
-    descriptionEn: 'Promotions, affiliates, and content',
+    title: 'โปรโมชันและพันธมิตร',
+    titleEn: 'Growth & partners',
+    description: 'โปรโมชัน โบนัส Affiliate และคอมมิชชัน',
+    descriptionEn: 'Promotions, bonuses, affiliates, and commissions',
     items: [
-      { title: 'การเติบโตและโปรโมชัน', titleEn: 'Growth & promotions', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
+      { title: 'ภาพรวมการเติบโต', titleEn: 'Growth overview', href: '/growth-center', permissions: ['promotion.view', 'affiliate.view'] },
       { title: 'งานโปรโมชัน', titleEn: 'Promotion operations', href: '/promotion-operations', permissions: ['promotion.view', 'promotions.claims.view'] },
       { title: 'โปรโมชันและโบนัส', titleEn: 'Promotions & bonuses', href: '/promotion-center', permissions: ['promotion.view'] },
       { title: 'คำขอรับโปรโมชัน', titleEn: 'Promotion claims', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
       { title: 'โบนัสย้อนหลัง', titleEn: 'Bonus ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
       { title: 'Affiliate และคอมมิชชัน', titleEn: 'Affiliate & commission', href: '/affiliate-center', permissions: ['affiliate.view'] },
       { title: 'ประวัติคอมมิชชัน', titleEn: 'Commission ledger', href: '/commission-ledgers', permissions: ['commission.view'] },
-      { title: 'เนื้อหาและสื่อ', titleEn: 'Content & assets', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
+    ],
+  },
+  {
+    id: 'content',
+    title: 'เนื้อหาและสื่อ',
+    titleEn: 'Content & media',
+    description: 'CMS รูปภาพ วิดีโอ และเนื้อหาหน้า Member',
+    descriptionEn: 'CMS, images, video, and member content',
+    items: [
+      { title: 'CMS / Asset Library', titleEn: 'CMS / Asset Library', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
     ],
   },
   {
@@ -136,7 +163,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     description: 'บัญชี สิทธิ์ ความปลอดภัย และการตั้งค่า',
     descriptionEn: 'Accounts, access, security, and settings',
     items: [
-      { title: 'สิทธิ์และความปลอดภัย', titleEn: 'Access & security', href: '/admin-accounts', permissions: ['admin.view', 'admin.access.view'] },
+      { title: 'บัญชีผู้ดูแล', titleEn: 'Admin accounts', href: '/admin-accounts', permissions: ['admin.view', 'admin.access.view'] },
       { title: 'บทบาทและสิทธิ์', titleEn: 'Roles & permissions', href: '/admin-roles', permissions: ['admin.access.view'] },
       { title: 'คำเชิญผู้ดูแล', titleEn: 'Admin invitations', href: '/admin-invitations', permissions: ['admin.create'] },
       { title: 'บันทึกการใช้งาน', titleEn: 'Audit log', href: '/audit', permissions: ['admin.view', 'admin.access.view'] },
