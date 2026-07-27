@@ -39,7 +39,7 @@ type HeroTrackStyle = CSSProperties & {
   '--hero-transition': string;
 };
 
-const AUTOPLAY_DELAY_MS = 3000;
+const AUTOPLAY_DELAY_MS = 2500;
 const TRANSITION_MS = 480;
 const SWIPE_THRESHOLD_PX = 48;
 const DRAG_START_THRESHOLD_PX = 4;
@@ -50,7 +50,7 @@ const SOURCE_RAIL_WIDTH_PX = 2180;
 const SOURCE_INITIAL_SLIDE_INDEX = 4;
 const IMAGE_RETRY_LIMIT = 2;
 
-// Exact ten-slide order from the latest inspected NOAH345 desktop Swiper.
+// Exact order recovered from the supplied NOAH345 desktop bundle/assets.
 const SOURCE_IMAGE_URLS = [
   '/assets/asset-pc/images/FEZX/imageslides/1778979600098-3be41f05-c93f-4c12-b278-54cfe390de4c.jpg',
   '/assets/asset-pc/images/FEZX/imageslides/1780250534847-0b47bd80-15a3-4117-bdd3-f383308509bc.jpg',
@@ -99,6 +99,7 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
   const [dragX, setDragX] = useState(0);
   const pointerState = useRef<PointerState | null>(null);
   const draggingRef = useRef(false);
+  const hoveredRef = useRef(false);
   const suppressClickUntil = useRef(0);
   const normalizedActiveIndex = realCount ? modulo(virtualIndex, realCount) : 0;
 
@@ -125,7 +126,7 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
   useEffect(() => {
     if (realCount < 2) return;
     const timer = window.setInterval(() => {
-      if (!document.hidden && !draggingRef.current) moveBy(1);
+      if (!document.hidden && !draggingRef.current && !hoveredRef.current) moveBy(1);
     }, AUTOPLAY_DELAY_MS);
     return () => window.clearInterval(timer);
   }, [moveBy, realCount]);
@@ -143,7 +144,7 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
   }, [realCount, virtualIndex]);
 
   // transitionend can be skipped when a tab is backgrounded. This fallback keeps
-  // the virtual index inside the cloned middle rail so autoplay can never run into blank space.
+  // the virtual index inside the cloned middle rail so autoplay never reaches blank space.
   useEffect(() => {
     if (realCount < 2 || (virtualIndex >= realCount && virtualIndex < realCount * 2)) return;
     const timer = window.setTimeout(normalizeLoopPosition, TRANSITION_MS + 80);
@@ -204,6 +205,8 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     <section
       className="reference-hero-carousel"
       aria-label="โปรโมชั่นแนะนำ"
+      onMouseEnter={() => { hoveredRef.current = true; }}
+      onMouseLeave={() => { hoveredRef.current = false; }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={finishPointer}
