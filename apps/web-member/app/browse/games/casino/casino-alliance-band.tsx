@@ -16,8 +16,8 @@ export default function CasinoAllianceBand() {
       <div className={styles.inner}>
         <h2 id="casino-alliance-heading">พันธมิตรของเรา</h2>
         <div className={styles.rows}>
-          <AllianceRow logos={ROW_ONE} className={styles.rowOne} />
-          <AllianceRow logos={ROW_TWO} className={styles.rowTwo} />
+          <AllianceRow logos={ROW_ONE} className={styles.rowOne ?? ''} />
+          <AllianceRow logos={ROW_TWO} className={styles.rowTwo ?? ''} />
         </div>
       </div>
     </section>
