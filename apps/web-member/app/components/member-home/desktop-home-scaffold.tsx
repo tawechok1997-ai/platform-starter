@@ -28,6 +28,13 @@ const ALLIANCE_ROW_TWO = ['jili', 'playstar', 'evoplay', 'ebet', 'popk', 'cq9', 
 const ARCHIVE_GAMES: ArchiveGame[] = REFERENCE_GAMES.map(({ name, url }) => ({ name, imageUrl: url }));
 const RANK_ART = [V47_ASSETS.rank1, V47_ASSETS.rank2, V47_ASSETS.rank3] as const;
 const TOURNAMENT_SCORES = [20, 17, 13, 11, 9, 8, 6, 5] as const;
+const LEADERBOARD_ITEMS = [
+  { name: 'Saba', user: '090XXXX284', wins: '7,000', image: ARCHIVE_GAMES[0]!.imageUrl },
+  { name: 'Wild Bounty Showdown', user: '099XXXX917', wins: '5,760', image: ARCHIVE_GAMES[1]!.imageUrl },
+  { name: 'Sexy Baccarat', user: '063XXXX452', wins: '5,700', image: ARCHIVE_GAMES[2]!.imageUrl },
+  { name: 'Lucky Neko', user: '084XXXX608', wins: '5,690', image: ARCHIVE_GAMES[3]!.imageUrl },
+  { name: 'Treasures of Aztec', user: '090XXXX762', wins: '5,120', image: ARCHIVE_GAMES[4]!.imageUrl },
+] as const;
 
 const MATCH_CARDS = [
   { time: 'LIVE', league: 'ปารากวัย - ปรีเมร่า ดิวิซิโอน', home: 'ทีมเหย้า', away: 'ทีมเยือน' },
@@ -137,8 +144,8 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
         </main>
 
         <aside className="desktop-home__sidebar reference-sidebar" aria-label="ข้อมูลรางวัลและอันดับ">
-          <section className="reference-side-card reference-jackpot"><header><AssetIcon configured={V47_ASSETS.coin} fallback="●" className="reference-side-icon" /><strong>Jackpot</strong></header><div><img className="reference-jackpot-art" src={assets.jackpot?.url || V47_ASSETS.jackpot} alt="Jackpot" onError={(event) => swapBrokenImage(event, V47_ASSETS.jackpotStill)} /><strong>195,574,797</strong></div></section>
-          <section className="reference-side-card reference-leaderboard"><header><span className="reference-side-title"><AssetIcon configured={V47_ASSETS.leaderboard} fallback="🏆" className="reference-side-icon" /><strong>Leaderboard</strong></span></header>{Array.from({ length: 5 }, (_, index) => <div key={index}><RankMark index={index} /><span><strong>{leaderName(index)}</strong><small>ชนะล่าสุด</small></span><em>›</em></div>)}</section>
+          <section className="reference-side-card reference-jackpot"><header><AssetIcon configured={V47_ASSETS.coin} fallback="●" className="reference-side-icon" /><strong>Jackpot</strong></header><div><img className="reference-jackpot-art" src={assets.jackpot?.url || V47_ASSETS.jackpot} alt="Jackpot" onError={(event) => swapBrokenImage(event, V47_ASSETS.jackpotStill)} /><strong>196,464,585</strong></div></section>
+          <section className="reference-side-card reference-leaderboard"><header><span className="reference-side-title"><AssetIcon configured={V47_ASSETS.leaderboard} fallback="🏆" className="reference-side-icon" /><strong>Leaderboard</strong></span></header>{LEADERBOARD_ITEMS.map((item, index) => <div key={item.name}><RankMark index={index} /><img className="reference-leaderboard-game-image" src={item.image} alt="" loading="lazy" onError={hideBrokenImage} /><span><strong>{item.name}</strong><small>{item.user}</small><small>ชนะ <b>{item.wins}</b></small></span><em>›</em></div>)}</section>
           <section className="reference-side-card reference-mini-games"><header><span className="reference-side-title"><AssetIcon configured={V47_ASSETS.miniGame} fallback="⚡" className="reference-side-icon" /><strong>Mini Game</strong></span></header><div><a href="/login"><AssetIcon configured={V47_ASSETS.miniGameWheel} fallback="วงล้อ" className="reference-mini-icon" /><span>วงล้อ</span></a><a href="/login"><AssetIcon configured={V47_ASSETS.miniGameMission} fallback="ภารกิจ" className="reference-mini-icon" /><span>ทำภารกิจ</span></a></div></section>
         </aside>
       </div>
