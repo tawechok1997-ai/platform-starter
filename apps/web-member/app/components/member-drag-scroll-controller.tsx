@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import MemberSearchOverlay from './member-search-overlay';
 
 type DragState = {
   rail: HTMLElement;
@@ -96,5 +97,5 @@ export default function MemberDragScrollController() {
     };
   }, []);
 
-  return null;
+  return <MemberSearchOverlay />;
 }
