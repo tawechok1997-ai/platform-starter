@@ -166,19 +166,27 @@ const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'ปฏิบัติการความเสี่ยง', href: '/risk-operations', permissions: ['risk.view'] },
 ];
 
+const safeSelfServicePaths = ['/dashboard', '/operations', '/profile', '/security'] as const;
+
+export function isSafeSelfServicePath(pathname: string) {
+  return safeSelfServicePaths.some((href) => pathname === href || pathname.startsWith(`${href}/`));
+}
+
 export function resolveNavItemHref(item: AdminNavItem, permissions: readonly string[]) {
   if (!item.permissionTargets?.length || permissions.includes('*')) return item.href;
   return item.permissionTargets.find((target) => target.permissions.some((permission) => permissions.includes(permission)))?.href ?? item.href;
 }
 
 export function canAccessPath(pathname: string, permissions: readonly string[]) {
+  if (isSafeSelfServicePath(pathname)) return true;
   const required = requiredPermissionsForPath(pathname);
-  return required.length === 0 || permissions.includes('*') || required.some((permission) => permissions.includes(permission));
+  if (required.length === 0) return false;
+  return permissions.includes('*') || required.some((permission) => permissions.includes(permission));
 }
 
 export function canAccessNavItem(item: AdminNavItem, permissions: readonly string[]) {
+  if (!item.permissions || item.permissions.length === 0) return isSafeSelfServicePath(item.href);
   if (permissions.includes('*')) return true;
-  if (!item.permissions || item.permissions.length === 0) return true;
   return item.permissions.some((permission) => permissions.includes(permission));
 }
 
