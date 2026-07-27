@@ -1,0 +1,157 @@
+/* Exact NOAH345 desktop jackpot contract from the supplied source markup. */
+
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-sidebar {
+    position: sticky !important;
+    top: 124px !important;
+    align-self: start !important;
+    box-sizing: border-box !important;
+    width: 360px !important;
+    min-width: 360px !important;
+    height: fit-content !important;
+    padding: 12px 10px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: rgb(24, 21, 35) !important;
+  }
+
+  .desktop-reference-home .reference-sidebar::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 0 auto !important;
+    z-index: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 150px !important;
+    pointer-events: none !important;
+    border-radius: 25px 25px 0 0 !important;
+    background: radial-gradient(
+      circle at 50% -30%,
+      rgb(187, 91, 234) 0%,
+      rgba(7, 29, 70, 0) 60%
+    ) !important;
+  }
+
+  .desktop-reference-home .reference-jackpot {
+    position: relative !important;
+    z-index: 1 !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+
+  .desktop-reference-home .reference-jackpot > header {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    width: 100% !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    margin: 0 !important;
+    padding: 0 16px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-bottom: 2px solid rgb(187 91 234 / 40%) !important;
+    border-radius: 6px 0 0 6px !important;
+    color: #fff !important;
+    background: linear-gradient(
+      90deg,
+      rgb(24 21 35 / 24%) -6.21%,
+      rgb(187 91 234 / 40%) -4.41%,
+      rgb(24 21 35 / 24%) 83.01%
+    ) !important;
+  }
+
+  .desktop-reference-home .reference-jackpot > header .reference-side-icon,
+  .desktop-reference-home .reference-jackpot > header .reference-side-icon > img {
+    display: block !important;
+    flex: 0 0 16px !important;
+    width: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    max-height: 16px !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+  }
+
+  .desktop-reference-home .reference-jackpot > header > strong {
+    display: block !important;
+    margin: 0 !important;
+    color: #fff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 20px !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-jackpot > div {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    margin: 12px 0 -12px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    background: transparent !important;
+    cursor: pointer !important;
+  }
+
+  .desktop-reference-home .reference-jackpot > div::before,
+  .desktop-reference-home .reference-jackpot > div::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-jackpot-art {
+    position: relative !important;
+    z-index: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .reference-jackpot > div > strong {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 44.6512px !important;
+    margin: 1px 0 0 !important;
+    padding: 0 !important;
+    color: #fff !important;
+    background: transparent !important;
+    font-family: 'Noto Sans', Montserrat, sans-serif !important;
+    font-size: 27.091px !important;
+    font-weight: 800 !important;
+    font-variant-numeric: tabular-nums !important;
+    letter-spacing: .1em !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-shadow: none !important;
+    white-space: nowrap !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
