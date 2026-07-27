@@ -21,7 +21,7 @@ test('content center adopts lifecycle controls and published-only previews', () 
 
 test('content center exposes editable normalized raw JSON', () => {
   assert.equal(source.includes('parseCmsContentJson'), true);
-  assert.equal(source.includes('aria-label="CMS Raw JSON"'), true);
+  assert.equal(source.includes('className="cms-json"'), true);
   assert.equal(source.includes('applyRawJson'), true);
   assert.equal(source.includes('setRawJson(stringifyCmsContent(content))'), true);
 });
