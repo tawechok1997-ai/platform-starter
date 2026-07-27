@@ -6,6 +6,7 @@ const operationsEntrySource = readFileSync(new URL('./page.tsx', import.meta.url
 const operationsSource = readFileSync(new URL('./operations-redesigned.tsx', import.meta.url), 'utf8');
 const dashboardEntrySource = readFileSync(new URL('../dashboard/page.tsx', import.meta.url), 'utf8');
 const dashboardSource = readFileSync(new URL('../dashboard/dashboard-redesigned.tsx', import.meta.url), 'utf8');
+const dashboardInsightsSource = readFileSync(new URL('../dashboard/dashboard-insights.tsx', import.meta.url), 'utf8');
 
 function sourceIndex(source: string, marker: string) {
   const index = source.indexOf(marker);
@@ -24,8 +25,10 @@ test('operations uses the redesigned task-first boundary', () => {
   assert.doesNotMatch(operationsSource, /RecentCard|recentTransfers|recentAlerts|recentLedger/);
 });
 
-test('dashboard uses a task-first progressive hierarchy', () => {
-  assert.match(dashboardEntrySource, /export \{ default \} from '\.\/dashboard-redesigned'/);
+test('dashboard keeps the task-first hierarchy before compact analytical insights', () => {
+  assert.match(dashboardEntrySource, /import RedesignedAdminDashboard from '\.\/dashboard-redesigned'/);
+  assert.match(dashboardEntrySource, /import DashboardInsights from '\.\/dashboard-insights'/);
+  assert.ok(sourceIndex(dashboardEntrySource, '<RedesignedAdminDashboard />') < sourceIndex(dashboardEntrySource, '<DashboardInsights />'));
 
   const system = sourceIndex(dashboardSource, 'className={styles.statusBar}');
   const priorities = sourceIndex(dashboardSource, 'priorityItems.length > 0');
@@ -43,4 +46,9 @@ test('dashboard uses a task-first progressive hierarchy', () => {
   assert.match(dashboardSource, /dashboard\.pendingWithdrawals > 0/);
   assert.match(dashboardSource, /riskItems\.length > 0/);
   assert.doesNotMatch(dashboardSource, /QuickCard|admin-dashboard__quick|styles\.allClear/);
+
+  assert.match(dashboardInsightsSource, /Deposits vs withdrawals today/);
+  assert.match(dashboardInsightsSource, /Wallet balance composition/);
+  assert.match(dashboardInsightsSource, /Open risk severity/);
+  assert.match(dashboardInsightsSource, /conic-gradient/);
 });
