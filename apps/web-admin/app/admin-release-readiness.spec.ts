@@ -11,6 +11,9 @@ const adoptionCss = readFileSync(path.join(appDir, 'admin-modernization-adoption
 const viewportCss = readFileSync(path.join(appDir, 'admin-full-viewport-layout.css'), 'utf8');
 const controller = readFileSync(path.join(appDir, 'admin-mobile-drawer-controller.tsx'), 'utf8');
 const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'layout.tsx'), 'utf8');
+const navConfig = readFileSync(path.join(appDir, '(admin)', 'admin-nav.ts'), 'utf8');
+const dashboardPage = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'page.tsx'), 'utf8');
+const dashboardInsights = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'dashboard-insights.tsx'), 'utf8');
 const dataTable = readFileSync(path.join(appDir, '..', 'src', 'features', 'admin-modernization', 'data-table.tsx'), 'utf8');
 const dataTableCss = readFileSync(path.join(appDir, '..', 'src', 'features', 'admin-modernization', 'data-table.module.css'), 'utf8');
 
@@ -46,12 +49,33 @@ test('removes the legacy shell grid and expands single dashboard panels', () => 
   assert.match(viewportCss, /article:only-child[\s\S]*grid-column: 1 \/ -1 !important/);
 });
 
-test('pins root loading and fallback states to the complete viewport', () => {
+test('pins root loading and authorization states to the complete viewport', () => {
   assert.match(viewportCss, /body\[data-app-surface='admin'\][\s\S]*width: 100%/);
-  assert.match(viewportCss, /\.admin-app-state[\s\S]*position: fixed !important/);
-  assert.match(viewportCss, /\.admin-app-state[\s\S]*inset: 0 !important/);
-  assert.match(viewportCss, /\.admin-app-state[\s\S]*max-width: none !important/);
-  assert.match(viewportCss, /\.admin-app-state[\s\S]*min-height: 100dvh !important/);
+  assert.match(viewportCss, /\.admin-app-state,[\s\S]*\.admin-loading-screen[\s\S]*position: fixed !important/);
+  assert.match(viewportCss, /\.admin-loading-screen[\s\S]*inset: 0 !important/);
+  assert.match(viewportCss, /\.admin-loading-screen[\s\S]*min-height: 100dvh !important/);
+});
+
+test('lets data-heavy pages use the whole card width', () => {
+  assert.match(viewportCss, /Data-heavy pages must use the whole card/);
+  assert.match(viewportCss, /\.admin-content-shell table[\s\S]*width: 100% !important/);
+  assert.match(viewportCss, /\.admin-content-shell table[\s\S]*min-width: 100% !important/);
+  assert.match(viewportCss, /:has\(> table\)[\s\S]*max-width: none !important/);
+});
+
+test('restores compact finance wallet and risk charts on the dashboard', () => {
+  assert.match(dashboardPage, /DashboardInsights/);
+  assert.match(dashboardInsights, /Deposits vs withdrawals today/);
+  assert.match(dashboardInsights, /Wallet balance composition/);
+  assert.match(dashboardInsights, /Open risk severity/);
+  assert.match(dashboardInsights, /conic-gradient/);
+});
+
+test('keeps important permission-allowed routes visible in the sidebar', () => {
+  assert.doesNotMatch(navConfig, /sidebar: false/);
+  for (const route of ['/operations', '/wallets', '/reports', '/member-insights', '/support-center', '/game-providers', '/webhook-logs', '/promotion-center', '/admin-roles', '/audit']) {
+    assert.match(navConfig, new RegExp(`href: '${route.replaceAll('/', '\\/')}'`));
+  }
 });
 
 test('uses one 1100px desktop and mobile shell breakpoint', () => {
