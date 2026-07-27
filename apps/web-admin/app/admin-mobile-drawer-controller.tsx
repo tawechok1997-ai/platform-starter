@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from './admin-api';
 import { AdminIcon } from './(admin)/_components/admin-icon';
 import { useAdminLocale } from './(admin)/admin-locale';
@@ -47,11 +46,8 @@ const copyByLocale = {
 } as const;
 
 const MOBILE_DRAWER_MEDIA = '(max-width: 1099px)';
-const GROUP_TRIGGER_SELECTOR = '.admin-nav-group__trigger';
-const GROUP_SELECTOR = '.admin-nav-group';
 
 export function AdminMobileDrawerController() {
-  const pathname = usePathname();
   const [locale, changeLocale] = useAdminLocale();
   const [open, setOpen] = useState(false);
   const [admin, setAdmin] = useState<MobileAdmin>({});
@@ -80,82 +76,6 @@ export function AdminMobileDrawerController() {
       window.clearTimeout(retryId);
     };
   }, []);
-
-  useEffect(() => {
-    let retryId = 0;
-    let detach = () => undefined;
-
-    const attach = () => {
-      const drawer = document.getElementById('admin-sidebar');
-      if (!drawer) {
-        retryId = window.setTimeout(attach, 120);
-        return;
-      }
-
-      const searchInput = drawer.querySelector<HTMLInputElement>('.admin-nav-search input');
-      const groups = () => Array.from(drawer.querySelectorAll<HTMLElement>(GROUP_SELECTOR));
-      const isSearching = () => Boolean(searchInput?.value.trim());
-      const triggerFor = (group: HTMLElement) => group.querySelector<HTMLButtonElement>(GROUP_TRIGGER_SELECTOR);
-      const submenuFor = (group: HTMLElement) => group.querySelector<HTMLElement>('.admin-nav-submenu');
-      const currentGroup = () => groups().find((group) => Boolean(group.querySelector('a[aria-current="page"]')));
-
-      const setGroupExpanded = (group: HTMLElement, expanded: boolean) => {
-        triggerFor(group)?.setAttribute('aria-expanded', String(expanded));
-        const submenu = submenuFor(group);
-        if (submenu) submenu.dataset.controllerOpen = String(expanded);
-      };
-
-      const clearControllerState = () => {
-        for (const group of groups()) submenuFor(group)?.removeAttribute('data-controller-open');
-      };
-
-      const syncToCurrentRoute = () => {
-        if (isSearching()) {
-          clearControllerState();
-          return;
-        }
-        const active = currentGroup();
-        for (const group of groups()) setGroupExpanded(group, group === active);
-        window.localStorage.removeItem('admin_nav_open_groups');
-      };
-
-      const handleGroupClick = (event: Event) => {
-        if (isSearching()) return;
-        const element = event.target instanceof Element ? event.target : null;
-        const trigger = element?.closest(GROUP_TRIGGER_SELECTOR) as HTMLButtonElement | null;
-        if (!trigger || !drawer.contains(trigger)) return;
-        const selectedGroup = trigger.closest<HTMLElement>(GROUP_SELECTOR);
-        if (!selectedGroup) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-        const shouldOpen = submenuFor(selectedGroup)?.dataset.controllerOpen !== 'true';
-        for (const group of groups()) setGroupExpanded(group, group === selectedGroup && shouldOpen);
-        window.localStorage.removeItem('admin_nav_open_groups');
-      };
-
-      const handleSearchInput = () => {
-        if (isSearching()) clearControllerState();
-        else window.setTimeout(syncToCurrentRoute, 0);
-      };
-
-      drawer.addEventListener('click', handleGroupClick, true);
-      searchInput?.addEventListener('input', handleSearchInput);
-      const syncTimer = window.setTimeout(syncToCurrentRoute, 0);
-
-      detach = () => {
-        window.clearTimeout(syncTimer);
-        drawer.removeEventListener('click', handleGroupClick, true);
-        searchInput?.removeEventListener('input', handleSearchInput);
-      };
-    };
-
-    attach();
-    return () => {
-      window.clearTimeout(retryId);
-      detach();
-    };
-  }, [pathname]);
 
   useEffect(() => {
     let shellObserver: MutationObserver | null = null;
