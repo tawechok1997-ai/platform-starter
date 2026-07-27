@@ -1,6 +1,7 @@
 const SETTING_GROUPS = [
   'website',
   'branding',
+  'icons',
   'theme',
   'seo',
   'contact',
@@ -15,6 +16,7 @@ export type SettingGroupSlug = (typeof SETTING_GROUPS)[number];
 export const GROUP_TO_PRISMA = {
   website: 'WEBSITE',
   branding: 'BRANDING',
+  icons: 'BRANDING',
   theme: 'THEME',
   seo: 'SEO',
   contact: 'CONTACT',
@@ -24,7 +26,7 @@ export const GROUP_TO_PRISMA = {
   legal: 'LEGAL',
 } as const;
 
-export const PUBLIC_GROUPS: SettingGroupSlug[] = ['website', 'branding', 'theme', 'seo', 'contact', 'maintenance', 'features', 'legal'];
+export const PUBLIC_GROUPS: SettingGroupSlug[] = ['website', 'branding', 'icons', 'theme', 'seo', 'contact', 'maintenance', 'features', 'legal'];
 
 export const SENSITIVE_GROUPS: SettingGroupSlug[] = ['scripts'];
 
