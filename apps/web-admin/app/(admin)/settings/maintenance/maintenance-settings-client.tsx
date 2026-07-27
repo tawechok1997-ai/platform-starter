@@ -5,15 +5,15 @@ import { useMemo, useState } from 'react';
 import {
   AdminBadge,
   AdminButton,
-  AdminCard,
   AdminConfirmDialog,
   AdminMetric,
   AdminMetricGrid,
   AdminNotice,
   AdminPage,
-  AdminStack,
 } from '../../_components/admin-ui';
 import { useAdminSettingsForm } from '../use-admin-settings-form';
+import settingsStyles from '../settings-professional.module.css';
+import styles from './maintenance-professional.module.css';
 
 type MaintenanceSettings = {
   enabled: boolean;
@@ -42,6 +42,19 @@ const DEFAULTS: MaintenanceSettings = {
   allow_admin_access: false,
   super_admin_only: false,
 };
+
+const SERVICE_OPTIONS: Array<{
+  key: keyof Pick<MaintenanceSettings, 'enabled' | 'member_enabled' | 'admin_enabled' | 'deposit_enabled' | 'withdraw_enabled' | 'provider_enabled'>;
+  label: string;
+  description: string;
+}> = [
+  { key: 'enabled', label: 'ปิดระบบทั้งหมด', description: 'ใช้เฉพาะเหตุการณ์ที่กระทบทั้งแพลตฟอร์ม' },
+  { key: 'member_enabled', label: 'ปิดหน้า Member', description: 'สมาชิกเข้าใช้งานเว็บไซต์ไม่ได้ชั่วคราว' },
+  { key: 'admin_enabled', label: 'ปิดหน้า Admin', description: 'จำกัดการเข้าถึงพื้นที่ผู้ดูแล' },
+  { key: 'deposit_enabled', label: 'ปิดบริการฝากเงิน', description: 'หยุดรับรายการฝากและการตรวจหลักฐาน' },
+  { key: 'withdraw_enabled', label: 'ปิดบริการถอนเงิน', description: 'หยุดสร้างและดำเนินการรายการถอน' },
+  { key: 'provider_enabled', label: 'ปิดค่ายเกม', description: 'หยุดเปิดเกมและการเชื่อมต่อผู้ให้บริการ' },
+];
 
 export default function MaintenanceSettingsClient() {
   const {
@@ -81,7 +94,7 @@ export default function MaintenanceSettingsClient() {
       return false;
     }
     if (form.super_admin_only && !form.allow_admin_access) {
-      setMessage('ต้องเปิด Allow Admin Access ก่อนจำกัดเป็น Super Admin only');
+      setMessage('ต้องเปิดสิทธิ์ Admin access ก่อนจำกัดให้เฉพาะ Super Admin');
       return false;
     }
     const start = parseOptionalDate(form.start_time);
@@ -113,97 +126,154 @@ export default function MaintenanceSettingsClient() {
     if (saved) setConfirmOpen(false);
   }
 
-  return <AdminPage
-    eyebrow="Settings"
-    title="Maintenance Settings"
-    description="เปิดหรือปิดปรับปรุงระบบแบบมีการตรวจสอบผลกระทบก่อนบันทึก"
-    actions={<a href="/settings">← Settings</a>}
-  >
-    {message && <AdminNotice tone={message.includes('ไม่') || message.includes('ต้อง') || message.includes('กรุณา') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
-    {isDirty && <AdminNotice tone="warning">มีการแก้ไขที่ยังไม่ได้บันทึก ตรวจผลกระทบก่อนยืนยัน</AdminNotice>}
-
-    <AdminMetricGrid>
-      <AdminMetric title="สถานะ" value={maintenanceActive ? 'MAINTENANCE' : 'NORMAL'} tone={maintenanceActive ? 'danger' : 'success'} />
-      <AdminMetric title="บริการที่ได้รับผลกระทบ" value={String(affectedServices.length)} helper={affectedServices.join(', ') || 'ไม่มี'} tone={affectedServices.length ? 'warning' : 'success'} />
-      <AdminMetric title="Admin access" value={form.allow_admin_access ? 'ALLOWED' : 'BLOCKED'} tone={form.allow_admin_access ? 'warning' : 'neutral'} />
-      <AdminMetric title="ช่วงเวลา" value={form.start_time || form.end_time ? 'SCHEDULED' : 'MANUAL'} helper={formatRange(form.start_time, form.end_time)} />
-    </AdminMetricGrid>
-
-    <form onSubmit={requestSave}>
-      <AdminCard title="ขอบเขตการปิดปรับปรุง" description="เลือกเฉพาะบริการที่ต้องหยุด หลีกเลี่ยงการเปิดทั้งระบบโดยไม่จำเป็น">
-        <div style={toggleGridStyle}>
-          <Toggle label="Maintenance Mode ทั้งระบบ" checked={form.enabled} disabled={busy} onChange={(value) => update('enabled', value)} />
-          <Toggle label="Member Maintenance" checked={form.member_enabled} disabled={busy} onChange={(value) => update('member_enabled', value)} />
-          <Toggle label="Admin Maintenance" checked={form.admin_enabled} disabled={busy} onChange={(value) => update('admin_enabled', value)} />
-          <Toggle label="Deposit Maintenance" checked={form.deposit_enabled} disabled={busy} onChange={(value) => update('deposit_enabled', value)} />
-          <Toggle label="Withdraw Maintenance" checked={form.withdraw_enabled} disabled={busy} onChange={(value) => update('withdraw_enabled', value)} />
-          <Toggle label="Provider Maintenance" checked={form.provider_enabled} disabled={busy} onChange={(value) => update('provider_enabled', value)} />
-        </div>
-      </AdminCard>
-
-      <AdminCard title="ข้อความและช่วงเวลา" description="ข้อความนี้จะแสดงต่อผู้ใช้ที่ได้รับผลกระทบ">
-        <AdminStack>
-          <label style={fieldStyle}>ข้อความแจ้งผู้ใช้
-            <textarea
-              value={form.message}
-              disabled={busy}
-              maxLength={1000}
-              onChange={(event) => update('message', event.target.value)}
-              placeholder="ระบบกำลังปรับปรุง กรุณาลองใหม่ภายหลัง"
-              style={textareaStyle}
-            />
-          </label>
-          <div style={dateGridStyle}>
-            <label style={fieldStyle}>เวลาเริ่มต้น
-              <input type="datetime-local" value={toLocalInputValue(form.start_time)} disabled={busy} onChange={(event) => update('start_time', event.target.value)} style={inputStyle} />
-            </label>
-            <label style={fieldStyle}>เวลาสิ้นสุด
-              <input type="datetime-local" value={toLocalInputValue(form.end_time)} disabled={busy} onChange={(event) => update('end_time', event.target.value)} style={inputStyle} />
-            </label>
+  return (
+    <AdminPage
+      eyebrow="การตั้งค่าระบบ"
+      title="โหมดปิดปรับปรุง"
+      description="ควบคุมการหยุดบริการเป็นรายส่วน พร้อมตรวจผลกระทบและช่วงเวลาก่อนบันทึก"
+      actions={<a href="/settings">← กลับหน้าการตั้งค่า</a>}
+    >
+      <div className={settingsStyles.page}>
+        <section className={settingsStyles.contextBar} aria-label="สถานะ Maintenance">
+          <div className={settingsStyles.contextCopy}>
+            <strong>{maintenanceActive ? 'มีบริการที่ถูกตั้งให้หยุด' : 'ทุกบริการเปิดตามปกติ'}</strong>
+            <span>ใช้การปิดเฉพาะส่วนเท่าที่จำเป็น และตรวจข้อความผู้ใช้ก่อนเปิดใช้งานจริง</span>
           </div>
-        </AdminStack>
-      </AdminCard>
+          <div className={settingsStyles.contextMeta}>
+            <span className={settingsStyles.pill} data-tone={maintenanceActive ? 'warning' : 'success'}>{maintenanceActive ? 'MAINTENANCE' : 'NORMAL'}</span>
+            <span className={settingsStyles.pill}>{affectedServices.length} บริการ</span>
+            <span className={settingsStyles.pill} data-tone={isDirty ? 'warning' : 'success'}>{isDirty ? 'ยังไม่บันทึก' : 'ข้อมูลล่าสุด'}</span>
+          </div>
+        </section>
 
-      <AdminCard title="สิทธิ์ผู้ดูแลระหว่างปิดปรับปรุง" description="คงช่องทางเข้าระบบเฉพาะเมื่อทีมปฏิบัติการต้องแก้ไขเหตุการณ์">
-        <AdminStack>
-          <Toggle label="Allow Admin Access" checked={form.allow_admin_access} disabled={busy} onChange={(value) => {
-            update('allow_admin_access', value);
-            if (!value) update('super_admin_only', false);
-          }} />
-          <Toggle label="Super Admin only" checked={form.super_admin_only} disabled={busy || !form.allow_admin_access} onChange={(value) => update('super_admin_only', value)} />
-        </AdminStack>
-      </AdminCard>
+        {message && <AdminNotice tone={message.includes('ไม่') || message.includes('ต้อง') || message.includes('กรุณา') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
 
-      <AdminCard title="ผลกระทบก่อนบันทึก" description="ตรวจรายการนี้ก่อนยืนยันทุกครั้ง">
-        <AdminStack>
-          {affectedServices.length > 0 ? affectedServices.map((service) => <div key={service} style={summaryRowStyle}><strong>{service}</strong><AdminBadge tone="danger">หยุดให้บริการ</AdminBadge></div>) : <div style={summaryRowStyle}><strong>ทุกบริการ</strong><AdminBadge tone="success">เปิดตามปกติ</AdminBadge></div>}
-          <div style={summaryRowStyle}><strong>ข้อความ</strong><span>{form.message.trim() || '-'}</span></div>
-          <div style={summaryRowStyle}><strong>ช่วงเวลา</strong><span>{formatRange(form.start_time, form.end_time)}</span></div>
-        </AdminStack>
-      </AdminCard>
+        <AdminMetricGrid>
+          <AdminMetric title="สถานะ" value={maintenanceActive ? 'MAINTENANCE' : 'NORMAL'} tone={maintenanceActive ? 'danger' : 'success'} />
+          <AdminMetric title="บริการที่ได้รับผลกระทบ" value={String(affectedServices.length)} helper={affectedServices.join(', ') || 'ไม่มี'} tone={affectedServices.length ? 'warning' : 'success'} />
+          <AdminMetric title="สิทธิ์ Admin" value={form.allow_admin_access ? 'ALLOWED' : 'BLOCKED'} tone={form.allow_admin_access ? 'warning' : 'neutral'} />
+          <AdminMetric title="ช่วงเวลา" value={form.start_time || form.end_time ? 'SCHEDULED' : 'MANUAL'} helper={formatRange(form.start_time, form.end_time)} />
+        </AdminMetricGrid>
 
-      <div style={actionStyle}>
-        <AdminButton type="submit" tone={maintenanceActive ? 'danger' : 'primary'} disabled={busy || !isDirty}>{saving ? 'กำลังบันทึก...' : 'ตรวจและบันทึก'}</AdminButton>
-        <AdminButton type="button" tone="secondary" disabled={busy || !isDirty} onClick={reset}>Reset</AdminButton>
+        <form className={settingsStyles.form} onSubmit={requestSave}>
+          <div className={settingsStyles.layout}>
+            <section className={settingsStyles.editor}>
+              <header className={settingsStyles.editorHeader}>
+                <div>
+                  <h2>ขอบเขตและเงื่อนไข</h2>
+                  <p>กำหนดบริการ ข้อความ ช่วงเวลา และสิทธิ์ผู้ดูแลจากพื้นที่เดียว</p>
+                </div>
+              </header>
+
+              <div className={settingsStyles.fieldGrid}>
+                <SectionLabel title="บริการที่ต้องหยุด" description="เลือกเฉพาะบริการที่ได้รับผลกระทบ หลีกเลี่ยงการปิดทั้งระบบโดยไม่จำเป็น" />
+                <div className={styles.serviceGrid} style={{ gridColumn: '1 / -1' }}>
+                  {SERVICE_OPTIONS.map((option) => (
+                    <label className={styles.serviceCard} key={option.key}>
+                      <span className={styles.serviceCopy}><strong>{option.label}</strong><span>{option.description}</span></span>
+                      <input
+                        className={settingsStyles.switchInput}
+                        type="checkbox"
+                        checked={form[option.key]}
+                        disabled={busy}
+                        onChange={(event) => update(option.key, event.target.checked)}
+                      />
+                    </label>
+                  ))}
+                </div>
+
+                <SectionLabel title="ข้อความและช่วงเวลา" description="ข้อความนี้จะแสดงต่อผู้ใช้ที่ได้รับผลกระทบ" />
+                <label className={settingsStyles.field} data-span="full">
+                  <span className={settingsStyles.fieldLabel}>ข้อความแจ้งผู้ใช้<small>message</small></span>
+                  <textarea
+                    value={form.message}
+                    disabled={busy}
+                    maxLength={1000}
+                    onChange={(event) => update('message', event.target.value)}
+                    placeholder="ระบบกำลังปรับปรุง กรุณาลองใหม่ภายหลัง"
+                  />
+                  <p className={settingsStyles.help}>{form.message.length}/1000 ตัวอักษร</p>
+                </label>
+                <label className={settingsStyles.field}>
+                  <span className={settingsStyles.fieldLabel}>เวลาเริ่มต้น<small>start_time</small></span>
+                  <input type="datetime-local" value={toLocalInputValue(form.start_time)} disabled={busy} onChange={(event) => update('start_time', event.target.value)} />
+                </label>
+                <label className={settingsStyles.field}>
+                  <span className={settingsStyles.fieldLabel}>เวลาสิ้นสุด<small>end_time</small></span>
+                  <input type="datetime-local" value={toLocalInputValue(form.end_time)} disabled={busy} onChange={(event) => update('end_time', event.target.value)} />
+                </label>
+
+                <SectionLabel title="สิทธิ์ระหว่างปิดปรับปรุง" description="คงช่องทางเข้าระบบเฉพาะทีมที่ต้องแก้ไขเหตุการณ์" />
+                <label className={settingsStyles.switchField}>
+                  <span className={settingsStyles.switchCopy}><strong>อนุญาต Admin access</strong><span>ให้ผู้ดูแลเข้าระบบระหว่าง Maintenance</span></span>
+                  <input className={settingsStyles.switchInput} type="checkbox" checked={form.allow_admin_access} disabled={busy} onChange={(event) => {
+                    update('allow_admin_access', event.target.checked);
+                    if (!event.target.checked) update('super_admin_only', false);
+                  }} />
+                </label>
+                <label className={settingsStyles.switchField}>
+                  <span className={settingsStyles.switchCopy}><strong>เฉพาะ Super Admin</strong><span>จำกัด Admin access ให้ผู้ดูแลระดับสูงสุด</span></span>
+                  <input className={settingsStyles.switchInput} type="checkbox" checked={form.super_admin_only} disabled={busy || !form.allow_admin_access} onChange={(event) => update('super_admin_only', event.target.checked)} />
+                </label>
+              </div>
+
+              <footer className={settingsStyles.actionBar}>
+                <div className={settingsStyles.actionCopy}>
+                  <strong>{isDirty ? 'มีการแก้ไขที่ต้องยืนยัน' : 'ค่าปัจจุบันตรงกับระบบ'}</strong>
+                  <span>{maintenanceActive ? 'การบันทึกอาจหยุดบริการทันที โปรดตรวจ Preview ด้านขวา' : 'ตรวจว่าทุกบริการเปิดตามที่ต้องการก่อนบันทึก'}</span>
+                </div>
+                <div className={settingsStyles.actionButtons}>
+                  <AdminButton type="button" tone="secondary" disabled={busy || !isDirty} onClick={reset}>ยกเลิกการแก้ไข</AdminButton>
+                  <AdminButton type="submit" tone={maintenanceActive ? 'danger' : 'primary'} disabled={busy || !isDirty}>{saving ? 'กำลังบันทึก...' : 'ตรวจและบันทึก'}</AdminButton>
+                </div>
+              </footer>
+            </section>
+
+            <aside className={settingsStyles.previewPanel}>
+              <header className={settingsStyles.previewHeader}>
+                <div><h2>ผลกระทบก่อนบันทึก</h2><p>สรุปสิ่งที่ผู้ใช้และทีมปฏิบัติการจะพบหลังยืนยัน</p></div>
+              </header>
+              <div className={settingsStyles.previewBody}>
+                <div className={settingsStyles.previewFrame}>
+                  <h3>{maintenanceActive ? 'ระบบกำลังปิดปรับปรุง' : 'ระบบเปิดให้บริการ'}</h3>
+                  <p>{form.message.trim() || 'ยังไม่ได้ระบุข้อความแจ้งผู้ใช้'}</p>
+                  <section className={settingsStyles.previewSection}><small>ช่วงเวลา</small><p>{formatRange(form.start_time, form.end_time)}</p></section>
+                  <section className={settingsStyles.previewSection}>
+                    <small>บริการ</small>
+                    <div className={styles.impactList}>
+                      {affectedServices.length > 0
+                        ? affectedServices.map((service) => <div className={styles.impactItem} key={service}><strong>{service}</strong><AdminBadge tone="danger">หยุดให้บริการ</AdminBadge></div>)
+                        : <div className={`${styles.impactItem} ${styles.safeItem}`}><strong>ทุกบริการ</strong><AdminBadge tone="success">เปิดตามปกติ</AdminBadge></div>}
+                    </div>
+                  </section>
+                  <section className={settingsStyles.previewSection}>
+                    <small>สิทธิ์ผู้ดูแล</small>
+                    <p>{form.allow_admin_access ? (form.super_admin_only ? 'เฉพาะ Super Admin' : 'Admin ที่ได้รับอนุญาต') : 'ปิดการเข้าถึง Admin'}</p>
+                  </section>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </form>
       </div>
-    </form>
 
-    <AdminConfirmDialog
-      open={confirmOpen}
-      title={maintenanceActive ? 'ยืนยันเปิดโหมดปิดปรับปรุง' : 'ยืนยันกลับสู่การให้บริการปกติ'}
-      description={maintenanceActive ? `บริการที่ได้รับผลกระทบ: ${affectedServices.join(', ')}` : 'ระบบจะยกเลิกสถานะปิดปรับปรุงตามค่าที่กำหนด'}
-      confirmLabel={maintenanceActive ? 'ยืนยันปิดบริการ' : 'ยืนยันเปิดบริการ'}
-      tone={maintenanceActive ? 'danger' : 'primary'}
-      busy={saving}
-      onCancel={() => { if (!saving) setConfirmOpen(false); }}
-      onConfirm={() => void confirmSave()}
-      details={<div style={confirmDetailsStyle}><strong>ข้อความผู้ใช้</strong><p>{form.message.trim() || '-'}</p><strong>ช่วงเวลา</strong><p>{formatRange(form.start_time, form.end_time)}</p></div>}
-    />
-  </AdminPage>;
+      <AdminConfirmDialog
+        open={confirmOpen}
+        title={maintenanceActive ? 'ยืนยันเปิดโหมดปิดปรับปรุง' : 'ยืนยันกลับสู่การให้บริการปกติ'}
+        description={maintenanceActive ? `บริการที่ได้รับผลกระทบ: ${affectedServices.join(', ')}` : 'ระบบจะยกเลิกสถานะปิดปรับปรุงตามค่าที่กำหนด'}
+        confirmLabel={maintenanceActive ? 'ยืนยันปิดบริการ' : 'ยืนยันเปิดบริการ'}
+        tone={maintenanceActive ? 'danger' : 'primary'}
+        busy={saving}
+        onCancel={() => { if (!saving) setConfirmOpen(false); }}
+        onConfirm={() => void confirmSave()}
+        details={<div className={styles.confirmDetails}><strong>ข้อความผู้ใช้</strong><p>{form.message.trim() || '-'}</p><strong>ช่วงเวลา</strong><p>{formatRange(form.start_time, form.end_time)}</p></div>}
+      />
+    </AdminPage>
+  );
 }
 
-function Toggle({ label, checked, disabled, onChange }: { label: string; checked: boolean; disabled: boolean; onChange: (value: boolean) => void }) {
-  return <label style={toggleStyle}><input type="checkbox" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} /> <span>{label}</span></label>;
+function SectionLabel({ title, description }: { title: string; description: string }) {
+  return <div className={settingsStyles.editorHeader} style={{ gridColumn: '1 / -1', padding: '4px 0 10px', borderBottom: '1px solid rgb(148 163 184 / 10%)' }}><div><h2>{title}</h2><p>{description}</p></div></div>;
 }
 
 function parseOptionalDate(value: string) {
@@ -226,13 +296,3 @@ function formatRange(startValue: string, endValue: string) {
   if (!start && !end) return 'ดำเนินการด้วยตนเอง';
   return `${start ? start.toLocaleString('th-TH') : 'ทันที'} → ${end ? end.toLocaleString('th-TH') : 'จนกว่าจะปิดเอง'}`;
 }
-
-const toggleGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 10 } as const;
-const toggleStyle = { display: 'flex', alignItems: 'center', gap: 10, minHeight: 44, padding: '8px 10px', borderRadius: 12, border: '1px solid rgba(148,163,184,.18)', color: '#e2e8f0', fontWeight: 800 } as const;
-const fieldStyle = { display: 'grid', gap: 8, color: '#cbd5e1', fontWeight: 800 } as const;
-const inputStyle = { width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid rgba(148,163,184,.22)', background: '#0b1220', color: '#f8fafc', padding: '0 12px', boxSizing: 'border-box' as const, fontSize: 16 };
-const textareaStyle = { ...inputStyle, minHeight: 110, padding: 12, resize: 'vertical' as const };
-const dateGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12 } as const;
-const summaryRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' as const, overflowWrap: 'anywhere' as const };
-const actionStyle = { display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' as const };
-const confirmDetailsStyle = { display: 'grid', gap: 6, overflowWrap: 'anywhere' as const };
