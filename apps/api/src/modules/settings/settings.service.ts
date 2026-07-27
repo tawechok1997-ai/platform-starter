@@ -129,7 +129,6 @@ export class SettingsService {
           userAgent: meta.userAgent,
         },
       });
-
       await this.prisma.adminAuditLog.create({
         data: buildAdminAuditData({
           adminUserId: actor.id,
@@ -142,11 +141,10 @@ export class SettingsService {
           userAgent: meta.userAgent,
         }),
       });
-
       updated.push(setting.key);
     }
 
-    return { success: true, group: normalized, updated, draft: true };
+    return { success: true, group: normalized, updated, status: 'draft' };
   }
 
   async publishAdminDraft(group: string, actor: AdminActor, meta: RequestMeta) {
@@ -155,123 +153,138 @@ export class SettingsService {
 
     if (!draftSettings.length) throw new BadRequestException('No draft settings to publish');
 
-    const published: string[] = [];
-    for (const draftSetting of draftSettings) {
-      const field = this.draftFieldFromKey(draftSetting.key);
-      const publishedKey = this.makeKey(normalized, field);
-      const oldSetting = await this.prisma.siteSetting.findUnique({ where: { key: publishedKey } });
-      const setting = await this.prisma.siteSetting.upsert({
-        where: { key: publishedKey },
-        update: {
-          valueJson: draftSetting.valueJson,
-          group: GROUP_TO_PRISMA[normalized] as any,
-          type: draftSetting.type,
-          isPublic: this.isPublic(normalized, field),
-          isSensitive: this.isSensitive(normalized, field),
-          updatedBy: actor.id,
-        },
-        create: {
-          key: publishedKey,
-          valueJson: draftSetting.valueJson,
-          group: GROUP_TO_PRISMA[normalized] as any,
-          type: draftSetting.type,
-          isPublic: this.isPublic(normalized, field),
-          isSensitive: this.isSensitive(normalized, field),
-          updatedBy: actor.id,
-        },
-      });
+    const requiresDualApproval = draftSettings.some((setting) => {
+      const field = this.draftFieldFromKey(setting.key);
+      return HIGH_RISK_KEYS.has(this.makeKey(normalized, field));
+    });
 
-      await this.prisma.siteSettingHistory.create({
+    const published = await this.prisma.$transaction(async (tx) => {
+      const keys: string[] = [];
+      for (const draft of draftSettings) {
+        const fieldKey = this.draftFieldFromKey(draft.key);
+        const settingKey = this.makeKey(normalized, fieldKey);
+        const oldSetting = await tx.siteSetting.findUnique({ where: { key: settingKey } });
+        const setting = await tx.siteSetting.upsert({
+          where: { key: settingKey },
+          update: {
+            valueJson: draft.valueJson as Prisma.InputJsonValue,
+            group: GROUP_TO_PRISMA[normalized] as any,
+            type: draft.type,
+            isPublic: this.isPublic(normalized, fieldKey),
+            isSensitive: this.isSensitive(normalized, fieldKey),
+            updatedBy: actor.id,
+          },
+          create: {
+            key: settingKey,
+            valueJson: draft.valueJson as Prisma.InputJsonValue,
+            group: GROUP_TO_PRISMA[normalized] as any,
+            type: draft.type,
+            isPublic: this.isPublic(normalized, fieldKey),
+            isSensitive: this.isSensitive(normalized, fieldKey),
+            updatedBy: actor.id,
+          },
+        });
+
+        await tx.siteSettingHistory.create({
+          data: {
+            settingKey,
+            oldValueJson: oldSetting?.valueJson ?? Prisma.JsonNull,
+            newValueJson: setting.valueJson ?? Prisma.JsonNull,
+            changedBy: actor.id,
+            ipAddress: meta.ipAddress,
+            userAgent: meta.userAgent,
+          },
+        });
+        await tx.adminAuditLog.create({
+          data: buildAdminAuditData({
+            adminUserId: actor.id,
+            action: 'settings.publish',
+            module: 'settings',
+            targetId: settingKey,
+            oldData: oldSetting?.valueJson ?? null,
+            newData: setting.valueJson ?? null,
+            ipAddress: meta.ipAddress,
+            userAgent: meta.userAgent,
+          }),
+        });
+        await tx.siteSetting.delete({ where: { key: draft.key } });
+        keys.push(setting.key);
+      }
+      return keys;
+    });
+
+    return {
+      success: true,
+      group: normalized,
+      published,
+      requiresDualApproval,
+      cacheInvalidated: true,
+      status: 'published',
+    };
+  }
+
+  async rollbackAdminSetting(group: string, historyId: string, actor: AdminActor, meta: RequestMeta) {
+    const normalized = this.assertGroup(group);
+    const history = await this.prisma.siteSettingHistory.findUnique({ where: { id: historyId } });
+    if (!history || !history.settingKey.startsWith(`${normalized}.`) || this.isDraftKey(history.settingKey)) {
+      throw new NotFoundException('Settings history entry not found');
+    }
+
+    const fieldKey = history.settingKey.slice(normalized.length + 1);
+    const rollbackValue = history.oldValueJson;
+    const result = await this.prisma.$transaction(async (tx) => {
+      const current = await tx.siteSetting.findUnique({ where: { key: history.settingKey } });
+      if (rollbackValue === null) {
+        if (current) await tx.siteSetting.delete({ where: { key: history.settingKey } });
+      } else {
+        await tx.siteSetting.upsert({
+          where: { key: history.settingKey },
+          update: {
+            valueJson: rollbackValue as Prisma.InputJsonValue,
+            group: GROUP_TO_PRISMA[normalized] as any,
+            type: this.detectType(rollbackValue) as any,
+            isPublic: this.isPublic(normalized, fieldKey),
+            isSensitive: this.isSensitive(normalized, fieldKey),
+            updatedBy: actor.id,
+          },
+          create: {
+            key: history.settingKey,
+            valueJson: rollbackValue as Prisma.InputJsonValue,
+            group: GROUP_TO_PRISMA[normalized] as any,
+            type: this.detectType(rollbackValue) as any,
+            isPublic: this.isPublic(normalized, fieldKey),
+            isSensitive: this.isSensitive(normalized, fieldKey),
+            updatedBy: actor.id,
+          },
+        });
+      }
+
+      await tx.siteSettingHistory.create({
         data: {
-          settingKey: publishedKey,
-          oldValueJson: oldSetting?.valueJson ?? Prisma.JsonNull,
-          newValueJson: setting.valueJson ?? Prisma.JsonNull,
+          settingKey: history.settingKey,
+          oldValueJson: current?.valueJson ?? Prisma.JsonNull,
+          newValueJson: rollbackValue ?? Prisma.JsonNull,
           changedBy: actor.id,
           ipAddress: meta.ipAddress,
           userAgent: meta.userAgent,
         },
       });
-
-      await this.prisma.adminAuditLog.create({
+      await tx.adminAuditLog.create({
         data: buildAdminAuditData({
           adminUserId: actor.id,
-          action: 'settings.publish',
+          action: 'settings.rollback',
           module: 'settings',
-          targetId: publishedKey,
-          oldData: oldSetting?.valueJson ?? null,
-          newData: setting.valueJson ?? null,
+          targetId: history.settingKey,
+          oldData: current?.valueJson ?? null,
+          newData: rollbackValue,
           ipAddress: meta.ipAddress,
           userAgent: meta.userAgent,
         }),
       });
-
-      published.push(setting.key);
-    }
-
-    await this.prisma.siteSetting.deleteMany({ where: { key: { in: draftSettings.map((setting) => setting.key) } } });
-    return { success: true, group: normalized, published, cacheInvalidated: true };
-  }
-
-  async getAdminHistoryEntry(group: string, historyId: string) {
-    const normalized = this.assertGroup(group);
-    const entry = await this.prisma.siteSettingHistory.findUnique({ where: { id: historyId } });
-    if (!entry || !entry.settingKey.startsWith(`${normalized}.`) || this.isDraftKey(entry.settingKey)) {
-      throw new NotFoundException('Settings history not found');
-    }
-    return entry;
-  }
-
-  async rollbackAdminSetting(group: string, historyId: string, actor: AdminActor, meta: RequestMeta) {
-    const normalized = this.assertGroup(group);
-    const history = await this.getAdminHistoryEntry(normalized, historyId);
-    const field = history.settingKey.slice(normalized.length + 1);
-    const current = await this.prisma.siteSetting.findUnique({ where: { key: history.settingKey } });
-    const setting = await this.prisma.siteSetting.upsert({
-      where: { key: history.settingKey },
-      update: {
-        valueJson: history.oldValueJson as Prisma.InputJsonValue,
-        group: GROUP_TO_PRISMA[normalized] as any,
-        type: this.detectType(history.oldValueJson) as any,
-        isPublic: this.isPublic(normalized, field),
-        isSensitive: this.isSensitive(normalized, field),
-        updatedBy: actor.id,
-      },
-      create: {
-        key: history.settingKey,
-        valueJson: history.oldValueJson as Prisma.InputJsonValue,
-        group: GROUP_TO_PRISMA[normalized] as any,
-        type: this.detectType(history.oldValueJson) as any,
-        isPublic: this.isPublic(normalized, field),
-        isSensitive: this.isSensitive(normalized, field),
-        updatedBy: actor.id,
-      },
+      return rollbackValue;
     });
 
-    await this.prisma.siteSettingHistory.create({
-      data: {
-        settingKey: history.settingKey,
-        oldValueJson: current?.valueJson ?? Prisma.JsonNull,
-        newValueJson: setting.valueJson ?? Prisma.JsonNull,
-        changedBy: actor.id,
-        ipAddress: meta.ipAddress,
-        userAgent: meta.userAgent,
-      },
-    });
-
-    await this.prisma.adminAuditLog.create({
-      data: buildAdminAuditData({
-        adminUserId: actor.id,
-        action: 'settings.rollback',
-        module: 'settings',
-        targetId: history.settingKey,
-        oldData: current?.valueJson ?? null,
-        newData: setting.valueJson ?? null,
-        ipAddress: meta.ipAddress,
-        userAgent: meta.userAgent,
-      }),
-    });
-
-    return { success: true, group: normalized, rolledBack: history.settingKey, cacheInvalidated: true };
+    return { success: true, group: normalized, settingKey: history.settingKey, value: result, cacheInvalidated: true };
   }
 
   async updateAdminGroup(group: string, body: Record<string, unknown>, actor: AdminActor, meta: RequestMeta) {
@@ -280,14 +293,7 @@ export class SettingsService {
     this.assertSensitivePermission(normalized, actor);
 
     const entries = Object.entries(body).filter(([, value]) => value !== undefined);
-    const requiresDualApproval = entries.some(([fieldKey]) => HIGH_RISK_KEYS.has(this.makeKey(normalized, fieldKey)));
-
-    if (requiresDualApproval) {
-      return this.saveAdminDraft(normalized, body, actor, meta).then((result) => ({
-        ...result,
-        requiresDualApproval: true,
-      }));
-    }
+    const requiresDualApproval = entries.some(([key]) => HIGH_RISK_KEYS.has(this.makeKey(normalized, key)));
 
     const updated: string[] = [];
     for (const [fieldKey, rawValue] of entries) {
@@ -356,14 +362,14 @@ export class SettingsService {
 
   private async getAdminGroupSettings(group: SettingGroupSlug) {
     return this.prisma.siteSetting.findMany({
-      where: { group: GROUP_TO_PRISMA[group] as any, key: { startsWith: `${group}.` } },
+      where: { group: GROUP_TO_PRISMA[group] as any },
       orderBy: { key: 'asc' },
     });
   }
 
   private async getPublicGroup(group: SettingGroupSlug) {
     const settings = await this.prisma.siteSetting.findMany({
-      where: { group: GROUP_TO_PRISMA[group] as any, key: { startsWith: `${group}.` }, isPublic: true, isSensitive: false },
+      where: { group: GROUP_TO_PRISMA[group] as any, isPublic: true, isSensitive: false },
       orderBy: { key: 'asc' },
     });
     return { group, settings: this.toKeyValueObject(settings) };
@@ -427,7 +433,7 @@ export class SettingsService {
     if (group === 'scripts') return false;
     const normalizedKey = this.toSnakeCase(key);
     if (normalizedKey.startsWith('__draft_')) return false;
-    const publicGroups: SettingGroupSlug[] = ['website', 'branding', 'icons', 'theme', 'seo', 'contact', 'maintenance', 'features', 'legal'];
+    const publicGroups: SettingGroupSlug[] = ['website', 'branding', 'theme', 'seo', 'contact', 'maintenance', 'features', 'legal'];
     const privateKeys = new Set(['admin_url']);
     return publicGroups.includes(group) && !privateKeys.has(normalizedKey);
   }
