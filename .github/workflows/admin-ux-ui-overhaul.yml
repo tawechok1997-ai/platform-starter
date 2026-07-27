@@ -12,6 +12,7 @@ on:
       - .github/scripts/apply-admin-ux-ui-overhaul.py
       - .github/scripts/patch-admin-overhaul-typecheck.py
       - .github/scripts/patch-admin-overhaul-tests.py
+      - .github/scripts/patch-admin-overhaul-browser.py
 
 permissions:
   contents: write
@@ -54,6 +55,7 @@ jobs:
           python .github/scripts/apply-admin-ux-ui-overhaul.py
           python .github/scripts/patch-admin-overhaul-typecheck.py
           python .github/scripts/patch-admin-overhaul-tests.py
+          python .github/scripts/patch-admin-overhaul-browser.py
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile=false
@@ -131,7 +133,7 @@ jobs:
         run: exit 1
 
       - name: Remove one-shot automation
-        run: rm -f .github/workflows/admin-ux-ui-overhaul.yml .github/scripts/apply-admin-ux-ui-overhaul.py .github/scripts/patch-admin-overhaul-typecheck.py .github/scripts/patch-admin-overhaul-tests.py admin-typecheck.log admin-tests.log admin-browser.log
+        run: rm -f .github/workflows/admin-ux-ui-overhaul.yml .github/scripts/apply-admin-ux-ui-overhaul.py .github/scripts/patch-admin-overhaul-typecheck.py .github/scripts/patch-admin-overhaul-tests.py .github/scripts/patch-admin-overhaul-browser.py admin-typecheck.log admin-tests.log admin-browser.log
 
       - name: Commit and push validated overhaul
         shell: bash
