@@ -17,6 +17,14 @@ for (const app of apps) {
 }
 
 const read = (file) => fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+const readDelegatedFeature = (entryPath) => {
+  const entrySource = read(entryPath);
+  const match = entrySource.match(/export\s+\{\s*default\s*\}\s+from\s+['"](.+?)['"]/);
+  if (!match) return entrySource;
+  const targetBase = path.resolve(path.dirname(entryPath), match[1]);
+  const targetPath = ['.tsx', '.ts', '.jsx', '.js'].map((extension) => `${targetBase}${extension}`).find(fs.existsSync);
+  return targetPath ? `${entrySource}\n${read(targetPath)}` : entrySource;
+};
 const depositContainerPath = 'apps/web-member/app/deposit/deposit-client.tsx';
 const depositViewPath = 'apps/web-member/src/features/finance/deposit-view.tsx';
 const depositFormPath = 'apps/web-member/src/features/finance/deposit-form.ts';
@@ -46,9 +54,9 @@ const providerRoute = read(providerRoutePath);
 const providerFeature = read(providerFeaturePath);
 const adminFinanceEntry = read(adminFinanceEntryPath);
 const cmsRoute = read(cmsRoutePath);
-const cmsFeature = read(cmsFeaturePath);
+const cmsFeature = readDelegatedFeature(cmsFeaturePath);
 const promotionRoute = read(promotionRoutePath);
-const promotionFeature = read(promotionFeaturePath);
+const promotionFeature = readDelegatedFeature(promotionFeaturePath);
 const adminCmsEntry = read(adminCmsEntryPath);
 
 if (!fs.existsSync(depositViewPath)) failures.push('web-member: missing DepositView presentation component');
