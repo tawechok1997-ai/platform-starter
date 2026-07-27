@@ -1,9 +1,10 @@
-/* Exact desktop Guide section recovered from the supplied source markup.
-   This file intentionally owns every visible Guide dimension to defeat older overrides. */
+/* Exact desktop Guide preview recovered from the supplied source markup.
+   The visible five questions are pinned by the client controller instead of CMS data. */
 @media (min-width: 901px) {
   .desktop-reference-home .reference-guide[data-section-kind='guide'] {
     position: relative !important;
     display: block !important;
+    box-sizing: border-box !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 0 8px !important;
@@ -18,6 +19,7 @@
     position: relative !important;
     display: flex !important;
     align-items: center !important;
+    box-sizing: border-box !important;
     width: 100% !important;
     height: 38px !important;
     min-height: 38px !important;
@@ -36,6 +38,7 @@
     position: absolute !important;
     inset: 0 !important;
     z-index: 0 !important;
+    border-radius: inherit !important;
     background: linear-gradient(90deg, rgba(24, 21, 35, .6) -6.21%, rgb(187, 91, 234) 6.41%, rgba(24, 21, 35, .6) 80.01%) !important;
     opacity: .48 !important;
     pointer-events: none !important;
@@ -90,9 +93,18 @@
     white-space: nowrap !important;
   }
 
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > .reference-guide-list {
     position: relative !important;
     display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 4px 0 16px !important;
+  }
+
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-guide-item {
+    display: block !important;
+    box-sizing: border-box !important;
     width: 100% !important;
     margin: 12px 0 0 !important;
     padding: 0 !important;
@@ -100,79 +112,72 @@
     border: 0 !important;
     border-radius: 6px !important;
     background: transparent !important;
-    box-shadow: none !important;
   }
 
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details:first-of-type {
-    margin-top: 16px !important;
-  }
-
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-guide-question {
     position: relative !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
     box-sizing: border-box !important;
     width: 100% !important;
-    min-height: 49px !important;
+    min-height: 50px !important;
     margin: 0 !important;
     padding: 12px 16px !important;
     gap: 16px !important;
-    list-style: none !important;
     border: 1px solid rgb(79, 73, 93) !important;
     border-radius: 6px !important;
     outline: none !important;
     background: rgb(38, 34, 50) !important;
     color: #fff !important;
     cursor: pointer !important;
-    font-family: inherit !important;
-    font-size: 16px !important;
-    font-weight: 700 !important;
-    line-height: 24px !important;
+    font: inherit !important;
     text-align: left !important;
     -webkit-tap-highlight-color: transparent !important;
   }
 
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary:hover,
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary:focus-visible {
-    border-color: rgb(187, 91, 234) !important;
-    box-shadow: 0 0 0 1px rgba(187, 91, 234, .18) !important;
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-guide-question-copy {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-wrap: wrap !important;
+    min-width: 0 !important;
+    padding-top: 4px !important;
+    color: #fff !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    line-height: 20px !important;
   }
 
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary::-webkit-details-marker {
-    display: none !important;
-  }
-
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary::marker {
-    content: '' !important;
-    display: none !important;
-  }
-
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary::after {
-    content: '' !important;
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-guide-question-arrow {
     display: block !important;
     flex: 0 0 20px !important;
     width: 20px !important;
     height: 20px !important;
+    color: #fff !important;
     background: center / 20px 20px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' d='M0 0h24v24H0V0z'/%3E%3Cpath fill='%23ffffff' d='M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z'/%3E%3C/svg%3E") !important;
     transform: rotate(180deg) !important;
     transition: transform .2s ease !important;
   }
 
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details[open] > summary {
-    border-color: rgb(79, 73, 93) !important;
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-guide-question:hover,
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-guide-question:focus-visible {
+    border-color: rgb(187, 91, 234) !important;
+    box-shadow: 0 0 0 1px rgba(187, 91, 234, .18) !important;
+  }
+
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-guide-question[aria-expanded='true'] {
     border-radius: 6px 6px 0 0 !important;
   }
 
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details[open] > summary::after {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-guide-question[aria-expanded='true'] .reference-guide-question-arrow {
     transform: rotate(0deg) !important;
   }
 
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details:not([open]) > p {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-guide-answer[hidden] {
     display: none !important;
   }
 
-  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details[open] > p {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-guide-answer:not([hidden]) {
     display: block !important;
     box-sizing: border-box !important;
     width: 100% !important;
@@ -195,13 +200,15 @@
     box-sizing: border-box !important;
     width: 300px !important;
     height: 40px !important;
-    margin: 16px auto 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     border: 1px solid rgb(187, 91, 234) !important;
     border-radius: 8px !important;
+    outline: none !important;
     background: transparent !important;
     color: rgb(187, 91, 234) !important;
     cursor: pointer !important;
+    font-family: inherit !important;
     font-size: 14px !important;
     font-weight: 700 !important;
     line-height: 20px !important;
