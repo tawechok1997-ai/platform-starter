@@ -1,0 +1,79 @@
+name: Admin UX UI Overhaul Gate
+
+on:
+  push:
+    branches:
+      - agent/admin-ux-ui-overhaul
+
+permissions:
+  contents: write
+
+concurrency:
+  group: admin-ux-ui-overhaul-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  overhaul:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout overhaul branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/admin-ux-ui-overhaul
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Port approved dashboard and apply UX overhaul
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin fix/admin-dashboard-ux-density
+          git checkout origin/fix/admin-dashboard-ux-density -- \
+            "apps/web-admin/app/(admin)/dashboard/dashboard-redesigned.module.css" \
+            "apps/web-admin/app/(admin)/dashboard/dashboard-redesigned.tsx" \
+            "apps/web-admin/app/(admin)/dashboard/page.tsx"
+          python .github/scripts/apply-admin-ux-ui-overhaul.py
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Admin typecheck
+        run: pnpm --filter @platform/web-admin typecheck
+
+      - name: Admin tests
+        run: pnpm --filter @platform/web-admin test
+
+      - name: Admin production build
+        run: pnpm --filter @platform/web-admin build
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run expanded Admin browser matrix
+        run: pnpm exec playwright test -c playwright.admin-matrix.config.ts
+
+      - name: Remove one-shot automation
+        run: rm -f .github/workflows/admin-ux-ui-overhaul.yml .github/scripts/apply-admin-ux-ui-overhaul.py
+
+      - name: Commit and push validated overhaul
+        shell: bash
+        env:
+          BRANCH_NAME: agent/admin-ux-ui-overhaul
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor(admin): complete UX UI overhaul"
+          git push origin "HEAD:${BRANCH_NAME}"
