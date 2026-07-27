@@ -1,0 +1,64 @@
+name: Admin UX UI Finalizer
+
+on:
+  push:
+    branches:
+      - agent/admin-ux-ui-overhaul
+    paths:
+      - .github/workflows/admin-ux-ui-finalize.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout overhaul branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/admin-ux-ui-overhaul
+          fetch-depth: 0
+
+      - name: Reproduce validated product changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin fix/admin-dashboard-ux-density
+          git checkout origin/fix/admin-dashboard-ux-density -- \
+            "apps/web-admin/app/(admin)/dashboard/dashboard-redesigned.module.css" \
+            "apps/web-admin/app/(admin)/dashboard/dashboard-redesigned.tsx" \
+            "apps/web-admin/app/(admin)/dashboard/page.tsx"
+          python .github/scripts/apply-admin-ux-ui-overhaul.py
+          python .github/scripts/patch-admin-overhaul-typecheck.py
+          python .github/scripts/patch-admin-overhaul-tests.py
+          python .github/scripts/patch-admin-overhaul-browser.py
+
+      - name: Commit validated product files
+        shell: bash
+        env:
+          BRANCH_NAME: agent/admin-ux-ui-overhaul
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            "apps/web-admin/app/layout.tsx" \
+            "apps/web-admin/app/admin-ux-overrides.css" \
+            "apps/web-admin/app/admin-release-readiness.spec.ts" \
+            "apps/web-admin/app/(admin)/dashboard/dashboard-redesigned.module.css" \
+            "apps/web-admin/app/(admin)/dashboard/dashboard-redesigned.tsx" \
+            "apps/web-admin/app/(admin)/dashboard/page.tsx" \
+            "apps/web-admin/app/(admin)/operations/operations-redesigned.module.css" \
+            "apps/web-admin/app/(admin)/operations/operations-redesigned.tsx" \
+            "apps/web-admin/app/(admin)/operations/page.tsx" \
+            "apps/web-admin/app/(admin)/operations/priority-order.behavior.spec.ts" \
+            "apps/web-admin/app/(admin)/admin-invitations/page.tsx" \
+            "apps/web-admin/app/(admin)/audit/page.tsx" \
+            "apps/web-admin/src/features/admin-modernization/data-table.tsx" \
+            "tests/admin-browser-matrix/admin-route-role-viewport.spec.ts"
+          git diff --cached --stat
+          git commit -m "refactor(admin): complete UX UI overhaul"
+          git push origin "HEAD:${BRANCH_NAME}"
