@@ -167,7 +167,8 @@ function ProviderLogoItem({ provider }: { provider: ProviderLogo }) {
       <img
         src={provider.url}
         alt={provider.name}
-        loading="lazy"
+        loading="eager"
+        decoding="sync"
         onError={(event) => {
           event.currentTarget.style.display = 'none';
         }}
