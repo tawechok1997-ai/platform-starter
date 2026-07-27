@@ -32,11 +32,13 @@ jobs:
         run: |
           python <<'PY'
           from pathlib import Path
+          import re
           import textwrap
           workflow = Path('.github/workflows/admin-media-promotion-finalize.yml').read_text()
-          start = workflow.index("          python <<'PY'\n") + len("          python <<'PY'\n")
-          end = workflow.index("\n          PY", start)
-          script = textwrap.dedent(workflow[start:end])
+          match = re.search(r"^\s*python <<'PY'\n(?P<body>.*?)(?=^\s*PY\s*$)", workflow, flags=re.MULTILINE | re.DOTALL)
+          if not match:
+              raise SystemExit('Embedded product patch was not found')
+          script = textwrap.dedent(match.group('body'))
           exec(compile(script, 'admin-media-promotion-patch.py', 'exec'))
           PY
       - run: pnpm install --frozen-lockfile=false
