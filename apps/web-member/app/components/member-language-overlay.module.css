@@ -1,0 +1,262 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  background: rgb(0 0 0 / 80%);
+  opacity: 1;
+}
+
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  width: fit-content;
+  min-width: 470px;
+  max-width: min(1370px, calc(100vw - 32px));
+  max-height: 90%;
+  padding: 20px 20px 32px;
+  gap: 32px;
+  overflow: hidden;
+  border-radius: 8px;
+  color: #fff;
+  background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 80%) 0%, rgb(63 59 75 / 63%) 30.08%, rgb(27 24 36 / 80%) 100%);
+  box-shadow: 0 22px 80px rgb(0 0 0 / 42%);
+  backdrop-filter: blur(18px);
+  transform: scale(1);
+}
+
+.topLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(255 255 255 / 0%) 26.03%, #fff 48.56%, rgb(255 255 255 / 0%) 72.48%);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 28px;
+}
+
+.titleWrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.titleWrap h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.globeIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 55px;
+  width: 55px;
+  height: 55px;
+  border-radius: 10px;
+  color: #c8c8c8;
+  background: linear-gradient(360deg, rgb(21 23 29 / 60%) -5.86%, rgb(58 60 64 / 60%) 104.05%);
+}
+
+.globeIcon svg {
+  width: 31px;
+  height: 31px;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  background: rgb(255 255 255 / 8%);
+  outline: none;
+}
+
+.closeButton img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 100px);
+  gap: 18px;
+  padding: 0 40px 16px;
+}
+
+.languageFrame {
+  box-sizing: border-box;
+  width: 102px;
+  height: 102px;
+  padding: 1px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.activeFrame {
+  background: linear-gradient(165.34deg, rgb(148 79 232) -17.16%, rgb(118 0 168) 91.36%);
+}
+
+.languageCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100px;
+  height: 100px;
+  gap: 6px;
+  padding: 2px;
+  border: 1px solid rgb(55 53 64);
+  border-radius: 6px;
+  background: rgb(21 19 26);
+}
+
+.activeCard {
+  background: rgb(37 32 51);
+}
+
+.flagWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
+}
+
+.inactiveFlag {
+  opacity: .5;
+}
+
+.flagWrap img {
+  display: block;
+  width: 40px;
+  height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.languageName {
+  width: 100%;
+  overflow: hidden;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activeName {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.languageFrame:hover .languageCard,
+.languageFrame:focus-visible .languageCard {
+  border-color: rgb(148 79 232);
+  background: rgb(37 32 51);
+}
+
+.languageFrame:focus-visible {
+  outline: 2px solid rgb(187 91 234 / 70%);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    max-height: 88dvh;
+    padding: 18px 16px 26px;
+    gap: 24px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .titleWrap h2 {
+    font-size: 20px;
+  }
+
+  .globeIcon {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    gap: 10px;
+    padding: 0 0 8px;
+  }
+
+  .languageFrame {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .languageCard {
+    width: 100%;
+    height: 100%;
+  }
+
+  .flagWrap {
+    width: 42px;
+    height: 42px;
+  }
+
+  .flagWrap img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .languageName,
+  .activeName {
+    font-size: 11px;
+  }
+}
