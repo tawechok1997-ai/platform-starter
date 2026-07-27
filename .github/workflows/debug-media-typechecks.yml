@@ -1,0 +1,43 @@
+name: Temporary Media Typecheck Diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  typechecks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Capture focused typechecks
+        shell: bash
+        run: |
+          set +e
+          mkdir -p diagnostics
+          pnpm --filter @platform/web-admin typecheck > diagnostics/admin-typecheck.log 2>&1
+          echo $? > diagnostics/admin-typecheck.exit
+          pnpm --filter @platform/api typecheck > diagnostics/api-typecheck.log 2>&1
+          echo $? > diagnostics/api-typecheck.exit
+          pnpm --filter @platform/web-member typecheck > diagnostics/member-typecheck.log 2>&1
+          echo $? > diagnostics/member-typecheck.exit
+          for file in diagnostics/*.log; do
+            echo "===== $file ====="
+            tail -n 160 "$file"
+          done
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: media-typecheck-diagnostics
+          path: diagnostics
+          if-no-files-found: error
