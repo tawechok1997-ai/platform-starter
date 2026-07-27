@@ -1,0 +1,60 @@
+name: Admin Sync Main Once
+
+on:
+  push:
+    branches:
+      - fix/admin-professional-hierarchy-rbac
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: admin-sync-main-once
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/admin-professional-hierarchy-rbac
+          fetch-depth: 0
+      - name: Merge latest main while preserving validated Admin authority
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin main
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo 'Branch already contains latest main.'
+          else
+            set +e
+            git merge --no-commit --no-ff origin/main
+            merge_status=$?
+            set -e
+            if [ "$merge_status" -ne 0 ]; then
+              conflicted="$(git diff --name-only --diff-filter=U)"
+              if [ -n "$conflicted" ]; then
+                while IFS= read -r file; do
+                  git checkout --ours -- "$file"
+                  git add "$file"
+                done <<< "$conflicted"
+              fi
+            fi
+            if git diff --name-only --diff-filter=U | grep -q .; then
+              echo 'Unresolved merge conflicts remain.' >&2
+              git diff --name-only --diff-filter=U >&2
+              exit 1
+            fi
+          fi
+          git rm .github/workflows/admin-sync-main-once.yml
+          git add -A
+          if git rev-parse -q --verify MERGE_HEAD >/dev/null; then
+            git commit -m 'merge: sync latest main into Admin professional branch'
+          else
+            git commit -m 'chore(admin): remove temporary main sync workflow'
+          fi
+          git push origin HEAD:fix/admin-professional-hierarchy-rbac
