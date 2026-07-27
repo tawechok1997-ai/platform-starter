@@ -10,6 +10,7 @@ on:
     paths:
       - .github/workflows/admin-ux-ui-overhaul.yml
       - .github/scripts/apply-admin-ux-ui-overhaul.py
+      - .github/scripts/patch-admin-overhaul-typecheck.py
 
 permissions:
   contents: write
@@ -50,12 +51,31 @@ jobs:
             "apps/web-admin/app/(admin)/dashboard/dashboard-redesigned.tsx" \
             "apps/web-admin/app/(admin)/dashboard/page.tsx"
           python .github/scripts/apply-admin-ux-ui-overhaul.py
+          python .github/scripts/patch-admin-overhaul-typecheck.py
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile=false
 
       - name: Admin typecheck
-        run: pnpm --filter @platform/web-admin typecheck
+        id: typecheck
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm --filter @platform/web-admin typecheck 2>&1 | tee admin-typecheck.log
+
+      - name: Upload typecheck diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-ux-overhaul-typecheck
+          path: admin-typecheck.log
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Stop on typecheck failure
+        if: steps.typecheck.outcome != 'success'
+        run: exit 1
 
       - name: Admin tests
         run: pnpm --filter @platform/web-admin test
@@ -70,7 +90,7 @@ jobs:
         run: pnpm exec playwright test -c playwright.admin-matrix.config.ts
 
       - name: Remove one-shot automation
-        run: rm -f .github/workflows/admin-ux-ui-overhaul.yml .github/scripts/apply-admin-ux-ui-overhaul.py
+        run: rm -f .github/workflows/admin-ux-ui-overhaul.yml .github/scripts/apply-admin-ux-ui-overhaul.py .github/scripts/patch-admin-overhaul-typecheck.py admin-typecheck.log
 
       - name: Commit and push validated overhaul
         shell: bash
