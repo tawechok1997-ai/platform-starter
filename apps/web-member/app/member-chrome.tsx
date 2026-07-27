@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import type { MemberFeatureFlags } from './site-settings';
 import { createGameCategoryNavigationConfig } from './brand/game-category-navigation';
@@ -15,6 +15,7 @@ import { MemberCard, MemberLinkButton } from './components/member-ui';
 import { CloseIcon, MenuIcon } from './components/member-icon';
 import { MemberCategoryRail } from './components/member-category-rail';
 import { V47_ASSETS } from './components/member-home/v47-asset-map';
+import MemberAuthOverlay, { type MemberAuthMode } from './components/auth/member-auth-overlay';
 import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
 
 const PUBLIC_HOME_NAV = [
@@ -32,8 +33,9 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/';
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<MemberAuthMode | null>(null);
   const { typedSettings } = useSiteSettings();
-  const { ready, isLoggedIn, wallet, walletLoading, logout } = useMemberSession();
+  const { ready, isLoggedIn, wallet, walletLoading, verify, logout } = useMemberSession();
   const { website, branding, icons, theme, features: typedFeatures } = typedSettings;
 
   const features: MemberFeatureFlags = {
@@ -72,6 +74,31 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const formattedWalletBalance = formatMemberWalletBalance(wallet);
   const compactWalletBalance = formattedWalletBalance.replace(/^[A-Z]{3}\s+/, '');
 
+  const closeAuth = useCallback(() => {
+    setAuthMode(null);
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('auth')) {
+      url.searchParams.delete('auth');
+      url.searchParams.delete('next');
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    }
+  }, []);
+
+  const completeAuth = useCallback(async () => {
+    const next = new URLSearchParams(window.location.search).get('next');
+    await verify();
+    setAuthMode(null);
+    if (next && next.startsWith('/') && !next.startsWith('//')) {
+      window.location.assign(next);
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.delete('auth');
+    url.searchParams.delete('next');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    router.refresh();
+  }, [router, verify]);
+
   useEffect(() => {
     document.documentElement.style.setProperty('--color-brand', branding.primary_color);
   }, [branding.primary_color]);
@@ -84,9 +111,15 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     }
     if (!isHomeRoute && !isPublicRoute && !isLoggedIn) {
       const next = encodeURIComponent(`${pathname}${window.location.search}`);
-      window.location.replace(`/login?next=${next}`);
+      window.location.replace(`/?auth=login&next=${next}`);
     }
   }, [ready, isLoggedIn, isHomeRoute, isPublicRoute, pathname, currentRule?.authRedirectHome]);
+
+  useEffect(() => {
+    if (!isHomeRoute && !isBrowseRoute) return;
+    const requestedMode = new URLSearchParams(window.location.search).get('auth');
+    if (requestedMode === 'login' || requestedMode === 'register') setAuthMode(requestedMode);
+  }, [isHomeRoute, isBrowseRoute, pathname]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -109,6 +142,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     setMenuOpen(false);
   }, [pathname]);
 
+  const authOverlay = authMode ? <MemberAuthOverlay mode={authMode} onClose={closeAuth} onSuccess={completeAuth} /> : null;
+
   if (isHomeRoute) {
     return (
       <>
@@ -120,9 +155,12 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           walletLoading={walletLoading}
           compactWalletBalance={compactWalletBalance}
           logout={logout}
+          onOpenLogin={() => setAuthMode('login')}
+          onOpenRegister={() => setAuthMode('register')}
         />
         {children}
         <MemberFooter settings={typedSettings} />
+        {authOverlay}
       </>
     );
   }
@@ -138,9 +176,12 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           walletLoading={walletLoading}
           compactWalletBalance={compactWalletBalance}
           logout={logout}
+          onOpenLogin={() => setAuthMode('login')}
+          onOpenRegister={() => setAuthMode('register')}
         />
         {children}
         <MemberFooter settings={typedSettings} />
+        {authOverlay}
       </>
     );
   }
@@ -224,7 +265,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   );
 }
 
-function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoading, compactWalletBalance, logout }: {
+function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoading, compactWalletBalance, logout, onOpenLogin, onOpenRegister }: {
   logoUrl: string;
   brandMark: string;
   features: MemberFeatureFlags;
@@ -232,6 +273,8 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
   walletLoading: boolean;
   compactWalletBalance: string;
   logout: () => void;
+  onOpenLogin: () => void;
+  onOpenRegister: () => void;
 }) {
   return (
     <header className="member-topbar global-member-topbar public-home-topbar">
@@ -259,8 +302,8 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
             </>
           ) : (
             <div className="member-guest-actions">
-              {features.login && <a className="member-guest-action member-guest-action--login" href="/login">เข้าสู่ระบบ</a>}
-              {features.registration && <a className="member-guest-action member-guest-action--register" href="/register">สมัครสมาชิก</a>}
+              {features.login && <button type="button" className="member-guest-action member-guest-action--login" onClick={onOpenLogin}>เข้าสู่ระบบ</button>}
+              {features.registration && <button type="button" className="member-guest-action member-guest-action--register" onClick={onOpenRegister}>สมัครสมาชิก</button>}
             </div>
           )}
         </div>
