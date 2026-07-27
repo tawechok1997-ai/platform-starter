@@ -119,7 +119,7 @@ export function AdminDataTable<T>({
       {emptyDescription && <p>{emptyDescription}</p>}
     </div>}
 
-    <footer className={styles.footer}>
+    {totalItems > 0 && <footer className={styles.footer}>
       <span className={styles.range}>{labels.range(range.from, range.to, totalItems)}</span>
       <div className={styles.pagination} aria-label={ariaLabel}>
         <button type="button" onClick={() => onPageChange(currentPage - 1)} disabled={loading || currentPage <= 1} aria-label={labels.previousPage}>‹</button>
@@ -141,7 +141,7 @@ export function AdminDataTable<T>({
           {pageSizeOptions.map((option) => <option value={option} key={option}>{option}</option>)}
         </select>
       </label>}
-    </footer>
+    </footer>}
   </section>;
 }
 

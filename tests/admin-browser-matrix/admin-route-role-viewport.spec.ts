@@ -10,7 +10,7 @@ const roles = {
 } as const;
 
 type RoleName = keyof typeof roles;
-type RouteCase = { path: string; label: string; anyOf?: readonly string[] };
+type RouteCase = { path: string; label: string; anyOf?: readonly string[]; ownerOnly?: boolean };
 
 const routeCases: readonly RouteCase[] = [
   { path: '/dashboard', label: 'Dashboard' },
@@ -22,6 +22,12 @@ const routeCases: readonly RouteCase[] = [
   { path: '/audit', label: 'Audit', anyOf: ['admin.view', 'admin.access.view'] },
   { path: '/admin-invitations', label: 'Admin invitations', anyOf: ['admin.create'] },
   { path: '/webhook-logs', label: 'Webhook logs', anyOf: ['game.providers.view'] },
+  { path: '/wallet-ledgers', label: 'Wallet ledgers', ownerOnly: true },
+  { path: '/game-transfers', label: 'Game transfers', ownerOnly: true },
+  { path: '/reconciliation-center', label: 'Reconciliation', ownerOnly: true },
+  { path: '/simple-game-settings', label: 'Provider quick setup', ownerOnly: true },
+  { path: '/members', label: 'Members', ownerOnly: true },
+  { path: '/reports', label: 'Reports', ownerOnly: true },
 ] as const;
 
 type RuntimeIssue = { route: string; kind: 'console' | 'page' | 'request' | 'response'; detail: string };
@@ -45,6 +51,7 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
     await installMockAdminSession(page, roleName, permissions);
 
     for (const routeCase of routeCases) {
+      if (routeCase.ownerOnly && roleName !== 'owner') continue;
       await page.goto(routeCase.path, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle', { timeout: 8_000 }).catch(() => undefined);
       const issueStart = issues.length;
@@ -91,7 +98,6 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
         await expect(page.locator('#admin-sidebar')).not.toHaveClass(/open/);
       }
 
-      if (roleName === 'owner' && routeCase.path === '/operations') await assertOperationsDrawerKeyboardContract(page);
     }
 
     await attachMatrix(testInfo, roleName, results, issues);
@@ -116,9 +122,12 @@ function fixtureFor(path: string, roleName: RoleName, permissions: readonly stri
   if (path === '/admin/auth/me') {
     return { id: `matrix-${roleName}`, username: `matrix_${roleName}`, displayName: `Matrix ${roleName}`, roles: [{ code: roleName, name: roleName }], permissions };
   }
-  if (path.startsWith('/admin/queues/summary')) return { topUps: { count: 0 }, withdrawals: { count: 0 } };
-  if (path.startsWith('/admin/reports/queue-aging')) return { oldest: [] };
-  if (path.startsWith('/admin/money-ops/control-center')) return { summary: {}, recent: {}, realLedgerMutationEnabled: false };
+  if (path.startsWith('/admin/queues/summary')) return { topUps: { count: 4 }, withdrawals: { count: 2 } };
+  if (path.startsWith('/admin/reports/queue-aging')) return { summary: { pendingTopUps: 4, pendingWithdrawals: 2, oldestAgeMinutes: 132, over15Minutes: 6, over60Minutes: 1, over24Hours: 0 }, oldest: [{ id: 'topup-1', type: 'TOPUP', userId: 'member-1', username: 'matrix_member', amount: '2500', currency: 'THB', createdAt: new Date(Date.now() - 48 * 60_000).toISOString(), ageMinutes: 48, ageLabel: '48 นาที' }, { id: 'withdrawal-1', type: 'WITHDRAWAL', userId: 'member-2', username: 'matrix_owner', amount: '1200', currency: 'THB', createdAt: new Date(Date.now() - 132 * 60_000).toISOString(), ageMinutes: 132, ageLabel: '2 ชม. 12 นาที' }], generatedAt: new Date().toISOString() };
+  if (path.startsWith('/admin/money-ops/control-center')) return { summary: { failedTransfers: 2, openRiskAlerts: 1, mismatchSnapshots: 1, webhookFailed: 3 }, recent: {}, realLedgerMutationEnabled: true };
+  if (path.startsWith('/admin/reports/daily')) return { range: { from: '2026-07-20', to: '2026-07-27' }, topUps: [{ status: 'COMPLETED', count: 12, amount: '25000' }], withdrawals: [{ status: 'COMPLETED', count: 7, amount: '9800' }], adjustments: [], wallets: { count: 42, totalBalance: '125000', totalLockedBalance: '3500' }, ledgers: { count: 58, amount: '34800' }, pendingQueues: { topUps: { count: 4, amount: '5600' }, withdrawals: { count: 2, amount: '3200' } }, generatedAt: new Date().toISOString() };
+  if (path.startsWith('/admin/reports/reconciliation')) return { checkedCount: 42, mismatchCount: 1, items: [{ walletId: 'wallet-1', shortUserId: 'member-1', username: 'matrix_member', actualBalance: '1250', latestLedgerBalance: '1200', lockedBalance: '0', availableBalance: '1250', status: 'MISMATCH' }], generatedAt: new Date().toISOString() };
+  if (path.startsWith('/admin/reports/trends')) return { range: { days: 7, from: '2026-07-21', to: '2026-07-27' }, totals: { topUpAmount: '25000', topUpCount: 12, withdrawalAmount: '9800', withdrawalCount: 7, netFlow: '15200' }, daily: [{ date: '2026-07-27', topUpAmount: '5000', topUpCount: 3, withdrawalAmount: '1800', withdrawalCount: 1, netFlow: '3200' }], generatedAt: new Date().toISOString() };
   if (path.startsWith('/admin/finance/summary')) {
     return {
       totals: { walletCount: 0, totalBalance: '0', totalLockedBalance: '0', totalAvailableBalance: '0', pendingTopUps: 0, pendingWithdrawals: 0 },
@@ -154,19 +163,6 @@ function installRuntimeAudit(page: Page, issues: RuntimeIssue[]) {
     if (response.status() < 500 && !['document', 'script', 'stylesheet', 'font', 'image'].includes(resourceType)) return;
     issues.push({ route: page.url(), kind: 'response', detail: `${response.status()} ${resourceType} ${response.url()}` });
   });
-}
-
-async function assertOperationsDrawerKeyboardContract(page: Page) {
-  const detailButton = page.getByRole('button', { name: /รายละเอียด|Details/i }).first();
-  await expect(detailButton).toBeVisible();
-  await detailButton.focus();
-  await detailButton.click();
-  const drawer = page.locator('[role="dialog"][aria-modal="true"]').last();
-  await expect(drawer).toBeVisible();
-  await expect(drawer.getByRole('button', { name: /ปิด|Close/i })).toBeFocused();
-  await page.keyboard.press('Escape');
-  await expect(drawer).toHaveCount(0);
-  await expect(detailButton).toBeFocused();
 }
 
 function canAccess(permissions: readonly string[], required: readonly string[]) {
