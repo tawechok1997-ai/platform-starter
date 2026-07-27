@@ -18,9 +18,9 @@ type GuideFaq = { question: string; answer: string };
 const ANNOUNCEMENT_TEXT = 'ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง';
 
 const PROMO_CARDS: PromoCard[] = [
-  { title: 'โปรโมชั่นพิเศษ', subtitle: 'โปรโมชั่นพิเศษเฉพาะคุณ', href: '/browse/promotions?view=promotion', aliases: ['promotion', 'promo', 'bonus', 'reward', 'โปรโมชั่น'], fallback: '✦', assetUrl: '/clone-assets/shortcut-promo.webp', backgroundUrl: V47_ASSETS.promoBackgroundPromotion },
-  { title: 'กิจกรรม', subtitle: 'กิจกรรมตลอด 24 ชั่วโมง', href: '/browse/promotions?view=activity', aliases: ['activity', 'event', 'mission', 'กิจกรรม'], fallback: '♤', assetUrl: '/clone-assets/shortcut-event.webp', backgroundUrl: V47_ASSETS.promoBackgroundActivity },
-  { title: 'ข่าวสาร', subtitle: 'ข่าวสารที่คุณไม่ควรพลาด', href: '/browse/promotions?view=news', aliases: ['news', 'announcement', 'notice', 'ข่าว'], fallback: '◇', assetUrl: '/clone-assets/shortcut-news.webp', backgroundUrl: V47_ASSETS.promoBackgroundNews },
+  { title: 'โปรโมชั่นพิเศษ', subtitle: 'โปรโมชั่นพิเศษเฉพาะคุณ', href: '/browse/promotions?view=promotion', aliases: ['promotion', 'promo', 'bonus', 'reward', 'โปรโมชั่น'], fallback: '✦', assetUrl: V47_ASSETS.quickPromotion, backgroundUrl: V47_ASSETS.promoBackgroundPromotion },
+  { title: 'กิจกรรม', subtitle: 'กิจกรรมตลอด 24 ชั่วโมง', href: '/browse/promotions?view=activity', aliases: ['activity', 'event', 'mission', 'กิจกรรม'], fallback: '♤', assetUrl: V47_ASSETS.quickActivity, backgroundUrl: V47_ASSETS.promoBackgroundActivity },
+  { title: 'ข่าวสาร', subtitle: 'ข่าวสารที่คุณไม่ควรพลาด', href: '/browse/promotions?view=news', aliases: ['news', 'announcement', 'notice', 'ข่าว'], fallback: '◇', assetUrl: V47_ASSETS.quickNews, backgroundUrl: V47_ASSETS.promoBackgroundNews },
 ];
 
 const ALLIANCE_ROW_ONE = ['evoplay', 'cq9', 'jili', 'playstar', 'joker', 'ebet', 'popk', 'evoplay', 'cq9', 'jili', 'playstar', 'joker'].map((name, index) => ({ key: `alliance-1-${index}`, name, url: `/assets/asset-pc/images/alliance/${name}.webp` }));
