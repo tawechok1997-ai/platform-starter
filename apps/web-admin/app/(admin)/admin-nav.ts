@@ -159,7 +159,7 @@ const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'ตรวจ KYC', href: '/kyc', permissions: ['users.view', 'risk.view'] },
   { title: 'ประวัติยอดเงิน', href: '/ledgers', permissions: ['wallet.view'] },
   { title: 'ข้อมูลสมาชิก', href: '/member-detail', permissions: ['users.view'] },
-  { title: 'จัดการยอดเงิน', href: '/money-ops', permissions: ['wallet.view'] },
+  { title: 'จัดการยอดเงิน', href: '/money-ops', permissions: ['game.providers.view'] },
   { title: 'ปฏิบัติการความเสี่ยง', href: '/risk-operations', permissions: ['risk.view'] },
 ];
 
