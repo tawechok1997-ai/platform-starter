@@ -128,4 +128,50 @@
   .desktop-reference-home .reference-provider-row--reverse > :nth-child(9) img { content: url('/assets/asset-pc/images/alliance/playstar.webp') !important; }
   .desktop-reference-home .reference-provider-row--reverse > :nth-child(10) img { content: url('/assets/asset-pc/images/alliance/joker.webp') !important; }
   .desktop-reference-home .reference-provider-row--reverse > :nth-child(11) img { content: url('/assets/asset-pc/images/alliance/evoplay.webp') !important; }
+
+  /* Final runtime reset: legacy carousel/position rules must not clip this static source strip. */
+  .desktop-reference-home .reference-provider-rows,
+  .desktop-reference-home .reference-provider-row,
+  .desktop-reference-home .reference-provider-row--reverse {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    transform: none !important;
+    align-self: stretch !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-rows {
+    height: 60px !important;
+    min-height: 60px !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo {
+    position: relative !important;
+    top: auto !important;
+    transform: none !important;
+    vertical-align: top !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo > img {
+    position: static !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo > small {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo.is-missing > small {
+    display: grid !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
 }
