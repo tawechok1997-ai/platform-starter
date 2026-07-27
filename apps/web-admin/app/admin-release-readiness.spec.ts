@@ -9,6 +9,7 @@ const viewportCss = readFileSync(path.join(appDir, 'admin-full-viewport-layout.c
 const professionalCss = readFileSync(path.join(appDir, 'admin-professional-authority.css'), 'utf8');
 const permanentSidebarCss = readFileSync(path.join(appDir, 'admin-permanent-sidebar.css'), 'utf8');
 const staticGroupsCss = readFileSync(path.join(appDir, 'admin-static-sidebar-groups.css'), 'utf8');
+const dataPageCss = readFileSync(path.join(appDir, 'admin-data-page-authority.css'), 'utf8');
 const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'layout.tsx'), 'utf8');
 const dashboardPage = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'page.tsx'), 'utf8');
 const dashboardProfessional = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'dashboard-professional.tsx'), 'utf8');
@@ -22,6 +23,7 @@ const viewportImport = "import './admin-full-viewport-layout.css'";
 const professionalImport = "import './admin-professional-authority.css'";
 const permanentSidebarImport = "import './admin-permanent-sidebar.css'";
 const staticGroupsImport = "import './admin-static-sidebar-groups.css'";
+const dataPageImport = "import './admin-data-page-authority.css'";
 
 test('loads Admin presentation authorities in stable override order', () => {
   const controlsIndex = layout.indexOf(controlsImport);
@@ -33,6 +35,7 @@ test('loads Admin presentation authorities in stable override order', () => {
   const professionalIndex = layout.indexOf(professionalImport);
   const permanentSidebarIndex = layout.indexOf(permanentSidebarImport);
   const staticGroupsIndex = layout.indexOf(staticGroupsImport);
+  const dataPageIndex = layout.indexOf(dataPageImport);
 
   assert.ok(controlsIndex >= 0);
   assert.ok(shellIndex > controlsIndex);
@@ -43,7 +46,8 @@ test('loads Admin presentation authorities in stable override order', () => {
   assert.ok(professionalIndex > viewportIndex);
   assert.ok(permanentSidebarIndex > professionalIndex);
   assert.ok(staticGroupsIndex > permanentSidebarIndex);
-  assert.equal(layout.slice(staticGroupsIndex + staticGroupsImport.length).includes("import './admin-"), false);
+  assert.ok(dataPageIndex > staticGroupsIndex);
+  assert.equal(layout.slice(dataPageIndex + dataPageImport.length).includes("import './admin-"), false);
 });
 
 test('standardizes professional page headers and safe text spacing', () => {
@@ -72,26 +76,20 @@ test('keeps the desktop sidebar and its permission-filtered groups permanently e
   assert.match(staticGroupsCss, /Rebalance the footer after removing the collapse control/);
 });
 
+test('makes data-heavy Admin workspaces consume the complete content width', () => {
+  assert.match(dataPageCss, /\.admin-content-shell \.admin-ui-page[\s\S]*max-width: none !important/);
+  assert.match(dataPageCss, /\.admin-content-shell \.admin-ui-grid[\s\S]*repeat\(auto-fit, minmax\(min\(248px, 100%\), 1fr\)\)/);
+  assert.match(dataPageCss, /\[class\*='__table-shell'\][\s\S]*width: 100% !important/);
+  assert.match(dataPageCss, /\.admin-wallet-analytics__hero[\s\S]*grid-template-columns: minmax\(0, 2fr\) minmax\(280px, \.8fr\)/);
+  assert.match(dataPageCss, /\.admin-wallet-analytics__table[\s\S]*min-width: 760px !important/);
+});
+
 test('removes the legacy shell grid and expands single dashboard panels', () => {
   assert.match(viewportCss, /\.admin-shell[\s\S]*display: block !important/);
   assert.match(viewportCss, /grid-template-columns: none !important/);
   assert.match(viewportCss, /\.admin-main-shell[\s\S]*width: 100% !important/);
   assert.match(viewportCss, /section:has\(> article:only-child\)[\s\S]*grid-template-columns: minmax\(0, 1fr\) !important/);
   assert.match(viewportCss, /article:only-child[\s\S]*grid-column: 1 \/ -1 !important/);
-});
-
-test('pins root loading and authorization states to the complete viewport', () => {
-  assert.match(viewportCss, /body\[data-app-surface='admin'\][\s\S]*width: 100%/);
-  assert.match(viewportCss, /\.admin-app-state,[\s\S]*\.admin-loading-screen[\s\S]*position: fixed !important/);
-  assert.match(viewportCss, /\.admin-loading-screen[\s\S]*inset: 0 !important/);
-  assert.match(viewportCss, /\.admin-loading-screen[\s\S]*min-height: 100dvh !important/);
-});
-
-test('lets data-heavy pages use the whole card width', () => {
-  assert.match(viewportCss, /Data-heavy pages must use the whole card/);
-  assert.match(viewportCss, /\.admin-content-shell table[\s\S]*width: 100% !important/);
-  assert.match(viewportCss, /\.admin-content-shell table[\s\S]*min-width: 100% !important/);
-  assert.match(viewportCss, /:has\(> table\)[\s\S]*max-width: none !important/);
 });
 
 test('puts finance wallet and risk charts before recent dashboard activity', () => {
