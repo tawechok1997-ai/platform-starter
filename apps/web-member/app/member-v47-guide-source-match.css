@@ -1,0 +1,183 @@
+/* Exact desktop Guide section recovered from the supplied source markup. */
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-guide {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 0 8px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .desktop-reference-home .reference-guide > .reference-panel-heading {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 16px 0 20px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: #fff !important;
+  }
+
+  .desktop-reference-home .reference-guide > .reference-panel-heading::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 0 !important;
+    border-radius: inherit !important;
+    background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) 6.41%, rgb(24 21 35 / 60%) 80.01%) !important;
+    opacity: .48 !important;
+    pointer-events: none !important;
+  }
+
+  .desktop-reference-home .reference-guide > .reference-panel-heading::after {
+    content: '' !important;
+    position: absolute !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: 0 !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) 4.41%, rgb(24 21 35 / 60%) 83.01%) !important;
+    opacity: .44 !important;
+    pointer-events: none !important;
+  }
+
+  .desktop-reference-home .reference-guide > .reference-panel-heading > * {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  .desktop-reference-home .reference-guide .reference-heading-icon,
+  .desktop-reference-home .reference-guide .reference-heading-icon > img {
+    display: block !important;
+    width: 26px !important;
+    min-width: 26px !important;
+    height: 26px !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+    background: none !important;
+  }
+
+  .desktop-reference-home .reference-guide .reference-heading-icon > img {
+    content: url('/assets/asset-pc/images/home/faq1.webp') !important;
+  }
+
+  .desktop-reference-home .reference-guide > .reference-panel-heading > strong {
+    width: 100% !important;
+    max-width: 600px !important;
+    overflow: hidden !important;
+    color: #fff !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-guide details {
+    width: 100% !important;
+    margin: 12px 0 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+  }
+
+  .desktop-reference-home .reference-guide details:first-of-type {
+    margin-top: 16px !important;
+  }
+
+  .desktop-reference-home .reference-guide summary {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    min-height: 49px !important;
+    padding: 12px 16px !important;
+    list-style: none !important;
+    border: 1px solid rgb(79 73 93) !important;
+    border-radius: 6px !important;
+    background: rgb(38 34 50) !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    line-height: 1.45 !important;
+    text-align: left !important;
+  }
+
+  .desktop-reference-home .reference-guide summary::-webkit-details-marker {
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-guide summary::marker {
+    content: '' !important;
+  }
+
+  .desktop-reference-home .reference-guide summary::after {
+    content: '' !important;
+    display: block !important;
+    width: 20px !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    margin-left: 16px !important;
+    background: center / 20px 20px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' d='M0 0h24v24H0V0z'/%3E%3Cpath fill='%23ffffff' d='M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z'/%3E%3C/svg%3E") !important;
+    transform: rotate(180deg) !important;
+    transition: transform .2s ease !important;
+  }
+
+  .desktop-reference-home .reference-guide details[open] summary {
+    border-radius: 6px 6px 0 0 !important;
+  }
+
+  .desktop-reference-home .reference-guide details[open] summary::after {
+    transform: rotate(0deg) !important;
+  }
+
+  .desktop-reference-home .reference-guide details > p {
+    margin: 0 !important;
+    padding: 12px 16px 14px !important;
+    border: 1px solid rgb(79 73 93) !important;
+    border-top: 0 !important;
+    border-radius: 0 0 6px 6px !important;
+    background: rgb(38 34 50) !important;
+    color: rgb(216 209 224) !important;
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+  }
+
+  .desktop-reference-home .reference-guide-more {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 300px !important;
+    height: 40px !important;
+    margin: 16px auto 0 !important;
+    padding: 0 !important;
+    border: 1px solid rgb(187 91 234) !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: rgb(187 91 234) !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+  }
+
+  .desktop-reference-home .reference-guide-more:hover {
+    background: rgb(187 91 234 / 10%) !important;
+  }
+}
