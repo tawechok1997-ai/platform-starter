@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   patch-and-verify:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,16 +24,16 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
-      - name: Patch adaptive two-column grid
+      - name: Patch adaptive dashboard panel grid
         run: |
           python - <<'PY'
           from pathlib import Path
-          path = Path('apps/web-admin/app/(admin)/dashboard/dashboard-redesigned.module.css')
+          path = Path('apps/web-admin/app/(admin)/dashboard/dashboard-professional.module.css')
           text = path.read_text()
-          old = ".twoColumnGrid {\n  display: grid;\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n  align-items: start;"
-          new = ".twoColumnGrid {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr));\n  align-items: start;"
+          old = ".twoColumnGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }"
+          new = ".twoColumnGrid { grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); align-items: start; }"
           if old not in text:
-              raise SystemExit('Expected twoColumnGrid rule not found')
+              raise SystemExit('Expected professional twoColumnGrid rule not found')
           path.write_text(text.replace(old, new, 1))
           PY
       - name: Verify Admin
@@ -47,6 +46,6 @@ jobs:
           rm .github/workflows/admin-dashboard-single-panel-fix.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add apps/web-admin/app/'(admin)'/dashboard/dashboard-redesigned.module.css .github/workflows/admin-dashboard-single-panel-fix.yml
+          git add apps/web-admin/app/'(admin)'/dashboard/dashboard-professional.module.css .github/workflows/admin-dashboard-single-panel-fix.yml
           git commit -m "fix(admin): expand single dashboard panels to full width"
           git push origin HEAD:fix/admin-dashboard-single-panel-full-width
