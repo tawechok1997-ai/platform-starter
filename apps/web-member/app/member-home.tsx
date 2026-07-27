@@ -8,19 +8,9 @@ import {
   defaultFeatureFlags,
   defaultIconSettings,
 } from './site-settings';
-import {
-  CmsPopup,
-  PendingRequests,
-} from './components/member-home-sections';
+import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
 import { MobileV47Scaffold } from './components/member-home/mobile-v47-scaffold';
-import { HomeActivitiesPanel } from './components/member-home/home-activities-panel';
-import { HomeAnnouncementStrip } from './components/member-home/home-announcement-strip';
-import { HomeHighlightsPanel } from './components/member-home/home-highlights-panel';
-import { HomePromotionsPanel } from './components/member-home/home-promotions-panel';
-import { HomePromotionCarousel } from './components/member-home/home-promotion-carousel';
-import styles from './components/member-home/home-reference.module.css';
-import { SourceHomeTabs, type HomeTab } from './components/member-home/source-home-tabs';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
 type MemberHomeProps = {
@@ -45,7 +35,6 @@ export default function MemberHome(props: MemberHomeProps) {
   const features = props.features ?? defaultFeatureFlags;
   const icons = props.icons ?? defaultIconSettings;
   const [popupClosed, setPopupClosed] = useState(false);
-  const [activeTab, setActiveTab] = useState<HomeTab>('highlights');
   const popupVersion = props.cmsContent.popup.version ?? 'v1';
   const data = useMemberHomeData(features.games);
   const gameSections = {
@@ -85,53 +74,9 @@ export default function MemberHome(props: MemberHomeProps) {
         gamesMessage={data.gamesMessage}
       />
 
-      <section className={`member-shell member-home-shell member-source-home member-home-mobile member-home-mobile--legacy ${styles.referenceHome}`}>
-        <div className="member-home-zone member-home-zone--primary">
-          {props.showPromotion && features.games && (
-            <HomePromotionCarousel content={props.cmsContent} siteName={props.siteName} />
-          )}
-          <HomeAnnouncementStrip content={props.cmsContent} />
-          <SourceHomeTabs activeTab={activeTab} onChange={setActiveTab} />
-        </div>
-
-        <div className="member-source-finance">
-          <PendingRequests
-            pendingTopups={data.pendingTopups}
-            pendingWithdrawals={data.pendingWithdrawals}
-            primaryColor={props.primaryColor}
-            features={features}
-          />
-        </div>
-
-        <HomeHighlightsPanel
-          active={activeTab === 'highlights'}
-          data={data}
-          primaryColor={props.primaryColor}
-          showRecommended={props.showRecommended}
-          gamesEnabled={features.games}
-          icons={icons}
-          features={features}
-        />
-
-        <HomePromotionsPanel
-          active={activeTab === 'promotions'}
-          enabled={props.showPromotion}
-          content={props.cmsContent}
-        />
-
-        <HomeActivitiesPanel
-          active={activeTab === 'activities'}
-          data={data}
-          content={props.cmsContent}
-          primaryColor={props.primaryColor}
-          depositEnabled={features.deposit}
-          supportEnabled={features.support}
-        />
-
-        {props.cmsContent.popup.enabled && !popupClosed && (
-          <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
-        )}
-      </section>
+      {props.cmsContent.popup.enabled && !popupClosed && (
+        <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
+      )}
     </>
   );
 }
