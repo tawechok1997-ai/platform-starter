@@ -32,6 +32,7 @@ async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
+    // Generated/static artifacts are not application source and may contain bundled vendor transports.
     if (['node_modules', '.next', 'dist', 'coverage', 'public'].includes(entry.name)) continue;
     const path = join(directory, entry.name);
     if (entry.isDirectory()) files.push(...await walk(path));
@@ -46,10 +47,6 @@ function normalize(path) {
 
 function isServerProxyRoute(path) {
   return /^apps\/web-(?:admin|member)\/app\/api\/.+\/route\.(?:ts|js)$/.test(path);
-}
-
-function isTestFile(path) {
-  return /\.(?:spec|test)\.(?:ts|tsx|js|jsx)$/.test(path);
 }
 
 function isAllowedTransportBoundary(path) {
@@ -86,7 +83,6 @@ for (const app of appRoots) {
       if (allowedTransportBridges.has(path)) existingBridges += 1;
       continue;
     }
-    if (isTestFile(path)) continue;
     violations.push(...findViolations(source, path, forbidden, { app: app.name }));
   }
 
@@ -100,7 +96,7 @@ const packageFiles = await walk(packageRoot);
 const packageViolations = [];
 for (const file of packageFiles) {
   const path = normalize(file);
-  if (isTestFile(path)) continue;
+  if (path.endsWith('.test.ts') || path.endsWith('.test.tsx')) continue;
   const source = await readFile(file, 'utf8');
   packageViolations.push(...findViolations(source, path, forbiddenPackageBoundaries, { app: 'api-client' }));
 }
