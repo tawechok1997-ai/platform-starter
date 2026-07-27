@@ -129,8 +129,8 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
           <section className="reference-provider-strip">
             <h2><AssetIcon asset={assets.partner} configured={icons.affiliate} fallback="" className="reference-heading-icon" />พันธมิตรของเรา</h2>
             <div className="reference-provider-rows">
-              <div className="reference-provider-row" data-drag-scroll="true">{providerLogos.map((provider) => <ProviderLogoItem key={`a-${provider.key}`} provider={provider} />)}</div>
-              <div className="reference-provider-row reference-provider-row--reverse" data-drag-scroll="true">{ALLIANCE_ROW_TWO.map((provider) => <ProviderLogoItem key={`b-${provider.key}`} provider={provider} />)}</div>
+              <div className="reference-provider-row">{providerLogos.map((provider) => <ProviderLogoItem key={`a-${provider.key}`} provider={provider} />)}</div>
+              <div className="reference-provider-row reference-provider-row--reverse">{ALLIANCE_ROW_TWO.map((provider) => <ProviderLogoItem key={`b-${provider.key}`} provider={provider} />)}</div>
             </div>
           </section>
         </main>
