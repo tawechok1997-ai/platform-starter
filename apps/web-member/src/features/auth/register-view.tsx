@@ -51,6 +51,8 @@ export type RegisterViewProps = {
   maintenanceEnabled: boolean;
   captchaResetKey: number;
   selectedBankLabel: string;
+  embedded?: boolean;
+  onClose?: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onLocaleChange: (locale: RegisterLocale) => void;
   onFieldChange: (field: RegisterErrorKey | 'referralCode', value: string) => void;
@@ -66,23 +68,26 @@ export function RegisterView(props: RegisterViewProps) {
     cssVars, locale, step, t, siteName, logoUrl, brandMark, banks, username, phone, email, secret,
     referralCode, fullName, bankName, bankAccountNumber, acceptedTerms, errors, message, status,
     loading, disabled, showSecret, passwordProgress, registrationEnabled, loginEnabled,
-    maintenanceEnabled, captchaResetKey, selectedBankLabel, onSubmit, onLocaleChange, onFieldChange,
-    onAcceptedTermsChange, onShowSecretToggle, onBack, onCaptchaToken, onCaptchaState,
+    maintenanceEnabled, captchaResetKey, selectedBankLabel, embedded = false, onClose, onSubmit,
+    onLocaleChange, onFieldChange, onAcceptedTermsChange, onShowSecretToggle, onBack,
+    onCaptchaToken, onCaptchaState,
   } = props;
 
   const closeLabel = locale === 'th' ? 'ปิด' : 'Close';
   const registerLabel = locale === 'th' ? 'สมัครสมาชิก' : 'Register';
   const supportLabel = locale === 'th' ? 'ติดต่อเจ้าหน้าที่' : 'Contact support';
   const secureRegistrationLabel = locale === 'th' ? 'การสมัครที่ปลอดภัย' : 'Secure registration';
+  const registerHref = embedded ? '/register?embed=1' : '/register';
+  const loginHref = embedded ? '/login?embed=1' : '/login';
 
-  return <main className="public-auth-page" style={cssVars}>
+  return <main className="public-auth-page" style={cssVars} data-embedded={embedded ? 'true' : 'false'}>
     <div className="public-auth-ambient" aria-hidden="true"><span /><span /><span /></div>
     <div className="public-auth-backdrop" aria-hidden="true" />
     <section className="public-auth-shell public-auth-shell--register public-auth-modal" role="dialog" aria-modal="true" aria-labelledby="member-register-title">
-      <Link href="/" className="public-auth-close" aria-label={closeLabel}>×</Link>
+      {embedded ? <button type="button" className="public-auth-close" aria-label={closeLabel} onClick={onClose}>×</button> : <Link href="/" className="public-auth-close" aria-label={closeLabel}>×</Link>}
       <nav className="public-auth-tabs" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
-        <Link href="/register" aria-current="page">{registerLabel}</Link>
-        {loginEnabled && <Link href="/login">{t.login}</Link>}
+        <Link href={registerHref} aria-current="page">{registerLabel}</Link>
+        {loginEnabled && <Link href={loginHref}>{t.login}</Link>}
       </nav>
       <form className="public-auth-card" onSubmit={onSubmit} noValidate>
         <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => onLocaleChange('th')} aria-pressed={locale === 'th'} className="public-auth-language__button">ไทย</button><button type="button" onClick={() => onLocaleChange('en')} aria-pressed={locale === 'en'} className="public-auth-language__button">EN</button></div></div>
@@ -126,5 +131,6 @@ export function RegisterView(props: RegisterViewProps) {
 function Field({ label, id, value, onChange, error, disabled, type = 'text', autoComplete, inputMode }: { label: string; id: string; value: string; onChange: (value: string) => void; error?: string | undefined; disabled: boolean; type?: string; autoComplete?: string; inputMode?: 'text' | 'tel' | 'email' | 'numeric' | 'decimal' | 'search' | 'url' | 'none'; }) {
   return <><label className="public-auth-field" htmlFor={id}><span className="public-auth-field-label">{label}</span><input id={id} className="public-auth-input" value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled} type={type} autoComplete={autoComplete} inputMode={inputMode} aria-invalid={Boolean(error)} /></label>{error && <span className="public-auth-field-error">{error}</span>}</>;
 }
+
 function ReviewRow({ label, value }: { label: string; value: string }) { return <div><span>{label}</span><strong>{value || '-'}</strong></div>; }
 function maskAccount(value: string) { return value.length > 4 ? `${'•'.repeat(Math.max(0, value.length - 4))}${value.slice(-4)}` : value; }
