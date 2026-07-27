@@ -1,52 +1,74 @@
-/* Match the supplied 1536px desktop reference proportions on 1920px displays.
-   The logical NOAH345 contract remains 1455 / 1080 / 360; only the wide
-   viewport canvas is scaled as one unit so header, buttons, content, sidebar,
-   partner strip and footer keep their relative positions. */
+/* Wide-desktop geometry match.
+   Do not zoom or transform the page. The reference keeps the same control,
+   type and section heights while allowing the desktop shell to occupy almost
+   the full viewport. */
 
-@media (min-width: 1900px) and (max-width: 2050px) {
-  html,
+@media (min-width: 1600px) and (max-width: 2050px) {
+  :root {
+    --v47-reference-shell: calc(100vw - 80px);
+    --v47-reference-gap: 15px;
+    --v47-reference-sidebar: calc((var(--v47-reference-shell) - var(--v47-reference-gap)) / 4);
+    --v47-reference-main: calc(var(--v47-reference-shell) - var(--v47-reference-sidebar) - var(--v47-reference-gap));
+  }
+
+  html:has(.desktop-reference-home),
   body:has(.desktop-reference-home) {
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     background: #110e16 !important;
   }
 
-  .public-home-topbar.global-member-topbar,
-  .desktop-reference-home,
-  body:has(.desktop-reference-home) .member-footer {
-    width: 80vw !important;
+  /* Keep the real header height and control sizes. Only widen its inner shell. */
+  body:has(.desktop-reference-home) .public-home-topbar.global-member-topbar {
+    width: 100% !important;
     max-width: none !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    zoom: 1.25;
+    margin: 0 !important;
+    zoom: 1 !important;
+    transform: none !important;
   }
 
-  .public-home-topbar.global-member-topbar {
-    right: auto !important;
-    left: 0 !important;
+  body:has(.desktop-reference-home) .public-home-topbar .public-home-desktop-bar,
+  body:has(.desktop-reference-home) .public-home-topbar .member-desktop-nav--guest {
+    width: var(--v47-reference-shell) !important;
+    max-width: var(--v47-reference-shell) !important;
+    margin-inline: auto !important;
   }
 
-  .public-home-topbar .member-desktop-nav--guest {
-    right: auto !important;
-    left: 0 !important;
-    width: 80vw !important;
-    max-width: none !important;
-  }
-
-  .public-home-topbar + main {
-    padding-top: 135px !important;
-  }
-
+  /* Main and sidebar retain the exact 3:1 source ratio without scaling height. */
   .desktop-reference-home > .desktop-home__body {
-    width: min(1455px, calc(100% - 30px)) !important;
-    max-width: 1455px !important;
+    grid-template-columns: minmax(0, var(--v47-reference-main)) minmax(0, var(--v47-reference-sidebar)) !important;
+    width: var(--v47-reference-shell) !important;
+    max-width: var(--v47-reference-shell) !important;
+    margin-inline: auto !important;
   }
 
-  .desktop-reference-home > .reference-hero-carousel,
+  .desktop-reference-home > .reference-hero-carousel {
+    width: var(--v47-reference-shell) !important;
+    max-width: var(--v47-reference-shell) !important;
+    margin-inline: auto !important;
+    zoom: 1 !important;
+    transform: none !important;
+  }
+
+  /* Let the alliance section span the same shell instead of stopping at 1440px. */
   .desktop-reference-home .reference-provider-strip {
-    max-width: 1455px !important;
+    width: var(--v47-reference-shell) !important;
+    max-width: var(--v47-reference-shell) !important;
   }
 
   body:has(.desktop-reference-home) .member-footer {
-    min-width: 0 !important;
+    width: 100vw !important;
+    max-width: none !important;
+    margin: 0 !important;
+    zoom: 1 !important;
+    transform: none !important;
+  }
+
+  body:has(.desktop-reference-home) .member-footer__main,
+  body:has(.desktop-reference-home) .member-footer__payments,
+  body:has(.desktop-reference-home) .member-footer__copyright,
+  body:has(.desktop-reference-home) .member-footer__separator {
+    width: var(--v47-reference-shell) !important;
+    max-width: var(--v47-reference-shell) !important;
+    margin-inline: auto !important;
   }
 }
