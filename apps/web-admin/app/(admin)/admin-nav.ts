@@ -124,10 +124,8 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'โปรโมชันและโบนัส', titleEn: 'Promotions & bonuses', href: '/promotion-center', permissions: ['promotion.view'] },
       { title: 'คำขอรับโปรโมชัน', titleEn: 'Promotion claims', href: '/promotion-claims', permissions: ['promotions.claims.view'] },
       { title: 'โบนัสย้อนหลัง', titleEn: 'Bonus ledger', href: '/bonus-ledgers', permissions: ['bonus.ledger.view'] },
-
       { title: 'Affiliate และคอมมิชชัน', titleEn: 'Affiliate & commission', href: '/affiliate-center', permissions: ['affiliate.view'] },
       { title: 'ประวัติคอมมิชชัน', titleEn: 'Commission ledger', href: '/commission-ledgers', permissions: ['commission.view'] },
-
       { title: 'เนื้อหาและสื่อ', titleEn: 'Content & assets', href: '/content-center', permissions: ['settings.website.view', 'settings.update'] },
     ],
   },
@@ -144,7 +142,6 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'บันทึกการใช้งาน', titleEn: 'Audit log', href: '/audit', permissions: ['admin.view', 'admin.access.view'] },
       { title: 'ความปลอดภัย', titleEn: 'Security', href: '/security' },
       { title: 'CAPTCHA และป้องกันบอต', titleEn: 'CAPTCHA & bot protection', href: '/anti-bot', permissions: ['security.anti_bot.view'] },
-
       { title: 'การตั้งค่า', titleEn: 'Settings', href: '/settings', permissions: ['settings.update', 'settings.website.view'] },
     ],
   },
@@ -167,6 +164,7 @@ const additionalRoutePermissions: readonly AdminNavItem[] = [
 ];
 
 const safeSelfServicePaths = ['/dashboard', '/operations', '/profile', '/security'] as const;
+const denyUnregisteredRoutePermission = '__admin.route.unregistered__' as const;
 
 export function isSafeSelfServicePath(pathname: string) {
   return safeSelfServicePaths.some((href) => pathname === href || pathname.startsWith(`${href}/`));
@@ -180,7 +178,6 @@ export function resolveNavItemHref(item: AdminNavItem, permissions: readonly str
 export function canAccessPath(pathname: string, permissions: readonly string[]) {
   if (isSafeSelfServicePath(pathname)) return true;
   const required = requiredPermissionsForPath(pathname);
-  if (required.length === 0) return false;
   return permissions.includes('*') || required.some((permission) => permissions.includes(permission));
 }
 
@@ -193,5 +190,5 @@ export function canAccessNavItem(item: AdminNavItem, permissions: readonly strin
 export function requiredPermissionsForPath(pathname: string) {
   const routeItems = [...navGroups.flatMap((group) => group.items), ...additionalRoutePermissions].sort((a, b) => b.href.length - a.href.length);
   for (const item of routeItems) if (pathname === item.href || pathname.startsWith(`${item.href}/`)) return item.permissions ?? [];
-  return [] as readonly string[];
+  return [denyUnregisteredRoutePermission] as const;
 }
