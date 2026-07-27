@@ -75,12 +75,22 @@ test('branding workflow preserves draft publish preview history and rollback own
   assert.match(historyPageSource, /rollback/);
 });
 
-test('branding workflow uses the existing Admin design-system primitives', () => {
-  assert.match(workflowPanelSource, /AdminActionStrip/);
+test('branding workflow uses professional shared confirmation and navigation primitives', () => {
   assert.match(workflowPanelSource, /AdminLinkButton/);
   assert.match(workflowPanelSource, /AdminNotice/);
   assert.match(workflowPanelSource, /AdminButton/);
+  assert.match(workflowPanelSource, /AdminConfirmDialog/);
+  assert.match(workflowPanelSource, /className=\{styles\.workflow\}/);
+  assert.doesNotMatch(workflowPanelSource, /window\.confirm/);
   assert.doesNotMatch(workflowPanelSource, /linkStyle/);
+});
+
+test('branding history uses shared confirmation and structured before-after values', () => {
+  assert.match(historyPageSource, /AdminConfirmDialog/);
+  assert.match(historyPageSource, /className=\{styles\.historyGrid\}/);
+  assert.match(historyPageSource, /ค่าก่อนหน้า/);
+  assert.match(historyPageSource, /ค่าหลังแก้/);
+  assert.doesNotMatch(historyPageSource, /window\.confirm/);
 });
 
 test('branding asset lifecycle keeps the shared upload transport and safe restore controls', () => {
