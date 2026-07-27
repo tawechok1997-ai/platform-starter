@@ -1,1 +1,0 @@
-ALTER TYPE "SiteSettingGroup" ADD VALUE IF NOT EXISTS 'ICONS';
