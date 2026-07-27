@@ -27,11 +27,10 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - name: Apply final shell and route guard integration
+      - name: Apply final shell, route guard and dashboard type integration
         run: |
           python <<'PY'
           from pathlib import Path
-          import json
 
           protected = Path('apps/web-admin/app/(admin)/layout.tsx')
           source = protected.read_text()
@@ -45,22 +44,37 @@ jobs:
           )
           protected.write_text(source)
 
-          root_layout = Path('apps/web-admin/app/layout.tsx')
-          layout_source = root_layout.read_text()
-          authority_import = "import './admin-professional-authority.css';"
-          if authority_import not in layout_source:
-              layout_source = layout_source.replace(
-                  "import './admin-full-viewport-layout.css';",
-                  "import './admin-full-viewport-layout.css';\nimport './admin-professional-authority.css';",
-              )
-          root_layout.write_text(layout_source)
+          dashboard = Path('apps/web-admin/app/(admin)/dashboard/dashboard-professional.tsx')
+          dashboard_source = dashboard.read_text()
+          metrics_type = """type DashboardMetrics = {
+            deposit: number;
+            withdrawal: number;
+            net: number;
+            maxFlow: number;
+            total: number;
+            available: number;
+            locked: number;
+            variance: number;
+            walletBase: number;
+            pendingTopUps: number;
+            pendingWithdrawals: number;
+            pendingTotal: number;
+            oldestMinutes: number;
+            riskCounts: Record<RiskAlert['severity'], number>;
+            openRiskTotal: number;
+            donut: string;
+          };"""
+          if 'type DashboardMetrics = {' not in dashboard_source:
+              dashboard_source = dashboard_source.replace('type Copy = {', f'{metrics_type}\n\ntype Copy = {{', 1)
+          dashboard_source = dashboard_source.replace('ReturnType<typeof useDashboardMetrics>', 'DashboardMetrics')
+          marker = '\nfunction useDashboardMetrics() {'
+          if marker in dashboard_source:
+              dashboard_source = dashboard_source[:dashboard_source.index(marker)] + '\n'
+          dashboard.write_text(dashboard_source)
 
-          package_path = Path('apps/web-admin/package.json')
-          package = json.loads(package_path.read_text())
-          scripts = package.setdefault('scripts', {})
-          scripts['audit:admin-capabilities'] = 'node --import tsx tools/audit-admin-capabilities.mjs'
-          scripts['verify'] = 'pnpm inventory:admin-routes && pnpm audit:admin-capabilities && pnpm test && pnpm typecheck && pnpm build'
-          package_path.write_text(json.dumps(package, ensure_ascii=False, indent=2) + '\n')
+          dashboard_css = Path('apps/web-admin/app/(admin)/dashboard/dashboard-professional.module.css')
+          css_source = dashboard_css.read_text().replace('align-items: end;', 'align-items: flex-end;').replace('align-items: start;', 'align-items: flex-start;')
+          dashboard_css.write_text(css_source)
           PY
       - run: pnpm install --frozen-lockfile=false
       - name: Admin route inventory
@@ -77,7 +91,7 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add apps/web-admin/app/'(admin)'/layout.tsx apps/web-admin/app/layout.tsx apps/web-admin/package.json
+          git add apps/web-admin/app/'(admin)'/layout.tsx apps/web-admin/app/'(admin)'/dashboard/dashboard-professional.tsx apps/web-admin/app/'(admin)'/dashboard/dashboard-professional.module.css
           if git diff --cached --quiet; then
             echo 'No integration changes to commit.'
             exit 0
