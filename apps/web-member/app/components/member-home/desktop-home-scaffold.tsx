@@ -84,7 +84,6 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
             <div className="reference-announcement-viewport">
               <div className="reference-announcement-track">
                 <span>{ANNOUNCEMENT_TEXT}</span>
-                <span aria-hidden="true">{ANNOUNCEMENT_TEXT}</span>
               </div>
             </div>
           </div>
