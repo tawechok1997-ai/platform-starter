@@ -78,7 +78,7 @@ test('uses underline locale tabs instead of an input-looking language box', () =
 test('keeps the desktop sidebar permanent while submenus follow the active route', () => {
   assert.match(permanentSidebarCss, /\.admin-collapse-button[\s\S]*display: none !important/);
   assert.match(permanentSidebarCss, /\.admin-shell--collapsed[\s\S]*padding-left: var\(--admin-shell-sidebar-width\) !important/);
-  assert.match(staticGroupsCss, /Static Admin sidebar groups/);
+  assert.match(staticGroupsCss, /Permanent Admin navigation groups/);
   assert.match(smartAccordionCss, /Route-aware Admin sidebar accordion/);
   assert.match(smartAccordionCss, /\.admin-nav-group__trigger[\s\S]*pointer-events: auto !important/);
   assert.match(smartAccordionCss, /\.admin-nav-group__chevron[\s\S]*display: inline-flex !important/);
