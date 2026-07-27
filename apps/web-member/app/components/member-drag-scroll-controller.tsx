@@ -13,6 +13,7 @@ type DragState = {
 
 const DRAG_THRESHOLD_PX = 5;
 const SOURCE_DRAG_MULTIPLIER = 2;
+const GUIDE_SELECTOR = ".reference-guide[data-section-kind='guide']";
 
 export default function MemberDragScrollController() {
   useEffect(() => {
@@ -22,6 +23,37 @@ export default function MemberDragScrollController() {
 
     const findRail = (target: EventTarget | null) =>
       target instanceof Element ? target.closest<HTMLElement>('[data-drag-scroll]') : null;
+
+    const findGuideSummary = (target: EventTarget | null) =>
+      target instanceof Element
+        ? target.closest<HTMLElement>(`${GUIDE_SELECTOR} > details > summary`)
+        : null;
+
+    const syncGuideAria = (guide: Element | Document = document) => {
+      guide.querySelectorAll<HTMLDetailsElement>(`${GUIDE_SELECTOR} > details`).forEach((details) => {
+        const summary = details.querySelector<HTMLElement>(':scope > summary');
+        if (!summary) return;
+        summary.setAttribute('role', 'button');
+        summary.setAttribute('aria-expanded', String(details.open));
+        summary.tabIndex = 0;
+      });
+    };
+
+    const toggleGuideItem = (summary: HTMLElement) => {
+      const details = summary.parentElement;
+      if (!(details instanceof HTMLDetailsElement)) return;
+      const guide = details.closest(GUIDE_SELECTOR);
+      if (!guide) return;
+
+      const shouldOpen = !details.open;
+      guide.querySelectorAll<HTMLDetailsElement>(':scope > details').forEach((item) => {
+        item.open = false;
+        item.querySelector<HTMLElement>(':scope > summary')?.setAttribute('aria-expanded', 'false');
+      });
+
+      details.open = shouldOpen;
+      summary.setAttribute('aria-expanded', String(shouldOpen));
+    };
 
     const onPointerDown = (event: PointerEvent) => {
       if (event.pointerType === 'mouse' && event.button !== 0) return;
@@ -65,6 +97,14 @@ export default function MemberDragScrollController() {
     };
 
     const onClickCapture = (event: MouseEvent) => {
+      const guideSummary = findGuideSummary(event.target);
+      if (guideSummary) {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleGuideItem(guideSummary);
+        return;
+      }
+
       if (!suppressClickRail || performance.now() > suppressClickUntil) return;
       const rail = findRail(event.target);
       if (rail !== suppressClickRail) return;
@@ -80,6 +120,11 @@ export default function MemberDragScrollController() {
       event.preventDefault();
     };
 
+    syncGuideAria();
+
+    const guideObserver = new MutationObserver(() => syncGuideAria());
+    guideObserver.observe(document.body, { childList: true, subtree: true });
+
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('pointermove', onPointerMove, { passive: false });
     document.addEventListener('pointerup', finishDrag);
@@ -88,6 +133,7 @@ export default function MemberDragScrollController() {
     document.addEventListener('click', onClickCapture, true);
 
     return () => {
+      guideObserver.disconnect();
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('pointermove', onPointerMove);
       document.removeEventListener('pointerup', finishDrag);
