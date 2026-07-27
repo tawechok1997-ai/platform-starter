@@ -94,6 +94,7 @@ import './member-v47-alliance-exact-source.css';
 import './member-v47-tournament-image-only.css';
 import './member-v47-footer-exact-source.css';
 import './member-v47-sidebar-source-match.css';
+import './member-v47-alliance-scroll-lock.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
