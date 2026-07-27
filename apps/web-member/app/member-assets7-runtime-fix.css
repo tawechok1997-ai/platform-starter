@@ -9,20 +9,20 @@
 }
 
 .reference-tournament-board .reference-heading-icon > img {
-  content: url('https://noah345.shop/images/home/tournament.svg') !important;
+  content: url('/assets/asset-pc/images/home/tournament.svg') !important;
 }
 
 .reference-featured-section .reference-heading-icon > img {
-  content: url('https://noah345.shop/images/home/star.webp') !important;
+  content: url('/assets/asset-pc/images/home/star.webp') !important;
 }
 
 .reference-number-section .reference-heading-icon > img,
 .reference-compact-section:has(.reference-classic-row) .reference-heading-icon > img {
-  content: url('https://noah345.shop/images/home/icongamehit.webp') !important;
+  content: url('/assets/asset-pc/images/home/icongamehit.webp') !important;
 }
 
 .reference-compact-section:has(.reference-online-row) .reference-heading-icon > img {
-  content: url('https://noah345.shop/images/home/mostonline1.webp') !important;
+  content: url('/assets/asset-pc/images/home/mostonline1.webp') !important;
 }
 
 .reference-compact-section:has(.reference-live-row) .reference-heading-icon > img {
@@ -34,15 +34,15 @@
 }
 
 .reference-leaderboard .reference-side-icon > img {
-  content: url('https://noah345.shop/images/home/leader-board.svg') !important;
+  content: url('/assets/asset-pc/images/home/leader-board.svg') !important;
 }
 
 .reference-mini-games a:first-child .reference-mini-icon > img {
-  content: url('https://noah345.shop/images/home/icon-luckywheel-dt.webp') !important;
+  content: url('/assets/asset-pc/images/mini_game/icon-luckywheel-dt.webp') !important;
 }
 
 .reference-mini-games a:last-child .reference-mini-icon > img {
-  content: url('https://noah345.shop/images/home/icon-dailymission-dt.webp') !important;
+  content: url('/assets/asset-pc/images/mini_game/icon-dailymission-dt.webp') !important;
 }
 
 .reference-heading-icon > img,
@@ -57,7 +57,7 @@
 
 .reference-tournament-cta {
   background-color: #07526b !important;
-  background-image: url('https://noah345.shop/images/home/tournament.svg') !important;
+  background-image: url('/assets/asset-pc/images/home/tournament.svg') !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   background-size: cover !important;
@@ -65,7 +65,7 @@
 
 .reference-sidebar::before {
   background-color: #17121f !important;
-  background-image: url('https://cdn.zabbet.com/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg') !important;
+  background-image: url('/assets/asset-pc/images/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg') !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   background-size: cover !important;
