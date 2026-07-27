@@ -162,10 +162,9 @@ function ProviderLogoItem({ provider }: { provider: ProviderLogo }) {
         alt={provider.name}
         loading="lazy"
         onError={(event) => {
-          event.currentTarget.parentElement?.classList.add('is-missing');
+          event.currentTarget.style.display = 'none';
         }}
       />
-      <small>{provider.name}</small>
     </span>
   );
 }
