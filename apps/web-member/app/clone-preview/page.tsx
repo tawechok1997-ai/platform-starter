@@ -1,7 +1,5 @@
-import ClonePreviewClient from './clone-preview-client';
-import './clone-preview.css';
-import './clone-preview-assets.css';
+import { redirect } from 'next/navigation';
 
 export default function ClonePreviewPage() {
-  return <ClonePreviewClient />;
+  redirect('/');
 }
