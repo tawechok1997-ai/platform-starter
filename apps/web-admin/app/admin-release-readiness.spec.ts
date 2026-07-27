@@ -8,6 +8,7 @@ const layout = readFileSync(path.join(appDir, 'layout.tsx'), 'utf8');
 const shellCss = readFileSync(path.join(appDir, 'admin-shell-layout.css'), 'utf8');
 const profileCss = readFileSync(path.join(appDir, 'admin-shell-profile-popover.css'), 'utf8');
 const adoptionCss = readFileSync(path.join(appDir, 'admin-modernization-adoption.css'), 'utf8');
+const viewportCss = readFileSync(path.join(appDir, 'admin-full-viewport-layout.css'), 'utf8');
 const controller = readFileSync(path.join(appDir, 'admin-mobile-drawer-controller.tsx'), 'utf8');
 const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'layout.tsx'), 'utf8');
 const dataTable = readFileSync(path.join(appDir, '..', 'src', 'features', 'admin-modernization', 'data-table.tsx'), 'utf8');
@@ -18,20 +19,31 @@ const shellImport = "import './admin-shell-layout.css'";
 const profileImport = "import './admin-shell-profile-popover.css'";
 const adoptionImport = "import './admin-modernization-adoption.css'";
 const uxImport = "import './admin-ux-overrides.css'";
+const viewportImport = "import './admin-full-viewport-layout.css'";
 
-test('loads the shared shell and adoption layers after legacy Admin presentation CSS', () => {
+test('loads the shared shell and final viewport authority after legacy Admin presentation CSS', () => {
   const controlsIndex = layout.indexOf(controlsImport);
   const shellIndex = layout.indexOf(shellImport);
   const profileIndex = layout.indexOf(profileImport);
   const adoptionIndex = layout.indexOf(adoptionImport);
   const uxIndex = layout.indexOf(uxImport);
+  const viewportIndex = layout.indexOf(viewportImport);
 
   assert.ok(controlsIndex >= 0);
   assert.ok(shellIndex > controlsIndex);
   assert.ok(profileIndex > shellIndex);
   assert.ok(adoptionIndex > profileIndex);
   assert.ok(uxIndex > adoptionIndex);
-  assert.equal(layout.slice(uxIndex + uxImport.length).includes("import './admin-"), false);
+  assert.ok(viewportIndex > uxIndex);
+  assert.equal(layout.slice(viewportIndex + viewportImport.length).includes("import './admin-"), false);
+});
+
+test('removes the legacy shell grid and expands single dashboard panels', () => {
+  assert.match(viewportCss, /\.admin-shell[\s\S]*display: block !important/);
+  assert.match(viewportCss, /grid-template-columns: none !important/);
+  assert.match(viewportCss, /\.admin-main-shell[\s\S]*width: 100% !important/);
+  assert.match(viewportCss, /section:has\(> article:only-child\)[\s\S]*grid-template-columns: minmax\(0, 1fr\) !important/);
+  assert.match(viewportCss, /article:only-child[\s\S]*grid-column: 1 \/ -1 !important/);
 });
 
 test('uses one 1100px desktop and mobile shell breakpoint', () => {

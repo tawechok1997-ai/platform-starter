@@ -1,0 +1,58 @@
+/* Final viewport ownership fix.
+ * Loaded after all legacy Admin styles so the fixed desktop sidebar is reserved once,
+ * the workspace spans the remaining viewport, and single dashboard panels fill their row.
+ */
+
+@media (min-width: 1100px) {
+  .admin-shell {
+    display: block !important;
+    grid-template-columns: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .admin-main-shell {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  .admin-topbar,
+  .admin-content-shell {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+}
+
+.admin-content-shell > main,
+.admin-content-shell > div,
+.admin-content-shell .admin-ui-page {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+}
+
+/* A two-column dashboard group must not reserve an empty second column. */
+.admin-content-shell > main > section:has(> article:only-child),
+.admin-content-shell > div > section:has(> article:only-child) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.admin-content-shell > main > section > article:only-child,
+.admin-content-shell > div > section > article:only-child {
+  width: 100% !important;
+  max-width: none !important;
+  grid-column: 1 / -1 !important;
+}
+
+@media (max-width: 1099px) {
+  .admin-shell {
+    display: block !important;
+    grid-template-columns: none !important;
+    width: 100% !important;
+  }
+}
