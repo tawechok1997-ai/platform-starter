@@ -95,7 +95,9 @@ import './member-v47-tournament-image-only.css';
 import './member-v47-footer-exact-source.css';
 import './member-v47-sidebar-source-match.css';
 import './member-v47-alliance-scroll-lock.css';
+import './member-alliance-v2.css';
 import MemberChrome from './member-chrome';
+import MemberAllianceBandRepair from './components/member-alliance-band-repair';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import { MemberSessionProvider } from './member-session-provider';
@@ -120,6 +122,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <SiteSettingsProvider>
           <MemberSessionProvider>
+            <MemberAllianceBandRepair />
             <MemberHeroSwipeController />
             <MemberDragScrollController />
             <MemberChrome>{children}</MemberChrome>
