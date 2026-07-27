@@ -89,6 +89,7 @@ import './member-v47-footer-full-width.css';
 import './member-v47-provider-source-match.css';
 import './member-v47-reference-lock.css';
 import './member-v47-provider-precision.css';
+import './member-v47-wide-viewport-match.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
