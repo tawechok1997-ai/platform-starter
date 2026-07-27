@@ -1,0 +1,114 @@
+/* Values recovered from the supplied production JS/CSS bundle.
+   This layer only owns drag rails, announcement motion, and source card geometry. */
+
+@media (min-width: 901px) {
+  .desktop-reference-home [data-drag-scroll='true'] {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    cursor: grab !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    touch-action: pan-y !important;
+    scroll-behavior: auto !important;
+    scrollbar-width: none !important;
+  }
+
+  .desktop-reference-home [data-drag-scroll='true']::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .desktop-reference-home [data-drag-scroll='true'] img,
+  .desktop-reference-home [data-drag-scroll='true'] a {
+    -webkit-user-drag: none !important;
+    user-drag: none !important;
+  }
+
+  .desktop-reference-home [data-drag-scroll='true'].is-drag-ready,
+  .desktop-reference-home [data-drag-scroll='true'].is-dragging {
+    cursor: grabbing !important;
+  }
+
+  /* GameHitSlide source: auto-width free-mode cards. */
+  .desktop-reference-home .reference-number-row {
+    display: flex !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+    padding: 10px !important;
+    scroll-snap-type: x proximity !important;
+  }
+
+  .desktop-reference-home .reference-number-card {
+    flex: 0 0 126px !important;
+    width: 126px !important;
+    min-width: 126px !important;
+    max-width: 126px !important;
+    scroll-snap-align: start !important;
+  }
+
+  /* MostOnline source: 128px cards inside a 232px section. */
+  .desktop-reference-home .reference-compact-section[data-section-kind='online'] {
+    min-height: 232px !important;
+  }
+
+  .desktop-reference-home .reference-online-row {
+    display: flex !important;
+    align-items: stretch !important;
+    gap: 20px !important;
+    width: 100% !important;
+    padding: 10px !important;
+    scroll-snap-type: x proximity !important;
+  }
+
+  .desktop-reference-home .reference-online-card {
+    flex: 0 0 128px !important;
+    width: 128px !important;
+    min-width: 128px !important;
+    max-width: 128px !important;
+    scroll-snap-align: start !important;
+  }
+
+  .desktop-reference-home .reference-online-card > img,
+  .desktop-reference-home .reference-online-card > picture,
+  .desktop-reference-home .reference-online-card > picture > img {
+    width: 128px !important;
+    max-width: 128px !important;
+  }
+
+  /* One visible announcement, matching react-fast-marquee behavior without exposing a duplicate copy. */
+  .desktop-reference-home .reference-announcement-viewport {
+    position: relative !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-announcement-track {
+    display: inline-flex !important;
+    align-items: center !important;
+    width: max-content !important;
+    min-width: max-content !important;
+    height: 100% !important;
+    padding: 0 !important;
+    will-change: transform !important;
+    animation: source-announcement-marquee 18s linear infinite !important;
+  }
+
+  .desktop-reference-home .reference-announcement-track > span:first-child {
+    display: inline-block !important;
+    padding-left: 100vw !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-announcement-track > span[aria-hidden='true'] {
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-announcement:hover .reference-announcement-track {
+    animation-play-state: paused !important;
+  }
+}
+
+@keyframes source-announcement-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-100%, 0, 0); }
+}
