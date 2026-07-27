@@ -84,8 +84,8 @@ export default function AdminInvitationsPage() {
 
     if (loadRequestRef.current === requestId) {
       if (rolesOk && invitationsOk) setMessage('');
-      else if (invitationsOk) setMessage('โหลดรายการคำเชิญแล้ว แต่โหลด Role ไม่สำเร็จ จึงยังสร้างคำเชิญใหม่ไม่ได้');
-      else if (rolesOk) setMessage('โหลด Role แล้ว แต่โหลดรายการคำเชิญไม่สำเร็จ กรุณารีเฟรช');
+      else if (invitationsOk) setMessage('โหลดรายการคำเชิญแล้ว แต่โหลดบทบาทไม่สำเร็จ จึงยังสร้างคำเชิญใหม่ไม่ได้');
+      else if (rolesOk) setMessage('โหลดบทบาทแล้ว แต่โหลดรายการคำเชิญไม่สำเร็จ กรุณารีเฟรช');
       else setMessage('โหลดคำเชิญไม่สำเร็จ กรุณาลองใหม่');
       setLoading(false);
     }
@@ -170,7 +170,7 @@ export default function AdminInvitationsPage() {
   }
 
   return <AdminPage
-    eyebrow="Security"
+    eyebrow="ความปลอดภัย"
     title="คำเชิญผู้ดูแล"
     description="สร้าง ยกเลิก และออกลิงก์เชิญใหม่จากหน้าที่แยกเฉพาะ"
     actions={<AdminButton tone="secondary" disabled={pageBusy} onClick={() => void load()}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}
@@ -194,10 +194,10 @@ export default function AdminInvitationsPage() {
             <div style={badgeStyle}>
               <AdminBadge tone={statusTone(item.invitationStatus)}>{statusLabel(item.invitationStatus)}</AdminBadge>
               <AdminBadge tone={item.accountStatus === 'ACTIVE' ? 'success' : 'neutral'}>{accountStatusLabel(item.accountStatus)}</AdminBadge>
-              {item.protected && <AdminBadge tone="danger">PROTECTED</AdminBadge>}
+              {item.protected && <AdminBadge tone="danger">ป้องกัน</AdminBadge>}
             </div>
             <strong>{item.email}</strong>
-            <span>{item.roles.map((role) => role.code).join(', ') || 'ไม่มี Role'}</span>
+            <span>{item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</span>
             <small>สร้างเมื่อ: {formatDate(item.createdAt)} · หมดอายุ: {formatDate(item.expiresAt)}</small>
           </div>
           {!item.protected && item.accountStatus === 'LOCKED' && <AdminPermissionGate anyOf={ADMIN_ACTION_PERMISSIONS.adminInvitationManage}>
@@ -220,7 +220,7 @@ export default function AdminInvitationsPage() {
       busy={Boolean(busyKey)}
       onCancel={() => { if (!busyKey) setPendingAction(null); }}
       onConfirm={() => void executeAction()}
-      details={pendingAction ? <div style={confirmDetailsStyle}><strong>Role</strong><p>{pendingAction.item.roles.map((role) => role.code).join(', ') || 'ไม่มี Role'}</p><strong>หมดอายุเดิม</strong><p>{formatDate(pendingAction.item.expiresAt)}</p></div> : null}
+      details={pendingAction ? <div style={confirmDetailsStyle}><strong>Role</strong><p>{pendingAction.item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</p><strong>หมดอายุเดิม</strong><p>{formatDate(pendingAction.item.expiresAt)}</p></div> : null}
     />
   </AdminPage>;
 }

@@ -17,18 +17,21 @@ const controlsImport = "import './admin-release-controls.css'";
 const shellImport = "import './admin-shell-layout.css'";
 const profileImport = "import './admin-shell-profile-popover.css'";
 const adoptionImport = "import './admin-modernization-adoption.css'";
+const uxImport = "import './admin-ux-overrides.css'";
 
 test('loads the shared shell and adoption layers after legacy Admin presentation CSS', () => {
   const controlsIndex = layout.indexOf(controlsImport);
   const shellIndex = layout.indexOf(shellImport);
   const profileIndex = layout.indexOf(profileImport);
   const adoptionIndex = layout.indexOf(adoptionImport);
+  const uxIndex = layout.indexOf(uxImport);
 
   assert.ok(controlsIndex >= 0);
   assert.ok(shellIndex > controlsIndex);
   assert.ok(profileIndex > shellIndex);
   assert.ok(adoptionIndex > profileIndex);
-  assert.equal(layout.slice(adoptionIndex + adoptionImport.length).includes("import './admin-"), false);
+  assert.ok(uxIndex > adoptionIndex);
+  assert.equal(layout.slice(uxIndex + uxImport.length).includes("import './admin-"), false);
 });
 
 test('uses one 1100px desktop and mobile shell breakpoint', () => {
