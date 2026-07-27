@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import ts from 'typescript';
 
-const source = readFileSync(new URL('./promotion-center-page.tsx', import.meta.url), 'utf8');
+const source = readFileSync(new URL('./promotion-center-media-page.tsx', import.meta.url), 'utf8');
 
 function extractFunction(name: string): string {
   const marker = `function ${name}(`;
