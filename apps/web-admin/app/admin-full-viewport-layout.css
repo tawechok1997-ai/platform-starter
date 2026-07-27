@@ -3,6 +3,32 @@
  * the workspace spans the remaining viewport, and single dashboard panels fill their row.
  */
 
+/* Root loading, error and fallback states live outside the protected Admin shell.
+ * Pin them to the viewport so inherited main/body width rules cannot leave an uncovered strip.
+ */
+html,
+body[data-app-surface='admin'] {
+  width: 100%;
+  max-width: none;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+.admin-app-state {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2000;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 320px !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+  overflow: auto;
+  isolation: isolate;
+}
+
 @media (min-width: 1100px) {
   .admin-shell {
     display: block !important;
