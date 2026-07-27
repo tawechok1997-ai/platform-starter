@@ -10,14 +10,15 @@ const ROW_TWO = [
   'evoplay', 'jili', 'playstar', 'joker', 'evoplay',
 ] as const;
 
+// CSS Module keys remain optional under strict indexed access, so row modifiers use safe fallbacks.
 export default function CasinoAllianceBand() {
   return (
     <section className={styles.section} aria-labelledby="casino-alliance-heading">
       <div className={styles.inner}>
         <h2 id="casino-alliance-heading">พันธมิตรของเรา</h2>
         <div className={styles.rows}>
-          <AllianceRow logos={ROW_ONE} className={styles.rowOne} />
-          <AllianceRow logos={ROW_TWO} className={styles.rowTwo} />
+          <AllianceRow logos={ROW_ONE} className={styles.rowOne ?? ''} />
+          <AllianceRow logos={ROW_TWO} className={styles.rowTwo ?? ''} />
         </div>
       </div>
     </section>
