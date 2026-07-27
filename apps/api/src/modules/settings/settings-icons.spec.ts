@@ -3,13 +3,13 @@ import { SettingsController } from './settings.controller';
 import { SettingsService } from './settings.service';
 
 describe('icon settings endpoint contract', () => {
-  it('registers icons as a dedicated public settings group', () => {
+  it('registers icons as a public logical group stored in BRANDING', () => {
     expect(isSettingGroup('icons')).toBe(true);
-    expect(GROUP_TO_PRISMA.icons).toBe('ICONS');
+    expect(GROUP_TO_PRISMA.icons).toBe('BRANDING');
     expect(PUBLIC_GROUPS).toContain('icons');
   });
 
-  it('loads icon rows from the dedicated ICONS group', async () => {
+  it('loads only icons.* rows even though icons share the BRANDING enum', async () => {
     const findMany = jest.fn().mockResolvedValue([]);
     const prisma = { siteSetting: { findMany } } as any;
     const service = new SettingsService(prisma);
@@ -17,12 +17,12 @@ describe('icon settings endpoint contract', () => {
     await service.getAdminGroup('icons');
 
     expect(findMany).toHaveBeenCalledWith({
-      where: { group: 'ICONS' },
+      where: { group: 'BRANDING', key: { startsWith: 'icons.' } },
       orderBy: { key: 'asc' },
     });
   });
 
-  it('keeps branding rows in the BRANDING group', async () => {
+  it('keeps branding queries isolated from icon rows', async () => {
     const findMany = jest.fn().mockResolvedValue([]);
     const prisma = { siteSetting: { findMany } } as any;
     const service = new SettingsService(prisma);
@@ -30,7 +30,7 @@ describe('icon settings endpoint contract', () => {
     await service.getAdminGroup('branding');
 
     expect(findMany).toHaveBeenCalledWith({
-      where: { group: 'BRANDING' },
+      where: { group: 'BRANDING', key: { startsWith: 'branding.' } },
       orderBy: { key: 'asc' },
     });
   });
