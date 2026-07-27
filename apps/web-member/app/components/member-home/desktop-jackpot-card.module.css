@@ -1,0 +1,137 @@
+.card {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(128, 43, 159, 0.52);
+  border-radius: 10px;
+  background: #17121d;
+  color: #fff;
+  box-shadow: inset 0 0 24px rgba(117, 35, 151, 0.08);
+}
+
+.header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  gap: 8px;
+  overflow: hidden;
+  border: 0;
+  border-bottom: 1px solid rgba(187, 91, 234, 0.42);
+  background: linear-gradient(90deg, #612273 0%, #35203d 68%, #221727 100%);
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(187, 91, 234, 0.1), rgba(187, 91, 234, 0.72), rgba(187, 91, 234, 0.08));
+  pointer-events: none;
+}
+
+.icon {
+  position: relative;
+  z-index: 1;
+  display: block;
+  flex: 0 0 18px;
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
+}
+
+.title {
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin: 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.artLink {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 178px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(125, 33, 151, 0.22), transparent 48%),
+    #0c0910;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 1;
+  transform: none;
+}
+
+.valueWrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 45px;
+  margin-top: 1px;
+  padding: 0 10px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.value {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: #fff;
+  font-family: 'Noto Sans', Montserrat, sans-serif;
+  font-size: 27.091px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-align: center;
+  text-overflow: clip;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.82), 0 0 8px rgba(44, 142, 255, 0.22);
+  white-space: nowrap;
+}
+
+@media (max-width: 1180px) and (min-width: 901px) {
+  .artLink {
+    height: 166px;
+  }
+
+  .value {
+    font-size: 24px;
+  }
+}
