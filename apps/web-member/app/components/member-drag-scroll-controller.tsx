@@ -11,6 +11,7 @@ type DragState = {
 };
 
 const DRAG_THRESHOLD_PX = 5;
+const SOURCE_DRAG_MULTIPLIER = 2;
 
 export default function MemberDragScrollController() {
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function MemberDragScrollController() {
       drag.moved = true;
       drag.rail.classList.remove('is-drag-ready');
       drag.rail.classList.add('is-dragging');
-      drag.rail.scrollLeft = drag.startScrollLeft - deltaX;
+      drag.rail.scrollLeft = drag.startScrollLeft - deltaX * SOURCE_DRAG_MULTIPLIER;
       event.preventDefault();
     };
 
@@ -72,10 +73,17 @@ export default function MemberDragScrollController() {
       suppressClickUntil = 0;
     };
 
+    const onNativeDragStart = (event: DragEvent) => {
+      const rail = findRail(event.target);
+      if (!rail) return;
+      event.preventDefault();
+    };
+
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('pointermove', onPointerMove, { passive: false });
     document.addEventListener('pointerup', finishDrag);
     document.addEventListener('pointercancel', finishDrag);
+    document.addEventListener('dragstart', onNativeDragStart);
     document.addEventListener('click', onClickCapture, true);
 
     return () => {
@@ -83,6 +91,7 @@ export default function MemberDragScrollController() {
       document.removeEventListener('pointermove', onPointerMove);
       document.removeEventListener('pointerup', finishDrag);
       document.removeEventListener('pointercancel', finishDrag);
+      document.removeEventListener('dragstart', onNativeDragStart);
       document.removeEventListener('click', onClickCapture, true);
     };
   }, []);
