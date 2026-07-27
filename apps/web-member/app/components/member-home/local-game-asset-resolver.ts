@@ -44,10 +44,22 @@ const PROVIDER_ALIASES: Record<string, string> = {
 };
 
 export function resolveHomeGameImage(game: Game): string {
-  const local = resolveLocalGameAsset(game);
-  if (local) return local;
-
   const media = Array.isArray(game.media) ? game.media : [];
+  const sourceCandidates = [
+    game.imageUrl,
+    game.iconUrl,
+    findMediaUrl(media, 'cachedUrl'),
+    findMediaUrl(media, 'sourceUrl'),
+  ];
+
+  for (const source of sourceCandidates) {
+    const mirrored = source ? resolveMirroredAsset(source, 'games') : '';
+    if (mirrored) return mirrored;
+  }
+
+  const catalog = resolveCatalogGameAsset(game);
+  if (catalog) return catalog;
+
   const cached = findMediaUrl(media, 'cachedUrl');
   if (cached) return normalizePublicAssetUrl(cached);
 
@@ -59,8 +71,17 @@ export function resolveHomeGameImage(game: Game): string {
 }
 
 export function resolveHomeGameFallback(game: Game): string {
-  const local = resolveLocalGameAsset(game);
-  if (local) return local;
+  const media = Array.isArray(game.media) ? game.media : [];
+  const catalog = resolveCatalogGameAsset(game);
+  if (catalog) return catalog;
+
+  const external = [
+    findMediaUrl(media, 'cachedUrl'),
+    game.imageUrl,
+    game.iconUrl,
+    findMediaUrl(media, 'sourceUrl'),
+  ].find((value) => value && !isMirroredLocalUrl(value));
+  if (external) return normalizePublicAssetUrl(external);
 
   const seed = `${game.id || ''}:${game.provider?.code || ''}:${game.providerGameCode || ''}:${game.name || ''}`;
   let hash = 0;
@@ -83,6 +104,9 @@ export function resolveHomeProviderLogo(provider?: GameProviderSummary | null): 
     if (local) return local;
   }
 
+  const mirrored = provider.logoUrl ? resolveMirroredAsset(provider.logoUrl, 'providers') : '';
+  if (mirrored) return mirrored;
+
   return provider.logoUrl ? normalizePublicAssetUrl(provider.logoUrl) : '';
 }
 
@@ -91,7 +115,7 @@ export function normalizePublicAssetUrl(value: string): string {
   return `/${value.replace(/^\.\//, '')}`;
 }
 
-function resolveLocalGameAsset(game: Game): string {
+function resolveCatalogGameAsset(game: Game): string {
   const candidates = [game.providerGameCode, game.name]
     .map(normalizeAssetKey)
     .filter(Boolean);
@@ -110,6 +134,32 @@ function resolveLocalGameAsset(game: Game): string {
   }
 
   return '';
+}
+
+function resolveMirroredAsset(value: string, root: 'games' | 'providers'): string {
+  const normalized = normalizePublicAssetUrl(value);
+  if (normalized.startsWith('/assets/asset-pc/images/')) return normalized;
+
+  let pathname = normalized;
+  if (/^https?:\/\//i.test(normalized)) {
+    try {
+      pathname = new URL(normalized).pathname;
+    } catch {
+      return '';
+    }
+  }
+
+  const marker = `/${root}/`;
+  const index = pathname.toLowerCase().indexOf(marker);
+  if (index < 0) return '';
+
+  const relative = pathname.slice(index + 1).replace(/^\/+/, '');
+  if (!relative || relative.includes('..')) return '';
+  return `/assets/asset-pc/images/${relative}`;
+}
+
+function isMirroredLocalUrl(value: string): boolean {
+  return normalizePublicAssetUrl(value).startsWith('/assets/asset-pc/images/');
 }
 
 function findMediaUrl(media: NonNullable<Game['media']>, field: 'cachedUrl' | 'sourceUrl'): string {
