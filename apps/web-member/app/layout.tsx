@@ -90,6 +90,7 @@ import './member-v47-provider-source-match.css';
 import './member-v47-alliance-full-band.css';
 import './member-v47-alliance-reference-image.css';
 import './member-v47-alliance-two-row-fix.css';
+import './member-v47-alliance-exact-source.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
