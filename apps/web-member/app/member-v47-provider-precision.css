@@ -1,0 +1,148 @@
+/* Precision lock for the partner strip measured from the supplied NOAH345 comparison. */
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-provider-strip {
+    display: block !important;
+    width: min(1440px, calc(100vw - 30px)) !important;
+    max-width: 1440px !important;
+    min-height: 147px !important;
+    height: 147px !important;
+    margin: 0 !important;
+    padding: 12px 0 17px !important;
+    overflow: visible !important;
+    border: 0 !important;
+    background: #110e16 !important;
+    box-sizing: border-box !important;
+  }
+
+  .desktop-reference-home .reference-provider-strip h2 {
+    display: block !important;
+    margin: 0 0 32px !important;
+    padding: 0 !important;
+    color: #fff !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    line-height: 24px !important;
+  }
+
+  .desktop-reference-home .reference-provider-rows {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-height: 60px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-row,
+  .desktop-reference-home .reference-provider-row--reverse {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 24px !important;
+    height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 20px !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    scrollbar-width: none !important;
+  }
+
+  .desktop-reference-home .reference-provider-row {
+    justify-content: flex-start !important;
+  }
+
+  .desktop-reference-home .reference-provider-row--reverse {
+    justify-content: center !important;
+  }
+
+  .desktop-reference-home .reference-provider-row::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo {
+    position: relative !important;
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 102px !important;
+    width: 102px !important;
+    min-width: 102px !important;
+    max-width: 102px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    margin: 0 !important;
+    padding: 4px 9px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 5px !important;
+    background: #27252b !important;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%) !important;
+    box-sizing: border-box !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo:nth-child(3n + 1) {
+    background: #211f26 !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo:nth-child(3n + 2) {
+    background: #373639 !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo:nth-child(3n) {
+    background: #2e2c31 !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo img {
+    position: relative !important;
+    z-index: 2 !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 78px !important;
+    height: 14px !important;
+    max-height: 14px !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+    filter: grayscale(1) brightness(3.5) contrast(1.15) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo small {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 5px !important;
+    overflow: hidden !important;
+    color: #f4eef7 !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  .desktop-reference-home .reference-provider-logo img[style*='display: none'] + small {
+    z-index: 3 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .desktop-reference-home .reference-provider-row > .reference-provider-logo:nth-child(n + 13),
+  .desktop-reference-home .reference-provider-row--reverse > .reference-provider-logo:nth-child(n + 12) {
+    display: none !important;
+  }
+}
