@@ -1,0 +1,65 @@
+name: Admin Restore Insights and Navigation
+
+on:
+  push:
+    branches:
+      - fix/admin-restore-insights-and-nav
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/admin-restore-insights-and-nav
+          fetch-depth: 0
+
+      - name: Restore all permission-allowed sidebar routes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/web-admin/app/(admin)/layout.tsx')
+          text = path.read_text(encoding='utf-8')
+          old = "group.items.filter((item) => item.sidebar !== false && canAccessNavItem(item, permissions)"
+          new = "group.items.filter((item) => canAccessNavItem(item, permissions)"
+          if old not in text:
+              raise SystemExit('Expected sidebar filter was not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Typecheck Admin
+        run: pnpm --filter @platform/web-admin typecheck
+
+      - name: Test Admin
+        run: pnpm --filter @platform/web-admin test
+
+      - name: Build Admin
+        run: pnpm --filter @platform/web-admin build
+
+      - name: Commit validated changes and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/admin-restore-insights-nav.yml
+          git add apps/web-admin
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "fix(admin): restore insights navigation and full-width data views"
+          git push origin HEAD:fix/admin-restore-insights-and-nav
