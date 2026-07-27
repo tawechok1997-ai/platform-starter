@@ -12,9 +12,37 @@ type DragState = {
   moved: boolean;
 };
 
+type HomeGuideItem = {
+  question: string;
+  answer: string;
+};
+
 const DRAG_THRESHOLD_PX = 5;
 const SOURCE_DRAG_MULTIPLIER = 2;
 const GUIDE_SELECTOR = ".reference-guide[data-section-kind='guide']";
+
+const HOME_GUIDE_ITEMS: HomeGuideItem[] = [
+  {
+    question: 'ฝากเงินแบบ โอนผ่านธนาคาร',
+    answer: 'เลือกเมนูฝาก เลือกธนาคารที่ต้องการ จากนั้นกรอกยอดและทำรายการตามขั้นตอนที่ระบบแสดง',
+  },
+  {
+    question: 'ฝากเงินแบบ โอนผ่าน QR Payment',
+    answer: 'เลือกฝากผ่าน QR ระบุยอดเงิน แล้วสแกน QR ที่ระบบสร้างให้ภายในเวลาที่กำหนด',
+  },
+  {
+    question: 'ฝากเงินแบบ ฝากจุดทศนิยม',
+    answer: 'กรอกยอดตามที่ระบบกำหนดและโอนยอดรวมจุดทศนิยมให้ตรง เพื่อให้ระบบตรวจสอบรายการอัตโนมัติ',
+  },
+  {
+    question: 'วิธีการฝากแบบ TrueWallet',
+    answer: 'เลือกช่องทาง TrueWallet กรอกข้อมูลให้ครบและทำรายการตามคำแนะนำบนหน้าจอ',
+  },
+  {
+    question: 'ยอดไม่เข้าทันที ทำยังไงดี?',
+    answer: 'ตรวจสอบสถานะรายการและหลักฐานการโอน หากเกินเวลาที่แจ้งให้ติดต่อทีมงานพร้อมเลขรายการ',
+  },
+];
 
 export default function MemberDragScrollController() {
   useEffect(() => {
@@ -25,35 +53,82 @@ export default function MemberDragScrollController() {
     const findRail = (target: EventTarget | null) =>
       target instanceof Element ? target.closest<HTMLElement>('[data-drag-scroll]') : null;
 
-    const findGuideSummary = (target: EventTarget | null) =>
-      target instanceof Element
-        ? target.closest<HTMLElement>(`${GUIDE_SELECTOR} > details > summary`)
-        : null;
-
-    const syncGuideAria = (guide: Element | Document = document) => {
-      guide.querySelectorAll<HTMLDetailsElement>(`${GUIDE_SELECTOR} > details`).forEach((details) => {
-        const summary = details.querySelector<HTMLElement>(':scope > summary');
-        if (!summary) return;
-        summary.setAttribute('role', 'button');
-        summary.setAttribute('aria-expanded', String(details.open));
-        summary.tabIndex = 0;
-      });
-    };
-
-    const toggleGuideItem = (summary: HTMLElement) => {
-      const details = summary.parentElement;
-      if (!(details instanceof HTMLDetailsElement)) return;
-      const guide = details.closest(GUIDE_SELECTOR);
+    const hydrateGuidePreview = () => {
+      const guide = document.querySelector<HTMLElement>(GUIDE_SELECTOR);
       if (!guide) return;
 
-      const shouldOpen = !details.open;
-      guide.querySelectorAll<HTMLDetailsElement>(':scope > details').forEach((item) => {
-        item.open = false;
-        item.querySelector<HTMLElement>(':scope > summary')?.setAttribute('aria-expanded', 'false');
+      const existingList = guide.querySelector<HTMLElement>(':scope > .reference-guide-list');
+      const existingMore = guide.querySelector<HTMLButtonElement>(':scope > button.reference-guide-more');
+      if (existingList && existingMore) {
+        guide.dataset.guidePreviewReady = 'true';
+        return;
+      }
+
+      const heading = guide.querySelector<HTMLElement>(':scope > .reference-panel-heading');
+      const list = document.createElement('div');
+      list.className = 'reference-guide-list';
+
+      HOME_GUIDE_ITEMS.forEach((guideItem, index) => {
+        const item = document.createElement('div');
+        item.className = 'reference-guide-item';
+
+        const button = document.createElement('button');
+        const panelId = `reference-guide-answer-${index + 1}`;
+        button.type = 'button';
+        button.className = 'reference-guide-question';
+        button.setAttribute('aria-expanded', 'false');
+        button.setAttribute('aria-controls', panelId);
+
+        const copy = document.createElement('span');
+        copy.className = 'reference-guide-question-copy';
+        copy.textContent = guideItem.question;
+
+        const arrow = document.createElement('span');
+        arrow.className = 'reference-guide-question-arrow';
+        arrow.setAttribute('aria-hidden', 'true');
+
+        const answer = document.createElement('div');
+        answer.id = panelId;
+        answer.className = 'reference-guide-answer';
+        answer.hidden = true;
+        answer.textContent = guideItem.answer;
+
+        button.append(copy, arrow);
+        item.append(button, answer);
+        list.append(item);
       });
 
-      details.open = shouldOpen;
-      summary.setAttribute('aria-expanded', String(shouldOpen));
+      const moreButton = document.createElement('button');
+      moreButton.type = 'button';
+      moreButton.className = 'reference-guide-more';
+      moreButton.dataset.guidePopupTrigger = 'true';
+      moreButton.textContent = 'ดูทั้งหมด';
+
+      guide.replaceChildren();
+      if (heading) guide.append(heading);
+      guide.append(list, moreButton);
+      guide.dataset.guidePreviewReady = 'true';
+    };
+
+    const toggleGuideItem = (button: HTMLButtonElement) => {
+      const guide = button.closest<HTMLElement>(GUIDE_SELECTOR);
+      const item = button.closest<HTMLElement>('.reference-guide-item');
+      const answer = item?.querySelector<HTMLElement>(':scope > .reference-guide-answer');
+      if (!guide || !item || !answer) return;
+
+      const shouldOpen = button.getAttribute('aria-expanded') !== 'true';
+      guide.querySelectorAll<HTMLButtonElement>('.reference-guide-question').forEach((currentButton) => {
+        currentButton.setAttribute('aria-expanded', 'false');
+        currentButton.closest('.reference-guide-item')?.classList.remove('is-open');
+        const currentAnswer = currentButton.closest('.reference-guide-item')?.querySelector<HTMLElement>(':scope > .reference-guide-answer');
+        if (currentAnswer) currentAnswer.hidden = true;
+      });
+
+      if (shouldOpen) {
+        button.setAttribute('aria-expanded', 'true');
+        item.classList.add('is-open');
+        answer.hidden = false;
+      }
     };
 
     const onPointerDown = (event: PointerEvent) => {
@@ -98,11 +173,13 @@ export default function MemberDragScrollController() {
     };
 
     const onClickCapture = (event: MouseEvent) => {
-      const guideSummary = findGuideSummary(event.target);
-      if (guideSummary) {
+      const guideQuestion = event.target instanceof Element
+        ? event.target.closest<HTMLButtonElement>(`${GUIDE_SELECTOR} .reference-guide-question`)
+        : null;
+      if (guideQuestion) {
         event.preventDefault();
         event.stopPropagation();
-        toggleGuideItem(guideSummary);
+        toggleGuideItem(guideQuestion);
         return;
       }
 
@@ -121,9 +198,9 @@ export default function MemberDragScrollController() {
       event.preventDefault();
     };
 
-    syncGuideAria();
+    hydrateGuidePreview();
 
-    const guideObserver = new MutationObserver(() => syncGuideAria());
+    const guideObserver = new MutationObserver(hydrateGuidePreview);
     guideObserver.observe(document.body, { childList: true, subtree: true });
 
     document.addEventListener('pointerdown', onPointerDown);
