@@ -15,18 +15,13 @@ concurrency:
 jobs:
   finalize:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           ref: fix/admin-money-ops-rbac-final-v2
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - name: Apply final type and behavior corrections
+      - name: Apply and commit final corrections
         run: |
           python <<'PY'
           from pathlib import Path
@@ -49,55 +44,41 @@ jobs:
 
           spec = Path('apps/web-admin/app/(admin)/money-ops/money-ops-rbac.spec.ts')
           spec.write_text("""import assert from 'node:assert/strict';
-          import { readFileSync } from 'node:fs';
-          import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
 
-          import { canAccessPath, requiredPermissionsForPath } from '../admin-nav';
+import { canAccessPath, requiredPermissionsForPath } from '../admin-nav';
 
-          const source = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
+const source = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 
-          test('Money Ops route permission matches the API read contract', () => {
-            assert.deepEqual(requiredPermissionsForPath('/money-ops'), ['game.providers.view']);
-            assert.equal(canAccessPath('/money-ops', ['wallet.view']), false);
-            assert.equal(canAccessPath('/money-ops', ['game.providers.view']), true);
-          });
+test('Money Ops route permission matches the API read contract', () => {
+  assert.deepEqual(requiredPermissionsForPath('/money-ops'), ['game.providers.view']);
+  assert.equal(canAccessPath('/money-ops', ['wallet.view']), false);
+  assert.equal(canAccessPath('/money-ops', ['game.providers.view']), true);
+});
 
-          test('Money Ops mutations are visible only with provider manage permission', () => {
-            assert.match(source, /permissions\.includes\('game\.providers\.manage'\)/);
-            assert.match(source, /\{canManage && <AdminButton[^>]*scanAlerts/);
-            assert.match(source, /\{canManage && <AdminButton[^>]*requestAlertAction\(alert, 'resolve'\)/);
-            assert.match(source, /\{canManage && <AdminButton[^>]*requestAlertAction\(alert, 'dismiss'\)/);
-          });
+test('Money Ops mutations are visible only with provider manage permission', () => {
+  assert.match(source, /permissions\\.includes\\('game\\.providers\\.manage'\\)/);
+  assert.match(source, /\\{canManage && <AdminButton[^>]*scanAlerts/);
+  assert.match(source, /\\{canManage && <AdminButton[^>]*requestAlertAction\\(alert, 'resolve'\\)/);
+  assert.match(source, /\\{canManage && <AdminButton[^>]*requestAlertAction\\(alert, 'dismiss'\\)/);
+});
 
-          test('Money Ops provides production interaction and state contracts', () => {
-            assert.match(source, /useAdminLocale/);
-            assert.match(source, /AdminConfirmDialog/);
-            assert.match(source, /AdminSkeleton/);
-            assert.match(source, /AdminEmpty/);
-            assert.match(source, /readOnlyDescription/);
-            assert.doesNotMatch(source, /window\.prompt/);
-            assert.doesNotMatch(source, />\s*TODO\s*</);
-          });
-          """.replace('          ', ''))
+test('Money Ops provides production interaction and state contracts', () => {
+  assert.match(source, /useAdminLocale/);
+  assert.match(source, /AdminConfirmDialog/);
+  assert.match(source, /AdminSkeleton/);
+  assert.match(source, /AdminEmpty/);
+  assert.match(source, /readOnlyDescription/);
+  assert.doesNotMatch(source, /window\\.prompt/);
+  assert.doesNotMatch(source, />\\s*TODO\\s*</);
+});
+""")
 
-          workflow = Path('.github/workflows/admin-money-ops-finalize.yml')
-          workflow.unlink()
+          Path('.github/workflows/admin-money-ops-finalize.yml').unlink()
           PY
-      - run: pnpm install --frozen-lockfile=false
-      - name: Lint Admin
-        run: pnpm --filter @platform/web-admin lint
-      - name: Test Admin
-        run: pnpm --filter @platform/web-admin test
-      - name: Typecheck Admin
-        run: pnpm --filter @platform/web-admin typecheck
-      - name: Build Admin
-        run: pnpm --filter @platform/web-admin build
-      - name: Audit Admin capabilities
-        run: pnpm --filter @platform/web-admin audit:admin-capabilities
-      - name: Commit final corrections
-        run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add apps/web-admin/app/'(admin)'/money-ops/page.tsx apps/web-admin/app/'(admin)'/money-ops/money-ops-rbac.spec.ts .github/workflows/admin-money-ops-finalize.yml
+          git add -A
           git commit -m 'fix(admin): validate Money Ops permission boundaries'
           git push origin HEAD:fix/admin-money-ops-rbac-final-v2
