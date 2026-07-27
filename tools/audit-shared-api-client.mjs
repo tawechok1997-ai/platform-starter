@@ -123,6 +123,9 @@ if (process.argv.includes('--json')) {
     console.log(`  ${group.app}: ${group.files} files, ${group.apiClientImports} imports, ${group.violations.length} violations`);
   }
   console.log(`  violations: ${allViolations.length}`);
+  for (const violation of allViolations.sort((a, b) => `${a.path}:${a.line}`.localeCompare(`${b.path}:${b.line}`))) {
+    console.log(`  violation: ${violation.path}:${violation.line}: ${violation.rule}`);
+  }
 }
 
 if (!totalImports) allViolations.push({ app: 'all', path: '-', line: 0, rule: 'No frontend file imports @platform/api-client' });
