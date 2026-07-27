@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { adminApiFetch, clearAdminSession } from './admin-api';
 import { AdminIcon } from './(admin)/_components/admin-icon';
 import { useAdminLocale } from './(admin)/admin-locale';
@@ -46,8 +47,11 @@ const copyByLocale = {
 } as const;
 
 const MOBILE_DRAWER_MEDIA = '(max-width: 1099px)';
+const GROUP_TRIGGER_SELECTOR = '.admin-nav-group__trigger';
+const GROUP_SELECTOR = '.admin-nav-group';
 
 export function AdminMobileDrawerController() {
+  const pathname = usePathname();
   const [locale, changeLocale] = useAdminLocale();
   const [open, setOpen] = useState(false);
   const [admin, setAdmin] = useState<MobileAdmin>({});
@@ -76,6 +80,87 @@ export function AdminMobileDrawerController() {
       window.clearTimeout(retryId);
     };
   }, []);
+
+  useEffect(() => {
+    let retryId = 0;
+    let detach = () => undefined;
+
+    const attach = () => {
+      const drawer = document.getElementById('admin-sidebar');
+      if (!drawer) {
+        retryId = window.setTimeout(attach, 120);
+        return;
+      }
+
+      let syncing = false;
+      const searchInput = drawer.querySelector<HTMLInputElement>('.admin-nav-search input');
+      const groups = () => Array.from(drawer.querySelectorAll<HTMLElement>(GROUP_SELECTOR));
+      const isSearching = () => Boolean(searchInput?.value.trim());
+      const triggerFor = (group: HTMLElement) => group.querySelector<HTMLButtonElement>(GROUP_TRIGGER_SELECTOR);
+      const currentGroup = () => groups().find((group) => Boolean(group.querySelector('a[aria-current="page"]')));
+      const finishSync = () => window.setTimeout(() => { syncing = false; }, 0);
+
+      const closeOtherGroups = (keep: HTMLButtonElement) => {
+        if (isSearching()) return;
+        syncing = true;
+        for (const group of groups()) {
+          const trigger = triggerFor(group);
+          if (trigger && trigger !== keep && trigger.getAttribute('aria-expanded') === 'true') trigger.click();
+        }
+        finishSync();
+      };
+
+      const syncToCurrentRoute = () => {
+        if (isSearching()) return;
+        const active = currentGroup();
+        if (!active) return;
+        const activeTrigger = triggerFor(active);
+        if (!activeTrigger) return;
+
+        syncing = true;
+        for (const group of groups()) {
+          const trigger = triggerFor(group);
+          if (trigger && trigger !== activeTrigger && trigger.getAttribute('aria-expanded') === 'true') trigger.click();
+        }
+
+        window.setTimeout(() => {
+          if (activeTrigger.getAttribute('aria-expanded') !== 'true') activeTrigger.click();
+          window.localStorage.removeItem('admin_nav_open_groups');
+          finishSync();
+        }, 0);
+      };
+
+      const handleGroupClick = (event: Event) => {
+        if (syncing || isSearching()) return;
+        const element = event.target instanceof Element ? event.target : null;
+        const trigger = element?.closest(GROUP_TRIGGER_SELECTOR) as HTMLButtonElement | null;
+        if (!trigger || !drawer.contains(trigger)) return;
+        window.setTimeout(() => {
+          if (trigger.getAttribute('aria-expanded') === 'true') closeOtherGroups(trigger);
+        }, 0);
+      };
+
+      const handleSearchInput = () => {
+        if (!isSearching()) window.setTimeout(syncToCurrentRoute, 0);
+      };
+
+      drawer.addEventListener('click', handleGroupClick);
+      searchInput?.addEventListener('input', handleSearchInput);
+      const syncTimer = window.setTimeout(syncToCurrentRoute, 0);
+
+      detach = () => {
+        window.clearTimeout(syncTimer);
+        drawer.removeEventListener('click', handleGroupClick);
+        searchInput?.removeEventListener('input', handleSearchInput);
+      };
+    };
+
+    attach();
+    return () => {
+      window.clearTimeout(retryId);
+      detach();
+    };
+  }, [pathname]);
 
   useEffect(() => {
     let shellObserver: MutationObserver | null = null;
