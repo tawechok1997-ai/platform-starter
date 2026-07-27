@@ -51,7 +51,8 @@ export const REFERENCE_GAMES: ReferenceAsset[] = GAME_URLS.map((url, index) => (
   url,
 }));
 
-export const REFERENCE_PROVIDERS = fromPairs([\n  ['CQ9', '/assets/asset-pc/images/providers/set/1_1_badge/cq.png'],
+export const REFERENCE_PROVIDERS = fromPairs([
+  ['CQ9', '/assets/asset-pc/images/providers/set/1_1_badge/cq.png'],
   ['Evolution', '/assets/asset-pc/images/providers/set/1_1_badge/evp.png'],
   ['Fa Chai', '/assets/asset-pc/images/providers/set/1_1_badge/fachai.png'],
   ['JILI', '/assets/asset-pc/images/providers/set/1_1_badge/jl.png'],
@@ -62,9 +63,11 @@ export const REFERENCE_PROVIDERS = fromPairs([\n  ['CQ9', '/assets/asset-pc/imag
   ['Pragmatic Play', '/assets/asset-pc/images/providers/set/1_1_badge/pp.png'],
   ['PlayStar', '/assets/asset-pc/images/providers/set/1_1_badge/ps.png'],
   ['Red Tiger', '/assets/asset-pc/images/providers/set/1_1_badge/rsg.png'],
-  ['YGR', '/assets/asset-pc/images/providers/set/1_1_badge/ygr.png'],\n] as const);
+  ['YGR', '/assets/asset-pc/images/providers/set/1_1_badge/ygr.png'],
+] as const);
 
-export const REFERENCE_BANKS = fromPairs([\n  ['BAAC', '/assets/asset-pc/images/banks/TH/BAAC.webp'],
+export const REFERENCE_BANKS = fromPairs([
+  ['BAAC', '/assets/asset-pc/images/banks/TH/BAAC.webp'],
   ['BAY', '/assets/asset-pc/images/banks/TH/BAY.webp'],
   ['BBL', '/assets/asset-pc/images/banks/TH/BBL.webp'],
   ['CIMBT', '/assets/asset-pc/images/banks/TH/CIMBT.webp'],
@@ -80,8 +83,34 @@ export const REFERENCE_BANKS = fromPairs([\n  ['BAAC', '/assets/asset-pc/images/
   ['TISCO', '/assets/asset-pc/images/banks/TH/TISCO.webp'],
   ['TMN', '/assets/asset-pc/images/banks/TH/TMN.webp'],
   ['TTB', '/assets/asset-pc/images/banks/TH/TTB.webp'],
-  ['UOBT', '/assets/asset-pc/images/banks/TH/UOBT.webp'],\n] as const);
+  ['UOBT', '/assets/asset-pc/images/banks/TH/UOBT.webp'],
+] as const);
 
-export const REFERENCE_TRUST_BADGES = fromPairs([\n  ['BMM', '/assets/asset-pc/images/footer/BBM-Cert.webp'],\n  ['Game Care', '/assets/asset-pc/images/footer/gamecare.webp'],\n  ['Gaming Labs', '/assets/asset-pc/images/footer/GamingLab.webp'],\n  ['GC', '/assets/asset-pc/images/footer/GC-icon%202.webp'],\n  ['GoDaddy', '/assets/asset-pc/images/footer/GO%20DADDY.webp'],\n  ['Group', '/assets/asset-pc/images/footer/Group%2048102721.webp'],\n  ['Iovation', '/assets/asset-pc/images/footer/Iovation.webp'],\n  ['iTech Labs', '/assets/asset-pc/images/footer/iTech.webp'],\n] as const);
+export const REFERENCE_TRUST_BADGES = fromPairs([
+  ['BMM', '/assets/asset-pc/images/footer/BBM-Cert.webp'],
+  ['Game Care', '/assets/asset-pc/images/footer/gamecare.webp'],
+  ['Gaming Labs', '/assets/asset-pc/images/footer/GamingLab.webp'],
+  ['GC', '/assets/asset-pc/images/footer/GC-icon%202.webp'],
+  ['GoDaddy', '/assets/asset-pc/images/footer/GO%20DADDY.webp'],
+  ['Group', '/assets/asset-pc/images/footer/Group%2048102721.webp'],
+  ['Iovation', '/assets/asset-pc/images/footer/Iovation.webp'],
+  ['iTech Labs', '/assets/asset-pc/images/footer/iTech.webp'],
+] as const);
 
-export const REFERENCE_HOME_ASSETS = {\n  logo: '/reference-v6/logo.webp',\n  sidePromotion: '/assets/asset-pc/images/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg',\n  jackpot: '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25.gif',\n  jackpotStill: '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25.gif',\n  leaderboard: '/assets/asset-pc/images/home/leader-board.svg',\n  tournament: '/assets/asset-pc/images/home/tournament.svg',\n  tournamentBanner: '/assets/asset-pc/images/ZAB1/tournament/4a7df032-03f5-4999-ba59-f38d12c13761.png',\n  liveBackground: '/assets/asset-pc/images/home/live1.webp',\n  fire: '/assets/asset-pc/images/game/fire.webp',\n  line: '/assets/asset-pc/images/line.png',\n  rank1: '/assets/asset-pc/images/LeaderBoard/rank1.webp',\n  rank2: '/assets/asset-pc/images/LeaderBoard/rank2.webp',\n  rank3: '/assets/asset-pc/images/LeaderBoard/rank3.webp',\n  rankTop3: '/assets/asset-moblie/images/predict/mobile/rankBadgeTop3.svg',\n  rankOther: '/assets/asset-moblie/images/predict/mobile/rankBadgeOther.svg',\n} as const;
+export const REFERENCE_HOME_ASSETS = {
+  logo: '/reference-v6/logo.webp',
+  sidePromotion: '/assets/asset-pc/images/FEZX/lobby_settings/26b4660d-776c-4bc4-ac49-21077498ae8d.jpg',
+  jackpot: '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25.gif',
+  jackpotStill: '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25.gif',
+  leaderboard: '/assets/asset-pc/images/home/leader-board.svg',
+  tournament: '/assets/asset-pc/images/home/tournament.svg',
+  tournamentBanner: '/assets/asset-pc/images/ZAB1/tournament/4a7df032-03f5-4999-ba59-f38d12c13761.png',
+  liveBackground: '/assets/asset-pc/images/home/live1.webp',
+  fire: '/assets/asset-pc/images/game/fire.webp',
+  line: '/assets/asset-pc/images/line.png',
+  rank1: '/assets/asset-pc/images/LeaderBoard/rank1.webp',
+  rank2: '/assets/asset-pc/images/LeaderBoard/rank2.webp',
+  rank3: '/assets/asset-pc/images/LeaderBoard/rank3.webp',
+  rankTop3: '/assets/asset-moblie/images/predict/mobile/rankBadgeTop3.svg',
+  rankOther: '/assets/asset-moblie/images/predict/mobile/rankBadgeOther.svg',
+} as const;
