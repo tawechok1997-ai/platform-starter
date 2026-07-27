@@ -105,9 +105,11 @@ import './member-v47-jackpot-exact-source.css';
 import './member-source-highlight.css';
 import './member-v47-tournament-exact-source.css';
 import './member-v47-tournament-mount-lock.css';
+import './member-source-feed-sections.css';
 import MemberChrome from './member-chrome';
 import MemberAllianceBandRepair from './components/member-alliance-band-repair';
 import MemberTournamentBoardRepair from './components/member-tournament-board-repair';
+import MemberSourceFeedSections from './components/member-home/member-source-feed-sections';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import MemberAuthLinkInterceptor from './components/auth/member-auth-link-interceptor';
@@ -136,6 +138,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <MemberSessionProvider>
             <MemberAllianceBandRepair />
             <MemberTournamentBoardRepair />
+            <MemberSourceFeedSections />
             <MemberHeroSwipeController />
             <MemberDragScrollController />
             <MemberAuthLinkInterceptor />
