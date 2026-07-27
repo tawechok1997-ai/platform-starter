@@ -5,8 +5,7 @@ import test from 'node:test';
 const operationsEntrySource = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 const operationsSource = readFileSync(new URL('./operations-redesigned.tsx', import.meta.url), 'utf8');
 const dashboardEntrySource = readFileSync(new URL('../dashboard/page.tsx', import.meta.url), 'utf8');
-const dashboardSource = readFileSync(new URL('../dashboard/dashboard-redesigned.tsx', import.meta.url), 'utf8');
-const dashboardInsightsSource = readFileSync(new URL('../dashboard/dashboard-insights.tsx', import.meta.url), 'utf8');
+const dashboardSource = readFileSync(new URL('../dashboard/dashboard-professional.tsx', import.meta.url), 'utf8');
 
 function sourceIndex(source: string, marker: string) {
   const index = source.indexOf(marker);
@@ -25,30 +24,25 @@ test('operations uses the redesigned task-first boundary', () => {
   assert.doesNotMatch(operationsSource, /RecentCard|recentTransfers|recentAlerts|recentLedger/);
 });
 
-test('dashboard keeps the task-first hierarchy before compact analytical insights', () => {
-  assert.match(dashboardEntrySource, /import RedesignedAdminDashboard from '\.\/dashboard-redesigned'/);
-  assert.match(dashboardEntrySource, /import DashboardInsights from '\.\/dashboard-insights'/);
-  assert.ok(sourceIndex(dashboardEntrySource, '<RedesignedAdminDashboard />') < sourceIndex(dashboardEntrySource, '<DashboardInsights />'));
+test('dashboard puts analytical charts before KPIs queues and recent activity', () => {
+  assert.match(dashboardEntrySource, /export \{ default \} from '\.\/dashboard-professional'/);
 
   const system = sourceIndex(dashboardSource, 'className={styles.statusBar}');
   const priorities = sourceIndex(dashboardSource, 'priorityItems.length > 0');
+  const insights = sourceIndex(dashboardSource, 'title={t.insights}');
   const overview = sourceIndex(dashboardSource, 'title={t.overview}');
-  const finance = sourceIndex(dashboardSource, 'dashboard.hasFinanceActivity');
   const queues = sourceIndex(dashboardSource, 'title={t.queues}');
-  const activity = sourceIndex(dashboardSource, 'title={t.recentRisk}');
+  const recent = sourceIndex(dashboardSource, 'title={t.recentActivity}');
 
-  assert.ok(system < priorities && priorities < overview && overview < finance && finance < queues && queues < activity);
-  assert.match(dashboardSource, /dashboard\.pendingTotal > 0 && <Metric label=\{t\.pendingWork\}/);
-  assert.match(dashboardSource, /dashboard\.pendingTotal > 0 && <Metric label=\{t\.oldestQueue\}/);
-  assert.match(dashboardSource, /riskSummary\.openCount > 0 && <Metric label=\{t\.openRisks\}/);
-  assert.match(dashboardSource, /actionCount > 0 && <strong>/);
-  assert.match(dashboardSource, /dashboard\.pendingTopUps > 0/);
-  assert.match(dashboardSource, /dashboard\.pendingWithdrawals > 0/);
-  assert.match(dashboardSource, /riskItems\.length > 0/);
-  assert.doesNotMatch(dashboardSource, /QuickCard|admin-dashboard__quick|styles\.allClear/);
-
-  assert.match(dashboardInsightsSource, /Deposits vs withdrawals today/);
-  assert.match(dashboardInsightsSource, /Wallet balance composition/);
-  assert.match(dashboardInsightsSource, /Open risk severity/);
-  assert.match(dashboardInsightsSource, /conic-gradient/);
+  assert.ok(system < priorities && priorities < insights && insights < overview && overview < queues && queues < recent);
+  assert.match(dashboardSource, /FinanceInsight/);
+  assert.match(dashboardSource, /WalletInsight/);
+  assert.match(dashboardSource, /RiskInsight/);
+  assert.match(dashboardSource, /Deposits vs withdrawals today/);
+  assert.match(dashboardSource, /Wallet balance composition/);
+  assert.match(dashboardSource, /Open risk severity/);
+  assert.match(dashboardSource, /conic-gradient/);
+  assert.match(dashboardSource, /canViewFinance && <FinanceInsight/);
+  assert.match(dashboardSource, /canViewWallet && <WalletInsight/);
+  assert.match(dashboardSource, /canViewRisk && <RiskInsight/);
 });
