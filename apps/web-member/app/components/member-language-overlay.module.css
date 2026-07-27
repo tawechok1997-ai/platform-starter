@@ -130,6 +130,14 @@
   background: linear-gradient(165.34deg, rgb(148 79 232) -17.16%, rgb(118 0 168) 91.36%);
 }
 
+.disabledFrame {
+  cursor: not-allowed;
+}
+
+.disabledFrame .languageCard {
+  opacity: .72;
+}
+
 .languageCard {
   display: flex;
   flex-direction: column;
@@ -173,6 +181,21 @@
   object-fit: cover;
 }
 
+.missingAsset {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px dashed rgb(187 91 234 / 70%);
+  border-radius: 999px;
+  color: #dca8f3;
+  font-size: 6px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: .04em;
+  text-align: center;
+}
+
 .languageName {
   width: 100%;
   overflow: hidden;
@@ -190,8 +213,8 @@
   font-weight: 600;
 }
 
-.languageFrame:hover .languageCard,
-.languageFrame:focus-visible .languageCard {
+.languageFrame:not(.disabledFrame):hover .languageCard,
+.languageFrame:not(.disabledFrame):focus-visible .languageCard {
   border-color: rgb(148 79 232);
   background: rgb(37 32 51);
 }
@@ -251,6 +274,11 @@
   }
 
   .flagWrap img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .missingAsset {
     width: 36px;
     height: 36px;
   }
