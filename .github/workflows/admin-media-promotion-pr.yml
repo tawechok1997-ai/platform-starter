@@ -45,22 +45,44 @@ jobs:
 
           script = textwrap.dedent(match.group('body'))
 
-          def normalize_literal(match):
-              content = match.group(1)
-              lines = content.split('\n')
-              if not lines:
-                  return match.group(0)
-              first_indent = len(lines[0]) - len(lines[0].lstrip(' '))
-              normalized = [lines[0]]
-              for line in lines[1:]:
-                  if line.strip():
-                      indent = len(line) - len(line.lstrip(' '))
-                      if indent < first_indent:
-                          line = (' ' * (first_indent - indent)) + line
-                  normalized.append(line)
-              return '"""' + '\n'.join(normalized) + '"""'
+          old_helper = """def replace(path, old, new, count=1):
+              file = Path(path)
+              source = file.read_text()
+              if old not in source:
+                  raise SystemExit(f'Expected marker not found in {path}: {old[:100]!r}')
+              file.write_text(source.replace(old, new, count))"""
 
-          script = re.sub(r'"""(.*?)"""', normalize_literal, script, flags=re.DOTALL)
+          new_helper = """def replace(path, old, new, count=1):
+              file = Path(path)
+              source = file.read_text()
+              if old in source:
+                  file.write_text(source.replace(old, new, count))
+                  return
+
+              old_lines = old.split('\\n')
+              pattern_lines = []
+              for line in old_lines:
+                  stripped = line.lstrip(' ')
+                  pattern_lines.append(r'^[ \\t]*' + re.escape(stripped))
+              pattern = re.compile('\\n'.join(pattern_lines), flags=re.MULTILINE)
+              match = pattern.search(source)
+              if not match:
+                  raise SystemExit(f'Expected marker not found in {path}: {old[:100]!r}')
+
+              matched_lines = match.group(0).split('\\n')
+              base_indent = matched_lines[0][:(len(matched_lines[0]) - len(matched_lines[0].lstrip(' ')))]
+              new_lines = new.split('\\n')
+              first_indent_size = len(new_lines[0]) - len(new_lines[0].lstrip(' '))
+              rendered_lines = []
+              for line in new_lines:
+                  relative = line[first_indent_size:] if len(line) >= first_indent_size else line.lstrip(' ')
+                  rendered_lines.append(base_indent + relative)
+              rendered = '\\n'.join(rendered_lines)
+              file.write_text(source[:match.start()] + rendered + source[match.end():])"""
+
+          if old_helper not in script:
+              raise SystemExit('Embedded replace helper was not found')
+          script = script.replace(old_helper, new_helper, 1)
           exec(compile(script, 'admin-media-promotion-patch.py', 'exec'))
           PY
           code=$?
