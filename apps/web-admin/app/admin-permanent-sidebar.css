@@ -1,0 +1,60 @@
+/*
+ * Permanent expanded desktop sidebar.
+ * Mobile keeps the existing drawer interaction.
+ */
+
+@media (min-width: 1100px) {
+  .admin-collapse-button {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .admin-shell,
+  .admin-shell.admin-shell--collapsed {
+    padding-left: var(--admin-shell-sidebar-width) !important;
+  }
+
+  .admin-shell--collapsed .admin-drawer {
+    width: var(--admin-shell-sidebar-width) !important;
+  }
+
+  .admin-shell--collapsed .admin-brand-text,
+  .admin-shell--collapsed .admin-nav-search input,
+  .admin-shell--collapsed .admin-nav-group__label,
+  .admin-shell--collapsed .admin-nav-submenu,
+  .admin-shell--collapsed .admin-nav-submenu__inner,
+  .admin-shell--collapsed .admin-nav-submenu a span,
+  .admin-shell--collapsed .admin-profile-meta,
+  .admin-shell--collapsed .admin-sidebar-profile__chevron {
+    display: revert !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .admin-shell--collapsed .admin-brand-text,
+  .admin-shell--collapsed .admin-profile-meta,
+  .admin-shell--collapsed .admin-nav-group__label {
+    min-width: 0 !important;
+  }
+
+  .admin-shell--collapsed .admin-nav-search {
+    justify-content: flex-start !important;
+    padding-inline: 11px !important;
+  }
+
+  .admin-shell--collapsed .admin-nav-group__trigger {
+    grid-template-columns: 20px minmax(0, 1fr) 16px !important;
+    justify-content: initial !important;
+    padding-inline: 10px !important;
+  }
+
+  .admin-shell--collapsed .admin-nav-submenu a,
+  .admin-shell--collapsed .admin-sidebar-profile__trigger {
+    justify-content: flex-start !important;
+  }
+
+  .admin-shell--collapsed .admin-profile-menu--sidebar {
+    left: calc(var(--admin-shell-sidebar-width) + 12px) !important;
+    width: min(340px, calc(100vw - var(--admin-shell-sidebar-width) - 24px)) !important;
+  }
+}

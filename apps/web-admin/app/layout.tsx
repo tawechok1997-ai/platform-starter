@@ -66,6 +66,7 @@ import './admin-modernization-adoption.css';
 import './admin-ux-overrides.css';
 import './admin-full-viewport-layout.css';
 import './admin-professional-authority.css';
+import './admin-permanent-sidebar.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
