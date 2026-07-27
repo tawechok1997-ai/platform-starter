@@ -37,13 +37,30 @@ jobs:
           from pathlib import Path
           import re
           import textwrap
+
           workflow = Path('.github/workflows/admin-media-promotion-finalize.yml').read_text()
           match = re.search(r"^\s*python <<'PY'\n(?P<body>.*?)(?=^\s*PY\s*$)", workflow, flags=re.MULTILINE | re.DOTALL)
           if not match:
               raise SystemExit('Embedded product patch was not found')
+
           script = textwrap.dedent(match.group('body'))
-          script = script.replace("    imageUrl: '',\n  href: '/games',", "    imageUrl: '',\n    href: '/games',")
-          script = script.replace("    imageUrl: '',\n  desktopImageUrl: '',\n  mobileImageUrl: '',\n  href: '/games',", "    imageUrl: '',\n    desktopImageUrl: '',\n    mobileImageUrl: '',\n    href: '/games',")
+
+          def normalize_literal(match):
+              content = match.group(1)
+              lines = content.split('\n')
+              if not lines:
+                  return match.group(0)
+              first_indent = len(lines[0]) - len(lines[0].lstrip(' '))
+              normalized = [lines[0]]
+              for line in lines[1:]:
+                  if line.strip():
+                      indent = len(line) - len(line.lstrip(' '))
+                      if indent < first_indent:
+                          line = (' ' * (first_indent - indent)) + line
+                  normalized.append(line)
+              return '"""' + '\n'.join(normalized) + '"""'
+
+          script = re.sub(r'"""(.*?)"""', normalize_literal, script, flags=re.DOTALL)
           exec(compile(script, 'admin-media-promotion-patch.py', 'exec'))
           PY
           code=$?
