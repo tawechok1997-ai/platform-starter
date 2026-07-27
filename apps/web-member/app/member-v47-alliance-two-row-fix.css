@@ -1,9 +1,9 @@
-/* Final alliance geometry: 1440px shell, two non-overlapping rows. */
+/* Final alliance geometry: 1440px shell, two full-width rows. */
 @media (min-width: 901px) {
   .desktop-reference-home .reference-provider-strip {
     display: block !important;
     position: relative !important;
-    left: 7.5px !important;
+    left: 15px !important;
     width: min(1440px, calc(100vw - 32px)) !important;
     max-width: 1440px !important;
     margin-left: auto !important;
@@ -15,7 +15,9 @@
 
   .desktop-reference-home .reference-provider-rows {
     display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     grid-template-rows: 24px 24px !important;
+    grid-auto-columns: auto !important;
     row-gap: 12px !important;
     width: 100% !important;
     height: 60px !important;
@@ -28,6 +30,7 @@
     visibility: visible !important;
     opacity: 1 !important;
     position: static !important;
+    grid-column: 1 !important;
     width: 100% !important;
     height: 24px !important;
     min-height: 24px !important;
@@ -38,10 +41,12 @@
   }
 
   .desktop-reference-home .reference-provider-row:first-child {
+    grid-row: 1 !important;
     justify-content: flex-start !important;
   }
 
   .desktop-reference-home .reference-provider-row--reverse {
+    grid-row: 2 !important;
     justify-content: center !important;
   }
 
