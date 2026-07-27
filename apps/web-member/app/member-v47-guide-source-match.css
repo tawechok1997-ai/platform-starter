@@ -1,8 +1,11 @@
-/* Exact desktop Guide section recovered from the supplied source markup. */
+/* Exact desktop Guide section recovered from the supplied source markup.
+   This file intentionally owns every visible Guide dimension to defeat older overrides. */
 @media (min-width: 901px) {
-  .desktop-reference-home .reference-guide {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] {
+    position: relative !important;
     display: block !important;
     width: 100% !important;
+    margin: 0 !important;
     padding: 0 0 8px !important;
     overflow: hidden !important;
     border: 0 !important;
@@ -11,15 +14,16 @@
     box-shadow: none !important;
   }
 
-  .desktop-reference-home .reference-guide > .reference-panel-heading {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > .reference-panel-heading {
     position: relative !important;
     display: flex !important;
     align-items: center !important;
-    gap: 12px !important;
     width: 100% !important;
-    min-height: 38px !important;
     height: 38px !important;
+    min-height: 38px !important;
+    margin: 0 !important;
     padding: 0 16px 0 20px !important;
+    gap: 12px !important;
     overflow: hidden !important;
     border: 0 !important;
     border-radius: 6px !important;
@@ -27,18 +31,17 @@
     color: #fff !important;
   }
 
-  .desktop-reference-home .reference-guide > .reference-panel-heading::before {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > .reference-panel-heading::before {
     content: '' !important;
     position: absolute !important;
     inset: 0 !important;
     z-index: 0 !important;
-    border-radius: inherit !important;
-    background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) 6.41%, rgb(24 21 35 / 60%) 80.01%) !important;
+    background: linear-gradient(90deg, rgba(24, 21, 35, .6) -6.21%, rgb(187, 91, 234) 6.41%, rgba(24, 21, 35, .6) 80.01%) !important;
     opacity: .48 !important;
     pointer-events: none !important;
   }
 
-  .desktop-reference-home .reference-guide > .reference-panel-heading::after {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > .reference-panel-heading::after {
     content: '' !important;
     position: absolute !important;
     right: 0 !important;
@@ -46,34 +49,38 @@
     left: 0 !important;
     z-index: 0 !important;
     height: 2px !important;
-    background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) 4.41%, rgb(24 21 35 / 60%) 83.01%) !important;
+    background: linear-gradient(90deg, rgba(24, 21, 35, .6) -6.21%, rgb(187, 91, 234) 4.41%, rgba(24, 21, 35, .6) 83.01%) !important;
     opacity: .44 !important;
     pointer-events: none !important;
   }
 
-  .desktop-reference-home .reference-guide > .reference-panel-heading > * {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > .reference-panel-heading > * {
     position: relative !important;
     z-index: 1 !important;
   }
 
-  .desktop-reference-home .reference-guide .reference-heading-icon,
-  .desktop-reference-home .reference-guide .reference-heading-icon > img {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-heading-icon,
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-heading-icon > img {
     display: block !important;
+    flex: 0 0 26px !important;
     width: 26px !important;
     min-width: 26px !important;
     height: 26px !important;
     margin: 0 !important;
+    padding: 0 !important;
     object-fit: contain !important;
     background: none !important;
   }
 
-  .desktop-reference-home .reference-guide .reference-heading-icon > img {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] .reference-heading-icon > img {
     content: url('/assets/asset-pc/images/home/faq1.webp') !important;
   }
 
-  .desktop-reference-home .reference-guide > .reference-panel-heading > strong {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > .reference-panel-heading > strong {
+    flex: 1 1 auto !important;
     width: 100% !important;
     max-width: 600px !important;
+    margin: 2px 0 0 !important;
     overflow: hidden !important;
     color: #fff !important;
     font-size: 18px !important;
@@ -83,7 +90,9 @@
     white-space: nowrap !important;
   }
 
-  .desktop-reference-home .reference-guide details {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details {
+    position: relative !important;
+    display: block !important;
     width: 100% !important;
     margin: 12px 0 0 !important;
     padding: 0 !important;
@@ -91,93 +100,118 @@
     border: 0 !important;
     border-radius: 6px !important;
     background: transparent !important;
+    box-shadow: none !important;
   }
 
-  .desktop-reference-home .reference-guide details:first-of-type {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details:first-of-type {
     margin-top: 16px !important;
   }
 
-  .desktop-reference-home .reference-guide summary {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary {
     position: relative !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
+    box-sizing: border-box !important;
     width: 100% !important;
     min-height: 49px !important;
+    margin: 0 !important;
     padding: 12px 16px !important;
+    gap: 16px !important;
     list-style: none !important;
-    border: 1px solid rgb(79 73 93) !important;
+    border: 1px solid rgb(79, 73, 93) !important;
     border-radius: 6px !important;
-    background: rgb(38 34 50) !important;
+    outline: none !important;
+    background: rgb(38, 34, 50) !important;
     color: #fff !important;
     cursor: pointer !important;
+    font-family: inherit !important;
     font-size: 16px !important;
     font-weight: 700 !important;
-    line-height: 1.45 !important;
+    line-height: 24px !important;
     text-align: left !important;
+    -webkit-tap-highlight-color: transparent !important;
   }
 
-  .desktop-reference-home .reference-guide summary::-webkit-details-marker {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary:hover,
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary:focus-visible {
+    border-color: rgb(187, 91, 234) !important;
+    box-shadow: 0 0 0 1px rgba(187, 91, 234, .18) !important;
+  }
+
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary::-webkit-details-marker {
     display: none !important;
   }
 
-  .desktop-reference-home .reference-guide summary::marker {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary::marker {
     content: '' !important;
+    display: none !important;
   }
 
-  .desktop-reference-home .reference-guide summary::after {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details > summary::after {
     content: '' !important;
     display: block !important;
+    flex: 0 0 20px !important;
     width: 20px !important;
-    min-width: 20px !important;
     height: 20px !important;
-    margin-left: 16px !important;
     background: center / 20px 20px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' d='M0 0h24v24H0V0z'/%3E%3Cpath fill='%23ffffff' d='M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z'/%3E%3C/svg%3E") !important;
     transform: rotate(180deg) !important;
     transition: transform .2s ease !important;
   }
 
-  .desktop-reference-home .reference-guide details[open] summary {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details[open] > summary {
+    border-color: rgb(79, 73, 93) !important;
     border-radius: 6px 6px 0 0 !important;
   }
 
-  .desktop-reference-home .reference-guide details[open] summary::after {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details[open] > summary::after {
     transform: rotate(0deg) !important;
   }
 
-  .desktop-reference-home .reference-guide details > p {
-    margin: 0 !important;
-    padding: 12px 16px 14px !important;
-    border: 1px solid rgb(79 73 93) !important;
-    border-top: 0 !important;
-    border-radius: 0 0 6px 6px !important;
-    background: rgb(38 34 50) !important;
-    color: rgb(216 209 224) !important;
-    font-size: 14px !important;
-    line-height: 1.55 !important;
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details:not([open]) > p {
+    display: none !important;
   }
 
-  .desktop-reference-home .reference-guide-more {
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > details[open] > p {
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 12px 16px 14px !important;
+    border: 1px solid rgb(79, 73, 93) !important;
+    border-top: 0 !important;
+    border-radius: 0 0 6px 6px !important;
+    background: rgb(38, 34, 50) !important;
+    color: rgb(216, 209, 224) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    line-height: 22px !important;
+  }
+
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > .reference-guide-more {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    box-sizing: border-box !important;
     width: 300px !important;
     height: 40px !important;
     margin: 16px auto 0 !important;
     padding: 0 !important;
-    border: 1px solid rgb(187 91 234) !important;
+    border: 1px solid rgb(187, 91, 234) !important;
     border-radius: 8px !important;
     background: transparent !important;
-    color: rgb(187 91 234) !important;
+    color: rgb(187, 91, 234) !important;
     cursor: pointer !important;
     font-size: 14px !important;
     font-weight: 700 !important;
-    line-height: 1 !important;
+    line-height: 20px !important;
     text-align: center !important;
     text-decoration: none !important;
   }
 
-  .desktop-reference-home .reference-guide-more:hover {
-    background: rgb(187 91 234 / 10%) !important;
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > .reference-guide-more:hover,
+  .desktop-reference-home .reference-guide[data-section-kind='guide'] > .reference-guide-more:focus-visible {
+    background: rgba(187, 91, 234, .1) !important;
+    box-shadow: 0 0 7px rgba(118, 0, 172, .35) !important;
   }
 }
