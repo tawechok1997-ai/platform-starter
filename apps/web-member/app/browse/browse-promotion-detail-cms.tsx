@@ -116,7 +116,7 @@ function findDetail(id: string, content: CmsContent, campaigns: PromotionCampaig
       ? V47_ASSETS.promoBackgroundNews
       : V47_ASSETS.promoBackgroundPromotion;
   return {
-    id: announcement.id,
+    id: announcement.id || id,
     kind,
     title: announcement.title,
     summary: announcement.message,
