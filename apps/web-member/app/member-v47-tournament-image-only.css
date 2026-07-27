@@ -1,0 +1,40 @@
+/* Tournament source banner: image only, without the yellow CTA overlay. */
+@media (min-width: 901px) {
+  .desktop-reference-home .reference-tournament-cta {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    height: 116.5px !important;
+    min-height: 116.5px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 7px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .desktop-reference-home .reference-tournament-cta::before,
+  .desktop-reference-home .reference-tournament-cta::after,
+  .desktop-reference-home .reference-tournament-cta > span,
+  .desktop-reference-home .reference-tournament-cta > b {
+    display: none !important;
+    content: none !important;
+  }
+
+  .desktop-reference-home .reference-tournament-cta > img {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+}
