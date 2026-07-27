@@ -1,0 +1,181 @@
+/*
+ * Full-width authority for data-heavy Admin workspaces.
+ *
+ * These rules remove inherited fit-content and narrow-column behavior from
+ * catalog, provider setup, analytics, report and table surfaces. Route-specific
+ * components keep their responsive structure while using the complete content
+ * viewport instead of leaving unused columns on wide screens.
+ */
+
+.admin-content-shell .admin-ui-page,
+.admin-content-shell .admin-ui-page > *,
+.admin-content-shell .admin-ui-page > section,
+.admin-content-shell .admin-ui-page > div {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Shared card grids should fill the row instead of retaining desktop-sized
+ * minimums that strand the final cards at the left edge. */
+.admin-content-shell .admin-ui-grid {
+  width: 100% !important;
+  max-width: none !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(248px, 100%), 1fr)) !important;
+  align-items: stretch !important;
+}
+
+.admin-content-shell .admin-ui-grid > .admin-ui-card {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+}
+
+.admin-content-shell .admin-ui-grid > .admin-ui-card:only-child {
+  grid-column: 1 / -1 !important;
+}
+
+/* Long endpoint and credential values must use the card width rather than
+ * being squeezed into a narrow value column. */
+.admin-content-shell .admin-ui-grid > .admin-ui-card .admin-ui-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: start !important;
+  justify-content: stretch !important;
+}
+
+.admin-content-shell .admin-ui-grid > .admin-ui-card .admin-ui-row > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  justify-self: stretch !important;
+}
+
+/* List cards such as the game catalog should distribute their summary and
+ * status across the row while allowing the main summary to consume free space. */
+.admin-content-shell .admin-ui-page > .admin-ui-stack > .admin-ui-card {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.admin-content-shell .admin-ui-page > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row:first-child {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  justify-content: stretch !important;
+  column-gap: clamp(16px, 3vw, 32px) !important;
+}
+
+.admin-content-shell .admin-ui-page > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row:first-child > :first-child {
+  width: 100% !important;
+  min-width: 0 !important;
+  justify-self: stretch !important;
+}
+
+.admin-content-shell .admin-ui-page > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row:first-child > :last-child {
+  justify-self: end !important;
+}
+
+/* Generic table and chart shells must span their parent card. */
+.admin-content-shell :where(
+  [class*='__table-shell'],
+  [class*='__table-wrap'],
+  [class*='__chart'],
+  [class*='__list-shell']
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.admin-content-shell :where([class*='__table-shell'], [class*='__table-wrap']) > table {
+  width: 100% !important;
+  min-width: 100% !important;
+  table-layout: auto !important;
+}
+
+/* Wallet Analytics is the reference layout for wide analytical pages. */
+.admin-wallet-analytics {
+  width: 100% !important;
+  max-width: none !important;
+  display: grid !important;
+  gap: 18px !important;
+}
+
+.admin-wallet-analytics__toolbar {
+  width: 100% !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.admin-wallet-analytics__stats {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.admin-wallet-analytics__stat {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.admin-wallet-analytics__hero {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, .8fr) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+
+.admin-wallet-analytics__hero > .admin-ui-card {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.admin-wallet-analytics__table-shell {
+  overflow-x: auto !important;
+  border: 1px solid var(--admin-border, rgba(148, 163, 184, .18)) !important;
+  border-radius: 16px !important;
+  background: var(--admin-surface, rgba(15, 23, 42, .72)) !important;
+}
+
+.admin-wallet-analytics__table {
+  width: 100% !important;
+  min-width: 760px !important;
+}
+
+@media (max-width: 1180px) {
+  .admin-wallet-analytics__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .admin-wallet-analytics__hero {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-content-shell .admin-ui-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-content-shell .admin-ui-page > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row:first-child {
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+  }
+
+  .admin-content-shell .admin-ui-page > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row:first-child > :last-child {
+    justify-self: start !important;
+  }
+
+  .admin-wallet-analytics__stats {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-wallet-analytics__table {
+    min-width: 680px !important;
+  }
+}
