@@ -1,1 +1,148 @@
-/* placeholder */
+/*
+ * Universal full-width authority for the Admin workspace.
+ *
+ * Every Admin route should consume the available content width by default.
+ * Split layouts remain available when they have two or more meaningful children,
+ * while single-child grids and legacy wrappers expand across the full row.
+ */
+
+.admin-content-shell,
+.admin-content-shell > *,
+.admin-content-shell .admin-ui-page,
+.admin-content-shell .admin-ui-page > *,
+.admin-content-shell .admin-ui-page > :where(main, section, article, div, form, fieldset, nav, aside),
+.admin-content-shell .admin-ui-page .admin-ui-card,
+.admin-content-shell .admin-ui-page .admin-ui-stack,
+.admin-content-shell .admin-ui-page .admin-ui-grid,
+.admin-content-shell .admin-ui-page .admin-ui-toolbar,
+.admin-content-shell .admin-ui-page .admin-ui-filter-bar,
+.admin-content-shell .admin-ui-page .admin-ui-command-panel,
+.admin-content-shell .admin-ui-page .admin-ui-action-strip {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Direct route surfaces must never remain constrained to a legacy half-width shell. */
+.admin-content-shell > :where(main, section, article, div),
+.admin-content-shell > :where(main, section, article, div) > :where(main, section, article, div) {
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* Shared grids fill the workspace and avoid stranded half-width cards. */
+.admin-content-shell .admin-ui-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)) !important;
+  align-items: stretch !important;
+}
+
+.admin-content-shell .admin-ui-grid:has(> :only-child),
+.admin-content-shell .admin-ui-page > [class*='grid']:has(> :only-child),
+.admin-content-shell .admin-ui-page > [class*='Grid']:has(> :only-child),
+.admin-content-shell .admin-ui-card > .admin-ui-stack > [class*='grid']:has(> :only-child),
+.admin-content-shell .admin-ui-card > .admin-ui-stack > [class*='Grid']:has(> :only-child) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.admin-content-shell .admin-ui-grid > :only-child,
+.admin-content-shell .admin-ui-page > [class*='grid'] > :only-child,
+.admin-content-shell .admin-ui-page > [class*='Grid'] > :only-child,
+.admin-content-shell .admin-ui-card > .admin-ui-stack > [class*='grid'] > :only-child,
+.admin-content-shell .admin-ui-card > .admin-ui-stack > [class*='Grid'] > :only-child {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Legacy page wrappers commonly carry module-specific grid, panel or shell names. */
+.admin-content-shell .admin-ui-page > [class*='grid'],
+.admin-content-shell .admin-ui-page > [class*='Grid'],
+.admin-content-shell .admin-ui-page > [class*='panel'],
+.admin-content-shell .admin-ui-page > [class*='Panel'],
+.admin-content-shell .admin-ui-page > [class*='shell'],
+.admin-content-shell .admin-ui-page > [class*='Shell'],
+.admin-content-shell .admin-ui-page > [class*='wrap'],
+.admin-content-shell .admin-ui-page > [class*='Wrap'],
+.admin-content-shell .admin-ui-page > [class*='content'],
+.admin-content-shell .admin-ui-page > [class*='Content'] {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* Forms expand naturally and distribute fields instead of stopping mid-screen. */
+.admin-content-shell .admin-ui-page form,
+.admin-content-shell .admin-ui-card form,
+.admin-content-shell .admin-ui-page fieldset {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.admin-content-shell .admin-ui-page form[style*='grid'],
+.admin-content-shell .admin-ui-card form[style*='grid'] {
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)) !important;
+  align-items: end !important;
+}
+
+/* Lists and cards must use the complete row when no sibling competes for space. */
+.admin-content-shell .admin-ui-stack > :where(.admin-ui-card, section, article, form, div):only-child,
+.admin-content-shell .admin-ui-card > .admin-ui-stack > :where(section, article, form, div):only-child,
+.admin-content-shell .admin-ui-row > :only-child {
+  width: 100% !important;
+  max-width: none !important;
+  flex: 1 1 100% !important;
+}
+
+/* Tables and their shells always fill the card before horizontal scrolling begins. */
+.admin-content-shell :where(table, [class*='table-shell'], [class*='table-wrap'], [class*='tableShell'], [class*='tableWrap']) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.admin-content-shell table {
+  min-width: 100% !important;
+  table-layout: auto;
+}
+
+/* Inline max-width values from legacy pages must not constrain primary route sections. */
+.admin-content-shell .admin-ui-page > [style*='max-width'],
+.admin-content-shell .admin-ui-page > [style*='maxWidth'],
+.admin-content-shell .admin-ui-card > .admin-ui-stack > [style*='max-width'],
+.admin-content-shell .admin-ui-card > .admin-ui-stack > [style*='maxWidth'] {
+  max-width: none !important;
+}
+
+@media (max-width: 1080px) {
+  .admin-content-shell .admin-ui-grid,
+  .admin-content-shell .admin-ui-page form[style*='grid'],
+  .admin-content-shell .admin-ui-card form[style*='grid'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-content-shell .admin-ui-grid,
+  .admin-content-shell .admin-ui-page form[style*='grid'],
+  .admin-content-shell .admin-ui-card form[style*='grid'],
+  .admin-content-shell .admin-ui-page > [class*='grid'],
+  .admin-content-shell .admin-ui-page > [class*='Grid'] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-content-shell .admin-ui-page,
+  .admin-content-shell .admin-ui-card,
+  .admin-content-shell .admin-ui-toolbar,
+  .admin-content-shell .admin-ui-filter-bar {
+    overflow-x: clip !important;
+  }
+
+  .admin-content-shell :where([class*='table-shell'], [class*='table-wrap'], [class*='tableShell'], [class*='tableWrap']) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
