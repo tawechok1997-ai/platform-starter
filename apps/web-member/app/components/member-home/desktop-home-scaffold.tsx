@@ -3,7 +3,6 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import type { CmsAsset, CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
-import { useMemberSession } from '../../member-session-provider';
 import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from '../reference-asset-catalog';
 import { DesktopHeroCarousel } from './desktop-hero-carousel';
 import {
@@ -56,7 +55,6 @@ const MATCH_CARDS = [
 ];
 
 export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, games, isGamesLoading, gamesMessage }: DesktopHomeProps) {
-  const { ready, isLoggedIn } = useMemberSession();
   const configuredFaqs = Array.isArray(content?.faqs) ? content.faqs.filter((faq) => faq?.enabled).slice(0, 5) : [];
   const guideFaqs = completeFaqs(configuredFaqs);
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
@@ -65,7 +63,6 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
   const online = fillGames(allGames.slice(3), allGames, 6);
   const classic = fillGames(allGames.slice(8), allGames, 6);
   const providerLogos = ALLIANCE_ROW_ONE;
-  const showGuestActions = !ready || !isLoggedIn;
 
   const assets = {
     tournament: findCmsAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']),
@@ -81,13 +78,6 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
 
   return (
     <section className="desktop-home desktop-reference-home" aria-label="หน้าแรกเดสก์ท็อป">
-      {showGuestActions ? (
-        <nav className="reference-auth-actions" aria-label="บัญชีสมาชิก">
-          <a className="reference-auth-action reference-auth-action--login" href="/login">เข้าสู่ระบบ</a>
-          <a className="reference-auth-action reference-auth-action--register" href="/register">สมัครสมาชิก</a>
-        </nav>
-      ) : null}
-
       <DesktopHeroCarousel content={content} siteName={siteName} showPromotion={showPromotion} />
 
       <div className="desktop-home__body">
