@@ -1,5 +1,12 @@
 @import './member-v47-guide-source-match.css';
 
+/* Remove the legacy desktop auth links that were visually stacked over the real header buttons. */
+.desktop-reference-home > .reference-auth-actions {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
 .member-auth-overlay {
   position: fixed;
   inset: 0;
