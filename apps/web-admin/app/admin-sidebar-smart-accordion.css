@@ -68,13 +68,20 @@
   transition: transform .18s ease, color .18s ease !important;
 }
 
-.admin-nav-group__trigger[aria-expanded='true'] .admin-nav-group__chevron {
+.admin-nav-group__trigger[aria-expanded='true'] .admin-nav-group__chevron,
+.admin-nav-group:has(.admin-nav-submenu[data-controller-open='true']) .admin-nav-group__chevron {
   transform: rotate(-90deg) !important;
   color: #aeb8ff !important;
 }
 
+.admin-nav-group:has(.admin-nav-submenu[data-controller-open='false']) .admin-nav-group__chevron {
+  transform: none !important;
+  color: #718096 !important;
+}
+
 .admin-nav-submenu,
-.admin-nav-submenu[data-open='false'] {
+.admin-nav-submenu[data-open='false'],
+.admin-nav-submenu[data-controller-open='false'] {
   display: grid !important;
   grid-template-rows: 0fr !important;
   max-height: none !important;
@@ -86,7 +93,8 @@
   transition: grid-template-rows .2s ease, opacity .16s ease, transform .16s ease, visibility .16s ease !important;
 }
 
-.admin-nav-submenu[data-open='true'] {
+.admin-nav-submenu[data-open='true'],
+.admin-nav-submenu[data-controller-open='true'] {
   grid-template-rows: minmax(0, 1fr) !important;
   overflow: hidden !important;
   opacity: 1 !important;
