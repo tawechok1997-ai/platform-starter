@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const sharedPage = readFileSync(new URL('./settings-section-page.tsx', import.meta.url), 'utf8');
 const websitePage = readFileSync(new URL('./website/page.tsx', import.meta.url), 'utf8');
+const maintenancePage = readFileSync(new URL('./maintenance/maintenance-settings-client.tsx', import.meta.url), 'utf8');
 const professionalCss = readFileSync(new URL('./settings-professional.module.css', import.meta.url), 'utf8');
 const workspaceCss = readFileSync(new URL('./settings-workspace.module.css', import.meta.url), 'utf8');
 
@@ -13,7 +14,6 @@ const sharedSettingsPages = [
   'theme',
   'seo',
   'contact',
-  'maintenance',
   'scripts',
   'features',
   'legal',
@@ -28,7 +28,7 @@ test('shared settings page uses one professional editor and sticky preview syste
   assert.match(sharedPage, /ยกเลิกการแก้ไข/);
 });
 
-test('all shared settings destinations use SettingsSectionPage', () => {
+test('all generic settings destinations use SettingsSectionPage', () => {
   for (const route of sharedSettingsPages) {
     const source = readFileSync(new URL(`./${route}/page.tsx`, import.meta.url), 'utf8');
     assert.match(source, /SettingsSectionPage/, `${route} should use the shared professional settings page`);
@@ -42,6 +42,15 @@ test('website settings uses grouped fields switches preview and sticky actions',
   assert.match(websitePage, /SectionLabel title="เข้าสู่ระบบและการทำรายการ"/);
   assert.match(websitePage, /className=\{styles\.previewPanel\}/);
   assert.match(websitePage, /className=\{styles\.actionBar\}/);
+});
+
+test('maintenance keeps confirmation safety inside the professional settings layout', () => {
+  assert.match(maintenancePage, /className=\{settingsStyles\.layout\}/);
+  assert.match(maintenancePage, /className=\{settingsStyles\.previewPanel\}/);
+  assert.match(maintenancePage, /className=\{settingsStyles\.actionBar\}/);
+  assert.match(maintenancePage, /AdminConfirmDialog/);
+  assert.match(maintenancePage, /affectedServices/);
+  assert.match(maintenancePage, /ตรวจและบันทึก/);
 });
 
 test('settings CSS protects spacing responsive layout and accessible controls', () => {
