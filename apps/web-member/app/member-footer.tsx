@@ -43,7 +43,10 @@ const RESPONSIBLE_BADGES = [
   ['Be Gamble Aware', `${SOURCE_ROOT}/footer/be-gamble-aware.webp`],
 ] as const;
 
-const LOCAL_BANKS = ['BAAC', 'BAY', 'BBL', 'CIMBT', 'EXIM', 'GHB', 'GSB', 'KBANK', 'KKP', 'KTB', 'LHFG', 'SCB', 'TCD', 'TISCO', 'TMN', 'TTB']\n  .map((name) => ({ name, url: `${SOURCE_ROOT}/banks/TH/${name}.webp` }));\n\nconst SOURCE_DESCRIPTION = `เว็บพนันออนไลน์ที่ดีที่สุด
+const LOCAL_BANKS = ['BAAC', 'BAY', 'BBL', 'CIMBT', 'EXIM', 'GHB', 'GSB', 'KBANK', 'KKP', 'KTB', 'LHFG', 'SCB', 'TCD', 'TISCO', 'TMN', 'TTB']
+  .map((name) => ({ name, url: `${SOURCE_ROOT}/banks/TH/${name}.webp` }));
+
+const SOURCE_DESCRIPTION = `เว็บพนันออนไลน์ที่ดีที่สุด
 พร้อมบริการลูกค้าทุกท่าน ตลอด 24 ชั่วโมง
 มีเกมให้เลือกเล่นมากมาย
 บาคาร่า รูเล็ต ไฮโล เสือมังกร สล็อตออนไลน์ กีฬาออนไลน์
