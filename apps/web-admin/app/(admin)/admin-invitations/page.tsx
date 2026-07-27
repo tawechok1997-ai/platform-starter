@@ -220,7 +220,7 @@ export default function AdminInvitationsPage() {
       busy={Boolean(busyKey)}
       onCancel={() => { if (!busyKey) setPendingAction(null); }}
       onConfirm={() => void executeAction()}
-      details={pendingAction ? <div style={confirmDetailsStyle}><strong>Role</strong><p>{pendingAction.item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</p><strong>หมดอายุเดิม</strong><p>{formatDate(pendingAction.item.expiresAt)}</p></div> : null}
+      details={pendingAction ? <div style={confirmDetailsStyle}><strong>บทบาท</strong><p>{pendingAction.item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</p><strong>หมดอายุเดิม</strong><p>{formatDate(pendingAction.item.expiresAt)}</p></div> : null}
     />
   </AdminPage>;
 }
