@@ -1,0 +1,280 @@
+/* Final Admin presentation authority.
+ * Keeps page headers, text spacing, tables and locale controls consistent across
+ * modernized and legacy routes without changing page business logic.
+ */
+
+.admin-content-shell {
+  --admin-page-edge: clamp(14px, 1.6vw, 22px);
+  --admin-card-edge: clamp(14px, 1.35vw, 20px);
+}
+
+.admin-content-shell .admin-ui-page__head {
+  position: relative;
+  min-height: 112px;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin: 0 !important;
+  padding: 18px var(--admin-page-edge) !important;
+  overflow: hidden;
+  border: 1px solid rgb(148 163 184 / 14%);
+  border-radius: 17px;
+  background:
+    linear-gradient(115deg, rgb(9 17 29 / 98%), rgb(8 21 34 / 94%)),
+    #09111d;
+  box-shadow: inset 0 1px rgb(255 255 255 / 2%);
+}
+
+.admin-content-shell .admin-ui-page__head::after {
+  position: absolute;
+  right: -80px;
+  bottom: -120px;
+  width: 260px;
+  height: 220px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgb(111 124 255 / 11%), transparent 68%);
+  content: '';
+  pointer-events: none;
+}
+
+.admin-content-shell .admin-ui-page__copy,
+.admin-content-shell .admin-ui-page__actions {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-content-shell .admin-ui-page__copy {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  gap: 5px;
+}
+
+.admin-content-shell .admin-ui-eyebrow {
+  width: fit-content;
+  margin: 0 !important;
+  color: #8b9aff !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .09em !important;
+  line-height: 1.3 !important;
+  text-transform: uppercase;
+}
+
+.admin-content-shell .admin-ui-page__head h1 {
+  max-width: 28ch;
+  margin: 0 !important;
+  color: #fff;
+  font-size: clamp(27px, 2.1vw, 35px) !important;
+  font-weight: 820 !important;
+  letter-spacing: -.03em !important;
+  line-height: 1.14 !important;
+  text-wrap: balance;
+}
+
+.admin-content-shell .admin-ui-page__description {
+  max-width: 72ch;
+  margin: 0 !important;
+  color: #9aa9bd !important;
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+  text-wrap: pretty;
+}
+
+.admin-content-shell .admin-ui-page__actions {
+  align-self: center;
+}
+
+.admin-content-shell .admin-ui-page__actions .admin-ui-button {
+  min-height: 40px !important;
+  padding: 8px 14px !important;
+  border-radius: 10px !important;
+}
+
+/* Legacy page titles that have not migrated to AdminPage still receive the same
+ * compact visual hierarchy instead of giant unframed headings.
+ */
+.admin-content-shell > main:not(.admin-ui-page) > h1:first-of-type,
+.admin-content-shell > div > main:not(.admin-ui-page) > h1:first-of-type {
+  margin-block: 0 8px !important;
+  font-size: clamp(27px, 2.1vw, 35px) !important;
+  line-height: 1.14 !important;
+  letter-spacing: -.03em !important;
+}
+
+.admin-content-shell :where(h1, h2, h3, p, span, strong, small, label, a, button, th, td) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-content-shell :where(p, span, strong, small, label, th, td) {
+  overflow-wrap: anywhere;
+}
+
+.admin-content-shell :where(.admin-ui-card, .admin-ui-notice, .admin-ui-empty, .admin-ui-toolbar, .admin-ui-filter-bar, .admin-ui-command-panel, .admin-ui-action-strip) {
+  padding-inline: var(--admin-card-edge) !important;
+}
+
+.admin-content-shell .admin-ui-card__head {
+  gap: 14px !important;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgb(148 163 184 / 9%);
+}
+
+.admin-content-shell .admin-ui-card__head + .admin-ui-stack {
+  padding-top: 2px;
+}
+
+.admin-content-shell :where(.admin-ui-row, .admin-ui-section-row) {
+  padding: 10px 8px;
+  border-radius: 9px;
+}
+
+.admin-content-shell :where(.admin-ui-row, .admin-ui-section-row):hover {
+  background: rgb(148 163 184 / 4%);
+}
+
+.admin-content-shell :where(table, .admin-data-table) {
+  width: 100% !important;
+}
+
+.admin-content-shell table th,
+.admin-content-shell table td {
+  padding: 12px 14px !important;
+  line-height: 1.45;
+  vertical-align: middle;
+}
+
+.admin-content-shell table th:first-child,
+.admin-content-shell table td:first-child {
+  padding-left: max(14px, var(--admin-card-edge)) !important;
+}
+
+.admin-content-shell table th:last-child,
+.admin-content-shell table td:last-child {
+  padding-right: max(14px, var(--admin-card-edge)) !important;
+}
+
+.admin-content-shell :where(input, select, textarea) {
+  padding-inline: 13px !important;
+}
+
+/* Professional locale tabs: both choices remain visible, current language is
+ * indicated by an underline instead of an input-looking bordered box.
+ */
+.admin-topbar .admin-language-toggle {
+  position: relative;
+  display: inline-flex !important;
+  align-items: stretch;
+  gap: 14px;
+  min-width: 0 !important;
+  min-height: 36px;
+  padding: 0 2px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-topbar .admin-language-toggle button,
+.admin-topbar .admin-language-toggle button[aria-pressed='true'],
+.admin-topbar .admin-language-toggle button[aria-pressed='false'] {
+  position: relative;
+  min-width: 0 !important;
+  min-height: 36px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #718096 !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+}
+
+.admin-topbar .admin-language-toggle button::after {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  left: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: transparent;
+  content: '';
+  transform: scaleX(.3);
+  transition: background .16s ease, transform .16s ease;
+}
+
+.admin-topbar .admin-language-toggle button:hover {
+  color: #cbd5e1 !important;
+}
+
+.admin-topbar .admin-language-toggle button[aria-pressed='true'] {
+  color: #f8fafc !important;
+}
+
+.admin-topbar .admin-language-toggle button[aria-pressed='true']::after {
+  background: #7c8cff;
+  transform: scaleX(1);
+}
+
+.admin-topbar .admin-language-toggle button:focus-visible {
+  outline: 2px solid rgb(111 124 255 / 55%);
+  outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  .admin-content-shell .admin-ui-page__head {
+    min-height: 0;
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+    gap: 13px !important;
+    padding: 16px 15px !important;
+  }
+
+  .admin-content-shell .admin-ui-page__head h1 {
+    max-width: none;
+    font-size: clamp(25px, 8vw, 31px) !important;
+  }
+
+  .admin-content-shell .admin-ui-page__actions {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+
+  .admin-content-shell .admin-ui-page__actions .admin-ui-button {
+    width: auto !important;
+    min-width: 112px;
+  }
+
+  .admin-content-shell table th,
+  .admin-content-shell table td {
+    padding: 10px 12px !important;
+  }
+
+  .admin-topbar .admin-language-toggle {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 430px) {
+  .admin-content-shell {
+    --admin-page-edge: 14px;
+    --admin-card-edge: 12px;
+  }
+
+  .admin-content-shell .admin-ui-page__actions .admin-ui-button {
+    width: 100% !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-topbar .admin-language-toggle button::after {
+    transition: none;
+  }
+}
