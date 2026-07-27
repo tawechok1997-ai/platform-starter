@@ -1,0 +1,63 @@
+name: Rebuild CMS Clean Branch
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Copy only CMS product files onto latest main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin feat/admin-settings-media-system-v2
+          git switch -C feat/admin-settings-media-system-v3-clean origin/main
+
+          git checkout origin/feat/admin-settings-media-system-v2 -- \
+            apps/api/src/modules/promotions/promotions-media.spec.ts \
+            apps/api/src/modules/promotions/promotions-query.service.ts \
+            apps/api/src/modules/settings/cms-assets.service.spec.ts \
+            apps/api/src/modules/settings/cms-assets.service.ts \
+            apps/web-admin/src/features/cms/content-center-contract.ts \
+            apps/web-admin/src/features/cms/content-center-media-page.tsx \
+            apps/web-admin/src/features/cms/content-center-page.tsx \
+            apps/web-admin/src/features/cms/media-contract.ts \
+            apps/web-admin/src/features/cms/promotion-center-media-page.tsx \
+            apps/web-admin/src/features/cms/promotion-center-page.tsx \
+            apps/web-admin/src/features/cms/use-admin-permissions.ts \
+            apps/web-member/app/browse/browse-promotion-detail-cms.tsx \
+            apps/web-member/app/browse/browse-promotions-cms.tsx \
+            'apps/web-member/app/browse/promotions/[promotionId]/page.tsx' \
+            apps/web-member/app/browse/promotions/page.tsx \
+            apps/web-member/app/components/member-home/desktop-hero-carousel-media.tsx \
+            apps/web-member/app/components/member-home/desktop-hero-carousel.tsx \
+            apps/web-member/app/components/member-home/home-announcement-model.spec.ts \
+            apps/web-member/app/components/member-home/home-reference-sections.spec.ts \
+            apps/web-member/app/components/member-home/mobile-v47-scaffold.tsx \
+            apps/web-member/app/components/member-home/promotion-carousel-model.spec.ts \
+            apps/web-member/app/site-settings-media.ts \
+            apps/web-member/app/site-settings.ts \
+            tools/audit-r012-feature-boundaries.mjs \
+            tools/audit-r012-promotion-boundary.mjs \
+            tools/audit-shared-api-client.mjs
+
+          git rm -f --ignore-unmatch \
+            .github/workflows/admin-media-promotion-finalize.yml \
+            .github/workflows/admin-media-promotion-pr.yml \
+            docs/.trigger-admin-media-promotion-finalize
+
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "feat(cms): rebuild responsive media system on latest main"
+          git push --force origin HEAD:feat/admin-settings-media-system-v3-clean
