@@ -13,7 +13,8 @@ test('quick actions keep navigation and feature flags as source of truth', () =>
   assert.match(quickActionsSource, /transactions/);
   assert.match(quickActionsSource, /bonus/);
   assert.match(highlightsSource, /features:\s*MemberFeatureFlags/);
-  assert.match(memberHomeSource, /features={features}/);
+  assert.match(memberHomeSource, /useMemberHomeData\(features\.games\)/);
+  assert.match(memberHomeSource, /showPromotion={props\.showPromotion && features\.games}/);
 });
 
 test('quick actions use the shared BrandIcon renderer only', () => {
