@@ -4,8 +4,9 @@ import Image from 'next/image';
 import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminButton, AdminCard, AdminGrid, AdminNotice, AdminPage, AdminStack, AdminToolbar } from '../_components/admin-ui';
+import { AdminButton, AdminNotice, AdminPage } from '../_components/admin-ui';
 import { useAdminSettingsForm } from './use-admin-settings-form';
+import styles from './settings-professional.module.css';
 
 type FieldType = 'text' | 'textarea' | 'checkbox' | 'color' | 'date';
 type FieldConfig = {
@@ -78,7 +79,7 @@ export default function SettingsSectionPage({ group, title, description, fields,
         method: 'POST',
         body: JSON.stringify({
           name: `${field.label} (${file.name})`,
-          tag: 'branding',
+          tag: group === 'icons' ? 'icon' : 'branding',
           type: 'image',
           dataUrl,
         }),
@@ -99,7 +100,7 @@ export default function SettingsSectionPage({ group, title, description, fields,
         [assetMetaKey(field.key, 'sha256')]: data.sha256 ?? '',
         [assetMetaKey(field.key, 'disabled_url')]: '',
       }));
-      setMessage(`อัปโหลด ${field.label} แล้ว กด Save Changes เพื่อบันทึกการใช้งาน`);
+      setMessage(`อัปโหลด ${field.label} แล้ว ตรวจตัวอย่างและกดบันทึกเพื่อใช้งาน`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : `อัปโหลด ${field.label} ไม่สำเร็จ`);
     } finally {
@@ -116,7 +117,7 @@ export default function SettingsSectionPage({ group, title, description, fields,
         [assetMetaKey(field.key, 'disabled_url')]: currentUrl || String(current[assetMetaKey(field.key, 'disabled_url')] ?? ''),
       };
     });
-    setMessage(`ปิดใช้งาน ${field.label} แล้ว กด Save Changes เพื่อบันทึก`);
+    setMessage(`ปิดใช้งาน ${field.label} แล้ว กดบันทึกเพื่อยืนยัน`);
   }
 
   function restoreAsset(field: FieldConfig) {
@@ -129,38 +130,86 @@ export default function SettingsSectionPage({ group, title, description, fields,
       );
       return { ...current, [field.key]: restoredUrl };
     });
-    setMessage(`คืนค่า ${field.label} แล้ว กด Save Changes เพื่อบันทึก`);
+    setMessage(`คืนค่า ${field.label} แล้ว กดบันทึกเพื่อยืนยัน`);
   }
 
   const busy = saving || uploadingKey !== null;
+  const configuredCount = fields.filter((field) => hasConfiguredValue(form[field.key])).length;
 
   return (
-    <AdminPage eyebrow="Settings" title={title} description={description} actions={<a href="/settings">← Settings</a>}>
-      {message && <AdminNotice>{message}</AdminNotice>}
-      {isDirty && <AdminNotice>มีการแก้ไขที่ยังไม่ได้บันทึก — กด Save Changes เพื่อบันทึก หรือ Reset เพื่อย้อนกลับค่าล่าสุดจากระบบ</AdminNotice>}
-      <AdminGrid>
-        <AdminCard title="Configuration" description="แก้ค่าหลักของหมวดนี้ แล้วกด Save Changes">
-          <form onSubmit={onSubmit}>
-            <AdminToolbar>
-              {fields.map((field) => (
-                <FieldInput
-                  key={field.key}
-                  field={field}
-                  value={form[field.key]}
-                  uploading={uploadingKey === field.key}
-                  onChange={(value) => update(field.key, value)}
-                  onUpload={(file) => void uploadAsset(field, file)}
-                  onDisable={() => disableAsset(field)}
-                  onRestore={() => restoreAsset(field)}
-                />
-              ))}
-              <AdminButton type="submit" disabled={busy}>{saving ? 'กำลังบันทึก...' : 'Save Changes'}</AdminButton>
-              <AdminButton type="button" tone="secondary" disabled={!isDirty || busy} onClick={reset}>Reset</AdminButton>
-            </AdminToolbar>
-          </form>
-        </AdminCard>
-        <AdminCard title="Preview" description="ตัวอย่างค่าที่กำลังตั้งอยู่"><Preview type={preview} form={form} title={title} /></AdminCard>
-      </AdminGrid>
+    <AdminPage
+      eyebrow="การตั้งค่าระบบ"
+      title={title}
+      description={description}
+      actions={<a href="/settings">← กลับหน้าการตั้งค่า</a>}
+    >
+      <div className={styles.page}>
+        <section className={styles.contextBar} aria-label="สถานะการตั้งค่า">
+          <div className={styles.contextCopy}>
+            <strong>{humanizeGroup(group)}</strong>
+            <span>แก้ไข ตรวจตัวอย่าง และบันทึกจากพื้นที่เดียว โดยค่าจะมีผลหลังบันทึกสำเร็จ</span>
+          </div>
+          <div className={styles.contextMeta}>
+            <span className={styles.pill}>{configuredCount}/{fields.length} ค่า</span>
+            <span className={styles.pill} data-tone={isDirty ? 'warning' : 'success'}>{isDirty ? 'ยังไม่บันทึก' : 'ข้อมูลล่าสุด'}</span>
+            {uploadingKey && <span className={styles.pill} data-tone="warning">กำลังอัปโหลด</span>}
+          </div>
+        </section>
+
+        {message && <AdminNotice>{message}</AdminNotice>}
+
+        <div className={styles.layout}>
+          <section className={styles.editor}>
+            <header className={styles.editorHeader}>
+              <div>
+                <h2>ค่าการทำงาน</h2>
+                <p>ข้อมูลถูกจัดเป็นฟอร์มมาตรฐานเดียวกัน รองรับข้อความ สวิตช์ สี วันที่ และไฟล์ภาพ</p>
+              </div>
+              <span className={styles.pill}>{fields.length} ช่อง</span>
+            </header>
+
+            <form className={styles.form} onSubmit={onSubmit}>
+              <div className={styles.fieldGrid}>
+                {fields.map((field) => (
+                  <FieldInput
+                    key={field.key}
+                    field={field}
+                    value={form[field.key]}
+                    uploading={uploadingKey === field.key}
+                    onChange={(value) => update(field.key, value)}
+                    onUpload={(file) => void uploadAsset(field, file)}
+                    onDisable={() => disableAsset(field)}
+                    onRestore={() => restoreAsset(field)}
+                  />
+                ))}
+              </div>
+
+              <footer className={styles.actionBar}>
+                <div className={styles.actionCopy}>
+                  <strong>{isDirty ? 'มีการแก้ไขที่ยังไม่บันทึก' : 'ค่าปัจจุบันตรงกับระบบ'}</strong>
+                  <span>{busy ? 'กำลังดำเนินการ กรุณารอสักครู่' : 'ตรวจ Preview ก่อนบันทึก โดยเฉพาะค่าที่มีผลต่อสมาชิก'}</span>
+                </div>
+                <div className={styles.actionButtons}>
+                  <AdminButton type="button" tone="secondary" disabled={!isDirty || busy} onClick={reset}>ยกเลิกการแก้ไข</AdminButton>
+                  <AdminButton type="submit" disabled={busy}>{saving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}</AdminButton>
+                </div>
+              </footer>
+            </form>
+          </section>
+
+          <aside className={styles.previewPanel}>
+            <header className={styles.previewHeader}>
+              <div>
+                <h2>ตัวอย่างก่อนเผยแพร่</h2>
+                <p>แสดงผลจากค่าที่กำลังแก้ไข ยังไม่กระทบผู้ใช้จนกว่าจะบันทึก</p>
+              </div>
+            </header>
+            <div className={styles.previewBody}>
+              <Preview type={preview} form={form} title={title} />
+            </div>
+          </aside>
+        </div>
+      </div>
     </AdminPage>
   );
 }
@@ -175,27 +224,56 @@ function FieldInput({ field, value, uploading, onChange, onUpload, onDisable, on
   onRestore: () => void;
 }) {
   const type = field.type ?? 'text';
-  if (type === 'checkbox') return <label style={checkboxStyle}><input type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} /> {field.label}</label>;
-  if (type === 'textarea') return <label style={labelStyle}>{field.label}<textarea value={String(value ?? '')} placeholder={field.placeholder} onChange={(event) => onChange(event.target.value)} /></label>;
+  if (type === 'checkbox') {
+    return (
+      <label className={styles.switchField}>
+        <span className={styles.switchCopy}>
+          <strong>{field.label}</strong>
+          <span>{field.placeholder || 'เปิดหรือปิดการทำงานของตัวเลือกนี้'}</span>
+        </span>
+        <input className={styles.switchInput} type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} />
+      </label>
+    );
+  }
+
   if (field.asset) {
     const displayValue = String(value ?? '').trim();
     return (
-      <div style={assetFieldStyle}>
-        <label style={labelStyle}>{field.label}<input type="text" value={displayValue} placeholder={field.placeholder} onChange={(event) => onChange(event.target.value)} /></label>
-        {isPreviewImage(displayValue) && <Image unoptimized src={displayValue} alt="" width={180} height={72} style={assetPreviewStyle} />}
-        <div style={assetActionsStyle}>
-          <label style={uploadLabelStyle}>
-            {uploading ? 'กำลังอัปโหลด...' : displayValue ? 'Replace' : 'Upload'}
-            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading} onChange={(event) => handleFileChange(event, onUpload)} style={hiddenInputStyle} />
+      <div className={styles.assetField}>
+        <div className={styles.assetEditor}>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>{field.label}<small>URL หรือไฟล์อัปโหลด</small></span>
+            <input type="text" value={displayValue} placeholder={field.placeholder} onChange={(event) => onChange(event.target.value)} />
           </label>
-          <AdminButton type="button" tone="secondary" disabled={uploading || !displayValue} onClick={onDisable}>Disable</AdminButton>
-          <AdminButton type="button" tone="secondary" disabled={uploading} onClick={onRestore}>Restore</AdminButton>
+          <div className={styles.assetActions}>
+            <label className={styles.uploadButton}>
+              {uploading ? 'กำลังอัปโหลด...' : displayValue ? 'เปลี่ยนไฟล์' : 'อัปโหลดไฟล์'}
+              <input className={styles.hiddenInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading} onChange={(event) => handleFileChange(event, onUpload)} />
+            </label>
+            <AdminButton type="button" tone="secondary" disabled={uploading || !displayValue} onClick={onDisable}>ปิดใช้งาน</AdminButton>
+            <AdminButton type="button" tone="secondary" disabled={uploading} onClick={onRestore}>คืนค่าเดิม</AdminButton>
+          </div>
+          <p className={styles.help}>JPEG, PNG, WebP หรือ GIF ไม่เกิน 8 MB การเปลี่ยนแปลงมีผลหลังบันทึก</p>
         </div>
-        <small style={assetHelpStyle}>JPEG, PNG, WebP หรือ GIF ไม่เกิน 8 MB · การเปลี่ยนแปลงจะมีผลหลัง Save Changes</small>
+        <div className={styles.assetPreview}>
+          {isPreviewImage(displayValue)
+            ? <Image unoptimized src={displayValue} alt={`ตัวอย่าง ${field.label}`} width={220} height={112} />
+            : <span>ยังไม่มีรูปสำหรับตัวเลือกนี้</span>}
+        </div>
       </div>
     );
   }
-  return <label style={labelStyle}>{field.label}<input type={type} value={String(value ?? '')} placeholder={field.placeholder} onChange={(event) => onChange(event.target.value)} /></label>;
+
+  const full = type === 'textarea' || field.key.includes('description') || field.key.includes('message') || field.key.includes('script') || field.key.includes('terms') || field.key.includes('privacy') || field.key.includes('cookie');
+  return (
+    <label className={styles.field} data-span={full ? 'full' : 'normal'}>
+      <span className={styles.fieldLabel}>{field.label}<small>{humanizeKey(field.key)}</small></span>
+      {type === 'textarea'
+        ? <textarea value={String(value ?? '')} placeholder={field.placeholder} onChange={(event) => onChange(event.target.value)} />
+        : <input type={type} value={String(value ?? '')} placeholder={field.placeholder} onChange={(event) => onChange(event.target.value)} />}
+      {field.placeholder && <p className={styles.help}>{field.placeholder}</p>}
+    </label>
+  );
 }
 
 function Preview({ type, form, title }: { type: string; form: SettingsRecord; title: string }) {
@@ -206,17 +284,66 @@ function Preview({ type, form, title }: { type: string; form: SettingsRecord; ti
     const text = String(form.text_color ?? '#ffffff');
     const logo = String(form.logo_url ?? '').trim();
     const contrastWarnings = buildContrastWarnings({ primary, bg, card, text });
-    return <div style={{ background: bg, color: text, borderRadius: 16, padding: 16, overflowWrap: 'anywhere' }}>{isPreviewImage(logo) ? <Image unoptimized src={logo} alt="Brand logo preview" width={220} height={88} style={brandingLogoStyle} /> : <strong>Logo</strong>}{contrastWarnings.length > 0 && <div style={contrastWarningStyle}>{contrastWarnings.join(' • ')}</div>}<div style={{ background: card, borderRadius: 14, padding: 14, marginTop: 12 }}><p>Balance Card</p><button style={{ background: primary, color: readableTextColor(primary), border: 0, borderRadius: 10, padding: '8px 14px' }}>ฝากเงิน</button>{' '}<button style={{ borderRadius: 10, padding: '8px 14px' }}>ถอนเงิน</button></div></div>;
+    return (
+      <div className={styles.previewFrame} style={{ background: bg, color: text }}>
+        {isPreviewImage(logo) ? <Image unoptimized src={logo} alt="ตัวอย่างโลโก้" width={220} height={88} /> : <strong>โลโก้เว็บไซต์</strong>}
+        {contrastWarnings.length > 0 && <div className={styles.warning}>{contrastWarnings.join(' • ')}</div>}
+        <section className={styles.previewSection} style={{ background: card, padding: 12, borderRadius: 10 }}>
+          <small>กระเป๋าเงิน</small>
+          <h3>฿12,450.00</h3>
+          <div><button style={{ background: primary, color: readableTextColor(primary), border: 0, borderRadius: 8, padding: '7px 12px' }}>ฝากเงิน</button></div>
+        </section>
+      </div>
+    );
   }
+
   if (type === 'icons') {
-    return <div style={iconPreviewGridStyle}>{Object.entries(form).map(([key, value]) => {
-      const displayValue = String(value ?? '').trim();
-      return <div key={key} style={iconPreviewItemStyle}><span style={iconPreviewImageStyle}>{isPreviewImage(displayValue) ? <Image unoptimized src={displayValue} alt="" width={52} height={52} style={iconImageStyle} /> : <strong>{displayValue || '–'}</strong>}</span><small style={iconPreviewLabelStyle}>{humanizeIconKey(key)}</small></div>;
-    })}</div>;
+    return (
+      <div className={styles.iconGrid}>
+        {Object.entries(form).filter(([key]) => !key.includes('__asset_')).map(([key, value]) => {
+          const displayValue = String(value ?? '').trim();
+          return (
+            <div className={styles.iconItem} key={key}>
+              {isPreviewImage(displayValue) ? <Image unoptimized src={displayValue} alt="" width={46} height={46} /> : <strong>{displayValue || '–'}</strong>}
+              <small>{humanizeIconKey(key)}</small>
+            </div>
+          );
+        })}
+      </div>
+    );
   }
-  if (type === 'maintenance') return <div style={previewBoxStyle}><p>Maintenance: {form.enabled ? 'ON' : 'OFF'}</p><p>Message: {form.message ?? 'ระบบกำลังปรับปรุง'}</p><p>Deposit: {form.deposit_enabled ? 'ปิดปรับปรุง' : 'เปิดใช้งาน'}</p><p>Withdraw: {form.withdraw_enabled ? 'ปิดปรับปรุง' : 'เปิดใช้งาน'}</p></div>;
-  if (type === 'legal') return <div style={previewBoxStyle}><strong>{title}</strong><p>Version: {form.version || 'ยังไม่ระบุ'}</p><p>Effective date: {form.effective_date || 'ยังไม่ระบุ'}</p><AdminStack>{['terms', 'privacy', 'cookie'].map((key) => <section key={key} style={legalPreviewSectionStyle}><strong>{key}</strong><p>{String(form[key] || 'ยังไม่มีเนื้อหา').slice(0, 420)}</p></section>)}</AdminStack></div>;
-  return <div style={previewBoxStyle}><strong>{title}</strong><AdminStack>{Object.entries(form).slice(0, 8).map(([key, value]) => <p key={key}>{key}: {String(value)}</p>)}</AdminStack></div>;
+
+  if (type === 'maintenance') {
+    return (
+      <div className={styles.previewFrame}>
+        <h3>{form.enabled ? 'ระบบอยู่ในโหมดปิดปรับปรุง' : 'ระบบเปิดใช้งานตามปกติ'}</h3>
+        <p>{String(form.message ?? 'ระบบกำลังปรับปรุง')}</p>
+        <section className={styles.previewSection}><small>บริการ</small><p>ฝาก: {form.deposit_enabled ? 'ปิด' : 'เปิด'} · ถอน: {form.withdraw_enabled ? 'ปิด' : 'เปิด'}</p></section>
+      </div>
+    );
+  }
+
+  if (type === 'legal') {
+    return (
+      <div className={styles.previewFrame}>
+        <h3>{title}</h3>
+        <p>เวอร์ชัน {String(form.version || 'ยังไม่ระบุ')} · มีผล {String(form.effective_date || 'ยังไม่ระบุ')}</p>
+        {['terms', 'privacy', 'cookie'].map((key) => <section className={styles.previewSection} key={key}><small>{key}</small><p>{String(form[key] || 'ยังไม่มีเนื้อหา').slice(0, 320)}</p></section>)}
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.previewFrame}>
+      <h3>{title}</h3>
+      {Object.entries(form).filter(([key]) => !key.includes('__asset_')).slice(0, 10).map(([key, value]) => (
+        <section className={styles.previewSection} key={key}>
+          <small>{humanizeKey(key)}</small>
+          <p>{typeof value === 'boolean' ? (value ? 'เปิดใช้งาน' : 'ปิดใช้งาน') : String(value || 'ยังไม่กำหนด')}</p>
+        </section>
+      ))}
+    </div>
+  );
 }
 
 function validateImageFile(file: File) {
@@ -246,29 +373,34 @@ function assetMetaKey(fieldKey: string, suffix: string) {
 }
 
 function firstNonEmptyString(...values: unknown[]) {
-  for (const value of values) {
-    if (typeof value === 'string' && value.trim()) return value.trim();
-  }
+  for (const value of values) if (typeof value === 'string' && value.trim()) return value.trim();
   return '';
 }
 
-const labelStyle = { display: 'grid', gap: 6, fontWeight: 800 } as const;
-const checkboxStyle = { display: 'flex', alignItems: 'center', gap: 8, minHeight: 46, fontWeight: 800 } as const;
-const previewBoxStyle = { border: '1px solid rgba(148,163,184,.18)', borderRadius: 14, padding: 16, background: 'rgba(148,163,184,.06)', overflowWrap: 'anywhere' as const } as const;
-const legalPreviewSectionStyle = { borderTop: '1px solid rgba(148,163,184,.16)', paddingTop: 12 } as const;
-const contrastWarningStyle = { marginTop: 10, padding: 10, border: '1px solid rgba(248,113,113,.45)', borderRadius: 12, background: 'rgba(127,29,29,.42)', color: '#fee2e2', fontWeight: 800 } as const;
-const iconPreviewGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(108px, 1fr))', gap: 12 } as const;
-const iconPreviewItemStyle = { display: 'grid', justifyItems: 'center', gap: 8, minWidth: 0, padding: 12, border: '1px solid rgba(148,163,184,.18)', borderRadius: 14, background: 'rgba(148,163,184,.06)' } as const;
-const iconPreviewImageStyle = { display: 'grid', placeItems: 'center', width: 52, height: 52 } as const;
-const iconImageStyle = { display: 'block', width: '100%', height: '100%', objectFit: 'contain' as const } as const;
-const iconPreviewLabelStyle = { maxWidth: '100%', overflowWrap: 'anywhere' as const, textAlign: 'center' as const, opacity: 0.82 } as const;
-const assetFieldStyle = { display: 'grid', gap: 10, padding: 12, border: '1px solid rgba(148,163,184,.18)', borderRadius: 14, background: 'rgba(148,163,184,.04)' } as const;
-const assetActionsStyle = { display: 'flex', flexWrap: 'wrap' as const, gap: 8, alignItems: 'center' } as const;
-const uploadLabelStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 40, padding: '0 14px', borderRadius: 10, background: 'rgba(245,197,66,.16)', border: '1px solid rgba(245,197,66,.4)', fontWeight: 800, cursor: 'pointer' } as const;
-const hiddenInputStyle = { display: 'none' } as const;
-const assetHelpStyle = { opacity: 0.72, lineHeight: 1.5 } as const;
-const assetPreviewStyle = { display: 'block', width: '100%', maxWidth: 240, height: 88, objectFit: 'contain' as const, borderRadius: 10, background: 'rgba(148,163,184,.08)' } as const;
-const brandingLogoStyle = { display: 'block', width: 'auto', maxWidth: '100%', height: 88, objectFit: 'contain' as const } as const;
+function hasConfiguredValue(value: SettingsValue | undefined) {
+  if (typeof value === 'boolean') return true;
+  if (typeof value === 'number') return Number.isFinite(value);
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function humanizeGroup(group: string) {
+  const labels: Record<string, string> = {
+    branding: 'แบรนด์และภาพลักษณ์',
+    icons: 'ไอคอนและเมนู',
+    theme: 'ธีมและการแสดงผล',
+    seo: 'การค้นหาและการแชร์',
+    contact: 'ช่องทางติดต่อ',
+    maintenance: 'โหมดปิดปรับปรุง',
+    scripts: 'สคริปต์ติดตามผล',
+    features: 'การเปิดปิดฟีเจอร์',
+    legal: 'เอกสารทางกฎหมาย',
+  };
+  return labels[group] ?? humanizeKey(group);
+}
+
+function humanizeKey(key: string) {
+  return key.replaceAll('_', ' ').replace(/\b\w/g, (character) => character.toUpperCase());
+}
 
 function isPreviewImage(value: string) {
   if (value.startsWith('/') && !value.startsWith('//') && !value.includes('\\')) return true;
@@ -286,13 +418,16 @@ function humanizeIconKey(key: string) {
 
 function buildContrastWarnings(colors: { primary: string; bg: string; card: string; text: string }) {
   const warnings: string[] = [];
-  if (contrastRatio(colors.text, colors.bg) < 4.5) warnings.push('Text/Background contrast ต่ำกว่า WCAG AA 4.5:1');
-  if (contrastRatio(colors.text, colors.card) < 4.5) warnings.push('Text/Card contrast ต่ำกว่า WCAG AA 4.5:1');
-  if (contrastRatio(readableTextColor(colors.primary), colors.primary) < 4.5) warnings.push('Button color contrast ต่ำกว่า WCAG AA 4.5:1');
+  if (contrastRatio(colors.text, colors.bg) < 4.5) warnings.push('ข้อความกับพื้นหลังมี Contrast ต่ำกว่า WCAG AA');
+  if (contrastRatio(colors.text, colors.card) < 4.5) warnings.push('ข้อความกับการ์ดมี Contrast ต่ำกว่า WCAG AA');
+  if (contrastRatio(readableTextColor(colors.primary), colors.primary) < 4.5) warnings.push('สีปุ่มมี Contrast ต่ำกว่า WCAG AA');
   return warnings;
 }
 
-function readableTextColor(background: string) { return contrastRatio('#000000', background) >= contrastRatio('#ffffff', background) ? '#000000' : '#ffffff'; }
+function readableTextColor(background: string) {
+  return contrastRatio('#000000', background) >= contrastRatio('#ffffff', background) ? '#000000' : '#ffffff';
+}
+
 function contrastRatio(foreground: string, background: string) {
   const a = relativeLuminance(foreground);
   const b = relativeLuminance(background);
@@ -300,6 +435,7 @@ function contrastRatio(foreground: string, background: string) {
   const darker = Math.min(a, b);
   return (lighter + 0.05) / (darker + 0.05);
 }
+
 function relativeLuminance(hex: string) {
   const rgb = parseHexColor(hex);
   if (!rgb) return 1;
@@ -310,6 +446,7 @@ function relativeLuminance(hex: string) {
   const [red, green, blue] = rgb;
   return 0.2126 * linearize(red) + 0.7152 * linearize(green) + 0.0722 * linearize(blue);
 }
+
 function parseHexColor(value: string): RgbColor | null {
   const match = /^#?([0-9a-f]{6})$/i.exec(value.trim());
   const hex = match?.[1];

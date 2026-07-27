@@ -75,22 +75,32 @@ test('branding workflow preserves draft publish preview history and rollback own
   assert.match(historyPageSource, /rollback/);
 });
 
-test('branding workflow uses the existing Admin design-system primitives', () => {
-  assert.match(workflowPanelSource, /AdminActionStrip/);
+test('branding workflow uses professional shared confirmation and navigation primitives', () => {
   assert.match(workflowPanelSource, /AdminLinkButton/);
   assert.match(workflowPanelSource, /AdminNotice/);
   assert.match(workflowPanelSource, /AdminButton/);
+  assert.match(workflowPanelSource, /AdminConfirmDialog/);
+  assert.match(workflowPanelSource, /className=\{styles\.workflow\}/);
+  assert.doesNotMatch(workflowPanelSource, /window\.confirm/);
   assert.doesNotMatch(workflowPanelSource, /linkStyle/);
+});
+
+test('branding history uses shared confirmation and structured before-after values', () => {
+  assert.match(historyPageSource, /AdminConfirmDialog/);
+  assert.match(historyPageSource, /className=\{styles\.historyGrid\}/);
+  assert.match(historyPageSource, /ค่าก่อนหน้า/);
+  assert.match(historyPageSource, /ค่าหลังแก้/);
+  assert.doesNotMatch(historyPageSource, /window\.confirm/);
 });
 
 test('branding asset lifecycle keeps the shared upload transport and safe restore controls', () => {
   assert.match(settingsSectionSource, /\/admin\/settings\/cms-assets/);
-  assert.match(settingsSectionSource, /Upload/);
-  assert.match(settingsSectionSource, /Replace/);
-  assert.match(settingsSectionSource, /Disable/);
-  assert.match(settingsSectionSource, /Restore/);
+  assert.match(settingsSectionSource, /Upload|อัปโหลด/);
+  assert.match(settingsSectionSource, /Replace|เปลี่ยนไฟล์/);
+  assert.match(settingsSectionSource, /Disable|ปิดใช้งาน/);
+  assert.match(settingsSectionSource, /Restore|คืนค่าเดิม/);
   assert.match(settingsSectionSource, /disabled_url/);
-  assert.match(settingsSectionSource, /Save Changes/);
+  assert.match(settingsSectionSource, /Save Changes|บันทึกการตั้งค่า/);
 });
 
 test('full-page branding preview supports desktop tablet and mobile contracts', () => {

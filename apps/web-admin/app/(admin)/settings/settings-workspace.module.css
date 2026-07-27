@@ -1,13 +1,14 @@
 .workspace {
   display: grid;
   min-width: 0;
-  gap: 18px;
+  gap: 22px;
 }
 
 .section {
   display: grid;
   min-width: 0;
   gap: 12px;
+  padding-top: 2px;
 }
 
 .section > header {
@@ -15,10 +16,13 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
+  min-width: 0;
+  padding: 0 3px;
 }
 
 .section > header > div {
   display: grid;
+  min-width: 0;
   gap: 4px;
 }
 
@@ -28,37 +32,79 @@
 }
 
 .section h2 {
+  color: #f8fafc;
   font-size: 1rem;
-  font-weight: 760;
+  font-weight: 820;
+  letter-spacing: -.015em;
+  line-height: 1.35;
 }
 
 .section p {
   max-width: 72ch;
-  color: color-mix(in srgb, currentColor 62%, transparent);
-  font-size: .82rem;
+  color: #91a0b5;
+  font-size: .75rem;
   line-height: 1.55;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 12px;
 }
 
 .card {
+  position: relative;
   min-width: 0;
 }
 
 .card > * {
   height: 100%;
+  min-height: 164px;
+  overflow: hidden;
+  border-color: rgb(148 163 184 / 14%) !important;
+  background: linear-gradient(145deg, rgb(15 28 44 / 97%), rgb(10 20 33 / 97%)) !important;
+  box-shadow: inset 0 1px rgb(255 255 255 / 2%);
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.card > *:hover {
+  transform: translateY(-2px);
+  border-color: rgb(111 124 255 / 34%) !important;
+  background: linear-gradient(145deg, rgb(20 34 52 / 98%), rgb(12 23 38 / 98%)) !important;
+}
+
+.card::before {
+  position: absolute;
+  z-index: 2;
+  top: 15px;
+  left: 0;
+  width: 3px;
+  height: 42px;
+  border-radius: 0 999px 999px 0;
+  background: #6366f1;
+  content: '';
+  pointer-events: none;
+}
+
+.card[data-impact='sensitive']::before {
+  background: #f59e0b;
+}
+
+.card[data-impact='operational']::before {
+  background: #2dd4bf;
 }
 
 .card[data-impact='sensitive'] > * {
-  border-color: color-mix(in srgb, #f5c542 28%, transparent);
+  border-color: rgb(245 158 11 / 22%) !important;
 }
 
 .card[data-impact='operational'] > * {
-  border-color: color-mix(in srgb, var(--admin-modern-cyan, #38d5d1) 22%, transparent);
+  border-color: rgb(45 212 191 / 20%) !important;
+}
+
+.card a {
+  min-height: 36px;
+  border-radius: 9px;
 }
 
 .badges {
@@ -71,17 +117,25 @@
 .empty small {
   display: block;
   margin-top: 6px;
-  color: color-mix(in srgb, currentColor 60%, transparent);
+  color: #718096;
   font-weight: 500;
 }
 
 @media (max-width: 720px) {
+  .workspace {
+    gap: 18px;
+  }
+
   .section > header {
     align-items: flex-start;
   }
 
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .card > * {
+    min-height: 0;
   }
 }
 
