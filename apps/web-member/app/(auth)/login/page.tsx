@@ -167,7 +167,7 @@ export default function MemberSignInPage() {
 
             <Link href="/forgot-password" className="public-auth-forgot">{t.forgot}</Link>
             <AntiBotWidget endpoint="member-login" locale={locale} resetKey={captchaResetKey} onToken={handleCaptchaToken} onRequiredChange={handleCaptchaState} />
-            <button type="submit" disabled={disabled} className="public-auth-submit source-login-submit"><span>{loading ? t.submitting : t.submit}</span><i aria-hidden="true" /></button>
+            <button type="submit" disabled={disabled} className="public-auth-submit source-login-submit ui-button ui-button--primary"><span>{loading ? t.submitting : t.submit}</span><i aria-hidden="true" /></button>
             {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
             <div className="source-login-divider" aria-hidden="true" />
             <div className="source-login-support"><span>{t.supportPrompt}</span><Link href="/support">{t.support}</Link></div>
