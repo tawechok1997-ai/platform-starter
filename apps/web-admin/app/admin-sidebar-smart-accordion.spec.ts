@@ -20,17 +20,18 @@ test('loads smart accordion after the legacy static group styles', () => {
 test('keeps only the current route group open and collapses the others', () => {
   assert.match(controller, /usePathname\(\)/);
   assert.match(controller, /querySelector\('a\[aria-current="page"\]'\)/);
-  assert.match(controller, /trigger !== activeTrigger[\s\S]*aria-expanded'\) === 'true'[\s\S]*trigger\.click\(\)/);
-  assert.match(controller, /activeTrigger\.getAttribute\('aria-expanded'\) !== 'true'[\s\S]*activeTrigger\.click\(\)/);
-  assert.match(controller, /closeOtherGroups\(trigger\)/);
+  assert.match(controller, /setGroupExpanded\(group, group === active\)/);
+  assert.match(controller, /group === selectedGroup && shouldOpen/);
+  assert.match(controller, /event\.preventDefault\(\)[\s\S]*event\.stopPropagation\(\)/);
+  assert.match(controller, /dataset\.controllerOpen/);
   assert.match(controller, /removeItem\('admin_nav_open_groups'\)/);
 });
 
 test('restores manual submenu toggles and anchors the profile below navigation', () => {
   assert.match(css, /\.admin-nav-group__trigger[\s\S]*pointer-events: auto !important/);
   assert.match(css, /\.admin-nav-group__chevron[\s\S]*display: inline-flex !important/);
-  assert.match(css, /\.admin-nav-submenu\[data-open='false'\][\s\S]*grid-template-rows: 0fr !important/);
-  assert.match(css, /\.admin-nav-submenu\[data-open='true'\][\s\S]*grid-template-rows: minmax\(0, 1fr\) !important/);
+  assert.match(css, /data-controller-open='false'[\s\S]*grid-template-rows: 0fr !important/);
+  assert.match(css, /data-controller-open='true'[\s\S]*grid-template-rows: minmax\(0, 1fr\) !important/);
   assert.match(css, /\.admin-drawer[\s\S]*grid-template-rows: auto auto minmax\(0, 1fr\) auto !important/);
   assert.match(css, /\.admin-sidebar-footer[\s\S]*align-self: end !important[\s\S]*margin-top: auto !important/);
 });
