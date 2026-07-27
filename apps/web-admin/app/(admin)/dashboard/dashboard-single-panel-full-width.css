@@ -1,0 +1,5 @@
+/* Dashboard-only layout correction: when a two-column grid renders a single panel,
+   let that panel use the full available width instead of reserving an empty column. */
+[class*='twoColumnGrid']:has(> article:only-child) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
