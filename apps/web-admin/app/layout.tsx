@@ -68,9 +68,11 @@ import './admin-full-viewport-layout.css';
 import './admin-professional-authority.css';
 import './admin-permanent-sidebar.css';
 import './admin-static-sidebar-groups.css';
+import './admin-sidebar-smart-accordion.css';
 import './admin-data-page-layout.css';
 import './admin-universal-full-width.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
+import { AdminSidebarBehaviorController } from './admin-sidebar-behavior-controller';
 
 export const metadata: Metadata = {
   title: {
@@ -108,6 +110,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="th" dir="ltr">
       <body data-app-surface="admin">
         {children}
+        <AdminSidebarBehaviorController />
         <AdminMobileDrawerController />
       </body>
     </html>
