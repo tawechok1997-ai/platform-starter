@@ -1,0 +1,123 @@
+name: Admin Media Promotion PR
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: admin-media-promotion-pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  implement-and-verify:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/admin-media-promotion-system
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Extract and run product patch
+        id: patch
+        shell: bash
+        run: |
+          set +e
+          python <<'PY' > media-patch.log 2>&1
+          from pathlib import Path
+          import re
+          import textwrap
+
+          workflow = Path('.github/workflows/admin-media-promotion-finalize.yml').read_text()
+          match = re.search(r"^\s*python <<'PY'\n(?P<body>.*?)(?=^\s*PY\s*$)", workflow, flags=re.MULTILINE | re.DOTALL)
+          if not match:
+              raise SystemExit('Embedded product patch was not found')
+
+          script = textwrap.dedent(match.group('body'))
+
+          old_helper = """def replace(path, old, new, count=1):
+              file = Path(path)
+              source = file.read_text()
+              if old not in source:
+                  raise SystemExit(f'Expected marker not found in {path}: {old[:100]!r}')
+              file.write_text(source.replace(old, new, count))"""
+
+          new_helper = """def replace(path, old, new, count=1):
+              file = Path(path)
+              source = file.read_text()
+              if old in source:
+                  file.write_text(source.replace(old, new, count))
+                  return
+
+              old_lines = old.split('\\n')
+              pattern_lines = []
+              for line in old_lines:
+                  stripped = line.lstrip(' ')
+                  pattern_lines.append(r'^[ \\t]*' + re.escape(stripped))
+              pattern = re.compile('\\n'.join(pattern_lines), flags=re.MULTILINE)
+              match = pattern.search(source)
+              if not match:
+                  raise SystemExit(f'Expected marker not found in {path}: {old[:100]!r}')
+
+              matched_lines = match.group(0).split('\\n')
+              base_indent = matched_lines[0][:(len(matched_lines[0]) - len(matched_lines[0].lstrip(' ')))]
+              new_lines = new.split('\\n')
+              first_indent_size = len(new_lines[0]) - len(new_lines[0].lstrip(' '))
+              rendered_lines = []
+              for line in new_lines:
+                  relative = line[first_indent_size:] if len(line) >= first_indent_size else line.lstrip(' ')
+                  rendered_lines.append(base_indent + relative)
+              rendered = '\\n'.join(rendered_lines)
+              file.write_text(source[:match.start()] + rendered + source[match.end():])"""
+
+          if old_helper not in script:
+              raise SystemExit('Embedded replace helper was not found')
+          script = script.replace(old_helper, new_helper, 1)
+          exec(compile(script, 'admin-media-promotion-patch.py', 'exec'))
+          PY
+          code=$?
+          cat media-patch.log
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload patch diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-media-patch-diagnostics
+          path: media-patch.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Stop after patch failure
+        if: steps.patch.outputs.exit_code != '0'
+        run: exit 1
+      - run: pnpm install --frozen-lockfile=false
+      - name: Admin tests
+        run: pnpm --filter @platform/web-admin test
+      - name: Admin typecheck
+        run: pnpm --filter @platform/web-admin typecheck
+      - name: Admin build
+        run: pnpm --filter @platform/web-admin build
+      - name: Promotion API tests
+        run: pnpm --filter @platform/api test -- promotions-media.spec.ts --runInBand
+      - name: API typecheck
+        run: pnpm --filter @platform/api typecheck
+      - name: API build
+        run: pnpm --filter @platform/api build
+      - name: Commit final product changes
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/admin-media-promotion-finalize.yml .github/workflows/admin-media-promotion-pr.yml docs/.trigger-admin-media-promotion-finalize
+          git add apps/web-admin/src/features/cms apps/api/src/modules/promotions
+          git commit -m 'feat(cms): add responsive promotion and content media'
+          git push origin HEAD:feat/admin-media-promotion-system
