@@ -99,11 +99,13 @@ import './member-alliance-v2.css';
 import './member-source-bundle-behavior.css';
 import './member-v47-mission-color-lock.css';
 import './member-auth-overlay.css';
+import './public-auth-controls.css';
 import MemberChrome from './member-chrome';
 import MemberAllianceBandRepair from './components/member-alliance-band-repair';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import MemberAuthLinkInterceptor from './components/auth/member-auth-link-interceptor';
+import PublicAuthControls from './components/auth/public-auth-controls';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
 
@@ -130,6 +132,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MemberHeroSwipeController />
             <MemberDragScrollController />
             <MemberAuthLinkInterceptor />
+            <PublicAuthControls />
             <MemberChrome>{children}</MemberChrome>
           </MemberSessionProvider>
         </SiteSettingsProvider>
