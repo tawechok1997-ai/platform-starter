@@ -5,7 +5,7 @@ import test from 'node:test';
 
 const appDir = process.cwd().endsWith(`${path.sep}app`) ? process.cwd() : path.join(process.cwd(), 'app');
 const layout = readFileSync(path.join(appDir, 'layout.tsx'), 'utf8');
-const controller = readFileSync(path.join(appDir, 'admin-sidebar-behavior-controller.tsx'), 'utf8');
+const controller = readFileSync(path.join(appDir, 'admin-mobile-drawer-controller.tsx'), 'utf8');
 const css = readFileSync(path.join(appDir, 'admin-sidebar-smart-accordion.css'), 'utf8');
 
 test('loads smart accordion after the legacy static group styles', () => {
@@ -13,14 +13,15 @@ test('loads smart accordion after the legacy static group styles', () => {
   const accordionIndex = layout.indexOf("import './admin-sidebar-smart-accordion.css'");
   assert.ok(staticIndex >= 0);
   assert.ok(accordionIndex > staticIndex);
-  assert.match(layout, /<AdminSidebarBehaviorController \/>/);
+  assert.match(layout, /<AdminMobileDrawerController \/>/);
+  assert.doesNotMatch(layout, /AdminSidebarBehaviorController/);
 });
 
 test('keeps only the current route group open and collapses the others', () => {
   assert.match(controller, /usePathname\(\)/);
   assert.match(controller, /querySelector\('a\[aria-current="page"\]'\)/);
-  assert.match(controller, /trigger !== currentTrigger[\s\S]*aria-expanded'\) === 'true'[\s\S]*trigger\.click\(\)/);
-  assert.match(controller, /currentTrigger\.getAttribute\('aria-expanded'\) !== 'true'[\s\S]*currentTrigger\.click\(\)/);
+  assert.match(controller, /trigger !== activeTrigger[\s\S]*aria-expanded'\) === 'true'[\s\S]*trigger\.click\(\)/);
+  assert.match(controller, /activeTrigger\.getAttribute\('aria-expanded'\) !== 'true'[\s\S]*activeTrigger\.click\(\)/);
   assert.match(controller, /closeOtherGroups\(trigger\)/);
   assert.match(controller, /removeItem\('admin_nav_open_groups'\)/);
 });
