@@ -1,0 +1,28 @@
+/* Embedded Login/Register pages inherit the dimmed backdrop from the parent overlay.
+   Keep the iframe document fully transparent so the source bg-black/80 layer is
+   rendered exactly once instead of stacking two dark backdrops and a blur. */
+html:has(.auth-reference-scope .public-auth-page[data-embedded='true']),
+body:has(.auth-reference-scope .public-auth-page[data-embedded='true']) {
+  margin: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.auth-reference-scope .public-auth-page[data-embedded='true'] {
+  background: transparent !important;
+}
+
+.auth-reference-scope .public-auth-page[data-embedded='true']::before {
+  display: none !important;
+  content: none !important;
+}
+
+.auth-reference-scope .public-auth-page[data-embedded='true'] > .public-auth-ambient,
+.auth-reference-scope .public-auth-page[data-embedded='true'] > .public-auth-backdrop,
+.auth-reference-scope .public-auth-page[data-embedded='true'] > .public-auth-scene {
+  display: none !important;
+  opacity: 0 !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+}
