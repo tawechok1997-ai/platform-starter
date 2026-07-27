@@ -102,6 +102,7 @@ import './member-auth-overlay.css';
 import './public-auth-controls.css';
 import './member-v47-header-exact-source-lock.css';
 import './member-v47-jackpot-exact-source.css';
+import './member-source-highlight.css';
 import MemberChrome from './member-chrome';
 import MemberAllianceBandRepair from './components/member-alliance-band-repair';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
