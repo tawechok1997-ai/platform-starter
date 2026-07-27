@@ -131,15 +131,15 @@
   }
 
   .desktop-reference-home .reference-promo-card--1::before {
-    background-image: url('https://cdn.zabbet.com/FEZX/lobby_settings/cc956ae5-4906-4190-8ee4-84a840a525eb.png') !important;
+    background-image: url('/assets/asset-pc/images/FEZX/lobby_settings/cc956ae5-4906-4190-8ee4-84a840a525eb.png') !important;
   }
 
   .desktop-reference-home .reference-promo-card--2::before {
-    background-image: url('https://cdn.zabbet.com/FEZX/lobby_settings/3e57c423-07f9-4334-80a9-43ebb2040871.png') !important;
+    background-image: url('/assets/asset-pc/images/FEZX/lobby_settings/3e57c423-07f9-4334-80a9-43ebb2040871.png') !important;
   }
 
   .desktop-reference-home .reference-promo-card--3::before {
-    background-image: url('https://cdn.zabbet.com/FEZX/lobby_settings/87c8770e-e158-4491-b511-5e1e271ac486.png') !important;
+    background-image: url('/assets/asset-pc/images/FEZX/lobby_settings/87c8770e-e158-4491-b511-5e1e271ac486.png') !important;
   }
 
   .desktop-reference-home .reference-promo-card > * {
@@ -171,15 +171,15 @@
   }
 
   .desktop-reference-home .reference-promo-card--1 .reference-promo-icon > img {
-    content: url('https://cdn.zabbet.com/FEZX/lobby_settings/9d4a5498-3fd3-49fe-aca2-2fe6266bffdb.png') !important;
+    content: url('/assets/asset-pc/images/FEZX/lobby_settings/9d4a5498-3fd3-49fe-aca2-2fe6266bffdb.png') !important;
   }
 
   .desktop-reference-home .reference-promo-card--2 .reference-promo-icon > img {
-    content: url('https://cdn.zabbet.com/FEZX/lobby_settings/ba6e40e2-2ce7-4ae8-a0dc-344197a35625.png') !important;
+    content: url('/assets/asset-pc/images/FEZX/lobby_settings/ba6e40e2-2ce7-4ae8-a0dc-344197a35625.png') !important;
   }
 
   .desktop-reference-home .reference-promo-card--3 .reference-promo-icon > img {
-    content: url('https://cdn.zabbet.com/FEZX/lobby_settings/ced6a371-3b8f-409b-889f-71f4952cd4cb.png') !important;
+    content: url('/assets/asset-pc/images/FEZX/lobby_settings/ced6a371-3b8f-409b-889f-71f4952cd4cb.png') !important;
   }
 
   .desktop-reference-home .reference-promo-card > span:last-child {
