@@ -96,6 +96,7 @@ import './member-v47-footer-exact-source.css';
 import './member-v47-sidebar-source-match.css';
 import './member-v47-alliance-scroll-lock.css';
 import './member-alliance-v2.css';
+import './member-source-bundle-behavior.css';
 import MemberChrome from './member-chrome';
 import MemberAllianceBandRepair from './components/member-alliance-band-repair';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
