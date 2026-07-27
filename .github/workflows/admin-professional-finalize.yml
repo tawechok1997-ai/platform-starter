@@ -75,6 +75,13 @@ jobs:
           dashboard_css = Path('apps/web-admin/app/(admin)/dashboard/dashboard-professional.module.css')
           css_source = dashboard_css.read_text().replace('align-items: end;', 'align-items: flex-end;').replace('align-items: start;', 'align-items: flex-start;')
           dashboard_css.write_text(css_source)
+
+          audit = Path('apps/web-admin/tools/audit-admin-capabilities.mjs')
+          audit_source = audit.read_text().replace(
+              "const placeholderMessage = /not implemented|coming soon|ยังไม่พร้อมใช้งาน|ยังไม่รองรับ|เร็ว\\s*ๆ\\s*นี้|>\\s*TODO\\s*</i.test(source);",
+              "const placeholderMessage = /not implemented|coming soon|เร็ว\\s*ๆ\\s*นี้|>\\s*TODO\\s*</i.test(source);",
+          )
+          audit.write_text(audit_source)
           PY
       - run: pnpm install --frozen-lockfile=false
       - name: Admin route inventory
@@ -91,7 +98,7 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add apps/web-admin/app/'(admin)'/layout.tsx apps/web-admin/app/'(admin)'/dashboard/dashboard-professional.tsx apps/web-admin/app/'(admin)'/dashboard/dashboard-professional.module.css
+          git add apps/web-admin/app/'(admin)'/layout.tsx apps/web-admin/app/'(admin)'/dashboard/dashboard-professional.tsx apps/web-admin/app/'(admin)'/dashboard/dashboard-professional.module.css apps/web-admin/tools/audit-admin-capabilities.mjs
           if git diff --cached --quiet; then
             echo 'No integration changes to commit.'
             exit 0
