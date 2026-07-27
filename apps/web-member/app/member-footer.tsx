@@ -4,7 +4,7 @@ import type { SyntheticEvent } from 'react';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 import { REFERENCE_BANKS, REFERENCE_HOME_ASSETS } from './components/reference-asset-catalog';
 
-const SOURCE_ROOT = 'https://noah345.shop/images';
+const SOURCE_ROOT = '/assets/asset-pc/images';
 
 const GAME_LINKS = [
   ['คาสิโน', '/games?category=casino'],
@@ -43,7 +43,7 @@ const RESPONSIBLE_BADGES = [
   ['Be Gamble Aware', `${SOURCE_ROOT}/footer/be-gamble-aware.webp`],
 ] as const;
 
-const SOURCE_DESCRIPTION = `เว็บพนันออนไลน์ที่ดีที่สุด
+const LOCAL_BANKS = ['BAAC', 'BAY', 'BBL', 'CIMBT', 'EXIM', 'GHB', 'GSB', 'KBANK', 'KKP', 'KTB', 'LHFG', 'SCB', 'TCD', 'TISCO', 'TMN', 'TTB']\n  .map((name) => ({ name, url: `${SOURCE_ROOT}/banks/TH/${name}.webp` }));\n\nconst SOURCE_DESCRIPTION = `เว็บพนันออนไลน์ที่ดีที่สุด
 พร้อมบริการลูกค้าทุกท่าน ตลอด 24 ชั่วโมง
 มีเกมให้เลือกเล่นมากมาย
 บาคาร่า รูเล็ต ไฮโล เสือมังกร สล็อตออนไลน์ กีฬาออนไลน์
@@ -105,7 +105,7 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
         <section className="member-footer__contact">
           <h3>ติดต่อเรา</h3>
           <a className="member-footer__contact-line" href="/contact" aria-label="ติดต่อฝ่ายบริการผ่าน LINE">
-            <img src={REFERENCE_HOME_ASSETS.line} alt="LINE" loading="lazy" onError={hideBrokenImage} />
+            <img src={`${SOURCE_ROOT}/line.png`} alt="LINE" loading="lazy" onError={hideBrokenImage} />
           </a>
         </section>
       </div>
@@ -115,7 +115,7 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
       <section className="member-footer__payments" aria-label="วิธีการชำระเงิน">
         <h3>วิธีการชำระเงิน</h3>
         <div className="member-footer__bank-grid">
-          {REFERENCE_BANKS.map((bank) => (
+          {LOCAL_BANKS.map((bank) => (
             <span key={bank.name} className="member-footer__bank" title={bank.name}>
               <img src={bank.url} alt={bank.name} loading="lazy" onError={hideBrokenImage} />
             </span>
