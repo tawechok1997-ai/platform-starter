@@ -5,20 +5,13 @@ import test from 'node:test';
 
 const appDir = process.cwd().endsWith(`${path.sep}app`) ? process.cwd() : path.join(process.cwd(), 'app');
 const layout = readFileSync(path.join(appDir, 'layout.tsx'), 'utf8');
-const shellCss = readFileSync(path.join(appDir, 'admin-shell-layout.css'), 'utf8');
-const profileCss = readFileSync(path.join(appDir, 'admin-shell-profile-popover.css'), 'utf8');
-const adoptionCss = readFileSync(path.join(appDir, 'admin-modernization-adoption.css'), 'utf8');
 const viewportCss = readFileSync(path.join(appDir, 'admin-full-viewport-layout.css'), 'utf8');
 const professionalCss = readFileSync(path.join(appDir, 'admin-professional-authority.css'), 'utf8');
 const permanentSidebarCss = readFileSync(path.join(appDir, 'admin-permanent-sidebar.css'), 'utf8');
 const staticGroupsCss = readFileSync(path.join(appDir, 'admin-static-sidebar-groups.css'), 'utf8');
-const controller = readFileSync(path.join(appDir, 'admin-mobile-drawer-controller.tsx'), 'utf8');
 const protectedLayout = readFileSync(path.join(appDir, '(admin)', 'layout.tsx'), 'utf8');
-const navConfig = readFileSync(path.join(appDir, '(admin)', 'admin-nav.ts'), 'utf8');
 const dashboardPage = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'page.tsx'), 'utf8');
 const dashboardProfessional = readFileSync(path.join(appDir, '(admin)', 'dashboard', 'dashboard-professional.tsx'), 'utf8');
-const dataTable = readFileSync(path.join(appDir, '..', 'src', 'features', 'admin-modernization', 'data-table.tsx'), 'utf8');
-const dataTableCss = readFileSync(path.join(appDir, '..', 'src', 'features', 'admin-modernization', 'data-table.module.css'), 'utf8');
 
 const controlsImport = "import './admin-release-controls.css'";
 const shellImport = "import './admin-shell-layout.css'";
