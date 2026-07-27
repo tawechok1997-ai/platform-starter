@@ -9,6 +9,11 @@ import {
   REFERENCE_PROVIDERS,
   type ReferenceAsset,
 } from '../reference-asset-catalog';
+import {
+  resolveHomeGameFallback,
+  resolveHomeGameImage,
+  resolveHomeProviderLogo,
+} from './local-game-asset-resolver';
 import { V47_ASSETS, resolveV47Asset } from './v47-asset-map';
 
 const PROJECT_FALLBACK_BANNERS: CmsContent['banners'] = REFERENCE_HERO_SLIDES.map((slide) => ({
@@ -103,7 +108,7 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
 
       <section className="v47-mobile-panel v47-mobile-guide" data-section-kind="guide"><SectionTitle icon={V47_ASSETS.openGold} title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="v47-mobile-guide-more" href="/guide">ดูทั้งหมด</a></section>
 
-      <section className="v47-mobile-panel v47-mobile-partners"><SectionTitle icon={partner?.url || icons.affiliate} title="พันธมิตรของเรา" /><div data-drag-scroll="true">{providers.length ? providers.map((provider, index) => { const fallbackProvider = REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!; return <span key={`${provider.code}-${index}`}>{provider.logoUrl ? <img src={normalizeUrl(provider.logoUrl)} alt={provider.name || provider.code || fallbackProvider.name} onError={(event) => swapBrokenImage(event, fallbackProvider.url)} /> : <img src={fallbackProvider.url} alt={provider.name || provider.code || fallbackProvider.name} onError={hideBrokenImage} />}</span>; }) : REFERENCE_PROVIDERS.map((provider) => <span key={provider.name}><img src={provider.url} alt={provider.name} loading="lazy" onError={hideBrokenImage} /></span>)}</div></section>
+      <section className="v47-mobile-panel v47-mobile-partners"><SectionTitle icon={partner?.url || icons.affiliate} title="พันธมิตรของเรา" /><div data-drag-scroll="true">{providers.length ? providers.map((provider, index) => { const fallbackProvider = REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!; const logo = resolveHomeProviderLogo(provider) || fallbackProvider.url; return <span key={`${provider.code}-${index}`}><img src={logo} alt={provider.name || provider.code || fallbackProvider.name} onError={(event) => swapBrokenImage(event, fallbackProvider.url)} /></span>; }) : REFERENCE_PROVIDERS.map((provider) => <span key={provider.name}><img src={provider.url} alt={provider.name} loading="lazy" onError={hideBrokenImage} /></span>)}</div></section>
     </section>
   );
 }
@@ -113,8 +118,7 @@ function SectionTitle({ icon, title, action }: { icon: string; title: string; ac
 function GameSection({ kind, title, icon, games, loading, message, fallbackGames }: { kind: 'popular' | 'online' | 'classic'; title: string; icon: string; games: Game[]; loading: boolean; message: string; fallbackGames: ReferenceAsset[] }) { return <section className="v47-mobile-panel" data-section-kind={kind}><SectionTitle icon={icon} title={title} action="ดูทั้งหมด" />{loading ? <div className="v47-mobile-empty">กำลังโหลดเกม...</div> : games.length ? <div className="v47-mobile-game-grid" data-drag-scroll="true">{games.map((game, index) => <a href="/browse/games" key={`${game.id}-${index}`} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><GameImage game={game} /><span>{game.isNew ? 'NEW' : 'HOT'}</span></div><span className="v47-mobile-game-meta"><b>{safeName(game)}</b><small>{game.provider?.name || game.provider?.code || 'Provider'}</small></span></a>)}</div> : <ReferenceGameGrid games={fallbackGames} message={message} />}</section>; }
 function ReferenceGameGrid({ games, message }: { games: ReferenceAsset[]; message: string }) { return <div className="v47-mobile-game-grid" data-drag-scroll="true" aria-label={message || 'เกมจากชุด asset'}>{games.map((game, index) => <a href="/browse/games" key={game.name} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><img src={game.url} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span>HOT</span></div><span className="v47-mobile-game-meta"><b>{game.name}</b><small>NOAH345</small></span></a>)}</div>; }
 function Icon({ value }: { value: string }) { return isImageValue(value) ? <img src={normalizeUrl(value)} alt="" onError={hideBrokenImage} /> : <span>{value}</span>; }
-function GameImage({ game }: { game: Game }) { const fallback = fallbackGameImage(game); const src = resolveGameImage(game) || fallback; return <img src={src} alt={safeName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />; }
-function fallbackGameImage(game: Game) { const seed = `${game.id || ''}:${game.providerGameCode || ''}:${safeName(game)}`; let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0; return REFERENCE_GAMES[Math.abs(hash) % REFERENCE_GAMES.length]!.url; }
+function GameImage({ game }: { game: Game }) { const fallback = resolveHomeGameFallback(game); const src = resolveHomeGameImage(game) || fallback; return <img src={src} alt={safeName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />; }
 function resolveCmsAssetById(content: CmsContent, assetId?: string) { return assetId ? content.assets?.find((asset) => asset.enabled && asset.id === assetId)?.url || '' : ''; }
 function findAsset(content: CmsContent, aliases: string[]) { const keys = aliases.map(normalize); return (content.assets || []).find((asset) => asset.enabled && asset.type === 'image' && asset.url && keys.some((key) => normalize(`${asset.id} ${asset.name} ${asset.tag || ''} ${asset.url}`).includes(key))); }
 function normalize(value: string) { return value.toLowerCase().replace(/[\s_\-./\\]+/g, ''); }
@@ -122,7 +126,6 @@ function uniqueGames(...groups: Game[][]) { const map = new Map<string, Game>();
 function fillGames(primary: Game[], fallback: Game[], count: number) { return uniqueGames(primary || [], fallback).slice(0, count); }
 function uniqueProviders(games: Game[]) { const map = new Map<string, NonNullable<Game['provider']>>(); games.forEach((game) => { const provider = game?.provider; const key = provider?.code || provider?.name; if (key && provider && !map.has(key)) map.set(key, provider); }); return [...map.values()]; }
 function safeName(game: Game) { return typeof game.name === 'string' && game.name.trim() ? game.name : 'Game'; }
-function resolveGameImage(game: Game) { const direct = game.imageUrl || game.iconUrl; if (direct) return normalizeUrl(direct); const media = Array.isArray(game.media) ? game.media : []; const value = media.find((item) => item?.cachedUrl)?.cachedUrl || media.find((item) => item?.sourceUrl)?.sourceUrl || ''; return value ? normalizeUrl(value) : ''; }
 function normalizeUrl(value: string) { return /^https?:\/\//i.test(value) || value.startsWith('/') ? value : `/${value.replace(/^\.\//, '')}`; }
 function isImageValue(value: string) { return /^(https?:\/\/|\/|\.\/)/i.test(value) || /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(value); }
 function fallbackFaqs() { return [{ question: 'ฝากเงินแบบโอนผ่านธนาคาร', answer: 'เลือกธนาคารที่ต้องการและทำตามขั้นตอนบนหน้าฝากเงิน' }, { question: 'ฝากเงินแบบ QR Payment', answer: 'สแกน QR และตรวจสอบยอดเงินก่อนยืนยันรายการ' }, { question: 'เติมเงินไม่เข้า ต้องทำยังไง?', answer: 'ติดต่อฝ่ายบริการพร้อมหลักฐานการทำรายการ' }]; }
