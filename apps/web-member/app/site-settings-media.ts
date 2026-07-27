@@ -8,19 +8,19 @@ export type CmsAsset = {
   name: string;
   url: string;
   type: 'image' | 'video' | 'link';
-  tag?: string;
+  tag?: string | undefined;
   enabled: boolean;
-  source?: 'upload' | 'url' | 'bundled';
-  storageKey?: string;
+  source?: 'upload' | 'url' | 'bundled' | undefined;
+  storageKey?: string | undefined;
 };
 
 export type CmsResponsiveMedia = {
-  imageUrl?: string;
-  desktopImageUrl?: string;
-  mobileImageUrl?: string;
-  assetId?: string;
-  desktopAssetId?: string;
-  mobileAssetId?: string;
+  imageUrl?: string | undefined;
+  desktopImageUrl?: string | undefined;
+  mobileImageUrl?: string | undefined;
+  assetId?: string | undefined;
+  desktopAssetId?: string | undefined;
+  mobileAssetId?: string | undefined;
 };
 
 export type CmsBanner = CmsResponsiveMedia & {
@@ -29,7 +29,7 @@ export type CmsBanner = CmsResponsiveMedia & {
   subtitle: string;
   href: string;
   enabled: boolean;
-  lifecycle?: 'draft' | 'published' | 'archived';
+  lifecycle?: 'draft' | 'published' | 'archived' | undefined;
 };
 
 export type CmsAnnouncement = CmsResponsiveMedia & {
@@ -37,9 +37,9 @@ export type CmsAnnouncement = CmsResponsiveMedia & {
   kind: 'news' | 'event' | 'promotion' | 'system';
   title: string;
   message: string;
-  href?: string;
+  href?: string | undefined;
   enabled: boolean;
-  lifecycle?: 'draft' | 'published' | 'archived';
+  lifecycle?: 'draft' | 'published' | 'archived' | undefined;
 };
 
 export type CmsContent = {
@@ -51,11 +51,17 @@ export type CmsContent = {
     ctaLabel: string;
     href: string;
     enabled: boolean;
-    lifecycle?: 'draft' | 'published' | 'archived';
-    version?: string;
+    lifecycle?: 'draft' | 'published' | 'archived' | undefined;
+    version?: string | undefined;
   };
   announcements: CmsAnnouncement[];
-  faqs: Array<{ id?: string; question: string; answer: string; enabled: boolean; lifecycle?: 'draft' | 'published' | 'archived' }>;
+  faqs: Array<{
+    id?: string | undefined;
+    question: string;
+    answer: string;
+    enabled: boolean;
+    lifecycle?: 'draft' | 'published' | 'archived' | undefined;
+  }>;
 };
 
 export type IconKey =
@@ -95,37 +101,37 @@ export type PromotionCampaign = {
   title: string;
   description: string;
   enabled: boolean;
-  lifecycle?: 'draft' | 'published' | 'archived';
+  lifecycle?: 'draft' | 'published' | 'archived' | undefined;
   bonusType: 'fixed' | 'percent';
   bonusValue: number;
   minDeposit: number;
   maxBonus: number;
   turnoverMultiplier: number;
   claimMode: 'manual_review' | 'auto_pending';
-  imageUrl?: string;
-  desktopImageUrl?: string;
-  mobileImageUrl?: string;
-  desktopAssetId?: string;
-  mobileAssetId?: string;
-  iconUrl?: string;
-  badgeText?: string;
-  accentColor?: string;
-  href?: string;
-  priority?: number;
-  startsAt?: string;
-  endsAt?: string;
+  imageUrl?: string | undefined;
+  desktopImageUrl?: string | undefined;
+  mobileImageUrl?: string | undefined;
+  desktopAssetId?: string | undefined;
+  mobileAssetId?: string | undefined;
+  iconUrl?: string | undefined;
+  badgeText?: string | undefined;
+  accentColor?: string | undefined;
+  href?: string | undefined;
+  priority?: number | undefined;
+  startsAt?: string | undefined;
+  endsAt?: string | undefined;
 };
 
 export type PublicSiteSettings = {
-  website?: Record<string, unknown>;
-  branding?: Record<string, unknown>;
-  theme?: Record<string, unknown>;
-  icons?: Record<string, unknown>;
-  seo?: Record<string, unknown>;
-  contact?: Record<string, unknown>;
-  maintenance?: Record<string, unknown>;
-  features?: Record<string, unknown>;
-  legal?: Record<string, unknown>;
+  website?: Record<string, unknown> | undefined;
+  branding?: Record<string, unknown> | undefined;
+  theme?: Record<string, unknown> | undefined;
+  icons?: Record<string, unknown> | undefined;
+  seo?: Record<string, unknown> | undefined;
+  contact?: Record<string, unknown> | undefined;
+  maintenance?: Record<string, unknown> | undefined;
+  features?: Record<string, unknown> | undefined;
+  legal?: Record<string, unknown> | undefined;
 };
 
 const HERO_ROOT = '/assets/asset-pc/images/FEZX/imageslides';
@@ -166,37 +172,139 @@ export const defaultCmsContent: CmsContent = {
     enabled: true,
     lifecycle: 'published',
   })),
-  popup: { title: 'ประกาศ', message: 'ยินดีต้อนรับ', ctaLabel: 'ดูเกม', href: '/browse/games', enabled: false, lifecycle: 'draft', version: 'v1', imageUrl: '', desktopImageUrl: '', mobileImageUrl: '', assetId: '', desktopAssetId: '', mobileAssetId: '' },
-  announcements: [{ id: 'system-ready', kind: 'system', title: 'ระบบพร้อมใช้งาน', message: 'ฝาก ถอน และเกมเปิดให้บริการตามปกติ', href: '/support', enabled: true, lifecycle: 'published', imageUrl: '', desktopImageUrl: '', mobileImageUrl: '', assetId: '', desktopAssetId: '', mobileAssetId: '' }],
-  faqs: [{ id: 'deposit-duration', question: 'ฝากใช้เวลานานไหม', answer: 'หลังแนบสลิป แอดมินจะตรวจและอนุมัติให้เร็วที่สุด', enabled: true, lifecycle: 'published' }],
+  popup: {
+    title: 'ประกาศ',
+    message: 'ยินดีต้อนรับ',
+    ctaLabel: 'ดูเกม',
+    href: '/browse/games',
+    enabled: false,
+    lifecycle: 'draft',
+    version: 'v1',
+    imageUrl: '',
+    desktopImageUrl: '',
+    mobileImageUrl: '',
+    assetId: '',
+    desktopAssetId: '',
+    mobileAssetId: '',
+  },
+  announcements: [{
+    id: 'system-ready',
+    kind: 'system',
+    title: 'ระบบพร้อมใช้งาน',
+    message: 'ฝาก ถอน และเกมเปิดให้บริการตามปกติ',
+    href: '/support',
+    enabled: true,
+    lifecycle: 'published',
+    imageUrl: '',
+    desktopImageUrl: '',
+    mobileImageUrl: '',
+    assetId: '',
+    desktopAssetId: '',
+    mobileAssetId: '',
+  }],
+  faqs: [{
+    id: 'deposit-duration',
+    question: 'ฝากใช้เวลานานไหม',
+    answer: 'หลังแนบสลิป แอดมินจะตรวจและอนุมัติให้เร็วที่สุด',
+    enabled: true,
+    lifecycle: 'published',
+  }],
 };
 
 export const defaultIconSettings: SiteIconSettings = {
-  home: '⌂', deposit: '＋', withdraw: '↗', games: '🎮', bonus: '★', affiliate: '↔', support: '✉', history: '≡', bank: '◈', profile: '👤', notification: '🔔', promotion: '🎁', vip: '♛', wallet: '฿',
+  home: '⌂',
+  deposit: '＋',
+  withdraw: '↗',
+  games: '🎮',
+  bonus: '★',
+  affiliate: '↔',
+  support: '✉',
+  history: '≡',
+  bank: '◈',
+  profile: '👤',
+  notification: '🔔',
+  promotion: '🎁',
+  vip: '♛',
+  wallet: '฿',
 };
 
 export const defaultFeatureFlags: MemberFeatureFlags = {
-  registration: true, login: true, deposit: true, withdraw: true, promotion: true, bonus: true, affiliate: true, support: true, kyc: true, games: true, profile: true, notifications: true,
+  registration: true,
+  login: true,
+  deposit: true,
+  withdraw: true,
+  promotion: true,
+  bonus: true,
+  affiliate: true,
+  support: true,
+  kyc: true,
+  games: true,
+  profile: true,
+  notifications: true,
 };
 
 const defaultPromotionCampaigns: PromotionCampaign[] = [{
-  id: 'welcome-bonus', title: 'โบนัสต้อนรับ', description: 'รับโบนัสสำหรับรายการฝากแรกตามเงื่อนไขที่กำหนด', enabled: false, lifecycle: 'draft', bonusType: 'percent', bonusValue: 10, minDeposit: 100, maxBonus: 500, turnoverMultiplier: 3, claimMode: 'manual_review', imageUrl: '', desktopImageUrl: '', mobileImageUrl: '', desktopAssetId: '', mobileAssetId: '', badgeText: 'WELCOME', accentColor: '#f5c542', href: '/promotions', priority: 10,
+  id: 'welcome-bonus',
+  title: 'โบนัสต้อนรับ',
+  description: 'รับโบนัสสำหรับรายการฝากแรกตามเงื่อนไขที่กำหนด',
+  enabled: false,
+  lifecycle: 'draft',
+  bonusType: 'percent',
+  bonusValue: 10,
+  minDeposit: 100,
+  maxBonus: 500,
+  turnoverMultiplier: 3,
+  claimMode: 'manual_review',
+  imageUrl: '',
+  desktopImageUrl: '',
+  mobileImageUrl: '',
+  desktopAssetId: '',
+  mobileAssetId: '',
+  badgeText: 'WELCOME',
+  accentColor: '#f5c542',
+  href: '/promotions',
+  priority: 10,
 }];
 
 export const defaultSettings: PublicSiteSettings = {
   website: {
-    site_name: 'Platform Starter', site_description: 'Member platform starter', registration_enabled: true, login_enabled: true, maintenance_mode: false,
+    site_name: 'Platform Starter',
+    site_description: 'Member platform starter',
+    registration_enabled: true,
+    login_enabled: true,
+    maintenance_mode: false,
   },
   branding: {
-    primary_color: '#f5c542', background_color: '#080808', card_color: '#181818', text_color: '#ffffff', success_color: '#22c55e', danger_color: '#ef4444',
+    primary_color: '#f5c542',
+    background_color: '#080808',
+    card_color: '#181818',
+    text_color: '#ffffff',
+    success_color: '#22c55e',
+    danger_color: '#ef4444',
   },
   theme: {
-    show_balance_header: true, show_deposit_withdraw_buttons: true, show_promotion_banner: true, show_game_categories: true, show_popular_providers: true, show_recommended_games: true,
+    show_balance_header: true,
+    show_deposit_withdraw_buttons: true,
+    show_promotion_banner: true,
+    show_game_categories: true,
+    show_popular_providers: true,
+    show_recommended_games: true,
   },
   icons: defaultIconSettings,
   maintenance: { enabled: false, member_enabled: false, message: 'ระบบกำลังปรับปรุง' },
   features: {
-    registration_enabled: true, login_enabled: true, deposit_enabled: true, withdraw_enabled: true, promotion_enabled: true, bonus_enabled: true, affiliate_enabled: true, support_enabled: true, kyc_enabled: true, game_lobby_enabled: true, profile_enabled: true, notification_enabled: true,
+    registration_enabled: true,
+    login_enabled: true,
+    deposit_enabled: true,
+    withdraw_enabled: true,
+    promotion_enabled: true,
+    bonus_enabled: true,
+    affiliate_enabled: true,
+    support_enabled: true,
+    kyc_enabled: true,
+    game_lobby_enabled: true,
+    profile_enabled: true,
+    notification_enabled: true,
     cms_content: defaultCmsContent,
     promotion_campaigns: defaultPromotionCampaigns,
   },
@@ -204,7 +312,10 @@ export const defaultSettings: PublicSiteSettings = {
 
 export async function loadPublicSiteSettings(): Promise<PublicSiteSettings> {
   try {
-    const data = await publicSettingsClient.request<PublicSiteSettings>('/public/site-settings', { auth: false, cache: 'no-store' });
+    const data = await publicSettingsClient.request<PublicSiteSettings>('/public/site-settings', {
+      auth: false,
+      cache: 'no-store',
+    });
     return {
       ...defaultSettings,
       ...data,
@@ -229,7 +340,18 @@ function boolSetting(settings: PublicSiteSettings, group: keyof PublicSiteSettin
 export function memberFeatureFlags(settings: PublicSiteSettings): MemberFeatureFlags {
   const feature = (key: string, fallback: boolean) => boolSetting(settings, 'features', key, fallback);
   return {
-    registration: feature('registration_enabled', true), login: feature('login_enabled', true), deposit: feature('deposit_enabled', true), withdraw: feature('withdraw_enabled', true), promotion: feature('promotion_enabled', true), bonus: feature('bonus_enabled', true), affiliate: feature('affiliate_enabled', true), support: feature('support_enabled', true), kyc: feature('kyc_enabled', true), games: feature('game_lobby_enabled', feature('provider_enabled', true)), profile: feature('profile_enabled', true), notifications: feature('notification_enabled', true),
+    registration: feature('registration_enabled', true),
+    login: feature('login_enabled', true),
+    deposit: feature('deposit_enabled', true),
+    withdraw: feature('withdraw_enabled', true),
+    promotion: feature('promotion_enabled', true),
+    bonus: feature('bonus_enabled', true),
+    affiliate: feature('affiliate_enabled', true),
+    support: feature('support_enabled', true),
+    kyc: feature('kyc_enabled', true),
+    games: feature('game_lobby_enabled', feature('provider_enabled', true)),
+    profile: feature('profile_enabled', true),
+    notifications: feature('notification_enabled', true),
   };
 }
 
@@ -241,10 +363,25 @@ export function cmsContentSetting(settings: PublicSiteSettings): CmsContent {
   const assets = mergeAssets(bundledAssets, incomingAssets);
   return {
     assets,
-    banners: Array.isArray(data.banners) && data.banners.length ? data.banners.map(normalizeBanner) : defaultCmsContent.banners,
+    banners: Array.isArray(data.banners) && data.banners.length
+      ? data.banners.map(normalizeBanner)
+      : defaultCmsContent.banners,
     popup: normalizePopup(data.popup),
-    announcements: Array.isArray(data.announcements) ? data.announcements.map(normalizeAnnouncement) : defaultCmsContent.announcements,
-    faqs: Array.isArray(data.faqs) ? data.faqs.map((raw, index) => { const item = asRecord(raw); return { id: String(item.id ?? `faq-${index + 1}`), question: String(item.question ?? ''), answer: String(item.answer ?? ''), enabled: isPublished(item), lifecycle: lifecycle(item) }; }) : defaultCmsContent.faqs,
+    announcements: Array.isArray(data.announcements)
+      ? data.announcements.map(normalizeAnnouncement)
+      : defaultCmsContent.announcements,
+    faqs: Array.isArray(data.faqs)
+      ? data.faqs.map((raw, index) => {
+        const item = asRecord(raw);
+        return {
+          id: String(item.id ?? `faq-${index + 1}`),
+          question: String(item.question ?? ''),
+          answer: String(item.answer ?? ''),
+          enabled: isPublished(item),
+          lifecycle: lifecycle(item),
+        };
+      })
+      : defaultCmsContent.faqs,
   };
 }
 
@@ -257,7 +394,11 @@ export function cmsResponsiveMediaUrls(content: CmsContent, media: CmsResponsive
   const legacy = cmsAssetUrl(content, media.assetId) || media.imageUrl || '';
   const desktop = cmsAssetUrl(content, media.desktopAssetId) || media.desktopImageUrl || legacy;
   const mobile = cmsAssetUrl(content, media.mobileAssetId) || media.mobileImageUrl || desktop || legacy;
-  return { desktop: resolveCmsMediaUrl(desktop), mobile: resolveCmsMediaUrl(mobile), legacy: resolveCmsMediaUrl(legacy) };
+  return {
+    desktop: resolveCmsMediaUrl(desktop),
+    mobile: resolveCmsMediaUrl(mobile),
+    legacy: resolveCmsMediaUrl(legacy),
+  };
 }
 
 export function resolveCmsMediaUrl(value: string) {
@@ -266,7 +407,12 @@ export function resolveCmsMediaUrl(value: string) {
 }
 
 export function isIconUrl(value: string) {
-  try { const url = new URL(value); return url.protocol === 'http:' || url.protocol === 'https:'; } catch { return false; }
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 export function promotionCampaignsSetting(settings: PublicSiteSettings): PromotionCampaign[] {
@@ -276,8 +422,29 @@ export function promotionCampaignsSetting(settings: PublicSiteSettings): Promoti
     const item = asRecord(raw);
     const legacyImage = String(item.imageUrl ?? item.desktopImageUrl ?? '');
     return {
-      id: String(item.id ?? `promotion-${index + 1}`), title: String(item.title ?? 'Promotion'), description: String(item.description ?? ''), enabled: isPublished(item), lifecycle: lifecycle(item), bonusType: item.bonusType === 'fixed' ? 'fixed' : 'percent', bonusValue: Number(item.bonusValue ?? 0), minDeposit: Number(item.minDeposit ?? 0), maxBonus: Number(item.maxBonus ?? 0), turnoverMultiplier: Number(item.turnoverMultiplier ?? 0), claimMode: item.claimMode === 'auto_pending' ? 'auto_pending' : 'manual_review',
-      imageUrl: legacyImage, desktopImageUrl: String(item.desktopImageUrl ?? legacyImage), mobileImageUrl: String(item.mobileImageUrl ?? legacyImage), desktopAssetId: String(item.desktopAssetId ?? ''), mobileAssetId: String(item.mobileAssetId ?? ''), iconUrl: String(item.iconUrl ?? ''), badgeText: String(item.badgeText ?? ''), accentColor: String(item.accentColor ?? '#f5c542'), href: String(item.href ?? '/promotions'), priority: Number(item.priority ?? 0), startsAt: typeof item.startsAt === 'string' ? item.startsAt : undefined, endsAt: typeof item.endsAt === 'string' ? item.endsAt : undefined,
+      id: String(item.id ?? `promotion-${index + 1}`),
+      title: String(item.title ?? 'Promotion'),
+      description: String(item.description ?? ''),
+      enabled: isPublished(item),
+      lifecycle: lifecycle(item),
+      bonusType: item.bonusType === 'fixed' ? 'fixed' : 'percent',
+      bonusValue: Number(item.bonusValue ?? 0),
+      minDeposit: Number(item.minDeposit ?? 0),
+      maxBonus: Number(item.maxBonus ?? 0),
+      turnoverMultiplier: Number(item.turnoverMultiplier ?? 0),
+      claimMode: item.claimMode === 'auto_pending' ? 'auto_pending' : 'manual_review',
+      imageUrl: legacyImage,
+      desktopImageUrl: String(item.desktopImageUrl ?? legacyImage),
+      mobileImageUrl: String(item.mobileImageUrl ?? legacyImage),
+      desktopAssetId: String(item.desktopAssetId ?? ''),
+      mobileAssetId: String(item.mobileAssetId ?? ''),
+      iconUrl: String(item.iconUrl ?? ''),
+      badgeText: String(item.badgeText ?? ''),
+      accentColor: String(item.accentColor ?? '#f5c542'),
+      href: String(item.href ?? '/promotions'),
+      priority: Number(item.priority ?? 0),
+      startsAt: typeof item.startsAt === 'string' ? item.startsAt : undefined,
+      endsAt: typeof item.endsAt === 'string' ? item.endsAt : undefined,
     };
   });
 }
@@ -288,12 +455,102 @@ export function promotionMediaUrls(content: CmsContent, campaign: PromotionCampa
   return { desktop: resolveCmsMediaUrl(desktop), mobile: resolveCmsMediaUrl(mobile) };
 }
 
-function bundled(id: string, name: string, url: string, tag: string): CmsAsset { return { id, name, url, type: 'image', tag, enabled: true, source: 'bundled' }; }
-function mergeAssets(defaults: CmsAsset[], incoming: CmsAsset[]) { const byId = new Map(defaults.map((asset) => [asset.id, asset])); incoming.forEach((asset) => byId.set(asset.id, { ...(byId.get(asset.id) ?? {}), ...asset } as CmsAsset)); return [...byId.values()]; }
-function normalizeAsset(raw: unknown, index: number): CmsAsset { const item = asRecord(raw); return { id: String(item.id ?? `asset_${index}`), name: String(item.name ?? `Asset ${index + 1}`), url: String(item.url ?? ''), type: item.type === 'video' || item.type === 'link' ? item.type : 'image', tag: String(item.tag ?? ''), enabled: item.enabled !== false, source: item.source === 'upload' || item.source === 'bundled' ? item.source : 'url', storageKey: typeof item.storageKey === 'string' ? item.storageKey : undefined }; }
-function normalizeBanner(raw: unknown, index: number): CmsBanner { const item = asRecord(raw); const legacyImage = String(item.imageUrl ?? item.desktopImageUrl ?? ''); const legacyAsset = String(item.assetId ?? item.desktopAssetId ?? ''); return { id: String(item.id ?? `banner-${index + 1}`), title: String(item.title ?? ''), subtitle: String(item.subtitle ?? ''), href: String(item.href ?? '/browse/promotions'), enabled: isPublished(item), lifecycle: lifecycle(item), imageUrl: legacyImage, desktopImageUrl: String(item.desktopImageUrl ?? legacyImage), mobileImageUrl: String(item.mobileImageUrl ?? legacyImage), assetId: legacyAsset, desktopAssetId: String(item.desktopAssetId ?? legacyAsset), mobileAssetId: String(item.mobileAssetId ?? legacyAsset) }; }
-function normalizePopup(raw: unknown): CmsContent['popup'] { const item = asRecord(raw); const legacyImage = String(item.imageUrl ?? item.desktopImageUrl ?? ''); const legacyAsset = String(item.assetId ?? item.desktopAssetId ?? ''); return { title: String(item.title ?? defaultCmsContent.popup.title), message: String(item.message ?? defaultCmsContent.popup.message), ctaLabel: String(item.ctaLabel ?? defaultCmsContent.popup.ctaLabel), href: String(item.href ?? defaultCmsContent.popup.href), enabled: isPublished(item), lifecycle: lifecycle(item), version: String(item.version ?? 'v1'), imageUrl: legacyImage, desktopImageUrl: String(item.desktopImageUrl ?? legacyImage), mobileImageUrl: String(item.mobileImageUrl ?? legacyImage), assetId: legacyAsset, desktopAssetId: String(item.desktopAssetId ?? legacyAsset), mobileAssetId: String(item.mobileAssetId ?? legacyAsset) }; }
-function normalizeAnnouncement(raw: unknown, index: number): CmsAnnouncement { const item = asRecord(raw); const legacyImage = String(item.imageUrl ?? item.desktopImageUrl ?? ''); const legacyAsset = String(item.assetId ?? item.desktopAssetId ?? ''); return { id: String(item.id ?? `announcement-${index + 1}`), kind: item.kind === 'news' || item.kind === 'event' || item.kind === 'promotion' ? item.kind : 'system', title: String(item.title ?? ''), message: String(item.message ?? ''), href: String(item.href ?? ''), enabled: isPublished(item), lifecycle: lifecycle(item), imageUrl: legacyImage, desktopImageUrl: String(item.desktopImageUrl ?? legacyImage), mobileImageUrl: String(item.mobileImageUrl ?? legacyImage), assetId: legacyAsset, desktopAssetId: String(item.desktopAssetId ?? legacyAsset), mobileAssetId: String(item.mobileAssetId ?? legacyAsset) }; }
-function lifecycle(item: Record<string, unknown>): 'draft' | 'published' | 'archived' { if (item.lifecycle === 'archived') return 'archived'; if (item.lifecycle === 'draft') return 'draft'; return item.lifecycle === 'published' || item.enabled !== false ? 'published' : 'draft'; }
-function isPublished(item: Record<string, unknown>) { return lifecycle(item) === 'published' && item.enabled !== false; }
-function asRecord(value: unknown): Record<string, unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
+function bundled(id: string, name: string, url: string, tag: string): CmsAsset {
+  return { id, name, url, type: 'image', tag, enabled: true, source: 'bundled' };
+}
+
+function mergeAssets(defaults: CmsAsset[], incoming: CmsAsset[]) {
+  const byId = new Map(defaults.map((asset) => [asset.id, asset]));
+  incoming.forEach((asset) => byId.set(asset.id, { ...(byId.get(asset.id) ?? {}), ...asset } as CmsAsset));
+  return [...byId.values()];
+}
+
+function normalizeAsset(raw: unknown, index: number): CmsAsset {
+  const item = asRecord(raw);
+  return {
+    id: String(item.id ?? `asset_${index}`),
+    name: String(item.name ?? `Asset ${index + 1}`),
+    url: String(item.url ?? ''),
+    type: item.type === 'video' || item.type === 'link' ? item.type : 'image',
+    tag: String(item.tag ?? ''),
+    enabled: item.enabled !== false,
+    source: item.source === 'upload' || item.source === 'bundled' ? item.source : 'url',
+    storageKey: typeof item.storageKey === 'string' ? item.storageKey : undefined,
+  };
+}
+
+function normalizeBanner(raw: unknown, index: number): CmsBanner {
+  const item = asRecord(raw);
+  const legacyImage = String(item.imageUrl ?? item.desktopImageUrl ?? '');
+  const legacyAsset = String(item.assetId ?? item.desktopAssetId ?? '');
+  return {
+    id: String(item.id ?? `banner-${index + 1}`),
+    title: String(item.title ?? ''),
+    subtitle: String(item.subtitle ?? ''),
+    href: String(item.href ?? '/browse/promotions'),
+    enabled: isPublished(item),
+    lifecycle: lifecycle(item),
+    imageUrl: legacyImage,
+    desktopImageUrl: String(item.desktopImageUrl ?? legacyImage),
+    mobileImageUrl: String(item.mobileImageUrl ?? legacyImage),
+    assetId: legacyAsset,
+    desktopAssetId: String(item.desktopAssetId ?? legacyAsset),
+    mobileAssetId: String(item.mobileAssetId ?? legacyAsset),
+  };
+}
+
+function normalizePopup(raw: unknown): CmsContent['popup'] {
+  const item = asRecord(raw);
+  const legacyImage = String(item.imageUrl ?? item.desktopImageUrl ?? '');
+  const legacyAsset = String(item.assetId ?? item.desktopAssetId ?? '');
+  return {
+    title: String(item.title ?? defaultCmsContent.popup.title),
+    message: String(item.message ?? defaultCmsContent.popup.message),
+    ctaLabel: String(item.ctaLabel ?? defaultCmsContent.popup.ctaLabel),
+    href: String(item.href ?? defaultCmsContent.popup.href),
+    enabled: isPublished(item),
+    lifecycle: lifecycle(item),
+    version: String(item.version ?? 'v1'),
+    imageUrl: legacyImage,
+    desktopImageUrl: String(item.desktopImageUrl ?? legacyImage),
+    mobileImageUrl: String(item.mobileImageUrl ?? legacyImage),
+    assetId: legacyAsset,
+    desktopAssetId: String(item.desktopAssetId ?? legacyAsset),
+    mobileAssetId: String(item.mobileAssetId ?? legacyAsset),
+  };
+}
+
+function normalizeAnnouncement(raw: unknown, index: number): CmsAnnouncement {
+  const item = asRecord(raw);
+  const legacyImage = String(item.imageUrl ?? item.desktopImageUrl ?? '');
+  const legacyAsset = String(item.assetId ?? item.desktopAssetId ?? '');
+  return {
+    id: String(item.id ?? `announcement-${index + 1}`),
+    kind: item.kind === 'news' || item.kind === 'event' || item.kind === 'promotion' ? item.kind : 'system',
+    title: String(item.title ?? ''),
+    message: String(item.message ?? ''),
+    href: String(item.href ?? ''),
+    enabled: isPublished(item),
+    lifecycle: lifecycle(item),
+    imageUrl: legacyImage,
+    desktopImageUrl: String(item.desktopImageUrl ?? legacyImage),
+    mobileImageUrl: String(item.mobileImageUrl ?? legacyImage),
+    assetId: legacyAsset,
+    desktopAssetId: String(item.desktopAssetId ?? legacyAsset),
+    mobileAssetId: String(item.mobileAssetId ?? legacyAsset),
+  };
+}
+
+function lifecycle(item: Record<string, unknown>): 'draft' | 'published' | 'archived' {
+  if (item.lifecycle === 'archived') return 'archived';
+  if (item.lifecycle === 'draft') return 'draft';
+  return item.lifecycle === 'published' || item.enabled !== false ? 'published' : 'draft';
+}
+
+function isPublished(item: Record<string, unknown>) {
+  return lifecycle(item) === 'published' && item.enabled !== false;
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
