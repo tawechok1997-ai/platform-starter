@@ -12,62 +12,8 @@ type Locale = 'th' | 'en';
 type LoginErrors = { identifier?: string; secret?: string };
 
 const copy = {
-  th: {
-    eyebrow: 'เข้าสู่ระบบสมาชิก',
-    title: 'เข้าสู่ระบบ',
-    identifier: 'เบอร์โทรศัพท์',
-    identifierPlaceholder: '',
-    password: 'รหัสผ่าน',
-    passwordPlaceholder: '',
-    showPassword: 'แสดงรหัสผ่าน',
-    hidePassword: 'ซ่อนรหัสผ่าน',
-    submit: 'เข้าสู่ระบบ',
-    submitting: 'กำลังเข้าสู่ระบบ...',
-    register: 'สมัครสมาชิก',
-    loginDisabled: 'ขณะนี้ปิดการเข้าสู่ระบบชั่วคราว',
-    identifierRequired: 'กรุณากรอกเบอร์โทรศัพท์',
-    passwordRequired: 'กรุณากรอกรหัสผ่าน',
-    captchaRequired: 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ',
-    checkFields: 'กรุณาตรวจสอบข้อมูลที่ระบุไว้ด้านล่าง',
-    failed: 'เข้าสู่ระบบไม่สำเร็จ กรุณาลองอีกครั้ง',
-    success: 'เข้าสู่ระบบสำเร็จ',
-    timeout: 'เชื่อมต่อระบบนานเกินไป กรุณาลองอีกครั้ง',
-    supportPrompt: 'พบปัญหาการใช้งาน',
-    support: 'ติดต่อเจ้าหน้าที่',
-    forgot: 'ลืมรหัสผ่าน?',
-    close: 'ปิดหน้าต่าง',
-    secureConnection: 'การเชื่อมต่อปลอดภัย',
-    privacy: 'นโยบายความเป็นส่วนตัว',
-    terms: 'ข้อกำหนดการใช้งาน',
-  },
-  en: {
-    eyebrow: 'MEMBER ACCESS',
-    title: 'Sign in',
-    identifier: 'Phone number',
-    identifierPlaceholder: '',
-    password: 'Password',
-    passwordPlaceholder: '',
-    showPassword: 'Show password',
-    hidePassword: 'Hide password',
-    submit: 'Sign in',
-    submitting: 'Signing in...',
-    register: 'Register',
-    loginDisabled: 'Sign-in is temporarily unavailable',
-    identifierRequired: 'Enter your phone number',
-    passwordRequired: 'Enter your password',
-    captchaRequired: 'Complete the security verification',
-    checkFields: 'Check the highlighted fields',
-    failed: 'Could not sign in. Please try again',
-    success: 'Signed in successfully',
-    timeout: 'The connection took too long. Please try again',
-    supportPrompt: 'Having trouble?',
-    support: 'Contact support',
-    forgot: 'Forgot password?',
-    close: 'Close window',
-    secureConnection: 'Secure connection',
-    privacy: 'Privacy policy',
-    terms: 'Terms of use',
-  },
+  th: { title: 'เข้าสู่ระบบ', identifier: 'เบอร์โทรศัพท์', identifierPlaceholder: '', password: 'รหัสผ่าน', passwordPlaceholder: '', showPassword: 'แสดงรหัสผ่าน', hidePassword: 'ซ่อนรหัสผ่าน', submit: 'เข้าสู่ระบบ', submitting: 'กำลังเข้าสู่ระบบ...', register: 'สมัครสมาชิก', loginDisabled: 'ขณะนี้ปิดการเข้าสู่ระบบชั่วคราว', identifierRequired: 'กรุณากรอกเบอร์โทรศัพท์', passwordRequired: 'กรุณากรอกรหัสผ่าน', captchaRequired: 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ', checkFields: 'กรุณาตรวจสอบข้อมูลที่ระบุไว้ด้านล่าง', failed: 'เข้าสู่ระบบไม่สำเร็จ กรุณาลองอีกครั้ง', success: 'เข้าสู่ระบบสำเร็จ', timeout: 'เชื่อมต่อระบบนานเกินไป กรุณาลองอีกครั้ง', supportPrompt: 'พบปัญหาการใช้งาน', support: 'ติดต่อเจ้าหน้าที่', forgot: 'ลืมรหัสผ่าน?', close: 'ปิดหน้าต่าง' },
+  en: { title: 'Sign in', identifier: 'Phone number', identifierPlaceholder: '', password: 'Password', passwordPlaceholder: '', showPassword: 'Show password', hidePassword: 'Hide password', submit: 'Sign in', submitting: 'Signing in...', register: 'Register', loginDisabled: 'Sign-in is temporarily unavailable', identifierRequired: 'Enter your phone number', passwordRequired: 'Enter your password', captchaRequired: 'Complete the security verification', checkFields: 'Check the highlighted fields', failed: 'Could not sign in. Please try again', success: 'Signed in successfully', timeout: 'The connection took too long. Please try again', supportPrompt: 'Having trouble?', support: 'Contact support', forgot: 'Forgot password?', close: 'Close window' },
 } as const;
 
 export default function MemberSignInPage() {
@@ -190,7 +136,7 @@ export default function MemberSignInPage() {
         </button>
 
         <div className="source-login-visual" aria-hidden="true">
-          <img src="/assets/asset-pc/images/FEZX/imageslides/1782914061717-d7de2072-63f1-4dd5-95f6-8628990ba631.jpg" alt="" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+          <img src="https://noah345.shop/images/wallpaper_login.webp" alt="" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
         </div>
 
         <div className="source-login-form-shell">
@@ -200,7 +146,7 @@ export default function MemberSignInPage() {
           </nav>
 
           <form className="public-auth-card source-login-card" onSubmit={onSubmit} noValidate>
-            <div className="public-auth-heading source-login-heading"><span>{t.eyebrow}</span><h1 id="member-login-title">{t.title}</h1></div>
+            <div className="public-auth-heading source-login-heading"><h1 id="member-login-title">{t.title}</h1></div>
             {!flags.login && <div className="public-auth-alert public-auth-alert--error" role="alert">{t.loginDisabled}</div>}
             {status === 'error' && message && <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>}
 
@@ -225,7 +171,6 @@ export default function MemberSignInPage() {
             {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
             <div className="source-login-divider" aria-hidden="true" />
             <div className="source-login-support"><span>{t.supportPrompt}</span><Link href="/support">{t.support}</Link></div>
-            <footer className="public-auth-legal"><span>{t.secureConnection}</span><Link href="/legal/privacy">{t.privacy}</Link><Link href="/legal/terms">{t.terms}</Link></footer>
           </form>
         </div>
       </section>
