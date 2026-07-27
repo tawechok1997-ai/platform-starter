@@ -1,0 +1,246 @@
+/*
+ * Full-width authority for data-heavy Admin pages.
+ *
+ * Several legacy pages rendered inside the full-width shell but retained narrow
+ * card grids or min-content tables. These rules let direct page sections consume
+ * the available workspace while preserving responsive collapse on smaller screens.
+ */
+
+.admin-content-shell .admin-ui-page,
+.admin-content-shell .admin-ui-page > .admin-ui-card,
+.admin-content-shell .admin-ui-page > .admin-ui-grid,
+.admin-content-shell .admin-ui-page > .admin-ui-stack,
+.admin-content-shell .admin-ui-page > .admin-ui-toolbar,
+.admin-content-shell .admin-ui-page > .admin-ui-filter-bar {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.admin-content-shell .admin-ui-page > .admin-ui-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)) !important;
+  align-items: start !important;
+}
+
+.admin-content-shell .admin-ui-card,
+.admin-content-shell .admin-ui-card > .admin-ui-stack,
+.admin-content-shell .admin-ui-filter-bar__controls {
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+.admin-content-shell .admin-ui-card:has(> .admin-ui-stack > table),
+.admin-content-shell .admin-ui-card:has(> table),
+.admin-content-shell .admin-ui-table-shell,
+.admin-content-shell [class*='table-shell'],
+.admin-content-shell [class*='table-wrap'] {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* Game catalog: keep summaries, badges and actions in one balanced full-width row. */
+.admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-filter-bar .admin-ui-filter-bar__controls {
+  display: grid !important;
+  grid-template-columns: minmax(260px, 2fr) repeat(3, minmax(170px, 1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+
+.admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-stack {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 12px !important;
+}
+
+.admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-stack > .admin-ui-card {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-stack > .admin-ui-card > .admin-ui-stack {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 12px !important;
+}
+
+.admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+.admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row > :first-child {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row > :last-child {
+  justify-self: end !important;
+  margin-left: auto !important;
+}
+
+.admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row + div {
+  width: 100% !important;
+  justify-content: flex-start !important;
+}
+
+/* Provider presets: fill the row, then give the endpoint preview extra room. */
+.admin-ui-page:has(input[placeholder='ชื่อ, รหัส หรือรูปแบบ']) > .admin-ui-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)) !important;
+  align-items: stretch !important;
+}
+
+.admin-ui-page:has(input[placeholder='ชื่อ, รหัส หรือรูปแบบ']) > .admin-ui-grid > .admin-ui-card {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+@media (min-width: 1500px) {
+  .admin-ui-page:has(input[placeholder='ชื่อ, รหัส หรือรูปแบบ']) > h2 + .admin-ui-grid {
+    grid-template-columns:
+      minmax(260px, 1fr)
+      minmax(260px, 1fr)
+      minmax(440px, 1.55fr)
+      minmax(240px, .85fr) !important;
+  }
+}
+
+.admin-ui-page:has(input[placeholder='ชื่อ, รหัส หรือรูปแบบ']) > h2 + .admin-ui-grid > .admin-ui-card:nth-child(3) .admin-ui-row {
+  display: grid !important;
+  grid-template-columns: minmax(150px, .55fr) minmax(0, 1.45fr) !important;
+  align-items: start !important;
+  gap: 14px !important;
+}
+
+.admin-ui-page:has(input[placeholder='ชื่อ, รหัส หรือรูปแบบ']) > h2 + .admin-ui-grid > .admin-ui-card:nth-child(3) .admin-ui-row > :last-child {
+  min-width: 0 !important;
+  width: 100% !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+/* Wallet analytics is the baseline for full-width reporting pages. */
+.admin-wallet-analytics {
+  display: grid !important;
+  gap: 16px !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+.admin-wallet-analytics__toolbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.admin-wallet-analytics__stats {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+
+.admin-wallet-analytics__hero {
+  display: grid !important;
+  grid-template-columns: minmax(0, 2fr) minmax(300px, .8fr) !important;
+  gap: 16px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+}
+
+.admin-wallet-analytics__hero > .admin-ui-card,
+.admin-wallet-analytics > .admin-ui-card {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.admin-wallet-analytics__chart {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 230px !important;
+  box-sizing: border-box !important;
+}
+
+.admin-wallet-analytics__table-shell {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  border: 1px solid rgba(148, 163, 184, .16) !important;
+  border-radius: 16px !important;
+  background: rgba(15, 23, 42, .72) !important;
+}
+
+.admin-wallet-analytics__table {
+  width: 100% !important;
+  min-width: 760px !important;
+  table-layout: auto !important;
+  border-collapse: collapse !important;
+}
+
+.admin-wallet-analytics__table th,
+.admin-wallet-analytics__table td {
+  padding: 13px 16px !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+}
+
+.admin-wallet-analytics__table th:first-child,
+.admin-wallet-analytics__table td:first-child {
+  padding-left: 20px !important;
+}
+
+.admin-wallet-analytics__table th:last-child,
+.admin-wallet-analytics__table td:last-child {
+  padding-right: 20px !important;
+}
+
+@media (max-width: 1499px) {
+  .admin-ui-page:has(input[placeholder='ชื่อ, รหัส หรือรูปแบบ']) > h2 + .admin-ui-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 1080px) {
+  .admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-filter-bar .admin-ui-filter-bar__controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .admin-wallet-analytics__hero {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-wallet-analytics__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-content-shell .admin-ui-page > .admin-ui-grid,
+  .admin-ui-page:has(input[placeholder='ชื่อ, รหัส หรือรูปแบบ']) > .admin-ui-grid,
+  .admin-ui-page:has(input[placeholder='ชื่อ, รหัส หรือรูปแบบ']) > h2 + .admin-ui-grid,
+  .admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-filter-bar .admin-ui-filter-bar__controls,
+  .admin-wallet-analytics__stats {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row,
+  .admin-ui-page:has(input[placeholder='ชื่อ, รหัส หรือรูปแบบ']) > h2 + .admin-ui-grid > .admin-ui-card:nth-child(3) .admin-ui-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-ui-page:has(input[placeholder='เช่น demo-slot-001']) > .admin-ui-stack > .admin-ui-card > .admin-ui-stack > .admin-ui-row > :last-child {
+    justify-self: start !important;
+    margin-left: 0 !important;
+  }
+
+  .admin-wallet-analytics__table {
+    min-width: 680px !important;
+  }
+}
