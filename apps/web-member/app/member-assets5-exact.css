@@ -131,7 +131,7 @@
 }
 
 .reference-live-card {
-  background-image: linear-gradient(180deg, rgb(18 10 27 / 20%), rgb(18 10 27 / 88%)), url('https://noah345.shop/images/home/background_live.webp') !important;
+  background-image: linear-gradient(180deg, rgb(18 10 27 / 20%), rgb(18 10 27 / 88%)), url('/assets/asset-pc/images/home/live1.webp') !important;
   background-position: center !important;
   background-size: cover !important;
 }
