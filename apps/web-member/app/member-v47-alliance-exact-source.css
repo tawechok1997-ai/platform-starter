@@ -148,6 +148,9 @@
   .desktop-reference-home .reference-provider-rows {
     height: 60px !important;
     min-height: 60px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
   }
 
   .desktop-reference-home .reference-provider-logo {
