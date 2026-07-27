@@ -1,0 +1,63 @@
+name: Admin Icons Endpoint Verify
+
+on:
+  push:
+    branches:
+      - fix/admin-icons-settings-endpoint
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: admin-icons-endpoint-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/admin-icons-settings-endpoint
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Register icons as public settings
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          path = Path('apps/api/src/modules/settings/settings.service.ts')
+          source = path.read_text()
+          old = "const publicGroups: SettingGroupSlug[] = ['website', 'branding', 'theme', 'seo', 'contact', 'maintenance', 'features', 'legal'];"
+          new = "const publicGroups: SettingGroupSlug[] = ['website', 'branding', 'icons', 'theme', 'seo', 'contact', 'maintenance', 'features', 'legal'];"
+          if old not in source and new not in source:
+              raise SystemExit('Expected public settings group line was not found')
+          path.write_text(source.replace(old, new))
+          PY
+      - run: pnpm install --frozen-lockfile=false
+      - name: Validate Prisma schema
+        run: pnpm exec prisma validate --schema prisma/schema.prisma
+      - name: Generate Prisma client
+        run: pnpm exec prisma generate --schema prisma/schema.prisma
+      - name: API typecheck
+        run: pnpm --filter @platform/api typecheck
+      - name: Icon endpoint tests
+        run: pnpm --filter @platform/api test -- settings-icons.spec.ts --runInBand
+      - name: API production build
+        run: pnpm --filter @platform/api build
+      - name: Commit validated service integration
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/api/src/modules/settings/settings.service.ts
+          if git diff --cached --quiet; then
+            echo 'Service already contains icons public group.'
+            exit 0
+          fi
+          git commit -m 'fix(settings): publish icons settings group'
+          git push origin HEAD:fix/admin-icons-settings-endpoint
