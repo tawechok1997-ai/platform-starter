@@ -1,18 +1,23 @@
-/* Final two-row visibility and geometry correction for the alliance strip. */
+/* Final alliance geometry: 1440px shell, two non-overlapping rows. */
 @media (min-width: 901px) {
   .desktop-reference-home .reference-provider-strip {
     display: block !important;
-    width: calc(100vw - 32px) !important;
-    margin-left: calc((1455px - 100vw) / 2 + 16px) !important;
+    position: relative !important;
+    left: 7.5px !important;
+    width: min(1440px, calc(100vw - 32px)) !important;
+    max-width: 1440px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
     padding: 16px 0 46px !important;
     min-height: 0 !important;
     overflow: visible !important;
   }
 
   .desktop-reference-home .reference-provider-rows {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0 !important;
+    display: grid !important;
+    grid-template-rows: 24px 24px !important;
+    row-gap: 12px !important;
+    width: 100% !important;
     height: 60px !important;
     overflow: visible !important;
   }
@@ -22,23 +27,22 @@
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
-    position: relative !important;
-    flex: 0 0 24px !important;
+    position: static !important;
+    width: 100% !important;
     height: 24px !important;
     min-height: 24px !important;
-    width: 100% !important;
-    overflow: visible !important;
-    gap: 20px !important;
+    margin: 0 !important;
     padding: 0 !important;
-  }
-
-  .desktop-reference-home .reference-provider-row--reverse {
-    margin-top: 12px !important;
-    justify-content: center !important;
+    gap: 20px !important;
+    overflow: visible !important;
   }
 
   .desktop-reference-home .reference-provider-row:first-child {
     justify-content: flex-start !important;
+  }
+
+  .desktop-reference-home .reference-provider-row--reverse {
+    justify-content: center !important;
   }
 
   .desktop-reference-home .reference-provider-logo {
