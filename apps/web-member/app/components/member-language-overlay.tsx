@@ -3,31 +3,32 @@
 import { useEffect, useMemo, useState } from 'react';
 import styles from './member-language-overlay.module.css';
 
-type MemberLocale = 'en' | 'th' | 'ph' | 'vi' | 'km' | 'lo' | 'id' | 'mm';
+type MemberLocale = 'en' | 'th';
+type DisplayLocale = MemberLocale | 'ph' | 'vi' | 'km' | 'lo' | 'id' | 'mm';
 
 type LanguageOption = {
-  code: MemberLocale;
+  code: DisplayLocale;
   label: string;
-  flag: string;
+  flag?: string;
+  enabled: boolean;
 };
 
 const LOCALE_STORAGE_KEY = 'member_locale';
 
 const LANGUAGES: LanguageOption[] = [
-  { code: 'en', label: 'English', flag: '/assets/asset-pc/images/flags/en.svg' },
-  { code: 'th', label: 'ภาษาไทย', flag: '/assets/asset-pc/images/flags/th.svg' },
-  { code: 'ph', label: 'Tagalog', flag: '/assets/asset-pc/images/flags/ph.svg' },
-  { code: 'vi', label: 'Tiếng Việt', flag: '/assets/asset-pc/images/flags/vi.svg' },
-  { code: 'km', label: 'ភាសាខ្មែរ', flag: '/assets/asset-pc/images/flags/km.svg' },
-  { code: 'lo', label: 'ພາສາລາວ', flag: '/assets/asset-pc/images/flags/lo.svg' },
-  { code: 'id', label: 'Bahasa Indonesia', flag: '/assets/asset-pc/images/flags/id.svg' },
-  { code: 'mm', label: 'Myan', flag: '/assets/asset-pc/images/flags/mm.svg' },
+  { code: 'en', label: 'English', flag: '/assets/asset-pc/images/flags/en.svg', enabled: true },
+  { code: 'th', label: 'ภาษาไทย', flag: '/assets/asset-pc/images/flags/th.svg', enabled: true },
+  { code: 'ph', label: 'Tagalog', enabled: false },
+  { code: 'vi', label: 'Tiếng Việt', enabled: false },
+  { code: 'km', label: 'ភាសាខ្មែរ', enabled: false },
+  { code: 'lo', label: 'ພາສາລາວ', enabled: false },
+  { code: 'id', label: 'Bahasa Indonesia', enabled: false },
+  { code: 'mm', label: 'Myan', enabled: false },
 ];
 
 function readSavedLocale(): MemberLocale {
   if (typeof window === 'undefined') return 'th';
-  const value = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-  return LANGUAGES.some((language) => language.code === value) ? value as MemberLocale : 'th';
+  return window.localStorage.getItem(LOCALE_STORAGE_KEY) === 'en' ? 'en' : 'th';
 }
 
 export default function MemberLanguageOverlay() {
@@ -77,12 +78,14 @@ export default function MemberLanguageOverlay() {
   }, [open]);
 
   const selectLanguage = (language: LanguageOption) => {
+    if (!language.enabled || !language.flag || (language.code !== 'th' && language.code !== 'en')) return;
+
     setLocale(language.code);
     window.localStorage.setItem(LOCALE_STORAGE_KEY, language.code);
     document.documentElement.lang = language.code;
 
     document.querySelectorAll<HTMLImageElement>('.public-home-flag img').forEach((image) => {
-      image.src = language.flag;
+      image.src = language.flag!;
       image.alt = language.label;
     });
 
@@ -122,13 +125,17 @@ export default function MemberLanguageOverlay() {
               <button
                 key={language.code}
                 type="button"
-                className={`${styles.languageFrame} ${active ? styles.activeFrame : ''}`}
+                className={`${styles.languageFrame} ${active ? styles.activeFrame : ''} ${language.enabled ? '' : styles.disabledFrame}`}
                 onClick={() => selectLanguage(language)}
                 aria-pressed={active}
+                aria-disabled={!language.enabled}
+                disabled={!language.enabled}
               >
                 <span className={`${styles.languageCard} ${active ? styles.activeCard : ''}`}>
                   <span className={`${styles.flagWrap} ${active ? '' : styles.inactiveFlag}`}>
-                    <img src={language.flag} alt={language.label} />
+                    {language.flag
+                      ? <img src={language.flag} alt={language.label} />
+                      : <span className={styles.missingAsset}>MISSING<br />ASSET</span>}
                   </span>
                   <span className={`${styles.languageName} ${active ? styles.activeName : ''}`}>{language.label}</span>
                 </span>
