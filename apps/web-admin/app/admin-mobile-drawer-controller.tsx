@@ -92,65 +92,60 @@ export function AdminMobileDrawerController() {
         return;
       }
 
-      let syncing = false;
       const searchInput = drawer.querySelector<HTMLInputElement>('.admin-nav-search input');
       const groups = () => Array.from(drawer.querySelectorAll<HTMLElement>(GROUP_SELECTOR));
       const isSearching = () => Boolean(searchInput?.value.trim());
       const triggerFor = (group: HTMLElement) => group.querySelector<HTMLButtonElement>(GROUP_TRIGGER_SELECTOR);
+      const submenuFor = (group: HTMLElement) => group.querySelector<HTMLElement>('.admin-nav-submenu');
       const currentGroup = () => groups().find((group) => Boolean(group.querySelector('a[aria-current="page"]')));
-      const finishSync = () => window.setTimeout(() => { syncing = false; }, 0);
 
-      const closeOtherGroups = (keep: HTMLButtonElement) => {
-        if (isSearching()) return;
-        syncing = true;
-        for (const group of groups()) {
-          const trigger = triggerFor(group);
-          if (trigger && trigger !== keep && trigger.getAttribute('aria-expanded') === 'true') trigger.click();
-        }
-        finishSync();
+      const setGroupExpanded = (group: HTMLElement, expanded: boolean) => {
+        triggerFor(group)?.setAttribute('aria-expanded', String(expanded));
+        const submenu = submenuFor(group);
+        if (submenu) submenu.dataset.controllerOpen = String(expanded);
+      };
+
+      const clearControllerState = () => {
+        for (const group of groups()) submenuFor(group)?.removeAttribute('data-controller-open');
       };
 
       const syncToCurrentRoute = () => {
-        if (isSearching()) return;
-        const active = currentGroup();
-        if (!active) return;
-        const activeTrigger = triggerFor(active);
-        if (!activeTrigger) return;
-
-        syncing = true;
-        for (const group of groups()) {
-          const trigger = triggerFor(group);
-          if (trigger && trigger !== activeTrigger && trigger.getAttribute('aria-expanded') === 'true') trigger.click();
+        if (isSearching()) {
+          clearControllerState();
+          return;
         }
-
-        window.setTimeout(() => {
-          if (activeTrigger.getAttribute('aria-expanded') !== 'true') activeTrigger.click();
-          window.localStorage.removeItem('admin_nav_open_groups');
-          finishSync();
-        }, 0);
+        const active = currentGroup();
+        for (const group of groups()) setGroupExpanded(group, group === active);
+        window.localStorage.removeItem('admin_nav_open_groups');
       };
 
       const handleGroupClick = (event: Event) => {
-        if (syncing || isSearching()) return;
+        if (isSearching()) return;
         const element = event.target instanceof Element ? event.target : null;
         const trigger = element?.closest(GROUP_TRIGGER_SELECTOR) as HTMLButtonElement | null;
         if (!trigger || !drawer.contains(trigger)) return;
-        window.setTimeout(() => {
-          if (trigger.getAttribute('aria-expanded') === 'true') closeOtherGroups(trigger);
-        }, 0);
+        const selectedGroup = trigger.closest<HTMLElement>(GROUP_SELECTOR);
+        if (!selectedGroup) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        const shouldOpen = submenuFor(selectedGroup)?.dataset.controllerOpen !== 'true';
+        for (const group of groups()) setGroupExpanded(group, group === selectedGroup && shouldOpen);
+        window.localStorage.removeItem('admin_nav_open_groups');
       };
 
       const handleSearchInput = () => {
-        if (!isSearching()) window.setTimeout(syncToCurrentRoute, 0);
+        if (isSearching()) clearControllerState();
+        else window.setTimeout(syncToCurrentRoute, 0);
       };
 
-      drawer.addEventListener('click', handleGroupClick);
+      drawer.addEventListener('click', handleGroupClick, true);
       searchInput?.addEventListener('input', handleSearchInput);
       const syncTimer = window.setTimeout(syncToCurrentRoute, 0);
 
       detach = () => {
         window.clearTimeout(syncTimer);
-        drawer.removeEventListener('click', handleGroupClick);
+        drawer.removeEventListener('click', handleGroupClick, true);
         searchInput?.removeEventListener('input', handleSearchInput);
       };
     };
