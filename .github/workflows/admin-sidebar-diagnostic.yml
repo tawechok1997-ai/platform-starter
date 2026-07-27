@@ -1,0 +1,38 @@
+name: Admin Sidebar Diagnostic
+
+on:
+  push:
+    branches:
+      - fix/admin-sidebar-smart-accordion
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Capture Admin typecheck
+        shell: bash
+        run: |
+          set +e
+          pnpm --filter @platform/web-admin typecheck > admin-sidebar-typecheck.log 2>&1
+          status=$?
+          cat admin-sidebar-typecheck.log
+          echo "$status" > admin-sidebar-typecheck.status
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: admin-sidebar-typecheck-${{ github.sha }}
+          path: |
+            admin-sidebar-typecheck.log
+            admin-sidebar-typecheck.status
