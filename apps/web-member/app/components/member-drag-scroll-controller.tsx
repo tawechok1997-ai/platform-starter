@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import MemberGuideOverlay from './member-guide-overlay';
 import MemberSearchOverlay from './member-search-overlay';
 
 type DragState = {
@@ -143,5 +144,10 @@ export default function MemberDragScrollController() {
     };
   }, []);
 
-  return <MemberSearchOverlay />;
+  return (
+    <>
+      <MemberSearchOverlay />
+      <MemberGuideOverlay />
+    </>
+  );
 }
