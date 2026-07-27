@@ -101,6 +101,21 @@ export default tseslint.config(
     },
   },
   {
+    // The dashboard helper is intentionally a structural type source for chart props.
+    files: ['**/web-admin/app/(admin)/dashboard/dashboard-professional.tsx'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_|^useDashboardMetrics$',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
+  {
     files: ['**/web-member/app/support/page.tsx'],
     rules: {
       'no-empty': 'off',
