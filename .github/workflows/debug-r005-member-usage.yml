@@ -1,0 +1,41 @@
+name: Temporary R005 Member Usage Diagnostic
+
+on:
+  push:
+    branches:
+      - fix/r005-member-api-client-usage
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - name: Capture full shared API client audit
+        shell: bash
+        run: |
+          set +e
+          pnpm audit:shared-api-client > r005-member-usage.log 2>&1
+          status=$?
+          cat r005-member-usage.log
+          echo "$status" > r005-member-usage.exit
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r005-member-usage-diagnostic
+          path: |
+            r005-member-usage.log
+            r005-member-usage.exit
+          if-no-files-found: error
+          retention-days: 3
