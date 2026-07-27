@@ -49,6 +49,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
 
   const assets = {
     tournament: findCmsAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']),
+    jackpot: findCmsAsset(content, ['jackpot', 'jackpots', 'แจ็คพอต']),
     featured: findCmsAsset(content, ['featured', 'highlight', 'recommended', 'เกมไฮไลท์', 'เกมไฮไลต์']),
     popular: findCmsAsset(content, ['popular', 'top10', 'hot game', 'ยอดนิยม']),
     online: findCmsAsset(content, ['online', 'most online', 'player', 'ผู้เล่น']),
@@ -95,7 +96,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
           </section>
 
           <a href="/browse/promotions?view=activity" className="reference-tournament-cta">
-            <img src={V47_ASSETS.tournament} alt="เข้าร่วมแข่งขัน Tournament" onError={(event) => swapBrokenImage(event, assets.tournament?.url || '')} />
+            <img src={assets.tournament?.url || V47_ASSETS.tournament} alt="เข้าร่วมแข่งขัน Tournament" onError={(event) => swapBrokenImage(event, V47_ASSETS.tournament)} />
             <span><small>ร่วมสนุกกับกิจกรรม Tournament</small><strong>TOURNAMENT เข้าร่วมชิงความเป็นที่ 1</strong></span>
             <b>เข้าแข่งขัน ›</b>
           </a>
@@ -136,7 +137,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
         </main>
 
         <aside className="desktop-home__sidebar reference-sidebar" aria-label="ข้อมูลรางวัลและอันดับ">
-          <section className="reference-side-card reference-jackpot"><header><AssetIcon configured={V47_ASSETS.coin} fallback="●" className="reference-side-icon" /><strong>Jackpot</strong></header><div><img className="reference-jackpot-art" src={V47_ASSETS.jackpot} alt="Jackpot" onError={(event) => swapBrokenImage(event, V47_ASSETS.jackpotStill)} /><strong>195,574,797</strong></div></section>
+          <section className="reference-side-card reference-jackpot"><header><AssetIcon configured={V47_ASSETS.coin} fallback="●" className="reference-side-icon" /><strong>Jackpot</strong></header><div><img className="reference-jackpot-art" src={assets.jackpot?.url || V47_ASSETS.jackpot} alt="Jackpot" onError={(event) => swapBrokenImage(event, V47_ASSETS.jackpotStill)} /><strong>195,574,797</strong></div></section>
           <section className="reference-side-card reference-leaderboard"><header><span className="reference-side-title"><AssetIcon configured={V47_ASSETS.leaderboard} fallback="🏆" className="reference-side-icon" /><strong>Leaderboard</strong></span></header>{Array.from({ length: 5 }, (_, index) => <div key={index}><RankMark index={index} /><span><strong>{leaderName(index)}</strong><small>ชนะล่าสุด</small></span><em>›</em></div>)}</section>
           <section className="reference-side-card reference-mini-games"><header><span className="reference-side-title"><AssetIcon configured={V47_ASSETS.miniGame} fallback="⚡" className="reference-side-icon" /><strong>Mini Game</strong></span></header><div><a href="/login"><AssetIcon configured={V47_ASSETS.miniGameWheel} fallback="วงล้อ" className="reference-mini-icon" /><span>วงล้อ</span></a><a href="/login"><AssetIcon configured={V47_ASSETS.miniGameMission} fallback="ภารกิจ" className="reference-mini-icon" /><span>ทำภารกิจ</span></a></div></section>
         </aside>
@@ -152,7 +153,7 @@ function ArchiveNumberCard({ game, index }: { game: ArchiveGame; index: number }
 function ArchiveOnlineCard({ game, index }: { game: ArchiveGame; index: number }) { return <a href="/browse/games" className="reference-online-card"><img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span><strong>{game.name}</strong><small>♟ {(4195 - index * 437).toLocaleString()}</small></span></a>; }
 function EmptyState({ label }: { label: string }) { return <div className="reference-empty">{label}</div>; }
 function PanelHeading({ asset, configured, fallback, title }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; title: string }) { return <header className="reference-panel-heading"><AssetIcon asset={asset} configured={configured} fallback={fallback} className="reference-heading-icon" /><strong>{title}</strong></header>; }
-function AssetIcon({ asset, configured, fallback, className }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; className: string }) { const value = configured || asset?.url || ''; return <span className={className} aria-hidden="true">{value ? (isImageValue(value) ? <img src={normalizeUrl(value)} alt="" onError={hideBrokenImage} /> : value) : fallback}</span>; }
+function AssetIcon({ asset, configured, fallback, className }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; className: string }) { const value = asset?.url || configured || ''; return <span className={className} aria-hidden="true">{value ? (isImageValue(value) ? <img src={normalizeUrl(value)} alt="" onError={hideBrokenImage} /> : value) : fallback}</span>; }
 function ProviderLogoItem({ provider }: { provider: ProviderLogo }) {
   return (
     <span className="reference-provider-logo" title={provider.name}>
