@@ -362,14 +362,14 @@ export class SettingsService {
 
   private async getAdminGroupSettings(group: SettingGroupSlug) {
     return this.prisma.siteSetting.findMany({
-      where: { group: GROUP_TO_PRISMA[group] as any },
+      where: { group: GROUP_TO_PRISMA[group] as any, key: { startsWith: `${group}.` } },
       orderBy: { key: 'asc' },
     });
   }
 
   private async getPublicGroup(group: SettingGroupSlug) {
     const settings = await this.prisma.siteSetting.findMany({
-      where: { group: GROUP_TO_PRISMA[group] as any, isPublic: true, isSensitive: false },
+      where: { group: GROUP_TO_PRISMA[group] as any, key: { startsWith: `${group}.` }, isPublic: true, isSensitive: false },
       orderBy: { key: 'asc' },
     });
     return { group, settings: this.toKeyValueObject(settings) };
