@@ -4,7 +4,7 @@ import type { SyntheticEvent } from 'react';
 import type { CmsAsset, CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
 import { useMemberSession } from '../../member-session-provider';
-import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from '../reference-asset-catalog';
+import { REFERENCE_GAMES } from '../reference-asset-catalog';
 import { DesktopHeroCarousel } from './desktop-hero-carousel';
 import { V47_ASSETS } from './v47-asset-map';
 
@@ -23,6 +23,8 @@ const PROMO_CARDS: PromoCard[] = [
   { title: 'ข่าวสาร', subtitle: 'ข่าวสารที่คุณไม่ควรพลาด', href: '/browse/promotions?view=news', aliases: ['news', 'announcement', 'notice', 'ข่าว'], fallback: '◇', assetUrl: '/clone-assets/shortcut-news.webp', backgroundUrl: V47_ASSETS.promoBackgroundNews },
 ];
 
+const ALLIANCE_ROW_ONE = ['evoplay', 'cq9', 'jili', 'playstar', 'joker', 'ebet', 'popk', 'evoplay', 'cq9', 'jili', 'playstar', 'joker'].map((name, index) => ({ key: `alliance-1-${index}`, name, url: `/assets/asset-pc/images/alliance/${name}.webp` }));
+const ALLIANCE_ROW_TWO = ['jili', 'playstar', 'evoplay', 'ebet', 'popk', 'cq9', 'evoplay', 'jili', 'playstar', 'joker', 'evoplay'].map((name, index) => ({ key: `alliance-2-${index}`, name, url: `/assets/asset-pc/images/alliance/${name}.webp` }));
 const ARCHIVE_GAMES: ArchiveGame[] = REFERENCE_GAMES.map(({ name, url }) => ({ name, imageUrl: url }));
 const RANK_ART = [V47_ASSETS.rank1, V47_ASSETS.rank2, V47_ASSETS.rank3] as const;
 const TOURNAMENT_SCORES = [20, 17, 13, 11, 9, 8, 6, 5] as const;
@@ -42,8 +44,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
   const popular = fillGames(games.popular, allGames, 10);
   const online = fillGames(allGames.slice(3), allGames, 6);
   const classic = fillGames(allGames.slice(8), allGames, 6);
-  const providers = uniqueProviders(allGames).slice(0, 12);
-  const providerLogos = buildProviderLogos(providers);
+  const providerLogos = ALLIANCE_ROW_ONE;
   const showGuestActions = !ready || !isLoggedIn;
 
   const assets = {
@@ -129,7 +130,7 @@ export function DesktopHomeScaffold({ content, icons, siteName, showPromotion, g
             <h2><AssetIcon asset={assets.partner} configured={icons.affiliate} fallback="" className="reference-heading-icon" />พันธมิตรของเรา</h2>
             <div className="reference-provider-rows">
               <div className="reference-provider-row" data-drag-scroll="true">{providerLogos.map((provider) => <ProviderLogoItem key={`a-${provider.key}`} provider={provider} />)}</div>
-              <div className="reference-provider-row reference-provider-row--reverse" data-drag-scroll="true">{[...providerLogos].reverse().map((provider) => <ProviderLogoItem key={`b-${provider.key}`} provider={provider} />)}</div>
+              <div className="reference-provider-row reference-provider-row--reverse" data-drag-scroll="true">{ALLIANCE_ROW_TWO.map((provider) => <ProviderLogoItem key={`b-${provider.key}`} provider={provider} />)}</div>
             </div>
           </section>
         </main>
@@ -178,22 +179,6 @@ function isImageValue(value: string) { return /^https?:\/\//i.test(value) || val
 function uniqueGames(...groups: Game[][]) { const map = new Map<string, Game>(); groups.flat().forEach((game) => { const key = game?.id || `${game?.providerGameCode || ''}:${game?.name || ''}`; if (key && !map.has(key)) map.set(key, game); }); return Array.from(map.values()); }
 function fillGames(primary: Game[], fallback: Game[], count: number) { return uniqueGames(Array.isArray(primary) ? primary : [], fallback).slice(0, count); }
 function uniqueProviders(games: Game[]) { const map = new Map<string, NonNullable<Game['provider']>>(); games.forEach((game) => { const provider = game?.provider; const key = provider?.code || provider?.name; if (key && provider && !map.has(key)) map.set(key, provider); }); return Array.from(map.values()); }
-function buildProviderLogos(providers: ReturnType<typeof uniqueProviders>): ProviderLogo[] {
-  const dynamic = providers.map((provider, index) => {
-    const fallback = REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!;
-    return { key: `dynamic-${provider.code || provider.name || index}`, name: provider.name || provider.code || fallback.name, url: provider.logoUrl ? normalizeUrl(provider.logoUrl) : fallback.url };
-  });
-  const fallback = REFERENCE_PROVIDERS.map((provider, index) => ({ key: `reference-${provider.name}-${index}`, name: provider.name, url: provider.url }));
-  const result: ProviderLogo[] = [];
-  const seen = new Set<string>();
-  [...dynamic, ...fallback].forEach((provider) => {
-    const signature = `${provider.name.toLowerCase()}|${provider.url}`;
-    if (seen.has(signature)) return;
-    seen.add(signature);
-    result.push(provider);
-  });
-  return result.slice(0, 12);
-}
 function completeFaqs(configured: GuideFaq[]): GuideFaq[] {
   const result: GuideFaq[] = [];
   const seen = new Set<string>();
