@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { adminApiFetch } from '../../../../admin-api';
-import { AdminButton, AdminCard, AdminNotice, AdminPage, AdminStack } from '../../../_components/admin-ui';
+import { AdminButton, AdminConfirmDialog, AdminLinkButton, AdminNotice, AdminPage } from '../../../_components/admin-ui';
+import styles from '../branding-professional.module.css';
 
 type HistoryEntry = {
   id: string;
@@ -20,6 +21,7 @@ export default function BrandingHistoryPage() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [message, setMessage] = useState('กำลังโหลด Version history...');
   const [rollingBackId, setRollingBackId] = useState<string | null>(null);
+  const [pendingRollback, setPendingRollback] = useState<HistoryEntry | null>(null);
 
   async function load() {
     setMessage('กำลังโหลด Version history...');
@@ -35,7 +37,6 @@ export default function BrandingHistoryPage() {
   }
 
   async function rollback(entry: HistoryEntry) {
-    if (!window.confirm(`Rollback ${entry.field} ไปค่าก่อนหน้า?`)) return;
     setRollingBackId(entry.id);
     setMessage(`กำลัง Rollback ${entry.field}...`);
     try {
@@ -43,6 +44,7 @@ export default function BrandingHistoryPage() {
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.message ?? `Rollback ไม่สำเร็จ (${res.status})`);
       setMessage(`Rollback ${entry.field} สำเร็จ`);
+      setPendingRollback(null);
       await load();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Rollback ไม่สำเร็จ');
@@ -55,40 +57,74 @@ export default function BrandingHistoryPage() {
 
   return (
     <AdminPage
-      eyebrow="Settings"
-      title="Branding Version History"
-      description="ดูค่าก่อนและหลังการ Publish พร้อม Rollback เฉพาะรายการที่ต้องการ"
-      actions={<><a href="/settings/branding">← Branding Settings</a><a href="/settings/branding/preview">Preview</a><AdminButton type="button" tone="secondary" onClick={() => void load()}>รีเฟรช</AdminButton></>}
+      eyebrow="การตั้งค่าระบบ"
+      title="ประวัติ Branding"
+      description="ตรวจค่าก่อนและหลังการเผยแพร่ พร้อม Rollback เฉพาะรายการโดยไม่ย้อนค่าทั้งระบบ"
+      actions={
+        <>
+          <AdminLinkButton href="/settings/branding" tone="ghost">← Branding</AdminLinkButton>
+          <AdminLinkButton href="/settings/branding/preview" tone="secondary">Preview</AdminLinkButton>
+          <AdminButton type="button" tone="secondary" onClick={() => void load()}>รีเฟรช</AdminButton>
+        </>
+      }
     >
-      {message && <AdminNotice>{message}</AdminNotice>}
-      <AdminStack>
-        {history.length === 0 && (
-          <AdminCard title="ยังไม่มี Version history" description="เมื่อ Publish หรือ Rollback ระบบจะแสดงรายการที่นี่">
-            <p style={{ margin: 0, opacity: 0.75 }}>บันทึก Draft แล้ว Publish อย่างน้อยหนึ่งครั้งเพื่อเริ่มสร้างประวัติย้อนหลัง</p>
-          </AdminCard>
+      <div className={styles.historyPage}>
+        {message && <AdminNotice>{message}</AdminNotice>}
+
+        {history.length === 0 ? (
+          <section className={styles.empty}>
+            <div>
+              <strong>ยังไม่มี Version history</strong>
+              <p>บันทึก Draft และ Publish อย่างน้อยหนึ่งครั้ง ระบบจึงจะเริ่มเก็บประวัติสำหรับตรวจสอบและ Rollback</p>
+            </div>
+          </section>
+        ) : (
+          <div className={styles.historyList}>
+            {history.map((entry) => (
+              <article className={styles.historyCard} key={entry.id}>
+                <header className={styles.historyHead}>
+                  <div>
+                    <h2>{entry.field}</h2>
+                    <p>{formatDate(entry.createdAt)}</p>
+                  </div>
+                  <AdminButton type="button" tone="secondary" disabled={rollingBackId !== null} onClick={() => setPendingRollback(entry)}>
+                    {rollingBackId === entry.id ? 'กำลัง Rollback...' : 'Rollback ค่านี้'}
+                  </AdminButton>
+                </header>
+
+                <div className={styles.historyGrid}>
+                  <ValueBlock title="ค่าก่อนหน้า" value={entry.oldValue} />
+                  <ValueBlock title="ค่าหลังแก้" value={entry.newValue} />
+                </div>
+
+                <div className={styles.meta}>
+                  <span>ผู้แก้: {entry.changedBy || 'ไม่ระบุ'}</span>
+                  <span>IP: {entry.ipAddress || 'ไม่ระบุ'}</span>
+                  <span>Key: {entry.settingKey}</span>
+                </div>
+              </article>
+            ))}
+          </div>
         )}
-        {history.map((entry) => (
-          <AdminCard key={entry.id} title={entry.field} description={formatDate(entry.createdAt)}>
-            <div style={historyGridStyle}>
-              <ValueBlock title="ค่าก่อนหน้า" value={entry.oldValue} />
-              <ValueBlock title="ค่าหลังแก้" value={entry.newValue} />
-            </div>
-            <div style={metaStyle}>
-              <span>ผู้แก้: {entry.changedBy || 'ไม่ระบุ'}</span>
-              <span>IP: {entry.ipAddress || 'ไม่ระบุ'}</span>
-            </div>
-            <AdminButton type="button" tone="secondary" disabled={rollingBackId !== null} onClick={() => void rollback(entry)}>
-              {rollingBackId === entry.id ? 'กำลัง Rollback...' : 'Rollback เป็นค่าก่อนหน้า'}
-            </AdminButton>
-          </AdminCard>
-        ))}
-      </AdminStack>
+      </div>
+
+      <AdminConfirmDialog
+        open={Boolean(pendingRollback)}
+        title={`ยืนยัน Rollback ${pendingRollback?.field ?? ''}`}
+        description="ระบบจะนำค่าก่อนหน้าของรายการนี้กลับมาใช้ และสร้างประวัติรายการใหม่สำหรับ Audit"
+        confirmLabel="ยืนยัน Rollback"
+        tone="danger"
+        busy={rollingBackId !== null}
+        onCancel={() => { if (!rollingBackId) setPendingRollback(null); }}
+        onConfirm={() => { if (pendingRollback) void rollback(pendingRollback); }}
+        details={pendingRollback ? <div className={styles.confirmDetails}><strong>ค่าที่จะคืนกลับ</strong><pre>{formatValue(pendingRollback.oldValue)}</pre><strong>ค่าปัจจุบัน</strong><pre>{formatValue(pendingRollback.newValue)}</pre></div> : null}
+      />
     </AdminPage>
   );
 }
 
 function ValueBlock({ title, value }: { title: string; value: unknown }) {
-  return <section style={valueBlockStyle}><strong>{title}</strong><pre style={preStyle}>{formatValue(value)}</pre></section>;
+  return <section className={styles.valueBlock}><strong>{title}</strong><pre>{formatValue(value)}</pre></section>;
 }
 
 function formatValue(value: unknown) {
@@ -101,8 +137,3 @@ function formatDate(value: string) {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString('th-TH');
 }
-
-const historyGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 } as const;
-const valueBlockStyle = { minWidth: 0, padding: 12, border: '1px solid rgba(148,163,184,.18)', borderRadius: 12, background: 'rgba(148,163,184,.05)' } as const;
-const preStyle = { margin: '8px 0 0', whiteSpace: 'pre-wrap' as const, overflowWrap: 'anywhere' as const, font: 'inherit', opacity: 0.9 } as const;
-const metaStyle = { display: 'flex', flexWrap: 'wrap' as const, gap: 12, margin: '12px 0', fontSize: 13, opacity: 0.75 } as const;
