@@ -51,8 +51,8 @@ export default function CasinoSourcePage() {
   }
 
   return (
-    <main className={styles.page} aria-labelledby="casino-page-title">
-      <div className={styles.backgroundStack} aria-hidden="true">
+    <main className={styles.page} style={{ isolation: 'isolate' }} aria-labelledby="casino-page-title">
+      <div className={styles.backgroundStack} style={{ zIndex: 0 }} aria-hidden="true">
         {CASINO_PROVIDERS.map((provider) => (
           <img
             key={`background-${provider.id}`}
@@ -71,7 +71,7 @@ export default function CasinoSourcePage() {
         <div className={styles.darkFade} />
       </div>
 
-      <div className={styles.viewport}>
+      <div className={styles.viewport} style={{ zIndex: 10 }}>
         <div className={styles.content}>
           <header className={styles.hero}>
             <img
