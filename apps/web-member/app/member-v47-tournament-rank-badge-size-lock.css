@@ -1,0 +1,25 @@
+/* Final source-size lock for tournament rank shields. */
+.source-rank-card__badge {
+  top: -17px;
+  width: 34px;
+  height: 28px;
+}
+
+.source-rank-card__badge img {
+  width: 34px;
+  height: 29px;
+}
+
+.source-rank-card__badge.is-top-three img {
+  width: 42px;
+  height: 35px;
+}
+
+.source-rank-card__badge strong {
+  font-size: 10px;
+  -webkit-text-stroke-width: .35px;
+}
+
+.source-rank-card__badge.is-top-three strong {
+  font-size: 14px;
+}
