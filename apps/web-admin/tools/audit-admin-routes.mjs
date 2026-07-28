@@ -26,6 +26,15 @@ const outputPath = path.resolve(repoRoot, 'docs/admin-route-registry.generated.j
 const ROUTE_FILES = new Set(['page.tsx', 'page.ts', 'page.jsx', 'page.js']);
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 const SYSTEM_SEGMENTS = new Set(['_components', '_lib', '_utils', '_hooks', '_styles']);
+const GENERIC_TEST_SOURCE_BASENAMES = new Set([
+  'page',
+  'index',
+  'admin-api',
+  'admin-list-contract',
+  'admin-payload-redaction',
+  'admin-permission-contract',
+  'admin-safe-error',
+]);
 const AUTH_ROUTES = new Set(['/', '/login', '/two-factor', '/accept-invitation']);
 const UTILITY_ROUTES = new Set([
   '/adapter-test',
@@ -162,12 +171,19 @@ async function collectSourceGraph(entryFile, visited = new Set(), depth = 0) {
   return { source: chunks.join('\n'), files: [...new Set(files)] };
 }
 
-function localTestsFor(sourceFiles, testFiles) {
-  const sourceDirectories = new Set(sourceFiles.map((file) => path.dirname(file)));
-  const sourceBases = new Set(sourceFiles.map((file) => path.basename(file).replace(/\.(?:tsx?|jsx?)$/, '')));
+function localTestsFor(entryFile, sourceFiles, testFiles) {
+  const routeDirectory = path.dirname(entryFile);
+  const routeDirectoryIsSharedRoot = routeDirectory === appRoot || routeDirectory === srcRoot;
+  const sourceBases = new Set(sourceFiles
+    .map((file) => path.basename(file).replace(/\.(?:tsx?|jsx?)$/, ''))
+    .filter((base) => !GENERIC_TEST_SOURCE_BASENAMES.has(base)));
+
   return testFiles
     .filter((file) => {
-      if (sourceDirectories.has(path.dirname(file))) return true;
+      const fileDirectory = path.dirname(file);
+      if (!routeDirectoryIsSharedRoot && (fileDirectory === routeDirectory || file.startsWith(`${routeDirectory}${path.sep}`))) {
+        return true;
+      }
       const testBase = path.basename(file).replace(/\.spec\.(?:tsx?|jsx?)$/, '');
       return sourceBases.has(testBase);
     })
@@ -205,7 +221,7 @@ async function main() {
     const permissions = permissionMetadata(route, routeType);
     const apiEndpoints = apiEndpointsFrom(graph.source);
     const desktopPattern = inferDesktopPattern(routeType, graph.source);
-    const localTests = localTestsFor(graph.files, testFiles);
+    const localTests = localTestsFor(file, graph.files, testFiles);
     const baseContract = {
       route,
       source: normalizeFilePath(path.relative(process.cwd(), file)),
