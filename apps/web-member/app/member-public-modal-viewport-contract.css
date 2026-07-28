@@ -2,6 +2,42 @@
  * Each dialog mounts these classes directly. No duplicate modal is created.
  */
 
+/* Current production DOM: Guide reuses the mission overlay CSS module, so it
+ * does not carry the old runtime data attribute/class. Target the actual direct
+ * body portals by their dialog ids and keep them above the public header
+ * (header z-index is 5000; mission overlay source was only 2800).
+ */
+body > div[role='presentation']:has(> section[role='dialog'][aria-labelledby='member-search-title']),
+body > div[role='presentation']:has(> section[role='dialog'][aria-labelledby='daily-mission-title']),
+body > div[role='presentation']:has(> section[role='dialog'][aria-labelledby='usage-guide-title']) {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+  isolation: isolate !important;
+  width: 100vw !important;
+  min-width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: none !important;
+  filter: none !important;
+  background: rgb(0 0 0 / 82%) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+body > div[role='presentation']:has(> section[role='dialog'][aria-labelledby='member-search-title']) > section,
+body > div[role='presentation']:has(> section[role='dialog'][aria-labelledby='daily-mission-title']) > section,
+body > div[role='presentation']:has(> section[role='dialog'][aria-labelledby='usage-guide-title']) > section {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
 /* A public header can create its own stacking context. When a dialog portal is
  * mounted as a direct body child, lock every other body child below it so the
  * dialog covers the complete application chrome, exactly like the mission UI.
