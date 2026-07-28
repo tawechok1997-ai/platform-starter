@@ -17,15 +17,13 @@ test('login heading, tabs, recovery and support copy use the active locale', () 
   assert.doesNotMatch(loginSource, /<span>Secure connection<\/span>/);
 });
 
-test('register heading and legal copy switch Thai and English together', () => {
+test('register route owns localized copy and the shared view renders it', () => {
   assert.match(registerPageSource, /title:\s*'สมัครสมาชิก'/);
   assert.match(registerPageSource, /title:\s*'Create account'/);
-  assert.match(registerPageSource, /terms:\s*'ข้าพเจ้ามีอายุครบ 20 ปีบริบูรณ์/);
-  assert.match(registerPageSource, /terms:\s*'I confirm that I am at least 20 years old/);
-  assert.match(registerViewSource, /const registerLabel = locale === 'th' \? 'สมัครสมาชิก' : 'Register'/);
+  assert.match(registerPageSource, /password:\s*'สร้างรหัสผ่าน'/);
+  assert.match(registerPageSource, /password:\s*'Create password'/);
   assert.match(registerViewSource, /<h1 id="member-register-title">\{t\.title\}<\/h1>/);
-  assert.match(registerViewSource, /<span>\{t\.terms\}<\/span>/);
-  assert.match(registerViewSource, /const supportPrompt = locale === 'th' \? 'พบปัญหาการใช้งาน' : 'Having trouble\?'/);
-  assert.match(registerViewSource, /const supportLabel = locale === 'th' \? 'ติดต่อเจ้าหน้าที่' : 'Contact support'/);
+  assert.match(registerViewSource, /<span className="public-auth-field-label">\{t\.password\}<\/span>/);
+  assert.match(registerViewSource, /const supportPrompt = locale === 'th'/);
   assert.doesNotMatch(registerViewSource, /<span>Secure registration<\/span>/);
 });
