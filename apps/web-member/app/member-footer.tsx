@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import type { SyntheticEvent } from 'react';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 
@@ -8,7 +9,7 @@ const SOURCE_ROOT = '/assets/asset-pc/images';
 const GAME_LINKS = [
   ['คาสิโน', '/games?category=casino'],
   ['สล็อต', '/games?category=slot'],
-  ['ยิงปลา', '/games?category=fishing'],
+  ['ตกปลา', '/games?category=fishing'],
   ['กีฬา', '/games?category=sport'],
   ['ไพ่', '/games?category=card'],
   ['หวย', '/games?category=lottery'],
@@ -64,12 +65,14 @@ function sourceDescription(value: string | undefined) {
 }
 
 export default function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
+  const pathname = usePathname() ?? '/';
+  const isHomeRoute = pathname === '/';
   const { website } = settings;
   const siteName = sourceBrandName(website.site_name);
   const description = sourceDescription(website.site_description);
 
   return (
-    <footer className="member-footer">
+    <footer className={`member-footer ${isHomeRoute ? 'member-footer--home' : 'member-footer--secondary'}`}>
       <div className="member-footer__main">
         <section className="member-footer__about">
           <h3>{siteName}</h3>
@@ -112,7 +115,7 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
         </section>
       </div>
 
-      <div className="member-footer__separator" aria-hidden="true" />
+      {isHomeRoute && <div className="member-footer__separator" aria-hidden="true" />}
 
       <section className="member-footer__payments" aria-label="วิธีการชำระเงิน">
         <h3>วิธีการชำระเงิน</h3>
