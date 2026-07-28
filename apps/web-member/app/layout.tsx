@@ -101,6 +101,7 @@ import './member-home-sidebar-primary.css';
 import './member-public-modal-viewport-contract.css';
 import './member-v47-tournament-rank-badge-size-lock.css';
 import './member-leaderboard-source-match-lock.css';
+import './member-leaderboard-rank-number-lock.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
