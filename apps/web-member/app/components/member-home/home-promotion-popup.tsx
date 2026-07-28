@@ -36,9 +36,21 @@ export function HomePromotionPopup({ onClose }: HomePromotionPopupProps) {
         aria-label="ปิดหน้าต่างโปรโมชั่น"
         tabIndex={-1}
         onClick={onClose}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          width: '100%',
+          height: '100%',
+          margin: 0,
+          padding: 0,
+          border: 0,
+          background: 'transparent',
+          cursor: 'default',
+        }}
       />
 
-      <section className="home-promotion-popup__panel">
+      <section className="home-promotion-popup__panel" style={{ position: 'relative', zIndex: 1 }}>
         <div className="home-promotion-popup__shine" aria-hidden="true" />
 
         <header className="home-promotion-popup__header">
@@ -60,7 +72,7 @@ export function HomePromotionPopup({ onClose }: HomePromotionPopupProps) {
         <div className="home-promotion-popup__content">
           <div className="home-promotion-popup__tabs" aria-label="หมวดโปรโมชั่น">
             {CATEGORY_LABELS.map((label, index) => (
-              <span key={label} className={index === 0 ? 'is-active' : ''}>{label}</span>
+              <button key={label} type="button" className={index === 0 ? 'is-active' : ''} tabIndex={-1}>{label}</button>
             ))}
           </div>
 
