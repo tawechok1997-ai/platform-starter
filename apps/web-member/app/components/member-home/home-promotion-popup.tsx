@@ -90,11 +90,28 @@ export function HomePromotionPopup({ onClose }: HomePromotionPopupProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="home-promotion-popup-title"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) closeWithMotion();
-      }}
     >
-      <section className="home-promotion-popup__panel">
+      <button
+        type="button"
+        className="home-promotion-popup__backdrop"
+        aria-label="ปิดหน้าต่างโปรโมชั่น"
+        tabIndex={-1}
+        onClick={closeWithMotion}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          width: '100%',
+          height: '100%',
+          margin: 0,
+          padding: 0,
+          border: 0,
+          background: 'transparent',
+          cursor: 'default',
+        }}
+      />
+
+      <section className="home-promotion-popup__panel" style={{ position: 'relative', zIndex: 1 }}>
         <div className="home-promotion-popup__shine" aria-hidden="true" />
 
         <header className="home-promotion-popup__header">
