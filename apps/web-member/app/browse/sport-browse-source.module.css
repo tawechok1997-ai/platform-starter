@@ -32,8 +32,8 @@
   height: 600px;
   object-fit: cover;
   opacity: 0;
-  transform: translateY(-500%);
-  transition: opacity 900ms ease, transform 900ms ease;
+  transform: translateY(-100%);
+  transition: opacity 700ms ease, transform 900ms ease;
 }
 
 .providerBackgroundActive {
@@ -57,7 +57,7 @@
   width: min(1440px, calc(100vw - 32px));
   min-height: 820px;
   margin: 0 auto;
-  padding: 134px 0 52px;
+  padding: 20px 0 52px;
 }
 
 .heroTitle {
@@ -84,7 +84,7 @@
 
 .baseTitleHidden {
   opacity: 0;
-  transform: translateY(-160%);
+  transform: translateY(-200%) scale(0);
 }
 
 .providerTitle {
@@ -113,6 +113,7 @@
   opacity: 0;
   transform: translate(200%, -200%) scale(0);
   transition: opacity 1000ms ease, transform 1000ms ease;
+  pointer-events: none;
 }
 
 .providerAvatarActive {
@@ -131,9 +132,10 @@
 .filterPanel {
   position: sticky;
   top: 124px;
+  z-index: 0;
   box-sizing: border-box;
   width: 345px;
-  max-height: calc(100vh - 144px);
+  height: fit-content;
   overflow-x: hidden;
   overflow-y: auto;
   border-radius: 20px;
@@ -161,7 +163,7 @@
   position: relative;
   z-index: 1;
   box-sizing: border-box;
-  width: 100%;
+  width: 345px;
   padding: 20px;
   border-radius: 20px;
   font-size: 20px;
@@ -170,79 +172,24 @@
   backdrop-filter: blur(12px);
 }
 
-.providerHeading {
+.collapsedFilterHeading {
   display: flex;
   width: 100%;
-  min-height: 28px;
+  height: 0;
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
-  padding: 6px 16px;
-  gap: 10px;
+  padding: 0 16px;
   overflow: hidden;
   background: linear-gradient(90deg, rgb(3 23 45 / 60%) -6.21%, rgb(187 91 234) 4.41%, rgb(3 23 45 / 60%) 83.01%);
   font-size: 12px;
   font-weight: 300;
-  opacity: .8;
+  opacity: 0;
 }
 
-.providerHeading strong {
-  overflow: hidden;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.providerHeading span {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
-
-.providerButtons {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  padding: 14px;
-  gap: 10px;
-}
-
-.providerButton {
-  display: grid;
-  min-width: 0;
-  height: 96px;
-  grid-template-rows: 62px auto;
-  align-items: center;
-  justify-items: center;
-  overflow: hidden;
-  padding: 5px;
-  border: 1px solid rgb(55 49 71);
-  border-radius: 12px;
-  background: linear-gradient(155deg, rgb(55 49 71), rgb(21 19 26) 35%);
-  color: #fff;
-  cursor: pointer;
-}
-
-.providerButton img {
-  display: block;
+.filterSpacer {
   width: 100%;
-  height: 62px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
-.providerButton span {
-  width: 100%;
-  overflow: hidden;
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.providerButton:hover,
-.providerButton:focus-visible,
-.providerButtonActive {
-  border-color: rgb(187 91 234);
-  outline: none;
-  box-shadow: 0 0 0 1px rgb(187 91 234 / 20%), 0 0 14px rgb(118 0 168 / 36%);
+  height: 16px;
 }
 
 .filterSummary {
@@ -305,15 +252,15 @@
 .gameGrid {
   display: grid;
   width: 100%;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 182px));
   align-items: start;
+  justify-content: start;
   gap: 0;
 }
 
 .gameCard {
   box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
+  width: 182px;
   height: 250px;
   padding: 5px 25px 5px 5px;
   overflow: hidden;
@@ -323,9 +270,8 @@
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1.42857;
   overflow: hidden;
-  padding: 0;
+  padding: 0 0 142.857%;
   border: 0;
   border-radius: 8px;
   background: rgb(21 19 26);
@@ -333,6 +279,8 @@
 }
 
 .gameImage {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -349,18 +297,23 @@
   height: 17px;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   padding: 0 6px;
   border-radius: 4px;
   background: #00d719;
   box-shadow: 0 2px 5px rgb(0 255 30 / 53%);
   color: #fff;
-  font-size: 9px;
+  font-size: 9.5px;
   font-style: italic;
   font-weight: 800;
 }
 
+.newBadge svg {
+  flex: 0 0 10px;
+}
+
 .newBadge b {
+  margin-top: 1px;
   font: inherit;
 }
 
@@ -398,9 +351,9 @@
 
 .gameCard p {
   width: 100%;
-  overflow: hidden;
   margin: 0;
   padding-top: 2px;
+  overflow: hidden;
   color: #fff;
   font-size: 14px;
   font-weight: 400;
@@ -410,21 +363,26 @@
   white-space: nowrap;
 }
 
-@media (max-width: 1279px) {
+@media (max-width: 1260px) {
   .content {
-    padding-top: 112px;
+    width: min(1180px, calc(100vw - 24px));
   }
 
   .layout {
     grid-template-columns: 300px minmax(0, 1fr);
   }
 
-  .filterPanel {
+  .filterPanel,
+  .filterTitle {
     width: 300px;
   }
 
   .gameGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .gameCard {
+    width: 100%;
   }
 
   .providerAvatar {
@@ -438,27 +396,19 @@
     min-height: 100vh;
   }
 
-  .backgroundStack,
-  .baseBackground,
-  .providerBackground,
-  .purpleWash,
-  .bottomFade {
-    min-height: 480px;
-  }
-
   .content {
-    width: min(100%, calc(100vw - 24px));
-    padding: 96px 0 40px;
+    width: min(100%, 680px);
+    padding: 12px 12px 36px;
   }
 
   .heroTitle {
-    height: 120px;
+    height: 112px;
   }
 
   .baseTitle,
   .providerTitle {
     width: 280px;
-    height: 92px;
+    height: 94px;
   }
 
   .providerAvatar {
@@ -469,51 +419,15 @@
     display: block;
   }
 
+  .filterPanel,
+  .filterTitle {
+    width: 100%;
+  }
+
   .filterPanel {
     position: relative;
     top: auto;
-    width: 100%;
-    max-height: none;
-    margin-bottom: 24px;
-  }
-
-  .providerButtons {
-    grid-template-columns: repeat(5, minmax(110px, 1fr));
-    overflow-x: auto;
-  }
-
-  .gameGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .gameCard {
-    height: auto;
-    padding: 5px 10px 18px 5px;
-  }
-}
-
-@media (max-width: 560px) {
-  .content {
-    width: min(100%, calc(100vw - 16px));
-    padding-top: 84px;
-  }
-
-  .heroTitle {
-    height: 100px;
-  }
-
-  .baseTitle,
-  .providerTitle {
-    width: 220px;
-    height: 76px;
-  }
-
-  .providerButtons {
-    grid-template-columns: repeat(5, 104px);
-  }
-
-  .filterSummary {
-    gap: 10px;
+    margin-bottom: 20px;
   }
 
   .gameArea h1 {
@@ -522,10 +436,28 @@
   }
 
   .gameGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .gameCard p {
-    font-size: 12px;
+  .gameCard {
+    width: 100%;
+    height: auto;
+    padding: 5px 8px 14px 5px;
+  }
+}
+
+@media (max-width: 520px) {
+  .gameGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .providerBackground,
+  .baseTitle,
+  .providerTitle,
+  .providerAvatar,
+  .gameImage {
+    transition: none;
   }
 }
