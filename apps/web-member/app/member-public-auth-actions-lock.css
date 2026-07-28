@@ -1,0 +1,110 @@
+/* Final public-header auth contract.
+   Loaded last so legacy Home passes cannot hide or move the guest actions. */
+
+html body .public-home-topbar.global-member-topbar {
+  z-index: 5000 !important;
+  overflow: visible !important;
+  isolation: isolate !important;
+}
+
+html body .public-home-topbar.global-member-topbar .public-home-desktop-bar {
+  overflow: visible !important;
+}
+
+html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 50 !important;
+  display: flex !important;
+  visibility: visible !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 38px !important;
+  margin: 0 0 0 auto !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  clip: auto !important;
+  clip-path: none !important;
+  transform: none !important;
+}
+
+html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions > .member-guest-actions {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 51 !important;
+  display: flex !important;
+  visibility: visible !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 38px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 10px !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  clip: auto !important;
+  clip-path: none !important;
+  transform: none !important;
+}
+
+html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions .member-guest-action {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 52 !important;
+  display: inline-flex !important;
+  visibility: visible !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 112px !important;
+  max-width: none !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 0 20px !important;
+  overflow: hidden !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  clip: auto !important;
+  clip-path: none !important;
+  transform: none !important;
+}
+
+html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions .member-guest-action--register {
+  min-width: 132px !important;
+}
+
+@media (max-width: 900px) {
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions {
+    min-width: 0 !important;
+  }
+
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions > .member-guest-actions {
+    min-width: 0 !important;
+    gap: 6px !important;
+  }
+
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions .member-guest-action,
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions .member-guest-action--register {
+    min-width: 0 !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    line-height: 38px !important;
+  }
+}
