@@ -1,6 +1,6 @@
-/* Full-bleed footer background while preserving the centered source content shell. */
+/* Full-bleed footer background on every public surface while preserving the centered source content shell. */
 @media (min-width: 901px) {
-  body:has(.desktop-reference-home) .member-footer {
+  body:has(.public-home-topbar) .member-footer {
     position: relative !important;
     left: 50% !important;
     display: block !important;
@@ -15,9 +15,9 @@
     background: #15111f !important;
   }
 
-  body:has(.desktop-reference-home) .member-footer__main,
-  body:has(.desktop-reference-home) .member-footer__payments,
-  body:has(.desktop-reference-home) .member-footer__copyright {
+  body:has(.public-home-topbar) .member-footer__main,
+  body:has(.public-home-topbar) .member-footer__payments,
+  body:has(.public-home-topbar) .member-footer__copyright {
     width: min(1455px, calc(100vw - 32px)) !important;
     max-width: 1455px !important;
     margin-left: auto !important;
@@ -25,7 +25,7 @@
     box-sizing: border-box !important;
   }
 
-  body:has(.desktop-reference-home) .member-footer__separator {
+  body:has(.public-home-topbar) .member-footer__separator {
     width: min(1455px, calc(100vw - 32px)) !important;
     max-width: 1455px !important;
     margin-left: auto !important;
