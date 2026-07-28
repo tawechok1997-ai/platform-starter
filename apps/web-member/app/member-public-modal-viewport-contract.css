@@ -1,20 +1,29 @@
 /* One final frame for Search, Daily Mission and Usage Guide.
- * The runtime controller adds these explicit classes to the existing dialog DOM.
- * No duplicate modal is created.
+ * Each dialog mounts these classes directly. No duplicate modal is created.
  */
 
 .public-dialog-runtime-overlay {
   position: fixed !important;
   inset: 0 !important;
-  z-index: 2147483000 !important;
+  z-index: 2147483647 !important;
   display: grid !important;
   place-items: center !important;
+  isolation: isolate !important;
   box-sizing: border-box !important;
   width: 100vw !important;
+  min-width: 100vw !important;
+  max-width: 100vw !important;
   height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
   margin: 0 !important;
   padding: 16px !important;
   overflow: hidden !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: none !important;
+  filter: none !important;
   background: rgb(0 0 0 / 82%) !important;
   backdrop-filter: blur(2px) !important;
 }
@@ -22,7 +31,7 @@
 .public-dialog-runtime {
   position: relative !important;
   inset: auto !important;
-  z-index: 2147483001 !important;
+  z-index: 1 !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
@@ -37,7 +46,11 @@
   padding: 16px !important;
   gap: 12px !important;
   overflow: hidden !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
   transform: none !important;
+  filter: none !important;
 }
 
 .public-dialog-runtime-header {
@@ -63,7 +76,7 @@
   right: 10px !important;
   left: auto !important;
   bottom: auto !important;
-  z-index: 2147483002 !important;
+  z-index: 2 !important;
   display: grid !important;
   place-items: center !important;
   box-sizing: border-box !important;
