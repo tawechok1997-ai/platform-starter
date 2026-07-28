@@ -71,6 +71,24 @@
   box-sizing: border-box !important;
 }
 
+/* Secondary public pages must inherit the Home footer surface without drawing
+ * an extra payment divider. Home owns its intentional separator separately. */
+.member-footer--secondary .member-footer__payments {
+  border: 0 !important;
+  border-top: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.member-footer--secondary .member-footer__payments::before,
+.member-footer--secondary .member-footer__payments::after {
+  content: none !important;
+  display: none !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 @media (min-width: 901px) {
   :is(.public-lower-shell, .public-game-shell) > .noah-alliance-v3 {
     height: 147px !important;
