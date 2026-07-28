@@ -120,6 +120,7 @@ import MemberDragScrollController from './components/member-drag-scroll-controll
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
 import DesktopLeaderboardSource from './components/member-home/desktop-leaderboard-source';
+import { MemberLocaleProvider } from './member-locale-provider';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
 
@@ -140,15 +141,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="th">
       <body>
-        <SiteSettingsProvider>
-          <MemberSessionProvider>
-            <MemberHeroSwipeController />
-            <MemberDragScrollController />
-            <PublicLiveNavigationController />
-            <DesktopLeaderboardSource />
-            <MemberChrome>{children}</MemberChrome>
-          </MemberSessionProvider>
-        </SiteSettingsProvider>
+        <MemberLocaleProvider>
+          <SiteSettingsProvider>
+            <MemberSessionProvider>
+              <MemberHeroSwipeController />
+              <MemberDragScrollController />
+              <PublicLiveNavigationController />
+              <DesktopLeaderboardSource />
+              <MemberChrome>{children}</MemberChrome>
+            </MemberSessionProvider>
+          </SiteSettingsProvider>
+        </MemberLocaleProvider>
       </body>
     </html>
   );
