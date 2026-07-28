@@ -1,282 +1,49 @@
 'use client';
 
-import { useMemo, useState, type SyntheticEvent } from 'react';
-import { useMemberSession } from '../member-session-provider';
-import styles from './slot-browse-source.module.css';
+import SourceGameCategoryPage, { type SourceGameCategoryConfig } from './source-game-category-page';
 
-type SlotFilter = 'arcade' | 'buy' | 'hot' | 'new' | 'slot' | 'table';
+const providerCodes = ['ygr','hotdog','misolt','jl','pp','kingm','spg','jkgx2','fachai','rsg','pgsoft','kaga','hacksaw','cq','redtiger','hbn','wmslot','evp','netent','ps','pokslot','edp','spp','ame','bng','r88','cala','glx','l22','reg','ygg','fs','pgsus','n2','ap','amb','ask','nlc','vp','drag','acewin','rb7slot'] as const;
+const providers = providerCodes.map((code) => ({ code, name: code.toUpperCase(), badge:`https://cdn.zabbet.com/providers/set/1_1_badge/${code}.png`, card:`https://cdn.zabbet.com/providers/set/1_1_v/${code}.png`, background:`https://cdn.zabbet.com/providers/set/1_1_bg/${code}.png`, title:`https://cdn.zabbet.com/providers/set/1_1_title/${code}.png`, avatar:`https://cdn.zabbet.com/providers/set/1_1_avatar/${code}.png` }));
 
-type SlotProvider = {
-  code: string;
-  name: string;
-  badge: string;
-  background: string;
-  title: string;
-  avatar: string;
-};
-
-type SlotGame = {
-  id: string;
-  name: string;
-  image: string;
-  provider: string;
-  filters: readonly SlotFilter[];
-  isNew: boolean;
-  isHot: boolean;
-};
-
-const SOURCE_TOTAL_GAMES = 5094;
-
-const PROVIDER_CODES = ['ygr', 'hotdog', 'misolt', 'jl', 'pp', 'kingm', 'spg', 'jkgx2', 'fachai', 'rsg', 'pgsoft', 'kaga', 'hacksaw', 'cq', 'redtiger', 'hbn', 'wmslot', 'evp', 'netent', 'ps', 'pokslot', 'edp', 'spp', 'ame', 'bng', 'r88', 'cala', 'glx', 'l22', 'reg', 'ygg', 'fs', 'pgsus', 'n2', 'ap', 'amb', 'ask', 'nlc', 'vp', 'drag', 'acewin', 'rb7slot'] as const;
-
-const PROVIDERS: readonly SlotProvider[] = PROVIDER_CODES.map((code) => ({
-  code,
-  name: code.toUpperCase(),
-  badge: `https://cdn.zabbet.com/providers/set/1_1_badge/${code}.png`,
-  background: `https://cdn.zabbet.com/providers/set/1_1_bg/${code}.png`,
-  title: `https://cdn.zabbet.com/providers/set/1_1_title/${code}.png`,
-  avatar: `https://cdn.zabbet.com/providers/set/1_1_avatar/${code}.png`,
-}));
-
-const FILTERS: readonly { key: SlotFilter; label: string; count: number }[] = [
-  { key: 'arcade', label: 'เกมส์อาเขต', count: 182 },
-  { key: 'buy', label: 'ซื้อฟรีสปิน', count: 900 },
-  { key: 'hot', label: 'เกมส์ฮิต', count: 546 },
-  { key: 'new', label: 'เกมส์ใหม่', count: 552 },
-  { key: 'slot', label: 'เกมส์สล็อต', count: 3694 },
-  { key: 'table', label: 'เกมส์โต๊ะ', count: 233 },
-];
-
-const SOURCE_GAME_ROWS = [
-  ['50s PinUp', 'https://cdn.zabbet.com/games/1686811201754-2f9fc978-07ee-43a7-9436-70d1d8589a4b.jpeg', 'wmslot'],
-  ['The King of Dinosaurs', 'https://cdn.zabbet.com/games/ka_gaming/TRex.jpg', 'kaga'],
-  ['Legend of Dragons', 'https://cdn.zabbet.com/games/ka_gaming/DragonsLegend.jpg', 'kaga'],
-  ['Dragon four knives', 'https://cdn.zabbet.com/games/1691001919291-e0632abc-0c3a-4115-a801-092f69e2b84a.jpg', 'r88'],
-  ['10X Rewind', 'https://cdn.zabbet.com/games/ygg/880138.jpg', 'ygg'],
-  ['jalapeno', 'https://cdn.zabbet.com/games/Pegasus/290080.jpg', 'pgsus'],
-  ['Super Stars', 'https://cdn.zabbet.com/games/1672859429069-a9973e5e-0044-42ff-88d9-ecfa50b0c080.jpg', 'jkgx2'],
-  ["Rabbit's Riches", 'https://cdn.zabbet.com/games/DRAG/1239.jpg', 'drag'],
-  ['Nuwa', 'https://cdn.zabbet.com/games/1673187068008-574a0012-98ad-45e7-b134-10b3bd7e3f84.jpg', 'hbn'],
-  ['Sweet POP', 'https://cdn.zabbet.com/games/vertical/CQ/sweet_pop.jpg', 'cq'],
-  ['Brutal Santa', 'https://cdn.zabbet.com/games/vertical/EVP/brutal_santa.jpg', 'evp'],
-  ['Lucky Clovers', 'https://cdn.zabbet.com/games/1672485700759-768a8aca-c504-4959-8f87-aa166bd76215.png', 'spp'],
-  ["Druids' Dream", 'https://cdn.zabbet.com/games/1672957168136-c7a1ce60-f4bc-4069-b646-da11f0006431.jpg', 'netent'],
-  ['Well of Wilds Megaways', 'https://cdn.zabbet.com/games/vertical/REDTIGER/well_of_wilds_megaways.png', 'redtiger'],
-  ['Muay Thai Champion', 'https://cdn.zabbet.com/games/1684318688539-cc1d6727-fbe3-44d0-8b63-0de12d5fb029.jpg', 'pgsoft'],
-  ['Viking Legend', 'https://cdn.zabbet.com/games/1686811103781-d6ba4597-d295-4622-889e-e64a91561cee.jpeg', 'wmslot'],
-  ['Muay Thai', 'https://cdn.zabbet.com/games/ka_gaming/MuayThai.jpg', 'kaga'],
-  ['Double Fortune', 'https://cdn.zabbet.com/games/ka_gaming/DoubleFortune.jpg', 'kaga'],
-  ['Wild Fire Ranger', 'https://cdn.zabbet.com/games/1691001365897-9c82bea9-0c15-480e-b1d0-bb2535bf7c27.jpg', 'r88'],
-  ['Fortune cat', 'https://cdn.zabbet.com/games/Pegasus/290081.jpg', 'pgsus'],
-  ['Supreme Caishen', 'https://cdn.zabbet.com/games/1672859395322-e3d8f324-fe81-4196-abcb-e277d721033e.jpg', 'jkgx2'],
-  ['Project Space', 'https://cdn.zabbet.com/games/DRAG/1226.jpg', 'drag'],
-  ["Pirate's Plunder", 'https://cdn.zabbet.com/games/1673186493332-c5789ef7-42fe-4c2f-8d7f-bef335e8abdb.jpg', 'hbn'],
-  ['EggOMatic', 'https://cdn.zabbet.com/games/1672957197531-2e1385f0-d016-48a1-9cee-df0849a6eef3.jpg', 'netent'],
-  ['Well Of Wishes', 'https://cdn.zabbet.com/games/vertical/REDTIGER/well_of_wishes.png', 'redtiger'],
-  ['Dragon Tiger Luck', 'https://cdn.zabbet.com/games/pgslot/vertical/dragon_tiger_luck.jpg', 'pgsoft'],
-  ['Gentleman Thief', 'https://cdn.zabbet.com/games/1686811866845-4521ee1c-a742-4a4f-9ec3-9f3ac3288e6e.jpeg', 'wmslot'],
-  ["Flaming 7's", 'https://cdn.zabbet.com/games/ka_gaming/Flaming7.jpg', 'kaga'],
-  ['Sky Journey', 'https://cdn.zabbet.com/games/ka_gaming/SkyJourney.jpg', 'kaga'],
-  ['FAN TAN', 'https://cdn.zabbet.com/games/1691002297804-c0f3d6af-d47d-41c5-ba96-b9b2d38665e1.jpg', 'r88'],
+const rows = [
+  ['island-ices','Island Ices','https://cdn.zabbet.com/games/1771481576088-7a598c5e-dbe1-441a-a3e0-c9aba0ede728.png','ygg'],
+  ['covert-chaos','Covert Chaos','https://cdn.zabbet.com/games/1771481607415-fd863209-0afc-434f-92bd-7b7a07b13a0b.png','ygg'],
+  ['caishen-win','Caishen Win!','https://cdn.zabbet.com/games/1776497353110-1181f568-fdd2-450d-a812-faa308cb334b.png','hotdog'],
+  ['bank-of-blarney','Bank of Blarney TopHit','https://cdn.zabbet.com/games/1771481638873-510e7420-776d-46e7-8775-9a6da3a789e3.png','ygg'],
+  ['gemlight','Gemlight','https://cdn.zabbet.com/games/1776497396303-bff28301-5881-4af1-aa78-845c4f984cf6.png','hotdog'],
+  ['headhunter','Headhunter','https://cdn.zabbet.com/games/1771481670384-4f382321-ddc1-416e-ab18-c16baaa2ef5d.png','ygg'],
+  ['gemlight-2','Gemlight 2','https://cdn.zabbet.com/games/1776497423817-ee29d60f-ff9b-432e-8e86-e54b669399e0.png','hotdog'],
+  ['raptor-2','Raptor 2','https://cdn.zabbet.com/games/1771481701809-48d1a1f8-4fa2-4f77-808d-b4188431e5f7.png','ygg'],
+  ['ras-golden-sun','Ra’s Golden Sun','https://cdn.zabbet.com/games/1776497448378-9121c619-b8f3-4de6-b8b5-8477efc106b2.png','hotdog'],
+  ['fortune-meow','Fortune Meow','https://cdn.zabbet.com/games/1776497472870-19722634-fa3c-489a-9924-3064affadd57.png','hotdog'],
+  ['majestic-gems','Majestic Gems','https://cdn.zabbet.com/games/1776752663263-54083e3d-95e5-4d62-8a9b-37b590a965b1.png','hotdog'],
+  ['super-ace','Super Ace','https://cdn.zabbet.com/games/1776752691156-e36b7cd1-61b7-4a78-aacf-0c40bdb503f9.png','hotdog'],
+  ['roma-x','Roma X','https://cdn.zabbet.com/games/1776752719475-27cbcef6-51b7-460d-91a7-6a285dfcb42b.png','hotdog'],
+  ['wild-bandito','Wild Bandito','https://cdn.zabbet.com/games/1776752746675-a2918580-5a7c-457d-a27f-0a23106281d8.png','hotdog'],
+  ['funky-fortunez','Funky Fortunez','https://cdn.zabbet.com/games/1777960364860-5737aa5a-9dba-4a0b-bc37-5d9339d98dd7.png','pgsoft'],
+  ['3-lucky-baozhu','3 Lucky Baozhu','https://cdn.zabbet.com/games/1771831180127-737a7746-6875-4b0e-8e51-f53ab73ac199.png','jl'],
+  ['stamp-world','Stamp World','https://cdn.zabbet.com/games/1760684115397-a48f34c0-9bc0-4029-8583-47c8bfd19bbe.jpeg','kaga'],
+  ['3-coin-wild-tiger','3 Coin Wild Tiger','https://cdn.zabbet.com/games/1771831212100-d9591cd2-01ad-4fa5-97cb-0d053654b288.png','jl'],
+  ['barbarian-giants','Barbarian Giants Fusion Reels','https://cdn.zabbet.com/games/1760684316995-98d85713-1e24-426f-85a0-dcc8b5bfbb12.jpeg','kaga'],
+  ['amar-akbar-anthony','Amar Akbar Anthony','https://cdn.zabbet.com/games/1771831242933-7ebb9a9e-30b1-4447-bcb3-dc5ae4bd4674.png','jl'],
+  ['chaos-combat','Chaos Combat Buy Feature','https://cdn.zabbet.com/games/1760684336675-aaba7607-8d0b-4bc5-a9be-9684f1180381.jpeg','kaga'],
+  ['muscle-fortune-cat','MUSCLE FORTUNE CAT','https://cdn.zabbet.com/games/1772000800361-6f87dbc3-c3ea-4035-8850-21d262c1baf4.png','fachai'],
+  ['way-to-fortune','Way To Fortune','https://cdn.zabbet.com/games/1778467079537-0d997cac-0a55-4c36-aeb6-609dd1cff317.png','hotdog'],
+  ['stardom-rush','Stardom Rush','https://cdn.zabbet.com/games/1760684359146-50690815-fe25-4b24-af37-4e7e5666867b.jpeg','kaga'],
+  ['bad-rich-wolf','BAD RICH WOLF','https://cdn.zabbet.com/games/1772000828991-cfb4e340-cf85-41b4-9457-650c0be60a01.png','fachai'],
+  ['money-tree','Money Tree','https://cdn.zabbet.com/games/1778467190766-eb787ab3-e567-47f2-b960-cd62d613019e.png','hotdog'],
+  ['zombie-siege','Zombie Siege','https://cdn.zabbet.com/games/1760684410910-ef5e92ce-c355-4f1b-a917-0a3dbc3f5045.jpeg','kaga'],
+  ['dj-boom-boom','DJ BOOM BOOM','https://cdn.zabbet.com/games/1772000872057-64f180bd-16b8-4149-ae43-0511291306eb.png','fachai'],
+  ['skeleton-party','Skeleton Party','https://cdn.zabbet.com/games/1760684429408-364219f6-1d13-409c-aa2b-f8057489b814.jpeg','kaga'],
+  ['open-vault','OPEN VAULT','https://cdn.zabbet.com/games/1772000901348-d072824c-0d9c-4264-b3cd-dde19fe5ce44.png','fachai'],
 ] as const;
 
-const GAMES: readonly SlotGame[] = SOURCE_GAME_ROWS.map(([name, image, provider], index) => {
-  const filters: SlotFilter[] = ['slot'];
-  if (index % 5 === 0) filters.push('arcade');
-  if (index % 4 === 0) filters.push('buy');
-  if (index % 3 === 0) filters.push('hot');
-  if (index % 2 === 0) filters.push('new');
-  if (index % 7 === 0) filters.push('table');
-  return {
-    id: `${index + 1}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`,
-    name,
-    image,
-    provider,
-    filters,
-    isNew: filters.includes('new'),
-    isHot: filters.includes('hot'),
-  };
-});
+const config: SourceGameCategoryConfig = {
+  slug:'slot', title:'สล็อต', total:5094, resultUnit:'เกม', mode:'games',
+  baseBackground:'/images/game/slot/bg_slot.webp', baseLogo:'/images/game/slot/logo_slot.webp',
+  filters:[{key:'arcade',label:'เกมส์อาเขต',count:182},{key:'buy',label:'ซื้อฟรีสปิน',count:900},{key:'hot',label:'เกมส์ฮิต',count:546},{key:'new',label:'เกมส์ใหม่',count:552},{key:'slot',label:'เกมส์สล็อต',count:3694},{key:'table',label:'เกมส์โต๊ะ',count:233}],
+  providers, showProviderStrip:true,
+  games:rows.map(([id,name,image,provider]) => ({id,name,image,provider,isNew:true,isHot:false,tags:['new','slot']})),
+};
 
-export default function SlotBrowseSource() {
-  const { ready, isLoggedIn } = useMemberSession();
-  const [selectedFilters, setSelectedFilters] = useState<SlotFilter[]>([]);
-  const [provider, setProvider] = useState('all');
-
-  const activeProvider = useMemo(
-    () => PROVIDERS.find((item) => item.code === provider) ?? null,
-    [provider],
-  );
-
-  const visibleGames = useMemo(() => GAMES.filter((game) => {
-    const matchesProvider = provider === 'all' || game.provider === provider;
-    const matchesFilters = selectedFilters.length === 0
-      || selectedFilters.every((filter) => game.filters.includes(filter));
-    return matchesProvider && matchesFilters;
-  }), [provider, selectedFilters]);
-
-  const resultCount = provider === 'all' && selectedFilters.length === 0
-    ? SOURCE_TOTAL_GAMES
-    : visibleGames.length;
-
-  const toggleFilter = (filter: SlotFilter) => {
-    setSelectedFilters((current) => current.includes(filter)
-      ? current.filter((item) => item !== filter)
-      : [...current, filter]);
-  };
-
-  const selectProvider = (code: string) => {
-    setProvider((current) => current === code ? 'all' : code);
-  };
-
-  const clearFilters = () => {
-    setSelectedFilters([]);
-    setProvider('all');
-  };
-
-  const openGame = () => {
-    if (!ready || !isLoggedIn) {
-      window.location.assign('/?auth=login&next=%2Fbrowse%2Fgames%3Fcategory%3Dslot');
-      return;
-    }
-    window.location.assign('/games');
-  };
-
-  return (
-    <main className={styles.page}>
-      <div className={styles.backgroundStack} aria-hidden="true">
-        <img
-          key={activeProvider?.code ?? 'default'}
-          className={styles.backgroundImage}
-          src={activeProvider?.background ?? '/assets/asset-pc/images/game/slot/bg_slot.webp'}
-          alt=""
-          onError={hideBrokenImage}
-        />
-        <div className={styles.purpleWash} />
-        <div className={styles.bottomFade} />
-      </div>
-
-      <section className={styles.content} aria-label="สล็อต">
-        <header className={styles.heroTitle}>
-          <img
-            className={`${styles.defaultTitle}${activeProvider ? ` ${styles.hiddenTitle}` : ''}`}
-            src="/assets/asset-pc/images/game/slot/logo_slot.webp"
-            alt="สล็อต"
-          />
-          {activeProvider ? (
-            <>
-              <img
-                key={`${activeProvider.code}-title`}
-                className={styles.providerTitle}
-                src={activeProvider.title}
-                alt={activeProvider.name}
-                onError={hideBrokenImage}
-              />
-              <img
-                key={`${activeProvider.code}-avatar`}
-                className={styles.providerAvatar}
-                src={activeProvider.avatar}
-                alt=""
-                aria-hidden="true"
-                onError={hideBrokenImage}
-              />
-            </>
-          ) : null}
-        </header>
-
-        <div className={styles.layout}>
-          <aside className={styles.filterPanel} aria-label="ตัวกรองเกมสล็อต">
-            <div className={styles.filterGlow} aria-hidden="true" />
-            <div className={styles.filterTitle}>ตัวกรอง</div>
-
-            <div className={styles.filterSectionTitle}>
-              <strong>ค้นหาเกมที่คุณสนใจ</strong>
-              <span>เลือกได้มากกว่าหนึ่ง</span>
-            </div>
-
-            <div className={styles.typeGrid}>
-              {FILTERS.map((filter) => {
-                const checked = selectedFilters.includes(filter.key);
-                return (
-                  <label key={filter.key} className={styles.filterOption}>
-                    <input type="checkbox" checked={checked} onChange={() => toggleFilter(filter.key)} />
-                    <span className={`${styles.checkbox}${checked ? ` ${styles.checkboxActive}` : ''}`} aria-hidden="true">
-                      {checked ? '✓' : ''}
-                    </span>
-                    <span className={styles.filterLabel}>{filter.label}</span>
-                    <small>( {filter.count} )</small>
-                  </label>
-                );
-              })}
-            </div>
-
-            <div className={styles.filterSectionTitle}>
-              <strong>ค้นหาค่ายเกม</strong>
-              <span>เลือกอย่างใดอย่างหนึ่ง</span>
-            </div>
-
-            <div className={styles.providerGrid}>
-              {PROVIDERS.map((item) => (
-                <button
-                  key={item.code}
-                  type="button"
-                  className={`${styles.providerButton}${provider === item.code ? ` ${styles.providerActive}` : ''}`}
-                  onClick={() => selectProvider(item.code)}
-                  aria-pressed={provider === item.code}
-                  title={item.name}
-                >
-                  <span aria-hidden="true" />
-                  <img src={item.badge} alt={item.name} loading="lazy" onError={hideBrokenImage} />
-                </button>
-              ))}
-            </div>
-
-            <div className={styles.filterSummary}>
-              <div><span>พบเกมส์ที่คุณค้นหา</span><strong>{resultCount.toLocaleString('th-TH')} เกม</strong></div>
-              <button type="button" onClick={clearFilters}>ล้าง</button>
-            </div>
-          </aside>
-
-          <section className={styles.gameArea} aria-label="รายการเกมสล็อต">
-            <h1>สล็อต ({resultCount.toLocaleString('th-TH')} เกม)</h1>
-            {visibleGames.length ? (
-              <div className={styles.gameGrid}>
-                {visibleGames.map((game) => {
-                  const providerData = PROVIDERS.find((item) => item.code === game.provider);
-                  return (
-                    <article key={game.id} className={styles.gameCard}>
-                      <button type="button" className={styles.gameCover} onClick={openGame} aria-label={`เล่น ${game.name}`}>
-                        <img className={styles.gameImageBlur} src={game.image} alt="" aria-hidden="true" loading="lazy" onError={hideBrokenImage} />
-                        <img className={styles.gameImage} src={game.image} alt={game.name} loading="lazy" onError={hideBrokenImage} />
-                        <span className={styles.cardBadges} aria-hidden="true">
-                          {game.isNew ? <b className={styles.newBadge}>NEW</b> : null}
-                          {game.isHot ? <b className={styles.hotBadge}>HOT</b> : null}
-                        </span>
-                        {providerData ? (
-                          <span className={styles.cardProviderBand} aria-hidden="true">
-                            <img src={providerData.badge} alt="" onError={hideBrokenImage} />
-                          </span>
-                        ) : null}
-                        <span className={styles.playOverlay}><b>เล่นเกม</b></span>
-                      </button>
-                      <p>{game.name}</p>
-                    </article>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className={styles.emptyState}>
-                <strong>ไม่พบเกมที่ตรงกับตัวกรอง</strong>
-                <button type="button" onClick={clearFilters}>ล้างตัวกรอง</button>
-              </div>
-            )}
-          </section>
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
-  event.currentTarget.style.display = 'none';
-}
+export default function SlotBrowseSource(){ return <SourceGameCategoryPage config={config}/>; }
