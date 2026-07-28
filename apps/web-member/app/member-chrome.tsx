@@ -18,6 +18,7 @@ import { MemberCategoryRail } from './components/member-category-rail';
 import { DesktopAllianceBand } from './components/member-home/desktop-alliance-band';
 import { V47_ASSETS } from './components/member-home/v47-asset-map';
 import MemberAuthOverlay, { type MemberAuthMode } from './components/auth/member-auth-overlay';
+import MemberLanguageOverlay from './components/member-language-overlay';
 import DailyMissionModal from './components/mission/daily-mission-modal';
 import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
 
@@ -87,7 +88,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [authMode, setAuthMode] = useState<MemberAuthMode | null>(null);
   const [missionOpen, setMissionOpen] = useState(false);
-  const { locale, toggleLocale } = useMemberLocale();
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const { locale } = useMemberLocale();
   const commonCopy = MEMBER_COPY[locale];
   const { typedSettings } = useSiteSettings();
   const { ready, isLoggedIn, wallet, walletLoading, verify, logout } = useMemberSession();
@@ -111,7 +113,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const isHomeRoute = pathname === '/';
   const isPublicRoute = isPublicMemberRoute(pathname);
   const isBrowseRoute = pathname.startsWith('/browse');
-  const isPublicGameShellRoute = isHomeRoute || isBrowseRoute;
+  const isBrandedPublicRoute = pathname === '/contact' || pathname.startsWith('/legal');
+  const isPublicGameShellRoute = isHomeRoute || isBrowseRoute || isBrandedPublicRoute;
   const currentRule = routeRuleFor(pathname);
   const blockedRoute = disabledMemberRoute(pathname, features);
   const activeHref = useMemo(() => activeNavigationHref(pathname), [pathname]);
@@ -217,7 +220,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           walletLoading={walletLoading}
           compactWalletBalance={compactWalletBalance}
           logout={logout}
-          onToggleLocale={toggleLocale}
+          onOpenLanguage={() => setLanguageOpen(true)}
           onOpenLogin={() => setAuthMode('login')}
           onOpenRegister={() => setAuthMode('register')}
           onOpenMission={() => setMissionOpen(true)}
@@ -229,6 +232,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
         <MemberFooter settings={typedSettings} />
         {authOverlay}
         {missionOverlay}
+        <MemberLanguageOverlay open={languageOpen} onOpenChange={setLanguageOpen} />
       </>
     );
   }
@@ -312,7 +316,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   );
 }
 
-function PublicHomeHeader({ logoUrl, brandMark, features, pathname, locale, isLoggedIn, walletLoading, compactWalletBalance, logout, onToggleLocale, onOpenLogin, onOpenRegister, onOpenMission }: {
+function PublicHomeHeader({ logoUrl, brandMark, features, pathname, locale, isLoggedIn, walletLoading, compactWalletBalance, logout, onOpenLanguage, onOpenLogin, onOpenRegister, onOpenMission }: {
   logoUrl: string;
   brandMark: string;
   features: MemberFeatureFlags;
@@ -322,7 +326,7 @@ function PublicHomeHeader({ logoUrl, brandMark, features, pathname, locale, isLo
   walletLoading: boolean;
   compactWalletBalance: string;
   logout: () => void;
-  onToggleLocale: () => void;
+  onOpenLanguage: () => void;
   onOpenLogin: () => void;
   onOpenRegister: () => void;
   onOpenMission: () => void;
@@ -336,7 +340,7 @@ function PublicHomeHeader({ logoUrl, brandMark, features, pathname, locale, isLo
         <a href="/" className="member-brand">
           <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="NOAH345" className="member-brand-logo" /> : brandMark}</span>
         </a>
-        <button type="button" className="public-home-flag" aria-label={copy.changeLanguage} title={copy.changeLanguage} onClick={onToggleLocale}>
+        <button type="button" className="public-home-flag" aria-label={copy.changeLanguage} title={copy.changeLanguage} onClick={onOpenLanguage}>
           <img src={flagUrl} alt={copy.currentLanguage} />
         </button>
         <a className="public-home-search" href="/browse/games" aria-label={copy.search}>
