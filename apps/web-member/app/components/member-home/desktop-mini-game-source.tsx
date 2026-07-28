@@ -2,13 +2,11 @@ const IMAGE_ROOT = '/assets/asset-pc/images';
 
 const MINI_GAME_ACTIONS = [
   {
-    key: 'wheel',
     label: 'วงล้อ',
     image: `${IMAGE_ROOT}/mini_game/icon-luckywheel-dt.webp`,
     href: '/?auth=login',
   },
   {
-    key: 'mission',
     label: 'ทำภารกิจ',
     image: `${IMAGE_ROOT}/mini_game/icon-dailymission-dt.webp`,
     href: '/?auth=login',
@@ -38,19 +36,15 @@ export default function DesktopMiniGameSource() {
 
       <div className="mini-exact-actions">
         {MINI_GAME_ACTIONS.map((action) => (
-          <a
-            key={action.key}
-            href={action.href}
-            className={`mini-exact-action mini-exact-action--${action.key}`}
-          >
-            <img
-              loading="lazy"
-              className={`mini-exact-icon mini-exact-icon--${action.key}`}
-              src={action.image}
-              alt=""
-              aria-hidden="true"
-            />
-            <span className="mini-exact-label">{action.label}</span>
+          <a key={action.label} href={action.href} className="mini-exact-action">
+            <span className="mini-exact-border">
+              <span className="mini-exact-inner">
+                <span className="mini-exact-content">
+                  <img loading="lazy" className="mini-exact-icon" src={action.image} alt="" aria-hidden="true" />
+                  <span className="mini-exact-label">{action.label}</span>
+                </span>
+              </span>
+            </span>
           </a>
         ))}
       </div>
@@ -63,78 +57,94 @@ export default function DesktopMiniGameSource() {
           width: 100%;
           min-width: 0;
           gap: 8px;
-          padding: 20px 12px 20px;
+          padding: 20px 12px;
           overflow: visible;
         }
 
-        .mini-exact-action {
-          position: relative;
-          display: flex !important;
-          flex: 1 1 0;
-          align-items: center;
-          justify-content: center;
-          box-sizing: border-box;
-          min-width: 0;
+        .source-mini-game .mini-exact-action {
+          display: block !important;
+          flex: 1 1 0 !important;
+          box-sizing: border-box !important;
+          min-width: 0 !important;
           height: 46px !important;
           margin: 0 0 0 16px !important;
-          padding: 0 8px 0 44px !important;
+          padding: 0 !important;
           overflow: visible !important;
-          border: 2px solid transparent !important;
+          border: 0 !important;
           border-radius: 999px !important;
           outline: 0 !important;
           color: #fff !important;
-          background:
-            linear-gradient(135deg, rgb(136 0 200) 10%, rgb(110 0 141) 100%) padding-box,
-            linear-gradient(180deg, rgb(255 242 145) 0%, rgb(246 173 0) 100%) border-box !important;
+          background: transparent !important;
           box-shadow: none !important;
           text-decoration: none !important;
           transform: none !important;
         }
 
-        .mini-exact-action::before,
-        .mini-exact-action::after {
+        .source-mini-game .mini-exact-action::before,
+        .source-mini-game .mini-exact-action::after {
           content: none !important;
           display: none !important;
         }
 
-        .mini-exact-icon {
-          position: absolute !important;
-          top: 50%;
-          left: -24px;
-          z-index: 1;
-          display: block !important;
-          width: 104px !important;
-          min-width: 104px !important;
-          max-width: 104px !important;
-          height: 104px !important;
-          min-height: 104px !important;
-          max-height: 104px !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          object-fit: contain !important;
-          transform: translateY(-50%) !important;
-          pointer-events: none;
+        .mini-exact-border {
+          display: block;
+          box-sizing: border-box;
+          width: 100%;
+          height: 46px;
+          padding: 2px;
+          overflow: visible;
+          border-radius: 999px;
+          background: linear-gradient(180deg, rgb(255 232 79) 0%, rgb(246 173 0) 100%);
         }
 
-        .mini-exact-icon--mission {
-          left: -27px;
-          width: 112px !important;
-          min-width: 112px !important;
-          max-width: 112px !important;
-          height: 112px !important;
-          min-height: 112px !important;
-          max-height: 112px !important;
+        .mini-exact-inner {
+          display: flex;
+          align-items: center;
+          box-sizing: border-box;
+          width: 100%;
+          height: 42px;
+          overflow: visible;
+          border-radius: 999px;
+          background: linear-gradient(135deg, rgb(136 0 200) 10%, rgb(110 0 141) 100%);
+        }
+
+        .mini-exact-content {
+          display: flex;
+          align-items: center;
+          box-sizing: border-box;
+          width: 100%;
+          min-width: 0;
+          height: 42px;
+          margin-left: -20px;
+          overflow: visible;
+        }
+
+        .mini-exact-icon {
+          position: static !important;
+          display: block !important;
+          flex: 0 0 auto !important;
+          width: auto !important;
+          min-width: 0 !important;
+          max-width: none !important;
+          height: 90px !important;
+          min-height: 90px !important;
+          max-height: 90px !important;
+          margin: 0 -15px !important;
+          padding: 0 !important;
+          object-fit: contain !important;
+          transform: none !important;
+          pointer-events: none;
         }
 
         .mini-exact-label {
           position: relative;
           z-index: 2;
           display: block;
-          width: 100%;
+          flex: 1 1 auto;
           min-width: 0;
-          margin: 0;
+          padding-right: 8px;
           color: #fff;
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 600;
           line-height: 24px;
           text-align: center;
@@ -147,33 +157,23 @@ export default function DesktopMiniGameSource() {
             padding-inline: 10px;
           }
 
-          .mini-exact-action {
-            margin-left: 14px !important;
-            padding-left: 41px !important;
+          .source-mini-game .mini-exact-action {
+            margin-left: 12px !important;
+          }
+
+          .mini-exact-content {
+            margin-left: -18px;
           }
 
           .mini-exact-icon {
-            left: -22px;
-            width: 98px !important;
-            min-width: 98px !important;
-            max-width: 98px !important;
-            height: 98px !important;
-            min-height: 98px !important;
-            max-height: 98px !important;
-          }
-
-          .mini-exact-icon--mission {
-            left: -25px;
-            width: 106px !important;
-            min-width: 106px !important;
-            max-width: 106px !important;
-            height: 106px !important;
-            min-height: 106px !important;
-            max-height: 106px !important;
+            height: 82px !important;
+            min-height: 82px !important;
+            max-height: 82px !important;
+            margin-inline: -14px !important;
           }
 
           .mini-exact-label {
-            font-size: 17px;
+            font-size: 18px;
           }
         }
       `}</style>
