@@ -1,0 +1,25 @@
+/* Reserve the fixed two-row public header without changing page visuals.
+   Casino, sport and lotto already own their source-page offsets. */
+
+@media (min-width: 901px) {
+  .browse-fixed-header-offset {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: calc(100vh - 108px);
+    padding-top: 114px;
+    background: #110e16;
+  }
+
+  .browse-page {
+    box-sizing: border-box;
+    padding-top: 126px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .browse-fixed-header-offset {
+    width: 100%;
+    min-height: 0;
+    padding-top: 0;
+  }
+}
