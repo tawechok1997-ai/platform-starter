@@ -1,12 +1,14 @@
-/* Runtime contract: one public header that stays visible and owns its layout space. */
+/* Runtime contract: one fixed public header and one global content offset. */
 
 @media (min-width: 901px) {
+  body:has(.public-home-topbar) {
+    box-sizing: border-box !important;
+    padding-top: 108px !important;
+  }
+
   .public-home-topbar.global-member-topbar {
-    position: sticky !important;
-    top: 0 !important;
-    right: auto !important;
-    bottom: auto !important;
-    left: auto !important;
+    position: fixed !important;
+    inset: 0 0 auto 0 !important;
     z-index: 1000 !important;
   }
 
@@ -54,6 +56,10 @@
 }
 
 @media (max-width: 900px) {
+  body:has(.public-home-topbar) {
+    padding-top: 0 !important;
+  }
+
   .public-home-topbar .member-actions,
   .public-home-topbar .member-guest-actions,
   .public-home-topbar .member-guest-action {
