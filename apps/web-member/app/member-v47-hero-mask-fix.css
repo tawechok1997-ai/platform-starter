@@ -5,7 +5,7 @@
     width: min(var(--v47-shell, 1455px), calc(100vw - 30px)) !important;
     max-width: var(--v47-shell, 1455px) !important;
     height: 317px !important;
-    margin: 20px auto 24px !important;
+    margin: 0 auto 24px !important;
     transform: none !important;
     overflow: hidden !important;
     -webkit-mask-image: linear-gradient(
