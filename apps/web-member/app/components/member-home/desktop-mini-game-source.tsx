@@ -2,11 +2,13 @@ const IMAGE_ROOT = '/assets/asset-pc/images';
 
 const MINI_GAME_ACTIONS = [
   {
+    key: 'wheel',
     label: 'วงล้อ',
     image: `${IMAGE_ROOT}/mini_game/icon-luckywheel-dt.webp`,
     href: '/?auth=login',
   },
   {
+    key: 'mission',
     label: 'ทำภารกิจ',
     image: `${IMAGE_ROOT}/mini_game/icon-dailymission-dt.webp`,
     href: '/?auth=login',
@@ -36,11 +38,21 @@ export default function DesktopMiniGameSource() {
 
       <div className="mini-game-source-actions">
         {MINI_GAME_ACTIONS.map((action) => (
-          <a key={action.label} href={action.href} className="mini-game-source-action">
+          <a
+            key={action.key}
+            href={action.href}
+            className={`mini-game-source-action mini-game-source-action--${action.key}`}
+          >
             <span className="mini-game-source-border">
               <span className="mini-game-source-inner">
                 <span className="mini-game-source-content">
-                  <img loading="lazy" className="mini-game-source-icon" src={action.image} alt="" aria-hidden="true" />
+                  <img
+                    loading="lazy"
+                    className={`mini-game-source-icon mini-game-source-icon--${action.key}`}
+                    src={action.image}
+                    alt=""
+                    aria-hidden="true"
+                  />
                   <span className="mini-game-source-label">{action.label}</span>
                 </span>
               </span>
@@ -61,8 +73,8 @@ export default function DesktopMiniGameSource() {
           box-sizing: border-box;
           width: 100%;
           min-width: 0;
-          gap: 12px;
-          padding: 20px 14px 22px 26px;
+          gap: 10px;
+          padding: 20px 14px 22px;
           overflow: visible;
         }
 
@@ -111,54 +123,74 @@ export default function DesktopMiniGameSource() {
           width: 100%;
           min-width: 0;
           height: 42px;
-          padding: 0 8px 0 52px;
+          padding: 0 6px 0 52px;
           overflow: visible;
         }
 
         .mini-game-source-icon {
           position: absolute;
           top: 50%;
-          left: -18px;
+          z-index: 1;
           display: block;
-          width: 76px;
-          height: 76px;
           max-width: none;
           object-fit: contain;
+          object-position: center;
           transform: translateY(-50%);
           pointer-events: none;
         }
 
+        .mini-game-source-icon--wheel {
+          left: -8px;
+          width: 62px;
+          height: 62px;
+        }
+
+        .mini-game-source-icon--mission {
+          left: -4px;
+          width: 56px;
+          height: 56px;
+          object-position: left center;
+        }
+
         .mini-game-source-label {
+          position: relative;
+          z-index: 2;
           display: block;
           flex: 1 1 auto;
           min-width: 0;
           color: #fff;
-          font-size: 18px;
+          font-size: 16px;
           font-weight: 600;
-          line-height: 24px;
+          line-height: 22px;
           text-align: center;
           white-space: nowrap;
         }
 
         @media (max-width: 1180px) {
           .mini-game-source-actions {
-            gap: 10px;
-            padding-left: 23px;
+            gap: 8px;
+            padding-inline: 12px;
           }
 
           .mini-game-source-content {
-            padding-left: 47px;
-            padding-right: 6px;
+            padding-left: 48px;
+            padding-right: 4px;
           }
 
-          .mini-game-source-icon {
-            left: -16px;
-            width: 70px;
-            height: 70px;
+          .mini-game-source-icon--wheel {
+            left: -7px;
+            width: 58px;
+            height: 58px;
+          }
+
+          .mini-game-source-icon--mission {
+            left: -3px;
+            width: 52px;
+            height: 52px;
           }
 
           .mini-game-source-label {
-            font-size: 16px;
+            font-size: 15px;
           }
         }
       `}</style>
