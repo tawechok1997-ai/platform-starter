@@ -51,7 +51,7 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const initialLocale = normalizeLocale(window.localStorage.getItem(STORAGE_KEY));
-    flushSync(() => setLocaleState(initialLocale));
+    setLocaleState(initialLocale);
     applyLocaleToDocument(initialLocale);
 
     const syncStorageLocale = (event: StorageEvent) => {
