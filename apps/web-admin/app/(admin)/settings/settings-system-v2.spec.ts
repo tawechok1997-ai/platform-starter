@@ -50,10 +50,12 @@ test('shared settings system exposes professional form states', () => {
   assert.match(hook, /lastSavedAt/);
 });
 
-test('shared settings keeps strict optional props and supported confirmation tones', () => {
+test('shared settings keeps strict response and component contracts', () => {
   assert.match(shared, /error: string \| undefined/);
   assert.match(shared, /tone=\{risk === 'critical' \? 'danger' : 'primary'\}/);
   assert.doesNotMatch(shared, /tone=\{risk === 'critical' \? 'danger' : 'warning'\}/);
+  assert.match(hook, /type SaveResult = \{[\s\S]*message\?: string;/);
+  assert.match(hook, /typeof payload\.message === 'string'/);
 });
 
 test('every standard settings route uses the shared system', () => {
