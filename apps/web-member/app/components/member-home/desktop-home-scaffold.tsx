@@ -5,7 +5,6 @@ import type { CmsAsset, CmsContent, SiteIconSettings } from '../../site-settings
 import type { Game } from '../../types/member-api';
 import { useMemberSession } from '../../member-session-provider';
 import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from '../reference-asset-catalog';
-import { DesktopAllianceBand } from './desktop-alliance-band';
 import { DesktopHeroCarousel } from './desktop-hero-carousel';
 import { DesktopJackpotCard } from './desktop-jackpot-card';
 import { SourceLiveSection, SourceOnlineSection, SourcePopularSection } from './member-source-feed-sections';
@@ -157,8 +156,6 @@ export function DesktopHomeScaffold({ content, siteName, showPromotion, games, i
           </section>
         </aside>
       </div>
-
-      <DesktopAllianceBand />
     </section>
   );
 }
