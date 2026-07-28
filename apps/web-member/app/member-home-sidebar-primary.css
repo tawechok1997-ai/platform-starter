@@ -1,0 +1,577 @@
+/* Single owner for the desktop Home sidebar and shortcut-card copy.
+ * Keep all Jackpot, Leaderboard, Mini Game and sticky geometry here.
+ */
+
+@media (min-width: 1024px) {
+  body:has(.desktop-reference-home),
+  body:has(.desktop-reference-home) .public-game-shell,
+  body:has(.desktop-reference-home) .public-game-shell__content,
+  .desktop-reference-home,
+  .desktop-reference-home > .desktop-home__body,
+  .desktop-reference-home .reference-main-column {
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home > .desktop-home__body {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1080px) 360px !important;
+    align-items: start !important;
+    gap: 15px !important;
+    width: min(1455px, calc(100vw - 30px)) !important;
+    max-width: 1455px !important;
+    margin-inline: auto !important;
+    contain: none !important;
+  }
+
+  .desktop-reference-home .reference-main-column {
+    min-width: 0 !important;
+    align-self: stretch !important;
+  }
+
+  .desktop-reference-home .reference-sidebar {
+    position: sticky !important;
+    inset: auto !important;
+    top: 124px !important;
+    z-index: 20 !important;
+    align-self: start !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+    width: 360px !important;
+    min-width: 360px !important;
+    max-width: 360px !important;
+    height: max-content !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 12px 10px !important;
+    gap: 24px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: rgb(24 21 35) !important;
+    box-shadow: none !important;
+    transform: none !important;
+    isolation: isolate !important;
+  }
+
+  .desktop-reference-home .reference-sidebar::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 0 auto !important;
+    z-index: -1 !important;
+    width: 100% !important;
+    height: 150px !important;
+    pointer-events: none !important;
+    border-radius: 25px 25px 0 0 !important;
+    background: radial-gradient(circle at 50% -30%, rgb(187 91 234) 0%, rgb(7 29 70 / 0%) 60%) !important;
+  }
+
+  .desktop-reference-home .reference-sidebar::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  /* Shared card/header geometry */
+  .desktop-reference-home .home-jackpot,
+  .desktop-reference-home .reference-side-card,
+  .desktop-reference-home .source-mini-game {
+    position: relative !important;
+    z-index: 1 !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .home-jackpot__header,
+  .desktop-reference-home .reference-side-card > header,
+  .desktop-reference-home .source-mini-game__header {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    margin: 0 !important;
+    padding: 0 16px !important;
+    gap: 10px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-bottom: 2px solid rgb(187 91 234 / 40%) !important;
+    border-radius: 6px 0 0 6px !important;
+    background: linear-gradient(90deg, rgb(24 21 35 / 24%) -6.21%, rgb(187 91 234 / 40%) -4.41%, rgb(24 21 35 / 24%) 83.01%) !important;
+    color: #fff !important;
+  }
+
+  .desktop-reference-home .home-jackpot__icon,
+  .desktop-reference-home .reference-side-icon,
+  .desktop-reference-home .reference-side-icon > img,
+  .desktop-reference-home .source-mini-game__title-icon {
+    display: block !important;
+    flex: 0 0 16px !important;
+    width: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    max-height: 16px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    object-fit: contain !important;
+    background: transparent !important;
+  }
+
+  .desktop-reference-home .home-jackpot__title,
+  .desktop-reference-home .reference-side-card > header strong,
+  .desktop-reference-home .source-mini-game__title-text {
+    display: block !important;
+    margin: 0 !important;
+    color: #fff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 20px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Jackpot */
+  .desktop-reference-home .home-jackpot__art-link {
+    position: relative !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    margin: 12px 0 -12px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+
+  .desktop-reference-home .home-jackpot__art {
+    position: relative !important;
+    z-index: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .home-jackpot__value-wrap {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    z-index: 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 44.6512px !important;
+    margin: 1px 0 0 !important;
+    padding: 0 !important;
+    transform: translate(-50%, -50%) !important;
+    pointer-events: none !important;
+  }
+
+  .desktop-reference-home .home-jackpot__value {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    color: #fff !important;
+    font-family: 'Noto Sans', Montserrat, sans-serif !important;
+    font-size: 27.091px !important;
+    font-weight: 800 !important;
+    font-variant-numeric: tabular-nums !important;
+    letter-spacing: .1em !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-overflow: clip !important;
+    text-shadow: none !important;
+    white-space: nowrap !important;
+  }
+
+  /* Leaderboard: one DOM owner only, the markup inside desktop-home-scaffold.tsx. */
+  .desktop-reference-home .reference-leaderboard {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-height: 475px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    color: #fff !important;
+    scrollbar-width: none !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-side-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > header strong::after {
+    content: 'i' !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    box-sizing: border-box !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin-left: 6px !important;
+    border: 2px solid #c664ef !important;
+    border-radius: 50% !important;
+    color: #c664ef !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard-head {
+    display: grid !important;
+    grid-template-columns: 70px minmax(0, 1fr) !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    background: rgb(14 11 20) !important;
+    color: #fff !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 20px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard-head span,
+  .desktop-reference-home .reference-leaderboard-head strong {
+    display: block !important;
+    margin: 0 !important;
+    color: inherit !important;
+    font: inherit !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) {
+    display: grid !important;
+    grid-template-columns: 30px 25px minmax(0, 1fr) 24px !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: 52px !important;
+    margin: 0 !important;
+    padding: 5px 8px !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-bottom: 1px solid #3b2b45 !important;
+    background: #373147 !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head):nth-of-type(odd) {
+    background: #24212d !important;
+  }
+
+  .desktop-reference-home .reference-rank-medal {
+    position: relative !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 30px !important;
+    height: 40px !important;
+    margin: 0 !important;
+    color: #fff !important;
+    background: transparent !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .reference-rank-medal img {
+    display: block !important;
+    width: 30px !important;
+    height: 30px !important;
+    object-fit: contain !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard-game-image {
+    display: block !important;
+    width: 25px !important;
+    min-width: 25px !important;
+    height: 40px !important;
+    border-radius: 3px !important;
+    object-fit: cover !important;
+    background: #15121e !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span {
+    display: flex !important;
+    min-width: 0 !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span strong,
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span small {
+    display: block !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    color: #fff !important;
+    text-align: left !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span strong {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    line-height: 13px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span small {
+    font-size: 8px !important;
+    line-height: 10px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span small:last-child {
+    font-size: 12px !important;
+    line-height: 14px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span small b {
+    color: #7000c0 !important;
+    font-weight: 600 !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > em {
+    display: grid !important;
+    place-items: center !important;
+    width: 24px !important;
+    height: 21px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 4px !important;
+    color: #9d4cff !important;
+    background: rgb(21 18 30 / 70%) !important;
+    font-size: 0 !important;
+    font-style: normal !important;
+    box-shadow: inset 0 0 8px rgb(99 18 152 / 35%) !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > em::after {
+    content: '▶' !important;
+    font-size: 10px !important;
+  }
+
+  /* Mini Game */
+  .desktop-reference-home .source-mini-game__header {
+    padding: 0 !important;
+    background: transparent !important;
+    border-bottom: 0 !important;
+  }
+
+  .desktop-reference-home .source-mini-game__header-gradient,
+  .desktop-reference-home .source-mini-game__header-line {
+    position: absolute !important;
+    left: 0 !important;
+    z-index: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    pointer-events: none !important;
+    background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) -4.41%, rgb(24 21 35 / 60%) 83.01%) !important;
+    opacity: .4 !important;
+  }
+
+  .desktop-reference-home .source-mini-game__header-gradient {
+    top: 0 !important;
+    height: 30px !important;
+  }
+
+  .desktop-reference-home .source-mini-game__header-line {
+    bottom: 0 !important;
+    height: 2px !important;
+  }
+
+  .desktop-reference-home .source-mini-game__header-content {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 30px !important;
+    padding-left: 16px !important;
+  }
+
+  .desktop-reference-home .source-mini-game__title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .desktop-reference-home .source-mini-game__actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 20px 12px !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .source-mini-game__action {
+    position: relative !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    color: #fff !important;
+    background: transparent !important;
+    text-decoration: none !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .source-mini-game__action::before,
+  .desktop-reference-home .source-mini-game__action::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .desktop-reference-home .source-mini-game__border-gradient {
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 44px !important;
+    padding: 1px !important;
+    overflow: visible !important;
+    border-radius: 999px !important;
+    background: linear-gradient(180deg, rgb(255 227 111) 0%, rgb(166 103 0) 100%) !important;
+  }
+
+  .desktop-reference-home .source-mini-game__action-inner {
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 42px !important;
+    overflow: visible !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, rgb(136 0 200) 10%, rgb(110 0 141) 100%) !important;
+  }
+
+  .desktop-reference-home .source-mini-game__action-content {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    padding: 0 6px 0 48px !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .source-mini-game__action-icon {
+    position: absolute !important;
+    top: 50% !important;
+    left: -15px !important;
+    z-index: 2 !important;
+    display: block !important;
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
+    height: 90px !important;
+    min-height: 90px !important;
+    max-height: 90px !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+    transform: translateY(-50%) !important;
+    pointer-events: none !important;
+  }
+
+  .desktop-reference-home .source-mini-game__action-label {
+    position: relative !important;
+    z-index: 1 !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    color: #fff !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    line-height: 24px !important;
+    text-align: center !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+  }
+
+  /* Shortcut-card copy must show the complete source text. */
+  .desktop-reference-home .reference-promo-copy {
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .reference-promo-copy strong,
+  .desktop-reference-home .reference-promo-copy small {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+  }
+
+  .desktop-reference-home .reference-promo-copy small {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2 !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .desktop-reference-home .reference-sidebar {
+    position: static !important;
+    inset: auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+}
