@@ -106,6 +106,7 @@ import './member-source-feed-sections.css';
 import './member-public-header-single-owner.css';
 import './member-public-header-runtime-fix.css';
 import './member-public-sidebar-runtime-fix.css';
+import './member-public-sidebar-content-fix.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
