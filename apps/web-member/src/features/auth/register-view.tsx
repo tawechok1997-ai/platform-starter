@@ -80,7 +80,7 @@ export function RegisterView(props: RegisterViewProps) {
   const registerHref = embedded ? '/register?embed=1' : '/register';
   const loginHref = embedded ? '/login?embed=1' : '/login';
 
-  return <main className="public-auth-page source-login-page source-register-page" style={cssVars} data-embedded={embedded ? 'true' : 'false'}>
+  return <main className="public-auth-page source-login-page source-register-page" style={cssVars} data-embedded={embedded ? 'true' : 'false'} data-site-name={siteName}>
     <div className="public-auth-ambient" aria-hidden="true"><span /><span /><span /></div>
     <div className="public-auth-backdrop" aria-hidden="true" />
     <section className="public-auth-shell public-auth-shell--register public-auth-modal source-login-modal source-register-modal" data-auth-mode="register" role="dialog" aria-modal="true" aria-labelledby="member-register-title">
