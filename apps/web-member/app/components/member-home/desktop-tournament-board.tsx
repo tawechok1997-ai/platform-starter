@@ -89,6 +89,7 @@ const TOURNAMENTS: readonly Tournament[] = [
 ] as const;
 
 const SWIPE_THRESHOLD_PX = 56;
+const SLIDE_GAP_PX = 16;
 
 export function DesktopTournamentBoard() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -129,8 +130,15 @@ export function DesktopTournamentBoard() {
     if (drag.deltaX >= SWIPE_THRESHOLD_PX) moveTo(activeIndex - 1);
   };
 
+  const trackOffset = `calc(${-activeIndex * 100}% - ${activeIndex * SLIDE_GAP_PX}px + ${dragOffset}px)`;
+
   return (
-    <section className="source-tournament" data-section-kind="tournament" aria-label="ตารางทัวร์นาเมนต์">
+    <section
+      className="source-tournament"
+      data-section-kind="tournament"
+      data-tournament-owner="desktop-home"
+      aria-label="ตารางทัวร์นาเมนต์"
+    >
       <header className="source-tournament__section-heading">
         <img src="/assets/asset-pc/images/home/tournament.svg" alt="" aria-hidden="true" />
         <strong>ทัวร์นาเมนต์</strong>
@@ -145,10 +153,14 @@ export function DesktopTournamentBoard() {
       >
         <div
           className={`source-tournament__track${dragging ? ' is-dragging' : ''}`}
-          style={{ transform: `translate3d(calc(${-activeIndex * 100}% + ${dragOffset}px), 0, 0)` }}
+          style={{ transform: `translate3d(${trackOffset}, 0, 0)` }}
         >
-          {TOURNAMENTS.map((tournament) => (
-            <article key={tournament.title} className="source-tournament__slide">
+          {TOURNAMENTS.map((tournament, index) => (
+            <article
+              key={tournament.title}
+              className="source-tournament__slide"
+              style={{ marginRight: index === TOURNAMENTS.length - 1 ? 0 : SLIDE_GAP_PX }}
+            >
               <div className="source-tournament__panel">
                 <div className="source-tournament__title-row">
                   <strong>{tournament.title}</strong>
@@ -169,7 +181,9 @@ export function DesktopTournamentBoard() {
                 </div>
 
                 <div className="source-tournament__rank-rail" data-drag-scroll="true" aria-label={`อันดับ ${tournament.title}`}>
-                  {tournament.players.map((player) => <TournamentRankCard key={`${tournament.title}-${player.rank}`} player={player} />)}
+                  {tournament.players.map((player) => (
+                    <TournamentRankCard key={`${tournament.title}-${player.rank}`} player={player} />
+                  ))}
                 </div>
               </div>
             </article>
