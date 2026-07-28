@@ -301,9 +301,9 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
               <button type="button" className="member-header-logout" onClick={logout}>ออกจากระบบ</button>
             </>
           ) : (
-            <div className="member-guest-actions">
-              {features.login && <button type="button" className="member-guest-action member-guest-action--login" onClick={onOpenLogin}>เข้าสู่ระบบ</button>}
-              {features.registration && <button type="button" className="member-guest-action member-guest-action--register" onClick={onOpenRegister}>สมัครสมาชิก</button>}
+            <div className="member-guest-actions" data-login-enabled={features.login ? 'true' : 'false'} data-registration-enabled={features.registration ? 'true' : 'false'}>
+              <button type="button" className="member-guest-action member-guest-action--login" onClick={onOpenLogin}>เข้าสู่ระบบ</button>
+              <button type="button" className="member-guest-action member-guest-action--register" onClick={onOpenRegister}>สมัครสมาชิก</button>
             </div>
           )}
         </div>
