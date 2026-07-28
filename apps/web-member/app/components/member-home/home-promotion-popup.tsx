@@ -1,117 +1,44 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-type PromotionCategory = 'all' | 'new-member' | 'daily' | 'privilege' | 'cashback';
-
-type PromotionCard = {
-  id: string;
-  title: string;
-  imageUrl: string;
-  href: string;
-  category: Exclude<PromotionCategory, 'all'>;
-};
-
 type HomePromotionPopupProps = {
   onClose: () => void;
 };
 
-const CATEGORY_TABS: Array<{ key: PromotionCategory; label: string }> = [
-  { key: 'all', label: 'ทั้งหมด' },
-  { key: 'new-member', label: 'สมาชิกใหม่' },
-  { key: 'daily', label: 'ประจำวัน' },
-  { key: 'privilege', label: 'สิทธิพิเศษ' },
-  { key: 'cashback', label: 'คืนยอดเสีย' },
-];
-
-const SOURCE_PROMOTIONS: PromotionCard[] = [
+const SOURCE_PROMOTIONS = [
   {
     id: 'source-turnover-reward',
     title: 'ทำยอดเทิร์นรับรางวัลจุใจ🎉',
     imageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1778966311210-22044269-ee98-4a09-850a-7a73a8a860aa.jpg',
     href: '/browse/promotions',
-    category: 'privilege',
   },
   {
     id: 'source-referral-reward',
     title: 'ชวนเพื่อนปั๊ป รับฟรี 300 บาททันที!! 💜',
     imageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1784628973087-c16b022a-8361-4272-8673-819c587c10fd.jpg',
     href: '/browse/promotions',
-    category: 'new-member',
   },
   {
     id: 'source-repeat-deposit',
     title: 'ฝากซ้ำ ย้ำโบนัส รับทันที 100 บาท✨',
     imageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1782441824805-ed970564-a17a-4a6f-a163-5658651f406c.jpg',
     href: '/browse/promotions',
-    category: 'daily',
   },
-];
+] as const;
+
+const CATEGORY_LABELS = ['ทั้งหมด', 'สมาชิกใหม่', 'ประจำวัน', 'สิทธิพิเศษ', 'คืนยอดเสีย'] as const;
 
 export function HomePromotionPopup({ onClose }: HomePromotionPopupProps) {
-  const [category, setCategory] = useState<PromotionCategory>('all');
-  const [visible, setVisible] = useState(false);
-  const filteredPromotions = category === 'all'
-    ? SOURCE_PROMOTIONS
-    : SOURCE_PROMOTIONS.filter((promotion) => promotion.category === category);
-
-  useEffect(() => {
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-
-    const animationFrame = window.requestAnimationFrame(() => setVisible(true));
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setVisible(false);
-        window.setTimeout(onClose, 180);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-    };
-  }, [onClose]);
-
-  function closeWithMotion() {
-    setVisible(false);
-    window.setTimeout(onClose, 180);
-  }
-
   return (
-    <div
-      className="home-promotion-popup"
-      data-state={visible ? 'open' : 'opening'}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="home-promotion-popup-title"
-    >
+    <div className="home-promotion-popup" data-state="open" role="dialog" aria-modal="true" aria-labelledby="home-promotion-popup-title">
       <button
         type="button"
         className="home-promotion-popup__backdrop"
         aria-label="ปิดหน้าต่างโปรโมชั่น"
         tabIndex={-1}
-        onClick={closeWithMotion}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 0,
-          width: '100%',
-          height: '100%',
-          margin: 0,
-          padding: 0,
-          border: 0,
-          background: 'transparent',
-          cursor: 'default',
-        }}
+        onClick={onClose}
       />
 
-      <section className="home-promotion-popup__panel" style={{ position: 'relative', zIndex: 1 }}>
+      <section className="home-promotion-popup__panel">
         <div className="home-promotion-popup__shine" aria-hidden="true" />
 
         <header className="home-promotion-popup__header">
@@ -125,40 +52,29 @@ export function HomePromotionPopup({ onClose }: HomePromotionPopupProps) {
             </span>
             <h2 id="home-promotion-popup-title">โปรโมชั่น</h2>
           </div>
-          <button type="button" className="home-promotion-popup__close" onClick={closeWithMotion} aria-label="ปิดโปรโมชั่น">
+          <button type="button" className="home-promotion-popup__close" onClick={onClose} aria-label="ปิดโปรโมชั่น">
             <img src="/images/close.svg" width="16" height="16" alt="" />
           </button>
         </header>
 
         <div className="home-promotion-popup__content">
-          <nav className="home-promotion-popup__tabs" aria-label="หมวดโปรโมชั่น">
-            {CATEGORY_TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                className={category === tab.key ? 'is-active' : ''}
-                onClick={() => setCategory(tab.key)}
-              >
-                {tab.label}
-              </button>
+          <div className="home-promotion-popup__tabs" aria-label="หมวดโปรโมชั่น">
+            {CATEGORY_LABELS.map((label, index) => (
+              <span key={label} className={index === 0 ? 'is-active' : ''}>{label}</span>
             ))}
-          </nav>
+          </div>
 
           <div className="home-promotion-popup__scroll">
-            {filteredPromotions.length ? (
-              <div className="home-promotion-popup__grid">
-                {filteredPromotions.map((promotion) => (
-                  <a key={promotion.id} className="home-promotion-popup__card" href={promotion.href}>
-                    <div className="home-promotion-popup__media">
-                      <img src={promotion.imageUrl} alt={promotion.title} loading="lazy" />
-                    </div>
-                    <strong>{promotion.title}</strong>
-                  </a>
-                ))}
-              </div>
-            ) : (
-              <div className="home-promotion-popup__empty">ยังไม่มีโปรโมชั่นในหมวดนี้</div>
-            )}
+            <div className="home-promotion-popup__grid">
+              {SOURCE_PROMOTIONS.map((promotion) => (
+                <a key={promotion.id} className="home-promotion-popup__card" href={promotion.href}>
+                  <div className="home-promotion-popup__media">
+                    <img src={promotion.imageUrl} alt={promotion.title} loading="lazy" />
+                  </div>
+                  <strong>{promotion.title}</strong>
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </section>
