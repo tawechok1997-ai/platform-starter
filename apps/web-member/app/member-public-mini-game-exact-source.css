@@ -109,27 +109,27 @@
   }
 
   .desktop-reference-home .source-mini-game__actions {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     align-items: center !important;
     box-sizing: border-box !important;
     width: 100% !important;
     min-width: 0 !important;
     margin: 0 !important;
-    padding: 20px 12px !important;
-    gap: 8px !important;
+    padding: 20px 10px 18px 22px !important;
+    gap: 16px !important;
     overflow: visible !important;
   }
 
   .desktop-reference-home .source-mini-game__action {
     position: relative !important;
     display: block !important;
-    flex: 1 1 0 !important;
     box-sizing: border-box !important;
     width: 100% !important;
     min-width: 0 !important;
     height: 44px !important;
     min-height: 44px !important;
-    margin: 0 0 0 16px !important;
+    margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
     border: 0 !important;
@@ -175,50 +175,55 @@
   }
 
   .desktop-reference-home .source-mini-game__action-content {
+    position: relative !important;
     display: flex !important;
     align-items: center !important;
+    justify-content: center !important;
     box-sizing: border-box !important;
     width: 100% !important;
     min-width: 0 !important;
     height: 42px !important;
-    margin: 0 0 0 -20px !important;
-    padding: 0 !important;
+    margin: 0 !important;
+    padding: 0 8px 0 42px !important;
     overflow: visible !important;
   }
 
   .desktop-reference-home .source-mini-game__action-icon {
-    position: relative !important;
-    z-index: 1 !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: -22px !important;
+    z-index: 2 !important;
     display: block !important;
-    flex: 0 0 auto !important;
-    width: auto !important;
-    max-width: none !important;
-    height: 90px !important;
-    min-height: 90px !important;
-    max-height: 90px !important;
-    margin: 0 -15px !important;
+    width: 72px !important;
+    min-width: 72px !important;
+    max-width: 72px !important;
+    height: 72px !important;
+    min-height: 72px !important;
+    max-height: 72px !important;
+    margin: 0 !important;
     padding: 0 !important;
     object-fit: contain !important;
     background: transparent !important;
-    transform: none !important;
+    transform: translateY(-50%) !important;
+    pointer-events: none !important;
   }
 
   .desktop-reference-home .source-mini-game__action-label {
     position: relative !important;
     z-index: 1 !important;
     display: block !important;
-    flex: 1 1 auto !important;
     box-sizing: border-box !important;
     width: 100% !important;
     min-width: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: visible !important;
+    overflow: hidden !important;
     color: #fff !important;
-    font-size: 20px !important;
+    font-size: 18px !important;
     font-weight: 600 !important;
     line-height: 28px !important;
     text-align: center !important;
+    text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
 
