@@ -1,15 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useMemberSession } from '../../member-session-provider';
 import MemberAuthOverlay, { type MemberAuthMode } from './member-auth-overlay';
 
 export default function MemberAuthLinkInterceptor() {
+  const pathname = usePathname() ?? '/';
   const router = useRouter();
   const { verify } = useMemberSession();
   const [mode, setMode] = useState<MemberAuthMode | null>(null);
   const [nextPath, setNextPath] = useState<string | null>(null);
+  const isAuthRoute = pathname === '/login' || pathname === '/register';
 
   const close = useCallback(() => {
     setMode(null);
@@ -31,6 +33,8 @@ export default function MemberAuthLinkInterceptor() {
   }, [nextPath, router, verify]);
 
   useEffect(() => {
+    if (isAuthRoute) return;
+
     function interceptAuthLink(event: MouseEvent) {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const target = event.target;
@@ -54,7 +58,8 @@ export default function MemberAuthLinkInterceptor() {
 
     document.addEventListener('click', interceptAuthLink, true);
     return () => document.removeEventListener('click', interceptAuthLink, true);
-  }, []);
+  }, [isAuthRoute]);
 
-  return mode ? <MemberAuthOverlay mode={mode} onClose={close} onSuccess={complete} /> : null;
+  if (isAuthRoute || !mode) return null;
+  return <MemberAuthOverlay mode={mode} onModeChange={setMode} onClose={close} onSuccess={complete} />;
 }
