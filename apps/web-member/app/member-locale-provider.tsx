@@ -1,10 +1,21 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  Fragment,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import { flushSync } from 'react-dom';
 
 export type MemberLocale = 'th' | 'en';
 
 const STORAGE_KEY = 'member_locale';
+const LOCALE_EVENT = 'member-locale-change';
 
 type MemberLocaleContextValue = {
   locale: MemberLocale;
@@ -12,50 +23,78 @@ type MemberLocaleContextValue = {
   toggleLocale: () => void;
 };
 
+type MemberLocaleEvent = CustomEvent<{ locale?: MemberLocale }>;
+
 const MemberLocaleContext = createContext<MemberLocaleContextValue | null>(null);
+
+function normalizeLocale(value: string | null | undefined): MemberLocale {
+  return value === 'en' ? 'en' : 'th';
+}
+
+function applyLocaleToDocument(locale: MemberLocale) {
+  document.documentElement.lang = locale;
+  document.documentElement.dataset.memberLocale = locale;
+}
 
 export function MemberLocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<MemberLocale>('th');
 
-  const applyLocale = useCallback((nextLocale: MemberLocale) => {
-    setLocaleState(nextLocale);
-    document.documentElement.lang = nextLocale;
-    document.documentElement.dataset.memberLocale = nextLocale;
+  const commitLocale = useCallback((nextLocale: MemberLocale, broadcast = true) => {
+    flushSync(() => setLocaleState(nextLocale));
+    applyLocaleToDocument(nextLocale);
     window.localStorage.setItem(STORAGE_KEY, nextLocale);
-    window.dispatchEvent(new CustomEvent('member-locale-change', { detail: { locale: nextLocale } }));
+
+    if (broadcast) {
+      window.dispatchEvent(new CustomEvent(LOCALE_EVENT, { detail: { locale: nextLocale } }));
+    }
   }, []);
 
   useEffect(() => {
-    const storedLocale = window.localStorage.getItem(STORAGE_KEY);
-    const initialLocale: MemberLocale = storedLocale === 'en' ? 'en' : 'th';
-    setLocaleState(initialLocale);
-    document.documentElement.lang = initialLocale;
-    document.documentElement.dataset.memberLocale = initialLocale;
+    const initialLocale = normalizeLocale(window.localStorage.getItem(STORAGE_KEY));
+    flushSync(() => setLocaleState(initialLocale));
+    applyLocaleToDocument(initialLocale);
 
-    const syncLocale = (event: StorageEvent) => {
+    const syncStorageLocale = (event: StorageEvent) => {
       if (event.key !== STORAGE_KEY) return;
-      const nextLocale: MemberLocale = event.newValue === 'en' ? 'en' : 'th';
-      setLocaleState(nextLocale);
-      document.documentElement.lang = nextLocale;
-      document.documentElement.dataset.memberLocale = nextLocale;
+      const nextLocale = normalizeLocale(event.newValue);
+      flushSync(() => setLocaleState(nextLocale));
+      applyLocaleToDocument(nextLocale);
     };
 
-    window.addEventListener('storage', syncLocale);
-    return () => window.removeEventListener('storage', syncLocale);
+    const syncCustomLocale = (event: Event) => {
+      const nextLocale = normalizeLocale((event as MemberLocaleEvent).detail?.locale);
+      flushSync(() => setLocaleState(nextLocale));
+      applyLocaleToDocument(nextLocale);
+    };
+
+    window.addEventListener('storage', syncStorageLocale);
+    window.addEventListener(LOCALE_EVENT, syncCustomLocale);
+
+    return () => {
+      window.removeEventListener('storage', syncStorageLocale);
+      window.removeEventListener(LOCALE_EVENT, syncCustomLocale);
+    };
   }, []);
 
-  const setLocale = useCallback((nextLocale: MemberLocale) => applyLocale(nextLocale), [applyLocale]);
-  const toggleLocale = useCallback(() => applyLocale(locale === 'th' ? 'en' : 'th'), [applyLocale, locale]);
+  const setLocale = useCallback((nextLocale: MemberLocale) => {
+    commitLocale(nextLocale);
+  }, [commitLocale]);
 
-  const value = useMemo(() => ({ locale, setLocale, toggleLocale }), [locale, setLocale, toggleLocale]);
+  const toggleLocale = useCallback(() => {
+    const activeLocale = normalizeLocale(document.documentElement.dataset.memberLocale ?? locale);
+    commitLocale(activeLocale === 'th' ? 'en' : 'th');
+  }, [commitLocale, locale]);
 
-  /*
-   * Legacy page bodies read member_locale only when they mount. Keying the
-   * provider boundary remounts that subtree when the locale changes, so the
-   * header, page content, footer and embedded widgets update in the same click
-   * without requiring a manual browser refresh.
-   */
-  return <MemberLocaleContext.Provider key={locale} value={value}>{children}</MemberLocaleContext.Provider>;
+  const value = useMemo(
+    () => ({ locale, setLocale, toggleLocale }),
+    [locale, setLocale, toggleLocale],
+  );
+
+  return (
+    <MemberLocaleContext.Provider value={value}>
+      <Fragment key={locale}>{children}</Fragment>
+    </MemberLocaleContext.Provider>
+  );
 }
 
 export function useMemberLocale() {
