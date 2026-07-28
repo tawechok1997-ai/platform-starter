@@ -114,6 +114,7 @@ import './member-public-mini-game-exact-source.css';
 import './member-home-sticky-sidebar-lock.css';
 import './member-public-lower-shell.css';
 import './member-leaderboard-exact-source.css';
+import './member-footer-secondary-border-fix.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
