@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, type SyntheticEvent } from 'react';
-import styles from './desktop-jackpot-card.module.css';
 
 type DesktopJackpotCardProps = {
   artUrl: string;
@@ -38,15 +37,15 @@ export function DesktopJackpotCard({
   };
 
   return (
-    <section className={styles.card} aria-label="Jackpot">
-      <header className={styles.header}>
-        <img className={styles.icon} src={iconUrl} alt="" aria-hidden="true" />
-        <strong className={styles.title}>Jackpot</strong>
+    <section className="home-jackpot" aria-label="Jackpot">
+      <header className="home-jackpot__header">
+        <img className="home-jackpot__icon" src={iconUrl} alt="" aria-hidden="true" />
+        <strong className="home-jackpot__title">Jackpot</strong>
       </header>
-      <a className={styles.artLink} href="/home" aria-label={`Jackpot ${value.toLocaleString('en-US')}`}>
-        <img className={styles.art} src={artUrl} alt="" onError={handleArtError} />
-        <span className={styles.valueWrap} aria-live="off">
-          <strong className={styles.value}>{value.toLocaleString('en-US')}</strong>
+      <a className="home-jackpot__art-link" href="/home" aria-label={`Jackpot ${value.toLocaleString('en-US')}`}>
+        <img className="home-jackpot__art" src={artUrl} alt="" onError={handleArtError} />
+        <span className="home-jackpot__value-wrap" aria-live="off">
+          <strong className="home-jackpot__value">{value.toLocaleString('en-US')}</strong>
         </span>
       </a>
     </section>
