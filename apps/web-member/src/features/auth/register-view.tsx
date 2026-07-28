@@ -65,71 +65,102 @@ export type RegisterViewProps = {
 
 export function RegisterView(props: RegisterViewProps) {
   const {
-    cssVars, locale, step, t, siteName, logoUrl, brandMark, banks, username, phone, email, secret,
+    cssVars, locale, step, t, siteName, banks, username, phone, email, secret,
     referralCode, fullName, bankName, bankAccountNumber, acceptedTerms, errors, message, status,
     loading, disabled, showSecret, passwordProgress, registrationEnabled, loginEnabled,
     maintenanceEnabled, captchaResetKey, selectedBankLabel, embedded = false, onClose, onSubmit,
-    onLocaleChange, onFieldChange, onAcceptedTermsChange, onShowSecretToggle, onBack,
+    onFieldChange, onAcceptedTermsChange, onShowSecretToggle, onBack,
     onCaptchaToken, onCaptchaState,
   } = props;
 
-  const closeLabel = locale === 'th' ? 'ปิด' : 'Close';
+  const closeLabel = locale === 'th' ? 'ปิดหน้าต่าง' : 'Close window';
   const registerLabel = locale === 'th' ? 'สมัครสมาชิก' : 'Register';
+  const supportPrompt = locale === 'th' ? 'พบปัญหาการใช้งาน' : 'Having trouble?';
   const supportLabel = locale === 'th' ? 'ติดต่อเจ้าหน้าที่' : 'Contact support';
-  const secureRegistrationLabel = locale === 'th' ? 'การสมัครที่ปลอดภัย' : 'Secure registration';
   const registerHref = embedded ? '/register?embed=1' : '/register';
   const loginHref = embedded ? '/login?embed=1' : '/login';
 
-  return <main className="public-auth-page" style={cssVars} data-embedded={embedded ? 'true' : 'false'}>
+  return <main className="public-auth-page source-login-page source-register-page" style={cssVars} data-embedded={embedded ? 'true' : 'false'}>
     <div className="public-auth-ambient" aria-hidden="true"><span /><span /><span /></div>
     <div className="public-auth-backdrop" aria-hidden="true" />
-    <section className="public-auth-shell public-auth-shell--register public-auth-modal" role="dialog" aria-modal="true" aria-labelledby="member-register-title">
-      {embedded ? <button type="button" className="public-auth-close" aria-label={closeLabel} onClick={onClose}>×</button> : <Link href="/" className="public-auth-close" aria-label={closeLabel}>×</Link>}
-      <nav className="public-auth-tabs" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
-        <Link href={registerHref} aria-current="page">{registerLabel}</Link>
-        {loginEnabled && <Link href={loginHref}>{t.login}</Link>}
-      </nav>
-      <form className="public-auth-card" onSubmit={onSubmit} noValidate>
-        <div className="public-auth-card-topbar"><div className="public-auth-card__logo"><span>{logoUrl ? <img src={logoUrl} alt={siteName} /> : brandMark}</span><strong>{siteName}</strong></div><div aria-label="Language" className="public-auth-language"><button type="button" onClick={() => onLocaleChange('th')} aria-pressed={locale === 'th'} className="public-auth-language__button">ไทย</button><button type="button" onClick={() => onLocaleChange('en')} aria-pressed={locale === 'en'} className="public-auth-language__button">EN</button></div></div>
-        <div className="public-auth-heading"><span className="public-auth-heading__eyebrow">{locale === 'th' ? 'สร้างบัญชีสมาชิก' : 'CREATE MEMBER ACCOUNT'}</span><h1 id="member-register-title">{step === 1 ? (locale === 'th' ? 'กรอกเบอร์โทรศัพท์' : 'Enter phone number') : t.title}</h1><p>{t.subtitle}</p></div>
-        <div className="public-auth-progress"><div><span>{t.step} {step}/3</span><span>{step === 1 ? t.account : step === 2 ? t.identity : t.review}</span></div><div><span style={{ width: `${step * 33.333}%` }} /></div></div>
-        {(maintenanceEnabled || !registrationEnabled) && <div className="public-auth-alert public-auth-alert--error" role="alert">{maintenanceEnabled ? t.maintenance : t.registrationDisabled}</div>}
-        {status === 'error' && message && <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>}
+    <section className="public-auth-shell public-auth-shell--register public-auth-modal source-login-modal source-register-modal" data-auth-mode="register" role="dialog" aria-modal="true" aria-labelledby="member-register-title">
+      <button type="button" className="public-auth-close source-login-close" aria-label={closeLabel} onClick={onClose}>
+        <span>{closeLabel}</span>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10.8837 10L15 5.88375L14.1163 5L10 9.11625L5.88375 5L5 5.88375L9.11625 10L5 14.1163L5.88375 15L10 10.8837L14.1163 15L15 14.1163L10.8837 10Z" fill="currentColor" /></svg>
+      </button>
 
-        {step === 1 && <>
-          <Field label={t.phone} id="register-phone" value={phone} onChange={(value) => onFieldChange('phone', value)} error={errors.phone} disabled={disabled} autoComplete="tel" inputMode="tel" />
-          <Field label={t.username} id="register-username" value={username} onChange={(value) => onFieldChange('username', value)} error={errors.username} disabled={disabled} autoComplete="username" />
-          <Field label={t.email} id="register-email" value={email} onChange={(value) => onFieldChange('email', value)} error={errors.email} disabled={disabled} autoComplete="email" type="email" />
-          <label className="public-auth-field" htmlFor="register-secret"><span className="public-auth-field-label">{t.password}</span><div className="public-auth-input-wrap"><input id="register-secret" className="public-auth-input" value={secret} onChange={(event) => onFieldChange('secret', event.target.value)} type={showSecret ? 'text' : 'password'} disabled={disabled} autoComplete="new-password" aria-invalid={Boolean(errors.secret)} /><button type="button" onClick={onShowSecretToggle} className="public-auth-eye" disabled={disabled} aria-label={showSecret ? t.hide : t.show}>{showSecret ? '◉' : '◌'}</button></div></label>
-          <div className="public-auth-password-meter" aria-hidden="true"><span style={{ width: `${passwordProgress * 100}%` }} /></div>{errors.secret && <span className="public-auth-field-error">{errors.secret}</span>}
-          <Field label={t.referral} id="register-referral" value={referralCode} onChange={(value) => onFieldChange('referralCode', value)} disabled={disabled} autoComplete="off" />
-        </>}
+      <div className="source-login-visual" aria-hidden="true">
+        <img src="/assets/asset-pc/images/FEZX/imageslides/1782914061717-d7de2072-63f1-4dd5-95f6-8628990ba631.jpg" alt="" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+      </div>
 
-        {step === 2 && <>
-          <Field label={t.fullName} id="register-full-name" value={fullName} onChange={(value) => onFieldChange('fullName', value)} error={errors.fullName} disabled={disabled} autoComplete="name" />
-          <label className="public-auth-field" htmlFor="register-bank-name"><span className="public-auth-field-label">{t.bankName}</span><select id="register-bank-name" className="public-auth-input" value={bankName} onChange={(event) => onFieldChange('bankName', event.target.value)} disabled={disabled} aria-invalid={Boolean(errors.bankName)}><option value="">{t.bankPlaceholder}</option>{banks.map(([code, thName, enName]) => <option key={code} value={code}>{locale === 'th' ? thName : enName}</option>)}</select></label>
-          {errors.bankName && <span className="public-auth-field-error">{errors.bankName}</span>}
-          <Field label={t.bankAccountNumber} id="register-bank-account-number" value={bankAccountNumber} onChange={(value) => onFieldChange('bankAccountNumber', value)} error={errors.bankAccountNumber} disabled={disabled} inputMode="numeric" autoComplete="off" />
-          <div className="public-auth-field-hint">{t.nameRule}</div>
-        </>}
+      <div className="source-login-form-shell">
+        <nav className="public-auth-tabs source-login-tabs source-register-tabs" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
+          <Link href={registerHref} aria-current="page">{registerLabel}</Link>
+          {loginEnabled && <Link href={loginHref}>{t.login}</Link>}
+        </nav>
 
-        {step === 3 && <>
-          <div className="public-auth-review"><ReviewRow label={t.username} value={username} /><ReviewRow label={t.phone} value={phone} /><ReviewRow label={t.fullName} value={fullName} /><ReviewRow label={t.bankName} value={selectedBankLabel} /><ReviewRow label={t.bankAccountNumber} value={maskAccount(bankAccountNumber)} /></div>
-          <label className="public-auth-terms"><input type="checkbox" checked={acceptedTerms} onChange={(event) => onAcceptedTermsChange(event.target.checked)} disabled={disabled} /><span>{t.terms}</span></label>
-          {errors.terms && <span className="public-auth-field-error">{errors.terms}</span>}
-          <AntiBotWidget endpoint="member-register" locale={locale} resetKey={captchaResetKey} onToken={onCaptchaToken} onRequiredChange={onCaptchaState} />
-        </>}
+        <form className="public-auth-card source-login-card source-register-card" onSubmit={onSubmit} noValidate>
+          <div className="public-auth-heading source-login-heading source-register-heading">
+            <span>{locale === 'th' ? 'สร้างบัญชีสมาชิก' : 'CREATE MEMBER ACCOUNT'}</span>
+            <h1 id="member-register-title">{t.title}</h1>
+          </div>
 
-        <div className={`public-auth-form-actions${step > 1 ? ' has-back' : ''}`}>{step > 1 && <button type="button" onClick={onBack} disabled={disabled} className="public-auth-submit public-auth-submit--secondary">{t.back}</button>}<button type="submit" disabled={disabled} className="public-auth-submit">{loading ? t.submitting : step < 3 ? t.next : t.submit}</button></div>
-        {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
-        <div className="public-auth-legal"><span>{secureRegistrationLabel}</span><Link href="/support">{supportLabel}</Link></div>
-      </form>
+          <div className="public-auth-progress source-register-progress">
+            <div><span>{t.step} {step}/3</span><span>{step === 1 ? t.account : step === 2 ? t.identity : t.review}</span></div>
+            <div><span style={{ width: `${step * 33.333}%` }} /></div>
+          </div>
+
+          {(maintenanceEnabled || !registrationEnabled) && <div className="public-auth-alert public-auth-alert--error" role="alert">{maintenanceEnabled ? t.maintenance : t.registrationDisabled}</div>}
+          {status === 'error' && message && <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>}
+
+          {step === 1 && <>
+            <Field label={t.phone} id="register-phone" value={phone} onChange={(value) => onFieldChange('phone', value)} error={errors.phone} disabled={disabled} autoComplete="tel" inputMode="tel" />
+            <Field label={t.username} id="register-username" value={username} onChange={(value) => onFieldChange('username', value)} error={errors.username} disabled={disabled} autoComplete="username" />
+            <Field label={t.email} id="register-email" value={email} onChange={(value) => onFieldChange('email', value)} error={errors.email} disabled={disabled} autoComplete="email" type="email" />
+            <label className="public-auth-field source-login-field" htmlFor="register-secret"><span className="public-auth-field-label">{t.password}</span><div className="public-auth-input-wrap"><input id="register-secret" className="public-auth-input ui-input" value={secret} onChange={(event) => onFieldChange('secret', event.target.value)} type={showSecret ? 'text' : 'password'} disabled={disabled} autoComplete="new-password" aria-invalid={Boolean(errors.secret)} /><button type="button" onClick={onShowSecretToggle} className="public-auth-eye source-login-eye" disabled={disabled} aria-label={showSecret ? t.hide : t.show}><PasswordVisibilityIcon visible={showSecret} /></button></div></label>
+            <div className="public-auth-password-meter source-register-password-meter" aria-hidden="true"><span style={{ width: `${passwordProgress * 100}%` }} /></div>{errors.secret && <span className="public-auth-field-error">{errors.secret}</span>}
+            <Field label={t.referral} id="register-referral" value={referralCode} onChange={(value) => onFieldChange('referralCode', value)} disabled={disabled} autoComplete="off" />
+          </>}
+
+          {step === 2 && <>
+            <Field label={t.fullName} id="register-full-name" value={fullName} onChange={(value) => onFieldChange('fullName', value)} error={errors.fullName} disabled={disabled} autoComplete="name" />
+            <label className="public-auth-field source-login-field" htmlFor="register-bank-name"><span className="public-auth-field-label">{t.bankName}</span><select id="register-bank-name" className="public-auth-input ui-input" value={bankName} onChange={(event) => onFieldChange('bankName', event.target.value)} disabled={disabled} aria-invalid={Boolean(errors.bankName)}><option value="">{t.bankPlaceholder}</option>{banks.map(([code, thName, enName]) => <option key={code} value={code}>{locale === 'th' ? thName : enName}</option>)}</select></label>
+            {errors.bankName && <span className="public-auth-field-error">{errors.bankName}</span>}
+            <Field label={t.bankAccountNumber} id="register-bank-account-number" value={bankAccountNumber} onChange={(value) => onFieldChange('bankAccountNumber', value)} error={errors.bankAccountNumber} disabled={disabled} inputMode="numeric" autoComplete="off" />
+            <div className="public-auth-field-hint source-register-hint">{t.nameRule}</div>
+          </>}
+
+          {step === 3 && <>
+            <div className="public-auth-review source-register-review"><ReviewRow label={t.username} value={username} /><ReviewRow label={t.phone} value={phone} /><ReviewRow label={t.fullName} value={fullName} /><ReviewRow label={t.bankName} value={selectedBankLabel} /><ReviewRow label={t.bankAccountNumber} value={maskAccount(bankAccountNumber)} /></div>
+            <label className="public-auth-terms source-register-terms"><input type="checkbox" checked={acceptedTerms} onChange={(event) => onAcceptedTermsChange(event.target.checked)} disabled={disabled} /><span>{t.terms}</span></label>
+            {errors.terms && <span className="public-auth-field-error">{errors.terms}</span>}
+            <AntiBotWidget endpoint="member-register" locale={locale} resetKey={captchaResetKey} onToken={onCaptchaToken} onRequiredChange={onCaptchaState} />
+          </>}
+
+          <div className={`public-auth-form-actions source-register-actions${step > 1 ? ' has-back' : ''}`}>
+            {step > 1 && <button type="button" onClick={onBack} disabled={disabled} className="public-auth-submit public-auth-submit--secondary source-register-back"><span>{t.back}</span></button>}
+            <button type="submit" disabled={disabled} className="public-auth-submit source-login-submit source-register-submit ui-button ui-button--primary"><span>{loading ? t.submitting : step < 3 ? t.next : t.submit}</span><i aria-hidden="true" /></button>
+          </div>
+
+          {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
+          <div className="source-login-divider" aria-hidden="true" />
+          <div className="source-login-support"><span>{supportPrompt}</span><Link href="/support">{supportLabel}</Link></div>
+        </form>
+      </div>
     </section>
   </main>;
 }
 
 function Field({ label, id, value, onChange, error, disabled, type = 'text', autoComplete, inputMode }: { label: string; id: string; value: string; onChange: (value: string) => void; error?: string | undefined; disabled: boolean; type?: string; autoComplete?: string; inputMode?: 'text' | 'tel' | 'email' | 'numeric' | 'decimal' | 'search' | 'url' | 'none'; }) {
-  return <><label className="public-auth-field" htmlFor={id}><span className="public-auth-field-label">{label}</span><input id={id} className="public-auth-input" value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled} type={type} autoComplete={autoComplete} inputMode={inputMode} aria-invalid={Boolean(error)} /></label>{error && <span className="public-auth-field-error">{error}</span>}</>;
+  return <><label className="public-auth-field source-login-field" htmlFor={id}><span className="public-auth-field-label">{label}</span><input id={id} className="public-auth-input ui-input" value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled} type={type} autoComplete={autoComplete} inputMode={inputMode} aria-invalid={Boolean(error)} /></label>{error && <span className="public-auth-field-error">{error}</span>}</>;
+}
+
+function PasswordVisibilityIcon({ visible }: { visible: boolean }) {
+  return visible ? (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M1.8 10s2.8-5 8.2-5 8.2 5 8.2 5-2.8 5-8.2 5-8.2-5-8.2-5Z" stroke="currentColor" strokeWidth="1.5" /><circle cx="10" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.5" /></svg>
+  ) : (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 3l14 14M8.1 5.3A8.9 8.9 0 0 1 10 5c5.4 0 8.2 5 8.2 5a13 13 0 0 1-2.1 2.8M12.2 14.7A8.8 8.8 0 0 1 10 15c-5.4 0-8.2-5-8.2-5a13 13 0 0 1 2.3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><path d="M7.9 7.9A3 3 0 0 0 12.1 12.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+  );
 }
 
 function ReviewRow({ label, value }: { label: string; value: string }) { return <div><span>{label}</span><strong>{value || '-'}</strong></div>; }
