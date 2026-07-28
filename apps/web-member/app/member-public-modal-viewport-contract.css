@@ -2,6 +2,22 @@
  * Each dialog mounts these classes directly. No duplicate modal is created.
  */
 
+/* A public header can create its own stacking context. When a dialog portal is
+ * mounted as a direct body child, lock every other body child below it so the
+ * dialog covers the complete application chrome, exactly like the mission UI.
+ */
+html:has(body > [data-public-dialog-overlay]) body > :not([data-public-dialog-overlay]) {
+  position: relative !important;
+  z-index: 0 !important;
+  isolation: isolate !important;
+}
+
+html:has(body > [data-public-dialog-overlay]) body > [data-public-dialog-overlay] {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+}
+
 .public-dialog-runtime-overlay {
   position: fixed !important;
   inset: 0 !important;
