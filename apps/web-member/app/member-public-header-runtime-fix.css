@@ -34,7 +34,6 @@
   }
 
   .browse-page,
-  main[class*="casino-source-page_page"],
   [class*="slot-browse-source_content"] {
     padding-top: 0 !important;
   }
@@ -55,7 +54,6 @@
   }
 
   .browse-page,
-  main[class*="casino-source-page_page"],
   [class*="slot-browse-source_content"] {
     padding-top: 0 !important;
   }
