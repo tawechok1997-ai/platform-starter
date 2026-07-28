@@ -8,9 +8,8 @@ const contentPatterns = [
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
   /(?:aws_access_key_id|aws_secret_access_key)\s*[=:]\s*[^\s"']+/i,
   /(?:jwt|refresh|encryption|api|client|webhook)[_-]?secret\s*[=:]\s*["'][^"']{16,}["']/i,
-  // Machine credentials are compact tokens. Human-facing labels such as "Create password" contain whitespace.
-  /(?:password|passwd)\s*[=:]\s*["'][^"'\s]{12,}["']/i,
 ];
+const passwordAssignmentPattern = /(?:password|passwd)\s*[=:]\s*["']([^"']{12,})["']/gi;
 
 const allowedSecretFiles = new Set(['.env.example', '.env.test.example']);
 const allowedFixtureContentFiles = new Set([
@@ -31,6 +30,31 @@ function trackedFiles() {
   return raw.split('\0').filter(Boolean);
 }
 
+function isLikelyMachinePassword(value) {
+  if (!/^[\x21-\x7e]+$/.test(value)) return false;
+  return value.length >= 20 || /\d/.test(value) || /[^A-Za-z]/.test(value);
+}
+
+function findLikelyPasswordAssignments(content) {
+  const pattern = new RegExp(passwordAssignmentPattern.source, passwordAssignmentPattern.flags);
+  return [...content.matchAll(pattern)]
+    .map((match) => match[1] ?? '')
+    .filter(isLikelyMachinePassword);
+}
+
+function verifyPasswordHeuristic() {
+  const uiCopy = "password: 'Create password'\npassword: 'สร้างรหัสผ่าน'";
+  const realSecrets = "password: 'S3cur3-Prod-Token-123'\npasswd='averylongalphabeticpassword'";
+  if (findLikelyPasswordAssignments(uiCopy).length !== 0) {
+    throw new Error('Production secret heuristic must ignore human-facing password labels');
+  }
+  if (findLikelyPasswordAssignments(realSecrets).length !== 2) {
+    throw new Error('Production secret heuristic must detect compact machine credentials');
+  }
+}
+
+verifyPasswordHeuristic();
+
 const failures = [];
 const files = trackedFiles();
 
@@ -48,6 +72,9 @@ for (const path of files) {
   if (content == null) continue;
   for (const pattern of contentPatterns) {
     if (pattern.test(content)) failures.push(`${path}: possible production secret detected by ${pattern}`);
+  }
+  if (findLikelyPasswordAssignments(content).length > 0) {
+    failures.push(`${path}: possible production password assignment detected`);
   }
 }
 
