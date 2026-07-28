@@ -14,6 +14,7 @@ import { BrandIcon } from './components/brand-icon';
 import { MemberCard, MemberLinkButton } from './components/member-ui';
 import { CloseIcon, MenuIcon } from './components/member-icon';
 import { MemberCategoryRail } from './components/member-category-rail';
+import { DesktopAllianceBand } from './components/member-home/desktop-alliance-band';
 import { V47_ASSETS } from './components/member-home/v47-asset-map';
 import MemberAuthOverlay, { type MemberAuthMode } from './components/auth/member-auth-overlay';
 import DailyMissionModal from './components/mission/daily-mission-modal';
@@ -58,6 +59,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const isHomeRoute = pathname === '/';
   const isPublicRoute = isPublicMemberRoute(pathname);
   const isBrowseRoute = pathname.startsWith('/browse');
+  const isPublicGameShellRoute = isHomeRoute || isBrowseRoute;
   const currentRule = routeRuleFor(pathname);
   const blockedRoute = disabledMemberRoute(pathname, features);
   const activeHref = useMemo(() => activeNavigationHref(pathname), [pathname]);
@@ -150,13 +152,14 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const authOverlay = authMode ? <MemberAuthOverlay mode={authMode} onClose={closeAuth} onSuccess={completeAuth} /> : null;
   const missionOverlay = <DailyMissionModal open={missionOpen} onClose={closeMission} />;
 
-  if (isHomeRoute) {
+  if (isPublicGameShellRoute) {
     return (
       <>
         <PublicHomeHeader
           logoUrl={logoUrl}
           brandMark={brandMark}
           features={features}
+          pathname={pathname}
           isLoggedIn={isLoggedIn}
           walletLoading={walletLoading}
           compactWalletBalance={compactWalletBalance}
@@ -165,30 +168,10 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           onOpenRegister={() => setAuthMode('register')}
           onOpenMission={() => setMissionOpen(true)}
         />
-        {children}
-        <MemberFooter settings={typedSettings} />
-        {authOverlay}
-        {missionOverlay}
-      </>
-    );
-  }
-
-  if (isBrowseRoute) {
-    return (
-      <>
-        <PublicHomeHeader
-          logoUrl={logoUrl}
-          brandMark={brandMark}
-          features={features}
-          isLoggedIn={isLoggedIn}
-          walletLoading={walletLoading}
-          compactWalletBalance={compactWalletBalance}
-          logout={logout}
-          onOpenLogin={() => setAuthMode('login')}
-          onOpenRegister={() => setAuthMode('register')}
-          onOpenMission={() => setMissionOpen(true)}
-        />
-        {children}
+        <div className="public-game-shell">
+          <div className="public-game-shell__content">{children}</div>
+          <DesktopAllianceBand />
+        </div>
         <MemberFooter settings={typedSettings} />
         {authOverlay}
         {missionOverlay}
@@ -275,10 +258,11 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   );
 }
 
-function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoading, compactWalletBalance, logout, onOpenLogin, onOpenRegister, onOpenMission }: {
+function PublicHomeHeader({ logoUrl, brandMark, features, pathname, isLoggedIn, walletLoading, compactWalletBalance, logout, onOpenLogin, onOpenRegister, onOpenMission }: {
   logoUrl: string;
   brandMark: string;
   features: MemberFeatureFlags;
+  pathname: string;
   isLoggedIn: boolean;
   walletLoading: boolean;
   compactWalletBalance: string;
@@ -328,12 +312,15 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
         </div>
       </div>
       <nav className="member-desktop-nav member-desktop-nav--guest" aria-label="เมนูหน้าแรก">
-        {PUBLIC_HOME_NAV.map((item) => (
-          <a key={item.key} href={item.href} className={item.href === '/' ? 'active' : ''}>
-            <span className="public-home-nav-icon-frame"><img src={item.icon} alt="" className="public-home-nav-icon" aria-hidden="true" /></span>
-            <span>{item.title}</span>
-          </a>
-        ))}
+        {PUBLIC_HOME_NAV.map((item) => {
+          const active = item.key === 'home' && pathname === '/';
+          return (
+            <a key={item.key} href={item.href} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
+              <span className="public-home-nav-icon-frame"><img src={item.icon} alt="" className="public-home-nav-icon" aria-hidden="true" /></span>
+              <span>{item.title}</span>
+            </a>
+          );
+        })}
       </nav>
     </header>
   );
