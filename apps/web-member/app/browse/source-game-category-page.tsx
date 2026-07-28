@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type KeyboardEvent, type SyntheticEvent } from 'react';
+import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { memberApiFetch } from '../member-api';
 import { useMemberSession } from '../member-session-provider';
 import styles from './source-game-category-page.module.css';
@@ -52,6 +52,8 @@ type CatalogPayload = {
   counts?: { total?: number | null };
 };
 
+const USE_CATALOG_API = process.env.NEXT_PUBLIC_MEMBER_GAME_SOURCE === 'api';
+
 const CATEGORY_API_GROUPS: Record<string, string[]> = {
   casino: ['casino'],
   slot: ['slot', 'arcade', 'table'],
@@ -75,7 +77,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   const [previewCode, setPreviewCode] = useState<string | null>(null);
   const [catalogItems, setCatalogItems] = useState<CatalogGame[]>([]);
   const [catalogTotal, setCatalogTotal] = useState<number | null>(null);
-  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogLoading, setCatalogLoading] = useState(USE_CATALOG_API);
 
   useEffect(() => {
     setSelectedFilters([]);
@@ -84,6 +86,13 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   }, [config.slug]);
 
   useEffect(() => {
+    if (!USE_CATALOG_API) {
+      setCatalogItems([]);
+      setCatalogTotal(null);
+      setCatalogLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
     let cancelled = false;
     setCatalogItems([]);
@@ -206,12 +215,6 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
       : [...current, key]);
   };
 
-  const handleFilterKeyDown = (event: KeyboardEvent<HTMLLabelElement>, key: SourceGameFilterKey) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    event.preventDefault();
-    toggleFilter(key);
-  };
-
   const openGame = (game: SourceGameItem) => {
     const next = `/browse/games?category=${encodeURIComponent(config.slug)}`;
     if (!ready || !isLoggedIn) {
@@ -247,7 +250,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
                 const checked = selectedFilters.includes(filter.key);
                 const loadedCount = filterCounts.get(filter.key) ?? 0;
                 const count = catalogGames.length || providerCode || selectedFilters.length ? loadedCount : filter.count;
-                return <label key={filter.key} className={styles.filterOption} role="checkbox" tabIndex={0} aria-checked={checked} onClick={(event) => { event.preventDefault(); toggleFilter(filter.key); }} onKeyDown={(event) => handleFilterKeyDown(event, filter.key)}><input type="checkbox" checked={checked} readOnly tabIndex={-1} /><span className={`${styles.checkbox}${checked ? ` ${styles.checkboxActive}` : ''}`} aria-hidden="true">{checked ? '✓' : ''}</span><span className={styles.filterLabel}>{filter.label}</span><small>( {count.toLocaleString('th-TH')} )</small></label>;
+                return <label key={filter.key} className={styles.filterOption}><input type="checkbox" checked={checked} onChange={() => toggleFilter(filter.key)} /><span className={`${styles.checkbox}${checked ? ` ${styles.checkboxActive}` : ''}`} aria-hidden="true">{checked ? '✓' : ''}</span><span className={styles.filterLabel}>{filter.label}</span><small>( {count.toLocaleString('th-TH')} )</small></label>;
               })}
             </div>
 
