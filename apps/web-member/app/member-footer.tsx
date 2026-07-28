@@ -2,26 +2,27 @@
 
 import { usePathname } from 'next/navigation';
 import type { SyntheticEvent } from 'react';
+import { useMemberLocale } from './member-locale-provider';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 
 const SOURCE_ROOT = '/assets/asset-pc/images';
 
 const GAME_LINKS = [
-  ['คาสิโน', '/games?category=casino'],
-  ['สล็อต', '/games?category=slot'],
-  ['ยิงปลา', '/games?category=fishing'],
-  ['กีฬา', '/games?category=sport'],
-  ['ไพ่', '/games?category=card'],
-  ['หวย', '/games?category=lottery'],
+  ['casino', '/games?category=casino'],
+  ['slot', '/games?category=slot'],
+  ['fishing', '/games?category=fishing'],
+  ['sport', '/games?category=sport'],
+  ['card', '/games?category=card'],
+  ['lottery', '/games?category=lottery'],
 ] as const;
 
 const INFO_LINKS = [
-  ['โปรโมชั่น', '/promotions'],
-  ['ข่าวสาร', '/notifications'],
-  ['กิจกรรม', '/promotions'],
-  ['ระดับสมาชิก VIP', '/profile'],
-  ['รายได้จากเครือข่าย', '/affiliate'],
-  ['รายได้จากคอมมิชชั่น', '/affiliate'],
+  ['promotions', '/promotions'],
+  ['news', '/notifications'],
+  ['activities', '/promotions'],
+  ['vip', '/profile'],
+  ['networkIncome', '/affiliate'],
+  ['commissionIncome', '/affiliate'],
 ] as const;
 
 const LICENSE_BADGES = [
@@ -46,33 +47,50 @@ const RESPONSIBLE_BADGES = [
 const LOCAL_BANKS = ['BAAC', 'BAY', 'BBL', 'CIMBT', 'EXIM', 'GHB', 'GSB', 'KBANK', 'KKP', 'KTB', 'LHFG', 'SCB', 'TCD', 'TISCO', 'TMN', 'TTB']
   .map((name) => ({ name, url: `${SOURCE_ROOT}/banks/TH/${name}.webp` }));
 
-const SOURCE_DESCRIPTION = `เว็บพนันออนไลน์ที่ดีที่สุด
+const FOOTER_COPY = {
+  th: {
+    description: `เว็บพนันออนไลน์ที่ดีที่สุด
 พร้อมบริการลูกค้าทุกท่าน ตลอด 24 ชั่วโมง
 มีเกมให้เลือกเล่นมากมาย
 บาคาร่า รูเล็ต ไฮโล เสือมังกร สล็อตออนไลน์ กีฬาออนไลน์
-แจ็คพอตแตกทุกวัน`;
+แจ็คพอตแตกทุกวัน`,
+    license: 'ใบอนุญาตและใบรับรอง', licenseNote: '(การันตีเกมลิขสิทธิ์แท้)', security: 'การรองรับและความปลอดภัยโดย', responsible: 'รับผิดชอบในการเดิมพัน', games: 'เกม', information: 'ข้อมูล', contact: 'ติดต่อเรา', contactAria: 'ติดต่อฝ่ายบริการผ่าน LINE', payments: 'วิธีการชำระเงิน',
+    links: { casino: 'คาสิโน', slot: 'สล็อต', fishing: 'ไพ่ปลา', sport: 'กีฬา', card: 'ไพ่', lottery: 'หวย', promotions: 'โปรโมชั่น', news: 'ข่าวสาร', activities: 'กิจกรรม', vip: 'ระดับสมาชิก VIP', networkIncome: 'รายได้จากเครือข่าย', commissionIncome: 'รายได้จากคอมมิชชั่น' },
+  },
+  en: {
+    description: `A premium online gaming destination
+with 24-hour customer support.
+Choose from a wide range of games including
+baccarat, roulette, hi-lo, slots and sports.
+Daily jackpot opportunities.`,
+    license: 'Licenses and certifications', licenseNote: '(Verified licensed games)', security: 'Security and platform protection', responsible: 'Responsible gaming', games: 'Games', information: 'Information', contact: 'Contact us', contactAria: 'Contact support via LINE', payments: 'Payment methods',
+    links: { casino: 'Casino', slot: 'Slots', fishing: 'Fishing', sport: 'Sports', card: 'Cards', lottery: 'Lottery', promotions: 'Promotions', news: 'News', activities: 'Activities', vip: 'VIP membership', networkIncome: 'Network income', commissionIncome: 'Commission income' },
+  },
+} as const;
 
 function sourceBrandName(value: string | undefined) {
   const normalized = value?.trim();
   return !normalized || /platform starter/i.test(normalized) ? 'NOAH345' : normalized;
 }
 
-function sourceDescription(value: string | undefined) {
+function sourceDescription(value: string | undefined, fallback: string) {
   const normalized = value?.trim();
   return !normalized || /แพลตฟอร์มสมาชิก|member platform starter|platform starter/i.test(normalized)
-    ? SOURCE_DESCRIPTION
+    ? fallback
     : normalized;
 }
 
 export default function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
   const pathname = usePathname() ?? '/';
   const isHomeRoute = pathname === '/';
+  const { locale } = useMemberLocale();
+  const copy = FOOTER_COPY[locale];
   const { website } = settings;
   const siteName = sourceBrandName(website.site_name);
-  const description = sourceDescription(website.site_description);
+  const description = sourceDescription(website.site_description, copy.description);
 
   return (
-    <footer className={`member-footer ${isHomeRoute ? 'member-footer--home' : 'member-footer--secondary'}`}>
+    <footer className={`member-footer ${isHomeRoute ? 'member-footer--home' : 'member-footer--secondary'}`} data-locale={locale}>
       <div className="member-footer__main">
         <section className="member-footer__about">
           <h3>{siteName}</h3>
@@ -80,36 +98,36 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
         </section>
 
         <section className="member-footer__trust">
-          <h3><strong>ใบอนุญาตและใบรับรอง</strong> <span>(การันตีเกมลิขสิทธิ์แท้)</span></h3>
+          <h3><strong>{copy.license}</strong> <span>{copy.licenseNote}</span></h3>
           <BadgeRow badges={LICENSE_BADGES} className="member-footer__trust-primary" />
 
           <div className="member-footer__trust-groups">
             <div className="member-footer__trust-group">
-              <h3>การรองรับและความปลอดภัยโดย</h3>
+              <h3>{copy.security}</h3>
               <BadgeRow badges={SECURITY_BADGES} />
             </div>
             <div className="member-footer__trust-group">
-              <h3>รับผิดชอบในการเดิมพัน</h3>
+              <h3>{copy.responsible}</h3>
               <BadgeRow badges={RESPONSIBLE_BADGES} />
             </div>
           </div>
         </section>
 
         <div className="member-footer__menus">
-          <nav className="member-footer__links" aria-label="เกม">
-            <h3>เกม</h3>
-            {GAME_LINKS.map(([label, href]) => <a key={label} href={href}>{label}</a>)}
+          <nav className="member-footer__links" aria-label={copy.games}>
+            <h3>{copy.games}</h3>
+            {GAME_LINKS.map(([key, href]) => <a key={key} href={href}>{copy.links[key]}</a>)}
           </nav>
 
-          <nav className="member-footer__links" aria-label="ข้อมูล">
-            <h3>ข้อมูล</h3>
-            {INFO_LINKS.map(([label, href]) => <a key={label} href={href}>{label}</a>)}
+          <nav className="member-footer__links" aria-label={copy.information}>
+            <h3>{copy.information}</h3>
+            {INFO_LINKS.map(([key, href]) => <a key={key} href={href}>{copy.links[key]}</a>)}
           </nav>
         </div>
 
         <section className="member-footer__contact">
-          <h3>ติดต่อเรา</h3>
-          <a className="member-footer__contact-line" href="/contact" aria-label="ติดต่อฝ่ายบริการผ่าน LINE">
+          <h3>{copy.contact}</h3>
+          <a className="member-footer__contact-line" href="/contact" aria-label={copy.contactAria}>
             <img src={`${SOURCE_ROOT}/line.png`} alt="LINE" loading="lazy" onError={hideBrokenImage} />
           </a>
         </section>
@@ -117,8 +135,8 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
 
       {isHomeRoute && <div className="member-footer__separator" aria-hidden="true" />}
 
-      <section className="member-footer__payments" aria-label="วิธีการชำระเงิน">
-        <h3>วิธีการชำระเงิน</h3>
+      <section className="member-footer__payments" aria-label={copy.payments}>
+        <h3>{copy.payments}</h3>
         <div className="member-footer__bank-grid">
           {LOCAL_BANKS.map((bank) => (
             <span key={bank.name} className="member-footer__bank" title={bank.name}>
