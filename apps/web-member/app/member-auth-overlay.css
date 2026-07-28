@@ -68,35 +68,52 @@
   outline-offset: 2px !important;
 }
 
-/* Match the source modal backdrop: fixed full viewport, bg-black/80, 16px
-   breathing room and a centered popup. The iframe document is transparent in
-   embed mode, so this dark layer is rendered exactly once. */
-.member-auth-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100vw;
-  height: 100dvh;
-  padding: 16px;
-  overflow: hidden;
-  box-sizing: border-box;
-  background: rgb(0 0 0 / 80%);
-  opacity: 1;
-  pointer-events: auto;
+/* The auth dialog must be the topmost viewport layer. The public header uses
+   z-index: 5000, so a conventional modal value such as 2200 lets the header
+   cover the tabs and close control. */
+html body .member-auth-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  isolation: isolate !important;
+  box-sizing: border-box !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 16px !important;
+  overflow: hidden !important;
+  background: rgb(0 0 0 / 80%) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: none !important;
   transition: opacity 300ms ease;
 }
 
-.member-auth-overlay__frame {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  border: 0;
-  background: transparent;
+html body .member-auth-overlay__frame {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: none !important;
 }
 
 @media (max-width: 900px) {
@@ -111,7 +128,7 @@
     font-size: 12px !important;
   }
 
-  .member-auth-overlay {
-    padding: 16px;
+  html body .member-auth-overlay {
+    padding: 8px !important;
   }
 }
