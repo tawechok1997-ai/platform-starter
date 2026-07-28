@@ -1,15 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { defaultSettings, loadPublicSiteSettings, PublicSiteSettings, textSetting } from '../site-settings';
+import { textSetting } from '../site-settings';
+import { useSiteSettings } from '../site-settings-provider';
 
 type ContactChannel = readonly [label: string, value: string, href: string];
 
 export default function ContactPage() {
-  const [settings, setSettings] = useState<PublicSiteSettings>(defaultSettings);
-  useEffect(() => { loadPublicSiteSettings().then(setSettings).catch(() => setSettings(defaultSettings)); }, []);
-  const siteName = textSetting(settings, 'website', 'site_name', 'Platform Starter');
+  const { settings } = useSiteSettings();
+  const siteName = textSetting(settings, 'website', 'site_name', 'NOAH345');
   const primaryColor = textSetting(settings, 'branding', 'primary_color', '#f5c542');
   const backgroundColor = textSetting(settings, 'branding', 'background_color', '#080808');
   const cardColor = textSetting(settings, 'branding', 'card_color', '#181818');
