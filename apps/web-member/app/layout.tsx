@@ -107,6 +107,7 @@ import './member-public-auth-actions-lock.css';
 import './member-public-lower-shell.css';
 import './member-footer-secondary-border-fix.css';
 import './member-home-sidebar-primary.css';
+import './member-public-modal-viewport-contract.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
