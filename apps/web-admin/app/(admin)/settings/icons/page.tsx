@@ -10,6 +10,7 @@ export default function IconSettingsPage() {
       fields={ICON_SETTINGS_FIELDS}
       defaults={ICON_SETTINGS_DEFAULTS}
       preview="icons"
+      permissionBase="settings.branding"
     />
   );
 }
