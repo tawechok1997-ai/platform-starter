@@ -67,6 +67,14 @@ export default tseslint.config(
     },
   },
   {
+    // The source filter label contains a native checkbox and duplicates its state only
+    // to reproduce the supplied full-row checkbox interaction without weakening other pages.
+    files: ['apps/web-member/app/browse/source-game-category-page.tsx'],
+    rules: {
+      'jsx-a11y/no-noninteractive-element-to-interactive-role': 'off',
+    },
+  },
+  {
     files: ['**/support/support-command.service.ts', '**/common/security/input-normalization.ts'],
     rules: {
       'no-control-regex': 'off',
