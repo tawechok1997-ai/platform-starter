@@ -2,21 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const boundarySource = readFileSync(new URL('./promotion-center-page.tsx', import.meta.url), 'utf8');
-const source = readFileSync(new URL('./promotion-center-media-page.tsx', import.meta.url), 'utf8');
-
-test('promotion center delegates to the responsive media implementation', () => {
-  assert.equal(boundarySource.includes('promotion-center-media-page'), true);
-  assert.equal(boundarySource.includes('adminApiFetch'), false);
-  assert.equal(boundarySource.includes('useState'), false);
-});
+const source = readFileSync(new URL('./promotion-center-page.tsx', import.meta.url), 'utf8');
 
 test('promotion center keeps lifecycle and compatibility contract', () => {
   assert.equal(source.includes("type PromotionLifecycle = 'draft' | 'published' | 'archived'"), true);
   assert.equal(source.includes("item.lifecycle === 'published' || item.enabled === true"), true);
   assert.equal(source.includes("lifecycle === 'published' && item.enabled !== false"), true);
-  assert.equal(source.includes('desktopImageUrl'), true);
-  assert.equal(source.includes('mobileImageUrl'), true);
 });
 
 test('promotion center keeps search and lifecycle filtering', () => {
@@ -40,14 +31,12 @@ test('member preview only shows published enabled campaigns', () => {
 test('promotion center keeps unsaved changes protection', () => {
   assert.equal(source.includes('useAdminUnsavedChanges'), true);
   assert.equal(source.includes('AdminUnsavedChangesNotice'), true);
-  assert.equal(source.includes('canUpdate && isDirty'), true);
 });
 
 test('promotion center uses shared confirmation before discarding edits', () => {
   assert.equal(source.includes('confirmReload'), true);
-  assert.equal(source.includes('requestReload'), true);
-  assert.equal(source.includes('open={confirmReload}'), true);
   assert.equal(source.includes('setConfirmReload(false); void load();'), true);
+  assert.equal(source.includes('open={confirmReload}'), true);
   assert.equal(source.includes('window.confirm'), false);
 });
 

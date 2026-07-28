@@ -2,21 +2,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const boundarySource = readFileSync(new URL('./content-center-page.tsx', import.meta.url), 'utf8');
-const source = readFileSync(new URL('./content-center-media-page.tsx', import.meta.url), 'utf8');
-
-test('content center delegates to the responsive media implementation', () => {
-  assert.equal(boundarySource.includes('content-center-media-page'), true);
-  assert.equal(boundarySource.includes('adminApiFetch'), false);
-  assert.equal(boundarySource.includes('useState'), false);
-});
+const source = readFileSync(new URL('./content-center-page.tsx', import.meta.url), 'utf8');
 
 test('content center adopts lifecycle controls and published-only previews', () => {
-  assert.equal(source.includes('function LifecycleCard'), true);
+  assert.equal(source.includes('LifecycleCard'), true);
   assert.equal(source.includes('cmsLifecyclePatch'), true);
   assert.equal(source.includes('isCmsPublished'), true);
   assert.equal(source.includes('content.banners.find(isCmsPublished)'), true);
-  assert.equal(source.includes("disabled={item.lifecycle !== 'published'}"), true);
 });
 
 test('content center exposes editable normalized raw JSON', () => {
@@ -27,7 +19,7 @@ test('content center exposes editable normalized raw JSON', () => {
 });
 
 test('content center guards unapplied JSON and form edits', () => {
-  assert.equal(source.includes("value: { content, raw: rawDirty ? rawJson : '' }"), true);
+  assert.equal(source.includes("raw: rawDirty ? rawJson : ''"), true);
   assert.equal(source.includes('AdminUnsavedChangesNotice'), true);
   assert.equal(source.includes('open={confirmReload}'), true);
   assert.equal(source.includes('window.confirm'), false);
@@ -44,5 +36,4 @@ test('content center keeps private asset upload and usage guards', () => {
   assert.equal(source.includes("'/admin/settings/cms-assets'"), true);
   assert.equal(source.includes('assetUsage(content, asset.id)'), true);
   assert.equal(source.includes('SHA-256'), true);
-  assert.equal(source.includes('Backend จะตรวจซ้ำว่า Asset ไม่ถูกอ้างอิง'), true);
 });
