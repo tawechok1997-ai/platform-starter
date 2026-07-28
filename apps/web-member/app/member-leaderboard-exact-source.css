@@ -1,0 +1,304 @@
+/* Final owner for the home Leaderboard block from the supplied source HTML. */
+
+.desktop-reference-home .reference-leaderboard {
+  max-height: none !important;
+  overflow: visible !important;
+  color: #fff !important;
+}
+
+.desktop-reference-home .reference-leaderboard > header,
+.desktop-reference-home .reference-leaderboard > .reference-leaderboard-head,
+.desktop-reference-home .reference-leaderboard > div:not(.source-leaderboard-root) {
+  display: none !important;
+}
+
+.desktop-reference-home .source-leaderboard-root {
+  display: block !important;
+  width: 100% !important;
+  max-height: 475px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #fff !important;
+  scrollbar-width: none !important;
+}
+
+.desktop-reference-home .source-leaderboard-root::-webkit-scrollbar,
+.desktop-reference-home .source-leaderboard__table-wrap::-webkit-scrollbar {
+  display: none !important;
+}
+
+.desktop-reference-home .source-leaderboard__header {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 30px !important;
+  margin: 0 0 12px !important;
+  padding: 0 16px !important;
+  gap: 10px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-bottom: 2px solid rgb(187 91 234 / 40%) !important;
+  border-radius: 6px 0 0 6px !important;
+  background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234 / 40%) -4.41%, rgb(24 21 35 / 60%) 83.01%) !important;
+  box-sizing: border-box !important;
+}
+
+.desktop-reference-home .source-leaderboard__title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+}
+
+.desktop-reference-home .source-leaderboard__title > img {
+  display: block !important;
+  flex: 0 0 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  object-fit: contain !important;
+}
+
+.desktop-reference-home .source-leaderboard__title > strong {
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 20px !important;
+}
+
+.desktop-reference-home .source-leaderboard__info {
+  display: grid !important;
+  place-items: center !important;
+  width: 18px !important;
+  height: 19px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #bb5bea !important;
+  cursor: pointer !important;
+}
+
+.desktop-reference-home .source-leaderboard__info svg {
+  display: block !important;
+  width: 18px !important;
+  height: 19px !important;
+  fill: currentColor !important;
+}
+
+.desktop-reference-home .source-leaderboard__table-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+}
+
+.desktop-reference-home .source-leaderboard__table {
+  width: 100% !important;
+  min-width: 0 !important;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
+  color: #fff !important;
+  background: #15121e !important;
+  font-size: 12px !important;
+}
+
+.desktop-reference-home .source-leaderboard__table thead {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2 !important;
+  background: #15121e !important;
+}
+
+.desktop-reference-home .source-leaderboard__table th {
+  height: 28px !important;
+  padding: 4px 8px !important;
+  color: #fff !important;
+  background: #15121e !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 18px !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+}
+
+.desktop-reference-home .source-leaderboard__table th:first-child {
+  width: 52px !important;
+  text-align: center !important;
+}
+
+.desktop-reference-home .source-leaderboard__table th:nth-child(3) {
+  width: 64px !important;
+}
+
+.desktop-reference-home .source-leaderboard__table th:last-child {
+  width: 42px !important;
+}
+
+.desktop-reference-home .source-leaderboard__table tbody tr {
+  position: relative !important;
+  height: 52px !important;
+  background: #373147 !important;
+  transition: transform 1s !important;
+}
+
+.desktop-reference-home .source-leaderboard__table tbody tr:nth-child(even) {
+  background: #24212d !important;
+}
+
+.desktop-reference-home .source-leaderboard__table td {
+  height: 52px !important;
+  padding: 4px 8px !important;
+  border: 0 !important;
+  vertical-align: middle !important;
+  box-sizing: border-box !important;
+}
+
+.desktop-reference-home .source-leaderboard__rank {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 30px !important;
+  height: 40px !important;
+  margin: 0 auto !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+}
+
+.desktop-reference-home .source-leaderboard__rank img {
+  position: absolute !important;
+  inset: 5px 0 auto !important;
+  display: block !important;
+  width: 30px !important;
+  height: 30px !important;
+  object-fit: contain !important;
+}
+
+.desktop-reference-home .source-leaderboard__rank b {
+  position: relative !important;
+  z-index: 1 !important;
+  margin-top: 5px !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-shadow: 0 2px 6px #000 !important;
+}
+
+.desktop-reference-home .source-leaderboard__rank--4 b,
+.desktop-reference-home .source-leaderboard__rank--5 b {
+  margin-top: 0 !important;
+}
+
+.desktop-reference-home .source-leaderboard__game {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+.desktop-reference-home .source-leaderboard__cover {
+  display: block !important;
+  flex: 0 0 25px !important;
+  width: 25px !important;
+  height: 40px !important;
+  border-radius: 3px !important;
+  object-fit: cover !important;
+  background: #15121e !important;
+}
+
+.desktop-reference-home .source-leaderboard__game > span {
+  display: flex !important;
+  min-width: 0 !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+}
+
+.desktop-reference-home .source-leaderboard__game strong,
+.desktop-reference-home .source-leaderboard__game small {
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  color: #fff !important;
+  text-align: left !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.desktop-reference-home .source-leaderboard__game strong {
+  font-size: 10px !important;
+  font-weight: 400 !important;
+  line-height: 13px !important;
+}
+
+.desktop-reference-home .source-leaderboard__game small {
+  font-size: 8px !important;
+  font-weight: 400 !important;
+  line-height: 10px !important;
+}
+
+.desktop-reference-home .source-leaderboard__game small:last-child {
+  font-size: 12px !important;
+  line-height: 14px !important;
+}
+
+.desktop-reference-home .source-leaderboard__game small b {
+  color: #7000c0 !important;
+  font-weight: 600 !important;
+}
+
+.desktop-reference-home .source-leaderboard__provider {
+  display: grid !important;
+  place-items: center !important;
+  width: 57px !important;
+  height: 20px !important;
+  margin: 0 auto !important;
+  overflow: hidden !important;
+  border-radius: 2px !important;
+}
+
+.desktop-reference-home .source-leaderboard__provider img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+.desktop-reference-home .source-leaderboard__play {
+  display: grid !important;
+  place-items: center !important;
+  width: 24px !important;
+  height: 21px !important;
+  margin: 0 auto !important;
+  color: #9643e6 !important;
+  text-decoration: none !important;
+}
+
+.desktop-reference-home .source-leaderboard__play svg {
+  display: block !important;
+  width: 24px !important;
+  height: 21px !important;
+  overflow: visible !important;
+}
+
+.desktop-reference-home .source-leaderboard__play-bg {
+  fill: rgb(21 18 30 / 70%) !important;
+}
+
+.desktop-reference-home .source-leaderboard__play-triangle {
+  fill: #9643e6 !important;
+  filter: drop-shadow(0 0 6px #0278c7) !important;
+}
+
+@media (max-width: 900px) {
+  .desktop-reference-home .source-leaderboard-root {
+    max-height: none !important;
+  }
+}
