@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
 
 export type MemberAuthMode = 'login' | 'register';
 
@@ -47,13 +47,21 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
 
   const path = mode === 'register' ? '/register?embed=1' : '/login?embed=1';
 
-  function revealFrameAfterHydration() {
-    // iframe load can fire before the embedded page's first React effect has
-    // committed. Waiting two animation frames prevents the standalone auth
-    // geometry from flashing before data-embedded="true" is applied.
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => setFrameReady(true));
-    });
+  function revealFrameWhenEmbedded(event: SyntheticEvent<HTMLIFrameElement>) {
+    const frame = event.currentTarget;
+    let attempts = 0;
+
+    const checkEmbeddedMode = () => {
+      const embeddedPage = frame.contentDocument?.querySelector('[data-embedded="true"]');
+      if (embeddedPage || attempts >= 120) {
+        setFrameReady(true);
+        return;
+      }
+      attempts += 1;
+      window.requestAnimationFrame(checkEmbeddedMode);
+    };
+
+    window.requestAnimationFrame(checkEmbeddedMode);
   }
 
   return (
@@ -71,7 +79,7 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
         src={path}
         title={mode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
         allow="clipboard-write"
-        onLoad={revealFrameAfterHydration}
+        onLoad={revealFrameWhenEmbedded}
         style={{
           opacity: frameReady ? 1 : 0,
           visibility: frameReady ? 'visible' : 'hidden',
