@@ -28,6 +28,17 @@ const routeCases: readonly RouteCase[] = [
   { path: '/simple-game-settings', label: 'Provider quick setup', ownerOnly: true },
   { path: '/members', label: 'Members', ownerOnly: true },
   { path: '/reports', label: 'Reports', ownerOnly: true },
+  { path: '/settings', label: 'Settings workspace', ownerOnly: true },
+  { path: '/settings/website', label: 'Website settings', ownerOnly: true },
+  { path: '/settings/branding', label: 'Branding settings', ownerOnly: true },
+  { path: '/settings/icons', label: 'Icon settings', ownerOnly: true },
+  { path: '/settings/theme', label: 'Theme settings', ownerOnly: true },
+  { path: '/settings/seo', label: 'SEO settings', ownerOnly: true },
+  { path: '/settings/contact', label: 'Contact settings', ownerOnly: true },
+  { path: '/settings/maintenance', label: 'Maintenance settings', ownerOnly: true },
+  { path: '/settings/scripts', label: 'Script settings', ownerOnly: true },
+  { path: '/settings/features', label: 'Feature settings', ownerOnly: true },
+  { path: '/settings/legal', label: 'Legal settings', ownerOnly: true },
 ] as const;
 
 type RuntimeIssue = { route: string; kind: 'console' | 'page' | 'request' | 'response'; detail: string };
@@ -97,7 +108,6 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
         await page.keyboard.press('Escape');
         await expect(page.locator('#admin-sidebar')).not.toHaveClass(/open/);
       }
-
     }
 
     await attachMatrix(testInfo, roleName, results, issues);
@@ -142,6 +152,7 @@ function fixtureFor(path: string, roleName: RoleName, permissions: readonly stri
   if (path === '/admin/access/invitations/roles') return { items: [] };
   if (path.startsWith('/admin/access/invitations')) return { items: [] };
   if (path.startsWith('/admin/webhook-logs')) return { items: [], summary: { total: 0, processed: 0, failed: 0, duplicate: 0 } };
+  if (path.startsWith('/admin/settings/')) return { settings: {} };
   return { items: [], total: 0, page: 1, pageCount: 1, summary: {}, roles: [], permissions: [], adminUsers: [] };
 }
 
