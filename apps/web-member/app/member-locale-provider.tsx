@@ -49,7 +49,13 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({ locale, setLocale, toggleLocale }), [locale, setLocale, toggleLocale]);
 
-  return <MemberLocaleContext.Provider value={value}>{children}</MemberLocaleContext.Provider>;
+  /*
+   * Legacy page bodies read member_locale only when they mount. Keying the
+   * provider boundary remounts that subtree when the locale changes, so the
+   * header, page content, footer and embedded widgets update in the same click
+   * without requiring a manual browser refresh.
+   */
+  return <MemberLocaleContext.Provider key={locale} value={value}>{children}</MemberLocaleContext.Provider>;
 }
 
 export function useMemberLocale() {
