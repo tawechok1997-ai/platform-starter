@@ -1,12 +1,19 @@
 'use client';
 
 import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
-import { memberApiFetch } from '../member-api';
 import { useMemberSession } from '../member-session-provider';
 import styles from './source-game-category-page.module.css';
 
 export type SourceGameFilterKey = 'arcade' | 'buy' | 'hot' | 'new' | 'slot' | 'table';
-export type SourceGameProvider = { code: string; name: string; badge: string; card: string; background: string; title: string; avatar: string };
+export type SourceGameProvider = {
+  code: string;
+  name: string;
+  badge: string;
+  card: string;
+  background: string;
+  title: string;
+  avatar: string;
+};
 export type SourceGameItem = {
   id: string;
   name: string;
@@ -32,37 +39,6 @@ export type SourceGameCategoryConfig = {
   showProviderStrip?: boolean;
 };
 
-type CatalogMedia = { sourceUrl?: string | null; cachedUrl?: string | null; status?: string | null };
-type CatalogProvider = { code?: string | null; name?: string | null; logoUrl?: string | null };
-type CatalogGame = {
-  id?: string | null;
-  providerGameCode?: string | null;
-  name?: string | null;
-  category?: string | null;
-  imageUrl?: string | null;
-  iconUrl?: string | null;
-  isNew?: boolean | null;
-  isPopular?: boolean | null;
-  provider?: CatalogProvider | null;
-  media?: CatalogMedia[] | null;
-};
-type CatalogPayload = {
-  items?: CatalogGame[];
-  pagination?: { total?: number | null };
-  counts?: { total?: number | null };
-};
-
-const USE_CATALOG_API = process.env.NEXT_PUBLIC_MEMBER_GAME_SOURCE === 'api';
-
-const CATEGORY_API_GROUPS: Record<string, string[]> = {
-  casino: ['casino'],
-  slot: ['slot', 'arcade', 'table'],
-  fishing: ['fishing', 'fish'],
-  sport: ['sport', 'sports'],
-  card: ['card', 'table'],
-  lotto: ['lottery', 'lotto'],
-};
-
 const FISHING_HOT = new Set(['devil-buster', 'undersea-battle', 'poseidons-secret', 'hungry-shark', 'captain-fishing', 'longya-fishing', 'hero-fishing', 'pirates-fishing', 'lucky-fishing']);
 const FISHING_NEW = new Set(['fishing-thai', 'black-tornado', 'hoan-kiem-lake', 'duo-fu-fu-wa', 'world-cup-mania']);
 const FISHING_SLOT = new Set(['dragon-zuma', 'zumas-honor']);
@@ -75,9 +51,6 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   const [selectedFilters, setSelectedFilters] = useState<SourceGameFilterKey[]>([]);
   const [providerCode, setProviderCode] = useState<string | null>(null);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
-  const [catalogItems, setCatalogItems] = useState<CatalogGame[]>([]);
-  const [catalogTotal, setCatalogTotal] = useState<number | null>(null);
-  const [catalogLoading, setCatalogLoading] = useState(USE_CATALOG_API);
 
   useEffect(() => {
     setSelectedFilters([]);
@@ -85,81 +58,15 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
     setPreviewCode(null);
   }, [config.slug]);
 
-  useEffect(() => {
-    if (!USE_CATALOG_API) {
-      setCatalogItems([]);
-      setCatalogTotal(null);
-      setCatalogLoading(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    let cancelled = false;
-    setCatalogItems([]);
-    setCatalogTotal(null);
-    setCatalogLoading(true);
-
-    async function loadCatalog() {
-      const categories = CATEGORY_API_GROUPS[config.slug] ?? [config.slug];
-      const loadedItems: CatalogGame[] = [];
-      let loadedTotal = 0;
-
-      for (const category of categories) {
-        try {
-          const params = new URLSearchParams({ category, platform: 'pc', page: '1', limit: '250' });
-          const response = await memberApiFetch(`/games/catalog?${params.toString()}`, {
-            skipAuth: true,
-            suppressSessionExpiryRedirect: true,
-            signal: controller.signal,
-          });
-          if (!response.ok) continue;
-
-          const payload = await response.json().catch(() => null) as CatalogPayload | null;
-          const items = Array.isArray(payload?.items) ? payload.items.filter(isCatalogGame) : [];
-          loadedItems.push(...items);
-          loadedTotal += items.length ? readCatalogTotal(payload, items.length) : 0;
-        } catch (error) {
-          if (error instanceof DOMException && error.name === 'AbortError') return;
-        }
-      }
-
-      if (cancelled) return;
-      const uniqueItems = Array.from(new Map(loadedItems.map((item) => [catalogIdentity(item), item] as const)).values());
-      setCatalogItems(uniqueItems);
-      setCatalogTotal(uniqueItems.length ? Math.max(uniqueItems.length, loadedTotal) : null);
-      setCatalogLoading(false);
-    }
-
-    void loadCatalog();
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [config.slug]);
-
   const providers = useMemo(
     () => Array.from(new Map(config.providers.map((item) => [item.code.toLowerCase(), item] as const)).values()),
     [config.providers],
   );
 
-  const configuredProviderMap = useMemo(
-    () => new Map(providers.map((provider) => [provider.code.toLowerCase(), provider] as const)),
-    [providers],
-  );
-
-  const catalogGames = useMemo(
-    () => catalogItems.map((item) => mapCatalogGame(item, configuredProviderMap)).filter((item): item is SourceGameItem => Boolean(item)),
-    [catalogItems, configuredProviderMap],
-  );
-
-  const games = useMemo(() => {
-    const sourceGames = config.games.map((item) => ({ ...item, origin: item.origin ?? 'source' as const }));
-    const combined = catalogGames.length ? [...catalogGames, ...sourceGames] : sourceGames;
-    return Array.from(new Map(combined.map((item, index) => {
-      const hydrated = hydrateGame(config.slug, item, index);
-      return [`${hydrated.provider ?? 'none'}:${hydrated.id}`, hydrated] as const;
-    })).values());
-  }, [catalogGames, config.games, config.slug]);
+  const games = useMemo(() => Array.from(new Map(config.games.map((item, index) => {
+    const hydrated = hydrateGame(config.slug, { ...item, origin: 'source' }, index);
+    return [`${hydrated.provider ?? 'none'}:${hydrated.id}`, hydrated] as const;
+  })).values()), [config.games, config.slug]);
 
   const filterCounts = useMemo(() => {
     const counts = new Map<SourceGameFilterKey, number>();
@@ -175,8 +82,9 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   const providerCounts = useMemo(() => {
     const counts = new Map<string, number>();
     providers.forEach((provider) => {
-      counts.set(provider.code, games.filter((game) => {
-        const providerMatch = game.provider === provider.code.toLowerCase();
+      const normalizedCode = provider.code.toLowerCase();
+      counts.set(normalizedCode, games.filter((game) => {
+        const providerMatch = game.provider === normalizedCode;
         const filterMatch = selectedFilters.length === 0 || selectedFilters.some((filter) => game.tags.includes(filter));
         return providerMatch && filterMatch;
       }).length);
@@ -184,24 +92,22 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
     return counts;
   }, [games, providers, selectedFilters]);
 
+  const selectableProviders = useMemo(
+    () => providers.filter((provider) => config.mode === 'provider-cards' || (providerCounts.get(provider.code.toLowerCase()) ?? 0) > 0),
+    [config.mode, providerCounts, providers],
+  );
+
   const themeCode = config.mode === 'provider-cards' ? previewCode : providerCode;
-  const activeProvider = providers.find((item) => item.code.toLowerCase() === themeCode?.toLowerCase()) ?? null;
+  const activeProvider = providers.find((item) => item.code.toLowerCase() === themeCode) ?? null;
 
-  const visibleGames = useMemo(() => {
-    const filtered = games.filter((game) => {
-      const providerMatch = !providerCode || game.provider === providerCode.toLowerCase();
-      const filterMatch = selectedFilters.length === 0 || selectedFilters.some((filter) => game.tags.includes(filter));
-      return providerMatch && filterMatch;
-    });
-
-    if (filtered.length || !providerCode || selectedFilters.length > 0) return filtered;
-
-    const provider = providers.find((item) => item.code.toLowerCase() === providerCode.toLowerCase());
-    return provider ? [providerFallbackGame(provider)] : filtered;
-  }, [games, providerCode, providers, selectedFilters]);
+  const visibleGames = useMemo(() => games.filter((game) => {
+    const providerMatch = !providerCode || game.provider === providerCode;
+    const filterMatch = selectedFilters.length === 0 || selectedFilters.some((filter) => game.tags.includes(filter));
+    return providerMatch && filterMatch;
+  }), [games, providerCode, selectedFilters]);
 
   const untouched = !providerCode && selectedFilters.length === 0;
-  const resultCount = untouched ? (catalogTotal ?? config.total) : visibleGames.length;
+  const resultCount = visibleGames.length;
 
   const clearFilters = () => {
     setSelectedFilters([]);
@@ -226,9 +132,9 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   };
 
   return (
-    <main className={styles.page} data-source-game-category={config.slug} aria-busy={catalogLoading}>
+    <main className={styles.page} data-source-game-category={config.slug} aria-busy="false">
       <div className={styles.backgroundStack} aria-hidden="true">
-        {providers.map((provider) => <img key={provider.code} className={`${styles.providerBackground}${activeProvider?.code === provider.code ? ` ${styles.providerBackgroundActive}` : ''}`} src={provider.background} alt="" onError={hideBrokenImage} />)}
+        {providers.map((provider) => <img key={provider.code} className={`${styles.providerBackground}${activeProvider?.code.toLowerCase() === provider.code.toLowerCase() ? ` ${styles.providerBackgroundActive}` : ''}`} src={provider.background} alt="" onError={hideBrokenImage} />)}
         <img className={styles.baseBackground} src={config.baseBackground} alt="" onError={swapToAssetBundle} />
         <div className={styles.purpleWash} /><div className={styles.bottomFade} />
       </div>
@@ -236,8 +142,8 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
       <section className={styles.content} aria-label={config.title}>
         <header className={styles.heroTitle}>
           <img className={`${styles.baseTitle}${activeProvider ? ` ${styles.baseTitleHidden}` : ''}`} src={config.baseLogo} alt={config.title} onError={swapToAssetBundle} />
-          {providers.map((provider) => <img key={`${provider.code}-title`} className={`${styles.providerTitle}${activeProvider?.code === provider.code ? ` ${styles.providerTitleActive}` : ''}`} src={provider.title} alt={provider.name} onError={hideBrokenImage} />)}
-          {providers.map((provider) => <img key={`${provider.code}-avatar`} className={`${styles.providerAvatar}${activeProvider?.code === provider.code ? ` ${styles.providerAvatarActive}` : ''}`} src={provider.avatar} alt="" onError={hideBrokenImage} />)}
+          {providers.map((provider) => <img key={`${provider.code}-title`} className={`${styles.providerTitle}${activeProvider?.code.toLowerCase() === provider.code.toLowerCase() ? ` ${styles.providerTitleActive}` : ''}`} src={provider.title} alt={provider.name} onError={hideBrokenImage} />)}
+          {providers.map((provider) => <img key={`${provider.code}-avatar`} className={`${styles.providerAvatar}${activeProvider?.code.toLowerCase() === provider.code.toLowerCase() ? ` ${styles.providerAvatarActive}` : ''}`} src={provider.avatar} alt="" onError={hideBrokenImage} />)}
         </header>
 
         <div className={styles.layout}>
@@ -248,15 +154,15 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
             <div className={`${styles.typeGrid}${config.filters.length ? '' : ` ${styles.typeGridCollapsed}`}`}>
               {config.filters.map((filter) => {
                 const checked = selectedFilters.includes(filter.key);
-                const loadedCount = filterCounts.get(filter.key) ?? 0;
-                const count = catalogGames.length || providerCode || selectedFilters.length ? loadedCount : filter.count;
+                const count = filterCounts.get(filter.key) ?? 0;
                 return <label key={filter.key} className={styles.filterOption}><input type="checkbox" checked={checked} onChange={() => toggleFilter(filter.key)} /><span className={`${styles.checkbox}${checked ? ` ${styles.checkboxActive}` : ''}`} aria-hidden="true">{checked ? '✓' : ''}</span><span className={styles.filterLabel}>{filter.label}</span><small>( {count.toLocaleString('th-TH')} )</small></label>;
               })}
             </div>
 
-            {config.showProviderStrip ? <><div className={styles.filterSectionTitle}><strong>ค้นหาค่ายเกม</strong><span>เลือกอย่างใดอย่างหนึ่ง</span></div><div className={`${styles.providerGrid}${providers.length ? '' : ` ${styles.providerGridEmpty}`}`}>{providers.map((provider) => {
-              const count = providerCounts.get(provider.code) ?? 0;
-              return <button key={provider.code} type="button" className={`${styles.providerButton}${providerCode === provider.code ? ` ${styles.providerActive}` : ''}`} onClick={() => { setProviderCode((current) => current === provider.code ? null : provider.code); setPreviewCode(null); }} aria-pressed={providerCode === provider.code} aria-label={`${provider.name} ${count} เกม`} title={`${provider.name} (${count})`}><span aria-hidden="true" /><img src={provider.badge} alt={provider.name} onError={hideBrokenImage} /></button>;
+            {config.showProviderStrip ? <><div className={styles.filterSectionTitle}><strong>ค้นหาค่ายเกม</strong><span>เลือกอย่างใดอย่างหนึ่ง</span></div><div className={`${styles.providerGrid}${selectableProviders.length ? '' : ` ${styles.providerGridEmpty}`}`}>{selectableProviders.map((provider) => {
+              const normalizedCode = provider.code.toLowerCase();
+              const count = providerCounts.get(normalizedCode) ?? 0;
+              return <button key={provider.code} type="button" className={`${styles.providerButton}${providerCode === normalizedCode ? ` ${styles.providerActive}` : ''}`} onClick={() => { setProviderCode((current) => current === normalizedCode ? null : normalizedCode); setPreviewCode(null); }} aria-pressed={providerCode === normalizedCode} aria-label={`${provider.name} ${count} เกม`} title={`${provider.name} (${count})`}><span aria-hidden="true" /><img src={provider.badge} alt={provider.name} onError={hideBrokenImage} /></button>;
             })}</div></> : null}
 
             <div className={styles.filterActions}><div className={styles.filterSummary} aria-live="polite"><span>พบเกมส์ที่คุณค้นหา</span><strong>{resultCount.toLocaleString('th-TH')} {config.resultUnit}</strong></div><button type="button" className={styles.clearButton} onClick={clearFilters} disabled={untouched}>ล้าง</button></div>
@@ -265,7 +171,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
           <section className={styles.gameArea} aria-label={`รายการ${config.title}`} aria-live="polite">
             <h1>{config.title} ({resultCount.toLocaleString('th-TH')} เกม)</h1>
             {visibleGames.length ? <div className={styles.gameGrid}>{visibleGames.map((game) => {
-              const provider = providers.find((item) => item.code.toLowerCase() === game.provider?.toLowerCase());
+              const provider = providers.find((item) => item.code.toLowerCase() === game.provider);
               const providerBadge = game.providerBadge ?? provider?.badge;
               return <article key={`${game.provider ?? 'none'}:${game.id}`} className={styles.gameCard} onMouseEnter={() => config.mode === 'provider-cards' && setPreviewCode(game.provider)} onMouseLeave={() => config.mode === 'provider-cards' && setPreviewCode(null)}><button type="button" className={styles.gameCover} onFocus={() => config.mode === 'provider-cards' && setPreviewCode(game.provider)} onBlur={() => config.mode === 'provider-cards' && setPreviewCode(null)} onClick={() => openGame(game)} aria-label={`เปิด ${game.name}`}>{config.mode === 'games' && !game.id.startsWith('provider-') ? <img className={styles.gameImageBlur} src={game.image} alt="" aria-hidden="true" loading="lazy" onError={hideBrokenImage} /> : null}<img className={config.mode === 'games' && !game.id.startsWith('provider-') ? styles.gameImageContain : styles.gameImageCover} src={game.image} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span className={styles.cardBadges} aria-hidden="true">{game.isNew ? <b className={styles.newBadge}><StarIcon />NEW</b> : null}{game.isHot ? <b className={styles.hotBadge}>HOT</b> : null}</span>{config.mode === 'games' && providerBadge ? <span className={styles.cardProviderBand} aria-hidden="true"><img src={providerBadge} alt="" onError={hideBrokenImage} /></span> : null}<span className={styles.playOverlay}><b>เข้าเล่น</b></span></button><p>{game.name}</p></article>;
             })}</div> : <div style={{ minHeight: 280, display: 'grid', placeContent: 'center', justifyItems: 'center', gap: 16, border: '1px solid #373147', borderRadius: 12, background: 'rgba(24,21,35,.8)' }}><strong>ไม่พบเกมที่ตรงกับตัวกรอง</strong><button type="button" className={styles.clearButton} onClick={clearFilters}>ล้างตัวกรอง</button></div>}
@@ -276,92 +182,19 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   );
 }
 
-function catalogIdentity(item: CatalogGame) {
-  const provider = String(item.provider?.code ?? '').trim().toLowerCase();
-  const id = String(item.providerGameCode ?? item.id ?? '').trim().toLowerCase();
-  return `${provider}:${id}`;
-}
-
-function readCatalogTotal(payload: CatalogPayload | null, fallback: number) {
-  const value = Number(payload?.pagination?.total ?? payload?.counts?.total ?? fallback);
-  return Number.isFinite(value) && value >= 0 ? value : fallback;
-}
-
-function isCatalogGame(value: CatalogGame) {
-  return Boolean(value && typeof value === 'object' && (value.id || value.providerGameCode) && value.name);
-}
-
-function mapCatalogGame(item: CatalogGame, providers: Map<string, SourceGameProvider>): SourceGameItem | null {
-  const providerCode = String(item.provider?.code ?? '').trim().toLowerCase();
-  const id = String(item.providerGameCode ?? item.id ?? '').trim();
-  const name = String(item.name ?? '').trim();
-  if (!id || !name) return null;
-
-  const configuredProvider = providers.get(providerCode);
-  const image = firstNonEmpty(
-    item.imageUrl,
-    item.iconUrl,
-    item.media?.find((media) => media.status === 'READY')?.cachedUrl,
-    item.media?.find((media) => media.status === 'READY')?.sourceUrl,
-    item.media?.[0]?.cachedUrl,
-    item.media?.[0]?.sourceUrl,
-    configuredProvider?.card,
-  );
-  if (!image) return null;
-
-  const category = String(item.category ?? '').toLowerCase();
-  const tags = new Set<SourceGameFilterKey>();
-  if (category.includes('slot')) tags.add('slot');
-  if (category.includes('arcade')) tags.add('arcade');
-  if (category.includes('table') || category.includes('card')) tags.add('table');
-  if (/buy feature|buy bonus|free spin|ฟรีสปิน/i.test(name)) tags.add('buy');
-  if (item.isNew) tags.add('new');
-  if (item.isPopular) tags.add('hot');
-
-  return {
-    id,
-    name,
-    image,
-    provider: providerCode || null,
-    providerBadge: firstNonEmpty(item.provider?.logoUrl, configuredProvider?.badge),
-    isNew: Boolean(item.isNew),
-    isHot: Boolean(item.isPopular),
-    tags: Array.from(tags),
-    origin: 'catalog',
-  };
-}
-
-function firstNonEmpty(...values: Array<string | null | undefined>) {
-  return values.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim();
-}
-
-function providerFallbackGame(provider: SourceGameProvider): SourceGameItem {
-  return {
-    id: `provider-${provider.code}`,
-    name: provider.name,
-    image: provider.card,
-    provider: provider.code.toLowerCase(),
-    providerBadge: provider.badge,
-    isNew: false,
-    isHot: false,
-    tags: [],
-    origin: 'source',
-  };
-}
-
 function hydrateGame(slug: string, game: SourceGameItem, index: number): SourceGameItem {
   const tags = new Set<SourceGameFilterKey>(game.tags);
   let isNew = game.isNew;
   let isHot = game.isHot;
 
-  if (game.origin !== 'catalog' && slug === 'fishing') {
+  if (slug === 'fishing') {
     tags.clear();
     isNew = FISHING_NEW.has(game.id) || game.image.includes('/176');
     isHot = FISHING_HOT.has(game.id);
     if (FISHING_SLOT.has(game.id)) tags.add('slot');
   }
 
-  if (game.origin !== 'catalog' && slug === 'slot') {
+  if (slug === 'slot') {
     tags.clear();
     tags.add('slot');
     isNew = game.image.includes('/177');
