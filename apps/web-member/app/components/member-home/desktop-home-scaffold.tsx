@@ -101,21 +101,15 @@ export function DesktopHomeScaffold({ content, siteName, showPromotion, games, i
               );
 
               return index === 0 ? (
-                <a
+                <button
                   key={card.title}
+                  type="button"
                   className="reference-promo-card reference-promo-card--1"
-                  role="button"
-                  tabIndex={0}
                   onClick={onOpenPromotion}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      onOpenPromotion();
-                    }
-                  }}
+                  aria-label="เปิดโปรโมชั่น"
                 >
                   {contentNode}
-                </a>
+                </button>
               ) : (
                 <a key={card.title} href={card.href} className={`reference-promo-card reference-promo-card--${index + 1}`}>
                   {contentNode}
