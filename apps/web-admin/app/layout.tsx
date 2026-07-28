@@ -71,6 +71,7 @@ import './admin-static-sidebar-groups.css';
 import './admin-sidebar-smart-accordion.css';
 import './admin-data-page-layout.css';
 import './admin-universal-full-width.css';
+import './admin-content-insets.css';
 import { AdminMobileDrawerController } from './admin-mobile-drawer-controller';
 
 export const metadata: Metadata = {
