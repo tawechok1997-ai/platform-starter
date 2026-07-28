@@ -1,0 +1,132 @@
+/* Final viewport contract for public Search, Daily Mission and Usage Guide dialogs.
+ * Keep each existing dialog as the single DOM owner; only normalize its viewport geometry.
+ */
+
+body > div:has(> section[role='dialog'][aria-labelledby='member-search-title']),
+body > div:has(> section[role='dialog'][aria-labelledby='daily-mission-title']),
+body > div:has(> section[role='dialog'][aria-labelledby='usage-guide-title']) {
+  box-sizing: border-box !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  padding: 12px !important;
+  overflow: hidden !important;
+}
+
+section[role='dialog'][aria-labelledby='member-search-title'],
+section[role='dialog'][aria-labelledby='usage-guide-title'] {
+  box-sizing: border-box !important;
+  width: min(900px, calc(100vw - 24px)) !important;
+  min-width: 0 !important;
+  max-width: 900px !important;
+  height: min(680px, calc(100dvh - 24px)) !important;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 24px) !important;
+  padding: 16px !important;
+  gap: 16px !important;
+  overflow: hidden !important;
+}
+
+section[role='dialog'][aria-labelledby='daily-mission-title'] {
+  box-sizing: border-box !important;
+  width: min(980px, calc(100vw - 24px)) !important;
+  min-width: 0 !important;
+  max-width: 980px !important;
+  height: min(680px, calc(100dvh - 24px)) !important;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 24px) !important;
+  padding: 16px !important;
+  gap: 16px !important;
+  overflow: hidden !important;
+}
+
+section[role='dialog'][aria-labelledby='member-search-title'] > header,
+section[role='dialog'][aria-labelledby='daily-mission-title'] > header,
+section[role='dialog'][aria-labelledby='usage-guide-title'] > header {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+}
+
+section[role='dialog'][aria-labelledby='member-search-title'] > div:last-child,
+section[role='dialog'][aria-labelledby='usage-guide-title'] > div:last-child {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child {
+  flex: 1 1 auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr) !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child > section {
+  box-sizing: border-box !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+@media (max-width: 820px) {
+  body > div:has(> section[role='dialog'][aria-labelledby='member-search-title']),
+  body > div:has(> section[role='dialog'][aria-labelledby='daily-mission-title']),
+  body > div:has(> section[role='dialog'][aria-labelledby='usage-guide-title']) {
+    align-items: center !important;
+    padding: 8px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='member-search-title'],
+  section[role='dialog'][aria-labelledby='daily-mission-title'],
+  section[role='dialog'][aria-labelledby='usage-guide-title'] {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    height: calc(100dvh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    min-height: 0 !important;
+    padding: 12px !important;
+    gap: 12px !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child > section {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+@media (max-height: 620px) and (min-width: 821px) {
+  section[role='dialog'][aria-labelledby='member-search-title'],
+  section[role='dialog'][aria-labelledby='daily-mission-title'],
+  section[role='dialog'][aria-labelledby='usage-guide-title'] {
+    height: calc(100dvh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    padding-block: 10px !important;
+    gap: 10px !important;
+  }
+}
