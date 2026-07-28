@@ -1,0 +1,216 @@
+/* Shared public shell. Home owns the header, alliance band and footer for every browse page. */
+
+.public-game-shell,
+.public-game-shell__content {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.public-game-shell > .noah-alliance-v3 {
+  position: relative !important;
+  left: auto !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  background: #110e16 !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+  translate: none !important;
+  clip-path: none !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  isolation: isolate !important;
+}
+
+.public-game-shell > .noah-alliance-v3::before,
+.public-game-shell > .noah-alliance-v3::after {
+  content: none !important;
+  display: none !important;
+}
+
+@media (min-width: 901px) {
+  .public-game-shell > .noah-alliance-v3 {
+    height: 147px !important;
+    min-height: 147px !important;
+    max-height: 147px !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__inner {
+    display: block !important;
+    width: min(1440px, calc(100vw - 64px)) !important;
+    max-width: 1440px !important;
+    height: 147px !important;
+    margin: 0 auto !important;
+    padding: 16px 0 24px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__heading {
+    display: block !important;
+    width: 100% !important;
+    height: 27px !important;
+    margin: 0 0 20px !important;
+    padding: 0 !important;
+    color: #fff !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    line-height: 27px !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__rows {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: 24px 24px !important;
+    row-gap: 12px !important;
+    width: 100% !important;
+    height: 60px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__row {
+    display: grid !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    column-gap: 20px !important;
+    transform: none !important;
+    translate: none !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__row--one {
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__row--two {
+    grid-template-columns: repeat(11, minmax(0, 1fr)) !important;
+    width: calc(100% - 122px) !important;
+    margin-inline: auto !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__card {
+    display: grid !important;
+    place-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 102px !important;
+    height: 24px !important;
+    margin: 0 auto !important;
+    padding: 7px 8px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 5px !important;
+    background: #27232d !important;
+    box-sizing: border-box !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__image {
+    display: block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 82px !important;
+    height: 10px !important;
+    min-height: 10px !important;
+    max-height: 10px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    object-fit: contain !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    filter: none !important;
+    transform: none !important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__inner {
+    width: calc(100vw - 32px) !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__row {
+    column-gap: 10px !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__row--two {
+    width: calc(100% - 60px) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .public-game-shell > .noah-alliance-v3 {
+    min-height: 124px !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__inner {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 16px 12px 20px !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__heading {
+    display: block !important;
+    margin: 0 0 14px !important;
+    color: #fff !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    line-height: 24px !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__rows {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: max-content !important;
+    min-width: 100% !important;
+    height: 28px !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__card {
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 82px !important;
+    width: 82px !important;
+    height: 28px !important;
+    padding: 7px 8px !important;
+    overflow: hidden !important;
+    border-radius: 5px !important;
+    background: #27232d !important;
+  }
+
+  .public-game-shell > .noah-alliance-v3 .noah-alliance-v3__image {
+    display: block !important;
+    width: auto !important;
+    max-width: 66px !important;
+    height: 10px !important;
+    object-fit: contain !important;
+  }
+}
+
+/* Deployment marker: shared shell owns every public page boundary. */
