@@ -15,9 +15,20 @@
     z-index: 1000 !important;
   }
 
-  body:has(.desktop-reference-home) .desktop-reference-home.desktop-home {
+  body:has(.desktop-reference-home) .desktop-reference-home.desktop-home,
+  .public-home-topbar + .desktop-reference-home.desktop-home {
     margin-top: 0 !important;
     padding-top: 0 !important;
+    border-top: 0 !important;
+  }
+
+  /* Loaded after the legacy carousel passes so the former 20px top margin
+     cannot reopen a dark strip between navigation and the first promotion. */
+  body:has(.public-home-topbar) .desktop-reference-home > .reference-hero-carousel,
+  .public-home-topbar + .desktop-reference-home > .reference-hero-carousel {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: 0 !important;
   }
 
   .public-home-topbar .member-actions,
