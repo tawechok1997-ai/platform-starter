@@ -1,0 +1,32 @@
+/* Secondary public pages reuse the Home footer content without its payment divider frame. */
+.member-footer.member-footer--secondary {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.member-footer.member-footer--secondary .member-footer__separator {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.member-footer.member-footer--secondary .member-footer__payments {
+  border: 0 !important;
+  border-top: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.member-footer.member-footer--secondary .member-footer__payments::before,
+.member-footer.member-footer--secondary .member-footer__payments::after {
+  content: none !important;
+  display: none !important;
+  border: 0 !important;
+  background: transparent !important;
+}
