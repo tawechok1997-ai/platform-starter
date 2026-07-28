@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './usage-guide-modal.module.css';
 
@@ -158,10 +158,6 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
     onClose();
   };
 
-  const closeFromBackdrop = (event: MouseEvent<HTMLDialogElement>) => {
-    if (event.target === event.currentTarget) closeDialog();
-  };
-
   return createPortal(
     <dialog
       ref={dialogRef}
@@ -172,12 +168,31 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
         event.preventDefault();
         closeDialog();
       }}
-      onMouseDown={closeFromBackdrop}
     >
+      <button
+        type="button"
+        aria-label="ปิดหน้าต่างแนะนำการใช้งาน"
+        tabIndex={-1}
+        onClick={closeDialog}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          width: '100%',
+          height: '100%',
+          margin: 0,
+          padding: 0,
+          border: 0,
+          background: 'transparent',
+          cursor: 'default',
+        }}
+      />
+
       <section
         className={`${styles.modal} public-dialog-runtime public-dialog-runtime--guide`}
         data-public-dialog="guide"
         role="document"
+        style={{ position: 'relative', zIndex: 1 }}
       >
         <div className={styles.topLine} aria-hidden="true" />
         <header className={`${styles.header} public-dialog-runtime-header`}>
