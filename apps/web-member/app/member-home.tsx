@@ -38,7 +38,10 @@ export default function MemberHome(props: MemberHomeProps) {
   const features = props.features ?? defaultFeatureFlags;
   const icons = props.icons ?? defaultIconSettings;
   const [popupClosed, setPopupClosed] = useState(false);
-  const [viewportMode, setViewportMode] = useState<ViewportMode | null>(null);
+  // Desktop is the source layout and is rendered on the first paint. Previously
+  // this started as null, so the alliance/footer appeared directly under the
+  // header until the viewport effect mounted the actual Home content.
+  const [viewportMode, setViewportMode] = useState<ViewportMode>('desktop');
   const popupVersion = props.cmsContent.popup.version ?? 'v1';
   const data = useMemberHomeData(features.games);
   const gameSections = {
@@ -66,25 +69,25 @@ export default function MemberHome(props: MemberHomeProps) {
     setPopupClosed(true);
   }
 
-  let homeContent: ReactNode = null;
-  if (viewportMode === 'desktop') {
+  let homeContent: ReactNode;
+  if (viewportMode === 'mobile') {
+    homeContent = (
+      <MobileV47Scaffold
+        content={props.cmsContent}
+        icons={icons}
+        siteName={props.siteName}
+        games={gameSections}
+        isGamesLoading={data.isGamesLoading}
+        gamesMessage={data.gamesMessage}
+      />
+    );
+  } else {
     homeContent = (
       <DesktopHomeScaffold
         content={props.cmsContent}
         icons={icons}
         siteName={props.siteName}
         showPromotion={props.showPromotion && features.games}
-        games={gameSections}
-        isGamesLoading={data.isGamesLoading}
-        gamesMessage={data.gamesMessage}
-      />
-    );
-  } else if (viewportMode === 'mobile') {
-    homeContent = (
-      <MobileV47Scaffold
-        content={props.cmsContent}
-        icons={icons}
-        siteName={props.siteName}
         games={gameSections}
         isGamesLoading={data.isGamesLoading}
         gamesMessage={data.gamesMessage}
