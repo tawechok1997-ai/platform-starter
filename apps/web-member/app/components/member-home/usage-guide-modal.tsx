@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './usage-guide-modal.module.css';
 
@@ -119,6 +119,7 @@ const GUIDE_GROUPS: readonly GuideGroup[] = [
 export default function UsageGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<GuideTab>('all');
   const [openItem, setOpenItem] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const visibleGroups = useMemo(
@@ -128,20 +129,20 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
   useEffect(() => {
     if (!open) return;
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+
     const bodyOverflow = document.body.style.overflow;
     const htmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
+      if (dialog?.open) dialog.close();
       document.body.style.overflow = bodyOverflow;
       document.documentElement.style.overflow = htmlOverflow;
-      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [open, onClose]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
@@ -152,19 +153,31 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
   if (!open || typeof document === 'undefined') return null;
 
+  const closeDialog = () => {
+    if (dialogRef.current?.open) dialogRef.current.close();
+    onClose();
+  };
+
+  const closeFromBackdrop = (event: MouseEvent<HTMLDialogElement>) => {
+    if (event.target === event.currentTarget) closeDialog();
+  };
+
   return createPortal(
-    <div
-      className={`${styles.backdrop} public-dialog-runtime-overlay`}
+    <dialog
+      ref={dialogRef}
+      className={styles.nativeDialog}
       data-public-dialog-overlay="guide"
-      role="presentation"
-      onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
+      aria-labelledby="usage-guide-title"
+      onCancel={(event) => {
+        event.preventDefault();
+        closeDialog();
+      }}
+      onMouseDown={closeFromBackdrop}
     >
       <section
         className={`${styles.modal} public-dialog-runtime public-dialog-runtime--guide`}
         data-public-dialog="guide"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="usage-guide-title"
+        role="document"
       >
         <div className={styles.topLine} aria-hidden="true" />
         <header className={`${styles.header} public-dialog-runtime-header`}>
@@ -175,7 +188,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
           <button
             type="button"
             className={`${styles.close} public-dialog-runtime-close`}
-            onClick={onClose}
+            onClick={closeDialog}
             aria-label="ปิดหน้าต่าง"
           >
             <img src="/images/close.svg" width="16" height="16" alt="" aria-hidden="true" />
@@ -230,7 +243,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
           ))}
         </div>
       </section>
-    </div>,
+    </dialog>,
     document.body,
   );
 }
