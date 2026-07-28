@@ -164,11 +164,13 @@ export function buildRouteTestCoverage(
   permissions: readonly string[],
   localTests: readonly string[],
 ): RouteTestCoverage {
-  const unit = localTests.length > 0 ? [...localTests] : ['P5 Web Unit Tests / route contract coverage'];
+  const unit = localTests.length > 0
+    ? [...localTests]
+    : ['Admin Verification & Bundle / route contract coverage'];
   return {
     unit,
     interaction: routeType === 'auth' || routeType === 'editor'
-      ? ['P5 Web Unit Tests', 'Admin Browser Regression Matrix']
+      ? ['Admin Verification & Bundle', 'Admin Browser Regression Matrix']
       : ['Admin Browser Regression Matrix'],
     smoke: ['Admin Browser Regression Matrix', 'Full-System Automated Tests'],
     visual: ['R-013 Visual Regression'],
