@@ -212,3 +212,5 @@
     object-fit: contain !important;
   }
 }
+
+/* Deployment marker: shared shell owns every public page boundary. */
