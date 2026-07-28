@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 export type MemberAuthMode = 'login' | 'register';
 
-type MemberAuthOverlayProps = {
+export type MemberAuthOverlayProps = {
   mode: MemberAuthMode;
   onModeChange?: (mode: MemberAuthMode) => void;
   onClose: () => void;
