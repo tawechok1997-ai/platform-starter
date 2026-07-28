@@ -43,7 +43,7 @@ const config: SourceGameCategoryConfig = {
   baseBackground:'/images/game/slot/bg_slot.webp', baseLogo:'/images/game/slot/logo_slot.webp',
   filters:[{key:'arcade',label:'เกมส์อาเขต',count:182},{key:'buy',label:'ซื้อฟรีสปิน',count:900},{key:'hot',label:'เกมส์ฮิต',count:546},{key:'new',label:'เกมส์ใหม่',count:552},{key:'slot',label:'เกมส์สล็อต',count:3694},{key:'table',label:'เกมส์โต๊ะ',count:233}],
   providers, showProviderStrip:true,
-  games:rows.map(([id,name,image,provider]) => ({id,name,image,provider,isNew:true,isHot:false,tags:['new','slot']})),
+  games:rows.map(([id,name,image,provider]) => ({id,name,image,provider,isNew:true,isHot:false,tags:['new' as const,'slot' as const]})),
 };
 
 export default function SlotBrowseSource(){ return <SourceGameCategoryPage config={config}/>; }
