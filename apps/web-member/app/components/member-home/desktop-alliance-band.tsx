@@ -1,3 +1,7 @@
+'use client';
+
+import { useMemberLocale } from '../../member-locale-provider';
+
 type AllianceLogo = {
   key: string;
   name: string;
@@ -23,10 +27,13 @@ const ROW_TWO = [
 }));
 
 export function DesktopAllianceBand() {
+  const { locale } = useMemberLocale();
+  const heading = locale === 'th' ? 'พันธมิตรของเรา' : 'Our partners';
+
   return (
-    <section className="noah-alliance-v3" aria-labelledby="noah-alliance-v3-heading">
+    <section className="noah-alliance-v3" aria-labelledby="noah-alliance-v3-heading" data-locale={locale}>
       <div className="noah-alliance-v3__inner">
-        <h2 id="noah-alliance-v3-heading" className="noah-alliance-v3__heading">พันธมิตรของเรา</h2>
+        <h2 id="noah-alliance-v3-heading" className="noah-alliance-v3__heading">{heading}</h2>
         <div className="noah-alliance-v3__rows">
           <AllianceRow logos={ROW_ONE} className="noah-alliance-v3__row noah-alliance-v3__row--one" />
           <AllianceRow logos={ROW_TWO} className="noah-alliance-v3__row noah-alliance-v3__row--two" />
