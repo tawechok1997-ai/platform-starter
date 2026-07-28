@@ -91,6 +91,7 @@ export default function DesktopMiniGameSource() {
           height: 46px !important;
           margin: 0 0 0 16px !important;
           padding: 0 8px 0 52px !important;
+          overflow: visible !important;
           border: 0 !important;
           border-radius: 999px !important;
           outline: 0 !important;
@@ -133,15 +134,8 @@ export default function DesktopMiniGameSource() {
         .mini-exact-icon {
           position: absolute !important;
           top: 50% !important;
-          left: -22px !important;
           z-index: 2 !important;
           display: block !important;
-          width: 90px !important;
-          min-width: 90px !important;
-          max-width: 90px !important;
-          height: 90px !important;
-          min-height: 90px !important;
-          max-height: 90px !important;
           margin: 0 !important;
           padding: 0 !important;
           object-fit: contain !important;
@@ -149,8 +143,24 @@ export default function DesktopMiniGameSource() {
           pointer-events: none;
         }
 
+        .mini-exact-icon--wheel {
+          left: -34px !important;
+          width: 120px !important;
+          min-width: 120px !important;
+          max-width: 120px !important;
+          height: 120px !important;
+          min-height: 120px !important;
+          max-height: 120px !important;
+        }
+
         .mini-exact-icon--mission {
-          left: -24px !important;
+          left: -37px !important;
+          width: 124px !important;
+          min-width: 124px !important;
+          max-width: 124px !important;
+          height: 124px !important;
+          min-height: 124px !important;
+          max-height: 124px !important;
         }
 
         .mini-exact-label {
@@ -179,18 +189,24 @@ export default function DesktopMiniGameSource() {
             padding-left: 48px !important;
           }
 
-          .mini-exact-icon {
-            left: -20px !important;
-            width: 84px !important;
-            min-width: 84px !important;
-            max-width: 84px !important;
-            height: 84px !important;
-            min-height: 84px !important;
-            max-height: 84px !important;
+          .mini-exact-icon--wheel {
+            left: -31px !important;
+            width: 112px !important;
+            min-width: 112px !important;
+            max-width: 112px !important;
+            height: 112px !important;
+            min-height: 112px !important;
+            max-height: 112px !important;
           }
 
           .mini-exact-icon--mission {
-            left: -22px !important;
+            left: -34px !important;
+            width: 116px !important;
+            min-width: 116px !important;
+            max-width: 116px !important;
+            height: 116px !important;
+            min-height: 116px !important;
+            max-height: 116px !important;
           }
 
           .mini-exact-label {
