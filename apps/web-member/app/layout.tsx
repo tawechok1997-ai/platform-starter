@@ -116,7 +116,6 @@ import './member-public-lower-shell.css';
 import './member-leaderboard-exact-source.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
-import GameFilterStickyController from './components/game-filter-sticky-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
 import DesktopLeaderboardSource from './components/member-home/desktop-leaderboard-source';
@@ -144,7 +143,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <MemberSessionProvider>
             <MemberHeroSwipeController />
             <MemberDragScrollController />
-            <GameFilterStickyController />
             <PublicLiveNavigationController />
             <DesktopLeaderboardSource />
             <MemberChrome>{children}</MemberChrome>
