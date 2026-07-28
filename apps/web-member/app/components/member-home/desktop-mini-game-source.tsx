@@ -62,7 +62,7 @@ export default function DesktopMiniGameSource() {
         ))}
       </div>
 
-      <style jsx global>{`
+      <style jsx>{`
         #desktop-mini-game-source {
           margin-top: -8px !important;
           margin-bottom: -12px !important;
