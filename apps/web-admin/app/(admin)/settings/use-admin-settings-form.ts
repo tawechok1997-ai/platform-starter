@@ -15,6 +15,7 @@ type SettingsFormOptions<T extends object> = {
 type SaveResult = {
   requiresDualApproval?: boolean;
   settings?: unknown;
+  message?: string;
 };
 
 export function useAdminSettingsForm<T extends object>({
