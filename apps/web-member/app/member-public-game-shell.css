@@ -1,4 +1,6 @@
-/* Shared public shell. Home owns the header, alliance band and footer for every browse page. */
+/* Shared public shell. Home owns the alliance band and footer for every browse page.
+ * Each game category owns its filter geometry in source-game-category-page.module.css.
+ */
 
 .public-game-shell,
 .public-game-shell__content {
@@ -37,59 +39,6 @@
 }
 
 @media (min-width: 901px) {
-  /*
-   * One CSS owner for every public game filter. The sidebar is constrained by
-   * the direct layout that also owns the game catalog, so it follows the
-   * viewport and naturally stops at the last row of games.
-   */
-  .public-game-shell__content,
-  .public-game-shell__content main:has(aside[aria-label^='ตัวกรอง']) {
-    overflow: visible !important;
-    overflow-x: visible !important;
-    overflow-y: visible !important;
-  }
-
-  .public-game-shell__content main:has(aside[aria-label^='ตัวกรอง'])
-    :is(div, section):has(> aside[aria-label^='ตัวกรอง']) {
-    position: relative !important;
-    align-items: start !important;
-    overflow: visible !important;
-    overflow-x: visible !important;
-    overflow-y: visible !important;
-    contain: none !important;
-  }
-
-  .public-game-shell__content aside[aria-label^='ตัวกรอง'] {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 124px !important;
-    z-index: 12 !important;
-    align-self: start !important;
-    height: fit-content !important;
-    max-height: calc(100dvh - 144px) !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    overscroll-behavior: contain !important;
-    scrollbar-width: thin !important;
-    scrollbar-gutter: stable !important;
-    contain: none !important;
-    transform: none !important;
-  }
-
-  .public-game-shell__content aside[aria-label^='ตัวกรอง']::-webkit-scrollbar {
-    display: block !important;
-    width: 5px !important;
-  }
-
-  .public-game-shell__content aside[aria-label^='ตัวกรอง']::-webkit-scrollbar-track {
-    background: transparent !important;
-  }
-
-  .public-game-shell__content aside[aria-label^='ตัวกรอง']::-webkit-scrollbar-thumb {
-    border-radius: 999px !important;
-    background: rgb(187 91 234 / 42%) !important;
-  }
-
   .public-game-shell > .noah-alliance-v3 {
     height: 147px !important;
     min-height: 147px !important;
@@ -207,14 +156,6 @@
 }
 
 @media (max-width: 900px) {
-  .public-game-shell__content aside[aria-label^='ตัวกรอง'] {
-    position: relative !important;
-    top: auto !important;
-    max-height: none !important;
-    overflow: hidden !important;
-    scrollbar-gutter: auto !important;
-  }
-
   .public-game-shell > .noah-alliance-v3 {
     min-height: 124px !important;
   }
