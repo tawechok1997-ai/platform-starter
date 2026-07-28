@@ -58,18 +58,29 @@ export const ICON_SETTINGS_DEFAULTS: Record<string, string> = {
 export const ICON_SETTINGS_FIELDS = [
   ...PRIMARY_MENU_ICONS.map((item) => ({
     key: item.key,
-    label: `${item.label} (${item.sourceFile} → ${item.outputFile})`,
+    label: item.label,
+    section: 'เมนูหลักและทางลัด',
     placeholder: `${MENU_ROOT}/${item.outputFile}`,
+    helper: `ไฟล์ต้นแบบ ${item.sourceFile} · ค่าเริ่มต้น ${item.outputFile}`,
+    asset: true,
+    defaultValue: `${MENU_ROOT}/${item.outputFile}`,
   })),
   ...LEGACY_TEXT_ICONS.map((item) => ({
     key: item.key,
-    label: `${item.label} (ยังใช้ fallback เดิม)`,
+    label: item.label,
+    section: 'ไอคอนข้อความสำรอง',
     placeholder: item.defaultValue,
+    helper: 'รองรับอักขระหรือ Emoji สำหรับจุดที่ยังใช้ text fallback',
+    defaultValue: item.defaultValue,
   })),
   ...GAME_CATEGORY_ICON_DEFINITIONS.map((item) => ({
     key: item.key,
-    label: `${item.label} (${item.sourceFile} → ${item.outputFile})`,
+    label: item.label,
+    section: 'หมวดเกม',
     placeholder: `${MENU_ROOT}/${item.outputFile}`,
+    helper: `ไฟล์ต้นแบบ ${item.sourceFile} · ค่าเริ่มต้น ${item.outputFile}`,
+    asset: true,
+    defaultValue: `${MENU_ROOT}/${item.outputFile}`,
   })),
 ];
 
