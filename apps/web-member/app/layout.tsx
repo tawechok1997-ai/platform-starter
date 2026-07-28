@@ -112,6 +112,7 @@ import './member-public-auth-actions-lock.css';
 import './member-casino-source-exact.css';
 import './member-public-mini-game-exact-source.css';
 import './member-home-sticky-sidebar-lock.css';
+import './member-public-lower-shell.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import GameFilterStickyController from './components/game-filter-sticky-controller';
