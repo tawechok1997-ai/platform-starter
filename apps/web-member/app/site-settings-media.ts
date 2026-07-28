@@ -268,8 +268,8 @@ const defaultPromotionCampaigns: PromotionCampaign[] = [{
 
 export const defaultSettings: PublicSiteSettings = {
   website: {
-    site_name: 'Platform Starter',
-    site_description: 'Member platform starter',
+    site_name: 'NOAH345',
+    site_description: 'เว็บเกมออนไลน์ พร้อมบริการลูกค้าตลอด 24 ชั่วโมง',
     registration_enabled: true,
     login_enabled: true,
     maintenance_mode: false,
