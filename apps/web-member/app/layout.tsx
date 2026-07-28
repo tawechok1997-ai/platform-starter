@@ -113,11 +113,13 @@ import './member-casino-source-exact.css';
 import './member-public-mini-game-exact-source.css';
 import './member-home-sticky-sidebar-lock.css';
 import './member-public-lower-shell.css';
+import './member-leaderboard-exact-source.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import GameFilterStickyController from './components/game-filter-sticky-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
+import DesktopLeaderboardSource from './components/member-home/desktop-leaderboard-source';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
 
@@ -144,6 +146,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MemberDragScrollController />
             <GameFilterStickyController />
             <PublicLiveNavigationController />
+            <DesktopLeaderboardSource />
             <MemberChrome>{children}</MemberChrome>
           </MemberSessionProvider>
         </SiteSettingsProvider>
