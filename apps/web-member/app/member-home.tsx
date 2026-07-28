@@ -29,12 +29,16 @@ type MemberHomeProps = {
   features?: MemberFeatureFlags;
 };
 
+type ViewportMode = 'desktop' | 'mobile';
+
 const POPUP_CLOSED_VERSION_KEY = 'member_cms_popup_closed_version';
+const MOBILE_HOME_QUERY = '(max-width: 900px)';
 
 export default function MemberHome(props: MemberHomeProps) {
   const features = props.features ?? defaultFeatureFlags;
   const icons = props.icons ?? defaultIconSettings;
   const [popupClosed, setPopupClosed] = useState(false);
+  const [viewportMode, setViewportMode] = useState<ViewportMode | null>(null);
   const popupVersion = props.cmsContent.popup.version ?? 'v1';
   const data = useMemberHomeData(features.games);
   const gameSections = {
@@ -48,31 +52,53 @@ export default function MemberHome(props: MemberHomeProps) {
     setPopupClosed(readClosedPopupVersion() === popupVersion);
   }, [popupVersion]);
 
+  useEffect(() => {
+    const media = window.matchMedia(MOBILE_HOME_QUERY);
+    const syncViewport = () => setViewportMode(media.matches ? 'mobile' : 'desktop');
+
+    syncViewport();
+    media.addEventListener?.('change', syncViewport);
+    return () => media.removeEventListener?.('change', syncViewport);
+  }, []);
+
   function closePopup() {
     writeClosedPopupVersion(popupVersion);
     setPopupClosed(true);
   }
 
+  const desktopHome = (
+    <DesktopHomeScaffold
+      content={props.cmsContent}
+      icons={icons}
+      siteName={props.siteName}
+      showPromotion={props.showPromotion && features.games}
+      games={gameSections}
+      isGamesLoading={data.isGamesLoading}
+      gamesMessage={data.gamesMessage}
+    />
+  );
+
+  const mobileHome = (
+    <MobileV47Scaffold
+      content={props.cmsContent}
+      icons={icons}
+      siteName={props.siteName}
+      games={gameSections}
+      isGamesLoading={data.isGamesLoading}
+      gamesMessage={data.gamesMessage}
+    />
+  );
+
   return (
     <>
-      <DesktopHomeScaffold
-        content={props.cmsContent}
-        icons={icons}
-        siteName={props.siteName}
-        showPromotion={props.showPromotion && features.games}
-        games={gameSections}
-        isGamesLoading={data.isGamesLoading}
-        gamesMessage={data.gamesMessage}
-      />
-
-      <MobileV47Scaffold
-        content={props.cmsContent}
-        icons={icons}
-        siteName={props.siteName}
-        games={gameSections}
-        isGamesLoading={data.isGamesLoading}
-        gamesMessage={data.gamesMessage}
-      />
+      {viewportMode === 'desktop' ? desktopHome : null}
+      {viewportMode === 'mobile' ? mobileHome : null}
+      {viewportMode === null ? (
+        <div className="member-home-initial-shell" aria-hidden="true">
+          {desktopHome}
+          {mobileHome}
+        </div>
+      ) : null}
 
       {props.cmsContent.popup.enabled && !popupClosed && (
         <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
