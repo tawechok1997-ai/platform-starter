@@ -15,14 +15,24 @@ const GAME_ACTION_SELECTOR = [
   '.browse-source-game-card footer button',
   'a[class*="game-card"]',
   'button[class*="game-card"]',
+  'a[class*="gameCard"]',
+  'button[class*="gameCard"]',
   'a[class*="game-tile"]',
   'button[class*="game-tile"]',
+  'a[class*="gameTile"]',
+  'button[class*="gameTile"]',
   'a[class*="game-cover"]',
   'button[class*="game-cover"]',
+  'a[class*="gameCover"]',
+  'button[class*="gameCover"]',
   '[class*="game-card"] a',
   '[class*="game-card"] button',
+  '[class*="gameCard"] a',
+  '[class*="gameCard"] button',
   '[class*="game-item"] a',
   '[class*="game-item"] button',
+  '[class*="gameItem"] a',
+  '[class*="gameItem"] button',
 ].join(',');
 
 const GAME_CARD_ROOT_SELECTOR = [
@@ -30,9 +40,13 @@ const GAME_CARD_ROOT_SELECTOR = [
   '[data-game-id]',
   '[data-game-code]',
   '[class*="game-card"]',
+  '[class*="gameCard"]',
   '[class*="game-tile"]',
+  '[class*="gameTile"]',
   '[class*="game-cover"]',
+  '[class*="gameCover"]',
   '[class*="game-item"]',
+  '[class*="gameItem"]',
 ].join(',');
 
 const EXCLUDED_SELECTOR = [
@@ -55,13 +69,12 @@ const EXCLUDED_SELECTOR = [
 const MEMBER_GAME_DESTINATION = '/games';
 
 export default function PublicGameLoginController() {
-  const { ready, isLoggedIn } = useMemberSession();
+  const { isLoggedIn } = useMemberSession();
 
   useEffect(() => {
     const requireLoginForGame = (event: MouseEvent) => {
       if (
-        !ready
-        || isLoggedIn
+        isLoggedIn
         || event.button !== 0
         || event.metaKey
         || event.ctrlKey
@@ -99,7 +112,7 @@ export default function PublicGameLoginController() {
     // controls every public game-card click without affecting category browsing.
     window.addEventListener('click', requireLoginForGame, true);
     return () => window.removeEventListener('click', requireLoginForGame, true);
-  }, [isLoggedIn, ready]);
+  }, [isLoggedIn]);
 
   return null;
 }
