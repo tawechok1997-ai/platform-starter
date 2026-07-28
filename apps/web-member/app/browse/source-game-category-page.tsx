@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
+import { useEffect, useMemo, useState, type KeyboardEvent, type SyntheticEvent } from 'react';
 import { useMemberSession } from '../member-session-provider';
 import styles from './source-game-category-page.module.css';
 
@@ -50,22 +50,44 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
     return [`${hydrated.provider ?? 'none'}:${hydrated.id}`, hydrated] as const;
   })).values()), [config.games, config.slug]);
 
-  const providerCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    games.forEach((game) => {
-      if (game.provider) counts.set(game.provider, (counts.get(game.provider) ?? 0) + 1);
+  const filterCounts = useMemo(() => {
+    const counts = new Map<SourceGameFilterKey, number>();
+    config.filters.forEach((filter) => {
+      counts.set(filter.key, games.filter((game) => {
+        const providerMatch = !providerCode || game.provider === providerCode;
+        return providerMatch && game.tags.includes(filter.key);
+      }).length);
     });
     return counts;
-  }, [games]);
+  }, [config.filters, games, providerCode]);
+
+  const providerCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    providers.forEach((provider) => {
+      counts.set(provider.code, games.filter((game) => {
+        const providerMatch = game.provider === provider.code;
+        const filterMatch = selectedFilters.length === 0 || selectedFilters.some((filter) => game.tags.includes(filter));
+        return providerMatch && filterMatch;
+      }).length);
+    });
+    return counts;
+  }, [games, providers, selectedFilters]);
 
   const themeCode = config.mode === 'provider-cards' ? previewCode : providerCode;
   const activeProvider = providers.find((item) => item.code === themeCode) ?? null;
 
-  const visibleGames = useMemo(() => games.filter((game) => {
-    const providerMatch = !providerCode || game.provider === providerCode;
-    const filterMatch = selectedFilters.length === 0 || selectedFilters.some((filter) => game.tags.includes(filter));
-    return providerMatch && filterMatch;
-  }), [games, providerCode, selectedFilters]);
+  const visibleGames = useMemo(() => {
+    const filtered = games.filter((game) => {
+      const providerMatch = !providerCode || game.provider === providerCode;
+      const filterMatch = selectedFilters.length === 0 || selectedFilters.some((filter) => game.tags.includes(filter));
+      return providerMatch && filterMatch;
+    });
+
+    if (filtered.length || !providerCode || selectedFilters.length > 0) return filtered;
+
+    const provider = providers.find((item) => item.code === providerCode);
+    return provider ? [providerFallbackGame(provider)] : filtered;
+  }, [games, providerCode, providers, selectedFilters]);
 
   const untouched = !providerCode && selectedFilters.length === 0;
   const resultCount = untouched ? config.total : visibleGames.length;
@@ -80,6 +102,12 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
     setSelectedFilters((current) => current.includes(key)
       ? current.filter((item) => item !== key)
       : [...current, key]);
+  };
+
+  const handleFilterKeyDown = (event: KeyboardEvent<HTMLLabelElement>, key: SourceGameFilterKey) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    toggleFilter(key);
   };
 
   const openGame = (game: SourceGameItem) => {
@@ -115,27 +143,44 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
             <div className={`${styles.typeGrid}${config.filters.length ? '' : ` ${styles.typeGridCollapsed}`}`}>
               {config.filters.map((filter) => {
                 const checked = selectedFilters.includes(filter.key);
-                return <label key={filter.key} className={styles.filterOption}><input type="checkbox" checked={checked} onChange={() => toggleFilter(filter.key)} /><span className={`${styles.checkbox}${checked ? ` ${styles.checkboxActive}` : ''}`} aria-hidden="true">{checked ? '✓' : ''}</span><span className={styles.filterLabel}>{filter.label}</span><small>( {filter.count} )</small></label>;
+                const count = filterCounts.get(filter.key) ?? 0;
+                return <label key={filter.key} className={styles.filterOption} role="checkbox" tabIndex={0} aria-checked={checked} onClick={(event) => { event.preventDefault(); toggleFilter(filter.key); }} onKeyDown={(event) => handleFilterKeyDown(event, filter.key)}><input type="checkbox" checked={checked} readOnly tabIndex={-1} /><span className={`${styles.checkbox}${checked ? ` ${styles.checkboxActive}` : ''}`} aria-hidden="true">{checked ? '✓' : ''}</span><span className={styles.filterLabel}>{filter.label}</span><small>( {count.toLocaleString('th-TH')} )</small></label>;
               })}
             </div>
 
-            {config.showProviderStrip ? <><div className={styles.filterSectionTitle}><strong>ค้นหาค่ายเกม</strong><span>เลือกอย่างใดอย่างหนึ่ง</span></div><div className={`${styles.providerGrid}${providers.length ? '' : ` ${styles.providerGridEmpty}`}`}>{providers.map((provider) => <button key={provider.code} type="button" className={`${styles.providerButton}${providerCode === provider.code ? ` ${styles.providerActive}` : ''}`} onClick={() => { setProviderCode((current) => current === provider.code ? null : provider.code); setPreviewCode(null); }} aria-pressed={providerCode === provider.code} title={`${provider.name} (${providerCounts.get(provider.code) ?? 0})`}><span aria-hidden="true" /><img src={provider.badge} alt={provider.name} onError={hideBrokenImage} /></button>)}</div></> : null}
+            {config.showProviderStrip ? <><div className={styles.filterSectionTitle}><strong>ค้นหาค่ายเกม</strong><span>เลือกอย่างใดอย่างหนึ่ง</span></div><div className={`${styles.providerGrid}${providers.length ? '' : ` ${styles.providerGridEmpty}`}`}>{providers.map((provider) => {
+              const count = providerCounts.get(provider.code) ?? 0;
+              return <button key={provider.code} type="button" className={`${styles.providerButton}${providerCode === provider.code ? ` ${styles.providerActive}` : ''}`} onClick={() => { setProviderCode((current) => current === provider.code ? null : provider.code); setPreviewCode(null); }} aria-pressed={providerCode === provider.code} aria-label={`${provider.name} ${count} เกม`} title={`${provider.name} (${count})`}><span aria-hidden="true" /><img src={provider.badge} alt={provider.name} onError={hideBrokenImage} /></button>;
+            })}</div></> : null}
 
-            <div className={styles.filterActions}><div className={styles.filterSummary}><span>พบเกมส์ที่คุณค้นหา</span><strong>{resultCount.toLocaleString('th-TH')} {config.resultUnit}</strong></div><button type="button" className={styles.clearButton} onClick={clearFilters}>ล้าง</button></div>
+            <div className={styles.filterActions}><div className={styles.filterSummary} aria-live="polite"><span>พบเกมส์ที่คุณค้นหา</span><strong>{resultCount.toLocaleString('th-TH')} {config.resultUnit}</strong></div><button type="button" className={styles.clearButton} onClick={clearFilters} disabled={untouched}>ล้าง</button></div>
           </aside>
 
-          <section className={styles.gameArea} aria-label={`รายการ${config.title}`}>
+          <section className={styles.gameArea} aria-label={`รายการ${config.title}`} aria-live="polite">
             <h1>{config.title} ({resultCount.toLocaleString('th-TH')} เกม)</h1>
             {visibleGames.length ? <div className={styles.gameGrid}>{visibleGames.map((game) => {
               const provider = providers.find((item) => item.code === game.provider);
               const providerBadge = game.providerBadge ?? provider?.badge;
-              return <article key={`${game.provider ?? 'none'}:${game.id}`} className={styles.gameCard} onMouseEnter={() => config.mode === 'provider-cards' && setPreviewCode(game.provider)} onMouseLeave={() => config.mode === 'provider-cards' && setPreviewCode(null)}><button type="button" className={styles.gameCover} onFocus={() => config.mode === 'provider-cards' && setPreviewCode(game.provider)} onBlur={() => config.mode === 'provider-cards' && setPreviewCode(null)} onClick={() => openGame(game)} aria-label={`เปิด ${game.name}`}>{config.mode === 'games' ? <img className={styles.gameImageBlur} src={game.image} alt="" aria-hidden="true" loading="lazy" onError={hideBrokenImage} /> : null}<img className={config.mode === 'games' ? styles.gameImageContain : styles.gameImageCover} src={game.image} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span className={styles.cardBadges} aria-hidden="true">{game.isNew ? <b className={styles.newBadge}><StarIcon />NEW</b> : null}{game.isHot ? <b className={styles.hotBadge}>HOT</b> : null}</span>{config.mode === 'games' && providerBadge ? <span className={styles.cardProviderBand} aria-hidden="true"><img src={providerBadge} alt="" onError={hideBrokenImage} /></span> : null}<span className={styles.playOverlay}><b>เข้าเล่น</b></span></button><p>{game.name}</p></article>;
-            })}</div> : <div style={{minHeight:280,display:'grid',placeContent:'center',justifyItems:'center',gap:16,border:'1px solid #373147',borderRadius:12,background:'rgba(24,21,35,.8)'}}><strong>ไม่พบเกมที่ตรงกับตัวกรอง</strong><button type="button" className={styles.clearButton} onClick={clearFilters}>ล้างตัวกรอง</button></div>}
+              return <article key={`${game.provider ?? 'none'}:${game.id}`} className={styles.gameCard} onMouseEnter={() => config.mode === 'provider-cards' && setPreviewCode(game.provider)} onMouseLeave={() => config.mode === 'provider-cards' && setPreviewCode(null)}><button type="button" className={styles.gameCover} onFocus={() => config.mode === 'provider-cards' && setPreviewCode(game.provider)} onBlur={() => config.mode === 'provider-cards' && setPreviewCode(null)} onClick={() => openGame(game)} aria-label={`เปิด ${game.name}`}>{config.mode === 'games' && !game.id.startsWith('provider-') ? <img className={styles.gameImageBlur} src={game.image} alt="" aria-hidden="true" loading="lazy" onError={hideBrokenImage} /> : null}<img className={config.mode === 'games' && !game.id.startsWith('provider-') ? styles.gameImageContain : styles.gameImageCover} src={game.image} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span className={styles.cardBadges} aria-hidden="true">{game.isNew ? <b className={styles.newBadge}><StarIcon />NEW</b> : null}{game.isHot ? <b className={styles.hotBadge}>HOT</b> : null}</span>{config.mode === 'games' && providerBadge ? <span className={styles.cardProviderBand} aria-hidden="true"><img src={providerBadge} alt="" onError={hideBrokenImage} /></span> : null}<span className={styles.playOverlay}><b>เข้าเล่น</b></span></button><p>{game.name}</p></article>;
+            })}</div> : <div style={{ minHeight: 280, display: 'grid', placeContent: 'center', justifyItems: 'center', gap: 16, border: '1px solid #373147', borderRadius: 12, background: 'rgba(24,21,35,.8)' }}><strong>ไม่พบเกมที่ตรงกับตัวกรอง</strong><button type="button" className={styles.clearButton} onClick={clearFilters}>ล้างตัวกรอง</button></div>}
           </section>
         </div>
       </section>
     </main>
   );
+}
+
+function providerFallbackGame(provider: SourceGameProvider): SourceGameItem {
+  return {
+    id: `provider-${provider.code}`,
+    name: provider.name,
+    image: provider.card,
+    provider: provider.code,
+    providerBadge: provider.badge,
+    isNew: false,
+    isHot: false,
+    tags: [],
+  };
 }
 
 function hydrateGame(slug: string, game: SourceGameItem, index: number): SourceGameItem {
