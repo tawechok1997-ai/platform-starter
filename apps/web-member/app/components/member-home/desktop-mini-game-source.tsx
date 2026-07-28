@@ -50,23 +50,28 @@ export default function DesktopMiniGameSource() {
       </div>
 
       <style jsx>{`
+        .source-mini-game {
+          overflow: visible;
+        }
+
         .mini-game-source-actions {
-          display: flex;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           align-items: center;
           box-sizing: border-box;
           width: 100%;
           min-width: 0;
-          gap: 8px;
-          padding: 20px 12px;
+          gap: 12px;
+          padding: 20px 14px 22px 26px;
           overflow: visible;
         }
 
         .mini-game-source-action {
+          position: relative;
           display: block;
-          flex: 1 1 0;
           min-width: 0;
-          height: 44px;
-          margin-left: 16px;
+          height: 46px;
+          margin: 0;
           padding: 0;
           overflow: visible;
           border: 0;
@@ -80,11 +85,11 @@ export default function DesktopMiniGameSource() {
           display: block;
           box-sizing: border-box;
           width: 100%;
-          height: 44px;
-          padding: 1px;
+          height: 46px;
+          padding: 2px;
           overflow: visible;
           border-radius: 999px;
-          background: linear-gradient(180deg, rgb(255 227 111) 0%, rgb(166 103 0) 100%);
+          background: linear-gradient(180deg, rgb(255 232 79) 0%, rgb(246 173 0) 100%);
         }
 
         .mini-game-source-inner {
@@ -99,25 +104,27 @@ export default function DesktopMiniGameSource() {
         }
 
         .mini-game-source-content {
+          position: relative;
           display: flex;
           align-items: center;
           box-sizing: border-box;
           width: 100%;
           min-width: 0;
           height: 42px;
-          margin-left: -20px;
+          padding: 0 8px 0 52px;
           overflow: visible;
         }
 
         .mini-game-source-icon {
-          position: static;
+          position: absolute;
+          top: 50%;
+          left: -18px;
           display: block;
-          flex: 0 0 auto;
-          width: auto;
-          height: 90px;
-          margin-inline: -15px;
+          width: 76px;
+          height: 76px;
+          max-width: none;
           object-fit: contain;
-          transform: none;
+          transform: translateY(-50%);
           pointer-events: none;
         }
 
@@ -134,17 +141,20 @@ export default function DesktopMiniGameSource() {
         }
 
         @media (max-width: 1180px) {
-          .mini-game-source-action {
-            margin-left: 10px;
+          .mini-game-source-actions {
+            gap: 10px;
+            padding-left: 23px;
           }
 
           .mini-game-source-content {
-            margin-left: -14px;
+            padding-left: 47px;
+            padding-right: 6px;
           }
 
           .mini-game-source-icon {
-            height: 78px;
-            margin-inline: -13px;
+            left: -16px;
+            width: 70px;
+            height: 70px;
           }
 
           .mini-game-source-label {
