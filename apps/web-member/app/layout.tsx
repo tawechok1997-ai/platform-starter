@@ -110,7 +110,6 @@ import './member-public-sidebar-content-fix.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
-import MemberAuthLinkInterceptor from './components/auth/member-auth-link-interceptor';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
 
@@ -135,7 +134,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <MemberSessionProvider>
             <MemberHeroSwipeController />
             <MemberDragScrollController />
-            <MemberAuthLinkInterceptor />
             <MemberChrome>{children}</MemberChrome>
           </MemberSessionProvider>
         </SiteSettingsProvider>
