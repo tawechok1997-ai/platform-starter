@@ -11,6 +11,7 @@ const hook = source('./use-admin-settings-form.ts');
 const workspace = source('./page.tsx');
 const maintenance = source('./maintenance/maintenance-settings-client.tsx');
 const icons = source('./icons/icon-settings-config.ts');
+const iconsPage = source('./icons/page.tsx');
 
 const genericRoutes = [
   './website/page.tsx',
@@ -75,11 +76,14 @@ test('sensitive settings require confirmation and tailored previews', () => {
   assert.match(source('./theme/page.tsx'), /preview="theme"/);
 });
 
-test('icon settings use real uploadable assets with stable defaults', () => {
+test('icon settings use real uploadable assets and backend branding permissions', () => {
   assert.match(icons, /asset:\s*true/);
   assert.match(icons, /defaultValue:/);
   assert.match(icons, /เมนูหลักและทางลัด/);
   assert.match(icons, /หมวดเกม/);
+  assert.match(iconsPage, /permissionBase="settings\.branding"/);
+  assert.match(workspace, /item\('icons',[\s\S]*'settings\.branding'/);
+  assert.doesNotMatch(workspace, /item\('icons',[\s\S]*'settings\.icons'/);
 });
 
 test('settings workspace includes all requested destinations and hides inaccessible pages', () => {
