@@ -144,15 +144,17 @@ function hydrateGame(slug: string, game: SourceGameItem, index: number): SourceG
   let isHot = game.isHot;
 
   if (slug === 'fishing') {
-    isNew ||= FISHING_NEW.has(game.id) || game.image.includes('/176');
-    isHot ||= FISHING_HOT.has(game.id);
+    tags.clear();
+    isNew = FISHING_NEW.has(game.id) || game.image.includes('/176');
+    isHot = FISHING_HOT.has(game.id);
     if (FISHING_SLOT.has(game.id)) tags.add('slot');
   }
 
   if (slug === 'slot') {
+    tags.clear();
     tags.add('slot');
-    isNew ||= game.image.includes('/177');
-    isHot ||= SLOT_HOT.has(game.id);
+    isNew = game.image.includes('/177');
+    isHot = SLOT_HOT.has(game.id);
     if (SLOT_ARCADE.has(game.id) || index % 11 === 0) tags.add('arcade');
     if (/buy feature/i.test(game.name) || index % 13 === 0) tags.add('buy');
     if (SLOT_TABLE.has(game.id) || index % 17 === 0) tags.add('table');
