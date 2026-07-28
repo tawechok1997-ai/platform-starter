@@ -1,11 +1,17 @@
 .section {
   position: relative;
+  left: 50%;
   z-index: 2;
   display: block;
-  width: 100%;
+  width: 100vw;
+  min-width: 100vw;
+  max-width: none;
   min-height: 147px;
+  margin: 0;
   overflow: hidden;
   background: #110e16;
+  transform: translateX(-50%);
+  box-sizing: border-box;
 }
 
 .inner {
@@ -13,6 +19,7 @@
   min-height: 147px;
   margin: 0 auto;
   padding: 16px 0 24px;
+  box-sizing: border-box;
 }
 
 .inner h2 {
@@ -87,13 +94,17 @@
 }
 
 @media (max-width: 900px) {
-  .section,
-  .inner {
+  .section {
+    left: auto;
+    width: 100%;
+    min-width: 0;
     min-height: 0;
+    transform: none;
   }
 
   .inner {
     width: calc(100% - 24px);
+    min-height: 0;
     padding: 18px 0 24px;
   }
 
