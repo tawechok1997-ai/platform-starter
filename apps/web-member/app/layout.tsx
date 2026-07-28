@@ -92,35 +92,28 @@ import './member-v47-alliance-two-row-fix.css';
 import './member-v47-alliance-exact-source.css';
 import './member-v47-tournament-image-only.css';
 import './member-v47-footer-exact-source.css';
-import './member-v47-sidebar-source-match.css';
 import './member-v47-alliance-scroll-lock.css';
 import './member-alliance-v2.css';
 import './member-source-bundle-behavior.css';
 import './member-v47-mission-color-lock.css';
 import './member-auth-overlay.css';
-import './member-v47-jackpot-exact-source.css';
 import './member-source-highlight.css';
 import './member-v47-tournament-exact-source.css';
 import './member-v47-tournament-mount-lock.css';
 import './member-source-feed-sections.css';
 import './member-public-header-single-owner.css';
 import './member-public-header-runtime-fix.css';
-import './member-public-sidebar-runtime-fix.css';
-import './member-public-sidebar-content-fix.css';
 import './member-public-game-shell.css';
 import './member-public-auth-actions-lock.css';
 import './member-casino-source-exact.css';
-import './member-public-mini-game-exact-source.css';
-import './member-home-sticky-sidebar-lock.css';
 import './member-public-lower-shell.css';
-import './member-leaderboard-exact-source.css';
 import './member-footer-secondary-border-fix.css';
+import './member-home-sidebar-primary.css';
 import MemberChrome from './member-chrome';
 import GameFilterStickyController from './components/game-filter-sticky-controller';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
-import DesktopLeaderboardSource from './components/member-home/desktop-leaderboard-source';
 import { MemberLocaleProvider } from './member-locale-provider';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
@@ -149,7 +142,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <MemberHeroSwipeController />
               <MemberDragScrollController />
               <PublicLiveNavigationController />
-              <DesktopLeaderboardSource />
               <MemberChrome>{children}</MemberChrome>
             </MemberSessionProvider>
           </SiteSettingsProvider>
