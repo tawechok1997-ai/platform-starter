@@ -23,7 +23,8 @@ test('uses shared confirmation for revoke and reissue actions', () => {
 test('keeps token one-time handling and async cleanup safe', () => {
   assert.equal(source.includes("typeof payload.token !== 'string'"), true);
   assert.equal(source.includes('payload.token.trim().length < 32'), true);
-  assert.equal(source.includes('Token จะแสดงเพียงครั้งเดียว'), true);
+  assert.equal(source.includes('INVITATION_LINK_TTL_MS = 60_000'), true);
+  assert.match(source, /ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที/);
   assert.equal(source.includes('finally'), true);
   assert.equal(source.includes("setBusyKey('')"), true);
 });
