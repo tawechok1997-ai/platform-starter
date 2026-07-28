@@ -31,9 +31,10 @@ type Props = {
   games: { featured: Game[]; popular: Game[]; recent: Game[]; favorites: Game[] };
   isGamesLoading: boolean;
   gamesMessage: string;
+  onOpenPromotion: () => void;
 };
 
-export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, gamesMessage }: Props) {
+export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, gamesMessage, onOpenPromotion }: Props) {
   const configuredBanners = Array.isArray(content.banners) ? content.banners.filter((item) => item.enabled) : [];
   const banners = configuredBanners.length ? configuredBanners : PROJECT_FALLBACK_BANNERS;
   const announcements = Array.isArray(content.announcements) ? content.announcements.filter((item) => item.enabled) : [];
@@ -72,7 +73,7 @@ export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, ga
       <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">{banners.map((banner, index) => <button key={`${banner.title}-${index}`} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}: ${banner.title}`} />)}</div>
 
       <div className="v47-mobile-quick-grid">
-        <QuickCard icon={V47_ASSETS.quickPromotion} title="โปรโมชั่น" href="/browse/promotions?view=promotion" />
+        <QuickCard icon={V47_ASSETS.quickPromotion} title="โปรโมชั่น" onClick={onOpenPromotion} />
         <QuickCard icon={V47_ASSETS.quickActivity} title="กิจกรรม" href="/browse/promotions?view=activity" />
         <QuickCard icon={V47_ASSETS.quickNews} title="ข่าวสาร" href="/browse/promotions?view=news" />
       </div>
@@ -107,7 +108,27 @@ export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, ga
   );
 }
 
-function QuickCard({ icon, title, href }: { icon: string; title: string; href: string }) { return <a href={href}><Icon value={icon} /><strong>{title}</strong></a>; }
+function QuickCard({ icon, title, href, onClick }: { icon: string; title: string; href?: string; onClick?: () => void }) {
+  const content = <><Icon value={icon} /><strong>{title}</strong></>;
+  if (onClick) {
+    return (
+      <a
+        role="button"
+        tabIndex={0}
+        onClick={onClick}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClick();
+          }
+        }}
+      >
+        {content}
+      </a>
+    );
+  }
+  return <a href={href}>{content}</a>;
+}
 function SectionTitle({ icon, title, action }: { icon: string; title: string; action?: string }) { return <header className="v47-mobile-section-title"><span><Icon value={icon} /><strong>{title}</strong></span>{action ? <a href="/browse/games">{action}</a> : null}</header>; }
 function GameSection({ kind, title, icon, games, loading, message, fallbackGames }: { kind: 'popular' | 'online' | 'classic'; title: string; icon: string; games: Game[]; loading: boolean; message: string; fallbackGames: ReferenceAsset[] }) { return <section className="v47-mobile-panel" data-section-kind={kind}><SectionTitle icon={icon} title={title} action="ดูทั้งหมด" />{loading ? <div className="v47-mobile-empty">กำลังโหลดเกม...</div> : games.length ? <div className="v47-mobile-game-grid" data-drag-scroll="true">{games.map((game, index) => <a href="/browse/games" key={`${game.id}-${index}`} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><GameImage game={game} /><span>{game.isNew ? 'NEW' : 'HOT'}</span></div><span className="v47-mobile-game-meta"><b>{safeName(game)}</b><small>{game.provider?.name || game.provider?.code || 'Provider'}</small></span></a>)}</div> : <ReferenceGameGrid games={fallbackGames} message={message} />}</section>; }
 function ReferenceGameGrid({ games, message }: { games: ReferenceAsset[]; message: string }) { return <div className="v47-mobile-game-grid" data-drag-scroll="true" aria-label={message || 'เกมจากชุด asset'}>{games.map((game, index) => <a href="/browse/games" key={game.name} className={index < 2 ? 'v47-mobile-game-card--hero' : undefined}><div><img src={game.url} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span>HOT</span></div><span className="v47-mobile-game-meta"><b>{game.name}</b><small>NOAH345</small></span></a>)}</div>; }
