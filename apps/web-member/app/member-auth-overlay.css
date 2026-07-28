@@ -68,9 +68,8 @@
   outline-offset: 2px !important;
 }
 
-/* The auth dialog must be the topmost viewport layer. The public header uses
-   z-index: 5000, so a conventional modal value such as 2200 lets the header
-   cover the tabs and close control. */
+/* Auth motion has one owner. The backdrop starts immediately, while the iframe
+   remains hidden until its embedded document has hydrated and applied the popup contract. */
 html body .member-auth-overlay {
   position: fixed !important;
   inset: 0 !important;
@@ -85,12 +84,25 @@ html body .member-auth-overlay {
   margin: 0 !important;
   padding: 16px !important;
   overflow: hidden !important;
-  background: rgb(0 0 0 / 80%) !important;
+  background-color: rgb(0 0 0 / 0%) !important;
+  backdrop-filter: blur(0) !important;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
-  transform: none !important;
-  transition: opacity 300ms ease;
+  transition:
+    background-color 260ms cubic-bezier(.22, 1, .36, 1),
+    backdrop-filter 260ms cubic-bezier(.22, 1, .36, 1) !important;
+}
+
+html body .member-auth-overlay[data-state='open'] {
+  background-color: rgb(0 0 0 / 80%) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+html body .member-auth-overlay[data-state='closing'] {
+  background-color: rgb(0 0 0 / 0%) !important;
+  backdrop-filter: blur(0) !important;
+  pointer-events: none !important;
 }
 
 html body .member-auth-overlay__frame {
@@ -110,10 +122,45 @@ html body .member-auth-overlay__frame {
   overflow: hidden !important;
   border: 0 !important;
   background: transparent !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translate3d(0, 14px, 0) scale(.985) !important;
+  transform-origin: 50% 50% !important;
+  filter: blur(2px) !important;
+  will-change: opacity, transform, filter !important;
+  transition:
+    opacity 280ms cubic-bezier(.22, 1, .36, 1),
+    transform 320ms cubic-bezier(.22, 1, .36, 1),
+    filter 240ms ease,
+    visibility 0s linear 320ms !important;
+}
+
+html body .member-auth-overlay[data-state='open'][data-frame-ready='true'] .member-auth-overlay__frame {
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
-  transform: none !important;
+  transform: translate3d(0, 0, 0) scale(1) !important;
+  filter: blur(0) !important;
+  transition-delay: 0s !important;
+}
+
+html body .member-auth-overlay[data-state='closing'] .member-auth-overlay__frame {
+  opacity: 0 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  transform: translate3d(0, 8px, 0) scale(.992) !important;
+  filter: blur(1px) !important;
+  transition-duration: 180ms !important;
+  transition-delay: 0s !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .member-auth-overlay,
+  html body .member-auth-overlay__frame {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
 }
 
 @media (max-width: 900px) {
@@ -130,5 +177,13 @@ html body .member-auth-overlay__frame {
 
   html body .member-auth-overlay {
     padding: 8px !important;
+  }
+
+  html body .member-auth-overlay__frame {
+    transform: translate3d(0, 10px, 0) scale(.992) !important;
+  }
+
+  html body .member-auth-overlay[data-state='open'][data-frame-ready='true'] .member-auth-overlay__frame {
+    transform: translate3d(0, 0, 0) scale(1) !important;
   }
 }
