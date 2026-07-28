@@ -1,13 +1,9 @@
-/* Final geometry owner for Search, Daily Mission and Usage Guide.
- * One DOM owner per dialog, centered above the public header, viewport-safe,
- * with a close control anchored to the dialog itself rather than its header.
+/* One final frame for Search, Daily Mission and Usage Guide.
+ * The runtime controller adds these explicit classes to the existing dialog DOM.
+ * No duplicate modal is created.
  */
 
-:is(
-  div[role='presentation']:has(> section[role='dialog'][aria-labelledby='member-search-title']),
-  div[role='presentation']:has(> section[role='dialog'][aria-labelledby='daily-mission-title']),
-  div[role='presentation']:has(> section[role='dialog'][aria-labelledby='usage-guide-title'])
-) {
+.public-dialog-runtime-overlay {
   position: fixed !important;
   inset: 0 !important;
   z-index: 2147483000 !important;
@@ -23,29 +19,13 @@
   backdrop-filter: blur(2px) !important;
 }
 
-section[role='dialog'][aria-labelledby='member-search-title'] {
+.public-dialog-runtime {
   position: relative !important;
   inset: auto !important;
   z-index: 2147483001 !important;
-  box-sizing: border-box !important;
-  width: min(820px, calc(100vw - 32px)) !important;
-  min-width: 0 !important;
-  max-width: 820px !important;
-  height: min(560px, calc(100dvh - 32px)) !important;
-  min-height: 0 !important;
-  max-height: calc(100dvh - 32px) !important;
-  margin: 0 !important;
-  padding: 16px !important;
-  gap: 12px !important;
-  overflow: hidden !important;
-  transform: none !important;
-}
-
-section[role='dialog'][aria-labelledby='daily-mission-title'],
-section[role='dialog'][aria-labelledby='usage-guide-title'] {
-  position: relative !important;
-  inset: auto !important;
-  z-index: 2147483001 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
   box-sizing: border-box !important;
   width: min(920px, calc(100vw - 32px)) !important;
   min-width: 0 !important;
@@ -60,11 +40,7 @@ section[role='dialog'][aria-labelledby='usage-guide-title'] {
   transform: none !important;
 }
 
-:is(
-  section[role='dialog'][aria-labelledby='member-search-title'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'],
-  section[role='dialog'][aria-labelledby='usage-guide-title']
-) > header {
+.public-dialog-runtime-header {
   position: static !important;
   z-index: auto !important;
   display: flex !important;
@@ -81,11 +57,7 @@ section[role='dialog'][aria-labelledby='usage-guide-title'] {
   visibility: visible !important;
 }
 
-:is(
-  section[role='dialog'][aria-labelledby='member-search-title'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'],
-  section[role='dialog'][aria-labelledby='usage-guide-title']
-) button[aria-label^='ปิด'] {
+.public-dialog-runtime-close {
   position: absolute !important;
   top: 10px !important;
   right: 10px !important;
@@ -117,16 +89,8 @@ section[role='dialog'][aria-labelledby='usage-guide-title'] {
   cursor: pointer !important;
 }
 
-:is(
-  section[role='dialog'][aria-labelledby='member-search-title'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'],
-  section[role='dialog'][aria-labelledby='usage-guide-title']
-) button[aria-label^='ปิด']::before,
-:is(
-  section[role='dialog'][aria-labelledby='member-search-title'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'],
-  section[role='dialog'][aria-labelledby='usage-guide-title']
-) button[aria-label^='ปิด']::after {
+.public-dialog-runtime-close::before,
+.public-dialog-runtime-close::after {
   position: absolute !important;
   top: 50% !important;
   left: 50% !important;
@@ -139,37 +103,21 @@ section[role='dialog'][aria-labelledby='usage-guide-title'] {
   transform-origin: center !important;
 }
 
-:is(
-  section[role='dialog'][aria-labelledby='member-search-title'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'],
-  section[role='dialog'][aria-labelledby='usage-guide-title']
-) button[aria-label^='ปิด']::before {
+.public-dialog-runtime-close::before {
   transform: translate(-50%, -50%) rotate(45deg) !important;
 }
 
-:is(
-  section[role='dialog'][aria-labelledby='member-search-title'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'],
-  section[role='dialog'][aria-labelledby='usage-guide-title']
-) button[aria-label^='ปิด']::after {
+.public-dialog-runtime-close::after {
   transform: translate(-50%, -50%) rotate(-45deg) !important;
 }
 
-:is(
-  section[role='dialog'][aria-labelledby='member-search-title'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'],
-  section[role='dialog'][aria-labelledby='usage-guide-title']
-) button[aria-label^='ปิด'] > img,
-:is(
-  section[role='dialog'][aria-labelledby='member-search-title'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'],
-  section[role='dialog'][aria-labelledby='usage-guide-title']
-) button[aria-label^='ปิด'] > svg {
+.public-dialog-runtime-close > img,
+.public-dialog-runtime-close > svg {
   display: none !important;
 }
 
-section[role='dialog'][aria-labelledby='member-search-title'] > div:last-child,
-section[role='dialog'][aria-labelledby='usage-guide-title'] > div:last-child {
+.public-dialog-runtime--search > div:last-child,
+.public-dialog-runtime--guide > div:last-child {
   flex: 1 1 auto !important;
   box-sizing: border-box !important;
   width: 100% !important;
@@ -181,20 +129,20 @@ section[role='dialog'][aria-labelledby='usage-guide-title'] > div:last-child {
   overscroll-behavior: contain !important;
 }
 
-section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child {
+.public-dialog-runtime--mission > div:last-child {
   flex: 1 1 auto !important;
   display: grid !important;
-  grid-template-columns: minmax(390px, 1fr) minmax(0, 1fr) !important;
+  grid-template-columns: minmax(400px, .95fr) minmax(0, 1.05fr) !important;
   box-sizing: border-box !important;
   width: 100% !important;
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
-  gap: 12px !important;
+  gap: 10px !important;
   overflow: hidden !important;
 }
 
-section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child > section {
+.public-dialog-runtime--mission > div:last-child > section {
   box-sizing: border-box !important;
   height: 100% !important;
   min-height: 0 !important;
@@ -204,20 +152,12 @@ section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child >
   overscroll-behavior: contain !important;
 }
 
-@media (max-width: 820px) {
-  :is(
-    div[role='presentation']:has(> section[role='dialog'][aria-labelledby='member-search-title']),
-    div[role='presentation']:has(> section[role='dialog'][aria-labelledby='daily-mission-title']),
-    div[role='presentation']:has(> section[role='dialog'][aria-labelledby='usage-guide-title'])
-  ) {
+@media (max-width: 760px) {
+  .public-dialog-runtime-overlay {
     padding: 8px !important;
   }
 
-  :is(
-    section[role='dialog'][aria-labelledby='member-search-title'],
-    section[role='dialog'][aria-labelledby='daily-mission-title'],
-    section[role='dialog'][aria-labelledby='usage-guide-title']
-  ) {
+  .public-dialog-runtime {
     width: calc(100vw - 16px) !important;
     max-width: calc(100vw - 16px) !important;
     height: calc(100dvh - 16px) !important;
@@ -229,25 +169,21 @@ section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child >
     overflow: hidden !important;
   }
 
-  section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child {
+  .public-dialog-runtime--mission > div:last-child {
     display: block !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
   }
 
-  section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child > section {
+  .public-dialog-runtime--mission > div:last-child > section {
     height: auto !important;
     max-height: none !important;
     overflow: visible !important;
   }
 }
 
-@media (max-height: 620px) and (min-width: 821px) {
-  :is(
-    section[role='dialog'][aria-labelledby='member-search-title'],
-    section[role='dialog'][aria-labelledby='daily-mission-title'],
-    section[role='dialog'][aria-labelledby='usage-guide-title']
-  ) {
+@media (max-height: 620px) and (min-width: 761px) {
+  .public-dialog-runtime {
     height: calc(100dvh - 20px) !important;
     max-height: calc(100dvh - 20px) !important;
     padding-block: 10px !important;
