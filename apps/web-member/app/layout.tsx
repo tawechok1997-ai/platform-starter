@@ -104,6 +104,7 @@ import './member-leaderboard-source-match-lock.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
+import MemberSearchOverlay from './components/member-search-overlay';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import UsageGuideController from './components/member-home/usage-guide-controller';
@@ -136,6 +137,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <PublicLiveNavigationController />
               <HomeSidebarScrollController />
               <UsageGuideController />
+              <MemberSearchOverlay />
               <MemberChrome>{children}</MemberChrome>
             </MemberSessionProvider>
           </SiteSettingsProvider>
