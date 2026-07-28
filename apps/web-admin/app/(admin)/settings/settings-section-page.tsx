@@ -88,6 +88,7 @@ export default function SettingsSectionPage({
   const resolvedPermissionBase = permissionBase ?? `settings.${group}`;
   const canView = permission.can(`${resolvedPermissionBase}.view`) || permission.can(`${resolvedPermissionBase}.update`);
   const canUpdate = permission.can(`${resolvedPermissionBase}.update`);
+  const canUploadAssets = canUpdate && permission.can('settings.features.update');
   const canLoad = permission.ready && canView;
   const {
     form,
@@ -149,8 +150,8 @@ export default function SettingsSectionPage({
   }
 
   async function uploadAsset(field: SettingsFieldConfig, file: File) {
-    if (!canUpdate) {
-      setMessage('บัญชีนี้ไม่มีสิทธิ์อัปโหลดไฟล์');
+    if (!canUploadAssets) {
+      setMessage('บัญชีนี้แก้ URL ได้ แต่ไม่มีสิทธิ์อัปโหลดไฟล์ใหม่ (ต้องใช้ settings.features.update)');
       return;
     }
     const validationMessage = validateImageFile(file);
@@ -276,6 +277,7 @@ export default function SettingsSectionPage({
         {message && <AdminNotice tone={message.includes('คิวอนุมัติ') ? 'warning' : 'neutral'}>{message}</AdminNotice>}
         {error && <AdminNotice tone="danger">{error}</AdminNotice>}
         {!canUpdate && <AdminNotice tone="warning">โหมดอ่านอย่างเดียว ช่องกรอก การอัปโหลด และปุ่มบันทึกถูกปิดตามสิทธิ์ Backend ยังตรวจ permission ซ้ำทุกคำขอ</AdminNotice>}
+        {canUpdate && fields.some((field) => field.asset) && !canUploadAssets && <AdminNotice tone="warning">บัญชีนี้แก้ URL รูปได้ แต่ปุ่มอัปโหลดไฟล์ถูกซ่อน เพราะ Asset Library ต้องใช้สิทธิ์ settings.features.update</AdminNotice>}
         <AdminUnsavedChangesNotice isDirty={isDirty}>มีการแก้ไขที่ยังไม่ได้บันทึก ออกจากหน้านี้อาจทำให้ข้อมูลหาย</AdminUnsavedChangesNotice>
 
         {loading ? <AdminSkeleton lines={10} /> : error && !hasLoadedSettings(initialForm, resolvedDefaults) ? (
@@ -317,6 +319,7 @@ export default function SettingsSectionPage({
                             value={form[field.key]}
                             uploading={uploadingKey === field.key}
                             disabled={!canUpdate || busy}
+                            canUpload={canUploadAssets}
                             error={validationErrors[field.key]}
                             onChange={(value) => update(field.key, value)}
                             onUpload={(file) => void uploadAsset(field, file)}
@@ -377,11 +380,12 @@ export default function SettingsSectionPage({
   );
 }
 
-function FieldInput({ field, value, uploading, disabled, error, onChange, onUpload, onDisable, onRestore }: {
+function FieldInput({ field, value, uploading, disabled, canUpload, error, onChange, onUpload, onDisable, onRestore }: {
   field: SettingsFieldConfig;
   value: SettingsValue | undefined;
   uploading: boolean;
   disabled: boolean;
+  canUpload: boolean;
   error: string | undefined;
   onChange: (value: string | boolean | number) => void;
   onUpload: (file: File) => void;
@@ -413,10 +417,10 @@ function FieldInput({ field, value, uploading, disabled, error, onChange, onUplo
             <input id={`setting-${field.key}`} type="url" value={displayValue} disabled={disabled} placeholder={field.placeholder} aria-invalid={Boolean(error)} onChange={(event) => onChange(event.target.value)} />
           </label>
           {!disabled && <div className={styles.assetActions}>
-            <label className={styles.uploadButton}>
+            {canUpload && <label className={styles.uploadButton}>
               {uploading ? 'กำลังอัปโหลด...' : displayValue ? 'เปลี่ยนไฟล์' : 'อัปโหลดไฟล์'}
               <input className={styles.hiddenInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading} onChange={(event) => handleFileChange(event, onUpload)} />
-            </label>
+            </label>}
             <AdminButton type="button" tone="secondary" disabled={uploading || !displayValue} onClick={onDisable}>ปิดใช้งาน</AdminButton>
             <AdminButton type="button" tone="secondary" disabled={uploading} onClick={onRestore}>คืนค่าเดิม</AdminButton>
           </div>}
