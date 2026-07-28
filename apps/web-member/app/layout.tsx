@@ -35,6 +35,7 @@ import './games/game-detail-provider-theme.css';
 import './games/hero-carousel.css';
 import './guide/guide.css';
 import './member-promotions.css';
+import './member-home-promotion-popup.css';
 import './public-status-page.css';
 import './public-mobile.css';
 import './public-desktop.css';
@@ -108,6 +109,7 @@ import MemberHeroSwipeController from './components/member-hero-swipe-controller
 import MemberSearchOverlay from './components/member-search-overlay';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
+import HomePromotionPopupController from './components/member-home/home-promotion-popup-controller';
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import PublicGameLoginController from './components/member-home/public-home-game-navigation-controller';
 import UsageGuideController from './components/member-home/usage-guide-controller';
@@ -142,6 +144,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <PublicDialogRuntimeController />
               <PublicGameLoginController />
               <UsageGuideController />
+              <HomePromotionPopupController />
               <MemberSearchOverlay />
               <MemberChrome>{children}</MemberChrome>
             </MemberSessionProvider>
