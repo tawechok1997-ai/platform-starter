@@ -61,5 +61,5 @@ export default function MemberAuthLinkInterceptor() {
   }, [isAuthRoute]);
 
   if (isAuthRoute || !mode) return null;
-  return <MemberAuthOverlay mode={mode} onModeChange={setMode} onClose={close} onSuccess={complete} />;
+  return <MemberAuthOverlay mode={mode} onClose={close} onSuccess={complete} />;
 }
