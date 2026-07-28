@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const loginSource = readFileSync(new URL('../../(auth)/login/page.tsx', import.meta.url), 'utf8');
-const registerSource = readFileSync(new URL('../../../src/features/auth/register-view.tsx', import.meta.url), 'utf8');
+const registerPageSource = readFileSync(new URL('../../(auth)/register/page.tsx', import.meta.url), 'utf8');
+const registerViewSource = readFileSync(new URL('../../../src/features/auth/register-view.tsx', import.meta.url), 'utf8');
 
 test('login heading, tabs, recovery and support copy use the active locale', () => {
   assert.match(loginSource, /title:\s*'เข้าสู่ระบบ'/);
@@ -17,9 +18,14 @@ test('login heading, tabs, recovery and support copy use the active locale', () 
 });
 
 test('register heading and legal copy switch Thai and English together', () => {
-  assert.match(registerSource, /สร้างบัญชีสมาชิก/);
-  assert.match(registerSource, /CREATE MEMBER ACCOUNT/);
-  assert.match(registerSource, /การสมัครที่ปลอดภัย/);
-  assert.match(registerSource, /Secure registration/);
-  assert.doesNotMatch(registerSource, /<span>Secure registration<\/span>/);
+  assert.match(registerPageSource, /title:\s*'สมัครสมาชิก'/);
+  assert.match(registerPageSource, /title:\s*'Create account'/);
+  assert.match(registerPageSource, /terms:\s*'ข้าพเจ้ามีอายุครบ 20 ปีบริบูรณ์/);
+  assert.match(registerPageSource, /terms:\s*'I confirm that I am at least 20 years old/);
+  assert.match(registerViewSource, /const registerLabel = locale === 'th' \? 'สมัครสมาชิก' : 'Register'/);
+  assert.match(registerViewSource, /<h1 id="member-register-title">\{t\.title\}<\/h1>/);
+  assert.match(registerViewSource, /<span>\{t\.terms\}<\/span>/);
+  assert.match(registerViewSource, /const supportPrompt = locale === 'th' \? 'พบปัญหาการใช้งาน' : 'Having trouble\?'/);
+  assert.match(registerViewSource, /const supportLabel = locale === 'th' \? 'ติดต่อเจ้าหน้าที่' : 'Contact support'/);
+  assert.doesNotMatch(registerViewSource, /<span>Secure registration<\/span>/);
 });
