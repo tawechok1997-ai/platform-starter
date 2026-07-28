@@ -6,13 +6,11 @@ import type { Game } from '../../types/member-api';
 import {
   REFERENCE_GAMES,
   REFERENCE_HERO_SLIDES,
-  REFERENCE_PROVIDERS,
   type ReferenceAsset,
 } from '../reference-asset-catalog';
 import {
   resolveHomeGameFallback,
   resolveHomeGameImage,
-  resolveHomeProviderLogo,
 } from './local-game-asset-resolver';
 import { V47_ASSETS, resolveV47Asset } from './v47-asset-map';
 
@@ -35,7 +33,7 @@ type Props = {
   gamesMessage: string;
 };
 
-export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoading, gamesMessage }: Props) {
+export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, gamesMessage }: Props) {
   const configuredBanners = Array.isArray(content.banners) ? content.banners.filter((item) => item.enabled) : [];
   const banners = configuredBanners.length ? configuredBanners : PROJECT_FALLBACK_BANNERS;
   const announcements = Array.isArray(content.announcements) ? content.announcements.filter((item) => item.enabled) : [];
@@ -44,7 +42,6 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
   const popular = fillGames(games.popular, allGames, 6);
   const online = fillGames(allGames.slice(2), allGames, 6);
   const classic = fillGames(allGames.slice(8), allGames, 6);
-  const providers = uniqueProviders(allGames).slice(0, 12);
   const [activeBanner, setActiveBanner] = useState(0);
   const hero = banners[activeBanner] ?? banners[0];
   const heroImage = hero?.imageUrl || resolveCmsAssetById(content, hero?.assetId);
@@ -52,7 +49,6 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
   const announcement = announcements[0];
   const tournament = findAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']);
   const jackpot = findAsset(content, ['jackpot', 'แจ็คพอต']);
-  const partner = findAsset(content, ['partner', 'provider', 'พันธมิตร']);
   const miniWheel = findAsset(content, ['wheel', 'lucky wheel', 'วงล้อ']);
   const miniCard = findAsset(content, ['card', 'mission', 'ไพ่', 'ภารกิจ']);
 
@@ -97,18 +93,16 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
 
       <section className="v47-mobile-panel" data-section-kind="leaderboard"><SectionTitle icon={V47_ASSETS.leaderboard} title="Leaderboard" action="ดูทั้งหมด" /><div className="v47-mobile-board-head"><span>อันดับ</span><span>ชื่อผู้เล่น</span><span>รางวัล</span></div>{Array.from({ length: 5 }, (_, index) => <div className="v47-mobile-board-row" key={index}><span className="v47-mobile-board-badge">{index < 3 ? <img src={MOBILE_RANK_ART[index]!} alt={`อันดับ ${index + 1}`} onError={hideBrokenImage} /> : <img src={V47_ASSETS.rankOther} alt="" onError={hideBrokenImage} />}<b>{index + 1}</b></span><span>0{980000018 - index * 8241}</span><em>{[15000, 5700, 3500, 2904, 2100][index]?.toLocaleString()}</em></div>)}</section>
 
-      <section className="v47-mobile-panel v47-mobile-mini-games" data-section-kind="mini"><SectionTitle icon={V47_ASSETS.miniGame} title="Mini Game" /><div><a href="/login"><img src={V47_ASSETS.miniGameWheel || miniWheel?.url} alt="วงล้อ" onError={hideBrokenImage} /><span><strong>วงล้อ</strong><small>ลุ้นรางวัลทุกวัน</small></span></a><a href="/login"><img src={V47_ASSETS.miniGameMission || miniCard?.url} alt="ทายการ์ด" onError={hideBrokenImage} /><span><strong>ทายการ์ด</strong><small>เล่นง่าย รับรางวัล</small></span></a></div></section>
+      <section className="v47-mobile-panel v47-mobile-mini-games" data-section-kind="mini"><SectionTitle icon={V47_ASSETS.miniGame} title="Mini Game" /><div><a href="/?auth=login"><img src={V47_ASSETS.miniGameWheel || miniWheel?.url} alt="วงล้อ" onError={hideBrokenImage} /><span><strong>วงล้อ</strong><small>ลุ้นรางวัลทุกวัน</small></span></a><a href="/?auth=login"><img src={V47_ASSETS.miniGameMission || miniCard?.url} alt="ทายการ์ด" onError={hideBrokenImage} /><span><strong>ทายการ์ด</strong><small>เล่นง่าย รับรางวัล</small></span></a></div></section>
 
       <GameSection kind="popular" title="Top 10 Popular Games" icon={V47_ASSETS.gameHit} games={popular} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(0, 6)} />
       <GameSection kind="online" title="Most Online Now" icon={V47_ASSETS.mostOnline} games={online} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(6, 12)} />
 
-      <section className="v47-mobile-panel v47-mobile-live" data-section-kind="live"><SectionTitle icon={V47_ASSETS.liveIcon} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/login">ดูถ่ายทอดสด</a><a href="/login">เดิมพันทันที</a></footer></article></section>
+      <section className="v47-mobile-panel v47-mobile-live" data-section-kind="live"><SectionTitle icon={V47_ASSETS.liveIcon} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/?auth=login">ดูถ่ายทอดสด</a><a href="/?auth=login">เดิมพันทันที</a></footer></article></section>
 
       <GameSection kind="classic" title="Classic Games" icon={V47_ASSETS.gameHit} games={classic} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(12, 18)} />
 
       <section className="v47-mobile-panel v47-mobile-guide" data-section-kind="guide"><SectionTitle icon={V47_ASSETS.openGold} title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="v47-mobile-guide-more" href="/guide">ดูทั้งหมด</a></section>
-
-      <section className="v47-mobile-panel v47-mobile-partners"><SectionTitle icon={partner?.url || icons.affiliate} title="พันธมิตรของเรา" /><div data-drag-scroll="true">{providers.length ? providers.map((provider, index) => { const fallbackProvider = REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!; const logo = resolveHomeProviderLogo(provider) || fallbackProvider.url; return <span key={`${provider.code}-${index}`}><img src={logo} alt={provider.name || provider.code || fallbackProvider.name} onError={(event) => swapBrokenImage(event, fallbackProvider.url)} /></span>; }) : REFERENCE_PROVIDERS.map((provider) => <span key={provider.name}><img src={provider.url} alt={provider.name} loading="lazy" onError={hideBrokenImage} /></span>)}</div></section>
     </section>
   );
 }
@@ -124,7 +118,6 @@ function findAsset(content: CmsContent, aliases: string[]) { const keys = aliase
 function normalize(value: string) { return value.toLowerCase().replace(/[\s_\-./\\]+/g, ''); }
 function uniqueGames(...groups: Game[][]) { const map = new Map<string, Game>(); groups.flat().forEach((game) => { const key = game?.id || `${game?.providerGameCode || ''}:${game?.name || ''}`; if (key && !map.has(key)) map.set(key, game); }); return [...map.values()]; }
 function fillGames(primary: Game[], fallback: Game[], count: number) { return uniqueGames(primary || [], fallback).slice(0, count); }
-function uniqueProviders(games: Game[]) { const map = new Map<string, NonNullable<Game['provider']>>(); games.forEach((game) => { const provider = game?.provider; const key = provider?.code || provider?.name; if (key && provider && !map.has(key)) map.set(key, provider); }); return [...map.values()]; }
 function safeName(game: Game) { return typeof game.name === 'string' && game.name.trim() ? game.name : 'Game'; }
 function normalizeUrl(value: string) { return /^https?:\/\//i.test(value) || value.startsWith('/') ? value : `/${value.replace(/^\.\//, '')}`; }
 function isImageValue(value: string) { return /^(https?:\/\/|\/|\.\/)/i.test(value) || /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(value); }
