@@ -67,7 +67,10 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
     clearMemberSession();
     setIsLoggedIn(false);
     setWallet(null);
-    window.location.href = '/login';
+    // Return to the public home shell and open the embedded login modal there.
+    // Navigating to /login directly renders the auth page as a full-screen route,
+    // leaving a black background instead of the dimmed homepage underneath.
+    window.location.replace('/?auth=login');
   }, []);
 
   useEffect(() => {
