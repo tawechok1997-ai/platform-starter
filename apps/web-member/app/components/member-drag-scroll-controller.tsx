@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import MemberGuideOverlay from './member-guide-overlay';
-import MemberLanguageOverlay from './member-language-overlay';
 import MemberSearchOverlay from './member-search-overlay';
 
 type DragState = {
@@ -296,7 +295,6 @@ export default function MemberDragScrollController() {
     <>
       <MemberSearchOverlay />
       <MemberGuideOverlay />
-      <MemberLanguageOverlay />
     </>
   );
 }
