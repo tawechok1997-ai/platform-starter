@@ -1,4 +1,4 @@
-/* Exact tournament board rebuilt from the supplied production markup. */
+/* Single owner for the Home tournament board, rebuilt from the supplied source markup. */
 
 .source-tournament {
   position: relative;
@@ -21,29 +21,29 @@
   padding: 0 20px;
   gap: 12px;
   overflow: hidden;
-  border-radius: 0;
   background: transparent;
 }
 
-.source-tournament__section-heading::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) 6.41%, rgb(24 21 35 / 60%) 80.01%);
-  opacity: .48;
-  pointer-events: none;
-}
-
+.source-tournament__section-heading::before,
 .source-tournament__section-heading::after {
   content: '';
   position: absolute;
   right: 0;
-  bottom: 0;
   left: 0;
+  pointer-events: none;
+}
+
+.source-tournament__section-heading::before {
+  inset-block: 0;
+  background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) 6.41%, rgb(24 21 35 / 60%) 80.01%);
+  opacity: .48;
+}
+
+.source-tournament__section-heading::after {
+  bottom: 0;
   height: 2px;
   background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) 4.41%, rgb(24 21 35 / 60%) 83.01%);
   opacity: .44;
-  pointer-events: none;
 }
 
 .source-tournament__section-heading > * {
@@ -262,7 +262,7 @@
   position: absolute;
   top: -20px;
   left: 50%;
-  z-index: 3;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -343,13 +343,13 @@
 .source-rank-card__stats {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   flex: 0 0 34px;
   box-sizing: border-box;
   width: 120px;
   height: 34px;
   gap: 8px;
-  padding-top: 4px;
+  padding: 4px 0 0;
   border: 1px solid rgb(255 255 255 / 9.8%);
   border-radius: 6px;
   background: rgb(102 102 102 / 20%);
@@ -375,6 +375,7 @@
 .source-rank-stat__dot {
   position: relative;
   display: block;
+  box-sizing: border-box;
   width: 8px;
   height: 8px;
   margin-bottom: 4px;
@@ -388,7 +389,21 @@
 
 .source-rank-stat__dot--2 {
   border: 1.5px solid rgb(0 255 17);
-  background: conic-gradient(from 320deg, rgb(0 255 17) 0 50%, transparent 50% 100%);
+  background: transparent;
+}
+
+.source-rank-stat__dot--2::before,
+.source-rank-stat__dot--4::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%);
+  transform: rotate(320deg);
+  transform-origin: center;
+}
+
+.source-rank-stat__dot--2::before {
+  background: rgb(0 255 17);
 }
 
 .source-rank-stat__dot--3 {
@@ -397,7 +412,11 @@
 
 .source-rank-stat__dot--4 {
   border: 1.5px solid rgb(255 0 0);
-  background: conic-gradient(from 320deg, rgb(255 0 0) 0 50%, transparent 50% 100%);
+  background: transparent;
+}
+
+.source-rank-stat__dot--4::before {
+  background: rgb(255 0 0);
 }
 
 .source-rank-stat__dot--5 {
