@@ -31,10 +31,10 @@ type Props = {
   games: { featured: Game[]; popular: Game[]; recent: Game[]; favorites: Game[] };
   isGamesLoading: boolean;
   gamesMessage: string;
-  onOpenPromotion: () => void;
+  onOpenPromotion?: () => void;
 };
 
-export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, gamesMessage, onOpenPromotion }: Props) {
+export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, gamesMessage, onOpenPromotion = () => undefined }: Props) {
   const configuredBanners = Array.isArray(content.banners) ? content.banners.filter((item) => item.enabled) : [];
   const banners = configuredBanners.length ? configuredBanners : PROJECT_FALLBACK_BANNERS;
   const announcements = Array.isArray(content.announcements) ? content.announcements.filter((item) => item.enabled) : [];
