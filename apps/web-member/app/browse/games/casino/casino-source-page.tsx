@@ -22,21 +22,19 @@ const CASINO_PROVIDERS = [
 
 type CasinoProvider = (typeof CASINO_PROVIDERS)[number];
 
-function providerAsset(kind: '1_1_v' | '1_1_bg' | '1_1_title' | '1_1_avatar', id: string) {
-  return `${PROVIDER_ROOT}/${kind}/${id}.png`;
+function providerCardAsset(id: string) {
+  return `${PROVIDER_ROOT}/1_1_v/${id}.png`;
 }
 
 export default function CasinoSourcePage() {
   const { ready, isLoggedIn } = useMemberSession();
   const [newOnly, setNewOnly] = useState(false);
-  const [activeProviderId, setActiveProviderId] = useState<string | null>(null);
 
   const visibleProviders = useMemo(
     () => (newOnly ? CASINO_PROVIDERS.filter((provider) => provider.isNew) : CASINO_PROVIDERS),
     [newOnly],
   );
 
-  const activeProvider = CASINO_PROVIDERS.find((provider) => provider.id === activeProviderId) ?? null;
   const loginNext = encodeURIComponent('/browse/games?category=casino');
 
   function gameHref(provider: CasinoProvider) {
@@ -47,23 +45,13 @@ export default function CasinoSourcePage() {
 
   function clearFilters() {
     setNewOnly(false);
-    setActiveProviderId(null);
   }
 
   return (
     <main className={styles.page} data-casino-source="true" aria-labelledby="casino-page-title">
       <div className={styles.backgroundStack} data-casino-background aria-hidden="true">
-        {CASINO_PROVIDERS.map((provider) => (
-          <img
-            key={`background-${provider.id}`}
-            className={`${styles.providerBackground}${activeProviderId === provider.id ? ` ${styles.isActive}` : ''}`}
-            src={providerAsset('1_1_bg', provider.id)}
-            alt=""
-            loading="lazy"
-          />
-        ))}
         <img
-          className={`${styles.baseBackground}${activeProvider ? ` ${styles.baseBackgroundMuted}` : ''}`}
+          className={styles.baseBackground}
           src={`${CASINO_ROOT}/bg_casino.webp`}
           alt=""
         />
@@ -75,30 +63,10 @@ export default function CasinoSourcePage() {
         <div className={styles.content} data-casino-content>
           <header className={styles.hero} data-casino-hero>
             <img
-              className={`${styles.casinoLogo}${activeProvider ? ` ${styles.casinoLogoHidden}` : ''}`}
+              className={styles.casinoLogo}
               src={`${CASINO_ROOT}/logo_casino.webp`}
               alt="คาสิโน"
             />
-
-            {CASINO_PROVIDERS.map((provider) => (
-              <img
-                key={`title-${provider.id}`}
-                className={`${styles.providerTitle}${activeProviderId === provider.id ? ` ${styles.isActive}` : ''}`}
-                src={providerAsset('1_1_title', provider.id)}
-                alt={provider.name}
-                loading="lazy"
-              />
-            ))}
-
-            {CASINO_PROVIDERS.map((provider) => (
-              <img
-                key={`avatar-${provider.id}`}
-                className={`${styles.providerAvatar}${activeProviderId === provider.id ? ` ${styles.isActive}` : ''}`}
-                src={providerAsset('1_1_avatar', provider.id)}
-                alt=""
-                loading="lazy"
-              />
-            ))}
           </header>
 
           <div className={styles.layout} data-casino-layout>
@@ -138,20 +106,16 @@ export default function CasinoSourcePage() {
                     key={provider.id}
                     className={styles.card}
                     data-casino-card
-                    onMouseEnter={() => setActiveProviderId(provider.id)}
-                    onMouseLeave={() => setActiveProviderId(null)}
                   >
                     <div className={styles.cardMedia}>
                       {provider.isNew ? <NewBadge /> : null}
                       <a
                         className={styles.cardLink}
                         href={gameHref(provider)}
-                        onFocus={() => setActiveProviderId(provider.id)}
-                        onBlur={() => setActiveProviderId(null)}
                         aria-label={`เปิด ${provider.name}`}
                       >
                         <img
-                          src={providerAsset('1_1_v', provider.id)}
+                          src={providerCardAsset(provider.id)}
                           alt={provider.providerId}
                           loading="lazy"
                         />

@@ -1,0 +1,59 @@
+/* Final owner for the desktop home sidebar scroll contract.
+ * The jackpot rail follows the viewport only while the home content grid is active,
+ * then stops at the bottom of that grid before the alliance band and footer.
+ */
+
+@media (min-width: 1024px) {
+  body:has(.desktop-reference-home),
+  body:has(.desktop-reference-home) .public-game-shell,
+  body:has(.desktop-reference-home) .public-game-shell__content,
+  .desktop-reference-home,
+  .desktop-reference-home > .desktop-home__body,
+  .desktop-reference-home .reference-main-column {
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home > .desktop-home__body {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 360px !important;
+    align-items: start !important;
+    gap: 15px !important;
+    width: min(1455px, calc(100vw - 30px)) !important;
+    max-width: 1455px !important;
+    margin-inline: auto !important;
+    contain: none !important;
+  }
+
+  .desktop-reference-home .reference-main-column {
+    min-width: 0 !important;
+    align-self: stretch !important;
+  }
+
+  .desktop-reference-home .reference-sidebar {
+    position: sticky !important;
+    inset: auto !important;
+    top: 100px !important;
+    z-index: 20 !important;
+    align-self: start !important;
+    width: 360px !important;
+    min-width: 360px !important;
+    max-width: 360px !important;
+    height: max-content !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .desktop-reference-home .reference-sidebar {
+    position: static !important;
+    inset: auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+}

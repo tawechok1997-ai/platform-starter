@@ -7,6 +7,7 @@ import { useMemberSession } from '../../member-session-provider';
 import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from '../reference-asset-catalog';
 import { DesktopHeroCarousel } from './desktop-hero-carousel';
 import { DesktopJackpotCard } from './desktop-jackpot-card';
+import DesktopMiniGameSource from './desktop-mini-game-source';
 import { SourceLiveSection, SourceOnlineSection, SourcePopularSection } from './member-source-feed-sections';
 import { DesktopTournamentBoard } from './desktop-tournament-board';
 import {
@@ -147,13 +148,7 @@ export function DesktopHomeScaffold({ content, siteName, showPromotion, games, i
               </div>
             ))}
           </section>
-          <section className="reference-side-card reference-mini-games">
-            <header><span className="reference-side-title"><AssetIcon configured={V47_ASSETS.miniGame} fallback="⚡" className="reference-side-icon" /><strong>Mini Game</strong></span></header>
-            <div>
-              <a href="/?auth=login"><AssetIcon configured={V47_ASSETS.miniGameWheel} fallback="วงล้อ" className="reference-mini-icon" /><span>วงล้อ</span></a>
-              <a href="/?auth=login"><AssetIcon configured={V47_ASSETS.miniGameMission} fallback="ภารกิจ" className="reference-mini-icon" /><span>ทำภารกิจ</span></a>
-            </div>
-          </section>
+          <DesktopMiniGameSource />
         </aside>
       </div>
     </section>
