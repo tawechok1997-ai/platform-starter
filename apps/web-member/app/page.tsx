@@ -9,7 +9,7 @@ import { useSiteSettings } from './site-settings-provider';
 type BrandStyle = CSSProperties & Record<`--${string}`, string>;
 
 export default function Page() {
-  const { typedSettings, ready } = useSiteSettings();
+  const { typedSettings } = useSiteSettings();
   const { website, branding, theme, maintenance, features, icons } = typedSettings;
 
   const featureFlags: MemberFeatureFlags = {
@@ -41,8 +41,6 @@ export default function Page() {
     '--color-success': branding.success_color,
     '--color-danger': branding.danger_color,
   };
-
-  if (!ready) return <main className="member-loading-screen">กำลังโหลดการตั้งค่า...</main>;
 
   if (maintenanceEnabled) {
     return <main className="member-ui-page member-maintenance"><div className="member-ui-container"><MemberCard tone="warning"><p className="member-maintenance__eyebrow">Maintenance</p><h1>{website.site_name}</h1><p>{maintenance.message}</p></MemberCard></div></main>;
