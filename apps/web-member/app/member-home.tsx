@@ -66,40 +66,35 @@ export default function MemberHome(props: MemberHomeProps) {
     setPopupClosed(true);
   }
 
-  const desktopHome = (
-    <DesktopHomeScaffold
-      content={props.cmsContent}
-      icons={icons}
-      siteName={props.siteName}
-      showPromotion={props.showPromotion && features.games}
-      games={gameSections}
-      isGamesLoading={data.isGamesLoading}
-      gamesMessage={data.gamesMessage}
-    />
-  );
-
-  const mobileHome = (
-    <MobileV47Scaffold
-      content={props.cmsContent}
-      icons={icons}
-      siteName={props.siteName}
-      games={gameSections}
-      isGamesLoading={data.isGamesLoading}
-      gamesMessage={data.gamesMessage}
-    />
-  );
+  let homeContent = null;
+  if (viewportMode === 'desktop') {
+    homeContent = (
+      <DesktopHomeScaffold
+        content={props.cmsContent}
+        icons={icons}
+        siteName={props.siteName}
+        showPromotion={props.showPromotion && features.games}
+        games={gameSections}
+        isGamesLoading={data.isGamesLoading}
+        gamesMessage={data.gamesMessage}
+      />
+    );
+  } else if (viewportMode === 'mobile') {
+    homeContent = (
+      <MobileV47Scaffold
+        content={props.cmsContent}
+        icons={icons}
+        siteName={props.siteName}
+        games={gameSections}
+        isGamesLoading={data.isGamesLoading}
+        gamesMessage={data.gamesMessage}
+      />
+    );
+  }
 
   return (
     <>
-      {viewportMode === 'desktop' ? desktopHome : null}
-      {viewportMode === 'mobile' ? mobileHome : null}
-      {viewportMode === null ? (
-        <div className="member-home-initial-shell" aria-hidden="true">
-          {desktopHome}
-          {mobileHome}
-        </div>
-      ) : null}
-
+      {homeContent}
       {props.cmsContent.popup.enabled && !popupClosed && (
         <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
       )}
