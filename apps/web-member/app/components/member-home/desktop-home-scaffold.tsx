@@ -19,7 +19,7 @@ import {
 import { V47_ASSETS } from './v47-asset-map';
 
 type DesktopGameSections = { featured: Game[]; popular: Game[]; recent: Game[]; favorites: Game[] };
-type DesktopHomeProps = { content: CmsContent; icons: SiteIconSettings; siteName: string; showPromotion: boolean; games: DesktopGameSections; isGamesLoading: boolean; gamesMessage: string };
+type DesktopHomeProps = { content: CmsContent; icons: SiteIconSettings; siteName: string; showPromotion: boolean; games: DesktopGameSections; isGamesLoading: boolean; gamesMessage: string; onOpenPromotion: () => void };
 type PromoCard = { title: string; subtitle: string; href: string; aliases: string[]; fallback: string; assetUrl: string; backgroundUrl: string };
 type ArchiveGame = { name: string; imageUrl: string };
 type GuideFaq = { question: string; answer: string };
@@ -49,7 +49,7 @@ const LEADERBOARD_ITEMS = [
   { name: 'Funky Fortunes', user: '048XXXXX31', wins: '1,351', image: ARCHIVE_GAMES[6]!.imageUrl },
 ] as const;
 
-export function DesktopHomeScaffold({ content, siteName, showPromotion, games, isGamesLoading, gamesMessage }: DesktopHomeProps) {
+export function DesktopHomeScaffold({ content, siteName, showPromotion, games, isGamesLoading, gamesMessage, onOpenPromotion }: DesktopHomeProps) {
   const { isLoggedIn } = useMemberSession();
   const configuredFaqs = Array.isArray(content?.faqs) ? content.faqs.filter((faq) => faq?.enabled).slice(0, 5) : [];
   const guideFaqs = completeFaqs(configuredFaqs);
@@ -92,11 +92,33 @@ export function DesktopHomeScaffold({ content, siteName, showPromotion, games, i
           <section className="reference-promo-row" aria-label="โปรโมชั่น กิจกรรม และข่าวสาร">
             {PROMO_CARDS.map((card, index) => {
               const asset = findCmsAsset(content, card.aliases);
-              return (
-                <a key={card.title} href={card.href} className={`reference-promo-card reference-promo-card--${index + 1}`}>
+              const contentNode = (
+                <>
                   <img className="reference-promo-background" src={card.backgroundUrl} alt="" aria-hidden="true" onError={hideBrokenImage} />
                   <AssetIcon asset={asset} configured={card.assetUrl} fallback={card.fallback} className="reference-promo-icon" />
                   <span className="reference-promo-copy"><strong>{card.title}</strong><small>{card.subtitle}</small></span>
+                </>
+              );
+
+              return index === 0 ? (
+                <a
+                  key={card.title}
+                  className="reference-promo-card reference-promo-card--1"
+                  role="button"
+                  tabIndex={0}
+                  onClick={onOpenPromotion}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      onOpenPromotion();
+                    }
+                  }}
+                >
+                  {contentNode}
+                </a>
+              ) : (
+                <a key={card.title} href={card.href} className={`reference-promo-card reference-promo-card--${index + 1}`}>
+                  {contentNode}
                 </a>
               );
             })}
