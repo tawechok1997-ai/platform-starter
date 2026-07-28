@@ -165,7 +165,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
   return createPortal(
     <dialog
       ref={dialogRef}
-      className={styles.nativeDialog}
+      className="public-native-dialog"
       data-public-dialog-overlay="guide"
       aria-labelledby="usage-guide-title"
       onCancel={(event) => {
