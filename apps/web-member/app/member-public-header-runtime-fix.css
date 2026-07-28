@@ -15,6 +15,11 @@
     z-index: 1000 !important;
   }
 
+  body:has(.desktop-reference-home) .desktop-reference-home.desktop-home {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
   .public-home-topbar .member-actions,
   .public-home-topbar .member-guest-actions,
   .public-home-topbar .member-guest-action {
