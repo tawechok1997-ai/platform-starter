@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { canAccessPath, navGroups, requiredPermissionsForPath } from '../../../app/(admin)/admin-nav';
 import {
   ADMIN_ROUTE_DENY_SENTINEL,
   buildRouteTestCoverage,
@@ -36,6 +37,21 @@ test('settings editors receive explicit task, parent, localization and mobile co
   assert.equal(localizationNamespaceFor('/settings/seo', 'admin.navigation.settings.label'), 'admin.navigation.settings');
   assert.equal(inferDesktopPattern('editor', '<form />'), 'editor');
   assert.equal(inferMobilePattern('editor', 'full-screen-workspace', 'editor'), 'full-screen-sheet');
+});
+
+test('settings navigation and direct routes use the same minimum view permissions as their pages', () => {
+  const administration = navGroups.find((group) => group.id === 'administration');
+  const settingsItem = administration?.items.find((item) => item.href === '/settings');
+  assert.ok(settingsItem?.permissions?.includes('settings.seo.view'));
+  assert.ok(settingsItem?.permissions?.includes('settings.branding.view'));
+  assert.ok(settingsItem?.permissions?.includes('settings.features.view'));
+
+  assert.deepEqual(requiredPermissionsForPath('/settings/seo'), ['settings.seo.view']);
+  assert.deepEqual(requiredPermissionsForPath('/settings/icons'), ['settings.branding.view']);
+  assert.deepEqual(requiredPermissionsForPath('/settings/branding/history'), ['settings.branding.view']);
+  assert.deepEqual(requiredPermissionsForPath('/settings/maintenance'), ['settings.maintenance.view']);
+  assert.equal(canAccessPath('/settings/seo', ['settings.website.view']), false);
+  assert.equal(canAccessPath('/settings/seo', ['settings.seo.view']), true);
 });
 
 test('data source and test evidence are never empty', () => {
