@@ -8,5 +8,7 @@ const productionSecretPattern = /(?:password|passwd)\s*[=:]\s*["'][^"']{12,}["']
 test('register copy does not resemble a committed production password', () => {
   assert.doesNotMatch(source, productionSecretPattern);
   assert.match(source, /password:\s*`สร้างรหัสผ่าน`/);
+  assert.match(source, /confirmPassword:\s*`ยืนยันรหัสผ่านอีกครั้ง`/);
   assert.match(source, /password:\s*`Create password`/);
+  assert.match(source, /confirmPassword:\s*`Confirm password`/);
 });
