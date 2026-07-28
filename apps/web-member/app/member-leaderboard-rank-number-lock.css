@@ -1,0 +1,41 @@
+/* Show the real row rank over the top-three medal artwork.
+ * CSS counters follow the rendered leaderboard rows, so this does not depend on
+ * header sibling positions or nth-of-type guesses.
+ */
+
+@media (min-width: 1024px) {
+  .desktop-reference-home .reference-leaderboard {
+    counter-reset: leaderboard-rank !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) {
+    counter-increment: leaderboard-rank !important;
+  }
+
+  .desktop-reference-home .reference-rank-medal:has(> img) {
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .reference-rank-medal:has(> img)::after {
+    content: counter(leaderboard-rank) !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    z-index: 2 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 14px !important;
+    height: 14px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #fff !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 85%) !important;
+    transform: translate(-50%, -50%) !important;
+    pointer-events: none !important;
+  }
+}
