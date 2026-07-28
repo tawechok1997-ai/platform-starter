@@ -2,13 +2,11 @@ const IMAGE_ROOT = '/assets/asset-pc/images';
 
 const MINI_GAME_ACTIONS = [
   {
-    key: 'wheel',
     label: 'วงล้อ',
     image: `${IMAGE_ROOT}/mini_game/icon-luckywheel-dt.webp`,
     href: '/?auth=login',
   },
   {
-    key: 'mission',
     label: 'ทำภารกิจ',
     image: `${IMAGE_ROOT}/mini_game/icon-dailymission-dt.webp`,
     href: '/?auth=login',
@@ -38,17 +36,13 @@ export default function DesktopMiniGameSource() {
 
       <div className="mini-game-source-actions">
         {MINI_GAME_ACTIONS.map((action) => (
-          <a
-            key={action.key}
-            href={action.href}
-            className={`mini-game-source-action mini-game-source-action--${action.key}`}
-          >
+          <a key={action.label} href={action.href} className="mini-game-source-action">
             <span className="mini-game-source-border">
               <span className="mini-game-source-inner">
                 <span className="mini-game-source-content">
                   <img
                     loading="lazy"
-                    className={`mini-game-source-icon mini-game-source-icon--${action.key}`}
+                    className="mini-game-source-icon"
                     src={action.image}
                     alt=""
                     aria-hidden="true"
@@ -67,23 +61,22 @@ export default function DesktopMiniGameSource() {
         }
 
         .mini-game-source-actions {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          display: flex;
           align-items: center;
           box-sizing: border-box;
           width: 100%;
           min-width: 0;
-          gap: 10px;
-          padding: 20px 14px 22px;
+          gap: 8px;
+          padding: 20px 12px;
           overflow: visible;
         }
 
         .mini-game-source-action {
-          position: relative;
           display: block;
+          flex: 1 1 100%;
           min-width: 0;
           height: 46px;
-          margin: 0;
+          margin-left: 16px;
           padding: 0;
           overflow: visible;
           border: 0;
@@ -116,81 +109,58 @@ export default function DesktopMiniGameSource() {
         }
 
         .mini-game-source-content {
-          position: relative;
           display: flex;
           align-items: center;
           box-sizing: border-box;
           width: 100%;
           min-width: 0;
           height: 42px;
-          padding: 0 6px 0 52px;
+          margin-left: -20px;
           overflow: visible;
         }
 
         .mini-game-source-icon {
-          position: absolute;
-          top: 50%;
-          z-index: 1;
+          position: static;
           display: block;
+          flex: 0 0 auto;
+          width: auto;
+          height: 90px;
           max-width: none;
+          margin-inline: -15px;
           object-fit: contain;
-          object-position: center;
-          transform: translateY(-50%);
+          transform: none;
           pointer-events: none;
         }
 
-        .mini-game-source-icon--wheel {
-          left: -8px;
-          width: 62px;
-          height: 62px;
-        }
-
-        .mini-game-source-icon--mission {
-          left: -4px;
-          width: 56px;
-          height: 56px;
-          object-position: left center;
-        }
-
         .mini-game-source-label {
-          position: relative;
-          z-index: 2;
           display: block;
           flex: 1 1 auto;
           min-width: 0;
+          padding-right: 8px;
           color: #fff;
-          font-size: 16px;
+          font-size: 20px;
           font-weight: 600;
-          line-height: 22px;
+          line-height: 24px;
           text-align: center;
           white-space: nowrap;
         }
 
         @media (max-width: 1180px) {
-          .mini-game-source-actions {
-            gap: 8px;
-            padding-inline: 12px;
+          .mini-game-source-action {
+            margin-left: 12px;
           }
 
           .mini-game-source-content {
-            padding-left: 48px;
-            padding-right: 4px;
+            margin-left: -18px;
           }
 
-          .mini-game-source-icon--wheel {
-            left: -7px;
-            width: 58px;
-            height: 58px;
-          }
-
-          .mini-game-source-icon--mission {
-            left: -3px;
-            width: 52px;
-            height: 52px;
+          .mini-game-source-icon {
+            height: 82px;
+            margin-inline: -14px;
           }
 
           .mini-game-source-label {
-            font-size: 15px;
+            font-size: 18px;
           }
         }
       `}</style>
