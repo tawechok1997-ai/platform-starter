@@ -19,7 +19,7 @@ import {
 import { V47_ASSETS } from './v47-asset-map';
 
 type DesktopGameSections = { featured: Game[]; popular: Game[]; recent: Game[]; favorites: Game[] };
-type DesktopHomeProps = { content: CmsContent; icons: SiteIconSettings; siteName: string; showPromotion: boolean; games: DesktopGameSections; isGamesLoading: boolean; gamesMessage: string; onOpenPromotion: () => void };
+type DesktopHomeProps = { content: CmsContent; icons: SiteIconSettings; siteName: string; showPromotion: boolean; games: DesktopGameSections; isGamesLoading: boolean; gamesMessage: string; onOpenPromotion?: () => void };
 type PromoCard = { title: string; subtitle: string; href: string; aliases: string[]; fallback: string; assetUrl: string; backgroundUrl: string };
 type ArchiveGame = { name: string; imageUrl: string };
 type GuideFaq = { question: string; answer: string };
@@ -49,7 +49,7 @@ const LEADERBOARD_ITEMS = [
   { name: 'Funky Fortunes', user: '048XXXXX31', wins: '1,351', image: ARCHIVE_GAMES[6]!.imageUrl },
 ] as const;
 
-export function DesktopHomeScaffold({ content, siteName, showPromotion, games, isGamesLoading, gamesMessage, onOpenPromotion }: DesktopHomeProps) {
+export function DesktopHomeScaffold({ content, siteName, showPromotion, games, isGamesLoading, gamesMessage, onOpenPromotion = () => undefined }: DesktopHomeProps) {
   const { isLoggedIn } = useMemberSession();
   const configuredFaqs = Array.isArray(content?.faqs) ? content.faqs.filter((faq) => faq?.enabled).slice(0, 5) : [];
   const guideFaqs = completeFaqs(configuredFaqs);
