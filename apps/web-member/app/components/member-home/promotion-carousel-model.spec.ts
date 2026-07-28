@@ -26,9 +26,9 @@ test('uses enabled CMS banners and accepts only safe internal links', () => {
   const content: CmsContent = {
     ...emptyContent,
     banners: [
-      { title: 'Safe', subtitle: '', imageUrl: 'https://cdn.example.com/safe.jpg', href: '/promotions/safe', enabled: true },
-      { title: 'Unsafe', subtitle: '', imageUrl: 'https://cdn.example.com/unsafe.jpg', href: 'https://evil.example', enabled: true },
-      { title: 'Disabled', subtitle: '', imageUrl: 'https://cdn.example.com/off.jpg', href: '/off', enabled: false },
+      { id: 'safe-banner', title: 'Safe', subtitle: '', imageUrl: 'https://cdn.example.com/safe.jpg', href: '/promotions/safe', enabled: true },
+      { id: 'unsafe-banner', title: 'Unsafe', subtitle: '', imageUrl: 'https://cdn.example.com/unsafe.jpg', href: 'https://evil.example', enabled: true },
+      { id: 'disabled-banner', title: 'Disabled', subtitle: '', imageUrl: 'https://cdn.example.com/off.jpg', href: '/off', enabled: false },
     ],
   };
 

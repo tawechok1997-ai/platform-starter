@@ -49,6 +49,10 @@ function isServerProxyRoute(path) {
   return /^apps\/web-(?:admin|member)\/app\/api\/.+\/route\.(?:ts|js)$/.test(path);
 }
 
+function isTestFile(path) {
+  return /\.(?:spec|test)\.(?:ts|tsx|js|jsx)$/.test(path);
+}
+
 function isAllowedTransportBoundary(path) {
   return allowedTransportBridges.has(path) || isServerProxyRoute(path);
 }
@@ -83,6 +87,7 @@ for (const app of appRoots) {
       if (allowedTransportBridges.has(path)) existingBridges += 1;
       continue;
     }
+    if (isTestFile(path)) continue;
     violations.push(...findViolations(source, path, forbidden, { app: app.name }));
   }
 
@@ -96,7 +101,7 @@ const packageFiles = await walk(packageRoot);
 const packageViolations = [];
 for (const file of packageFiles) {
   const path = normalize(file);
-  if (path.endsWith('.test.ts') || path.endsWith('.test.tsx')) continue;
+  if (isTestFile(path)) continue;
   const source = await readFile(file, 'utf8');
   packageViolations.push(...findViolations(source, path, forbiddenPackageBoundaries, { app: 'api-client' }));
 }

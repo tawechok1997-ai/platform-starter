@@ -1,9 +1,9 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { BrowsePromotionDetail } from '../../public-browse';
+import { BrowsePromotionDetailCms } from '../../browse-promotion-detail-cms';
 
 export default function PublicPromotionDetailPage() {
   const params = useParams<{ promotionId: string }>();
-  return <BrowsePromotionDetail id={params.promotionId} />;
+  return <BrowsePromotionDetailCms id={params.promotionId} />;
 }

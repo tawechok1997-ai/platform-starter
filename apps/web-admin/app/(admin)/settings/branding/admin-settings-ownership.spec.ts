@@ -8,7 +8,8 @@ const websiteSource = readFileSync(new URL('../website/page.tsx', import.meta.ur
 const iconConfigSource = readFileSync(new URL('../icons/icon-settings-config.ts', import.meta.url), 'utf8');
 const settingsSectionSource = readFileSync(new URL('../settings-section-page.tsx', import.meta.url), 'utf8');
 const promotionRouteSource = readFileSync(new URL('../../promotion-center/page.tsx', import.meta.url), 'utf8');
-const promotionFeatureSource = readFileSync(new URL('../../../../src/features/cms/promotion-center-page.tsx', import.meta.url), 'utf8');
+const promotionFeatureBoundarySource = readFileSync(new URL('../../../../src/features/cms/promotion-center-page.tsx', import.meta.url), 'utf8');
+const promotionFeatureSource = readFileSync(new URL('../../../../src/features/cms/promotion-center-media-page.tsx', import.meta.url), 'utf8');
 const gameApiSource = readFileSync(new URL('../../game-api-settings/page.tsx', import.meta.url), 'utf8');
 
 const websiteOnlyKeys = [
@@ -79,6 +80,8 @@ test('branding asset lifecycle keeps one shared upload transport', () => {
 test('promotion center owns campaign records and remains a thin route boundary', () => {
   assert.match(promotionRouteSource, /features\/cms\/promotion-center-page/);
   assert.doesNotMatch(promotionRouteSource, /adminApiFetch|useState/);
+  assert.match(promotionFeatureBoundarySource, /promotion-center-media-page/);
+  assert.doesNotMatch(promotionFeatureBoundarySource, /adminApiFetch|useState/);
   assert.match(promotionFeatureSource, /promotion_campaigns/);
   assert.match(promotionFeatureSource, /imageUrl/);
   assert.match(promotionFeatureSource, /iconUrl/);

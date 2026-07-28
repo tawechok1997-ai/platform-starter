@@ -6,7 +6,8 @@ import test from 'node:test';
 const appRoot = path.resolve(process.cwd(), 'app');
 const routeLayout = readFileSync(path.join(appRoot, '(admin)/content-center/layout.tsx'), 'utf8');
 const scopedCss = readFileSync(path.join(appRoot, 'admin-modern-content-center.css'), 'utf8');
-const featureSource = readFileSync(path.resolve(process.cwd(), 'src/features/cms/content-center-page.tsx'), 'utf8');
+const featureBoundarySource = readFileSync(path.resolve(process.cwd(), 'src/features/cms/content-center-page.tsx'), 'utf8');
+const featureSource = readFileSync(path.resolve(process.cwd(), 'src/features/cms/content-center-media-page.tsx'), 'utf8');
 
 test('loads Content Center polish only inside its route scope', () => {
   assert.equal(routeLayout.includes("import '../../admin-modern-content-center.css';"), true);
@@ -16,6 +17,8 @@ test('loads Content Center polish only inside its route scope', () => {
 });
 
 test('keeps CMS lifecycle, storage and unsaved-change contracts feature owned', () => {
+  assert.equal(featureBoundarySource.includes('content-center-media-page'), true);
+  assert.equal(featureBoundarySource.includes('adminApiFetch'), false);
   assert.equal(featureSource.includes("adminApiFetch('/admin/settings/features'"), true);
   assert.equal(featureSource.includes("adminApiFetch('/admin/settings/cms-assets'"), true);
   assert.equal(featureSource.includes('AdminUnsavedChangesNotice'), true);
