@@ -11,7 +11,6 @@ import {
 import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
 import { MobileV47Scaffold } from './components/member-home/mobile-v47-scaffold';
-import PublicHomeGameNavigationController from './components/member-home/public-home-game-navigation-controller';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
 type MemberHomeProps = {
@@ -98,7 +97,6 @@ export default function MemberHome(props: MemberHomeProps) {
 
   return (
     <>
-      <PublicHomeGameNavigationController />
       {homeContent}
       {props.cmsContent.popup.enabled && !popupClosed && (
         <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
