@@ -153,15 +153,31 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
   if (!open || typeof document === 'undefined') return null;
 
   return createPortal(
-    <div className={styles.backdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="usage-guide-title">
+    <div
+      className={`${styles.backdrop} public-dialog-runtime-overlay`}
+      data-public-dialog-overlay="guide"
+      role="presentation"
+      onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
+    >
+      <section
+        className={`${styles.modal} public-dialog-runtime public-dialog-runtime--guide`}
+        data-public-dialog="guide"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="usage-guide-title"
+      >
         <div className={styles.topLine} aria-hidden="true" />
-        <header className={styles.header}>
+        <header className={`${styles.header} public-dialog-runtime-header`}>
           <div className={styles.heading}>
             <span className={styles.iconBox}><img src="/images/usage-guide-icon.svg" alt="" aria-hidden="true" /></span>
             <h2 id="usage-guide-title">แนะนำการใช้งาน</h2>
           </div>
-          <button type="button" className={styles.close} onClick={onClose} aria-label="ปิดหน้าต่าง">
+          <button
+            type="button"
+            className={`${styles.close} public-dialog-runtime-close`}
+            onClick={onClose}
+            aria-label="ปิดหน้าต่าง"
+          >
             <img src="/images/close.svg" width="16" height="16" alt="" aria-hidden="true" />
           </button>
         </header>
