@@ -111,21 +111,7 @@ export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, ga
 function QuickCard({ icon, title, href, onClick }: { icon: string; title: string; href?: string; onClick?: () => void }) {
   const content = <><Icon value={icon} /><strong>{title}</strong></>;
   if (onClick) {
-    return (
-      <a
-        role="button"
-        tabIndex={0}
-        onClick={onClick}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            onClick();
-          }
-        }}
-      >
-        {content}
-      </a>
-    );
+    return <button type="button" className="v47-mobile-quick-card" onClick={onClick}>{content}</button>;
   }
   return <a href={href}>{content}</a>;
 }
