@@ -42,7 +42,7 @@ export default function CasinoSourcePage() {
   function gameHref(provider: CasinoProvider) {
     return ready && isLoggedIn
       ? `/games?category=casino&provider=${encodeURIComponent(provider.id)}`
-      : `/login?next=${loginNext}`;
+      : `/?auth=login&next=${loginNext}`;
   }
 
   function clearFilters() {
@@ -51,8 +51,8 @@ export default function CasinoSourcePage() {
   }
 
   return (
-    <main className={styles.page} style={{ isolation: 'isolate' }} aria-labelledby="casino-page-title">
-      <div className={styles.backgroundStack} style={{ zIndex: 0 }} aria-hidden="true">
+    <main className={styles.page} data-casino-source="true" aria-labelledby="casino-page-title">
+      <div className={styles.backgroundStack} data-casino-background aria-hidden="true">
         {CASINO_PROVIDERS.map((provider) => (
           <img
             key={`background-${provider.id}`}
@@ -71,9 +71,9 @@ export default function CasinoSourcePage() {
         <div className={styles.darkFade} />
       </div>
 
-      <div className={styles.viewport} style={{ zIndex: 10 }}>
-        <div className={styles.content}>
-          <header className={styles.hero}>
+      <div className={styles.viewport} data-casino-viewport>
+        <div className={styles.content} data-casino-content>
+          <header className={styles.hero} data-casino-hero>
             <img
               className={`${styles.casinoLogo}${activeProvider ? ` ${styles.casinoLogoHidden}` : ''}`}
               src={`${CASINO_ROOT}/logo_casino.webp`}
@@ -101,8 +101,8 @@ export default function CasinoSourcePage() {
             ))}
           </header>
 
-          <div className={styles.layout}>
-            <aside className={styles.filterPanel} aria-label="ตัวกรองคาสิโน">
+          <div className={styles.layout} data-casino-layout>
+            <aside className={styles.filterPanel} data-casino-filter aria-label="ตัวกรองคาสิโน">
               <div className={styles.filterGlow} aria-hidden="true" />
               <div className={styles.filterTitle}><h2>ตัวกรอง</h2></div>
 
@@ -129,14 +129,15 @@ export default function CasinoSourcePage() {
               </div>
             </aside>
 
-            <section className={styles.catalog}>
+            <section className={styles.catalog} data-casino-catalog>
               <h1 id="casino-page-title">คาสิโน ({visibleProviders.length} เกม)</h1>
 
-              <div className={styles.grid}>
+              <div className={styles.grid} data-casino-grid>
                 {visibleProviders.map((provider) => (
                   <article
                     key={provider.id}
                     className={styles.card}
+                    data-casino-card
                     onMouseEnter={() => setActiveProviderId(provider.id)}
                     onMouseLeave={() => setActiveProviderId(null)}
                   >
