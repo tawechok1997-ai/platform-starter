@@ -50,6 +50,12 @@ test('shared settings system exposes professional form states', () => {
   assert.match(hook, /lastSavedAt/);
 });
 
+test('shared settings keeps strict optional props and supported confirmation tones', () => {
+  assert.match(shared, /error: string \| undefined/);
+  assert.match(shared, /tone=\{risk === 'critical' \? 'danger' : 'primary'\}/);
+  assert.doesNotMatch(shared, /tone=\{risk === 'critical' \? 'danger' : 'warning'\}/);
+});
+
 test('every standard settings route uses the shared system', () => {
   for (const route of genericRoutes) {
     assert.match(source(route), /SettingsSectionPage/, `${route} must use SettingsSectionPage`);
