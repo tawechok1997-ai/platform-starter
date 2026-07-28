@@ -77,7 +77,7 @@ export default function SettingsPage() {
   const needle = query.trim().toLowerCase();
 
   const allowedItems = useMemo(() => ITEMS.filter((settingsItem) => (
-    permission.can(`${settingsItem.permissionBase}.view`) || permission.can(`${settingsItem.permissionBase}.update`)
+    permission.can(`${settingsItem.permissionBase}.view`)
   )), [permission]);
 
   const visibleItems = useMemo(() => allowedItems.filter((settingsItem) => {

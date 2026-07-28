@@ -86,7 +86,7 @@ export default function SettingsSectionPage({
   const resolvedDefaults = defaults ?? EMPTY_DEFAULTS;
   const permission = useAdminPermissions();
   const resolvedPermissionBase = permissionBase ?? `settings.${group}`;
-  const canView = permission.can(`${resolvedPermissionBase}.view`) || permission.can(`${resolvedPermissionBase}.update`);
+  const canView = permission.can(`${resolvedPermissionBase}.view`);
   const canUpdate = permission.can(`${resolvedPermissionBase}.update`);
   const canUploadAssets = canUpdate && permission.can('settings.features.update');
   const canLoad = permission.ready && canView;

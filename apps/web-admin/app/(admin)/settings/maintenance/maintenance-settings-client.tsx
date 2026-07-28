@@ -65,7 +65,7 @@ const SERVICE_OPTIONS: Array<{
 
 export default function MaintenanceSettingsClient() {
   const permission = useAdminPermissions();
-  const canView = permission.can('settings.maintenance.view') || permission.can('settings.maintenance.update');
+  const canView = permission.can('settings.maintenance.view');
   const canUpdate = permission.can('settings.maintenance.update');
   const {
     form,
