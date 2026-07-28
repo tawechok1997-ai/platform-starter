@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   CmsContent,
   MemberFeatureFlags,
@@ -66,7 +66,7 @@ export default function MemberHome(props: MemberHomeProps) {
     setPopupClosed(true);
   }
 
-  let homeContent = null;
+  let homeContent: ReactNode = null;
   if (viewportMode === 'desktop') {
     homeContent = (
       <DesktopHomeScaffold
