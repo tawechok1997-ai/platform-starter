@@ -97,9 +97,7 @@ export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, ga
 
       <GameSection kind="popular" title="Top 10 Popular Games" icon={V47_ASSETS.gameHit} games={popular} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(0, 6)} />
       <GameSection kind="online" title="Most Online Now" icon={V47_ASSETS.mostOnline} games={online} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(6, 12)} />
-
       <section className="v47-mobile-panel v47-mobile-live" data-section-kind="live"><SectionTitle icon={V47_ASSETS.liveIcon} title="Live Now!!" action="ดูทั้งหมด" /><article><small>MEA ฟุตบอลลีก</small><div><span>บลูเวฟ ชลบุรี</span><i>VS</i><span>ภูเก็ต ยูไนเต็ด</span></div><footer><a href="/?auth=login">ดูถ่ายทอดสด</a><a href="/?auth=login">เดิมพันทันที</a></footer></article></section>
-
       <GameSection kind="classic" title="Classic Games" icon={V47_ASSETS.gameHit} games={classic} loading={isGamesLoading} message={gamesMessage} fallbackGames={REFERENCE_GAMES.slice(12, 18)} />
 
       <section className="v47-mobile-panel v47-mobile-guide" data-section-kind="guide"><SectionTitle icon={V47_ASSETS.openGold} title="Guide" />{(faqs.length ? faqs : fallbackFaqs()).map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}<a className="v47-mobile-guide-more" href="/guide">ดูทั้งหมด</a></section>
