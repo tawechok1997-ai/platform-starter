@@ -10,7 +10,7 @@
   height: 100%;
   padding: 16px;
   overflow: hidden;
-  background: rgb(0 0 0 / 80%);
+  background: rgb(0 0 0 / 82%);
   color: #fff;
 }
 
@@ -19,15 +19,16 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  width: min(1370px, calc(100vw - 32px));
-  max-height: 90vh;
-  padding: 20px 20px 32px;
-  gap: 32px;
+  width: min(1180px, calc(100vw - 32px));
+  height: min(760px, calc(100dvh - 32px));
+  min-height: 620px;
+  padding: 20px 20px 24px;
+  gap: 20px;
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 12%);
   border-radius: 8px;
-  background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 80%) 0%, rgb(63 59 75 / 63%) 30.08%, rgb(27 24 36 / 80%) 100%);
-  box-shadow: 0 24px 80px rgb(0 0 0 / 48%);
+  background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 96%) 0%, rgb(53 49 65 / 94%) 30.08%, rgb(27 24 36 / 98%) 100%);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 62%);
   backdrop-filter: blur(18px);
 }
 
@@ -43,10 +44,11 @@
 
 .header {
   display: flex;
+  flex: 0 0 55px;
   align-items: center;
   width: 100%;
   min-width: 0;
-  gap: 28px;
+  gap: 24px;
 }
 
 .heading {
@@ -63,7 +65,8 @@
   height: 55px;
   place-items: center;
   border-radius: 10px;
-  background: linear-gradient(360deg, rgb(21 23 29 / 60%) -5.86%, rgb(58 60 64 / 60%) 104.05%);
+  background: linear-gradient(360deg, rgb(21 23 29 / 72%) -5.86%, rgb(58 60 64 / 78%) 104.05%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 5%);
 }
 
 .headingIcon svg {
@@ -80,6 +83,7 @@
   font-weight: 700;
   line-height: 32px;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
   white-space: nowrap;
 }
 
@@ -87,13 +91,13 @@
   display: flex;
   align-items: center;
   margin-left: auto;
-  gap: 20px;
+  gap: 14px;
 }
 
 .balances {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .balance {
@@ -101,14 +105,14 @@
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
-  min-width: 100px;
-  height: 32px;
-  padding: 0 8px 0 4px;
-  gap: 10px;
-  border: 2px solid rgb(242 242 242 / 20%);
+  min-width: 106px;
+  height: 34px;
+  padding: 0 9px 0 4px;
+  gap: 9px;
+  border: 2px solid rgb(242 242 242 / 22%);
   border-radius: 30px;
   background: linear-gradient(0deg, #505050 0%, #474747 32%, #313131 79%);
-  opacity: .8;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 22%);
 }
 
 .balance img {
@@ -129,20 +133,22 @@
 }
 
 .balanceCopy strong {
+  color: #fff;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .balanceCopy span {
+  color: rgb(255 255 255 / 86%);
   font-size: 12px;
-  font-weight: 200;
+  font-weight: 400;
 }
 
 .close {
   display: grid;
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   place-items: center;
   border: 0;
@@ -154,7 +160,7 @@
 
 .close:hover,
 .close:focus-visible {
-  background: rgb(255 255 255 / 8%);
+  background: rgb(255 255 255 / 10%);
   outline: none;
 }
 
@@ -166,9 +172,9 @@
 
 .body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(560px, 1fr);
+  flex: 1 1 auto;
+  grid-template-columns: minmax(470px, 0.95fr) minmax(0, 1.05fr);
   width: 100%;
-  height: 600px;
   min-height: 0;
   gap: 8px;
 }
@@ -185,17 +191,33 @@
   display: flex;
   align-items: center;
   flex-direction: column;
-  height: 600px;
+  height: 100%;
   padding: 0 12px 8px;
   overflow-y: auto;
-  scrollbar-width: none;
+  scrollbar-color: rgb(202 128 238 / 55%) transparent;
+  scrollbar-width: thin;
 }
 
 .dailyPane::-webkit-scrollbar,
 .missionList::-webkit-scrollbar,
-.rewardStrip::-webkit-scrollbar,
 .fullRewards::-webkit-scrollbar {
-  display: none;
+  width: 5px;
+}
+
+.dailyPane::-webkit-scrollbar-thumb,
+.missionList::-webkit-scrollbar-thumb,
+.fullRewards::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(202 128 238 / 55%);
+}
+
+.rewardStrip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.rewardStrip::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(202 128 238 / 48%);
 }
 
 .dailyHeader {
@@ -203,7 +225,7 @@
   grid-template-columns: 77px minmax(0, 1fr) auto;
   align-items: center;
   width: 100%;
-  gap: 20px;
+  gap: 18px;
 }
 
 .calendarIcon {
@@ -215,17 +237,18 @@
 
 .dailyTitle {
   min-width: 0;
-  margin-top: -20px;
+  margin-top: -18px;
 }
 
 .dailyTitle strong {
   display: block;
   overflow: hidden;
-  color: rgb(202 128 238);
+  color: rgb(219 151 247);
   font-size: 18px;
   font-weight: 700;
   line-height: 26px;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
   white-space: nowrap;
 }
 
@@ -237,9 +260,10 @@
   color: #fff;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 22px;
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .monthCount {
@@ -254,6 +278,7 @@
   font-weight: 900;
   letter-spacing: .02em;
   line-height: 44px;
+  text-shadow: 0 2px 4px rgb(0 0 0 / 48%);
 }
 
 .monthCount span {
@@ -266,6 +291,7 @@
 .prizeStage {
   display: flex;
   align-items: center;
+  flex: 0 0 345px;
   flex-direction: column;
   justify-content: flex-start;
   width: 313px;
@@ -280,6 +306,7 @@
   height: 193px;
   margin-top: 35px;
   object-fit: contain;
+  filter: drop-shadow(0 10px 22px rgb(0 0 0 / 30%));
   animation: floatReward 2.8s ease-in-out infinite;
 }
 
@@ -290,22 +317,23 @@
   width: 165px;
   height: 55px;
   margin-top: -2px;
-  border: 0;
+  border: 1px solid rgb(255 255 255 / 7%);
   border-radius: 6px;
   background: #2c2c2c;
-  color: #cecece;
+  color: #e1e1e1;
   box-shadow: 0 0 48px rgb(255 220 0 / 20%);
   font-size: 21px;
   font-weight: 600;
 }
 
 .monthProgress {
+  flex: 0 0 6px;
   width: 93%;
   height: 6px;
-  margin: 10px 0 28px;
+  margin: 10px 0 24px;
   overflow: hidden;
   border-radius: 8px;
-  background: rgb(109 112 119 / 12%);
+  background: rgb(109 112 119 / 28%);
 }
 
 .monthProgress span {
@@ -321,11 +349,13 @@
   align-items: flex-start;
   box-sizing: border-box;
   width: 100%;
-  padding: 0 2px 4px;
+  min-height: 113px;
+  padding: 0 2px 6px;
   gap: 9px;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: none;
+  scrollbar-color: rgb(202 128 238 / 48%) transparent;
+  scrollbar-width: thin;
 }
 
 .rewardCard {
@@ -342,7 +372,7 @@
 }
 
 .rewardCard > span {
-  opacity: .3;
+  color: rgb(255 255 255 / 78%);
 }
 
 .rewardTile {
@@ -353,9 +383,10 @@
   width: 72px;
   height: 84px;
   padding-top: 4px;
+  border: 1px solid rgb(202 128 238 / 14%);
   border-radius: 10px;
   background: #2e0039;
-  opacity: .3;
+  opacity: .68;
 }
 
 .rewardTile img {
@@ -367,7 +398,7 @@
 
 .rewardTile strong {
   margin-top: 4px;
-  color: #b4d6e1;
+  color: #d5eff8;
   font-size: 12px;
   font-weight: 700;
 }
@@ -376,6 +407,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;
   min-height: 0;
   gap: 14px;
 }
@@ -389,20 +421,21 @@
 
 .fullRewards {
   display: grid;
-  grid-template-columns: repeat(7, 72px);
+  grid-template-columns: repeat(6, 72px);
   justify-content: center;
   width: 100%;
-  max-height: 520px;
-  padding: 2px 0 10px;
+  min-height: 0;
+  padding: 2px 4px 10px;
   gap: 12px 8px;
   overflow-y: auto;
-  scrollbar-width: none;
+  scrollbar-color: rgb(202 128 238 / 55%) transparent;
+  scrollbar-width: thin;
 }
 
 .missionPane {
   display: flex;
   flex-direction: column;
-  height: 600px;
+  height: 100%;
   padding: 0 4px 0 12px;
 }
 
@@ -412,12 +445,14 @@
   font-size: 24px;
   font-weight: 700;
   line-height: 32px;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 50%);
   text-transform: uppercase;
 }
 
 .tabs {
   display: flex;
   align-items: center;
+  flex: 0 0 42px;
   height: 42px;
   padding: 8px 0 4px;
   gap: 10px;
@@ -430,10 +465,10 @@
   justify-content: center;
   min-height: 30px;
   padding: 5px 17px;
-  border: 0;
+  border: 1px solid rgb(255 255 255 / 4%);
   border-radius: 20px;
   background: #15131a;
-  color: #7a7a7a;
+  color: #9a9a9a;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -442,18 +477,22 @@
 }
 
 .tabActive {
+  border-color: rgb(187 91 234 / 45%);
   background: #7100bd;
   color: #fff;
   font-weight: 600;
+  box-shadow: 0 3px 10px rgb(113 0 189 / 25%);
 }
 
 .missionProgress {
   display: flex;
   align-items: center;
+  flex: 0 0 28px;
   margin-top: 10px;
   gap: 10px;
   color: #fff;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .missionProgress > span {
@@ -472,7 +511,7 @@
   height: 8px;
   overflow: hidden;
   border-radius: 8px;
-  background: rgb(109 112 119 / 12%);
+  background: rgb(109 112 119 / 28%);
 }
 
 .progressTrack span {
@@ -485,30 +524,34 @@
 
 .progressLine small {
   color: #fff;
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .missionList {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  margin-top: 30px;
-  padding: 0 0 2px;
-  gap: 6px;
-  overflow-x: visible;
+  margin-top: 20px;
+  padding: 0 4px 2px 0;
+  gap: 8px;
+  overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-width: none;
+  scrollbar-color: rgb(202 128 238 / 55%) transparent;
+  scrollbar-width: thin;
 }
 
 .missionCard {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(164px, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(164px, .9fr);
   width: 100%;
-  padding: 16px;
-  gap: 8px;
+  padding: 15px 16px;
+  gap: 10px;
+  border: 1px solid rgb(76 72 88 / 58%);
   border-radius: 7px;
   background: #15131a;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 12%);
 }
 
 .missionCopy {
@@ -518,7 +561,7 @@
 .missionCopy h4 {
   margin: 0;
   overflow: hidden;
-  color: #ca80ee;
+  color: #dc9bf7;
   font-size: 16px;
   font-weight: 700;
   line-height: 24px;
@@ -527,12 +570,12 @@
 }
 
 .missionCopy p {
-  margin: 1px 0 0;
+  margin: 2px 0 0;
   overflow: hidden;
-  color: #fff;
+  color: rgb(255 255 255 / 94%);
   font-size: 14px;
   font-weight: 400;
-  line-height: 18px;
+  line-height: 20px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -542,7 +585,7 @@
   align-items: center;
   width: 248px;
   max-width: 100%;
-  margin-top: 5px;
+  margin-top: 6px;
   gap: 4px;
 }
 
@@ -552,34 +595,35 @@
 
 .cardProgress small {
   color: #fff;
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .cardLinks {
   display: flex;
   align-items: center;
-  margin-top: 3px;
-  gap: 12px;
+  margin-top: 4px;
+  gap: 8px;
 }
 
 .cardLinks button {
   display: inline-flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 1px 8px;
   gap: 4px;
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: #fff;
+  color: rgb(255 255 255 / 92%);
   cursor: pointer;
   font-size: 12px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 20px;
 }
 
 .cardLinks button:hover,
 .cardLinks button:focus-visible {
-  background: rgb(255 255 255 / 6%);
+  background: rgb(255 255 255 / 7%);
   outline: none;
 }
 
@@ -597,9 +641,9 @@
   align-items: center;
   margin-right: 14px;
   gap: 4px;
-  color: #a8a8a8;
+  color: #c0c0c0;
   font-size: 11px;
-  font-weight: 400;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -611,9 +655,9 @@
   width: 164px;
   height: 48px;
   gap: 8px;
-  border: 1px solid #4c4858;
+  border: 1px solid #5e586d;
   border-radius: 6px;
-  background: #15131a;
+  background: #1b1821;
 }
 
 .rewardStatus > strong {
@@ -640,7 +684,7 @@
   margin-top: -4px;
   color: #fff;
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .empty {
@@ -648,7 +692,7 @@
   flex: 1 1 auto;
   min-height: 240px;
   place-items: center;
-  color: rgb(255 255 255 / 56%);
+  color: rgb(255 255 255 / 68%);
   font-size: 14px;
 }
 
@@ -657,9 +701,18 @@
   50% { transform: translateY(-8px); }
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1020px) {
+  .overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
   .modal {
-    gap: 22px;
+    width: min(820px, calc(100vw - 32px));
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
   }
 
   .header {
@@ -678,35 +731,35 @@
   .body {
     grid-template-columns: minmax(0, 1fr);
     height: auto;
-    max-height: calc(90vh - 120px);
-    overflow-y: auto;
+    overflow: visible;
   }
 
   .dailyPane,
   .missionPane {
     height: auto;
-    min-height: 540px;
+    min-height: 560px;
+  }
+
+  .missionList {
+    max-height: 560px;
   }
 }
 
 @media (max-width: 760px) {
   .overlay {
-    align-items: flex-start;
     padding: 8px;
-    overflow-y: auto;
   }
 
   .modal {
     width: 100%;
-    max-height: none;
     padding: 14px 12px 20px;
     gap: 16px;
-    overflow: visible;
   }
 
   .header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 36px;
+    height: auto;
     gap: 10px;
   }
 
@@ -719,6 +772,7 @@
   .heading h2 {
     font-size: 18px;
     line-height: 24px;
+    white-space: normal;
   }
 
   .headerActions {
@@ -746,11 +800,6 @@
     grid-row: 1;
   }
 
-  .body {
-    max-height: none;
-    overflow: visible;
-  }
-
   .dailyPane,
   .missionPane {
     min-height: 0;
@@ -774,6 +823,7 @@
 
   .dailyTitle strong {
     font-size: 15px;
+    white-space: normal;
   }
 
   .monthCount strong {
