@@ -1,18 +1,26 @@
-/* One public header in normal document flow. Game pages must not compensate
-   with route-specific offsets or global body padding. */
+/* Final runtime contract for the single public Home/Browse header.
+   Base geometry lives in member-public-header-single-owner.css. This file only
+   resolves document flow and protects the current action controls from legacy
+   generic member styles. */
 
 @media (min-width: 901px) {
   body:has(.public-home-topbar) {
     padding-top: 0 !important;
   }
 
-  .public-home-topbar.global-member-topbar {
+  html body .public-home-topbar.global-member-topbar {
     position: sticky !important;
     top: 0 !important;
     right: auto !important;
     bottom: auto !important;
     left: auto !important;
-    z-index: 1000 !important;
+    z-index: 5000 !important;
+    overflow: visible !important;
+    isolation: isolate !important;
+  }
+
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar {
+    overflow: visible !important;
   }
 
   body:has(.desktop-reference-home) .desktop-reference-home.desktop-home,
@@ -22,8 +30,6 @@
     border-top: 0 !important;
   }
 
-  /* Loaded after the legacy carousel passes so the former 20px top margin
-     cannot reopen a dark strip between navigation and the first promotion. */
   body:has(.public-home-topbar) .desktop-reference-home > .reference-hero-carousel,
   .public-home-topbar + .desktop-reference-home > .reference-hero-carousel {
     margin-top: 0 !important;
@@ -31,22 +37,45 @@
     border-top: 0 !important;
   }
 
-  .public-home-topbar .member-actions,
-  .public-home-topbar .member-guest-actions,
-  .public-home-topbar .member-guest-action {
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions,
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions > .member-guest-actions {
+    position: relative !important;
+    inset: auto !important;
+    z-index: 50 !important;
     display: flex !important;
     visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-  }
-
-  .public-home-topbar .member-actions,
-  .public-home-topbar .member-guest-actions {
-    position: relative !important;
-    z-index: 5 !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
     flex: 0 0 auto !important;
     width: auto !important;
     min-width: max-content !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 44px !important;
+    margin: 0 0 0 auto !important;
+    padding: 0 !important;
+    gap: 10px !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    clip: auto !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions .member-guest-action,
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions .member-header-logout,
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions .member-header-wallet {
+    position: relative !important;
+    inset: auto !important;
+    z-index: 51 !important;
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    clip: auto !important;
+    clip-path: none !important;
+    transform: none !important;
   }
 
   .browse-page,
@@ -60,11 +89,30 @@
     padding-top: 0 !important;
   }
 
-  .public-home-topbar .member-actions,
-  .public-home-topbar .member-guest-actions,
-  .public-home-topbar .member-guest-action {
+  html body .public-home-topbar.global-member-topbar {
+    z-index: 5000 !important;
+    isolation: isolate !important;
+  }
+
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions,
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions > .member-guest-actions {
     display: flex !important;
     visibility: visible !important;
+    min-width: 0 !important;
+    gap: 6px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions .member-guest-action,
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions .member-header-logout,
+  html body .public-home-topbar.global-member-topbar .public-home-desktop-bar > .member-actions .member-header-wallet {
+    display: inline-flex !important;
+    visibility: visible !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 10px !important;
     opacity: 1 !important;
     pointer-events: auto !important;
   }
