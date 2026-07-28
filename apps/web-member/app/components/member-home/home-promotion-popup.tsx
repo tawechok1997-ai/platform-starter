@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import type { CmsContent, PromotionCampaign } from '../../site-settings';
-import { promotionMediaUrls } from '../../site-settings';
+import { useEffect, useState } from 'react';
 
 type PromotionCategory = 'all' | 'new-member' | 'daily' | 'privilege' | 'cashback';
 
+type PromotionCard = {
+  id: string;
+  title: string;
+  imageUrl: string;
+  href: string;
+  category: Exclude<PromotionCategory, 'all'>;
+};
+
 type HomePromotionPopupProps = {
-  content: CmsContent;
-  campaigns: PromotionCampaign[];
   onClose: () => void;
 };
 
@@ -20,78 +24,36 @@ const CATEGORY_TABS: Array<{ key: PromotionCategory; label: string }> = [
   { key: 'cashback', label: 'คืนยอดเสีย' },
 ];
 
-const SOURCE_FALLBACK_CAMPAIGNS: PromotionCampaign[] = [
+const SOURCE_PROMOTIONS: PromotionCard[] = [
   {
     id: 'source-turnover-reward',
     title: 'ทำยอดเทิร์นรับรางวัลจุใจ🎉',
-    description: '',
-    enabled: true,
-    lifecycle: 'published',
-    bonusType: 'fixed',
-    bonusValue: 0,
-    minDeposit: 0,
-    maxBonus: 0,
-    turnoverMultiplier: 0,
-    claimMode: 'manual_review',
     imageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1778966311210-22044269-ee98-4a09-850a-7a73a8a860aa.jpg',
-    desktopImageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1778966311210-22044269-ee98-4a09-850a-7a73a8a860aa.jpg',
-    mobileImageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1778966311210-22044269-ee98-4a09-850a-7a73a8a860aa.jpg',
     href: '/browse/promotions',
-    priority: 30,
+    category: 'privilege',
   },
   {
     id: 'source-referral-reward',
     title: 'ชวนเพื่อนปั๊ป รับฟรี 300 บาททันที!! 💜',
-    description: '',
-    enabled: true,
-    lifecycle: 'published',
-    bonusType: 'fixed',
-    bonusValue: 300,
-    minDeposit: 0,
-    maxBonus: 300,
-    turnoverMultiplier: 0,
-    claimMode: 'manual_review',
     imageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1784628973087-c16b022a-8361-4272-8673-819c587c10fd.jpg',
-    desktopImageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1784628973087-c16b022a-8361-4272-8673-819c587c10fd.jpg',
-    mobileImageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1784628973087-c16b022a-8361-4272-8673-819c587c10fd.jpg',
     href: '/browse/promotions',
-    priority: 20,
+    category: 'new-member',
   },
   {
     id: 'source-repeat-deposit',
     title: 'ฝากซ้ำ ย้ำโบนัส รับทันที 100 บาท✨',
-    description: '',
-    enabled: true,
-    lifecycle: 'published',
-    bonusType: 'fixed',
-    bonusValue: 100,
-    minDeposit: 0,
-    maxBonus: 100,
-    turnoverMultiplier: 0,
-    claimMode: 'manual_review',
     imageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1782441824805-ed970564-a17a-4a6f-a163-5658651f406c.jpg',
-    desktopImageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1782441824805-ed970564-a17a-4a6f-a163-5658651f406c.jpg',
-    mobileImageUrl: 'https://cdn.zabbet.com/FEZX/promotions/1782441824805-ed970564-a17a-4a6f-a163-5658651f406c.jpg',
     href: '/browse/promotions',
-    priority: 10,
+    category: 'daily',
   },
 ];
 
-export function HomePromotionPopup({ content, campaigns, onClose }: HomePromotionPopupProps) {
+export function HomePromotionPopup({ onClose }: HomePromotionPopupProps) {
   const [category, setCategory] = useState<PromotionCategory>('all');
   const [visible, setVisible] = useState(false);
-
-  const publishedCampaigns = useMemo(() => {
-    const active = campaigns
-      .filter((campaign) => campaign.enabled && campaign.lifecycle !== 'draft' && campaign.lifecycle !== 'archived')
-      .sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0));
-    return active.length ? active : SOURCE_FALLBACK_CAMPAIGNS;
-  }, [campaigns]);
-
-  const filteredCampaigns = useMemo(() => {
-    if (category === 'all') return publishedCampaigns;
-    return publishedCampaigns.filter((campaign) => classifyCampaign(campaign) === category);
-  }, [category, publishedCampaigns]);
+  const filteredPromotions = category === 'all'
+    ? SOURCE_PROMOTIONS
+    : SOURCE_PROMOTIONS.filter((promotion) => promotion.category === category);
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
@@ -101,7 +63,10 @@ export function HomePromotionPopup({ content, campaigns, onClose }: HomePromotio
 
     const animationFrame = window.requestAnimationFrame(() => setVisible(true));
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeWithMotion();
+      if (event.key === 'Escape') {
+        setVisible(false);
+        window.setTimeout(onClose, 180);
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
 
@@ -111,7 +76,7 @@ export function HomePromotionPopup({ content, campaigns, onClose }: HomePromotio
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousHtmlOverflow;
     };
-  }, []);
+  }, [onClose]);
 
   function closeWithMotion() {
     setVisible(false);
@@ -163,20 +128,16 @@ export function HomePromotionPopup({ content, campaigns, onClose }: HomePromotio
           </nav>
 
           <div className="home-promotion-popup__scroll">
-            {filteredCampaigns.length ? (
+            {filteredPromotions.length ? (
               <div className="home-promotion-popup__grid">
-                {filteredCampaigns.map((campaign) => {
-                  const media = promotionMediaUrls(content, campaign);
-                  const imageUrl = media.desktop || media.mobile || campaign.imageUrl || '';
-                  return (
-                    <a key={campaign.id} className="home-promotion-popup__card" href={campaign.href || '/browse/promotions'}>
-                      <div className="home-promotion-popup__media">
-                        {imageUrl ? <img src={imageUrl} alt={campaign.title} loading="lazy" /> : null}
-                      </div>
-                      <strong>{campaign.title}</strong>
-                    </a>
-                  );
-                })}
+                {filteredPromotions.map((promotion) => (
+                  <a key={promotion.id} className="home-promotion-popup__card" href={promotion.href}>
+                    <div className="home-promotion-popup__media">
+                      <img src={promotion.imageUrl} alt={promotion.title} loading="lazy" />
+                    </div>
+                    <strong>{promotion.title}</strong>
+                  </a>
+                ))}
               </div>
             ) : (
               <div className="home-promotion-popup__empty">ยังไม่มีโปรโมชั่นในหมวดนี้</div>
@@ -186,12 +147,4 @@ export function HomePromotionPopup({ content, campaigns, onClose }: HomePromotio
       </section>
     </div>
   );
-}
-
-function classifyCampaign(campaign: PromotionCampaign): PromotionCategory {
-  const text = `${campaign.title} ${campaign.description} ${campaign.badgeText ?? ''}`.toLowerCase();
-  if (/คืน|ยอดเสีย|cashback|loss/.test(text)) return 'cashback';
-  if (/สมาชิกใหม่|ต้อนรับ|welcome|new member/.test(text)) return 'new-member';
-  if (/ประจำวัน|รายวัน|daily|ฝากซ้ำ/.test(text)) return 'daily';
-  return 'privilege';
 }
