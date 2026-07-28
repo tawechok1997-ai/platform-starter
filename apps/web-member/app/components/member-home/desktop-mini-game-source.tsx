@@ -59,39 +59,50 @@ export default function DesktopMiniGameSource() {
       </div>
 
       <style jsx>{`
-        .source-mini-game,
-        .mini-exact-actions,
-        .mini-exact-action,
-        .mini-exact-border,
-        .mini-exact-inner {
+        .source-mini-game {
+          margin-top: -8px !important;
+          margin-bottom: -12px !important;
           overflow: visible !important;
           contain: none !important;
           clip-path: none !important;
           mask: none !important;
         }
 
+        .source-mini-game .source-mini-game__header {
+          width: calc(100% - 20px) !important;
+          margin-left: 12px !important;
+        }
+
         .mini-exact-actions {
-          display: flex;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           align-items: center;
           box-sizing: border-box;
           width: 100%;
           min-width: 0;
-          gap: 8px;
-          padding: 20px 12px;
+          gap: 10px;
+          padding: 20px 20px 20px 24px;
+          overflow: visible !important;
+          contain: none !important;
+          clip-path: none !important;
+          mask: none !important;
         }
 
         .source-mini-game .mini-exact-action {
           position: relative !important;
           display: flex !important;
-          flex: 1 1 0 !important;
           align-items: center !important;
           justify-content: center !important;
           box-sizing: border-box !important;
+          width: 100% !important;
           min-width: 0 !important;
           height: 46px !important;
-          margin: 0 0 0 16px !important;
-          padding: 0 8px 0 52px !important;
+          margin: 0 !important;
+          padding: 0 8px 0 44px !important;
           overflow: visible !important;
+          contain: none !important;
+          clip-path: none !important;
+          mask: none !important;
           border: 0 !important;
           border-radius: 999px !important;
           outline: 0 !important;
@@ -117,6 +128,7 @@ export default function DesktopMiniGameSource() {
           width: 100%;
           height: 46px;
           padding: 2px;
+          overflow: visible !important;
           border-radius: 999px;
           background: linear-gradient(180deg, rgb(255 232 79) 0%, rgb(246 173 0) 100%);
           pointer-events: none;
@@ -127,6 +139,7 @@ export default function DesktopMiniGameSource() {
           box-sizing: border-box;
           width: 100%;
           height: 42px;
+          overflow: visible !important;
           border-radius: 999px;
           background: linear-gradient(135deg, rgb(136 0 200) 10%, rgb(110 0 141) 100%);
         }
@@ -144,23 +157,23 @@ export default function DesktopMiniGameSource() {
         }
 
         .mini-exact-icon--wheel {
-          left: -34px !important;
-          width: 120px !important;
-          min-width: 120px !important;
-          max-width: 120px !important;
-          height: 120px !important;
-          min-height: 120px !important;
-          max-height: 120px !important;
+          left: -18px !important;
+          width: 96px !important;
+          min-width: 96px !important;
+          max-width: 96px !important;
+          height: 96px !important;
+          min-height: 96px !important;
+          max-height: 96px !important;
         }
 
         .mini-exact-icon--mission {
-          left: -37px !important;
-          width: 124px !important;
-          min-width: 124px !important;
-          max-width: 124px !important;
-          height: 124px !important;
-          min-height: 124px !important;
-          max-height: 124px !important;
+          left: -19px !important;
+          width: 90px !important;
+          min-width: 90px !important;
+          max-width: 90px !important;
+          height: 90px !important;
+          min-height: 90px !important;
+          max-height: 90px !important;
         }
 
         .mini-exact-label {
@@ -169,49 +182,13 @@ export default function DesktopMiniGameSource() {
           display: block;
           width: 100%;
           min-width: 0;
+          margin: 0;
           color: #fff;
-          font-size: 20px;
+          font-size: 20px !important;
           font-weight: 600;
           line-height: 24px;
           text-align: center;
           white-space: nowrap;
-        }
-
-        @media (max-width: 1180px) {
-          .mini-exact-actions {
-            gap: 7px;
-            padding-inline: 10px;
-          }
-
-          .source-mini-game .mini-exact-action {
-            margin-left: 14px !important;
-            padding-right: 5px !important;
-            padding-left: 48px !important;
-          }
-
-          .mini-exact-icon--wheel {
-            left: -31px !important;
-            width: 112px !important;
-            min-width: 112px !important;
-            max-width: 112px !important;
-            height: 112px !important;
-            min-height: 112px !important;
-            max-height: 112px !important;
-          }
-
-          .mini-exact-icon--mission {
-            left: -34px !important;
-            width: 116px !important;
-            min-width: 116px !important;
-            max-width: 116px !important;
-            height: 116px !important;
-            min-height: 116px !important;
-            max-height: 116px !important;
-          }
-
-          .mini-exact-label {
-            font-size: 18px;
-          }
         }
       `}</style>
     </section>
