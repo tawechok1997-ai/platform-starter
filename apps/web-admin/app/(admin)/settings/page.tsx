@@ -53,7 +53,7 @@ const ITEMS: readonly SettingsItem[] = [
   item('legal', 'general', '/settings/legal', 'settings.legal', 'ข้อกำหนดและนโยบาย', 'Legal documents', 'ข้อกำหนด ความเป็นส่วนตัว คุกกี้ และการเผยแพร่', 'Terms, privacy, cookies, and publication details', 'กฎหมาย', 'Legal', 'sensitive'),
 
   item('branding', 'experience', '/settings/branding', 'settings.branding', 'แบรนด์', 'Branding', 'โลโก้ สี รูปทรง ฟอนต์ และ workflow Publish', 'Logos, colors, shape, fonts, and publish workflow', 'แบรนด์', 'Brand', 'sensitive'),
-  item('icons', 'experience', '/settings/icons', 'settings.icons', 'ไอคอน', 'Icons', 'อัปโหลด Preview และเปลี่ยนไอคอน Member ตามพื้นที่ใช้งาน', 'Upload, preview, and replace Member icons by surface', 'ไอคอน', 'Icons'),
+  item('icons', 'experience', '/settings/icons', 'settings.branding', 'ไอคอน', 'Icons', 'อัปโหลด Preview และเปลี่ยนไอคอน Member ตามพื้นที่ใช้งาน', 'Upload, preview, and replace Member icons by surface', 'ไอคอน', 'Icons'),
   item('theme', 'experience', '/settings/theme', 'settings.theme', 'ธีมและการจัดวาง', 'Theme & layout', 'โครงหน้า การนำทาง จำนวนคอลัมน์ และ motion', 'Layout, navigation, grid columns, and motion', 'หน้าจอ', 'Screens'),
   item('content-center', 'experience', '/content-center', 'settings.features', 'Content Center', 'Content Center', 'Asset Library, banners, popup, ข่าว กิจกรรม และ FAQ', 'Asset Library, banners, popups, news, events, and FAQs', 'CMS', 'CMS', 'operational'),
   item('promotion-center', 'experience', '/promotion-center', 'settings.features', 'Promotion Center', 'Promotion Center', 'โปรโมชัน เงื่อนไข Desktop/Mobile media และ lifecycle', 'Campaigns, conditions, responsive media, and lifecycle', 'โปรโมชัน', 'Promotions', 'operational'),
