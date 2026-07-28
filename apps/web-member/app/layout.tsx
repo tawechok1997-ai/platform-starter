@@ -108,6 +108,7 @@ import './member-public-header-runtime-fix.css';
 import './member-public-sidebar-runtime-fix.css';
 import './member-public-sidebar-content-fix.css';
 import './member-public-game-shell.css';
+import './member-public-auth-actions-lock.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
