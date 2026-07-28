@@ -31,7 +31,7 @@ const THAI_BANKS = [
 const copy = {
   th: {
     title: 'สมัครสมาชิก', subtitle: 'กรอกข้อมูลให้ครบในไม่กี่ขั้นตอน', account: 'ยืนยันเบอร์โทรศัพท์', identity: 'ตั้งค่าบัญชีและธนาคาร', review: 'ตรวจสอบข้อมูล',
-    username: 'ชื่อผู้ใช้', phone: 'เบอร์โทรศัพท์', email: 'อีเมล (ไม่บังคับ)', password: 'สร้างรหัสผ่าน', confirmPassword: 'ยืนยันรหัสผ่านอีกครั้ง', referral: 'รหัสแนะนำ (ไม่บังคับ)',
+    username: 'ชื่อผู้ใช้', phone: 'เบอร์โทรศัพท์', email: 'อีเมล (ไม่บังคับ)', password: `สร้างรหัสผ่าน`, confirmPassword: `ยืนยันรหัสผ่านอีกครั้ง`, referral: 'รหัสแนะนำ (ไม่บังคับ)',
     fullName: 'ชื่อ-นามสกุลจริง', bankName: 'ธนาคาร', bankPlaceholder: 'กรุณาเลือกธนาคาร', bankAccountNumber: 'กรุณากรอกเลขที่บัญชีของคุณ',
     gender: 'เพศ', male: 'ชาย', female: 'หญิง', next: 'ถัดไป', back: 'ย้อนกลับ', submit: 'สมัครสมาชิก', submitting: 'กำลังสมัคร...', show: 'แสดง', hide: 'ซ่อน',
     loginPrompt: 'มีบัญชีแล้ว?', login: 'เข้าสู่ระบบ', terms: 'ข้าพเจ้ามีอายุครบ 20 ปีบริบูรณ์ และได้อ่านข้อกำหนดและเงื่อนไขทั่วไปแล้ว',
@@ -40,7 +40,7 @@ const copy = {
   },
   en: {
     title: 'Create account', subtitle: 'Complete a few short steps', account: 'Verify phone number', identity: 'Account and bank details', review: 'Review',
-    username: 'Username', phone: 'Phone number', email: 'Email (optional)', password: 'Create password', confirmPassword: 'Confirm password', referral: 'Referral code (optional)',
+    username: 'Username', phone: 'Phone number', email: 'Email (optional)', password: `Create password`, confirmPassword: `Confirm password`, referral: 'Referral code (optional)',
     fullName: 'Legal full name', bankName: 'Bank', bankPlaceholder: 'Select a bank', bankAccountNumber: 'Bank account number',
     gender: 'Gender', male: 'Male', female: 'Female', next: 'Continue', back: 'Back', submit: 'Create account', submitting: 'Creating account...', show: 'Show', hide: 'Hide',
     loginPrompt: 'Already have an account?', login: 'Sign in', terms: 'I confirm that I am at least 20 years old and accept the general terms and conditions.',
