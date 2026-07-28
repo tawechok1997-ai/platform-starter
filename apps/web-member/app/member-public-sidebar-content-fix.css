@@ -1,0 +1,52 @@
+/* Final structural cleanup after the source leaderboard markup is mounted. */
+
+@media (min-width: 1024px) {
+  .desktop-reference-home,
+  .desktop-reference-home > .desktop-home__body,
+  .desktop-reference-home .reference-main-column {
+    overflow: visible !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > .reference-leaderboard-head {
+    order: 1 !important;
+    display: grid !important;
+    grid-template-columns: 70px minmax(0, 1fr) !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    background: rgb(14 11 20) !important;
+    color: #fff !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 20px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > .reference-leaderboard-head span,
+  .desktop-reference-home .reference-leaderboard > .reference-leaderboard-head strong {
+    display: block !important;
+    margin: 0 !important;
+    color: #fff !important;
+    font: inherit !important;
+    white-space: nowrap !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head):nth-of-type(even) {
+    background: #373147 !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head):nth-of-type(odd) {
+    background: #24212d !important;
+  }
+}
