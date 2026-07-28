@@ -1,4 +1,42 @@
 /* Single visual owner for the Home promotion popup. */
+html body button.reference-promo-card {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  html body .v47-mobile-quick-grid > button.v47-mobile-quick-card {
+    display: grid;
+    min-height: 86px;
+    place-items: center;
+    gap: 3px;
+    box-sizing: border-box;
+    padding: 8px 4px;
+    border: 1px solid #72268b;
+    border-radius: 10px;
+    background: linear-gradient(155deg, #5d0878, #25102e);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  html body .v47-mobile-quick-grid > button.v47-mobile-quick-card img,
+  html body .v47-mobile-quick-grid > button.v47-mobile-quick-card > span {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    font-size: 35px;
+    line-height: 46px;
+    text-align: center;
+  }
+
+  html body .v47-mobile-quick-grid > button.v47-mobile-quick-card strong {
+    font-size: 12px;
+  }
+}
+
 html body .home-promotion-popup {
   position: fixed;
   inset: 0;
