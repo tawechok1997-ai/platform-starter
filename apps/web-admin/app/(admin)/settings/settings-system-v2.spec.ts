@@ -25,11 +25,14 @@ const genericRoutes = [
   './legal/page.tsx',
 ];
 
-test('shared settings system gates reads and writes by permission', () => {
+test('shared settings system matches Backend view update and asset permissions', () => {
   assert.match(shared, /useAdminPermissions/);
   assert.match(shared, /settings\.\$\{group\}/);
-  assert.match(shared, /canView/);
-  assert.match(shared, /canUpdate/);
+  assert.match(shared, /const canView = permission\.can\(`\$\{resolvedPermissionBase\}\.view`\);/);
+  assert.doesNotMatch(shared, /const canView = [^\n]+\|\|/);
+  assert.match(shared, /const canUpdate = permission\.can\(`\$\{resolvedPermissionBase\}\.update`\);/);
+  assert.match(shared, /canUploadAssets = canUpdate && permission\.can\('settings\.features\.update'\)/);
+  assert.match(shared, /canUpload=\{canUploadAssets\}/);
   assert.match(shared, /enabled:\s*canLoad/);
   assert.match(shared, /canSave:\s*canUpdate/);
   assert.match(shared, /fail-closed/);
@@ -86,18 +89,21 @@ test('icon settings use real uploadable assets and backend branding permissions'
   assert.doesNotMatch(workspace, /item\('icons',[\s\S]*'settings\.icons'/);
 });
 
-test('settings workspace includes all requested destinations and hides inaccessible pages', () => {
+test('settings workspace includes requested destinations and requires view permission', () => {
   for (const route of ['/settings/website', '/settings/contact', '/settings/seo', '/settings/legal', '/settings/branding', '/settings/icons', '/settings/theme', '/content-center', '/promotion-center', '/settings/maintenance', '/settings/features', '/settings/scripts']) {
     assert.equal(workspace.includes(route), true, `${route} must be listed`);
   }
   assert.match(workspace, /useAdminPermissions/);
   assert.match(workspace, /permissionBase/);
   assert.match(workspace, /allowedItems/);
+  assert.match(workspace, /permission\.can\(`\$\{settingsItem\.permissionBase\}\.view`\)/);
+  assert.doesNotMatch(workspace, /permission\.can\(`\$\{settingsItem\.permissionBase\}\.update`\)/);
 });
 
-test('maintenance preserves operational validation and permission-aware actions', () => {
+test('maintenance preserves operational validation and strict view permission', () => {
   assert.match(maintenance, /useAdminPermissions/);
-  assert.match(maintenance, /settings\.maintenance\.view/);
+  assert.match(maintenance, /const canView = permission\.can\('settings\.maintenance\.view'\);/);
+  assert.doesNotMatch(maintenance, /const canView = [^\n]+\|\|/);
   assert.match(maintenance, /settings\.maintenance\.update/);
   assert.match(maintenance, /AdminSaveStateBadge/);
   assert.match(maintenance, /AdminUnsavedChangesNotice/);
