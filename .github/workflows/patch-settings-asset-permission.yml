@@ -1,0 +1,68 @@
+name: Patch Settings Asset Permission
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/admin-settings-ui-system-v2
+          fetch-depth: 0
+      - name: Align asset upload permission UX
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web-admin/app/(admin)/settings/settings-section-page.tsx')
+          text = path.read_text()
+          replacements = [
+            (
+              "  const canUpdate = permission.can(`${resolvedPermissionBase}.update`);\n  const canLoad = permission.ready && canView;",
+              "  const canUpdate = permission.can(`${resolvedPermissionBase}.update`);\n  const canUploadAssets = canUpdate && permission.can('settings.features.update');\n  const canLoad = permission.ready && canView;",
+            ),
+            (
+              "  async function uploadAsset(field: SettingsFieldConfig, file: File) {\n    if (!canUpdate) {\n      setMessage('บัญชีนี้ไม่มีสิทธิ์อัปโหลดไฟล์');",
+              "  async function uploadAsset(field: SettingsFieldConfig, file: File) {\n    if (!canUploadAssets) {\n      setMessage('บัญชีนี้แก้ URL ได้ แต่ไม่มีสิทธิ์อัปโหลดไฟล์ใหม่ (ต้องใช้ settings.features.update)');",
+            ),
+            (
+              "        {!canUpdate && <AdminNotice tone=\"warning\">โหมดอ่านอย่างเดียว ช่องกรอก การอัปโหลด และปุ่มบันทึกถูกปิดตามสิทธิ์ Backend ยังตรวจ permission ซ้ำทุกคำขอ</AdminNotice>}\n        <AdminUnsavedChangesNotice",
+              "        {!canUpdate && <AdminNotice tone=\"warning\">โหมดอ่านอย่างเดียว ช่องกรอก การอัปโหลด และปุ่มบันทึกถูกปิดตามสิทธิ์ Backend ยังตรวจ permission ซ้ำทุกคำขอ</AdminNotice>}\n        {canUpdate && fields.some((field) => field.asset) && !canUploadAssets && <AdminNotice tone=\"warning\">บัญชีนี้แก้ URL รูปได้ แต่ปุ่มอัปโหลดไฟล์ถูกซ่อน เพราะ Asset Library ต้องใช้สิทธิ์ settings.features.update</AdminNotice>}\n        <AdminUnsavedChangesNotice",
+            ),
+            (
+              "                            disabled={!canUpdate || busy}\n                            error={validationErrors[field.key]}",
+              "                            disabled={!canUpdate || busy}\n                            canUpload={canUploadAssets}\n                            error={validationErrors[field.key]}",
+            ),
+            (
+              "function FieldInput({ field, value, uploading, disabled, error, onChange, onUpload, onDisable, onRestore }: {\n  field: SettingsFieldConfig;\n  value: SettingsValue | undefined;\n  uploading: boolean;\n  disabled: boolean;\n  error: string | undefined;",
+              "function FieldInput({ field, value, uploading, disabled, canUpload, error, onChange, onUpload, onDisable, onRestore }: {\n  field: SettingsFieldConfig;\n  value: SettingsValue | undefined;\n  uploading: boolean;\n  disabled: boolean;\n  canUpload: boolean;\n  error: string | undefined;",
+            ),
+            (
+              "          {!disabled && <div className={styles.assetActions}>\n            <label className={styles.uploadButton}>\n              {uploading ? 'กำลังอัปโหลด...' : displayValue ? 'เปลี่ยนไฟล์' : 'อัปโหลดไฟล์'}\n              <input className={styles.hiddenInput} type=\"file\" accept=\"image/jpeg,image/png,image/webp,image/gif\" disabled={uploading} onChange={(event) => handleFileChange(event, onUpload)} />\n            </label>\n            <AdminButton",
+              "          {!disabled && <div className={styles.assetActions}>\n            {canUpload && <label className={styles.uploadButton}>\n              {uploading ? 'กำลังอัปโหลด...' : displayValue ? 'เปลี่ยนไฟล์' : 'อัปโหลดไฟล์'}\n              <input className={styles.hiddenInput} type=\"file\" accept=\"image/jpeg,image/png,image/webp,image/gif\" disabled={uploading} onChange={(event) => handleFileChange(event, onUpload)} />\n            </label>}\n            <AdminButton",
+            ),
+          ]
+
+          for old, new in replacements:
+            if old not in text:
+              raise SystemExit(f'missing replacement:\n{old}')
+            text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          PY
+
+          git rm .github/workflows/patch-settings-asset-permission.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web-admin/app/'(admin)'/settings/settings-section-page.tsx
+          git commit -m "fix(admin): gate asset uploads by backend permission"
+          git push origin HEAD:feat/admin-settings-ui-system-v2
