@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { BrowseGames } from './public-browse';
 import CardBrowseSource from './card-browse-source';
@@ -10,7 +11,7 @@ import LottoBrowseSource from './lotto-browse-source';
 import SlotBrowseSource from './slot-browse-source';
 import SportBrowseSource from './sport-browse-source';
 
-function FixedHeaderOffset({ children }: { children: React.ReactNode }) {
+function FixedHeaderOffset({ children }: { children: ReactNode }) {
   return <div className="browse-fixed-header-offset">{children}</div>;
 }
 
