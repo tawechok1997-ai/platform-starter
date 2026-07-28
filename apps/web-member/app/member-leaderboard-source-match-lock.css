@@ -1,0 +1,172 @@
+/* Final visual owner for the desktop Home Leaderboard. */
+
+@media (min-width: 1024px) {
+  .desktop-reference-home .reference-leaderboard {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    gap: 0 !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > header {
+    flex: 0 0 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard-head {
+    display: grid !important;
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    margin: 12px 0 0 !important;
+    padding: 0 12px !important;
+    gap: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #15121e !important;
+    color: #fff !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 18px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) {
+    display: grid !important;
+    grid-template-columns: 42px 25px minmax(0, 1fr) 20px !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 47px !important;
+    min-height: 47px !important;
+    max-height: 47px !important;
+    margin: 0 !important;
+    padding: 3px 8px !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgb(24 21 35 / 65%) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head):nth-of-type(even) {
+    background: #373147 !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head):nth-of-type(odd) {
+    background: #24212d !important;
+  }
+
+  .desktop-reference-home .reference-rank-medal {
+    position: relative !important;
+    display: grid !important;
+    place-items: center !important;
+    box-sizing: border-box !important;
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+    height: 39px !important;
+    min-height: 39px !important;
+    max-height: 39px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    color: #fff !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 70%) !important;
+  }
+
+  .desktop-reference-home .reference-rank-medal img {
+    position: absolute !important;
+    inset: 50% auto auto 50% !important;
+    display: block !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:nth-of-type(2) .reference-rank-medal::after,
+  .desktop-reference-home .reference-leaderboard > div:nth-of-type(3) .reference-rank-medal::after,
+  .desktop-reference-home .reference-leaderboard > div:nth-of-type(4) .reference-rank-medal::after {
+    position: relative !important;
+    z-index: 2 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: #fff !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 80%) !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:nth-of-type(2) .reference-rank-medal::after { content: '1' !important; }
+  .desktop-reference-home .reference-leaderboard > div:nth-of-type(3) .reference-rank-medal::after { content: '2' !important; }
+  .desktop-reference-home .reference-leaderboard > div:nth-of-type(4) .reference-rank-medal::after { content: '3' !important; }
+
+  .desktop-reference-home .reference-leaderboard-game-image {
+    display: block !important;
+    width: 25px !important;
+    min-width: 25px !important;
+    max-width: 25px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    margin: 0 !important;
+    border-radius: 2px !important;
+    object-fit: cover !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span {
+    justify-content: center !important;
+    height: 40px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span strong {
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    line-height: 12px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span small {
+    font-size: 8px !important;
+    line-height: 9px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > span small:last-child {
+    font-size: 11px !important;
+    line-height: 13px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > em {
+    width: 20px !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+    height: 20px !important;
+    min-height: 20px !important;
+    max-height: 20px !important;
+    border-radius: 4px !important;
+  }
+
+  .desktop-reference-home .reference-leaderboard > div:not(.reference-leaderboard-head) > em::after {
+    font-size: 8px !important;
+  }
+}
