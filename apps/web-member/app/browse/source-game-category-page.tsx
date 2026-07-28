@@ -52,9 +52,9 @@ type CatalogPayload = {
   counts?: { total?: number | null };
 };
 
-const CATEGORY_API_ALIASES: Record<string, string[]> = {
+const CATEGORY_API_GROUPS: Record<string, string[]> = {
   casino: ['casino'],
-  slot: ['slot'],
+  slot: ['slot', 'arcade', 'table'],
   fishing: ['fishing', 'fish'],
   sport: ['sport', 'sports'],
   card: ['card', 'table'],
@@ -91,10 +91,11 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
     setCatalogLoading(true);
 
     async function loadCatalog() {
-      const aliases = CATEGORY_API_ALIASES[config.slug] ?? [config.slug];
+      const categories = CATEGORY_API_GROUPS[config.slug] ?? [config.slug];
+      const loadedItems: CatalogGame[] = [];
+      let loadedTotal = 0;
 
-      for (let index = 0; index < aliases.length; index += 1) {
-        const category = aliases[index]!;
+      for (const category of categories) {
         try {
           const params = new URLSearchParams({ category, platform: 'pc', page: '1', limit: '250' });
           const response = await memberApiFetch(`/games/catalog?${params.toString()}`, {
@@ -106,20 +107,18 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
 
           const payload = await response.json().catch(() => null) as CatalogPayload | null;
           const items = Array.isArray(payload?.items) ? payload.items.filter(isCatalogGame) : [];
-          const isLastAlias = index === aliases.length - 1;
-          if (!items.length && !isLastAlias) continue;
-          if (cancelled) return;
-
-          setCatalogItems(items);
-          setCatalogTotal(readCatalogTotal(payload, items.length));
-          setCatalogLoading(false);
-          return;
+          loadedItems.push(...items);
+          loadedTotal += items.length ? readCatalogTotal(payload, items.length) : 0;
         } catch (error) {
           if (error instanceof DOMException && error.name === 'AbortError') return;
         }
       }
 
-      if (!cancelled) setCatalogLoading(false);
+      if (cancelled) return;
+      const uniqueItems = Array.from(new Map(loadedItems.map((item) => [catalogIdentity(item), item] as const)).values());
+      setCatalogItems(uniqueItems);
+      setCatalogTotal(uniqueItems.length ? Math.max(uniqueItems.length, loadedTotal) : null);
+      setCatalogLoading(false);
     }
 
     void loadCatalog();
@@ -272,6 +271,12 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
       </section>
     </main>
   );
+}
+
+function catalogIdentity(item: CatalogGame) {
+  const provider = String(item.provider?.code ?? '').trim().toLowerCase();
+  const id = String(item.providerGameCode ?? item.id ?? '').trim().toLowerCase();
+  return `${provider}:${id}`;
 }
 
 function readCatalogTotal(payload: CatalogPayload | null, fallback: number) {
