@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type SyntheticEvent } from 'react';
-import type { CmsContent, SiteIconSettings } from '../../site-settings';
+import { cmsResponsiveMediaUrls, type CmsContent, type SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
 import {
   REFERENCE_GAMES,
@@ -16,12 +16,16 @@ import {
 } from './local-game-asset-resolver';
 import { V47_ASSETS, resolveV47Asset } from './v47-asset-map';
 
-const PROJECT_FALLBACK_BANNERS: CmsContent['banners'] = REFERENCE_HERO_SLIDES.map((slide) => ({
+const PROJECT_FALLBACK_BANNERS: CmsContent['banners'] = REFERENCE_HERO_SLIDES.map((slide, index) => ({
+  id: `fallback-banner-${index + 1}`,
   title: slide.name,
   subtitle: 'โปรโมชั่นแนะนำ',
   imageUrl: slide.url,
-  href: '/promotions',
+  desktopImageUrl: slide.url,
+  mobileImageUrl: slide.url,
+  href: '/browse/promotions',
   enabled: true,
+  lifecycle: 'published',
 }));
 
 const MOBILE_RANK_ART = [V47_ASSETS.rank1, V47_ASSETS.rank2, V47_ASSETS.rank3] as const;
@@ -36,10 +40,16 @@ type Props = {
 };
 
 export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoading, gamesMessage }: Props) {
-  const configuredBanners = Array.isArray(content.banners) ? content.banners.filter((item) => item.enabled) : [];
+  const configuredBanners = Array.isArray(content.banners)
+    ? content.banners.filter((item) => item.enabled && item.lifecycle !== 'draft' && item.lifecycle !== 'archived')
+    : [];
   const banners = configuredBanners.length ? configuredBanners : PROJECT_FALLBACK_BANNERS;
-  const announcements = Array.isArray(content.announcements) ? content.announcements.filter((item) => item.enabled) : [];
-  const faqs = Array.isArray(content.faqs) ? content.faqs.filter((item) => item.enabled).slice(0, 5) : [];
+  const announcements = Array.isArray(content.announcements)
+    ? content.announcements.filter((item) => item.enabled && item.lifecycle !== 'draft' && item.lifecycle !== 'archived')
+    : [];
+  const faqs = Array.isArray(content.faqs)
+    ? content.faqs.filter((item) => item.enabled && item.lifecycle !== 'draft' && item.lifecycle !== 'archived').slice(0, 5)
+    : [];
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
   const popular = fillGames(games.popular, allGames, 6);
   const online = fillGames(allGames.slice(2), allGames, 6);
@@ -47,7 +57,8 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
   const providers = uniqueProviders(allGames).slice(0, 12);
   const [activeBanner, setActiveBanner] = useState(0);
   const hero = banners[activeBanner] ?? banners[0];
-  const heroImage = hero?.imageUrl || resolveCmsAssetById(content, hero?.assetId);
+  const heroMedia = hero ? cmsResponsiveMediaUrls(content, hero) : { desktop: '', mobile: '', legacy: '' };
+  const heroImage = heroMedia.mobile || heroMedia.desktop || heroMedia.legacy || resolveCmsAssetById(content, hero?.assetId);
   const heroFallback = REFERENCE_HERO_SLIDES[activeBanner % REFERENCE_HERO_SLIDES.length]!.url;
   const announcement = announcements[0];
   const tournament = findAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']);
@@ -70,10 +81,13 @@ export function MobileV47Scaffold({ content, icons, siteName, games, isGamesLoad
     <section className="v47-mobile-home" aria-label="หน้าแรกมือถือ">
       <div className="v47-mobile-announcement"><Icon value={V47_ASSETS.announcement} /><span>{announcement?.message || announcement?.title || 'คาสิโนออนไลน์ครบทุกค่าย เปิดให้บริการตลอด 24 ชั่วโมง'}</span></div>
 
-      <a className="v47-mobile-hero" href="/browse/promotions">
-        <img key={heroImage || heroFallback} src={heroImage || heroFallback} alt={hero?.title || siteName} onError={(event) => swapBrokenImage(event, heroFallback)} />
+      <a className="v47-mobile-hero" href={hero?.href || '/browse/promotions'}>
+        <picture>
+          {heroMedia.mobile && <source media="(max-width: 640px)" srcSet={heroMedia.mobile} />}
+          <img key={heroImage || heroFallback} src={heroImage || heroFallback} alt={hero?.title || siteName} onError={(event) => swapBrokenImage(event, heroFallback)} />
+        </picture>
       </a>
-      <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">{banners.map((banner, index) => <button key={`${banner.title}-${index}`} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}: ${banner.title}`} />)}</div>
+      <div className="v47-mobile-dots" aria-label="เลือกแบนเนอร์">{banners.map((banner, index) => <button key={`${banner.id ?? banner.title}-${index}`} type="button" className={index === activeBanner ? 'active' : ''} onClick={() => setActiveBanner(index)} aria-label={`แบนเนอร์ ${index + 1}: ${banner.title}`} aria-current={index === activeBanner ? 'true' : undefined} />)}</div>
 
       <div className="v47-mobile-quick-grid">
         <QuickCard icon={V47_ASSETS.quickPromotion} title="โปรโมชั่น" href="/browse/promotions?view=promotion" />

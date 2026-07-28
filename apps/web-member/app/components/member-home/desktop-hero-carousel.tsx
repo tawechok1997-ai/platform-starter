@@ -10,13 +10,15 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import type { CmsContent } from '../../site-settings';
+import { cmsResponsiveMediaUrls, type CmsContent } from '../../site-settings';
 
 type CmsBanner = CmsContent['banners'][number];
 
 type HeroSlide = {
   banner: CmsBanner;
-  imageUrl: string;
+  desktopImageUrl: string;
+  mobileImageUrl: string;
+  fallbackImageUrl: string;
   realIndex: number;
 };
 
@@ -48,9 +50,8 @@ const SLIDE_GAP_PX = 10;
 const SLIDE_STEP_PX = SLIDE_WIDTH_PX + SLIDE_GAP_PX;
 const SOURCE_RAIL_WIDTH_PX = 2180;
 const SOURCE_INITIAL_SLIDE_INDEX = 4;
-const IMAGE_RETRY_LIMIT = 2;
+const IMAGE_RETRY_LIMIT = 1;
 
-// Exact ten-slide order from the latest inspected NOAH345 desktop Swiper.
 const SOURCE_IMAGE_URLS = [
   '/assets/asset-pc/images/FEZX/imageslides/1778979600098-3be41f05-c93f-4c12-b278-54cfe390de4c.jpg',
   '/assets/asset-pc/images/FEZX/imageslides/1780250534847-0b47bd80-15a3-4117-bdd3-f383308509bc.jpg',
@@ -62,11 +63,15 @@ const SOURCE_IMAGE_URLS = [
 ] as const;
 
 const SOURCE_BANNERS: CmsBanner[] = SOURCE_IMAGE_URLS.map((imageUrl, index) => ({
+  id: `fallback-banner-${index + 1}`,
   title: `NOAH345 Banner ${String(index + 1).padStart(2, '0')}`,
   subtitle: 'NOAH345',
   imageUrl,
+  desktopImageUrl: imageUrl,
+  mobileImageUrl: imageUrl,
   href: index === SOURCE_IMAGE_URLS.length - 1 ? '/browse/promotions' : '/',
   enabled: true,
+  lifecycle: 'published',
 }));
 
 const MISSING_ASSET_STYLE: CSSProperties = {
@@ -87,10 +92,24 @@ const MISSING_ASSET_STYLE: CSSProperties = {
 export function DesktopHeroCarousel({ content, siteName, showPromotion }: DesktopHeroCarouselProps) {
   const slides = useMemo<HeroSlide[]>(() => {
     const cmsBanners = Array.isArray(content?.banners)
-      ? content.banners.filter((banner) => banner?.enabled !== false && typeof banner?.imageUrl === 'string' && banner.imageUrl.trim())
+      ? content.banners.filter((banner) => {
+        if (banner?.enabled === false || banner?.lifecycle === 'draft' || banner?.lifecycle === 'archived') return false;
+        const urls = cmsResponsiveMediaUrls(content, banner);
+        return Boolean(urls.desktop || urls.mobile || urls.legacy);
+      })
       : [];
     const banners = cmsBanners.length ? cmsBanners : SOURCE_BANNERS;
-    return banners.map((banner, realIndex) => ({ banner, imageUrl: banner.imageUrl, realIndex }));
+    return banners.map((banner, realIndex) => {
+      const urls = cmsResponsiveMediaUrls(content, banner);
+      const fallbackImageUrl = SOURCE_IMAGE_URLS[realIndex % SOURCE_IMAGE_URLS.length] ?? SOURCE_IMAGE_URLS[0];
+      return {
+        banner,
+        desktopImageUrl: urls.desktop || fallbackImageUrl,
+        mobileImageUrl: urls.mobile || urls.desktop || fallbackImageUrl,
+        fallbackImageUrl,
+        realIndex,
+      };
+    });
   }, [content]);
   const realCount = slides.length;
   const loopSlides = useMemo(() => [...slides, ...slides, ...slides], [slides]);
@@ -102,13 +121,18 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
   const suppressClickUntil = useRef(0);
   const normalizedActiveIndex = realCount ? modulo(virtualIndex, realCount) : 0;
 
+  useEffect(() => {
+    if (!realCount) return;
+    setTransitionEnabled(false);
+    setVirtualIndex(realCount + Math.min(SOURCE_INITIAL_SLIDE_INDEX, realCount - 1));
+    window.requestAnimationFrame(() => setTransitionEnabled(true));
+  }, [realCount]);
+
   const offsetPx = SOURCE_RAIL_WIDTH_PX / 2 - (virtualIndex * SLIDE_STEP_PX + SLIDE_WIDTH_PX / 2);
   const trackStyle: HeroTrackStyle = {
     '--hero-track-x': `${offsetPx}px`,
     '--hero-drag-x': `${dragX}px`,
-    '--hero-transition': transitionEnabled
-      ? `transform ${TRANSITION_MS}ms cubic-bezier(.22,.61,.36,1)`
-      : 'none',
+    '--hero-transition': transitionEnabled ? `transform ${TRANSITION_MS}ms cubic-bezier(.22,.61,.36,1)` : 'none',
   };
 
   const moveBy = useCallback((delta: number) => {
@@ -142,8 +166,6 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     }
   }, [realCount, virtualIndex]);
 
-  // transitionend can be skipped when a tab is backgrounded. This fallback keeps
-  // the virtual index inside the cloned middle rail so autoplay can never run into blank space.
   useEffect(() => {
     if (realCount < 2 || (virtualIndex >= realCount && virtualIndex < realCount * 2)) return;
     const timer = window.setTimeout(normalizeLoopPosition, TRANSITION_MS + 80);
@@ -174,9 +196,7 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     if (!pointer || pointer.pointerId !== event.pointerId) return;
     pointerState.current = null;
     draggingRef.current = false;
-    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     setDragX(0);
     setTransitionEnabled(true);
     if (pointer.moved) suppressClickUntil.current = performance.now() + 350;
@@ -200,103 +220,74 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
 
   if (!showPromotion || realCount === 0) return null;
 
-  return (
-    <section
-      className="reference-hero-carousel"
-      aria-label="โปรโมชั่นแนะนำ"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={finishPointer}
-      onPointerCancel={cancelPointer}
-      onLostPointerCapture={cancelPointer}
-      onClickCapture={suppressDraggedClick}
-    >
-      <div className="reference-hero-mask">
-        <div className="reference-hero-rail">
-          <div
-            className="reference-hero-track"
-            style={trackStyle}
-            onTransitionEnd={normalizeLoopPosition}
-          >
-            {loopSlides.map((slide, index) => {
-              const distance = index - virtualIndex;
-              const role = distance === 0 ? 'active' : distance === -1 ? 'previous' : distance === 1 ? 'next' : 'offscreen';
-              return (
-                <HeroSlideCard
-                  key={`${index}-${slide.realIndex}-${slide.imageUrl}`}
-                  role={role}
-                  slide={slide}
-                  siteName={siteName}
-                />
-              );
-            })}
-          </div>
-        </div>
-      </div>
+  return <section
+    className="reference-hero-carousel"
+    aria-label="โปรโมชั่นแนะนำ"
+    onPointerDown={onPointerDown}
+    onPointerMove={onPointerMove}
+    onPointerUp={finishPointer}
+    onPointerCancel={cancelPointer}
+    onLostPointerCapture={cancelPointer}
+    onClickCapture={suppressDraggedClick}
+  >
+    <div className="reference-hero-mask"><div className="reference-hero-rail"><div className="reference-hero-track" style={trackStyle} onTransitionEnd={normalizeLoopPosition}>
+      {loopSlides.map((slide, index) => {
+        const distance = index - virtualIndex;
+        const role = distance === 0 ? 'active' : distance === -1 ? 'previous' : distance === 1 ? 'next' : 'offscreen';
+        return <HeroSlideCard key={`${index}-${slide.realIndex}-${slide.desktopImageUrl}-${slide.mobileImageUrl}`} role={role} slide={slide} siteName={siteName} />;
+      })}
+    </div></div></div>
 
-      <div className="reference-hero-pagination" aria-label="เลือกแบนเนอร์">
-        {slides.map((slide, index) => (
-          <button
-            key={`${slide.realIndex}-${slide.imageUrl}`}
-            type="button"
-            className={index === normalizedActiveIndex ? 'is-active' : ''}
-            onClick={() => jumpTo(index)}
-            aria-label={`แบนเนอร์ ${index + 1}`}
-            aria-current={index === normalizedActiveIndex ? 'true' : undefined}
-          />
-        ))}
-      </div>
-    </section>
-  );
+    <div className="reference-hero-pagination" aria-label="เลือกแบนเนอร์">
+      {slides.map((slide, index) => <button key={`${slide.realIndex}-${slide.desktopImageUrl}`} type="button" className={index === normalizedActiveIndex ? 'is-active' : ''} onClick={() => jumpTo(index)} aria-label={`แบนเนอร์ ${index + 1}`} aria-current={index === normalizedActiveIndex ? 'true' : undefined} />)}
+    </div>
+  </section>;
 }
 
-function HeroSlideCard({ role, slide, siteName }: {
-  role: 'previous' | 'active' | 'next' | 'offscreen';
-  slide: HeroSlide;
-  siteName: string;
-}) {
+function HeroSlideCard({ role, slide, siteName }: { role: 'previous' | 'active' | 'next' | 'offscreen'; slide: HeroSlide; siteName: string }) {
   const [attempt, setAttempt] = useState(0);
+  const [usingFallback, setUsingFallback] = useState(false);
   const [missing, setMissing] = useState(false);
   const isActive = role === 'active';
 
   useEffect(() => {
     setAttempt(0);
+    setUsingFallback(false);
     setMissing(false);
-  }, [slide.imageUrl]);
+  }, [slide.desktopImageUrl, slide.mobileImageUrl]);
 
-  const retrySuffix = attempt > 0 ? `${slide.imageUrl.includes('?') ? '&' : '?'}hero_retry=${attempt}` : '';
-  const imageUrl = `${slide.imageUrl}${retrySuffix}`;
+  const sourceDesktop = usingFallback ? slide.fallbackImageUrl : slide.desktopImageUrl;
+  const sourceMobile = usingFallback ? slide.fallbackImageUrl : slide.mobileImageUrl;
+  const retrySuffix = attempt > 0 ? `${sourceDesktop.includes('?') ? '&' : '?'}hero_retry=${attempt}` : '';
+  const desktopImageUrl = `${sourceDesktop}${retrySuffix}`;
+  const mobileRetrySuffix = attempt > 0 ? `${sourceMobile.includes('?') ? '&' : '?'}hero_retry=${attempt}` : '';
+  const mobileImageUrl = `${sourceMobile}${mobileRetrySuffix}`;
 
   const handleImageError = () => {
-    if (attempt >= IMAGE_RETRY_LIMIT) {
-      setMissing(true);
+    if (attempt < IMAGE_RETRY_LIMIT) {
+      window.setTimeout(() => setAttempt((current) => current + 1), 500 * (attempt + 1));
       return;
     }
-    window.setTimeout(() => setAttempt((current) => current + 1), 800 * (attempt + 1));
+    if (!usingFallback && sourceDesktop !== slide.fallbackImageUrl) {
+      setAttempt(0);
+      setUsingFallback(true);
+      return;
+    }
+    setMissing(true);
   };
 
-  return (
-    <a
-      href={slide.banner.href || '/browse/promotions'}
-      className={`reference-hero-slide reference-hero-slide--${role}${isActive ? ' is-active' : ''}`}
-      aria-label={slide.banner.title || `โปรโมชั่น ${slide.realIndex + 1}`}
-      aria-hidden={isActive ? undefined : true}
-      tabIndex={isActive ? 0 : -1}
-    >
-      {missing ? (
-        <span style={MISSING_ASSET_STYLE}>MISSING PROMOTION ASSET<br />รอใส่รูปจริง</span>
-      ) : (
-        <img
-          src={imageUrl}
-          alt={slide.banner.title || siteName}
-          draggable={false}
-          loading="eager"
-          fetchPriority={isActive ? 'high' : 'auto'}
-          onError={handleImageError}
-        />
-      )}
-    </a>
-  );
+  return <a
+    href={slide.banner.href || '/browse/promotions'}
+    className={`reference-hero-slide reference-hero-slide--${role}${isActive ? ' is-active' : ''}`}
+    aria-label={slide.banner.title || `โปรโมชั่น ${slide.realIndex + 1}`}
+    aria-hidden={isActive ? undefined : true}
+    tabIndex={isActive ? 0 : -1}
+  >
+    {missing ? <span style={MISSING_ASSET_STYLE}>MISSING PROMOTION ASSET<br />ตรวจรูปใน Content Center</span> : <picture>
+      <source media="(max-width: 640px)" srcSet={mobileImageUrl} />
+      <img src={desktopImageUrl} alt={slide.banner.title || siteName} draggable={false} loading="eager" fetchPriority={isActive ? 'high' : 'auto'} onError={handleImageError} />
+    </picture>}
+  </a>;
 }
 
 function modulo(value: number, divisor: number) {

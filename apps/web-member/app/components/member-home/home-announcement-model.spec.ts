@@ -9,10 +9,10 @@ function content(announcements: CmsContent['announcements']): CmsContent {
 
 test('filters disabled, empty, and duplicate announcements', () => {
   const items = buildHomeAnnouncements(content([
-    { title: ' แจ้งเตือน ', message: ' ระบบพร้อม ', enabled: true },
-    { title: 'แจ้งเตือน', message: 'ระบบพร้อม', enabled: true },
-    { title: '', message: '', enabled: true },
-    { title: 'ไม่แสดง', message: 'ปิดอยู่', enabled: false },
+    { id: 'notice-1', kind: 'system', title: ' แจ้งเตือน ', message: ' ระบบพร้อม ', enabled: true },
+    { id: 'notice-2', kind: 'system', title: 'แจ้งเตือน', message: 'ระบบพร้อม', enabled: true },
+    { id: 'notice-3', kind: 'news', title: '', message: '', enabled: true },
+    { id: 'notice-4', kind: 'news', title: 'ไม่แสดง', message: 'ปิดอยู่', enabled: false },
   ]));
   assert.equal(items.length, 1);
   assert.equal(items[0]?.title, 'แจ้งเตือน');
