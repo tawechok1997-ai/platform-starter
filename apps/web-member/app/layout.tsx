@@ -108,7 +108,6 @@ import './member-public-lower-shell.css';
 import './member-footer-secondary-border-fix.css';
 import './member-home-sidebar-primary.css';
 import MemberChrome from './member-chrome';
-import GameFilterStickyController from './components/game-filter-sticky-controller';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
@@ -136,7 +135,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MemberLocaleProvider>
           <SiteSettingsProvider>
             <MemberSessionProvider>
-              <GameFilterStickyController />
               <MemberHeroSwipeController />
               <MemberDragScrollController />
               <PublicLiveNavigationController />
