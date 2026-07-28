@@ -35,13 +35,16 @@ test('all generic settings destinations use SettingsSectionPage', () => {
   }
 });
 
-test('website settings uses grouped fields switches preview and sticky actions', () => {
-  assert.match(websitePage, /SectionLabel title="ข้อมูลเว็บไซต์"/);
-  assert.match(websitePage, /SectionLabel title="สถานะระบบ"/);
-  assert.match(websitePage, /SectionLabel title="ข้อความหน้าแรก"/);
-  assert.match(websitePage, /SectionLabel title="เข้าสู่ระบบและการทำรายการ"/);
-  assert.match(websitePage, /className=\{styles\.previewPanel\}/);
-  assert.match(websitePage, /className=\{styles\.actionBar\}/);
+test('website settings delegates grouped sections and sensitive confirmation to the shared system', () => {
+  assert.match(websitePage, /SettingsSectionPage/);
+  assert.match(websitePage, /group=["']website["']/);
+  assert.match(websitePage, /section:\s*["']ข้อมูลเว็บไซต์["']/);
+  assert.match(websitePage, /section:\s*["']สถานะระบบ["']/);
+  assert.match(websitePage, /section:\s*["']ข้อความหน้าแรก["']/);
+  assert.match(websitePage, /section:\s*["']Login และ Register["']/);
+  assert.match(websitePage, /risk=["']sensitive["']/);
+  assert.match(sharedPage, /className=\{styles\.previewPanel\}/);
+  assert.match(sharedPage, /className=\{styles\.actionBar\}/);
 });
 
 test('maintenance keeps confirmation safety inside the professional settings layout', () => {

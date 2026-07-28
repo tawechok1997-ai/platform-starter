@@ -362,7 +362,7 @@ export default function SettingsSectionPage({
         title={risk === 'critical' ? 'ยืนยันการเปลี่ยนแปลงความเสี่ยงสูง' : 'ยืนยันการเปลี่ยนแปลงสำคัญ'}
         description={`กำลังบันทึก ${changedKeys.length} รายการใน ${title}`}
         confirmLabel={risk === 'critical' ? 'ยืนยันและบันทึก' : 'บันทึกการเปลี่ยนแปลง'}
-        tone={risk === 'critical' ? 'danger' : 'warning'}
+        tone={risk === 'critical' ? 'danger' : 'primary'}
         onCancel={() => setConfirmSave(false)}
         onConfirm={() => void confirmAndSave()}
         details={(
@@ -382,7 +382,7 @@ function FieldInput({ field, value, uploading, disabled, error, onChange, onUplo
   value: SettingsValue | undefined;
   uploading: boolean;
   disabled: boolean;
-  error?: string;
+  error: string | undefined;
   onChange: (value: string | boolean | number) => void;
   onUpload: (file: File) => void;
   onDisable: () => void;

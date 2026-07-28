@@ -54,7 +54,6 @@ const requiredWebsiteKeys = [
   'support_label',
 ] as const;
 
-const settingsEndpoint = '/admin/settings/website';
 
 test('branding settings retain every Member logo and system-image key', () => {
   assert.match(brandingSource, /group=["']branding["']/);
@@ -122,9 +121,10 @@ test('preview ownership remains limited to inline form previews and one full-pag
   assert.equal((previewPageSource.match(/data-preview-scope=["']full-page["']/g) ?? []).length, 1);
 });
 
-test('website settings retain Member-facing content keys and the existing API contract', () => {
-  assert.match(websiteSource, /useAdminSettingsForm<WebsiteSettings>/);
-  assert.match(websiteSource, new RegExp(`endpoint:\\s*["']${settingsEndpoint}["']`));
+test('website settings retain Member-facing content keys and the shared API contract', () => {
+  assert.match(websiteSource, /SettingsSectionPage/);
+  assert.match(websiteSource, /group=["']website["']/);
+  assert.match(settingsSectionSource, /endpoint:\s*`\/admin\/settings\/\$\{group\}`/);
   assert.match(lifecycleSource, /adminApiFetch\(endpoint\)/);
   assert.match(lifecycleSource, /method:\s*["']PUT["']/);
 
@@ -144,10 +144,9 @@ test('website and branding settings keep distinct field ownership', () => {
 
 test('settings pages preserve shared reset and unsaved-change safeguards', () => {
   assert.match(brandingSource, /SettingsSectionPage/);
-  assert.match(websiteSource, /useAdminSettingsForm/);
+  assert.match(websiteSource, /SettingsSectionPage/);
   assert.match(settingsSectionSource, /useAdminSettingsForm<SettingsRecord>/);
-  assert.match(websiteSource, /reset/);
-  assert.match(settingsSectionSource, /onClick={reset}/);
+  assert.match(settingsSectionSource, /onClick=\{reset\}/);
   assert.match(lifecycleSource, /useAdminUnsavedChanges/);
   assert.match(unsavedChangesSource, /beforeunload/);
   assert.match(unsavedChangesSource, /window\.confirm\(warningMessage\)/);
