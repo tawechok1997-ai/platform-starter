@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
+import missionStyles from '../mission/daily-mission-modal.module.css';
 import styles from './usage-guide-modal.module.css';
 
 type GuideTab = 'all' | 'finance' | 'activity' | 'play' | 'affiliate' | 'benefits' | 'trouble';
@@ -119,7 +120,6 @@ const GUIDE_GROUPS: readonly GuideGroup[] = [
 export default function UsageGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<GuideTab>('all');
   const [openItem, setOpenItem] = useState<string | null>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const visibleGroups = useMemo(
@@ -129,20 +129,20 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
   useEffect(() => {
     if (!open) return;
-    const dialog = dialogRef.current;
-    if (dialog && !dialog.open) dialog.showModal();
-
     const bodyOverflow = document.body.style.overflow;
     const htmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
-
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      if (dialog?.open) dialog.close();
       document.body.style.overflow = bodyOverflow;
       document.documentElement.style.overflow = htmlOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [open]);
+  }, [open, onClose]);
 
   useEffect(() => {
     if (!open) {
@@ -153,59 +153,20 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
   if (!open || typeof document === 'undefined') return null;
 
-  const closeDialog = () => {
-    if (dialogRef.current?.open) dialogRef.current.close();
-    onClose();
+  const closeFromBackdrop = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) onClose();
   };
 
   return createPortal(
-    <dialog
-      ref={dialogRef}
-      className="public-native-dialog"
-      data-public-dialog-overlay="guide"
-      aria-labelledby="usage-guide-title"
-      onCancel={(event) => {
-        event.preventDefault();
-        closeDialog();
-      }}
-    >
-      <button
-        type="button"
-        aria-label="ปิดหน้าต่างแนะนำการใช้งาน"
-        tabIndex={-1}
-        onClick={closeDialog}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 0,
-          width: '100%',
-          height: '100%',
-          margin: 0,
-          padding: 0,
-          border: 0,
-          background: 'transparent',
-          cursor: 'default',
-        }}
-      />
-
-      <section
-        className={`${styles.modal} public-dialog-runtime public-dialog-runtime--guide`}
-        data-public-dialog="guide"
-        role="document"
-        style={{ position: 'relative', zIndex: 1 }}
-      >
+    <div className={missionStyles.overlay} role="presentation" onMouseDown={closeFromBackdrop}>
+      <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="usage-guide-title">
         <div className={styles.topLine} aria-hidden="true" />
-        <header className={`${styles.header} public-dialog-runtime-header`}>
+        <header className={styles.header}>
           <div className={styles.heading}>
             <span className={styles.iconBox}><img src="/images/usage-guide-icon.svg" alt="" aria-hidden="true" /></span>
             <h2 id="usage-guide-title">แนะนำการใช้งาน</h2>
           </div>
-          <button
-            type="button"
-            className={`${styles.close} public-dialog-runtime-close`}
-            onClick={closeDialog}
-            aria-label="ปิดหน้าต่าง"
-          >
+          <button type="button" className={styles.close} onClick={onClose} aria-label="ปิดหน้าต่าง">
             <img src="/images/close.svg" width="16" height="16" alt="" aria-hidden="true" />
           </button>
         </header>
@@ -258,7 +219,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
           ))}
         </div>
       </section>
-    </dialog>,
+    </div>,
     document.body,
   );
 }
