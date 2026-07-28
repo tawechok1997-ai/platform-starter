@@ -8,7 +8,8 @@ const contentPatterns = [
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
   /(?:aws_access_key_id|aws_secret_access_key)\s*[=:]\s*[^\s"']+/i,
   /(?:jwt|refresh|encryption|api|client|webhook)[_-]?secret\s*[=:]\s*["'][^"']{16,}["']/i,
-  /(?:password|passwd)\s*[=:]\s*["'][^"']{12,}["']/i,
+  // Machine credentials are compact tokens. Human-facing labels such as "Create password" contain whitespace.
+  /(?:password|passwd)\s*[=:]\s*["'][^"'\s]{12,}["']/i,
 ];
 
 const allowedSecretFiles = new Set(['.env.example', '.env.test.example']);
