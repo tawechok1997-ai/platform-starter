@@ -24,45 +24,45 @@ type LiveItem = {
 };
 
 const POPULAR_ITEMS: PopularItem[] = [
-  { name: 'ROMA X 10000', imageUrl: 'https://cdn.zabbet.com/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/jl.png', badge: 'HOT' },
-  { name: 'Maya Golden City 2', imageUrl: 'https://cdn.zabbet.com/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/ygr.png', badge: 'HOT' },
-  { name: 'El Paso Gunfight xNudge', imageUrl: 'https://cdn.zabbet.com/games/NLC/elpaso0000000000.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/nlc.png', badge: 'NEW' },
-  { name: 'Sweet Bonanza Xmas', imageUrl: 'https://cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/pp.png', badge: 'NEW' },
-  { name: 'Roma', imageUrl: 'https://cdn.zabbet.com/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/rsg.png', badge: 'NEW' },
-  { name: 'TREASURES OF AZTEC Z', imageUrl: 'https://cdn.zabbet.com/games/1692882357754-c47b8426-4045-4792-8ee3-58b784ed9a78.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/ps.png', badge: 'NEW' },
-  { name: 'ไฮโลไทย 2', imageUrl: 'https://cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/kingm.png', badge: 'NEW' },
-  { name: 'Starlight Princess', imageUrl: 'https://cdn.zabbet.com/games/vertical/PP/starlight_princess.png', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/pp.png', badge: 'NEW' },
-  { name: 'Coin Spinner', imageUrl: 'https://cdn.zabbet.com/games/vertical/CQ/coin_spinner.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/cq.png', badge: 'NEW' },
-  { name: 'Fortune Gems', imageUrl: 'https://cdn.zabbet.com/games/1671995554666-2fba59cf-2cb7-48bf-b619-ba56269e90ca.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/jl.png', badge: 'NEW' },
+  { name: 'ROMA X 10000', imageUrl: '/assets/asset-pc/images/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg', providerLogo: '/assets/asset-pc/images/providers/set/1_1_badge/jl.png', badge: 'HOT' },
+  { name: 'Maya Golden City 2', imageUrl: '/assets/asset-pc/images/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg', providerLogo: '/assets/asset-pc/images/providers/set/1_1_badge/ygr.png', badge: 'HOT' },
+  { name: 'El Paso Gunfight xNudge', imageUrl: '/assets/asset-pc/images/games/NLC/elpaso0000000000.jpg', providerLogo: '/assets/asset-pc/images/providers/set/1_1_badge/nlc.png', badge: 'NEW' },
+  { name: 'Sweet Bonanza Xmas', imageUrl: '/assets/asset-pc/images/games/vertical/PP/sweet_bonanza_xmas.png', providerLogo: '/assets/asset-pc/images/providers/set/1_1_badge/pp.png', badge: 'NEW' },
+  { name: 'Roma', imageUrl: '/assets/asset-pc/images/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9.jpg', providerLogo: '/assets/asset-pc/images/providers/set/1_1_badge/rsg.png', badge: 'NEW' },
+  { name: 'TREASURES OF AZTEC Z', imageUrl: '/assets/asset-pc/images/games/1692882357754-c47b8426-4045-4792-8ee3-58b784ed9a78.jpg', providerLogo: '/assets/asset-pc/images/providers/set/1_1_badge/ps.png', badge: 'NEW' },
+  { name: 'ไฮโลไทย 2', imageUrl: '/assets/asset-pc/images/games/KM/TH/Thai_Hi_Lo_2.jpg', providerLogo: '/assets/asset-pc/images/providers/set/1_1_badge/kingm.png', badge: 'NEW' },
+  { name: 'Starlight Princess', imageUrl: '/assets/asset-pc/images/games/vertical/PP/starlight_princess.png', providerLogo: '/assets/asset-pc/images/providers/set/1_1_badge/pp.png', badge: 'NEW' },
+  { name: 'Coin Spinner', imageUrl: '/assets/asset-pc/images/games/vertical/CQ/coin_spinner.jpg', providerLogo: '/assets/asset-pc/images/providers/set/1_1_badge/cq.png', badge: 'NEW' },
+  { name: 'Fortune Gems', imageUrl: '/assets/asset-pc/images/games/1671995554666-2fba59cf-2cb7-48bf-b619-ba56269e90ca.jpg', providerLogo: '/assets/asset-pc/images/providers/set/1_1_badge/jl.png', badge: 'NEW' },
 ];
 
 const ONLINE_ITEMS: OnlineItem[] = [
-  { imageUrl: 'https://cdn.zabbet.com/_INIT/highlight/1731332886257-a7188fa9-8abc-4e47-9ea5-cfd777cb1abe.webp', players: 3947 },
-  { imageUrl: 'https://cdn.zabbet.com/FEZX/highlight/1729314673983-77cc8959-5e30-4372-96a5-75df61251087.jpeg', players: 2979 },
-  { imageUrl: 'https://cdn.zabbet.com/FEZX/highlight/1729314682179-2f2cd5b6-cadd-4e83-850d-a6f9f2eb68a6.jpeg', players: 2201 },
-  { imageUrl: 'https://cdn.zabbet.com/FEZX/highlight/1729314708585-cf6d4f54-740b-437c-8c68-eeb335650199.jpeg', players: 5004 },
-  { imageUrl: 'https://cdn.zabbet.com/FEZX/highlight/1729314712283-8e9a06f9-6d2e-42fd-b096-a8f400df89dc.jpeg', players: 2112 },
-  { imageUrl: 'https://cdn.zabbet.com/FEZX/highlight/1731504909009-3b869385-72bb-4d54-a1c5-7a99313b5409.png', players: 1925 },
+  { imageUrl: '/assets/asset-pc/images/_INIT/highlight/1731332886257-a7188fa9-8abc-4e47-9ea5-cfd777cb1abe.webp', players: 3947 },
+  { imageUrl: '/assets/asset-pc/images/FEZX/highlight/1729314673983-77cc8959-5e30-4372-96a5-75df61251087.jpeg', players: 2979 },
+  { imageUrl: '/assets/asset-pc/images/FEZX/highlight/1729314682179-2f2cd5b6-cadd-4e83-850d-a6f9f2eb68a6.jpeg', players: 2201 },
+  { imageUrl: '/assets/asset-pc/images/FEZX/highlight/1729314708585-cf6d4f54-740b-437c-8c68-eeb335650199.jpeg', players: 5004 },
+  { imageUrl: '/assets/asset-pc/images/FEZX/highlight/1729314712283-8e9a06f9-6d2e-42fd-b096-a8f400df89dc.jpeg', players: 2112 },
+  { imageUrl: '/assets/asset-pc/images/FEZX/highlight/1731504909009-3b869385-72bb-4d54-a1c5-7a99313b5409.png', players: 1925 },
 ];
 
 const LIVE_ITEMS: LiveItem[] = [
-  { league: 'เดนมาร์ก - ซูเปอร์ลีกา', time: 'Jul 28, 00:00', home: 'แรนเดอร์ส', away: 'ซิลเคบอร์ก', homeLogo: 'https://googlecdn.live/teams/610.png', awayLogo: 'https://googlecdn.live/teams/609.png' },
-  { league: 'นอร์เวย์ - ทิปเปลีเก้น', time: 'Jul 28, 00:00', home: 'โรเซนบอร์ก', away: 'เฟรดริคสตัด', homeLogo: 'https://googlecdn.live/teams/1587.png', awayLogo: 'https://googlecdn.live/teams/2481.png' },
-  { league: 'นอร์เวย์ - โอบอสลีเก้น', time: 'Jul 28, 00:00', home: 'สตาเบ็ค', away: 'ฮ็อดด์', homeLogo: 'https://googlecdn.live/teams/1593.png', awayLogo: 'https://googlecdn.live/teams/1608.png' },
-  { league: 'โปแลนด์ - เอ็คสตราคลาซ่า', time: 'Jul 28, 00:00', home: 'ซาเกลบี้ ลูบิน', away: 'เพียสท์ กลิวิเซ่', homeLogo: 'https://googlecdn.live/teams/1663.png', awayLogo: 'https://googlecdn.live/teams/1673.png' },
-  { league: 'โปแลนด์ - ลีกา 1', time: 'Jul 28, 00:00', home: 'มีดซ์ เล็กนิซ่า', away: 'ป็อดเบสคิดเซีย', homeLogo: 'https://googlecdn.live/teams/6940.png', awayLogo: 'https://googlecdn.live/teams/1667.png' },
-  { league: 'รัสเซีย - เนชั่นแนลลีก', time: 'Jul 28, 00:00', home: 'คามาซ', away: 'โรเตอร์ โวลโกกราด', homeLogo: 'https://googlecdn.live/teams/1861.png', awayLogo: 'https://googlecdn.live/teams/13206.png' },
-  { league: 'สวีเดน - อัลสเวนส์คาน', time: 'Jul 28, 00:00', home: 'ฮัคเค่น', away: 'เอไอเค โซลน่า', homeLogo: 'https://googlecdn.live/teams/2398.png', awayLogo: 'https://googlecdn.live/teams/2153.png' },
-  { league: 'สวีเดน - ซูเปอร์เร็ตเท่น', time: 'Jul 28, 00:00', home: 'โอเรโบร', away: 'อ็อดเดโวลด์', homeLogo: 'https://googlecdn.live/teams/2156.png', awayLogo: 'https://googlecdn.live/teams/2402.png' },
-  { league: 'สวีเดน - ซูเปอร์เร็ตเท่น', time: 'Jul 28, 00:05', home: 'วาร์เบิร์ก', away: 'ออสเตอร์', homeLogo: 'https://googlecdn.live/teams/7809.png', awayLogo: 'https://googlecdn.live/teams/2165.png' },
-  { league: 'ฮังการี - เอ็นบี ไอ', time: 'Jul 28, 00:30', home: 'เอ็มทีเค บูดาเปสต์', away: 'ซาเลเกอร์สเซ็ก ทีอี', homeLogo: 'https://googlecdn.live/teams/1104.png', awayLogo: 'https://googlecdn.live/teams/1109.png' },
-  { league: 'ไอซ์แลนด์ - อูร์วัลส์เดลด์', time: 'Jul 28, 01:00', home: 'ไบรดาบลิค', away: 'ไอบี เวสต์มันนาเอย่า', homeLogo: 'https://googlecdn.live/teams/1142.png', awayLogo: 'https://googlecdn.live/teams/1133.png' },
-  { league: 'แอฟริกา - แอฟริกัน เนชั่นส์ คัพ หญิง', time: 'Jul 28, 01:00', home: 'แอฟริกาใต้', away: 'แทนซาเนีย', homeLogo: 'https://googlecdn.live/teams/2014.png', awayLogo: 'https://googlecdn.live/teams/2206.png' },
-  { league: 'บัลแกเรีย - เอ พีเอฟจี', time: 'Jul 28, 01:15', home: 'ซีเอสเคเอ โซเฟีย', away: 'โบเตฟ พลอฟดิฟ', homeLogo: 'https://googlecdn.live/teams/354.png', awayLogo: 'https://googlecdn.live/teams/16355.png' },
-  { league: 'โรมาเนีย - ลีกา 1', time: 'Jul 28, 01:30', home: 'โบโตซานี่', away: 'ราปิด บูคาเรสต์', homeLogo: 'https://googlecdn.live/teams/3243.png', awayLogo: 'https://googlecdn.live/teams/1777.png' },
-  { league: 'โบลิเวีย - แอลเอฟพีบี', time: 'Jul 28, 02:00', home: 'ซาน โฮเซ่', away: 'Universitario de Vinto', homeLogo: 'https://googlecdn.live/teams/292.png', awayLogo: 'https://googlecdn.live/teams/40332.png' },
-  { league: 'เอกวาดอร์ - เซเรีย อา', time: 'Jul 28, 02:00', home: 'มูชุค รูน่า', away: 'Libertad', homeLogo: 'https://googlecdn.live/teams/21111.png', awayLogo: 'https://googlecdn.live/teams/44459.png' },
-  { league: 'ไอซ์แลนด์ - อูร์วัลส์เดลด์', time: 'Jul 28, 02:15', home: 'เคเอ อคูเรย์รี่', away: 'Thor Akureyri', homeLogo: 'https://googlecdn.live/teams/1134.png', awayLogo: 'https://googlecdn.live/teams/uploads/logo-none.png' },
+  { league: 'เดนมาร์ก - ซูเปอร์ลีกา', time: 'Jul 28, 00:00', home: 'แรนเดอร์ส', away: 'ซิลเคบอร์ก', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'นอร์เวย์ - ทิปเปลีเก้น', time: 'Jul 28, 00:00', home: 'โรเซนบอร์ก', away: 'เฟรดริคสตัด', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'นอร์เวย์ - โอบอสลีเก้น', time: 'Jul 28, 00:00', home: 'สตาเบ็ค', away: 'ฮ็อดด์', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'โปแลนด์ - เอ็คสตราคลาซ่า', time: 'Jul 28, 00:00', home: 'ซาเกลบี้ ลูบิน', away: 'เพียสท์ กลิวิเซ่', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'โปแลนด์ - ลีกา 1', time: 'Jul 28, 00:00', home: 'มีดซ์ เล็กนิซ่า', away: 'ป็อดเบสคิดเซีย', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'รัสเซีย - เนชั่นแนลลีก', time: 'Jul 28, 00:00', home: 'คามาซ', away: 'โรเตอร์ โวลโกกราด', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'สวีเดน - อัลสเวนส์คาน', time: 'Jul 28, 00:00', home: 'ฮัคเค่น', away: 'เอไอเค โซลน่า', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'สวีเดน - ซูเปอร์เร็ตเท่น', time: 'Jul 28, 00:00', home: 'โอเรโบร', away: 'อ็อดเดโวลด์', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'สวีเดน - ซูเปอร์เร็ตเท่น', time: 'Jul 28, 00:05', home: 'วาร์เบิร์ก', away: 'ออสเตอร์', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'ฮังการี - เอ็นบี ไอ', time: 'Jul 28, 00:30', home: 'เอ็มทีเค บูดาเปสต์', away: 'ซาเลเกอร์สเซ็ก ทีอี', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'ไอซ์แลนด์ - อูร์วัลส์เดลด์', time: 'Jul 28, 01:00', home: 'ไบรดาบลิค', away: 'ไอบี เวสต์มันนาเอย่า', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'แอฟริกา - แอฟริกัน เนชั่นส์ คัพ หญิง', time: 'Jul 28, 01:00', home: 'แอฟริกาใต้', away: 'แทนซาเนีย', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'บัลแกเรีย - เอ พีเอฟจี', time: 'Jul 28, 01:15', home: 'ซีเอสเคเอ โซเฟีย', away: 'โบเตฟ พลอฟดิฟ', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'โรมาเนีย - ลีกา 1', time: 'Jul 28, 01:30', home: 'โบโตซานี่', away: 'ราปิด บูคาเรสต์', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'โบลิเวีย - แอลเอฟพีบี', time: 'Jul 28, 02:00', home: 'ซาน โฮเซ่', away: 'Universitario de Vinto', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'เอกวาดอร์ - เซเรีย อา', time: 'Jul 28, 02:00', home: 'มูชุค รูน่า', away: 'Libertad', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
+  { league: 'ไอซ์แลนด์ - อูร์วัลส์เดลด์', time: 'Jul 28, 02:15', home: 'เคเอ อคูเรย์รี่', away: 'Thor Akureyri', homeLogo: '/assets/asset-pc/images/home/live1.webp', awayLogo: '/assets/asset-pc/images/home/live1.webp' },
 ];
 
 function SourceHeading({ title, icon, iconSize = 25 }: { title: string; icon: string; iconSize?: number }) {
@@ -81,7 +81,7 @@ export function SourcePopularSection() {
     <section className="source-feed-host source-feed-host--popular" data-section-kind="popular">
       <div className="member-source-feed-mount member-source-feed-mount--popular">
         <div className="source-feed-section source-popular-section">
-          <SourceHeading title="Top 10 Popular Games" icon="/images/highlight/icongamehit.webp" iconSize={24} />
+          <SourceHeading title="Top 10 Popular Games" icon="/assets/asset-pc/images/highlight/icongamehit.webp" iconSize={24} />
           <div className="source-popular-track" data-drag-scroll="true">
             {POPULAR_ITEMS.map((item, index) => (
               <a key={`${item.name}-${index}`} className="source-popular-card" href="/browse/games" title={item.name}>
@@ -107,7 +107,7 @@ export function SourceOnlineSection() {
     <section className="source-feed-host source-feed-host--online" data-section-kind="online">
       <div className="member-source-feed-mount member-source-feed-mount--online">
         <div className="source-feed-section source-online-section">
-          <SourceHeading title="Most Online Now" icon="/images/home/mostonline1.webp" />
+          <SourceHeading title="Most Online Now" icon="/assets/asset-pc/images/home/mostonline1.webp" />
           <div className="source-online-track" data-drag-scroll="true">
             {ONLINE_ITEMS.map((item, index) => (
               <a key={`${item.imageUrl}-${index}`} className="source-online-card" href="/browse/games">
@@ -127,7 +127,7 @@ export function SourceLiveSection({ onAction }: { onAction: () => void }) {
     <section className="source-feed-host source-feed-host--live" id="live" data-section-kind="live">
       <div className="member-source-feed-mount member-source-feed-mount--live">
         <div className="source-feed-section source-live-section">
-          <SourceHeading title="Live Now!!" icon="/images/home/live1.webp" />
+          <SourceHeading title="Live Now!!" icon="/assets/asset-pc/images/home/live1.webp" />
           <div className="source-live-track" data-drag-scroll="true">
             {LIVE_ITEMS.map((match, index) => (
               <article key={`${match.league}-${index}`} className="source-live-card">
