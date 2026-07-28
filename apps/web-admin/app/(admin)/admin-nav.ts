@@ -169,7 +169,23 @@ export const navGroups: readonly AdminNavGroup[] = [
       { title: 'บันทึกการใช้งาน', titleEn: 'Audit log', href: '/audit', permissions: ['admin.view', 'admin.access.view'] },
       { title: 'ความปลอดภัย', titleEn: 'Security', href: '/security' },
       { title: 'CAPTCHA และป้องกันบอต', titleEn: 'CAPTCHA & bot protection', href: '/anti-bot', permissions: ['security.anti_bot.view'] },
-      { title: 'การตั้งค่า', titleEn: 'Settings', href: '/settings', permissions: ['settings.update', 'settings.website.view'] },
+      {
+        title: 'การตั้งค่า',
+        titleEn: 'Settings',
+        href: '/settings',
+        permissions: [
+          'settings.update',
+          'settings.website.view',
+          'settings.branding.view',
+          'settings.theme.view',
+          'settings.seo.view',
+          'settings.contact.view',
+          'settings.maintenance.view',
+          'settings.scripts.view',
+          'settings.features.view',
+          'settings.legal.view',
+        ],
+      },
     ],
   },
 ] as const;
@@ -188,6 +204,18 @@ const additionalRoutePermissions: readonly AdminNavItem[] = [
   { title: 'ข้อมูลสมาชิก', href: '/member-detail', permissions: ['users.view'] },
   { title: 'จัดการยอดเงิน', href: '/money-ops', permissions: ['game.providers.view'] },
   { title: 'ปฏิบัติการความเสี่ยง', href: '/risk-operations', permissions: ['risk.view'] },
+  { title: 'ประวัติ Branding', href: '/settings/branding/history', permissions: ['settings.branding.view'] },
+  { title: 'ตัวอย่าง Branding', href: '/settings/branding/preview', permissions: ['settings.branding.view'] },
+  { title: 'ตั้งค่า Branding', href: '/settings/branding', permissions: ['settings.branding.view'] },
+  { title: 'ตั้งค่า Icons', href: '/settings/icons', permissions: ['settings.branding.view'] },
+  { title: 'ตั้งค่า Website', href: '/settings/website', permissions: ['settings.website.view'] },
+  { title: 'ตั้งค่า Theme', href: '/settings/theme', permissions: ['settings.theme.view'] },
+  { title: 'ตั้งค่า SEO', href: '/settings/seo', permissions: ['settings.seo.view'] },
+  { title: 'ตั้งค่า Contact', href: '/settings/contact', permissions: ['settings.contact.view'] },
+  { title: 'ตั้งค่า Maintenance', href: '/settings/maintenance', permissions: ['settings.maintenance.view'] },
+  { title: 'ตั้งค่า Scripts', href: '/settings/scripts', permissions: ['settings.scripts.view'] },
+  { title: 'ตั้งค่า Features', href: '/settings/features', permissions: ['settings.features.view'] },
+  { title: 'ตั้งค่า Legal', href: '/settings/legal', permissions: ['settings.legal.view'] },
 ];
 
 const safeSelfServicePaths = ['/dashboard', '/operations', '/profile', '/security'] as const;
