@@ -1,0 +1,82 @@
+/* Runtime contract: one fixed public header and one global content offset. */
+
+@media (min-width: 901px) {
+  body:has(.public-home-topbar) {
+    box-sizing: border-box !important;
+    padding-top: 108px !important;
+  }
+
+  .public-home-topbar.global-member-topbar {
+    position: fixed !important;
+    inset: 0 0 auto 0 !important;
+    z-index: 1000 !important;
+  }
+
+  .public-home-topbar .member-actions,
+  .public-home-topbar .member-guest-actions,
+  .public-home-topbar .member-guest-action {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .public-home-topbar .member-actions,
+  .public-home-topbar .member-guest-actions {
+    position: relative !important;
+    z-index: 5 !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: max-content !important;
+  }
+
+  .browse-fixed-header-offset {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding-top: 0 !important;
+    background: transparent !important;
+  }
+
+  .browse-page {
+    padding-top: 18px !important;
+  }
+
+  main[class*="casino-source-page_page"] {
+    padding-top: 20px !important;
+  }
+
+  [class*="slot-browse-source_content"] {
+    padding-top: 20px !important;
+  }
+
+  [class*="sport-browse-source_content"],
+  [class*="lotto-browse-source_content"] {
+    padding-top: 26px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body:has(.public-home-topbar) {
+    padding-top: 0 !important;
+  }
+
+  .public-home-topbar .member-actions,
+  .public-home-topbar .member-guest-actions,
+  .public-home-topbar .member-guest-action {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .browse-fixed-header-offset {
+    padding-top: 0 !important;
+  }
+
+  main[class*="casino-source-page_page"],
+  [class*="slot-browse-source_content"],
+  [class*="sport-browse-source_content"],
+  [class*="lotto-browse-source_content"] {
+    padding-top: 12px !important;
+  }
+}

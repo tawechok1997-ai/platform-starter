@@ -16,6 +16,7 @@ import { CloseIcon, MenuIcon } from './components/member-icon';
 import { MemberCategoryRail } from './components/member-category-rail';
 import { V47_ASSETS } from './components/member-home/v47-asset-map';
 import MemberAuthOverlay, { type MemberAuthMode } from './components/auth/member-auth-overlay';
+import DailyMissionModal from './components/mission/daily-mission-modal';
 import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
 
 const PUBLIC_HOME_NAV = [
@@ -34,6 +35,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [authMode, setAuthMode] = useState<MemberAuthMode | null>(null);
+  const [missionOpen, setMissionOpen] = useState(false);
   const { typedSettings } = useSiteSettings();
   const { ready, isLoggedIn, wallet, walletLoading, verify, logout } = useMemberSession();
   const { website, branding, icons, theme, features: typedFeatures } = typedSettings;
@@ -83,6 +85,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
       window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
     }
   }, []);
+
+  const closeMission = useCallback(() => setMissionOpen(false), []);
 
   const completeAuth = useCallback(async () => {
     const next = new URLSearchParams(window.location.search).get('next');
@@ -140,9 +144,11 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMenuOpen(false);
+    setMissionOpen(false);
   }, [pathname]);
 
   const authOverlay = authMode ? <MemberAuthOverlay mode={authMode} onClose={closeAuth} onSuccess={completeAuth} /> : null;
+  const missionOverlay = <DailyMissionModal open={missionOpen} onClose={closeMission} />;
 
   if (isHomeRoute) {
     return (
@@ -157,10 +163,12 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           logout={logout}
           onOpenLogin={() => setAuthMode('login')}
           onOpenRegister={() => setAuthMode('register')}
+          onOpenMission={() => setMissionOpen(true)}
         />
         {children}
         <MemberFooter settings={typedSettings} />
         {authOverlay}
+        {missionOverlay}
       </>
     );
   }
@@ -178,10 +186,12 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           logout={logout}
           onOpenLogin={() => setAuthMode('login')}
           onOpenRegister={() => setAuthMode('register')}
+          onOpenMission={() => setMissionOpen(true)}
         />
         {children}
         <MemberFooter settings={typedSettings} />
         {authOverlay}
+        {missionOverlay}
       </>
     );
   }
@@ -265,7 +275,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   );
 }
 
-function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoading, compactWalletBalance, logout, onOpenLogin, onOpenRegister }: {
+function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoading, compactWalletBalance, logout, onOpenLogin, onOpenRegister, onOpenMission }: {
   logoUrl: string;
   brandMark: string;
   features: MemberFeatureFlags;
@@ -275,6 +285,7 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
   logout: () => void;
   onOpenLogin: () => void;
   onOpenRegister: () => void;
+  onOpenMission: () => void;
 }) {
   return (
     <header className="member-topbar global-member-topbar public-home-topbar">
@@ -288,7 +299,15 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
         <a className="public-home-search" href="/browse/games" aria-label="ค้นหาเกม">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4.2-4.2" /></svg>
         </a>
-        <a className="public-home-mission" href="/browse/promotions">
+        <a
+          className="public-home-mission"
+          href="#daily-mission"
+          aria-haspopup="dialog"
+          onClick={(event) => {
+            event.preventDefault();
+            onOpenMission();
+          }}
+        >
           <img src={V47_ASSETS.headerMission} alt="" aria-hidden="true" />
           <span>ภารกิจ</span>
         </a>
@@ -301,9 +320,9 @@ function PublicHomeHeader({ logoUrl, brandMark, features, isLoggedIn, walletLoad
               <button type="button" className="member-header-logout" onClick={logout}>ออกจากระบบ</button>
             </>
           ) : (
-            <div className="member-guest-actions">
-              {features.login && <button type="button" className="member-guest-action member-guest-action--login" onClick={onOpenLogin}>เข้าสู่ระบบ</button>}
-              {features.registration && <button type="button" className="member-guest-action member-guest-action--register" onClick={onOpenRegister}>สมัครสมาชิก</button>}
+            <div className="member-guest-actions" data-login-enabled={features.login ? 'true' : 'false'} data-registration-enabled={features.registration ? 'true' : 'false'}>
+              <button type="button" className="member-guest-action member-guest-action--login" onClick={onOpenLogin}>เข้าสู่ระบบ</button>
+              <button type="button" className="member-guest-action member-guest-action--register" onClick={onOpenRegister}>สมัครสมาชิก</button>
             </div>
           )}
         </div>

@@ -37,3 +37,72 @@
   filter: brightness(.78);
   transform: scale(1.035);
 }
+
+.catalogStatus {
+  box-sizing: border-box;
+  width: 100%;
+  margin: -8px 0 14px;
+  padding: 10px 14px;
+  border: 1px solid rgb(79 73 93 / 72%);
+  border-radius: 8px;
+  background: rgb(24 21 35 / 76%);
+  color: rgb(255 255 255 / 72%);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+@media (min-width: 901px) {
+  .layout {
+    grid-template-columns: 345px minmax(0, 1fr) !important;
+    gap: 20px !important;
+  }
+
+  .filterPanel {
+    position: sticky !important;
+    top: 124px !important;
+    align-self: start !important;
+    width: 345px !important;
+    min-width: 345px !important;
+    max-width: 345px !important;
+    height: fit-content !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+
+  .providerGrid {
+    grid-template-columns: repeat(3, 99px) !important;
+    width: 345px !important;
+    padding: 20px 16px !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  .providerButton {
+    width: 99px !important;
+    min-width: 99px !important;
+    height: 56px !important;
+  }
+
+  .providerButton > span {
+    width: 90px !important;
+    height: 49px !important;
+  }
+}
+
+@media (min-width: 1261px) {
+  .gameGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .filterPanel {
+    overflow: hidden !important;
+  }
+
+  .providerGrid,
+  .providerButton {
+    width: 100% !important;
+  }
+}

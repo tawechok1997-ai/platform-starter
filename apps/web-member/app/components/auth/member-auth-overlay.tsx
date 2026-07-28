@@ -1,16 +1,21 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export type MemberAuthMode = 'login' | 'register';
 
 type MemberAuthOverlayProps = {
   mode: MemberAuthMode;
+  onModeChange?: (mode: MemberAuthMode) => void;
   onClose: () => void;
   onSuccess: () => void | Promise<void>;
 };
 
-export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAuthOverlayProps) {
+export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSuccess }: MemberAuthOverlayProps) {
+  const [activeMode, setActiveMode] = useState<MemberAuthMode>(mode);
+
+  useEffect(() => setActiveMode(mode), [mode]);
+
   useEffect(() => {
     const bodyOverflow = document.body.style.overflow;
     const htmlOverflow = document.documentElement.style.overflow;
@@ -23,9 +28,13 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
 
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin || !event.data || typeof event.data !== 'object') return;
-      const type = (event.data as { type?: unknown }).type;
-      if (type === 'member-auth-close') onClose();
-      if (type === 'member-auth-success') void onSuccess();
+      const data = event.data as { type?: unknown; mode?: unknown };
+      if (data.type === 'member-auth-close') onClose();
+      if (data.type === 'member-auth-success') void onSuccess();
+      if (data.type === 'member-auth-mode' && (data.mode === 'login' || data.mode === 'register')) {
+        setActiveMode(data.mode);
+        onModeChange?.(data.mode);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -36,17 +45,16 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('message', handleMessage);
     };
-  }, [onClose, onSuccess]);
+  }, [onClose, onModeChange, onSuccess]);
 
-  const path = mode === 'register' ? '/register?embed=1' : '/login?embed=1';
+  const path = activeMode === 'register' ? '/register?embed=1' : '/login?embed=1';
 
   return (
-    <div className="member-auth-overlay" role="dialog" aria-modal="true" aria-label={mode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}>
+    <div className="member-auth-overlay" role="dialog" aria-modal="true" aria-label={activeMode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}>
       <iframe
-        key={mode}
         className="member-auth-overlay__frame"
         src={path}
-        title={mode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
+        title={activeMode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
         allow="clipboard-write"
       />
     </div>

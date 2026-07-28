@@ -6,15 +6,15 @@ import { AntiBotWidget } from '../../../app/(auth)/anti-bot-widget';
 
 export type RegisterLocale = 'th' | 'en';
 export type RegisterStep = 1 | 2 | 3;
-export type RegisterErrorKey = 'username' | 'phone' | 'email' | 'secret' | 'fullName' | 'bankName' | 'bankAccountNumber' | 'terms';
+export type RegisterErrorKey = 'username' | 'phone' | 'email' | 'secret' | 'confirmSecret' | 'fullName' | 'bankName' | 'bankAccountNumber' | 'gender' | 'terms';
 export type RegisterErrors = Partial<Record<RegisterErrorKey, string>>;
 export type RegisterStatus = 'idle' | 'success' | 'error' | 'info';
 
 export type RegisterCopy = {
   title: string; subtitle: string; account: string; identity: string; review: string;
-  username: string; phone: string; email: string; password: string; referral: string;
+  username: string; phone: string; email: string; password: string; confirmPassword: string; referral: string;
   fullName: string; bankName: string; bankPlaceholder: string; bankAccountNumber: string;
-  next: string; back: string; submit: string; submitting: string; show: string; hide: string;
+  gender: string; male: string; female: string; next: string; back: string; submit: string; submitting: string; show: string; hide: string;
   loginPrompt: string; login: string; terms: string; nameRule: string; step: string;
   registrationDisabled: string; maintenance: string;
 };
@@ -34,10 +34,12 @@ export type RegisterViewProps = {
   phone: string;
   email: string;
   secret: string;
+  confirmSecret: string;
   referralCode: string;
   fullName: string;
   bankName: string;
   bankAccountNumber: string;
+  gender: string;
   acceptedTerms: boolean;
   errors: RegisterErrors;
   message: string;
@@ -65,8 +67,8 @@ export type RegisterViewProps = {
 
 export function RegisterView(props: RegisterViewProps) {
   const {
-    cssVars, locale, step, t, siteName, banks, username, phone, email, secret,
-    referralCode, fullName, bankName, bankAccountNumber, acceptedTerms, errors, message, status,
+    cssVars, locale, step, t, siteName, banks, phone, secret, confirmSecret,
+    fullName, bankName, bankAccountNumber, gender, acceptedTerms, errors, message, status,
     loading, disabled, showSecret, passwordProgress, registrationEnabled, loginEnabled,
     maintenanceEnabled, captchaResetKey, selectedBankLabel, embedded = false, onClose, onSubmit,
     onFieldChange, onAcceptedTermsChange, onShowSecretToggle, onBack,
@@ -101,7 +103,6 @@ export function RegisterView(props: RegisterViewProps) {
 
         <form className="public-auth-card source-login-card source-register-card" onSubmit={onSubmit} noValidate>
           <div className="public-auth-heading source-login-heading source-register-heading">
-            <span>{locale === 'th' ? 'สร้างบัญชีสมาชิก' : 'CREATE MEMBER ACCOUNT'}</span>
             <h1 id="member-register-title">{t.title}</h1>
           </div>
 
@@ -113,29 +114,30 @@ export function RegisterView(props: RegisterViewProps) {
           {(maintenanceEnabled || !registrationEnabled) && <div className="public-auth-alert public-auth-alert--error" role="alert">{maintenanceEnabled ? t.maintenance : t.registrationDisabled}</div>}
           {status === 'error' && message && <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>}
 
-          {step === 1 && <>
+          {step === 1 && <div className="source-register-step source-register-step--phone">
             <Field label={t.phone} id="register-phone" value={phone} onChange={(value) => onFieldChange('phone', value)} error={errors.phone} disabled={disabled} autoComplete="tel" inputMode="tel" />
-            <Field label={t.username} id="register-username" value={username} onChange={(value) => onFieldChange('username', value)} error={errors.username} disabled={disabled} autoComplete="username" />
-            <Field label={t.email} id="register-email" value={email} onChange={(value) => onFieldChange('email', value)} error={errors.email} disabled={disabled} autoComplete="email" type="email" />
-            <label className="public-auth-field source-login-field" htmlFor="register-secret"><span className="public-auth-field-label">{t.password}</span><div className="public-auth-input-wrap"><input id="register-secret" className="public-auth-input ui-input" value={secret} onChange={(event) => onFieldChange('secret', event.target.value)} type={showSecret ? 'text' : 'password'} disabled={disabled} autoComplete="new-password" aria-invalid={Boolean(errors.secret)} /><button type="button" onClick={onShowSecretToggle} className="public-auth-eye source-login-eye" disabled={disabled} aria-label={showSecret ? t.hide : t.show}><PasswordVisibilityIcon visible={showSecret} /></button></div></label>
-            <div className="public-auth-password-meter source-register-password-meter" aria-hidden="true"><span style={{ width: `${passwordProgress * 100}%` }} /></div>{errors.secret && <span className="public-auth-field-error">{errors.secret}</span>}
-            <Field label={t.referral} id="register-referral" value={referralCode} onChange={(value) => onFieldChange('referralCode', value)} disabled={disabled} autoComplete="off" />
-          </>}
+            <AntiBotWidget endpoint="member-register" locale={locale} resetKey={captchaResetKey} onToken={onCaptchaToken} onRequiredChange={onCaptchaState} />
+          </div>}
 
-          {step === 2 && <>
+          {step === 2 && <div className="source-register-step source-register-step--details">
+            <Field label={t.phone} id="register-phone-confirmed" value={phone} onChange={() => undefined} disabled readOnly verified />
+            <label className="public-auth-field source-login-field" htmlFor="register-secret"><span className="public-auth-field-label">{t.password}</span><div className="public-auth-input-wrap"><input id="register-secret" className="public-auth-input ui-input" value={secret} onChange={(event) => onFieldChange('secret', event.target.value)} type={showSecret ? 'text' : 'password'} disabled={disabled} autoComplete="new-password" aria-invalid={Boolean(errors.secret)} /><button type="button" onClick={onShowSecretToggle} className="public-auth-eye source-login-eye" disabled={disabled} aria-label={showSecret ? t.hide : t.show}><PasswordVisibilityIcon visible={showSecret} /></button></div></label>
+            {errors.secret && <span className="public-auth-field-error">{errors.secret}</span>}
+            <Field label={t.confirmPassword} id="register-confirm-secret" value={confirmSecret} onChange={(value) => onFieldChange('confirmSecret', value)} error={errors.confirmSecret} disabled={disabled} type={showSecret ? 'text' : 'password'} autoComplete="new-password" />
+            <div className="public-auth-password-meter source-register-password-meter" aria-hidden="true"><span style={{ width: `${passwordProgress * 100}%` }} /></div>
             <Field label={t.fullName} id="register-full-name" value={fullName} onChange={(value) => onFieldChange('fullName', value)} error={errors.fullName} disabled={disabled} autoComplete="name" />
             <label className="public-auth-field source-login-field" htmlFor="register-bank-name"><span className="public-auth-field-label">{t.bankName}</span><select id="register-bank-name" className="public-auth-input ui-input" value={bankName} onChange={(event) => onFieldChange('bankName', event.target.value)} disabled={disabled} aria-invalid={Boolean(errors.bankName)}><option value="">{t.bankPlaceholder}</option>{banks.map(([code, thName, enName]) => <option key={code} value={code}>{locale === 'th' ? thName : enName}</option>)}</select></label>
             {errors.bankName && <span className="public-auth-field-error">{errors.bankName}</span>}
             <Field label={t.bankAccountNumber} id="register-bank-account-number" value={bankAccountNumber} onChange={(value) => onFieldChange('bankAccountNumber', value)} error={errors.bankAccountNumber} disabled={disabled} inputMode="numeric" autoComplete="off" />
-            <div className="public-auth-field-hint source-register-hint">{t.nameRule}</div>
-          </>}
+          </div>}
 
-          {step === 3 && <>
-            <div className="public-auth-review source-register-review"><ReviewRow label={t.username} value={username} /><ReviewRow label={t.phone} value={phone} /><ReviewRow label={t.fullName} value={fullName} /><ReviewRow label={t.bankName} value={selectedBankLabel} /><ReviewRow label={t.bankAccountNumber} value={maskAccount(bankAccountNumber)} /></div>
+          {step === 3 && <div className="source-register-step source-register-step--review">
+            <fieldset className="source-register-gender"><legend>{t.gender}</legend><label><input type="radio" name="register-gender" value="male" checked={gender === 'male'} onChange={() => onFieldChange('gender', 'male')} disabled={disabled} /><span>{t.male}</span></label><label><input type="radio" name="register-gender" value="female" checked={gender === 'female'} onChange={() => onFieldChange('gender', 'female')} disabled={disabled} /><span>{t.female}</span></label></fieldset>
+            {errors.gender && <span className="public-auth-field-error">{errors.gender}</span>}
+            <div className="public-auth-review source-register-review"><ReviewRow label={t.phone} value={phone} /><ReviewRow label={t.fullName} value={fullName} /><ReviewRow label={t.bankName} value={selectedBankLabel} /><ReviewRow label={t.bankAccountNumber} value={maskAccount(bankAccountNumber)} /></div>
             <label className="public-auth-terms source-register-terms"><input type="checkbox" checked={acceptedTerms} onChange={(event) => onAcceptedTermsChange(event.target.checked)} disabled={disabled} /><span>{t.terms}</span></label>
             {errors.terms && <span className="public-auth-field-error">{errors.terms}</span>}
-            <AntiBotWidget endpoint="member-register" locale={locale} resetKey={captchaResetKey} onToken={onCaptchaToken} onRequiredChange={onCaptchaState} />
-          </>}
+          </div>}
 
           <div className={`public-auth-form-actions source-register-actions${step > 1 ? ' has-back' : ''}`}>
             {step > 1 && <button type="button" onClick={onBack} disabled={disabled} className="public-auth-submit public-auth-submit--secondary source-register-back"><span>{t.back}</span></button>}
@@ -151,8 +153,8 @@ export function RegisterView(props: RegisterViewProps) {
   </main>;
 }
 
-function Field({ label, id, value, onChange, error, disabled, type = 'text', autoComplete, inputMode }: { label: string; id: string; value: string; onChange: (value: string) => void; error?: string | undefined; disabled: boolean; type?: string; autoComplete?: string; inputMode?: 'text' | 'tel' | 'email' | 'numeric' | 'decimal' | 'search' | 'url' | 'none'; }) {
-  return <><label className="public-auth-field source-login-field" htmlFor={id}><span className="public-auth-field-label">{label}</span><input id={id} className="public-auth-input ui-input" value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled} type={type} autoComplete={autoComplete} inputMode={inputMode} aria-invalid={Boolean(error)} /></label>{error && <span className="public-auth-field-error">{error}</span>}</>;
+function Field({ label, id, value, onChange, error, disabled, readOnly = false, verified = false, type = 'text', autoComplete, inputMode }: { label: string; id: string; value: string; onChange: (value: string) => void; error?: string | undefined; disabled: boolean; readOnly?: boolean; verified?: boolean; type?: string; autoComplete?: string; inputMode?: 'text' | 'tel' | 'email' | 'numeric' | 'decimal' | 'search' | 'url' | 'none'; }) {
+  return <><label className={`public-auth-field source-login-field${verified ? ' is-verified' : ''}`} htmlFor={id}><span className="public-auth-field-label">{label}</span><span className="source-register-input-status">{verified ? '✓' : ''}</span><input id={id} className="public-auth-input ui-input" value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled && !readOnly} readOnly={readOnly} type={type} autoComplete={autoComplete} inputMode={inputMode} aria-invalid={Boolean(error)} /></label>{error && <span className="public-auth-field-error">{error}</span>}</>;
 }
 
 function PasswordVisibilityIcon({ visible }: { visible: boolean }) {

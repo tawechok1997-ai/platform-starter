@@ -1,0 +1,162 @@
+/* Final shared auth contract: one geometry, one visual shell, mode-specific content only. */
+
+.auth-reference-scope .source-login-modal[data-auth-mode='login'],
+.auth-reference-scope .source-register-modal[data-auth-mode='register'] {
+  width: min(1080px, calc(100vw - 64px)) !important;
+  height: min(669px, calc(100dvh - 92px)) !important;
+  min-height: 560px !important;
+  max-height: 669px !important;
+  grid-template-columns: minmax(0, 1fr) 450px !important;
+  gap: 20px !important;
+  padding: 16px !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.auth-reference-scope .source-login-form-shell,
+.auth-reference-scope .source-register-modal .source-login-form-shell {
+  width: 450px !important;
+  min-width: 450px !important;
+  max-width: 450px !important;
+  height: 100% !important;
+}
+
+.auth-reference-scope .source-login-card,
+.auth-reference-scope .source-register-card {
+  width: 100% !important;
+  height: 586px !important;
+  min-height: 0 !important;
+  max-height: 586px !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+.auth-reference-scope .source-register-step {
+  display: grid !important;
+  width: 100% !important;
+  gap: 10px !important;
+}
+
+.auth-reference-scope .source-register-step--phone {
+  align-content: start !important;
+  padding-top: 4px !important;
+}
+
+.auth-reference-scope .source-register-step--details {
+  gap: 7px !important;
+}
+
+.auth-reference-scope .source-register-step--details .source-login-field {
+  margin: 8px 0 !important;
+}
+
+.auth-reference-scope .source-register-step--review {
+  gap: 12px !important;
+}
+
+.auth-reference-scope .source-login-field.is-verified .public-auth-input {
+  border-color: #00d719 !important;
+  padding-right: 42px !important;
+  color: rgb(255 255 255 / 72%) !important;
+}
+
+.auth-reference-scope .source-register-input-status {
+  display: none !important;
+}
+
+.auth-reference-scope .source-login-field.is-verified .source-register-input-status {
+  position: absolute !important;
+  top: 50% !important;
+  right: 12px !important;
+  z-index: 4 !important;
+  display: grid !important;
+  width: 18px !important;
+  height: 18px !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  background: #00d719 !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  transform: translateY(-50%) !important;
+}
+
+.auth-reference-scope .source-register-gender {
+  display: flex !important;
+  align-items: center !important;
+  gap: 30px !important;
+  margin: 0 !important;
+  padding: 0 0 12px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgb(121 113 144 / 62%) !important;
+}
+
+.auth-reference-scope .source-register-gender legend {
+  width: 100% !important;
+  margin-bottom: 8px !important;
+  color: rgb(255 255 255 / 56%) !important;
+  font-size: 11px !important;
+}
+
+.auth-reference-scope .source-register-gender label {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  color: rgb(255 255 255 / 66%) !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+
+.auth-reference-scope .source-register-gender input {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
+  accent-color: #944fe8 !important;
+}
+
+.auth-reference-scope .source-register-review {
+  gap: 6px !important;
+}
+
+.auth-reference-scope .source-register-review > div {
+  min-height: 34px !important;
+  padding: 6px 10px !important;
+}
+
+.auth-reference-scope .source-register-terms {
+  padding: 10px 0 !important;
+  border-bottom: 1px solid rgb(121 113 144 / 48%) !important;
+}
+
+@media (max-width: 920px) {
+  .auth-reference-scope .source-login-modal[data-auth-mode='login'],
+  .auth-reference-scope .source-register-modal[data-auth-mode='register'] {
+    display: block !important;
+    width: min(450px, calc(100vw - 24px)) !important;
+    height: min(669px, calc(100dvh - 60px)) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 60px) !important;
+    padding: 0 !important;
+  }
+
+  .auth-reference-scope .source-login-form-shell,
+  .auth-reference-scope .source-register-modal .source-login-form-shell {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 100% !important;
+  }
+
+  .auth-reference-scope .source-login-card,
+  .auth-reference-scope .source-register-card {
+    height: calc(100% - 48px) !important;
+    max-height: calc(100% - 48px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-reference-scope .source-login-modal[data-auth-mode='login'],
+  .auth-reference-scope .source-register-modal[data-auth-mode='register'] {
+    width: calc(100vw - 16px) !important;
+  }
+}

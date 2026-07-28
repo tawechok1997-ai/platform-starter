@@ -42,11 +42,11 @@ const SOURCE_HIGHLIGHT_BANNERS = [
 const ARCHIVE_GAMES: ArchiveGame[] = REFERENCE_GAMES.map(({ name, url }) => ({ name, imageUrl: url }));
 const RANK_ART = [V47_ASSETS.rank1, V47_ASSETS.rank2, V47_ASSETS.rank3] as const;
 const LEADERBOARD_ITEMS = [
-  { name: 'Saba', user: '090XXXX284', wins: '7,000', image: ARCHIVE_GAMES[0]!.imageUrl },
-  { name: 'Wild Bounty Showdown', user: '099XXXX917', wins: '5,760', image: ARCHIVE_GAMES[1]!.imageUrl },
-  { name: 'Sexy Baccarat', user: '063XXXX452', wins: '5,700', image: ARCHIVE_GAMES[2]!.imageUrl },
-  { name: 'Lucky Neko', user: '084XXXX608', wins: '5,690', image: ARCHIVE_GAMES[3]!.imageUrl },
-  { name: 'Treasures of Aztec', user: '090XXXX762', wins: '5,120', image: ARCHIVE_GAMES[4]!.imageUrl },
+  { name: 'Fortune Dragon', user: '062XXXXX176', wins: '2,800', image: ARCHIVE_GAMES[12]!.imageUrl },
+  { name: 'Lalika', user: '061XXXXX197', wins: '2,288', image: ARCHIVE_GAMES[13]!.imageUrl },
+  { name: 'Fortune Gems 500', user: '081XXXXX58', wins: '2,135', image: ARCHIVE_GAMES[9]!.imageUrl },
+  { name: 'DJ BOOM BOOM', user: '081XXXXX89', wins: '2,024', image: ARCHIVE_GAMES[3]!.imageUrl },
+  { name: 'Funky Fortunes', user: '048XXXXX31', wins: '1,351', image: ARCHIVE_GAMES[6]!.imageUrl },
 ] as const;
 
 export function DesktopHomeScaffold({ content, siteName, showPromotion, games, isGamesLoading, gamesMessage }: DesktopHomeProps) {
@@ -138,6 +138,7 @@ export function DesktopHomeScaffold({ content, siteName, showPromotion, games, i
           />
           <section className="reference-side-card reference-leaderboard">
             <header><span className="reference-side-title"><AssetIcon configured={V47_ASSETS.leaderboard} fallback="🏆" className="reference-side-icon" /><strong>Leaderboard</strong></span></header>
+            <div className="reference-leaderboard-head" aria-hidden="true"><span>ลำดับ</span><strong>Game/Jackpot</strong></div>
             {LEADERBOARD_ITEMS.map((item, index) => (
               <div key={item.name}>
                 <RankMark index={index} />
@@ -150,8 +151,8 @@ export function DesktopHomeScaffold({ content, siteName, showPromotion, games, i
           <section className="reference-side-card reference-mini-games">
             <header><span className="reference-side-title"><AssetIcon configured={V47_ASSETS.miniGame} fallback="⚡" className="reference-side-icon" /><strong>Mini Game</strong></span></header>
             <div>
-              <a href="/login"><AssetIcon configured={V47_ASSETS.miniGameWheel} fallback="วงล้อ" className="reference-mini-icon" /><span>วงล้อ</span></a>
-              <a href="/login"><AssetIcon configured={V47_ASSETS.miniGameMission} fallback="ภารกิจ" className="reference-mini-icon" /><span>ทำภารกิจ</span></a>
+              <a href="/?auth=login"><AssetIcon configured={V47_ASSETS.miniGameWheel} fallback="วงล้อ" className="reference-mini-icon" /><span>วงล้อ</span></a>
+              <a href="/?auth=login"><AssetIcon configured={V47_ASSETS.miniGameMission} fallback="ภารกิจ" className="reference-mini-icon" /><span>ทำภารกิจ</span></a>
             </div>
           </section>
         </aside>

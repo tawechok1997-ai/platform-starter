@@ -1,0 +1,868 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  overflow: hidden;
+  background: rgb(0 0 0 / 82%);
+  color: #fff;
+}
+
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(1180px, calc(100vw - 32px));
+  height: min(760px, calc(100dvh - 32px));
+  min-height: 620px;
+  padding: 20px 20px 24px;
+  gap: 20px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 8px;
+  background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 96%) 0%, rgb(53 49 65 / 94%) 30.08%, rgb(27 24 36 / 98%) 100%);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 62%);
+  backdrop-filter: blur(18px);
+}
+
+.topLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(255 255 255 / 0%) 26.03%, #fff 48.56%, rgb(255 255 255 / 0%) 72.48%);
+  pointer-events: none;
+}
+
+.header {
+  display: flex;
+  flex: 0 0 55px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 24px;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 16px;
+}
+
+.headingIcon {
+  display: grid;
+  flex: 0 0 55px;
+  width: 55px;
+  height: 55px;
+  place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(360deg, rgb(21 23 29 / 72%) -5.86%, rgb(58 60 64 / 78%) 104.05%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 5%);
+}
+
+.headingIcon svg {
+  display: block;
+  width: 31px;
+  height: 31px;
+}
+
+.heading h2 {
+  margin: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
+  white-space: nowrap;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 14px;
+}
+
+.balances {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  min-width: 106px;
+  height: 34px;
+  padding: 0 9px 0 4px;
+  gap: 9px;
+  border: 2px solid rgb(242 242 242 / 22%);
+  border-radius: 30px;
+  background: linear-gradient(0deg, #505050 0%, #474747 32%, #313131 79%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 22%);
+}
+
+.balance img {
+  display: block;
+  flex: 0 0 27px;
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+}
+
+.balanceCopy {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.balanceCopy strong {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.balanceCopy span {
+  color: rgb(255 255 255 / 86%);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.close {
+  display: grid;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus-visible {
+  background: rgb(255 255 255 / 10%);
+  outline: none;
+}
+
+.close img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.body {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(470px, 0.95fr) minmax(0, 1.05fr);
+  width: 100%;
+  min-height: 0;
+  gap: 8px;
+}
+
+.dailyPane,
+.missionPane {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 10px;
+}
+
+.dailyPane {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 12px 8px;
+  overflow-y: auto;
+  scrollbar-color: rgb(202 128 238 / 55%) transparent;
+  scrollbar-width: thin;
+}
+
+.dailyPane::-webkit-scrollbar,
+.missionList::-webkit-scrollbar,
+.fullRewards::-webkit-scrollbar {
+  width: 5px;
+}
+
+.dailyPane::-webkit-scrollbar-thumb,
+.missionList::-webkit-scrollbar-thumb,
+.fullRewards::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(202 128 238 / 55%);
+}
+
+.rewardStrip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.rewardStrip::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(202 128 238 / 48%);
+}
+
+.dailyHeader {
+  display: grid;
+  grid-template-columns: 77px minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  gap: 18px;
+}
+
+.calendarIcon {
+  display: block;
+  width: 77px;
+  height: 76px;
+  object-fit: contain;
+}
+
+.dailyTitle {
+  min-width: 0;
+  margin-top: -18px;
+}
+
+.dailyTitle strong {
+  display: block;
+  overflow: hidden;
+  color: rgb(219 151 247);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 26px;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
+  white-space: nowrap;
+}
+
+.showAll,
+.backRewards {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.monthCount {
+  display: flex;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.monthCount strong {
+  color: #fff;
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  line-height: 44px;
+  text-shadow: 0 2px 4px rgb(0 0 0 / 48%);
+}
+
+.monthCount span {
+  margin-left: 8px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.prizeStage {
+  display: flex;
+  align-items: center;
+  flex: 0 0 345px;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 313px;
+  height: 345px;
+  margin-top: -20px;
+  background: url('/assets/asset-pc/images/prize_bg.webp') center / contain no-repeat;
+}
+
+.noReward {
+  display: block;
+  width: 193px;
+  height: 193px;
+  margin-top: 35px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 22px rgb(0 0 0 / 30%));
+  animation: floatReward 2.8s ease-in-out infinite;
+}
+
+.claimed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 165px;
+  height: 55px;
+  margin-top: -2px;
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: 6px;
+  background: #2c2c2c;
+  color: #e1e1e1;
+  box-shadow: 0 0 48px rgb(255 220 0 / 20%);
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.monthProgress {
+  flex: 0 0 6px;
+  width: 93%;
+  height: 6px;
+  margin: 10px 0 24px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgb(109 112 119 / 28%);
+}
+
+.monthProgress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(93deg, #35b5e5 -11.62%, #43aae6 52.41%);
+}
+
+.rewardStrip {
+  display: flex;
+  align-items: flex-start;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 113px;
+  padding: 0 2px 6px;
+  gap: 9px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-color: rgb(202 128 238 / 48%) transparent;
+  scrollbar-width: thin;
+}
+
+.rewardCard {
+  display: flex;
+  flex: 0 0 72px;
+  align-items: center;
+  flex-direction: column;
+  width: 72px;
+  gap: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.rewardCard > span {
+  color: rgb(255 255 255 / 78%);
+}
+
+.rewardTile {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 72px;
+  height: 84px;
+  padding-top: 4px;
+  border: 1px solid rgb(202 128 238 / 14%);
+  border-radius: 10px;
+  background: #2e0039;
+  opacity: .68;
+}
+
+.rewardTile img {
+  display: block;
+  width: 49px;
+  height: 49px;
+  object-fit: contain;
+}
+
+.rewardTile strong {
+  margin-top: 4px;
+  color: #d5eff8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fullRewardView {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  gap: 14px;
+}
+
+.backRewards {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+}
+
+.fullRewards {
+  display: grid;
+  grid-template-columns: repeat(6, 72px);
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding: 2px 4px 10px;
+  gap: 12px 8px;
+  overflow-y: auto;
+  scrollbar-color: rgb(202 128 238 / 55%) transparent;
+  scrollbar-width: thin;
+}
+
+.missionPane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 4px 0 12px;
+}
+
+.missionPane h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 50%);
+  text-transform: uppercase;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  flex: 0 0 42px;
+  height: 42px;
+  padding: 8px 0 4px;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 5px 17px;
+  border: 1px solid rgb(255 255 255 / 4%);
+  border-radius: 20px;
+  background: #15131a;
+  color: #9a9a9a;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.tabActive {
+  border-color: rgb(187 91 234 / 45%);
+  background: #7100bd;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 3px 10px rgb(113 0 189 / 25%);
+}
+
+.missionProgress {
+  display: flex;
+  align-items: center;
+  flex: 0 0 28px;
+  margin-top: 10px;
+  gap: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.missionProgress > span {
+  white-space: nowrap;
+}
+
+.progressLine {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.progressTrack {
+  flex: 1 1 auto;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgb(109 112 119 / 28%);
+}
+
+.progressTrack span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(93deg, #35b5e5 -11.62%, #43aae6 52.41%);
+}
+
+.progressLine small {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.missionList {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 20px;
+  padding: 0 4px 2px 0;
+  gap: 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: rgb(202 128 238 / 55%) transparent;
+  scrollbar-width: thin;
+}
+
+.missionCard {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(164px, .9fr);
+  width: 100%;
+  padding: 15px 16px;
+  gap: 10px;
+  border: 1px solid rgb(76 72 88 / 58%);
+  border-radius: 7px;
+  background: #15131a;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 12%);
+}
+
+.missionCopy {
+  min-width: 0;
+}
+
+.missionCopy h4 {
+  margin: 0;
+  overflow: hidden;
+  color: #dc9bf7;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.missionCopy p {
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: rgb(255 255 255 / 94%);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardProgress {
+  display: flex;
+  align-items: center;
+  width: 248px;
+  max-width: 100%;
+  margin-top: 6px;
+  gap: 4px;
+}
+
+.cardProgress .progressTrack {
+  height: 8px;
+}
+
+.cardProgress small {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cardLinks {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+  gap: 8px;
+}
+
+.cardLinks button {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  gap: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgb(255 255 255 / 92%);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.cardLinks button:hover,
+.cardLinks button:focus-visible {
+  background: rgb(255 255 255 / 7%);
+  outline: none;
+}
+
+.rewardSide {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 4px;
+}
+
+.timer {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 14px;
+  gap: 4px;
+  color: #c0c0c0;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.rewardStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 164px;
+  height: 48px;
+  gap: 8px;
+  border: 1px solid #5e586d;
+  border-radius: 6px;
+  background: #1b1821;
+}
+
+.rewardStatus > strong {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rewardAmount {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rewardAmount img {
+  display: block;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.rewardAmount span {
+  margin-top: -4px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.empty {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 240px;
+  place-items: center;
+  color: rgb(255 255 255 / 68%);
+  font-size: 14px;
+}
+
+@keyframes floatReward {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@media (max-width: 1020px) {
+  .overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .modal {
+    width: min(820px, calc(100vw - 32px));
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .header {
+    align-items: flex-start;
+  }
+
+  .headerActions {
+    gap: 8px;
+  }
+
+  .balances {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(96px, 1fr));
+  }
+
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    overflow: visible;
+  }
+
+  .dailyPane,
+  .missionPane {
+    height: auto;
+    min-height: 560px;
+  }
+
+  .missionList {
+    max-height: 560px;
+  }
+}
+
+@media (max-width: 760px) {
+  .overlay {
+    padding: 8px;
+  }
+
+  .modal {
+    width: 100%;
+    padding: 14px 12px 20px;
+    gap: 16px;
+  }
+
+  .header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36px;
+    height: auto;
+    gap: 10px;
+  }
+
+  .headingIcon {
+    flex-basis: 46px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .heading h2 {
+    font-size: 18px;
+    line-height: 24px;
+    white-space: normal;
+  }
+
+  .headerActions {
+    display: contents;
+  }
+
+  .balances {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .balance {
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .balanceCopy span {
+    display: none;
+  }
+
+  .close {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .dailyPane,
+  .missionPane {
+    min-height: 0;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .dailyHeader {
+    grid-template-columns: 60px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .calendarIcon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .dailyTitle {
+    margin-top: 0;
+  }
+
+  .dailyTitle strong {
+    font-size: 15px;
+    white-space: normal;
+  }
+
+  .monthCount strong {
+    font-size: 30px;
+  }
+
+  .prizeStage {
+    width: min(313px, 100%);
+  }
+
+  .fullRewards {
+    grid-template-columns: repeat(4, 72px);
+  }
+
+  .missionPane h3 {
+    font-size: 20px;
+  }
+
+  .missionList {
+    max-height: 620px;
+  }
+
+  .missionCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .missionCopy h4,
+  .missionCopy p {
+    white-space: normal;
+  }
+
+  .rewardSide {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+}
+
+@media (max-width: 390px) {
+  .fullRewards {
+    grid-template-columns: repeat(3, 72px);
+  }
+}
