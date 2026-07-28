@@ -57,7 +57,7 @@ export default function DesktopMiniGameSource() {
           width: 100%;
           min-width: 0;
           gap: 8px;
-          padding: 20px 12px;
+          padding: 20px 12px 20px 7px;
           overflow: visible;
         }
 
@@ -115,7 +115,7 @@ export default function DesktopMiniGameSource() {
           width: 100%;
           min-width: 0;
           height: 42px;
-          margin-left: -20px;
+          margin-left: -23px;
           overflow: visible;
         }
 
@@ -126,10 +126,10 @@ export default function DesktopMiniGameSource() {
           width: auto !important;
           min-width: 0 !important;
           max-width: none !important;
-          height: 90px !important;
-          min-height: 90px !important;
-          max-height: 90px !important;
-          margin: 0 -15px !important;
+          height: 114px !important;
+          min-height: 114px !important;
+          max-height: 114px !important;
+          margin: 0 -10px 0 -23px !important;
           padding: 0 !important;
           object-fit: contain !important;
           transform: none !important;
@@ -154,7 +154,8 @@ export default function DesktopMiniGameSource() {
         @media (max-width: 1180px) {
           .mini-exact-actions {
             gap: 7px;
-            padding-inline: 10px;
+            padding-right: 10px;
+            padding-left: 6px;
           }
 
           .source-mini-game .mini-exact-action {
@@ -162,14 +163,15 @@ export default function DesktopMiniGameSource() {
           }
 
           .mini-exact-content {
-            margin-left: -18px;
+            margin-left: -21px;
           }
 
           .mini-exact-icon {
-            height: 82px !important;
-            min-height: 82px !important;
-            max-height: 82px !important;
-            margin-inline: -14px !important;
+            height: 104px !important;
+            min-height: 104px !important;
+            max-height: 104px !important;
+            margin-right: -9px !important;
+            margin-left: -21px !important;
           }
 
           .mini-exact-label {
