@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 const FILTER_SELECTOR = '.public-game-shell__content aside[aria-label^="ตัวกรอง"]';
 const DESKTOP_QUERY = '(min-width: 901px)';
@@ -16,8 +16,6 @@ type ManagedFilter = {
 
 export default function GameFilterStickyController() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const searchKey = searchParams.toString();
 
   useEffect(() => {
     if (!pathname?.startsWith('/browse')) return;
@@ -26,6 +24,7 @@ export default function GameFilterStickyController() {
     const originalStyles = new Map<HTMLElement, string | null>();
     const managed: ManagedFilter[] = [];
     let resizeObserver: ResizeObserver | null = null;
+    let mutationObserver: MutationObserver | null = null;
     let animationFrame = 0;
     let setupTimer = 0;
 
@@ -33,24 +32,26 @@ export default function GameFilterStickyController() {
       if (!originalStyles.has(element)) originalStyles.set(element, element.getAttribute('style'));
     };
 
+    const restoreStyle = (element: HTMLElement) => {
+      const original = originalStyles.get(element);
+      if (original === null) element.removeAttribute('style');
+      else if (original !== undefined) element.setAttribute('style', original);
+    };
+
     const setImportant = (element: HTMLElement, property: string, value: string) => {
       element.style.setProperty(property, value, 'important');
     };
 
-    const clearManagedPosition = ({ filter, placeholder }: ManagedFilter) => {
-      placeholder.style.display = 'none';
-      const original = originalStyles.get(filter);
-      if (original === null) filter.removeAttribute('style');
-      else if (original !== undefined) filter.setAttribute('style', original);
+    const removeManagedEntry = (entry: ManagedFilter) => {
+      resizeObserver?.unobserve(entry.boundary);
+      resizeObserver?.unobserve(entry.filter);
+      entry.placeholder.remove();
+      restoreStyle(entry.filter);
     };
 
     const restoreEverything = () => {
-      managed.forEach(({ placeholder }) => placeholder.remove());
-      managed.length = 0;
-      originalStyles.forEach((style, element) => {
-        if (style === null) element.removeAttribute('style');
-        else element.setAttribute('style', style);
-      });
+      managed.splice(0).forEach(removeManagedEntry);
+      originalStyles.forEach((_style, element) => restoreStyle(element));
       originalStyles.clear();
     };
 
@@ -58,8 +59,9 @@ export default function GameFilterStickyController() {
       let current: HTMLElement | null = boundary;
       while (current) {
         rememberStyle(current);
-        setImportant(current, 'overflow-y', 'visible');
+        setImportant(current, 'overflow', 'visible');
         setImportant(current, 'overflow-x', 'visible');
+        setImportant(current, 'overflow-y', 'visible');
         setImportant(current, 'contain', 'none');
         if (current.classList.contains('public-game-shell__content')) break;
         current = current.parentElement;
@@ -70,8 +72,9 @@ export default function GameFilterStickyController() {
     };
 
     const prepareFilter = (filter: HTMLElement) => {
+      if (!media.matches) return;
       const boundary = filter.parentElement;
-      if (!boundary || boundary.querySelector('[data-game-filter-placeholder="true"]')) return;
+      if (!boundary || boundary.querySelector(':scope > [data-game-filter-placeholder="true"]')) return;
 
       rememberStyle(filter);
       prepareAncestors(boundary);
@@ -84,33 +87,30 @@ export default function GameFilterStickyController() {
       placeholder.style.boxSizing = 'border-box';
       filter.before(placeholder);
 
-      managed.push({ filter, boundary, placeholder });
+      const entry = { filter, boundary, placeholder };
+      managed.push(entry);
       resizeObserver?.observe(boundary);
       resizeObserver?.observe(filter);
     };
 
-    const updateFilter = (entry: ManagedFilter) => {
-      const { filter, boundary, placeholder } = entry;
-
-      if (!media.matches) {
-        clearManagedPosition(entry);
-        return;
-      }
+    const updateFilter = ({ filter, boundary, placeholder }: ManagedFilter) => {
+      if (!filter.isConnected || !boundary.isConnected || !placeholder.isConnected || !media.matches) return;
 
       const availableHeight = Math.max(320, window.innerHeight - STICKY_TOP_PX - VIEWPORT_BOTTOM_GAP_PX);
+      const fullContentHeight = filter.scrollHeight;
 
       setImportant(filter, 'max-height', `${availableHeight}px`);
       setImportant(filter, 'overflow-x', 'hidden');
-      setImportant(filter, 'overflow-y', filter.scrollHeight > availableHeight ? 'auto' : 'visible');
+      setImportant(filter, 'overflow-y', fullContentHeight > availableHeight ? 'auto' : 'visible');
       setImportant(filter, 'overscroll-behavior', 'contain');
-      setImportant(filter, 'scrollbar-width', filter.scrollHeight > availableHeight ? 'thin' : 'none');
+      setImportant(filter, 'scrollbar-width', fullContentHeight > availableHeight ? 'thin' : 'none');
       setImportant(filter, 'height', 'fit-content');
       setImportant(filter, 'z-index', '40');
 
       const currentRect = filter.getBoundingClientRect();
       const computed = window.getComputedStyle(filter);
       const width = currentRect.width || Number.parseFloat(computed.width) || 345;
-      const renderedHeight = Math.min(filter.scrollHeight || currentRect.height, availableHeight);
+      const renderedHeight = Math.min(fullContentHeight || currentRect.height, availableHeight);
 
       placeholder.style.display = 'block';
       placeholder.style.width = `${width}px`;
@@ -126,17 +126,18 @@ export default function GameFilterStickyController() {
       const boundaryDocumentTop = boundaryRect.top + window.scrollY;
       const endDocumentTop = boundaryDocumentTop + boundary.offsetHeight - filterHeight;
       const desiredDocumentTop = window.scrollY + STICKY_TOP_PX;
+      const fixedWidth = placeholderRect.width || width;
 
-      setImportant(filter, 'width', `${placeholderRect.width || width}px`);
-      setImportant(filter, 'min-width', `${placeholderRect.width || width}px`);
-      setImportant(filter, 'max-width', `${placeholderRect.width || width}px`);
+      setImportant(filter, 'width', `${fixedWidth}px`);
+      setImportant(filter, 'min-width', `${fixedWidth}px`);
+      setImportant(filter, 'max-width', `${fixedWidth}px`);
       setImportant(filter, 'margin', '0');
+      setImportant(filter, 'right', 'auto');
 
       if (desiredDocumentTop <= startDocumentTop || endDocumentTop <= startDocumentTop) {
         setImportant(filter, 'position', 'absolute');
         setImportant(filter, 'top', `${placeholder.offsetTop}px`);
         setImportant(filter, 'left', `${placeholder.offsetLeft}px`);
-        filter.style.removeProperty('right');
         return;
       }
 
@@ -144,19 +145,25 @@ export default function GameFilterStickyController() {
         setImportant(filter, 'position', 'absolute');
         setImportant(filter, 'top', `${Math.max(placeholder.offsetTop, boundary.offsetHeight - filterHeight)}px`);
         setImportant(filter, 'left', `${placeholder.offsetLeft}px`);
-        filter.style.removeProperty('right');
         return;
       }
 
       setImportant(filter, 'position', 'fixed');
       setImportant(filter, 'top', `${STICKY_TOP_PX}px`);
       setImportant(filter, 'left', `${placeholderRect.left}px`);
-      filter.style.removeProperty('right');
     };
 
     const updateAll = () => {
       animationFrame = 0;
-      managed.forEach(updateFilter);
+      for (let index = managed.length - 1; index >= 0; index -= 1) {
+        const entry = managed[index];
+        if (!entry || !entry.filter.isConnected || !entry.boundary.isConnected) {
+          if (entry) removeManagedEntry(entry);
+          managed.splice(index, 1);
+          continue;
+        }
+        updateFilter(entry);
+      }
     };
 
     const scheduleUpdate = () => {
@@ -164,21 +171,27 @@ export default function GameFilterStickyController() {
       animationFrame = window.requestAnimationFrame(updateAll);
     };
 
-    const setup = () => {
-      resizeObserver = new ResizeObserver(scheduleUpdate);
+    const syncFilters = () => {
+      if (!media.matches) return;
       document.querySelectorAll<HTMLElement>(FILTER_SELECTOR).forEach(prepareFilter);
       scheduleUpdate();
     };
 
     const handleMediaChange = () => {
-      if (!media.matches) managed.forEach(clearManagedPosition);
-      scheduleUpdate();
+      if (media.matches) syncFilters();
+      else restoreEverything();
+    };
+
+    const setup = () => {
+      resizeObserver = new ResizeObserver(scheduleUpdate);
+      mutationObserver = new MutationObserver(syncFilters);
+      mutationObserver.observe(document.body, { childList: true, subtree: true });
+      syncFilters();
     };
 
     window.addEventListener('scroll', scheduleUpdate, { passive: true });
     window.addEventListener('resize', scheduleUpdate, { passive: true });
     media.addEventListener('change', handleMediaChange);
-
     setupTimer = window.setTimeout(setup, 0);
 
     return () => {
@@ -186,11 +199,12 @@ export default function GameFilterStickyController() {
       window.removeEventListener('scroll', scheduleUpdate);
       window.removeEventListener('resize', scheduleUpdate);
       media.removeEventListener('change', handleMediaChange);
+      mutationObserver?.disconnect();
       resizeObserver?.disconnect();
       if (animationFrame) window.cancelAnimationFrame(animationFrame);
       restoreEverything();
     };
-  }, [pathname, searchKey]);
+  }, [pathname]);
 
   return null;
 }
