@@ -94,15 +94,13 @@ export default function DesktopMiniGameSource() {
 
         #desktop-mini-game-source .mini-exact-action {
           position: relative !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
+          display: block !important;
           box-sizing: border-box !important;
           width: 100% !important;
           min-width: 0 !important;
           height: 46px !important;
           margin: 0 !important;
-          padding: 0 8px 0 44px !important;
+          padding: 0 !important;
           overflow: visible !important;
           contain: none !important;
           clip-path: none !important;
@@ -156,12 +154,13 @@ export default function DesktopMiniGameSource() {
           margin: 0 !important;
           padding: 0 !important;
           object-fit: contain !important;
+          object-position: center !important;
           transform: translateY(-50%) !important;
           pointer-events: none !important;
         }
 
         #desktop-mini-game-source .mini-exact-icon--wheel {
-          left: -2px !important;
+          left: -28px !important;
           width: 96px !important;
           min-width: 96px !important;
           max-width: 96px !important;
@@ -171,7 +170,7 @@ export default function DesktopMiniGameSource() {
         }
 
         #desktop-mini-game-source .mini-exact-icon--mission {
-          left: -4px !important;
+          left: -27px !important;
           width: 90px !important;
           min-width: 90px !important;
           max-width: 90px !important;
@@ -181,19 +180,31 @@ export default function DesktopMiniGameSource() {
         }
 
         #desktop-mini-game-source .mini-exact-label {
-          position: relative !important;
+          position: absolute !important;
+          top: 0 !important;
+          right: 4px !important;
+          bottom: 0 !important;
+          left: 54px !important;
           z-index: 3 !important;
-          display: block !important;
-          width: 100% !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: auto !important;
           min-width: 0 !important;
           margin: 0 !important;
+          padding: 0 !important;
+          overflow: visible !important;
           color: #fff !important;
+          font-family: inherit !important;
           font-size: 20px !important;
           font-weight: 600 !important;
           line-height: 24px !important;
+          letter-spacing: normal !important;
           text-align: center !important;
           text-overflow: clip !important;
           white-space: nowrap !important;
+          transform: none !important;
+          pointer-events: none !important;
         }
       `}</style>
     </section>
