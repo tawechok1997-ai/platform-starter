@@ -7,6 +7,7 @@ on:
       - 'apps/web-admin/src/features/admin-modernization/**'
       - 'apps/web-admin/tools/audit-admin-routes.mjs'
       - 'apps/web-admin/package.json'
+      - 'docs/admin-complete-route-coverage-spec.md'
       - '.github/workflows/admin-route-inventory.yml'
   workflow_dispatch:
 
@@ -19,7 +20,7 @@ concurrency:
 
 jobs:
   inventory:
-    name: Generate route registry
+    name: Generate route registry contract
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -43,21 +44,27 @@ jobs:
         run: |
           node <<'NODE'
           const fs = require('node:fs');
-          const path = 'docs/admin-route-registry.generated.json';
-          if (!fs.existsSync(path)) {
-            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## Admin route inventory\n\nRegistry generation did not produce an artifact.\n');
+          const registryPath = 'docs/admin-route-registry.generated.json';
+          if (!fs.existsSync(registryPath)) {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## Admin route registry\n\nRegistry generation did not produce an artifact.\n');
             process.exit(0);
           }
-          const registry = JSON.parse(fs.readFileSync(path, 'utf8'));
-          const unassigned = registry.routes.filter((route) => route.workspace === 'unassigned');
+
+          const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
           const lines = [
-            '## Admin route inventory',
+            '## Admin route registry contract',
             '',
+            `- Schema version: **${registry.schemaVersion ?? 1}**`,
             `- Total routes: **${registry.totalRoutes}**`,
+            `- Verified routes: **${registry.statusCounts?.verified ?? 0}**`,
+            `- Implementing routes: **${registry.statusCounts?.implementing ?? 0}**`,
             `- Unassigned routes: **${registry.unassignedCount}**`,
+            `- Permission gaps: **${registry.permissionGapCount ?? 0}**`,
+            `- Contract findings: **${registry.contractFindingCount ?? 0}**`,
             `- Audit command result: **${{ steps.inventory.outcome }}**`,
             '',
           ];
+
           if (registry.workspaceCounts) {
             lines.push('### Workspace coverage', '');
             for (const [workspace, count] of Object.entries(registry.workspaceCounts)) {
@@ -65,12 +72,27 @@ jobs:
             }
             lines.push('');
           }
-          if (unassigned.length) {
-            lines.push('### Routes requiring ownership', '');
-            for (const route of unassigned) lines.push(`- \`${route.route}\` from \`${route.source}\``);
-          } else {
-            lines.push('All discovered routes have a workspace owner.');
+
+          if (registry.routeTypeCounts) {
+            lines.push('### Route types', '');
+            for (const [routeType, count] of Object.entries(registry.routeTypeCounts)) {
+              lines.push(`- ${routeType}: **${count}** routes`);
+            }
+            lines.push('');
           }
+
+          if (registry.contractFindings?.length) {
+            lines.push('### Incomplete route contracts', '');
+            for (const item of registry.contractFindings.slice(0, 50)) {
+              lines.push(`- \`${item.route}\`: ${item.finding}`);
+            }
+            if (registry.contractFindings.length > 50) {
+              lines.push(`- ...and ${registry.contractFindings.length - 50} more findings in the artifact`);
+            }
+          } else {
+            lines.push('All discovered routes have complete ownership, permission, data, responsive, localization, state and test contracts.');
+          }
+
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
           NODE
 
