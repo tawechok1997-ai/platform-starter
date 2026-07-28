@@ -4,7 +4,7 @@
     display: block !important;
     width: min(1455px, calc(100% - 32px)) !important;
     max-width: 1455px !important;
-    margin: 14px auto 36px !important;
+    margin: 0 auto 36px !important;
   }
 
   .desktop-home__body {
