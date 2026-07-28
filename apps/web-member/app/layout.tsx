@@ -112,6 +112,7 @@ import MemberDragScrollController from './components/member-drag-scroll-controll
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
+import UsageGuideController from './components/member-home/usage-guide-controller';
 import { MemberLocaleProvider } from './member-locale-provider';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
@@ -140,6 +141,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <MemberDragScrollController />
               <PublicLiveNavigationController />
               <HomeSidebarScrollController />
+              <UsageGuideController />
               <MemberChrome>{children}</MemberChrome>
             </MemberSessionProvider>
           </SiteSettingsProvider>
