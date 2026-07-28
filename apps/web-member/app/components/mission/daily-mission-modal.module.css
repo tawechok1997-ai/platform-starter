@@ -1,0 +1,818 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  overflow: hidden;
+  background: rgb(0 0 0 / 80%);
+  color: #fff;
+}
+
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(1370px, calc(100vw - 32px));
+  max-height: 90vh;
+  padding: 20px 20px 32px;
+  gap: 32px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 8px;
+  background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 80%) 0%, rgb(63 59 75 / 63%) 30.08%, rgb(27 24 36 / 80%) 100%);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 48%);
+  backdrop-filter: blur(18px);
+}
+
+.topLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(255 255 255 / 0%) 26.03%, #fff 48.56%, rgb(255 255 255 / 0%) 72.48%);
+  pointer-events: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 28px;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 16px;
+}
+
+.headingIcon {
+  display: grid;
+  flex: 0 0 55px;
+  width: 55px;
+  height: 55px;
+  place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(360deg, rgb(21 23 29 / 60%) -5.86%, rgb(58 60 64 / 60%) 104.05%);
+}
+
+.headingIcon svg {
+  display: block;
+  width: 31px;
+  height: 31px;
+}
+
+.heading h2 {
+  margin: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 20px;
+}
+
+.balances {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  min-width: 100px;
+  height: 32px;
+  padding: 0 8px 0 4px;
+  gap: 10px;
+  border: 2px solid rgb(242 242 242 / 20%);
+  border-radius: 30px;
+  background: linear-gradient(0deg, #505050 0%, #474747 32%, #313131 79%);
+  opacity: .8;
+}
+
+.balance img {
+  display: block;
+  flex: 0 0 27px;
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+}
+
+.balanceCopy {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.balanceCopy strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.balanceCopy span {
+  font-size: 12px;
+  font-weight: 200;
+}
+
+.close {
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus-visible {
+  background: rgb(255 255 255 / 8%);
+  outline: none;
+}
+
+.close img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(560px, 1fr);
+  width: 100%;
+  height: 600px;
+  min-height: 0;
+  gap: 8px;
+}
+
+.dailyPane,
+.missionPane {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 10px;
+}
+
+.dailyPane {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  height: 600px;
+  padding: 0 12px 8px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.dailyPane::-webkit-scrollbar,
+.missionList::-webkit-scrollbar,
+.rewardStrip::-webkit-scrollbar,
+.fullRewards::-webkit-scrollbar {
+  display: none;
+}
+
+.dailyHeader {
+  display: grid;
+  grid-template-columns: 77px minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  gap: 20px;
+}
+
+.calendarIcon {
+  display: block;
+  width: 77px;
+  height: 76px;
+  object-fit: contain;
+}
+
+.dailyTitle {
+  min-width: 0;
+  margin-top: -20px;
+}
+
+.dailyTitle strong {
+  display: block;
+  overflow: hidden;
+  color: rgb(202 128 238);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 26px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.showAll,
+.backRewards {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 22px;
+  text-decoration: underline;
+}
+
+.monthCount {
+  display: flex;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.monthCount strong {
+  color: #fff;
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  line-height: 44px;
+}
+
+.monthCount span {
+  margin-left: 8px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.prizeStage {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 313px;
+  height: 345px;
+  margin-top: -20px;
+  background: url('/assets/asset-pc/images/prize_bg.webp') center / contain no-repeat;
+}
+
+.noReward {
+  display: block;
+  width: 193px;
+  height: 193px;
+  margin-top: 35px;
+  object-fit: contain;
+  animation: floatReward 2.8s ease-in-out infinite;
+}
+
+.claimed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 165px;
+  height: 55px;
+  margin-top: -2px;
+  border: 0;
+  border-radius: 6px;
+  background: #2c2c2c;
+  color: #cecece;
+  box-shadow: 0 0 48px rgb(255 220 0 / 20%);
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.monthProgress {
+  width: 93%;
+  height: 6px;
+  margin: 10px 0 28px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgb(109 112 119 / 12%);
+}
+
+.monthProgress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(93deg, #35b5e5 -11.62%, #43aae6 52.41%);
+}
+
+.rewardStrip {
+  display: flex;
+  align-items: flex-start;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 2px 4px;
+  gap: 9px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.rewardCard {
+  display: flex;
+  flex: 0 0 72px;
+  align-items: center;
+  flex-direction: column;
+  width: 72px;
+  gap: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.rewardCard > span {
+  opacity: .3;
+}
+
+.rewardTile {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 72px;
+  height: 84px;
+  padding-top: 4px;
+  border-radius: 10px;
+  background: #2e0039;
+  opacity: .3;
+}
+
+.rewardTile img {
+  display: block;
+  width: 49px;
+  height: 49px;
+  object-fit: contain;
+}
+
+.rewardTile strong {
+  margin-top: 4px;
+  color: #b4d6e1;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fullRewardView {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  gap: 14px;
+}
+
+.backRewards {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+}
+
+.fullRewards {
+  display: grid;
+  grid-template-columns: repeat(7, 72px);
+  justify-content: center;
+  width: 100%;
+  max-height: 520px;
+  padding: 2px 0 10px;
+  gap: 12px 8px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.missionPane {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  padding: 0 4px 0 12px;
+}
+
+.missionPane h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  text-transform: uppercase;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  padding: 8px 0 4px;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 5px 17px;
+  border: 0;
+  border-radius: 20px;
+  background: #15131a;
+  color: #7a7a7a;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.tabActive {
+  background: #7100bd;
+  color: #fff;
+  font-weight: 600;
+}
+
+.missionProgress {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  gap: 10px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.missionProgress > span {
+  white-space: nowrap;
+}
+
+.progressLine {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.progressTrack {
+  flex: 1 1 auto;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgb(109 112 119 / 12%);
+}
+
+.progressTrack span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(93deg, #35b5e5 -11.62%, #43aae6 52.41%);
+}
+
+.progressLine small {
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.missionList {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 30px;
+  padding: 0 0 2px;
+  gap: 6px;
+  overflow-x: visible;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.missionCard {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(164px, 1fr);
+  width: 100%;
+  padding: 16px;
+  gap: 8px;
+  border-radius: 7px;
+  background: #15131a;
+}
+
+.missionCopy {
+  min-width: 0;
+}
+
+.missionCopy h4 {
+  margin: 0;
+  overflow: hidden;
+  color: #ca80ee;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.missionCopy p {
+  margin: 1px 0 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardProgress {
+  display: flex;
+  align-items: center;
+  width: 248px;
+  max-width: 100%;
+  margin-top: 5px;
+  gap: 4px;
+}
+
+.cardProgress .progressTrack {
+  height: 8px;
+}
+
+.cardProgress small {
+  color: #fff;
+  font-size: 10px;
+}
+
+.cardLinks {
+  display: flex;
+  align-items: center;
+  margin-top: 3px;
+  gap: 12px;
+}
+
+.cardLinks button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 20px;
+}
+
+.cardLinks button:hover,
+.cardLinks button:focus-visible {
+  background: rgb(255 255 255 / 6%);
+  outline: none;
+}
+
+.rewardSide {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 4px;
+}
+
+.timer {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 14px;
+  gap: 4px;
+  color: #a8a8a8;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.rewardStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 164px;
+  height: 48px;
+  gap: 8px;
+  border: 1px solid #4c4858;
+  border-radius: 6px;
+  background: #15131a;
+}
+
+.rewardStatus > strong {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rewardAmount {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rewardAmount img {
+  display: block;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.rewardAmount span {
+  margin-top: -4px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.empty {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 240px;
+  place-items: center;
+  color: rgb(255 255 255 / 56%);
+  font-size: 14px;
+}
+
+@keyframes floatReward {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@media (max-width: 1120px) {
+  .modal {
+    gap: 22px;
+  }
+
+  .header {
+    align-items: flex-start;
+  }
+
+  .headerActions {
+    gap: 8px;
+  }
+
+  .balances {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(96px, 1fr));
+  }
+
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+  }
+
+  .dailyPane,
+  .missionPane {
+    height: auto;
+    min-height: 540px;
+  }
+}
+
+@media (max-width: 760px) {
+  .overlay {
+    align-items: flex-start;
+    padding: 8px;
+    overflow-y: auto;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: none;
+    padding: 14px 12px 20px;
+    gap: 16px;
+    overflow: visible;
+  }
+
+  .header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36px;
+    gap: 10px;
+  }
+
+  .headingIcon {
+    flex-basis: 46px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .heading h2 {
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  .headerActions {
+    display: contents;
+  }
+
+  .balances {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .balance {
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .balanceCopy span {
+    display: none;
+  }
+
+  .close {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .body {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .dailyPane,
+  .missionPane {
+    min-height: 0;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .dailyHeader {
+    grid-template-columns: 60px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .calendarIcon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .dailyTitle {
+    margin-top: 0;
+  }
+
+  .dailyTitle strong {
+    font-size: 15px;
+  }
+
+  .monthCount strong {
+    font-size: 30px;
+  }
+
+  .prizeStage {
+    width: min(313px, 100%);
+  }
+
+  .fullRewards {
+    grid-template-columns: repeat(4, 72px);
+  }
+
+  .missionPane h3 {
+    font-size: 20px;
+  }
+
+  .missionList {
+    max-height: 620px;
+  }
+
+  .missionCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .missionCopy h4,
+  .missionCopy p {
+    white-space: normal;
+  }
+
+  .rewardSide {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+}
+
+@media (max-width: 390px) {
+  .fullRewards {
+    grid-template-columns: repeat(3, 72px);
+  }
+}
