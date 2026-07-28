@@ -1,132 +1,182 @@
-/* Final viewport contract for public Search, Daily Mission and Usage Guide dialogs.
- * Keep the existing dialog DOM owners and normalize only geometry and close controls.
+/* Final geometry owner for Search, Daily Mission and Usage Guide.
+ * These dialogs keep their existing DOM and functionality; this file only
+ * guarantees a compact viewport-safe frame and a permanently visible close control.
  */
 
-body > div:has(> section[role='dialog'][aria-labelledby='member-search-title']),
-body > div:has(> section[role='dialog'][aria-labelledby='daily-mission-title']),
-body > div:has(> section[role='dialog'][aria-labelledby='usage-guide-title']) {
+:is(
+  div[role='presentation']:has(> section[role='dialog'][aria-labelledby='member-search-title']),
+  div[role='presentation']:has(> section[role='dialog'][aria-labelledby='daily-mission-title']),
+  div[role='presentation']:has(> section[role='dialog'][aria-labelledby='usage-guide-title'])
+) {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
+  display: grid !important;
+  place-items: center !important;
   box-sizing: border-box !important;
-  align-items: center !important;
-  justify-content: center !important;
   width: 100vw !important;
   height: 100dvh !important;
-  padding: 20px !important;
-  overflow: auto !important;
-}
-
-section[role='dialog'][aria-labelledby='member-search-title'],
-section[role='dialog'][aria-labelledby='usage-guide-title'] {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  right: auto !important;
-  bottom: auto !important;
-  z-index: 3001 !important;
-  box-sizing: border-box !important;
-  width: min(720px, calc(100vw - 40px)) !important;
-  min-width: 0 !important;
-  max-width: 720px !important;
-  height: min(560px, calc(100dvh - 40px)) !important;
-  min-height: 0 !important;
-  max-height: calc(100dvh - 40px) !important;
   margin: 0 !important;
   padding: 16px !important;
-  gap: 14px !important;
   overflow: hidden !important;
-  transform: translate(-50%, -50%) !important;
+  background: rgb(0 0 0 / 82%) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+section[role='dialog'][aria-labelledby='member-search-title'] {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2147483001 !important;
+  box-sizing: border-box !important;
+  width: min(640px, calc(100vw - 32px)) !important;
+  min-width: 0 !important;
+  max-width: 640px !important;
+  height: min(480px, calc(100dvh - 32px)) !important;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 32px) !important;
+  margin: 0 !important;
+  padding: 14px !important;
+  gap: 10px !important;
+  overflow: hidden !important;
+  transform: none !important;
+}
+
+section[role='dialog'][aria-labelledby='usage-guide-title'] {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2147483001 !important;
+  box-sizing: border-box !important;
+  width: min(760px, calc(100vw - 32px)) !important;
+  min-width: 0 !important;
+  max-width: 760px !important;
+  height: min(500px, calc(100dvh - 32px)) !important;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 32px) !important;
+  margin: 0 !important;
+  padding: 14px !important;
+  gap: 10px !important;
+  overflow: hidden !important;
+  transform: none !important;
 }
 
 section[role='dialog'][aria-labelledby='daily-mission-title'] {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  right: auto !important;
-  bottom: auto !important;
-  z-index: 3001 !important;
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2147483001 !important;
   box-sizing: border-box !important;
-  width: min(860px, calc(100vw - 40px)) !important;
+  width: min(760px, calc(100vw - 32px)) !important;
   min-width: 0 !important;
-  max-width: 860px !important;
-  height: min(600px, calc(100dvh - 40px)) !important;
+  max-width: 760px !important;
+  height: min(500px, calc(100dvh - 32px)) !important;
   min-height: 0 !important;
-  max-height: calc(100dvh - 40px) !important;
+  max-height: calc(100dvh - 32px) !important;
   margin: 0 !important;
-  padding: 16px !important;
-  gap: 14px !important;
+  padding: 14px !important;
+  gap: 10px !important;
   overflow: hidden !important;
-  transform: translate(-50%, -50%) !important;
+  transform: none !important;
 }
 
-section[role='dialog'][aria-labelledby='member-search-title'] > header,
-section[role='dialog'][aria-labelledby='daily-mission-title'] > header,
-section[role='dialog'][aria-labelledby='usage-guide-title'] > header {
-  position: relative !important;
-  z-index: 2 !important;
+:is(
+  section[role='dialog'][aria-labelledby='member-search-title'],
+  section[role='dialog'][aria-labelledby='daily-mission-title'],
+  section[role='dialog'][aria-labelledby='usage-guide-title']
+) > header {
+  position: static !important;
+  z-index: auto !important;
   flex: 0 0 auto !important;
   box-sizing: border-box !important;
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 42px !important;
-  padding-right: 50px !important;
+  min-height: 38px !important;
+  margin: 0 !important;
+  padding-right: 46px !important;
 }
 
-section[role='dialog'][aria-labelledby='member-search-title'] button[aria-label='ปิดหน้าค้นหา'],
-section[role='dialog'][aria-labelledby='daily-mission-title'] button[aria-label='ปิดหน้าต่าง'],
-section[role='dialog'][aria-labelledby='usage-guide-title'] button[aria-label='ปิดหน้าต่าง'] {
+:is(
+  section[role='dialog'][aria-labelledby='member-search-title'],
+  section[role='dialog'][aria-labelledby='daily-mission-title'],
+  section[role='dialog'][aria-labelledby='usage-guide-title']
+) button[aria-label^='ปิด'] {
   position: absolute !important;
-  top: 10px !important;
-  right: 10px !important;
+  top: 8px !important;
+  right: 8px !important;
   left: auto !important;
-  z-index: 100 !important;
+  bottom: auto !important;
+  z-index: 2147483002 !important;
   display: grid !important;
   place-items: center !important;
   box-sizing: border-box !important;
-  width: 36px !important;
-  min-width: 36px !important;
-  height: 36px !important;
-  min-height: 36px !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
   margin: 0 !important;
   padding: 0 !important;
   overflow: visible !important;
-  border: 1px solid rgb(255 255 255 / 24%) !important;
+  border: 1px solid rgb(255 255 255 / 34%) !important;
   border-radius: 999px !important;
-  background: rgb(27 24 36 / 96%) !important;
-  box-shadow: 0 4px 16px rgb(0 0 0 / 45%) !important;
+  color: transparent !important;
+  background: rgb(21 19 26 / 98%) !important;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 55%) !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
   cursor: pointer !important;
 }
 
-section[role='dialog'][aria-labelledby='member-search-title'] button[aria-label='ปิดหน้าค้นหา']::before,
-section[role='dialog'][aria-labelledby='member-search-title'] button[aria-label='ปิดหน้าค้นหา']::after,
-section[role='dialog'][aria-labelledby='daily-mission-title'] button[aria-label='ปิดหน้าต่าง']::before,
-section[role='dialog'][aria-labelledby='daily-mission-title'] button[aria-label='ปิดหน้าต่าง']::after,
-section[role='dialog'][aria-labelledby='usage-guide-title'] button[aria-label='ปิดหน้าต่าง']::before,
-section[role='dialog'][aria-labelledby='usage-guide-title'] button[aria-label='ปิดหน้าต่าง']::after {
+:is(
+  section[role='dialog'][aria-labelledby='member-search-title'],
+  section[role='dialog'][aria-labelledby='daily-mission-title'],
+  section[role='dialog'][aria-labelledby='usage-guide-title']
+) button[aria-label^='ปิด']::before,
+:is(
+  section[role='dialog'][aria-labelledby='member-search-title'],
+  section[role='dialog'][aria-labelledby='daily-mission-title'],
+  section[role='dialog'][aria-labelledby='usage-guide-title']
+) button[aria-label^='ปิด']::after {
   position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
   width: 16px !important;
   height: 2px !important;
+  margin: 0 !important;
   border-radius: 999px !important;
   background: #fff !important;
   content: '' !important;
+  transform-origin: center !important;
 }
 
-section[role='dialog'][aria-labelledby='member-search-title'] button[aria-label='ปิดหน้าค้นหา']::before,
-section[role='dialog'][aria-labelledby='daily-mission-title'] button[aria-label='ปิดหน้าต่าง']::before,
-section[role='dialog'][aria-labelledby='usage-guide-title'] button[aria-label='ปิดหน้าต่าง']::before {
-  transform: rotate(45deg) !important;
+:is(
+  section[role='dialog'][aria-labelledby='member-search-title'],
+  section[role='dialog'][aria-labelledby='daily-mission-title'],
+  section[role='dialog'][aria-labelledby='usage-guide-title']
+) button[aria-label^='ปิด']::before {
+  transform: translate(-50%, -50%) rotate(45deg) !important;
 }
 
-section[role='dialog'][aria-labelledby='member-search-title'] button[aria-label='ปิดหน้าค้นหา']::after,
-section[role='dialog'][aria-labelledby='daily-mission-title'] button[aria-label='ปิดหน้าต่าง']::after,
-section[role='dialog'][aria-labelledby='usage-guide-title'] button[aria-label='ปิดหน้าต่าง']::after {
-  transform: rotate(-45deg) !important;
+:is(
+  section[role='dialog'][aria-labelledby='member-search-title'],
+  section[role='dialog'][aria-labelledby='daily-mission-title'],
+  section[role='dialog'][aria-labelledby='usage-guide-title']
+) button[aria-label^='ปิด']::after {
+  transform: translate(-50%, -50%) rotate(-45deg) !important;
 }
 
-section[role='dialog'][aria-labelledby='member-search-title'] button[aria-label='ปิดหน้าค้นหา'] > img,
-section[role='dialog'][aria-labelledby='daily-mission-title'] button[aria-label='ปิดหน้าต่าง'] > img,
-section[role='dialog'][aria-labelledby='usage-guide-title'] button[aria-label='ปิดหน้าต่าง'] > img {
+:is(
+  section[role='dialog'][aria-labelledby='member-search-title'],
+  section[role='dialog'][aria-labelledby='daily-mission-title'],
+  section[role='dialog'][aria-labelledby='usage-guide-title']
+) button[aria-label^='ปิด'] > img,
+:is(
+  section[role='dialog'][aria-labelledby='member-search-title'],
+  section[role='dialog'][aria-labelledby='daily-mission-title'],
+  section[role='dialog'][aria-labelledby='usage-guide-title']
+) button[aria-label^='ปิด'] > svg {
   display: none !important;
 }
 
@@ -146,7 +196,7 @@ section[role='dialog'][aria-labelledby='usage-guide-title'] > div:last-child {
 section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child {
   flex: 1 1 auto !important;
   display: grid !important;
-  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr) !important;
+  grid-template-columns: minmax(300px, .9fr) minmax(0, 1.1fr) !important;
   box-sizing: border-box !important;
   width: 100% !important;
   height: auto !important;
@@ -167,66 +217,51 @@ section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child >
 }
 
 @media (max-width: 760px) {
-  body > div:has(> section[role='dialog'][aria-labelledby='member-search-title']),
-  body > div:has(> section[role='dialog'][aria-labelledby='daily-mission-title']),
-  body > div:has(> section[role='dialog'][aria-labelledby='usage-guide-title']) {
+  :is(
+    div[role='presentation']:has(> section[role='dialog'][aria-labelledby='member-search-title']),
+    div[role='presentation']:has(> section[role='dialog'][aria-labelledby='daily-mission-title']),
+    div[role='presentation']:has(> section[role='dialog'][aria-labelledby='usage-guide-title'])
+  ) {
     padding: 8px !important;
   }
 
-  section[role='dialog'][aria-labelledby='member-search-title'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'],
-  section[role='dialog'][aria-labelledby='usage-guide-title'] {
+  :is(
+    section[role='dialog'][aria-labelledby='member-search-title'],
+    section[role='dialog'][aria-labelledby='daily-mission-title'],
+    section[role='dialog'][aria-labelledby='usage-guide-title']
+  ) {
     width: calc(100vw - 16px) !important;
     max-width: calc(100vw - 16px) !important;
     height: calc(100dvh - 16px) !important;
     max-height: calc(100dvh - 16px) !important;
     min-height: 0 !important;
     padding: 12px !important;
-    gap: 10px !important;
+    gap: 8px !important;
     border-radius: 10px !important;
     overflow: hidden !important;
   }
 
-  section[role='dialog'][aria-labelledby='member-search-title'] > header,
-  section[role='dialog'][aria-labelledby='daily-mission-title'] > header,
-  section[role='dialog'][aria-labelledby='usage-guide-title'] > header {
-    padding-right: 46px !important;
-  }
-
-  section[role='dialog'][aria-labelledby='member-search-title'] button[aria-label='ปิดหน้าค้นหา'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'] button[aria-label='ปิดหน้าต่าง'],
-  section[role='dialog'][aria-labelledby='usage-guide-title'] button[aria-label='ปิดหน้าต่าง'] {
-    top: 8px !important;
-    right: 8px !important;
-    width: 34px !important;
-    min-width: 34px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-  }
-
   section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child {
     display: block !important;
-    height: auto !important;
-    min-height: 0 !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
   }
 
   section[role='dialog'][aria-labelledby='daily-mission-title'] > div:last-child > section {
     height: auto !important;
-    min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
   }
 }
 
-@media (max-height: 640px) and (min-width: 761px) {
-  section[role='dialog'][aria-labelledby='member-search-title'],
-  section[role='dialog'][aria-labelledby='daily-mission-title'],
-  section[role='dialog'][aria-labelledby='usage-guide-title'] {
+@media (max-height: 560px) and (min-width: 761px) {
+  :is(
+    section[role='dialog'][aria-labelledby='member-search-title'],
+    section[role='dialog'][aria-labelledby='daily-mission-title'],
+    section[role='dialog'][aria-labelledby='usage-guide-title']
+  ) {
     height: calc(100dvh - 20px) !important;
     max-height: calc(100dvh - 20px) !important;
     padding-block: 10px !important;
-    gap: 10px !important;
   }
 }
