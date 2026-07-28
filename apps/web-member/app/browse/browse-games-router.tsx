@@ -10,6 +10,10 @@ import LottoBrowseSource from './lotto-browse-source';
 import SlotBrowseSource from './slot-browse-source';
 import SportBrowseSource from './sport-browse-source';
 
+function FixedHeaderOffset({ children }: { children: React.ReactNode }) {
+  return <div className="browse-fixed-header-offset">{children}</div>;
+}
+
 export default function BrowseGamesRouter() {
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
@@ -22,10 +26,10 @@ export default function BrowseGamesRouter() {
       </>
     );
   }
-  if (category === 'slot') return <SlotBrowseSource />;
-  if (category === 'fishing') return <FishingBrowseSource />;
+  if (category === 'slot') return <FixedHeaderOffset><SlotBrowseSource /></FixedHeaderOffset>;
+  if (category === 'fishing') return <FixedHeaderOffset><FishingBrowseSource /></FixedHeaderOffset>;
   if (category === 'sport' || category === 'sports') return <SportBrowseSource />;
-  if (category === 'card') return <CardBrowseSource />;
+  if (category === 'card') return <FixedHeaderOffset><CardBrowseSource /></FixedHeaderOffset>;
   if (category === 'lotto' || category === 'lottery') return <LottoBrowseSource />;
   return <BrowseGames />;
 }
