@@ -20,6 +20,7 @@ type GameCatalogQuery = {
   provider?: string;
   platform?: SimulatorGamePlatform;
   category?: string;
+  tag?: string;
   search?: string;
   page?: number;
   limit?: number;
@@ -67,7 +68,7 @@ export class ProviderSimulatorService {
     return {
       status: 'ONLINE',
       provider: 'platform-provider-simulator',
-      version: 7,
+      version: 8,
       walletSource: 'platform-wallet',
       roundLock: 'postgres-advisory-xact-lock',
       catalogSource: 'repository-assets',
@@ -197,13 +198,15 @@ export class ProviderSimulatorService {
     const provider = query.provider?.trim().toLowerCase();
     const platform = query.platform?.trim().toLowerCase();
     const category = query.category?.trim().toLowerCase();
+    const tag = query.tag?.trim();
     const search = query.search?.trim().toLowerCase();
 
     let filtered = GAME_CATALOG.filter((game) => {
       if (provider && game.provider !== provider) return false;
       if (platform && game.platform !== platform) return false;
       if (category && game.category !== category) return false;
-      if (search && !`${game.code} ${game.name} ${game.provider} ${game.category}`.toLowerCase().includes(search)) return false;
+      if (tag && !game.tags?.includes(tag)) return false;
+      if (search && !`${game.code} ${game.name} ${game.provider} ${game.category} ${(game.tags ?? []).join(' ')}`.toLowerCase().includes(search)) return false;
       return true;
     });
 
@@ -233,12 +236,13 @@ export class ProviderSimulatorService {
         providerLogoUrl: repositoryProviderLogo,
         platform: game.platform,
         category: game.category,
+        tags: game.tags ?? [],
         status: 'ACTIVE',
         enabled: true,
         imageUrl: repositoryImage ?? fallbackIcon,
         iconUrl: repositoryImage ?? fallbackIcon,
         fallbackIconUrl: fallbackIcon,
-        rawPayload: { simulator: true, version: 7, assetSource: repositoryImage ? 'repository' : 'generated-svg' },
+        rawPayload: { simulator: true, version: 8, tags: game.tags ?? [], assetSource: repositoryImage ? 'repository' : 'generated-svg' },
       };
     });
 
@@ -250,6 +254,7 @@ export class ProviderSimulatorService {
         providers: [...new Set(GAME_CATALOG.map((game) => game.provider))],
         platforms: [...new Set(GAME_CATALOG.map((game) => game.platform))],
         categories: [...new Set(GAME_CATALOG.map((game) => game.category))],
+        tags: [...new Set(GAME_CATALOG.flatMap((game) => game.tags ?? []))],
       },
       pagination: { page, limit, total, totalPages },
     };
