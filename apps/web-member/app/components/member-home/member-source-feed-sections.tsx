@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { memberApiFetch } from '../../member-api';
-import { applyMemberImageFallback, hideDecorativeImage } from '../image-fallback';
+import { hideDecorativeImage } from '../image-fallback';
 import { V47_ASSETS } from './v47-asset-map';
 
 const LOCAL_IMAGE_ASSET_ROOT = '/assets/asset-pc/images';
+const GAME_CARD_MAX_RATIO = 1.32;
 
 type LobbyGame = {
   id: string;
@@ -88,6 +89,29 @@ function useLobbyGames() {
   return items;
 }
 
+function useRenderableGames(limit: number, order: 'popular' | 'online') {
+  const games = useLobbyGames();
+  const [invalidKeys, setInvalidKeys] = useState<Set<string>>(() => new Set());
+
+  const items = useMemo(() => {
+    const valid = games.filter((item) => !invalidKeys.has(gameKey(item)));
+    if (order === 'online') valid.sort((left, right) => right.players - left.players);
+    return valid.slice(0, limit);
+  }, [games, invalidKeys, limit, order]);
+
+  const reject = (item: LobbyGame) => {
+    const key = gameKey(item);
+    setInvalidKeys((current) => {
+      if (current.has(key)) return current;
+      const next = new Set(current);
+      next.add(key);
+      return next;
+    });
+  };
+
+  return { items, reject };
+}
+
 async function getLobbyGames() {
   if (!lobbyGamesRequest) lobbyGamesRequest = loadLobbyGames();
   return lobbyGamesRequest;
@@ -113,7 +137,7 @@ async function loadLobbyGames(): Promise<LobbyGame[]> {
     });
 
     const merged = dedupeGames([...catalogGames, ...FALLBACK_GAMES]);
-    return merged.sort((left, right) => gameScore(right) - gameScore(left)).slice(0, 24);
+    return merged.sort((left, right) => gameScore(right) - gameScore(left)).slice(0, 40);
   } catch {
     lobbyGamesRequest = null;
     return FALLBACK_GAMES;
@@ -132,13 +156,9 @@ function mapCatalogGame(item: CatalogGame): LobbyGame | null {
 
   const providerObject = item.provider && typeof item.provider === 'object' ? item.provider : null;
   const provider = normalizeProvider(firstText(item.providerId, typeof item.provider === 'string' ? item.provider : null, providerObject?.code));
-  const providerLogo = localProviderLogoUrl(
-    firstText(item.providerLogoUrl, providerObject?.logoUrl),
-    provider,
-  );
+  const providerLogo = localProviderLogoUrl(firstText(item.providerLogoUrl, providerObject?.logoUrl), provider);
   const tags = Array.isArray(item.tags) ? item.tags.map((tag) => String(tag).toLowerCase()) : [];
   const badge: LobbyGame['badge'] = tags.some(isHotTag) ? 'HOT' : tags.some(isNewTag) ? 'NEW' : '';
-  const players = readPlayerCount(item, id);
 
   return {
     id,
@@ -148,7 +168,7 @@ function mapCatalogGame(item: CatalogGame): LobbyGame | null {
     badge,
     category: normalizeCategory(item.category),
     provider,
-    players,
+    players: readPlayerCount(item, id),
   };
 }
 
@@ -168,7 +188,6 @@ function game(id: string, name: string, sourceImageUrl: string, provider: string
 function localGameImageUrl(sourceUrl: string) {
   const normalized = sourceUrl.trim().replace(/\\/g, '/');
   if (!normalized) return '';
-  if (normalized.startsWith(`${LOCAL_IMAGE_ASSET_ROOT}/games/`)) return normalized;
 
   let pathname = normalized.split(/[?#]/, 1)[0] ?? '';
   if (/^https?:\/\//i.test(normalized)) {
@@ -179,13 +198,9 @@ function localGameImageUrl(sourceUrl: string) {
     }
   }
 
-  const marker = '/games/';
-  const markerIndex = pathname.toLowerCase().indexOf(marker);
-  if (markerIndex < 0) return '';
-
-  const relativePath = pathname.slice(markerIndex + 1).replace(/^\/+/, '');
-  if (!relativePath || relativePath.includes('..')) return '';
-  return `${LOCAL_IMAGE_ASSET_ROOT}/${relativePath}`;
+  const fileName = pathname.split('/').filter(Boolean).pop() ?? '';
+  if (!fileName || fileName.includes('..') || isSuspiciousFileName(fileName)) return '';
+  return `${LOCAL_IMAGE_ASSET_ROOT}/games/${fileName}`;
 }
 
 function localProviderLogoUrl(sourceUrl: string, provider: string) {
@@ -214,7 +229,11 @@ function localProviderLogoUrl(sourceUrl: string, provider: string) {
 }
 
 function dedupeGames(items: LobbyGame[]) {
-  return Array.from(new Map(items.map((item) => [`${item.provider}:${item.id}`.toLowerCase(), item] as const)).values());
+  return Array.from(new Map(items.map((item) => [gameKey(item), item] as const)).values());
+}
+
+function gameKey(item: LobbyGame) {
+  return `${item.provider}:${item.id}`.toLowerCase();
 }
 
 function gameScore(item: LobbyGame) {
@@ -243,7 +262,23 @@ function isNewTag(tag: string) {
 
 function isNonGameMedia(url: string) {
   const value = url.toLowerCase();
-  return ['/highlight/', '/promotion', '/lobby_settings/', '/imageslides/', '/banner/'].some((token) => value.includes(token));
+  return [
+    '/highlight/',
+    '/promotion',
+    '/event/',
+    '/news/',
+    '/lobby_settings/',
+    '/imageslides/',
+    '/banner/',
+    '/fallback',
+    'placeholder',
+    'image-unavailable',
+    'image_unavailable',
+  ].some((token) => value.includes(token));
+}
+
+function isSuspiciousFileName(fileName: string) {
+  return /(?:placeholder|unavailable|no[-_]?image|default[-_]?image|fallback)\.(?:svg|png|jpe?g|webp)$/i.test(fileName);
 }
 
 function normalizeProvider(value: string) {
@@ -267,6 +302,17 @@ function gameHref(item: LobbyGame) {
   return `/browse/games?${params.toString()}`;
 }
 
+function validateGameArt(item: LobbyGame, event: SyntheticEvent<HTMLImageElement>, reject: (item: LobbyGame) => void) {
+  const image = event.currentTarget;
+  if (!image.naturalWidth || !image.naturalHeight) {
+    reject(item);
+    return;
+  }
+
+  const ratio = image.naturalWidth / image.naturalHeight;
+  if (ratio > GAME_CARD_MAX_RATIO) reject(item);
+}
+
 function SourceHeading({ title, icon, iconSize = 25, notice }: { title: string; icon: string; iconSize?: number; notice?: string }) {
   return (
     <header className="source-feed-heading">
@@ -280,7 +326,7 @@ function SourceHeading({ title, icon, iconSize = 25, notice }: { title: string; 
 }
 
 export function SourcePopularSection() {
-  const games = useLobbyGames().slice(0, 10);
+  const { items: games, reject } = useRenderableGames(10, 'popular');
 
   return (
     <section className="source-feed-host source-feed-host--popular" data-section-kind="popular" data-content-state="catalog">
@@ -289,10 +335,16 @@ export function SourcePopularSection() {
           <SourceHeading title="Top 10 Popular Games" icon="/assets/asset-pc/images/highlight/icongamehit.webp" iconSize={24} />
           <div className="source-popular-track" data-drag-scroll="true">
             {games.map((item, index) => (
-              <a key={`${item.provider}:${item.id}`} className="source-popular-card" href={gameHref(item)} title={item.name}>
+              <a key={gameKey(item)} className="source-popular-card" href={gameHref(item)} title={item.name}>
                 <span className="source-popular-card__art">
-                  <img className="source-popular-card__blur" src={item.imageUrl} alt="" aria-hidden="true" onError={applyMemberImageFallback} />
-                  <img className="source-popular-card__image" src={item.imageUrl} alt={item.name} onError={applyMemberImageFallback} />
+                  <img className="source-popular-card__blur" src={item.imageUrl} alt="" aria-hidden="true" onError={() => reject(item)} />
+                  <img
+                    className="source-popular-card__image"
+                    src={item.imageUrl}
+                    alt={item.name}
+                    onLoad={(event) => validateGameArt(item, event, reject)}
+                    onError={() => reject(item)}
+                  />
                   {item.providerLogo ? <span className="source-popular-card__provider"><img src={item.providerLogo} alt="" aria-hidden="true" onError={hideDecorativeImage} /></span> : null}
                   {item.badge ? <span className={`source-popular-card__badge source-popular-card__badge--${item.badge.toLowerCase()}`}>{item.badge}</span> : null}
                 </span>
@@ -308,7 +360,7 @@ export function SourcePopularSection() {
 }
 
 export function SourceOnlineSection() {
-  const games = [...useLobbyGames()].sort((left, right) => right.players - left.players).slice(0, 6);
+  const { items: games, reject } = useRenderableGames(6, 'online');
 
   return (
     <section className="source-feed-host source-feed-host--online" data-section-kind="online" data-content-state="catalog">
@@ -317,8 +369,15 @@ export function SourceOnlineSection() {
           <SourceHeading title="Most Online Now" icon="/assets/asset-pc/images/home/mostonline1.webp" notice="จำนวนผู้เล่นโดยประมาณ" />
           <div className="source-online-track" data-drag-scroll="true">
             {games.map((item) => (
-              <a key={`${item.provider}:${item.id}`} className="source-online-card" href={gameHref(item)} title={item.name}>
-                <span className="source-online-card__art"><img src={item.imageUrl} alt={item.name} onError={applyMemberImageFallback} /></span>
+              <a key={gameKey(item)} className="source-online-card" href={gameHref(item)} title={item.name}>
+                <span className="source-online-card__art">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    onLoad={(event) => validateGameArt(item, event, reject)}
+                    onError={() => reject(item)}
+                  />
+                </span>
                 <span className="source-online-card__counter"><span className="source-online-card__counter-inner"><UserIcon /><strong>{item.players.toLocaleString('en-US')}</strong></span></span>
               </a>
             ))}
@@ -362,7 +421,7 @@ export function SourceLiveSection({ onAction }: { onAction: () => void }) {
 }
 
 function Team({ logo, name }: { logo: string; name: string }) {
-  return <span className="source-live-team"><span className="source-live-team__logo"><img src={logo} alt="" aria-hidden="true" onError={applyMemberImageFallback} /></span><span title={name}>{name}</span></span>;
+  return <span className="source-live-team"><span className="source-live-team__logo"><img src={logo} alt="" aria-hidden="true" onError={hideDecorativeImage} /></span><span title={name}>{name}</span></span>;
 }
 
 function UserIcon() {
