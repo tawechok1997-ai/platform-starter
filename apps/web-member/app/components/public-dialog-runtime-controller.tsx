@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 const DIALOGS = [
   { id: 'member-search-title', kind: 'search' },
   { id: 'daily-mission-title', kind: 'mission' },
-  { id: 'usage-guide-title', kind: 'guide' },
 ] as const;
 
 const SEARCH_TRIGGER_SELECTOR = [
@@ -18,8 +17,6 @@ function forceOverlayAboveChrome(overlay: HTMLElement, kind: string) {
   overlay.dataset.publicDialogOverlay = kind;
   overlay.classList.add('public-dialog-runtime-overlay');
 
-  // These are written inline with !important so legacy CSS modules and the
-  // sticky public header cannot place themselves above an open dialog.
   overlay.style.setProperty('position', 'fixed', 'important');
   overlay.style.setProperty('inset', '0', 'important');
   overlay.style.setProperty('top', '0', 'important');
@@ -82,8 +79,6 @@ export default function PublicDialogRuntimeController() {
       if (!trigger) return;
 
       event.preventDefault();
-      // Do not stop propagation. MemberSearchOverlay owns opening the existing
-      // search dialog from this same click; this guard only removes navigation.
     };
 
     document.addEventListener('click', preventSearchNavigation, true);
