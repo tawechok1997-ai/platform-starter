@@ -10,9 +10,11 @@ import {
   AdminCard,
   AdminConfirmDialog,
   AdminEmpty,
+  AdminLinkButton,
   AdminNotice,
   AdminPage,
   AdminSectionRow,
+  AdminSkeleton,
   AdminStack,
 } from '../_components/admin-ui';
 import InviteAdminPanel from '../access/invite-admin-panel';
@@ -32,66 +34,67 @@ type Invitation = {
   roles: InvitationRole[];
 };
 type PendingAction = { type: 'revoke' | 'reissue'; item: Invitation } | null;
-
-type LoadResult = {
-  rolesOk: boolean;
-  invitationsOk: boolean;
-};
+type NoticeState = { text: string; tone: 'neutral' | 'success' | 'warning' | 'danger' };
+type LoadResult = { rolesOk: boolean; invitationsOk: boolean };
 
 const INVITATION_LINK_TTL_MS = 60_000;
 
 export default function AdminInvitationsPage() {
   const loadRequestRef = useRef(0);
+  const noticeRef = useRef<NoticeState | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
   const [items, setItems] = useState<Invitation[]>([]);
-  const [message, setMessage] = useState('กำลังโหลดคำเชิญ...');
+  const [notice, setNotice] = useState<NoticeState | null>(null);
+  const [rolesAvailable, setRolesAvailable] = useState(true);
+  const [invitationsAvailable, setInvitationsAvailable] = useState(true);
   const [busyKey, setBusyKey] = useState('');
   const [latestLink, setLatestLink] = useState('');
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [loading, setLoading] = useState(true);
   const pageBusy = loading || Boolean(busyKey);
 
-  const load = useCallback(async (): Promise<LoadResult> => {
+  const updateNotice = useCallback((next: NoticeState | null) => {
+    noticeRef.current = next;
+    setNotice(next);
+  }, []);
+
+  const load = useCallback(async (announce = true): Promise<LoadResult> => {
     const requestId = loadRequestRef.current + 1;
     loadRequestRef.current = requestId;
     setLoading(true);
-    setMessage('กำลังโหลดคำเชิญ...');
 
-    let rolesOk = false;
-    let invitationsOk = false;
+    const [roleResult, invitationResult] = await Promise.all([
+      fetchRoles(),
+      fetchInvitations(),
+    ]);
 
-    try {
-      const response = await adminApiFetch('/admin/access/invitations/roles');
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !isRecord(payload) || !Array.isArray(payload.items)) throw new Error('roles');
-      if (loadRequestRef.current !== requestId) return { rolesOk: false, invitationsOk: false };
-      setRoles(payload.items.filter(isRole));
-      rolesOk = true;
-    } catch {
-      if (loadRequestRef.current === requestId) setRoles([]);
+    if (loadRequestRef.current !== requestId) {
+      return { rolesOk: false, invitationsOk: false };
     }
 
-    try {
-      const response = await adminApiFetch('/admin/access/invitations');
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !isRecord(payload) || !Array.isArray(payload.items)) throw new Error('invitations');
-      if (loadRequestRef.current !== requestId) return { rolesOk, invitationsOk: false };
-      setItems(payload.items.filter(isInvitation));
-      invitationsOk = true;
-    } catch {
-      if (loadRequestRef.current === requestId) setItems([]);
+    const rolesOk = roleResult !== null;
+    const invitationsOk = invitationResult !== null;
+
+    if (rolesOk) setRoles(roleResult);
+    if (invitationsOk) setItems(invitationResult);
+    setRolesAvailable(rolesOk);
+    setInvitationsAvailable(invitationsOk);
+
+    if (announce) {
+      if (rolesOk && invitationsOk) {
+        if (noticeRef.current?.tone !== 'success') updateNotice(null);
+      } else if (invitationsOk) {
+        updateNotice({ text: 'โหลดรายการคำเชิญแล้ว แต่โหลดบทบาทไม่สำเร็จ จึงยังสร้างคำเชิญใหม่ไม่ได้', tone: 'warning' });
+      } else if (rolesOk) {
+        updateNotice({ text: 'โหลดบทบาทแล้ว แต่โหลดรายการคำเชิญไม่สำเร็จ ข้อมูลเดิมยังแสดงอยู่', tone: 'warning' });
+      } else {
+        updateNotice({ text: 'โหลดคำเชิญไม่สำเร็จ กรุณาลองใหม่', tone: 'danger' });
+      }
     }
 
-    if (loadRequestRef.current === requestId) {
-      if (rolesOk && invitationsOk) setMessage('');
-      else if (invitationsOk) setMessage('โหลดรายการคำเชิญแล้ว แต่โหลดบทบาทไม่สำเร็จ จึงยังสร้างคำเชิญใหม่ไม่ได้');
-      else if (rolesOk) setMessage('โหลดบทบาทแล้ว แต่โหลดรายการคำเชิญไม่สำเร็จ กรุณารีเฟรช');
-      else setMessage('โหลดคำเชิญไม่สำเร็จ กรุณาลองใหม่');
-      setLoading(false);
-    }
-
+    setLoading(false);
     return { rolesOk, invitationsOk };
-  }, []);
+  }, [updateNotice]);
 
   useEffect(() => {
     void load();
@@ -101,10 +104,10 @@ export default function AdminInvitationsPage() {
     if (!latestLink) return;
     const timer = window.setTimeout(() => {
       setLatestLink('');
-      setMessage('ลิงก์คำเชิญถูกล้างจากหน้าจอแล้วเพื่อความปลอดภัย');
+      updateNotice({ text: 'ลิงก์คำเชิญถูกล้างจากหน้าจอแล้วเพื่อความปลอดภัย', tone: 'neutral' });
     }, INVITATION_LINK_TTL_MS);
     return () => window.clearTimeout(timer);
-  }, [latestLink]);
+  }, [latestLink, updateNotice]);
 
   const normalizedItems = useMemo(
     () => items.map((item) => ({ ...item, invitationStatus: normalizeInvitationStatus(item) })),
@@ -116,7 +119,7 @@ export default function AdminInvitationsPage() {
     const { item, type } = pendingAction;
     const key = `${item.adminUserId}:${type}`;
     setBusyKey(key);
-    setMessage('');
+    updateNotice(null);
     let reissuedLink = '';
 
     try {
@@ -125,7 +128,6 @@ export default function AdminInvitationsPage() {
         await response.json().catch(() => null);
         if (!response.ok) throw new Error('revoke');
         setLatestLink('');
-        setMessage('ยกเลิกคำเชิญแล้ว');
       } else {
         const response = await adminApiFetch(`/admin/access/invitations/${encodeURIComponent(item.adminUserId)}/reissue`, {
           method: 'POST',
@@ -138,16 +140,19 @@ export default function AdminInvitationsPage() {
         reissuedLink = `${window.location.origin}/accept-invitation?token=${encodeURIComponent(payload.token.trim())}`;
       }
 
-      await load();
+      const loadResult = await load(false);
       if (reissuedLink) {
         setLatestLink(reissuedLink);
-        setMessage('ออกลิงก์ใหม่แล้ว ลิงก์จะแสดง 60 วินาทีและ Token จะแสดงเพียงครั้งเดียว');
+        updateNotice(refreshNotice('ออกลิงก์ใหม่แล้ว ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที', loadResult));
+      } else {
+        updateNotice(refreshNotice('ยกเลิกคำเชิญแล้ว', loadResult));
       }
       setPendingAction(null);
     } catch {
-      setMessage(type === 'revoke'
-        ? 'ยกเลิกคำเชิญไม่สำเร็จ กรุณาลองใหม่'
-        : 'ออกลิงก์ใหม่ไม่สำเร็จ กรุณาลองใหม่');
+      updateNotice({
+        text: type === 'revoke' ? 'ยกเลิกคำเชิญไม่สำเร็จ กรุณาลองใหม่' : 'ออกลิงก์ใหม่ไม่สำเร็จ กรุณาลองใหม่',
+        tone: 'danger',
+      });
     } finally {
       setBusyKey('');
     }
@@ -157,59 +162,77 @@ export default function AdminInvitationsPage() {
     if (!latestLink || pageBusy) return;
     try {
       await navigator.clipboard.writeText(latestLink);
-      setMessage('คัดลอกลิงก์แล้ว กรุณาส่งผ่านช่องทางที่ปลอดภัย');
+      updateNotice({ text: 'คัดลอกลิงก์แล้ว กรุณาส่งผ่านช่องทางที่ปลอดภัย', tone: 'success' });
     } catch {
-      setMessage('คัดลอกอัตโนมัติไม่ได้ กรุณาคัดลอกจากช่องด้านล่าง');
+      updateNotice({ text: 'คัดลอกอัตโนมัติไม่ได้ กรุณาคัดลอกจากช่องด้านล่าง', tone: 'warning' });
     }
   }
 
   function clearLatestLink() {
     if (pageBusy) return;
     setLatestLink('');
-    setMessage('ล้างลิงก์คำเชิญจากหน้าจอแล้ว');
+    updateNotice({ text: 'ล้างลิงก์คำเชิญจากหน้าจอแล้ว', tone: 'neutral' });
   }
+
+  async function handleCreated(): Promise<boolean> {
+    updateNotice(null);
+    const loadResult = await load(false);
+    return loadResult.rolesOk && loadResult.invitationsOk;
+  }
+
+  const initialLoading = loading && items.length === 0 && roles.length === 0 && !notice;
 
   return <AdminPage
     eyebrow="ความปลอดภัย"
     title="คำเชิญผู้ดูแล"
-    description="สร้าง ยกเลิก และออกลิงก์เชิญใหม่จากหน้าที่แยกเฉพาะ"
+    description="สร้าง ยกเลิก และออกลิงก์เชิญใหม่ พร้อมตรวจบทบาทก่อนส่ง"
     actions={<AdminButton tone="secondary" disabled={pageBusy} onClick={() => void load()}>{loading ? 'กำลังโหลด...' : 'รีเฟรช'}</AdminButton>}
   >
-    {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') || message.includes('ไม่ได้') ? 'danger' : message.includes('ยังสร้าง') ? 'warning' : 'neutral'}>{message}</AdminNotice>}
-
-    <InviteAdminPanel roles={roles} onCreated={async () => { await load(); }} />
-
-    {latestLink && <AdminCard title="ลิงก์ล่าสุด" description="แสดงชั่วคราว 60 วินาที กรุณาคัดลอกและส่งผ่านช่องทางที่ปลอดภัย">
-      <textarea readOnly value={latestLink} rows={3} style={linkStyle} aria-label="ลิงก์คำเชิญล่าสุด" />
-      <div style={linkActionStyle}>
-        <AdminButton onClick={() => void copyLatestLink()} disabled={pageBusy}>คัดลอกลิงก์</AdminButton>
-        <AdminButton tone="secondary" onClick={clearLatestLink} disabled={pageBusy}>ล้างจากหน้าจอ</AdminButton>
+    {notice && <AdminNotice tone={notice.tone}>
+      <div style={noticeStyle}>
+        <span>{notice.text}</span>
+        <div style={noticeActionStyle}>
+          {(!rolesAvailable || !invitationsAvailable) && <AdminButton size="compact" tone="secondary" disabled={pageBusy} onClick={() => void load()}>ลองใหม่</AdminButton>}
+          {!rolesAvailable && <AdminLinkButton href="/admin-roles" size="compact" tone="ghost">จัดการบทบาท</AdminLinkButton>}
+        </div>
       </div>
-    </AdminCard>}
+    </AdminNotice>}
 
-    <AdminCard title="รายการคำเชิญ" description={`${normalizedItems.length} รายการล่าสุด`}>
-      <AdminStack>
-        {normalizedItems.map((item) => <AdminSectionRow key={item.adminUserId}>
-          <div style={itemStyle}>
-            <div style={badgeStyle}>
-              <AdminBadge tone={statusTone(item.invitationStatus)}>{statusLabel(item.invitationStatus)}</AdminBadge>
-              <AdminBadge tone={item.accountStatus === 'ACTIVE' ? 'success' : 'neutral'}>{accountStatusLabel(item.accountStatus)}</AdminBadge>
-              {item.protected && <AdminBadge tone="danger">ป้องกัน</AdminBadge>}
+    {initialLoading ? <AdminCard title="กำลังโหลดคำเชิญ" description="กำลังตรวจบทบาทและรายการล่าสุด"><AdminSkeleton lines={7} /></AdminCard> : <>
+      <InviteAdminPanel roles={roles} onCreated={handleCreated} />
+
+      {latestLink && <AdminCard title="ลิงก์ล่าสุด" description="แสดงชั่วคราว 60 วินาที กรุณาคัดลอกและส่งผ่านช่องทางที่ปลอดภัย">
+        <textarea readOnly value={latestLink} rows={3} style={linkStyle} aria-label="ลิงก์คำเชิญล่าสุด" />
+        <div style={linkActionStyle}>
+          <AdminButton onClick={() => void copyLatestLink()} disabled={pageBusy}>คัดลอกลิงก์</AdminButton>
+          <AdminButton tone="secondary" onClick={clearLatestLink} disabled={pageBusy}>ล้างจากหน้าจอ</AdminButton>
+        </div>
+      </AdminCard>}
+
+      <AdminCard title="รายการคำเชิญ" description={`${normalizedItems.length} รายการล่าสุด`}>
+        <AdminStack>
+          {normalizedItems.map((item) => <AdminSectionRow key={item.adminUserId}>
+            <div style={itemStyle}>
+              <div style={badgeStyle}>
+                <AdminBadge tone={statusTone(item.invitationStatus)}>{statusLabel(item.invitationStatus)}</AdminBadge>
+                <AdminBadge tone={item.accountStatus === 'ACTIVE' ? 'success' : 'neutral'}>{accountStatusLabel(item.accountStatus)}</AdminBadge>
+                {item.protected && <AdminBadge tone="danger">ป้องกัน</AdminBadge>}
+              </div>
+              <strong>{item.email}</strong>
+              <span>{item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</span>
+              <small>สร้างเมื่อ: {formatDate(item.createdAt)} · หมดอายุ: {formatDate(item.expiresAt)}</small>
             </div>
-            <strong>{item.email}</strong>
-            <span>{item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</span>
-            <small>สร้างเมื่อ: {formatDate(item.createdAt)} · หมดอายุ: {formatDate(item.expiresAt)}</small>
-          </div>
-          {!item.protected && item.accountStatus === 'LOCKED' && <AdminPermissionGate anyOf={ADMIN_ACTION_PERMISSIONS.adminInvitationManage}>
-            <div style={actionStyle}>
-              <AdminButton disabled={pageBusy} onClick={() => setPendingAction({ type: 'reissue', item })}>ออกลิงก์ใหม่</AdminButton>
-              <AdminButton tone="danger" disabled={pageBusy} onClick={() => setPendingAction({ type: 'revoke', item })}>ยกเลิก</AdminButton>
-            </div>
-          </AdminPermissionGate>}
-        </AdminSectionRow>)}
-        {!loading && normalizedItems.length === 0 && <AdminEmpty>ยังไม่มีคำเชิญ</AdminEmpty>}
-      </AdminStack>
-    </AdminCard>
+            {!item.protected && item.accountStatus === 'LOCKED' && <AdminPermissionGate anyOf={ADMIN_ACTION_PERMISSIONS.adminInvitationManage}>
+              <div style={actionStyle}>
+                <AdminButton disabled={pageBusy} onClick={() => setPendingAction({ type: 'reissue', item })}>ออกลิงก์ใหม่</AdminButton>
+                <AdminButton tone="danger" disabled={pageBusy} onClick={() => setPendingAction({ type: 'revoke', item })}>ยกเลิก</AdminButton>
+              </div>
+            </AdminPermissionGate>}
+          </AdminSectionRow>)}
+          {!loading && normalizedItems.length === 0 && <AdminEmpty>{invitationsAvailable ? 'ยังไม่มีคำเชิญ' : 'โหลดรายการคำเชิญไม่สำเร็จ'}</AdminEmpty>}
+        </AdminStack>
+      </AdminCard>
+    </>}
 
     <AdminConfirmDialog
       open={Boolean(pendingAction)}
@@ -223,6 +246,33 @@ export default function AdminInvitationsPage() {
       details={pendingAction ? <div style={confirmDetailsStyle}><strong>บทบาท</strong><p>{pendingAction.item.roles.map((role) => role.code).join(', ') || 'ไม่มีบทบาท'}</p><strong>หมดอายุเดิม</strong><p>{formatDate(pendingAction.item.expiresAt)}</p></div> : null}
     />
   </AdminPage>;
+}
+
+async function fetchRoles(): Promise<Role[] | null> {
+  try {
+    const response = await adminApiFetch('/admin/access/invitations/roles');
+    const payload = await response.json().catch(() => null);
+    if (!response.ok || !isRecord(payload) || !Array.isArray(payload.items)) return null;
+    return payload.items.filter(isRole);
+  } catch {
+    return null;
+  }
+}
+
+async function fetchInvitations(): Promise<Invitation[] | null> {
+  try {
+    const response = await adminApiFetch('/admin/access/invitations');
+    const payload = await response.json().catch(() => null);
+    if (!response.ok || !isRecord(payload) || !Array.isArray(payload.items)) return null;
+    return payload.items.filter(isInvitation);
+  } catch {
+    return null;
+  }
+}
+
+function refreshNotice(successText: string, result: LoadResult): NoticeState {
+  if (result.rolesOk && result.invitationsOk) return { text: successText, tone: 'success' };
+  return { text: `${successText} แต่รีเฟรชข้อมูลไม่ครบ กรุณาลองรีเฟรชอีกครั้ง`, tone: 'warning' };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -291,3 +341,5 @@ const actionStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' as const, alignI
 const linkActionStyle = { marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' as const };
 const linkStyle = { width: '100%', resize: 'vertical' as const, borderRadius: 12, border: '1px solid rgba(148,163,184,.26)', background: '#070d18', color: '#f8fafc', padding: 12, boxSizing: 'border-box' as const, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' };
 const confirmDetailsStyle = { display: 'grid', gap: 6, overflowWrap: 'anywhere' as const };
+const noticeStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', flexWrap: 'wrap' as const };
+const noticeActionStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const };

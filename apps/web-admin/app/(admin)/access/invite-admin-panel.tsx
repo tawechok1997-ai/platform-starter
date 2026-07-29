@@ -29,6 +29,11 @@ type Props = {
   onCreated: () => unknown | Promise<unknown>;
 };
 
+type NoticeState = {
+  text: string;
+  tone: 'neutral' | 'success' | 'warning' | 'danger';
+};
+
 const TOKEN_DISPLAY_TTL_MS = 60_000;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -37,7 +42,7 @@ export default function InviteAdminPanel({ roles, onCreated }: Props) {
   const [roleId, setRoleId] = useState('');
   const [expiresInHours, setExpiresInHours] = useState(24);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
+  const [notice, setNotice] = useState<NoticeState | null>(null);
   const [result, setResult] = useState<InvitationResult | null>(null);
 
   const selectableRoles = useMemo(
@@ -53,7 +58,7 @@ export default function InviteAdminPanel({ roles, onCreated }: Props) {
     if (!result) return;
     const timer = window.setTimeout(() => {
       setResult(null);
-      setMessage('ลิงก์คำเชิญถูกล้างจากหน้าจอแล้วเพื่อความปลอดภัย');
+      setNotice({ text: 'ลิงก์คำเชิญถูกล้างจากหน้าจอแล้วเพื่อความปลอดภัย', tone: 'neutral' });
     }, TOKEN_DISPLAY_TTL_MS);
     return () => window.clearTimeout(timer);
   }, [result]);
@@ -61,20 +66,20 @@ export default function InviteAdminPanel({ roles, onCreated }: Props) {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
-    setMessage('');
+    setNotice(null);
     setResult(null);
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!EMAIL_PATTERN.test(normalizedEmail)) {
-      setMessage('กรุณากรอกอีเมลให้ถูกต้อง');
+      setNotice({ text: 'กรุณากรอกอีเมลให้ถูกต้อง', tone: 'danger' });
       return;
     }
     if (!selectableRoles.some((role) => role.id === roleId)) {
-      setMessage('กรุณาเลือก Role ที่บัญชีนี้มีสิทธิ์มอบให้');
+      setNotice({ text: 'กรุณาเลือกบทบาทที่บัญชีนี้มีสิทธิ์มอบให้', tone: 'danger' });
       return;
     }
     if (!Number.isInteger(expiresInHours) || expiresInHours < 1 || expiresInHours > 720) {
-      setMessage('อายุคำเชิญต้องอยู่ระหว่าง 1 ถึง 720 ชั่วโมง');
+      setNotice({ text: 'อายุคำเชิญต้องอยู่ระหว่าง 1 ถึง 720 ชั่วโมง', tone: 'danger' });
       return;
     }
 
@@ -86,7 +91,7 @@ export default function InviteAdminPanel({ roles, onCreated }: Props) {
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok || !isInvitationResult(payload)) {
-        setMessage('สร้างคำเชิญไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่');
+        setNotice({ text: 'สร้างคำเชิญไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่', tone: 'danger' });
         return;
       }
 
@@ -94,10 +99,13 @@ export default function InviteAdminPanel({ roles, onCreated }: Props) {
       setEmail('');
       setRoleId('');
       setExpiresInHours(24);
-      setMessage('สร้างคำเชิญแล้ว ลิงก์จะแสดง 60 วินาทีและ Token จะแสดงเพียงครั้งเดียว');
-      await Promise.resolve(onCreated());
+      const refreshResult = await Promise.resolve(onCreated());
+      const refreshComplete = refreshResult !== false;
+      setNotice(refreshComplete
+        ? { text: 'สร้างคำเชิญแล้ว ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที', tone: 'success' }
+        : { text: 'สร้างคำเชิญแล้ว แต่รีเฟรชข้อมูลไม่ครบ กรุณาลองรีเฟรชอีกครั้ง', tone: 'warning' });
     } catch {
-      setMessage('เชื่อมต่อระบบคำเชิญไม่สำเร็จ กรุณาลองใหม่');
+      setNotice({ text: 'เชื่อมต่อระบบคำเชิญไม่สำเร็จ กรุณาลองใหม่', tone: 'danger' });
     } finally {
       setBusy(false);
     }
@@ -107,21 +115,21 @@ export default function InviteAdminPanel({ roles, onCreated }: Props) {
     if (!invitationLink || busy) return;
     try {
       await navigator.clipboard.writeText(invitationLink);
-      setMessage('คัดลอกลิงก์คำเชิญแล้ว กรุณาส่งผ่านช่องทางที่ปลอดภัย');
+      setNotice({ text: 'คัดลอกลิงก์คำเชิญแล้ว กรุณาส่งผ่านช่องทางที่ปลอดภัย', tone: 'success' });
     } catch {
-      setMessage('คัดลอกอัตโนมัติไม่ได้ กรุณาคัดลอกจากช่องด้านล่าง');
+      setNotice({ text: 'คัดลอกอัตโนมัติไม่ได้ กรุณาคัดลอกจากช่องด้านล่าง', tone: 'warning' });
     }
   }
 
   function clearResult() {
     if (busy) return;
     setResult(null);
-    setMessage('ล้างลิงก์คำเชิญจากหน้าจอแล้ว');
+    setNotice({ text: 'ล้างลิงก์คำเชิญจากหน้าจอแล้ว', tone: 'neutral' });
   }
 
   return <AdminPermissionGate anyOf={ADMIN_ACTION_PERMISSIONS.adminInvitationManage}>
     <AdminCard title="เชิญผู้ดูแลระบบ" description="สร้างบัญชีแบบล็อกและส่งลิงก์เปิดใช้งานที่ใช้ได้ครั้งเดียว">
-      {message && <AdminNotice tone={message.includes('ไม่สำเร็จ') || message.includes('กรุณา') || message.includes('ไม่ได้') ? 'danger' : 'neutral'}>{message}</AdminNotice>}
+      {notice && <AdminNotice tone={notice.tone}>{notice.text}</AdminNotice>}
       <form onSubmit={submit} style={formStyle}>
         <label style={fieldStyle}>อีเมลผู้รับคำเชิญ
           <input
@@ -135,9 +143,9 @@ export default function InviteAdminPanel({ roles, onCreated }: Props) {
             style={inputStyle}
           />
         </label>
-        <label style={fieldStyle}>Role
+        <label style={fieldStyle}>บทบาท
           <select value={roleId} onChange={(event) => setRoleId(event.target.value)} disabled={busy} style={inputStyle}>
-            <option value="">เลือก Role</option>
+            <option value="">เลือกบทบาท</option>
             {selectableRoles.map((role) => <option key={role.id} value={role.id}>{role.name} ({role.code})</option>)}
           </select>
         </label>
@@ -155,13 +163,13 @@ export default function InviteAdminPanel({ roles, onCreated }: Props) {
         </div>
       </form>
 
-      {selectableRoles.length === 0 && <AdminNotice tone="warning">ไม่มี Role ที่บัญชีนี้มีสิทธิ์มอบให้</AdminNotice>}
+      {selectableRoles.length === 0 && <AdminNotice tone="warning">ไม่มีบทบาทที่บัญชีนี้มีสิทธิ์มอบให้</AdminNotice>}
 
       {result && <div style={resultStyle}>
         <strong>{result.invitation.email}</strong>
-        <span>Role: {result.invitation.role.name}</span>
+        <span>บทบาท: {result.invitation.role.name}</span>
         <span>หมดอายุ: {formatDate(result.invitation.expiresAt)}</span>
-        <textarea value={invitationLink} readOnly rows={3} style={linkStyle} aria-label="Invitation link" />
+        <textarea value={invitationLink} readOnly rows={3} style={linkStyle} aria-label="ลิงก์คำเชิญ" />
         <div style={resultActionStyle}>
           <AdminButton onClick={() => void copyLink()} disabled={busy}>คัดลอกลิงก์</AdminButton>
           <AdminButton tone="secondary" onClick={clearResult} disabled={busy}>ล้างจากหน้าจอ</AdminButton>
