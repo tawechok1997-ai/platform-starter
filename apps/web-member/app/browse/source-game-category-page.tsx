@@ -107,7 +107,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   }), [games, providerCode, selectedFilters]);
 
   const untouched = !providerCode && selectedFilters.length === 0;
-  const resultCount = visibleGames.length;
+  const resultCount = untouched ? config.total : visibleGames.length;
 
   const clearFilters = () => {
     setSelectedFilters([]);
@@ -154,7 +154,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
             <div className={`${styles.typeGrid}${config.filters.length ? '' : ` ${styles.typeGridCollapsed}`}`}>
               {config.filters.map((filter) => {
                 const checked = selectedFilters.includes(filter.key);
-                const count = filterCounts.get(filter.key) ?? 0;
+                const count = untouched ? filter.count : (filterCounts.get(filter.key) ?? 0);
                 return <label key={filter.key} className={styles.filterOption}><input type="checkbox" checked={checked} onChange={() => toggleFilter(filter.key)} /><span className={`${styles.checkbox}${checked ? ` ${styles.checkboxActive}` : ''}`} aria-hidden="true">{checked ? '✓' : ''}</span><span className={styles.filterLabel}>{filter.label}</span><small>( {count.toLocaleString('th-TH')} )</small></label>;
               })}
             </div>
@@ -165,7 +165,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
               return <button key={provider.code} type="button" className={`${styles.providerButton}${providerCode === normalizedCode ? ` ${styles.providerActive}` : ''}`} onClick={() => { setProviderCode((current) => current === normalizedCode ? null : normalizedCode); setPreviewCode(null); }} aria-pressed={providerCode === normalizedCode} aria-label={`${provider.name} ${count} เกม`} title={`${provider.name} (${count})`}><span aria-hidden="true" /><img src={provider.badge} alt={provider.name} onError={hideBrokenImage} /></button>;
             })}</div></> : null}
 
-            <div className={styles.filterActions}><div className={styles.filterSummary} aria-live="polite"><span>พบเกมส์ที่คุณค้นหา</span><strong>{resultCount.toLocaleString('th-TH')} {config.resultUnit}</strong></div><button type="button" className={styles.clearButton} onClick={clearFilters} disabled={untouched}>ล้าง</button></div>
+            <div className={styles.filterActions}><div className={styles.filterSummary} aria-live="polite"><span>พบเกมส์ที่คุณค้นหา</span><strong>{resultCount.toLocaleString('th-TH')} {config.resultUnit}</strong></div><button type="button" className={styles.clearButton} onClick={clearFilters}>ล้าง</button></div>
           </aside>
 
           <section className={styles.gameArea} aria-label={`รายการ${config.title}`} aria-live="polite">
