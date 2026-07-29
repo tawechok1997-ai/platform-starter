@@ -185,11 +185,11 @@ function replaceEdgeBackgroundWithAlpha(image: HTMLImageElement) {
 
   for (let index = 0; index < pixelCount; index += 1) {
     const offset = index * 4;
-    if (pixels[offset + 3] === 0) continue;
+    if ((pixels[offset + 3] ?? 0) === 0) continue;
 
-    const red = pixels[offset];
-    const green = pixels[offset + 1];
-    const blue = pixels[offset + 2];
+    const red = pixels[offset] ?? 0;
+    const green = pixels[offset + 1] ?? 0;
+    const blue = pixels[offset + 2] ?? 0;
     const luminance = (red * 2126 + green * 7152 + blue * 722) / 10000;
     if (luminance > 92) continue;
 
@@ -207,7 +207,7 @@ function replaceEdgeBackgroundWithAlpha(image: HTMLImageElement) {
   let head = 0;
   let tail = 0;
   const enqueue = (index: number) => {
-    if (!candidates[index] || visited[index]) return;
+    if (!(candidates[index] ?? 0) || (visited[index] ?? 0)) return;
     visited[index] = 1;
     queue[tail] = index;
     tail += 1;
@@ -223,7 +223,7 @@ function replaceEdgeBackgroundWithAlpha(image: HTMLImageElement) {
   }
 
   while (head < tail) {
-    const index = queue[head];
+    const index = queue[head] ?? 0;
     head += 1;
     const x = index % width;
     const y = Math.floor(index / width);
@@ -265,10 +265,10 @@ function collectEdgeBackgroundSamples(
     for (let y = startY; y < startY + sampleSize; y += 1) {
       for (let x = startX; x < startX + sampleSize; x += 1) {
         const offset = ((y * width) + x) * 4;
-        if (pixels[offset + 3] === 0) continue;
-        red += pixels[offset];
-        green += pixels[offset + 1];
-        blue += pixels[offset + 2];
+        if ((pixels[offset + 3] ?? 0) === 0) continue;
+        red += pixels[offset] ?? 0;
+        green += pixels[offset + 1] ?? 0;
+        blue += pixels[offset + 2] ?? 0;
         count += 1;
       }
     }
