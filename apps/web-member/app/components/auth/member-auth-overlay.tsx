@@ -58,10 +58,33 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
   }, [clearExitTimer, mode]);
 
   useEffect(() => {
-    const bodyOverflow = document.body.style.overflow;
-    const htmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    const body = document.body;
+    const html = document.documentElement;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
+    const computedBodyPaddingRight = Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;
+
+    const previousBodyStyles = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      width: body.style.width,
+      paddingRight: body.style.paddingRight,
+    };
+    const previousHtmlStyles = {
+      overflow: html.style.overflow,
+      scrollBehavior: html.style.scrollBehavior,
+    };
+
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.left = `-${scrollX}px`;
+    body.style.width = '100%';
+    if (scrollbarWidth > 0) body.style.paddingRight = `${computedBodyPaddingRight + scrollbarWidth}px`;
+    html.style.overflow = 'hidden';
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') requestClose();
@@ -79,10 +102,22 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
     window.addEventListener('message', handleMessage);
     return () => {
       clearExitTimer();
-      document.body.style.overflow = bodyOverflow;
-      document.documentElement.style.overflow = htmlOverflow;
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('message', handleMessage);
+
+      body.style.overflow = previousBodyStyles.overflow;
+      body.style.position = previousBodyStyles.position;
+      body.style.top = previousBodyStyles.top;
+      body.style.left = previousBodyStyles.left;
+      body.style.width = previousBodyStyles.width;
+      body.style.paddingRight = previousBodyStyles.paddingRight;
+      html.style.overflow = previousHtmlStyles.overflow;
+      html.style.scrollBehavior = 'auto';
+      window.scrollTo(scrollX, scrollY);
+
+      window.requestAnimationFrame(() => {
+        html.style.scrollBehavior = previousHtmlStyles.scrollBehavior;
+      });
     };
   }, [clearExitTimer, completeAuth, requestClose]);
 
