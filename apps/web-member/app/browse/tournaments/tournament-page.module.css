@@ -1,0 +1,289 @@
+.page {
+  min-height: calc(100dvh - 69px);
+  background: #110e16;
+  color: #fff;
+}
+
+.shell {
+  box-sizing: border-box;
+  width: min(1440px, 100%);
+  min-height: calc(100dvh - 69px);
+  margin: 0 auto;
+  padding: 55px 12px 100px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.backIcon {
+  display: grid;
+  width: 23px;
+  height: 24px;
+  place-items: center;
+}
+
+.backIcon svg {
+  width: 23px;
+  height: 24px;
+}
+
+.backIcon path:first-child {
+  fill: #bb5bea;
+}
+
+.backIcon path:last-child {
+  fill: #fff;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabs {
+  display: flex;
+  box-sizing: border-box;
+  width: 600px;
+  height: 50px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border: 1px solid rgba(187, 91, 234, 0.4);
+  border-radius: 6px;
+}
+
+.tab,
+.activeTab {
+  flex: 1 1 0;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 4px;
+  color: #daa5f3;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.tab {
+  background: #373147;
+}
+
+.tab:hover {
+  background: #453c59;
+}
+
+.activeTab {
+  background: linear-gradient(216deg, #944fe8 -17.68%, #7600a8 75.23%);
+  color: #fff;
+}
+
+.tab:focus-visible,
+.activeTab:focus-visible,
+.backButton:focus-visible,
+.newsButton:focus-visible {
+  outline: 2px solid #d79aff;
+  outline-offset: 2px;
+}
+
+.newsButton {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  place-items: center;
+  border: 0.48px solid #413e4b;
+  border-radius: 10px;
+  background: linear-gradient(0deg, rgba(27, 24, 36, 0.6) -5.86%, rgba(63, 59, 75, 0.6) 104.05%);
+  color: #d9b3ee;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.newsButton:hover {
+  border-color: #bb5bea;
+  transform: translateY(-1px);
+}
+
+.newsButton svg {
+  width: 40px;
+  height: 40px;
+}
+
+.newsButton rect {
+  fill: rgba(118, 0, 168, 0.32);
+  stroke: #d9b3ee;
+  stroke-width: 1.5;
+}
+
+.newsButton path,
+.newsButton circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.emptyState {
+  display: grid;
+  min-height: calc(100dvh - 310px);
+  place-items: center;
+  padding: 40px 16px;
+  text-align: center;
+}
+
+.emptyState strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.finishedGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding-top: 40px;
+}
+
+.tournamentCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 92px;
+  padding: 18px;
+  border: 1px solid #373147;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(55, 49, 71, 0.72), rgba(24, 21, 35, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.cardIndex {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(216deg, #944fe8 -17.68%, #7600a8 75.23%);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.tournamentCard div {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.tournamentCard strong {
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tournamentCard small {
+  color: #a9a3b5;
+  font-size: 12px;
+}
+
+.finishedBadge {
+  padding: 7px 10px;
+  border: 1px solid rgba(187, 91, 234, 0.45);
+  border-radius: 999px;
+  background: rgba(118, 0, 168, 0.18);
+  color: #daa5f3;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    padding: 28px 14px 72px;
+  }
+
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .controls {
+    width: 100%;
+  }
+
+  .tabs {
+    width: 100%;
+  }
+
+  .finishedGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .shell {
+    padding-top: 20px;
+  }
+
+  .controls {
+    align-items: stretch;
+  }
+
+  .tabs {
+    height: auto;
+    flex-direction: column;
+  }
+
+  .tab,
+  .activeTab {
+    width: 100%;
+    flex: none;
+  }
+
+  .newsButton {
+    width: 50px;
+    height: auto;
+    min-height: 84px;
+  }
+
+  .emptyState {
+    min-height: 52dvh;
+  }
+
+  .tournamentCard {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .finishedBadge {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab,
+  .activeTab,
+  .newsButton {
+    transition: none;
+  }
+}
