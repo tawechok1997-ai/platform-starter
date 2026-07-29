@@ -3,7 +3,17 @@
 import SourceGameCategoryPage, { type SourceGameCategoryConfig } from './source-game-category-page';
 
 const providerCodes = ['ygr','hotdog','misolt','jl','pp','kingm','spg','jkgx2','fachai','rsg','pgsoft','kaga','hacksaw','cq','redtiger','hbn','wmslot','evp','netent','ps','pokslot','edp','spp','ame','bng','r88','cala','glx','l22','reg','ygg','fs','pgsus','n2','ap','amb','ask','nlc','vp','drag','acewin','rb7slot'] as const;
-const providers = providerCodes.map((code) => ({ code, name: code.toUpperCase(), badge:`https://cdn.zabbet.com/providers/set/1_1_badge/${code}.png`, card:`https://cdn.zabbet.com/providers/set/1_1_v/${code}.png`, background:`https://cdn.zabbet.com/providers/set/1_1_bg/${code}.png`, title:`https://cdn.zabbet.com/providers/set/1_1_title/${code}.png`, avatar:`https://cdn.zabbet.com/providers/set/1_1_avatar/${code}.png` }));
+
+const providers = providerCodes.map((code) => ({
+  code,
+  name: code.toUpperCase(),
+  badge: `https://cdn.zabbet.com/providers/set/1_1_badge/${code}.png`,
+  card: `https://cdn.zabbet.com/providers/set/1_1_v/${code}.png`,
+  background: `https://cdn.zabbet.com/providers/set/1_1_bg/${code}.png`,
+  title: `https://cdn.zabbet.com/providers/set/1_1_title/${code}.png`,
+  avatar: `https://cdn.zabbet.com/providers/set/1_1_avatar/${code}.png`,
+  maintenance: code === 'l22',
+}));
 
 const rows = [
   ['island-ices','Island Ices','https://cdn.zabbet.com/games/1771481576088-7a598c5e-dbe1-441a-a3e0-c9aba0ede728.png','ygg'],
@@ -39,11 +49,35 @@ const rows = [
 ] as const;
 
 const config: SourceGameCategoryConfig = {
-  slug:'slot', title:'สล็อต', total:5094, resultUnit:'เกม', mode:'games',
-  baseBackground:'/assets/asset-pc/images/game/slot/bg_slot.webp', baseLogo:'/assets/asset-pc/images/game/slot/logo_slot.webp',
-  filters:[{key:'arcade',label:'เกมส์อาเขต',count:182},{key:'buy',label:'ซื้อฟรีสปิน',count:900},{key:'hot',label:'เกมส์ฮิต',count:546},{key:'new',label:'เกมส์ใหม่',count:552},{key:'slot',label:'เกมส์สล็อต',count:3694},{key:'table',label:'เกมส์โต๊ะ',count:233}],
-  providers, showProviderStrip:true,
-  games:rows.map(([id,name,image,provider]) => ({id,name,image,provider,isNew:true,isHot:false,tags:['new' as const,'slot' as const]})),
+  slug: 'slot',
+  title: 'สล็อต',
+  total: 5094,
+  resultUnit: 'เกม',
+  mode: 'games',
+  baseBackground: '/assets/asset-pc/images/game/slot/bg_slot.webp',
+  baseLogo: '/assets/asset-pc/images/game/slot/logo_slot.webp',
+  filters: [
+    { key: 'arcade', label: 'เกมส์อาเขต', count: 182 },
+    { key: 'buy', label: 'ซื้อฟรีสปิน', count: 900 },
+    { key: 'hot', label: 'เกมส์ฮิต', count: 546 },
+    { key: 'new', label: 'เกมส์ใหม่', count: 552 },
+    { key: 'slot', label: 'เกมส์สล็อต', count: 3694 },
+    { key: 'table', label: 'เกมส์โต๊ะ', count: 233 },
+  ],
+  providers,
+  showProviderStrip: true,
+  showAllProviders: true,
+  games: rows.map(([id, name, image, provider]) => ({
+    id,
+    name,
+    image,
+    provider,
+    isNew: true,
+    isHot: false,
+    tags: ['new' as const, 'slot' as const],
+  })),
 };
 
-export default function SlotBrowseSource(){ return <SourceGameCategoryPage config={config}/>; }
+export default function SlotBrowseSource() {
+  return <SourceGameCategoryPage config={config} />;
+}
