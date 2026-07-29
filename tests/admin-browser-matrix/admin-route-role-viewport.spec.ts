@@ -98,7 +98,10 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
       });
 
       if (roleName === 'owner' && expectedAllowed) {
-        if (routeCase.path === '/access') await paintFullPage(page);
+        if (routeCase.path === '/access') {
+          await page.addStyleTag({ content: '* { content-visibility: visible !important; }' });
+          await paintFullPage(page);
+        }
         await page.screenshot({ path: testInfo.outputPath(`${slug(routeCase.path)}.png`), fullPage: true, animations: 'disabled' });
       }
 
