@@ -107,7 +107,7 @@ import './member-leaderboard-rank-number-lock.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
-import MemberSearchOverlay from './components/member-search-overlay';
+import PublicNavigationLocaleGuard from './components/public-navigation-locale-guard';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
@@ -137,6 +137,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MemberLocaleProvider>
           <SiteSettingsProvider>
             <MemberSessionProvider>
+              <PublicNavigationLocaleGuard />
               <MemberHeroSwipeController />
               <MemberDragScrollController />
               <PublicLiveNavigationController />
@@ -144,7 +145,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <PublicDialogRuntimeController />
               <PublicGameLoginController />
               <UsageGuideController />
-              <MemberSearchOverlay />
               <MemberChrome>{children}</MemberChrome>
             </MemberSessionProvider>
           </SiteSettingsProvider>
