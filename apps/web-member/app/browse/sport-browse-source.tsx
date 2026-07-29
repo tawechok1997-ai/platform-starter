@@ -21,10 +21,43 @@ const providers = rows.map(([code, name]) => ({
 }));
 
 const config: SourceGameCategoryConfig = {
-  slug: 'sport', title: 'กีฬา', total: 5, resultUnit: 'ค่าย', mode: 'provider-cards',
-  baseBackground: '/assets/asset-pc/images/game/sport/bg_sport.webp', baseLogo: '/assets/asset-pc/images/game/sport/logo_sport.webp',
-  filters: [], providers,
-  games: rows.map(([code, name, isNew]) => ({ id: code, name, image: `https://cdn.zabbet.com/providers/set/1_1_v/${code}.png`, provider: code, isNew, isHot: false, tags: isNew ? ['new' as const] : [] })),
+  slug: 'sport',
+  title: 'กีฬา',
+  total: 5,
+  resultUnit: 'ค่าย',
+  mode: 'provider-cards',
+  baseBackground: '/assets/asset-pc/images/game/sport/bg_sport.webp',
+  baseLogo: '/assets/asset-pc/images/game/sport/logo_sport.webp',
+  filters: [],
+  providers,
+  showProviderStrip: false,
+  games: rows.map(([code, name, isNew]) => ({
+    id: code,
+    name,
+    image: `https://cdn.zabbet.com/providers/set/1_1_v/${code}.png`,
+    provider: code,
+    isNew,
+    isHot: false,
+    tags: isNew ? ['new' as const] : [],
+  })),
 };
 
-export default function SportBrowseSource() { return <SourceGameCategoryPage config={config} />; }
+export default function SportBrowseSource() {
+  return (
+    <>
+      <SourceGameCategoryPage config={config} />
+      <style>{`
+        main[data-source-game-category='sport'] [data-source-filter-types] {
+          height: 16px !important;
+          min-height: 16px !important;
+          padding: 0 !important;
+        }
+
+        main[data-source-game-category='sport'] [data-source-filter-panel] button:disabled {
+          cursor: pointer !important;
+          opacity: 1 !important;
+        }
+      `}</style>
+    </>
+  );
+}
