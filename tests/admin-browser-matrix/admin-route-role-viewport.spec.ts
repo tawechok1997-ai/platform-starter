@@ -110,7 +110,7 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
           const evidenceButton = page.getByRole('button', { name: /เปิดหลักฐาน/i }).first();
           await expect(evidenceButton).toBeVisible();
           await evidenceButton.click();
-          const evidenceDrawer = page.locator('.admin-drawer');
+          const evidenceDrawer = page.locator('.admin-drawer[role="dialog"]');
           await expect(evidenceDrawer).toBeVisible();
           await expect(evidenceDrawer).toHaveCSS('opacity', '1');
           await page.screenshot({ path: testInfo.outputPath(`${slug(routeCase.path)}-evidence.png`), animations: 'disabled' });
