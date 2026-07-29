@@ -36,6 +36,7 @@ import './games/hero-carousel.css';
 import './guide/guide.css';
 import './member-promotions.css';
 import './member-home-promotion-popup.css';
+import './member-home-activity-news-popup.css';
 import './public-status-page.css';
 import './public-mobile.css';
 import './public-desktop.css';
