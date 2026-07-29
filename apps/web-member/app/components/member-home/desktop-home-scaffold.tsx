@@ -19,7 +19,18 @@ import {
 import { V47_ASSETS } from './v47-asset-map';
 
 type DesktopGameSections = { featured: Game[]; popular: Game[]; recent: Game[]; favorites: Game[] };
-type DesktopHomeProps = { content: CmsContent; icons: SiteIconSettings; siteName: string; showPromotion: boolean; games: DesktopGameSections; isGamesLoading: boolean; gamesMessage: string; onOpenPromotion?: () => void };
+type DesktopHomeProps = {
+  content: CmsContent;
+  icons: SiteIconSettings;
+  siteName: string;
+  showPromotion: boolean;
+  games: DesktopGameSections;
+  isGamesLoading: boolean;
+  gamesMessage: string;
+  onOpenPromotion?: () => void;
+  onOpenActivity?: () => void;
+  onOpenNews?: () => void;
+};
 type PromoCard = { title: string; subtitle: string; href: string; aliases: string[]; fallback: string; assetUrl: string; backgroundUrl: string };
 type ArchiveGame = { name: string; imageUrl: string };
 type GuideFaq = { question: string; answer: string };
@@ -49,13 +60,24 @@ const LEADERBOARD_ITEMS = [
   { name: 'Funky Fortunes', user: '048XXXXX31', wins: '1,351', image: ARCHIVE_GAMES[6]!.imageUrl },
 ] as const;
 
-export function DesktopHomeScaffold({ content, siteName, showPromotion, games, isGamesLoading, gamesMessage, onOpenPromotion = () => undefined }: DesktopHomeProps) {
+export function DesktopHomeScaffold({
+  content,
+  siteName,
+  showPromotion,
+  games,
+  isGamesLoading,
+  gamesMessage,
+  onOpenPromotion = () => undefined,
+  onOpenActivity = () => undefined,
+  onOpenNews = () => undefined,
+}: DesktopHomeProps) {
   const { isLoggedIn } = useMemberSession();
   const configuredFaqs = Array.isArray(content?.faqs) ? content.faqs.filter((faq) => faq?.enabled).slice(0, 5) : [];
   const guideFaqs = completeFaqs(configuredFaqs);
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
   const featured = fillGames(games.featured, allGames, 8);
   const classic = fillGames(allGames.slice(8), allGames, 6);
+  const popupActions = [onOpenPromotion, onOpenActivity, onOpenNews] as const;
 
   const assets = {
     tournament: findCmsAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']),
@@ -92,28 +114,18 @@ export function DesktopHomeScaffold({ content, siteName, showPromotion, games, i
           <section className="reference-promo-row" aria-label="โปรโมชั่น กิจกรรม และข่าวสาร">
             {PROMO_CARDS.map((card, index) => {
               const asset = findCmsAsset(content, card.aliases);
-              const contentNode = (
-                <>
-                  <img className="reference-promo-background" src={card.backgroundUrl} alt="" aria-hidden="true" onError={hideBrokenImage} />
-                  <AssetIcon asset={asset} configured={card.assetUrl} fallback={card.fallback} className="reference-promo-icon" />
-                  <span className="reference-promo-copy"><strong>{card.title}</strong><small>{card.subtitle}</small></span>
-                </>
-              );
-
-              return index === 0 ? (
+              return (
                 <button
                   key={card.title}
                   type="button"
-                  className="reference-promo-card reference-promo-card--1"
-                  onClick={onOpenPromotion}
-                  aria-label="เปิดโปรโมชั่น"
+                  className={`reference-promo-card reference-promo-card--${index + 1}`}
+                  onClick={popupActions[index]}
+                  aria-label={`เปิด${card.title}`}
                 >
-                  {contentNode}
+                  <img className="reference-promo-background" src={card.backgroundUrl} alt="" aria-hidden="true" onError={hideBrokenImage} />
+                  <AssetIcon asset={asset} configured={card.assetUrl} fallback={card.fallback} className="reference-promo-icon" />
+                  <span className="reference-promo-copy"><strong>{card.title}</strong><small>{card.subtitle}</small></span>
                 </button>
-              ) : (
-                <a key={card.title} href={card.href} className={`reference-promo-card reference-promo-card--${index + 1}`}>
-                  {contentNode}
-                </a>
               );
             })}
           </section>
