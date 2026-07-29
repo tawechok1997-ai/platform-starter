@@ -9,6 +9,8 @@ const roles = {
   readonly: ['admin.access.view'],
 } as const;
 
+const EVIDENCE_DATA_URL = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 720 960"%3E%3Crect width="720" height="960" fill="%230b1220"/%3E%3Crect x="48" y="48" width="624" height="864" rx="32" fill="%23111823" stroke="%23f5c542" stroke-width="6"/%3E%3Ctext x="360" y="410" text-anchor="middle" fill="%23f8fafc" font-size="54" font-family="sans-serif"%3EMATRIX EVIDENCE%3C/text%3E%3Ctext x="360" y="500" text-anchor="middle" fill="%23f5c542" font-size="40" font-family="sans-serif"%3ETHB 2,500.00%3C/text%3E%3Ctext x="360" y="570" text-anchor="middle" fill="%2394a3b8" font-size="28" font-family="sans-serif"%3E29 JUL 2026 · 18:00%3C/text%3E%3C/svg%3E';
+
 type RoleName = keyof typeof roles;
 type RouteCase = { path: string; label: string; anyOf?: readonly string[]; ownerOnly?: boolean };
 
@@ -103,6 +105,16 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
           await paintFullPage(page);
         }
         await page.screenshot({ path: testInfo.outputPath(`${slug(routeCase.path)}.png`), fullPage: true, animations: 'disabled' });
+
+        if (routeCase.path === '/topups' || routeCase.path === '/withdrawals') {
+          const evidenceButton = page.getByRole('button', { name: /เปิดหลักฐาน/i }).first();
+          await expect(evidenceButton).toBeVisible();
+          await evidenceButton.click();
+          await expect(page.getByRole('dialog')).toBeVisible();
+          await page.screenshot({ path: testInfo.outputPath(`${slug(routeCase.path)}-evidence.png`), animations: 'disabled' });
+          await page.getByRole('button', { name: /^ปิด$/ }).click();
+          await expect(page.getByRole('dialog')).toHaveCount(0);
+        }
       }
 
       if (routeCase.path === '/dashboard' && (page.viewportSize()?.width ?? 1_000) <= 834) {
@@ -151,7 +163,16 @@ function fixtureFor(path: string, roleName: RoleName, permissions: readonly stri
     };
   }
   if (path.startsWith('/admin/risk-alerts')) return { items: [], total: 0, page: 1, pageCount: 1, summary: { openCount: 0, criticalCount: 0 } };
-  if (path.startsWith('/admin/topups') || path.startsWith('/admin/withdrawals')) return { items: [], total: 0, page: 1, pageCount: 1 };
+  if (path === '/admin/topups/topup-matrix/slip') return { dataUrl: EVIDENCE_DATA_URL };
+  if (path.startsWith('/admin/topups')) return {
+    items: [{ id: 'topup-matrix', userId: 'member-matrix', amount: '2500', currency: 'THB', status: 'PENDING_SLIP_REVIEW', note: JSON.stringify({ userNote: 'ฝากผ่านธนาคารตัวอย่าง' }), claimedBy: 'matrix-owner', claimedAt: '2026-07-29T10:55:00.000Z', createdAt: '2026-07-29T10:50:00.000Z', user: { username: 'matrix_member', phone: '0812345678' } }],
+    total: 1, page: 1, pageCount: 1,
+  };
+  if (path === '/admin/withdrawals/withdrawal-matrix/payment-proof') return { dataUrl: EVIDENCE_DATA_URL, transactionRef: 'TX-MATRIX-001' };
+  if (path.startsWith('/admin/withdrawals')) return {
+    items: [{ id: 'withdrawal-matrix', userId: 'member-matrix', amount: '1200', status: 'PAYMENT_PROOF_UPLOADED', accountName: 'Matrix Member', accountNumber: '1234567890', bankName: 'ธนาคารตัวอย่าง', note: 'ถอนเพื่อทดสอบหน้าคิว', claimedBy: 'matrix-owner', createdAt: '2026-07-29T10:40:00.000Z', paymentTransactionRef: 'TX-MATRIX-001', user: { username: 'matrix_member', phone: '0812345678' } }],
+    total: 1, page: 1, pageCount: 1,
+  };
   if (path.startsWith('/admin/support')) return { items: [], total: 0, page: 1, pageCount: 1, summary: {} };
   if (path.startsWith('/admin/audit-logs')) return { items: [], total: 0, page: 1, pageCount: 1 };
   if (path === '/admin/access/overview') {
