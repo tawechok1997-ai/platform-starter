@@ -51,6 +51,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   const [selectedFilters, setSelectedFilters] = useState<SourceGameFilterKey[]>([]);
   const [providerCode, setProviderCode] = useState<string | null>(null);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
+  const usesCasinoFilterSource = config.slug === 'casino';
 
   useEffect(() => {
     setSelectedFilters([]);
@@ -107,7 +108,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   }), [games, providerCode, selectedFilters]);
 
   const untouched = !providerCode && selectedFilters.length === 0;
-  const resultCount = untouched ? config.total : visibleGames.length;
+  const resultCount = usesCasinoFilterSource && untouched ? config.total : visibleGames.length;
 
   const clearFilters = () => {
     setSelectedFilters([]);
@@ -146,26 +147,26 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
           {providers.map((provider) => <img key={`${provider.code}-avatar`} className={`${styles.providerAvatar}${activeProvider?.code.toLowerCase() === provider.code.toLowerCase() ? ` ${styles.providerAvatarActive}` : ''}`} src={provider.avatar} alt="" onError={hideBrokenImage} />)}
         </header>
 
-        <div className={styles.layout}>
-          <aside className={styles.filterPanel} aria-label={`ตัวกรอง${config.title}`}>
+        <div className={styles.layout} data-source-game-layout>
+          <aside className={styles.filterPanel} data-source-filter-panel aria-label={`ตัวกรอง${config.title}`}>
             <div className={styles.filterGlow} aria-hidden="true" />
-            <div className={styles.filterTitle}>ตัวกรอง</div>
+            <div className={styles.filterTitle} data-source-filter-title>ตัวกรอง</div>
             <div className={`${styles.filterSectionTitle}${config.filters.length ? '' : ` ${styles.filterSectionCollapsed}`}`}><strong>ค้นหาเกมที่คุณสนใจ</strong><span>เลือกได้มากกว่าหนึ่ง</span></div>
             <div className={`${styles.typeGrid}${config.filters.length ? '' : ` ${styles.typeGridCollapsed}`}`}>
               {config.filters.map((filter) => {
                 const checked = selectedFilters.includes(filter.key);
-                const count = untouched ? filter.count : (filterCounts.get(filter.key) ?? 0);
+                const count = usesCasinoFilterSource && untouched ? filter.count : (filterCounts.get(filter.key) ?? 0);
                 return <label key={filter.key} className={styles.filterOption}><input type="checkbox" checked={checked} onChange={() => toggleFilter(filter.key)} /><span className={`${styles.checkbox}${checked ? ` ${styles.checkboxActive}` : ''}`} aria-hidden="true">{checked ? '✓' : ''}</span><span className={styles.filterLabel}>{filter.label}</span><small>( {count.toLocaleString('th-TH')} )</small></label>;
               })}
             </div>
 
-            {config.showProviderStrip ? <><div className={styles.filterSectionTitle}><strong>ค้นหาค่ายเกม</strong><span>เลือกอย่างใดอย่างหนึ่ง</span></div><div className={`${styles.providerGrid}${selectableProviders.length ? '' : ` ${styles.providerGridEmpty}`}`}>{selectableProviders.map((provider) => {
+            {config.showProviderStrip ? <><div className={styles.filterSectionTitle}><strong>ค้นหาค่ายเกม</strong><span>เลือกอย่างใดอย่างหนึ่ง</span></div><div className={`${styles.providerGrid}${selectableProviders.length ? '' : ` ${styles.providerGridEmpty}`}`} data-source-provider-grid>{selectableProviders.map((provider) => {
               const normalizedCode = provider.code.toLowerCase();
               const count = providerCounts.get(normalizedCode) ?? 0;
-              return <button key={provider.code} type="button" className={`${styles.providerButton}${providerCode === normalizedCode ? ` ${styles.providerActive}` : ''}`} onClick={() => { setProviderCode((current) => current === normalizedCode ? null : normalizedCode); setPreviewCode(null); }} aria-pressed={providerCode === normalizedCode} aria-label={`${provider.name} ${count} เกม`} title={`${provider.name} (${count})`}><span aria-hidden="true" /><img src={provider.badge} alt={provider.name} onError={hideBrokenImage} /></button>;
+              return <button key={provider.code} type="button" data-source-provider-button className={`${styles.providerButton}${providerCode === normalizedCode ? ` ${styles.providerActive}` : ''}`} onClick={() => { setProviderCode((current) => current === normalizedCode ? null : normalizedCode); setPreviewCode(null); }} aria-pressed={providerCode === normalizedCode} aria-label={`${provider.name} ${count} เกม`} title={`${provider.name} (${count})`}><span aria-hidden="true" /><img src={provider.badge} alt={provider.name} onError={hideBrokenImage} /></button>;
             })}</div></> : null}
 
-            <div className={styles.filterActions}><div className={styles.filterSummary} aria-live="polite"><span>พบเกมส์ที่คุณค้นหา</span><strong>{resultCount.toLocaleString('th-TH')} {config.resultUnit}</strong></div><button type="button" className={styles.clearButton} onClick={clearFilters}>ล้าง</button></div>
+            <div className={styles.filterActions}><div className={styles.filterSummary} aria-live="polite"><span>พบเกมส์ที่คุณค้นหา</span><strong>{resultCount.toLocaleString('th-TH')} {config.resultUnit}</strong></div><button type="button" className={styles.clearButton} onClick={clearFilters} disabled={!usesCasinoFilterSource && untouched}>ล้าง</button></div>
           </aside>
 
           <section className={styles.gameArea} aria-label={`รายการ${config.title}`} aria-live="polite">
@@ -178,6 +179,24 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
           </section>
         </div>
       </section>
+
+      <style>{`
+        @media (min-width: 901px) and (max-width: 1460px) {
+          main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-game-layout] {
+            grid-template-columns: 300px minmax(0, 1fr);
+          }
+          main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-filter-panel],
+          main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-filter-title],
+          main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-provider-grid] {
+            width: 300px;
+            min-width: 300px;
+            max-width: 300px;
+          }
+          main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-provider-button] {
+            width: 86px;
+          }
+        }
+      `}</style>
     </main>
   );
 }
