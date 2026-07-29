@@ -9,6 +9,7 @@ import { memberApiFetch } from '../../member-api';
 import { resolveMemberLoginDestination } from '../../../src/features/auth/auth-redirect';
 
 type Locale = 'th' | 'en';
+type AuthMode = 'login' | 'forgot';
 type LoginErrors = { identifier?: string; secret?: string };
 
 const copy = {
@@ -35,6 +36,12 @@ const copy = {
     supportPrompt: 'พบปัญหาการใช้งาน',
     support: 'ติดต่อเจ้าหน้าที่',
     forgot: 'ลืมรหัสผ่าน?',
+    forgotTitle: 'ลืมรหัสผ่าน',
+    otpSubmit: 'รับ OTP',
+    otpSending: 'กำลังส่ง OTP...',
+    otpSent: 'ส่งคำขอ OTP แล้ว กรุณาตรวจสอบเบอร์โทรศัพท์ของคุณ',
+    otpFailed: 'ส่งคำขอ OTP ไม่สำเร็จ กรุณาลองอีกครั้ง',
+    backToLogin: 'กลับเข้าสู่ระบบ',
     close: 'ปิดหน้าต่าง',
     secureConnection: 'การเชื่อมต่อปลอดภัย',
     privacy: 'นโยบายความเป็นส่วนตัว',
@@ -63,6 +70,12 @@ const copy = {
     supportPrompt: 'Having trouble?',
     support: 'Contact support',
     forgot: 'Forgot password?',
+    forgotTitle: 'Forgot password',
+    otpSubmit: 'Get OTP',
+    otpSending: 'Sending OTP...',
+    otpSent: 'OTP request sent. Check your phone.',
+    otpFailed: 'Could not send the OTP request. Please try again.',
+    backToLogin: 'Back to sign in',
     close: 'Close window',
     secureConnection: 'Secure connection',
     privacy: 'Privacy policy',
@@ -73,6 +86,7 @@ const copy = {
 export default function MemberSignInPage() {
   const [settings, setSettings] = useState<PublicSiteSettings>(defaultSettings);
   const [locale, setLocale] = useState<Locale>('th');
+  const [mode, setMode] = useState<AuthMode>('login');
   const [identifier, setIdentifier] = useState('');
   const [secret, setSecret] = useState('');
   const [captchaToken, setCaptchaToken] = useState('');
@@ -90,6 +104,7 @@ export default function MemberSignInPage() {
     const params = new URLSearchParams(window.location.search);
     const isEmbedded = params.get('embed') === '1' && window.parent !== window;
     setEmbedded(isEmbedded);
+    if (params.get('mode') === 'forgot') setMode('forgot');
 
     if (window.localStorage.getItem('member_access_token') || window.localStorage.getItem('member_refresh_token')) {
       if (isEmbedded) window.parent.postMessage({ type: 'member-auth-success' }, window.location.origin);
@@ -106,13 +121,42 @@ export default function MemberSignInPage() {
   const authBrand = useMemo(() => createAuthBrandRuntime(settings, 'login'), [settings]);
   const flags = memberFeatureFlags(settings);
   const handleCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
-  const handleCaptchaState = useCallback((required: boolean, ready: boolean) => { setCaptchaRequired(required); setCaptchaReady(ready); }, []);
-  const disabled = loading || !flags.login || (captchaRequired && !captchaReady);
+  const handleCaptchaState = useCallback((required: boolean, ready: boolean) => {
+    setCaptchaRequired(required);
+    setCaptchaReady(ready);
+  }, []);
+  const captchaBlocked = captchaRequired && !captchaReady;
+  const disabled = loading || captchaBlocked || (mode === 'login' && !flags.login);
 
-  function validate() {
+  function resetFeedback() {
+    setErrors({});
+    setMessage('');
+    setStatus('idle');
+    setCaptchaToken('');
+    setCaptchaRequired(false);
+    setCaptchaReady(true);
+    setCaptchaResetKey((value) => value + 1);
+  }
+
+  function switchMode(nextMode: AuthMode) {
+    if (loading || nextMode === mode) return;
+    setMode(nextMode);
+    setSecret('');
+    setShowSecret(false);
+    resetFeedback();
+  }
+
+  function validateLogin() {
     const next: LoginErrors = {};
     if (!identifier.trim()) next.identifier = t.identifierRequired;
     if (!secret.trim()) next.secret = t.passwordRequired;
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }
+
+  function validateForgot() {
+    const next: LoginErrors = {};
+    if (!identifier.trim()) next.identifier = t.identifierRequired;
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -142,31 +186,108 @@ export default function MemberSignInPage() {
     window.location.replace(resolveMemberLoginDestination(window.location.search));
   }
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onLoginSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!flags.login) { setStatus('error'); setMessage(t.loginDisabled); return; }
-    if (!validate()) { setStatus('error'); setMessage(t.checkFields); return; }
-    if (captchaRequired && (!captchaReady || !captchaToken)) { setStatus('error'); setMessage(t.captchaRequired); return; }
+    if (!flags.login) {
+      setStatus('error');
+      setMessage(t.loginDisabled);
+      return;
+    }
+    if (!validateLogin()) {
+      setStatus('error');
+      setMessage(t.checkFields);
+      return;
+    }
+    if (captchaRequired && (!captchaReady || !captchaToken)) {
+      setStatus('error');
+      setMessage(t.captchaRequired);
+      return;
+    }
+
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 15000);
-    setLoading(true); setStatus('info'); setMessage(t.submitting);
+    setLoading(true);
+    setStatus('info');
+    setMessage(t.submitting);
     try {
       const res = await memberApiFetch('/member/auth/login', {
         method: 'POST',
         skipAuth: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: identifier.trim(), secret, captchaToken: captchaToken || undefined, deviceId: 'web-member' }),
+        body: JSON.stringify({
+          identifier: identifier.trim(),
+          secret,
+          captchaToken: captchaToken || undefined,
+          deviceId: 'web-member',
+        }),
         signal: controller.signal,
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) { setStatus('error'); setMessage(typeof data?.message === 'string' ? data.message : t.failed); setCaptchaResetKey((value) => value + 1); return; }
+      if (!res.ok) {
+        setStatus('error');
+        setMessage(typeof data?.message === 'string' ? data.message : t.failed);
+        setCaptchaResetKey((value) => value + 1);
+        return;
+      }
       window.localStorage.setItem('member_access_token', data.accessToken);
       window.localStorage.setItem('member_refresh_token', data.refreshToken);
-      setStatus('success'); setMessage(t.success);
+      setStatus('success');
+      setMessage(t.success);
       completeLogin();
     } catch (error) {
       const aborted = error instanceof DOMException && error.name === 'AbortError';
-      setStatus('error'); setMessage(aborted ? t.timeout : t.failed); setCaptchaResetKey((value) => value + 1);
+      setStatus('error');
+      setMessage(aborted ? t.timeout : t.failed);
+      setCaptchaResetKey((value) => value + 1);
+    } finally {
+      window.clearTimeout(timeoutId);
+      setLoading(false);
+    }
+  }
+
+  async function onForgotSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!validateForgot()) {
+      setStatus('error');
+      setMessage(t.checkFields);
+      return;
+    }
+    if (captchaRequired && (!captchaReady || !captchaToken)) {
+      setStatus('error');
+      setMessage(t.captchaRequired);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+    setLoading(true);
+    setStatus('info');
+    setMessage(t.otpSending);
+    try {
+      const res = await memberApiFetch('/member/auth/password-reset/request', {
+        method: 'POST',
+        skipAuth: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: identifier.trim(),
+          captchaToken: captchaToken || undefined,
+        }),
+        signal: controller.signal,
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setStatus('error');
+        setMessage(typeof data?.message === 'string' ? data.message : t.otpFailed);
+        setCaptchaResetKey((value) => value + 1);
+        return;
+      }
+      setStatus('success');
+      setMessage(t.otpSent);
+    } catch (error) {
+      const aborted = error instanceof DOMException && error.name === 'AbortError';
+      setStatus('error');
+      setMessage(aborted ? t.timeout : t.otpFailed);
+      setCaptchaResetKey((value) => value + 1);
     } finally {
       window.clearTimeout(timeoutId);
       setLoading(false);
@@ -175,13 +296,28 @@ export default function MemberSignInPage() {
 
   const registerHref = embedded ? '/register?embed=1' : '/register';
   const loginHref = embedded ? '/login?embed=1' : '/login';
+  const heading = mode === 'login' ? t.title : t.forgotTitle;
+  const submitText = mode === 'login'
+    ? (loading ? t.submitting : t.submit)
+    : (loading ? t.otpSending : t.otpSubmit);
 
   return (
-    <main className="public-auth-page source-login-page" style={authBrand.style} data-brand-code={String((settings.website as Record<string, unknown> | undefined)?.brand_code ?? 'default')} data-embedded={embedded ? 'true' : 'false'}>
+    <main
+      className="public-auth-page source-login-page"
+      style={authBrand.style}
+      data-brand-code={String((settings.website as Record<string, unknown> | undefined)?.brand_code ?? 'default')}
+      data-embedded={embedded ? 'true' : 'false'}
+    >
       <div className="public-auth-ambient" aria-hidden="true"><span /><span /><span /></div>
       <div className="public-auth-backdrop" aria-hidden="true" />
 
-      <section className="public-auth-shell public-auth-modal source-login-modal" data-auth-mode="login" role="dialog" aria-modal="true" aria-labelledby="member-login-title">
+      <section
+        className="public-auth-shell public-auth-modal source-login-modal"
+        data-auth-mode={mode}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="member-login-title"
+      >
         <button type="button" className="public-auth-close source-login-close" aria-label={t.close} onClick={closePopup}>
           <span>{t.close}</span>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -190,42 +326,135 @@ export default function MemberSignInPage() {
         </button>
 
         <div className="source-login-visual" aria-hidden="true">
-          <img src="/assets/asset-pc/images/FEZX/imageslides/1782914061717-d7de2072-63f1-4dd5-95f6-8628990ba631.jpg" alt="" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+          <img
+            src="/assets/asset-pc/images/FEZX/imageslides/1782914061717-d7de2072-63f1-4dd5-95f6-8628990ba631.jpg"
+            alt=""
+            onError={(event) => { event.currentTarget.style.display = 'none'; }}
+          />
         </div>
 
         <div className="source-login-form-shell">
-          <nav className="public-auth-tabs source-login-tabs" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
-            <Link href={registerHref}>{t.register}</Link>
-            <Link href={loginHref} aria-current="page">{t.title}</Link>
-          </nav>
+          {mode === 'login' ? (
+            <nav className="public-auth-tabs source-login-tabs" aria-label={locale === 'th' ? 'บัญชีสมาชิก' : 'Member account'}>
+              <Link href={registerHref}>{t.register}</Link>
+              <Link href={loginHref} aria-current="page">{t.title}</Link>
+            </nav>
+          ) : null}
 
-          <form className="public-auth-card source-login-card" onSubmit={onSubmit} noValidate>
-            <div className="public-auth-heading source-login-heading"><span>{t.eyebrow}</span><h1 id="member-login-title">{t.title}</h1></div>
-            {!flags.login && <div className="public-auth-alert public-auth-alert--error" role="alert">{t.loginDisabled}</div>}
-            {status === 'error' && message && <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>}
+          <form
+            className={`public-auth-card source-login-card${mode === 'forgot' ? ' source-login-card--forgot' : ''}`}
+            onSubmit={mode === 'login' ? onLoginSubmit : onForgotSubmit}
+            noValidate
+          >
+            <div className="public-auth-heading source-login-heading">
+              <span>{t.eyebrow}</span>
+              <h1 id="member-login-title">{heading}</h1>
+            </div>
+
+            {mode === 'login' && !flags.login ? (
+              <div className="public-auth-alert public-auth-alert--error" role="alert">{t.loginDisabled}</div>
+            ) : null}
+            {status === 'error' && message ? (
+              <div className="public-auth-alert public-auth-alert--error" role="alert" aria-live="assertive">{message}</div>
+            ) : null}
 
             <label className="public-auth-field source-login-field" htmlFor="login-identifier">
               <span className="public-auth-field-label">{t.identifier}</span>
-              <input id="login-identifier" className="public-auth-input ui-input" value={identifier} onChange={(event) => { setIdentifier(event.target.value); if (errors.identifier) clearFieldError('identifier'); }} disabled={disabled} autoComplete="username" inputMode="tel" placeholder={t.identifierPlaceholder} aria-invalid={Boolean(errors.identifier)} />
+              <input
+                id="login-identifier"
+                className="public-auth-input ui-input"
+                value={identifier}
+                onChange={(event) => {
+                  setIdentifier(event.target.value);
+                  if (errors.identifier) clearFieldError('identifier');
+                }}
+                disabled={disabled}
+                autoComplete="username"
+                inputMode="tel"
+                type="tel"
+                placeholder={t.identifierPlaceholder}
+                aria-invalid={Boolean(errors.identifier)}
+              />
             </label>
-            {errors.identifier && <span className="public-auth-field-error">{errors.identifier}</span>}
+            {errors.identifier ? <span className="public-auth-field-error">{errors.identifier}</span> : null}
 
-            <label className="public-auth-field source-login-field" htmlFor="login-secret">
-              <span className="public-auth-field-label">{t.password}</span>
-              <div className="public-auth-input-wrap">
-                <input id="login-secret" className="public-auth-input ui-input" value={secret} onChange={(event) => { setSecret(event.target.value); if (errors.secret) clearFieldError('secret'); }} type={showSecret ? 'text' : 'password'} disabled={disabled} autoComplete="current-password" placeholder={t.passwordPlaceholder} aria-invalid={Boolean(errors.secret)} />
-                <button type="button" onClick={() => setShowSecret((value) => !value)} className="public-auth-eye source-login-eye" disabled={disabled} aria-label={showSecret ? t.hidePassword : t.showPassword}><PasswordVisibilityIcon visible={showSecret} /></button>
+            {mode === 'login' ? (
+              <>
+                <label className="public-auth-field source-login-field" htmlFor="login-secret">
+                  <span className="public-auth-field-label">{t.password}</span>
+                  <div className="public-auth-input-wrap">
+                    <input
+                      id="login-secret"
+                      className="public-auth-input ui-input"
+                      value={secret}
+                      onChange={(event) => {
+                        setSecret(event.target.value);
+                        if (errors.secret) clearFieldError('secret');
+                      }}
+                      type={showSecret ? 'text' : 'password'}
+                      disabled={disabled}
+                      autoComplete="current-password"
+                      placeholder={t.passwordPlaceholder}
+                      aria-invalid={Boolean(errors.secret)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSecret((value) => !value)}
+                      className="public-auth-eye source-login-eye"
+                      disabled={disabled}
+                      aria-label={showSecret ? t.hidePassword : t.showPassword}
+                    >
+                      <PasswordVisibilityIcon visible={showSecret} />
+                    </button>
+                  </div>
+                </label>
+                {errors.secret ? <span className="public-auth-field-error">{errors.secret}</span> : null}
+                <button type="button" className="public-auth-forgot" onClick={() => switchMode('forgot')}>
+                  {t.forgot}
+                </button>
+              </>
+            ) : null}
+
+            <AntiBotWidget
+              endpoint={mode === 'login' ? 'member-login' : 'member-password-reset'}
+              locale={locale}
+              resetKey={captchaResetKey}
+              onToken={handleCaptchaToken}
+              onRequiredChange={handleCaptchaState}
+            />
+
+            <button
+              type="submit"
+              disabled={disabled}
+              className="public-auth-submit source-login-submit ui-button ui-button--primary"
+            >
+              <span>{submitText}</span>
+              <i aria-hidden="true" />
+            </button>
+
+            {status !== 'error' && message ? (
+              <div
+                className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`}
+                role="status"
+                aria-live="polite"
+              >
+                {message}
               </div>
-            </label>
-            {errors.secret && <span className="public-auth-field-error">{errors.secret}</span>}
+            ) : null}
 
-            <Link href="/forgot-password" className="public-auth-forgot">{t.forgot}</Link>
-            <AntiBotWidget endpoint="member-login" locale={locale} resetKey={captchaResetKey} onToken={handleCaptchaToken} onRequiredChange={handleCaptchaState} />
-            <button type="submit" disabled={disabled} className="public-auth-submit source-login-submit ui-button ui-button--primary"><span>{loading ? t.submitting : t.submit}</span><i aria-hidden="true" /></button>
-            {status !== 'error' && message && <div className={`public-auth-alert public-auth-alert--${status === 'success' ? 'success' : 'info'}`} role="status" aria-live="polite">{message}</div>}
+            {mode === 'forgot' ? (
+              <button type="button" className="source-login-back" onClick={() => switchMode('login')}>
+                {t.backToLogin}
+              </button>
+            ) : null}
+
             <div className="source-login-divider" aria-hidden="true" />
             <div className="source-login-support"><span>{t.supportPrompt}</span><Link href="/support">{t.support}</Link></div>
-            <footer className="public-auth-legal"><span>{t.secureConnection}</span><Link href="/legal/privacy">{t.privacy}</Link><Link href="/legal/terms">{t.terms}</Link></footer>
+            <footer className="public-auth-legal">
+              <span>{t.secureConnection}</span>
+              <Link href="/legal/privacy">{t.privacy}</Link>
+              <Link href="/legal/terms">{t.terms}</Link>
+            </footer>
           </form>
         </div>
       </section>
@@ -235,8 +464,14 @@ export default function MemberSignInPage() {
 
 function PasswordVisibilityIcon({ visible }: { visible: boolean }) {
   return visible ? (
-    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M1.8 10s2.8-5 8.2-5 8.2 5 8.2 5-2.8 5-8.2 5-8.2-5-8.2-5Z" stroke="currentColor" strokeWidth="1.5" /><circle cx="10" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.5" /></svg>
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M1.8 10s2.8-5 8.2-5 8.2 5 8.2 5-2.8 5-8.2 5-8.2-5-8.2-5Z" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
   ) : (
-    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 3l14 14M8.1 5.3A8.9 8.9 0 0 1 10 5c5.4 0 8.2 5 8.2 5a13 13 0 0 1-2.1 2.8M12.2 14.7A8.8 8.8 0 0 1 10 15c-5.4 0-8.2-5-8.2-5a13 13 0 0 1 2.3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><path d="M7.9 7.9A3 3 0 0 0 12.1 12.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M3 3l14 14M8.1 5.3A8.9 8.9 0 0 1 10 5c5.4 0 8.2 5 8.2 5a13 13 0 0 1-2.1 2.8M12.2 14.7A8.8 8.8 0 0 1 10 15c-5.4 0-8.2-5-8.2-5a13 13 0 0 1 2.3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7.9 7.9A3 3 0 0 0 12.1 12.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
   );
 }
