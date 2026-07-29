@@ -1,8 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { adminApiFetch } from '../../admin-api';
-import { AdminFinanceEvidence, AdminFinanceQueueFrame, AdminFinanceQueueToolbar } from '../_components/admin-finance-queue';
+import {
+  AdminFinanceEvidence,
+  AdminFinanceQueueFrame,
+  AdminFinanceQueueToolbar,
+  type AdminFinanceQueueLoadOptions,
+  type AdminFinanceQueueLoadResult,
+  useAdminFinanceQueueRequestGate,
+} from '../_components/admin-finance-queue';
 import { AdminBadge, AdminButton, AdminCard, AdminConfirmDialog, AdminLinkButton, AdminMetric, AdminNotice, AdminPage, AdminRow, AdminSectionRow, formatMoney } from '../_components/admin-ui';
 import { useAdminLocale, type AdminLocale } from '../admin-locale';
 
@@ -17,23 +24,23 @@ const FILTERS: DepositStatus[] = ['PENDING', 'PENDING_SLIP_REVIEW', 'PENDING_CRE
 
 type TopUpCopy = {
   eyebrow: string; title: string; description: string; refresh: string; loading: string; waitingSlip: string; waitingCredit: string; completed: string; rejected: string; filteredTotal: string; page: string; perPage: string; currentPageOnly: string;
-  queueStatus: string; queueStatusAria: string; all: string; previous: string; next: string; claimed: string; unclaimed: string; member: string; createdAt: string; slipAlt: string; review: string; reviewDescription: string; memberNote: string; adminNote: string; claimedAt: string; claim: string; release: string; notePlaceholder: string; approveSlip: string; confirmCredit: string; reject: string; closed: string; noItems: string;
+  queueStatus: string; queueStatusAria: string; all: string; previous: string; next: string; claimed: string; unclaimed: string; member: string; createdAt: string; slipAlt: string; evidenceOpen: string; evidenceDescription: string; close: string; review: string; reviewDescription: string; memberNote: string; adminNote: string; claimedAt: string; claim: string; release: string; notePlaceholder: string; approveSlip: string; confirmCredit: string; reject: string; closed: string; noItems: string;
   dialogMember: string; dialogAmount: string; dialogReason: string; dialogs: Record<DepositAction, { title: string; description: string; confirm: string }>;
-  statuses: Record<DepositStatus, string>; messages: { loading: string; loadFailed: string; actionFailed: string; claimed: string; released: string; reasonRequired: string; slipApproved: string; creditConfirmed: string; rejected: string };
+  statuses: Record<DepositStatus, string>; messages: { loading: string; loadFailed: string; refreshFailed: string; actionFailed: string; actionRefreshFailed: string; claimed: string; released: string; reasonRequired: string; slipApproved: string; creditConfirmed: string; rejected: string };
 };
 
 const topUpCopy: Record<AdminLocale, TopUpCopy> = {
   th: {
-    eyebrow: 'การเงิน', title: 'คิวรายการฝาก', description: 'ตรวจสลิปและยืนยันเครดิต', refresh: 'รีเฟรชคิว', loading: 'กำลังโหลด...', waitingSlip: 'รอตรวจสลิป', waitingCredit: 'รอยืนยันเครดิต', completed: 'สำเร็จ', rejected: 'ปฏิเสธหรือซ้ำ', filteredTotal: 'ทั้งหมดตามตัวกรอง', page: 'หน้า', perPage: 'รายการต่อหน้า', currentPageOnly: 'เฉพาะหน้านี้',
-    queueStatus: 'สถานะคิว', queueStatusAria: 'กรองสถานะรายการฝาก', all: 'ทั้งหมด', previous: 'ก่อนหน้า', next: 'ถัดไป', claimed: 'มีผู้รับงานแล้ว', unclaimed: 'ยังไม่มีผู้รับงาน', member: 'สมาชิก', createdAt: 'สร้างเมื่อ', slipAlt: 'สลิปฝากของ', review: 'การตรวจสอบ', reviewDescription: 'รับงานก่อนเปลี่ยนสถานะหรือเพิ่มเครดิต', memberNote: 'หมายเหตุสมาชิก', adminNote: 'หมายเหตุแอดมิน', claimedAt: 'รับงานเมื่อ', claim: 'รับงาน', release: 'ปล่อยงาน', notePlaceholder: 'จำเป็นเมื่อปฏิเสธ', approveSlip: 'สลิปถูกต้อง → รอยืนยันเครดิต', confirmCredit: 'ยืนยันเพิ่มเครดิต', reject: 'ปฏิเสธรายการ', closed: 'รายการนี้เปลี่ยนสถานะต่อไม่ได้', noItems: 'ไม่มีรายการในสถานะนี้',
+    eyebrow: 'การเงิน', title: 'คิวรายการฝาก', description: 'ตรวจสลิปและยืนยันเครดิต', refresh: 'รีเฟรช', loading: 'กำลังโหลด...', waitingSlip: 'รอตรวจสลิป', waitingCredit: 'รอยืนยันเครดิต', completed: 'สำเร็จ', rejected: 'ปฏิเสธหรือซ้ำ', filteredTotal: 'ทั้งหมดตามตัวกรอง', page: 'หน้า', perPage: 'รายการต่อหน้า', currentPageOnly: 'เฉพาะหน้านี้',
+    queueStatus: 'สถานะคิว', queueStatusAria: 'กรองสถานะรายการฝาก', all: 'ทั้งหมด', previous: 'ก่อนหน้า', next: 'ถัดไป', claimed: 'มีผู้รับงานแล้ว', unclaimed: 'ยังไม่มีผู้รับงาน', member: 'สมาชิก', createdAt: 'สร้างเมื่อ', slipAlt: 'สลิปฝากของ', evidenceOpen: 'เปิดหลักฐาน', evidenceDescription: 'ตรวจภาพหลักฐานฉบับเต็มก่อนดำเนินการ', close: 'ปิด', review: 'การตรวจสอบ', reviewDescription: 'รับงานก่อนเปลี่ยนสถานะหรือเพิ่มเครดิต', memberNote: 'หมายเหตุสมาชิก', adminNote: 'หมายเหตุผู้ดูแล', claimedAt: 'รับงานเมื่อ', claim: 'รับงาน', release: 'ปล่อยงาน', notePlaceholder: 'จำเป็นเมื่อปฏิเสธ', approveSlip: 'สลิปถูกต้อง → รอยืนยันเครดิต', confirmCredit: 'ยืนยันเพิ่มเครดิต', reject: 'ปฏิเสธรายการ', closed: 'รายการนี้เปลี่ยนสถานะต่อไม่ได้', noItems: 'ไม่มีรายการในสถานะนี้',
     dialogMember: 'สมาชิก', dialogAmount: 'ยอดเงิน', dialogReason: 'เหตุผล', dialogs: { 'approve-slip': { title: 'ยืนยันผลตรวจสลิป', description: 'รายการจะเข้าสู่ขั้นยืนยันเครดิต', confirm: 'อนุมัติสลิป' }, 'confirm-credit': { title: 'ยืนยันเพิ่มเครดิต', description: 'ระบบจะเพิ่มเงินเข้ากระเป๋าสมาชิก ย้อนกลับไม่ได้', confirm: 'เพิ่มเครดิต' }, reject: { title: 'ยืนยันปฏิเสธรายการ', description: 'ระบบจะบันทึกเหตุผลในบันทึกการตรวจสอบ', confirm: 'ปฏิเสธรายการ' } },
-    statuses: { PENDING: 'รอส่งสลิป', PENDING_SLIP_REVIEW: 'รอตรวจสลิป', PENDING_CREDIT: 'รอยืนยันเครดิต', COMPLETED: 'สำเร็จ', DUPLICATE: 'สลิปซ้ำ', REJECTED: 'ไม่อนุมัติ', CANCELLED: 'ยกเลิก', APPROVED: 'อนุมัติแล้ว' }, messages: { loading: 'กำลังโหลดรายการฝาก...', loadFailed: 'โหลดรายการฝากไม่สำเร็จ', actionFailed: 'ทำรายการไม่สำเร็จ', claimed: 'รับงานตรวจฝากแล้ว', released: 'ปล่อยงานแล้ว', reasonRequired: 'ระบุเหตุผลก่อนปฏิเสธรายการฝาก', slipApproved: 'ตรวจสลิปผ่านแล้ว รอยืนยันเครดิต', creditConfirmed: 'เพิ่มเครดิตสำเร็จ', rejected: 'ปฏิเสธรายการฝากแล้ว' },
+    statuses: { PENDING: 'รอส่งสลิป', PENDING_SLIP_REVIEW: 'รอตรวจสลิป', PENDING_CREDIT: 'รอยืนยันเครดิต', COMPLETED: 'สำเร็จ', DUPLICATE: 'สลิปซ้ำ', REJECTED: 'ไม่อนุมัติ', CANCELLED: 'ยกเลิก', APPROVED: 'อนุมัติแล้ว' }, messages: { loading: 'กำลังโหลดรายการฝาก...', loadFailed: 'โหลดรายการฝากไม่สำเร็จ', refreshFailed: 'รีเฟรชไม่สำเร็จ ข้อมูลเดิมยังแสดงอยู่', actionFailed: 'ทำรายการไม่สำเร็จ', actionRefreshFailed: 'ดำเนินการสำเร็จ แต่รีเฟรชคิวไม่สำเร็จ ข้อมูลเดิมยังแสดงอยู่', claimed: 'รับงานตรวจฝากแล้ว', released: 'ปล่อยงานแล้ว', reasonRequired: 'ระบุเหตุผลก่อนปฏิเสธรายการฝาก', slipApproved: 'ตรวจสลิปผ่านแล้ว รอยืนยันเครดิต', creditConfirmed: 'เพิ่มเครดิตสำเร็จ', rejected: 'ปฏิเสธรายการฝากแล้ว' },
   },
   en: {
-    eyebrow: 'Finance', title: 'Deposit queue', description: 'Review slips and confirm credits', refresh: 'Refresh queue', loading: 'Loading...', waitingSlip: 'Awaiting slip review', waitingCredit: 'Awaiting credit', completed: 'Completed', rejected: 'Rejected or duplicate', filteredTotal: 'Filtered total', page: 'Page', perPage: 'items per page', currentPageOnly: 'Current page only',
-    queueStatus: 'Queue status', queueStatusAria: 'Filter deposit status', all: 'All', previous: 'Previous', next: 'Next', claimed: 'Claimed', unclaimed: 'Unclaimed', member: 'Member', createdAt: 'Created', slipAlt: 'Deposit slip for', review: 'Review', reviewDescription: 'Claim before changing status or crediting', memberNote: 'Member note', adminNote: 'Admin note', claimedAt: 'Claimed at', claim: 'Claim', release: 'Release', notePlaceholder: 'Required when rejecting', approveSlip: 'Slip valid → Awaiting credit', confirmCredit: 'Confirm credit', reject: 'Reject', closed: 'This item cannot change status', noItems: 'No items in this status',
+    eyebrow: 'Finance', title: 'Deposit queue', description: 'Review slips and confirm credits', refresh: 'Refresh', loading: 'Loading...', waitingSlip: 'Awaiting slip review', waitingCredit: 'Awaiting credit', completed: 'Completed', rejected: 'Rejected or duplicate', filteredTotal: 'Filtered total', page: 'Page', perPage: 'items per page', currentPageOnly: 'Current page only',
+    queueStatus: 'Queue status', queueStatusAria: 'Filter deposit status', all: 'All', previous: 'Previous', next: 'Next', claimed: 'Claimed', unclaimed: 'Unclaimed', member: 'Member', createdAt: 'Created', slipAlt: 'Deposit slip for', evidenceOpen: 'Open evidence', evidenceDescription: 'Review the full evidence image before taking action', close: 'Close', review: 'Review', reviewDescription: 'Claim before changing status or crediting', memberNote: 'Member note', adminNote: 'Admin note', claimedAt: 'Claimed at', claim: 'Claim', release: 'Release', notePlaceholder: 'Required when rejecting', approveSlip: 'Slip valid → Awaiting credit', confirmCredit: 'Confirm credit', reject: 'Reject', closed: 'This item cannot change status', noItems: 'No items in this status',
     dialogMember: 'Member', dialogAmount: 'Amount', dialogReason: 'Reason', dialogs: { 'approve-slip': { title: 'Confirm slip review', description: 'This item will move to credit confirmation', confirm: 'Approve slip' }, 'confirm-credit': { title: 'Confirm credit', description: 'This adds money to the member wallet and cannot be undone', confirm: 'Credit wallet' }, reject: { title: 'Confirm rejection', description: 'The reason will be written to the audit log', confirm: 'Reject item' } },
-    statuses: { PENDING: 'Awaiting slip', PENDING_SLIP_REVIEW: 'Awaiting slip review', PENDING_CREDIT: 'Awaiting credit', COMPLETED: 'Completed', DUPLICATE: 'Duplicate slip', REJECTED: 'Rejected', CANCELLED: 'Cancelled', APPROVED: 'Approved' }, messages: { loading: 'Loading deposits...', loadFailed: 'Unable to load deposits', actionFailed: 'Unable to complete the action', claimed: 'Deposit review claimed', released: 'Work released', reasonRequired: 'Enter a reason before rejecting the deposit', slipApproved: 'Slip approved. Awaiting credit confirmation.', creditConfirmed: 'Credit confirmed', rejected: 'Deposit rejected' },
+    statuses: { PENDING: 'Awaiting slip', PENDING_SLIP_REVIEW: 'Awaiting slip review', PENDING_CREDIT: 'Awaiting credit', COMPLETED: 'Completed', DUPLICATE: 'Duplicate slip', REJECTED: 'Rejected', CANCELLED: 'Cancelled', APPROVED: 'Approved' }, messages: { loading: 'Loading deposits...', loadFailed: 'Unable to load deposits', refreshFailed: 'Refresh failed. Existing data is still displayed.', actionFailed: 'Unable to complete the action', actionRefreshFailed: 'The action succeeded, but the queue could not be refreshed. Existing data is still displayed.', claimed: 'Deposit review claimed', released: 'Work released', reasonRequired: 'Enter a reason before rejecting the deposit', slipApproved: 'Slip approved. Awaiting credit confirmation.', creditConfirmed: 'Credit confirmed', rejected: 'Deposit rejected' },
   },
 };
 
@@ -55,6 +62,8 @@ export default function AdminTopUpsPage() {
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [slips, setSlips] = useState<Record<string, string>>({});
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const hasLoadedRef = useRef(false);
+  const requestGate = useAdminFinanceQueueRequestGate();
 
   useEffect(() => { void loadItems(status, page); }, [status, page]);
   useEffect(() => { void loadSlips(items); }, [items]);
@@ -64,25 +73,31 @@ export default function AdminTopUpsPage() {
   const statusOptions = [...FILTERS.map((value) => ({ value, label: statusLabel(value, copy) })), { value: 'ALL', label: copy.all }];
   const showMessage = (nextMessage: TopUpMessage | '', tone: NoticeTone = 'neutral') => { setMessage(nextMessage); setMessageTone(tone); };
 
-  async function loadItems(nextStatus = status, nextPage = page) {
+  async function loadItems(nextStatus = status, nextPage = page, options: AdminFinanceQueueLoadOptions = {}): Promise<AdminFinanceQueueLoadResult> {
+    const requestId = requestGate.begin();
+    const hadLoaded = hasLoadedRef.current;
     setLoading(true);
-    showMessage('loading');
+    if (options.announce !== false && !hadLoaded) showMessage('loading');
     try {
       const query = new URLSearchParams({ page: String(nextPage), take: String(PAGE_SIZE) });
       if (nextStatus !== 'ALL') query.set('status', nextStatus);
       const res = await adminApiFetch(`/admin/topups?${query}`);
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error();
+      if (!requestGate.isCurrent(requestId)) return 'stale';
       setItems(Array.isArray(data?.items) ? data.items : []);
       setTotal(Number(data?.total ?? data?.items?.length ?? 0));
       setPageCount(Math.max(Number(data?.pageCount ?? 1), 1));
-      showMessage('');
+      hasLoadedRef.current = true;
+      if (options.announce !== false) showMessage('');
+      return 'loaded';
     } catch {
-      setItems([]);
-      setTotal(0);
-      setPageCount(1);
-      showMessage('loadFailed', 'danger');
-    } finally { setLoading(false); }
+      if (!requestGate.isCurrent(requestId)) return 'stale';
+      if (options.notifyFailure !== false) showMessage(hadLoaded ? 'refreshFailed' : 'loadFailed', hadLoaded ? 'warning' : 'danger');
+      return 'failed';
+    } finally {
+      if (requestGate.isCurrent(requestId)) setLoading(false);
+    }
   }
 
   async function loadSlips(nextItems: TopUpItem[]) {
@@ -117,13 +132,14 @@ export default function AdminTopUpsPage() {
     if (!pendingAction) return;
     const { item, action } = pendingAction;
     const adminNote = (notes[item.id] ?? '').trim();
+    const successMessage: TopUpMessage = action === 'approve-slip' ? 'slipApproved' : action === 'confirm-credit' ? 'creditConfirmed' : 'rejected';
     setBusyId(item.id);
     try {
       const res = await adminApiFetch(`/admin/topups/${item.id}/${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ adminNote }) });
       if (!res.ok) throw new Error();
       setPendingAction(null);
-      showMessage(action === 'approve-slip' ? 'slipApproved' : action === 'confirm-credit' ? 'creditConfirmed' : 'rejected', 'success');
-      await loadItems(status, page);
+      const refreshResult = await loadItems(status, page, { announce: false, notifyFailure: false });
+      showMessage(refreshResult === 'failed' ? 'actionRefreshFailed' : successMessage, refreshResult === 'failed' ? 'warning' : 'success');
     } catch { showMessage('actionFailed', 'danger'); } finally { setBusyId(''); }
   }
 
@@ -138,7 +154,7 @@ export default function AdminTopUpsPage() {
       </>}
       toolbar={<AdminFinanceQueueToolbar label={copy.queueStatus} ariaLabel={copy.queueStatusAria} value={status} options={statusOptions} disabled={queueBusy} page={page} pageCount={pageCount} pageLabel={copy.page} previousLabel={copy.previous} nextLabel={copy.next} onValueChange={(value) => { setStatus(value); setPage(1); }} onPrevious={() => setPage((value) => value - 1)} onNext={() => setPage((value) => value + 1)} />}
       notice={message ? <AdminNotice tone={messageTone}>{copy.messages[message]}</AdminNotice> : null}
-      loading={loading}
+      loading={loading && !hasLoadedRef.current}
       empty={items.length === 0}
       emptyLabel={copy.noItems}
     >
@@ -146,7 +162,7 @@ export default function AdminTopUpsPage() {
         const actionable = ['PENDING_SLIP_REVIEW', 'PENDING_CREDIT'].includes(item.status);
         const isBusy = busyId === item.id;
         return <AdminCard key={item.id} tone={item.status === 'COMPLETED' ? 'success' : ['REJECTED', 'DUPLICATE'].includes(item.status) ? 'danger' : 'neutral'}>
-          <AdminSectionRow><div><AdminBadge tone={badgeTone(item.status)}>{statusLabel(item.status, copy)}</AdminBadge>{item.claimedBy ? <AdminBadge tone="success">{copy.claimed}</AdminBadge> : <AdminBadge>{copy.unclaimed}</AdminBadge>}<h2>{formatMoney(item.amount)}</h2><p>{copy.member}: {item.user?.username ?? item.user?.phone ?? item.userId}</p><p>{copy.createdAt}: {new Date(item.createdAt).toLocaleString(dateLocale)}</p></div><AdminFinanceEvidence src={slips[item.id]} alt={`${copy.slipAlt} ${item.user?.username ?? item.userId}`} /></AdminSectionRow>
+          <AdminSectionRow><div><AdminBadge tone={badgeTone(item.status)}>{statusLabel(item.status, copy)}</AdminBadge>{item.claimedBy ? <AdminBadge tone="success">{copy.claimed}</AdminBadge> : <AdminBadge>{copy.unclaimed}</AdminBadge>}<h2>{formatMoney(item.amount)}</h2><p>{copy.member}: {item.user?.username ?? item.user?.phone ?? item.userId}</p><p>{copy.createdAt}: {new Date(item.createdAt).toLocaleString(dateLocale)}</p></div><AdminFinanceEvidence src={slips[item.id]} alt={`${copy.slipAlt} ${item.user?.username ?? item.userId}`} openLabel={copy.evidenceOpen} description={copy.evidenceDescription} closeLabel={copy.close} /></AdminSectionRow>
           <AdminCard title={copy.review} description={copy.reviewDescription}>
             <AdminRow><strong>{copy.memberNote}</strong><span>{memberNote(item.note)}</span></AdminRow>
             <AdminRow><strong>{copy.adminNote}</strong><span>{item.adminNote || notes[item.id] || '-'}</span></AdminRow>
