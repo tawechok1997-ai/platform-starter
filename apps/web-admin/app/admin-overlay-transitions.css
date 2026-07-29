@@ -37,7 +37,7 @@
 }
 
 .admin-confirm-layer,
-.admin-drawer-layer {
+.admin-overlay-drawer-layer {
   animation: admin-overlay-fade-in 180ms ease-out both;
 }
 
@@ -46,21 +46,21 @@
   animation: admin-dialog-enter 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.admin-drawer {
+.admin-overlay-drawer {
   animation: admin-drawer-enter-right 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @media (max-width: 640px) {
-  .admin-drawer {
+  .admin-overlay-drawer {
     animation-name: admin-drawer-enter-bottom;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .admin-confirm-layer,
-  .admin-drawer-layer,
+  .admin-overlay-drawer-layer,
   .admin-confirm-dialog,
-  .admin-drawer {
+  .admin-overlay-drawer {
     animation: none !important;
   }
 }
