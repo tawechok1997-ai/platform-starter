@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/
 import { Prisma } from '@prisma/client';
 import { createHash, createHmac, timingSafeEqual } from 'crypto';
 import { WalletService } from '../wallet/wallet.service';
-import { assetUrl, GAME_CATALOG, PROVIDER_DISPLAY_NAMES, type SimulatorGamePlatform } from './provider-simulator-catalog';
+import { assetUrl, GAME_CATALOG, platformMatches, PROVIDER_DISPLAY_NAMES, type SimulatorGamePlatform } from './provider-simulator-catalog';
 import { ProviderSimulatorRoundService } from './provider-simulator-round.service';
 
 type TransferResult = {
@@ -196,14 +196,14 @@ export class ProviderSimulatorService {
     const page = Math.max(1, Number(query.page ?? 1));
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 30)));
     const provider = query.provider?.trim().toLowerCase();
-    const platform = query.platform?.trim().toLowerCase();
+    const platform = query.platform;
     const category = query.category?.trim().toLowerCase();
     const tag = query.tag?.trim();
     const search = query.search?.trim().toLowerCase();
 
     let filtered = GAME_CATALOG.filter((game) => {
       if (provider && game.provider !== provider) return false;
-      if (platform && game.platform !== platform) return false;
+      if (platform && !platformMatches(game.platform, platform)) return false;
       if (category && game.category !== category) return false;
       if (tag && !game.tags?.includes(tag)) return false;
       if (search && !`${game.code} ${game.name} ${game.provider} ${game.category} ${(game.tags ?? []).join(' ')}`.toLowerCase().includes(search)) return false;
