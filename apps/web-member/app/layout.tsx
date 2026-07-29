@@ -105,6 +105,7 @@ import './member-v47-tournament-rank-badge-size-lock.css';
 import './member-leaderboard-source-match-lock.css';
 import './member-leaderboard-rank-number-lock.css';
 import './member-casino-transparent-source-match.css';
+import './member-usage-guide-preview.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
@@ -115,6 +116,7 @@ import PublicLiveNavigationController from './components/public-live-navigation-
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import PublicGameLoginController from './components/member-home/public-home-game-navigation-controller';
 import UsageGuideController from './components/member-home/usage-guide-controller';
+import UsageGuidePreviewController from './components/member-home/usage-guide-preview-controller';
 import { MemberLocaleProvider } from './member-locale-provider';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
@@ -147,6 +149,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <HomeSidebarScrollController />
               <PublicDialogRuntimeController />
               <PublicGameLoginController />
+              <UsageGuidePreviewController />
               <UsageGuideController />
               <MemberChrome>{children}</MemberChrome>
             </MemberSessionProvider>
