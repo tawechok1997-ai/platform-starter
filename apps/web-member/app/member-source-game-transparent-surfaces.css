@@ -1,6 +1,6 @@
-/* Final transparent-surface owner for source category pages.
- * The artwork layer must fill the page. No #110e16 plate or bottom fade may
- * sit behind casino, card, sport, or lotto game/provider icons.
+/* Transparent card-surface owner for source category pages.
+ * Casino page artwork and motion are owned by the category component. Only the
+ * provider-card bitmap itself is made transparent at runtime.
  */
 
 main[data-source-game-category] > section,
@@ -18,8 +18,7 @@ main[data-source-game-category] [data-source-game-layout] article {
   border-color: transparent !important;
 }
 
-/* Remove the page-level black plate on the four requested categories. */
-main[data-source-game-category='casino'],
+/* Keep the page-level treatment already accepted on the remaining categories. */
 main[data-source-game-category='card'],
 main[data-source-game-category='sport'],
 main[data-source-game-category='lotto'] {
@@ -28,9 +27,6 @@ main[data-source-game-category='lotto'] {
   background-image: none !important;
 }
 
-/* The first direct aria-hidden layer is the category artwork stack. Stretch it
- * through the complete page so the body background never appears below 600px. */
-main[data-source-game-category='casino'] > div[aria-hidden='true'],
 main[data-source-game-category='card'] > div[aria-hidden='true'],
 main[data-source-game-category='sport'] > div[aria-hidden='true'],
 main[data-source-game-category='lotto'] > div[aria-hidden='true'] {
@@ -42,7 +38,6 @@ main[data-source-game-category='lotto'] > div[aria-hidden='true'] {
   background-color: transparent !important;
 }
 
-main[data-source-game-category='casino'] > div[aria-hidden='true'] > img,
 main[data-source-game-category='card'] > div[aria-hidden='true'] > img,
 main[data-source-game-category='sport'] > div[aria-hidden='true'] > img,
 main[data-source-game-category='lotto'] > div[aria-hidden='true'] > img {
@@ -54,8 +49,6 @@ main[data-source-game-category='lotto'] > div[aria-hidden='true'] > img {
   box-shadow: none !important;
 }
 
-/* Override the component-local important fade rule with greater specificity. */
-main[data-source-game-category='casino'] [data-source-bottom-fade][data-source-bottom-fade],
 main[data-source-game-category='card'] [data-source-bottom-fade][data-source-bottom-fade],
 main[data-source-game-category='sport'] [data-source-bottom-fade][data-source-bottom-fade],
 main[data-source-game-category='lotto'] [data-source-bottom-fade][data-source-bottom-fade] {
@@ -87,16 +80,7 @@ main[data-source-game-category] [data-source-game-cover] > img {
   box-shadow: none !important;
 }
 
-/* Casino provider cards contain a stronger opaque black plate than the other
- * category assets. Lighten replaces those dark pixels with the live category
- * background while retaining brighter portraits, logos and highlights. */
-main[data-source-game-category='casino'] [data-source-game-cover] > img:not([aria-hidden='true']) {
-  mix-blend-mode: lighten !important;
-  background: transparent !important;
-  filter: saturate(1.04) contrast(1.02) !important;
-}
-
-/* The remaining category artwork responds well to screen blending. */
+/* These categories continue using their accepted image-only blend treatment. */
 main[data-source-game-category='card'] [data-source-game-cover] > img:not([aria-hidden='true']),
 main[data-source-game-category='sport'] [data-source-game-cover] > img:not([aria-hidden='true']),
 main[data-source-game-category='lotto'] [data-source-game-cover] > img:not([aria-hidden='true']) {
@@ -105,8 +89,7 @@ main[data-source-game-category='lotto'] [data-source-game-cover] > img:not([aria
   filter: saturate(1.06) contrast(1.03) !important;
 }
 
-/* Remove the black provider-logo strip rendered over game art. The logo image
- * remains, but its old dark gradient plate no longer appears. */
+/* Remove the dark provider-logo strip rendered over game art. */
 main[data-source-game-category='casino'] [data-source-game-cover] > span[aria-hidden='true']:has(> img),
 main[data-source-game-category='card'] [data-source-game-cover] > span[aria-hidden='true']:has(> img),
 main[data-source-game-category='sport'] [data-source-game-cover] > span[aria-hidden='true']:has(> img),
@@ -117,16 +100,12 @@ main[data-source-game-category='lotto'] [data-source-game-cover] > span[aria-hid
   box-shadow: none !important;
 }
 
-/* Card mode rendered the same image twice: a blurred full-cover copy below the
- * contained artwork. That copy looks like a permanent black plate, so remove it. */
 main[data-source-game-category='card'] [data-source-game-cover] > img[aria-hidden='true'] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
 }
 
-/* Decorative provider files that fail must disappear individually. Never let
- * the global NOAH345 placeholder replace a missing background/title/avatar. */
 main[data-source-game-category] img[data-no-fallback='true'],
 main[data-source-game-category] img[src*='/images/fallbacks/noah345-placeholder.svg'],
 main[data-source-game-category] img[src*='noah345-placeholder.svg'] {
@@ -147,7 +126,6 @@ main[data-source-game-category] img[src*='noah345-placeholder.svg'] {
     box-shadow: none !important;
   }
 
-  main[data-source-game-category='casino'] > div[aria-hidden='true'],
   main[data-source-game-category='card'] > div[aria-hidden='true'],
   main[data-source-game-category='sport'] > div[aria-hidden='true'],
   main[data-source-game-category='lotto'] > div[aria-hidden='true'] {
