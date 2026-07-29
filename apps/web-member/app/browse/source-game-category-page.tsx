@@ -66,12 +66,14 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   const [selectedFilters, setSelectedFilters] = useState<SourceGameFilterKey[]>([]);
   const [providerCode, setProviderCode] = useState<string | null>(null);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
+  const [invalidProviderThemes, setInvalidProviderThemes] = useState<Set<string>>(() => new Set());
   const usesReferenceCounts = config.slug === 'casino' || config.slug === 'slot';
 
   useEffect(() => {
     setSelectedFilters([]);
     setProviderCode(null);
     setPreviewCode(null);
+    setInvalidProviderThemes(new Set());
   }, [config.slug]);
 
   const providers = useMemo(
@@ -129,7 +131,9 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   }, [config.mode, config.showAllProviders, config.slug, providerCounts, providers]);
 
   const themeCode = config.mode === 'provider-cards' ? previewCode : providerCode;
-  const activeProvider = providers.find((item) => item.code.toLowerCase() === themeCode) ?? null;
+  const activeProvider = themeCode && !invalidProviderThemes.has(themeCode)
+    ? providers.find((item) => item.code.toLowerCase() === themeCode) ?? null
+    : null;
 
   const visibleGames = useMemo(
     () => games.filter((game) => {
@@ -162,6 +166,16 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
     setPreviewCode(null);
   };
 
+  const invalidateProviderTheme = (code: string) => {
+    const normalizedCode = code.toLowerCase();
+    setInvalidProviderThemes((current) => {
+      if (current.has(normalizedCode)) return current;
+      const next = new Set(current);
+      next.add(normalizedCode);
+      return next;
+    });
+  };
+
   const openGame = (game: SourceGameItem) => {
     const next = `/browse/games?category=${encodeURIComponent(config.slug)}`;
     if (!ready || !isLoggedIn) {
@@ -175,18 +189,21 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   return (
     <main className={styles.page} data-source-game-category={config.slug} aria-busy="false">
       <div className={styles.backgroundStack} aria-hidden="true">
-        {providers.map((provider) => (
-          <img
-            key={provider.code}
-            className={`${styles.providerBackground}${activeProvider?.code.toLowerCase() === provider.code.toLowerCase() ? ` ${styles.providerBackgroundActive}` : ''}`}
-            src={provider.background}
-            alt=""
-            onError={hideBrokenImage}
-          />
-        ))}
+        {providers.map((provider) => {
+          const code = provider.code.toLowerCase();
+          return (
+            <img
+              key={provider.code}
+              className={`${styles.providerBackground}${activeProvider?.code.toLowerCase() === code ? ` ${styles.providerBackgroundActive}` : ''}`}
+              src={provider.background}
+              alt=""
+              onError={() => invalidateProviderTheme(code)}
+            />
+          );
+        })}
         <img className={styles.baseBackground} src={config.baseBackground} alt="" onError={swapToAssetBundle} />
         <div className={styles.purpleWash} />
-        <div className={styles.bottomFade} />
+        <div className={styles.bottomFade} data-source-bottom-fade />
       </div>
 
       <section className={styles.content} aria-label={config.title}>
@@ -197,24 +214,32 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
             alt={config.title}
             onError={swapToAssetBundle}
           />
-          {providers.map((provider) => (
-            <img
-              key={`${provider.code}-title`}
-              className={`${styles.providerTitle}${activeProvider?.code.toLowerCase() === provider.code.toLowerCase() ? ` ${styles.providerTitleActive}` : ''}`}
-              src={provider.title}
-              alt={provider.name}
-              onError={hideBrokenImage}
-            />
-          ))}
-          {providers.map((provider) => (
-            <img
-              key={`${provider.code}-avatar`}
-              className={`${styles.providerAvatar}${activeProvider?.code.toLowerCase() === provider.code.toLowerCase() ? ` ${styles.providerAvatarActive}` : ''}`}
-              src={provider.avatar}
-              alt=""
-              onError={hideBrokenImage}
-            />
-          ))}
+          {providers.map((provider) => {
+            const code = provider.code.toLowerCase();
+            return (
+              <img
+                key={`${provider.code}-title`}
+                className={`${styles.providerTitle}${activeProvider?.code.toLowerCase() === code ? ` ${styles.providerTitleActive}` : ''}`}
+                src={provider.title}
+                alt={provider.name}
+                onLoad={(event) => validateProviderThemeImage('title', code, event, invalidateProviderTheme)}
+                onError={() => invalidateProviderTheme(code)}
+              />
+            );
+          })}
+          {providers.map((provider) => {
+            const code = provider.code.toLowerCase();
+            return (
+              <img
+                key={`${provider.code}-avatar`}
+                className={`${styles.providerAvatar}${activeProvider?.code.toLowerCase() === code ? ` ${styles.providerAvatarActive}` : ''}`}
+                src={provider.avatar}
+                alt=""
+                onLoad={(event) => validateProviderThemeImage('avatar', code, event, invalidateProviderTheme)}
+                onError={() => invalidateProviderTheme(code)}
+              />
+            );
+          })}
         </header>
 
         <div className={styles.layout} data-source-game-layout>
@@ -313,6 +338,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
                       <button
                         type="button"
                         className={styles.gameCover}
+                        data-source-game-cover
                         onFocus={() => config.mode === 'provider-cards' && setPreviewCode(game.provider)}
                         onBlur={() => config.mode === 'provider-cards' && setPreviewCode(null)}
                         onClick={() => openGame(game)}
@@ -326,6 +352,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
                           src={game.image}
                           alt={game.name}
                           loading="lazy"
+                          onLoad={(event) => config.mode === 'provider-cards' && hideLandscapePlaceholderCard(event)}
                           onError={hideBrokenImage}
                         />
                         <span className={styles.cardBadges} aria-hidden="true">
@@ -355,6 +382,15 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
       </section>
 
       <style>{`
+        main[data-source-game-category='casino'] {
+          background: transparent !important;
+        }
+        main[data-source-game-category='casino'] [data-source-bottom-fade] {
+          background: linear-gradient(182deg, rgba(17,14,22,0) 29%, rgba(17,14,22,.32) 58%, rgba(17,14,22,.08) 86%, rgba(17,14,22,0) 100%) !important;
+        }
+        main[data-source-game-category='casino'] [data-source-game-cover] {
+          background: transparent !important;
+        }
         @media (min-width: 901px) and (max-width: 1460px) {
           main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-game-layout] {
             grid-template-columns: 300px minmax(0, 1fr);
@@ -399,21 +435,36 @@ function hydrateGame(slug: string, game: SourceGameItem, index: number): SourceG
 
   if (isNew) tags.add('new');
   if (isHot) tags.add('hot');
-  return {
-    ...game,
-    provider: game.provider?.toLowerCase() ?? null,
-    isNew,
-    isHot,
-    tags: Array.from(tags),
-  };
+  return { ...game, provider: game.provider?.toLowerCase() ?? null, isNew, isHot, tags: Array.from(tags) };
+}
+
+function validateProviderThemeImage(
+  kind: 'title' | 'avatar',
+  code: string,
+  event: SyntheticEvent<HTMLImageElement>,
+  invalidate: (code: string) => void,
+) {
+  const image = event.currentTarget;
+  if (!image.naturalWidth || !image.naturalHeight) {
+    invalidate(code);
+    return;
+  }
+
+  const ratio = image.naturalWidth / image.naturalHeight;
+  const invalid = kind === 'title' ? ratio < 2 : ratio > 1.45;
+  if (invalid) invalidate(code);
+}
+
+function hideLandscapePlaceholderCard(event: SyntheticEvent<HTMLImageElement>) {
+  const image = event.currentTarget;
+  if (!image.naturalWidth || !image.naturalHeight) return;
+  if (image.naturalWidth / image.naturalHeight <= 1.45) return;
+  const card = image.closest<HTMLElement>('article');
+  if (card) card.style.display = 'none';
 }
 
 function StarIcon() {
-  return (
-    <svg width="10" height="9" viewBox="0 0 10 9" fill="none" aria-hidden="true">
-      <path d="M4.837.055C4.813.095 4.506.669 4.157 1.336 3.657 2.289 3.476 2.582 3.307 2.709c-.199.149-.331.178-1.626.362C.229 3.272 0 3.324 0 3.456c0 .04.476.523 1.06 1.074.585.552 1.097 1.075 1.145 1.161.127.23.109.523-.132 1.816-.229 1.258-.235 1.465-.067 1.494.06.011.675-.264 1.368-.615.699-.345 1.361-.649 1.47-.672.295-.052.475.023 1.837.701.668.333 1.259.598 1.313.586.169-.029.163-.23-.066-1.488-.235-1.27-.259-1.609-.133-1.833.049-.075.561-.592 1.145-1.149C9.524 3.979 10 3.49 10 3.45c0-.126-.241-.178-1.681-.379-1.295-.184-1.427-.213-1.626-.362-.169-.126-.356-.425-.88-1.425C5.283.279 5.127.014 5.018.003c-.066-.012-.15.011-.18.052Z" fill="currentColor" />
-    </svg>
-  );
+  return <svg width="10" height="9" viewBox="0 0 10 9" fill="none" aria-hidden="true"><path d="M4.837.055C4.813.095 4.506.669 4.157 1.336 3.657 2.289 3.476 2.582 3.307 2.709c-.199.149-.331.178-1.626.362C.229 3.272 0 3.324 0 3.456c0 .04.476.523 1.06 1.074.585.552 1.097 1.075 1.145 1.161.127.23.109.523-.132 1.816-.229 1.258-.235 1.465-.067 1.494.06.011.675-.264 1.368-.615.699-.345 1.361-.649 1.47-.672.295-.052.475.023 1.837.701.668.333 1.259.598 1.313.586.169-.029.163-.23-.066-1.488-.235-1.27-.259-1.609-.133-1.833.049-.075.561-.592 1.145-1.149C9.524 3.979 10 3.49 10 3.45c0-.126-.241-.178-1.681-.379-1.295-.184-1.427-.213-1.626-.362-.169-.126-.356-.425-.88-1.425C5.283.279 5.127.014 5.018.003c-.066-.012-.15.011-.18.052Z" fill="currentColor" /></svg>;
 }
 
 function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
