@@ -112,7 +112,7 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
           await evidenceButton.click();
           await expect(page.getByRole('dialog')).toBeVisible();
           await page.screenshot({ path: testInfo.outputPath(`${slug(routeCase.path)}-evidence.png`), animations: 'disabled' });
-          await page.getByRole('button', { name: /^ปิด$/ }).click();
+          await page.keyboard.press('Escape');
           await expect(page.getByRole('dialog')).toHaveCount(0);
         }
       }
