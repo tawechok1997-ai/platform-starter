@@ -12,16 +12,6 @@ type GuideGroup = {
   items: readonly { question: string; answer: string }[];
 };
 
-type InlineStyleSnapshot = {
-  element: HTMLElement;
-  visibility: string;
-  visibilityPriority: string;
-  pointerEvents: string;
-  pointerEventsPriority: string;
-};
-
-const PUBLIC_HEADER_SELECTOR = '.public-home-topbar.global-member-topbar';
-
 const TABS: readonly { id: GuideTab; label: string }[] = [
   { id: 'all', label: 'ทั้งหมด' },
   { id: 'finance', label: 'การฝาก - ถอน' },
@@ -126,19 +116,6 @@ const GUIDE_GROUPS: readonly GuideGroup[] = [
   },
 ] as const;
 
-function restoreInlineProperty(
-  element: HTMLElement,
-  property: 'visibility' | 'pointer-events',
-  value: string,
-  priority: string,
-) {
-  if (value) {
-    element.style.setProperty(property, value, priority);
-  } else {
-    element.style.removeProperty(property);
-  }
-}
-
 export default function UsageGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<GuideTab>('all');
   const [openItem, setOpenItem] = useState<string | null>(null);
@@ -151,51 +128,18 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
   useEffect(() => {
     if (!open) return;
-
     const bodyOverflow = document.body.style.overflow;
     const htmlOverflow = document.documentElement.style.overflow;
-    const headerSnapshots: InlineStyleSnapshot[] = Array.from(
-      document.querySelectorAll<HTMLElement>(PUBLIC_HEADER_SELECTOR),
-    ).map((element) => ({
-      element,
-      visibility: element.style.getPropertyValue('visibility'),
-      visibilityPriority: element.style.getPropertyPriority('visibility'),
-      pointerEvents: element.style.getPropertyValue('pointer-events'),
-      pointerEventsPriority: element.style.getPropertyPriority('pointer-events'),
-    }));
-
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
-
-    for (const { element } of headerSnapshots) {
-      element.style.setProperty('visibility', 'hidden', 'important');
-      element.style.setProperty('pointer-events', 'none', 'important');
-    }
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
-
     return () => {
       document.body.style.overflow = bodyOverflow;
       document.documentElement.style.overflow = htmlOverflow;
       window.removeEventListener('keydown', handleKeyDown);
-
-      for (const snapshot of headerSnapshots) {
-        restoreInlineProperty(
-          snapshot.element,
-          'visibility',
-          snapshot.visibility,
-          snapshot.visibilityPriority,
-        );
-        restoreInlineProperty(
-          snapshot.element,
-          'pointer-events',
-          snapshot.pointerEvents,
-          snapshot.pointerEventsPriority,
-        );
-      }
     };
   }, [open, onClose]);
 
@@ -213,12 +157,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
   };
 
   return createPortal(
-    <div
-      className={styles.backdrop}
-      role="presentation"
-      data-usage-guide-overlay="true"
-      onMouseDown={closeFromBackdrop}
-    >
+    <div className={styles.backdrop} role="presentation" onMouseDown={closeFromBackdrop}>
       <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="usage-guide-title">
         <div className={styles.topLine} aria-hidden="true" />
         <header className={styles.header}>
