@@ -138,9 +138,8 @@ function resolveCatalogGameAsset(game: Game): string {
 
 function resolveMirroredAsset(value: string, root: 'games' | 'providers'): string {
   const normalized = normalizePublicAssetUrl(value);
-  if (normalized.startsWith('/assets/asset-pc/images/')) return normalized;
-
   let pathname = normalized;
+
   if (/^https?:\/\//i.test(normalized)) {
     try {
       pathname = new URL(normalized).pathname;
@@ -148,6 +147,18 @@ function resolveMirroredAsset(value: string, root: 'games' | 'providers'): strin
       return '';
     }
   }
+
+  if (root === 'games') {
+    const marker = '/games/';
+    const index = pathname.toLowerCase().lastIndexOf(marker);
+    if (index < 0) return '';
+
+    const fileName = pathname.slice(index + marker.length).split('/').filter(Boolean).pop() ?? '';
+    if (!fileName || fileName.includes('..')) return '';
+    return `/assets/asset-pc/images/games/${fileName}`;
+  }
+
+  if (normalized.startsWith('/assets/asset-pc/images/')) return normalized;
 
   const marker = `/${root}/`;
   const index = pathname.toLowerCase().indexOf(marker);
