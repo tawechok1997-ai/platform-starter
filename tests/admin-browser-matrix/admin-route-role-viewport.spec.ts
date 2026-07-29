@@ -113,7 +113,8 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
           const evidenceDrawer = page.locator('.admin-overlay-drawer[role="dialog"]');
           await expect(evidenceDrawer).toBeVisible();
           await expect(evidenceDrawer).toHaveCSS('opacity', '1');
-          await page.screenshot({ path: testInfo.outputPath(`${slug(routeCase.path)}-evidence.png`), animations: 'disabled' });
+          await page.addStyleTag({ content: '.admin-overlay-drawer-layer,.admin-overlay-drawer{animation:none!important;opacity:1!important;transform:none!important}' });
+          await page.screenshot({ path: testInfo.outputPath(`${slug(routeCase.path)}-evidence.png`) });
           await page.keyboard.press('Escape');
           await expect(page.getByRole('dialog')).toHaveCount(0);
         }
