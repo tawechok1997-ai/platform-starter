@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 const DIALOGS = [
   { id: 'member-search-title', kind: 'search' },
   { id: 'daily-mission-title', kind: 'mission' },
-  { id: 'usage-guide-title', kind: 'guide' },
 ] as const;
 
 const SEARCH_TRIGGER_SELECTOR = [
@@ -14,27 +13,7 @@ const SEARCH_TRIGGER_SELECTOR = [
   '[aria-label="Search games"]',
 ].join(',');
 
-type TopLayerElement = HTMLElement & {
-  showPopover?: () => void;
-};
-
-function promoteToBrowserTopLayer(overlay: TopLayerElement) {
-  // A popover is rendered in the browser top layer. This is intentionally used
-  // instead of another z-index escalation because top-layer elements always sit
-  // above sticky/fixed headers and ancestor stacking contexts.
-  overlay.setAttribute('popover', 'manual');
-
-  if (typeof overlay.showPopover !== 'function') return;
-
-  try {
-    if (!overlay.matches(':popover-open')) overlay.showPopover();
-  } catch {
-    // Older engines may expose the method before fully supporting popovers.
-    // The inline fixed/z-index contract below remains the safe fallback.
-  }
-}
-
-function forceOverlayAboveChrome(overlay: TopLayerElement, kind: string) {
+function forceOverlayAboveChrome(overlay: HTMLElement, kind: string) {
   overlay.dataset.publicDialogOverlay = kind;
   overlay.classList.add('public-dialog-runtime-overlay');
 
@@ -46,7 +25,6 @@ function forceOverlayAboveChrome(overlay: TopLayerElement, kind: string) {
   overlay.style.setProperty('left', '0', 'important');
   overlay.style.setProperty('z-index', '2147483647', 'important');
   overlay.style.setProperty('isolation', 'isolate', 'important');
-  overlay.style.setProperty('box-sizing', 'border-box', 'important');
   overlay.style.setProperty('width', '100vw', 'important');
   overlay.style.setProperty('min-width', '100vw', 'important');
   overlay.style.setProperty('max-width', '100vw', 'important');
@@ -60,8 +38,6 @@ function forceOverlayAboveChrome(overlay: TopLayerElement, kind: string) {
   overlay.style.setProperty('pointer-events', 'auto', 'important');
   overlay.style.setProperty('transform', 'none', 'important');
   overlay.style.setProperty('filter', 'none', 'important');
-
-  promoteToBrowserTopLayer(overlay);
 }
 
 function normalizeDialog(id: string, kind: string) {
@@ -105,8 +81,6 @@ export default function PublicDialogRuntimeController() {
       if (!trigger) return;
 
       event.preventDefault();
-      // MemberSearchOverlay owns opening the existing search dialog. This capture
-      // guard only prevents the legacy browse link from navigating away.
     };
 
     document.addEventListener('click', preventSearchNavigation, true);
