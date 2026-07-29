@@ -49,7 +49,8 @@ export default function LuckySpinnerPage() {
 
     const resultIndex = Math.floor(Math.random() * WHEEL_LABELS.length);
     const nextRotation = rotation + 1440 + (360 - resultIndex * 30) + 15;
-    setMessage('กำลังหมุนวงล้อ...');
+    const paymentLabel = mode === 'ticket' ? 'ตั๋ว 1 ใบ' : '5 คะแนน';
+    setMessage(`กำลังหมุนวงล้อโดยใช้ ${paymentLabel}...`);
     setSpinning(true);
     setRotation(nextRotation);
 
