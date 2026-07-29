@@ -1,0 +1,55 @@
+/* Desktop windows keep the full source geometry and scale this canvas once.
+ * Widths in this contract must resolve against the 1455px canvas, never the
+ * narrower browser viewport, otherwise sections are scaled twice. */
+
+#member-desktop-scale-shell,
+#member-desktop-scale-canvas {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas :is(
+  .member-footer__main,
+  .member-footer__payments,
+  .member-footer__copyright,
+  .member-footer__separator
+) {
+  width: min(1440px, calc(100% - 32px)) !important;
+  max-width: 1440px !important;
+  margin-inline: auto !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas :is(
+  .public-lower-shell,
+  .public-game-shell
+) > .noah-alliance-v3 .noah-alliance-v3__inner {
+  width: min(1440px, calc(100% - 64px)) !important;
+  max-width: 1440px !important;
+  margin-inline: auto !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-desktop-nav--guest {
+  padding-inline: max(16px, calc((100% - 1440px) / 2)) !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .public-home-desktop-bar {
+  width: min(1440px, calc(100% - 32px)) !important;
+  max-width: 1440px !important;
+  margin-inline: auto !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .member-footer {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-game-shell,
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-game-shell__content {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
