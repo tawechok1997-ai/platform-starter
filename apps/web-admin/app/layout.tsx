@@ -29,6 +29,7 @@ import './admin-data-table.css';
 import './admin-bulk-action.css';
 import './admin-shell-overlay-fix.css';
 import './admin-confirm-dialog.css';
+import './admin-overlay-transitions.css';
 import './admin-professional-polish.css';
 import './admin-language-system.css';
 import './admin-chart-polish.css';

@@ -20,6 +20,7 @@ const routeCases: readonly RouteCase[] = [
   { path: '/risk-alerts', label: 'Risk alerts', anyOf: ['risk.view'] },
   { path: '/support-center', label: 'Support', anyOf: ['users.view'] },
   { path: '/audit', label: 'Audit', anyOf: ['admin.view', 'admin.access.view'] },
+  { path: '/access', label: 'Access control', anyOf: ['admin.access.view'] },
   { path: '/admin-invitations', label: 'Admin invitations', anyOf: ['admin.create'] },
   { path: '/webhook-logs', label: 'Webhook logs', anyOf: ['game.providers.view'] },
   { path: '/wallet-ledgers', label: 'Wallet ledgers', ownerOnly: true },
@@ -97,6 +98,10 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
       });
 
       if (roleName === 'owner' && expectedAllowed) {
+        if (routeCase.path === '/access') {
+          await page.addStyleTag({ content: '* { content-visibility: visible !important; }' });
+          await paintFullPage(page);
+        }
         await page.screenshot({ path: testInfo.outputPath(`${slug(routeCase.path)}.png`), fullPage: true, animations: 'disabled' });
       }
 
@@ -149,6 +154,25 @@ function fixtureFor(path: string, roleName: RoleName, permissions: readonly stri
   if (path.startsWith('/admin/topups') || path.startsWith('/admin/withdrawals')) return { items: [], total: 0, page: 1, pageCount: 1 };
   if (path.startsWith('/admin/support')) return { items: [], total: 0, page: 1, pageCount: 1, summary: {} };
   if (path.startsWith('/admin/audit-logs')) return { items: [], total: 0, page: 1, pageCount: 1 };
+  if (path === '/admin/access/overview') {
+    return {
+      summary: { roleCount: 2, permissionCount: 3, adminUserCount: 2, wildcardRoleCount: 1 },
+      roles: [
+        { id: 'role-owner', code: 'owner', name: 'เจ้าของระบบ', description: 'สิทธิ์ทั้งหมด', level: 100, adminUserCount: 1, permissionCount: 3, hasWildcard: true, permissions: [] },
+        { id: 'role-support', code: 'support', name: 'ฝ่ายบริการ', description: 'ดูแลสมาชิกและคำร้อง', level: 40, adminUserCount: 1, permissionCount: 1, hasWildcard: false, permissions: [] },
+      ],
+      permissions: [
+        { id: 'permission-access', code: 'admin.access.view', name: 'ดูสิทธิ์ผู้ดูแล', module: 'admin', description: 'ดูบทบาทและสิทธิ์' },
+        { id: 'permission-users', code: 'users.view', name: 'ดูสมาชิก', module: 'users', description: 'ดูข้อมูลสมาชิก' },
+        { id: 'permission-support', code: 'support.view', name: 'ดูคำร้อง', module: 'support', description: 'ดูรายการคำร้อง' },
+      ],
+      adminUsers: [
+        { id: `matrix-${roleName}`, username: `matrix_${roleName}`, email: `${roleName}@example.com`, status: 'ACTIVE', twoFactorEnabled: true, createdAt: '2026-07-20T00:00:00.000Z', protected: roleName === 'owner', roles: [{ id: `role-${roleName}`, code: roleName, name: roleName, level: roleName === 'owner' ? 100 : 20 }] },
+        { id: 'matrix-support', username: 'matrix_support', email: 'support@example.com', status: 'ACTIVE', twoFactorEnabled: false, createdAt: '2026-07-20T00:00:00.000Z', roles: [{ id: 'role-support', code: 'support', name: 'ฝ่ายบริการ', level: 40 }] },
+      ],
+    };
+  }
+  if (path === '/admin/access/delegations') return [];
   if (path === '/admin/access/invitations/roles') return { items: [] };
   if (path.startsWith('/admin/access/invitations')) return { items: [] };
   if (path.startsWith('/admin/webhook-logs')) return { items: [], summary: { total: 0, processed: 0, failed: 0, duplicate: 0 } };
@@ -158,6 +182,19 @@ function fixtureFor(path: string, roleName: RoleName, permissions: readonly stri
 
 async function fulfillJson(route: Route, payload: unknown) {
   await route.fulfill({ status: 200, contentType: 'application/json; charset=utf-8', body: JSON.stringify(payload) });
+}
+
+async function paintFullPage(page: Page) {
+  await page.evaluate(async () => {
+    const step = Math.max(320, Math.floor(window.innerHeight * 0.75));
+    const max = document.documentElement.scrollHeight;
+    for (let y = 0; y < max; y += step) {
+      window.scrollTo(0, y);
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 30));
+    }
+    window.scrollTo(0, 0);
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 60));
+  });
 }
 
 function installRuntimeAudit(page: Page, issues: RuntimeIssue[]) {

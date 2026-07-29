@@ -1,0 +1,189 @@
+.noticeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.noticeActions,
+.badges,
+.pills,
+.inlineActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.entity,
+.permission {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  width: 100%;
+}
+
+.entity > strong,
+.permission > strong {
+  overflow-wrap: anywhere;
+}
+
+.entity > p,
+.permission > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--brand) 34%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.removeRole {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #fecaca;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.removeRole:hover {
+  background: rgba(248, 113, 113, 0.14);
+}
+
+.removeRole:focus-visible {
+  outline: 3px solid rgba(248, 113, 113, 0.22);
+  outline-offset: 1px;
+}
+
+.removeRole:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.emptyRole {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.assignPanel,
+.delegationForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  gap: 9px;
+  width: min(620px, 100%);
+  min-width: 0;
+  align-content: start;
+}
+
+.delegationForm {
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.revokePanel {
+  display: grid;
+  gap: 8px;
+  width: min(360px, 100%);
+  min-width: min(260px, 100%);
+}
+
+.field,
+.textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--line) 92%, transparent);
+  border-radius: 12px;
+  padding: 0 12px;
+  background: #0b1220;
+  color: #f8fafc;
+  font: inherit;
+}
+
+.textarea {
+  min-height: 76px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.field:focus-visible,
+.textarea:focus-visible {
+  outline: 3px solid rgba(245, 197, 66, 0.24);
+  outline-offset: 2px;
+}
+
+.filterSearch {
+  flex: 2 1 280px !important;
+}
+
+.confirmReason {
+  margin: 0;
+  color: #cbd5e1;
+  overflow-wrap: anywhere;
+}
+
+.errorCard {
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .meta {
+    text-align: left;
+  }
+
+  .assignPanel,
+  .delegationForm,
+  .revokePanel {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .inlineActions > * {
+    flex: 1 1 150px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .removeRole {
+    transition: none;
+  }
+}
