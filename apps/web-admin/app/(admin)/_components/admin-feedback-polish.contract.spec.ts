@@ -6,6 +6,7 @@ const technicalDetailsSource = readFileSync(new URL('./admin-technical-details.t
 const technicalDetailsCss = readFileSync(new URL('./admin-technical-details.module.css', import.meta.url), 'utf8');
 const webhookSource = readFileSync(new URL('../webhook-logs/page.tsx', import.meta.url), 'utf8');
 const invitationSource = readFileSync(new URL('../admin-invitations/page.tsx', import.meta.url), 'utf8');
+const invitationPanelSource = readFileSync(new URL('../access/invite-admin-panel.tsx', import.meta.url), 'utf8');
 
 test('shared technical details keep accessible state and reduced-motion support', () => {
   assert.match(technicalDetailsSource, /aria-expanded=\{open\}/);
@@ -31,4 +32,15 @@ test('admin invitations load independent resources together and preserve success
   assert.match(invitationSource, /tone: 'success'/);
   assert.match(invitationSource, /href="\/admin-roles"/);
   assert.match(invitationSource, /AdminSkeleton/);
+});
+
+test('admin invitation form uses Thai operational wording and explicit notice tones', () => {
+  assert.match(invitationPanelSource, />บทบาท\s*</);
+  assert.match(invitationPanelSource, /เลือกบทบาท/);
+  assert.match(invitationPanelSource, /ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที/);
+  assert.match(invitationPanelSource, /tone: 'success'/);
+  assert.match(invitationPanelSource, /tone: 'warning'/);
+  assert.match(invitationPanelSource, /tone: 'danger'/);
+  assert.doesNotMatch(invitationPanelSource, />Role\s*</);
+  assert.doesNotMatch(invitationPanelSource, /เลือก Role|ไม่มี Role|Token จะแสดง/);
 });
