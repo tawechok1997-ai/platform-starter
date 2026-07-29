@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useMemberLocale } from '../../member-locale-provider';
 import {
@@ -12,17 +12,12 @@ import {
 } from './usage-guide-data';
 import styles from './usage-guide-modal.module.css';
 
-type BodyChildSnapshot = {
-  element: HTMLElement;
-  styleAttribute: string | null;
-  ariaHidden: string | null;
-};
+const GUIDE_TITLE_ID = 'member-usage-guide-title';
 
 export default function UsageGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { locale } = useMemberLocale();
   const [activeTab, setActiveTab] = useState<GuideTab>('all');
   const [openItem, setOpenItem] = useState<string | null>(null);
-  const backdropRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const visibleGroups = useMemo(
@@ -32,69 +27,24 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
     [activeTab],
   );
 
-  useLayoutEffect(() => {
-    if (!open) return;
-
-    const backdrop = backdropRef.current;
-    if (!backdrop) return;
-
-    const bodyOverflow = document.body.style.overflow;
-    const htmlOverflow = document.documentElement.style.overflow;
-    const bodyChildren: BodyChildSnapshot[] = Array.from(document.body.children)
-      .filter((element): element is HTMLElement => element instanceof HTMLElement && element !== backdrop)
-      .map((element) => ({
-        element,
-        styleAttribute: element.getAttribute('style'),
-        ariaHidden: element.getAttribute('aria-hidden'),
-      }));
-
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    document.body.dataset.usageGuideOpen = 'true';
-
-    backdrop.style.setProperty('position', 'fixed', 'important');
-    backdrop.style.setProperty('inset', '0', 'important');
-    backdrop.style.setProperty('top', '0', 'important');
-    backdrop.style.setProperty('right', '0', 'important');
-    backdrop.style.setProperty('bottom', '0', 'important');
-    backdrop.style.setProperty('left', '0', 'important');
-    backdrop.style.setProperty('z-index', '2147483647', 'important');
-    backdrop.style.setProperty('width', '100vw', 'important');
-    backdrop.style.setProperty('height', '100dvh', 'important');
-    backdrop.style.setProperty('margin', '0', 'important');
-    backdrop.style.setProperty('transform', 'none', 'important');
-
-    bodyChildren.forEach(({ element }) => {
-      element.style.setProperty('display', 'none', 'important');
-      element.style.setProperty('visibility', 'hidden', 'important');
-      element.style.setProperty('pointer-events', 'none', 'important');
-      element.setAttribute('aria-hidden', 'true');
-    });
-
-    return () => {
-      document.body.style.overflow = bodyOverflow;
-      document.documentElement.style.overflow = htmlOverflow;
-      delete document.body.dataset.usageGuideOpen;
-
-      bodyChildren.forEach(({ element, styleAttribute, ariaHidden }) => {
-        if (styleAttribute === null) element.removeAttribute('style');
-        else element.setAttribute('style', styleAttribute);
-
-        if (ariaHidden === null) element.removeAttribute('aria-hidden');
-        else element.setAttribute('aria-hidden', ariaHidden);
-      });
-    };
-  }, [open]);
-
   useEffect(() => {
     if (!open) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [open, onClose]);
 
   useEffect(() => {
@@ -115,15 +65,15 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
   const tabListLabel = localizeGuideText(USAGE_GUIDE_COPY.tabList, locale);
 
   return createPortal(
-    <div ref={backdropRef} className={styles.backdrop} role="presentation" onMouseDown={closeFromBackdrop}>
-      <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="usage-guide-title">
+    <div className={styles.backdrop} role="presentation" onMouseDown={closeFromBackdrop}>
+      <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby={GUIDE_TITLE_ID}>
         <div className={styles.topLine} aria-hidden="true" />
         <header className={styles.header}>
           <div className={styles.heading}>
             <span className={styles.iconBox}>
               <img src="/images/usage-guide-icon.svg" alt="" aria-hidden="true" />
             </span>
-            <h2 id="usage-guide-title">{title}</h2>
+            <h2 id={GUIDE_TITLE_ID}>{title}</h2>
           </div>
           <button type="button" className={styles.close} onClick={onClose} aria-label={closeLabel} title={closeLabel}>
             <img src="/images/close.svg" width="16" height="16" alt="" aria-hidden="true" />
