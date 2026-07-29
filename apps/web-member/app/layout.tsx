@@ -106,6 +106,7 @@ import './member-leaderboard-source-match-lock.css';
 import './member-leaderboard-rank-number-lock.css';
 import './member-casino-transparent-source-match.css';
 import './member-source-game-transparent-surfaces.css';
+import './member-desktop-scale-canvas.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
