@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import MemberGuideOverlay from './member-guide-overlay';
 import MemberLanguageOverlay from './member-language-overlay';
 import MemberSearchOverlay from './member-search-overlay';
 
@@ -13,39 +12,10 @@ type DragState = {
   moved: boolean;
 };
 
-type HomeGuideItem = {
-  question: string;
-  answer: string;
-};
-
 const DRAG_THRESHOLD_PX = 5;
 const SOURCE_DRAG_MULTIPLIER = 2;
-const GUIDE_SELECTOR = ".reference-guide[data-section-kind='guide']";
 const PUBLIC_NAV_SELECTOR = '.public-home-topbar .member-desktop-nav--guest';
 const PUBLIC_GAME_KEYS = new Set(['casino', 'slot', 'fishing', 'sport', 'card', 'lottery']);
-
-const HOME_GUIDE_ITEMS: HomeGuideItem[] = [
-  {
-    question: 'ฝากเงินแบบ โอนผ่านธนาคาร',
-    answer: 'เลือกเมนูฝาก เลือกธนาคารที่ต้องการ จากนั้นกรอกยอดและทำรายการตามขั้นตอนที่ระบบแสดง',
-  },
-  {
-    question: 'ฝากเงินแบบ โอนผ่าน QR Payment',
-    answer: 'เลือกฝากผ่าน QR ระบุยอดเงิน แล้วสแกน QR ที่ระบบสร้างให้ภายในเวลาที่กำหนด',
-  },
-  {
-    question: 'ฝากเงินแบบ ฝากจุดทศนิยม',
-    answer: 'กรอกยอดตามที่ระบบกำหนดและโอนยอดรวมจุดทศนิยมให้ตรง เพื่อให้ระบบตรวจสอบรายการอัตโนมัติ',
-  },
-  {
-    question: 'วิธีการฝากแบบ TrueWallet',
-    answer: 'เลือกช่องทาง TrueWallet กรอกข้อมูลให้ครบและทำรายการตามคำแนะนำบนหน้าจอ',
-  },
-  {
-    question: 'ยอดไม่เข้าทันที ทำยังไงดี?',
-    answer: 'ตรวจสอบสถานะรายการและหลักฐานการโอน หากเกินเวลาที่แจ้งให้ติดต่อทีมงานพร้อมเลขรายการ',
-  },
-];
 
 export default function MemberDragScrollController() {
   useEffect(() => {
@@ -101,84 +71,6 @@ export default function MemberDragScrollController() {
       });
     };
 
-    const hydrateGuidePreview = () => {
-      const guide = document.querySelector<HTMLElement>(GUIDE_SELECTOR);
-      if (!guide) return;
-
-      const existingList = guide.querySelector<HTMLElement>(':scope > .reference-guide-list');
-      const existingMore = guide.querySelector<HTMLButtonElement>(':scope > button.reference-guide-more');
-      if (existingList && existingMore) {
-        guide.dataset.guidePreviewReady = 'true';
-        return;
-      }
-
-      const heading = guide.querySelector<HTMLElement>(':scope > .reference-panel-heading');
-      const list = document.createElement('div');
-      list.className = 'reference-guide-list';
-
-      HOME_GUIDE_ITEMS.forEach((guideItem, index) => {
-        const item = document.createElement('div');
-        item.className = 'reference-guide-item';
-
-        const button = document.createElement('button');
-        const panelId = `reference-guide-answer-${index + 1}`;
-        button.type = 'button';
-        button.className = 'reference-guide-question';
-        button.setAttribute('aria-expanded', 'false');
-        button.setAttribute('aria-controls', panelId);
-
-        const copy = document.createElement('span');
-        copy.className = 'reference-guide-question-copy';
-        copy.textContent = guideItem.question;
-
-        const arrow = document.createElement('span');
-        arrow.className = 'reference-guide-question-arrow';
-        arrow.setAttribute('aria-hidden', 'true');
-
-        const answer = document.createElement('div');
-        answer.id = panelId;
-        answer.className = 'reference-guide-answer';
-        answer.hidden = true;
-        answer.textContent = guideItem.answer;
-
-        button.append(copy, arrow);
-        item.append(button, answer);
-        list.append(item);
-      });
-
-      const moreButton = document.createElement('button');
-      moreButton.type = 'button';
-      moreButton.className = 'reference-guide-more';
-      moreButton.dataset.guidePopupTrigger = 'true';
-      moreButton.textContent = 'ดูทั้งหมด';
-
-      guide.replaceChildren();
-      if (heading) guide.append(heading);
-      guide.append(list, moreButton);
-      guide.dataset.guidePreviewReady = 'true';
-    };
-
-    const toggleGuideItem = (button: HTMLButtonElement) => {
-      const guide = button.closest<HTMLElement>(GUIDE_SELECTOR);
-      const item = button.closest<HTMLElement>('.reference-guide-item');
-      const answer = item?.querySelector<HTMLElement>(':scope > .reference-guide-answer');
-      if (!guide || !item || !answer) return;
-
-      const shouldOpen = button.getAttribute('aria-expanded') !== 'true';
-      guide.querySelectorAll<HTMLButtonElement>('.reference-guide-question').forEach((currentButton) => {
-        currentButton.setAttribute('aria-expanded', 'false');
-        currentButton.closest('.reference-guide-item')?.classList.remove('is-open');
-        const currentAnswer = currentButton.closest('.reference-guide-item')?.querySelector<HTMLElement>(':scope > .reference-guide-answer');
-        if (currentAnswer) currentAnswer.hidden = true;
-      });
-
-      if (shouldOpen) {
-        button.setAttribute('aria-expanded', 'true');
-        item.classList.add('is-open');
-        answer.hidden = false;
-      }
-    };
-
     const onPointerDown = (event: PointerEvent) => {
       if (event.pointerType === 'mouse' && event.button !== 0) return;
       const rail = findRail(event.target);
@@ -221,19 +113,8 @@ export default function MemberDragScrollController() {
     };
 
     const onClickCapture = (event: MouseEvent) => {
-      const guideQuestion = event.target instanceof Element
-        ? event.target.closest<HTMLButtonElement>(`${GUIDE_SELECTOR} .reference-guide-question`)
-        : null;
-      if (guideQuestion) {
-        event.preventDefault();
-        event.stopPropagation();
-        toggleGuideItem(guideQuestion);
-        return;
-      }
-
-      const publicNavigationLink = event.target instanceof Element
-        ? event.target.closest<HTMLAnchorElement>(`${PUBLIC_NAV_SELECTOR} a`)
-        : null;
+      const publicNavigationLink =
+        event.target instanceof Element ? event.target.closest<HTMLAnchorElement>(`${PUBLIC_NAV_SELECTOR} a`) : null;
       if (publicNavigationLink) {
         const clickedKey = navigationKeyForLink(publicNavigationLink);
         const navigation = publicNavigationLink.closest<HTMLElement>(PUBLIC_NAV_SELECTOR);
@@ -260,14 +141,9 @@ export default function MemberDragScrollController() {
       event.preventDefault();
     };
 
-    const hydratePage = () => {
-      hydrateGuidePreview();
-      syncPublicNavigation();
-    };
+    syncPublicNavigation();
 
-    hydratePage();
-
-    const pageObserver = new MutationObserver(hydratePage);
+    const pageObserver = new MutationObserver(syncPublicNavigation);
     pageObserver.observe(document.body, { childList: true, subtree: true });
 
     window.addEventListener('popstate', syncPublicNavigation);
@@ -295,7 +171,6 @@ export default function MemberDragScrollController() {
   return (
     <>
       <MemberSearchOverlay />
-      <MemberGuideOverlay />
       <MemberLanguageOverlay />
     </>
   );

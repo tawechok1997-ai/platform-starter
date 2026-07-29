@@ -51,8 +51,7 @@ One typed Member menu model must derive:
 
 - Route model: `apps/web-member/app/member-routes.ts`
 - Navigation model: `apps/web-member/app/member-navigation.ts`
-- Shell/chrome: `apps/web-member/app/member-chrome.tsx`, `apps/web-member/app/member-shell.css`
-- Mobile navigation: `apps/web-member/app/member-bottom-nav.tsx`
+- Shell/chrome and mobile bottom navigation: `apps/web-member/app/member-chrome.tsx`, `apps/web-member/app/member-shell.css`
 - Shared icon adapter: `apps/web-member/app/components/member-icon.tsx`
 - Route/state evidence: [`MEMBER_ROUTE_MATRIX.md`](./MEMBER_ROUTE_MATRIX.md)
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import MemberBottomNav from '../member-bottom-nav';
 import { memberApiFetch } from '../member-api';
 import { MemberButton, MemberCard, MemberEmptyState, MemberNotice } from '../components/member-ui';
 import { SupportTicketCard, type SupportTicket } from '../../src/features/support';
@@ -348,7 +347,6 @@ export default function MemberSupportPage() {
           )}
         </section>
       </div>
-      <MemberBottomNav />
     </main>
   );
 }

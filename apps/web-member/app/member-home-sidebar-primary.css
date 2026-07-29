@@ -112,7 +112,12 @@
     border: 0 !important;
     border-bottom: 2px solid rgb(187 91 234 / 40%) !important;
     border-radius: 6px 0 0 6px !important;
-    background: linear-gradient(90deg, rgb(24 21 35 / 24%) -6.21%, rgb(187 91 234 / 40%) -4.41%, rgb(24 21 35 / 24%) 83.01%) !important;
+    background: linear-gradient(
+      90deg,
+      rgb(24 21 35 / 24%) -6.21%,
+      rgb(187 91 234 / 40%) -4.41%,
+      rgb(24 21 35 / 24%) 83.01%
+    ) !important;
     color: #fff !important;
   }
 
@@ -204,7 +209,7 @@
     font-size: 27.091px !important;
     font-weight: 800 !important;
     font-variant-numeric: tabular-nums !important;
-    letter-spacing: .1em !important;
+    letter-spacing: 0.1em !important;
     line-height: 1 !important;
     text-align: center !important;
     text-overflow: clip !important;
@@ -406,8 +411,13 @@
     display: block !important;
     width: 100% !important;
     pointer-events: none !important;
-    background: linear-gradient(90deg, rgb(24 21 35 / 60%) -6.21%, rgb(187 91 234) -4.41%, rgb(24 21 35 / 60%) 83.01%) !important;
-    opacity: .4 !important;
+    background: linear-gradient(
+      90deg,
+      rgb(24 21 35 / 60%) -6.21%,
+      rgb(187 91 234) -4.41%,
+      rgb(24 21 35 / 60%) 83.01%
+    ) !important;
+    opacity: 0.4 !important;
   }
 
   .desktop-reference-home .source-mini-game__header-gradient {
@@ -446,7 +456,7 @@
     width: 100% !important;
     min-width: 0 !important;
     margin: 0 !important;
-    padding: 20px 12px !important;
+    padding: 28px 12px !important;
     gap: 8px !important;
     overflow: visible !important;
   }

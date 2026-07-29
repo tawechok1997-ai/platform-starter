@@ -10,6 +10,7 @@ import { DesktopJackpotCard } from './desktop-jackpot-card';
 import DesktopMiniGameSource from './desktop-mini-game-source';
 import { SourceLiveSection, SourceOnlineSection, SourcePopularSection } from './member-source-feed-sections';
 import { DesktopTournamentBoard } from './desktop-tournament-board';
+import UsageGuidePreview from './usage-guide-preview';
 import {
   normalizePublicAssetUrl,
   resolveHomeGameFallback,
@@ -31,16 +32,47 @@ type DesktopHomeProps = {
   onOpenActivity?: () => void;
   onOpenNews?: () => void;
 };
-type PromoCard = { title: string; subtitle: string; href: string; aliases: string[]; fallback: string; assetUrl: string; backgroundUrl: string };
+type PromoCard = {
+  title: string;
+  subtitle: string;
+  href: string;
+  aliases: string[];
+  fallback: string;
+  assetUrl: string;
+  backgroundUrl: string;
+};
 type ArchiveGame = { name: string; imageUrl: string };
-type GuideFaq = { question: string; answer: string };
 
 const ANNOUNCEMENT_TEXT = 'ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง';
 
 const PROMO_CARDS: PromoCard[] = [
-  { title: 'โปรโมชั่นพิเศษ', subtitle: 'โปรโมชั่นพิเศษเฉพาะคุณ', href: '/browse/promotions?view=promotion', aliases: ['promotion', 'promo', 'bonus', 'reward', 'โปรโมชั่น'], fallback: '✦', assetUrl: V47_ASSETS.quickPromotion, backgroundUrl: V47_ASSETS.promoBackgroundPromotion },
-  { title: 'กิจกรรม', subtitle: 'กิจกรรมตลอด 24 ชั่วโมง', href: '/browse/promotions?view=activity', aliases: ['activity', 'event', 'mission', 'กิจกรรม'], fallback: '♤', assetUrl: V47_ASSETS.quickActivity, backgroundUrl: V47_ASSETS.promoBackgroundActivity },
-  { title: 'ข่าวสาร', subtitle: 'ข่าวสารที่คุณไม่ควรพลาด', href: '/browse/promotions?view=news', aliases: ['news', 'announcement', 'notice', 'ข่าว'], fallback: '◇', assetUrl: V47_ASSETS.quickNews, backgroundUrl: V47_ASSETS.promoBackgroundNews },
+  {
+    title: 'โปรโมชั่นพิเศษ',
+    subtitle: 'โปรโมชั่นพิเศษเฉพาะคุณ',
+    href: '/browse/promotions?view=promotion',
+    aliases: ['promotion', 'promo', 'bonus', 'reward', 'โปรโมชั่น'],
+    fallback: '✦',
+    assetUrl: V47_ASSETS.quickPromotion,
+    backgroundUrl: V47_ASSETS.promoBackgroundPromotion,
+  },
+  {
+    title: 'กิจกรรม',
+    subtitle: 'กิจกรรมตลอด 24 ชั่วโมง',
+    href: '/browse/promotions?view=activity',
+    aliases: ['activity', 'event', 'mission', 'กิจกรรม'],
+    fallback: '♤',
+    assetUrl: V47_ASSETS.quickActivity,
+    backgroundUrl: V47_ASSETS.promoBackgroundActivity,
+  },
+  {
+    title: 'ข่าวสาร',
+    subtitle: 'ข่าวสารที่คุณไม่ควรพลาด',
+    href: '/browse/promotions?view=news',
+    aliases: ['news', 'announcement', 'notice', 'ข่าว'],
+    fallback: '◇',
+    assetUrl: V47_ASSETS.quickNews,
+    backgroundUrl: V47_ASSETS.promoBackgroundNews,
+  },
 ];
 
 const SOURCE_HIGHLIGHT_BANNERS = [
@@ -72,8 +104,6 @@ export function DesktopHomeScaffold({
   onOpenNews = () => undefined,
 }: DesktopHomeProps) {
   const { isLoggedIn } = useMemberSession();
-  const configuredFaqs = Array.isArray(content?.faqs) ? content.faqs.filter((faq) => faq?.enabled).slice(0, 5) : [];
-  const guideFaqs = completeFaqs(configuredFaqs);
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
   const featured = fillGames(games.featured, allGames, 8);
   const classic = fillGames(allGames.slice(8), allGames, 6);
@@ -84,7 +114,6 @@ export function DesktopHomeScaffold({
     jackpot: findCmsAsset(content, ['jackpot', 'jackpots', 'แจ็คพอต']),
     featured: findCmsAsset(content, ['featured', 'highlight', 'recommended', 'เกมไฮไลท์', 'เกมไฮไลต์']),
     classic: findCmsAsset(content, ['classic', 'arcade', 'คลาสสิก']),
-    guide: findCmsAsset(content, ['guide', 'help', 'faq', 'คู่มือ']),
   };
 
   const openLiveAction = () => {
@@ -107,7 +136,9 @@ export function DesktopHomeScaffold({
           <div className="reference-announcement">
             <img src={V47_ASSETS.announcement} alt="" aria-hidden="true" onError={hideBrokenImage} />
             <div className="reference-announcement-viewport">
-              <div className="reference-announcement-track"><span>{ANNOUNCEMENT_TEXT}</span></div>
+              <div className="reference-announcement-track">
+                <span>{ANNOUNCEMENT_TEXT}</span>
+              </div>
             </div>
           </div>
 
@@ -122,22 +153,48 @@ export function DesktopHomeScaffold({
                   onClick={popupActions[index]}
                   aria-label={`เปิด${card.title}`}
                 >
-                  <img className="reference-promo-background" src={card.backgroundUrl} alt="" aria-hidden="true" onError={hideBrokenImage} />
-                  <AssetIcon asset={asset} configured={card.assetUrl} fallback={card.fallback} className="reference-promo-icon" />
-                  <span className="reference-promo-copy"><strong>{card.title}</strong><small>{card.subtitle}</small></span>
+                  <img
+                    className="reference-promo-background"
+                    src={card.backgroundUrl}
+                    alt=""
+                    aria-hidden="true"
+                    onError={hideBrokenImage}
+                  />
+                  <AssetIcon
+                    asset={asset}
+                    configured={card.assetUrl}
+                    fallback={card.fallback}
+                    className="reference-promo-icon"
+                  />
+                  <span className="reference-promo-copy">
+                    <strong>{card.title}</strong>
+                    <small>{card.subtitle}</small>
+                  </span>
                 </button>
               );
             })}
           </section>
 
           <a href="/browse/promotions?view=activity" className="reference-tournament-cta">
-            <img src={assets.tournament?.url || V47_ASSETS.tournament} alt="เข้าร่วมแข่งขัน Tournament" onError={(event) => swapBrokenImage(event, V47_ASSETS.tournament)} />
-            <span><small>ร่วมสนุกกับกิจกรรม Tournament</small><strong>TOURNAMENT เข้าร่วมชิงความเป็นที่ 1</strong></span>
+            <img
+              src={assets.tournament?.url || V47_ASSETS.tournament}
+              alt="เข้าร่วมแข่งขัน Tournament"
+              onError={(event) => swapBrokenImage(event, V47_ASSETS.tournament)}
+            />
+            <span>
+              <small>ร่วมสนุกกับกิจกรรม Tournament</small>
+              <strong>TOURNAMENT เข้าร่วมชิงความเป็นที่ 1</strong>
+            </span>
             <b>เข้าแข่งขัน ›</b>
           </a>
 
           <DesktopTournamentBoard />
-          <SourceHighlightSection asset={assets.featured} apiGames={featured} loading={isGamesLoading} message={gamesMessage} />
+          <SourceHighlightSection
+            asset={assets.featured}
+            apiGames={featured}
+            loading={isGamesLoading}
+            message={gamesMessage}
+          />
           <SourcePopularSection />
           <SourceOnlineSection />
           <SourceLiveSection onAction={openLiveAction} />
@@ -152,9 +209,7 @@ export function DesktopHomeScaffold({
           </section>
 
           <section className="reference-guide" id="guide" data-section-kind="guide">
-            <PanelHeading asset={assets.guide} configured={V47_ASSETS.openGold} fallback="?" title="Guide" />
-            {guideFaqs.map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}
-            <a className="reference-guide-more" href="/guide">ดูทั้งหมด</a>
+            <UsageGuidePreview />
           </section>
         </main>
 
@@ -165,13 +220,33 @@ export function DesktopHomeScaffold({
             iconUrl={V47_ASSETS.coin}
           />
           <section className="reference-side-card reference-leaderboard">
-            <header><span className="reference-side-title"><AssetIcon configured={V47_ASSETS.leaderboard} fallback="🏆" className="reference-side-icon" /><strong>Leaderboard</strong></span></header>
-            <div className="reference-leaderboard-head" aria-hidden="true"><span>ลำดับ</span><strong>Game/Jackpot</strong></div>
+            <header>
+              <span className="reference-side-title">
+                <AssetIcon configured={V47_ASSETS.leaderboard} fallback="🏆" className="reference-side-icon" />
+                <strong>Leaderboard</strong>
+              </span>
+            </header>
+            <div className="reference-leaderboard-head" aria-hidden="true">
+              <span>ลำดับ</span>
+              <strong>Game/Jackpot</strong>
+            </div>
             {LEADERBOARD_ITEMS.map((item, index) => (
               <div key={item.name}>
                 <RankMark index={index} />
-                <img className="reference-leaderboard-game-image" src={item.image} alt="" loading="lazy" onError={hideBrokenImage} />
-                <span><strong>{item.name}</strong><small>{item.user}</small><small>ชนะ <b>{item.wins}</b></small></span>
+                <img
+                  className="reference-leaderboard-game-image"
+                  src={item.image}
+                  alt=""
+                  loading="lazy"
+                  onError={hideBrokenImage}
+                />
+                <span>
+                  <strong>{item.name}</strong>
+                  <small>{item.user}</small>
+                  <small>
+                    ชนะ <b>{item.wins}</b>
+                  </small>
+                </span>
                 <em>›</em>
               </div>
             ))}
@@ -183,7 +258,17 @@ export function DesktopHomeScaffold({
   );
 }
 
-function SourceHighlightSection({ asset, apiGames, loading, message }: { asset?: CmsAsset | undefined; apiGames: Game[]; loading: boolean; message: string }) {
+function SourceHighlightSection({
+  asset,
+  apiGames,
+  loading,
+  message,
+}: {
+  asset?: CmsAsset | undefined;
+  apiGames: Game[];
+  loading: boolean;
+  message: string;
+}) {
   const [activeBanner, setActiveBanner] = useState(0);
 
   useEffect(() => {
@@ -225,12 +310,22 @@ function SourceHighlightSection({ asset, apiGames, loading, message }: { asset?:
   });
 
   return (
-    <section className="reference-panel reference-featured-section source-highlight-section" data-section-kind="featured" aria-label={message || 'เกมไฮไลท์'} aria-busy={loading}>
+    <section
+      className="reference-panel reference-featured-section source-highlight-section"
+      data-section-kind="featured"
+      aria-label={message || 'เกมไฮไลท์'}
+      aria-busy={loading}
+    >
       <div className="source-highlight-inner">
         <div className="source-highlight-glow" aria-hidden="true" />
         <header className="source-highlight-heading">
           <span className="source-highlight-heading__content">
-            <AssetIcon asset={asset} configured={V47_ASSETS.star} fallback="★" className="source-highlight-heading__icon" />
+            <AssetIcon
+              asset={asset}
+              configured={V47_ASSETS.star}
+              fallback="★"
+              className="source-highlight-heading__icon"
+            />
             <strong>เกมไฮไลท์</strong>
           </span>
         </header>
@@ -238,11 +333,24 @@ function SourceHighlightSection({ asset, apiGames, loading, message }: { asset?:
         <div className="source-highlight-content">
           <div className="source-highlight-hero">
             <a className="source-highlight-hero__link" href="/browse/games">
-              <img key={SOURCE_HIGHLIGHT_BANNERS[activeBanner]} className="source-highlight-hero__image" src={SOURCE_HIGHLIGHT_BANNERS[activeBanner]} alt="เกมไฮไลท์" onError={(event) => swapBrokenImage(event, bannerFallback)} />
+              <img
+                key={SOURCE_HIGHLIGHT_BANNERS[activeBanner]}
+                className="source-highlight-hero__image"
+                src={SOURCE_HIGHLIGHT_BANNERS[activeBanner]}
+                alt="เกมไฮไลท์"
+                onError={(event) => swapBrokenImage(event, bannerFallback)}
+              />
             </a>
             <div className="source-highlight-hero__dots" aria-label="เลือกภาพเกมไฮไลท์">
               {SOURCE_HIGHLIGHT_BANNERS.map((banner, index) => (
-                <button key={banner} type="button" className={`source-highlight-hero__dot${index === activeBanner ? ' is-active' : ''}`} onClick={() => setActiveBanner(index)} aria-label={`ภาพที่ ${index + 1}`} aria-current={index === activeBanner ? 'true' : undefined} />
+                <button
+                  key={banner}
+                  type="button"
+                  className={`source-highlight-hero__dot${index === activeBanner ? ' is-active' : ''}`}
+                  onClick={() => setActiveBanner(index)}
+                  aria-label={`ภาพที่ ${index + 1}`}
+                  aria-current={index === activeBanner ? 'true' : undefined}
+                />
               ))}
             </div>
           </div>
@@ -251,12 +359,33 @@ function SourceHighlightSection({ asset, apiGames, loading, message }: { asset?:
             {highlightGames.map((game, index) => (
               <a key={game.key} className="source-highlight-game" href="/browse/games" title={game.name}>
                 <span className="source-highlight-game__art">
-                  <img className="source-highlight-game__blur" src={game.imageUrl} alt="" aria-hidden="true" onError={(event) => swapBrokenImage(event, game.fallback)} />
-                  <img className="source-highlight-game__image" src={game.imageUrl} alt={game.name} onError={(event) => swapBrokenImage(event, game.fallback)} />
-                  <span className="source-highlight-game__provider"><img src={game.providerLogo} alt={game.providerName} onError={(event) => swapBrokenImage(event, REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!.url)} /></span>
+                  <img
+                    className="source-highlight-game__blur"
+                    src={game.imageUrl}
+                    alt=""
+                    aria-hidden="true"
+                    onError={(event) => swapBrokenImage(event, game.fallback)}
+                  />
+                  <img
+                    className="source-highlight-game__image"
+                    src={game.imageUrl}
+                    alt={game.name}
+                    onError={(event) => swapBrokenImage(event, game.fallback)}
+                  />
+                  <span className="source-highlight-game__provider">
+                    <img
+                      src={game.providerLogo}
+                      alt={game.providerName}
+                      onError={(event) =>
+                        swapBrokenImage(event, REFERENCE_PROVIDERS[index % REFERENCE_PROVIDERS.length]!.url)
+                      }
+                    />
+                  </span>
                 </span>
                 <span className="source-highlight-game__name">{game.name}</span>
-                <span className="source-highlight-game__rank" aria-hidden="true">{index + 1}</span>
+                <span className="source-highlight-game__rank" aria-hidden="true">
+                  {index + 1}
+                </span>
               </a>
             ))}
           </div>
@@ -268,30 +397,104 @@ function SourceHighlightSection({ asset, apiGames, loading, message }: { asset?:
 
 function RankMark({ index }: { index: number }) {
   const image = RANK_ART[index];
-  return <b className="reference-rank-medal">{image ? <img src={image} alt={`อันดับ ${index + 1}`} loading="lazy" onError={hideBrokenImage} /> : index + 1}</b>;
+  return (
+    <b className="reference-rank-medal">
+      {image ? <img src={image} alt={`อันดับ ${index + 1}`} loading="lazy" onError={hideBrokenImage} /> : index + 1}
+    </b>
+  );
 }
 
-function ArchiveGameTile({ game, large = false, compact = false }: { game: ArchiveGame; large?: boolean; compact?: boolean }) {
-  return <a href="/browse/games" className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}><img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} /><span><strong>{game.name}</strong><small>NOAH345</small></span></a>;
+function ArchiveGameTile({
+  game,
+  large = false,
+  compact = false,
+}: {
+  game: ArchiveGame;
+  large?: boolean;
+  compact?: boolean;
+}) {
+  return (
+    <a
+      href="/browse/games"
+      className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}
+    >
+      <img src={game.imageUrl} alt={game.name} loading="lazy" onError={hideBrokenImage} />
+      <span>
+        <strong>{game.name}</strong>
+        <small>NOAH345</small>
+      </span>
+    </a>
+  );
 }
 
-function PanelHeading({ asset, configured, fallback, title }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; title: string }) {
-  return <header className="reference-panel-heading"><AssetIcon asset={asset} configured={configured} fallback={fallback} className="reference-heading-icon" /><strong>{title}</strong></header>;
+function PanelHeading({
+  asset,
+  configured,
+  fallback,
+  title,
+}: {
+  asset?: CmsAsset | undefined;
+  configured?: string | undefined;
+  fallback: string;
+  title: string;
+}) {
+  return (
+    <header className="reference-panel-heading">
+      <AssetIcon asset={asset} configured={configured} fallback={fallback} className="reference-heading-icon" />
+      <strong>{title}</strong>
+    </header>
+  );
 }
 
-function AssetIcon({ asset, configured, fallback, className }: { asset?: CmsAsset | undefined; configured?: string | undefined; fallback: string; className: string }) {
+function AssetIcon({
+  asset,
+  configured,
+  fallback,
+  className,
+}: {
+  asset?: CmsAsset | undefined;
+  configured?: string | undefined;
+  fallback: string;
+  className: string;
+}) {
   const value = asset?.url || configured || '';
-  return <span className={className} aria-hidden="true">{value ? (isImageValue(value) ? <img src={normalizePublicAssetUrl(value)} alt="" onError={hideBrokenImage} /> : value) : fallback}</span>;
+  return (
+    <span className={className} aria-hidden="true">
+      {value ? (
+        isImageValue(value) ? (
+          <img src={normalizePublicAssetUrl(value)} alt="" onError={hideBrokenImage} />
+        ) : (
+          value
+        )
+      ) : (
+        fallback
+      )}
+    </span>
+  );
 }
 
 function GameTile({ game, large = false, compact = false }: { game: Game; large?: boolean; compact?: boolean }) {
-  return <a href="/browse/games" className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}><GameImage game={game} />{game?.isNew && <em>NEW</em>}<span><strong>{safeGameName(game)}</strong><small>{game?.provider?.name || game?.provider?.code || 'Provider'}</small></span></a>;
+  return (
+    <a
+      href="/browse/games"
+      className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}
+    >
+      <GameImage game={game} />
+      {game?.isNew && <em>NEW</em>}
+      <span>
+        <strong>{safeGameName(game)}</strong>
+        <small>{game?.provider?.name || game?.provider?.code || 'Provider'}</small>
+      </span>
+    </a>
+  );
 }
 
 function GameImage({ game }: { game: Game }) {
   const fallback = resolveHomeGameFallback(game);
   const image = resolveHomeGameImage(game) || fallback;
-  return <img src={image} alt={safeGameName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />;
+  return (
+    <img src={image} alt={safeGameName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />
+  );
 }
 
 function findCmsAsset(content: CmsContent, aliases: string[]) {
@@ -303,22 +506,34 @@ function findCmsAsset(content: CmsContent, aliases: string[]) {
   });
 }
 
-function normalizeSearchText(value: string) { return value.toLowerCase().replace(/[\s_\-./\\]+/g, ''); }
-function isImageValue(value: string) { return /^https?:\/\//i.test(value) || value.startsWith('/') || /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(value); }
-function uniqueGames(...groups: Game[][]) { const map = new Map<string, Game>(); groups.flat().forEach((game) => { const key = game?.id || `${game?.providerGameCode || ''}:${game?.name || ''}`; if (key && !map.has(key)) map.set(key, game); }); return Array.from(map.values()); }
-function fillGames(primary: Game[], fallback: Game[], count: number) { return uniqueGames(Array.isArray(primary) ? primary : [], fallback).slice(0, count); }
-function completeFaqs(configured: GuideFaq[]): GuideFaq[] {
-  const result: GuideFaq[] = [];
-  const seen = new Set<string>();
-  [...configured, ...fallbackFaqs()].forEach((faq) => {
-    const key = faq.question.trim().toLowerCase();
-    if (!key || seen.has(key) || result.length >= 5) return;
-    seen.add(key);
-    result.push({ question: faq.question, answer: faq.answer });
-  });
-  return result;
+function normalizeSearchText(value: string) {
+  return value.toLowerCase().replace(/[\s_\-./\\]+/g, '');
 }
-function safeGameName(game: Game) { return typeof game?.name === 'string' && game.name.trim() ? game.name : 'Game'; }
-function fallbackFaqs(): GuideFaq[] { return [{ question: 'ฝากเงินแบบ โอนผ่านธนาคาร', answer: 'เลือกธนาคารที่ต้องการและทำตามขั้นตอนบนหน้าฝากเงิน' }, { question: 'ฝากเงินแบบ โอนผ่าน QR Payment', answer: 'สแกน QR และตรวจสอบยอดเงินก่อนยืนยันรายการ' }, { question: 'ฝากเงินแบบ ฝากจุดทศนิยม', answer: 'กรอกยอดที่มีจุดทศนิยมตามที่ระบบแจ้งเพื่อจับคู่รายการ' }, { question: 'วิธีการฝากแบบ TrueWallet', answer: 'กรอกข้อมูลให้ครบและรอระบบตรวจสอบรายการ' }, { question: 'ยอดไม่เข้าทันที ทำยังไงดี?', answer: 'ติดต่อฝ่ายบริการพร้อมหลักฐานการทำรายการ' }]; }
-function swapBrokenImage(event: SyntheticEvent<HTMLImageElement>, fallback: string) { if (!fallback || event.currentTarget.dataset.fallbackApplied === 'true') { hideBrokenImage(event); return; } event.currentTarget.dataset.fallbackApplied = 'true'; event.currentTarget.src = fallback; }
-function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) { event.currentTarget.style.display = 'none'; }
+function isImageValue(value: string) {
+  return /^https?:\/\//i.test(value) || value.startsWith('/') || /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(value);
+}
+function uniqueGames(...groups: Game[][]) {
+  const map = new Map<string, Game>();
+  groups.flat().forEach((game) => {
+    const key = game?.id || `${game?.providerGameCode || ''}:${game?.name || ''}`;
+    if (key && !map.has(key)) map.set(key, game);
+  });
+  return Array.from(map.values());
+}
+function fillGames(primary: Game[], fallback: Game[], count: number) {
+  return uniqueGames(Array.isArray(primary) ? primary : [], fallback).slice(0, count);
+}
+function safeGameName(game: Game) {
+  return typeof game?.name === 'string' && game.name.trim() ? game.name : 'Game';
+}
+function swapBrokenImage(event: SyntheticEvent<HTMLImageElement>, fallback: string) {
+  if (!fallback || event.currentTarget.dataset.fallbackApplied === 'true') {
+    hideBrokenImage(event);
+    return;
+  }
+  event.currentTarget.dataset.fallbackApplied = 'true';
+  event.currentTarget.src = fallback;
+}
+function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
+  event.currentTarget.style.display = 'none';
+}
