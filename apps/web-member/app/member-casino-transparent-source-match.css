@@ -1,0 +1,113 @@
+/* Final desktop visual contract for the source Casino category.
+ * Keep the provider artwork visible through the content and never surface the
+ * generic NOAH345 image placeholder for missing decorative hero assets.
+ */
+
+@media (min-width: 901px) {
+  main[data-source-game-category='casino'] {
+    background: transparent !important;
+  }
+
+  main[data-source-game-category='casino'] > div[aria-hidden='true'] {
+    min-height: 100% !important;
+    background: linear-gradient(180deg, #5d126b 0%, #39103f 50%, #1d0b24 100%) !important;
+  }
+
+  main[data-source-game-category='casino'] > div[aria-hidden='true'] > img {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  main[data-source-game-category='casino'] > div[aria-hidden='true'] > div:first-of-type {
+    opacity: .28 !important;
+    background: linear-gradient(106deg, rgb(67 23 75 / 32%) -30%, rgb(116 0 135 / 48%) 82%) !important;
+  }
+
+  main[data-source-game-category='casino'] > div[aria-hidden='true'] > div:last-of-type {
+    background: linear-gradient(180deg, rgb(55 10 65 / 0%) 34%, rgb(43 10 52 / 18%) 64%, rgb(28 8 35 / 42%) 100%) !important;
+  }
+
+  main[data-source-game-category='casino'] > section {
+    background: transparent !important;
+    padding-top: 20px !important;
+  }
+
+  /* Missing source hero/title/avatar files must disappear, not become large
+   * generic placeholder cards above the game grid. */
+  main[data-source-game-category='casino'] > section > header {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  main[data-source-game-category='casino'] img[src*='/images/fallbacks/noah345-placeholder.svg'],
+  main[data-source-game-category='casino'] img[src*='noah345-placeholder.svg'] {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    visibility: hidden !important;
+  }
+
+  main[data-source-game-category='casino'] [data-source-game-layout],
+  main[data-source-game-category='casino'] [data-source-game-layout] > section,
+  main[data-source-game-category='casino'] [data-source-game-layout] > section > div:has(> article),
+  main[data-source-game-category='casino'] [data-source-game-layout] article,
+  main[data-source-game-category='casino'] [data-source-game-layout] article > button {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  main[data-source-game-category='casino'] [data-source-game-layout] article {
+    border: 0 !important;
+  }
+
+  main[data-source-game-category='casino'] [data-source-game-layout] article > button {
+    border-color: transparent !important;
+  }
+
+  main[data-source-game-category='casino'] [data-source-game-layout] article > p {
+    color: #ddd5e1 !important;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 55%) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  main[data-source-game-category='casino'] {
+    background: transparent !important;
+  }
+
+  main[data-source-game-category='casino'] > div[aria-hidden='true'] {
+    background: linear-gradient(180deg, #5d126b 0%, #35103d 58%, #1d0b24 100%) !important;
+  }
+
+  main[data-source-game-category='casino'] > div[aria-hidden='true'] > img {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  main[data-source-game-category='casino'] > div[aria-hidden='true'] > div:last-of-type {
+    background: linear-gradient(180deg, transparent 35%, rgb(32 8 40 / 35%) 100%) !important;
+  }
+
+  main[data-source-game-category='casino'] > section > header,
+  main[data-source-game-category='casino'] img[src*='noah345-placeholder.svg'] {
+    display: none !important;
+  }
+
+  main[data-source-game-category='casino'] [data-source-game-layout],
+  main[data-source-game-category='casino'] [data-source-game-layout] > section,
+  main[data-source-game-category='casino'] [data-source-game-layout] > section > div:has(> article),
+  main[data-source-game-category='casino'] [data-source-game-layout] article,
+  main[data-source-game-category='casino'] [data-source-game-layout] article > button {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}
