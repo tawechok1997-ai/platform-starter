@@ -98,6 +98,7 @@ for (const roleName of Object.keys(roles) as RoleName[]) {
       });
 
       if (roleName === 'owner' && expectedAllowed) {
+        if (routeCase.path === '/access') await paintFullPage(page);
         await page.screenshot({ path: testInfo.outputPath(`${slug(routeCase.path)}.png`), fullPage: true, animations: 'disabled' });
       }
 
@@ -178,6 +179,19 @@ function fixtureFor(path: string, roleName: RoleName, permissions: readonly stri
 
 async function fulfillJson(route: Route, payload: unknown) {
   await route.fulfill({ status: 200, contentType: 'application/json; charset=utf-8', body: JSON.stringify(payload) });
+}
+
+async function paintFullPage(page: Page) {
+  await page.evaluate(async () => {
+    const step = Math.max(320, Math.floor(window.innerHeight * 0.75));
+    const max = document.documentElement.scrollHeight;
+    for (let y = 0; y < max; y += step) {
+      window.scrollTo(0, y);
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 30));
+    }
+    window.scrollTo(0, 0);
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 60));
+  });
 }
 
 function installRuntimeAudit(page: Page, issues: RuntimeIssue[]) {
