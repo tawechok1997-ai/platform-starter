@@ -1,3 +1,5 @@
+@import './member-demo-content-labels.css';
+
 /* Keep ranks 1-3 inside the exact 22px medal artwork box. */
 
 @media (min-width: 1024px) {
