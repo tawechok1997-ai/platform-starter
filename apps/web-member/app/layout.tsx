@@ -115,6 +115,7 @@ import PublicDialogRuntimeController from './components/public-dialog-runtime-co
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
 import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import PublicGameLoginController from './components/member-home/public-home-game-navigation-controller';
+import PublicDesktopViewportBootstrap from './components/public-desktop-viewport-bootstrap';
 import UsageGuideController from './components/member-home/usage-guide-controller';
 import { MemberLocaleProvider } from './member-locale-provider';
 import { MemberSessionProvider } from './member-session-provider';
@@ -140,6 +141,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MemberLocaleProvider>
           <SiteSettingsProvider>
             <MemberSessionProvider>
+              <PublicDesktopViewportBootstrap />
               <PublicNavigationLocaleGuard />
               <MemberImageFallbackController />
               <MemberHeroSwipeController />
