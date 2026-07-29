@@ -14,9 +14,6 @@ const SEARCH_TRIGGER_SELECTOR = [
   '[aria-label="Search games"]',
 ].join(',');
 
-const PUBLIC_HEADER_SELECTOR = '.public-home-topbar.global-member-topbar';
-const GUIDE_DIALOG_SELECTOR = 'section[role="dialog"][aria-labelledby="usage-guide-title"]';
-
 function forceOverlayAboveChrome(overlay: HTMLElement, kind: string) {
   overlay.dataset.publicDialogOverlay = kind;
   overlay.classList.add('public-dialog-runtime-overlay');
@@ -68,25 +65,8 @@ function normalizeDialog(id: string, kind: string) {
   closeButton?.classList.add('public-dialog-runtime-close');
 }
 
-function syncPublicHeaderVisibility() {
-  const guideOpen = document.querySelector(GUIDE_DIALOG_SELECTOR) !== null;
-  const headers = document.querySelectorAll<HTMLElement>(PUBLIC_HEADER_SELECTOR);
-
-  headers.forEach((header) => {
-    if (guideOpen) {
-      header.style.setProperty('visibility', 'hidden', 'important');
-      header.style.setProperty('pointer-events', 'none', 'important');
-      return;
-    }
-
-    header.style.removeProperty('visibility');
-    header.style.removeProperty('pointer-events');
-  });
-}
-
 function normalizeAllDialogs() {
   for (const dialog of DIALOGS) normalizeDialog(dialog.id, dialog.kind);
-  syncPublicHeaderVisibility();
 }
 
 export default function PublicDialogRuntimeController() {
@@ -111,10 +91,6 @@ export default function PublicDialogRuntimeController() {
     return () => {
       observer.disconnect();
       document.removeEventListener('click', preventSearchNavigation, true);
-      document.querySelectorAll<HTMLElement>(PUBLIC_HEADER_SELECTOR).forEach((header) => {
-        header.style.removeProperty('visibility');
-        header.style.removeProperty('pointer-events');
-      });
     };
   }, []);
 
