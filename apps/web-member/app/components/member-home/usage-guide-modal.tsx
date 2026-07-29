@@ -119,6 +119,7 @@ const GUIDE_GROUPS: readonly GuideGroup[] = [
 export default function UsageGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<GuideTab>('all');
   const [openItem, setOpenItem] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const visibleGroups = useMemo(
@@ -128,20 +129,27 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
   useEffect(() => {
     if (!open) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (!dialog.open) dialog.showModal();
+
+    return () => {
+      if (dialog.open) dialog.close();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     const bodyOverflow = document.body.style.overflow;
     const htmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.style.overflow = bodyOverflow;
       document.documentElement.style.overflow = htmlOverflow;
-      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [open, onClose]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
@@ -152,13 +160,23 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
   if (!open || typeof document === 'undefined') return null;
 
-  const closeFromBackdrop = (event: MouseEvent<HTMLDivElement>) => {
+  const closeFromBackdrop = (event: MouseEvent<HTMLDialogElement>) => {
     if (event.target === event.currentTarget) onClose();
   };
 
   return createPortal(
-    <div className={styles.backdrop} role="presentation" onMouseDown={closeFromBackdrop}>
-      <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="usage-guide-title">
+    <dialog
+      ref={dialogRef}
+      className={styles.backdrop}
+      aria-labelledby="usage-guide-title"
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onMouseDown={closeFromBackdrop}
+      style={{ maxWidth: 'none', maxHeight: 'none', border: 0 }}
+    >
+      <section className={styles.modal} role="document">
         <div className={styles.topLine} aria-hidden="true" />
         <header className={styles.header}>
           <div className={styles.heading}>
@@ -218,7 +236,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
           ))}
         </div>
       </section>
-    </div>,
+    </dialog>,
     document.body,
   );
 }
