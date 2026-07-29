@@ -1,6 +1,7 @@
 'use client';
 
 import { applyMemberImageFallback, hideDecorativeImage } from '../image-fallback';
+import { V47_ASSETS } from './v47-asset-map';
 
 type PopularItem = {
   name: string;
@@ -16,53 +17,43 @@ type OnlineItem = {
 
 type LiveItem = {
   league: string;
-  time: string;
   home: string;
   away: string;
   homeLogo: string;
   awayLogo: string;
 };
 
+// The lobby has no live provider feed yet. These stay visibly marked as sample
+// content, but every visual comes from the member project's local PC assets.
 const POPULAR_ITEMS: PopularItem[] = [
-  { name: 'ROMA X 10000', imageUrl: 'https://cdn.zabbet.com/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/jl.png', badge: 'HOT' },
-  { name: 'Maya Golden City 2', imageUrl: 'https://cdn.zabbet.com/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/ygr.png', badge: 'HOT' },
-  { name: 'El Paso Gunfight xNudge', imageUrl: 'https://cdn.zabbet.com/games/NLC/elpaso0000000000.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/nlc.png', badge: 'NEW' },
-  { name: 'Sweet Bonanza Xmas', imageUrl: 'https://cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/pp.png', badge: 'NEW' },
-  { name: 'Roma', imageUrl: 'https://cdn.zabbet.com/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/rsg.png', badge: 'NEW' },
-  { name: 'TREASURES OF AZTEC Z', imageUrl: 'https://cdn.zabbet.com/games/1692882357754-c47b8426-4045-4792-8ee3-58b784ed9a78.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/ps.png', badge: 'NEW' },
-  { name: 'ไฮโลไทย 2', imageUrl: 'https://cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/kingm.png', badge: 'NEW' },
-  { name: 'Starlight Princess', imageUrl: 'https://cdn.zabbet.com/games/vertical/PP/starlight_princess.png', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/pp.png', badge: 'NEW' },
-  { name: 'Coin Spinner', imageUrl: 'https://cdn.zabbet.com/games/vertical/CQ/coin_spinner.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/cq.png', badge: 'NEW' },
-  { name: 'Fortune Gems', imageUrl: 'https://cdn.zabbet.com/games/1671995554666-2fba59cf-2cb7-48bf-b619-ba56269e90ca.jpg', providerLogo: 'https://cdn.zabbet.com/providers/set/1_1_badge/jl.png', badge: 'NEW' },
+  { name: 'ROMA X 10000', imageUrl: V47_ASSETS.quickPromotion, providerLogo: V47_ASSETS.gameHit, badge: 'HOT' },
+  { name: 'Maya Golden City 2', imageUrl: V47_ASSETS.quickActivity, providerLogo: V47_ASSETS.gameHit, badge: 'HOT' },
+  { name: 'El Paso Gunfight xNudge', imageUrl: V47_ASSETS.quickNews, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
+  { name: 'Sweet Bonanza Xmas', imageUrl: V47_ASSETS.heroWinners, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
+  { name: 'Roma', imageUrl: V47_ASSETS.heroLogin, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
+  { name: 'TREASURES OF AZTEC Z', imageUrl: V47_ASSETS.heroNews, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
+  { name: 'ไฮโลไทย 2', imageUrl: V47_ASSETS.jackpotStill, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
+  { name: 'Starlight Princess', imageUrl: V47_ASSETS.tournament, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
+  { name: 'Coin Spinner', imageUrl: V47_ASSETS.miniGame, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
+  { name: 'Fortune Gems', imageUrl: V47_ASSETS.heroSide, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
 ];
 
 const ONLINE_ITEMS: OnlineItem[] = [
-  { imageUrl: 'https://cdn.zabbet.com/_INIT/highlight/1731332886257-a7188fa9-8abc-4e47-9ea5-cfd777cb1abe.webp', players: 3947 },
-  { imageUrl: 'https://cdn.zabbet.com/FEZX/highlight/1729314673983-77cc8959-5e30-4372-96a5-75df61251087.jpeg', players: 2979 },
-  { imageUrl: 'https://cdn.zabbet.com/FEZX/highlight/1729314682179-2f2cd5b6-cadd-4e83-850d-a6f9f2eb68a6.jpeg', players: 2201 },
-  { imageUrl: 'https://cdn.zabbet.com/FEZX/highlight/1729314708585-cf6d4f54-740b-437c-8c68-eeb335650199.jpeg', players: 5004 },
-  { imageUrl: 'https://cdn.zabbet.com/FEZX/highlight/1729314712283-8e9a06f9-6d2e-42fd-b096-a8f400df89dc.jpeg', players: 2112 },
-  { imageUrl: 'https://cdn.zabbet.com/FEZX/highlight/1731504909009-3b869385-72bb-4d54-a1c5-7a99313b5409.png', players: 1925 },
+  { imageUrl: V47_ASSETS.quickPromotion, players: 3947 },
+  { imageUrl: V47_ASSETS.quickActivity, players: 2979 },
+  { imageUrl: V47_ASSETS.quickNews, players: 2201 },
+  { imageUrl: V47_ASSETS.heroWinners, players: 5004 },
+  { imageUrl: V47_ASSETS.heroLogin, players: 2112 },
+  { imageUrl: V47_ASSETS.heroNews, players: 1925 },
 ];
 
 const LIVE_ITEMS: LiveItem[] = [
-  { league: 'เดนมาร์ก - ซูเปอร์ลีกา', time: 'Jul 28, 00:00', home: 'แรนเดอร์ส', away: 'ซิลเคบอร์ก', homeLogo: 'https://googlecdn.live/teams/610.png', awayLogo: 'https://googlecdn.live/teams/609.png' },
-  { league: 'นอร์เวย์ - ทิปเปลีเก้น', time: 'Jul 28, 00:00', home: 'โรเซนบอร์ก', away: 'เฟรดริคสตัด', homeLogo: 'https://googlecdn.live/teams/1587.png', awayLogo: 'https://googlecdn.live/teams/2481.png' },
-  { league: 'นอร์เวย์ - โอบอสลีเก้น', time: 'Jul 28, 00:00', home: 'สตาเบ็ค', away: 'ฮ็อดด์', homeLogo: 'https://googlecdn.live/teams/1593.png', awayLogo: 'https://googlecdn.live/teams/1608.png' },
-  { league: 'โปแลนด์ - เอ็คสตราคลาซ่า', time: 'Jul 28, 00:00', home: 'ซาเกลบี้ ลูบิน', away: 'เพียสท์ กลิวิเซ่', homeLogo: 'https://googlecdn.live/teams/1663.png', awayLogo: 'https://googlecdn.live/teams/1673.png' },
-  { league: 'โปแลนด์ - ลีกา 1', time: 'Jul 28, 00:00', home: 'มีดซ์ เล็กนิซ่า', away: 'ป็อดเบสคิดเซีย', homeLogo: 'https://googlecdn.live/teams/6940.png', awayLogo: 'https://googlecdn.live/teams/1667.png' },
-  { league: 'รัสเซีย - เนชั่นแนลลีก', time: 'Jul 28, 00:00', home: 'คามาซ', away: 'โรเตอร์ โวลโกกราด', homeLogo: 'https://googlecdn.live/teams/1861.png', awayLogo: 'https://googlecdn.live/teams/13206.png' },
-  { league: 'สวีเดน - อัลสเวนส์คาน', time: 'Jul 28, 00:00', home: 'ฮัคเค่น', away: 'เอไอเค โซลน่า', homeLogo: 'https://googlecdn.live/teams/2398.png', awayLogo: 'https://googlecdn.live/teams/2153.png' },
-  { league: 'สวีเดน - ซูเปอร์เร็ตเท่น', time: 'Jul 28, 00:00', home: 'โอเรโบร', away: 'อ็อดเดโวลด์', homeLogo: 'https://googlecdn.live/teams/2156.png', awayLogo: 'https://googlecdn.live/teams/2402.png' },
-  { league: 'สวีเดน - ซูเปอร์เร็ตเท่น', time: 'Jul 28, 00:05', home: 'วาร์เบิร์ก', away: 'ออสเตอร์', homeLogo: 'https://googlecdn.live/teams/7809.png', awayLogo: 'https://googlecdn.live/teams/2165.png' },
-  { league: 'ฮังการี - เอ็นบี ไอ', time: 'Jul 28, 00:30', home: 'เอ็มทีเค บูดาเปสต์', away: 'ซาเลเกอร์สเซ็ก ทีอี', homeLogo: 'https://googlecdn.live/teams/1104.png', awayLogo: 'https://googlecdn.live/teams/1109.png' },
-  { league: 'ไอซ์แลนด์ - อูร์วัลส์เดลด์', time: 'Jul 28, 01:00', home: 'ไบรดาบลิค', away: 'ไอบี เวสต์มันนาเอย่า', homeLogo: 'https://googlecdn.live/teams/1142.png', awayLogo: 'https://googlecdn.live/teams/1133.png' },
-  { league: 'แอฟริกา - แอฟริกัน เนชั่นส์ คัพ หญิง', time: 'Jul 28, 01:00', home: 'แอฟริกาใต้', away: 'แทนซาเนีย', homeLogo: 'https://googlecdn.live/teams/2014.png', awayLogo: 'https://googlecdn.live/teams/2206.png' },
-  { league: 'บัลแกเรีย - เอ พีเอฟจี', time: 'Jul 28, 01:15', home: 'ซีเอสเคเอ โซเฟีย', away: 'โบเตฟ พลอฟดิฟ', homeLogo: 'https://googlecdn.live/teams/354.png', awayLogo: 'https://googlecdn.live/teams/16355.png' },
-  { league: 'โรมาเนีย - ลีกา 1', time: 'Jul 28, 01:30', home: 'โบโตซานี่', away: 'ราปิด บูคาเรสต์', homeLogo: 'https://googlecdn.live/teams/3243.png', awayLogo: 'https://googlecdn.live/teams/1777.png' },
-  { league: 'โบลิเวีย - แอลเอฟพีบี', time: 'Jul 28, 02:00', home: 'ซาน โฮเซ่', away: 'Universitario de Vinto', homeLogo: 'https://googlecdn.live/teams/292.png', awayLogo: 'https://googlecdn.live/teams/40332.png' },
-  { league: 'เอกวาดอร์ - เซเรีย อา', time: 'Jul 28, 02:00', home: 'มูชุค รูน่า', away: 'Libertad', homeLogo: 'https://googlecdn.live/teams/21111.png', awayLogo: 'https://googlecdn.live/teams/44459.png' },
-  { league: 'ไอซ์แลนด์ - อูร์วัลส์เดลด์', time: 'Jul 28, 02:15', home: 'เคเอ อคูเรย์รี่', away: 'Thor Akureyri', homeLogo: 'https://googlecdn.live/teams/1134.png', awayLogo: 'https://googlecdn.live/teams/uploads/logo-none.png' },
+  { league: 'เดนมาร์ก - ซูเปอร์ลีกา', home: 'แรนเดอร์ส', away: 'ซิลเคบอร์ก', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
+  { league: 'นอร์เวย์ - ทิปเปลีเก้น', home: 'โรเซนบอร์ก', away: 'เฟรดริคสตัด', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
+  { league: 'สวีเดน - อัลสเวนส์คาน', home: 'ฮัคเค่น', away: 'เอไอเค โซลน่า', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
+  { league: 'ฮังการี - เอ็นบี ไอ', home: 'เอ็มทีเค บูดาเปสต์', away: 'ซาเลเกอร์สเซ็ก ทีอี', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
+  { league: 'โรมาเนีย - ลีกา 1', home: 'โบโตซานี่', away: 'ราปิด บูคาเรสต์', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
+  { league: 'เอกวาดอร์ - เซเรีย อา', home: 'มูชุค รูน่า', away: 'Libertad', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
 ];
 
 function SourceHeading({ title, icon, iconSize = 25, notice }: { title: string; icon: string; iconSize?: number; notice?: string }) {
