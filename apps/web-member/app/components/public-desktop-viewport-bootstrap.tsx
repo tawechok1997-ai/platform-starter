@@ -69,13 +69,15 @@ export default function PublicDesktopViewportBootstrap() {
 
         rewriteMediaRulesForDesktopCanvas();
         const scale = Math.max(0.05, viewportWidth / DESKTOP_DESIGN_WIDTH);
+        const viewportHeight = Math.max(1, window.visualViewport?.height || window.innerHeight);
+        const unscaledViewportHeight = viewportHeight / scale;
 
         shell.style.display = 'block';
         shell.style.width = '100%';
         shell.style.minWidth = '0';
         shell.style.maxWidth = 'none';
         shell.style.margin = '0';
-        shell.style.overflowX = 'hidden';
+        shell.style.overflowX = 'clip';
 
         canvas.style.display = 'block';
         canvas.style.width = `${DESKTOP_DESIGN_WIDTH}px`;
@@ -84,6 +86,9 @@ export default function PublicDesktopViewportBootstrap() {
         canvas.style.margin = '0';
         canvas.style.transform = 'none';
         canvas.style.transformOrigin = 'top left';
+        canvas.style.setProperty('--member-desktop-canvas-width', `${DESKTOP_DESIGN_WIDTH}px`);
+        canvas.style.setProperty('--member-desktop-viewport-height', `${unscaledViewportHeight.toFixed(3)}px`);
+        canvas.style.setProperty('--member-desktop-scale', scale.toFixed(6));
         canvas.style.setProperty('zoom', scale.toFixed(6));
 
         document.body.style.overflowX = 'hidden';
