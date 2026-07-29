@@ -1,6 +1,6 @@
 'use client';
 
-import type { SyntheticEvent } from 'react';
+import { applyMemberImageFallback, hideDecorativeImage } from '../image-fallback';
 
 type PopularItem = {
   name: string;
@@ -65,12 +65,13 @@ const LIVE_ITEMS: LiveItem[] = [
   { league: 'ไอซ์แลนด์ - อูร์วัลส์เดลด์', time: 'Jul 28, 02:15', home: 'เคเอ อคูเรย์รี่', away: 'Thor Akureyri', homeLogo: 'https://googlecdn.live/teams/1134.png', awayLogo: 'https://googlecdn.live/teams/uploads/logo-none.png' },
 ];
 
-function SourceHeading({ title, icon, iconSize = 25 }: { title: string; icon: string; iconSize?: number }) {
+function SourceHeading({ title, icon, iconSize = 25, notice }: { title: string; icon: string; iconSize?: number; notice?: string }) {
   return (
     <header className="source-feed-heading">
       <span className="source-feed-heading__content">
-        <img src={icon} alt="" aria-hidden="true" width={iconSize} height={iconSize} onError={hideBrokenImage} />
+        <img src={icon} alt="" aria-hidden="true" width={iconSize} height={iconSize} onError={hideDecorativeImage} />
         <strong>{title}</strong>
+        {notice ? <small className="source-feed-heading__notice">{notice}</small> : null}
       </span>
     </header>
   );
@@ -78,17 +79,17 @@ function SourceHeading({ title, icon, iconSize = 25 }: { title: string; icon: st
 
 export function SourcePopularSection() {
   return (
-    <section className="source-feed-host source-feed-host--popular" data-section-kind="popular">
+    <section className="source-feed-host source-feed-host--popular" data-section-kind="popular" data-content-state="demo">
       <div className="member-source-feed-mount member-source-feed-mount--popular">
         <div className="source-feed-section source-popular-section">
-          <SourceHeading title="Top 10 Popular Games" icon="/images/highlight/icongamehit.webp" iconSize={24} />
+          <SourceHeading title="Top 10 Popular Games" icon="/images/highlight/icongamehit.webp" iconSize={24} notice="ข้อมูลตัวอย่าง" />
           <div className="source-popular-track" data-drag-scroll="true">
             {POPULAR_ITEMS.map((item, index) => (
               <a key={`${item.name}-${index}`} className="source-popular-card" href="/browse/games" title={item.name}>
                 <span className="source-popular-card__art">
-                  <img className="source-popular-card__blur" src={item.imageUrl} alt="" aria-hidden="true" onError={hideBrokenImage} />
-                  <img className="source-popular-card__image" src={item.imageUrl} alt={item.name} onError={hideBrokenImage} />
-                  <span className="source-popular-card__provider"><img src={item.providerLogo} alt="" aria-hidden="true" onError={hideBrokenImage} /></span>
+                  <img className="source-popular-card__blur" src={item.imageUrl} alt="" aria-hidden="true" onError={applyMemberImageFallback} />
+                  <img className="source-popular-card__image" src={item.imageUrl} alt={item.name} onError={applyMemberImageFallback} />
+                  <span className="source-popular-card__provider"><img src={item.providerLogo} alt="" aria-hidden="true" onError={applyMemberImageFallback} /></span>
                   {item.badge ? <span className={`source-popular-card__badge source-popular-card__badge--${item.badge.toLowerCase()}`}>{item.badge}</span> : null}
                 </span>
                 <span className="source-popular-card__name">{item.name}</span>
@@ -104,14 +105,14 @@ export function SourcePopularSection() {
 
 export function SourceOnlineSection() {
   return (
-    <section className="source-feed-host source-feed-host--online" data-section-kind="online">
+    <section className="source-feed-host source-feed-host--online" data-section-kind="online" data-content-state="demo">
       <div className="member-source-feed-mount member-source-feed-mount--online">
         <div className="source-feed-section source-online-section">
-          <SourceHeading title="Most Online Now" icon="/images/home/mostonline1.webp" />
+          <SourceHeading title="Most Online Now" icon="/images/home/mostonline1.webp" notice="จำนวนผู้เล่นตัวอย่าง" />
           <div className="source-online-track" data-drag-scroll="true">
             {ONLINE_ITEMS.map((item, index) => (
               <a key={`${item.imageUrl}-${index}`} className="source-online-card" href="/browse/games">
-                <span className="source-online-card__art"><img src={item.imageUrl} alt={`เกมออนไลน์อันดับ ${index + 1}`} onError={hideBrokenImage} /></span>
+                <span className="source-online-card__art"><img src={item.imageUrl} alt={`เกมตัวอย่างอันดับ ${index + 1}`} onError={applyMemberImageFallback} /></span>
                 <span className="source-online-card__counter"><span className="source-online-card__counter-inner"><UserIcon /><strong>{item.players.toLocaleString('en-US')}</strong></span></span>
               </a>
             ))}
@@ -124,10 +125,10 @@ export function SourceOnlineSection() {
 
 export function SourceLiveSection({ onAction }: { onAction: () => void }) {
   return (
-    <section className="source-feed-host source-feed-host--live" id="live" data-section-kind="live">
+    <section className="source-feed-host source-feed-host--live" id="live" data-section-kind="live" data-content-state="demo">
       <div className="member-source-feed-mount member-source-feed-mount--live">
         <div className="source-feed-section source-live-section">
-          <SourceHeading title="Live Now!!" icon="/images/home/live1.webp" />
+          <SourceHeading title="ตารางการแข่งขัน" icon="/images/home/live1.webp" notice="ข้อมูลตัวอย่าง ไม่ใช่รายการสด" />
           <div className="source-live-track" data-drag-scroll="true">
             {LIVE_ITEMS.map((match, index) => (
               <article key={`${match.league}-${index}`} className="source-live-card">
@@ -136,12 +137,12 @@ export function SourceLiveSection({ onAction }: { onAction: () => void }) {
                   <div className="source-live-card__content">
                     <header className="source-live-card__header">
                       <span className="source-live-card__league"><SoccerIcon /><span>{match.league}</span></span>
-                      <span className="source-live-card__status"><b>LIVE</b><time>{match.time}</time></span>
+                      <span className="source-live-card__status"><b>ตัวอย่าง</b><time>กำหนดการจำลอง</time></span>
                     </header>
                     <div className="source-live-card__teams"><Team logo={match.homeLogo} name={match.home} /><strong>VS</strong><Team logo={match.awayLogo} name={match.away} /></div>
                     <footer className="source-live-card__actions">
-                      <button type="button" className="source-live-card__watch" onClick={onAction}><LiveIcon /><span>ดูถ่ายทอดสด</span></button>
-                      <button type="button" className="source-live-card__bet" onClick={onAction}>เดิมพันทันที</button>
+                      <button type="button" className="source-live-card__watch" onClick={onAction}><LiveIcon /><span>ดูหมวดกีฬา</span></button>
+                      <button type="button" className="source-live-card__bet" onClick={onAction}>เลือกเกมกีฬา</button>
                     </footer>
                   </div>
                 </div>
@@ -155,7 +156,7 @@ export function SourceLiveSection({ onAction }: { onAction: () => void }) {
 }
 
 function Team({ logo, name }: { logo: string; name: string }) {
-  return <span className="source-live-team"><span className="source-live-team__logo"><img src={logo} alt="" aria-hidden="true" onError={hideBrokenImage} /></span><span title={name}>{name}</span></span>;
+  return <span className="source-live-team"><span className="source-live-team__logo"><img src={logo} alt="" aria-hidden="true" onError={applyMemberImageFallback} /></span><span title={name}>{name}</span></span>;
 }
 
 function UserIcon() {
@@ -168,8 +169,4 @@ function SoccerIcon() {
 
 function LiveIcon() {
   return <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="white" /><path d="M3.4 3.4a6.5 6.5 0 0 0 0 9.2M12.6 3.4a6.5 6.5 0 0 1 0 9.2" stroke="white" strokeWidth="1.4" strokeLinecap="round" /></svg>;
-}
-
-function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
-  event.currentTarget.style.display = 'none';
 }
