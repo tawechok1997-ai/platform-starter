@@ -32,9 +32,20 @@ type Props = {
   isGamesLoading: boolean;
   gamesMessage: string;
   onOpenPromotion?: () => void;
+  onOpenActivity?: () => void;
+  onOpenNews?: () => void;
 };
 
-export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, gamesMessage, onOpenPromotion = () => undefined }: Props) {
+export function MobileV47Scaffold({
+  content,
+  siteName,
+  games,
+  isGamesLoading,
+  gamesMessage,
+  onOpenPromotion = () => undefined,
+  onOpenActivity = () => undefined,
+  onOpenNews = () => undefined,
+}: Props) {
   const configuredBanners = Array.isArray(content.banners) ? content.banners.filter((item) => item.enabled) : [];
   const banners = configuredBanners.length ? configuredBanners : PROJECT_FALLBACK_BANNERS;
   const announcements = Array.isArray(content.announcements) ? content.announcements.filter((item) => item.enabled) : [];
@@ -74,8 +85,8 @@ export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, ga
 
       <div className="v47-mobile-quick-grid">
         <QuickCard icon={V47_ASSETS.quickPromotion} title="โปรโมชั่น" onClick={onOpenPromotion} />
-        <QuickCard icon={V47_ASSETS.quickActivity} title="กิจกรรม" href="/browse/promotions?view=activity" />
-        <QuickCard icon={V47_ASSETS.quickNews} title="ข่าวสาร" href="/browse/promotions?view=news" />
+        <QuickCard icon={V47_ASSETS.quickActivity} title="กิจกรรม" onClick={onOpenActivity} />
+        <QuickCard icon={V47_ASSETS.quickNews} title="ข่าวสาร" onClick={onOpenNews} />
       </div>
 
       <a className="v47-mobile-tournament-banner" href="/browse/promotions?view=activity">
@@ -110,9 +121,7 @@ export function MobileV47Scaffold({ content, siteName, games, isGamesLoading, ga
 
 function QuickCard({ icon, title, href, onClick }: { icon: string; title: string; href?: string; onClick?: () => void }) {
   const content = <><Icon value={icon} /><strong>{title}</strong></>;
-  if (onClick) {
-    return <button type="button" className="v47-mobile-quick-card" onClick={onClick}>{content}</button>;
-  }
+  if (onClick) return <button type="button" className="v47-mobile-quick-card" onClick={onClick}>{content}</button>;
   return <a href={href}>{content}</a>;
 }
 function SectionTitle({ icon, title, action }: { icon: string; title: string; action?: string }) { return <header className="v47-mobile-section-title"><span><Icon value={icon} /><strong>{title}</strong></span>{action ? <a href="/browse/games">{action}</a> : null}</header>; }
