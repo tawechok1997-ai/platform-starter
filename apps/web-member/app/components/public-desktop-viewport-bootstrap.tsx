@@ -15,6 +15,11 @@ type BodySnapshot = {
   htmlOverflowX: string;
 };
 
+type WidthCondition = {
+  kind: 'min' | 'max';
+  boundary: number;
+};
+
 const mediaRuleSources = new Map<CSSMediaRule, string>();
 let nativeMatchMedia: typeof window.matchMedia | null = null;
 let matchMediaPatched = false;
@@ -170,15 +175,13 @@ function virtualizeMediaText(mediaText: string, width: number) {
   let changed = false;
 
   const virtualized = branches.map((branch) => {
-    const conditions = Array.from(branch.matchAll(WIDTH_CONDITION));
-    WIDTH_CONDITION.lastIndex = 0;
+    const conditions = extractWidthConditions(branch);
     if (!conditions.length) return branch.trim();
     changed = true;
 
-    const matches = conditions.every((condition) => {
-      const boundary = Number(condition[2]);
-      return condition[1].toLowerCase() === 'min' ? width >= boundary : width <= boundary;
-    });
+    const matches = conditions.every((condition) => (
+      condition.kind === 'min' ? width >= condition.boundary : width <= condition.boundary
+    ));
 
     if (!matches) return 'not all';
 
@@ -200,18 +203,33 @@ function evaluateMediaWidth(mediaText: string, width: number): boolean | null {
   let foundWidth = false;
 
   const matches = branches.some((branch) => {
-    const conditions = Array.from(branch.matchAll(WIDTH_CONDITION));
-    WIDTH_CONDITION.lastIndex = 0;
+    const conditions = extractWidthConditions(branch);
     if (!conditions.length) return false;
     foundWidth = true;
 
-    return conditions.every((condition) => {
-      const boundary = Number(condition[2]);
-      return condition[1].toLowerCase() === 'min' ? width >= boundary : width <= boundary;
-    });
+    return conditions.every((condition) => (
+      condition.kind === 'min' ? width >= condition.boundary : width <= condition.boundary
+    ));
   });
 
   return foundWidth ? matches : null;
+}
+
+function extractWidthConditions(mediaText: string): WidthCondition[] {
+  const conditions: WidthCondition[] = [];
+  const expression = new RegExp(WIDTH_CONDITION.source, 'gi');
+  let match: RegExpExecArray | null = expression.exec(mediaText);
+
+  while (match) {
+    const kind = match[1]?.toLowerCase();
+    const boundary = Number(match[2]);
+    if ((kind === 'min' || kind === 'max') && Number.isFinite(boundary)) {
+      conditions.push({ kind, boundary });
+    }
+    match = expression.exec(mediaText);
+  }
+
+  return conditions;
 }
 
 function splitMediaBranches(mediaText: string) {
