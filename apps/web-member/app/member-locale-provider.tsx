@@ -15,15 +15,12 @@ import { flushSync } from 'react-dom';
 export type MemberLocale = 'th' | 'en';
 
 const STORAGE_KEY = 'member_locale';
-const LOCALE_EVENT = 'member-locale-change';
 
 type MemberLocaleContextValue = {
   locale: MemberLocale;
   setLocale: (locale: MemberLocale) => void;
   toggleLocale: () => void;
 };
-
-type MemberLocaleEvent = CustomEvent<{ locale?: MemberLocale }>;
 
 const MemberLocaleContext = createContext<MemberLocaleContextValue | null>(null);
 
@@ -39,14 +36,10 @@ function applyLocaleToDocument(locale: MemberLocale) {
 export function MemberLocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<MemberLocale>('th');
 
-  const commitLocale = useCallback((nextLocale: MemberLocale, broadcast = true) => {
+  const commitLocale = useCallback((nextLocale: MemberLocale) => {
     flushSync(() => setLocaleState(nextLocale));
     applyLocaleToDocument(nextLocale);
     window.localStorage.setItem(STORAGE_KEY, nextLocale);
-
-    if (broadcast) {
-      window.dispatchEvent(new CustomEvent(LOCALE_EVENT, { detail: { locale: nextLocale } }));
-    }
   }, []);
 
   useEffect(() => {
@@ -61,19 +54,8 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
       applyLocaleToDocument(nextLocale);
     };
 
-    const syncCustomLocale = (event: Event) => {
-      const nextLocale = normalizeLocale((event as MemberLocaleEvent).detail?.locale);
-      flushSync(() => setLocaleState(nextLocale));
-      applyLocaleToDocument(nextLocale);
-    };
-
     window.addEventListener('storage', syncStorageLocale);
-    window.addEventListener(LOCALE_EVENT, syncCustomLocale);
-
-    return () => {
-      window.removeEventListener('storage', syncStorageLocale);
-      window.removeEventListener(LOCALE_EVENT, syncCustomLocale);
-    };
+    return () => window.removeEventListener('storage', syncStorageLocale);
   }, []);
 
   const setLocale = useCallback((nextLocale: MemberLocale) => {
