@@ -116,6 +116,13 @@ const GUIDE_GROUPS: readonly GuideGroup[] = [
   },
 ] as const;
 
+const GUIDE_HEADER_SUPPRESSION_CSS = `
+html body .public-home-topbar.global-member-topbar {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+`;
+
 export default function UsageGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<GuideTab>('all');
   const [openItem, setOpenItem] = useState<string | null>(null);
@@ -158,6 +165,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
   return createPortal(
     <div className={styles.backdrop} role="presentation" onMouseDown={closeFromBackdrop}>
+      <style>{GUIDE_HEADER_SUPPRESSION_CSS}</style>
       <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="usage-guide-title">
         <div className={styles.topLine} aria-hidden="true" />
         <header className={styles.header}>
