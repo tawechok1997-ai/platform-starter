@@ -1,0 +1,28 @@
+.public-authenticated-portal {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .public-home-topbar .public-home-desktop-bar > .member-actions:has(> .public-authenticated-portal) > .member-guest-action,
+  .public-home-topbar .public-home-desktop-bar > .member-actions:has(> .public-authenticated-portal) > .member-header-wallet,
+  .public-home-topbar .public-home-desktop-bar > .member-actions:has(> .public-authenticated-portal) > .member-header-logout {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .public-home-topbar .public-home-desktop-bar > .member-actions > .public-authenticated-portal {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+    margin-left: auto;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 900px) {
+  .public-authenticated-portal {
+    display: none !important;
+  }
+}
