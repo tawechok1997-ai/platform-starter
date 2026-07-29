@@ -1,7 +1,6 @@
 /* Shared visual contract for local source-game category pages.
  * Keep each page's own background artwork and filters, while removing opaque
- * panels that sit behind the game grid. Missing provider artwork is handled by
- * the image fallback controller and must not hide valid sibling assets.
+ * panels and card surfaces that sit behind the game artwork.
  */
 
 main[data-source-game-category] > section,
@@ -17,9 +16,25 @@ main[data-source-game-category] [data-source-game-layout] article {
   border-color: transparent !important;
 }
 
-/* A game cover keeps its own dark loading surface; only the large containers
- * behind the cards are transparent. */
-main[data-source-game-category] [data-source-game-cover] {
+/* The artwork owns the card. Do not reveal the old #15131a loading plate
+ * through transparent or rounded pixels around provider images. */
+main[data-source-game-category] [data-source-game-cover],
+main[data-source-game-category='casino'] [data-source-game-cover] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+main[data-source-game-category] [data-source-game-cover]::before,
+main[data-source-game-category] [data-source-game-cover]::after {
+  content: none !important;
+  display: none !important;
+  background: transparent !important;
+}
+
+main[data-source-game-category] [data-source-game-cover] > img {
+  background: transparent !important;
   box-shadow: none !important;
 }
 
@@ -37,8 +52,11 @@ main[data-source-game-category] img[src*='noah345-placeholder.svg'] {
   main[data-source-game-category] [data-source-game-layout],
   main[data-source-game-category] [data-source-game-layout] > section,
   main[data-source-game-category] [data-source-game-layout] > section > div:has(> article),
-  main[data-source-game-category] [data-source-game-layout] article {
+  main[data-source-game-category] [data-source-game-layout] article,
+  main[data-source-game-category] [data-source-game-cover] {
     background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
     box-shadow: none !important;
   }
 }
