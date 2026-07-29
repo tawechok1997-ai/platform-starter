@@ -107,6 +107,7 @@ import './member-leaderboard-rank-number-lock.css';
 import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
+import MemberImageFallbackController from './components/member-image-fallback-controller';
 import PublicNavigationLocaleGuard from './components/public-navigation-locale-guard';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
@@ -138,6 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteSettingsProvider>
             <MemberSessionProvider>
               <PublicNavigationLocaleGuard />
+              <MemberImageFallbackController />
               <MemberHeroSwipeController />
               <MemberDragScrollController />
               <PublicLiveNavigationController />
