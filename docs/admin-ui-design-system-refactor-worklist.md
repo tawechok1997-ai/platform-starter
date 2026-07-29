@@ -10,7 +10,7 @@
 - ใช้ shared component ก่อนสร้างรูปแบบเฉพาะหน้า
 - จำนวนงานต้องนับจาก checkbox จริง ไม่ใช้ตัวเลขที่จำจากบทสนทนา เพราะมนุษย์เก่งเรื่องทำตัวเลขคลาดเคลื่อนอย่างน่าประหลาด
 
-อัปเดตล่าสุด: **2026-07-20**
+อัปเดตล่าสุด: **2026-07-29**
 
 ## P0 — Foundation
 
@@ -60,7 +60,7 @@
 - [x] Shared detail/data rows
 - [x] Shared JSON/payload viewer
 - [x] Shared action group
-- [ ] Shared expandable technical details
+- [x] Shared expandable technical details
 - [ ] ลด component/helper ซ้ำในแต่ละโมดูล
 
 ## P5 — Visual polish
@@ -68,8 +68,8 @@
 - [ ] ใช้ loading skeleton ครบทุกหน้าหลัก
 - [x] Button hover, focus, pressed และ disabled baseline
 - [x] เพิ่ม button border และ surface contrast ทุก tone
-- [ ] Dialog transition
-- [ ] Expand/collapse animation
+- [x] Dialog transition
+- [x] Expand/collapse animation
 - [ ] Success/error feedback consistency audit
 - [x] Reduced-motion baseline
 - [ ] Contrast และ readability audit ทั้งระบบ
@@ -101,6 +101,8 @@
 - [x] Settings
 - [x] Support Center
 - [x] Risk detail surfaces
+- [x] Admin Invitations
+- [x] Access Control
 
 ## รอบปัจจุบัน
 
@@ -113,4 +115,7 @@
 - ย้าย Settings มาใช้ action strip และ section heading กลางที่ commit `3676b42e`
 - Risk detail ได้รับ action/form/mobile contract กลางโดยไม่รื้อ logic เดิม
 - ย้าย Support Center มาใช้ filter bar, action strip, data values, code display และ loading skeleton ที่ commit `de7fb235`
-- ขั้นถัดไป: กวาด inline styles, helper ซ้ำ, dead imports และ mobile viewport ที่ยังเหลือ
+- ปรับ Admin Invitations และ Webhook Logs ให้ใช้ feedback/loading contract พร้อม shared technical details ที่ commit `add490a`
+- รีแฟกเตอร์ Access Control, เพิ่ม permission pagination, overlay transitions และ Browser Matrix สำหรับ `/access` ที่ commit `6afa4ac`
+- Visual QA `/access` ผ่าน 390px, 834px และ 1440px โดยไม่พบ horizontal overflow
+- ขั้นถัดไป: กวาดคำอังกฤษและ action labels, ลด inline styles/helper ซ้ำ, ตรวจ contrast และ mobile viewport ของหน้าหลักที่ยังไม่อยู่ใน Browser Matrix
