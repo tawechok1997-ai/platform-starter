@@ -18,6 +18,10 @@ export class ProviderSimulatorLaunchRequestDto {
   @IsString()
   @IsNotEmpty()
   sessionId!: string;
+
+  @IsOptional()
+  @IsString()
+  provider?: string;
 }
 
 export class ProviderSimulatorBalanceRequestDto {
@@ -60,6 +64,10 @@ export class ProviderSimulatorGamesRequestDto {
   @IsOptional()
   @IsString()
   category?: string;
+
+  @IsOptional()
+  @IsString()
+  tag?: string;
 
   @IsOptional()
   @IsString()
