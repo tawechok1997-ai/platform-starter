@@ -103,6 +103,8 @@
 - [x] Risk detail surfaces
 - [x] Admin Invitations
 - [x] Access Control
+- [x] Top-up queue
+- [x] Withdrawal queue
 
 ## รอบปัจจุบัน
 
@@ -118,4 +120,8 @@
 - ปรับ Admin Invitations และ Webhook Logs ให้ใช้ feedback/loading contract พร้อม shared technical details ที่ commit `add490a`
 - รีแฟกเตอร์ Access Control, เพิ่ม permission pagination, overlay transitions และ Browser Matrix สำหรับ `/access` ที่ commit `6afa4ac`
 - Visual QA `/access` ผ่าน 390px, 834px และ 1440px โดยไม่พบ horizontal overflow
+- ปรับคิวฝากและถอนให้คงข้อมูลเดิมเมื่อรีเฟรชพลาด กัน response เก่าทับใหม่ และคงผล action หลัง background refresh ที่ commit `2be0458`
+- แยก shared finance queue/evidence styles ไป CSS Module และเพิ่ม populated Browser Matrix สำหรับ `/topups` กับ `/withdrawals`
+- แก้ Overlay Drawer ชน Sidebar บน tablet/mobile ด้วย namespace `.admin-overlay-drawer` พร้อม transition และ reduced-motion contract แยกจากกัน
+- Visual QA คิวฝากและถอนผ่าน 390px, 834px และ 1440px โดยไม่พบ horizontal overflow หรือองค์ประกอบชนกัน
 - ขั้นถัดไป: กวาดคำอังกฤษและ action labels, ลด inline styles/helper ซ้ำ, ตรวจ contrast และ mobile viewport ของหน้าหลักที่ยังไม่อยู่ใน Browser Matrix
