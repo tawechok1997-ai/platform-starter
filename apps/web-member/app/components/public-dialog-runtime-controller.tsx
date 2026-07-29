@@ -14,15 +14,46 @@ const SEARCH_TRIGGER_SELECTOR = [
   '[aria-label="Search games"]',
 ].join(',');
 
+function forceOverlayAboveChrome(overlay: HTMLElement, kind: string) {
+  overlay.dataset.publicDialogOverlay = kind;
+  overlay.classList.add('public-dialog-runtime-overlay');
+
+  // These are written inline with !important so legacy CSS modules and the
+  // sticky public header cannot place themselves above an open dialog.
+  overlay.style.setProperty('position', 'fixed', 'important');
+  overlay.style.setProperty('inset', '0', 'important');
+  overlay.style.setProperty('top', '0', 'important');
+  overlay.style.setProperty('right', '0', 'important');
+  overlay.style.setProperty('bottom', '0', 'important');
+  overlay.style.setProperty('left', '0', 'important');
+  overlay.style.setProperty('z-index', '2147483647', 'important');
+  overlay.style.setProperty('isolation', 'isolate', 'important');
+  overlay.style.setProperty('width', '100vw', 'important');
+  overlay.style.setProperty('min-width', '100vw', 'important');
+  overlay.style.setProperty('max-width', '100vw', 'important');
+  overlay.style.setProperty('height', '100dvh', 'important');
+  overlay.style.setProperty('min-height', '100dvh', 'important');
+  overlay.style.setProperty('max-height', '100dvh', 'important');
+  overlay.style.setProperty('margin', '0', 'important');
+  overlay.style.setProperty('overflow', 'hidden', 'important');
+  overlay.style.setProperty('opacity', '1', 'important');
+  overlay.style.setProperty('visibility', 'visible', 'important');
+  overlay.style.setProperty('pointer-events', 'auto', 'important');
+  overlay.style.setProperty('transform', 'none', 'important');
+  overlay.style.setProperty('filter', 'none', 'important');
+}
+
 function normalizeDialog(id: string, kind: string) {
   const dialog = document.querySelector<HTMLElement>(`section[role="dialog"][aria-labelledby="${id}"]`);
   if (!dialog) return;
 
   dialog.classList.add('public-dialog-runtime', `public-dialog-runtime--${kind}`);
+  dialog.style.setProperty('position', 'relative', 'important');
+  dialog.style.setProperty('z-index', '1', 'important');
 
   const overlay = dialog.parentElement;
   if (overlay instanceof HTMLElement) {
-    overlay.classList.add('public-dialog-runtime-overlay');
+    forceOverlayAboveChrome(overlay, kind);
   }
 
   const header = dialog.querySelector<HTMLElement>(':scope > header');
