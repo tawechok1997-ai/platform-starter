@@ -1,47 +1,31 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useMemberLocale, type MemberLocale } from '../member-locale-provider';
 import styles from './member-language-overlay.module.css';
 
-type MemberLocale = 'en' | 'th';
-type DisplayLocale = MemberLocale | 'ph' | 'vi' | 'km' | 'lo' | 'id' | 'mm';
-
 type LanguageOption = {
-  code: DisplayLocale;
+  code: MemberLocale;
   label: string;
-  flag?: string;
-  enabled: boolean;
+  flag: string;
 };
 
-const LOCALE_STORAGE_KEY = 'member_locale';
-
-const LANGUAGES: LanguageOption[] = [
-  { code: 'en', label: 'English', flag: '/assets/asset-pc/images/flags/en.svg', enabled: true },
-  { code: 'th', label: 'ภาษาไทย', flag: '/assets/asset-pc/images/flags/th.svg', enabled: true },
-  { code: 'ph', label: 'Tagalog', enabled: false },
-  { code: 'vi', label: 'Tiếng Việt', enabled: false },
-  { code: 'km', label: 'ភាសាខ្មែរ', enabled: false },
-  { code: 'lo', label: 'ພາສາລາວ', enabled: false },
-  { code: 'id', label: 'Bahasa Indonesia', enabled: false },
-  { code: 'mm', label: 'Myan', enabled: false },
+const LANGUAGES: readonly LanguageOption[] = [
+  { code: 'th', label: 'ภาษาไทย', flag: '/assets/asset-pc/images/flags/th.svg' },
+  { code: 'en', label: 'English', flag: '/assets/asset-pc/images/flags/en.svg' },
 ];
 
-function readSavedLocale(): MemberLocale {
-  if (typeof window === 'undefined') return 'th';
-  return window.localStorage.getItem(LOCALE_STORAGE_KEY) === 'en' ? 'en' : 'th';
-}
+const COPY = {
+  th: { title: 'เปลี่ยนภาษา', close: 'ปิดหน้าต่างเปลี่ยนภาษา', choose: 'เลือกภาษา' },
+  en: { title: 'Change language', close: 'Close language dialog', choose: 'Choose language' },
+} as const;
 
 export default function MemberLanguageOverlay() {
   const [open, setOpen] = useState(false);
-  const [locale, setLocale] = useState<MemberLocale>('th');
-  const activeLanguage = useMemo(
-    () => LANGUAGES.find((language) => language.code === locale) ?? LANGUAGES[1]!,
-    [locale],
-  );
+  const { locale, setLocale } = useMemberLocale();
+  const copy = COPY[locale];
 
   useEffect(() => {
-    setLocale(readSavedLocale());
-
     const openLanguagePopup = (event: MouseEvent) => {
       const trigger = event.target instanceof Element
         ? event.target.closest<HTMLElement>('.public-home-flag, [data-language-trigger="true"], [aria-label="เปลี่ยนภาษา"]')
@@ -49,7 +33,6 @@ export default function MemberLanguageOverlay() {
       if (!trigger) return;
       event.preventDefault();
       event.stopPropagation();
-      setLocale(readSavedLocale());
       setOpen(true);
     };
 
@@ -59,7 +42,6 @@ export default function MemberLanguageOverlay() {
 
   useEffect(() => {
     if (!open) return;
-
     const previousBodyOverflow = document.body.style.overflow;
     const previousHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -77,65 +59,36 @@ export default function MemberLanguageOverlay() {
     };
   }, [open]);
 
-  const selectLanguage = (language: LanguageOption) => {
-    if (!language.enabled || !language.flag || (language.code !== 'th' && language.code !== 'en')) return;
-
-    setLocale(language.code);
-    window.localStorage.setItem(LOCALE_STORAGE_KEY, language.code);
-    document.documentElement.lang = language.code;
-
-    document.querySelectorAll<HTMLImageElement>('.public-home-flag img').forEach((image) => {
-      image.src = language.flag!;
-      image.alt = language.label;
-    });
-
-    window.dispatchEvent(new CustomEvent('member-locale-change', {
-      detail: { locale: language.code },
-    }));
-    setOpen(false);
-  };
-
   if (!open) return null;
 
   return (
-    <div
-      className={styles.overlay}
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) setOpen(false);
-      }}
-    >
+    <div className={styles.overlay} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
       <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="member-language-title">
         <div className={styles.topLine} aria-hidden="true" />
-
         <header className={styles.header}>
           <div className={styles.titleWrap}>
             <span className={styles.globeIcon} aria-hidden="true"><GlobeIcon /></span>
-            <h2 id="member-language-title">เปลี่ยนภาษา</h2>
+            <h2 id="member-language-title">{copy.title}</h2>
           </div>
-          <button type="button" className={styles.closeButton} onClick={() => setOpen(false)} aria-label="ปิดหน้าต่างเปลี่ยนภาษา">
+          <button type="button" className={styles.closeButton} onClick={() => setOpen(false)} aria-label={copy.close}>
             <img src="/assets/asset-pc/images/close.svg" alt="" aria-hidden="true" />
           </button>
         </header>
 
-        <div className={styles.grid} aria-label="เลือกภาษา">
+        <div className={styles.grid} aria-label={copy.choose}>
           {LANGUAGES.map((language) => {
-            const active = language.code === activeLanguage.code;
+            const active = language.code === locale;
             return (
               <button
                 key={language.code}
                 type="button"
-                className={`${styles.languageFrame} ${active ? styles.activeFrame : ''} ${language.enabled ? '' : styles.disabledFrame}`}
-                onClick={() => selectLanguage(language)}
+                className={`${styles.languageFrame} ${active ? styles.activeFrame : ''}`}
+                onClick={() => { setLocale(language.code); setOpen(false); }}
                 aria-pressed={active}
-                aria-disabled={!language.enabled}
-                disabled={!language.enabled}
               >
                 <span className={`${styles.languageCard} ${active ? styles.activeCard : ''}`}>
                   <span className={`${styles.flagWrap} ${active ? '' : styles.inactiveFlag}`}>
-                    {language.flag
-                      ? <img src={language.flag} alt={language.label} />
-                      : <span className={styles.missingAsset}>MISSING<br />ASSET</span>}
+                    <img src={language.flag} alt={language.label} />
                   </span>
                   <span className={`${styles.languageName} ${active ? styles.activeName : ''}`}>{language.label}</span>
                 </span>
