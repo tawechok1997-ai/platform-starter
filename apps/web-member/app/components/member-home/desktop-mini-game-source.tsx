@@ -5,7 +5,7 @@ const MINI_GAME_ACTIONS = [
     key: 'wheel',
     label: 'วงล้อ',
     image: `${IMAGE_ROOT}/mini_game/icon-luckywheel-dt.webp`,
-    href: '/?auth=login',
+    href: '/mini-game/spinner',
   },
   {
     key: 'mission',
