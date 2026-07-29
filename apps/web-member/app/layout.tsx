@@ -151,7 +151,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <PublicDialogRuntimeController />
               <PublicGameLoginController />
               <UsageGuideController />
-              <MemberChrome>{children}</MemberChrome>
+              <div id="member-desktop-scale-shell">
+                <div id="member-desktop-scale-canvas">
+                  <MemberChrome>{children}</MemberChrome>
+                </div>
+              </div>
             </MemberSessionProvider>
           </SiteSettingsProvider>
         </MemberLocaleProvider>
