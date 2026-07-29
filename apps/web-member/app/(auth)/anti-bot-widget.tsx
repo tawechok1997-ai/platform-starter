@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createApiClient } from '@platform/api-client';
 
 type Provider = 'TURNSTILE' | 'RECAPTCHA' | 'HCAPTCHA';
-type Endpoint = 'member-login' | 'member-register';
+type Endpoint = 'member-login' | 'member-register' | 'member-password-reset';
 type PublicConfig = { enabled: boolean; provider: Provider | null; siteKey: string };
 
 type Props = {
