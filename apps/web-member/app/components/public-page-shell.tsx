@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import MemberFooter from '../member-footer';
 import { useMemberLocale, type MemberLocale } from '../member-locale-provider';
@@ -8,11 +9,11 @@ import { DesktopAllianceBand } from './member-home/desktop-alliance-band';
 import { V47_ASSETS } from './member-home/v47-asset-map';
 
 const NAV_ITEMS = [
-  { key: 'home', href: '/' },
-  { key: 'games', href: '/browse/games' },
-  { key: 'guide', href: '/guide' },
-  { key: 'contact', href: '/contact' },
-  { key: 'legal', href: '/legal' },
+  { key: 'home', href: '/', icon: V47_ASSETS.menuHome },
+  { key: 'games', href: '/browse/games', icon: V47_ASSETS.menuSlot },
+  { key: 'guide', href: '/guide', icon: V47_ASSETS.menuCard },
+  { key: 'contact', href: '/contact', icon: V47_ASSETS.menuLive },
+  { key: 'legal', href: '/legal', icon: V47_ASSETS.menuLottery },
 ] as const;
 
 type NavKey = (typeof NAV_ITEMS)[number]['key'];
@@ -44,6 +45,7 @@ const COPY: Record<MemberLocale, {
 };
 
 export function PublicPageShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname() ?? '/';
   const { typedSettings } = useSiteSettings();
   const { locale } = useMemberLocale();
   const copy = COPY[locale];
@@ -87,11 +89,16 @@ export function PublicPageShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <nav className="member-desktop-nav member-desktop-nav--guest" aria-label={copy.navigation}>
-          {NAV_ITEMS.map((item) => (
-            <a key={item.key} href={item.href}>
-              <span>{copy.nav[item.key]}</span>
-            </a>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+            return (
+              <a key={item.key} href={item.href} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
+                <span className="public-home-nav-icon-frame"><img src={item.icon} alt="" className="public-home-nav-icon" aria-hidden="true" /></span>
+                <span>{copy.nav[item.key]}</span>
+                {item.key === 'home' ? <span data-navigation-label-guard="true" aria-hidden="true" hidden /> : null}
+              </a>
+            );
+          })}
         </nav>
       </header>
 
