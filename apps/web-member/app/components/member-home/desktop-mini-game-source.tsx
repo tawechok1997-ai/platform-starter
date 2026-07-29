@@ -17,7 +17,11 @@ const MINI_GAME_ACTIONS = [
 
 export default function DesktopMiniGameSource() {
   return (
-    <section className="reference-side-card reference-mini-games source-mini-game" aria-label="Mini Game">
+    <section
+      id="desktop-mini-game-source"
+      className="reference-side-card reference-mini-games source-mini-game"
+      aria-label="Mini Game"
+    >
       <div className="source-mini-game__header">
         <div className="source-mini-game__header-gradient" aria-hidden="true" />
         <div className="source-mini-game__header-line" aria-hidden="true" />
@@ -38,71 +42,92 @@ export default function DesktopMiniGameSource() {
 
       <div className="source-mini-game__actions">
         {MINI_GAME_ACTIONS.map((action) => (
-          <a key={action.key} href={action.href} className="source-mini-game__action">
-            <span
-              className="mini-game-clean-surface"
-              style={{
-                position: 'relative',
-                display: 'block',
-                boxSizing: 'border-box',
-                width: '100%',
-                height: 44,
-                overflow: 'visible',
-                border: '2px solid rgb(255 227 111)',
-                borderRadius: 999,
-                background: 'linear-gradient(135deg, rgb(136 0 200) 10%, rgb(110 0 141) 100%)',
-              }}
-            >
-              <img
-                loading="lazy"
-                className="mini-game-clean-icon"
-                src={action.image}
-                alt=""
-                aria-hidden="true"
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: action.key === 'wheel' ? -22 : -21,
-                  zIndex: 2,
-                  display: 'block',
-                  width: 90,
-                  minWidth: 90,
-                  maxWidth: 90,
-                  height: 90,
-                  minHeight: 90,
-                  maxHeight: 90,
-                  margin: 0,
-                  padding: 0,
-                  objectFit: 'contain',
-                  transform: 'translateY(-50%)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <span
-                className="mini-game-clean-label"
-                style={{
-                  position: 'absolute',
-                  inset: '0 4px 0 56px',
-                  zIndex: 3,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: 0,
-                  color: '#fff',
-                  fontSize: 18,
-                  fontWeight: 600,
-                  lineHeight: '24px',
-                  textAlign: 'center',
-                  whiteSpace: 'nowrap',
-                  pointerEvents: 'none',
-                }}
-              >
-                {action.label}
-              </span>
-            </span>
+          <a
+            key={action.key}
+            href={action.href}
+            className={`mini-game-final-action mini-game-final-action--${action.key}`}
+          >
+            <img
+              loading="lazy"
+              className="mini-game-final-icon"
+              src={action.image}
+              alt=""
+              aria-hidden="true"
+            />
+            <span className="mini-game-final-label">{action.label}</span>
           </a>
         ))}
       </div>
+
+      <style jsx>{`
+        #desktop-mini-game-source .mini-game-final-action {
+          position: relative !important;
+          display: block !important;
+          box-sizing: border-box !important;
+          width: 100% !important;
+          min-width: 0 !important;
+          height: 44px !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: visible !important;
+          border: 2px solid rgb(255 227 111) !important;
+          border-radius: 999px !important;
+          outline: 0 !important;
+          background: linear-gradient(135deg, rgb(136 0 200) 10%, rgb(110 0 141) 100%) !important;
+          box-shadow: none !important;
+          color: #fff !important;
+          text-decoration: none !important;
+          transform: none !important;
+        }
+
+        #desktop-mini-game-source .mini-game-final-action::before,
+        #desktop-mini-game-source .mini-game-final-action::after {
+          content: none !important;
+          display: none !important;
+        }
+
+        #desktop-mini-game-source .mini-game-final-icon {
+          position: absolute !important;
+          top: 50% !important;
+          left: -28px !important;
+          z-index: 2 !important;
+          display: block !important;
+          width: 90px !important;
+          min-width: 90px !important;
+          max-width: 90px !important;
+          height: 90px !important;
+          min-height: 90px !important;
+          max-height: 90px !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          object-fit: contain !important;
+          transform: translateY(-50%) !important;
+          pointer-events: none !important;
+        }
+
+        #desktop-mini-game-source .mini-game-final-action--mission .mini-game-final-icon {
+          left: -27px !important;
+        }
+
+        #desktop-mini-game-source .mini-game-final-label {
+          position: absolute !important;
+          inset: 0 4px 0 52px !important;
+          z-index: 3 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          min-width: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          color: #fff !important;
+          font-size: 18px !important;
+          font-weight: 600 !important;
+          line-height: 24px !important;
+          text-align: center !important;
+          white-space: nowrap !important;
+          pointer-events: none !important;
+        }
+      `}</style>
     </section>
   );
 }
