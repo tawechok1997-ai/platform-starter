@@ -74,8 +74,8 @@ export default function UsageGuidePreviewController() {
 
   return (
     <>
-      {targets.map(({ element, mobile }) => createPortal(
-        <div key={mobile ? 'mobile' : 'desktop'} className="shared-usage-guide-preview" data-shared-guide-preview-content="true">
+      {targets.map(({ element, mobile }, index) => createPortal(
+        <div className="shared-usage-guide-preview" data-shared-guide-preview-content="true">
           {mobile ? (
             <header className="v47-mobile-section-title">
               <span>
@@ -92,8 +92,8 @@ export default function UsageGuidePreviewController() {
             </header>
           )}
 
-          {HOME_GUIDE_PREVIEW.map((guideItem, index) => (
-            <details key={index}>
+          {HOME_GUIDE_PREVIEW.map((guideItem, itemIndex) => (
+            <details key={itemIndex}>
               <summary>{localizeGuideText(guideItem.question, locale)}</summary>
               <p>{localizeGuideText(guideItem.answer, locale)}</p>
             </details>
@@ -108,6 +108,7 @@ export default function UsageGuidePreviewController() {
           </button>
         </div>,
         element,
+        `${mobile ? 'mobile' : 'desktop'}-guide-preview-${index}`,
       ))}
     </>
   );
