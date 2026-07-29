@@ -1,6 +1,6 @@
-/* Shared visual contract for local source-game category pages.
- * Keep each page's own background artwork and filters, while removing opaque
- * panels and card surfaces that sit behind the game artwork.
+/* Final transparent-surface owner for source category pages.
+ * The artwork layer must fill the page. No #110e16 plate or bottom fade may
+ * sit behind casino, card, sport, or lotto game/provider icons.
  */
 
 main[data-source-game-category] > section,
@@ -9,6 +9,8 @@ main[data-source-game-category] [data-source-game-layout] > section,
 main[data-source-game-category] [data-source-game-layout] > section > div:has(> article),
 main[data-source-game-category] [data-source-game-layout] article {
   background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
   box-shadow: none !important;
 }
 
@@ -16,10 +18,56 @@ main[data-source-game-category] [data-source-game-layout] article {
   border-color: transparent !important;
 }
 
-/* The artwork owns the card. Do not reveal the old #15131a loading plate
+/* Remove the page-level black plate on the four requested categories. */
+main[data-source-game-category='casino'],
+main[data-source-game-category='card'],
+main[data-source-game-category='sport'],
+main[data-source-game-category='lotto'] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* The first direct aria-hidden layer is the category artwork stack. Stretch it
+ * through the complete page so the body background never appears below 600px. */
+main[data-source-game-category='casino'] > div[aria-hidden='true'],
+main[data-source-game-category='card'] > div[aria-hidden='true'],
+main[data-source-game-category='sport'] > div[aria-hidden='true'],
+main[data-source-game-category='lotto'] > div[aria-hidden='true'] {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+main[data-source-game-category='casino'] > div[aria-hidden='true'] > img,
+main[data-source-game-category='card'] > div[aria-hidden='true'] > img,
+main[data-source-game-category='sport'] > div[aria-hidden='true'] > img,
+main[data-source-game-category='lotto'] > div[aria-hidden='true'] > img {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  object-fit: cover !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Override the component-local important fade rule with greater specificity. */
+main[data-source-game-category='casino'] [data-source-bottom-fade][data-source-bottom-fade],
+main[data-source-game-category='card'] [data-source-bottom-fade][data-source-bottom-fade],
+main[data-source-game-category='sport'] [data-source-bottom-fade][data-source-bottom-fade],
+main[data-source-game-category='lotto'] [data-source-bottom-fade][data-source-bottom-fade] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  opacity: 0 !important;
+}
+
+/* The artwork owns each card. Do not reveal the old #15131a loading plate
  * through transparent or rounded pixels around provider images. */
-main[data-source-game-category] [data-source-game-cover],
-main[data-source-game-category='casino'] [data-source-game-cover] {
+main[data-source-game-category] [data-source-game-cover] {
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
@@ -36,6 +84,14 @@ main[data-source-game-category] [data-source-game-cover]::after {
 main[data-source-game-category] [data-source-game-cover] > img {
   background: transparent !important;
   box-shadow: none !important;
+}
+
+/* Card mode rendered the same image twice: a blurred full-cover copy below the
+ * contained artwork. That copy looks like a permanent black plate, so remove it. */
+main[data-source-game-category='card'] [data-source-game-cover] > img[aria-hidden='true'] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
 /* Decorative provider files that fail must disappear individually. Never let
@@ -58,5 +114,13 @@ main[data-source-game-category] img[src*='noah345-placeholder.svg'] {
     background-color: transparent !important;
     background-image: none !important;
     box-shadow: none !important;
+  }
+
+  main[data-source-game-category='casino'] > div[aria-hidden='true'],
+  main[data-source-game-category='card'] > div[aria-hidden='true'],
+  main[data-source-game-category='sport'] > div[aria-hidden='true'],
+  main[data-source-game-category='lotto'] > div[aria-hidden='true'] {
+    height: 100% !important;
+    min-height: 100% !important;
   }
 }
