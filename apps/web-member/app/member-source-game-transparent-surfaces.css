@@ -86,6 +86,30 @@ main[data-source-game-category] [data-source-game-cover] > img {
   box-shadow: none !important;
 }
 
+/* The source provider/game artwork itself contains opaque black pixels. Blend
+ * the visible card artwork with the category background so true black becomes
+ * visually transparent while the coloured portrait and logo remain visible. */
+main[data-source-game-category='casino'] [data-source-game-cover] > img:not([aria-hidden='true']),
+main[data-source-game-category='card'] [data-source-game-cover] > img:not([aria-hidden='true']),
+main[data-source-game-category='sport'] [data-source-game-cover] > img:not([aria-hidden='true']),
+main[data-source-game-category='lotto'] [data-source-game-cover] > img:not([aria-hidden='true']) {
+  mix-blend-mode: screen !important;
+  background: transparent !important;
+  filter: saturate(1.06) contrast(1.03) !important;
+}
+
+/* Remove the black provider-logo strip rendered over game art. The logo image
+ * remains, but its old dark gradient plate no longer appears. */
+main[data-source-game-category='casino'] [data-source-game-cover] > span[aria-hidden='true']:has(> img),
+main[data-source-game-category='card'] [data-source-game-cover] > span[aria-hidden='true']:has(> img),
+main[data-source-game-category='sport'] [data-source-game-cover] > span[aria-hidden='true']:has(> img),
+main[data-source-game-category='lotto'] [data-source-game-cover] > span[aria-hidden='true']:has(> img) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
 /* Card mode rendered the same image twice: a blurred full-cover copy below the
  * contained artwork. That copy looks like a permanent black plate, so remove it. */
 main[data-source-game-category='card'] [data-source-game-cover] > img[aria-hidden='true'] {
