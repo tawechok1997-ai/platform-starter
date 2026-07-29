@@ -1,0 +1,48 @@
+.toolbar {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+}
+
+.frame {
+  min-width: 0;
+}
+
+.evidenceTrigger {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.evidenceTrigger:focus-visible {
+  outline: 3px solid rgba(245, 197, 66, .28);
+  outline-offset: 3px;
+}
+
+.evidenceCanvas {
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+}
+
+.evidenceImage {
+  display: block;
+  max-width: 100%;
+  max-height: 75dvh;
+  object-fit: contain;
+  border-radius: 14px;
+}
+
+@media (max-width: 720px) {
+  .toolbar {
+    top: max(6px, env(safe-area-inset-top));
+  }
+
+  .evidenceCanvas {
+    min-height: 180px;
+  }
+}
