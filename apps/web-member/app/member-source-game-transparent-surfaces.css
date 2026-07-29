@@ -1,0 +1,44 @@
+/* Shared visual contract for local source-game category pages.
+ * Keep each page's own background artwork and filters, while removing opaque
+ * panels that sit behind the game grid. Missing provider artwork is handled by
+ * the image fallback controller and must not hide valid sibling assets.
+ */
+
+main[data-source-game-category] > section,
+main[data-source-game-category] [data-source-game-layout],
+main[data-source-game-category] [data-source-game-layout] > section,
+main[data-source-game-category] [data-source-game-layout] > section > div:has(> article),
+main[data-source-game-category] [data-source-game-layout] article {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+main[data-source-game-category] [data-source-game-layout] article {
+  border-color: transparent !important;
+}
+
+/* A game cover keeps its own dark loading surface; only the large containers
+ * behind the cards are transparent. */
+main[data-source-game-category] [data-source-game-cover] {
+  box-shadow: none !important;
+}
+
+/* Decorative provider files that fail must disappear individually. Never let
+ * the global NOAH345 placeholder replace a missing background/title/avatar. */
+main[data-source-game-category] img[data-no-fallback='true'],
+main[data-source-game-category] img[src*='/images/fallbacks/noah345-placeholder.svg'],
+main[data-source-game-category] img[src*='noah345-placeholder.svg'] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+@media (max-width: 900px) {
+  main[data-source-game-category] > section,
+  main[data-source-game-category] [data-source-game-layout],
+  main[data-source-game-category] [data-source-game-layout] > section,
+  main[data-source-game-category] [data-source-game-layout] > section > div:has(> article),
+  main[data-source-game-category] [data-source-game-layout] article {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}
