@@ -26,7 +26,7 @@ type InvitationResult = {
 
 type Props = {
   roles: Role[];
-  onCreated: () => boolean | Promise<boolean>;
+  onCreated: () => unknown | Promise<unknown>;
 };
 
 type NoticeState = {
@@ -99,7 +99,8 @@ export default function InviteAdminPanel({ roles, onCreated }: Props) {
       setEmail('');
       setRoleId('');
       setExpiresInHours(24);
-      const refreshComplete = await Promise.resolve(onCreated());
+      const refreshResult = await Promise.resolve(onCreated());
+      const refreshComplete = refreshResult !== false;
       setNotice(refreshComplete
         ? { text: 'สร้างคำเชิญแล้ว ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที', tone: 'success' }
         : { text: 'สร้างคำเชิญแล้ว แต่รีเฟรชข้อมูลไม่ครบ กรุณาลองรีเฟรชอีกครั้ง', tone: 'warning' });
