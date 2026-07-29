@@ -1,0 +1,26 @@
+.shared-usage-guide-preview {
+  display: contents;
+}
+
+.shared-usage-guide-preview .reference-guide-more,
+.shared-usage-guide-preview .v47-mobile-guide-more {
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.shared-usage-guide-preview .reference-guide-more {
+  border: 0;
+}
+
+.shared-usage-guide-preview .v47-mobile-guide-more {
+  width: auto;
+}
+
+.shared-usage-guide-preview .reference-heading-icon img,
+.shared-usage-guide-preview .v47-mobile-section-title img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
