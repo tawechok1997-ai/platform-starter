@@ -26,7 +26,7 @@ const rows = [
 
 const config: SourceGameCategoryConfig = {
   slug:'card', title:'ไพ่', total:123, resultUnit:'เกม', mode:'games',
-  baseBackground:'/images/game/card/bg_card.webp', baseLogo:'/images/game/card/logo_card.webp',
+  baseBackground:'/assets/asset-pc/images/game/card/bg_card.webp', baseLogo:'/assets/asset-pc/images/game/card/logo_card.webp',
   filters:[], providers:[], showProviderStrip:true,
   games: rows.map(([id,name,image,isNew,isHot]) => ({ id,name,image,provider:null,providerBadge:badge,isNew,isHot,tags:[...(isNew?['new' as const]:[]),...(isHot?['hot' as const]:[])] })),
 };
