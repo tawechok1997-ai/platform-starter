@@ -164,7 +164,7 @@ export function DesktopTournamentBoard() {
               <div className="source-tournament__panel">
                 <div className="source-tournament__title-row">
                   <strong>{tournament.title}</strong>
-                  <a href="/browse/promotions?view=activity" className="source-tournament__all-button">
+                  <a href="/browse/tournaments" className="source-tournament__all-button">
                     <span>ดูทั้งหมด</span>
                     <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
                   </a>
