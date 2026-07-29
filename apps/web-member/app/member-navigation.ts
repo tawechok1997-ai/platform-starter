@@ -1,6 +1,7 @@
 import { IconKey, MemberFeatureFlags } from './site-settings';
 
 type MemberNavigationPlacement = 'bottom' | 'drawer' | 'home';
+type NavigationLocale = 'th' | 'en';
 
 type MemberNavigationItem = {
   key: string;
@@ -12,6 +13,12 @@ type MemberNavigationItem = {
   placements: MemberNavigationPlacement[];
   feature?: keyof MemberFeatureFlags;
   badge?: 'pending';
+};
+
+type NavigationCopy = {
+  title: string;
+  shortTitle?: string;
+  description: string;
 };
 
 export const memberNavigationItems: MemberNavigationItem[] = [
@@ -146,10 +153,41 @@ export const memberNavigationItems: MemberNavigationItem[] = [
   },
 ];
 
+const ENGLISH_NAVIGATION_COPY: Record<string, NavigationCopy> = {
+  home: { title: 'Home', shortTitle: 'Menu', description: 'Account overview and shortcuts' },
+  games: { title: 'Games', description: 'Browse recommended, new, and popular games' },
+  deposit: { title: 'Deposit', shortTitle: 'Deposit', description: 'Add funds to your account' },
+  withdraw: { title: 'Withdraw', shortTitle: 'Withdraw', description: 'Submit a withdrawal request' },
+  transactions: { title: 'Transactions', description: 'Review deposits, withdrawals, and bonuses' },
+  promotions: { title: 'Promotions', description: 'View currently available offers' },
+  bonus: { title: 'Bonuses', description: 'Review bonus and turnover status' },
+  affiliate: { title: 'Affiliate', description: 'Referral links and commissions' },
+  bank: { title: 'Bank accounts', shortTitle: 'Accounts', description: 'Add or update bank accounts' },
+  support: { title: 'Support', description: 'Open tickets and review answers' },
+  profile: { title: 'Profile', description: 'Account and security information' },
+  notifications: { title: 'Notifications', description: 'Important messages and status updates' },
+  guide: { title: 'User guide', description: 'Deposits and system usage instructions' },
+  contact: { title: 'Contact us', shortTitle: 'Contact', description: 'Support channels and service hours' },
+};
+
+function currentNavigationLocale(): NavigationLocale {
+  if (typeof document === 'undefined') return 'th';
+  return document.documentElement.dataset.memberLocale === 'en' ? 'en' : 'th';
+}
+
+function localizeNavigationItem(item: MemberNavigationItem, locale: NavigationLocale): MemberNavigationItem {
+  if (locale === 'th') return item;
+  const copy = ENGLISH_NAVIGATION_COPY[item.key];
+  if (!copy) return item;
+  if (copy.shortTitle) return { ...item, title: copy.title, shortTitle: copy.shortTitle, description: copy.description };
+  return { ...item, title: copy.title, description: copy.description };
+}
+
 export function navigationFor(placement: MemberNavigationPlacement, features: MemberFeatureFlags) {
-  return memberNavigationItems.filter(
-    (item) => item.placements.includes(placement) && (!item.feature || features[item.feature]),
-  );
+  const locale = currentNavigationLocale();
+  return memberNavigationItems
+    .filter((item) => item.placements.includes(placement) && (!item.feature || features[item.feature]))
+    .map((item) => localizeNavigationItem(item, locale));
 }
 
 export function activeNavigationHref(pathname: string | null | undefined) {
