@@ -27,7 +27,7 @@ const providers = rows.map(([code, name]) => ({
 
 const config: SourceGameCategoryConfig = {
   slug: 'casino', title: 'คาสิโน', total: 10, resultUnit: 'ค่าย', mode: 'provider-cards',
-  baseBackground: '/images/game/casino/bg_casino.webp', baseLogo: '/images/game/casino/logo_casino.webp',
+  baseBackground: '/assets/asset-pc/images/game/casino/bg_casino.webp', baseLogo: '/assets/asset-pc/images/game/casino/logo_casino.webp',
   filters: [{ key: 'new', label: 'เกมส์ใหม่', count: 1 }], providers,
   games: rows.map(([code, name, isNew]) => ({ id: code, name, image: `https://cdn.zabbet.com/providers/set/1_1_v/${code}.png`, provider: code, isNew, isHot: false, tags: isNew ? ['new' as const] : [] })),
 };
