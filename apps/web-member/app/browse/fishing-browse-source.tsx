@@ -35,7 +35,7 @@ const rows = [
 
 const config: SourceGameCategoryConfig = {
   slug:'fishing', title:'ยิงปลา', total:129, resultUnit:'เกม', mode:'games',
-  baseBackground:'/images/game/fishing/bg_fishing.webp', baseLogo:'/images/game/fishing/logo_fishing.webp',
+  baseBackground:'/assets/asset-pc/images/game/fishing/bg_fishing.webp', baseLogo:'/assets/asset-pc/images/game/fishing/logo_fishing.webp',
   filters:[{key:'hot',label:'เกมส์ฮิต',count:9},{key:'new',label:'เกมส์ใหม่',count:14},{key:'slot',label:'เกมส์สล็อต',count:2}],
   providers, showProviderStrip:true,
   games:rows.map(([id,name,image,provider]) => ({id,name,image,provider,isNew:false,isHot:false,tags:[]})),
