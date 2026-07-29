@@ -17,6 +17,7 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
   const exitTimerRef = useRef<number | null>(null);
+  const closingRef = useRef(false);
 
   const clearExitTimer = useCallback(() => {
     if (exitTimerRef.current !== null) {
@@ -26,7 +27,8 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
   }, []);
 
   const beginClose = useCallback((afterClose: () => void | Promise<void>) => {
-    if (closing) return;
+    if (closingRef.current) return;
+    closingRef.current = true;
     clearExitTimer();
     setClosing(true);
     setVisible(false);
@@ -34,7 +36,7 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
       exitTimerRef.current = null;
       void afterClose();
     }, EXIT_DURATION_MS);
-  }, [clearExitTimer, closing]);
+  }, [clearExitTimer]);
 
   const requestClose = useCallback(() => {
     beginClose(onClose);
@@ -46,6 +48,7 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
 
   useEffect(() => {
     clearExitTimer();
+    closingRef.current = false;
     setFrameReady(false);
     setClosing(false);
     setVisible(false);
