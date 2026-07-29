@@ -107,12 +107,6 @@ export default function DesktopMiniGameSource() {
 
         #desktop-mini-game-source .mini-game-final-action--mission .mini-game-final-icon {
           left: -29px !important;
-          width: 116px !important;
-          min-width: 116px !important;
-          max-width: 116px !important;
-          height: 116px !important;
-          min-height: 116px !important;
-          max-height: 116px !important;
         }
 
         #desktop-mini-game-source .mini-game-final-label {
