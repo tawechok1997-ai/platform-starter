@@ -58,7 +58,7 @@ export default function AdminInvitationsPage() {
     setNotice(next);
   }, []);
 
-  const load = useCallback(async (): Promise<LoadResult> => {
+  const load = useCallback(async (announce = true): Promise<LoadResult> => {
     const requestId = loadRequestRef.current + 1;
     loadRequestRef.current = requestId;
     setLoading(true);
@@ -80,14 +80,16 @@ export default function AdminInvitationsPage() {
     setRolesAvailable(rolesOk);
     setInvitationsAvailable(invitationsOk);
 
-    if (rolesOk && invitationsOk) {
-      if (noticeRef.current?.tone !== 'success') updateNotice(null);
-    } else if (invitationsOk) {
-      updateNotice({ text: 'โหลดรายการคำเชิญแล้ว แต่โหลดบทบาทไม่สำเร็จ จึงยังสร้างคำเชิญใหม่ไม่ได้', tone: 'warning' });
-    } else if (rolesOk) {
-      updateNotice({ text: 'โหลดบทบาทแล้ว แต่โหลดรายการคำเชิญไม่สำเร็จ ข้อมูลเดิมยังแสดงอยู่', tone: 'warning' });
-    } else {
-      updateNotice({ text: 'โหลดคำเชิญไม่สำเร็จ กรุณาลองใหม่', tone: 'danger' });
+    if (announce) {
+      if (rolesOk && invitationsOk) {
+        if (noticeRef.current?.tone !== 'success') updateNotice(null);
+      } else if (invitationsOk) {
+        updateNotice({ text: 'โหลดรายการคำเชิญแล้ว แต่โหลดบทบาทไม่สำเร็จ จึงยังสร้างคำเชิญใหม่ไม่ได้', tone: 'warning' });
+      } else if (rolesOk) {
+        updateNotice({ text: 'โหลดบทบาทแล้ว แต่โหลดรายการคำเชิญไม่สำเร็จ ข้อมูลเดิมยังแสดงอยู่', tone: 'warning' });
+      } else {
+        updateNotice({ text: 'โหลดคำเชิญไม่สำเร็จ กรุณาลองใหม่', tone: 'danger' });
+      }
     }
 
     setLoading(false);
@@ -138,7 +140,7 @@ export default function AdminInvitationsPage() {
         reissuedLink = `${window.location.origin}/accept-invitation?token=${encodeURIComponent(payload.token.trim())}`;
       }
 
-      const loadResult = await load();
+      const loadResult = await load(false);
       if (reissuedLink) {
         setLatestLink(reissuedLink);
         updateNotice(refreshNotice('ออกลิงก์ใหม่แล้ว ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที', loadResult));
@@ -172,9 +174,10 @@ export default function AdminInvitationsPage() {
     updateNotice({ text: 'ล้างลิงก์คำเชิญจากหน้าจอแล้ว', tone: 'neutral' });
   }
 
-  async function handleCreated() {
-    const loadResult = await load();
-    updateNotice(refreshNotice('สร้างคำเชิญแล้ว ตรวจและส่งลิงก์ผ่านช่องทางที่ปลอดภัย', loadResult));
+  async function handleCreated(): Promise<boolean> {
+    updateNotice(null);
+    const loadResult = await load(false);
+    return loadResult.rolesOk && loadResult.invitationsOk;
   }
 
   const initialLoading = loading && items.length === 0 && roles.length === 0 && !notice;
