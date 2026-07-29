@@ -138,12 +138,12 @@ export default function AdminInvitationsPage() {
         reissuedLink = `${window.location.origin}/accept-invitation?token=${encodeURIComponent(payload.token.trim())}`;
       }
 
-      await load();
+      const loadResult = await load();
       if (reissuedLink) {
         setLatestLink(reissuedLink);
-        updateNotice({ text: 'ออกลิงก์ใหม่แล้ว ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที', tone: 'success' });
+        updateNotice(refreshNotice('ออกลิงก์ใหม่แล้ว ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที', loadResult));
       } else {
-        updateNotice({ text: 'ยกเลิกคำเชิญแล้ว', tone: 'success' });
+        updateNotice(refreshNotice('ยกเลิกคำเชิญแล้ว', loadResult));
       }
       setPendingAction(null);
     } catch {
@@ -173,8 +173,8 @@ export default function AdminInvitationsPage() {
   }
 
   async function handleCreated() {
-    await load();
-    updateNotice({ text: 'สร้างคำเชิญแล้ว ตรวจและส่งลิงก์ผ่านช่องทางที่ปลอดภัย', tone: 'success' });
+    const loadResult = await load();
+    updateNotice(refreshNotice('สร้างคำเชิญแล้ว ตรวจและส่งลิงก์ผ่านช่องทางที่ปลอดภัย', loadResult));
   }
 
   const initialLoading = loading && items.length === 0 && roles.length === 0 && !notice;
@@ -265,6 +265,11 @@ async function fetchInvitations(): Promise<Invitation[] | null> {
   } catch {
     return null;
   }
+}
+
+function refreshNotice(successText: string, result: LoadResult): NoticeState {
+  if (result.rolesOk && result.invitationsOk) return { text: successText, tone: 'success' };
+  return { text: `${successText} แต่รีเฟรชข้อมูลไม่ครบ กรุณาลองรีเฟรชอีกครั้ง`, tone: 'warning' };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
