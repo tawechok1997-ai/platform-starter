@@ -38,7 +38,7 @@ type AdminFinanceQueueFrameProps = {
 };
 
 type AdminFinanceEvidenceProps = {
-  src?: string | null;
+  src?: string | null | undefined;
   alt: string;
   openLabel: string;
   description: string;
