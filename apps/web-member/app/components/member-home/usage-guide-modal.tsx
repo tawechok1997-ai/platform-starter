@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
-import missionStyles from '../mission/daily-mission-modal.module.css';
 import styles from './usage-guide-modal.module.css';
 
 type GuideTab = 'all' | 'finance' | 'activity' | 'play' | 'affiliate' | 'benefits' | 'trouble';
@@ -158,7 +157,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
   };
 
   return createPortal(
-    <div className={missionStyles.overlay} role="presentation" onMouseDown={closeFromBackdrop}>
+    <div className={styles.backdrop} role="presentation" onMouseDown={closeFromBackdrop}>
       <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="usage-guide-title">
         <div className={styles.topLine} aria-hidden="true" />
         <header className={styles.header}>
