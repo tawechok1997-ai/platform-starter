@@ -26,20 +26,23 @@ test('webhook logs use shared expandable details and operational quick filters',
   assert.match(webhookSource, /payload\.total > 0 && <AdminPagination/);
 });
 
-test('admin invitations load independent resources together and preserve success feedback', () => {
+test('admin invitations load independent resources and keep action refresh outcomes accurate', () => {
   assert.match(invitationSource, /Promise\.all\(\[/);
   assert.match(invitationSource, /noticeRef\.current\?\.tone !== 'success'/);
-  assert.match(invitationSource, /refreshNotice\('สร้างคำเชิญแล้ว/);
+  assert.match(invitationSource, /load\(false\)/);
+  assert.match(invitationSource, /handleCreated\(\): Promise<boolean>/);
   assert.match(invitationSource, /refreshNotice\('ยกเลิกคำเชิญแล้ว/);
   assert.match(invitationSource, /แต่รีเฟรชข้อมูลไม่ครบ/);
   assert.match(invitationSource, /href="\/admin-roles"/);
   assert.match(invitationSource, /AdminSkeleton/);
 });
 
-test('admin invitation form uses Thai operational wording and explicit notice tones', () => {
+test('admin invitation form owns creation feedback in Thai with explicit tones', () => {
   assert.match(invitationPanelSource, />บทบาท\s*</);
   assert.match(invitationPanelSource, /เลือกบทบาท/);
+  assert.match(invitationPanelSource, /refreshComplete/);
   assert.match(invitationPanelSource, /ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที/);
+  assert.match(invitationPanelSource, /สร้างคำเชิญแล้ว แต่รีเฟรชข้อมูลไม่ครบ/);
   assert.match(invitationPanelSource, /tone: 'success'/);
   assert.match(invitationPanelSource, /tone: 'warning'/);
   assert.match(invitationPanelSource, /tone: 'danger'/);
