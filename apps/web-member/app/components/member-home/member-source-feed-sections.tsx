@@ -1,18 +1,43 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { memberApiFetch } from '../../member-api';
 import { applyMemberImageFallback, hideDecorativeImage } from '../image-fallback';
 import { V47_ASSETS } from './v47-asset-map';
 
-type PopularItem = {
+const LOCAL_IMAGE_ASSET_ROOT = '/assets/asset-pc/images';
+
+type LobbyGame = {
+  id: string;
   name: string;
   imageUrl: string;
   providerLogo: string;
   badge: 'HOT' | 'NEW' | '';
+  category: string;
+  provider: string;
+  players: number;
 };
 
-type OnlineItem = {
-  imageUrl: string;
-  players: number;
+type CatalogGame = {
+  id?: string | null;
+  providerGameCode?: string | null;
+  code?: string | null;
+  name?: string | null;
+  providerId?: string | null;
+  provider?: string | { code?: string | null; logoUrl?: string | null } | null;
+  providerLogoUrl?: string | null;
+  category?: string | null;
+  tags?: string[] | null;
+  imageUrl?: string | null;
+  iconUrl?: string | null;
+  onlinePlayers?: number | null;
+  playerCount?: number | null;
+  rawPayload?: { assetSource?: string | null } | null;
+};
+
+type CatalogPayload = {
+  items?: CatalogGame[] | null;
+  data?: CatalogGame[] | null;
 };
 
 type LiveItem = {
@@ -23,28 +48,17 @@ type LiveItem = {
   awayLogo: string;
 };
 
-// The lobby has no live provider feed yet. These stay visibly marked as sample
-// content, but every visual comes from the member project's local PC assets.
-const POPULAR_ITEMS: PopularItem[] = [
-  { name: 'ROMA X 10000', imageUrl: V47_ASSETS.quickPromotion, providerLogo: V47_ASSETS.gameHit, badge: 'HOT' },
-  { name: 'Maya Golden City 2', imageUrl: V47_ASSETS.quickActivity, providerLogo: V47_ASSETS.gameHit, badge: 'HOT' },
-  { name: 'El Paso Gunfight xNudge', imageUrl: V47_ASSETS.quickNews, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
-  { name: 'Sweet Bonanza Xmas', imageUrl: V47_ASSETS.heroWinners, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
-  { name: 'Roma', imageUrl: V47_ASSETS.heroLogin, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
-  { name: 'TREASURES OF AZTEC Z', imageUrl: V47_ASSETS.heroNews, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
-  { name: 'ไฮโลไทย 2', imageUrl: V47_ASSETS.jackpotStill, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
-  { name: 'Starlight Princess', imageUrl: V47_ASSETS.tournament, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
-  { name: 'Coin Spinner', imageUrl: V47_ASSETS.miniGame, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
-  { name: 'Fortune Gems', imageUrl: V47_ASSETS.heroSide, providerLogo: V47_ASSETS.gameHit, badge: 'NEW' },
-];
-
-const ONLINE_ITEMS: OnlineItem[] = [
-  { imageUrl: V47_ASSETS.quickPromotion, players: 3947 },
-  { imageUrl: V47_ASSETS.quickActivity, players: 2979 },
-  { imageUrl: V47_ASSETS.quickNews, players: 2201 },
-  { imageUrl: V47_ASSETS.heroWinners, players: 5004 },
-  { imageUrl: V47_ASSETS.heroLogin, players: 2112 },
-  { imageUrl: V47_ASSETS.heroNews, players: 1925 },
+const FALLBACK_GAMES: LobbyGame[] = [
+  game('roma-x-10000', 'ROMA X 10000', 'https://cdn.zabbet.com/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg', 'jl', 'slot', 'HOT'),
+  game('maya-golden-city-2', 'Maya Golden City 2', 'https://cdn.zabbet.com/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg', 'ygr', 'slot', 'HOT'),
+  game('el-paso-gunfight', 'El Paso Gunfight xNudge', 'https://cdn.zabbet.com/games/NLC/elpaso0000000000.jpg', 'nlc', 'slot', 'NEW'),
+  game('sweet-bonanza-xmas', 'Sweet Bonanza Xmas', 'https://cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png', 'pp', 'slot', 'NEW'),
+  game('roma', 'Roma', 'https://cdn.zabbet.com/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9.jpg', 'rsg', 'slot', 'NEW'),
+  game('treasures-of-aztec-z', 'TREASURES OF AZTEC Z', 'https://cdn.zabbet.com/games/1692882357754-c47b8426-4045-4792-8ee3-58b784ed9a78.jpg', 'ps', 'slot', 'NEW'),
+  game('thai-hi-lo-2', 'ไฮโลไทย 2', 'https://cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg', 'kingm', 'card', 'NEW'),
+  game('starlight-princess', 'Starlight Princess', 'https://cdn.zabbet.com/games/vertical/PP/starlight_princess.png', 'pp', 'slot', 'NEW'),
+  game('coin-spinner', 'Coin Spinner', 'https://cdn.zabbet.com/games/vertical/CQ/coin_spinner.jpg', 'cq', 'arcade', 'NEW'),
+  game('fortune-gems', 'Fortune Gems', 'https://cdn.zabbet.com/games/1671995554666-2fba59cf-2cb7-48bf-b619-ba56269e90ca.jpg', 'jl', 'slot', 'NEW'),
 ];
 
 const LIVE_ITEMS: LiveItem[] = [
@@ -55,6 +69,203 @@ const LIVE_ITEMS: LiveItem[] = [
   { league: 'โรมาเนีย - ลีกา 1', home: 'โบโตซานี่', away: 'ราปิด บูคาเรสต์', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
   { league: 'เอกวาดอร์ - เซเรีย อา', home: 'มูชุค รูน่า', away: 'Libertad', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
 ];
+
+let lobbyGamesRequest: Promise<LobbyGame[]> | null = null;
+
+function useLobbyGames() {
+  const [items, setItems] = useState<LobbyGame[]>(FALLBACK_GAMES);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getLobbyGames().then((games) => {
+      if (!cancelled && games.length) setItems(games);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return items;
+}
+
+async function getLobbyGames() {
+  if (!lobbyGamesRequest) lobbyGamesRequest = loadLobbyGames();
+  return lobbyGamesRequest;
+}
+
+async function loadLobbyGames(): Promise<LobbyGame[]> {
+  const categories = ['slot', 'casino', 'arcade', 'fishing'];
+
+  try {
+    const payloads = await Promise.all(categories.map(async (category) => {
+      const params = new URLSearchParams({ platform: 'desktop', category, page: '1', limit: '100' });
+      const response = await memberApiFetch(`/games/catalog?${params.toString()}`, {
+        skipAuth: true,
+        suppressSessionExpiryRedirect: true,
+      });
+      if (!response.ok) return null;
+      return await response.json().catch(() => null) as CatalogPayload | null;
+    }));
+
+    const catalogGames = payloads.flatMap((payload) => {
+      const source = Array.isArray(payload?.items) ? payload.items : Array.isArray(payload?.data) ? payload.data : [];
+      return source.map(mapCatalogGame).filter((item): item is LobbyGame => Boolean(item));
+    });
+
+    const merged = dedupeGames([...catalogGames, ...FALLBACK_GAMES]);
+    return merged.sort((left, right) => gameScore(right) - gameScore(left)).slice(0, 24);
+  } catch {
+    lobbyGamesRequest = null;
+    return FALLBACK_GAMES;
+  }
+}
+
+function mapCatalogGame(item: CatalogGame): LobbyGame | null {
+  const id = String(item.providerGameCode ?? item.code ?? item.id ?? '').trim();
+  const name = String(item.name ?? '').trim();
+  const sourceImageUrl = firstText(item.imageUrl, item.iconUrl);
+  if (!id || !name || !sourceImageUrl || isNonGameMedia(sourceImageUrl)) return null;
+  if (item.rawPayload?.assetSource === 'generated-svg' || sourceImageUrl.includes('/provider-simulator/icons/')) return null;
+
+  const imageUrl = localGameImageUrl(sourceImageUrl);
+  if (!imageUrl) return null;
+
+  const providerObject = item.provider && typeof item.provider === 'object' ? item.provider : null;
+  const provider = normalizeProvider(firstText(item.providerId, typeof item.provider === 'string' ? item.provider : null, providerObject?.code));
+  const providerLogo = localProviderLogoUrl(
+    firstText(item.providerLogoUrl, providerObject?.logoUrl),
+    provider,
+  );
+  const tags = Array.isArray(item.tags) ? item.tags.map((tag) => String(tag).toLowerCase()) : [];
+  const badge: LobbyGame['badge'] = tags.some(isHotTag) ? 'HOT' : tags.some(isNewTag) ? 'NEW' : '';
+  const players = readPlayerCount(item, id);
+
+  return {
+    id,
+    name,
+    imageUrl,
+    providerLogo,
+    badge,
+    category: normalizeCategory(item.category),
+    provider,
+    players,
+  };
+}
+
+function game(id: string, name: string, sourceImageUrl: string, provider: string, category: string, badge: LobbyGame['badge']): LobbyGame {
+  return {
+    id,
+    name,
+    imageUrl: localGameImageUrl(sourceImageUrl),
+    providerLogo: `${LOCAL_IMAGE_ASSET_ROOT}/providers/set/1_1_badge/${provider}.png`,
+    provider,
+    category,
+    badge,
+    players: estimatedPlayers(id),
+  };
+}
+
+function localGameImageUrl(sourceUrl: string) {
+  const normalized = sourceUrl.trim().replace(/\\/g, '/');
+  if (!normalized) return '';
+  if (normalized.startsWith(`${LOCAL_IMAGE_ASSET_ROOT}/games/`)) return normalized;
+
+  let pathname = normalized.split(/[?#]/, 1)[0] ?? '';
+  if (/^https?:\/\//i.test(normalized)) {
+    try {
+      pathname = new URL(normalized).pathname;
+    } catch {
+      return '';
+    }
+  }
+
+  const marker = '/games/';
+  const markerIndex = pathname.toLowerCase().indexOf(marker);
+  if (markerIndex < 0) return '';
+
+  const relativePath = pathname.slice(markerIndex + 1).replace(/^\/+/, '');
+  if (!relativePath || relativePath.includes('..')) return '';
+  return `${LOCAL_IMAGE_ASSET_ROOT}/${relativePath}`;
+}
+
+function localProviderLogoUrl(sourceUrl: string, provider: string) {
+  const normalized = sourceUrl.trim().replace(/\\/g, '/');
+  if (normalized.startsWith(`${LOCAL_IMAGE_ASSET_ROOT}/providers/`)) return normalized;
+
+  if (normalized) {
+    let pathname = normalized.split(/[?#]/, 1)[0] ?? '';
+    if (/^https?:\/\//i.test(normalized)) {
+      try {
+        pathname = new URL(normalized).pathname;
+      } catch {
+        pathname = '';
+      }
+    }
+
+    const marker = '/providers/';
+    const markerIndex = pathname.toLowerCase().indexOf(marker);
+    if (markerIndex >= 0) {
+      const relativePath = pathname.slice(markerIndex + 1).replace(/^\/+/, '');
+      if (relativePath && !relativePath.includes('..')) return `${LOCAL_IMAGE_ASSET_ROOT}/${relativePath}`;
+    }
+  }
+
+  return provider ? `${LOCAL_IMAGE_ASSET_ROOT}/providers/set/1_1_badge/${provider}.png` : '';
+}
+
+function dedupeGames(items: LobbyGame[]) {
+  return Array.from(new Map(items.map((item) => [`${item.provider}:${item.id}`.toLowerCase(), item] as const)).values());
+}
+
+function gameScore(item: LobbyGame) {
+  const badgeScore = item.badge === 'HOT' ? 200 : item.badge === 'NEW' ? 100 : 0;
+  return badgeScore + item.players;
+}
+
+function readPlayerCount(item: CatalogGame, seed: string) {
+  const value = Number(item.onlinePlayers ?? item.playerCount);
+  return Number.isFinite(value) && value > 0 ? Math.round(value) : estimatedPlayers(seed);
+}
+
+function estimatedPlayers(seed: string) {
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0;
+  return 1200 + Math.abs(hash % 4200);
+}
+
+function isHotTag(tag: string) {
+  return tag.includes('hot') || tag.includes('popular') || tag.includes('ฮิต');
+}
+
+function isNewTag(tag: string) {
+  return tag.includes('new') || tag.includes('ใหม่');
+}
+
+function isNonGameMedia(url: string) {
+  const value = url.toLowerCase();
+  return ['/highlight/', '/promotion', '/lobby_settings/', '/imageslides/', '/banner/'].some((token) => value.includes(token));
+}
+
+function normalizeProvider(value: string) {
+  return value.trim().toLowerCase().replace(/\.png$/i, '');
+}
+
+function normalizeCategory(value?: string | null) {
+  const category = String(value ?? 'slot').trim().toLowerCase();
+  if (category === 'fish') return 'fishing';
+  if (category === 'table') return 'card';
+  return category || 'slot';
+}
+
+function firstText(...values: Array<string | null | undefined>) {
+  return values.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim() ?? '';
+}
+
+function gameHref(item: LobbyGame) {
+  const params = new URLSearchParams({ category: item.category });
+  if (item.provider) params.set('provider', item.provider);
+  return `/browse/games?${params.toString()}`;
+}
 
 function SourceHeading({ title, icon, iconSize = 25, notice }: { title: string; icon: string; iconSize?: number; notice?: string }) {
   return (
@@ -69,18 +280,20 @@ function SourceHeading({ title, icon, iconSize = 25, notice }: { title: string; 
 }
 
 export function SourcePopularSection() {
+  const games = useLobbyGames().slice(0, 10);
+
   return (
-    <section className="source-feed-host source-feed-host--popular" data-section-kind="popular" data-content-state="demo">
+    <section className="source-feed-host source-feed-host--popular" data-section-kind="popular" data-content-state="catalog">
       <div className="member-source-feed-mount member-source-feed-mount--popular">
         <div className="source-feed-section source-popular-section">
-          <SourceHeading title="Top 10 Popular Games" icon="/images/highlight/icongamehit.webp" iconSize={24} notice="ข้อมูลตัวอย่าง" />
+          <SourceHeading title="Top 10 Popular Games" icon="/assets/asset-pc/images/highlight/icongamehit.webp" iconSize={24} />
           <div className="source-popular-track" data-drag-scroll="true">
-            {POPULAR_ITEMS.map((item, index) => (
-              <a key={`${item.name}-${index}`} className="source-popular-card" href="/browse/games" title={item.name}>
+            {games.map((item, index) => (
+              <a key={`${item.provider}:${item.id}`} className="source-popular-card" href={gameHref(item)} title={item.name}>
                 <span className="source-popular-card__art">
                   <img className="source-popular-card__blur" src={item.imageUrl} alt="" aria-hidden="true" onError={applyMemberImageFallback} />
                   <img className="source-popular-card__image" src={item.imageUrl} alt={item.name} onError={applyMemberImageFallback} />
-                  <span className="source-popular-card__provider"><img src={item.providerLogo} alt="" aria-hidden="true" onError={applyMemberImageFallback} /></span>
+                  {item.providerLogo ? <span className="source-popular-card__provider"><img src={item.providerLogo} alt="" aria-hidden="true" onError={hideDecorativeImage} /></span> : null}
                   {item.badge ? <span className={`source-popular-card__badge source-popular-card__badge--${item.badge.toLowerCase()}`}>{item.badge}</span> : null}
                 </span>
                 <span className="source-popular-card__name">{item.name}</span>
@@ -95,15 +308,17 @@ export function SourcePopularSection() {
 }
 
 export function SourceOnlineSection() {
+  const games = [...useLobbyGames()].sort((left, right) => right.players - left.players).slice(0, 6);
+
   return (
-    <section className="source-feed-host source-feed-host--online" data-section-kind="online" data-content-state="demo">
+    <section className="source-feed-host source-feed-host--online" data-section-kind="online" data-content-state="catalog">
       <div className="member-source-feed-mount member-source-feed-mount--online">
         <div className="source-feed-section source-online-section">
-          <SourceHeading title="Most Online Now" icon="/images/home/mostonline1.webp" notice="จำนวนผู้เล่นตัวอย่าง" />
+          <SourceHeading title="Most Online Now" icon="/assets/asset-pc/images/home/mostonline1.webp" notice="จำนวนผู้เล่นโดยประมาณ" />
           <div className="source-online-track" data-drag-scroll="true">
-            {ONLINE_ITEMS.map((item, index) => (
-              <a key={`${item.imageUrl}-${index}`} className="source-online-card" href="/browse/games">
-                <span className="source-online-card__art"><img src={item.imageUrl} alt={`เกมตัวอย่างอันดับ ${index + 1}`} onError={applyMemberImageFallback} /></span>
+            {games.map((item) => (
+              <a key={`${item.provider}:${item.id}`} className="source-online-card" href={gameHref(item)} title={item.name}>
+                <span className="source-online-card__art"><img src={item.imageUrl} alt={item.name} onError={applyMemberImageFallback} /></span>
                 <span className="source-online-card__counter"><span className="source-online-card__counter-inner"><UserIcon /><strong>{item.players.toLocaleString('en-US')}</strong></span></span>
               </a>
             ))}
