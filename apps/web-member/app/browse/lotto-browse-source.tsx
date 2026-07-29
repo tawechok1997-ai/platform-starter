@@ -18,10 +18,42 @@ const providers = rows.map(([code, name]) => ({
 }));
 
 const config: SourceGameCategoryConfig = {
-  slug: 'lotto', title: 'หวย', total: 2, resultUnit: 'ค่าย', mode: 'provider-cards',
-  baseBackground: '/assets/asset-pc/images/game/lotto/bg_lotto.webp', baseLogo: '/assets/asset-pc/images/game/lotto/logo_lotto.webp',
-  filters: [{ key: 'new', label: 'เกมส์ใหม่', count: 1 }], providers,
-  games: rows.map(([code, name, isNew]) => ({ id: code, name, image: `https://cdn.zabbet.com/providers/set/1_1_v/${code}.png`, provider: code, isNew, isHot: false, tags: isNew ? ['new' as const] : [] })),
+  slug: 'lotto',
+  title: 'หวย',
+  total: 2,
+  resultUnit: 'ค่าย',
+  mode: 'provider-cards',
+  baseBackground: '/assets/asset-pc/images/game/lotto/bg_lotto.webp',
+  baseLogo: '/assets/asset-pc/images/game/lotto/logo_lotto.webp',
+  filters: [{ key: 'new', label: 'เกมส์ใหม่', count: 1 }],
+  providers,
+  showProviderStrip: false,
+  games: rows.map(([code, name, isNew]) => ({
+    id: code,
+    name,
+    image: `https://cdn.zabbet.com/providers/set/1_1_v/${code}.png`,
+    provider: code,
+    isNew,
+    isHot: false,
+    tags: isNew ? ['new' as const] : [],
+  })),
 };
 
-export default function LottoBrowseSource() { return <SourceGameCategoryPage config={config} />; }
+export default function LottoBrowseSource() {
+  return (
+    <>
+      <SourceGameCategoryPage config={config} />
+      <style>{`
+        main[data-source-game-category='lotto'] [data-source-filter-types] {
+          height: 60px !important;
+          min-height: 60px !important;
+        }
+
+        main[data-source-game-category='lotto'] [data-source-filter-panel] button:disabled {
+          cursor: pointer !important;
+          opacity: 1 !important;
+        }
+      `}</style>
+    </>
+  );
+}
