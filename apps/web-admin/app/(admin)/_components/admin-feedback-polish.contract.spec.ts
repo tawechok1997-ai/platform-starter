@@ -37,10 +37,11 @@ test('admin invitations load independent resources and keep action refresh outco
   assert.match(invitationSource, /AdminSkeleton/);
 });
 
-test('admin invitation form owns creation feedback in Thai with explicit tones', () => {
+test('admin invitation form owns creation feedback without breaking existing callers', () => {
   assert.match(invitationPanelSource, />บทบาท\s*</);
   assert.match(invitationPanelSource, /เลือกบทบาท/);
-  assert.match(invitationPanelSource, /refreshComplete/);
+  assert.match(invitationPanelSource, /onCreated: \(\) => unknown \| Promise<unknown>/);
+  assert.match(invitationPanelSource, /refreshResult !== false/);
   assert.match(invitationPanelSource, /ลิงก์และรหัสเชิญจะแสดงเพียง 60 วินาที/);
   assert.match(invitationPanelSource, /สร้างคำเชิญแล้ว แต่รีเฟรชข้อมูลไม่ครบ/);
   assert.match(invitationPanelSource, /tone: 'success'/);
