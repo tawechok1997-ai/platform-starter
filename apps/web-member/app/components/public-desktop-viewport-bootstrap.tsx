@@ -5,19 +5,14 @@ import { useLayoutEffect } from 'react';
 const DESKTOP_DESIGN_WIDTH = 1455;
 const WIDTH_CONDITION = /\(\s*(min|max)-width\s*:\s*(\d+(?:\.\d+)?)px\s*\)/gi;
 
-type BodySnapshot = {
-  width: string;
-  minWidth: string;
-  maxWidth: string;
-  margin: string;
-  zoom: string;
-  overflowX: string;
-  htmlOverflowX: string;
-};
-
 type WidthCondition = {
   kind: 'min' | 'max';
   boundary: number;
+};
+
+type OverflowSnapshot = {
+  bodyOverflowX: string;
+  htmlOverflowX: string;
 };
 
 const mediaRuleSources = new Map<CSSMediaRule, string>();
@@ -26,28 +21,38 @@ let matchMediaPatched = false;
 
 export default function PublicDesktopViewportBootstrap() {
   useLayoutEffect(() => {
+    clearLegacyBodyScaling();
     nativeMatchMedia ??= window.matchMedia.bind(window);
     installVirtualMatchMedia();
 
-    const bodySnapshot: BodySnapshot = {
-      width: document.body.style.width,
-      minWidth: document.body.style.minWidth,
-      maxWidth: document.body.style.maxWidth,
-      margin: document.body.style.margin,
-      zoom: document.body.style.getPropertyValue('zoom'),
-      overflowX: document.body.style.overflowX,
+    const shell = document.getElementById('member-desktop-scale-shell');
+    const canvas = document.getElementById('member-desktop-scale-canvas');
+    if (!shell || !canvas) return;
+
+    const shellCssText = shell.style.cssText;
+    const canvasCssText = canvas.style.cssText;
+    const overflowSnapshot: OverflowSnapshot = {
+      bodyOverflowX: document.body.style.overflowX,
       htmlOverflowX: document.documentElement.style.overflowX,
     };
 
     let frame = 0;
-    let observer: MutationObserver | null = null;
+    let styleObserver: MutationObserver | null = null;
+
+    const restoreCanvas = () => {
+      shell.style.cssText = shellCssText;
+      canvas.style.cssText = canvasCssText;
+      document.body.style.overflowX = overflowSnapshot.bodyOverflowX;
+      document.documentElement.style.overflowX = overflowSnapshot.htmlOverflowX;
+      delete document.body.dataset.memberDesktopScaled;
+    };
 
     const syncViewport = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
         if (isMobileOnlyDevice()) {
           restoreMediaRules();
-          restoreBody(bodySnapshot);
+          restoreCanvas();
           document.documentElement.dataset.memberViewportMode = 'mobile';
           return;
         }
@@ -55,23 +60,35 @@ export default function PublicDesktopViewportBootstrap() {
         document.documentElement.dataset.memberViewportMode = 'desktop';
         const viewportWidth = Math.max(1, document.documentElement.clientWidth || window.innerWidth);
 
-        if (viewportWidth < DESKTOP_DESIGN_WIDTH) {
-          rewriteMediaRulesForDesktopCanvas();
-          const scale = Math.max(0.05, viewportWidth / DESKTOP_DESIGN_WIDTH);
-          document.body.style.width = `${DESKTOP_DESIGN_WIDTH}px`;
-          document.body.style.minWidth = `${DESKTOP_DESIGN_WIDTH}px`;
-          document.body.style.maxWidth = `${DESKTOP_DESIGN_WIDTH}px`;
-          document.body.style.margin = '0';
-          document.body.style.setProperty('zoom', scale.toFixed(6));
-          document.body.style.overflowX = 'hidden';
-          document.documentElement.style.overflowX = 'hidden';
-          document.body.dataset.memberDesktopScaled = 'true';
+        if (viewportWidth >= DESKTOP_DESIGN_WIDTH) {
+          restoreMediaRules();
+          restoreCanvas();
+          document.body.dataset.memberDesktopScaled = 'false';
           return;
         }
 
-        restoreMediaRules();
-        restoreBody(bodySnapshot);
-        document.body.dataset.memberDesktopScaled = 'false';
+        rewriteMediaRulesForDesktopCanvas();
+        const scale = Math.max(0.05, viewportWidth / DESKTOP_DESIGN_WIDTH);
+
+        shell.style.display = 'block';
+        shell.style.width = '100%';
+        shell.style.minWidth = '0';
+        shell.style.maxWidth = 'none';
+        shell.style.margin = '0';
+        shell.style.overflowX = 'hidden';
+
+        canvas.style.display = 'block';
+        canvas.style.width = `${DESKTOP_DESIGN_WIDTH}px`;
+        canvas.style.minWidth = `${DESKTOP_DESIGN_WIDTH}px`;
+        canvas.style.maxWidth = `${DESKTOP_DESIGN_WIDTH}px`;
+        canvas.style.margin = '0';
+        canvas.style.transform = 'none';
+        canvas.style.transformOrigin = 'top left';
+        canvas.style.setProperty('zoom', scale.toFixed(6));
+
+        document.body.style.overflowX = 'hidden';
+        document.documentElement.style.overflowX = 'hidden';
+        document.body.dataset.memberDesktopScaled = 'true';
       });
     };
 
@@ -79,26 +96,38 @@ export default function PublicDesktopViewportBootstrap() {
     window.addEventListener('resize', syncViewport, { passive: true });
     window.visualViewport?.addEventListener('resize', syncViewport, { passive: true });
 
-    observer = new MutationObserver(() => {
+    styleObserver = new MutationObserver(() => {
       if (!isMobileOnlyDevice() && document.documentElement.clientWidth < DESKTOP_DESIGN_WIDTH) {
         rewriteMediaRulesForDesktopCanvas();
       }
     });
-    observer.observe(document.head, { childList: true, subtree: true });
+    styleObserver.observe(document.head, { childList: true, subtree: true });
 
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener('resize', syncViewport);
       window.visualViewport?.removeEventListener('resize', syncViewport);
-      observer?.disconnect();
+      styleObserver?.disconnect();
       restoreMediaRules();
-      restoreBody(bodySnapshot);
+      restoreCanvas();
       delete document.documentElement.dataset.memberViewportMode;
-      delete document.body.dataset.memberDesktopScaled;
     };
   }, []);
 
   return null;
+}
+
+function clearLegacyBodyScaling() {
+  if (document.body.dataset.memberDesktopScaled !== 'true') return;
+
+  document.body.style.removeProperty('width');
+  document.body.style.removeProperty('min-width');
+  document.body.style.removeProperty('max-width');
+  document.body.style.removeProperty('margin');
+  document.body.style.removeProperty('zoom');
+  document.body.style.removeProperty('overflow-x');
+  document.documentElement.style.removeProperty('overflow-x');
+  delete document.body.dataset.memberDesktopScaled;
 }
 
 function installVirtualMatchMedia() {
@@ -112,7 +141,7 @@ function installVirtualMatchMedia() {
 
     return new Proxy(nativeList, {
       get(target, property) {
-        if (property === 'matches' && !isMobileOnlyDevice()) {
+        if (property === 'matches' && shouldUseDesktopCanvas()) {
           return evaluateMediaWidth(query, DESKTOP_DESIGN_WIDTH) ?? target.matches;
         }
 
@@ -121,6 +150,10 @@ function installVirtualMatchMedia() {
       },
     });
   }) as typeof window.matchMedia;
+}
+
+function shouldUseDesktopCanvas() {
+  return !isMobileOnlyDevice() && document.documentElement.clientWidth < DESKTOP_DESIGN_WIDTH;
 }
 
 function isMobileOnlyDevice() {
@@ -249,16 +282,4 @@ function splitMediaBranches(mediaText: string) {
 
   branches.push(mediaText.slice(start));
   return branches;
-}
-
-function restoreBody(snapshot: BodySnapshot) {
-  document.body.style.width = snapshot.width;
-  document.body.style.minWidth = snapshot.minWidth;
-  document.body.style.maxWidth = snapshot.maxWidth;
-  document.body.style.margin = snapshot.margin;
-  document.body.style.overflowX = snapshot.overflowX;
-  document.documentElement.style.overflowX = snapshot.htmlOverflowX;
-
-  if (snapshot.zoom) document.body.style.setProperty('zoom', snapshot.zoom);
-  else document.body.style.removeProperty('zoom');
 }
