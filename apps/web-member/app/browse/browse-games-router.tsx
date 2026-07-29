@@ -8,21 +8,30 @@ import FishingBrowseSource from './fishing-browse-source';
 import CasinoSourcePage from './games/casino/casino-source-page';
 import LottoBrowseSource from './lotto-browse-source';
 import SlotBrowseSource from './slot-browse-source';
+import SourceFilterStickyBehavior from './source-filter-sticky-behavior';
 import SportBrowseSource from './sport-browse-source';
 
 export default function BrowseGamesRouter() {
   const searchParams = useSearchParams();
   const category = searchParams.get('category')?.toLowerCase() ?? '';
 
-  if (category === 'casino') return <CasinoSourcePage />;
-  if (category === 'slot') return <SlotBrowseSource />;
-  if (category === 'fishing') return <FishingBrowseSource />;
-  if (category === 'sport' || category === 'sports') return <SportBrowseSource />;
-  if (category === 'card') return <CardBrowseSource />;
-  if (category === 'lotto' || category === 'lottery') return <LottoBrowseSource />;
-  if (category === 'live') return <LiveHomeRedirect />;
+  let content;
 
-  return <BrowseGames />;
+  if (category === 'casino') content = <CasinoSourcePage />;
+  else if (category === 'slot') content = <SlotBrowseSource />;
+  else if (category === 'fishing') content = <FishingBrowseSource />;
+  else if (category === 'sport' || category === 'sports') content = <SportBrowseSource />;
+  else if (category === 'card') content = <CardBrowseSource />;
+  else if (category === 'lotto' || category === 'lottery') content = <LottoBrowseSource />;
+  else if (category === 'live') content = <LiveHomeRedirect />;
+  else content = <BrowseGames />;
+
+  return (
+    <>
+      <SourceFilterStickyBehavior />
+      {content}
+    </>
+  );
 }
 
 function LiveHomeRedirect() {
