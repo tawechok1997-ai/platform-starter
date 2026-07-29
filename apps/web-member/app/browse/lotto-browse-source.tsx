@@ -19,7 +19,7 @@ const providers = rows.map(([code, name]) => ({
 
 const config: SourceGameCategoryConfig = {
   slug: 'lotto', title: 'หวย', total: 2, resultUnit: 'ค่าย', mode: 'provider-cards',
-  baseBackground: '/images/game/lotto/bg_lotto.webp', baseLogo: '/images/game/lotto/logo_lotto.webp',
+  baseBackground: '/assets/asset-pc/images/game/lotto/bg_lotto.webp', baseLogo: '/assets/asset-pc/images/game/lotto/logo_lotto.webp',
   filters: [{ key: 'new', label: 'เกมส์ใหม่', count: 1 }], providers,
   games: rows.map(([code, name, isNew]) => ({ id: code, name, image: `https://cdn.zabbet.com/providers/set/1_1_v/${code}.png`, provider: code, isNew, isHot: false, tags: isNew ? ['new' as const] : [] })),
 };
