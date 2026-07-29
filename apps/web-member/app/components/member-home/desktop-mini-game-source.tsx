@@ -89,30 +89,20 @@ export default function DesktopMiniGameSource() {
         #desktop-mini-game-source .mini-game-final-icon {
           position: absolute !important;
           top: 50% !important;
-          left: -32px !important;
+          left: -15px !important;
           z-index: 2 !important;
           display: block !important;
-          width: 96px !important;
-          min-width: 96px !important;
-          max-width: 96px !important;
-          height: 96px !important;
-          min-height: 96px !important;
-          max-height: 96px !important;
+          width: 90px !important;
+          min-width: 90px !important;
+          max-width: 90px !important;
+          height: 90px !important;
+          min-height: 90px !important;
+          max-height: 90px !important;
           margin: 0 !important;
           padding: 0 !important;
           object-fit: contain !important;
           transform: translateY(-50%) !important;
           pointer-events: none !important;
-        }
-
-        #desktop-mini-game-source .mini-game-final-action--mission .mini-game-final-icon {
-          left: -29px !important;
-          width: 100px !important;
-          min-width: 100px !important;
-          max-width: 100px !important;
-          height: 100px !important;
-          min-height: 100px !important;
-          max-height: 100px !important;
         }
 
         #desktop-mini-game-source .mini-game-final-label {
