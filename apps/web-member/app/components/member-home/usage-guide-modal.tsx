@@ -12,6 +12,17 @@ type GuideGroup = {
   items: readonly { question: string; answer: string }[];
 };
 
+type HeaderSnapshot = {
+  element: HTMLElement;
+  styleAttribute: string | null;
+  ariaHidden: string | null;
+};
+
+const PUBLIC_HEADER_SELECTOR = [
+  'header.public-home-topbar.global-member-topbar',
+  'header.member-topbar.global-member-topbar',
+].join(',');
+
 const TABS: readonly { id: GuideTab; label: string }[] = [
   { id: 'all', label: 'ทั้งหมด' },
   { id: 'finance', label: 'การฝาก - ถอน' },
@@ -116,13 +127,6 @@ const GUIDE_GROUPS: readonly GuideGroup[] = [
   },
 ] as const;
 
-const GUIDE_HEADER_SUPPRESSION_CSS = `
-html body .public-home-topbar.global-member-topbar {
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-`;
-
 export default function UsageGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<GuideTab>('all');
   const [openItem, setOpenItem] = useState<string | null>(null);
@@ -135,18 +139,47 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
   useEffect(() => {
     if (!open) return;
+
     const bodyOverflow = document.body.style.overflow;
     const htmlOverflow = document.documentElement.style.overflow;
+    const headerSnapshots: HeaderSnapshot[] = Array.from(
+      document.querySelectorAll<HTMLElement>(PUBLIC_HEADER_SELECTOR),
+    ).map((element) => ({
+      element,
+      styleAttribute: element.getAttribute('style'),
+      ariaHidden: element.getAttribute('aria-hidden'),
+    }));
+
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
+    document.body.dataset.usageGuideOpen = 'true';
+
+    headerSnapshots.forEach(({ element }) => {
+      element.style.setProperty('display', 'none', 'important');
+      element.style.setProperty('visibility', 'hidden', 'important');
+      element.style.setProperty('pointer-events', 'none', 'important');
+      element.setAttribute('aria-hidden', 'true');
+    });
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
     };
+
     window.addEventListener('keydown', handleKeyDown);
+
     return () => {
       document.body.style.overflow = bodyOverflow;
       document.documentElement.style.overflow = htmlOverflow;
+      delete document.body.dataset.usageGuideOpen;
       window.removeEventListener('keydown', handleKeyDown);
+
+      headerSnapshots.forEach(({ element, styleAttribute, ariaHidden }) => {
+        if (styleAttribute === null) element.removeAttribute('style');
+        else element.setAttribute('style', styleAttribute);
+
+        if (ariaHidden === null) element.removeAttribute('aria-hidden');
+        else element.setAttribute('aria-hidden', ariaHidden);
+      });
     };
   }, [open, onClose]);
 
@@ -165,7 +198,6 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
   return createPortal(
     <div className={styles.backdrop} role="presentation" onMouseDown={closeFromBackdrop}>
-      <style>{GUIDE_HEADER_SUPPRESSION_CSS}</style>
       <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="usage-guide-title">
         <div className={styles.topLine} aria-hidden="true" />
         <header className={styles.header}>
