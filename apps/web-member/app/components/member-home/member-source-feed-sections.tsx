@@ -5,6 +5,8 @@ import { memberApiFetch } from '../../member-api';
 import { applyMemberImageFallback, hideDecorativeImage } from '../image-fallback';
 import { V47_ASSETS } from './v47-asset-map';
 
+const LOCAL_IMAGE_ASSET_ROOT = '/assets/asset-pc/images';
+
 type LobbyGame = {
   id: string;
   name: string;
@@ -47,18 +49,16 @@ type LiveItem = {
 };
 
 const FALLBACK_GAMES: LobbyGame[] = [
-  game('caishen-win', 'Caishen Win!', 'https://cdn.zabbet.com/games/1776497353110-1181f568-fdd2-450d-a812-faa308cb334b.png', 'hotdog', 'slot', 'HOT'),
-  game('super-ace', 'Super Ace', 'https://cdn.zabbet.com/games/1776752691156-e36b7cd1-61b7-4a78-aacf-0c40bdb503f9.png', 'hotdog', 'slot', 'HOT'),
-  game('roma-x', 'Roma X', 'https://cdn.zabbet.com/games/1776752719475-27cbcef6-51b7-460d-91a7-6a285dfcb42b.png', 'hotdog', 'slot', 'HOT'),
-  game('funky-fortunez', 'Funky Fortunez', 'https://cdn.zabbet.com/games/1777960364860-5737aa5a-9dba-4a0b-bc37-5d9339d98dd7.png', 'pgsoft', 'slot', 'NEW'),
-  game('island-ices', 'Island Ices', 'https://cdn.zabbet.com/games/1771481576088-7a598c5e-dbe1-441a-a3e0-c9aba0ede728.png', 'ygg', 'slot', 'NEW'),
-  game('covert-chaos', 'Covert Chaos', 'https://cdn.zabbet.com/games/1771481607415-fd863209-0afc-434f-92bd-7b7a07b13a0b.png', 'ygg', 'slot', 'NEW'),
+  game('roma-x-10000', 'ROMA X 10000', 'https://cdn.zabbet.com/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg', 'jl', 'slot', 'HOT'),
+  game('maya-golden-city-2', 'Maya Golden City 2', 'https://cdn.zabbet.com/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg', 'ygr', 'slot', 'HOT'),
+  game('el-paso-gunfight', 'El Paso Gunfight xNudge', 'https://cdn.zabbet.com/games/NLC/elpaso0000000000.jpg', 'nlc', 'slot', 'NEW'),
+  game('sweet-bonanza-xmas', 'Sweet Bonanza Xmas', 'https://cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png', 'pp', 'slot', 'NEW'),
+  game('roma', 'Roma', 'https://cdn.zabbet.com/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9.jpg', 'rsg', 'slot', 'NEW'),
+  game('treasures-of-aztec-z', 'TREASURES OF AZTEC Z', 'https://cdn.zabbet.com/games/1692882357754-c47b8426-4045-4792-8ee3-58b784ed9a78.jpg', 'ps', 'slot', 'NEW'),
   game('thai-hi-lo-2', 'ไฮโลไทย 2', 'https://cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg', 'kingm', 'card', 'NEW'),
-  game('baccarat', 'บาคาร่า', 'https://cdn.zabbet.com/games/KM/TH/Baccarat.jpg', 'kingm', 'card', ''),
-  game('devil-buster', 'Devil Buster', 'https://cdn.zabbet.com/games/1687329677649-ad488dc9-496a-4f75-894e-13e8eb7c9ffa.jpg', 'kagafish', 'fishing', 'HOT'),
-  game('hero-fishing', 'Hero Fishing', 'https://cdn.zabbet.com/games/1670595737720-4a51357f-9592-45bc-9223-78b674b217a4.png', 'cqfish', 'fishing', 'HOT'),
-  game('muscle-fortune-cat', 'Muscle Fortune Cat', 'https://cdn.zabbet.com/games/1772000800361-6f87dbc3-c3ea-4035-8850-21d262c1baf4.png', 'fachai', 'slot', 'NEW'),
-  game('money-tree', 'Money Tree', 'https://cdn.zabbet.com/games/1778467190766-eb787ab3-e567-47f2-b960-cd62d613019e.png', 'hotdog', 'slot', 'HOT'),
+  game('starlight-princess', 'Starlight Princess', 'https://cdn.zabbet.com/games/vertical/PP/starlight_princess.png', 'pp', 'slot', 'NEW'),
+  game('coin-spinner', 'Coin Spinner', 'https://cdn.zabbet.com/games/vertical/CQ/coin_spinner.jpg', 'cq', 'arcade', 'NEW'),
+  game('fortune-gems', 'Fortune Gems', 'https://cdn.zabbet.com/games/1671995554666-2fba59cf-2cb7-48bf-b619-ba56269e90ca.jpg', 'jl', 'slot', 'NEW'),
 ];
 
 const LIVE_ITEMS: LiveItem[] = [
@@ -123,13 +123,19 @@ async function loadLobbyGames(): Promise<LobbyGame[]> {
 function mapCatalogGame(item: CatalogGame): LobbyGame | null {
   const id = String(item.providerGameCode ?? item.code ?? item.id ?? '').trim();
   const name = String(item.name ?? '').trim();
-  const imageUrl = firstText(item.imageUrl, item.iconUrl);
-  if (!id || !name || !imageUrl || isNonGameMedia(imageUrl)) return null;
-  if (item.rawPayload?.assetSource === 'generated-svg' || imageUrl.includes('/provider-simulator/icons/')) return null;
+  const sourceImageUrl = firstText(item.imageUrl, item.iconUrl);
+  if (!id || !name || !sourceImageUrl || isNonGameMedia(sourceImageUrl)) return null;
+  if (item.rawPayload?.assetSource === 'generated-svg' || sourceImageUrl.includes('/provider-simulator/icons/')) return null;
+
+  const imageUrl = localGameImageUrl(sourceImageUrl);
+  if (!imageUrl) return null;
 
   const providerObject = item.provider && typeof item.provider === 'object' ? item.provider : null;
   const provider = normalizeProvider(firstText(item.providerId, typeof item.provider === 'string' ? item.provider : null, providerObject?.code));
-  const providerLogo = firstText(item.providerLogoUrl, providerObject?.logoUrl, provider ? `https://cdn.zabbet.com/providers/set/1_1_badge/${provider}.png` : null);
+  const providerLogo = localProviderLogoUrl(
+    firstText(item.providerLogoUrl, providerObject?.logoUrl),
+    provider,
+  );
   const tags = Array.isArray(item.tags) ? item.tags.map((tag) => String(tag).toLowerCase()) : [];
   const badge: LobbyGame['badge'] = tags.some(isHotTag) ? 'HOT' : tags.some(isNewTag) ? 'NEW' : '';
   const players = readPlayerCount(item, id);
@@ -146,17 +152,65 @@ function mapCatalogGame(item: CatalogGame): LobbyGame | null {
   };
 }
 
-function game(id: string, name: string, imageUrl: string, provider: string, category: string, badge: LobbyGame['badge']): LobbyGame {
+function game(id: string, name: string, sourceImageUrl: string, provider: string, category: string, badge: LobbyGame['badge']): LobbyGame {
   return {
     id,
     name,
-    imageUrl,
-    providerLogo: `https://cdn.zabbet.com/providers/set/1_1_badge/${provider}.png`,
+    imageUrl: localGameImageUrl(sourceImageUrl),
+    providerLogo: `${LOCAL_IMAGE_ASSET_ROOT}/providers/set/1_1_badge/${provider}.png`,
     provider,
     category,
     badge,
     players: estimatedPlayers(id),
   };
+}
+
+function localGameImageUrl(sourceUrl: string) {
+  const normalized = sourceUrl.trim().replace(/\\/g, '/');
+  if (!normalized) return '';
+  if (normalized.startsWith(`${LOCAL_IMAGE_ASSET_ROOT}/games/`)) return normalized;
+
+  let pathname = normalized.split(/[?#]/, 1)[0] ?? '';
+  if (/^https?:\/\//i.test(normalized)) {
+    try {
+      pathname = new URL(normalized).pathname;
+    } catch {
+      return '';
+    }
+  }
+
+  const marker = '/games/';
+  const markerIndex = pathname.toLowerCase().indexOf(marker);
+  if (markerIndex < 0) return '';
+
+  const relativePath = pathname.slice(markerIndex + 1).replace(/^\/+/, '');
+  if (!relativePath || relativePath.includes('..')) return '';
+  return `${LOCAL_IMAGE_ASSET_ROOT}/${relativePath}`;
+}
+
+function localProviderLogoUrl(sourceUrl: string, provider: string) {
+  const normalized = sourceUrl.trim().replace(/\\/g, '/');
+  if (normalized.startsWith(`${LOCAL_IMAGE_ASSET_ROOT}/providers/`)) return normalized;
+
+  if (normalized) {
+    let pathname = normalized.split(/[?#]/, 1)[0] ?? '';
+    if (/^https?:\/\//i.test(normalized)) {
+      try {
+        pathname = new URL(normalized).pathname;
+      } catch {
+        pathname = '';
+      }
+    }
+
+    const marker = '/providers/';
+    const markerIndex = pathname.toLowerCase().indexOf(marker);
+    if (markerIndex >= 0) {
+      const relativePath = pathname.slice(markerIndex + 1).replace(/^\/+/, '');
+      if (relativePath && !relativePath.includes('..')) return `${LOCAL_IMAGE_ASSET_ROOT}/${relativePath}`;
+    }
+  }
+
+  return provider ? `${LOCAL_IMAGE_ASSET_ROOT}/providers/set/1_1_badge/${provider}.png` : '';
 }
 
 function dedupeGames(items: LobbyGame[]) {
@@ -232,7 +286,7 @@ export function SourcePopularSection() {
     <section className="source-feed-host source-feed-host--popular" data-section-kind="popular" data-content-state="catalog">
       <div className="member-source-feed-mount member-source-feed-mount--popular">
         <div className="source-feed-section source-popular-section">
-          <SourceHeading title="Top 10 Popular Games" icon="/images/highlight/icongamehit.webp" iconSize={24} />
+          <SourceHeading title="Top 10 Popular Games" icon="/assets/asset-pc/images/highlight/icongamehit.webp" iconSize={24} />
           <div className="source-popular-track" data-drag-scroll="true">
             {games.map((item, index) => (
               <a key={`${item.provider}:${item.id}`} className="source-popular-card" href={gameHref(item)} title={item.name}>
@@ -260,7 +314,7 @@ export function SourceOnlineSection() {
     <section className="source-feed-host source-feed-host--online" data-section-kind="online" data-content-state="catalog">
       <div className="member-source-feed-mount member-source-feed-mount--online">
         <div className="source-feed-section source-online-section">
-          <SourceHeading title="Most Online Now" icon="/images/home/mostonline1.webp" notice="จำนวนผู้เล่นโดยประมาณ" />
+          <SourceHeading title="Most Online Now" icon="/assets/asset-pc/images/home/mostonline1.webp" notice="จำนวนผู้เล่นโดยประมาณ" />
           <div className="source-online-track" data-drag-scroll="true">
             {games.map((item) => (
               <a key={`${item.provider}:${item.id}`} className="source-online-card" href={gameHref(item)} title={item.name}>
