@@ -89,15 +89,15 @@ export default function DesktopMiniGameSource() {
         #desktop-mini-game-source .mini-game-final-icon {
           position: absolute !important;
           top: 50% !important;
-          left: -28px !important;
+          left: -32px !important;
           z-index: 2 !important;
           display: block !important;
-          width: 90px !important;
-          min-width: 90px !important;
-          max-width: 90px !important;
-          height: 90px !important;
-          min-height: 90px !important;
-          max-height: 90px !important;
+          width: 120px !important;
+          min-width: 120px !important;
+          max-width: 120px !important;
+          height: 120px !important;
+          min-height: 120px !important;
+          max-height: 120px !important;
           margin: 0 !important;
           padding: 0 !important;
           object-fit: contain !important;
