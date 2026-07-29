@@ -68,6 +68,7 @@ main[data-source-game-category='lotto'] [data-source-bottom-fade][data-source-bo
 /* The artwork owns each card. Do not reveal the old #15131a loading plate
  * through transparent or rounded pixels around provider images. */
 main[data-source-game-category] [data-source-game-cover] {
+  isolation: auto !important;
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
@@ -86,10 +87,16 @@ main[data-source-game-category] [data-source-game-cover] > img {
   box-shadow: none !important;
 }
 
-/* The source provider/game artwork itself contains opaque black pixels. Blend
- * the visible card artwork with the category background so true black becomes
- * visually transparent while the coloured portrait and logo remain visible. */
-main[data-source-game-category='casino'] [data-source-game-cover] > img:not([aria-hidden='true']),
+/* Casino provider cards contain a stronger opaque black plate than the other
+ * category assets. Lighten replaces those dark pixels with the live category
+ * background while retaining brighter portraits, logos and highlights. */
+main[data-source-game-category='casino'] [data-source-game-cover] > img:not([aria-hidden='true']) {
+  mix-blend-mode: lighten !important;
+  background: transparent !important;
+  filter: saturate(1.04) contrast(1.02) !important;
+}
+
+/* The remaining category artwork responds well to screen blending. */
 main[data-source-game-category='card'] [data-source-game-cover] > img:not([aria-hidden='true']),
 main[data-source-game-category='sport'] [data-source-game-cover] > img:not([aria-hidden='true']),
 main[data-source-game-category='lotto'] [data-source-game-cover] > img:not([aria-hidden='true']) {
