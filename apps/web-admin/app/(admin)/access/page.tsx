@@ -85,22 +85,27 @@ export default function AccessOverviewPage() {
       return { overviewOk: false, profileOk: false, delegationsOk: false };
     }
 
-    const overviewOk = overviewResult.ok && isAccessResponse(overviewResult.payload);
-    const profileOk = profileResult.ok && isRecord(profileResult.payload);
-    const delegationsOk = delegationResult.ok && Array.isArray(delegationResult.payload);
+    const overview = overviewResult.ok && isAccessResponse(overviewResult.payload) ? overviewResult.payload : null;
+    const profile = profileResult.ok && isRecord(profileResult.payload) ? profileResult.payload : null;
+    const delegationItems = delegationResult.ok && Array.isArray(delegationResult.payload)
+      ? delegationResult.payload.filter(isDelegation)
+      : null;
+    const overviewOk = overview !== null;
+    const profileOk = profile !== null;
+    const delegationsOk = delegationItems !== null;
 
-    if (overviewOk) {
-      dataRef.current = overviewResult.payload;
-      setData(overviewResult.payload);
+    if (overview) {
+      dataRef.current = overview;
+      setData(overview);
     }
-    if (profileOk) {
-      setCurrentAdminId(typeof profileResult.payload.id === 'string' ? profileResult.payload.id : '');
-      setPermissionsHeld(Array.isArray(profileResult.payload.permissions)
-        ? profileResult.payload.permissions.filter((item): item is string => typeof item === 'string')
+    if (profile) {
+      setCurrentAdminId(typeof profile.id === 'string' ? profile.id : '');
+      setPermissionsHeld(Array.isArray(profile.permissions)
+        ? profile.permissions.filter((item): item is string => typeof item === 'string')
         : []);
     }
-    if (delegationsOk) {
-      setDelegations(delegationResult.payload.filter(isDelegation));
+    if (delegationItems) {
+      setDelegations(delegationItems);
     }
 
     if (announce) {
