@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { AdminDrawer } from './admin-drawer';
 import { AdminButton, AdminCard, AdminEmpty, AdminMetricGrid, AdminSkeleton, AdminStack, AdminToolbar } from './admin-ui';
+import styles from './admin-finance-queue.module.css';
 
 type QueueStatusOption = { value: string; label: string };
+
+export type AdminFinanceQueueLoadResult = 'loaded' | 'failed' | 'stale';
+export type AdminFinanceQueueLoadOptions = { announce?: boolean; notifyFailure?: boolean };
 
 type AdminFinanceQueueToolbarProps = {
   label: string;
@@ -33,6 +37,28 @@ type AdminFinanceQueueFrameProps = {
   children: ReactNode;
 };
 
+type AdminFinanceEvidenceProps = {
+  src?: string | null | undefined;
+  alt: string;
+  openLabel: string;
+  description: string;
+  closeLabel: string;
+};
+
+export function useAdminFinanceQueueRequestGate() {
+  const sequenceRef = useRef(0);
+
+  return {
+    begin() {
+      sequenceRef.current += 1;
+      return sequenceRef.current;
+    },
+    isCurrent(requestId: number) {
+      return sequenceRef.current === requestId;
+    },
+  };
+}
+
 export function AdminFinanceQueueToolbar({
   label,
   ariaLabel,
@@ -49,7 +75,7 @@ export function AdminFinanceQueueToolbar({
   onNext,
 }: AdminFinanceQueueToolbarProps) {
   const safePageCount = Math.max(pageCount, 1);
-  return <div className="admin-finance-queue-toolbar" style={{ position: 'sticky', top: 8, zIndex: 20 }}>
+  return <div className={styles.toolbar}>
     <AdminToolbar>
       <label className="admin-queue-filter">
         <span>{label}</span>
@@ -67,7 +93,7 @@ export function AdminFinanceQueueToolbar({
 }
 
 export function AdminFinanceQueueFrame({ className, metrics, toolbar, notice, loading, empty, emptyLabel, children }: AdminFinanceQueueFrameProps) {
-  return <div className={className}>
+  return <div className={[styles.frame, className].filter(Boolean).join(' ')} aria-busy={loading}>
     <AdminMetricGrid>{metrics}</AdminMetricGrid>
     {toolbar}
     {notice}
@@ -75,16 +101,16 @@ export function AdminFinanceQueueFrame({ className, metrics, toolbar, notice, lo
   </div>;
 }
 
-export function AdminFinanceEvidence({ src, alt }: { src?: string | null | undefined; alt: string }) {
+export function AdminFinanceEvidence({ src, alt, openLabel, description, closeLabel }: AdminFinanceEvidenceProps) {
   const [open, setOpen] = useState(false);
   if (!src) return null;
   return <>
-    <button type="button" className="admin-finance-evidence-trigger" aria-label={`เปิด ${alt}`} onClick={() => setOpen(true)} style={{ border: 0, padding: 0, background: 'transparent', cursor: 'zoom-in', borderRadius: 12 }}>
+    <button type="button" className={`${styles.evidenceTrigger} admin-finance-evidence-trigger`} aria-label={`${openLabel} ${alt}`} onClick={() => setOpen(true)}>
       <img src={src} alt={alt} className="admin-topup-modal-slip" />
     </button>
-    <AdminDrawer open={open} title={alt} description="ตรวจภาพหลักฐานฉบับเต็มก่อนดำเนินการ" closeLabel="ปิด" onClose={() => setOpen(false)}>
-      <div style={{ display: 'grid', placeItems: 'center', minHeight: 240 }}>
-        <img src={src} alt={alt} style={{ display: 'block', maxWidth: '100%', maxHeight: '75dvh', objectFit: 'contain', borderRadius: 14 }} />
+    <AdminDrawer open={open} title={alt} description={description} closeLabel={closeLabel} onClose={() => setOpen(false)}>
+      <div className={styles.evidenceCanvas}>
+        <img src={src} alt={alt} className={styles.evidenceImage} />
       </div>
     </AdminDrawer>
   </>;

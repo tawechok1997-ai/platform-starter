@@ -101,30 +101,30 @@ export function AdminDrawer({ open, title, description, closeLabel = 'ปิด'
 
   return createPortal(<>
     <style jsx global>{drawerCss}</style>
-    <div className="admin-drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busyRef.current) onCloseRef.current(); }}>
-      <aside ref={drawerRef} className={`admin-drawer admin-drawer--${size}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined} tabIndex={-1}>
-        <header className="admin-drawer__head">
-          <div className="admin-drawer__copy">
+    <div className="admin-overlay-drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busyRef.current) onCloseRef.current(); }}>
+      <aside ref={drawerRef} className={`admin-overlay-drawer admin-overlay-drawer--${size}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined} tabIndex={-1}>
+        <header className="admin-overlay-drawer__head">
+          <div className="admin-overlay-drawer__copy">
             <h2 id={titleId}>{title}</h2>
             {description && <p id={descriptionId}>{description}</p>}
           </div>
           <button ref={closeButtonRef} type="button" className="admin-ui-button admin-ui-button--ghost admin-ui-button--compact" disabled={busy} onClick={onClose}>{closeLabel}</button>
         </header>
-        <div className="admin-drawer__body">{children}</div>
-        {footer && <footer className="admin-drawer__footer">{footer}</footer>}
+        <div className="admin-overlay-drawer__body">{children}</div>
+        {footer && <footer className="admin-overlay-drawer__footer">{footer}</footer>}
       </aside>
     </div>
   </>, document.body);
 }
 
 const drawerCss = `
-.admin-drawer-layer{position:fixed;inset:0;z-index:10000;display:flex;justify-content:flex-end;overflow:hidden;overscroll-behavior:contain;background:rgba(2,6,23,.7);backdrop-filter:blur(7px)}
-.admin-drawer{width:min(100%,600px);height:100dvh;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;background:#111823;color:#f8fafc;border-left:1px solid rgba(148,163,184,.24);box-shadow:-24px 0 70px rgba(0,0,0,.45)}
-.admin-drawer--compact{width:min(100%,460px)}.admin-drawer--wide{width:min(100%,760px)}
-.admin-drawer__head{position:sticky;top:0;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:14px;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) 14px 22px;background:inherit;border-bottom:1px solid rgba(148,163,184,.16)}
-.admin-drawer__copy{min-width:0;overflow-wrap:anywhere}.admin-drawer__copy h2{margin:0!important;font-size:clamp(21px,3vw,28px)!important;line-height:1.15!important}.admin-drawer__copy p{margin:7px 0 0!important;color:#94a3b8!important;font-size:13px!important;line-height:1.5!important}
-.admin-drawer__body{min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:18px max(20px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) 22px}
-.admin-drawer__footer{position:sticky;bottom:0;z-index:2;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:12px max(20px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) 22px;background:inherit;border-top:1px solid rgba(148,163,184,.16)}
-@media(max-width:720px){.admin-drawer-layer{align-items:stretch}.admin-drawer,.admin-drawer--compact,.admin-drawer--wide{width:100%;height:100dvh;border-left:0}.admin-drawer__head{padding:max(16px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 12px max(14px,env(safe-area-inset-left))}.admin-drawer__body{padding:14px max(14px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}.admin-drawer__footer{padding:11px max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}.admin-drawer__footer>*{flex:1 1 140px}}
-@media(prefers-reduced-motion:reduce){.admin-drawer-layer{backdrop-filter:none}}
+.admin-overlay-drawer-layer{position:fixed;inset:0;z-index:10000;display:flex;justify-content:flex-end;overflow:hidden;overscroll-behavior:contain;background:rgba(2,6,23,.7);backdrop-filter:blur(7px)}
+.admin-overlay-drawer{width:min(100%,600px);height:100dvh;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;background:#111823;color:#f8fafc;border-left:1px solid rgba(148,163,184,.24);box-shadow:-24px 0 70px rgba(0,0,0,.45)}
+.admin-overlay-drawer--compact{width:min(100%,460px)}.admin-overlay-drawer--wide{width:min(100%,760px)}
+.admin-overlay-drawer__head{position:sticky;top:0;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:14px;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) 14px 22px;background:inherit;border-bottom:1px solid rgba(148,163,184,.16)}
+.admin-overlay-drawer__copy{min-width:0;overflow-wrap:anywhere}.admin-overlay-drawer__copy h2{margin:0!important;font-size:clamp(21px,3vw,28px)!important;line-height:1.15!important}.admin-overlay-drawer__copy p{margin:7px 0 0!important;color:#94a3b8!important;font-size:13px!important;line-height:1.5!important}
+.admin-overlay-drawer__body{min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:18px max(20px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) 22px}
+.admin-overlay-drawer__footer{position:sticky;bottom:0;z-index:2;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:12px max(20px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) 22px;background:inherit;border-top:1px solid rgba(148,163,184,.16)}
+@media(max-width:720px){.admin-overlay-drawer-layer{align-items:stretch}.admin-overlay-drawer,.admin-overlay-drawer--compact,.admin-overlay-drawer--wide{width:100%;height:100dvh;border-left:0}.admin-overlay-drawer__head{padding:max(16px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 12px max(14px,env(safe-area-inset-left))}.admin-overlay-drawer__body{padding:14px max(14px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}.admin-overlay-drawer__footer{padding:11px max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}.admin-overlay-drawer__footer>*{flex:1 1 140px}}
+@media(prefers-reduced-motion:reduce){.admin-overlay-drawer-layer{backdrop-filter:none}}
 `;
