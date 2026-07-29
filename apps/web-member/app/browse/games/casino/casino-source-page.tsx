@@ -74,7 +74,7 @@ export default function CasinoSourcePage() {
           background: linear-gradient(182deg, rgba(115, 115, 115, 0) 29.43%, #110e16 52.3%, #110e16 85.96%) !important;
         }
 
-        /* Casino had a local `normal !important` rule that overrode the working
+        /* Casino had a local normal blend rule that overrode the working
          * transparent treatment used by Sport and Lotto. Apply that proven rule
          * only to the provider-card bitmap, never to the page artwork. */
         main[data-source-game-category='casino'] [data-source-game-cover] {
