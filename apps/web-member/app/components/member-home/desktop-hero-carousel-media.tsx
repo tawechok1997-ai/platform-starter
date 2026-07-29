@@ -280,7 +280,7 @@ function HeroSlideCard({ role, slide, siteName }: { role: 'previous' | 'active' 
     href={slide.banner.href || '/browse/promotions'}
     className={`reference-hero-slide reference-hero-slide--${role}${isActive ? ' is-active' : ''}`}
     aria-label={slide.banner.title || `โปรโมชั่น ${slide.realIndex + 1}`}
-    aria-hidden={isActive ? undefined : true}
+    inert={isActive ? undefined : true}
     tabIndex={isActive ? 0 : -1}
   >
     {missing ? <span style={MISSING_ASSET_STYLE}>MISSING PROMOTION ASSET<br />ตรวจรูปใน Content Center</span> : <picture>
