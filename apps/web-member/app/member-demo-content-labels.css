@@ -1,0 +1,38 @@
+/* Temporary disclosure labels for source-matched sections that are not API-backed yet. */
+
+.source-tournament__section-heading strong,
+.reference-leaderboard > header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.source-tournament__section-heading strong::after,
+.reference-leaderboard > header::after {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 8px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 999px;
+  background: rgb(17 14 25 / 78%);
+  color: #e9d9f3;
+  content: 'ข้อมูลตัวอย่าง';
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.reference-leaderboard > header {
+  justify-content: space-between;
+}
+
+@media (max-width: 900px) {
+  .source-tournament__section-heading strong::after,
+  .reference-leaderboard > header::after {
+    font-size: 9px;
+  }
+}
