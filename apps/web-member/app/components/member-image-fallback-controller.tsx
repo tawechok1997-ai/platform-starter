@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { MEMBER_IMAGE_FALLBACK } from './image-fallback';
 
 const DECORATIVE_CLASS_PATTERN = /(background|backdrop|blur|glow|shine|wash|fade|mask)/i;
+const SOURCE_PROVIDER_THEME_PATTERN = /\/providers\/set\/1_1_(?:bg|title|avatar)\//i;
 
 export default function MemberImageFallbackController() {
   useEffect(() => {
@@ -12,6 +13,16 @@ export default function MemberImageFallbackController() {
       if (!(image instanceof HTMLImageElement)) return;
       if (image.dataset.noFallback === 'true' || image.dataset.fallbackApplied === 'true') return;
       if (image.src.includes(MEMBER_IMAGE_FALLBACK)) return;
+
+      const sourceCategoryPage = image.closest("main[data-source-game-category]");
+      const isProviderThemeAsset = sourceCategoryPage && SOURCE_PROVIDER_THEME_PATTERN.test(image.src);
+
+      if (isProviderThemeAsset) {
+        image.dataset.noFallback = 'true';
+        image.style.display = 'none';
+        image.setAttribute('aria-hidden', 'true');
+        return;
+      }
 
       const className = typeof image.className === 'string' ? image.className : '';
       const decorative = image.getAttribute('aria-hidden') === 'true'
