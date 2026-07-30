@@ -21,7 +21,7 @@ export default function MemberClientNavigationController() {
   const router = useRouter();
 
   useEffect(() => {
-    const prefetchLink = (event: Event) => {
+    const prefetchFocusedLink = (event: FocusEvent) => {
       if (!(event.target instanceof Element)) return;
       const link = event.target.closest<HTMLAnchorElement>('a[href]');
       const destination = internalDestinationFor(link);
@@ -60,13 +60,13 @@ export default function MemberClientNavigationController() {
       startTransition(() => router.push(destination.href));
     };
 
-    document.addEventListener('pointerover', prefetchLink, { passive: true });
-    document.addEventListener('focusin', prefetchLink);
+    // Avoid global pointerover prefetching. Moving across a large game catalog
+    // otherwise queues hundreds of unique route requests before the user clicks.
+    document.addEventListener('focusin', prefetchFocusedLink);
     document.addEventListener('click', navigatePlainInternalLink);
 
     return () => {
-      document.removeEventListener('pointerover', prefetchLink);
-      document.removeEventListener('focusin', prefetchLink);
+      document.removeEventListener('focusin', prefetchFocusedLink);
       document.removeEventListener('click', navigatePlainInternalLink);
     };
   }, [router]);
