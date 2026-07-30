@@ -151,15 +151,19 @@ export default function PublicGameLoginController() {
 
 function readGameCandidate(action: HTMLElement): MemberGameLaunchCandidate | null {
   const owner = action.closest<HTMLElement>('[data-game-id], [data-game-code], [data-game-name], [data-provider-code]') ?? action;
-  const id = firstText(owner.dataset.gameId, action.dataset.gameId);
-  const providerGameCode = firstText(owner.dataset.gameCode, action.dataset.gameCode);
-  const providerCode = firstText(owner.dataset.providerCode, action.dataset.providerCode);
-  const category = firstText(owner.dataset.gameCategory, action.dataset.gameCategory);
+  const linkContext = readLinkContext(action);
+  const pageCategory = action.closest<HTMLElement>('main[data-source-game-category]')?.dataset.sourceGameCategory;
+  const id = firstText(owner.dataset.gameId, action.dataset.gameId, linkContext.gameId);
+  const providerGameCode = firstText(owner.dataset.gameCode, action.dataset.gameCode, linkContext.gameCode);
+  const providerCode = firstText(owner.dataset.providerCode, action.dataset.providerCode, linkContext.providerCode);
+  const category = firstText(owner.dataset.gameCategory, action.dataset.gameCategory, linkContext.category, pageCategory);
   const name = firstText(
     owner.dataset.gameName,
     action.dataset.gameName,
     action.getAttribute('title'),
     cleanAriaLabel(action.getAttribute('aria-label')),
+    action.querySelector<HTMLElement>('.source-highlight-game__name, .source-popular-card__name, strong')?.textContent,
+    cleanImageAlt(action.querySelector<HTMLImageElement>('img[alt]')?.alt),
   );
 
   return id || providerGameCode || name
@@ -167,8 +171,30 @@ function readGameCandidate(action: HTMLElement): MemberGameLaunchCandidate | nul
     : null;
 }
 
+function readLinkContext(action: HTMLElement) {
+  const link = action instanceof HTMLAnchorElement ? action : action.closest<HTMLAnchorElement>('a[href]');
+  if (!link) return { gameId: '', gameCode: '', providerCode: '', category: '' };
+
+  try {
+    const url = new URL(link.href, window.location.href);
+    return {
+      gameId: firstText(url.searchParams.get('gameId'), url.searchParams.get('game')),
+      gameCode: firstText(url.searchParams.get('gameCode'), url.searchParams.get('code')),
+      providerCode: firstText(url.searchParams.get('provider'), url.searchParams.get('providerCode')),
+      category: firstText(url.searchParams.get('category')),
+    };
+  } catch {
+    return { gameId: '', gameCode: '', providerCode: '', category: '' };
+  }
+}
+
 function cleanAriaLabel(value: string | null) {
   return firstText(value).replace(/^(เปิด|เข้าเล่น|เล่น)\s*/i, '').trim();
+}
+
+function cleanImageAlt(value: string | null | undefined) {
+  const text = firstText(value);
+  return /^(เกมไฮไลท์|ภาพ|โลโก้|provider)$/i.test(text) ? '' : text.replace(/^ภาพปก\s*/i, '').trim();
 }
 
 function gameDestination(action: HTMLElement) {
