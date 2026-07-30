@@ -32,7 +32,9 @@ export default function DepositClient({
   onCancel,
 }: DepositClientProps = {}) {
   const [step, setStep] = useState<DepositStep>('select');
-  const [amount, setAmount] = useState(DEPOSIT_FORM_DEFAULTS.amount);
+  const [amount, setAmount] = useState(() => (
+    variant === 'headerPopup' ? '' : DEPOSIT_FORM_DEFAULTS.amount
+  ));
   const [method, setMethod] = useState<DepositMethodCode>(DEPOSIT_FORM_DEFAULTS.method);
   const [selected, setSelected] = useState<ReceivingAccount | null>(null);
   const [slipImageData, setSlipImageData] = useState('');
