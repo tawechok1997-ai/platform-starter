@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import type { SyntheticEvent } from 'react';
+import { memo, type SyntheticEvent } from 'react';
 import { useMemberLocale } from './member-locale-provider';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 
@@ -55,7 +55,7 @@ const FOOTER_COPY = {
 บาคาร่า รูเล็ต ไฮโล เสือมังกร สล็อตออนไลน์ กีฬาออนไลน์
 แจ็คพอตแตกทุกวัน`,
     license: 'ใบอนุญาตและใบรับรอง', licenseNote: '(การันตีเกมลิขสิทธิ์แท้)', security: 'การรองรับและความปลอดภัยโดย', responsible: 'รับผิดชอบในการเดิมพัน', games: 'เกม', information: 'ข้อมูล', contact: 'ติดต่อเรา', contactAria: 'ติดต่อฝ่ายบริการผ่าน LINE', payments: 'วิธีการชำระเงิน',
-    links: { casino: 'คาสิโน', slot: 'สล็อต', fishing: 'ยิงปลา', sport: 'กีฬา', card: 'ไพ่', lottery: 'หวย', promotions: 'โปรโมชั่น', news: 'ข่าวสาร', activities: 'กิจกรรม', vip: 'ระดับสมาชิก VIP', networkIncome: 'รายได้จากเครือข่าย', commissionIncome: 'รายได้จากคอมมิชชั่น' },
+    links: { casino: 'คาสิโน', slot: 'สล็อต', fishing: 'ตกปลา', sport: 'กีฬา', card: 'ไพ่', lottery: 'หวย', promotions: 'โปรโมชั่น', news: 'ข่าวสาร', activities: 'กิจกรรม', vip: 'ระดับสมาชิก VIP', networkIncome: 'รายได้จากเครือข่าย', commissionIncome: 'รายได้จากคอมมิชชั่น' },
   },
   en: {
     description: `A premium online gaming destination
@@ -80,7 +80,7 @@ function sourceDescription(value: string | undefined, fallback: string) {
     : normalized;
 }
 
-export default function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
+function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
   const { locale } = useMemberLocale();
   const copy = FOOTER_COPY[locale];
   const { website } = settings;
@@ -150,7 +150,9 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
   );
 }
 
-function BadgeRow({ badges, className = '' }: {
+export default memo(MemberFooter);
+
+const BadgeRow = memo(function BadgeRow({ badges, className = '' }: {
   badges: readonly (readonly [name: string, url: string])[];
   className?: string;
 }) {
@@ -163,7 +165,7 @@ function BadgeRow({ badges, className = '' }: {
       ))}
     </div>
   );
-}
+});
 
 function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
   event.currentTarget.style.display = 'none';
