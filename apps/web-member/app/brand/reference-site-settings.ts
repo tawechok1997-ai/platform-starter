@@ -144,7 +144,7 @@ export const DEFAULT_REFERENCE_CONTENT: ReferenceContentSettings = {
   gameCategorySlotLabel: 'สล็อต',
   gameCategoryLiveLabel: 'คาสิโนสด',
   gameCategorySportLabel: 'กีฬา',
-  gameCategoryFishingLabel: 'เกมยิงปลา',
+  gameCategoryFishingLabel: 'ยิงปลา',
   gameCategoryLotteryLabel: 'หวย',
   gameCategoryCardLabel: 'ไพ่',
   gameCategoryArcadeLabel: 'อาร์เคด',
