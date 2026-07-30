@@ -1,0 +1,92 @@
+@media (min-width: 901px) {
+  .member-game-launch-overlay {
+    position: fixed;
+    z-index: 2147483300;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgb(3 2 7 / 58%);
+    backdrop-filter: blur(4px);
+  }
+
+  .member-game-launch-dialog {
+    position: relative;
+    display: grid;
+    width: min(420px, calc(100vw - 48px));
+    min-height: 188px;
+    place-items: center;
+    gap: 14px;
+    padding: 28px 30px;
+    overflow: hidden;
+    border: 1px solid rgb(187 91 234 / 42%);
+    border-radius: 16px;
+    color: #fff;
+    background: radial-gradient(52% 62% at 50% 0%, rgb(63 59 75 / 96%) 0%, rgb(27 24 36 / 98%) 100%);
+    box-shadow: 0 30px 90px rgb(0 0 0 / 58%);
+    text-align: center;
+  }
+
+  .member-game-launch-dialog::before {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 180px;
+    height: 1px;
+    content: '';
+    background: linear-gradient(90deg, transparent, #fff, transparent);
+    transform: translateX(-50%);
+  }
+
+  .member-game-launch-spinner {
+    width: 52px;
+    height: 52px;
+    border: 4px solid rgb(255 255 255 / 14%);
+    border-top-color: #d165ff;
+    border-radius: 999px;
+    animation: member-game-launch-spin 720ms linear infinite;
+  }
+
+  .member-game-launch-dialog strong {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 18px;
+    line-height: 26px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .member-game-launch-dialog p {
+    margin: 0;
+    color: rgb(255 255 255 / 70%);
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  .member-game-launch-dialog button {
+    min-width: 120px;
+    height: 40px;
+    padding: 0 18px;
+    border: 1px solid #9a00c3;
+    border-radius: 8px;
+    color: #fff;
+    background: linear-gradient(180deg, #6d1685, #3e0d4f);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  [data-member-game-launching='true'] {
+    pointer-events: none !important;
+    cursor: wait !important;
+  }
+}
+
+@keyframes member-game-launch-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-game-launch-spinner { animation: none; }
+}
