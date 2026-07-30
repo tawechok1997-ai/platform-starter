@@ -110,7 +110,6 @@ import './member-desktop-scale-canvas.css';
 import MemberChrome from './member-chrome';
 import MemberClientNavigationController from './components/member-client-navigation-controller';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
-import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import MemberImageFallbackController from './components/member-image-fallback-controller';
 import MemberRenderStabilityController from './components/member-render-stability-controller';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
@@ -188,7 +187,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <MemberRenderStabilityController />
               <MemberClientNavigationController />
               <MemberImageFallbackController />
-              <MemberHeroSwipeController />
               <MemberDragScrollController />
               <PublicLiveNavigationController />
               <PublicDialogRuntimeController />
