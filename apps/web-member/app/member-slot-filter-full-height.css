@@ -1,0 +1,17 @@
+/* Slot filter: show the complete filter/provider list and let the page own scrolling. */
+[data-source-game-category='slot'] [data-source-filter-panel] {
+  position: relative !important;
+  top: auto !important;
+  align-self: start;
+  max-height: none !important;
+  height: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  overscroll-behavior: auto;
+}
+
+[data-source-game-category='slot'] [data-source-provider-grid] {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
