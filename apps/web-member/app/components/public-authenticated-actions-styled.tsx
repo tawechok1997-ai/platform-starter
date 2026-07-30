@@ -15,6 +15,7 @@ import MemberHeaderFinanceRuntime from './member-header-finance-runtime';
 import MemberMenuIncomeSafeRuntime from './member-menu-income-safe-runtime';
 import MemberMenuSecondaryRuntime from './member-menu-secondary-runtime';
 import MemberMenuVipRuntime from './member-menu-vip-runtime';
+import MemberSourceAssetRuntime from './member-source-asset-runtime';
 import '../member-authenticated-public-header.css';
 import '../member-authenticated-public-header-runtime.css';
 import '../member-authenticated-icon-assets.css';
@@ -28,6 +29,7 @@ import '../member-header-finance-source-stage.css';
 import '../member-menu-secondary-runtime.css';
 import '../member-authenticated-menu-assets.css';
 import '../member-authenticated-shared-lock.css';
+import '../member-source-asset-runtime.css';
 
 type Props = ComponentProps<typeof PublicAuthenticatedActions>;
 
@@ -105,6 +107,7 @@ export default function PublicAuthenticatedActionsStyled(props: Props) {
       onKeyDownCapture={handleKeyDownCapture}
     >
       <PublicAuthenticatedActions {...props} />
+      <MemberSourceAssetRuntime />
       <MemberHeaderFinanceRuntime locale={props.locale} />
       <MemberMenuIncomeSafeRuntime locale={props.locale} />
       <MemberMenuSecondaryRuntime locale={props.locale} />
