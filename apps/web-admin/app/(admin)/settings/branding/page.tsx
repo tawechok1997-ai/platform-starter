@@ -3,6 +3,7 @@ import SettingsSectionPage from '../settings-section-page';
 import BrandingPublishPanel from './branding-publish-panel';
 
 const REFERENCE_LOGO = '/assets/reference-brand/header/noah345-logo.webp';
+const REFERENCE_FAVICON = '/icon.svg';
 
 export default function BrandingSettingsPage() {
   return (
@@ -11,7 +12,7 @@ export default function BrandingSettingsPage() {
       <SettingsSectionPage
         group="branding"
         title="แบรนด์และภาพลักษณ์"
-        description="แก้ไขโลโก้ สี รูปทรง และฟอนต์เป็น Draft จากนั้นตรวจ Preview ก่อน Publish ผ่าน workflow ด้านบน"
+        description="แก้ไขโลโก้ ไอคอนแท็บเว็บ สี รูปทรง และฟอนต์เป็น Draft จากนั้นตรวจ Preview ก่อน Publish ผ่าน workflow ด้านบน"
         preview="branding"
         risk="sensitive"
         defaults={{
@@ -21,7 +22,7 @@ export default function BrandingSettingsPage() {
           logo_mobile_url: REFERENCE_LOGO,
           logo_login_url: REFERENCE_LOGO,
           logo_register_url: REFERENCE_LOGO,
-          favicon_url: REFERENCE_LOGO,
+          favicon_url: REFERENCE_FAVICON,
         }}
         fields={[
           { key: 'brand_mark', label: 'Brand Mark', section: 'อัตลักษณ์แบรนด์', maxLength: 24, placeholder: 'เช่น P, K, ★ หรือชื่อย่อ' },
@@ -36,7 +37,7 @@ export default function BrandingSettingsPage() {
           { key: 'footer_logo_url', label: 'โลโก้ Footer', section: 'โลโก้ตามพื้นที่ใช้งาน', asset: true },
           { key: 'loading_logo_url', label: 'โลโก้ Loading', section: 'โลโก้ตามพื้นที่ใช้งาน', asset: true },
           { key: 'watermark_logo_url', label: 'โลโก้ Watermark', section: 'โลโก้ตามพื้นที่ใช้งาน', asset: true },
-          { key: 'favicon_url', label: 'Favicon', section: 'App และ Browser Icons', asset: true, defaultValue: REFERENCE_LOGO },
+          { key: 'favicon_url', label: 'ไอคอนแท็บเว็บ (Favicon)', section: 'App และ Browser Icons', asset: true, defaultValue: REFERENCE_FAVICON, placeholder: REFERENCE_FAVICON, helper: 'แนะนำรูปสี่เหลี่ยม PNG หรือ WebP ขนาด 32×32 หรือ 64×64 พิกเซล และรองรับ URL ไฟล์ ICO หรือ SVG' },
           { key: 'apple_touch_icon_url', label: 'Apple Touch Icon', section: 'App และ Browser Icons', asset: true },
           { key: 'pwa_icon_url', label: 'PWA Icon', section: 'App และ Browser Icons', asset: true },
           { key: 'app_icon_url', label: 'App Icon', section: 'App และ Browser Icons', asset: true },
