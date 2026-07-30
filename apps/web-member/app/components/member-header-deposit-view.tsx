@@ -17,7 +17,7 @@ import {
 
 type HeaderDepositViewProps = DepositViewProps & {
   locale: 'th' | 'en';
-  onCancel?: () => void;
+  onCancel: (() => void) | undefined;
 };
 
 type MethodOption = {
@@ -360,7 +360,7 @@ export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
           />
           {props.lastRequest?.adminNote ? <FinanceInfoRow label={props.locale === 'th' ? 'รายละเอียด' : 'Details'} value={props.lastRequest.adminNote} /> : null}
           <div className="member-header-deposit-actions">
-            <Link href="/transactions" onClick={props.onCancel}>{copy.history}</Link>
+            <Link href="/transactions" {...(props.onCancel ? { onClick: props.onCancel } : {})}>{copy.history}</Link>
             <button type="button" className="is-primary" onClick={props.onCreateAnother}>{copy.createAnother}</button>
           </div>
           <SupportFooter locale={props.locale} />
