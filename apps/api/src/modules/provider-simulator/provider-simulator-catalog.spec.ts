@@ -52,9 +52,10 @@ describe('provider simulator catalog contracts', () => {
     const tags = new Set(GAME_CATALOG.flatMap((game) => game.tags ?? []));
     expect(tags.has('เกมยล็อต')).toBe(false);
     expect(tags.has('เกมสใหม่')).toBe(false);
-    expect(tags.has(' Novitads')).toBe(false);
+    expect(tags.has('ถวายสัตย์')).toBe(false);
     expect(tags.has('红黑大战')).toBe(false);
-    expect(tags.has('ခ')).toBe(false);
+    expect(tags.has(' cod')).toBe(false);
+    expect(tags.has('MASConstraint')).toBe(false);
     expect(tags.has('ยิงปลา')).toBe(false);
     expect(Array.from(tags)).toEqual(expect.arrayContaining(['เกมส์อาเขต', 'ซื้อฟรีสปิน', 'เกมส์ฮิต', 'เกมส์ใหม่', 'เกมส์สล็อต', 'เกมส์โต๊ะ']));
   });
