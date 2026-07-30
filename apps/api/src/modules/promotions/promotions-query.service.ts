@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Prisma, RiskAlertStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { campaignIsActive } from './promotion-asset-campaigns';
@@ -11,8 +11,12 @@ const CLAIM_STATUSES = ['OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED'] as const;
 const BONUS_STATUSES = ['OPEN', 'REVIEWING', 'RESOLVED', 'DISMISSED'] as const;
 
 @Injectable()
-export class PromotionsQueryService {
+export class PromotionsQueryService implements OnModuleInit {
   constructor(private readonly prisma: PrismaService) {}
+
+  async onModuleInit() {
+    await loadPromotionCampaignSettings(this.prisma);
+  }
 
   async listPublicCampaigns() {
     const items = (await loadPromotionCampaignSettings(this.prisma))
