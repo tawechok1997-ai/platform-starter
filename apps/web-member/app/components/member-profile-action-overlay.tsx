@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { memberApiFetch } from '../member-api';
 import type { MemberLocale } from '../member-locale-provider';
+import { useMemberContactRuntime } from '../member-settings-runtime';
 import '../member-profile-action-overlay.css';
 
 type ProfileAction = 'contact' | 'password' | null;
@@ -88,6 +89,7 @@ export default function MemberProfileActionOverlay({
 
 function ContactPanel({ locale, onClose }: { locale: MemberLocale; onClose: () => void }) {
   const copy = COPY[locale];
+  const { channels } = useMemberContactRuntime();
 
   return (
     <section className="member-profile-action-dialog member-profile-contact-dialog" role="dialog" aria-modal="true" aria-label={copy.contactTitle}>
@@ -101,15 +103,23 @@ function ContactPanel({ locale, onClose }: { locale: MemberLocale; onClose: () =
       </header>
 
       <div className="member-profile-contact-list">
-        <div className="member-profile-contact-card">
-          <span className="member-profile-contact-glow" aria-hidden="true" />
-          <img src="/images/line.png" alt="LINE" />
-          <div>
-            <strong>Line</strong>
-            <span>@774uinsb</span>
+        {channels.map((channel) => (
+          <div className="member-profile-contact-card" key={channel.key}>
+            <span className="member-profile-contact-glow" aria-hidden="true" />
+            <img src={channel.iconUrl} alt={channel.label} />
+            <div>
+              <strong>{channel.label}</strong>
+              <span>{channel.value}</span>
+            </div>
+            <a
+              href={channel.href}
+              target={channel.external ? '_blank' : undefined}
+              rel={channel.external ? 'noreferrer noopener' : undefined}
+            >
+              {copy.contactButton}
+            </a>
           </div>
-          <a href="https://lin.ee/UYkP0OC" target="_blank" rel="noreferrer">{copy.contactButton}</a>
-        </div>
+        ))}
       </div>
     </section>
   );
