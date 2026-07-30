@@ -1,0 +1,230 @@
+.member-floating-contact {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 132px;
+  pointer-events: none;
+}
+
+.member-floating-contact__channels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: max-content;
+  max-height: 0;
+  margin: 0 auto;
+  gap: 16px;
+  opacity: 0;
+  transform: translateY(30px) scale(0.45);
+  transform-origin: bottom center;
+  transition: max-height 200ms ease-out, opacity 200ms ease-out, transform 200ms ease-out, padding-bottom 200ms ease-out;
+  pointer-events: none;
+}
+
+.member-floating-contact[data-open='true'] .member-floating-contact__channels {
+  max-height: 84px;
+  padding-bottom: 16px;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.member-floating-contact__line {
+  display: block;
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  transition: transform 180ms ease, filter 180ms ease;
+  pointer-events: auto;
+}
+
+.member-floating-contact__line:hover {
+  transform: translateY(-2px) scale(1.04);
+  filter: brightness(1.08);
+}
+
+.member-floating-contact__line:focus-visible,
+.member-floating-contact__toggle:focus-visible {
+  outline: 2px solid #ffd86b;
+  outline-offset: 3px;
+}
+
+.member-floating-contact__line img {
+  display: block;
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.member-floating-contact__toggle {
+  position: relative;
+  display: grid;
+  width: 132px;
+  height: 132px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.member-floating-contact__ring {
+  position: absolute;
+  inset: 50%;
+  width: 68px;
+  height: 68px;
+  border: 1px solid rgba(244, 196, 75, 0.68);
+  border-radius: 999px;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.72);
+  animation: member-contact-ring 2.7s ease-out infinite;
+  pointer-events: none;
+}
+
+.member-floating-contact__ring--2 {
+  animation-delay: 0.9s;
+}
+
+.member-floating-contact__ring--3 {
+  animation-delay: 1.8s;
+}
+
+.member-floating-contact__button-face {
+  position: relative;
+  display: grid;
+  width: 80px;
+  height: 80px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.34));
+  transition: transform 300ms ease;
+  pointer-events: none;
+}
+
+.member-floating-contact__button-face > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+  object-fit: contain;
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.member-floating-contact__close-icon {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  padding: 6px;
+  border-radius: 999px;
+  opacity: 0;
+  transform: rotate(0deg) scale(0.78);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.member-floating-contact__close-icon::before,
+.member-floating-contact__close-icon::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 3px;
+  border-radius: 999px;
+  content: '';
+  background: linear-gradient(90deg, #fff1a9, #dcae32);
+  box-shadow: 0 0 10px rgba(255, 211, 91, 0.48);
+}
+
+.member-floating-contact__close-icon::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.member-floating-contact__close-icon::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.member-floating-contact[data-open='true'] .member-floating-contact__button-face > img {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.78);
+}
+
+.member-floating-contact[data-open='true'] .member-floating-contact__close-icon {
+  opacity: 1;
+  transform: rotate(90deg) scale(1);
+}
+
+.member-floating-contact[data-open='true'] .member-floating-contact__ring {
+  animation-duration: 2.2s;
+}
+
+@keyframes member-contact-ring {
+  0% {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) scale(0.66);
+  }
+
+  72% {
+    opacity: 0.12;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.75);
+  }
+}
+
+@media (max-width: 900px) {
+  .member-floating-contact {
+    right: 4px;
+    bottom: 68px;
+    width: 104px;
+  }
+
+  .member-floating-contact__toggle {
+    width: 104px;
+    height: 104px;
+  }
+
+  .member-floating-contact__button-face,
+  .member-floating-contact__close-icon {
+    width: 68px;
+    height: 68px;
+  }
+
+  .member-floating-contact__ring {
+    width: 58px;
+    height: 58px;
+  }
+
+  .member-floating-contact__line,
+  .member-floating-contact__line img {
+    width: 54px;
+    height: 54px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-floating-contact__ring {
+    animation: none;
+    opacity: 0.28;
+  }
+
+  .member-floating-contact__channels,
+  .member-floating-contact__line,
+  .member-floating-contact__button-face,
+  .member-floating-contact__button-face > img,
+  .member-floating-contact__close-icon {
+    transition: none;
+  }
+}
