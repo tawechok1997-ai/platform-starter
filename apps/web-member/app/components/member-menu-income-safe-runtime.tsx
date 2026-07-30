@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { memberApiFetch } from '../member-api';
 import type { MemberLocale } from '../member-locale-provider';
@@ -244,7 +244,12 @@ function IncomePopup({ locale, kind, balance, records, onClose }: {
 function CouponPopup({ locale, onClose }: { locale: MemberLocale; onClose: () => void }) {
   const copy = COPY[locale];
   const [code, setCode] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
   usePopupLifecycle(onClose);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   return (
     <div className="member-income-safe-backdrop" role="presentation" onPointerDown={(event) => {
@@ -256,9 +261,9 @@ function CouponPopup({ locale, onClose }: { locale: MemberLocale; onClose: () =>
           <button type="button" onClick={onClose} aria-label={copy.close}>×</button>
         </header>
         <input
+          ref={inputRef}
           value={code}
           maxLength={5}
-          autoFocus
           placeholder={copy.coupon}
           onChange={(event) => setCode(event.target.value.replace(/[^a-z0-9]/gi, '').toUpperCase())}
         />
