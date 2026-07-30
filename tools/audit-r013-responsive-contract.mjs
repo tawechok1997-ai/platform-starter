@@ -15,11 +15,11 @@ const checks = [
   ['shared visibility', responsive.includes('.ui-desktop-only') && responsive.includes('.ui-mobile-only')],
   ['mobile-first tablet enhancement', responsive.includes('@media (min-width: 768px)')],
   ['mobile-first desktop enhancement', responsive.includes('@media (min-width: 1024px)')],
-  ['admin imports responsive source', adminLayout.includes("packages/design-tokens/responsive-layout.css")],
-  ['member imports responsive source', memberLayout.includes("packages/design-tokens/responsive-layout.css")],
+  ['admin imports responsive source', adminLayout.includes('packages/design-tokens/responsive-layout.css')],
+  ['member imports responsive source', memberLayout.includes('packages/design-tokens/responsive-layout.css')],
   ['table to card contract', dataDisplay.includes('.ui-table[data-mobile="cards"]') && dataDisplay.includes('content: attr(data-label)')],
   ['modal to bottom sheet contract', overlays.includes('@media (max-width: 767px)') && overlays.includes('bottom: 0') && overlays.includes('border-radius: var(--radius-modal) var(--radius-modal) 0 0')],
-  ['sidebar to drawer contract', memberChrome.includes('ui-drawer') && memberChrome.includes('aria-modal="true"') && memberChrome.includes('setMenuOpen(true)')],
+  ['member navigation contract', memberChrome.includes('PUBLIC_HOME_NAV.map') && memberChrome.includes('public-home-desktop-bar') && memberChrome.includes('member-desktop-nav')],
   ['responsive sidebar width contract', responsive.includes('.ui-responsive-sidebar') && responsive.includes('--layout-drawer-width')],
 ];
 
