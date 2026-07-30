@@ -7,6 +7,15 @@ const VIP_TIER_SOURCE_BASE = '/assets/asset-pc/FEZX/grouptypes';
 const SOURCE_ICON_BASE = '/assets/asset-pc/source-icons';
 const MENU_ICON_BASE = '/assets/asset-pc/images';
 const CLOSE_ICON = '/images/close.svg';
+const SOURCE_ASSET_TRIGGER_SELECTOR = [
+  '.public-member-profile-trigger',
+  '.public-member-profile-avatar-button',
+  '.member-profile-detail-avatar-grid button',
+  '.public-member-income-row a',
+  '.public-member-referral-row',
+  '.public-member-menu-grid a',
+  '.member-vip-tier-step button',
+].join(',');
 
 const VIP_TIER_ASSETS = new Map([
   ['c005cd08-59f6-485f-8ee2-db342d509aa5', `${VIP_TIER_SOURCE_BASE}/c005cd08-59f6-485f-8ee2-db342d509aa5.png`],
@@ -24,42 +33,51 @@ const BENEFIT_ICON_BY_LABEL = new Map([
 
 export default function MemberSourceAssetRuntime() {
   useEffect(() => {
-    const patch = (root: ParentNode) => {
-      patchAvatars(root);
-      patchVipTiers(root);
-      patchVipBenefits(root);
-      patchIncomePopup(root);
+    let firstFrame = 0;
+    let secondFrame = 0;
+    let fallbackTimer = 0;
+
+    const patchDocument = () => {
+      patchAvatars(document);
+      patchVipTiers(document);
+      patchVipBenefits(document);
+      patchIncomePopup(document);
     };
 
-    patch(document);
+    const schedulePatch = () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+      window.clearTimeout(fallbackTimer);
+      firstFrame = window.requestAnimationFrame(() => {
+        patchDocument();
+        secondFrame = window.requestAnimationFrame(patchDocument);
+      });
+      fallbackTimer = window.setTimeout(patchDocument, 120);
+    };
 
-    const observer = new MutationObserver((records) => {
-      for (const record of records) {
-        if (record.type === 'attributes') {
-          if (record.target instanceof Element) patch(record.target);
-          continue;
-        }
-        for (const node of record.addedNodes) {
-          if (node instanceof Element) patch(node);
-        }
-      }
-    });
+    const handleClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      if (event.target.closest(SOURCE_ASSET_TRIGGER_SELECTOR)) schedulePatch();
+    };
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['src'],
-    });
+    patchDocument();
+    document.addEventListener('click', handleClick, true);
+    window.addEventListener('member-source-assets-refresh', schedulePatch);
 
-    return () => observer.disconnect();
+    return () => {
+      document.removeEventListener('click', handleClick, true);
+      window.removeEventListener('member-source-assets-refresh', schedulePatch);
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+      window.clearTimeout(fallbackTimer);
+    };
   }, []);
 
   return null;
 }
 
 function patchAvatars(root: ParentNode) {
-  for (const image of selectIncludingRoot<HTMLImageElement>(root, 'img[src*="/images/avatar/"]')) {
+  for (const image of root.querySelectorAll<HTMLImageElement>('img[src*="/images/avatar/"]')) {
     const source = image.getAttribute('src') ?? '';
     const match = source.match(/^\/images\/avatar\/(\d{1,2})\.webp(?:\?.*)?$/);
     if (!match) continue;
@@ -71,7 +89,7 @@ function patchAvatars(root: ParentNode) {
 }
 
 function patchVipTiers(root: ParentNode) {
-  for (const image of selectIncludingRoot<HTMLImageElement>(root, '.member-vip-tier-image')) {
+  for (const image of root.querySelectorAll<HTMLImageElement>('.member-vip-tier-image')) {
     const source = image.getAttribute('src') ?? '';
     const assetId = Array.from(VIP_TIER_ASSETS.keys()).find((id) => source.includes(id));
     if (!assetId) continue;
@@ -81,7 +99,7 @@ function patchVipTiers(root: ParentNode) {
 }
 
 function patchVipBenefits(root: ParentNode) {
-  for (const item of selectIncludingRoot<HTMLElement>(root, '.member-vip-benefit-item')) {
+  for (const item of root.querySelectorAll<HTMLElement>('.member-vip-benefit-item')) {
     const label = item.querySelector('p')?.textContent?.trim() ?? '';
     const source = BENEFIT_ICON_BY_LABEL.get(label);
     const image = item.querySelector<HTMLImageElement>('img');
@@ -90,7 +108,7 @@ function patchVipBenefits(root: ParentNode) {
 }
 
 function patchIncomePopup(root: ParentNode) {
-  for (const popup of selectIncludingRoot<HTMLElement>(root, '.member-income-safe-popup')) {
+  for (const popup of root.querySelectorAll<HTMLElement>('.member-income-safe-popup')) {
     const title = popup.querySelector('header h2')?.textContent?.trim().toLowerCase() ?? '';
     const titleIcon = title.includes('เครือข่าย') || title.includes('network')
       ? `${MENU_ICON_BASE}/รายได้ตากเครือข่าย.png`
@@ -122,11 +140,4 @@ function patchIncomePopup(root: ParentNode) {
       closeButton.dataset.sourceAsset = CLOSE_ICON;
     }
   }
-}
-
-function selectIncludingRoot<T extends Element>(root: ParentNode, selector: string): T[] {
-  const matches: T[] = [];
-  if (root instanceof Element && root.matches(selector)) matches.push(root as T);
-  matches.push(...Array.from(root.querySelectorAll<T>(selector)));
-  return matches;
 }
