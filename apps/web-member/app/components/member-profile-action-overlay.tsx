@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { memberApiFetch } from '../member-api';
 import type { MemberLocale } from '../member-locale-provider';
+import '../member-profile-action-overlay.css';
 
 type ProfileAction = 'contact' | 'password' | null;
 
