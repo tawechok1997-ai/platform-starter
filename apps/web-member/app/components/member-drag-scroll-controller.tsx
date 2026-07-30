@@ -8,11 +8,13 @@ type DragState = {
   rail: HTMLElement;
   pointerId: number;
   startX: number;
+  startY: number;
   startScrollLeft: number;
   moved: boolean;
 };
 
-const DRAG_THRESHOLD_PX = 5;
+const DRAG_THRESHOLD_PX = 10;
+const CLICK_SUPPRESSION_MS = 120;
 const SOURCE_DRAG_MULTIPLIER = 2;
 
 export default function MemberDragScrollController() {
@@ -33,21 +35,32 @@ export default function MemberDragScrollController() {
         rail,
         pointerId: event.pointerId,
         startX: event.clientX,
+        startY: event.clientY,
         startScrollLeft: rail.scrollLeft,
         moved: false,
       };
-      rail.setPointerCapture?.(event.pointerId);
       rail.classList.add('is-drag-ready');
     };
 
     const onPointerMove = (event: PointerEvent) => {
       if (!drag || drag.pointerId !== event.pointerId) return;
       const deltaX = event.clientX - drag.startX;
-      if (!drag.moved && Math.abs(deltaX) < DRAG_THRESHOLD_PX) return;
+      const deltaY = event.clientY - drag.startY;
 
-      drag.moved = true;
-      drag.rail.classList.remove('is-drag-ready');
-      drag.rail.classList.add('is-dragging');
+      if (!drag.moved) {
+        if (Math.abs(deltaX) < DRAG_THRESHOLD_PX) return;
+        if (Math.abs(deltaX) <= Math.abs(deltaY)) {
+          drag.rail.classList.remove('is-drag-ready');
+          drag = null;
+          return;
+        }
+
+        drag.moved = true;
+        drag.rail.setPointerCapture?.(event.pointerId);
+        drag.rail.classList.remove('is-drag-ready');
+        drag.rail.classList.add('is-dragging');
+      }
+
       drag.rail.scrollLeft = drag.startScrollLeft - deltaX * SOURCE_DRAG_MULTIPLIER;
       event.preventDefault();
     };
@@ -61,7 +74,7 @@ export default function MemberDragScrollController() {
 
       if (moved) {
         suppressClickRail = rail;
-        suppressClickUntil = performance.now() + 350;
+        suppressClickUntil = performance.now() + CLICK_SUPPRESSION_MS;
       }
     };
 
