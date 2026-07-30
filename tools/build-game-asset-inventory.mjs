@@ -20,6 +20,7 @@ const records = [];
 const manifestGeneratedAt = [];
 const manifestKeys = new Set();
 const validationErrors = [];
+const resolvedAssetRoots = [];
 
 function normalizeManifestFile(platform, value) {
   const relative = value.replaceAll('\\', '/').replace(/^\.\//, '');
@@ -91,6 +92,7 @@ async function loadPlatformManifest(platform) {
 
 for (const platform of platforms) {
   const { assetRoot, parsed, source } = await loadPlatformManifest(platform);
+  resolvedAssetRoots.push(path.relative(root, assetRoot).replaceAll('\\', '/'));
   if (typeof parsed?.generatedAt === 'string' && !Number.isNaN(Date.parse(parsed.generatedAt))) {
     manifestGeneratedAt.push(parsed.generatedAt);
   }
@@ -212,7 +214,7 @@ const generatedAt = manifestGeneratedAt
 await mkdir(outputDir, { recursive: true });
 await writeFile(
   inventoryPath,
-  `${JSON.stringify({ generatedAt, assetRoots: platforms.map((platform) => `asset/catalog/${platform}`), counts, items: records }, null, 2)}\n`,
+  `${JSON.stringify({ generatedAt, assetRoots: resolvedAssetRoots, counts, items: records }, null, 2)}\n`,
 );
 await writeFile(
   duplicatePath,
