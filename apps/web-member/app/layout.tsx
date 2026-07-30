@@ -113,10 +113,8 @@ import MemberDragScrollController from './components/member-drag-scroll-controll
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import MemberImageFallbackController from './components/member-image-fallback-controller';
 import MemberRenderStabilityController from './components/member-render-stability-controller';
-import PublicNavigationLocaleGuard from './components/public-navigation-locale-guard';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
-import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import PublicGameLoginController from './components/member-home/public-home-game-navigation-controller';
 import PublicDesktopViewportBootstrap from './components/public-desktop-viewport-bootstrap';
 import UsageGuideController from './components/member-home/usage-guide-controller';
@@ -189,12 +187,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <PublicDesktopViewportBootstrap />
               <MemberRenderStabilityController />
               <MemberClientNavigationController />
-              <PublicNavigationLocaleGuard />
               <MemberImageFallbackController />
               <MemberHeroSwipeController />
               <MemberDragScrollController />
               <PublicLiveNavigationController />
-              <HomeSidebarScrollController />
               <PublicDialogRuntimeController />
               <PublicGameLoginController />
               <UsageGuideController />
