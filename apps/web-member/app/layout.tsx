@@ -108,6 +108,7 @@ import './member-casino-transparent-source-match.css';
 import './member-source-game-transparent-surfaces.css';
 import './member-desktop-scale-canvas.css';
 import MemberChrome from './member-chrome';
+import MemberClientNavigationController from './components/member-client-navigation-controller';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import MemberImageFallbackController from './components/member-image-fallback-controller';
@@ -188,6 +189,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <MemberSessionProvider>
               <PublicDesktopViewportBootstrap />
               <MemberRenderStabilityController />
+              <MemberClientNavigationController />
               <PublicNavigationLocaleGuard />
               <MemberImageFallbackController />
               <MemberHeroSwipeController />
