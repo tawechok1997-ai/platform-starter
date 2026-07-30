@@ -10,6 +10,8 @@ const OPT_OUT_SELECTOR = [
   '[data-public-game-launch="external"]',
 ].join(',');
 
+const TOURNAMENT_TRIGGER_SELECTOR = '.reference-tournament-cta';
+const TOURNAMENT_DESTINATION = '/browse/tournaments';
 const prefetchedRoutes = new Set<string>();
 
 type InternalDestination = {
@@ -76,6 +78,13 @@ export default function MemberClientNavigationController() {
 
 function internalDestinationFor(link: HTMLAnchorElement | null): InternalDestination | null {
   if (!link || link.matches(OPT_OUT_SELECTOR)) return null;
+
+  if (link.matches(TOURNAMENT_TRIGGER_SELECTOR)) {
+    return {
+      href: TOURNAMENT_DESTINATION,
+      url: new URL(TOURNAMENT_DESTINATION, window.location.origin),
+    };
+  }
 
   const rawHref = link.getAttribute('href')?.trim();
   if (!rawHref || rawHref.startsWith('#')) return null;
