@@ -1,437 +1,981 @@
-@media (min-width: 901px) {
+.member-header-finance-backdrop {
+  position: fixed;
+  z-index: 2147483360;
+  inset: 0;
+  display: grid;
+  box-sizing: border-box;
+  place-items: center;
+  padding: 10px;
+  overflow: auto;
+  background: rgb(0 0 0 / 76%);
+  backdrop-filter: blur(5px);
+}
+
+.member-header-finance-dialog {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: min(100%, 680px);
+  max-height: calc(100dvh - 20px);
+  padding: 14px 18px 18px;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 3%);
+  border-radius: 8px;
+  color: #fff;
+  background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 80%) 0%, rgb(63 59 75 / 63%) 30.08%, rgb(27 24 36 / 94%) 100%);
+  box-shadow: 0 30px 100px rgb(0 0 0 / 68%);
+  animation: member-header-finance-in 170ms ease-out both;
+}
+
+.member-header-finance-dialog--deposit {
+  width: min(100%, 680px);
+}
+
+.member-header-finance-dialog--withdraw {
+  width: min(100%, 400px);
+  padding-inline: 20px;
+}
+
+.member-header-finance-top-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(255 255 255 / 0%) 26.03%, #fff 48.56%, rgb(255 255 255 / 0%) 72.48%);
+}
+
+.member-header-finance-header {
+  display: flex;
+  width: 100%;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.member-header-finance-header > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-header-finance-header > div > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border-radius: 8px;
+  background: linear-gradient(360deg, rgb(21 23 29 / 60%) -5.86%, rgb(58 60 64 / 60%) 104.05%);
+}
+
+.member-header-finance-header > div > span > img {
+  display: block;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.member-header-finance-header h2 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-header-finance-header > button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.member-header-finance-header > button:hover,
+.member-header-finance-header > button:focus-visible {
+  background: rgb(255 255 255 / 8%);
+}
+
+.member-header-finance-header > button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.member-header-finance-header > button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.member-header-finance-message {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid rgb(202 128 238 / 30%);
+  border-radius: 6px;
+  color: #e0b1f1;
+  background: rgb(21 19 26 / 82%);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.member-header-finance-message.is-warning {
+  border-color: rgb(255 189 36 / 35%);
+  color: #ffbd24;
+}
+
+.member-header-deposit-content,
+.member-header-withdraw-content {
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: none;
+}
+
+.member-header-deposit-content::-webkit-scrollbar,
+.member-header-withdraw-content::-webkit-scrollbar {
+  display: none;
+}
+
+.member-header-deposit-content {
+  width: 100%;
+}
+
+.member-header-deposit-source {
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.member-header-deposit-select,
+.member-header-deposit-transfer,
+.member-header-deposit-waiting {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.member-header-deposit-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.member-header-deposit-method-panel,
+.member-header-deposit-amount-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.member-header-deposit-promotion {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto 18px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 10px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #373540;
+  border-radius: 5px;
+  color: #fff;
+  background: #17141d;
+  cursor: pointer;
+}
+
+.member-header-deposit-promotion-icon,
+.member-header-deposit-method-icon {
+  display: grid;
+  place-items: center;
+  color: #00d7ff;
+}
+
+.member-header-deposit-promotion-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.member-header-deposit-promotion strong,
+.member-header-deposit-promotion span {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-header-deposit-promotion > span:nth-last-child(2) {
+  font-weight: 700;
+  text-align: right;
+}
+
+.member-header-deposit-promotion > svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.member-header-deposit-method-heading {
+  display: flex;
+  min-height: 26px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.member-header-deposit-method-heading > strong {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.member-header-deposit-method-heading > button {
+  display: inline-flex;
+  min-height: 24px;
+  padding: 3px 7px;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid #7100bd;
+  border-radius: 4px;
+  color: #fff;
+  background: linear-gradient(180deg, #441065, #290936);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.member-header-deposit-method-heading > button svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: #b000ff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.member-header-deposit-method-list {
+  display: grid;
+  gap: 10px;
+}
+
+.member-header-deposit-method-card {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 10px;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #373540;
+  border-radius: 5px;
+  color: #fff;
+  background: #17141d;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+}
+
+.member-header-deposit-method-card.is-selected {
+  border-color: #c541ff;
+  box-shadow: 0 0 0 2px rgb(197 65 255 / 35%), 0 0 14px rgb(176 0 255 / 35%);
+}
+
+.member-header-deposit-method-card.is-disabled {
+  color: #6f6b76;
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.member-header-deposit-method-card strong {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-header-deposit-method-card em {
+  padding: 3px 7px;
+  border-radius: 10px;
+  color: #fff;
+  background: #6d267d;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.member-header-deposit-method-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.member-header-deposit-method-icon svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.member-header-deposit-method-icon.is-counter,
+.member-header-deposit-method-icon.is-wallet,
+.member-header-deposit-method-icon.is-crypto {
+  color: #66616c;
+}
+
+.member-header-deposit-radio {
+  display: block;
+  box-sizing: border-box;
+  width: 17px;
+  height: 17px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.member-header-deposit-radio.is-selected {
+  border: 4px solid #b000ff;
+  box-shadow: 0 0 0 1px #e4afff;
+}
+
+.member-header-deposit-amount-panel > label,
+.member-header-deposit-amount-panel > h3,
+.member-header-deposit-evidence label > span {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.member-header-deposit-amount-input {
+  overflow: hidden;
+  border: 1px solid #373540;
+  border-radius: 5px;
+  background: #15131a;
+}
+
+.member-header-deposit-amount-input input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 74px;
+  padding: 0 14px;
+  border: 0;
+  outline: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 44px;
+  text-align: right;
+}
+
+.member-header-deposit-amount-input input::placeholder {
+  color: #fff;
+  opacity: 1;
+}
+
+.member-header-deposit-amount-panel > p {
+  margin: -3px 0 6px;
+  color: #ffbd24;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.member-header-deposit-amount-panel > h3 {
+  margin: 0;
+}
+
+.member-header-deposit-quick-grid,
+.member-header-withdraw-quick > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.member-header-deposit-quick-grid button,
+.member-header-withdraw-quick button {
+  height: 34px;
+  border: 1px solid #373540;
+  border-radius: 4px;
+  color: #77717f;
+  background: #15131a;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.member-header-deposit-quick-grid button.is-selected {
+  border-color: #9e37d0;
+  color: #d9a1f7;
+  background: #25172f;
+}
+
+.member-header-deposit-inline-empty {
+  padding: 8px 10px;
+  border: 1px solid rgb(255 189 36 / 30%);
+  border-radius: 5px;
+  color: #ffbd24;
+  background: rgb(255 189 36 / 5%);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.member-header-deposit-actions,
+.member-header-withdraw-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 7px;
+}
+
+.member-header-deposit-actions > button,
+.member-header-deposit-actions > a,
+.member-header-withdraw-actions > button {
+  display: grid;
+  box-sizing: border-box;
+  min-height: 38px;
+  padding: 0 10px;
+  place-items: center;
+  border: 1px solid #413e4b;
+  border-radius: 4px;
+  color: #76717c;
+  background: #15131a;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.member-header-deposit-actions .is-primary,
+.member-header-withdraw-actions .is-primary {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(165deg, #944fe8 -17.16%, #7600a8 91.36%);
+}
+
+.member-header-deposit-actions > button:disabled,
+.member-header-withdraw-actions > button:disabled {
+  border-color: transparent;
+  color: #55525a;
+  background: #3b3940;
+  cursor: not-allowed;
+}
+
+.member-header-deposit-support {
+  display: flex;
+  min-height: 32px;
+  padding-top: 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-top: 1px solid rgb(239 213 150 / 10%);
+  color: #909090;
+  font-size: 9px;
+}
+
+.member-header-deposit-support a {
+  color: #7100bd;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.member-header-deposit-transfer > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.member-header-deposit-transfer > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.member-header-deposit-transfer > header strong {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.member-header-deposit-transfer > header span,
+.member-header-deposit-transfer > header em {
+  color: #aaa5af;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 16px;
+}
+
+.member-header-deposit-transfer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.member-header-deposit-recipient,
+.member-header-deposit-evidence {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.member-header-deposit-highlight {
+  display: flex;
+  padding: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #8b00ab;
+  border-radius: 6px;
+  background: linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%);
+}
+
+.member-header-deposit-highlight span {
+  font-size: 11px;
+}
+
+.member-header-deposit-highlight strong {
+  font-size: 20px;
+}
+
+.member-header-deposit-qr {
+  width: min(180px, 70vw);
+  height: auto;
+  margin: 0 auto;
+  border-radius: 8px;
+}
+
+.member-header-deposit-evidence label {
+  display: grid;
+  gap: 5px;
+}
+
+.member-header-deposit-evidence input:not([type='file']),
+.member-header-deposit-evidence textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 10px;
+  border: 1px solid #373540;
+  border-radius: 5px;
+  outline: 0;
+  color: #fff;
+  background: #15131a;
+  font: inherit;
+  font-size: 12px;
+}
+
+.member-header-deposit-evidence textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.member-header-deposit-slip-field {
+  position: relative;
+  overflow: hidden;
+  min-height: 54px;
+  padding: 9px 10px;
+  border: 1px dashed #5a5562;
+  border-radius: 5px;
+  background: #15131a;
+  cursor: pointer;
+}
+
+.member-header-deposit-slip-field input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.member-header-deposit-slip-field strong {
+  overflow: hidden;
+  color: #b9b3bf;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-header-deposit-slip-preview {
+  width: min(160px, 60vw);
+  height: auto;
+  max-height: 180px;
+  margin: 0 auto;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.member-header-deposit-waiting {
+  align-items: stretch;
+  text-align: center;
+}
+
+.member-header-deposit-waiting-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(165deg, #944fe8, #7600a8);
+  font-size: 26px;
+}
+
+.member-header-deposit-waiting h3 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.member-header-withdraw-content {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 34px;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.member-header-withdraw-bank-section,
+.member-header-withdraw-amount-section,
+.member-header-withdraw-quick {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+}
+
+.member-header-withdraw-bank-section {
+  gap: 7px;
+}
+
+.member-header-withdraw-bank-section > strong {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.member-header-withdraw-bank-card {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 88px;
+  padding: 11px;
+  align-items: center;
+  gap: 11px;
+  overflow: hidden;
+  border: 1px solid #625d68;
+  border-radius: 5px;
+  background: rgb(21 19 26 / 72%);
+}
+
+.member-header-withdraw-bank-card > img,
+.member-header-withdraw-bank-fallback {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  place-items: center;
+  border-radius: 7px;
+  object-fit: cover;
+  background: #68429f;
+}
+
+.member-header-withdraw-bank-fallback {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.member-header-withdraw-bank-card > div {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.member-header-withdraw-bank-card > div strong {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-header-withdraw-bank-card > div span {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.member-header-withdraw-bank-card select {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  color: transparent;
+  background: transparent;
+  cursor: pointer;
+}
+
+.member-header-withdraw-no-bank {
+  display: flex;
+  box-sizing: border-box;
+  min-height: 90px;
+  padding: 14px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #625d68;
+  border-radius: 5px;
+  background: rgb(21 19 26 / 72%);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.member-header-withdraw-no-bank a {
+  color: #ca80ee;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.member-header-withdraw-amount-section {
+  gap: 10px;
+}
+
+.member-header-withdraw-amount-section h3,
+.member-header-withdraw-quick h4 {
+  margin: 0;
+  color: #fff;
+}
+
+.member-header-withdraw-amount-section h3 {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 23px;
+}
+
+.member-header-withdraw-amount-section > label {
+  display: block;
+  overflow: hidden;
+  border: 1px solid #312f39;
+  border-radius: 5px;
+  background: #15131a;
+}
+
+.member-header-withdraw-amount-section input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 108px;
+  padding: 0 14px;
+  border: 0;
+  outline: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 54px;
+  text-align: right;
+}
+
+.member-header-withdraw-amount-section input::placeholder {
+  color: #fff;
+  opacity: 1;
+}
+
+.member-header-withdraw-minimum {
+  color: #ffbd24;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 17px;
+}
+
+.member-header-withdraw-remaining {
+  color: #cea44b;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.member-header-withdraw-quick {
+  padding-top: 4px;
+  gap: 7px;
+}
+
+.member-header-withdraw-quick h4 {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.member-header-withdraw-quick button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+@media (min-width: 720px) {
   .member-header-finance-backdrop {
-    position: fixed;
-    z-index: 2147483360;
-    inset: 0;
-    display: grid;
-    box-sizing: border-box;
-    place-items: center;
-    padding: 20px;
-    overflow: auto;
-    background: rgb(0 0 0 / 76%);
-    backdrop-filter: blur(5px);
+    padding: 18px;
   }
 
   .member-header-finance-dialog {
-    position: relative;
-    display: flex;
-    box-sizing: border-box;
-    max-width: min(1370px, calc(100vw - 40px));
-    min-width: min(470px, calc(100vw - 40px));
-    max-height: 90dvh;
-    padding: 20px 20px 32px;
-    flex-direction: column;
-    align-items: center;
-    gap: 32px;
-    overflow: hidden;
-    border-radius: 8px;
-    color: #fff;
-    background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 80%) 0%, rgb(63 59 75 / 63%) 30.08%, rgb(27 24 36 / 80%) 100%);
-    box-shadow: 0 30px 100px rgb(0 0 0 / 60%);
-    animation: member-header-finance-in 170ms ease-out both;
-  }
-
-  .member-header-finance-dialog--withdraw {
-    width: min(600px, calc(100vw - 40px));
+    max-height: calc(100dvh - 36px);
+    padding: 16px 18px 20px;
+    gap: 18px;
   }
 
   .member-header-finance-dialog--deposit {
-    width: min(1060px, calc(100vw - 40px));
+    width: min(680px, calc(100vw - 36px));
   }
 
-  .member-header-finance-top-line {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, rgb(255 255 255 / 0%) 26.03%, #fff 48.56%, rgb(255 255 255 / 0%) 72.48%);
-  }
-
-  .member-header-finance-header {
-    display: flex;
-    width: 100%;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: space-between;
-    gap: 28px;
-  }
-
-  .member-header-finance-header > div {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+  .member-header-finance-dialog--withdraw {
+    width: min(400px, calc(100vw - 36px));
   }
 
   .member-header-finance-header > div > span {
-    display: grid;
-    width: 55px;
-    height: 55px;
-    flex: 0 0 55px;
-    place-items: center;
-    border-radius: 10px;
-    background: linear-gradient(360deg, rgb(21 23 29 / 60%) -5.86%, rgb(58 60 64 / 60%) 104.05%);
-  }
-
-  .member-header-finance-header svg {
-    width: 31px;
-    height: 31px;
-    fill: none;
-    stroke: #c8c8c8;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
   }
 
   .member-header-finance-header h2 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 32px;
+    font-size: 21px;
   }
 
-  .member-header-finance-header > button {
+  .member-header-deposit-columns {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .member-header-deposit-method-panel {
+    padding-right: 20px;
+    border-right: 1px solid rgb(255 255 255 / 7%);
+  }
+
+  .member-header-deposit-method-list:not(.is-expanded) .member-header-deposit-method-card:not(.is-selected) {
+    display: none;
+  }
+
+  .member-header-deposit-method-card {
+    min-height: 48px;
+  }
+
+  .member-header-deposit-amount-input input {
+    height: 88px;
+    font-size: 40px;
+  }
+
+  .member-header-deposit-transfer-grid {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 18px;
+  }
+}
+
+@media (max-width: 719px) {
+  .member-header-finance-dialog--deposit {
+    width: min(360px, calc(100vw - 20px));
+  }
+
+  .member-header-finance-dialog--withdraw {
+    width: min(400px, calc(100vw - 20px));
+  }
+
+  .member-header-deposit-method-heading > button {
+    display: none;
+  }
+
+  .member-header-deposit-method-list .member-header-deposit-method-card {
     display: grid;
-    width: 32px;
-    height: 32px;
-    margin: 0;
-    padding: 0;
-    place-items: center;
-    border: 0;
-    border-radius: 8px;
-    color: #fff;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  .member-header-finance-header > button:hover,
-  .member-header-finance-header > button:focus-visible {
-    background: rgb(255 255 255 / 8%);
-  }
-
-  .member-header-finance-header > button:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-
-  .member-header-finance-header > button svg {
-    width: 20px;
-    height: 20px;
-    stroke: currentColor;
   }
 
   .member-header-withdraw-content {
-    display: flex;
-    box-sizing: border-box;
-    width: 560px;
-    max-width: 100%;
-    min-height: 0;
-    padding: 0 40px;
-    flex-direction: column;
-    gap: 24px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    scrollbar-width: none;
+    padding: 0 34px;
+  }
+}
+
+@media (max-width: 430px) {
+  .member-header-finance-dialog {
+    padding: 12px 16px 16px;
   }
 
-  .member-header-withdraw-content::-webkit-scrollbar,
-  .member-header-deposit-content::-webkit-scrollbar {
+  .member-header-finance-dialog--withdraw {
+    padding-inline: 16px;
+  }
+
+  .member-header-withdraw-content {
+    padding: 0 28px;
+  }
+}
+
+@media (max-width: 360px) {
+  .member-header-finance-backdrop {
+    padding: 6px;
+  }
+
+  .member-header-finance-dialog {
+    max-height: calc(100dvh - 12px);
+    padding-inline: 12px;
+  }
+
+  .member-header-withdraw-content {
+    padding: 0 18px;
+  }
+
+  .member-header-deposit-promotion {
+    grid-template-columns: 20px minmax(0, 1fr) 18px;
+  }
+
+  .member-header-deposit-promotion > span:nth-last-child(2) {
     display: none;
   }
+}
 
-  .member-header-withdraw-bank-section {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    gap: 8px;
+@keyframes member-header-finance-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
   }
-
-  .member-header-withdraw-bank-section > strong {
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 20px;
-  }
-
-  .member-header-withdraw-bank-card {
-    position: relative;
-    display: flex;
-    box-sizing: border-box;
-    width: 100%;
-    height: 90px;
-    padding: 12px;
-    align-items: center;
-    gap: 12px;
-    overflow: hidden;
-    border: 1px solid rgb(98 98 98 / 70%);
-    border-radius: 7px;
-    background: rgb(21 19 26 / 70%);
-  }
-
-  .member-header-withdraw-bank-card > img,
-  .member-header-withdraw-bank-fallback {
-    width: 60px;
-    height: 60px;
-    flex: 0 0 60px;
-    border-radius: 10px;
-    object-fit: cover;
-  }
-
-  .member-header-withdraw-bank-fallback {
-    display: grid;
-    place-items: center;
-    background: #2b2735;
-    color: #e0b1f1;
-    font-size: 16px;
-    font-weight: 800;
-  }
-
-  .member-header-withdraw-bank-card > div {
-    display: flex;
-    min-width: 0;
-    flex: 1;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .member-header-withdraw-bank-card > div strong {
-    overflow: hidden;
-    font-size: 18px;
-    font-weight: 600;
-    line-height: 21px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .member-header-withdraw-bank-card > div span {
-    font-size: 15px;
-    font-weight: 500;
-    line-height: 22px;
-  }
-
-  .member-header-withdraw-bank-card select {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: 0;
-    outline: 0;
-    color: transparent;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  .member-header-withdraw-no-bank {
-    display: flex;
-    min-height: 90px;
-    padding: 16px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    border: 1px solid rgb(98 98 98 / 70%);
-    border-radius: 7px;
-    background: rgb(21 19 26 / 70%);
-  }
-
-  .member-header-withdraw-no-bank a {
-    color: #ca80ee;
-    white-space: nowrap;
-  }
-
-  .member-header-withdraw-amount-section {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .member-header-withdraw-amount-section h3,
-  .member-header-withdraw-quick h4 {
-    margin: 0;
-    color: #fff;
-  }
-
-  .member-header-withdraw-amount-section h3 {
-    font-size: 20px;
-    font-weight: 400;
-    line-height: 24px;
-  }
-
-  .member-header-withdraw-amount-section > label {
-    display: block;
-    overflow: hidden;
-    border: 1px solid #312f39;
-    border-radius: 6px;
-    background: #15131a;
-  }
-
-  .member-header-withdraw-amount-section input {
-    box-sizing: border-box;
-    width: 100%;
-    height: 130px;
-    padding: 0 14px;
-    border: 0;
-    outline: 0;
-    color: #fff;
-    background: transparent;
-    font-size: 48px;
-    font-weight: 800;
-    line-height: 56px;
-    text-align: right;
-  }
-
-  .member-header-withdraw-amount-section input::placeholder {
-    color: #fff;
+  to {
     opacity: 1;
-  }
-
-  .member-header-withdraw-amount-section input:focus::placeholder {
-    color: transparent;
-  }
-
-  .member-header-withdraw-minimum {
-    color: #ffbd24;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 22px;
-    letter-spacing: 0.36px;
-  }
-
-  .member-header-withdraw-remaining {
-    color: #cea44b;
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 18px;
-    letter-spacing: 0.36px;
-  }
-
-  .member-header-withdraw-quick {
-    display: flex;
-    width: 100%;
-    padding-top: 8px;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .member-header-withdraw-quick h4 {
-    font-size: 18px;
-    font-weight: 600;
-    line-height: 24px;
-  }
-
-  .member-header-withdraw-quick > div {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .member-header-withdraw-quick button {
-    height: 45px;
-    border: 1px solid #373540;
-    border-radius: 6px;
-    color: #fff;
-    background: #15131a;
-    font-size: 16px;
-    font-weight: 400;
-    cursor: pointer;
-  }
-
-  .member-header-withdraw-quick button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .member-header-withdraw-actions {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .member-header-withdraw-actions button {
-    width: 100%;
-    height: 56px;
-    border: 1px solid #413e4b;
-    border-radius: 6px;
-    color: #6b6f77;
-    background: #15131a;
-    font-size: 18px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .member-header-withdraw-actions button.is-primary {
-    border-color: transparent;
-    color: #fff;
-    background: linear-gradient(165deg, #944fe8 -17.16%, #7600a8 91.36%);
-  }
-
-  .member-header-withdraw-actions button:disabled {
-    border-color: transparent;
-    color: #555;
-    background: #38373e;
-    cursor: not-allowed;
-  }
-
-  .member-header-finance-message {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 10px 12px;
-    border: 1px solid rgb(202 128 238 / 30%);
-    border-radius: 7px;
-    color: #e0b1f1;
-    background: rgb(21 19 26 / 75%);
-    font-size: 13px;
-    line-height: 20px;
-  }
-
-  .member-header-finance-message.is-warning {
-    border-color: rgb(255 189 36 / 35%);
-    color: #ffbd24;
-  }
-
-  .member-header-deposit-content {
-    width: 100%;
-    min-height: 0;
-    overflow: auto;
-    scrollbar-width: none;
-  }
-
-  .member-header-deposit-content .finance-flow-page {
-    min-height: auto;
-    padding: 0;
-    color: #fff;
-    background: transparent;
-  }
-
-  .member-header-deposit-content .finance-flow-header {
-    display: none;
-  }
-
-  .member-header-deposit-content .finance-flow-layout {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-  }
-
-  .member-header-deposit-content .finance-flow-main,
-  .member-header-deposit-content .finance-flow-aside {
-    min-width: 0;
-  }
-
-  .member-header-deposit-content .finance-card,
-  .member-header-deposit-content .deposit-wallet-summary,
-  .member-header-deposit-content .deposit-notice {
-    background-color: rgb(21 19 26 / 72%);
-  }
-
-  @keyframes member-header-finance-in {
-    from {
-      opacity: 0;
-      transform: translateY(12px) scale(0.97);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
+    transform: translateY(0) scale(1);
   }
 }
