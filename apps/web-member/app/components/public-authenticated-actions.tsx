@@ -19,6 +19,9 @@ type PublicAuthenticatedActionsProps = {
   onToggleLocale: () => void;
 };
 
+const ASSET_BASE = '/assets/asset-pc/images';
+const AVATAR_BASE = `${ASSET_BASE}/avatar`;
+
 const COPY = {
   th: {
     notifications: 'แจ้งเตือน',
@@ -110,8 +113,7 @@ export default function PublicAuthenticatedActions({
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(7);
   const memberLabel = locale === 'th' ? `${copy.member} ${siteName}` : `${siteName} ${copy.member}`;
-  const flagUrl = locale === 'th' ? '/images/flags/th.svg' : '/assets/asset-pc/images/flags/en.svg';
-  const avatarUrl = `/images/avatar/${selectedAvatar}.webp`;
+  const avatarUrl = `${AVATAR_BASE}/${selectedAvatar}.webp`;
 
   useEffect(() => {
     try {
@@ -154,26 +156,26 @@ export default function PublicAuthenticatedActions({
         // Keep the selected avatar for this session when storage is unavailable.
       }
     };
-    image.src = `/images/avatar/${avatar}.webp`;
+    image.src = `${AVATAR_BASE}/${avatar}.webp`;
   };
 
   const primaryItems = [
-    { label: copy.vip, href: '/profile', glyph: 'VIP' },
-    { label: copy.commission, href: '/affiliate', glyph: '฿' },
-    { label: copy.referral, href: '/affiliate', glyph: '↗' },
-    { label: copy.coupon, href: '/bonus', glyph: '◇' },
-    { label: copy.specialBonus, href: '/bonus', glyph: '✦' },
-    { label: copy.live, href: '/#live', glyph: '●' },
+    { label: copy.vip, href: '/profile', icon: `${ASSET_BASE}/ระดับสมาชิก.png` },
+    { label: copy.commission, href: '/affiliate', icon: `${ASSET_BASE}/รายได่คอมมิชชั่น.png` },
+    { label: copy.referral, href: '/affiliate', icon: `${ASSET_BASE}/เเนะนำเพื่อน.png` },
+    { label: copy.coupon, href: '/bonus', icon: `${ASSET_BASE}/คูปอง.png` },
+    { label: copy.specialBonus, href: '/bonus', icon: `${ASSET_BASE}/โบนัสพิเศษ.png` },
+    { label: copy.live, href: '/#live', icon: `${ASSET_BASE}/ถ่ายถอดสด.png` },
   ];
 
   const secondaryItems = [
-    { label: copy.promotions, href: '/promotions', glyph: '%' },
-    { label: copy.news, href: '/browse/promotions?view=news', glyph: 'N' },
-    { label: copy.activity, href: '/browse/promotions?view=activity', glyph: '★' },
-    { label: copy.history, href: '/transactions', glyph: '↺' },
-    { label: copy.alert, href: '/notifications', glyph: '!' },
-    { label: copy.video, href: '/guide', glyph: '▶' },
-    { label: copy.guide, href: '/guide', glyph: '?' },
+    { label: copy.promotions, href: '/promotions', icon: `${ASSET_BASE}/โปรโมชั้น.png` },
+    { label: copy.news, href: '/browse/promotions?view=news', icon: `${ASSET_BASE}/ข่าวสาร.png` },
+    { label: copy.activity, href: '/browse/promotions?view=activity', icon: `${ASSET_BASE}/กิจกรรม.png` },
+    { label: copy.history, href: '/transactions', icon: `${ASSET_BASE}/ประวัติ.png` },
+    { label: copy.alert, href: '/notifications', icon: `${ASSET_BASE}/เเจ้งเตือน.png` },
+    { label: copy.video, href: '/guide', icon: `${ASSET_BASE}/วิดีโอเเนะนำ.png` },
+    { label: copy.guide, href: '/guide', icon: `${ASSET_BASE}/เเนะนำการใช้งาน.png` },
   ];
 
   return (
@@ -187,7 +189,7 @@ export default function PublicAuthenticatedActions({
           aria-controls="public-member-notifications"
           onClick={() => togglePanel('notifications')}
         >
-          <BellIcon />
+          <img className="public-member-header-icon public-member-header-bell" src="/images/กระดิ่ง.png" alt="" aria-hidden="true" />
           {pendingCount > 0 ? <span className="public-member-badge">{Math.min(pendingCount, 99)}</span> : null}
         </button>
 
@@ -232,17 +234,17 @@ export default function PublicAuthenticatedActions({
 
       <div className="public-member-wallet-pill" aria-label={`${copy.balance} ${compactWalletBalance}`}>
         <span className="public-member-wallet-balance">
-          <img src="/images/wallet.webp" alt="" aria-hidden="true" />
+          <img className="public-member-header-icon public-member-header-wallet" src={`${ASSET_BASE}/a_wallet_animate.webp`} alt="" aria-hidden="true" />
           <strong>{walletLoading ? '…' : compactWalletBalance}</strong>
         </span>
         <span className="public-member-wallet-divider" aria-hidden="true" />
         <Link className="public-member-wallet-action" href="/deposit" aria-label={copy.deposit}>
-          <DepositIcon />
+          <img className="public-member-header-icon public-member-header-wallet-action" src="/images/ฝาก.png" alt="" aria-hidden="true" />
           <span>{copy.deposit}</span>
         </Link>
         <span className="public-member-wallet-divider" aria-hidden="true" />
         <Link className="public-member-wallet-action" href="/withdraw" aria-label={copy.withdraw}>
-          <WithdrawIcon />
+          <img className="public-member-header-icon public-member-header-wallet-action" src="/images/ถอน.png" alt="" aria-hidden="true" />
           <span>{copy.withdraw}</span>
         </Link>
       </div>
@@ -279,30 +281,30 @@ export default function PublicAuthenticatedActions({
 
             <div className="public-member-income-row">
               <Link href="/affiliate" onClick={() => setOpenPanel(null)}>
+                <img className="public-member-income-icon" src={`${ASSET_BASE}/รายได้ตากเครือข่าย.png`} alt="" aria-hidden="true" />
                 <span>{copy.networkIncome}</span>
                 <strong>0.00</strong>
-                <em>›</em>
+                <em aria-hidden="true"><RightChevronIcon /></em>
               </Link>
               <Link href="/affiliate" onClick={() => setOpenPanel(null)}>
+                <img className="public-member-income-icon" src={`${ASSET_BASE}/รายได้จากคอมมิชชั้น.png`} alt="" aria-hidden="true" />
                 <span>{copy.commissionIncome}</span>
                 <strong>0.00</strong>
-                <em>›</em>
+                <em aria-hidden="true"><RightChevronIcon /></em>
               </Link>
             </div>
 
             <Link className="public-member-referral-row" href="/affiliate" onClick={() => setOpenPanel(null)}>
-              <span className="public-member-referral-icon">↗</span>
-              <span>
-                <strong>{copy.referralLink}</strong>
-                <small>{copy.openAffiliate}</small>
-              </span>
-              <em>›</em>
+              <img className="public-member-referral-icon" src={`${ASSET_BASE}/ลิ้งเเนะนพเพื่อน.png`} alt="" aria-hidden="true" />
+              <strong>{copy.referralLink}</strong>
+              <small>{copy.openAffiliate}</small>
+              <span className="public-member-referral-copy" aria-hidden="true"><CopyIcon /></span>
             </Link>
 
             <nav className="public-member-menu-grid" aria-label={copy.openProfile}>
               {primaryItems.map((item) => (
                 <Link key={`${item.href}-${item.label}`} href={item.href} onClick={() => setOpenPanel(null)}>
-                  <span className="public-member-menu-glyph">{item.glyph}</span>
+                  <span className="public-member-menu-glyph"><img src={item.icon} alt="" aria-hidden="true" /></span>
                   <span>{item.label}</span>
                 </Link>
               ))}
@@ -311,7 +313,7 @@ export default function PublicAuthenticatedActions({
             <nav className="public-member-menu-grid public-member-menu-grid--secondary" aria-label={copy.openProfile}>
               {secondaryItems.map((item) => (
                 <Link key={`${item.href}-${item.label}`} href={item.href} onClick={() => setOpenPanel(null)}>
-                  <span className="public-member-menu-glyph">{item.glyph}</span>
+                  <span className="public-member-menu-glyph"><img src={item.icon} alt="" aria-hidden="true" /></span>
                   <span>{item.label}</span>
                   {item.href === '/notifications' && pendingCount > 0 ? <b>{Math.min(pendingCount, 99)}</b> : null}
                 </Link>
@@ -323,7 +325,7 @@ export default function PublicAuthenticatedActions({
                   setOpenPanel(null);
                 }}
               >
-                <span className="public-member-menu-glyph public-member-language-glyph"><img src={flagUrl} alt="" /></span>
+                <span className="public-member-menu-glyph public-member-language-glyph"><img src={`${ASSET_BASE}/เปลียนภาษา.svg`} alt="" aria-hidden="true" /></span>
                 <span>{copy.language}</span>
               </button>
             </nav>
@@ -336,7 +338,7 @@ export default function PublicAuthenticatedActions({
                 logout();
               }}
             >
-              <LogoutIcon />
+              <img className="public-member-logout-icon" src={`${ASSET_BASE}/ออกจากระบบ.png`} alt="" aria-hidden="true" />
               <span>{copy.logout}</span>
             </button>
             <span className="public-member-popover-arrow public-member-popover-arrow--profile" aria-hidden="true" />
@@ -360,36 +362,7 @@ function useAvatarFallback(event: React.SyntheticEvent<HTMLImageElement>) {
   const image = event.currentTarget;
   if (image.dataset.fallback === 'true') return;
   image.dataset.fallback = 'true';
-  image.src = '/images/avatar/7.webp';
-}
-
-function BellIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-      <path d="M10 21h4" />
-    </svg>
-  );
-}
-
-function DepositIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 4v11" />
-      <path d="m8 11 4 4 4-4" />
-      <path d="M5 20h14" />
-    </svg>
-  );
-}
-
-function WithdrawIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 20V9" />
-      <path d="m8 13 4-4 4 4" />
-      <path d="M5 4h14" />
-    </svg>
-  );
+  image.src = `${AVATAR_BASE}/7.webp`;
 }
 
 function ChevronIcon() {
@@ -400,12 +373,18 @@ function ChevronIcon() {
   );
 }
 
-function LogoutIcon() {
+function RightChevronIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M10 5H5v14h5" />
-      <path d="M13 8l4 4-4 4" />
-      <path d="M8 12h9" />
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d="m6 3 5 5-5 5" />
+    </svg>
+  );
+}
+
+function CopyIcon() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M6 12c-.37 0-.68-.13-.94-.39a1.28 1.28 0 0 1-.39-.94v-8c0-.37.13-.68.39-.94.26-.26.57-.4.94-.4h6c.37 0 .68.14.94.4.26.26.39.57.39.94v8c0 .37-.13.68-.39.94-.26.26-.57.39-.94.39H6Zm0-1.33h6v-8H6v8ZM3.33 14.67c-.36 0-.68-.13-.94-.4A1.28 1.28 0 0 1 2 13.34V4h1.33v9.33h7.34v1.34H3.33Z" />
     </svg>
   );
 }
