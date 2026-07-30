@@ -16,6 +16,7 @@ import MemberMenuIncomeSafeRuntime from './member-menu-income-safe-runtime';
 import MemberMenuSecondaryRuntime from './member-menu-secondary-runtime';
 import MemberMenuSpecialBonusRuntime from './member-menu-special-bonus-runtime';
 import MemberMenuVipRuntime from './member-menu-vip-runtime';
+import MemberSharedPopupRuntime from './member-shared-popup-runtime';
 import MemberSourceAssetRuntime from './member-source-asset-runtime';
 import '../member-authenticated-public-header.css';
 import '../member-authenticated-public-header-runtime.css';
@@ -32,6 +33,7 @@ import '../member-menu-secondary-runtime.css';
 import '../member-authenticated-menu-assets.css';
 import '../member-authenticated-shared-lock.css';
 import '../member-source-asset-runtime.css';
+import '../member-shared-popup-runtime.css';
 
 type Props = ComponentProps<typeof PublicAuthenticatedActions>;
 
@@ -115,6 +117,12 @@ export default function PublicAuthenticatedActionsStyled(props: Props) {
       <MemberMenuSpecialBonusRuntime locale={props.locale} />
       <MemberMenuSecondaryRuntime locale={props.locale} />
       <MemberMenuVipRuntime locale={props.locale} />
+      <MemberSharedPopupRuntime
+        locale={props.locale}
+        onSetLocale={(nextLocale) => {
+          if (nextLocale !== props.locale) props.onToggleLocale();
+        }}
+      />
     </div>
   );
 }
