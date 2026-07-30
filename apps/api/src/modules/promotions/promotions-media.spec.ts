@@ -21,6 +21,7 @@ describe('promotion media contract', () => {
             priority: 20,
           }],
         }),
+        upsert: jest.fn().mockResolvedValue({}),
       },
     } as any;
 
@@ -44,6 +45,7 @@ describe('promotion media contract', () => {
     const prisma = {
       siteSetting: {
         findUnique: jest.fn().mockResolvedValue({ valueJson: [{ id: 'legacy', title: 'Legacy', enabled: true, imageUrl: '/legacy.jpg' }] }),
+        upsert: jest.fn().mockResolvedValue({}),
       },
     } as any;
 
@@ -68,6 +70,7 @@ describe('promotion media contract', () => {
             { id: 'published-high', title: 'High', lifecycle: 'published', enabled: true, priority: 20 },
           ],
         }),
+        upsert: jest.fn().mockResolvedValue({}),
       },
     } as any;
 
