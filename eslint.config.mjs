@@ -75,9 +75,12 @@ export default tseslint.config(
     },
   },
   {
-    // The search field appears only after an explicit member action and intentionally
-    // receives focus so keyboard users can type immediately.
-    files: ['apps/web-member/app/components/member-menu-income-runtime.tsx'],
+    // These popup fields appear only after an explicit member action and intentionally
+    // receive focus so keyboard users can type immediately.
+    files: [
+      'apps/web-member/app/components/member-menu-income-runtime.tsx',
+      'apps/web-member/app/components/member-menu-income-safe-runtime.tsx',
+    ],
     rules: {
       'jsx-a11y/no-autofocus': 'off',
     },
