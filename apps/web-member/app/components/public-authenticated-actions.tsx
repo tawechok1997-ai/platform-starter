@@ -1,13 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { MemberLocale } from '../member-locale-provider';
 import MemberProfileDetailModal from './member-profile-detail-modal';
 import '../member-profile-detail-modal.css';
 
 type OpenPanel = 'notifications' | 'profile' | null;
 type NoticeTab = 'all' | 'benefits' | 'messages';
+type ProfilePopoverPosition = { top: number; left: number; width: number };
 
 type PublicAuthenticatedActionsProps = {
   locale: MemberLocale;
@@ -22,6 +24,9 @@ type PublicAuthenticatedActionsProps = {
 const ASSET_BASE = '/assets/asset-pc/images';
 const AVATAR_BASE = `${ASSET_BASE}/avatar`;
 const FALLBACK_AVATAR_URL = '/images/avatar/7.webp';
+const PROFILE_POPOVER_WIDTH = 350;
+const PROFILE_POPOVER_GAP = 4;
+const PROFILE_POPOVER_VIEWPORT_MARGIN = 12;
 
 const COPY = {
   th: {
@@ -109,14 +114,35 @@ export default function PublicAuthenticatedActions({
 }: PublicAuthenticatedActionsProps) {
   const copy = COPY[locale];
   const rootRef = useRef<HTMLDivElement>(null);
+  const profileTriggerRef = useRef<HTMLButtonElement>(null);
+  const profileMenuRef = useRef<HTMLElement>(null);
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
   const [noticeTab, setNoticeTab] = useState<NoticeTab>('messages');
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [profilePosition, setProfilePosition] = useState<ProfilePopoverPosition | null>(null);
   const [selectedAvatar, setSelectedAvatar] = useState(7);
   const memberLabel = locale === 'th' ? `${copy.member} ${siteName}` : `${siteName} ${copy.member}`;
   const avatarUrl = selectedAvatar === 7
     ? FALLBACK_AVATAR_URL
     : `${AVATAR_BASE}/${selectedAvatar}.webp`;
+
+  const updateProfilePosition = useCallback(() => {
+    const trigger = profileTriggerRef.current;
+    if (!trigger || typeof window === 'undefined') return;
+
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(PROFILE_POPOVER_WIDTH, Math.max(0, window.innerWidth - PROFILE_POPOVER_VIEWPORT_MARGIN * 2));
+    const left = Math.max(
+      PROFILE_POPOVER_VIEWPORT_MARGIN,
+      Math.min(rect.right - width, window.innerWidth - width - PROFILE_POPOVER_VIEWPORT_MARGIN),
+    );
+
+    setProfilePosition({
+      top: Math.max(PROFILE_POPOVER_VIEWPORT_MARGIN, rect.bottom + PROFILE_POPOVER_GAP),
+      left,
+      width,
+    });
+  }, []);
 
   useEffect(() => {
     try {
@@ -131,7 +157,10 @@ export default function PublicAuthenticatedActions({
     if (!openPanel) return;
 
     const closeOutside = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpenPanel(null);
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (rootRef.current?.contains(target) || profileMenuRef.current?.contains(target)) return;
+      setOpenPanel(null);
     };
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpenPanel(null);
@@ -145,7 +174,26 @@ export default function PublicAuthenticatedActions({
     };
   }, [openPanel]);
 
+  useEffect(() => {
+    if (openPanel !== 'profile') return;
+
+    let frame = window.requestAnimationFrame(updateProfilePosition);
+    const update = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(updateProfilePosition);
+    };
+
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [openPanel, updateProfilePosition]);
+
   const togglePanel = (panel: Exclude<OpenPanel, null>) => {
+    if (panel === 'profile' && openPanel !== 'profile') updateProfilePosition();
     setOpenPanel((current) => (current === panel ? null : panel));
   };
 
@@ -168,7 +216,7 @@ export default function PublicAuthenticatedActions({
     { label: copy.referral, href: '/affiliate', icon: `${ASSET_BASE}/เเนะนำเพื่อน.png` },
     { label: copy.coupon, href: '/bonus', icon: `${ASSET_BASE}/คูปอง.png` },
     { label: copy.specialBonus, href: '/bonus', icon: `${ASSET_BASE}/โบนัสพิเศษ.png` },
-    { label: copy.live, href: '/#live', icon: `${ASSET_BASE}/ถ่ายถอดสด.png` },
+    { label: copy.live, href: '/live', icon: `${ASSET_BASE}/ถ่ายถอดสด.png` },
   ];
 
   const secondaryItems = [
@@ -180,6 +228,107 @@ export default function PublicAuthenticatedActions({
     { label: copy.video, href: '/guide', icon: `${ASSET_BASE}/วิดีโอเเนะนำ.png` },
     { label: copy.guide, href: '/guide', icon: `${ASSET_BASE}/เเนะนำการใช้งาน.png` },
   ];
+
+  const profileStyle = profilePosition
+    ? ({
+        '--member-profile-popover-top': `${profilePosition.top}px`,
+        '--member-profile-popover-left': `${profilePosition.left}px`,
+        '--member-profile-popover-width': `${profilePosition.width}px`,
+      } as CSSProperties)
+    : undefined;
+
+  const profileMenu = openPanel === 'profile' && typeof document !== 'undefined'
+    ? createPortal(
+        <section
+          ref={profileMenuRef}
+          id="public-member-profile-menu"
+          className="public-member-popover public-member-profile-popover public-member-profile-popover--portal"
+          role="dialog"
+          aria-label={copy.openProfile}
+          style={profileStyle}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <div className="public-member-profile-head">
+            <button
+              type="button"
+              className="public-member-profile-avatar-button"
+              aria-label={copy.openProfileDetail}
+              onClick={() => {
+                setOpenPanel(null);
+                setProfileModalOpen(true);
+              }}
+            >
+              <img src={avatarUrl} alt="" onError={useAvatarFallback} />
+            </button>
+            <strong>{memberLabel}</strong>
+          </div>
+
+          <div className="public-member-income-row">
+            <Link href="/affiliate" onClick={() => setOpenPanel(null)}>
+              <img className="public-member-income-icon" src={`${ASSET_BASE}/รายได้ตากเครือข่าย.png`} alt="" aria-hidden="true" />
+              <span>{copy.networkIncome}</span>
+              <strong>0.00</strong>
+              <em aria-hidden="true"><RightChevronIcon /></em>
+            </Link>
+            <Link href="/affiliate" onClick={() => setOpenPanel(null)}>
+              <img className="public-member-income-icon" src={`${ASSET_BASE}/รายได้จากคอมมิชชั้น.png`} alt="" aria-hidden="true" />
+              <span>{copy.commissionIncome}</span>
+              <strong>0.00</strong>
+              <em aria-hidden="true"><RightChevronIcon /></em>
+            </Link>
+          </div>
+
+          <Link className="public-member-referral-row" href="/affiliate" onClick={() => setOpenPanel(null)}>
+            <img className="public-member-referral-icon" src={`${ASSET_BASE}/ลิ้งเเนะนพเพื่อน.png`} alt="" aria-hidden="true" />
+            <strong>{copy.referralLink}</strong>
+            <small>{copy.openAffiliate}</small>
+            <span className="public-member-referral-copy" aria-hidden="true"><CopyIcon /></span>
+          </Link>
+
+          <nav className="public-member-menu-grid" aria-label={copy.openProfile}>
+            {primaryItems.map((item) => (
+              <Link key={`${item.href}-${item.label}`} href={item.href} onClick={() => setOpenPanel(null)}>
+                <span className="public-member-menu-glyph"><img src={item.icon} alt="" aria-hidden="true" /></span>
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </nav>
+
+          <nav className="public-member-menu-grid public-member-menu-grid--secondary" aria-label={copy.openProfile}>
+            {secondaryItems.map((item) => (
+              <Link key={`${item.href}-${item.label}`} href={item.href} onClick={() => setOpenPanel(null)}>
+                <span className="public-member-menu-glyph"><img src={item.icon} alt="" aria-hidden="true" /></span>
+                <span>{item.label}</span>
+                {item.href === '/notifications' && pendingCount > 0 ? <b>{Math.min(pendingCount, 99)}</b> : null}
+              </Link>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                onToggleLocale();
+                setOpenPanel(null);
+              }}
+            >
+              <span className="public-member-menu-glyph public-member-language-glyph"><img src={`${ASSET_BASE}/เปลียนภาษา.svg`} alt="" aria-hidden="true" /></span>
+              <span>{copy.language}</span>
+            </button>
+          </nav>
+
+          <button
+            type="button"
+            className="public-member-logout-button"
+            onClick={() => {
+              setOpenPanel(null);
+              logout();
+            }}
+          >
+            <img className="public-member-logout-icon" src={`${ASSET_BASE}/ออกจากระบบ.png`} alt="" aria-hidden="true" />
+            <span>{copy.logout}</span>
+          </button>
+        </section>,
+        document.body,
+      )
+    : null;
 
   return (
     <div className="public-member-actions" ref={rootRef}>
@@ -254,100 +403,25 @@ export default function PublicAuthenticatedActions({
 
       <div className="public-member-popover-anchor public-member-profile-anchor">
         <button
+          ref={profileTriggerRef}
           type="button"
           className="public-member-profile-trigger"
           aria-label={copy.openProfile}
           aria-expanded={openPanel === 'profile'}
           aria-controls="public-member-profile-menu"
-          onClick={() => togglePanel('profile')}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            togglePanel('profile');
+          }}
         >
           <img src={avatarUrl} alt="" onError={useAvatarFallback} />
           <ChevronIcon />
         </button>
-
-        {openPanel === 'profile' ? (
-          <section id="public-member-profile-menu" className="public-member-popover public-member-profile-popover" role="dialog" aria-label={copy.openProfile}>
-            <div className="public-member-profile-head">
-              <button
-                type="button"
-                className="public-member-profile-avatar-button"
-                aria-label={copy.openProfileDetail}
-                onClick={() => {
-                  setOpenPanel(null);
-                  setProfileModalOpen(true);
-                }}
-              >
-                <img src={avatarUrl} alt="" onError={useAvatarFallback} />
-              </button>
-              <strong>{memberLabel}</strong>
-            </div>
-
-            <div className="public-member-income-row">
-              <Link href="/affiliate" onClick={() => setOpenPanel(null)}>
-                <img className="public-member-income-icon" src={`${ASSET_BASE}/รายได้ตากเครือข่าย.png`} alt="" aria-hidden="true" />
-                <span>{copy.networkIncome}</span>
-                <strong>0.00</strong>
-                <em aria-hidden="true"><RightChevronIcon /></em>
-              </Link>
-              <Link href="/affiliate" onClick={() => setOpenPanel(null)}>
-                <img className="public-member-income-icon" src={`${ASSET_BASE}/รายได้จากคอมมิชชั้น.png`} alt="" aria-hidden="true" />
-                <span>{copy.commissionIncome}</span>
-                <strong>0.00</strong>
-                <em aria-hidden="true"><RightChevronIcon /></em>
-              </Link>
-            </div>
-
-            <Link className="public-member-referral-row" href="/affiliate" onClick={() => setOpenPanel(null)}>
-              <img className="public-member-referral-icon" src={`${ASSET_BASE}/ลิ้งเเนะนพเพื่อน.png`} alt="" aria-hidden="true" />
-              <strong>{copy.referralLink}</strong>
-              <small>{copy.openAffiliate}</small>
-              <span className="public-member-referral-copy" aria-hidden="true"><CopyIcon /></span>
-            </Link>
-
-            <nav className="public-member-menu-grid" aria-label={copy.openProfile}>
-              {primaryItems.map((item) => (
-                <Link key={`${item.href}-${item.label}`} href={item.href} onClick={() => setOpenPanel(null)}>
-                  <span className="public-member-menu-glyph"><img src={item.icon} alt="" aria-hidden="true" /></span>
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </nav>
-
-            <nav className="public-member-menu-grid public-member-menu-grid--secondary" aria-label={copy.openProfile}>
-              {secondaryItems.map((item) => (
-                <Link key={`${item.href}-${item.label}`} href={item.href} onClick={() => setOpenPanel(null)}>
-                  <span className="public-member-menu-glyph"><img src={item.icon} alt="" aria-hidden="true" /></span>
-                  <span>{item.label}</span>
-                  {item.href === '/notifications' && pendingCount > 0 ? <b>{Math.min(pendingCount, 99)}</b> : null}
-                </Link>
-              ))}
-              <button
-                type="button"
-                onClick={() => {
-                  onToggleLocale();
-                  setOpenPanel(null);
-                }}
-              >
-                <span className="public-member-menu-glyph public-member-language-glyph"><img src={`${ASSET_BASE}/เปลียนภาษา.svg`} alt="" aria-hidden="true" /></span>
-                <span>{copy.language}</span>
-              </button>
-            </nav>
-
-            <button
-              type="button"
-              className="public-member-logout-button"
-              onClick={() => {
-                setOpenPanel(null);
-                logout();
-              }}
-            >
-              <img className="public-member-logout-icon" src={`${ASSET_BASE}/ออกจากระบบ.png`} alt="" aria-hidden="true" />
-              <span>{copy.logout}</span>
-            </button>
-            <span className="public-member-popover-arrow public-member-popover-arrow--profile" aria-hidden="true" />
-          </section>
-        ) : null}
       </div>
+
+      {profileMenu}
 
       <MemberProfileDetailModal
         open={profileModalOpen}
