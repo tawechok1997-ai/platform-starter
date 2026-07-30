@@ -265,7 +265,7 @@ export default function GameTournamentPage() {
         </AdminCard>
 
         <AdminStack>
-          <AdminCard title={selectedTournament ? t.editorTitle : t.createTitle} description={selectedTournament ? `${selectedTournament.slug} · ${statusLabel(selectedTournament.status, locale)}` : undefined}>
+          <AdminCard title={selectedTournament ? t.editorTitle : t.createTitle} {...(selectedTournament ? { description: `${selectedTournament.slug} · ${statusLabel(selectedTournament.status, locale)}` } : {})}>
             <div className={styles.form}>
               <div className={styles.formGrid}>
                 <label className={styles.field}><span>{t.name}</span><input disabled={!canManage || Boolean(busy)} value={form.name} onChange={(event) => { patchForm('name', event.target.value); if (!selectedId && !form.slug) patchForm('slug', slugify(event.target.value)); }} /></label>
@@ -294,7 +294,7 @@ export default function GameTournamentPage() {
             </div>
           </AdminCard>
 
-          {selectedTournament && <AdminCard title={t.leaderboard} description={`${t.gameLaunches} · ${selectedTournament.leaderboard?.calculatedAt ? `${t.lastCalculated}: ${formatDate(selectedTournament.leaderboard.calculatedAt, locale)}` : t.noLeaderboard}`} action={selectedTournament.nextRadarAt ? <AdminBadge tone={selectedTournament.radarDue ? 'warning' : 'neutral'}>{t.nextRadar}: {formatDate(selectedTournament.nextRadarAt, locale)}</AdminBadge> : undefined}>
+          {selectedTournament && <AdminCard title={t.leaderboard} description={`${t.gameLaunches} · ${selectedTournament.leaderboard?.calculatedAt ? `${t.lastCalculated}: ${formatDate(selectedTournament.leaderboard.calculatedAt, locale)}` : t.noLeaderboard}`} {...(selectedTournament.nextRadarAt ? { action: <AdminBadge tone={selectedTournament.radarDue ? 'warning' : 'neutral'}>{t.nextRadar}: {formatDate(selectedTournament.nextRadarAt, locale)}</AdminBadge> } : {})}>
             {selectedTournament.leaderboard?.entries.length ? <div className={styles.leaderboard}>{selectedTournament.leaderboard.entries.map((entry) => <div key={entry.userId} className={styles.leaderboardRow}><span className={styles.rank}>{entry.rank}</span><div><strong>{entry.displayName || entry.username}</strong><p className={styles.muted}>{entry.username}</p></div><span className={styles.score}>{entry.score.toLocaleString(locale)} {t.score}</span></div>)}</div> : <AdminEmpty>{t.noLeaderboard}</AdminEmpty>}
           </AdminCard>}
         </AdminStack>
