@@ -1,0 +1,37 @@
+.member-header-deposit-mobile-actions {
+  display: grid;
+}
+
+.member-header-deposit-desktop-actions {
+  display: none;
+}
+
+@media (max-width: 719px) {
+  .member-header-deposit-columns[data-mobile-stage='method'] .member-header-deposit-amount-panel {
+    display: none;
+  }
+
+  .member-header-deposit-columns[data-mobile-stage='amount'] .member-header-deposit-method-panel {
+    display: none;
+  }
+
+  .member-header-deposit-columns[data-mobile-stage='amount'] .member-header-deposit-amount-panel,
+  .member-header-deposit-columns[data-mobile-stage='method'] .member-header-deposit-method-panel {
+    display: flex;
+  }
+}
+
+@media (min-width: 720px) {
+  .member-header-deposit-mobile-actions {
+    display: none;
+  }
+
+  .member-header-deposit-desktop-actions {
+    display: grid;
+  }
+
+  .member-header-deposit-columns .member-header-deposit-method-panel,
+  .member-header-deposit-columns .member-header-deposit-amount-panel {
+    display: flex;
+  }
+}
