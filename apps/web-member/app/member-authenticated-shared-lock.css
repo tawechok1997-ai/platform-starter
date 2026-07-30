@@ -1,0 +1,102 @@
+/*
+ * One visual contract for the authenticated header on Home and every Browse route.
+ * Page-level styles must not change the shared wallet typography or controls.
+ */
+@media (min-width: 901px) {
+  .public-authenticated-shared-island {
+    display: contents;
+  }
+
+  .public-home-topbar .public-member-actions {
+    font-family: Inter, "LINE Seed Sans TH", "IBM Plex Sans Thai", "Noto Sans Thai", sans-serif !important;
+    font-synthesis: none;
+  }
+
+  .public-home-topbar .public-member-wallet-balance {
+    appearance: none;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    font: inherit !important;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .public-home-topbar .public-member-wallet-balance:focus-visible {
+    border-radius: 8px !important;
+    box-shadow: 0 0 0 2px rgb(187 91 234 / 65%) !important;
+  }
+
+  .public-home-topbar .public-member-wallet-amount {
+    display: inline-block !important;
+    min-width: 82px !important;
+    padding-inline: 4px !important;
+    color: #fff !important;
+    font-family: Inter, "IBM Plex Sans Thai", "Noto Sans Thai", sans-serif !important;
+    font-size: 14px !important;
+    font-style: normal !important;
+    font-weight: 400 !important;
+    line-height: 20px !important;
+    letter-spacing: 0 !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums lining-nums !important;
+    font-feature-settings: "tnum" 1, "lnum" 1 !important;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .public-home-topbar .public-member-wallet-action > span {
+    color: #fff !important;
+    font-family: Inter, "LINE Seed Sans TH", "IBM Plex Sans Thai", "Noto Sans Thai", sans-serif !important;
+    font-size: 14px !important;
+    font-style: normal !important;
+    font-weight: 400 !important;
+    line-height: 20px !important;
+    letter-spacing: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .public-authenticated-shared-island[data-wallet-refreshing="true"] .public-member-wallet-balance {
+    pointer-events: none;
+  }
+
+  .public-authenticated-shared-island[data-wallet-refreshing="true"] .public-member-header-wallet {
+    animation: member-shared-wallet-refresh 720ms ease-out both;
+  }
+
+  .public-authenticated-shared-island[data-wallet-refreshing="true"] .public-member-wallet-amount {
+    opacity: 0.72;
+  }
+}
+
+@keyframes member-shared-wallet-refresh {
+  0% {
+    opacity: 0.72;
+    transform: scale(0.92) rotate(-8deg);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.08) rotate(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-authenticated-shared-island[data-wallet-refreshing="true"] .public-member-header-wallet {
+    animation: none !important;
+  }
+}
