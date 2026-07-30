@@ -1,5 +1,6 @@
 import { LOBBY_GAME_CATALOG } from './provider-simulator-lobby-catalog.generated';
 import { PC_GAME_CATALOG } from './provider-simulator-pc-catalog.generated';
+import { RECOVERED_GAME_CATALOG_OVERLAY } from './provider-simulator-recovered-catalog.generated';
 
 export type SimulatorGamePlatform = 'mobile' | 'desktop' | 'both';
 export type SimulatorCatalogPlatform = SimulatorGamePlatform | 'pc';
@@ -22,33 +23,43 @@ export type SimulatorMediaContract = {
   iconUrl: string;
   fallbackIconUrl: string;
   providerLogoUrl: string | null;
-  source: 'repository' | 'generated-placeholder';
+  source: 'repository' | 'source-cdn' | 'generated-placeholder';
   placeholder: boolean;
 };
 
 export const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   acewin: 'AceWin',
+  acewinfish: 'AceWin Fishing',
   amb: 'AMB',
   ame: 'AME',
   ap: 'Asia Play',
   ask: 'ASKME',
+  askfish: 'ASKME Fishing',
   bng: 'BNG',
   cala: 'Cala',
   cq: 'CQ9 Gaming',
+  cqfish: 'CQ9 Fishing',
   drag: 'Dragoon Soft',
   edp: 'EDP',
   evp: 'Evolution Play',
   fachai: 'Fa Chai Gaming',
+  fachaifish: 'Fa Chai Fishing',
   fs: 'FastSpin',
+  fsfish: 'FastSpin Fishing',
   glx: 'Galaxy',
+  hacksaw: 'Hacksaw Gaming',
   hbn: 'Habanero',
   hotdog: 'Hot Dog',
   jkgx2: 'JDB',
+  jkgx2fish: 'JDB Fishing',
   jl: 'Jili',
+  jlfish: 'Jili Fishing',
   kaga: 'Ka Gaming',
+  kagafish: 'Ka Gaming Fishing',
   kingm: 'Kingmaker',
   l22: 'Live22',
   misolt: 'Miso',
+  misoltfish: 'Miso Fishing',
   n2: 'N2 Live',
   netent: 'NetEnt',
   nlc: 'NoLimit City',
@@ -58,15 +69,22 @@ export const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   pp: 'Pragmatic Play',
   ps: 'PlayStar',
   r88: 'R88',
+  r88fish: 'R88 Fishing',
+  rb7slot: 'RB7 Slot',
   redtiger: 'Red Tiger',
   reg: 'Relax Gaming',
   rsg: 'RSG',
+  rsgfish: 'RSG Fishing',
   spg: 'Spadegaming',
+  spgfish: 'Spadegaming Fishing',
   spp: 'SimplePlay',
+  sppfish: 'SimplePlay Fishing',
   vp: 'VPower',
+  wmfish: 'WM Fishing',
   wmslot: 'WM Slot',
   ygg: 'Yggdrasil',
   ygr: 'YGR',
+  ygrfish: 'YGR Fishing',
 };
 
 const MOBILE_GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
@@ -79,24 +97,65 @@ const MOBILE_GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
   { code: 'fachai-27001', name: 'Fa Chai 27001', provider: 'fachai', platform: 'mobile', category: 'slot', accent: '#eab308', symbol: '發', assetPath: 'asset/catalog/mobile/games/fa-chai/fachai-27001.jpg', providerLogoPath: 'asset/catalog/mobile/providers/fa-chai.png' },
 ];
 
-const catalogKey = (game: Pick<SimulatorGameCatalogItem, 'provider' | 'code' | 'platform'>) => `${game.provider}:${game.code}:${game.platform}`;
-const BASE_CATALOG = [...MOBILE_GAME_CATALOG, ...PC_GAME_CATALOG] as const;
-const BASE_CATALOG_KEYS = new Set(BASE_CATALOG.map(catalogKey));
-
-export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
-  ...BASE_CATALOG,
-  ...LOBBY_GAME_CATALOG.filter((game) => !BASE_CATALOG_KEYS.has(catalogKey(game))),
-];
-
 export function normalizeSimulatorPlatform(platform: SimulatorCatalogPlatform): SimulatorGamePlatform {
   return platform === 'pc' ? 'desktop' : platform;
 }
 
+function normalizeProviderCode(provider: string) {
+  return provider.trim().toLowerCase().replace(/\.(?:png|jpe?g|webp|svg)$/i, '');
+}
+
+function normalizeCatalogTag(tag: string) {
+  const value = tag.trim();
+  if (value === 'เกมอาเขต') return 'เกมส์อาเขต';
+  if (value === 'เกมฮิต' || value === '-singaw' || value === 'ยิงปลา') return 'เกมส์ฮิต';
+  if (value === 'เกมใหม่' || value === 'เกมสใหม่') return 'เกมส์ใหม่';
+  if (value === 'เกมยล็อต' || value === 'เกมสล็อต') return 'เกมส์สล็อต';
+  if (value === 'เกมโต๊ะ' || value === '红黑大战') return 'เกมส์โต๊ะ';
+  return value;
+}
+
+function normalizeCatalogItem(game: SimulatorGameCatalogItem): SimulatorGameCatalogItem {
+  const tags = game.tags
+    ? Array.from(new Set(game.tags.map(normalizeCatalogTag).filter(Boolean)))
+    : undefined;
+  return {
+    ...game,
+    provider: normalizeProviderCode(game.provider),
+    ...(tags?.length ? { tags } : {}),
+  };
+}
+
+function catalogKey(game: Pick<SimulatorGameCatalogItem, 'provider' | 'code' | 'platform'>) {
+  return `${normalizeProviderCode(game.provider)}:${game.code}:${normalizeSimulatorPlatform(game.platform)}`;
+}
+
+function mergeCatalogs(...catalogs: ReadonlyArray<readonly SimulatorGameCatalogItem[]>) {
+  const merged = new Map<string, SimulatorGameCatalogItem>();
+  for (const catalog of catalogs) {
+    for (const sourceGame of catalog) {
+      const game = normalizeCatalogItem(sourceGame);
+      const key = catalogKey(game);
+      if (!merged.has(key)) merged.set(key, game);
+    }
+  }
+  return Array.from(merged.values());
+}
+
+// Curated repository assets win. Recovered source data fills missing and misclassified
+// records. The historical generated lobby remains the final fallback.
+export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = mergeCatalogs(
+  MOBILE_GAME_CATALOG,
+  PC_GAME_CATALOG,
+  RECOVERED_GAME_CATALOG_OVERLAY,
+  LOBBY_GAME_CATALOG,
+);
+
 export function platformMatches(gamePlatform: SimulatorCatalogPlatform, requested?: SimulatorCatalogPlatform) {
   if (!requested) return true;
-  const normalizedGame = normalizeSimulatorPlatform(gamePlatform);
-  const normalizedRequested = normalizeSimulatorPlatform(requested);
-  return normalizedGame === 'both' || normalizedRequested === 'both' || normalizedGame === normalizedRequested;
+  const game = normalizeSimulatorPlatform(gamePlatform);
+  const filter = normalizeSimulatorPlatform(requested);
+  return game === 'both' || filter === 'both' || game === filter;
 }
 
 export function buildSimulatorMediaContract(
@@ -104,24 +163,29 @@ export function buildSimulatorMediaContract(
   publicBaseUrl: string,
 ): SimulatorMediaContract {
   const baseUrl = publicBaseUrl.replace(/\/$/, '');
-  const repositoryImage = assetUrl(game.assetPath, baseUrl);
+  const imageUrl = assetUrl(game.assetPath, baseUrl);
   const providerLogoUrl = assetUrl(game.providerLogoPath, baseUrl);
   const fallbackIconUrl = `${baseUrl}/provider-simulator/icons/${game.code}.svg`;
   return {
-    imageUrl: repositoryImage ?? fallbackIconUrl,
-    iconUrl: repositoryImage ?? fallbackIconUrl,
+    imageUrl: imageUrl ?? fallbackIconUrl,
+    iconUrl: imageUrl ?? fallbackIconUrl,
     fallbackIconUrl,
     providerLogoUrl,
-    source: repositoryImage ? 'repository' : 'generated-placeholder',
-    placeholder: !repositoryImage,
+    source: imageUrl ? (isAbsoluteHttpUrl(game.assetPath) ? 'source-cdn' : 'repository') : 'generated-placeholder',
+    placeholder: !imageUrl,
   };
 }
 
 export function assetUrl(path: string | undefined, _publicBaseUrl: string) {
   if (!path) return null;
+  if (isAbsoluteHttpUrl(path)) return path;
   const configured = process.env.GAME_ASSET_BASE_URL?.replace(/\/$/, '');
   if (configured) return `${configured}/${path}`;
   const repository = process.env.GITHUB_REPOSITORY ?? 'tawechok1997-ai/platform-starter';
   const ref = process.env.GAME_ASSET_GIT_REF ?? 'main';
   return `https://raw.githubusercontent.com/${repository}/${ref}/${path}`;
+}
+
+function isAbsoluteHttpUrl(value: string | undefined): value is string {
+  return typeof value === 'string' && /^https?:\/\//i.test(value);
 }

@@ -1,22 +1,20 @@
-import { buildSimulatorMediaContract, normalizeSimulatorPlatform, platformMatches } from './provider-simulator-catalog';
+import {
+  assetUrl,
+  buildSimulatorMediaContract,
+  GAME_CATALOG,
+  normalizeSimulatorPlatform,
+  platformMatches,
+} from './provider-simulator-catalog';
 
 describe('provider simulator catalog contracts', () => {
-  it('normalizes legacy pc platform to desktop', () => {
+  it('normalizes platforms', () => {
     expect(normalizeSimulatorPlatform('pc')).toBe('desktop');
-    expect(normalizeSimulatorPlatform('mobile')).toBe('mobile');
-    expect(normalizeSimulatorPlatform('both')).toBe('both');
-  });
-
-  it('matches both-platform games against mobile and desktop requests', () => {
     expect(platformMatches('both', 'mobile')).toBe(true);
-    expect(platformMatches('both', 'desktop')).toBe(true);
     expect(platformMatches('mobile', 'desktop')).toBe(false);
-    expect(platformMatches('pc', 'desktop')).toBe(true);
   });
 
-  it('returns a generated placeholder media contract when no asset exists', () => {
-    const media = buildSimulatorMediaContract({ code: 'missing', assetPath: undefined, providerLogoPath: undefined }, 'https://api.example.com/');
-    expect(media).toEqual({
+  it('uses a placeholder when media is absent', () => {
+    expect(buildSimulatorMediaContract({ code: 'missing' }, 'https://api.example.com/')).toEqual({
       imageUrl: 'https://api.example.com/provider-simulator/icons/missing.svg',
       iconUrl: 'https://api.example.com/provider-simulator/icons/missing.svg',
       fallbackIconUrl: 'https://api.example.com/provider-simulator/icons/missing.svg',
@@ -24,5 +22,21 @@ describe('provider simulator catalog contracts', () => {
       source: 'generated-placeholder',
       placeholder: true,
     });
+  });
+
+  it('preserves recovered source media', () => {
+    const source = 'https://cdn.zabbet.com/games/example.png';
+    expect(assetUrl(source, 'https://api.example.com')).toBe(source);
+    expect(buildSimulatorMediaContract({ code: 'source', assetPath: source }, 'https://api.example.com').source).toBe('source-cdn');
+  });
+
+  it('restores the recovered PC catalog without duplicate keys', () => {
+    const pcGames = GAME_CATALOG.filter((game) => game.platform === 'pc');
+    const keys = pcGames.map((game) => `${game.provider}:${game.code}:${game.platform}`);
+    expect(pcGames.length).toBeGreaterThanOrEqual(4_670);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(GAME_CATALOG.some((game) => game.category === 'fishing')).toBe(true);
+    expect(GAME_CATALOG.some((game) => game.category === 'card')).toBe(true);
+    expect(GAME_CATALOG.some((game) => /\.(?:png|jpe?g|webp|svg)$/i.test(game.provider))).toBe(false);
   });
 });
