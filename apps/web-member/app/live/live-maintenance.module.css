@@ -144,15 +144,6 @@
   transform: translateY(-1px);
 }
 
-:global(body:has([data-live-maintenance]) .member-desktop-nav a:last-child) {
-  color: #fff !important;
-  background: linear-gradient(180deg, rgb(148 79 232 / 34%), rgb(118 0 168 / 20%)) !important;
-}
-
-:global(body:has([data-live-maintenance]) .member-desktop-nav a:last-child::after) {
-  opacity: 1 !important;
-}
-
 @keyframes pulse {
   0%, 100% { opacity: .6; transform: scale(.9); }
   50% { opacity: 1; transform: scale(1.12); }
