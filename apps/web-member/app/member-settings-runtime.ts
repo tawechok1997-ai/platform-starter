@@ -82,20 +82,26 @@ export function buildMemberContactRuntime(contact: ContactSettings): MemberConta
     hasConfiguredChannel ? '' : DEFAULT_LINE_URL,
   );
 
+  const telegramValue = nonUrlText(contact.telegram);
+  const facebookValue = nonUrlText(contact.facebook);
+  const youtubeValue = nonUrlText(contact.youtube);
+  const tiktokValue = nonUrlText(contact.tiktok);
+  const xValue = firstText(nonUrlText(contact.x), nonUrlText(contact.twitter));
+
   const channels = [
-    channel('line', 'LINE', lineValue || 'LINE', lineHref, LINE_ICON_URL),
-    channel('live_chat', 'Live Chat', 'Live Chat', firstHttpUrl(contact.live_chat_url), CONTACT_ICON_URL),
+    channel('line', 'LINE', lineValue, lineHref, LINE_ICON_URL),
+    channel('live_chat', 'Live Chat', '', firstHttpUrl(contact.live_chat_url), CONTACT_ICON_URL),
     channel(
       'telegram',
       'Telegram',
-      firstText(contact.telegram, 'Telegram'),
+      telegramValue,
       firstHttpUrl(contact.telegram_url, contact.telegram),
       CONTACT_ICON_URL,
     ),
     channel(
       'facebook',
       'Facebook',
-      firstText(contact.facebook, 'Facebook'),
+      facebookValue,
       firstHttpUrl(contact.facebook_url, contact.facebook),
       CONTACT_ICON_URL,
     ),
@@ -104,21 +110,21 @@ export function buildMemberContactRuntime(contact: ContactSettings): MemberConta
     channel(
       'youtube',
       'YouTube',
-      firstText(contact.youtube, 'YouTube'),
+      youtubeValue,
       firstHttpUrl(contact.youtube_url, contact.youtube),
       CONTACT_ICON_URL,
     ),
     channel(
       'tiktok',
       'TikTok',
-      firstText(contact.tiktok, 'TikTok'),
+      tiktokValue,
       firstHttpUrl(contact.tiktok_url, contact.tiktok),
       CONTACT_ICON_URL,
     ),
     channel(
       'x',
       'X',
-      firstText(contact.x, contact.twitter, 'X'),
+      xValue,
       firstHttpUrl(contact.x_url, contact.twitter_url, contact.x, contact.twitter),
       CONTACT_ICON_URL,
     ),
@@ -229,6 +235,11 @@ function firstHttpUrl(...values: unknown[]) {
 
 function isHttpUrl(value: string) {
   return /^https?:\/\//i.test(value);
+}
+
+function nonUrlText(value: unknown) {
+  const normalized = text(value);
+  return isHttpUrl(normalized) ? '' : normalized;
 }
 
 function firstText(...values: unknown[]) {
