@@ -6,6 +6,7 @@ import {
   GAME_CATALOG,
   PROVIDER_DISPLAY_NAMES,
 } from '../provider-simulator/provider-simulator-catalog';
+import { GameExperienceService } from './game-experience.service';
 
 type MemberGamePlatform = 'mobile' | 'pc';
 type MemberGamePlatformFilter = 'all' | MemberGamePlatform | 'both';
@@ -21,7 +22,10 @@ export type MemberGameCatalogQuery = {
 
 @Injectable()
 export class MemberGameCatalogService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gameExperience: GameExperienceService,
+  ) {}
 
   async list(query: MemberGameCatalogQuery = {}) {
     const page = clampInteger(query.page, 1, 1, 100000);
@@ -55,7 +59,7 @@ export class MemberGameCatalogService {
         { name: 'asc' },
       ],
       include: {
-        provider: { select: { id: true, name: true, code: true, status: true, logoUrl: true } },
+        provider: { select: { id: true, name: true, code: true, status: true, logoUrl: true, metadata: true } },
         media: {
           where: { status: { in: ['READY', 'FALLBACK'] } },
           orderBy: [{ isOverride: 'desc' }, { createdAt: 'desc' }],
@@ -82,7 +86,16 @@ export class MemberGameCatalogService {
       });
 
     const normalizedDatabaseItems = databaseItems
-      .map((item) => ({ ...item, platform: readDatabasePlatform(item.metadata) }))
+      .filter((item) => this.gameExperience.isGameAvailable(item))
+      .map((item) => {
+        const { metadata: _providerMetadata, ...providerView } = item.provider;
+        return {
+          ...item,
+          provider: providerView,
+          platform: readDatabasePlatform(item.metadata),
+          availability: this.gameExperience.gameAvailability(item),
+        };
+      })
       .filter((item) => matchesPlatform(item.platform, platform));
 
     const allItems = [...normalizedDatabaseItems, ...generatedItems];
