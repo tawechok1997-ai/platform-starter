@@ -1,10 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { memberApiFetch } from '../member-api';
 import type { MemberLocale } from '../member-locale-provider';
+import MemberProfileActionOverlay from './member-profile-action-overlay';
 
 type MemberProfileDetailModalProps = {
   open: boolean;
@@ -20,6 +20,8 @@ type ProfileSummary = {
   phone?: string | null;
   displayName?: string | null;
 };
+
+type ProfileAction = 'contact' | 'password' | null;
 
 const COPY = {
   th: {
@@ -54,14 +56,23 @@ export default function MemberProfileDetailModal({
 }: MemberProfileDetailModalProps) {
   const copy = COPY[locale];
   const [profile, setProfile] = useState<ProfileSummary | null>(null);
+  const [action, setAction] = useState<ProfileAction>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setAction(null);
+      return;
+    }
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key !== 'Escape') return;
+      if (action) {
+        setAction(null);
+        return;
+      }
+      onClose();
     };
     window.addEventListener('keydown', closeOnEscape);
 
@@ -81,7 +92,7 @@ export default function MemberProfileDetailModal({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', closeOnEscape);
     };
-  }, [onClose, open]);
+  }, [action, onClose, open]);
 
   if (!open || typeof document === 'undefined') return null;
 
@@ -93,6 +104,7 @@ export default function MemberProfileDetailModal({
       className="member-profile-detail-backdrop"
       role="presentation"
       onPointerDown={(event) => {
+        if (action) return;
         if (event.currentTarget === event.target) onClose();
       }}
     >
@@ -101,6 +113,7 @@ export default function MemberProfileDetailModal({
         role="dialog"
         aria-modal="true"
         aria-label={copy.title}
+        aria-hidden={Boolean(action)}
       >
         <span className="member-profile-detail-top-line" aria-hidden="true" />
 
@@ -129,14 +142,14 @@ export default function MemberProfileDetailModal({
             <strong className="member-profile-detail-account">{accountLabel}</strong>
 
             <div className="member-profile-detail-actions">
-              <Link href="/profile/edit" onClick={onClose}>
+              <button type="button" onClick={() => setAction('contact')}>
                 <AccountIcon />
                 <span>{copy.editAccount}</span>
-              </Link>
-              <Link href="/profile/password" onClick={onClose}>
+              </button>
+              <button type="button" onClick={() => setAction('password')}>
                 <PasswordIcon />
                 <span>{copy.editPassword}</span>
-              </Link>
+              </button>
             </div>
           </section>
 
@@ -165,6 +178,13 @@ export default function MemberProfileDetailModal({
           </section>
         </div>
       </section>
+
+      <MemberProfileActionOverlay
+        action={action}
+        locale={locale}
+        onClose={() => setAction(null)}
+        onOpenContact={() => setAction('contact')}
+      />
     </div>,
     document.body,
   );
