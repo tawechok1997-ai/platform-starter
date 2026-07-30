@@ -13,7 +13,14 @@ import {
   type CmsContent,
 } from '../site-settings';
 
-type PromotionView = 'all' | 'promotion' | 'activity' | 'news';
+export type PromotionView = 'all' | 'promotion' | 'activity' | 'news';
+
+type BrowsePromotionsCmsProps = {
+  embedded?: boolean;
+  initialView?: PromotionView;
+  onViewChange?: (view: PromotionView) => void;
+};
+
 type BrowsePromotion = {
   id: string;
   kind: Exclude<PromotionView, 'all'>;
@@ -41,16 +48,26 @@ const FALLBACK_ITEMS: BrowsePromotion[] = [
   },
 ];
 
-export function BrowsePromotionsCms() {
+export function BrowsePromotionsCms({
+  embedded = false,
+  initialView: initialViewOverride,
+  onViewChange,
+}: BrowsePromotionsCmsProps = {}) {
   const { isLoggedIn, ready } = useMemberSession();
   const searchParams = useSearchParams();
   const requestedView = searchParams.get('view');
-  const initialView: PromotionView = requestedView === 'promotion' || requestedView === 'activity' || requestedView === 'news' ? requestedView : 'all';
-  const [view, setView] = useState<PromotionView>(initialView);
+  const routeInitialView: PromotionView = requestedView === 'promotion' || requestedView === 'activity' || requestedView === 'news'
+    ? requestedView
+    : 'all';
+  const resolvedInitialView = initialViewOverride ?? routeInitialView;
+  const [view, setView] = useState<PromotionView>(resolvedInitialView);
   const [content, setContent] = useState<CmsContent | null>(null);
   const [items, setItems] = useState<BrowsePromotion[]>(FALLBACK_ITEMS);
 
-  useEffect(() => { setView(initialView); }, [initialView]);
+  useEffect(() => {
+    setView(initialViewOverride ?? routeInitialView);
+  }, [initialViewOverride, routeInitialView]);
+
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -64,11 +81,19 @@ export function BrowsePromotionsCms() {
     return () => { cancelled = true; };
   }, []);
 
-  const visibleItems = useMemo(() => view === 'all' ? items : items.filter((item) => item.kind === view), [items, view]);
-  const shortcuts = useMemo(() => (['promotion', 'activity', 'news'] as const).map((kind) => items.find((item) => item.kind === kind) ?? FALLBACK_ITEMS.find((item) => item.kind === kind)!), [items]);
+  const visibleItems = useMemo(
+    () => view === 'all' ? items : items.filter((item) => item.kind === view),
+    [items, view],
+  );
+  const shortcuts = useMemo(
+    () => (['promotion', 'activity', 'news'] as const).map((kind) => items.find((item) => item.kind === kind) ?? FALLBACK_ITEMS.find((item) => item.kind === kind)!),
+    [items],
+  );
 
   function selectView(nextView: PromotionView) {
     setView(nextView);
+    onViewChange?.(nextView);
+    if (embedded) return;
     const query = nextView === 'all' ? '' : `?view=${encodeURIComponent(nextView)}`;
     window.history.replaceState(null, '', `/browse/promotions${query}`);
   }
@@ -78,46 +103,65 @@ export function BrowsePromotionsCms() {
     window.location.assign(item.kind === 'promotion' ? item.href || '/promotions' : item.href || '/browse/promotions');
   }
 
-  return <main className="browse-page browse-page--promotions">
-    <SourceHero title="โปรโมชั่นและกิจกรรม" description="รวมสิทธิพิเศษ กิจกรรม และข่าวสารที่อัปเดตจาก Content Center" />
-    <AnnouncementStrip text={content?.announcements.find((item) => item.enabled)?.message || 'ดูรายละเอียดได้โดยไม่ต้องเข้าสู่ระบบ และเข้าสู่ระบบเฉพาะตอนรับสิทธิ์'} />
+  return (
+    <main className={`browse-page browse-page--promotions${embedded ? ' browse-page--embedded' : ''}`}>
+      {!embedded ? (
+        <>
+          <SourceHero title="โปรโมชั่นและกิจกรรม" description="รวมสิทธิพิเศษ กิจกรรม และข่าวสารที่อัปเดตจาก Content Center" />
+          <AnnouncementStrip text={content?.announcements.find((item) => item.enabled)?.message || 'ดูรายละเอียดได้โดยไม่ต้องเข้าสู่ระบบ และเข้าสู่ระบบเฉพาะตอนรับสิทธิ์'} />
 
-    <nav className="browse-source-shortcuts" aria-label="ประเภทเนื้อหา">
-      {shortcuts.map((item) => <button key={item.kind} type="button" className={view === item.kind ? 'is-active' : ''} onClick={() => selectView(item.kind)}>
-        <ResponsiveAsset desktop={item.desktopImage} mobile={item.mobileImage} fallback={item.fallbackImage} alt="" className="browse-source-shortcut-background" />
-        <AssetImage src={promotionIcon(item.kind)} alt="" className="browse-source-shortcut-icon" />
-        <span><strong>{promotionKindLabel(item.kind)}</strong><small>{item.summary}</small></span>
-      </button>)}
-    </nav>
+          <nav className="browse-source-shortcuts" aria-label="ประเภทเนื้อหา">
+            {shortcuts.map((item) => (
+              <button key={item.kind} type="button" className={view === item.kind ? 'is-active' : ''} onClick={() => selectView(item.kind)}>
+                <ResponsiveAsset desktop={item.desktopImage} mobile={item.mobileImage} fallback={item.fallbackImage} alt="" className="browse-source-shortcut-background" />
+                <AssetImage src={promotionIcon(item.kind)} alt="" className="browse-source-shortcut-icon" />
+                <span><strong>{promotionKindLabel(item.kind)}</strong><small>{item.summary}</small></span>
+              </button>
+            ))}
+          </nav>
+        </>
+      ) : null}
 
-    <section className="browse-source-promotion-panel">
-      <header className="browse-source-panel-heading browse-source-panel-heading--promotion">
-        <span><AssetImage src={V47_ASSETS.menuPromotion} alt="" className="browse-source-heading-icon" /><strong>{promotionViewLabel(view)}</strong></span>
-        <div className="browse-source-promotion-tabs">
-          <button type="button" className={view === 'all' ? 'is-active' : ''} onClick={() => selectView('all')}>ทั้งหมด</button>
-          <button type="button" className={view === 'promotion' ? 'is-active' : ''} onClick={() => selectView('promotion')}>โปรโมชั่น</button>
-          <button type="button" className={view === 'activity' ? 'is-active' : ''} onClick={() => selectView('activity')}>กิจกรรม</button>
-          <button type="button" className={view === 'news' ? 'is-active' : ''} onClick={() => selectView('news')}>ข่าวสาร</button>
-        </div>
-      </header>
-
-      {visibleItems.length ? <div className="browse-source-promotion-grid">
-        {visibleItems.map((item) => <article key={`${item.kind}-${item.id}`} className="browse-source-promotion-card">
-          <a href={safeBrowseHref(item)} className="browse-source-promotion-image-link" aria-label={`ดูรายละเอียด ${item.title}`}>
-            <ResponsiveAsset desktop={item.desktopImage} mobile={item.mobileImage} fallback={item.fallbackImage} alt={item.title} className="browse-source-promotion-image" />
-            <span>{item.badge}</span>
-          </a>
-          <div className="browse-source-promotion-copy">
-            <span>{promotionKindLabel(item.kind)}</span>
-            <h2>{item.title}</h2>
-            <p>{item.summary}</p>
-            <dl><div><dt>เงื่อนไข</dt><dd>{item.terms[0]}</dd></div><div><dt>วันหมดอายุ</dt><dd>{item.expiresAt}</dd></div></dl>
-            <footer><a href={safeBrowseHref(item)}>รายละเอียด</a>{item.kind === 'promotion' ? <button type="button" onClick={() => claimPromotion(item)}>{isLoggedIn && ready ? 'ไปหน้ารับสิทธิ์' : 'เข้าสู่ระบบเพื่อรับสิทธิ์'}</button> : <a href={item.href || safeBrowseHref(item)}>อ่านต่อ</a>}</footer>
+      <section className="browse-source-promotion-panel">
+        <header className="browse-source-panel-heading browse-source-panel-heading--promotion">
+          <span><AssetImage src={V47_ASSETS.menuPromotion} alt="" className="browse-source-heading-icon" /><strong>{promotionViewLabel(view)}</strong></span>
+          <div className="browse-source-promotion-tabs">
+            <button type="button" className={view === 'all' ? 'is-active' : ''} onClick={() => selectView('all')}>ทั้งหมด</button>
+            <button type="button" className={view === 'promotion' ? 'is-active' : ''} onClick={() => selectView('promotion')}>โปรโมชั่น</button>
+            <button type="button" className={view === 'activity' ? 'is-active' : ''} onClick={() => selectView('activity')}>กิจกรรม</button>
+            <button type="button" className={view === 'news' ? 'is-active' : ''} onClick={() => selectView('news')}>ข่าวสาร</button>
           </div>
-        </article>)}
-      </div> : <section className="browse-empty"><strong>ยังไม่มีรายการที่เผยแพร่</strong><p>รายการ Draft และ Archived จะไม่แสดงในหน้า Member</p></section>}
-    </section>
-  </main>;
+        </header>
+
+        {visibleItems.length ? (
+          <div className="browse-source-promotion-grid">
+            {visibleItems.map((item) => (
+              <article key={`${item.kind}-${item.id}`} className="browse-source-promotion-card">
+                <a href={safeBrowseHref(item)} className="browse-source-promotion-image-link" aria-label={`ดูรายละเอียด ${item.title}`}>
+                  <ResponsiveAsset desktop={item.desktopImage} mobile={item.mobileImage} fallback={item.fallbackImage} alt={item.title} className="browse-source-promotion-image" />
+                  <span>{item.badge}</span>
+                </a>
+                <div className="browse-source-promotion-copy">
+                  <span>{promotionKindLabel(item.kind)}</span>
+                  <h2>{item.title}</h2>
+                  <p>{item.summary}</p>
+                  <dl><div><dt>เงื่อนไข</dt><dd>{item.terms[0]}</dd></div><div><dt>วันหมดอายุ</dt><dd>{item.expiresAt}</dd></div></dl>
+                  <footer>
+                    <a href={safeBrowseHref(item)}>รายละเอียด</a>
+                    {item.kind === 'promotion'
+                      ? <button type="button" onClick={() => claimPromotion(item)}>{isLoggedIn && ready ? 'ไปหน้ารับสิทธิ์' : 'เข้าสู่ระบบเพื่อรับสิทธิ์'}</button>
+                      : <a href={item.href || safeBrowseHref(item)}>อ่านต่อ</a>}
+                  </footer>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <section className="browse-empty"><strong>ยังไม่มีรายการที่เผยแพร่</strong><p>รายการ Draft และ Archived จะไม่แสดงในหน้า Member</p></section>
+        )}
+      </section>
+    </main>
+  );
 }
 
 function buildItems(content: CmsContent, campaigns: ReturnType<typeof promotionCampaignsSetting>): BrowsePromotion[] {
@@ -150,7 +194,11 @@ function buildItems(content: CmsContent, campaigns: ReturnType<typeof promotionC
     .map((item, index) => {
       const kind: BrowsePromotion['kind'] = item.kind === 'event' ? 'activity' : item.kind === 'news' ? 'news' : 'promotion';
       const media = cmsResponsiveMediaUrls(content, item);
-      const fallback = kind === 'activity' ? V47_ASSETS.promoBackgroundActivity : kind === 'news' ? V47_ASSETS.promoBackgroundNews : V47_ASSETS.promoBackgroundPromotion;
+      const fallback = kind === 'activity'
+        ? V47_ASSETS.promoBackgroundActivity
+        : kind === 'news'
+          ? V47_ASSETS.promoBackgroundNews
+          : V47_ASSETS.promoBackgroundPromotion;
       return {
         id: item.id || `content-${index + 1}`,
         kind,
@@ -185,8 +233,17 @@ function ResponsiveAsset({ desktop, mobile, fallback, alt, className }: { deskto
 function SourceHero({ title, description }: { title: string; description: string }) {
   return <section className="browse-source-hero"><div className="browse-source-hero__copy"><span>NOAH345 PUBLIC LOBBY</span><h1>{title}</h1><p>{description}</p></div><div className="browse-source-jackpot" aria-label="Jackpot"><small>JACKPOTS</small><strong>195,574,797</strong><span>ลุ้นแจ็คพอตได้ทุกวัน</span></div></section>;
 }
-function AnnouncementStrip({ text }: { text: string }) { return <div className="browse-source-announcement"><AssetImage src={V47_ASSETS.announcement} alt="" className="browse-source-announcement-icon" /><div><span>{text}</span><span aria-hidden="true">{text}</span></div></div>; }
-function AssetImage({ src, alt, className }: { src: string; alt: string; className: string }) { const [missing, setMissing] = useState(false); if (missing || !src) return <span className={`${className} browse-missing-asset`}>MISSING ASSET</span>; return <img className={className} src={src} alt={alt} loading="lazy" decoding="async" onError={() => setMissing(true)} />; }
+
+function AnnouncementStrip({ text }: { text: string }) {
+  return <div className="browse-source-announcement"><AssetImage src={V47_ASSETS.announcement} alt="" className="browse-source-announcement-icon" /><div><span>{text}</span><span aria-hidden="true">{text}</span></div></div>;
+}
+
+function AssetImage({ src, alt, className }: { src: string; alt: string; className: string }) {
+  const [missing, setMissing] = useState(false);
+  if (missing || !src) return <span className={`${className} browse-missing-asset`}>MISSING ASSET</span>;
+  return <img className={className} src={src} alt={alt} loading="lazy" decoding="async" onError={() => setMissing(true)} />;
+}
+
 function promotionKindLabel(kind: BrowsePromotion['kind']) { return kind === 'activity' ? 'กิจกรรม' : kind === 'news' ? 'ข่าวสาร' : 'โปรโมชั่น'; }
 function promotionViewLabel(view: PromotionView) { return view === 'activity' ? 'กิจกรรม' : view === 'news' ? 'ข่าวสาร' : view === 'promotion' ? 'โปรโมชั่น' : 'โปรโมชั่น กิจกรรม และข่าวสาร'; }
 function promotionIcon(kind: BrowsePromotion['kind']) { return kind === 'activity' ? V47_ASSETS.menuActivity : kind === 'news' ? V47_ASSETS.menuNews : V47_ASSETS.menuPromotion; }
