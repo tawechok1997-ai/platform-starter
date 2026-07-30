@@ -7,15 +7,23 @@ const authRoot = path.resolve(process.cwd(), 'app/components/auth');
 const authLayout = readFileSync(path.resolve(process.cwd(), 'app/(auth)/layout.tsx'), 'utf8');
 const loginPage = readFileSync(path.resolve(process.cwd(), 'app/(auth)/login/page.tsx'), 'utf8');
 const registerView = readFileSync(path.resolve(process.cwd(), 'src/features/auth/register-view.tsx'), 'utf8');
-const finalCss = readFileSync(path.join(authRoot, 'auth-reference-final.css'), 'utf8');
+const baseCss = readFileSync(path.join(authRoot, 'auth.css'), 'utf8');
+const singleOwnerCss = readFileSync(path.join(authRoot, 'auth-popup-single-owner.css'), 'utf8');
 
-test('loads the NOAH345 Auth popup layer after the shared Auth contract', () => {
-  const sharedIndex = authLayout.indexOf("import '../components/auth/auth.css';");
-  const finalIndex = authLayout.indexOf("import '../components/auth/auth-reference-final.css';");
+test('loads the shared Auth contract before source and single-owner layers', () => {
+  const imports = [
+    "import '../components/auth/auth.css';",
+    "import '../components/auth/auth-source-login.css';",
+    "import '../components/auth/auth-source-register.css';",
+    "import '../components/auth/auth-embedded-overlay.css';",
+    "import '../components/auth/auth-popup-single-owner.css';",
+  ];
+  const indexes = imports.map((value) => authLayout.indexOf(value));
 
-  assert.notEqual(sharedIndex, -1);
-  assert.notEqual(finalIndex, -1);
-  assert.equal(finalIndex > sharedIndex, true);
+  for (const index of indexes) assert.notEqual(index, -1);
+  for (let index = 1; index < indexes.length; index += 1) {
+    assert.equal(indexes[index] > indexes[index - 1], true);
+  }
 });
 
 test('renders Login and Register as accessible modal dialogs with shared tabs', () => {
@@ -28,18 +36,18 @@ test('renders Login and Register as accessible modal dialogs with shared tabs', 
   }
 });
 
-test('uses the supplied popup palette and geometry on desktop and mobile', () => {
-  assert.equal(finalCss.includes('--auth-popup-bg: #1d1729'), true);
-  assert.equal(finalCss.includes('--auth-popup-pink: #d81bbf'), true);
-  assert.equal(finalCss.includes('--auth-popup-violet: #8b36ff'), true);
-  assert.equal(finalCss.includes('position: fixed'), true);
-  assert.equal(finalCss.includes('place-items: center'), true);
-  assert.equal(finalCss.includes('grid-template-columns: repeat(2, minmax(0, 1fr))'), true);
-  assert.equal(finalCss.includes('@media (max-width: 720px)'), true);
+test('keeps one responsive visual owner for embedded Login and Register', () => {
+  assert.equal(singleOwnerCss.includes(".public-auth-page[data-embedded='true']"), true);
+  assert.equal(singleOwnerCss.includes('.source-login-modal[data-auth-mode]'), true);
+  assert.equal(singleOwnerCss.includes('width: min(1080px, calc(100vw - 32px))'), true);
+  assert.equal(singleOwnerCss.includes('flex: 0 0 470px'), true);
+  assert.equal(singleOwnerCss.includes("content: url('/assets/asset-pc/images/wallpaper_login.webp')"), true);
+  assert.equal(singleOwnerCss.includes('@media (max-width: 900px)'), true);
 });
 
-test('keeps the Auth runtime intact and preserves accessibility focus', () => {
-  assert.equal(finalCss.includes('memberApiFetch'), false);
-  assert.equal(finalCss.includes('focus-visible'), true);
-  assert.equal(finalCss.includes('prefers-reduced-motion'), true);
+test('keeps Auth runtime separate from styling and preserves keyboard focus', () => {
+  assert.equal(baseCss.includes('memberApiFetch'), false);
+  assert.equal(singleOwnerCss.includes('memberApiFetch'), false);
+  assert.equal(baseCss.includes('focus-visible'), true);
+  assert.equal(baseCss.includes('--auth-focus'), true);
 });
