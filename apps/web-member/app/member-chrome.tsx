@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ReactNode, useCallback, useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { MemberFeatureFlags } from './site-settings';
 import { disabledMemberRoute, isPublicMemberRoute, routeRuleFor } from './member-routes';
 import MemberFooter from './member-footer';
@@ -26,7 +26,7 @@ const PUBLIC_HOME_NAV = [
   { key: 'sport', href: '/browse/games?category=sport', icon: V47_ASSETS.menuSport },
   { key: 'card', href: '/browse/games?category=card', icon: V47_ASSETS.menuCard },
   { key: 'lottery', href: '/browse/games?category=lottery', icon: V47_ASSETS.menuLottery },
-  { key: 'live', href: '/#live', icon: V47_ASSETS.menuLive },
+  { key: 'live', href: '/?category=live#live', icon: V47_ASSETS.menuLive },
 ] as const;
 
 type PublicNavKey = (typeof PUBLIC_HOME_NAV)[number]['key'];
@@ -51,7 +51,7 @@ const PUBLIC_COPY: Record<MemberLocale, {
     register: 'สมัครสมาชิก',
     navigation: 'เมนูหลัก',
     loading: 'กำลังโหลด...',
-    nav: { home: 'หน้าหลัก', casino: 'คาสิโน', slot: 'สล็อต', fishing: 'ยิงปลา', sport: 'กีฬา', card: 'ไพ่', lottery: 'หวย', live: 'ถ่ายทอดสด' },
+    nav: { home: 'หน้าหลัก', casino: 'คาสิโน', slot: 'สล็อต', fishing: 'ตกปลา', sport: 'กีฬา', card: 'ไพ่', lottery: 'หวย', live: 'ถ่ายทอดสด' },
   },
   en: {
     changeLanguage: 'Switch to Thai',
@@ -70,16 +70,22 @@ const STANDALONE_PUBLIC_PREFIXES = ['/clone-preview', '/login', '/register', '/m
 
 export default function MemberChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/';
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const [authMode, setAuthMode] = useState<MemberAuthMode | null>(null);
+  const [authModeOverride, setAuthModeOverride] = useState<MemberAuthMode | null>(null);
   const [missionOpen, setMissionOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState('');
   const { locale, toggleLocale } = useMemberLocale();
   const copy = PUBLIC_COPY[locale];
   const { typedSettings } = useSiteSettings();
   const { ready, isLoggedIn, wallet, walletLoading, verify, logout } = useMemberSession();
   const { website, branding, features: typedFeatures } = typedSettings;
   const { pendingCount } = usePendingCount(isLoggedIn);
+  const requestedAuthMode = searchParams.get('auth');
+  const queryAuthMode: MemberAuthMode | null = requestedAuthMode === 'login' || requestedAuthMode === 'register'
+    ? requestedAuthMode
+    : null;
+  const authMode = authModeOverride ?? queryAuthMode;
+  const activeCategory = searchParams.get('category')?.trim().toLowerCase() ?? '';
 
   const features: MemberFeatureFlags = {
     registration: typedFeatures.registration_enabled,
@@ -108,44 +114,34 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const compactWalletBalance = formatMemberWalletBalance(wallet).replace(/^[A-Z]{3}\s+/, '');
 
   const closeAuth = useCallback(() => {
-    setAuthMode(null);
+    setAuthModeOverride(null);
     const url = new URL(window.location.href);
     if (!url.searchParams.has('auth') && !url.searchParams.has('next')) return;
     url.searchParams.delete('auth');
     url.searchParams.delete('next');
-    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
-  }, []);
+    router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
+  }, [router]);
 
   const completeAuth = useCallback(async () => {
     const next = new URLSearchParams(window.location.search).get('next');
     const authenticated = await verify();
     if (!authenticated) return;
 
-    setAuthMode(null);
+    setAuthModeOverride(null);
+    if (next && next.startsWith('/') && !next.startsWith('//')) {
+      router.replace(next);
+      return;
+    }
+
     const url = new URL(window.location.href);
     url.searchParams.delete('auth');
     url.searchParams.delete('next');
-    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
-
-    if (next && next.startsWith('/') && !next.startsWith('//')) router.push(next);
+    router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
   }, [router, verify]);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--color-brand', branding.primary_color);
   }, [branding.primary_color]);
-
-  useEffect(() => {
-    const syncLocation = () => {
-      const url = new URL(window.location.href);
-      setActiveCategory(url.searchParams.get('category')?.trim().toLowerCase() ?? '');
-      const requestedMode = url.searchParams.get('auth');
-      if (requestedMode === 'login' || requestedMode === 'register') setAuthMode(requestedMode);
-    };
-
-    syncLocation();
-    window.addEventListener('popstate', syncLocation);
-    return () => window.removeEventListener('popstate', syncLocation);
-  }, [pathname]);
 
   useEffect(() => {
     if (!ready) return;
@@ -189,10 +185,9 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
         activeCategory={activeCategory}
         logout={logout}
         onToggleLocale={toggleLocale}
-        onOpenLogin={() => setAuthMode('login')}
-        onOpenRegister={() => setAuthMode('register')}
+        onOpenLogin={() => setAuthModeOverride('login')}
+        onOpenRegister={() => setAuthModeOverride('register')}
         onOpenMission={() => setMissionOpen(true)}
-        onSelectCategory={setActiveCategory}
       />
 
       <div className="public-game-shell member-persistent-shell" data-route={pathname}>
@@ -225,7 +220,6 @@ function PublicHomeHeader({
   onOpenLogin,
   onOpenRegister,
   onOpenMission,
-  onSelectCategory,
 }: {
   logoUrl: string;
   brandMark: string;
@@ -244,7 +238,6 @@ function PublicHomeHeader({
   onOpenLogin: () => void;
   onOpenRegister: () => void;
   onOpenMission: () => void;
-  onSelectCategory: (category: string) => void;
 }) {
   const copy = PUBLIC_COPY[locale];
   const flagUrl = locale === 'th' ? V47_ASSETS.headerFlag : '/assets/asset-pc/images/flags/en.svg';
@@ -252,7 +245,7 @@ function PublicHomeHeader({
   return (
     <header className="member-topbar global-member-topbar public-home-topbar" data-locale={locale}>
       <div className="member-topbar__inner public-home-desktop-bar">
-        <Link href="/" className="member-brand" onClick={() => onSelectCategory('')}>
+        <Link href="/" className="member-brand">
           <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="NOAH345" className="member-brand-logo" /> : brandMark}</span>
         </Link>
         <button type="button" className="public-home-flag" aria-label={copy.changeLanguage} title={copy.changeLanguage} onClick={onToggleLocale}>
@@ -298,7 +291,7 @@ function PublicHomeHeader({
 
       <nav className="member-desktop-nav member-desktop-nav--guest" aria-label={copy.navigation}>
         {PUBLIC_HOME_NAV.map((item) => {
-          const category = item.key === 'home' || item.key === 'live' ? '' : item.key;
+          const category = item.key === 'home' ? '' : item.key;
           const active = item.key === 'home'
             ? pathname === '/' && !activeCategory
             : item.key === 'live'
@@ -310,7 +303,6 @@ function PublicHomeHeader({
               href={item.href}
               className={active ? 'active' : ''}
               aria-current={active ? 'page' : undefined}
-              onClick={() => onSelectCategory(item.key === 'live' ? 'live' : category)}
             >
               <span className="public-home-nav-icon-frame"><img src={item.icon} alt="" className="public-home-nav-icon" aria-hidden="true" /></span>
               <span>{copy.nav[item.key]}</span>
