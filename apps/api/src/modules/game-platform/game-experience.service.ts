@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import type { GameProviderStatus, GameStatus } from './game-platform.types';
 import type { ProviderAdapterResult, ProviderGamePayload } from './provider-adapter.interface';
 
-type MetadataValue = Prisma.JsonValue | null | undefined;
+type MetadataValue = Prisma.JsonValue | Prisma.InputJsonValue | null | undefined;
 type ProviderHealthPayload = { status: 'ONLINE' | 'OFFLINE' | 'DEGRADED'; latencyMs?: number };
 
 type ProviderAvailabilityInput = {
