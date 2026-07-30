@@ -102,3 +102,206 @@ html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .member-d
   min-height: var(--member-desktop-viewport-height, 100dvh) !important;
   max-height: var(--member-desktop-viewport-height, 100dvh) !important;
 }
+
+/* The mission dialog is portaled outside the scaled desktop canvas. Keep its
+ * visual footprint proportional to the source rather than filling the entire
+ * physical viewport on narrower desktop windows. */
+@media (min-width: 1021px) {
+  section[role='dialog'][aria-labelledby='daily-mission-title'] {
+    width: min(1080px, calc(100vw - 56px)) !important;
+    height: min(680px, calc(100dvh - 40px)) !important;
+    min-height: min(560px, calc(100dvh - 40px)) !important;
+    padding: 18px 18px 20px !important;
+    gap: 16px !important;
+    border-radius: 10px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header {
+    flex-basis: 48px !important;
+    min-height: 48px !important;
+    gap: 18px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header > div:first-child {
+    gap: 13px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header > div:first-child > span {
+    flex-basis: 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header > div:first-child > span svg {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  #daily-mission-title {
+    font-size: 22px !important;
+    line-height: 28px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header [aria-label='ยอดรางวัล'] {
+    gap: 5px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header [aria-label='ยอดรางวัล'] > div {
+    min-width: 94px !important;
+    height: 31px !important;
+    padding-right: 7px !important;
+    gap: 6px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header [aria-label='ยอดรางวัล'] > div > img {
+    flex-basis: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header [aria-label='ยอดรางวัล'] strong {
+    font-size: 14px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header [aria-label='ยอดรางวัล'] span {
+    font-size: 11px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header + div {
+    grid-template-columns: minmax(390px, .88fr) minmax(0, 1.12fr) !important;
+    gap: 22px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] section[aria-label='ล็อคอินรายวัน'] {
+    padding: 0 14px 4px 4px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] section[aria-label='รายการภารกิจ'] {
+    padding: 0 0 0 14px !important;
+    border-left: 1px solid rgb(202 128 238 / 22%);
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='dailyHeader'] {
+    grid-template-columns: 64px minmax(0, 1fr) auto !important;
+    gap: 14px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='calendarIcon'] {
+    width: 64px !important;
+    height: 64px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='dailyTitle'] {
+    margin-top: -8px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='dailyTitle'] strong {
+    font-size: 16px !important;
+    line-height: 22px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='monthCount'] strong {
+    font-size: 34px !important;
+    line-height: 38px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='monthCount'] span {
+    margin-left: 6px !important;
+    font-size: 16px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='prizeStage'] {
+    flex-basis: 278px !important;
+    width: 268px !important;
+    height: 278px !important;
+    margin-top: -8px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='noReward'] {
+    width: 158px !important;
+    height: 158px !important;
+    margin-top: 28px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='claimed'] {
+    width: 148px !important;
+    height: 46px !important;
+    font-size: 18px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='monthProgress'] {
+    margin: 5px 0 16px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='rewardStrip'] {
+    min-height: 103px !important;
+    gap: 7px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='rewardCard'] {
+    flex-basis: 66px !important;
+    width: 66px !important;
+    gap: 6px !important;
+    font-size: 13px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='rewardTile'] {
+    width: 66px !important;
+    height: 76px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='rewardTile'] img {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] section[aria-label='รายการภารกิจ'] h3 {
+    font-size: 22px !important;
+    line-height: 28px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='tabs'] {
+    flex-basis: 38px !important;
+    height: 38px !important;
+    padding: 6px 0 3px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='missionProgress'] {
+    flex-basis: 24px !important;
+    margin-top: 6px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='missionList'] {
+    margin-top: 14px !important;
+    gap: 8px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='missionCard'] {
+    grid-template-columns: minmax(0, 1fr) 150px !important;
+    padding: 12px 14px !important;
+    gap: 10px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='missionCopy'] h4 {
+    font-size: 15px !important;
+    line-height: 21px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='missionCopy'] p {
+    font-size: 13px !important;
+    line-height: 18px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='cardProgress'] {
+    margin-top: 5px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='rewardStatus'] {
+    width: 150px !important;
+    height: 44px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='rewardStatus'] > strong {
+    font-size: 15px !important;
+  }
+}
