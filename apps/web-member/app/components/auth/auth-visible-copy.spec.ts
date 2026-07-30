@@ -6,13 +6,17 @@ const loginSource = readFileSync(new URL('../../(auth)/login/page.tsx', import.m
 const registerPageSource = readFileSync(new URL('../../(auth)/register/page.tsx', import.meta.url), 'utf8');
 const registerViewSource = readFileSync(new URL('../../../src/features/auth/register-view.tsx', import.meta.url), 'utf8');
 
-test('login heading, tabs, recovery and support copy use the active locale', () => {
+test('login heading, tabs, inline recovery and support copy use the active locale', () => {
   assert.match(loginSource, /title:\s*'เข้าสู่ระบบ'/);
   assert.match(loginSource, /title:\s*'Sign in'/);
+  assert.match(loginSource, /forgotTitle:\s*'ลืมรหัสผ่าน'/);
+  assert.match(loginSource, /forgotTitle:\s*'Forgot password'/);
   assert.match(loginSource, /<Link href=\{registerHref\}>\{t\.register\}<\/Link>/);
   assert.match(loginSource, /<Link href=\{loginHref\} aria-current="page">\{t\.title\}<\/Link>/);
-  assert.match(loginSource, /<h1 id="member-login-title">\{t\.title\}<\/h1>/);
-  assert.match(loginSource, /<Link href="\/forgot-password" className="public-auth-forgot">\{t\.forgot\}<\/Link>/);
+  assert.match(loginSource, /const heading = mode === 'login' \? t\.title : t\.forgotTitle/);
+  assert.match(loginSource, /<h1 id="member-login-title">\{heading\}<\/h1>/);
+  assert.match(loginSource, /className="public-auth-forgot"/);
+  assert.match(loginSource, /switchMode\('forgot'\)/);
   assert.match(loginSource, /<div className="source-login-support"><span>\{t\.supportPrompt\}<\/span><Link href="\/support">\{t\.support\}<\/Link><\/div>/);
   assert.doesNotMatch(loginSource, /<span>Secure connection<\/span>/);
 });
