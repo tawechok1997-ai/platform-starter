@@ -75,6 +75,21 @@ export default tseslint.config(
     },
   },
   {
+    // The search field appears only after an explicit member action and intentionally
+    // receives focus so keyboard users can type immediately.
+    files: ['apps/web-member/app/components/member-menu-income-runtime.tsx'],
+    rules: {
+      'jsx-a11y/no-autofocus': 'off',
+    },
+  },
+  {
+    // This source-matched menu animation is muted, decorative video with no spoken content.
+    files: ['apps/web-member/app/components/member-menu-secondary-runtime.tsx'],
+    rules: {
+      'jsx-a11y/media-has-caption': 'off',
+    },
+  },
+  {
     files: ['**/support/support-command.service.ts', '**/common/security/input-normalization.ts'],
     rules: {
       'no-control-regex': 'off',
