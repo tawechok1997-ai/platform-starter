@@ -21,19 +21,21 @@ type HeaderDepositViewProps = DepositViewProps & {
 };
 
 type MethodOption = {
-  code: DepositMethodCode | 'counter' | 'crypto';
+  code: DepositMethodCode | 'crypto';
   labelTh: string;
   labelEn: string;
   icon: 'bank' | 'qr' | 'counter' | 'wallet' | 'crypto';
   serviceOnly?: boolean;
 };
 
+type MobileStage = 'method' | 'amount';
+
 const QUICK_AMOUNTS = [100, 300, 500, 1000, 5000, 10000];
 const METHOD_OPTIONS: MethodOption[] = [
   { code: 'bank_transfer', labelTh: 'โอนเงินผ่านธนาคาร', labelEn: 'Bank transfer', icon: 'bank' },
   { code: 'promptpay', labelTh: 'QR Payment', labelEn: 'QR Payment', icon: 'qr' },
-  { code: 'counter', labelTh: 'ฝากจุดเคาน์เตอร์', labelEn: 'Counter deposit', icon: 'counter', serviceOnly: true },
-  { code: 'wallet', labelTh: 'ทรู มันนี่ วอลเล็ท', labelEn: 'TrueMoney Wallet', icon: 'wallet', serviceOnly: true },
+  { code: 'other', labelTh: 'ฝากจุดเคาน์เตอร์', labelEn: 'Counter deposit', icon: 'counter' },
+  { code: 'wallet', labelTh: 'ทรู มันนี่ วอลเล็ท', labelEn: 'TrueMoney Wallet', icon: 'wallet' },
   { code: 'crypto', labelTh: 'ฝากคริปโต', labelEn: 'Crypto deposit', icon: 'crypto', serviceOnly: true },
 ];
 
@@ -109,6 +111,7 @@ const COPY = {
 export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
   const copy = COPY[props.locale];
   const [methodsExpanded, setMethodsExpanded] = useState(false);
+  const [mobileStage, setMobileStage] = useState<MobileStage>('method');
   const limits = useMemo(
     () => resolveLimits(props.accounts, props.method),
     [props.accounts, props.method],
@@ -122,7 +125,7 @@ export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
 
       {props.step === 'select' ? (
         <form className="member-header-deposit-select" onSubmit={props.onNextStep}>
-          <div className="member-header-deposit-columns">
+          <div className="member-header-deposit-columns" data-mobile-stage={mobileStage}>
             <section className="member-header-deposit-method-panel">
               <button type="button" className="member-header-deposit-promotion">
                 <span className="member-header-deposit-promotion-icon" aria-hidden="true"><PromotionIcon /></span>
@@ -167,7 +170,7 @@ export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
                         <MethodIcon type={option.icon} />
                       </span>
                       <strong>{label}</strong>
-                      {option.serviceOnly ? (
+                      {disabled ? (
                         <em>{copy.serviceRequest}</em>
                       ) : (
                         <span className={`member-header-deposit-radio${isSelected ? ' is-selected' : ''}`} aria-hidden="true" />
@@ -212,7 +215,7 @@ export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
                 <div className="member-header-deposit-inline-empty">{copy.noMethod}</div>
               ) : null}
 
-              <footer className="member-header-deposit-actions">
+              <footer className="member-header-deposit-actions member-header-deposit-desktop-actions">
                 <button type="button" onClick={props.onCancel}>{copy.cancel}</button>
                 <button type="submit" className="is-primary" disabled={!canContinue}>
                   {props.loading ? '…' : copy.confirm}
@@ -220,6 +223,29 @@ export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
               </footer>
             </section>
           </div>
+
+          <footer className="member-header-deposit-actions member-header-deposit-mobile-actions">
+            {mobileStage === 'method' ? (
+              <>
+                <button type="button" onClick={props.onCancel}>{copy.cancel}</button>
+                <button
+                  type="button"
+                  className="is-primary"
+                  disabled={!methodAvailable}
+                  onClick={() => setMobileStage('amount')}
+                >
+                  {copy.confirm}
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => setMobileStage('method')}>{copy.back}</button>
+                <button type="submit" className="is-primary" disabled={!canContinue}>
+                  {props.loading ? '…' : copy.confirm}
+                </button>
+              </>
+            )}
+          </footer>
           <SupportFooter locale={props.locale} />
         </form>
       ) : null}
