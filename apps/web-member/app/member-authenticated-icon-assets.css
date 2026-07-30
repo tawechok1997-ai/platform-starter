@@ -1,21 +1,14 @@
-/* Exact authenticated header artwork supplied for the desktop member header. */
+/* One icon owner for the authenticated desktop header.
+ * React renders the artwork; legacy pseudo-elements must stay disabled.
+ */
 @media (min-width: 901px) {
-  .public-member-icon-button > svg,
-  .public-member-wallet-action > svg {
-    display: none !important;
-  }
-
   .public-member-icon-button::before,
   .public-member-wallet-action::before {
-    display: block;
-    flex: 0 0 auto;
-    content: '';
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
+    display: none !important;
+    content: none !important;
+    background-image: none !important;
   }
 
-  /* Source: 32px canvas inside scale-150, so the visible bell is 48px. */
   .public-member-icon-button {
     width: 48px !important;
     min-width: 48px !important;
@@ -23,37 +16,49 @@
     overflow: visible !important;
   }
 
-  .public-member-icon-button::before {
-    width: 48px;
-    height: 48px;
-    background-image: url('/images/กระดิ่ง.png');
+  .public-member-header-bell {
+    display: block !important;
+    width: 48px !important;
+    height: 48px !important;
+    flex: 0 0 48px !important;
+    object-fit: contain;
+    pointer-events: none;
   }
 
-  /* Source wallet artwork uses w-10 h-10. */
   .public-member-wallet-balance img {
+    display: block !important;
     width: 40px !important;
     height: 40px !important;
+    object-fit: contain;
+    pointer-events: none;
   }
 
-  /* Source deposit and withdrawal canvases render at 32px. */
-  .public-member-wallet-action[href='/deposit']::before,
-  .public-member-wallet-action[href='/withdraw']::before {
-    width: 32px;
-    height: 32px;
-  }
-
-  .public-member-wallet-action[href='/deposit']::before {
-    background-image: url('/images/ฝาก.png');
-  }
-
-  .public-member-wallet-action[href='/withdraw']::before {
-    background-image: url('/images/ถอน.png');
-  }
-
-  /* Header and profile-panel avatar sizes from the source layout. */
-  .public-member-profile-trigger > img {
+  .public-member-wallet-action .public-member-header-wallet-action {
+    display: block !important;
     width: 32px !important;
     height: 32px !important;
+    flex: 0 0 32px !important;
+    object-fit: contain;
+    pointer-events: none;
+  }
+
+  .public-member-profile-trigger {
+    position: relative;
+    z-index: 1;
+    pointer-events: auto !important;
+    cursor: pointer;
+  }
+
+  .public-member-profile-trigger > img {
+    display: block !important;
+    width: 32px !important;
+    height: 32px !important;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  .public-member-profile-trigger > svg {
+    pointer-events: none;
   }
 
   .public-member-profile-head img {
