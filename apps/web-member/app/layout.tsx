@@ -95,6 +95,7 @@ import './member-v47-tournament-exact-source.css';
 import './member-source-feed-sections.css';
 import './member-public-header-single-owner.css';
 import './member-public-header-runtime-fix.css';
+import './member-mobile-source-header.css';
 import './member-public-game-shell.css';
 import './member-public-lower-shell.css';
 import './member-footer-secondary-border-fix.css';
@@ -122,6 +123,7 @@ import PublicDialogRuntimeController from './components/public-dialog-runtime-co
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
 import PublicGameLoginController from './components/member-home/public-home-game-navigation-controller';
 import PublicDesktopViewportBootstrap from './components/public-desktop-viewport-bootstrap';
+import PublicMobileSourceHeader from './components/public-mobile-source-header';
 import SiteFaviconRuntime from './components/site-favicon-runtime';
 import UsageGuideController from './components/member-home/usage-guide-controller';
 import { MemberLocaleProvider } from './member-locale-provider';
@@ -200,6 +202,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <PublicDialogRuntimeController />
               <PublicGameLoginController />
               <UsageGuideController />
+              <PublicMobileSourceHeader />
               <div id="member-desktop-scale-shell">
                 <div id="member-desktop-scale-canvas">
                   <Suspense fallback={<main className="member-loading-screen" aria-hidden="true" />}>
