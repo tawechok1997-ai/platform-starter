@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MemberButton, MemberCard, MemberEmptyState, MemberLinkButton, MemberNotice } from '../components/member-ui';
 import { memberApiFetch } from '../member-api';
 import type { WalletResponse } from '../types/member-finance';
@@ -20,36 +20,66 @@ type MemberProfile = {
   wallet?: WalletResponse | null;
 };
 
+const PROFILE_REQUEST_TIMEOUT_MS = 12_000;
+
 export default function ProfilePage() {
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [wallet, setWallet] = useState<WalletResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const requestRef = useRef<AbortController | null>(null);
 
-  useEffect(() => { void loadProfile(); }, []);
+  const loadProfile = useCallback(async () => {
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
+    let timedOut = false;
+    const timeout = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, PROFILE_REQUEST_TIMEOUT_MS);
 
-  async function loadProfile() {
     setLoading(true);
     setMessage('');
+
     try {
       const [profileResponse, walletResponse] = await Promise.all([
-        memberApiFetch('/member/auth/profile'),
-        memberApiFetch('/member/wallet'),
+        memberApiFetch('/member/auth/profile', { signal: controller.signal }),
+        memberApiFetch('/member/wallet', { signal: controller.signal }),
       ]);
       const profilePayload = await profileResponse.json().catch(() => null);
       const walletPayload = await walletResponse.json().catch(() => null);
+      if (controller.signal.aborted || requestRef.current !== controller) return;
+
       if (!profileResponse.ok || !walletResponse.ok) {
         setMessage(profilePayload?.message ?? walletPayload?.message ?? 'โหลดข้อมูลสมาชิกไม่สำเร็จ');
         return;
       }
+
       setProfile(profilePayload as MemberProfile);
       setWallet((profilePayload?.wallet ?? walletPayload) as WalletResponse);
-    } catch {
-      setMessage('เชื่อมต่อระบบสมาชิกไม่สำเร็จ กรุณาลองใหม่');
+    } catch (caught) {
+      if (requestRef.current !== controller) return;
+      if (controller.signal.aborted) {
+        if (timedOut) setMessage('ระบบสมาชิกตอบสนองช้าเกิน 12 วินาที กรุณาลองใหม่');
+        return;
+      }
+      setMessage(caught instanceof Error && caught.message
+        ? caught.message
+        : 'เชื่อมต่อระบบสมาชิกไม่สำเร็จ กรุณาลองใหม่');
     } finally {
-      setLoading(false);
+      window.clearTimeout(timeout);
+      if (requestRef.current === controller) {
+        requestRef.current = null;
+        setLoading(false);
+      }
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    void loadProfile();
+    return () => requestRef.current?.abort();
+  }, [loadProfile]);
 
   const profileRows = useMemo(() => [
     ['ชื่อที่แสดง', profile?.displayName ?? profile?.username ?? '-'],
