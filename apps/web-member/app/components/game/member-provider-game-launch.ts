@@ -10,6 +10,14 @@ export type MemberGameLaunchCandidate = {
   category?: string | null;
 };
 
+type NormalizedMemberGameLaunchCandidate = {
+  id: string;
+  providerGameCode: string;
+  name: string;
+  providerCode: string;
+  category: string;
+};
+
 type MemberGameRecord = {
   id: string;
   providerGameCode: string;
@@ -77,7 +85,7 @@ async function requestLaunch(gameId: string): Promise<LaunchAttempt> {
   };
 }
 
-async function resolveMemberGameId(candidate: Required<MemberGameLaunchCandidate>): Promise<string | null> {
+async function resolveMemberGameId(candidate: NormalizedMemberGameLaunchCandidate): Promise<string | null> {
   const key = [candidate.providerCode, candidate.providerGameCode, candidate.id, candidate.name, candidate.category]
     .map(compactText)
     .join('|');
@@ -89,7 +97,7 @@ async function resolveMemberGameId(candidate: Required<MemberGameLaunchCandidate
   return request;
 }
 
-async function findMemberGameId(candidate: Required<MemberGameLaunchCandidate>): Promise<string | null> {
+async function findMemberGameId(candidate: NormalizedMemberGameLaunchCandidate): Promise<string | null> {
   const queries = uniqueText([candidate.providerGameCode, stripCatalogPrefix(candidate.id), candidate.name]);
   const discovered = new Map<string, MemberGameRecord>();
 
@@ -144,7 +152,7 @@ function readMemberGames(payload: unknown): MemberGameRecord[] {
     .filter((value): value is MemberGameRecord => value !== null);
 }
 
-function scoreGame(game: MemberGameRecord, candidate: Required<MemberGameLaunchCandidate>) {
+function scoreGame(game: MemberGameRecord, candidate: NormalizedMemberGameLaunchCandidate) {
   const gameId = compactText(game.id);
   const gameCode = compactText(game.providerGameCode);
   const gameName = compactText(game.name);
@@ -165,7 +173,7 @@ function scoreGame(game: MemberGameRecord, candidate: Required<MemberGameLaunchC
   return score;
 }
 
-function normalizeCandidate(candidate: MemberGameLaunchCandidate): Required<MemberGameLaunchCandidate> {
+function normalizeCandidate(candidate: MemberGameLaunchCandidate): NormalizedMemberGameLaunchCandidate {
   return {
     id: firstText(candidate.id),
     providerGameCode: firstText(candidate.providerGameCode),
