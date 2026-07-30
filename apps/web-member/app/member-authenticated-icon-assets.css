@@ -1,0 +1,35 @@
+/* Exact authenticated header artwork supplied for the desktop member header. */
+@media (min-width: 901px) {
+  .public-member-icon-button > svg,
+  .public-member-wallet-action > svg {
+    display: none !important;
+  }
+
+  .public-member-icon-button::before,
+  .public-member-wallet-action::before {
+    display: block;
+    flex: 0 0 auto;
+    content: '';
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+
+  .public-member-icon-button::before {
+    width: 30px;
+    height: 30px;
+    background-image: url('/images/กระดิ่ง.png');
+  }
+
+  .public-member-wallet-action[href='/deposit']::before {
+    width: 24px;
+    height: 24px;
+    background-image: url('/images/ฝาก.png');
+  }
+
+  .public-member-wallet-action[href='/withdraw']::before {
+    width: 24px;
+    height: 24px;
+    background-image: url('/images/ถอน.png');
+  }
+}
