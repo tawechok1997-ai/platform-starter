@@ -133,7 +133,10 @@ export default function MemberBankAccountPopup({ open, locale, accounts, onClose
       setAccountName('');
       setAccountNumber('');
     }
+  }, [hasAccounts, open]);
 
+  useEffect(() => {
+    if (!open) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || busy) return;
       event.preventDefault();
@@ -141,7 +144,7 @@ export default function MemberBankAccountPopup({ open, locale, accounts, onClose
     };
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [busy, hasAccounts, onClose, open]);
+  }, [busy, onClose, open]);
 
   if (!open) return null;
 
