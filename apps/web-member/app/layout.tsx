@@ -111,6 +111,7 @@ import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import MemberImageFallbackController from './components/member-image-fallback-controller';
+import MemberRenderStabilityController from './components/member-render-stability-controller';
 import PublicNavigationLocaleGuard from './components/public-navigation-locale-guard';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
@@ -121,6 +122,43 @@ import UsageGuideController from './components/member-home/usage-guide-controlle
 import { MemberLocaleProvider } from './member-locale-provider';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
+import { loadPublicSiteSettings } from './site-settings';
+
+const MEMBER_PREHYDRATION_SCRIPT = `(() => {
+  const root = document.documentElement;
+  let hasSession = false;
+  try {
+    hasSession = Boolean(
+      window.localStorage.getItem('member_access_token')
+      || window.localStorage.getItem('member_refresh_token')
+    );
+  } catch {}
+
+  root.dataset.memberSessionHint = hasSession ? 'token' : 'guest';
+  root.dataset.memberSessionReady = 'false';
+
+  const width = Math.max(1, root.clientWidth || window.innerWidth || 1);
+  const desktopPointer = window.matchMedia('(any-hover: hover), (any-pointer: fine)').matches;
+  const coarsePrimary = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  const mobileOnly = coarsePrimary && !desktopPointer;
+
+  if (mobileOnly) {
+    root.dataset.memberViewportMode = 'mobile';
+    root.dataset.memberViewportReady = 'true';
+    root.dataset.memberDesktopScaled = 'false';
+    return;
+  }
+
+  root.dataset.memberViewportMode = 'desktop';
+  if (width < 1455) {
+    root.dataset.memberViewportReady = 'false';
+    root.dataset.memberDesktopScaled = 'true';
+    root.style.setProperty('--member-desktop-pre-scale', String(width / 1455));
+  } else {
+    root.dataset.memberViewportReady = 'true';
+    root.dataset.memberDesktopScaled = 'false';
+  }
+})();`;
 
 export const metadata: Metadata = {
   title: {
@@ -135,14 +173,20 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const initialSettings = await loadPublicSiteSettings();
+
   return (
-    <html lang="th">
+    <html lang="th" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: MEMBER_PREHYDRATION_SCRIPT }} />
+      </head>
       <body>
         <MemberLocaleProvider>
-          <SiteSettingsProvider>
+          <SiteSettingsProvider initialSettings={initialSettings}>
             <MemberSessionProvider>
               <PublicDesktopViewportBootstrap />
+              <MemberRenderStabilityController />
               <PublicNavigationLocaleGuard />
               <MemberImageFallbackController />
               <MemberHeroSwipeController />

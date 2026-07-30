@@ -1,13 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect } from 'react';
 import { useMemberSession } from '../../member-session-provider';
-import { useMemberLocale } from '../../member-locale-provider';
-import { useSiteSettings } from '../../site-settings-provider';
-import { usePendingCount } from '../../hooks/use-pending-count';
-import { formatMemberWalletBalance } from '../../../src/features/wallet/member-wallet';
-import PublicAuthenticatedActions from '../public-authenticated-actions-styled';
 
 const GAME_ACTION_SELECTOR = [
   '[data-public-game-action="login"]',
@@ -73,16 +67,9 @@ const EXCLUDED_SELECTOR = [
 ].join(',');
 
 const MEMBER_GAME_DESTINATION = '/games';
-const PUBLIC_HEADER_ACTION_TARGET = '.public-home-topbar .public-home-desktop-bar > .member-actions';
 
 export default function PublicGameLoginController() {
-  const { isLoggedIn, wallet, walletLoading, logout } = useMemberSession();
-  const { locale, toggleLocale } = useMemberLocale();
-  const { typedSettings } = useSiteSettings();
-  const { pendingCount } = usePendingCount(isLoggedIn);
-  const [headerActionTarget, setHeaderActionTarget] = useState<HTMLElement | null>(null);
-  const formattedWalletBalance = formatMemberWalletBalance(wallet);
-  const compactWalletBalance = formattedWalletBalance.replace(/^[A-Z]{3}\s+/, '');
+  const { isLoggedIn } = useMemberSession();
 
   useEffect(() => {
     const requireLoginForGame = (event: MouseEvent) => {
@@ -121,43 +108,9 @@ export default function PublicGameLoginController() {
       window.location.assign(`/?auth=login&next=${encodeURIComponent(MEMBER_GAME_DESTINATION)}`);
     };
 
-    // Window capture runs before legacy card handlers and links. One owner now
-    // controls every public game-card click without affecting category browsing.
     window.addEventListener('click', requireLoginForGame, true);
     return () => window.removeEventListener('click', requireLoginForGame, true);
   }, [isLoggedIn]);
 
-  useEffect(() => {
-    if (!isLoggedIn) {
-      setHeaderActionTarget(null);
-      return;
-    }
-
-    const syncTarget = () => {
-      const nextTarget = document.querySelector<HTMLElement>(PUBLIC_HEADER_ACTION_TARGET);
-      setHeaderActionTarget((current) => (current === nextTarget ? current : nextTarget));
-    };
-
-    syncTarget();
-    const observer = new MutationObserver(syncTarget);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [isLoggedIn]);
-
-  if (!isLoggedIn || !headerActionTarget) return null;
-
-  return createPortal(
-    <div className="public-authenticated-portal">
-      <PublicAuthenticatedActions
-        locale={locale}
-        siteName={typedSettings.website.site_name}
-        walletLoading={walletLoading}
-        compactWalletBalance={compactWalletBalance}
-        pendingCount={pendingCount}
-        logout={logout}
-        onToggleLocale={toggleLocale}
-      />
-    </div>,
-    headerActionTarget,
-  );
+  return null;
 }
