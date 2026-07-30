@@ -148,9 +148,9 @@ export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
 
               <div className={`member-header-deposit-method-list${methodsExpanded ? ' is-expanded' : ''}`}>
                 {METHOD_OPTIONS.map((option) => {
-                  const isRealMethod = isDepositMethod(option.code);
-                  const isAvailable = isRealMethod && props.availableMethods.includes(option.code);
-                  const isSelected = isRealMethod && props.method === option.code;
+                  const realMethod = isDepositMethod(option.code) ? option.code : null;
+                  const isAvailable = realMethod !== null && props.availableMethods.includes(realMethod);
+                  const isSelected = realMethod !== null && props.method === realMethod;
                   const disabled = option.serviceOnly || !isAvailable;
                   const label = props.locale === 'th' ? option.labelTh : option.labelEn;
 
@@ -161,8 +161,8 @@ export default function MemberHeaderDepositView(props: HeaderDepositViewProps) {
                       className={`member-header-deposit-method-card${isSelected ? ' is-selected' : ''}${disabled ? ' is-disabled' : ''}`}
                       disabled={disabled}
                       onClick={() => {
-                        if (!isRealMethod) return;
-                        props.onMethodChange(option.code);
+                        if (!realMethod) return;
+                        props.onMethodChange(realMethod);
                         setMethodsExpanded(false);
                       }}
                     >
