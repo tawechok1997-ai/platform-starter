@@ -74,6 +74,11 @@ const EXCLUDED_SELECTOR = [
 
 const MEMBER_GAME_DESTINATION = '/games';
 const PUBLIC_HEADER_ACTION_TARGET = '.public-home-topbar .public-home-desktop-bar > .member-actions';
+const LEGACY_AUTHENTICATED_ACTIONS = [
+  ':scope > .member-guest-action',
+  ':scope > .member-header-wallet',
+  ':scope > .member-header-logout',
+].join(',');
 
 export default function PublicGameLoginController() {
   const { isLoggedIn, wallet, walletLoading, logout } = useMemberSession();
@@ -121,8 +126,6 @@ export default function PublicGameLoginController() {
       window.location.assign(`/?auth=login&next=${encodeURIComponent(MEMBER_GAME_DESTINATION)}`);
     };
 
-    // Window capture runs before legacy card handlers and links. One owner now
-    // controls every public game-card click without affecting category browsing.
     window.addEventListener('click', requireLoginForGame, true);
     return () => window.removeEventListener('click', requireLoginForGame, true);
   }, [isLoggedIn]);
@@ -135,6 +138,7 @@ export default function PublicGameLoginController() {
 
     const syncTarget = () => {
       const nextTarget = document.querySelector<HTMLElement>(PUBLIC_HEADER_ACTION_TARGET);
+      if (nextTarget) hideLegacyAuthenticatedActions(nextTarget);
       setHeaderActionTarget((current) => (current === nextTarget ? current : nextTarget));
     };
 
@@ -160,4 +164,14 @@ export default function PublicGameLoginController() {
     </div>,
     headerActionTarget,
   );
+}
+
+function hideLegacyAuthenticatedActions(target: HTMLElement) {
+  target.querySelectorAll<HTMLElement>(LEGACY_AUTHENTICATED_ACTIONS).forEach((element) => {
+    element.hidden = true;
+    element.setAttribute('aria-hidden', 'true');
+    element.style.setProperty('display', 'none', 'important');
+    element.style.setProperty('visibility', 'hidden', 'important');
+    element.style.setProperty('pointer-events', 'none', 'important');
+  });
 }
