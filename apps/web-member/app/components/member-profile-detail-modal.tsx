@@ -24,6 +24,8 @@ type ProfileSummary = {
 type ProfileAction = 'contact' | 'password' | null;
 
 const PROFILE_MODAL_REQUEST_TIMEOUT_MS = 10_000;
+const AVATAR_ASSET_ROOT = '/assets/asset-pc/images/avatar';
+const FALLBACK_AVATAR_URL = `${AVATAR_ASSET_ROOT}/7.webp`;
 
 const COPY = {
   th: {
@@ -127,11 +129,12 @@ export default function MemberProfileDetailModal({
   if (!open || typeof document === 'undefined') return null;
 
   const accountLabel = profile?.phone || profile?.displayName || profile?.username || fallbackLabel;
-  const avatarUrl = `/images/avatar/${selectedAvatar}.webp`;
+  const avatarUrl = avatarAssetUrl(selectedAvatar);
 
   return createPortal(
     <div
       className="member-profile-detail-backdrop"
+      data-member-layer-keeps-profile-open="true"
       role="presentation"
       onPointerDown={(event) => {
         if (action) return;
@@ -199,7 +202,7 @@ export default function MemberProfileDetailModal({
                     aria-label={`${copy.chooseAvatar} ${avatar}`}
                     onClick={() => onSelectAvatar(avatar)}
                   >
-                    <img src={`/images/avatar/${avatar}.webp`} alt="" onError={useAvatarFallback} />
+                    <img src={avatarAssetUrl(avatar)} alt="" onError={useAvatarFallback} />
                     {selected ? <span className="member-profile-detail-selected"><CheckIcon /></span> : null}
                   </button>
                 );
@@ -220,11 +223,16 @@ export default function MemberProfileDetailModal({
   );
 }
 
+function avatarAssetUrl(avatar: number) {
+  const normalized = Number.isInteger(avatar) && avatar >= 1 && avatar <= 15 ? avatar : 7;
+  return `${AVATAR_ASSET_ROOT}/${normalized}.webp`;
+}
+
 function useAvatarFallback(event: React.SyntheticEvent<HTMLImageElement>) {
   const image = event.currentTarget;
   if (image.dataset.fallback === 'true') return;
   image.dataset.fallback = 'true';
-  image.src = '/images/avatar/7.webp';
+  image.src = FALLBACK_AVATAR_URL;
 }
 
 function BackIcon() {
