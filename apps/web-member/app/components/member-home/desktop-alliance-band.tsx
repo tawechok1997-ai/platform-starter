@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { useMemberLocale } from '../../member-locale-provider';
 
 type AllianceLogo = {
@@ -26,7 +27,7 @@ const ROW_TWO = [
   url: `/assets/asset-pc/images/alliance/${name}.webp`,
 }));
 
-export function DesktopAllianceBand() {
+export const DesktopAllianceBand = memo(function DesktopAllianceBand() {
   const { locale } = useMemberLocale();
   const heading = locale === 'th' ? 'พันธมิตรของเรา' : 'Our partners';
 
@@ -41,9 +42,9 @@ export function DesktopAllianceBand() {
       </div>
     </section>
   );
-}
+});
 
-function AllianceRow({ logos, className }: { logos: AllianceLogo[]; className: string }) {
+const AllianceRow = memo(function AllianceRow({ logos, className }: { logos: AllianceLogo[]; className: string }) {
   return (
     <div className={className}>
       {logos.map((logo) => (
@@ -53,4 +54,4 @@ function AllianceRow({ logos, className }: { logos: AllianceLogo[]; className: s
       ))}
     </div>
   );
-}
+});
