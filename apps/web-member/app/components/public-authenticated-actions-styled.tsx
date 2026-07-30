@@ -12,7 +12,7 @@ import {
 import { useMemberSession } from '../member-session-provider';
 import PublicAuthenticatedActions from './public-authenticated-actions';
 import MemberHeaderFinanceRuntime from './member-header-finance-runtime';
-import MemberMenuIncomeRuntime from './member-menu-income-runtime';
+import MemberMenuIncomeSafeRuntime from './member-menu-income-safe-runtime';
 import MemberMenuSecondaryRuntime from './member-menu-secondary-runtime';
 import MemberMenuVipRuntime from './member-menu-vip-runtime';
 import '../member-authenticated-public-header.css';
@@ -21,6 +21,7 @@ import '../member-authenticated-icon-assets.css';
 import '../member-authenticated-profile-source.css';
 import '../member-authenticated-source-header-geometry.css';
 import '../member-menu-income-runtime.css';
+import '../member-menu-income-safe-runtime.css';
 import '../member-vip-modal.css';
 import '../member-header-finance-runtime.css';
 import '../member-header-finance-source-stage.css';
@@ -105,7 +106,7 @@ export default function PublicAuthenticatedActionsStyled(props: Props) {
     >
       <PublicAuthenticatedActions {...props} />
       <MemberHeaderFinanceRuntime locale={props.locale} />
-      <MemberMenuIncomeRuntime locale={props.locale} />
+      <MemberMenuIncomeSafeRuntime locale={props.locale} />
       <MemberMenuSecondaryRuntime locale={props.locale} />
       <MemberMenuVipRuntime locale={props.locale} />
     </div>
