@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type SyntheticEvent,
+} from 'react';
 import type { MemberLocale } from '../member-locale-provider';
 import MemberProfileDetailModal from './member-profile-detail-modal';
 import '../member-profile-detail-modal.css';
@@ -63,7 +70,6 @@ const COPY = {
     logout: 'ออกจากระบบ',
     openProfile: 'เปิดเมนูสมาชิก',
     openProfileDetail: 'เปิดรายละเอียดโปรไฟล์',
-    closePanel: 'ปิดเมนู',
   },
   en: {
     notifications: 'Notifications',
@@ -99,7 +105,6 @@ const COPY = {
     logout: 'Log out',
     openProfile: 'Open member menu',
     openProfileDetail: 'Open profile details',
-    closePanel: 'Close menu',
   },
 } as const;
 
@@ -116,11 +121,13 @@ export default function PublicAuthenticatedActions({
   const rootRef = useRef<HTMLDivElement>(null);
   const profileTriggerRef = useRef<HTMLButtonElement>(null);
   const profileMenuRef = useRef<HTMLElement>(null);
+  const resizeFrameRef = useRef(0);
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
   const [noticeTab, setNoticeTab] = useState<NoticeTab>('messages');
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [profilePosition, setProfilePosition] = useState<ProfilePopoverPosition | null>(null);
   const [selectedAvatar, setSelectedAvatar] = useState(7);
+
   const memberLabel = locale === 'th' ? `${copy.member} ${siteName}` : `${siteName} ${copy.member}`;
   const avatarUrl = selectedAvatar === 7
     ? FALLBACK_AVATAR_URL
@@ -131,23 +138,35 @@ export default function PublicAuthenticatedActions({
     if (!trigger || typeof window === 'undefined') return;
 
     const rect = trigger.getBoundingClientRect();
-    const width = Math.min(PROFILE_POPOVER_WIDTH, Math.max(0, window.innerWidth - PROFILE_POPOVER_VIEWPORT_MARGIN * 2));
-    const left = Math.max(
-      PROFILE_POPOVER_VIEWPORT_MARGIN,
-      Math.min(rect.right - width, window.innerWidth - width - PROFILE_POPOVER_VIEWPORT_MARGIN),
+    const width = Math.min(
+      PROFILE_POPOVER_WIDTH,
+      Math.max(0, window.innerWidth - PROFILE_POPOVER_VIEWPORT_MARGIN * 2),
     );
-
-    setProfilePosition({
+    const nextPosition = {
       top: Math.max(PROFILE_POPOVER_VIEWPORT_MARGIN, rect.bottom + PROFILE_POPOVER_GAP),
-      left,
+      left: Math.max(
+        PROFILE_POPOVER_VIEWPORT_MARGIN,
+        Math.min(rect.right - width, window.innerWidth - width - PROFILE_POPOVER_VIEWPORT_MARGIN),
+      ),
       width,
-    });
+    };
+
+    setProfilePosition((current) => (
+      current
+      && current.top === nextPosition.top
+      && current.left === nextPosition.left
+      && current.width === nextPosition.width
+        ? current
+        : nextPosition
+    ));
   }, []);
 
   useEffect(() => {
     try {
       const storedAvatar = Number(window.localStorage.getItem('member_selected_avatar'));
-      if (Number.isInteger(storedAvatar) && storedAvatar >= 1 && storedAvatar <= 15) setSelectedAvatar(storedAvatar);
+      if (Number.isInteger(storedAvatar) && storedAvatar >= 1 && storedAvatar <= 15) {
+        setSelectedAvatar(storedAvatar);
+      }
     } catch {
       // Storage can be unavailable in private or restricted browser contexts.
     }
@@ -177,18 +196,18 @@ export default function PublicAuthenticatedActions({
   useEffect(() => {
     if (openPanel !== 'profile') return;
 
-    let frame = window.requestAnimationFrame(updateProfilePosition);
-    const update = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(updateProfilePosition);
+    const schedulePositionUpdate = () => {
+      window.cancelAnimationFrame(resizeFrameRef.current);
+      resizeFrameRef.current = window.requestAnimationFrame(updateProfilePosition);
     };
 
-    window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
+    schedulePositionUpdate();
+    window.addEventListener('resize', schedulePositionUpdate, { passive: true });
+    window.visualViewport?.addEventListener('resize', schedulePositionUpdate, { passive: true });
     return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
+      window.cancelAnimationFrame(resizeFrameRef.current);
+      window.removeEventListener('resize', schedulePositionUpdate);
+      window.visualViewport?.removeEventListener('resize', schedulePositionUpdate);
     };
   }, [openPanel, updateProfilePosition]);
 
@@ -197,7 +216,9 @@ export default function PublicAuthenticatedActions({
     setOpenPanel((current) => (current === panel ? null : panel));
   };
 
-  const selectAvatar = (avatar: number) => {
+  const closeProfileModal = useCallback(() => setProfileModalOpen(false), []);
+
+  const selectAvatar = useCallback((avatar: number) => {
     const image = new Image();
     image.onload = () => {
       setSelectedAvatar(avatar);
@@ -208,7 +229,7 @@ export default function PublicAuthenticatedActions({
       }
     };
     image.src = avatar === 7 ? FALLBACK_AVATAR_URL : `${AVATAR_BASE}/${avatar}.webp`;
-  };
+  }, []);
 
   const primaryItems = [
     { label: copy.vip, href: '/profile', icon: `${ASSET_BASE}/ระดับสมาชิก.png` },
@@ -264,13 +285,13 @@ export default function PublicAuthenticatedActions({
           </div>
 
           <div className="public-member-income-row">
-            <Link href="/affiliate" onClick={() => setOpenPanel(null)}>
+            <Link prefetch={false} href="/affiliate" onClick={() => setOpenPanel(null)}>
               <img className="public-member-income-icon" src={`${ASSET_BASE}/รายได้ตากเครือข่าย.png`} alt="" aria-hidden="true" />
               <span>{copy.networkIncome}</span>
               <strong>0.00</strong>
               <em aria-hidden="true"><RightChevronIcon /></em>
             </Link>
-            <Link href="/affiliate" onClick={() => setOpenPanel(null)}>
+            <Link prefetch={false} href="/affiliate" onClick={() => setOpenPanel(null)}>
               <img className="public-member-income-icon" src={`${ASSET_BASE}/รายได้จากคอมมิชชั้น.png`} alt="" aria-hidden="true" />
               <span>{copy.commissionIncome}</span>
               <strong>0.00</strong>
@@ -278,7 +299,12 @@ export default function PublicAuthenticatedActions({
             </Link>
           </div>
 
-          <Link className="public-member-referral-row" href="/affiliate" onClick={() => setOpenPanel(null)}>
+          <Link
+            prefetch={false}
+            className="public-member-referral-row"
+            href="/affiliate"
+            onClick={() => setOpenPanel(null)}
+          >
             <img className="public-member-referral-icon" src={`${ASSET_BASE}/ลิ้งเเนะนพเพื่อน.png`} alt="" aria-hidden="true" />
             <strong>{copy.referralLink}</strong>
             <small>{copy.openAffiliate}</small>
@@ -287,7 +313,12 @@ export default function PublicAuthenticatedActions({
 
           <nav className="public-member-menu-grid" aria-label={copy.openProfile}>
             {primaryItems.map((item) => (
-              <Link key={`${item.href}-${item.label}`} href={item.href} onClick={() => setOpenPanel(null)}>
+              <Link
+                prefetch={false}
+                key={`${item.href}-${item.label}`}
+                href={item.href}
+                onClick={() => setOpenPanel(null)}
+              >
                 <span className="public-member-menu-glyph"><img src={item.icon} alt="" aria-hidden="true" /></span>
                 <span>{item.label}</span>
               </Link>
@@ -296,7 +327,12 @@ export default function PublicAuthenticatedActions({
 
           <nav className="public-member-menu-grid public-member-menu-grid--secondary" aria-label={copy.openProfile}>
             {secondaryItems.map((item) => (
-              <Link key={`${item.href}-${item.label}`} href={item.href} onClick={() => setOpenPanel(null)}>
+              <Link
+                prefetch={false}
+                key={`${item.href}-${item.label}`}
+                href={item.href}
+                onClick={() => setOpenPanel(null)}
+              >
                 <span className="public-member-menu-glyph"><img src={item.icon} alt="" aria-hidden="true" /></span>
                 <span>{item.label}</span>
                 {item.href === '/notifications' && pendingCount > 0 ? <b>{Math.min(pendingCount, 99)}</b> : null}
@@ -309,7 +345,9 @@ export default function PublicAuthenticatedActions({
                 setOpenPanel(null);
               }}
             >
-              <span className="public-member-menu-glyph public-member-language-glyph"><img src={`${ASSET_BASE}/เปลียนภาษา.svg`} alt="" aria-hidden="true" /></span>
+              <span className="public-member-menu-glyph public-member-language-glyph">
+                <img src={`${ASSET_BASE}/เปลียนภาษา.svg`} alt="" aria-hidden="true" />
+              </span>
               <span>{copy.language}</span>
             </button>
           </nav>
@@ -346,7 +384,12 @@ export default function PublicAuthenticatedActions({
         </button>
 
         {openPanel === 'notifications' ? (
-          <section id="public-member-notifications" className="public-member-popover public-member-notification-popover" role="dialog" aria-label={copy.notifications}>
+          <section
+            id="public-member-notifications"
+            className="public-member-popover public-member-notification-popover"
+            role="dialog"
+            aria-label={copy.notifications}
+          >
             <div className="public-member-tabs" role="tablist" aria-label={copy.notifications}>
               {(['all', 'benefits', 'messages'] as NoticeTab[]).map((tab) => (
                 <button
@@ -369,7 +412,9 @@ export default function PublicAuthenticatedActions({
                   <div>
                     <strong>{copy.pendingTitle}</strong>
                     <p>{copy.pendingDetail}</p>
-                    <Link href="/transactions" onClick={() => setOpenPanel(null)}>{copy.viewPending}</Link>
+                    <Link prefetch={false} href="/transactions" onClick={() => setOpenPanel(null)}>
+                      {copy.viewPending}
+                    </Link>
                   </div>
                 </div>
               ) : (
@@ -390,12 +435,12 @@ export default function PublicAuthenticatedActions({
           <strong>{walletLoading ? '…' : compactWalletBalance}</strong>
         </span>
         <span className="public-member-wallet-divider" aria-hidden="true" />
-        <Link className="public-member-wallet-action" href="/deposit" aria-label={copy.deposit}>
+        <Link prefetch={false} className="public-member-wallet-action" href="/deposit" aria-label={copy.deposit}>
           <img className="public-member-header-icon public-member-header-wallet-action" src="/images/ฝาก.png" alt="" aria-hidden="true" />
           <span>{copy.deposit}</span>
         </Link>
         <span className="public-member-wallet-divider" aria-hidden="true" />
-        <Link className="public-member-wallet-action" href="/withdraw" aria-label={copy.withdraw}>
+        <Link prefetch={false} className="public-member-wallet-action" href="/withdraw" aria-label={copy.withdraw}>
           <img className="public-member-header-icon public-member-header-wallet-action" src="/images/ถอน.png" alt="" aria-hidden="true" />
           <span>{copy.withdraw}</span>
         </Link>
@@ -428,14 +473,14 @@ export default function PublicAuthenticatedActions({
         locale={locale}
         fallbackLabel={memberLabel}
         selectedAvatar={selectedAvatar}
-        onClose={() => setProfileModalOpen(false)}
+        onClose={closeProfileModal}
         onSelectAvatar={selectAvatar}
       />
     </div>
   );
 }
 
-function useAvatarFallback(event: React.SyntheticEvent<HTMLImageElement>) {
+function useAvatarFallback(event: SyntheticEvent<HTMLImageElement>) {
   const image = event.currentTarget;
   if (image.dataset.fallback === 'true') return;
   image.dataset.fallback = 'true';
@@ -443,19 +488,11 @@ function useAvatarFallback(event: React.SyntheticEvent<HTMLImageElement>) {
 }
 
 function ChevronIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>;
 }
 
 function RightChevronIcon() {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true">
-      <path d="m6 3 5 5-5 5" />
-    </svg>
-  );
+  return <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg>;
 }
 
 function CopyIcon() {
