@@ -27,6 +27,7 @@ type Copy = {
   noBank: string;
   manageBank: string;
   success: string;
+  credits: string;
 };
 
 const COPY: Record<'th' | 'en', Copy> = {
@@ -45,6 +46,7 @@ const COPY: Record<'th' | 'en', Copy> = {
     noBank: 'ยังไม่มีบัญชีธนาคารที่อนุมัติสำหรับถอนเงิน',
     manageBank: 'จัดการบัญชีธนาคาร',
     success: 'ส่งคำขอถอนสำเร็จ',
+    credits: 'เครดิต',
   },
   en: {
     deposit: 'Deposit',
@@ -61,6 +63,7 @@ const COPY: Record<'th' | 'en', Copy> = {
     noBank: 'No approved bank account is available',
     manageBank: 'Manage bank accounts',
     success: 'Withdrawal request submitted',
+    credits: 'credits',
   },
 };
 
@@ -104,14 +107,23 @@ function DepositPopup({ locale, onClose }: { locale: 'th' | 'en'; onClose: () =>
   usePopupLifecycle(onClose);
 
   return (
-    <div className="member-header-finance-backdrop" role="presentation" onPointerDown={(event) => {
-      if (event.currentTarget === event.target) onClose();
-    }}>
-      <section className="member-header-finance-dialog member-header-finance-dialog--deposit" role="dialog" aria-modal="true" aria-label={copy.deposit}>
+    <div
+      className="member-header-finance-backdrop"
+      role="presentation"
+      onPointerDown={(event) => {
+        if (event.currentTarget === event.target) onClose();
+      }}
+    >
+      <section
+        className="member-header-finance-dialog member-header-finance-dialog--deposit"
+        role="dialog"
+        aria-modal="true"
+        aria-label={copy.deposit}
+      >
         <span className="member-header-finance-top-line" aria-hidden="true" />
         <FinancePopupHeader title={copy.deposit} closeLabel={copy.close} onClose={onClose} icon={<DepositIcon />} />
         <div className="member-header-deposit-content">
-          <DepositClient />
+          <DepositClient variant="headerPopup" locale={locale} onCancel={onClose} />
         </div>
       </section>
     </div>
@@ -153,7 +165,9 @@ function WithdrawPopup({ locale, onClose }: { locale: 'th' | 'en'; onClose: () =
         if (primary) setSelectedBankId((current) => current || primary.id);
       }
       if (bonusRes.ok) setBonusLedgers((bonusData?.items ?? []) as BonusLedger[]);
-      if (!walletRes.ok || !bankRes.ok) setMessage(walletData?.message ?? bankData?.message ?? 'โหลดข้อมูลไม่สำเร็จ');
+      if (!walletRes.ok || !bankRes.ok) {
+        setMessage(walletData?.message ?? bankData?.message ?? (locale === 'th' ? 'โหลดข้อมูลไม่สำเร็จ' : 'Unable to load data'));
+      }
     } catch {
       setMessage(locale === 'th' ? 'เชื่อมต่อระบบไม่สำเร็จ' : 'Unable to connect');
     } finally {
@@ -169,9 +183,12 @@ function WithdrawPopup({ locale, onClose }: { locale: 'th' | 'en'; onClose: () =
   const availableBalance = safeNumber(wallet?.availableBalance);
   const remainingToday = Math.min(availableBalance, DAILY_LIMIT);
   const numericAmount = Number(amount.replace(/,/g, ''));
-  const bonusRemaining = useMemo(() => bonusLedgers
-    .filter((item) => !item.turnoverCompleted && ['ACTIVE', 'REVIEWING', 'PENDING'].includes(String(item.status)))
-    .reduce((sum, item) => sum + Math.max(safeNumber(item.turnoverRequired) - safeNumber(item.turnoverProgress), 0), 0), [bonusLedgers]);
+  const bonusRemaining = useMemo(
+    () => bonusLedgers
+      .filter((item) => !item.turnoverCompleted && ['ACTIVE', 'REVIEWING', 'PENDING'].includes(String(item.status)))
+      .reduce((sum, item) => sum + Math.max(safeNumber(item.turnoverRequired) - safeNumber(item.turnoverProgress), 0), 0),
+    [bonusLedgers],
+  );
   const validAmount = Boolean(
     selectedBank
       && Number.isFinite(numericAmount)
@@ -222,12 +239,27 @@ function WithdrawPopup({ locale, onClose }: { locale: 'th' | 'en'; onClose: () =
   };
 
   return (
-    <div className="member-header-finance-backdrop" role="presentation" onPointerDown={(event) => {
-      if (event.currentTarget === event.target && !submitting) onClose();
-    }}>
-      <section className="member-header-finance-dialog member-header-finance-dialog--withdraw" role="dialog" aria-modal="true" aria-label={copy.withdraw}>
+    <div
+      className="member-header-finance-backdrop"
+      role="presentation"
+      onPointerDown={(event) => {
+        if (event.currentTarget === event.target && !submitting) onClose();
+      }}
+    >
+      <section
+        className="member-header-finance-dialog member-header-finance-dialog--withdraw"
+        role="dialog"
+        aria-modal="true"
+        aria-label={copy.withdraw}
+      >
         <span className="member-header-finance-top-line" aria-hidden="true" />
-        <FinancePopupHeader title={copy.withdraw} closeLabel={copy.close} onClose={onClose} icon={<WithdrawIcon />} disabled={submitting} />
+        <FinancePopupHeader
+          title={copy.withdraw}
+          closeLabel={copy.close}
+          onClose={onClose}
+          icon={<WithdrawIcon />}
+          disabled={submitting}
+        />
 
         <form className="member-header-withdraw-content" onSubmit={submit}>
           {loading ? <div className="member-header-finance-message">{copy.loading}</div> : null}
@@ -242,8 +274,16 @@ function WithdrawPopup({ locale, onClose }: { locale: 'th' | 'en'; onClose: () =
                   <span>{formatAccountNumber(selectedBank.accountNumber)}</span>
                 </div>
                 {banks.length > 1 ? (
-                  <select value={selectedBank.id} onChange={(event) => setSelectedBankId(event.target.value)} aria-label={copy.bankAccount}>
-                    {banks.map((bank) => <option value={bank.id} key={bank.id}>{bank.bankName} / {formatAccountNumber(bank.accountNumber)}</option>)}
+                  <select
+                    value={selectedBank.id}
+                    onChange={(event) => setSelectedBankId(event.target.value)}
+                    aria-label={copy.bankAccount}
+                  >
+                    {banks.map((bank) => (
+                      <option value={bank.id} key={bank.id}>
+                        {bank.bankName} / {formatAccountNumber(bank.accountNumber)}
+                      </option>
+                    ))}
                   </select>
                 ) : null}
               </div>
@@ -272,10 +312,14 @@ function WithdrawPopup({ locale, onClose }: { locale: 'th' | 'en'; onClose: () =
               />
             </label>
             <strong className="member-header-withdraw-minimum">{copy.minimum}</strong>
-            <span className="member-header-withdraw-remaining">{copy.remainingToday} {formatMoney(remainingToday)} เครดิต</span>
+            <span className="member-header-withdraw-remaining">
+              {copy.remainingToday} {formatMoney(remainingToday)} {copy.credits}
+            </span>
             {bonusRemaining > 0 ? (
               <div className="member-header-finance-message is-warning">
-                {locale === 'th' ? `ต้องทำเทิร์นโบนัสคงเหลือ ${formatMoney(bonusRemaining)} ก่อนถอน` : `Complete ${formatMoney(bonusRemaining)} turnover before withdrawing`}
+                {locale === 'th'
+                  ? `ต้องทำเทิร์นโบนัสคงเหลือ ${formatMoney(bonusRemaining)} ก่อนถอน`
+                  : `Complete ${formatMoney(bonusRemaining)} turnover before withdrawing`}
               </div>
             ) : null}
 
@@ -304,7 +348,9 @@ function WithdrawPopup({ locale, onClose }: { locale: 'th' | 'en'; onClose: () =
 
           <footer className="member-header-withdraw-actions">
             <button type="button" onClick={onClose} disabled={submitting}>{copy.cancel}</button>
-            <button type="submit" className="is-primary" disabled={!validAmount}>{submitting ? '…' : copy.confirm}</button>
+            <button type="submit" className="is-primary" disabled={!validAmount}>
+              {submitting ? '…' : copy.confirm}
+            </button>
           </footer>
         </form>
       </section>
@@ -331,7 +377,9 @@ function FinancePopupHeader({
         <span>{icon}</span>
         <h2>{title}</h2>
       </div>
-      <button type="button" onClick={onClose} disabled={disabled} aria-label={closeLabel}><CloseIcon /></button>
+      <button type="button" onClick={onClose} disabled={disabled} aria-label={closeLabel}>
+        <CloseIcon />
+      </button>
     </header>
   );
 }
@@ -356,7 +404,15 @@ function usePopupLifecycle(onClose: () => void) {
 function BankLogo({ bankName }: { bankName: string }) {
   const code = resolveBankCode(bankName);
   if (!code) return <span className="member-header-withdraw-bank-fallback">{bankName.slice(0, 2)}</span>;
-  return <img src={`/images/banks/TH/${code}.webp`} alt={bankName} onError={(event) => { event.currentTarget.style.display = 'none'; }} />;
+  return (
+    <img
+      src={`/images/banks/TH/${code}.webp`}
+      alt={bankName}
+      onError={(event) => {
+        event.currentTarget.style.display = 'none';
+      }}
+    />
+  );
 }
 
 function resolveBankCode(bankName: string) {
@@ -395,11 +451,11 @@ function formatAccountNumber(value: string) {
 }
 
 function DepositIcon() {
-  return <svg viewBox="0 0 31 31" aria-hidden="true"><path d="M4 9h23v16H4zM9 9V6h13v3M15.5 13v8M12 18l3.5 3.5L19 18" /></svg>;
+  return <img src="/images/ฝาก.png" alt="" aria-hidden="true" />;
 }
 
 function WithdrawIcon() {
-  return <svg viewBox="0 0 31 31" aria-hidden="true"><circle cx="15.5" cy="15.5" r="13.9" /><path d="M1.6 15.5h27.8M20.9 15.5c-.3 5.1-2.1 10-5.4 13.9-3.2-3.9-5.1-8.8-5.4-13.9.3-5.1 2.2-10 5.4-13.9 3.3 3.9 5.1 8.8 5.4 13.9Z" /></svg>;
+  return <img src="/images/ถอน.png" alt="" aria-hidden="true" />;
 }
 
 function CloseIcon() {
