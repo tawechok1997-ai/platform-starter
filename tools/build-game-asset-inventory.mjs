@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { access, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -8,9 +8,12 @@ const inventoryPath = path.join(outputDir, 'game-asset-inventory.json');
 const duplicatePath = path.join(outputDir, 'game-asset-duplicates.json');
 const renamePath = path.join(outputDir, 'game-asset-rename-manifest.json');
 const platforms = ['mobile', 'pc'];
-const publicAssetRoots = {
-  mobile: path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-mobile'),
-  pc: path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-pc'),
+const publicAssetRootCandidates = {
+  mobile: [
+    path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-mobile'),
+    path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-moblie'),
+  ],
+  pc: [path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-pc')],
 };
 const SHA256_PATTERN = /^[a-f0-9]{64}$/i;
 const UUID_PATTERN = /(^|[-_])[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}([-_.]|$)/i;
@@ -58,6 +61,22 @@ async function listFiles(directory, baseDirectory = directory) {
   return files;
 }
 
+async function resolvePublicAssetRoot(platform) {
+  for (const candidate of publicAssetRootCandidates[platform]) {
+    try {
+      const info = await stat(candidate);
+      if (info.isDirectory()) return candidate;
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+    }
+  }
+
+  const expected = publicAssetRootCandidates[platform]
+    .map((candidate) => path.relative(root, candidate).replaceAll('\\', '/'))
+    .join(' or ');
+  throw new Error(`No checked-in ${platform} game asset root found at ${expected}`);
+}
+
 async function loadPlatformManifest(platform) {
   const catalogRoot = path.join(root, 'asset', 'catalog', platform);
   const manifestPath = path.join(catalogRoot, 'manifest.json');
@@ -68,8 +87,7 @@ async function loadPlatformManifest(platform) {
   } catch (error) {
     if (error?.code !== 'ENOENT') throw error;
 
-    const assetRoot = publicAssetRoots[platform];
-    await access(assetRoot);
+    const assetRoot = await resolvePublicAssetRoot(platform);
     const files = await listFiles(assetRoot);
     console.warn(
       `asset/catalog/${platform}/manifest.json is missing; synthesizing inventory from ${path.relative(root, assetRoot).replaceAll('\\', '/')} (${files.length} files)`,
