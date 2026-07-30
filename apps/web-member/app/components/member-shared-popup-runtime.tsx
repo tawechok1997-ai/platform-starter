@@ -53,7 +53,9 @@ export default function MemberSharedPopupRuntime({
       if (!(event.target instanceof Element)) return;
       if (event.target.closest('[data-member-shared-popup]')) return;
 
-      const languageTrigger = event.target.closest<HTMLElement>('[data-member-language-trigger], .public-home-flag');
+      const languageTrigger = event.target.closest<HTMLElement>(
+        '[data-member-language-trigger], .public-home-flag, .public-member-menu-grid--secondary button',
+      );
       if (languageTrigger) {
         event.preventDefault();
         event.stopPropagation();
