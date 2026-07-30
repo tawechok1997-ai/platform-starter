@@ -45,7 +45,7 @@ export default function PromotionOperationsPage() {
     .filter((item) => group === 'all' || item.memberCategory === group)
     .filter((item) => !query.trim() || `${item.title} ${item.id} ${item.sourceCode ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()))
     .sort((a, b) => b.priority - a.priority), [group, items, query]);
-  const missing = useMemo(() => templates.filter((template) => !items.some((item) => item.id === template.id)), [items, templates]);
+  const missing = useMemo(() => templates.filter((template) => !items.some((item) => matchesCampaign(item, template))), [items, templates]);
   const claimStats = useMemo(() => ({
     total: claims.length,
     pending: claims.filter((item) => ['PENDING', 'OPEN', 'REVIEWING'].includes(String(item.status))).length,
@@ -60,17 +60,26 @@ export default function PromotionOperationsPage() {
   async function load() {
     setLoading(true); setMessage('');
     try {
-      const [settingsRes, templatesRes, claimsRes] = await Promise.all([
-        adminApiFetch('/admin/settings/features'), adminApiFetch('/public/promotions'), adminApiFetch('/admin/promotion-claims'),
+      const [templatesRes, claimsRes] = await Promise.all([
+        adminApiFetch('/public/promotions'),
+        adminApiFetch('/admin/promotion-claims'),
       ]);
-      const [settingsData, templatesData, claimsData] = await Promise.all([
-        settingsRes.json().catch(() => null), templatesRes.json().catch(() => null), claimsRes.json().catch(() => null),
+      const [templatesData, claimsData] = await Promise.all([
+        templatesRes.json().catch(() => null),
+        claimsRes.json().catch(() => null),
       ]);
-      if (!settingsRes.ok || !templatesRes.ok) throw new Error();
+      if (!templatesRes.ok) throw new Error();
+
+      const settingsRes = await adminApiFetch('/admin/settings/features');
+      const settingsData = await settingsRes.json().catch(() => null);
+      if (!settingsRes.ok) throw new Error();
+
       const nextTemplates = normalize(templatesData?.items);
       const stored = normalize(settingsData?.settings?.promotion_campaigns);
-      const next = stored.length ? stored : nextTemplates;
-      setTemplates(nextTemplates); setItems(next); setClaims(Array.isArray(claimsData?.items) ? claimsData.items : []);
+      const next = mergeCampaigns(stored, nextTemplates);
+      setTemplates(nextTemplates);
+      setItems(next);
+      setClaims(Array.isArray(claimsData?.items) ? claimsData.items : []);
       saved.current = JSON.stringify(next);
     } catch { setMessage('โหลดข้อมูลโปรโมชั่นไม่สำเร็จ'); }
     finally { setLoading(false); }
@@ -82,28 +91,35 @@ export default function PromotionOperationsPage() {
     if (errors.length) { setMessage(errors.join(' • ')); return; }
     setSaving(true); setMessage('กำลังบันทึก...');
     try {
-      const response = await adminApiFetch('/admin/settings/features', { method: 'PUT', body: JSON.stringify({ promotion_campaigns: items }) });
+      const response = await adminApiFetch('/admin/settings/features', { method: 'PUT', body: JSON.stringify({ promotion_campaigns: items.map(canonicalizeCampaign) }) });
       if (!response.ok) throw new Error();
-      saved.current = JSON.stringify(items); setMessage('บันทึกการตั้งค่าโปรโมชั่นแล้ว');
+      const canonical = items.map(canonicalizeCampaign);
+      setItems(canonical);
+      saved.current = JSON.stringify(canonical);
+      setMessage('บันทึกโปรโมชั่นกลางแล้ว หน้า Desktop, Mobile และ Popup จะใช้ข้อมูลชุดนี้');
     } catch { setMessage('บันทึกโปรโมชั่นไม่สำเร็จ'); }
     finally { setSaving(false); }
   }
 
-  const patch = (id: string, next: Partial<Campaign>) => setItems((current) => current.map((item) => item.id === id ? { ...item, ...next } : item));
-  const importAssets = () => { setItems((current) => [...current, ...missing]); setMessage(`นำเข้าจาก Asset ${missing.length} รายการแล้ว กดบันทึกเพื่อยืนยัน`); };
+  const patch = (id: string, next: Partial<Campaign>) => setItems((current) => current.map((item) => item.id === id ? canonicalizeCampaign({ ...item, ...next }) : item));
+  const syncAssets = () => {
+    const next = mergeCampaigns(items, templates);
+    setItems(next);
+    setMessage(missing.length ? `เพิ่มโปรโมชั่นจาก Asset ${missing.length} รายการแล้ว กดบันทึกเพื่อยืนยัน` : 'โปรโมชั่นจาก Asset อยู่ใน Settings ครบแล้ว');
+  };
   const add = () => setItems((current) => [...current, blank(current.length + 1)]);
 
-  return <AdminPage eyebrow="การตลาด" title="ตั้งค่าโปรโมชั่น" description="กำหนดรูป รายละเอียด เงื่อนไข โบนัส และสิทธิ์รับของแต่ละโปรโมชั่น" actions={<>
+  return <AdminPage eyebrow="การตลาด" title="ตั้งค่าโปรโมชั่นกลาง" description="แก้รูป ข้อมูล รายละเอียด เงื่อนไข และสิทธิ์จากจุดเดียว ทุกหน้า Member ใช้ข้อมูลจาก /public/promotions" actions={<>
     {dirty ? <AdminBadge tone="warning">ยังไม่บันทึก</AdminBadge> : null}
-    <AdminButton tone="secondary" disabled={!missing.length || loading || saving} onClick={importAssets}>นำเข้าจาก Asset ({missing.length})</AdminButton>
+    <AdminButton tone="secondary" disabled={loading || saving} onClick={syncAssets}>ซิงก์จาก Asset ({missing.length})</AdminButton>
     <AdminButton tone="secondary" disabled={loading || saving} onClick={add}>เพิ่มโปรโมชั่น</AdminButton>
     <AdminButton tone="secondary" disabled={loading || saving || dirty} onClick={() => void load()}>รีเฟรช</AdminButton>
     <AdminButton disabled={!dirty || loading || saving} onClick={() => void save()}>{saving ? 'กำลังบันทึก...' : 'บันทึกทั้งหมด'}</AdminButton>
   </>}>
     {message ? <AdminNotice tone={message.includes('ไม่สำเร็จ') || message.includes('ต้อง') ? 'danger' : 'success'}>{message}</AdminNotice> : null}
     <AdminMetricGrid>
-      <AdminMetric title="โปรโมชั่นทั้งหมด" value={items.length.toLocaleString('th-TH')} helper={`${items.filter((item) => item.enabled && item.lifecycle === 'PUBLISHED').length} รายการเปิดใช้`} />
-      <AdminMetric title="รูปจาก Asset" value={templates.length.toLocaleString('th-TH')} helper={`${missing.length} รายการยังไม่ได้นำเข้า`} />
+      <AdminMetric title="โปรโมชั่นใน Settings" value={items.length.toLocaleString('th-TH')} helper={`${items.filter((item) => item.enabled && item.lifecycle === 'PUBLISHED').length} รายการเปิดใช้`} />
+      <AdminMetric title="โปรโมชั่นจาก Asset" value={templates.length.toLocaleString('th-TH')} helper={missing.length ? `${missing.length} รายการรอซิงก์` : 'ซิงก์ครบแล้ว'} />
       <AdminMetric title="คำขอรับทั้งหมด" value={claimStats.total.toLocaleString('th-TH')} helper={`${claimStats.pending} รายการรอตรวจ`} />
       <AdminMetric title="อนุมัติแล้ว" value={claimStats.approved.toLocaleString('th-TH')} />
     </AdminMetricGrid>
@@ -118,7 +134,7 @@ export default function PromotionOperationsPage() {
         {filtered.map((item) => <AdminCard key={item.id} tone={item.enabled && item.lifecycle === 'PUBLISHED' ? 'success' : 'neutral'} compact>
           <article className="admin-promotion-ops__card">
             <header><div><AdminBadge tone={item.lifecycle === 'PUBLISHED' ? 'success' : item.lifecycle === 'ARCHIVED' ? 'neutral' : 'warning'}>{item.lifecycle}</AdminBadge><h2>{item.title || item.id}</h2><p>{groupLabel(item.memberCategory)} · Priority {item.priority} · รับแล้ว {claimsByCampaign.get(item.id) ?? 0}</p></div><div className="admin-promotion-ops__card-actions"><AdminButton size="compact" tone="secondary" onClick={() => patch(item.id, item.lifecycle === 'PUBLISHED' ? { lifecycle: 'DRAFT', enabled: false } : { lifecycle: 'PUBLISHED', enabled: true })}>{item.lifecycle === 'PUBLISHED' ? 'ปิดใช้งาน' : 'เผยแพร่'}</AdminButton><AdminButton size="compact" tone="danger" onClick={() => patch(item.id, { lifecycle: 'ARCHIVED', enabled: false })}>Archive</AdminButton></div></header>
-            {item.desktopImageUrl ? <img className="admin-promotion-ops__banner" src={item.desktopImageUrl} alt={`ตัวอย่าง ${item.title}`} /> : null}
+            {canonicalImage(item) ? <img className="admin-promotion-ops__banner" src={canonicalImage(item)} alt={`ตัวอย่าง ${item.title}`} /> : null}
             <div className="admin-promotion-ops__fields">
               <Field label="รหัสระบบ" value={item.id} onChange={(value) => patch(item.id, { id: slug(value) })} />
               <Field label="ชื่อโปรโมชั่น" value={item.title} onChange={(value) => patch(item.id, { title: value })} />
@@ -129,11 +145,9 @@ export default function PromotionOperationsPage() {
               <NumberField label="ลำดับ" value={item.priority} onChange={(value) => patch(item.id, { priority: value })} />
               <Field label="Badge" value={item.badgeText} onChange={(value) => patch(item.id, { badgeText: value })} />
               <Field label="สี Accent" value={item.accentColor} onChange={(value) => patch(item.id, { accentColor: value })} />
-              <Field label="รูป Desktop" value={item.desktopImageUrl} onChange={(value) => patch(item.id, { desktopImageUrl: value, imageUrl: value })} />
-              <Field label="รูป Mobile" value={item.mobileImageUrl} onChange={(value) => patch(item.id, { mobileImageUrl: value })} />
-              <Field label="CDN ต้นฉบับ" value={item.sourceImageUrl} onChange={(value) => patch(item.id, { sourceImageUrl: value })} />
-              <Field label="Asset ID Desktop" value={item.desktopAssetId ?? ''} onChange={(value) => patch(item.id, { desktopAssetId: value || undefined })} />
-              <Field label="Asset ID Mobile" value={item.mobileAssetId ?? ''} onChange={(value) => patch(item.id, { mobileAssetId: value || undefined })} />
+              <Field label="รูปโปรโมชั่นทุกอุปกรณ์" value={canonicalImage(item)} onChange={(value) => patch(item.id, { imageUrl: value, desktopImageUrl: value, mobileImageUrl: value })} />
+              <Field label="CDN สำรอง" value={item.sourceImageUrl} onChange={(value) => patch(item.id, { sourceImageUrl: value })} />
+              <Field label="Asset ID" value={item.desktopAssetId ?? item.mobileAssetId ?? ''} onChange={(value) => patch(item.id, { desktopAssetId: value || undefined, mobileAssetId: value || undefined })} />
               <Select label="ประเภทโบนัส" value={item.bonusType} options={[{ value: 'percent', label: 'เปอร์เซ็นต์' }, { value: 'fixed', label: 'จำนวนคงที่' }]} onChange={(value) => patch(item.id, { bonusType: value as Campaign['bonusType'] })} />
               <NumberField label="มูลค่าโบนัส" value={item.bonusValue} onChange={(value) => patch(item.id, { bonusValue: value })} />
               <NumberField label="ฝากขั้นต่ำ" value={item.minDeposit} onChange={(value) => patch(item.id, { minDeposit: value })} />
@@ -183,27 +197,39 @@ function optionalNumber(value: string) { const next = Number(value); return valu
 function num(value: unknown, fallback = 0) { const next = Number(value); return Number.isFinite(next) ? next : fallback; }
 function text(value: unknown, fallback = '') { return typeof value === 'string' ? value : fallback; }
 function optionalText(value: unknown) { return typeof value === 'string' && value.trim() ? value : undefined; }
+function canonicalImage(item: Pick<Campaign, 'imageUrl' | 'desktopImageUrl' | 'mobileImageUrl' | 'sourceImageUrl'>) { return item.imageUrl.trim() || item.desktopImageUrl.trim() || item.mobileImageUrl.trim() || item.sourceImageUrl.trim(); }
+function canonicalizeCampaign(item: Campaign): Campaign { const image = canonicalImage(item); return { ...item, imageUrl: image, desktopImageUrl: image, mobileImageUrl: image }; }
+function matchesCampaign(left: Campaign, right: Campaign) { return left.id === right.id || (left.sourcePromotionId !== undefined && left.sourcePromotionId === right.sourcePromotionId); }
+function mergeCampaigns(stored: Campaign[], templates: Campaign[]) {
+  const used = new Set<Campaign>();
+  const merged = templates.map((template) => {
+    const override = stored.find((item) => matchesCampaign(item, template));
+    if (override) used.add(override);
+    return canonicalizeCampaign(override ? { ...template, ...override } : template);
+  });
+  return [...merged, ...stored.filter((item) => !used.has(item)).map(canonicalizeCampaign)];
+}
 function normalize(value: unknown): Campaign[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object' && !Array.isArray(item))).map((item, index) => {
     const lifecycleRaw = String(item.lifecycle ?? '').toUpperCase();
     const enabled = item.enabled !== false;
     const lifecycle: Lifecycle = lifecycleRaw === 'ARCHIVED' ? 'ARCHIVED' : lifecycleRaw === 'DRAFT' || !enabled ? 'DRAFT' : 'PUBLISHED';
-    const desktop = text(item.desktopImageUrl, text(item.imageUrl));
+    const image = text(item.imageUrl) || text(item.desktopImageUrl) || text(item.mobileImageUrl) || text(item.sourceImageUrl);
     const result: Campaign = {
       id: text(item.id, `promotion-${index + 1}`), title: text(item.title, `โปรโมชั่น ${index + 1}`), description: text(item.description), enabled, lifecycle,
       memberCategory: item.memberCategory === 'new_member' || item.memberCategory === 'daily' || item.memberCategory === 'cashback' ? item.memberCategory : 'privilege',
       bonusType: item.bonusType === 'fixed' ? 'fixed' : 'percent', bonusValue: num(item.bonusValue), minDeposit: num(item.minDeposit), maxBonus: num(item.maxBonus),
       turnoverMultiplier: num(item.turnoverMultiplier), turnoverBasis: item.turnoverBasis === 'deposit' || item.turnoverBasis === 'deposit_plus_bonus' ? item.turnoverBasis : 'bonus', claimMode: item.claimMode === 'auto_pending' ? 'auto_pending' : 'manual_review',
-      imageUrl: desktop, desktopImageUrl: desktop, mobileImageUrl: text(item.mobileImageUrl, desktop), sourceImageUrl: text(item.sourceImageUrl), badgeText: text(item.badgeText, 'PROMOTION'), accentColor: text(item.accentColor, '#944fe8'), priority: num(item.priority, index),
+      imageUrl: image, desktopImageUrl: image, mobileImageUrl: image, sourceImageUrl: text(item.sourceImageUrl), badgeText: text(item.badgeText, 'PROMOTION'), accentColor: text(item.accentColor, '#944fe8'), priority: num(item.priority, index),
       detailHtml: text(item.detailHtml), termsHtml: text(item.termsHtml), allowedGames: text(item.allowedGames), excludedGames: text(item.excludedGames), claimButtonLabel: text(item.claimButtonLabel, 'กดรับโปรโมชั่น'), claimSuccessMessage: text(item.claimSuccessMessage, 'ส่งคำขอรับโปรโมชั่นเรียบร้อยแล้ว'),
       maxClaimsPerMember: Math.max(0, num(item.maxClaimsPerMember, 1)), claimLimitPeriod: item.claimLimitPeriod === 'day' || item.claimLimitPeriod === 'week' || item.claimLimitPeriod === 'month' || item.claimLimitPeriod === 'year' ? item.claimLimitPeriod : 'lifetime',
       requiresApprovedDeposit: item.requiresApprovedDeposit === true, depositOrdinal: Math.max(0, num(item.depositOrdinal)), consecutiveDepositDays: Math.max(0, num(item.consecutiveDepositDays)), depositWindowHours: Math.max(0, num(item.depositWindowHours)), maxWithdrawal: Math.max(0, num(item.maxWithdrawal)), disableBotWithdrawal: item.disableBotWithdrawal === true, isRecommended: item.isRecommended === true,
     };
     assign(result, 'sourcePromotionId', Number.isFinite(Number(item.sourcePromotionId)) ? Number(item.sourcePromotionId) : undefined); assign(result, 'sourceCode', optionalText(item.sourceCode)); assign(result, 'sourceType', optionalText(item.sourceType)); assign(result, 'promotionGroupId', Number.isFinite(Number(item.promotionGroupId)) ? Number(item.promotionGroupId) : undefined); assign(result, 'desktopAssetId', optionalText(item.desktopAssetId)); assign(result, 'mobileAssetId', optionalText(item.mobileAssetId)); assign(result, 'iconUrl', optionalText(item.iconUrl)); assign(result, 'startsAt', optionalText(item.startsAt)); assign(result, 'endsAt', optionalText(item.endsAt));
-    return result;
+    return canonicalizeCampaign(result);
   });
 }
 function assign<K extends keyof Campaign>(target: Campaign, key: K, value: Campaign[K] | undefined) { if (value !== undefined) target[key] = value as never; }
 function blank(index: number): Campaign { return { id: `promotion-${Date.now()}`, title: `โปรโมชั่น ${index}`, description: '', enabled: false, lifecycle: 'DRAFT', memberCategory: 'privilege', bonusType: 'percent', bonusValue: 0, minDeposit: 0, maxBonus: 0, turnoverMultiplier: 1, turnoverBasis: 'deposit_plus_bonus', claimMode: 'manual_review', imageUrl: '', desktopImageUrl: '', mobileImageUrl: '', sourceImageUrl: '', badgeText: 'PROMOTION', accentColor: '#944fe8', priority: index, detailHtml: '', termsHtml: '', allowedGames: '', excludedGames: '', claimButtonLabel: 'กดรับโปรโมชั่น', claimSuccessMessage: 'ส่งคำขอรับโปรโมชั่นเรียบร้อยแล้ว', maxClaimsPerMember: 1, claimLimitPeriod: 'lifetime', requiresApprovedDeposit: false, depositOrdinal: 0, consecutiveDepositDays: 0, depositWindowHours: 0, maxWithdrawal: 0, disableBotWithdrawal: false, isRecommended: false }; }
-function validate(items: Campaign[]) { const errors: string[] = []; const ids = new Set<string>(); for (const item of items) { if (!item.id.trim()) errors.push('ทุกรายการต้องมีรหัส'); if (ids.has(item.id)) errors.push(`รหัสซ้ำ ${item.id}`); ids.add(item.id); if (!item.title.trim()) errors.push(`${item.id}: ต้องมีชื่อ`); if (item.enabled && !item.desktopImageUrl.trim()) errors.push(`${item.title}: ต้องมีรูป Desktop`); if (item.startsAt && item.endsAt && Date.parse(item.startsAt) > Date.parse(item.endsAt)) errors.push(`${item.title}: วันสิ้นสุดไม่ถูกต้อง`); if (item.requiresApprovedDeposit && item.minDeposit <= 0) errors.push(`${item.title}: ต้องกำหนดยอดฝากขั้นต่ำ`); } return [...new Set(errors)]; }
+function validate(items: Campaign[]) { const errors: string[] = []; const ids = new Set<string>(); for (const item of items) { if (!item.id.trim()) errors.push('ทุกรายการต้องมีรหัส'); if (ids.has(item.id)) errors.push(`รหัสซ้ำ ${item.id}`); ids.add(item.id); if (!item.title.trim()) errors.push(`${item.id}: ต้องมีชื่อ`); if (item.enabled && !canonicalImage(item)) errors.push(`${item.title}: ต้องมีรูปโปรโมชั่น`); if (item.startsAt && item.endsAt && Date.parse(item.startsAt) > Date.parse(item.endsAt)) errors.push(`${item.title}: วันสิ้นสุดไม่ถูกต้อง`); if (item.requiresApprovedDeposit && item.minDeposit <= 0) errors.push(`${item.title}: ต้องกำหนดยอดฝากขั้นต่ำ`); } return [...new Set(errors)]; }
