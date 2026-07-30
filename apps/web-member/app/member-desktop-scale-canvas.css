@@ -16,6 +16,26 @@ html[data-member-viewport-mode='desktop'] #member-desktop-scale-shell {
   overflow-x: clip !important;
 }
 
+/* Home source geometry must be measured inside the 1455px canvas. The source
+ * contract still contains viewport units, which otherwise resolve against the
+ * narrow browser window and then get scaled a second time. */
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home > .reference-hero-carousel,
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home > .desktop-home__body {
+  width: min(1455px, calc(100% - 30px)) !important;
+  max-width: 1455px !important;
+  margin-inline: auto !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-hero-slide {
+  flex-basis: 710.5px !important;
+  width: 710.5px !important;
+  max-width: 710.5px !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-number-card > span {
+  font-size: 61px !important;
+}
+
 html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas :is(
   .member-footer__main,
   .member-footer__payments,
