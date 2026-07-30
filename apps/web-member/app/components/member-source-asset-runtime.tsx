@@ -119,7 +119,7 @@ function patchIncomePopup(root: ParentNode) {
           : '';
 
     const iconSlot = popup.querySelector<HTMLElement>('header > div > span');
-    if (titleIcon && iconSlot?.dataset.sourceAsset !== titleIcon) {
+    if (titleIcon && iconSlot && iconSlot.dataset.sourceAsset !== titleIcon) {
       const image = document.createElement('img');
       image.src = titleIcon;
       image.alt = '';
