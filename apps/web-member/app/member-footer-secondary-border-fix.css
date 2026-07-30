@@ -1,4 +1,8 @@
 /* One persistent shell owns the header, body and footer on every member route. */
+html[data-member-viewport-ready='false'] #member-desktop-scale-shell {
+  visibility: hidden !important;
+}
+
 .member-persistent-shell {
   display: block;
   width: 100%;
