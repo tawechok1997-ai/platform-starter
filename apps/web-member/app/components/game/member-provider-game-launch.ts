@@ -10,6 +10,10 @@ export type MemberGameLaunchCandidate = {
   category?: string | null;
 };
 
+export type MemberGameLaunchOptions = {
+  signal?: AbortSignal;
+};
+
 type NormalizedMemberGameLaunchCandidate = {
   id: string;
   providerGameCode: string;
@@ -33,9 +37,12 @@ type LaunchAttempt = {
   message: string;
 };
 
-const resolutionCache = new Map<string, Promise<string | null>>();
+const resolutionCache = new Map<string, string | null>();
 
-export async function openMemberProviderGame(candidate: MemberGameLaunchCandidate): Promise<void> {
+export async function openMemberProviderGame(
+  candidate: MemberGameLaunchCandidate,
+  options: MemberGameLaunchOptions = {},
+): Promise<void> {
   const normalized = normalizeCandidate(candidate);
   const directIds = uniqueText([
     usableDirectId(normalized.id),
@@ -44,7 +51,7 @@ export async function openMemberProviderGame(candidate: MemberGameLaunchCandidat
 
   let lastMessage = '';
   for (const id of directIds) {
-    const attempt = await requestLaunch(id);
+    const attempt = await requestLaunch(id, options.signal);
     if (attempt.ok) {
       navigateToProvider(attempt.launchUrl);
       return;
@@ -53,19 +60,20 @@ export async function openMemberProviderGame(candidate: MemberGameLaunchCandidat
     if (!canResolveAfter(attempt.status)) throw new Error(attempt.message);
   }
 
-  const resolvedId = await resolveMemberGameId(normalized);
+  const resolvedId = await resolveMemberGameId(normalized, options.signal);
   if (!resolvedId) {
     throw new Error(lastMessage || 'เกมนี้ยังไม่ได้เชื่อมกับระบบเปิดเกมจริงของค่าย');
   }
 
-  const resolvedAttempt = await requestLaunch(resolvedId);
+  const resolvedAttempt = await requestLaunch(resolvedId, options.signal);
   if (!resolvedAttempt.ok) throw new Error(resolvedAttempt.message);
   navigateToProvider(resolvedAttempt.launchUrl);
 }
 
-async function requestLaunch(gameId: string): Promise<LaunchAttempt> {
+async function requestLaunch(gameId: string, signal?: AbortSignal): Promise<LaunchAttempt> {
   const response = await memberApiFetch(`/member/games/${encodeURIComponent(gameId)}/launch`, {
     method: 'POST',
+    signal,
   });
   const payload = await response.json().catch(() => null);
   const source = unwrapRecord(payload);
@@ -85,19 +93,24 @@ async function requestLaunch(gameId: string): Promise<LaunchAttempt> {
   };
 }
 
-async function resolveMemberGameId(candidate: NormalizedMemberGameLaunchCandidate): Promise<string | null> {
+async function resolveMemberGameId(
+  candidate: NormalizedMemberGameLaunchCandidate,
+  signal?: AbortSignal,
+): Promise<string | null> {
   const key = [candidate.providerCode, candidate.providerGameCode, candidate.id, candidate.name, candidate.category]
     .map(compactText)
     .join('|');
-  const cached = resolutionCache.get(key);
-  if (cached) return cached;
+  if (resolutionCache.has(key)) return resolutionCache.get(key) ?? null;
 
-  const request = findMemberGameId(candidate).catch(() => null);
-  resolutionCache.set(key, request);
-  return request;
+  const resolved = await findMemberGameId(candidate, signal);
+  resolutionCache.set(key, resolved);
+  return resolved;
 }
 
-async function findMemberGameId(candidate: NormalizedMemberGameLaunchCandidate): Promise<string | null> {
+async function findMemberGameId(
+  candidate: NormalizedMemberGameLaunchCandidate,
+  signal?: AbortSignal,
+): Promise<string | null> {
   const queries = uniqueText([candidate.providerGameCode, stripCatalogPrefix(candidate.id), candidate.name]);
   const discovered = new Map<string, MemberGameRecord>();
 
@@ -105,7 +118,7 @@ async function findMemberGameId(candidate: NormalizedMemberGameLaunchCandidate):
     const params = new URLSearchParams({ query, page: '1', limit: '100' });
     if (candidate.providerCode) params.set('provider', candidate.providerCode);
     if (candidate.category) params.set('category', candidate.category);
-    const response = await memberApiFetch(`/member/games?${params.toString()}`);
+    const response = await memberApiFetch(`/member/games?${params.toString()}`, { signal });
     if (!response.ok) continue;
     const payload = await response.json().catch(() => null);
     for (const game of readMemberGames(payload)) discovered.set(game.id, game);
@@ -114,7 +127,7 @@ async function findMemberGameId(candidate: NormalizedMemberGameLaunchCandidate):
   if (!discovered.size && candidate.providerCode) {
     const params = new URLSearchParams({ provider: candidate.providerCode, page: '1', limit: '100' });
     if (candidate.category) params.set('category', candidate.category);
-    const response = await memberApiFetch(`/member/games?${params.toString()}`);
+    const response = await memberApiFetch(`/member/games?${params.toString()}`, { signal });
     if (response.ok) {
       const payload = await response.json().catch(() => null);
       for (const game of readMemberGames(payload)) discovered.set(game.id, game);
