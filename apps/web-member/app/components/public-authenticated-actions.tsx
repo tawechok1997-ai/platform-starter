@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import type { MemberLocale } from '../member-locale-provider';
+import MemberProfileDetailModal from './member-profile-detail-modal';
+import '../member-profile-detail-modal.css';
 
 type OpenPanel = 'notifications' | 'profile' | null;
 type NoticeTab = 'all' | 'benefits' | 'messages';
@@ -51,6 +53,7 @@ const COPY = {
     language: 'เปลี่ยนภาษา',
     logout: 'ออกจากระบบ',
     openProfile: 'เปิดเมนูสมาชิก',
+    openProfileDetail: 'เปิดรายละเอียดโปรไฟล์',
     closePanel: 'ปิดเมนู',
   },
   en: {
@@ -86,6 +89,7 @@ const COPY = {
     language: 'Change language',
     logout: 'Log out',
     openProfile: 'Open member menu',
+    openProfileDetail: 'Open profile details',
     closePanel: 'Close menu',
   },
 } as const;
@@ -103,8 +107,20 @@ export default function PublicAuthenticatedActions({
   const rootRef = useRef<HTMLDivElement>(null);
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
   const [noticeTab, setNoticeTab] = useState<NoticeTab>('messages');
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState(7);
   const memberLabel = locale === 'th' ? `${copy.member} ${siteName}` : `${siteName} ${copy.member}`;
   const flagUrl = locale === 'th' ? '/images/flags/th.svg' : '/assets/asset-pc/images/flags/en.svg';
+  const avatarUrl = `/images/avatar/${selectedAvatar}.webp`;
+
+  useEffect(() => {
+    try {
+      const storedAvatar = Number(window.localStorage.getItem('member_selected_avatar'));
+      if (Number.isInteger(storedAvatar) && storedAvatar >= 1 && storedAvatar <= 15) setSelectedAvatar(storedAvatar);
+    } catch {
+      // Storage can be unavailable in private or restricted browser contexts.
+    }
+  }, []);
 
   useEffect(() => {
     if (!openPanel) return;
@@ -126,6 +142,19 @@ export default function PublicAuthenticatedActions({
 
   const togglePanel = (panel: Exclude<OpenPanel, null>) => {
     setOpenPanel((current) => (current === panel ? null : panel));
+  };
+
+  const selectAvatar = (avatar: number) => {
+    const image = new Image();
+    image.onload = () => {
+      setSelectedAvatar(avatar);
+      try {
+        window.localStorage.setItem('member_selected_avatar', String(avatar));
+      } catch {
+        // Keep the selected avatar for this session when storage is unavailable.
+      }
+    };
+    image.src = `/images/avatar/${avatar}.webp`;
   };
 
   const primaryItems = [
@@ -227,14 +256,24 @@ export default function PublicAuthenticatedActions({
           aria-controls="public-member-profile-menu"
           onClick={() => togglePanel('profile')}
         >
-          <img src="/images/avatar/7.webp" alt="" />
+          <img src={avatarUrl} alt="" onError={useAvatarFallback} />
           <ChevronIcon />
         </button>
 
         {openPanel === 'profile' ? (
           <section id="public-member-profile-menu" className="public-member-popover public-member-profile-popover" role="dialog" aria-label={copy.openProfile}>
             <div className="public-member-profile-head">
-              <img src="/images/avatar/7.webp" alt="" />
+              <button
+                type="button"
+                className="public-member-profile-avatar-button"
+                aria-label={copy.openProfileDetail}
+                onClick={() => {
+                  setOpenPanel(null);
+                  setProfileModalOpen(true);
+                }}
+              >
+                <img src={avatarUrl} alt="" onError={useAvatarFallback} />
+              </button>
               <strong>{memberLabel}</strong>
             </div>
 
@@ -304,8 +343,24 @@ export default function PublicAuthenticatedActions({
           </section>
         ) : null}
       </div>
+
+      <MemberProfileDetailModal
+        open={profileModalOpen}
+        locale={locale}
+        fallbackLabel={memberLabel}
+        selectedAvatar={selectedAvatar}
+        onClose={() => setProfileModalOpen(false)}
+        onSelectAvatar={selectAvatar}
+      />
     </div>
   );
+}
+
+function useAvatarFallback(event: React.SyntheticEvent<HTMLImageElement>) {
+  const image = event.currentTarget;
+  if (image.dataset.fallback === 'true') return;
+  image.dataset.fallback = 'true';
+  image.src = '/images/avatar/7.webp';
 }
 
 function BellIcon() {
