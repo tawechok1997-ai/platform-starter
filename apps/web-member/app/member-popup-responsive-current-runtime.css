@@ -1,0 +1,594 @@
+/* Responsive completion for the popup runtimes currently mounted by MemberChrome.
+ * The older source class names remain covered by member-popup-responsive-unified.css;
+ * this file covers the reused browse/history shell and fills mobile VIP children.
+ */
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .member-existing-popup {
+    width: calc(100vw - 32px) !important;
+    max-height: calc(100dvh - 28px) !important;
+    padding: 18px !important;
+    gap: 18px !important;
+  }
+
+  .member-existing-popup-content .browse-page,
+  .member-existing-popup-content .member-finance-page {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .member-existing-popup-backdrop {
+    position: fixed !important;
+    z-index: 2147483350 !important;
+    inset: 0 !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    padding:
+      max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left)) !important;
+    place-items: center !important;
+    overflow: auto !important;
+    background: rgb(0 0 0 / 80%) !important;
+    backdrop-filter: blur(5px) !important;
+    overscroll-behavior: contain !important;
+  }
+
+  .member-existing-popup {
+    position: relative !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 680px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    margin: 0 !important;
+    padding: 14px !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    overflow: hidden !important;
+    border: 1px solid rgb(255 255 255 / 7%) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 96%) 0%, rgb(27 24 36 / 99%) 100%) !important;
+    box-shadow: 0 24px 80px rgb(0 0 0 / 58%) !important;
+  }
+
+  .member-existing-popup-top-line {
+    position: absolute !important;
+    z-index: 9 !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 1px !important;
+    background: linear-gradient(90deg, transparent 18%, #fff 50%, transparent 82%) !important;
+  }
+
+  .member-existing-popup-header {
+    position: relative !important;
+    z-index: 8 !important;
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+  }
+
+  .member-existing-popup-header > div {
+    display: flex !important;
+    min-width: 0 !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .member-existing-popup-header > div > span {
+    display: grid !important;
+    width: 40px !important;
+    height: 40px !important;
+    flex: 0 0 40px !important;
+    place-items: center !important;
+    border-radius: 8px !important;
+    background: linear-gradient(360deg, rgb(21 23 29 / 70%), rgb(58 60 64 / 72%)) !important;
+  }
+
+  .member-existing-popup-header img {
+    width: 26px !important;
+    height: 26px !important;
+    object-fit: contain !important;
+  }
+
+  .member-existing-popup-header h2 {
+    min-width: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    line-height: 24px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .member-existing-popup-header > button {
+    display: grid !important;
+    width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    flex: 0 0 44px !important;
+    place-items: center !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    color: #fff !important;
+    background: transparent !important;
+  }
+
+  .member-existing-popup-header > button svg {
+    width: 20px !important;
+    height: 20px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+    stroke-linecap: round !important;
+  }
+
+  .member-existing-popup-content {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: thin !important;
+  }
+
+  .member-existing-popup-content .browse-page,
+  .member-existing-popup-content .member-finance-page {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .member-existing-popup-content .browse-page > header,
+  .member-existing-popup-content .member-finance-page__header {
+    margin-bottom: 12px !important;
+  }
+
+  .member-existing-popup-content .browse-source-shortcuts {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .member-existing-popup-content .browse-source-shortcuts button {
+    min-width: 0 !important;
+  }
+
+  .member-existing-popup-content .browse-source-shortcuts small {
+    display: none !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-panel {
+    padding: 12px !important;
+  }
+
+  .member-existing-popup-content .browse-source-panel-heading {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-tabs {
+    display: flex !important;
+    width: 100% !important;
+    padding-bottom: 2px !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-tabs button {
+    min-width: max-content !important;
+    flex: 0 0 auto !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-card {
+    min-width: 0 !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-copy {
+    padding: 10px !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-copy h2 {
+    font-size: 16px !important;
+    line-height: 22px !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-copy footer {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 7px !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-copy footer > * {
+    width: 100% !important;
+    min-height: 42px !important;
+  }
+
+  .member-existing-popup-content .member-finance-page__header,
+  .member-existing-popup-content .member-finance-page__back {
+    display: none !important;
+  }
+
+  .member-existing-popup-content .member-finance-list,
+  .member-existing-popup-content .member-finance-table-wrap,
+  .member-existing-popup-content [class*='transaction'] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .member-existing-popup-content table {
+    min-width: 680px !important;
+  }
+
+  .member-existing-popup-content :has(> table) {
+    overflow-x: auto !important;
+    overscroll-behavior-x: contain !important;
+  }
+
+  .member-existing-video {
+    display: grid !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    place-items: center !important;
+  }
+
+  .member-existing-video video {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: calc(100dvh - 120px) !important;
+    border-radius: 8px !important;
+    object-fit: contain !important;
+    background: #000 !important;
+  }
+
+  .member-existing-popup-loading {
+    display: grid !important;
+    min-height: 180px !important;
+    place-items: center !important;
+    color: #c9c4ce !important;
+  }
+
+  /* VIP mobile children are defined here because the source stylesheet is
+   * wholly desktop-scoped. */
+  .member-vip-top-line {
+    position: absolute !important;
+    z-index: 9 !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 1px !important;
+    background: linear-gradient(90deg, transparent 18%, #fff 50%, transparent 82%) !important;
+  }
+
+  .member-vip-title-group {
+    display: flex !important;
+    min-width: 0 !important;
+    align-items: center !important;
+  }
+
+  .member-vip-title-group h2 {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .member-vip-close {
+    display: grid !important;
+    padding: 0 !important;
+    border: 0 !important;
+    color: #fff !important;
+    background: transparent !important;
+  }
+
+  .member-vip-close svg {
+    width: 20px !important;
+    height: 20px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+  }
+
+  .member-vip-tier-step {
+    display: flex !important;
+    height: 100% !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+  }
+
+  .member-vip-tier-step > button {
+    position: relative !important;
+    display: flex !important;
+    padding: 0 0 20px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 0 !important;
+    color: #aaa !important;
+    background: transparent !important;
+  }
+
+  .member-vip-tier-step > button.is-selected {
+    color: #fff !important;
+  }
+
+  .member-vip-tier-label {
+    position: absolute !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: max-content !important;
+    min-width: 64px !important;
+    height: 22px !important;
+    margin: auto !important;
+    padding: 0 9px !important;
+    border-radius: 14px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    line-height: 22px !important;
+    text-align: center !important;
+  }
+
+  .member-vip-lock {
+    display: grid !important;
+    width: 22px !important;
+    height: 22px !important;
+    place-items: center !important;
+    border-radius: 999px !important;
+    background: #353535 !important;
+  }
+
+  .member-vip-lock svg {
+    width: 12px !important;
+    height: 12px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+  }
+
+  .member-vip-level-card {
+    position: relative !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    overflow: hidden !important;
+    border: 1px solid rgb(255 255 255 / 13%) !important;
+    border-radius: 10px !important;
+    background:
+      radial-gradient(circle at 25% 20%, rgb(255 148 153 / 22%), transparent 35%),
+      linear-gradient(180deg, rgb(72 72 72 / 88%), rgb(4 4 4 / 94%)) !important;
+  }
+
+  .member-vip-progress-copy,
+  .member-vip-locked-copy {
+    position: relative !important;
+    z-index: 1 !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    flex-direction: column !important;
+  }
+
+  .member-vip-progress-track {
+    width: 55% !important;
+    height: 4px !important;
+    margin-bottom: 8px !important;
+    overflow: hidden !important;
+    border-radius: 999px !important;
+    background: rgb(230 230 230 / 12%) !important;
+  }
+
+  .member-vip-progress-track span {
+    display: block !important;
+    height: 100% !important;
+    background: linear-gradient(270deg, #fff1c2, transparent) !important;
+  }
+
+  .member-vip-progress-copy > span,
+  .member-vip-progress-copy > strong,
+  .member-vip-progress-copy > p,
+  .member-vip-locked-copy > span,
+  .member-vip-locked-copy > strong {
+    margin: 0 !important;
+    font-size: 12px !important;
+    line-height: 18px !important;
+  }
+
+  .member-vip-locked-copy {
+    margin-top: 20px !important;
+    align-items: center !important;
+    gap: 6px !important;
+    text-align: center !important;
+  }
+
+  .member-vip-birthday-card {
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: 70px !important;
+    padding: 9px !important;
+    align-items: center !important;
+    gap: 9px !important;
+    border: 1px solid #555458 !important;
+    border-radius: 7px !important;
+    background: #15131a !important;
+  }
+
+  .member-vip-benefit-square {
+    display: grid !important;
+    width: 46px !important;
+    height: 46px !important;
+    flex: 0 0 46px !important;
+    place-items: center !important;
+    border: 1px solid #413e4b !important;
+    border-radius: 9px !important;
+    background: linear-gradient(0deg, rgb(27 24 36 / 60%), rgb(63 59 75 / 60%)) !important;
+  }
+
+  .member-vip-benefit-square img {
+    width: 32px !important;
+    height: 32px !important;
+    object-fit: contain !important;
+  }
+
+  .member-vip-birthday-card > strong {
+    min-width: 0 !important;
+    flex: 1 !important;
+    font-size: 14px !important;
+    line-height: 20px !important;
+  }
+
+  .member-vip-birthday-card > a {
+    display: inline-flex !important;
+    min-width: 96px !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    color: #fff !important;
+    background: linear-gradient(165deg, #944fe8, #7600a8) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+  }
+
+  .member-vip-benefit-section {
+    width: 100% !important;
+  }
+
+  .member-vip-benefit-section h3 {
+    box-sizing: border-box !important;
+    width: min(260px, 82%) !important;
+    min-height: 38px !important;
+    margin: 0 !important;
+    padding: 7px 14px !important;
+    border-radius: 7px 7px 0 0 !important;
+    background: #413e4b !important;
+    font-size: 17px !important;
+    line-height: 24px !important;
+  }
+
+  .member-vip-benefit-grid > *,
+  [class*='member-vip-benefit-card'] {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .member-existing-popup {
+    padding: 12px !important;
+    gap: 12px !important;
+    border-radius: 8px !important;
+  }
+
+  .member-existing-popup-content .browse-source-shortcuts {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-card {
+    display: grid !important;
+    grid-template-columns: minmax(118px, .42fr) minmax(0, .58fr) !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-image-link,
+  .member-existing-popup-content .browse-source-promotion-image {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 160px !important;
+    object-fit: cover !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-copy p,
+  .member-existing-popup-content .browse-source-promotion-copy dl {
+    display: none !important;
+  }
+
+  .member-vip-birthday-card {
+    align-items: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+
+  .member-vip-birthday-card > a {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .member-existing-popup-backdrop {
+    padding: 5px !important;
+  }
+
+  .member-existing-popup {
+    max-height: calc(100dvh - 10px) !important;
+    padding: 10px !important;
+  }
+
+  .member-existing-popup-header > div > span {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
+  }
+
+  .member-existing-popup-header h2 {
+    font-size: 16px !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-card {
+    grid-template-columns: minmax(96px, .38fr) minmax(0, .62fr) !important;
+  }
+
+  .member-existing-popup-content .browse-source-promotion-image-link,
+  .member-existing-popup-content .browse-source-promotion-image {
+    min-height: 140px !important;
+  }
+}
+
+@media (max-height: 560px) {
+  .member-existing-popup-backdrop {
+    place-items: start center !important;
+    padding-block: 5px !important;
+  }
+
+  .member-existing-popup {
+    max-height: calc(100dvh - 10px) !important;
+  }
+
+  .member-existing-video video {
+    max-height: calc(100dvh - 92px) !important;
+  }
+}
