@@ -55,13 +55,27 @@ type FeatureSettings = {
   [key: string]: unknown;
 };
 
-type ContactSettings = {
+export type ContactSettings = {
   line_oa?: string;
+  line_id?: string;
+  line_url?: string;
+  line_link?: string;
+  line_qr_url?: string;
   telegram?: string;
+  telegram_url?: string;
   facebook?: string;
+  facebook_url?: string;
   email?: string;
   phone?: string;
   live_chat_url?: string;
+  youtube?: string;
+  youtube_url?: string;
+  tiktok?: string;
+  tiktok_url?: string;
+  x?: string;
+  x_url?: string;
+  twitter?: string;
+  twitter_url?: string;
   support_hours?: string;
   company_name?: string;
   address?: string;
