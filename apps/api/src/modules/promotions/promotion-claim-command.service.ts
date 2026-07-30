@@ -307,7 +307,7 @@ export class PromotionClaimCommandService {
   private claimPeriodStart(period: PromotionClaimLimitPeriod) {
     if (period === 'lifetime') return undefined;
     const nowBangkok = new Date(Date.now() + BANGKOK_OFFSET_MS);
-    let year = nowBangkok.getUTCFullYear();
+    const year = nowBangkok.getUTCFullYear();
     let month = nowBangkok.getUTCMonth();
     let day = nowBangkok.getUTCDate();
     if (period === 'week') day -= nowBangkok.getUTCDay();
