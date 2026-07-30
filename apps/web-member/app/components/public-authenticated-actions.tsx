@@ -21,6 +21,7 @@ type PublicAuthenticatedActionsProps = {
 
 const ASSET_BASE = '/assets/asset-pc/images';
 const AVATAR_BASE = `${ASSET_BASE}/avatar`;
+const FALLBACK_AVATAR_URL = '/images/avatar/7.webp';
 
 const COPY = {
   th: {
@@ -113,7 +114,9 @@ export default function PublicAuthenticatedActions({
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(7);
   const memberLabel = locale === 'th' ? `${copy.member} ${siteName}` : `${siteName} ${copy.member}`;
-  const avatarUrl = `${AVATAR_BASE}/${selectedAvatar}.webp`;
+  const avatarUrl = selectedAvatar === 7
+    ? FALLBACK_AVATAR_URL
+    : `${AVATAR_BASE}/${selectedAvatar}.webp`;
 
   useEffect(() => {
     try {
@@ -156,7 +159,7 @@ export default function PublicAuthenticatedActions({
         // Keep the selected avatar for this session when storage is unavailable.
       }
     };
-    image.src = `${AVATAR_BASE}/${avatar}.webp`;
+    image.src = avatar === 7 ? FALLBACK_AVATAR_URL : `${AVATAR_BASE}/${avatar}.webp`;
   };
 
   const primaryItems = [
@@ -362,7 +365,7 @@ function useAvatarFallback(event: React.SyntheticEvent<HTMLImageElement>) {
   const image = event.currentTarget;
   if (image.dataset.fallback === 'true') return;
   image.dataset.fallback = 'true';
-  image.src = `${AVATAR_BASE}/7.webp`;
+  image.src = FALLBACK_AVATAR_URL;
 }
 
 function ChevronIcon() {
