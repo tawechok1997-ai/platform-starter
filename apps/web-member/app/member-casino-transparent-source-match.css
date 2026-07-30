@@ -65,7 +65,9 @@
   }
 
   html body main[data-source-game-category='casino'] [data-source-game-cover] {
-    background: #15131a !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
     box-shadow: none !important;
   }
 
@@ -124,6 +126,9 @@
   }
 
   html body main[data-source-game-category='casino'] [data-source-game-cover] {
-    background: #15131a !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
   }
 }
