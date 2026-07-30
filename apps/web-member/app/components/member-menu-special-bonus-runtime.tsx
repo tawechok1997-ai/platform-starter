@@ -83,9 +83,6 @@ export default function MemberMenuSpecialBonusRuntime({ locale }: { locale: Memb
       event.stopPropagation();
       setOpen(true);
       void loadBonus();
-      window.setTimeout(() => {
-        document.querySelector<HTMLButtonElement>('.public-member-profile-trigger[aria-expanded="true"]')?.click();
-      }, 0);
     };
 
     document.addEventListener('click', handleClick, true);
@@ -117,6 +114,7 @@ export default function MemberMenuSpecialBonusRuntime({ locale }: { locale: Memb
   return createPortal(
     <div
       className="member-special-bonus-backdrop"
+      data-member-layer-keeps-profile-open="true"
       role="presentation"
       onPointerDown={(event) => {
         if (event.target === event.currentTarget) close();
@@ -179,57 +177,37 @@ export default function MemberMenuSpecialBonusRuntime({ locale }: { locale: Memb
 }
 
 function BonusEmptyState({ label }: { label: string }) {
-  return (
-    <div className="member-special-bonus-empty">
-      <svg viewBox="0 0 116 81" aria-hidden="true">
-        <path d="M87.431 36.608H23.215V72.73a8.027 8.027 0 0 0 8.027 8.027h48.162a8.027 8.027 0 0 0 8.027-8.027V36.608Z" fill="#e0b1f1" />
-        <rect x="47.898" y="46.667" width="14.737" height="4.912" rx="2.456" fill="#a800cb" />
-        <path fillRule="evenodd" clipRule="evenodd" d="M7.754 17.313a8.027 8.027 0 0 0-5.676 9.831l2.077 7.754a8.027 8.027 0 0 0 9.831 5.676l56.86-15.236a8.027 8.027 0 0 0 5.675-9.83l-2.077-7.754a8.027 8.027 0 0 0-9.831-5.676L7.753 17.313Z" fill="#a800cb" />
-        <path d="M68.773 35s19.65-5.526 16.58-11.667c-1.665-3.33-6.44-3.1-9.211-.614-3.193 2.864-3.061 10.438 1.228 10.438 3.071 0 10.44.614 15.966-2.456 8.655-4.809 10.439-8.597 12.895-14.123" stroke="#e0b1f1" strokeWidth="1.228" strokeLinecap="round" strokeDasharray="2.46 2.46" />
-        <path fillRule="evenodd" clipRule="evenodd" d="M112.255 7.827c.31-1.004-.96-1.731-1.669-.953l-.083.09a3.143 3.143 0 0 1-3.159.766c-1.018-.372-1.786.957-.953 1.652a3.145 3.145 0 0 1 .912 3.132l-.033.105c-.32 1.001.944 1.738 1.659.967l.088-.094a3.144 3.144 0 0 1 3.169-.761c1.021.374 1.79-.958.955-1.655a3.145 3.145 0 0 1-.902-3.202l.016-.047Z" fill="#e0b1f1" />
-      </svg>
-      <span>{label}</span>
-    </div>
-  );
+  return <div className="member-special-bonus-empty"><span aria-hidden="true">◆</span><strong>{label}</strong></div>;
 }
 
 function CloseIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>;
 }
 
-function safeNumber(value: number | string | null | undefined) {
-  const parsed = Number(value ?? 0);
-  return Number.isFinite(parsed) ? parsed : 0;
+function safeNumber(value: unknown) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
 }
 
 function formatNumber(value: number) {
-  return value.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return new Intl.NumberFormat('th-TH', { maximumFractionDigits: 2 }).format(value);
 }
 
-function formatMoney(value: number | string | null | undefined, currency: string | null | undefined) {
-  const code = currency?.trim() || 'THB';
-  return `${code} ${formatNumber(safeNumber(value))}`;
+function formatMoney(value: unknown, currency?: string | null) {
+  const amount = safeNumber(value);
+  const code = String(currency || 'THB').trim().toUpperCase() || 'THB';
+  try {
+    return new Intl.NumberFormat('th-TH', { style: 'currency', currency: code }).format(amount);
+  } catch {
+    return `${code} ${formatNumber(amount)}`;
+  }
 }
 
-function statusLabel(status: string, locale: MemberLocale) {
-  const normalized = status.toUpperCase();
-  const thai: Record<string, string> = {
-    ACTIVE: 'กำลังทำเทิร์น',
-    REVIEWING: 'กำลังตรวจ',
-    TURNOVER_COMPLETED: 'ผ่านเทิร์นแล้ว',
-    RELEASE_READY: 'พร้อมรับโบนัส',
-    COMPLETED: 'เสร็จสิ้น',
-    EXPIRED: 'หมดอายุ',
-    REVOKED: 'ถูกยกเลิก',
-  };
-  const english: Record<string, string> = {
-    ACTIVE: 'Active',
-    REVIEWING: 'Reviewing',
-    TURNOVER_COMPLETED: 'Turnover completed',
-    RELEASE_READY: 'Ready',
-    COMPLETED: 'Completed',
-    EXPIRED: 'Expired',
-    REVOKED: 'Revoked',
-  };
-  return (locale === 'th' ? thai : english)[normalized] || normalized || '-';
+function statusLabel(value: string, locale: MemberLocale) {
+  const normalized = value.trim().toUpperCase();
+  if (locale === 'en') return normalized || 'ACTIVE';
+  if (['ACTIVE', 'CLAIMED', 'RELEASED'].includes(normalized)) return 'ใช้งาน';
+  if (['LOCKED', 'PENDING', 'WAGERING'].includes(normalized)) return 'กำลังทำเทิร์น';
+  if (['EXPIRED', 'CANCELLED', 'VOID'].includes(normalized)) return 'สิ้นสุด';
+  return normalized || 'ใช้งาน';
 }
