@@ -30,7 +30,6 @@ type Provider = {
   status: ProviderStatus;
   walletMode?: string;
   currency?: string;
-  metadata?: unknown;
   _count?: { games?: number; endpoints?: number; credentials?: number; sessions?: number };
 };
 
@@ -50,9 +49,9 @@ type Game = {
 };
 
 type PendingAction =
-  | { kind: 'game'; item: Game; status: GameStatus }
-  | { kind: 'provider'; item: Provider; status: ProviderStatus }
-  | { kind: 'bulk'; items: Game[]; status: GameStatus };
+  | { kind: 'game'; game: Game; status: GameStatus }
+  | { kind: 'provider'; provider: Provider; status: ProviderStatus }
+  | { kind: 'bulk'; games: Game[]; status: GameStatus };
 
 type Copy = {
   eyebrow: string;
@@ -65,18 +64,17 @@ type Copy = {
   tabs: Record<TabKey, string>;
   totalGames: string;
   availableGames: string;
-  providerBlocked: string;
-  featuredGames: string;
-  providersOnline: string;
+  blockedGames: string;
+  homeGames: string;
+  providersReady: string;
   overviewTitle: string;
   overviewDescription: string;
   healthy: string;
   attention: string;
   adminEnabled: string;
   adminDisabled: string;
-  gameMaintenance: string;
+  maintenanceGames: string;
   providerIssues: string;
-  blockedGames: string;
   homeTitle: string;
   homeDescription: string;
   gamesTitle: string;
@@ -87,7 +85,7 @@ type Copy = {
   competitionDescription: string;
   maintenanceTitle: string;
   maintenanceDescription: string;
-  searchPlaceholder: string;
+  search: string;
   allProviders: string;
   allStatuses: string;
   allCategories: string;
@@ -138,12 +136,13 @@ const copy: Record<AdminLocale, Copy> = {
     eyebrow: 'แพลตฟอร์มเกม',
     title: 'ศูนย์ควบคุมเกม',
     description: 'ควบคุมเกมหน้าแรก รายการเกม ค่ายเกม API และการปิดปรับปรุงจากจุดเดียว',
-    refresh: 'อัปเดตข้อมูล', refreshing: 'กำลังอัปเดต', retry: 'ลองใหม่', noPermission: 'บัญชีนี้ดูข้อมูลได้ แต่ไม่มีสิทธิ์เปลี่ยนการตั้งค่าเกม',
+    refresh: 'อัปเดตข้อมูล', refreshing: 'กำลังอัปเดต', retry: 'ลองใหม่',
+    noPermission: 'บัญชีนี้ดูข้อมูลได้ แต่ไม่มีสิทธิ์เปลี่ยนการตั้งค่าเกม',
     tabs: { overview: 'ภาพรวม', home: 'เกมหน้าแรก', games: 'เกมทั้งหมด', providers: 'ค่ายเกม / API', competition: 'Tournament / Leaderboard', maintenance: 'ปิดระบบ / Maintenance' },
-    totalGames: 'เกมทั้งหมด', availableGames: 'พร้อมให้บริการ', providerBlocked: 'Provider ปิดกั้น', featuredGames: 'เกมหน้าแรก', providersOnline: 'ค่ายพร้อมใช้',
-    overviewTitle: 'สถานะระบบเกม', overviewDescription: 'สถานะใช้งานจริงคำนวณจากสถานะ Admin, ค่ายเกม และสถานะล่าสุดที่ Provider รายงาน', healthy: 'ระบบเกมพร้อมให้บริการตามปกติ', attention: 'มีรายการที่ต้องตรวจสอบ', adminEnabled: 'Admin เปิดใช้', adminDisabled: 'Admin ปิดใช้', gameMaintenance: 'เกมปิดปรับปรุง', providerIssues: 'ค่ายมีปัญหา', blockedGames: 'เกมถูก Provider ปิดกั้น',
-    homeTitle: 'จัดเกมหน้าแรก', homeDescription: 'กำหนด Featured, Popular และ New จากข้อมูลเกมจริง', gamesTitle: 'ควบคุมเกมทั้งหมด', gamesDescription: 'ค้นหา กรอง เปิด ปิด และปิดปรับปรุงรายเกมหรือหลายเกมพร้อมกัน', providersTitle: 'ค่ายเกมและ API', providersDescription: 'ตรวจสุขภาพ ซิงก์รายชื่อเกม และควบคุมสถานะค่ายโดยไม่ให้ Provider เปิดเกมที่ Admin ปิดกลับเอง', competitionTitle: 'Tournament และ Leaderboard', competitionDescription: 'จัดกลุ่มเกมเด่น ยอดนิยม และเกมใหม่สำหรับพื้นที่แข่งขันและอันดับ', maintenanceTitle: 'ศูนย์ปิดปรับปรุง', maintenanceDescription: 'เห็นจำนวนเกมที่ได้รับผลกระทบก่อนปิดเกมหรือค่าย',
-    searchPlaceholder: 'ค้นหาชื่อเกม รหัสเกม หรือค่าย', allProviders: 'ทุกค่าย', allStatuses: 'ทุกสถานะ', allCategories: 'ทุกหมวด', visible: 'เกมที่แสดง', selected: 'เลือกแล้ว', selectVisible: 'เลือกที่แสดง', clearSelection: 'ล้างที่เลือก', activateSelected: 'เปิดเกมที่เลือก', maintainSelected: 'ปิดปรับปรุงที่เลือก', disableSelected: 'ปิดเกมที่เลือก',
+    totalGames: 'เกมทั้งหมด', availableGames: 'พร้อมให้บริการ', blockedGames: 'Provider ปิดกั้น', homeGames: 'เกมหน้าแรก', providersReady: 'ค่ายพร้อมใช้',
+    overviewTitle: 'สถานะระบบเกม', overviewDescription: 'สถานะใช้งานจริงคำนวณจากสถานะ Admin ค่ายเกม และสถานะล่าสุดจาก Provider', healthy: 'ระบบเกมพร้อมให้บริการตามปกติ', attention: 'มีรายการที่ต้องตรวจสอบ', adminEnabled: 'Admin เปิดใช้', adminDisabled: 'Admin ปิดใช้', maintenanceGames: 'เกมปิดปรับปรุง', providerIssues: 'ค่ายมีปัญหา',
+    homeTitle: 'จัดเกมหน้าแรก', homeDescription: 'กำหนด Featured, Popular และ New จากข้อมูลเกมจริง', gamesTitle: 'ควบคุมเกมทั้งหมด', gamesDescription: 'ค้นหา กรอง เปิด ปิด และปิดปรับปรุงรายเกมหรือหลายเกมพร้อมกัน', providersTitle: 'ค่ายเกมและ API', providersDescription: 'ตรวจสุขภาพ ซิงก์เกม และรักษาสิทธิ์การควบคุมของ Admin', competitionTitle: 'Tournament และ Leaderboard', competitionDescription: 'จัดกลุ่มเกมเด่น ยอดนิยม และเกมใหม่สำหรับพื้นที่แข่งขันและอันดับ', maintenanceTitle: 'ศูนย์ปิดปรับปรุง', maintenanceDescription: 'เห็นจำนวนเกมที่ได้รับผลกระทบก่อนปิดเกมหรือค่าย',
+    search: 'ค้นหาชื่อเกม รหัสเกม หรือค่าย', allProviders: 'ทุกค่าย', allStatuses: 'ทุกสถานะ', allCategories: 'ทุกหมวด', visible: 'เกมที่แสดง', selected: 'เลือกแล้ว', selectVisible: 'เลือกที่แสดง', clearSelection: 'ล้างที่เลือก', activateSelected: 'เปิดเกมที่เลือก', maintainSelected: 'ปิดปรับปรุงที่เลือก', disableSelected: 'ปิดเกมที่เลือก',
     game: 'เกม', provider: 'ค่าย', category: 'หมวด', adminStatus: 'สถานะ Admin', providerStatus: 'สถานะ Provider', effectiveStatus: 'สถานะใช้งานจริง', display: 'การแสดงผล', actions: 'คำสั่ง', activate: 'เปิดใช้งาน', disable: 'ปิดใช้งาน', maintenance: 'ปิดปรับปรุง', healthCheck: 'ตรวจสุขภาพ', syncGames: 'ซิงก์เกม', providerSettings: 'ตั้งค่าค่าย', featureSettings: 'ตั้งค่าฟีเจอร์', addHome: 'ขึ้นหน้าแรก', removeHome: 'เอาออกจากหน้าแรก', markPopular: 'ทำเป็นยอดนิยม', removePopular: 'เลิกเป็นยอดนิยม', markNew: 'ทำเป็นเกมใหม่', removeNew: 'เลิกเป็นเกมใหม่',
     noGames: 'ไม่พบเกมตามตัวกรอง', noProviders: 'ไม่พบข้อมูลค่ายเกม', saved: 'บันทึกการเปลี่ยนแปลงแล้ว', failed: 'ดำเนินการไม่สำเร็จ กรุณาลองใหม่', healthUpdated: 'อัปเดตผลตรวจสุขภาพค่ายแล้ว', syncCompleted: 'ซิงก์รายชื่อเกมแล้ว', confirmTitle: 'ยืนยันการเปลี่ยนสถานะ', confirmDescription: 'สถานะนี้จะมีผลทันที และ Member API จะตรวจซ้ำก่อนเปิดเกม', confirm: 'ยืนยัน', cancel: 'ยกเลิก', affectedGames: 'เกมที่ได้รับผลกระทบ', useVisibleGames: 'ยังไม่ได้เลือกเกม ระบบจะใช้เกมที่แสดงอยู่',
   },
@@ -151,19 +150,19 @@ const copy: Record<AdminLocale, Copy> = {
     eyebrow: 'Game platform',
     title: 'Game control center',
     description: 'Control home games, catalog, providers, API health, and maintenance from one workspace',
-    refresh: 'Refresh data', refreshing: 'Refreshing', retry: 'Retry', noPermission: 'This account can view data but cannot change game settings',
+    refresh: 'Refresh data', refreshing: 'Refreshing', retry: 'Retry',
+    noPermission: 'This account can view data but cannot change game settings',
     tabs: { overview: 'Overview', home: 'Home games', games: 'All games', providers: 'Providers / API', competition: 'Tournament / Leaderboard', maintenance: 'Shutdown / Maintenance' },
-    totalGames: 'Total games', availableGames: 'Available', providerBlocked: 'Provider blocked', featuredGames: 'Home games', providersOnline: 'Providers ready',
-    overviewTitle: 'Game system status', overviewDescription: 'Effective availability combines Admin status, provider status, and the latest reported game status', healthy: 'The game system is operating normally', attention: 'Items require review', adminEnabled: 'Admin enabled', adminDisabled: 'Admin disabled', gameMaintenance: 'Game maintenance', providerIssues: 'Provider issues', blockedGames: 'Games blocked by Provider',
-    homeTitle: 'Manage home games', homeDescription: 'Set Featured, Popular, and New using live catalog data', gamesTitle: 'Control all games', gamesDescription: 'Search, filter, enable, disable, or maintain individual and selected games', providersTitle: 'Providers and API', providersDescription: 'Run health checks, sync games, and retain Admin control over disabled games', competitionTitle: 'Tournament and leaderboard', competitionDescription: 'Organize featured, popular, and new games for competition and ranking surfaces', maintenanceTitle: 'Maintenance center', maintenanceDescription: 'Review affected-game counts before disabling games or providers',
-    searchPlaceholder: 'Search game, code, or provider', allProviders: 'All providers', allStatuses: 'All statuses', allCategories: 'All categories', visible: 'visible games', selected: 'selected', selectVisible: 'Select visible', clearSelection: 'Clear selection', activateSelected: 'Activate selected', maintainSelected: 'Maintain selected', disableSelected: 'Disable selected',
+    totalGames: 'Total games', availableGames: 'Available', blockedGames: 'Provider blocked', homeGames: 'Home games', providersReady: 'Providers ready',
+    overviewTitle: 'Game system status', overviewDescription: 'Effective availability combines Admin, provider, and latest reported game status', healthy: 'The game system is operating normally', attention: 'Items require review', adminEnabled: 'Admin enabled', adminDisabled: 'Admin disabled', maintenanceGames: 'Game maintenance', providerIssues: 'Provider issues',
+    homeTitle: 'Manage home games', homeDescription: 'Set Featured, Popular, and New using live catalog data', gamesTitle: 'Control all games', gamesDescription: 'Search, filter, enable, disable, or maintain individual and selected games', providersTitle: 'Providers and API', providersDescription: 'Run health checks, sync games, and retain Admin control', competitionTitle: 'Tournament and leaderboard', competitionDescription: 'Organize featured, popular, and new games for competition and ranking surfaces', maintenanceTitle: 'Maintenance center', maintenanceDescription: 'Review affected-game counts before disabling games or providers',
+    search: 'Search game, code, or provider', allProviders: 'All providers', allStatuses: 'All statuses', allCategories: 'All categories', visible: 'visible games', selected: 'selected', selectVisible: 'Select visible', clearSelection: 'Clear selection', activateSelected: 'Activate selected', maintainSelected: 'Maintain selected', disableSelected: 'Disable selected',
     game: 'Game', provider: 'Provider', category: 'Category', adminStatus: 'Admin status', providerStatus: 'Provider status', effectiveStatus: 'Effective status', display: 'Display', actions: 'Actions', activate: 'Activate', disable: 'Disable', maintenance: 'Maintenance', healthCheck: 'Health check', syncGames: 'Sync games', providerSettings: 'Provider settings', featureSettings: 'Feature settings', addHome: 'Add to home', removeHome: 'Remove from home', markPopular: 'Mark popular', removePopular: 'Unmark popular', markNew: 'Mark new', removeNew: 'Unmark new',
     noGames: 'No games match the filters', noProviders: 'No provider data', saved: 'Changes saved', failed: 'Action failed. Please try again', healthUpdated: 'Provider health result updated', syncCompleted: 'Game catalog synced', confirmTitle: 'Confirm status change', confirmDescription: 'The status takes effect immediately and the Member API rechecks it before launch', confirm: 'Confirm', cancel: 'Cancel', affectedGames: 'Affected games', useVisibleGames: 'No games selected. Visible games will be used',
   },
 };
 
 const gameStatuses: GameStatus[] = ['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'REMOVED'];
-const providerStatuses: ProviderStatus[] = ['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'DEGRADED'];
 
 export default function GameControlPage() {
   const [locale] = useAdminLocale();
@@ -187,26 +186,26 @@ export default function GameControlPage() {
   useEffect(() => { void loadAll(); }, []);
 
   const canManage = permissions.includes('*') || permissions.includes('game.providers.manage') || permissions.includes('provider.update');
-  const categories = useMemo(() => [...new Set(games.map((item) => item.category).filter(Boolean))].sort(), [games]);
+  const categories = useMemo(() => [...new Set(games.map((game) => game.category).filter(Boolean))].sort(), [games]);
   const visibleGames = useMemo(() => {
     const keyword = query.trim().toLocaleLowerCase(locale === 'th' ? 'th' : 'en');
-    return games.filter((item) => {
-      const text = `${item.name} ${item.providerGameCode} ${item.provider?.name ?? ''} ${item.provider?.code ?? ''}`.toLocaleLowerCase(locale === 'th' ? 'th' : 'en');
+    return games.filter((game) => {
+      const text = `${game.name} ${game.providerGameCode} ${game.provider?.name ?? ''} ${game.provider?.code ?? ''}`.toLocaleLowerCase(locale === 'th' ? 'th' : 'en');
       return (!keyword || text.includes(keyword))
-        && (providerFilter === 'ALL' || item.providerId === providerFilter)
-        && (statusFilter === 'ALL' || item.status === statusFilter)
-        && (categoryFilter === 'ALL' || item.category === categoryFilter);
+        && (providerFilter === 'ALL' || game.providerId === providerFilter)
+        && (statusFilter === 'ALL' || game.status === statusFilter)
+        && (categoryFilter === 'ALL' || game.category === categoryFilter);
     });
   }, [games, query, providerFilter, statusFilter, categoryFilter, locale]);
-  const selectedGames = useMemo(() => games.filter((item) => selectedIds.includes(item.id)), [games, selectedIds]);
-  const blockedGames = useMemo(() => games.filter((item) => item.status === 'ACTIVE' && effectiveGameStatus(item) !== 'ACTIVE'), [games]);
-  const issueProviders = useMemo(() => providers.filter((item) => item.status !== 'ACTIVE' || health[item.id] === 'OFFLINE' || health[item.id] === 'DEGRADED'), [providers, health]);
+  const selectedGames = useMemo(() => games.filter((game) => selectedIds.includes(game.id)), [games, selectedIds]);
+  const blockedGames = useMemo(() => games.filter((game) => game.status === 'ACTIVE' && effectiveGameStatus(game) !== 'ACTIVE'), [games]);
+  const issueProviders = useMemo(() => providers.filter((provider) => provider.status !== 'ACTIVE' || ['OFFLINE', 'DEGRADED'].includes(health[provider.id] ?? 'UNKNOWN')), [providers, health]);
   const metrics = useMemo(() => ({
     total: games.length,
-    available: games.filter((item) => effectiveGameStatus(item) === 'ACTIVE').length,
+    available: games.filter((game) => effectiveGameStatus(game) === 'ACTIVE').length,
     blocked: blockedGames.length,
-    featured: games.filter((item) => item.isFeatured).length,
-    providersReady: providers.filter((item) => item.status === 'ACTIVE' && health[item.id] !== 'OFFLINE' && health[item.id] !== 'DEGRADED').length,
+    featured: games.filter((game) => game.isFeatured).length,
+    providersReady: providers.filter((provider) => provider.status === 'ACTIVE' && !['OFFLINE', 'DEGRADED'].includes(health[provider.id] ?? 'UNKNOWN')).length,
   }), [games, providers, health, blockedGames]);
   const pageBusy = loading || Boolean(busyKey);
 
@@ -231,7 +230,7 @@ export default function GameControlPage() {
       setGames(nextGames);
       setProviders(providersData.items as Provider[]);
       setPermissions(meResponse.ok && Array.isArray(meData?.permissions) ? meData.permissions : []);
-      setSelectedIds((current) => current.filter((id) => nextGames.some((item) => item.id === id)));
+      setSelectedIds((current) => current.filter((id) => nextGames.some((game) => game.id === id)));
     } catch {
       setIsError(true);
       setMessage(t.failed);
@@ -291,8 +290,7 @@ export default function GameControlPage() {
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(action);
       if (action === 'health-check') {
-        const nextHealth = normalizeHealth(payload?.payload?.status);
-        setHealth((current) => ({ ...current, [provider.id]: nextHealth }));
+        setHealth((current) => ({ ...current, [provider.id]: normalizeHealth(payload?.payload?.status) }));
         setMessage(t.healthUpdated);
       } else {
         setMessage(t.syncCompleted);
@@ -306,13 +304,12 @@ export default function GameControlPage() {
     }
   }
 
-  async function patchMany(items: Game[], status: GameStatus) {
-    if (!canManage || busyKey || items.length === 0) return;
+  async function patchMany(targets: Game[], status: GameStatus) {
+    if (!canManage || busyKey || targets.length === 0) return;
     setBusyKey('bulk');
     setIsError(false);
-    setMessage('');
     let failed = 0;
-    for (const game of items) {
+    for (const game of targets) {
       try {
         const response = await adminApiFetch(`/admin/games/${game.id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
         if (!response.ok) failed += 1;
@@ -320,25 +317,25 @@ export default function GameControlPage() {
         failed += 1;
       }
     }
+    setBusyKey('');
     setSelectedIds([]);
     setPending(null);
-    setBusyKey('');
     setIsError(failed > 0);
-    setMessage(failed ? `${t.failed} (${failed}/${items.length})` : t.saved);
+    setMessage(failed ? `${t.failed} (${failed}/${targets.length})` : t.saved);
     await loadAll();
   }
 
   async function confirmPending() {
     if (!pending || busyKey) return;
     if (pending.kind === 'game') {
-      if (await patchGame(pending.item, { status: pending.status })) setPending(null);
+      if (await patchGame(pending.game, { status: pending.status })) setPending(null);
       return;
     }
     if (pending.kind === 'provider') {
-      if (await patchProvider(pending.item, pending.status)) setPending(null);
+      if (await patchProvider(pending.provider, pending.status)) setPending(null);
       return;
     }
-    await patchMany(pending.items, pending.status);
+    await patchMany(pending.games, pending.status);
   }
 
   function toggleSelected(id: string) {
@@ -348,23 +345,28 @@ export default function GameControlPage() {
 
   function toggleVisible() {
     if (pageBusy) return;
-    setSelectedIds((current) => visibleGames.every((item) => current.includes(item.id))
-      ? current.filter((id) => !visibleGames.some((item) => item.id === id))
-      : [...new Set([...current, ...visibleGames.map((item) => item.id)])]);
+    setSelectedIds((current) => visibleGames.every((game) => current.includes(game.id))
+      ? current.filter((id) => !visibleGames.some((game) => game.id === id))
+      : [...new Set([...current, ...visibleGames.map((game) => game.id)])]);
   }
 
-  const pendingCount = pending?.kind === 'bulk' ? pending.items.length : pending ? 1 : 0;
+  const pendingCount = pending?.kind === 'bulk' ? pending.games.length : pending ? 1 : 0;
   const pendingStatus = pending?.status ?? 'INACTIVE';
   const pendingTone = pendingStatus === 'ACTIVE' ? 'success' : pendingStatus === 'MAINTENANCE' || pendingStatus === 'DEGRADED' ? 'primary' : 'danger';
 
-  return <AdminPage eyebrow={t.eyebrow} title={t.title} description={t.description} actions={<AdminButton onClick={() => void loadAll()} disabled={pageBusy}>{loading ? t.refreshing : t.refresh}</AdminButton>}>
+  return <AdminPage
+    eyebrow={t.eyebrow}
+    title={t.title}
+    description={t.description}
+    actions={<AdminButton onClick={() => void loadAll()} disabled={pageBusy}>{loading ? t.refreshing : t.refresh}</AdminButton>}
+  >
     <div className={styles.workspace}>
       <AdminMetricGrid>
         <AdminMetric title={t.totalGames} value={String(metrics.total)} />
         <AdminMetric title={t.availableGames} value={String(metrics.available)} tone="success" />
-        <AdminMetric title={t.providerBlocked} value={String(metrics.blocked)} tone={metrics.blocked ? 'warning' : 'success'} />
-        <AdminMetric title={t.featuredGames} value={String(metrics.featured)} tone="brand" />
-        <AdminMetric title={t.providersOnline} value={`${metrics.providersReady}/${providers.length}`} tone={metrics.providersReady === providers.length ? 'success' : 'warning'} />
+        <AdminMetric title={t.blockedGames} value={String(metrics.blocked)} tone={metrics.blocked ? 'warning' : 'success'} />
+        <AdminMetric title={t.homeGames} value={String(metrics.featured)} tone="brand" />
+        <AdminMetric title={t.providersReady} value={`${metrics.providersReady}/${providers.length}`} tone={metrics.providersReady === providers.length ? 'success' : 'warning'} />
       </AdminMetricGrid>
 
       {!loading && !canManage && <AdminNotice tone="warning">{t.noPermission}</AdminNotice>}
@@ -375,29 +377,37 @@ export default function GameControlPage() {
       </nav>
 
       {tab === 'overview' && <OverviewTab t={t} games={games} providers={providers} health={health} blockedGames={blockedGames} issueProviders={issueProviders} loading={loading} />}
-      {tab === 'home' && <FlagTab t={t} games={visibleGames} providers={providers} loading={loading} busy={Boolean(busyKey)} canManage={canManage} query={query} setQuery={setQuery} providerFilter={providerFilter} setProviderFilter={setProviderFilter} onPatch={patchGame} />}
+      {tab === 'home' && <FlagWorkspace t={t} title={t.homeTitle} description={t.homeDescription} games={visibleGames} providers={providers} loading={loading} disabled={Boolean(busyKey) || !canManage} query={query} setQuery={setQuery} providerFilter={providerFilter} setProviderFilter={setProviderFilter} onPatch={patchGame} />}
       {tab === 'games' && <GamesTab t={t} games={visibleGames} providers={providers} categories={categories} loading={loading} busy={Boolean(busyKey)} canManage={canManage} query={query} setQuery={setQuery} providerFilter={providerFilter} setProviderFilter={setProviderFilter} statusFilter={statusFilter} setStatusFilter={setStatusFilter} categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter} selectedIds={selectedIds} setSelectedIds={setSelectedIds} toggleSelected={toggleSelected} toggleVisible={toggleVisible} setPending={setPending} />}
       {tab === 'providers' && <ProvidersTab t={t} providers={providers} games={games} health={health} loading={loading} busy={Boolean(busyKey)} canManage={canManage} onAction={runProviderAction} setPending={setPending} />}
-      {tab === 'competition' && <CompetitionTab t={t} games={visibleGames} providers={providers} loading={loading} busy={Boolean(busyKey)} canManage={canManage} query={query} setQuery={setQuery} providerFilter={providerFilter} setProviderFilter={setProviderFilter} onPatch={patchGame} />}
+      {tab === 'competition' && <FlagWorkspace t={t} title={t.competitionTitle} description={t.competitionDescription} action={<AdminLinkButton href="/settings/features" tone="ghost" size="compact">{t.featureSettings}</AdminLinkButton>} games={[...visibleGames].sort((a, b) => Number(b.isPopular) - Number(a.isPopular) || Number(b.isFeatured) - Number(a.isFeatured) || a.sortOrder - b.sortOrder)} providers={providers} loading={loading} disabled={Boolean(busyKey) || !canManage} query={query} setQuery={setQuery} providerFilter={providerFilter} setProviderFilter={setProviderFilter} onPatch={patchGame} />}
       {tab === 'maintenance' && <MaintenanceTab t={t} games={games} providers={providers} visibleGames={visibleGames} selectedGames={selectedGames} loading={loading} canManage={canManage} setPending={setPending} />}
     </div>
 
-    <AdminConfirmDialog open={Boolean(pending)} title={t.confirmTitle} description={`${t.confirmDescription} (${pendingCount})`} confirmLabel={t.confirm} cancelLabel={t.cancel} tone={pendingTone} busy={Boolean(busyKey)} details={<StatusBadge status={pendingStatus} />} onConfirm={() => void confirmPending()} onCancel={() => { if (!busyKey) setPending(null); }} />
+    <AdminConfirmDialog
+      open={Boolean(pending)}
+      title={t.confirmTitle}
+      description={`${t.confirmDescription} (${pendingCount})`}
+      confirmLabel={t.confirm}
+      cancelLabel={t.cancel}
+      tone={pendingTone}
+      busy={Boolean(busyKey)}
+      details={<StatusBadge status={pendingStatus} />}
+      onConfirm={() => void confirmPending()}
+      onCancel={() => { if (!busyKey) setPending(null); }}
+    />
   </AdminPage>;
 }
 
 function OverviewTab({ t, games, providers, health, blockedGames, issueProviders, loading }: { t: Copy; games: Game[]; providers: Provider[]; health: Record<string, ProviderHealth>; blockedGames: Game[]; issueProviders: Provider[]; loading: boolean }) {
   if (loading) return <AdminNotice>{t.refreshing}</AdminNotice>;
-  const active = games.filter((item) => item.status === 'ACTIVE').length;
-  const inactive = games.filter((item) => item.status === 'INACTIVE' || item.status === 'REMOVED').length;
-  const maintenance = games.filter((item) => item.status === 'MAINTENANCE').length;
   return <div className={styles.grid}>
     <AdminCard title={t.overviewTitle} description={t.overviewDescription} tone={blockedGames.length || issueProviders.length ? 'warning' : 'success'}>
       <AdminNotice tone={blockedGames.length || issueProviders.length ? 'warning' : 'success'}>{blockedGames.length || issueProviders.length ? t.attention : t.healthy}</AdminNotice>
       <div className={styles.summaryGrid}>
-        <Summary label={t.adminEnabled} value={active} />
-        <Summary label={t.adminDisabled} value={inactive} />
-        <Summary label={t.gameMaintenance} value={maintenance} />
+        <Summary label={t.adminEnabled} value={games.filter((game) => game.status === 'ACTIVE').length} />
+        <Summary label={t.adminDisabled} value={games.filter((game) => game.status === 'INACTIVE' || game.status === 'REMOVED').length} />
+        <Summary label={t.maintenanceGames} value={games.filter((game) => game.status === 'MAINTENANCE').length} />
         <Summary label={t.blockedGames} value={blockedGames.length} />
       </div>
     </AdminCard>
@@ -413,17 +423,11 @@ function OverviewTab({ t, games, providers, health, blockedGames, issueProviders
   </div>;
 }
 
-function FlagTab({ t, games, providers, loading, busy, canManage, query, setQuery, providerFilter, setProviderFilter, onPatch }: { t: Copy; games: Game[]; providers: Provider[]; loading: boolean; busy: boolean; canManage: boolean; query: string; setQuery: (value: string) => void; providerFilter: string; setProviderFilter: (value: string) => void; onPatch: (game: Game, patch: Partial<Pick<Game, 'isFeatured' | 'isPopular' | 'isNew'>>) => Promise<boolean> }) {
-  return <AdminCard title={t.homeTitle} description={t.homeDescription}>
+function FlagWorkspace({ t, title, description, action, games, providers, loading, disabled, query, setQuery, providerFilter, setProviderFilter, onPatch }: { t: Copy; title: string; description: string; action?: React.ReactNode; games: Game[]; providers: Provider[]; loading: boolean; disabled: boolean; query: string; setQuery: (value: string) => void; providerFilter: string; setProviderFilter: (value: string) => void; onPatch: (game: Game, patch: Partial<Pick<Game, 'isFeatured' | 'isPopular' | 'isNew'>>) => Promise<boolean> }) {
+  return <AdminCard title={title} description={description} action={action}>
     <SimpleFilters t={t} query={query} setQuery={setQuery} providers={providers} providerFilter={providerFilter} setProviderFilter={setProviderFilter} />
-    {loading ? <AdminNotice>{t.refreshing}</AdminNotice> : games.length ? <div className={styles.flagGrid}>{games.map((game) => <FlagCard key={game.id} t={t} game={game} disabled={busy || !canManage} onPatch={onPatch} />)}</div> : <AdminEmpty>{t.noGames}</AdminEmpty>}
+    {loading ? <AdminNotice>{t.refreshing}</AdminNotice> : games.length ? <div className={styles.flagGrid}>{games.map((game) => <FlagCard key={game.id} t={t} game={game} disabled={disabled} onPatch={onPatch} />)}</div> : <AdminEmpty>{t.noGames}</AdminEmpty>}
   </AdminCard>;
-}
-
-function CompetitionTab(props: Parameters<typeof FlagTab>[0]) {
-  const { t, games } = props;
-  const ranked = [...games].sort((a, b) => Number(b.isPopular) - Number(a.isPopular) || Number(b.isFeatured) - Number(a.isFeatured) || a.sortOrder - b.sortOrder);
-  return <AdminCard title={t.competitionTitle} description={t.competitionDescription} action={<AdminLinkButton href="/settings/features" tone="ghost" size="compact">{t.featureSettings}</AdminLinkButton>}><FlagTab {...props} games={ranked} /></AdminCard>;
 }
 
 function FlagCard({ t, game, disabled, onPatch }: { t: Copy; game: Game; disabled: boolean; onPatch: (game: Game, patch: Partial<Pick<Game, 'isFeatured' | 'isPopular' | 'isNew'>>) => Promise<boolean> }) {
@@ -435,17 +439,17 @@ function FlagCard({ t, game, disabled, onPatch }: { t: Copy; game: Game; disable
 }
 
 function GamesTab({ t, games, providers, categories, loading, busy, canManage, query, setQuery, providerFilter, setProviderFilter, statusFilter, setStatusFilter, categoryFilter, setCategoryFilter, selectedIds, setSelectedIds, toggleSelected, toggleVisible, setPending }: { t: Copy; games: Game[]; providers: Provider[]; categories: string[]; loading: boolean; busy: boolean; canManage: boolean; query: string; setQuery: (value: string) => void; providerFilter: string; setProviderFilter: (value: string) => void; statusFilter: 'ALL' | GameStatus; setStatusFilter: (value: 'ALL' | GameStatus) => void; categoryFilter: string; setCategoryFilter: (value: string) => void; selectedIds: string[]; setSelectedIds: (value: string[]) => void; toggleSelected: (id: string) => void; toggleVisible: () => void; setPending: (value: PendingAction | null) => void }) {
-  const selected = games.filter((item) => selectedIds.includes(item.id));
+  const selected = games.filter((game) => selectedIds.includes(game.id));
   return <AdminCard title={t.gamesTitle} description={t.gamesDescription}>
-    <div className={styles.filters}><input className={styles.control} value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.searchPlaceholder} /><select className={styles.control} value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}><option value="ALL">{t.allProviders}</option>{providers.map((provider) => <option key={provider.id} value={provider.id}>{provider.name}</option>)}</select><select className={styles.control} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'ALL' | GameStatus)}><option value="ALL">{t.allStatuses}</option>{gameStatuses.map((status) => <option key={status}>{status}</option>)}</select><select className={styles.control} value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="ALL">{t.allCategories}</option>{categories.map((category) => <option key={category}>{category}</option>)}</select></div>
-    <AdminToolbar><span className={styles.helper}>{games.length} {t.visible} · {selectedIds.length} {t.selected}</span><AdminButton size="compact" tone="ghost" disabled={busy || games.length === 0} onClick={toggleVisible}>{t.selectVisible}</AdminButton><AdminButton size="compact" tone="ghost" disabled={busy || selectedIds.length === 0} onClick={() => setSelectedIds([])}>{t.clearSelection}</AdminButton><AdminButton size="compact" tone="success" disabled={busy || !canManage || selected.length === 0} onClick={() => setPending({ kind: 'bulk', items: selected, status: 'ACTIVE' })}>{t.activateSelected}</AdminButton><AdminButton size="compact" tone="secondary" disabled={busy || !canManage || selected.length === 0} onClick={() => setPending({ kind: 'bulk', items: selected, status: 'MAINTENANCE' })}>{t.maintainSelected}</AdminButton><AdminButton size="compact" tone="danger" disabled={busy || !canManage || selected.length === 0} onClick={() => setPending({ kind: 'bulk', items: selected, status: 'INACTIVE' })}>{t.disableSelected}</AdminButton></AdminToolbar>
-    {loading ? <AdminNotice>{t.refreshing}</AdminNotice> : games.length ? <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th className={styles.checkboxCell}><input className={styles.checkbox} type="checkbox" checked={games.length > 0 && games.every((item) => selectedIds.includes(item.id))} onChange={toggleVisible} /></th><th>{t.game}</th><th>{t.provider}</th><th>{t.category}</th><th>{t.adminStatus}</th><th>{t.providerStatus}</th><th>{t.effectiveStatus}</th><th>{t.display}</th><th>{t.actions}</th></tr></thead><tbody>{games.map((game) => <tr key={game.id}><td className={styles.checkboxCell}><input className={styles.checkbox} type="checkbox" checked={selectedIds.includes(game.id)} onChange={() => toggleSelected(game.id)} /></td><td><div className={styles.nameCell}><strong>{game.name}</strong><span className={styles.code}>{game.providerGameCode}</span></div></td><td>{game.provider?.name ?? game.providerId}</td><td>{game.category}</td><td><StatusBadge status={game.status} /></td><td><StatusBadge status={reportedGameStatus(game)} /></td><td><StatusBadge status={effectiveGameStatus(game)} /></td><td><div className={styles.statusRow}>{game.isFeatured && <AdminBadge tone="success">F</AdminBadge>}{game.isPopular && <AdminBadge tone="warning">P</AdminBadge>}{game.isNew && <AdminBadge>N</AdminBadge>}</div></td><td><div className={styles.actions}><AdminButton size="compact" tone="success" disabled={busy || !canManage || game.status === 'ACTIVE'} onClick={() => setPending({ kind: 'game', item: game, status: 'ACTIVE' })}>{t.activate}</AdminButton><AdminButton size="compact" tone="secondary" disabled={busy || !canManage || game.status === 'MAINTENANCE'} onClick={() => setPending({ kind: 'game', item: game, status: 'MAINTENANCE' })}>{t.maintenance}</AdminButton><AdminButton size="compact" tone="danger" disabled={busy || !canManage || game.status === 'INACTIVE'} onClick={() => setPending({ kind: 'game', item: game, status: 'INACTIVE' })}>{t.disable}</AdminButton></div></td></tr>)}</tbody></table></div> : <AdminEmpty>{t.noGames}</AdminEmpty>}
+    <div className={styles.filters}><input className={styles.control} value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search} /><select className={styles.control} value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}><option value="ALL">{t.allProviders}</option>{providers.map((provider) => <option key={provider.id} value={provider.id}>{provider.name}</option>)}</select><select className={styles.control} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'ALL' | GameStatus)}><option value="ALL">{t.allStatuses}</option>{gameStatuses.map((status) => <option key={status}>{status}</option>)}</select><select className={styles.control} value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="ALL">{t.allCategories}</option>{categories.map((category) => <option key={category}>{category}</option>)}</select></div>
+    <AdminToolbar><span className={styles.helper}>{games.length} {t.visible} · {selectedIds.length} {t.selected}</span><AdminButton size="compact" tone="ghost" disabled={busy || games.length === 0} onClick={toggleVisible}>{t.selectVisible}</AdminButton><AdminButton size="compact" tone="ghost" disabled={busy || selectedIds.length === 0} onClick={() => setSelectedIds([])}>{t.clearSelection}</AdminButton><AdminButton size="compact" tone="success" disabled={busy || !canManage || selected.length === 0} onClick={() => setPending({ kind: 'bulk', games: selected, status: 'ACTIVE' })}>{t.activateSelected}</AdminButton><AdminButton size="compact" tone="secondary" disabled={busy || !canManage || selected.length === 0} onClick={() => setPending({ kind: 'bulk', games: selected, status: 'MAINTENANCE' })}>{t.maintainSelected}</AdminButton><AdminButton size="compact" tone="danger" disabled={busy || !canManage || selected.length === 0} onClick={() => setPending({ kind: 'bulk', games: selected, status: 'INACTIVE' })}>{t.disableSelected}</AdminButton></AdminToolbar>
+    {loading ? <AdminNotice>{t.refreshing}</AdminNotice> : games.length ? <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th className={styles.checkboxCell}><input className={styles.checkbox} type="checkbox" checked={games.length > 0 && games.every((game) => selectedIds.includes(game.id))} onChange={toggleVisible} /></th><th>{t.game}</th><th>{t.provider}</th><th>{t.category}</th><th>{t.adminStatus}</th><th>{t.providerStatus}</th><th>{t.effectiveStatus}</th><th>{t.display}</th><th>{t.actions}</th></tr></thead><tbody>{games.map((game) => <tr key={game.id}><td className={styles.checkboxCell}><input className={styles.checkbox} type="checkbox" checked={selectedIds.includes(game.id)} onChange={() => toggleSelected(game.id)} /></td><td><div className={styles.nameCell}><strong>{game.name}</strong><span className={styles.code}>{game.providerGameCode}</span></div></td><td>{game.provider?.name ?? game.providerId}</td><td>{game.category}</td><td><StatusBadge status={game.status} /></td><td><StatusBadge status={reportedGameStatus(game)} /></td><td><StatusBadge status={effectiveGameStatus(game)} /></td><td><div className={styles.statusRow}>{game.isFeatured && <AdminBadge tone="success">F</AdminBadge>}{game.isPopular && <AdminBadge tone="warning">P</AdminBadge>}{game.isNew && <AdminBadge>N</AdminBadge>}</div></td><td><div className={styles.actions}><AdminButton size="compact" tone="success" disabled={busy || !canManage || game.status === 'ACTIVE'} onClick={() => setPending({ kind: 'game', game, status: 'ACTIVE' })}>{t.activate}</AdminButton><AdminButton size="compact" tone="secondary" disabled={busy || !canManage || game.status === 'MAINTENANCE'} onClick={() => setPending({ kind: 'game', game, status: 'MAINTENANCE' })}>{t.maintenance}</AdminButton><AdminButton size="compact" tone="danger" disabled={busy || !canManage || game.status === 'INACTIVE'} onClick={() => setPending({ kind: 'game', game, status: 'INACTIVE' })}>{t.disable}</AdminButton></div></td></tr>)}</tbody></table></div> : <AdminEmpty>{t.noGames}</AdminEmpty>}
   </AdminCard>;
 }
 
 function ProvidersTab({ t, providers, games, health, loading, busy, canManage, onAction, setPending }: { t: Copy; providers: Provider[]; games: Game[]; health: Record<string, ProviderHealth>; loading: boolean; busy: boolean; canManage: boolean; onAction: (provider: Provider, action: 'health-check' | 'sync-games') => Promise<void>; setPending: (value: PendingAction | null) => void }) {
   return <AdminCard title={t.providersTitle} description={t.providersDescription} action={<AdminLinkButton href="/simple-game-settings" tone="ghost" size="compact">{t.providerSettings}</AdminLinkButton>}>
-    {loading ? <AdminNotice>{t.refreshing}</AdminNotice> : providers.length ? <div className={styles.providerGrid}>{providers.map((provider) => { const affected = games.filter((game) => game.providerId === provider.id).length; return <article key={provider.id} className={styles.providerCard}><div className={styles.cardHead}><div><h3>{provider.name}</h3><p className={styles.meta}>{provider.code} · {affected} {t.game}</p></div><StatusBadge status={health[provider.id] ?? 'UNKNOWN'} /></div><div className={styles.statusRow}><StatusBadge status={provider.status} /><span className={styles.helper}>{provider.walletMode ?? '-'} · {provider.currency ?? '-'}</span></div><p className={styles.helper}>API {provider._count?.endpoints ?? 0} · Credentials {provider._count?.credentials ?? 0} · Sessions {provider._count?.sessions ?? 0}</p><div className={styles.actions}><AdminButton size="compact" tone="ghost" disabled={busy || !canManage} onClick={() => void onAction(provider, 'health-check')}>{t.healthCheck}</AdminButton><AdminButton size="compact" tone="secondary" disabled={busy || !canManage} onClick={() => void onAction(provider, 'sync-games')}>{t.syncGames}</AdminButton><AdminButton size="compact" tone="success" disabled={busy || !canManage || provider.status === 'ACTIVE'} onClick={() => setPending({ kind: 'provider', item: provider, status: 'ACTIVE' })}>{t.activate}</AdminButton><AdminButton size="compact" tone="danger" disabled={busy || !canManage || provider.status === 'MAINTENANCE'} onClick={() => setPending({ kind: 'provider', item: provider, status: 'MAINTENANCE' })}>{t.maintenance}</AdminButton></div></article>; })}</div> : <AdminEmpty>{t.noProviders}</AdminEmpty>}
+    {loading ? <AdminNotice>{t.refreshing}</AdminNotice> : providers.length ? <div className={styles.providerGrid}>{providers.map((provider) => { const affected = games.filter((game) => game.providerId === provider.id).length; return <article key={provider.id} className={styles.providerCard}><div className={styles.cardHead}><div><h3>{provider.name}</h3><p className={styles.meta}>{provider.code} · {affected} {t.game}</p></div><StatusBadge status={health[provider.id] ?? 'UNKNOWN'} /></div><div className={styles.statusRow}><StatusBadge status={provider.status} /><span className={styles.helper}>{provider.walletMode ?? '-'} · {provider.currency ?? '-'}</span></div><p className={styles.helper}>API {provider._count?.endpoints ?? 0} · Credentials {provider._count?.credentials ?? 0} · Sessions {provider._count?.sessions ?? 0}</p><div className={styles.actions}><AdminButton size="compact" tone="ghost" disabled={busy || !canManage} onClick={() => void onAction(provider, 'health-check')}>{t.healthCheck}</AdminButton><AdminButton size="compact" tone="secondary" disabled={busy || !canManage} onClick={() => void onAction(provider, 'sync-games')}>{t.syncGames}</AdminButton><AdminButton size="compact" tone="success" disabled={busy || !canManage || provider.status === 'ACTIVE'} onClick={() => setPending({ kind: 'provider', provider, status: 'ACTIVE' })}>{t.activate}</AdminButton><AdminButton size="compact" tone="danger" disabled={busy || !canManage || provider.status === 'MAINTENANCE'} onClick={() => setPending({ kind: 'provider', provider, status: 'MAINTENANCE' })}>{t.maintenance}</AdminButton></div></article>; })}</div> : <AdminEmpty>{t.noProviders}</AdminEmpty>}
   </AdminCard>;
 }
 
@@ -453,13 +457,13 @@ function MaintenanceTab({ t, games, providers, visibleGames, selectedGames, load
   if (loading) return <AdminNotice>{t.refreshing}</AdminNotice>;
   const targets = selectedGames.length ? selectedGames : visibleGames;
   return <div className={styles.maintenanceGrid}>
-    <article className={`${styles.maintenanceCard} ${styles.warning}`}><div className={styles.cardHead}><div><h3>{t.gameMaintenance}</h3><p className={styles.meta}>{t.maintenanceDescription}</p></div><AdminBadge tone="warning">{targets.length}</AdminBadge></div>{!selectedGames.length && <p className={styles.helper}>{t.useVisibleGames}</p>}<div className={styles.bulkActions}><AdminButton tone="secondary" disabled={!canManage || targets.length === 0} onClick={() => setPending({ kind: 'bulk', items: targets, status: 'MAINTENANCE' })}>{t.maintainSelected}</AdminButton><AdminButton tone="success" disabled={!canManage || targets.length === 0} onClick={() => setPending({ kind: 'bulk', items: targets, status: 'ACTIVE' })}>{t.activateSelected}</AdminButton><AdminButton tone="danger" disabled={!canManage || targets.length === 0} onClick={() => setPending({ kind: 'bulk', items: targets, status: 'INACTIVE' })}>{t.disableSelected}</AdminButton></div></article>
-    <article className={`${styles.maintenanceCard} ${styles.danger}`}><div className={styles.cardHead}><div><h3>{t.providerIssues}</h3><p className={styles.meta}>{t.providersDescription}</p></div><AdminBadge tone="warning">{providers.length}</AdminBadge></div><div className={styles.summaryGrid}>{providers.map((provider) => { const affected = games.filter((game) => game.providerId === provider.id).length; return <div key={provider.id} className={styles.summaryItem}><strong>{provider.name}</strong><span>{t.affectedGames}: {affected}</span><div className={styles.actions}><AdminButton size="compact" tone="success" disabled={!canManage || provider.status === 'ACTIVE'} onClick={() => setPending({ kind: 'provider', item: provider, status: 'ACTIVE' })}>{t.activate}</AdminButton><AdminButton size="compact" tone="danger" disabled={!canManage || provider.status === 'MAINTENANCE'} onClick={() => setPending({ kind: 'provider', item: provider, status: 'MAINTENANCE' })}>{t.maintenance}</AdminButton></div></div>; })}</div></article>
+    <article className={`${styles.maintenanceCard} ${styles.warning}`}><div className={styles.cardHead}><div><h3>{t.maintenanceGames}</h3><p className={styles.meta}>{t.maintenanceDescription}</p></div><AdminBadge tone="warning">{targets.length}</AdminBadge></div>{!selectedGames.length && <p className={styles.helper}>{t.useVisibleGames}</p>}<div className={styles.bulkActions}><AdminButton tone="secondary" disabled={!canManage || targets.length === 0} onClick={() => setPending({ kind: 'bulk', games: targets, status: 'MAINTENANCE' })}>{t.maintainSelected}</AdminButton><AdminButton tone="success" disabled={!canManage || targets.length === 0} onClick={() => setPending({ kind: 'bulk', games: targets, status: 'ACTIVE' })}>{t.activateSelected}</AdminButton><AdminButton tone="danger" disabled={!canManage || targets.length === 0} onClick={() => setPending({ kind: 'bulk', games: targets, status: 'INACTIVE' })}>{t.disableSelected}</AdminButton></div></article>
+    <article className={`${styles.maintenanceCard} ${styles.danger}`}><div className={styles.cardHead}><div><h3>{t.providerIssues}</h3><p className={styles.meta}>{t.providersDescription}</p></div><AdminBadge tone="warning">{providers.length}</AdminBadge></div><div className={styles.summaryGrid}>{providers.map((provider) => { const affected = games.filter((game) => game.providerId === provider.id).length; return <div key={provider.id} className={styles.summaryItem}><strong>{provider.name}</strong><span>{t.affectedGames}: {affected}</span><div className={styles.actions}><AdminButton size="compact" tone="success" disabled={!canManage || provider.status === 'ACTIVE'} onClick={() => setPending({ kind: 'provider', provider, status: 'ACTIVE' })}>{t.activate}</AdminButton><AdminButton size="compact" tone="danger" disabled={!canManage || provider.status === 'MAINTENANCE'} onClick={() => setPending({ kind: 'provider', provider, status: 'MAINTENANCE' })}>{t.maintenance}</AdminButton></div></div>; })}</div></article>
   </div>;
 }
 
 function SimpleFilters({ t, query, setQuery, providers, providerFilter, setProviderFilter }: { t: Copy; query: string; setQuery: (value: string) => void; providers: Provider[]; providerFilter: string; setProviderFilter: (value: string) => void }) {
-  return <div className={styles.filters}><input className={styles.control} value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.searchPlaceholder} /><select className={styles.control} value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}><option value="ALL">{t.allProviders}</option>{providers.map((provider) => <option key={provider.id} value={provider.id}>{provider.name}</option>)}</select></div>;
+  return <div className={styles.filters}><input className={styles.control} value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search} /><select className={styles.control} value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}><option value="ALL">{t.allProviders}</option>{providers.map((provider) => <option key={provider.id} value={provider.id}>{provider.name}</option>)}</select></div>;
 }
 
 function Summary({ label, value }: { label: string; value: number }) {
@@ -489,6 +493,12 @@ function normalizeHealth(value: unknown): ProviderHealth {
 
 function StatusBadge({ status }: { status: string }) {
   const normalized = status.toUpperCase();
-  const tone = normalized === 'ACTIVE' || normalized === 'ONLINE' ? 'success' : normalized === 'MAINTENANCE' || normalized === 'DEGRADED' ? 'warning' : normalized === 'INACTIVE' || normalized === 'REMOVED' || normalized === 'OFFLINE' ? 'danger' : 'neutral';
+  const tone = normalized === 'ACTIVE' || normalized === 'ONLINE'
+    ? 'success'
+    : normalized === 'MAINTENANCE' || normalized === 'DEGRADED'
+      ? 'warning'
+      : normalized === 'INACTIVE' || normalized === 'REMOVED' || normalized === 'OFFLINE'
+        ? 'danger'
+        : 'neutral';
   return <AdminBadge tone={tone}>{normalized}</AdminBadge>;
 }
