@@ -4,7 +4,7 @@ const accessibility = fs.readFileSync('packages/design-tokens/accessibility.css'
 const colors = fs.readFileSync('packages/design-tokens/colors.css', 'utf8');
 const adminLayout = fs.readFileSync('apps/web-admin/app/layout.tsx', 'utf8');
 const memberLayout = fs.readFileSync('apps/web-member/app/layout.tsx', 'utf8');
-const memberChrome = fs.readFileSync('apps/web-member/app/member-chrome.tsx', 'utf8');
+const memberAuthOverlay = fs.readFileSync('apps/web-member/app/components/auth/member-auth-overlay.tsx', 'utf8');
 const financeFlow = fs.readFileSync('apps/web-member/src/features/finance/finance-components.tsx', 'utf8');
 const memberLogin = fs.readFileSync('apps/web-member/app/(auth)/login/page.tsx', 'utf8');
 
@@ -37,8 +37,8 @@ const checks = [
   ['forced-colors baseline', accessibility.includes('@media (forced-colors: active)')],
   ['admin imports accessibility source', adminLayout.includes('packages/design-tokens/accessibility.css')],
   ['member imports accessibility source', memberLayout.includes('packages/design-tokens/accessibility.css')],
-  ['drawer dialog semantics', memberChrome.includes('role="dialog"') && memberChrome.includes('aria-modal="true"') && memberChrome.includes('aria-label="เมนูสมาชิก"')],
-  ['drawer keyboard escape', memberChrome.includes("event.key === 'Escape'")],
+  ['auth overlay dialog semantics', memberAuthOverlay.includes('role="dialog"') && memberAuthOverlay.includes('aria-modal="true"') && memberAuthOverlay.includes('aria-busy={!frameReady}')],
+  ['auth overlay keyboard escape', memberAuthOverlay.includes("event.key === 'Escape'")],
   ['confirm dialog semantics', financeFlow.includes('aria-labelledby={titleId}') && financeFlow.includes('aria-describedby={description ? descriptionId : undefined}')],
   ['confirm focus trap and restore', financeFlow.includes("event.key !== 'Tab'") && financeFlow.includes('returnFocusRef.current?.focus()')],
   ['invalid login fields', memberLogin.includes('aria-invalid={Boolean(errors.identifier)}') && memberLogin.includes('aria-invalid={Boolean(errors.secret)}')],
