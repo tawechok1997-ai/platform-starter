@@ -2,7 +2,7 @@ import { LOBBY_GAME_CATALOG } from './provider-simulator-lobby-catalog.generated
 import { PC_GAME_CATALOG } from './provider-simulator-pc-catalog.generated';
 
 export type SimulatorGamePlatform = 'mobile' | 'desktop' | 'both';
-type SimulatorCatalogPlatform = SimulatorGamePlatform | 'pc';
+export type SimulatorCatalogPlatform = SimulatorGamePlatform | 'pc';
 
 export type SimulatorGameCatalogItem = {
   code: string;
@@ -92,10 +92,11 @@ export function normalizeSimulatorPlatform(platform: SimulatorCatalogPlatform): 
   return platform === 'pc' ? 'desktop' : platform;
 }
 
-export function platformMatches(gamePlatform: SimulatorCatalogPlatform, requested?: SimulatorGamePlatform) {
+export function platformMatches(gamePlatform: SimulatorCatalogPlatform, requested?: SimulatorCatalogPlatform) {
   if (!requested) return true;
-  const normalized = normalizeSimulatorPlatform(gamePlatform);
-  return normalized === 'both' || requested === 'both' || normalized === requested;
+  const normalizedGame = normalizeSimulatorPlatform(gamePlatform);
+  const normalizedRequested = normalizeSimulatorPlatform(requested);
+  return normalizedGame === 'both' || normalizedRequested === 'both' || normalizedGame === normalizedRequested;
 }
 
 export function buildSimulatorMediaContract(
