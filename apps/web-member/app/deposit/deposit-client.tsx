@@ -19,6 +19,7 @@ import { memberApiFetch } from '../member-api';
 import type { DepositMethodCode, DepositStep, ReceivingAccount, TopUpItem } from '../types/member-finance';
 
 const DEPOSIT_EXPIRES_IN_MS = 15 * 60 * 1000;
+const NOOP = () => undefined;
 
 type DepositClientProps = {
   variant?: 'page' | 'headerPopup';
@@ -29,7 +30,7 @@ type DepositClientProps = {
 export default function DepositClient({
   variant = 'page',
   locale = 'th',
-  onCancel,
+  onCancel = NOOP,
 }: DepositClientProps = {}) {
   const [step, setStep] = useState<DepositStep>('select');
   const [amount, setAmount] = useState(() => (
