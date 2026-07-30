@@ -4,6 +4,7 @@ import { catalogGroupsForSlug, mapCatalogGame } from './source-game-catalog';
 
 test('maps category aliases to the central catalog groups', () => {
   assert.deepEqual(catalogGroupsForSlug('slot'), ['slot', 'arcade']);
+  assert.deepEqual(catalogGroupsForSlug('fishing'), ['fishing', 'fish']);
   assert.deepEqual(catalogGroupsForSlug('card'), ['card', 'table']);
   assert.deepEqual(catalogGroupsForSlug('lotto'), ['lottery', 'lotto']);
 });
@@ -16,7 +17,7 @@ test('maps recovered catalog metadata into source filters', () => {
     category: 'slot',
     imageUrl: 'https://cdn.example.test/game.png',
     provider: {
-      code: 'jl.png',
+      code: 'jl.webp',
       name: 'JILI',
       logoUrl: 'https://cdn.example.test/jl.png',
     },
