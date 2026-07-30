@@ -1,0 +1,970 @@
+/* Final responsive contract for every Member portal/dialog.
+ * Loaded last so desktop source geometry remains intact while narrow and short
+ * viewports get one predictable overflow, spacing and touch-target policy.
+ */
+
+:root {
+  --member-popup-edge: max(10px, env(safe-area-inset-left), env(safe-area-inset-right));
+  --member-popup-block-edge: max(10px, env(safe-area-inset-top), env(safe-area-inset-bottom));
+}
+
+/* Universal portal safety. This intentionally targets direct body portals and
+ * the named legacy backdrops that are not always direct children. */
+body > div[role='presentation']:has(> section[role='dialog']),
+.member-header-finance-backdrop,
+.member-bank-account-backdrop,
+.member-profile-detail-backdrop,
+.member-source-popup-backdrop,
+.member-vip-backdrop,
+.member-income-safe-backdrop,
+.public-dialog-runtime-overlay {
+  box-sizing: border-box !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
+}
+
+body > div[role='presentation']:has(> section[role='dialog']) > section[role='dialog'],
+.member-header-finance-dialog,
+.member-profile-detail-dialog,
+.member-source-popup,
+.member-vip-dialog,
+.member-income-safe-popup,
+.public-dialog-runtime {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  max-width: calc(100vw - (var(--member-popup-edge) * 2)) !important;
+  max-height: calc(100dvh - (var(--member-popup-block-edge) * 2)) !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable;
+}
+
+body > div[role='presentation']:has(> section[role='dialog']) button,
+body > div[role='presentation']:has(> section[role='dialog']) a,
+.member-header-finance-dialog button,
+.member-header-finance-dialog a,
+.member-profile-detail-dialog button,
+.member-profile-detail-dialog a,
+.member-source-popup button,
+.member-source-popup a,
+.member-vip-dialog button,
+.member-vip-dialog a,
+.member-income-safe-popup button,
+.member-income-safe-popup a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .member-profile-detail-dialog,
+  .member-source-popup,
+  .member-vip-dialog {
+    width: calc(100vw - 32px) !important;
+    min-width: 0 !important;
+    padding: 18px !important;
+    gap: 20px !important;
+  }
+
+  .member-profile-detail-content {
+    grid-template-columns: minmax(240px, .72fr) minmax(0, 1.28fr) !important;
+    min-height: 0 !important;
+    gap: 28px !important;
+  }
+
+  .member-profile-detail-avatar-grid {
+    grid-template-columns: repeat(4, minmax(72px, 88px)) !important;
+    gap: 12px !important;
+  }
+
+  .member-profile-detail-avatar-grid button {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 !important;
+  }
+
+  .member-source-promotion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .member-source-activity-layout {
+    grid-template-columns: minmax(320px, .9fr) 1px minmax(0, 1.1fr) !important;
+    gap: 14px !important;
+  }
+
+  .member-vip-main {
+    grid-template-columns: minmax(360px, 1fr) minmax(320px, 1fr) !important;
+    gap: 20px !important;
+  }
+
+  .member-vip-tier-step > button {
+    width: 132px !important;
+    flex-basis: 132px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] {
+    width: calc(100vw - 32px) !important;
+    height: calc(100dvh - 28px) !important;
+    min-height: 0 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --member-popup-edge: max(8px, env(safe-area-inset-left), env(safe-area-inset-right));
+    --member-popup-block-edge: max(8px, env(safe-area-inset-top), env(safe-area-inset-bottom));
+  }
+
+  body > div[role='presentation']:has(> section[role='dialog']),
+  .member-header-finance-backdrop,
+  .member-bank-account-backdrop,
+  .member-profile-detail-backdrop,
+  .member-source-popup-backdrop,
+  .member-vip-backdrop,
+  .member-income-safe-backdrop,
+  .public-dialog-runtime-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    display: grid !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    padding:
+      max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left)) !important;
+    place-items: center !important;
+    overflow: auto !important;
+    background: rgb(0 0 0 / 80%) !important;
+    backdrop-filter: blur(5px) !important;
+  }
+
+  body > div[role='presentation']:has(> section[role='dialog']) > section[role='dialog'],
+  .member-header-finance-dialog,
+  .member-profile-detail-dialog,
+  .member-source-popup,
+  .member-vip-dialog,
+  .member-income-safe-popup,
+  .public-dialog-runtime {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 680px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    margin: 0 !important;
+    padding: 14px !important;
+    gap: 14px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    border-radius: 10px !important;
+    transform: none !important;
+    scrollbar-width: thin;
+  }
+
+  body > div[role='presentation']:has(> section[role='dialog']) input,
+  body > div[role='presentation']:has(> section[role='dialog']) select,
+  body > div[role='presentation']:has(> section[role='dialog']) textarea,
+  .member-header-finance-dialog input,
+  .member-header-finance-dialog select,
+  .member-header-finance-dialog textarea,
+  .member-source-popup input,
+  .member-source-popup select,
+  .member-source-popup textarea {
+    max-width: 100% !important;
+    font-size: 16px !important;
+  }
+
+  body > div[role='presentation']:has(> section[role='dialog']) img,
+  .member-profile-detail-dialog img,
+  .member-source-popup img,
+  .member-vip-dialog img {
+    max-width: 100%;
+  }
+
+  /* Shared dialog headers and close targets */
+  .member-header-finance-header,
+  .member-profile-detail-header,
+  .member-source-popup-header,
+  .member-vip-header,
+  .member-income-safe-popup > header {
+    position: sticky !important;
+    z-index: 8 !important;
+    top: -14px !important;
+    display: flex !important;
+    width: calc(100% + 28px) !important;
+    min-width: 0 !important;
+    margin: -14px -14px 0 !important;
+    padding: 12px 14px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    background: linear-gradient(180deg, rgb(48 44 59 / 99%), rgb(35 31 44 / 96%)) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+
+  .member-header-finance-header > div,
+  .member-profile-detail-title-group,
+  .member-source-popup-header > div,
+  .member-vip-title-group,
+  .member-income-safe-popup > header > div {
+    min-width: 0 !important;
+    gap: 10px !important;
+  }
+
+  .member-header-finance-header h2,
+  .member-profile-detail-title-group h2,
+  .member-source-popup-header h2,
+  .member-vip-title-group h2,
+  .member-income-safe-popup h2 {
+    min-width: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    font-size: 18px !important;
+    line-height: 24px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .member-header-finance-header > div > span,
+  .member-profile-detail-title-icon,
+  .member-source-popup-icon,
+  .member-vip-title-icon {
+    width: 40px !important;
+    height: 40px !important;
+    flex: 0 0 40px !important;
+    border-radius: 8px !important;
+  }
+
+  .member-header-finance-header > div > span > img,
+  .member-header-finance-header > div > span > svg,
+  .member-profile-detail-title-icon svg,
+  .member-source-popup-icon img,
+  .member-vip-title-icon svg {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .member-header-finance-header > button,
+  .member-profile-detail-close,
+  .member-profile-detail-back,
+  .member-source-popup-header > button,
+  .member-vip-close,
+  .member-income-safe-popup > header button,
+  .public-dialog-runtime-close {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    flex: 0 0 44px !important;
+    place-items: center !important;
+  }
+
+  /* Finance and bank account popups */
+  .member-header-finance-dialog--deposit,
+  .member-header-finance-dialog--withdraw,
+  .member-header-finance-dialog--bank-settings {
+    max-width: 440px !important;
+  }
+
+  .member-header-deposit-content,
+  .member-header-withdraw-content,
+  .member-bank-account-content {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .member-header-withdraw-bank-card,
+  .member-bank-account-card {
+    min-width: 0 !important;
+  }
+
+  .member-header-withdraw-actions,
+  .member-header-deposit-actions,
+  .member-bank-account-actions {
+    position: sticky !important;
+    z-index: 6 !important;
+    bottom: -14px !important;
+    width: calc(100% + 28px) !important;
+    margin: 4px -14px -14px !important;
+    padding: 12px 14px max(12px, env(safe-area-inset-bottom)) !important;
+    background: linear-gradient(0deg, rgb(27 24 36 / 100%), rgb(27 24 36 / 94%)) !important;
+  }
+
+  /* Profile details and nested profile actions */
+  .public-member-profile-avatar-button {
+    display: block !important;
+    width: 72px !important;
+    height: 72px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+  }
+
+  .member-profile-detail-dialog {
+    max-width: 620px !important;
+  }
+
+  .member-profile-detail-content {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    gap: 18px !important;
+  }
+
+  .member-profile-detail-divider {
+    display: none !important;
+  }
+
+  .member-profile-detail-summary {
+    padding: 4px 0 14px !important;
+  }
+
+  .member-profile-detail-current-avatar,
+  .member-profile-detail-current-avatar img {
+    width: 88px !important;
+    height: 88px !important;
+  }
+
+  .member-profile-detail-account {
+    max-width: 100% !important;
+    margin-top: 12px !important;
+    font-size: 18px !important;
+    line-height: 24px !important;
+  }
+
+  .member-profile-detail-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    margin-top: 18px !important;
+    gap: 10px !important;
+  }
+
+  .member-profile-detail-actions a {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
+    padding: 10px !important;
+    font-size: 13px !important;
+  }
+
+  .member-profile-detail-avatar-panel {
+    width: 100% !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .member-profile-detail-avatar-panel h3 {
+    margin: 4px 0 14px !important;
+    font-size: 16px !important;
+  }
+
+  .member-profile-detail-avatar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 9px !important;
+  }
+
+  .member-profile-detail-avatar-grid button {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 !important;
+  }
+
+  [class*='member-profile'][class*='dialog'][role='dialog'] {
+    width: min(100%, 520px) !important;
+    min-width: 0 !important;
+    max-height: calc(100dvh - 16px) !important;
+    overflow: hidden auto !important;
+  }
+
+  /* Secondary menu popups. Their source stylesheet is desktop-only. */
+  .member-source-popup-backdrop {
+    z-index: 2147483350 !important;
+  }
+
+  .member-source-popup {
+    display: flex !important;
+    max-width: 680px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    color: #fff !important;
+    background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 96%) 0%, rgb(27 24 36 / 99%) 100%) !important;
+    box-shadow: 0 24px 80px rgb(0 0 0 / 58%) !important;
+  }
+
+  .member-source-popup-body {
+    width: 100% !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .member-source-promotions,
+  .member-source-news-list,
+  .member-source-history,
+  .member-source-alerts,
+  .member-source-language,
+  .member-source-video,
+  .member-source-guide {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .member-source-promotion-tabs,
+  .member-source-alert-tabs {
+    display: flex !important;
+    width: 100% !important;
+    min-height: 44px !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    overflow-x: auto !important;
+    border-radius: 8px !important;
+    background: #191721 !important;
+    scrollbar-width: none !important;
+  }
+
+  .member-source-promotion-tabs button,
+  .member-source-alert-tabs button {
+    min-width: max-content !important;
+    height: 38px !important;
+    padding: 0 13px !important;
+    flex: 0 0 auto !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+  }
+
+  .member-source-promotion-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    padding: 0 !important;
+    gap: 10px !important;
+    overflow: visible !important;
+  }
+
+  .member-source-promotion-card {
+    min-width: 0 !important;
+    border-radius: 7px !important;
+  }
+
+  .member-source-promotion-card > strong {
+    padding: 10px !important;
+    font-size: 14px !important;
+    line-height: 20px !important;
+  }
+
+  .member-source-news-list,
+  .member-source-alert-list,
+  .member-source-history-table {
+    display: grid !important;
+    gap: 9px !important;
+    overflow: visible !important;
+  }
+
+  .member-source-news-list article,
+  .member-source-alert-list article {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    padding: 12px !important;
+    gap: 7px !important;
+  }
+
+  .member-source-news-list article a,
+  .member-source-alert-list article a {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 9px 12px !important;
+    text-align: center !important;
+  }
+
+  .member-source-activity-layout {
+    display: flex !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    background-image: none !important;
+  }
+
+  .member-source-activity-list,
+  .member-source-activity-detail {
+    width: 100% !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .member-source-activity-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+
+  .member-source-activity-list button {
+    display: flex !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+  }
+
+  .member-source-activity-list button > img {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
+    border-radius: 6px 6px 0 0 !important;
+  }
+
+  .member-source-activity-list button > span {
+    padding: 10px !important;
+    gap: 7px !important;
+  }
+
+  .member-source-history-filters {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .member-source-history-table {
+    overflow-x: auto !important;
+  }
+
+  .member-source-history-table table {
+    min-width: 680px !important;
+  }
+
+  .member-source-language-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .member-source-language-grid button {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 96px !important;
+  }
+
+  .member-source-video video,
+  .member-source-video iframe,
+  .member-source-guide video,
+  .member-source-guide iframe {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 56dvh !important;
+    aspect-ratio: 16 / 9 !important;
+  }
+
+  /* VIP source popup */
+  .member-vip-backdrop {
+    z-index: 2147483400 !important;
+  }
+
+  .member-vip-dialog {
+    display: flex !important;
+    max-width: 680px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    color: #fff !important;
+    background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 96%) 0%, rgb(27 24 36 / 99%) 100%) !important;
+  }
+
+  .member-vip-tier-strip {
+    display: flex !important;
+    width: 100% !important;
+    height: 96px !important;
+    min-height: 96px !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x proximity !important;
+  }
+
+  .member-vip-tier-step > button {
+    width: 118px !important;
+    height: 94px !important;
+    flex: 0 0 118px !important;
+    scroll-snap-align: center !important;
+  }
+
+  .member-vip-tier-image {
+    width: 78px !important;
+    max-height: 64px !important;
+  }
+
+  .member-vip-tier-connector {
+    width: 28px !important;
+    flex: 0 0 28px !important;
+  }
+
+  .member-vip-main {
+    display: flex !important;
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .member-vip-card-column {
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .member-vip-level-card {
+    width: 100% !important;
+    min-height: 300px !important;
+    padding: 22px 18px !important;
+  }
+
+  .member-vip-level-card > .member-vip-tier-image {
+    width: 116px !important;
+    max-height: 102px !important;
+  }
+
+  .member-vip-level-name {
+    margin-top: -64px !important;
+    font-size: 26px !important;
+  }
+
+  .member-vip-benefits-column {
+    width: 100% !important;
+    max-height: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .member-vip-benefit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    padding: 16px 12px !important;
+    gap: 10px !important;
+  }
+
+  /* Income, coupon and referral dialogs */
+  .member-income-safe-backdrop {
+    z-index: 2147483370 !important;
+  }
+
+  .member-income-safe-popup,
+  .member-income-safe-popup--coupon {
+    max-width: 620px !important;
+  }
+
+  .member-income-safe-list {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .member-income-safe-list article {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+
+  .member-income-safe-popup > footer {
+    position: sticky !important;
+    z-index: 5 !important;
+    bottom: -14px !important;
+    width: calc(100% + 28px) !important;
+    margin: 8px -14px -14px !important;
+    padding: 12px 14px max(12px, env(safe-area-inset-bottom)) !important;
+    background: rgb(27 24 36 / 98%) !important;
+  }
+
+  /* Search, daily mission and guide */
+  .public-dialog-runtime {
+    width: 100% !important;
+    max-width: 680px !important;
+    height: auto !important;
+  }
+
+  .public-dialog-runtime--mission > div:last-child,
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header + div {
+    display: flex !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    overflow: visible !important;
+  }
+
+  .public-dialog-runtime--mission > div:last-child > section,
+  section[role='dialog'][aria-labelledby='daily-mission-title'] > header + div > section {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: visible !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='rewardStrip'] {
+    overflow-x: auto !important;
+    justify-content: flex-start !important;
+    scroll-snap-type: x proximity !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='rewardCard'] {
+    flex: 0 0 70px !important;
+    scroll-snap-align: center !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='missionCard'] {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  section[role='dialog'][aria-labelledby='daily-mission-title'] [class*='rewardStatus'] {
+    width: 100% !important;
+  }
+
+  /* Generic game detail, auth helper, announcement and unknown legacy dialogs */
+  body > div[role='presentation']:has(> section[role='dialog']) > section[role='dialog'] > :where(main, form, [class*='content'], [class*='body']) {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  body > div[role='presentation']:has(> section[role='dialog']) > section[role='dialog'] :where(table) {
+    max-width: 100% !important;
+  }
+
+  body > div[role='presentation']:has(> section[role='dialog']) > section[role='dialog'] :where([class*='grid']) {
+    min-width: 0 !important;
+  }
+
+  html body .member-auth-overlay {
+    padding:
+      max(4px, env(safe-area-inset-top))
+      max(4px, env(safe-area-inset-right))
+      max(4px, env(safe-area-inset-bottom))
+      max(4px, env(safe-area-inset-left)) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  body > div[role='presentation']:has(> section[role='dialog']) > section[role='dialog'],
+  .member-header-finance-dialog,
+  .member-profile-detail-dialog,
+  .member-source-popup,
+  .member-vip-dialog,
+  .member-income-safe-popup,
+  .public-dialog-runtime {
+    max-width: none !important;
+    padding: 12px !important;
+    gap: 12px !important;
+    border-radius: 8px !important;
+  }
+
+  .member-header-finance-header,
+  .member-profile-detail-header,
+  .member-source-popup-header,
+  .member-vip-header,
+  .member-income-safe-popup > header {
+    top: -12px !important;
+    width: calc(100% + 24px) !important;
+    margin: -12px -12px 0 !important;
+    padding: 10px 12px !important;
+  }
+
+  .member-header-finance-header h2,
+  .member-profile-detail-title-group h2,
+  .member-source-popup-header h2,
+  .member-vip-title-group h2,
+  .member-income-safe-popup h2 {
+    font-size: 17px !important;
+  }
+
+  .member-profile-detail-actions {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .member-profile-detail-avatar-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .member-source-promotion-grid,
+  .member-source-activity-list {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .member-source-history-filters,
+  .member-source-language-grid,
+  .member-vip-benefit-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .member-vip-birthday-card {
+    align-items: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+
+  .member-vip-birthday-card > a {
+    width: 100% !important;
+  }
+
+  .member-header-withdraw-actions,
+  .member-header-deposit-actions,
+  .member-bank-account-actions,
+  .member-income-safe-popup > footer {
+    bottom: -12px !important;
+    width: calc(100% + 24px) !important;
+    margin-inline: -12px !important;
+    margin-bottom: -12px !important;
+    padding-inline: 12px !important;
+  }
+
+  .member-income-safe-popup > footer {
+    flex-wrap: wrap !important;
+  }
+
+  .member-income-safe-popup > footer span {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+@media (max-width: 380px) {
+  :root {
+    --member-popup-edge: max(5px, env(safe-area-inset-left), env(safe-area-inset-right));
+    --member-popup-block-edge: max(5px, env(safe-area-inset-top), env(safe-area-inset-bottom));
+  }
+
+  body > div[role='presentation']:has(> section[role='dialog']),
+  .member-header-finance-backdrop,
+  .member-bank-account-backdrop,
+  .member-profile-detail-backdrop,
+  .member-source-popup-backdrop,
+  .member-vip-backdrop,
+  .member-income-safe-backdrop,
+  .public-dialog-runtime-overlay {
+    padding: 5px !important;
+  }
+
+  body > div[role='presentation']:has(> section[role='dialog']) > section[role='dialog'],
+  .member-header-finance-dialog,
+  .member-profile-detail-dialog,
+  .member-source-popup,
+  .member-vip-dialog,
+  .member-income-safe-popup,
+  .public-dialog-runtime {
+    max-height: calc(100dvh - 10px) !important;
+    padding: 10px !important;
+    gap: 10px !important;
+    border-radius: 7px !important;
+  }
+
+  .member-header-finance-header,
+  .member-profile-detail-header,
+  .member-source-popup-header,
+  .member-vip-header,
+  .member-income-safe-popup > header {
+    top: -10px !important;
+    width: calc(100% + 20px) !important;
+    margin: -10px -10px 0 !important;
+    padding: 8px 10px !important;
+  }
+
+  .member-header-finance-header > div > span,
+  .member-profile-detail-title-icon,
+  .member-source-popup-icon,
+  .member-vip-title-icon {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
+  }
+
+  .member-header-finance-header h2,
+  .member-profile-detail-title-group h2,
+  .member-source-popup-header h2,
+  .member-vip-title-group h2,
+  .member-income-safe-popup h2 {
+    font-size: 16px !important;
+  }
+
+  .member-profile-detail-avatar-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .member-header-withdraw-content,
+  .member-bank-account-content {
+    padding: 0 !important;
+  }
+
+  .member-header-withdraw-actions,
+  .member-header-deposit-actions,
+  .member-bank-account-actions,
+  .member-income-safe-popup > footer {
+    bottom: -10px !important;
+    width: calc(100% + 20px) !important;
+    margin-inline: -10px !important;
+    margin-bottom: -10px !important;
+    padding: 10px !important;
+  }
+}
+
+/* Short landscape screens: preserve the header and let the content scroll. */
+@media (max-height: 560px) {
+  body > div[role='presentation']:has(> section[role='dialog']),
+  .member-header-finance-backdrop,
+  .member-bank-account-backdrop,
+  .member-profile-detail-backdrop,
+  .member-source-popup-backdrop,
+  .member-vip-backdrop,
+  .member-income-safe-backdrop,
+  .public-dialog-runtime-overlay {
+    place-items: start center !important;
+    padding-block: 5px !important;
+  }
+
+  body > div[role='presentation']:has(> section[role='dialog']) > section[role='dialog'],
+  .member-header-finance-dialog,
+  .member-profile-detail-dialog,
+  .member-source-popup,
+  .member-vip-dialog,
+  .member-income-safe-popup,
+  .public-dialog-runtime {
+    max-height: calc(100dvh - 10px) !important;
+  }
+
+  .member-profile-detail-current-avatar,
+  .member-profile-detail-current-avatar img {
+    width: 70px !important;
+    height: 70px !important;
+  }
+
+  .member-vip-tier-strip {
+    height: 78px !important;
+    min-height: 78px !important;
+  }
+
+  .member-vip-tier-step > button {
+    height: 76px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body > div[role='presentation']:has(> section[role='dialog']) > section[role='dialog'],
+  .member-header-finance-dialog,
+  .member-profile-detail-dialog,
+  .member-source-popup,
+  .member-vip-dialog,
+  .member-income-safe-popup,
+  .public-dialog-runtime {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
