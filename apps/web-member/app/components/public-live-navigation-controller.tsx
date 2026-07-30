@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function PublicLiveNavigationController() {
   const pathname = usePathname() ?? '/';
+  const router = useRouter();
 
   useEffect(() => {
     if (pathname === '/') return;
@@ -16,12 +17,12 @@ export default function PublicLiveNavigationController() {
       if (!link) return;
 
       event.preventDefault();
-      window.location.assign('/#live');
+      router.push('/#live');
     };
 
     document.addEventListener('click', handleClick, true);
     return () => document.removeEventListener('click', handleClick, true);
-  }, [pathname]);
+  }, [pathname, router]);
 
   return null;
 }
