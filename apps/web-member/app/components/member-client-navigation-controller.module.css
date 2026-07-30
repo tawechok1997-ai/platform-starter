@@ -1,0 +1,39 @@
+.routeOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: block;
+  min-height: 720px;
+  overflow: hidden;
+  background: #0d0b13;
+  opacity: 1;
+  pointer-events: auto;
+  animation: memberRouteOverlayIn 160ms ease-out both;
+}
+
+:global(.member-persistent-shell__body) {
+  position: relative;
+  isolation: isolate;
+}
+
+@keyframes memberRouteOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .routeOverlay {
+    min-height: 560px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .routeOverlay {
+    animation: none;
+  }
+}

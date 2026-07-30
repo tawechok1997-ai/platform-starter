@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { requestJson } from '../member-api';
 
 type MoneyRequest = { status?: string };
@@ -8,26 +8,38 @@ type ListPayload = { items?: MoneyRequest[] };
 
 export function usePendingCount(enabled: boolean) {
   const [pendingCount, setPendingCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const pendingCountRef = useRef(0);
+  const loadingRef = useRef(false);
+
+  const commitPendingCount = useCallback((nextCount: number) => {
+    if (pendingCountRef.current === nextCount) return;
+    pendingCountRef.current = nextCount;
+    setPendingCount(nextCount);
+  }, []);
 
   const reload = useCallback(async () => {
-    if (!enabled) { setPendingCount(0); return; }
-    setLoading(true);
+    if (!enabled) {
+      commitPendingCount(0);
+      return;
+    }
+    if (loadingRef.current) return;
+
+    loadingRef.current = true;
     try {
       const [topups, withdrawals] = await Promise.all([
         requestJson<ListPayload>('/member/topups'),
         requestJson<ListPayload>('/member/withdrawals'),
       ]);
       const items = [...(topups.items ?? []), ...(withdrawals.items ?? [])];
-      setPendingCount(items.filter((item) => item.status === 'PENDING').length);
+      commitPendingCount(items.filter((item) => item.status === 'PENDING').length);
     } catch {
-      setPendingCount(0);
+      // Keep the last known count during transient failures instead of flashing zero.
     } finally {
-      setLoading(false);
+      loadingRef.current = false;
     }
-  }, [enabled]);
+  }, [commitPendingCount, enabled]);
 
   useEffect(() => { void reload(); }, [reload]);
 
-  return { pendingCount, loading, reload };
+  return { pendingCount, loading: loadingRef.current, reload };
 }

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const DESKTOP_BREAKPOINT = 1024;
 const STICKY_TOP = 100;
-const MAX_ATTACH_FRAMES = 180;
+const ATTACH_TIMEOUT_MS = 3000;
 
 function setImportant(element: HTMLElement, property: string, value: string) {
   element.style.setProperty(property, value, 'important');
@@ -38,24 +38,20 @@ export default function HomeSidebarScrollController() {
   useEffect(() => {
     if (pathname !== '/') return;
 
-    let attachFrame = 0;
     let updateFrame = 0;
-    let attachAttempts = 0;
+    let attachTimeout = 0;
+    let attachObserver: MutationObserver | null = null;
     let detachCurrent = () => {};
 
     const attach = () => {
-      detachCurrent();
-
       const body = document.querySelector<HTMLElement>('.desktop-reference-home > .desktop-home__body');
       const sidebar = body?.querySelector<HTMLElement>(':scope > .reference-sidebar') ?? null;
+      if (!body || !sidebar) return false;
 
-      if (!body || !sidebar) {
-        if (attachAttempts < MAX_ATTACH_FRAMES) {
-          attachAttempts += 1;
-          attachFrame = window.requestAnimationFrame(attach);
-        }
-        return;
-      }
+      attachObserver?.disconnect();
+      attachObserver = null;
+      window.clearTimeout(attachTimeout);
+      detachCurrent();
 
       let disposed = false;
 
@@ -130,8 +126,7 @@ export default function HomeSidebarScrollController() {
       resizeObserver.observe(body);
       resizeObserver.observe(sidebar);
       window.addEventListener('scroll', queueUpdate, { passive: true });
-      window.addEventListener('resize', queueUpdate);
-      window.addEventListener('load', queueUpdate);
+      window.addEventListener('resize', queueUpdate, { passive: true });
       queueUpdate();
 
       detachCurrent = () => {
@@ -139,17 +134,28 @@ export default function HomeSidebarScrollController() {
         resizeObserver.disconnect();
         window.removeEventListener('scroll', queueUpdate);
         window.removeEventListener('resize', queueUpdate);
-        window.removeEventListener('load', queueUpdate);
         if (updateFrame) window.cancelAnimationFrame(updateFrame);
         updateFrame = 0;
         clearManagedStyles(body, sidebar);
       };
+
+      return true;
     };
 
-    attachFrame = window.requestAnimationFrame(attach);
+    if (!attach()) {
+      attachObserver = new MutationObserver(() => {
+        attach();
+      });
+      attachObserver.observe(document.body, { childList: true, subtree: true });
+      attachTimeout = window.setTimeout(() => {
+        attachObserver?.disconnect();
+        attachObserver = null;
+      }, ATTACH_TIMEOUT_MS);
+    }
 
     return () => {
-      if (attachFrame) window.cancelAnimationFrame(attachFrame);
+      window.clearTimeout(attachTimeout);
+      attachObserver?.disconnect();
       detachCurrent();
     };
   }, [pathname]);

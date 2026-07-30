@@ -1,0 +1,477 @@
+@media (min-width: 901px) {
+  .member-profile-action-backdrop {
+    position: fixed;
+    z-index: 2147483300;
+    inset: 0;
+    display: grid;
+    box-sizing: border-box;
+    place-items: center;
+    padding: 20px;
+    overflow: auto;
+    background: rgb(0 0 0 / 44%);
+    backdrop-filter: blur(2px);
+  }
+
+  .member-profile-action-dialog {
+    position: relative;
+    display: flex;
+    box-sizing: border-box;
+    flex-direction: column;
+    max-height: 90dvh;
+    padding: 20px 20px 32px;
+    gap: 32px;
+    overflow: hidden auto;
+    border-radius: 8px;
+    color: #fff;
+    background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 92%) 0%, rgb(63 59 75 / 82%) 30.08%, rgb(27 24 36 / 96%) 100%);
+    box-shadow: 0 30px 100px rgb(0 0 0 / 70%);
+    animation: member-profile-action-in 170ms ease-out both;
+    scrollbar-width: none;
+  }
+
+  .member-profile-action-dialog::-webkit-scrollbar {
+    display: none;
+  }
+
+  .member-profile-contact-dialog {
+    width: min(574px, calc(100vw - 40px));
+    min-width: min(470px, calc(100vw - 40px));
+  }
+
+  .member-profile-password-dialog {
+    width: min(520px, calc(100vw - 40px));
+    min-width: min(470px, calc(100vw - 40px));
+  }
+
+  .member-profile-action-top-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, rgb(255 255 255 / 0%) 26.03%, #fff 48.56%, rgb(255 255 255 / 0%) 72.48%);
+  }
+
+  .member-profile-action-header {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+  }
+
+  .member-profile-action-title-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .member-profile-action-title-group h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 32px;
+  }
+
+  .member-profile-action-title-icon {
+    display: grid;
+    width: 55px;
+    height: 55px;
+    flex: 0 0 55px;
+    place-items: center;
+    border-radius: 10px;
+    background: linear-gradient(360deg, rgb(21 23 29 / 60%) -5.86%, rgb(58 60 64 / 60%) 104.05%);
+  }
+
+  .member-profile-action-title-icon svg {
+    width: 31px;
+    height: 31px;
+    fill: none;
+    stroke: #c8c8c8;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .member-profile-action-back,
+  .member-profile-action-close {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    color: #fff;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .member-profile-action-back {
+    width: 25px;
+    height: 25px;
+    border-radius: 10px;
+  }
+
+  .member-profile-action-back svg {
+    width: 32px;
+    height: 32px;
+    fill: currentColor;
+  }
+
+  .member-profile-action-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .member-profile-action-close svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .member-profile-action-close:hover,
+  .member-profile-action-close:focus-visible,
+  .member-profile-action-back:hover,
+  .member-profile-action-back:focus-visible {
+    background: rgb(255 255 255 / 8%);
+  }
+
+  .member-profile-contact-list {
+    display: grid;
+    width: 534px;
+    max-width: 100%;
+    gap: 20px;
+  }
+
+  .member-profile-contact-card {
+    position: relative;
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 80px;
+    align-items: center;
+    padding: 12px;
+    gap: 12px;
+    overflow: hidden;
+    border: 1px solid rgb(244 244 245 / 10%);
+    border-radius: 8px;
+    background: linear-gradient(0deg, rgb(80 80 80 / 20%) 0%, rgb(71 71 71 / 20%) 32%, rgb(49 49 49 / 20%) 79%);
+    opacity: 0.96;
+  }
+
+  .member-profile-contact-glow {
+    position: absolute;
+    left: 20px;
+    width: 100px;
+    height: 84px;
+    border: 1px solid rgb(56 193 66 / 25%);
+    border-radius: 999px;
+    background: radial-gradient(#38c142 0%, #38c142 100%);
+    filter: blur(10px);
+    opacity: 0.2;
+  }
+
+  .member-profile-contact-card > img {
+    position: relative;
+    z-index: 1;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+
+  .member-profile-contact-card > div {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .member-profile-contact-card strong {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 22px;
+  }
+
+  .member-profile-contact-card span {
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 20px;
+  }
+
+  .member-profile-contact-card a {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 100px;
+    height: 40px;
+    flex: 0 0 100px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: #fff;
+    background: #38c142;
+    box-shadow: inset 0 1px 4px rgb(255 255 255 / 24%), 0 8px 20px rgb(0 0 0 / 28%);
+    font-size: 18px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .member-profile-password-form {
+    display: flex;
+    width: 376px;
+    max-width: 100%;
+    align-self: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .member-profile-password-field {
+    position: relative;
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    height: 56px;
+    align-items: center;
+    margin: 0;
+    padding: 0 16px 0 12px;
+    border: 1px solid #757575;
+    border-radius: 6px;
+    background: #15131a;
+  }
+
+  .member-profile-password-field.is-disabled {
+    color: #585858;
+    cursor: not-allowed;
+  }
+
+  .member-profile-password-field > span {
+    position: absolute;
+    top: -9px;
+    left: 12px;
+    z-index: 1;
+    padding: 0 6px;
+    color: #757575;
+    background: #15131a;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+  }
+
+  .member-profile-password-field input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    color: #fff;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .member-profile-password-field input:disabled {
+    color: #585858;
+    cursor: not-allowed;
+  }
+
+  .member-profile-password-field > button {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    color: #757575;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .member-profile-password-field > button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .member-profile-password-field svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .member-profile-password-rules {
+    display: grid;
+    min-height: 72px;
+    gap: 0;
+  }
+
+  .member-profile-password-rules > div {
+    display: flex;
+    min-height: 24px;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .member-profile-password-rules svg {
+    width: 25px;
+    height: 24px;
+    fill: none;
+    stroke: #757575;
+    stroke-width: 2;
+  }
+
+  .member-profile-password-rules .is-passed {
+    color: #e0b1f1;
+  }
+
+  .member-profile-password-rules .is-passed svg {
+    stroke: #a800cb;
+  }
+
+  .member-profile-action-notice {
+    padding: 9px 12px;
+    border: 1px solid rgb(216 111 111 / 45%);
+    border-radius: 6px;
+    color: #ffd1d1;
+    background: rgb(105 25 25 / 25%);
+    font-size: 12px;
+  }
+
+  .member-profile-action-notice.is-success {
+    border-color: rgb(56 193 66 / 45%);
+    color: #bff7c4;
+    background: rgb(20 92 27 / 25%);
+  }
+
+  .member-profile-password-actions {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    font-weight: 600;
+    letter-spacing: 0.15px;
+  }
+
+  .member-profile-password-actions button {
+    display: flex;
+    width: 100%;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #413e4b;
+    border-radius: 6px;
+    color: #fff;
+    background: #15141a;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .member-profile-password-actions button.is-primary {
+    border-color: transparent;
+    background: linear-gradient(190deg, #944fe8, #7600a8);
+  }
+
+  .member-profile-password-actions button:disabled {
+    border-color: transparent;
+    color: #58647c;
+    background: #2b3642;
+    cursor: not-allowed;
+  }
+
+  .member-profile-password-bottom-line {
+    width: 100%;
+    height: 1px;
+    margin-top: 2px;
+    background: linear-gradient(180deg, #efd596 0%, #ccbc98 45.83%, #b7a47c 93.23%);
+    opacity: 0.1;
+  }
+
+  .member-profile-password-support {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+  }
+
+  .member-profile-password-support span {
+    color: #909090;
+    font-weight: 400;
+  }
+
+  .member-profile-password-support button {
+    padding: 0;
+    border: 0;
+    color: #7100bd;
+    background: transparent;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .member-profile-detail-actions button {
+    display: flex;
+    box-sizing: border-box;
+    width: 220px;
+    min-height: 53px;
+    padding: 13px 15px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid #626262;
+    border-radius: 7px;
+    color: #fff;
+    background: #15131a;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .member-profile-detail-actions button:hover,
+  .member-profile-detail-actions button:focus-visible {
+    border-color: #bb5bea;
+    background: #211b2c;
+  }
+
+  .member-profile-detail-actions button svg {
+    flex: 0 0 25px;
+    width: 25px;
+    height: 25px;
+    fill: #e0b1f1;
+  }
+
+  .member-profile-detail-actions button svg path:nth-child(even) {
+    fill: #a800cb;
+  }
+
+  @keyframes member-profile-action-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .member-profile-action-backdrop {
+    display: none !important;
+  }
+}

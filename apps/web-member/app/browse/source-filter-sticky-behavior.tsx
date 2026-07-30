@@ -54,6 +54,23 @@ export default function SourceFilterStickyBehavior() {
           max-height: calc(100vh - 140px) !important;
         }
 
+        /* Match the Home Jackpot sidebar behavior: the complete fishing filter
+         * stays sticky inside the game-layout boundary, follows page scrolling,
+         * and never creates its own internal scroll area. */
+        main[data-source-game-category='fishing'] [data-source-filter-panel] {
+          position: sticky !important;
+          inset: auto !important;
+          top: 124px !important;
+          z-index: 20 !important;
+          align-self: start !important;
+          width: 345px !important;
+          height: max-content !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          overflow: hidden !important;
+          transform: none !important;
+        }
+
         main[data-source-game-category] [data-source-provider-grid] {
           display: grid !important;
           grid-template-columns: repeat(3, minmax(0, 1fr)) !important;

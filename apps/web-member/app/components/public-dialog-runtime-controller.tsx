@@ -7,30 +7,17 @@ const DIALOGS = [
   { id: 'daily-mission-title', kind: 'mission' },
 ] as const;
 
-const SEARCH_TRIGGER_SELECTOR = [
-  '.public-home-search',
-  '[aria-label="ค้นหาเกม"]',
-  '[aria-label="Search games"]',
-].join(',');
-
 function forceOverlayAboveChrome(overlay: HTMLElement, kind: string) {
+  if (overlay.dataset.publicDialogOverlay === kind) return;
+
   overlay.dataset.publicDialogOverlay = kind;
   overlay.classList.add('public-dialog-runtime-overlay');
-
   overlay.style.setProperty('position', 'fixed', 'important');
   overlay.style.setProperty('inset', '0', 'important');
-  overlay.style.setProperty('top', '0', 'important');
-  overlay.style.setProperty('right', '0', 'important');
-  overlay.style.setProperty('bottom', '0', 'important');
-  overlay.style.setProperty('left', '0', 'important');
   overlay.style.setProperty('z-index', '2147483647', 'important');
   overlay.style.setProperty('isolation', 'isolate', 'important');
   overlay.style.setProperty('width', '100vw', 'important');
-  overlay.style.setProperty('min-width', '100vw', 'important');
-  overlay.style.setProperty('max-width', '100vw', 'important');
   overlay.style.setProperty('height', '100dvh', 'important');
-  overlay.style.setProperty('min-height', '100dvh', 'important');
-  overlay.style.setProperty('max-height', '100dvh', 'important');
   overlay.style.setProperty('margin', '0', 'important');
   overlay.style.setProperty('overflow', 'hidden', 'important');
   overlay.style.setProperty('opacity', '1', 'important');
@@ -49,43 +36,44 @@ function normalizeDialog(id: string, kind: string) {
   dialog.style.setProperty('z-index', '1', 'important');
 
   const overlay = dialog.parentElement;
-  if (overlay instanceof HTMLElement) {
-    forceOverlayAboveChrome(overlay, kind);
-  }
+  if (overlay instanceof HTMLElement) forceOverlayAboveChrome(overlay, kind);
 
-  const header = dialog.querySelector<HTMLElement>(':scope > header');
-  header?.classList.add('public-dialog-runtime-header');
-
-  const closeButton = dialog.querySelector<HTMLButtonElement>(
-    'button[aria-label^="ปิด"], button[aria-label^="Close"]',
-  );
-  closeButton?.classList.add('public-dialog-runtime-close');
+  dialog.querySelector<HTMLElement>(':scope > header')
+    ?.classList.add('public-dialog-runtime-header');
+  dialog.querySelector<HTMLButtonElement>('button[aria-label^="ปิด"], button[aria-label^="Close"]')
+    ?.classList.add('public-dialog-runtime-close');
 }
 
 function normalizeAllDialogs() {
   for (const dialog of DIALOGS) normalizeDialog(dialog.id, dialog.kind);
 }
 
+function containsSupportedDialog(node: Node) {
+  if (!(node instanceof Element)) return false;
+  if (node.matches('section[role="dialog"][aria-labelledby="member-search-title"], section[role="dialog"][aria-labelledby="daily-mission-title"]')) return true;
+  return Boolean(node.querySelector('section[role="dialog"][aria-labelledby="member-search-title"], section[role="dialog"][aria-labelledby="daily-mission-title"]'));
+}
+
 export default function PublicDialogRuntimeController() {
   useEffect(() => {
-    normalizeAllDialogs();
+    let frame = 0;
+    const root = document.getElementById('member-desktop-scale-canvas') ?? document.body;
 
-    const observer = new MutationObserver(() => normalizeAllDialogs());
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    const preventSearchNavigation = (event: MouseEvent) => {
-      if (!(event.target instanceof Element)) return;
-      const trigger = event.target.closest<HTMLElement>(SEARCH_TRIGGER_SELECTOR);
-      if (!trigger) return;
-
-      event.preventDefault();
+    const scheduleNormalize = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(normalizeAllDialogs);
     };
 
-    document.addEventListener('click', preventSearchNavigation, true);
+    normalizeAllDialogs();
+    const observer = new MutationObserver((records) => {
+      if (!records.some((record) => Array.from(record.addedNodes).some(containsSupportedDialog))) return;
+      scheduleNormalize();
+    });
+    observer.observe(root, { childList: true, subtree: true });
 
     return () => {
+      window.cancelAnimationFrame(frame);
       observer.disconnect();
-      document.removeEventListener('click', preventSearchNavigation, true);
     };
   }, []);
 

@@ -1,0 +1,63 @@
+/* Exact authenticated header artwork supplied for the desktop member header. */
+@media (min-width: 901px) {
+  .public-member-icon-button > svg,
+  .public-member-wallet-action > svg {
+    display: none !important;
+  }
+
+  .public-member-icon-button::before,
+  .public-member-wallet-action::before {
+    display: block;
+    flex: 0 0 auto;
+    content: '';
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+
+  /* Source: 32px canvas inside scale-150, so the visible bell is 48px. */
+  .public-member-icon-button {
+    width: 48px !important;
+    min-width: 48px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .public-member-icon-button::before {
+    width: 48px;
+    height: 48px;
+    background-image: url('/images/กระดิ่ง.png');
+  }
+
+  /* Source wallet artwork uses w-10 h-10. */
+  .public-member-wallet-balance img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* Source deposit and withdrawal canvases render at 32px. */
+  .public-member-wallet-action[href='/deposit']::before,
+  .public-member-wallet-action[href='/withdraw']::before {
+    width: 32px;
+    height: 32px;
+  }
+
+  .public-member-wallet-action[href='/deposit']::before {
+    background-image: url('/images/ฝาก.png');
+  }
+
+  .public-member-wallet-action[href='/withdraw']::before {
+    background-image: url('/images/ถอน.png');
+  }
+
+  /* Header and profile-panel avatar sizes from the source layout. */
+  .public-member-profile-trigger > img {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .public-member-profile-head img {
+    width: 72px !important;
+    height: 72px !important;
+  }
+}
