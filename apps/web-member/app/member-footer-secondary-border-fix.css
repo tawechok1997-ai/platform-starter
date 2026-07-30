@@ -1,32 +1,51 @@
-/* Secondary public pages reuse the Home footer content without its payment divider frame. */
-.member-footer.member-footer--secondary {
+/* One persistent shell owns the header, body and footer on every member route. */
+.member-persistent-shell {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.member-persistent-shell__body {
+  width: 100%;
+  min-width: 0;
+  min-height: 420px;
+}
+
+.member-footer.member-footer--shared {
+  width: 100% !important;
+  max-width: none !important;
   border: 0 !important;
   outline: 0 !important;
   box-shadow: none !important;
 }
 
-.member-footer.member-footer--secondary .member-footer__separator {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.member-footer.member-footer--secondary .member-footer__payments {
-  border: 0 !important;
-  border-top: 0 !important;
+.member-footer.member-footer--shared .member-footer__payments {
   outline: 0 !important;
   box-shadow: none !important;
 }
 
-.member-footer.member-footer--secondary .member-footer__payments::before,
-.member-footer.member-footer--secondary .member-footer__payments::after {
+.member-footer.member-footer--shared .member-footer__payments::before,
+.member-footer.member-footer--shared .member-footer__payments::after {
   content: none !important;
   display: none !important;
-  border: 0 !important;
-  background: transparent !important;
+}
+
+.public-member-actions-placeholder {
+  display: block;
+  width: 430px;
+  max-width: 32vw;
+  height: 42px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .public-member-actions-placeholder {
+    width: 120px;
+    height: 34px;
+  }
+
+  .member-persistent-shell__body {
+    min-height: 300px;
+  }
 }
