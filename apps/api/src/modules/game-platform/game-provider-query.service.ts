@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import type { GameProviderQueryDto } from './dto/game-provider-query.dto';
+import { GameExperienceService } from './game-experience.service';
 
 const ATTENTION_STATUSES = ['MAINTENANCE', 'DEGRADED'] as const;
 
 @Injectable()
 export class GameProviderQueryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gameExperience: GameExperienceService,
+  ) {}
 
   async list(query: GameProviderQueryDto) {
     const page = Math.max(1, Number(query.page ?? 1));
@@ -41,14 +45,25 @@ export class GameProviderQueryService {
       this.prisma.game.count({ where: { provider: searchWhere } }),
     ]);
 
+    const normalizedItems = items.map((item) => ({
+      ...item,
+      availability: this.gameExperience.providerAvailability(item),
+    }));
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
     return {
-      items,
+      items: normalizedItems,
       total,
       page: Math.min(page, totalPages),
       pageSize,
       totalPages,
-      summary: { total: summaryTotal, active, attention, games },
+      summary: {
+        total: summaryTotal,
+        active,
+        availableOnPage: normalizedItems.filter((item) => item.availability.available).length,
+        providerBlockedOnPage: normalizedItems.filter((item) => item.status === 'ACTIVE' && !item.availability.available).length,
+        attention,
+        games,
+      },
     };
   }
 
