@@ -126,7 +126,7 @@ async function fetchCatalogPage(category: string, page: number, signal?: AbortSi
   const response = await memberApiFetch(`/games/catalog?${params.toString()}`, {
     skipAuth: true,
     suppressSessionExpiryRedirect: true,
-    signal,
+    ...(signal ? { signal } : {}),
   });
   if (!response.ok) throw new Error(`catalog ${category} page ${page}: ${response.status}`);
   return response.json().catch(() => null) as Promise<CatalogPayload | null>;
@@ -237,14 +237,18 @@ function buildCatalogProviders(
     if (game.provider && !firstGameByProvider.has(game.provider)) firstGameByProvider.set(game.provider, game);
   });
 
-  return Array.from(new Map(items.map((item) => {
+  const providers = new Map<string, SourceGameProvider>();
+  for (const item of items) {
     const code = normalizeProviderCode(firstText(item.provider?.code));
-    if (!code) return ['', null] as const;
+    if (!code || providers.has(code)) continue;
     const configuredProvider = configured.get(code);
-    if (configuredProvider) return [code, configuredProvider] as const;
+    if (configuredProvider) {
+      providers.set(code, configuredProvider);
+      continue;
+    }
     const firstGame = firstGameByProvider.get(code);
     const badge = firstText(item.provider?.logoUrl, firstGame?.providerBadge, providerAsset('badge', code));
-    const provider: SourceGameProvider = {
+    providers.set(code, {
       code,
       name: firstText(item.provider?.name, code.toUpperCase()),
       badge,
@@ -252,9 +256,9 @@ function buildCatalogProviders(
       background: providerAsset('bg', code),
       title: providerAsset('title', code),
       avatar: providerAsset('avatar', code),
-    };
-    return [code, provider] as const;
-  })).values()).filter((provider): provider is SourceGameProvider => Boolean(provider));
+    });
+  }
+  return Array.from(providers.values());
 }
 
 function providerAsset(kind: 'badge' | 'bg' | 'title' | 'avatar', code: string) {
