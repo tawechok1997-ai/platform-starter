@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from 'react';
+import { createPortal } from 'react-dom';
 
 export type MemberAuthMode = 'login' | 'register';
 
@@ -16,6 +17,7 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
   const [frameReady, setFrameReady] = useState(false);
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const exitTimerRef = useRef<number | null>(null);
   const closingRef = useRef(false);
 
@@ -45,6 +47,10 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
   const completeAuth = useCallback(() => {
     beginClose(onSuccess);
   }, [beginClose, onSuccess]);
+
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
 
   useEffect(() => {
     clearExitTimer();
@@ -144,8 +150,7 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
   }
 
   const motionState = closing ? 'closing' : visible ? 'open' : 'opening';
-
-  return (
+  const overlay = (
     <div
       className="member-auth-overlay"
       role="dialog"
@@ -165,4 +170,6 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
       />
     </div>
   );
+
+  return portalTarget ? createPortal(overlay, portalTarget) : null;
 }
