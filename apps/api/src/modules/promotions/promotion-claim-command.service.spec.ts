@@ -7,6 +7,7 @@ describe('PromotionClaimCommandService', () => {
       siteSetting: { findUnique: jest.fn() },
       topUpRequest: { findFirst: jest.fn() },
       riskAlert: {
+        count: jest.fn().mockResolvedValue(0),
         findFirst: jest.fn(),
         findMany: jest.fn(),
         create: jest.fn(),
@@ -48,7 +49,7 @@ describe('PromotionClaimCommandService', () => {
   it('rejects a duplicate open claim before creating another record', async () => {
     const { prisma, domain, service } = setup();
     prisma.siteSetting.findUnique.mockResolvedValue({ valueJson: [campaign] });
-    prisma.riskAlert.findFirst.mockResolvedValue({ id: 'existing' });
+    prisma.riskAlert.count.mockResolvedValue(1);
 
     await expect(service.createClaim({ id: 'member-1' }, { campaignId: campaign.id, depositAmount: 100 }))
       .rejects.toBeInstanceOf(BadRequestException);
