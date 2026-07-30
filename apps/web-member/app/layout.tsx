@@ -111,6 +111,7 @@ import MemberChrome from './member-chrome';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import MemberImageFallbackController from './components/member-image-fallback-controller';
+import MemberRenderStabilityController from './components/member-render-stability-controller';
 import PublicNavigationLocaleGuard from './components/public-navigation-locale-guard';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
@@ -185,6 +186,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SiteSettingsProvider initialSettings={initialSettings}>
             <MemberSessionProvider>
               <PublicDesktopViewportBootstrap />
+              <MemberRenderStabilityController />
               <PublicNavigationLocaleGuard />
               <MemberImageFallbackController />
               <MemberHeroSwipeController />
