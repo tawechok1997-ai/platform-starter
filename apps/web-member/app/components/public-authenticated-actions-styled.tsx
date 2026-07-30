@@ -13,6 +13,7 @@ import { useMemberSession } from '../member-session-provider';
 import PublicAuthenticatedActions from './public-authenticated-actions';
 import MemberHeaderFinanceRuntime from './member-header-finance-runtime';
 import MemberMenuIncomeSafeRuntime from './member-menu-income-safe-runtime';
+import MemberMenuPersistenceRuntime from './member-menu-persistence-runtime';
 import MemberMenuSecondaryRuntime from './member-menu-secondary-runtime';
 import MemberMenuSpecialBonusRuntime from './member-menu-special-bonus-runtime';
 import MemberMenuVipRuntime from './member-menu-vip-runtime';
@@ -117,6 +118,7 @@ export default function PublicAuthenticatedActionsStyled(props: Props) {
       <MemberMenuSpecialBonusRuntime locale={props.locale} />
       <MemberMenuSecondaryRuntime locale={props.locale} />
       <MemberMenuVipRuntime locale={props.locale} />
+      <MemberMenuPersistenceRuntime />
       <MemberSharedPopupRuntime
         locale={props.locale}
         onSetLocale={(nextLocale) => {
