@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { createCipheriv, createHash, randomBytes } from 'crypto';
+import { PROMOTION_ASSET_CAMPAIGNS } from '../apps/api/src/modules/promotions/promotion-asset-campaigns';
 
 const prisma = new PrismaClient();
 
@@ -141,6 +142,19 @@ async function main() {
       create: { key, valueJson, group, type, isPublic, isSensitive },
     });
   }
+
+  await prisma.siteSetting.upsert({
+    where: { key: 'features.promotion_campaigns' },
+    update: {},
+    create: {
+      key: 'features.promotion_campaigns',
+      valueJson: JSON.parse(JSON.stringify(PROMOTION_ASSET_CAMPAIGNS)),
+      group: 'FEATURES',
+      type: 'JSON',
+      isPublic: true,
+      isSensitive: false,
+    },
+  });
 }
 
 main()
