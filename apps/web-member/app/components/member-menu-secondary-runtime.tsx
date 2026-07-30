@@ -1,67 +1,36 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { MemberLocale } from '../member-locale-provider';
 import UsageGuideModal from './member-home/usage-guide-modal';
 
-const BrowsePromotionsCms = dynamic(
-  () => import('../browse/browse-promotions-cms').then((module) => module.BrowsePromotionsCms),
-  { ssr: false, loading: () => <PopupLoading /> },
-);
 const TransactionsPage = dynamic(() => import('../transactions/page'), {
   ssr: false,
   loading: () => <PopupLoading />,
 });
+const NotificationsPage = dynamic(() => import('../notifications/page'), {
+  ssr: false,
+  loading: () => <PopupLoading />,
+});
 
-type PopupKind = 'browse' | 'history' | 'video' | 'guide' | null;
-type BrowseView = 'promotion' | 'activity' | 'news';
+type PopupKind = 'history' | 'notifications' | 'video' | 'guide' | null;
 
 const COPY = {
   th: {
-    promotion: 'โปรโมชั่น', activity: 'กิจกรรม', news: 'ข่าวสาร', history: 'ประวัติทำรายการ',
-    video: 'วิธีแนะนำเพื่อน', close: 'ปิด', loading: 'กำลังโหลด...',
+    history: 'ประวัติทำรายการ', notifications: 'แจ้งเตือน', video: 'วิธีแนะนำเพื่อน', close: 'ปิด', loading: 'กำลังโหลด...',
   },
   en: {
-    promotion: 'Promotions', activity: 'Activities', news: 'News', history: 'Transaction history',
-    video: 'Referral guide', close: 'Close', loading: 'Loading...',
+    history: 'Transaction history', notifications: 'Notifications', video: 'Referral guide', close: 'Close', loading: 'Loading...',
   },
 } as const;
 
 export default function MemberMenuSecondaryRuntime({ locale }: { locale: MemberLocale }) {
   const [popup, setPopup] = useState<PopupKind>(null);
-  const [browseView, setBrowseView] = useState<BrowseView>('promotion');
-  const previousUrlRef = useRef('');
-
-  const restoreUrl = useCallback(() => {
-    if (!previousUrlRef.current) return;
-    window.history.replaceState(window.history.state, '', previousUrlRef.current);
-    previousUrlRef.current = '';
-  }, []);
-
-  const closePopup = useCallback(() => {
-    setPopup(null);
-    restoreUrl();
-  }, [restoreUrl]);
-
-  useEffect(() => () => restoreUrl(), [restoreUrl]);
+  const closePopup = useCallback(() => setPopup(null), []);
 
   useEffect(() => {
-    const closeMemberMenu = () => {
-      window.setTimeout(() => {
-        document.querySelector<HTMLButtonElement>('.public-member-profile-trigger[aria-expanded="true"]')?.click();
-      }, 0);
-    };
-
-    const openBrowse = (view: BrowseView) => {
-      previousUrlRef.current ||= `${window.location.pathname}${window.location.search}${window.location.hash}`;
-      window.history.replaceState(window.history.state, '', `/browse/promotions?view=${view}`);
-      setBrowseView(view);
-      setPopup('browse');
-      closeMemberMenu();
-    };
-
     const handleClick = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
       const link = event.target.closest<HTMLAnchorElement>('.public-member-menu-grid--secondary a');
@@ -69,31 +38,24 @@ export default function MemberMenuSecondaryRuntime({ locale }: { locale: MemberL
 
       const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.public-member-menu-grid--secondary a'));
       const index = links.indexOf(link);
-      if (index < 0 || index > 6) return;
+      if (index < 3 || index > 6) return;
 
       event.preventDefault();
       event.stopPropagation();
 
-      if (index === 0) return openBrowse('promotion');
-      if (index === 1) return openBrowse('news');
-      if (index === 2) return openBrowse('activity');
       if (index === 3) {
         setPopup('history');
-        closeMemberMenu();
         return;
       }
       if (index === 4) {
-        closeMemberMenu();
-        window.setTimeout(() => document.querySelector<HTMLButtonElement>('.public-member-icon-button')?.click(), 20);
+        setPopup('notifications');
         return;
       }
       if (index === 5) {
         setPopup('video');
-        closeMemberMenu();
         return;
       }
       setPopup('guide');
-      closeMemberMenu();
     };
 
     document.addEventListener('click', handleClick, true);
@@ -104,14 +66,20 @@ export default function MemberMenuSecondaryRuntime({ locale }: { locale: MemberL
   if (popup === 'guide') return <UsageGuideModal open onClose={closePopup} />;
 
   const copy = COPY[locale];
-  const title = popup === 'browse' ? copy[browseView] : popup === 'history' ? copy.history : copy.video;
-  const icon = popup === 'browse'
-    ? browseView === 'promotion' ? '/assets/asset-pc/images/โปรโมชั้น.png' : browseView === 'activity' ? '/assets/asset-pc/images/กิจกรรม.png' : '/assets/asset-pc/images/ข่าวสาร.png'
-    : popup === 'history' ? '/assets/asset-pc/images/ประวัติ.png' : '/assets/asset-pc/images/วิดีโอเเนะนำ.png';
+  const title = popup === 'history' ? copy.history : popup === 'notifications' ? copy.notifications : copy.video;
+  const icon = popup === 'history'
+    ? '/assets/asset-pc/images/ประวัติ.png'
+    : popup === 'notifications'
+      ? '/assets/asset-pc/images/เเจ้งเตือน.png'
+      : '/assets/asset-pc/images/วิดีโอเเนะนำ.png';
 
   return createPortal(
     <ExistingPopup title={title} icon={icon} closeLabel={copy.close} onClose={closePopup}>
-      {popup === 'browse' ? <BrowsePromotionsCms /> : popup === 'history' ? <TransactionsPage /> : <ReferralVideo />}
+      {popup === 'history'
+        ? <TransactionsPage />
+        : popup === 'notifications'
+          ? <NotificationsPage />
+          : <ReferralVideo />}
     </ExistingPopup>,
     document.body,
   );
@@ -141,9 +109,14 @@ function ExistingPopup({ title, icon, closeLabel, onClose, children }: {
   }, [onClose]);
 
   return (
-    <div className="member-existing-popup-backdrop" role="presentation" onPointerDown={(event) => {
-      if (event.target === event.currentTarget) onClose();
-    }}>
+    <div
+      className="member-existing-popup-backdrop"
+      data-member-layer-keeps-profile-open="true"
+      role="presentation"
+      onPointerDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
       <section className="member-existing-popup" role="dialog" aria-modal="true" aria-label={title}>
         <span className="member-existing-popup-top-line" aria-hidden="true" />
         <header className="member-existing-popup-header">
