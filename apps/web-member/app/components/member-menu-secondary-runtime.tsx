@@ -162,6 +162,7 @@ function ReferralVideo() {
       <video
         autoPlay
         loop
+        muted
         controls
         playsInline
         src="/assets/asset-pc/images/affiliate_640.webm"
