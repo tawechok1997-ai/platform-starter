@@ -247,12 +247,12 @@ export class PromotionClaimCommandService {
   }
 
   private formatTopup(topup: {
-    id: string; amount: unknown; currency: string; status: string; method: string;
+    id: string; amount: unknown; currency: string; status: string; method: string | null;
     referenceCode: string | null; reviewedAt: Date | null; createdAt: Date;
   }) {
     return {
       id: topup.id, amount: Number(topup.amount), currency: topup.currency, status: topup.status,
-      method: topup.method, referenceCode: topup.referenceCode, reviewedAt: topup.reviewedAt, createdAt: topup.createdAt,
+      method: topup.method ?? 'unknown', referenceCode: topup.referenceCode, reviewedAt: topup.reviewedAt, createdAt: topup.createdAt,
     };
   }
 
