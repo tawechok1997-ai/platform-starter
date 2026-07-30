@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, RiskAlertStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { campaignIsActive, normalizePromotionCampaigns } from './promotion-asset-campaigns';
 import { mapPromotionBonusLedger, mapPromotionClaim } from './promotion.mapper';
 
 const CLAIM_REF_TYPE = 'PROMOTION_CLAIM';
@@ -14,9 +15,8 @@ export class PromotionsQueryService {
 
   async listPublicCampaigns() {
     const settings = await this.prisma.siteSetting.findUnique({ where: { key: 'features.promotion_campaigns' } });
-    const now = Date.now();
-    const items = this.normalizeCampaigns(settings?.valueJson)
-      .filter((item) => item.enabled && item.lifecycle === 'published' && this.inWindow(item, now))
+    const items = normalizePromotionCampaigns(settings?.valueJson)
+      .filter((item) => campaignIsActive(item))
       .sort((a, b) => b.priority - a.priority);
     return { items };
   }
@@ -50,47 +50,5 @@ export class PromotionsQueryService {
     const memberMap = new Map(users.map((user) => [user.id, user]));
     const mapped = items.map((item) => mapper({ ...item, member: item.memberId ? memberMap.get(item.memberId) : undefined }));
     return { items: mapped, total: mapped.length };
-  }
-
-  private normalizeCampaigns(value: unknown) {
-    if (!Array.isArray(value)) return [];
-    return value.map((item: any, index) => {
-      const legacyImage = typeof item.imageUrl === 'string'
-        ? item.imageUrl
-        : typeof item.desktopImageUrl === 'string'
-          ? item.desktopImageUrl
-          : '';
-      return {
-        id: String(item.id ?? `promotion-${index + 1}`),
-        title: String(item.title ?? 'Promotion'),
-        description: String(item.description ?? ''),
-        enabled: item.enabled === true,
-        lifecycle: item.lifecycle === 'archived' || item.lifecycle === 'draft' ? item.lifecycle : 'published',
-        bonusType: item.bonusType === 'fixed' ? 'fixed' : 'percent',
-        bonusValue: Number(item.bonusValue ?? 0),
-        minDeposit: Number(item.minDeposit ?? 0),
-        maxBonus: Number(item.maxBonus ?? 0),
-        turnoverMultiplier: Number(item.turnoverMultiplier ?? 0),
-        claimMode: item.claimMode === 'auto_pending' ? 'auto_pending' : 'manual_review',
-        imageUrl: legacyImage,
-        desktopImageUrl: typeof item.desktopImageUrl === 'string' ? item.desktopImageUrl : legacyImage,
-        mobileImageUrl: typeof item.mobileImageUrl === 'string' ? item.mobileImageUrl : legacyImage,
-        desktopAssetId: typeof item.desktopAssetId === 'string' ? item.desktopAssetId : '',
-        mobileAssetId: typeof item.mobileAssetId === 'string' ? item.mobileAssetId : '',
-        iconUrl: typeof item.iconUrl === 'string' ? item.iconUrl : '',
-        badgeText: typeof item.badgeText === 'string' ? item.badgeText : '',
-        accentColor: typeof item.accentColor === 'string' ? item.accentColor : '',
-        href: typeof item.href === 'string' ? item.href : '/promotions',
-        priority: Number(item.priority ?? 0),
-        startsAt: typeof item.startsAt === 'string' ? item.startsAt : undefined,
-        endsAt: typeof item.endsAt === 'string' ? item.endsAt : undefined,
-      };
-    });
-  }
-
-  private inWindow(item: { startsAt: string | undefined; endsAt: string | undefined }, now: number) {
-    const start = item.startsAt ? Date.parse(item.startsAt) : NaN;
-    const end = item.endsAt ? Date.parse(item.endsAt) : NaN;
-    return !(Number.isFinite(start) && now < start) && !(Number.isFinite(end) && now > end);
   }
 }
