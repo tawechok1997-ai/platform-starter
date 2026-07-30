@@ -3,9 +3,12 @@
 }
 
 @media (min-width: 901px) {
-  .public-home-topbar .public-home-desktop-bar > .member-actions:has(> .public-authenticated-portal) > .member-guest-action,
-  .public-home-topbar .public-home-desktop-bar > .member-actions:has(> .public-authenticated-portal) > .member-header-wallet,
-  .public-home-topbar .public-home-desktop-bar > .member-actions:has(> .public-authenticated-portal) > .member-header-logout {
+  /* Logged-in legacy actions are direct children of .member-actions. Guest
+     login/register buttons live inside .member-guest-actions, so this hides
+     only the obsolete authenticated trio without depending on :has(). */
+  .public-home-topbar .public-home-desktop-bar > .member-actions > .member-guest-action,
+  .public-home-topbar .public-home-desktop-bar > .member-actions > .member-header-wallet,
+  .public-home-topbar .public-home-desktop-bar > .member-actions > .member-header-logout {
     display: none !important;
     visibility: hidden !important;
     pointer-events: none !important;
