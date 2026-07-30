@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import { resolveCmsMediaUrl } from '../site-settings';
 import { useSiteSettings } from '../site-settings-provider';
 
 const DEFAULT_FAVICON_URL = '/icon.svg';
@@ -12,7 +13,7 @@ export default function SiteFaviconRuntime() {
   const pathname = usePathname();
   const { typedSettings } = useSiteSettings();
   const configuredUrl = normalizeFaviconUrl(typedSettings.branding.favicon_url);
-  const faviconUrl = configuredUrl || DEFAULT_FAVICON_URL;
+  const faviconUrl = resolveCmsMediaUrl(configuredUrl || DEFAULT_FAVICON_URL);
 
   useEffect(() => {
     const runtimeLink = getOrCreateRuntimeFavicon();
