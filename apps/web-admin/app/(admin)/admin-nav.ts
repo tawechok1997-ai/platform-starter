@@ -126,6 +126,7 @@ export const navGroups: readonly AdminNavGroup[] = [
     descriptionEn: 'Catalog, sessions, and transfers',
     items: [
       { title: 'ศูนย์ควบคุมเกม', titleEn: 'Game control center', href: '/game-control', permissions: ['game.providers.view', 'provider.view'] },
+      { title: 'Tournament และ Radar Bot', titleEn: 'Tournament & Radar Bot', href: '/game-control/tournaments', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'รายการเกม', titleEn: 'Game catalog', href: '/games', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'เซสชันเกม', titleEn: 'Game sessions', href: '/game-sessions', permissions: ['game.providers.view', 'provider.view'] },
       { title: 'รายการโอนเงินเกม', titleEn: 'Game transfers', href: '/game-transfers', permissions: ['game.providers.view', 'provider.view'] },
