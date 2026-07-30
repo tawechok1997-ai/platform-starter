@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { useMemberSession } from '../member-session-provider';
+import { loadSourceCategoryCatalog, type SourceCategoryCatalog } from './source-game-catalog';
 import styles from './source-game-category-page.module.css';
 
 export type SourceGameFilterKey = 'arcade' | 'buy' | 'hot' | 'new' | 'slot' | 'table';
@@ -67,7 +68,13 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   const [providerCode, setProviderCode] = useState<string | null>(null);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
   const [invalidProviderThemes, setInvalidProviderThemes] = useState<Set<string>>(() => new Set());
-  const usesReferenceCounts = config.slug === 'casino' || config.slug === 'slot';
+  const [catalog, setCatalog] = useState<SourceCategoryCatalog | null>(null);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+
+  const configuredProviders = useMemo(
+    () => Array.from(new Map(config.providers.map((item) => [normalizeProviderCode(item.code), item] as const)).values()),
+    [config.providers],
+  );
 
   useEffect(() => {
     setSelectedFilters([]);
@@ -76,22 +83,50 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
     setInvalidProviderThemes(new Set());
   }, [config.slug]);
 
-  const providers = useMemo(
-    () => Array.from(new Map(config.providers.map((item) => [item.code.toLowerCase(), item] as const)).values()),
-    [config.providers],
-  );
+  useEffect(() => {
+    if (config.mode !== 'games') {
+      setCatalog(null);
+      setCatalogLoading(false);
+      return;
+    }
 
-  const games = useMemo(
+    const controller = new AbortController();
+    let cancelled = false;
+    setCatalog(null);
+    setCatalogLoading(true);
+
+    void loadSourceCategoryCatalog(config.slug, configuredProviders, controller.signal)
+      .then((result) => {
+        if (!cancelled && result.games.length) setCatalog(result);
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [config.mode, config.slug, configuredProviders]);
+
+  const providers = useMemo(
     () => Array.from(
       new Map(
-        config.games.map((item, index) => {
-          const hydrated = hydrateGame(config.slug, { ...item, origin: 'source' }, index);
-          return [`${hydrated.provider ?? 'none'}:${hydrated.id}`, hydrated] as const;
-        }),
+        [...configuredProviders, ...(catalog?.providers ?? [])]
+          .map((item) => [normalizeProviderCode(item.code), item] as const),
       ).values(),
     ),
-    [config.games, config.slug],
+    [catalog?.providers, configuredProviders],
   );
+
+  const games = useMemo(() => {
+    const sourceGames = config.games.map((item, index) => hydrateGame(config.slug, { ...item, origin: 'source' }, index));
+    const catalogGames = (catalog?.games ?? []).map((item, index) => hydrateGame(config.slug, item, index));
+    return mergeGames(catalogGames, sourceGames);
+  }, [catalog?.games, config.games, config.slug]);
+
+  const hasCatalog = Boolean(catalog?.games.length);
+  const usesReferenceCounts = !hasCatalog && (config.slug === 'casino' || config.slug === 'slot');
 
   const filterCounts = useMemo(() => {
     const counts = new Map<SourceGameFilterKey, number>();
@@ -110,7 +145,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   const providerCounts = useMemo(() => {
     const counts = new Map<string, number>();
     providers.forEach((provider) => {
-      const normalizedCode = provider.code.toLowerCase();
+      const normalizedCode = normalizeProviderCode(provider.code);
       counts.set(
         normalizedCode,
         games.filter((game) => {
@@ -126,13 +161,13 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   const selectableProviders = useMemo(() => {
     if (config.showAllProviders || config.slug === 'slot') return providers;
     return providers.filter(
-      (provider) => config.mode === 'provider-cards' || (providerCounts.get(provider.code.toLowerCase()) ?? 0) > 0,
+      (provider) => config.mode === 'provider-cards' || (providerCounts.get(normalizeProviderCode(provider.code)) ?? 0) > 0,
     );
   }, [config.mode, config.showAllProviders, config.slug, providerCounts, providers]);
 
   const themeCode = config.mode === 'provider-cards' ? previewCode : providerCode;
   const activeProvider = themeCode && !invalidProviderThemes.has(themeCode)
-    ? providers.find((item) => item.code.toLowerCase() === themeCode) ?? null
+    ? providers.find((item) => normalizeProviderCode(item.code) === themeCode) ?? null
     : null;
 
   const visibleGames = useMemo(
@@ -145,7 +180,9 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   );
 
   const untouched = !providerCode && selectedFilters.length === 0;
-  const resultCount = usesReferenceCounts && untouched ? config.total : visibleGames.length;
+  const resultCount = untouched
+    ? (hasCatalog ? games.length : (usesReferenceCounts ? config.total : visibleGames.length))
+    : visibleGames.length;
 
   const clearFilters = () => {
     setSelectedFilters([]);
@@ -161,13 +198,13 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
 
   const selectProvider = (provider: SourceGameProvider) => {
     if (provider.maintenance) return;
-    const normalizedCode = provider.code.toLowerCase();
+    const normalizedCode = normalizeProviderCode(provider.code);
     setProviderCode((current) => (current === normalizedCode ? null : normalizedCode));
     setPreviewCode(null);
   };
 
   const invalidateProviderTheme = (code: string) => {
-    const normalizedCode = code.toLowerCase();
+    const normalizedCode = normalizeProviderCode(code);
     setInvalidProviderThemes((current) => {
       if (current.has(normalizedCode)) return current;
       const next = new Set(current);
@@ -177,24 +214,30 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   };
 
   const openGame = (game: SourceGameItem) => {
-    const next = `/browse/games?category=${encodeURIComponent(config.slug)}`;
+    const provider = game.provider ? `&provider=${encodeURIComponent(game.provider)}` : '';
+    const destination = `/games?category=${encodeURIComponent(config.slug)}${provider}&game=${encodeURIComponent(game.id)}`;
     if (!ready || !isLoggedIn) {
-      window.location.assign(`/?auth=login&next=${encodeURIComponent(next)}`);
+      window.location.assign(`/?auth=login&next=${encodeURIComponent(destination)}`);
       return;
     }
-    const provider = game.provider ? `&provider=${encodeURIComponent(game.provider)}` : '';
-    window.location.assign(`/games?category=${encodeURIComponent(config.slug)}${provider}&game=${encodeURIComponent(game.id)}`);
+    window.location.assign(destination);
   };
 
   return (
-    <main className={styles.page} data-source-game-category={config.slug} aria-busy="false">
+    <main
+      className={styles.page}
+      data-source-game-category={config.slug}
+      data-catalog-source={hasCatalog ? 'central' : 'fallback'}
+      data-catalog-incomplete={catalog?.incomplete ? 'true' : 'false'}
+      aria-busy={catalogLoading}
+    >
       <div className={styles.backgroundStack} aria-hidden="true">
         {providers.map((provider) => {
-          const code = provider.code.toLowerCase();
+          const code = normalizeProviderCode(provider.code);
           return (
             <img
               key={provider.code}
-              className={`${styles.providerBackground}${activeProvider?.code.toLowerCase() === code ? ` ${styles.providerBackgroundActive}` : ''}`}
+              className={`${styles.providerBackground}${activeProvider && normalizeProviderCode(activeProvider.code) === code ? ` ${styles.providerBackgroundActive}` : ''}`}
               src={provider.background}
               alt=""
               onError={() => invalidateProviderTheme(code)}
@@ -215,11 +258,12 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
             onError={swapToAssetBundle}
           />
           {providers.map((provider) => {
-            const code = provider.code.toLowerCase();
+            const code = normalizeProviderCode(provider.code);
+            const active = activeProvider && normalizeProviderCode(activeProvider.code) === code;
             return (
               <img
                 key={`${provider.code}-title`}
-                className={`${styles.providerTitle}${activeProvider?.code.toLowerCase() === code ? ` ${styles.providerTitleActive}` : ''}`}
+                className={`${styles.providerTitle}${active ? ` ${styles.providerTitleActive}` : ''}`}
                 src={provider.title}
                 alt={provider.name}
                 onLoad={(event) => validateProviderThemeImage('title', code, event, invalidateProviderTheme)}
@@ -228,11 +272,12 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
             );
           })}
           {providers.map((provider) => {
-            const code = provider.code.toLowerCase();
+            const code = normalizeProviderCode(provider.code);
+            const active = activeProvider && normalizeProviderCode(activeProvider.code) === code;
             return (
               <img
                 key={`${provider.code}-avatar`}
-                className={`${styles.providerAvatar}${activeProvider?.code.toLowerCase() === code ? ` ${styles.providerAvatarActive}` : ''}`}
+                className={`${styles.providerAvatar}${active ? ` ${styles.providerAvatarActive}` : ''}`}
                 src={provider.avatar}
                 alt=""
                 onLoad={(event) => validateProviderThemeImage('avatar', code, event, invalidateProviderTheme)}
@@ -280,7 +325,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
                   data-source-provider-grid
                 >
                   {selectableProviders.map((provider) => {
-                    const normalizedCode = provider.code.toLowerCase();
+                    const normalizedCode = normalizeProviderCode(provider.code);
                     const count = providerCounts.get(normalizedCode) ?? 0;
                     const selected = providerCode === normalizedCode;
                     const maintenance = provider.maintenance === true;
@@ -326,7 +371,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
             {visibleGames.length ? (
               <div className={styles.gameGrid}>
                 {visibleGames.map((game) => {
-                  const provider = providers.find((item) => item.code.toLowerCase() === game.provider);
+                  const provider = providers.find((item) => normalizeProviderCode(item.code) === game.provider);
                   const providerBadge = game.providerBadge ?? provider?.badge;
                   return (
                     <article
@@ -382,33 +427,36 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
       </section>
 
       <style>{`
-        main[data-source-game-category='casino'] {
-          background: transparent !important;
-        }
+        main[data-source-game-category='casino'] { background: transparent !important; }
         main[data-source-game-category='casino'] [data-source-bottom-fade] {
           background: linear-gradient(182deg, rgba(17,14,22,0) 29%, rgba(17,14,22,.32) 58%, rgba(17,14,22,.08) 86%, rgba(17,14,22,0) 100%) !important;
         }
-        main[data-source-game-category='casino'] [data-source-game-cover] {
-          background: transparent !important;
-        }
+        main[data-source-game-category='casino'] [data-source-game-cover] { background: transparent !important; }
         @media (min-width: 901px) and (max-width: 1460px) {
-          main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-game-layout] {
-            grid-template-columns: 300px minmax(0, 1fr);
-          }
+          main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-game-layout] { grid-template-columns: 300px minmax(0, 1fr); }
           main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-filter-panel],
           main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-filter-title],
           main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-provider-grid] {
-            width: 300px;
-            min-width: 300px;
-            max-width: 300px;
+            width: 300px; min-width: 300px; max-width: 300px;
           }
-          main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-provider-button] {
-            width: 86px;
-          }
+          main[data-source-game-category]:not([data-source-game-category='casino']) [data-source-provider-button] { width: 86px; }
         }
       `}</style>
     </main>
   );
+}
+
+function mergeGames(catalogGames: readonly SourceGameItem[], sourceGames: readonly SourceGameItem[]) {
+  const merged = new Map<string, SourceGameItem>();
+  const names = new Set<string>();
+  for (const game of [...catalogGames, ...sourceGames]) {
+    const key = `${game.provider ?? 'none'}:${game.id.toLowerCase()}`;
+    const nameKey = `${game.provider ?? 'none'}:${game.name.trim().toLocaleLowerCase('th')}`;
+    if (merged.has(key) || names.has(nameKey)) continue;
+    merged.set(key, game);
+    names.add(nameKey);
+  }
+  return Array.from(merged.values());
 }
 
 function hydrateGame(slug: string, game: SourceGameItem, index: number): SourceGameItem {
@@ -416,14 +464,14 @@ function hydrateGame(slug: string, game: SourceGameItem, index: number): SourceG
   let isNew = game.isNew;
   let isHot = game.isHot;
 
-  if (slug === 'fishing') {
+  if (game.origin !== 'catalog' && slug === 'fishing') {
     tags.clear();
     isNew = FISHING_NEW.has(game.id) || game.image.includes('/176');
     isHot = FISHING_HOT.has(game.id);
     if (FISHING_SLOT.has(game.id)) tags.add('slot');
   }
 
-  if (slug === 'slot') {
+  if (game.origin !== 'catalog' && slug === 'slot') {
     tags.clear();
     tags.add('slot');
     isNew = game.image.includes('/177');
@@ -435,7 +483,21 @@ function hydrateGame(slug: string, game: SourceGameItem, index: number): SourceG
 
   if (isNew) tags.add('new');
   if (isHot) tags.add('hot');
-  return { ...game, provider: game.provider?.toLowerCase() ?? null, isNew, isHot, tags: Array.from(tags) };
+  return {
+    ...game,
+    provider: game.provider ? normalizeProviderCode(game.provider) : null,
+    isNew,
+    isHot,
+    tags: Array.from(tags),
+  };
+}
+
+function normalizeProviderCode(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\.(?:png|jpe?g|webp|svg)$/i, '')
+    .replace(/[^a-z0-9_-]+/g, '');
 }
 
 function validateProviderThemeImage(
@@ -449,7 +511,6 @@ function validateProviderThemeImage(
     invalidate(code);
     return;
   }
-
   const ratio = image.naturalWidth / image.naturalHeight;
   const invalid = kind === 'title' ? ratio < 2 : ratio > 1.45;
   if (invalid) invalidate(code);

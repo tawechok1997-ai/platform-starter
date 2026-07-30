@@ -123,6 +123,9 @@ export class MemberGameCatalogService {
 
   private generatedItem(item: (typeof GAME_CATALOG)[number]) {
     const providerName = PROVIDER_DISPLAY_NAMES[item.provider] ?? item.provider;
+    const tags = item.tags ?? [];
+    const isNew = tags.some(isNewTag);
+    const isPopular = tags.some(isPopularTag);
     return {
       id: `catalog:${item.platform}:${item.provider}:${item.code}`,
       providerGameCode: item.code,
@@ -131,10 +134,10 @@ export class MemberGameCatalogService {
       platform: item.platform,
       status: 'CATALOG_ONLY',
       isFeatured: false,
-      isNew: false,
-      isPopular: false,
+      isNew,
+      isPopular,
       sortOrder: 1000,
-      metadata: { source: 'generated-catalog', launchReady: false },
+      metadata: { source: 'generated-catalog', launchReady: false, tags },
       provider: {
         id: `catalog:${item.provider}`,
         name: providerName,
@@ -158,6 +161,16 @@ export class MemberGameCatalogService {
       iconUrl: assetUrl(item.assetPath, ''),
     };
   }
+}
+
+function isNewTag(tag: string) {
+  const value = tag.trim().toLocaleLowerCase('th');
+  return value.includes('ใหม่') || value === 'new';
+}
+
+function isPopularTag(tag: string) {
+  const value = tag.trim().toLocaleLowerCase('th');
+  return value.includes('ฮิต') || value === 'hot' || value === 'popular';
 }
 
 function normalizeFilter(value: unknown) {
