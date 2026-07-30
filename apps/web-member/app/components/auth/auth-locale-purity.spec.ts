@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const loginSource = readFileSync(new URL('../../(auth)/login/page.tsx', import.meta.url), 'utf8');
 
-test('login controls and support copy come from the active locale', () => {
+test('login controls, recovery mode and support copy come from the active locale', () => {
   assert.match(loginSource, /showPassword:\s*'แสดงรหัสผ่าน'/);
   assert.match(loginSource, /showPassword:\s*'Show password'/);
   assert.match(loginSource, /hidePassword:\s*'ซ่อนรหัสผ่าน'/);
@@ -14,7 +14,9 @@ test('login controls and support copy come from the active locale', () => {
   assert.match(loginSource, /forgot:\s*'ลืมรหัสผ่าน\?'/);
   assert.match(loginSource, /forgot:\s*'Forgot password\?'/);
   assert.match(loginSource, /\{showSecret \? t\.hidePassword : t\.showPassword\}/);
-  assert.match(loginSource, /<Link href="\/forgot-password" className="public-auth-forgot">\{t\.forgot\}<\/Link>/);
+  assert.match(loginSource, /className="public-auth-forgot"/);
+  assert.match(loginSource, /onClick=\{\(\) => switchMode\('forgot'\)\}/);
+  assert.match(loginSource, /const heading = mode === 'login' \? t\.title : t\.forgotTitle/);
   assert.match(loginSource, /<div className="source-login-support"><span>\{t\.supportPrompt\}<\/span><Link href="\/support">\{t\.support\}<\/Link><\/div>/);
   assert.doesNotMatch(loginSource, /<span>Secure connection<\/span>/);
 });
