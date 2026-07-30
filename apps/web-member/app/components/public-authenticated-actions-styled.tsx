@@ -12,12 +12,14 @@ import {
 import { useMemberSession } from '../member-session-provider';
 import PublicAuthenticatedActions from './public-authenticated-actions';
 import MemberMenuIncomeRuntime from './member-menu-income-runtime';
+import MemberMenuVipRuntime from './member-menu-vip-runtime';
 import '../member-authenticated-public-header.css';
 import '../member-authenticated-public-header-runtime.css';
 import '../member-authenticated-icon-assets.css';
 import '../member-authenticated-profile-source.css';
 import '../member-authenticated-source-header-geometry.css';
 import '../member-menu-income-runtime.css';
+import '../member-vip-modal.css';
 import '../member-authenticated-menu-assets.css';
 import '../member-authenticated-shared-lock.css';
 
@@ -98,6 +100,7 @@ export default function PublicAuthenticatedActionsStyled(props: Props) {
     >
       <PublicAuthenticatedActions {...props} />
       <MemberMenuIncomeRuntime locale={props.locale} />
+      <MemberMenuVipRuntime locale={props.locale} />
     </div>
   );
 }
