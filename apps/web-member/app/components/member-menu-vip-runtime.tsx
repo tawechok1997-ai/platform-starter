@@ -18,10 +18,6 @@ export default function MemberMenuVipRuntime({ locale }: { locale: MemberLocale 
       event.preventDefault();
       event.stopPropagation();
       setOpen(true);
-
-      window.setTimeout(() => {
-        document.querySelector<HTMLButtonElement>('.public-member-profile-trigger[aria-expanded="true"]')?.click();
-      }, 0);
     };
 
     document.addEventListener('click', handleClick, true);
