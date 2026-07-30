@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, RiskAlertStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { campaignIsActive, normalizePromotionCampaigns } from './promotion-asset-campaigns';
+import { campaignIsActive } from './promotion-asset-campaigns';
+import { loadPromotionCampaignSettings } from './promotion-campaign-settings';
 import { mapPromotionBonusLedger, mapPromotionClaim } from './promotion.mapper';
 
 const CLAIM_REF_TYPE = 'PROMOTION_CLAIM';
@@ -14,8 +15,7 @@ export class PromotionsQueryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async listPublicCampaigns() {
-    const settings = await this.prisma.siteSetting.findUnique({ where: { key: 'features.promotion_campaigns' } });
-    const items = normalizePromotionCampaigns(settings?.valueJson)
+    const items = (await loadPromotionCampaignSettings(this.prisma))
       .filter((item) => campaignIsActive(item))
       .sort((a, b) => b.priority - a.priority);
     return { items };
