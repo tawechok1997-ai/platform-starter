@@ -28,6 +28,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
   const [wallet, setWallet] = useState<MemberWalletSummary | null>(null);
   const [walletLoading, setWalletLoading] = useState(false);
   const lastWalletRefreshAtRef = useRef(0);
+  const walletRefreshInFlightRef = useRef(false);
 
   const verify = useCallback(async () => {
     const hadSession = hasMemberSessionTokens();
@@ -45,6 +46,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
     setIsLoggedIn(true);
     setReady(true);
     setWalletLoading(true);
+    walletRefreshInFlightRef.current = true;
 
     let ok = true;
     try {
@@ -56,6 +58,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       // Network and server failures do not prove that the session expired.
       ok = true;
     } finally {
+      walletRefreshInFlightRef.current = false;
       setIsLoggedIn(ok);
       setWalletLoading(false);
     }
@@ -63,22 +66,24 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshWallet = useCallback(async () => {
-    if (document.visibilityState === 'hidden') return;
+    if (document.visibilityState === 'hidden' || walletRefreshInFlightRef.current) return;
 
-    setWalletLoading(true);
+    walletRefreshInFlightRef.current = true;
     try {
       const result = await fetchMemberWallet(false);
       if (!result.authenticated) {
         setIsLoggedIn(false);
         setWallet(null);
       } else if (result.wallet) {
-        setWallet(result.wallet);
+        setWallet((currentWallet) => (
+          JSON.stringify(currentWallet) === JSON.stringify(result.wallet) ? currentWallet : result.wallet
+        ));
       }
       lastWalletRefreshAtRef.current = Date.now();
     } catch {
       // Keep the last known balance during transient network failures.
     } finally {
-      setWalletLoading(false);
+      walletRefreshInFlightRef.current = false;
     }
   }, []);
 
