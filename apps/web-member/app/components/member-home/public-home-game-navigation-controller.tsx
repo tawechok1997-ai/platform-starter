@@ -21,6 +21,11 @@ const GAME_ACTION_SELECTOR = [
   '.browse-source-game-cover',
   '.browse-source-game-card footer button',
   '[data-source-game-cover]',
+  '.game-lobby-cover-button',
+  '.game-lobby-card-body > button',
+  '.game-lobby-hero-actions button',
+  '.hot-game-overlay button:last-child',
+  '.game-detail-play',
   '[data-game-id]',
   '[data-game-code]',
   '[data-game-name]',
@@ -162,6 +167,9 @@ function readGameCandidate(action: HTMLElement): MemberGameLaunchCandidate | nul
     action.dataset.gameName,
     action.getAttribute('title'),
     cleanAriaLabel(action.getAttribute('aria-label')),
+    action.closest<HTMLElement>('.game-lobby-card, .hot-game-card, .game-detail-dialog, .game-lobby-hero')
+      ?.querySelector<HTMLElement>('.game-lobby-card-body > strong, .hot-game-body > strong, #game-detail-title, .game-lobby-hero-copy h1')
+      ?.textContent,
     action.querySelector<HTMLElement>('.source-highlight-game__name, .source-popular-card__name, strong')?.textContent,
     cleanImageAlt(action.querySelector<HTMLImageElement>('img[alt]')?.alt),
   );
