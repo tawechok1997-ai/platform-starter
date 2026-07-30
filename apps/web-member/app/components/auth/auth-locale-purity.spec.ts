@@ -14,7 +14,11 @@ test('login controls and support copy come from the active locale', () => {
   assert.match(loginSource, /forgot:\s*'ลืมรหัสผ่าน\?'/);
   assert.match(loginSource, /forgot:\s*'Forgot password\?'/);
   assert.match(loginSource, /\{showSecret \? t\.hidePassword : t\.showPassword\}/);
-  assert.match(loginSource, /<Link href="\/forgot-password" className="public-auth-forgot">\{t\.forgot\}<\/Link>/);
+  assert.match(
+    loginSource,
+    /<button type="button" className="public-auth-forgot" onClick=\{\(\) => switchMode\('forgot'\)\}>\s*\{t\.forgot\}\s*<\/button>/,
+  );
+  assert.match(loginSource, /if \(params\.get\('mode'\) === 'forgot'\) setMode\('forgot'\)/);
   assert.match(loginSource, /<div className="source-login-support"><span>\{t\.supportPrompt\}<\/span><Link href="\/support">\{t\.support\}<\/Link><\/div>/);
   assert.doesNotMatch(loginSource, /<span>Secure connection<\/span>/);
 });
