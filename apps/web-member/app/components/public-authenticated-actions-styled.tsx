@@ -9,6 +9,7 @@ import '../member-authenticated-icon-assets.css';
 import '../member-authenticated-profile-source.css';
 import '../member-authenticated-source-header-geometry.css';
 import '../member-menu-income-runtime.css';
+import '../member-authenticated-menu-assets.css';
 
 type Props = ComponentProps<typeof PublicAuthenticatedActions>;
 
