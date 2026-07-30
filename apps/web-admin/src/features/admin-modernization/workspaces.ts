@@ -109,10 +109,10 @@ export const ADMIN_WORKSPACES: readonly AdminWorkspace[] = [
   {
     id: 'games',
     order: 60,
-    route: '/games',
+    route: '/game-control',
     labelKey: 'admin.navigation.games.label',
     descriptionKey: 'admin.navigation.games.description',
-    legacyPrefixes: ['/games', '/game-sessions', '/game-transfers'],
+    legacyPrefixes: ['/game-control', '/games', '/game-sessions', '/game-transfers'],
     mobilePattern: 'list-detail',
   },
   {
