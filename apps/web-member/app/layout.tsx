@@ -113,7 +113,6 @@ import MemberDragScrollController from './components/member-drag-scroll-controll
 import MemberHeroSwipeController from './components/member-hero-swipe-controller';
 import MemberImageFallbackController from './components/member-image-fallback-controller';
 import MemberRenderStabilityController from './components/member-render-stability-controller';
-import PersistentMemberShell from './components/persistent-member-shell';
 import PublicNavigationLocaleGuard from './components/public-navigation-locale-guard';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
@@ -201,9 +200,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <UsageGuideController />
               <div id="member-desktop-scale-shell">
                 <div id="member-desktop-scale-canvas">
-                  <PersistentMemberShell>
-                    <MemberChrome>{children}</MemberChrome>
-                  </PersistentMemberShell>
+                  <MemberChrome>{children}</MemberChrome>
                 </div>
               </div>
             </MemberSessionProvider>
