@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Suspense } from 'react';
 import './design-tokens.css';
 import '../../../packages/design-tokens/colors.css';
 import '../../../packages/design-tokens/shape-space-shadow.css';
@@ -192,7 +193,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <UsageGuideController />
               <div id="member-desktop-scale-shell">
                 <div id="member-desktop-scale-canvas">
-                  <MemberChrome>{children}</MemberChrome>
+                  <Suspense fallback={<main className="member-loading-screen" aria-hidden="true" />}>
+                    <MemberChrome>{children}</MemberChrome>
+                  </Suspense>
                 </div>
               </div>
             </MemberSessionProvider>
