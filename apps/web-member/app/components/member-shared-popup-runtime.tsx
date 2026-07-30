@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { MemberLocale } from '../member-locale-provider';
 import type { PromotionView } from '../browse/browse-promotions-cms';
+import '../member-promotion-detail-popup.css';
 
 const BrowsePromotionsCms = dynamic(
   () => import('../browse/browse-promotions-cms').then((module) => module.BrowsePromotionsCms),
