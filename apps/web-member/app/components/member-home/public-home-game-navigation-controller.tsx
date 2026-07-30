@@ -44,12 +44,21 @@ const EXCLUDED_SELECTOR = [
   '.v47-mobile-section-title',
   '.browse-source-favorite',
   '.game-lobby-page',
+  '.public-member-actions',
+  '.public-auth-page',
+  '[role="dialog"]',
+  '[aria-modal="true"]',
+  'input',
+  'textarea',
+  'select',
+  '[contenteditable="true"]',
   '[aria-label*="รายการโปรด"]',
   '[aria-label*="favorite" i]',
   '[data-favorite]',
 ].join(',');
 
 const DEFAULT_MEMBER_GAME_DESTINATION = '/games';
+const GAME_LAUNCH_TIMEOUT_MS = 15_000;
 
 type LaunchState = {
   status: 'loading' | 'error';
@@ -60,13 +69,14 @@ type LaunchState = {
 export default function PublicGameLoginController() {
   const router = useRouter();
   const { ready, isLoggedIn } = useMemberSession();
-  const launchInFlightRef = useRef(false);
+  const launchAbortRef = useRef<AbortController | null>(null);
   const [launchState, setLaunchState] = useState<LaunchState | null>(null);
 
   useEffect(() => {
     const handleGameAction = async (event: MouseEvent) => {
       if (
         !ready
+        || event.defaultPrevented
         || event.button !== 0
         || event.metaKey
         || event.ctrlKey
@@ -83,7 +93,6 @@ export default function PublicGameLoginController() {
       if (!isLoggedIn) {
         event.preventDefault();
         event.stopPropagation();
-        event.stopImmediatePropagation();
 
         const destination = gameDestination(action);
         const currentUrl = new URL(window.location.href);
@@ -98,31 +107,51 @@ export default function PublicGameLoginController() {
 
       event.preventDefault();
       event.stopPropagation();
-      event.stopImmediatePropagation();
-      if (launchInFlightRef.current) return;
 
-      launchInFlightRef.current = true;
+      launchAbortRef.current?.abort();
+      const controller = new AbortController();
+      launchAbortRef.current = controller;
+      let timedOut = false;
+      const timeout = window.setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, GAME_LAUNCH_TIMEOUT_MS);
+
       action.dataset.memberGameLaunching = 'true';
       const gameName = candidate.name || 'เกม';
       setLaunchState({ status: 'loading', gameName, message: 'กำลังเชื่อมต่อค่ายเกม...' });
 
       try {
-        await openMemberProviderGame(candidate);
+        await openMemberProviderGame(candidate, { signal: controller.signal });
       } catch (caught) {
+        if (controller.signal.aborted) {
+          if (launchAbortRef.current === controller && timedOut) {
+            setLaunchState({
+              status: 'error',
+              gameName,
+              message: 'ค่ายเกมตอบสนองช้าเกิน 15 วินาที กรุณาลองใหม่อีกครั้ง',
+            });
+          }
+          return;
+        }
+
         setLaunchState({
           status: 'error',
           gameName,
           message: caught instanceof Error ? caught.message : 'เปิดเกมไม่สำเร็จ',
         });
       } finally {
-        launchInFlightRef.current = false;
+        window.clearTimeout(timeout);
         delete action.dataset.memberGameLaunching;
+        if (launchAbortRef.current === controller) launchAbortRef.current = null;
       }
     };
 
     window.addEventListener('click', handleGameAction, true);
     return () => window.removeEventListener('click', handleGameAction, true);
   }, [isLoggedIn, ready, router]);
+
+  useEffect(() => () => launchAbortRef.current?.abort(), []);
 
   useEffect(() => {
     if (launchState?.status !== 'error') return;
@@ -135,6 +164,12 @@ export default function PublicGameLoginController() {
 
   if (!launchState || typeof document === 'undefined') return null;
 
+  const closeLaunch = () => {
+    launchAbortRef.current?.abort();
+    launchAbortRef.current = null;
+    setLaunchState(null);
+  };
+
   return createPortal(
     <div className="member-game-launch-overlay" role="presentation">
       <section
@@ -146,9 +181,9 @@ export default function PublicGameLoginController() {
         {launchState.status === 'loading' ? <span className="member-game-launch-spinner" aria-hidden="true" /> : null}
         <strong>{launchState.status === 'loading' ? `กำลังเปิด ${launchState.gameName}` : 'เปิดเกมไม่สำเร็จ'}</strong>
         <p>{launchState.message}</p>
-        {launchState.status === 'error' ? (
-          <button type="button" onClick={() => setLaunchState(null)}>ปิด</button>
-        ) : null}
+        <button type="button" onClick={closeLaunch}>
+          {launchState.status === 'loading' ? 'ยกเลิก' : 'ปิด'}
+        </button>
       </section>
     </div>,
     document.body,
