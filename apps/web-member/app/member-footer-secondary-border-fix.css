@@ -60,15 +60,25 @@ html[data-member-viewport-ready='false'] #member-desktop-scale-shell {
 
 .public-member-actions-placeholder {
   display: block;
-  width: 430px;
-  max-width: 32vw;
-  height: 42px;
+  flex: 0 0 auto;
+  width: 264px;
+  height: 44px;
   opacity: 0;
   pointer-events: none;
 }
 
+html[data-member-session-hint='token'] .public-member-actions-placeholder {
+  width: 560px;
+}
+
+html[data-member-session-hint='guest'] .public-member-actions-placeholder {
+  width: 264px;
+}
+
 @media (max-width: 900px) {
-  .public-member-actions-placeholder {
+  .public-member-actions-placeholder,
+  html[data-member-session-hint='token'] .public-member-actions-placeholder,
+  html[data-member-session-hint='guest'] .public-member-actions-placeholder {
     width: 120px;
     height: 34px;
   }
