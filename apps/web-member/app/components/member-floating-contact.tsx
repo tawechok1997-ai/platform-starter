@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useMemberContactRuntime } from '../member-settings-runtime';
 import '../member-floating-contact.css';
 
-const LINE_CONTACT_URL = 'https://lin.ee/UYkP0OC';
-const LINE_ICON_URL = '/assets/asset-pc/images/line.png';
 const CONTACT_ICON_URL = '/assets/asset-pc/images/footer/contact/icon-open-gold.webp';
 
 export default function MemberFloatingContact() {
   const [open, setOpen] = useState(false);
+  const { primary } = useMemberContactRuntime();
 
   useEffect(() => {
     if (!open) return;
@@ -29,14 +29,15 @@ export default function MemberFloatingContact() {
     >
       <div className="member-floating-contact__channels" aria-hidden={!open}>
         <a
-          href={LINE_CONTACT_URL}
-          target="_blank"
-          rel="noreferrer noopener"
+          href={primary.href}
+          target={primary.external ? '_blank' : undefined}
+          rel={primary.external ? 'noreferrer noopener' : undefined}
           className="member-floating-contact__line"
           tabIndex={open ? 0 : -1}
-          aria-label="ติดต่อทีมงานผ่าน LINE"
+          aria-label={`ติดต่อทีมงานผ่าน ${primary.label}`}
+          title={`${primary.label}: ${primary.value}`}
         >
-          <img src={LINE_ICON_URL} alt="LINE" loading="lazy" />
+          <img src={primary.iconUrl} alt={primary.label} loading="lazy" />
         </a>
       </div>
 
