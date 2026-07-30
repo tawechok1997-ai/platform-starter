@@ -1,0 +1,236 @@
+.workspace {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(280px, .82fr) minmax(0, 1.55fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+  max-height: 760px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.tournamentButton {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, .42);
+  color: inherit;
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  transition: border-color .18s ease, transform .18s ease, background .18s ease;
+}
+
+.tournamentButton:hover,
+.tournamentButton:focus-visible {
+  border-color: rgba(96, 165, 250, .62);
+  background: rgba(30, 41, 59, .72);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.tournamentButtonActive {
+  border-color: rgba(59, 130, 246, .78);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .11);
+}
+
+.itemHead,
+.itemMeta,
+.inlineActions,
+.formActions,
+.gameHead,
+.leaderboardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.itemMeta {
+  color: #94a3b8;
+  font-size: 12px;
+  justify-content: flex-start;
+}
+
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field,
+.fieldFull {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.field span,
+.fieldFull span {
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.field input,
+.field select,
+.field textarea,
+.fieldFull input,
+.fieldFull select,
+.fieldFull textarea,
+.searchInput {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, .62);
+  color: #f8fafc;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.field textarea,
+.fieldFull textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+}
+
+.checkboxRow input {
+  width: 18px;
+  height: 18px;
+}
+
+.gamePicker {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(148, 163, 184, .16);
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.gameList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 310px;
+  overflow: auto;
+}
+
+.gameOption {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  border: 1px solid rgba(148, 163, 184, .14);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(15, 23, 42, .34);
+  cursor: pointer;
+}
+
+.gameOption:hover {
+  border-color: rgba(96, 165, 250, .45);
+}
+
+.gameOption strong,
+.gameOption small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.gameOption small {
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+.leaderboard {
+  display: grid;
+  gap: 8px;
+}
+
+.leaderboardRow {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) minmax(90px, auto);
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid rgba(148, 163, 184, .12);
+  padding: 10px 4px;
+}
+
+.rank {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(59, 130, 246, .13);
+  color: #93c5fd;
+  font-weight: 900;
+}
+
+.score {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 900;
+}
+
+.muted {
+  margin: 0;
+  color: #94a3b8;
+  line-height: 1.55;
+}
+
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .list {
+    max-height: 420px;
+  }
+}
+
+@media (max-width: 680px) {
+  .formGrid,
+  .gameList {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboardRow {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .score {
+    grid-column: 2;
+    text-align: left;
+  }
+}
