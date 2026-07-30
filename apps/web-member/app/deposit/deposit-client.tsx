@@ -14,12 +14,23 @@ import {
   useDepositServerState,
   validateDepositSelection,
 } from '../../src/features/finance';
+import MemberHeaderDepositView from '../components/member-header-deposit-view';
 import { memberApiFetch } from '../member-api';
 import type { DepositMethodCode, DepositStep, ReceivingAccount, TopUpItem } from '../types/member-finance';
 
 const DEPOSIT_EXPIRES_IN_MS = 15 * 60 * 1000;
 
-export default function DepositClient() {
+type DepositClientProps = {
+  variant?: 'page' | 'headerPopup';
+  locale?: 'th' | 'en';
+  onCancel?: () => void;
+};
+
+export default function DepositClient({
+  variant = 'page',
+  locale = 'th',
+  onCancel,
+}: DepositClientProps = {}) {
   const [step, setStep] = useState<DepositStep>('select');
   const [amount, setAmount] = useState(DEPOSIT_FORM_DEFAULTS.amount);
   const [method, setMethod] = useState<DepositMethodCode>(DEPOSIT_FORM_DEFAULTS.method);
@@ -197,58 +208,61 @@ export default function DepositClient() {
   const remainingMs = transferExpiresAt ? Math.max(0, transferExpiresAt - now) : 0;
   const transferExpired = Boolean(transferExpiresAt && remainingMs <= 0);
   const remainingLabel = transferExpiresAt ? formatDuration(remainingMs) : '';
+  const viewProps = {
+    step,
+    amount,
+    method,
+    accounts,
+    history,
+    selected,
+    slipImageData,
+    slipImageName,
+    transactionRef,
+    note,
+    message,
+    loading,
+    initialLoading,
+    confirmOpen,
+    lastRequest,
+    hasPendingRequest: Boolean(pendingRequest),
+    parsedAmount,
+    availableMethods,
+    transferExpiresAt,
+    transferExpired,
+    remainingLabel,
+    onAmountChange: setAmount,
+    onMethodChange: setMethod,
+    onTransactionRefChange: setTransactionRef,
+    onNoteChange: setNote,
+    onNextStep: nextStep,
+    onUploadSlip: uploadSlip,
+    onCopyText: (value: string, label: string) => {
+      void copyText(value, label);
+    },
+    onOpenConfirm: () => setConfirmOpen(true),
+    onCloseConfirm: () => setConfirmOpen(false),
+    onSubmit: () => {
+      void submit();
+    },
+    onBackToSelect: () => {
+      setStep('select');
+      setTransferExpiresAt(null);
+      setPendingRequest(null);
+      idempotencyKeyRef.current = '';
+    },
+    onCreateAnother: () => {
+      setLastRequest(null);
+      setPendingRequest(null);
+      idempotencyKeyRef.current = '';
+      setStep('select');
+    },
+  };
 
-  return (
-    <DepositView
-      step={step}
-      amount={amount}
-      method={method}
-      accounts={accounts}
-      history={history}
-      selected={selected}
-      slipImageData={slipImageData}
-      slipImageName={slipImageName}
-      transactionRef={transactionRef}
-      note={note}
-      message={message}
-      loading={loading}
-      initialLoading={initialLoading}
-      confirmOpen={confirmOpen}
-      lastRequest={lastRequest}
-      hasPendingRequest={Boolean(pendingRequest)}
-      parsedAmount={parsedAmount}
-      availableMethods={availableMethods}
-      transferExpiresAt={transferExpiresAt}
-      transferExpired={transferExpired}
-      remainingLabel={remainingLabel}
-      onAmountChange={setAmount}
-      onMethodChange={setMethod}
-      onTransactionRefChange={setTransactionRef}
-      onNoteChange={setNote}
-      onNextStep={nextStep}
-      onUploadSlip={uploadSlip}
-      onCopyText={(value, label) => {
-        void copyText(value, label);
-      }}
-      onOpenConfirm={() => setConfirmOpen(true)}
-      onCloseConfirm={() => setConfirmOpen(false)}
-      onSubmit={() => {
-        void submit();
-      }}
-      onBackToSelect={() => {
-        setStep('select');
-        setTransferExpiresAt(null);
-        setPendingRequest(null);
-        idempotencyKeyRef.current = '';
-      }}
-      onCreateAnother={() => {
-        setLastRequest(null);
-        setPendingRequest(null);
-        idempotencyKeyRef.current = '';
-        setStep('select');
-      }}
-    />
-  );
+  if (variant === 'headerPopup') {
+    return <MemberHeaderDepositView {...viewProps} locale={locale} onCancel={onCancel} />;
+  }
+
+  return <DepositView {...viewProps} />;
 }
 
 function accountType(account: ReceivingAccount): DepositMethodCode {
