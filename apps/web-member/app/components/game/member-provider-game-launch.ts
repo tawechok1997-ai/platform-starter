@@ -71,10 +71,10 @@ export async function openMemberProviderGame(
 }
 
 async function requestLaunch(gameId: string, signal?: AbortSignal): Promise<LaunchAttempt> {
-  const response = await memberApiFetch(`/member/games/${encodeURIComponent(gameId)}/launch`, {
-    method: 'POST',
-    signal,
-  });
+  const response = await memberApiFetch(
+    `/member/games/${encodeURIComponent(gameId)}/launch`,
+    signal ? { method: 'POST', signal } : { method: 'POST' },
+  );
   const payload = await response.json().catch(() => null);
   const source = unwrapRecord(payload);
   const launchUrl = firstText(source.launchUrl, source.url, source.gameUrl);
@@ -118,7 +118,10 @@ async function findMemberGameId(
     const params = new URLSearchParams({ query, page: '1', limit: '100' });
     if (candidate.providerCode) params.set('provider', candidate.providerCode);
     if (candidate.category) params.set('category', candidate.category);
-    const response = await memberApiFetch(`/member/games?${params.toString()}`, { signal });
+    const response = await memberApiFetch(
+      `/member/games?${params.toString()}`,
+      signal ? { signal } : {},
+    );
     if (!response.ok) continue;
     const payload = await response.json().catch(() => null);
     for (const game of readMemberGames(payload)) discovered.set(game.id, game);
@@ -127,7 +130,10 @@ async function findMemberGameId(
   if (!discovered.size && candidate.providerCode) {
     const params = new URLSearchParams({ provider: candidate.providerCode, page: '1', limit: '100' });
     if (candidate.category) params.set('category', candidate.category);
-    const response = await memberApiFetch(`/member/games?${params.toString()}`, { signal });
+    const response = await memberApiFetch(
+      `/member/games?${params.toString()}`,
+      signal ? { signal } : {},
+    );
     if (response.ok) {
       const payload = await response.json().catch(() => null);
       for (const game of readMemberGames(payload)) discovered.set(game.id, game);
