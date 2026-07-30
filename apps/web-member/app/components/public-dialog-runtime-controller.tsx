@@ -13,24 +13,23 @@ const SEARCH_TRIGGER_SELECTOR = [
   '[aria-label="Search games"]',
 ].join(',');
 
+const DIALOG_TRIGGER_SELECTOR = [
+  SEARCH_TRIGGER_SELECTOR,
+  '.public-home-mission',
+  '[aria-haspopup="dialog"][href="#daily-mission"]',
+].join(',');
+
 function forceOverlayAboveChrome(overlay: HTMLElement, kind: string) {
+  if (overlay.dataset.publicDialogOverlay === kind) return;
+
   overlay.dataset.publicDialogOverlay = kind;
   overlay.classList.add('public-dialog-runtime-overlay');
-
   overlay.style.setProperty('position', 'fixed', 'important');
   overlay.style.setProperty('inset', '0', 'important');
-  overlay.style.setProperty('top', '0', 'important');
-  overlay.style.setProperty('right', '0', 'important');
-  overlay.style.setProperty('bottom', '0', 'important');
-  overlay.style.setProperty('left', '0', 'important');
   overlay.style.setProperty('z-index', '2147483647', 'important');
   overlay.style.setProperty('isolation', 'isolate', 'important');
   overlay.style.setProperty('width', '100vw', 'important');
-  overlay.style.setProperty('min-width', '100vw', 'important');
-  overlay.style.setProperty('max-width', '100vw', 'important');
   overlay.style.setProperty('height', '100dvh', 'important');
-  overlay.style.setProperty('min-height', '100dvh', 'important');
-  overlay.style.setProperty('max-height', '100dvh', 'important');
   overlay.style.setProperty('margin', '0', 'important');
   overlay.style.setProperty('overflow', 'hidden', 'important');
   overlay.style.setProperty('opacity', '1', 'important');
@@ -49,17 +48,12 @@ function normalizeDialog(id: string, kind: string) {
   dialog.style.setProperty('z-index', '1', 'important');
 
   const overlay = dialog.parentElement;
-  if (overlay instanceof HTMLElement) {
-    forceOverlayAboveChrome(overlay, kind);
-  }
+  if (overlay instanceof HTMLElement) forceOverlayAboveChrome(overlay, kind);
 
-  const header = dialog.querySelector<HTMLElement>(':scope > header');
-  header?.classList.add('public-dialog-runtime-header');
-
-  const closeButton = dialog.querySelector<HTMLButtonElement>(
-    'button[aria-label^="ปิด"], button[aria-label^="Close"]',
-  );
-  closeButton?.classList.add('public-dialog-runtime-close');
+  dialog.querySelector<HTMLElement>(':scope > header')
+    ?.classList.add('public-dialog-runtime-header');
+  dialog.querySelector<HTMLButtonElement>('button[aria-label^="ปิด"], button[aria-label^="Close"]')
+    ?.classList.add('public-dialog-runtime-close');
 }
 
 function normalizeAllDialogs() {
@@ -68,24 +62,24 @@ function normalizeAllDialogs() {
 
 export default function PublicDialogRuntimeController() {
   useEffect(() => {
-    normalizeAllDialogs();
+    let frame = 0;
 
-    const observer = new MutationObserver(() => normalizeAllDialogs());
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    const preventSearchNavigation = (event: MouseEvent) => {
+    const normalizeAfterOpen = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
-      const trigger = event.target.closest<HTMLElement>(SEARCH_TRIGGER_SELECTOR);
+      const trigger = event.target.closest<HTMLElement>(DIALOG_TRIGGER_SELECTOR);
       if (!trigger) return;
 
-      event.preventDefault();
+      if (trigger.matches(SEARCH_TRIGGER_SELECTOR)) event.preventDefault();
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(normalizeAllDialogs);
     };
 
-    document.addEventListener('click', preventSearchNavigation, true);
+    normalizeAllDialogs();
+    document.addEventListener('click', normalizeAfterOpen, true);
 
     return () => {
-      observer.disconnect();
-      document.removeEventListener('click', preventSearchNavigation, true);
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener('click', normalizeAfterOpen, true);
     };
   }, []);
 
