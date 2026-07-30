@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  Fragment,
   createContext,
   useCallback,
   useContext,
@@ -10,7 +9,6 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { flushSync } from 'react-dom';
 
 export type MemberLocale = 'th' | 'en';
 
@@ -37,20 +35,23 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<MemberLocale>('th');
 
   const commitLocale = useCallback((nextLocale: MemberLocale) => {
-    flushSync(() => setLocaleState(nextLocale));
+    setLocaleState((currentLocale) => (currentLocale === nextLocale ? currentLocale : nextLocale));
     applyLocaleToDocument(nextLocale);
     window.localStorage.setItem(STORAGE_KEY, nextLocale);
   }, []);
 
   useEffect(() => {
-    const initialLocale = normalizeLocale(window.localStorage.getItem(STORAGE_KEY));
-    setLocaleState(initialLocale);
+    const initialLocale = normalizeLocale(
+      document.documentElement.dataset.memberLocale
+      ?? window.localStorage.getItem(STORAGE_KEY),
+    );
+    setLocaleState((currentLocale) => (currentLocale === initialLocale ? currentLocale : initialLocale));
     applyLocaleToDocument(initialLocale);
 
     const syncStorageLocale = (event: StorageEvent) => {
       if (event.key !== STORAGE_KEY) return;
       const nextLocale = normalizeLocale(event.newValue);
-      flushSync(() => setLocaleState(nextLocale));
+      setLocaleState((currentLocale) => (currentLocale === nextLocale ? currentLocale : nextLocale));
       applyLocaleToDocument(nextLocale);
     };
 
@@ -72,11 +73,7 @@ export function MemberLocaleProvider({ children }: { children: ReactNode }) {
     [locale, setLocale, toggleLocale],
   );
 
-  return (
-    <MemberLocaleContext.Provider value={value}>
-      <Fragment key={locale}>{children}</Fragment>
-    </MemberLocaleContext.Provider>
-  );
+  return <MemberLocaleContext.Provider value={value}>{children}</MemberLocaleContext.Provider>;
 }
 
 export function useMemberLocale() {
