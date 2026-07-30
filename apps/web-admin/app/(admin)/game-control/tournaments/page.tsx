@@ -90,7 +90,7 @@ export default function GameTournamentPage() {
   const [error, setError] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const canManage = permissions.includes('*') || permissions.includes('game.providers.manage') || permissions.includes('provider.update');
+  const canManage = permissions.includes('*') || permissions.includes('game.providers.manage');
   const selectedTournament = tournaments.find((item) => item.id === selectedId) ?? null;
   const filteredGames = useMemo(() => {
     const needle = gameQuery.trim().toLocaleLowerCase(locale === 'th' ? 'th' : 'en');
