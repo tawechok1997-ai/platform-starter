@@ -1,0 +1,29 @@
+.member-income-safe-popup > header > div > .member-source-title-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 10px;
+  background: linear-gradient(360deg, rgb(21 23 29 / 60%) -5.86%, rgb(58 60 64 / 60%) 104.05%);
+}
+
+.member-income-safe-popup > header > div > .member-source-title-icon img {
+  width: 31px;
+  height: 31px;
+  object-fit: contain;
+}
+
+.member-income-safe-popup > header > button .member-source-close-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.member-vip-benefit-item img[src*="/source-icons/"] {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
