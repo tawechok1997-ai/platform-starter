@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { memberApiFetch } from '../member-api';
 import type { MemberLocale } from '../member-locale-provider';
@@ -22,6 +22,8 @@ type ProfileSummary = {
 };
 
 type ProfileAction = 'contact' | 'password' | null;
+
+const PROFILE_MODAL_REQUEST_TIMEOUT_MS = 10_000;
 
 const COPY = {
   th: {
@@ -57,6 +59,16 @@ export default function MemberProfileDetailModal({
   const copy = COPY[locale];
   const [profile, setProfile] = useState<ProfileSummary | null>(null);
   const [action, setAction] = useState<ProfileAction>(null);
+  const closeRef = useRef(onClose);
+  const actionRef = useRef<ProfileAction>(action);
+
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    actionRef.current = action;
+  }, [action]);
 
   useEffect(() => {
     if (!open) {
@@ -64,35 +76,53 @@ export default function MemberProfileDetailModal({
       return;
     }
 
-    const previousOverflow = document.body.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      if (action) {
+      if (actionRef.current) {
         setAction(null);
         return;
       }
-      onClose();
+      closeRef.current();
     };
-    window.addEventListener('keydown', closeOnEscape);
 
-    let cancelled = false;
-    void memberApiFetch('/member/auth/profile')
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), PROFILE_MODAL_REQUEST_TIMEOUT_MS);
+
+    void memberApiFetch('/member/auth/profile', {
+      signal: controller.signal,
+      suppressSessionExpiryRedirect: true,
+    })
       .then(async (response) => {
         if (!response.ok) return null;
         return (await response.json().catch(() => null)) as ProfileSummary | null;
       })
       .then((payload) => {
-        if (!cancelled && payload) setProfile(payload);
+        if (!controller.signal.aborted && payload) setProfile(payload);
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => window.clearTimeout(timeout));
 
     return () => {
-      cancelled = true;
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', closeOnEscape);
+      window.clearTimeout(timeout);
+      controller.abort();
     };
-  }, [action, onClose, open]);
+  }, [open]);
 
   if (!open || typeof document === 'undefined') return null;
 
@@ -105,7 +135,7 @@ export default function MemberProfileDetailModal({
       role="presentation"
       onPointerDown={(event) => {
         if (action) return;
-        if (event.currentTarget === event.target) onClose();
+        if (event.currentTarget === event.target) closeRef.current();
       }}
     >
       <section
@@ -119,13 +149,13 @@ export default function MemberProfileDetailModal({
 
         <header className="member-profile-detail-header">
           <div className="member-profile-detail-title-group">
-            <button type="button" className="member-profile-detail-back" onClick={onClose} aria-label={copy.back}>
+            <button type="button" className="member-profile-detail-back" onClick={() => closeRef.current()} aria-label={copy.back}>
               <BackIcon />
             </button>
             <span className="member-profile-detail-title-icon" aria-hidden="true"><ProfileIcon /></span>
             <h2>{copy.title}</h2>
           </div>
-          <button type="button" className="member-profile-detail-close" onClick={onClose} aria-label={copy.close}>
+          <button type="button" className="member-profile-detail-close" onClick={() => closeRef.current()} aria-label={copy.close}>
             <CloseIcon />
           </button>
         </header>
