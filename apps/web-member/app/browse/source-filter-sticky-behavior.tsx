@@ -54,6 +54,20 @@ export default function SourceFilterStickyBehavior() {
           max-height: calc(100vh - 140px) !important;
         }
 
+        /* Fishing has fifteen providers, so the shared viewport cap creates an
+         * unnecessary scrollbar inside the filter card. Let the complete filter
+         * participate in normal page scrolling instead. */
+        main[data-source-game-category='fishing'] [data-source-filter-panel] {
+          position: relative !important;
+          top: auto !important;
+          z-index: 0 !important;
+          width: 345px !important;
+          height: auto !important;
+          max-height: none !important;
+          overflow-x: visible !important;
+          overflow-y: visible !important;
+        }
+
         main[data-source-game-category] [data-source-provider-grid] {
           display: grid !important;
           grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
