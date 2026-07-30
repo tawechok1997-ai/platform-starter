@@ -122,6 +122,7 @@ import PublicDialogRuntimeController from './components/public-dialog-runtime-co
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
 import PublicGameLoginController from './components/member-home/public-home-game-navigation-controller';
 import PublicDesktopViewportBootstrap from './components/public-desktop-viewport-bootstrap';
+import SiteFaviconRuntime from './components/site-favicon-runtime';
 import UsageGuideController from './components/member-home/usage-guide-controller';
 import { MemberLocaleProvider } from './member-locale-provider';
 import { MemberSessionProvider } from './member-session-provider';
@@ -188,6 +189,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <MemberLocaleProvider>
           <SiteSettingsProvider initialSettings={initialSettings}>
+            <SiteFaviconRuntime />
             <MemberSessionProvider>
               <PublicDesktopViewportBootstrap />
               <MemberRenderStabilityController />
