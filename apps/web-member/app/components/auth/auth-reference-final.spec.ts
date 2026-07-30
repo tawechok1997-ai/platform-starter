@@ -22,7 +22,9 @@ test('loads the shared Auth contract before source and single-owner layers', () 
 
   for (const index of indexes) assert.notEqual(index, -1);
   for (let index = 1; index < indexes.length; index += 1) {
-    assert.equal(indexes[index] > indexes[index - 1], true);
+    const previous = indexes[index - 1] ?? -1;
+    const current = indexes[index] ?? -1;
+    assert.equal(current > previous, true);
   }
 });
 
