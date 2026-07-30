@@ -58,7 +58,15 @@ export type CmsContent = Omit<StrictCmsContent, 'banners' | 'announcements'> & {
 export const defaultCmsContent = strictDefaultCmsContent as CmsContent;
 
 export function cmsContentSetting(settings: PublicSiteSettings): CmsContent {
-  return strictCmsContentSetting(settings) as CmsContent;
+  const content = strictCmsContentSetting(settings) as CmsContent;
+  return {
+    ...content,
+    announcements: content.announcements.map((announcement) => (
+      announcement.kind === 'promotion'
+        ? { ...announcement, kind: 'system' }
+        : announcement
+    )),
+  };
 }
 
 export function cmsAssetUrl(content: CmsContent, assetId?: string) {
