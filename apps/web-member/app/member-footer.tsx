@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import type { SyntheticEvent } from 'react';
 import { useMemberLocale } from './member-locale-provider';
 import type { TypedPublicSiteSettings } from './site-settings-types';
@@ -8,12 +8,12 @@ import type { TypedPublicSiteSettings } from './site-settings-types';
 const SOURCE_ROOT = '/assets/asset-pc/images';
 
 const GAME_LINKS = [
-  ['casino', '/games?category=casino'],
-  ['slot', '/games?category=slot'],
-  ['fishing', '/games?category=fishing'],
-  ['sport', '/games?category=sport'],
-  ['card', '/games?category=card'],
-  ['lottery', '/games?category=lottery'],
+  ['casino', '/browse/games?category=casino'],
+  ['slot', '/browse/games?category=slot'],
+  ['fishing', '/browse/games?category=fishing'],
+  ['sport', '/browse/games?category=sport'],
+  ['card', '/browse/games?category=card'],
+  ['lottery', '/browse/games?category=lottery'],
 ] as const;
 
 const INFO_LINKS = [
@@ -81,8 +81,6 @@ function sourceDescription(value: string | undefined, fallback: string) {
 }
 
 export default function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
-  const pathname = usePathname() ?? '/';
-  const isHomeRoute = pathname === '/';
   const { locale } = useMemberLocale();
   const copy = FOOTER_COPY[locale];
   const { website } = settings;
@@ -90,7 +88,7 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
   const description = sourceDescription(website.site_description, copy.description);
 
   return (
-    <footer className={`member-footer ${isHomeRoute ? 'member-footer--home' : 'member-footer--secondary'}`} data-locale={locale}>
+    <footer className="member-footer member-footer--shared member-persistent-shell__footer" data-locale={locale}>
       <div className="member-footer__main">
         <section className="member-footer__about">
           <h3>{siteName}</h3>
@@ -116,24 +114,22 @@ export default function MemberFooter({ settings }: { settings: TypedPublicSiteSe
         <div className="member-footer__menus">
           <nav className="member-footer__links" aria-label={copy.games}>
             <h3>{copy.games}</h3>
-            {GAME_LINKS.map(([key, href]) => <a key={key} href={href}>{copy.links[key]}</a>)}
+            {GAME_LINKS.map(([key, href]) => <Link key={key} href={href}>{copy.links[key]}</Link>)}
           </nav>
 
           <nav className="member-footer__links" aria-label={copy.information}>
             <h3>{copy.information}</h3>
-            {INFO_LINKS.map(([key, href]) => <a key={key} href={href}>{copy.links[key]}</a>)}
+            {INFO_LINKS.map(([key, href]) => <Link key={key} href={href}>{copy.links[key]}</Link>)}
           </nav>
         </div>
 
         <section className="member-footer__contact">
           <h3>{copy.contact}</h3>
-          <a className="member-footer__contact-line" href="/contact" aria-label={copy.contactAria}>
+          <Link className="member-footer__contact-line" href="/contact" aria-label={copy.contactAria}>
             <img src={`${SOURCE_ROOT}/line.png`} alt="LINE" loading="lazy" onError={hideBrokenImage} />
-          </a>
+          </Link>
         </section>
       </div>
-
-      {isHomeRoute && <div className="member-footer__separator" aria-hidden="true" />}
 
       <section className="member-footer__payments" aria-label={copy.payments}>
         <h3>{copy.payments}</h3>
