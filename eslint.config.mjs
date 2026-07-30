@@ -75,6 +75,14 @@ export default tseslint.config(
     },
   },
   {
+    // Search appears only after an explicit button click; focusing that field
+    // preserves keyboard continuity without allowing autofocus elsewhere in Member.
+    files: ['apps/web-member/app/components/member-menu-income-runtime.tsx'],
+    rules: {
+      'jsx-a11y/no-autofocus': 'off',
+    },
+  },
+  {
     files: ['**/support/support-command.service.ts', '**/common/security/input-normalization.ts'],
     rules: {
       'no-control-regex': 'off',
