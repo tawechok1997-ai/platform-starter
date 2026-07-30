@@ -112,7 +112,7 @@ export const ADMIN_WORKSPACES: readonly AdminWorkspace[] = [
     route: '/games',
     labelKey: 'admin.navigation.games.label',
     descriptionKey: 'admin.navigation.games.description',
-    legacyPrefixes: ['/games', '/game-sessions', '/game-transfers'],
+    legacyPrefixes: ['/game-control', '/games', '/game-sessions', '/game-transfers'],
     mobilePattern: 'list-detail',
   },
   {
