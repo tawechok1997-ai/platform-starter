@@ -78,6 +78,34 @@
   .public-authenticated-shared-island[data-wallet-refreshing="true"] .public-member-wallet-amount {
     opacity: 0.72;
   }
+
+  .public-member-profile-trigger,
+  .public-member-profile-trigger > img,
+  .public-member-profile-trigger > svg {
+    pointer-events: auto !important;
+  }
+
+  .public-member-profile-trigger > img,
+  .public-member-profile-trigger > svg {
+    pointer-events: none !important;
+  }
+
+  .public-member-profile-popover.public-member-profile-popover--portal {
+    position: fixed !important;
+    z-index: 2147483500 !important;
+    top: var(--member-profile-popover-top, 60px) !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: var(--member-profile-popover-left, 12px) !important;
+    width: var(--member-profile-popover-width, 350px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - var(--member-profile-popover-top, 60px) - 12px) !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+    pointer-events: auto !important;
+    isolation: isolate;
+    transform: none !important;
+  }
 }
 
 @keyframes member-shared-wallet-refresh {
