@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   MEMBER_WALLET_REFRESH_EVENT,
   normalizeMemberWallet,
@@ -20,33 +20,51 @@ type MemberSessionContextValue = {
 
 const MemberSessionContext = createContext<MemberSessionContextValue | null>(null);
 const SESSION_TIMEOUT_MS = 12000;
+const FOCUS_REFRESH_COOLDOWN_MS = 15000;
 
 export function MemberSessionProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [wallet, setWallet] = useState<MemberWalletSummary | null>(null);
   const [walletLoading, setWalletLoading] = useState(false);
+  const lastWalletRefreshAtRef = useRef(0);
 
   const verify = useCallback(async () => {
-    let ok = false;
     const hadSession = hasMemberSessionTokens();
+    if (!hadSession) {
+      setIsLoggedIn(false);
+      setWallet(null);
+      setWalletLoading(false);
+      setReady(true);
+      return false;
+    }
+
+    // A stored session can reveal the stable authenticated shell immediately.
+    // The wallet request continues in the background and remains the authority
+    // for detecting an expired token without flashing the guest page first.
+    setIsLoggedIn(true);
+    setReady(true);
     setWalletLoading(true);
+
+    let ok = true;
     try {
       const result = await fetchMemberWallet(true);
       ok = result.authenticated;
       setWallet(result.wallet);
+      lastWalletRefreshAtRef.current = Date.now();
     } catch {
       // Network and server failures do not prove that the session expired.
-      ok = hadSession;
+      ok = true;
     } finally {
       setIsLoggedIn(ok);
-      setReady(true);
       setWalletLoading(false);
     }
     return ok;
   }, []);
 
   const refreshWallet = useCallback(async () => {
+    if (document.visibilityState === 'hidden') return;
+
     setWalletLoading(true);
     try {
       const result = await fetchMemberWallet(false);
@@ -56,6 +74,7 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       } else if (result.wallet) {
         setWallet(result.wallet);
       }
+      lastWalletRefreshAtRef.current = Date.now();
     } catch {
       // Keep the last known balance during transient network failures.
     } finally {
@@ -67,9 +86,6 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
     clearMemberSession();
     setIsLoggedIn(false);
     setWallet(null);
-    // Return to the public home shell and open the embedded login modal there.
-    // Navigating to /login directly renders the auth page as a full-screen route,
-    // leaving a black background instead of the dimmed homepage underneath.
     window.location.replace('/?auth=login');
   }, []);
 
@@ -79,14 +95,20 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isLoggedIn) return;
-    const refresh = () => {
+
+    const refreshAfterFocus = () => {
+      if (Date.now() - lastWalletRefreshAtRef.current < FOCUS_REFRESH_COOLDOWN_MS) return;
       void refreshWallet();
     };
-    window.addEventListener('focus', refresh);
-    window.addEventListener(MEMBER_WALLET_REFRESH_EVENT, refresh);
+    const refreshFromWalletEvent = () => {
+      void refreshWallet();
+    };
+
+    window.addEventListener('focus', refreshAfterFocus);
+    window.addEventListener(MEMBER_WALLET_REFRESH_EVENT, refreshFromWalletEvent);
     return () => {
-      window.removeEventListener('focus', refresh);
-      window.removeEventListener(MEMBER_WALLET_REFRESH_EVENT, refresh);
+      window.removeEventListener('focus', refreshAfterFocus);
+      window.removeEventListener(MEMBER_WALLET_REFRESH_EVENT, refreshFromWalletEvent);
     };
   }, [isLoggedIn, refreshWallet]);
 
