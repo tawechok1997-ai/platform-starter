@@ -1,24 +1,31 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { useSiteSettings } from '../site-settings-provider';
 
 const DEFAULT_FAVICON_URL = '/icon.svg';
 const RUNTIME_FAVICON_SELECTOR = 'link[data-site-favicon-runtime="true"]';
+const ICON_LINK_SELECTOR = 'link[rel="icon"], link[rel="shortcut icon"]';
 
 export default function SiteFaviconRuntime() {
+  const pathname = usePathname();
   const { typedSettings } = useSiteSettings();
   const configuredUrl = normalizeFaviconUrl(typedSettings.branding.favicon_url);
   const faviconUrl = configuredUrl || DEFAULT_FAVICON_URL;
 
   useEffect(() => {
-    const link = getOrCreateRuntimeFavicon();
-    link.href = faviconUrl;
+    const runtimeLink = getOrCreateRuntimeFavicon();
+    const links = Array.from(document.head.querySelectorAll<HTMLLinkElement>(ICON_LINK_SELECTOR));
+    if (!links.includes(runtimeLink)) links.push(runtimeLink);
 
     const mimeType = faviconMimeType(faviconUrl);
-    if (mimeType) link.type = mimeType;
-    else link.removeAttribute('type');
-  }, [faviconUrl]);
+    links.forEach((link) => {
+      link.href = faviconUrl;
+      if (mimeType) link.type = mimeType;
+      else link.removeAttribute('type');
+    });
+  }, [faviconUrl, pathname]);
 
   return null;
 }
