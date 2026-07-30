@@ -43,6 +43,7 @@ const EXCLUDED_SELECTOR = [
   '.source-feed-heading',
   '.v47-mobile-section-title',
   '.browse-source-favorite',
+  '.game-lobby-page',
   '[aria-label*="รายการโปรด"]',
   '[aria-label*="favorite" i]',
   '[data-favorite]',
