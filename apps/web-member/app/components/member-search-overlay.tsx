@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { memberApiFetch } from '../member-api';
 import { useMemberSession } from '../member-session-provider';
+import { openMemberProviderGame } from './game/member-provider-game-launch';
 import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from './reference-asset-catalog';
 import styles from './member-search-overlay.module.css';
 
@@ -27,7 +28,6 @@ type SearchGame = {
   category: string;
   isNew: boolean;
   isHot: boolean;
-  launchReady: boolean;
 };
 
 type CatalogGame = {
@@ -35,12 +35,10 @@ type CatalogGame = {
   providerGameCode?: string | null;
   name?: string | null;
   category?: string | null;
-  status?: string | null;
   imageUrl?: string | null;
   iconUrl?: string | null;
   isNew?: boolean | null;
   isPopular?: boolean | null;
-  metadata?: { launchReady?: boolean | null } | null;
   provider?: {
     name?: string | null;
     code?: string | null;
@@ -54,14 +52,6 @@ type CatalogGame = {
 
 type CatalogPayload = {
   items?: CatalogGame[] | null;
-};
-
-type LaunchPayload = {
-  ok?: boolean;
-  launchUrl?: string | null;
-  errorCode?: string | null;
-  errorMessage?: string | null;
-  message?: string | null;
 };
 
 const SEARCH_HISTORY_KEY = 'member_game_search_history_v1';
@@ -83,7 +73,6 @@ const FALLBACK_SEARCH_GAMES: SearchGame[] = REFERENCE_GAMES.map((game, index) =>
     category: 'slot',
     isNew: index < 7 || index % 5 === 0,
     isHot: index < 8 || index % 4 === 0,
-    launchReady: false,
   };
 });
 
@@ -111,6 +100,7 @@ export default function MemberSearchOverlay() {
   const [catalogMessage, setCatalogMessage] = useState('');
   const [launchingGameId, setLaunchingGameId] = useState('');
   const [launchMessage, setLaunchMessage] = useState('');
+  const launchInFlightRef = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase('th'));
 
@@ -158,7 +148,7 @@ export default function MemberSearchOverlay() {
     document.documentElement.style.overflow = 'hidden';
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !launchingGameId) setOpen(false);
+      if (event.key === 'Escape' && !launchInFlightRef.current) setOpen(false);
     };
     window.addEventListener('keydown', onKeyDown);
 
@@ -169,7 +159,7 @@ export default function MemberSearchOverlay() {
       document.documentElement.style.overflow = previousHtmlOverflow;
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [launchingGameId, open]);
+  }, [open]);
 
   const matchingGames = useMemo(() => {
     const favoriteSet = new Set(favoriteIds);
@@ -222,7 +212,7 @@ export default function MemberSearchOverlay() {
   };
 
   const openGame = async (game: SearchGame) => {
-    if (launchingGameId || !ready) return;
+    if (launchInFlightRef.current || !ready) return;
 
     rememberQuery();
     rememberGame(game);
@@ -238,31 +228,20 @@ export default function MemberSearchOverlay() {
       return;
     }
 
-    if (!game.launchReady) {
-      setOpen(false);
-      router.push(browseDestination);
-      return;
-    }
-
+    launchInFlightRef.current = true;
     setLaunchingGameId(game.id);
     try {
-      const response = await memberApiFetch(`/member/games/${encodeURIComponent(game.id)}/launch`, {
-        method: 'POST',
+      await openMemberProviderGame({
+        id: game.id,
+        providerGameCode: game.providerGameCode,
+        name: game.name,
+        providerCode: game.providerCode,
+        category: game.category,
       });
-      const payload = await response.json().catch(() => null) as LaunchPayload | null;
-      if (!response.ok || !payload?.ok || !payload.launchUrl) {
-        throw new Error(payload?.errorMessage || payload?.message || 'ไม่สามารถเปิดเกมนี้ได้');
-      }
-
-      const launchUrl = new URL(payload.launchUrl, window.location.origin);
-      if (launchUrl.protocol !== 'https:' && launchUrl.protocol !== 'http:') {
-        throw new Error('ลิงก์เปิดเกมไม่ถูกต้อง');
-      }
-
-      window.location.assign(launchUrl.toString());
     } catch (error) {
-      setLaunchMessage(error instanceof Error ? error.message : 'ไม่สามารถเปิดเกมนี้ได้');
+      launchInFlightRef.current = false;
       setLaunchingGameId('');
+      setLaunchMessage(error instanceof Error ? error.message : 'ไม่สามารถเปิดเกมนี้ได้');
     }
   };
 
@@ -473,7 +452,6 @@ function mapCatalogGame(item: CatalogGame): SearchGame | null {
 
   const providerName = firstText(item.provider?.name, item.provider?.code, 'Unknown');
   const providerCode = normalizeProviderCode(firstText(item.provider?.code, providerName));
-  const catalogOnly = item.status === 'CATALOG_ONLY' || id.startsWith('catalog:');
 
   return {
     id,
@@ -486,7 +464,6 @@ function mapCatalogGame(item: CatalogGame): SearchGame | null {
     category: normalizeCategory(item.category),
     isNew: item.isNew === true,
     isHot: item.isPopular === true,
-    launchReady: !catalogOnly && item.metadata?.launchReady !== false,
   };
 }
 
