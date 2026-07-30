@@ -7,18 +7,6 @@ const DIALOGS = [
   { id: 'daily-mission-title', kind: 'mission' },
 ] as const;
 
-const SEARCH_TRIGGER_SELECTOR = [
-  '.public-home-search',
-  '[aria-label="ค้นหาเกม"]',
-  '[aria-label="Search games"]',
-].join(',');
-
-const DIALOG_TRIGGER_SELECTOR = [
-  SEARCH_TRIGGER_SELECTOR,
-  '.public-home-mission',
-  '[aria-haspopup="dialog"][href="#daily-mission"]',
-].join(',');
-
 function forceOverlayAboveChrome(overlay: HTMLElement, kind: string) {
   if (overlay.dataset.publicDialogOverlay === kind) return;
 
@@ -60,26 +48,32 @@ function normalizeAllDialogs() {
   for (const dialog of DIALOGS) normalizeDialog(dialog.id, dialog.kind);
 }
 
+function containsSupportedDialog(node: Node) {
+  if (!(node instanceof Element)) return false;
+  if (node.matches('section[role="dialog"][aria-labelledby="member-search-title"], section[role="dialog"][aria-labelledby="daily-mission-title"]')) return true;
+  return Boolean(node.querySelector('section[role="dialog"][aria-labelledby="member-search-title"], section[role="dialog"][aria-labelledby="daily-mission-title"]'));
+}
+
 export default function PublicDialogRuntimeController() {
   useEffect(() => {
     let frame = 0;
+    const root = document.getElementById('member-desktop-scale-canvas') ?? document.body;
 
-    const normalizeAfterOpen = (event: MouseEvent) => {
-      if (!(event.target instanceof Element)) return;
-      const trigger = event.target.closest<HTMLElement>(DIALOG_TRIGGER_SELECTOR);
-      if (!trigger) return;
-
-      if (trigger.matches(SEARCH_TRIGGER_SELECTOR)) event.preventDefault();
+    const scheduleNormalize = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(normalizeAllDialogs);
     };
 
     normalizeAllDialogs();
-    document.addEventListener('click', normalizeAfterOpen, true);
+    const observer = new MutationObserver((records) => {
+      if (!records.some((record) => Array.from(record.addedNodes).some(containsSupportedDialog))) return;
+      scheduleNormalize();
+    });
+    observer.observe(root, { childList: true, subtree: true });
 
     return () => {
       window.cancelAnimationFrame(frame);
-      document.removeEventListener('click', normalizeAfterOpen, true);
+      observer.disconnect();
     };
   }, []);
 
