@@ -97,42 +97,28 @@ const MOBILE_GAME_CATALOG: readonly SimulatorGameCatalogItem[] = [
   { code: 'fachai-27001', name: 'Fa Chai 27001', provider: 'fachai', platform: 'mobile', category: 'slot', accent: '#eab308', symbol: '發', assetPath: 'asset/catalog/mobile/games/fa-chai/fachai-27001.jpg', providerLogoPath: 'asset/catalog/mobile/providers/fa-chai.png' },
 ];
 
-const TAG_ALIASES: Record<string, string> = {
-  'เกมอาเขต': 'เกมส์อาเขต',
-  'เกมส์อาเขต': 'เกมส์อาเขต',
-  'ซื้อฟรีสปิน': 'ซื้อฟรีสปิน',
-  'เกมฮิต': 'เกมส์ฮิต',
-  'เกมส์ฮิต': 'เกมส์ฮิต',
-  'เกมใหม่': 'เกมส์ใหม่',
-  'เกมสใหม่': 'เกมส์ใหม่',
-  'เกมส์ใหม่': 'เกมส์ใหม่',
-  'เกมยล็อต': 'เกมส์สล็อต',
-  'เกมสล็อต': 'เกมส์สล็อต',
-  'เกมส์สล็อต': 'เกมส์สล็อต',
-  'เกมโต๊ะ': 'เกมส์โต๊ะ',
-  'เกมส์โต๊ะ': 'เกมส์โต๊ะ',
-  '红黑大战': 'เกมส์โต๊ะ',
-  'ไพ่': 'ไพ่',
-  '-singaw': 'เกมส์ฮิต',
-  ' Cobain': 'เกมส์ฮิต',
-  'ռ': 'เกมส์ฮิต',
-  'iyanas': 'เกมส์ฮิต',
-  '高清毛片': 'เกมส์ฮิต',
-  'ยิงปลา': 'เกมส์ฮิต',
-};
+export function normalizeSimulatorPlatform(platform: SimulatorCatalogPlatform): SimulatorGamePlatform {
+  return platform === 'pc' ? 'desktop' : platform;
+}
 
-const normalizeProviderCode = (provider: string) => provider
-  .trim()
-  .toLowerCase()
-  .replace(/\.(?:png|jpe?g|webp|svg)$/i, '');
+function normalizeProviderCode(provider: string) {
+  return provider.trim().toLowerCase().replace(/\.(?:png|jpe?g|webp|svg)$/i, '');
+}
 
-const normalizeCatalogTag = (tag: string) => TAG_ALIASES[tag.trim()] ?? tag.trim();
+function normalizeCatalogTag(tag: string) {
+  const value = tag.trim();
+  if (value === 'เกมอาเขต') return 'เกมส์อาเขต';
+  if (value === 'เกมฮิต' || value === '-singaw' || value === 'ยิงปลา') return 'เกมส์ฮิต';
+  if (value === 'เกมใหม่' || value === 'เกมสใหม่') return 'เกมส์ใหม่';
+  if (value === 'เกมยล็อต' || value === 'เกมสล็อต') return 'เกมส์สล็อต';
+  if (value === 'เกมโต๊ะ' || value === '红黑大战') return 'เกมส์โต๊ะ';
+  return value;
+}
 
 function normalizeCatalogItem(game: SimulatorGameCatalogItem): SimulatorGameCatalogItem {
   const tags = game.tags
     ? Array.from(new Set(game.tags.map(normalizeCatalogTag).filter(Boolean)))
     : undefined;
-
   return {
     ...game,
     provider: normalizeProviderCode(game.provider),
@@ -140,14 +126,12 @@ function normalizeCatalogItem(game: SimulatorGameCatalogItem): SimulatorGameCata
   };
 }
 
-const catalogKey = (game: Pick<SimulatorGameCatalogItem, 'provider' | 'code' | 'platform'>) =>
-  `${normalizeProviderCode(game.provider)}:${game.code}:${normalizeSimulatorPlatform(game.platform)}`;
+function catalogKey(game: Pick<SimulatorGameCatalogItem, 'provider' | 'code' | 'platform'>) {
+  return `${normalizeProviderCode(game.provider)}:${game.code}:${normalizeSimulatorPlatform(game.platform)}`;
+}
 
-function mergeCatalogs(
-  ...catalogs: ReadonlyArray<readonly SimulatorGameCatalogItem[]>
-): readonly SimulatorGameCatalogItem[] {
+function mergeCatalogs(...catalogs: ReadonlyArray<readonly SimulatorGameCatalogItem[]>) {
   const merged = new Map<string, SimulatorGameCatalogItem>();
-
   for (const catalog of catalogs) {
     for (const sourceGame of catalog) {
       const game = normalizeCatalogItem(sourceGame);
@@ -155,12 +139,11 @@ function mergeCatalogs(
       if (!merged.has(key)) merged.set(key, game);
     }
   }
-
   return Array.from(merged.values());
 }
 
-// Priority order matters: curated local assets win, recovered source data fills the
-// complete lobby, and the historical generated lobby remains as a final safety net.
+// Curated repository assets win. Recovered source data fills missing and misclassified
+// records. The historical generated lobby remains the final fallback.
 export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = mergeCatalogs(
   MOBILE_GAME_CATALOG,
   PC_GAME_CATALOG,
@@ -168,15 +151,11 @@ export const GAME_CATALOG: readonly SimulatorGameCatalogItem[] = mergeCatalogs(
   LOBBY_GAME_CATALOG,
 );
 
-export function normalizeSimulatorPlatform(platform: SimulatorCatalogPlatform): SimulatorGamePlatform {
-  return platform === 'pc' ? 'desktop' : platform;
-}
-
 export function platformMatches(gamePlatform: SimulatorCatalogPlatform, requested?: SimulatorCatalogPlatform) {
   if (!requested) return true;
-  const normalizedGame = normalizeSimulatorPlatform(gamePlatform);
-  const normalizedRequested = normalizeSimulatorPlatform(requested);
-  return normalizedGame === 'both' || normalizedRequested === 'both' || normalizedGame === normalizedRequested;
+  const game = normalizeSimulatorPlatform(gamePlatform);
+  const filter = normalizeSimulatorPlatform(requested);
+  return game === 'both' || filter === 'both' || game === filter;
 }
 
 export function buildSimulatorMediaContract(
@@ -187,16 +166,12 @@ export function buildSimulatorMediaContract(
   const imageUrl = assetUrl(game.assetPath, baseUrl);
   const providerLogoUrl = assetUrl(game.providerLogoPath, baseUrl);
   const fallbackIconUrl = `${baseUrl}/provider-simulator/icons/${game.code}.svg`;
-  const source = imageUrl
-    ? isAbsoluteHttpUrl(game.assetPath) ? 'source-cdn' : 'repository'
-    : 'generated-placeholder';
-
   return {
     imageUrl: imageUrl ?? fallbackIconUrl,
     iconUrl: imageUrl ?? fallbackIconUrl,
     fallbackIconUrl,
     providerLogoUrl,
-    source,
+    source: imageUrl ? (isAbsoluteHttpUrl(game.assetPath) ? 'source-cdn' : 'repository') : 'generated-placeholder',
     placeholder: !imageUrl,
   };
 }
