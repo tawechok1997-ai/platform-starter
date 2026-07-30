@@ -23,6 +23,7 @@ import '../member-authenticated-source-header-geometry.css';
 import '../member-menu-income-runtime.css';
 import '../member-vip-modal.css';
 import '../member-header-finance-runtime.css';
+import '../member-header-finance-source-stage.css';
 import '../member-menu-secondary-runtime.css';
 import '../member-authenticated-menu-assets.css';
 import '../member-authenticated-shared-lock.css';
