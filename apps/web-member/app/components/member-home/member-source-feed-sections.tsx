@@ -50,16 +50,16 @@ type LiveItem = {
 };
 
 const FALLBACK_GAMES: LobbyGame[] = [
-  game('roma-x-10000', 'ROMA X 10000', 'https://cdn.zabbet.com/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg', 'jl', 'slot', 'HOT'),
-  game('maya-golden-city-2', 'Maya Golden City 2', 'https://cdn.zabbet.com/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg', 'ygr', 'slot', 'HOT'),
-  game('el-paso-gunfight', 'El Paso Gunfight xNudge', 'https://cdn.zabbet.com/games/NLC/elpaso0000000000.jpg', 'nlc', 'slot', 'NEW'),
-  game('sweet-bonanza-xmas', 'Sweet Bonanza Xmas', 'https://cdn.zabbet.com/games/vertical/PP/sweet_bonanza_xmas.png', 'pp', 'slot', 'NEW'),
-  game('roma', 'Roma', 'https://cdn.zabbet.com/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9.jpg', 'rsg', 'slot', 'NEW'),
-  game('treasures-of-aztec-z', 'TREASURES OF AZTEC Z', 'https://cdn.zabbet.com/games/1692882357754-c47b8426-4045-4792-8ee3-58b784ed9a78.jpg', 'ps', 'slot', 'NEW'),
-  game('thai-hi-lo-2', 'ไฮโลไทย 2', 'https://cdn.zabbet.com/games/KM/TH/Thai_Hi_Lo_2.jpg', 'kingm', 'card', 'NEW'),
-  game('starlight-princess', 'Starlight Princess', 'https://cdn.zabbet.com/games/vertical/PP/starlight_princess.png', 'pp', 'slot', 'NEW'),
-  game('coin-spinner', 'Coin Spinner', 'https://cdn.zabbet.com/games/vertical/CQ/coin_spinner.jpg', 'cq', 'arcade', 'NEW'),
-  game('fortune-gems', 'Fortune Gems', 'https://cdn.zabbet.com/games/1671995554666-2fba59cf-2cb7-48bf-b619-ba56269e90ca.jpg', 'jl', 'slot', 'NEW'),
+  game('roma-x-10000', 'ROMA X 10000', '/assets/asset-pc/images/games/1755656755936-62320722-2f7a-4710-9e52-f598c9406a93.jpeg', 'jl', 'slot', 'HOT'),
+  game('maya-golden-city-2', 'Maya Golden City 2', '/assets/asset-pc/images/games/1704871891426-d938a4ec-5a3c-475f-a1d0-c410e0b30782.jpg', 'ygr', 'slot', 'HOT'),
+  game('el-paso-gunfight', 'El Paso Gunfight xNudge', '/assets/asset-pc/images/games/elpaso0000000000.jpg', 'nlc', 'slot', 'NEW'),
+  game('sweet-bonanza-xmas', 'Sweet Bonanza Xmas', '/assets/asset-pc/images/games/sweet_bonanza_xmas.png', 'pp', 'slot', 'NEW'),
+  game('roma', 'Roma', '/assets/asset-pc/images/games/1684776659135-399a7654-b556-4a24-885d-3946c7322fb9.jpg', 'rsg', 'slot', 'NEW'),
+  game('treasures-of-aztec-z', 'TREASURES OF AZTEC Z', '/assets/asset-pc/images/games/1692882357754-c47b8426-4045-4792-8ee3-58b784ed9a78.jpg', 'ps', 'slot', 'NEW'),
+  game('thai-hi-lo-2', 'ไฮโลไทย 2', '/assets/asset-pc/images/games/Thai_Hi_Lo_2.jpg', 'kingm', 'card', 'NEW'),
+  game('starlight-princess', 'Starlight Princess', '/assets/asset-pc/images/games/starlight_princess.png', 'pp', 'slot', 'NEW'),
+  game('coin-spinner', 'Coin Spinner', '/assets/asset-pc/images/games/coin_spinner.jpg', 'cq', 'arcade', 'NEW'),
+  game('fortune-gems', 'Fortune Gems', '/assets/asset-pc/images/games/1671995554666-2fba59cf-2cb7-48bf-b619-ba56269e90ca.jpg', 'jl', 'slot', 'NEW'),
 ];
 
 const LIVE_ITEMS: LiveItem[] = [
