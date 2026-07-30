@@ -3,16 +3,40 @@ html[data-member-viewport-ready='false'] #member-desktop-scale-shell {
   visibility: hidden !important;
 }
 
-.member-persistent-shell {
+.member-persistent-root,
+.member-persistent-body {
   display: block;
   width: 100%;
   min-width: 0;
 }
 
-.member-persistent-shell__body {
-  width: 100%;
-  min-width: 0;
+.member-persistent-body {
   min-height: 420px;
+}
+
+/* Legacy route branches still own the page content and authorization logic,
+ * but their duplicated chrome is suppressed inside the persistent body. */
+.member-persistent-body > .global-member-topbar,
+.member-persistent-body > .member-category-rail,
+.member-persistent-body > .member-footer,
+.member-persistent-body > .member-bottom-nav,
+.member-persistent-body > .member-drawer,
+.member-persistent-body > .member-menu-backdrop,
+.member-persistent-body > .noah-alliance-v3,
+.member-persistent-body > .public-game-shell > .noah-alliance-v3 {
+  display: none !important;
+}
+
+.member-persistent-body > .public-game-shell {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+.member-persistent-body > .public-game-shell > .public-game-shell__content {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
 }
 
 .member-footer.member-footer--shared {
@@ -49,7 +73,7 @@ html[data-member-viewport-ready='false'] #member-desktop-scale-shell {
     height: 34px;
   }
 
-  .member-persistent-shell__body {
+  .member-persistent-body {
     min-height: 300px;
   }
 }
