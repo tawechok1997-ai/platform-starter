@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMemberSession } from '../../member-session-provider';
 
 const GAME_ACTION_SELECTOR = [
@@ -13,40 +14,8 @@ const GAME_ACTION_SELECTOR = [
   '.v47-mobile-game-grid a',
   '.browse-source-game-cover',
   '.browse-source-game-card footer button',
-  'a[class*="game-card"]',
-  'button[class*="game-card"]',
-  'a[class*="gameCard"]',
-  'button[class*="gameCard"]',
-  'a[class*="game-tile"]',
-  'button[class*="game-tile"]',
-  'a[class*="gameTile"]',
-  'button[class*="gameTile"]',
-  'a[class*="game-cover"]',
-  'button[class*="game-cover"]',
-  'a[class*="gameCover"]',
-  'button[class*="gameCover"]',
-  '[class*="game-card"] a',
-  '[class*="game-card"] button',
-  '[class*="gameCard"] a',
-  '[class*="gameCard"] button',
-  '[class*="game-item"] a',
-  '[class*="game-item"] button',
-  '[class*="gameItem"] a',
-  '[class*="gameItem"] button',
-].join(',');
-
-const GAME_CARD_ROOT_SELECTOR = [
-  '[data-public-game-action]',
   '[data-game-id]',
   '[data-game-code]',
-  '[class*="game-card"]',
-  '[class*="gameCard"]',
-  '[class*="game-tile"]',
-  '[class*="gameTile"]',
-  '[class*="game-cover"]',
-  '[class*="gameCover"]',
-  '[class*="game-item"]',
-  '[class*="gameItem"]',
 ].join(',');
 
 const EXCLUDED_SELECTOR = [
@@ -66,15 +35,17 @@ const EXCLUDED_SELECTOR = [
   '[data-favorite]',
 ].join(',');
 
-const MEMBER_GAME_DESTINATION = '/games';
+const DEFAULT_MEMBER_GAME_DESTINATION = '/games';
 
 export default function PublicGameLoginController() {
-  const { isLoggedIn } = useMemberSession();
+  const router = useRouter();
+  const { ready, isLoggedIn } = useMemberSession();
 
   useEffect(() => {
     const requireLoginForGame = (event: MouseEvent) => {
       if (
-        isLoggedIn
+        !ready
+        || isLoggedIn
         || event.button !== 0
         || event.metaKey
         || event.ctrlKey
@@ -83,34 +54,40 @@ export default function PublicGameLoginController() {
       ) return;
 
       const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (target.closest(EXCLUDED_SELECTOR)) return;
+      if (!(target instanceof Element) || target.closest(EXCLUDED_SELECTOR)) return;
 
-      const directAction = target.closest<HTMLElement>(GAME_ACTION_SELECTOR);
-      const cardRoot = target.closest<HTMLElement>(GAME_CARD_ROOT_SELECTOR);
-      if (!directAction && !cardRoot) return;
+      const action = target.closest<HTMLElement>(GAME_ACTION_SELECTOR);
+      if (!action) return;
 
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
 
+      const destination = gameDestination(action);
       const currentUrl = new URL(window.location.href);
       currentUrl.searchParams.set('auth', 'login');
-      currentUrl.searchParams.set('next', MEMBER_GAME_DESTINATION);
-      window.history.replaceState(null, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
-
-      const loginButton = document.querySelector<HTMLButtonElement>('button.member-guest-action--login');
-      if (loginButton) {
-        loginButton.click();
-        return;
-      }
-
-      window.location.assign(`/?auth=login&next=${encodeURIComponent(MEMBER_GAME_DESTINATION)}`);
+      currentUrl.searchParams.set('next', destination);
+      router.replace(`${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`, { scroll: false });
     };
 
     window.addEventListener('click', requireLoginForGame, true);
     return () => window.removeEventListener('click', requireLoginForGame, true);
-  }, [isLoggedIn]);
+  }, [isLoggedIn, ready, router]);
 
   return null;
+}
+
+function gameDestination(action: HTMLElement) {
+  const link = action instanceof HTMLAnchorElement
+    ? action
+    : action.closest<HTMLAnchorElement>('a[href]');
+  if (!link) return DEFAULT_MEMBER_GAME_DESTINATION;
+
+  try {
+    const url = new URL(link.href, window.location.href);
+    if (url.origin !== window.location.origin) return DEFAULT_MEMBER_GAME_DESTINATION;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return DEFAULT_MEMBER_GAME_DESTINATION;
+  }
 }
