@@ -3,7 +3,7 @@ import SettingsSectionPage from '../settings-section-page';
 import BrandingPublishPanel from './branding-publish-panel';
 
 const REFERENCE_LOGO = '/assets/reference-brand/header/noah345-logo.webp';
-const REFERENCE_FAVICON = '/icon.svg';
+const REFERENCE_FAVICON = 'https://cdn.zabbet.com/FEZX/lobby_settings/083e4b9b-63aa-4825-a0e3-57a88de57e2f.ico';
 
 export default function BrandingSettingsPage() {
   return (
@@ -37,7 +37,7 @@ export default function BrandingSettingsPage() {
           { key: 'footer_logo_url', label: 'โลโก้ Footer', section: 'โลโก้ตามพื้นที่ใช้งาน', asset: true },
           { key: 'loading_logo_url', label: 'โลโก้ Loading', section: 'โลโก้ตามพื้นที่ใช้งาน', asset: true },
           { key: 'watermark_logo_url', label: 'โลโก้ Watermark', section: 'โลโก้ตามพื้นที่ใช้งาน', asset: true },
-          { key: 'favicon_url', label: 'ไอคอนแท็บเว็บ (Favicon)', section: 'App และ Browser Icons', asset: true, defaultValue: REFERENCE_FAVICON, placeholder: REFERENCE_FAVICON, helper: 'แนะนำรูปสี่เหลี่ยม PNG หรือ WebP ขนาด 32×32 หรือ 64×64 พิกเซล และรองรับ URL ไฟล์ ICO หรือ SVG' },
+          { key: 'favicon_url', label: 'ไอคอนแท็บเว็บ (Favicon)', section: 'App และ Browser Icons', asset: true, defaultValue: REFERENCE_FAVICON, placeholder: REFERENCE_FAVICON, helper: 'อัปโหลด PNG, WebP, JPG หรือ GIF แบบสี่เหลี่ยม หรือใส่ URL ไฟล์ ICO/SVG โดยตรง แนะนำขนาด 32×32 หรือ 64×64 พิกเซล' },
           { key: 'apple_touch_icon_url', label: 'Apple Touch Icon', section: 'App และ Browser Icons', asset: true },
           { key: 'pwa_icon_url', label: 'PWA Icon', section: 'App และ Browser Icons', asset: true },
           { key: 'app_icon_url', label: 'App Icon', section: 'App และ Browser Icons', asset: true },
