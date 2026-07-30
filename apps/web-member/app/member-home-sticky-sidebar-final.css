@@ -1,0 +1,68 @@
+/* Final desktop sticky contract for the Home jackpot rail.
+ * The sidebar grew taller after Leaderboard and Mini Game were restored. A sticky
+ * element taller than the available viewport cannot follow the page reliably, so
+ * keep the rail inside the visible area and let its own content scroll when needed.
+ */
+
+@media (min-width: 1024px) {
+  html[data-member-viewport-mode='desktop'] body:has(.desktop-reference-home),
+  html[data-member-viewport-mode='desktop'] body:has(.desktop-reference-home) #member-desktop-scale-canvas,
+  html[data-member-viewport-mode='desktop'] body:has(.desktop-reference-home) .public-game-shell,
+  html[data-member-viewport-mode='desktop'] body:has(.desktop-reference-home) .public-game-shell__content,
+  html[data-member-viewport-mode='desktop'] .desktop-reference-home,
+  html[data-member-viewport-mode='desktop'] .desktop-reference-home > .desktop-home__body,
+  html[data-member-viewport-mode='desktop'] .desktop-reference-home .reference-main-column {
+    overflow: visible !important;
+    contain: none !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] body:has(.desktop-reference-home) #member-desktop-scale-shell {
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] .desktop-reference-home > .desktop-home__body {
+    position: relative !important;
+    align-items: start !important;
+    min-height: 100% !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] .desktop-reference-home .reference-sidebar {
+    position: sticky !important;
+    inset: auto !important;
+    top: 124px !important;
+    bottom: auto !important;
+    z-index: 20 !important;
+    align-self: start !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 136px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: none !important;
+    transform: none !important;
+    translate: none !important;
+    will-change: auto !important;
+    contain: none !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] .desktop-reference-home .reference-sidebar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] .desktop-reference-home .reference-sidebar .home-jackpot {
+    flex: 0 0 auto !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .desktop-reference-home .reference-sidebar {
+    position: static !important;
+    inset: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
