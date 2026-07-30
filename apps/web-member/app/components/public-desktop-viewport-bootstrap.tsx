@@ -15,9 +15,19 @@ type OverflowSnapshot = {
   htmlOverflowX: string;
 };
 
+type IdleCapableWindow = Window & {
+  requestIdleCallback?: (
+    callback: (deadline: { didTimeout: boolean; timeRemaining: () => number }) => void,
+    options?: { timeout: number },
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
 const mediaRuleSources = new Map<CSSMediaRule, string>();
+let processedStyleSheets = new WeakMap<CSSStyleSheet, number>();
 let nativeMatchMedia: typeof window.matchMedia | null = null;
 let matchMediaPatched = false;
+let mediaRulesVirtualized = false;
 
 export default function PublicDesktopViewportBootstrap() {
   useLayoutEffect(() => {
@@ -38,6 +48,8 @@ export default function PublicDesktopViewportBootstrap() {
 
     let frame = 0;
     let styleObserver: MutationObserver | null = null;
+    let styleSyncHandle = 0;
+    let styleSyncMode: 'idle' | 'timeout' | null = null;
 
     const restoreCanvas = () => {
       shell.style.cssText = shellCssText;
@@ -47,11 +59,41 @@ export default function PublicDesktopViewportBootstrap() {
       delete document.body.dataset.memberDesktopScaled;
     };
 
+    const applyDesktopScale = () => {
+      const viewportWidth = Math.max(1, document.documentElement.clientWidth || window.innerWidth);
+      const scale = Math.max(0.05, viewportWidth / DESKTOP_DESIGN_WIDTH);
+      const viewportHeight = Math.max(1, window.visualViewport?.height || window.innerHeight);
+      const unscaledViewportHeight = viewportHeight / scale;
+
+      shell.style.display = 'block';
+      shell.style.width = '100%';
+      shell.style.minWidth = '0';
+      shell.style.maxWidth = 'none';
+      shell.style.margin = '0';
+      shell.style.overflowX = 'clip';
+
+      canvas.style.display = 'block';
+      canvas.style.width = `${DESKTOP_DESIGN_WIDTH}px`;
+      canvas.style.minWidth = `${DESKTOP_DESIGN_WIDTH}px`;
+      canvas.style.maxWidth = `${DESKTOP_DESIGN_WIDTH}px`;
+      canvas.style.margin = '0';
+      canvas.style.transform = 'none';
+      canvas.style.transformOrigin = 'top left';
+      canvas.style.setProperty('--member-desktop-canvas-width', `${DESKTOP_DESIGN_WIDTH}px`);
+      canvas.style.setProperty('--member-desktop-viewport-height', `${unscaledViewportHeight.toFixed(3)}px`);
+      canvas.style.setProperty('--member-desktop-scale', scale.toFixed(6));
+      canvas.style.setProperty('zoom', scale.toFixed(6));
+
+      document.body.style.overflowX = 'hidden';
+      document.documentElement.style.overflowX = 'hidden';
+      document.body.dataset.memberDesktopScaled = 'true';
+    };
+
     const syncViewport = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
         if (isMobileOnlyDevice()) {
-          restoreMediaRules();
+          if (mediaRulesVirtualized) restoreMediaRules();
           restoreCanvas();
           document.documentElement.dataset.memberViewportMode = 'mobile';
           return;
@@ -61,59 +103,61 @@ export default function PublicDesktopViewportBootstrap() {
         const viewportWidth = Math.max(1, document.documentElement.clientWidth || window.innerWidth);
 
         if (viewportWidth >= DESKTOP_DESIGN_WIDTH) {
-          restoreMediaRules();
+          if (mediaRulesVirtualized) restoreMediaRules();
           restoreCanvas();
           document.body.dataset.memberDesktopScaled = 'false';
           return;
         }
 
-        rewriteMediaRulesForDesktopCanvas();
-        const scale = Math.max(0.05, viewportWidth / DESKTOP_DESIGN_WIDTH);
-        const viewportHeight = Math.max(1, window.visualViewport?.height || window.innerHeight);
-        const unscaledViewportHeight = viewportHeight / scale;
-
-        shell.style.display = 'block';
-        shell.style.width = '100%';
-        shell.style.minWidth = '0';
-        shell.style.maxWidth = 'none';
-        shell.style.margin = '0';
-        shell.style.overflowX = 'clip';
-
-        canvas.style.display = 'block';
-        canvas.style.width = `${DESKTOP_DESIGN_WIDTH}px`;
-        canvas.style.minWidth = `${DESKTOP_DESIGN_WIDTH}px`;
-        canvas.style.maxWidth = `${DESKTOP_DESIGN_WIDTH}px`;
-        canvas.style.margin = '0';
-        canvas.style.transform = 'none';
-        canvas.style.transformOrigin = 'top left';
-        canvas.style.setProperty('--member-desktop-canvas-width', `${DESKTOP_DESIGN_WIDTH}px`);
-        canvas.style.setProperty('--member-desktop-viewport-height', `${unscaledViewportHeight.toFixed(3)}px`);
-        canvas.style.setProperty('--member-desktop-scale', scale.toFixed(6));
-        canvas.style.setProperty('zoom', scale.toFixed(6));
-
-        document.body.style.overflowX = 'hidden';
-        document.documentElement.style.overflowX = 'hidden';
-        document.body.dataset.memberDesktopScaled = 'true';
+        rewriteChangedMediaRulesForDesktopCanvas();
+        applyDesktopScale();
       });
+    };
+
+    const cancelStyleSync = () => {
+      if (!styleSyncHandle) return;
+      const idleWindow = window as IdleCapableWindow;
+      if (styleSyncMode === 'idle') idleWindow.cancelIdleCallback?.(styleSyncHandle);
+      else window.clearTimeout(styleSyncHandle);
+      styleSyncHandle = 0;
+      styleSyncMode = null;
+    };
+
+    const scheduleStyleSync = () => {
+      if (styleSyncHandle) return;
+
+      const run = () => {
+        styleSyncHandle = 0;
+        styleSyncMode = null;
+        if (shouldUseDesktopCanvas()) rewriteChangedMediaRulesForDesktopCanvas();
+      };
+
+      const idleWindow = window as IdleCapableWindow;
+      if (idleWindow.requestIdleCallback) {
+        styleSyncMode = 'idle';
+        styleSyncHandle = idleWindow.requestIdleCallback(run, { timeout: 250 });
+      } else {
+        styleSyncMode = 'timeout';
+        styleSyncHandle = window.setTimeout(run, 32);
+      }
     };
 
     syncViewport();
     window.addEventListener('resize', syncViewport, { passive: true });
     window.visualViewport?.addEventListener('resize', syncViewport, { passive: true });
 
-    styleObserver = new MutationObserver(() => {
-      if (!isMobileOnlyDevice() && document.documentElement.clientWidth < DESKTOP_DESIGN_WIDTH) {
-        rewriteMediaRulesForDesktopCanvas();
-      }
+    styleObserver = new MutationObserver((records) => {
+      if (records.some(hasStylesheetMutation)) scheduleStyleSync();
     });
     styleObserver.observe(document.head, { childList: true, subtree: true });
 
     return () => {
       window.cancelAnimationFrame(frame);
+      cancelStyleSync();
       window.removeEventListener('resize', syncViewport);
       window.visualViewport?.removeEventListener('resize', syncViewport);
       styleObserver?.disconnect();
-      restoreMediaRules();
+      if (mediaRulesVirtualized) restoreMediaRules();
       restoreCanvas();
       delete document.documentElement.dataset.memberViewportMode;
     };
@@ -168,15 +212,28 @@ function isMobileOnlyDevice() {
   return coarsePrimary && !hasDesktopPointer;
 }
 
-function rewriteMediaRulesForDesktopCanvas() {
+function hasStylesheetMutation(record: MutationRecord) {
+  return Array.from(record.addedNodes).some((node) => {
+    if (node instanceof HTMLStyleElement) return true;
+    if (node instanceof HTMLLinkElement) return node.rel === 'stylesheet';
+    return node instanceof Element && Boolean(node.querySelector('style, link[rel="stylesheet"]'));
+  });
+}
+
+function rewriteChangedMediaRulesForDesktopCanvas() {
   for (const sheet of Array.from(document.styleSheets)) {
     try {
-      rewriteRuleList(sheet.cssRules);
+      const rules = sheet.cssRules;
+      const ruleCount = rules.length;
+      if (processedStyleSheets.get(sheet) === ruleCount) continue;
+
+      rewriteRuleList(rules);
+      processedStyleSheets.set(sheet, ruleCount);
     } catch {
-      // Cross-origin or browser-owned stylesheets cannot be edited. Local Next.js
-      // styles remain editable and contain the member responsive contracts.
+      // Cross-origin and browser-owned stylesheets cannot be edited.
     }
   }
+  mediaRulesVirtualized = true;
 }
 
 function rewriteRuleList(rules: CSSRuleList) {
@@ -206,6 +263,8 @@ function restoreMediaRules() {
     }
   }
   mediaRuleSources.clear();
+  processedStyleSheets = new WeakMap<CSSStyleSheet, number>();
+  mediaRulesVirtualized = false;
 }
 
 function virtualizeMediaText(mediaText: string, width: number) {
