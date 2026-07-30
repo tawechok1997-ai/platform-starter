@@ -1,5 +1,37 @@
 /* Exact desktop authenticated-header geometry from the supplied source markup. */
 @media (min-width: 901px) {
+  /*
+   * The home jackpot card is sticky and creates its own stacking context. Keep the
+   * authenticated header and its popovers in a higher root stacking context so
+   * scrolling never paints page cards over the open member menu.
+   */
+  .sticky.top-0.z-\[99\],
+  .sticky.top-0:has(.public-member-actions) {
+    z-index: 2147482000 !important;
+    overflow: visible !important;
+    isolation: isolate;
+  }
+
+  .sticky.top-0.z-\[99\] > nav,
+  .sticky.top-0:has(.public-member-actions) > nav,
+  .sticky.top-0.z-\[99\] nav > div,
+  .sticky.top-0:has(.public-member-actions) nav > div {
+    overflow: visible !important;
+  }
+
+  .public-member-actions,
+  .public-member-notification-anchor,
+  .public-member-profile-anchor {
+    position: relative;
+    z-index: 2147482100 !important;
+    overflow: visible !important;
+  }
+
+  .public-member-notification-popover,
+  .public-member-profile-popover {
+    z-index: 2147482200 !important;
+  }
+
   .public-member-actions {
     display: flex !important;
     align-items: center !important;
