@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
-  loadPublicSiteSettings,
-  promotionCampaignsSetting,
-  PromotionCampaign,
-  defaultSettings,
-} from '../site-settings';
+  MEMBER_PROMOTION_FALLBACKS,
+  loadMemberPromotionCampaigns,
+  memberPromotionDetails,
+  memberPromotionImage,
+  type MemberPromotionCampaign,
+} from '../member-promotion-runtime';
 import { memberApiFetch } from '../member-api';
 import './member-promotions-contract.css';
 
@@ -33,87 +34,94 @@ type Topup = {
 };
 
 export default function MemberPromotionsPage() {
-  const [campaigns, setCampaigns] = useState<PromotionCampaign[]>([]);
+  const [campaigns, setCampaigns] = useState<MemberPromotionCampaign[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [topups, setTopups] = useState<Topup[]>([]);
   const [selectedTopups, setSelectedTopups] = useState<Record<string, string>>({});
-  const [message, setMessage] = useState('กำลังโหลดโปรโมชัน...');
+  const [message, setMessage] = useState('กำลังโหลดโปรโมชั่น...');
   const [busyId, setBusyId] = useState('');
 
   useEffect(() => {
-    load();
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
   }, []);
 
   const claimMap = useMemo(() => new Map(claims.map((item) => [item.campaignId, item])), [claims]);
   const approvedTopups = useMemo(() => topups.filter((item) => item.status === 'APPROVED'), [topups]);
 
-  async function load() {
+  async function load(signal?: AbortSignal) {
     try {
-      const settings = await loadPublicSiteSettings();
-      const active = promotionCampaignsSetting(settings)
-        .filter((item) => item.enabled && isInWindow(item))
-        .sort((a, b) => Number(b.priority ?? 0) - Number(a.priority ?? 0));
-      setCampaigns(active);
-      const [claimRes, topupRes] = await Promise.all([
-        memberApiFetch('/member/promotion-claims'),
-        memberApiFetch('/member/topups'),
+      const [active, claimRes, topupRes] = await Promise.all([
+        loadMemberPromotionCampaigns(signal),
+        memberApiFetch('/member/promotion-claims', { signal, suppressSessionExpiryRedirect: true }),
+        memberApiFetch('/member/topups', { signal, suppressSessionExpiryRedirect: true }),
       ]);
-      const claimData = await claimRes.json().catch(() => null);
-      const topupData = await topupRes.json().catch(() => null);
-      if (claimRes.ok) setClaims(claimData.items ?? []);
-      if (topupRes.ok) setTopups(topupData.items ?? []);
+      const [claimData, topupData] = await Promise.all([
+        claimRes.json().catch(() => null),
+        topupRes.json().catch(() => null),
+      ]);
+      setCampaigns(active);
+      if (claimRes.ok) setClaims(Array.isArray(claimData?.items) ? claimData.items : []);
+      if (topupRes.ok) setTopups(Array.isArray(topupData?.items) ? topupData.items : []);
       setMessage('');
     } catch {
-      setCampaigns(promotionCampaignsSetting(defaultSettings).filter((item) => item.enabled));
-      setMessage('โหลดโปรโมชันไม่สำเร็จ');
+      if (signal?.aborted) return;
+      setCampaigns(MEMBER_PROMOTION_FALLBACKS);
+      setMessage('เชื่อมต่อระบบโปรโมชั่นไม่สำเร็จ กำลังแสดงข้อมูลสำรอง');
     }
   }
 
-  async function claimPromotion(item: PromotionCampaign) {
-    const topupId = selectedTopups[item.id] ?? eligibleTopups(item, approvedTopups, claims)[0]?.id;
-    if (!topupId) {
-      setMessage('กรุณาเลือกรายการฝากที่อนุมัติแล้วและมียอดถึงขั้นต่ำก่อนรับโปร');
+  async function claimPromotion(item: MemberPromotionCampaign) {
+    const availableTopups = eligibleTopups(item, approvedTopups, claims);
+    const topupId = selectedTopups[item.id] ?? availableTopups[0]?.id;
+    if (item.requiresApprovedDeposit && !topupId) {
+      setMessage('กรุณาเลือกรายการฝากที่อนุมัติแล้วและเข้าเงื่อนไขก่อนรับโปรโมชั่น');
       return;
     }
+
     setBusyId(item.id);
     const topup = approvedTopups.find((entry) => entry.id === topupId);
-    const res = await memberApiFetch('/member/promotion-claims', {
-      method: 'POST',
-      body: JSON.stringify({
-        campaignId: item.id,
-        topupId,
-        depositAmount: Number(topup?.amount ?? 0),
-        note: `ขอรับโปร ${item.title}`,
-      }),
-    });
-    const data = await res.json().catch(() => null);
-    setBusyId('');
-    if (!res.ok) {
-      setMessage(data?.message ?? 'ส่งคำขอรับโปรไม่สำเร็จ');
-      return;
+    const body: Record<string, unknown> = {
+      campaignId: item.id,
+      depositAmount: Number(topup?.amount ?? item.minDeposit ?? 0),
+      note: `ขอรับโปรโมชั่น ${item.title}`,
+    };
+    if (topupId) body.topupId = topupId;
+
+    try {
+      const res = await memberApiFetch('/member/promotion-claims', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setMessage(data?.message ?? 'ส่งคำขอรับโปรโมชั่นไม่สำเร็จ');
+        return;
+      }
+      setClaims((current) => [data.item, ...current.filter((claim) => claim.campaignId !== item.id)]);
+      setMessage(item.claimSuccessMessage || 'ส่งคำขอรับโปรโมชั่นแล้ว รอเจ้าหน้าที่ตรวจสอบ');
+    } catch {
+      setMessage('เชื่อมต่อระบบรับโปรโมชั่นไม่สำเร็จ กรุณาลองอีกครั้ง');
+    } finally {
+      setBusyId('');
     }
-    setClaims((current) => [data.item, ...current.filter((claim) => claim.campaignId !== item.id)]);
-    setMessage('ส่งคำขอรับโปรแล้ว รอแอดมินตรวจสอบ');
   }
 
   return (
     <main className="member-promotions-page">
       <section className="member-promotions-hero">
         <span>Promotion</span>
-        <h1>โปรโมชัน</h1>
-        <p>เลือกฝากที่อนุมัติแล้วเพื่อรับโปร ระบบจะคำนวณโบนัสจากยอดฝากจริง</p>
+        <h1>โปรโมชั่น</h1>
+        <p>รูป รายละเอียด เงื่อนไข และสิทธิ์ทั้งหมดอัปเดตจาก Promotion Center</p>
         <div>
           <strong>{campaigns.length}</strong>
-          <small>โปรที่เปิดใช้งาน</small>
+          <small>โปรโมชั่นที่เปิดใช้งาน</small>
           <strong>{approvedTopups.length}</strong>
           <small>รายการฝากที่ใช้ได้</small>
         </div>
       </section>
-      {message && (
-        <div className="member-promotions-notice" role="status">
-          {message}
-        </div>
-      )}
+      {message && <div className="member-promotions-notice" role="status">{message}</div>}
       <section className="member-promotions-list">
         {campaigns.map((item) => {
           const claim = claimMap.get(item.id);
@@ -131,7 +139,7 @@ export default function MemberPromotionsPage() {
             />
           );
         })}
-        {campaigns.length === 0 && <div className="member-promotions-empty">ยังไม่มีโปรโมชันที่เปิดใช้งาน</div>}
+        {campaigns.length === 0 && <div className="member-promotions-empty">ยังไม่มีโปรโมชั่นที่เผยแพร่</div>}
       </section>
     </main>
   );
@@ -146,7 +154,7 @@ function PromotionCard({
   onSelect,
   onClaim,
 }: {
-  item: PromotionCampaign;
+  item: MemberPromotionCampaign;
   claim?: Claim | undefined;
   options: Topup[];
   selectedTopupId: string;
@@ -155,14 +163,19 @@ function PromotionCard({
   onClaim: () => void | Promise<void>;
 }) {
   const accent = item.accentColor || '#f5c542';
-  const hasImage = Boolean(item.imageUrl && isValidUrl(item.imageUrl));
-  const hasIcon = Boolean(item.iconUrl && isValidUrl(item.iconUrl));
+  const image = memberPromotionImage(item);
+  const hasImage = isImageSource(image);
+  const hasIcon = Boolean(item.iconUrl && isImageSource(item.iconUrl));
+  const details = memberPromotionDetails(item);
   const style = { '--promotion-accent': accent } as React.CSSProperties;
+  const requiresTopup = item.requiresApprovedDeposit;
+  const claimDisabled = busy || (requiresTopup && options.length === 0);
+
   return (
     <article className="member-promotion-card" style={style}>
       <div className="member-promotion-media">
         {hasImage ? (
-          <img src={item.imageUrl} alt={`ภาพโปรโมชัน ${item.title}`} loading="lazy" decoding="async" />
+          <img src={image} alt={`ภาพโปรโมชั่น ${item.title}`} loading="lazy" decoding="async" />
         ) : (
           <div className="member-promotion-fallback">{hasIcon ? <img src={item.iconUrl} alt="" /> : 'โปรโมชั่น'}</div>
         )}
@@ -171,18 +184,27 @@ function PromotionCard({
       <div className="member-promotion-content">
         <div className="member-promotion-topline">
           {hasIcon && <img src={item.iconUrl} alt="" />}
-          <span>{item.claimMode === 'manual_review' ? 'แอดมินตรวจ' : 'รอตรวจอัตโนมัติ'}</span>
+          <span>{item.claimMode === 'manual_review' ? 'เจ้าหน้าที่ตรวจสอบ' : 'สร้างคำขออัตโนมัติ'}</span>
         </div>
         <h2>{item.title}</h2>
-        <p>{item.description}</p>
+        <p>{details.summary}</p>
         <div className="member-promotion-condition-grid">
-          <Condition label="ฝากขั้นต่ำ" value={money(item.minDeposit)} />
-          <Condition label="โบนัสสูงสุด" value={money(item.maxBonus)} />
-          <Condition label="เทิร์น" value={`x${item.turnoverMultiplier}`} />
+          <Condition label="ฝากขั้นต่ำ" value={item.minDeposit > 0 ? money(item.minDeposit) : 'ไม่กำหนด'} />
+          <Condition label="โบนัสสูงสุด" value={item.maxBonus > 0 ? money(item.maxBonus) : 'ตามเงื่อนไข'} />
+          <Condition label="เทิร์น" value={item.turnoverMultiplier > 0 ? `x${item.turnoverMultiplier}` : 'ไม่มี'} />
         </div>
-        {item.endsAt && (
-          <p className="member-promotion-expiry">สิ้นสุด {new Date(item.endsAt).toLocaleDateString('th-TH')}</p>
-        )}
+        {item.endsAt && <p className="member-promotion-expiry">สิ้นสุด {new Date(item.endsAt).toLocaleDateString('th-TH')}</p>}
+
+        <details className="member-promotion-details">
+          <summary>รายละเอียดและเงื่อนไข</summary>
+          {details.detail ? <p>{details.detail}</p> : null}
+          {details.terms ? <p>{details.terms}</p> : null}
+          {details.allowedGames ? <p><strong>เกมที่ร่วมรายการ:</strong> {details.allowedGames}</p> : null}
+          {details.excludedGames ? <p><strong>เกมที่ไม่ร่วมรายการ:</strong> {details.excludedGames}</p> : null}
+          <p><strong>จำนวนสิทธิ์:</strong> {claimLimitLabel(item)}</p>
+          {item.maxWithdrawal > 0 ? <p><strong>ถอนสูงสุด:</strong> {money(item.maxWithdrawal)}</p> : null}
+        </details>
+
         {claim ? (
           <div className={`member-promotion-claim is-${claim.status.toLowerCase()}`}>
             <strong>สถานะ: {claimStatusLabel(claim.status)}</strong>
@@ -192,78 +214,51 @@ function PromotionCard({
           </div>
         ) : (
           <>
-            <label className="member-promotion-field">
-              <span>เลือกรายการฝาก</span>
-              <select
-                aria-label={`เลือกรายการฝากสำหรับ ${item.title}`}
-                value={selectedTopupId}
-                onChange={(event) => onSelect(event.target.value)}
-              >
-                <option value="">รายการฝากที่อนุมัติแล้ว</option>
-                {options.map((topup) => (
-                  <option key={topup.id} value={topup.id}>
-                    {money(Number(topup.amount))} · {new Date(topup.createdAt).toLocaleString('th-TH')}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              disabled={busy || options.length === 0}
-              onClick={() => {
-                void onClaim();
-              }}
-              className="member-promotion-primary"
-            >
-              {busy ? 'กำลังส่ง...' : options.length === 0 ? 'ยังไม่มีรายการฝากที่ใช้ได้' : 'รับโปรนี้'}
+            {requiresTopup ? (
+              <label className="member-promotion-field">
+                <span>เลือกรายการฝาก</span>
+                <select aria-label={`เลือกรายการฝากสำหรับ ${item.title}`} value={selectedTopupId} onChange={(event) => onSelect(event.target.value)}>
+                  <option value="">รายการฝากที่อนุมัติแล้ว</option>
+                  {options.map((topup) => (
+                    <option key={topup.id} value={topup.id}>{money(Number(topup.amount))} · {new Date(topup.createdAt).toLocaleString('th-TH')}</option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <button type="button" disabled={claimDisabled} onClick={() => { void onClaim(); }} className="member-promotion-primary">
+              {busy ? 'กำลังส่ง...' : requiresTopup && options.length === 0 ? 'ยังไม่มีรายการฝากที่ใช้ได้' : item.claimButtonLabel || 'รับโปรโมชั่น'}
             </button>
           </>
         )}
-        <a href="/deposit" className="member-promotion-secondary">
-          ฝากเงิน
-        </a>
-        <small>หนึ่งรายการฝากใช้รับโปรได้ครั้งเดียว และต้องผ่านการตรวจสอบก่อนสร้าง bonus ledger</small>
+        {requiresTopup ? <a href="/deposit" className="member-promotion-secondary">ฝากเงิน</a> : null}
+        <small>ระบบตรวจสิทธิ์จากเงื่อนไขเดียวกับที่แสดงในหน้านี้</small>
       </div>
     </article>
   );
 }
 
 function Condition({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="member-promotion-condition">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
+  return <div className="member-promotion-condition"><span>{label}</span><strong>{value}</strong></div>;
 }
-function eligibleTopups(campaign: PromotionCampaign, topups: Topup[], claims: Claim[]) {
+function eligibleTopups(campaign: MemberPromotionCampaign, topups: Topup[], claims: Claim[]) {
   const usedTopupIds = new Set(claims.map((claim) => claim.topupId).filter(Boolean));
   return topups.filter((topup) => !usedTopupIds.has(topup.id) && Number(topup.amount) >= campaign.minDeposit);
 }
-function isInWindow(item: PromotionCampaign) {
-  const now = Date.now();
-  const start = item.startsAt ? Date.parse(item.startsAt) : NaN;
-  const end = item.endsAt ? Date.parse(item.endsAt) : NaN;
-  if (Number.isFinite(start) && now < start) return false;
-  if (Number.isFinite(end) && now > end) return false;
-  return true;
-}
-function isValidUrl(value?: string) {
+function isImageSource(value?: string) {
   if (!value) return false;
-  try {
-    const url = new URL(value);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch {
-    return false;
-  }
+  return value.startsWith('/') || /^https?:\/\//i.test(value);
+}
+function claimLimitLabel(item: MemberPromotionCampaign) {
+  if (item.maxClaimsPerMember <= 0) return 'ไม่จำกัด';
+  const period = item.claimLimitPeriod === 'day' ? 'ต่อวัน'
+    : item.claimLimitPeriod === 'week' ? 'ต่อสัปดาห์'
+      : item.claimLimitPeriod === 'month' ? 'ต่อเดือน'
+        : item.claimLimitPeriod === 'year' ? 'ต่อปี'
+          : 'ต่อบัญชี';
+  return `${item.maxClaimsPerMember} ครั้ง${period}`;
 }
 function claimStatusLabel(status: string) {
-  const map: Record<string, string> = {
-    PENDING: 'รอตรวจ',
-    REVIEWING: 'กำลังตรวจ',
-    APPROVED: 'อนุมัติแล้ว',
-    REJECTED: 'ไม่อนุมัติ',
-  };
+  const map: Record<string, string> = { PENDING: 'รอตรวจ', REVIEWING: 'กำลังตรวจ', APPROVED: 'อนุมัติแล้ว', REJECTED: 'ไม่อนุมัติ' };
   return map[status] ?? status;
 }
 function money(value: number) {
