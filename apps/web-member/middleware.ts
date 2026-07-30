@@ -38,6 +38,14 @@ export function middleware(request: NextRequest) {
   const pathname = decodeURIComponent(request.nextUrl.pathname);
   const lowerPath = pathname.toLowerCase();
 
+  if (lowerPath === '/' && request.nextUrl.searchParams.get('category')?.toLowerCase() === 'live') {
+    const liveUrl = request.nextUrl.clone();
+    liveUrl.pathname = '/live';
+    liveUrl.search = '';
+    liveUrl.hash = '';
+    return NextResponse.redirect(liveUrl);
+  }
+
   if (lowerPath === TRANSPARENT_FALLBACK || lowerPath === GAME_FALLBACK) {
     return NextResponse.next();
   }
