@@ -14,7 +14,6 @@ import {
   AdminNotice,
   AdminPage,
   AdminStack,
-  AdminToolbar,
 } from '../../_components/admin-ui';
 import { useAdminLocale, type AdminLocale } from '../../admin-locale';
 import styles from './game-tournaments.module.css';
