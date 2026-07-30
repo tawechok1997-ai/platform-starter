@@ -11,8 +11,16 @@ test('login heading, tabs, recovery and support copy use the active locale', () 
   assert.match(loginSource, /title:\s*'Sign in'/);
   assert.match(loginSource, /<Link href=\{registerHref\}>\{t\.register\}<\/Link>/);
   assert.match(loginSource, /<Link href=\{loginHref\} aria-current="page">\{t\.title\}<\/Link>/);
-  assert.match(loginSource, /<h1 id="member-login-title">\{t\.title\}<\/h1>/);
-  assert.match(loginSource, /<Link href="\/forgot-password" className="public-auth-forgot">\{t\.forgot\}<\/Link>/);
+  assert.match(loginSource, /const heading = mode === 'login' \? t\.title : t\.forgotTitle/);
+  assert.match(loginSource, /<h1 id="member-login-title">\{heading\}<\/h1>/);
+  assert.match(
+    loginSource,
+    /<button type="button" className="public-auth-forgot" onClick=\{\(\) => switchMode\('forgot'\)\}>\s*\{t\.forgot\}\s*<\/button>/,
+  );
+  assert.match(
+    loginSource,
+    /\{mode === 'forgot' \? \(\s*<button type="button" className="source-login-back" onClick=\{\(\) => switchMode\('login'\)\}>\s*\{t\.backToLogin\}/,
+  );
   assert.match(loginSource, /<div className="source-login-support"><span>\{t\.supportPrompt\}<\/span><Link href="\/support">\{t\.support\}<\/Link><\/div>/);
   assert.doesNotMatch(loginSource, /<span>Secure connection<\/span>/);
 });

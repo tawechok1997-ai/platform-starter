@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { access, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -8,6 +8,13 @@ const inventoryPath = path.join(outputDir, 'game-asset-inventory.json');
 const duplicatePath = path.join(outputDir, 'game-asset-duplicates.json');
 const renamePath = path.join(outputDir, 'game-asset-rename-manifest.json');
 const platforms = ['mobile', 'pc'];
+const publicAssetRootCandidates = {
+  mobile: [
+    path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-mobile'),
+    path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-moblie'),
+  ],
+  pc: [path.join(root, 'apps', 'web-member', 'public', 'assets', 'asset-pc')],
+};
 const SHA256_PATTERN = /^[a-f0-9]{64}$/i;
 const UUID_PATTERN = /(^|[-_])[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}([-_.]|$)/i;
 const LONG_TOKEN_PATTERN = /(^|[-_])(?:\d{6,}|[a-f0-9]{16,})([-_.]|$)/i;
@@ -16,6 +23,7 @@ const records = [];
 const manifestGeneratedAt = [];
 const manifestKeys = new Set();
 const validationErrors = [];
+const resolvedAssetRoots = [];
 
 function normalizeManifestFile(platform, value) {
   const relative = value.replaceAll('\\', '/').replace(/^\.\//, '');
@@ -36,31 +44,92 @@ function needsNameReview(file) {
   return UUID_PATTERN.test(basename) || LONG_TOKEN_PATTERN.test(basename);
 }
 
-for (const platform of platforms) {
-  const assetRoot = path.join(root, 'asset', 'catalog', platform);
-  const manifestPath = path.join(assetRoot, 'manifest.json');
-  await access(manifestPath);
+async function listFiles(directory, baseDirectory = directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  entries.sort((a, b) => a.name.localeCompare(b.name));
 
-  const parsed = JSON.parse(await readFile(manifestPath, 'utf8'));
+  const files = [];
+  for (const entry of entries) {
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...await listFiles(absolute, baseDirectory));
+      continue;
+    }
+    if (!entry.isFile()) continue;
+    files.push(path.relative(baseDirectory, absolute).replaceAll('\\', '/'));
+  }
+  return files;
+}
+
+async function resolvePublicAssetRoot(platform) {
+  for (const candidate of publicAssetRootCandidates[platform]) {
+    try {
+      const info = await stat(candidate);
+      if (info.isDirectory()) return candidate;
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+    }
+  }
+
+  const expected = publicAssetRootCandidates[platform]
+    .map((candidate) => path.relative(root, candidate).replaceAll('\\', '/'))
+    .join(' or ');
+  throw new Error(`No checked-in ${platform} game asset root found at ${expected}`);
+}
+
+async function loadPlatformManifest(platform) {
+  const catalogRoot = path.join(root, 'asset', 'catalog', platform);
+  const manifestPath = path.join(catalogRoot, 'manifest.json');
+
+  try {
+    const parsed = JSON.parse(await readFile(manifestPath, 'utf8'));
+    return { assetRoot: catalogRoot, parsed, source: `asset/catalog/${platform}/manifest.json` };
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+
+    const assetRoot = await resolvePublicAssetRoot(platform);
+    const files = await listFiles(assetRoot);
+    console.warn(
+      `asset/catalog/${platform}/manifest.json is missing; synthesizing inventory from ${path.relative(root, assetRoot).replaceAll('\\', '/')} (${files.length} files)`,
+    );
+
+    return {
+      assetRoot,
+      source: path.relative(root, assetRoot).replaceAll('\\', '/'),
+      parsed: {
+        generatedAt: '1970-01-01T00:00:00.000Z',
+        items: files.map((file) => ({
+          file,
+          category: file.split('/')[0] ?? 'misc',
+          repositoryPath: path.posix.join(path.relative(root, assetRoot).replaceAll('\\', '/'), file),
+        })),
+      },
+    };
+  }
+}
+
+for (const platform of platforms) {
+  const { assetRoot, parsed, source } = await loadPlatformManifest(platform);
+  resolvedAssetRoots.push(path.relative(root, assetRoot).replaceAll('\\', '/'));
   if (typeof parsed?.generatedAt === 'string' && !Number.isNaN(Date.parse(parsed.generatedAt))) {
     manifestGeneratedAt.push(parsed.generatedAt);
   }
 
   const manifest = Array.isArray(parsed) ? parsed : parsed?.items;
   if (!Array.isArray(manifest)) {
-    throw new Error(`asset/catalog/${platform}/manifest.json must contain an items array`);
+    throw new Error(`${source} must contain an items array`);
   }
 
   for (const [index, entry] of manifest.entries()) {
     if (!entry || typeof entry.file !== 'string' || !entry.file.trim()) {
-      validationErrors.push(`asset/catalog/${platform}/manifest.json item ${index} is missing a valid file`);
+      validationErrors.push(`${source} item ${index} is missing a valid file`);
       continue;
     }
 
     const relative = normalizeManifestFile(platform, entry.file.trim());
     const manifestKey = `${platform}:${relative.toLowerCase()}`;
     if (manifestKeys.has(manifestKey)) {
-      validationErrors.push(`Duplicate manifest file entry: asset/catalog/${platform}/${relative}`);
+      validationErrors.push(`Duplicate manifest file entry: ${source}:${relative}`);
       continue;
     }
     manifestKeys.add(manifestKey);
@@ -71,7 +140,7 @@ for (const platform of platforms) {
     let exists = false;
 
     if (sha256 && !SHA256_PATTERN.test(sha256)) {
-      validationErrors.push(`Invalid SHA-256 for asset/catalog/${platform}/${relative}`);
+      validationErrors.push(`Invalid SHA-256 for ${source}:${relative}`);
       sha256 = null;
     }
 
@@ -93,7 +162,7 @@ for (const platform of platforms) {
       repositoryPath:
         typeof entry.repositoryPath === 'string'
           ? entry.repositoryPath.replaceAll('\\', '/')
-          : `asset/catalog/${platform}/${relative}`,
+          : path.relative(root, absolute).replaceAll('\\', '/'),
       mimeType: typeof entry.mimeType === 'string' ? entry.mimeType : null,
       status: Number(entry.status ?? 0),
       file: relative,
@@ -163,7 +232,7 @@ const generatedAt = manifestGeneratedAt
 await mkdir(outputDir, { recursive: true });
 await writeFile(
   inventoryPath,
-  `${JSON.stringify({ generatedAt, assetRoots: platforms.map((platform) => `asset/catalog/${platform}`), counts, items: records }, null, 2)}\n`,
+  `${JSON.stringify({ generatedAt, assetRoots: resolvedAssetRoots, counts, items: records }, null, 2)}\n`,
 );
 await writeFile(
   duplicatePath,

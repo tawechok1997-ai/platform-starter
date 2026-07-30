@@ -63,6 +63,6 @@ test('hero and game rails remain wired to lobby behavior', () => {
 test('changing filters resets pagination before requesting the new lobby slice', () => {
   assert.match(
     pageSource,
-    /useEffect\(\(\) => \{ setPage\(1\); \}, \[category, provider, platform, debouncedQuery\]\)/,
+    /useEffect\(\(\) => \{\s*setPage\(1\);\s*\}, \[category, provider, platform, debouncedQuery\]\)/,
   );
 });
