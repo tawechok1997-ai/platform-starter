@@ -12,7 +12,6 @@ const BrowsePromotionsCms = dynamic(
 );
 
 export type MemberSharedPopupKind = PromotionView | 'language';
-
 type OpenPopupDetail = { kind: MemberSharedPopupKind };
 
 const OPEN_MEMBER_SHARED_POPUP_EVENT = 'member:open-shared-popup';
@@ -20,9 +19,7 @@ const BROWSE_VIEWS = new Set<PromotionView>(['all', 'promotion', 'activity', 'ne
 
 export function openMemberSharedPopup(kind: MemberSharedPopupKind) {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent<OpenPopupDetail>(OPEN_MEMBER_SHARED_POPUP_EVENT, {
-    detail: { kind },
-  }));
+  window.dispatchEvent(new CustomEvent<OpenPopupDetail>(OPEN_MEMBER_SHARED_POPUP_EVENT, { detail: { kind } }));
 }
 
 export default function MemberSharedPopupRuntime({
@@ -33,16 +30,21 @@ export default function MemberSharedPopupRuntime({
   onSetLocale: (locale: MemberLocale) => void;
 }) {
   const [popup, setPopup] = useState<MemberSharedPopupKind | null>(null);
+  const [promotionDetailOpen, setPromotionDetailOpen] = useState(false);
+  const [detailBackSignal, setDetailBackSignal] = useState(0);
 
-  const close = useCallback(() => setPopup(null), []);
+  const close = useCallback(() => {
+    setPopup(null);
+    setPromotionDetailOpen(false);
+  }, []);
 
   useEffect(() => {
     const openPopup = (event: Event) => {
       const detail = (event as CustomEvent<OpenPopupDetail>).detail;
       if (!detail || !isPopupKind(detail.kind)) return;
+      setPromotionDetailOpen(false);
       setPopup(detail.kind);
     };
-
     window.addEventListener(OPEN_MEMBER_SHARED_POPUP_EVENT, openPopup);
     return () => window.removeEventListener(OPEN_MEMBER_SHARED_POPUP_EVENT, openPopup);
   }, []);
@@ -59,18 +61,18 @@ export default function MemberSharedPopupRuntime({
       if (languageTrigger) {
         event.preventDefault();
         event.stopPropagation();
+        setPromotionDetailOpen(false);
         setPopup('language');
         return;
       }
 
       const link = event.target.closest<HTMLAnchorElement>('a[href]');
       if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
-
       const kind = popupKindFromHref(link.getAttribute('href'));
       if (!kind) return;
-
       event.preventDefault();
       event.stopPropagation();
+      setPromotionDetailOpen(false);
       setPopup(kind);
     };
 
@@ -80,17 +82,14 @@ export default function MemberSharedPopupRuntime({
 
   useEffect(() => {
     if (!popup) return;
-
     const previousBodyOverflow = document.body.style.overflow;
     const previousHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
-
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close();
     };
     window.addEventListener('keydown', closeOnEscape);
-
     return () => {
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousHtmlOverflow;
@@ -102,6 +101,7 @@ export default function MemberSharedPopupRuntime({
 
   const title = popupTitle(popup, locale);
   const icon = popupIcon(popup);
+  const showPromotionBack = promotionDetailOpen && popup !== 'language';
 
   return createPortal(
     <div
@@ -113,15 +113,26 @@ export default function MemberSharedPopupRuntime({
         if (event.currentTarget === event.target) close();
       }}
     >
-      <section className="member-shared-popup" role="dialog" aria-modal="true" aria-label={title}>
+      <section className={`member-shared-popup${showPromotionBack ? ' is-promotion-detail' : ''}`} role="dialog" aria-modal="true" aria-label={title}>
         <span className="member-shared-popup-top-line" aria-hidden="true" />
         <header className="member-shared-popup-header">
           <div>
-            <span><img src={icon} alt="" aria-hidden="true" /></span>
-            <h2>{title}</h2>
+            {showPromotionBack ? (
+              <button
+                type="button"
+                className="member-shared-popup-back"
+                aria-label={locale === 'th' ? 'ย้อนกลับ' : 'Back'}
+                onClick={() => setDetailBackSignal((current) => current + 1)}
+              >
+                <svg viewBox="0 0 32 32" aria-hidden="true"><path d="m10.4 17.3 7.5 7.5-1.9 1.9L5.3 16 16 5.3l1.9 1.9-7.5 7.5h16.3v2.6H10.4Z" /></svg>
+              </button>
+            ) : (
+              <span><img src={icon} alt="" aria-hidden="true" /></span>
+            )}
+            <h2>{showPromotionBack ? (locale === 'th' ? 'โปรโมชั่น' : 'Promotion') : title}</h2>
           </div>
           <button type="button" onClick={close} aria-label={locale === 'th' ? 'ปิด' : 'Close'}>
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3 3 10 10M13 3 3 13" /></svg>
+            <img src="/images/close.svg" alt="" aria-hidden="true" />
           </button>
         </header>
 
@@ -138,7 +149,12 @@ export default function MemberSharedPopupRuntime({
             <BrowsePromotionsCms
               embedded
               initialView={popup}
-              onViewChange={(view) => setPopup(view)}
+              detailBackSignal={detailBackSignal}
+              onDetailOpenChange={setPromotionDetailOpen}
+              onViewChange={(view) => {
+                setPromotionDetailOpen(false);
+                setPopup(view);
+              }}
             />
           )}
         </div>
@@ -148,26 +164,18 @@ export default function MemberSharedPopupRuntime({
   );
 }
 
-function LanguagePanel({
-  locale,
-  onSelect,
-}: {
-  locale: MemberLocale;
-  onSelect: (locale: MemberLocale) => void;
-}) {
+function LanguagePanel({ locale, onSelect }: { locale: MemberLocale; onSelect: (locale: MemberLocale) => void }) {
   return (
     <div className="member-shared-language-panel">
       <p>{locale === 'th' ? 'เลือกภาษาที่ต้องการใช้งาน' : 'Choose your preferred language'}</p>
       <div>
         <button type="button" className={locale === 'th' ? 'is-active' : ''} onClick={() => onSelect('th')}>
           <img src="/assets/asset-pc/images/flags/th.svg" alt="" aria-hidden="true" />
-          <span><strong>ภาษาไทย</strong><small>Thai</small></span>
-          <b aria-hidden="true">✓</b>
+          <span><strong>ภาษาไทย</strong><small>Thai</small></span><b aria-hidden="true">✓</b>
         </button>
         <button type="button" className={locale === 'en' ? 'is-active' : ''} onClick={() => onSelect('en')}>
           <img src="/assets/asset-pc/images/flags/en.svg" alt="" aria-hidden="true" />
-          <span><strong>English</strong><small>ภาษาอังกฤษ</small></span>
-          <b aria-hidden="true">✓</b>
+          <span><strong>English</strong><small>ภาษาอังกฤษ</small></span><b aria-hidden="true">✓</b>
         </button>
       </div>
     </div>
@@ -182,18 +190,12 @@ function popupKindFromHref(rawHref: string | null): PromotionView | null {
     if (url.pathname === '/promotions') return 'promotion';
     if (url.pathname !== '/browse/promotions') return null;
     const requestedView = url.searchParams.get('view');
-    return requestedView && BROWSE_VIEWS.has(requestedView as PromotionView)
-      ? requestedView as PromotionView
-      : 'all';
+    return requestedView && BROWSE_VIEWS.has(requestedView as PromotionView) ? requestedView as PromotionView : 'all';
   } catch {
     return null;
   }
 }
-
-function isPopupKind(value: unknown): value is MemberSharedPopupKind {
-  return value === 'language' || (typeof value === 'string' && BROWSE_VIEWS.has(value as PromotionView));
-}
-
+function isPopupKind(value: unknown): value is MemberSharedPopupKind { return value === 'language' || (typeof value === 'string' && BROWSE_VIEWS.has(value as PromotionView)); }
 function popupTitle(kind: MemberSharedPopupKind, locale: MemberLocale) {
   if (locale === 'en') {
     if (kind === 'language') return 'Change language';
@@ -208,7 +210,6 @@ function popupTitle(kind: MemberSharedPopupKind, locale: MemberLocale) {
   if (kind === 'all') return 'โปรโมชั่น กิจกรรม และข่าวสาร';
   return 'โปรโมชั่น';
 }
-
 function popupIcon(kind: MemberSharedPopupKind) {
   const root = '/assets/asset-pc/images';
   if (kind === 'language') return `${root}/เปลียนภาษา.svg`;
