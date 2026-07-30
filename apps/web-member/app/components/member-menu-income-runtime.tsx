@@ -5,13 +5,20 @@ import { createPortal } from 'react-dom';
 import { memberApiFetch } from '../member-api';
 import type { MemberLocale } from '../member-locale-provider';
 
-type IncomeKind = 'network' | 'commission' | null;
+type PopupKind = 'network' | 'commission' | 'coupon' | null;
+type IncomeKind = Exclude<PopupKind, 'coupon' | null>;
+type Period = 'all' | 'today' | 'lastWeek' | 'lastMonth';
 
 type AffiliateCommission = {
+  id?: string | number | null;
   amount?: number | string | null;
   basis?: string | null;
   status?: string | null;
   payoutStatus?: string | null;
+  createdAt?: string | null;
+  wagerAmount?: number | string | null;
+  turnover?: number | string | null;
+  type?: string | null;
 };
 
 type AffiliatePayload = {
@@ -21,39 +28,84 @@ type AffiliatePayload = {
 
 const COPY = {
   th: {
-    networkTitle: 'รายได้เครือข่าย',
+    networkTitle: 'แนะนำเพื่อน',
     commissionTitle: 'รายได้คอมมิชชั่น',
-    networkAvailable: 'รายได้เครือข่ายที่ถอนได้',
-    commissionAvailable: 'รายได้คอมมิชชั่นที่ถอนได้',
-    amountPrompt: 'ใส่จำนวนเงินที่ต้องการถอนมายังกระเป๋าหลัก',
+    availableIncome: 'รายได้ที่ถอนได้',
+    withdraw: 'ถอนรายได้',
+    referralLink: 'ลิงก์แนะนำเพื่อน',
+    networkGuide: 'วิธีการสร้างเครือข่าย',
+    copied: 'คัดลอกแล้ว',
+    noReferral: 'ยังไม่มีลิงก์แนะนำเพื่อน',
+    all: 'ทั้งหมด',
+    today: 'วันนี้',
+    lastWeek: 'สัปดาห์ที่แล้ว',
+    lastMonth: 'เดือนที่แล้ว',
+    totalNetwork: 'รายได้จากเครือข่ายทั้งหมด',
+    totalCommission: 'รายได้คอมมิชชั่นทั้งหมด',
+    comparedWithLastMonth: 'จากเดือนที่แล้ว',
+    networkDetail: 'รายละเอียดการทำรายได้',
+    commissionDetail: 'รายละเอียดรายได้คอมมิชชั่น',
+    search: 'ค้นหา',
+    type: 'ประเภท',
+    wager: 'ยอดแทง',
+    income: 'รายได้',
+    noData: 'ไม่พบข้อมูล',
+    close: 'ปิด',
+    refresh: 'รีเฟรชยอด',
+    withdrawAmount: 'ใส่จำนวนเงินที่ต้องการถอนมายังกระเป๋าหลัก',
     chooseAmount: 'เลือกจำนวน',
     cancel: 'ยกเลิก',
     confirm: 'ยืนยัน',
-    close: 'ปิด',
-    copied: 'คัดลอกลิงก์แล้ว',
-    noReferral: 'ยังไม่มีลิงก์แนะนำเพื่อน',
+    payoutUnavailable: 'ระบบถอนรายได้ยังไม่เปิดใช้งาน',
+    couponTitle: 'ใส่รหัสคูปอง',
+    couponPlaceholder: 'ใส่รหัสคูปอง',
+    couponConfirm: 'ยืนยัน',
+    couponUnavailable: 'ระบบแลกคูปองยังไม่เปิดใช้งาน',
   },
   en: {
-    networkTitle: 'Network income',
+    networkTitle: 'Refer friends',
     commissionTitle: 'Commission income',
-    networkAvailable: 'Available network income',
-    commissionAvailable: 'Available commission income',
-    amountPrompt: 'Enter the amount to transfer to your main wallet',
+    availableIncome: 'Available income',
+    withdraw: 'Withdraw income',
+    referralLink: 'Referral link',
+    networkGuide: 'How to build your network',
+    copied: 'Copied',
+    noReferral: 'No referral link yet',
+    all: 'All',
+    today: 'Today',
+    lastWeek: 'Last week',
+    lastMonth: 'Last month',
+    totalNetwork: 'Total network income',
+    totalCommission: 'Total commission income',
+    comparedWithLastMonth: 'Compared with last month',
+    networkDetail: 'Income details',
+    commissionDetail: 'Commission income details',
+    search: 'Search',
+    type: 'Type',
+    wager: 'Turnover',
+    income: 'Income',
+    noData: 'No data',
+    close: 'Close',
+    refresh: 'Refresh balance',
+    withdrawAmount: 'Enter the amount to transfer to your main wallet',
     chooseAmount: 'Choose amount',
     cancel: 'Cancel',
     confirm: 'Confirm',
-    close: 'Close',
-    copied: 'Referral link copied',
-    noReferral: 'No referral link yet',
+    payoutUnavailable: 'Income payout is not available yet',
+    couponTitle: 'Enter coupon code',
+    couponPlaceholder: 'Enter coupon code',
+    couponConfirm: 'Confirm',
+    couponUnavailable: 'Coupon redemption is not available yet',
   },
 } as const;
 
 const QUICK_AMOUNTS = [100, 300, 500, 1000, 5000, 10000];
+const PRIMARY_MENU_SELECTOR = '.public-member-menu-grid:not(.public-member-menu-grid--secondary) a';
 
 export default function MemberMenuIncomeRuntime({ locale }: { locale: MemberLocale }) {
   const copy = COPY[locale];
   const [payload, setPayload] = useState<AffiliatePayload | null>(null);
-  const [incomeKind, setIncomeKind] = useState<IncomeKind>(null);
+  const [popupKind, setPopupKind] = useState<PopupKind>(null);
   const [copied, setCopied] = useState(false);
 
   const loadAffiliate = useCallback(async () => {
@@ -62,7 +114,7 @@ export default function MemberMenuIncomeRuntime({ locale }: { locale: MemberLoca
       const data = await response.json().catch(() => null);
       if (response.ok && data) setPayload(data as AffiliatePayload);
     } catch {
-      // Keep the menu usable when the affiliate service is temporarily unavailable.
+      // Keep the member menu usable when affiliate data is temporarily unavailable.
     }
   }, []);
 
@@ -81,9 +133,8 @@ export default function MemberMenuIncomeRuntime({ locale }: { locale: MemberLoca
     return available.reduce((totals, item) => {
       const value = Number(item.amount ?? 0);
       if (!Number.isFinite(value) || value <= 0) return totals;
-      const basis = String(item.basis ?? '');
-      if (/network|downline|referral|ทีม|เครือข่าย/i.test(basis)) totals.network += value;
-      else totals.commission += value;
+      const kind = classifyCommission(item);
+      totals[kind] += value;
       return totals;
     }, { network: 0, commission: 0 });
   }, [payload]);
@@ -120,6 +171,7 @@ export default function MemberMenuIncomeRuntime({ locale }: { locale: MemberLoca
 
       const referralText = document.querySelector<HTMLElement>('.public-member-referral-row small');
       if (referralText) referralText.textContent = copied ? copy.copied : (referralUrl || copy.noReferral);
+      document.querySelector('.public-member-referral-row')?.classList.toggle('is-copied', copied);
     };
 
     syncMenuContent();
@@ -129,6 +181,12 @@ export default function MemberMenuIncomeRuntime({ locale }: { locale: MemberLoca
   }, [balances.commission, balances.network, copied, copy.copied, copy.noReferral, referralUrl]);
 
   useEffect(() => {
+    const closeProfileMenu = () => {
+      window.setTimeout(() => {
+        document.querySelector<HTMLButtonElement>('.public-member-profile-trigger[aria-expanded="true"]')?.click();
+      }, 0);
+    };
+
     const handleClick = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
 
@@ -137,10 +195,8 @@ export default function MemberMenuIncomeRuntime({ locale }: { locale: MemberLoca
         event.preventDefault();
         event.stopPropagation();
         const items = Array.from(incomeLink.parentElement?.querySelectorAll('a') ?? []);
-        setIncomeKind(items.indexOf(incomeLink) === 0 ? 'network' : 'commission');
-        window.setTimeout(() => {
-          document.querySelector<HTMLButtonElement>('.public-member-profile-trigger[aria-expanded="true"]')?.click();
-        }, 0);
+        setPopupKind(items.indexOf(incomeLink) === 0 ? 'network' : 'commission');
+        closeProfileMenu();
         return;
       }
 
@@ -149,47 +205,360 @@ export default function MemberMenuIncomeRuntime({ locale }: { locale: MemberLoca
         event.preventDefault();
         event.stopPropagation();
         void copyReferral();
+        return;
       }
+
+      const primaryItem = event.target.closest<HTMLAnchorElement>(PRIMARY_MENU_SELECTOR);
+      if (!primaryItem) return;
+      const primaryItems = Array.from(document.querySelectorAll<HTMLAnchorElement>(PRIMARY_MENU_SELECTOR));
+      const index = primaryItems.indexOf(primaryItem);
+      const kind = index === 1 ? 'commission' : index === 2 ? 'network' : index === 3 ? 'coupon' : null;
+      if (!kind) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      setPopupKind(kind);
+      closeProfileMenu();
     };
 
     document.addEventListener('click', handleClick, true);
     return () => document.removeEventListener('click', handleClick, true);
   }, [copyReferral]);
 
-  return incomeKind && typeof document !== 'undefined'
-    ? createPortal(
-      <IncomePopup
-        kind={incomeKind}
+  if (!popupKind || typeof document === 'undefined') return null;
+
+  return createPortal(
+    popupKind === 'coupon' ? (
+      <CouponPopup locale={locale} onClose={() => setPopupKind(null)} />
+    ) : (
+      <IncomeDashboardPopup
+        kind={popupKind}
         locale={locale}
-        balance={balances[incomeKind]}
-        onClose={() => setIncomeKind(null)}
+        balance={balances[popupKind]}
+        records={(payload?.commissions ?? []).filter((item) => classifyCommission(item) === popupKind)}
+        referralUrl={referralUrl}
+        copied={copied}
+        onCopyReferral={copyReferral}
+        onClose={() => setPopupKind(null)}
         onRefresh={loadAffiliate}
-      />,
-      document.body,
-    )
-    : null;
+      />
+    ),
+    document.body,
+  );
 }
 
-function IncomePopup({
+function IncomeDashboardPopup({
   kind,
   locale,
   balance,
+  records,
+  referralUrl,
+  copied,
+  onCopyReferral,
   onClose,
   onRefresh,
 }: {
-  kind: Exclude<IncomeKind, null>;
+  kind: IncomeKind;
   locale: MemberLocale;
   balance: number;
+  records: AffiliateCommission[];
+  referralUrl: string;
+  copied: boolean;
+  onCopyReferral: () => Promise<void>;
   onClose: () => void;
   onRefresh: () => Promise<void>;
 }) {
   const copy = COPY[locale];
+  const [period, setPeriod] = useState<Period>('all');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const title = kind === 'network' ? copy.networkTitle : copy.commissionTitle;
+
+  useModalLifecycle(onClose);
+
+  const filteredRecords = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return records.filter((record) => {
+      if (!matchesPeriod(record.createdAt, period)) return false;
+      if (!normalizedQuery) return true;
+      return [record.type, record.basis, record.status]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(normalizedQuery));
+    });
+  }, [period, query, records]);
+
+  const total = filteredRecords.reduce((sum, record) => sum + safeNumber(record.amount), 0);
+
+  const refresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  return (
+    <div className="member-income-popup-backdrop" role="presentation" onPointerDown={(event) => {
+      if (event.currentTarget === event.target) onClose();
+    }}>
+      <section className="member-income-popup member-income-popup--dashboard" role="dialog" aria-modal="true" aria-label={title}>
+        <span className="member-income-popup-top-line" aria-hidden="true" />
+        <PopupHeader kind={kind} title={title} closeLabel={copy.close} onClose={onClose} />
+
+        <div className="member-income-dashboard-grid">
+          <section className="member-income-dashboard-left">
+            <div className="member-income-available-block">
+              <h3>{copy.availableIncome}</h3>
+              <div className="member-income-available-card">
+                <strong>{formatMoney(balance)}</strong>
+                <button type="button" onClick={() => void refresh()} aria-label={copy.refresh} data-refreshing={refreshing ? 'true' : 'false'}>
+                  <RefreshIcon />
+                </button>
+              </div>
+              <button
+                type="button"
+                className="member-income-withdraw-button"
+                disabled={balance <= 0}
+                onClick={() => setWithdrawOpen(true)}
+              >
+                {copy.withdraw}
+              </button>
+            </div>
+
+            {kind === 'network' ? (
+              <div className="member-income-referral-tools">
+                <button type="button" className={copied ? 'is-copied' : ''} onClick={() => void onCopyReferral()}>
+                  <strong>{copy.referralLink}</strong>
+                  <span title={referralUrl}>{copied ? copy.copied : (referralUrl || copy.noReferral)}</span>
+                  <CopyIcon />
+                </button>
+                <a href="/guide" onClick={onClose}>
+                  <strong>{copy.networkGuide}</strong>
+                  <ArrowCircleIcon />
+                </a>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="member-income-dashboard-right">
+            <div className="member-income-period-tabs" role="tablist">
+              {(['all', 'today', 'lastWeek', 'lastMonth'] as Period[]).map((item) => (
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={period === item}
+                  className={period === item ? 'is-active' : ''}
+                  onClick={() => setPeriod(item)}
+                  key={item}
+                >
+                  {copy[item]}
+                </button>
+              ))}
+            </div>
+
+            <div className="member-income-summary-card">
+              <div>
+                <strong>{kind === 'network' ? copy.totalNetwork : copy.totalCommission}</strong>
+                <b>{formatMoney(total)}</b>
+              </div>
+              <div>
+                <strong>0%</strong>
+                <span>{copy.comparedWithLastMonth}</span>
+              </div>
+            </div>
+
+            <div className="member-income-detail-head">
+              <h3>{kind === 'network' ? copy.networkDetail : copy.commissionDetail}</h3>
+              <button type="button" onClick={() => setSearchOpen((value) => !value)}>
+                {copy.search}
+                <FilterIcon />
+              </button>
+            </div>
+
+            {searchOpen ? (
+              <input
+                className="member-income-search-input"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                autoFocus
+                aria-label={copy.search}
+              />
+            ) : null}
+
+            <div className="member-income-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>{copy.type}</th>
+                    {kind === 'network' ? <th>{copy.wager}</th> : null}
+                    <th>{copy.income}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRecords.length ? filteredRecords.map((record, index) => (
+                    <tr key={String(record.id ?? `${record.createdAt ?? 'row'}-${index}`)}>
+                      <td>{record.type || record.basis || '-'}</td>
+                      {kind === 'network' ? <td>{formatMoney(safeNumber(record.wagerAmount ?? record.turnover))}</td> : null}
+                      <td>{formatMoney(safeNumber(record.amount))}</td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={kind === 'network' ? 3 : 2}>
+                        <EmptyState />
+                        <span>{copy.noData}</span>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      {withdrawOpen ? (
+        <WithdrawOverlay
+          locale={locale}
+          balance={balance}
+          onClose={() => setWithdrawOpen(false)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function WithdrawOverlay({ locale, balance, onClose }: { locale: MemberLocale; balance: number; onClose: () => void }) {
+  const copy = COPY[locale];
   const [amount, setAmount] = useState('');
+  const [message, setMessage] = useState('');
   const numericAmount = Number(amount.replace(/,/g, ''));
   const validAmount = Number.isFinite(numericAmount) && numericAmount > 0 && numericAmount <= balance;
-  const title = kind === 'network' ? copy.networkTitle : copy.commissionTitle;
-  const balanceLabel = kind === 'network' ? copy.networkAvailable : copy.commissionAvailable;
 
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopImmediatePropagation();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape, true);
+    return () => window.removeEventListener('keydown', closeOnEscape, true);
+  }, [onClose]);
+
+  return (
+    <div className="member-income-withdraw-backdrop" onPointerDown={(event) => {
+      if (event.currentTarget === event.target) onClose();
+    }}>
+      <section className="member-income-withdraw-dialog" role="dialog" aria-modal="true">
+        <h3>{copy.withdrawAmount}</h3>
+        <input
+          inputMode="decimal"
+          value={amount}
+          onChange={(event) => {
+            setAmount(sanitizeAmount(event.target.value));
+            setMessage('');
+          }}
+          placeholder="0.00"
+        />
+        <div className="member-income-quick-section">
+          <h4>{copy.chooseAmount}</h4>
+          <div>
+            {QUICK_AMOUNTS.map((quickAmount) => (
+              <button
+                key={quickAmount}
+                type="button"
+                disabled={quickAmount > balance}
+                onClick={() => setAmount(String(quickAmount))}
+              >
+                {quickAmount.toLocaleString('en-US')}
+              </button>
+            ))}
+          </div>
+        </div>
+        {message ? <p>{message}</p> : null}
+        <footer className="member-income-popup-actions">
+          <button type="button" onClick={onClose}>{copy.cancel}</button>
+          <button type="button" className="is-primary" disabled={!validAmount} onClick={() => setMessage(copy.payoutUnavailable)}>
+            {copy.confirm}
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function CouponPopup({ locale, onClose }: { locale: MemberLocale; onClose: () => void }) {
+  const copy = COPY[locale];
+  const [code, setCode] = useState('');
+  const [message, setMessage] = useState('');
+  useModalLifecycle(onClose);
+
+  const normalizedCode = code.replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 5);
+
+  return (
+    <div className="member-income-popup-backdrop" role="presentation" onPointerDown={(event) => {
+      if (event.currentTarget === event.target) onClose();
+    }}>
+      <section className="member-income-popup member-coupon-popup" role="dialog" aria-modal="true" aria-label={copy.couponTitle}>
+        <span className="member-income-popup-top-line" aria-hidden="true" />
+        <PopupHeader kind="coupon" title={copy.couponTitle} closeLabel={copy.close} onClose={onClose} />
+        <div className="member-coupon-content">
+          <CouponArtwork />
+          <label className={normalizedCode ? 'has-value' : ''}>
+            <span>{copy.couponPlaceholder}</span>
+            <input
+              value={normalizedCode}
+              maxLength={5}
+              autoComplete="off"
+              onChange={(event) => {
+                setCode(event.target.value);
+                setMessage('');
+              }}
+            />
+          </label>
+          {message ? <p>{message}</p> : null}
+          <button
+            type="button"
+            disabled={normalizedCode.length !== 5}
+            onClick={() => setMessage(copy.couponUnavailable)}
+          >
+            {copy.couponConfirm}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PopupHeader({
+  kind,
+  title,
+  closeLabel,
+  onClose,
+}: {
+  kind: 'network' | 'commission' | 'coupon';
+  title: string;
+  closeLabel: string;
+  onClose: () => void;
+}) {
+  return (
+    <header className="member-income-popup-header">
+      <div>
+        <span className="member-income-popup-title-icon" aria-hidden="true">
+          {kind === 'network' ? <NetworkIcon /> : kind === 'commission' ? <CommissionIcon /> : <CouponIcon />}
+        </span>
+        <h2>{title}</h2>
+      </div>
+      <button type="button" onClick={onClose} aria-label={closeLabel}><CloseIcon /></button>
+    </header>
+  );
+}
+
+function useModalLifecycle(onClose: () => void) {
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -202,70 +571,28 @@ function IncomePopup({
       window.removeEventListener('keydown', closeOnEscape);
     };
   }, [onClose]);
+}
 
-  return (
-    <div
-      className="member-income-popup-backdrop"
-      role="presentation"
-      onPointerDown={(event) => {
-        if (event.currentTarget === event.target) onClose();
-      }}
-    >
-      <section className="member-income-popup" role="dialog" aria-modal="true" aria-label={title}>
-        <span className="member-income-popup-top-line" aria-hidden="true" />
-        <header className="member-income-popup-header">
-          <div>
-            <span className="member-income-popup-title-icon" aria-hidden="true">฿</span>
-            <h2>{title}</h2>
-          </div>
-          <button type="button" onClick={onClose} aria-label={copy.close}>×</button>
-        </header>
+function classifyCommission(item: AffiliateCommission): IncomeKind {
+  const basis = `${item.basis ?? ''} ${item.type ?? ''}`;
+  return /network|downline|referral|ทีม|เครือข่าย|แนะนำ/i.test(basis) ? 'network' : 'commission';
+}
 
-        <div className="member-income-popup-scroll">
-          <div className="member-income-balance-card">
-            <strong>{balanceLabel}</strong>
-            <div>
-              <b>{formatMoney(balance)}</b>
-              <button type="button" onClick={() => void onRefresh()} aria-label="refresh">↻</button>
-            </div>
-          </div>
-
-          <div className="member-income-entry">
-            <h3>{copy.amountPrompt}</h3>
-            <label>
-              <input
-                inputMode="decimal"
-                value={amount}
-                onChange={(event) => setAmount(sanitizeAmount(event.target.value))}
-                placeholder="0.00"
-              />
-            </label>
-
-            <div className="member-income-quick-section">
-              <h4>{copy.chooseAmount}</h4>
-              <div>
-                {QUICK_AMOUNTS.map((quickAmount) => (
-                  <button
-                    key={quickAmount}
-                    type="button"
-                    disabled={quickAmount > balance}
-                    onClick={() => setAmount(String(quickAmount))}
-                  >
-                    {quickAmount.toLocaleString('en-US')}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <footer className="member-income-popup-actions">
-            <button type="button" onClick={onClose}>{copy.cancel}</button>
-            <button type="button" className="is-primary" disabled={!validAmount}>{copy.confirm}</button>
-          </footer>
-        </div>
-      </section>
-    </div>
-  );
+function matchesPeriod(createdAt: string | null | undefined, period: Period) {
+  if (period === 'all' || !createdAt) return true;
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return true;
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (period === 'today') return created >= startToday;
+  if (period === 'lastWeek') {
+    const start = new Date(startToday);
+    start.setDate(start.getDate() - 7);
+    return created >= start && created < startToday;
+  }
+  const startCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  return created >= startLastMonth && created < startCurrentMonth;
 }
 
 function sanitizeAmount(value: string) {
@@ -274,9 +601,77 @@ function sanitizeAmount(value: string) {
   return decimal.length ? `${whole}.${decimal.join('').slice(0, 2)}` : whole;
 }
 
+function safeNumber(value: number | string | null | undefined) {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 function formatMoney(value: number) {
   return Number(value || 0).toLocaleString('th-TH', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+function CloseIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>;
+}
+
+function RefreshIcon() {
+  return <svg viewBox="0 0 16 14" aria-hidden="true"><path d="M13.7 2.9A7 7 0 0 0 1 6.3L.97 6.93l1.33.14.07-.67A5.67 5.67 0 0 1 12.8 4h-2.47v1.33H15V.67h-1.33V2.9Zm0 4.03-.07.67A5.67 5.67 0 0 1 3.2 10h2.47V8.67H1v4.66h1.33V11.1A7 7 0 0 0 15 7.73l.03-.66-1.33-.14Z" /></svg>;
+}
+
+function CopyIcon() {
+  return <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12c-.37 0-.68-.13-.94-.39a1.28 1.28 0 0 1-.39-.94v-8c0-.37.13-.68.39-.94.26-.26.57-.4.94-.4h6c.37 0 .68.14.94.4.26.26.39.57.39.94v8c0 .37-.13.68-.39.94-.26.26-.57.39-.94.39H6Zm0-1.33h6v-8H6v8ZM3.33 14.67c-.36 0-.68-.13-.94-.4A1.28 1.28 0 0 1 2 13.34V4h1.33v9.33h7.34v1.34H3.33Z" /></svg>;
+}
+
+function ArrowCircleIcon() {
+  return <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" /><path d="m6 4 4 4-4 4M3 8h7" /></svg>;
+}
+
+function FilterIcon() {
+  return <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7.33 14v-4h1.34v1.33H14v1.34H8.67V14H7.33ZM2 12.67v-1.34h4v1.34H2ZM4.67 10V8.67H2V7.33h2.67V6H6v4H4.67Zm2.66-1.33V7.33H14v1.34H7.33ZM10 6V2h1.33v1.33H14v1.34h-2.67V6H10ZM2 4.67V3.33h6.67v1.34H2Z" /></svg>;
+}
+
+function NetworkIcon() {
+  return <svg viewBox="0 0 31 31" aria-hidden="true"><path d="M11.6 13.5a4.9 4.9 0 1 0 0-9.8 4.9 4.9 0 0 0 0 9.8ZM2.8 27.3h17.6v-1.1a8.8 8.8 0 0 0-17.6 0v1.1ZM19.4 13.5a4.9 4.9 0 0 0 0-9.8M24.3 27.3h3.9v-1.1a8.8 8.8 0 0 0-6.8-8.5" /></svg>;
+}
+
+function CommissionIcon() {
+  return <svg viewBox="0 0 31 31" aria-hidden="true"><circle cx="20.5" cy="10.5" r="8.2" /><path d="m17.3 13.7 6.4-6.4M18 8.6a.63.63 0 1 0 0-1.26.63.63 0 0 0 0 1.26ZM23 13.7a.63.63 0 1 0 0-1.26.63.63 0 0 0 0 1.26ZM2.5 23.5l4.9 4.1a4 4 0 0 0 2.5.9h12.9a1.7 1.7 0 0 0 1.7-1.7 3.3 3.3 0 0 0-3.3-3.3h-9M8.5 21.5 10 23a2.1 2.1 0 0 0 3-3l-2.3-2.3a4 4 0 0 0-2.9-1.2H2.5" /></svg>;
+}
+
+function CouponIcon() {
+  return <svg viewBox="0 0 31 31" aria-hidden="true"><path d="M2.5 23.5a2 2 0 0 0 2 2h22a2 2 0 0 0 2-2v-4.1a4.1 4.1 0 0 1 0-7.8V7.5a2 2 0 0 0-2-2h-22a2 2 0 0 0-2 2v4.1a4.1 4.1 0 0 1 0 7.8v4.1ZM10.5 20.5l10-10M11.5 12.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM19.5 20.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" /></svg>;
+}
+
+function CouponArtwork() {
+  return (
+    <svg className="member-coupon-artwork" viewBox="0 0 130 123" aria-hidden="true">
+      <defs>
+        <linearGradient id="coupon-ticket-base" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#474157" stopOpacity="0.91" />
+          <stop offset="1" stopColor="#a893ae" />
+        </linearGradient>
+        <linearGradient id="coupon-ticket-main" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#944fe8" />
+          <stop offset="1" stopColor="#7600a8" />
+        </linearGradient>
+      </defs>
+      <path fill="url(#coupon-ticket-base)" d="M7 94a10.7 10.7 0 0 0 4 .8h78.5c5.9 0 10.7-4.8 10.7-10.7V69.5a3.6 3.6 0 0 0-2.6-3.4 11 11 0 0 1 0-21.2 3.6 3.6 0 0 0 2.6-3.4V27c0-5.9-4.8-10.7-10.7-10.7H10.9C5 16.3.2 21.1.2 27v14.5a3.6 3.6 0 0 0 2.7 3.4 11 11 0 0 1 0 21.2 3.6 3.6 0 0 0-2.7 3.4V84A10.7 10.7 0 0 0 7 94Zm28.6-17.5 35.7-35.7M36 48.3a7.1 7.1 0 1 0 0-14.2 7.1 7.1 0 0 0 0 14.2Zm28.6 28.6a7.1 7.1 0 1 0 0-14.2 7.1 7.1 0 0 0 0 14.2Z" />
+      <path fill="url(#coupon-ticket-main)" d="M39.4 109.5a10.7 10.7 0 0 1-13.1-7.6l-3.8-14a3.6 3.6 0 0 1 1.7-4 11 11 0 0 0-5.5-20.5 3.6 3.6 0 0 1-3.4-2.6l-3.8-14a10.7 10.7 0 0 1 7.6-13.1L95 13.3a10.7 10.7 0 0 1 13.1 7.6l3.8 14a3.6 3.6 0 0 1-1.7 4 11 11 0 0 0 5.5 20.5 3.6 3.6 0 0 1 3.4 2.6l3.8 14a10.7 10.7 0 0 1-7.6 13.1l-75.9 20.4Z" />
+      <path fill="none" stroke="#373541" strokeWidth="7" strokeLinecap="round" d="m83.8 41.7-25.2 43.8M48 44.4a7.1 7.1 0 1 0 3.7 13.8A7.1 7.1 0 0 0 48 44.4Zm35 20.2a7.1 7.1 0 1 0 3.7 13.8A7.1 7.1 0 0 0 83 64.6Z" />
+    </svg>
+  );
+}
+
+function EmptyState() {
+  return (
+    <svg className="member-income-empty-icon" viewBox="0 0 116 81" aria-hidden="true">
+      <path d="M87.4 36.6H23.2v36.1a8 8 0 0 0 8 8h48.2a8 8 0 0 0 8-8V36.6Z" />
+      <path d="M7.8 17.3a8 8 0 0 0-5.7 9.8l2.1 7.8a8 8 0 0 0 9.8 5.7l56.8-15.3a8 8 0 0 0 5.7-9.8l-2.1-7.7A8 8 0 0 0 64.6 2L7.8 17.3Z" />
+      <path d="M68.8 35s19.6-5.5 16.6-11.7c-1.7-3.3-6.5-3.1-9.2-.6-3.2 2.9-3.1 10.4 1.2 10.4 11.1 0 23-5 28.9-16.5" />
+      <rect x="47.9" y="46.7" width="14.7" height="4.9" rx="2.4" />
+    </svg>
+  );
 }
