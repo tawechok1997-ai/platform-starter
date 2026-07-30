@@ -15,15 +15,14 @@ export default function MemberHeroSwipeController() {
       target instanceof Element ? target.closest<HTMLElement>(HERO_SELECTOR) : null;
 
     const disableNativeDrag = (hero: HTMLElement) => {
+      if (hero.dataset.dragGuardReady === 'true') return;
+      hero.dataset.dragGuardReady = 'true';
+
       hero.querySelectorAll<HTMLElement>('a, img').forEach((element) => {
         element.setAttribute('draggable', 'false');
         element.style.setProperty('-webkit-user-drag', 'none');
         element.style.userSelect = 'none';
       });
-    };
-
-    const applyGuards = () => {
-      document.querySelectorAll<HTMLElement>(HERO_SELECTOR).forEach(disableNativeDrag);
     };
 
     const preventHeroDragStart = (event: DragEvent) => {
@@ -33,8 +32,7 @@ export default function MemberHeroSwipeController() {
 
     const preparePointerGesture = (event: PointerEvent) => {
       const hero = findHero(event.target);
-      if (!hero) return;
-      disableNativeDrag(hero);
+      if (hero) disableNativeDrag(hero);
     };
 
     const moveSlide = (hero: HTMLElement, direction: -1 | 1) => {
@@ -65,6 +63,7 @@ export default function MemberHeroSwipeController() {
         return;
       }
 
+      disableNativeDrag(hero);
       activeHero = hero;
       startX = touch.clientX;
       startY = touch.clientY;
@@ -82,25 +81,18 @@ export default function MemberHeroSwipeController() {
       const deltaY = touch.clientY - startY;
       if (Math.abs(deltaX) < SWIPE_THRESHOLD || Math.abs(deltaX) <= Math.abs(deltaY)) return;
 
-      // The reference carousel owns its pointer/swipe state internally. The legacy
-      // fallback only clicks dots for the old member-home hero to avoid double movement.
       if (hero.matches('.member-home-hero')) {
         moveSlide(hero, deltaX < 0 ? 1 : -1);
       }
     };
 
-    applyGuards();
-
-    const observer = new MutationObserver(applyGuards);
-    observer.observe(document.body, { childList: true, subtree: true });
-
+    document.querySelectorAll<HTMLElement>(HERO_SELECTOR).forEach(disableNativeDrag);
     document.addEventListener('dragstart', preventHeroDragStart, true);
     document.addEventListener('pointerdown', preparePointerGesture, true);
     document.addEventListener('touchstart', onTouchStart, { passive: true });
     document.addEventListener('touchend', onTouchEnd, { passive: true });
 
     return () => {
-      observer.disconnect();
       document.removeEventListener('dragstart', preventHeroDragStart, true);
       document.removeEventListener('pointerdown', preparePointerGesture, true);
       document.removeEventListener('touchstart', onTouchStart);
