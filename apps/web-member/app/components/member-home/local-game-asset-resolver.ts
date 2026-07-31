@@ -1,4 +1,5 @@
 import type { Game, GameProviderSummary } from '../../types/member-api';
+import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import { REFERENCE_GAMES, REFERENCE_PROVIDERS } from '../reference-asset-catalog';
 
 const GAME_ASSET_BY_KEY = new Map<string, string>();
@@ -53,6 +54,9 @@ export function resolveHomeGameImage(game: Game): string {
   ];
 
   for (const source of sourceCandidates) {
+    const localByFileName = source ? resolveLocalAssetByBasename(source) : '';
+    if (localByFileName) return localByFileName;
+
     const mirrored = source ? resolveMirroredAsset(source, 'games') : '';
     if (mirrored) return mirrored;
   }
@@ -72,15 +76,22 @@ export function resolveHomeGameImage(game: Game): string {
 
 export function resolveHomeGameFallback(game: Game): string {
   const media = Array.isArray(game.media) ? game.media : [];
-  const catalog = resolveCatalogGameAsset(game);
-  if (catalog) return catalog;
-
-  const external = [
+  const sourceCandidates = [
     findMediaUrl(media, 'cachedUrl'),
     game.imageUrl,
     game.iconUrl,
     findMediaUrl(media, 'sourceUrl'),
-  ].find((value) => value && !isMirroredLocalUrl(value));
+  ];
+
+  for (const source of sourceCandidates) {
+    const localByFileName = source ? resolveLocalAssetByBasename(source) : '';
+    if (localByFileName) return localByFileName;
+  }
+
+  const catalog = resolveCatalogGameAsset(game);
+  if (catalog) return catalog;
+
+  const external = sourceCandidates.find((value) => value && !isMirroredLocalUrl(value));
   if (external) return normalizePublicAssetUrl(external);
 
   const seed = `${game.id || ''}:${game.provider?.code || ''}:${game.providerGameCode || ''}:${game.name || ''}`;
@@ -103,6 +114,9 @@ export function resolveHomeProviderLogo(provider?: GameProviderSummary | null): 
     const local = PROVIDER_ASSET_BY_KEY.get(canonical);
     if (local) return local;
   }
+
+  const localByFileName = resolveLocalAssetByBasename(provider.logoUrl);
+  if (localByFileName) return localByFileName;
 
   const mirrored = provider.logoUrl ? resolveMirroredAsset(provider.logoUrl, 'providers') : '';
   if (mirrored) return mirrored;
