@@ -65,6 +65,39 @@ const LOCAL_BANKS = [
   'TMN',
 ].map((name) => ({ name, url: `${SOURCE_ROOT}/banks/TH/${name}.webp` }));
 
+const MOBILE_BANKS = [
+  'BBL',
+  'KBANK',
+  'KTB',
+  'TTB',
+  'SCB',
+  'BAY',
+  'KKP',
+  'CIMBT',
+  'TISCO',
+  'UOBT',
+  'TCD',
+  'LHFG',
+  'BAAC',
+  'EXIM',
+  'GSB',
+  'GHB',
+  'TMN',
+].map((name) => ({ name, url: `/images/banks/TH/${name}.webp` }));
+
+const MOBILE_LICENSE_BADGES = [
+  ['BMM Testlabs', '/images/footer/Bmm.webp'],
+  ['iTech Labs', '/images/footer/iTech.webp'],
+  ['Iovation', '/images/footer/Iovation.webp'],
+  ['Gaming Labs', '/images/footer/GamingLab.webp'],
+  ['GC', '/images/footer/GC-icon 2.webp'],
+] as const;
+
+const MOBILE_SECURITY_BADGES = [
+  ['GoDaddy', '/images/footer/GO DADDY.webp'],
+  ['Security Group', '/images/footer/Group 48102721.webp'],
+] as const;
+
 const FOOTER_COPY = {
   th: {
     description: `เว็บพนันออนไลน์ที่ดีที่สุด
@@ -148,78 +181,154 @@ function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
   const description = sourceDescription(website.site_description, copy.description);
 
   return (
-    <footer
-      className={`member-footer member-footer--shared member-persistent-shell__footer ${mobileFooterStyles.root}`}
-      data-locale={locale}
-    >
-      <div className="member-footer__main">
-        <section className="member-footer__about">
-          <h3>{siteName}</h3>
-          <p>{description}</p>
-        </section>
+    <>
+      <footer
+        className={`member-footer member-footer--shared member-persistent-shell__footer ${mobileFooterStyles.desktopRoot}`}
+        data-locale={locale}
+      >
+        <div className="member-footer__main">
+          <section className="member-footer__about">
+            <h3>{siteName}</h3>
+            <p>{description}</p>
+          </section>
 
-        <section className="member-footer__trust">
-          <h3>
-            <strong>{copy.license}</strong> <span>{copy.licenseNote}</span>
-          </h3>
-          <BadgeRow badges={LICENSE_BADGES} className="member-footer__trust-primary" />
+          <section className="member-footer__trust">
+            <h3>
+              <strong>{copy.license}</strong> <span>{copy.licenseNote}</span>
+            </h3>
+            <BadgeRow badges={LICENSE_BADGES} className="member-footer__trust-primary" />
 
-          <div className="member-footer__trust-groups">
-            <div className="member-footer__trust-group">
-              <h3>{copy.security}</h3>
-              <BadgeRow badges={SECURITY_BADGES} />
+            <div className="member-footer__trust-groups">
+              <div className="member-footer__trust-group">
+                <h3>{copy.security}</h3>
+                <BadgeRow badges={SECURITY_BADGES} />
+              </div>
+              <div className="member-footer__trust-group">
+                <h3>{copy.responsible}</h3>
+                <BadgeRow badges={RESPONSIBLE_BADGES} />
+              </div>
             </div>
-            <div className="member-footer__trust-group">
-              <h3>{copy.responsible}</h3>
-              <BadgeRow badges={RESPONSIBLE_BADGES} />
-            </div>
+          </section>
+
+          <div className="member-footer__menus">
+            <nav className="member-footer__links" aria-label={copy.games}>
+              <h3>{copy.games}</h3>
+              {GAME_LINKS.map(([key, href]) => (
+                <Link key={key} href={href}>{copy.links[key]}</Link>
+              ))}
+            </nav>
+
+            <nav className="member-footer__links" aria-label={copy.information}>
+              <h3>{copy.information}</h3>
+              {INFO_LINKS.map(([key, href]) => (
+                <Link key={key} href={href}>{copy.links[key]}</Link>
+              ))}
+            </nav>
+          </div>
+
+          <section className="member-footer__contact">
+            <h3>{copy.contact}</h3>
+            <Link className="member-footer__contact-line" href="/contact" aria-label={copy.contactAria}>
+              <img src={`${SOURCE_ROOT}/line.png`} alt="LINE" loading="lazy" onError={hideBrokenImage} />
+            </Link>
+          </section>
+        </div>
+
+        <section className="member-footer__payments" aria-label={copy.payments}>
+          <h3>{copy.payments}</h3>
+          <div className="member-footer__bank-grid">
+            {LOCAL_BANKS.map((bank) => (
+              <span key={bank.name} className="member-footer__bank" title={bank.name}>
+                <img src={bank.url} alt={bank.name} loading="lazy" onError={hideBrokenImage} />
+              </span>
+            ))}
           </div>
         </section>
 
-        <div className="member-footer__menus">
-          <nav className="member-footer__links" aria-label={copy.games}>
-            <h3>{copy.games}</h3>
-            {GAME_LINKS.map(([key, href]) => (
-              <Link key={key} href={href}>{copy.links[key]}</Link>
-            ))}
-          </nav>
+        <small className="member-footer__copyright">
+          <img
+            className="member-footer__copyright-logo"
+            src="/reference-v6/logo.webp"
+            alt="NOAH345"
+            onError={hideBrokenImage}
+          />
+          <span>Copyright © NOAH345, All Rights Reserved.</span>
+        </small>
+      </footer>
 
-          <nav className="member-footer__links" aria-label={copy.information}>
-            <h3>{copy.information}</h3>
-            {INFO_LINKS.map(([key, href]) => (
-              <Link key={key} href={href}>{copy.links[key]}</Link>
-            ))}
-          </nav>
-        </div>
+      <MobileSourceFooter />
+    </>
+  );
+}
 
-        <section className="member-footer__contact">
-          <h3>{copy.contact}</h3>
-          <Link className="member-footer__contact-line" href="/contact" aria-label={copy.contactAria}>
-            <img src={`${SOURCE_ROOT}/line.png`} alt="LINE" loading="lazy" onError={hideBrokenImage} />
-          </Link>
-        </section>
-      </div>
-
-      <section className="member-footer__payments" aria-label={copy.payments}>
-        <h3>{copy.payments}</h3>
-        <div className="member-footer__bank-grid">
-          {LOCAL_BANKS.map((bank) => (
-            <span key={bank.name} className="member-footer__bank" title={bank.name}>
+function MobileSourceFooter() {
+  return (
+    <footer className={mobileFooterStyles.mobileRoot} aria-label="ข้อมูลเว็บไซต์มือถือ">
+      <section className={mobileFooterStyles.payments} aria-label="วิธีการชำระเงิน">
+        <span className={mobileFooterStyles.centerTitle}>วิธีการชำระเงิน</span>
+        <div className={mobileFooterStyles.bankGrid}>
+          {MOBILE_BANKS.map((bank) => (
+            <span key={bank.name} className={mobileFooterStyles.bank} title={bank.name}>
               <img src={bank.url} alt={bank.name} loading="lazy" onError={hideBrokenImage} />
             </span>
           ))}
         </div>
       </section>
 
-      <small className="member-footer__copyright">
-        <img
-          className="member-footer__copyright-logo"
-          src="/reference-v6/logo.webp"
-          alt="NOAH345"
-          onError={hideBrokenImage}
-        />
-        <span>Copyright © NOAH345, All Rights Reserved.</span>
-      </small>
+      <div className={mobileFooterStyles.divider} aria-hidden="true" />
+
+      <div className={mobileFooterStyles.topRow}>
+        <section className={mobileFooterStyles.contact}>
+          <strong>ติดต่อเรา</strong>
+          <a
+            href="https://lin.ee/UYkP0OC"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="ติดต่อเราผ่าน LINE"
+          >
+            <img src="/images/line.png" alt="LINE" loading="lazy" onError={hideBrokenImage} />
+          </a>
+        </section>
+
+        <section className={mobileFooterStyles.responsible}>
+          <strong>รับผิดชอบในการเดิมพัน</strong>
+          <img
+            src="/images/footer/GAME CARE.webp"
+            alt="Game Care"
+            loading="lazy"
+            onError={hideBrokenImage}
+          />
+        </section>
+      </div>
+
+      <div className={mobileFooterStyles.divider} aria-hidden="true" />
+
+      <div className={mobileFooterStyles.bottomRow}>
+        <section className={mobileFooterStyles.licenses}>
+          <div className={mobileFooterStyles.licenseTitle}>
+            <strong>ใบอนุญาตและใบรับรอง</strong>
+            <span>(การันตีเกมลิขสิทธิ์แท้)</span>
+          </div>
+          <div className={mobileFooterStyles.licenseGrid}>
+            {MOBILE_LICENSE_BADGES.map(([name, url]) => (
+              <img key={name} src={url} alt={name} loading="lazy" onError={hideBrokenImage} />
+            ))}
+          </div>
+        </section>
+
+        <section className={mobileFooterStyles.security}>
+          <strong>การรองรับและความปลอดภัยโดย</strong>
+          <div className={mobileFooterStyles.securityBadges}>
+            {MOBILE_SECURITY_BADGES.map(([name, url]) => (
+              <img key={name} src={url} alt={name} loading="lazy" onError={hideBrokenImage} />
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className={mobileFooterStyles.copyright}>
+        Copyright © NOAH345, All Rights Reserved.
+      </div>
     </footer>
   );
 }
