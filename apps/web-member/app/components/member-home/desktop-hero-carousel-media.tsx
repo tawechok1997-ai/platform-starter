@@ -7,9 +7,12 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type FocusEvent as ReactFocusEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
+import { useMemberLocale, type MemberLocale } from '../../member-locale-provider';
 import { cmsResponsiveMediaUrls, type CmsContent } from '../../site-settings';
 
 type CmsBanner = CmsContent['banners'][number];
@@ -41,7 +44,7 @@ type HeroTrackStyle = CSSProperties & {
   '--hero-transition': string;
 };
 
-const AUTOPLAY_DELAY_MS = 3000;
+const AUTOPLAY_DELAY_MS = 5000;
 const TRANSITION_MS = 480;
 const SWIPE_THRESHOLD_PX = 48;
 const DRAG_START_THRESHOLD_PX = 4;
@@ -51,6 +54,35 @@ const SLIDE_STEP_PX = SLIDE_WIDTH_PX + SLIDE_GAP_PX;
 const SOURCE_RAIL_WIDTH_PX = 2180;
 const SOURCE_INITIAL_SLIDE_INDEX = 4;
 const IMAGE_RETRY_LIMIT = 1;
+
+const HERO_COPY: Record<MemberLocale, {
+  region: string;
+  pagination: string;
+  banner: string;
+  previous: string;
+  next: string;
+  missingTitle: string;
+  missingHint: string;
+}> = {
+  th: {
+    region: 'โปรโมชั่นแนะนำ',
+    pagination: 'เลือกแบนเนอร์',
+    banner: 'แบนเนอร์',
+    previous: 'แบนเนอร์ก่อนหน้า',
+    next: 'แบนเนอร์ถัดไป',
+    missingTitle: 'ไม่พบรูปโปรโมชั่น',
+    missingHint: 'ตรวจรูปในศูนย์เนื้อหา',
+  },
+  en: {
+    region: 'Featured promotions',
+    pagination: 'Choose a banner',
+    banner: 'Banner',
+    previous: 'Previous banner',
+    next: 'Next banner',
+    missingTitle: 'Promotion image unavailable',
+    missingHint: 'Check the image in Content Center',
+  },
+};
 
 const SOURCE_IMAGE_URLS = [
   '/assets/asset-pc/images/FEZX/imageslides/1778979600098-3be41f05-c93f-4c12-b278-54cfe390de4c.jpg',
@@ -85,11 +117,14 @@ const MISSING_ASSET_STYLE: CSSProperties = {
   background: 'linear-gradient(135deg, #211428, #110d17)',
   fontSize: 14,
   fontWeight: 800,
-  letterSpacing: '.06em',
+  letterSpacing: '.03em',
+  lineHeight: 1.5,
   textAlign: 'center',
 };
 
 export function DesktopHeroCarousel({ content, siteName, showPromotion }: DesktopHeroCarouselProps) {
+  const { locale } = useMemberLocale();
+  const copy = HERO_COPY[locale];
   const slides = useMemo<HeroSlide[]>(() => {
     const cmsBanners = Array.isArray(content?.banners)
       ? content.banners.filter((banner) => {
@@ -116,10 +151,14 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
   const [virtualIndex, setVirtualIndex] = useState(realCount + SOURCE_INITIAL_SLIDE_INDEX);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [dragX, setDragX] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+  const [hasFocus, setHasFocus] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const pointerState = useRef<PointerState | null>(null);
-  const draggingRef = useRef(false);
   const suppressClickUntil = useRef(0);
   const normalizedActiveIndex = realCount ? modulo(virtualIndex, realCount) : 0;
+  const autoplayPaused = isHovering || hasFocus || isDragging || reducedMotion;
 
   useEffect(() => {
     if (!realCount) return;
@@ -128,11 +167,21 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     window.requestAnimationFrame(() => setTransitionEnabled(true));
   }, [realCount]);
 
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setReducedMotion(media.matches);
+    sync();
+    media.addEventListener?.('change', sync);
+    return () => media.removeEventListener?.('change', sync);
+  }, []);
+
   const offsetPx = SOURCE_RAIL_WIDTH_PX / 2 - (virtualIndex * SLIDE_STEP_PX + SLIDE_WIDTH_PX / 2);
   const trackStyle: HeroTrackStyle = {
     '--hero-track-x': `${offsetPx}px`,
     '--hero-drag-x': `${dragX}px`,
-    '--hero-transition': transitionEnabled ? `transform ${TRANSITION_MS}ms cubic-bezier(.22,.61,.36,1)` : 'none',
+    '--hero-transition': transitionEnabled && !reducedMotion
+      ? `transform ${TRANSITION_MS}ms cubic-bezier(.22,.61,.36,1)`
+      : 'none',
   };
 
   const moveBy = useCallback((delta: number) => {
@@ -147,12 +196,12 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
   }, [realCount]);
 
   useEffect(() => {
-    if (realCount < 2) return;
+    if (realCount < 2 || autoplayPaused) return;
     const timer = window.setInterval(() => {
-      if (!document.hidden && !draggingRef.current) moveBy(1);
+      if (!document.hidden) moveBy(1);
     }, AUTOPLAY_DELAY_MS);
     return () => window.clearInterval(timer);
-  }, [moveBy, realCount]);
+  }, [autoplayPaused, moveBy, realCount]);
 
   const normalizeLoopPosition = useCallback(() => {
     if (virtualIndex >= realCount * 2) {
@@ -168,15 +217,15 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
 
   useEffect(() => {
     if (realCount < 2 || (virtualIndex >= realCount && virtualIndex < realCount * 2)) return;
-    const timer = window.setTimeout(normalizeLoopPosition, TRANSITION_MS + 80);
+    const timer = window.setTimeout(normalizeLoopPosition, reducedMotion ? 0 : TRANSITION_MS + 80);
     return () => window.clearTimeout(timer);
-  }, [normalizeLoopPosition, realCount, virtualIndex]);
+  }, [normalizeLoopPosition, realCount, reducedMotion, virtualIndex]);
 
   const onPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     if (event.target instanceof Element && event.target.closest('button')) return;
     pointerState.current = { pointerId: event.pointerId, startX: event.clientX, deltaX: 0, moved: false };
-    draggingRef.current = true;
+    setIsDragging(true);
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
@@ -195,7 +244,7 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     const pointer = pointerState.current;
     if (!pointer || pointer.pointerId !== event.pointerId) return;
     pointerState.current = null;
-    draggingRef.current = false;
+    setIsDragging(false);
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     setDragX(0);
     setTransitionEnabled(true);
@@ -206,7 +255,7 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
 
   const cancelPointer = () => {
     pointerState.current = null;
-    draggingRef.current = false;
+    setIsDragging(false);
     setDragX(0);
     setTransitionEnabled(true);
   };
@@ -218,11 +267,32 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     suppressClickUntil.current = 0;
   };
 
+  const onBlurCapture = (event: ReactFocusEvent<HTMLElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) setHasFocus(false);
+  };
+
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      moveBy(-1);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      moveBy(1);
+    }
+  };
+
   if (!showPromotion || realCount === 0) return null;
 
   return <section
     className="reference-hero-carousel"
-    aria-label="โปรโมชั่นแนะนำ"
+    aria-label={copy.region}
+    aria-roledescription="carousel"
+    tabIndex={0}
+    onMouseEnter={() => setIsHovering(true)}
+    onMouseLeave={() => setIsHovering(false)}
+    onFocusCapture={() => setHasFocus(true)}
+    onBlurCapture={onBlurCapture}
+    onKeyDown={onKeyDown}
     onPointerDown={onPointerDown}
     onPointerMove={onPointerMove}
     onPointerUp={finishPointer}
@@ -234,21 +304,43 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
       {loopSlides.map((slide, index) => {
         const distance = index - virtualIndex;
         const role = distance === 0 ? 'active' : distance === -1 ? 'previous' : distance === 1 ? 'next' : 'offscreen';
-        return <HeroSlideCard key={`${index}-${slide.realIndex}-${slide.desktopImageUrl}-${slide.mobileImageUrl}`} role={role} slide={slide} siteName={siteName} />;
+        return <HeroSlideCard key={`${index}-${slide.realIndex}-${slide.desktopImageUrl}-${slide.mobileImageUrl}`} role={role} slide={slide} siteName={siteName} copy={copy} />;
       })}
     </div></div></div>
 
-    <div className="reference-hero-pagination" aria-label="เลือกแบนเนอร์">
-      {slides.map((slide, index) => <button key={`${slide.realIndex}-${slide.desktopImageUrl}`} type="button" className={index === normalizedActiveIndex ? 'is-active' : ''} onClick={() => jumpTo(index)} aria-label={`แบนเนอร์ ${index + 1}`} aria-current={index === normalizedActiveIndex ? 'true' : undefined} />)}
+    {realCount > 1 ? (
+      <>
+        <button type="button" className="reference-hero-arrow reference-hero-arrow--previous" onClick={() => moveBy(-1)} aria-label={copy.previous}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
+        </button>
+        <button type="button" className="reference-hero-arrow reference-hero-arrow--next" onClick={() => moveBy(1)} aria-label={copy.next}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
+        </button>
+      </>
+    ) : null}
+
+    <div className="reference-hero-pagination" aria-label={copy.pagination}>
+      {slides.map((slide, index) => <button key={`${slide.realIndex}-${slide.desktopImageUrl}`} type="button" className={index === normalizedActiveIndex ? 'is-active' : ''} onClick={() => jumpTo(index)} aria-label={`${copy.banner} ${index + 1}`} aria-current={index === normalizedActiveIndex ? 'true' : undefined} />)}
     </div>
   </section>;
 }
 
-function HeroSlideCard({ role, slide, siteName }: { role: 'previous' | 'active' | 'next' | 'offscreen'; slide: HeroSlide; siteName: string }) {
+function HeroSlideCard({
+  role,
+  slide,
+  siteName,
+  copy,
+}: {
+  role: 'previous' | 'active' | 'next' | 'offscreen';
+  slide: HeroSlide;
+  siteName: string;
+  copy: typeof HERO_COPY[MemberLocale];
+}) {
   const [attempt, setAttempt] = useState(0);
   const [usingFallback, setUsingFallback] = useState(false);
   const [missing, setMissing] = useState(false);
   const isActive = role === 'active';
+  const isAdjacent = role === 'previous' || role === 'next';
 
   useEffect(() => {
     setAttempt(0);
@@ -279,13 +371,21 @@ function HeroSlideCard({ role, slide, siteName }: { role: 'previous' | 'active' 
   return <a
     href={slide.banner.href || '/browse/promotions'}
     className={`reference-hero-slide reference-hero-slide--${role}${isActive ? ' is-active' : ''}`}
-    aria-label={slide.banner.title || `โปรโมชั่น ${slide.realIndex + 1}`}
+    aria-label={slide.banner.title || `${copy.banner} ${slide.realIndex + 1}`}
     inert={isActive ? undefined : true}
     tabIndex={isActive ? 0 : -1}
   >
-    {missing ? <span style={MISSING_ASSET_STYLE}>MISSING PROMOTION ASSET<br />ตรวจรูปใน Content Center</span> : <picture>
+    {missing ? <span style={MISSING_ASSET_STYLE}>{copy.missingTitle}<br />{copy.missingHint}</span> : <picture>
       <source media="(max-width: 640px)" srcSet={mobileImageUrl} />
-      <img src={desktopImageUrl} alt={slide.banner.title || siteName} draggable={false} loading="eager" fetchPriority={isActive ? 'high' : 'auto'} onError={handleImageError} />
+      <img
+        src={desktopImageUrl}
+        alt={slide.banner.title || siteName}
+        draggable={false}
+        loading={isActive || isAdjacent ? 'eager' : 'lazy'}
+        fetchPriority={isActive ? 'high' : 'low'}
+        decoding="async"
+        onError={handleImageError}
+      />
     </picture>}
   </a>;
 }
