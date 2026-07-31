@@ -12,8 +12,8 @@ import MemberGameSectionRuntimeController from './components/member-game-section
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
+import MobileSourceHomeContent from './components/member-home/mobile-source-home-content';
 import MobileSourceHomeShell from './components/member-home/mobile-source-home-shell';
-import { MobileV47Scaffold } from './components/member-home/mobile-v47-scaffold';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
@@ -77,10 +77,7 @@ export default function MemberHome(props: MemberHomeProps) {
   if (viewportMode === 'mobile') {
     homeContent = (
       <MobileSourceHomeShell>
-        <MobileV47Scaffold
-          content={props.cmsContent}
-          icons={icons}
-          siteName={props.siteName}
+        <MobileSourceHomeContent
           games={gameSections}
           isGamesLoading={data.isGamesLoading}
           gamesMessage={data.gamesMessage}

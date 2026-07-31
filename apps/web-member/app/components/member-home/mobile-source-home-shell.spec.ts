@@ -4,6 +4,8 @@ import test from 'node:test';
 
 const shellSource = readFileSync(new URL('./mobile-source-home-shell.tsx', import.meta.url), 'utf8');
 const shellCss = readFileSync(new URL('./mobile-source-home-shell.module.css', import.meta.url), 'utf8');
+const contentSource = readFileSync(new URL('./mobile-source-home-content.tsx', import.meta.url), 'utf8');
+const contentCss = readFileSync(new URL('./mobile-source-home-content.module.css', import.meta.url), 'utf8');
 const sourceAssetMap = readFileSync(new URL('./mobile-source-asset-map.ts', import.meta.url), 'utf8');
 const promotionRuntime = readFileSync(new URL('../../member-promotion-runtime.ts', import.meta.url), 'utf8');
 const headerSource = readFileSync(new URL('../public-mobile-source-header.tsx', import.meta.url), 'utf8');
@@ -60,6 +62,7 @@ test('mobile source home uses shared Member runtime data for announcements and n
 test('mobile source home provides a real shortcut flow without a dead download route', () => {
   assert.match(shellSource, /beforeinstallprompt/);
   assert.match(shellSource, /member-home-shortcut-request/);
+  assert.match(shellSource, /\/images\/shortcut\/bg_card\.webp/);
   assert.doesNotMatch(shellSource, /href="\/download/);
 });
 
@@ -70,10 +73,37 @@ test('mobile source footer keeps the shared Desktop component and only changes r
   assert.match(footerSource, /member-footer__payments/);
 });
 
-test('mobile source home mounts only in the mobile branch and protects Desktop', () => {
+test('mobile home mounts the source component directly instead of wrapping the old V47 scaffold', () => {
   assert.match(homeSource, /<MobileSourceHomeShell>/);
+  assert.match(homeSource, /<MobileSourceHomeContent/);
+  assert.doesNotMatch(homeSource, /<MobileV47Scaffold/);
   assert.match(homeSource, /<DesktopHomeScaffold/);
-  assert.ok(homeSource.indexOf('<MobileSourceHomeShell>') < homeSource.indexOf('<DesktopHomeScaffold'));
-  assert.match(shellCss, /:global\(\.v47-mobile-hero\)/);
-  assert.match(shellCss, /\.categoryRail/);
+});
+
+test('mobile source content follows the supplied section order and removes the extra mini game block', () => {
+  const order = [
+    'highlightTabs',
+    'data-section-kind="tournament"',
+    'className={styles.jackpot}',
+    'data-section-kind="leaderboard"',
+    'kind="popular"',
+    'kind="online"',
+    'data-section-kind="live"',
+    'kind="classic"',
+    'data-section-kind="guide"',
+  ].map((token) => contentSource.indexOf(token));
+
+  assert.ok(order.every((index) => index >= 0));
+  assert.deepEqual([...order].sort((left, right) => left - right), order);
+  assert.doesNotMatch(contentSource, /Mini Game/);
+  assert.doesNotMatch(contentSource, /miniGames/);
+});
+
+test('mobile source geometry keeps the 428px source canvas, 41.6 percent promotion ratio, and source category rail', () => {
+  assert.match(shellCss, /max-width:\s*428px/);
+  assert.match(shellCss, /padding-bottom:\s*41\.6%/);
+  assert.match(shellCss, /grid-template-columns:\s*64px minmax\(0, 1fr\)/);
+  assert.match(shellCss, /width:\s*55px/);
+  assert.match(contentCss, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(contentCss, /calc\(\(100% - 12px\) \/ 3\)/);
 });
