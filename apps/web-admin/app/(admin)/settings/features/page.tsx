@@ -45,6 +45,10 @@ const FEATURES_DEFAULTS = {
   live_title: 'Live Now!!',
   classic_title: 'Classic Games',
   guide_title: 'คู่มือการใช้งาน',
+  navigation_items_json: '[]',
+  tournament_items_json: '[]',
+  leaderboard_items_json: '[]',
+  mini_games_json: '[]',
 };
 
 export default function FeaturesSettingsPage() {
@@ -52,7 +56,7 @@ export default function FeaturesSettingsPage() {
     <SettingsSectionPage
       group="features"
       title="การเปิดปิดฟีเจอร์"
-      description="ควบคุมความสามารถและส่วนประกอบหน้า Member จากจุดเดียว ทั้ง Desktop และ Mobile โดยไม่ต้อง deploy ใหม่"
+      description="ควบคุมความสามารถ เนื้อหา และส่วนประกอบหน้า Member จากจุดเดียว ทั้ง Desktop และ Mobile โดยไม่ต้อง deploy ใหม่"
       preview="features"
       risk="sensitive"
       defaults={FEATURES_DEFAULTS}
@@ -89,11 +93,11 @@ export default function FeaturesSettingsPage() {
         { key: 'usage_guide_enabled', label: 'แสดงคู่มือการใช้งาน', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
         { key: 'tournament_title', label: 'ชื่อ Tournament', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 160 },
         { key: 'tournament_summary', label: 'คำอธิบาย Tournament', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 240 },
-        { key: 'tournament_image_url', label: 'รูป Tournament', type: 'url', section: 'ข้อความหน้าแรกกลาง', asset: true },
+        { key: 'tournament_image_url', label: 'รูป Tournament', type: 'text', section: 'ข้อความหน้าแรกกลาง', asset: true, helper: 'รองรับ URL หรือ path ภายในเว็บ' },
         { key: 'jackpot_title', label: 'ชื่อ Jackpot', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 80 },
         { key: 'jackpot_amount', label: 'ตัวเลข Jackpot', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 40 },
         { key: 'jackpot_subtitle', label: 'คำอธิบาย Jackpot', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 120 },
-        { key: 'jackpot_image_url', label: 'รูป Jackpot', type: 'url', section: 'ข้อความหน้าแรกกลาง', asset: true },
+        { key: 'jackpot_image_url', label: 'รูป Jackpot', type: 'text', section: 'ข้อความหน้าแรกกลาง', asset: true, helper: 'รองรับ URL หรือ path ภายในเว็บ' },
         { key: 'leaderboard_title', label: 'ชื่อ Leaderboard', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 80 },
         { key: 'featured_title', label: 'ชื่อส่วนเกมไฮไลท์', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
         { key: 'popular_title', label: 'ชื่อส่วนเกมยอดนิยม', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
@@ -101,6 +105,34 @@ export default function FeaturesSettingsPage() {
         { key: 'live_title', label: 'ชื่อส่วน Live', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
         { key: 'classic_title', label: 'ชื่อส่วน Classic', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
         { key: 'guide_title', label: 'ชื่อส่วนคู่มือ', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
+        {
+          key: 'navigation_items_json',
+          label: 'เมนู Desktop/Mobile (JSON)',
+          type: 'textarea',
+          section: 'ข้อมูล Runtime ขั้นสูง',
+          helper: 'กำหนด id, labelTh, labelEn, href, iconKey, desktop, mobile, feature, requiresAuth และ order; ใช้ [] เพื่อใช้ค่าเริ่มต้น',
+        },
+        {
+          key: 'tournament_items_json',
+          label: 'Tournament และอันดับ (JSON)',
+          type: 'textarea',
+          section: 'ข้อมูล Runtime ขั้นสูง',
+          helper: 'แต่ละรายการรองรับ id, title, status, href, startsAt, endsAt และ players[{rank,name,score,stats}]',
+        },
+        {
+          key: 'leaderboard_items_json',
+          label: 'Leaderboard (JSON)',
+          type: 'textarea',
+          section: 'ข้อมูล Runtime ขั้นสูง',
+          helper: 'รูปแบบ [{rank,name,user,amount,image}] และจะแสดงชุดเดียวกันทั้ง Desktop/Mobile',
+        },
+        {
+          key: 'mini_games_json',
+          label: 'Mini Games (JSON)',
+          type: 'textarea',
+          section: 'ข้อมูล Runtime ขั้นสูง',
+          helper: 'รูปแบบ [{id,title,subtitle,href,image,enabled}] และใช้ข้อมูลเดียวกันทุกหน้าจอ',
+        },
       ]}
     />
   );
