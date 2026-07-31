@@ -1,0 +1,594 @@
+.root {
+  display: grid;
+  min-width: 0;
+  padding: 0 0 14px;
+  gap: 9px;
+  color: #fff;
+}
+
+.highlightTabs {
+  display: flex;
+  min-width: 0;
+  padding: 6px 0 4px;
+  gap: 11px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.highlightTabs::-webkit-scrollbar,
+.gameRail::-webkit-scrollbar,
+.rankRail::-webkit-scrollbar {
+  display: none;
+}
+
+.highlightTabs button {
+  appearance: none;
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: #292335;
+  font-size: clamp(10px, 3vw, 13.5px);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.highlightTabs button.activeTab {
+  color: #fff;
+  background: linear-gradient(160deg, #bb5bea, #7600a8);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%);
+}
+
+.section {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.sectionTitle {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 27px;
+  min-width: 0;
+  padding: 0 12px;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 4px;
+  background:
+    radial-gradient(circle at 12% 50%, rgb(187 91 234 / 28%), transparent 42%),
+    linear-gradient(90deg, #2a2137 0%, #1e1927 100%);
+}
+
+.sectionTitle img {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.sectionTitle strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: clamp(10px, 3.15vw, 14px);
+  font-weight: 650;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tournamentBanner {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 7px;
+  text-decoration: none;
+}
+
+.tournamentBanner img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3.55 / 1;
+  object-fit: cover;
+}
+
+.tournamentHeader {
+  display: grid;
+  min-width: 0;
+  min-height: 32px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  border-radius: 4px;
+}
+
+.tournamentHeader strong {
+  display: -webkit-box;
+  min-width: 0;
+  padding-left: 6px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 13px;
+}
+
+.tournamentHeader button {
+  appearance: none;
+  height: 28px;
+  padding: 0 11px;
+  border: 1px solid rgb(187 91 234 / 42%);
+  border-radius: 6px;
+  color: #fff;
+  background: rgb(187 91 234 / 14%);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rankRail {
+  display: flex;
+  min-width: 0;
+  padding-bottom: 2px;
+  gap: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+.rankRail article {
+  position: relative;
+  display: grid;
+  flex: 0 0 calc((100% - 12px) / 3);
+  min-width: 86px;
+  min-height: 96px;
+  padding: 10px 5px 7px;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  overflow: hidden;
+  border: 1px solid rgb(187 91 234 / 20%);
+  border-radius: 7px;
+  background: linear-gradient(180deg, #2a2035, #17131e);
+  scroll-snap-align: start;
+}
+
+.rankRail article > span:not(.rankBadge) {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rankRail article > strong {
+  color: #f2d6ff;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rankRail article > small {
+  color: #bb5bea;
+  font-size: 7px;
+  letter-spacing: 0.5px;
+}
+
+.rankBadge {
+  position: relative;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+}
+
+.rankBadge img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.rankBadge b {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  font-size: 11px;
+  text-shadow: 0 1px 2px #000;
+}
+
+.jackpot {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-height: 86px;
+  grid-template-columns: 1fr;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 7px;
+  background: #1a1421;
+}
+
+.jackpot > img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.92;
+}
+
+.jackpot > div {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 8px 14px;
+  text-align: center;
+  text-shadow: 0 2px 5px #000;
+}
+
+.jackpot small {
+  color: #f4d8ff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.jackpot strong {
+  color: #fff;
+  font-size: clamp(25px, 8vw, 36px);
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.jackpot span {
+  color: rgb(255 255 255 / 74%);
+  font-size: 9px;
+}
+
+.boardHead,
+.boardRows article {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 42px minmax(60px, 0.9fr) minmax(88px, 1.25fr) minmax(52px, 0.65fr);
+  align-items: center;
+  column-gap: 4px;
+}
+
+.boardHead {
+  min-height: 24px;
+  padding: 0 5px;
+  color: rgb(255 255 255 / 62%);
+  font-size: 8px;
+  text-align: center;
+}
+
+.boardRows {
+  display: grid;
+  gap: 4px;
+}
+
+.boardRows article {
+  min-height: 42px;
+  padding: 4px 5px;
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: 5px;
+  background: #211a2b;
+}
+
+.boardRows article > span,
+.boardRows article > strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 9px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boardRows article > strong {
+  color: #e8b8ff;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.boardRows .rankBadge {
+  width: 31px;
+  height: 31px;
+  margin: 0 auto;
+}
+
+.boardGame {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-align: left !important;
+}
+
+.boardGame img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.boardGame b {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gameRail {
+  display: flex;
+  min-width: 0;
+  gap: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gameRail .gameCard {
+  flex: 0 0 calc((100% - 12px) / 3);
+  min-width: 88px;
+  scroll-snap-align: start;
+}
+
+.gameGrid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.gameCard {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.gameImage {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 7px;
+  background: #211b2d;
+}
+
+.gameRail .gameImage {
+  aspect-ratio: 0.82 / 1;
+}
+
+.gameGrid .gameImage {
+  aspect-ratio: 1.42 / 1;
+}
+
+.gameImage > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hotBadge,
+.newBadge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  min-width: 28px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 16px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 35%);
+}
+
+.hotBadge {
+  background: linear-gradient(135deg, #fb4d62, #ba1029);
+}
+
+.newBadge {
+  background: linear-gradient(135deg, #9a4fe8, #65009b);
+}
+
+.onlineBadge {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  min-width: 0;
+  padding: 3px 5px;
+  border-radius: 4px;
+  color: #fff;
+  background: rgb(0 0 0 / 66%);
+  font-size: 8px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.gameMeta {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.gameMeta strong,
+.gameMeta small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gameMeta strong {
+  color: #fff;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.gameMeta small {
+  color: rgb(255 255 255 / 55%);
+  font-size: 8px;
+}
+
+.liveList {
+  display: grid;
+  gap: 6px;
+}
+
+.liveList article {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 7px;
+  background:
+    linear-gradient(rgb(20 16 25 / 78%), rgb(20 16 25 / 92%)),
+    url('/assets/asset-pc/images/home/live1.webp') center / cover no-repeat;
+}
+
+.liveList header {
+  display: grid;
+  min-width: 0;
+  min-height: 25px;
+  padding: 5px 8px 0;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.liveList header span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.liveList header b {
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: #fff;
+  background: #d21b41;
+  font-size: 7px;
+}
+
+.liveList header time {
+  color: rgb(255 255 255 / 62%);
+  font-size: 7px;
+}
+
+.liveTeams {
+  display: grid;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 10px;
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.liveTeams strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.liveTeams i {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgb(187 91 234 / 35%);
+  border-radius: 999px;
+  color: #e3b6fa;
+  background: #251c30;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.liveList footer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  border-top: 1px solid rgb(255 255 255 / 7%);
+}
+
+.liveList footer a {
+  display: grid;
+  min-height: 29px;
+  place-items: center;
+  color: #fff;
+  background: rgb(187 91 234 / 10%);
+  font-size: 9px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.liveList footer a:last-child {
+  background: linear-gradient(135deg, rgb(187 91 234 / 38%), rgb(118 0 168 / 38%));
+}
+
+.empty {
+  min-height: 70px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgb(255 255 255 / 14%);
+  border-radius: 7px;
+  color: rgb(255 255 255 / 58%);
+  font-size: 11px;
+}
+
+.guide {
+  overflow: hidden;
+}
+
+.highlightTabs button:focus-visible,
+.tournamentHeader button:focus-visible,
+.gameCard:focus-visible,
+.liveList footer a:focus-visible,
+.tournamentBanner:focus-visible {
+  outline: 2px solid #dca8f3;
+  outline-offset: 2px;
+}
+
+@media (max-width: 374px) {
+  .highlightTabs { gap: 7px; }
+  .highlightTabs button { padding-inline: 11px; }
+  .boardHead,
+  .boardRows article {
+    grid-template-columns: 37px minmax(54px, 0.9fr) minmax(72px, 1.2fr) minmax(48px, 0.65fr);
+  }
+  .gameGrid { gap: 5px; }
+  .gameRail .gameCard { min-width: 78px; }
+}
