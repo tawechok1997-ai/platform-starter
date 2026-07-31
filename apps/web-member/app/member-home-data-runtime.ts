@@ -236,7 +236,7 @@ function tournament(
   status: string,
   players: MemberTournamentPlayerRuntime[],
 ): MemberTournamentRuntime {
-  const fallback = mockPlayers(DESKTOP_TOURNAMENT_MOCKS.length);
+  const fallback = mockPlayers(players.length);
   const padded = Array.from({ length: 10 }, (_, index) => {
     const selected = players[index] ?? fallback[index]!;
     return {
