@@ -144,6 +144,8 @@ export function useMobileSourceRuntime() {
     };
   }, [gameSections]);
 
+  const leaderboardTitle = home.leaderboard.title;
+
   return {
     tournaments,
     leaderboard,
@@ -152,7 +154,8 @@ export function useMobileSourceRuntime() {
     classicGames,
     tournament: home.tournament,
     jackpot: home.jackpot,
-    leaderboardTitle: home.leaderboard.title,
+    leaderboardTitle,
+    homeDataTitle: leaderboardTitle,
     guideTitle: home.sectionTitles.guide,
     section,
     icons,
