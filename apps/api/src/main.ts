@@ -13,37 +13,49 @@ import { buildStructuredLogRecord } from './common/observability/structured-log'
 import { toSafeLogRecord } from './common/security/sensitive-log-redactor';
 
 type RateBucket = { count: number; resetAt: number };
-type RateRule = { method: string; path: string; max: number; env?: string; prefix?: boolean };
+type RateRule = {
+  method: string;
+  path: string;
+  max: number;
+  env?: string;
+  prefix?: boolean;
+  failClosedOnRedisError?: boolean;
+};
 type RateDecision = { allowed: boolean; retryAfterSeconds?: number };
+type ResolvedRateLimit = { max: number; windowMs: number; failClosedOnRedisError: boolean };
 
 const rateBuckets = new Map<string, RateBucket>();
+const MAX_MEMORY_RATE_BUCKETS = 10_000;
 const RATE_RULES: RateRule[] = [
-  { method: 'POST', path: '/member/auth/login', max: 10, env: 'RATE_LIMIT_MEMBER_LOGIN_PER_MINUTE' },
-  { method: 'POST', path: '/member/auth/register', max: 8, env: 'RATE_LIMIT_MEMBER_REGISTER_PER_MINUTE' },
+  { method: 'POST', path: '/member/auth/login', max: 10, env: 'RATE_LIMIT_MEMBER_LOGIN_PER_MINUTE', failClosedOnRedisError: true },
+  { method: 'POST', path: '/member/auth/register', max: 8, env: 'RATE_LIMIT_MEMBER_REGISTER_PER_MINUTE', failClosedOnRedisError: true },
   {
     method: 'POST',
     path: '/member/auth/password-reset/request',
     max: 5,
     env: 'RATE_LIMIT_PASSWORD_RESET_REQUEST_PER_MINUTE',
+    failClosedOnRedisError: true,
   },
   {
     method: 'POST',
     path: '/member/auth/password-reset/confirm',
     max: 5,
     env: 'RATE_LIMIT_PASSWORD_RESET_CONFIRM_PER_MINUTE',
+    failClosedOnRedisError: true,
   },
-  { method: 'POST', path: '/admin/auth/login', max: 10, env: 'RATE_LIMIT_ADMIN_LOGIN_PER_MINUTE' },
-  { method: 'POST', path: '/admin/auth/2fa/verify', max: 10, env: 'RATE_LIMIT_ADMIN_2FA_PER_MINUTE' },
+  { method: 'POST', path: '/admin/auth/login', max: 10, env: 'RATE_LIMIT_ADMIN_LOGIN_PER_MINUTE', failClosedOnRedisError: true },
+  { method: 'POST', path: '/admin/auth/2fa/verify', max: 10, env: 'RATE_LIMIT_ADMIN_2FA_PER_MINUTE', failClosedOnRedisError: true },
   { method: 'POST', path: '/admin/auth/refresh', max: 30, env: 'RATE_LIMIT_ADMIN_REFRESH_PER_MINUTE' },
-  { method: 'POST', path: '/member/topups', max: 20, env: 'RATE_LIMIT_TOPUPS_PER_MINUTE' },
-  { method: 'POST', path: '/member/topups/slip', max: 12, env: 'RATE_LIMIT_SLIP_UPLOAD_PER_MINUTE' },
-  { method: 'POST', path: '/member/withdrawals', max: 12, env: 'RATE_LIMIT_WITHDRAWALS_PER_MINUTE' },
+  { method: 'POST', path: '/member/topups', max: 20, env: 'RATE_LIMIT_TOPUPS_PER_MINUTE', failClosedOnRedisError: true },
+  { method: 'POST', path: '/member/topups/slip', max: 12, env: 'RATE_LIMIT_SLIP_UPLOAD_PER_MINUTE', failClosedOnRedisError: true },
+  { method: 'POST', path: '/member/withdrawals', max: 12, env: 'RATE_LIMIT_WITHDRAWALS_PER_MINUTE', failClosedOnRedisError: true },
   {
     method: 'POST',
     path: '/provider-webhooks/',
     max: 120,
     env: 'RATE_LIMIT_PROVIDER_WEBHOOK_PER_MINUTE',
     prefix: true,
+    failClosedOnRedisError: true,
   },
 ];
 
@@ -82,6 +94,9 @@ async function bootstrap() {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    if (process.env.NODE_ENV === 'production') {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
     next();
   });
 
@@ -93,7 +108,12 @@ async function bootstrap() {
     const path = String(req.path ?? req.url ?? '').split('?')[0];
     const keys = getRateLimitKeys(req, ip, path);
     for (const key of keys) {
-      const decision = await checkRateLimit(key, limit.max, limit.windowMs);
+      const decision = await checkRateLimit(
+        key,
+        limit.max,
+        limit.windowMs,
+        limit.failClosedOnRedisError,
+      );
       if (!decision.allowed) {
         res.setHeader('Retry-After', String(decision.retryAfterSeconds ?? 60));
         return res.status(429).json({ message: 'Too many requests', requestId: req.requestId });
@@ -150,7 +170,7 @@ function getRateLimitKeys(req: any, ip: string, path: string) {
   return keys;
 }
 
-function getRateLimit(method: string, path: string): { max: number; windowMs: number } | null {
+function getRateLimit(method: string, path: string): ResolvedRateLimit | null {
   const verb = String(method).toUpperCase();
   const normalizedPath = String(path).split('?')[0];
   const matched = RATE_RULES.find(
@@ -160,17 +180,37 @@ function getRateLimit(method: string, path: string): { max: number; windowMs: nu
   if (!matched) return null;
   const envValue = matched.env ? process.env[matched.env] : undefined;
   const max = Number(envValue ?? process.env.RATE_LIMIT_PER_MINUTE ?? matched.max);
-  return { max: Number.isFinite(max) && max > 0 ? max : matched.max, windowMs: 60_000 };
+  return {
+    max: Number.isFinite(max) && max > 0 ? max : matched.max,
+    windowMs: 60_000,
+    failClosedOnRedisError: matched.failClosedOnRedisError === true,
+  };
 }
 
-async function checkRateLimit(key: string, max: number, windowMs: number): Promise<RateDecision> {
+async function checkRateLimit(
+  key: string,
+  max: number,
+  windowMs: number,
+  failClosedOnRedisError: boolean,
+): Promise<RateDecision> {
   if (redis) {
     try {
       const redisKey = `rate:${key}`;
-      const count = await redis.incr(redisKey);
-      if (count === 1) await redis.pexpire(redisKey, windowMs);
+      const result = await redis.eval(
+        [
+          "local count = redis.call('INCR', KEYS[1])",
+          "if count == 1 then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end",
+          "local ttl = redis.call('PTTL', KEYS[1])",
+          'return {count, ttl}',
+        ].join('\n'),
+        1,
+        redisKey,
+        String(windowMs),
+      );
+      const values = Array.isArray(result) ? result : [];
+      const count = Number(values[0] ?? 0);
+      const ttl = Number(values[1] ?? windowMs);
       if (count <= max) return { allowed: true };
-      const ttl = await redis.pttl(redisKey);
       return { allowed: false, retryAfterSeconds: Math.max(Math.ceil(ttl / 1000), 1) };
     } catch (error) {
       console.error(
@@ -178,10 +218,14 @@ async function checkRateLimit(key: string, max: number, windowMs: number): Promi
           toSafeLogRecord({
             level: 'error',
             event: 'redis_rate_limit_failed',
+            failClosed: failClosedOnRedisError,
             error,
           }),
         ),
       );
+      if (failClosedOnRedisError && process.env.NODE_ENV === 'production') {
+        return { allowed: false, retryAfterSeconds: 60 };
+      }
     }
   }
   return checkMemoryRateLimit(key, max, windowMs);
@@ -193,6 +237,7 @@ function checkMemoryRateLimit(key: string, max: number, windowMs: number): RateD
   const bucket = rateBuckets.get(key);
   if (!bucket || bucket.resetAt <= now) {
     rateBuckets.set(key, { count: 1, resetAt: now + windowMs });
+    enforceMemoryBucketLimit();
     return { allowed: true };
   }
   bucket.count += 1;
@@ -229,9 +274,16 @@ function createRedisClient(url?: string | null) {
 }
 
 function cleanupExpiredBuckets(now: number) {
-  if (rateBuckets.size < 1000) return;
   for (const [key, bucket] of rateBuckets.entries()) {
     if (bucket.resetAt <= now) rateBuckets.delete(key);
+  }
+}
+
+function enforceMemoryBucketLimit() {
+  while (rateBuckets.size > MAX_MEMORY_RATE_BUCKETS) {
+    const oldestKey = rateBuckets.keys().next().value as string | undefined;
+    if (!oldestKey) break;
+    rateBuckets.delete(oldestKey);
   }
 }
 
