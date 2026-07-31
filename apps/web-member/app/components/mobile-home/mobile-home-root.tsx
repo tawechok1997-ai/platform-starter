@@ -12,24 +12,39 @@ const LOGO_URL = `${LOBBY_ASSET_ROOT}/9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png`;
 const ANNOUNCEMENT_ICON_URL = `${SOURCE_ROOT}/home/coin.webp`;
 const AUTH_BUTTON_TEXTURE = '/images/theme/button/style_1.webp';
 
+type MobileMenuIconName =
+  | 'vip'
+  | 'commission'
+  | 'referral'
+  | 'coupon'
+  | 'bonus'
+  | 'live'
+  | 'promotion'
+  | 'news'
+  | 'activity'
+  | 'history'
+  | 'notification'
+  | 'video'
+  | 'guide';
+
 const PRIMARY_MENU = [
-  ['ระดับสมาชิก VIP', '/profile'],
-  ['รายได้คอมมิชชั่น', '/affiliate'],
-  ['แนะนำเพื่อน', '/affiliate'],
-  ['คูปอง', '/bonus'],
-  ['โบนัสพิเศษ', '/bonus'],
-  ['ถ่ายทอดสด', '/live'],
-] as const;
+  ['ระดับสมาชิก VIP', '/profile', 'vip'],
+  ['รายได้คอมมิชชั่น', '/affiliate', 'commission'],
+  ['แนะนำเพื่อน', '/affiliate', 'referral'],
+  ['คูปอง', '/bonus', 'coupon'],
+  ['โบนัสพิเศษ', '/bonus', 'bonus'],
+  ['ถ่ายทอดสด', '/live', 'live'],
+] as const satisfies ReadonlyArray<readonly [string, string, MobileMenuIconName]>;
 
 const SECONDARY_MENU = [
-  ['โปรโมชั่น', '/promotions'],
-  ['ข่าวสาร', '/notifications'],
-  ['กิจกรรม', '/promotions'],
-  ['ประวัติ', '/transactions'],
-  ['แจ้งเตือน', '/notifications'],
-  ['วีดีโอแนะนำ', '/guide'],
-  ['แนะนำการใช้งาน', '/guide'],
-] as const;
+  ['โปรโมชั่น', '/promotions', 'promotion'],
+  ['ข่าวสาร', '/notifications', 'news'],
+  ['กิจกรรม', '/promotions', 'activity'],
+  ['ประวัติ', '/transactions', 'history'],
+  ['แจ้งเตือน', '/notifications', 'notification'],
+  ['วีดีโอแนะนำ', '/guide', 'video'],
+  ['แนะนำการใช้งาน', '/guide', 'guide'],
+] as const satisfies ReadonlyArray<readonly [string, string, MobileMenuIconName]>;
 
 const HIGHLIGHT_TABS = ['ไฮไลท์', 'โปรโมชั่นแนะนำ', 'กิจกรรม', 'ข่าวสาร'] as const;
 
@@ -178,19 +193,25 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
           </div>
 
           <nav className={styles.primaryMenu} aria-label="บริการสมาชิก">
-            {PRIMARY_MENU.map(([label, href], index) => (
+            {PRIMARY_MENU.map(([label, href, icon]) => (
               <Link key={label} href={href} onClick={() => setMenuOpen(false)}>
-                <span className={styles.menuGlyph} aria-hidden="true">{index + 1}</span>
+                <span className={styles.menuGlyph} aria-hidden="true">
+                  <MobileMenuIcon name={icon} />
+                </span>
                 <strong>{label}</strong>
-                <span className={styles.menuArrow} aria-hidden="true">→</span>
+                <span className={styles.menuArrow} aria-hidden="true">
+                  <ChevronRightIcon />
+                </span>
               </Link>
             ))}
           </nav>
 
           <nav className={styles.secondaryMenu} aria-label="เมนูเพิ่มเติม">
-            {SECONDARY_MENU.map(([label, href], index) => (
+            {SECONDARY_MENU.map(([label, href, icon]) => (
               <Link key={label} href={href} onClick={() => setMenuOpen(false)}>
-                <span className={styles.gridGlyph} aria-hidden="true">{index + 1}</span>
+                <span className={styles.gridGlyph} aria-hidden="true">
+                  <MobileMenuIcon name={icon} />
+                </span>
                 <strong>{label}</strong>
               </Link>
             ))}
@@ -359,6 +380,57 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
         </footer>
       </div>
     </main>
+  );
+}
+
+function MobileMenuIcon({ name }: { name: MobileMenuIconName }) {
+  const commonProps = {
+    width: 19,
+    height: 19,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    focusable: false,
+  };
+
+  switch (name) {
+    case 'vip':
+      return <svg {...commonProps}><path d="m3 8 4 3 5-7 5 7 4-3-2 10H5L3 8Z" /><path d="M7 21h10" /></svg>;
+    case 'commission':
+      return <svg {...commonProps}><circle cx="8" cy="8" r="4" /><circle cx="16" cy="16" r="4" /><path d="m7 17 10-10" /></svg>;
+    case 'referral':
+      return <svg {...commonProps}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>;
+    case 'coupon':
+      return <svg {...commonProps}><path d="M4 7a2 2 0 0 0 2-2h12v4a2 2 0 0 0 0 4v4H6a2 2 0 0 0-2-2V7Z" /><path d="M12 7v10" /></svg>;
+    case 'bonus':
+      return <svg {...commonProps}><rect x="3" y="8" width="18" height="13" rx="2" /><path d="M12 8v13M3 12h18M7.5 8C5 8 4 6.5 5 5s3.5-.5 7 3c3.5-3.5 6-4.5 7-3s0 3-2.5 3" /></svg>;
+    case 'live':
+      return <svg {...commonProps}><rect x="3" y="5" width="18" height="14" rx="3" /><path d="m10 9 5 3-5 3V9Z" /><path d="M7 2h10" /></svg>;
+    case 'promotion':
+      return <svg {...commonProps}><path d="m3 11 15-6v14L3 13v-2Z" /><path d="M7 14v5a2 2 0 0 0 2 2h2v-5" /></svg>;
+    case 'news':
+      return <svg {...commonProps}><path d="M4 5h14a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V5Z" /><path d="M8 9h8M8 13h8M8 17h5" /></svg>;
+    case 'activity':
+      return <svg {...commonProps}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /><path d="m12 13 1 2 2 .3-1.5 1.5.4 2.2-1.9-1-1.9 1 .4-2.2L9 15.3l2-.3 1-2Z" /></svg>;
+    case 'history':
+      return <svg {...commonProps}><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5M12 7v5l3 2" /></svg>;
+    case 'notification':
+      return <svg {...commonProps}><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></svg>;
+    case 'video':
+      return <svg {...commonProps}><rect x="3" y="4" width="18" height="16" rx="3" /><path d="m10 9 5 3-5 3V9Z" /></svg>;
+    case 'guide':
+      return <svg {...commonProps}><path d="M4 5a3 3 0 0 1 3-2h5v17H7a3 3 0 0 0-3 2V5ZM20 5a3 3 0 0 0-3-2h-5v17h5a3 3 0 0 1 3 2V5Z" /><path d="M15 8h2M15 12h2" /></svg>;
+  }
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" focusable="false">
+      <path d="m9 18 6-6-6-6" />
+    </svg>
   );
 }
 
