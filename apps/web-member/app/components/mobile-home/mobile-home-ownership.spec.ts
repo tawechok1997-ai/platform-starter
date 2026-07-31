@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const memberHome = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 const mobileRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
+const mobileMotionRuntime = readFileSync(new URL('./mobile-home-motion-runtime.tsx', import.meta.url), 'utf8');
 const mobileRootCss = readFileSync(new URL('./mobile-home-root.module.css', import.meta.url), 'utf8');
 const mobileLayoutOwner = readFileSync(new URL('../../member-mobile-home-bottom-owner.css', import.meta.url), 'utf8');
 const memberFooter = readFileSync(new URL('../../member-footer.tsx', import.meta.url), 'utf8');
@@ -15,6 +16,13 @@ test('mobile home has exactly one render owner', () => {
   assert.match(memberHome, /content=\{props\.cmsContent\}/);
   assert.match(memberHome, /showPromotion=\{props\.showPromotion\}/);
   assert.equal((mobileRoot.match(/data-ui-owner="mobile-home"/g) ?? []).length, 1);
+});
+
+test('mobile motion runtime adds behavior without rendering another UI owner', () => {
+  assert.equal((memberHome.match(/<MobileHomeMotionRuntime\s*\/>/g) ?? []).length, 1);
+  assert.match(mobileMotionRuntime, /return null;/);
+  assert.doesNotMatch(mobileMotionRuntime, /data-ui-owner=/);
+  assert.doesNotMatch(mobileMotionRuntime, /MutationObserver/);
 });
 
 test('mobile upper structure has one owner per section', () => {
@@ -56,12 +64,25 @@ test('mobile promotions come from central CMS content and stay unique', () => {
   assert.doesNotMatch(mobileRoot, /const HERO_SLIDES/);
 });
 
-test('mobile announcements come from central CMS and scroll in one marquee', () => {
+test('mobile promotion carousel auto advances and supports real swipe gestures', () => {
+  assert.match(mobileRoot, /window\.setInterval/);
+  assert.match(mobileRoot, /\(current \+ 1\) % heroSlides\.length/);
+  assert.match(mobileMotionRuntime, /addEventListener\('pointerdown'/);
+  assert.match(mobileMotionRuntime, /addEventListener\('pointermove'/);
+  assert.match(mobileMotionRuntime, /addEventListener\('pointerup'/);
+  assert.match(mobileMotionRuntime, /dots\[nextIndex\]\?\.click\(\)/);
+  assert.match(mobileMotionRuntime, /translate3d\(calc\(-\$\{currentIndex \* 100\}%/);
+});
+
+test('mobile announcements come from central CMS and scroll continuously at runtime', () => {
   assert.match(mobileRoot, /content\.announcements\.forEach/);
   assert.match(mobileRoot, /seenMessages\.has\(message\)/);
   assert.equal((mobileRoot.match(/data-mobile-announcement-track="true"/g) ?? []).length, 1);
-  assert.match(mobileLayoutOwner, /mobile-home-announcement-marquee 28s linear infinite/);
-  assert.match(mobileLayoutOwner, /@keyframes mobile-home-announcement-marquee/);
+  assert.match(mobileMotionRuntime, /ANNOUNCEMENT_SPEED_PX_PER_SECOND/);
+  assert.match(mobileMotionRuntime, /viewport\.scrollLeft \+=/);
+  assert.match(mobileMotionRuntime, /window\.requestAnimationFrame\(tick\)/);
+  assert.match(mobileMotionRuntime, /viewport\.scrollLeft -= loopWidth/);
+  assert.match(mobileMotionRuntime, /new ResizeObserver\(syncSetWidths\)/);
 });
 
 test('mobile bottom structure has one shortcut and one footer owner', () => {
