@@ -1,11 +1,12 @@
 .root {
   position: relative;
-  display: block;
+  display: flex;
   width: 100%;
   max-width: 640px;
   min-height: 100dvh;
   margin: 0 auto;
   padding: 0;
+  flex-direction: column;
   overflow-x: clip;
   color: #fff;
   background: #171422;
@@ -136,7 +137,8 @@
   scrollbar-width: none;
 }
 
-.drawer::-webkit-scrollbar {
+.drawer::-webkit-scrollbar,
+.highlightTabs::-webkit-scrollbar {
   display: none;
 }
 
@@ -335,6 +337,8 @@
 .pageContent {
   display: grid;
   min-width: 0;
+  flex: 1 0 auto;
+  align-content: start;
   gap: 14px;
 }
 
@@ -453,10 +457,6 @@
   scrollbar-width: none;
 }
 
-.highlightTabs::-webkit-scrollbar {
-  display: none;
-}
-
 .highlightTabs button {
   min-width: 78px;
   height: 34px;
@@ -478,12 +478,265 @@
   min-height: 1px;
 }
 
+.bottomStructure {
+  width: 100%;
+  margin-top: auto;
+  padding: 16px 0 0;
+  flex: 0 0 auto;
+  background: #171422;
+}
+
+.shortcutSection {
+  display: grid;
+  width: 100%;
+  padding: 0 16px 20px;
+  gap: 4px;
+}
+
+.shortcutSection h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.shortcutCard {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 396px;
+  height: 134px;
+  padding: 12px;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  border: 1.5px solid rgb(255 255 255 / 50%);
+  border-radius: 7px;
+  background:
+    radial-gradient(circle at 100% 90%, rgb(148 79 232 / 34%), transparent 56%),
+    radial-gradient(circle at 0 0, rgb(242 234 252 / 18%), transparent 48%),
+    #15131a url('/assets/asset-pc/images/shortcut/bg_card.webp') center / cover no-repeat;
+}
+
+.shortcutArtwork {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  max-width: 58%;
+  object-fit: contain;
+  object-position: right center;
+  pointer-events: none;
+}
+
+.shortcutContent {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 20px;
+}
+
+.shortcutIntro {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.shortcutIntro > img {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.shortcutIntro > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.shortcutIntro strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.shortcutIntro span {
+  overflow: hidden;
+  color: #c2c2c2;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shortcutActions {
+  display: flex;
+  gap: 12px;
+  font-size: 15px;
+}
+
+.androidButton,
+.iosButton {
+  display: grid;
+  width: 100px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #fff;
+  background: #000;
+  text-decoration: none;
+}
+
+.androidButton {
+  border-color: #717171;
+  color: #717171;
+  cursor: not-allowed;
+}
+
+.iosButton {
+  border-color: #944fe8;
+  box-shadow: 0 0 0 1px rgb(118 0 168 / 45%);
+}
+
+.mobileFooter {
+  width: 100%;
+  margin: 0;
+  padding: 20px 20px max(0px, env(safe-area-inset-bottom));
+  color: #fff;
+  background: #171422;
+  letter-spacing: 0.02em;
+}
+
+.paymentSection h2 {
+  margin: 0;
+  font-size: clamp(7px, 2.4vw, 12px);
+  font-weight: 400;
+  line-height: 14px;
+  text-align: center;
+}
+
+.bankGrid {
+  display: flex;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bankGrid img {
+  display: block;
+  width: auto;
+  height: clamp(17px, 5.4vw, 34px);
+  border-radius: 999px;
+  object-fit: contain;
+}
+
+.footerDivider {
+  width: 100%;
+  height: 1px;
+  margin: 24px 0 4px;
+  background: #3b3b3b;
+}
+
+.footerTopRow,
+.footerBottomRow {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+}
+
+.footerTopRow section,
+.footerBottomRow section {
+  min-width: 0;
+  font-size: clamp(7px, 2.4vw, 12px);
+}
+
+.footerTopRow strong,
+.footerBottomRow strong {
+  display: block;
+  font-weight: 600;
+}
+
+.footerTopRow img {
+  display: block;
+  width: auto;
+  height: clamp(18px, 6vw, 40px);
+  margin-top: 8px;
+  object-fit: contain;
+}
+
+.licenseTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.licenseTitle strong {
+  display: inline;
+}
+
+.licenseTitle span {
+  opacity: 0.9;
+  font-weight: 200;
+}
+
+.licenseGrid {
+  display: grid;
+  width: min(192px, 100%);
+  margin-top: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.licenseGrid img {
+  display: block;
+  width: 100%;
+  max-height: clamp(18px, 6vw, 35px);
+  object-fit: contain;
+  object-position: left center;
+}
+
+.securitySection {
+  max-width: 146px;
+}
+
+.securitySection > div {
+  display: grid;
+  margin-top: 8px;
+  gap: 8px;
+}
+
+.securitySection img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: clamp(17px, 5.6vw, 28px);
+  object-fit: contain;
+  object-position: left center;
+}
+
+.copyright {
+  margin: 0;
+  padding: 12px 0 0;
+  color: #7c7c7c;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 14px;
+  text-align: center;
+}
+
 .menuButton:focus-visible,
 .languageButton:focus-visible,
 .drawer a:focus-visible,
 .drawer button:focus-visible,
 .heroDots button:focus-visible,
-.highlightTabs button:focus-visible {
+.highlightTabs button:focus-visible,
+.iosButton:focus-visible,
+.mobileFooter a:focus-visible {
   outline: 2px solid #dca8f3;
   outline-offset: 2px;
 }
@@ -501,6 +754,16 @@
     min-width: 72px;
     padding-inline: 8px;
     font-size: 11px;
+  }
+
+  .shortcutSection,
+  .mobileFooter {
+    padding-inline: 12px;
+  }
+
+  .footerTopRow,
+  .footerBottomRow {
+    gap: 10px;
   }
 }
 
