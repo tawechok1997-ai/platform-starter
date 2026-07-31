@@ -3,11 +3,12 @@
   "private": true,
   "scripts": {
     "generate:asset-basename-map": "node tools/generate-local-asset-basename-map.mjs",
+    "audit:source-cdn-assets": "node tools/audit-source-cdn-asset-basename-matches.mjs",
     "predev": "pnpm generate:asset-basename-map",
     "dev": "next dev -p 3000",
-    "preanalyze": "pnpm generate:asset-basename-map",
+    "preanalyze": "pnpm generate:asset-basename-map && pnpm audit:source-cdn-assets",
     "analyze": "ANALYZE=true next build",
-    "prebuild": "pnpm generate:asset-basename-map",
+    "prebuild": "pnpm generate:asset-basename-map && pnpm audit:source-cdn-assets",
     "build": "next build",
     "prelint": "pnpm generate:asset-basename-map",
     "lint": "eslint app src --ext .ts,.tsx",
@@ -16,7 +17,7 @@
     "pretypecheck": "pnpm generate:asset-basename-map",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "audit:reference-assets": "node tools/audit-reference-assets.mjs",
-    "verify": "pnpm audit:reference-assets && pnpm test && pnpm typecheck && pnpm build",
+    "verify": "pnpm audit:reference-assets && pnpm audit:source-cdn-assets && pnpm test && pnpm typecheck && pnpm build",
     "start": "next start -p 3000"
   },
   "dependencies": {
