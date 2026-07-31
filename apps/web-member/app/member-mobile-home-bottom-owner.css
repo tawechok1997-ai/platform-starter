@@ -61,4 +61,86 @@
   body:has(.public-game-shell[data-route='/']) [aria-hidden='true'] > #mobile-home-drawer {
     transform: translate3d(-105%, 0, 0) !important;
   }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-drawer-dismiss='true'] {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: default;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-announcement-viewport='true'] {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='announcement'] img {
+    display: block;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-announcement-track='true'] {
+    display: flex;
+    width: max-content;
+    min-width: 100%;
+    align-items: center;
+    animation: mobile-home-announcement-marquee 28s linear infinite;
+    will-change: transform;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-announcement-set='true'] {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 32px;
+    padding-right: 32px;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-announcement-item='true'] {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    color: #fff;
+    font-size: 12px;
+    line-height: 28px;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-announcement-item='true']::after {
+    position: absolute;
+    top: 50%;
+    right: -18px;
+    width: 4px;
+    height: 4px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: #bb5bea;
+    content: '';
+  }
+}
+
+@keyframes mobile-home-announcement-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mobile-announcement-track='true'] {
+    animation: none !important;
+    transform: none !important;
+  }
 }
