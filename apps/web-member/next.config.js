@@ -59,11 +59,17 @@ const canonicalPageRedirects = [
   { source: '/mobile-menu/guide', destination: '/guide', permanent: false },
 ];
 
+const runtimeGlobalSelectorModules = /[\\/]mobile-(?:authenticated-home|category-tab)-runtime\.module\.css$/;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@platform/api-client'],
   poweredByHeader: false,
   reactStrictMode: true,
+  webpack(config) {
+    allowRuntimeGlobalSelectors(config.module?.rules);
+    return config;
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
@@ -100,6 +106,33 @@ const nextConfig = {
     ],
   },
 };
+
+function allowRuntimeGlobalSelectors(rules) {
+  if (!Array.isArray(rules)) return;
+
+  for (const rule of rules) {
+    if (!rule || typeof rule !== 'object') continue;
+
+    allowRuntimeGlobalSelectors(rule.oneOf);
+    allowRuntimeGlobalSelectors(rule.rules);
+
+    const uses = Array.isArray(rule.use) ? rule.use : rule.use ? [rule.use] : [];
+    for (const use of uses) {
+      if (!use || typeof use !== 'object' || typeof use.loader !== 'string') continue;
+      if (!use.loader.includes('css-loader') || !use.options?.modules) continue;
+
+      const originalMode = use.options.modules.mode;
+      if (!originalMode) continue;
+
+      use.options.modules.mode = (resourcePath, resourceQuery, resourceFragment) => {
+        if (runtimeGlobalSelectorModules.test(resourcePath)) return 'local';
+        return typeof originalMode === 'function'
+          ? originalMode(resourcePath, resourceQuery, resourceFragment)
+          : originalMode;
+      };
+    }
+  }
+}
 
 function safeOrigin(value) {
   if (!value) return null;
