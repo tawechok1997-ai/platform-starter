@@ -152,6 +152,7 @@ export function useMobileSourceRuntime() {
     classicGames,
     tournament: home.tournament,
     jackpot: home.jackpot,
+    leaderboardTitle: home.leaderboard.title,
     guideTitle: home.sectionTitles.guide,
     section,
     icons,
