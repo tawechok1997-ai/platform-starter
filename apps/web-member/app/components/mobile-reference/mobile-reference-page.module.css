@@ -1,0 +1,906 @@
+.viewport {
+  min-height: 100dvh;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-thai, "Noto Sans Thai", sans-serif);
+}
+
+.phone {
+  width: min(100%, 428px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: #141019;
+  box-shadow: 0 0 28px rgba(255, 255, 255, .08);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 51;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  padding: 12px 8px;
+  background: #171422;
+}
+
+.header button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.header svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.header h1 {
+  flex: 1;
+  min-width: 0;
+  margin: 0 32px 0 0;
+  text-align: center;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vipBody {
+  min-height: calc(100dvh - 50px);
+  padding-bottom: 50px;
+  background: #141019;
+  overflow: hidden;
+}
+
+.vipLevelRail {
+  height: 100px;
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+  padding-left: 40px;
+}
+
+.vipLevelRail::-webkit-scrollbar,
+.vipCardRail::-webkit-scrollbar,
+.filterRail::-webkit-scrollbar,
+.guideTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.vipLevelRail button {
+  position: relative;
+  flex: 0 0 160px;
+  height: 100px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #a6a6a6;
+  scroll-snap-align: center;
+  cursor: pointer;
+}
+
+.vipLevelRail button::after {
+  content: "";
+  position: absolute;
+  top: 19px;
+  left: 20px;
+  right: -20px;
+  height: 1px;
+  background: #353535;
+}
+
+.vipLevelRail button:last-child::after {
+  right: 20px;
+}
+
+.vipLevelRail button span {
+  position: relative;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  margin: 10px auto 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #353535;
+}
+
+.vipLevelRail button svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+.vipLevelRail button b {
+  display: block;
+  padding-top: 12px;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.vipLevelRail .vipLevelActive {
+  color: #fff;
+}
+
+.vipCardRail {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 10px 0 25px 25px;
+  gap: 15px;
+}
+
+.vipCard {
+  position: relative;
+  flex: 0 0 80vw;
+  max-width: 530px;
+  height: 180px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0;
+  overflow: hidden;
+  background: #1e1c23;
+  color: #fff;
+  scroll-snap-align: center;
+  cursor: grab;
+  text-align: left;
+  opacity: .72;
+  transform: scale(.98);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.vipCardActive {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.vipCharacter {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 25%;
+  height: auto;
+  z-index: 2;
+}
+
+.vipGlass {
+  position: absolute;
+  inset: 23% -8px 0;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(72, 72, 72, .75), rgba(4, 4, 4, .75));
+  box-shadow: inset 0 1px 4px rgba(239, 239, 239, .15);
+  backdrop-filter: blur(10px);
+}
+
+.vipCard > strong {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  right: 10px;
+  font-size: 18px;
+  line-height: 36px;
+  font-style: italic;
+}
+
+.vipRequirement {
+  position: absolute;
+  z-index: 3;
+  left: 8px;
+  right: 8px;
+  bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-size: 8px;
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+.vipRequirement svg {
+  width: 20px;
+  height: 21px;
+  margin-bottom: 4px;
+  fill: #fff;
+}
+
+.vipRequirement b {
+  font-weight: 400;
+}
+
+.vipSections {
+  display: grid;
+  gap: 12px;
+  padding: 8px 16px 0;
+}
+
+.vipBenefitCard {
+  position: relative;
+  min-width: 256px;
+  padding: 56px 16px 16px;
+  border: 1px solid #24221e;
+  border-radius: 7px;
+  background: #1e1c23;
+  box-shadow: 0 1px 24px 4px rgba(90, 90, 90, .2);
+}
+
+.notchTitle {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: 205px;
+  height: 36px;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  clip-path: polygon(0 0, 100% 0, 97% 50%, 92% 88%, 84% 100%, 16% 100%, 8% 88%, 3% 50%);
+  background: linear-gradient(180deg, #505050 0%, #474747 32%, #313131 79%);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.vipBenefitGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.vipBenefitGrid > div,
+.cashbackGrid > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.vipBenefitIcon {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(21, 19, 26, .95);
+  color: #a6a6a6;
+}
+
+.vipBenefitIcon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(25, 23, 33, .8);
+  backdrop-filter: blur(.5px);
+}
+
+.vipBenefitIcon svg {
+  position: relative;
+  z-index: 1;
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+
+.vipBenefitGrid p {
+  margin: 0;
+  color: #a6a6a6;
+  font-size: 10px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.cashbackGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.cashbackGrid b {
+  color: #a6a6a6;
+  font-size: 10px;
+}
+
+.cashbackGrid strong {
+  font-size: 12px;
+}
+
+.vipCurrentNote {
+  padding: 14px 16px 0;
+  color: #a6a6a6;
+  font-size: 10px;
+  text-align: center;
+}
+
+.liveBody {
+  min-height: calc(100dvh - 50px);
+  background: #141019;
+}
+
+.sportTabs {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: #171422;
+}
+
+.sportTabs button {
+  height: 30px;
+  min-width: 82px;
+  border: 0;
+  border-radius: 20px;
+  padding: 0 12px;
+  background: #7100bd;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.liveToolbar {
+  height: 61px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 16px 12px;
+}
+
+.liveToolbar > strong {
+  font-size: 16px;
+}
+
+.liveToolbar > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.liveToolbar button {
+  height: 24px;
+  border: 1px solid #7100bd;
+  padding: 0 6px;
+  background: transparent;
+  color: #fff;
+  opacity: .3;
+  font-size: 10px;
+}
+
+.liveToolbar button:first-child { border-radius: 5px 0 0 5px; }
+.liveToolbar button:last-child { border-radius: 0 5px 5px 0; }
+
+.liveToolbar .sortActive {
+  border-color: transparent;
+  background: #7100bd;
+  opacity: 1;
+  font-weight: 600;
+}
+
+.liveGroups {
+  padding: 0 16px 32px;
+}
+
+.leagueGroup {
+  padding-top: 12px;
+}
+
+.leagueGroup > header {
+  height: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  border: 1px solid #504a60;
+  border-radius: 7px 7px 0 0;
+  background: linear-gradient(158.45deg, rgba(184, 144, 202, .298), rgba(35, 34, 36, .298));
+}
+
+.leagueGroup > header strong,
+.leagueGroup > header span {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.leagueGroup > header strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leagueGroup > header span {
+  background: linear-gradient(165.34deg, #944fe8 -17%, #7600a8 91%);
+  -webkit-background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
+.leagueGroup article {
+  min-height: 86px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 0 solid #504a60;
+  border-width: 0 1px 1px;
+  background: #15131a;
+}
+
+.leagueGroup article:last-child {
+  border-radius: 0 0 7px 7px;
+}
+
+.leagueGroup .matchAlt {
+  background: #25212e;
+}
+
+.matchTeams {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.matchTime {
+  flex: 0 0 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.matchTime b {
+  font-size: 10px;
+  background: linear-gradient(165.34deg, #944fe8 -17%, #7600a8 91%);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.matchTime span {
+  border-radius: 3px;
+  padding: 1px 3px;
+  background: #ff0402;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.matchTeams > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.matchTeams > div:last-child span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 11px;
+}
+
+.matchTeams img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.matchActions {
+  flex: 0 0 82px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.matchActions button {
+  min-height: 24px;
+  border: 0;
+  border-radius: 5px;
+  padding: 3px 4px;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.matchActions button:first-child { background: #ff0402; }
+.matchActions button:last-child { background: linear-gradient(165.34deg, #944fe8, #7600a8); }
+
+.promotionBody,
+.activityBody,
+.guideBody {
+  min-height: calc(100dvh - 50px);
+  background: #110e16;
+}
+
+.filterRail,
+.guideTabs {
+  position: sticky;
+  top: 50px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 16px;
+  background: #171422;
+  scrollbar-width: none;
+}
+
+.filterRail button,
+.guideTabs button {
+  flex: 0 0 auto;
+  min-height: 30px;
+  border: 1px solid #504a60;
+  border-radius: 16px;
+  padding: 0 14px;
+  background: transparent;
+  color: #a6a6a6;
+  font-size: 11px;
+}
+
+.filterRail .filterActive,
+.guideTabs .guideTabActive {
+  border-color: #7100bd;
+  background: #7100bd;
+  color: #fff;
+}
+
+.promotionList {
+  display: grid;
+  gap: 12px;
+  padding: 12px 16px 40px;
+}
+
+.promotionCard {
+  overflow: hidden;
+  border: 1px solid #332e3d;
+  border-radius: 8px;
+  background: #1e1c23;
+}
+
+.promotionCard > img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 7.2;
+  object-fit: cover;
+}
+
+.promotionCard > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  padding: 10px 12px 12px;
+}
+
+.promotionCard strong {
+  grid-column: 1 / -1;
+  font-size: 13px;
+}
+
+.promotionCard span {
+  color: #a6a6a6;
+  font-size: 10px;
+}
+
+.promotionCard button {
+  border: 0;
+  border-radius: 5px;
+  padding: 5px 9px;
+  background: #7100bd;
+  color: #fff;
+  font-size: 10px;
+}
+
+.emptyBody {
+  min-height: calc(100dvh - 50px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 64px;
+  gap: 12px;
+  background: #141019;
+  color: #a6a6a6;
+}
+
+.emptyBody svg {
+  width: 54px;
+  height: 54px;
+  fill: #3a3544;
+}
+
+.emptyBody strong {
+  font-size: 13px;
+}
+
+.activityTabs {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: #171422;
+}
+
+.activityTabs button {
+  height: 30px;
+  border: 0;
+  border-radius: 20px;
+  padding: 0 18px;
+  background: #7100bd;
+  color: #fff;
+  font-size: 11px;
+}
+
+.activityList {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px 40px;
+}
+
+.activityList article {
+  overflow: hidden;
+  border: 1px solid #332e3d;
+  border-radius: 8px;
+  background: #1e1c23;
+}
+
+.activityList img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 6.5;
+  object-fit: cover;
+}
+
+.activityList article > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.activityList strong {
+  font-size: 12px;
+}
+
+.activityList button {
+  border: 0;
+  border-radius: 5px;
+  padding: 6px 12px;
+  background: #7100bd;
+  color: #fff;
+  font-size: 10px;
+}
+
+.videoBody {
+  min-height: calc(100dvh - 50px);
+  padding: 16px;
+  background: rgba(0, 0, 0, .8);
+}
+
+.videoPanel {
+  overflow: hidden;
+  border: 1px solid #413e4b;
+  border-radius: 10px;
+  background: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%);
+  box-shadow: 0 1px 24px 4px rgba(90, 90, 90, .2);
+}
+
+.videoFrame {
+  height: 190px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  background: #15131a;
+  color: #a6a6a6;
+}
+
+.videoFrame svg {
+  width: 58px;
+  height: 58px;
+  fill: #7100bd;
+}
+
+.videoFrame span {
+  font-size: 12px;
+}
+
+.videoList {
+  display: grid;
+  gap: 1px;
+  background: #332e3d;
+}
+
+.videoList button {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 26px 1fr 20px;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  padding: 0 12px;
+  background: #1e1c23;
+  color: #fff;
+  text-align: left;
+}
+
+.videoList button > span {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #35313e;
+  font-size: 10px;
+}
+
+.videoList button strong {
+  font-size: 11px;
+}
+
+.videoList button svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+.videoList .videoSelected {
+  background: #2b2435;
+  color: #d5a3ff;
+}
+
+.guideGroups {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+.guideGroups section {
+  overflow: hidden;
+  border: 1px solid #332e3d;
+  border-radius: 7px;
+  background: #1e1c23;
+}
+
+.guideGroups h2 {
+  margin: 0;
+  padding: 12px 14px;
+  background: #25212e;
+  font-size: 13px;
+}
+
+.guideGroups section button {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-top: 1px solid #332e3d;
+  padding: 8px 14px;
+  background: #1e1c23;
+  color: #fff;
+  text-align: left;
+  font-size: 11px;
+}
+
+.guideGroups svg {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.languageOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 201;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, .8);
+}
+
+.languageDialog {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 56px 16px 16px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%);
+  box-shadow: 0 1px 24px 4px rgba(90, 90, 90, .2);
+}
+
+.languageDialog .notchTitle {
+  top: 0;
+}
+
+.dialogBorder {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #413e4b;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.dialogClose {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 26px;
+}
+
+.languageGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(82px, 1fr));
+  gap: 8px;
+}
+
+.languageGrid button {
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #413e4b;
+  border-radius: 7px;
+  padding: 8px;
+  background: #1b1824;
+  color: #fff;
+}
+
+.languageGrid img {
+  width: 30px;
+  height: 22px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.languageGrid strong {
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+@media (min-width: 390px) {
+  .header h1 { font-size: 18px; }
+  .vipCard { flex-basis: 82vw; height: 220px; }
+  .vipCard > strong { font-size: 24px; }
+  .vipRequirement { font-size: 9px; }
+  .vipBenefitGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .vipBenefitIcon { width: 58px; height: 58px; }
+  .vipBenefitGrid p { font-size: 11px; }
+  .liveToolbar button, .leagueGroup > header strong, .leagueGroup > header span, .matchTeams > div:last-child span { font-size: 13px; }
+}
+
+@media (min-width: 428px) {
+  .header h1 { font-size: 20px; }
+  .vipCard { flex-basis: 85vw; }
+  .vipCard > strong { font-size: 30px; }
+  .vipBenefitGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .vipBenefitIcon { width: 64px; height: 64px; }
+  .vipBenefitGrid p { font-size: 12px; }
+}
