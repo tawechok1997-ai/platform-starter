@@ -1,6 +1,5 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useMemberContactRuntime } from '../member-settings-runtime';
 import '../member-floating-contact.css';
@@ -9,7 +8,6 @@ const CONTACT_ICON_URL = '/assets/asset-pc/images/footer/contact/icon-open-gold.
 const LINE_ICON_URL = '/assets/asset-pc/images/line.png';
 
 export default function MemberFloatingContact() {
-  usePathname();
   const [open, setOpen] = useState(false);
   const { primary } = useMemberContactRuntime();
 
