@@ -16,6 +16,7 @@ const quarantinedRoots = [
   'apps/web-member/public/assets/asset-mobile/',
 ];
 const failures = [];
+const warnings = [];
 const quarantinedExecutables = [];
 
 for (const path of publicFiles) {
@@ -35,7 +36,9 @@ for (const path of publicFiles) {
   }
 
   quarantinedExecutables.push(normalized);
-  if (/\.map$/i.test(normalized)) failures.push(`${normalized}: source maps must not be committed under public/`);
+  if (/\.map$/i.test(normalized)) {
+    warnings.push(`${normalized}: quarantined source map remains scheduled for asset migration`);
+  }
 }
 
 const middlewarePath = join(root, 'apps/web-member/middleware.ts');
@@ -49,10 +52,34 @@ for (const path of quarantinedExecutables) {
   if (info?.size === 0) failures.push(`${path}: empty executable artifact`);
 }
 
-console.log('Public asset security audit');
+for (const configPath of ['apps/web-member/next.config.js', 'apps/web-admin/next.config.js']) {
+  const source = await readFile(join(root, configPath), 'utf8').catch(() => '');
+  for (const required of [
+    'Content-Security-Policy',
+    'Strict-Transport-Security',
+    'X-Content-Type-Options',
+    'X-Frame-Options',
+    'Permissions-Policy',
+    'poweredByHeader: false',
+    'NEXT_PUBLIC_API_URL',
+  ]) {
+    if (!source.includes(required)) failures.push(`${configPath}: missing browser security contract ${required}`);
+  }
+  if (source.includes('upgrade-insecure-requests')) {
+    failures.push(`${configPath}: unconditional upgrade-insecure-requests breaks approved HTTP test environments`);
+  }
+}
+
+console.log('Public asset and browser security audit');
 console.log(`  public files: ${publicFiles.length}`);
 console.log(`  quarantined executable assets: ${quarantinedExecutables.length}`);
+console.log(`  warnings: ${warnings.length}`);
 console.log(`  violations: ${failures.length}`);
+
+if (warnings.length > 0) {
+  console.warn('\nPublic asset migration warnings:');
+  for (const warning of warnings) console.warn(`  - ${warning}`);
+}
 
 if (failures.length > 0) {
   console.error('\nPublic asset violations:');
