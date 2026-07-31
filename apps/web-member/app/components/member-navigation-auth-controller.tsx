@@ -9,6 +9,28 @@ const NAVIGATION_SELECTOR = [
   '.member-bottom-nav a[href]',
 ].join(',');
 
+const MOBILE_DRAWER_SELECTOR = '#mobile-home-drawer a[href], #mobile-home-drawer button';
+
+const MOBILE_REFERENCE_TARGETS: Readonly<Record<string, string>> = {
+  'ระดับสมาชิก VIP': '/mobile-menu/vip',
+  'ถ่ายทอดสด': '/mobile-menu/live',
+  'โปรโมชั่น': '/mobile-menu/promotions',
+  'ข่าวสาร': '/mobile-menu/news',
+  'กิจกรรม': '/mobile-menu/activities',
+  'วีดีโอแนะนำ': '/mobile-menu/video',
+  'แนะนำการใช้งาน': '/mobile-menu/guide',
+  'เปลี่ยนภาษา': '/mobile-menu/language',
+};
+
+const MOBILE_LOGIN_TARGETS: Readonly<Record<string, string>> = {
+  'รายได้คอมมิชชั่น': '/affiliate',
+  'แนะนำเพื่อน': '/affiliate',
+  'คูปอง': '/bonus',
+  'โบนัสพิเศษ': '/bonus',
+  'ประวัติ': '/transactions',
+  'แจ้งเตือน': '/notifications',
+};
+
 export default function MemberNavigationAuthController() {
   const { navigation, summary } = useMemberRuntime();
 
@@ -18,11 +40,32 @@ export default function MemberNavigationAuthController() {
         .filter((item) => item.requiresAuth)
         .map((item) => [normalize(item.href), item.href]),
     );
-    if (!protectedTargets.size || summary.isLoggedIn) return;
 
     const guard = (event: MouseEvent) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (!(event.target instanceof Element)) return;
+
+      const drawerTarget = event.target.closest<HTMLElement>(MOBILE_DRAWER_SELECTOR);
+      if (drawerTarget) {
+        const label = drawerTarget.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+        const referenceTarget = MOBILE_REFERENCE_TARGETS[label];
+        if (referenceTarget) {
+          event.preventDefault();
+          event.stopPropagation();
+          window.location.assign(referenceTarget);
+          return;
+        }
+
+        const loginTarget = MOBILE_LOGIN_TARGETS[label];
+        if (loginTarget && !summary.isLoggedIn) {
+          event.preventDefault();
+          event.stopPropagation();
+          window.location.assign(`/?auth=login&next=${encodeURIComponent(loginTarget)}`);
+          return;
+        }
+      }
+
+      if (summary.isLoggedIn || !protectedTargets.size) return;
       const link = event.target.closest<HTMLAnchorElement>(NAVIGATION_SELECTOR);
       if (!link) return;
       const intended = protectedTargets.get(normalize(link.getAttribute('href') ?? ''));
