@@ -39,9 +39,11 @@ const migrations = (await readdir(migrationsRoot, { withFileTypes: true }))
   .sort();
 
 // These tables are intentionally managed through raw SQL and are not represented
-// in schema.prisma. Apply their idempotent migrations after db push, before the
-// historical migration ledger is baselined.
+// in schema.prisma. Apply their ordered, idempotent migrations after db push,
+// before the historical migration ledger is baselined.
 const rawSqlBootstrapMigrations = [
+  '20260714190000_add_promotion_domain_models',
+  '20260714191000_backfill_promotion_domain_models',
   '20260720212000_game_round_transaction_foundation',
   '20260720214500_separate_round_refund_cancel',
   '20260720220000_provider_simulator_nonce_security',
