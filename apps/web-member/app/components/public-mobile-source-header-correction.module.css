@@ -1,3 +1,22 @@
+@media (max-width: 900px) {
+  .root:global(.public-mobile-source-header)
+    ~ :global(#member-desktop-scale-shell)
+    :global(.public-home-topbar.global-member-topbar.public-home-topbar),
+  .root:global(.public-mobile-source-header)
+    ~ :global(#member-desktop-scale-shell)
+    :global(.member-desktop-nav.member-desktop-nav--guest) {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+}
+
 .root:global(.public-mobile-source-header) {
   width: 100%;
   height: 60px;

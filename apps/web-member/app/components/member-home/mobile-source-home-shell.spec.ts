@@ -6,9 +6,11 @@ const shellSource = readFileSync(new URL('./mobile-source-home-shell.tsx', impor
 const shellCss = readFileSync(new URL('./mobile-source-home-shell.module.css', import.meta.url), 'utf8');
 const contentSource = readFileSync(new URL('./mobile-source-home-content.tsx', import.meta.url), 'utf8');
 const contentCss = readFileSync(new URL('./mobile-source-home-content.module.css', import.meta.url), 'utf8');
+const parityCss = readFileSync(new URL('./mobile-source-home-content-parity.module.css', import.meta.url), 'utf8');
 const sourceAssetMap = readFileSync(new URL('./mobile-source-asset-map.ts', import.meta.url), 'utf8');
 const promotionRuntime = readFileSync(new URL('../../member-promotion-runtime.ts', import.meta.url), 'utf8');
 const headerSource = readFileSync(new URL('../public-mobile-source-header.tsx', import.meta.url), 'utf8');
+const headerCss = readFileSync(new URL('../public-mobile-source-header-correction.module.css', import.meta.url), 'utf8');
 const footerSource = readFileSync(new URL('../../member-footer.tsx', import.meta.url), 'utf8');
 const homeSource = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 
@@ -30,6 +32,7 @@ test('mobile source home preserves separate Desktop and Mobile promotion assets'
 
 test('mobile source asset map uses the CDN file names supplied for Mobile', () => {
   assert.match(sourceAssetMap, /9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7\.png/);
+  assert.match(sourceAssetMap, /647280b5-3a23-4118-80a0-1b7feb340d1a\.png/);
   assert.match(sourceAssetMap, /1784895027990-67f1beb1-8c13-4582-b6ff-dbb647773c9a\.jpg/);
   assert.match(sourceAssetMap, /1784895081838-4f8ccf22-9b17-4157-900f-0b78f883d69d\.jpg/);
   assert.match(sourceAssetMap, /1778979600098-3be41f05-c93f-4c12-b278-54cfe390de4c\.jpg/);
@@ -42,6 +45,13 @@ test('mobile source header uses the dedicated Mobile logo instead of the Desktop
   assert.match(headerSource, /logo_mobile_url/);
   assert.match(headerSource, /isSameSourceAsset\(configuredMobileLogo, configuredDesktopLogo\)/);
   assert.doesNotMatch(headerSource, /:\s*V47_ASSETS\.headerLogo/);
+});
+
+test('mobile source header suppresses the complete Desktop header and navigation below 901px', () => {
+  assert.match(headerCss, /max-width:\s*900px/);
+  assert.match(headerCss, /#member-desktop-scale-shell/);
+  assert.match(headerCss, /public-home-topbar\.global-member-topbar\.public-home-topbar/);
+  assert.match(headerCss, /member-desktop-nav\.member-desktop-nav--guest/);
 });
 
 test('mobile source home keeps the announcement bar visible while central API content is pending', () => {
@@ -80,7 +90,7 @@ test('mobile home mounts the source component directly instead of wrapping the o
   assert.match(homeSource, /<DesktopHomeScaffold/);
 });
 
-test('mobile source content follows the supplied section order and removes the extra mini game block', () => {
+test('mobile source content follows the supplied section order and removes extra blocks', () => {
   const order = [
     'highlightTabs',
     'data-section-kind="tournament"',
@@ -97,13 +107,20 @@ test('mobile source content follows the supplied section order and removes the e
   assert.deepEqual([...order].sort((left, right) => left - right), order);
   assert.doesNotMatch(contentSource, /Mini Game/);
   assert.doesNotMatch(contentSource, /miniGames/);
+  assert.doesNotMatch(contentSource, /onOpenNews/);
+  assert.match(contentSource, /fillGames\(games\.popular, allGames, 3\)/);
+  assert.match(contentSource, /fillGames\(allGames\.slice\(2\), allGames, 5\)/);
+  assert.match(contentSource, /fillGames\(allGames\.slice\(8\), allGames, 2\)/);
 });
 
-test('mobile source geometry keeps the 428px source canvas, 41.6 percent promotion ratio, and source category rail', () => {
+test('mobile source geometry keeps the source canvas, promotion ratio and featured online layout', () => {
   assert.match(shellCss, /max-width:\s*428px/);
   assert.match(shellCss, /padding-bottom:\s*41\.6%/);
   assert.match(shellCss, /grid-template-columns:\s*64px minmax\(0, 1fr\)/);
   assert.match(shellCss, /width:\s*55px/);
   assert.match(contentCss, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(contentCss, /calc\(\(100% - 12px\) \/ 3\)/);
+  assert.match(parityCss, /data-featured-first='true'/);
+  assert.match(parityCss, /grid-column:\s*1 \/ -1/);
+  assert.match(parityCss, /object-fit:\s*contain/);
 });
