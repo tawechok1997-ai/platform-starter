@@ -229,6 +229,37 @@
     height: 12px;
   }
 
+  .member-mobile-source-menu__summary {
+    display: grid;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 0 12px;
+    padding: 11px 12px;
+    gap: 4px;
+    overflow: hidden;
+    border: 1px solid rgb(187 91 234 / 28%);
+    border-radius: 9px;
+    background: rgb(187 91 234 / 10%);
+  }
+
+  .member-mobile-source-menu__summary strong {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .member-mobile-source-menu__summary span {
+    color: #d9a8f0;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+
   .member-mobile-source-menu .public-member-menu-grid.member-mobile-source-menu__primary {
     display: flex !important;
     box-sizing: border-box !important;
