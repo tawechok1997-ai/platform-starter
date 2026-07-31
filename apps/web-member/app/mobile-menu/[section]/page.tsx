@@ -50,12 +50,13 @@ const SOURCES: Record<string, string> = {
   flagMm: '/images/flags/mm.svg',
 };
 
-export default function MobileMenuSectionPage({
-  params,
-}: {
-  params: { section: string };
-}) {
-  if (!SECTIONS.has(params.section as MobileReferenceSection)) notFound();
+type MobileMenuSectionPageProps = {
+  params: Promise<{ section: string }>;
+};
+
+export default async function MobileMenuSectionPage({ params }: MobileMenuSectionPageProps) {
+  const { section } = await params;
+  if (!SECTIONS.has(section as MobileReferenceSection)) notFound();
 
   const assets = Object.fromEntries(
     Object.entries(SOURCES).map(([key, source]) => [key, resolveExactAsset(source)]),
@@ -63,7 +64,7 @@ export default function MobileMenuSectionPage({
 
   return (
     <MobileReferencePage
-      section={params.section as MobileReferenceSection}
+      section={section as MobileReferenceSection}
       assets={assets}
     />
   );
