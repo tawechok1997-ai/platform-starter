@@ -7,8 +7,13 @@ const ANNOUNCEMENT_VIEWPORT_SELECTOR = '[data-mobile-announcement-viewport="true
 const ANNOUNCEMENT_TRACK_SELECTOR = '[data-mobile-announcement-track="true"]';
 const ANNOUNCEMENT_SET_SELECTOR = '[data-mobile-announcement-set="true"]';
 const ANNOUNCEMENT_SPEED_PX_PER_SECOND = 42;
+const REDUCED_MOTION_SPEED_PX_PER_SECOND = 18;
 
-export default function MobileHomeMotionRuntime() {
+type MobileHomeMotionRuntimeProps = {
+  contentVersion: string;
+};
+
+export default function MobileHomeMotionRuntime({ contentVersion }: MobileHomeMotionRuntimeProps) {
   useEffect(() => {
     const cleanups: Array<() => void> = [];
 
@@ -21,7 +26,7 @@ export default function MobileHomeMotionRuntime() {
     return () => {
       cleanups.reverse().forEach((cleanup) => cleanup());
     };
-  }, []);
+  }, [contentVersion]);
 
   return null;
 }
@@ -153,28 +158,48 @@ function startAnnouncementTicker(viewport: HTMLElement) {
 
   const previousAnimation = track.style.animation;
   const previousTransform = track.style.transform;
+  const previousWillChange = track.style.willChange;
   const previousOverflowX = viewport.style.overflowX;
   const previousScrollBehavior = viewport.style.scrollBehavior;
   const previousMinWidths = sets.map((set) => set.style.minWidth);
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const speed = reducedMotion
+    ? REDUCED_MOTION_SPEED_PX_PER_SECOND
+    : ANNOUNCEMENT_SPEED_PX_PER_SECOND;
   let animationFrame = 0;
   let previousTime = performance.now();
-  let paused = document.hidden || reducedMotion;
+  let paused = document.hidden;
+  let loopWidth = 0;
+  let offset = 0;
+  let active = true;
 
   track.style.animation = 'none';
-  track.style.transform = 'none';
+  track.style.transform = 'translate3d(0, 0, 0)';
+  track.style.willChange = 'transform';
   viewport.style.overflowX = 'hidden';
   viewport.style.scrollBehavior = 'auto';
   viewport.scrollLeft = 0;
 
+  const paint = () => {
+    track.style.transform = `translate3d(-${offset.toFixed(3)}px, 0, 0)`;
+  };
+
   const syncSetWidths = () => {
+    if (!active) return;
+
     const viewportWidth = Math.max(1, viewport.clientWidth);
     sets.forEach((set) => {
       set.style.minWidth = `${viewportWidth}px`;
     });
+
+    loopWidth = Math.max(viewportWidth, sets[0]?.getBoundingClientRect().width ?? 0);
+    if (loopWidth > 0 && offset >= loopWidth) offset %= loopWidth;
+    paint();
   };
 
   syncSetWidths();
+  window.requestAnimationFrame(syncSetWidths);
+  void document.fonts?.ready.then(syncSetWidths);
 
   const resizeObserver = typeof ResizeObserver === 'undefined'
     ? null
@@ -182,7 +207,7 @@ function startAnnouncementTicker(viewport: HTMLElement) {
   resizeObserver?.observe(viewport);
 
   const onVisibilityChange = () => {
-    paused = document.hidden || reducedMotion;
+    paused = document.hidden;
     previousTime = performance.now();
   };
 
@@ -190,13 +215,9 @@ function startAnnouncementTicker(viewport: HTMLElement) {
     const elapsed = Math.min(64, Math.max(0, time - previousTime));
     previousTime = time;
 
-    if (!paused) {
-      viewport.scrollLeft += (ANNOUNCEMENT_SPEED_PX_PER_SECOND * elapsed) / 1000;
-      const loopWidth = sets[0]?.getBoundingClientRect().width ?? 0;
-
-      if (loopWidth > 0 && viewport.scrollLeft >= loopWidth) {
-        viewport.scrollLeft -= loopWidth;
-      }
+    if (!paused && loopWidth > 0) {
+      offset = (offset + (speed * elapsed) / 1000) % loopWidth;
+      paint();
     }
 
     animationFrame = window.requestAnimationFrame(tick);
@@ -206,11 +227,13 @@ function startAnnouncementTicker(viewport: HTMLElement) {
   animationFrame = window.requestAnimationFrame(tick);
 
   return () => {
+    active = false;
     window.cancelAnimationFrame(animationFrame);
     document.removeEventListener('visibilitychange', onVisibilityChange);
     resizeObserver?.disconnect();
     track.style.animation = previousAnimation;
     track.style.transform = previousTransform;
+    track.style.willChange = previousWillChange;
     viewport.style.overflowX = previousOverflowX;
     viewport.style.scrollBehavior = previousScrollBehavior;
     viewport.scrollLeft = 0;
