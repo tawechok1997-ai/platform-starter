@@ -1,6 +1,10 @@
 @media (max-width: 900px) {
-  :global(html body #member-desktop-scale-shell #member-desktop-scale-canvas .public-home-topbar.global-member-topbar.public-home-topbar),
-  :global(html body #member-desktop-scale-shell #member-desktop-scale-canvas .member-desktop-nav.member-desktop-nav--guest) {
+  .root:global(.public-mobile-source-header)
+    ~ :global(#member-desktop-scale-shell)
+    :global(.public-home-topbar.global-member-topbar.public-home-topbar),
+  .root:global(.public-mobile-source-header)
+    ~ :global(#member-desktop-scale-shell)
+    :global(.member-desktop-nav.member-desktop-nav--guest) {
     display: none !important;
     width: 0 !important;
     height: 0 !important;
@@ -11,19 +15,6 @@
     visibility: hidden !important;
     pointer-events: none !important;
   }
-}
-
-:global(html[data-member-viewport-mode='mobile'] .public-home-topbar.global-member-topbar),
-:global(html[data-member-viewport-mode='mobile'] .member-desktop-nav.member-desktop-nav--guest) {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
 }
 
 .root:global(.public-mobile-source-header) {
