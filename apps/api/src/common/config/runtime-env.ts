@@ -93,10 +93,11 @@ export function validateRuntimeEnvironment(env: NodeJS.ProcessEnv = process.env)
     if (!Number.isInteger(parsed) || parsed <= 0) failures.push(`${key} must be a positive integer`);
   }
 
-  const storageDriver = env.STORAGE_DRIVER?.trim().toLowerCase() || 'local';
+  const configuredStorageDriver = env.STORAGE_DRIVER?.trim().toLowerCase();
+  const storageDriver = configuredStorageDriver || 'local';
   if (!['local', 's3'].includes(storageDriver)) failures.push('STORAGE_DRIVER must be local or s3');
-  if (storageDriver === 'local' && !env.STORAGE_LOCAL_ROOT?.trim()) {
-    failures.push('STORAGE_LOCAL_ROOT is required when STORAGE_DRIVER=local');
+  if (storageDriver === 'local' && production && !env.STORAGE_LOCAL_ROOT?.trim()) {
+    failures.push('STORAGE_LOCAL_ROOT is required when STORAGE_DRIVER=local in production');
   }
   if (storageDriver === 's3') {
     for (const key of ['S3_ENDPOINT', 'S3_REGION', 'S3_BUCKET', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'] as const) {
