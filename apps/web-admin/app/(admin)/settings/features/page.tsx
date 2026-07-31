@@ -5,7 +5,7 @@ export default function FeaturesSettingsPage() {
     <SettingsSectionPage
       group="features"
       title="การเปิดปิดฟีเจอร์"
-      description="ควบคุมความสามารถฝั่ง Member โดยไม่ต้อง deploy ใหม่ พร้อม confirmation ก่อนเปลี่ยนบริการสำคัญ"
+      description="ควบคุมความสามารถและส่วนประกอบหน้า Member จากจุดเดียว ทั้ง Desktop และ Mobile โดยไม่ต้อง deploy ใหม่"
       preview="features"
       risk="sensitive"
       fields={[
@@ -18,6 +18,7 @@ export default function FeaturesSettingsPage() {
         { key: 'promotion_enabled', label: 'เปิดโปรโมชัน', type: 'checkbox', section: 'การตลาดและรางวัล' },
         { key: 'bonus_enabled', label: 'เปิดโบนัส', type: 'checkbox', section: 'การตลาดและรางวัล' },
         { key: 'event_enabled', label: 'เปิดกิจกรรม', type: 'checkbox', section: 'การตลาดและรางวัล' },
+        { key: 'news_enabled', label: 'เปิดข่าวสาร', type: 'checkbox', section: 'การตลาดและรางวัล', helper: 'ควบคุม Quick Action และรายการข่าวทั้ง Desktop/Mobile' },
         { key: 'vip_enabled', label: 'เปิด VIP', type: 'checkbox', section: 'การตลาดและรางวัล' },
         { key: 'referral_enabled', label: 'เปิด Referral', type: 'checkbox', section: 'การตลาดและรางวัล' },
         { key: 'coupon_enabled', label: 'เปิด Coupon', type: 'checkbox', section: 'การตลาดและรางวัล' },
@@ -27,6 +28,31 @@ export default function FeaturesSettingsPage() {
         { key: 'support_enabled', label: 'เปิดศูนย์ช่วยเหลือ', type: 'checkbox', section: 'บริการสมาชิก' },
         { key: 'notification_enabled', label: 'เปิดศูนย์แจ้งเตือน', type: 'checkbox', section: 'บริการสมาชิก' },
         { key: 'articles_enabled', label: 'เปิด SEO / Articles', type: 'checkbox', section: 'เนื้อหา' },
+        { key: 'hero_enabled', label: 'แสดง Hero Banner', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile', helper: 'ซ่อนหรือแสดง Hero พร้อมกันทั้งสองหน้าจอ' },
+        { key: 'announcement_enabled', label: 'แสดงแถบประกาศ', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile', helper: 'ใช้ประกาศระบบจาก Content Center ชุดเดียวกัน' },
+        { key: 'tournament_enabled', label: 'แสดง Tournament', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
+        { key: 'jackpot_enabled', label: 'แสดง Jackpot', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
+        { key: 'leaderboard_enabled', label: 'แสดง Leaderboard', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
+        { key: 'mini_games_enabled', label: 'แสดง Mini Game', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
+        { key: 'popular_games_enabled', label: 'แสดงเกมยอดนิยม', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
+        { key: 'online_games_enabled', label: 'แสดงเกมที่กำลังออนไลน์', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
+        { key: 'live_games_enabled', label: 'แสดง Live Now', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
+        { key: 'classic_games_enabled', label: 'แสดง Classic Games', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
+        { key: 'usage_guide_enabled', label: 'แสดงคู่มือการใช้งาน', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
+        { key: 'tournament_title', label: 'ชื่อ Tournament', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 160 },
+        { key: 'tournament_summary', label: 'คำอธิบาย Tournament', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 240 },
+        { key: 'tournament_image_url', label: 'รูป Tournament', type: 'url', section: 'ข้อความหน้าแรกกลาง', asset: true },
+        { key: 'jackpot_title', label: 'ชื่อ Jackpot', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 80 },
+        { key: 'jackpot_amount', label: 'ตัวเลข Jackpot', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 40 },
+        { key: 'jackpot_subtitle', label: 'คำอธิบาย Jackpot', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 120 },
+        { key: 'jackpot_image_url', label: 'รูป Jackpot', type: 'url', section: 'ข้อความหน้าแรกกลาง', asset: true },
+        { key: 'leaderboard_title', label: 'ชื่อ Leaderboard', type: 'text', section: 'ข้อความหน้าแรกกลาง', maxLength: 80 },
+        { key: 'featured_title', label: 'ชื่อส่วนเกมไฮไลท์', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
+        { key: 'popular_title', label: 'ชื่อส่วนเกมยอดนิยม', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
+        { key: 'online_title', label: 'ชื่อส่วนเกมออนไลน์', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
+        { key: 'live_title', label: 'ชื่อส่วน Live', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
+        { key: 'classic_title', label: 'ชื่อส่วน Classic', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
+        { key: 'guide_title', label: 'ชื่อส่วนคู่มือ', type: 'text', section: 'ชื่อ Section เกมกลาง', maxLength: 80 },
       ]}
     />
   );
