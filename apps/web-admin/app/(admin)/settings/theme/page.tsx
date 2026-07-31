@@ -1,5 +1,32 @@
 import SettingsSectionPage from '../settings-section-page';
 
+const THEME_DEFAULTS = {
+  animation_level: 'subtle',
+  card_radius: '18px',
+  control_radius: '12px',
+  modal_radius: '22px',
+  section_gap_desktop: '24px',
+  section_gap_mobile: '16px',
+  card_gap_desktop: '14px',
+  card_gap_mobile: '10px',
+  game_grid_columns: 6,
+  hero_banner_enabled: true,
+  provider_menu_enabled: true,
+  show_promotion_banner: true,
+  show_game_categories: true,
+  show_popular_providers: true,
+  show_recommended_games: true,
+  bottom_navigation_enabled: true,
+  desktop_sidebar_enabled: true,
+  sticky_wallet_enabled: true,
+  floating_deposit_button_enabled: true,
+  show_balance_header: true,
+  show_deposit_withdraw_buttons: true,
+  show_provider_name: true,
+  show_hot_badge: true,
+  show_new_badge: true,
+};
+
 export default function ThemeSettingsPage() {
   return (
     <SettingsSectionPage
@@ -7,6 +34,7 @@ export default function ThemeSettingsPage() {
       title="ธีมและการจัดวาง"
       description="ควบคุมโครงหน้าสมาชิก การนำทาง ระยะห่าง รูปทรง และระดับ motion จากจุดเดียวทั้ง Desktop และ Mobile"
       preview="theme"
+      defaults={THEME_DEFAULTS}
       fields={[
         { key: 'animation_level', label: 'ระดับ Animation', type: 'select', section: 'Motion และการตอบสนอง', required: true, options: [{ value: 'off', label: 'ปิด' }, { value: 'subtle', label: 'นุ่มนวล' }, { value: 'lively', label: 'มีชีวิตชีวา' }], helper: 'เลือกระดับ motion ที่ใช้กับหน้า Member ทั้งระบบ' },
         { key: 'card_radius', label: 'ความโค้งการ์ด', type: 'text', section: 'Design Tokens กลาง', placeholder: '18px', helper: 'รองรับ px, rem, em หรือ %' },
