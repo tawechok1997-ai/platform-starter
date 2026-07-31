@@ -176,6 +176,8 @@ function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
   }, []);
 
   if (viewport === null) return null;
+  if (viewport === 'mobile' && typeof window !== 'undefined' && window.location.pathname === '/') return null;
+
   return viewport === 'mobile'
     ? <MobileSourceFooter />
     : <DesktopMemberFooter settings={settings} />;
