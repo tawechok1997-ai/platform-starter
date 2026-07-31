@@ -12,6 +12,8 @@ import {
 } from 'react';
 import { useMemberLocale } from './member-locale-provider';
 import { memberApiFetch } from './member-api';
+import { buildMemberHomeDataRuntime, type MemberHomeDataRuntime } from './member-home-data-runtime';
+import { buildConfiguredMemberNavigation } from './member-navigation-runtime';
 import { useMemberSession } from './member-session-provider';
 import { useSiteSettings } from './site-settings-provider';
 import { usePendingCount } from './hooks/use-pending-count';
@@ -20,7 +22,6 @@ import {
   buildMemberGameSections,
   buildMemberHomeContentRuntime,
   buildMemberIconRuntime,
-  buildMemberNavigationRuntime,
   buildMemberSummaryRuntime,
   buildMemberThemeRuntime,
   memberThemeCssVariables,
@@ -30,6 +31,7 @@ import {
 } from './member-runtime-contract';
 
 export type MemberRuntimeContextValue = MemberRuntimeSnapshot & {
+  homeData: MemberHomeDataRuntime;
   profile: MemberRuntimeProfile | null;
   profileLoading: boolean;
   reloadProfile: () => Promise<void>;
@@ -60,12 +62,16 @@ export function MemberRuntimeProvider({ children }: { children: ReactNode }) {
   const theme = useMemo(() => buildMemberThemeRuntime(typedSettings), [typedSettings]);
   const icons = useMemo(() => buildMemberIconRuntime(typedSettings, content), [content, typedSettings]);
   const navigation = useMemo(
-    () => buildMemberNavigationRuntime(locale, features, icons),
-    [features, icons, locale],
+    () => buildConfiguredMemberNavigation(typedSettings, locale, features, icons),
+    [features, icons, locale, typedSettings],
   );
   const home = useMemo(
     () => buildMemberHomeContentRuntime(typedSettings, content, locale, icons, features),
     [content, features, icons, locale, typedSettings],
+  );
+  const homeData = useMemo(
+    () => buildMemberHomeDataRuntime(typedSettings, home),
+    [home, typedSettings],
   );
   const gameSections = useMemo(
     () => buildMemberGameSections(home, icons, features),
@@ -154,6 +160,7 @@ export function MemberRuntimeProvider({ children }: { children: ReactNode }) {
     features,
     theme,
     home,
+    homeData,
     gameSections,
     summary,
     profile,
@@ -164,6 +171,7 @@ export function MemberRuntimeProvider({ children }: { children: ReactNode }) {
     features,
     gameSections,
     home,
+    homeData,
     icons,
     navigation,
     profile,
