@@ -1,0 +1,38 @@
+name: Normalize Generated Catalogs Once
+
+on:
+  push:
+    branches:
+      - agent/project-hardening-handoff-readiness
+    paths:
+      - '.github/workflows/normalize-generated-catalogs-once.yml'
+      - 'tools/normalize-provider-simulator-generated-catalogs.mjs'
+      - 'apps/api/src/modules/provider-simulator/provider-simulator-lobby-catalog-part-*.generated.ts'
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/project-hardening-handoff-readiness
+          fetch-depth: 0
+
+      - name: Normalize generated catalog headers
+        run: node tools/normalize-provider-simulator-generated-catalogs.mjs --write
+
+      - name: Commit normalized source when needed
+        run: |
+          if git diff --quiet -- apps/api/src/modules/provider-simulator/provider-simulator-lobby-catalog-part-*.generated.ts; then
+            echo 'Generated catalog source is already normalized.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/api/src/modules/provider-simulator/provider-simulator-lobby-catalog-part-*.generated.ts
+          git commit -m 'chore(generated): normalize provider catalog headers'
+          git push origin HEAD:agent/project-hardening-handoff-readiness
