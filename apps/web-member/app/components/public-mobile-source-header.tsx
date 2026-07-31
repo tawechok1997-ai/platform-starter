@@ -15,7 +15,7 @@ import {
   sourceAssetFileName,
 } from './member-home/mobile-source-asset-map';
 import { V47_ASSETS } from './member-home/v47-asset-map';
-import './public-mobile-source-header-correction.module.css';
+import correctionStyles from './public-mobile-source-header-correction.module.css';
 
 const STANDALONE_PUBLIC_PREFIXES = ['/clone-preview', '/login', '/register', '/maintenance', '/session-expired'];
 const ASSET_BASE = '/assets/asset-pc/images';
@@ -134,7 +134,7 @@ export default function PublicMobileSourceHeader() {
 
   return (
     <>
-      <header className="public-mobile-source-header" data-locale={locale}>
+      <header className={`public-mobile-source-header ${correctionStyles.root}`} data-locale={locale}>
         <div className="public-mobile-source-header__inner">
           <button
             type="button"
