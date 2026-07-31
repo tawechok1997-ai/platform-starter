@@ -7,6 +7,7 @@ import type { TypedPublicSiteSettings } from './site-settings-types';
 import mobileFooterStyles from './member-footer-mobile-match.module.css';
 
 const SOURCE_ROOT = '/assets/asset-pc/images';
+const MOBILE_CDN_ROOT = 'https://cdn.zabbet.com/FEZX';
 
 const GAME_LINKS = [
   ['casino', '/browse/games?category=casino'],
@@ -83,19 +84,19 @@ const MOBILE_BANKS = [
   'GSB',
   'GHB',
   'TMN',
-].map((name) => ({ name, url: `/images/banks/TH/${name}.webp` }));
+].map((name) => ({ name, url: `${MOBILE_CDN_ROOT}/banks/TH/${name}.webp` }));
 
 const MOBILE_LICENSE_BADGES = [
-  ['BMM Testlabs', '/images/footer/Bmm.webp'],
-  ['iTech Labs', '/images/footer/iTech.webp'],
-  ['Iovation', '/images/footer/Iovation.webp'],
-  ['Gaming Labs', '/images/footer/GamingLab.webp'],
-  ['GC', '/images/footer/GC-icon 2.webp'],
+  ['BMM Testlabs', `${MOBILE_CDN_ROOT}/footer/BBM-Cert.webp`],
+  ['iTech Labs', `${MOBILE_CDN_ROOT}/footer/iTech.webp`],
+  ['Iovation', `${MOBILE_CDN_ROOT}/footer/Iovation.webp`],
+  ['Gaming Labs', `${MOBILE_CDN_ROOT}/footer/GamingLab.webp`],
+  ['GC', `${MOBILE_CDN_ROOT}/footer/GC-icon%202.webp`],
 ] as const;
 
 const MOBILE_SECURITY_BADGES = [
-  ['GoDaddy', '/images/footer/GO DADDY.webp'],
-  ['Security Group', '/images/footer/Group 48102721.webp'],
+  ['GoDaddy', `${MOBILE_CDN_ROOT}/footer/GO%20DADDY.webp`],
+  ['Security Group', `${MOBILE_CDN_ROOT}/footer/Group%2048102721.webp`],
 ] as const;
 
 const FOOTER_COPY = {
@@ -286,14 +287,14 @@ function MobileSourceFooter() {
             rel="noopener noreferrer"
             aria-label="ติดต่อเราผ่าน LINE"
           >
-            <img src="/images/line.png" alt="LINE" loading="lazy" onError={hideBrokenImage} />
+            <img src={`${MOBILE_CDN_ROOT}/line.png`} alt="LINE" loading="lazy" onError={hideBrokenImage} />
           </a>
         </section>
 
         <section className={mobileFooterStyles.responsible}>
           <strong>รับผิดชอบในการเดิมพัน</strong>
           <img
-            src="/images/footer/GAME CARE.webp"
+            src={`${MOBILE_CDN_ROOT}/footer/gamecare.webp`}
             alt="Game Care"
             loading="lazy"
             onError={hideBrokenImage}
