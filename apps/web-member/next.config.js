@@ -2,21 +2,32 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
 
+const isProduction = process.env.NODE_ENV === 'production';
+const apiOrigin = safeOrigin(process.env.NEXT_PUBLIC_API_URL);
+const developmentConnections = isProduction ? [] : ['http:', 'ws:'];
+const scriptDevelopment = isProduction ? [] : ["'unsafe-eval'"];
+const antiBotScripts = [
+  'https://challenges.cloudflare.com',
+  'https://www.google.com',
+  'https://www.gstatic.com',
+  'https://js.hcaptcha.com',
+  'https://*.hcaptcha.com',
+];
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  ["script-src 'self' 'unsafe-inline'", ...scriptDevelopment, ...antiBotScripts].join(' '),
   "style-src 'self' 'unsafe-inline' https:",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
-  "connect-src 'self' https: wss:",
+  ["connect-src 'self' https: wss:", ...developmentConnections, ...(apiOrigin ? [apiOrigin] : [])].join(' '),
   "media-src 'self' blob: https:",
   "worker-src 'self' blob:",
-  "frame-src 'self' https:",
-  'upgrade-insecure-requests',
+  ["frame-src 'self'", ...antiBotScripts].join(' '),
 ].join('; ');
 
 const securityHeaders = [
@@ -57,5 +68,15 @@ const nextConfig = {
     ],
   },
 };
+
+function safeOrigin(value) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) ? url.origin : null;
+  } catch {
+    return null;
+  }
+}
 
 module.exports = withBundleAnalyzer(nextConfig);
