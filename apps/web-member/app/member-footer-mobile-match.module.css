@@ -1,5 +1,5 @@
 @media (max-width: 900px) {
-  :global(.member-footer.member-footer--shared) {
+  .root:global(.member-footer.member-footer--shared) {
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -7,9 +7,9 @@
     background: linear-gradient(#13101a 0%, #171422 100%) !important;
   }
 
-  :global(.member-footer__main),
-  :global(.member-footer__payments),
-  :global(.member-footer__copyright) {
+  .root :global(.member-footer__main),
+  .root :global(.member-footer__payments),
+  .root :global(.member-footer__copyright) {
     width: calc(100% - 24px) !important;
     max-width: 640px !important;
     margin-right: auto !important;
@@ -17,7 +17,7 @@
     box-sizing: border-box !important;
   }
 
-  :global(.member-footer__main) {
+  .root :global(.member-footer__main) {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
     grid-auto-flow: row !important;
@@ -26,19 +26,19 @@
     padding: 30px 0 0 !important;
   }
 
-  :global(.member-footer__about),
-  :global(.member-footer__trust),
-  :global(.member-footer__menus),
-  :global(.member-footer__contact) {
+  .root :global(.member-footer__about),
+  .root :global(.member-footer__trust),
+  .root :global(.member-footer__menus),
+  .root :global(.member-footer__contact) {
     width: 100% !important;
     min-width: 0 !important;
     grid-column: auto !important;
   }
 
-  :global(.member-footer__about h3),
-  :global(.member-footer__trust h3),
-  :global(.member-footer__menus h3),
-  :global(.member-footer__contact h3) {
+  .root :global(.member-footer__about h3),
+  .root :global(.member-footer__trust h3),
+  .root :global(.member-footer__menus h3),
+  .root :global(.member-footer__contact h3) {
     margin: 0 !important;
     color: #7ca9b7 !important;
     font-size: 13px !important;
@@ -46,7 +46,7 @@
     line-height: 1.4 !important;
   }
 
-  :global(.member-footer__about p) {
+  .root :global(.member-footer__about p) {
     margin: 10px 0 0 !important;
     color: #b8b8b8 !important;
     font-size: 12px !important;
@@ -55,7 +55,7 @@
     white-space: pre-line !important;
   }
 
-  :global(.member-footer__trust-row) {
+  .root :global(.member-footer__trust-row) {
     display: flex !important;
     align-items: center !important;
     flex-wrap: wrap !important;
@@ -64,7 +64,7 @@
     margin-top: 10px !important;
   }
 
-  :global(.member-footer__trust-badge) {
+  .root :global(.member-footer__trust-badge) {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -75,7 +75,7 @@
     background: transparent !important;
   }
 
-  :global(.member-footer__trust-badge img) {
+  .root :global(.member-footer__trust-badge img) {
     display: block !important;
     width: auto !important;
     max-width: 84px !important;
@@ -84,28 +84,28 @@
     object-fit: contain !important;
   }
 
-  :global(.member-footer__trust-groups) {
+  .root :global(.member-footer__trust-groups) {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
     gap: 18px !important;
     margin-top: 24px !important;
   }
 
-  :global(.member-footer__menus) {
+  .root :global(.member-footer__menus) {
     display: grid !important;
     width: 100% !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 24px !important;
   }
 
-  :global(.member-footer__links) {
+  .root :global(.member-footer__links) {
     display: flex !important;
     min-width: 0 !important;
     flex-direction: column !important;
     gap: 10px !important;
   }
 
-  :global(.member-footer__links a) {
+  .root :global(.member-footer__links a) {
     color: #b8b8b8 !important;
     font-size: 12px !important;
     font-weight: 400 !important;
@@ -114,26 +114,26 @@
     white-space: normal !important;
   }
 
-  :global(.member-footer__contact-line) {
+  .root :global(.member-footer__contact-line) {
     display: inline-flex !important;
     align-items: center !important;
     margin-top: 10px !important;
   }
 
-  :global(.member-footer__contact-line img) {
+  .root :global(.member-footer__contact-line img) {
     display: block !important;
     width: auto !important;
     height: 32px !important;
     max-height: 32px !important;
   }
 
-  :global(.member-footer__payments) {
+  .root :global(.member-footer__payments) {
     margin-top: 26px !important;
     padding: 20px 0 0 !important;
     border-top: 1px solid #2a1b31 !important;
   }
 
-  :global(.member-footer__payments h3) {
+  .root :global(.member-footer__payments h3) {
     margin: 0 !important;
     color: #a400d1 !important;
     font-size: 12px !important;
@@ -142,7 +142,7 @@
     opacity: .85 !important;
   }
 
-  :global(.member-footer__bank-grid) {
+  .root :global(.member-footer__bank-grid) {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -151,7 +151,7 @@
     margin-top: 12px !important;
   }
 
-  :global(.member-footer__bank) {
+  .root :global(.member-footer__bank) {
     display: inline-flex !important;
     width: auto !important;
     min-width: 0 !important;
@@ -162,7 +162,7 @@
     background: transparent !important;
   }
 
-  :global(.member-footer__bank img) {
+  .root :global(.member-footer__bank img) {
     display: block !important;
     width: auto !important;
     height: 28px !important;
@@ -172,7 +172,7 @@
     filter: brightness(.78) !important;
   }
 
-  :global(.member-footer__copyright) {
+  .root :global(.member-footer__copyright) {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
@@ -185,7 +185,7 @@
     line-height: 1.45 !important;
   }
 
-  :global(.member-footer__copyright-logo) {
+  .root :global(.member-footer__copyright-logo) {
     display: block !important;
     width: auto !important;
     max-width: 88px !important;
