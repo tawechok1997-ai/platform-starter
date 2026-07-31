@@ -1,0 +1,412 @@
+:global([data-mobile-home-root='true'][data-mobile-authenticated='true'] #mobile-home-drawer) {
+  width: min(340px, calc(100vw - 20px)) !important;
+  padding: 20px 23px 28px !important;
+}
+
+:global([data-mobile-authenticated-drawer-top='true']) {
+  min-height: 20px !important;
+  margin-bottom: 0 !important;
+  justify-content: flex-end !important;
+}
+
+:global([data-mobile-authenticated-drawer-top='true'] > img) {
+  display: none !important;
+}
+
+.headerSearch {
+  position: absolute;
+  top: 14px;
+  left: 52px;
+  z-index: 2;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border-radius: 10px;
+  color: #bb5bea;
+  background: #373147;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.headerSearch svg {
+  width: 18px;
+  height: 18px;
+}
+
+.headerWallet {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  min-width: 86px;
+  height: 35px;
+  padding: 2px 8px 2px 2px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  overflow: visible;
+  border-radius: 4px;
+  color: #fff;
+  background: #373147;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.headerWallet img {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  object-fit: contain;
+}
+
+.headerWallet span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: .12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawerAccount {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.profileRow {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+}
+
+.avatar {
+  display: block;
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #251f31;
+}
+
+.profileDetails {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 3px;
+}
+
+.vipBadge {
+  position: relative;
+  display: flex;
+  width: max-content;
+  max-width: calc(100% - 12px);
+  height: 20px;
+  margin-left: 12px;
+  padding: 1px;
+  align-items: center;
+  border-radius: 10px;
+  background-color: #ff9463;
+  background-image: linear-gradient(rgb(255 255 255 / 50%), rgb(255 255 255 / 0%));
+}
+
+.vipBadge > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 1px 10px 0 22px;
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: #ff9463;
+  background-image: radial-gradient(at center top, rgb(255 255 255 / 20%) 20%, rgb(0 0 0 / 30%) 70%, rgb(0 0 0 / 25%) 100%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vipBadge img {
+  position: absolute;
+  left: -12px;
+  width: 30px;
+  height: 25px;
+  object-fit: contain;
+}
+
+.memberNameRow {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.memberNameRow strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memberNameRow a {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: #9100b1;
+  text-decoration: none;
+}
+
+.memberNameRow svg {
+  width: 11px;
+  height: 11px;
+}
+
+.accountLine {
+  display: flex;
+  min-width: 0;
+  min-height: 20px;
+  align-items: center;
+  gap: 5px;
+  color: #fff;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.accountLine img {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border-radius: 999px;
+  object-fit: contain;
+}
+
+.accountLine span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moneyActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.moneyActions a {
+  display: flex;
+  min-width: 0;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #8b00ab;
+  border-radius: 7px;
+  color: #fff;
+  background: linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 22px;
+  text-decoration: none;
+}
+
+.moneyActions i {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 7px;
+  color: #dca8f3;
+  background: #251f34;
+  font-size: 16px;
+  font-style: normal;
+}
+
+.incomePanel {
+  position: relative;
+  display: grid;
+  min-height: 48px;
+  padding: 4px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  border: 1px solid #8b00ab;
+  border-radius: 7px;
+  background: linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%);
+}
+
+.incomePanel::after {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 50%;
+  width: 1px;
+  background: #8b00ab;
+  content: '';
+}
+
+.incomeItem {
+  display: grid;
+  min-width: 0;
+  padding: 2px 6px;
+  grid-template-columns: 22px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 4px;
+}
+
+.incomeIcon {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 7px;
+  color: #dca8f3;
+  background: #251f34;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.incomeCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.incomeCopy span {
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.incomeCopy strong {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.incomeArrow {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  color: #8800c1;
+  background: #251f34;
+  font-size: 13px;
+}
+
+.referralRow {
+  display: grid;
+  min-height: 34px;
+  padding: 7px 8px;
+  grid-template-columns: auto minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #8b00ab;
+  border-radius: 7px;
+  color: #fff;
+  background: linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%);
+  text-decoration: none;
+}
+
+.referralRow strong {
+  font-size: 10px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.referralRow span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.referralRow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.logoutButton {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  height: 48px;
+  margin-top: 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #373540;
+  border-radius: 6px;
+  color: rgb(255 255 255 / 70%);
+  background: #15131a;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.logoutButton svg {
+  width: 20px;
+  height: 20px;
+  opacity: .7;
+}
+
+@media (max-width: 359px) {
+  .headerSearch {
+    left: 46px;
+  }
+
+  .headerWallet {
+    right: 6px;
+    min-width: 78px;
+    padding-right: 5px;
+  }
+
+  .headerWallet img {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+  }
+
+  .profileRow {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .incomeItem {
+    padding-inline: 3px;
+    grid-template-columns: 18px minmax(0, 1fr) 18px;
+  }
+
+  .incomeIcon {
+    width: 18px;
+    height: 18px;
+  }
+}
