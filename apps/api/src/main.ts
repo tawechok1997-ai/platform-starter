@@ -10,7 +10,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SensitiveResponseInterceptor } from './common/interceptors/sensitive-response.interceptor';
 import { recordHttpMetric } from './common/observability/runtime-metrics';
 import { buildStructuredLogRecord } from './common/observability/structured-log';
-import { toSafeLogRecord } from './common/security/sensitive-log-redactor';
+import { redactSensitiveUrl, toSafeLogRecord } from './common/security/sensitive-log-redactor';
 
 type RateBucket = { count: number; resetAt: number };
 type RateRule = {
@@ -126,17 +126,17 @@ async function bootstrap() {
     const startedAt = Date.now();
     res.on('finish', () => {
       const duration = Date.now() - startedAt;
-      const record = buildStructuredLogRecord({
+      const record = toSafeLogRecord(buildStructuredLogRecord({
         event: 'http_request',
         requestId: req.requestId,
         method: req.method,
-        path: req.originalUrl ?? req.url ?? '',
+        path: redactSensitiveUrl(req.originalUrl ?? req.url ?? ''),
         statusCode: res.statusCode,
         durationMs: duration,
         ip: getClientIp(req),
         userAgent: req.headers?.['user-agent'] ?? null,
         actor: req.user,
-      });
+      }));
       recordHttpMetric(record);
       console.log(JSON.stringify(record));
     });
