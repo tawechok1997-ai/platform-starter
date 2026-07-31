@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useMemberLocale } from '../member-locale-provider';
 import { isMemberNavigationActive } from '../member-navigation-active';
 import { useMemberRuntime } from '../member-runtime-provider';
@@ -15,6 +15,14 @@ import { V47_ASSETS } from './member-home/v47-asset-map';
 const STANDALONE_PUBLIC_PREFIXES = ['/clone-preview', '/login', '/register', '/maintenance', '/session-expired'];
 
 export default function PublicMobileSourceHeader() {
+  return (
+    <Suspense fallback={null}>
+      <PublicMobileSourceHeaderInner />
+    </Suspense>
+  );
+}
+
+function PublicMobileSourceHeaderInner() {
   const pathname = usePathname() ?? '/';
   const searchParams = useSearchParams();
   const { locale } = useMemberLocale();
