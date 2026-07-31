@@ -28,7 +28,7 @@ async function removeBetween(path, startMarker, endMarker) {
   updated.push(path);
 }
 
-const activePnpmFiles = execFileSync('git', ['grep', '-FIl', '11.13.0', '--', '.'], {
+const activePnpmFiles = execFileSync('git', ['grep', '-FIl', '11.18.0', '--', '.'], {
   cwd: root,
   encoding: 'utf8',
   stdio: ['ignore', 'pipe', 'inherit'],
@@ -42,7 +42,7 @@ const activePnpmFiles = execFileSync('git', ['grep', '-FIl', '11.13.0', '--', '.
   );
 
 for (const path of activePnpmFiles) {
-  await replaceAll(path, '11.13.0', '11.18.0');
+  await replaceAll(path, '11.18.0', '11.18.0');
 }
 
 await replaceAll(

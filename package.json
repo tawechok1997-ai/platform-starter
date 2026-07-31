@@ -1,10 +1,10 @@
 {
   "name": "platform-starter",
   "private": true,
-  "packageManager": "pnpm@11.13.0",
+  "packageManager": "pnpm@11.18.0",
   "engines": {
     "node": ">=22 <23",
-    "pnpm": "11.13.0"
+    "pnpm": "11.18.0"
   },
   "scripts": {
     "dev": "turbo dev",

@@ -3,7 +3,7 @@
 The repository uses one supported local and CI runtime contract:
 
 - Node.js `22.x`
-- pnpm `11.13.0`
+- pnpm `11.18.0`
 - Corepack enabled
 
 ## Sources of truth
@@ -21,7 +21,7 @@ These files must remain aligned. Do not update only one runtime declaration.
 
 ```bash
 corepack enable
-corepack prepare pnpm@11.13.0 --activate
+corepack prepare pnpm@11.18.0 --activate
 node --version
 pnpm --version
 pnpm check:runtime
@@ -41,7 +41,7 @@ When `pnpm check:runtime` fails, activate the pinned package manager again:
 
 ```bash
 corepack enable
-corepack prepare pnpm@11.13.0 --activate
+corepack prepare pnpm@11.18.0 --activate
 ```
 
 Then switch to Node 22 using the version manager already installed on the machine.

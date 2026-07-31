@@ -11,13 +11,13 @@ This is the shortest supported path for a new engineer to run, understand and sa
 
 - Node.js 22
 - Corepack
-- pnpm 11.13.0
+- pnpm 11.18.0
 - PostgreSQL 16
 - Redis for distributed rate limiting and shared caches
 
 ```bash
 corepack enable
-corepack prepare pnpm@11.13.0 --activate
+corepack prepare pnpm@11.18.0 --activate
 pnpm install --frozen-lockfile
 cp .env.example .env
 ```

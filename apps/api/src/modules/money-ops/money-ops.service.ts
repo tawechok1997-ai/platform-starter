@@ -29,24 +29,6 @@ export class MoneyOpsService {
     private readonly adminLedgerMutation: AdminLedgerMutationService,
   ) {}
 
-  async financeControlCenter() {
-    const [walletCount, ledgers, failedTransfers, pendingTransfers, mismatchSnapshots, webhookFailed, duplicateWebhooks, openRiskAlerts, recentLedgers, recentTransfers, recentSnapshots, recentAlerts] = await Promise.all([
-      this.prisma.wallet.count(),
-      this.prisma.walletLedger.findMany({ orderBy: { createdAt: 'desc' }, take: 1, select: { id: true } }),
-      this.prisma.gameTransfer.count({ where: { status: 'FAILED' } }),
-      this.prisma.gameTransfer.count({ where: { status: 'PENDING' } }),
-      this.prisma.providerWalletSnapshot.count({ where: { status: { in: ['MISMATCH', 'UNKNOWN'] } } }),
-      this.prisma.webhookLog.count({ where: { status: 'FAILED' } }),
-      this.prisma.webhookLog.count({ where: { status: 'DUPLICATE' } }),
-      this.prisma.riskAlert.count({ where: { status: { in: ['OPEN', 'REVIEWING'] } } }),
-      this.prisma.walletLedger.findMany({ orderBy: { createdAt: 'desc' }, take: 10, include: { user: { select: { id: true, username: true, phone: true } } } }),
-      this.prisma.gameTransfer.findMany({ orderBy: { createdAt: 'desc' }, take: 10, include: { provider: { select: { name: true, code: true } }, user: { select: { username: true, phone: true } } } }),
-      this.prisma.providerWalletSnapshot.findMany({ orderBy: { checkedAt: 'desc' }, take: 10, include: { provider: { select: { name: true, code: true } }, user: { select: { username: true, phone: true } } } }),
-      this.prisma.riskAlert.findMany({ where: { status: { in: ['OPEN', 'REVIEWING'] } }, orderBy: { createdAt: 'desc' }, take: 10 }),
-    ]);
-    return { summary: { walletCount, ledgerActivity: ledgers.length, failedTransfers, pendingTransfers, mismatchSnapshots, webhookFailed, duplicateWebhooks, openRiskAlerts }, queues: { failedTransfers, pendingTransfers, mismatchSnapshots, webhookFailed, duplicateWebhooks, openRiskAlerts }, recent: { ledgers: recentLedgers, transfers: recentTransfers, snapshots: recentSnapshots, alerts: recentAlerts }, realLedgerMutationEnabled: REAL_LEDGER_MUTATION_ENABLED };
-  }
-
   simulateLedgerMutation(body: LedgerDryRunInput) { const parsed = this.parseLedgerInput(body); const balanceBefore = 1000; const balanceAfter = parsed.direction === 'CREDIT' ? balanceBefore + parsed.amount : balanceBefore - parsed.amount; const ok = balanceAfter >= 0; return { ok, dryRun: true, mutation: { ...parsed, amount: parsed.amount.toFixed(2), balanceBefore: balanceBefore.toFixed(2), balanceAfter: balanceAfter.toFixed(2) }, warning: ok ? null : 'Insufficient simulated balance' }; }
   async mutateLedger(actor: AdminActor, meta: RequestMeta, body: LedgerDryRunInput) { if (!REAL_LEDGER_MUTATION_ENABLED) throw new ForbiddenException('REAL_LEDGER_MUTATION_ENABLED is not enabled'); const parsed = this.parseLedgerInput(body); const item = await this.adminLedgerMutation.execute(actor, meta, { userId: parsed.userId, amount: parsed.amount.toFixed(2), direction: parsed.direction, referenceType: parsed.referenceType, referenceId: parsed.referenceId, idempotencyKey: parsed.idempotencyKey, note: parsed.note }); return { ok: true, item, realMutation: true }; }
   async writeAudit(actor: AdminActor, meta: RequestMeta, input: { action: string; module: string; targetId?: string; oldData?: unknown; newData?: unknown }) { const item = await this.prisma.adminAuditLog.create({ data: buildAdminAuditData({ adminUserId: actor.id, action: input.action, module: input.module, targetId: input.targetId, oldData: input.oldData, newData: input.newData, ipAddress: meta.ipAddress, userAgent: meta.userAgent }) }); return { ok: true, item }; }

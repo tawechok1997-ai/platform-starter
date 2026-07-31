@@ -111,7 +111,7 @@ External verification remains under P6. Evidence documents are kept under `docs/
 
 - Node.js 22
 - Corepack enabled
-- pnpm `11.13.0`, matching the root `packageManager` field
+- pnpm `11.18.0`, matching the root `packageManager` field
 - PostgreSQL 16
 - Redis for distributed rate limiting and shared production caches
 
@@ -119,7 +119,7 @@ External verification remains under P6. Evidence documents are kept under `docs/
 
 ```bash
 corepack enable
-corepack prepare pnpm@11.13.0 --activate
+corepack prepare pnpm@11.18.0 --activate
 pnpm install --frozen-lockfile
 cp .env.example .env
 pnpm db:generate
