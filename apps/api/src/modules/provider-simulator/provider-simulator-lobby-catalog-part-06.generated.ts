@@ -1,4 +1,6 @@
-import type { SimulatorGameCatalogItem } from './provider-simulator-catalog';\n\nexport const LOBBY_GAME_CATALOG_PART_06: readonly SimulatorGameCatalogItem[] = [
+import type { SimulatorGameCatalogItem } from './provider-simulator-catalog';
+
+export const LOBBY_GAME_CATALOG_PART_06: readonly SimulatorGameCatalogItem[] = [
   {
     "code": "3784",
     "name": "Crasher",
