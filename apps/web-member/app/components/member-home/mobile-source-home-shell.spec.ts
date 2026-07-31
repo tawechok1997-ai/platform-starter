@@ -12,6 +12,7 @@ const promotionRuntime = readFileSync(new URL('../../member-promotion-runtime.ts
 const headerSource = readFileSync(new URL('../public-mobile-source-header.tsx', import.meta.url), 'utf8');
 const headerCss = readFileSync(new URL('../public-mobile-source-header-correction.module.css', import.meta.url), 'utf8');
 const footerSource = readFileSync(new URL('../../member-footer.tsx', import.meta.url), 'utf8');
+const footerCss = readFileSync(new URL('../../member-footer-mobile-match.module.css', import.meta.url), 'utf8');
 const homeSource = readFileSync(new URL('../../member-home.tsx', import.meta.url), 'utf8');
 
 test('mobile source home loads promotions from the canonical Member promotion runtime', () => {
@@ -76,18 +77,30 @@ test('mobile source auth actions remain visible independently of member session'
   assert.match(shellSource, /href="\/\?auth=login"/);
 });
 
-test('mobile source home provides a real shortcut flow without a dead download route', () => {
+test('mobile source home provides a real shortcut flow with dedicated Mobile assets', () => {
   assert.match(shellSource, /beforeinstallprompt/);
   assert.match(shellSource, /member-home-shortcut-request/);
   assert.match(shellSource, /\/images\/shortcut\/bg_card\.webp/);
+  assert.match(shellSource, /const shortcutArt = MOBILE_SOURCE_ASSETS\.shortcutBackground/);
+  assert.match(shellSource, /const shortcutIcon = MOBILE_SOURCE_ASSETS\.shortcutIcon/);
+  assert.doesNotMatch(shellSource, /resolveAsset\(\{[\s\S]*?home shortcut/);
   assert.doesNotMatch(shellSource, /href="\/download/);
 });
 
-test('mobile source footer keeps the shared Desktop component and only changes responsive geometry', () => {
-  assert.match(footerSource, /member-footer-mobile-match\.module\.css/);
-  assert.match(footerSource, /member-footer member-footer--shared/);
-  assert.match(footerSource, /member-footer__main/);
-  assert.match(footerSource, /member-footer__payments/);
+test('mobile source footer is a standalone source-only DOM instead of the Desktop footer', () => {
+  const mobileFooterSource = footerSource.slice(footerSource.indexOf('function MobileSourceFooter'));
+
+  assert.match(footerSource, /<MobileSourceFooter \/>/);
+  assert.match(mobileFooterSource, /\/images\/banks\/TH\/\$\{name\}\.webp/);
+  assert.match(mobileFooterSource, /\/images\/footer\/GAME CARE\.webp/);
+  assert.match(mobileFooterSource, /\/images\/footer\/Bmm\.webp/);
+  assert.match(mobileFooterSource, /\/images\/footer\/GO DADDY\.webp/);
+  assert.match(mobileFooterSource, /Copyright © NOAH345, All Rights Reserved\./);
+  assert.doesNotMatch(mobileFooterSource, /member-footer__about/);
+  assert.doesNotMatch(mobileFooterSource, /GAME_LINKS/);
+  assert.doesNotMatch(mobileFooterSource, /INFO_LINKS/);
+  assert.match(footerCss, /\.desktopRoot\s*\{[\s\S]*?display:\s*none\s*!important/);
+  assert.match(footerCss, /\.mobileRoot\s*\{[\s\S]*?max-width:\s*428px/);
 });
 
 test('mobile home mounts the source component directly instead of wrapping the old V47 scaffold', () => {
