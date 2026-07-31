@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import MemberNavigationStateController from './components/member-navigation-state-controller';
 import { useMemberLocale } from './member-locale-provider';
 import { memberApiFetch } from './member-api';
 import { buildMemberHomeDataRuntime, type MemberHomeDataRuntime } from './member-home-data-runtime';
@@ -182,7 +183,12 @@ export function MemberRuntimeProvider({ children }: { children: ReactNode }) {
     theme,
   ]);
 
-  return <MemberRuntimeContext.Provider value={value}>{children}</MemberRuntimeContext.Provider>;
+  return (
+    <MemberRuntimeContext.Provider value={value}>
+      <MemberNavigationStateController />
+      {children}
+    </MemberRuntimeContext.Provider>
+  );
 }
 
 export function useMemberRuntime() {
