@@ -1,0 +1,386 @@
+.shell {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  color: #fff;
+  background: #171422;
+}
+
+.topArea {
+  display: grid;
+  gap: 10px;
+  padding: 10px 0 0;
+}
+
+.promotionSection {
+  min-width: 0;
+}
+
+.promotionRail {
+  display: flex;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.promotionRail::-webkit-scrollbar,
+.categoryRail::-webkit-scrollbar {
+  display: none;
+}
+
+.promotionSlide {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  padding: 0 12px;
+  scroll-snap-align: center;
+  text-decoration: none;
+}
+
+.promotionSlide img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2.4038 / 1;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #211b2d;
+}
+
+.promotionDots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 16px;
+  padding: 5px 12px 0;
+  gap: 6px;
+}
+
+.promotionDots button {
+  appearance: none;
+  width: 6px;
+  height: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 30%);
+  cursor: pointer;
+  transition: width 160ms ease, background-color 160ms ease;
+}
+
+.promotionDots button.activeDot {
+  width: 18px;
+  background: #dca8f3;
+}
+
+.authActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  padding: 0 12px;
+  gap: 16px;
+}
+
+.authActions a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 95px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 18%);
+  isolation: isolate;
+}
+
+.authActions a::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-image: url('/images/theme/button/style_1.webp');
+  background-size: 100% 100%;
+  content: '';
+}
+
+.registerButton {
+  background: linear-gradient(#81689d, #ce9cba);
+}
+
+.loginButton {
+  background: linear-gradient(#720455, #910a67);
+}
+
+.announcement {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  height: 30px;
+  margin: 0 12px;
+  overflow: hidden;
+  border: 1px solid #454545;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.announcement > img,
+.announcement > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0 auto;
+  object-fit: contain;
+  color: #dca8f3;
+}
+
+.announcementViewport {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.announcementViewport a,
+.announcementViewport span {
+  display: inline-block;
+  min-width: max-content;
+  padding-right: 32px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 28px;
+  text-decoration: none;
+  animation: mobileAnnouncementTicker 18s linear infinite;
+}
+
+.mobileBody {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: start;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.categoryRail {
+  position: sticky;
+  top: 60px;
+  z-index: 98;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-height: calc(100dvh - 60px);
+  padding: 12px 4px 28px 8px;
+  gap: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.categoryRail a {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 55px;
+  min-height: 55px;
+  padding: 4px 2px;
+  gap: 2px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 10px;
+  color: #fff;
+  background: #292335;
+  box-shadow: inset 0 2px 4px rgb(255 255 255 / 12%), 0 4px 8px rgb(0 0 0 / 22%);
+  text-decoration: none;
+}
+
+.categoryRail a.activeCategory {
+  color: #5d275d;
+  border-color: rgb(255 255 255 / 60%);
+  background: #fff;
+  box-shadow: inset 0 2px 4px #fff, 0 4px 4px rgb(0 0 0 / 25%), inset 0 -2px 1px rgb(0 0 0 / 15%);
+}
+
+.categoryRail a > img {
+  display: block;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.categoryRail a > span:first-child:not(:last-child) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 20px;
+}
+
+.categoryRail a > span:last-child {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contentColumn {
+  min-width: 0;
+  padding-right: 8px;
+}
+
+.shell :global(.v47-mobile-announcement),
+.shell :global(.v47-mobile-hero),
+.shell :global(.v47-mobile-dots) {
+  display: none !important;
+}
+
+.shell :global(.v47-mobile-home) {
+  width: 100%;
+  min-width: 0;
+  padding-top: 10px;
+}
+
+.shortcutCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px;
+  align-items: center;
+  min-height: 134px;
+  margin: 4px 4px 28px 0;
+  overflow: hidden;
+  border: 1.5px solid rgb(255 255 255 / 50%);
+  border-radius: 7px;
+  background: #241b32;
+  isolation: isolate;
+}
+
+.shortcutBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+}
+
+.shortcutCard::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgb(23 20 34 / 92%) 0%, rgb(23 20 34 / 62%) 62%, rgb(23 20 34 / 10%) 100%);
+  content: '';
+}
+
+.shortcutCopy {
+  min-width: 0;
+  padding: 12px 0 12px 14px;
+}
+
+.shortcutCopy h2 {
+  margin: 0 0 6px;
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.shortcutCopy strong {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.shortcutCopy p {
+  margin: 3px 0 9px;
+  color: rgb(255 255 255 / 72%);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.shortcutButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.shortcutButtons button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 66px;
+  height: 27px;
+  padding: 0 10px;
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 6px;
+  color: #fff;
+  background: rgb(255 255 255 / 12%);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.shortcutCopy p.shortcutMessage {
+  margin: 8px 0 0;
+  color: #f0d7ff;
+  font-size: 10px;
+}
+
+.shortcutIcon {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 8px 18px rgb(0 0 0 / 30%);
+}
+
+.authActions a:focus-visible,
+.promotionSlide:focus-visible,
+.promotionDots button:focus-visible,
+.categoryRail a:focus-visible,
+.announcementViewport a:focus-visible,
+.shortcutButtons button:focus-visible {
+  outline: 2px solid #dca8f3;
+  outline-offset: 2px;
+}
+
+@keyframes mobileAnnouncementTicker {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
+}
+
+@media (max-width: 374px) {
+  .mobileBody { grid-template-columns: 56px minmax(0, 1fr); }
+  .categoryRail { padding-left: 4px; }
+  .categoryRail a { width: 48px; min-height: 52px; }
+  .authActions { gap: 10px; }
+  .authActions a { min-width: 0; font-size: 14px; }
+  .shortcutCard { grid-template-columns: minmax(0, 1fr) 68px; }
+  .shortcutIcon { width: 52px; height: 52px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .announcementViewport a,
+  .announcementViewport span { animation: none; }
+  .promotionDots button { transition: none; }
+}
