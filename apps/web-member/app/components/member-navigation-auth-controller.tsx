@@ -13,25 +13,6 @@ const NAVIGATION_SELECTOR = [
 const ACTION_SELECTOR = 'a[href], button';
 
 const CANONICAL_LABEL_TARGETS: Readonly<Record<string, string>> = {
-  'หน้าแรก': '/',
-  'หน้าหลัก': '/',
-  'home': '/',
-  'คาสิโน': '/browse/games?category=casino',
-  'casino': '/browse/games?category=casino',
-  'สล็อต': '/browse/games?category=slot',
-  'slot': '/browse/games?category=slot',
-  'slots': '/browse/games?category=slot',
-  'ตกปลา': '/browse/games?category=fishing',
-  'ยิงปลา': '/browse/games?category=fishing',
-  'fishing': '/browse/games?category=fishing',
-  'กีฬา': '/browse/games?category=sport',
-  'sport': '/browse/games?category=sport',
-  'sports': '/browse/games?category=sport',
-  'ไพ่': '/browse/games?category=card',
-  'card': '/browse/games?category=card',
-  'cards': '/browse/games?category=card',
-  'หวย': '/browse/games?category=lottery',
-  'lottery': '/browse/games?category=lottery',
   'ระดับสมาชิก vip': '/mobile-menu/vip',
   'vip': '/mobile-menu/vip',
   'รายได้คอมมิชชั่น': '/affiliate',
@@ -100,6 +81,10 @@ export default function MemberNavigationAuthController() {
 
       const action = event.target.closest<HTMLElement>(ACTION_SELECTOR);
       if (action) {
+        // Mobile categories are owned by MobileCategoryTabRuntime and must switch
+        // the content slot in place without changing routes or reloading the page.
+        if (action.closest('[data-mobile-category-id]')) return;
+
         const canonicalTarget = canonicalTargetFor(action);
         if (canonicalTarget && normalizeCurrentLocation() !== normalize(canonicalTarget)) {
           event.preventDefault();
