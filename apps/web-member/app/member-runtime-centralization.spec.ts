@@ -75,7 +75,7 @@ test('configured navigation handles locale visibility order feature and auth con
   assert.match(navigationAuthSource, /auth=login&next=/);
 });
 
-test('home data has one parser plus desktop mock fallback for all viewports', () => {
+test('home data has one parser and production-safe demo fallback for all viewports', () => {
   assert.match(homeDataSource, /tournament_items_json/);
   assert.match(homeDataSource, /leaderboard_items_json/);
   assert.match(homeDataSource, /mini_games_json/);
@@ -83,6 +83,8 @@ test('home data has one parser plus desktop mock fallback for all viewports', ()
   assert.match(homeDataSource, /normalizeLeaderboard/);
   assert.match(homeDataSource, /normalizeMiniGames/);
   assert.match(homeDataSource, /DESKTOP_TOURNAMENT_MOCKS/);
-  assert.match(homeDataSource, /mockPlayers/);
-  assert.match(homeDataSource, /safe desktop defaults remain active/);
+  assert.match(homeDataSource, /DEMO_TOURNAMENT_DATA_ENABLED/);
+  assert.match(homeDataSource, /NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA/);
+  assert.match(homeDataSource, /emptyPlayers/);
+  assert.match(homeDataSource, /Demo defaults are available only outside production unless explicitly enabled/);
 });
