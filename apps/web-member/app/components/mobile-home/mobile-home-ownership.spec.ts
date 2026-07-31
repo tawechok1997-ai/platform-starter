@@ -10,8 +10,10 @@ const memberFooter = readFileSync(new URL('../../member-footer.tsx', import.meta
 const floatingContact = readFileSync(new URL('../member-floating-contact.tsx', import.meta.url), 'utf8');
 
 test('mobile home has exactly one render owner', () => {
-  assert.equal((memberHome.match(/<MobileHomeRoot\s*\/>/g) ?? []).length, 1);
+  assert.equal((memberHome.match(/<MobileHomeRoot\b/g) ?? []).length, 1);
   assert.match(memberHome, /viewportMode === 'mobile'/);
+  assert.match(memberHome, /content=\{props\.cmsContent\}/);
+  assert.match(memberHome, /showPromotion=\{props\.showPromotion\}/);
   assert.equal((mobileRoot.match(/data-ui-owner="mobile-home"/g) ?? []).length, 1);
 });
 
@@ -28,12 +30,38 @@ test('mobile upper structure has one owner per section', () => {
   assert.equal((mobileRoot.match(/data-mobile-content-slot="after-highlight"/g) ?? []).length, 1);
 });
 
-test('hamburger button controls one drawer that slides from the left', () => {
+test('hamburger button controls one accessible drawer that slides from the left', () => {
   assert.equal((mobileRoot.match(/aria-controls="mobile-home-drawer"/g) ?? []).length, 1);
   assert.equal((mobileRoot.match(/id="mobile-home-drawer"/g) ?? []).length, 1);
+  assert.equal((mobileRoot.match(/data-mobile-drawer-dismiss="true"/g) ?? []).length, 1);
+  assert.match(mobileRoot, /<button[\s\S]*data-mobile-drawer-dismiss="true"/);
   assert.match(mobileLayoutOwner, /#mobile-home-drawer\s*\{[\s\S]*width:\s*min\(340px/);
   assert.match(mobileLayoutOwner, /#mobile-home-drawer\s*\{[\s\S]*translate3d\(-105%,\s*0,\s*0\)/);
   assert.match(mobileLayoutOwner, /\[aria-hidden='false'\]\s*>\s*#mobile-home-drawer\s*\{[\s\S]*translate3d\(0,\s*0,\s*0\)/);
+});
+
+test('mobile UI images use bundled assets instead of hardcoded CDN URLs', () => {
+  assert.match(mobileRoot, /const SOURCE_ROOT = '\/assets\/asset-pc\/images'/);
+  assert.match(mobileRoot, /const LOBBY_ASSET_ROOT = `\$\{SOURCE_ROOT\}\/FEZX\/lobby_settings`/);
+  assert.match(mobileRoot, /ANNOUNCEMENT_ICON_URL = `\$\{SOURCE_ROOT\}\/home\/coin\.webp`/);
+  assert.doesNotMatch(mobileRoot, /https:\/\/cdn\.zabbet\.com/);
+});
+
+test('mobile promotions come from central CMS content and stay unique', () => {
+  assert.match(mobileRoot, /cmsResponsiveMediaUrls/);
+  assert.match(mobileRoot, /content\.banners\.forEach/);
+  assert.match(mobileRoot, /media\.mobile \|\| media\.desktop \|\| media\.legacy/);
+  assert.match(mobileRoot, /seenImages\.has\(image\)/);
+  assert.match(mobileRoot, /heroSlides\.map\(\(slide, index\) =>/);
+  assert.doesNotMatch(mobileRoot, /const HERO_SLIDES/);
+});
+
+test('mobile announcements come from central CMS and scroll in one marquee', () => {
+  assert.match(mobileRoot, /content\.announcements\.forEach/);
+  assert.match(mobileRoot, /seenMessages\.has\(message\)/);
+  assert.equal((mobileRoot.match(/data-mobile-announcement-track="true"/g) ?? []).length, 1);
+  assert.match(mobileLayoutOwner, /mobile-home-announcement-marquee 28s linear infinite/);
+  assert.match(mobileLayoutOwner, /@keyframes mobile-home-announcement-marquee/);
 });
 
 test('mobile bottom structure has one shortcut and one footer owner', () => {
@@ -59,13 +87,6 @@ test('mobile home owner does not import desktop or legacy UI', () => {
   assert.doesNotMatch(mobileRoot, /PublicHomeHeader/);
   assert.doesNotMatch(mobileRoot, /PublicMobileSourceHeader/);
   assert.doesNotMatch(mobileRoot, /MutationObserver/);
-});
-
-test('mobile hero is one carousel owner with unique source slides', () => {
-  assert.equal((mobileRoot.match(/className=\{styles\.hero\}/g) ?? []).length, 1);
-  assert.match(mobileRoot, /const HERO_SLIDES = \[/);
-  assert.match(mobileRoot, /HERO_SLIDES\.map\(\(image, index\) =>/);
-  assert.match(mobileRoot, /translateX\(-\$\{activeSlide \* 100\}%\)/);
 });
 
 test('mobile geometry preserves the supplied upper structure', () => {
