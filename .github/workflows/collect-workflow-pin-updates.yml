@@ -1,6 +1,10 @@
 name: Collect Workflow Pin Updates
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/collect-workflow-pin-updates.yml'
   push:
     branches:
       - agent/project-hardening-handoff-readiness
