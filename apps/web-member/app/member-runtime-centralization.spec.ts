@@ -32,6 +32,8 @@ test('desktop and mobile home consume one structured runtime controller', () => 
   assert.match(controllerSource, /\.v47-mobile-rank-panel/);
   assert.match(controllerSource, /\.reference-leaderboard/);
   assert.match(controllerSource, /\.v47-mobile-board-row/);
+  assert.match(controllerSource, /runtimeSource = 'desktop-primary'/);
+  assert.doesNotMatch(controllerSource, /features\.tournament && runtime\.features\.activity/);
 });
 
 test('game sections enforce shared desktop and mobile limits', () => {
@@ -72,12 +74,14 @@ test('configured navigation handles locale visibility order feature and auth con
   assert.match(navigationAuthSource, /auth=login&next=/);
 });
 
-test('home data has one parser for tournament leaderboard and mini games', () => {
+test('home data has one parser plus desktop mock fallback for all viewports', () => {
   assert.match(homeDataSource, /tournament_items_json/);
   assert.match(homeDataSource, /leaderboard_items_json/);
   assert.match(homeDataSource, /mini_games_json/);
   assert.match(homeDataSource, /normalizeTournaments/);
   assert.match(homeDataSource, /normalizeLeaderboard/);
   assert.match(homeDataSource, /normalizeMiniGames/);
-  assert.match(homeDataSource, /Invalid JSON is ignored/);
+  assert.match(homeDataSource, /DESKTOP_TOURNAMENT_MOCKS/);
+  assert.match(homeDataSource, /mockPlayers/);
+  assert.match(homeDataSource, /safe desktop defaults remain active/);
 });
