@@ -1,0 +1,51 @@
+name: Upgrade pnpm Pin Once
+
+on:
+  push:
+    branches:
+      - agent/project-hardening-handoff-readiness
+    paths:
+      - '.github/workflows/upgrade-pnpm-pin-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/project-hardening-handoff-readiness
+          fetch-depth: 0
+
+      - name: Replace broken pnpm runtime pin
+        run: |
+          mapfile -t files < <(git grep -Il '11.13.0' -- ':!docs/evidence/**' ':!docs/archive/**' || true)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo 'No active pnpm 11.13.0 references remain.'
+            exit 0
+          fi
+          python - "${files[@]}" <<'PY'
+          from pathlib import Path
+          import sys
+          for raw in sys.argv[1:]:
+              path = Path(raw)
+              source = path.read_text(encoding='utf-8')
+              updated = source.replace('11.13.0', '11.18.0')
+              if updated != source:
+                  path.write_text(updated, encoding='utf-8')
+          PY
+
+      - name: Commit updated runtime pin when needed
+        run: |
+          if git diff --quiet; then
+            echo 'pnpm runtime pin is already current.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'chore(runtime): upgrade pnpm pin to 11.18.0'
+          git push origin HEAD:agent/project-hardening-handoff-readiness
