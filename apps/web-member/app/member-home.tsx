@@ -12,6 +12,7 @@ import MemberGameSectionRuntimeController from './components/member-game-section
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
+import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
 import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
@@ -52,7 +53,12 @@ export default function MemberHome(props: MemberHomeProps) {
 
   if (viewportMode === null) return null;
   if (viewportMode === 'mobile') {
-    return <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />;
+    return (
+      <>
+        <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
+        <MobileHomeMotionRuntime />
+      </>
+    );
   }
 
   return <DesktopMemberHome {...props} />;
