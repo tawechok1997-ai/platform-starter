@@ -1,0 +1,20 @@
+/* Keep sticky Desktop surfaces tied to the unscaled visual viewport height.
+ * The source canvas is zoomed below 1455px, so raw 100dvh values would be
+ * scaled a second time and make the Sidebar unnecessarily short.
+ */
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar {
+  max-height: calc(var(--member-desktop-viewport-height, 100dvh) - 136px) !important;
+}
+
+@container member-desktop-viewport (max-width: 1179px) {
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar {
+    max-height: calc(var(--member-desktop-viewport-height, 100dvh) - 126px) !important;
+  }
+}
+
+@container member-desktop-viewport (min-width: 1180px) and (max-width: 1439px) {
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar {
+    max-height: calc(var(--member-desktop-viewport-height, 100dvh) - 132px) !important;
+  }
+}
