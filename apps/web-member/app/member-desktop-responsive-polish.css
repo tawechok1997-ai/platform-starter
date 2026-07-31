@@ -1,0 +1,327 @@
+/* Physical-width responsive owner for the scaled Member Desktop canvas.
+ *
+ * PublicDesktopViewportBootstrap virtualizes width media queries against the
+ * 1455px source canvas. Container queries remain tied to the real shell width,
+ * so compact Desktop rules can respond to 1024/1280/1366px windows without
+ * removing the source-compatible canvas scale contract.
+ */
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-shell {
+  container-name: member-desktop-viewport;
+  container-type: inline-size;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-main-column {
+  row-gap: 12px !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home :is(
+  .reference-announcement,
+  .reference-promo-row,
+  .reference-tournament-cta,
+  .reference-panel,
+  .reference-compact-section,
+  .reference-guide
+) {
+  scroll-margin-top: 124px !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home :is(
+  .reference-classic-row,
+  .source-popular-games,
+  .source-online-list,
+  .source-live-list
+) {
+  overscroll-behavior-x: contain !important;
+  scrollbar-color: rgb(188 91 229 / 62%) transparent !important;
+  scrollbar-width: thin !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar {
+  padding-right: 6px !important;
+  scrollbar-color: rgb(188 91 229 / 72%) rgb(255 255 255 / 4%) !important;
+  scrollbar-gutter: stable !important;
+  scrollbar-width: thin !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar::-webkit-scrollbar {
+  display: block !important;
+  width: 6px !important;
+  height: 6px !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar::-webkit-scrollbar-track {
+  border-radius: 999px !important;
+  background: rgb(255 255 255 / 4%) !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar::-webkit-scrollbar-thumb {
+  border: 1px solid rgb(16 12 22 / 80%) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, #a93dda, #713197) !important;
+}
+
+html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-desktop-nav--guest a {
+  scroll-snap-align: start !important;
+}
+
+@container member-desktop-viewport (max-width: 1179px) {
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .public-home-desktop-bar {
+    width: min(1390px, calc(100% - 24px)) !important;
+    padding-inline: 4px !important;
+    gap: 6px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar :is(
+    .member-brand,
+    .member-brand-mark,
+    .member-brand-logo
+  ) {
+    flex-basis: 120px !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar :is(
+    .public-home-flag,
+    .public-home-search
+  ) {
+    flex-basis: 36px !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 7px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .public-home-mission {
+    min-width: 92px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding-right: 7px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .public-home-mission > img {
+    flex-basis: 40px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .public-home-mission > span {
+    font-size: 13px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .public-home-header-spacer {
+    min-width: 8px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar :is(
+    .member-actions,
+    .member-guest-actions
+  ) {
+    gap: 6px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar :is(
+    .member-guest-action,
+    .member-header-logout,
+    .member-header-wallet
+  ) {
+    min-width: 98px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding-inline: 14px !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+    line-height: 40px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-guest-action--register {
+    min-width: 112px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-desktop-nav--guest {
+    padding-inline: 12px !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain !important;
+    scroll-padding-inline: 12px !important;
+    scroll-snap-type: x proximity !important;
+    scrollbar-color: rgb(188 91 229 / 60%) transparent !important;
+    scrollbar-width: thin !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-desktop-nav--guest::-webkit-scrollbar {
+    display: block !important;
+    height: 3px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-desktop-nav--guest::-webkit-scrollbar-thumb {
+    border-radius: 999px !important;
+    background: rgb(188 91 229 / 58%) !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-desktop-nav--guest a {
+    min-width: 68px !important;
+    padding-inline: 8px !important;
+    gap: 6px !important;
+    font-size: 14px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar :is(
+    .public-home-nav-icon-frame,
+    .public-home-nav-icon
+  ) {
+    flex-basis: 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home.desktop-home {
+    width: min(1390px, calc(100% - 24px)) !important;
+    margin-bottom: 28px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home > .desktop-home__body {
+    grid-template-columns: minmax(0, 1fr) 310px !important;
+    gap: 12px !important;
+    width: min(1388px, calc(100% - 2px)) !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home :is(
+    .desktop-home__main,
+    .desktop-home__sidebar
+  ) {
+    gap: 10px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar {
+    top: 116px !important;
+    max-height: calc(100dvh - 126px) !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-promo-row {
+    gap: 9px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home :is(
+    .reference-panel-heading,
+    .source-highlight-heading
+  ) {
+    min-height: 42px !important;
+    margin-bottom: 8px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home :is(
+    .reference-panel-heading strong,
+    .source-highlight-heading strong,
+    .reference-side-title strong
+  ) {
+    font-size: 17px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home :is(
+    .reference-game-tile,
+    .source-highlight-game
+  ) {
+    border-radius: 10px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-side-card {
+    border-radius: 12px !important;
+  }
+}
+
+@container member-desktop-viewport (min-width: 1180px) and (max-width: 1439px) {
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .public-home-desktop-bar {
+    width: min(1418px, calc(100% - 28px)) !important;
+    gap: 8px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .public-home-header-spacer {
+    min-width: 14px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar :is(
+    .member-actions,
+    .member-guest-actions
+  ) {
+    gap: 8px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar :is(
+    .member-guest-action,
+    .member-header-logout,
+    .member-header-wallet
+  ) {
+    min-width: 104px !important;
+    padding-inline: 16px !important;
+    font-size: 15px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-guest-action--register {
+    min-width: 120px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-desktop-nav--guest {
+    padding-inline: 14px !important;
+    gap: 10px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain !important;
+    scroll-snap-type: x proximity !important;
+    scrollbar-color: rgb(188 91 229 / 54%) transparent !important;
+    scrollbar-width: thin !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-desktop-nav--guest a {
+    min-width: 74px !important;
+    padding-inline: 10px !important;
+    gap: 7px !important;
+    font-size: 15px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home.desktop-home {
+    width: min(1420px, calc(100% - 28px)) !important;
+    margin-bottom: 32px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home > .desktop-home__body {
+    grid-template-columns: minmax(0, 1fr) 330px !important;
+    gap: 14px !important;
+    width: min(1418px, calc(100% - 2px)) !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home :is(
+    .desktop-home__main,
+    .desktop-home__sidebar
+  ) {
+    gap: 12px !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar {
+    top: 120px !important;
+    max-height: calc(100dvh - 132px) !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-promo-row {
+    gap: 10px !important;
+  }
+}
+
+@supports not (container-type: inline-size) {
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .public-home-topbar .member-desktop-nav--guest {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar {
+    scrollbar-width: thin !important;
+  }
+}
