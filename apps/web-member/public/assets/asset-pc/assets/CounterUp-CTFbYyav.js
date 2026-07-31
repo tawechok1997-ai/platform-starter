@@ -1,0 +1,1 @@
+import{u as a,g as i,j as m}from"./index-DRQdwWX3.js";import{C as u}from"./index-CvFrOPOB.js";const l=({start:r,end:s,duration:e,textColor:n})=>{var o;const t=a(p=>i(p,"setting.color",{}));return m.jsx(u,{start:r,end:s,duration:e,style:{color:n||((o=t==null?void 0:t.primary)==null?void 0:o.light)}})};export{l as C};

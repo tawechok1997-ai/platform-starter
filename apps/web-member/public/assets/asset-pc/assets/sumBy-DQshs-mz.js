@@ -1,0 +1,1 @@
+import{g as a}from"./swiper-vendor-DFMl7zF8.js";import{bR as i}from"./index-DRQdwWX3.js";import{r as n}from"./_baseSum-DQXBWoCF.js";var e,t;function f(){if(t)return e;t=1;var u=i(),s=n();function m(r,o){return r&&r.length?s(r,u(o,2)):0}return e=m,e}var p=f();const v=a(p);export{v as s};

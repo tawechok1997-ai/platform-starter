@@ -1,0 +1,1 @@
+import{at as t}from"./index-DRQdwWX3.js";const e="https://api.noproky.net/lobby/user-review",r=async()=>await t("get")(e+"/summary"),i=async(a,s,n)=>await t("post")(e+`/${s}/${a}`,n),p=async a=>await t("post")(e,a),c=async a=>await t("put")(e+"/upload-image",a),m=async a=>await t("delete")(e+"/image/"+a);export{r as a,i as g,p,m as r,c as u};

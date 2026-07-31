@@ -1,0 +1,1 @@
+const s=t=>!!t&&/^(https?:\/\/)?([^\s$.?#].[^\s]*)$/i.test(t),n=t=>!t||!s(t)?t||"":t.startsWith("http")?t:`https://${t}`,a=t=>{try{return!!t&&new URL(t.startsWith("http")?t:`https://${t}`).hostname===window.location.hostname}catch(e){return!1}};export{s as c,n as e,a as i};
