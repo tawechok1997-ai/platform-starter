@@ -28,6 +28,10 @@ export type MemberHomeDataRuntime = {
   miniGames: MemberMiniGameRuntime[];
 };
 
+const DEMO_TOURNAMENT_DATA_ENABLED =
+  process.env.NODE_ENV !== 'production' ||
+  process.env.NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA === 'true';
+
 export function buildMemberHomeDataRuntime(
   settings: TypedPublicSiteSettings,
   home: MemberHomeContentRuntime,
@@ -52,21 +56,26 @@ function normalizeTournaments(value: unknown): MemberTournamentRuntime[] {
       const item = record(raw);
       const startsAt = optionalText(item.startsAt ?? item.startAt);
       const endsAt = optionalText(item.endsAt ?? item.endAt);
-      const desktopFallback = DESKTOP_TOURNAMENT_MOCKS[index % DESKTOP_TOURNAMENT_MOCKS.length];
+      const desktopFallback = DEMO_TOURNAMENT_DATA_ENABLED
+        ? DESKTOP_TOURNAMENT_MOCKS[index % DESKTOP_TOURNAMENT_MOCKS.length]
+        : undefined;
+      const playerFallback = desktopFallback?.players ?? emptyPlayers();
       return {
         id: text(item.id, `tournament-${index + 1}`),
         title: text(item.title, desktopFallback?.title ?? `Tournament ${index + 1}`),
-        status: text(item.status, desktopFallback?.status ?? 'ข้อมูลตัวอย่าง'),
+        status: text(item.status, desktopFallback?.status ?? 'ยังไม่มีข้อมูล'),
         href: safeHref(item.href) || desktopFallback?.href || '/browse/tournaments',
         ...(startsAt ? { startsAt } : {}),
         ...(endsAt ? { endsAt } : {}),
-        players: normalizePlayers(item.players, desktopFallback?.players ?? mockPlayers(index)),
+        players: normalizePlayers(item.players, playerFallback),
       };
     }).filter((item) => item.title);
     if (tournaments.length) return tournaments;
   }
 
-  return DESKTOP_TOURNAMENT_MOCKS.map(cloneTournament);
+  return DEMO_TOURNAMENT_DATA_ENABLED
+    ? DESKTOP_TOURNAMENT_MOCKS.map(cloneTournament)
+    : [];
 }
 
 function normalizePlayers(
@@ -90,7 +99,7 @@ function normalizePlayers(
     : [];
 
   return Array.from({ length: 10 }, (_, index) => {
-    const selected = configured[index] ?? fallback[index] ?? mockPlayer(index, 0);
+    const selected = configured[index] ?? fallback[index] ?? emptyPlayer(index);
     return {
       ...selected,
       rank: index + 1,
@@ -142,11 +151,24 @@ function firstStructured(...values: unknown[]) {
         const parsed = JSON.parse(value);
         if (Array.isArray(parsed)) return parsed;
       } catch {
-        // Invalid JSON is ignored and the safe desktop defaults remain active.
+        // Invalid JSON is ignored. Demo defaults are available only outside production unless explicitly enabled.
       }
     }
   }
   return undefined;
+}
+
+function emptyPlayers(): MemberTournamentPlayerRuntime[] {
+  return Array.from({ length: 10 }, (_, index) => emptyPlayer(index));
+}
+
+function emptyPlayer(index: number): MemberTournamentPlayerRuntime {
+  return {
+    rank: index + 1,
+    name: '-',
+    score: 0,
+    stats: [0, 0, 0, 0, 0, 0],
+  };
 }
 
 function mockPlayers(seed: number): MemberTournamentPlayerRuntime[] {
