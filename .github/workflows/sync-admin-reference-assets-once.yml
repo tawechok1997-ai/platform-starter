@@ -1,0 +1,42 @@
+name: Sync Admin Reference Assets Once
+
+on:
+  push:
+    branches:
+      - agent/project-hardening-handoff-readiness
+    paths:
+      - '.github/workflows/sync-admin-reference-assets-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/project-hardening-handoff-readiness
+          fetch-depth: 0
+
+      - name: Sync Member reference assets into Admin
+        run: |
+          source='apps/web-member/public/assets/reference-brand'
+          destination='apps/web-admin/public/assets/reference-brand'
+          test -d "$source"
+          rm -rf "$destination"
+          mkdir -p "$(dirname "$destination")"
+          cp -R "$source" "$destination"
+
+      - name: Commit synchronized assets
+        run: |
+          if git diff --quiet -- apps/web-admin/public/assets/reference-brand; then
+            echo 'Admin reference assets are already synchronized.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web-admin/public/assets/reference-brand
+          git commit -m 'chore(admin): synchronize reference brand assets'
+          git push origin HEAD:agent/project-hardening-handoff-readiness
