@@ -1,0 +1,44 @@
+name: Collect Workflow Pin Updates
+
+on:
+  push:
+    branches:
+      - agent/project-hardening-handoff-readiness
+    paths:
+      - '.github/workflows/collect-workflow-pin-updates.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/project-hardening-handoff-readiness
+          fetch-depth: 1
+
+      - name: Update workflow pnpm pins in artifact workspace
+        run: |
+          find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 \
+            | xargs -0 sed -i 's/11\.13\.0/11.18.0/g'
+          mkdir -p workflow-pin-artifact
+          git diff --name-only -- .github/workflows \
+            | grep -v 'collect-workflow-pin-updates.yml' \
+            | tee workflow-pin-artifact/changed-files.txt
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            mkdir -p "workflow-pin-artifact/$(dirname "$path")"
+            cp "$path" "workflow-pin-artifact/$path"
+          done < workflow-pin-artifact/changed-files.txt
+          test -s workflow-pin-artifact/changed-files.txt
+
+      - name: Upload updated workflow files
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-pin-updates
+          path: workflow-pin-artifact
+          if-no-files-found: error
+          retention-days: 1
