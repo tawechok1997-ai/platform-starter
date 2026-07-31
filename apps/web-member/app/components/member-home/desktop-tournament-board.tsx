@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useMemberLocale, type MemberLocale } from '../../member-locale-provider';
 
 type TournamentPlayer = {
   rank: number;
@@ -9,9 +10,10 @@ type TournamentPlayer = {
   stats: readonly [number, number, number, number, number, number];
 };
 
+type LocalizedText = Record<MemberLocale, string>;
+
 type Tournament = {
-  title: string;
-  status: string;
+  title: LocalizedText;
   players: readonly TournamentPlayer[];
 };
 
@@ -21,10 +23,47 @@ type DragState = {
   deltaX: number;
 };
 
+const TOURNAMENT_COPY: Record<MemberLocale, {
+  sectionLabel: string;
+  heading: string;
+  ended: string;
+  viewAll: string;
+  information: string;
+  ranking: string;
+  picker: string;
+  tournament: string;
+  stats: string;
+}> = {
+  th: {
+    sectionLabel: 'ตารางทัวร์นาเมนต์',
+    heading: 'ทัวร์นาเมนต์',
+    ended: 'สิ้นสุดแล้ว',
+    viewAll: 'ดูทั้งหมด',
+    information: 'ข้อมูลทัวร์นาเมนต์',
+    ranking: 'อันดับ',
+    picker: 'เลือกทัวร์นาเมนต์',
+    tournament: 'ทัวร์นาเมนต์',
+    stats: 'สถิติการแข่งขัน',
+  },
+  en: {
+    sectionLabel: 'Tournament standings',
+    heading: 'Tournaments',
+    ended: 'Ended',
+    viewAll: 'View all',
+    information: 'Tournament information',
+    ranking: 'Ranking',
+    picker: 'Choose a tournament',
+    tournament: 'Tournament',
+    stats: 'Match statistics',
+  },
+};
+
 const TOURNAMENTS: readonly Tournament[] = [
   {
-    title: 'No1. Tournament Football Royale ครั้งที่ 2',
-    status: 'สิ้นสุดแล้ว',
+    title: {
+      th: 'No.1 Tournament Football Royale ครั้งที่ 2',
+      en: 'No.1 Tournament Football Royale, Round 2',
+    },
     players: [
       { rank: 1, name: 'ZAXXXU709740', score: 20, stats: [17, 0, 0, 0, 7, 0] },
       { rank: 2, name: 'ZAXXXM664100', score: 17, stats: [13, 3, 0, 4, 4, 0] },
@@ -39,8 +78,10 @@ const TOURNAMENTS: readonly Tournament[] = [
     ],
   },
   {
-    title: 'No1. Tournament Football Classic ครั้งที่ 2',
-    status: 'สิ้นสุดแล้ว',
+    title: {
+      th: 'No.1 Tournament Football Classic ครั้งที่ 2',
+      en: 'No.1 Tournament Football Classic, Round 2',
+    },
     players: [
       { rank: 1, name: 'ZAXXXU164013', score: 12, stats: [14, 1, 0, 1, 7, 1] },
       { rank: 2, name: 'ZAXXXX399733', score: 10, stats: [9, 6, 0, 4, 5, 0] },
@@ -55,8 +96,10 @@ const TOURNAMENTS: readonly Tournament[] = [
     ],
   },
   {
-    title: 'No1. Tournament Football Royale ครั้งที่ 1',
-    status: 'สิ้นสุดแล้ว',
+    title: {
+      th: 'No.1 Tournament Football Royale ครั้งที่ 1',
+      en: 'No.1 Tournament Football Royale, Round 1',
+    },
     players: [
       { rank: 1, name: 'ZAXXXM651112', score: 13, stats: [15, 2, 0, 1, 8, 1] },
       { rank: 2, name: 'ZAXXX1360752', score: 12, stats: [13, 3, 2, 1, 6, 2] },
@@ -71,8 +114,10 @@ const TOURNAMENTS: readonly Tournament[] = [
     ],
   },
   {
-    title: 'No1. Tournament Football Classic ครั้งที่ 1',
-    status: 'สิ้นสุดแล้ว',
+    title: {
+      th: 'No.1 Tournament Football Classic ครั้งที่ 1',
+      en: 'No.1 Tournament Football Classic, Round 1',
+    },
     players: [
       { rank: 1, name: 'ZAXXXX231972', score: 20, stats: [16, 1, 0, 3, 3, 2] },
       { rank: 2, name: 'ZAXXXO536010', score: 15, stats: [13, 4, 0, 1, 6, 1] },
@@ -92,6 +137,8 @@ const SWIPE_THRESHOLD_PX = 56;
 const SLIDE_GAP_PX = 16;
 
 export function DesktopTournamentBoard() {
+  const { locale } = useMemberLocale();
+  const copy = TOURNAMENT_COPY[locale];
   const [activeIndex, setActiveIndex] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -137,11 +184,11 @@ export function DesktopTournamentBoard() {
       className="source-tournament"
       data-section-kind="tournament"
       data-tournament-owner="desktop-home"
-      aria-label="ตารางทัวร์นาเมนต์"
+      aria-label={copy.sectionLabel}
     >
       <header className="source-tournament__section-heading">
         <img src="/assets/asset-pc/images/home/tournament.svg" alt="" aria-hidden="true" />
-        <strong>ทัวร์นาเมนต์</strong>
+        <strong>{copy.heading}</strong>
       </header>
 
       <div
@@ -155,50 +202,53 @@ export function DesktopTournamentBoard() {
           className={`source-tournament__track${dragging ? ' is-dragging' : ''}`}
           style={{ transform: `translate3d(${trackOffset}, 0, 0)` }}
         >
-          {TOURNAMENTS.map((tournament, index) => (
-            <article
-              key={tournament.title}
-              className="source-tournament__slide"
-              style={{ marginRight: index === TOURNAMENTS.length - 1 ? 0 : SLIDE_GAP_PX }}
-            >
-              <div className="source-tournament__panel">
-                <div className="source-tournament__title-row">
-                  <strong>{tournament.title}</strong>
-                  <a href="/browse/tournaments" className="source-tournament__all-button">
-                    <span>ดูทั้งหมด</span>
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
-                  </a>
-                </div>
+          {TOURNAMENTS.map((tournament, index) => {
+            const title = tournament.title[locale];
+            return (
+              <article
+                key={tournament.title.en}
+                className="source-tournament__slide"
+                style={{ marginRight: index === TOURNAMENTS.length - 1 ? 0 : SLIDE_GAP_PX }}
+              >
+                <div className="source-tournament__panel">
+                  <div className="source-tournament__title-row">
+                    <strong>{title}</strong>
+                    <a href="/browse/tournaments" className="source-tournament__all-button">
+                      <span>{copy.viewAll}</span>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
+                    </a>
+                  </div>
 
-                <div className="source-tournament__status-row">
-                  <span>{tournament.status}</span>
-                  <button type="button" aria-label="ข้อมูลทัวร์นาเมนต์" title="ข้อมูลทัวร์นาเมนต์">
-                    <svg viewBox="0 0 1024 1024" aria-hidden="true">
-                      <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
-                      <path d="M464 336a48 48 0 1 0 96 0 48 48 0 1 0-96 0zm72 112h-48c-4.4 0-8 3.6-8 8v272c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V456c0-4.4-3.6-8-8-8z" />
-                    </svg>
-                  </button>
-                </div>
+                  <div className="source-tournament__status-row">
+                    <span>{copy.ended}</span>
+                    <button type="button" aria-label={copy.information} title={copy.information}>
+                      <svg viewBox="0 0 1024 1024" aria-hidden="true">
+                        <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
+                        <path d="M464 336a48 48 0 1 0 96 0 48 48 0 1 0-96 0zm72 112h-48c-4.4 0-8 3.6-8 8v272c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V456c0-4.4-3.6-8-8-8z" />
+                      </svg>
+                    </button>
+                  </div>
 
-                <div className="source-tournament__rank-rail" data-drag-scroll="true" aria-label={`อันดับ ${tournament.title}`}>
-                  {tournament.players.map((player) => (
-                    <TournamentRankCard key={`${tournament.title}-${player.rank}`} player={player} />
-                  ))}
+                  <div className="source-tournament__rank-rail" data-drag-scroll="true" aria-label={`${copy.ranking} ${title}`}>
+                    {tournament.players.map((player) => (
+                      <TournamentRankCard key={`${tournament.title.en}-${player.rank}`} player={player} statsLabel={copy.stats} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
 
-      <div className="source-tournament__pagination" aria-label="เลือกทัวร์นาเมนต์">
+      <div className="source-tournament__pagination" aria-label={copy.picker}>
         {TOURNAMENTS.map((tournament, index) => (
           <button
-            key={tournament.title}
+            key={tournament.title.en}
             type="button"
             className={index === activeIndex ? 'is-active' : ''}
             onClick={() => moveTo(index)}
-            aria-label={`ทัวร์นาเมนต์ ${index + 1}`}
+            aria-label={`${copy.tournament} ${index + 1}`}
             aria-current={index === activeIndex ? 'true' : undefined}
           />
         ))}
@@ -207,7 +257,7 @@ export function DesktopTournamentBoard() {
   );
 }
 
-function TournamentRankCard({ player }: { player: TournamentPlayer }) {
+function TournamentRankCard({ player, statsLabel }: { player: TournamentPlayer; statsLabel: string }) {
   const topThree = player.rank <= 3;
   return (
     <article className="source-rank-card">
@@ -224,7 +274,7 @@ function TournamentRankCard({ player }: { player: TournamentPlayer }) {
       <div className="source-rank-card__body">
         <span className="source-rank-card__name">{player.name}</span>
         <strong className={`source-rank-card__score${topThree ? ' is-top-three' : ''}`}>{player.score}</strong>
-        <div className="source-rank-card__stats" aria-label="สถิติการแข่งขัน">
+        <div className="source-rank-card__stats" aria-label={statsLabel}>
           {player.stats.map((value, index) => (
             <span key={index} className="source-rank-stat">
               <i className={`source-rank-stat__dot source-rank-stat__dot--${index + 1}`} aria-hidden="true" />
