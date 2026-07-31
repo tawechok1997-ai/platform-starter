@@ -9,7 +9,7 @@ The Member visual implementation is complete for the current scope. The followin
 
 Remaining work is verification evidence rather than another UI concept:
 
-- Run Member lint, typecheck, build, and browser/axe checks with the repository-required Node `>=22 <23` and pnpm `11.13.0` toolchain.
+- Run Member lint, typecheck, build, and browser/axe checks with the repository-required Node `>=22 <23` and pnpm `11.18.0` toolchain.
 - Capture desktop/mobile screenshots and record any measured visual mismatch before release.
 - Keep any future Admin redesign in the Admin documents and Admin app only.
 

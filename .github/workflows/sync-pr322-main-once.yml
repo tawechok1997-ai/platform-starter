@@ -1,0 +1,35 @@
+name: Sync PR 322 With Main Once
+
+on:
+  push:
+    branches:
+      - agent/project-hardening-handoff-readiness
+    paths:
+      - '.github/workflows/sync-pr322-main-once.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/sync-pr322-main-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/project-hardening-handoff-readiness
+          fetch-depth: 0
+
+      - name: Merge latest main
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main
+          git merge --no-edit origin/main
+          git push origin HEAD:agent/project-hardening-handoff-readiness

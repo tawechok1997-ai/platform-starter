@@ -25,7 +25,7 @@ if (!expectedPnpm || actualPnpm !== expectedPnpm) {
 if (failures.length > 0) {
   console.error('Runtime contract check failed:');
   for (const failure of failures) console.error(`- ${failure}`);
-  console.error('Run: corepack enable && corepack prepare pnpm@11.13.0 --activate');
+  console.error('Run: corepack enable && corepack prepare pnpm@11.18.0 --activate');
   process.exit(1);
 }
 

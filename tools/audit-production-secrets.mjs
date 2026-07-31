@@ -3,21 +3,37 @@ import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const root = process.cwd();
+const MAX_SCANNED_BYTES = 5_000_000;
 const secretFilePattern = /(^|\/)(\.env(?:\.[^/]+)?|id_rsa|id_ed25519|.*\.(?:pem|p12|pfx|key))$/i;
 const contentPatterns = [
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
   /(?:aws_access_key_id|aws_secret_access_key)\s*[=:]\s*[^\s"']+/i,
   /(?:jwt|refresh|encryption|api|client|webhook)[_-]?secret\s*[=:]\s*["'][^"']{16,}["']/i,
+  /\bAKIA[0-9A-Z]{16}\b/,
+  /\bgh[pousr]_[A-Za-z0-9_]{30,}\b/,
+  /\bgithub_pat_[A-Za-z0-9_]{40,}\b/,
+  /\bsk_live_[A-Za-z0-9]{20,}\b/,
+  /\bxox[baprs]-[A-Za-z0-9-]{20,}\b/,
+  /\bAIza[0-9A-Za-z_-]{35}\b/,
+  /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/,
 ];
 const passwordAssignmentPattern = /(?:password|passwd)\s*[=:]\s*["']([^"']{12,})["']/gi;
+const sensitiveAssignmentPattern = /(?:secret|token|api[_-]?key|private[_-]?key)\s*[=:]\s*["']([^"']{24,})["']/gi;
 
 const allowedSecretFiles = new Set(['.env.example', '.env.test.example']);
-const allowedFixtureContentFiles = new Set([
+const reviewedFixtureFiles = new Set([
+  'apps/api/src/common/security/sensitive-log-redactor.spec.ts',
+  'apps/api/src/modules/anti-bot/anti-bot.service.spec.ts',
   'apps/api/src/modules/auth/auth.service.spec.ts',
+  'apps/api/src/modules/auth/phone-otp.db.spec.ts',
   'apps/api/src/modules/game-platform/adapters/generic-transfer-provider.adapter.spec.ts',
+  'apps/api/src/modules/risk-alerts/kyc-access.service.spec.ts',
+  'apps/api/src/modules/risk-alerts/risk-watchlist.service.spec.ts',
+  'apps/web-admin/app/(admin)/_components/admin-payload-redaction.spec.ts',
   'apps/web-admin/app/(auth)/login/page.tsx',
   'apps/web-member/app/(auth)/login/page.tsx',
   'prisma/seed-games.ts',
+  'tests/e2e-cms-content/member-content.spec.ts',
   'tools/check-p6-readiness.test.mjs',
 ]);
 
@@ -34,14 +50,45 @@ function isLikelyMachinePassword(value) {
   return /^[\x21-\x7e]{12,}$/.test(value);
 }
 
-function findLikelyPasswordAssignments(content) {
-  const pattern = new RegExp(passwordAssignmentPattern.source, passwordAssignmentPattern.flags);
+function findAssignments(content, sourcePattern, predicate) {
+  const pattern = new RegExp(sourcePattern.source, sourcePattern.flags);
   return [...content.matchAll(pattern)]
     .map((match) => match[1] ?? '')
-    .filter(isLikelyMachinePassword);
+    .filter(predicate);
 }
 
-function verifyPasswordHeuristic() {
+function findLikelyPasswordAssignments(content) {
+  return findAssignments(content, passwordAssignmentPattern, isLikelyMachinePassword);
+}
+
+function characterClassCount(value) {
+  return [/[a-z]/.test(value), /[A-Z]/.test(value), /\d/.test(value), /[^A-Za-z0-9]/.test(value)]
+    .filter(Boolean)
+    .length;
+}
+
+function findHighEntropySensitiveAssignments(content) {
+  return findAssignments(
+    content,
+    sensitiveAssignmentPattern,
+    (value) => !/^(?:set_in_local_env|change-me|example|placeholder)/i.test(value) && characterClassCount(value) >= 3,
+  );
+}
+
+function isLikelyText(buffer) {
+  const sample = buffer.subarray(0, Math.min(buffer.length, 8_192));
+  return !sample.includes(0);
+}
+
+function shouldRunHighEntropyHeuristic(path) {
+  if (path === 'tools/audit-production-secrets.mjs') return false;
+  if (/\.(?:tsx|jsx)$/i.test(path)) return false;
+  if (/(?:^|\/)(?:test|tests|__tests__|fixtures)(?:\/|$)/i.test(path)) return false;
+  if (/\.(?:spec|test)\.[cm]?[jt]sx?$/i.test(path)) return false;
+  return true;
+}
+
+function verifyHeuristics() {
   const passwordKey = ['pass', 'word'].join('');
   const passwdKey = ['pass', 'wd'].join('');
   const uiCopy = `${passwordKey}: 'Create password'\n${passwordKey}: 'สร้างรหัสผ่าน'`;
@@ -53,12 +100,23 @@ function verifyPasswordHeuristic() {
   if (findLikelyPasswordAssignments(realSecrets).length !== 2) {
     throw new Error('Production secret heuristic must detect compact machine credentials');
   }
+
+  const placeholder = "api_key='set_in_local_env'";
+  const likelySecret = "api_key='AbCdEf0123456789+/AbCdEf0123456789'";
+  if (findHighEntropySensitiveAssignments(placeholder).length !== 0) {
+    throw new Error('Sensitive assignment heuristic must ignore documented placeholders');
+  }
+  if (findHighEntropySensitiveAssignments(likelySecret).length !== 1) {
+    throw new Error('Sensitive assignment heuristic must detect high-entropy credentials');
+  }
 }
 
-verifyPasswordHeuristic();
+verifyHeuristics();
 
 const failures = [];
 const files = trackedFiles();
+let textFilesScanned = 0;
+let oversizedFiles = 0;
 
 for (const path of files) {
   const absolute = join(root, path);
@@ -67,24 +125,36 @@ for (const path of files) {
   }
 
   const info = await stat(absolute).catch(() => null);
-  if (!info?.isFile() || info.size > 1_000_000) continue;
-  if (allowedFixtureContentFiles.has(path)) continue;
+  if (!info?.isFile()) continue;
+  if (info.size > MAX_SCANNED_BYTES) {
+    oversizedFiles += 1;
+    continue;
+  }
+  if (reviewedFixtureFiles.has(path)) continue;
 
-  const content = await readFile(absolute, 'utf8').catch(() => null);
-  if (content == null) continue;
+  const buffer = await readFile(absolute).catch(() => null);
+  if (buffer == null || !isLikelyText(buffer)) continue;
+  const content = buffer.toString('utf8');
+  textFilesScanned += 1;
+
   for (const pattern of contentPatterns) {
     if (pattern.test(content)) failures.push(`${path}: possible production secret detected by ${pattern}`);
   }
   if (findLikelyPasswordAssignments(content).length > 0) {
     failures.push(`${path}: possible production password assignment detected`);
   }
+  if (shouldRunHighEntropyHeuristic(path) && findHighEntropySensitiveAssignments(content).length > 0) {
+    failures.push(`${path}: possible high-entropy production credential detected`);
+  }
 }
 
 console.log('Production secret guard');
-console.log(`  tracked files scanned: ${files.length}`);
-console.log(`  allowed fixture files: ${allowedFixtureContentFiles.size}`);
+console.log(`  tracked files: ${files.length}`);
+console.log(`  text files scanned: ${textFilesScanned}`);
+console.log(`  files over ${MAX_SCANNED_BYTES} bytes: ${oversizedFiles}`);
+console.log(`  reviewed fixture files: ${reviewedFixtureFiles.size}`);
 console.log(`  violations: ${failures.length}`);
 if (failures.length) {
-  for (const failure of failures) console.error(`  - ${failure}`);
+  for (const failure of [...new Set(failures)]) console.error(`  - ${failure}`);
   process.exitCode = 1;
 }

@@ -1,8 +1,10 @@
 # Codebase Professionalization Audit
 
-Updated: **2026-07-21**
+Updated: **2026-07-31**  
+Owner: **Platform Engineering**  
+Status: **Active**
 
-This document is the maintained technical-debt and handoff-readiness register for `platform-starter`. It records issues that are not necessarily functional defects but reduce safety, clarity, maintainability or professional delivery quality.
+This is the maintained technical-debt and handoff-readiness register for `platform-starter`. It records issues that are not necessarily functional defects but reduce safety, clarity, maintainability or professional delivery quality.
 
 ## Priority model
 
@@ -13,202 +15,142 @@ This document is the maintained technical-debt and handoff-readiness register fo
 
 ## Current assessment
 
-| Area | Assessment | Main concern |
+| Area | Assessment | Current state |
 |---|---|---|
-| Production startup | Needs stronger automated coverage | A Nest module-scope dependency regression reached deployment after the deduplication merge |
-| Finance ownership | Improved | Mutation ownership is now explicit, but contract tests must protect compatibility adapters |
-| Backend structure | Mixed | Several services/controllers still combine unrelated operational responsibilities |
-| Documentation | Being normalized | Canonical files existed but dates, scope statements and command references drifted |
-| Verification tooling | Strong but fragmented | Many audit commands exist; discoverability and grouping need improvement |
-| Handoff readiness | Moderate | Good runbooks exist, but some commands and active-scope statements were stale |
+| Production startup | Guarded in CI | API build is started and `/health` plus `/version` commit identity are verified |
+| Build reproducibility | Guarded in CI | API generated catalogs and Admin reference assets use check-only builds; tracked diff must remain clean |
+| Finance ownership | Improved | Mutation ownership is explicit; dashboard reads moved to a dedicated query owner |
+| Backend structure | Mixed | `MoneyOpsService` still owns alert and legacy simulator compatibility behavior |
+| Public assets | Quarantined | Legacy executable Member reference files return 404 and are audited; image migration remains |
+| Browser security | Improved | Admin and Member security headers and environment-scoped CSP are repository contracts |
+| Documentation | Current baseline | README, security, onboarding, troubleshooting and handoff documents updated on 2026-07-31 |
+| Verification tooling | Strong | Stable grouped backend, frontend, finance, security, docs and release entry points exist |
+| Handoff readiness | Good with external limits | Repository work is documented; production and vendor verification remain P6 |
+| Repository size | Operational debt | History cleanup requires the coordinated migration runbook and explicit approval |
 
-## P0 — fix or continuously guard
+## Completed or continuously guarded
 
-### 1. Add application bootstrap dependency-resolution test
+### Application startup and release identity
 
-**Problem:** Typecheck and build can pass while Nest dependency injection fails only at application startup.
+- API production artifact starts in CI against the disposable database.
+- `/health` must report `ok`.
+- `/version` must report the exact checked-out commit.
+- Build success alone is not release evidence.
 
-**Required change:**
+### Build purity
 
-- Add a test that compiles `AppModule` with a safe test configuration.
-- Resolve every controller guard/provider at least once.
-- Add this test to API verification and deployment build gates.
-- Explicitly cover compatibility modules such as `RiskModule`.
+- generated catalog and reference-asset writes require explicit commands
+- normal lint, typecheck, test and build paths are check-only
+- Build workflow runs `git diff --exit-code`
+- `audit:build-purity` protects the package scripts
 
-**Acceptance:** a missing `JwtService`, `ConfigService`, `PrismaService` or exported provider fails before deployment.
+### Public asset and browser boundary
 
-### 2. Add deployed API startup/health gate before promotion
+- legacy executable reference assets are quarantined with 404 responses
+- malformed `undefined`/`null` filenames are blocked
+- copied HTML entrypoints are removed
+- Admin and Member security headers are audited
+- approved API origin is included in CSP without breaking HTTP test environments
 
-**Problem:** deployment status can remain pending or fail after a merge reaches `main`.
+### Environment and handoff documentation
 
-**Required change:**
+- `.env.example` matches Redis, local/S3 storage, simulator and rate-limit runtime contracts
+- canonical security, onboarding, troubleshooting and engineering-handoff documents have owners and status
+- grouped verification commands are available
+- documentation metadata and index links are checked automatically
 
-- Require container startup success.
-- Poll the health/version endpoint.
-- Verify deployment commit identity.
-- Do not promote or report success from build status alone.
+### Shared API response cache
 
-### 3. Protect finance compatibility contracts
+- authenticated caching requires an actor/session namespace
+- GET/HEAD are the only cacheable methods
+- token refresh, mutations and session reset clear cached data
 
-Add contract tests for legacy routes retained during ownership moves, including response shape, permission metadata and audit behavior.
+## P1 remaining maintainability work
 
-## P1 — high-value maintainability work
+### 1. Complete `MoneyOpsService` decomposition
 
-### 4. Decompose `MoneyOpsService`
+The control-center dashboard query now belongs to `MoneyOpsDashboardQueryService`. Remaining extraction targets:
 
-The service currently mixes control-center reads, ledger operations, alert scanning, provider simulator behavior, webhook-log test generation and risk-alert lifecycle actions.
-
-Split by responsibility:
-
-- `MoneyOpsDashboardQueryService`
 - `MoneyOpsAlertScanService`
-- `ProviderSimulatorService`
+- `ProviderSimulatorCompatibilityService`
 - `ProviderWebhookTestService`
 - risk lifecycle delegation to the risk owner module
 
-Keep controllers thin and preserve routes through adapters during migration.
+Preserve existing routes through adapters while moving ownership. Do not combine this with provider-specific real-money enablement.
 
-### 5. Remove dense one-line methods
-
-Several backend files use long single-line methods. This makes review, blame, debugging and conflict resolution unnecessarily difficult.
+### 2. Remove remaining dense one-line methods
 
 Rules:
 
 - one statement or logical operation per line
 - named input/output types for public service methods
-- no `any` in controller/service boundaries unless accompanied by a tracked exception
+- no `any` at controller/service boundaries without a tracked compatibility exception
 - extract repeated formatting and query-normalization helpers
 
-### 6. Make security infrastructure ownership explicit
+### 3. Reduce `AppModule` composition risk
 
-`JwtAuthModule` centralizes empty JWT registration, while Admin and Member authentication policy remain separate. Add a module dependency test ensuring every module using `AdminAuthGuard` or member guards imports an approved authentication infrastructure module.
-
-### 7. Reduce `AppModule` composition risk
-
-`AppModule` directly imports many feature modules. Introduce domain composition modules only where they improve ownership without hiding routes:
+Introduce domain composition modules only where they make ownership clearer without hiding routes:
 
 - identity/access
 - money operations
 - content/support
 - provider/game platform
 
-Do not create generic “shared” dumping-ground modules.
+Do not create a generic shared dumping ground.
 
-### 8. Standardize service contracts
+### 4. Finish compatibility contract coverage
 
-Replace public method parameters such as `adminUser: any`, `meta: any` and loose query objects with shared actor, request metadata and typed query contracts.
+Add contract tests for legacy finance/provider routes retained during ownership moves, including response shape, permission metadata and audit behavior.
 
-### 9. Separate query and command services consistently
+## P2 operational and developer-experience work
 
-The repository has started this pattern for members, activity, finance and wallet mutations. Apply it consistently to modules that still mix reads and writes.
+### 5. Complete legacy image migration
 
-## P2 — documentation and developer experience
+Move referenced images from legacy `asset-pc`/`asset-mobile` roots into semantic owned folders, update references, then delete unused current-tree files.
 
-### 10. Maintain one active-scope statement
+### 6. Execute repository history size migration
 
-`AGENTS.md` must describe how to declare a task scope, not permanently lock the entire repository to one historical UI phase.
+Use `docs/operations/repository-size-migration.md`. This requires backup verification, a merge freeze, coordinated force update and re-clone. It is intentionally not executed by a normal feature PR.
 
-### 11. Maintain command registry integrity
+### 7. Add generated architecture views
 
-Every command documented in README/runbooks must exist in `package.json`. Extend `audit:tool-registry` to parse canonical documentation and fail on unknown `pnpm` commands.
+Generate route ownership, module imports and provider exports in CI. Human-maintained maps should link to generated evidence rather than duplicate it.
 
-### 12. Group root scripts
+### 8. Normalize terminology
 
-The root package contains many individual audit commands. Keep them, but add stable grouped entry points:
+Use consistent internal terms for deposit/top-up, withdrawal/payout, member/user and Admin actor while preserving external API compatibility.
 
-- `check:backend`
-- `check:frontend`
-- `check:finance`
-- `check:security`
-- `check:docs`
-- `check:release`
+## Current verification entry points
 
-### 13. Archive superseded evidence safely
+```bash
+pnpm check:backend
+pnpm check:frontend
+pnpm check:finance
+pnpm check:security
+pnpm check:docs
+pnpm check:release
+```
 
-Historical evidence is useful, but active instructions and historical proof must be separated. Use:
+Targeted hardening checks:
 
-- `docs/` for current contracts/runbooks
-- `docs/evidence/` for retained run results
-- `docs/archive/` for superseded planning documents that must remain for traceability
-
-Delete only after reference audit and owner approval.
-
-### 14. Add documentation metadata
-
-Canonical operational documents should include:
-
-- last updated date
-- owner
-- status: active/superseded/archive
-- replaces / replaced-by links
-- verification command where applicable
-
-### 15. Add architecture decision records for future boundary changes
-
-Any new dependency, cross-domain provider export, storage driver, queue system or real-provider integration should have an ADR before implementation.
-
-## P3 — polish
-
-### 16. Normalize file naming and terminology
-
-Use consistent terms for top-up/deposit, withdrawal/payout, member/user and admin actor. Preserve API compatibility, but document one canonical internal term.
-
-### 17. Add generated architecture views
-
-Generate route ownership, module imports and provider exports from source during CI. Human-maintained maps should link to generated evidence rather than duplicate it.
-
-### 18. Add repository newcomer path
-
-Provide a concise 30-minute onboarding sequence with architecture, local startup, test data, safe commands and first-change checklist.
-
-## Document cleanup decisions
-
-### Keep as canonical
-
-- `README.md`
-- `AGENTS.md`
-- `docs/README.md`
-- `docs/master-project-worklist.md`
-- `docs/operations/engineering-handoff.md`
-- architecture ownership and policy documents
-
-### Keep as evidence or historical context
-
-- closure reports under `docs/evidence/`
-- completed `r0xx-*` progress/closure documents
-- deduplication batch evidence
-
-### Merge when content overlaps
-
-- duplicated command lists into `docs/operations/verification-commands.md`
-- duplicated work-status rules into `docs/operations/work-status-reporting.md`
-- overlapping route ownership tables into the canonical architecture ownership matrix
-
-### Delete only after automated reference audit
-
-- superseded worklists explicitly replaced by `master-project-worklist.md`
-- obsolete screenshots/artifacts not referenced by an evidence record
-- dead generated files that are reproducible and not release inputs
-
-## Recommended execution order
-
-1. Bootstrap dependency-resolution test
-2. Documentation command-reference audit
-3. `MoneyOpsService` decomposition
-4. typed actor/request/query contracts
-5. module dependency graph and guard-import audit
-6. grouped verification commands
-7. controlled archive/delete pass
+```bash
+pnpm audit:build-purity
+pnpm audit:public-assets
+pnpm audit:document-metadata
+pnpm verify:api-startup
+```
 
 ## Definition of professional handoff
 
 A handoff is accepted only when:
 
-- current `main` commit and deployment identity are recorded
+- current commit and deployment identity are recorded
 - relevant checks have actual results
-- startup and health are verified
+- builds leave tracked files unchanged
+- startup and health/version identity are verified
 - migration and environment impacts are stated
 - owners and boundaries are documented
+- public asset and browser-security impacts are stated
 - remaining risks are explicit
 - rollback path is executable
 - canonical documentation is updated in the same change

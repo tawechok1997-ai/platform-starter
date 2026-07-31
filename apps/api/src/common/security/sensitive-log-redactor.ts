@@ -4,6 +4,8 @@ const MAX_ARRAY_ITEMS = 100;
 const MAX_OBJECT_KEYS = 100;
 const MAX_STRING_LENGTH = 5_000;
 
+export const SENSITIVE_KEY_PATTERN = /(?:password|passcode|pin|otp|token|authorization|cookie|secret|api[_-]?key|private[_-]?key|credential|signature|signed[_-]?url|presigned[_-]?url|private[_-]?url|jwt)$/i;
+
 const SENSITIVE_NORMALIZED_KEYS = new Set([
   'password',
   'passcode',
@@ -51,7 +53,7 @@ const SENSITIVE_KEY_SUFFIXES = [
   'jwt',
 ] as const;
 
-const SENSITIVE_QUERY_PATTERN = /([?&](?:password|passcode|pin|otp|token|access_token|accessToken|refresh_token|refreshToken|session_token|sessionToken|id_token|idToken|authorization|cookie|secret|client_secret|clientSecret|signing_secret|signingSecret|webhook_secret|webhookSecret|api_key|apiKey|private_key|privateKey|credential|signature|signed_url|signedUrl|presigned_url|presignedUrl|private_url|privateUrl|jwt)=)[^&#]*/gi;
+export const SENSITIVE_QUERY_PATTERN = /([?&](?:password|passcode|pin|otp|token|access_token|accessToken|refresh_token|refreshToken|session_token|sessionToken|id_token|idToken|authorization|cookie|secret|client_secret|clientSecret|signing_secret|signingSecret|webhook_secret|webhookSecret|api_key|apiKey|private_key|privateKey|credential|signature|signed_url|signedUrl|presigned_url|presignedUrl|private_url|privateUrl|jwt)=)[^&#]*/gi;
 const AUTH_SCHEME_PATTERN = /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/gi;
 const JWT_PATTERN = /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g;
 
@@ -61,7 +63,8 @@ function normalizeSensitiveKey(key: string): string {
 
 export function isSensitiveLogKey(key: string): boolean {
   const normalized = normalizeSensitiveKey(key);
-  return SENSITIVE_NORMALIZED_KEYS.has(normalized)
+  return SENSITIVE_KEY_PATTERN.test(key)
+    || SENSITIVE_NORMALIZED_KEYS.has(normalized)
     || SENSITIVE_KEY_SUFFIXES.some((suffix) => normalized.endsWith(suffix));
 }
 

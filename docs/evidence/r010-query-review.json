@@ -35,6 +35,11 @@
       "status": "documented-exception",
       "owner": "risk-alerts",
       "reason": "Rapid deposit-withdrawal and high-withdrawal scanners use different time windows, amount predicates, and eligible workflow statuses."
+    },
+    "duplicate:2d99292a0c07f3a187e5a76e": {
+      "status": "read-model",
+      "owner": "money-ops",
+      "reason": "The MoneyOps control-center preview and paginated ledger listing intentionally share the same recent-ledger projection while serving different response contracts and limits."
     }
   }
 }

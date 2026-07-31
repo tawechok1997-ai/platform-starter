@@ -10,6 +10,7 @@ import {
   ResolveMoneyOpsRiskAlertDto,
   WriteMoneyOpsAuditDto,
 } from './dto/money-ops.dto';
+import { MoneyOpsDashboardQueryService } from './money-ops-dashboard-query.service';
 import { MoneyOpsLedgerQueryService } from './money-ops-ledger-query.service';
 import { MoneyOpsService } from './money-ops.service';
 
@@ -18,20 +19,27 @@ import { MoneyOpsService } from './money-ops.service';
 export class MoneyOpsController {
   constructor(
     private readonly moneyOps: MoneyOpsService,
+    private readonly dashboardQuery: MoneyOpsDashboardQueryService,
     private readonly ledgerQuery: MoneyOpsLedgerQueryService,
   ) {}
 
   @RequirePermission('game.providers.view')
   @Get('control-center')
-  controlCenter() { return this.moneyOps.financeControlCenter(); }
+  controlCenter() {
+    return this.dashboardQuery.getControlCenter();
+  }
 
   @RequirePermission('game.providers.view')
   @Get('ledger')
-  ledger(@Query() query: MoneyOpsLedgerQueryDto) { return this.ledgerQuery.list(query); }
+  ledger(@Query() query: MoneyOpsLedgerQueryDto) {
+    return this.ledgerQuery.list(query);
+  }
 
   @RequirePermission('game.providers.manage')
   @Post('ledger/simulate')
-  simulateLedger(@Body() body: LedgerMutationDto) { return this.moneyOps.simulateLedgerMutation(body); }
+  simulateLedger(@Body() body: LedgerMutationDto) {
+    return this.moneyOps.simulateLedgerMutation(body);
+  }
 
   @RequirePermission('game.providers.manage')
   @Post('ledger/mutate')
@@ -55,11 +63,16 @@ export class MoneyOpsController {
 
   @RequirePermission('game.providers.view')
   @Get('alert-rules')
-  alertRules() { return this.moneyOps.listAlertRules(); }
+  alertRules() {
+    return this.moneyOps.listAlertRules();
+  }
 
   @RequirePermission('game.providers.manage')
   @Post('alert-rules/scan')
-  scanAlertRules(@CurrentUser() user: AuthenticatedAdminActor, @Req() req: AdminRequestContext) {
+  scanAlertRules(
+    @CurrentUser() user: AuthenticatedAdminActor,
+    @Req() req: AdminRequestContext,
+  ) {
     return this.moneyOps.scanAlertRules(user, this.meta(req));
   }
 
@@ -87,11 +100,15 @@ export class MoneyOpsController {
 
   @RequirePermission('game.providers.view')
   @Get('provider-simulator/scenarios')
-  simulatorScenarios() { return this.moneyOps.simulatorScenarios(); }
+  simulatorScenarios() {
+    return this.moneyOps.simulatorScenarios();
+  }
 
   @RequirePermission('game.providers.view')
   @Get('security-hardening')
-  securityHardening() { return this.moneyOps.securityHardeningChecklist(); }
+  securityHardening() {
+    return this.moneyOps.securityHardeningChecklist();
+  }
 
   private meta(req: AdminRequestContext) {
     const rawUserAgent = req.headers?.['user-agent'];

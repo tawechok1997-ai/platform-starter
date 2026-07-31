@@ -1,4 +1,6 @@
-import type { SimulatorGameCatalogItem } from './provider-simulator-catalog';\n\nexport const LOBBY_GAME_CATALOG_PART_10: readonly SimulatorGameCatalogItem[] = [
+import type { SimulatorGameCatalogItem } from './provider-simulator-catalog';
+
+export const LOBBY_GAME_CATALOG_PART_10: readonly SimulatorGameCatalogItem[] = [
   {
     "code": "5080",
     "name": "Wheel of Gems",

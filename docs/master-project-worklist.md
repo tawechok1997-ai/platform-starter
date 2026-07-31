@@ -2,7 +2,7 @@
 
 เอกสารนี้เป็น source of truth หลักสำหรับสถานะงานของ `platform-starter` บน branch `main`
 
-วันที่จัดโครงสร้างล่าสุด: **2026-07-15**
+วันที่จัดโครงสร้างล่าสุด: **2026-07-31**
 
 ## หลักการจัดงาน
 
@@ -22,6 +22,21 @@
 | P4 Architecture / UI / observability | ✅ DONE ฝั่งโค้ด |
 | P5 Performance / storage / CI | ✅ DONE ฝั่งโค้ด |
 | P6 External verification / production / vendor UAT | ⏸️ BLOCKED / WAITING |
+
+---
+
+## Repository hardening baseline — 2026-07-31
+
+- ✅ Production build paths เป็น check-only และไม่แก้ tracked source/assets
+- ✅ API bootstrap, `/health` และ `/version` commit identity gate ใน CI
+- ✅ Admin/Member browser security headers และ environment-scoped CSP
+- ✅ Legacy executable public assets ถูก quarantine และมี automated audit
+- ✅ Shared API response cache แยกตาม actor/session namespace
+- ✅ Runtime environment, onboarding, troubleshooting และ handoff docs เป็นปัจจุบัน
+- ✅ Generated provider catalog headers ถูก normalize ใน source จริง
+- ✅ Demo Tournament data ปิดเป็นค่าเริ่มต้นใน production และต้องเปิดด้วย explicit flag
+
+**หลักฐาน:** `docs/evidence/project-hardening-2026-07-31.md`, `docs/security/public-assets.md`, `docs/operations/repository-size-migration.md`
 
 ---
 
