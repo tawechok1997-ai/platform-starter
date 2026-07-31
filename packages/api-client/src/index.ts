@@ -1,4 +1,5 @@
 export type ApiAuthTokenProvider = () => string | null | undefined | Promise<string | null | undefined>;
+export type ApiCacheNamespaceProvider = () => string | null | undefined | Promise<string | null | undefined>;
 
 export type ApiCacheMode = "default" | "no-store" | "reload" | "force-cache" | "only-if-cached";
 
@@ -6,6 +7,7 @@ export interface ApiClientOptions {
   baseUrl: string;
   getAuthToken?: ApiAuthTokenProvider;
   refreshAuthToken?: ApiAuthTokenProvider;
+  getCacheNamespace?: ApiCacheNamespaceProvider;
   fetchImpl?: typeof fetch;
   defaultHeaders?: HeadersInit;
   retry?: number;
@@ -67,9 +69,7 @@ export function mergeHeaders(...headersList: Array<HeadersInit | undefined>): He
 
 export async function readResponseBody(response: Response): Promise<unknown> {
   const contentType = response.headers.get("content-type") ?? "";
-  if (JSON_CONTENT_TYPES.some((type) => contentType.includes(type))) {
-    return response.json();
-  }
+  if (JSON_CONTENT_TYPES.some((type) => contentType.includes(type))) return response.json();
 
   const text = await response.text();
   return text.length > 0 ? text : null;
@@ -126,11 +126,17 @@ export function createApiClient(options: ApiClientOptions) {
       cache: requestCache,
       ...init
     } = requestOptions;
+    const method = String(init.method ?? "GET").toUpperCase();
+    const cacheableMethod = method === "GET" || method === "HEAD";
     const ttlMs = responseCacheTtlMs ?? options.responseCacheTtlMs ?? 0;
-    const resolvedCacheKey = ttlMs > 0 ? cacheKey ?? `${init.method ?? "GET"}:${path}` : undefined;
+    const cacheNamespace = auth ? await options.getCacheNamespace?.() : "public";
+    const resolvedCacheKey = ttlMs > 0 && cacheableMethod && cacheNamespace
+      ? `${cacheNamespace}:${method}:${cacheKey ?? path}`
+      : undefined;
     const cached = resolvedCacheKey ? responseCache.get(resolvedCacheKey) : undefined;
 
     if (cached && cached.expiresAt > Date.now()) return cached.payload as TResponse;
+    if (cached) responseCache.delete(resolvedCacheKey!);
 
     const attempts = Math.max(0, retry) + 1;
     let lastError: unknown;
@@ -150,6 +156,7 @@ export function createApiClient(options: ApiClientOptions) {
         const cache = requestCache ?? options.cache;
         const fetchInit: RequestInit = {
           ...init,
+          method,
           signal: combined.signal,
           headers,
           ...(cache ? { cache } : {}),
@@ -159,6 +166,7 @@ export function createApiClient(options: ApiClientOptions) {
 
         if (response.status === 401 && auth && options.refreshAuthToken && !refreshedAuth) {
           refreshedAuth = true;
+          responseCache.clear();
           const token = await options.refreshAuthToken();
           if (token) {
             attempt -= 1;
@@ -177,7 +185,11 @@ export function createApiClient(options: ApiClientOptions) {
           );
         }
 
-        if (resolvedCacheKey && ttlMs > 0) responseCache.set(resolvedCacheKey, { expiresAt: Date.now() + ttlMs, payload: body });
+        if (resolvedCacheKey && ttlMs > 0) {
+          responseCache.set(resolvedCacheKey, { expiresAt: Date.now() + ttlMs, payload: body });
+        } else if (!cacheableMethod) {
+          responseCache.clear();
+        }
         return body as TResponse;
       } catch (error) {
         lastError = error;
@@ -226,5 +238,9 @@ export function createApiClient(options: ApiClientOptions) {
     for (const key of responseCache.keys()) if (key.startsWith(prefix)) responseCache.delete(key);
   }
 
-  return { request, json, upload, download, invalidateCache };
+  function resetSession(): void {
+    responseCache.clear();
+  }
+
+  return { request, json, upload, download, invalidateCache, resetSession };
 }
