@@ -126,6 +126,18 @@
     background: #bb5bea;
     content: '';
   }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-shortcut-card='true'] {
+    background:
+      radial-gradient(circle at 100% 90%, rgb(148 79 232 / 34%), transparent 56%),
+      radial-gradient(circle at 0 0, rgb(242 234 252 / 18%), transparent 48%),
+      #15131a !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-shortcut-card='true'] img {
+    object-fit: contain !important;
+    background: rgb(21 19 26 / 82%);
+  }
 }
 
 @keyframes mobile-home-announcement-marquee {
