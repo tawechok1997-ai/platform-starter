@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect } from 'react';
+import { Suspense, useLayoutEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { isMemberNavigationActive } from '../member-navigation-active';
 
@@ -11,6 +11,14 @@ const NAVIGATION_LINK_SELECTOR = [
 ].join(',');
 
 export default function MemberNavigationStateController() {
+  return (
+    <Suspense fallback={null}>
+      <MemberNavigationStateInner />
+    </Suspense>
+  );
+}
+
+function MemberNavigationStateInner() {
   const pathname = usePathname() ?? '/';
   const searchParams = useSearchParams();
   const search = searchParams.toString();
