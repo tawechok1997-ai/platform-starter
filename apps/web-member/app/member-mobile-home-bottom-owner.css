@@ -132,6 +132,75 @@
     content: '';
   }
 
+  /* Match the category icons to Desktop Navigation: one shared runtime image at 32x32. */
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] [data-mobile-category-id] > span:first-child,
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] [data-mobile-category-id] > span:first-child img {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: none !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] [data-mobile-category-id] > span:first-child img {
+    display: block !important;
+    object-fit: contain !important;
+    transform: none !important;
+  }
+
+  /* Match the hamburger member menu to Desktop Member Menu geometry: 30px owner, 26px artwork. */
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='บริการสมาชิก'] a > span:first-child,
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a > span:first-child,
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > button > img {
+    position: relative;
+    display: grid !important;
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    place-items: center;
+    overflow: visible !important;
+    border-radius: 0 !important;
+    color: transparent !important;
+    background: transparent !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='บริการสมาชิก'] a > span:first-child svg,
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a > span:first-child svg {
+    display: none !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='บริการสมาชิก'] a > span:first-child::before,
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a > span:first-child::before {
+    display: block;
+    width: 26px;
+    height: 26px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    content: '';
+  }
+
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='บริการสมาชิก'] a:nth-child(1) > span:first-child::before { background-image: url('/assets/asset-pc/images/ระดับสมาชิก.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='บริการสมาชิก'] a:nth-child(2) > span:first-child::before { background-image: url('/assets/asset-pc/images/รายได่คอมมิชชั่น.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='บริการสมาชิก'] a:nth-child(3) > span:first-child::before { background-image: url('/assets/asset-pc/images/เเนะนำเพื่อน.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='บริการสมาชิก'] a:nth-child(4) > span:first-child::before { background-image: url('/assets/asset-pc/images/คูปอง.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='บริการสมาชิก'] a:nth-child(5) > span:first-child::before { background-image: url('/assets/asset-pc/images/โบนัสพิเศษ.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='บริการสมาชิก'] a:nth-child(6) > span:first-child::before { background-image: url('/assets/asset-pc/images/ถ่ายถอดสด.png'); }
+
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a:nth-child(1) > span:first-child::before { background-image: url('/assets/asset-pc/images/โปรโมชั้น.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a:nth-child(2) > span:first-child::before { background-image: url('/assets/asset-pc/images/ข่าวสาร.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a:nth-child(3) > span:first-child::before { background-image: url('/assets/asset-pc/images/กิจกรรม.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a:nth-child(4) > span:first-child::before { background-image: url('/assets/asset-pc/images/ประวัติ.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a:nth-child(5) > span:first-child::before { background-image: url('/assets/asset-pc/images/เเจ้งเตือน.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a:nth-child(6) > span:first-child::before { background-image: url('/assets/asset-pc/images/วิดีโอเเนะนำ.png'); }
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > a:nth-child(7) > span:first-child::before { background-image: url('/assets/asset-pc/images/เเนะนำการใช้งาน.png'); }
+
+  body:has(.public-game-shell[data-route='/']) #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'] > button > img {
+    content: url('/assets/asset-pc/images/เปลียนภาษา.svg');
+    object-fit: contain !important;
+  }
+
   body:has(.public-game-shell[data-route='/']) [data-mobile-shortcut-card='true'] {
     background:
       radial-gradient(circle at 100% 90%, rgb(148 79 232 / 34%), transparent 56%),
