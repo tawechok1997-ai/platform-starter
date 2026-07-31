@@ -12,7 +12,6 @@ import {
 import {
   MEMBER_PROMOTION_FALLBACKS,
   loadMemberPromotionCampaigns,
-  memberPromotionImageForViewport,
   type MemberPromotionCampaign,
 } from '../../member-promotion-runtime';
 import { useMemberRuntime } from '../../member-runtime-provider';
@@ -26,18 +25,20 @@ import styles from './mobile-source-home-shell.module.css';
 const MAX_PROMOTIONS = 10;
 const MOBILE_CATEGORY_IDS = new Set(['home', 'casino', 'slot', 'fishing', 'sport', 'card', 'lottery']);
 const SHORTCUT_CARD_BACKGROUND = '/images/shortcut/bg_card.webp';
-const MOBILE_PROMOTION_FALLBACKS = MOBILE_SOURCE_ASSETS.promotionSlides.map((imageUrl, index) => {
-  const seed = MEMBER_PROMOTION_FALLBACKS[index % MEMBER_PROMOTION_FALLBACKS.length]!;
-  return {
-    ...seed,
-    id: `mobile-source-slide-${index + 1}`,
-    title: seed.title || `โปรโมชั่น ${index + 1}`,
-    imageUrl,
-    mobileImageUrl: imageUrl,
-    sourceImageUrl: imageUrl,
-    href: index === MOBILE_SOURCE_ASSETS.promotionSlides.length - 1 ? '/promotions' : seed.href || '/promotions',
-  } satisfies MemberPromotionCampaign;
-});
+const MOBILE_PROMOTION_FALLBACKS = dedupePromotionCampaigns(
+  MOBILE_SOURCE_ASSETS.promotionSlides.map((imageUrl, index) => {
+    const seed = MEMBER_PROMOTION_FALLBACKS[index % MEMBER_PROMOTION_FALLBACKS.length]!;
+    return {
+      ...seed,
+      id: `mobile-source-slide-${index + 1}`,
+      title: seed.title || `โปรโมชั่น ${index + 1}`,
+      imageUrl,
+      mobileImageUrl: imageUrl,
+      sourceImageUrl: imageUrl,
+      href: index === MOBILE_SOURCE_ASSETS.promotionSlides.length - 1 ? '/promotions' : seed.href || '/promotions',
+    } satisfies MemberPromotionCampaign;
+  }),
+);
 
 type Props = {
   children: ReactNode;
@@ -58,10 +59,10 @@ export default function MobileSourceHomeShell({ children }: Props) {
   const [shortcutMessage, setShortcutMessage] = useState('');
   const promotionRailRef = useRef<HTMLDivElement | null>(null);
 
-  const categories = useMemo(
-    () => navigation.filter((item) => item.mobile && MOBILE_CATEGORY_IDS.has(item.id)),
-    [navigation],
-  );
+  const categories = useMemo(() => {
+    const mobileItems = navigation.filter((item) => item.mobile && MOBILE_CATEGORY_IDS.has(item.id));
+    return Array.from(new Map(mobileItems.map((item) => [item.id, item])).values());
+  }, [navigation]);
 
   const shortcutArt = MOBILE_SOURCE_ASSETS.shortcutBackground;
   const shortcutIcon = MOBILE_SOURCE_ASSETS.shortcutIcon;
@@ -72,9 +73,12 @@ export default function MobileSourceHomeShell({ children }: Props) {
     void loadMemberPromotionCampaigns(controller.signal)
       .then((items) => {
         if (controller.signal.aborted) return;
-        const enabled = items.filter((item) => item.enabled).slice(0, MAX_PROMOTIONS);
-        const next = enabled.map((item, index) => applyMobilePromotionFallback(item, index));
-        setPromotions(next.length ? next : MOBILE_PROMOTION_FALLBACKS);
+        const enabled = dedupePromotionCampaigns(
+          items
+            .filter((item) => item.enabled)
+            .map((item, index) => applyMobilePromotionFallback(item, index)),
+        ).slice(0, MAX_PROMOTIONS);
+        setPromotions(enabled.length ? enabled : MOBILE_PROMOTION_FALLBACKS);
         setActivePromotion(0);
         promotionRailRef.current?.scrollTo({ left: 0, behavior: 'auto' });
       })
@@ -147,7 +151,11 @@ export default function MobileSourceHomeShell({ children }: Props) {
   const showGuestActions = features.registration || features.login;
 
   return (
-    <section className={`${styles.shell} member-mobile-source-shell`} aria-label="หน้าแรกมือถือ">
+    <section
+      className={`${styles.shell} member-mobile-source-shell`}
+      aria-label="หน้าแรกมือถือ"
+      data-mobile-home-owner="source"
+    >
       <div className={`${styles.topArea} member-mobile-source-top-area`}>
         {features.promotion && promotions.length ? (
           <section className={`${styles.promotionSection} member-mobile-source-promotion`} aria-label="โปรโมชั่น">
@@ -158,11 +166,11 @@ export default function MobileSourceHomeShell({ children }: Props) {
               data-drag-scroll="true"
             >
               {promotions.map((promotion, index) => {
-                const image = memberPromotionImageForViewport(promotion, 'mobile');
                 const fallback = MOBILE_PROMOTION_FALLBACKS[index % MOBILE_PROMOTION_FALLBACKS.length]!.mobileImageUrl;
+                const image = promotion.mobileImageUrl || fallback;
                 return (
                   <a
-                    key={promotion.id}
+                    key={`${promotion.id}-${sourceAssetFileName(image)}`}
                     className={styles.promotionSlide}
                     href={promotion.href || `/browse/promotions/${encodeURIComponent(promotion.id)}`}
                     aria-label={promotion.title}
@@ -295,6 +303,20 @@ function applyMobilePromotionFallback(item: MemberPromotionCampaign, index: numb
     ...item,
     mobileImageUrl: fallback.mobileImageUrl,
   };
+}
+
+function dedupePromotionCampaigns(items: MemberPromotionCampaign[]) {
+  const seenIds = new Set<string>();
+  const seenImages = new Set<string>();
+
+  return items.filter((item) => {
+    const id = item.id.trim();
+    const image = sourceAssetFileName(item.mobileImageUrl || item.imageUrl || item.sourceImageUrl || '');
+    if ((id && seenIds.has(id)) || (image && seenImages.has(image))) return false;
+    if (id) seenIds.add(id);
+    if (image) seenImages.add(image);
+    return true;
+  });
 }
 
 function RuntimeIcon({ value }: { value: string }) {
