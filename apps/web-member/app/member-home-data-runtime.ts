@@ -50,13 +50,15 @@ function normalizeTournaments(value: unknown): MemberTournamentRuntime[] {
   if (Array.isArray(value)) {
     const tournaments = value.map((raw, index) => {
       const item = record(raw);
+      const startsAt = optionalText(item.startsAt ?? item.startAt);
+      const endsAt = optionalText(item.endsAt ?? item.endAt);
       return {
         id: text(item.id, `tournament-${index + 1}`),
         title: text(item.title, `Tournament ${index + 1}`),
         status: text(item.status, 'เปิดรับสมัคร'),
         href: safeHref(item.href) || '/browse/tournaments',
-        startsAt: optionalText(item.startsAt ?? item.startAt),
-        endsAt: optionalText(item.endsAt ?? item.endAt),
+        ...(startsAt ? { startsAt } : {}),
+        ...(endsAt ? { endsAt } : {}),
         players: normalizePlayers(item.players),
       };
     }).filter((item) => item.title);
