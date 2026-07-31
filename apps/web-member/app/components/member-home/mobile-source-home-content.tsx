@@ -54,14 +54,23 @@ export default function MobileSourceHomeContent({
 }: Props) {
   const { features, home, icons } = useMemberRuntime();
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
-  const popular = buildGameCards(fillGames(games.popular, allGames, 3), REFERENCE_GAMES.slice(0, 3));
-  const online = buildGameCards(fillGames(allGames.slice(2), allGames, 5), REFERENCE_GAMES.slice(6, 11));
-  const classic = buildGameCards(fillGames(allGames.slice(8), allGames, 2), REFERENCE_GAMES.slice(12, 14));
-  const leaderboard = home.leaderboard.entries.length ? home.leaderboard.entries.slice(0, 5) : FALLBACK_LEADERBOARD;
+  const usedGameKeys = new Set<string>();
+  const popularGames = takeUniqueGames(games.popular, allGames, 3, usedGameKeys);
+  const onlineGames = takeUniqueGames(allGames, allGames, 5, usedGameKeys);
+  const classicGames = takeUniqueGames(allGames, allGames, 2, usedGameKeys);
+  const popular = buildGameCards(popularGames, REFERENCE_GAMES.slice(0, 3), 'popular');
+  const online = buildGameCards(onlineGames, REFERENCE_GAMES.slice(6, 11), 'online');
+  const classic = buildGameCards(classicGames, REFERENCE_GAMES.slice(12, 14), 'classic');
+  const leaderboardSource = home.leaderboard.entries.length ? home.leaderboard.entries : FALLBACK_LEADERBOARD;
+  const leaderboard = uniqueLeaderboard(leaderboardSource).slice(0, 5);
   const tournamentRanks = leaderboard.slice(0, 3);
 
   return (
-    <section className={`${styles.root} ${parityStyles.root}`} aria-label="เนื้อหาหน้าแรกมือถือ">
+    <section
+      className={`${styles.root} ${parityStyles.root}`}
+      aria-label="เนื้อหาหน้าแรกมือถือ"
+      data-mobile-content-owner="source"
+    >
       <nav className={styles.highlightTabs} aria-label="หัวข้อหน้าแรก">
         <button type="button" className={styles.activeTab} aria-current="page">ไฮไลท์</button>
         <button type="button" onClick={onOpenPromotion}>โปรโมชั่นแนะนำ</button>
@@ -83,7 +92,7 @@ export default function MobileSourceHomeContent({
           </div>
           <div className={styles.rankRail} data-drag-scroll="true">
             {tournamentRanks.map((entry, index) => (
-              <article key={`${entry.user}-${index}`}>
+              <article key={`${entry.user}-${entry.name}`}>
                 <RankBadge rank={index + 1} />
                 <span>{entry.user}</span>
                 <strong>{entry.amount}</strong>
@@ -121,7 +130,7 @@ export default function MobileSourceHomeContent({
           </div>
           <div className={styles.boardRows}>
             {leaderboard.map((entry, index) => (
-              <article key={`${entry.user}-${index}`}>
+              <article key={`${entry.user}-${entry.name}`}>
                 <RankBadge rank={entry.rank || index + 1} />
                 <span>{entry.user}</span>
                 <span className={styles.boardGame}>
@@ -260,7 +269,7 @@ function GameSection({
           data-featured-first={featuredFirst ? 'true' : undefined}
         >
           {games.map((game, index) => (
-            <a className={styles.gameCard} href="/?auth=login" key={`${game.id}-${index}`}>
+            <a className={styles.gameCard} href="/?auth=login" key={game.id}>
               <div className={styles.gameImage}>
                 <img
                   src={game.image}
@@ -285,12 +294,12 @@ function GameSection({
   );
 }
 
-function buildGameCards(games: Game[], fallbacks: ReferenceAsset[]): GameCardModel[] {
+function buildGameCards(games: Game[], fallbacks: ReferenceAsset[], fallbackPrefix: string): GameCardModel[] {
   if (games.length) {
     return games.map((game) => {
       const fallback = resolveHomeGameFallback(game);
       return {
-        id: game.id,
+        id: gameKey(game),
         name: safeName(game),
         provider: game.provider?.name || game.provider?.code || 'NOAH345',
         image: resolveHomeGameImage(game) || fallback,
@@ -301,7 +310,7 @@ function buildGameCards(games: Game[], fallbacks: ReferenceAsset[]): GameCardMod
   }
 
   return fallbacks.map((game, index) => ({
-    id: `reference-${index}`,
+    id: `reference-${fallbackPrefix}-${index}`,
     name: game.name,
     provider: 'NOAH345',
     image: game.url,
@@ -315,7 +324,7 @@ function uniqueGames(...groups: Game[][]) {
   const result: Game[] = [];
   for (const group of groups) {
     for (const game of group) {
-      const key = game.id || `${game.provider?.code || ''}:${game.providerGameCode || game.name}`;
+      const key = gameKey(game);
       if (!key || seen.has(key)) continue;
       seen.add(key);
       result.push(game);
@@ -324,9 +333,33 @@ function uniqueGames(...groups: Game[][]) {
   return result;
 }
 
-function fillGames(primary: Game[], pool: Game[], limit: number) {
+function takeUniqueGames(primary: Game[], pool: Game[], limit: number, used: Set<string>) {
   const selected = uniqueGames(primary, pool);
-  return selected.slice(0, limit);
+  const result: Game[] = [];
+
+  for (const game of selected) {
+    const key = gameKey(game);
+    if (!key || used.has(key)) continue;
+    used.add(key);
+    result.push(game);
+    if (result.length >= limit) break;
+  }
+
+  return result;
+}
+
+function uniqueLeaderboard<T extends { user: string; name: string; amount: string }>(entries: readonly T[]) {
+  const seen = new Set<string>();
+  return entries.filter((entry) => {
+    const key = `${entry.user.trim()}::${entry.name.trim()}::${entry.amount.trim()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function gameKey(game: Game) {
+  return game.id || `${game.provider?.code || ''}:${game.providerGameCode || game.name}`;
 }
 
 function safeName(game: Game) {
