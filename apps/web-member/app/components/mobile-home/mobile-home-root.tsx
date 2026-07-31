@@ -5,7 +5,10 @@ import { useEffect, useState } from 'react';
 import { useMemberLocale } from '../../member-locale-provider';
 import styles from './mobile-home-root.module.css';
 
+const SOURCE_ROOT = '/assets/asset-pc/images';
 const LOGO_URL = 'https://cdn.zabbet.com/FEZX/lobby_settings/9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png';
+const SHORTCUT_ART_URL = 'https://cdn.zabbet.com/FEZX/lobby_settings/fc6b7ea8-3eaf-47ec-8640-33c7138d3c7c.png';
+const SHORTCUT_ICON_URL = 'https://cdn.zabbet.com/FEZX/lobby_settings/083e4b9b-63aa-4825-a0e3-57a88de57e2f.ico';
 
 const HERO_SLIDES = [
   'https://cdn.zabbet.com/FEZX/imageslides/1785515208075-2e3c49ad-afac-48e1-b855-5385734de314.jpg',
@@ -34,6 +37,39 @@ const SECONDARY_MENU = [
 ] as const;
 
 const HIGHLIGHT_TABS = ['ไฮไลท์', 'โปรโมชั่นแนะนำ', 'กิจกรรม', 'ข่าวสาร'] as const;
+
+const BANKS = [
+  'BBL',
+  'KBANK',
+  'KTB',
+  'TTB',
+  'SCB',
+  'BAY',
+  'KKP',
+  'CIMBT',
+  'TISCO',
+  'UOBT',
+  'TCD',
+  'LHFG',
+  'BAAC',
+  'EXIM',
+  'GSB',
+  'GHB',
+  'TMN',
+] as const;
+
+const LICENSE_BADGES = [
+  ['BMM Testlabs', `${SOURCE_ROOT}/footer/BBM-Cert.webp`],
+  ['iTech Labs', `${SOURCE_ROOT}/footer/iTech.webp`],
+  ['Iovation', `${SOURCE_ROOT}/footer/Iovation.webp`],
+  ['Gaming Labs', `${SOURCE_ROOT}/footer/GamingLab.webp`],
+  ['GC', `${SOURCE_ROOT}/footer/GC-icon%202.webp`],
+] as const;
+
+const SECURITY_BADGES = [
+  ['GoDaddy', `${SOURCE_ROOT}/footer/GO%20DADDY.webp`],
+  ['Security Group', `${SOURCE_ROOT}/footer/Group%2048102721.webp`],
+] as const;
 
 export default function MobileHomeRoot() {
   const { locale, toggleLocale } = useMemberLocale();
@@ -183,6 +219,81 @@ export default function MobileHomeRoot() {
         </nav>
 
         <section className={styles.nextContentSlot} data-mobile-content-slot="after-highlight" aria-label="พื้นที่เนื้อหาถัดไป" />
+      </div>
+
+      <div className={styles.bottomStructure} data-mobile-bottom-owner="true">
+        <section className={styles.shortcutSection} data-mobile-section-owner="shortcut" aria-labelledby="mobile-shortcut-title">
+          <h2 id="mobile-shortcut-title">เพิ่มปุ่มลัดหน้าโฮม</h2>
+          <div className={styles.shortcutCard}>
+            <img className={styles.shortcutArtwork} src={SHORTCUT_ART_URL} alt="" aria-hidden="true" />
+            <div className={styles.shortcutContent}>
+              <div className={styles.shortcutIntro}>
+                <img src={SHORTCUT_ICON_URL} alt="NOAH345" />
+                <div>
+                  <strong>เพิ่มปุ่มลัดได้แล้ววันนี้!</strong>
+                  <span>สัมผัสประสบการณ์ที่เหนือกว่า เพิ่มปุ่มเลย</span>
+                </div>
+              </div>
+              <div className={styles.shortcutActions}>
+                <span className={styles.androidButton} aria-disabled="true">Android</span>
+                <Link href="/download" className={styles.iosButton}>iOS</Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer className={styles.mobileFooter} data-mobile-section-owner="footer" aria-label="ข้อมูลเว็บไซต์มือถือ">
+          <section className={styles.paymentSection} aria-labelledby="mobile-payment-title">
+            <h2 id="mobile-payment-title">วิธีการชำระเงิน</h2>
+            <div className={styles.bankGrid}>
+              {BANKS.map((bank) => (
+                <img key={bank} src={`${SOURCE_ROOT}/banks/TH/${bank}.webp`} alt={bank} loading="lazy" />
+              ))}
+            </div>
+          </section>
+
+          <div className={styles.footerDivider} aria-hidden="true" />
+
+          <div className={styles.footerTopRow}>
+            <section>
+              <strong>ติดต่อเรา</strong>
+              <a href="https://lin.ee/UYkP0OC" target="_blank" rel="noopener noreferrer" aria-label="ติดต่อเราผ่าน LINE">
+                <img src={`${SOURCE_ROOT}/line.png`} alt="LINE" loading="lazy" />
+              </a>
+            </section>
+            <section>
+              <strong>รับผิดชอบในการเดิมพัน</strong>
+              <img src={`${SOURCE_ROOT}/footer/gamecare.webp`} alt="Game Care" loading="lazy" />
+            </section>
+          </div>
+
+          <div className={styles.footerDivider} aria-hidden="true" />
+
+          <div className={styles.footerBottomRow}>
+            <section className={styles.licenseSection}>
+              <div className={styles.licenseTitle}>
+                <strong>ใบอนุญาตและใบรับรอง</strong>
+                <span>(การันตีเกมลิขสิทธิ์แท้)</span>
+              </div>
+              <div className={styles.licenseGrid}>
+                {LICENSE_BADGES.map(([name, url]) => (
+                  <img key={name} src={url} alt={name} loading="lazy" />
+                ))}
+              </div>
+            </section>
+
+            <section className={styles.securitySection}>
+              <strong>การรองรับและความปลอดภัยโดย</strong>
+              <div>
+                {SECURITY_BADGES.map(([name, url]) => (
+                  <img key={name} src={url} alt={name} loading="lazy" />
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className={styles.copyright}>Copyright © NOAH345, All Rights Reserved.</div>
+        </footer>
       </div>
     </main>
   );
