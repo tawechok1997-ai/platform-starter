@@ -10,6 +10,7 @@ const SOURCE_ROOT = '/assets/asset-pc/images';
 const LOBBY_ASSET_ROOT = `${SOURCE_ROOT}/FEZX/lobby_settings`;
 const LOGO_URL = `${LOBBY_ASSET_ROOT}/9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png`;
 const ANNOUNCEMENT_ICON_URL = `${SOURCE_ROOT}/home/coin.webp`;
+const AUTH_BUTTON_TEXTURE = '/images/theme/button/style_1.webp';
 
 const PRIMARY_MENU = [
   ['ระดับสมาชิก VIP', '/profile'],
@@ -75,6 +76,11 @@ type MobileHeroSlide = {
   image: string;
   href: string;
   title: string;
+};
+
+type MobileAuthActionsProps = {
+  layout: 'page' | 'drawer';
+  onNavigate?: () => void;
 };
 
 export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRootProps) {
@@ -194,10 +200,7 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
             </button>
           </nav>
 
-          <div className={styles.drawerAuth}>
-            <Link href="/?auth=register" className={styles.registerButton} onClick={() => setMenuOpen(false)}>สมัครสมาชิก</Link>
-            <Link href="/?auth=login" className={styles.loginButton} onClick={() => setMenuOpen(false)}>เข้าสู่ระบบ</Link>
-          </div>
+          <MobileAuthActions layout="drawer" onNavigate={() => setMenuOpen(false)} />
         </aside>
       </div>
 
@@ -231,6 +234,14 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
             ) : null}
           </section>
         ) : null}
+
+        <section
+          data-mobile-section-owner="auth-actions"
+          aria-label="สมัครสมาชิกหรือเข้าสู่ระบบ"
+          style={{ width: '100%', padding: '12px 12px 0' }}
+        >
+          <MobileAuthActions layout="page" />
+        </section>
 
         {announcementMessages.length > 0 ? (
           <section className={styles.announcement} data-mobile-section-owner="announcement" aria-label="ประกาศ">
@@ -348,6 +359,87 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
         </footer>
       </div>
     </main>
+  );
+}
+
+function MobileAuthActions({ layout, onNavigate }: MobileAuthActionsProps) {
+  const isPage = layout === 'page';
+
+  return (
+    <div
+      className={isPage ? undefined : styles.drawerAuth}
+      data-mobile-auth-layout={layout}
+      style={isPage ? {
+        display: 'flex',
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 16,
+        fontSize: 16,
+        fontWeight: 600,
+      } : undefined}
+    >
+      <AuthActionLink
+        href="/?auth=register"
+        label="สมัครสมาชิก"
+        className={styles.registerButton}
+        horizontal={isPage}
+        onNavigate={onNavigate}
+      />
+      <AuthActionLink
+        href="/?auth=login"
+        label="เข้าสู่ระบบ"
+        className={styles.loginButton}
+        horizontal={isPage}
+        onNavigate={onNavigate}
+      />
+    </div>
+  );
+}
+
+type AuthActionLinkProps = {
+  href: string;
+  label: string;
+  className: string;
+  horizontal: boolean;
+  onNavigate?: () => void;
+};
+
+function AuthActionLink({ href, label, className, horizontal, onNavigate }: AuthActionLinkProps) {
+  return (
+    <Link
+      href={href}
+      className={className}
+      onClick={onNavigate}
+      style={horizontal ? {
+        position: 'relative',
+        display: 'grid',
+        minWidth: 95,
+        height: 44,
+        flex: '1 1 0%',
+        placeItems: 'center',
+        overflow: 'hidden',
+        borderRadius: 10,
+        color: '#fff',
+        textDecoration: 'none',
+        boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 16%)',
+      } : undefined}
+    >
+      {horizontal ? (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: 10,
+            backgroundImage: `url('${AUTH_BUTTON_TEXTURE}')`,
+            backgroundSize: '100% 100%',
+            pointerEvents: 'none',
+          }}
+        />
+      ) : null}
+      <span style={{ position: 'relative', whiteSpace: 'nowrap' }}>{label}</span>
+    </Link>
   );
 }
 
