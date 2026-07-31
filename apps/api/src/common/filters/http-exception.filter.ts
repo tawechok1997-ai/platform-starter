@@ -3,6 +3,7 @@ import { isDomainError } from '../errors/domain-error';
 import { mapDomainErrorToHttp } from '../errors/domain-error-http.mapper';
 import { resolveApiErrorCode } from '../errors/error-code-resolver';
 import { buildStructuredLogRecord } from '../observability/structured-log';
+import { redactSensitiveUrl, toSafeLogRecord } from '../security/sensitive-log-redactor';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -11,31 +12,33 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse();
     const request = ctx.getRequest();
     const requestId = request?.requestId ?? response?.getHeader?.('X-Request-Id') ?? null;
+    const requestPath = redactSensitiveUrl(request?.originalUrl ?? request?.url ?? '');
 
     const domainPayload = isDomainError(exception) ? mapDomainErrorToHttp(exception) : null;
     const status = domainPayload?.status
       ?? (exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR);
     const payload = domainPayload
       ?? (exception instanceof HttpException ? exception.getResponse() : null);
-    const message = domainPayload?.message ?? this.resolveMessage(payload, exception);
+    const message = redactSensitiveUrl(domainPayload?.message ?? this.resolveMessage(payload, exception));
     const safePayload = this.safePayload(payload);
     const code = domainPayload?.code
       ?? (typeof safePayload.code === 'string' ? safePayload.code : resolveApiErrorCode(message));
 
     if (status >= 500) {
-      console.error(JSON.stringify(buildStructuredLogRecord({
+      const record = buildStructuredLogRecord({
         level: 'error',
         event: 'http_exception',
         requestId,
         method: request?.method,
-        path: request?.originalUrl ?? request?.url,
+        path: requestPath,
         statusCode: status,
         actor: request?.user,
         extra: {
           code: code ?? null,
           message,
         },
-      })));
+      });
+      console.error(JSON.stringify(toSafeLogRecord(record)));
     }
 
     response.status(status).json({
@@ -46,7 +49,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       error: status >= 500 ? 'Internal Server Error' : this.resolveError(payload),
       requestId,
       timestamp: new Date().toISOString(),
-      path: request?.originalUrl ?? request?.url,
+      path: requestPath,
     });
   }
 
@@ -57,7 +60,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     for (const key of ['retryAfter', 'code', 'messageKey', 'details']) {
       if (source[key] !== undefined) allowed[key] = source[key];
     }
-    return allowed;
+    return toSafeLogRecord(allowed);
   }
 
   private resolveMessage(payload: unknown, exception: unknown) {
@@ -74,7 +77,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
   private resolveError(payload: unknown) {
     if (payload && typeof payload === 'object' && 'error' in payload) {
       const value = (payload as { error?: unknown }).error;
-      if (typeof value === 'string') return value;
+      if (typeof value === 'string') return redactSensitiveUrl(value);
     }
     return 'Error';
   }
