@@ -28,6 +28,22 @@ test('mobile upper structure has one owner per section', () => {
   assert.equal((mobileRoot.match(/data-mobile-content-slot="after-highlight"/g) ?? []).length, 1);
 });
 
+test('mobile bottom structure has one shortcut and one footer owner', () => {
+  assert.equal((mobileRoot.match(/data-mobile-bottom-owner="true"/g) ?? []).length, 1);
+
+  for (const owner of ['shortcut', 'footer']) {
+    assert.equal(
+      (mobileRoot.match(new RegExp(`data-mobile-section-owner="${owner}"`, 'g')) ?? []).length,
+      1,
+      `${owner} must have one Mobile owner`,
+    );
+  }
+
+  assert.equal((mobileRoot.match(/<footer\s/g) ?? []).length, 1);
+  assert.match(mobileRoot, /const BANKS = \[/);
+  assert.match(mobileRoot, /Copyright © NOAH345, All Rights Reserved\./);
+});
+
 test('mobile home owner does not import desktop or legacy UI', () => {
   assert.doesNotMatch(mobileRoot, /DesktopHomeScaffold/);
   assert.doesNotMatch(mobileRoot, /MemberFooter/);
@@ -49,6 +65,14 @@ test('mobile geometry preserves the supplied upper structure', () => {
   assert.match(mobileRootCss, /max-width:\s*640px/);
   assert.match(mobileRootCss, /padding-bottom:\s*41\.6%/);
   assert.match(mobileRootCss, /grid-template-columns:\s*repeat\(4/);
+});
+
+test('mobile bottom structure stays attached to the page bottom', () => {
+  assert.match(mobileRootCss, /\.root\s*\{[\s\S]*display:\s*flex/);
+  assert.match(mobileRootCss, /\.root\s*\{[\s\S]*min-height:\s*100dvh/);
+  assert.match(mobileRootCss, /\.bottomStructure\s*\{[\s\S]*margin-top:\s*auto/);
+  assert.match(mobileRootCss, /\.mobileFooter\s*\{[\s\S]*margin:\s*0/);
+  assert.match(mobileRootCss, /\.shortcutCard\s*\{[\s\S]*height:\s*134px/);
 });
 
 test('final layout owner exposes the Mobile root instead of hiding the shell', () => {
