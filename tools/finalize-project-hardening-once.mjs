@@ -35,7 +35,11 @@ const activePnpmFiles = execFileSync('git', ['grep', '-FIl', '11.13.0', '--', '.
 })
   .split(/\r?\n/)
   .filter(Boolean)
-  .filter((path) => !path.startsWith('docs/evidence/') && !path.startsWith('docs/archive/'));
+  .filter((path) =>
+    !path.startsWith('.github/workflows/')
+    && !path.startsWith('docs/evidence/')
+    && !path.startsWith('docs/archive/'),
+  );
 
 for (const path of activePnpmFiles) {
   await replaceAll(path, '11.13.0', '11.18.0');
