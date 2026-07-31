@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import {
   CmsContent,
   MemberFeatureFlags,
@@ -12,8 +12,6 @@ import MemberGameSectionRuntimeController from './components/member-game-section
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
-import MobileSourceHomeContent from './components/member-home/mobile-source-home-content';
-import MobileSourceHomeShell from './components/member-home/mobile-source-home-shell';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
@@ -40,10 +38,27 @@ const POPUP_CLOSED_VERSION_KEY = 'member_cms_popup_closed_version';
 const MOBILE_HOME_QUERY = '(max-width: 900px)';
 
 export default function MemberHome(props: MemberHomeProps) {
+  const [viewportMode, setViewportMode] = useState<ViewportMode | null>(null);
+
+  useLayoutEffect(() => {
+    const media = window.matchMedia(MOBILE_HOME_QUERY);
+    const syncViewport = () => setViewportMode(media.matches ? 'mobile' : 'desktop');
+
+    syncViewport();
+    media.addEventListener?.('change', syncViewport);
+    return () => media.removeEventListener?.('change', syncViewport);
+  }, []);
+
+  // Mobile Home intentionally has no implementation. It will be rebuilt from a clean slate.
+  if (viewportMode !== 'desktop') return null;
+
+  return <DesktopMemberHome {...props} />;
+}
+
+function DesktopMemberHome(props: MemberHomeProps) {
   const features = props.features ?? defaultFeatureFlags;
   const icons = props.icons ?? defaultIconSettings;
   const [popupClosed, setPopupClosed] = useState(false);
-  const [viewportMode, setViewportMode] = useState<ViewportMode | null>(null);
   const popupVersion = props.cmsContent.popup.version ?? 'v1';
   const data = useMemberHomeData(features.games);
   const gameSections = {
@@ -57,15 +72,6 @@ export default function MemberHome(props: MemberHomeProps) {
     setPopupClosed(readClosedPopupVersion() === popupVersion);
   }, [popupVersion]);
 
-  useLayoutEffect(() => {
-    const media = window.matchMedia(MOBILE_HOME_QUERY);
-    const syncViewport = () => setViewportMode(media.matches ? 'mobile' : 'desktop');
-
-    syncViewport();
-    media.addEventListener?.('change', syncViewport);
-    return () => media.removeEventListener?.('change', syncViewport);
-  }, []);
-
   function closePopup() {
     writeClosedPopupVersion(popupVersion);
     setPopupClosed(true);
@@ -73,21 +79,8 @@ export default function MemberHome(props: MemberHomeProps) {
 
   const openHomePopup = (kind: HomePopupKind) => () => openMemberSharedPopup(kind);
 
-  let homeContent: ReactNode = null;
-  if (viewportMode === 'mobile') {
-    homeContent = (
-      <MobileSourceHomeShell>
-        <MobileSourceHomeContent
-          games={gameSections}
-          isGamesLoading={data.isGamesLoading}
-          gamesMessage={data.gamesMessage}
-          onOpenPromotion={openHomePopup('promotion')}
-          onOpenActivity={openHomePopup('activity')}
-        />
-      </MobileSourceHomeShell>
-    );
-  } else if (viewportMode === 'desktop') {
-    homeContent = (
+  return (
+    <>
       <DesktopHomeScaffold
         content={props.cmsContent}
         icons={icons}
@@ -100,18 +93,8 @@ export default function MemberHome(props: MemberHomeProps) {
         onOpenActivity={openHomePopup('activity')}
         onOpenNews={openHomePopup('news')}
       />
-    );
-  }
-
-  return (
-    <>
-      {homeContent}
-      {viewportMode === 'desktop' ? (
-        <>
-          <MemberHomeRuntimeController />
-          <MemberGameSectionRuntimeController />
-        </>
-      ) : null}
+      <MemberHomeRuntimeController />
+      <MemberGameSectionRuntimeController />
       {props.cmsContent.popup.enabled && !popupClosed ? (
         <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
       ) : null}
