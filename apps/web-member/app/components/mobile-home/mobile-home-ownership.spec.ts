@@ -26,7 +26,7 @@ test('mobile motion runtime adds behavior without rendering another UI owner', (
 });
 
 test('mobile upper structure has one owner per section', () => {
-  for (const owner of ['header', 'hero', 'announcement', 'highlight-tabs']) {
+  for (const owner of ['header', 'hero', 'auth-actions', 'announcement', 'highlight-tabs']) {
     assert.equal(
       (mobileRoot.match(new RegExp(`data-mobile-section-owner="${owner}"`, 'g')) ?? []).length,
       1,
@@ -36,6 +36,19 @@ test('mobile upper structure has one owner per section', () => {
 
   assert.equal((mobileRoot.match(/id="mobile-home-drawer"/g) ?? []).length, 1);
   assert.equal((mobileRoot.match(/data-mobile-content-slot="after-highlight"/g) ?? []).length, 1);
+});
+
+test('mobile auth actions reuse one component and preserve supplied geometry', () => {
+  assert.equal((mobileRoot.match(/function MobileAuthActions\(/g) ?? []).length, 1);
+  assert.equal((mobileRoot.match(/<MobileAuthActions layout="page"/g) ?? []).length, 1);
+  assert.equal((mobileRoot.match(/<MobileAuthActions layout="drawer"/g) ?? []).length, 1);
+  assert.equal((mobileRoot.match(/data-mobile-section-owner="auth-actions"/g) ?? []).length, 1);
+  assert.match(mobileRoot, /AUTH_BUTTON_TEXTURE = '\/images\/theme\/button\/style_1\.webp'/);
+  assert.match(mobileRoot, /height:\s*44/);
+  assert.match(mobileRoot, /minWidth:\s*95/);
+  assert.match(mobileRoot, /gap:\s*16/);
+  assert.match(mobileRoot, /สมัครสมาชิก/);
+  assert.match(mobileRoot, /เข้าสู่ระบบ/);
 });
 
 test('hamburger button controls one accessible drawer that slides from the left', () => {
