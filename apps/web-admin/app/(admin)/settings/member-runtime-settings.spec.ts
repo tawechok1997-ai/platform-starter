@@ -30,6 +30,14 @@ test('features settings expose structured runtime data from one location', () =>
   assert.match(featuresSource, /defaults=\{FEATURES_DEFAULTS\}/);
 });
 
+test('tournament settings seed an editable desktop-first mock dataset', () => {
+  assert.match(featuresSource, /DESKTOP_TOURNAMENT_MOCK_DEFAULTS/);
+  assert.match(featuresSource, /กำลังแข่งขัน · ข้อมูลตัวอย่าง/);
+  assert.match(featuresSource, /football-royale-2/);
+  assert.match(featuresSource, /tournament_items_json: DESKTOP_TOURNAMENT_MOCK_DEFAULTS/);
+  assert.match(featuresSource, /Mobile ใช้ชุดเดียวกัน/);
+});
+
 test('theme settings expose common responsive design tokens', () => {
   for (const key of [
     'card_radius',
