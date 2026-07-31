@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { memo, type SyntheticEvent } from 'react';
+import { memo, useEffect, useState, type SyntheticEvent } from 'react';
 import { useMemberLocale } from './member-locale-provider';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 import mobileFooterStyles from './member-footer-mobile-match.module.css';
@@ -162,19 +162,27 @@ Daily jackpot opportunities.`,
   },
 } as const;
 
-function sourceBrandName(value: string | undefined) {
-  const normalized = value?.trim();
-  return !normalized || /platform starter/i.test(normalized) ? 'NOAH345' : normalized;
-}
-
-function sourceDescription(value: string | undefined, fallback: string) {
-  const normalized = value?.trim();
-  return !normalized || /แพลตฟอร์มสมาชิก|member platform starter|platform starter/i.test(normalized)
-    ? fallback
-    : normalized;
-}
+type FooterViewport = 'mobile' | 'desktop';
 
 function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
+  const [viewport, setViewport] = useState<FooterViewport | null>(null);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 900px)');
+    const syncViewport = () => setViewport(media.matches ? 'mobile' : 'desktop');
+
+    syncViewport();
+    media.addEventListener('change', syncViewport);
+    return () => media.removeEventListener('change', syncViewport);
+  }, []);
+
+  if (viewport === null) return null;
+  return viewport === 'mobile'
+    ? <MobileSourceFooter />
+    : <DesktopMemberFooter settings={settings} />;
+}
+
+function DesktopMemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
   const { locale } = useMemberLocale();
   const copy = FOOTER_COPY[locale];
   const { website } = settings;
@@ -182,83 +190,79 @@ function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
   const description = sourceDescription(website.site_description, copy.description);
 
   return (
-    <>
-      <footer
-        className={`member-footer member-footer--shared member-persistent-shell__footer ${mobileFooterStyles.desktopRoot}`}
-        data-locale={locale}
-      >
-        <div className="member-footer__main">
-          <section className="member-footer__about">
-            <h3>{siteName}</h3>
-            <p>{description}</p>
-          </section>
+    <footer
+      className={`member-footer member-footer--shared member-persistent-shell__footer ${mobileFooterStyles.desktopRoot}`}
+      data-locale={locale}
+    >
+      <div className="member-footer__main">
+        <section className="member-footer__about">
+          <h3>{siteName}</h3>
+          <p>{description}</p>
+        </section>
 
-          <section className="member-footer__trust">
-            <h3>
-              <strong>{copy.license}</strong> <span>{copy.licenseNote}</span>
-            </h3>
-            <BadgeRow badges={LICENSE_BADGES} className="member-footer__trust-primary" />
+        <section className="member-footer__trust">
+          <h3>
+            <strong>{copy.license}</strong> <span>{copy.licenseNote}</span>
+          </h3>
+          <BadgeRow badges={LICENSE_BADGES} className="member-footer__trust-primary" />
 
-            <div className="member-footer__trust-groups">
-              <div className="member-footer__trust-group">
-                <h3>{copy.security}</h3>
-                <BadgeRow badges={SECURITY_BADGES} />
-              </div>
-              <div className="member-footer__trust-group">
-                <h3>{copy.responsible}</h3>
-                <BadgeRow badges={RESPONSIBLE_BADGES} />
-              </div>
+          <div className="member-footer__trust-groups">
+            <div className="member-footer__trust-group">
+              <h3>{copy.security}</h3>
+              <BadgeRow badges={SECURITY_BADGES} />
             </div>
-          </section>
-
-          <div className="member-footer__menus">
-            <nav className="member-footer__links" aria-label={copy.games}>
-              <h3>{copy.games}</h3>
-              {GAME_LINKS.map(([key, href]) => (
-                <Link key={key} href={href}>{copy.links[key]}</Link>
-              ))}
-            </nav>
-
-            <nav className="member-footer__links" aria-label={copy.information}>
-              <h3>{copy.information}</h3>
-              {INFO_LINKS.map(([key, href]) => (
-                <Link key={key} href={href}>{copy.links[key]}</Link>
-              ))}
-            </nav>
-          </div>
-
-          <section className="member-footer__contact">
-            <h3>{copy.contact}</h3>
-            <Link className="member-footer__contact-line" href="/contact" aria-label={copy.contactAria}>
-              <img src={`${SOURCE_ROOT}/line.png`} alt="LINE" loading="lazy" onError={hideBrokenImage} />
-            </Link>
-          </section>
-        </div>
-
-        <section className="member-footer__payments" aria-label={copy.payments}>
-          <h3>{copy.payments}</h3>
-          <div className="member-footer__bank-grid">
-            {LOCAL_BANKS.map((bank) => (
-              <span key={bank.name} className="member-footer__bank" title={bank.name}>
-                <img src={bank.url} alt={bank.name} loading="lazy" onError={hideBrokenImage} />
-              </span>
-            ))}
+            <div className="member-footer__trust-group">
+              <h3>{copy.responsible}</h3>
+              <BadgeRow badges={RESPONSIBLE_BADGES} />
+            </div>
           </div>
         </section>
 
-        <small className="member-footer__copyright">
-          <img
-            className="member-footer__copyright-logo"
-            src="/reference-v6/logo.webp"
-            alt="NOAH345"
-            onError={hideBrokenImage}
-          />
-          <span>Copyright © NOAH345, All Rights Reserved.</span>
-        </small>
-      </footer>
+        <div className="member-footer__menus">
+          <nav className="member-footer__links" aria-label={copy.games}>
+            <h3>{copy.games}</h3>
+            {GAME_LINKS.map(([key, href]) => (
+              <Link key={key} href={href}>{copy.links[key]}</Link>
+            ))}
+          </nav>
 
-      <MobileSourceFooter />
-    </>
+          <nav className="member-footer__links" aria-label={copy.information}>
+            <h3>{copy.information}</h3>
+            {INFO_LINKS.map(([key, href]) => (
+              <Link key={key} href={href}>{copy.links[key]}</Link>
+            ))}
+          </nav>
+        </div>
+
+        <section className="member-footer__contact">
+          <h3>{copy.contact}</h3>
+          <Link className="member-footer__contact-line" href="/contact" aria-label={copy.contactAria}>
+            <img src={`${SOURCE_ROOT}/line.png`} alt="LINE" loading="lazy" onError={hideBrokenImage} />
+          </Link>
+        </section>
+      </div>
+
+      <section className="member-footer__payments" aria-label={copy.payments}>
+        <h3>{copy.payments}</h3>
+        <div className="member-footer__bank-grid">
+          {LOCAL_BANKS.map((bank) => (
+            <span key={bank.name} className="member-footer__bank" title={bank.name}>
+              <img src={bank.url} alt={bank.name} loading="lazy" onError={hideBrokenImage} />
+            </span>
+          ))}
+        </div>
+      </section>
+
+      <small className="member-footer__copyright">
+        <img
+          className="member-footer__copyright-logo"
+          src="/reference-v6/logo.webp"
+          alt="NOAH345"
+          onError={hideBrokenImage}
+        />
+        <span>Copyright © NOAH345, All Rights Reserved.</span>
+      </small>
+    </footer>
   );
 }
 
@@ -353,6 +357,18 @@ const BadgeRow = memo(function BadgeRow({
     </div>
   );
 });
+
+function sourceBrandName(value: string | undefined) {
+  const normalized = value?.trim();
+  return !normalized || /platform starter/i.test(normalized) ? 'NOAH345' : normalized;
+}
+
+function sourceDescription(value: string | undefined, fallback: string) {
+  const normalized = value?.trim();
+  return !normalized || /แพลตฟอร์มสมาชิก|member platform starter|platform starter/i.test(normalized)
+    ? fallback
+    : normalized;
+}
 
 function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
   event.currentTarget.style.display = 'none';
