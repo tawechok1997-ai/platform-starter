@@ -36,7 +36,7 @@ jobs:
 
       - name: Commit synchronized assets
         run: |
-          if git diff --quiet -- apps/web-admin/public/assets/reference-brand; then
+          if [ -z "$(git status --porcelain -- apps/web-admin/public/assets/reference-brand)" ]; then
             echo 'Admin reference assets are already synchronized.'
             exit 0
           fi
