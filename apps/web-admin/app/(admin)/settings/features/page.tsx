@@ -1,5 +1,54 @@
 import SettingsSectionPage from '../settings-section-page';
 
+const DESKTOP_TOURNAMENT_MOCK_DEFAULTS = JSON.stringify([
+  {
+    id: 'football-royale-2',
+    title: 'No1. Tournament Football Royale ครั้งที่ 2',
+    status: 'กำลังแข่งขัน · ข้อมูลตัวอย่าง',
+    href: '/browse/tournaments',
+    players: [
+      { rank: 1, name: 'ZAXXXU709740', score: 20, stats: [17, 0, 0, 0, 7, 0] },
+      { rank: 2, name: 'ZAXXXM664100', score: 17, stats: [13, 3, 0, 4, 4, 0] },
+      { rank: 3, name: 'ZAXXXR440174', score: 13, stats: [13, 2, 0, 3, 5, 1] },
+      { rank: 4, name: 'ZAXXXU410005', score: 11, stats: [13, 2, 0, 1, 7, 1] },
+      { rank: 5, name: 'ZAXXXO539314', score: 9, stats: [11, 3, 0, 4, 3, 3] },
+    ],
+  },
+  {
+    id: 'football-classic-2',
+    title: 'No1. Tournament Football Classic ครั้งที่ 2',
+    status: 'เปิดรับสมัคร · ข้อมูลตัวอย่าง',
+    href: '/browse/tournaments',
+    players: [
+      { rank: 1, name: 'ZAXXXU164013', score: 12, stats: [14, 1, 0, 1, 7, 1] },
+      { rank: 2, name: 'ZAXXXX399733', score: 10, stats: [9, 6, 0, 4, 5, 0] },
+      { rank: 3, name: 'ZAXXXW621805', score: 9, stats: [11, 4, 0, 1, 4, 4] },
+    ],
+  },
+  {
+    id: 'football-royale-1',
+    title: 'No1. Tournament Football Royale ครั้งที่ 1',
+    status: 'สิ้นสุดแล้ว · ข้อมูลตัวอย่าง',
+    href: '/browse/tournaments',
+    players: [
+      { rank: 1, name: 'ZAXXXM651112', score: 13, stats: [15, 2, 0, 1, 8, 1] },
+      { rank: 2, name: 'ZAXXX1360752', score: 12, stats: [13, 3, 2, 1, 6, 2] },
+      { rank: 3, name: 'ZAXXX0319280', score: 10, stats: [14, 1, 2, 1, 7, 2] },
+    ],
+  },
+  {
+    id: 'football-classic-1',
+    title: 'No1. Tournament Football Classic ครั้งที่ 1',
+    status: 'สิ้นสุดแล้ว · ข้อมูลตัวอย่าง',
+    href: '/browse/tournaments',
+    players: [
+      { rank: 1, name: 'ZAXXXX231972', score: 20, stats: [16, 1, 0, 3, 3, 2] },
+      { rank: 2, name: 'ZAXXXO536010', score: 15, stats: [13, 4, 0, 1, 6, 1] },
+      { rank: 3, name: 'ZAXXXR648845', score: 11, stats: [13, 3, 0, 0, 6, 3] },
+    ],
+  },
+], null, 2);
+
 const FEATURES_DEFAULTS = {
   registration_enabled: true,
   login_enabled: true,
@@ -46,7 +95,7 @@ const FEATURES_DEFAULTS = {
   classic_title: 'Classic Games',
   guide_title: 'คู่มือการใช้งาน',
   navigation_items_json: '[]',
-  tournament_items_json: '[]',
+  tournament_items_json: DESKTOP_TOURNAMENT_MOCK_DEFAULTS,
   leaderboard_items_json: '[]',
   mini_games_json: '[]',
 };
@@ -82,7 +131,7 @@ export default function FeaturesSettingsPage() {
         { key: 'articles_enabled', label: 'เปิด SEO / Articles', type: 'checkbox', section: 'เนื้อหา' },
         { key: 'hero_enabled', label: 'แสดง Hero Banner', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile', helper: 'ซ่อนหรือแสดง Hero พร้อมกันทั้งสองหน้าจอ' },
         { key: 'announcement_enabled', label: 'แสดงแถบประกาศ', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile', helper: 'ใช้ประกาศระบบจาก Content Center ชุดเดียวกัน' },
-        { key: 'tournament_enabled', label: 'แสดง Tournament', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
+        { key: 'tournament_enabled', label: 'แสดง Tournament', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile', helper: 'ควบคุม Tournament โดยตรง ไม่ขึ้นกับสวิตช์กิจกรรม' },
         { key: 'jackpot_enabled', label: 'แสดง Jackpot', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
         { key: 'leaderboard_enabled', label: 'แสดง Leaderboard', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
         { key: 'mini_games_enabled', label: 'แสดง Mini Game', type: 'checkbox', section: 'หน้าแรก Desktop และ Mobile' },
@@ -117,7 +166,7 @@ export default function FeaturesSettingsPage() {
           label: 'Tournament และอันดับ (JSON)',
           type: 'textarea',
           section: 'ข้อมูล Runtime ขั้นสูง',
-          helper: 'แต่ละรายการรองรับ id, title, status, href, startsAt, endsAt และ players[{rank,name,score,stats}]',
+          helper: 'ค่าเริ่มต้นเป็นข้อมูลตัวอย่างจาก Desktop; รองรับ id, title, status, href, startsAt, endsAt และ players[{rank,name,score,stats}] โดย Mobile ใช้ชุดเดียวกัน',
         },
         {
           key: 'leaderboard_items_json',
