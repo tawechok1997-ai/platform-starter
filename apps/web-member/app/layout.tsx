@@ -112,6 +112,7 @@ import './member-menu-source-final.css';
 import './member-menu-income-source-final.css';
 import './member-home-sticky-sidebar-final.css';
 import './member-slot-filter-full-height.css';
+import './member-modal-system.css';
 import MemberChrome from './member-chrome';
 import MemberClientNavigationController from './components/member-client-navigation-controller';
 import MemberDragScrollController from './components/member-drag-scroll-controller';
@@ -125,6 +126,7 @@ import PublicDesktopViewportBootstrap from './components/public-desktop-viewport
 import SiteFaviconRuntime from './components/site-favicon-runtime';
 import UsageGuideController from './components/member-home/usage-guide-controller';
 import { MemberLocaleProvider } from './member-locale-provider';
+import { MemberRuntimeProvider } from './member-runtime-provider';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
 import { loadPublicSiteSettings } from './site-settings';
@@ -191,23 +193,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SiteSettingsProvider initialSettings={initialSettings}>
             <SiteFaviconRuntime />
             <MemberSessionProvider>
-              <PublicDesktopViewportBootstrap />
-              <MemberRenderStabilityController />
-              <MemberClientNavigationController />
-              <MemberImageFallbackController />
-              <MemberDragScrollController />
-              <PublicLiveNavigationController />
-              <PublicDialogRuntimeController />
-              <PublicGameLoginController />
-              <UsageGuideController />
-              <div id="member-desktop-scale-shell">
-                <div id="member-desktop-scale-canvas">
-                  <Suspense fallback={<main className="member-loading-screen" aria-hidden="true" />}>
-                    <MemberChrome>{children}</MemberChrome>
-                  </Suspense>
+              <MemberRuntimeProvider>
+                <PublicDesktopViewportBootstrap />
+                <MemberRenderStabilityController />
+                <MemberClientNavigationController />
+                <MemberImageFallbackController />
+                <MemberDragScrollController />
+                <PublicLiveNavigationController />
+                <PublicDialogRuntimeController />
+                <PublicGameLoginController />
+                <UsageGuideController />
+                <div id="member-desktop-scale-shell">
+                  <div id="member-desktop-scale-canvas">
+                    <Suspense fallback={<main className="member-loading-screen" aria-hidden="true" />}>
+                      <MemberChrome>{children}</MemberChrome>
+                    </Suspense>
+                  </div>
                 </div>
-              </div>
-              <MemberFloatingContact />
+                <MemberFloatingContact />
+              </MemberRuntimeProvider>
             </MemberSessionProvider>
           </SiteSettingsProvider>
         </MemberLocaleProvider>
