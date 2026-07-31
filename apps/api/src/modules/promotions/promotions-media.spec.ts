@@ -1,7 +1,7 @@
 import { PromotionsQueryService } from './promotions-query.service';
 
 describe('promotion media contract', () => {
-  it('returns responsive promotion media and legacy imageUrl', async () => {
+  it('returns normalized responsive promotion media and legacy imageUrl', async () => {
     const prisma = {
       siteSetting: {
         findUnique: jest.fn().mockResolvedValue({
@@ -31,8 +31,9 @@ describe('promotion media contract', () => {
 
     expect(welcome).toEqual(expect.objectContaining({
       imageUrl: '/legacy.jpg',
-      desktopImageUrl: '/desktop.jpg',
-      mobileImageUrl: '/mobile.jpg',
+      desktopImageUrl: '/legacy.jpg',
+      mobileImageUrl: '/legacy.jpg',
+      sourceImageUrl: '/desktop.jpg',
       desktopAssetId: 'asset-desktop',
       mobileAssetId: 'asset-mobile',
       iconUrl: '/icon.png',
