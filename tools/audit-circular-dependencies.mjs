@@ -5,18 +5,27 @@ const ROOT = process.cwd();
 const SOURCE_ROOTS = ['apps', 'packages'].map((path) => join(ROOT, path));
 const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'];
 const IGNORED = new Set(['node_modules', '.next', 'dist', 'coverage', 'generated']);
+const IGNORED_PATH_SEGMENTS = [
+  '/public/assets/',
+];
 
 async function exists(path) {
   try { await stat(path); return true; } catch { return false; }
 }
 
+function isIgnoredPath(path) {
+  const normalized = path.split(sep).join('/');
+  return IGNORED_PATH_SEGMENTS.some((segment) => normalized.includes(segment));
+}
+
 async function walk(directory) {
-  if (!await exists(directory)) return [];
+  if (!await exists(directory) || isIgnoredPath(directory)) return [];
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
     if (IGNORED.has(entry.name)) continue;
     const path = join(directory, entry.name);
+    if (isIgnoredPath(path)) continue;
     if (entry.isDirectory()) files.push(...await walk(path));
     else if (entry.isFile() && EXTENSIONS.includes(extname(entry.name))) files.push(path);
   }
@@ -49,7 +58,7 @@ async function resolveImport(fromFile, specifier) {
     ...EXTENSIONS.map((extension) => join(base, `index${extension}`)),
   ];
   for (const candidate of candidates) {
-    if (await exists(candidate)) return candidate;
+    if (await exists(candidate) && !isIgnoredPath(candidate)) return candidate;
   }
   return null;
 }
@@ -97,6 +106,7 @@ function visit(file) {
 for (const file of files) visit(file);
 
 console.log(`Circular dependency audit: ${files.length} source files, ${cycles.size} cycles`);
+console.log(`Excluded generated/public bundle roots: ${IGNORED_PATH_SEGMENTS.join(', ')}`);
 if (cycles.size) {
   console.error('\nCircular dependency violations:');
   for (const key of [...cycles.keys()].sort()) console.error(`  - ${key}`);
