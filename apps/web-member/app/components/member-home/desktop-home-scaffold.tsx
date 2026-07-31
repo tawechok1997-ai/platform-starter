@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type SyntheticEvent } from 'react';
+import { useMemberLocale, type MemberLocale } from '../../member-locale-provider';
 import type { CmsAsset, CmsContent, SiteIconSettings } from '../../site-settings';
 import type { Game } from '../../types/member-api';
 import { useMemberSession } from '../../member-session-provider';
@@ -33,8 +34,7 @@ type DesktopHomeProps = {
   onOpenNews?: () => void;
 };
 type PromoCard = {
-  title: string;
-  subtitle: string;
+  key: 'promotion' | 'activity' | 'news';
   href: string;
   aliases: string[];
   fallback: string;
@@ -42,13 +42,81 @@ type PromoCard = {
   backgroundUrl: string;
 };
 type ArchiveGame = { name: string; imageUrl: string };
+type DesktopHomeCopy = {
+  pageLabel: string;
+  announcement: string;
+  promoGroup: string;
+  promoCards: Record<PromoCard['key'], { title: string; subtitle: string; openLabel: string }>;
+  tournamentImageAlt: string;
+  tournamentEyebrow: string;
+  tournamentTitle: string;
+  tournamentAction: string;
+  classicTitle: string;
+  sidebarLabel: string;
+  leaderboardTitle: string;
+  rank: string;
+  gameJackpot: string;
+  won: string;
+  highlightTitle: string;
+  highlightPicker: string;
+  image: string;
+  gameFallback: string;
+};
 
-const ANNOUNCEMENT_TEXT = 'ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง';
+const DESKTOP_HOME_COPY: Record<MemberLocale, DesktopHomeCopy> = {
+  th: {
+    pageLabel: 'หน้าแรกเดสก์ท็อป',
+    announcement: 'ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง',
+    promoGroup: 'โปรโมชั่น กิจกรรม และข่าวสาร',
+    promoCards: {
+      promotion: { title: 'โปรโมชั่นพิเศษ', subtitle: 'โปรโมชั่นพิเศษเฉพาะคุณ', openLabel: 'เปิดโปรโมชั่นพิเศษ' },
+      activity: { title: 'กิจกรรม', subtitle: 'กิจกรรมตลอด 24 ชั่วโมง', openLabel: 'เปิดกิจกรรม' },
+      news: { title: 'ข่าวสาร', subtitle: 'ข่าวสารที่คุณไม่ควรพลาด', openLabel: 'เปิดข่าวสาร' },
+    },
+    tournamentImageAlt: 'เข้าร่วมการแข่งขันทัวร์นาเมนต์',
+    tournamentEyebrow: 'ร่วมสนุกกับกิจกรรมทัวร์นาเมนต์',
+    tournamentTitle: 'เข้าร่วมชิงความเป็นที่ 1',
+    tournamentAction: 'เข้าแข่งขัน ›',
+    classicTitle: 'เกมคลาสสิก',
+    sidebarLabel: 'ข้อมูลรางวัลและอันดับ',
+    leaderboardTitle: 'ตารางอันดับ',
+    rank: 'ลำดับ',
+    gameJackpot: 'เกม/แจ็กพอต',
+    won: 'ชนะ',
+    highlightTitle: 'เกมไฮไลท์',
+    highlightPicker: 'เลือกภาพเกมไฮไลท์',
+    image: 'ภาพที่',
+    gameFallback: 'เกม',
+  },
+  en: {
+    pageLabel: 'Desktop home',
+    announcement: 'Welcome to NOAH345. Promotions, activities, and new games are updated around the clock.',
+    promoGroup: 'Promotions, activities, and news',
+    promoCards: {
+      promotion: { title: 'Special Promotions', subtitle: 'Offers selected for you', openLabel: 'Open special promotions' },
+      activity: { title: 'Activities', subtitle: 'Activities available around the clock', openLabel: 'Open activities' },
+      news: { title: 'News', subtitle: 'Updates you should not miss', openLabel: 'Open news' },
+    },
+    tournamentImageAlt: 'Join the tournament',
+    tournamentEyebrow: 'Take part in tournament activities',
+    tournamentTitle: 'Compete for the number one spot',
+    tournamentAction: 'Join now ›',
+    classicTitle: 'Classic Games',
+    sidebarLabel: 'Rewards and rankings',
+    leaderboardTitle: 'Leaderboard',
+    rank: 'Rank',
+    gameJackpot: 'Game/Jackpot',
+    won: 'Won',
+    highlightTitle: 'Featured Games',
+    highlightPicker: 'Choose a featured-game image',
+    image: 'Image',
+    gameFallback: 'Game',
+  },
+};
 
 const PROMO_CARDS: PromoCard[] = [
   {
-    title: 'โปรโมชั่นพิเศษ',
-    subtitle: 'โปรโมชั่นพิเศษเฉพาะคุณ',
+    key: 'promotion',
     href: '/browse/promotions?view=promotion',
     aliases: ['promotion', 'promo', 'bonus', 'reward', 'โปรโมชั่น'],
     fallback: '✦',
@@ -56,8 +124,7 @@ const PROMO_CARDS: PromoCard[] = [
     backgroundUrl: V47_ASSETS.promoBackgroundPromotion,
   },
   {
-    title: 'กิจกรรม',
-    subtitle: 'กิจกรรมตลอด 24 ชั่วโมง',
+    key: 'activity',
     href: '/browse/promotions?view=activity',
     aliases: ['activity', 'event', 'mission', 'กิจกรรม'],
     fallback: '♤',
@@ -65,8 +132,7 @@ const PROMO_CARDS: PromoCard[] = [
     backgroundUrl: V47_ASSETS.promoBackgroundActivity,
   },
   {
-    title: 'ข่าวสาร',
-    subtitle: 'ข่าวสารที่คุณไม่ควรพลาด',
+    key: 'news',
     href: '/browse/promotions?view=news',
     aliases: ['news', 'announcement', 'notice', 'ข่าว'],
     fallback: '◇',
@@ -103,6 +169,8 @@ export function DesktopHomeScaffold({
   onOpenActivity = () => undefined,
   onOpenNews = () => undefined,
 }: DesktopHomeProps) {
+  const { locale } = useMemberLocale();
+  const copy = DESKTOP_HOME_COPY[locale];
   const { isLoggedIn } = useMemberSession();
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
   const featured = fillGames(games.featured, allGames, 8);
@@ -128,7 +196,7 @@ export function DesktopHomeScaffold({
   };
 
   return (
-    <section className="desktop-home desktop-reference-home" aria-label="หน้าแรกเดสก์ท็อป">
+    <section className="desktop-home desktop-reference-home" aria-label={copy.pageLabel}>
       <DesktopHeroCarousel content={content} siteName={siteName} showPromotion={showPromotion} />
 
       <div className="desktop-home__body">
@@ -137,21 +205,22 @@ export function DesktopHomeScaffold({
             <img src={V47_ASSETS.announcement} alt="" aria-hidden="true" onError={hideBrokenImage} />
             <div className="reference-announcement-viewport">
               <div className="reference-announcement-track">
-                <span>{ANNOUNCEMENT_TEXT}</span>
+                <span>{copy.announcement}</span>
               </div>
             </div>
           </div>
 
-          <section className="reference-promo-row" aria-label="โปรโมชั่น กิจกรรม และข่าวสาร">
+          <section className="reference-promo-row" aria-label={copy.promoGroup}>
             {PROMO_CARDS.map((card, index) => {
               const asset = findCmsAsset(content, card.aliases);
+              const cardCopy = copy.promoCards[card.key];
               return (
                 <button
-                  key={card.title}
+                  key={card.key}
                   type="button"
                   className={`reference-promo-card reference-promo-card--${index + 1}`}
                   onClick={popupActions[index]}
-                  aria-label={`เปิด${card.title}`}
+                  aria-label={cardCopy.openLabel}
                 >
                   <img
                     className="reference-promo-background"
@@ -167,8 +236,8 @@ export function DesktopHomeScaffold({
                     className="reference-promo-icon"
                   />
                   <span className="reference-promo-copy">
-                    <strong>{card.title}</strong>
-                    <small>{card.subtitle}</small>
+                    <strong>{cardCopy.title}</strong>
+                    <small>{cardCopy.subtitle}</small>
                   </span>
                 </button>
               );
@@ -178,14 +247,14 @@ export function DesktopHomeScaffold({
           <a href="/browse/promotions?view=activity" className="reference-tournament-cta">
             <img
               src={assets.tournament?.url || V47_ASSETS.tournament}
-              alt="เข้าร่วมแข่งขัน Tournament"
+              alt={copy.tournamentImageAlt}
               onError={(event) => swapBrokenImage(event, V47_ASSETS.tournament)}
             />
             <span>
-              <small>ร่วมสนุกกับกิจกรรม Tournament</small>
-              <strong>TOURNAMENT เข้าร่วมชิงความเป็นที่ 1</strong>
+              <small>{copy.tournamentEyebrow}</small>
+              <strong>TOURNAMENT {copy.tournamentTitle}</strong>
             </span>
-            <b>เข้าแข่งขัน ›</b>
+            <b>{copy.tournamentAction}</b>
           </a>
 
           <DesktopTournamentBoard />
@@ -194,16 +263,17 @@ export function DesktopHomeScaffold({
             apiGames={featured}
             loading={isGamesLoading}
             message={gamesMessage}
+            copy={copy}
           />
           <SourcePopularSection />
           <SourceOnlineSection />
           <SourceLiveSection onAction={openLiveAction} />
 
           <section className="reference-compact-section" data-section-kind="classic">
-            <PanelHeading asset={assets.classic} configured={V47_ASSETS.gameHit} fallback="💧" title="Classic Games" />
+            <PanelHeading asset={assets.classic} configured={V47_ASSETS.gameHit} fallback="💧" title={copy.classicTitle} />
             <div className="reference-classic-row" data-drag-scroll="true">
               {classic.length
-                ? classic.map((game) => <GameTile key={game.id} game={game} compact />)
+                ? classic.map((game) => <GameTile key={game.id} game={game} compact fallbackName={copy.gameFallback} />)
                 : ARCHIVE_GAMES.slice(10, 16).map((game) => <ArchiveGameTile key={game.name} game={game} compact />)}
             </div>
           </section>
@@ -213,7 +283,7 @@ export function DesktopHomeScaffold({
           </section>
         </main>
 
-        <aside className="desktop-home__sidebar reference-sidebar" aria-label="ข้อมูลรางวัลและอันดับ">
+        <aside className="desktop-home__sidebar reference-sidebar" aria-label={copy.sidebarLabel}>
           <DesktopJackpotCard
             artUrl={assets.jackpot?.url || V47_ASSETS.jackpot}
             fallbackUrl={V47_ASSETS.jackpotStill}
@@ -223,12 +293,12 @@ export function DesktopHomeScaffold({
             <header>
               <span className="reference-side-title">
                 <AssetIcon configured={V47_ASSETS.leaderboard} fallback="🏆" className="reference-side-icon" />
-                <strong>Leaderboard</strong>
+                <strong>{copy.leaderboardTitle}</strong>
               </span>
             </header>
             <div className="reference-leaderboard-head" aria-hidden="true">
-              <span>ลำดับ</span>
-              <strong>Game/Jackpot</strong>
+              <span>{copy.rank}</span>
+              <strong>{copy.gameJackpot}</strong>
             </div>
             {LEADERBOARD_ITEMS.map((item, index) => (
               <div key={item.name}>
@@ -244,7 +314,7 @@ export function DesktopHomeScaffold({
                   <strong>{item.name}</strong>
                   <small>{item.user}</small>
                   <small>
-                    ชนะ <b>{item.wins}</b>
+                    {copy.won} <b>{item.wins}</b>
                   </small>
                 </span>
                 <em>›</em>
@@ -263,11 +333,13 @@ function SourceHighlightSection({
   apiGames,
   loading,
   message,
+  copy,
 }: {
   asset?: CmsAsset | undefined;
   apiGames: Game[];
   loading: boolean;
   message: string;
+  copy: DesktopHomeCopy;
 }) {
   const [activeBanner, setActiveBanner] = useState(0);
 
@@ -301,7 +373,7 @@ function SourceHighlightSection({
     const fallback = resolveHomeGameFallback(apiGame);
     return {
       key: apiGame.id || `${apiGame.providerGameCode}-${index}`,
-      name: safeGameName(apiGame),
+      name: safeGameName(apiGame, copy.gameFallback),
       imageUrl: resolveHomeGameImage(apiGame) || fallback,
       fallback,
       providerLogo: resolveHomeProviderLogo(apiGame.provider) || fallbackProvider.url,
@@ -313,7 +385,7 @@ function SourceHighlightSection({
     <section
       className="reference-panel reference-featured-section source-highlight-section"
       data-section-kind="featured"
-      aria-label={message || 'เกมไฮไลท์'}
+      aria-label={message || copy.highlightTitle}
       aria-busy={loading}
     >
       <div className="source-highlight-inner">
@@ -326,7 +398,7 @@ function SourceHighlightSection({
               fallback="★"
               className="source-highlight-heading__icon"
             />
-            <strong>เกมไฮไลท์</strong>
+            <strong>{copy.highlightTitle}</strong>
           </span>
         </header>
 
@@ -337,18 +409,18 @@ function SourceHighlightSection({
                 key={SOURCE_HIGHLIGHT_BANNERS[activeBanner]}
                 className="source-highlight-hero__image"
                 src={SOURCE_HIGHLIGHT_BANNERS[activeBanner]}
-                alt="เกมไฮไลท์"
+                alt={copy.highlightTitle}
                 onError={(event) => swapBrokenImage(event, bannerFallback)}
               />
             </a>
-            <div className="source-highlight-hero__dots" aria-label="เลือกภาพเกมไฮไลท์">
+            <div className="source-highlight-hero__dots" aria-label={copy.highlightPicker}>
               {SOURCE_HIGHLIGHT_BANNERS.map((banner, index) => (
                 <button
                   key={banner}
                   type="button"
                   className={`source-highlight-hero__dot${index === activeBanner ? ' is-active' : ''}`}
                   onClick={() => setActiveBanner(index)}
-                  aria-label={`ภาพที่ ${index + 1}`}
+                  aria-label={`${copy.image} ${index + 1}`}
                   aria-current={index === activeBanner ? 'true' : undefined}
                 />
               ))}
@@ -473,27 +545,37 @@ function AssetIcon({
   );
 }
 
-function GameTile({ game, large = false, compact = false }: { game: Game; large?: boolean; compact?: boolean }) {
+function GameTile({
+  game,
+  large = false,
+  compact = false,
+  fallbackName,
+}: {
+  game: Game;
+  large?: boolean;
+  compact?: boolean;
+  fallbackName: string;
+}) {
   return (
     <a
       href="/browse/games"
       className={`reference-game-tile${large ? ' reference-game-tile--large' : ''}${compact ? ' reference-game-tile--compact' : ''}`}
     >
-      <GameImage game={game} />
+      <GameImage game={game} fallbackName={fallbackName} />
       {game?.isNew && <em>NEW</em>}
       <span>
-        <strong>{safeGameName(game)}</strong>
+        <strong>{safeGameName(game, fallbackName)}</strong>
         <small>{game?.provider?.name || game?.provider?.code || 'Provider'}</small>
       </span>
     </a>
   );
 }
 
-function GameImage({ game }: { game: Game }) {
+function GameImage({ game, fallbackName }: { game: Game; fallbackName: string }) {
   const fallback = resolveHomeGameFallback(game);
   const image = resolveHomeGameImage(game) || fallback;
   return (
-    <img src={image} alt={safeGameName(game)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />
+    <img src={image} alt={safeGameName(game, fallbackName)} loading="lazy" onError={(event) => swapBrokenImage(event, fallback)} />
   );
 }
 
@@ -523,8 +605,8 @@ function uniqueGames(...groups: Game[][]) {
 function fillGames(primary: Game[], fallback: Game[], count: number) {
   return uniqueGames(Array.isArray(primary) ? primary : [], fallback).slice(0, count);
 }
-function safeGameName(game: Game) {
-  return typeof game?.name === 'string' && game.name.trim() ? game.name : 'Game';
+function safeGameName(game: Game, fallbackName = 'Game') {
+  return typeof game?.name === 'string' && game.name.trim() ? game.name : fallbackName;
 }
 function swapBrokenImage(event: SyntheticEvent<HTMLImageElement>, fallback: string) {
   if (!fallback || event.currentTarget.dataset.fallbackApplied === 'true') {
