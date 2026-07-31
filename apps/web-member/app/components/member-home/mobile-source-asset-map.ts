@@ -2,6 +2,7 @@ const CDN_ROOT = 'https://cdn.zabbet.com/FEZX';
 
 export const MOBILE_SOURCE_ASSETS = {
   headerLogo: `${CDN_ROOT}/lobby_settings/9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png`,
+  tournamentBanner: 'https://cdn.zabbet.com/ZAB1/tournament/647280b5-3a23-4118-80a0-1b7feb340d1a.png',
   shortcutBackground: `${CDN_ROOT}/lobby_settings/fc6b7ea8-3eaf-47ec-8640-33c7138d3c7c.png`,
   shortcutIcon: `${CDN_ROOT}/lobby_settings/083e4b9b-63aa-4825-a0e3-57a88de57e2f.ico`,
   promotionSlides: [
