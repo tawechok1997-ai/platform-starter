@@ -1,0 +1,36 @@
+/* Final Mobile Home bottom boundary owner.
+ * This file must be imported after every legacy V47/member stylesheet.
+ */
+@media (max-width: 900px) {
+  html:has(.member-mobile-source-shell),
+  html:has(.member-mobile-source-shell) body {
+    min-height: 0 !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  html:has(.member-mobile-source-shell) body {
+    background: #000 !important;
+  }
+
+  body:has(.member-mobile-source-shell) #member-desktop-scale-shell,
+  body:has(.member-mobile-source-shell) #member-desktop-scale-canvas,
+  body:has(.member-mobile-source-shell) .public-game-shell,
+  body:has(.member-mobile-source-shell) .public-game-shell__content,
+  body:has(.member-mobile-source-shell) .member-persistent-shell,
+  body:has(.member-mobile-source-shell) .member-persistent-shell__body {
+    min-height: 0 !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  body:has(.member-mobile-source-shell) footer,
+  body:has(.member-mobile-source-shell) .member-footer {
+    margin-bottom: 0 !important;
+    padding-bottom: 20px !important;
+  }
+
+  body:has(.member-mobile-source-shell) .member-floating-contact {
+    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  }
+}
