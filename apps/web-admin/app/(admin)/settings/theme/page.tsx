@@ -5,10 +5,17 @@ export default function ThemeSettingsPage() {
     <SettingsSectionPage
       group="theme"
       title="ธีมและการจัดวาง"
-      description="ควบคุมโครงหน้าสมาชิก การนำทาง จำนวนคอลัมน์เกม และระดับ motion จากจุดเดียว"
+      description="ควบคุมโครงหน้าสมาชิก การนำทาง ระยะห่าง รูปทรง และระดับ motion จากจุดเดียวทั้ง Desktop และ Mobile"
       preview="theme"
       fields={[
         { key: 'animation_level', label: 'ระดับ Animation', type: 'select', section: 'Motion และการตอบสนอง', required: true, options: [{ value: 'off', label: 'ปิด' }, { value: 'subtle', label: 'นุ่มนวล' }, { value: 'lively', label: 'มีชีวิตชีวา' }], helper: 'เลือกระดับ motion ที่ใช้กับหน้า Member ทั้งระบบ' },
+        { key: 'card_radius', label: 'ความโค้งการ์ด', type: 'text', section: 'Design Tokens กลาง', placeholder: '18px', helper: 'รองรับ px, rem, em หรือ %' },
+        { key: 'control_radius', label: 'ความโค้งปุ่มและช่องกรอก', type: 'text', section: 'Design Tokens กลาง', placeholder: '12px' },
+        { key: 'modal_radius', label: 'ความโค้ง Modal / Bottom Sheet', type: 'text', section: 'Design Tokens กลาง', placeholder: '22px' },
+        { key: 'section_gap_desktop', label: 'ระยะห่าง Section บน Desktop', type: 'text', section: 'Design Tokens กลาง', placeholder: '24px' },
+        { key: 'section_gap_mobile', label: 'ระยะห่าง Section บน Mobile', type: 'text', section: 'Design Tokens กลาง', placeholder: '16px' },
+        { key: 'card_gap_desktop', label: 'ระยะห่างการ์ดบน Desktop', type: 'text', section: 'Design Tokens กลาง', placeholder: '14px' },
+        { key: 'card_gap_mobile', label: 'ระยะห่างการ์ดบน Mobile', type: 'text', section: 'Design Tokens กลาง', placeholder: '10px' },
         { key: 'game_grid_columns', label: 'จำนวนคอลัมน์เกม', type: 'number', section: 'โครงหน้าเกม', min: 2, max: 8, required: true, helper: 'รองรับ 2–8 คอลัมน์ ระบบ Mobile จะปรับตามพื้นที่อัตโนมัติ' },
         { key: 'hero_banner_enabled', label: 'แสดง Hero Banner', type: 'checkbox', section: 'ส่วนประกอบหน้าแรก', helper: 'เปิดพื้นที่แบนเนอร์หลักที่อ่านรูปจาก Content Center' },
         { key: 'provider_menu_enabled', label: 'แสดงเมนูค่ายเกม', type: 'checkbox', section: 'ส่วนประกอบหน้าแรก' },
