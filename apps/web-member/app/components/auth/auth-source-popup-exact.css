@@ -1,30 +1,37 @@
-/* Final desktop auth popup contract from the supplied source DOM.
- * The parent MemberAuthOverlay owns the full-screen black/80 backdrop.
- * This file owns only the centered Login/Register popup rendered inside the iframe.
+/* Final Login/Register geometry owner.
+ * This file is loaded last inside the auth iframe and owns every popup size.
+ * Do not add another auth geometry stylesheet after this file.
  */
+
+.auth-reference-scope .public-auth-page[data-embedded='true'] {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.auth-reference-scope .public-auth-page[data-embedded='true'] > .public-auth-ambient,
+.auth-reference-scope .public-auth-page[data-embedded='true'] > .public-auth-backdrop {
+  display: none !important;
+}
 
 @media (min-width: 901px) {
   .auth-reference-scope .public-auth-page[data-embedded='true'] {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    box-sizing: border-box !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-    margin: 0 !important;
     padding: 16px !important;
-    overflow: visible !important;
-    background: transparent !important;
   }
 
   .auth-reference-scope .source-login-modal[data-auth-mode='login'],
+  .auth-reference-scope .source-login-modal[data-auth-mode='forgot'],
   .auth-reference-scope .source-register-modal[data-auth-mode='register'] {
     position: relative !important;
     display: flex !important;
-    align-items: stretch !important;
-    justify-content: center !important;
     box-sizing: border-box !important;
     width: min(1080px, calc(100vw - 32px)) !important;
     max-width: 1080px !important;
@@ -33,17 +40,21 @@
     max-height: 669px !important;
     margin: 0 !important;
     padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: center !important;
     gap: 0 !important;
     overflow: visible !important;
     border: 0 !important;
     border-radius: 10px !important;
+    color: #fff !important;
     background: radial-gradient(49.1% 56.8% at 50% 0%, rgb(63 59 75 / 80%) 0%, rgb(63 59 75 / 63%) 30.08%, rgb(27 24 36 / 80%) 100%) !important;
     box-shadow: none !important;
+    transform: none !important;
   }
 
   .auth-reference-scope .source-login-modal[data-auth-mode='login']::before,
+  .auth-reference-scope .source-login-modal[data-auth-mode='forgot']::before,
   .auth-reference-scope .source-register-modal[data-auth-mode='register']::before {
-    content: '' !important;
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
@@ -51,9 +62,10 @@
     display: block !important;
     width: 100% !important;
     height: 1px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: linear-gradient(90deg, rgb(255 255 255 / 0%) 26.03%, #fff 48.56%, rgb(255 255 255 / 0%) 72.48%) !important;
+    border-radius: 0 !important;
+    background: linear-gradient(90deg, transparent 26.03%, #fff 48.56%, transparent 72.48%) !important;
+    content: '' !important;
+    transform: none !important;
     pointer-events: none !important;
   }
 
@@ -63,13 +75,13 @@
     right: -20px !important;
     z-index: 20 !important;
     display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
     box-sizing: border-box !important;
     width: auto !important;
     height: 36px !important;
     margin: 0 !important;
     padding: 8px !important;
+    align-items: center !important;
+    justify-content: center !important;
     gap: 4px !important;
     border: 0 !important;
     color: #f4f4f5 !important;
@@ -81,48 +93,47 @@
   }
 
   .auth-reference-scope .source-login-close > span {
-    color: #f4f4f5 !important;
+    color: inherit !important;
     font-size: 14px !important;
     font-weight: 400 !important;
     line-height: 20px !important;
-    text-align: center !important;
     text-decoration: underline !important;
     white-space: nowrap !important;
   }
 
   .auth-reference-scope .source-login-close > svg {
     display: block !important;
-    flex: 0 0 20px !important;
     width: 20px !important;
     height: 20px !important;
+    flex: 0 0 20px !important;
   }
 
   .auth-reference-scope .source-login-visual,
   .auth-reference-scope .source-register-modal .source-login-visual {
     display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
     box-sizing: border-box !important;
-    flex: 1 1 auto !important;
     width: auto !important;
     min-width: 0 !important;
     height: 100% !important;
     max-height: 669px !important;
     margin: 0 !important;
     padding: 16px !important;
+    flex: 1 1 auto !important;
+    align-items: center !important;
+    justify-content: center !important;
     overflow: hidden !important;
     border: 0 !important;
     border-radius: 10px !important;
-    background: linear-gradient(0deg, rgb(27 24 36) -5.86%, rgb(63 59 75) 104.05%) !important;
+    background: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%) !important;
     backdrop-filter: blur(40px) !important;
   }
 
   .auth-reference-scope .source-login-visual img,
   .auth-reference-scope .source-register-modal .source-login-visual img {
-    content: url('/assets/asset-pc/images/wallpaper_login.webp') !important;
     display: block !important;
     width: 100% !important;
     height: 100% !important;
+    max-width: none !important;
     max-height: 629px !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -130,13 +141,12 @@
     border-radius: 0 !important;
     object-fit: cover !important;
     object-position: center !important;
+    content: url('/assets/asset-pc/images/wallpaper_login.webp') !important;
   }
 
   .auth-reference-scope .source-login-form-shell,
   .auth-reference-scope .source-register-modal .source-login-form-shell {
     display: flex !important;
-    flex: 0 0 470px !important;
-    flex-direction: column !important;
     box-sizing: border-box !important;
     width: 470px !important;
     min-width: 470px !important;
@@ -145,6 +155,8 @@
     min-height: 0 !important;
     margin: 0 !important;
     padding: 0 0 0 20px !important;
+    flex: 0 0 470px !important;
+    flex-direction: column !important;
     overflow: visible !important;
   }
 
@@ -153,7 +165,6 @@
     position: relative !important;
     display: block !important;
     box-sizing: border-box !important;
-    flex: 0 0 48px !important;
     width: 450px !important;
     min-width: 450px !important;
     max-width: 450px !important;
@@ -161,6 +172,7 @@
     min-height: 48px !important;
     margin: 0 !important;
     padding: 0 !important;
+    flex: 0 0 48px !important;
     overflow: visible !important;
     border: 0 !important;
     border-radius: 0 !important;
@@ -172,8 +184,6 @@
     position: absolute !important;
     top: 0 !important;
     display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
     box-sizing: border-box !important;
     width: 225px !important;
     min-width: 225px !important;
@@ -182,6 +192,8 @@
     min-height: 48px !important;
     margin: 0 !important;
     padding: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
     border: 0 !important;
     color: #fff !important;
     font-size: 16px !important;
@@ -189,13 +201,12 @@
     line-height: 24px !important;
     text-align: center !important;
     text-decoration: none !important;
-    cursor: pointer !important;
   }
 
   .auth-reference-scope .source-login-tabs > a:first-child,
   .auth-reference-scope .source-register-tabs > a:first-child {
-    left: 0 !important;
     right: auto !important;
+    left: 0 !important;
     clip-path: path('M 0 10 C 0 4.47715 4.47715 0 10 0 H 175.797 C 179.852 0 183.506 2.44938 185.047 6.20081 L 205.5 56 H 0 V 10 Z') !important;
   }
 
@@ -209,21 +220,18 @@
   .auth-reference-scope .source-login-modal[data-auth-mode='login'] .source-login-tabs > a:first-child,
   .auth-reference-scope .source-register-modal[data-auth-mode='register'] .source-register-tabs > a:last-child {
     z-index: 0 !important;
-    background: rgb(21 19 26) !important;
+    background: #15131a !important;
   }
 
   .auth-reference-scope .source-login-modal[data-auth-mode='login'] .source-login-tabs > a:last-child,
   .auth-reference-scope .source-register-modal[data-auth-mode='register'] .source-register-tabs > a:first-child {
     z-index: 1 !important;
-    background: rgb(62 58 73) !important;
+    background: #3e3a49 !important;
   }
 
   .auth-reference-scope .source-login-card,
   .auth-reference-scope .source-register-card {
     display: flex !important;
-    flex: 0 1 586px !important;
-    flex-direction: column !important;
-    align-items: center !important;
     box-sizing: border-box !important;
     width: 450px !important;
     min-width: 450px !important;
@@ -233,12 +241,16 @@
     max-height: 586px !important;
     margin: 0 !important;
     padding: 16px 24px !important;
+    flex: 0 1 586px !important;
+    flex-direction: column !important;
+    align-items: center !important;
     gap: 16px !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
     border: 0 !important;
     border-radius: 0 0 10px 10px !important;
-    background: linear-gradient(0deg, rgb(27 24 36) -5.86%, rgb(63 59 75) 104.05%) !important;
+    color: #fff !important;
+    background: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%) !important;
     backdrop-filter: blur(40px) !important;
     overscroll-behavior: contain !important;
     scrollbar-width: thin !important;
@@ -260,7 +272,6 @@
   .auth-reference-scope .source-register-heading h1 {
     width: 100% !important;
     margin: 16px 0 !important;
-    padding: 0 !important;
     color: #fff !important;
     font-size: 20px !important;
     font-weight: 600 !important;
@@ -268,27 +279,20 @@
     text-align: center !important;
   }
 
-  .auth-reference-scope .source-register-step,
-  .auth-reference-scope .source-login-card > .source-login-field,
-  .auth-reference-scope .source-login-card > .public-auth-input-wrap {
-    width: 100% !important;
-  }
-
   .auth-reference-scope .source-login-field,
   .auth-reference-scope .source-register-card .source-login-field {
     position: relative !important;
     display: flex !important;
-    align-items: center !important;
     box-sizing: border-box !important;
     width: 100% !important;
     min-height: 56px !important;
     margin: 12px 0 !important;
     padding: 0 16px 0 4px !important;
-    border: 1px solid rgb(117 117 117) !important;
+    align-items: center !important;
+    border: 1px solid #757575 !important;
     border-radius: 6px !important;
-    background: rgb(21 19 26) !important;
     color: #fff !important;
-    cursor: text !important;
+    background: #15131a !important;
   }
 
   .auth-reference-scope .source-login-field .public-auth-field-label {
@@ -300,13 +304,12 @@
     width: auto !important;
     margin: 0 !important;
     padding: 0 10px !important;
-    color: rgb(117 117 117) !important;
+    color: #757575 !important;
     background: transparent !important;
     font-size: 14px !important;
     font-weight: 400 !important;
     line-height: 20px !important;
     pointer-events: none !important;
-    transition: transform 300ms cubic-bezier(.4, 0, .2, 1), opacity 300ms cubic-bezier(.4, 0, .2, 1), font-size 300ms cubic-bezier(.4, 0, .2, 1) !important;
   }
 
   .auth-reference-scope .source-login-field:focus-within .public-auth-field-label,
@@ -317,21 +320,20 @@
     left: 10px !important;
     padding: 0 6px !important;
     color: #fff !important;
-    background: rgb(21 19 26) !important;
+    background: #15131a !important;
     font-size: 12px !important;
     line-height: 16px !important;
   }
 
   .auth-reference-scope .source-login-field .public-auth-input-wrap {
     display: flex !important;
-    align-items: center !important;
     width: 100% !important;
+    align-items: center !important;
   }
 
   .auth-reference-scope .source-login-field .public-auth-input,
   .auth-reference-scope .source-register-card .source-login-field .public-auth-input {
     display: block !important;
-    flex: 1 1 auto !important;
     box-sizing: border-box !important;
     width: 0 !important;
     min-width: 0 !important;
@@ -339,6 +341,7 @@
     min-height: 54px !important;
     margin: 0 !important;
     padding: 4px !important;
+    flex: 1 1 auto !important;
     border: 0 !important;
     outline: 0 !important;
     color: #fff !important;
@@ -349,48 +352,105 @@
     box-shadow: none !important;
   }
 
-  .auth-reference-scope .source-login-support {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-sizing: border-box !important;
-    width: 100% !important;
-    margin: 12px 0 0 !important;
-    padding: 0 !important;
-    gap: 4px !important;
-    color: #909090 !important;
-    font-size: 11px !important;
-    line-height: 16px !important;
+  .auth-reference-scope .source-login-submit,
+  .auth-reference-scope .source-register-submit,
+  .auth-reference-scope .source-register-back {
+    height: 44px !important;
+    min-height: 44px !important;
+    border-radius: 4px !important;
+    font-size: 16px !important;
   }
 
-  .auth-reference-scope .source-login-support a,
-  .auth-reference-scope .source-login-support button {
-    color: rgb(113 0 189) !important;
+  .auth-reference-scope .source-login-support {
+    width: 100% !important;
+    margin: 12px 0 0 !important;
     font-size: 11px !important;
-    font-weight: 700 !important;
     line-height: 16px !important;
+    text-align: center !important;
   }
 }
 
 @media (max-width: 900px) {
   .auth-reference-scope .public-auth-page[data-embedded='true'] {
-    box-sizing: border-box !important;
-    width: 100% !important;
-    min-height: 100dvh !important;
-    margin: 0 !important;
-    padding: 16px !important;
-    background: transparent !important;
+    display: flex !important;
+    padding: 0 !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
   }
 
   .auth-reference-scope .source-login-modal[data-auth-mode='login'],
+  .auth-reference-scope .source-login-modal[data-auth-mode='forgot'],
   .auth-reference-scope .source-register-modal[data-auth-mode='register'] {
-    width: min(450px, calc(100vw - 32px)) !important;
+    position: relative !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: min(430px, 100vw) !important;
+    min-width: 0 !important;
+    max-width: 430px !important;
     height: auto !important;
     min-height: 0 !important;
-    max-height: calc(100dvh - 32px) !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    max-height: calc(100dvh - 12px) !important;
+    margin: 0 auto !important;
+    padding: 10px 12px max(16px, env(safe-area-inset-bottom)) !important;
     overflow: visible !important;
+    border: 1px solid rgb(255 255 255 / 12%) !important;
+    border-radius: 22px 22px 0 0 !important;
+    color: #fff !important;
+    background: #21152c !important;
+    box-shadow: 0 -18px 44px rgb(0 0 0 / 55%) !important;
+    transform: none !important;
+  }
+
+  .auth-reference-scope .source-login-modal[data-auth-mode='login']::before,
+  .auth-reference-scope .source-login-modal[data-auth-mode='forgot']::before,
+  .auth-reference-scope .source-register-modal[data-auth-mode='register']::before {
+    position: absolute !important;
+    top: 10px !important;
+    left: 50% !important;
+    z-index: 5 !important;
+    display: block !important;
+    width: 42px !important;
+    height: 4px !important;
+    border-radius: 5px !important;
+    background: #6e5d7b !important;
+    content: '' !important;
+    transform: translateX(-50%) !important;
+    pointer-events: none !important;
+  }
+
+  .auth-reference-scope .source-login-close {
+    position: absolute !important;
+    top: -40px !important;
+    right: 8px !important;
+    z-index: 20 !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: auto !important;
+    height: 32px !important;
+    margin: 0 !important;
+    padding: 4px 6px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    border: 0 !important;
+    color: #f4f4f5 !important;
+    background: transparent !important;
+    font-size: 12px !important;
+    line-height: 20px !important;
+  }
+
+  .auth-reference-scope .source-login-close > span {
+    color: inherit !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    line-height: 20px !important;
+    text-decoration: underline !important;
+  }
+
+  .auth-reference-scope .source-login-close > svg {
+    width: 18px !important;
+    height: 18px !important;
+    flex: 0 0 18px !important;
   }
 
   .auth-reference-scope .source-login-visual,
@@ -400,26 +460,439 @@
 
   .auth-reference-scope .source-login-form-shell,
   .auth-reference-scope .source-register-modal .source-login-form-shell {
+    display: flex !important;
     box-sizing: border-box !important;
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
     height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 14px 0 0 !important;
+    flex-direction: column !important;
+    overflow: visible !important;
+  }
+
+  .auth-reference-scope .source-login-tabs,
+  .auth-reference-scope .source-register-tabs {
+    position: relative !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    flex: 0 0 44px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    background: #120a19 !important;
+  }
+
+  .auth-reference-scope .source-login-tabs > a,
+  .auth-reference-scope .source-register-tabs > a {
+    position: static !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    margin: 0 !important;
+    padding: 0 6px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #bbaace !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    font-weight: 1000 !important;
+    line-height: 18px !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    clip-path: none !important;
+  }
+
+  .auth-reference-scope .source-login-modal[data-auth-mode='login'] .source-login-tabs > a:last-child,
+  .auth-reference-scope .source-register-modal[data-auth-mode='register'] .source-register-tabs > a:first-child {
+    color: #fff !important;
+    background: linear-gradient(180deg, #ff31d8, #8d31ff) !important;
+  }
+
+  .auth-reference-scope .source-login-modal[data-auth-mode='login'] .source-login-tabs > a:first-child,
+  .auth-reference-scope .source-register-modal[data-auth-mode='register'] .source-register-tabs > a:last-child {
+    color: #bbaace !important;
+    background: transparent !important;
+  }
+
+  .auth-reference-scope .source-login-card,
+  .auth-reference-scope .source-register-card {
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 98px - env(safe-area-inset-bottom)) !important;
+    margin: 0 !important;
+    padding: 13px 0 0 !important;
+    flex: 0 1 auto !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: thin !important;
+  }
+
+  .auth-reference-scope .source-login-heading,
+  .auth-reference-scope .source-register-heading {
+    width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  .auth-reference-scope .source-login-tabs,
-  .auth-reference-scope .source-register-tabs,
-  .auth-reference-scope .source-login-card,
-  .auth-reference-scope .source-register-card {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
+  .auth-reference-scope .source-login-heading > span,
+  .auth-reference-scope .source-register-heading > span {
+    display: none !important;
   }
 
-  .auth-reference-scope .source-login-close {
-    top: -34px !important;
-    right: -8px !important;
+  .auth-reference-scope .source-login-heading h1,
+  .auth-reference-scope .source-register-heading h1 {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #fff !important;
+    font-size: 21px !important;
+    font-weight: 700 !important;
+    line-height: 29px !important;
+    text-align: left !important;
+  }
+
+  .auth-reference-scope .source-login-card--forgot .source-login-heading h1 {
+    margin-bottom: 12px !important;
+  }
+
+  .auth-reference-scope .source-login-field,
+  .auth-reference-scope .source-register-card .source-login-field {
+    position: relative !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    margin: 0 0 10px !important;
+    padding: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 6px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .auth-reference-scope .source-login-field .public-auth-field-label {
+    position: static !important;
+    z-index: auto !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #e7d8f2 !important;
+    background: transparent !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 16px !important;
+    transform: none !important;
+    pointer-events: none !important;
+  }
+
+  .auth-reference-scope .source-login-field:focus-within .public-auth-field-label,
+  .auth-reference-scope .source-login-field:has(input:not(:placeholder-shown)) .public-auth-field-label,
+  .auth-reference-scope .source-login-field:has(input[value]:not([value=''])) .public-auth-field-label,
+  .auth-reference-scope .source-login-field.is-verified .public-auth-field-label {
+    position: static !important;
+    padding: 0 !important;
+    color: #e7d8f2 !important;
+    background: transparent !important;
+    font-size: 12px !important;
+    line-height: 16px !important;
+    transform: none !important;
+  }
+
+  .auth-reference-scope .source-login-field .public-auth-input-wrap {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .auth-reference-scope .source-login-field .public-auth-input,
+  .auth-reference-scope .source-register-card .source-login-field .public-auth-input {
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border: 1px solid rgb(255 255 255 / 12%) !important;
+    border-radius: 12px !important;
+    outline: 0 !important;
+    color: #fff !important;
+    background: #130d1b !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    line-height: 20px !important;
+    box-shadow: none !important;
+  }
+
+  .auth-reference-scope .source-login-field .public-auth-input:focus,
+  .auth-reference-scope .source-register-card .source-login-field .public-auth-input:focus {
+    border-color: #f04ce4 !important;
+    box-shadow: 0 0 0 3px rgb(240 76 228 / 14%) !important;
+  }
+
+  .auth-reference-scope .source-login-field .public-auth-input-wrap .public-auth-input {
+    padding-right: 48px !important;
+  }
+
+  .auth-reference-scope .source-login-eye {
+    position: absolute !important;
+    top: 7px !important;
+    right: 7px !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    place-items: center !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    color: #fff !important;
+    background: #2e203a !important;
+  }
+
+  .auth-reference-scope .source-login-card .public-auth-forgot {
+    display: block !important;
+    width: 100% !important;
+    margin: 1px 0 0 !important;
+    color: #ff70ea !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    line-height: 17px !important;
+    text-align: right !important;
+  }
+
+  .auth-reference-scope .source-login-submit,
+  .auth-reference-scope .source-register-submit,
+  .auth-reference-scope .source-register-back {
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 13px !important;
+    font-size: 14px !important;
+    font-weight: 1000 !important;
+    line-height: 20px !important;
+  }
+
+  .auth-reference-scope .source-login-submit,
+  .auth-reference-scope .source-register-submit {
+    border: 0 !important;
+    color: #fff !important;
+    background: linear-gradient(180deg, #ff35dc, #7d30ff) !important;
+  }
+
+  .auth-reference-scope .source-register-back {
+    border: 1px solid rgb(255 255 255 / 12%) !important;
+    color: #e7d8f2 !important;
+    background: #130d1b !important;
+  }
+
+  .auth-reference-scope .source-login-submit > i,
+  .auth-reference-scope .source-register-submit > i {
+    display: none !important;
+  }
+
+  .auth-reference-scope .source-login-support {
+    display: flex !important;
+    width: 100% !important;
+    margin: 11px 0 0 !important;
+    padding: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    color: #c9b9d6 !important;
+    font-size: 12px !important;
+    line-height: 17px !important;
+    text-align: center !important;
+  }
+
+  .auth-reference-scope .source-login-support a,
+  .auth-reference-scope .source-login-support button {
+    color: #ff70ea !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    line-height: 17px !important;
+  }
+
+  .auth-reference-scope .source-login-divider {
+    display: none !important;
+  }
+
+  .auth-reference-scope .source-login-card .public-auth-legal,
+  .auth-reference-scope .source-register-card .public-auth-legal {
+    display: none !important;
+  }
+
+  .auth-reference-scope .source-register-progress {
+    display: grid !important;
+    width: 100% !important;
+    margin: 4px 0 10px !important;
+    gap: 6px !important;
+  }
+
+  .auth-reference-scope .source-register-progress > div:first-child {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    color: #c7b6d5 !important;
+    font-size: 11px !important;
+    line-height: 16px !important;
+  }
+
+  .auth-reference-scope .source-register-progress > div:last-child {
+    width: 100% !important;
+    height: 3px !important;
+    overflow: hidden !important;
+    border-radius: 999px !important;
+    background: rgb(255 255 255 / 10%) !important;
+  }
+
+  .auth-reference-scope .source-register-step {
+    display: grid !important;
+    width: 100% !important;
+    gap: 0 !important;
+  }
+
+  .auth-reference-scope .source-register-password-meter {
+    width: 100% !important;
+    height: 3px !important;
+    margin: -6px 0 10px !important;
+  }
+
+  .auth-reference-scope .source-register-gender {
+    display: flex !important;
+    width: 100% !important;
+    margin: 4px 0 12px !important;
+    padding: 0 0 10px !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px 24px !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgb(121 113 144 / 62%) !important;
+  }
+
+  .auth-reference-scope .source-register-gender legend {
+    width: 100% !important;
+    margin: 0 !important;
+    color: #e7d8f2 !important;
+    font-size: 12px !important;
+    line-height: 16px !important;
+  }
+
+  .auth-reference-scope .source-register-gender label {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #cbbbd8 !important;
+    font-size: 11px !important;
+    line-height: 16px !important;
+  }
+
+  .auth-reference-scope .source-register-gender input,
+  .auth-reference-scope .source-register-terms input {
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    flex: 0 0 18px !important;
+    accent-color: #944fe8 !important;
+  }
+
+  .auth-reference-scope .source-register-review {
+    display: grid !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  .auth-reference-scope .source-register-review > div {
+    min-height: 34px !important;
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
+    background: #130d1b !important;
+  }
+
+  .auth-reference-scope .source-register-review span,
+  .auth-reference-scope .source-register-review strong {
+    font-size: 11px !important;
+    line-height: 16px !important;
+  }
+
+  .auth-reference-scope .source-register-terms {
+    display: flex !important;
+    width: 100% !important;
+    margin: 4px 0 12px !important;
+    padding: 0 !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    color: #cbbbd8 !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+
+  .auth-reference-scope .source-register-actions {
+    display: flex !important;
+    width: 100% !important;
+    margin: 2px 0 0 !important;
+    gap: 8px !important;
+  }
+
+  .auth-reference-scope .source-register-actions.has-back .source-register-back {
+    width: 112px !important;
+    min-width: 112px !important;
+    flex: 0 0 112px !important;
+  }
+
+  .auth-reference-scope .public-auth-alert,
+  .auth-reference-scope .public-auth-field-error,
+  .auth-reference-scope [class*='anti-bot'] {
+    max-width: 100% !important;
+    font-size: 11px !important;
+    line-height: 16px !important;
   }
 }
