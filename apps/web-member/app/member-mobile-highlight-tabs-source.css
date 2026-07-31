@@ -1,0 +1,112 @@
+/* Mobile highlight tab source match. This styles the existing tab owner only. */
+@media (max-width: 900px) {
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] {
+    display: flex !important;
+    width: 100% !important;
+    max-height: 96px;
+    margin: 0 !important;
+    padding: 6px !important;
+    align-items: center;
+    gap: 11px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap;
+    cursor: grab;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    overscroll-behavior-inline: contain;
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs']:active {
+    cursor: grabbing;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs']::-webkit-scrollbar {
+    display: none;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] > button {
+    position: relative;
+    display: inline-flex !important;
+    width: auto !important;
+    min-width: max-content !important;
+    height: 34px !important;
+    margin: 0 !important;
+    padding: 0 16px !important;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0 !important;
+    border-radius: 6px !important;
+    color: #bb5bea !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: clamp(10px, 2.8vw, 13.5px) !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    white-space: nowrap;
+    scroll-snap-align: start;
+    transform: translateZ(0);
+    transition: color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] > button::before {
+    display: block;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    background-color: currentColor;
+    content: '';
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] > button:nth-child(1)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m12 3 1.55 4.45L18 9l-4.45 1.55L12 15l-1.55-4.45L6 9l4.45-1.55L12 3Z'/%3E%3Cpath d='m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m12 3 1.55 4.45L18 9l-4.45 1.55L12 15l-1.55-4.45L6 9l4.45-1.55L12 3Z'/%3E%3Cpath d='m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z'/%3E%3C/svg%3E");
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] > button:nth-child(2)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='8' width='18' height='13' rx='2'/%3E%3Cpath d='M12 8v13M3 12h18M7.5 8C5 8 4 6.5 5 5s3.5-.5 7 3c3.5-3.5 6-4.5 7-3s0 3-2.5 3'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='8' width='18' height='13' rx='2'/%3E%3Cpath d='M12 8v13M3 12h18M7.5 8C5 8 4 6.5 5 5s3.5-.5 7 3c3.5-3.5 6-4.5 7-3s0 3-2.5 3'/%3E%3C/svg%3E");
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] > button:nth-child(3)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 4h8v4a4 4 0 0 1-8 0V4Z'/%3E%3Cpath d='M8 6H5v2a4 4 0 0 0 4 4M16 6h3v2a4 4 0 0 1-4 4M12 12v5M8 21h8M9 17h6'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 4h8v4a4 4 0 0 1-8 0V4Z'/%3E%3Cpath d='M8 6H5v2a4 4 0 0 0 4 4M16 6h3v2a4 4 0 0 1-4 4M12 12v5M8 21h8M9 17h6'/%3E%3C/svg%3E");
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] > button:nth-child(4)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h14a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V5Z'/%3E%3Cpath d='M8 9h8M8 13h8M8 17h5'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h14a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V5Z'/%3E%3Cpath d='M8 9h8M8 13h8M8 17h5'/%3E%3C/svg%3E");
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] > button[aria-current='page'] {
+    color: #fff !important;
+    background: linear-gradient(165.34deg, #944fe8 -17.16%, #7600a8 91.36%) !important;
+    box-shadow: 0 0 7.5px #7600ac !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] > button:active {
+    transform: scale(0.98);
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] > button:focus-visible {
+    outline: 2px solid #dca8f3;
+    outline-offset: 2px;
+  }
+
+  @media (min-width: 420px) {
+    body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='highlight-tabs'] > button {
+      padding-inline: 20px !important;
+    }
+  }
+}
