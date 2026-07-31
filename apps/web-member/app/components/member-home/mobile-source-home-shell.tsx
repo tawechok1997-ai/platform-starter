@@ -12,19 +12,31 @@ import {
 import {
   MEMBER_PROMOTION_FALLBACKS,
   loadMemberPromotionCampaigns,
-  memberPromotionImage,
+  memberPromotionImageForViewport,
   type MemberPromotionCampaign,
 } from '../../member-promotion-runtime';
 import { useMemberRuntime } from '../../member-runtime-provider';
+import {
+  MOBILE_SOURCE_ASSETS,
+  isSameSourceAsset,
+  sourceAssetFileName,
+} from './mobile-source-asset-map';
 import styles from './mobile-source-home-shell.module.css';
 
 const MAX_PROMOTIONS = 10;
 const MOBILE_CATEGORY_IDS = new Set(['home', 'casino', 'slot', 'fishing', 'sport', 'card', 'lottery']);
-const PROMOTION_FALLBACKS = MEMBER_PROMOTION_FALLBACKS.filter((item) => item.enabled).slice(0, MAX_PROMOTIONS);
-const SHORTCUT_BACKGROUND_FALLBACK =
-  'https://cdn.zabbet.com/FEZX/lobby_settings/fc6b7ea8-3eaf-47ec-8640-33c7138d3c7c.png';
-const SHORTCUT_ICON_FALLBACK =
-  'https://cdn.zabbet.com/FEZX/lobby_settings/083e4b9b-63aa-4825-a0e3-57a88de57e2f.ico';
+const MOBILE_PROMOTION_FALLBACKS = MOBILE_SOURCE_ASSETS.promotionSlides.map((imageUrl, index) => {
+  const seed = MEMBER_PROMOTION_FALLBACKS[index % MEMBER_PROMOTION_FALLBACKS.length]!;
+  return {
+    ...seed,
+    id: `mobile-source-slide-${index + 1}`,
+    title: seed.title || `โปรโมชั่น ${index + 1}`,
+    imageUrl,
+    mobileImageUrl: imageUrl,
+    sourceImageUrl: imageUrl,
+    href: index === MOBILE_SOURCE_ASSETS.promotionSlides.length - 1 ? '/promotions' : seed.href || '/promotions',
+  } satisfies MemberPromotionCampaign;
+});
 
 type Props = {
   children: ReactNode;
@@ -39,7 +51,7 @@ type ShortcutPlatform = 'android' | 'ios';
 
 export default function MobileSourceHomeShell({ children }: Props) {
   const { features, home, icons, navigation, resolveAsset, summary } = useMemberRuntime();
-  const [promotions, setPromotions] = useState<MemberPromotionCampaign[]>(PROMOTION_FALLBACKS);
+  const [promotions, setPromotions] = useState<MemberPromotionCampaign[]>(MOBILE_PROMOTION_FALLBACKS);
   const [activePromotion, setActivePromotion] = useState(0);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [shortcutMessage, setShortcutMessage] = useState('');
@@ -51,12 +63,12 @@ export default function MobileSourceHomeShell({ children }: Props) {
   );
 
   const shortcutBackground = resolveAsset({
-    aliases: ['home shortcut', 'add to home', 'ปุ่มลัดหน้าโฮม', 'download background'],
-    remoteFallback: SHORTCUT_BACKGROUND_FALLBACK,
+    aliases: ['home shortcut mobile', 'home shortcut', 'add to home', 'ปุ่มลัดหน้าโฮม', 'download background'],
+    remoteFallback: MOBILE_SOURCE_ASSETS.shortcutBackground,
   });
   const shortcutIcon = resolveAsset({
-    aliases: ['home shortcut icon', 'add to home icon', 'favicon', 'ปุ่มลัด'],
-    remoteFallback: SHORTCUT_ICON_FALLBACK,
+    aliases: ['home shortcut icon mobile', 'home shortcut icon', 'add to home icon', 'favicon', 'ปุ่มลัด'],
+    remoteFallback: MOBILE_SOURCE_ASSETS.shortcutIcon,
   });
 
   useEffect(() => {
@@ -65,13 +77,14 @@ export default function MobileSourceHomeShell({ children }: Props) {
     void loadMemberPromotionCampaigns(controller.signal)
       .then((items) => {
         if (controller.signal.aborted) return;
-        const next = items.filter((item) => item.enabled).slice(0, MAX_PROMOTIONS);
-        setPromotions(next.length ? next : PROMOTION_FALLBACKS);
+        const enabled = items.filter((item) => item.enabled).slice(0, MAX_PROMOTIONS);
+        const next = enabled.map((item, index) => applyMobilePromotionFallback(item, index));
+        setPromotions(next.length ? next : MOBILE_PROMOTION_FALLBACKS);
         setActivePromotion(0);
         promotionRailRef.current?.scrollTo({ left: 0, behavior: 'auto' });
       })
       .catch(() => {
-        if (!controller.signal.aborted) setPromotions(PROMOTION_FALLBACKS);
+        if (!controller.signal.aborted) setPromotions(MOBILE_PROMOTION_FALLBACKS);
       });
 
     return () => controller.abort();
@@ -135,14 +148,14 @@ export default function MobileSourceHomeShell({ children }: Props) {
     );
   }
 
-  const announcementText = home.announcement.summary || home.announcement.title;
+  const announcementText = home.announcement.summary || home.announcement.title || 'ประกาศจากระบบ';
   const showGuestActions = !summary.isLoggedIn && (features.registration || features.login);
 
   return (
-    <section className={styles.shell} aria-label="หน้าแรกมือถือ">
-      <div className={styles.topArea}>
+    <section className={`${styles.shell} member-mobile-source-shell`} aria-label="หน้าแรกมือถือ">
+      <div className={`${styles.topArea} member-mobile-source-top-area`}>
         {features.promotion && promotions.length ? (
-          <section className={styles.promotionSection} aria-label="โปรโมชั่น">
+          <section className={`${styles.promotionSection} member-mobile-source-promotion`} aria-label="โปรโมชั่น">
             <div
               ref={promotionRailRef}
               className={styles.promotionRail}
@@ -150,13 +163,14 @@ export default function MobileSourceHomeShell({ children }: Props) {
               data-drag-scroll="true"
             >
               {promotions.map((promotion, index) => {
-                const image = memberPromotionImage(promotion);
+                const image = memberPromotionImageForViewport(promotion, 'mobile');
                 return (
                   <a
                     key={promotion.id}
                     className={styles.promotionSlide}
                     href={promotion.href || `/browse/promotions/${encodeURIComponent(promotion.id)}`}
                     aria-label={promotion.title}
+                    data-mobile-asset={sourceAssetFileName(image)}
                   >
                     <img
                       src={image}
@@ -200,18 +214,20 @@ export default function MobileSourceHomeShell({ children }: Props) {
           </nav>
         ) : null}
 
-        {features.announcement && announcementText ? (
-          <section className={styles.announcement} aria-label="ประกาศ">
-            <RuntimeIcon value={home.announcement.icon || icons.announcement} />
-            <div className={styles.announcementViewport}>
-              {home.announcement.href ? (
-                <a href={home.announcement.href}>{announcementText}</a>
-              ) : (
-                <span>{announcementText}</span>
-              )}
-            </div>
-          </section>
-        ) : null}
+        <section
+          className={`${styles.announcement} member-mobile-source-announcement`}
+          aria-label="ประกาศ"
+          data-runtime-enabled={features.announcement ? 'true' : 'false'}
+        >
+          <RuntimeIcon value={home.announcement.icon || icons.announcement} />
+          <div className={styles.announcementViewport}>
+            {home.announcement.href ? (
+              <a href={home.announcement.href}>{announcementText}</a>
+            ) : (
+              <span>{announcementText}</span>
+            )}
+          </div>
+        </section>
       </div>
 
       <div className={styles.mobileBody}>
@@ -261,6 +277,21 @@ export default function MobileSourceHomeShell({ children }: Props) {
       </div>
     </section>
   );
+}
+
+function applyMobilePromotionFallback(item: MemberPromotionCampaign, index: number) {
+  const fallback = MOBILE_PROMOTION_FALLBACKS[index % MOBILE_PROMOTION_FALLBACKS.length]!;
+  const hasDedicatedMobileAsset = Boolean(
+    item.mobileImageUrl
+    && !isSameSourceAsset(item.mobileImageUrl, item.desktopImageUrl)
+    && !isSameSourceAsset(item.mobileImageUrl, item.imageUrl),
+  );
+
+  if (hasDedicatedMobileAsset) return item;
+  return {
+    ...item,
+    mobileImageUrl: fallback.mobileImageUrl,
+  };
 }
 
 function RuntimeIcon({ value }: { value: string }) {
