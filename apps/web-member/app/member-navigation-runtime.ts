@@ -7,6 +7,21 @@ import type {
 import { buildMemberNavigationRuntime } from './member-runtime-contract';
 import type { TypedPublicSiteSettings } from './site-settings-types';
 
+const NAVIGATION_FEATURES = new Set<NonNullable<MemberNavigationItem['feature']>>([
+  'registration',
+  'login',
+  'deposit',
+  'withdraw',
+  'promotion',
+  'bonus',
+  'affiliate',
+  'support',
+  'kyc',
+  'games',
+  'profile',
+  'notifications',
+]);
+
 export function buildConfiguredMemberNavigation(
   settings: TypedPublicSiteSettings,
   locale: MemberLocale,
@@ -41,25 +56,27 @@ function normalizeItem(
   const enabled = raw.enabled !== false;
   if (!enabled) return null;
 
-  const feature = featureKey(raw.feature);
-  if (feature && !features[feature]) return null;
+  const visibilityFeature = featureKey(raw.feature);
+  if (visibilityFeature && !features[visibilityFeature]) return null;
+  const feature = navigationFeatureKey(visibilityFeature);
 
   const label = locale === 'th'
     ? firstText(raw.labelTh, raw.label_th, raw.label, fallback?.label, id)
     : firstText(raw.labelEn, raw.label_en, raw.label, fallback?.label, id);
   const href = safeHref(raw.href) || fallback?.href || '/';
   const icon = resolveIcon(raw.iconKey ?? raw.icon_key ?? raw.icon, icons, fallback?.icon ?? icons.home);
+  const badge = optionalText(raw.badge);
 
   return {
     id,
     label,
     href,
     icon,
-    feature,
+    ...(feature ? { feature } : {}),
     desktop: boolean(raw.desktop, fallback?.desktop ?? true),
     mobile: boolean(raw.mobile, fallback?.mobile ?? true),
     requiresAuth: boolean(raw.requiresAuth ?? raw.requires_auth, fallback?.requiresAuth ?? false),
-    badge: optionalText(raw.badge),
+    ...(badge ? { badge } : {}),
     order: finite(raw.order ?? raw.sequence, index),
   };
 }
@@ -88,8 +105,14 @@ function resolveIcon(value: unknown, icons: MemberIconRuntime, fallback: string)
 
 function featureKey(value: unknown): keyof MemberFeatureVisibilityRuntime | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined;
-  const key = value.trim() as keyof MemberFeatureVisibilityRuntime;
-  return key;
+  return value.trim() as keyof MemberFeatureVisibilityRuntime;
+}
+
+function navigationFeatureKey(
+  value: keyof MemberFeatureVisibilityRuntime | undefined,
+): MemberNavigationItem['feature'] {
+  if (!value || !NAVIGATION_FEATURES.has(value as NonNullable<MemberNavigationItem['feature']>)) return undefined;
+  return value as NonNullable<MemberNavigationItem['feature']>;
 }
 
 function safeHref(value: unknown) {
