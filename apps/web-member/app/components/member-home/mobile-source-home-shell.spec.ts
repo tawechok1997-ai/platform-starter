@@ -87,18 +87,20 @@ test('mobile source home provides a real shortcut flow with dedicated Mobile ass
   assert.doesNotMatch(shellSource, /href="\/download/);
 });
 
-test('mobile source footer is a standalone source-only DOM instead of the Desktop footer', () => {
+test('mobile source footer is standalone and uses only its CDN source assets', () => {
   const mobileFooterSource = footerSource.slice(footerSource.indexOf('function MobileSourceFooter'));
 
+  assert.match(footerSource, /const MOBILE_CDN_ROOT = 'https:\/\/cdn\.zabbet\.com\/FEZX'/);
   assert.match(footerSource, /<MobileSourceFooter \/>/);
-  assert.match(mobileFooterSource, /\/images\/banks\/TH\/\$\{name\}\.webp/);
-  assert.match(mobileFooterSource, /\/images\/footer\/GAME CARE\.webp/);
-  assert.match(mobileFooterSource, /\/images\/footer\/Bmm\.webp/);
-  assert.match(mobileFooterSource, /\/images\/footer\/GO DADDY\.webp/);
+  assert.match(footerSource, /MOBILE_CDN_ROOT}\\/banks\/TH/);
+  assert.match(mobileFooterSource, /footer\/gamecare\.webp/);
+  assert.match(footerSource, /footer\/BBM-Cert\.webp/);
+  assert.match(footerSource, /footer\/GO%20DADDY\.webp/);
   assert.match(mobileFooterSource, /Copyright © NOAH345, All Rights Reserved\./);
   assert.doesNotMatch(mobileFooterSource, /member-footer__about/);
   assert.doesNotMatch(mobileFooterSource, /GAME_LINKS/);
   assert.doesNotMatch(mobileFooterSource, /INFO_LINKS/);
+  assert.doesNotMatch(mobileFooterSource, /SOURCE_ROOT/);
   assert.match(footerCss, /\.desktopRoot\s*\{[\s\S]*?display:\s*none\s*!important/);
   assert.match(footerCss, /\.mobileRoot\s*\{[\s\S]*?max-width:\s*428px/);
 });
