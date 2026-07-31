@@ -1,4 +1,4 @@
-/* V47 desktop hero carousel. Loaded after the legacy desktop reference layers. */
+/* V47 desktop hero carousel. Loaded through member-desktop-runtime-owner.css. */
 @media (min-width: 901px) {
   .desktop-reference-home.desktop-home {
     display: block !important;
@@ -115,6 +115,60 @@
     object-position: left center !important;
   }
 
+  .reference-hero-arrow {
+    position: absolute !important;
+    top: calc(50% - 16px) !important;
+    z-index: 8 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 42px !important;
+    height: 42px !important;
+    padding: 0 !important;
+    border: 1px solid rgb(255 255 255 / 22%) !important;
+    border-radius: 999px !important;
+    color: #fff !important;
+    background: rgb(15 12 20 / 68%) !important;
+    box-shadow: 0 8px 22px rgb(0 0 0 / 28%) !important;
+    opacity: 0 !important;
+    cursor: pointer !important;
+    backdrop-filter: blur(8px) !important;
+    transition: opacity .2s ease, background-color .2s ease, transform .2s ease !important;
+  }
+
+  .reference-hero-arrow--previous {
+    left: 24px !important;
+  }
+
+  .reference-hero-arrow--next {
+    right: 24px !important;
+  }
+
+  .reference-hero-carousel:hover .reference-hero-arrow,
+  .reference-hero-carousel:focus-within .reference-hero-arrow {
+    opacity: .88 !important;
+  }
+
+  .reference-hero-arrow:hover {
+    background: rgb(92 29 111 / 88%) !important;
+    transform: scale(1.06) !important;
+  }
+
+  .reference-hero-arrow:focus-visible {
+    opacity: 1 !important;
+    outline: 2px solid #daa5f3 !important;
+    outline-offset: 3px !important;
+  }
+
+  .reference-hero-arrow svg {
+    width: 22px !important;
+    height: 22px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+  }
+
   .reference-hero-pagination {
     display: flex !important;
     align-items: center !important;
@@ -162,6 +216,14 @@
   .desktop-home__body {
     grid-template-columns: minmax(0, 1fr) 300px !important;
   }
+
+  .reference-hero-arrow--previous {
+    left: 14px !important;
+  }
+
+  .reference-hero-arrow--next {
+    right: 14px !important;
+  }
 }
 
 @media (max-width: 900px) {
@@ -172,6 +234,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .reference-hero-slide,
+  .reference-hero-arrow,
   .reference-hero-pagination button {
     animation: none !important;
     transition: none !important;
