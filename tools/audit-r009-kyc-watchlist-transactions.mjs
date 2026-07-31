@@ -2,8 +2,10 @@ import fs from 'node:fs';
 
 const kycPath = 'apps/api/src/modules/risk-alerts/kyc-review-command.service.ts';
 const watchlistPath = 'apps/api/src/modules/risk-alerts/risk-watchlist.service.ts';
+const adapterPath = 'apps/api/src/common/infrastructure/prisma-risk-promotion-repository-adapters.ts';
 const kyc = fs.readFileSync(kycPath, 'utf8');
 const watchlist = fs.readFileSync(watchlistPath, 'utf8');
+const adapter = fs.readFileSync(adapterPath, 'utf8');
 
 function method(source, startMarker, endMarker) {
   const start = source.indexOf(startMarker);
@@ -16,19 +18,28 @@ const reviewDocument = method(kyc, '  async reviewDocument(', '\n  async reviewC
 const reviewCase = method(kyc, '  async reviewCase(', '\n}');
 const createWatchlist = method(watchlist, '  async create(', '\n  async release(');
 const releaseWatchlist = method(watchlist, '  async release(', '\n  async match(');
+const findKycDocument = method(adapter, '  async findKycDocumentForUpdate(', '\n  async findKycCaseForUpdate(');
+const findKycCase = method(adapter, '  async findKycCaseForUpdate(', '\n  async saveKycDocumentReview(');
+const saveKycDocument = method(adapter, '  async saveKycDocumentReview(', '\n  async saveKycCaseReview(');
+const saveKycCase = method(adapter, '  async saveKycCaseReview(', '\n  async countUnacceptedKycDocuments(');
+const countKycDocuments = method(adapter, '  async countUnacceptedKycDocuments(', '\n  async findWatchlistEntryForUpdate(');
+const findWatchlistEntry = method(adapter, '  async findWatchlistEntryForUpdate(', '\n  async saveWatchlistEntry(');
+const saveWatchlistEntry = method(adapter, '  async saveWatchlistEntry(', '\n}');
 
 const checks = [
   ['KYC document method exists', reviewDocument.length > 0],
   ['KYC document has transaction owner', reviewDocument.includes('this.prisma.$transaction(async (tx) =>')],
-  ['KYC document locks row', reviewDocument.includes('FOR UPDATE')],
-  ['KYC document guards version', reviewDocument.includes('AND "version"=${input.version}')],
+  ['KYC document delegates to repository adapter', reviewDocument.includes('repository.findKycDocumentForUpdate(documentId)')],
+  ['KYC document locks row', findKycDocument.includes('FROM "kyc_documents"') && findKycDocument.includes('FOR UPDATE')],
+  ['KYC document guards version', saveKycDocument.includes('UPDATE "kyc_documents"') && saveKycDocument.includes('"version" = ${record.version}')],
   ['KYC document audit uses tx', reviewDocument.includes('tx.adminAuditLog.create')],
   ['KYC document uses Serializable', reviewDocument.includes('TransactionIsolationLevel.Serializable')],
   ['KYC case method exists', reviewCase.length > 0],
   ['KYC case has transaction owner', reviewCase.includes('this.prisma.$transaction(async (tx) =>')],
-  ['KYC case locks row', reviewCase.includes('FOR UPDATE')],
-  ['KYC case revalidates documents in tx', reviewCase.includes('FROM "kyc_documents"')],
-  ['KYC case guards version', reviewCase.includes('AND "version"=${input.version}')],
+  ['KYC case delegates to repository adapter', reviewCase.includes('repository.findKycCaseForUpdate(caseId)')],
+  ['KYC case locks row', findKycCase.includes('FROM "kyc_cases"') && findKycCase.includes('FOR UPDATE')],
+  ['KYC case revalidates documents in tx', reviewCase.includes('repository.countUnacceptedKycDocuments(caseId)') && countKycDocuments.includes('FROM "kyc_documents"')],
+  ['KYC case guards version', saveKycCase.includes('UPDATE "kyc_cases"') && saveKycCase.includes('"version" = ${record.version}')],
   ['KYC case audit uses tx', reviewCase.includes('tx.adminAuditLog.create')],
   ['KYC case uses Serializable', reviewCase.includes('TransactionIsolationLevel.Serializable')],
   ['watchlist create method exists', createWatchlist.length > 0],
@@ -38,8 +49,9 @@ const checks = [
   ['watchlist create uses Serializable', createWatchlist.includes('TransactionIsolationLevel.Serializable')],
   ['watchlist release method exists', releaseWatchlist.length > 0],
   ['watchlist release has transaction owner', releaseWatchlist.includes('this.prisma.$transaction(async (tx) =>')],
-  ['watchlist release locks row', releaseWatchlist.includes('FOR UPDATE')],
-  ['watchlist release guards version', releaseWatchlist.includes('AND "version" = ${input.version}')],
+  ['watchlist release delegates to repository adapter', releaseWatchlist.includes('repository.findWatchlistEntryForUpdate(id)')],
+  ['watchlist release locks row', findWatchlistEntry.includes('FROM "risk_watchlist_entries"') && findWatchlistEntry.includes('FOR UPDATE')],
+  ['watchlist release guards version', saveWatchlistEntry.includes('UPDATE "risk_watchlist_entries"') && saveWatchlistEntry.includes('"version" = ${record.version}')],
   ['watchlist release audit uses tx', releaseWatchlist.includes('tx.adminAuditLog.create')],
   ['watchlist release uses Serializable', releaseWatchlist.includes('TransactionIsolationLevel.Serializable')],
 ];
