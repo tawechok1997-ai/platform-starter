@@ -41,6 +41,15 @@ const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
 ];
 
+const exactMobileAssetRewrites = [
+  ['fire.svg', '/assets/asset-moblie/images/home/fire.svg'],
+  ['mostonline.svg', '/assets/asset-moblie/images/home/mostonline.svg'],
+  ['live.svg', '/assets/asset-moblie/images/home/live.svg'],
+].flatMap(([fileName, destination]) => [
+  { source: `/images/home/${fileName}`, destination },
+  { source: `/assets/asset-pc/images/home/${fileName}`, destination },
+]);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@platform/api-client'],
@@ -48,6 +57,17 @@ const nextConfig = {
   reactStrictMode: true,
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        ...exactMobileAssetRewrites,
+        {
+          source: '/assets/asset-pc/images/ZAB1/tournament/647280b5-3a23-4118-80a0-1b7feb340d1a.png',
+          destination: 'https://cdn.zabbet.com/ZAB1/tournament/647280b5-3a23-4118-80a0-1b7feb340d1a.png',
+        },
+      ],
+    };
   },
   images: {
     remotePatterns: [
