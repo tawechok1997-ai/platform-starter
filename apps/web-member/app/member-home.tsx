@@ -12,6 +12,7 @@ import MemberGameSectionRuntimeController from './components/member-game-section
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
+import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
 import { useMemberHomeData } from './hooks/use-member-home-data';
 
@@ -49,8 +50,8 @@ export default function MemberHome(props: MemberHomeProps) {
     return () => media.removeEventListener?.('change', syncViewport);
   }, []);
 
-  // Mobile Home intentionally has no implementation. It will be rebuilt from a clean slate.
-  if (viewportMode !== 'desktop') return null;
+  if (viewportMode === null) return null;
+  if (viewportMode === 'mobile') return <MobileHomeRoot />;
 
   return <DesktopMemberHome {...props} />;
 }
