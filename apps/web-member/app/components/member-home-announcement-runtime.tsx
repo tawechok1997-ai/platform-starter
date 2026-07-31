@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo } from 'react';
 import { memberAnnouncementsRuntime } from '../member-settings-runtime';
-import { cmsContentSetting } from '../site-settings';
+import { cmsContentSetting, type CmsAnnouncement } from '../site-settings';
 import { useSiteSettings } from '../site-settings-provider';
 
 const DEFAULT_ANNOUNCEMENT = 'ยินดีต้อนรับสู่ NOAH345 โปรโมชั่น กิจกรรม และเกมใหม่อัปเดตตลอด 24 ชั่วโมง';
@@ -18,8 +18,8 @@ export default function MemberHomeAnnouncementRuntime() {
   const { settings } = useSiteSettings();
   const targets = useMemo<AnnouncementTarget[]>(() => {
     const content = cmsContentSetting(settings);
-    const desktop = memberAnnouncementsRuntime(content, 'desktop')[0];
-    const mobile = memberAnnouncementsRuntime(content, 'mobile')[0] ?? desktop;
+    const desktop = pickGlobalAnnouncement(memberAnnouncementsRuntime(content, 'desktop'));
+    const mobile = pickGlobalAnnouncement(memberAnnouncementsRuntime(content, 'mobile')) ?? desktop;
 
     return [
       announcementTarget('.reference-announcement-track span', desktop),
@@ -64,10 +64,11 @@ export default function MemberHomeAnnouncementRuntime() {
   return null;
 }
 
-function announcementTarget(
-  selector: string,
-  announcement: ReturnType<typeof memberAnnouncementsRuntime>[number] | undefined,
-): AnnouncementTarget {
+function pickGlobalAnnouncement(items: CmsAnnouncement[]) {
+  return items.find((item) => item.kind === 'system') ?? items[0];
+}
+
+function announcementTarget(selector: string, announcement: CmsAnnouncement | undefined): AnnouncementTarget {
   return {
     selector,
     text: firstText(announcement?.message, announcement?.title, DEFAULT_ANNOUNCEMENT),
