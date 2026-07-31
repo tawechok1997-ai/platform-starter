@@ -1,5 +1,9 @@
-export function GET(request: Request) {
-  const destination = new URL('/', request.url);
-  destination.searchParams.set('download', 'ios');
-  return Response.redirect(destination, 307);
+export function GET() {
+  return new Response(null, {
+    status: 307,
+    headers: {
+      Location: '/?download=ios',
+      'Cache-Control': 'no-store',
+    },
+  });
 }
