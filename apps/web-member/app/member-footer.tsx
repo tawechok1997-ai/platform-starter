@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { memo, type SyntheticEvent } from 'react';
 import { useMemberLocale } from './member-locale-provider';
 import type { TypedPublicSiteSettings } from './site-settings-types';
+import mobileFooterStyles from './member-footer-mobile-match.module.css';
 
 const SOURCE_ROOT = '/assets/asset-pc/images';
 
@@ -55,7 +56,7 @@ const FOOTER_COPY = {
 บาคาร่า รูเล็ต ไฮโล เสือมังกร สล็อตออนไลน์ กีฬาออนไลน์
 แจ็คพอตแตกทุกวัน`,
     license: 'ใบอนุญาตและใบรับรอง', licenseNote: '(การันตีเกมลิขสิทธิ์แท้)', security: 'การรองรับและความปลอดภัยโดย', responsible: 'รับผิดชอบในการเดิมพัน', games: 'เกม', information: 'ข้อมูล', contact: 'ติดต่อเรา', contactAria: 'ติดต่อฝ่ายบริการผ่าน LINE', payments: 'วิธีการชำระเงิน',
-    links: { casino: 'คาสิโน', slot: 'สล็อต', fishing: 'ยิงปลา', sport: 'กีฬา', card: 'ไพ่', lottery: 'หวย', promotions: 'โปรโมชั่น', news: 'ข่าวสาร', activities: 'กิจกรรม', vip: 'ระดับสมาชิก VIP', networkIncome: 'รายได้จากเครือข่าย', commissionIncome: 'รายได้จากคอมมิชชั่น' },
+    links: { casino: 'คาสิโน', slot: 'สล็อต', fishing: 'ตกปลา', sport: 'กีฬา', card: 'ไพ่', lottery: 'หวย', promotions: 'โปรโมชั่น', news: 'ข่าวสาร', activities: 'กิจกรรม', vip: 'ระดับสมาชิก VIP', networkIncome: 'รายได้จากเครือข่าย', commissionIncome: 'รายได้จากคอมมิชชั่น' },
   },
   en: {
     description: `A premium online gaming destination
@@ -88,7 +89,7 @@ function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
   const description = sourceDescription(website.site_description, copy.description);
 
   return (
-    <footer className="member-footer member-footer--shared member-persistent-shell__footer" data-locale={locale}>
+    <footer className={`member-footer member-footer--shared member-persistent-shell__footer ${mobileFooterStyles.root}`} data-locale={locale}>
       <div className="member-footer__main">
         <section className="member-footer__about">
           <h3>{siteName}</h3>

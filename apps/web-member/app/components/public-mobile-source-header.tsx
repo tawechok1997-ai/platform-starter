@@ -9,7 +9,13 @@ import { useMemberSession } from '../member-session-provider';
 import { useSiteSettings } from '../site-settings-provider';
 import { MemberDrawer } from './member-modal-system';
 import { openMemberSharedPopup, type MemberSharedPopupKind } from './member-shared-popup-runtime';
+import {
+  MOBILE_SOURCE_ASSETS,
+  isSameSourceAsset,
+  sourceAssetFileName,
+} from './member-home/mobile-source-asset-map';
 import { V47_ASSETS } from './member-home/v47-asset-map';
+import correctionStyles from './public-mobile-source-header-correction.module.css';
 
 const STANDALONE_PUBLIC_PREFIXES = ['/clone-preview', '/login', '/register', '/maintenance', '/session-expired'];
 const ASSET_BASE = '/assets/asset-pc/images';
@@ -109,10 +115,14 @@ export default function PublicMobileSourceHeader() {
   const authenticated = ready && isLoggedIn;
   const mobileNavigation = runtime.navigation.filter((item) => item.mobile);
   const liveNavigation = mobileNavigation.find((item) => item.id === 'live');
-  const configuredLogoUrl = typedSettings.branding.logo_mobile_url?.trim() || typedSettings.branding.logo_url?.trim();
-  const logoUrl = configuredLogoUrl && !configuredLogoUrl.startsWith('/home-asset/')
-    ? configuredLogoUrl
-    : V47_ASSETS.headerLogo;
+  const configuredMobileLogo = typedSettings.branding.logo_mobile_url?.trim();
+  const configuredDesktopLogo = typedSettings.branding.logo_url?.trim();
+  const hasDedicatedMobileLogo = Boolean(
+    configuredMobileLogo
+    && !configuredMobileLogo.startsWith('/home-asset/')
+    && !isSameSourceAsset(configuredMobileLogo, configuredDesktopLogo),
+  );
+  const logoUrl = hasDedicatedMobileLogo ? configuredMobileLogo! : MOBILE_SOURCE_ASSETS.headerLogo;
   const flagUrl = locale === 'th'
     ? V47_ASSETS.headerFlag
     : '/assets/asset-pc/images/flags/en.svg';
@@ -124,7 +134,7 @@ export default function PublicMobileSourceHeader() {
 
   return (
     <>
-      <header className="public-mobile-source-header" data-locale={locale}>
+      <header className={`public-mobile-source-header ${correctionStyles.root}`} data-locale={locale}>
         <div className="public-mobile-source-header__inner">
           <button
             type="button"
@@ -141,7 +151,12 @@ export default function PublicMobileSourceHeader() {
             </span>
           </button>
 
-          <Link href="/" className="public-mobile-source-header__brand" aria-label={typedSettings.website.site_name}>
+          <Link
+            href="/"
+            className="public-mobile-source-header__brand"
+            aria-label={typedSettings.website.site_name}
+            data-mobile-logo={sourceAssetFileName(logoUrl)}
+          >
             <img src={logoUrl} alt={typedSettings.website.site_name} />
           </Link>
 
