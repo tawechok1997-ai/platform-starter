@@ -203,13 +203,17 @@ function normalizeRuntimeProfile(payload: unknown): MemberRuntimeProfile {
   const source = payload && typeof payload === 'object' ? payload as Record<string, unknown> : {};
   const kyc = source.kyc && typeof source.kyc === 'object' ? source.kyc as Record<string, unknown> : {};
   const vip = source.vip && typeof source.vip === 'object' ? source.vip as Record<string, unknown> : {};
+  const id = optionalText(source.id);
+  const username = optionalText(source.username);
+  const status = optionalText(source.status);
+
   return {
-    id: optionalText(source.id),
-    username: optionalText(source.username),
+    ...(id ? { id } : {}),
+    ...(username ? { username } : {}),
     displayName: nullableText(source.displayName),
     phone: nullableText(source.phone),
     email: nullableText(source.email),
-    status: optionalText(source.status),
+    ...(status ? { status } : {}),
     phoneVerifiedAt: nullableText(source.phoneVerifiedAt),
     emailVerifiedAt: nullableText(source.emailVerifiedAt),
     kycStatus: nullableText(source.kycStatus ?? kyc.status),
