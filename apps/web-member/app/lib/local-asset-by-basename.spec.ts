@@ -9,6 +9,14 @@ const generatorSource = readFileSync(
   new URL('../../tools/generate-local-asset-basename-map.mjs', import.meta.url),
   'utf8',
 );
+const auditSource = readFileSync(
+  new URL('../../tools/audit-source-cdn-asset-basename-matches.mjs', import.meta.url),
+  'utf8',
+);
+const sourceCatalog = readFileSync(
+  new URL('../../tools/source-cdn-asset-catalog.json', import.meta.url),
+  'utf8',
+);
 const homeResolverSource = readFileSync(
   new URL('../components/member-home/local-game-asset-resolver.ts', import.meta.url),
   'utf8',
@@ -89,12 +97,33 @@ test('generates a case-insensitive basename index by scanning all public assets 
   assert.match(generatorSource, /asset-moblie/);
 });
 
+test('records all supplied category CDN assets and audits them against local files', () => {
+  const catalog = JSON.parse(sourceCatalog) as {
+    counts?: { entries?: number; uniqueBasenames?: number };
+    items?: Array<{ category?: string; sourceUrl?: string; fileName?: string }>;
+  };
+  assert.equal(catalog.counts?.entries, 84);
+  assert.equal(catalog.counts?.uniqueBasenames, 82);
+  assert.equal(catalog.items?.length, 84);
+  assert.equal(catalog.items?.some((item) => item.sourceUrl?.includes('/providers/')), true);
+  assert.equal(catalog.items?.some((item) => item.sourceUrl?.includes('/gamecard/')), true);
+  assert.match(auditSource, /status:\s*candidates\.length \? 'matched' : 'missing'/);
+  assert.match(auditSource, /source-cdn-asset-match-report\.json/);
+});
+
 test('refreshes the generated asset map before development and verification commands', () => {
   const parsed = JSON.parse(packageJson) as { scripts?: Record<string, string> };
   const scripts = parsed.scripts ?? {};
-  for (const hook of ['predev', 'prebuild', 'prelint', 'pretest', 'pretypecheck']) {
+  for (const hook of ['predev', 'prelint', 'pretest', 'pretypecheck']) {
     assert.equal(scripts[hook], 'pnpm generate:asset-basename-map');
   }
+  for (const hook of ['preanalyze', 'prebuild']) {
+    assert.equal(
+      scripts[hook],
+      'pnpm generate:asset-basename-map && pnpm audit:source-cdn-assets',
+    );
+  }
+  assert.equal(scripts['audit:source-cdn-assets'], 'node tools/audit-source-cdn-asset-basename-matches.mjs');
 });
 
 test('game and provider media try basename matching before external fallbacks', () => {
