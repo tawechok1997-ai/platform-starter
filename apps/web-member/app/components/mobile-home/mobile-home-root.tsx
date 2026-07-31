@@ -126,6 +126,7 @@ export default function MobileHomeRoot() {
 
       <div
         className={`${styles.drawerBackdrop} ${menuOpen ? styles.drawerBackdropOpen : ''}`}
+        role="presentation"
         aria-hidden={!menuOpen}
         onMouseDown={(event) => {
           if (event.target === event.currentTarget) setMenuOpen(false);
