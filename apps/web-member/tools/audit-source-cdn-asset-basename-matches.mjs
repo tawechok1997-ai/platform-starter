@@ -8,6 +8,7 @@ const repositoryRoot = path.resolve(packageRoot, '..', '..');
 const assetRoot = path.join(packageRoot, 'public', 'assets');
 const catalogPath = path.join(toolDirectory, 'source-cdn-asset-catalog.json');
 const reportPath = path.join(repositoryRoot, 'docs', 'generated', 'source-cdn-asset-match-report.json');
+const CDN_ORIGIN = 'https://cdn.zabbet.com';
 const SUPPORTED_EXTENSIONS = new Set(['.avif', '.gif', '.jpeg', '.jpg', '.png', '.svg', '.webm', '.webp']);
 
 async function walk(directory, baseDirectory = directory) {
@@ -46,8 +47,37 @@ function rankCandidate(value, sourceUrl) {
   return score;
 }
 
+function sourceItemsFromCatalog(catalog) {
+  if (!catalog.categories || typeof catalog.categories !== 'object' || Array.isArray(catalog.categories)) {
+    throw new Error('source-cdn-asset-catalog.json must contain a categories object');
+  }
+
+  const items = [];
+  for (const [category, sourcePaths] of Object.entries(catalog.categories)) {
+    if (!Array.isArray(sourcePaths)) throw new Error(`Category ${category} must contain an array`);
+    for (const sourcePath of sourcePaths) {
+      if (typeof sourcePath !== 'string' || !sourcePath.startsWith('/')) {
+        throw new Error(`Category ${category} contains an invalid CDN path`);
+      }
+      const fileName = path.posix.basename(sourcePath).toLowerCase();
+      items.push({ category, sourceUrl: `${CDN_ORIGIN}${sourcePath}`, fileName });
+    }
+  }
+  return items;
+}
+
 const catalog = JSON.parse(await readFile(catalogPath, 'utf8'));
-if (!Array.isArray(catalog.items)) throw new Error('source-cdn-asset-catalog.json must contain an items array');
+const sourceItems = sourceItemsFromCatalog(catalog);
+const uniqueSourceBasenames = new Set(sourceItems.map((item) => item.fileName));
+
+if (sourceItems.length !== Number(catalog.counts?.entries)) {
+  throw new Error(`Catalog entry count drift: expected ${catalog.counts?.entries}, received ${sourceItems.length}`);
+}
+if (uniqueSourceBasenames.size !== Number(catalog.counts?.uniqueBasenames)) {
+  throw new Error(
+    `Catalog basename count drift: expected ${catalog.counts?.uniqueBasenames}, received ${uniqueSourceBasenames.size}`,
+  );
+}
 
 const localFiles = await walk(assetRoot);
 const localByBasename = new Map();
@@ -58,14 +88,11 @@ for (const relative of localFiles) {
   localByBasename.set(basename, candidates);
 }
 
-const items = catalog.items.map((entry) => {
-  const fileName = String(entry.fileName ?? '').toLowerCase();
-  const candidates = [...(localByBasename.get(fileName) ?? [])]
+const items = sourceItems.map((entry) => {
+  const candidates = [...(localByBasename.get(entry.fileName) ?? [])]
     .sort((left, right) => rankCandidate(left, entry.sourceUrl) - rankCandidate(right, entry.sourceUrl) || left.localeCompare(right));
   return {
-    category: entry.category,
-    sourceUrl: entry.sourceUrl,
-    fileName,
+    ...entry,
     status: candidates.length ? 'matched' : 'missing',
     selectedLocalAsset: candidates[0] ?? null,
     localCandidates: candidates,
