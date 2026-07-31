@@ -6,7 +6,8 @@
       "@platform/api-client": [
         "../../packages/api-client/src/index.ts"
       ]
-    }
+    },
+    "esModuleInterop": true
   },
   "include": [
     "next-env.d.ts",
