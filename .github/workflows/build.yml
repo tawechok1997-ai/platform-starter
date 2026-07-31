@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -50,6 +50,12 @@ jobs:
 
       - name: Validate shell scripts
         run: bash -n scripts/*.sh
+
+      - name: Audit build purity
+        run: node tools/audit-build-purity.mjs
+
+      - name: Audit public assets
+        run: node tools/audit-public-assets.mjs
 
       - name: Audit deployment verification workflow
         run: node --test tools/deployment-verification-workflow.test.mjs
@@ -183,6 +189,9 @@ jobs:
       - name: Build API
         run: pnpm build:api
 
+      - name: Verify API bootstrap, health and commit identity
+        run: node tools/verify-api-startup.mjs
+
       - name: Build Admin Web
         run: pnpm build:web-admin
         env:
@@ -192,3 +201,6 @@ jobs:
         run: pnpm build:web-member
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
+
+      - name: Verify builds did not mutate tracked files
+        run: git diff --exit-code
