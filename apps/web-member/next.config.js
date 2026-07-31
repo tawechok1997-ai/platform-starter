@@ -50,6 +50,15 @@ const exactMobileAssetRewrites = [
   { source: `/assets/asset-pc/images/home/${fileName}`, destination },
 ]);
 
+const canonicalPageRedirects = [
+  { source: '/promotions', destination: '/browse/promotions?view=promotion', permanent: false },
+  { source: '/mobile-menu/promotions', destination: '/browse/promotions?view=promotion', permanent: false },
+  { source: '/mobile-menu/activities', destination: '/browse/promotions?view=activity', permanent: false },
+  { source: '/mobile-menu/news', destination: '/browse/promotions?view=news', permanent: false },
+  { source: '/mobile-menu/live', destination: '/live', permanent: false },
+  { source: '/mobile-menu/guide', destination: '/guide', permanent: false },
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@platform/api-client'],
@@ -57,6 +66,9 @@ const nextConfig = {
   reactStrictMode: true,
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
+  },
+  async redirects() {
+    return canonicalPageRedirects;
   },
   async rewrites() {
     return {
