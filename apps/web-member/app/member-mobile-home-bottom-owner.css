@@ -1,11 +1,45 @@
-/* Mobile Home is intentionally empty while the new implementation is rebuilt. */
+/* Final Mobile Home layout owner. Keep shared Desktop chrome out without hiding the Mobile root. */
 @media (max-width: 900px) {
+  html,
+  body,
   body:has(.public-game-shell[data-route='/']) {
-    background: #000 !important;
+    min-height: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #171422 !important;
   }
 
   body:has(.public-game-shell[data-route='/']) #member-desktop-scale-shell,
-  body:has(.public-game-shell[data-route='/']) .member-floating-contact {
+  body:has(.public-game-shell[data-route='/']) #member-desktop-scale-canvas {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) .public-game-shell,
+  body:has(.public-game-shell[data-route='/']) .public-game-shell__content,
+  body:has(.public-game-shell[data-route='/']) .member-persistent-shell,
+  body:has(.public-game-shell[data-route='/']) .member-persistent-shell__body {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #171422 !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) .member-floating-contact,
+  body:has(.public-game-shell[data-route='/']) .member-footer,
+  body:has(.public-game-shell[data-route='/']) .member-desktop-nav,
+  body:has(.public-game-shell[data-route='/']) .public-home-topbar,
+  body:has(.public-game-shell[data-route='/']) .desktop-alliance-band {
     display: none !important;
   }
 }
