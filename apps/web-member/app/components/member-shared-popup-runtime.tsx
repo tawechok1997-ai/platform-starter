@@ -2,9 +2,10 @@
 
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import type { MemberLocale } from '../member-locale-provider';
+import { useMemberRuntime } from '../member-runtime-provider';
 import type { PromotionView } from '../browse/browse-promotions-cms';
+import { MemberModal } from './member-modal-system';
 import '../member-promotion-detail-popup.css';
 
 const BrowsePromotionsCms = dynamic(
@@ -30,6 +31,7 @@ export default function MemberSharedPopupRuntime({
   locale: MemberLocale;
   onSetLocale: (locale: MemberLocale) => void;
 }) {
+  const { icons } = useMemberRuntime();
   const [popup, setPopup] = useState<MemberSharedPopupKind | null>(null);
   const [promotionDetailOpen, setPromotionDetailOpen] = useState(false);
   const [detailBackSignal, setDetailBackSignal] = useState(0);
@@ -54,7 +56,7 @@ export default function MemberSharedPopupRuntime({
     const interceptSharedEntry = (event: MouseEvent) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (!(event.target instanceof Element)) return;
-      if (event.target.closest('[data-member-shared-popup]')) return;
+      if (event.target.closest('.member-shared-popup, [data-member-modal-system="true"]')) return;
 
       const languageTrigger = event.target.closest<HTMLElement>(
         '[data-member-language-trigger], .public-home-flag, .public-member-menu-grid--secondary button',
@@ -81,87 +83,66 @@ export default function MemberSharedPopupRuntime({
     return () => document.removeEventListener('click', interceptSharedEntry, true);
   }, []);
 
-  useEffect(() => {
-    if (!popup) return;
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
-    };
-    window.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      window.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [close, popup]);
-
-  if (!popup || typeof document === 'undefined') return null;
-
-  const title = popupTitle(popup, locale);
-  const icon = popupIcon(popup);
+  const title = popup ? popupTitle(popup, locale) : '';
+  const icon = popup ? popupIcon(popup, icons) : icons.promotion;
   const showPromotionBack = promotionDetailOpen && popup !== 'language';
 
-  return createPortal(
-    <div
-      className="member-shared-popup-backdrop"
-      data-member-layer-keeps-profile-open="true"
-      data-member-shared-popup="true"
-      role="presentation"
-      onPointerDown={(event) => {
-        if (event.currentTarget === event.target) close();
-      }}
+  return (
+    <MemberModal
+      open={Boolean(popup)}
+      onClose={close}
+      ariaLabel={title}
+      mode="sheet"
+      backdropClassName="member-shared-popup-backdrop"
+      panelClassName={`member-shared-popup${showPromotionBack ? ' is-promotion-detail' : ''}`}
+      contentClassName="member-shared-popup-content"
+      header={popup ? (
+        <>
+          <span className="member-shared-popup-top-line" aria-hidden="true" />
+          <header className="member-shared-popup-header">
+            <div>
+              {showPromotionBack ? (
+                <button
+                  type="button"
+                  className="member-shared-popup-back"
+                  aria-label={locale === 'th' ? 'ย้อนกลับ' : 'Back'}
+                  onClick={() => setDetailBackSignal((current) => current + 1)}
+                >
+                  <svg viewBox="0 0 32 32" aria-hidden="true"><path d="m10.4 17.3 7.5 7.5-1.9 1.9L5.3 16 16 5.3l1.9 1.9-7.5 7.5h16.3v2.6H10.4Z" /></svg>
+                </button>
+              ) : (
+                <span><img src={icon} alt="" aria-hidden="true" /></span>
+              )}
+              <h2>{showPromotionBack ? (locale === 'th' ? 'โปรโมชั่น' : 'Promotion') : title}</h2>
+            </div>
+            <button type="button" onClick={close} aria-label={locale === 'th' ? 'ปิด' : 'Close'}>
+              <img src={icons.close} alt="" aria-hidden="true" />
+            </button>
+          </header>
+        </>
+      ) : null}
     >
-      <section className={`member-shared-popup${showPromotionBack ? ' is-promotion-detail' : ''}`} role="dialog" aria-modal="true" aria-label={title}>
-        <span className="member-shared-popup-top-line" aria-hidden="true" />
-        <header className="member-shared-popup-header">
-          <div>
-            {showPromotionBack ? (
-              <button
-                type="button"
-                className="member-shared-popup-back"
-                aria-label={locale === 'th' ? 'ย้อนกลับ' : 'Back'}
-                onClick={() => setDetailBackSignal((current) => current + 1)}
-              >
-                <svg viewBox="0 0 32 32" aria-hidden="true"><path d="m10.4 17.3 7.5 7.5-1.9 1.9L5.3 16 16 5.3l1.9 1.9-7.5 7.5h16.3v2.6H10.4Z" /></svg>
-              </button>
-            ) : (
-              <span><img src={icon} alt="" aria-hidden="true" /></span>
-            )}
-            <h2>{showPromotionBack ? (locale === 'th' ? 'โปรโมชั่น' : 'Promotion') : title}</h2>
-          </div>
-          <button type="button" onClick={close} aria-label={locale === 'th' ? 'ปิด' : 'Close'}>
-            <img src="/images/close.svg" alt="" aria-hidden="true" />
-          </button>
-        </header>
-
-        <div className="member-shared-popup-content">
-          {popup === 'language' ? (
-            <LanguagePanel
-              locale={locale}
-              onSelect={(nextLocale) => {
-                onSetLocale(nextLocale);
-                close();
-              }}
-            />
-          ) : (
-            <BrowsePromotionsCms
-              embedded
-              initialView={popup}
-              detailBackSignal={detailBackSignal}
-              onDetailOpenChange={setPromotionDetailOpen}
-              onViewChange={(view) => {
-                setPromotionDetailOpen(false);
-                setPopup(view);
-              }}
-            />
-          )}
-        </div>
-      </section>
-    </div>,
-    document.body,
+      {popup === 'language' ? (
+        <LanguagePanel
+          locale={locale}
+          onSelect={(nextLocale) => {
+            onSetLocale(nextLocale);
+            close();
+          }}
+        />
+      ) : popup ? (
+        <BrowsePromotionsCms
+          embedded
+          initialView={popup}
+          detailBackSignal={detailBackSignal}
+          onDetailOpenChange={setPromotionDetailOpen}
+          onViewChange={(view) => {
+            setPromotionDetailOpen(false);
+            setPopup(view);
+          }}
+        />
+      ) : null}
+    </MemberModal>
   );
 }
 
@@ -196,7 +177,11 @@ function popupKindFromHref(rawHref: string | null): PromotionView | null {
     return null;
   }
 }
-function isPopupKind(value: unknown): value is MemberSharedPopupKind { return value === 'language' || (typeof value === 'string' && BROWSE_VIEWS.has(value as PromotionView)); }
+
+function isPopupKind(value: unknown): value is MemberSharedPopupKind {
+  return value === 'language' || (typeof value === 'string' && BROWSE_VIEWS.has(value as PromotionView));
+}
+
 function popupTitle(kind: MemberSharedPopupKind, locale: MemberLocale) {
   if (locale === 'en') {
     if (kind === 'language') return 'Change language';
@@ -211,10 +196,10 @@ function popupTitle(kind: MemberSharedPopupKind, locale: MemberLocale) {
   if (kind === 'all') return 'โปรโมชั่น กิจกรรม และข่าวสาร';
   return 'โปรโมชั่น';
 }
-function popupIcon(kind: MemberSharedPopupKind) {
-  const root = '/assets/asset-pc/images';
-  if (kind === 'language') return `${root}/เปลียนภาษา.svg`;
-  if (kind === 'activity') return `${root}/กิจกรรม.png`;
-  if (kind === 'news') return `${root}/ข่าวสาร.png`;
-  return `${root}/โปรโมชั้น.png`;
+
+function popupIcon(kind: MemberSharedPopupKind, icons: ReturnType<typeof useMemberRuntime>['icons']) {
+  if (kind === 'language') return '/assets/asset-pc/images/เปลียนภาษา.svg';
+  if (kind === 'activity') return icons.activity;
+  if (kind === 'news') return icons.news;
+  return icons.promotion;
 }
