@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { memo, type SyntheticEvent } from 'react';
 import { useMemberLocale } from './member-locale-provider';
 import type { TypedPublicSiteSettings } from './site-settings-types';
-import './member-footer-mobile-match.module.css';
+import mobileFooterStyles from './member-footer-mobile-match.module.css';
 
 const SOURCE_ROOT = '/assets/asset-pc/images';
 
@@ -89,7 +89,7 @@ function MemberFooter({ settings }: { settings: TypedPublicSiteSettings }) {
   const description = sourceDescription(website.site_description, copy.description);
 
   return (
-    <footer className="member-footer member-footer--shared member-persistent-shell__footer" data-locale={locale}>
+    <footer className={`member-footer member-footer--shared member-persistent-shell__footer ${mobileFooterStyles.root}`} data-locale={locale}>
       <div className="member-footer__main">
         <section className="member-footer__about">
           <h3>{siteName}</h3>
