@@ -83,7 +83,6 @@ export default function MemberHome(props: MemberHomeProps) {
           gamesMessage={data.gamesMessage}
           onOpenPromotion={openHomePopup('promotion')}
           onOpenActivity={openHomePopup('activity')}
-          onOpenNews={openHomePopup('news')}
         />
       </MobileSourceHomeShell>
     );
