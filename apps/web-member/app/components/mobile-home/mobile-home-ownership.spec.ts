@@ -28,6 +28,14 @@ test('mobile upper structure has one owner per section', () => {
   assert.equal((mobileRoot.match(/data-mobile-content-slot="after-highlight"/g) ?? []).length, 1);
 });
 
+test('hamburger button controls one drawer that slides from the left', () => {
+  assert.equal((mobileRoot.match(/aria-controls="mobile-home-drawer"/g) ?? []).length, 1);
+  assert.equal((mobileRoot.match(/id="mobile-home-drawer"/g) ?? []).length, 1);
+  assert.match(mobileLayoutOwner, /#mobile-home-drawer\s*\{[\s\S]*width:\s*min\(340px/);
+  assert.match(mobileLayoutOwner, /#mobile-home-drawer\s*\{[\s\S]*translate3d\(-105%,\s*0,\s*0\)/);
+  assert.match(mobileLayoutOwner, /\[aria-hidden='false'\]\s*>\s*#mobile-home-drawer\s*\{[\s\S]*translate3d\(0,\s*0,\s*0\)/);
+});
+
 test('mobile bottom structure has one shortcut and one footer owner', () => {
   assert.equal((mobileRoot.match(/data-mobile-bottom-owner="true"/g) ?? []).length, 1);
 
