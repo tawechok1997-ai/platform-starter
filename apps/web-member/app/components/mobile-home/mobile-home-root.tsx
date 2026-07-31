@@ -65,7 +65,7 @@ const MOBILE_CATEGORY_LABELS: Record<'th' | 'en', Record<MobileCategoryId, strin
     home: 'หน้าแรก',
     casino: 'คาสิโน',
     slot: 'สล็อต',
-    fishing: 'เทียบปลา',
+    fishing: 'ยิงปลา',
     sport: 'กีฬา',
     card: 'ไพ่',
     lottery: 'หวย',
