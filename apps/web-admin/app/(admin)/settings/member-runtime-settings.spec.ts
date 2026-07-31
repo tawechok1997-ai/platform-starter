@@ -30,11 +30,14 @@ test('features settings expose structured runtime data from one location', () =>
   assert.match(featuresSource, /defaults=\{FEATURES_DEFAULTS\}/);
 });
 
-test('tournament settings seed an editable desktop-first mock dataset', () => {
+test('tournament settings keep demo data explicit outside production', () => {
   assert.match(featuresSource, /DESKTOP_TOURNAMENT_MOCK_DEFAULTS/);
+  assert.match(featuresSource, /TOURNAMENT_ITEMS_DEFAULT/);
+  assert.match(featuresSource, /NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA/);
+  assert.match(featuresSource, /process\.env\.NODE_ENV === 'production'/);
   assert.match(featuresSource, /กำลังแข่งขัน · ข้อมูลตัวอย่าง/);
   assert.match(featuresSource, /football-royale-2/);
-  assert.match(featuresSource, /tournament_items_json: DESKTOP_TOURNAMENT_MOCK_DEFAULTS/);
+  assert.match(featuresSource, /tournament_items_json: TOURNAMENT_ITEMS_DEFAULT/);
   assert.match(featuresSource, /Mobile ใช้ชุดเดียวกัน/);
 });
 
