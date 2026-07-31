@@ -6,6 +6,7 @@ import { cmsResponsiveMediaUrls, type CmsContent } from '../../site-settings';
 import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { V47_ASSETS } from '../member-home/v47-asset-map';
+import MobileSourceContent from './mobile-source-content';
 import styles from './mobile-home-root.module.css';
 
 const SOURCE_ROOT = '/assets/asset-pc/images';
@@ -386,7 +387,9 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
             })}
           </nav>
 
-          <section className={styles.nextContentSlot} data-mobile-content-slot="after-highlight" aria-label="พื้นที่เนื้อหาถัดไป" />
+          <section className={styles.nextContentSlot} data-mobile-content-slot="after-highlight" aria-label="เนื้อหาหน้าแรกมือถือ">
+            <MobileSourceContent />
+          </section>
         </div>
       </div>
 
