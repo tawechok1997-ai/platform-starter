@@ -9,8 +9,6 @@ import styles from './mobile-home-root.module.css';
 const SOURCE_ROOT = '/assets/asset-pc/images';
 const LOBBY_ASSET_ROOT = `${SOURCE_ROOT}/FEZX/lobby_settings`;
 const LOGO_URL = `${LOBBY_ASSET_ROOT}/9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png`;
-const SHORTCUT_ART_URL = `${LOBBY_ASSET_ROOT}/fc6b7ea8-3eaf-47ec-8640-33c7138d3c7c.png`;
-const SHORTCUT_ICON_URL = `${LOBBY_ASSET_ROOT}/083e4b9b-63aa-4825-a0e3-57a88de57e2f.ico`;
 const ANNOUNCEMENT_ICON_URL = `${SOURCE_ROOT}/home/coin.webp`;
 
 const PRIMARY_MENU = [
@@ -279,11 +277,10 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
       <div className={styles.bottomStructure} data-mobile-bottom-owner="true">
         <section className={styles.shortcutSection} data-mobile-section-owner="shortcut" aria-labelledby="mobile-shortcut-title">
           <h2 id="mobile-shortcut-title">เพิ่มปุ่มลัดหน้าโฮม</h2>
-          <div className={styles.shortcutCard}>
-            <img className={styles.shortcutArtwork} src={SHORTCUT_ART_URL} alt="" aria-hidden="true" />
+          <div className={styles.shortcutCard} data-mobile-shortcut-card="true">
             <div className={styles.shortcutContent}>
               <div className={styles.shortcutIntro}>
-                <img src={SHORTCUT_ICON_URL} alt="NOAH345" />
+                <img src={LOGO_URL} alt="NOAH345" />
                 <div>
                   <strong>เพิ่มปุ่มลัดได้แล้ววันนี้!</strong>
                   <span>สัมผัสประสบการณ์ที่เหนือกว่า เพิ่มปุ่มเลย</span>
