@@ -15,7 +15,20 @@
   .member-home-hero { align-items: stretch; }
   .member-home-hero__image { width: 72px; height: 72px; }
   .member-home-section-head { align-items: flex-start; }
+
+  /* Legacy member pages reserve room for the bottom navigation. */
   .member-footer { margin-bottom: calc(116px + env(safe-area-inset-bottom)); }
+
+  /* The public Mobile Home has no bottom navigation. Keep its source footer
+   * flush with the document edge instead of leaving a 116px black spacer. */
+  body:has(.member-mobile-source-shell) .member-footer,
+  body:has(.member-mobile-source-shell) .public-game-shell + footer {
+    margin-bottom: 0 !important;
+  }
+
+  body:has(.member-mobile-source-shell) .member-floating-contact {
+    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  }
 }
 
 @media (max-width: 374px) {
