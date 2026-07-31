@@ -119,6 +119,7 @@ import MemberClientNavigationController from './components/member-client-navigat
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberFloatingContact from './components/member-floating-contact';
 import MemberImageFallbackController from './components/member-image-fallback-controller';
+import MemberNavigationAuthController from './components/member-navigation-auth-controller';
 import MemberRenderStabilityController from './components/member-render-stability-controller';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
@@ -196,6 +197,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <SiteFaviconRuntime />
             <MemberSessionProvider>
               <MemberRuntimeProvider>
+                <MemberNavigationAuthController />
                 <PublicDesktopViewportBootstrap />
                 <MemberRenderStabilityController />
                 <MemberClientNavigationController />
