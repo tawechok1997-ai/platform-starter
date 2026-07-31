@@ -1,6 +1,7 @@
 # Platform Starter Agent Operating Contract
 
-Updated: **2026-07-21**  
+Updated: **2026-07-31**  
+Owner: **Platform Engineering**  
 Status: **Active**
 
 This file governs implementation work in this repository. It is the short operational entry point; linked documents are the detailed source of truth.
@@ -18,7 +19,7 @@ The repository does not have a permanent Member-only, Admin-only or backend-only
 
 Do not expand scope implicitly. Cross-surface or cross-domain changes require an explicit ownership and regression review.
 
-Full documentation map: [`docs/README.md`](docs/README.md).
+Start with [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md). Full documentation map: [`docs/README.md`](docs/README.md).
 
 ## Read before changing code
 
@@ -41,6 +42,9 @@ When documents conflict, preserve financial, security and architecture contracts
 - Financial, identity, session, permission, storage, migration and audit changes require tests plus rollback/evidence notes.
 - Public service/controller boundaries must use named types; avoid `any` and dense single-line methods.
 - A Nest module using a guard must import an approved module that exports every guard dependency. Do not assume transitive providers are visible.
+- Production builds must not rewrite tracked source or copied assets. Generation and synchronization require explicit write commands and reviewed diffs.
+- Files under `public/` are release inputs. Copied executable bundles are prohibited or quarantined and must pass the public-asset audit.
+- Authenticated response caching requires a session/actor namespace and must reset on session changes.
 - Preserve unrelated user changes and avoid destructive reset commands.
 
 ## Implementation loop
@@ -64,6 +68,8 @@ When documents conflict, preserve financial, security and architecture contracts
 pnpm check:repository
 pnpm lint
 pnpm typecheck
+node tools/audit-build-purity.mjs
+node tools/audit-public-assets.mjs
 ```
 
 ### Backend structure
@@ -73,21 +79,22 @@ pnpm audit:backend-decomposition
 pnpm check:architecture
 pnpm typecheck:api
 pnpm build:api
+node tools/verify-api-startup.mjs
 ```
 
-Also run an application bootstrap/startup check for dependency-injection changes.
+The startup verifier requires a built API and an available migrated database.
 
 ### Finance/security
 
-Run the relevant finance, permission, secret, dependency and workflow audits plus targeted tests. Never report a money/security path as verified from typecheck alone.
+Run the relevant finance, permission, secret, dependency, public-asset and workflow audits plus targeted tests. Never report a money/security path as verified from typecheck alone.
 
 ### UI
 
-Run package lint, typecheck, tests, production build and rendered browser/Playwright evidence at required viewports.
+Run package lint, typecheck, tests, production build and rendered browser/Playwright evidence at required viewports. Confirm the browser security headers do not break required resources.
 
 ### Release
 
-Verify container startup, health/version endpoint and deployment commit identity before declaring success.
+Verify clean builds, container startup, health/version endpoint, deployment commit identity, migration status and rollback before declaring success.
 
 ## Tool and skill routing
 
@@ -98,6 +105,7 @@ Verify container startup, health/version endpoint and deployment commit identity
 | Rendered UI debugging | Browser/Playwright verification |
 | Accessibility | axe, JSX a11y, keyboard/focus checks |
 | Architecture/backend refactor | ownership maps, boundary audits, bootstrap test |
+| Public/static assets | public-asset policy and audit |
 | Source publication | repository GitHub workflow; verify current `main` |
 
 ## Definition of done
@@ -108,10 +116,11 @@ A task is complete only when:
 - no duplicate or dead path remains unintentionally
 - compatibility, permission and audit behavior are preserved
 - relevant checks actually ran and results are recorded
+- builds leave tracked files unchanged
 - startup/rendered/deployed behavior is verified where required
 - documentation and evidence are current
 - remaining risk and rollback path are explicit
 
 ## Stop conditions
 
-Stop and escalate when a change requires production credentials, destructive data operations, an unapproved dependency, an ownerless finance/security contract, unverifiable migration state, wallet/ledger inconsistency, or a material contract deviation without approval.
+Stop and escalate when a change requires production credentials, destructive data operations, an unapproved dependency, an ownerless finance/security contract, unverifiable migration state, wallet/ledger inconsistency, executable third-party public bundles, a dirty tree after build, or a material contract deviation without approval.
