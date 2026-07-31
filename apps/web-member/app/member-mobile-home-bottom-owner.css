@@ -80,6 +80,12 @@
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
+    scrollbar-width: none;
+    will-change: scroll-position;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-announcement-viewport='true']::-webkit-scrollbar {
+    display: none;
   }
 
   body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='announcement'] img {
@@ -94,8 +100,7 @@
     width: max-content;
     min-width: 100%;
     align-items: center;
-    animation: mobile-home-announcement-marquee 28s linear infinite;
-    will-change: transform;
+    transform: none;
   }
 
   body:has(.public-game-shell[data-route='/']) [data-mobile-announcement-set='true'] {
@@ -137,22 +142,5 @@
   body:has(.public-game-shell[data-route='/']) [data-mobile-shortcut-card='true'] img {
     object-fit: contain !important;
     background: rgb(21 19 26 / 82%);
-  }
-}
-
-@keyframes mobile-home-announcement-marquee {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-mobile-announcement-track='true'] {
-    animation: none !important;
-    transform: none !important;
   }
 }
