@@ -1,6 +1,7 @@
 'use client';
 
 import { useLayoutEffect } from 'react';
+import type { MemberTournamentRuntime } from '../member-home-data-runtime';
 import { useMemberRuntime } from '../member-runtime-provider';
 import type {
   MemberGameSectionRuntime,
@@ -20,9 +21,10 @@ export default function MemberHomeRuntimeController() {
       syncAnnouncement(runtime);
       syncQuickActions(runtime.home.quickActions);
       syncTournament(runtime);
+      syncTournamentBoards(runtime.homeData.tournaments, runtime.features.tournament && runtime.features.activity);
       syncJackpot(runtime);
-      syncLeaderboard(runtime.home.leaderboard.entries, runtime.home.leaderboard.title, runtime.home.leaderboard.enabled);
-      syncMiniGames(runtime.home.miniGames, runtime.features.miniGames);
+      syncLeaderboard(runtime.homeData.leaderboard, runtime.home.leaderboard.title, runtime.home.leaderboard.enabled);
+      syncMiniGames(runtime.homeData.miniGames, runtime.features.miniGames);
       syncSections(runtime.gameSections, runtime.features.usageGuide, runtime.home.sectionTitles.guide);
       setVisible('.v47-mobile-hero, .desktop-home .desktop-hero-carousel, .desktop-home [data-home-hero]', runtime.features.hero);
       setVisible('.reference-announcement, .v47-mobile-announcement', runtime.features.announcement);
@@ -101,6 +103,60 @@ function syncTournament(runtime: ReturnType<typeof useMemberRuntime>) {
   setImage('.source-tournament__section-heading img', runtime.icons.tournament);
 }
 
+function syncTournamentBoards(items: MemberTournamentRuntime[], enabled: boolean) {
+  const desktopSlides = Array.from(document.querySelectorAll<HTMLElement>('.source-tournament__slide'));
+  desktopSlides.forEach((slide, index) => {
+    const tournament = items[index];
+    slide.hidden = !enabled || !tournament;
+    if (!tournament) return;
+    slide.dataset.runtimeTournamentId = tournament.id;
+    setWithinText(slide, '.source-tournament__title-row > strong', tournament.title);
+    setWithinText(slide, '.source-tournament__status-row > span', tournament.status);
+    const link = slide.querySelector<HTMLAnchorElement>('.source-tournament__all-button');
+    if (link && link.href !== absolute(tournament.href)) link.href = tournament.href;
+
+    const cards = Array.from(slide.querySelectorAll<HTMLElement>('.source-rank-card'));
+    cards.forEach((card, playerIndex) => {
+      const player = tournament.players[playerIndex];
+      card.hidden = !player;
+      if (!player) return;
+      setWithinText(card, '.source-rank-card__badge strong', String(player.rank));
+      setWithinText(card, '.source-rank-card__name', player.name);
+      setWithinText(card, '.source-rank-card__score', String(player.score));
+      card.querySelectorAll<HTMLElement>('.source-rank-stat small').forEach((stat, statIndex) => {
+        const value = String(player.stats[statIndex] ?? 0);
+        if (stat.textContent !== value) stat.textContent = value;
+      });
+    });
+  });
+
+  const pagination = Array.from(document.querySelectorAll<HTMLElement>('.source-tournament__pagination button'));
+  pagination.forEach((button, index) => {
+    button.hidden = !enabled || !items[index];
+    if (items[index]) button.setAttribute('aria-label', items[index]!.title);
+  });
+
+  const primary = items[0];
+  const mobilePanel = document.querySelector<HTMLElement>('.v47-mobile-rank-panel');
+  if (!mobilePanel) return;
+  mobilePanel.hidden = !enabled || !primary;
+  if (!primary) return;
+  mobilePanel.dataset.runtimeTournamentId = primary.id;
+  setWithinText(mobilePanel, '.v47-mobile-rank-title strong', primary.title);
+  const link = mobilePanel.querySelector<HTMLAnchorElement>('.v47-mobile-rank-title a');
+  if (link && link.href !== absolute(primary.href)) link.href = primary.href;
+  const cards = Array.from(mobilePanel.querySelectorAll<HTMLElement>('.v47-mobile-ranks article'));
+  cards.forEach((card, index) => {
+    const player = primary.players[index];
+    card.hidden = !player;
+    if (!player) return;
+    setWithinText(card, '.v47-mobile-rank-badge b', String(player.rank));
+    const name = Array.from(card.children).find((child) => child.tagName === 'SPAN' && !child.classList.contains('v47-mobile-rank-badge')) as HTMLElement | undefined;
+    if (name && name.textContent !== player.name) name.textContent = player.name;
+    setWithinText(card, ':scope > strong', String(player.score));
+  });
+}
+
 function syncJackpot(runtime: ReturnType<typeof useMemberRuntime>) {
   const item = runtime.home.jackpot;
   setVisible('.home-jackpot, .v47-mobile-jackpot', item.enabled);
@@ -112,7 +168,7 @@ function syncJackpot(runtime: ReturnType<typeof useMemberRuntime>) {
 }
 
 function syncLeaderboard(entries: MemberLeaderboardEntry[], title: string, enabled: boolean) {
-  setVisible('.reference-leaderboard, [data-section-kind="leaderboard"], .v47-mobile-rank-panel', enabled);
+  setVisible('.reference-leaderboard, [data-section-kind="leaderboard"]', enabled);
   setText('.reference-leaderboard header strong, [data-section-kind="leaderboard"] .v47-mobile-section-title strong', title);
 
   const desktopRows = Array.from(document.querySelectorAll<HTMLElement>('.reference-leaderboard > div:not(.reference-leaderboard-head)'));
