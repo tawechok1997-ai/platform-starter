@@ -15,22 +15,56 @@ export async function loadMemberPromotionCampaigns(signal?: AbortSignal) {
 }
 
 export function canonicalizeMemberPromotion<T extends MemberPromotionCampaign>(campaign: T): T {
-  const image = memberPromotionImage(campaign);
-  return {
-    ...campaign,
-    imageUrl: image,
-    desktopImageUrl: image,
-    mobileImageUrl: image,
-  };
-}
-
-export function memberPromotionImage(campaign: Pick<MemberPromotionCampaign, 'imageUrl' | 'desktopImageUrl' | 'mobileImageUrl' | 'sourceImageUrl'>) {
-  return firstText(
+  const imageUrl = firstText(
     campaign.imageUrl,
     campaign.desktopImageUrl,
     campaign.mobileImageUrl,
     campaign.sourceImageUrl,
   );
+  const desktopImageUrl = firstText(
+    campaign.desktopImageUrl,
+    campaign.imageUrl,
+    campaign.sourceImageUrl,
+    campaign.mobileImageUrl,
+  );
+  const mobileImageUrl = firstText(
+    campaign.mobileImageUrl,
+    campaign.imageUrl,
+    campaign.sourceImageUrl,
+    campaign.desktopImageUrl,
+  );
+
+  return {
+    ...campaign,
+    imageUrl,
+    desktopImageUrl,
+    mobileImageUrl,
+  };
+}
+
+export function memberPromotionImage(
+  campaign: Pick<MemberPromotionCampaign, 'imageUrl' | 'desktopImageUrl' | 'mobileImageUrl' | 'sourceImageUrl'>,
+) {
+  return memberPromotionImageForViewport(campaign, 'desktop');
+}
+
+export function memberPromotionImageForViewport(
+  campaign: Pick<MemberPromotionCampaign, 'imageUrl' | 'desktopImageUrl' | 'mobileImageUrl' | 'sourceImageUrl'>,
+  viewport: 'desktop' | 'mobile',
+) {
+  return viewport === 'mobile'
+    ? firstText(
+        campaign.mobileImageUrl,
+        campaign.imageUrl,
+        campaign.sourceImageUrl,
+        campaign.desktopImageUrl,
+      )
+    : firstText(
+        campaign.desktopImageUrl,
+        campaign.imageUrl,
+        campaign.sourceImageUrl,
+        campaign.mobileImageUrl,
+      );
 }
 
 export function memberPromotionDetails(campaign: MemberPromotionCampaign) {
