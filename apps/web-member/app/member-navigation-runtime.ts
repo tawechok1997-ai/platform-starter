@@ -22,13 +22,19 @@ const NAVIGATION_FEATURES = new Set<NonNullable<MemberNavigationItem['feature']>
   'notifications',
 ]);
 
+const APPROVED_MENU_ICONS: Readonly<Record<string, string>> = {
+  home: '/images/menu-icons/home.svg',
+  slot: '/images/menu-icons/slot.svg',
+  card: '/images/menu-icons/card.svg',
+};
+
 export function buildConfiguredMemberNavigation(
   settings: TypedPublicSiteSettings,
   locale: MemberLocale,
   features: MemberFeatureVisibilityRuntime,
   icons: MemberIconRuntime,
 ): MemberNavigationItem[] {
-  const fallback = buildMemberNavigationRuntime(locale, features, icons);
+  const fallback = buildMemberNavigationRuntime(locale, features, icons).map(applyApprovedMenuIcon);
   const configured = readItems(
     (settings.features as Record<string, unknown>).navigation_items,
     (settings.features as Record<string, unknown>).navigation_items_json,
@@ -40,7 +46,7 @@ export function buildConfiguredMemberNavigation(
     .map((raw, index) => normalizeItem(raw, index, locale, features, icons, fallbackById))
     .filter((item): item is MemberNavigationItem & { order: number } => item !== null)
     .sort((left, right) => left.order - right.order)
-    .map(({ order: _order, ...item }) => item);
+    .map(({ order: _order, ...item }) => applyApprovedMenuIcon(item));
 }
 
 function normalizeItem(
@@ -64,7 +70,8 @@ function normalizeItem(
     ? firstText(raw.labelTh, raw.label_th, raw.label, fallback?.label, id)
     : firstText(raw.labelEn, raw.label_en, raw.label, fallback?.label, id);
   const href = safeHref(raw.href) || fallback?.href || '/';
-  const icon = resolveIcon(raw.iconKey ?? raw.icon_key ?? raw.icon, icons, fallback?.icon ?? icons.home);
+  const icon = APPROVED_MENU_ICONS[id]
+    ?? resolveIcon(raw.iconKey ?? raw.icon_key ?? raw.icon, icons, fallback?.icon ?? icons.home);
   const badge = optionalText(raw.badge);
 
   return {
@@ -79,6 +86,11 @@ function normalizeItem(
     ...(badge ? { badge } : {}),
     order: finite(raw.order ?? raw.sequence, index),
   };
+}
+
+function applyApprovedMenuIcon<T extends MemberNavigationItem>(item: T): T {
+  const approvedIcon = APPROVED_MENU_ICONS[item.id];
+  return approvedIcon ? { ...item, icon: approvedIcon } : item;
 }
 
 function readItems(...values: unknown[]) {
