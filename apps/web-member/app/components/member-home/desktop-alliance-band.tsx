@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useMemberLocale } from '../../member-locale-provider';
 
 type AllianceLogo = {
@@ -29,7 +29,19 @@ const ROW_TWO = [
 
 export const DesktopAllianceBand = memo(function DesktopAllianceBand() {
   const { locale } = useMemberLocale();
+  const [isDesktopViewport, setIsDesktopViewport] = useState(false);
   const heading = locale === 'th' ? 'พันธมิตรของเรา' : 'Our partners';
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 901px)');
+    const syncViewport = () => setIsDesktopViewport(media.matches);
+
+    syncViewport();
+    media.addEventListener('change', syncViewport);
+    return () => media.removeEventListener('change', syncViewport);
+  }, []);
+
+  if (!isDesktopViewport) return null;
 
   return (
     <section className="noah-alliance-v3" aria-labelledby="noah-alliance-v3-heading" data-locale={locale}>
