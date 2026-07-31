@@ -51,7 +51,7 @@ type InstallPromptEvent = Event & {
 type ShortcutPlatform = 'android' | 'ios';
 
 export default function MobileSourceHomeShell({ children }: Props) {
-  const { features, home, icons, navigation, resolveAsset, summary } = useMemberRuntime();
+  const { features, home, icons, navigation, resolveAsset } = useMemberRuntime();
   const [promotions, setPromotions] = useState<MemberPromotionCampaign[]>(MOBILE_PROMOTION_FALLBACKS);
   const [activePromotion, setActivePromotion] = useState(0);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
@@ -150,7 +150,7 @@ export default function MobileSourceHomeShell({ children }: Props) {
   }
 
   const announcementText = home.announcement.summary || home.announcement.title || 'ประกาศจากระบบ';
-  const showGuestActions = !summary.isLoggedIn && (features.registration || features.login);
+  const showGuestActions = features.registration || features.login;
 
   return (
     <section className={`${styles.shell} member-mobile-source-shell`} aria-label="หน้าแรกมือถือ">
