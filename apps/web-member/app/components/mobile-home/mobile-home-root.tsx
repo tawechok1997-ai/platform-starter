@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { cmsResponsiveMediaUrls, type CmsContent } from '../../site-settings';
 import { useMemberLocale } from '../../member-locale-provider';
+import { useMemberRuntime } from '../../member-runtime-provider';
+import { V47_ASSETS } from '../member-home/v47-asset-map';
 import styles from './mobile-home-root.module.css';
 
 const SOURCE_ROOT = '/assets/asset-pc/images';
@@ -27,6 +29,8 @@ type MobileMenuIconName =
   | 'video'
   | 'guide';
 
+type MobileCategoryId = 'home' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery';
+
 const PRIMARY_MENU = [
   ['ระดับสมาชิก VIP', '/profile', 'vip'],
   ['รายได้คอมมิชชั่น', '/affiliate', 'commission'],
@@ -45,6 +49,47 @@ const SECONDARY_MENU = [
   ['วีดีโอแนะนำ', '/guide', 'video'],
   ['แนะนำการใช้งาน', '/guide', 'guide'],
 ] as const satisfies ReadonlyArray<readonly [string, string, MobileMenuIconName]>;
+
+const MOBILE_CATEGORY_ORDER = [
+  'home',
+  'casino',
+  'slot',
+  'fishing',
+  'sport',
+  'card',
+  'lottery',
+] as const satisfies readonly MobileCategoryId[];
+
+const MOBILE_CATEGORY_LABELS: Record<'th' | 'en', Record<MobileCategoryId, string>> = {
+  th: {
+    home: 'หน้าแรก',
+    casino: 'คาสิโน',
+    slot: 'สล็อต',
+    fishing: 'เทียบปลา',
+    sport: 'กีฬา',
+    card: 'ไพ่',
+    lottery: 'หวย',
+  },
+  en: {
+    home: 'Home',
+    casino: 'Casino',
+    slot: 'Slots',
+    fishing: 'Fishing',
+    sport: 'Sports',
+    card: 'Cards',
+    lottery: 'Lottery',
+  },
+};
+
+const MOBILE_CATEGORY_FALLBACK_ICONS: Record<MobileCategoryId, string> = {
+  home: V47_ASSETS.menuHome,
+  casino: V47_ASSETS.menuCasino,
+  slot: V47_ASSETS.menuSlot,
+  fishing: V47_ASSETS.menuFishing,
+  sport: V47_ASSETS.menuSport,
+  card: V47_ASSETS.menuCard,
+  lottery: V47_ASSETS.menuLottery,
+};
 
 const HIGHLIGHT_TABS = ['ไฮไลท์', 'โปรโมชั่นแนะนำ', 'กิจกรรม', 'ข่าวสาร'] as const;
 
@@ -100,11 +145,23 @@ type MobileAuthActionsProps = {
 
 export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRootProps) {
   const { locale, toggleLocale } = useMemberLocale();
+  const { navigation } = useMemberRuntime();
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [activeTab, setActiveTab] = useState<(typeof HIGHLIGHT_TABS)[number]>('ไฮไลท์');
   const heroSlides = useMemo(() => getMobileHeroSlides(content), [content]);
   const announcementMessages = useMemo(() => getAnnouncementMessages(content), [content]);
+  const categoryMenuItems = useMemo(() => MOBILE_CATEGORY_ORDER.flatMap((id) => {
+    const item = navigation.find((candidate) => candidate.id === id && candidate.mobile);
+    if (!item) return [];
+
+    return [{
+      id,
+      href: item.href,
+      label: MOBILE_CATEGORY_LABELS[locale][id],
+      icon: isImageUrl(item.icon) ? item.icon : MOBILE_CATEGORY_FALLBACK_ICONS[id],
+    }];
+  }), [locale, navigation]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -303,7 +360,34 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
           ))}
         </nav>
 
-        <section className={styles.nextContentSlot} data-mobile-content-slot="after-highlight" aria-label="พื้นที่เนื้อหาถัดไป" />
+        <div className={styles.categoryContent}>
+          <nav
+            className={styles.categoryRail}
+            data-mobile-section-owner="category-menu"
+            aria-label={locale === 'th' ? 'หมวดเกม' : 'Game categories'}
+          >
+            {categoryMenuItems.map((item) => {
+              const active = item.id === 'home';
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  prefetch={false}
+                  className={`${styles.categoryItem} ${active ? styles.categoryItemActive : ''}`}
+                  data-mobile-category-id={item.id}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  <span className={styles.categoryIcon} aria-hidden="true">
+                    <img src={item.icon} alt="" />
+                  </span>
+                  <span className={styles.categoryLabel}>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <section className={styles.nextContentSlot} data-mobile-content-slot="after-highlight" aria-label="พื้นที่เนื้อหาถัดไป" />
+        </div>
       </div>
 
       <div className={styles.bottomStructure} data-mobile-bottom-owner="true">
@@ -556,4 +640,8 @@ function getAnnouncementMessages(content: CmsContent) {
   });
 
   return messages;
+}
+
+function isImageUrl(value: string) {
+  return /^(?:https?:\/\/|\/)/i.test(value.trim());
 }
