@@ -4,32 +4,22 @@ import Link from 'next/link';
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { MemberFeatureFlags } from './site-settings';
+import type { MemberNavigationItem } from './member-runtime-contract';
 import { disabledMemberRoute, isPublicMemberRoute, routeRuleFor } from './member-routes';
 import MemberFooter from './member-footer';
 import { useSiteSettings } from './site-settings-provider';
 import { useMemberSession } from './member-session-provider';
 import { useMemberLocale, type MemberLocale } from './member-locale-provider';
-import { usePendingCount } from './hooks/use-pending-count';
+import { useMemberRuntime } from './member-runtime-provider';
 import { MemberCard, MemberLinkButton } from './components/member-ui';
 import { DesktopAllianceBand } from './components/member-home/desktop-alliance-band';
 import { V47_ASSETS } from './components/member-home/v47-asset-map';
 import MemberAuthOverlay, { type MemberAuthMode } from './components/auth/member-auth-overlay';
 import DailyMissionModal from './components/mission/daily-mission-modal';
 import PublicAuthenticatedActions from './components/public-authenticated-actions-styled';
-import { formatMemberWalletBalance } from '../src/features/wallet/member-wallet';
+import MemberSharedPopupRuntime from './components/member-shared-popup-runtime';
 
-const PUBLIC_HOME_NAV = [
-  { key: 'home', href: '/', icon: V47_ASSETS.menuHome },
-  { key: 'casino', href: '/browse/games?category=casino', icon: V47_ASSETS.menuCasino },
-  { key: 'slot', href: '/browse/games?category=slot', icon: V47_ASSETS.menuSlot },
-  { key: 'fishing', href: '/browse/games?category=fishing', icon: V47_ASSETS.menuFishing },
-  { key: 'sport', href: '/browse/games?category=sport', icon: V47_ASSETS.menuSport },
-  { key: 'card', href: '/browse/games?category=card', icon: V47_ASSETS.menuCard },
-  { key: 'lottery', href: '/browse/games?category=lottery', icon: V47_ASSETS.menuLottery },
-  { key: 'live', href: '/?category=live#live', icon: V47_ASSETS.menuLive },
-] as const;
-
-type PublicNavKey = (typeof PUBLIC_HOME_NAV)[number]['key'];
+type PublicNavKey = 'home' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery' | 'live';
 
 const PUBLIC_COPY: Record<MemberLocale, {
   changeLanguage: string;
@@ -77,30 +67,16 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const { locale, toggleLocale } = useMemberLocale();
   const copy = PUBLIC_COPY[locale];
   const { typedSettings } = useSiteSettings();
-  const { ready, isLoggedIn, wallet, walletLoading, verify, logout } = useMemberSession();
-  const { website, branding, features: typedFeatures } = typedSettings;
-  const { pendingCount } = usePendingCount(isLoggedIn);
+  const { ready, isLoggedIn, walletLoading, verify, logout } = useMemberSession();
+  const runtime = useMemberRuntime();
+  const { website, branding } = typedSettings;
+  const features: MemberFeatureFlags = runtime.features;
   const requestedAuthMode = searchParams.get('auth');
   const queryAuthMode: MemberAuthMode | null = requestedAuthMode === 'login' || requestedAuthMode === 'register'
     ? requestedAuthMode
     : null;
   const authMode = authModeOverride ?? queryAuthMode;
   const activeCategory = searchParams.get('category')?.trim().toLowerCase() ?? '';
-
-  const features: MemberFeatureFlags = {
-    registration: typedFeatures.registration_enabled,
-    login: typedFeatures.login_enabled,
-    deposit: typedFeatures.deposit_enabled,
-    withdraw: typedFeatures.withdraw_enabled,
-    promotion: typedFeatures.promotion_enabled,
-    bonus: typedFeatures.bonus_enabled,
-    affiliate: typedFeatures.affiliate_enabled,
-    support: typedFeatures.support_enabled,
-    kyc: typedFeatures.kyc_enabled,
-    games: typedFeatures.game_lobby_enabled,
-    profile: typedFeatures.profile_enabled,
-    notifications: typedFeatures.notification_enabled,
-  };
 
   const isPublicRoute = isPublicMemberRoute(pathname);
   const standaloneRoute = STANDALONE_PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -111,7 +87,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     ? configuredLogoUrl
     : V47_ASSETS.headerLogo;
   const brandMark = branding.brand_mark || website.site_name.slice(0, 1).toUpperCase() || 'N';
-  const compactWalletBalance = formatMemberWalletBalance(wallet).replace(/^[A-Z]{3}\s+/, '');
+  const compactWalletBalance = formatRuntimeBalance(runtime.summary.walletAvailable, runtime.summary.walletCurrency);
 
   const closeAuth = useCallback(() => {
     setAuthModeOverride(null);
@@ -138,10 +114,6 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     url.searchParams.delete('next');
     router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
   }, [router, verify]);
-
-  useEffect(() => {
-    document.documentElement.style.setProperty('--color-brand', branding.primary_color);
-  }, [branding.primary_color]);
 
   useEffect(() => {
     if (!ready) return;
@@ -174,6 +146,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
         logoUrl={logoUrl}
         brandMark={brandMark}
         features={features}
+        navigation={runtime.navigation}
+        missionIcon={runtime.icons.mission}
         pathname={pathname}
         locale={locale}
         ready={ready}
@@ -181,7 +155,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
         siteName={website.site_name}
         walletLoading={walletLoading}
         compactWalletBalance={compactWalletBalance}
-        pendingCount={pendingCount}
+        pendingCount={runtime.summary.pendingCount}
         activeCategory={activeCategory}
         logout={logout}
         onToggleLocale={toggleLocale}
@@ -198,6 +172,12 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
       <MemberFooter settings={typedSettings} />
       {authMode ? <MemberAuthOverlay mode={authMode} onClose={closeAuth} onSuccess={completeAuth} /> : null}
       <DailyMissionModal open={missionOpen} onClose={() => setMissionOpen(false)} />
+      <MemberSharedPopupRuntime
+        locale={locale}
+        onSetLocale={(nextLocale) => {
+          if (nextLocale !== locale) toggleLocale();
+        }}
+      />
     </>
   );
 }
@@ -206,6 +186,8 @@ function PublicHomeHeader({
   logoUrl,
   brandMark,
   features,
+  navigation,
+  missionIcon,
   pathname,
   locale,
   ready,
@@ -224,6 +206,8 @@ function PublicHomeHeader({
   logoUrl: string;
   brandMark: string;
   features: MemberFeatureFlags;
+  navigation: MemberNavigationItem[];
+  missionIcon: string;
   pathname: string;
   locale: MemberLocale;
   ready: boolean;
@@ -246,9 +230,9 @@ function PublicHomeHeader({
     <header className="member-topbar global-member-topbar public-home-topbar" data-locale={locale}>
       <div className="member-topbar__inner public-home-desktop-bar">
         <Link href="/" className="member-brand">
-          <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt="NOAH345" className="member-brand-logo" /> : brandMark}</span>
+          <span className="member-brand-mark">{logoUrl ? <img src={logoUrl} alt={siteName} className="member-brand-logo" /> : brandMark}</span>
         </Link>
-        <button type="button" className="public-home-flag" aria-label={copy.changeLanguage} title={copy.changeLanguage} onClick={onToggleLocale}>
+        <button type="button" className="public-home-flag" aria-label={copy.changeLanguage} title={copy.changeLanguage} onClick={onToggleLocale} data-member-language-trigger>
           <img src={flagUrl} alt={copy.currentLanguage} />
         </button>
         <Link className="public-home-search" href="/browse/games" aria-label={copy.search}>
@@ -263,7 +247,7 @@ function PublicHomeHeader({
             onOpenMission();
           }}
         >
-          <img src={V47_ASSETS.headerMission} alt="" aria-hidden="true" />
+          <img src={missionIcon} alt="" aria-hidden="true" />
           <span>{copy.mission}</span>
         </a>
         <span className="public-home-header-spacer" aria-hidden="true" />
@@ -290,22 +274,22 @@ function PublicHomeHeader({
       </div>
 
       <nav className="member-desktop-nav member-desktop-nav--guest" aria-label={copy.navigation}>
-        {PUBLIC_HOME_NAV.map((item) => {
-          const category = item.key === 'home' ? '' : item.key;
-          const active = item.key === 'home'
+        {navigation.filter((item) => item.desktop).map((item) => {
+          const category = item.id === 'home' ? '' : item.id;
+          const active = item.id === 'home'
             ? pathname === '/' && !activeCategory
-            : item.key === 'live'
+            : item.id === 'live'
               ? pathname === '/' && activeCategory === 'live'
               : pathname.startsWith('/browse') && activeCategory === category;
           return (
             <Link
-              key={item.key}
+              key={item.id}
               href={item.href}
               className={active ? 'active' : ''}
               aria-current={active ? 'page' : undefined}
             >
               <span className="public-home-nav-icon-frame"><img src={item.icon} alt="" className="public-home-nav-icon" aria-hidden="true" /></span>
-              <span>{copy.nav[item.key]}</span>
+              <span>{item.label}</span>
             </Link>
           );
         })}
@@ -328,4 +312,10 @@ function FeatureDisabled({ label, siteName, locale }: { label: string; siteName:
       </MemberCard>
     </main>
   );
+}
+
+function formatRuntimeBalance(value: string, currency: string) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return '—';
+  return `${currency} ${amount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`.replace(/^[A-Z]{3}\s+/, '');
 }
