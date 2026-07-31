@@ -6,6 +6,7 @@
  * New desktop runtime overrides should be routed through this owner instead
  * of adding another top-level stylesheet import.
  */
+@import './member-v47-desktop-carousel.css';
 @import './member-public-header-single-owner.css';
 @import './member-public-header-runtime-fix.css';
 @import './member-desktop-scale-canvas.css';
