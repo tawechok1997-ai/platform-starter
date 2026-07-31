@@ -5,6 +5,7 @@ import type { Game } from '../../types/member-api';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { REFERENCE_GAMES, type ReferenceAsset } from '../reference-asset-catalog';
 import { resolveHomeGameFallback, resolveHomeGameImage } from './local-game-asset-resolver';
+import { MOBILE_SOURCE_ASSETS } from './mobile-source-asset-map';
 import UsageGuidePreview from './usage-guide-preview';
 import { V47_ASSETS } from './v47-asset-map';
 import styles from './mobile-source-home-content.module.css';
@@ -15,7 +16,6 @@ type Props = {
   gamesMessage: string;
   onOpenPromotion?: () => void;
   onOpenActivity?: () => void;
-  onOpenNews?: () => void;
 };
 
 type GameCardModel = {
@@ -34,12 +34,6 @@ const LIVE_MATCHES = [
     home: 'โอฮิกกินส์',
     away: 'โบคา จูเนียร์ส',
   },
-  {
-    league: 'โคลอมเบีย - ลีกา อากีล่า',
-    time: 'Jul 31, 08:00',
-    home: 'อัตเลติโก บูคารามังกา',
-    away: 'มิลโลนาริออส',
-  },
 ] as const;
 
 const FALLBACK_LEADERBOARD = [
@@ -56,13 +50,12 @@ export default function MobileSourceHomeContent({
   gamesMessage,
   onOpenPromotion = () => undefined,
   onOpenActivity = () => undefined,
-  onOpenNews = () => undefined,
 }: Props) {
   const { features, home, icons } = useMemberRuntime();
   const allGames = uniqueGames(games.featured, games.popular, games.recent, games.favorites);
-  const popular = buildGameCards(fillGames(games.popular, allGames, 10), REFERENCE_GAMES.slice(0, 10));
-  const online = buildGameCards(fillGames(allGames.slice(2), allGames, 6), REFERENCE_GAMES.slice(6, 12));
-  const classic = buildGameCards(fillGames(allGames.slice(8), allGames, 8), REFERENCE_GAMES.slice(12, 20));
+  const popular = buildGameCards(fillGames(games.popular, allGames, 3), REFERENCE_GAMES.slice(0, 3));
+  const online = buildGameCards(fillGames(allGames.slice(2), allGames, 5), REFERENCE_GAMES.slice(6, 11));
+  const classic = buildGameCards(fillGames(allGames.slice(8), allGames, 2), REFERENCE_GAMES.slice(12, 14));
   const leaderboard = home.leaderboard.entries.length ? home.leaderboard.entries.slice(0, 5) : FALLBACK_LEADERBOARD;
   const tournamentRanks = leaderboard.slice(0, 3);
 
@@ -72,15 +65,13 @@ export default function MobileSourceHomeContent({
         <button type="button" className={styles.activeTab} aria-current="page">ไฮไลท์</button>
         <button type="button" onClick={onOpenPromotion}>โปรโมชั่นแนะนำ</button>
         <button type="button" onClick={onOpenActivity}>กิจกรรม</button>
-        <button type="button" onClick={onOpenNews}>ข่าวสาร</button>
       </nav>
 
       {features.tournament ? (
         <section className={styles.section} data-section-kind="tournament">
-          <SectionTitle icon={home.tournament.icon || icons.tournament} title="ทัวร์นาเมนต์" />
           <a className={styles.tournamentBanner} href={home.tournament.href || '/browse/promotions?view=activity'}>
             <img
-              src={home.tournament.image || V47_ASSETS.tournament}
+              src={MOBILE_SOURCE_ASSETS.tournamentBanner}
               alt={home.tournament.title || 'Tournament'}
               onError={(event) => swapBrokenImage(event, V47_ASSETS.tournament)}
             />
@@ -165,6 +156,7 @@ export default function MobileSourceHomeContent({
           message={gamesMessage}
           layout="grid"
           showOnline
+          featuredFirst
         />
       ) : null}
 
@@ -243,6 +235,7 @@ function GameSection({
   message,
   layout,
   showOnline = false,
+  featuredFirst = false,
 }: {
   kind: 'popular' | 'online' | 'classic';
   title: string;
@@ -252,6 +245,7 @@ function GameSection({
   message: string;
   layout: 'rail' | 'grid';
   showOnline?: boolean;
+  featuredFirst?: boolean;
 }) {
   return (
     <section className={styles.section} data-section-kind={kind}>
@@ -261,7 +255,11 @@ function GameSection({
       ) : games.length ? (
         <div className={layout === 'rail' ? styles.gameRail : styles.gameGrid} data-drag-scroll={layout === 'rail' ? 'true' : undefined}>
           {games.map((game, index) => (
-            <a className={styles.gameCard} href="/?auth=login" key={`${game.id}-${index}`}>
+            <a
+              className={`${styles.gameCard}${featuredFirst && index === 0 ? ` ${styles.featuredGame}` : ''}`}
+              href="/?auth=login"
+              key={`${game.id}-${index}`}
+            >
               <div className={styles.gameImage}>
                 <img
                   src={game.image}
@@ -335,7 +333,7 @@ function safeName(game: Game) {
 }
 
 function onlineCount(index: number) {
-  return ['3,903', '2,990', '2,330', '4,820', '2,282', '1,950'][index % 6];
+  return ['3,903', '2,990', '2,330', '4,820', '2,282'][index % 5];
 }
 
 function swapBrokenImage(event: SyntheticEvent<HTMLImageElement>, fallback: string) {
