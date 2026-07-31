@@ -51,7 +51,9 @@ export default function MemberHome(props: MemberHomeProps) {
   }, []);
 
   if (viewportMode === null) return null;
-  if (viewportMode === 'mobile') return <MobileHomeRoot />;
+  if (viewportMode === 'mobile') {
+    return <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />;
+  }
 
   return <DesktopMemberHome {...props} />;
 }
