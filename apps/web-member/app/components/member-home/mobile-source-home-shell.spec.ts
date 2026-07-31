@@ -69,6 +69,13 @@ test('mobile source home uses shared Member runtime data for announcements and n
   assert.match(shellSource, /features\.login/);
 });
 
+test('mobile source auth actions remain visible independently of member session', () => {
+  assert.match(shellSource, /const showGuestActions = features\.registration \|\| features\.login/);
+  assert.doesNotMatch(shellSource, /!summary\.isLoggedIn/);
+  assert.match(shellSource, /href="\/\?auth=register"/);
+  assert.match(shellSource, /href="\/\?auth=login"/);
+});
+
 test('mobile source home provides a real shortcut flow without a dead download route', () => {
   assert.match(shellSource, /beforeinstallprompt/);
   assert.match(shellSource, /member-home-shortcut-request/);
