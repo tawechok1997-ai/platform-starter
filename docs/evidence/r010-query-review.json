@@ -36,50 +36,10 @@
       "owner": "risk-alerts",
       "reason": "Rapid deposit-withdrawal and high-withdrawal scanners use different time windows, amount predicates, and eligible workflow statuses."
     },
-    "duplicate:05c909978f178aa4077bb5e9": {
+    "duplicate:2d99292a0c07f3a187e5a76e": {
       "status": "read-model",
-      "owner": "finance-operations",
-      "reason": "The MoneyOps control center and Admin operations overview intentionally expose the same failed-transfer count through separate bounded read models with independent response contracts."
-    },
-    "duplicate:0f046d9041dbe7ea352da289": {
-      "status": "read-model",
-      "owner": "finance-operations",
-      "reason": "The MoneyOps control center and Admin operations overview intentionally expose the same pending-transfer count through separate bounded read models with independent response contracts."
-    },
-    "duplicate:11d125bc7cf9794b150a5b0e": {
-      "status": "read-model",
-      "owner": "finance-operations",
-      "reason": "Both operational dashboards summarize unresolved provider wallet mismatches, while ownership and response shaping remain isolated per dashboard."
-    },
-    "duplicate:1cde7c57255bb33aa2a3ff6b": {
-      "status": "read-model",
-      "owner": "finance-operations",
-      "reason": "Both operational dashboards summarize failed webhook processing, while detailed remediation and projection ownership stay separate."
-    },
-    "duplicate:231a836dfe6f0aa3d764094f": {
-      "status": "read-model",
-      "owner": "finance-operations",
-      "reason": "Both operational dashboards summarize duplicate webhook volume as an independent read-model metric without sharing mutation ownership."
-    },
-    "duplicate:58133e144fa95ac95f1b163c": {
-      "status": "read-model",
-      "owner": "finance-operations",
-      "reason": "MoneyOps and Admin operations each expose the open-risk-alert queue through separate bounded projections designed for different consumers."
-    },
-    "duplicate:6800ffc5b3829b69e286d59c": {
-      "status": "read-model",
-      "owner": "finance-operations",
-      "reason": "Recent provider wallet snapshots are intentionally projected independently for the finance control center and the wider Admin operations overview."
-    },
-    "duplicate:c84035ec4d0f9ab9ec26474d": {
-      "status": "read-model",
-      "owner": "finance-operations",
-      "reason": "Recent wallet ledger activity is intentionally projected independently for the finance control center and the wider Admin operations overview."
-    },
-    "duplicate:ea25d10669b7ee95b247586a": {
-      "status": "read-model",
-      "owner": "finance-operations",
-      "reason": "Recent game-transfer activity is intentionally projected independently for the finance control center and the wider Admin operations overview."
+      "owner": "money-ops",
+      "reason": "The MoneyOps control-center preview and paginated ledger listing intentionally share the same recent-ledger projection while serving different response contracts and limits."
     }
   }
 }
