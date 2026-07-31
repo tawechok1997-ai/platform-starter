@@ -132,6 +132,31 @@
     content: '';
   }
 
+  /* The existing category rail is the sole sticky owner. It starts beneath the
+   * 60px mobile header and naturally stops at the end of its content grid. */
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] {
+    position: sticky !important;
+    top: 60px !important;
+    z-index: 98 !important;
+    align-self: start !important;
+    height: max-content !important;
+    max-height: calc(100dvh - 68px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: none !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu']::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  body:has(.public-game-shell[data-route='/']) *:has(> [data-mobile-section-owner='category-menu']) {
+    position: relative !important;
+    overflow: visible !important;
+    align-items: start !important;
+  }
+
   /* Match the category icons to Desktop Navigation: one shared runtime image at 32x32. */
   body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] [data-mobile-category-id] > span:first-child,
   body:has(.public-game-shell[data-route='/']) [data-mobile-section-owner='category-menu'] [data-mobile-category-id] > span:first-child img {
