@@ -51,7 +51,7 @@ type InstallPromptEvent = Event & {
 type ShortcutPlatform = 'android' | 'ios';
 
 export default function MobileSourceHomeShell({ children }: Props) {
-  const { features, home, icons, navigation, resolveAsset } = useMemberRuntime();
+  const { features, home, icons, navigation } = useMemberRuntime();
   const [promotions, setPromotions] = useState<MemberPromotionCampaign[]>(MOBILE_PROMOTION_FALLBACKS);
   const [activePromotion, setActivePromotion] = useState(0);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
@@ -63,14 +63,8 @@ export default function MobileSourceHomeShell({ children }: Props) {
     [navigation],
   );
 
-  const shortcutArt = resolveAsset({
-    aliases: ['home shortcut mobile', 'home shortcut', 'add to home', 'ปุ่มลัดหน้าโฮม', 'download background'],
-    remoteFallback: MOBILE_SOURCE_ASSETS.shortcutBackground,
-  });
-  const shortcutIcon = resolveAsset({
-    aliases: ['home shortcut icon mobile', 'home shortcut icon', 'add to home icon', 'favicon', 'ปุ่มลัด'],
-    remoteFallback: MOBILE_SOURCE_ASSETS.shortcutIcon,
-  });
+  const shortcutArt = MOBILE_SOURCE_ASSETS.shortcutBackground;
+  const shortcutIcon = MOBILE_SOURCE_ASSETS.shortcutIcon;
 
   useEffect(() => {
     const controller = new AbortController();
