@@ -9,6 +9,7 @@ import { MOBILE_SOURCE_ASSETS } from './mobile-source-asset-map';
 import UsageGuidePreview from './usage-guide-preview';
 import { V47_ASSETS } from './v47-asset-map';
 import styles from './mobile-source-home-content.module.css';
+import parityStyles from './mobile-source-home-content-parity.module.css';
 
 type Props = {
   games: { featured: Game[]; popular: Game[]; recent: Game[]; favorites: Game[] };
@@ -60,7 +61,7 @@ export default function MobileSourceHomeContent({
   const tournamentRanks = leaderboard.slice(0, 3);
 
   return (
-    <section className={styles.root} aria-label="เนื้อหาหน้าแรกมือถือ">
+    <section className={`${styles.root} ${parityStyles.root}`} aria-label="เนื้อหาหน้าแรกมือถือ">
       <nav className={styles.highlightTabs} aria-label="หัวข้อหน้าแรก">
         <button type="button" className={styles.activeTab} aria-current="page">ไฮไลท์</button>
         <button type="button" onClick={onOpenPromotion}>โปรโมชั่นแนะนำ</button>
@@ -253,13 +254,13 @@ function GameSection({
       {loading ? (
         <div className={styles.empty}>กำลังโหลดเกม...</div>
       ) : games.length ? (
-        <div className={layout === 'rail' ? styles.gameRail : styles.gameGrid} data-drag-scroll={layout === 'rail' ? 'true' : undefined}>
+        <div
+          className={layout === 'rail' ? styles.gameRail : styles.gameGrid}
+          data-drag-scroll={layout === 'rail' ? 'true' : undefined}
+          data-featured-first={featuredFirst ? 'true' : undefined}
+        >
           {games.map((game, index) => (
-            <a
-              className={`${styles.gameCard}${featuredFirst && index === 0 ? ` ${styles.featuredGame}` : ''}`}
-              href="/?auth=login"
-              key={`${game.id}-${index}`}
-            >
+            <a className={styles.gameCard} href="/?auth=login" key={`${game.id}-${index}`}>
               <div className={styles.gameImage}>
                 <img
                   src={game.image}
