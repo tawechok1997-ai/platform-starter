@@ -8,23 +8,27 @@
 
 ## Current status
 
-Updated: **2026-07-16**
+Updated: **2026-07-31**
 
 | Area | Status |
 | --- | --- |
-| Monorepo, API, Admin and Member foundations | ✅ Done |
-| Backend architecture R-001 through R-011 | ✅ Done |
-| Frontend feature architecture R-012 | ✅ Done in repository |
-| Shared UI system and accessibility R-013 | ✅ Done in repository |
-| Observability and cleanup R-014 | ✅ Done in repository |
-| Performance, storage and CI hardening P5 | ✅ Done in repository |
+| Monorepo, API, Admin and Member foundations | ✅ Implemented |
+| Backend architecture R-001 through R-011 | ✅ Implemented with automated boundaries |
+| Frontend feature architecture R-012 | ✅ Implemented |
+| Shared UI system and accessibility R-013 | ✅ Implemented |
+| Observability and cleanup R-014 | ✅ Implemented |
+| Performance, storage and CI hardening P5 | ✅ Implemented |
+| Read-only build and generated-asset drift gates | ✅ Implemented; CI acceptance required per PR |
+| API bootstrap, health and commit-identity gate | ✅ Implemented; CI acceptance required per PR |
+| Public executable asset quarantine | ✅ Active for legacy Member reference roots |
 | Authenticated browser regression | ⏸️ Requires safe credentials and a deployed environment |
 | Production migration/rollback verification | ⏸️ Requires approved production access |
-| Real provider enablement | ⏸️ Code ready; vendor-specific UAT blocked |
+| Real provider enablement | ⏸️ Code foundation ready; vendor-specific UAT blocked |
+| Repository history size migration | 📋 Planned operational migration requiring coordinated approval |
 
-The project-wide source of truth is [`docs/master-project-worklist.md`](docs/master-project-worklist.md). The complete documentation map is [`docs/README.md`](docs/README.md). Historical worklists such as `docs/master-worklist.md` and `docs/current-execution-status.md` were consolidated and must not be restored as competing sources of truth.
+The project-wide checkbox source of truth is [`docs/master-project-worklist.md`](docs/master-project-worklist.md). Start new engineering work with [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md), then use the complete [`docs/README.md`](docs/README.md) map. Historical worklists must not be restored as competing sources of truth.
 
-UI implementation is governed by [`AGENTS.md`](AGENTS.md), [`docs/UI_DESIGN_REFERENCE.md`](docs/UI_DESIGN_REFERENCE.md), [`docs/UI_MENU_INFORMATION_ARCHITECTURE.md`](docs/UI_MENU_INFORMATION_ARCHITECTURE.md), [`docs/UI_CONSISTENCY_COMPLETION_PLAN.md`](docs/UI_CONSISTENCY_COMPLETION_PLAN.md), and [`docs/UI_MOTION_ANIMATION_CONTRACT.md`](docs/UI_MOTION_ANIMATION_CONTRACT.md).
+Implementation is governed by [`AGENTS.md`](AGENTS.md). UI contracts are maintained in the Member/Admin design, menu, consistency and motion documents linked from the documentation map.
 
 ## Applications
 
@@ -34,7 +38,7 @@ UI implementation is governed by [`AGENTS.md`](AGENTS.md), [`docs/UI_DESIGN_REFE
 | Admin Web | `apps/web-admin` | Operations, finance, members, risk, reports, providers, games, CMS/settings, security and KYC administration |
 | API | `apps/api` | NestJS application, authentication, finance, provider, content, support, KYC, security and audit domains |
 | Database | `prisma/schema.prisma` | PostgreSQL schema and migrations managed with Prisma |
-| Shared API client | `packages/api-client` | Central Admin/Member transport, auth refresh, errors, retries, uploads and private downloads |
+| Shared API client | `packages/api-client` | Central Admin/Member transport, auth refresh, session-scoped caching, errors, retries, uploads and private downloads |
 
 ## Architecture status
 
@@ -66,7 +70,7 @@ External verification remains under P6. Evidence documents are kept under `docs/
 | Database | PostgreSQL, Prisma |
 | Authentication | JWT access/refresh, separated Admin/Member sessions, TOTP 2FA and recovery codes |
 | Storage | Private local or S3/R2-compatible object storage |
-| Rate limiting | In-memory fallback with Redis support |
+| Rate limiting | Redis-backed distributed limits with bounded in-memory fallback |
 | Testing | Jest, PostgreSQL integration/concurrency suites and Playwright smoke/visual workflows |
 | CI/CD | GitHub Actions and Railway-ready deployment workflows |
 
@@ -74,38 +78,42 @@ External verification remains under P6. Evidence documents are kept under `docs/
 
 ### Member
 
-- Authentication and session controls
-- Wallet, deposits, withdrawals and transaction history
-- Bank-account management
-- Game discovery and launch states
-- Promotions, profile and security
-- Notifications, support/FAQ and KYC foundations
-- Mobile-first responsive surfaces
+- authentication and session controls
+- wallet, deposits, withdrawals and transaction history
+- bank-account management
+- game discovery and launch states
+- promotions, profile and security
+- notifications, support/FAQ and KYC foundations
+- mobile-first responsive surfaces
 
 ### Admin
 
-- Protected operations workspace with RBAC and resource-level authorization
-- Deposit/withdrawal claims, review and settlement workflows
-- Wallet, ledger, reconciliation and finance reports
-- Member, risk, activity and security administration
-- Provider readiness, credentials, webhook and recovery tooling
+- protected operations workspace with RBAC and resource-level authorization
+- deposit/withdrawal claims, review and settlement workflows
+- wallet, ledger, reconciliation and finance reports
+- member, risk, activity and security administration
+- provider readiness, credentials, webhook and recovery tooling
 - CMS/settings, promotion, affiliate/commission and KYC workflows
-- Audit timelines and stable error/security boundaries
+- audit timelines and stable error/security boundaries
 
 ### Safety and operations
 
-- Transactional and idempotent money-changing paths
+- transactional and idempotent money-changing paths
 - PostgreSQL concurrency regression suites
-- Domain policies and repository/transaction boundaries
+- domain policies and repository/transaction boundaries
 - CSRF, token, XSS, anti-bot and sensitive-log guards
-- Health/version checks, smoke workflows and CI quality gates
-- Backup/restore verification foundations
+- browser security headers and public-asset quarantine
+- clean, read-only production builds
+- API bootstrap, health/version and deployment identity checks
+- backup/restore verification foundations
 
 ## Requirements
 
-- Node.js 22 or newer
+- Node.js 22
 - Corepack enabled
 - pnpm `11.13.0`, matching the root `packageManager` field
+- PostgreSQL 16
+- Redis for distributed rate limiting and shared production caches
 
 ## Quick start
 
@@ -113,11 +121,14 @@ External verification remains under P6. Evidence documents are kept under `docs/
 corepack enable
 corepack prepare pnpm@11.13.0 --activate
 pnpm install --frozen-lockfile
+cp .env.example .env
 pnpm db:generate
 pnpm build:api
 pnpm build:web-admin
 pnpm build:web-member
 ```
+
+Detailed setup, startup and first-change instructions: [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md).
 
 Run migrations only against an approved environment:
 
@@ -128,6 +139,15 @@ pnpm db:seed:access
 
 > Never use `prisma db push --force-reset`, destructive reset commands or database concurrency suites against production.
 
+Generated catalogs and Admin reference assets are synchronized only through explicit write commands. Normal builds refuse drift and must leave the tracked tree unchanged.
+
+```bash
+pnpm --filter @platform/api normalize:generated-catalogs
+pnpm --filter @platform/web-admin sync:reference-assets
+```
+
+Review and commit the resulting diff before building.
+
 ## Development services
 
 | Service | Default URL |
@@ -135,9 +155,11 @@ pnpm db:seed:access
 | Member Web | `http://localhost:3000` |
 | Admin Web | `http://localhost:3001` |
 | API | `http://localhost:4000` |
+| Health | `http://localhost:4000/health` |
+| Version | `http://localhost:4000/version` |
 
 ```bash
-pnpm --filter @platform/api start:prod
+pnpm start:api
 pnpm start:web-admin
 pnpm start:web-member
 ```
@@ -147,6 +169,7 @@ pnpm start:web-member
 Use the commands relevant to the affected scope:
 
 ```bash
+pnpm check:repository
 pnpm lint
 pnpm test
 pnpm build
@@ -155,41 +178,36 @@ pnpm test:full-system:auto
 pnpm test:e2e:smoke
 pnpm test:e2e:visual
 pnpm audit:master-worklist
+node tools/audit-build-purity.mjs
+node tools/audit-public-assets.mjs
+node tools/verify-api-startup.mjs
 ```
 
-Architecture closure commands are documented in the corresponding closure files. Browser and deployed checks must not be reported as passed unless an actual run produced evidence.
+The startup verifier requires a built API, an available migrated database and the required test environment. Browser and deployed checks must not be reported as passed unless an actual run produced evidence.
 
 ## Environment overview
 
-Typical API configuration includes:
+Use [`.env.example`](.env.example) as the maintained variable map. Typical API configuration includes:
 
 ```env
 DATABASE_URL=postgresql://...
-JWT_ACCESS_KEY=change-me
-ADMIN_JWT_ACCESS_TTL=10m
-ADMIN_REFRESH_TTL_HOURS=12
-JWT_REFRESH_TTL_DAYS=30
+REDIS_URL=redis://...
+JWT_ACCESS_KEY=<independent-secret-at-least-32-characters>
 MEMBER_WEB_URL=https://member.example.com
 ADMIN_WEB_URL=https://admin.example.com
-```
-
-Optional infrastructure:
-
-```env
-REDIS_URL=redis://...
+API_PUBLIC_URL=https://api.example.com
 STORAGE_DRIVER=s3
 S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
 S3_REGION=auto
 S3_BUCKET=<bucket-name>
 S3_ACCESS_KEY_ID=<access-key-id>
 S3_SECRET_ACCESS_KEY=<secret-access-key>
-S3_FORCE_PATH_STYLE=true
 ```
 
 Web applications use the approved API base URL through the shared API client:
 
 ```env
-NEXT_PUBLIC_API_URL=https://api-service.example.com
+NEXT_PUBLIC_API_URL=https://api.example.com
 ```
 
 Never commit real credentials, OTP values, access/refresh tokens or private-media URLs.
@@ -198,10 +216,15 @@ Never commit real credentials, OTP values, access/refresh tokens or private-medi
 
 | Document | Purpose |
 | --- | --- |
-| [`docs/master-project-worklist.md`](docs/master-project-worklist.md) | Canonical project status, evidence and execution order |
+| [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) | Local setup and newcomer path |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Common failures and safe fixes |
+| [`docs/master-project-worklist.md`](docs/master-project-worklist.md) | Canonical checkbox status and external work |
 | [`docs/README.md`](docs/README.md) | Documentation index and current replacement links |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | Threat boundaries, controls and release gates |
+| [`docs/security/public-assets.md`](docs/security/public-assets.md) | Public asset governance and quarantine |
+| [`docs/operations/engineering-handoff.md`](docs/operations/engineering-handoff.md) | Required transfer evidence |
+| [`docs/operations/repository-size-migration.md`](docs/operations/repository-size-migration.md) | Coordinated Git-history cleanup plan |
 | [`docs/production-verification.md`](docs/production-verification.md) | Production verification procedures |
-| [`docs/playwright-smoke.md`](docs/playwright-smoke.md) | Browser smoke guidance |
 | [`docs/storage.md`](docs/storage.md) | Private storage guidance |
 | [`docs/rate-limits.md`](docs/rate-limits.md) | Rate-limit and Redis guidance |
 | [`docs/admin-access-control.md`](docs/admin-access-control.md) | Admin RBAC and permission behavior |
@@ -216,6 +239,9 @@ Do not enable real-money provider traffic until all of the following are complet
 - reconciliation and failure-path regression
 - provider-specific UAT
 - approved migration/deployment version checks
+- API startup and health/version commit identity
+
+Do not rewrite repository history to reduce size until the operational migration runbook has owner approval, backup verification and a coordinated re-clone window.
 
 ## License
 
