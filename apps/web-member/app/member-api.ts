@@ -3,7 +3,8 @@ import { buildMemberSessionExpiredHref } from '../src/features/auth/session-navi
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-type ApiOptions = RequestInit & {
+type ApiOptions = Omit<RequestInit, 'signal'> & {
+  signal?: AbortSignal | null | undefined;
   skipAuth?: boolean;
   suppressSessionExpiryRedirect?: boolean;
 };
@@ -46,26 +47,37 @@ function removeStorage(key: string) {
 }
 
 export async function memberApiFetch(path: string, options: ApiOptions = {}) {
+  const {
+    skipAuth = false,
+    suppressSessionExpiryRedirect = false,
+    signal,
+    ...requestInit
+  } = options;
   const token = readStorage('member_access_token');
-  const headers = mergeHeaders(options.headers);
-  if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
-  if (!options.skipAuth && token) headers.set('Authorization', `Bearer ${token}`);
+  const headers = mergeHeaders(requestInit.headers);
+  if (!headers.has('Content-Type') && requestInit.body) headers.set('Content-Type', 'application/json');
+  if (!skipAuth && token) headers.set('Authorization', `Bearer ${token}`);
+  const fetchOptions: RequestInit = {
+    ...requestInit,
+    headers,
+    ...(signal !== undefined ? { signal } : {}),
+  };
 
-  const res = await fetch(joinApiUrl(API_URL, path), { ...options, headers });
-  if (res.status !== 401 || options.skipAuth) return res;
+  const res = await fetch(joinApiUrl(API_URL, path), fetchOptions);
+  if (res.status !== 401 || skipAuth) return res;
 
   const refreshed = await refreshMemberToken();
   if (!refreshed) {
     clearMemberSession();
-    if (!options.suppressSessionExpiryRedirect) expireMemberSession();
+    if (!suppressSessionExpiryRedirect) expireMemberSession();
     return res;
   }
 
   headers.set('Authorization', `Bearer ${refreshed}`);
-  const retry = await fetch(joinApiUrl(API_URL, path), { ...options, headers });
+  const retry = await fetch(joinApiUrl(API_URL, path), fetchOptions);
   if (retry.status === 401) {
     clearMemberSession();
-    if (!options.suppressSessionExpiryRedirect) expireMemberSession();
+    if (!suppressSessionExpiryRedirect) expireMemberSession();
   }
   return retry;
 }
