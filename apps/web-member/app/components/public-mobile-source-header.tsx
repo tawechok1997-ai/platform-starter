@@ -107,6 +107,8 @@ export default function PublicMobileSourceHeader() {
 
   const copy = COPY[locale];
   const authenticated = ready && isLoggedIn;
+  const mobileNavigation = runtime.navigation.filter((item) => item.mobile);
+  const liveNavigation = mobileNavigation.find((item) => item.id === 'live');
   const configuredLogoUrl = typedSettings.branding.logo_mobile_url?.trim() || typedSettings.branding.logo_url?.trim();
   const logoUrl = configuredLogoUrl && !configuredLogoUrl.startsWith('/home-asset/')
     ? configuredLogoUrl
@@ -179,7 +181,10 @@ export default function PublicMobileSourceHeader() {
           >
             {PRIMARY_ITEMS.map((item) => {
               const requiresLogin = item.id !== 'live';
-              const href = requiresLogin && !authenticated ? memberLoginHref(item.href) : item.href;
+              const destination = item.id === 'live' ? (liveNavigation?.href || item.href) : item.href;
+              const href = requiresLogin && !authenticated ? memberLoginHref(destination) : destination;
+              const icon = item.id === 'live' ? (liveNavigation?.icon || item.icon) : item.icon;
+              const label = item.id === 'live' ? (liveNavigation?.label || copy.live) : copy[item.id];
               return (
                 <Link
                   key={item.id}
@@ -189,9 +194,9 @@ export default function PublicMobileSourceHeader() {
                   }}
                 >
                   <span className="public-member-menu-glyph">
-                    <img src={item.icon} alt="" aria-hidden="true" />
+                    <img src={icon} alt="" aria-hidden="true" />
                   </span>
-                  <strong>{copy[item.id]}</strong>
+                  <strong>{label}</strong>
                   <span className="member-mobile-source-menu__arrow" aria-hidden="true">→</span>
                 </Link>
               );
