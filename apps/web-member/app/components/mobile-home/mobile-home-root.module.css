@@ -1,12 +1,515 @@
 .root {
+  position: relative;
   display: block;
   width: 100%;
+  max-width: 640px;
   min-height: 100dvh;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
   overflow-x: clip;
   color: #fff;
   background: #171422;
+}
+
+.header {
+  height: 60px;
+  min-height: 60px;
+}
+
+.headerInner {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 101;
+  display: grid;
+  width: min(100%, 640px);
+  height: 60px;
+  padding: 0 12px;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  transform: translateX(-50%);
+  background: #171422;
+}
+
+.menuButton,
+.languageButton,
+.drawerTop button,
+.secondaryMenu button,
+.highlightTabs button,
+.heroDots button {
+  appearance: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.menuButton {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  place-items: center;
+  border-radius: 10px;
+  background: #373147;
+}
+
+.menuButton > span {
+  display: grid;
+  width: 18px;
+  gap: 4px;
+}
+
+.menuButton i {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: #bb5bea;
+}
+
+.logoLink {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoLink img {
+  display: block;
+  width: 140px;
+  max-width: 32vw;
+  max-height: 30px;
+  object-fit: contain;
+}
+
+.languageButton {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  padding: 0;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: inset 0 4px 4px rgb(0 0 0 / 25%), 0 4px 4px rgb(0 0 0 / 25%);
+}
+
+.languageButton img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.drawerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 201;
+  width: min(100%, 640px);
+  margin: 0 auto;
+  opacity: 0;
+  visibility: hidden;
+  background: rgb(0 0 0 / 80%);
+  transition: opacity 180ms ease, visibility 180ms ease;
+  pointer-events: none;
+}
+
+.drawerBackdropOpen {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.drawer {
+  position: relative;
+  z-index: 1;
+  width: min(428px, calc(100vw - 20px));
+  height: 100%;
+  padding: 20px 12px 28px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transform: translateX(-102%);
+  background: #110e16;
+  transition: transform 220ms ease;
+  scrollbar-width: none;
+}
+
+.drawer::-webkit-scrollbar {
+  display: none;
+}
+
+.drawerOpen {
+  transform: translateX(0);
+}
+
+.drawerGlow {
+  position: absolute;
+  top: -222px;
+  left: 50%;
+  width: 445px;
+  height: 445px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  opacity: 0.4;
+  background: radial-gradient(circle, #bb5bea 0%, rgb(38 33 52 / 0%) 70%);
+  pointer-events: none;
+}
+
+.drawerTop,
+.primaryMenu,
+.secondaryMenu,
+.drawerAuth {
+  position: relative;
+  z-index: 1;
+}
+
+.drawerTop {
+  display: flex;
+  min-height: 34px;
+  margin-bottom: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawerTop > img {
+  display: block;
+  width: 140px;
+  max-width: 42vw;
+  max-height: 30px;
+  object-fit: contain;
+}
+
+.drawerTop button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  background: #251f31;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.primaryMenu {
+  display: grid;
+  padding: 8px;
+  gap: 10px;
+  border-radius: 8px;
+  background: rgb(187 91 234 / 10%);
+}
+
+.primaryMenu a {
+  display: grid;
+  min-height: 38px;
+  grid-template-columns: 32px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.menuGlyph,
+.gridGlyph {
+  display: grid;
+  place-items: center;
+  color: #dca8f3;
+  background: #251f31;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.menuGlyph {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.primaryMenu strong,
+.secondaryMenu strong {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.menuArrow {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  color: #8800c1;
+  background: #251f34;
+  font-size: 12px;
+}
+
+.secondaryMenu {
+  display: grid;
+  margin-top: 16px;
+  padding: 12px 4px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 10px;
+  border-radius: 8px;
+  background: rgb(187 91 234 / 10%);
+}
+
+.secondaryMenu a,
+.secondaryMenu button {
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  padding: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  color: #fff;
+  background: transparent;
+  text-align: center;
+  text-decoration: none;
+}
+
+.gridGlyph,
+.secondaryMenu button img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.secondaryMenu button img {
+  object-fit: cover;
+}
+
+.secondaryMenu strong {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawerAuth {
+  display: grid;
+  margin-top: 16px;
+  padding: 8px;
+  gap: 12px;
+  border-radius: 8px;
+  background: rgb(187 91 234 / 10%);
+}
+
+.drawerAuth a {
+  position: relative;
+  display: grid;
+  min-height: 38px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%);
+}
+
+.drawerAuth a::after {
+  position: absolute;
+  inset: 0;
+  background: url('/images/theme/button/style_1.webp') center / 100% 100% no-repeat;
+  content: '';
+  pointer-events: none;
+}
+
+.registerButton {
+  background: linear-gradient(#81689d, #ce9cba);
+}
+
+.loginButton {
+  background: linear-gradient(#720455, #910a67);
+}
+
+.pageContent {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+}
+
+.hero {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.heroViewport {
+  width: 100%;
+  overflow: hidden;
+}
+
+.heroTrack {
+  display: flex;
+  width: 100%;
+  transition: transform 260ms ease;
+}
+
+.heroSlide {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  padding: 0 12px;
+  text-decoration: none;
+}
+
+.heroSlide > span {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding-bottom: 41.6%;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #211b2d;
+}
+
+.heroSlide img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.heroDots {
+  display: flex;
+  min-height: 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.heroDots button {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 28%);
+}
+
+.heroDots button.heroDotActive {
+  width: 16px;
+  background: #bb5bea;
+}
+
+.announcement {
+  display: grid;
+  height: 30px;
+  margin: 0 12px;
+  padding-right: 12px;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #454545;
+  border-radius: 6px;
+}
+
+.announcementIcon {
+  display: grid;
+  width: 54px;
+  height: 100%;
+  place-items: center;
+}
+
+.announcementIcon svg {
+  width: 24px;
+  height: 24px;
+  overflow: visible;
+  fill: none;
+  stroke: #dca8f3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.announcementText {
+  min-width: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 12px;
+  line-height: 28px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.highlightTabs {
+  display: grid;
+  width: calc(100% - 24px);
+  margin: 0 12px;
+  grid-template-columns: repeat(4, minmax(max-content, 1fr));
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.highlightTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.highlightTabs button {
+  min-width: 78px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 6px;
+  color: #fff;
+  background: #292335;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.highlightTabs button.highlightTabActive {
+  background: linear-gradient(160deg, #bb5bea, #7600a8);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%);
+}
+
+.nextContentSlot {
+  min-height: 1px;
+}
+
+.menuButton:focus-visible,
+.languageButton:focus-visible,
+.drawer a:focus-visible,
+.drawer button:focus-visible,
+.heroDots button:focus-visible,
+.highlightTabs button:focus-visible {
+  outline: 2px solid #dca8f3;
+  outline-offset: 2px;
+}
+
+@media (max-width: 374px) {
+  .headerInner {
+    padding-inline: 8px;
+  }
+
+  .highlightTabs {
+    gap: 6px;
+  }
+
+  .highlightTabs button {
+    min-width: 72px;
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawerBackdrop,
+  .drawer,
+  .heroTrack {
+    transition: none;
+  }
 }
 
 @media (min-width: 901px) {
