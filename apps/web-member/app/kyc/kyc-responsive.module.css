@@ -1,0 +1,29 @@
+.scope,
+.scope :global(.member-feature-container),
+.scope :global(.member-feature-header),
+.scope :global(.member-feature-header > div),
+.scope :global(label) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.scope :global(select),
+.scope :global(input[type='file']) {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.scope :global(input[type='file']) {
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .scope :global(.member-feature-header) {
+    flex-wrap: wrap;
+  }
+
+  .scope :global(.member-feature-header > button) {
+    max-width: 100%;
+  }
+}
