@@ -1,0 +1,12 @@
+/* Canonical late-loading owner for desktop runtime corrections.
+ *
+ * Keep the import order intentional. These files previously loaded from
+ * scattered positions in layout.tsx, which made the cascade difficult to
+ * reason about and easy to break when another "final" patch was added.
+ * New desktop runtime overrides should be routed through this owner instead
+ * of adding another top-level stylesheet import.
+ */
+@import './member-public-header-single-owner.css';
+@import './member-public-header-runtime-fix.css';
+@import './member-desktop-scale-canvas.css';
+@import './member-home-sticky-sidebar-final.css';
