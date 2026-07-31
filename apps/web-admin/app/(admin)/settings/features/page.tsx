@@ -1,5 +1,52 @@
 import SettingsSectionPage from '../settings-section-page';
 
+const FEATURES_DEFAULTS = {
+  registration_enabled: true,
+  login_enabled: true,
+  profile_enabled: true,
+  kyc_enabled: true,
+  deposit_enabled: true,
+  withdraw_enabled: true,
+  promotion_enabled: true,
+  bonus_enabled: true,
+  event_enabled: true,
+  news_enabled: true,
+  vip_enabled: true,
+  referral_enabled: true,
+  coupon_enabled: true,
+  affiliate_enabled: true,
+  game_lobby_enabled: true,
+  provider_enabled: true,
+  support_enabled: true,
+  notification_enabled: true,
+  articles_enabled: true,
+  hero_enabled: true,
+  announcement_enabled: true,
+  tournament_enabled: true,
+  jackpot_enabled: true,
+  leaderboard_enabled: true,
+  mini_games_enabled: true,
+  popular_games_enabled: true,
+  online_games_enabled: true,
+  live_games_enabled: true,
+  classic_games_enabled: true,
+  usage_guide_enabled: true,
+  tournament_title: 'TOURNAMENT เข้าร่วมชิงความเป็นที่ 1',
+  tournament_summary: 'ร่วมสนุกกับกิจกรรม Tournament',
+  tournament_image_url: '/assets/asset-pc/images/ZAB1/tournament/4a7df032-03f5-4999-ba59-f38d12c13761.png',
+  jackpot_title: 'JACKPOTS',
+  jackpot_amount: '194,428,645',
+  jackpot_subtitle: 'Epic of the day',
+  jackpot_image_url: '/assets/asset-pc/images/FEZX/highlight/1725948738165-4cb4f1ec-44ed-4b21-99ed-398fbb6d7b25.gif',
+  leaderboard_title: 'Leaderboard',
+  featured_title: 'เกมไฮไลท์',
+  popular_title: 'Top 10 Popular Games',
+  online_title: 'Most Online Now',
+  live_title: 'Live Now!!',
+  classic_title: 'Classic Games',
+  guide_title: 'คู่มือการใช้งาน',
+};
+
 export default function FeaturesSettingsPage() {
   return (
     <SettingsSectionPage
@@ -8,6 +55,7 @@ export default function FeaturesSettingsPage() {
       description="ควบคุมความสามารถและส่วนประกอบหน้า Member จากจุดเดียว ทั้ง Desktop และ Mobile โดยไม่ต้อง deploy ใหม่"
       preview="features"
       risk="sensitive"
+      defaults={FEATURES_DEFAULTS}
       fields={[
         { key: 'registration_enabled', label: 'เปิดสมัครสมาชิก', type: 'checkbox', section: 'บัญชีสมาชิก', helper: 'ปิดแล้วผู้ใช้ใหม่จะสมัครไม่ได้' },
         { key: 'login_enabled', label: 'เปิดเข้าสู่ระบบ', type: 'checkbox', section: 'บัญชีสมาชิก', helper: 'ปิดแล้วสมาชิกจะเข้าสู่ระบบไม่ได้' },
