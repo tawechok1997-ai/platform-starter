@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const providerSource = readFileSync(new URL('./member-runtime-provider.tsx', import.meta.url), 'utf8');
+const layoutSource = readFileSync(new URL('./layout.tsx', import.meta.url), 'utf8');
 const controllerSource = readFileSync(new URL('./components/member-home-runtime-controller.tsx', import.meta.url), 'utf8');
 const gameSectionSource = readFileSync(new URL('./components/member-game-section-runtime-controller.tsx', import.meta.url), 'utf8');
 const modalSource = readFileSync(new URL('./components/member-modal-system.tsx', import.meta.url), 'utf8');
@@ -21,7 +22,7 @@ test('provider exposes one runtime for settings, session, navigation and home da
   assert.match(providerSource, /memberThemeCssVariables/);
   assert.match(providerSource, /homeData/);
   assert.match(providerSource, /MemberNavigationStateController/);
-  assert.match(providerSource, /MemberNavigationAuthController/);
+  assert.match(layoutSource, /<MemberRuntimeProvider>\s*<MemberNavigationAuthController \/>/);
 });
 
 test('desktop and mobile home consume one structured runtime controller', () => {
@@ -32,6 +33,8 @@ test('desktop and mobile home consume one structured runtime controller', () => 
   assert.match(controllerSource, /\.v47-mobile-rank-panel/);
   assert.match(controllerSource, /\.reference-leaderboard/);
   assert.match(controllerSource, /\.v47-mobile-board-row/);
+  assert.match(controllerSource, /runtimeSource = 'desktop-primary'/);
+  assert.doesNotMatch(controllerSource, /features\.tournament && runtime\.features\.activity/);
 });
 
 test('game sections enforce shared desktop and mobile limits', () => {
@@ -72,12 +75,14 @@ test('configured navigation handles locale visibility order feature and auth con
   assert.match(navigationAuthSource, /auth=login&next=/);
 });
 
-test('home data has one parser for tournament leaderboard and mini games', () => {
+test('home data has one parser plus desktop mock fallback for all viewports', () => {
   assert.match(homeDataSource, /tournament_items_json/);
   assert.match(homeDataSource, /leaderboard_items_json/);
   assert.match(homeDataSource, /mini_games_json/);
   assert.match(homeDataSource, /normalizeTournaments/);
   assert.match(homeDataSource, /normalizeLeaderboard/);
   assert.match(homeDataSource, /normalizeMiniGames/);
-  assert.match(homeDataSource, /Invalid JSON is ignored/);
+  assert.match(homeDataSource, /DESKTOP_TOURNAMENT_MOCKS/);
+  assert.match(homeDataSource, /mockPlayers/);
+  assert.match(homeDataSource, /safe desktop defaults remain active/);
 });
