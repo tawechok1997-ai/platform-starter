@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const providerSource = readFileSync(new URL('./member-runtime-provider.tsx', import.meta.url), 'utf8');
+const layoutSource = readFileSync(new URL('./layout.tsx', import.meta.url), 'utf8');
 const controllerSource = readFileSync(new URL('./components/member-home-runtime-controller.tsx', import.meta.url), 'utf8');
 const gameSectionSource = readFileSync(new URL('./components/member-game-section-runtime-controller.tsx', import.meta.url), 'utf8');
 const modalSource = readFileSync(new URL('./components/member-modal-system.tsx', import.meta.url), 'utf8');
@@ -21,7 +22,7 @@ test('provider exposes one runtime for settings, session, navigation and home da
   assert.match(providerSource, /memberThemeCssVariables/);
   assert.match(providerSource, /homeData/);
   assert.match(providerSource, /MemberNavigationStateController/);
-  assert.match(providerSource, /MemberNavigationAuthController/);
+  assert.match(layoutSource, /<MemberRuntimeProvider>\s*<MemberNavigationAuthController \/>/);
 });
 
 test('desktop and mobile home consume one structured runtime controller', () => {
