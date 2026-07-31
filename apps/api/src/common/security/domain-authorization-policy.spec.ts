@@ -7,10 +7,17 @@ import {
 describe('domain authorization policy', () => {
   it.each([
     ['finance.withdrawal.approve', 'finance'],
+    ['bank_accounts.review', 'finance'],
     ['admin.owner.transfer', 'admin_lifecycle'],
+    ['users.suspend', 'admin_lifecycle'],
     ['kyc.case.review', 'kyc_risk'],
     ['support.ticket.update', 'support_notifications'],
     ['report.export', 'cms_reports'],
+    ['reports.view', 'cms_reports'],
+    ['settings.features.update', 'cms_reports'],
+    ['affiliate.review', 'growth_rewards'],
+    ['bonus.lifecycle.update', 'growth_rewards'],
+    ['game.providers.manage', 'provider_games'],
   ] as const)('maps %s to %s', (permission, domain) => {
     expect(resolveAuthorizationDomain(permission)).toBe(domain);
   });
@@ -22,6 +29,8 @@ describe('domain authorization policy', () => {
       'kyc_risk',
       'support_notifications',
       'cms_reports',
+      'growth_rewards',
+      'provider_games',
     ]);
   });
 

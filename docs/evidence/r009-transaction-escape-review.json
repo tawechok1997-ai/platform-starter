@@ -1,9 +1,49 @@
 {
   "version": 1,
   "findings": {
-    "apps/api/src/modules/admin-access/admin-access.service.ts#createInvitation#adminAuditLog.create": {
+    "apps/api/src/modules/admin-auth/admin-login-defense.service.ts#safeWriteBlockedAttempt#loginHistory.create": {
       "status": "safe-direct-write",
-      "reason": "The production invitation route no longer calls the legacy AdminAccessService.createInvitation method. AdminAccessController delegates creation to AdminInvitationAdminService.create, where admin creation, verification token persistence, and CREATE_ADMIN_INVITATION audit persistence share one transaction owner. The dedicated closure guard verifies both controller routing and atomic create/reissue commands."
+      "reason": "The Prisma write is one promise in the array passed directly to prisma.$transaction; it is not executed outside the transaction boundary."
+    },
+    "apps/api/src/modules/admin-auth/admin-login-defense.service.ts#safeWriteBlockedAttempt#adminAuditLog.create": {
+      "status": "safe-direct-write",
+      "reason": "The audit write is one promise in the same array-form Prisma transaction as the blocked login history record."
+    },
+    "apps/api/src/modules/auth/auth.service.ts#changeMemberPassword#user.update": {
+      "status": "safe-direct-write",
+      "reason": "The password update promise is passed directly into the array-form Prisma transaction with session revocation."
+    },
+    "apps/api/src/modules/auth/auth.service.ts#changeMemberPassword#authSession.updateMany": {
+      "status": "safe-direct-write",
+      "reason": "Other-session revocation is committed atomically with the password update through the same array-form Prisma transaction."
+    },
+    "apps/api/src/modules/bank-accounts/bank-accounts.service.ts#setPrimaryMemberBankAccount#memberBankAccount.updateMany": {
+      "status": "safe-direct-write",
+      "reason": "Clearing existing primary flags is one promise in the array-form Prisma transaction that selects the new primary account."
+    },
+    "apps/api/src/modules/bank-accounts/bank-accounts.service.ts#setPrimaryMemberBankAccount#memberBankAccount.update": {
+      "status": "safe-direct-write",
+      "reason": "Selecting the new primary account is committed atomically with clearing prior primary flags in the same Prisma transaction."
+    },
+    "apps/api/src/modules/game-platform/provider-webhook.service.ts#receive#gameProviderCredential.updateMany": {
+      "status": "safe-direct-write",
+      "reason": "Credential last-used metadata is updated before webhook validation and before the settlement transaction begins; it is independent observability state rather than settlement state."
+    },
+    "apps/api/src/modules/game-platform/provider-webhook.service.ts#receive#webhookLog.create": {
+      "status": "safe-direct-write",
+      "reason": "Invalid-signature logging returns before the settlement transaction path, so the failure audit record cannot escape an active settlement transaction."
+    },
+    "apps/api/src/modules/notifications/notifications-command.service.ts#markAllRead#notificationState.upsert": {
+      "status": "safe-direct-write",
+      "reason": "Every upsert promise is constructed for and passed directly into the array-form Prisma transaction."
+    },
+    "apps/api/src/modules/notifications/notifications-command.service.ts#updatePreferences#notificationPreference.upsert": {
+      "status": "safe-direct-write",
+      "reason": "Category preferences are persisted atomically with channel settings through the same array-form Prisma transaction."
+    },
+    "apps/api/src/modules/notifications/notifications-command.service.ts#updatePreferences#siteSetting.upsert": {
+      "status": "safe-direct-write",
+      "reason": "Channel settings are persisted atomically with notification category preferences through the same array-form Prisma transaction."
     }
   }
 }

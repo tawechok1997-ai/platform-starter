@@ -82,12 +82,44 @@ async function run() {
       return new Response(JSON.stringify({ cachedCalls }), { headers: { "content-type": "application/json" } });
     }) as typeof fetch,
   });
-  assert.deepEqual(await cachedClient.request("/cached/a"), { cachedCalls: 1 });
-  assert.deepEqual(await cachedClient.request("/cached/a"), { cachedCalls: 1 });
-  assert.deepEqual(await cachedClient.request("/other"), { cachedCalls: 2 });
-  cachedClient.invalidateCache("GET:/cached");
-  assert.deepEqual(await cachedClient.request("/cached/a"), { cachedCalls: 3 });
-  assert.deepEqual(await cachedClient.request("/other"), { cachedCalls: 2 });
+  assert.deepEqual(await cachedClient.request("/cached/a", { auth: false }), { cachedCalls: 1 });
+  assert.deepEqual(await cachedClient.request("/cached/a", { auth: false }), { cachedCalls: 1 });
+  assert.deepEqual(await cachedClient.request("/other", { auth: false }), { cachedCalls: 2 });
+  cachedClient.invalidateCache("public:GET:/cached");
+  assert.deepEqual(await cachedClient.request("/cached/a", { auth: false }), { cachedCalls: 3 });
+  assert.deepEqual(await cachedClient.request("/other", { auth: false }), { cachedCalls: 2 });
+
+  let session = "member-a";
+  let authenticatedCachedCalls = 0;
+  const sessionCacheClient = createApiClient({
+    baseUrl: "https://api.example.com",
+    getAuthToken: () => `token-${session}`,
+    getCacheNamespace: () => session,
+    responseCacheTtlMs: 1000,
+    fetchImpl: (async () => {
+      authenticatedCachedCalls += 1;
+      return new Response(JSON.stringify({ session, authenticatedCachedCalls }), { headers: { "content-type": "application/json" } });
+    }) as typeof fetch,
+  });
+  assert.deepEqual(await sessionCacheClient.request("/profile"), { session: "member-a", authenticatedCachedCalls: 1 });
+  assert.deepEqual(await sessionCacheClient.request("/profile"), { session: "member-a", authenticatedCachedCalls: 1 });
+  session = "member-b";
+  assert.deepEqual(await sessionCacheClient.request("/profile"), { session: "member-b", authenticatedCachedCalls: 2 });
+  sessionCacheClient.resetSession();
+  assert.deepEqual(await sessionCacheClient.request("/profile"), { session: "member-b", authenticatedCachedCalls: 3 });
+
+  let uncachedAuthenticatedCalls = 0;
+  const noNamespaceClient = createApiClient({
+    baseUrl: "https://api.example.com",
+    getAuthToken: () => "token",
+    responseCacheTtlMs: 1000,
+    fetchImpl: (async () => {
+      uncachedAuthenticatedCalls += 1;
+      return new Response(JSON.stringify({ uncachedAuthenticatedCalls }), { headers: { "content-type": "application/json" } });
+    }) as typeof fetch,
+  });
+  assert.deepEqual(await noNamespaceClient.request("/profile"), { uncachedAuthenticatedCalls: 1 });
+  assert.deepEqual(await noNamespaceClient.request("/profile"), { uncachedAuthenticatedCalls: 2 });
 
   const textClient = createApiClient({
     baseUrl: "https://api.example.com",

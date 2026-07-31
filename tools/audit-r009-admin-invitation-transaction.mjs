@@ -12,6 +12,13 @@ function methodSlice(source, startMarker, endMarker) {
   return source.slice(start, end);
 }
 
+function transactionCloseIndex(method, transactionStart) {
+  if (transactionStart < 0) return -1;
+  const closeMarker = '\n    });';
+  const relative = method.indexOf(closeMarker, transactionStart);
+  return relative < 0 ? -1 : relative + 1;
+}
+
 const createMethod = methodSlice(service, '  async create(', '\n  async list(');
 const reissueMethod = methodSlice(service, '  async reissue(', '\n  private readAdminUserId(');
 
@@ -21,10 +28,10 @@ if (!createMethod || !reissueMethod) {
 }
 
 const createTransactionStart = createMethod.indexOf('this.prisma.$transaction(async (tx) =>');
-const createTransactionEnd = createMethod.indexOf('    });', createTransactionStart);
+const createTransactionEnd = transactionCloseIndex(createMethod, createTransactionStart);
 const createAuditAction = createMethod.indexOf("action: 'CREATE_ADMIN_INVITATION'");
 const reissueTransactionStart = reissueMethod.indexOf('this.prisma.$transaction(async (tx) =>');
-const reissueTransactionEnd = reissueMethod.indexOf('    });', reissueTransactionStart);
+const reissueTransactionEnd = transactionCloseIndex(reissueMethod, reissueTransactionStart);
 const reissueAuditAction = reissueMethod.indexOf("action: 'REISSUE_ADMIN_INVITATION'");
 
 const checks = [
@@ -32,12 +39,14 @@ const checks = [
   ['controller injects invitation command service', controller.includes('private readonly invitationCommands: AdminInvitationAdminService')],
   ['controller routes creation through command service', controller.includes('return this.invitationCommands.create(req.user.id, body.email, body.roleId, body.expiresInHours);')],
   ['create transaction owner exists', createTransactionStart >= 0],
+  ['create transaction close exists', createTransactionEnd >= 0],
   ['create admin write uses tx', createMethod.includes('await tx.adminUser.create(')],
   ['create token write uses tx', createMethod.includes('await tx.verificationToken.create(')],
   ['create audit write uses tx', createMethod.includes('await tx.adminAuditLog.create(')],
   ['create audit action exists', createAuditAction >= 0],
   ['create audit appears before transaction closes', createAuditAction >= createTransactionStart && createAuditAction < createTransactionEnd],
   ['reissue transaction owner exists', reissueTransactionStart >= 0],
+  ['reissue transaction close exists', reissueTransactionEnd >= 0],
   ['reissue token update uses tx', reissueMethod.includes('await tx.verificationToken.updateMany(')],
   ['reissue token create uses tx', reissueMethod.includes('await tx.verificationToken.create(')],
   ['reissue audit write uses tx', reissueMethod.includes('await tx.adminAuditLog.create(')],

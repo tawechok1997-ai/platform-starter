@@ -4,6 +4,7 @@ import { DatabaseModule } from '../../database/database.module';
 import { ProviderSimulatorEnabledGuard } from '../../common/guards/provider-simulator-enabled.guard';
 import { WalletModule } from '../wallet/wallet.module';
 import { MoneyOpsController } from './money-ops.controller';
+import { MoneyOpsDashboardQueryService } from './money-ops-dashboard-query.service';
 import { MoneyOpsLedgerQueryService } from './money-ops-ledger-query.service';
 import { MoneyOpsService } from './money-ops.service';
 import { ProviderSimulatorAdminController } from './provider-simulator-admin.controller';
@@ -15,7 +16,20 @@ import { WalletLedgerDetailService } from './wallet-ledger-detail.service';
 
 @Module({
   imports: [DatabaseModule, JwtAuthModule, WalletModule],
-  controllers: [MoneyOpsController, ProviderSimulatorController, ProviderSimulatorAdminController, ReconciliationDetailController, WalletLedgerDetailController],
-  providers: [MoneyOpsService, MoneyOpsLedgerQueryService, ReconciliationDetailService, WalletLedgerDetailService, ProviderSimulatorEnabledGuard],
+  controllers: [
+    MoneyOpsController,
+    ProviderSimulatorController,
+    ProviderSimulatorAdminController,
+    ReconciliationDetailController,
+    WalletLedgerDetailController,
+  ],
+  providers: [
+    MoneyOpsService,
+    MoneyOpsDashboardQueryService,
+    MoneyOpsLedgerQueryService,
+    ReconciliationDetailService,
+    WalletLedgerDetailService,
+    ProviderSimulatorEnabledGuard,
+  ],
 })
 export class MoneyOpsModule {}

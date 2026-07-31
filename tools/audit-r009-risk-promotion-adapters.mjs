@@ -12,8 +12,11 @@ const kyc = fs.readFileSync(kycPath, 'utf8');
 const watchlist = fs.readFileSync(watchlistPath, 'utf8');
 const promotion = fs.readFileSync(promotionPath, 'utf8');
 
+const executeMethod = promotion.match(/async execute[\s\S]*?\n  private async settleInTransaction/)?.[0] ?? '';
 const settleMethod = promotion.match(/private async settleInTransaction[\s\S]*?\n  private async reverseInTransaction/)?.[0] ?? '';
 const reverseMethod = promotion.match(/private async reverseInTransaction[\s\S]*?\n  private async recordSettlementFailure/)?.[0] ?? '';
+const promotionTransactionIndex = executeMethod.indexOf('this.prisma.$transaction(');
+const promotionAdapterIndex = executeMethod.indexOf('new PrismaPromotionSettlementRepositoryAdapter(tx)');
 
 const checks = [
   ['KYC/watchlist port exists', /interface KycWatchlistRepositoryPort/.test(ports)],
@@ -30,7 +33,8 @@ const checks = [
   ['KYC service uses adapter inside transaction', /\$transaction\(async \(tx\)[\s\S]*new PrismaKycWatchlistRepositoryAdapter\(tx\)/.test(kyc)],
   ['watchlist release uses adapter inside transaction', /async release[\s\S]*\$transaction\(async \(tx\)[\s\S]*new PrismaKycWatchlistRepositoryAdapter\(tx\)/.test(watchlist)],
   ['promotion imports transaction-scoped adapter', /import \{ PrismaPromotionSettlementRepositoryAdapter \}/.test(promotion)],
-  ['promotion creates adapter inside transaction', /\$transaction\(async \(tx\)[\s\S]*new PrismaPromotionSettlementRepositoryAdapter\(tx\)/.test(promotion)],
+  ['promotion execute transaction exists', promotionTransactionIndex >= 0],
+  ['promotion creates adapter inside transaction', promotionAdapterIndex > promotionTransactionIndex],
   ['promotion settlement helper receives adapter', /settleInTransaction\([\s\S]*settlements: PrismaPromotionSettlementRepositoryAdapter/.test(promotion)],
   ['promotion reversal helper receives adapter', /reverseInTransaction\([\s\S]*settlements: PrismaPromotionSettlementRepositoryAdapter/.test(promotion)],
   ['promotion settlement locks through adapter', /settlements\.findBySourceRiskAlertIdForUpdate\(input\.sourceRiskAlertId\)/.test(settleMethod)],

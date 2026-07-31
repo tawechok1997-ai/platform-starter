@@ -31,12 +31,29 @@ const TRANSPARENT_PATHS = new Set([
   '/assets/asset-pc/images/providers/set/1_1_badge/provider-38.png',
 ]);
 
+const LEGACY_REFERENCE_ROOTS = [
+  '/assets/asset-pc/',
+  '/assets/asset-mobile/',
+];
+const EXECUTABLE_ASSET_PATTERN = /\.(?:css|html?|js|mjs|cjs|map|wasm)$/i;
 const TRANSPARENT_FALLBACK = '/images/fallbacks/transparent.svg';
 const GAME_FALLBACK = '/images/fallbacks/noah345-placeholder.svg';
 
 export function middleware(request: NextRequest) {
   const pathname = decodeURIComponent(request.nextUrl.pathname);
   const lowerPath = pathname.toLowerCase();
+  const isLegacyReferenceAsset = LEGACY_REFERENCE_ROOTS.some((root) => lowerPath.startsWith(root));
+
+  if (isLegacyReferenceAsset && EXECUTABLE_ASSET_PATTERN.test(lowerPath)) {
+    return new NextResponse('Not found', {
+      status: 404,
+      headers: {
+        'Cache-Control': 'no-store',
+        'Content-Type': 'text/plain; charset=utf-8',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    });
+  }
 
   if (lowerPath === '/' && request.nextUrl.searchParams.get('category')?.toLowerCase() === 'live') {
     const liveUrl = request.nextUrl.clone();

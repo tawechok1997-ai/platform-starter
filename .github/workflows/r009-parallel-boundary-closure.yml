@@ -31,6 +31,7 @@ on:
       - 'tools/audit-r009-risk-promotion-adapters.mjs'
       - 'tools/audit-r009-concurrency-ci-closure.mjs'
       - 'tools/audit-r009-critical-constraint-closure.mjs'
+      - 'tools/bootstrap-prisma-ci-baseline.mjs'
       - '.github/workflows/r009-parallel-boundary-closure.yml'
   pull_request:
     paths:
@@ -61,6 +62,7 @@ on:
       - 'tools/audit-r009-risk-promotion-adapters.mjs'
       - 'tools/audit-r009-concurrency-ci-closure.mjs'
       - 'tools/audit-r009-critical-constraint-closure.mjs'
+      - 'tools/bootstrap-prisma-ci-baseline.mjs'
       - '.github/workflows/r009-parallel-boundary-closure.yml'
 
 jobs:
@@ -88,14 +90,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 11.13.0
+          version: 11.18.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
       - name: Prepare isolated PostgreSQL schema
-        run: pnpm db:migrate
+        run: node tools/bootstrap-prisma-ci-baseline.mjs
       - name: PostgreSQL concurrency CI closure
         run: node tools/audit-r009-concurrency-ci-closure.mjs
       - name: Row-lock helper closure

@@ -1,10 +1,10 @@
 import { defineConfig } from '@playwright/test';
 
 const viewports = [
-  { name: 'mobile-390', width: 390, height: 844 },
-  { name: 'tablet-768', width: 768, height: 1024 },
-  { name: 'desktop-1024', width: 1024, height: 768 },
-  { name: 'desktop-1440', width: 1440, height: 900 },
+  { name: 'mobile-390', width: 390, height: 844, mobile: true },
+  { name: 'tablet-768', width: 768, height: 1024, mobile: true },
+  { name: 'desktop-1024', width: 1024, height: 768, mobile: false },
+  { name: 'desktop-1440', width: 1440, height: 900, mobile: false },
 ];
 
 export default defineConfig({
@@ -24,9 +24,14 @@ export default defineConfig({
     locale: 'th-TH',
     timezoneId: 'Asia/Bangkok',
   },
-  projects: viewports.map(({ name, width, height }) => ({
+  projects: viewports.map(({ name, width, height, mobile }) => ({
     name,
-    use: { viewport: { width, height }, deviceScaleFactor: 1 },
+    use: {
+      viewport: { width, height },
+      deviceScaleFactor: 1,
+      isMobile: mobile,
+      hasTouch: mobile,
+    },
   })),
   webServer: [
     {

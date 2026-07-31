@@ -5,7 +5,7 @@
 ## Runtime baseline
 
 - Node.js: `22.x`
-- pnpm: `11.13.0`
+- pnpm: `11.18.0`
 - Database: PostgreSQL
 - Package manager must match the root `packageManager` field
 

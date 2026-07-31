@@ -1,10 +1,10 @@
 {
   "name": "platform-starter",
   "private": true,
-  "packageManager": "pnpm@11.13.0",
+  "packageManager": "pnpm@11.18.0",
   "engines": {
     "node": ">=22 <23",
-    "pnpm": "11.13.0"
+    "pnpm": "11.18.0"
   },
   "scripts": {
     "dev": "turbo dev",
@@ -13,10 +13,16 @@
     "audit:tool-registry": "node tools/audit-tool-registry.mjs",
     "audit:tool-registry:strict": "node tools/audit-tool-registry.mjs --strict",
     "check:runtime": "node tools/check-runtime.mjs",
-    "check:repository": "pnpm check:runtime && pnpm audit:tool-registry && pnpm audit:master-worklist && pnpm format:check",
+    "check:repository": "pnpm check:runtime && pnpm audit:tool-registry && pnpm audit:master-worklist && pnpm audit:build-purity && pnpm audit:public-assets && pnpm audit:document-metadata && pnpm format:check",
     "check:architecture": "pnpm audit:architecture-boundaries && pnpm audit:r9-controller-prisma:strict && pnpm audit:r9-repository-boundaries:strict && pnpm audit:r9-transaction-escapes && pnpm audit:admin-permissions",
     "check:quick": "pnpm check:repository && pnpm lint && pnpm typecheck",
     "check:full": "pnpm check:quick && pnpm check:architecture && pnpm test && pnpm build",
+    "check:backend": "pnpm typecheck:api && pnpm audit:backend-decomposition && pnpm check:architecture && pnpm --filter @platform/api test && pnpm build:api",
+    "check:frontend": "pnpm lint:admin && pnpm lint:member && pnpm typecheck:admin && pnpm typecheck:member && pnpm --filter @platform/web-admin test && pnpm --filter @platform/web-member test && pnpm build:web-admin && pnpm build:web-member",
+    "check:finance": "pnpm audit:finance-workflows && pnpm --filter @platform/api test:db:finance && pnpm --filter @platform/api test:db:promotions",
+    "check:security": "pnpm audit:dependency-security && pnpm audit:admin-token-storage && pnpm audit:admin-xss && pnpm audit:admin-permissions && pnpm audit:admin-ui-permissions && pnpm audit:public-assets",
+    "check:docs": "pnpm audit:tool-registry:strict && pnpm audit:master-worklist && pnpm audit:document-metadata",
+    "check:release": "pnpm audit:build-purity && pnpm check:full && pnpm verify:api-startup",
     "lint": "pnpm lint:api && pnpm lint:admin && pnpm lint:member && pnpm lint:packages",
     "lint:api": "pnpm --filter @platform/api lint",
     "lint:admin": "pnpm --filter @platform/web-admin lint",
@@ -106,6 +112,9 @@
     "audit:production-secrets": "node tools/audit-production-secrets.mjs",
     "audit:production-dependencies": "node tools/audit-production-dependencies.mjs",
     "audit:dependency-security": "pnpm audit:production-dependencies && pnpm audit:production-secrets",
+    "audit:build-purity": "node tools/audit-build-purity.mjs",
+    "audit:public-assets": "node tools/audit-public-assets.mjs",
+    "audit:document-metadata": "node tools/audit-document-metadata.mjs",
     "test:proxy-rate-limit": "node tools/test-reverse-proxy-rate-limit.mjs",
     "verify:p1:production": "bash scripts/verify-p1-production.sh",
     "verify:p2": "bash scripts/verify-p2-product.sh",
@@ -120,6 +129,7 @@
     "verify:p6:deployment:strict": "node tools/check-p6-deployment-identity.mjs --strict",
     "verify:p6:deployment:json": "node tools/check-p6-deployment-identity.mjs --json",
     "verify:deployment-metadata": "node --test tools/run-with-deployment-metadata.test.mjs",
+    "verify:api-startup": "node tools/verify-api-startup.mjs",
     "test:kyc:deployed": "node tools/test-deployed-kyc.mjs",
     "test:e2e:kyc": "playwright test -c playwright.kyc.config.ts",
     "test:e2e:cms-content": "playwright test -c playwright.cms-content.config.ts",

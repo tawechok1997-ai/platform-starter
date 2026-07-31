@@ -49,6 +49,12 @@ const DESKTOP_TOURNAMENT_MOCK_DEFAULTS = JSON.stringify([
   },
 ], null, 2);
 
+const TOURNAMENT_ITEMS_DEFAULT =
+  process.env.NODE_ENV === 'production' &&
+  process.env.NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA !== 'true'
+    ? '[]'
+    : DESKTOP_TOURNAMENT_MOCK_DEFAULTS;
+
 const FEATURES_DEFAULTS = {
   registration_enabled: true,
   login_enabled: true,
@@ -95,7 +101,7 @@ const FEATURES_DEFAULTS = {
   classic_title: 'Classic Games',
   guide_title: 'คู่มือการใช้งาน',
   navigation_items_json: '[]',
-  tournament_items_json: DESKTOP_TOURNAMENT_MOCK_DEFAULTS,
+  tournament_items_json: TOURNAMENT_ITEMS_DEFAULT,
   leaderboard_items_json: '[]',
   mini_games_json: '[]',
 };
@@ -166,7 +172,7 @@ export default function FeaturesSettingsPage() {
           label: 'Tournament และอันดับ (JSON)',
           type: 'textarea',
           section: 'ข้อมูล Runtime ขั้นสูง',
-          helper: 'ค่าเริ่มต้นเป็นข้อมูลตัวอย่างจาก Desktop; รองรับ id, title, status, href, startsAt, endsAt และ players[{rank,name,score,stats}] โดย Mobile ใช้ชุดเดียวกัน',
+          helper: 'production เริ่มเป็น [] จนกว่าจะตั้งค่าข้อมูลจริง; demo ต้องเปิดด้วย NEXT_PUBLIC_ENABLE_DEMO_TOURNAMENT_DATA=true โดย Mobile ใช้ชุดเดียวกัน',
         },
         {
           key: 'leaderboard_items_json',
