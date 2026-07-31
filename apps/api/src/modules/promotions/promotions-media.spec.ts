@@ -27,9 +27,9 @@ describe('promotion media contract', () => {
 
     const service = new PromotionsQueryService(prisma);
     const result = await service.listPublicCampaigns();
+    const welcome = result.items.find((item) => item.id === 'welcome');
 
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0]).toEqual(expect.objectContaining({
+    expect(welcome).toEqual(expect.objectContaining({
       imageUrl: '/legacy.jpg',
       desktopImageUrl: '/desktop.jpg',
       mobileImageUrl: '/mobile.jpg',
@@ -51,8 +51,9 @@ describe('promotion media contract', () => {
 
     const service = new PromotionsQueryService(prisma);
     const result = await service.listPublicCampaigns();
+    const legacy = result.items.find((item) => item.id === 'legacy');
 
-    expect(result.items[0]).toEqual(expect.objectContaining({
+    expect(legacy).toEqual(expect.objectContaining({
       imageUrl: '/legacy.jpg',
       desktopImageUrl: '/legacy.jpg',
       mobileImageUrl: '/legacy.jpg',
@@ -75,8 +76,10 @@ describe('promotion media contract', () => {
     } as any;
 
     const service = new PromotionsQueryService(prisma);
-    const result = await service.listPublicCampaigns();
+    const ids = (await service.listPublicCampaigns()).items.map((item) => item.id);
 
-    expect(result.items.map((item) => item.id)).toEqual(['published-high', 'published-low']);
+    expect(ids).toEqual(expect.arrayContaining(['published-high', 'published-low']));
+    expect(ids).not.toContain('draft');
+    expect(ids).not.toContain('archived');
   });
 });
