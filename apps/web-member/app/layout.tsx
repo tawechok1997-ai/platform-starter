@@ -121,8 +121,8 @@ import MemberRenderStabilityController from './components/member-render-stabilit
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
 import PublicLiveNavigationController from './components/public-live-navigation-controller';
 import PublicGameLoginController from './components/member-home/public-home-game-navigation-controller';
-import PublicDesktopViewportBootstrap from './components/public-desktop-viewport-bootstrap';
-import PublicMobileSourceHeader from './components/public-mobile-source-header';
+import PublicDesktopViewportBootstrapOwner from './components/public-desktop-viewport-bootstrap-owner';
+import PublicMobileSourceHeaderOwner from './components/public-mobile-source-header-owner';
 import SiteFaviconRuntime from './components/site-favicon-runtime';
 import UsageGuideController from './components/member-home/usage-guide-controller';
 import { MemberLocaleProvider } from './member-locale-provider';
@@ -145,9 +145,7 @@ const MEMBER_PREHYDRATION_SCRIPT = `(() => {
   root.dataset.memberSessionReady = 'false';
 
   const width = Math.max(1, root.clientWidth || window.innerWidth || 1);
-  const desktopPointer = window.matchMedia('(any-hover: hover), (any-pointer: fine)').matches;
-  const coarsePrimary = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-  const mobileOnly = coarsePrimary && !desktopPointer;
+  const mobileOnly = width <= 900;
 
   if (mobileOnly) {
     root.dataset.memberViewportMode = 'mobile';
@@ -195,7 +193,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <MemberSessionProvider>
               <MemberRuntimeProvider>
                 <MemberNavigationAuthController />
-                <PublicDesktopViewportBootstrap />
+                <PublicDesktopViewportBootstrapOwner />
                 <MemberRenderStabilityController />
                 <MemberClientNavigationController />
                 <MemberImageFallbackController />
@@ -204,7 +202,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <PublicDialogRuntimeController />
                 <PublicGameLoginController />
                 <UsageGuideController />
-                <PublicMobileSourceHeader />
+                <PublicMobileSourceHeaderOwner />
                 <div id="member-desktop-scale-shell">
                   <div id="member-desktop-scale-canvas">
                     <Suspense fallback={<main className="member-loading-screen" aria-hidden="true" />}>

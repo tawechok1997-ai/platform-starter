@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import {
   CmsContent,
   MemberFeatureFlags,
@@ -43,7 +43,7 @@ export default function MemberHome(props: MemberHomeProps) {
   const features = props.features ?? defaultFeatureFlags;
   const icons = props.icons ?? defaultIconSettings;
   const [popupClosed, setPopupClosed] = useState(false);
-  const [viewportMode, setViewportMode] = useState<ViewportMode>('desktop');
+  const [viewportMode, setViewportMode] = useState<ViewportMode | null>(null);
   const popupVersion = props.cmsContent.popup.version ?? 'v1';
   const data = useMemberHomeData(features.games);
   const gameSections = {
@@ -57,7 +57,7 @@ export default function MemberHome(props: MemberHomeProps) {
     setPopupClosed(readClosedPopupVersion() === popupVersion);
   }, [popupVersion]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const media = window.matchMedia(MOBILE_HOME_QUERY);
     const syncViewport = () => setViewportMode(media.matches ? 'mobile' : 'desktop');
 
@@ -73,7 +73,7 @@ export default function MemberHome(props: MemberHomeProps) {
 
   const openHomePopup = (kind: HomePopupKind) => () => openMemberSharedPopup(kind);
 
-  let homeContent: ReactNode;
+  let homeContent: ReactNode = null;
   if (viewportMode === 'mobile') {
     homeContent = (
       <MobileSourceHomeShell>
@@ -86,7 +86,7 @@ export default function MemberHome(props: MemberHomeProps) {
         />
       </MobileSourceHomeShell>
     );
-  } else {
+  } else if (viewportMode === 'desktop') {
     homeContent = (
       <DesktopHomeScaffold
         content={props.cmsContent}
@@ -106,8 +106,12 @@ export default function MemberHome(props: MemberHomeProps) {
   return (
     <>
       {homeContent}
-      <MemberHomeRuntimeController />
-      <MemberGameSectionRuntimeController />
+      {viewportMode === 'desktop' ? (
+        <>
+          <MemberHomeRuntimeController />
+          <MemberGameSectionRuntimeController />
+        </>
+      ) : null}
       {props.cmsContent.popup.enabled && !popupClosed ? (
         <CmsPopup content={props.cmsContent} primaryColor={props.primaryColor} onClose={closePopup} />
       ) : null}

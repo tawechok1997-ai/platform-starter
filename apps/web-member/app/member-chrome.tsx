@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ReactNode, useCallback, useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { MemberFeatureFlags } from './site-settings';
 import type { MemberNavigationItem } from './member-runtime-contract';
@@ -20,6 +20,7 @@ import PublicAuthenticatedActions from './components/public-authenticated-action
 import MemberSharedPopupRuntime from './components/member-shared-popup-runtime';
 
 type PublicNavKey = 'home' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery' | 'live';
+type ChromeViewport = 'mobile' | 'desktop';
 
 const PUBLIC_COPY: Record<MemberLocale, {
   changeLanguage: string;
@@ -57,6 +58,7 @@ const PUBLIC_COPY: Record<MemberLocale, {
 };
 
 const STANDALONE_PUBLIC_PREFIXES = ['/clone-preview', '/login', '/register', '/maintenance', '/session-expired'];
+const MOBILE_CHROME_QUERY = '(max-width: 900px)';
 
 export default function MemberChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/';
@@ -64,6 +66,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [authModeOverride, setAuthModeOverride] = useState<MemberAuthMode | null>(null);
   const [missionOpen, setMissionOpen] = useState(false);
+  const [viewportMode, setViewportMode] = useState<ChromeViewport | null>(null);
   const { locale, toggleLocale } = useMemberLocale();
   const copy = PUBLIC_COPY[locale];
   const { typedSettings } = useSiteSettings();
@@ -115,6 +118,15 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
   }, [router, verify]);
 
+  useLayoutEffect(() => {
+    const media = window.matchMedia(MOBILE_CHROME_QUERY);
+    const syncViewport = () => setViewportMode(media.matches ? 'mobile' : 'desktop');
+
+    syncViewport();
+    media.addEventListener?.('change', syncViewport);
+    return () => media.removeEventListener?.('change', syncViewport);
+  }, []);
+
   useEffect(() => {
     if (!ready) return;
     if (currentRule?.authRedirectHome && isLoggedIn) {
@@ -142,31 +154,33 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <PublicHomeHeader
-        logoUrl={logoUrl}
-        brandMark={brandMark}
-        features={features}
-        navigation={runtime.navigation}
-        missionIcon={runtime.icons.mission}
-        pathname={pathname}
-        locale={locale}
-        ready={ready}
-        isLoggedIn={isLoggedIn}
-        siteName={website.site_name}
-        walletLoading={walletLoading}
-        compactWalletBalance={compactWalletBalance}
-        pendingCount={runtime.summary.pendingCount}
-        activeCategory={activeCategory}
-        logout={logout}
-        onToggleLocale={toggleLocale}
-        onOpenLogin={() => setAuthModeOverride('login')}
-        onOpenRegister={() => setAuthModeOverride('register')}
-        onOpenMission={() => setMissionOpen(true)}
-      />
+      {viewportMode === 'desktop' ? (
+        <PublicHomeHeader
+          logoUrl={logoUrl}
+          brandMark={brandMark}
+          features={features}
+          navigation={runtime.navigation}
+          missionIcon={runtime.icons.mission}
+          pathname={pathname}
+          locale={locale}
+          ready={ready}
+          isLoggedIn={isLoggedIn}
+          siteName={website.site_name}
+          walletLoading={walletLoading}
+          compactWalletBalance={compactWalletBalance}
+          pendingCount={runtime.summary.pendingCount}
+          activeCategory={activeCategory}
+          logout={logout}
+          onToggleLocale={toggleLocale}
+          onOpenLogin={() => setAuthModeOverride('login')}
+          onOpenRegister={() => setAuthModeOverride('register')}
+          onOpenMission={() => setMissionOpen(true)}
+        />
+      ) : null}
 
       <div className="public-game-shell member-persistent-shell" data-route={pathname}>
         <div className="public-game-shell__content member-persistent-shell__body">{bodyContent}</div>
-        <DesktopAllianceBand />
+        {viewportMode === 'desktop' ? <DesktopAllianceBand /> : null}
       </div>
 
       <MemberFooter settings={typedSettings} />

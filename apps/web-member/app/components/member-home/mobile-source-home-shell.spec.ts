@@ -26,8 +26,10 @@ test('mobile source home preserves separate Desktop and Mobile promotion assets'
   assert.match(promotionRuntime, /campaign\.mobileImageUrl/);
   assert.match(promotionRuntime, /campaign\.desktopImageUrl/);
   assert.doesNotMatch(promotionRuntime, /desktopImageUrl:\s*image,\s*mobileImageUrl:\s*image/);
-  assert.match(shellSource, /memberPromotionImageForViewport\(promotion, 'mobile'\)/);
+  assert.match(shellSource, /const image = promotion\.mobileImageUrl \|\| fallback/);
+  assert.doesNotMatch(shellSource, /promotion\.desktopImageUrl\s*\|\|/);
   assert.match(shellSource, /applyMobilePromotionFallback/);
+  assert.match(shellSource, /dedupePromotionCampaigns/);
   assert.match(shellSource, /isSameSourceAsset/);
 });
 
@@ -66,6 +68,7 @@ test('mobile source home uses shared Member runtime data for announcements and n
   assert.match(shellSource, /useMemberRuntime/);
   assert.match(shellSource, /home\.announcement/);
   assert.match(shellSource, /navigation\.filter/);
+  assert.match(shellSource, /new Map\(mobileItems\.map/);
   assert.match(shellSource, /features\.registration/);
   assert.match(shellSource, /features\.login/);
 });
@@ -105,11 +108,14 @@ test('mobile source footer is standalone and uses verified local assets', () => 
   assert.match(footerCss, /\.mobileRoot\s*\{[\s\S]*?max-width:\s*428px/);
 });
 
-test('mobile home mounts the source component directly instead of wrapping the old V47 scaffold', () => {
+test('mobile home mounts one viewport source instead of wrapping the old V47 scaffold', () => {
+  assert.match(homeSource, /viewportMode === 'mobile'/);
   assert.match(homeSource, /<MobileSourceHomeShell>/);
   assert.match(homeSource, /<MobileSourceHomeContent/);
   assert.doesNotMatch(homeSource, /<MobileV47Scaffold/);
+  assert.match(homeSource, /viewportMode === 'desktop'/);
   assert.match(homeSource, /<DesktopHomeScaffold/);
+  assert.match(homeSource, /viewportMode === 'desktop' \? \(/);
 });
 
 test('mobile source content follows the supplied section order and removes extra blocks', () => {
@@ -130,9 +136,11 @@ test('mobile source content follows the supplied section order and removes extra
   assert.doesNotMatch(contentSource, /Mini Game/);
   assert.doesNotMatch(contentSource, /miniGames/);
   assert.doesNotMatch(contentSource, /onOpenNews/);
-  assert.match(contentSource, /fillGames\(games\.popular, allGames, 3\)/);
-  assert.match(contentSource, /fillGames\(allGames\.slice\(2\), allGames, 5\)/);
-  assert.match(contentSource, /fillGames\(allGames\.slice\(8\), allGames, 2\)/);
+  assert.match(contentSource, /const usedGameKeys = new Set<string>\(\)/);
+  assert.match(contentSource, /takeUniqueGames\(games\.popular, allGames, 3, usedGameKeys\)/);
+  assert.match(contentSource, /takeUniqueGames\(allGames, allGames, 5, usedGameKeys\)/);
+  assert.match(contentSource, /takeUniqueGames\(allGames, allGames, 2, usedGameKeys\)/);
+  assert.match(contentSource, /uniqueLeaderboard\(leaderboardSource\)/);
 });
 
 test('mobile source geometry keeps the source canvas, promotion ratio and featured online layout', () => {
