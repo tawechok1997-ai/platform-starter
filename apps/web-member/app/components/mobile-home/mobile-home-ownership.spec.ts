@@ -19,7 +19,9 @@ test('mobile home has exactly one render owner', () => {
 });
 
 test('mobile motion runtime adds behavior without rendering another UI owner', () => {
-  assert.equal((memberHome.match(/<MobileHomeMotionRuntime\s*\/>/g) ?? []).length, 1);
+  assert.equal((memberHome.match(/<MobileHomeMotionRuntime\s+contentVersion=/g) ?? []).length, 1);
+  assert.match(memberHome, /mobileHomeMotionVersion\(props\.cmsContent\)/);
+  assert.match(mobileMotionRuntime, /\[contentVersion\]/);
   assert.match(mobileMotionRuntime, /return null;/);
   assert.doesNotMatch(mobileMotionRuntime, /data-ui-owner=/);
   assert.doesNotMatch(mobileMotionRuntime, /MutationObserver/);
@@ -91,11 +93,13 @@ test('mobile announcements come from central CMS and scroll continuously at runt
   assert.match(mobileRoot, /content\.announcements\.forEach/);
   assert.match(mobileRoot, /seenMessages\.has\(message\)/);
   assert.equal((mobileRoot.match(/data-mobile-announcement-track="true"/g) ?? []).length, 1);
+  assert.match(memberHome, /mobileHomeMotionVersion/);
   assert.match(mobileMotionRuntime, /ANNOUNCEMENT_SPEED_PX_PER_SECOND/);
-  assert.match(mobileMotionRuntime, /viewport\.scrollLeft \+=/);
+  assert.match(mobileMotionRuntime, /offset = \(offset \+ \(speed \* elapsed\) \/ 1000\) % loopWidth/);
+  assert.match(mobileMotionRuntime, /track\.style\.transform = `translate3d\(-\$\{offset\.toFixed\(3\)\}px/);
   assert.match(mobileMotionRuntime, /window\.requestAnimationFrame\(tick\)/);
-  assert.match(mobileMotionRuntime, /viewport\.scrollLeft -= loopWidth/);
   assert.match(mobileMotionRuntime, /new ResizeObserver\(syncSetWidths\)/);
+  assert.doesNotMatch(mobileMotionRuntime, /viewport\.scrollLeft \+=/);
 });
 
 test('mobile bottom structure has one shortcut and one footer owner', () => {
