@@ -8,7 +8,6 @@ import {
   useState,
   type CSSProperties,
   type FocusEvent as ReactFocusEvent,
-  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
@@ -271,28 +270,16 @@ export function DesktopHeroCarousel({ content, siteName, showPromotion }: Deskto
     if (!event.currentTarget.contains(event.relatedTarget)) setHasFocus(false);
   };
 
-  const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
-    if (event.key === 'ArrowLeft') {
-      event.preventDefault();
-      moveBy(-1);
-    } else if (event.key === 'ArrowRight') {
-      event.preventDefault();
-      moveBy(1);
-    }
-  };
-
   if (!showPromotion || realCount === 0) return null;
 
   return <section
     className="reference-hero-carousel"
     aria-label={copy.region}
     aria-roledescription="carousel"
-    tabIndex={0}
-    onMouseEnter={() => setIsHovering(true)}
-    onMouseLeave={() => setIsHovering(false)}
+    onPointerEnter={() => setIsHovering(true)}
+    onPointerLeave={() => setIsHovering(false)}
     onFocusCapture={() => setHasFocus(true)}
     onBlurCapture={onBlurCapture}
-    onKeyDown={onKeyDown}
     onPointerDown={onPointerDown}
     onPointerMove={onPointerMove}
     onPointerUp={finishPointer}
