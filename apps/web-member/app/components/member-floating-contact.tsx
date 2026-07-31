@@ -1,14 +1,27 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useMemberContactRuntime } from '../member-settings-runtime';
 import '../member-floating-contact.css';
 
 const CONTACT_ICON_URL = '/assets/asset-pc/images/footer/contact/icon-open-gold.webp';
+const MOBILE_QUERY = '(max-width: 900px)';
 
 export default function MemberFloatingContact() {
+  const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const { primary } = useMemberContactRuntime();
+
+  useEffect(() => {
+    const media = window.matchMedia(MOBILE_QUERY);
+    const syncViewport = () => setIsMobile(media.matches);
+
+    syncViewport();
+    media.addEventListener?.('change', syncViewport);
+    return () => media.removeEventListener?.('change', syncViewport);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -20,6 +33,8 @@ export default function MemberFloatingContact() {
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [open]);
+
+  if (pathname === '/' && isMobile !== false) return null;
 
   return (
     <aside
