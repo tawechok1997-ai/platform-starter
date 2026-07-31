@@ -6,6 +6,15 @@ const overlays = fs.readFileSync('packages/design-tokens/overlays.css', 'utf8');
 const adminLayout = fs.readFileSync('apps/web-admin/app/layout.tsx', 'utf8');
 const memberLayout = fs.readFileSync('apps/web-member/app/layout.tsx', 'utf8');
 const memberChrome = fs.readFileSync('apps/web-member/app/member-chrome.tsx', 'utf8');
+const mobileHeader = fs.readFileSync('apps/web-member/app/components/public-mobile-source-header.tsx', 'utf8');
+
+const legacyNavigationContract = memberChrome.includes('PUBLIC_HOME_NAV.map');
+const runtimeNavigationContract = [
+  memberChrome.includes('navigation={runtime.navigation}'),
+  memberChrome.includes('navigation.filter((item) => item.desktop).map'),
+  mobileHeader.includes('runtime.navigation.filter'),
+  mobileHeader.includes('item.mobile'),
+].every(Boolean);
 
 const checks = [
   ['shared container', responsive.includes('.ui-container')],
@@ -19,7 +28,12 @@ const checks = [
   ['member imports responsive source', memberLayout.includes('packages/design-tokens/responsive-layout.css')],
   ['table to card contract', dataDisplay.includes('.ui-table[data-mobile="cards"]') && dataDisplay.includes('content: attr(data-label)')],
   ['modal to bottom sheet contract', overlays.includes('@media (max-width: 767px)') && overlays.includes('bottom: 0') && overlays.includes('border-radius: var(--radius-modal) var(--radius-modal) 0 0')],
-  ['member navigation contract', memberChrome.includes('PUBLIC_HOME_NAV.map') && memberChrome.includes('public-home-desktop-bar') && memberChrome.includes('member-desktop-nav')],
+  [
+    'member navigation contract',
+    (legacyNavigationContract || runtimeNavigationContract)
+      && memberChrome.includes('public-home-desktop-bar')
+      && memberChrome.includes('member-desktop-nav'),
+  ],
   ['responsive sidebar width contract', responsive.includes('.ui-responsive-sidebar') && responsive.includes('--layout-drawer-width')],
 ];
 
