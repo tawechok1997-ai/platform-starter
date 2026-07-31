@@ -92,7 +92,7 @@ test('mobile source footer is standalone and uses only its CDN source assets', (
 
   assert.match(footerSource, /const MOBILE_CDN_ROOT = 'https:\/\/cdn\.zabbet\.com\/FEZX'/);
   assert.match(footerSource, /<MobileSourceFooter \/>/);
-  assert.match(footerSource, /MOBILE_CDN_ROOT}\\/banks\/TH/);
+  assert.ok(footerSource.includes('${MOBILE_CDN_ROOT}/banks/TH/${name}.webp'));
   assert.match(mobileFooterSource, /footer\/gamecare\.webp/);
   assert.match(footerSource, /footer\/BBM-Cert\.webp/);
   assert.match(footerSource, /footer\/GO%20DADDY\.webp/);
