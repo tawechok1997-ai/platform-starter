@@ -56,7 +56,7 @@ export default function MemberHome(props: MemberHomeProps) {
     return (
       <>
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
-        <MobileHomeMotionRuntime />
+        <MobileHomeMotionRuntime contentVersion={mobileHomeMotionVersion(props.cmsContent)} />
       </>
     );
   }
@@ -109,6 +109,30 @@ function DesktopMemberHome(props: MemberHomeProps) {
       ) : null}
     </>
   );
+}
+
+function mobileHomeMotionVersion(content: CmsContent) {
+  const banners = content.banners.map((banner) => [
+    banner.id ?? '',
+    banner.enabled ? '1' : '0',
+    banner.lifecycle ?? '',
+    banner.mobileAssetId ?? '',
+    banner.mobileImageUrl ?? '',
+    banner.desktopAssetId ?? '',
+    banner.desktopImageUrl ?? '',
+    banner.assetId ?? '',
+    banner.imageUrl ?? '',
+  ].join(':'));
+
+  const announcements = content.announcements.map((announcement) => [
+    announcement.id ?? '',
+    announcement.enabled ? '1' : '0',
+    announcement.lifecycle ?? '',
+    announcement.title,
+    announcement.message,
+  ].join(':'));
+
+  return [...banners, ...announcements].join('|');
 }
 
 function readClosedPopupVersion() {
