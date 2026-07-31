@@ -17,6 +17,18 @@ async function replace(path, search, replacement, { required = true } = {}) {
   updated.push(path);
 }
 
+async function removeBetween(path, startMarker, endMarker) {
+  const absolute = join(root, path);
+  const source = await readFile(absolute, 'utf8');
+  const start = source.indexOf(startMarker);
+  if (start < 0) return;
+  const end = source.indexOf(endMarker, start + startMarker.length);
+  if (end < 0) throw new Error(`${path}: end marker not found for removal`);
+  const next = source.slice(0, start) + source.slice(end);
+  await writeFile(absolute, next, 'utf8');
+  updated.push(path);
+}
+
 const activePnpmFiles = execFileSync('git', ['grep', '-Il', '11.13.0', '--', '.'], {
   cwd: root,
   encoding: 'utf8',
@@ -54,6 +66,11 @@ await replace(
   'docs/master-project-worklist.md',
   '# P0 — Core, schema และ financial safety\n',
   `## Repository hardening baseline — 2026-07-31\n\n- [x] Production build paths เป็น check-only และไม่แก้ tracked source/assets\n- [x] API bootstrap, \`/health\` และ \`/version\` commit identity gate ใน CI\n- [x] Admin/Member browser security headers และ environment-scoped CSP\n- [x] Legacy executable public assets ถูก quarantine และมี automated audit\n- [x] Shared API response cache แยกตาม actor/session namespace\n- [x] Runtime environment, onboarding, troubleshooting และ handoff docs เป็นปัจจุบัน\n- [x] Generated provider catalog headers ถูก normalize ใน source จริง\n- [x] Demo Tournament data ปิดเป็นค่าเริ่มต้นใน production และต้องเปิดด้วย explicit flag\n\n**หลักฐาน:** \`docs/evidence/project-hardening-2026-07-31.md\`, \`docs/security/public-assets.md\`, \`docs/operations/repository-size-migration.md\`\n\n---\n\n# P0 — Core, schema และ financial safety\n`,
+);
+await removeBetween(
+  'apps/api/src/modules/money-ops/money-ops.service.ts',
+  '  async financeControlCenter() {\n',
+  '  simulateLedgerMutation(body: LedgerDryRunInput)',
 );
 
 console.log(`One-time project hardening finalizer updated ${updated.length} files:`);
