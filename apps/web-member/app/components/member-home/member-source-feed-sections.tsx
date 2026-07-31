@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { memberApiFetch } from '../../member-api';
+import { useMemberLocale, type MemberLocale } from '../../member-locale-provider';
 import { hideDecorativeImage } from '../image-fallback';
 import { V47_ASSETS } from './v47-asset-map';
 
@@ -41,12 +42,49 @@ type CatalogPayload = {
   data?: CatalogGame[] | null;
 };
 
+type LocalizedText = Record<MemberLocale, string>;
+
 type LiveItem = {
-  league: string;
-  home: string;
-  away: string;
+  league: LocalizedText;
+  home: LocalizedText;
+  away: LocalizedText;
   homeLogo: string;
   awayLogo: string;
+};
+
+const FEED_COPY: Record<MemberLocale, {
+  popularTitle: string;
+  onlineTitle: string;
+  onlineNotice: string;
+  liveTitle: string;
+  liveNotice: string;
+  sample: string;
+  simulatedSchedule: string;
+  watchSports: string;
+  chooseSports: string;
+}> = {
+  th: {
+    popularTitle: '10 เกมยอดนิยม',
+    onlineTitle: 'ผู้เล่นออนไลน์สูงสุด',
+    onlineNotice: 'จำนวนผู้เล่นโดยประมาณ',
+    liveTitle: 'ตารางการแข่งขัน',
+    liveNotice: 'ข้อมูลตัวอย่าง ไม่ใช่รายการสด',
+    sample: 'ตัวอย่าง',
+    simulatedSchedule: 'กำหนดการจำลอง',
+    watchSports: 'ดูหมวดกีฬา',
+    chooseSports: 'เลือกเกมกีฬา',
+  },
+  en: {
+    popularTitle: 'Top 10 Popular Games',
+    onlineTitle: 'Most Online Now',
+    onlineNotice: 'Estimated player count',
+    liveTitle: 'Match Schedule',
+    liveNotice: 'Sample data, not live fixtures',
+    sample: 'Sample',
+    simulatedSchedule: 'Simulated schedule',
+    watchSports: 'View sports category',
+    chooseSports: 'Choose a sports game',
+  },
 };
 
 const FALLBACK_GAMES: LobbyGame[] = [
@@ -63,12 +101,48 @@ const FALLBACK_GAMES: LobbyGame[] = [
 ];
 
 const LIVE_ITEMS: LiveItem[] = [
-  { league: 'เดนมาร์ก - ซูเปอร์ลีกา', home: 'แรนเดอร์ส', away: 'ซิลเคบอร์ก', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
-  { league: 'นอร์เวย์ - ทิปเปลีเก้น', home: 'โรเซนบอร์ก', away: 'เฟรดริคสตัด', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
-  { league: 'สวีเดน - อัลสเวนส์คาน', home: 'ฮัคเค่น', away: 'เอไอเค โซลน่า', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
-  { league: 'ฮังการี - เอ็นบี ไอ', home: 'เอ็มทีเค บูดาเปสต์', away: 'ซาเลเกอร์สเซ็ก ทีอี', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
-  { league: 'โรมาเนีย - ลีกา 1', home: 'โบโตซานี่', away: 'ราปิด บูคาเรสต์', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
-  { league: 'เอกวาดอร์ - เซเรีย อา', home: 'มูชุค รูน่า', away: 'Libertad', homeLogo: V47_ASSETS.live, awayLogo: V47_ASSETS.tournament },
+  {
+    league: { th: 'เดนมาร์ก - ซูเปอร์ลีกา', en: 'Denmark - Superliga' },
+    home: { th: 'แรนเดอร์ส', en: 'Randers' },
+    away: { th: 'ซิลเคบอร์ก', en: 'Silkeborg' },
+    homeLogo: V47_ASSETS.live,
+    awayLogo: V47_ASSETS.tournament,
+  },
+  {
+    league: { th: 'นอร์เวย์ - ทิปเปลีเก้น', en: 'Norway - Eliteserien' },
+    home: { th: 'โรเซนบอร์ก', en: 'Rosenborg' },
+    away: { th: 'เฟรดริคสตัด', en: 'Fredrikstad' },
+    homeLogo: V47_ASSETS.live,
+    awayLogo: V47_ASSETS.tournament,
+  },
+  {
+    league: { th: 'สวีเดน - อัลสเวนส์คาน', en: 'Sweden - Allsvenskan' },
+    home: { th: 'ฮัคเค่น', en: 'Häcken' },
+    away: { th: 'เอไอเค โซลน่า', en: 'AIK Solna' },
+    homeLogo: V47_ASSETS.live,
+    awayLogo: V47_ASSETS.tournament,
+  },
+  {
+    league: { th: 'ฮังการี - เอ็นบี ไอ', en: 'Hungary - NB I' },
+    home: { th: 'เอ็มทีเค บูดาเปสต์', en: 'MTK Budapest' },
+    away: { th: 'ซาเลเกอร์สเซ็ก ทีอี', en: 'Zalaegerszegi TE' },
+    homeLogo: V47_ASSETS.live,
+    awayLogo: V47_ASSETS.tournament,
+  },
+  {
+    league: { th: 'โรมาเนีย - ลีกา 1', en: 'Romania - Liga I' },
+    home: { th: 'โบโตซานี่', en: 'Botoșani' },
+    away: { th: 'ราปิด บูคาเรสต์', en: 'Rapid București' },
+    homeLogo: V47_ASSETS.live,
+    awayLogo: V47_ASSETS.tournament,
+  },
+  {
+    league: { th: 'เอกวาดอร์ - เซเรีย อา', en: 'Ecuador - Serie A' },
+    home: { th: 'มูชุค รูน่า', en: 'Mushuc Runa' },
+    away: { th: 'ลิเบร์ตาด', en: 'Libertad' },
+    homeLogo: V47_ASSETS.live,
+    awayLogo: V47_ASSETS.tournament,
+  },
 ];
 
 let lobbyGamesRequest: Promise<LobbyGame[]> | null = null;
@@ -326,13 +400,15 @@ function SourceHeading({ title, icon, iconSize = 25, notice }: { title: string; 
 }
 
 export function SourcePopularSection() {
+  const { locale } = useMemberLocale();
+  const copy = FEED_COPY[locale];
   const { items: games, reject } = useRenderableGames(10, 'popular');
 
   return (
     <section className="source-feed-host source-feed-host--popular" data-section-kind="popular" data-content-state="catalog">
       <div className="member-source-feed-mount member-source-feed-mount--popular">
         <div className="source-feed-section source-popular-section">
-          <SourceHeading title="Top 10 Popular Games" icon="/assets/asset-pc/images/highlight/icongamehit.webp" iconSize={24} />
+          <SourceHeading title={copy.popularTitle} icon="/assets/asset-pc/images/highlight/icongamehit.webp" iconSize={24} />
           <div className="source-popular-track" data-drag-scroll="true">
             {games.map((item, index) => (
               <a key={gameKey(item)} className="source-popular-card" href={gameHref(item)} title={item.name}>
@@ -360,13 +436,15 @@ export function SourcePopularSection() {
 }
 
 export function SourceOnlineSection() {
+  const { locale } = useMemberLocale();
+  const copy = FEED_COPY[locale];
   const { items: games, reject } = useRenderableGames(6, 'online');
 
   return (
     <section className="source-feed-host source-feed-host--online" data-section-kind="online" data-content-state="catalog">
       <div className="member-source-feed-mount member-source-feed-mount--online">
         <div className="source-feed-section source-online-section">
-          <SourceHeading title="Most Online Now" icon="/assets/asset-pc/images/home/mostonline1.webp" notice="จำนวนผู้เล่นโดยประมาณ" />
+          <SourceHeading title={copy.onlineTitle} icon="/assets/asset-pc/images/home/mostonline1.webp" notice={copy.onlineNotice} />
           <div className="source-online-track" data-drag-scroll="true">
             {games.map((item) => (
               <a key={gameKey(item)} className="source-online-card" href={gameHref(item)} title={item.name}>
@@ -378,7 +456,7 @@ export function SourceOnlineSection() {
                     onError={() => reject(item)}
                   />
                 </span>
-                <span className="source-online-card__counter"><span className="source-online-card__counter-inner"><UserIcon /><strong>{item.players.toLocaleString('en-US')}</strong></span></span>
+                <span className="source-online-card__counter"><span className="source-online-card__counter-inner"><UserIcon /><strong>{item.players.toLocaleString(locale === 'th' ? 'th-TH' : 'en-US')}</strong></span></span>
               </a>
             ))}
           </div>
@@ -389,30 +467,38 @@ export function SourceOnlineSection() {
 }
 
 export function SourceLiveSection({ onAction }: { onAction: () => void }) {
+  const { locale } = useMemberLocale();
+  const copy = FEED_COPY[locale];
+
   return (
     <section className="source-feed-host source-feed-host--live" id="live" data-section-kind="live" data-content-state="demo">
       <div className="member-source-feed-mount member-source-feed-mount--live">
         <div className="source-feed-section source-live-section">
-          <SourceHeading title="ตารางการแข่งขัน" icon="/images/home/live1.webp" notice="ข้อมูลตัวอย่าง ไม่ใช่รายการสด" />
+          <SourceHeading title={copy.liveTitle} icon="/images/home/live1.webp" notice={copy.liveNotice} />
           <div className="source-live-track" data-drag-scroll="true">
-            {LIVE_ITEMS.map((match, index) => (
-              <article key={`${match.league}-${index}`} className="source-live-card">
-                <div className="source-live-card__inner">
-                  <div className="source-live-card__glow" aria-hidden="true" />
-                  <div className="source-live-card__content">
-                    <header className="source-live-card__header">
-                      <span className="source-live-card__league"><SoccerIcon /><span>{match.league}</span></span>
-                      <span className="source-live-card__status"><b>ตัวอย่าง</b><time>กำหนดการจำลอง</time></span>
-                    </header>
-                    <div className="source-live-card__teams"><Team logo={match.homeLogo} name={match.home} /><strong>VS</strong><Team logo={match.awayLogo} name={match.away} /></div>
-                    <footer className="source-live-card__actions">
-                      <button type="button" className="source-live-card__watch" onClick={onAction}><LiveIcon /><span>ดูหมวดกีฬา</span></button>
-                      <button type="button" className="source-live-card__bet" onClick={onAction}>เลือกเกมกีฬา</button>
-                    </footer>
+            {LIVE_ITEMS.map((match, index) => {
+              const league = match.league[locale];
+              const home = match.home[locale];
+              const away = match.away[locale];
+              return (
+                <article key={`${match.league.en}-${index}`} className="source-live-card">
+                  <div className="source-live-card__inner">
+                    <div className="source-live-card__glow" aria-hidden="true" />
+                    <div className="source-live-card__content">
+                      <header className="source-live-card__header">
+                        <span className="source-live-card__league"><SoccerIcon /><span>{league}</span></span>
+                        <span className="source-live-card__status"><b>{copy.sample}</b><time>{copy.simulatedSchedule}</time></span>
+                      </header>
+                      <div className="source-live-card__teams"><Team logo={match.homeLogo} name={home} /><strong>VS</strong><Team logo={match.awayLogo} name={away} /></div>
+                      <footer className="source-live-card__actions">
+                        <button type="button" className="source-live-card__watch" onClick={onAction}><LiveIcon /><span>{copy.watchSports}</span></button>
+                        <button type="button" className="source-live-card__bet" onClick={onAction}>{copy.chooseSports}</button>
+                      </footer>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         </div>
       </div>
