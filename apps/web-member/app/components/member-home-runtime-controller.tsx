@@ -21,7 +21,7 @@ export default function MemberHomeRuntimeController() {
       syncAnnouncement(runtime);
       syncQuickActions(runtime.home.quickActions);
       syncTournament(runtime);
-      syncTournamentBoards(runtime.homeData.tournaments, runtime.features.tournament && runtime.features.activity);
+      syncTournamentBoards(runtime.homeData.tournaments, runtime.features.tournament);
       syncJackpot(runtime);
       syncLeaderboard(runtime.homeData.leaderboard, runtime.home.leaderboard.title, runtime.home.leaderboard.enabled);
       syncMiniGames(runtime.homeData.miniGames, runtime.features.miniGames);
@@ -89,10 +89,11 @@ function syncQuickActions(items: MemberQuickActionRuntime[]) {
 
 function syncTournament(runtime: ReturnType<typeof useMemberRuntime>) {
   const item = runtime.home.tournament;
-  const enabled = runtime.features.tournament && runtime.features.activity;
+  const enabled = runtime.features.tournament;
   document.querySelectorAll<HTMLElement>('.reference-tournament-cta, .v47-mobile-tournament-banner').forEach((element) => {
     element.hidden = !enabled;
     element.dataset.runtimeContentId = item.id;
+    element.dataset.runtimeSource = 'desktop-primary';
     if (element instanceof HTMLAnchorElement && item.href) element.href = item.href;
     setWithinImage(element, 'img', item.image);
     setWithinText(element, 'small', item.summary);
@@ -110,6 +111,7 @@ function syncTournamentBoards(items: MemberTournamentRuntime[], enabled: boolean
     slide.hidden = !enabled || !tournament;
     if (!tournament) return;
     slide.dataset.runtimeTournamentId = tournament.id;
+    slide.dataset.runtimeSource = 'desktop-primary';
     setWithinText(slide, '.source-tournament__title-row > strong', tournament.title);
     setWithinText(slide, '.source-tournament__status-row > span', tournament.status);
     const link = slide.querySelector<HTMLAnchorElement>('.source-tournament__all-button');
@@ -142,6 +144,7 @@ function syncTournamentBoards(items: MemberTournamentRuntime[], enabled: boolean
   mobilePanel.hidden = !enabled || !primary;
   if (!primary) return;
   mobilePanel.dataset.runtimeTournamentId = primary.id;
+  mobilePanel.dataset.runtimeSource = 'desktop-primary';
   setWithinText(mobilePanel, '.v47-mobile-rank-title strong', primary.title);
   const link = mobilePanel.querySelector<HTMLAnchorElement>('.v47-mobile-rank-title a');
   if (link && link.href !== absolute(primary.href)) link.href = primary.href;
