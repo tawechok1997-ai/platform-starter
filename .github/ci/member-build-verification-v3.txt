@@ -1,0 +1,1 @@
+Verify Member typecheck, build, architecture, UI quality, visual regression, and production deployment after runtime contract and circular dependency fixes.
