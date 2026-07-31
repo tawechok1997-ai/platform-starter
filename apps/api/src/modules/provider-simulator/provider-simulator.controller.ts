@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Req, Res, ServiceUnavailableException } from '@nestjs/common';
 import { ProviderSimulatorGameTransactionDto } from './dto/provider-simulator-game-transaction.dto';
 import {
   ProviderSimulatorBalanceRequestDto,
@@ -93,11 +93,8 @@ export class ProviderSimulatorController {
     @Req() request: ProviderSimulatorRequest,
   ) {
     await this.authenticate(headers, body, 'games');
-    const forwardedProto = String(request.headers['x-forwarded-proto'] ?? request.protocol ?? 'http').split(',')[0].trim();
-    const forwardedHost = String(request.headers['x-forwarded-host'] ?? request.headers.host ?? 'localhost:4000').split(',')[0].trim();
-    const configuredBaseUrl = process.env.API_PUBLIC_URL?.replace(/\/$/, '');
     const platform = body.platform === 'pc' ? 'desktop' : body.platform;
-    return this.simulator.games(configuredBaseUrl || `${forwardedProto}://${forwardedHost}`, { ...body, platform });
+    return this.simulator.games(this.publicBaseUrl(request), { ...body, platform });
   }
 
   @Post('bet-history')
@@ -118,6 +115,43 @@ export class ProviderSimulatorController {
     response.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
     response.setHeader('Cache-Control', 'public, max-age=86400, immutable');
     response.send(this.simulator.icon(gameCode));
+  }
+
+  private publicBaseUrl(request: ProviderSimulatorRequest) {
+    const configured = process.env.API_PUBLIC_URL?.trim();
+    if (configured) return this.validateBaseUrl(configured, 'API_PUBLIC_URL');
+
+    if (process.env.NODE_ENV === 'production') {
+      throw new ServiceUnavailableException('API_PUBLIC_URL is required for provider simulator URLs in production');
+    }
+
+    const forwardedProto = String(request.headers['x-forwarded-proto'] ?? request.protocol ?? 'http')
+      .split(',')[0]
+      .trim()
+      .toLowerCase();
+    const forwardedHost = String(request.headers['x-forwarded-host'] ?? request.headers.host ?? 'localhost:4000')
+      .split(',')[0]
+      .trim()
+      .toLowerCase();
+
+    if (!['http', 'https'].includes(forwardedProto) || !/^[a-z0-9.-]+(?::\d{1,5})?$/.test(forwardedHost)) {
+      throw new ServiceUnavailableException('Provider simulator request host is invalid');
+    }
+
+    return this.validateBaseUrl(`${forwardedProto}://${forwardedHost}`, 'provider simulator request host');
+  }
+
+  private validateBaseUrl(value: string, label: string) {
+    try {
+      const parsed = new URL(value);
+      if (!['http:', 'https:'].includes(parsed.protocol) || !parsed.hostname) throw new Error('invalid');
+      parsed.pathname = parsed.pathname.replace(/\/$/, '');
+      parsed.search = '';
+      parsed.hash = '';
+      return parsed.toString().replace(/\/$/, '');
+    } catch {
+      throw new ServiceUnavailableException(`${label} must be an absolute HTTP(S) URL`);
+    }
   }
 
   private async authenticate(
