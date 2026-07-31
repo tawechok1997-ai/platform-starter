@@ -245,16 +245,16 @@
   .root :global(.member-footer__copyright-logo) {
     display: none !important;
   }
+}
 
-  @media (max-width: 340px) {
-    .root :global(.member-footer__bank img) {
-      height: 17px !important;
-      max-height: 17px !important;
-    }
+@media (max-width: 340px) {
+  .root :global(.member-footer__bank img) {
+    height: 17px !important;
+    max-height: 17px !important;
+  }
 
-    .root :global(.member-footer__trust-badge img),
-    .root :global(.member-footer__trust-primary .member-footer__trust-badge img) {
-      max-height: 18px !important;
-    }
+  .root :global(.member-footer__trust-badge img),
+  .root :global(.member-footer__trust-primary .member-footer__trust-badge img) {
+    max-height: 18px !important;
   }
 }
