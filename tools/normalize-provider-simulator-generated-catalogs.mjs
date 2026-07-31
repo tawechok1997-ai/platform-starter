@@ -10,6 +10,7 @@ const catalogDirectory = path.join(
 const catalogFilePattern = /^provider-simulator-lobby-catalog-part-\d{2}\.generated\.ts$/;
 const brokenHeader = "import type { SimulatorGameCatalogItem } from './provider-simulator-catalog';\\n\\nexport const ";
 const validHeader = "import type { SimulatorGameCatalogItem } from './provider-simulator-catalog';\n\nexport const ";
+const writeChanges = process.argv.includes('--write');
 
 const fileNames = (await readdir(catalogDirectory))
   .filter((fileName) => catalogFilePattern.test(fileName))
@@ -19,7 +20,7 @@ if (fileNames.length === 0) {
   throw new Error(`No generated lobby catalog parts found in ${catalogDirectory}`);
 }
 
-let normalizedCount = 0;
+const driftedFiles = [];
 
 for (const fileName of fileNames) {
   const filePath = path.join(catalogDirectory, fileName);
@@ -40,11 +41,18 @@ for (const fileName of fileNames) {
   }
 
   if (normalized !== source) {
-    await writeFile(filePath, normalized, 'utf8');
-    normalizedCount += 1;
+    driftedFiles.push(fileName);
+    if (writeChanges) await writeFile(filePath, normalized, 'utf8');
   }
 }
 
 console.log(
-  `Generated lobby catalog headers valid: ${fileNames.length}; normalized: ${normalizedCount}`,
+  `Generated lobby catalog headers valid: ${fileNames.length}; drifted: ${driftedFiles.length}; mode: ${writeChanges ? 'write' : 'check'}`,
 );
+
+if (driftedFiles.length > 0 && !writeChanges) {
+  console.error('\nGenerated catalog drift detected:');
+  for (const fileName of driftedFiles) console.error(`  - ${fileName}`);
+  console.error('\nRun `pnpm --filter @platform/api normalize:generated-catalogs` intentionally, review the diff, and commit it before building.');
+  process.exitCode = 1;
+}
