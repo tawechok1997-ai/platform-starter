@@ -42,8 +42,8 @@ test('extracts the final CDN filename from provider and gamecard URLs', () => {
     'dg.png',
   );
   assert.equal(
-    extractAssetBasename('https://cdn.zabbet.com/gamecard/af857d02-fde9-475e-bebb-94d19c9d5f52.png'),
-    'af857d02-fde9-475e-bebb-94d19c9d5f52.png',
+    extractAssetBasename('https://cdn.zabbet.com/gamecard/1696220882369-08f56f11-f604-4f39-a75f-98e9d185447f.png'),
+    '1696220882369-08f56f11-f604-4f39-a75f-98e9d185447f.png',
   );
 });
 
@@ -61,7 +61,7 @@ test('matches a CDN provider filename to the closest local asset path', () => {
 });
 
 test('matches UUID gamecard filenames without relying on provider names', () => {
-  const fileName = 'af857d02-fde9-475e-bebb-94d19c9d5f52.png';
+  const fileName = '1696220882369-08f56f11-f604-4f39-a75f-98e9d185447f.png';
   withAssetCandidates(fileName, [
     `/assets/asset-pc/images/gamecard/${fileName}`,
   ], () => {
@@ -100,15 +100,24 @@ test('generates a case-insensitive basename index by scanning all public assets 
 test('records all supplied category CDN assets and audits them against local files', () => {
   const catalog = JSON.parse(sourceCatalog) as {
     counts?: { entries?: number; uniqueBasenames?: number };
-    items?: Array<{ category?: string; sourceUrl?: string; fileName?: string }>;
+    categories?: Record<string, string[]>;
   };
+  const sourcePaths = Object.values(catalog.categories ?? {}).flat();
+  const uniqueBasenames = new Set(sourcePaths.map((value) => value.split('/').pop()?.toLowerCase()));
+
   assert.equal(catalog.counts?.entries, 84);
   assert.equal(catalog.counts?.uniqueBasenames, 82);
-  assert.equal(catalog.items?.length, 84);
-  assert.equal(catalog.items?.some((item) => item.sourceUrl?.includes('/providers/')), true);
-  assert.equal(catalog.items?.some((item) => item.sourceUrl?.includes('/gamecard/')), true);
+  assert.equal(sourcePaths.length, 84);
+  assert.equal(uniqueBasenames.size, 82);
+  assert.equal(sourcePaths.includes('/providers/set/1_1_h/dg.png'), true);
+  assert.equal(sourcePaths.includes('/providers/set/1_1_l/misoltfish.png'), true);
+  assert.equal(sourcePaths.includes('/providers/set/1_1_l/lali.png'), true);
+  assert.equal(sourcePaths.includes('/providers/set/1_1_h/lotmw.png'), true);
+  assert.equal(sourcePaths.some((value) => value.startsWith('/gamecard/')), true);
   assert.match(auditSource, /status:\s*candidates\.length \? 'matched' : 'missing'/);
   assert.match(auditSource, /source-cdn-asset-match-report\.json/);
+  assert.match(auditSource, /Catalog entry count drift/);
+  assert.match(auditSource, /Catalog basename count drift/);
 });
 
 test('refreshes the generated asset map before development and verification commands', () => {
