@@ -1,21 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { cmsResponsiveMediaUrls, type CmsContent } from '../../site-settings';
 import { useMemberLocale } from '../../member-locale-provider';
 import styles from './mobile-home-root.module.css';
 
 const SOURCE_ROOT = '/assets/asset-pc/images';
-const LOGO_URL = 'https://cdn.zabbet.com/FEZX/lobby_settings/9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png';
-const SHORTCUT_ART_URL = 'https://cdn.zabbet.com/FEZX/lobby_settings/fc6b7ea8-3eaf-47ec-8640-33c7138d3c7c.png';
-const SHORTCUT_ICON_URL = 'https://cdn.zabbet.com/FEZX/lobby_settings/083e4b9b-63aa-4825-a0e3-57a88de57e2f.ico';
-
-const HERO_SLIDES = [
-  'https://cdn.zabbet.com/FEZX/imageslides/1785515208075-2e3c49ad-afac-48e1-b855-5385734de314.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1785515227053-d641c984-ff02-40c9-a0cc-faa7d9abee9c.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1780250534847-0b47bd80-15a3-4117-bdd3-f383308509bc.jpg',
-  'https://cdn.zabbet.com/FEZX/imageslides/1778979600098-3be41f05-c93f-4c12-b278-54cfe390de4c.jpg',
-] as const;
+const LOBBY_ASSET_ROOT = `${SOURCE_ROOT}/FEZX/lobby_settings`;
+const LOGO_URL = `${LOBBY_ASSET_ROOT}/9ee1acbf-c1e2-44e9-bffd-3254ff56b5f7.png`;
+const SHORTCUT_ART_URL = `${LOBBY_ASSET_ROOT}/fc6b7ea8-3eaf-47ec-8640-33c7138d3c7c.png`;
+const SHORTCUT_ICON_URL = `${LOBBY_ASSET_ROOT}/083e4b9b-63aa-4825-a0e3-57a88de57e2f.ico`;
+const ANNOUNCEMENT_ICON_URL = `${SOURCE_ROOT}/home/coin.webp`;
 
 const PRIMARY_MENU = [
   ['ระดับสมาชิก VIP', '/profile'],
@@ -71,11 +67,25 @@ const SECURITY_BADGES = [
   ['Security Group', `${SOURCE_ROOT}/footer/Group%2048102721.webp`],
 ] as const;
 
-export default function MobileHomeRoot() {
+type MobileHomeRootProps = {
+  content: CmsContent;
+  showPromotion: boolean;
+};
+
+type MobileHeroSlide = {
+  id: string;
+  image: string;
+  href: string;
+  title: string;
+};
+
+export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRootProps) {
   const { locale, toggleLocale } = useMemberLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [activeTab, setActiveTab] = useState<(typeof HIGHLIGHT_TABS)[number]>('ไฮไลท์');
+  const heroSlides = useMemo(() => getMobileHeroSlides(content), [content]);
+  const announcementMessages = useMemo(() => getAnnouncementMessages(content), [content]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -93,6 +103,23 @@ export default function MobileHomeRoot() {
       window.removeEventListener('keydown', closeOnEscape);
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    setActiveSlide((current) => {
+      if (heroSlides.length === 0) return 0;
+      return Math.min(current, heroSlides.length - 1);
+    });
+  }, [heroSlides.length]);
+
+  useEffect(() => {
+    if (!showPromotion || heroSlides.length <= 1) return;
+
+    const timer = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % heroSlides.length);
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [heroSlides.length, showPromotion]);
 
   return (
     <main
@@ -126,12 +153,15 @@ export default function MobileHomeRoot() {
 
       <div
         className={`${styles.drawerBackdrop} ${menuOpen ? styles.drawerBackdropOpen : ''}`}
-        role="presentation"
         aria-hidden={!menuOpen}
-        onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setMenuOpen(false);
-        }}
       >
+        <button
+          type="button"
+          data-mobile-drawer-dismiss="true"
+          aria-label="ปิดเมนูสมาชิก"
+          tabIndex={menuOpen ? 0 : -1}
+          onClick={() => setMenuOpen(false)}
+        />
         <aside
           id="mobile-home-drawer"
           className={`${styles.drawer} ${menuOpen ? styles.drawerOpen : ''}`}
@@ -174,36 +204,60 @@ export default function MobileHomeRoot() {
       </div>
 
       <div className={styles.pageContent}>
-        <section className={styles.hero} data-mobile-section-owner="hero" aria-label="โปรโมชั่น">
-          <div className={styles.heroViewport}>
-            <div className={styles.heroTrack} style={{ transform: `translateX(-${activeSlide * 100}%)` }}>
-              {HERO_SLIDES.map((image, index) => (
-                <Link key={image} href={index === HERO_SLIDES.length - 1 ? '/promotions' : '#'} className={styles.heroSlide}>
-                  <span><img src={image} alt={`โปรโมชั่น ${index + 1}`} loading={index === 0 ? 'eager' : 'lazy'} /></span>
-                </Link>
-              ))}
+        {showPromotion && heroSlides.length > 0 ? (
+          <section className={styles.hero} data-mobile-section-owner="hero" aria-label="โปรโมชั่น">
+            <div className={styles.heroViewport}>
+              <div className={styles.heroTrack} style={{ transform: `translateX(-${activeSlide * 100}%)` }}>
+                {heroSlides.map((slide, index) => (
+                  <Link key={slide.id} href={slide.href} className={styles.heroSlide}>
+                    <span>
+                      <img src={slide.image} alt={slide.title || `โปรโมชั่น ${index + 1}`} loading={index === 0 ? 'eager' : 'lazy'} />
+                    </span>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
-          <div className={styles.heroDots} aria-label="เลือกโปรโมชั่น">
-            {HERO_SLIDES.map((image, index) => (
-              <button
-                key={image}
-                type="button"
-                className={index === activeSlide ? styles.heroDotActive : ''}
-                aria-label={`โปรโมชั่น ${index + 1}`}
-                aria-current={index === activeSlide ? 'true' : undefined}
-                onClick={() => setActiveSlide(index)}
-              />
-            ))}
-          </div>
-        </section>
+            {heroSlides.length > 1 ? (
+              <div className={styles.heroDots} aria-label="เลือกโปรโมชั่น">
+                {heroSlides.map((slide, index) => (
+                  <button
+                    key={slide.id}
+                    type="button"
+                    className={index === activeSlide ? styles.heroDotActive : ''}
+                    aria-label={slide.title || `โปรโมชั่น ${index + 1}`}
+                    aria-current={index === activeSlide ? 'true' : undefined}
+                    onClick={() => setActiveSlide(index)}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
 
-        <section className={styles.announcement} data-mobile-section-owner="announcement" aria-label="ประกาศ">
-          <span className={styles.announcementIcon} aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M4 10v4h3l4 4V6l-4 4H4Zm10.5-2.5a6 6 0 0 1 0 9M17 5a9.5 9.5 0 0 1 0 14" /></svg>
-          </span>
-          <span className={styles.announcementText}>ประกาศจากระบบ NOAH345</span>
-        </section>
+        {announcementMessages.length > 0 ? (
+          <section className={styles.announcement} data-mobile-section-owner="announcement" aria-label="ประกาศ">
+            <span className={styles.announcementIcon} aria-hidden="true">
+              <img src={ANNOUNCEMENT_ICON_URL} alt="" />
+            </span>
+            <div className={styles.announcementText} data-mobile-announcement-viewport="true">
+              <div data-mobile-announcement-track="true">
+                {[0, 1].map((copyIndex) => (
+                  <span
+                    key={copyIndex}
+                    data-mobile-announcement-set="true"
+                    aria-hidden={copyIndex === 1 ? true : undefined}
+                  >
+                    {announcementMessages.map((message, messageIndex) => (
+                      <span key={`${copyIndex}-${messageIndex}`} data-mobile-announcement-item="true">
+                        {message}
+                      </span>
+                    ))}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <nav className={styles.highlightTabs} data-mobile-section-owner="highlight-tabs" aria-label="หัวข้อหน้าแรก">
           {HIGHLIGHT_TABS.map((tab) => (
@@ -298,4 +352,47 @@ export default function MobileHomeRoot() {
       </div>
     </main>
   );
+}
+
+function getMobileHeroSlides(content: CmsContent): MobileHeroSlide[] {
+  const seenImages = new Set<string>();
+  const slides: MobileHeroSlide[] = [];
+
+  content.banners.forEach((banner, index) => {
+    if (!banner.enabled || banner.lifecycle === 'draft' || banner.lifecycle === 'archived') return;
+
+    const media = cmsResponsiveMediaUrls(content, banner);
+    const image = media.mobile || media.desktop || media.legacy;
+    if (!image || seenImages.has(image)) return;
+
+    seenImages.add(image);
+    slides.push({
+      id: banner.id || `mobile-banner-${index + 1}`,
+      image,
+      href: banner.href || '/promotions',
+      title: banner.title || `โปรโมชั่น ${index + 1}`,
+    });
+  });
+
+  return slides;
+}
+
+function getAnnouncementMessages(content: CmsContent) {
+  const seenMessages = new Set<string>();
+  const messages: string[] = [];
+
+  content.announcements.forEach((announcement) => {
+    if (!announcement.enabled || announcement.lifecycle === 'draft' || announcement.lifecycle === 'archived') return;
+
+    const message = [announcement.title, announcement.message]
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .join(' : ');
+
+    if (!message || seenMessages.has(message)) return;
+    seenMessages.add(message);
+    messages.push(message);
+  });
+
+  return messages;
 }
