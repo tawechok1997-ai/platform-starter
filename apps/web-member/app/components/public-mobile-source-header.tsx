@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useMemberLocale } from '../member-locale-provider';
+import { isMemberNavigationActive } from '../member-navigation-active';
 import { useMemberRuntime } from '../member-runtime-provider';
 import { useMemberSession } from '../member-session-provider';
 import { useSiteSettings } from '../site-settings-provider';
@@ -15,6 +16,7 @@ const STANDALONE_PUBLIC_PREFIXES = ['/clone-preview', '/login', '/register', '/m
 
 export default function PublicMobileSourceHeader() {
   const pathname = usePathname() ?? '/';
+  const searchParams = useSearchParams();
   const { locale } = useMemberLocale();
   const { typedSettings } = useSiteSettings();
   const runtime = useMemberRuntime();
@@ -92,7 +94,7 @@ export default function PublicMobileSourceHeader() {
 
         <nav className="member-mobile-runtime-navigation" aria-label={locale === 'th' ? 'เมนูหลัก' : 'Main navigation'}>
           {mobileNavigation.map((item) => {
-            const active = isActive(pathname, item.href);
+            const active = isMemberNavigationActive(pathname, searchParams, item.href, item.id);
             return (
               <Link
                 key={item.id}
@@ -114,7 +116,7 @@ export default function PublicMobileSourceHeader() {
           {runtime.features.withdraw && runtime.summary.isLoggedIn ? <Link href="/withdraw" onClick={() => setMenuOpen(false)}>{locale === 'th' ? 'ถอนเงิน' : 'Withdraw'}</Link> : null}
           {runtime.features.support ? <Link href="/support" onClick={() => setMenuOpen(false)}>{locale === 'th' ? 'ช่วยเหลือ' : 'Support'}</Link> : null}
           {runtime.summary.isLoggedIn ? (
-            <button type="button" onClick={logout}>{locale === 'th' ? 'ออกจากระบบ' : 'Log out'}</button>
+            <button type="button" onClick={() => { setMenuOpen(false); logout(); }}>{locale === 'th' ? 'ออกจากระบบ' : 'Log out'}</button>
           ) : (
             <Link href="/?auth=login" onClick={() => setMenuOpen(false)}>{locale === 'th' ? 'เข้าสู่ระบบ' : 'Log in'}</Link>
           )}
@@ -129,13 +131,4 @@ function formatAmount(value: string) {
   return Number.isFinite(amount)
     ? amount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : '0.00';
-}
-
-function isActive(pathname: string, href: string) {
-  try {
-    const url = new URL(href, 'https://member.local');
-    return url.pathname === '/' ? pathname === '/' : pathname.startsWith(url.pathname);
-  } catch {
-    return false;
-  }
 }
