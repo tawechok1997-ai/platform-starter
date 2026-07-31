@@ -7,8 +7,22 @@ import '../member-floating-contact.css';
 const CONTACT_ICON_URL = '/assets/asset-pc/images/footer/contact/icon-open-gold.webp';
 const LINE_ICON_URL = '/assets/asset-pc/images/line.png';
 
+const MINI_TOOLS = [
+  {
+    id: 'wheel',
+    label: 'วงล้อ',
+    image: '/assets/asset-pc/images/mini_game/icon-luckywheel-dt.webp',
+  },
+  {
+    id: 'mission',
+    label: 'ทำภารกิจ',
+    image: '/assets/asset-pc/images/mini_game/icon-dailymission-dt.webp',
+  },
+] as const;
+
 export default function MemberFloatingContact() {
   const [open, setOpen] = useState(false);
+  const [miniToolsOpen, setMiniToolsOpen] = useState(true);
   const { primary } = useMemberContactRuntime();
 
   useEffect(() => {
@@ -22,42 +36,92 @@ export default function MemberFloatingContact() {
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [open]);
 
+  const activateMiniTool = (id: (typeof MINI_TOOLS)[number]['id']) => {
+    window.dispatchEvent(new CustomEvent('member:mini-tool', { detail: { id } }));
+  };
+
   return (
     <aside
       className="member-floating-contact"
       data-open={open ? 'true' : 'false'}
-      aria-label="ติดต่อทีมงาน"
+      aria-label="เครื่องมือสมาชิกและช่องทางติดต่อ"
     >
-      <div className="member-floating-contact__channels" aria-hidden={!open}>
-        <a
-          href={primary.href}
-          target={primary.external ? '_blank' : undefined}
-          rel={primary.external ? 'noreferrer noopener' : undefined}
-          className="member-floating-contact__line"
-          tabIndex={open ? 0 : -1}
-          aria-label={`ติดต่อทีมงานผ่าน ${primary.label}`}
-          title={`${primary.label}: ${primary.value}`}
+      <div
+        className="member-floating-contact__mini-shell"
+        data-expanded={miniToolsOpen ? 'true' : 'false'}
+      >
+        <div className="member-floating-contact__mini-panel" aria-hidden={!miniToolsOpen}>
+          {MINI_TOOLS.map((tool) => (
+            <button
+              key={tool.id}
+              type="button"
+              className="member-floating-contact__mini-card"
+              data-mini-tool-id={tool.id}
+              tabIndex={miniToolsOpen ? 0 : -1}
+              aria-label={tool.label}
+              onClick={() => activateMiniTool(tool.id)}
+              style={{ backgroundImage: `url('${tool.image}')` }}
+            >
+              <span className="member-floating-contact__mini-new">ใหม่</span>
+              <span className="member-floating-contact__mini-label">{tool.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className="member-floating-contact__mini-toggle"
+          aria-label={miniToolsOpen ? 'ซ่อนเมนูวงล้อและภารกิจ' : 'แสดงเมนูวงล้อและภารกิจ'}
+          aria-expanded={miniToolsOpen}
+          onClick={() => setMiniToolsOpen((current) => !current)}
         >
-          <img src={LINE_ICON_URL} alt={primary.label} loading="lazy" />
-        </a>
+          <svg className="member-floating-contact__mini-toggle-shape" width="28" height="74" viewBox="0 0 28 74" fill="none" aria-hidden="true">
+            <path d="M0 74V0C0 0 8.8734 10.6234 16.6297 19.2379C22.7095 25.9903 28.1029 29.7405 27.9985 37.9913C27.8969 46.022 22.5935 49.4785 16.6297 56.0044C8.8734 64.4917 0 74 0 74Z" fill="url(#member-mini-toggle-gradient)" />
+            <defs>
+              <linearGradient id="member-mini-toggle-gradient" x1="0" y1="0" x2="28" y2="74" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#944fe8" />
+                <stop offset="1" stopColor="#7600a8" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <svg className="member-floating-contact__mini-toggle-arrow" viewBox="0 0 192 512" aria-hidden="true">
+            <path d="M192 127.338v257.324c0 17.818-21.543 26.741-34.142 14.142L29.196 270.142c-7.81-7.81-7.81-20.474 0-28.284l128.662-128.662c12.599-12.6 34.142-3.676 34.142 14.142z" />
+          </svg>
+        </button>
       </div>
 
-      <button
-        type="button"
-        className="member-floating-contact__toggle"
-        aria-label={open ? 'ปิดเมนูติดต่อทีมงาน' : 'เปิดเมนูติดต่อทีมงาน'}
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-      >
-        <span className="member-floating-contact__ring member-floating-contact__ring--1" aria-hidden="true" />
-        <span className="member-floating-contact__ring member-floating-contact__ring--2" aria-hidden="true" />
-        <span className="member-floating-contact__ring member-floating-contact__ring--3" aria-hidden="true" />
+      <div className="member-floating-contact__contact-stage">
+        <div className="member-floating-contact__channels" aria-hidden={!open}>
+          <a
+            href={primary.href}
+            target={primary.external ? '_blank' : undefined}
+            rel={primary.external ? 'noreferrer noopener' : undefined}
+            className="member-floating-contact__line"
+            tabIndex={open ? 0 : -1}
+            aria-label={`ติดต่อทีมงานผ่าน ${primary.label}`}
+            title={`${primary.label}: ${primary.value}`}
+          >
+            <img src={LINE_ICON_URL} alt={primary.label} loading="lazy" />
+          </a>
+        </div>
 
-        <span className="member-floating-contact__button-face" aria-hidden="true">
-          <img src={CONTACT_ICON_URL} alt="" loading="lazy" />
-          <span className="member-floating-contact__close-icon" />
-        </span>
-      </button>
+        <button
+          type="button"
+          className="member-floating-contact__toggle"
+          aria-label={open ? 'ปิดเมนูติดต่อทีมงาน' : 'เปิดเมนูติดต่อทีมงาน'}
+          aria-expanded={open}
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="member-floating-contact__ring member-floating-contact__ring--1" aria-hidden="true" />
+          <span className="member-floating-contact__ring member-floating-contact__ring--2" aria-hidden="true" />
+          <span className="member-floating-contact__ring member-floating-contact__ring--3" aria-hidden="true" />
+
+          <span className="member-floating-contact__button-face" aria-hidden="true">
+            <img src={CONTACT_ICON_URL} alt="" loading="lazy" />
+            <span className="member-floating-contact__close-icon" />
+          </span>
+        </button>
+      </div>
     </aside>
   );
 }
