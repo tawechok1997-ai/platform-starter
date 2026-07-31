@@ -25,6 +25,7 @@ import styles from './mobile-source-home-shell.module.css';
 
 const MAX_PROMOTIONS = 10;
 const MOBILE_CATEGORY_IDS = new Set(['home', 'casino', 'slot', 'fishing', 'sport', 'card', 'lottery']);
+const SHORTCUT_CARD_BACKGROUND = '/images/shortcut/bg_card.webp';
 const MOBILE_PROMOTION_FALLBACKS = MOBILE_SOURCE_ASSETS.promotionSlides.map((imageUrl, index) => {
   const seed = MEMBER_PROMOTION_FALLBACKS[index % MEMBER_PROMOTION_FALLBACKS.length]!;
   return {
@@ -62,7 +63,7 @@ export default function MobileSourceHomeShell({ children }: Props) {
     [navigation],
   );
 
-  const shortcutBackground = resolveAsset({
+  const shortcutArt = resolveAsset({
     aliases: ['home shortcut mobile', 'home shortcut', 'add to home', 'ปุ่มลัดหน้าโฮม', 'download background'],
     remoteFallback: MOBILE_SOURCE_ASSETS.shortcutBackground,
   });
@@ -164,6 +165,7 @@ export default function MobileSourceHomeShell({ children }: Props) {
             >
               {promotions.map((promotion, index) => {
                 const image = memberPromotionImageForViewport(promotion, 'mobile');
+                const fallback = MOBILE_PROMOTION_FALLBACKS[index % MOBILE_PROMOTION_FALLBACKS.length]!.mobileImageUrl;
                 return (
                   <a
                     key={promotion.id}
@@ -172,12 +174,14 @@ export default function MobileSourceHomeShell({ children }: Props) {
                     aria-label={promotion.title}
                     data-mobile-asset={sourceAssetFileName(image)}
                   >
-                    <img
-                      src={image}
-                      alt={promotion.title}
-                      loading={index === 0 ? 'eager' : 'lazy'}
-                      onError={(event) => swapBrokenImage(event, promotion.sourceImageUrl)}
-                    />
+                    <span className={styles.promotionFrame}>
+                      <img
+                        src={image}
+                        alt={promotion.title}
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        onError={(event) => swapBrokenImage(event, fallback)}
+                      />
+                    </span>
                   </a>
                 );
               })}
@@ -247,31 +251,36 @@ export default function MobileSourceHomeShell({ children }: Props) {
 
         <div className={styles.contentColumn}>
           {children}
-          <section className={styles.shortcutCard} aria-labelledby="mobile-home-shortcut-title">
-            <img
-              className={styles.shortcutBackdrop}
-              src={shortcutBackground}
-              alt=""
-              aria-hidden="true"
-              onError={hideBrokenImage}
-            />
-            <div className={styles.shortcutCopy}>
-              <h2 id="mobile-home-shortcut-title">เพิ่มปุ่มลัดหน้าโฮม</h2>
-              <strong>เพิ่มปุ่มลัดได้แล้ววันนี้!</strong>
-              <p>สัมผัสประสบการณ์ที่เหนือกว่า เพิ่มปุ่มเลย</p>
-              <div className={styles.shortcutButtons}>
-                <button type="button" onClick={() => void requestHomeShortcut('android')}>Android</button>
-                <button type="button" onClick={() => void requestHomeShortcut('ios')}>iOS</button>
+          <section className={styles.shortcutSection} aria-labelledby="mobile-home-shortcut-title">
+            <h2 id="mobile-home-shortcut-title">เพิ่มปุ่มลัดหน้าโฮม</h2>
+            <div className={styles.shortcutCard}>
+              <img className={styles.shortcutBackdrop} src={SHORTCUT_CARD_BACKGROUND} alt="" aria-hidden="true" />
+              <img className={styles.shortcutArt} src={shortcutArt} alt="" aria-hidden="true" onError={hideBrokenImage} />
+              <div className={styles.shortcutCopy}>
+                <div className={styles.shortcutIntro}>
+                  <img src={shortcutIcon} alt="โลโก้" loading="lazy" onError={hideBrokenImage} />
+                  <span>
+                    <strong>เพิ่มปุ่มลัดได้แล้ววันนี้!</strong>
+                    <small>สัมผัสประสบการณ์ที่เหนือกว่า เพิ่มปุ่มเลย</small>
+                  </span>
+                </div>
+                <div className={styles.shortcutButtons}>
+                  <button
+                    type="button"
+                    className={installPrompt ? styles.androidReady : styles.androidButton}
+                    onClick={() => void requestHomeShortcut('android')}
+                  >
+                    <span aria-hidden="true">◉</span>
+                    Android
+                  </button>
+                  <button type="button" className={styles.iosButton} onClick={() => void requestHomeShortcut('ios')}>
+                    <span aria-hidden="true">●</span>
+                    iOS
+                  </button>
+                </div>
+                {shortcutMessage ? <p className={styles.shortcutMessage} role="status">{shortcutMessage}</p> : null}
               </div>
-              {shortcutMessage ? <p className={styles.shortcutMessage} role="status">{shortcutMessage}</p> : null}
             </div>
-            <img
-              className={styles.shortcutIcon}
-              src={shortcutIcon}
-              alt="โลโก้ปุ่มลัด"
-              loading="lazy"
-              onError={hideBrokenImage}
-            />
           </section>
         </div>
       </div>
@@ -308,7 +317,7 @@ function scrollPromotionRail(rail: HTMLDivElement | null, index: number) {
 
 function swapBrokenImage(event: SyntheticEvent<HTMLImageElement>, fallback: string) {
   const image = event.currentTarget;
-  if (!fallback || image.dataset.fallbackApplied === 'true' || image.src === fallback) {
+  if (!fallback || image.dataset.fallbackApplied === 'true' || image.src.endsWith(fallback)) {
     image.hidden = true;
     return;
   }
