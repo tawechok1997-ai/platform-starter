@@ -1,68 +1,11 @@
-/* Final Mobile Home layout owner.
- * This file is imported after every legacy V47/member stylesheet.
- * Keep only the source Mobile Home chrome and remove legacy layout residue.
- */
+/* Mobile Home is intentionally empty while the new implementation is rebuilt. */
 @media (max-width: 900px) {
-  html:has(.member-mobile-source-shell),
-  html:has(.member-mobile-source-shell) body {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    min-height: 0 !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding-bottom: 0 !important;
-    overflow-x: clip !important;
-  }
-
-  html:has(.member-mobile-source-shell) body {
+  body:has(.public-game-shell[data-route='/']) {
     background: #000 !important;
   }
 
-  body:has(.member-mobile-source-shell) #member-desktop-scale-shell,
-  body:has(.member-mobile-source-shell) #member-desktop-scale-canvas,
-  body:has(.member-mobile-source-shell) .public-game-shell,
-  body:has(.member-mobile-source-shell) .public-game-shell__content,
-  body:has(.member-mobile-source-shell) .member-persistent-shell,
-  body:has(.member-mobile-source-shell) .member-persistent-shell__body {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    min-height: 0 !important;
-    height: auto !important;
-    max-height: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
-    transform: none !important;
-    zoom: 1 !important;
-  }
-
-  /* Safety net: these legacy owners must never appear beside the source
-   * Mobile Home even if an old route or cached bundle attempts to mount them. */
-  body:has(.member-mobile-source-shell) :is(
-    .public-home-topbar,
-    .desktop-reference-home,
-    .member-home-mobile--legacy,
-    .v47-mobile-home,
-    .noah-alliance-v3,
-    .member-bottom-nav
-  ) {
+  body:has(.public-game-shell[data-route='/']) #member-desktop-scale-shell,
+  body:has(.public-game-shell[data-route='/']) .member-floating-contact {
     display: none !important;
-  }
-
-  /* MemberFooter is the direct sibling after public-game-shell. Do not target
-   * every footer element because Live cards contain their own footer controls. */
-  body:has(.member-mobile-source-shell) .public-game-shell + footer {
-    width: min(100%, 428px) !important;
-    max-width: 428px !important;
-    min-height: 0 !important;
-    height: auto !important;
-    margin: 0 auto !important;
-    padding-bottom: 20px !important;
-  }
-
-  body:has(.member-mobile-source-shell) .member-floating-contact {
-    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
   }
 }

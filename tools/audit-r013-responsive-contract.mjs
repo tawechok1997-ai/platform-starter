@@ -6,15 +6,26 @@ const overlays = fs.readFileSync('packages/design-tokens/overlays.css', 'utf8');
 const adminLayout = fs.readFileSync('apps/web-admin/app/layout.tsx', 'utf8');
 const memberLayout = fs.readFileSync('apps/web-member/app/layout.tsx', 'utf8');
 const memberChrome = fs.readFileSync('apps/web-member/app/member-chrome.tsx', 'utf8');
-const mobileHeader = fs.readFileSync('apps/web-member/app/components/public-mobile-source-header.tsx', 'utf8');
+const memberHome = fs.readFileSync('apps/web-member/app/member-home.tsx', 'utf8');
+const mobileHeaderOwner = fs.readFileSync('apps/web-member/app/components/public-mobile-source-header-owner.tsx', 'utf8');
+const mobileHeaderPath = 'apps/web-member/app/components/public-mobile-source-header.tsx';
+const mobileHeader = fs.existsSync(mobileHeaderPath)
+  ? fs.readFileSync(mobileHeaderPath, 'utf8')
+  : '';
 
 const legacyNavigationContract = memberChrome.includes('PUBLIC_HOME_NAV.map');
-const runtimeNavigationContract = [
+const activeRuntimeNavigationContract = [
   memberChrome.includes('navigation={runtime.navigation}'),
   memberChrome.includes('navigation.filter((item) => item.desktop).map'),
   mobileHeader.includes('runtime.navigation.filter'),
   mobileHeader.includes('item.mobile'),
 ].every(Boolean);
+const intentionalMobileResetContract = [
+  !fs.existsSync(mobileHeaderPath),
+  mobileHeaderOwner.includes('return null'),
+  memberHome.includes("if (viewportMode !== 'desktop') return null"),
+].every(Boolean);
+const runtimeNavigationContract = activeRuntimeNavigationContract || intentionalMobileResetContract;
 
 const checks = [
   ['shared container', responsive.includes('.ui-container')],
