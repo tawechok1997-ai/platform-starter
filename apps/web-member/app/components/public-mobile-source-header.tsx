@@ -175,6 +175,13 @@ export default function PublicMobileSourceHeader() {
             </button>
           </div>
 
+          {authenticated ? (
+            <div className="member-mobile-source-menu__summary">
+              <strong>{runtime.summary.displayName}</strong>
+              <span>{runtime.summary.walletCurrency} {runtime.summary.walletAvailable}</span>
+            </div>
+          ) : null}
+
           <nav
             className="public-member-menu-grid member-mobile-source-menu__primary"
             aria-label={locale === 'th' ? 'บริการสมาชิก' : 'Member services'}
