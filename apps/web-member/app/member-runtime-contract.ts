@@ -491,23 +491,36 @@ export function findCmsAsset(content: CmsContent, aliases: string[]) {
 
 function contentItem(item: CmsAnnouncement, content: CmsContent, fallbackIcon: string): MemberRuntimeContentItem {
   const metadata = item as CmsAnnouncement & Record<string, unknown>;
+  const kind = contentKind(item.kind);
+  const aliases = [item.id, item.kind, item.title].filter(
+    (value): value is string => typeof value === 'string' && Boolean(value.trim()),
+  );
+  const startsAt = optionalText(metadata.startsAt ?? metadata.startAt);
+  const endsAt = optionalText(metadata.endsAt ?? metadata.endAt);
   const image = resolveMemberAsset(content, {
     configured: firstText(item.imageUrl, item.desktopImageUrl, item.mobileImageUrl),
-    aliases: [item.id, item.kind, item.title],
+    aliases,
     localFallback: fallbackIcon,
   });
+
   return {
-    id: item.id || `${item.kind}-${item.title}`,
+    id: item.id || `${kind}-${firstText(item.title, item.message, 'item')}`,
     title: firstText(item.title, item.message),
     summary: firstText(item.message, item.title),
     href: safeHref(item.href),
     image,
     icon: fallbackIcon,
-    kind: item.kind,
+    kind,
     priority: number(metadata.priority ?? metadata.sequence, 0),
-    startsAt: optionalText(metadata.startsAt ?? metadata.startAt),
-    endsAt: optionalText(metadata.endsAt ?? metadata.endAt),
+    ...(startsAt ? { startsAt } : {}),
+    ...(endsAt ? { endsAt } : {}),
   };
+}
+
+function contentKind(kind: CmsAnnouncement['kind']): MemberRuntimeContentItem['kind'] {
+  if (kind === 'event') return 'activity';
+  if (kind === 'news' || kind === 'promotion' || kind === 'system') return kind;
+  return 'system';
 }
 
 function pickAnnouncement(items: CmsAnnouncement[], kind: CmsAnnouncement['kind']) {
