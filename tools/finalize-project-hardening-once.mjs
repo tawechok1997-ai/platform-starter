@@ -13,7 +13,7 @@ async function replace(path, search, replacement, { required = true } = {}) {
     if (required) throw new Error(`${path}: marker not found`);
     return;
   }
-  await writeFile(absolute, source.replace(search, replacement), 'utf8');
+  await writeFile(absolute, source.split(search).join(replacement), 'utf8');
   updated.push(path);
 }
 
