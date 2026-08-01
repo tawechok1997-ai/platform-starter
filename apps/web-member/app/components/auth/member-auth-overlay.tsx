@@ -7,7 +7,6 @@ export type MemberAuthMode = 'login' | 'register';
 
 type MemberAuthOverlayProps = {
   mode: MemberAuthMode;
-  onModeChange: (mode: MemberAuthMode) => void;
   onClose: () => void;
   onSuccess: () => void | Promise<void>;
 };
