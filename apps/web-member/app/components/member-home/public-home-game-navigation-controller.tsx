@@ -249,15 +249,29 @@ function gameDestination(action: HTMLElement) {
   const link = action instanceof HTMLAnchorElement
     ? action
     : action.closest<HTMLAnchorElement>('a[href]');
-  if (!link) return DEFAULT_MEMBER_GAME_DESTINATION;
 
-  try {
-    const url = new URL(link.href, window.location.href);
-    if (url.origin !== window.location.origin) return DEFAULT_MEMBER_GAME_DESTINATION;
-    return `${url.pathname}${url.search}${url.hash}`;
-  } catch {
-    return DEFAULT_MEMBER_GAME_DESTINATION;
+  if (link) {
+    try {
+      const url = new URL(link.href, window.location.href);
+      if (url.origin === window.location.origin) {
+        return `${url.pathname}${url.search}${url.hash}`;
+      }
+    } catch {
+      // Fall back to the game data attributes below.
+    }
   }
+
+  const candidate = readGameCandidate(action);
+  const game = firstText(candidate?.id, candidate?.providerGameCode);
+  if (!candidate || !game) return DEFAULT_MEMBER_GAME_DESTINATION;
+
+  const params = new URLSearchParams({
+    category: firstText(candidate.category, 'all'),
+    game,
+  });
+  if (candidate.providerCode) params.set('provider', candidate.providerCode);
+  params.set('platform', 'mobile');
+  return `/games?${params.toString()}`;
 }
 
 function firstText(...values: Array<string | null | undefined>) {
