@@ -11,6 +11,7 @@ import {
   writeMobileAvatarPreference,
 } from '../../lib/mobile-avatar-preference';
 import { useMemberRuntime } from '../../member-runtime-provider';
+import MobileMemberPopupRuntime from '../../components/mobile-home/mobile-member-popup-runtime';
 import styles from './avatar-page.module.css';
 
 const VIP_BADGE_SOURCE = 'https://cdn.zabbet.com/FEZX/grouptypes/bc954df4-70bb-460c-9ce8-c2cae326acbe.png';
@@ -66,8 +67,8 @@ export default function MobileAvatarPage() {
         </section>
 
         <section className={styles.actions} aria-label="ตั้งค่าบัญชี">
-          <Link href="/profile/edit"><EditIcon /><span>แก้ไข บัญชี/เบอร์โทร</span><ChevronIcon /></Link>
-          <Link href="/profile/password"><LockIcon /><span>แก้ไขรหัสผ่าน</span><ChevronIcon /></Link>
+          <Link href="/profile/edit" data-mobile-member-popup="contact"><EditIcon /><span>แก้ไข บัญชี/เบอร์โทร</span><ChevronIcon /></Link>
+          <Link href="/profile/password" data-mobile-member-popup="password"><LockIcon /><span>แก้ไขรหัสผ่าน</span><ChevronIcon /></Link>
         </section>
 
         <section className={styles.avatarSection} aria-labelledby="avatar-selection-title">
@@ -95,6 +96,7 @@ export default function MobileAvatarPage() {
           </div>
         </section>
       </div>
+      <MobileMemberPopupRuntime />
     </main>
   );
 }
