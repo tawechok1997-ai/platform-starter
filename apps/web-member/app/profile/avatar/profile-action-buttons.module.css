@@ -1,0 +1,26 @@
+.actionButton {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  height: 47px;
+  padding: 0 6px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #626262;
+  border-radius: 7px;
+  color: #fff;
+  background: #15131a;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 359px) {
+  .actionButton {
+    padding: 0 3px;
+    font-size: 10px;
+  }
+}
