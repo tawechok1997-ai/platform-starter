@@ -14,8 +14,9 @@ test('mobile member drawer follows the 340px source geometry', () => {
 test('authenticated mobile contact reuses the one existing contact owner', () => {
   assert.match(floatingContact, /const showFloatingContact = sessionReady/);
   assert.match(floatingContact, /data-authenticated=\{isLoggedIn \? 'true' : 'false'\}/);
+  assert.equal((floatingContact.match(/export default function MemberFloatingContact\(/g) ?? []).length, 1);
   assert.equal((floatingContact.match(/member-floating-contact__contact-stage/g) ?? []).length, 1);
-  assert.doesNotMatch(floatingContact, /createPortal|MemberFloatingContact\s*\(/g);
+  assert.doesNotMatch(floatingContact, /createPortal/);
 });
 
 test('contact button keeps the source 120px shell, 80px face and three staggered rings', () => {
