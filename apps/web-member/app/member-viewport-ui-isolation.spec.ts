@@ -36,10 +36,14 @@ test('mobile portal owners are explicitly tagged and remain mobile-only', () => 
   assert.match(mobilePopupRuntime, /height=\{BOTTOM_NAV_CANVAS_SIZE\}/);
   assert.match(mobilePopupRuntime, /data-bottom-navigation-canvas=\{kind\}/);
   assert.match(mobilePopupRuntime, /<BottomNavigationCanvasIcon src=\{item\.icon\} kind=\{item\.kind\} \/>/);
-  assert.match(mobilePopupRuntime, /icon: '\/assets\/reference-brand\/menu\/home\.png'/);
+  assert.match(mobilePopupRuntime, /MENU_ICON_BASE_PATH/);
+  assert.match(mobilePopupRuntime, /CONTACT_ICON_BASE_PATHS/);
+  assert.match(mobilePopupRuntime, /context\.fill\(new Path2D\(path\)\)/);
+  assert.match(mobilePopupRuntime, /\{ label: 'เมนู', kind: 'menu' \}/);
   assert.match(mobilePopupRuntime, /icon: '\/assets\/reference-brand\/menu\/deposit\.png'/);
   assert.match(mobilePopupRuntime, /icon: '\/assets\/reference-brand\/menu\/withdraw\.png'/);
-  assert.match(mobilePopupRuntime, /icon: '\/assets\/reference-brand\/menu\/support\.png'/);
+  assert.match(mobilePopupRuntime, /\{ label: 'ติดต่อ', kind: 'contact' \}/);
+  assert.doesNotMatch(mobilePopupRuntime, /icon: '\/assets\/reference-brand\/menu\/(?:home|support)\.png'/);
   assert.doesNotMatch(mobilePopupRuntime, /icon: '\/assets\/asset-pc\/images\/(?:เมนู|ฝาก|ถอน|line)\.png'/);
   assert.doesNotMatch(mobilePopupRuntime, /icon: '\/images\/(?:ฝาก|ถอน|line)\.png'/);
   assert.match(mobilePopupRuntime, /if \(!isMobile \|\| !summary\.isLoggedIn/);
