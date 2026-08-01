@@ -34,8 +34,8 @@ export default function UsageGuidePreview({ mobile = false }: UsageGuidePreviewP
           </span>
         </header>
       ) : (
-        <header className="reference-panel-heading">
-          <span className="reference-heading-icon" aria-hidden="true">
+        <header className={styles.header}>
+          <span className={styles.headerIcon} aria-hidden="true">
             <img src={V47_ASSETS.mobileFaq} alt="" />
           </span>
           <strong>{locale === 'en' ? 'Usage Guide' : 'คู่มือการใช้งาน'}</strong>
@@ -45,7 +45,7 @@ export default function UsageGuidePreview({ mobile = false }: UsageGuidePreviewP
       {useSourcePcGuide ? (
         <div className={styles.sourceGuide} data-pc-source-guide-preview="true">
           {PC_SOURCE_GUIDES.map(([question, guide]) => (
-            <details key={question} open>
+            <details key={question}>
               <summary>{question}</summary>
               <PcSourceGuidePanel guide={guide} />
             </details>
