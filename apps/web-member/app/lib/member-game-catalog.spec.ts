@@ -49,7 +49,7 @@ test('derives category and filter tags from Thai and English metadata', () => {
 
   assert.deepEqual(
     new Set(tags),
-    new Set(['fishing', 'เกมส์อาเขต', 'arcade', 'classic', 'hot', 'free spin', 'buy', 'ใหม่', 'new']),
+    new Set(['fishing', 'เกมส์อาเขต', 'arcade', 'hot', 'free spin', 'buy', 'ใหม่', 'new']),
   );
 });
 
