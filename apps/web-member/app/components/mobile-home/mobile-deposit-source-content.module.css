@@ -5,6 +5,9 @@
   padding-inline: 8px;
   flex-direction: column;
   gap: 20px;
+  animation: depositStepIn 260ms cubic-bezier(.22, 1, .36, 1) both;
+  transform-origin: top center;
+  will-change: opacity, transform;
 }
 
 .promotionSelector {
@@ -142,12 +145,14 @@
 }
 
 .methodIdentity strong {
-  overflow: hidden;
+  overflow: visible;
   font-size: 13px;
   font-weight: 500;
   line-height: 22px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: normal;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: keep-all;
 }
 
 .methodOption:disabled .methodIdentity {
@@ -500,5 +505,23 @@
 
   .noticeList p {
     font-size: 9px;
+  }
+}
+
+@keyframes depositStepIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation: none;
   }
 }

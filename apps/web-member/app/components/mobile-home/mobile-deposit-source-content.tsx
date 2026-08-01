@@ -174,7 +174,7 @@ export default function MobileDepositSourceContent({
 
   if (step === 'method') {
     return (
-      <div className={styles.root} data-deposit-step="method">
+      <div key="method" className={styles.root} data-deposit-step="method">
         <button type="button" className={styles.promotionSelector}>
           <GiftIcon />
           <span>เลือกโปรโมชั่น</span>
@@ -228,7 +228,7 @@ export default function MobileDepositSourceContent({
 
   if (step === 'amount' && selectedMethod) {
     return (
-      <div className={styles.root} data-deposit-step="amount">
+      <div key="amount" className={styles.root} data-deposit-step="amount">
         <button type="button" className={styles.promotionSelector}>
           <GiftIcon />
           <span>เลือกโปรโมชั่น</span>
@@ -300,7 +300,7 @@ export default function MobileDepositSourceContent({
   }
 
   return (
-    <div className={styles.root} data-deposit-step="slip">
+    <div key="slip" className={styles.root} data-deposit-step="slip">
       {account ? <ReceivingAccountCard account={account} onCopy={copyText} /> : null}
       <div className={styles.transferAmount}>
         <span>{locale === 'th' ? 'ยอดที่ต้องโอน' : 'Transfer amount'}</span>
