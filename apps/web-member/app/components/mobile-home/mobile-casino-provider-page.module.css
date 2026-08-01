@@ -1,7 +1,11 @@
-:global([data-mobile-home-root='true']):has(.root) :global([data-mobile-section-owner='hero']),
-:global([data-mobile-home-root='true']):has(.root) :global([data-mobile-section-owner='auth-actions']),
-:global([data-mobile-home-root='true']):has(.root) :global([data-mobile-section-owner='announcement']),
-:global([data-mobile-home-root='true']):has(.root) :global([data-mobile-section-owner='highlight-tabs']) {
+:global([data-mobile-home-root='true']):has(.providerLauncherRoot) :global([data-mobile-section-owner='hero']),
+:global([data-mobile-home-root='true']):has(.providerLauncherRoot) :global([data-mobile-section-owner='auth-actions']),
+:global([data-mobile-home-root='true']):has(.providerLauncherRoot) :global([data-mobile-section-owner='announcement']),
+:global([data-mobile-home-root='true']):has(.providerLauncherRoot) :global([data-mobile-section-owner='highlight-tabs']),
+:global([data-mobile-home-root='true']):has(.providerSelectionRoot) :global([data-mobile-section-owner='hero']),
+:global([data-mobile-home-root='true']):has(.providerSelectionRoot) :global([data-mobile-section-owner='auth-actions']),
+:global([data-mobile-home-root='true']):has(.providerSelectionRoot) :global([data-mobile-section-owner='announcement']),
+:global([data-mobile-home-root='true']):has(.providerSelectionRoot) :global([data-mobile-section-owner='highlight-tabs']) {
   display: none !important;
 }
 
@@ -11,6 +15,11 @@
   min-width: 0;
   padding: 12px 8px 16px;
   color: #fff;
+}
+
+.providerLauncherRoot,
+.providerSelectionRoot {
+  min-height: 220px;
 }
 
 .headingRow {
@@ -76,7 +85,7 @@
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  z-index: 30;
+  z-index: 40;
   display: grid;
   width: 116px;
   padding: 6px;
@@ -123,36 +132,32 @@
   display: block;
   width: calc(50% - 5px);
   min-width: 0;
+  padding: 0;
   overflow: hidden;
   border: 0;
   border-radius: 8px;
+  color: inherit;
   background: #211c2b;
   box-shadow: 0 2px 8px rgb(0 0 0 / 18%);
-  text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.providerSelectButton {
-  padding: 0;
-  color: inherit;
   font: inherit;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .card:focus-visible,
 .filterButton:focus-visible,
 .filterMenu button:focus-visible,
-.providerSelectButton:focus-visible,
 .slotGameCard:focus-visible,
 .backButton:focus-visible,
-.loadMoreButton:focus-visible {
+.loadMoreButton:focus-visible,
+.providerRail button:focus-visible {
   outline: 2px solid #d29bff;
   outline-offset: 2px;
 }
 
 .card:active,
-.providerSelectButton:active,
 .slotGameCard:active {
   transform: scale(0.985);
 }
@@ -235,50 +240,98 @@
 
 .slotGamesRoot {
   min-height: 320px;
+  padding-top: 4px;
 }
 
-.slotGamesHeading {
-  display: grid;
-  min-height: 42px;
-  margin-bottom: 12px;
-  grid-template-columns: 34px 34px minmax(0, 1fr);
+.providerRail {
+  display: flex;
+  width: calc(100% + 16px);
+  margin: 0 -8px 9px;
+  padding: 4px 8px 8px;
+  overflow-x: auto;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
-.slotGamesHeading > img {
+.providerRail::-webkit-scrollbar {
+  display: none;
+}
+
+.providerRail button {
+  display: grid;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  padding: 3px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 8px;
+  background: rgb(35 30 45 / 86%);
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.providerRail button[data-active='true'] {
+  border-color: #a950e8;
+  box-shadow: 0 0 0 1px rgb(169 80 232 / 28%);
+  opacity: 1;
+}
+
+.providerRail button:active {
+  transform: scale(0.94);
+}
+
+.providerRail img {
   display: block;
-  width: 34px;
-  height: 34px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
-.slotGamesHeading h2 {
+.slotGamesToolbar {
+  position: relative;
+  z-index: 20;
+  display: grid;
+  min-height: 34px;
+  margin-bottom: 9px;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.slotGamesToolbar h2 {
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 700;
-  line-height: 18px;
+  line-height: 15px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.slotGamesHeading h2 span {
-  display: block;
-  color: rgb(255 255 255 / 64%);
-  font-size: 10px;
+.slotGamesToolbar h2 span {
+  display: inline;
+  margin-left: 3px;
+  color: rgb(255 255 255 / 62%);
+  font-size: 8px;
   font-weight: 500;
 }
 
 .backButton {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   place-items: center;
   border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 10px;
+  border-radius: 8px;
   color: #fff;
   background: rgb(55 49 71 / 88%);
   cursor: pointer;
@@ -286,7 +339,7 @@
 
 .backButton span {
   margin-top: -3px;
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 300;
   line-height: 1;
 }
@@ -307,21 +360,23 @@
 
 .slotGameGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px 6px;
 }
 
 .slotGameCard {
+  display: block;
   min-width: 0;
-  padding: 0 0 8px;
+  padding: 0 0 5px;
   overflow: hidden;
   border: 0;
-  border-radius: 9px;
+  border-radius: 7px;
   color: #fff;
   background: rgb(34 29 44 / 92%);
-  box-shadow: 0 3px 10px rgb(0 0 0 / 18%);
+  box-shadow: 0 2px 7px rgb(0 0 0 / 18%);
   font: inherit;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -345,47 +400,47 @@
 .slotGameCard > strong,
 .slotGameCard > small {
   display: block;
-  margin-right: 8px;
-  margin-left: 8px;
+  margin-right: 4px;
+  margin-left: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .slotGameCard > strong {
-  margin-top: 7px;
-  font-size: 11px;
+  margin-top: 4px;
+  font-size: 8px;
   font-weight: 650;
-  line-height: 15px;
+  line-height: 11px;
 }
 
 .slotGameCard > small {
-  margin-top: 2px;
-  color: rgb(255 255 255 / 52%);
-  font-size: 9px;
-  line-height: 12px;
+  margin-top: 1px;
+  color: rgb(255 255 255 / 48%);
+  font-size: 7px;
+  line-height: 9px;
 }
 
 .slotGameBadges {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 3px;
+  right: 3px;
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .slotHotBadge,
 .slotNewBadge {
   display: inline-flex;
-  min-height: 16px;
-  padding: 0 5px;
+  min-height: 13px;
+  padding: 0 4px;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 3px;
   color: #fff;
-  font-size: 8px;
+  font-size: 6px;
   font-style: italic;
   font-weight: 800;
   line-height: 1;
@@ -404,7 +459,7 @@
 .loadMoreButton {
   display: block;
   min-width: 136px;
-  min-height: 36px;
+  min-height: 34px;
   margin: 16px auto 0;
   padding: 0 16px;
   border: 1px solid rgb(255 255 255 / 12%);
@@ -427,6 +482,32 @@
     font-size: 16px;
   }
 
+  .providerRail {
+    width: calc(100% + 20px);
+    margin-right: -10px;
+    margin-left: -10px;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .providerRail button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .slotGamesToolbar {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+  }
+
+  .slotGamesToolbar h2 {
+    font-size: 13px;
+  }
+
+  .slotGamesToolbar h2 span {
+    font-size: 9px;
+  }
+
   .filterButton {
     height: 30px;
     padding: 0 12px;
@@ -443,10 +524,16 @@
   }
 
   .slotGameGrid {
-    gap: 12px;
+    gap: 9px 8px;
   }
 
   .slotGameCard > strong {
-    font-size: 12px;
+    font-size: 9px;
+    line-height: 12px;
+  }
+
+  .slotGameCard > small {
+    font-size: 8px;
+    line-height: 10px;
   }
 }
