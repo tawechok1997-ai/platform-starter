@@ -139,6 +139,7 @@ export type MemberMiniGameRuntime = {
 export type MemberHomeContentRuntime = {
   announcement: MemberRuntimeContentItem;
   quickActions: MemberQuickActionRuntime[];
+  promotions: MemberRuntimeContentItem[];
   activities: MemberRuntimeContentItem[];
   news: MemberRuntimeContentItem[];
   tournament: MemberRuntimeContentItem;
@@ -361,9 +362,10 @@ export function buildMemberHomeContentRuntime(
   const system = pickAnnouncement(announcements, 'system');
   const activities = announcements.filter((item) => item.kind === 'event').map((item) => contentItem(item, content, icons.activity));
   const news = announcements.filter((item) => item.kind === 'news').map((item) => contentItem(item, content, icons.news));
+  const promotions = announcements.filter((item) => item.kind === 'promotion').map((item) => contentItem(item, content, icons.promotion));
   const activity = activities[0] ?? fallbackActivity(locale, icons.activity);
   const newsItem = news[0] ?? fallbackNews(locale, icons.news);
-  const promotion = fallbackPromotion(locale, icons.promotion);
+  const promotion = promotions[0] ?? fallbackPromotion(locale, icons.promotion);
   const tournamentAnnouncement = activities.find((item) => /tournament|competition|ทัวร์นาเมนต์/i.test(`${item.id} ${item.title}`));
   const tournamentAsset = findCmsAsset(content, ['tournament', 'competition', 'cup', 'ทัวร์นาเมนต์']);
   const jackpotAsset = findCmsAsset(content, ['jackpot', 'แจ็คพอต']);
@@ -385,6 +387,7 @@ export function buildMemberHomeContentRuntime(
       { ...activity, enabled: features.activity },
       { ...newsItem, enabled: features.news },
     ],
+    promotions,
     activities,
     news,
     tournament: tournamentAnnouncement ?? {
@@ -399,7 +402,7 @@ export function buildMemberHomeContentRuntime(
     },
     jackpot: {
       title: text(runtime.jackpot_title, 'JACKPOTS'),
-      amount: text(runtime.jackpot_amount, '194,428,645'),
+      amount: text(runtime.jackpot_amount, ''),
       subtitle: text(runtime.jackpot_subtitle, 'Epic of the day'),
       image: jackpotAsset?.url || text(runtime.jackpot_image_url, DEFAULT_JACKPOT_IMAGE),
       icon: icons.jackpot,
@@ -580,13 +583,7 @@ function normalizeLeaderboard(value: unknown): MemberLeaderboardEntry[] {
     }).filter((item) => item.name);
     if (entries.length) return entries;
   }
-  return [
-    { rank: 1, name: 'Fortune Dragon', user: '062XXXXX176', amount: '2,800', image: '' },
-    { rank: 2, name: 'Lalika', user: '061XXXXX197', amount: '2,288', image: '' },
-    { rank: 3, name: 'Fortune Gems 500', user: '081XXXXX58', amount: '2,135', image: '' },
-    { rank: 4, name: 'DJ BOOM BOOM', user: '081XXXXX89', amount: '2,024', image: '' },
-    { rank: 5, name: 'Funky Fortunes', user: '048XXXXX31', amount: '1,351', image: '' },
-  ];
+  return [];
 }
 
 function normalizeMiniGames(value: unknown, fallbackIcon: string, enabled: boolean): MemberMiniGameRuntime[] {

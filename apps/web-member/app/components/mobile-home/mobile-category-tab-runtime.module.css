@@ -295,12 +295,22 @@
 }
 
 .gameCard {
+  padding: 0;
   min-width: 0;
   overflow: hidden;
   border: 1px solid #342c40;
   border-radius: 9px;
   background: #211b2b;
   box-shadow: 0 5px 12px rgb(0 0 0 / 18%);
+  color: inherit;
+  font: inherit;
+  text-align: initial;
+  cursor: pointer;
+}
+
+.gameCard:focus-visible {
+  outline: 2px solid #bb5bea;
+  outline-offset: 3px;
 }
 
 .poster {

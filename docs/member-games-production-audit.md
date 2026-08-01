@@ -57,3 +57,13 @@ pnpm --filter @platform/web-member build
 ```
 
 Then verify the deployed `/games` page on one desktop viewport and at least two mobile widths.
+
+## Mobile home live-data contract (2026-08-01)
+
+- Home and category game cards must expose the central `data-game-*` launch contract. Guests open Login; authenticated members use `POST /member/games/:id/launch` through the shared resolver.
+- Mobile catalog requests must send `platform=mobile` and prefer Mobile artwork.
+- Popular, most-online, and classic sections come only from `/games/catalog`; tournaments and their leaderboard come from `/games/tournaments` or explicitly configured CMS records.
+- Promotion cards come from `/public/promotions`; activities and news come from published Content Center announcements. Every card opens `/browse/promotions/:id` before any claim or external action.
+- Missing, failed, or empty APIs render localized states. They must not substitute demo tournaments, players, games, live matches, promotions, activities, or news.
+- The Home Screen shortcut uses the owned Web App Manifest and the browser install prompt where available. Android and iOS retain localized manual Add-to-Home-Screen instructions.
+- Before release, verify Thai and English at 390 px, 428 px, and 768 px, including Guest Login routing, authenticated launch, category switching, all Highlight tabs, install help, API failure states, and console 404s.
