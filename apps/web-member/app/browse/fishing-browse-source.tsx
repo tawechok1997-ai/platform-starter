@@ -24,6 +24,8 @@ type FishingGame = {
   isNew: boolean;
 };
 
+const FISHING_LABEL = '\u0e22\u0e34\u0e07\u0e1b\u0e25\u0e32';
+
 const PROVIDER_ROWS = [
   ['ygrfish', 'YGR'],
   ['misoltfish', 'Miso'],
@@ -244,18 +246,18 @@ export default function FishingBrowseSource() {
         <div className={styles.bottomFade} data-source-bottom-fade />
       </div>
 
-      <section className={styles.content} aria-label="-singawปลา">
+      <section className={styles.content} aria-label={FISHING_LABEL}>
         <header className={styles.heroTitle}>
           <img
             className={styles.baseTitle}
             src="/assets/asset-pc/images/game/fishing/logo_fishing.webp"
-            alt="-singawปลา"
+            alt={FISHING_LABEL}
             onError={swapToAssetBundle}
           />
         </header>
 
         <div className={styles.layout} data-source-game-layout>
-          <aside className={styles.filterPanel} data-source-filter-panel aria-label="ตัวกรองเกมยิงปลา">
+          <aside className={styles.filterPanel} data-source-filter-panel aria-label={`ตัวกรองเกม${FISHING_LABEL}`}>
             <div className={styles.filterGlow} aria-hidden="true" />
             <div className={styles.filterTitle} data-source-filter-title>ตัวกรอง</div>
 
@@ -318,8 +320,8 @@ export default function FishingBrowseSource() {
             </div>
           </aside>
 
-          <section className={styles.gameArea} aria-label="รายการเกมยิงปลา" aria-live="polite">
-            <h1>-singawปลา ({resultCount.toLocaleString('th-TH')} เกม)</h1>
+          <section className={styles.gameArea} aria-label={`รายการเกม${FISHING_LABEL}`} aria-live="polite">
+            <h1>{FISHING_LABEL} ({resultCount.toLocaleString('th-TH')} เกม)</h1>
             {visibleGames.length ? (
               <div className={styles.gameGrid}>
                 {visibleGames.map((game) => {
@@ -424,7 +426,16 @@ function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
 }
 
 function swapToAssetBundle(event: SyntheticEvent<HTMLImageElement>) {
-  if (event.currentTarget.dataset.fallbackApplied === 'true') return;
+  if (event.currentTarget.dataset.fallbackApplied === 'true') {
+    event.currentTarget.style.display = 'none';
+    return;
+  }
+  const currentSource = event.currentTarget.getAttribute('src') ?? '';
+  const localSource = resolveLocalAssetOrSource(currentSource, 'pc');
+  if (!localSource || localSource === currentSource) {
+    event.currentTarget.style.display = 'none';
+    return;
+  }
   event.currentTarget.dataset.fallbackApplied = 'true';
-  event.currentTarget.src = `/assets/asset-pc${event.currentTarget.getAttribute('src') ?? ''}`;
+  event.currentTarget.src = localSource;
 }
