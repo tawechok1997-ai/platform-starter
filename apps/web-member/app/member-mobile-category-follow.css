@@ -4,7 +4,6 @@
  * is still one navigation owner and no overlay geometry to synchronize. */
 @media (max-width: 900px) {
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'],
-  html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] [data-mobile-section-owner='highlight-tabs'],
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
     overflow: visible !important;
     contain: none !important;
@@ -13,12 +12,11 @@
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
     position: relative !important;
     align-items: start !important;
-    min-height: 100% !important;
   }
 
   html[data-member-viewport-mode='mobile'] [data-mobile-section-owner='category-menu'] {
-    position: sticky !important;
     position: -webkit-sticky !important;
+    position: sticky !important;
     top: calc(64px + env(safe-area-inset-top, 0px)) !important;
     z-index: 100 !important;
     align-self: start !important;
