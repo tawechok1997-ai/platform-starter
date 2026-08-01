@@ -6,7 +6,9 @@ import { memberApiFetch } from '../../member-api';
 import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
+import MobileCardProviderPage from './mobile-card-provider-page';
 import MobileCasinoProviderPage from './mobile-casino-provider-page';
+import MobileFishingProviderPage from './mobile-fishing-provider-page';
 import MobileLotteryProviderPage from './mobile-lottery-provider-page';
 import MobileSlotProviderPage from './mobile-slot-provider-page';
 import MobileSourceContent from './mobile-source-content';
@@ -111,8 +113,16 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
     return <MobileSlotProviderPage />;
   }
 
+  if (activeCategory === 'fishing') {
+    return <MobileFishingProviderPage />;
+  }
+
   if (activeCategory === 'sport') {
     return <MobileSportProviderPage />;
+  }
+
+  if (activeCategory === 'card') {
+    return <MobileCardProviderPage />;
   }
 
   if (activeCategory === 'lottery') {
