@@ -4,14 +4,12 @@ export type LocalAssetPreference = 'pc' | 'mobile' | 'any';
 
 export function resolveLocalAssetByBasename(
   sourceUrl?: string | null,
-  _preference: LocalAssetPreference = 'pc',
+  preference: LocalAssetPreference = 'any',
 ): string {
   const source = String(sourceUrl ?? '').trim();
   if (!source) return '';
 
   const canonicalSource = canonicalizeLegacyMobileAssetPath(source);
-  if (canonicalSource.startsWith('/assets/')) return canonicalSource;
-
   const sourcePath = extractPathname(canonicalSource);
   if (!sourcePath) return '';
 
@@ -22,11 +20,21 @@ export function resolveLocalAssetByBasename(
   if (!candidates?.length) return '';
 
   const ranked = [...candidates].sort((left, right) => {
-    const scoreDifference = scoreCandidate(left, sourcePath) - scoreCandidate(right, sourcePath);
+    const scoreDifference = scoreCandidate(left, sourcePath, preference)
+      - scoreCandidate(right, sourcePath, preference);
     return scoreDifference || left.localeCompare(right);
   });
 
   return ranked[0] ?? '';
+}
+
+export function resolveLocalAssetOrSource(
+  sourceUrl?: string | null,
+  preference: LocalAssetPreference = 'any',
+): string {
+  const source = String(sourceUrl ?? '').trim();
+  if (!source) return '';
+  return resolveLocalAssetByBasename(source, preference) || source;
 }
 
 export function extractAssetBasename(sourceUrl?: string | null): string {
@@ -61,21 +69,38 @@ function decodeFileName(pathname: string): string {
   }
 }
 
-function scoreCandidate(candidate: string, sourcePath: string): number {
+function scoreCandidate(
+  candidate: string,
+  sourcePath: string,
+  preference: LocalAssetPreference,
+): number {
   const normalizedCandidate = candidate.toLowerCase();
   const normalizedSource = sourcePath.toLowerCase().replace(/^\/+/, '');
+  const normalizedPublicSource = `/${normalizedSource}`;
   let score = 100;
 
-  if (normalizedCandidate.endsWith(`/${normalizedSource}`)) score -= 80;
+  if (normalizedCandidate === normalizedPublicSource) score -= 120;
+  else if (normalizedCandidate.endsWith(`/${normalizedSource}`)) score -= 80;
 
   const sourceParent = normalizedSource.split('/').slice(0, -1).join('/');
-  if (sourceParent && normalizedCandidate.includes(`/${sourceParent}/`)) score -= 40;
+  if (sourceParent && normalizedCandidate.includes(`/${sourceParent}/`)) score -= 45;
+
+  const sourceSegments = normalizedSource.split('/').filter(Boolean);
+  for (let length = Math.min(4, sourceSegments.length - 1); length >= 1; length -= 1) {
+    const suffix = sourceSegments.slice(-(length + 1), -1).join('/');
+    if (suffix && normalizedCandidate.includes(`/${suffix}/`)) {
+      score -= length * 6;
+      break;
+    }
+  }
 
   const sourceProviderSet = normalizedSource.match(/providers\/set\/([^/]+)\//)?.[1];
   if (sourceProviderSet && normalizedCandidate.includes(`/providers/set/${sourceProviderSet}/`)) score -= 30;
 
-  if (normalizedCandidate.includes('/asset-pc/')) score -= 30;
-  if (normalizedCandidate.includes('/asset-mobile/') || normalizedCandidate.includes('/asset-moblie/')) score += 40;
+  if (normalizedCandidate.includes('/asset-pc/')) {
+    score -= preference === 'any' ? 20 : 35;
+  }
+  if (normalizedCandidate.includes('/reference-brand/')) score -= 12;
   if (normalizedCandidate.includes('/providers/set/1_1_badge/')) score -= 4;
 
   return score;
