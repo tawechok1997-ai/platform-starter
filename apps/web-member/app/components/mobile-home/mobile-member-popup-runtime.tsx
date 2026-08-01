@@ -1093,16 +1093,146 @@ function MobileVideoPopup({ onClose }: { onClose: () => void }) {
   );
 }
 
+type BottomNavigationKind = 'menu' | 'deposit' | 'withdraw' | 'contact';
+
+const BOTTOM_NAV_CANVAS_SIZE = 160;
+
+function drawBottomNavigationFallback(
+  context: CanvasRenderingContext2D,
+  kind: BottomNavigationKind,
+) {
+  const scale = BOTTOM_NAV_CANVAS_SIZE / 32;
+  context.clearRect(0, 0, BOTTOM_NAV_CANVAS_SIZE, BOTTOM_NAV_CANVAS_SIZE);
+  context.save();
+  context.scale(scale, scale);
+  context.lineCap = 'round';
+  context.lineJoin = 'round';
+  context.lineWidth = 2;
+  context.strokeStyle = '#f3d9ff';
+  context.fillStyle = '#a82bce';
+  context.shadowColor = '#d45bff';
+  context.shadowBlur = 3;
+
+  if (kind === 'menu') {
+    context.beginPath();
+    context.roundRect(7, 7, 8, 8, 2);
+    context.roundRect(17, 7, 8, 8, 2);
+    context.roundRect(7, 17, 8, 8, 2);
+    context.roundRect(17, 17, 8, 8, 2);
+    context.fill();
+    context.stroke();
+  } else if (kind === 'contact') {
+    context.beginPath();
+    context.arc(16, 16, 9, Math.PI, 0);
+    context.stroke();
+    context.beginPath();
+    context.roundRect(5, 15, 5, 9, 2);
+    context.roundRect(22, 15, 5, 9, 2);
+    context.fill();
+    context.stroke();
+    context.beginPath();
+    context.moveTo(24, 24);
+    context.quadraticCurveTo(23, 28, 18, 27);
+    context.stroke();
+  } else {
+    context.beginPath();
+    context.roundRect(5, 9, 22, 16, 3);
+    context.fill();
+    context.stroke();
+    context.beginPath();
+    context.moveTo(9, 14);
+    context.lineTo(23, 14);
+    context.stroke();
+
+    context.shadowBlur = 0;
+    context.lineWidth = 2.4;
+    context.strokeStyle = '#fff';
+    context.beginPath();
+    context.moveTo(16, 17);
+    context.lineTo(16, 23);
+    context.moveTo(13, kind === 'deposit' ? 20 : 17);
+    context.lineTo(16, kind === 'deposit' ? 23 : 20);
+    context.lineTo(19, kind === 'deposit' ? 20 : 17);
+    context.stroke();
+  }
+
+  context.restore();
+}
+
+function BottomNavigationCanvasIcon({
+  src,
+  kind,
+}: {
+  src: string;
+  kind: BottomNavigationKind;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext('2d');
+    if (!canvas || !context) return;
+
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    drawBottomNavigationFallback(context, kind);
+
+    const image = new Image();
+    let disposed = false;
+    image.decoding = 'async';
+    image.onload = () => {
+      if (disposed) return;
+
+      const inset = 12;
+      const available = BOTTOM_NAV_CANVAS_SIZE - (inset * 2);
+      const ratio = Math.min(available / image.naturalWidth, available / image.naturalHeight);
+      const width = image.naturalWidth * ratio;
+      const height = image.naturalHeight * ratio;
+      const x = (BOTTOM_NAV_CANVAS_SIZE - width) / 2;
+      const y = (BOTTOM_NAV_CANVAS_SIZE - height) / 2;
+
+      context.clearRect(0, 0, BOTTOM_NAV_CANVAS_SIZE, BOTTOM_NAV_CANVAS_SIZE);
+      context.save();
+      context.shadowColor = 'rgb(207 82 255 / 72%)';
+      context.shadowBlur = 14;
+      context.drawImage(image, x, y, width, height);
+      context.restore();
+      context.drawImage(image, x, y, width, height);
+    };
+    image.onerror = () => {
+      if (!disposed) drawBottomNavigationFallback(context, kind);
+    };
+    image.src = src;
+
+    return () => {
+      disposed = true;
+      image.onload = null;
+      image.onerror = null;
+    };
+  }, [kind, src]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className={styles.bottomNavCanvas}
+      width={BOTTOM_NAV_CANVAS_SIZE}
+      height={BOTTOM_NAV_CANVAS_SIZE}
+      data-bottom-navigation-canvas={kind}
+      aria-hidden="true"
+    />
+  );
+}
+
 function MobileMemberBottomNavigation({
   onOpen,
 }: {
   onOpen: (kind: MobilePopupKind) => void;
 }) {
-  const items: Array<{ label: string; kind: MobilePopupKind; icon: string; fallback: string }> = [
-    { label: 'เมนู', kind: 'menu', icon: '/assets/asset-pc/images/เมนู.png', fallback: '☰' },
-    { label: 'ฝาก', kind: 'deposit', icon: '/images/ฝาก.png', fallback: '＋' },
-    { label: 'ถอน', kind: 'withdraw', icon: '/images/ถอน.png', fallback: '−' },
-    { label: 'ติดต่อ', kind: 'contact', icon: '/images/line.png', fallback: '●' },
+  const items: Array<{ label: string; kind: BottomNavigationKind; icon: string }> = [
+    { label: 'เมนู', kind: 'menu', icon: '/assets/asset-pc/images/เมนู.png' },
+    { label: 'ฝาก', kind: 'deposit', icon: '/images/ฝาก.png' },
+    { label: 'ถอน', kind: 'withdraw', icon: '/images/ถอน.png' },
+    { label: 'ติดต่อ', kind: 'contact', icon: '/images/line.png' },
   ];
 
   return (
@@ -1118,10 +1248,7 @@ function MobileMemberBottomNavigation({
           {items.map((item) => (
             <button type="button" key={item.kind} onClick={() => onOpen(item.kind)}>
               <span className={styles.bottomNavIcon}>
-                <span aria-hidden="true">{item.fallback}</span>
-                <img src={item.icon} alt="" aria-hidden="true" onError={(event) => {
-                  event.currentTarget.style.display = 'none';
-                }} />
+                <BottomNavigationCanvasIcon src={item.icon} kind={item.kind} />
               </span>
               <span>{item.label}</span>
             </button>
