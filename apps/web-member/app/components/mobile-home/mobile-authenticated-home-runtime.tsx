@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { useMemberSession } from '../../member-session-provider';
+import MobileCommissionPopupBridge from './mobile-commission-popup-bridge';
 import MobileMemberPopupRuntime from './mobile-member-popup-runtime';
 import styles from './mobile-authenticated-home-runtime.module.css';
 
@@ -131,6 +132,7 @@ export default function MobileAuthenticatedHomeRuntime() {
 
   return (
     <>
+      <MobileCommissionPopupBridge />
       <MobileMemberPopupRuntime />
 
       {referralToast ? createPortal(
