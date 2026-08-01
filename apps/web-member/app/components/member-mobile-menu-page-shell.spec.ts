@@ -35,7 +35,7 @@ test('contact and purple mini tools are removed only while a menu page is open',
   assert.match(floatingContact, /data-home=\{isHomePage \? 'true' : 'false'\}/);
 });
 
-test('mobile home contact follows the source idle ring timing and open transition', () => {
+test('mobile home contact follows the source motion without falling below the viewport', () => {
   assert.match(floatingContact, /data-source-contact-motion="true"/);
   assert.match(floatingContact, /contact-source-stage/);
   assert.match(floatingContact, /contact-source-line-icon/);
@@ -44,6 +44,7 @@ test('mobile home contact follows the source idle ring timing and open transitio
   assert.match(floatingContact, /contact-ring-2/);
   assert.match(floatingContact, /contact-ring-3/);
 
+  assert.match(homeEffect, /contact-source-stage[\s\S]*bottom:\s*calc\(64px \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(homeEffect, /contact-source-stage[\s\S]*translateY\(64px\)/);
   assert.match(homeEffect, /data-open='true'[\s\S]*contact-source-stage[\s\S]*translateY\(0\)/);
   assert.match(homeEffect, /contact-source-line-icon[\s\S]*translateY\(50%\) scale\(0\)/);
