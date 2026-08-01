@@ -7,6 +7,7 @@ import {
   useRef,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { acquireMemberDocumentOverlayLock } from '../lib/member-document-overlay-lock';
 
 export type MemberOverlayMode = 'modal' | 'sheet' | 'drawer';
 
@@ -50,11 +51,7 @@ export function MemberModal({
   useEffect(() => {
     if (!open) return;
     restoreFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    document.documentElement.dataset.memberOverlayOpen = 'true';
+    const releaseDocumentLock = acquireMemberDocumentOverlayLock();
 
     const frame = window.requestAnimationFrame(() => {
       const first = focusable(panelRef.current)[0];
@@ -89,9 +86,7 @@ export function MemberModal({
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      delete document.documentElement.dataset.memberOverlayOpen;
+      releaseDocumentLock();
       restoreFocus.current?.focus({ preventScroll: true });
     };
   }, [closeOnEscape, onClose, open]);
