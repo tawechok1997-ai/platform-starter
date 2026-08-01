@@ -1,12 +1,58 @@
-.sourceGuide {
+.header {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
   width: 100%;
-  padding: 4px 0 16px;
+  min-height: 38px;
+  padding: 7px 16px;
+  gap: 9px;
+  border-bottom: 1px solid rgb(187 91 234 / 38%);
+  background: linear-gradient(90deg, #57226f 0%, #27152f 72%, #17121d 100%);
+  color: #fff;
+}
+
+.headerIcon {
+  display: grid;
+  flex: 0 0 24px;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+}
+
+.headerIcon img {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.header strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sourceGuide {
+  box-sizing: border-box;
+  width: calc(100% - 24px);
+  max-width: calc(100% - 24px);
+  margin: 0 auto;
+  padding: 6px 0 16px;
+  overflow: visible;
   color: #fff;
 }
 
 .sourceGuide details {
+  box-sizing: border-box;
   width: 100%;
-  margin-top: 12px;
+  max-width: 100%;
+  margin: 10px 0 0;
+  overflow: hidden;
+  border-radius: 6px;
 }
 
 .sourceGuide summary {
@@ -15,17 +61,20 @@
   justify-content: space-between;
   box-sizing: border-box;
   width: 100%;
-  min-height: 49px;
-  padding: 12px 16px;
-  gap: 16px;
+  max-width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 12px;
+  gap: 12px;
+  overflow: hidden;
   border: 1px solid #4f495d;
   border-radius: 6px;
   background: #262232;
   color: #fff;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  line-height: 24px;
+  line-height: 20px;
   list-style: none;
   text-align: left;
 }
@@ -36,20 +85,20 @@
 
 .sourceGuide summary::after {
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   color: currentColor;
   content: '⌄';
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  line-height: 16px;
+  line-height: 14px;
   text-align: center;
-  transform: rotate(180deg);
+  transform: rotate(0deg);
   transition: transform 180ms ease;
 }
 
-.sourceGuide details:not([open]) summary::after {
-  transform: rotate(0deg);
+.sourceGuide details[open] summary::after {
+  transform: rotate(180deg);
 }
 
 .sourceGuide details[open] summary {
@@ -60,7 +109,9 @@
 .panel {
   box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
   padding: 16px;
+  overflow: hidden;
   border: 1px solid #4f495d;
   border-top: 0;
   border-radius: 0 0 4px 4px;
@@ -70,14 +121,24 @@
   line-height: 1.65;
 }
 
+.step {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
 .step + .step {
   margin-top: 16px;
 }
 
 .paragraphs,
 .list {
+  box-sizing: border-box;
+  max-width: 100%;
   margin: 0 0 10px;
   padding: 0;
+  overflow-wrap: anywhere;
 }
 
 .paragraphs p {
@@ -106,10 +167,13 @@
 
 .image {
   display: block;
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
   height: auto;
-  margin: 0;
-  object-fit: cover;
+  margin: 0 auto;
+  object-fit: contain;
+  object-position: center top;
 }
 
 .sourceGuide summary:focus-visible {
