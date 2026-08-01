@@ -1,0 +1,60 @@
+/* Source-aligned mobile drawer and authenticated contact geometry. */
+
+@media (max-width: 900px) {
+  [data-mobile-home-root='true'] #mobile-home-drawer {
+    width: min(340px, calc(100vw - 20px)) !important;
+    padding:
+      max(20px, env(safe-area-inset-top))
+      23px
+      max(28px, env(safe-area-inset-bottom)) !important;
+  }
+
+  [data-mobile-home-root='true'] #mobile-home-drawer nav[aria-label='บริการสมาชิก'],
+  [data-mobile-home-root='true'] #mobile-home-drawer nav[aria-label='Member services'] {
+    width: 100%;
+  }
+
+  [data-mobile-home-root='true'] #mobile-home-drawer nav[aria-label='เมนูเพิ่มเติม'],
+  [data-mobile-home-root='true'] #mobile-home-drawer nav[aria-label='More options'] {
+    width: 100%;
+  }
+
+  .member-floating-contact[data-authenticated='true'] .member-floating-contact__contact-stage {
+    right: -4px;
+    left: auto;
+    display: flex;
+  }
+
+  .member-floating-contact[data-authenticated='true'] .member-floating-contact__toggle {
+    width: 120px;
+    height: 120px;
+    margin: 0 -16px -8px;
+  }
+
+  .member-floating-contact[data-authenticated='true'] .member-floating-contact__button-face,
+  .member-floating-contact[data-authenticated='true'] .member-floating-contact__close-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .member-floating-contact[data-authenticated='true'] .member-floating-contact__ring {
+    width: 68px;
+    height: 68px;
+    border-color: rgb(244 196 75 / 72%);
+    box-shadow: 0 0 12px rgb(244 196 75 / 20%);
+  }
+}
+
+@media (min-width: 901px) {
+  .member-floating-contact[data-authenticated='true'] .member-floating-contact__contact-stage {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  [data-mobile-home-root='true'] #mobile-home-drawer {
+    width: min(340px, calc(100vw - 12px)) !important;
+    padding-right: 16px !important;
+    padding-left: 16px !important;
+  }
+}
