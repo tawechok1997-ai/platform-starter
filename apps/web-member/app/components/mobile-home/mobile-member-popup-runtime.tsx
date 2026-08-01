@@ -14,13 +14,12 @@ import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import styles from './mobile-member-popup-runtime.module.css';
 
-type MobilePopupKind = 'deposit' | 'withdraw' | 'network-income' | 'commission-income' | 'coupon' | 'language';
-type PopupState = MobilePopupKind | null;
-
+type MobilePopupKind = 'deposit' | 'withdraw' | 'network-income' | 'commission-income' | 'coupon' | 'bonus' | 'language';
 type GenericPayload = Record<string, unknown> | null;
 
 const PAGE_LABELS: Array<[string, string]> = [
   ['ระดับสมาชิก', 'vip'],
+  ['แนะนำเพื่อน', 'affiliate'],
   ['ถ่ายทอดสด', 'live'],
   ['โปรโมชั่น', 'promotions'],
   ['ข่าวสาร', 'news'],
@@ -38,22 +37,21 @@ const DAILY_LIMIT = 2_000_000;
 export default function MobileMemberPopupRuntime() {
   const { locale, toggleLocale } = useMemberLocale();
   const { summary } = useMemberRuntime();
-  const [popup, setPopup] = useState<PopupState>(null);
+  const [popup, setPopup] = useState<MobilePopupKind | null>(null);
+  const affiliateIncome = runtimeText(summary, 'affiliateBalance') || '0.00';
+  const commissionIncome = runtimeText(summary, 'commissionBalance') || '0.00';
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
       const root = event.target.closest<HTMLElement>('[data-mobile-home-root="true"]');
-      if (!root || root.dataset.mobileAuthenticated !== 'true') return;
-      if (!window.matchMedia('(max-width: 900px)').matches) return;
-
+      if (!root || root.dataset.mobileAuthenticated !== 'true' || !window.matchMedia('(max-width: 900px)').matches) return;
       const action = event.target.closest<HTMLElement>('a,button');
       if (!action || !root.contains(action)) return;
       const explicit = action.dataset.mobileMemberPopup as MobilePopupKind | undefined;
       const text = action.textContent?.replace(/\s+/g, ' ').trim() ?? '';
       const href = action instanceof HTMLAnchorElement ? action.getAttribute('href') ?? '' : '';
       const kind = explicit ?? popupFromAction(text, href);
-
       if (kind) {
         event.preventDefault();
         event.stopPropagation();
@@ -61,7 +59,6 @@ export default function MobileMemberPopupRuntime() {
         setPopup(kind);
         return;
       }
-
       const page = PAGE_LABELS.find(([label]) => text.includes(label))?.[1];
       if (!page) return;
       event.preventDefault();
@@ -69,7 +66,6 @@ export default function MobileMemberPopupRuntime() {
       closeDrawer(root);
       window.location.assign(`/mobile/member/${page}`);
     };
-
     document.addEventListener('click', handleClick, true);
     return () => document.removeEventListener('click', handleClick, true);
   }, []);
@@ -78,9 +74,7 @@ export default function MobileMemberPopupRuntime() {
     if (!popup) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setPopup(null);
-    };
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setPopup(null); };
     window.addEventListener('keydown', closeOnEscape);
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -89,8 +83,8 @@ export default function MobileMemberPopupRuntime() {
   }, [popup]);
 
   if (!popup || typeof document === 'undefined') return null;
-
   const title = popupTitle(popup, locale);
+
   return createPortal(
     <div className={styles.backdrop} role="presentation" onPointerDown={(event) => {
       if (event.currentTarget === event.target) setPopup(null);
@@ -105,9 +99,10 @@ export default function MobileMemberPopupRuntime() {
         <div className={styles.content}>
           {popup === 'deposit' ? <MobileDepositContent locale={locale} onClose={() => setPopup(null)} /> : null}
           {popup === 'withdraw' ? <MobileWithdrawContent locale={locale} onClose={() => setPopup(null)} /> : null}
-          {popup === 'network-income' ? <IncomeContent label={title} value={summary.affiliateBalance || '0.00'} /> : null}
-          {popup === 'commission-income' ? <IncomeContent label={title} value={summary.commissionBalance || '0.00'} /> : null}
+          {popup === 'network-income' ? <IncomeContent label={title} value={affiliateIncome} /> : null}
+          {popup === 'commission-income' ? <IncomeContent label={title} value={commissionIncome} /> : null}
           {popup === 'coupon' ? <CouponContent locale={locale} /> : null}
+          {popup === 'bonus' ? <BonusContent locale={locale} /> : null}
           {popup === 'language' ? (
             <div className={styles.languageChoices}>
               <button type="button" className={locale === 'th' ? styles.selected : ''} onClick={() => {
@@ -140,10 +135,7 @@ function MobileDepositContent({ locale, onClose }: { locale: 'th' | 'en'; onClos
 
   const loadAccount = async (event: FormEvent) => {
     event.preventDefault();
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
-      setMessage(locale === 'th' ? 'กรุณากรอกจำนวนเงิน' : 'Enter an amount');
-      return;
-    }
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) return setMessage(locale === 'th' ? 'กรุณากรอกจำนวนเงิน' : 'Enter an amount');
     setLoading(true);
     setMessage('');
     try {
@@ -161,10 +153,7 @@ function MobileDepositContent({ locale, onClose }: { locale: 'th' | 'en'; onClos
   const uploadSlip = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      setMessage(locale === 'th' ? 'กรุณาเลือกไฟล์รูปภาพ' : 'Choose an image file');
-      return;
-    }
+    if (!file.type.startsWith('image/')) return setMessage(locale === 'th' ? 'กรุณาเลือกไฟล์รูปภาพ' : 'Choose an image file');
     try {
       setSlipData(await fileToDataUrl(file));
       setSlipName(file.name);
@@ -182,15 +171,13 @@ function MobileDepositContent({ locale, onClose }: { locale: 'th' | 'en'; onClos
     const formValues = { amount, method, transactionRef: '', note: '' };
     try {
       const createResponse = await memberApiFetch('/member/topups', {
-        method: 'POST',
-        headers: { 'Idempotency-Key': requestKeyRef.current },
+        method: 'POST', headers: { 'Idempotency-Key': requestKeyRef.current },
         body: JSON.stringify(serializeDepositCreateRequest(formValues, account)),
       });
       const created = await createResponse.json().catch(() => null);
       if (!createResponse.ok || !created?.id) throw new Error(created?.message || 'Create deposit failed');
       const evidenceResponse = await memberApiFetch(`/member/topups/${created.id}/slip-evidence`, {
-        method: 'POST',
-        body: JSON.stringify(serializeDepositEvidenceRequest(formValues, slipData, slipName)),
+        method: 'POST', body: JSON.stringify(serializeDepositEvidenceRequest(formValues, slipData, slipName)),
       });
       const evidence = await evidenceResponse.json().catch(() => null);
       if (!evidenceResponse.ok && !evidence?.duplicate) throw new Error(evidence?.message || 'Upload slip failed');
@@ -204,36 +191,20 @@ function MobileDepositContent({ locale, onClose }: { locale: 'th' | 'en'; onClos
     }
   };
 
-  return (
-    <div className={styles.financeContent}>
-      {!account ? (
-        <form className={styles.depositForm} onSubmit={loadAccount}>
-          <label><span>{locale === 'th' ? 'จำนวนเงินที่ต้องการฝาก' : 'Deposit amount'}</span>
-            <input inputMode="decimal" value={amount} onChange={(event) => setAmount(sanitizeAmount(event.target.value))} placeholder="0.00" /></label>
-          <div className={styles.methodGrid}>
-            {(['bank_transfer', 'promptpay', 'wallet'] as DepositMethodCode[]).map((value) => (
-              <button type="button" key={value} className={method === value ? styles.selected : ''} onClick={() => setMethod(value)}>
-                {value === 'bank_transfer' ? (locale === 'th' ? 'ธนาคาร' : 'Bank') : value === 'promptpay' ? 'PromptPay' : 'Wallet'}
-              </button>
-            ))}
-          </div>
-          <button type="submit" className={styles.primaryButton} disabled={loading}>{loading ? '…' : (locale === 'th' ? 'ดำเนินการต่อ' : 'Continue')}</button>
-        </form>
-      ) : (
-        <div className={styles.depositTransfer}>
-          <div className={styles.bankCard}>
-            <img src={bankLogo(account.bankName)} alt="" />
-            <div><strong>{account.bankName}</strong><span>{account.accountName}</span><b>{account.accountNumber}</b></div>
-          </div>
-          <div className={styles.transferAmount}><span>{locale === 'th' ? 'ยอดที่ต้องโอน' : 'Transfer amount'}</span><strong>{formatMoney(numericAmount)}</strong></div>
-          <label className={styles.slipInput}><input type="file" accept="image/*" onChange={uploadSlip} /><span>{slipName || (locale === 'th' ? 'แนบสลิปการโอน' : 'Attach transfer slip')}</span></label>
-          <div className={styles.actions}><button type="button" onClick={() => setAccount(null)}>{locale === 'th' ? 'ย้อนกลับ' : 'Back'}</button><button type="button" className={styles.primaryButton} disabled={!slipData || loading} onClick={submit}>{loading ? '…' : (locale === 'th' ? 'ยืนยัน' : 'Confirm')}</button></div>
-        </div>
-      )}
-      {message ? <div className={styles.message} role="status">{message}</div> : null}
-      <button type="button" className={styles.cancelLink} onClick={onClose}>{locale === 'th' ? 'ยกเลิก' : 'Cancel'}</button>
-    </div>
-  );
+  return <div className={styles.financeContent}>
+    {!account ? <form className={styles.depositForm} onSubmit={loadAccount}>
+      <label><span>{locale === 'th' ? 'จำนวนเงินที่ต้องการฝาก' : 'Deposit amount'}</span><input inputMode="decimal" value={amount} onChange={(event) => setAmount(sanitizeAmount(event.target.value))} placeholder="0.00" /></label>
+      <div className={styles.methodGrid}>{(['bank_transfer', 'promptpay', 'wallet'] as DepositMethodCode[]).map((value) => <button type="button" key={value} className={method === value ? styles.selected : ''} onClick={() => setMethod(value)}>{value === 'bank_transfer' ? (locale === 'th' ? 'ธนาคาร' : 'Bank') : value === 'promptpay' ? 'PromptPay' : 'Wallet'}</button>)}</div>
+      <button type="submit" className={styles.primaryButton} disabled={loading}>{loading ? '…' : (locale === 'th' ? 'ดำเนินการต่อ' : 'Continue')}</button>
+    </form> : <div className={styles.depositTransfer}>
+      <div className={styles.bankCard}><img src={bankLogo(account.bankName)} alt="" /><div><strong>{account.bankName}</strong><span>{account.accountName}</span><b>{account.accountNumber}</b></div></div>
+      <div className={styles.transferAmount}><span>{locale === 'th' ? 'ยอดที่ต้องโอน' : 'Transfer amount'}</span><strong>{formatMoney(numericAmount)}</strong></div>
+      <label className={styles.slipInput}><input type="file" accept="image/*" onChange={uploadSlip} /><span>{slipName || (locale === 'th' ? 'แนบสลิปการโอน' : 'Attach transfer slip')}</span></label>
+      <div className={styles.actions}><button type="button" onClick={() => setAccount(null)}>{locale === 'th' ? 'ย้อนกลับ' : 'Back'}</button><button type="button" className={styles.primaryButton} disabled={!slipData || loading} onClick={submit}>{loading ? '…' : (locale === 'th' ? 'ยืนยัน' : 'Confirm')}</button></div>
+    </div>}
+    {message ? <div className={styles.message} role="status">{message}</div> : null}
+    <button type="button" className={styles.cancelLink} onClick={onClose}>{locale === 'th' ? 'ยกเลิก' : 'Cancel'}</button>
+  </div>;
 }
 
 function MobileWithdrawContent({ locale, onClose }: { locale: 'th' | 'en'; onClose: () => void }) {
@@ -272,14 +243,11 @@ function MobileWithdrawContent({ locale, onClose }: { locale: 'th' | 'en'; onClo
   }, [locale]);
 
   useEffect(() => { void load(); }, [load]);
-
   const selectedBank = banks.find((bank) => bank.id === selectedBankId) ?? banks[0];
   const available = safeNumber(wallet?.availableBalance);
   const remainingToday = Math.min(available, DAILY_LIMIT);
   const numericAmount = Number(amount.replace(/,/g, ''));
-  const bonusRemaining = useMemo(() => bonusLedgers
-    .filter((item) => !item.turnoverCompleted && ['ACTIVE', 'REVIEWING', 'PENDING'].includes(String(item.status)))
-    .reduce((sum, item) => sum + Math.max(safeNumber(item.turnoverRequired) - safeNumber(item.turnoverProgress), 0), 0), [bonusLedgers]);
+  const bonusRemaining = useMemo(() => bonusLedgers.filter((item) => !item.turnoverCompleted && ['ACTIVE', 'REVIEWING', 'PENDING'].includes(String(item.status))).reduce((sum, item) => sum + Math.max(safeNumber(item.turnoverRequired) - safeNumber(item.turnoverProgress), 0), 0), [bonusLedgers]);
   const valid = Boolean(selectedBank && numericAmount >= 100 && numericAmount <= remainingToday && bonusRemaining <= 0 && !submitting);
 
   const submit = async (event: FormEvent) => {
@@ -307,25 +275,19 @@ function MobileWithdrawContent({ locale, onClose }: { locale: 'th' | 'en'; onClo
     }
   };
 
-  return (
-    <form className={styles.withdrawContent} onSubmit={submit}>
-      <div className={styles.sectionLabel}>{locale === 'th' ? 'บัญชีธนาคารของคุณ' : 'Your bank account'}</div>
-      {selectedBank ? <div className={styles.bankCard}>
-        <img src={bankLogo(selectedBank.bankName)} alt="" />
-        <div><strong>{selectedBank.accountName}</strong><span>{formatAccountNumber(selectedBank.accountNumber)}</span></div>
-        {banks.length > 1 ? <select value={selectedBank.id} onChange={(event) => setSelectedBankId(event.target.value)}>{banks.map((bank) => <option key={bank.id} value={bank.id}>{bank.bankName}</option>)}</select> : null}
-      </div> : <div className={styles.empty}>{loading ? (locale === 'th' ? 'กำลังโหลด...' : 'Loading...') : (locale === 'th' ? 'ยังไม่มีบัญชีธนาคารที่พร้อมถอน' : 'No approved bank account')}</div>}
-      <div className={styles.withdrawPrompt}>{locale === 'th' ? 'ใส่จำนวนเงินที่ต้องการถอน' : 'Enter withdrawal amount'}</div>
-      <input className={styles.amountInput} inputMode="decimal" value={amount} onChange={(event) => setAmount(sanitizeAmount(event.target.value))} placeholder="0.00" />
-      <div className={styles.minimum}>{locale === 'th' ? 'ถอนขั้นต่ำ 100.00 เครดิต' : 'Minimum withdrawal: 100.00 credits'}</div>
-      <div className={styles.remaining}>{locale === 'th' ? 'ยอดถอนคงเหลือวันนี้' : 'Remaining today'} {formatMoney(remainingToday)}</div>
-      {bonusRemaining > 0 ? <div className={styles.message}>{locale === 'th' ? `ต้องทำเทิร์นโบนัสคงเหลือ ${formatMoney(bonusRemaining)} ก่อนถอน` : `Complete ${formatMoney(bonusRemaining)} turnover first`}</div> : null}
-      <div className={styles.sectionLabel}>{locale === 'th' ? 'เลือกจำนวน' : 'Choose amount'}</div>
-      <div className={styles.quickGrid}>{QUICK_AMOUNTS.map((value) => <button type="button" key={value} disabled={!selectedBank || value > remainingToday || bonusRemaining > 0} onClick={() => setAmount(String(value))}>{value.toLocaleString('en-US')}</button>)}</div>
-      {message ? <div className={styles.message} role="status">{message}</div> : null}
-      <div className={styles.actions}><button type="button" onClick={onClose}>{locale === 'th' ? 'ยกเลิก' : 'Cancel'}</button><button type="submit" className={styles.primaryButton} disabled={!valid}>{submitting ? '…' : (locale === 'th' ? 'ยืนยัน' : 'Confirm')}</button></div>
-    </form>
-  );
+  return <form className={styles.withdrawContent} onSubmit={submit}>
+    <div className={styles.sectionLabel}>{locale === 'th' ? 'บัญชีธนาคารของคุณ' : 'Your bank account'}</div>
+    {selectedBank ? <div className={styles.bankCard}><img src={bankLogo(selectedBank.bankName)} alt="" /><div><strong>{selectedBank.accountName}</strong><span>{formatAccountNumber(selectedBank.accountNumber)}</span></div>{banks.length > 1 ? <select value={selectedBank.id} onChange={(event) => setSelectedBankId(event.target.value)}>{banks.map((bank) => <option key={bank.id} value={bank.id}>{bank.bankName}</option>)}</select> : null}</div> : <div className={styles.empty}>{loading ? (locale === 'th' ? 'กำลังโหลด...' : 'Loading...') : (locale === 'th' ? 'ยังไม่มีบัญชีธนาคารที่พร้อมถอน' : 'No approved bank account')}</div>}
+    <div className={styles.withdrawPrompt}>{locale === 'th' ? 'ใส่จำนวนเงินที่ต้องการถอน' : 'Enter withdrawal amount'}</div>
+    <input className={styles.amountInput} inputMode="decimal" value={amount} onChange={(event) => setAmount(sanitizeAmount(event.target.value))} placeholder="0.00" />
+    <div className={styles.minimum}>{locale === 'th' ? 'ถอนขั้นต่ำ 100.00 เครดิต' : 'Minimum withdrawal: 100.00 credits'}</div>
+    <div className={styles.remaining}>{locale === 'th' ? 'ยอดถอนคงเหลือวันนี้' : 'Remaining today'} {formatMoney(remainingToday)}</div>
+    {bonusRemaining > 0 ? <div className={styles.message}>{locale === 'th' ? `ต้องทำเทิร์นโบนัสคงเหลือ ${formatMoney(bonusRemaining)} ก่อนถอน` : `Complete ${formatMoney(bonusRemaining)} turnover first`}</div> : null}
+    <div className={styles.sectionLabel}>{locale === 'th' ? 'เลือกจำนวน' : 'Choose amount'}</div>
+    <div className={styles.quickGrid}>{QUICK_AMOUNTS.map((value) => <button type="button" key={value} disabled={!selectedBank || value > remainingToday || bonusRemaining > 0} onClick={() => setAmount(String(value))}>{value.toLocaleString('en-US')}</button>)}</div>
+    {message ? <div className={styles.message} role="status">{message}</div> : null}
+    <div className={styles.actions}><button type="button" onClick={onClose}>{locale === 'th' ? 'ยกเลิก' : 'Cancel'}</button><button type="submit" className={styles.primaryButton} disabled={!valid}>{submitting ? '…' : (locale === 'th' ? 'ยืนยัน' : 'Confirm')}</button></div>
+  </form>;
 }
 
 function IncomeContent({ label, value }: { label: string; value: string }) {
@@ -333,16 +295,24 @@ function IncomeContent({ label, value }: { label: string; value: string }) {
 }
 
 function CouponContent({ locale }: { locale: 'th' | 'en' }) {
+  return <CountContent locale={locale} endpoint="/member/coupons" labelTh="คูปองที่ใช้งานได้" labelEn="Available coupons" />;
+}
+
+function BonusContent({ locale }: { locale: 'th' | 'en' }) {
+  return <CountContent locale={locale} endpoint="/member/bonus-ledgers" labelTh="โบนัสที่กำลังใช้งาน" labelEn="Active bonuses" />;
+}
+
+function CountContent({ locale, endpoint, labelTh, labelEn }: { locale: 'th' | 'en'; endpoint: string; labelTh: string; labelEn: string }) {
   const [payload, setPayload] = useState<GenericPayload>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    memberApiFetch('/member/coupons').then(async (response) => {
+    memberApiFetch(endpoint).then(async (response) => {
       const data = await response.json().catch(() => null);
       if (response.ok) setPayload(data as GenericPayload);
     }).finally(() => setLoading(false));
-  }, []);
+  }, [endpoint]);
   const count = Array.isArray(payload?.items) ? payload.items.length : 0;
-  return <div className={styles.incomeContent}><span>{locale === 'th' ? 'คูปองที่ใช้งานได้' : 'Available coupons'}</span><strong>{loading ? '…' : count}</strong><p>{count ? (locale === 'th' ? 'เลือกใช้คูปองในขั้นตอนที่รองรับ' : 'Use a coupon in supported flows') : (locale === 'th' ? 'ยังไม่มีคูปองที่ใช้งานได้' : 'No coupons available')}</p></div>;
+  return <div className={styles.incomeContent}><span>{locale === 'th' ? labelTh : labelEn}</span><strong>{loading ? '…' : count}</strong><p>{count ? (locale === 'th' ? 'ข้อมูลจากระบบสมาชิกกลาง' : 'Loaded from the member API') : (locale === 'th' ? 'ยังไม่มีรายการที่ใช้งานได้' : 'No active items')}</p></div>;
 }
 
 function popupFromAction(text: string, href: string): MobilePopupKind | null {
@@ -351,6 +321,7 @@ function popupFromAction(text: string, href: string): MobilePopupKind | null {
   if (text.includes('รายได้จากเครือข่าย')) return 'network-income';
   if (text.includes('รายได้จากคอมมิชชั่น') || text.includes('รายได้คอมมิชชั่น')) return 'commission-income';
   if (text.includes('คูปอง')) return 'coupon';
+  if (text.includes('โบนัสพิเศษ')) return 'bonus';
   if (text.includes('เปลี่ยนภาษา')) return 'language';
   return null;
 }
@@ -358,47 +329,22 @@ function popupFromAction(text: string, href: string): MobilePopupKind | null {
 function popupTitle(kind: MobilePopupKind, locale: 'th' | 'en') {
   const copy: Record<MobilePopupKind, [string, string]> = {
     deposit: ['ฝากเงิน', 'Deposit'], withdraw: ['ถอนเงิน', 'Withdraw'],
-    'network-income': ['รายได้จากเครือข่าย', 'Network income'],
-    'commission-income': ['รายได้จากคอมมิชชั่น', 'Commission income'],
-    coupon: ['คูปอง', 'Coupons'], language: ['เปลี่ยนภาษา', 'Language'],
+    'network-income': ['รายได้จากเครือข่าย', 'Network income'], 'commission-income': ['รายได้จากคอมมิชชั่น', 'Commission income'],
+    coupon: ['คูปอง', 'Coupons'], bonus: ['โบนัสพิเศษ', 'Special bonus'], language: ['เปลี่ยนภาษา', 'Language'],
   };
   return copy[kind][locale === 'th' ? 0 : 1];
 }
 
-function closeDrawer(root: HTMLElement) {
-  root.querySelector<HTMLButtonElement>('button[aria-label="ปิดเมนู"]')?.click();
+function runtimeText(summary: unknown, key: string) {
+  if (!summary || typeof summary !== 'object') return '';
+  const value = (summary as Record<string, unknown>)[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : '';
 }
 
-function sanitizeAmount(value: string) {
-  const normalized = value.replace(/[^0-9.]/g, '');
-  const [whole = '', ...fraction] = normalized.split('.');
-  return fraction.length ? `${whole}.${fraction.join('').slice(0, 2)}` : whole;
-}
-
-function safeNumber(value: unknown) {
-  const number = Number(value ?? 0);
-  return Number.isFinite(number) ? number : 0;
-}
-
-function formatMoney(value: number) {
-  return safeNumber(value).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function formatAccountNumber(value: string) {
-  return value.replace(/\s+/g, '').replace(/(.{3})(?=.)/g, '$1 ');
-}
-
-function bankLogo(bankName: string) {
-  const normalized = bankName.toUpperCase();
-  const code = ['SCB', 'KBANK', 'KTB', 'BBL', 'BAY', 'TTB', 'UOBT', 'GSB', 'GHB'].find((item) => normalized.includes(item)) ?? 'SCB';
-  return `/images/banks/TH/${code}.webp`;
-}
-
-function fileToDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error('file read failed'));
-    reader.readAsDataURL(file);
-  });
-}
+function closeDrawer(root: HTMLElement) { root.querySelector<HTMLButtonElement>('button[aria-label="ปิดเมนู"]')?.click(); }
+function sanitizeAmount(value: string) { const normalized = value.replace(/[^0-9.]/g, ''); const [whole = '', ...fraction] = normalized.split('.'); return fraction.length ? `${whole}.${fraction.join('').slice(0, 2)}` : whole; }
+function safeNumber(value: unknown) { const number = Number(value ?? 0); return Number.isFinite(number) ? number : 0; }
+function formatMoney(value: number) { return safeNumber(value).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function formatAccountNumber(value: string) { return value.replace(/\s+/g, '').replace(/(.{3})(?=.)/g, '$1 '); }
+function bankLogo(bankName: string) { const normalized = bankName.toUpperCase(); const code = ['SCB', 'KBANK', 'KTB', 'BBL', 'BAY', 'TTB', 'UOBT', 'GSB', 'GHB'].find((item) => normalized.includes(item)) ?? 'SCB'; return `/images/banks/TH/${code}.webp`; }
+function fileToDataUrl(file: File) { return new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(new Error('file read failed')); reader.readAsDataURL(file); }); }
