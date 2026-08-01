@@ -1,5 +1,4 @@
 const IMAGE_ROOT = '/assets/asset-pc/images';
-const MOBILE_IMAGE_ROOT = '/assets/asset-moblie/images';
 const MENU_ROOT = '/assets/reference-brand/menu';
 const LOCAL_HERO_SLIDES = [
   { name: 'ผู้ชนะและรางวัล', url: `${IMAGE_ROOT}/FEZX/imageslides/1784196704798-2fc7e5da-8d52-42a1-8a40-4f0f0465a264.jpg` },
@@ -68,9 +67,9 @@ export const V47_ASSETS = {
   rank2: `${IMAGE_ROOT}/LeaderBoard/rank2.webp`,
   rank3: `${IMAGE_ROOT}/LeaderBoard/rank3.webp`,
   mobilePopular: `${IMAGE_ROOT}/highlight/icongamehit.webp`,
-  mobileFaq: `${MOBILE_IMAGE_ROOT}/home/faq.svg`,
-  rankTop3: `${MOBILE_IMAGE_ROOT}/predict/mobile/rankBadgeTop3.svg`,
-  rankOther: `${MOBILE_IMAGE_ROOT}/predict/mobile/rankBadgeOther.svg`,
+  mobileFaq: `${IMAGE_ROOT}/home/faq.svg`,
+  rankTop3: `${IMAGE_ROOT}/predict/mobile/rankBadgeTop3.svg`,
+  rankOther: `${IMAGE_ROOT}/predict/mobile/rankBadgeOther.svg`,
   fallbackHeroSlides: LOCAL_HERO_SLIDES,
   fallbackHomeAssets: {
     logo: '/reference-v6/logo.webp',
@@ -86,8 +85,8 @@ export const V47_ASSETS = {
     rank1: `${IMAGE_ROOT}/LeaderBoard/rank1.webp`,
     rank2: `${IMAGE_ROOT}/LeaderBoard/rank2.webp`,
     rank3: `${IMAGE_ROOT}/LeaderBoard/rank3.webp`,
-    rankTop3: `${MOBILE_IMAGE_ROOT}/predict/mobile/rankBadgeTop3.svg`,
-    rankOther: `${MOBILE_IMAGE_ROOT}/predict/mobile/rankBadgeOther.svg`,
+    rankTop3: `${IMAGE_ROOT}/predict/mobile/rankBadgeTop3.svg`,
+    rankOther: `${IMAGE_ROOT}/predict/mobile/rankBadgeOther.svg`,
   },
 } as const;
 
