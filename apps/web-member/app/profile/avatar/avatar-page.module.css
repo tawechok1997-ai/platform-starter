@@ -1,10 +1,10 @@
 .root {
   width: 100%;
-  max-width: var(--mobile-source-page-max, 640px);
+  max-width: 428px;
   min-height: 100dvh;
   margin: 0 auto;
-  color: var(--mobile-source-text, #fff);
-  background: var(--mobile-source-bg, #171422);
+  color: #fff;
+  background: #140f19;
 }
 
 .header {
@@ -12,12 +12,11 @@
   top: 0;
   z-index: 51;
   display: grid;
-  height: var(--mobile-source-header-height, 50px);
+  height: 50px;
   padding: 0 8px;
   grid-template-columns: 32px minmax(0, 1fr) 32px;
   align-items: center;
-  background: var(--mobile-source-bg, #171422);
-  box-shadow: 0 1px 0 rgb(255 255 255 / 4%);
+  background: #171422;
 }
 
 .header button {
@@ -27,7 +26,6 @@
   padding: 4px;
   place-items: center;
   border: 0;
-  border-radius: 8px;
   color: #fff;
   background: transparent;
   cursor: pointer;
@@ -43,7 +41,8 @@
 .header h1 {
   margin: 0;
   overflow: hidden;
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 700;
   line-height: 24px;
   text-align: center;
   text-overflow: ellipsis;
@@ -51,23 +50,21 @@
 }
 
 .body {
-  display: grid;
-  padding: 16px 16px calc(48px + env(safe-area-inset-bottom));
-  gap: 14px;
-  background: radial-gradient(circle at 50% 0%, rgb(255 255 255 / 8%), transparent 42%);
+  display: flex;
+  width: 100%;
+  min-height: calc(100dvh - 50px);
+  padding: 24px 12px calc(28px + env(safe-area-inset-bottom));
+  flex-direction: column;
+  align-items: center;
+  background: #140f19;
 }
 
-.profileCard {
-  display: grid;
-  min-width: 0;
-  padding: 12px;
-  grid-template-columns: 100px minmax(0, 1fr);
+.profileHero {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
-  border: 1px solid rgb(139 0 171 / 65%);
-  border-radius: var(--mobile-source-radius-dialog, 10px);
-  background: var(--mobile-source-card-gradient-soft, linear-gradient(180deg, #342f43 0%, rgb(0 0 0 / 0%) 100%));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
+  text-align: center;
 }
 
 .currentAvatar {
@@ -76,137 +73,148 @@
   height: 100px;
   border-radius: 10px;
   object-fit: cover;
-  background: var(--mobile-source-surface-raised, #251f31);
-}
-
-.profileDetails {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 5px;
+  background: #15131a;
 }
 
 .vipBadge {
   position: relative;
   display: flex;
   width: max-content;
-  max-width: calc(100% - 12px);
+  min-width: 68px;
   height: 20px;
-  margin: 0 0 3px 12px;
+  margin-top: -9px;
+  margin-left: 12px;
   padding: 1px;
   align-items: center;
   border-radius: 10px;
   background: linear-gradient(rgb(255 255 255 / 50%), transparent), #ff9463;
 }
 
-.vipBadge img {
+.vipBadge > div {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 0 10px 0 22px;
+  align-items: center;
+  border-radius: 10px;
+  background: radial-gradient(at center top, rgb(255 255 255 / 20%) 20%, rgb(0 0 0 / 30%) 70%, rgb(0 0 0 / 25%) 100%), #ff9463;
+}
+
+.vipBadge span {
+  width: 100%;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+.vipBadge > img {
   position: absolute;
   left: -12px;
+  display: block;
   width: 30px;
   height: 25px;
   object-fit: contain;
 }
 
-.vipBadge span {
-  height: 18px;
-  padding: 1px 10px 0 22px;
-  overflow: hidden;
-  border-radius: 10px;
-  background: radial-gradient(at center top, rgb(255 255 255 / 20%) 20%, rgb(0 0 0 / 30%) 70%), #ff9463;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 15px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.profileDetails > strong {
-  overflow: hidden;
+.phone {
+  margin-top: 8px;
   font-size: 15px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: 1px;
+}
+
+.memberName {
+  min-height: 20px;
+  margin-top: 8px;
+  margin-bottom: -4px;
+  font-size: 15px;
+  font-weight: 400;
   line-height: 20px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.profileDetails > span,
-.profileDetails > small {
-  overflow: hidden;
-  color: #d8d1df;
-  font-size: 12px;
-  line-height: 17px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.bankLine {
+  display: flex;
+  min-height: 20px;
+  margin: 6px 0;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
 }
 
-.profileDetails > small {
-  color: #9d93ab;
+.bankLine img {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .actions {
   display: grid;
+  width: 100%;
+  padding-top: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
 .actions a {
-  display: grid;
-  min-height: 42px;
-  padding: 0 10px;
-  grid-template-columns: 28px minmax(0, 1fr) 20px;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  height: 47px;
+  padding: 0 6px;
   align-items: center;
-  gap: 8px;
-  border: 1px solid var(--mobile-source-border-accent, #8b00ab);
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #626262;
   border-radius: 7px;
-  color: var(--mobile-source-text, #fff);
-  background: var(--mobile-source-card-gradient-soft, linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%));
+  color: #fff;
+  background: #15131a;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-.actions a > svg:first-child {
-  width: 22px;
-  height: 22px;
-  fill: #dca8f3;
+.actions svg {
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
 }
 
-.actions a > svg:last-child {
-  width: 12px;
-  height: 12px;
-  fill: #8800c1;
+.actions span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .avatarSection {
-  padding: 12px;
-  border: 1px solid rgb(187 91 234 / 10%);
-  border-radius: var(--mobile-source-radius-card, 8px);
-  background: rgb(187 91 234 / 10%);
-}
-
-.avatarSection > header {
-  display: flex;
-  min-height: 34px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  position: relative;
+  width: 100%;
+  margin-top: 12px;
+  padding: 24px 12px 12px;
+  border-radius: 10px;
+  background: linear-gradient(#332e41 0%, #251f2e 100%);
 }
 
 .avatarSection h2 {
-  margin: 0;
+  margin: 0 0 24px;
   font-size: 16px;
-  line-height: 24px;
-}
-
-.avatarSection header span {
-  color: var(--mobile-source-accent, #bb5bea);
-  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
 }
 
 .avatarGrid {
   display: grid;
-  padding-top: 10px;
+  width: 100%;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
 }
 
 .avatarGrid button {
@@ -215,9 +223,9 @@
   aspect-ratio: 1;
   padding: 0;
   overflow: hidden;
-  border: 2px solid transparent;
-  border-radius: var(--mobile-source-radius-dialog, 10px);
-  background: var(--mobile-source-surface-raised, #251f31);
+  border: 0;
+  border-radius: 10px;
+  background: #15131a;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -226,55 +234,69 @@
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: var(--mobile-source-radius-card, 8px);
+  border-radius: 10px;
   object-fit: cover;
 }
 
 .avatarGrid button.avatarActive {
-  border-color: var(--mobile-source-accent, #bb5bea);
-  box-shadow: var(--mobile-source-focus-ring, 0 0 0 2px rgb(187 91 234 / 18%));
+  padding: 4px;
+  background: linear-gradient(165.34deg, #944fe8 -17.16%, #7600a8 91.36%);
+}
+
+.avatarGrid button.avatarActive > img:first-child {
+  filter: grayscale(1);
 }
 
 .selectedIcon {
   position: absolute;
-  right: 4px;
-  bottom: 4px;
+  top: 50%;
+  left: 50%;
+  display: block;
   width: 28px;
   height: 28px;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+}
+
+.savedStatus {
+  position: absolute;
+  right: 12px;
+  bottom: 4px;
+  min-height: 14px;
+  color: #cf74f2;
+  font-size: 10px;
+  line-height: 14px;
 }
 
 @media (max-width: 359px) {
   .body {
-    padding: 12px 10px calc(40px + env(safe-area-inset-bottom));
+    padding-right: 9px;
+    padding-left: 9px;
   }
 
-  .profileCard {
-    grid-template-columns: 82px minmax(0, 1fr);
-    gap: 10px;
+  .actions a {
+    padding: 0 3px;
+    font-size: 10px;
   }
 
-  .currentAvatar {
-    width: 82px;
-    height: 82px;
+  .actions svg {
+    width: 21px;
+    height: 21px;
+    flex-basis: 21px;
+  }
+
+  .avatarSection {
+    padding-right: 9px;
+    padding-left: 9px;
   }
 
   .avatarGrid {
-    gap: 7px;
+    gap: 8px;
   }
 }
 
 @media (min-width: 430px) and (max-width: 900px) {
-  .header h1 {
-    font-size: 20px;
-  }
-
-  .avatarGrid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 600px) and (max-width: 900px) {
-  .avatarGrid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+  .root {
+    max-width: 428px;
   }
 }
