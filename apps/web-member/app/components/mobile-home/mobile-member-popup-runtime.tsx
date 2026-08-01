@@ -367,6 +367,7 @@ function SourcePopupShell({
   return (
     <div
       className={styles.backdrop}
+      data-ui-owner="mobile-popup"
       role="presentation"
       onPointerDown={(event) => {
         if (event.currentTarget === event.target) onClose();
@@ -1076,7 +1077,7 @@ function LanguageContent({
 function MobileVideoPopup({ onClose }: { onClose: () => void }) {
   const source = resolveLocalAssetOrSource(GUIDE_VIDEO_SOURCE, 'mobile');
   return (
-    <div className={styles.videoBackdrop} role="dialog" aria-modal="true" aria-label="วีดีโอแนะนำการใช้งาน">
+    <div className={styles.videoBackdrop} data-ui-owner="mobile-video-popup" role="dialog" aria-modal="true" aria-label="วีดีโอแนะนำการใช้งาน">
       <div className={styles.videoFrameGlow} aria-hidden="true" />
       <div className={styles.videoFrame}>
         <div className={styles.videoLoading}>Loading...</div>
@@ -1105,7 +1106,12 @@ function MobileMemberBottomNavigation({
   ];
 
   return (
-    <nav className={styles.bottomNav} aria-label="เมนูสมาชิกด้านล่าง">
+    <nav
+      className={styles.bottomNav}
+      data-ui-owner="mobile-navigation"
+      data-mobile-member-bottom-navigation="true"
+      aria-label="เมนูสมาชิกด้านล่าง"
+    >
       <div className={styles.bottomNavInner}>
         <BottomNavShape />
         <div className={styles.bottomNavGrid}>
