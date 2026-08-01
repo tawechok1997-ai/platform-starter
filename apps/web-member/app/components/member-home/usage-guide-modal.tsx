@@ -18,6 +18,7 @@ import {
   type PcSourceGuideItem,
 } from './usage-guide-pc-source-data';
 import styles from './usage-guide-modal.module.css';
+import sourceStyles from './usage-guide-pc-source.module.css';
 
 const GUIDE_TITLE_ID = 'member-usage-guide-title';
 const DESKTOP_GUIDE_MEDIA = '(min-width: 901px)';
@@ -99,7 +100,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
   return createPortal(
     <div className={styles.backdrop} role="presentation" onMouseDown={closeFromBackdrop}>
       <section
-        className={styles.modal}
+        className={`${styles.modal} ${desktopSourceEnabled ? sourceStyles.modal : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={GUIDE_TITLE_ID}
@@ -163,7 +164,7 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
                       <button
                         type="button"
                         className={expanded
-                          ? `${styles.itemButton} ${styles.itemButtonExpanded}`
+                          ? `${styles.itemButton} ${sourceStyles.itemButtonExpanded}`
                           : styles.itemButton}
                         aria-expanded={expanded}
                         onClick={() => {
@@ -199,24 +200,24 @@ export default function UsageGuideModal({ open, onClose }: { open: boolean; onCl
 
 function PcSourceGuideAnswer({ item }: { item: PcSourceGuideItem }) {
   return (
-    <div className={`${styles.answer} ${styles.sourceAnswer}`}>
+    <div className={`${styles.answer} ${sourceStyles.answer}`}>
       {item.steps.map((step, stepIndex) => (
-        <div key={`${step.image}:${stepIndex}`} className={styles.sourceStep}>
+        <div key={`${step.image}:${stepIndex}`} className={sourceStyles.step}>
           {step.bullet ? (
-            <ul className={styles.sourceList}>
+            <ul className={sourceStyles.list}>
               {step.lines.map((line, lineIndex) => (
                 <li key={lineIndex}>{renderGuideParts(line)}</li>
               ))}
             </ul>
           ) : (
-            <div className={styles.sourceParagraphs}>
+            <div className={sourceStyles.paragraphs}>
               {step.lines.map((line, lineIndex) => (
                 <p key={lineIndex}>{renderGuideParts(line)}</p>
               ))}
             </div>
           )}
           <img
-            className={styles.sourceImage}
+            className={sourceStyles.image}
             src={resolveLocalAssetOrSource(step.image, 'pc')}
             data-source-cdn={step.image}
             alt={step.alt}
@@ -238,9 +239,9 @@ function PcSourceGuideAnswer({ item }: { item: PcSourceGuideItem }) {
 function renderGuideParts(parts: readonly PcGuidePart[]) {
   return parts.map((part, index) => {
     const className = part.tone === 'danger'
-      ? styles.sourceDanger
+      ? sourceStyles.danger
       : part.tone === 'success'
-        ? styles.sourceSuccess
+        ? sourceStyles.success
         : undefined;
     return part.strong ? (
       <strong key={`${part.text}:${index}`} className={className}>{part.text}</strong>
