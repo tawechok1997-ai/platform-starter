@@ -1,0 +1,93 @@
+.modal {
+  width: min(920px, calc(100vw - 32px));
+  max-width: 920px;
+  height: min(760px, calc(100dvh - 32px));
+  max-height: calc(100dvh - 32px);
+}
+
+.itemButtonExpanded {
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+}
+
+.answer {
+  margin-top: -1px;
+  padding: 16px;
+  border: 1px solid #4f495d;
+  border-top: 0;
+  border-radius: 0 0 4px 4px;
+  background: #15141a;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.step {
+  width: 100%;
+}
+
+.step + .step {
+  margin-top: 14px;
+}
+
+.paragraphs {
+  margin: 0 0 10px;
+}
+
+.paragraphs p {
+  margin: 0;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.paragraphs p + p {
+  margin-top: 4px;
+}
+
+.list {
+  margin: 0 0 10px;
+  padding-left: 22px;
+  color: #fff;
+}
+
+.list li {
+  margin: 0;
+  padding-left: 2px;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.list li + li {
+  margin-top: 3px;
+}
+
+.danger {
+  color: #f00;
+  font-weight: 700;
+}
+
+.success {
+  color: #38761d;
+  font-weight: 700;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: #0f0e13;
+  object-fit: cover;
+}
+
+@media (max-height: 800px) and (min-width: 901px) {
+  .modal {
+    height: calc(100dvh - 24px);
+    max-height: calc(100dvh - 24px);
+  }
+}
