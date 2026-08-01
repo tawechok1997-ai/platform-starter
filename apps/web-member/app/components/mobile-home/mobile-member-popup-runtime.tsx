@@ -1163,7 +1163,7 @@ function BottomNavigationCanvasIcon({
   src,
   kind,
 }: {
-  src: string;
+  src?: string;
   kind: BottomNavigationKind;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1176,6 +1176,7 @@ function BottomNavigationCanvasIcon({
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
     drawBottomNavigationFallback(context, kind);
+    if (!src) return;
 
     const image = new Image();
     let disposed = false;
@@ -1228,11 +1229,11 @@ function MobileMemberBottomNavigation({
 }: {
   onOpen: (kind: MobilePopupKind) => void;
 }) {
-  const items: Array<{ label: string; kind: BottomNavigationKind; icon: string }> = [
-    { label: 'เมนู', kind: 'menu', icon: '/assets/asset-pc/images/เมนู.png' },
-    { label: 'ฝาก', kind: 'deposit', icon: '/images/ฝาก.png' },
-    { label: 'ถอน', kind: 'withdraw', icon: '/images/ถอน.png' },
-    { label: 'ติดต่อ', kind: 'contact', icon: '/images/line.png' },
+  const items: Array<{ label: string; kind: BottomNavigationKind; icon?: string }> = [
+    { label: 'เมนู', kind: 'menu' },
+    { label: 'ฝาก', kind: 'deposit', icon: '/assets/asset-pc/images/ฝาก.png' },
+    { label: 'ถอน', kind: 'withdraw', icon: '/assets/asset-pc/images/ถอน.png' },
+    { label: 'ติดต่อ', kind: 'contact', icon: '/assets/asset-pc/images/line.png' },
   ];
 
   return (
