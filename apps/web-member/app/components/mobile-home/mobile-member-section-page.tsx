@@ -30,9 +30,11 @@ const SECTION_CONFIG: Record<string, SectionConfig> = {
   guide: { title: 'แนะนำการใช้งาน', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/เเนะนำการใช้งาน.png' },
 };
 
+const DEFAULT_SECTION = SECTION_CONFIG.profile!;
+
 export default function MobileMemberSectionPage({ section }: Props) {
   const router = useRouter();
-  const config = SECTION_CONFIG[section] ?? SECTION_CONFIG.profile;
+  const config = SECTION_CONFIG[section] ?? DEFAULT_SECTION;
   const [payload, setPayload] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
