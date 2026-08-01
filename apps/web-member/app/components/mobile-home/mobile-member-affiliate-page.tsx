@@ -189,7 +189,7 @@ function normalizeAffiliate(payload: unknown) {
     };
   });
 
-  const approvedUnpaid = commissions.reduce((total, value) => {
+  const approvedUnpaid = commissions.reduce<number>((total, value) => {
     const item = asRecord(value) ?? {};
     const payout = firstString(item.payoutStatus, '').toUpperCase();
     const status = firstString(item.status, '').toUpperCase();
