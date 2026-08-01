@@ -357,9 +357,10 @@
 }
 
 .actionRow > .confirmButton:disabled {
-  color: #555;
-  border-color: #38373e;
-  background: #38373e;
+  border-color: #7600a8;
+  color: #fff;
+  background: #7600a8;
+  opacity: 1;
   cursor: not-allowed;
 }
 
