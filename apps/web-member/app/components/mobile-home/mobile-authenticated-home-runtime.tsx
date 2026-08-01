@@ -47,6 +47,7 @@ export default function MobileAuthenticatedHomeRuntime() {
   const memberAvatar = textValue(profileData?.avatarUrl) || MEMBER_AVATAR_FALLBACK;
   const affiliateBalance = textValue(summaryData.affiliateBalance) || '0.00';
   const commissionBalance = textValue(summaryData.commissionBalance) || '0.00';
+  const referralLink = textValue(summaryData.referralLink) || textValue(profileData?.referralLink) || '/affiliate';
 
   useLayoutEffect(() => {
     const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
@@ -97,7 +98,12 @@ export default function MobileAuthenticatedHomeRuntime() {
     const closeBeforePlainNavigation = (event: PointerEvent) => {
       if (!(event.target instanceof Element)) return;
       const action = event.target.closest<HTMLElement>('a,button');
-      if (!action || !drawer.contains(action) || action.dataset.mobileMemberPopup) return;
+      if (
+        !action
+        || !drawer.contains(action)
+        || action.dataset.mobileMemberPopup
+        || action.dataset.mobileMemberDrawerCopy
+      ) return;
       closeButton?.click();
     };
     drawer.addEventListener('pointerdown', closeBeforePlainNavigation, true);
@@ -184,11 +190,21 @@ export default function MobileAuthenticatedHomeRuntime() {
             </a>
           </div>
 
-          <Link href="/mobile/member/affiliate" className={styles.referralRow}>
+          <button
+            type="button"
+            className={styles.referralRow}
+            data-mobile-member-drawer-copy="referral"
+            onClick={() => {
+              const absoluteLink = referralLink.startsWith('http')
+                ? referralLink
+                : `${window.location.origin}${referralLink}`;
+              void navigator.clipboard?.writeText(absoluteLink);
+            }}
+          >
             <img src={NETWORK_ICON} alt="" aria-hidden="true" />
-            <span><strong>ลิงก์แนะนำเพื่อน</strong><small>/affiliate</small></span>
+            <span><strong>ลิงก์แนะนำเพื่อน</strong><small>{referralLink}</small></span>
             <CopyIcon />
-          </Link>
+          </button>
         </div>,
         targets.drawerProfile,
       )}
