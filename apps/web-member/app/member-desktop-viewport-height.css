@@ -18,3 +18,54 @@ html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-
     max-height: calc(var(--member-desktop-viewport-height, 100dvh) - 132px) !important;
   }
 }
+
+/* Final two-column geometry owner.
+ * The main feed previously kept overflow visible, so fixed-width source rows
+ * could paint underneath the sticky Jackpot rail on scaled Desktop windows.
+ */
+@media (min-width: 901px) {
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home.desktop-home {
+    display: block !important;
+    box-sizing: border-box !important;
+    width: min(1455px, calc(100% - 30px)) !important;
+    max-width: 1455px !important;
+    margin-inline: auto !important;
+    overflow: visible !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home > .desktop-home__body {
+    position: relative !important;
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: min(1425px, 100%) !important;
+    max-width: 1425px !important;
+    margin-inline: auto !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 360px) !important;
+    align-items: start !important;
+    justify-content: stretch !important;
+    gap: 15px !important;
+    overflow: visible !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-main-column {
+    grid-column: 1 / 2 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+  }
+
+  html[data-member-viewport-mode='desktop'] #member-desktop-scale-canvas .desktop-reference-home .reference-sidebar {
+    grid-column: 2 / 3 !important;
+    justify-self: stretch !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 360px !important;
+    margin: 0 !important;
+    transform: none !important;
+    translate: none !important;
+  }
+}
