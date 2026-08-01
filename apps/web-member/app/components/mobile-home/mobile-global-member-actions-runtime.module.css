@@ -1,0 +1,181 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 420;
+  display: flex;
+  padding: 16px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: rgb(0 0 0 / 82%);
+  backdrop-filter: blur(1px);
+}
+
+.languageDialog,
+.logoutDialog {
+  position: relative;
+  width: min(396px, calc(100vw - 32px));
+  border: 1px solid #413e4b;
+  border-radius: 10px;
+  background: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%);
+  box-shadow: 0 1px 24px 4px rgb(90 90 90 / 20%);
+}
+
+.languageDialog {
+  max-width: 300px;
+  padding: 52px 18px 18px;
+}
+
+.close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  color: #c2c2c2;
+  background: transparent;
+  font-size: 24px;
+  line-height: 28px;
+  cursor: pointer;
+}
+
+.titleTab {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  display: grid;
+  width: 154px;
+  height: 36px;
+  place-items: center;
+  border-radius: 0 0 28px 28px;
+  background: linear-gradient(180deg, #505050 0%, #474747 32%, #313131 79%);
+  font-size: 14px;
+  font-weight: 700;
+  transform: translateX(-50%);
+}
+
+.languageGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.languageGrid button {
+  display: flex;
+  min-width: 0;
+  height: 70px;
+  padding: 7px 4px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid #373540;
+  border-radius: 7px;
+  color: #fff;
+  background: #15131a;
+  font: inherit;
+  cursor: pointer;
+}
+
+.languageGrid img {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  object-fit: cover;
+  box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
+}
+
+.languageGrid span {
+  width: 100%;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.languageGrid .languageSelected {
+  padding: 6px 3px;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#251f33, #251f33) padding-box,
+    linear-gradient(165deg, #944fe8 -17.16%, #7600a8 91.36%) border-box;
+}
+
+.logoutDialog {
+  max-width: 396px;
+  padding: 28px 18px 18px;
+  text-align: center;
+}
+
+.logoutDialog h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.logoutDialog p {
+  margin: 12px 0 22px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.logoutActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.logoutActions button {
+  height: 48px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirmLogout {
+  border: 1px solid #8b00ab;
+  color: #b100df;
+  background: #15131a;
+}
+
+.cancelLogout {
+  border: 0;
+  color: #fff;
+  background: linear-gradient(165deg, #944fe8 -17.16%, #7600a8 91.36%);
+}
+
+.loadingDialog {
+  padding-bottom: 24px;
+}
+
+.loadingDialog p {
+  margin-bottom: 14px;
+}
+
+.loadingWord {
+  display: inline-block;
+  color: #fff;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  animation: loadingPulse 900ms ease-in-out infinite alternate;
+}
+
+.loadingWord::first-letter {
+  color: #d49cf0;
+}
+
+@keyframes loadingPulse {
+  from { opacity: .42; transform: scale(.98); }
+  to { opacity: 1; transform: scale(1); }
+}
