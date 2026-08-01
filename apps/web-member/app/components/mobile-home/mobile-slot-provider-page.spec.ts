@@ -5,6 +5,10 @@ import test from 'node:test';
 const page = readFileSync(new URL('./mobile-slot-provider-page.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-casino-provider-page.module.css', import.meta.url), 'utf8');
 const owner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
+const launchController = readFileSync(
+  new URL('../member-home/public-home-game-navigation-controller.tsx', import.meta.url),
+  'utf8',
+);
 
 const SLOT_PROVIDER_ORDER = [
   'ygr', 'hotdog', 'misolt', 'jl', 'pp', 'kingm', 'spg', 'jkgx2', 'fachai', 'rsg',
@@ -55,6 +59,16 @@ test('slot game cards hand real game identifiers to the shared launcher', () => 
   assert.match(page, /data-game-name=\{game\.name\}/);
   assert.match(page, /data-provider-code=\{game\.provider \?\? provider\.code\}/);
   assert.match(page, /data-game-category="slot"/);
+});
+
+test('guest login preserves the exact selected slot game destination', () => {
+  assert.match(launchController, /currentUrl\.searchParams\.set\('auth', 'login'\)/);
+  assert.match(launchController, /currentUrl\.searchParams\.set\('next', destination\)/);
+  assert.match(launchController, /const candidate = readGameCandidate\(action\)/);
+  assert.match(launchController, /const game = firstText\(candidate\?\.id, candidate\?\.providerGameCode\)/);
+  assert.match(launchController, /params\.set\('provider', candidate\.providerCode\)/);
+  assert.match(launchController, /params\.set\('platform', 'mobile'\)/);
+  assert.match(launchController, /return `\/games\?\$\{params\.toString\(\)\}`/);
 });
 
 test('slot mobile geometry contains provider and game grids', () => {
