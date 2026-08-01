@@ -16,6 +16,7 @@ import HomeSidebarScrollController from './components/member-home/home-sidebar-s
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
 import MobileCategoryTabRuntime from './components/mobile-home/mobile-category-tab-runtime';
+import MobileCouponPopupBridge from './components/mobile-home/mobile-coupon-popup-bridge';
 import MobileHomeMotionRuntime from './components/mobile-home/mobile-home-motion-runtime';
 import MobileHomeRoot from './components/mobile-home/mobile-home-root';
 import { openMemberSharedPopup } from './components/member-shared-popup-runtime';
@@ -61,6 +62,7 @@ export default function MemberHome(props: MemberHomeProps) {
       <>
         <MobileHomeRoot content={props.cmsContent} showPromotion={props.showPromotion} />
         <MobileAuthenticatedHomeRuntime />
+        <MobileCouponPopupBridge />
         <MobileAuthenticatedAvatarRuntime />
         <MobileCategoryTabRuntime />
         <MobileHomeMotionRuntime contentVersion={mobileHomeMotionVersion(props.cmsContent)} />
