@@ -1,10 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMemberRuntime } from '../member-runtime-provider';
-import { useMemberSession } from '../member-session-provider';
-import MemberAuthOverlay, { type MemberAuthMode } from './auth/member-auth-overlay';
+import type { MemberAuthMode } from './auth/member-auth-overlay';
 
 const MEMBER_AUTH_OPEN_EVENT = 'member:auth-open';
 const NAVIGATION_SELECTOR = [
@@ -16,45 +15,45 @@ const NAVIGATION_SELECTOR = [
 
 const CANONICAL_LABEL_TARGETS: Readonly<Record<string, string>> = {
   'ระดับสมาชิก vip': '/mobile-menu/vip',
-  'vip': '/mobile-menu/vip',
+  vip: '/mobile-menu/vip',
   'รายได้คอมมิชชั่น': '/affiliate',
   'แนะนำเพื่อน': '/affiliate',
-  'affiliate': '/affiliate',
+  affiliate: '/affiliate',
   'คูปอง': '/bonus',
   'โบนัส': '/bonus',
   'โบนัสพิเศษ': '/bonus',
-  'bonus': '/bonus',
+  bonus: '/bonus',
   'โปรโมชั่น': '/browse/promotions?view=promotion',
   'โปรโมชั่นแนะนำ': '/browse/promotions?view=promotion',
-  'promotion': '/browse/promotions?view=promotion',
-  'promotions': '/browse/promotions?view=promotion',
+  promotion: '/browse/promotions?view=promotion',
+  promotions: '/browse/promotions?view=promotion',
   'กิจกรรม': '/browse/promotions?view=activity',
-  'activity': '/browse/promotions?view=activity',
-  'activities': '/browse/promotions?view=activity',
+  activity: '/browse/promotions?view=activity',
+  activities: '/browse/promotions?view=activity',
   'ข่าวสาร': '/browse/promotions?view=news',
-  'news': '/browse/promotions?view=news',
+  news: '/browse/promotions?view=news',
   'ถ่ายทอดสด': '/live',
-  'live': '/live',
+  live: '/live',
   'ประวัติ': '/transactions',
   'ประวัติรายการ': '/transactions',
-  'history': '/transactions',
-  'transactions': '/transactions',
+  history: '/transactions',
+  transactions: '/transactions',
   'แจ้งเตือน': '/notifications',
-  'notification': '/notifications',
-  'notifications': '/notifications',
+  notification: '/notifications',
+  notifications: '/notifications',
   'วีดีโอแนะนำ': '/mobile-menu/video',
   'วิดีโอแนะนำ': '/mobile-menu/video',
   'แนะนำการใช้งาน': '/guide',
   'คู่มือการใช้งาน': '/guide',
-  'guide': '/guide',
+  guide: '/guide',
   'สมัครสมาชิก': '/?auth=register',
-  'register': '/?auth=register',
+  register: '/?auth=register',
   'เข้าสู่ระบบ': '/?auth=login',
-  'login': '/?auth=login',
+  login: '/?auth=login',
   'ฝากเงิน': '/deposit',
-  'deposit': '/deposit',
+  deposit: '/deposit',
   'ถอนเงิน': '/withdraw',
-  'withdraw': '/withdraw',
+  withdraw: '/withdraw',
 };
 
 const CANONICAL_HREF_TARGETS: Readonly<Record<string, string>> = {
@@ -73,13 +72,6 @@ const CANONICAL_HREF_TARGETS: Readonly<Record<string, string>> = {
   '/mobile-menu/guide': '/guide',
 };
 
-type AuthRequest = {
-  mode: MemberAuthMode;
-  next?: string;
-  scrollX: number;
-  scrollY: number;
-};
-
 type AuthOpenDetail = {
   mode?: unknown;
   next?: unknown;
@@ -88,39 +80,19 @@ type AuthOpenDetail = {
 export default function MemberNavigationAuthController() {
   const router = useRouter();
   const { navigation, summary } = useMemberRuntime();
-  const { verify } = useMemberSession();
-  const [authRequest, setAuthRequest] = useState<AuthRequest | null>(null);
 
   const openAuth = useCallback((mode: MemberAuthMode, next?: string) => {
-    setAuthRequest({
-      mode,
-      next: safeNextTarget(next),
-      scrollX: window.scrollX,
-      scrollY: window.scrollY,
-    });
-  }, []);
+    const url = new URL(window.location.href);
+    url.searchParams.set('auth', mode);
 
-  const closeAuth = useCallback(() => {
-    const current = authRequest;
-    setAuthRequest(null);
-    if (current) restoreScrollPosition(current.scrollX, current.scrollY);
-  }, [authRequest]);
+    const safeNext = safeNextTarget(next);
+    if (safeNext) url.searchParams.set('next', safeNext);
+    else url.searchParams.delete('next');
 
-  const completeAuth = useCallback(async () => {
-    if (!authRequest) return;
-    const authenticated = await verify();
-    if (!authenticated) return;
-
-    const current = authRequest;
-    setAuthRequest(null);
-
-    if (current.next) {
-      router.replace(current.next, { scroll: false });
-      return;
-    }
-
-    restoreScrollPosition(current.scrollX, current.scrollY);
-  }, [authRequest, router, verify]);
+    // MemberChrome is the sole pre-login overlay owner. This controller only
+    // updates the canonical request state and never mounts a second dialog.
+    router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
+  }, [router]);
 
   useEffect(() => {
     const handleAuthOpen = (event: Event) => {
@@ -132,22 +104,6 @@ export default function MemberNavigationAuthController() {
     window.addEventListener(MEMBER_AUTH_OPEN_EVENT, handleAuthOpen);
     return () => window.removeEventListener(MEMBER_AUTH_OPEN_EVENT, handleAuthOpen);
   }, [openAuth]);
-
-  useEffect(() => {
-    if (!authRequest) return;
-
-    let secondFrame = 0;
-    const firstFrame = window.requestAnimationFrame(() => {
-      secondFrame = window.requestAnimationFrame(() => {
-        window.scrollTo(authRequest.scrollX, authRequest.scrollY);
-      });
-    });
-
-    return () => {
-      window.cancelAnimationFrame(firstFrame);
-      if (secondFrame) window.cancelAnimationFrame(secondFrame);
-    };
-  }, [authRequest]);
 
   useEffect(() => {
     const protectedTargets = new Map(
@@ -183,9 +139,7 @@ export default function MemberNavigationAuthController() {
       if (navigationLink.closest('[data-mobile-member-popup]')) return;
 
       // Once the authenticated mobile drawer is mounted, every drawer action is
-      // owned by MobileMemberPopupRuntime. It decides whether to open a popup or
-      // enter a mobile member section. Competing capture listeners caused the
-      // deposit/withdraw links and the remaining drawer actions to misfire.
+      // owned by MobileMemberPopupRuntime. This file only owns pre-login guards.
       const mobileRoot = navigationLink.closest<HTMLElement>('[data-mobile-home-root="true"]');
       const insideMobileDrawer = Boolean(navigationLink.closest('#mobile-home-drawer'));
       if (summary.isLoggedIn && mobileRoot?.dataset.mobileAuthenticated === 'true' && insideMobileDrawer) return;
@@ -216,13 +170,7 @@ export default function MemberNavigationAuthController() {
     return () => document.removeEventListener('click', guard, true);
   }, [navigation, openAuth, router, summary.isLoggedIn]);
 
-  return authRequest ? (
-    <MemberAuthOverlay
-      mode={authRequest.mode}
-      onClose={closeAuth}
-      onSuccess={completeAuth}
-    />
-  ) : null;
+  return null;
 }
 
 function canonicalTargetFor(action: HTMLAnchorElement) {
@@ -258,14 +206,6 @@ function nextTargetFor(value: string) {
 function safeNextTarget(value?: string | null) {
   const next = String(value ?? '').trim();
   return next.startsWith('/') && !next.startsWith('//') ? next : undefined;
-}
-
-function restoreScrollPosition(scrollX: number, scrollY: number) {
-  window.requestAnimationFrame(() => {
-    window.requestAnimationFrame(() => {
-      window.scrollTo(scrollX, scrollY);
-    });
-  });
 }
 
 function normalizeCurrentLocation() {
