@@ -39,12 +39,14 @@ export default function MobileAuthenticatedHomeRuntime() {
     [],
   );
 
+  const profileData = profile as unknown as Record<string, unknown> | null;
+  const summaryData = summary as unknown as Record<string, unknown>;
   const memberName = summary.displayName || summary.username || profile?.phone || 'สมาชิก';
   const walletAmount = summary.walletAvailable || '0.00';
   const walletMeta = [summary.walletCurrency || 'THB', summary.walletStatus].filter(Boolean).join(' • ');
-  const memberAvatar = typeof profile?.avatarUrl === 'string' && profile.avatarUrl.trim()
-    ? profile.avatarUrl.trim()
-    : MEMBER_AVATAR_FALLBACK;
+  const memberAvatar = textValue(profileData?.avatarUrl) || MEMBER_AVATAR_FALLBACK;
+  const affiliateBalance = textValue(summaryData.affiliateBalance) || '0.00';
+  const commissionBalance = textValue(summaryData.commissionBalance) || '0.00';
 
   useLayoutEffect(() => {
     const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
@@ -134,12 +136,7 @@ export default function MobileAuthenticatedHomeRuntime() {
       {createPortal(
         <>
           <Link href="/search" className={styles.headerSearch} aria-label="ค้นหาเกม"><SearchIcon /></Link>
-          <a
-            href="/deposit"
-            className={styles.headerWallet}
-            aria-label={`ยอดเงิน ${walletAmount}`}
-            data-mobile-member-popup="deposit"
-          >
+          <a href="/deposit" className={styles.headerWallet} aria-label={`ยอดเงิน ${walletAmount}`} data-mobile-member-popup="deposit">
             <img src={WALLET_ICON} alt="" aria-hidden="true" />
             <span>{walletAmount}</span>
           </a>
@@ -170,23 +167,19 @@ export default function MobileAuthenticatedHomeRuntime() {
           </div>
 
           <div className={styles.moneyActions}>
-            <a href="/deposit" data-mobile-member-popup="deposit">
-              <span>ฝากเงิน</span><i aria-hidden="true"><img src={DEPOSIT_ICON} alt="" /></i>
-            </a>
-            <a href="/withdraw" data-mobile-member-popup="withdraw">
-              <span>ถอนเงิน</span><i aria-hidden="true"><img src={WITHDRAW_ICON} alt="" /></i>
-            </a>
+            <a href="/deposit" data-mobile-member-popup="deposit"><span>ฝากเงิน</span><i aria-hidden="true"><img src={DEPOSIT_ICON} alt="" /></i></a>
+            <a href="/withdraw" data-mobile-member-popup="withdraw"><span>ถอนเงิน</span><i aria-hidden="true"><img src={WITHDRAW_ICON} alt="" /></i></a>
           </div>
 
           <div className={styles.incomePanel}>
             <a href="/affiliate" className={styles.incomeItem} data-mobile-member-popup="network-income">
               <span className={styles.incomeIcon} aria-hidden="true"><img src={NETWORK_ICON} alt="" /></span>
-              <span className={styles.incomeCopy}><span>รายได้จากเครือข่าย</span><strong>{summary.affiliateBalance || '0.00'}</strong></span>
+              <span className={styles.incomeCopy}><span>รายได้จากเครือข่าย</span><strong>{affiliateBalance}</strong></span>
               <span className={styles.incomeArrow} aria-hidden="true">›</span>
             </a>
             <a href="/affiliate" className={styles.incomeItem} data-mobile-member-popup="commission-income">
               <span className={styles.incomeIcon} aria-hidden="true"><img src={COMMISSION_ICON} alt="" /></span>
-              <span className={styles.incomeCopy}><span>รายได้จากคอมมิชชั่น</span><strong>{summary.commissionBalance || '0.00'}</strong></span>
+              <span className={styles.incomeCopy}><span>รายได้จากคอมมิชชั่น</span><strong>{commissionBalance}</strong></span>
               <span className={styles.incomeArrow} aria-hidden="true">›</span>
             </a>
           </div>
@@ -206,6 +199,10 @@ export default function MobileAuthenticatedHomeRuntime() {
       )}
     </>
   );
+}
+
+function textValue(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value.trim() : '';
 }
 
 function restoreGuestElements(authElements: HTMLElement[], languageButton: HTMLElement | null) {
