@@ -1,6 +1,10 @@
 'use client';
 
 import { useLayoutEffect } from 'react';
+import {
+  getMemberDesktopViewportWidth,
+  MEMBER_DESKTOP_VIEWPORT_RESYNC_EVENT,
+} from '../lib/member-document-overlay-lock';
 
 const DESKTOP_DESIGN_WIDTH = 1455;
 const WIDTH_CONDITION = /\(\s*(min|max)-width\s*:\s*(\d+(?:\.\d+)?)px\s*\)/gi;
@@ -60,7 +64,7 @@ export default function PublicDesktopViewportBootstrap() {
     };
 
     const applyDesktopScale = () => {
-      const viewportWidth = Math.max(1, document.documentElement.clientWidth || window.innerWidth);
+      const viewportWidth = getMemberDesktopViewportWidth();
       const scale = Math.max(0.05, viewportWidth / DESKTOP_DESIGN_WIDTH);
       const viewportHeight = Math.max(1, window.visualViewport?.height || window.innerHeight);
       const unscaledViewportHeight = viewportHeight / scale;
@@ -100,7 +104,7 @@ export default function PublicDesktopViewportBootstrap() {
         }
 
         document.documentElement.dataset.memberViewportMode = 'desktop';
-        const viewportWidth = Math.max(1, document.documentElement.clientWidth || window.innerWidth);
+        const viewportWidth = getMemberDesktopViewportWidth();
 
         if (viewportWidth >= DESKTOP_DESIGN_WIDTH) {
           if (mediaRulesVirtualized) restoreMediaRules();
@@ -145,6 +149,7 @@ export default function PublicDesktopViewportBootstrap() {
     syncViewport();
     window.addEventListener('resize', syncViewport, { passive: true });
     window.visualViewport?.addEventListener('resize', syncViewport, { passive: true });
+    window.addEventListener(MEMBER_DESKTOP_VIEWPORT_RESYNC_EVENT, syncViewport);
 
     styleObserver = new MutationObserver((records) => {
       if (records.some(hasStylesheetMutation)) scheduleStyleSync();
@@ -156,6 +161,7 @@ export default function PublicDesktopViewportBootstrap() {
       cancelStyleSync();
       window.removeEventListener('resize', syncViewport);
       window.visualViewport?.removeEventListener('resize', syncViewport);
+      window.removeEventListener(MEMBER_DESKTOP_VIEWPORT_RESYNC_EVENT, syncViewport);
       styleObserver?.disconnect();
       if (mediaRulesVirtualized) restoreMediaRules();
       restoreCanvas();
@@ -202,7 +208,7 @@ function installVirtualMatchMedia() {
 }
 
 function shouldUseDesktopCanvas() {
-  return !isMobileOnlyDevice() && document.documentElement.clientWidth < DESKTOP_DESIGN_WIDTH;
+  return !isMobileOnlyDevice() && getMemberDesktopViewportWidth() < DESKTOP_DESIGN_WIDTH;
 }
 
 function isMobileOnlyDevice() {

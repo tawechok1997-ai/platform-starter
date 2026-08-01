@@ -1,4 +1,5 @@
 @import './member-v47-guide-source-match.css';
+@import './member-auth-overlay-motion.css';
 
 /* Keep the duplicate scaffold actions out of the click layer. */
 .desktop-reference-home > .reference-auth-actions {
