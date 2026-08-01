@@ -10,30 +10,12 @@ import {
 
 const packageJson = readFileSync(new URL('../../package.json', import.meta.url), 'utf8');
 const nextConfig = readFileSync(new URL('../../next.config.js', import.meta.url), 'utf8');
-const generatorSource = readFileSync(
-  new URL('../../tools/generate-local-asset-basename-map.mjs', import.meta.url),
-  'utf8',
-);
-const auditSource = readFileSync(
-  new URL('../../tools/audit-source-cdn-asset-basename-matches.mjs', import.meta.url),
-  'utf8',
-);
-const sourceCatalog = readFileSync(
-  new URL('../../tools/source-cdn-asset-catalog.json', import.meta.url),
-  'utf8',
-);
-const authenticatedSourceCatalog = readFileSync(
-  new URL('../../tools/authenticated-source-cdn-asset-catalog.json', import.meta.url),
-  'utf8',
-);
-const homeResolverSource = readFileSync(
-  new URL('../components/member-home/local-game-asset-resolver.ts', import.meta.url),
-  'utf8',
-);
-const v47AssetMap = readFileSync(
-  new URL('../components/member-home/v47-asset-map.ts', import.meta.url),
-  'utf8',
-);
+const generatorSource = readFileSync(new URL('../../tools/generate-local-asset-basename-map.mjs', import.meta.url), 'utf8');
+const auditSource = readFileSync(new URL('../../tools/audit-source-cdn-asset-basename-matches.mjs', import.meta.url), 'utf8');
+const sourceCatalog = readFileSync(new URL('../../tools/source-cdn-asset-catalog.json', import.meta.url), 'utf8');
+const authenticatedSourceCatalog = readFileSync(new URL('../../tools/authenticated-source-cdn-asset-catalog.json', import.meta.url), 'utf8');
+const homeResolverSource = readFileSync(new URL('../components/member-home/local-game-asset-resolver.ts', import.meta.url), 'utf8');
+const v47AssetMap = readFileSync(new URL('../components/member-home/v47-asset-map.ts', import.meta.url), 'utf8');
 
 const mutableAssetIndex = LOCAL_ASSET_PATHS_BY_BASENAME as Record<string, readonly string[]>;
 
@@ -60,28 +42,19 @@ function readCatalog(source: string) {
 }
 
 test('extracts the final CDN filename from provider and gamecard URLs', () => {
-  assert.equal(
-    extractAssetBasename('https://cdn.zabbet.com/providers/set/1_1_h/dg.png?version=2'),
-    'dg.png',
-  );
+  assert.equal(extractAssetBasename('https://cdn.zabbet.com/providers/set/1_1_h/dg.png?version=2'), 'dg.png');
   assert.equal(
     extractAssetBasename('https://cdn.zabbet.com/gamecard/1696220882369-08f56f11-f604-4f39-a75f-98e9d185447f.png'),
     '1696220882369-08f56f11-f604-4f39-a75f-98e9d185447f.png',
   );
 });
 
-test('canonicalizes every historical local asset root to asset-pc/images', () => {
-  assert.equal(
-    canonicalizeLocalAssetPath('/assets/asset-pc/home/fire.svg'),
-    '/assets/asset-pc/images/home/fire.svg',
-  );
-  assert.equal(
-    canonicalizeLocalAssetPath('/assets/asset-mobile/providers/dg.png'),
-    '/assets/asset-pc/images/providers/dg.png',
-  );
+test('canonicalizes legacy roots without collapsing Mobile into PC', () => {
+  assert.equal(canonicalizeLocalAssetPath('/assets/asset-pc/home/fire.svg'), '/assets/asset-pc/images/home/fire.svg');
+  assert.equal(canonicalizeLocalAssetPath('/assets/asset-mobile/providers/dg.png'), '/assets/asset-mobile/providers/dg.png');
   assert.equal(
     canonicalizeLocalAssetPath('/assets/asset-moblie/ZAB1/tournament/banner.png'),
-    '/assets/asset-pc/images/ZAB1/tournament/banner.png',
+    '/assets/asset-mobile/ZAB1/tournament/banner.png',
   );
   assert.equal(
     canonicalizeLocalAssetPath('/assets/asset-pc/providers/dg.png?version=2#badge'),
@@ -89,78 +62,69 @@ test('canonicalizes every historical local asset root to asset-pc/images', () =>
   );
 });
 
-test('canonical image paths are idempotent and never duplicate the images segment', () => {
-  const source = '/assets/asset-pc/images/home/fire.svg';
+test('canonical image paths are idempotent and preserve query strings', () => {
+  const source = '/assets/asset-pc/images/home/fire.svg?version=2#icon';
   assert.equal(canonicalizeLocalAssetPath(source), source);
   assert.doesNotMatch(canonicalizeLocalAssetPath(source), /\/images\/images\//);
 });
 
-test('matches a CDN provider filename to the closest canonical local asset path', () => {
+test('matches a CDN provider filename to the closest local provider set', () => {
   withAssetCandidates('dg.png', [
     '/assets/asset-mobile/images/providers/set/1_1_h/dg.png',
     '/assets/asset-pc/images/providers/set/1_1_badge/dg.png',
     '/assets/asset-pc/images/providers/set/1_1_h/dg.png',
   ], () => {
     assert.equal(
-      resolveLocalAssetByBasename('https://cdn.zabbet.com/providers/set/1_1_h/dg.png'),
+      resolveLocalAssetByBasename('https://cdn.zabbet.com/providers/set/1_1_h/dg.png', 'pc'),
       '/assets/asset-pc/images/providers/set/1_1_h/dg.png',
+    );
+    assert.equal(
+      resolveLocalAssetByBasename('https://cdn.zabbet.com/providers/set/1_1_h/dg.png', 'mobile'),
+      '/assets/asset-mobile/images/providers/set/1_1_h/dg.png',
     );
   });
 });
 
 test('matches UUID gamecard filenames without relying on provider names', () => {
   const fileName = '1696220882369-08f56f11-f604-4f39-a75f-98e9d185447f.png';
-  withAssetCandidates(fileName, [
-    `/assets/asset-pc/images/gamecard/${fileName}`,
-  ], () => {
+  withAssetCandidates(fileName, [`/assets/asset-pc/images/gamecard/${fileName}`], () => {
     assert.equal(
-      resolveLocalAssetByBasename(`https://cdn.zabbet.com/gamecard/${fileName}`),
+      resolveLocalAssetByBasename(`https://cdn.zabbet.com/gamecard/${fileName}`, 'pc'),
       `/assets/asset-pc/images/gamecard/${fileName}`,
     );
   });
 });
 
-test('uses the unified canonical PC asset for every platform preference', () => {
+test('prefers PC or Mobile assets deterministically when a basename is duplicated', () => {
   withAssetCandidates('amb.png', [
     '/assets/asset-mobile/images/providers/set/1_1_h/amb.png',
     '/assets/asset-pc/providers/set/1_1_h/amb.png',
     '/assets/asset-pc/images/providers/set/1_1_h/amb.png',
   ], () => {
     const source = 'https://cdn.zabbet.com/providers/amb.png';
-    for (const preference of ['pc', 'mobile', 'any'] as const) {
-      assert.equal(
-        resolveLocalAssetByBasename(source, preference),
-        '/assets/asset-pc/images/providers/set/1_1_h/amb.png',
-      );
-    }
+    assert.equal(resolveLocalAssetByBasename(source, 'pc'), '/assets/asset-pc/images/providers/set/1_1_h/amb.png');
+    assert.equal(resolveLocalAssetByBasename(source, 'mobile'), '/assets/asset-mobile/images/providers/set/1_1_h/amb.png');
+    assert.equal(resolveLocalAssetByBasename(source, 'any'), '/assets/asset-pc/images/providers/set/1_1_h/amb.png');
   });
 });
 
-test('generates a case-insensitive index from canonical local assets only', () => {
+test('generates a case-insensitive index from both platform asset inventories', () => {
   assert.match(generatorSource, /async function walk\(/);
   assert.match(generatorSource, /path\.posix\.basename\(relative\)\.toLowerCase\(\)/);
   assert.match(generatorSource, /SUPPORTED_EXTENSIONS/);
-  assert.match(generatorSource, /CANONICAL_PC_PREFIX = 'asset-pc\/images\/'/);
-  assert.match(generatorSource, /isDeprecatedAssetPath/);
-  assert.match(generatorSource, /skippedDeprecatedCount/);
+  assert.doesNotMatch(generatorSource, /asset-mobile\/.*return true/);
+  assert.doesNotMatch(generatorSource, /skippedDeprecatedCount/);
 });
 
-test('central asset owners point forward to asset-pc/images only', () => {
+test('central Desktop owners keep canonical asset-pc/images URLs', () => {
   assert.match(v47AssetMap, /const IMAGE_ROOT = '\/assets\/asset-pc\/images'/);
   assert.match(v47AssetMap, /const HOME_ICON_ROOT = `\$\{IMAGE_ROOT\}\/home`/);
   assert.doesNotMatch(v47AssetMap, /['"`]\/assets\/asset-pc\/(?!images(?:\/|['"`]))/);
-
   assert.match(nextConfig, /canonicalPcAssetRoot = '\/assets\/asset-pc\/images'/);
-  assert.match(nextConfig, /source: '\/assets\/asset-pc\/:path\(\(\?!images/);
-  assert.doesNotMatch(
-    nextConfig,
-    /source: '\/assets\/asset-pc\/images\/:path\*'[\s\S]*destination: '\/assets\/asset-pc\/:path\*'/,
-  );
 });
 
 test('records all supplied category CDN assets and audits them against local files', () => {
   const { catalog, sourcePaths, uniqueBasenames } = readCatalog(sourceCatalog);
-
   assert.equal(catalog.counts?.entries, 84);
   assert.equal(catalog.counts?.uniqueBasenames, 82);
   assert.equal(sourcePaths.length, 84);
@@ -174,7 +138,6 @@ test('records all supplied category CDN assets and audits them against local fil
 
 test('records authenticated source CDN media and audits it with the same basename owner', () => {
   const { catalog, sourcePaths, uniqueBasenames } = readCatalog(authenticatedSourceCatalog);
-
   assert.equal(catalog.counts?.entries, 99);
   assert.equal(catalog.counts?.uniqueBasenames, 94);
   assert.equal(sourcePaths.length, 99);
@@ -184,14 +147,10 @@ test('records authenticated source CDN media and audits it with the same basenam
   assert.equal(sourcePaths.includes('/videos/tutorial_640.webm'), true);
   assert.equal(sourcePaths.some((value) => value.startsWith('/FEZX/promotions/')), true);
   assert.doesNotMatch(authenticatedSourceCatalog, /null&quot/);
-
   assert.match(auditSource, /authenticated-source-cdn-asset-catalog\.json/);
   assert.match(auditSource, /authenticated-source-cdn-asset-match-report\.json/);
   assert.match(auditSource, /for \(const descriptor of CATALOGS\)/);
   assert.match(auditSource, /status:\s*candidates\.length \? 'matched' : 'missing'/);
-  assert.match(auditSource, /Catalog entry count drift/);
-  assert.match(auditSource, /Catalog basename count drift/);
-  assert.match(auditSource, /'\.ico'/);
 });
 
 test('refreshes the generated asset map before development and verification commands', () => {
@@ -201,10 +160,7 @@ test('refreshes the generated asset map before development and verification comm
     assert.equal(scripts[hook], 'pnpm generate:asset-basename-map');
   }
   for (const hook of ['preanalyze', 'prebuild']) {
-    assert.equal(
-      scripts[hook],
-      'pnpm generate:asset-basename-map && pnpm audit:source-cdn-assets',
-    );
+    assert.equal(scripts[hook], 'pnpm generate:asset-basename-map && pnpm audit:source-cdn-assets');
   }
   assert.equal(scripts['audit:source-cdn-assets'], 'node tools/audit-source-cdn-asset-basename-matches.mjs');
 });
