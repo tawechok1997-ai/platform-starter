@@ -68,4 +68,7 @@ test('authenticated drawer matches source density and never renders guest action
   assert.match(runtimeCss, /nav\[aria-label='บริการสมาชิก'\][\s\S]*margin-top:\s*16px[\s\S]*gap:\s*8px/);
   assert.match(runtimeCss, /nav\[aria-label='เมนูเพิ่มเติม'\][\s\S]*gap:\s*14px 10px/);
   assert.match(runtimeCss, /data-mobile-authenticated-drawer-top='true'[\s\S]*position:\s*absolute/);
+  assert.match(runtime, /data-mobile-member-drawer-copy="referral"/);
+  assert.match(runtime, /navigator\.clipboard\?\.writeText\(absoluteLink\)/);
+  assert.match(runtime, /action\.dataset\.mobileMemberDrawerCopy/);
 });
