@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { API_URL, memberApiFetch } from '../../member-api';
 import { useMemberSession } from '../../member-session-provider';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
+import MobileLiveSchedulePage from './mobile-live-schedule-page';
 import MobileMemberVipPage from './mobile-member-vip-page';
 import styles from './mobile-member-section-page.module.css';
 
@@ -22,7 +23,7 @@ const SECTION_CONFIG: Record<string, SectionConfig> = {
   vip: { title: 'ระดับสมาชิก VIP', endpoint: '/member/auth/profile', fallbackImage: '/images/avatar/7.webp' },
   profile: { title: 'ข้อมูลสมาชิก', endpoint: '/member/auth/profile', fallbackImage: '/images/avatar/7.webp' },
   affiliate: { title: 'แนะนำเพื่อน', endpoint: '/member/affiliate/profile', fallbackImage: '/assets/asset-pc/images/เเนะนำเพื่อน.png' },
-  live: { title: 'ถ่ายทอดสด', endpoint: '/games/catalog?category=live&limit=40', fallbackImage: '/assets/asset-pc/images/ถ่ายถอดสด.png' },
+  live: { title: 'ถ่ายทอดสด', endpoint: '/games/live-events', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/ถ่ายถอดสด.png' },
   promotions: { title: 'โปรโมชั่น', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/โปรโมชั้น.png' },
   news: { title: 'ข่าวสาร', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/ข่าวสาร.png' },
   activity: { title: 'กิจกรรม', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/กิจกรรม.png' },
@@ -44,6 +45,13 @@ export default function MobileMemberSectionPage({ section }: Props) {
 
   useEffect(() => {
     let cancelled = false;
+
+    if (section === 'live') {
+      setPayload(null);
+      setLoading(false);
+      setError('');
+      return () => { cancelled = true; };
+    }
 
     if (!ready) {
       setLoading(true);
@@ -91,6 +99,10 @@ export default function MobileMemberSectionPage({ section }: Props) {
     );
   }
 
+  if (section === 'live') {
+    return <MobileLiveSchedulePage onBack={() => router.back()} />;
+  }
+
   return (
     <main className={styles.page} data-mobile-member-page={section}>
       <header className={styles.header}>
@@ -106,7 +118,7 @@ export default function MobileMemberSectionPage({ section }: Props) {
           <div className={styles.state}>ยังไม่มีข้อมูลในส่วนนี้</div>
         ) : null}
         {items.length > 0 ? (
-          <div className={section === 'live' ? styles.gameGrid : styles.list}>
+          <div className={styles.list}>
             {items.map((item, index) => (
               <article className={styles.card} key={item.id || `${section}-${index}`}>
                 <img src={resolveImage(item.image, config.fallbackImage)} alt="" onError={(event) => {
@@ -141,7 +153,7 @@ function ProfileSummary({ payload, fallbackImage }: { payload: unknown; fallback
 type NormalItem = { id: string; title: string; subtitle: string; image: string };
 
 function normalizeItems(section: string, payload: unknown): NormalItem[] {
-  if (section === 'vip' || section === 'profile') return [];
+  if (section === 'vip' || section === 'profile' || section === 'live') return [];
   const root = asRecord(payload);
   let source: unknown[] = [];
 
