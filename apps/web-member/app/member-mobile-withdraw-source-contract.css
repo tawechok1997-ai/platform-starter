@@ -1,0 +1,337 @@
+/* Exact Mobile withdraw popup contract.
+ * The source backdrop is flex-based. A generic grid popup owner made the
+ * percentage-width dialog shrink to its intrinsic empty-state content.
+ */
+@media (max-width: 900px) {
+  html[data-member-viewport-mode='mobile'] body
+    > [data-ui-owner='mobile-popup'][role='presentation']:has(> [data-mobile-popup-owner='withdraw']) {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 201 !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    padding:
+      max(16px, env(safe-area-inset-top))
+      max(16px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left)) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    background: rgb(0 0 0 / 80%) !important;
+    backdrop-filter: none !important;
+    overscroll-behavior: contain !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] body
+    > [data-ui-owner='mobile-popup'][role='presentation']
+    > [data-mobile-popup-owner='withdraw'][role='dialog'] {
+    position: relative !important;
+    inset: auto !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: min(480px, calc(100vw - 32px)) !important;
+    min-width: min(480px, calc(100vw - 32px)) !important;
+    max-width: min(480px, calc(100vw - 32px)) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 32px) !important;
+    margin: 0 !important;
+    padding: 56px 16px 16px !important;
+    flex: 0 1 auto !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 24px !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    background: linear-gradient(0deg, rgb(27 24 36) -5.86%, rgb(63 59 75) 104.05%) !important;
+    box-shadow: 0 1px 24px 4px rgb(90 90 90 / 20%) !important;
+    transform: none !important;
+    translate: none !important;
+    scale: 1 !important;
+    zoom: 1 !important;
+    isolation: isolate !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    > h2 {
+    top: 0 !important;
+    width: 192px !important;
+    height: 36px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    line-height: 22px !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    > button[aria-label='ปิด'] {
+    position: absolute !important;
+    top: 0 !important;
+    right: 2px !important;
+    z-index: 4 !important;
+    display: grid !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    place-items: center !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    > button[aria-label='ปิด'] > img {
+    display: block !important;
+    width: 12px !important;
+    height: 12px !important;
+    content: url('/assets/asset-pc/images/close.svg') !important;
+    object-fit: contain !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    > div:last-child {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 104px) !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scrollbar-width: none !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    > div:last-child::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    > div:last-child > form {
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section {
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section > h3,
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section > h4 {
+    margin: 0 !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 20px !important;
+    text-align: left !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:first-of-type > div {
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 70px !important;
+    margin: 0 !important;
+    padding: 10px 12px !important;
+    align-items: center !important;
+    gap: 10px !important;
+    overflow: hidden !important;
+    border: 1px solid rgb(98 98 98 / 70%) !important;
+    border-radius: 7px !important;
+    background: rgb(21 19 26) !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:first-of-type > div > img {
+    display: block !important;
+    width: 50px !important;
+    min-width: 50px !important;
+    height: 50px !important;
+    border-radius: 10px !important;
+    object-fit: contain !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:first-of-type > div > div {
+    display: flex !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:first-of-type > div strong,
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:first-of-type > div span {
+    overflow: hidden !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 18px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:nth-of-type(2) > input {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 55px !important;
+    min-height: 55px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border: 1px solid rgb(49 47 57) !important;
+    border-radius: 6px !important;
+    outline: 0 !important;
+    color: #fff !important;
+    background: rgb(21 19 26) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    line-height: 20px !important;
+    text-align: right !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:nth-of-type(2) > input::placeholder {
+    color: #fff !important;
+    opacity: .4 !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:nth-of-type(2) > p {
+    margin: 0 !important;
+    color: #cea44b !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    line-height: 18px !important;
+    letter-spacing: .36px !important;
+    text-align: left !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:nth-of-type(2) > div:last-child {
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:nth-of-type(2) > div:last-child > button {
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 45px !important;
+    min-height: 45px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid rgb(55 53 64) !important;
+    border-radius: 6px !important;
+    color: #fff !important;
+    background: rgb(21 19 26) !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > section:nth-of-type(2) > div:last-child > button:disabled {
+    opacity: .4 !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > div:last-child {
+    display: grid !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > div:last-child > button {
+    display: flex !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid rgb(65 62 75) !important;
+    border-radius: 6px !important;
+    color: rgb(107 111 119) !important;
+    background: rgb(21 19 26) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > div:last-child > button[type='submit'] {
+    border-color: #7600a8 !important;
+    color: #fff !important;
+    background: #7600a8 !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    form > div:last-child > button[type='submit']:disabled {
+    border-color: rgb(56 55 62) !important;
+    color: rgb(85 85 85) !important;
+    background: rgb(56 55 62) !important;
+  }
+}
+
+@media (max-width: 359px) {
+  html[data-member-viewport-mode='mobile'] body
+    > [data-ui-owner='mobile-popup'][role='presentation']
+    > [data-mobile-popup-owner='withdraw'][role='dialog'] {
+    width: calc(100vw - 16px) !important;
+    min-width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    padding: 52px 12px 12px !important;
+    gap: 16px !important;
+  }
+
+  html[data-member-viewport-mode='mobile'] [data-mobile-popup-owner='withdraw']
+    > div:last-child {
+    padding-inline: 4px !important;
+  }
+}
