@@ -59,8 +59,10 @@ export function canonicalizeLocalAssetPath(source: string): string {
     }
   }
 
-  const [pathname, suffix = ''] = value.split(/(?=[?#])/, 2);
-  return `${canonicalizeLocalPathname(pathname ?? '')}${suffix}`;
+  const suffixIndex = value.search(/[?#]/);
+  const pathname = suffixIndex >= 0 ? value.slice(0, suffixIndex) : value;
+  const suffix = suffixIndex >= 0 ? value.slice(suffixIndex) : '';
+  return `${canonicalizeLocalPathname(pathname)}${suffix}`;
 }
 
 function canonicalizeLocalPathname(pathname: string): string {
