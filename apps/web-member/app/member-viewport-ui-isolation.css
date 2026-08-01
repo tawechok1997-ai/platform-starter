@@ -29,6 +29,9 @@ html[data-member-viewport-mode='desktop'] :is(
  * which the viewport changes to Desktop.
  */
 html[data-member-viewport-mode='desktop'] :is(
+  [data-ui-owner='mobile-popup'],
+  [data-ui-owner='mobile-video-popup'],
+  [data-ui-owner='mobile-navigation'],
   [data-mobile-popup-owner],
   [data-mobile-member-bottom-navigation='true']
 ) {
