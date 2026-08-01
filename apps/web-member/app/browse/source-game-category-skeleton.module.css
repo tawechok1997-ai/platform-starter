@@ -1,0 +1,188 @@
+@keyframes sourceCatalogShimmer {
+  0% {
+    background-position: 120% 0;
+  }
+
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+.skeletonSurface {
+  background:
+    linear-gradient(
+      100deg,
+      rgb(255 255 255 / 4%) 20%,
+      rgb(255 255 255 / 11%) 36%,
+      rgb(255 255 255 / 4%) 52%
+    ),
+    #211d2b;
+  background-size: 240% 100%;
+  animation: sourceCatalogShimmer 1.15s linear infinite;
+}
+
+.filterPanel {
+  box-sizing: border-box;
+  width: 345px;
+  min-width: 345px;
+  max-width: 345px;
+  padding-bottom: 16px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #181523;
+}
+
+.filterTitle {
+  width: 100%;
+  height: 60px;
+  border-radius: 20px 20px 10px 10px;
+}
+
+.filterSection {
+  display: grid;
+  padding: 16px;
+  gap: 12px;
+}
+
+.sectionHeading {
+  width: 58%;
+  height: 14px;
+  border-radius: 999px;
+}
+
+.filterRows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.filterRow {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.filterLabel {
+  height: 12px;
+  border-radius: 999px;
+}
+
+.filterCount {
+  height: 10px;
+  border-radius: 999px;
+}
+
+.providerRows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.providerCard {
+  height: 56px;
+  border-radius: 12px;
+}
+
+.summary {
+  display: grid;
+  padding: 0 16px;
+  gap: 12px;
+}
+
+.summaryBox,
+.summaryButton {
+  height: 48px;
+  border-radius: 6px;
+}
+
+.gameArea {
+  min-width: 0;
+}
+
+.heading {
+  width: min(310px, 56%);
+  height: 40px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+}
+
+.gameGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 182px));
+  align-items: start;
+  justify-content: start;
+}
+
+.gameCard {
+  box-sizing: border-box;
+  width: 182px;
+  height: 250px;
+  padding: 5px 25px 5px 5px;
+}
+
+.gameCover {
+  width: 100%;
+  padding-bottom: 142.857%;
+  border-radius: 8px;
+}
+
+.gameLabel {
+  width: 76%;
+  height: 12px;
+  margin: 8px auto 0;
+  border-radius: 999px;
+}
+
+@media (max-width: 1460px) {
+  .gameGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .gameCard {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .filterPanel {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin-bottom: 20px;
+  }
+
+  .gameGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .gameCard {
+    width: 100%;
+    height: auto;
+    padding: 5px 8px 14px 5px;
+  }
+}
+
+@media (max-width: 520px) {
+  .gameGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 390px) {
+  .filterRows {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonSurface {
+    animation: none;
+  }
+}
