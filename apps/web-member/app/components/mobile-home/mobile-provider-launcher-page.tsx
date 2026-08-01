@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useMemberLocale } from '../../member-locale-provider';
 import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import styles from './mobile-casino-provider-page.module.css';
@@ -16,15 +17,33 @@ type MobileProviderLauncherPageProps = {
   category: 'casino' | 'sport' | 'lottery';
   title: Readonly<{ th: string; en: string }>;
   providers: readonly MobileProviderLauncherCard[];
+  countLabel?: Readonly<{ th: string; en: string }>;
+  filterable?: boolean;
+  stacked?: boolean;
 };
+
+type ProviderFilter = 'all' | 'new';
 
 export default function MobileProviderLauncherPage({
   category,
   title,
   providers,
+  countLabel,
+  filterable = false,
+  stacked = false,
 }: MobileProviderLauncherPageProps) {
   const { locale } = useMemberLocale();
   const copy = COPY[locale];
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filter, setFilter] = useState<ProviderFilter>('all');
+  const visibleProviders = filter === 'new'
+    ? providers.filter((provider) => provider.isNew)
+    : providers;
+
+  const selectFilter = (value: ProviderFilter) => {
+    setFilter(value);
+    setFilterOpen(false);
+  };
 
   return (
     <section
@@ -34,12 +53,53 @@ export default function MobileProviderLauncherPage({
       data-category-launch-mode="provider"
       aria-labelledby={`mobile-${category}-provider-heading`}
     >
-      <h2 id={`mobile-${category}-provider-heading`} className={styles.heading}>
-        {title[locale]} <span>({providers.length} {copy.providers})</span>
-      </h2>
+      <div className={styles.headingRow}>
+        <h2 id={`mobile-${category}-provider-heading`} className={styles.heading}>
+          {title[locale]} <span>({providers.length} {countLabel?.[locale] ?? copy.providers})</span>
+        </h2>
 
-      <div className={styles.grid}>
-        {providers.map((provider) => {
+        {filterable ? (
+          <div className={styles.filterWrap}>
+            <button
+              type="button"
+              className={styles.filterButton}
+              data-mobile-provider-filter-button="true"
+              aria-haspopup="menu"
+              aria-expanded={filterOpen}
+              onClick={() => setFilterOpen((current) => !current)}
+            >
+              <span>{copy.filter}</span>
+              <FilterIcon />
+            </button>
+
+            {filterOpen ? (
+              <div className={styles.filterMenu} role="menu" aria-label={copy.filter}>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={filter === 'all'}
+                  data-active={filter === 'all'}
+                  onClick={() => selectFilter('all')}
+                >
+                  {copy.all}
+                </button>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={filter === 'new'}
+                  data-active={filter === 'new'}
+                  onClick={() => selectFilter('new')}
+                >
+                  {copy.newOnly}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      <div className={`${styles.grid} ${stacked ? styles.stackedGrid : ''}`}>
+        {visibleProviders.map((provider) => {
           const resolvedSource = resolveLocalAssetOrSource(provider.source, 'mobile');
           const className = [
             styles.card,
@@ -82,6 +142,16 @@ export default function MobileProviderLauncherPage({
   );
 }
 
+function FilterIcon() {
+  return (
+    <svg viewBox="0 0 512 512" aria-hidden="true">
+      <path d="M32 384h272v32H32zM400 384h80v32h-80zM384 447.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+      <path d="M32 240h80v32H32zM208 240h272v32H208zM192 303.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+      <path d="M32 96h272v32H32zM400 96h80v32h-80zM384 159.5c0 17.949-14.327 32.5-32 32.5-17.673 0-32-14.551-32-32.5v-95c0-17.949 14.327-32.5 32-32.5 17.673 0 32 14.551 32 32.5v95z" />
+    </svg>
+  );
+}
+
 function NewBadge({ label }: { label: string }) {
   return (
     <span className={styles.newBadge} aria-label={label}>
@@ -98,10 +168,16 @@ const COPY = {
     providers: 'ค่ายเกม',
     open: 'เข้าเล่น',
     newLabel: 'ใหม่',
+    filter: 'กรอง',
+    all: 'ทั้งหมด',
+    newOnly: 'เกมใหม่',
   },
   en: {
     providers: 'providers',
     open: 'Open',
     newLabel: 'New',
+    filter: 'Filter',
+    all: 'All',
+    newOnly: 'New games',
   },
 } as const;
