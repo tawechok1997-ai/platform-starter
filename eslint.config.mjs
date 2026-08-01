@@ -97,6 +97,22 @@ export default tseslint.config(
     },
   },
   {
+    // The source deposit runtime replaced this implementation, but the legacy fallback
+    // remains intentionally available while the new flow is verified in production.
+    files: ['apps/web-member/app/components/mobile-home/mobile-member-popup-runtime.tsx'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_|^MobileDepositContent$',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
+  {
     files: ['**/support/support-command.service.ts', '**/common/security/input-normalization.ts'],
     rules: {
       'no-control-regex': 'off',
