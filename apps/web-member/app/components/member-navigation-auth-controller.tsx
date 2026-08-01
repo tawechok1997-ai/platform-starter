@@ -71,7 +71,6 @@ const CANONICAL_LABEL_TARGETS: Readonly<Record<string, string>> = {
   'โบนัสพิเศษ': '/bonus',
   bonus: '/bonus',
   'โปรโมชั่น': '/mobile/member/promotions',
-  'โปรโมชั่นแนะนำ': '/mobile/member/promotions',
   promotion: '/mobile/member/promotions',
   promotions: '/mobile/member/promotions',
   'กิจกรรม': '/mobile/member/activity',
@@ -168,6 +167,11 @@ export default function MemberNavigationAuthController() {
     const guard = (event: MouseEvent) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (!(event.target instanceof Element)) return;
+
+      // The four mobile home highlight controls are in-place tabs owned by
+      // MobileHomeRoot. Their labels overlap with real drawer destinations,
+      // so the global navigation controller must never reinterpret them.
+      if (event.target.closest('[data-mobile-section-owner="highlight-tabs"]')) return;
 
       const authAction = event.target.closest<HTMLAnchorElement>('a[href]');
 
