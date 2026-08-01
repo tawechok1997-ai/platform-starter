@@ -124,46 +124,103 @@ import MobileLocalAssetRuntime from './components/mobile-local-asset-runtime';
 import MemberNavigationAuthController from './components/member-navigation-auth-controller';
 import MemberRenderStabilityController from './components/member-render-stability-controller';
 import PublicDialogRuntimeController from './components/public-dialog-runtime-controller';
+import PublicLiveNavigationController from './components/public-live-navigation-controller';
+import PublicGameLoginController from './components/member-home/public-home-game-navigation-controller';
+import PublicDesktopViewportBootstrapOwner from './components/public-desktop-viewport-bootstrap-owner';
+import PublicMobileSourceHeaderOwner from './components/public-mobile-source-header-owner';
+import SiteFaviconRuntime from './components/site-favicon-runtime';
+import UsageGuideController from './components/member-home/usage-guide-controller';
 import { MemberLocaleProvider } from './member-locale-provider';
 import { MemberRuntimeProvider } from './member-runtime-provider';
 import { MemberSessionProvider } from './member-session-provider';
 import { SiteSettingsProvider } from './site-settings-provider';
+import { loadPublicSiteSettings } from './site-settings';
+
+const MEMBER_PREHYDRATION_SCRIPT = `(() => {
+  const root = document.documentElement;
+  let hasSession = false;
+  try {
+    hasSession = Boolean(
+      window.localStorage.getItem('member_access_token')
+      || window.localStorage.getItem('member_refresh_token')
+    );
+  } catch {}
+
+  root.dataset.memberSessionHint = hasSession ? 'token' : 'guest';
+  root.dataset.memberSessionReady = 'false';
+
+  const width = Math.max(1, root.clientWidth || window.innerWidth || 1);
+  const mobileOnly = width <= 900;
+
+  if (mobileOnly) {
+    root.dataset.memberViewportMode = 'mobile';
+    root.dataset.memberViewportReady = 'true';
+    root.dataset.memberDesktopScaled = 'false';
+    return;
+  }
+
+  root.dataset.memberViewportMode = 'desktop';
+  if (width < 1455) {
+    root.dataset.memberViewportReady = 'false';
+    root.dataset.memberDesktopScaled = 'true';
+    root.style.setProperty('--member-desktop-pre-scale', String(width / 1455));
+  } else {
+    root.dataset.memberViewportReady = 'true';
+    root.dataset.memberDesktopScaled = 'false';
+  }
+})();`;
 
 export const metadata: Metadata = {
-  title: 'NOAH345',
-  description: 'NOAH345 Member Portal',
+  title: {
+    default: 'NOAH345',
+    template: '%s | NOAH345',
+  },
+  description: 'เว็บพนันออนไลน์ที่ดีที่สุด พร้อมบริการลูกค้าตลอด 24 ชั่วโมง และมีเกมให้เลือกเล่นมากมาย',
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  viewportFit: 'cover',
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const initialSettings = await loadPublicSiteSettings();
+
   return (
     <html lang="th" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: MEMBER_PREHYDRATION_SCRIPT }} />
+      </head>
       <body>
-        <Suspense fallback={null}>
-          <MemberLocaleProvider>
-            <SiteSettingsProvider>
-              <MemberSessionProvider>
-                <MemberRuntimeProvider>
-                  <MemberChrome>{children}</MemberChrome>
-                  <MemberClientNavigationController />
-                  <MemberDragScrollController />
-                  <MemberFloatingContact />
-                  <MemberImageFallbackController />
-                  <MobileLocalAssetRuntime />
-                  <MemberNavigationAuthController />
-                  <MemberRenderStabilityController />
-                  <PublicDialogRuntimeController />
-                </MemberRuntimeProvider>
-              </MemberSessionProvider>
-            </SiteSettingsProvider>
-          </MemberLocaleProvider>
-        </Suspense>
+        <MemberLocaleProvider>
+          <SiteSettingsProvider initialSettings={initialSettings}>
+            <SiteFaviconRuntime />
+            <MemberSessionProvider>
+              <MemberRuntimeProvider>
+                <MemberNavigationAuthController />
+                <PublicDesktopViewportBootstrapOwner />
+                <MemberRenderStabilityController />
+                <MemberClientNavigationController />
+                <MemberImageFallbackController />
+                <MobileLocalAssetRuntime />
+                <MemberDragScrollController />
+                <PublicLiveNavigationController />
+                <PublicDialogRuntimeController />
+                <PublicGameLoginController />
+                <UsageGuideController />
+                <PublicMobileSourceHeaderOwner />
+                <div id="member-desktop-scale-shell">
+                  <div id="member-desktop-scale-canvas">
+                    <Suspense fallback={<main className="member-loading-screen" aria-hidden="true" />}>
+                      <MemberChrome>{children}</MemberChrome>
+                    </Suspense>
+                  </div>
+                </div>
+                <MemberFloatingContact />
+              </MemberRuntimeProvider>
+            </MemberSessionProvider>
+          </SiteSettingsProvider>
+        </MemberLocaleProvider>
       </body>
     </html>
   );
