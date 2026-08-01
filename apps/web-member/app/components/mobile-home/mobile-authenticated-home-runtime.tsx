@@ -4,22 +4,9 @@ import Link from 'next/link';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
-import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { useMemberSession } from '../../member-session-provider';
-import MemberHeaderFinanceRuntime from '../member-header-finance-runtime';
-import MemberMenuIncomeSafeRuntime from '../member-menu-income-safe-runtime';
-import MemberMenuSecondaryRuntime from '../member-menu-secondary-runtime';
-import MemberMenuSpecialBonusRuntime from '../member-menu-special-bonus-runtime';
-import MemberMenuVipRuntime from '../member-menu-vip-runtime';
-import '../../member-header-finance-runtime.css';
-import '../../member-header-finance-source-stage.css';
-import '../../member-menu-income-safe-runtime.css';
-import '../../member-menu-income-source-final.css';
-import '../../member-menu-secondary-runtime.css';
-import '../../member-menu-special-bonus-runtime.css';
-import '../../member-vip-modal.css';
-import '../../member-shared-popup-runtime.css';
+import MobileMemberPopupRuntime from './mobile-member-popup-runtime';
 import styles from './mobile-authenticated-home-runtime.module.css';
 
 const AUTH_SELECTORS = [
@@ -28,7 +15,7 @@ const AUTH_SELECTORS = [
 ] as const;
 
 const VIP_BADGE_SOURCE = 'https://cdn.zabbet.com/FEZX/grouptypes/bc954df4-70bb-460c-9ce8-c2cae326acbe.png';
-const MEMBER_AVATAR = '/images/avatar/7.webp';
+const MEMBER_AVATAR_FALLBACK = '/images/avatar/7.webp';
 const WALLET_ICON = '/images/wallet.webp';
 const DEPOSIT_ICON = '/images/ฝาก.png';
 const WITHDRAW_ICON = '/images/ถอน.png';
@@ -42,7 +29,6 @@ type PortalTargets = {
 };
 
 export default function MobileAuthenticatedHomeRuntime() {
-  const { locale } = useMemberLocale();
   const { profile, summary } = useMemberRuntime();
   const { logout } = useMemberSession();
   const [targets, setTargets] = useState<PortalTargets | null>(null);
@@ -55,9 +41,10 @@ export default function MobileAuthenticatedHomeRuntime() {
 
   const memberName = summary.displayName || summary.username || profile?.phone || 'สมาชิก';
   const walletAmount = summary.walletAvailable || '0.00';
-  const walletMeta = [summary.walletCurrency || 'THB', summary.walletStatus]
-    .filter(Boolean)
-    .join(' • ');
+  const walletMeta = [summary.walletCurrency || 'THB', summary.walletStatus].filter(Boolean).join(' • ');
+  const memberAvatar = typeof profile?.avatarUrl === 'string' && profile.avatarUrl.trim()
+    ? profile.avatarUrl.trim()
+    : MEMBER_AVATAR_FALLBACK;
 
   useLayoutEffect(() => {
     const root = document.querySelector<HTMLElement>('[data-mobile-home-root="true"]');
@@ -69,9 +56,7 @@ export default function MobileAuthenticatedHomeRuntime() {
     const authenticated = summary.isLoggedIn;
     root.dataset.mobileAuthenticated = authenticated ? 'true' : 'false';
 
-    const authElements = AUTH_SELECTORS.flatMap((selector) => (
-      Array.from(root.querySelectorAll<HTMLElement>(selector))
-    ));
+    const authElements = AUTH_SELECTORS.flatMap((selector) => Array.from(root.querySelectorAll<HTMLElement>(selector)));
     authElements.forEach((element) => {
       element.hidden = authenticated;
       if (authenticated) element.setAttribute('aria-hidden', 'true');
@@ -103,22 +88,17 @@ export default function MobileAuthenticatedHomeRuntime() {
     primaryMenu.classList.add('public-member-menu-grid');
     secondaryMenu.classList.add('public-member-menu-grid', 'public-member-menu-grid--secondary');
 
-    const secondaryLinks = Array.from(secondaryMenu.querySelectorAll<HTMLAnchorElement>('a'));
-    const activityLink = secondaryLinks[2] ?? null;
-    const originalActivityHref = activityLink?.getAttribute('href') ?? null;
-    activityLink?.setAttribute('href', '/browse/promotions?view=activity');
-
     const languageTrigger = secondaryMenu.querySelector<HTMLButtonElement>('button');
-    languageTrigger?.setAttribute('data-member-language-trigger', 'true');
+    languageTrigger?.setAttribute('data-mobile-member-popup', 'language');
 
     const closeButton = drawer.querySelector<HTMLButtonElement>('button[aria-label="ปิดเมนู"]');
-    const closeBeforeAction = (event: PointerEvent) => {
+    const closeBeforePlainNavigation = (event: PointerEvent) => {
       if (!(event.target instanceof Element)) return;
-      const action = event.target.closest<HTMLElement>('a, button[data-member-language-trigger]');
-      if (!action || !drawer.contains(action)) return;
+      const action = event.target.closest<HTMLElement>('a,button');
+      if (!action || !drawer.contains(action) || action.dataset.mobileMemberPopup) return;
       closeButton?.click();
     };
-    drawer.addEventListener('pointerdown', closeBeforeAction, true);
+    drawer.addEventListener('pointerdown', closeBeforePlainNavigation, true);
 
     const drawerProfile = document.createElement('div');
     drawerProfile.dataset.mobileAuthenticatedDrawerProfileTarget = 'true';
@@ -135,14 +115,10 @@ export default function MobileAuthenticatedHomeRuntime() {
 
     return () => {
       restoreGuestElements(authElements, languageButton);
-      drawer.removeEventListener('pointerdown', closeBeforeAction, true);
+      drawer.removeEventListener('pointerdown', closeBeforePlainNavigation, true);
       primaryMenu.classList.remove('public-member-menu-grid');
       secondaryMenu.classList.remove('public-member-menu-grid', 'public-member-menu-grid--secondary');
-      languageTrigger?.removeAttribute('data-member-language-trigger');
-      if (activityLink) {
-        if (originalActivityHref === null) activityLink.removeAttribute('href');
-        else activityLink.setAttribute('href', originalActivityHref);
-      }
+      languageTrigger?.removeAttribute('data-mobile-member-popup');
       if (drawerTop) delete drawerTop.dataset.mobileAuthenticatedDrawerTop;
       drawerProfile.remove();
       drawerLogout.remove();
@@ -153,25 +129,20 @@ export default function MobileAuthenticatedHomeRuntime() {
 
   return (
     <>
-      <MemberHeaderFinanceRuntime locale={locale} />
-      <MemberMenuIncomeSafeRuntime locale={locale} />
-      <MemberMenuSpecialBonusRuntime locale={locale} />
-      <MemberMenuSecondaryRuntime locale={locale} />
-      <MemberMenuVipRuntime locale={locale} />
+      <MobileMemberPopupRuntime />
 
       {createPortal(
         <>
-          <Link href="/search" className={styles.headerSearch} aria-label="ค้นหาเกม">
-            <SearchIcon />
-          </Link>
-          <Link
+          <Link href="/search" className={styles.headerSearch} aria-label="ค้นหาเกม"><SearchIcon /></Link>
+          <a
             href="/deposit"
-            className={`${styles.headerWallet} public-member-wallet-action`}
+            className={styles.headerWallet}
             aria-label={`ยอดเงิน ${walletAmount}`}
+            data-mobile-member-popup="deposit"
           >
             <img src={WALLET_ICON} alt="" aria-hidden="true" />
             <span>{walletAmount}</span>
-          </Link>
+          </a>
         </>,
         targets.header,
       )}
@@ -179,7 +150,9 @@ export default function MobileAuthenticatedHomeRuntime() {
       {createPortal(
         <div className={styles.drawerAccount} data-mobile-authenticated-drawer-content="true">
           <div className={styles.profileRow}>
-            <img className={styles.avatar} src={MEMBER_AVATAR} alt="รูปโปรไฟล์สมาชิก" />
+            <img className={styles.avatar} src={memberAvatar} alt="รูปโปรไฟล์สมาชิก" onError={(event) => {
+              event.currentTarget.src = MEMBER_AVATAR_FALLBACK;
+            }} />
             <div className={styles.profileDetails}>
               <div className={styles.vipBadge}>
                 <img src={vipBadge} alt="" aria-hidden="true" />
@@ -187,9 +160,7 @@ export default function MobileAuthenticatedHomeRuntime() {
               </div>
               <div className={styles.memberNameRow}>
                 <strong>{memberName}</strong>
-                <Link href="/profile" aria-label="แก้ไขโปรไฟล์">
-                  <EditIcon />
-                </Link>
+                <Link href="/mobile/member/profile" aria-label="แก้ไขโปรไฟล์"><EditIcon /></Link>
               </div>
               <div className={styles.accountLine}>
                 <img src={WALLET_ICON} alt="" aria-hidden="true" />
@@ -199,39 +170,30 @@ export default function MobileAuthenticatedHomeRuntime() {
           </div>
 
           <div className={styles.moneyActions}>
-            <Link href="/deposit" className="public-member-wallet-action">
+            <a href="/deposit" data-mobile-member-popup="deposit">
               <span>ฝากเงิน</span><i aria-hidden="true"><img src={DEPOSIT_ICON} alt="" /></i>
-            </Link>
-            <Link href="/withdraw" className="public-member-wallet-action">
+            </a>
+            <a href="/withdraw" data-mobile-member-popup="withdraw">
               <span>ถอนเงิน</span><i aria-hidden="true"><img src={WITHDRAW_ICON} alt="" /></i>
-            </Link>
+            </a>
           </div>
 
-          <div className={`${styles.incomePanel} public-member-income-row`}>
-            <Link href="/affiliate" className={styles.incomeItem}>
+          <div className={styles.incomePanel}>
+            <a href="/affiliate" className={styles.incomeItem} data-mobile-member-popup="network-income">
               <span className={styles.incomeIcon} aria-hidden="true"><img src={NETWORK_ICON} alt="" /></span>
-              <span className={styles.incomeCopy}>
-                <span>รายได้จากเครือข่าย</span>
-                <strong>0.00</strong>
-              </span>
+              <span className={styles.incomeCopy}><span>รายได้จากเครือข่าย</span><strong>{summary.affiliateBalance || '0.00'}</strong></span>
               <span className={styles.incomeArrow} aria-hidden="true">›</span>
-            </Link>
-            <Link href="/affiliate" className={styles.incomeItem}>
+            </a>
+            <a href="/affiliate" className={styles.incomeItem} data-mobile-member-popup="commission-income">
               <span className={styles.incomeIcon} aria-hidden="true"><img src={COMMISSION_ICON} alt="" /></span>
-              <span className={styles.incomeCopy}>
-                <span>รายได้จากคอมมิชชั่น</span>
-                <strong>0.00</strong>
-              </span>
+              <span className={styles.incomeCopy}><span>รายได้จากคอมมิชชั่น</span><strong>{summary.commissionBalance || '0.00'}</strong></span>
               <span className={styles.incomeArrow} aria-hidden="true">›</span>
-            </Link>
+            </a>
           </div>
 
-          <Link href="/affiliate" className={`${styles.referralRow} public-member-referral-row`}>
+          <Link href="/mobile/member/affiliate" className={styles.referralRow}>
             <img src={NETWORK_ICON} alt="" aria-hidden="true" />
-            <span>
-              <strong>ลิงก์แนะนำเพื่อน</strong>
-              <small>/affiliate</small>
-            </span>
+            <span><strong>ลิงก์แนะนำเพื่อน</strong><small>/affiliate</small></span>
             <CopyIcon />
           </Link>
         </div>,
@@ -239,10 +201,7 @@ export default function MobileAuthenticatedHomeRuntime() {
       )}
 
       {createPortal(
-        <button type="button" className={styles.logoutButton} onClick={logout}>
-          <LogoutIcon />
-          <span>ออกจากระบบ</span>
-        </button>,
+        <button type="button" className={styles.logoutButton} onClick={logout}><LogoutIcon /><span>ออกจากระบบ</span></button>,
         targets.drawerLogout,
       )}
     </>
@@ -261,33 +220,17 @@ function restoreGuestElements(authElements: HTMLElement[], languageButton: HTMLE
 }
 
 function SearchIcon() {
-  return (
-    <svg viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <path d="M7.395 0.704a7.49 7.49 0 0 0-4.529 2.163A7.43 7.43 0 0 0 .77 6.908c-.078.434-.11 1.593-.055 2.073.203 1.738.937 3.264 2.147 4.47 1.308 1.301 2.909 2.035 4.764 2.183 1.725.137 3.63-.413 4.977-1.432l.23-.176 1.605 1.6c1.75 1.746 1.706 1.711 2.132 1.68.41-.031.703-.324.734-.734.031-.426.063-.383-1.679-2.132l-1.6-1.605.171-.23c1.242-1.66 1.73-3.897 1.3-5.962C14.852 3.527 12.307 1.157 9.156.739 8.789.689 7.653.669 7.395.704Zm1.757 1.718c.789.129 1.749.531 2.429 1.019.425.305 1.01.894 1.319 1.332.488.687.84 1.518 1.004 2.37.093.487.093 1.58-.004 2.069-.477 2.412-2.277 4.212-4.69 4.689-.487.097-1.58.097-2.069.004-1.171-.227-2.249-.785-3.06-1.586-1.999-1.979-2.316-5.044-.758-7.398.309-.465 1.015-1.195 1.456-1.503 1.07-.746 2.327-1.125 3.573-1.074.238.012.597.047.8.078Z" fill="currentColor" />
-    </svg>
-  );
+  return <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M7.395.704a7.49 7.49 0 0 0-4.529 2.163A7.43 7.43 0 0 0 .77 6.908c-.078.434-.11 1.593-.055 2.073.203 1.738.937 3.264 2.147 4.47 1.308 1.301 2.909 2.035 4.764 2.183 1.725.137 3.63-.413 4.977-1.432l.23-.176 1.605 1.6c1.75 1.746 1.706 1.711 2.132 1.68.41-.031.703-.324.734-.734.031-.426.063-.383-1.679-2.132l-1.6-1.605.171-.23c1.242-1.66 1.73-3.897 1.3-5.962C14.852 3.527 12.307 1.157 9.156.739 8.789.689 7.653.669 7.395.704Zm1.757 1.718c.789.129 1.749.531 2.429 1.019.425.305 1.01.894 1.319 1.332.488.687.84 1.518 1.004 2.37.093.487.093 1.58-.004 2.069-.477 2.412-2.277 4.212-4.69 4.689-.487.097-1.58.097-2.069.004-1.171-.227-2.249-.785-3.06-1.586-1.999-1.979-2.316-5.044-.758-7.398.309-.465 1.015-1.195 1.456-1.503 1.07-.746 2.327-1.125 3.573-1.074.238.012.597.047.8.078Z" fill="currentColor" /></svg>;
 }
 
 function EditIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>;
 }
 
 function CopyIcon() {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M6 12c-.367 0-.681-.131-.942-.392a1.284 1.284 0 0 1-.391-.941v-8c0-.367.13-.681.391-.942.261-.261.575-.392.942-.392h6c.367 0 .681.131.942.392.26.261.391.575.391.942v8c0 .366-.13.68-.391.941A1.284 1.284 0 0 1 12 12H6Zm0-1.333h6v-8H6v8ZM3.333 14.667c-.366 0-.68-.13-.941-.391A1.284 1.284 0 0 1 2 13.333V4h1.333v9.333h7.334v1.334H3.333Z" fill="currentColor" />
-    </svg>
-  );
+  return <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 12c-.367 0-.681-.131-.942-.392a1.284 1.284 0 0 1-.391-.941v-8c0-.367.13-.681.391-.942.261-.261.575-.392.942-.392h6c.367 0 .681.131.942.392.26.261.391.575.391.942v8c0 .366-.13.68-.391.941A1.284 1.284 0 0 1 12 12H6Zm0-1.333h6v-8H6v8ZM3.333 14.667c-.366 0-.68-.13-.941-.391A1.284 1.284 0 0 1 2 13.333V4h1.333v9.333h7.334v1.334H3.333Z" fill="currentColor" /></svg>;
 }
 
 function LogoutIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M10 17l5-5-5-5M15 12H3" /><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5" />
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3" /><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5" /></svg>;
 }
