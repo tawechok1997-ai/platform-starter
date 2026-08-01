@@ -150,6 +150,7 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [activeTab, setActiveTab] = useState<(typeof HIGHLIGHT_TABS)[number]>('ไฮไลท์');
+  const [activeCategory, setActiveCategory] = useState<MobileCategoryId>('home');
   const heroSlides = useMemo(() => getMobileHeroSlides(content), [content]);
   const announcementMessages = useMemo(() => getAnnouncementMessages(content), [content]);
   const categoryMenuItems = useMemo(() => MOBILE_CATEGORY_ORDER.flatMap((id) => {
@@ -158,11 +159,18 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
 
     return [{
       id,
-      href: item.href,
       label: MOBILE_CATEGORY_LABELS[locale][id],
       icon: isImageUrl(item.icon) ? item.icon : MOBILE_CATEGORY_FALLBACK_ICONS[id],
     }];
   }), [locale, navigation]);
+
+  const selectHighlightTab = (tab: (typeof HIGHLIGHT_TABS)[number]) => {
+    setActiveTab(tab);
+    setActiveCategory('home');
+    window.dispatchEvent(new CustomEvent('member:mobile-category-select', {
+      detail: { category: 'home' satisfies MobileCategoryId },
+    }));
+  };
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -347,18 +355,30 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
           </section>
         ) : null}
 
-        <nav className={styles.highlightTabs} data-mobile-section-owner="highlight-tabs" aria-label="หัวข้อหน้าแรก">
-          {HIGHLIGHT_TABS.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              className={activeTab === tab ? styles.highlightTabActive : ''}
-              aria-current={activeTab === tab ? 'page' : undefined}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
+        <nav
+          className={styles.highlightTabs}
+          data-mobile-section-owner="highlight-tabs"
+          aria-label="หัวข้อหน้าแรก"
+          role="tablist"
+        >
+          {HIGHLIGHT_TABS.map((tab, index) => {
+            const selected = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                id={`mobile-highlight-tab-${index}`}
+                type="button"
+                role="tab"
+                className={selected ? styles.highlightTabActive : ''}
+                aria-selected={selected}
+                aria-current={selected ? 'page' : undefined}
+                aria-controls="mobile-highlight-content"
+                onClick={() => selectHighlightTab(tab)}
+              >
+                {tab}
+              </button>
+            );
+          })}
         </nav>
 
         <div className={styles.categoryContent}>
@@ -366,28 +386,40 @@ export default function MobileHomeRoot({ content, showPromotion }: MobileHomeRoo
             className={styles.categoryRail}
             data-mobile-section-owner="category-menu"
             aria-label={locale === 'th' ? 'หมวดเกม' : 'Game categories'}
+            role="tablist"
+            aria-orientation="vertical"
           >
             {categoryMenuItems.map((item) => {
-              const active = item.id === 'home';
+              const active = item.id === activeCategory;
               return (
-                <Link
+                <button
                   key={item.id}
-                  href={item.href}
-                  prefetch={false}
+                  type="button"
+                  role="tab"
                   className={`${styles.categoryItem} ${active ? styles.categoryItemActive : ''}`}
                   data-mobile-category-id={item.id}
+                  aria-selected={active}
                   aria-current={active ? 'page' : undefined}
+                  aria-controls="mobile-highlight-content"
+                  onClick={() => setActiveCategory(item.id)}
                 >
                   <span className={styles.categoryIcon} aria-hidden="true">
                     <img src={item.icon} alt="" />
                   </span>
                   <span className={styles.categoryLabel}>{item.label}</span>
-                </Link>
+                </button>
               );
             })}
           </nav>
 
-          <section className={styles.nextContentSlot} data-mobile-content-slot="after-highlight" aria-label="เนื้อหาหน้าแรกมือถือ">
+          <section
+            id="mobile-highlight-content"
+            className={styles.nextContentSlot}
+            data-mobile-content-slot="after-highlight"
+            aria-label="เนื้อหาหน้าแรกมือถือ"
+            role="tabpanel"
+            aria-live="polite"
+          >
             <MobileHighlightTabContent activeTab={activeTab} />
           </section>
         </div>
