@@ -15,7 +15,7 @@ test('mobile home mounts one coupon bridge beside the existing popup owner', () 
 });
 
 test('coupon bridge keeps the source field and button contract', () => {
-  assert.match(bridge, /data-mobile-popup-owner=\"coupon\"/);
+  assert.match(bridge, /data-mobile-popup-owner="coupon"/);
   assert.match(bridge, /input\.maxLength = 5/);
   assert.match(bridge, /input\.name = 'รหัสคูปอง'/);
   assert.match(bridge, /input\.autocomplete = 'off'/);
