@@ -49,6 +49,10 @@
     accent-color: var(--mobile-source-accent);
   }
 
+  [data-mobile-search-owner='true'] {
+    --mobile-source-accent-deep: #7600a8;
+  }
+
   :where(
     [data-mobile-home-root='true'],
     [data-mobile-member-page],
@@ -72,6 +76,12 @@
     margin: 0 auto;
     color: var(--mobile-source-text);
     background: var(--mobile-source-bg);
+  }
+}
+
+@media (min-width: 760px) and (max-width: 900px) {
+  [data-mobile-search-owner='true'] {
+    max-width: 900px;
   }
 }
 
