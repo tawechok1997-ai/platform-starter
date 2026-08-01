@@ -1,0 +1,79 @@
+/* Final auth popup polish shared by Login/Register on Mobile and Desktop. */
+
+@keyframes memberAuthDialogEnter {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+    scale: .992;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+.auth-reference-scope .public-auth-page[data-embedded='true']
+  .source-login-modal[data-auth-mode],
+.auth-reference-scope .public-auth-page[data-embedded='true']
+  .source-register-modal[data-auth-mode] {
+  animation: memberAuthDialogEnter 220ms cubic-bezier(.22, 1, .36, 1) both !important;
+  will-change: opacity, translate, scale !important;
+}
+
+.auth-reference-scope .source-login-card .public-auth-forgot,
+.auth-reference-scope .source-login-card .public-auth-forgot:hover,
+.auth-reference-scope .source-login-card .public-auth-forgot:focus,
+.auth-reference-scope .source-login-card .public-auth-forgot:focus-visible,
+.auth-reference-scope .source-login-card .public-auth-forgot:active {
+  display: inline-flex !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin-left: auto !important;
+  padding: 0 !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #9f22d4 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  text-decoration: none !important;
+  transform: none !important;
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.auth-reference-scope .source-login-card .public-auth-forgot:hover,
+.auth-reference-scope .source-login-card .public-auth-forgot:focus-visible {
+  color: #c84ee8 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+  outline: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .auth-reference-scope .source-login-card .public-auth-forgot,
+  .auth-reference-scope .source-login-card .public-auth-forgot:hover,
+  .auth-reference-scope .source-login-card .public-auth-forgot:focus,
+  .auth-reference-scope .source-login-card .public-auth-forgot:focus-visible,
+  .auth-reference-scope .source-login-card .public-auth-forgot:active {
+    width: auto !important;
+    margin: -3px 0 0 auto !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+    line-height: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-reference-scope .public-auth-page[data-embedded='true']
+    .source-login-modal[data-auth-mode],
+  .auth-reference-scope .public-auth-page[data-embedded='true']
+    .source-register-modal[data-auth-mode] {
+    animation-duration: 1ms !important;
+  }
+}
