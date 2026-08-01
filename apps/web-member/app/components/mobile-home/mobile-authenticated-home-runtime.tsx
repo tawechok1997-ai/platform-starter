@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import { useMemberRuntime } from '../../member-runtime-provider';
@@ -32,12 +32,19 @@ export default function MobileAuthenticatedHomeRuntime() {
   const { profile, summary } = useMemberRuntime();
   const { logout } = useMemberSession();
   const [targets, setTargets] = useState<PortalTargets | null>(null);
+  const [referralToast, setReferralToast] = useState(false);
   const vipBadge = useMemo(
     () => resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'mobile')
       || resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'pc')
       || VIP_BADGE_SOURCE,
     [],
   );
+
+  useEffect(() => {
+    if (!referralToast) return;
+    const timer = window.setTimeout(() => setReferralToast(false), 3000);
+    return () => window.clearTimeout(timer);
+  }, [referralToast]);
 
   const profileData = profile as unknown as Record<string, unknown> | null;
   const summaryData = summary as unknown as Record<string, unknown>;
@@ -95,18 +102,6 @@ export default function MobileAuthenticatedHomeRuntime() {
     languageTrigger?.setAttribute('data-mobile-member-popup', 'language');
 
     const closeButton = drawer.querySelector<HTMLButtonElement>('button[aria-label="ปิดเมนู"]');
-    const closeBeforePlainNavigation = (event: PointerEvent) => {
-      if (!(event.target instanceof Element)) return;
-      const action = event.target.closest<HTMLElement>('a,button');
-      if (
-        !action
-        || !drawer.contains(action)
-        || action.dataset.mobileMemberPopup
-        || action.dataset.mobileMemberDrawerCopy
-      ) return;
-      closeButton?.click();
-    };
-    drawer.addEventListener('pointerdown', closeBeforePlainNavigation, true);
 
     const drawerProfile = document.createElement('div');
     drawerProfile.dataset.mobileAuthenticatedDrawerProfileTarget = 'true';
@@ -123,7 +118,6 @@ export default function MobileAuthenticatedHomeRuntime() {
 
     return () => {
       restoreGuestElements(authElements, languageButton);
-      drawer.removeEventListener('pointerdown', closeBeforePlainNavigation, true);
       primaryMenu.classList.remove('public-member-menu-grid');
       secondaryMenu.classList.remove('public-member-menu-grid', 'public-member-menu-grid--secondary');
       languageTrigger?.removeAttribute('data-mobile-member-popup');
@@ -138,6 +132,11 @@ export default function MobileAuthenticatedHomeRuntime() {
   return (
     <>
       <MobileMemberPopupRuntime />
+
+      {referralToast ? createPortal(
+        <ReferralCopiedToast onClose={() => setReferralToast(false)} />,
+        document.body,
+      ) : null}
 
       {createPortal(
         <>
@@ -194,11 +193,12 @@ export default function MobileAuthenticatedHomeRuntime() {
             type="button"
             className={styles.referralRow}
             data-mobile-member-drawer-copy="referral"
-            onClick={() => {
+            onClick={async () => {
               const absoluteLink = referralLink.startsWith('http')
                 ? referralLink
                 : `${window.location.origin}${referralLink}`;
-              void navigator.clipboard?.writeText(absoluteLink);
+              const copied = await copyReferralLink(absoluteLink);
+              if (copied) setReferralToast(true);
             }}
           >
             <img src={NETWORK_ICON} alt="" aria-hidden="true" />
@@ -215,6 +215,56 @@ export default function MobileAuthenticatedHomeRuntime() {
       )}
     </>
   );
+}
+
+function ReferralCopiedToast({ onClose }: { onClose: () => void }) {
+  return (
+    <div className={styles.referralToast} role="status" aria-live="polite">
+      <span className={styles.referralToastIcon} aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="6" fill="url(#referral-toast-success)" />
+          <path d="M8.5 12.5 10.5 14.5 15.5 9.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <defs>
+            <linearGradient id="referral-toast-success" x1="12" y1="0" x2="12" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#48ca93" />
+              <stop offset="1" stopColor="#48baca" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </span>
+      <span className={styles.referralToastCopy}>
+        <strong>สำเร็จ</strong>
+        <small>คัดลอกลิงก์ชวนเพื่อนเรียบร้อยแล้ว</small>
+      </span>
+      <button type="button" onClick={onClose} aria-label="ปิดข้อความแจ้งเตือน">
+        <svg viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <path fillRule="evenodd" clipRule="evenodd" d="M7.926 7.925a1.167 1.167 0 0 1 1.65 0L14 12.35l4.426-4.425a1.167 1.167 0 1 1 1.65 1.65L15.65 14l4.425 4.425a1.167 1.167 0 0 1-1.65 1.65L14 15.65l-4.425 4.425a1.167 1.167 0 0 1-1.65-1.65L12.35 14 7.926 9.575a1.167 1.167 0 0 1 0-1.65Z" fill="#c2c2c2" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+async function copyReferralLink(value: string) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return true;
+    }
+  } catch {
+    // Fall through to the selection-based copy for restricted mobile browsers.
+  }
+
+  const field = document.createElement('textarea');
+  field.value = value;
+  field.setAttribute('readonly', '');
+  field.style.position = 'fixed';
+  field.style.opacity = '0';
+  document.body.append(field);
+  field.select();
+  const copied = document.execCommand('copy');
+  field.remove();
+  return copied;
 }
 
 function textValue(value: unknown) {
