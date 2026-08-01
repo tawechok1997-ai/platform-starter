@@ -1,6 +1,15 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import {
   createFinanceIdempotencyKey,
@@ -9,142 +18,573 @@ import {
 } from '../../../src/features/finance';
 import { MEMBER_WALLET_REFRESH_EVENT } from '../../../src/features/wallet/member-wallet';
 import { memberApiFetch } from '../../member-api';
-import type { BonusLedger, DepositMethodCode, MemberBankAccount, ReceivingAccount, WalletResponse } from '../../types/member-finance';
+import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberRuntime } from '../../member-runtime-provider';
+import type {
+  BonusLedger,
+  DepositMethodCode,
+  MemberBankAccount,
+  ReceivingAccount,
+  WalletResponse,
+} from '../../types/member-finance';
 import styles from './mobile-member-popup-runtime.module.css';
 
-type MobilePopupKind = 'deposit' | 'withdraw' | 'network-income' | 'commission-income' | 'coupon' | 'bonus' | 'language';
-type GenericPayload = Record<string, unknown> | null;
+export type MobilePopupKind =
+  | 'menu'
+  | 'contact'
+  | 'password'
+  | 'deposit'
+  | 'withdraw'
+  | 'network-income'
+  | 'commission-income'
+  | 'coupon'
+  | 'language'
+  | 'video';
+
+type MobilePopupEventDetail = { kind: MobilePopupKind };
+type IncomeKind = 'network-income' | 'commission-income';
+
+const MOBILE_MEMBER_POPUP_EVENT = 'member:mobile-popup-open';
+const MOBILE_QUERY = '(max-width: 900px)';
+const QUICK_AMOUNTS = [100, 300, 500, 1000, 5000, 10000] as const;
+const DAILY_LIMIT = 2_000_000;
+const CONTACT_LINE_ID = '@774uinsb';
+const CONTACT_LINE_URL = 'https://line.me/R/ti/p/@774uinsb';
+const GUIDE_VIDEO_SOURCE = 'https://cdn.zabbet.com/videos/tutorial_640.webm';
 
 const PAGE_LABELS: Array<[string, string]> = [
   ['ระดับสมาชิก', 'vip'],
+  ['รายได้คอมมิชชั่น', 'commission'],
   ['แนะนำเพื่อน', 'affiliate'],
+  ['โบนัสพิเศษ', 'bonus'],
   ['ถ่ายทอดสด', 'live'],
   ['โปรโมชั่น', 'promotions'],
   ['ข่าวสาร', 'news'],
   ['กิจกรรม', 'activity'],
   ['ประวัติ', 'history'],
   ['แจ้งเตือน', 'notifications'],
-  ['วีดีโอแนะนำ', 'video'],
-  ['วิดีโอแนะนำ', 'video'],
   ['แนะนำการใช้งาน', 'guide'],
 ];
 
-const QUICK_AMOUNTS = [100, 300, 500, 1000, 5000, 10000];
-const DAILY_LIMIT = 2_000_000;
+const MENU_ITEMS: ReadonlyArray<{
+  label: string;
+  icon: string;
+  fallback: string;
+  page?: string;
+  popup?: MobilePopupKind;
+}> = [
+  {
+    label: 'แนะนำเพื่อน',
+    icon: '/assets/asset-pc/images/เเนะนำเพื่อน.png',
+    fallback: '👥',
+    page: 'affiliate',
+  },
+  {
+    label: 'รายได้คอมมิชชั่น',
+    icon: '/assets/asset-pc/images/รายได่คอมมิชชั่น.png',
+    fallback: '💸',
+    page: 'commission',
+  },
+  {
+    label: 'ประวัติ',
+    icon: '/assets/asset-pc/images/ประวัติ.png',
+    fallback: '🕘',
+    page: 'history',
+  },
+  {
+    label: 'โปรโมชั่น',
+    icon: '/assets/asset-pc/images/โปรโมชั้น.png',
+    fallback: '🎁',
+    page: 'promotions',
+  },
+  {
+    label: 'กิจกรรม',
+    icon: '/assets/asset-pc/images/กิจกรรม.png',
+    fallback: '🎯',
+    page: 'activity',
+  },
+  {
+    label: 'คูปอง',
+    icon: '/assets/asset-pc/images/คูปอง.png',
+    fallback: '🎟️',
+    popup: 'coupon',
+  },
+  {
+    label: 'ถ่ายทอดสด',
+    icon: '/assets/asset-pc/images/ถ่ายถอดสด.png',
+    fallback: 'LIVE',
+    page: 'live',
+  },
+];
+
+const DEPOSIT_METHODS: ReadonlyArray<{
+  code: DepositMethodCode | null;
+  label: string;
+  icon: string;
+  enabled: boolean;
+}> = [
+  {
+    code: 'promptpay',
+    label: 'QR Payment',
+    icon: '/images/deposit/method/prompt_pay.svg',
+    enabled: true,
+  },
+  {
+    code: 'bank_transfer',
+    label: 'โอนเงินผ่านธนาคาร',
+    icon: '/images/deposit/method/normal.svg',
+    enabled: false,
+  },
+  {
+    code: null,
+    label: 'ฝากจุดทศนิยม',
+    icon: '/images/deposit/method/decimal.svg',
+    enabled: false,
+  },
+  {
+    code: 'wallet',
+    label: 'ทรู มันนี่ วอลเล็ท',
+    icon: '/images/deposit/method/true_wallet.svg',
+    enabled: false,
+  },
+  {
+    code: null,
+    label: 'ฝากคริปโต',
+    icon: '/images/deposit/method/crypto_payment.svg',
+    enabled: false,
+  },
+];
+
+const LANGUAGE_OPTIONS = [
+  { code: 'en', label: 'English', icon: '/images/flags/en.svg' },
+  { code: 'th', label: 'ภาษาไทย', icon: '/images/flags/th.svg' },
+  { code: 'ph', label: 'Tagalog', icon: '/images/flags/ph.svg' },
+  { code: 'vi', label: 'Tiếng Việt', icon: '/images/flags/vi.svg' },
+  { code: 'km', label: 'ភាសាខ្មែរ', icon: '/images/flags/km.svg' },
+  { code: 'lo', label: 'ພາສາລາວ', icon: '/images/flags/lo.svg' },
+  { code: 'id', label: 'Bahasa Indonesia', icon: '/images/flags/id.svg' },
+  { code: 'mm', label: 'Myanmar', icon: '/images/flags/mm.svg' },
+] as const;
+
+export function openMobileMemberPopup(kind: MobilePopupKind) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent<MobilePopupEventDetail>(MOBILE_MEMBER_POPUP_EVENT, {
+    detail: { kind },
+  }));
+}
 
 export default function MobileMemberPopupRuntime() {
   const { locale, toggleLocale } = useMemberLocale();
   const { summary } = useMemberRuntime();
+  const [isMobile, setIsMobile] = useState(false);
   const [popup, setPopup] = useState<MobilePopupKind | null>(null);
+
   const affiliateIncome = runtimeText(summary, 'affiliateBalance') || '0.00';
   const commissionIncome = runtimeText(summary, 'commissionBalance') || '0.00';
 
   useEffect(() => {
+    const media = window.matchMedia(MOBILE_QUERY);
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener?.('change', sync);
+    return () => media.removeEventListener?.('change', sync);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile || !summary.isLoggedIn) {
+      setPopup(null);
+      return;
+    }
+
+    const handleOpen = (event: Event) => {
+      const detail = (event as CustomEvent<MobilePopupEventDetail>).detail;
+      if (detail && isMobilePopupKind(detail.kind)) setPopup(detail.kind);
+    };
+
     const handleClick = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
-      const root = event.target.closest<HTMLElement>('[data-mobile-home-root="true"]');
-      if (!root || root.dataset.mobileAuthenticated !== 'true' || !window.matchMedia('(max-width: 900px)').matches) return;
-      const action = event.target.closest<HTMLElement>('a,button');
-      if (!action || !root.contains(action)) return;
-      const explicit = action.dataset.mobileMemberPopup as MobilePopupKind | undefined;
-      const text = action.textContent?.replace(/\s+/g, ' ').trim() ?? '';
-      const href = action instanceof HTMLAnchorElement ? action.getAttribute('href') ?? '' : '';
-      const kind = explicit ?? popupFromAction(text, href);
-      if (kind) {
+      const action = event.target.closest<HTMLElement>('a,button,[role="button"]');
+      if (!action) return;
+
+      const explicit = action.dataset.mobileMemberPopup;
+      if (explicit && isMobilePopupKind(explicit)) {
         event.preventDefault();
         event.stopPropagation();
-        closeDrawer(root);
-        setPopup(kind);
+        closeDrawer();
+        setPopup(explicit);
         return;
       }
-      const page = PAGE_LABELS.find(([label]) => text.includes(label))?.[1];
+
+      const href = action instanceof HTMLAnchorElement ? action.getAttribute('href') ?? '' : '';
+      const text = action.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+      const inferredPopup = popupFromAction(text, href, action);
+      if (inferredPopup) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeDrawer();
+        setPopup(inferredPopup);
+        return;
+      }
+
+      const page = pageFromAction(text, href);
       if (!page) return;
       event.preventDefault();
       event.stopPropagation();
-      closeDrawer(root);
+      closeDrawer();
       window.location.assign(`/mobile/member/${page}`);
     };
+
+    window.addEventListener(MOBILE_MEMBER_POPUP_EVENT, handleOpen);
     document.addEventListener('click', handleClick, true);
-    return () => document.removeEventListener('click', handleClick, true);
-  }, []);
+    return () => {
+      window.removeEventListener(MOBILE_MEMBER_POPUP_EVENT, handleOpen);
+      document.removeEventListener('click', handleClick, true);
+    };
+  }, [isMobile, summary.isLoggedIn]);
+
+  useEffect(() => {
+    const enabled = isMobile && summary.isLoggedIn;
+    document.documentElement.dataset.mobileMemberNav = enabled ? 'true' : 'false';
+    return () => {
+      delete document.documentElement.dataset.mobileMemberNav;
+    };
+  }, [isMobile, summary.isLoggedIn]);
 
   useEffect(() => {
     if (!popup) return;
     const previousOverflow = document.body.style.overflow;
+    const previousOverscroll = document.body.style.overscrollBehavior;
     document.body.style.overflow = 'hidden';
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setPopup(null); };
+    document.body.style.overscrollBehavior = 'none';
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setPopup(null);
+    };
     window.addEventListener('keydown', closeOnEscape);
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.body.style.overscrollBehavior = previousOverscroll;
       window.removeEventListener('keydown', closeOnEscape);
     };
   }, [popup]);
 
-  if (!popup || typeof document === 'undefined') return null;
-  const title = popupTitle(popup, locale);
+  if (!isMobile || !summary.isLoggedIn || typeof document === 'undefined') return null;
 
-  return createPortal(
-    <div className={styles.backdrop} role="presentation" onPointerDown={(event) => {
-      if (event.currentTarget === event.target) setPopup(null);
-    }}>
-      <section className={styles.dialog} role="dialog" aria-modal="true" aria-label={title} data-mobile-popup-owner={popup}>
-        <div className={styles.border} aria-hidden="true" />
-        <div className={styles.titleCap} aria-hidden="true" />
-        <h2 className={styles.title}>{title}</h2>
-        <button type="button" className={styles.close} aria-label={locale === 'th' ? 'ปิด' : 'Close'} onClick={() => setPopup(null)}>
-          <img src="/images/close.svg" alt="" aria-hidden="true" />
-        </button>
-        <div className={styles.content}>
-          {popup === 'deposit' ? <MobileDepositContent locale={locale} onClose={() => setPopup(null)} /> : null}
-          {popup === 'withdraw' ? <MobileWithdrawContent locale={locale} onClose={() => setPopup(null)} /> : null}
-          {popup === 'network-income' ? <IncomeContent label={title} value={affiliateIncome} /> : null}
-          {popup === 'commission-income' ? <IncomeContent label={title} value={commissionIncome} /> : null}
-          {popup === 'coupon' ? <CouponContent locale={locale} /> : null}
-          {popup === 'bonus' ? <BonusContent locale={locale} /> : null}
-          {popup === 'language' ? (
-            <div className={styles.languageChoices}>
-              <button type="button" className={locale === 'th' ? styles.selected : ''} onClick={() => {
-                if (locale !== 'th') toggleLocale();
-                setPopup(null);
-              }}><img src="/images/flags/th.svg" alt="" />ภาษาไทย</button>
-              <button type="button" className={locale === 'en' ? styles.selected : ''} onClick={() => {
-                if (locale !== 'en') toggleLocale();
-                setPopup(null);
-              }}><img src="/images/flags/en.svg" alt="" />English</button>
-            </div>
-          ) : null}
-        </div>
-      </section>
-    </div>,
-    document.body,
+  const close = () => setPopup(null);
+  const open = (kind: MobilePopupKind) => setPopup(kind);
+  const navigate = (page: string) => {
+    setPopup(null);
+    window.location.assign(`/mobile/member/${page}`);
+  };
+
+  return (
+    <>
+      {createPortal(
+        <MobileMemberBottomNavigation onOpen={open} />,
+        document.body,
+      )}
+
+      {popup ? createPortal(
+        popup === 'video' ? (
+          <MobileVideoPopup onClose={close} />
+        ) : (
+          <SourcePopupShell
+            kind={popup}
+            title={popupTitle(popup, locale)}
+            onClose={close}
+            compact={popup === 'coupon' || popup === 'language'}
+            showClose={!['deposit', 'network-income', 'commission-income'].includes(popup)}
+          >
+            {popup === 'menu' ? <MenuContent onOpen={open} onNavigate={navigate} /> : null}
+            {popup === 'contact' ? <ContactContent /> : null}
+            {popup === 'password' ? <PasswordContent locale={locale} onContact={() => open('contact')} /> : null}
+            {popup === 'deposit' ? <MobileDepositContent locale={locale} onClose={close} /> : null}
+            {popup === 'withdraw' ? <MobileWithdrawContent locale={locale} onClose={close} /> : null}
+            {popup === 'network-income' ? (
+              <IncomeTransferContent
+                kind="network-income"
+                locale={locale}
+                value={affiliateIncome}
+                onClose={close}
+                onContact={() => open('contact')}
+              />
+            ) : null}
+            {popup === 'commission-income' ? (
+              <IncomeTransferContent
+                kind="commission-income"
+                locale={locale}
+                value={commissionIncome}
+                onClose={close}
+                onContact={() => open('contact')}
+              />
+            ) : null}
+            {popup === 'coupon' ? <CouponContent locale={locale} /> : null}
+            {popup === 'language' ? (
+              <LanguageContent
+                locale={locale}
+                onChoose={(code) => {
+                  if (code === 'th' && locale !== 'th') toggleLocale();
+                  if (code === 'en' && locale !== 'en') toggleLocale();
+                  if (code === 'th' || code === 'en') close();
+                }}
+              />
+            ) : null}
+          </SourcePopupShell>
+        ),
+        document.body,
+      ) : null}
+    </>
   );
 }
 
-function MobileDepositContent({ locale, onClose }: { locale: 'th' | 'en'; onClose: () => void }) {
+function SourcePopupShell({
+  kind,
+  title,
+  onClose,
+  compact = false,
+  showClose = true,
+  children,
+}: {
+  kind: MobilePopupKind;
+  title: string;
+  onClose: () => void;
+  compact?: boolean;
+  showClose?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={styles.backdrop}
+      role="presentation"
+      onPointerDown={(event) => {
+        if (event.currentTarget === event.target) onClose();
+      }}
+    >
+      <section
+        className={`${styles.dialog} ${compact ? styles.dialogCompact : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        data-mobile-popup-owner={kind}
+      >
+        <div className={styles.border} aria-hidden="true" />
+        <div className={styles.titleChrome} aria-hidden="true">
+          <TitleFill />
+          <TitleStroke />
+        </div>
+        <h2 className={styles.title}>{title}</h2>
+        {showClose ? (
+          <button type="button" className={styles.close} aria-label="ปิด" onClick={onClose}>
+            <img src="/images/close.svg" alt="" aria-hidden="true" />
+          </button>
+        ) : null}
+        <div className={styles.content}>{children}</div>
+      </section>
+    </div>
+  );
+}
+
+function MenuContent({
+  onOpen,
+  onNavigate,
+}: {
+  onOpen: (kind: MobilePopupKind) => void;
+  onNavigate: (page: string) => void;
+}) {
+  return (
+    <div className={styles.menuGrid}>
+      {MENU_ITEMS.map((item) => (
+        <button
+          key={item.label}
+          type="button"
+          className={styles.menuItem}
+          onClick={() => {
+            if (item.popup) onOpen(item.popup);
+            else if (item.page) onNavigate(item.page);
+          }}
+        >
+          <span className={styles.menuIcon}>
+            <span aria-hidden="true">{item.fallback}</span>
+            <img src={item.icon} alt="" aria-hidden="true" onError={(event) => {
+              event.currentTarget.style.display = 'none';
+            }} />
+          </span>
+          <span>{item.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ContactContent() {
+  return (
+    <div className={styles.contactList}>
+      <div className={styles.contactCard}>
+        <img src="/images/line.png" alt="" aria-hidden="true" />
+        <div>
+          <strong>Line</strong>
+          <span>{CONTACT_LINE_ID}</span>
+        </div>
+        <a href={CONTACT_LINE_URL} target="_blank" rel="noreferrer">คลิก</a>
+      </div>
+    </div>
+  );
+}
+
+function PasswordContent({
+  locale,
+  onContact,
+}: {
+  locale: 'th' | 'en';
+  onContact: () => void;
+}) {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const checks = [
+    { label: 'ตั้งรหัสผ่าน 8 ตัวขึ้นไป', passed: newPassword.length >= 8 },
+    { label: 'มีตัวอักษร a-z และ A-Z', passed: /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) },
+    { label: 'มีตัวเลขอย่างน้อย 1 ตัว', passed: /\d/.test(newPassword) },
+  ];
+  const valid = Boolean(currentPassword)
+    && checks.every((item) => item.passed)
+    && Boolean(confirmPassword)
+    && newPassword === confirmPassword;
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!valid || busy) return;
+    setBusy(true);
+    setMessage('');
+    try {
+      const response = await memberApiFetch('/member/auth/password', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.message || 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setMessage(locale === 'th' ? 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว' : 'Password changed');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className={styles.passwordForm} onSubmit={submit}>
+      <SourceField
+        label={locale === 'th' ? 'รหัสผ่านเดิม' : 'Current password'}
+        type="password"
+        value={currentPassword}
+        onChange={setCurrentPassword}
+        autoComplete="current-password"
+      />
+      <SourceField
+        label={locale === 'th' ? 'รหัสผ่านใหม่' : 'New password'}
+        type="password"
+        value={newPassword}
+        onChange={setNewPassword}
+        autoComplete="new-password"
+      />
+      <div className={styles.passwordRules}>
+        {checks.map((item) => (
+          <div key={item.label} data-passed={item.passed ? 'true' : 'false'}>
+            <span aria-hidden="true">{item.passed ? '✓' : '•'}</span>
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+      <SourceField
+        label={locale === 'th' ? 'ยืนยันรหัสผ่านใหม่' : 'Confirm password'}
+        type="password"
+        value={confirmPassword}
+        onChange={setConfirmPassword}
+        autoComplete="new-password"
+        invalid={Boolean(confirmPassword) && newPassword !== confirmPassword}
+      />
+      <button type="submit" className={styles.fullSubmit} disabled={!valid || busy}>
+        {busy ? '…' : (locale === 'th' ? 'ยืนยัน' : 'Confirm')}
+      </button>
+      {message ? <div className={styles.message} role="status">{message}</div> : null}
+      <SupportFooter onContact={onContact} />
+    </form>
+  );
+}
+
+function SourceField({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  autoComplete,
+  invalid = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  autoComplete?: string;
+  invalid?: boolean;
+}) {
+  return (
+    <label className={styles.sourceField} data-invalid={invalid ? 'true' : 'false'}>
+      <span>{label}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        autoComplete={autoComplete}
+        aria-invalid={invalid}
+      />
+    </label>
+  );
+}
+
+function MobileDepositContent({
+  locale,
+  onClose,
+}: {
+  locale: 'th' | 'en';
+  onClose: () => void;
+}) {
   const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState<DepositMethodCode>('bank_transfer');
+  const [method, setMethod] = useState<DepositMethodCode | null>(null);
   const [account, setAccount] = useState<ReceivingAccount | null>(null);
   const [slipData, setSlipData] = useState('');
   const [slipName, setSlipName] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const requestKeyRef = useRef('');
-  const numericAmount = Number(amount.replace(/,/g, ''));
 
-  const loadAccount = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0) return setMessage(locale === 'th' ? 'กรุณากรอกจำนวนเงิน' : 'Enter an amount');
+  const numericAmount = Number(amount.replace(/,/g, ''));
+  const amountValid = Boolean(
+    method
+    && Number.isFinite(numericAmount)
+    && numericAmount >= 50
+    && numericAmount <= 100_000,
+  );
+
+  const loadAccount = async () => {
+    if (!method || !amountValid || loading) return;
     setLoading(true);
     setMessage('');
     try {
-      const response = await memberApiFetch(`/member/receiving-bank-account?paymentType=${encodeURIComponent(method)}&amount=${encodeURIComponent(String(numericAmount))}`);
+      const response = await memberApiFetch(
+        `/member/receiving-bank-account?paymentType=${encodeURIComponent(method)}&amount=${encodeURIComponent(String(numericAmount))}`,
+      );
       const data = await response.json().catch(() => null);
-      if (!response.ok || !data?.item) throw new Error(data?.message || 'No receiving account');
+      if (!response.ok || !data?.item) throw new Error(data?.message || 'ไม่พบบัญชีรับเงิน');
       setAccount(data.item as ReceivingAccount);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : (locale === 'th' ? 'โหลดบัญชีรับเงินไม่สำเร็จ' : 'Unable to load receiving account'));
+      setMessage(error instanceof Error ? error.message : 'โหลดบัญชีรับเงินไม่สำเร็จ');
     } finally {
       setLoading(false);
     }
@@ -153,61 +593,154 @@ function MobileDepositContent({ locale, onClose }: { locale: 'th' | 'en'; onClos
   const uploadSlip = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) return setMessage(locale === 'th' ? 'กรุณาเลือกไฟล์รูปภาพ' : 'Choose an image file');
+    if (!file.type.startsWith('image/')) {
+      setMessage(locale === 'th' ? 'กรุณาเลือกไฟล์รูปภาพ' : 'Choose an image');
+      return;
+    }
     try {
       setSlipData(await fileToDataUrl(file));
       setSlipName(file.name);
       setMessage(locale === 'th' ? 'แนบสลิปแล้ว' : 'Slip attached');
     } catch {
-      setMessage(locale === 'th' ? 'อ่านรูปสลิปไม่สำเร็จ' : 'Could not read the slip image');
+      setMessage(locale === 'th' ? 'อ่านรูปสลิปไม่สำเร็จ' : 'Could not read slip');
     }
   };
 
   const submit = async () => {
-    if (!account || !slipData || loading) return;
+    if (!account || !method || !slipData || loading) return;
     setLoading(true);
     setMessage(locale === 'th' ? 'กำลังส่งรายการ...' : 'Submitting...');
     requestKeyRef.current ||= createFinanceIdempotencyKey('deposit');
     const formValues = { amount, method, transactionRef: '', note: '' };
+
     try {
       const createResponse = await memberApiFetch('/member/topups', {
-        method: 'POST', headers: { 'Idempotency-Key': requestKeyRef.current },
+        method: 'POST',
+        headers: { 'Idempotency-Key': requestKeyRef.current },
         body: JSON.stringify(serializeDepositCreateRequest(formValues, account)),
       });
       const created = await createResponse.json().catch(() => null);
-      if (!createResponse.ok || !created?.id) throw new Error(created?.message || 'Create deposit failed');
+      if (!createResponse.ok || !created?.id) {
+        throw new Error(created?.message || 'สร้างรายการฝากไม่สำเร็จ');
+      }
+
       const evidenceResponse = await memberApiFetch(`/member/topups/${created.id}/slip-evidence`, {
-        method: 'POST', body: JSON.stringify(serializeDepositEvidenceRequest(formValues, slipData, slipName)),
+        method: 'POST',
+        body: JSON.stringify(serializeDepositEvidenceRequest(formValues, slipData, slipName)),
       });
       const evidence = await evidenceResponse.json().catch(() => null);
-      if (!evidenceResponse.ok && !evidence?.duplicate) throw new Error(evidence?.message || 'Upload slip failed');
+      if (!evidenceResponse.ok && !evidence?.duplicate) {
+        throw new Error(evidence?.message || 'อัปโหลดสลิปไม่สำเร็จ');
+      }
+
       requestKeyRef.current = '';
       window.dispatchEvent(new Event(MEMBER_WALLET_REFRESH_EVENT));
-      setMessage(locale === 'th' ? 'ส่งสลิปแล้ว รอตรวจสอบรายการ' : 'Slip submitted for review');
+      setMessage(locale === 'th' ? 'ส่งสลิปแล้ว รอตรวจสอบรายการ' : 'Slip submitted');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : (locale === 'th' ? 'ส่งรายการไม่สำเร็จ' : 'Submission failed'));
+      setMessage(error instanceof Error ? error.message : 'ส่งรายการไม่สำเร็จ');
     } finally {
       setLoading(false);
     }
   };
 
-  return <div className={styles.financeContent}>
-    {!account ? <form className={styles.depositForm} onSubmit={loadAccount}>
-      <label><span>{locale === 'th' ? 'จำนวนเงินที่ต้องการฝาก' : 'Deposit amount'}</span><input inputMode="decimal" value={amount} onChange={(event) => setAmount(sanitizeAmount(event.target.value))} placeholder="0.00" /></label>
-      <div className={styles.methodGrid}>{(['bank_transfer', 'promptpay', 'wallet'] as DepositMethodCode[]).map((value) => <button type="button" key={value} className={method === value ? styles.selected : ''} onClick={() => setMethod(value)}>{value === 'bank_transfer' ? (locale === 'th' ? 'ธนาคาร' : 'Bank') : value === 'promptpay' ? 'PromptPay' : 'Wallet'}</button>)}</div>
-      <button type="submit" className={styles.primaryButton} disabled={loading}>{loading ? '…' : (locale === 'th' ? 'ดำเนินการต่อ' : 'Continue')}</button>
-    </form> : <div className={styles.depositTransfer}>
-      <div className={styles.bankCard}><img src={bankLogo(account.bankName)} alt="" /><div><strong>{account.bankName}</strong><span>{account.accountName}</span><b>{account.accountNumber}</b></div></div>
-      <div className={styles.transferAmount}><span>{locale === 'th' ? 'ยอดที่ต้องโอน' : 'Transfer amount'}</span><strong>{formatMoney(numericAmount)}</strong></div>
-      <label className={styles.slipInput}><input type="file" accept="image/*" onChange={uploadSlip} /><span>{slipName || (locale === 'th' ? 'แนบสลิปการโอน' : 'Attach transfer slip')}</span></label>
-      <div className={styles.actions}><button type="button" onClick={() => setAccount(null)}>{locale === 'th' ? 'ย้อนกลับ' : 'Back'}</button><button type="button" className={styles.primaryButton} disabled={!slipData || loading} onClick={submit}>{loading ? '…' : (locale === 'th' ? 'ยืนยัน' : 'Confirm')}</button></div>
-    </div>}
-    {message ? <div className={styles.message} role="status">{message}</div> : null}
-    <button type="button" className={styles.cancelLink} onClick={onClose}>{locale === 'th' ? 'ยกเลิก' : 'Cancel'}</button>
-  </div>;
+  if (account) {
+    return (
+      <div className={styles.depositTransfer}>
+        <div className={styles.bankCard}>
+          <img src={bankLogo(account.bankName)} alt="" />
+          <div>
+            <strong>{account.bankName}</strong>
+            <span>{account.accountName}</span>
+            <b>{account.accountNumber}</b>
+          </div>
+        </div>
+        <div className={styles.transferAmount}>
+          <span>{locale === 'th' ? 'ยอดที่ต้องโอน' : 'Transfer amount'}</span>
+          <strong>{formatMoney(numericAmount)}</strong>
+        </div>
+        <label className={styles.slipInput}>
+          <input type="file" accept="image/*" onChange={uploadSlip} />
+          <span>{slipName || (locale === 'th' ? 'แนบสลิปการโอน' : 'Attach transfer slip')}</span>
+        </label>
+        {message ? <div className={styles.message} role="status">{message}</div> : null}
+        <div className={styles.actionRow}>
+          <button type="button" onClick={() => setAccount(null)}>ย้อนกลับ</button>
+          <button type="button" className={styles.confirmButton} disabled={!slipData || loading} onClick={submit}>
+            {loading ? '…' : 'ยืนยัน'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.depositContent}>
+      <button type="button" className={styles.promotionSelector}>
+        <span aria-hidden="true">🎁</span>
+        <strong>เลือกโปรโมชั่น</strong>
+        <span aria-hidden="true">›</span>
+      </button>
+
+      <section className={styles.methodSection}>
+        <h3>เลือกวิธีฝากเงิน</h3>
+        <div className={styles.methodList}>
+          {DEPOSIT_METHODS.map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              className={method === option.code && option.enabled ? styles.methodSelected : ''}
+              disabled={!option.enabled}
+              onClick={() => {
+                if (option.enabled && option.code) setMethod(option.code);
+              }}
+            >
+              <span>
+                <img src={option.icon} alt="" aria-hidden="true" />
+                <strong>{option.label}</strong>
+              </span>
+              {!option.enabled ? <small>งดให้บริการ</small> : <b aria-hidden="true">›</b>}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {method ? (
+        <section className={styles.amountSection}>
+          <h3>ใส่จำนวนเงินที่ต้องการฝาก</h3>
+          <input
+            className={styles.amountInput}
+            inputMode="decimal"
+            value={amount}
+            onChange={(event) => setAmount(sanitizeAmount(event.target.value))}
+            placeholder="0.00"
+          />
+          <p>ขั้นต่ำ: 50.00 / สูงสุด: 100,000.00</p>
+          <h4>เลือกจำนวน</h4>
+          <QuickAmountGrid
+            available={100_000}
+            onChoose={(value) => setAmount(String(value))}
+          />
+        </section>
+      ) : null}
+
+      {message ? <div className={styles.message} role="status">{message}</div> : null}
+      <div className={styles.actionRow}>
+        <button type="button" onClick={onClose}>ยกเลิก</button>
+        <button type="button" className={styles.confirmButton} disabled={!amountValid || loading} onClick={loadAccount}>
+          {loading ? '…' : 'ยืนยัน'}
+        </button>
+      </div>
+    </div>
+  );
 }
 
-function MobileWithdrawContent({ locale, onClose }: { locale: 'th' | 'en'; onClose: () => void }) {
+function MobileWithdrawContent({
+  locale,
+  onClose,
+}: {
+  locale: 'th' | 'en';
+  onClose: () => void;
+}) {
   const [wallet, setWallet] = useState<WalletResponse | null>(null);
   const [banks, setBanks] = useState<MemberBankAccount[]>([]);
   const [bonusLedgers, setBonusLedgers] = useState<BonusLedger[]>([]);
@@ -222,19 +755,29 @@ function MobileWithdrawContent({ locale, onClose }: { locale: 'th' | 'en'; onClo
     setLoading(true);
     try {
       const [walletResponse, bankResponse, bonusResponse] = await Promise.all([
-        memberApiFetch('/member/wallet'), memberApiFetch('/member/bank-accounts'), memberApiFetch('/member/bonus-ledgers'),
+        memberApiFetch('/member/wallet'),
+        memberApiFetch('/member/bank-accounts'),
+        memberApiFetch('/member/bonus-ledgers'),
       ]);
       const walletData = await walletResponse.json().catch(() => null);
       const bankData = await bankResponse.json().catch(() => null);
       const bonusData = await bonusResponse.json().catch(() => null);
+
       if (walletResponse.ok) setWallet(walletData as WalletResponse);
       if (bankResponse.ok) {
-        const active = ((bankData?.items ?? []) as MemberBankAccount[]).filter((bank) => bank.status === 'ACTIVE');
+        const active = ((bankData?.items ?? []) as MemberBankAccount[])
+          .filter((bank) => bank.status === 'ACTIVE');
         setBanks(active);
-        setSelectedBankId((current) => active.some((bank) => bank.id === current) ? current : (active.find((bank) => bank.isPrimary) ?? active[0])?.id ?? '');
+        setSelectedBankId((current) => (
+          active.some((bank) => bank.id === current)
+            ? current
+            : (active.find((bank) => bank.isPrimary) ?? active[0])?.id ?? ''
+        ));
       }
       if (bonusResponse.ok) setBonusLedgers((bonusData?.items ?? []) as BonusLedger[]);
-      if (!walletResponse.ok || !bankResponse.ok) setMessage(walletData?.message ?? bankData?.message ?? (locale === 'th' ? 'โหลดข้อมูลไม่สำเร็จ' : 'Unable to load data'));
+      if (!walletResponse.ok || !bankResponse.ok) {
+        setMessage(walletData?.message ?? bankData?.message ?? 'โหลดข้อมูลไม่สำเร็จ');
+      }
     } catch {
       setMessage(locale === 'th' ? 'เชื่อมต่อระบบไม่สำเร็จ' : 'Unable to connect');
     } finally {
@@ -242,97 +785,403 @@ function MobileWithdrawContent({ locale, onClose }: { locale: 'th' | 'en'; onClo
     }
   }, [locale]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
   const selectedBank = banks.find((bank) => bank.id === selectedBankId) ?? banks[0];
   const available = safeNumber(wallet?.availableBalance);
   const remainingToday = Math.min(available, DAILY_LIMIT);
   const numericAmount = Number(amount.replace(/,/g, ''));
-  const bonusRemaining = useMemo(() => bonusLedgers.filter((item) => !item.turnoverCompleted && ['ACTIVE', 'REVIEWING', 'PENDING'].includes(String(item.status))).reduce((sum, item) => sum + Math.max(safeNumber(item.turnoverRequired) - safeNumber(item.turnoverProgress), 0), 0), [bonusLedgers]);
-  const valid = Boolean(selectedBank && numericAmount >= 100 && numericAmount <= remainingToday && bonusRemaining <= 0 && !submitting);
+  const bonusRemaining = useMemo(
+    () => bonusLedgers
+      .filter((item) => !item.turnoverCompleted && ['ACTIVE', 'REVIEWING', 'PENDING'].includes(String(item.status)))
+      .reduce(
+        (sum, item) => sum + Math.max(
+          safeNumber(item.turnoverRequired) - safeNumber(item.turnoverProgress),
+          0,
+        ),
+        0,
+      ),
+    [bonusLedgers],
+  );
+  const valid = Boolean(
+    selectedBank
+    && numericAmount >= 100
+    && numericAmount <= remainingToday
+    && bonusRemaining <= 0
+    && !submitting,
+  );
 
-  const submit = async (event: FormEvent) => {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     if (!valid || !selectedBank) return;
     setSubmitting(true);
     setMessage(locale === 'th' ? 'กำลังส่งคำขอถอน...' : 'Submitting...');
     requestKeyRef.current ||= createFinanceIdempotencyKey('withdrawal');
+
     try {
       const response = await memberApiFetch('/member/withdrawals', {
-        method: 'POST', headers: { 'Idempotency-Key': requestKeyRef.current },
-        body: JSON.stringify({ amount: numericAmount, method: 'bank_transfer', accountName: selectedBank.accountName, accountNumber: selectedBank.accountNumber, bankName: selectedBank.bankName, note: '' }),
+        method: 'POST',
+        headers: { 'Idempotency-Key': requestKeyRef.current },
+        body: JSON.stringify({
+          amount: numericAmount,
+          method: 'bank_transfer',
+          accountName: selectedBank.accountName,
+          accountNumber: selectedBank.accountNumber,
+          bankName: selectedBank.bankName,
+          note: '',
+        }),
       });
       const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(data?.message || 'Withdrawal failed');
+      if (!response.ok) throw new Error(data?.message || 'ส่งคำขอถอนไม่สำเร็จ');
+
       requestKeyRef.current = '';
       setAmount('');
       setMessage(locale === 'th' ? 'ส่งคำขอถอนสำเร็จ' : 'Withdrawal request submitted');
       window.dispatchEvent(new Event(MEMBER_WALLET_REFRESH_EVENT));
       await load();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : (locale === 'th' ? 'ส่งคำขอถอนไม่สำเร็จ' : 'Withdrawal failed'));
+      setMessage(error instanceof Error ? error.message : 'ส่งคำขอถอนไม่สำเร็จ');
     } finally {
       setSubmitting(false);
     }
-  };
+  }
 
-  return <form className={styles.withdrawContent} onSubmit={submit}>
-    <div className={styles.sectionLabel}>{locale === 'th' ? 'บัญชีธนาคารของคุณ' : 'Your bank account'}</div>
-    {selectedBank ? <div className={styles.bankCard}><img src={bankLogo(selectedBank.bankName)} alt="" /><div><strong>{selectedBank.accountName}</strong><span>{formatAccountNumber(selectedBank.accountNumber)}</span></div>{banks.length > 1 ? <select value={selectedBank.id} onChange={(event) => setSelectedBankId(event.target.value)}>{banks.map((bank) => <option key={bank.id} value={bank.id}>{bank.bankName}</option>)}</select> : null}</div> : <div className={styles.empty}>{loading ? (locale === 'th' ? 'กำลังโหลด...' : 'Loading...') : (locale === 'th' ? 'ยังไม่มีบัญชีธนาคารที่พร้อมถอน' : 'No approved bank account')}</div>}
-    <div className={styles.withdrawPrompt}>{locale === 'th' ? 'ใส่จำนวนเงินที่ต้องการถอน' : 'Enter withdrawal amount'}</div>
-    <input className={styles.amountInput} inputMode="decimal" value={amount} onChange={(event) => setAmount(sanitizeAmount(event.target.value))} placeholder="0.00" />
-    <div className={styles.minimum}>{locale === 'th' ? 'ถอนขั้นต่ำ 100.00 เครดิต' : 'Minimum withdrawal: 100.00 credits'}</div>
-    <div className={styles.remaining}>{locale === 'th' ? 'ยอดถอนคงเหลือวันนี้' : 'Remaining today'} {formatMoney(remainingToday)}</div>
-    {bonusRemaining > 0 ? <div className={styles.message}>{locale === 'th' ? `ต้องทำเทิร์นโบนัสคงเหลือ ${formatMoney(bonusRemaining)} ก่อนถอน` : `Complete ${formatMoney(bonusRemaining)} turnover first`}</div> : null}
-    <div className={styles.sectionLabel}>{locale === 'th' ? 'เลือกจำนวน' : 'Choose amount'}</div>
-    <div className={styles.quickGrid}>{QUICK_AMOUNTS.map((value) => <button type="button" key={value} disabled={!selectedBank || value > remainingToday || bonusRemaining > 0} onClick={() => setAmount(String(value))}>{value.toLocaleString('en-US')}</button>)}</div>
-    {message ? <div className={styles.message} role="status">{message}</div> : null}
-    <div className={styles.actions}><button type="button" onClick={onClose}>{locale === 'th' ? 'ยกเลิก' : 'Cancel'}</button><button type="submit" className={styles.primaryButton} disabled={!valid}>{submitting ? '…' : (locale === 'th' ? 'ยืนยัน' : 'Confirm')}</button></div>
-  </form>;
+  return (
+    <form className={styles.withdrawContent} onSubmit={submit}>
+      <section className={styles.bankSection}>
+        <h3>{locale === 'th' ? 'บัญชีธนาคารของคุณ' : 'Your bank account'}</h3>
+        {selectedBank ? (
+          <div className={styles.bankCard}>
+            <img src={bankLogo(selectedBank.bankName)} alt="" />
+            <div>
+              <strong>{selectedBank.accountName}</strong>
+              <span>{formatAccountNumber(selectedBank.accountNumber)}</span>
+            </div>
+            {banks.length > 1 ? (
+              <select value={selectedBank.id} onChange={(event) => setSelectedBankId(event.target.value)}>
+                {banks.map((bank) => (
+                  <option key={bank.id} value={bank.id}>{bank.bankName}</option>
+                ))}
+              </select>
+            ) : null}
+          </div>
+        ) : (
+          <div className={styles.empty}>
+            {loading ? 'กำลังโหลด...' : 'ยังไม่มีบัญชีธนาคารที่พร้อมถอน'}
+          </div>
+        )}
+      </section>
+
+      <section className={styles.amountSection}>
+        <h3>{locale === 'th' ? 'ใส่จำนวนเงินที่ต้องการถอน' : 'Enter withdrawal amount'}</h3>
+        <input
+          className={styles.amountInput}
+          inputMode="decimal"
+          value={amount}
+          onChange={(event) => setAmount(sanitizeAmount(event.target.value))}
+          placeholder="0.00"
+        />
+        <p>ถอนขั้นต่ำ 100.00 เครดิต</p>
+        <p>ยอดถอนคงเหลือวันนี้ {formatMoney(remainingToday)} เครดิต</p>
+        {bonusRemaining > 0 ? (
+          <div className={styles.message}>
+            ต้องทำเทิร์นโบนัสคงเหลือ {formatMoney(bonusRemaining)} ก่อนถอน
+          </div>
+        ) : null}
+        <h4>เลือกจำนวน</h4>
+        <QuickAmountGrid
+          available={remainingToday}
+          disabled={!selectedBank || bonusRemaining > 0}
+          onChoose={(value) => setAmount(String(value))}
+        />
+      </section>
+
+      {message ? <div className={styles.message} role="status">{message}</div> : null}
+      <div className={styles.actionRow}>
+        <button type="button" onClick={onClose}>ยกเลิก</button>
+        <button type="submit" className={styles.confirmButton} disabled={!valid}>
+          {submitting ? '…' : 'ยืนยัน'}
+        </button>
+      </div>
+    </form>
+  );
 }
 
-function IncomeContent({ label, value }: { label: string; value: string }) {
-  return <div className={styles.incomeContent}><span>{label}</span><strong>{formatMoney(Number(value))}</strong><p>ข้อมูลนี้อ่านจากระบบสมาชิกกลางโดยตรง</p></div>;
+function IncomeTransferContent({
+  kind,
+  locale,
+  value,
+  onClose,
+  onContact,
+}: {
+  kind: IncomeKind;
+  locale: 'th' | 'en';
+  value: string;
+  onClose: () => void;
+  onContact: () => void;
+}) {
+  const available = safeNumber(value);
+  const [amount, setAmount] = useState('');
+  const [message, setMessage] = useState('');
+  const numericAmount = safeNumber(amount);
+  const valid = numericAmount > 0 && numericAmount <= available;
+  const label = kind === 'network-income' ? 'รายได้เครือข่าย' : 'รายได้คอมมิชชั่น';
+
+  return (
+    <div className={styles.incomeContent}>
+      <div className={styles.incomeBalance}>
+        <span>{label}ที่ถอนได้</span>
+        <strong>{formatMoney(available)}</strong>
+      </div>
+      <section className={styles.amountSection}>
+        <h3>ใส่จำนวนเงินที่ต้องการถอนมายังกระเป๋าหลัก</h3>
+        <input
+          className={styles.amountInput}
+          inputMode="decimal"
+          value={amount}
+          onChange={(event) => setAmount(sanitizeAmount(event.target.value))}
+          placeholder="0.00"
+        />
+        <h4>เลือกจำนวน</h4>
+        <QuickAmountGrid
+          available={available}
+          onChoose={(next) => setAmount(String(next))}
+        />
+      </section>
+      {message ? <div className={styles.message} role="status">{message}</div> : null}
+      <div className={styles.actionRow}>
+        <button type="button" onClick={onClose}>ยกเลิก</button>
+        <button
+          type="button"
+          className={styles.confirmButton}
+          disabled={!valid}
+          onClick={() => setMessage(
+            locale === 'th'
+              ? 'ระบบถอนรายได้จะเปิดใช้เมื่อ API รายได้พร้อม'
+              : 'Income transfer API is not available yet',
+          )}
+        >
+          ยืนยัน
+        </button>
+      </div>
+      <SupportFooter onContact={onContact} />
+    </div>
+  );
+}
+
+function QuickAmountGrid({
+  available,
+  disabled = false,
+  onChoose,
+}: {
+  available: number;
+  disabled?: boolean;
+  onChoose: (value: number) => void;
+}) {
+  return (
+    <div className={styles.quickGrid}>
+      {QUICK_AMOUNTS.map((value) => (
+        <button
+          type="button"
+          key={value}
+          disabled={disabled || value > available}
+          onClick={() => onChoose(value)}
+        >
+          {value.toLocaleString('en-US')}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function CouponContent({ locale }: { locale: 'th' | 'en' }) {
-  return <CountContent locale={locale} endpoint="/member/coupons" labelTh="คูปองที่ใช้งานได้" labelEn="Available coupons" />;
+  const [code, setCode] = useState('');
+  const [message, setMessage] = useState('');
+
+  return (
+    <div className={styles.couponContent}>
+      <SourceField
+        label={locale === 'th' ? 'คูปอง' : 'Coupon'}
+        value={code}
+        onChange={setCode}
+      />
+      <button
+        type="button"
+        className={styles.fullSubmit}
+        disabled={!code.trim()}
+        onClick={() => setMessage(
+          locale === 'th'
+            ? 'ระบบใช้คูปองยังไม่เปิดใช้งาน'
+            : 'Coupon redemption is not available yet',
+        )}
+      >
+        {locale === 'th' ? 'ยืนยัน' : 'Confirm'}
+      </button>
+      {message ? <div className={styles.message} role="status">{message}</div> : null}
+    </div>
+  );
 }
 
-function BonusContent({ locale }: { locale: 'th' | 'en' }) {
-  return <CountContent locale={locale} endpoint="/member/bonus-ledgers" labelTh="โบนัสที่กำลังใช้งาน" labelEn="Active bonuses" />;
+function LanguageContent({
+  locale,
+  onChoose,
+}: {
+  locale: 'th' | 'en';
+  onChoose: (code: string) => void;
+}) {
+  const [message, setMessage] = useState('');
+
+  return (
+    <div>
+      <div className={styles.languageGrid}>
+        {LANGUAGE_OPTIONS.map((option) => {
+          const selected = option.code === locale;
+          return (
+            <button
+              type="button"
+              key={option.code}
+              className={selected ? styles.languageSelected : ''}
+              onClick={() => {
+                if (option.code === 'th' || option.code === 'en') {
+                  onChoose(option.code);
+                } else {
+                  setMessage('ภาษานี้ยังไม่เปิดใช้งาน');
+                }
+              }}
+            >
+              <img src={option.icon} alt="" aria-hidden="true" />
+              <span>{option.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      {message ? <div className={styles.languageMessage}>{message}</div> : null}
+    </div>
+  );
 }
 
-function CountContent({ locale, endpoint, labelTh, labelEn }: { locale: 'th' | 'en'; endpoint: string; labelTh: string; labelEn: string }) {
-  const [payload, setPayload] = useState<GenericPayload>(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    memberApiFetch(endpoint).then(async (response) => {
-      const data = await response.json().catch(() => null);
-      if (response.ok) setPayload(data as GenericPayload);
-    }).finally(() => setLoading(false));
-  }, [endpoint]);
-  const count = Array.isArray(payload?.items) ? payload.items.length : 0;
-  return <div className={styles.incomeContent}><span>{locale === 'th' ? labelTh : labelEn}</span><strong>{loading ? '…' : count}</strong><p>{count ? (locale === 'th' ? 'ข้อมูลจากระบบสมาชิกกลาง' : 'Loaded from the member API') : (locale === 'th' ? 'ยังไม่มีรายการที่ใช้งานได้' : 'No active items')}</p></div>;
+function MobileVideoPopup({ onClose }: { onClose: () => void }) {
+  const source = resolveLocalAssetOrSource(GUIDE_VIDEO_SOURCE, 'mobile');
+  return (
+    <div className={styles.videoBackdrop} role="dialog" aria-modal="true" aria-label="วีดีโอแนะนำการใช้งาน">
+      <div className={styles.videoFrameGlow} aria-hidden="true" />
+      <div className={styles.videoFrame}>
+        <div className={styles.videoLoading}>Loading...</div>
+        <video autoPlay loop playsInline controls>
+          <source src={source} type="video/webm" />
+        </video>
+      </div>
+      <div className={styles.videoFooter}>
+        <strong>คู่มือการใช้งาน</strong>
+        <button type="button" onClick={onClose}>ปิด</button>
+      </div>
+    </div>
+  );
 }
 
-function popupFromAction(text: string, href: string): MobilePopupKind | null {
-  if (href === '/deposit' || text.includes('ฝากเงิน')) return 'deposit';
-  if (href === '/withdraw' || text.includes('ถอนเงิน')) return 'withdraw';
+function MobileMemberBottomNavigation({
+  onOpen,
+}: {
+  onOpen: (kind: MobilePopupKind) => void;
+}) {
+  const items: Array<{ label: string; kind: MobilePopupKind; icon: string; fallback: string }> = [
+    { label: 'เมนู', kind: 'menu', icon: '/assets/asset-pc/images/เมนู.png', fallback: '☰' },
+    { label: 'ฝาก', kind: 'deposit', icon: '/images/ฝาก.png', fallback: '＋' },
+    { label: 'ถอน', kind: 'withdraw', icon: '/images/ถอน.png', fallback: '−' },
+    { label: 'ติดต่อ', kind: 'contact', icon: '/images/line.png', fallback: '●' },
+  ];
+
+  return (
+    <nav className={styles.bottomNav} aria-label="เมนูสมาชิกด้านล่าง">
+      <div className={styles.bottomNavInner}>
+        <BottomNavShape />
+        <div className={styles.bottomNavGrid}>
+          {items.map((item) => (
+            <button type="button" key={item.kind} onClick={() => onOpen(item.kind)}>
+              <span className={styles.bottomNavIcon}>
+                <span aria-hidden="true">{item.fallback}</span>
+                <img src={item.icon} alt="" aria-hidden="true" onError={(event) => {
+                  event.currentTarget.style.display = 'none';
+                }} />
+              </span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+function SupportFooter({ onContact }: { onContact: () => void }) {
+  return (
+    <>
+      <div className={styles.supportDivider} aria-hidden="true" />
+      <div className={styles.supportFooter}>
+        <span>พบปัญหาในการใช้งาน?</span>
+        <button type="button" onClick={onContact}>ติดต่อเรา</button>
+      </div>
+    </>
+  );
+}
+
+function popupFromAction(
+  text: string,
+  href: string,
+  action: HTMLElement,
+): MobilePopupKind | null {
+  if (href === '/deposit' || text.includes('ฝากเงิน') || text === 'ฝาก') return 'deposit';
+  if (href === '/withdraw' || text.includes('ถอนเงิน') || text === 'ถอน') return 'withdraw';
   if (text.includes('รายได้จากเครือข่าย')) return 'network-income';
-  if (text.includes('รายได้จากคอมมิชชั่น') || text.includes('รายได้คอมมิชชั่น')) return 'commission-income';
+  if (action.dataset.mobileIncomePopup === 'commission') return 'commission-income';
   if (text.includes('คูปอง')) return 'coupon';
-  if (text.includes('โบนัสพิเศษ')) return 'bonus';
   if (text.includes('เปลี่ยนภาษา')) return 'language';
+  if (text.includes('วีดีโอแนะนำ') || text.includes('วิดีโอแนะนำ')) return 'video';
+  if (text.includes('แก้ไข บัญชี') || text.includes('แก้ไขบัญชี') || text.includes('เบอร์ติดต่อ')) return 'contact';
+  if (text.includes('แก้ไขรหัสผ่าน') || text.includes('เปลี่ยนรหัสผ่าน')) return 'password';
   return null;
 }
 
-function popupTitle(kind: MobilePopupKind, locale: 'th' | 'en') {
-  const copy: Record<MobilePopupKind, [string, string]> = {
-    deposit: ['ฝากเงิน', 'Deposit'], withdraw: ['ถอนเงิน', 'Withdraw'],
-    'network-income': ['รายได้จากเครือข่าย', 'Network income'], 'commission-income': ['รายได้จากคอมมิชชั่น', 'Commission income'],
-    coupon: ['คูปอง', 'Coupons'], bonus: ['โบนัสพิเศษ', 'Special bonus'], language: ['เปลี่ยนภาษา', 'Language'],
+function pageFromAction(text: string, href: string) {
+  const mobileMatch = href.match(/^\/mobile\/member\/([^/?#]+)/);
+  if (mobileMatch?.[1]) return mobileMatch[1];
+  return PAGE_LABELS.find(([label]) => text.includes(label))?.[1] ?? null;
+}
+
+function popupTitle(kind: Exclude<MobilePopupKind, 'video'>, locale: 'th' | 'en') {
+  const copy: Record<Exclude<MobilePopupKind, 'video'>, [string, string]> = {
+    menu: ['เมนู', 'Menu'],
+    contact: ['ติดต่อเรา', 'Contact us'],
+    password: ['เปลี่ยนรหัสผ่าน', 'Change password'],
+    deposit: ['ฝากเงิน', 'Deposit'],
+    withdraw: ['ถอนเงิน', 'Withdraw'],
+    'network-income': ['รายได้จากเครือข่าย', 'Network income'],
+    'commission-income': ['รายได้จากคอมมิชชั่น', 'Commission income'],
+    coupon: ['คูปอง', 'Coupon'],
+    language: ['เปลี่ยนภาษา', 'Language'],
   };
   return copy[kind][locale === 'th' ? 0 : 1];
+}
+
+function isMobilePopupKind(value: string): value is MobilePopupKind {
+  return [
+    'menu',
+    'contact',
+    'password',
+    'deposit',
+    'withdraw',
+    'network-income',
+    'commission-income',
+    'coupon',
+    'language',
+    'video',
+  ].includes(value);
+}
+
+function closeDrawer() {
+  document.querySelector<HTMLButtonElement>('#mobile-home-drawer button[aria-label="ปิดเมนู"]')?.click();
 }
 
 function runtimeText(summary: unknown, key: string) {
@@ -341,10 +1190,95 @@ function runtimeText(summary: unknown, key: string) {
   return typeof value === 'string' && value.trim() ? value.trim() : '';
 }
 
-function closeDrawer(root: HTMLElement) { root.querySelector<HTMLButtonElement>('button[aria-label="ปิดเมนู"]')?.click(); }
-function sanitizeAmount(value: string) { const normalized = value.replace(/[^0-9.]/g, ''); const [whole = '', ...fraction] = normalized.split('.'); return fraction.length ? `${whole}.${fraction.join('').slice(0, 2)}` : whole; }
-function safeNumber(value: unknown) { const number = Number(value ?? 0); return Number.isFinite(number) ? number : 0; }
-function formatMoney(value: number) { return safeNumber(value).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-function formatAccountNumber(value: string) { return value.replace(/\s+/g, '').replace(/(.{3})(?=.)/g, '$1 '); }
-function bankLogo(bankName: string) { const normalized = bankName.toUpperCase(); const code = ['SCB', 'KBANK', 'KTB', 'BBL', 'BAY', 'TTB', 'UOBT', 'GSB', 'GHB'].find((item) => normalized.includes(item)) ?? 'SCB'; return `/images/banks/TH/${code}.webp`; }
-function fileToDataUrl(file: File) { return new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(new Error('file read failed')); reader.readAsDataURL(file); }); }
+function sanitizeAmount(value: string) {
+  const normalized = value.replace(/[^0-9.]/g, '');
+  const [whole = '', ...fraction] = normalized.split('.');
+  return fraction.length ? `${whole}.${fraction.join('').slice(0, 2)}` : whole;
+}
+
+function safeNumber(value: unknown) {
+  const number = Number(value ?? 0);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function formatMoney(value: number) {
+  return safeNumber(value).toLocaleString('th-TH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function formatAccountNumber(value: string) {
+  return value.replace(/\s+/g, '').replace(/(.{3})(?=.)/g, '$1 ');
+}
+
+function bankLogo(bankName: string) {
+  const normalized = bankName.toUpperCase();
+  const code = ['SCB', 'KBANK', 'KTB', 'BBL', 'BAY', 'TTB', 'UOBT', 'GSB', 'GHB']
+    .find((item) => normalized.includes(item)) ?? 'SCB';
+  return `/images/banks/TH/${code}.webp`;
+}
+
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('file read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function TitleFill() {
+  return (
+    <svg viewBox="0 0 192 36" fill="none" aria-hidden="true">
+      <path
+        d="M0 0H192L186.5 17.9997C186.5 17.9997 182.916 27.4412 176 31.8135C169.319 36.037 159.562 35.9994 159.562 35.9994H138.125H95.25H52.375H30.9375C30.9375 35.9994 21.5831 36.1436 15 31.8135C8.23851 27.366 4.75 17.9997 4.75 17.9997L0 0Z"
+        fill="url(#mobile-source-title-fill)"
+      />
+      <defs>
+        <linearGradient id="mobile-source-title-fill" x1="95.9977" y1="36" x2="95.9977" y2="0" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#505050" />
+          <stop offset="0.32" stopColor="#474747" />
+          <stop offset="0.79" stopColor="#313131" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function TitleStroke() {
+  return (
+    <svg viewBox="0 0 194 38" fill="none" aria-hidden="true">
+      <path
+        d="M3 1H1.69l.346 1.264 4.651 17 .013.049.018.047c.032.083.832 2.148 2.35 4.745 1.505 2.576 3.771 5.735 6.883 7.783 3.45 2.27 7.534 3.299 10.622 3.786 1.557.245 2.882.326 3.824.346.47.01.845.004 1.106-.004l.301-.012.08-.004.022-.001h.006H53.375 96.25 139.125h21.438.006l.022.001.08.004.301.012c.261.008.636.014 1.106.004.942-.02 2.267-.101 3.824-.346 3.088-.487 7.172-1.516 10.622-3.786 3.112-2.048 5.378-5.207 6.883-7.783 1.518-2.597 2.318-4.662 2.35-4.745l.018-.047.013-.049 4.651-17L192.31 1H191 3Z"
+        stroke="url(#mobile-source-title-stroke)"
+        strokeOpacity="0.2"
+        strokeWidth="2"
+      />
+      <defs>
+        <linearGradient id="mobile-source-title-stroke" x1="142.531" y1="48.75" x2="142.076" y2="6.722" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#f2f2f2" />
+          <stop offset="1" stopColor="#f2f2f2" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function BottomNavShape() {
+  return (
+    <svg className={styles.bottomNavShape} viewBox="0 0 640 60" preserveAspectRatio="none" aria-hidden="true">
+      <path
+        d="M0 6.68S197.5.383 320 .013C442.5-.356 640 6.68 640 6.68V60H0V6.68Z"
+        fill="url(#mobile-member-bottom-nav-fill)"
+      />
+      <defs>
+        <linearGradient id="mobile-member-bottom-nav-fill" x1="320" y1="0" x2="320" y2="60" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#bea7c5" />
+          <stop offset="0.049" stopColor="#504867" />
+          <stop offset="1" stopColor="#373147" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
