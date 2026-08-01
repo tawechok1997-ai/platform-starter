@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const menu = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const promotions = readFileSync(new URL('./mobile-member-promotions-page.tsx', import.meta.url), 'utf8');
+const promotionSource = readFileSync(new URL('./mobile-member-promotion-source.ts', import.meta.url), 'utf8');
 const news = readFileSync(new URL('./mobile-member-news-page.tsx', import.meta.url), 'utf8');
 const activity = readFileSync(new URL('./mobile-member-activity-page.tsx', import.meta.url), 'utf8');
 const promotionRoute = readFileSync(new URL('../../mobile/member/promotions/page.tsx', import.meta.url), 'utf8');
@@ -27,6 +28,16 @@ test('promotion page keeps the source category and card contract', () => {
   assert.match(promotions, /หมดเขต/);
   assert.match(promotions, /data-mobile-member-page="promotions"/);
   assert.match(promotionRoute, /\/public\/site-settings/);
+  assert.match(promotionRoute, /SOURCE_PROMOTION_PAYLOAD/);
+});
+
+test('promotion fallback preserves all source cards and order', () => {
+  assert.equal((promotionSource.match(/\n  campaign\(/g) ?? []).length, 18);
+  assert.match(promotionSource, /โปรโมชั่นฝากครั้งแรกของวันรับโบนัส 10%/);
+  assert.match(promotionSource, /Happy Sunday❤️/);
+  assert.match(promotionSource, /Happy Monday💛/);
+  assert.match(promotionSource, /คืนยอดเสีย ทุกสัปดาห์ 💜/);
+  assert.match(promotionSource, /ฝากซ้ำ ย้ำโบนัส รับทันที 100 บาท✨/);
 });
 
 test('news page matches the source empty state', () => {
