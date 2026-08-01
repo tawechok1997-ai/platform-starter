@@ -4,8 +4,22 @@ import Link from 'next/link';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
+import { useMemberLocale } from '../../member-locale-provider';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { useMemberSession } from '../../member-session-provider';
+import MemberHeaderFinanceRuntime from '../member-header-finance-runtime';
+import MemberMenuIncomeSafeRuntime from '../member-menu-income-safe-runtime';
+import MemberMenuSecondaryRuntime from '../member-menu-secondary-runtime';
+import MemberMenuSpecialBonusRuntime from '../member-menu-special-bonus-runtime';
+import MemberMenuVipRuntime from '../member-menu-vip-runtime';
+import '../../member-header-finance-runtime.css';
+import '../../member-header-finance-source-stage.css';
+import '../../member-menu-income-safe-runtime.css';
+import '../../member-menu-income-source-final.css';
+import '../../member-menu-secondary-runtime.css';
+import '../../member-menu-special-bonus-runtime.css';
+import '../../member-vip-modal.css';
+import '../../member-shared-popup-runtime.css';
 import styles from './mobile-authenticated-home-runtime.module.css';
 
 const AUTH_SELECTORS = [
@@ -16,6 +30,10 @@ const AUTH_SELECTORS = [
 const VIP_BADGE_SOURCE = 'https://cdn.zabbet.com/FEZX/grouptypes/bc954df4-70bb-460c-9ce8-c2cae326acbe.png';
 const MEMBER_AVATAR = '/images/avatar/7.webp';
 const WALLET_ICON = '/images/wallet.webp';
+const DEPOSIT_ICON = '/images/ฝาก.png';
+const WITHDRAW_ICON = '/images/ถอน.png';
+const NETWORK_ICON = '/assets/asset-pc/images/เเนะนำเพื่อน.png';
+const COMMISSION_ICON = '/assets/asset-pc/images/รายได่คอมมิชชั่น.png';
 
 type PortalTargets = {
   header: HTMLElement;
@@ -24,11 +42,14 @@ type PortalTargets = {
 };
 
 export default function MobileAuthenticatedHomeRuntime() {
+  const { locale } = useMemberLocale();
   const { profile, summary } = useMemberRuntime();
   const { logout } = useMemberSession();
   const [targets, setTargets] = useState<PortalTargets | null>(null);
   const vipBadge = useMemo(
-    () => resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'mobile') || resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'pc'),
+    () => resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'mobile')
+      || resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'pc')
+      || VIP_BADGE_SOURCE,
     [],
   );
 
@@ -67,47 +88,60 @@ export default function MobileAuthenticatedHomeRuntime() {
 
     if (!authenticated || !header) {
       setTargets(null);
-      return () => {
-        authElements.forEach((element) => {
-          element.hidden = false;
-          element.removeAttribute('aria-hidden');
-        });
-        if (languageButton) {
-          languageButton.hidden = false;
-          languageButton.removeAttribute('aria-hidden');
-        }
-      };
+      return () => restoreGuestElements(authElements, languageButton);
     }
 
     const drawer = root.querySelector<HTMLElement>('#mobile-home-drawer');
-    const firstMenu = drawer?.querySelector<HTMLElement>('nav') ?? null;
-    if (!drawer || !firstMenu) {
+    const menuNavs = drawer ? Array.from(drawer.querySelectorAll<HTMLElement>('nav')) : [];
+    const primaryMenu = menuNavs[0] ?? null;
+    const secondaryMenu = menuNavs[1] ?? null;
+    if (!drawer || !primaryMenu || !secondaryMenu) {
       setTargets(null);
       return;
     }
 
+    primaryMenu.classList.add('public-member-menu-grid');
+    secondaryMenu.classList.add('public-member-menu-grid', 'public-member-menu-grid--secondary');
+
+    const secondaryLinks = Array.from(secondaryMenu.querySelectorAll<HTMLAnchorElement>('a'));
+    const activityLink = secondaryLinks[2] ?? null;
+    const originalActivityHref = activityLink?.getAttribute('href') ?? null;
+    activityLink?.setAttribute('href', '/browse/promotions?view=activity');
+
+    const languageTrigger = secondaryMenu.querySelector<HTMLButtonElement>('button');
+    languageTrigger?.setAttribute('data-member-language-trigger', 'true');
+
+    const closeButton = drawer.querySelector<HTMLButtonElement>('button[aria-label="ปิดเมนู"]');
+    const closeBeforeAction = (event: PointerEvent) => {
+      if (!(event.target instanceof Element)) return;
+      const action = event.target.closest<HTMLElement>('a, button[data-member-language-trigger]');
+      if (!action || !drawer.contains(action)) return;
+      closeButton?.click();
+    };
+    drawer.addEventListener('pointerdown', closeBeforeAction, true);
+
     const drawerProfile = document.createElement('div');
     drawerProfile.dataset.mobileAuthenticatedDrawerProfileTarget = 'true';
-    drawer.insertBefore(drawerProfile, firstMenu);
+    drawer.insertBefore(drawerProfile, primaryMenu);
 
     const drawerLogout = document.createElement('div');
     drawerLogout.dataset.mobileAuthenticatedDrawerLogoutTarget = 'true';
     drawer.append(drawerLogout);
 
-    const closeButton = drawer.querySelector<HTMLElement>('button[aria-label="ปิดเมนู"]');
     const drawerTop = closeButton?.parentElement ?? null;
     if (drawerTop) drawerTop.dataset.mobileAuthenticatedDrawerTop = 'true';
 
     setTargets({ header, drawerProfile, drawerLogout });
 
     return () => {
-      authElements.forEach((element) => {
-        element.hidden = false;
-        element.removeAttribute('aria-hidden');
-      });
-      if (languageButton) {
-        languageButton.hidden = false;
-        languageButton.removeAttribute('aria-hidden');
+      restoreGuestElements(authElements, languageButton);
+      drawer.removeEventListener('pointerdown', closeBeforeAction, true);
+      primaryMenu.classList.remove('public-member-menu-grid');
+      secondaryMenu.classList.remove('public-member-menu-grid', 'public-member-menu-grid--secondary');
+      languageTrigger?.removeAttribute('data-member-language-trigger');
+      if (activityLink) {
+        if (originalActivityHref === null) activityLink.removeAttribute('href');
+        else activityLink.setAttribute('href', originalActivityHref);
       }
       if (drawerTop) delete drawerTop.dataset.mobileAuthenticatedDrawerTop;
       drawerProfile.remove();
@@ -119,12 +153,22 @@ export default function MobileAuthenticatedHomeRuntime() {
 
   return (
     <>
+      <MemberHeaderFinanceRuntime locale={locale} />
+      <MemberMenuIncomeSafeRuntime locale={locale} />
+      <MemberMenuSpecialBonusRuntime locale={locale} />
+      <MemberMenuSecondaryRuntime locale={locale} />
+      <MemberMenuVipRuntime locale={locale} />
+
       {createPortal(
         <>
           <Link href="/search" className={styles.headerSearch} aria-label="ค้นหาเกม">
             <SearchIcon />
           </Link>
-          <Link href="/deposit" className={styles.headerWallet} aria-label={`ยอดเงิน ${walletAmount}`}>
+          <Link
+            href="/deposit"
+            className={`${styles.headerWallet} public-member-wallet-action`}
+            aria-label={`ยอดเงิน ${walletAmount}`}
+          >
             <img src={WALLET_ICON} alt="" aria-hidden="true" />
             <span>{walletAmount}</span>
           </Link>
@@ -138,7 +182,7 @@ export default function MobileAuthenticatedHomeRuntime() {
             <img className={styles.avatar} src={MEMBER_AVATAR} alt="รูปโปรไฟล์สมาชิก" />
             <div className={styles.profileDetails}>
               <div className={styles.vipBadge}>
-                {vipBadge ? <img src={vipBadge} alt="" aria-hidden="true" /> : null}
+                <img src={vipBadge} alt="" aria-hidden="true" />
                 <span>{summary.vipLevel || 'New'}</span>
               </div>
               <div className={styles.memberNameRow}>
@@ -155,13 +199,17 @@ export default function MobileAuthenticatedHomeRuntime() {
           </div>
 
           <div className={styles.moneyActions}>
-            <Link href="/deposit"><span>ฝากเงิน</span><i aria-hidden="true">＋</i></Link>
-            <Link href="/withdraw"><span>ถอนเงิน</span><i aria-hidden="true">−</i></Link>
+            <Link href="/deposit" className="public-member-wallet-action">
+              <span>ฝากเงิน</span><i aria-hidden="true"><img src={DEPOSIT_ICON} alt="" /></i>
+            </Link>
+            <Link href="/withdraw" className="public-member-wallet-action">
+              <span>ถอนเงิน</span><i aria-hidden="true"><img src={WITHDRAW_ICON} alt="" /></i>
+            </Link>
           </div>
 
-          <div className={styles.incomePanel}>
+          <div className={`${styles.incomePanel} public-member-income-row`}>
             <Link href="/affiliate" className={styles.incomeItem}>
-              <span className={styles.incomeIcon} aria-hidden="true">N</span>
+              <span className={styles.incomeIcon} aria-hidden="true"><img src={NETWORK_ICON} alt="" /></span>
               <span className={styles.incomeCopy}>
                 <span>รายได้จากเครือข่าย</span>
                 <strong>0.00</strong>
@@ -169,7 +217,7 @@ export default function MobileAuthenticatedHomeRuntime() {
               <span className={styles.incomeArrow} aria-hidden="true">›</span>
             </Link>
             <Link href="/affiliate" className={styles.incomeItem}>
-              <span className={styles.incomeIcon} aria-hidden="true">%</span>
+              <span className={styles.incomeIcon} aria-hidden="true"><img src={COMMISSION_ICON} alt="" /></span>
               <span className={styles.incomeCopy}>
                 <span>รายได้จากคอมมิชชั่น</span>
                 <strong>0.00</strong>
@@ -178,9 +226,12 @@ export default function MobileAuthenticatedHomeRuntime() {
             </Link>
           </div>
 
-          <Link href="/affiliate" className={styles.referralRow}>
-            <strong>ลิงก์แนะนำเพื่อน</strong>
-            <span>/affiliate</span>
+          <Link href="/affiliate" className={`${styles.referralRow} public-member-referral-row`}>
+            <img src={NETWORK_ICON} alt="" aria-hidden="true" />
+            <span>
+              <strong>ลิงก์แนะนำเพื่อน</strong>
+              <small>/affiliate</small>
+            </span>
             <CopyIcon />
           </Link>
         </div>,
@@ -196,6 +247,17 @@ export default function MobileAuthenticatedHomeRuntime() {
       )}
     </>
   );
+}
+
+function restoreGuestElements(authElements: HTMLElement[], languageButton: HTMLElement | null) {
+  authElements.forEach((element) => {
+    element.hidden = false;
+    element.removeAttribute('aria-hidden');
+  });
+  if (languageButton) {
+    languageButton.hidden = false;
+    languageButton.removeAttribute('aria-hidden');
+  }
 }
 
 function SearchIcon() {
