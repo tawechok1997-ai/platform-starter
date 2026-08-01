@@ -13,7 +13,10 @@ type ApiOptions = Omit<RequestInit, 'signal'> & {
 type MemberSessionPayload = {
   accessToken?: unknown;
   refreshToken?: unknown;
+  expiresAt?: unknown;
 };
+
+type UnknownRecord = Record<string, unknown>;
 
 let refreshRequest: Promise<string> | null = null;
 let sessionExpiryRedirected = false;
@@ -84,6 +87,62 @@ function announceSessionChanged() {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(MEMBER_SESSION_CHANGED_EVENT));
 }
 
+function asRecord(value: unknown): UnknownRecord | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as UnknownRecord : null;
+}
+
+function normalizeMemberSessionPayload(payload: unknown): MemberSessionPayload | null {
+  const root = asRecord(payload);
+  if (!root) return null;
+
+  const candidates = [
+    root,
+    asRecord(root.data),
+    asRecord(root.session),
+    asRecord(root.tokens),
+    asRecord(asRecord(root.data)?.session),
+    asRecord(asRecord(root.data)?.tokens),
+  ].filter((candidate): candidate is UnknownRecord => Boolean(candidate));
+
+  for (const candidate of candidates) {
+    const accessToken = typeof candidate.accessToken === 'string' ? candidate.accessToken.trim() : '';
+    const refreshToken = typeof candidate.refreshToken === 'string' ? candidate.refreshToken.trim() : '';
+    if (!accessToken || !refreshToken) continue;
+    return {
+      accessToken,
+      refreshToken,
+      expiresAt: candidate.expiresAt,
+    };
+  }
+
+  return null;
+}
+
+function isSessionCreatingPath(path: string) {
+  return path === '/member/auth/login' || path === '/member/auth/register';
+}
+
+async function normalizeSessionResponse(path: string, response: Response) {
+  if (!response.ok || !isSessionCreatingPath(path)) return response;
+
+  const payload = await response.clone().json().catch(() => null);
+  const session = normalizeMemberSessionPayload(payload);
+  if (!session || !persistMemberSession(session)) {
+    return new Response(JSON.stringify({ message: 'ระบบไม่สามารถบันทึกเซสชันสมาชิกได้ กรุณาลองอีกครั้ง' }), {
+      status: 502,
+      statusText: 'Invalid member session response',
+      headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+    });
+  }
+
+  const root = asRecord(payload) ?? {};
+  return new Response(JSON.stringify({ ...root, ...session }), {
+    status: response.status,
+    statusText: response.statusText,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+  });
+}
+
 export function persistMemberSession(payload: MemberSessionPayload | null | undefined) {
   const accessToken = typeof payload?.accessToken === 'string' ? payload.accessToken.trim() : '';
   const refreshToken = typeof payload?.refreshToken === 'string' ? payload.refreshToken.trim() : '';
@@ -123,7 +182,7 @@ export async function memberApiFetch(path: string, options: ApiOptions = {}) {
   };
 
   const res = await fetch(joinApiUrl(API_URL, path), fetchOptions);
-  if (res.status !== 401 || skipAuth) return res;
+  if (res.status !== 401 || skipAuth) return normalizeSessionResponse(path, res);
 
   const refreshed = await refreshMemberToken();
   if (!refreshed) {
@@ -173,14 +232,14 @@ async function performMemberTokenRefresh() {
     body: JSON.stringify({ refreshToken, deviceId: 'web-member' }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok || typeof data?.accessToken !== 'string' || !data.accessToken.trim()) return '';
-  if (!writeStorage('member_access_token', data.accessToken.trim())) return '';
-  if (typeof data.refreshToken === 'string' && data.refreshToken.trim()) {
-    if (!writeStorage('member_refresh_token', data.refreshToken.trim())) return '';
-  }
-  sessionExpiryRedirected = false;
-  announceSessionChanged();
-  return data.accessToken.trim() as string;
+  const session = normalizeMemberSessionPayload(data);
+  if (!res.ok || !session?.accessToken) return '';
+  if (!persistMemberSession({
+    accessToken: session.accessToken,
+    refreshToken: session.refreshToken || refreshToken,
+    expiresAt: session.expiresAt,
+  })) return '';
+  return session.accessToken;
 }
 
 export function hasMemberSessionTokens() {
