@@ -6,7 +6,8 @@ const memberHome = readFileSync(new URL('../../member-home.tsx', import.meta.url
 const runtime = readFileSync(new URL('./mobile-authenticated-home-runtime.tsx', import.meta.url), 'utf8');
 const runtimeCss = readFileSync(new URL('./mobile-authenticated-home-runtime.module.css', import.meta.url), 'utf8');
 const popupRuntime = readFileSync(new URL('./mobile-member-popup-runtime.tsx', import.meta.url), 'utf8');
-const commissionBridge = readFileSync(new URL('./mobile-commission-popup-bridge.tsx', import.meta.url), 'utf8');
+const commissionPage = readFileSync(new URL('./mobile-member-commission-page.tsx', import.meta.url), 'utf8');
+const commissionPageCss = readFileSync(new URL('./mobile-member-commission-page.module.css', import.meta.url), 'utf8');
 const mobileHomeRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
 const avatarPage = readFileSync(new URL('../../profile/avatar/page.tsx', import.meta.url), 'utf8');
 const avatarCss = readFileSync(new URL('../../profile/avatar/avatar-page.module.css', import.meta.url), 'utf8');
@@ -40,15 +41,13 @@ test('mobile authenticated shell owns one mobile popup runtime and no desktop po
   assert.match(popupRuntime, /function SourcePopupShell/);
 });
 
-test('commission actions reuse the one popup owner and source geometry', () => {
-  assert.equal((runtime.match(/<MobileCommissionPopupBridge\s*\/>/g) ?? []).length, 1);
-  assert.match(commissionBridge, /data\.mobileMemberPopup = COMMISSION_POPUP_KIND/);
-  assert.match(commissionBridge, /commission-income/);
-  assert.match(commissionBridge, /data-mobile-popup-owner='commission-income'/);
-  assert.match(commissionBridge, /width:\s*min\(480px, 100%\)/);
-  assert.match(commissionBridge, /min-height:\s*75px/);
-  assert.match(commissionBridge, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
-  assert.doesNotMatch(commissionBridge, /createPortal|role="dialog"|MutationObserver/);
+test('commission drawer action navigates to the page owner and keeps withdrawal popup reusable', () => {
+  assert.match(runtime, /href="\/mobile\/member\/commission"/);
+  assert.doesNotMatch(runtime, /MobileCommissionPopupBridge/);
+  assert.doesNotMatch(runtime, /href="\/mobile\/member\/commission"[^>]*data-mobile-member-popup/);
+  assert.match(commissionPage, /data-mobile-commission-income-page="true"/);
+  assert.match(commissionPage, /openMobileMemberPopup\('commission-income'\)/);
+  assert.match(commissionPageCss, /width:\s*min\(100%, 428px\)/);
   assert.match(popupRuntime, /popup === 'commission-income'/);
   assert.match(popupRuntime, /<IncomeTransferContent/);
 });
@@ -87,7 +86,7 @@ test('authenticated drawer routes popup actions through the one mobile owner', (
   assert.equal((runtime.match(/data-mobile-member-popup="deposit"/g) ?? []).length >= 2, true);
   assert.match(runtime, /data-mobile-member-popup="withdraw"/);
   assert.match(runtime, /data-mobile-member-popup="network-income"/);
-  assert.match(runtime, /data-mobile-member-popup="commission-income"/);
+  assert.match(runtime, /href="\/mobile\/member\/commission"/);
   assert.match(runtime, /data-mobile-member-popup', 'language'/);
   assert.match(runtime, /onClick=\{logout\}/);
   assert.match(runtime, /resolveLocalAssetByBasename\(VIP_BADGE_SOURCE/);
