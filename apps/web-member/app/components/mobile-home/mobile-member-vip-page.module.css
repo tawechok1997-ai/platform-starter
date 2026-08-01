@@ -157,18 +157,31 @@
   width: 82vw;
   max-width: 350px;
   height: 220px;
+  padding: 0;
   flex: 0 0 min(82vw, 350px);
   overflow: hidden;
+  border: 0;
   border-radius: 7px;
+  color: #fff;
+  background: transparent;
+  font: inherit;
+  text-align: initial;
   scroll-snap-align: center;
   cursor: grab;
   opacity: .72;
+  appearance: none;
   transition: opacity 180ms ease, transform 180ms ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tierCardSelected {
   opacity: 1;
   transform: translateY(-1px);
+}
+
+.tierCard:focus-visible {
+  outline: 2px solid #c13cdd;
+  outline-offset: 2px;
 }
 
 .tierEmblemWrap {
