@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "audit:reference-assets": "node tools/audit-reference-assets.mjs",
     "verify": "pnpm audit:reference-assets && pnpm audit:source-cdn-assets && pnpm test && pnpm typecheck && pnpm build",
-    "start": "node tools/start-production.mjs"
+    "start": "next start -p 3000"
   },
   "dependencies": {
     "next": "15.5.21",
