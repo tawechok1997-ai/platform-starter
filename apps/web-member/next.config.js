@@ -70,7 +70,7 @@ const canonicalPageRedirects = [
   { source: '/mobile-menu/guide', destination: '/guide', permanent: false },
 ];
 
-const runtimeGlobalSelectorModules = /[\\/]mobile-(?:authenticated-home|category-tab)-runtime\.module\.css$/;
+const runtimeGlobalSelectorModules = /[\\/]mobile-(?:authenticated-home|category-tab|member-popup)-runtime\.module\.css$/;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
