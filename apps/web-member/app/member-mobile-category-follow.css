@@ -17,6 +17,7 @@
   html[data-member-viewport-mode='mobile'] .public-game-shell__content,
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'],
   html[data-member-viewport-mode='mobile'] [data-mobile-home-root='true'] *:has(> [data-mobile-section-owner='category-menu']) {
+    overflow-x: clip !important;
     overflow-y: visible !important;
     contain: none !important;
   }
