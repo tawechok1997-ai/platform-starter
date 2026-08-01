@@ -9,7 +9,7 @@ const guidePage = readFileSync(new URL('./mobile-member-guide-page.tsx', import.
 
 test('language selector is shared by guests and authenticated members', () => {
   assert.match(avatarRuntime, /<MobileGlobalMemberActionsRuntime \/>/);
-  assert.match(globalActions, /aria-label="เปลี่ยนภาษา"/);
+  assert.match(globalActions, /label === 'เปลี่ยนภาษา'/);
   assert.match(globalActions, /data\.mobileMemberPopup/);
   assert.match(globalActions, /setLocale\(code as MemberLocale\)/);
   assert.match(globalActions, /English/);
