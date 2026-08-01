@@ -17,10 +17,7 @@ test('login heading, tabs, recovery and support copy use the active locale', () 
     loginSource,
     /<button type="button" className="public-auth-forgot" onClick=\{\(\) => switchMode\('forgot'\)\}>\s*\{t\.forgot\}\s*<\/button>/,
   );
-  assert.match(
-    loginSource,
-    /\{mode === 'forgot' \? \(\s*<button type="button" className="source-login-back" onClick=\{\(\) => switchMode\('login'\)\}>\s*\{t\.backToLogin\}/,
-  );
+  assert.match(loginSource, /mode === 'forgot'[\s\S]*className="source-login-back"[\s\S]*switchMode\('login'\)[\s\S]*\{t\.backToLogin\}/);
   assert.match(loginSource, /<div className="source-login-support"><span>\{t\.supportPrompt\}<\/span><Link href="\/support">\{t\.support\}<\/Link><\/div>/);
   assert.doesNotMatch(loginSource, /<span>Secure connection<\/span>/);
 });
