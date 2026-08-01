@@ -4,14 +4,13 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMemberRuntime } from '../member-runtime-provider';
 
+const MEMBER_AUTH_OPEN_EVENT = 'member:auth-open';
 const NAVIGATION_SELECTOR = [
   '.member-desktop-nav a[href]',
   '.member-mobile-runtime-navigation a[href]',
   '.member-bottom-nav a[href]',
   '#mobile-home-drawer a[href]',
 ].join(',');
-
-const ACTION_SELECTOR = 'a[href], button';
 
 const CANONICAL_LABEL_TARGETS: Readonly<Record<string, string>> = {
   'ระดับสมาชิก vip': '/mobile-menu/vip',
@@ -57,6 +56,12 @@ const CANONICAL_LABEL_TARGETS: Readonly<Record<string, string>> = {
 };
 
 const CANONICAL_HREF_TARGETS: Readonly<Record<string, string>> = {
+  '/login': '/?auth=login',
+  '/login?embed=1': '/?auth=login',
+  '/register': '/?auth=register',
+  '/register?embed=1': '/?auth=register',
+  '/?auth=login': '/?auth=login',
+  '/?auth=register': '/?auth=register',
   '/promotions': '/browse/promotions?view=promotion',
   '/mobile-menu/promotions': '/browse/promotions?view=promotion',
   '/mobile-menu/activities': '/browse/promotions?view=activity',
@@ -81,31 +86,36 @@ export default function MemberNavigationAuthController() {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (!(event.target instanceof Element)) return;
 
-      const action = event.target.closest<HTMLElement>(ACTION_SELECTOR);
-      if (action) {
-        // Mobile categories are owned by MobileCategoryTabRuntime and must switch
-        // the content slot in place without changing routes or reloading the page.
-        if (action.closest('[data-mobile-category-id]')) return;
-
-        const canonicalTarget = canonicalTargetFor(action);
-        if (canonicalTarget && normalizeCurrentLocation() !== normalize(canonicalTarget)) {
+      const anchor = event.target.closest<HTMLAnchorElement>('a[href]');
+      if (anchor) {
+        const canonicalTarget = canonicalTargetFor(anchor);
+        const authMode = authModeForTarget(canonicalTarget);
+        if (authMode) {
           event.preventDefault();
           event.stopPropagation();
-          router.replace(canonicalTarget, { scroll: false });
+          openAuthOverlay(authMode);
           return;
         }
       }
 
-      if (summary.isLoggedIn || !protectedTargets.size) return;
+      const navigationLink = event.target.closest<HTMLAnchorElement>(NAVIGATION_SELECTOR);
+      if (!navigationLink) return;
 
-      const link = event.target.closest<HTMLAnchorElement>(NAVIGATION_SELECTOR);
-      if (!link) return;
-      const intended = protectedTargets.get(normalize(link.getAttribute('href') ?? ''));
+      const canonicalTarget = canonicalTargetFor(navigationLink);
+      if (canonicalTarget && normalizeCurrentLocation() !== normalize(canonicalTarget)) {
+        event.preventDefault();
+        event.stopPropagation();
+        router.replace(canonicalTarget, { scroll: false });
+        return;
+      }
+
+      if (summary.isLoggedIn || !protectedTargets.size) return;
+      const intended = protectedTargets.get(normalize(navigationLink.getAttribute('href') ?? ''));
       if (!intended) return;
 
       event.preventDefault();
       event.stopPropagation();
-      router.replace(`/?auth=login&next=${encodeURIComponent(intended)}`, { scroll: false });
+      openAuthOverlay('login', intended);
     };
 
     document.addEventListener('click', guard, true);
@@ -115,10 +125,21 @@ export default function MemberNavigationAuthController() {
   return null;
 }
 
-function canonicalTargetFor(action: HTMLElement) {
-  const href = action instanceof HTMLAnchorElement
-    ? normalize(action.getAttribute('href') ?? '')
-    : '';
+function openAuthOverlay(mode: 'login' | 'register', next?: string) {
+  window.dispatchEvent(new CustomEvent(MEMBER_AUTH_OPEN_EVENT, {
+    detail: { mode, ...(next ? { next } : {}) },
+  }));
+}
+
+function authModeForTarget(target: string) {
+  const normalized = normalize(target);
+  if (normalized === '/?auth=login') return 'login' as const;
+  if (normalized === '/?auth=register') return 'register' as const;
+  return null;
+}
+
+function canonicalTargetFor(action: HTMLAnchorElement) {
+  const href = normalize(action.getAttribute('href') ?? '');
   const hrefTarget = CANONICAL_HREF_TARGETS[href];
   if (hrefTarget) return hrefTarget;
 
