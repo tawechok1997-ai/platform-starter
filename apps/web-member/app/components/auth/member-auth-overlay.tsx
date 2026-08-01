@@ -12,7 +12,7 @@ type MemberAuthOverlayProps = {
   onSuccess: () => void | Promise<void>;
 };
 
-const EXIT_DURATION_MS = 220;
+const EXIT_DURATION_MS = 180;
 
 export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSuccess }: MemberAuthOverlayProps) {
   const [activeMode, setActiveMode] = useState<MemberAuthMode>(mode);
@@ -96,31 +96,24 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   useEffect(() => {
     const body = document.body;
     const html = document.documentElement;
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
     const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
     const computedBodyPaddingRight = Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;
 
     const previousBodyStyles = {
       overflow: body.style.overflow,
-      position: body.style.position,
-      top: body.style.top,
-      left: body.style.left,
-      width: body.style.width,
+      overscrollBehavior: body.style.overscrollBehavior,
       paddingRight: body.style.paddingRight,
     };
     const previousHtmlStyles = {
       overflow: html.style.overflow,
-      scrollBehavior: html.style.scrollBehavior,
+      overscrollBehavior: html.style.overscrollBehavior,
     };
 
     body.style.overflow = 'hidden';
-    body.style.position = 'fixed';
-    body.style.top = `-${scrollY}px`;
-    body.style.left = `-${scrollX}px`;
-    body.style.width = '100%';
+    body.style.overscrollBehavior = 'none';
     if (scrollbarWidth > 0) body.style.paddingRight = `${computedBodyPaddingRight + scrollbarWidth}px`;
     html.style.overflow = 'hidden';
+    html.style.overscrollBehavior = 'none';
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') requestClose();
@@ -145,18 +138,10 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       window.removeEventListener('message', handleMessage);
 
       body.style.overflow = previousBodyStyles.overflow;
-      body.style.position = previousBodyStyles.position;
-      body.style.top = previousBodyStyles.top;
-      body.style.left = previousBodyStyles.left;
-      body.style.width = previousBodyStyles.width;
+      body.style.overscrollBehavior = previousBodyStyles.overscrollBehavior;
       body.style.paddingRight = previousBodyStyles.paddingRight;
       html.style.overflow = previousHtmlStyles.overflow;
-      html.style.scrollBehavior = 'auto';
-      window.scrollTo(scrollX, scrollY);
-
-      window.requestAnimationFrame(() => {
-        html.style.scrollBehavior = previousHtmlStyles.scrollBehavior;
-      });
+      html.style.overscrollBehavior = previousHtmlStyles.overscrollBehavior;
     };
   }, [clearExitTimer, completeAuth, requestClose, switchMode]);
 
