@@ -18,10 +18,17 @@ const GUEST_LOGIN_REQUIRED_LABELS = new Set([
   'แนะนำเพื่อน',
   'คูปอง',
   'โบนัสพิเศษ',
+  'ประวัติ',
+  'ประวัติรายการ',
+  'แจ้งเตือน',
   'commission',
   'refer a friend',
   'coupons',
   'special bonuses',
+  'history',
+  'transactions',
+  'notification',
+  'notifications',
 ]);
 
 const CANONICAL_LABEL_TARGETS: Readonly<Record<string, string>> = {
