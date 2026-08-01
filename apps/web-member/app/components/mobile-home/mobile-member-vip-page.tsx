@@ -22,7 +22,7 @@ type Tier = {
   source: string;
 };
 
-const TIERS: readonly Tier[] = [
+const TIERS = [
   {
     key: 'bronze',
     label: 'Bronze',
@@ -35,7 +35,7 @@ const TIERS: readonly Tier[] = [
     target: 50_000,
     source: 'https://cdn.zabbet.com/FEZX/grouptypes/78fd025e-0742-410c-ad98-c38f5acdeff1.png',
   },
-] as const;
+] as const satisfies readonly [Tier, Tier];
 
 const BENEFITS = [
   { label: 'ฝ่ายบริการลูกค้าพิเศษ รายบุคคล', icon: '/assets/asset-pc/images/เเนะนำการใช้งาน.png' },
