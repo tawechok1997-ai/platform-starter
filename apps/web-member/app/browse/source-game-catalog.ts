@@ -1,3 +1,4 @@
+import { resolveLocalAssetOrSource } from '../lib/local-asset-by-basename';
 import { memberApiFetch } from '../member-api';
 import type {
   SourceGameFilterKey,
@@ -77,13 +78,14 @@ export async function loadSourceCategoryCatalog(
   const outcomes = await Promise.all(categories.map((category) => loadCatalogCategory(category, signal)));
   const rawItems = outcomes.flatMap((outcome) => outcome.items);
   const uniqueItems = Array.from(new Map(rawItems.map((item) => [catalogIdentity(item), item] as const)).values());
+  const localizedProviders = configuredProviders.map(localizeProvider);
   const games = uniqueItems
-    .map((item) => mapCatalogGame(item, configuredProviders))
+    .map((item) => mapCatalogGame(item, localizedProviders))
     .filter((item): item is SourceGameItem => Boolean(item));
 
   return {
     games,
-    providers: buildCatalogProviders(uniqueItems, games, configuredProviders),
+    providers: buildCatalogProviders(uniqueItems, games, localizedProviders),
     total: games.length,
     incomplete: outcomes.some((outcome) => outcome.incomplete),
   };
@@ -166,19 +168,25 @@ export function mapCatalogGame(
   const configuredProvider = configuredProviders.find(
     (provider) => normalizeProviderCode(provider.code) === providerCode,
   );
-  const image = firstText(
+  const readyMedia = item.media?.find((media) => media.status === 'READY');
+  const firstMedia = item.media?.[0];
+  const image = resolveAsset(
+    readyMedia?.cachedUrl,
     item.imageUrl,
+    readyMedia?.sourceUrl,
     item.iconUrl,
-    item.media?.find((media) => media.status === 'READY')?.cachedUrl,
-    item.media?.find((media) => media.status === 'READY')?.sourceUrl,
-    item.media?.[0]?.cachedUrl,
-    item.media?.[0]?.sourceUrl,
+    firstMedia?.cachedUrl,
+    firstMedia?.sourceUrl,
     configuredProvider?.card,
   );
   if (!image) return null;
 
   const tags = catalogTags(item);
-  const providerBadge = firstText(item.provider?.logoUrl, configuredProvider?.badge);
+  const providerBadge = resolveAsset(
+    item.provider?.logoUrl,
+    configuredProvider?.badge,
+    providerCode ? providerAssetSource('badge', providerCode) : undefined,
+  );
   return {
     id,
     name,
@@ -230,7 +238,7 @@ function buildCatalogProviders(
   configuredProviders: readonly SourceGameProvider[],
 ) {
   const configured = new Map(
-    configuredProviders.map((provider) => [normalizeProviderCode(provider.code), provider] as const),
+    configuredProviders.map((provider) => [normalizeProviderCode(provider.code), localizeProvider(provider)] as const),
   );
   const firstGameByProvider = new Map<string, SourceGameItem>();
   games.forEach((game) => {
@@ -243,26 +251,52 @@ function buildCatalogProviders(
     if (!code || providers.has(code)) continue;
     const configuredProvider = configured.get(code);
     if (configuredProvider) {
-      providers.set(code, configuredProvider);
+      providers.set(code, {
+        ...configuredProvider,
+        name: firstText(item.provider?.name, configuredProvider.name, code.toUpperCase()),
+        badge: resolveAsset(item.provider?.logoUrl, configuredProvider.badge),
+      });
       continue;
     }
+
     const firstGame = firstGameByProvider.get(code);
-    const badge = firstText(item.provider?.logoUrl, firstGame?.providerBadge, providerAsset('badge', code));
+    const badge = resolveAsset(
+      item.provider?.logoUrl,
+      firstGame?.providerBadge,
+      providerAssetSource('badge', code),
+    );
     providers.set(code, {
       code,
       name: firstText(item.provider?.name, code.toUpperCase()),
       badge,
-      card: firstGame?.image ?? badge,
-      background: providerAsset('bg', code),
-      title: providerAsset('title', code),
-      avatar: providerAsset('avatar', code),
+      card: resolveAsset(providerAssetSource('card', code), firstGame?.image, badge),
+      background: resolveAsset(providerAssetSource('bg', code)),
+      title: resolveAsset(providerAssetSource('title', code)),
+      avatar: resolveAsset(providerAssetSource('avatar', code)),
     });
   }
   return Array.from(providers.values());
 }
 
-function providerAsset(kind: 'badge' | 'bg' | 'title' | 'avatar', code: string) {
-  return `https://cdn.zabbet.com/providers/set/1_1_${kind}/${code}.png`;
+function localizeProvider(provider: SourceGameProvider): SourceGameProvider {
+  return {
+    ...provider,
+    badge: resolveAsset(provider.badge),
+    card: resolveAsset(provider.card),
+    background: resolveAsset(provider.background),
+    title: resolveAsset(provider.title),
+    avatar: resolveAsset(provider.avatar),
+  };
+}
+
+function resolveAsset(...values: Array<string | null | undefined>) {
+  const source = firstText(...values);
+  return source ? resolveLocalAssetOrSource(source, 'pc') : '';
+}
+
+function providerAssetSource(kind: 'badge' | 'card' | 'bg' | 'title' | 'avatar', code: string) {
+  const set = kind === 'card' ? '1_1_v' : `1_1_${kind}`;
+  return `https://cdn.zabbet.com/providers/set/${set}/${code}.png`;
 }
 
 function normalizeCategory(value?: string | null) {
