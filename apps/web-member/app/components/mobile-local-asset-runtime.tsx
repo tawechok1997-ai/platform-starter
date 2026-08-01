@@ -22,6 +22,7 @@ export default function MobileLocalAssetRuntime() {
 
       const currentSource = image.currentSrc || image.getAttribute('src') || '';
       if (!isRemoteMedia(currentSource)) return;
+      if (image.dataset.mobileLocalFailedSource === currentSource) return;
 
       const localSource = resolveLocalAssetByBasename(currentSource, 'mobile')
         || resolveLocalAssetByBasename(currentSource, 'pc');
@@ -45,6 +46,7 @@ export default function MobileLocalAssetRuntime() {
         if (!originalSource || !attemptedLocalSource) return;
         if (image.getAttribute('src') !== attemptedLocalSource) return;
 
+        image.dataset.mobileLocalFailedSource = originalSource;
         delete image.dataset.mobileLocalSource;
         image.src = originalSource;
         const sourceSet = image.dataset.mobileOriginalSourceSet;
@@ -56,6 +58,7 @@ export default function MobileLocalAssetRuntime() {
       if (!video.closest(MOBILE_MEDIA_SCOPE)) return;
       const poster = video.getAttribute('poster') || '';
       if (!isRemoteMedia(poster)) return;
+      if (video.dataset.mobileLocalFailedPoster === poster) return;
 
       const localPoster = resolveLocalAssetByBasename(poster, 'mobile')
         || resolveLocalAssetByBasename(poster, 'pc');
@@ -65,7 +68,9 @@ export default function MobileLocalAssetRuntime() {
       video.poster = localPoster;
       video.addEventListener('error', () => {
         const originalPoster = video.dataset.mobileOriginalPoster;
-        if (originalPoster && video.getAttribute('poster') === localPoster) video.poster = originalPoster;
+        if (!originalPoster || video.getAttribute('poster') !== localPoster) return;
+        video.dataset.mobileLocalFailedPoster = originalPoster;
+        video.poster = originalPoster;
       }, { once: true });
     };
 
