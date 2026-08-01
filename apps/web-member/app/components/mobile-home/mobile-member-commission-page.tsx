@@ -129,7 +129,6 @@ export default function MobileMemberCommissionPage({
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="ค้นหาประเภทหรือสถานะ"
-                autoFocus
               />
             </label>
           ) : null}
