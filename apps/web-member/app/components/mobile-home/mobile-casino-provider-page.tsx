@@ -1,3 +1,5 @@
+'use client';
+
 import MobileProviderLauncherPage, {
   type MobileProviderLauncherCard,
 } from './mobile-provider-launcher-page';
