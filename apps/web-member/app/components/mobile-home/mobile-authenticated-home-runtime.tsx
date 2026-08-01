@@ -11,7 +11,6 @@ import {
 } from '../../lib/mobile-avatar-preference';
 import { useMemberRuntime } from '../../member-runtime-provider';
 import { useMemberSession } from '../../member-session-provider';
-import MobileCommissionPopupBridge from './mobile-commission-popup-bridge';
 import MobileMemberPopupRuntime from './mobile-member-popup-runtime';
 import styles from './mobile-authenticated-home-runtime.module.css';
 
@@ -163,7 +162,6 @@ export default function MobileAuthenticatedHomeRuntime() {
 
   return (
     <>
-      <MobileCommissionPopupBridge />
       <MobileMemberPopupRuntime />
 
       {referralToast ? createPortal(
@@ -215,7 +213,7 @@ export default function MobileAuthenticatedHomeRuntime() {
               <span className={styles.incomeCopy}><span>รายได้จากเครือข่าย</span><strong>{affiliateBalance}</strong></span>
               <span className={styles.incomeArrow} aria-hidden="true">›</span>
             </a>
-            <a href="/affiliate" className={styles.incomeItem} data-mobile-member-popup="commission-income">
+            <a href="/mobile/member/commission" className={styles.incomeItem}>
               <span className={styles.incomeIcon} aria-hidden="true"><img src={COMMISSION_ICON} alt="" /></span>
               <span className={styles.incomeCopy}><span>รายได้จากคอมมิชชั่น</span><strong>{commissionBalance}</strong></span>
               <span className={styles.incomeArrow} aria-hidden="true">›</span>

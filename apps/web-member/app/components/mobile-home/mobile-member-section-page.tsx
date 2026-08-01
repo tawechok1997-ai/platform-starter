@@ -7,6 +7,7 @@ import { useMemberSession } from '../../member-session-provider';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import MobileLiveSchedulePage from './mobile-live-schedule-page';
 import MobileMemberActivityPage from './mobile-member-activity-page';
+import MobileMemberCommissionPage from './mobile-member-commission-page';
 import MobileMemberVipPage from './mobile-member-vip-page';
 import styles from './mobile-member-section-page.module.css';
 
@@ -24,6 +25,7 @@ const SECTION_CONFIG: Record<string, SectionConfig> = {
   vip: { title: 'ระดับสมาชิก VIP', endpoint: '/member/auth/profile', fallbackImage: '/images/avatar/7.webp' },
   profile: { title: 'ข้อมูลสมาชิก', endpoint: '/member/auth/profile', fallbackImage: '/images/avatar/7.webp' },
   affiliate: { title: 'แนะนำเพื่อน', endpoint: '/member/affiliate/profile', fallbackImage: '/assets/asset-pc/images/เเนะนำเพื่อน.png' },
+  commission: { title: 'รายได้คอมมิชชั่น', endpoint: '/member/affiliate/profile', fallbackImage: '/assets/asset-pc/images/รายได่คอมมิชชั่น.png' },
   live: { title: 'ถ่ายทอดสด', endpoint: '/games/live-events', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/ถ่ายถอดสด.png' },
   promotions: { title: 'โปรโมชั่น', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/โปรโมชั้น.png' },
   news: { title: 'ข่าวสาร', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/ข่าวสาร.png' },
@@ -43,6 +45,7 @@ export default function MobileMemberSectionPage({ section }: Props) {
   const [payload, setPayload] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,7 +79,10 @@ export default function MobileMemberSectionPage({ section }: Props) {
       headers: { accept: 'application/json' },
       skipAuth: true,
       suppressSessionExpiryRedirect: true,
-    } : undefined);
+    } : {
+      cache: 'no-store',
+      headers: { accept: 'application/json' },
+    });
 
     request.then(async (response) => {
       const data = await response.json().catch(() => null);
@@ -88,7 +94,7 @@ export default function MobileMemberSectionPage({ section }: Props) {
       if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
-  }, [config.endpoint, config.publicEndpoint, isLoggedIn, ready, section]);
+  }, [config.endpoint, config.publicEndpoint, isLoggedIn, ready, reloadKey, section]);
 
   const items = useMemo(() => normalizeItems(section, payload), [payload, section]);
   const isNews = section === 'news';
@@ -100,6 +106,18 @@ export default function MobileMemberSectionPage({ section }: Props) {
         loading={!ready || (isLoggedIn && loading)}
         error={isLoggedIn ? error : ''}
         onBack={() => router.back()}
+      />
+    );
+  }
+
+  if (section === 'commission') {
+    return (
+      <MobileMemberCommissionPage
+        payload={payload}
+        loading={!ready || loading}
+        error={error}
+        onBack={() => router.push('/')}
+        onRefresh={() => setReloadKey((value) => value + 1)}
       />
     );
   }
@@ -153,7 +171,7 @@ function NewsEmptyState() {
   return (
     <div className={styles.newsEmpty} role="status" aria-live="polite">
       <svg xmlns="http://www.w3.org/2000/svg" width="116" height="81" viewBox="0 0 116 81" fill="none" aria-hidden="true">
-        <path d="M87.4313 36.6079H23.2148V72.7297C23.2148 74.8586 24.0605 76.9003 25.5659 78.4057C27.0713 79.911 29.113 80.7567 31.2419 80.7567H79.4043C81.5332 80.7567 83.5749 79.911 85.0803 78.4057C86.5856 76.9003 87.4313 74.8586 87.4313 72.7297V36.6079Z" fill="#E0B1F1" />
+        <path d="M87.4313 36.6079H23.2148V72.7297C23.2148 74.8586 24.0605 76.9003 25.5659 78.4057C27.0713 79.911 29.113 80.7567H79.4043C81.5332 80.7567 83.5749 79.911 85.0803 78.4057C86.5856 76.9003 87.4313 74.8586 87.4313 72.7297V36.6079Z" fill="#E0B1F1" />
         <rect x="47.8984" y="46.6665" width="14.7373" height="4.91244" rx="2.45622" fill="#A800CB" />
         <path fillRule="evenodd" clipRule="evenodd" d="M7.75354 17.3131C5.69718 17.8641 3.94392 19.2094 2.87946 21.0531C1.81501 22.8968 1.52655 25.0878 2.07756 27.1442L4.15511 34.8977C4.70611 36.9541 6.05144 38.7073 7.89513 39.7718C9.73881 40.8362 11.9298 41.1247 13.9862 40.5737L70.8455 25.3383C72.9019 24.7873 74.6552 23.442 75.7196 21.5983C76.7841 19.7546 77.0725 17.5636 76.5215 15.5072L74.444 7.75365C73.893 5.69728 72.5476 3.94402 70.7039 2.87957C68.8603 1.81511 66.6692 1.52666 64.6129 2.07766L7.75354 17.3131Z" fill="#A800CB" />
         <path d="M68.7734 34.9999C68.7734 34.9999 88.4232 29.4736 85.3529 23.3325C83.6882 20.0027 78.9134 20.2331 76.1421 22.7188C72.9487 25.5831 73.0805 33.1571 77.3702 33.1571C80.4405 33.1571 87.8092 33.7712 93.3356 30.7009C101.991 25.8924 103.775 22.1041 106.231 16.5776" stroke="#E0B1F1" strokeWidth="1.22811" strokeLinecap="round" strokeDasharray="2.46 2.46" />
@@ -183,7 +201,7 @@ function ProfileSummary({ payload, fallbackImage }: { payload: unknown; fallback
 type NormalItem = { id: string; title: string; subtitle: string; image: string; href: string };
 
 function normalizeItems(section: string, payload: unknown): NormalItem[] {
-  if (section === 'vip' || section === 'profile' || section === 'live') return [];
+  if (section === 'vip' || section === 'profile' || section === 'live' || section === 'commission') return [];
   const root = unwrapPayloadRecord(payload);
   let source: unknown[] = [];
 
