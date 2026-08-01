@@ -1,0 +1,98 @@
+/* Keep the source-style contact pulse visible on the mobile home only. */
+
+@media (max-width: 900px) {
+  .member-floating-contact[data-home='true'][data-open='false']
+    .member-floating-contact__button-face {
+    animation: member-contact-source-float 2.1s ease-in-out infinite;
+  }
+
+  .member-floating-contact[data-home='true'][data-open='false']
+    .member-floating-contact__button-face::after {
+    position: absolute;
+    inset: 7px;
+    border: 1px solid rgb(255 225 126 / 42%);
+    border-radius: 999px;
+    content: '';
+    box-shadow:
+      0 0 14px rgb(255 210 86 / 42%),
+      inset 0 0 12px rgb(255 236 174 / 18%);
+    animation: member-contact-source-glow 2.1s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .member-floating-contact[data-home='true'][data-open='false']
+    .member-floating-contact__ring {
+    width: 70px;
+    height: 70px;
+    border-width: 2px;
+    border-color: rgb(255 215 94 / 82%);
+    box-shadow: 0 0 14px rgb(255 199 57 / 28%);
+    animation-name: member-contact-source-ring;
+    animation-duration: 2.4s;
+    animation-timing-function: cubic-bezier(.2, .65, .35, 1);
+    animation-iteration-count: infinite;
+  }
+
+  .member-floating-contact[data-home='true'][data-open='false']
+    .member-floating-contact__ring--2 {
+    animation-delay: .8s;
+  }
+
+  .member-floating-contact[data-home='true'][data-open='false']
+    .member-floating-contact__ring--3 {
+    animation-delay: 1.6s;
+  }
+}
+
+@keyframes member-contact-source-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 8px 18px rgb(0 0 0 / 34%));
+  }
+
+  50% {
+    transform: translateY(-5px) scale(1.035);
+    filter:
+      drop-shadow(0 12px 20px rgb(0 0 0 / 38%))
+      drop-shadow(0 0 10px rgb(255 204 64 / 26%));
+  }
+}
+
+@keyframes member-contact-source-glow {
+  0%, 100% {
+    opacity: .42;
+    transform: scale(.94);
+  }
+
+  50% {
+    opacity: .9;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes member-contact-source-ring {
+  0% {
+    opacity: .82;
+    transform: translate(-50%, -50%) scale(.58);
+  }
+
+  72% {
+    opacity: .16;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.82);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-floating-contact[data-home='true']
+    .member-floating-contact__button-face,
+  .member-floating-contact[data-home='true']
+    .member-floating-contact__button-face::after,
+  .member-floating-contact[data-home='true']
+    .member-floating-contact__ring {
+    animation: none;
+  }
+}
