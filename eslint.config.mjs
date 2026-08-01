@@ -80,6 +80,7 @@ export default tseslint.config(
     files: [
       'apps/web-member/app/components/member-menu-income-runtime.tsx',
       'apps/web-member/app/components/member-menu-income-safe-runtime.tsx',
+      'apps/web-member/app/components/mobile-home/mobile-deposit-source-content.tsx',
     ],
     rules: {
       'jsx-a11y/no-autofocus': 'off',
