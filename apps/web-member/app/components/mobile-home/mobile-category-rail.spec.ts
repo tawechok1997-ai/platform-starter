@@ -29,6 +29,15 @@ test('mobile category rail matches sticky geometry and responsive sizes', () => 
   assert.match(css, /@media \(min-width: 430px\)[\s\S]*width:\s*60px[\s\S]*height:\s*60px/);
 });
 
+test('mobile category rail follows every scroll owner and stops at the content boundary', () => {
+  assert.match(root, /categoryContentRef = useRef<HTMLDivElement>/);
+  assert.match(root, /categoryRailRef = useRef<HTMLDivElement>/);
+  assert.match(root, /document\.addEventListener\('scroll', scheduleSync, \{ capture: true, passive: true \}\)/);
+  assert.match(root, /requestAnimationFrame\(syncRail\)/);
+  assert.match(root, /contentRect\.bottom <= headerEdge \+ railHeight \? 'end' : 'fixed'/);
+  assert.match(root, /data-mobile-category-follow="start"/);
+});
+
 test('active and inactive category cards keep the supplied surfaces', () => {
   assert.match(css, /\.categoryItem\s*\{[\s\S]*background:\s*#373147/);
   assert.match(css, /\.categoryItemActive\s*\{[\s\S]*background:\s*#fff/);
