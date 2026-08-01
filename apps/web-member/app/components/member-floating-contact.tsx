@@ -50,8 +50,9 @@ export default function MemberFloatingContact() {
   const showFloatingContact = sessionReady && !isMobileMenuPage;
 
   useEffect(() => {
+    if (!showFloatingContact) return;
     drawContactCloseCanvas(closeCanvasRef.current);
-  }, []);
+  }, [showFloatingContact]);
 
   useEffect(() => {
     if (!open) return;
