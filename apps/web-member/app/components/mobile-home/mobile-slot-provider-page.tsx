@@ -57,7 +57,8 @@ export default function MobileSlotProviderPage() {
       title={{ th: 'สล็อต', en: 'Slots' }}
       providers={SLOT_PROVIDERS}
       catalogPlatform="mobile"
-      assetPlatform="mobile"
+      providerAssetPlatform="mobile"
+      gameAssetPlatform="mobile"
     />
   );
 }
