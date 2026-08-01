@@ -8,6 +8,7 @@ import {
   readMobileAvatarPreference,
 } from '../../lib/mobile-avatar-preference';
 import { useMemberRuntime } from '../../member-runtime-provider';
+import MobileGlobalMemberActionsRuntime from './mobile-global-member-actions-runtime';
 
 const MAX_SYNC_FRAMES = 16;
 
@@ -61,5 +62,5 @@ export default function MobileAuthenticatedAvatarRuntime() {
     };
   }, [summary.isLoggedIn]);
 
-  return null;
+  return <MobileGlobalMemberActionsRuntime />;
 }
