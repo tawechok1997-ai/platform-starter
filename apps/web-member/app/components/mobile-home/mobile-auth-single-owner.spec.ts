@@ -17,11 +17,12 @@ test('home row and hamburger drawer reuse the same mobile auth actions component
   assert.doesNotMatch(mobileRoot, /MemberAuthOverlay/);
 });
 
-test('member chrome owns exactly one authentication popup', () => {
+test('member chrome owns exactly one query-driven authentication popup', () => {
   assert.equal((memberChrome.match(/<MemberAuthOverlay\b/g) ?? []).length, 1);
   assert.match(memberChrome, /requestedAuthMode === 'login' \|\| requestedAuthMode === 'register'/);
   assert.match(memberChrome, /authModeOverride \?\? queryAuthMode/);
-  assert.match(memberChrome, /authMode\s*\?\s*\([\s\S]*?<MemberAuthOverlay[\s\S]*?mode=\{authMode\}/);
+  assert.match(memberChrome, /authMode\s*\?\s*(?:\(|)<MemberAuthOverlay[\s\S]*?mode=\{authMode\}/);
+  assert.doesNotMatch(memberChrome, /member:auth-open/);
 });
 
 test('the shared popup owns one iframe and lets embedded auth pages navigate inside it', () => {
