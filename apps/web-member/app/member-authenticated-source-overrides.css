@@ -1,4 +1,4 @@
-/* Source-aligned mobile drawer and authenticated contact geometry. */
+/* Source-aligned mobile drawer and authenticated contact visibility. */
 
 @media (max-width: 900px) {
   [data-mobile-home-root='true'] #mobile-home-drawer {
@@ -19,34 +19,13 @@
     width: 100%;
   }
 
-  .member-floating-contact[data-authenticated='true'] .member-floating-contact__contact-stage {
-    right: -4px;
-    left: auto;
-    display: flex;
-  }
-
-  .member-floating-contact[data-authenticated='true'] .member-floating-contact__toggle {
-    width: 120px;
-    height: 120px;
-    margin: 0 -16px -8px;
-  }
-
-  .member-floating-contact[data-authenticated='true'] .member-floating-contact__button-face,
-  .member-floating-contact[data-authenticated='true'] .member-floating-contact__close-icon {
-    width: 80px;
-    height: 80px;
-  }
-
-  .member-floating-contact[data-authenticated='true'] .member-floating-contact__ring {
-    width: 68px;
-    height: 68px;
-    border-color: rgb(244 196 75 / 72%);
-    box-shadow: 0 0 12px rgb(244 196 75 / 20%);
+  .member-floating-contact[data-authenticated='true'] .member-floating-contact__contact-host {
+    display: block;
   }
 }
 
 @media (min-width: 901px) {
-  .member-floating-contact[data-authenticated='true'] .member-floating-contact__contact-stage {
+  .member-floating-contact[data-authenticated='true'] .member-floating-contact__contact-host {
     display: none;
   }
 }
