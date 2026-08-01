@@ -12,10 +12,6 @@ const MOBILE_MEDIA_SCOPE = [
   '.auth-reference-scope',
 ].join(',');
 
-const ORIGINAL_SOURCE_ATTRIBUTE = 'data-mobile-original-source';
-const LOCAL_SOURCE_ATTRIBUTE = 'data-mobile-local-source';
-const FALLBACK_BOUND_ATTRIBUTE = 'data-mobile-local-fallback-bound';
-
 export default function MobileLocalAssetRuntime() {
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 900px)');
@@ -31,7 +27,13 @@ export default function MobileLocalAssetRuntime() {
         || resolveLocalAssetByBasename(currentSource, 'pc');
       if (!localSource || localSource === currentSource) return;
 
-      image.dataset.mobileOriginalSource ||= currentSource;
+      image.dataset.mobileOriginalSource ||= image.getAttribute('src') || currentSource;
+      const originalSourceSet = image.getAttribute('srcset');
+      if (originalSourceSet) {
+        image.dataset.mobileOriginalSourceSet ||= originalSourceSet;
+        image.removeAttribute('srcset');
+      }
+
       image.dataset.mobileLocalSource = localSource;
       image.src = localSource;
 
@@ -45,6 +47,8 @@ export default function MobileLocalAssetRuntime() {
 
         delete image.dataset.mobileLocalSource;
         image.src = originalSource;
+        const sourceSet = image.dataset.mobileOriginalSourceSet;
+        if (sourceSet) image.setAttribute('srcset', sourceSet);
       });
     };
 
@@ -52,16 +56,24 @@ export default function MobileLocalAssetRuntime() {
       if (!video.closest(MOBILE_MEDIA_SCOPE)) return;
       const poster = video.getAttribute('poster') || '';
       if (!isRemoteMedia(poster)) return;
+
       const localPoster = resolveLocalAssetByBasename(poster, 'mobile')
         || resolveLocalAssetByBasename(poster, 'pc');
-      if (localPoster && localPoster !== poster) video.poster = localPoster;
+      if (!localPoster || localPoster === poster) return;
+
+      video.dataset.mobileOriginalPoster ||= poster;
+      video.poster = localPoster;
+      video.addEventListener('error', () => {
+        const originalPoster = video.dataset.mobileOriginalPoster;
+        if (originalPoster && video.getAttribute('poster') === localPoster) video.poster = originalPoster;
+      }, { once: true });
     };
 
     const scan = () => {
       scanFrame = 0;
       if (!mediaQuery.matches) return;
-      document.querySelectorAll<HTMLImageElement>(`${MOBILE_MEDIA_SCOPE} img[src]`).forEach(matchImage);
-      document.querySelectorAll<HTMLVideoElement>(`${MOBILE_MEDIA_SCOPE} video[poster]`).forEach(matchVideoPoster);
+      document.querySelectorAll<HTMLImageElement>('img[src]').forEach(matchImage);
+      document.querySelectorAll<HTMLVideoElement>('video[poster]').forEach(matchVideoPoster);
     };
 
     const scheduleScan = () => {
@@ -75,7 +87,7 @@ export default function MobileLocalAssetRuntime() {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['src', 'poster'],
+      attributeFilter: ['src', 'srcset', 'poster'],
     });
     mediaQuery.addEventListener('change', scheduleScan);
 
