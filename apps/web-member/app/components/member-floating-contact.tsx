@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useMemberSession } from '../member-session-provider';
 import { useMemberContactRuntime } from '../member-settings-runtime';
 import '../member-floating-contact.css';
+import '../member-authenticated-source-overrides.css';
 
 const CONTACT_ICON_URL = '/assets/asset-pc/images/footer/contact/icon-open-gold.webp';
 const LINE_ICON_URL = '/assets/asset-pc/images/line.png';
@@ -26,7 +27,7 @@ export default function MemberFloatingContact() {
   const [miniToolsOpen, setMiniToolsOpen] = useState(false);
   const { ready: sessionReady, isLoggedIn } = useMemberSession();
   const { primary } = useMemberContactRuntime();
-  const showFloatingContact = sessionReady && !isLoggedIn;
+  const showFloatingContact = sessionReady;
 
   useEffect(() => {
     if (!open) return;
@@ -40,7 +41,7 @@ export default function MemberFloatingContact() {
   }, [open]);
 
   useEffect(() => {
-    if (isLoggedIn) setOpen(false);
+    setOpen(false);
   }, [isLoggedIn]);
 
   const activateMiniTool = (id: (typeof MINI_TOOLS)[number]['id']) => {
@@ -51,6 +52,7 @@ export default function MemberFloatingContact() {
     <aside
       className="member-floating-contact"
       data-open={open ? 'true' : 'false'}
+      data-authenticated={isLoggedIn ? 'true' : 'false'}
       aria-label="เครื่องมือสมาชิกและช่องทางติดต่อ"
     >
       <div
