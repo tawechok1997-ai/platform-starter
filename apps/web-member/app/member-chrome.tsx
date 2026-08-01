@@ -21,9 +21,7 @@ import MemberSharedPopupRuntime from './components/member-shared-popup-runtime';
 
 type PublicNavKey = 'home' | 'casino' | 'slot' | 'fishing' | 'sport' | 'card' | 'lottery' | 'live';
 type ChromeViewport = 'mobile' | 'desktop';
-type MemberAuthOpenDetail = { mode?: unknown; next?: unknown };
 
-const MEMBER_AUTH_OPEN_EVENT = 'member:auth-open';
 const PUBLIC_COPY: Record<MemberLocale, {
   changeLanguage: string;
   currentLanguage: string;
@@ -74,7 +72,6 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [authModeOverride, setAuthModeOverride] = useState<MemberAuthMode | null>(null);
-  const [authNextOverride, setAuthNextOverride] = useState<string | null>(null);
   const [missionOpen, setMissionOpen] = useState(false);
   const [viewportMode, setViewportMode] = useState<ChromeViewport | null>(null);
   const { locale, toggleLocale } = useMemberLocale();
@@ -102,14 +99,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   const brandMark = branding.brand_mark || website.site_name.slice(0, 1).toUpperCase() || 'N';
   const compactWalletBalance = formatRuntimeBalance(runtime.summary.walletAvailable, runtime.summary.walletCurrency);
 
-  const openAuth = useCallback((mode: MemberAuthMode, next?: string | null) => {
-    setAuthModeOverride(mode);
-    setAuthNextOverride(next && next.startsWith('/') && !next.startsWith('//') ? next : null);
-  }, []);
-
   const closeAuth = useCallback(() => {
     setAuthModeOverride(null);
-    setAuthNextOverride(null);
     const url = new URL(window.location.href);
     if (!url.searchParams.has('auth') && !url.searchParams.has('next')) return;
     url.searchParams.delete('auth');
@@ -118,13 +109,11 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
   }, [router]);
 
   const completeAuth = useCallback(async () => {
-    const queryNext = new URLSearchParams(window.location.search).get('next');
-    const next = authNextOverride ?? queryNext;
+    const next = new URLSearchParams(window.location.search).get('next');
     const authenticated = await verify();
     if (!authenticated) return;
 
     setAuthModeOverride(null);
-    setAuthNextOverride(null);
     if (next && next.startsWith('/') && !next.startsWith('//')) {
       router.replace(next);
       return;
@@ -134,21 +123,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
     url.searchParams.delete('auth');
     url.searchParams.delete('next');
     router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
-  }, [authNextOverride, router, verify]);
-
-  useEffect(() => {
-    const handleAuthOpen = (event: Event) => {
-      if (!(event instanceof CustomEvent)) return;
-      const detail = event.detail as MemberAuthOpenDetail | null;
-      const mode = detail?.mode;
-      if (mode !== 'login' && mode !== 'register') return;
-      const next = typeof detail?.next === 'string' ? detail.next : null;
-      openAuth(mode, next);
-    };
-
-    window.addEventListener(MEMBER_AUTH_OPEN_EVENT, handleAuthOpen);
-    return () => window.removeEventListener(MEMBER_AUTH_OPEN_EVENT, handleAuthOpen);
-  }, [openAuth]);
+  }, [router, verify]);
 
   useLayoutEffect(() => {
     const media = window.matchMedia(MOBILE_CHROME_QUERY);
@@ -204,8 +179,8 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
           activeCategory={activeCategory}
           logout={logout}
           onToggleLocale={toggleLocale}
-          onOpenLogin={() => openAuth('login')}
-          onOpenRegister={() => openAuth('register')}
+          onOpenLogin={() => setAuthModeOverride('login')}
+          onOpenRegister={() => setAuthModeOverride('register')}
           onOpenMission={() => setMissionOpen(true)}
         />
       ) : null}
@@ -216,13 +191,7 @@ export default function MemberChrome({ children }: { children: ReactNode }) {
       </div>
 
       <MemberFooter settings={typedSettings} />
-      {authMode ? (
-        <MemberAuthOverlay
-          mode={authMode}
-          onClose={closeAuth}
-          onSuccess={completeAuth}
-        />
-      ) : null}
+      {authMode ? <MemberAuthOverlay mode={authMode} onClose={closeAuth} onSuccess={completeAuth} /> : null}
       <DailyMissionModal open={missionOpen} onClose={() => setMissionOpen(false)} />
       <MemberSharedPopupRuntime
         locale={locale}
