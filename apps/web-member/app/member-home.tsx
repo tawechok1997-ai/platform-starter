@@ -12,6 +12,7 @@ import MemberGameSectionRuntimeController from './components/member-game-section
 import MemberHomeRuntimeController from './components/member-home-runtime-controller';
 import { CmsPopup } from './components/member-home-sections';
 import { DesktopHomeScaffold } from './components/member-home/desktop-home-scaffold';
+import HomeSidebarScrollController from './components/member-home/home-sidebar-scroll-controller';
 import MobileAuthenticatedAvatarRuntime from './components/mobile-home/mobile-authenticated-avatar-runtime';
 import MobileAuthenticatedHomeRuntime from './components/mobile-home/mobile-authenticated-home-runtime';
 import MobileCategoryTabRuntime from './components/mobile-home/mobile-category-tab-runtime';
@@ -108,6 +109,7 @@ function DesktopMemberHome(props: MemberHomeProps) {
         onOpenActivity={openHomePopup('activity')}
         onOpenNews={openHomePopup('news')}
       />
+      <HomeSidebarScrollController />
       <MemberHomeRuntimeController />
       <MemberGameSectionRuntimeController />
       {props.cmsContent.popup.enabled && !popupClosed ? (
