@@ -1114,12 +1114,13 @@ function drawBottomNavigationFallback(
   context.shadowBlur = 3;
 
   if (kind === 'menu') {
-    [[7, 7], [17, 7], [7, 17], [17, 17]].forEach(([x, y]) => {
-      context.beginPath();
-      context.roundRect(x, y, 8, 8, 2);
-      context.fill();
-      context.stroke();
-    });
+    context.beginPath();
+    context.roundRect(7, 7, 8, 8, 2);
+    context.roundRect(17, 7, 8, 8, 2);
+    context.roundRect(7, 17, 8, 8, 2);
+    context.roundRect(17, 17, 8, 8, 2);
+    context.fill();
+    context.stroke();
   } else if (kind === 'contact') {
     context.beginPath();
     context.arc(16, 16, 9, Math.PI, 0);
