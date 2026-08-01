@@ -20,3 +20,19 @@ test('guest mobile login and register actions use the canonical auth request', (
   assert.match(mobileHomeRoot, /href="\/\?auth=login"/);
   assert.doesNotMatch(mobileHomeRoot, /MemberAuthOverlay|createPortal\([^)]*auth/i);
 });
+
+test('guest member-only drawer actions open the one login overlay before popup and navigation owners', () => {
+  for (const label of [
+    'รายได้คอมมิชชั่น',
+    'แนะนำเพื่อน',
+    'คูปอง',
+    'โบนัสพิเศษ',
+  ]) {
+    assert.match(navigationController, new RegExp(`GUEST_LOGIN_REQUIRED_LABELS[\\s\\S]*${label}`));
+  }
+
+  assert.match(navigationController, /authAction && !summary\.isLoggedIn && requiresGuestLogin\(authAction\)/);
+  assert.match(navigationController, /const intended = canonicalTargetFor\(authAction\) \|\| rawHref/);
+  assert.match(navigationController, /event\.stopImmediatePropagation\(\);[\s\S]*openAuth\('login', intended\)/);
+  assert.match(navigationController, /requiresGuestLogin[\s\S]*GUEST_LOGIN_REQUIRED_LABELS\.has\(actionLabel\(action\)\)/);
+});
