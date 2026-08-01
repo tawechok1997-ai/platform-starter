@@ -12,6 +12,8 @@ type CatalogMedia = {
   status?: string | null;
 };
 
+export type SourceCatalogPlatform = 'pc' | 'mobile';
+
 type CatalogProvider = {
   code?: string | null;
   name?: string | null;
@@ -23,6 +25,7 @@ export type CatalogGame = {
   providerGameCode?: string | null;
   name?: string | null;
   category?: string | null;
+  platform?: string | null;
   imageUrl?: string | null;
   iconUrl?: string | null;
   isNew?: boolean | null;
@@ -72,28 +75,35 @@ export function catalogGroupsForSlug(slug: string) {
 export async function loadSourceCategoryCatalog(
   slug: string,
   configuredProviders: readonly SourceGameProvider[],
+  platform: SourceCatalogPlatform,
   signal?: AbortSignal,
 ): Promise<SourceCategoryCatalog> {
   const categories = catalogGroupsForSlug(slug);
-  const outcomes = await Promise.all(categories.map((category) => loadCatalogCategory(category, signal)));
+  const outcomes = await Promise.all(categories.map((category) => loadCatalogCategory(category, platform, signal)));
   const rawItems = outcomes.flatMap((outcome) => outcome.items);
-  const uniqueItems = Array.from(new Map(rawItems.map((item) => [catalogIdentity(item), item] as const)).values());
-  const localizedProviders = configuredProviders.map(localizeProvider);
+  const uniqueItems = Array.from(
+    new Map(rawItems.map((item) => [catalogIdentity(item, platform), item] as const)).values(),
+  );
+  const localizedProviders = configuredProviders.map((provider) => localizeProvider(provider, platform));
   const games = uniqueItems
-    .map((item) => mapCatalogGame(item, localizedProviders))
+    .map((item) => mapCatalogGame(item, localizedProviders, platform))
     .filter((item): item is SourceGameItem => Boolean(item));
 
   return {
     games,
-    providers: buildCatalogProviders(uniqueItems, games, localizedProviders),
+    providers: buildCatalogProviders(uniqueItems, games, localizedProviders, platform),
     total: games.length,
     incomplete: outcomes.some((outcome) => outcome.incomplete),
   };
 }
 
-async function loadCatalogCategory(category: string, signal?: AbortSignal) {
+async function loadCatalogCategory(
+  category: string,
+  platform: SourceCatalogPlatform,
+  signal?: AbortSignal,
+) {
   try {
-    const first = await fetchCatalogPage(category, 1, signal);
+    const first = await fetchCatalogPage(category, platform, 1, signal);
     const items = [...readCatalogItems(first)];
     const totalPages = Math.min(MAX_PAGES_PER_CATEGORY, readTotalPages(first, items.length));
     let incomplete = false;
@@ -103,7 +113,7 @@ async function loadCatalogCategory(category: string, signal?: AbortSignal) {
         { length: Math.min(PAGE_BATCH_SIZE, totalPages - start + 1) },
         (_, index) => start + index,
       );
-      const results = await Promise.allSettled(pages.map((page) => fetchCatalogPage(category, page, signal)));
+      const results = await Promise.allSettled(pages.map((page) => fetchCatalogPage(category, platform, page, signal)));
       results.forEach((result) => {
         if (result.status === 'fulfilled') items.push(...readCatalogItems(result.value));
         else if (!isAbortError(result.reason)) incomplete = true;
@@ -118,10 +128,15 @@ async function loadCatalogCategory(category: string, signal?: AbortSignal) {
   }
 }
 
-async function fetchCatalogPage(category: string, page: number, signal?: AbortSignal) {
+async function fetchCatalogPage(
+  category: string,
+  platform: SourceCatalogPlatform,
+  page: number,
+  signal?: AbortSignal,
+) {
   const params = new URLSearchParams({
     category,
-    platform: 'pc',
+    platform,
     page: String(page),
     limit: String(PAGE_LIMIT),
   });
@@ -150,15 +165,17 @@ function isCatalogGame(value: CatalogGame) {
   return Boolean(value && typeof value === 'object' && (value.id || value.providerGameCode) && value.name);
 }
 
-function catalogIdentity(item: CatalogGame) {
+function catalogIdentity(item: CatalogGame, requestedPlatform: SourceCatalogPlatform) {
+  const platform = normalizeCatalogPlatform(item.platform, requestedPlatform);
   const provider = normalizeProviderCode(firstText(item.provider?.code));
   const id = firstText(item.providerGameCode, item.id).toLowerCase();
-  return `${provider}:${id}`;
+  return `${platform}:${provider}:${id}`;
 }
 
 export function mapCatalogGame(
   item: CatalogGame,
   configuredProviders: readonly SourceGameProvider[] = [],
+  requestedPlatform: SourceCatalogPlatform = 'pc',
 ): SourceGameItem | null {
   const providerCode = normalizeProviderCode(firstText(item.provider?.code));
   const id = firstText(item.providerGameCode, item.id);
@@ -170,7 +187,8 @@ export function mapCatalogGame(
   );
   const readyMedia = item.media?.find((media) => media.status === 'READY');
   const firstMedia = item.media?.[0];
-  const image = resolveAsset(
+  const image = resolveAssetForPlatform(
+    requestedPlatform,
     readyMedia?.cachedUrl,
     item.imageUrl,
     readyMedia?.sourceUrl,
@@ -182,7 +200,8 @@ export function mapCatalogGame(
   if (!image) return null;
 
   const tags = catalogTags(item);
-  const providerBadge = resolveAsset(
+  const providerBadge = resolveAssetForPlatform(
+    requestedPlatform,
     item.provider?.logoUrl,
     configuredProvider?.badge,
     providerCode ? providerAssetSource('badge', providerCode) : undefined,
@@ -197,6 +216,7 @@ export function mapCatalogGame(
     isHot: item.isPopular === true || tags.includes('hot'),
     tags,
     origin: 'catalog',
+    platform: normalizeCatalogPlatform(item.platform, requestedPlatform),
   };
 }
 
@@ -236,9 +256,10 @@ function buildCatalogProviders(
   items: readonly CatalogGame[],
   games: readonly SourceGameItem[],
   configuredProviders: readonly SourceGameProvider[],
+  platform: SourceCatalogPlatform,
 ) {
   const configured = new Map(
-    configuredProviders.map((provider) => [normalizeProviderCode(provider.code), localizeProvider(provider)] as const),
+    configuredProviders.map((provider) => [normalizeProviderCode(provider.code), provider] as const),
   );
   const firstGameByProvider = new Map<string, SourceGameItem>();
   games.forEach((game) => {
@@ -254,13 +275,14 @@ function buildCatalogProviders(
       providers.set(code, {
         ...configuredProvider,
         name: firstText(item.provider?.name, configuredProvider.name, code.toUpperCase()),
-        badge: resolveAsset(item.provider?.logoUrl, configuredProvider.badge),
+        badge: resolveAssetForPlatform(platform, item.provider?.logoUrl, configuredProvider.badge),
       });
       continue;
     }
 
     const firstGame = firstGameByProvider.get(code);
-    const badge = resolveAsset(
+    const badge = resolveAssetForPlatform(
+      platform,
       item.provider?.logoUrl,
       firstGame?.providerBadge,
       providerAssetSource('badge', code),
@@ -269,34 +291,51 @@ function buildCatalogProviders(
       code,
       name: firstText(item.provider?.name, code.toUpperCase()),
       badge,
-      card: resolveAsset(providerAssetSource('card', code), firstGame?.image, badge),
-      background: resolveAsset(providerAssetSource('bg', code)),
-      title: resolveAsset(providerAssetSource('title', code)),
-      avatar: resolveAsset(providerAssetSource('avatar', code)),
+      card: resolveAssetForPlatform(platform, providerAssetSource('card', code), firstGame?.image, badge),
+      background: resolveAssetForPlatform(platform, providerAssetSource('bg', code)),
+      title: resolveAssetForPlatform(platform, providerAssetSource('title', code)),
+      avatar: resolveAssetForPlatform(platform, providerAssetSource('avatar', code)),
     });
   }
   return Array.from(providers.values());
 }
 
-function localizeProvider(provider: SourceGameProvider): SourceGameProvider {
+function localizeProvider(
+  provider: SourceGameProvider,
+  platform: SourceCatalogPlatform,
+): SourceGameProvider {
   return {
     ...provider,
-    badge: resolveAsset(provider.badge),
-    card: resolveAsset(provider.card),
-    background: resolveAsset(provider.background),
-    title: resolveAsset(provider.title),
-    avatar: resolveAsset(provider.avatar),
+    badge: resolveAssetForPlatform(platform, provider.badge),
+    card: resolveAssetForPlatform(platform, provider.card),
+    background: resolveAssetForPlatform(platform, provider.background),
+    title: resolveAssetForPlatform(platform, provider.title),
+    avatar: resolveAssetForPlatform(platform, provider.avatar),
   };
 }
 
-function resolveAsset(...values: Array<string | null | undefined>) {
+function resolveAssetForPlatform(
+  platform: SourceCatalogPlatform,
+  ...values: Array<string | null | undefined>
+) {
   const source = firstText(...values);
-  return source ? resolveLocalAssetOrSource(source, 'pc') : '';
+  return source ? resolveLocalAssetOrSource(source, platform) : '';
 }
 
 function providerAssetSource(kind: 'badge' | 'card' | 'bg' | 'title' | 'avatar', code: string) {
   const set = kind === 'card' ? '1_1_v' : `1_1_${kind}`;
   return `https://cdn.zabbet.com/providers/set/${set}/${code}.png`;
+}
+
+function normalizeCatalogPlatform(
+  value: string | null | undefined,
+  fallback: SourceCatalogPlatform,
+): SourceCatalogPlatform | 'both' {
+  const platform = String(value ?? '').trim().toLowerCase();
+  if (platform === 'mobile') return 'mobile';
+  if (platform === 'pc' || platform === 'desktop') return 'pc';
+  if (platform === 'both') return 'both';
+  return fallback;
 }
 
 function normalizeCategory(value?: string | null) {
