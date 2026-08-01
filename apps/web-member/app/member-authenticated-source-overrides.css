@@ -189,3 +189,89 @@
     padding-left: 16px !important;
   }
 }
+
+/* Referral-link success toast copied from the authenticated Mobile source. */
+body > [role='status'][aria-live='polite']:has(> button[aria-label='ปิดข้อความแจ้งเตือน']) {
+  display: inline-flex;
+  width: min(365px, calc(100vw - 24px));
+  height: 60px;
+  padding: 20px;
+  grid-template-columns: none;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  box-sizing: border-box;
+  border: 1px solid #48c1b5;
+  border-radius: 6px;
+  color: #1f2937;
+  background: #f8fafc;
+}
+
+body > [role='status'][aria-live='polite']:has(> button[aria-label='ปิดข้อความแจ้งเตือน']) > span:first-child {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 24px;
+  margin-right: 24px;
+  flex: 0 0 24px;
+  overflow: visible;
+}
+
+body > [role='status'][aria-live='polite']:has(> button[aria-label='ปิดข้อความแจ้งเตือน']) > span:first-child > svg {
+  position: absolute;
+  top: -10px;
+  left: 0;
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+body > [role='status'][aria-live='polite']:has(> button[aria-label='ปิดข้อความแจ้งเตือน']) > span:nth-child(2) {
+  display: inline-flex;
+  min-width: 0;
+  align-self: stretch;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+}
+
+body > [role='status'][aria-live='polite']:has(> button[aria-label='ปิดข้อความแจ้งเตือน']) > span:nth-child(2) > strong {
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-transform: capitalize;
+}
+
+body > [role='status'][aria-live='polite']:has(> button[aria-label='ปิดข้อความแจ้งเตือน']) > span:nth-child(2) > small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+body > [role='status'][aria-live='polite']:has(> button[aria-label='ปิดข้อความแจ้งเตือน']) > button[aria-label='ปิดข้อความแจ้งเตือน'] {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  padding: 0;
+  flex: 0 0 28px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+}
+
+body > [role='status'][aria-live='polite']:has(> button[aria-label='ปิดข้อความแจ้งเตือน']) > button[aria-label='ปิดข้อความแจ้งเตือน'] > svg {
+  display: block;
+  width: 28px;
+  height: 28px;
+}
