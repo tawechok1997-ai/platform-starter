@@ -70,6 +70,8 @@ const CANONICAL_HREF_TARGETS: Readonly<Record<string, string>> = {
   '/mobile-menu/guide': '/guide',
 };
 
+type MemberAuthMode = 'login' | 'register';
+
 export default function MemberNavigationAuthController() {
   const router = useRouter();
   const { navigation, summary } = useMemberRuntime();
@@ -88,21 +90,44 @@ export default function MemberNavigationAuthController() {
       const navigationLink = event.target.closest<HTMLAnchorElement>(NAVIGATION_SELECTOR);
       if (!navigationLink) return;
 
+      // Popup actions are owned by their popup runtime. Never let the global
+      // navigation controller turn them back into page navigation.
+      if (navigationLink.closest('[data-mobile-member-popup]')) return;
+
+      // Once the authenticated mobile drawer is mounted, every drawer action is
+      // owned by MobileMemberPopupRuntime. It decides whether to open a popup or
+      // enter a mobile member section. Competing capture listeners caused the
+      // deposit/withdraw links and the remaining drawer actions to misfire.
+      const mobileRoot = navigationLink.closest<HTMLElement>('[data-mobile-home-root="true"]');
+      const insideMobileDrawer = Boolean(navigationLink.closest('#mobile-home-drawer'));
+      if (summary.isLoggedIn && mobileRoot?.dataset.mobileAuthenticated === 'true' && insideMobileDrawer) return;
+
+      const href = normalize(navigationLink.getAttribute('href') ?? '');
       const canonicalTarget = canonicalTargetFor(navigationLink);
-      if (canonicalTarget && normalizeCurrentLocation() !== normalize(canonicalTarget)) {
+      const authMode = authModeForTarget(canonicalTarget || href);
+
+      if (authMode) {
         event.preventDefault();
-        event.stopPropagation();
-        router.replace(canonicalTarget, { scroll: false });
+        event.stopImmediatePropagation();
+        openAuthOverlay(authMode);
         return;
       }
 
-      if (summary.isLoggedIn || !protectedTargets.size) return;
-      const intended = protectedTargets.get(normalize(navigationLink.getAttribute('href') ?? ''));
-      if (!intended) return;
+      if (!summary.isLoggedIn && protectedTargets.size) {
+        const intended = protectedTargets.get(href);
+        if (intended) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          openAuthOverlay('login', intended);
+          return;
+        }
+      }
 
-      event.preventDefault();
-      event.stopPropagation();
-      router.replace(`/?auth=login&next=${encodeURIComponent(intended)}`, { scroll: false });
+      if (canonicalTarget && normalizeCurrentLocation() !== normalize(canonicalTarget)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        router.replace(canonicalTarget, { scroll: false });
+      }
     };
 
     document.addEventListener('click', guard, true);
@@ -119,6 +144,25 @@ function canonicalTargetFor(action: HTMLAnchorElement) {
 
   const label = action.textContent?.replace(/\s+/g, ' ').trim().toLowerCase() ?? '';
   return CANONICAL_LABEL_TARGETS[label] ?? '';
+}
+
+function authModeForTarget(value: string): MemberAuthMode | null {
+  try {
+    const url = new URL(value, 'https://member.local');
+    const auth = url.searchParams.get('auth');
+    if (auth === 'login' || auth === 'register') return auth;
+    if (url.pathname === '/login') return 'login';
+    if (url.pathname === '/register') return 'register';
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function openAuthOverlay(mode: MemberAuthMode, next?: string) {
+  window.dispatchEvent(new CustomEvent('member:auth-open', {
+    detail: { mode, next },
+  }));
 }
 
 function normalizeCurrentLocation() {
