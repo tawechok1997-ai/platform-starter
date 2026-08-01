@@ -1,6 +1,7 @@
 'use client';
 
-import SourceGameCategoryPage, { type SourceGameCategoryConfig } from './source-game-category-page';
+import SourceProviderCategoryPage from './source-provider-category-page';
+import type { SourceGameCategoryConfig } from './source-game-category-page';
 
 const rows = [
   ['lotmw', 'RB7 Lotto', true],
@@ -20,7 +21,7 @@ const providers = rows.map(([code, name]) => ({
 const config: SourceGameCategoryConfig = {
   slug: 'lotto',
   title: 'หวย',
-  total: 2,
+  total: rows.length,
   resultUnit: 'ค่าย',
   mode: 'provider-cards',
   baseBackground: '/assets/asset-pc/images/game/lotto/bg_lotto.webp',
@@ -42,7 +43,7 @@ const config: SourceGameCategoryConfig = {
 export default function LottoBrowseSource() {
   return (
     <>
-      <SourceGameCategoryPage config={config} />
+      <SourceProviderCategoryPage config={config} />
       <style>{`
         main[data-source-game-category='lotto'] [data-source-filter-types] {
           height: 60px !important;
