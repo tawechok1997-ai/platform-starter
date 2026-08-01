@@ -7,7 +7,7 @@ export type MemberAuthMode = 'login' | 'register';
 
 type MemberAuthOverlayProps = {
   mode: MemberAuthMode;
-  onModeChange: (mode: MemberAuthMode) => void;
+  onModeChange?: (mode: MemberAuthMode) => void;
   onClose: () => void;
   onSuccess: () => void | Promise<void>;
 };
@@ -15,6 +15,7 @@ type MemberAuthOverlayProps = {
 const EXIT_DURATION_MS = 220;
 
 export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSuccess }: MemberAuthOverlayProps) {
+  const [activeMode, setActiveMode] = useState<MemberAuthMode>(mode);
   const [frameReady, setFrameReady] = useState(false);
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -27,6 +28,15 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
   useEffect(() => {
     onModeChangeRef.current = onModeChange;
   }, [onModeChange]);
+
+  useEffect(() => {
+    setActiveMode(mode);
+  }, [mode]);
+
+  const switchMode = useCallback((nextMode: MemberAuthMode) => {
+    setActiveMode(nextMode);
+    onModeChangeRef.current?.(nextMode);
+  }, []);
 
   const clearExitTimer = useCallback(() => {
     if (exitTimerRef.current !== null) {
@@ -81,7 +91,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
   useEffect(() => {
     setFrameReady(false);
-  }, [mode]);
+  }, [activeMode]);
 
   useEffect(() => {
     const body = document.body;
@@ -123,7 +133,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       if (payload.type === 'member-auth-success') void completeAuth();
       if (payload.type === 'member-auth-ready') setFrameReady(true);
       if (payload.type === 'member-auth-switch' && (payload.mode === 'login' || payload.mode === 'register')) {
-        onModeChangeRef.current(payload.mode);
+        switchMode(payload.mode);
       }
     };
 
@@ -148,9 +158,9 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
         html.style.scrollBehavior = previousHtmlStyles.scrollBehavior;
       });
     };
-  }, [clearExitTimer, completeAuth, requestClose]);
+  }, [clearExitTimer, completeAuth, requestClose, switchMode]);
 
-  const path = mode === 'register' ? '/register?embed=1' : '/login?embed=1';
+  const path = activeMode === 'register' ? '/register?embed=1' : '/login?embed=1';
 
   function revealFrameWhenEmbedded(event: SyntheticEvent<HTMLIFrameElement>) {
     const frame = event.currentTarget;
@@ -180,7 +190,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
 
         clickEvent.preventDefault();
         clickEvent.stopPropagation();
-        onModeChangeRef.current(nextMode);
+        switchMode(nextMode);
       }, true);
     }
 
@@ -204,7 +214,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       className="member-auth-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label={mode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
+      aria-label={activeMode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
       aria-busy={!frameReady}
       data-state={motionState}
       data-frame-ready={frameReady ? 'true' : 'false'}
@@ -212,7 +222,7 @@ export default function MemberAuthOverlay({ mode, onModeChange, onClose, onSucce
       <iframe
         className="member-auth-overlay__frame"
         src={path}
-        title={mode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
+        title={activeMode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
         allow="clipboard-write"
         onLoad={revealFrameWhenEmbedded}
       />
