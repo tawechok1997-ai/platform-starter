@@ -1,0 +1,105 @@
+/* Mobile-only source theme tokens recovered from the reference UI.
+ * This file defines values only. Component owners keep their own layout and markup.
+ */
+@media (max-width: 900px) {
+  :where(
+    [data-mobile-home-root='true'],
+    [data-mobile-member-page],
+    [data-mobile-search-owner='true'],
+    [data-mobile-avatar-owner='true'],
+    [data-mobile-popup-owner],
+    .auth-reference-scope
+  ) {
+    --mobile-source-page-max: 640px;
+    --mobile-source-auth-max: 396px;
+    --mobile-source-popup-max: 480px;
+    --mobile-source-header-height: 50px;
+
+    --mobile-source-bg: #171422;
+    --mobile-source-bg-deep: #110e16;
+    --mobile-source-surface: #15131a;
+    --mobile-source-surface-raised: #251f31;
+    --mobile-source-surface-gradient: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%);
+    --mobile-source-card-gradient: linear-gradient(180deg, #342f43 0%, #18151f 100%);
+    --mobile-source-card-gradient-soft: linear-gradient(180deg, #342f43 0%, rgb(0 0 0 / 0%) 100%);
+
+    --mobile-source-border: #413e4b;
+    --mobile-source-border-soft: #312f39;
+    --mobile-source-border-accent: #8b00ab;
+    --mobile-source-accent: #bb5bea;
+    --mobile-source-accent-strong: #9700bd;
+    --mobile-source-accent-deep: #5e0074;
+    --mobile-source-accent-tab: #7100bd;
+    --mobile-source-accent-field: #6e277f;
+    --mobile-source-gold: #ffbd24;
+
+    --mobile-source-text: #fff;
+    --mobile-source-text-muted: rgb(255 255 255 / 72%);
+    --mobile-source-text-subtle: rgb(255 255 255 / 55%);
+    --mobile-source-backdrop: rgb(0 0 0 / 80%);
+
+    --mobile-source-radius-dialog: 10px;
+    --mobile-source-radius-card: 8px;
+    --mobile-source-radius-control: 6px;
+    --mobile-source-shadow-dialog: 0 16px 42px rgb(0 0 0 / 55%);
+    --mobile-source-shadow-soft: 0 1px 24px 4px rgb(90 90 90 / 20%);
+    --mobile-source-focus-ring: 0 0 0 2px rgb(187 91 234 / 18%);
+
+    color-scheme: dark;
+    accent-color: var(--mobile-source-accent);
+  }
+
+  :where(
+    [data-mobile-home-root='true'],
+    [data-mobile-member-page],
+    [data-mobile-search-owner='true'],
+    [data-mobile-avatar-owner='true'],
+    [data-mobile-popup-owner],
+    .auth-reference-scope
+  ) :where(button, a, input, select, textarea):focus-visible {
+    outline: 2px solid var(--mobile-source-accent);
+    outline-offset: 2px;
+  }
+
+  :where(
+    [data-mobile-member-page],
+    [data-mobile-search-owner='true'],
+    [data-mobile-avatar-owner='true']
+  ) {
+    width: 100%;
+    max-width: var(--mobile-source-page-max);
+    min-height: 100dvh;
+    margin: 0 auto;
+    color: var(--mobile-source-text);
+    background: var(--mobile-source-bg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(
+    [data-mobile-home-root='true'],
+    [data-mobile-member-page],
+    [data-mobile-search-owner='true'],
+    [data-mobile-avatar-owner='true'],
+    [data-mobile-popup-owner],
+    .auth-reference-scope
+  ) *,
+  :where(
+    [data-mobile-home-root='true'],
+    [data-mobile-member-page],
+    [data-mobile-search-owner='true'],
+    [data-mobile-avatar-owner='true'],
+    [data-mobile-popup-owner],
+    .auth-reference-scope
+  ) *::before,
+  :where(
+    [data-mobile-home-root='true'],
+    [data-mobile-member-page],
+    [data-mobile-search-owner='true'],
+    [data-mobile-avatar-owner='true'],
+    [data-mobile-popup-owner],
+    .auth-reference-scope
+  ) *::after {
+    scroll-behavior: auto !important;
+  }
+}
