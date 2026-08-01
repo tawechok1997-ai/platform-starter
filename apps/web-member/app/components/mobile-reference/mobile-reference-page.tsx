@@ -48,7 +48,7 @@ const VIP_BENEFITS = [
 const CASHBACK = [
   ['กีฬา', '0%'],
   ['คาสิโน', '0%'],
-  ['ยิงปลา', '0%'],
+  ['元棋牌ปลา', '0%'],
   ['สล็อต', '0%'],
   ['หวย', '0%'],
 ] as const;
@@ -175,7 +175,7 @@ function ReferenceHeader({ title, onBack }: { title: string; onBack: () => void 
 
 function VipPage({ assets }: { assets: AssetMap }) {
   const [activeLevel, setActiveLevel] = useState(0);
-  const selected = VIP_LEVELS[activeLevel];
+  const selected = VIP_LEVELS[activeLevel] ?? VIP_LEVELS[0];
 
   return (
     <div className={styles.vipBody}>
