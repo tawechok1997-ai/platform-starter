@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { resolveLocalAssetOrSource } from '../../lib/local-asset-by-basename';
 import MobileSourceContent from './mobile-source-content';
 import styles from './mobile-highlight-tab-content.module.css';
 
@@ -39,7 +42,7 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
         <div className={styles.promotionList}>
           {PROMOTIONS.map((image, index) => (
             <Link key={image} href="/promotions" className={styles.promotionCard} aria-label={`โปรโมชั่นแนะนำ ${index + 1}`}>
-              <img src={image} alt={`โปรโมชั่นแนะนำ ${index + 1}`} loading="lazy" />
+              <AssetImage source={image} alt={`โปรโมชั่นแนะนำ ${index + 1}`} />
             </Link>
           ))}
         </div>
@@ -53,7 +56,7 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
         <div className={styles.activityList}>
           {ACTIVITIES.map((activity) => (
             <article key={`${activity.title}-${activity.image}`} className={styles.activityCard}>
-              <img src={activity.image} alt={activity.title} loading="lazy" />
+              <AssetImage source={activity.image} alt={activity.title} />
               <div className={styles.activityContent}>
                 <strong>{activity.title}</strong>
                 <span>{activity.date}</span>
@@ -84,4 +87,24 @@ export default function MobileHighlightTabContent({ activeTab }: MobileHighlight
   }
 
   return <MobileSourceContent />;
+}
+
+function AssetImage({ source, alt }: { source: string; alt: string }) {
+  const localOrRemote = resolveLocalAssetOrSource(source, 'any');
+
+  return (
+    <img
+      src={localOrRemote}
+      alt={alt}
+      loading="lazy"
+      data-asset-source="local-first"
+      onError={(event) => {
+        if (localOrRemote !== source && /^https?:\/\//i.test(source)) {
+          event.currentTarget.src = source;
+          return;
+        }
+        event.currentTarget.hidden = true;
+      }}
+    />
+  );
 }
