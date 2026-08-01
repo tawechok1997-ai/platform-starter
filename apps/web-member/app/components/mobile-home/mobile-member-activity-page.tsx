@@ -27,11 +27,10 @@ type SourceActivity = {
   title: string;
   date: string;
   sourceImageUrl: string;
+  href: string;
 };
 
 const MEMBER_AUTH_OPEN_EVENT = 'member:auth-open';
-const MEMBER_ACTIVITY_JOIN_EVENT = 'member:activity-join';
-const ACTIVITY_ROUTE = '/mobile/member/activity';
 const FALLBACK_ACTIVITY_IMAGE = '/assets/asset-pc/images/กิจกรรม.png';
 
 const SOURCE_ACTIVITIES: readonly SourceActivity[] = [
@@ -40,18 +39,21 @@ const SOURCE_ACTIVITIES: readonly SourceActivity[] = [
     title: 'ภารกิจ',
     date: '',
     sourceImageUrl: 'https://cdn.zabbet.com/event/predict/1785515180099-ffe2dd0b-23d8-41c3-964e-25368bc2188d.jpeg',
+    href: '/mobile/member/activity/daily-mission',
   },
   {
     id: 'lottery-prediction',
     title: 'ทายผลหวย',
-    date: '2026-08-01',
+    date: 'รอบกิจกรรมล่าสุด',
     sourceImageUrl: 'https://cdn.zabbet.com/event/predict/1784904726144-c10c3ca6-cf70-41d3-a763-aa33c8917b2d.jpeg',
+    href: '/mobile/member/activity/lottery-prediction',
   },
   {
     id: 'turnover-reward',
     title: 'ทำยอด Turn รับรางวัลจุใจ',
     date: '',
     sourceImageUrl: 'https://cdn.zabbet.com/event/predict/1719130004352-5323a6c4-0ad4-4cda-8475-dd0f5701b61b.png',
+    href: '/mobile/member/activity/turnover-reward',
   },
 ] as const;
 
@@ -67,19 +69,16 @@ export default function MobileMemberActivityPage({
   const joinActivity = (activity: ReturnType<typeof buildSourceActivities>[number]) => {
     if (!ready || !isLoggedIn) {
       window.dispatchEvent(new CustomEvent(MEMBER_AUTH_OPEN_EVENT, {
-        detail: { mode: 'login', next: ACTIVITY_ROUTE },
+        detail: { mode: 'login', next: activity.href },
       }));
       return;
     }
 
-    if (activity.href.startsWith('/') && activity.href !== ACTIVITY_ROUTE) {
+    if (activity.href.startsWith('/')) {
       router.push(activity.href);
       return;
     }
-
-    window.dispatchEvent(new CustomEvent(MEMBER_ACTIVITY_JOIN_EVENT, {
-      detail: { id: activity.id, title: activity.title },
-    }));
+    window.location.assign(activity.href);
   };
 
   return (
@@ -138,13 +137,16 @@ function buildSourceActivities(items: MobileActivityContentItem[]) {
   return SOURCE_ACTIVITIES.map((source) => {
     const basename = extractAssetBasename(source.sourceImageUrl).toLowerCase();
     const matched = byBasename.get(basename) ?? byTitle.get(normalizeTitle(source.title));
-    const localImage = resolveLocalAssetByBasename(source.sourceImageUrl, 'pc')
-      || resolveLocalAssetByBasename(source.sourceImageUrl, 'mobile');
+    const sourceUrl = matched?.image || source.sourceImageUrl;
+    const localImage = resolveLocalAssetByBasename(sourceUrl, 'mobile')
+      || resolveLocalAssetByBasename(sourceUrl, 'pc');
 
     return {
       ...source,
-      imageUrl: localImage || source.sourceImageUrl,
-      href: matched?.href || ACTIVITY_ROUTE,
+      title: matched?.title || source.title,
+      sourceImageUrl: sourceUrl,
+      imageUrl: localImage || sourceUrl,
+      href: matched?.href || source.href,
     };
   });
 }
