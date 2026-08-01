@@ -1,6 +1,7 @@
 'use client';
 
-import SourceGameCategoryPage, { type SourceGameCategoryConfig } from '../../source-game-category-page';
+import SourceProviderCategoryPage from '../../source-provider-category-page';
+import type { SourceGameCategoryConfig } from '../../source-game-category-page';
 
 const rows = [
   ['dg', 'DREAM GAMING', false],
@@ -31,12 +32,12 @@ const providers = rows.map(([code, name]) => ({
 const config: SourceGameCategoryConfig = {
   slug: 'casino',
   title: 'คาสิโน',
-  total: 10,
+  total: rows.length,
   resultUnit: 'ค่าย',
   mode: 'provider-cards',
   baseBackground: '/assets/asset-pc/images/game/casino/bg_casino.webp',
   baseLogo: '/assets/asset-pc/images/game/casino/logo_casino.webp',
-  filters: [{ key: 'new', label: 'เกมส์ใหม่', count: 1 }],
+  filters: [{ key: 'new', label: 'เกมส์ใหม่', count: 2 }],
   providers,
   games: rows.map(([code, name, isNew]) => ({
     id: code,
@@ -52,9 +53,8 @@ const config: SourceGameCategoryConfig = {
 export default function CasinoSourcePage() {
   return (
     <>
-      <SourceGameCategoryPage config={config} />
+      <SourceProviderCategoryPage config={config} />
       <style>{`
-        /* Preserve the accepted casino page artwork and provider hover motion. */
         main[data-source-game-category='casino'][data-source-game-category='casino'] {
           background: #110e16 !important;
           background-color: #110e16 !important;
@@ -75,8 +75,6 @@ export default function CasinoSourcePage() {
           background: linear-gradient(182deg, rgba(115, 115, 115, 0) 29.43%, #110e16 52.3%, #110e16 85.96%) !important;
         }
 
-        /* Match the original source markup: one transparent CDN bitmap inside a
-         * transparent rounded link. No local flattened image, canvas or layers. */
         main[data-source-game-category='casino'] [data-source-game-cover] {
           isolation: auto !important;
           background: transparent !important;
