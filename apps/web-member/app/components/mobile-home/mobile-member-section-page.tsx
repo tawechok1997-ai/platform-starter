@@ -6,6 +6,7 @@ import { memberApiFetch } from '../../member-api';
 import { useMemberSession } from '../../member-session-provider';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import MobileLiveSchedulePage from './mobile-live-schedule-page';
+import MobileMemberActivityPage from './mobile-member-activity-page';
 import MobileMemberVipPage from './mobile-member-vip-page';
 import styles from './mobile-member-section-page.module.css';
 
@@ -107,6 +108,16 @@ export default function MobileMemberSectionPage({ section }: Props) {
     return <MobileLiveSchedulePage onBack={() => router.back()} />;
   }
 
+  if (section === 'activity') {
+    return (
+      <MobileMemberActivityPage
+        items={items}
+        loading={loading}
+        onBack={() => router.back()}
+      />
+    );
+  }
+
   return (
     <main className={styles.page} data-mobile-member-page={section}>
       <header className={styles.header}>
@@ -169,7 +180,7 @@ function ProfileSummary({ payload, fallbackImage }: { payload: unknown; fallback
   );
 }
 
-type NormalItem = { id: string; title: string; subtitle: string; image: string };
+type NormalItem = { id: string; title: string; subtitle: string; image: string; href: string };
 
 function normalizeItems(section: string, payload: unknown): NormalItem[] {
   if (section === 'vip' || section === 'profile' || section === 'live') return [];
@@ -198,7 +209,14 @@ function normalizeItems(section: string, payload: unknown): NormalItem[] {
     const title = firstString(item.title, item.name, item.question, item.label, transactionTitle(item), `รายการ ${index + 1}`);
     const subtitle = firstString(item.subtitle, item.message, item.description, item.answer, item.status, item.providerName, transactionSubtitle(item), '');
     const image = firstString(item.mobileImageUrl, item.imageUrl, item.image, item.thumbnailUrl, item.iconUrl, item.logoUrl, '');
-    return { id: firstString(item.id, item.code, String(index)), title, subtitle: stripHtml(subtitle), image };
+    const href = firstString(item.href, item.url, item.linkUrl, item.targetUrl, '');
+    return {
+      id: firstString(item.id, item.code, String(index)),
+      title,
+      subtitle: stripHtml(subtitle),
+      image,
+      href,
+    };
   });
 }
 
