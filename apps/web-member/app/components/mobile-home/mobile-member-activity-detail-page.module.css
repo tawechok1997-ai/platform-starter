@@ -1,0 +1,824 @@
+.page {
+  width: 100%;
+  max-width: 428px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  color: #fff;
+  background: #110e16;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 51;
+  display: grid;
+  width: 100%;
+  height: 50px;
+  padding: 0 8px;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  background: #171422;
+}
+
+.header button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.header h1 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 24px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scrollBody,
+.turnBody,
+.lotteryBody {
+  display: flex;
+  min-height: calc(100dvh - 50px);
+  padding: 16px 8px calc(28px + env(safe-area-inset-bottom));
+  flex-direction: column;
+  gap: 16px;
+  overflow-x: hidden;
+}
+
+.sourcePanel {
+  position: relative;
+  width: 100%;
+  padding: 46px 8px 10px;
+  overflow: hidden;
+  border: 1px solid #4b4658;
+  border-radius: 10px;
+  background: linear-gradient(157deg, #3d3948 -12.31%, #440061 82.84%);
+}
+
+.sourcePanel::before {
+  position: absolute;
+  inset: 0;
+  background: url('/images/affiliate_bg.webp') bottom / 100% 100% no-repeat;
+  content: '';
+  opacity: .34;
+  pointer-events: none;
+}
+
+.sourcePanel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.panelTitle {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  z-index: 3;
+  display: grid;
+  width: 192px;
+  height: 36px;
+  place-items: center;
+  background: linear-gradient(180deg, #505050 0%, #474747 32%, #313131 79%);
+  border-radius: 0 0 48% 48% / 0 0 100% 100%;
+  box-shadow: inset 0 1px rgb(255 255 255 / 14%);
+  transform: translateX(-50%);
+}
+
+.panelTitle span {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 20px;
+}
+
+.dailySummary {
+  display: grid;
+  min-height: 76px;
+  grid-template-columns: 77px minmax(0, 1fr) 68px;
+  align-items: center;
+  gap: 6px;
+}
+
+.dailySummary > img {
+  width: 77px;
+  height: 76px;
+  object-fit: contain;
+}
+
+.dailyCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.dailyCopy strong {
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.dailyCopy span {
+  min-width: 92px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: linear-gradient(155deg, #8dc9de -49.6%, #4eb4c9 250.95%);
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.dailyCount {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+}
+
+.dailyCount b {
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.dailyCount span {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.rewardRail {
+  display: flex;
+  width: calc(100% + 8px);
+  min-height: 76px;
+  margin: 10px -4px 0;
+  padding: 0 4px 4px;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.rewardRail::-webkit-scrollbar {
+  display: none;
+}
+
+.rewardDay {
+  display: flex;
+  width: 50px;
+  min-width: 50px;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  opacity: .52;
+}
+
+.rewardDay > span {
+  font-size: 8px;
+  line-height: 12px;
+  white-space: nowrap;
+}
+
+.rewardDay > div {
+  display: flex;
+  width: 48px;
+  height: 56px;
+  padding: 6px 3px 3px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: #2e0039;
+}
+
+.rewardDay img {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+}
+
+.rewardDay b {
+  font-size: 11px;
+}
+
+.rewardAvailable,
+.rewardClaimed {
+  opacity: 1;
+}
+
+.rewardAvailable > div {
+  border: 1px solid #fff;
+  background: radial-gradient(circle at center, rgb(168 80 232 / 55%), #a97cbb);
+  box-shadow: 0 0 12px rgb(200 123 255 / 60%);
+}
+
+.rewardClaimed > div {
+  border: 1px solid #65d4a4;
+  background: #31594d;
+}
+
+.primaryClaim {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: linear-gradient(165deg, #944fe8 -17.16%, #7600a8 91.36%);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 3px 6px rgb(0 0 0 / 25%);
+  cursor: pointer;
+}
+
+.primaryClaim:disabled {
+  color: #d8d8d8;
+  background: #4e4e4e;
+  cursor: not-allowed;
+}
+
+.missionPanel {
+  padding-top: 48px;
+  background: linear-gradient(157deg, #3d3948 -12.31%, #440061 82.84%);
+}
+
+.missionWheel {
+  position: absolute;
+  top: 28px;
+  right: 8px;
+  z-index: 2;
+  display: grid;
+  width: 76px;
+  place-items: end center;
+}
+
+.missionWheel img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.missionWheel span {
+  position: absolute;
+  bottom: -1px;
+  min-width: 62px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: linear-gradient(6deg, #38324e -5.35%, #bc8ccc 38.73%, #7e00a2 90.81%);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.missionTabs {
+  display: flex;
+  min-height: 36px;
+  margin-top: 62px;
+  padding: 6px 14px;
+  justify-content: space-around;
+  align-items: center;
+  border-radius: 4px;
+  background: #171422;
+  font-size: 11px;
+}
+
+.missionTabs b {
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: #7100bd;
+}
+
+.missionTabs span {
+  opacity: .5;
+}
+
+.balanceChips {
+  display: grid;
+  margin: 7px 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.balanceChips > div {
+  display: grid;
+  min-width: 0;
+  padding: 2px 8px 2px 3px;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid rgb(242 242 242 / 20%);
+  border-radius: 999px;
+  background: linear-gradient(0deg, #505050 0%, #474747 32%, #313131 79%);
+}
+
+.balanceChips i {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 999px;
+  color: #f6ce36;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.balanceChips b,
+.balanceChips span {
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.listTitle {
+  margin: 8px 0 5px;
+  font-size: 12px;
+}
+
+.missionList {
+  display: grid;
+  gap: 7px;
+}
+
+.missionCard {
+  display: grid;
+  min-height: 80px;
+  padding: 8px;
+  grid-template-columns: minmax(0, 1fr) 104px;
+  gap: 5px;
+  border-radius: 7px;
+  background: rgb(21 19 26 / 82%);
+}
+
+.missionMain {
+  min-width: 0;
+}
+
+.missionMain strong,
+.missionMain p {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.missionMain strong {
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.missionMain p {
+  margin: 0 0 7px;
+  color: rgb(255 255 255 / 50%);
+  font-size: 9px;
+  line-height: 14px;
+}
+
+.conditionPill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #464160;
+  font-size: 8px;
+}
+
+.missionAction {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.missionAction small {
+  color: #a8a8a8;
+  font-size: 8px;
+}
+
+.missionAction button {
+  width: 100%;
+  min-height: 29px;
+  border: 1px solid #4c4858;
+  border-radius: 5px;
+  color: #fff;
+  background: #15131a;
+  font: inherit;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.missionAction button:not(:disabled) {
+  border: 0;
+  background: linear-gradient(165deg, #944fe8 -17.16%, #7600a8 91.36%);
+  cursor: pointer;
+}
+
+.progressRow {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 3px;
+}
+
+.progressRow > div {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(109 112 119 / 12%);
+}
+
+.progressRow i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(93deg, #d99c00 -11.62%, #ecd401 52.41%);
+}
+
+.progressRow span {
+  font-size: 7px;
+}
+
+.turnBody {
+  padding: 14px 14px 40px;
+}
+
+.turnTabs {
+  display: grid;
+  padding: 0 2px;
+  grid-template-columns: repeat(2, minmax(100px, 120px));
+  justify-content: start;
+}
+
+.turnTabs button {
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  color: #737373;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.turnTabs .activeTurnTab {
+  color: #fff;
+  background: #7100bd;
+}
+
+.turnHero {
+  position: relative;
+  min-height: 164px;
+  margin-top: -3px;
+  padding: 45px 15px 18px;
+  overflow: hidden;
+  border: 1px solid #2b3e57;
+  border-radius: 10px;
+  background: rgb(118 0 168 / 20%);
+}
+
+.turnWaves {
+  position: absolute;
+  inset: 30px 0 0;
+  overflow: hidden;
+  opacity: .65;
+}
+
+.turnWaves i {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  height: 105px;
+  border-radius: 50% 50% 0 0;
+  background: rgb(118 0 168 / 35%);
+  transform: rotate(-5deg);
+}
+
+.turnWaves i:last-child {
+  top: 28px;
+  background: rgb(118 0 168 / 55%);
+  transform: rotate(7deg);
+}
+
+.turnProgress {
+  position: absolute;
+  right: 16px;
+  bottom: 18px;
+  left: 16px;
+  z-index: 2;
+}
+
+.turnProgress > div {
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(242 242 242 / 12%);
+}
+
+.turnProgress > div i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(270deg, #ffe9b5, #fff);
+}
+
+.turnProgress section {
+  display: flex;
+  margin-top: 8px;
+  justify-content: space-between;
+  font-size: 10px;
+}
+
+.turnProgress span {
+  display: flex;
+  flex-direction: column;
+}
+
+.turnProgress span:last-child {
+  text-align: right;
+}
+
+.turnProgress b {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.turnRewardSummary {
+  display: flex;
+  min-height: 35px;
+  padding: 4px 10px;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #393348;
+  border-radius: 4px;
+  background: #171422;
+  font-size: 10px;
+}
+
+.turnRewardSummary b {
+  color: #d4c584;
+}
+
+.turnTable {
+  overflow: hidden;
+  border: 1px solid #2f2a39;
+  background: #171422;
+}
+
+.turnHead,
+.turnRow {
+  display: grid;
+  min-height: 46px;
+  grid-template-columns: 56px 1fr 72px 86px;
+  align-items: center;
+  text-align: center;
+}
+
+.turnHead {
+  min-height: 42px;
+  background: #292331;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.turnRow {
+  border-top: 1px solid #302a39;
+  font-size: 10px;
+}
+
+.turnRow strong {
+  font-size: 11px;
+}
+
+.turnRow em {
+  color: #ffbd32;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.turnRow button {
+  width: 74px;
+  min-height: 31px;
+  margin: auto;
+  border: 0;
+  border-radius: 4px;
+  color: #fff;
+  background: linear-gradient(165deg, #944fe8, #7600a8);
+  font: inherit;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.turnRow button:disabled {
+  color: #496172;
+  background: #1e2933;
+}
+
+.lotteryBody {
+  padding: 18px 14px 40px;
+  gap: 18px;
+}
+
+.lotteryBanner,
+.bannerSkeleton {
+  display: block;
+  width: 100%;
+  min-height: 135px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: linear-gradient(135deg, #2c1838, #6d0058);
+}
+
+.lotteryTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lotteryTitleRow strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.openBadge,
+.closedBadge {
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.openBadge {
+  background: #217d50;
+}
+
+.closedBadge {
+  background: #b91c1c;
+}
+
+.lotteryHint {
+  margin: 0;
+  color: #7100bd;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.lotteryInputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.lotteryInputs label {
+  display: flex;
+  min-width: 0;
+  min-height: 130px;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 8px;
+  background: #211d31;
+}
+
+.lotteryInputs b {
+  width: 100%;
+  min-height: 46px;
+  padding: 13px 5px 8px;
+  border-bottom: 1px solid #777;
+  font-size: 11px;
+  text-align: center;
+}
+
+.lotteryInputs input {
+  width: min(144px, calc(100% - 24px));
+  height: 40px;
+  margin: auto;
+  border: 1px solid #3d3747;
+  border-radius: 6px;
+  outline: 0;
+  color: #fff;
+  background: #110e16;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 4px;
+}
+
+.lotteryInputs input:focus {
+  border-color: #a74ce4;
+  box-shadow: 0 0 0 2px rgb(167 76 228 / 20%);
+}
+
+.lotterySubmit {
+  width: 100%;
+  height: 44px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: linear-gradient(165deg, #944fe8 -17.16%, #7600a8 91.36%);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.lotterySubmit:disabled {
+  color: #777;
+  background: #38373e;
+}
+
+.submittedBox {
+  padding: 10px 12px;
+  border: 1px solid #4f455e;
+  border-radius: 6px;
+  color: #dfc6ec;
+  background: #211d31;
+  font-size: 11px;
+  text-align: center;
+}
+
+.conditions {
+  border-radius: 4px;
+  background: #373147;
+}
+
+.conditions > button {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.conditions ul {
+  margin: 0;
+  padding: 4px 28px 14px;
+  color: #d2ced8;
+  font-size: 10px;
+  line-height: 17px;
+}
+
+.successNotice,
+.errorNotice {
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.successNotice {
+  border: 1px solid #48c1b5;
+  color: #9af0d6;
+  background: rgb(25 83 72 / 70%);
+}
+
+.errorNotice {
+  border: 1px solid #ef6c7c;
+  color: #ffb8c0;
+  background: rgb(94 25 37 / 70%);
+}
+
+.emptyCard,
+.errorState {
+  padding: 24px;
+  border: 1px solid #37313f;
+  border-radius: 8px;
+  color: #aaa;
+  background: #15131a;
+  font-size: 12px;
+  text-align: center;
+}
+
+.errorState {
+  margin: 20px 14px;
+}
+
+@media (max-width: 359px) {
+  .missionCard {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
+
+  .turnHead,
+  .turnRow {
+    grid-template-columns: 44px 1fr 58px 76px;
+  }
+
+  .lotteryInputs {
+    grid-template-columns: 1fr;
+  }
+}
