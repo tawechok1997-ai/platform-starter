@@ -332,7 +332,10 @@
   border-radius: 7px;
   color: var(--mobile-source-text, #fff);
   background: var(--mobile-source-card-gradient-soft, linear-gradient(#342f43 0%, rgb(0 0 0 / 0%) 100%));
+  font: inherit;
+  text-align: left;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .referralRow strong {
