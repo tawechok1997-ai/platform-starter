@@ -1,7 +1,7 @@
-:global([data-mobile-home-root='true']:has([data-mobile-casino-provider-page='true']) [data-mobile-section-owner='hero']),
-:global([data-mobile-home-root='true']:has([data-mobile-casino-provider-page='true']) [data-mobile-section-owner='auth-actions']),
-:global([data-mobile-home-root='true']:has([data-mobile-casino-provider-page='true']) [data-mobile-section-owner='announcement']),
-:global([data-mobile-home-root='true']:has([data-mobile-casino-provider-page='true']) [data-mobile-section-owner='highlight-tabs']) {
+:global([data-mobile-home-root='true']):has(.root) :global([data-mobile-section-owner='hero']),
+:global([data-mobile-home-root='true']):has(.root) :global([data-mobile-section-owner='auth-actions']),
+:global([data-mobile-home-root='true']):has(.root) :global([data-mobile-section-owner='announcement']),
+:global([data-mobile-home-root='true']):has(.root) :global([data-mobile-section-owner='highlight-tabs']) {
   display: none !important;
 }
 
