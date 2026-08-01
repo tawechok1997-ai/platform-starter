@@ -1,0 +1,404 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 201;
+  display: flex;
+  padding: 16px;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 80%);
+}
+
+.dialog {
+  position: relative;
+  display: flex;
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 56px 16px 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  overflow: hidden;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%);
+  box-shadow: 0 1px 24px 4px rgb(90 90 90 / 20%);
+}
+
+.passwordDialog {
+  width: min(480px, calc(100vw - 32px));
+}
+
+.dialogBorder {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #413e4b;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.titlePlate {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: 192px;
+  height: 36px;
+  transform: translateX(-50%);
+}
+
+.titlePlate svg {
+  position: absolute;
+  inset: 0;
+  width: 192px;
+  height: 36px;
+}
+
+.titlePlate strong {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.closeButton {
+  position: absolute;
+  top: 0;
+  right: 2px;
+  z-index: 2;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  padding: 12px;
+  place-items: center;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.closeButton img {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+.contactList {
+  display: grid;
+  width: 100%;
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
+  gap: 20px;
+  scrollbar-width: none;
+}
+
+.contactList::-webkit-scrollbar {
+  display: none;
+}
+
+.contactCard {
+  display: grid;
+  width: 100%;
+  min-height: 58px;
+  padding: 12px;
+  grid-template-columns: 40px minmax(0, 1fr) 88px;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid rgb(244 244 245 / 10%);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 2%);
+}
+
+.contactIcon {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.contactCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.contactCopy strong,
+.contactCopy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contactCopy strong {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.contactCopy span {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.contactButton {
+  display: flex;
+  width: 88px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: #fff;
+  background: #38c142;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 18%), 0 8px 16px rgb(0 0 0 / 24%);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.passwordForm {
+  display: flex;
+  width: min(320px, 100%);
+  max-height: calc(100dvh - 112px);
+  padding: 0;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.passwordForm::-webkit-scrollbar {
+  display: none;
+}
+
+.passwordField {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 56px;
+  padding: 0 42px 0 14px;
+  align-items: center;
+  border: 1px solid #757575;
+  border-radius: 6px;
+  background: #15131a;
+}
+
+.passwordField > span {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  z-index: 1;
+  padding: 0 4px;
+  transform: translateY(-50%);
+  color: #757575;
+  background: #15131a;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  pointer-events: none;
+  transition: transform 160ms ease, font-size 160ms ease, top 160ms ease;
+}
+
+.passwordField:focus-within > span,
+.passwordField:has(input:not(:placeholder-shown)) > span {
+  top: 0;
+  transform: translateY(-50%);
+  font-size: 11px;
+}
+
+.passwordField input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 14px;
+}
+
+.passwordField input::placeholder {
+  color: transparent;
+}
+
+.passwordField button {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 0;
+  color: #757575;
+  background: transparent;
+  cursor: pointer;
+}
+
+.passwordField button svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.passwordFieldInvalid {
+  border-color: #e15d5d;
+}
+
+.passwordFieldDisabled {
+  opacity: .65;
+}
+
+.passwordRules {
+  display: grid;
+  gap: 4px;
+}
+
+.passwordRules > div {
+  display: grid;
+  min-height: 24px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+}
+
+.passwordRules span {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1.5px solid #757575;
+  border-radius: 50%;
+  color: transparent;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.passwordRules strong {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.passwordRules .ruleActive span {
+  border-color: #58c978;
+  color: #fff;
+  background: #58c978;
+}
+
+.passwordRules .ruleActive strong {
+  color: #d9f4e0;
+}
+
+.submitButton {
+  display: flex;
+  width: 100%;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: linear-gradient(165.34deg, #944fe8 -17.16%, #7600a8 91.36%);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.submitButton:disabled {
+  color: #58647c;
+  background: #2b3642;
+  cursor: not-allowed;
+}
+
+.errorNotice,
+.successNotice {
+  margin-top: -6px;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.errorNotice {
+  color: #ff9a9a;
+}
+
+.successNotice {
+  color: #7edc98;
+}
+
+.supportDivider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(180deg, #efd596 0%, #ccbc98 45.83%, #b7a47c 93.23%);
+  opacity: .1;
+}
+
+.supportRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.supportRow span {
+  color: #909090;
+}
+
+.supportRow button {
+  padding: 0;
+  border: 0;
+  color: #7100bd;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 359px) {
+  .layer {
+    padding: 10px;
+  }
+
+  .dialog,
+  .passwordDialog {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .contactCard {
+    padding: 10px;
+    grid-template-columns: 34px minmax(0, 1fr) 70px;
+    gap: 8px;
+  }
+
+  .contactIcon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .contactButton {
+    width: 70px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .passwordField {
+    height: 48px;
+  }
+}
