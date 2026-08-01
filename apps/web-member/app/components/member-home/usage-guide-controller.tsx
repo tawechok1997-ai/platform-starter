@@ -5,8 +5,11 @@ import MobileVideoGuidePopup from './mobile-video-guide-popup';
 import UsageGuideModal from './usage-guide-modal';
 
 const OPEN_GUIDE_EVENT = 'open-member-usage-guide';
+const MOBILE_MEMBER_POPUP_EVENT = 'member:mobile-popup-open';
 const MOBILE_QUERY = '(max-width: 900px)';
 const VIDEO_TRIGGER_SELECTOR = '[data-mobile-member-popup="video"]';
+
+type MobilePopupOpenDetail = { kind?: unknown };
 
 function isInternalGuideLink(link: HTMLAnchorElement) {
   try {
@@ -23,6 +26,11 @@ export default function UsageGuideController() {
   const closeVideo = useCallback(() => setVideoOpen(false), []);
 
   useEffect(() => {
+    const showVideo = () => {
+      setOpen(false);
+      setVideoOpen(true);
+    };
+
     const handleVideoClick = (event: MouseEvent) => {
       if (
         event.defaultPrevented
@@ -41,14 +49,24 @@ export default function UsageGuideController() {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      setOpen(false);
-      setVideoOpen(true);
+      showVideo();
+    };
+
+    const handlePopupOpen = (event: Event) => {
+      const detail = (event as CustomEvent<MobilePopupOpenDetail>).detail;
+      if (detail?.kind !== 'video' || !window.matchMedia(MOBILE_QUERY).matches) return;
+      event.stopImmediatePropagation();
+      showVideo();
     };
 
     // Window capture runs before the authenticated drawer runtime. This keeps
     // one active owner for the video guide before and after login.
     window.addEventListener('click', handleVideoClick, true);
-    return () => window.removeEventListener('click', handleVideoClick, true);
+    window.addEventListener(MOBILE_MEMBER_POPUP_EVENT, handlePopupOpen);
+    return () => {
+      window.removeEventListener('click', handleVideoClick, true);
+      window.removeEventListener(MOBILE_MEMBER_POPUP_EVENT, handlePopupOpen);
+    };
   }, []);
 
   useEffect(() => {
