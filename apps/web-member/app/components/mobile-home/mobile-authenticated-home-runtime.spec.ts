@@ -7,6 +7,8 @@ const runtime = readFileSync(new URL('./mobile-authenticated-home-runtime.tsx', 
 const runtimeCss = readFileSync(new URL('./mobile-authenticated-home-runtime.module.css', import.meta.url), 'utf8');
 const popupRuntime = readFileSync(new URL('./mobile-member-popup-runtime.tsx', import.meta.url), 'utf8');
 const mobileHomeRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
+const avatarPage = readFileSync(new URL('../../profile/avatar/page.tsx', import.meta.url), 'utf8');
+const sharedPopupRuntime = readFileSync(new URL('../member-shared-popup-runtime.tsx', import.meta.url), 'utf8');
 
 test('authenticated mobile shell reuses the guest header and drawer owners', () => {
   assert.equal((memberHome.match(/<MobileAuthenticatedHomeRuntime\s*\/>/g) ?? []).length, 1);
@@ -34,6 +36,14 @@ test('mobile authenticated shell owns one mobile popup runtime and no desktop po
   assert.doesNotMatch(runtime, /MemberHeaderFinanceRuntime|MemberMenuIncomeSafeRuntime|MemberMenuSpecialBonusRuntime|MemberMenuSecondaryRuntime|MemberMenuVipRuntime/);
   assert.doesNotMatch(popupRuntime, /MemberHeaderFinanceRuntime|MemberMenuIncomeSafeRuntime|MemberSharedPopupRuntime/);
   assert.match(popupRuntime, /function SourcePopupShell/);
+});
+
+test('profile pages and shared dialogs do not create a second mobile popup owner', () => {
+  assert.doesNotMatch(avatarPage, /MobileMemberPopupRuntime/);
+  assert.doesNotMatch(avatarPage, /data-mobile-member-popup/);
+  assert.match(sharedPopupRuntime, /\[data-mobile-member-popup\]/);
+  assert.match(sharedPopupRuntime, /\[data-ui-owner="mobile-popup"\]/);
+  assert.doesNotMatch(sharedPopupRuntime, /public-member-menu-grid--secondary button/);
 });
 
 test('authenticated drawer routes popup actions through the one mobile owner', () => {
@@ -73,7 +83,6 @@ test('authenticated drawer matches source density and never renders guest action
   assert.match(runtime, /ReferralCopiedToast/);
   assert.match(runtimeCss, /\.referralToast\s*\{[\s\S]*width:\s*min\(365px,[\s\S]*height:\s*60px[\s\S]*border:\s*1px solid #48c1b5/);
 });
-
 
 test('all source drawer page and popup actions have explicit mobile destinations', () => {
   for (const section of [
