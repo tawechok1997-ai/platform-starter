@@ -97,9 +97,19 @@ function scoreCandidate(
   const sourceProviderSet = normalizedSource.match(/providers\/set\/([^/]+)\//)?.[1];
   if (sourceProviderSet && normalizedCandidate.includes(`/providers/set/${sourceProviderSet}/`)) score -= 30;
 
-  if (normalizedCandidate.includes('/asset-pc/')) {
-    score -= preference === 'any' ? 20 : 35;
+  const isPcAsset = normalizedCandidate.includes('/asset-pc/');
+  const isMobileAsset = normalizedCandidate.includes('/asset-mobile/')
+    || normalizedCandidate.includes('/asset-moblie/');
+  if (preference === 'pc') {
+    if (isPcAsset) score -= 55;
+    if (isMobileAsset) score += 55;
+  } else if (preference === 'mobile') {
+    if (isMobileAsset) score -= 55;
+    if (isPcAsset) score += 55;
+  } else if (isPcAsset) {
+    score -= 20;
   }
+
   if (normalizedCandidate.includes('/reference-brand/')) score -= 12;
   if (normalizedCandidate.includes('/providers/set/1_1_badge/')) score -= 4;
 
