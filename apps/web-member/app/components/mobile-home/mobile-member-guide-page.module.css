@@ -1,0 +1,319 @@
+.page {
+  width: min(100%, 428px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  color: #fff;
+  background: #141019;
+  box-shadow: 0 0 24px rgb(255 255 255 / 14%);
+}
+
+.topShell {
+  position: sticky;
+  z-index: 101;
+  top: 0;
+  width: 100%;
+  background: #171422;
+}
+
+.header {
+  display: grid;
+  width: 100%;
+  height: 50px;
+  padding: 0 8px;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  background: #171422;
+}
+
+.header button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.header button svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.header h1 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabBar {
+  width: 100%;
+  padding: 0 16px 16px;
+  background: #171422;
+}
+
+.tabScroller {
+  display: flex;
+  width: 100%;
+  height: 32px;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: 4px;
+  scrollbar-width: none;
+}
+
+.tabScroller::-webkit-scrollbar,
+.disclosurePanel::-webkit-scrollbar {
+  display: none;
+}
+
+.tabButton,
+.tabActive {
+  height: 32px;
+  padding: 0 16px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 16px;
+  color: #fff;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: .3;
+}
+
+.tabActive {
+  background: #b573d4;
+  box-shadow: 0 0 3px #b573d4;
+  font-weight: 600;
+  opacity: 1;
+}
+
+.sections {
+  display: grid;
+  width: 100%;
+  padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+  gap: 16px;
+}
+
+.sectionCard {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  padding: 32px 16px 16px;
+  align-items: center;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #413e4b;
+  border-radius: 10px;
+  background: linear-gradient(0deg, #1b1824 -5.86%, #3f3b4b 104.05%);
+}
+
+.sectionTitlePlate {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  width: 194px;
+  height: 38px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.sectionTitlePlate svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sectionTitlePlate strong {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  padding-bottom: 3px;
+  place-items: center;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sectionItems {
+  display: grid;
+  width: 100%;
+  margin-top: 2px;
+  gap: 8px;
+}
+
+.disclosure,
+.disclosureOpen {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #464052;
+  border-radius: 5px;
+  background: #292534;
+}
+
+.disclosureOpen {
+  border-color: #8c00ab;
+}
+
+.disclosureButton {
+  display: flex;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 10px;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  color: #fff;
+  background: #292534;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.disclosureOpen .disclosureButton {
+  background: #8c00ab;
+}
+
+.disclosureButton span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron,
+.chevronExpanded {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  fill: currentColor;
+  opacity: .55;
+  transition: transform 160ms ease;
+}
+
+.chevron {
+  transform: rotate(-90deg);
+}
+
+.chevronExpanded {
+  transform: rotate(0deg);
+}
+
+.disclosurePanel {
+  width: 100%;
+  max-height: min(68dvh, 720px);
+  padding: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: #fff;
+  background: #1b1824;
+  scrollbar-width: none;
+}
+
+.guideCopy {
+  width: 100%;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+}
+
+.guideCopy + .guideImage,
+.guideImage + .guideCopy {
+  margin-top: 10px;
+}
+
+.guideCopy p,
+.guideCopy ul,
+.guideCopy ol {
+  margin: 0 0 8px;
+}
+
+.guideCopy ul,
+.guideCopy ol {
+  padding-left: 18px;
+}
+
+.guideCopy li + li {
+  margin-top: 4px;
+}
+
+.guideImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+  border-radius: 3px;
+  background: #121018;
+}
+
+.guideImage + .guideImage {
+  margin-top: 10px;
+}
+
+@media (max-width: 359px) {
+  .header h1 {
+    font-size: 16px;
+  }
+
+  .tabBar {
+    padding-inline: 12px;
+  }
+
+  .tabButton,
+  .tabActive {
+    padding-inline: 13px;
+    font-size: 10px;
+  }
+
+  .sections {
+    padding-inline: 8px;
+  }
+
+  .sectionCard {
+    padding-inline: 10px;
+  }
+
+  .sectionTitlePlate {
+    width: 180px;
+  }
+
+  .sectionTitlePlate strong {
+    font-size: 13px;
+  }
+
+  .disclosureButton span,
+  .guideCopy {
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron,
+  .chevronExpanded {
+    transition: none;
+  }
+}
