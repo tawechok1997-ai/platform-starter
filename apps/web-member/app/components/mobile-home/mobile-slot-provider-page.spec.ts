@@ -2,13 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const page = readFileSync(new URL('./mobile-slot-provider-page.tsx', import.meta.url), 'utf8');
+const slot = readFileSync(new URL('./mobile-slot-provider-page.tsx', import.meta.url), 'utf8');
+const fishing = readFileSync(new URL('./mobile-fishing-provider-page.tsx', import.meta.url), 'utf8');
+const card = readFileSync(new URL('./mobile-card-provider-page.tsx', import.meta.url), 'utf8');
+const shared = readFileSync(new URL('./mobile-provider-games-category-page.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('./mobile-casino-provider-page.module.css', import.meta.url), 'utf8');
 const owner = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
-const launchController = readFileSync(
-  new URL('../member-home/public-home-game-navigation-controller.tsx', import.meta.url),
-  'utf8',
-);
 
 const SLOT_PROVIDER_ORDER = [
   'ygr', 'hotdog', 'misolt', 'jl', 'pp', 'kingm', 'spg', 'jkgx2', 'fachai', 'rsg',
@@ -17,72 +16,95 @@ const SLOT_PROVIDER_ORDER = [
   'pgsus', 'n2', 'ap', 'amb', 'ask', 'nlc', 'vp', 'drag', 'acewin', 'rb7slot',
 ] as const;
 
-test('slot provider page keeps the supplied 42-provider order and geometry', () => {
+const FISHING_PROVIDER_ORDER = [
+  'ygrfish', 'misoltfish', 'cqfish', 'fachaifish', 'jlfish', 'jkgx2fish', 'rsgfish',
+  'sppfish', 'spgfish', 'wmfish', 'kagafish', 'r88fish', 'fsfish', 'askfish', 'acewinfish',
+] as const;
+
+test('slot keeps the supplied 42-provider order and source geometry', () => {
   let previous = -1;
   for (const provider of SLOT_PROVIDER_ORDER) {
-    const current = page.indexOf(`code: '${provider}'`);
+    const current = slot.indexOf(`code: '${provider}'`);
     assert.ok(current > previous, `${provider} must keep the supplied source order`);
     previous = current;
   }
 
   assert.equal(SLOT_PROVIDER_ORDER.length, 42);
-  assert.match(page, /code: 'ygr'[\s\S]*layout: 'wide-hero'[\s\S]*badge: 'hot'/);
-  assert.match(page, /code: 'hotdog'[\s\S]*layout: 'wide-banner'[\s\S]*badge: 'new'/);
-  assert.match(page, /code: 'jl'[\s\S]*badge: 'hot'/);
-  for (const provider of ['hacksaw', 'vp', 'drag', 'acewin', 'rb7slot']) {
-    assert.match(page, new RegExp(`code: '${provider}'[\\s\\S]*badge: 'new'`));
+  assert.match(slot, /code: 'ygr'[\s\S]*layout: 'wide-hero'[\s\S]*badge: 'hot'/);
+  assert.match(slot, /code: 'hotdog'[\s\S]*layout: 'wide-banner'[\s\S]*badge: 'new'/);
+  assert.match(slot, /catalogPlatform="mobile"/);
+  assert.match(slot, /providerAssetPlatform="mobile"/);
+  assert.match(slot, /gameAssetPlatform="mobile"/);
+});
+
+test('fishing keeps 15 providers and uses PC icons only for game cards', () => {
+  let previous = -1;
+  for (const provider of FISHING_PROVIDER_ORDER) {
+    const current = fishing.indexOf(`code: '${provider}'`);
+    assert.ok(current > previous, `${provider} must keep the supplied source order`);
+    previous = current;
   }
+
+  assert.equal(FISHING_PROVIDER_ORDER.length, 15);
+  assert.match(fishing, /code: 'ygrfish'[\s\S]*layout: 'wide-hero'[\s\S]*badge: 'hot'/);
+  assert.match(fishing, /code: 'misoltfish'[\s\S]*layout: 'wide-banner'/);
+  assert.match(fishing, /catalogPlatform="mobile"/);
+  assert.match(fishing, /providerAssetPlatform="mobile"/);
+  assert.match(fishing, /gameAssetPlatform="pc"/);
 });
 
-test('slot uses provider selection before game launch', () => {
-  assert.match(page, /data-category-flow="provider-games"/);
-  assert.match(page, /data-slot-step="providers"/);
-  assert.match(page, /data-provider-select="true"/);
-  assert.match(page, /data-next-step="games"/);
-  assert.doesNotMatch(page, /data-provider-launch="true"/);
-  assert.match(page, /setSelectedProvider\(provider\)/);
-  assert.match(page, /data-slot-step="games"/);
-  assert.match(page, /onBack=\{\(\) => setSelectedProvider\(null\)\}/);
+test('card keeps Mobile provider artwork while game icons resolve from PC', () => {
+  assert.match(card, /code: 'kingm'[\s\S]*layout: 'wide-hero'/);
+  assert.match(card, /code: 'amb'[\s\S]*layout: 'wide-banner'/);
+  assert.match(card, /includeCatalogProviders/);
+  assert.match(card, /catalogPlatform="mobile"/);
+  assert.match(card, /providerAssetPlatform="mobile"/);
+  assert.match(card, /gameAssetPlatform="pc"/);
 });
 
-test('selected provider loads and filters the mobile slot catalog', () => {
-  assert.match(page, /loadSourceCategoryCatalog\('slot', SLOT_SOURCE_PROVIDERS, 'mobile'/);
-  assert.match(page, /catalog\.games\.filter\(\(game\) => game\.provider === selectedCode\)/);
-  assert.match(page, /INITIAL_GAME_COUNT = 60/);
-  assert.match(page, /GAME_PAGE_STEP = 60/);
-  assert.match(page, /visibleCount < games\.length/);
+test('shared provider flow selects a provider before exposing its games', () => {
+  assert.match(shared, /data-category-flow="provider-games"/);
+  assert.match(shared, /data-provider-games-stage="providers"/);
+  assert.match(shared, /data-provider-select="true"/);
+  assert.match(shared, /data-next-step="games"/);
+  assert.match(shared, /setSelectedCode\(normalizeProviderCode\(provider\.code\)\)/);
+  assert.match(shared, /data-provider-games-stage="games"/);
+  assert.match(shared, /backToProviders/);
 });
 
-test('slot game cards hand real game identifiers to the shared launcher', () => {
-  assert.match(page, /data-game-id=\{game\.id\}/);
-  assert.match(page, /data-game-code=\{game\.id\}/);
-  assert.match(page, /data-game-name=\{game\.name\}/);
-  assert.match(page, /data-provider-code=\{game\.provider \?\? provider\.code\}/);
-  assert.match(page, /data-game-category="slot"/);
+test('shared game page loads the selected Mobile catalog and filters by provider', () => {
+  assert.match(shared, /loadSourceCategoryCatalog\(catalogSlug, sourceProviders, catalogPlatform/);
+  assert.match(shared, /normalizeProviderCode\(game\.provider \?\? ''\) === selectedCode/);
+  assert.match(shared, /INITIAL_GAME_COUNT = 60/);
+  assert.match(shared, /GAME_PAGE_STEP = 60/);
+  assert.match(shared, /visibleCount < filteredGames\.length/);
 });
 
-test('guest login preserves the exact selected slot game destination', () => {
-  assert.match(launchController, /currentUrl\.searchParams\.set\('auth', 'login'\)/);
-  assert.match(launchController, /currentUrl\.searchParams\.set\('next', destination\)/);
-  assert.match(launchController, /const candidate = readGameCandidate\(action\)/);
-  assert.match(launchController, /const game = firstText\(candidate\?\.id, candidate\?\.providerGameCode\)/);
-  assert.match(launchController, /params\.set\('provider', candidate\.providerCode\)/);
-  assert.match(launchController, /params\.set\('platform', 'mobile'\)/);
-  assert.match(launchController, /return `\/games\?\$\{params\.toString\(\)\}`/);
+test('game cards preserve the chosen game through login and real launch', () => {
+  assert.match(shared, /href=\{`\/games\?\$\{destination\.toString\(\)\}`\}/);
+  assert.match(shared, /data-game-id=\{game\.id\}/);
+  assert.match(shared, /data-game-code=\{game\.id\}/);
+  assert.match(shared, /data-game-name=\{game\.name\}/);
+  assert.match(shared, /data-provider-code=\{providerCode\}/);
+  assert.match(shared, /data-game-category=\{category\}/);
+  assert.match(shared, /data-game-icon-platform=\{gameAssetPlatform\}/);
 });
 
-test('slot mobile geometry contains provider and game grids', () => {
+test('Mobile provider games match the slot three-column layout', () => {
   assert.match(css, /\.grid\s*\{[\s\S]*flex-wrap:\s*wrap[\s\S]*gap:\s*10px/);
   assert.match(css, /\.card\s*\{[\s\S]*width:\s*calc\(50% - 5px\)/);
   assert.match(css, /\.wide\s*\{[\s\S]*width:\s*100%/);
-  assert.match(css, /\.hotProviderBadge\s*\{[\s\S]*height:\s*19px[\s\S]*linear-gradient/);
-  assert.match(css, /\.slotGameGrid\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(css, /\.backButton\s*\{/);
-  assert.match(css, /\.loadMoreButton\s*\{/);
+  assert.match(css, /\.providerRail\s*\{[\s\S]*overflow-x:\s*auto/);
+  assert.match(css, /\.slotGameGrid\s*\{[\s\S]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(css, /:has\(\.providerSelectionRoot\)/);
+  assert.doesNotMatch(css, /:has\(\.root\)/);
 });
 
-test('mobile category owner switches slot to the two-step component', () => {
+test('mobile category owner routes slot fishing and card to the shared flow', () => {
   assert.match(owner, /import MobileSlotProviderPage/);
-  assert.match(owner, /activeCategory === 'slot'/);
-  assert.match(owner, /<MobileSlotProviderPage \/>/);
+  assert.match(owner, /import MobileFishingProviderPage/);
+  assert.match(owner, /import MobileCardProviderPage/);
+  assert.match(owner, /activeCategory === 'slot'[\s\S]*<MobileSlotProviderPage \/>/);
+  assert.match(owner, /activeCategory === 'fishing'[\s\S]*<MobileFishingProviderPage \/>/);
+  assert.match(owner, /activeCategory === 'card'[\s\S]*<MobileCardProviderPage \/>/);
 });
