@@ -49,6 +49,9 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
     if (closingRef.current || authCompletionRef.current) return;
     authCompletionRef.current = true;
     try {
+      // The parent verifies the stored session and removes the auth route only
+      // after authentication is authoritative. Keeping this overlay mounted
+      // prevents stale tokens or failed verification from creating a close/open loop.
       await onSuccess();
     } finally {
       authCompletionRef.current = false;
@@ -166,7 +169,6 @@ export default function MemberAuthOverlay({ mode, onClose, onSuccess }: MemberAu
       aria-label={mode === 'register' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
       aria-busy={!frameReady}
       data-state={motionState}
-      data-mode={mode}
       data-frame-ready={frameReady ? 'true' : 'false'}
     >
       <iframe
