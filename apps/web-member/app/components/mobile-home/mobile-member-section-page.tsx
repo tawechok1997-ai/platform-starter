@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_URL, memberApiFetch } from '../../member-api';
+import { useMemberSession } from '../../member-session-provider';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import MobileMemberVipPage from './mobile-member-vip-page';
 import styles from './mobile-member-section-page.module.css';
@@ -35,6 +36,7 @@ const DEFAULT_SECTION = SECTION_CONFIG.profile!;
 
 export default function MobileMemberSectionPage({ section }: Props) {
   const router = useRouter();
+  const { ready, isLoggedIn } = useMemberSession();
   const config = SECTION_CONFIG[section] ?? DEFAULT_SECTION;
   const [payload, setPayload] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +44,22 @@ export default function MobileMemberSectionPage({ section }: Props) {
 
   useEffect(() => {
     let cancelled = false;
+
+    if (!ready) {
+      setLoading(true);
+      setError('');
+      return () => { cancelled = true; };
+    }
+
+    // The VIP row is public before login. It may show the static tier programme,
+    // but it must never request or expose profile, turnover, wallet, or VIP state.
+    if (section === 'vip' && !isLoggedIn) {
+      setPayload(null);
+      setLoading(false);
+      setError('');
+      return () => { cancelled = true; };
+    }
+
     setLoading(true);
     setError('');
     const request = config.publicEndpoint
@@ -58,16 +76,16 @@ export default function MobileMemberSectionPage({ section }: Props) {
       if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
-  }, [config.endpoint, config.publicEndpoint]);
+  }, [config.endpoint, config.publicEndpoint, isLoggedIn, ready, section]);
 
   const items = useMemo(() => normalizeItems(section, payload), [payload, section]);
 
   if (section === 'vip') {
     return (
       <MobileMemberVipPage
-        payload={payload}
-        loading={loading}
-        error={error}
+        payload={isLoggedIn ? payload : null}
+        loading={!ready || (isLoggedIn && loading)}
+        error={isLoggedIn ? error : ''}
         onBack={() => router.back()}
       />
     );
