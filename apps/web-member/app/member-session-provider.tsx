@@ -130,18 +130,8 @@ export function useMemberSession() {
   return value;
 }
 
-function getStoredToken(key: string) {
-  try {
-    return window.localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
 async function fetchMemberWallet(suppressSessionExpiryRedirect: boolean) {
-  const token = getStoredToken('member_access_token');
-  const refreshToken = getStoredToken('member_refresh_token');
-  if (!token && !refreshToken) return { authenticated: false, wallet: null };
+  if (!hasMemberSessionTokens()) return { authenticated: false, wallet: null };
 
   const response = await fetchWithTimeout('/member/wallet', suppressSessionExpiryRedirect);
   if (response.ok) {
