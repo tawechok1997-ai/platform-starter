@@ -11,6 +11,7 @@ const outputPath = path.join(packageRoot, 'app', 'generated', 'local-asset-basen
 const SUPPORTED_EXTENSIONS = new Set([
   '.avif',
   '.gif',
+  '.ico',
   '.jpeg',
   '.jpg',
   '.png',
