@@ -1,3 +1,5 @@
+@import './member-mobile-withdraw-source-contract.css';
+
 /* Mobile category rail follows the viewport like the Desktop Jackpot rail,
  * but remains bounded by the category-content column and stops before the
  * shortcut/footer area. This is intentionally sticky, never fixed, so there
