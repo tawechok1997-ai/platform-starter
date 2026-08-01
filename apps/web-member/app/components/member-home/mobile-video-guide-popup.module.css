@@ -1,0 +1,174 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 201;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: #fff;
+  background: rgb(0 0 0 / 80%);
+  animation: videoGuideBackdropIn 300ms ease both;
+  overscroll-behavior: contain;
+}
+
+.frameGlow,
+.frame {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  width: min(90%, 576px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 16px;
+  background: linear-gradient(165.34deg, rgb(148 79 232) -17.16%, rgb(118 0 168) 91.36%);
+}
+
+.frameGlow {
+  z-index: 30;
+  filter: blur(12px);
+  opacity: .95;
+  pointer-events: none;
+}
+
+.frame {
+  z-index: 40;
+}
+
+.frameInner {
+  position: absolute;
+  inset: 3px;
+  overflow: hidden;
+  border-radius: 13px;
+  background: #000;
+}
+
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 10;
+  transform: translate(-50%, -50%);
+  color: rgb(255 255 255 / 50%);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+  background: #000;
+  pointer-events: none;
+}
+
+.video::-webkit-media-controls,
+.video::-webkit-media-controls-enclosure {
+  display: none !important;
+}
+
+.footer {
+  position: absolute;
+  right: 38px;
+  bottom: max(2%, env(safe-area-inset-bottom));
+  left: 38px;
+  z-index: 10;
+  display: flex;
+  height: 74px;
+  padding: 0 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #626262;
+  border-radius: 6px;
+  background: rgb(8 15 28 / 70%);
+}
+
+.footer strong {
+  position: relative;
+  z-index: 2;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.close {
+  position: relative;
+  z-index: 3;
+  width: 78px;
+  height: 34px;
+  margin: 0 8px;
+  padding: 8px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: linear-gradient(165.34deg, rgb(148 79 232) -17.16%, rgb(118 0 168) 91.36%);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.guideArt {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  display: block;
+  width: min(47vw, 210px);
+  height: auto;
+  max-height: 42%;
+  object-fit: contain;
+  object-position: left bottom;
+  pointer-events: none;
+}
+
+@keyframes videoGuideBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 359px) {
+  .footer {
+    right: 24px;
+    left: 24px;
+  }
+
+  .footer strong {
+    font-size: 14px;
+  }
+
+  .close {
+    width: 68px;
+    margin-right: 0;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+  .footer {
+    right: max(38px, calc((100% - 560px) / 2));
+    left: max(38px, calc((100% - 560px) / 2));
+  }
+
+  .guideArt {
+    left: max(0px, calc((100% - 640px) / 2));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop {
+    animation-duration: 1ms;
+  }
+}
