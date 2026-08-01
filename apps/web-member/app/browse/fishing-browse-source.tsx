@@ -1,32 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { resolveLocalAssetOrSource } from '../lib/local-asset-by-basename';
-import { useMemberSession } from '../member-session-provider';
-import { loadSourceCategoryCatalog, type SourceCategoryCatalog } from './source-game-catalog';
-import styles from './source-game-category-page.module.css';
-
-type FishingFilterKey = 'hot' | 'new' | 'slot';
-
-type FishingProvider = {
-  code: string;
-  name: string;
-  badge: string;
-};
-
-type FishingGame = {
-  id: string;
-  name: string;
-  image: string;
-  provider: string;
-  tags: FishingFilterKey[];
-  isHot: boolean;
-  isNew: boolean;
-};
+import SourceGameCategoryPage, { type SourceGameCategoryConfig } from './source-game-category-page';
 
 const FISHING_LABEL = '\u0e22\u0e34\u0e07\u0e1b\u0e25\u0e32';
+const PROVIDER_ROOT = 'https://cdn.zabbet.com/providers/set';
 
-const PROVIDER_ROWS = [
+const providerRows = [
   ['ygrfish', 'YGR'],
   ['misoltfish', 'Miso'],
   ['cqfish', 'CQ9'],
@@ -44,16 +24,7 @@ const PROVIDER_ROWS = [
   ['acewinfish', 'AceWin'],
 ] as const;
 
-const FALLBACK_PROVIDERS: FishingProvider[] = PROVIDER_ROWS.map(([code, name]) => ({
-  code,
-  name,
-  badge: resolveLocalAssetOrSource(
-    `https://cdn.zabbet.com/providers/set/1_1_badge/${code}.png`,
-    'pc',
-  ),
-}));
-
-const GAME_ROWS = [
+const gameRows = [
   ['devil-buster', 'Devil Buster', 'https://cdn.zabbet.com/games/1687329677649-ad488dc9-496a-4f75-894e-13e8eb7c9ffa.jpg', 'kagafish'],
   ['undersea-battle', 'Undersea Battle', 'https://cdn.zabbet.com/games/1687328908715-7d505e55-0f6e-4626-8b6c-e3219f15fca3.jpg', 'kagafish'],
   ['poseidons-secret', "Poseidon's Secret", 'https://cdn.zabbet.com/games/1687331270474-65379122-f1a8-4b31-8b24-547f9fa8b74e.jpg', 'kagafish'],
@@ -77,7 +48,7 @@ const GAME_ROWS = [
   ['lucky-fishing', 'Lucky Fishing', 'https://cdn.zabbet.com/games/vertical/CQ/lucky_fishing.jpg', 'cqfish'],
 ] as const;
 
-const HOT_IDS = new Set([
+const hotIds = new Set([
   'devil-buster',
   'undersea-battle',
   'poseidons-secret',
@@ -89,7 +60,7 @@ const HOT_IDS = new Set([
   'lucky-fishing',
 ]);
 
-const NEW_IDS = new Set([
+const newIds = new Set([
   'devil-buster',
   'undersea-battle',
   'poseidons-secret',
@@ -106,336 +77,59 @@ const NEW_IDS = new Set([
   'world-cup-mania',
 ]);
 
-const SLOT_IDS = new Set(['dragon-zuma', 'zumas-honor']);
+const slotIds = new Set(['dragon-zuma', 'zumas-honor']);
 
-const FALLBACK_GAMES: FishingGame[] = GAME_ROWS.map(([id, name, image, provider]) => {
-  const tags: FishingFilterKey[] = [];
-  const isHot = HOT_IDS.has(id);
-  const isNew = NEW_IDS.has(id);
-  if (isHot) tags.push('hot');
-  if (isNew) tags.push('new');
-  if (SLOT_IDS.has(id)) tags.push('slot');
-  return {
-    id,
-    name,
-    image: resolveLocalAssetOrSource(image, 'pc'),
-    provider,
-    tags,
-    isHot,
-    isNew,
-  };
-});
+const providers = providerRows.map(([code, name]) => ({
+  code,
+  name,
+  badge: providerAsset('badge', code),
+  card: providerAsset('v', code),
+  background: providerAsset('bg', code),
+  title: providerAsset('title', code),
+  avatar: providerAsset('avatar', code),
+}));
 
-const FILTERS: { key: FishingFilterKey; label: string }[] = [
-  { key: 'hot', label: 'เกมส์ฮิต' },
-  { key: 'new', label: 'เกมส์ใหม่' },
-  { key: 'slot', label: 'เกมส์สล็อต' },
-];
+const config: SourceGameCategoryConfig = {
+  slug: 'fishing',
+  title: FISHING_LABEL,
+  total: 129,
+  resultUnit: 'เกม',
+  mode: 'games',
+  baseBackground: '/assets/asset-pc/images/game/fishing/bg_fishing.webp',
+  baseLogo: '/assets/asset-pc/images/game/fishing/logo_fishing.webp',
+  filters: [
+    { key: 'hot', label: 'เกมส์ฮิต', count: 9 },
+    { key: 'new', label: 'เกมส์ใหม่', count: 14 },
+    { key: 'slot', label: 'เกมส์สล็อต', count: 2 },
+  ],
+  providers,
+  showProviderStrip: true,
+  showAllProviders: true,
+  games: gameRows.map(([id, name, sourceImage, provider]) => {
+    const isHot = hotIds.has(id);
+    const isNew = newIds.has(id);
+    const tags: Array<'hot' | 'new' | 'slot'> = [];
+    if (isHot) tags.push('hot');
+    if (isNew) tags.push('new');
+    if (slotIds.has(id)) tags.push('slot');
+    return {
+      id,
+      name,
+      image: resolveLocalAssetOrSource(sourceImage, 'pc'),
+      provider,
+      isNew,
+      isHot,
+      tags,
+      origin: 'catalog' as const,
+    };
+  }),
+};
 
 export default function FishingBrowseSource() {
-  const { ready, isLoggedIn } = useMemberSession();
-  const [selectedFilters, setSelectedFilters] = useState<FishingFilterKey[]>([]);
-  const [providerCode, setProviderCode] = useState<string | null>(null);
-  const [catalog, setCatalog] = useState<SourceCategoryCatalog | null>(null);
-  const [catalogLoading, setCatalogLoading] = useState(true);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    let cancelled = false;
-    setCatalogLoading(true);
-
-    void loadSourceCategoryCatalog('fishing', [], controller.signal)
-      .then((result) => {
-        if (!cancelled) setCatalog(result);
-      })
-      .catch((error) => {
-        if (!cancelled && !isAbortError(error)) setCatalog(null);
-      })
-      .finally(() => {
-        if (!cancelled) setCatalogLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, []);
-
-  const providers = useMemo(
-    () => mergeFishingProviders(FALLBACK_PROVIDERS, catalog?.providers ?? []),
-    [catalog?.providers],
-  );
-
-  const games = useMemo(() => {
-    const catalogGames = (catalog?.games ?? [])
-      .map((game): FishingGame | null => {
-        const provider = normalizeProviderCode(game.provider ?? '');
-        if (!provider || !game.id || !game.name || !game.image) return null;
-        const tags = game.tags.filter(isFishingFilterKey);
-        return {
-          id: game.id,
-          name: game.name,
-          image: resolveLocalAssetOrSource(game.image, 'pc'),
-          provider,
-          tags,
-          isHot: game.isHot || tags.includes('hot'),
-          isNew: game.isNew || tags.includes('new'),
-        };
-      })
-      .filter((game): game is FishingGame => Boolean(game));
-    return mergeFishingGames(catalogGames, FALLBACK_GAMES);
-  }, [catalog?.games]);
-
-  const visibleGames = useMemo(
-    () => games.filter((game) => {
-      const providerMatch = !providerCode || game.provider === providerCode;
-      const filterMatch = selectedFilters.length === 0 || selectedFilters.some((filter) => game.tags.includes(filter));
-      return providerMatch && filterMatch;
-    }),
-    [games, providerCode, selectedFilters],
-  );
-
-  const resultCount = visibleGames.length;
-
-  const toggleFilter = (key: FishingFilterKey) => {
-    setSelectedFilters((current) => (
-      current.includes(key) ? current.filter((item) => item !== key) : [...current, key]
-    ));
-  };
-
-  const clearFilters = () => {
-    setSelectedFilters([]);
-    setProviderCode(null);
-  };
-
-  const countForFilter = (key: FishingFilterKey) => games.filter((game) => {
-    const providerMatch = !providerCode || game.provider === providerCode;
-    return providerMatch && game.tags.includes(key);
-  }).length;
-
-  const countForProvider = (code: string) => games.filter((game) => {
-    const filterMatch = selectedFilters.length === 0 || selectedFilters.some((filter) => game.tags.includes(filter));
-    return game.provider === code && filterMatch;
-  }).length;
-
-  const openGame = (game: FishingGame) => {
-    const returnPath = '/browse/games?category=fishing';
-    if (!ready || !isLoggedIn) {
-      window.location.assign(`/?auth=login&next=${encodeURIComponent(returnPath)}`);
-      return;
-    }
-    window.location.assign(`/games?category=fishing&provider=${encodeURIComponent(game.provider)}&game=${encodeURIComponent(game.id)}`);
-  };
-
-  return (
-    <main
-      className={styles.page}
-      data-source-game-category="fishing"
-      data-catalog-source={catalog?.games.length ? 'central' : 'fallback'}
-      data-catalog-incomplete={catalog?.incomplete ? 'true' : 'false'}
-      aria-busy={catalogLoading}
-    >
-      <div className={styles.backgroundStack} aria-hidden="true">
-        <img
-          className={styles.baseBackground}
-          src="/assets/asset-pc/images/game/fishing/bg_fishing.webp"
-          alt=""
-          onError={swapToAssetBundle}
-        />
-        <div className={styles.purpleWash} />
-        <div className={styles.bottomFade} data-source-bottom-fade />
-      </div>
-
-      <section className={styles.content} aria-label={FISHING_LABEL}>
-        <header className={styles.heroTitle}>
-          <img
-            className={styles.baseTitle}
-            src="/assets/asset-pc/images/game/fishing/logo_fishing.webp"
-            alt={FISHING_LABEL}
-            onError={swapToAssetBundle}
-          />
-        </header>
-
-        <div className={styles.layout} data-source-game-layout>
-          <aside className={styles.filterPanel} data-source-filter-panel aria-label={`ตัวกรองเกม${FISHING_LABEL}`}>
-            <div className={styles.filterGlow} aria-hidden="true" />
-            <div className={styles.filterTitle} data-source-filter-title>ตัวกรอง</div>
-
-            <div className={styles.filterSectionTitle}>
-              <strong>ค้นหาเกมที่คุณสนใจ</strong>
-              <span>เลือกได้มากกว่าหนึ่ง</span>
-            </div>
-
-            <div className={styles.typeGrid} data-source-filter-types>
-              {FILTERS.map((filter) => {
-                const checked = selectedFilters.includes(filter.key);
-                const count = countForFilter(filter.key);
-                return (
-                  <label key={filter.key} className={styles.filterOption}>
-                    <input type="checkbox" checked={checked} onChange={() => toggleFilter(filter.key)} />
-                    <span className={`${styles.checkbox}${checked ? ` ${styles.checkboxActive}` : ''}`} aria-hidden="true">
-                      {checked ? '✓' : ''}
-                    </span>
-                    <span className={styles.filterLabel}>{filter.label}</span>
-                    <small>( {count.toLocaleString('th-TH')} )</small>
-                  </label>
-                );
-              })}
-            </div>
-
-            <div className={styles.filterSectionTitle}>
-              <strong>ค้นหาค่ายเกม</strong>
-              <span>เลือกอย่างใดอย่างหนึ่ง</span>
-            </div>
-
-            <div className={styles.providerGrid} data-source-provider-grid>
-              {providers.map((provider) => {
-                const selected = providerCode === provider.code;
-                const count = countForProvider(provider.code);
-                return (
-                  <button
-                    key={provider.code}
-                    type="button"
-                    data-source-provider-button
-                    data-provider-code={provider.code}
-                    className={`${styles.providerButton}${selected ? ` ${styles.providerActive}` : ''}`}
-                    onClick={() => setProviderCode((current) => (current === provider.code ? null : provider.code))}
-                    aria-pressed={selected}
-                    aria-label={`${provider.name} ${count} เกม`}
-                    title={`${provider.name} (${count})`}
-                  >
-                    <span className={styles.providerSurface} aria-hidden="true" />
-                    <img src={provider.badge} alt={provider.name} onError={hideBrokenImage} />
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className={styles.filterActions}>
-              <div className={styles.filterSummary} aria-live="polite">
-                <span>พบเกมส์ที่คุณค้นหา</span>
-                <strong>{resultCount.toLocaleString('th-TH')} เกม</strong>
-              </div>
-              <button type="button" className={styles.clearButton} onClick={clearFilters}>ล้าง</button>
-            </div>
-          </aside>
-
-          <section className={styles.gameArea} aria-label={`รายการเกม${FISHING_LABEL}`} aria-live="polite">
-            <h1>{FISHING_LABEL} ({resultCount.toLocaleString('th-TH')} เกม)</h1>
-            {visibleGames.length ? (
-              <div className={styles.gameGrid}>
-                {visibleGames.map((game) => {
-                  const provider = providers.find((item) => item.code === game.provider);
-                  return (
-                    <article key={`${game.provider}:${game.id}`} className={styles.gameCard}>
-                      <button
-                        type="button"
-                        className={styles.gameCover}
-                        data-source-game-cover
-                        onClick={() => openGame(game)}
-                        aria-label={`เปิด ${game.name}`}
-                      >
-                        <img className={styles.gameImageBlur} src={game.image} alt="" aria-hidden="true" loading="lazy" onError={hideBrokenImage} />
-                        <img className={styles.gameImageContain} src={game.image} alt={game.name} loading="lazy" onError={hideBrokenImage} />
-                        <span className={styles.cardBadges} aria-hidden="true">
-                          {game.isNew ? <b className={styles.newBadge}>★ NEW</b> : null}
-                          {game.isHot ? <b className={styles.hotBadge}>HOT</b> : null}
-                        </span>
-                        {provider ? (
-                          <span className={styles.cardProviderBand} aria-hidden="true">
-                            <img src={provider.badge} alt="" onError={hideBrokenImage} />
-                          </span>
-                        ) : null}
-                        <span className={styles.playOverlay}><b>เข้าเล่น</b></span>
-                      </button>
-                      <p>{game.name}</p>
-                    </article>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className={styles.emptyState}>
-                <strong>ไม่พบเกมที่ตรงกับตัวกรอง</strong>
-                <button type="button" className={styles.clearButton} onClick={clearFilters}>ล้างตัวกรอง</button>
-              </div>
-            )}
-          </section>
-        </div>
-      </section>
-
-      <style>{`
-        main[data-source-game-category='fishing'] [data-source-filter-types] {
-          height: 104px;
-          min-height: 104px;
-        }
-      `}</style>
-    </main>
-  );
+  return <SourceGameCategoryPage config={config} />;
 }
 
-function mergeFishingProviders(
-  fallbackProviders: readonly FishingProvider[],
-  catalogProviders: SourceCategoryCatalog['providers'],
-) {
-  const merged = new Map<string, FishingProvider>();
-  fallbackProviders.forEach((provider) => merged.set(provider.code, provider));
-  catalogProviders.forEach((provider) => {
-    const code = normalizeProviderCode(provider.code);
-    if (!code) return;
-    const fallback = merged.get(code);
-    merged.set(code, {
-      code,
-      name: provider.name || fallback?.name || code.toUpperCase(),
-      badge: resolveLocalAssetOrSource(provider.badge || fallback?.badge, 'pc'),
-    });
-  });
-  return Array.from(merged.values());
-}
-
-function mergeFishingGames(primary: readonly FishingGame[], fallback: readonly FishingGame[]) {
-  const merged = new Map<string, FishingGame>();
-  const names = new Set<string>();
-  for (const game of [...primary, ...fallback]) {
-    const key = `${game.provider}:${game.id.toLowerCase()}`;
-    const nameKey = `${game.provider}:${game.name.trim().toLocaleLowerCase('th')}`;
-    if (merged.has(key) || names.has(nameKey)) continue;
-    merged.set(key, game);
-    names.add(nameKey);
-  }
-  return Array.from(merged.values());
-}
-
-function isFishingFilterKey(value: string): value is FishingFilterKey {
-  return value === 'hot' || value === 'new' || value === 'slot';
-}
-
-function normalizeProviderCode(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/\.(?:png|jpe?g|webp|svg)$/i, '')
-    .replace(/[^a-z0-9_-]+/g, '');
-}
-
-function isAbortError(error: unknown) {
-  return error instanceof DOMException && error.name === 'AbortError';
-}
-
-function hideBrokenImage(event: SyntheticEvent<HTMLImageElement>) {
-  event.currentTarget.style.display = 'none';
-}
-
-function swapToAssetBundle(event: SyntheticEvent<HTMLImageElement>) {
-  if (event.currentTarget.dataset.fallbackApplied === 'true') {
-    event.currentTarget.style.display = 'none';
-    return;
-  }
-  const currentSource = event.currentTarget.getAttribute('src') ?? '';
-  const localSource = resolveLocalAssetOrSource(currentSource, 'pc');
-  if (!localSource || localSource === currentSource) {
-    event.currentTarget.style.display = 'none';
-    return;
-  }
-  event.currentTarget.dataset.fallbackApplied = 'true';
-  event.currentTarget.src = localSource;
+function providerAsset(kind: 'badge' | 'v' | 'bg' | 'title' | 'avatar', code: string) {
+  const source = `${PROVIDER_ROOT}/1_1_${kind}/${code}.png`;
+  return resolveLocalAssetOrSource(source, 'pc');
 }
