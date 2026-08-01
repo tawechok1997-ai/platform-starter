@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { API_URL, memberApiFetch } from '../../member-api';
+import { memberApiFetch } from '../../member-api';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import styles from './mobile-member-section-page.module.css';
 
@@ -43,9 +43,12 @@ export default function MobileMemberSectionPage({ section }: Props) {
     let cancelled = false;
     setLoading(true);
     setError('');
-    const request = config.publicEndpoint
-      ? fetch(`${API_URL}${config.endpoint}`, { cache: 'no-store', headers: { accept: 'application/json' } })
-      : memberApiFetch(config.endpoint);
+    const request = memberApiFetch(config.endpoint, config.publicEndpoint ? {
+      cache: 'no-store',
+      headers: { accept: 'application/json' },
+      skipAuth: true,
+      suppressSessionExpiryRedirect: true,
+    } : undefined);
 
     request.then(async (response) => {
       const data = await response.json().catch(() => null);
