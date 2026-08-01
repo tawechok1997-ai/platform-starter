@@ -27,10 +27,11 @@ export default function MobileFishingProviderPage() {
     <MobileProviderGamesCategoryPage
       category="fishing"
       catalogSlug="fishing"
-      title={{ th: 'ยิงปลา', en: 'Fishing' }}
+      title={{ th: 'agextยิงปลา', en: 'Fishing' }}
       providers={FISHING_PROVIDERS}
       catalogPlatform="pc"
-      assetPlatform="pc"
+      providerAssetPlatform="mobile"
+      gameAssetPlatform="pc"
     />
   );
 }
