@@ -42,4 +42,22 @@
     scrollbar-width: auto !important;
     -webkit-overflow-scrolling: auto;
   }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-section-owner='category-menu'][data-mobile-category-follow='fixed'] {
+    position: fixed !important;
+    top: 60px !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: var(--mobile-category-rail-left) !important;
+  }
+
+  html[data-member-viewport-mode='mobile']
+    [data-mobile-section-owner='category-menu'][data-mobile-category-follow='end'] {
+    position: absolute !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+  }
 }
