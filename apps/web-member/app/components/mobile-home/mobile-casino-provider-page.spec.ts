@@ -32,6 +32,7 @@ test('casino source page keeps the supplied ten-provider order', () => {
   assert.match(page, /1_1_l\/sexyd\.png/);
   assert.match(page, /code: 'yeebet'[\s\S]*isNew: true/);
   assert.match(page, /code: 'astar'[\s\S]*isNew: true/);
+  assert.match(page, /<NewBadge label="NEW" \/>/);
 });
 
 test('casino cards launch at provider level without a game selection page', () => {
@@ -50,6 +51,14 @@ test('casino grid matches the source full-row and two-column geometry', () => {
   assert.match(css, /\.hero\s*\{[\s\S]*aspect-ratio:\s*100 \/ 56/);
   assert.match(css, /\.banner\s*\{[\s\S]*aspect-ratio:\s*100 \/ 31/);
   assert.match(css, /\.newBadge\s*\{[\s\S]*height:\s*17px[\s\S]*background:\s*#00d719/);
+});
+
+test('casino category hides home-only sections and begins below the mobile header', () => {
+  for (const ownerName of ['hero', 'auth-actions', 'announcement', 'highlight-tabs']) {
+    assert.match(css, new RegExp(`data-mobile-section-owner='${ownerName}'`));
+  }
+  assert.match(css, /:has\(\.root\)/);
+  assert.match(css, /display:\s*none !important/);
 });
 
 test('mobile category owner switches casino in place and returns home from highlight tabs', () => {
