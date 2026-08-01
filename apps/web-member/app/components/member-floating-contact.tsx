@@ -20,6 +20,11 @@ const MOBILE_MENU_PAGE_ROUTES = new Set([
   '/mobile/member/guide',
 ]);
 
+const MOBILE_MENU_BACK_SELECTOR = [
+  '[data-mobile-member-page] button[aria-label="ย้อนกลับ"]',
+  '[data-mobile-live-page="true"] button[aria-label="ย้อนกลับ"]',
+].join(',');
+
 const MINI_TOOLS = [
   {
     id: 'wheel',
@@ -66,9 +71,7 @@ export default function MemberFloatingContact() {
 
     const returnToMobileHome = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
-      const backButton = event.target.closest<HTMLButtonElement>(
-        '[data-mobile-member-page] button[aria-label="ย้อนกลับ"]',
-      );
+      const backButton = event.target.closest<HTMLButtonElement>(MOBILE_MENU_BACK_SELECTOR);
       if (!backButton) return;
 
       event.preventDefault();
