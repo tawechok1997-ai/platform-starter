@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemberSession } from '../member-session-provider';
 import { useMemberContactRuntime } from '../member-settings-runtime';
@@ -40,6 +40,7 @@ const MINI_TOOLS = [
 export default function MemberFloatingContact() {
   const pathname = usePathname() ?? '/';
   const router = useRouter();
+  const closeCanvasRef = useRef<HTMLCanvasElement>(null);
   const [open, setOpen] = useState(false);
   const [miniToolsOpen, setMiniToolsOpen] = useState(false);
   const { ready: sessionReady, isLoggedIn } = useMemberSession();
@@ -47,6 +48,10 @@ export default function MemberFloatingContact() {
   const normalizedPath = normalizePath(pathname);
   const isMobileMenuPage = MOBILE_MENU_PAGE_ROUTES.has(normalizedPath);
   const showFloatingContact = sessionReady && !isMobileMenuPage;
+
+  useEffect(() => {
+    drawContactCloseCanvas(closeCanvasRef.current);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -140,41 +145,92 @@ export default function MemberFloatingContact() {
       </div>
 
       {showFloatingContact ? (
-        <div className="member-floating-contact__contact-stage">
-          <div className="member-floating-contact__channels" aria-hidden={!open}>
-            <a
-              href={primary.href}
-              target={primary.external ? '_blank' : undefined}
-              rel={primary.external ? 'noreferrer noopener' : undefined}
-              className="member-floating-contact__line"
-              tabIndex={open ? 0 : -1}
-              aria-label={`ติดต่อทีมงานผ่าน ${primary.label}`}
-              title={`${primary.label}: ${primary.value}`}
-            >
-              <img src={LINE_ICON_URL} alt={primary.label} loading="lazy" />
-            </a>
+        <div className="member-floating-contact__contact-host">
+          <div className="member-floating-contact__contact-stage">
+            <div className="member-floating-contact__contact-spacer" aria-hidden="true" />
+
+            <div className="member-floating-contact__contact-motion">
+              <div className="member-floating-contact__contact-content">
+                <div className="member-floating-contact__channels">
+                  <a
+                    href={primary.href}
+                    target={primary.external ? '_blank' : undefined}
+                    rel={primary.external ? 'noreferrer noopener' : undefined}
+                    className="member-floating-contact__line contact"
+                    tabIndex={open ? 0 : -1}
+                    aria-hidden={!open}
+                    aria-label={`ติดต่อทีมงานผ่าน ${primary.label}`}
+                    title={`${primary.label}: ${primary.value}`}
+                  >
+                    <img src={LINE_ICON_URL} alt={primary.label} loading="lazy" />
+                  </a>
+                </div>
+
+                <button
+                  type="button"
+                  className="member-floating-contact__toggle"
+                  aria-label={open ? 'ปิดเมนูติดต่อทีมงาน' : 'เปิดเมนูติดต่อทีมงาน'}
+                  aria-expanded={open}
+                  onClick={() => setOpen((current) => !current)}
+                >
+                  <span className="member-floating-contact__ring member-floating-contact__ring--1 contact-ring contact-ring-1" aria-hidden="true" />
+                  <span className="member-floating-contact__ring member-floating-contact__ring--2 contact-ring contact-ring-2" aria-hidden="true" />
+                  <span className="member-floating-contact__ring member-floating-contact__ring--3 contact-ring contact-ring-3" aria-hidden="true" />
+
+                  <span className="member-floating-contact__button-face contact-btn" aria-hidden="true">
+                    <img className="contact-icon-btn" src={CONTACT_ICON_URL} alt="" loading="lazy" />
+                    <canvas
+                      ref={closeCanvasRef}
+                      className="member-floating-contact__close-canvas"
+                      width={80}
+                      height={80}
+                    />
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <button
             type="button"
-            className="member-floating-contact__toggle"
-            aria-label={open ? 'ปิดเมนูติดต่อทีมงาน' : 'เปิดเมนูติดต่อทีมงาน'}
-            aria-expanded={open}
-            onClick={() => setOpen((current) => !current)}
+            className="member-floating-contact__scroll-top"
+            aria-hidden="true"
+            tabIndex={-1}
           >
-            <span className="member-floating-contact__ring member-floating-contact__ring--1" aria-hidden="true" />
-            <span className="member-floating-contact__ring member-floating-contact__ring--2" aria-hidden="true" />
-            <span className="member-floating-contact__ring member-floating-contact__ring--3" aria-hidden="true" />
-
-            <span className="member-floating-contact__button-face" aria-hidden="true">
-              <img src={CONTACT_ICON_URL} alt="" loading="lazy" />
-              <span className="member-floating-contact__close-icon" />
+            <span className="member-floating-contact__scroll-top-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" fill="none" viewBox="0 0 24 25" aria-hidden="true">
+                <path stroke="#3a334b" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m6 15.667 6-6 6 6" />
+              </svg>
             </span>
           </button>
         </div>
       ) : null}
     </aside>
   );
+}
+
+function drawContactCloseCanvas(canvas: HTMLCanvasElement | null) {
+  if (!canvas) return;
+  const context = canvas.getContext('2d');
+  if (!context) return;
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.lineCap = 'round';
+  context.lineWidth = 4;
+  context.shadowColor = 'rgba(255, 211, 91, 0.48)';
+  context.shadowBlur = 10;
+
+  const gradient = context.createLinearGradient(24, 24, 56, 56);
+  gradient.addColorStop(0, '#fff1a9');
+  gradient.addColorStop(1, '#dcae32');
+  context.strokeStyle = gradient;
+
+  context.beginPath();
+  context.moveTo(27, 27);
+  context.lineTo(53, 53);
+  context.moveTo(53, 27);
+  context.lineTo(27, 53);
+  context.stroke();
 }
 
 function normalizePath(pathname: string) {
