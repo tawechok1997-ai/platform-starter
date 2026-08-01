@@ -30,8 +30,10 @@ export default function PublicMobileSourceHeaderOwner() {
       router.push('/search');
     };
 
-    document.addEventListener('click', openSearchPage, true);
-    return () => document.removeEventListener('click', openSearchPage, true);
+    // Capture on window, before document-level legacy search overlay listeners.
+    // This makes the full /search page the only mobile search destination.
+    window.addEventListener('click', openSearchPage, true);
+    return () => window.removeEventListener('click', openSearchPage, true);
   }, [pathname, router]);
 
   return null;
