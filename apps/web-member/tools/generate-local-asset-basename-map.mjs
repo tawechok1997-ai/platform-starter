@@ -7,7 +7,6 @@ const packageRoot = path.resolve(toolDirectory, '..');
 const publicRoot = path.join(packageRoot, 'public');
 const assetRoot = path.join(publicRoot, 'assets');
 const outputPath = path.join(packageRoot, 'app', 'generated', 'local-asset-basename-map.ts');
-const CANONICAL_PC_PREFIX = 'asset-pc/images/';
 
 const SUPPORTED_EXTENSIONS = new Set([
   '.avif',
@@ -41,15 +40,14 @@ async function walk(directory, baseDirectory = directory) {
   return files;
 }
 
-function isDeprecatedAssetPath(value) {
-  const normalized = value.toLowerCase().replace(/^\/+/, '');
-  if (normalized.startsWith('asset-mobile/') || normalized.startsWith('asset-moblie/')) return true;
-  return normalized.startsWith('asset-pc/') && !normalized.startsWith(CANONICAL_PC_PREFIX);
+function isLegacyMobileAssetPath(value) {
+  const normalized = value.toLowerCase();
+  return normalized.startsWith('asset-mobile/') || normalized.startsWith('asset-moblie/');
 }
 
 function candidateRank(value) {
   const normalized = value.toLowerCase().replace(/^\/+/, '');
-  if (normalized.startsWith(CANONICAL_PC_PREFIX) || normalized.includes(`/${CANONICAL_PC_PREFIX}`)) return 0;
+  if (normalized.startsWith('asset-pc/') || normalized.includes('/asset-pc/')) return 0;
   if (normalized.startsWith('reference-brand/') || normalized.includes('/reference-brand/')) return 1;
   return 2;
 }
@@ -79,13 +77,9 @@ function serialize(map) {
 const files = await walk(assetRoot);
 const byBasename = new Map();
 let indexedAssetCount = 0;
-let skippedDeprecatedCount = 0;
 
 for (const relative of files) {
-  if (isDeprecatedAssetPath(relative)) {
-    skippedDeprecatedCount += 1;
-    continue;
-  }
+  if (isLegacyMobileAssetPath(relative)) continue;
 
   const basename = path.posix.basename(relative).toLowerCase();
   const publicUrl = `/${path.posix.join('assets', relative)}`;
@@ -100,5 +94,5 @@ await writeFile(outputPath, serialize(byBasename), 'utf8');
 
 const duplicateBasenames = [...byBasename.values()].filter((candidates) => candidates.length > 1).length;
 console.log(
-  `Generated ${path.relative(packageRoot, outputPath).replaceAll('\\', '/')} from ${indexedAssetCount} canonical local assets (${byBasename.size} basenames, ${duplicateBasenames} duplicated basenames, ${skippedDeprecatedCount} deprecated asset paths skipped).`,
+  `Generated ${path.relative(packageRoot, outputPath).replaceAll('\\', '/')} from ${indexedAssetCount} unified local assets (${byBasename.size} basenames, ${duplicateBasenames} duplicated basenames).`,
 );

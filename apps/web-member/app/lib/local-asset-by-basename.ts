@@ -3,6 +3,7 @@ import { LOCAL_ASSET_PATHS_BY_BASENAME } from '../generated/local-asset-basename
 export type LocalAssetPreference = 'pc' | 'mobile' | 'any';
 
 const CANONICAL_PC_ASSET_ROOT = '/assets/asset-pc/images/';
+const CANONICAL_MOBILE_ASSET_ROOT = '/assets/asset-mobile/';
 
 export function resolveLocalAssetByBasename(
   sourceUrl?: string | null,
@@ -67,8 +68,7 @@ export function canonicalizeLocalAssetPath(source: string): string {
 
 function canonicalizeLocalPathname(pathname: string): string {
   return pathname
-    .replace(/^\/assets\/asset-mobile\//i, CANONICAL_PC_ASSET_ROOT)
-    .replace(/^\/assets\/asset-moblie\//i, CANONICAL_PC_ASSET_ROOT)
+    .replace(/^\/assets\/asset-moblie\//i, CANONICAL_MOBILE_ASSET_ROOT)
     .replace(/^\/assets\/asset-pc\/(?!images(?:\/|$))/i, CANONICAL_PC_ASSET_ROOT);
 }
 
@@ -121,11 +121,21 @@ function scoreCandidate(
   const sourceProviderSet = normalizedSource.match(/providers\/set\/([^/]+)\//)?.[1];
   if (sourceProviderSet && normalizedCandidate.includes(`/providers/set/${sourceProviderSet}/`)) score -= 30;
 
-  if (normalizedCandidate.includes('/asset-pc/images/')) {
-    score -= preference === 'any' ? 24 : 40;
-  } else if (normalizedCandidate.includes('/asset-pc/')) {
-    score += 80;
+  const isPcAsset = normalizedCandidate.includes('/asset-pc/images/');
+  const isLegacyPcAsset = normalizedCandidate.includes('/asset-pc/') && !isPcAsset;
+  const isMobileAsset = normalizedCandidate.includes('/asset-mobile/');
+
+  if (preference === 'pc') {
+    if (isPcAsset) score -= 70;
+    if (isMobileAsset) score += 90;
+  } else if (preference === 'mobile') {
+    if (isMobileAsset) score -= 70;
+    if (isPcAsset) score += 90;
+  } else if (isPcAsset) {
+    score -= 24;
   }
+
+  if (isLegacyPcAsset) score += 80;
   if (normalizedCandidate.includes('/reference-brand/')) score -= 12;
   if (normalizedCandidate.includes('/providers/set/1_1_badge/')) score -= 4;
 
