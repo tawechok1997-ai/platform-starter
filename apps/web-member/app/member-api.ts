@@ -2,12 +2,19 @@ import { joinApiUrl, mergeHeaders } from '@platform/api-client';
 import { buildMemberSessionExpiredHref } from '../src/features/auth/session-navigation';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+export const MEMBER_SESSION_CHANGED_EVENT = 'platform:member-session-changed';
 
 type ApiOptions = Omit<RequestInit, 'signal'> & {
   signal?: AbortSignal | null | undefined;
   skipAuth?: boolean;
   suppressSessionExpiryRedirect?: boolean;
 };
+
+type MemberSessionPayload = {
+  accessToken?: unknown;
+  refreshToken?: unknown;
+};
+
 let refreshRequest: Promise<string> | null = null;
 let sessionExpiryRedirected = false;
 
@@ -22,28 +29,80 @@ class ApiRequestError extends Error {
   }
 }
 
-function readStorage(key: string) {
+function browserStorages() {
+  if (typeof window === 'undefined') return [] as Storage[];
+  const storages: Storage[] = [];
   try {
-    return typeof window === 'undefined' ? null : window.localStorage.getItem(key);
+    storages.push(window.localStorage);
   } catch {
-    return null;
+    // Embedded and privacy-focused browsers can block localStorage.
   }
+  try {
+    storages.push(window.sessionStorage);
+  } catch {
+    // Continue with whichever browser storage is available.
+  }
+  return storages;
+}
+
+function readStorage(key: string) {
+  for (const storage of browserStorages()) {
+    try {
+      const value = storage.getItem(key);
+      if (value && value !== 'undefined' && value !== 'null') return value;
+    } catch {
+      // Try the next available storage.
+    }
+  }
+  return null;
 }
 
 function writeStorage(key: string, value: string) {
-  try {
-    if (typeof window !== 'undefined') window.localStorage.setItem(key, value);
-  } catch {
-    // Safari and embedded browsers can block localStorage. Keep the app usable.
+  if (!value || value === 'undefined' || value === 'null') return false;
+  for (const storage of browserStorages()) {
+    try {
+      storage.setItem(key, value);
+      if (storage.getItem(key) === value) return true;
+    } catch {
+      // Try the next available storage.
+    }
   }
+  return false;
 }
 
 function removeStorage(key: string) {
-  try {
-    if (typeof window !== 'undefined') window.localStorage.removeItem(key);
-  } catch {
-    // Ignore unavailable browser storage during session cleanup.
+  for (const storage of browserStorages()) {
+    try {
+      storage.removeItem(key);
+    } catch {
+      // Ignore unavailable browser storage during session cleanup.
+    }
   }
+}
+
+function announceSessionChanged() {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(MEMBER_SESSION_CHANGED_EVENT));
+}
+
+export function persistMemberSession(payload: MemberSessionPayload | null | undefined) {
+  const accessToken = typeof payload?.accessToken === 'string' ? payload.accessToken.trim() : '';
+  const refreshToken = typeof payload?.refreshToken === 'string' ? payload.refreshToken.trim() : '';
+  if (!accessToken || !refreshToken) return false;
+
+  removeStorage('member_access_token');
+  removeStorage('member_refresh_token');
+
+  const accessStored = writeStorage('member_access_token', accessToken);
+  const refreshStored = writeStorage('member_refresh_token', refreshToken);
+  if (!accessStored || !refreshStored) {
+    removeStorage('member_access_token');
+    removeStorage('member_refresh_token');
+    return false;
+  }
+
+  sessionExpiryRedirected = false;
+  announceSessionChanged();
+  return true;
 }
 
 export async function memberApiFetch(path: string, options: ApiOptions = {}) {
@@ -114,11 +173,14 @@ async function performMemberTokenRefresh() {
     body: JSON.stringify({ refreshToken, deviceId: 'web-member' }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok || !data?.accessToken) return '';
-  writeStorage('member_access_token', data.accessToken);
-  if (data.refreshToken) writeStorage('member_refresh_token', data.refreshToken);
+  if (!res.ok || typeof data?.accessToken !== 'string' || !data.accessToken.trim()) return '';
+  if (!writeStorage('member_access_token', data.accessToken.trim())) return '';
+  if (typeof data.refreshToken === 'string' && data.refreshToken.trim()) {
+    if (!writeStorage('member_refresh_token', data.refreshToken.trim())) return '';
+  }
   sessionExpiryRedirected = false;
-  return data.accessToken as string;
+  announceSessionChanged();
+  return data.accessToken.trim() as string;
 }
 
 export function hasMemberSessionTokens() {
@@ -126,8 +188,10 @@ export function hasMemberSessionTokens() {
 }
 
 export function clearMemberSession() {
+  const hadSession = hasMemberSessionTokens();
   removeStorage('member_access_token');
   removeStorage('member_refresh_token');
+  if (hadSession) announceSessionChanged();
 }
 
 function expireMemberSession() {
