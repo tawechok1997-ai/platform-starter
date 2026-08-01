@@ -13,6 +13,7 @@ import {
 import { useMemberRuntime } from '../../member-runtime-provider';
 import type { MemberBankAccount } from '../../types/member-finance';
 import ProfileActionPopupLayer, { type ProfileActionPopupKind } from './profile-action-popups';
+import actionStyles from './profile-action-buttons.module.css';
 import styles from './avatar-page.module.css';
 
 const VIP_BADGE_SOURCE = 'https://cdn.zabbet.com/FEZX/grouptypes/bc954df4-70bb-460c-9ce8-c2cae326acbe.png';
@@ -108,11 +109,11 @@ export default function MobileAvatarPage() {
           </section>
 
           <section className={styles.actions} aria-label="ตั้งค่าบัญชี">
-            <button type="button" onClick={() => setPopup('contact')}>
+            <button className={actionStyles.actionButton} type="button" onClick={() => setPopup('contact')}>
               <HeadsetIcon />
               <span>แก้ไข บัญชี/เบอร์โทร</span>
             </button>
-            <button type="button" onClick={() => setPopup('password')}>
+            <button className={actionStyles.actionButton} type="button" onClick={() => setPopup('password')}>
               <LockIcon />
               <span>แก้ไขรหัสผ่าน</span>
             </button>
@@ -176,7 +177,7 @@ function HeadsetIcon() {
       <path fillRule="evenodd" clipRule="evenodd" d="M11.195 22.916a1.302 1.302 0 0 0 1.302 1.302c4.25 0 6.956-.699 8.515-1.317 1.448-.573 2.24-1.899 2.433-3.236.124-.854.25-1.972.25-2.998a1.302 1.302 0 0 0-2.604 0c0 .842-.107 1.819-.223 2.626-.091.627-.418 1.031-.815 1.188-1.22.483-3.596 1.134-7.556 1.134a1.302 1.302 0 0 0-1.302 1.302Z" fill="#e0b1f1" />
       <path fillRule="evenodd" clipRule="evenodd" d="M12.499 4.427c-4.21 0-7.552 3.326-7.552 7.344v2.292H1.301V11.77C1.301 5.663 6.353.781 12.499.781c6.145 0 11.198 4.882 11.198 10.99v2.292H20.05V11.77c0-4.018-3.342-7.344-7.552-7.344Z" fill="#e0b1f1" />
       <path d="M1.301 12.975c0-1.237.802-2.37 2.051-2.682.865-.217 2.017-.464 3.162-.584 1.105-.116 2.182.55 2.384 1.75.118.699.215 1.705.215 3.124 0 1.42-.097 2.427-.215 3.125-.202 1.2-1.279 1.866-2.384 1.75a23.696 23.696 0 0 1-3.162-.584C2.103 18.562 1.3 17.429 1.3 16.192v-3.217Z" fill="#a800cb" />
-      <path d="M23.695 12.975c0-1.237-.802-2.37-2.051-2.682a23.7 23.7 0 0 0-3.162-.584c-1.105-.116-2.182.55-2.384 1.75-.118.699-.215 1.705-.215 3.124 0 1.42.097 2.427.215 3.125.202 1.2 1.279 1.866 2.384 1.75a23.7 23.7 0 0 0 3.162-.584c1.249-.312 2.051-1.445 2.051-2.682v-3.217Z" fill="#a800cb" />
+      <path d="M23.695 12.975c0-1.237-.802-2.37-2.051-2.682a23.7 23.7 0 0 0-3.162-.584c-1.105-.116-2.182.55-2.384 1.75-.118.699-.215 1.705-.215 3.124 0 1.42-.097 2.427.215 3.125.202 1.2 1.279 1.866 2.384 1.75a23.7 23.7 0 0 0 3.162-.584c1.249-.312 2.051-1.445 2.051-2.682v-3.217Z" fill="#a800cb" />
     </svg>
   );
 }
