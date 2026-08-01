@@ -4,6 +4,7 @@ import {
   cmsResponsiveMediaUrls as strictCmsResponsiveMediaUrls,
   defaultCmsContent as strictDefaultCmsContent,
   promotionMediaUrls as strictPromotionMediaUrls,
+  resolveCmsMediaUrl as strictResolveCmsMediaUrl,
 } from './site-settings-media';
 import type {
   CmsAnnouncement as StrictCmsAnnouncement,
@@ -17,6 +18,7 @@ import type {
   PublicSiteSettings,
   SiteIconSettings,
 } from './site-settings-media';
+import { resolveLocalAssetOrSource } from './lib/local-asset-by-basename';
 
 export {
   API_URL,
@@ -27,7 +29,6 @@ export {
   loadPublicSiteSettings,
   memberFeatureFlags,
   promotionCampaignsSetting,
-  resolveCmsMediaUrl,
   textSetting,
 } from './site-settings-media';
 
@@ -70,13 +71,30 @@ export function cmsContentSetting(settings: PublicSiteSettings): CmsContent {
 }
 
 export function cmsAssetUrl(content: CmsContent, assetId?: string) {
-  return strictCmsAssetUrl(content as StrictCmsContent, assetId);
+  return localFirst(strictCmsAssetUrl(content as StrictCmsContent, assetId));
 }
 
 export function cmsResponsiveMediaUrls(content: CmsContent, media: CmsResponsiveMedia) {
-  return strictCmsResponsiveMediaUrls(content as StrictCmsContent, media);
+  const urls = strictCmsResponsiveMediaUrls(content as StrictCmsContent, media);
+  return {
+    desktop: localFirst(urls.desktop),
+    mobile: localFirst(urls.mobile),
+    legacy: localFirst(urls.legacy),
+  };
 }
 
 export function promotionMediaUrls(content: CmsContent, campaign: PromotionCampaign) {
-  return strictPromotionMediaUrls(content as StrictCmsContent, campaign);
+  const urls = strictPromotionMediaUrls(content as StrictCmsContent, campaign);
+  return {
+    desktop: localFirst(urls.desktop),
+    mobile: localFirst(urls.mobile),
+  };
+}
+
+export function resolveCmsMediaUrl(value: string) {
+  return localFirst(strictResolveCmsMediaUrl(value));
+}
+
+function localFirst(value?: string | null) {
+  return resolveLocalAssetOrSource(value, 'any');
 }
