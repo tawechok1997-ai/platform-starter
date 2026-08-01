@@ -1098,13 +1098,54 @@ type BottomNavigationKind = 'menu' | 'deposit' | 'withdraw' | 'contact';
 
 const BOTTOM_NAV_CANVAS_SIZE = 160;
 
+const MENU_ICON_BASE_PATH = 'M404.403 201.977H249.536c-26.531 0-48.04 21.508-48.04 48.04v154.867c0 26.532 21.509 48.04 48.04 48.04h154.867c26.532 0 48.041-21.508 48.041-48.04V250.017c0-26.532-21.509-48.04-48.041-48.04zM404.403 546.77H249.536c-26.531 0-48.04 21.508-48.04 48.04v154.867c0 26.532 21.509 48.04 48.04 48.04h154.867c26.532 0 48.041-21.508 48.041-48.04V594.81c0-26.532-21.509-48.04-48.041-48.04zM750.661 546.77H595.794c-26.532 0-48.04 21.508-48.04 48.04v154.867c0 26.532 21.508 48.04 48.04 48.04h154.867c26.532 0 48.04-21.508 48.04-48.04V594.81c0-26.532-21.508-48.04-48.04-48.04zM816.708 293.477L707.2 183.97c-18.761-18.761-49.178-18.761-67.939 0L529.753 293.477c-18.761 18.761-18.761 49.178 0 67.939l109.508 109.508c18.761 18.761 49.178 18.761 67.939 0l109.508-109.508c18.76-18.761 18.76-49.178 0-67.939z';
+const MENU_ICON_ACCENT_PATH = 'M816.708 293.477L707.2 183.97c-18.761-18.761-49.178-18.761-67.939 0L529.753 293.477c-18.761 18.761-18.761 49.178 0 67.939l109.508 109.508c18.761 18.761 49.178 18.761 67.939 0l109.508-109.508c18.76-18.761 18.76-49.178 0-67.939z';
+const CONTACT_ICON_BASE_PATHS = [
+  'M718.01 655.687c0 .461-.013.936-.013 1.398-.584 59.633-30.529 101.573-80.57 130.799a98.945 98.945 0 01-23.88 10.068c3.609-7.897 5.835-16.621 6.337-25.834.868-15.875-4.383-31.479-13.732-43.867 15.536-7.096 27.219-19.728 37.028-35.101 6.133-9.634 9.688-20.367 9.688-31.94 0-5.36 0-10.706.014-16.065 7.11 6.336 16.662 10.122 27.679 10.352 12.483.258 24.966.326 37.449.19zM718.028 428.224a6742.016 6742.016 0 00-36.811.013c-11.289.041-21.113 3.813-28.385 10.285-.068-9.457-.15-18.928-.245-28.399-.746-69.917-51.777-129.306-120.813-139.903-97.855-15.02-160.948 51.343-171.138 125.724-1.126 8.237-1.397 16.649-1.424 24.966-.028 6.052-.041 12.103-.055 18.155-7.34-6.839-17.449-10.773-29.253-10.801-11.968-.027-23.935-.054-35.916-.054.014-5.305.041-10.597.082-15.902.678-98.914 67.964-185.86 163.065-206.606 132.481-28.901 234.285 56.01 256.32 165.48 3.012 14.912 4.179 30.393 4.424 45.644.054 3.799.108 7.599.149 11.398z',
+  'M372.048 539.472c0 22.781.041 45.562 0 68.344-.068 27.869-19.213 47.543-46.96 47.693-21.411.122-42.944.841-64.192-1.086-33.229-3.039-58.589-31.573-59.091-64.979-.475-31.791-.515-63.608 0-95.399.597-36.418 30.773-65.59 67.218-65.766 8.331-.041 16.648-.068 24.979-.068 11.981 0 23.949.027 35.916.054 11.805.027 21.913 3.962 29.253 10.801 8.06 7.462 12.809 18.398 12.863 31.397.109 22.998.027 46.01.027 69.009h-.013z',
+  'M798.893 489.253v104.259c-2.876 13.27-6.662 26.092-15.712 36.784-13.785 16.309-31.37 24.667-52.55 25.17-4.206.095-8.413.162-12.619.217a1192.66 1192.66 0 01-37.449-.19c-11.017-.231-20.569-4.017-27.679-10.353-8.44-7.517-13.46-18.602-13.487-31.601-.081-47.828-.081-95.657 0-143.486.027-13.039 5.047-24.07 13.433-31.533 7.272-6.472 17.096-10.244 28.385-10.284 12.279-.041 24.545-.041 36.811-.014 3.528 0 7.042.014 10.556.014 35.78.027 62.93 22.822 69.145 57.977.176 1.045.759 2.022 1.166 3.04z',
+] as const;
+const CONTACT_ICON_ACCENT_PATH = 'M619.888 772.11c-.502 9.213-2.727 17.938-6.336 25.834-10.584 23.135-33.107 39.213-59.335 39.851-12.171.298-68.317.57-83.771-1.615-32.279-4.572-55.929-34.952-55.047-67.896.909-33.745 25.671-63.229 58.507-65.549 28.914-2.062 58.222-2.185 87.136-.041 18.372 1.371 34.423 11.357 45.115 25.55 9.349 12.388 14.6 27.991 13.731 43.866z';
+
+function fillSourceNavigationPath(
+  context: CanvasRenderingContext2D,
+  path: string,
+  color: string,
+) {
+  context.fillStyle = color;
+  context.fill(new Path2D(path));
+}
+
 function drawBottomNavigationFallback(
   context: CanvasRenderingContext2D,
   kind: BottomNavigationKind,
 ) {
-  const scale = BOTTOM_NAV_CANVAS_SIZE / 32;
   context.clearRect(0, 0, BOTTOM_NAV_CANVAS_SIZE, BOTTOM_NAV_CANVAS_SIZE);
   context.save();
+
+  if (kind === 'menu' || kind === 'contact') {
+    const inset = 8;
+    const scale = (BOTTOM_NAV_CANVAS_SIZE - (inset * 2)) / 1000;
+    context.translate(inset, inset);
+    context.scale(scale, scale);
+    context.shadowColor = 'rgb(207 82 255 / 72%)';
+    context.shadowBlur = 48;
+
+    if (kind === 'menu') {
+      fillSourceNavigationPath(context, MENU_ICON_BASE_PATH, '#f4eef8');
+      fillSourceNavigationPath(context, MENU_ICON_ACCENT_PATH, '#bd008f');
+    } else {
+      CONTACT_ICON_BASE_PATHS.forEach((path) => {
+        fillSourceNavigationPath(context, path, '#f4eef8');
+      });
+      fillSourceNavigationPath(context, CONTACT_ICON_ACCENT_PATH, '#bd008f');
+    }
+
+    context.restore();
+    return;
+  }
+
+  const scale = BOTTOM_NAV_CANVAS_SIZE / 32;
   context.scale(scale, scale);
   context.lineCap = 'round';
   context.lineJoin = 'round';
@@ -1113,50 +1154,25 @@ function drawBottomNavigationFallback(
   context.fillStyle = '#a82bce';
   context.shadowColor = '#d45bff';
   context.shadowBlur = 3;
+  context.beginPath();
+  context.roundRect(5, 9, 22, 16, 3);
+  context.fill();
+  context.stroke();
+  context.beginPath();
+  context.moveTo(9, 14);
+  context.lineTo(23, 14);
+  context.stroke();
 
-  if (kind === 'menu') {
-    context.beginPath();
-    context.roundRect(7, 7, 8, 8, 2);
-    context.roundRect(17, 7, 8, 8, 2);
-    context.roundRect(7, 17, 8, 8, 2);
-    context.roundRect(17, 17, 8, 8, 2);
-    context.fill();
-    context.stroke();
-  } else if (kind === 'contact') {
-    context.beginPath();
-    context.arc(16, 16, 9, Math.PI, 0);
-    context.stroke();
-    context.beginPath();
-    context.roundRect(5, 15, 5, 9, 2);
-    context.roundRect(22, 15, 5, 9, 2);
-    context.fill();
-    context.stroke();
-    context.beginPath();
-    context.moveTo(24, 24);
-    context.quadraticCurveTo(23, 28, 18, 27);
-    context.stroke();
-  } else {
-    context.beginPath();
-    context.roundRect(5, 9, 22, 16, 3);
-    context.fill();
-    context.stroke();
-    context.beginPath();
-    context.moveTo(9, 14);
-    context.lineTo(23, 14);
-    context.stroke();
-
-    context.shadowBlur = 0;
-    context.lineWidth = 2.4;
-    context.strokeStyle = '#fff';
-    context.beginPath();
-    context.moveTo(16, 17);
-    context.lineTo(16, 23);
-    context.moveTo(13, kind === 'deposit' ? 20 : 17);
-    context.lineTo(16, kind === 'deposit' ? 23 : 20);
-    context.lineTo(19, kind === 'deposit' ? 20 : 17);
-    context.stroke();
-  }
-
+  context.shadowBlur = 0;
+  context.lineWidth = 2.4;
+  context.strokeStyle = '#fff';
+  context.beginPath();
+  context.moveTo(16, 17);
+  context.lineTo(16, 23);
+  context.moveTo(13, kind === 'deposit' ? 20 : 17);
+  context.lineTo(16, kind === 'deposit' ? 23 : 20);
+  context.lineTo(19, kind === 'deposit' ? 20 : 17);
+  context.stroke();
   context.restore();
 }
 
@@ -1164,7 +1180,7 @@ function BottomNavigationCanvasIcon({
   src,
   kind,
 }: {
-  src: string;
+  src?: string;
   kind: BottomNavigationKind;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1177,6 +1193,7 @@ function BottomNavigationCanvasIcon({
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
     drawBottomNavigationFallback(context, kind);
+    if (!src) return;
 
     const image = new Image();
     let disposed = false;
@@ -1229,11 +1246,11 @@ function MobileMemberBottomNavigation({
 }: {
   onOpen: (kind: MobilePopupKind) => void;
 }) {
-  const items: Array<{ label: string; kind: BottomNavigationKind; icon: string }> = [
-    { label: 'เมนู', kind: 'menu', icon: '/assets/reference-brand/menu/home.png' },
+  const items: Array<{ label: string; kind: BottomNavigationKind; icon?: string }> = [
+    { label: 'เมนู', kind: 'menu' },
     { label: 'ฝาก', kind: 'deposit', icon: '/assets/reference-brand/menu/deposit.png' },
     { label: 'ถอน', kind: 'withdraw', icon: '/assets/reference-brand/menu/withdraw.png' },
-    { label: 'ติดต่อ', kind: 'contact', icon: '/assets/reference-brand/menu/support.png' },
+    { label: 'ติดต่อ', kind: 'contact' },
   ];
 
   return (
