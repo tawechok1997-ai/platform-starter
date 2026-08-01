@@ -21,6 +21,33 @@ test('guest mobile login and register actions use the canonical auth request', (
   assert.doesNotMatch(mobileHomeRoot, /MemberAuthOverlay|createPortal\([^)]*auth/i);
 });
 
+test('public guest drawer pages bypass login and keep their existing mobile routes', () => {
+  const publicRows = [
+    ['ระดับสมาชิก VIP', '/mobile/member/vip'],
+    ['ถ่ายทอดสด', '/mobile/member/live'],
+    ['โปรโมชั่น', '/mobile/member/promotions'],
+    ['ข่าวสาร', '/mobile/member/news'],
+    ['กิจกรรม', '/mobile/member/activity'],
+    ['แนะนำการใช้งาน', '/mobile/member/guide'],
+  ] as const;
+
+  for (const [label, href] of publicRows) {
+    assert.match(mobileHomeRoot, new RegExp(`\\['${label}', '${href}'`));
+    assert.match(navigationController, new RegExp(`'${href}': '${href}'`));
+  }
+
+  assert.match(navigationController, /authAction\.closest\('#mobile-home-drawer'\)/);
+  assert.match(navigationController, /guestPublicMobileTargetFor\(authAction\)/);
+  assert.match(navigationController, /router\.replace\(guestPublicTarget, \{ scroll: false \}\)/);
+
+  const publicGuardIndex = navigationController.indexOf('if (guestPublicTarget)');
+  const memberOnlyGuardIndex = navigationController.indexOf('requiresGuestLogin(authAction)');
+  const runtimeProtectedIndex = navigationController.indexOf('protectedTargets.get(href)');
+  assert.ok(publicGuardIndex >= 0);
+  assert.ok(publicGuardIndex < memberOnlyGuardIndex);
+  assert.ok(publicGuardIndex < runtimeProtectedIndex);
+});
+
 test('guest member-only drawer actions open the one login overlay before popup and navigation owners', () => {
   for (const label of [
     'รายได้คอมมิชชั่น',
