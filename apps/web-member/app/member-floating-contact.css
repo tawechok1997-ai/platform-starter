@@ -7,13 +7,38 @@
   pointer-events: none;
 }
 
-.member-floating-contact__contact-stage {
-  display: flex;
-  width: 120px;
+.member-floating-contact__contact-host {
+  position: relative;
+  width: 60px;
+  height: 60px;
   margin-left: auto;
-  flex-direction: column;
-  align-items: center;
+  pointer-events: auto;
+}
+
+.member-floating-contact__contact-stage {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
   pointer-events: none;
+}
+
+.member-floating-contact__contact-spacer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(56px);
+  pointer-events: auto;
+}
+
+.member-floating-contact__contact-motion {
+  z-index: 10;
+  transform: translateY(64px);
+  transition: all 300ms ease;
+}
+
+.member-floating-contact__contact-content {
+  width: 100%;
 }
 
 .member-floating-contact__mini-shell {
@@ -22,56 +47,49 @@
 
 .member-floating-contact__channels {
   display: flex;
-  width: 60px;
-  height: 0;
+  width: fit-content;
   margin: 0 auto;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
   gap: 16px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(30px);
-  transform-origin: bottom center;
-  transition:
-    height 200ms ease-out,
-    padding-bottom 200ms ease-out,
-    opacity 200ms ease-out,
-    visibility 200ms ease-out,
-    transform 200ms ease-out;
   pointer-events: none;
-}
-
-.member-floating-contact[data-open='true'] .member-floating-contact__channels {
-  height: 76px;
-  padding-bottom: 16px;
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-  pointer-events: auto;
 }
 
 .member-floating-contact__line {
+  position: relative;
   display: block;
   width: 60px;
-  height: 60px;
-  flex: 0 0 60px;
-  overflow: hidden;
+  height: 0;
+  overflow: visible;
   border-radius: 999px;
   opacity: 0;
-  transform: translateY(50%) scale(0);
-  transition: opacity 200ms ease-out, transform 200ms ease-out, filter 180ms ease;
+  transition:
+    height 200ms ease-out,
+    opacity 200ms ease-out;
   pointer-events: none;
 }
 
+.member-floating-contact__line img {
+  display: block;
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  object-fit: contain;
+  transform: translateY(50%) scale(0);
+  transform-origin: center;
+  transition: transform 200ms ease-out;
+}
+
 .member-floating-contact[data-open='true'] .member-floating-contact__line {
+  height: 60px;
   opacity: 1;
-  transform: translateY(0) scale(1);
   pointer-events: auto;
 }
 
-.member-floating-contact__line:hover {
-  transform: translateY(-2px) scale(1.04);
+.member-floating-contact[data-open='true'] .member-floating-contact__line img {
+  transform: translateY(0) scale(1);
+}
+
+.member-floating-contact__line:hover img {
   filter: brightness(1.08);
 }
 
@@ -83,28 +101,27 @@
   outline-offset: 3px;
 }
 
-.member-floating-contact__line img {
-  display: block;
-  width: 60px;
-  height: 60px;
-  border-radius: 999px;
-  object-fit: contain;
-}
-
 .member-floating-contact__toggle {
   position: relative;
-  display: grid;
+  display: flex;
   width: 120px;
   height: 120px;
   margin: 0 -16px -8px;
   padding: 0;
-  place-items: center;
+  flex-wrap: wrap;
+  align-content: center;
   border: 0;
   border-radius: 999px;
   background: transparent;
   cursor: pointer;
+  transition: transform 300ms ease;
   pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
+}
+
+.member-floating-contact__toggle:active {
+  transform: scale(0.96);
+  transition-duration: 90ms;
 }
 
 .member-floating-contact__ring {
@@ -115,10 +132,15 @@
   height: 68px;
   border: 1px solid rgb(244 196 75 / 68%);
   border-radius: 999px;
+  box-shadow: 0 0 12px rgb(244 196 75 / 20%);
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.72);
   animation: member-contact-ring 2.7s ease-out infinite;
   pointer-events: none;
+}
+
+.member-floating-contact__ring--1 {
+  pointer-events: auto;
 }
 
 .member-floating-contact__ring--2 {
@@ -134,70 +156,79 @@
   display: grid;
   width: 80px;
   height: 80px;
+  margin: auto;
   place-items: center;
   overflow: hidden;
   border-radius: 999px;
   filter: drop-shadow(0 8px 18px rgb(0 0 0 / 34%));
-  transition: transform 300ms ease;
   pointer-events: none;
 }
 
-.member-floating-contact__button-face > img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  padding: 4px;
-  object-fit: contain;
-  opacity: 1;
-  transform: rotate(0deg) scale(1);
-  transition: opacity 300ms ease, transform 300ms ease;
-}
-
-.member-floating-contact__close-icon {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  padding: 6px;
-  border-radius: 999px;
-  opacity: 0;
-  transform: rotate(0deg) scale(0.78);
-  transition: opacity 300ms ease, transform 300ms ease;
-}
-
-.member-floating-contact__close-icon::before,
-.member-floating-contact__close-icon::after {
+.member-floating-contact__button-face > .contact-icon-btn,
+.member-floating-contact__close-canvas {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 28px;
-  height: 3px;
-  border-radius: 999px;
-  content: '';
-  background: linear-gradient(90deg, #fff1a9, #dcae32);
-  box-shadow: 0 0 10px rgb(255 211 91 / 48%);
+  width: 80px;
+  height: 80px;
+  padding: 4px;
+  transform: translate(-50%, -50%) rotate(0deg);
+  transition:
+    opacity 300ms ease,
+    transform 300ms ease;
 }
 
-.member-floating-contact__close-icon::before {
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.member-floating-contact__close-icon::after {
-  transform: translate(-50%, -50%) rotate(-45deg);
-}
-
-.member-floating-contact[data-open='true'] .member-floating-contact__button-face > img {
-  opacity: 0;
-  transform: rotate(90deg) scale(0.78);
-}
-
-.member-floating-contact[data-open='true'] .member-floating-contact__close-icon {
+.member-floating-contact__button-face > .contact-icon-btn {
+  object-fit: contain;
   opacity: 1;
-  transform: rotate(90deg) scale(1);
 }
 
-.member-floating-contact[data-open='true'] .member-floating-contact__ring {
-  animation-duration: 2.2s;
+.member-floating-contact__close-canvas {
+  padding: 6px;
+  opacity: 0;
+}
+
+.member-floating-contact[data-open='true'] .member-floating-contact__button-face > .contact-icon-btn {
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.member-floating-contact[data-open='true'] .member-floating-contact__close-canvas {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.member-floating-contact__scroll-top {
+  display: flex;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 300ms ease;
+  pointer-events: none;
+}
+
+.member-floating-contact__scroll-top-icon {
+  display: flex;
+  width: 60px;
+  height: 60px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    rgb(0 0 0 / 25%) 0 4px 4px,
+    rgb(0 0 0 / 25%) 0 4px 4px,
+    rgb(0 0 0 / 25%) -4px -4px 4px inset;
+}
+
+.member-floating-contact__scroll-top-icon svg {
+  transform: scale(1.7);
 }
 
 @keyframes member-contact-ring {
@@ -219,23 +250,29 @@
 @media (max-width: 900px) {
   .member-floating-contact {
     right: auto;
-    bottom: 20px;
+    bottom: 0;
     left: 50%;
     width: min(428px, 100vw);
-    min-height: 206px;
+    min-height: 260px;
     transform: translateX(-50%);
   }
 
-  .member-floating-contact__contact-stage {
+  .member-floating-contact__contact-host {
     position: absolute;
-    right: -4px;
+    right: 0;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    width: 60px;
+    height: 60px;
+  }
+
+  .member-floating-contact__contact-stage {
+    right: 0;
     bottom: 0;
-    width: 120px;
   }
 
   .member-floating-contact__mini-shell {
     position: absolute;
-    bottom: 0;
+    bottom: max(20px, env(safe-area-inset-bottom));
     left: 0;
     display: flex;
     align-items: flex-end;
@@ -363,21 +400,11 @@
   .member-floating-contact__mini-shell[data-expanded='false'] .member-floating-contact__mini-toggle-arrow {
     transform: rotate(180deg);
   }
+}
 
-  .member-floating-contact__toggle {
-    width: 120px;
-    height: 120px;
-  }
-
-  .member-floating-contact__button-face,
-  .member-floating-contact__close-icon {
-    width: 80px;
-    height: 80px;
-  }
-
-  .member-floating-contact__ring {
-    width: 68px;
-    height: 68px;
+@media (min-width: 901px) {
+  .member-floating-contact__contact-motion {
+    transform: translateY(0);
   }
 }
 
@@ -389,18 +416,20 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .member-floating-contact__ring {
-    animation: none;
-    opacity: 0.28;
-  }
-
-  .member-floating-contact__channels,
+  .member-floating-contact__contact-motion,
   .member-floating-contact__line,
-  .member-floating-contact__button-face,
-  .member-floating-contact__button-face > img,
-  .member-floating-contact__close-icon,
+  .member-floating-contact__line img,
+  .member-floating-contact__toggle,
+  .member-floating-contact__button-face > .contact-icon-btn,
+  .member-floating-contact__close-canvas,
+  .member-floating-contact__scroll-top,
   .member-floating-contact__mini-panel,
   .member-floating-contact__mini-toggle-arrow {
     transition: none;
+  }
+
+  .member-floating-contact__ring {
+    animation: none;
+    opacity: 0.28;
   }
 }
