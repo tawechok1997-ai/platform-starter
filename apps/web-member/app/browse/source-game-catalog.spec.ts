@@ -15,6 +15,7 @@ test('maps recovered catalog metadata into source filters', () => {
     providerGameCode: '100',
     name: 'Buy Feature Table',
     category: 'slot',
+    platform: 'desktop',
     imageUrl: 'https://cdn.example.test/game.png',
     provider: {
       code: 'jl.webp',
@@ -30,6 +31,7 @@ test('maps recovered catalog metadata into source filters', () => {
   assert.equal(game.provider, 'jl');
   assert.equal(game.id, '100');
   assert.equal(game.origin, 'catalog');
+  assert.equal(game.platform, 'pc');
   assert.equal(game.isHot, true);
   assert.equal(game.isNew, true);
   assert.deepEqual(new Set(game.tags), new Set(['slot', 'buy', 'hot', 'new', 'table']));
@@ -57,4 +59,25 @@ test('falls back to the configured provider card when catalog media is absent', 
   assert.ok(game);
   assert.equal(game.image, '/fishco-card.png');
   assert.equal(game.providerBadge, '/fishco-badge.png');
+});
+
+
+test('keeps the mobile catalog separate from the PC catalog', () => {
+  const game = mapCatalogGame(
+    {
+      id: 'catalog:mobile:pg:mobile-100',
+      providerGameCode: 'mobile-100',
+      name: 'Mobile inventory game',
+      category: 'slot',
+      platform: 'mobile',
+      imageUrl: 'https://cdn.example.test/mobile-game.png',
+      provider: { code: 'pg', name: 'PG' },
+    },
+    [],
+    'mobile',
+  );
+
+  assert.ok(game);
+  assert.equal(game.platform, 'mobile');
+  assert.equal(game.id, 'mobile-100');
 });

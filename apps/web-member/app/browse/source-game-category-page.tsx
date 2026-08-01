@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { useMemberSession } from '../member-session-provider';
-import { loadSourceCategoryCatalog, type SourceCategoryCatalog } from './source-game-catalog';
+import {
+  loadSourceCategoryCatalog,
+  type SourceCatalogPlatform,
+  type SourceCategoryCatalog,
+} from './source-game-catalog';
 import SourceGameCategorySkeleton from './source-game-category-skeleton';
 import styles from './source-game-category-page.module.css';
 
@@ -29,6 +33,7 @@ export type SourceGameItem = {
   isHot: boolean;
   tags: SourceGameFilterKey[];
   origin?: 'source' | 'catalog';
+  platform?: SourceCatalogPlatform | 'both';
 };
 
 export type SourceGameCategoryConfig = {
@@ -70,6 +75,8 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
   const [previewCode, setPreviewCode] = useState<string | null>(null);
   const [invalidProviderThemes, setInvalidProviderThemes] = useState<Set<string>>(() => new Set());
   const [catalog, setCatalog] = useState<SourceCategoryCatalog | null>(null);
+  const [catalogPlatform, setCatalogPlatform] = useState<SourceCatalogPlatform>('pc');
+  const [catalogPlatformReady, setCatalogPlatformReady] = useState(false);
   const [catalogLoading, setCatalogLoading] = useState(config.mode === 'games');
   const [catalogAttempted, setCatalogAttempted] = useState(config.mode !== 'games');
 
@@ -77,6 +84,12 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
     () => Array.from(new Map(config.providers.map((item) => [normalizeProviderCode(item.code), item] as const)).values()),
     [config.providers],
   );
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia('(max-width: 900px)');
+    setCatalogPlatform(mobileQuery.matches ? 'mobile' : 'pc');
+    setCatalogPlatformReady(true);
+  }, []);
 
   useEffect(() => {
     setSelectedFilters([]);
@@ -92,6 +105,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
       setCatalogAttempted(true);
       return;
     }
+    if (!catalogPlatformReady) return;
 
     const controller = new AbortController();
     let cancelled = false;
@@ -99,7 +113,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
     setCatalogLoading(true);
     setCatalogAttempted(false);
 
-    void loadSourceCategoryCatalog(config.slug, configuredProviders, controller.signal)
+    void loadSourceCategoryCatalog(config.slug, configuredProviders, catalogPlatform, controller.signal)
       .then((result) => {
         if (!cancelled) setCatalog(result.games.length ? result : null);
       })
@@ -117,10 +131,12 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
       cancelled = true;
       controller.abort();
     };
-  }, [config.mode, config.slug, configuredProviders]);
+  }, [catalogPlatform, catalogPlatformReady, config.mode, config.slug, configuredProviders]);
 
   const hasCatalog = Boolean(catalog?.games.length);
-  const showCatalogSkeleton = config.mode === 'games' && (!catalogAttempted || catalogLoading);
+  const showCatalogSkeleton = config.mode === 'games' && (
+    !catalogPlatformReady || !catalogAttempted || catalogLoading
+  );
 
   const providers = useMemo(() => {
     const source = hasCatalog ? (catalog?.providers ?? []) : configuredProviders;
@@ -202,6 +218,12 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
     setPreviewCode(null);
   };
 
+  const selectCatalogPlatform = (platform: SourceCatalogPlatform) => {
+    if (platform === catalogPlatform) return;
+    clearFilters();
+    setCatalogPlatform(platform);
+  };
+
   const toggleFilter = (key: SourceGameFilterKey) => {
     setSelectedFilters((current) => (
       current.includes(key) ? current.filter((item) => item !== key) : [...current, key]
@@ -241,6 +263,7 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
       data-source-game-category={config.slug}
       data-catalog-source={showCatalogSkeleton ? 'loading' : hasCatalog ? 'central' : 'fallback'}
       data-catalog-incomplete={catalog?.incomplete ? 'true' : 'false'}
+      data-catalog-platform={config.mode === 'games' ? catalogPlatform : undefined}
       aria-busy={showCatalogSkeleton}
     >
       <div className={styles.backgroundStack} aria-hidden="true">
@@ -386,7 +409,33 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
               </aside>
 
               <section className={styles.gameArea} aria-label={`รายการ${config.title}`} aria-live="polite">
-                <h1>{config.title} ({resultCount.toLocaleString('th-TH')} เกม)</h1>
+                <div className={styles.gameToolbar}>
+                  <h1>{config.title} ({resultCount.toLocaleString('th-TH')} เกม)</h1>
+                  {config.mode === 'games' ? (
+                    <div className={styles.platformSwitch} role="group" aria-label="เลือกชุดไอคอนเกมตามอุปกรณ์">
+                      <button
+                        type="button"
+                        className={catalogPlatform === 'pc' ? styles.platformActive : undefined}
+                        data-source-platform="pc"
+                        aria-pressed={catalogPlatform === 'pc'}
+                        onClick={() => selectCatalogPlatform('pc')}
+                      >
+                        <span aria-hidden="true">▰</span>
+                        PC / Desktop
+                      </button>
+                      <button
+                        type="button"
+                        className={catalogPlatform === 'mobile' ? styles.platformActive : undefined}
+                        data-source-platform="mobile"
+                        aria-pressed={catalogPlatform === 'mobile'}
+                        onClick={() => selectCatalogPlatform('mobile')}
+                      >
+                        <span aria-hidden="true">▯</span>
+                        มือถือ
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
                 {visibleGames.length ? (
                   <div className={styles.gameGrid}>
                     {visibleGames.map((game) => {
@@ -394,7 +443,8 @@ export default function SourceGameCategoryPage({ config }: { config: SourceGameC
                       const providerBadge = game.providerBadge ?? provider?.badge;
                       return (
                         <article
-                          key={`${game.provider ?? 'none'}:${game.id}`}
+                          key={`${game.platform ?? catalogPlatform}:${game.provider ?? 'none'}:${game.id}`}
+                          data-game-platform={game.platform ?? catalogPlatform}
                           className={styles.gameCard}
                           onMouseEnter={() => config.mode === 'provider-cards' && setPreviewCode(game.provider)}
                           onMouseLeave={() => config.mode === 'provider-cards' && setPreviewCode(null)}

@@ -479,12 +479,73 @@
   min-width: 0;
 }
 
+.gameToolbar {
+  display: flex;
+  min-height: 60px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .gameArea h1 {
   margin: 0;
   padding: 0 0 20px;
   font-size: 32px;
   font-weight: 700;
   line-height: 40px;
+}
+
+.platformSwitch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(132px, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #4d435d;
+  border-radius: 12px;
+  background: rgba(17, 14, 22, 0.86);
+  box-shadow: 0 8px 24px rgba(7, 3, 10, 0.24);
+}
+
+.platformSwitch button {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #bdb7c8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.platformSwitch button:hover,
+.platformSwitch button:focus-visible {
+  color: #fff;
+}
+
+.platformSwitch button:focus-visible {
+  outline: 2px solid #d79aff;
+  outline-offset: 2px;
+}
+
+.platformSwitch .platformActive {
+  border-color: #bd3bea;
+  background: linear-gradient(180deg, #9d0bc8, #67008d);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(187, 91, 234, 0.36);
+}
+
+.platformSwitch span {
+  color: #ebc7ff;
+  font-size: 17px;
+  line-height: 1;
 }
 
 .gameGrid {
@@ -727,9 +788,22 @@
     justify-content: flex-start;
   }
 
+  .gameToolbar {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
   .gameArea h1 {
+    padding-bottom: 0;
     font-size: 24px;
     line-height: 32px;
+  }
+
+  .platformSwitch {
+    box-sizing: border-box;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .gameGrid {
@@ -781,6 +855,7 @@
   .providerAvatar,
   .providerButton,
   .providerButton > img,
+  .platformSwitch button,
   .gameImageBlur,
   .gameImageContain,
   .gameImageCover {
