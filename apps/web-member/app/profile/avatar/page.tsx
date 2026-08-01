@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import {
+  DEFAULT_MOBILE_AVATAR,
   MOBILE_AVATAR_OPTIONS,
   readMobileAvatarPreference,
   writeMobileAvatarPreference,
@@ -18,7 +19,7 @@ const SELECTED_ICON = '/images/profile/selected.svg';
 export default function MobileAvatarPage() {
   const router = useRouter();
   const { profile, summary } = useMemberRuntime();
-  const [selected, setSelected] = useState(() => readMobileAvatarPreference());
+  const [selected, setSelected] = useState(DEFAULT_MOBILE_AVATAR);
   const [saved, setSaved] = useState(false);
   const vipBadge = useMemo(
     () => resolveLocalAssetByBasename(VIP_BADGE_SOURCE, 'mobile')
@@ -26,6 +27,10 @@ export default function MobileAvatarPage() {
       || VIP_BADGE_SOURCE,
     [],
   );
+
+  useEffect(() => {
+    setSelected(readMobileAvatarPreference());
+  }, []);
 
   const memberName = summary.displayName || summary.username || profile?.phone || 'สมาชิก';
   const contact = profile?.phone || profile?.email || summary.username || '-';
