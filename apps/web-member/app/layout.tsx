@@ -120,6 +120,7 @@ import MemberClientNavigationController from './components/member-client-navigat
 import MemberDragScrollController from './components/member-drag-scroll-controller';
 import MemberFloatingContact from './components/member-floating-contact';
 import MemberImageFallbackController from './components/member-image-fallback-controller';
+import MemberLoadingScreen from './components/member-loading-screen';
 import MobileLocalAssetRuntime from './components/mobile-local-asset-runtime';
 import MemberNavigationAuthController from './components/member-navigation-auth-controller';
 import MemberRenderStabilityController from './components/member-render-stability-controller';
@@ -212,7 +213,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <PublicMobileSourceHeaderOwner />
                 <div id="member-desktop-scale-shell">
                   <div id="member-desktop-scale-canvas">
-                    <Suspense fallback={<main className="member-loading-screen" aria-hidden="true" />}>
+                    <Suspense fallback={<MemberLoadingScreen />}>
                       <MemberChrome>{children}</MemberChrome>
                     </Suspense>
                   </div>
