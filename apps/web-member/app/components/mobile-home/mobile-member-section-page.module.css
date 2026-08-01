@@ -197,6 +197,71 @@
   -webkit-line-clamp: 2;
 }
 
+/* The existing /mobile/member/news route owns this source-shaped screen.
+   Do not create a second News page or a parallel popup owner. */
+.page[data-mobile-member-page='news'] {
+  max-width: 428px;
+  background: #141019;
+}
+
+.page[data-mobile-member-page='news'] .header {
+  background: #171422;
+  box-shadow: none;
+}
+
+.page[data-mobile-member-page='news'] .header h1 {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.newsBody {
+  min-height: calc(100dvh - var(--mobile-source-header-height, 50px));
+  padding: 16px 16px calc(50px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: #141019;
+  scrollbar-width: none;
+}
+
+.newsBody::-webkit-scrollbar {
+  display: none;
+}
+
+.newsBody .state {
+  min-height: 160px;
+  border: 0;
+  background: transparent;
+}
+
+.newsEmpty {
+  display: flex;
+  width: 100%;
+  padding-top: 64px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  color: #a6a6a6;
+}
+
+.newsEmpty svg {
+  display: block;
+  width: 116px;
+  height: 81px;
+  flex: 0 0 auto;
+}
+
+.newsEmpty span {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+
+.newsBody .list {
+  width: 100%;
+  gap: 12px;
+}
+
 @media (min-width: 600px) and (max-width: 900px) {
   .body {
     padding-inline: 18px;
@@ -208,6 +273,10 @@
 
   .list {
     grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .newsBody .list {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -238,5 +307,9 @@
   .card > img {
     width: 62px;
     height: 62px;
+  }
+
+  .newsBody {
+    padding: 12px 16px calc(50px + env(safe-area-inset-bottom));
   }
 }
