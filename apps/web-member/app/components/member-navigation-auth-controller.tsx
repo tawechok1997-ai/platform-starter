@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMemberRuntime } from '../member-runtime-provider';
 
 const NAVIGATION_SELECTOR = [
@@ -66,6 +67,7 @@ const CANONICAL_HREF_TARGETS: Readonly<Record<string, string>> = {
 };
 
 export default function MemberNavigationAuthController() {
+  const router = useRouter();
   const { navigation, summary } = useMemberRuntime();
 
   useEffect(() => {
@@ -89,7 +91,7 @@ export default function MemberNavigationAuthController() {
         if (canonicalTarget && normalizeCurrentLocation() !== normalize(canonicalTarget)) {
           event.preventDefault();
           event.stopPropagation();
-          window.location.assign(canonicalTarget);
+          router.replace(canonicalTarget, { scroll: false });
           return;
         }
       }
@@ -103,12 +105,12 @@ export default function MemberNavigationAuthController() {
 
       event.preventDefault();
       event.stopPropagation();
-      window.location.assign(`/?auth=login&next=${encodeURIComponent(intended)}`);
+      router.replace(`/?auth=login&next=${encodeURIComponent(intended)}`, { scroll: false });
     };
 
     document.addEventListener('click', guard, true);
     return () => document.removeEventListener('click', guard, true);
-  }, [navigation, summary.isLoggedIn]);
+  }, [navigation, router, summary.isLoggedIn]);
 
   return null;
 }
