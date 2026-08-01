@@ -1,7 +1,6 @@
 import { memberApiFetch } from '../member-api';
 import {
   mapMemberCatalogGame,
-  normalizeMemberGameCategory,
   type MemberCatalogGame,
   type MemberGamePlatform,
   type RawCatalogGame,
@@ -33,7 +32,20 @@ type CatalogPayload = {
 const PAGE_LIMIT = 250;
 const MAX_PAGES_PER_CATEGORY = 40;
 const PAGE_BATCH_SIZE = 4;
-const DEFAULT_CATEGORIES = ['slot', 'casino', 'arcade', 'fishing', 'sport', 'card', 'lottery'] as const;
+const DEFAULT_CATEGORIES = [
+  'slot',
+  'arcade',
+  'casino',
+  'live',
+  'fishing',
+  'fish',
+  'sport',
+  'sports',
+  'card',
+  'table',
+  'lottery',
+  'lotto',
+] as const;
 const cachedCatalogs = new Map<MemberGamePlatform, Promise<MemberCatalogGame[]>>();
 
 export function getMemberGameCatalog(platform: MemberGamePlatform) {
@@ -53,9 +65,11 @@ export async function loadMemberGameCatalog(
   signal?: AbortSignal,
   categories: readonly string[] = DEFAULT_CATEGORIES,
 ): Promise<MemberCatalogGame[]> {
+  const queryCategories = Array.from(
+    new Set(categories.map(normalizeCatalogQueryCategory).filter(Boolean)),
+  );
   const outcomes = await Promise.allSettled(
-    Array.from(new Set(categories.map(normalizeMemberGameCategory).filter(Boolean)))
-      .map((category) => loadCategory(category, platform, signal)),
+    queryCategories.map((category) => loadCategory(category, platform, signal)),
   );
 
   if (signal?.aborted) throw abortError();
@@ -137,6 +151,10 @@ function readTotalPages(payload: CatalogPayload | null, fallbackCount: number) {
   const total = Number(payload?.pagination?.total ?? payload?.counts?.total ?? fallbackCount);
   if (!Number.isFinite(total) || total <= 0) return 1;
   return Math.max(1, Math.ceil(total / PAGE_LIMIT));
+}
+
+function normalizeCatalogQueryCategory(value: unknown) {
+  return String(value ?? '').trim().toLowerCase();
 }
 
 function gameScore(game: MemberCatalogGame) {
