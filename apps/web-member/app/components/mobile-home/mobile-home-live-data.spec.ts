@@ -7,6 +7,7 @@ const sourceContent = readFileSync(new URL('./mobile-source-content.tsx', import
 const categoryRuntime = readFileSync(new URL('./mobile-category-tab-runtime.tsx', import.meta.url), 'utf8');
 const highlightContent = readFileSync(new URL('./mobile-highlight-tab-content.tsx', import.meta.url), 'utf8');
 const mobileRoot = readFileSync(new URL('./mobile-home-root.tsx', import.meta.url), 'utf8');
+const catalog = readFileSync(new URL('../../lib/member-game-catalog.ts', import.meta.url), 'utf8');
 const homeDataRuntime = readFileSync(new URL('../../member-home-data-runtime.ts', import.meta.url), 'utf8');
 const gameController = readFileSync(new URL('../member-home/public-home-game-navigation-controller.tsx', import.meta.url), 'utf8');
 const manifest = readFileSync(new URL('../../manifest.ts', import.meta.url), 'utf8');
@@ -14,11 +15,12 @@ const jackpotRuntime = readFileSync(new URL('../member-home/member-jackpot-runti
 const desktopJackpot = readFileSync(new URL('../member-home/desktop-jackpot-card.tsx', import.meta.url), 'utf8');
 
 test('mobile home and category catalogs request mobile records only', () => {
-  assert.match(sourceRuntime, /platform:\s*'mobile'/);
+  assert.match(sourceRuntime, /getMemberGameCatalog\('mobile'\)/);
   assert.match(categoryRuntime, /platform:\s*'mobile'/);
-  assert.doesNotMatch(sourceRuntime, /platform:\s*'pc'/);
+  assert.doesNotMatch(sourceRuntime, /getMemberGameCatalog\('pc'\)/);
   assert.doesNotMatch(categoryRuntime, /platform:\s*'pc'/);
-  assert.match(sourceRuntime, /Promise\.allSettled\(CATALOG_CATEGORIES/);
+  assert.match(catalog, /Promise\.allSettled/);
+  assert.match(catalog, /DEFAULT_CATEGORIES/);
 });
 
 test('mobile game cards delegate guest login and member launch to the canonical controller', () => {
