@@ -19,13 +19,13 @@ type SectionConfig = {
 const SECTION_CONFIG: Record<string, SectionConfig> = {
   vip: { title: 'ระดับสมาชิก VIP', endpoint: '/member/auth/profile', fallbackImage: '/images/avatar/7.webp' },
   profile: { title: 'ข้อมูลสมาชิก', endpoint: '/member/auth/profile', fallbackImage: '/images/avatar/7.webp' },
-  affiliate: { title: 'แนะนำเพื่อน', endpoint: '/member/affiliate/summary', fallbackImage: '/assets/asset-pc/images/เเนะนำเพื่อน.png' },
+  affiliate: { title: 'แนะนำเพื่อน', endpoint: '/member/affiliate/profile', fallbackImage: '/assets/asset-pc/images/เเนะนำเพื่อน.png' },
   live: { title: 'ถ่ายทอดสด', endpoint: '/games/catalog?category=live&limit=40', fallbackImage: '/assets/asset-pc/images/ถ่ายถอดสด.png' },
   promotions: { title: 'โปรโมชั่น', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/โปรโมชั้น.png' },
   news: { title: 'ข่าวสาร', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/ข่าวสาร.png' },
   activity: { title: 'กิจกรรม', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/กิจกรรม.png' },
-  history: { title: 'ประวัติ', endpoint: '/member/transactions?limit=50', fallbackImage: '/assets/asset-pc/images/ประวัติ.png' },
-  notifications: { title: 'แจ้งเตือน', endpoint: '/member/notifications?limit=50', fallbackImage: '/assets/asset-pc/images/เเจ้งเตือน.png' },
+  history: { title: 'ประวัติ', endpoint: '/member/wallet/ledger?limit=100', fallbackImage: '/assets/asset-pc/images/ประวัติ.png' },
+  notifications: { title: 'แจ้งเตือน', endpoint: '/member/notifications', fallbackImage: '/assets/asset-pc/images/เเจ้งเตือน.png' },
   video: { title: 'วีดีโอแนะนำ', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/วิดีโอเเนะนำ.png' },
   guide: { title: 'แนะนำการใช้งาน', endpoint: '/public/site-settings', publicEndpoint: true, fallbackImage: '/assets/asset-pc/images/เเนะนำการใช้งาน.png' },
 };
@@ -124,11 +124,26 @@ function normalizeItems(section: string, payload: unknown): NormalItem[] {
 
   return source.map((value, index) => {
     const item = asRecord(value) ?? {};
-    const title = firstString(item.title, item.name, item.question, item.label, `รายการ ${index + 1}`);
-    const subtitle = firstString(item.subtitle, item.message, item.description, item.answer, item.status, item.providerName, '');
+    const title = firstString(item.title, item.name, item.question, item.label, transactionTitle(item), `รายการ ${index + 1}`);
+    const subtitle = firstString(item.subtitle, item.message, item.description, item.answer, item.status, item.providerName, transactionSubtitle(item), '');
     const image = firstString(item.mobileImageUrl, item.imageUrl, item.image, item.thumbnailUrl, item.iconUrl, item.logoUrl, '');
     return { id: firstString(item.id, item.code, String(index)), title, subtitle: stripHtml(subtitle), image };
   });
+}
+
+function transactionTitle(item: UnknownRecord) {
+  const type = firstString(item.type).toUpperCase();
+  if (type.includes('DEPOSIT') || type.includes('TOPUP')) return 'ฝากเงิน';
+  if (type.includes('WITHDRAW')) return 'ถอนเงิน';
+  if (type.includes('ADJUST')) return 'ปรับยอด';
+  return '';
+}
+
+function transactionSubtitle(item: UnknownRecord) {
+  const amount = Number(item.amount);
+  if (!Number.isFinite(amount)) return '';
+  const direction = firstString(item.direction).toUpperCase() === 'CREDIT' ? '+' : '-';
+  return `${direction} ${formatMoney(amount)} THB`;
 }
 
 function cmsArray(root: UnknownRecord | null, key: string) {
@@ -141,7 +156,7 @@ function cmsArray(root: UnknownRecord | null, key: string) {
 function arrayFromPayload(payload: unknown): unknown[] {
   if (Array.isArray(payload)) return payload;
   const root = asRecord(payload);
-  for (const key of ['items', 'data', 'results', 'transactions', 'notifications', 'games']) {
+  for (const key of ['items', 'data', 'results', 'transactions', 'notifications', 'games', 'commissions']) {
     const value = root?.[key];
     if (Array.isArray(value)) return value;
   }
