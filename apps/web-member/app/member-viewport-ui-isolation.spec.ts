@@ -31,6 +31,11 @@ test('mobile portal owners are explicitly tagged and remain mobile-only', () => 
   assert.match(mobilePopupRuntime, /data-ui-owner="mobile-video-popup"/);
   assert.match(mobilePopupRuntime, /data-ui-owner="mobile-navigation"/);
   assert.match(mobilePopupRuntime, /data-mobile-member-bottom-navigation="true"/);
+  assert.match(mobilePopupRuntime, /<canvas/);
+  assert.match(mobilePopupRuntime, /width=\{BOTTOM_NAV_CANVAS_SIZE\}/);
+  assert.match(mobilePopupRuntime, /height=\{BOTTOM_NAV_CANVAS_SIZE\}/);
+  assert.match(mobilePopupRuntime, /data-bottom-navigation-canvas=\{kind\}/);
+  assert.match(mobilePopupRuntime, /<BottomNavigationCanvasIcon src=\{item\.icon\} kind=\{item\.kind\} \/>/);
   assert.match(mobilePopupRuntime, /if \(!isMobile \|\| !summary\.isLoggedIn/);
 });
 
