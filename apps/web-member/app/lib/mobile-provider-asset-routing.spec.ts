@@ -20,7 +20,7 @@ test('indexes PC and Mobile inventories instead of dropping Mobile provider logo
 test('serves canonical Mobile assets directly and only repairs the historical typo root', () => {
   assert.match(nextConfigSource, /canonicalMobileAssetRoot = '\/assets\/asset-mobile'/);
   assert.match(nextConfigSource, /source: '\/assets\/asset-moblie\/:path\*'/);
-  assert.match(nextConfigSource, /destination: `\$\{canonicalMobileAssetRoot\}\/\:path\*`/);
+  assert.match(nextConfigSource, /destination: `\$\{canonicalMobileAssetRoot\}\/:path\*`/);
   assert.doesNotMatch(
     nextConfigSource,
     /source: '\/assets\/asset-mobile\/:path\*'[\s\S]{0,160}destination: `\$\{canonicalPcAssetRoot\}/,
