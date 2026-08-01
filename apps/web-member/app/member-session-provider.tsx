@@ -1,6 +1,16 @@
 'use client';
 
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   MEMBER_WALLET_REFRESH_EVENT,
   normalizeMemberWallet,
@@ -91,7 +101,52 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
     clearMemberSession();
     setIsLoggedIn(false);
     setWallet(null);
-    window.location.replace('/?auth=login');
+    window.location.replace('/');
+  }, []);
+
+  useLayoutEffect(() => {
+    const navigationEntry = window.performance.getEntriesByType('navigation')[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    const legacyNavigationType = (
+      window.performance as Performance & { navigation?: { type?: number } }
+    ).navigation?.type;
+    const isReload = navigationEntry?.type === 'reload' || legacyNavigationType === 1;
+    if (!isReload) return;
+
+    const previousScrollRestoration = window.history.scrollRestoration;
+    let animationFrame = 0;
+    let resetTimer = 0;
+
+    const resetScroll = () => {
+      document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    };
+
+    const finishReset = () => {
+      resetScroll();
+      animationFrame = window.requestAnimationFrame(() => {
+        resetScroll();
+        resetTimer = window.setTimeout(() => {
+          resetScroll();
+          window.history.scrollRestoration = previousScrollRestoration;
+        }, 0);
+      });
+    };
+
+    window.history.scrollRestoration = 'manual';
+    resetScroll();
+
+    if (document.readyState === 'complete') finishReset();
+    else window.addEventListener('load', finishReset, { once: true });
+
+    return () => {
+      window.removeEventListener('load', finishReset);
+      window.cancelAnimationFrame(animationFrame);
+      window.clearTimeout(resetTimer);
+      window.history.scrollRestoration = previousScrollRestoration;
+    };
   }, []);
 
   useEffect(() => {
