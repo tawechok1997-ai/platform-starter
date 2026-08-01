@@ -132,14 +132,28 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.providerSelectButton {
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 .card:focus-visible,
 .filterButton:focus-visible,
-.filterMenu button:focus-visible {
+.filterMenu button:focus-visible,
+.providerSelectButton:focus-visible,
+.slotGameCard:focus-visible,
+.backButton:focus-visible,
+.loadMoreButton:focus-visible {
   outline: 2px solid #d29bff;
   outline-offset: 2px;
 }
 
-.card:active {
+.card:active,
+.providerSelectButton:active,
+.slotGameCard:active {
   transform: scale(0.985);
 }
 
@@ -219,6 +233,190 @@
   line-height: 1;
 }
 
+.slotGamesRoot {
+  min-height: 320px;
+}
+
+.slotGamesHeading {
+  display: grid;
+  min-height: 42px;
+  margin-bottom: 12px;
+  grid-template-columns: 34px 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.slotGamesHeading > img {
+  display: block;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.slotGamesHeading h2 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slotGamesHeading h2 span {
+  display: block;
+  color: rgb(255 255 255 / 64%);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.backButton {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 10px;
+  color: #fff;
+  background: rgb(55 49 71 / 88%);
+  cursor: pointer;
+}
+
+.backButton span {
+  margin-top: -3px;
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.slotState {
+  display: grid;
+  min-height: 120px;
+  padding: 18px;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+  color: rgb(255 255 255 / 68%);
+  background: rgb(28 24 36 / 62%);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.slotGameGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.slotGameCard {
+  min-width: 0;
+  padding: 0 0 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  background: rgb(34 29 44 / 92%);
+  box-shadow: 0 3px 10px rgb(0 0 0 / 18%);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.slotGameImage {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #17131e;
+}
+
+.slotGameImage > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slotGameCard > strong,
+.slotGameCard > small {
+  display: block;
+  margin-right: 8px;
+  margin-left: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slotGameCard > strong {
+  margin-top: 7px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 15px;
+}
+
+.slotGameCard > small {
+  margin-top: 2px;
+  color: rgb(255 255 255 / 52%);
+  font-size: 9px;
+  line-height: 12px;
+}
+
+.slotGameBadges {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.slotHotBadge,
+.slotNewBadge {
+  display: inline-flex;
+  min-height: 16px;
+  padding: 0 5px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 8px;
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.slotHotBadge {
+  background: linear-gradient(180deg, #f45643 0%, #f11f70 78%, #fc3a85 100%);
+  box-shadow: 0 2px 4px rgb(243 45 120 / 46%);
+}
+
+.slotNewBadge {
+  background: #00d719;
+  box-shadow: 0 2px 4px rgb(0 255 30 / 38%);
+}
+
+.loadMoreButton {
+  display: block;
+  min-width: 136px;
+  min-height: 36px;
+  margin: 16px auto 0;
+  padding: 0 16px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(180deg, #8f24ad 0%, #5c176f 100%);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
 @media (min-width: 360px) {
   .root {
     padding-right: 10px;
@@ -242,5 +440,13 @@
   .filterButton svg {
     width: 16px;
     height: 16px;
+  }
+
+  .slotGameGrid {
+    gap: 12px;
+  }
+
+  .slotGameCard > strong {
+    font-size: 12px;
   }
 }
