@@ -8,6 +8,15 @@ type MemberRouteRule = {
   authRedirectHome?: boolean;
 };
 
+const PUBLIC_MOBILE_MEMBER_ROUTES = new Set([
+  '/mobile/member/vip',
+  '/mobile/member/live',
+  '/mobile/member/promotions',
+  '/mobile/member/news',
+  '/mobile/member/activity',
+  '/mobile/member/guide',
+]);
+
 const memberRouteRules: MemberRouteRule[] = [
   { prefix: '/clone-preview', label: 'Frontend Clone Preview', public: true },
   { prefix: '/login', label: 'เข้าสู่ระบบ', public: true, authRedirectHome: true },
@@ -31,15 +40,15 @@ const memberRouteRules: MemberRouteRule[] = [
 ];
 
 export function routeRuleFor(pathname: string | null | undefined) {
-  const safePathname = pathname ?? '/';
+  const safePathname = normalizeRoutePath(pathname);
   return memberRouteRules
     .filter((rule) => safePathname.startsWith(rule.prefix))
     .sort((a, b) => b.prefix.length - a.prefix.length)[0];
 }
 
 export function isPublicMemberRoute(pathname: string | null | undefined) {
-  const safePathname = pathname ?? '/';
-  if (safePathname === '/') return true;
+  const safePathname = normalizeRoutePath(pathname);
+  if (safePathname === '/' || PUBLIC_MOBILE_MEMBER_ROUTES.has(safePathname)) return true;
   return Boolean(routeRuleFor(safePathname)?.public);
 }
 
@@ -47,4 +56,10 @@ export function disabledMemberRoute(pathname: string | null | undefined, feature
   const rule = routeRuleFor(pathname);
   if (!rule?.feature || features[rule.feature]) return undefined;
   return rule;
+}
+
+function normalizeRoutePath(pathname: string | null | undefined) {
+  const value = (pathname ?? '/').trim() || '/';
+  if (value === '/') return value;
+  return value.replace(/\/+$/, '') || '/';
 }
