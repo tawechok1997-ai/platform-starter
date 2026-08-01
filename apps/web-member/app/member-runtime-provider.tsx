@@ -44,6 +44,10 @@ export type MemberRuntimeContextValue = MemberRuntimeSnapshot & {
   }) => string;
 };
 
+type RuntimeProfileWithAvatar = MemberRuntimeProfile & {
+  avatarUrl?: string | null;
+};
+
 const MemberRuntimeContext = createContext<MemberRuntimeContextValue | null>(null);
 const PROFILE_TIMEOUT_MS = 12_000;
 const PROFILE_FOCUS_COOLDOWN_MS = 30_000;
@@ -205,18 +209,20 @@ function normalizeRuntimeProfile(payload: unknown): MemberRuntimeProfile {
   const username = optionalText(source.username);
   const status = optionalText(source.status);
 
-  return {
+  const normalized: RuntimeProfileWithAvatar = {
     ...(id ? { id } : {}),
     ...(username ? { username } : {}),
     displayName: nullableText(source.displayName),
     phone: nullableText(source.phone),
     email: nullableText(source.email),
+    avatarUrl: nullableText(source.avatarUrl),
     ...(status ? { status } : {}),
     phoneVerifiedAt: nullableText(source.phoneVerifiedAt),
     emailVerifiedAt: nullableText(source.emailVerifiedAt),
     kycStatus: nullableText(source.kycStatus ?? kyc.status),
     vipLevel: normalizeScalar(source.vipLevel ?? vip.level ?? vip.name),
   };
+  return normalized;
 }
 
 function optionalText(value: unknown) {
