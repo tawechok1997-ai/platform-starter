@@ -1,19 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import type {
   MobileSourceGame,
   MobileSourceLeaderboardRow,
   MobileSourceTournament,
 } from './mobile-source-runtime';
 import { useMobileSourceRuntime } from './mobile-source-runtime';
+import { resolveLocalAssetByBasename } from '../../lib/local-asset-by-basename';
 import { V47_ASSETS } from '../member-home/v47-asset-map';
 import styles from './mobile-source-content.module.css';
 
-const SOURCE_ROOT = '/assets/asset-pc/images';
-const MOBILE_SOURCE_ROOT = '/assets/asset-mobile/images';
-const LEGACY_MOBILE_SOURCE_ROOT = '/assets/asset-moblie/images';
-const assetProbeCache = new Map<string, Promise<boolean>>();
+const MOBILE_TOURNAMENT_ART = '/assets/asset-mobile/images/home/tournament-mobile-source.svg';
 
 const FALLBACK_TOURNAMENTS: MobileSourceTournament[] = [
   tournament('football-royale-2', 'No1. Tournament Football Royale ครั้งที่ 2', [
@@ -93,7 +90,6 @@ export default function MobileSourceContent() {
   const popularGames = runtime.popularGames.length ? runtime.popularGames : FALLBACK_POPULAR_GAMES;
   const onlineGames = runtime.onlineGames.length ? runtime.onlineGames : FALLBACK_ONLINE_GAMES;
   const classicGames = runtime.classicGames.length ? runtime.classicGames : FALLBACK_CLASSIC_GAMES;
-  const tournamentImage = runtime.tournament.image || 'https://cdn.zabbet.com/ZAB1/tournament/647280b5-3a23-4118-80a0-1b7feb340d1a.png';
   const tournamentIcon = runtime.icons.tournament || V47_ASSETS.tournamentIcon;
   const leaderboardIcon = runtime.icons.leaderboard || V47_ASSETS.leaderboard;
 
@@ -102,7 +98,7 @@ export default function MobileSourceContent() {
       {runtime.features.tournament ? (
         <section className={styles.tournamentSection} aria-labelledby="mobile-tournament-heading">
           <div className={styles.tournamentBanner}>
-            <MappedImage src={tournamentImage} alt={runtime.tournament.title || 'Tournament'} />
+            <MappedImage src={MOBILE_TOURNAMENT_ART} alt={runtime.tournament.title || 'Tournament'} />
           </div>
           <SectionHeading id="mobile-tournament-heading" icon={tournamentIcon} label="ทัวร์นาเมนต์" />
           <div className={styles.tournamentRail}>
@@ -196,7 +192,7 @@ export default function MobileSourceContent() {
             {LIVE_MATCHES.map(([league, time, home, away, homeLogo, awayLogo]) => (
               <article key={`${league}-${home}`} className={styles.liveCard}>
                 <div className={styles.liveMeta}>
-                  <span><MappedImage src="/images/home/sports_soccer.svg" alt="" />{league}</span>
+                  <span><SoccerIcon />{league}</span>
                   <strong>LIVE <small>{time}</small></strong>
                 </div>
                 <div className={styles.liveTeams}>
@@ -205,7 +201,7 @@ export default function MobileSourceContent() {
                   <span><MappedImage src={awayLogo} alt="" /><b>{away}</b></span>
                 </div>
                 <div className={styles.liveActions}>
-                  <button type="button" onClick={() => navigate(runtime.section.live?.href || '/live')}><MappedImage src="/images/home/white_live.svg" alt="" />ดูถ่ายทอดสด</button>
+                  <button type="button" onClick={() => navigate(runtime.section.live?.href || '/live')}><LiveIcon />ดูถ่ายทอดสด</button>
                   <button type="button" onClick={() => navigate(runtime.section.live?.href || '/browse/games?category=sport')}>เดิมพันทันที</button>
                 </div>
               </article>
@@ -275,102 +271,26 @@ function SectionHeading({ id, icon, label }: { id: string; icon: string; label: 
 }
 
 function MappedImage({ src, alt }: { src: string; alt: string }) {
-  const [resolvedSrc, setResolvedSrc] = useState(() => initialAssetSource(src));
+  const source = src.trim();
+  if (!source) return null;
 
-  useEffect(() => {
-    let active = true;
-    setResolvedSrc(initialAssetSource(src));
-    const candidates = exactLocalCandidates(src);
-    if (!candidates.length) return () => {
-      active = false;
-    };
-
-    void firstExistingAsset(candidates).then((match) => {
-      if (active && match) setResolvedSrc(match);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [src]);
-
-  if (!resolvedSrc) return null;
+  const resolvedSrc = resolveLocalAssetByBasename(source, 'mobile') || source;
 
   return (
     <img
       src={resolvedSrc}
       alt={alt}
       loading="lazy"
-      data-asset-filename={assetFileName(src)}
+      data-asset-filename={assetFileName(source)}
       onError={(event) => {
-        if (resolvedSrc !== src && /^https?:\/\//i.test(src)) {
-          setResolvedSrc(src);
+        if (resolvedSrc !== source && /^https?:\/\//i.test(source)) {
+          event.currentTarget.src = source;
           return;
         }
         event.currentTarget.hidden = true;
       }}
     />
   );
-}
-
-function initialAssetSource(src: string) {
-  const normalized = src.trim();
-  if (!normalized || normalized.startsWith('/images/')) return '';
-  return normalized;
-}
-
-function exactLocalCandidates(src: string) {
-  const normalized = src.trim().replace(/\\/g, '/');
-  if (!normalized || normalized.startsWith('/assets/') || normalized.startsWith('/reference')) return [];
-
-  if (normalized.startsWith('/images/')) {
-    const relative = normalized.slice('/images/'.length);
-    return unique([
-      `${MOBILE_SOURCE_ROOT}/${relative}`,
-      `${LEGACY_MOBILE_SOURCE_ROOT}/${relative}`,
-      `${SOURCE_ROOT}/${relative}`,
-    ]);
-  }
-
-  if (!normalized.startsWith('https://cdn.zabbet.com/')) return [];
-
-  try {
-    const pathname = new URL(normalized).pathname;
-    const filename = assetFileName(pathname);
-    if (!filename) return [];
-
-    if (pathname.startsWith('/games/')) {
-      return unique([
-        `${SOURCE_ROOT}/games/${filename}`,
-        `${SOURCE_ROOT}${pathname}`,
-      ]);
-    }
-
-    return unique([`${SOURCE_ROOT}${pathname}`]);
-  } catch {
-    return [];
-  }
-}
-
-async function firstExistingAsset(candidates: string[]) {
-  for (const candidate of candidates) {
-    if (await probeAsset(candidate)) return candidate;
-  }
-  return '';
-}
-
-function probeAsset(url: string) {
-  const cached = assetProbeCache.get(url);
-  if (cached) return cached;
-
-  const request = fetch(url, {
-    method: 'HEAD',
-    cache: 'force-cache',
-    credentials: 'same-origin',
-  }).then((response) => response.ok).catch(() => false);
-
-  assetProbeCache.set(url, request);
-  return request;
 }
 
 function assetFileName(value: string) {
@@ -386,10 +306,6 @@ function safePathname(value: string) {
   } catch {
     return '';
   }
-}
-
-function unique(values: string[]) {
-  return Array.from(new Set(values.filter(Boolean)));
 }
 
 function padTournamentPlayers(players: MobileSourceTournament['players']) {
@@ -423,4 +339,22 @@ function Chevron() {
 
 function InfoIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 7h.01" /></svg>;
+}
+
+function SoccerIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m12 7 3 2-1 4h-4L9 9l3-2ZM10 13l-3 2M14 13l3 2M9 9 6-1M7 15l1 3M17 15l-1 3" />
+    </svg>
+  );
+}
+
+function LiveIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="3" />
+      <path d="m10 9 5 3-5 3V9Z" />
+    </svg>
+  );
 }
