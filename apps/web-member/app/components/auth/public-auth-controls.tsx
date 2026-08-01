@@ -15,7 +15,8 @@ export default function PublicAuthControls() {
   const close = useCallback(() => setMode(null), []);
 
   const complete = useCallback(async () => {
-    await verify();
+    const authenticated = await verify();
+    if (!authenticated) return;
     setMode(null);
     router.refresh();
   }, [router, verify]);
@@ -40,7 +41,14 @@ export default function PublicAuthControls() {
           สมัครสมาชิก
         </button>
       </div>
-      {mode ? <MemberAuthOverlay mode={mode} onClose={close} onSuccess={complete} /> : null}
+      {mode ? (
+        <MemberAuthOverlay
+          mode={mode}
+          onModeChange={setMode}
+          onClose={close}
+          onSuccess={complete}
+        />
+      ) : null}
     </>
   );
 }
